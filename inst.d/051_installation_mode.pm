@@ -29,8 +29,7 @@ sub run()
 			sendkey "alt-s"; # toggle automatic configuration
 			waitforneedle("autoconf-deselected", 10);
 		}
-	    	sendkeyw $cmd{"next"};
-		waitforneedle("inst-timezone", 30) || die 'no timezone';
+		sendkeyw $cmd{"next"};
 	}
 }
 

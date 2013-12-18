@@ -7,13 +7,13 @@ sub run() {
 	my $self=shift;
 
 	# workaround for yast popups
-	my @tags = qw/rebootnow yast-error-ntp/;
+	my @tags = qw/rebootnow hooks-results yast-error-ntp/;
 	while (1) {
 		my $ret = waitforneedle(\@tags, 1500); # NET isos and UPGRADE are slow to install
 
-		last unless ($ret->{needle}->has_tag("yast-error-ntp"));
+		last unless ($ret->{needle}->has_tag("yast-error-ntp") || $ret->{needle}->has_tag("hooks-results"));
 		++$self->{dents};
-		diag "ntp popup caused dent";
+		diag "warning popup caused dent";
 		sendkey "ret";
 		pop @tags;
 	}
