@@ -1,6 +1,14 @@
 use base "basetest";
 use bmwqemu;
 
+sub is_applicable()
+{
+	my $self = shift;
+	# except staging_core image, the rest of staging_*
+	# images don't need run this test case
+	return !($ENV{FLAVOR}=~/staging_[a-z]/ && $ENV{FLAVOR} ne 'staging_core');
+}
+
 sub run()
 {
 	my $self=shift;
