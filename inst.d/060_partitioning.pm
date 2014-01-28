@@ -97,7 +97,16 @@ sub setraidlevel($)
 # Entry test code
 sub run()
 {
-    waitforneedle('partitioning', 40);
+    # XXX: yast introduced a popup instead of immediate check boxes.
+    # this is a workaround to be able to deal with both old and new
+    # style. Needs to go away. BTRFS and TOGGLEHOME must be ajdusted
+    # to the new way.
+    my $newstyle;
+    my $closedialog;
+    my $ret = waitforneedle(['partitioning', 'partioning-edit-proposal-button'], 40);
+    if ($ret->{needle}->has_tag('partioning-edit-proposal-button')) {
+	    $newstyle = 1;
+    }
 
     if($ENV{DUALBOOT}) {
 	waitforneedle('partitioning-windows', 40);
@@ -106,6 +115,11 @@ sub run()
     # XXX: why is that here?
     if($ENV{TOGGLEHOME} && !$ENV{LIVECD}) {
 	my $homekey=checkEnv('VIDEOMODE', "text")?"alt-p":"alt-h";
+	if ($newstyle) {
+	    sendkey 'alt-d';
+	    $closedialog = 1;
+	    $homekey = 'alt-p';
+	}
 	sendkey $homekey;
 	waitforneedle("disabledhome", 10);
     }
@@ -200,8 +214,13 @@ sub run()
 	sendkey $cmd{"accept"};
 	waitforneedle('acceptedpartitioning', 6);
     } elsif ($ENV{BTRFS}) {
+	# XXX: broken with newstyle
 	sendkey "alt-u";  # Use btrfs
 	waitforneedle('usebtrfs', 3);
+    }
+
+    if ($closedialog) {
+	sendkey 'alt-o';
     }
 }
 
