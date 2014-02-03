@@ -7,7 +7,7 @@ sub is_applicable()
 	# in live we don't have a password for root so ssh doesn't
 	# work anyways, and except staging_core image, the rest of
 	# staging_* images don't need run this test case
-	return !$ENV{LIVETEST} && !($ENV{FLAVOR}=~/staging_[a-z]/ && $ENV{FLAVOR} ne 'staging_core');
+	return !$ENV{LIVETEST} && !($ENV{FLAVOR}=~/staging_[a-z]/);
 }
 
 sub run()
