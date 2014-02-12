@@ -11,8 +11,10 @@ sub run()
 	$self->check_screen;
 	sleep 2;
 	sendkeyw "alt-a"; # accept
-	sendkeyw "alt-o"; # continue (accepting dependencies)
 	waitstillimage(16,60);
+	waitforneedle('test-yast2_i-shows-summary', 2);
+	sendkeyw "alt-f"; # finish yast2_i
+	sleep 1;
 	script_run('echo $?');
 	$self->check_screen;
 	sendkey "ctrl-l"; # clear screen to see that second update does not do any more
