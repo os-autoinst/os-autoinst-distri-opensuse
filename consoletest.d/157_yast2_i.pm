@@ -4,7 +4,7 @@ sub run()
 {
 	my $self=shift;
 	script_sudo("/sbin/yast2 -i");
-	waitstillimage(16,90);
+	waitstillimage(36,90);
 	sendautotype("xdelta\n");sleep 3;
 	sendkey "spc";   # select for install
 	sleep 1;
@@ -18,8 +18,9 @@ sub run()
 	script_run('echo $?');
 	$self->check_screen;
 	sendkey "ctrl-l"; # clear screen to see that second update does not do any more
-	script_sudo("rpm -e  xdelta && echo 'removed_rpm' > /dev/$serialdev"); # extra space to have different result images than for zypper_in test
-	waitserial("removed_rpm", 700) || die "remove rpm failed";
+	script_sudo("rpm -e  xdelta && echo 'xdelta_removed' > /dev/$serialdev"); # extra space to have different result images than for zypper_in test
+	waitserial("xdelta_removed", 20) || die "xdelta remove failed";
+	sleep 3;
 	script_run("rpm -q xdelta");
 	# make sure we go out of here
 	waitforneedle('test-yast2_i-xdelta-not-installed', 1);
