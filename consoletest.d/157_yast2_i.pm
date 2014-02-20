@@ -17,10 +17,10 @@ sub run()
 	sleep 1;
 	script_run('echo $?');
 	$self->check_screen;
+	sleep 3;
 	sendkey "ctrl-l"; # clear screen to see that second update does not do any more
 	script_sudo("rpm -e  xdelta && echo 'xdelta_removed' > /dev/$serialdev"); # extra space to have different result images than for zypper_in test
-	waitserial("xdelta_removed", 20) || die "xdelta remove failed";
-	sleep 3;
+	waitserial("xdelta_removed") || die "xdelta remove failed";
 	script_run("rpm -q xdelta");
 	# make sure we go out of here
 	waitforneedle('test-yast2_i-xdelta-not-installed', 1);
