@@ -7,7 +7,10 @@ sub run()
 	become_root();
 	script_run('SuSEfirewall2 off');
 	script_run('chkconfig sshd on');
-	script_run('rcsshd restart'); # will do nothing if it is already running
+	script_run("chkconfig sshd on && echo 'sshd_on' > /dev/$serialdev");
+	waitserial("sshd_on", 60) || die "enable sshd failed";
+	script_run("rcsshd restart && echo 'sshd_restart' > /dev/$serialdev"); # will do nothing if it is already running
+	waitserial("sshd_restart", 60) || die "restart sshd failed";
 	script_run('echo $?');
 	script_run('rcsshd status');
 	script_run('exit');
