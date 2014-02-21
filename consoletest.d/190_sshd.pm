@@ -15,6 +15,15 @@ sub run()
 	script_run('rcsshd status');
 	script_run('exit');
 	$self->check_screen;
+	waitidle 5;
+	script_run('ssh root@localhost -t echo LOGIN_SUCCESSFUL');
+	my $ret = waitforneedle("ssh-login", 60);
+	if( $ret->{needle}->has_tag("ssh-login") ) {
+	  sendautotype "yes\n";
+	}
+	sleep 3;
+	sendpassword; sendautotype "\n";
+	waitforneedle("ssh-login-ok", 10);
 }
 
 sub test_flags() {
