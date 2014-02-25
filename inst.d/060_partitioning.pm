@@ -122,6 +122,11 @@ sub run()
 	}
 	sendkey $homekey;
 	waitforneedle("disabledhome", 10);
+	waitidle 3;
+	if ($closedialog) {
+	    sendkey 'alt-o';
+	    $closedialog = 0;
+	}
     }
 
     if(defined($ENV{RAIDLEVEL})) {
@@ -214,13 +219,27 @@ sub run()
 	sendkey $cmd{"accept"};
 	waitforneedle('acceptedpartitioning', 6);
     } elsif ($ENV{BTRFS}) {
-	# XXX: broken with newstyle
-	sendkey "alt-u";  # Use btrfs
+	if ($newstyle) {
+	    sendkey "alt-d";
+	    $closedialog = 1;
+	}
+	if (!checkneedle('usebtrfs')) {
+	    waitidle 3;
+	    if ($newstyle) {
+		sendkey "alt-f";
+		sleep 2;
+		sendkey "b"; # use btrfs
+	    } else {
+		sendkey "alt-u"; # use btrfs
+	    }
+	}
+	sleep 3;
 	waitforneedle('usebtrfs', 3);
-    }
 
-    if ($closedialog) {
-	sendkey 'alt-o';
+	if ($closedialog) {
+	    sendkey 'alt-o';
+	    $closedialog = 0;
+	}
     }
 }
 
