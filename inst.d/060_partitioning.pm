@@ -122,11 +122,11 @@ sub run()
 	}
 	sendkey $homekey;
 	waitforneedle("disabledhome", 10);
-	waitidle 3;
 	if ($closedialog) {
 	    sendkey 'alt-o';
 	    $closedialog = 0;
 	}
+	waitidle 5;
     }
 
     if(defined($ENV{RAIDLEVEL})) {
