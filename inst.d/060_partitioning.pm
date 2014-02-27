@@ -191,6 +191,11 @@ sub run()
 	setraidlevel(1); # RAID 1 for /boot
 	addraid(2);
 
+	sendkey "alt-s"; # change filesystem to FAT for /boot
+	for (1..3) {
+	    sendkey "down"; # select Ext4
+	}
+
 	sendkey $cmd{"mountpoint"};
 	for (1..3) {
 	    sendkey "down";
