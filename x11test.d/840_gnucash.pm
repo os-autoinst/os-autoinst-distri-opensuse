@@ -6,18 +6,15 @@ sub run()
   my $self=shift;
   ensure_installed("gnucash");
   ensure_installed("gnucash-docs");
+  # needed for viewing
+  ensure_installed("yelp");
   x11_start_program("gnucash");
   $self->check_screen;
-  sendkey "alt-o"; # open new user tutorial
-  sendkey "spc";
-  sendkey "alt-o";
-  sendkey "spc";
-  waitidle;
+  sendkey "ctrl-h"; # open user tutorial
+  waitidle 5;
   $self->check_screen;
   sendkey "alt-f4"; # Leave tutorial window
-  sleep 2;
-  # Leave tips windows for GNOME case
-  if($ENV{GNOME}) { sendkey "alt-c"; sleep 2; }
+  waitidle;
   sendkey "ctrl-q"; # Exit
 }
 
