@@ -10,7 +10,10 @@ sub run()
 	script_run("killall gpk-update-icon kpackagekitsmarticon packagekitd");
 	#script_run("zypper ar http://download.opensuse.org/repositories/Cloud:/EC2/openSUSE_Factory/Cloud:EC2.repo"); # for suse-ami-tools
 	script_run("zypper --gpg-auto-import-keys -n in screen xdelta && echo 'installed' > /dev/$serialdev");
-	waitserial("installed", 200) || $self->take_screenshot();
+	if(!waitserial("installed", 200)) {
+	        $self->take_screenshot(); waitidle;
+	        die "zypper install failed";
+	}
 	waitidle 5;
 	script_run('echo $?');
 	$self->check_screen;
