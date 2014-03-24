@@ -15,7 +15,7 @@ sub run()
   $self->check_screen;
   sendkey "alt-f4"; # Leave tutorial window
   # Leave tips windows for GNOME case
-  if($ENV{DESKTOP} eq "gnome") { sleep 3; sendkey "alt-c"; }
+  if($ENV{DESKTOP} eq "gnome" || $ENV{DESKTOP} eq "xfce") { sleep 3; sendkey "alt-c"; }
   waitidle;
   sendkey "ctrl-q"; # Exit
 }
