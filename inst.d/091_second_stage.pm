@@ -5,6 +5,11 @@ use bmwqemu;
 
 sub run() {
 	my $self=shift;
+
+	if ($ENV{ENCRYPT}) {
+	        wait_encrypt_prompt;
+	}
+
 	#if($ENV{RAIDLEVEL} && !$ENV{LIVECD}) { do "$scriptdir/workaround/656536.pm" }
 	#waitforneedle "automaticconfiguration", 70;
 	mouse_hide();
