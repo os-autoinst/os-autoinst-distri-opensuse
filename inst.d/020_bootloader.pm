@@ -21,19 +21,17 @@ sub run()
 	waitforneedle("boot-menu", 1);
 	sendkey "f12";
 	waitforneedle("boot-menu-usb", 4);
-	for (1..$ENV{NUMDISKS}) {
-	    sendkey(2 + $ENV{NUMDISKS} + 1);
-	}
+	sendkey(2 + $ENV{NUMDISKS});
     }
 
-	waitforneedle("inst-bootmenu", 15);
-	if($ENV{ZDUP} || $ENV{WDUP}) {
-		qemusend "eject -f ide1-cd0";
-		qemusend "system_reset";
-		sleep 10;
-		sendkey "ret"; # boot
-		return;
-	}
+    waitforneedle("inst-bootmenu", 15);
+    if($ENV{ZDUP} || $ENV{WDUP}) {
+	qemusend "eject -f ide1-cd0";
+	qemusend "system_reset";
+	sleep 10;
+	sendkey "ret"; # boot
+	return;
+    }
 
 if($ENV{MEMTEST}) { # special
 	# only run this one
