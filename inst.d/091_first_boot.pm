@@ -45,7 +45,7 @@ sub run() {
 	}
 
 
-	# Check for errors during the second stage
+	# Check for errors during first boot
 	my $err = 0;
 	while (1) {
 	    my $ret = waitforneedle([qw/desktop-at-first-boot install-failed/], 200);
