@@ -19,8 +19,8 @@ sub run()
 	script_run('alsamixer');
 	sleep 1;
 	$self->check_screen;
-	$self->sendkey('esc');
-	$self->sendkey('esc');
+	sendkey "esc";
+	sendkey "esc";
 }
 
 1;
