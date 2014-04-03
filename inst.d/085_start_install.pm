@@ -50,7 +50,9 @@ sub run()
 	if(!$ENV{LIVECD} && !$ENV{NICEVIDEO} && !$ENV{UPGRADE} && !checkEnv('VIDEOMODE', 'text')) {
 		sleep 5;
 		# view installation details
-		sendkey $cmd{instdetails};
+		if(checkneedle("deploying-image", 40)) {
+		        sendkey $cmd{instdetails};
+                }
 		if ($ENV{DVD} && !$ENV{NOIMAGES}) {
 			if (checkEnv('DESKTOP', 'kde')) {
 				waitforneedle('kde-imagesused', 100);
