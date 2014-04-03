@@ -16,9 +16,8 @@ use strict;
 use base "basetest";
 use bmwqemu;
 
-sub run()
-{
-    my $self=shift;
+sub run() {
+    my $self = shift;
     mouse_hide();
 
     # Download a mhtml file to the local machine.
@@ -27,41 +26,50 @@ sub run()
 
     # Launch firefox
     x11_start_program("firefox");
-    waitforneedle("start-firefox",5);
-    if($ENV{UPGRADE}) { sendkey("alt-d");waitidle; } # Don't check for updated plugins
-    if($ENV{DESKTOP}=~/xfce|lxde/i) {
-        sendkey "ret"; # Confirm default browser setting popup
+    waitforneedle( "start-firefox", 5 );
+    if ( $ENV{UPGRADE} ) { sendkey("alt-d"); waitidle; }    # Don't check for updated plugins
+    if ( $ENV{DESKTOP} =~ /xfce|lxde/i ) {
+        sendkey "ret";                                      # Confirm default browser setting popup
         waitidle;
     }
-    sendkey "alt-f10"; # Maximize
+    sendkey "alt-f10";                                      # Maximize
 
     # Install UnMHT extension
-    sendkey "ctrl-shift-a"; sleep 5; # Add-ons Manager
-    sendkey "alt-d"; sleep 2;
-    sendautotype "https://addons.mozilla.org/firefox/downloads/latest/8051/addon-8051-latest.xpi\n"; sleep 15; # Install the extension 
-    checkneedle("test-firefox_mhtml-1",5);
-    sendkey "ret"; sleep 2;
+    sendkey "ctrl-shift-a";
+    sleep 5;                                                # Add-ons Manager
+    sendkey "alt-d";
+    sleep 2;
+    sendautotype "https://addons.mozilla.org/firefox/downloads/latest/8051/addon-8051-latest.xpi\n";
+    sleep 15;                                               # Install the extension
+    checkneedle( "test-firefox_mhtml-1", 5 );
+    sendkey "ret";
+    sleep 2;
     sendkey "ctrl-w";
 
     # Open mhtml file
-    sendkey "ctrl-o"; sleep 1; #"Open File" window
-    checkneedle("test-firefox-openfile-1",5); 
+    sendkey "ctrl-o";
+    sleep 1;                                                #"Open File" window
+    checkneedle( "test-firefox-openfile-1", 5 );
 
     # Find .mht file to open
     sendkey "left";
     sendkey "down";
-    sendkey "right"; sleep 1;
-    sendautotype "google\n"; # find the directory www.gnu.org and enter
+    sendkey "right";
+    sleep 1;
+    sendautotype "google\n";                                # find the directory www.gnu.org and enter
     sleep 5;
     sendkey "tab";
-    checkneedle("test-firefox_mhtml-2",5); sleep 2;
+    checkneedle( "test-firefox_mhtml-2", 5 );
+    sleep 2;
 
     # Open remote mhtml address
-    sendkey "alt-d"; sleep 1;
+    sendkey "alt-d";
+    sleep 1;
     sendautotype "http://www.fileformat.info/format/mime-html/sample/9c96b3d179f84b98b35d4c8c2ec13e04/google.mht\n";
     sleep 10;
-    checkneedle("test-firefox_mthml-3",5); sleep 2;
-    
+    checkneedle( "test-firefox_mthml-3", 5 );
+    sleep 2;
+
     # Restore and close
 
     ###############################################################
@@ -89,7 +97,7 @@ sub run()
     # }
     # sendkey "right";
     # sendkey "ctrl-w"; # Close "Add-ons" Manager
-    # 
+    #
 
     # sendkey "ctrl-w"; # Close the only tab (exit)
     # sendkey "ret"; sleep 2; # confirm "save&quit"
@@ -97,12 +105,14 @@ sub run()
     # sendautotype "rm -f ~/.mozilla/firefox/*.default/prefs.js\n"; sleep 1; # Remove prefs.js to avoid browser remember default folder used by "Open File" window
     # sendkey "ctrl-d"; # Exit xterm
 
-    sendkey "alt-f4"; sleep 1; # Exit firefox
-    sendkey "ret"; # confirm "save&quit"
-    x11_start_program("rm -rf .mozilla"); # Clear profile directory
-    x11_start_program("rm -rf google.mht\n"); sleep 1; # Remove .mht file
+    sendkey "alt-f4";
+    sleep 1;                                 # Exit firefox
+    sendkey "ret";                           # confirm "save&quit"
+    x11_start_program("rm -rf .mozilla");    # Clear profile directory
+    x11_start_program("rm -rf google.mht\n");
+    sleep 1;                                 # Remove .mht file
     sleep 2;
-     
-}   
+
+}
 
 1;
