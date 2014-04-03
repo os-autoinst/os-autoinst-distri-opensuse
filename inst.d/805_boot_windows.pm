@@ -1,14 +1,11 @@
 use base "installstep";
 use bmwqemu;
 
-
-sub is_applicable()
-{
+sub is_applicable() {
     return $ENV{DUALBOOT};
 }
 
-sub run()
-{
+sub run() {
     my $self = shift;
 
     # Eject the DVD
@@ -22,10 +19,13 @@ sub run()
     # qemusend "eject ide1-cd0";
 
     wait_encrypt_prompt;
-    waitforneedle("grub-reboot-windows", 25);
+    waitforneedle( "grub-reboot-windows", 25 );
 
-    sendkey "down"; sendkey "down"; sendkey "ret";
-    waitforneedle("windows8", 80);    
+    sendkey "down";
+    sendkey "down";
+    sendkey "ret";
+    waitforneedle( "windows8", 80 );
 }
 
 1;
+# vim: set sw=4 et:
