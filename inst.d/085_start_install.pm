@@ -48,12 +48,11 @@ sub run()
 	        waitforneedle("inst-packageinstallationstarted");
 	}
 	if(!$ENV{LIVECD} && !$ENV{NICEVIDEO} && !$ENV{UPGRADE} && !checkEnv('VIDEOMODE', 'text')) {
-		sleep 5;
-		# view installation details
-		if(checkneedle("deploying-image", 40)) {
-		        sendkey $cmd{instdetails};
-                }
 		if ($ENV{DVD} && !$ENV{NOIMAGES}) {
+		        if(checkneedle("deploying-image", 40)) {
+		                # view installation details
+		                sendkey $cmd{instdetails};
+                        }
 			if (checkEnv('DESKTOP', 'kde')) {
 				waitforneedle('kde-imagesused', 100);
 			} elsif (checkEnv('DESKTOP', 'gnome')) {
@@ -61,6 +60,10 @@ sub run()
 			} elsif (!checkEnv("DESKTOP", "textmode")) {
 				waitforneedle('x11-imagesused', 100);
 			}
+		} else {
+		       sleep 5;
+		       # view installation details
+		       sendkey $cmd{instdetails};
 		} 
 	}
 }
