@@ -58,7 +58,7 @@ sub run() {
     # should waitforneedle wait for all three at the same time and then have only checkneedle afterwards?
     my $ret;
     for (my $counter = 20; $counter > 0; $counter--) {
-      $ret = checkforneedle( [ 'inst-bootmenu', 'grub2' ], 3 );
+      $ret = checkneedle( [ 'inst-bootmenu', 'grub2' ], 3 );
       if ( defined($ret) ) {
         sendkey "ret";    # avoid timeout for booting to HDD
         last;
