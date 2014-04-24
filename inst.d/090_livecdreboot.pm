@@ -56,9 +56,17 @@ sub run() {
     # 2nd stage automatic configuration. And then ere is also
     # reboot_after_install from 800_reboot_after_install.pm
     # should waitforneedle wait for all three at the same time and then have only checkneedle afterwards?
-    my $ret = waitforneedle( [ 'inst-bootmenu', 'grub2' ], 60 );
-    if ( defined($ret) ) {
+    my $ret;
+    for (my $counter = 20; $counter > 0; $counter--) {
+      $ret = checkforneedle( [ 'inst-bootmenu', 'grub2' ], 3 );
+      if ( defined($ret) ) {
         sendkey "ret";    # avoid timeout for booting to HDD
+        last;
+      }
+    }
+    # report the failure
+    unless ( defined($ret) ) {
+      waitforneedle([ 'inst-bootmenu', 'grub2' ], 1 );
     }
     qemusend "eject ide1-cd0";
     sleep 3;
