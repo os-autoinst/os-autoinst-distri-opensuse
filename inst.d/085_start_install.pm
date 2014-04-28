@@ -53,9 +53,15 @@ sub run() {
         waitforneedle("inst-packageinstallationstarted");
     }
     if ( !$ENV{LIVECD} && !$ENV{NICEVIDEO} && !$ENV{UPGRADE} && !checkEnv( 'VIDEOMODE', 'text' ) ) {
-	while ( !checkneedle( "installation-details-view", 10 ) ) {
-	    sendkey $cmd{instdetails};
-	}
+        while (1) {
+            my $ret = checkneedle( [ 'installation-details-view', 'inst-bootmenu', 'grub2' ], 10 );
+            if ( defined($ret) ) {
+                last if $ret->{needle}->has_tag("installation-details-view");
+                # intention to let this test fail
+                waitforneedle( 'installation-details-view', 1 ) if ( $ret->{needle}->has_tag("inst-bootmenu") || $ret->{needle}->has_tag("grub2") );
+            }
+            sendkey $cmd{instdetails};
+        }
         if ( $ENV{DVD} && !$ENV{NOIMAGES} ) {
             if ( checkEnv( 'DESKTOP', 'kde' ) ) {
                 waitforneedle( 'kde-imagesused', 500 );
