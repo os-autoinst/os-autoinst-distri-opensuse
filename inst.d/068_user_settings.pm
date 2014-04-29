@@ -22,6 +22,7 @@ sub run() {
         sendautotype("$password\t");
     }
     waitforneedle( "inst-userinfostyped", 5 );
+    waitidle 6;
     if ( $ENV{NOAUTOLOGIN} ) {
         sendkey $cmd{"noautologin"};
         waitforneedle( "autologindisabled", 5 );
