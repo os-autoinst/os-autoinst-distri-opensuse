@@ -122,7 +122,8 @@ if ( checkEnv( 'DESKTOP', 'minimalx' ) ) {
 
 $ENV{SUSEMIRROR} ||= "download.opensuse.org/factory";
 
-cleanup_needles();
+$needle::cleanuphandler = \&cleanup_needles;
+
 $ENV{SCREENSHOTINTERVAL} ||= .5;
 
 # dump other important ENV:
