@@ -46,9 +46,14 @@ sub run() {
 
     # Check for errors during first boot
     my $err = 0;
+    my @tags = qw/desktop-at-first-boot install-failed kde-greeter/;
     while (1) {
-        my $ret = waitforneedle( [qw/desktop-at-first-boot install-failed/], 200 );
+        my $ret = waitforneedle( \@tags, 200 );
         last if $ret->{needle}->has_tag("desktop-at-first-boot");
+	if ($ret->{needle}->has_tag("kde-greeter")) {
+   	  sendkey "esc";
+	  @tags = grep { $_ ne 'kde-greeter' } @tags;
+	}
         $self->take_screenshot;
         sleep 2;
         sendkey "ret";
@@ -56,12 +61,6 @@ sub run() {
     }
 
     mydie if $err;
-
-    if ( checkEnv( 'DESKTOP', 'kde' ) ) {
-        sendkey "esc";
-        sleep 2;
-        $self->take_screenshot();
-    }
 }
 
 sub test_flags() {
