@@ -10,7 +10,7 @@ sub run() {
     my $self = shift;
     ensure_installed("gimp");
     x11_start_program("gimp");
-    $self->check_screen;
+    waitforneedle("test-gimp-1", 20);
     sendkey "alt-f4";    # Exit
 }
 
