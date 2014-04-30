@@ -40,6 +40,7 @@ sub run() {
     sendkey $cmd{"finish"};
     waitforneedle( "partition-splitusr-finished", 3 );
     sendkeyw $cmd{"accept"};
+    sendkey "alt-y";           # Quit the warning window
 }
 
 1;
