@@ -53,6 +53,7 @@ sub run() {
 	if ($ret->{needle}->has_tag("kde-greeter")) {
    	  sendkey "esc";
 	  @tags = grep { $_ ne 'kde-greeter' } @tags;
+	  next;
 	}
         $self->take_screenshot;
         sleep 2;
