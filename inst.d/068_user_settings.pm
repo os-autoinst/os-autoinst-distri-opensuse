@@ -22,10 +22,22 @@ sub run() {
         sendautotype("$password\t");
     }
     waitforneedle( "inst-userinfostyped", 5 );
-    waitidle 6;
     if ( $ENV{NOAUTOLOGIN} ) {
-        sendkey $cmd{"noautologin"};
-        waitforneedle( "autologindisabled", 5 );
+        my $ret;
+        for (my $counter = 10; $counter > 0; $counter--) {
+            $ret = checkneedle( "autologindisabled", 3 );
+            if ( defined($ret) ) {
+                last;
+            }
+            else {
+                ++$self->{dents};
+                sendkey $cmd{"noautologin"};
+            }
+        }
+        # report the failure or green
+        unless ( defined($ret) ) {
+            waitforneedle( "autologindisabled", 1 );
+        }
     }
     if ( $ENV{DOCRUN} ) {
         sendkey $cmd{"otherrootpw"};
