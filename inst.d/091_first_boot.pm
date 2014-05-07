@@ -53,8 +53,20 @@ sub run() {
 	if ($ret->{needle}->has_tag("kde-greeter")) {
    	  sendkey "esc";
 	  @tags = grep { $_ ne 'kde-greeter' } @tags;
+	  push(@tags, "drkonqi-crash");
 	  next;
 	}
+        if ($ret->{needle}->has_tag("drkonqi-crash")) {
+          sendkey "alt-d";
+	  # maximize
+	  sendkey "alt-shift-f3";
+	  sleep 8;
+	  $self->take_screenshot;
+	  sendkey "alt-c";
+          @tags = grep { $_ ne 'drkonqi-crash' } @tags;
+          next;
+        }
+
         $self->take_screenshot;
         sleep 2;
         sendkey "ret";

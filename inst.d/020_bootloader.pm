@@ -91,6 +91,7 @@ sub run() {
 
     # https://wiki.archlinux.org/index.php/Kernel_Mode_Setting#Forcing_modes_and_EDID
     sendautotype("vga=791 ");
+    sendautotype("Y2DEBUG=1 ");
     sendautotype( "video=1024x768-16 ",                              13 );
     sendautotype( "drm_kms_helper.edid_firmware=edid/1024x768.bin ", 7 );
     waitforneedle( "inst-video-typed", 13 );
