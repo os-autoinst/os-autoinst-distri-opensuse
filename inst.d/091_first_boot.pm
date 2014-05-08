@@ -29,25 +29,25 @@ sub run() {
         my $ret = waitforneedle( \@tags, 200 );
         last if $ret->{needle}->has_tag("desktop-at-first-boot");
 	if ($ret->{needle}->has_tag("kde-greeter")) {
-   	  sendkey "esc";
+   	  send_key "esc";
 	  @tags = grep { $_ ne 'kde-greeter' } @tags;
 	  push(@tags, "drkonqi-crash");
 	  next;
 	}
         if ($ret->{needle}->has_tag("drkonqi-crash")) {
-          sendkey "alt-d";
+          send_key "alt-d";
 	  # maximize
-	  sendkey "alt-shift-f3";
+	  send_key "alt-shift-f3";
 	  sleep 8;
 	  $self->take_screenshot;
-	  sendkey "alt-c";
+	  send_key "alt-c";
           @tags = grep { $_ ne 'drkonqi-crash' } @tags;
           next;
         }
 
         $self->take_screenshot;
         sleep 2;
-        sendkey "ret";
+        send_key "ret";
         $err = 1;
     }
 
