@@ -13,7 +13,7 @@ sub is_applicable {
 sub run() {
     my $self = shift;
     x11_start_program("gedit");
-    sendautotype("If you can see this text gedit is working.\n");
+    type_string "If you can see this text gedit is working.\n";
     sleep 2;
     $self->check_screen;
     sleep 2;

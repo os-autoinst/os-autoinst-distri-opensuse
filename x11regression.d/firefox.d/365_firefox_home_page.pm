@@ -26,7 +26,7 @@ sub run() {
     sleep 1;
     send_key "alt-p";
     sleep 1;
-    sendautotype "www.google.com";
+    type_string "www.google.com";
     sleep 2;
     checkneedle( "firefox_pref-general-homepage", 5 );
     send_key "ret";

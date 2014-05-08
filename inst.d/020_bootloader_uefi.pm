@@ -52,7 +52,7 @@ sub run() {
     send_key "end";
     if ( $ENV{NETBOOT} && $ENV{SUSEMIRROR} ) {
         for ( 1 .. 49 ) { send_key "backspace"; }
-        sendautotype( $ENV{SUSEMIRROR} );
+        type_string  $ENV{SUSEMIRROR} ;
     }
     send_key "spc";
 
@@ -62,54 +62,54 @@ sub run() {
 
     # 1024x768
     if ( $ENV{RES1024} ) {    # default is 800x600
-        sendautotype("video=1024x768-16 ");
+        type_string "video=1024x768-16 ";
     }
     elsif ( checkEnv( 'VIDEOMODE', "text" ) ) {
-        sendautotype("textmode=1 ");
+        type_string "textmode=1 ";
     }
 
-    #sendautotype("nohz=off "); # NOHZ caused errors with 2.6.26
-    #sendautotype("nomodeset "); # coolo said, 12.3-MS0 kernel/kms broken with cirrus/vesa #fixed 2012-11-06
+    #type_string "nohz=off "; # NOHZ caused errors with 2.6.26
+    #type_string "nomodeset "; # coolo said, 12.3-MS0 kernel/kms broken with cirrus/vesa #fixed 2012-11-06
 
     # https://wiki.archlinux.org/index.php/Kernel_Mode_Setting#Forcing_modes_and_EDID
-    sendautotype("vga=791 ");
-    sendautotype("video=1024x768-16 ");
-    sendautotype("drm_kms_helper.edid_firmware=edid/1024x768.bin ");
+    type_string "vga=791 ";
+    type_string "video=1024x768-16 ";
+    type_string "drm_kms_helper.edid_firmware=edid/1024x768.bin ";
     waitforneedle( "inst-video-typed-grub2", 13 );
 
     if ( !$ENV{NICEVIDEO} ) {
         sleep 15;
-        sendautotype("console=ttyS0 ");    # to get crash dumps as text
+        type_string "console=ttyS0 ";    # to get crash dumps as text
         sleep 15;
-        sendautotype("console=tty ");      # to get crash dumps as text
+        type_string "console=tty ";      # to get crash dumps as text
         my $e = $ENV{EXTRABOOTPARAMS};
 
         #	if($ENV{RAIDLEVEL}) {$e="linuxrc=trace"}
-        if ($e) { sleep 10; sendautotype("$e "); }
+        if ($e) { sleep 10; type_string "$e "; }
         sleep 15;                          # workaround slow gfxboot drawing 662991
     }
 
-    #sendautotype("kiwidebug=1 ");
+    #type_string "kiwidebug=1 ";
 
-    #if($ENV{BTRFS}) {sleep 9; sendautotype("squash=0 loadimage=0 ");sleep 21} # workaround 697671
+    #if($ENV{BTRFS}) {sleep 9; type_string "squash=0 loadimage=0 ";sleep 21} # workaround 697671
 
     if ( $ENV{ISO} =~ m/i586/ ) {
 
-        #	sendautotype("info=");sleep 4; sendautotype("http://zq1.de/i "); sleep 15; sendautotype("insecure=1 "); sleep 15;
+        #	type_string "info=";sleep 4; type_string "http://zq1.de/i "; sleep 15; type_string "insecure=1 "; sleep 15;
     }
     my $args = "";
     if ( $ENV{AUTOYAST} ) {
         $args .= " netsetup=dhcp,all autoyast=$ENV{AUTOYAST} ";
     }
-    sendautotype $args;
+    type_string $args;
     if ( 0 && $ENV{RAIDLEVEL} ) {
 
         # workaround bnc#711724
         $ENV{ADDONURL} = "http://download.opensuse.org/repositories/home:/snwint/openSUSE_Factory/";    #TODO: drop
         $ENV{DUD}      = "dud=http://zq1.de/bl10";
-        sendautotype("$ENV{DUD} ");
+        type_string "$ENV{DUD} ";
         sleep 20;
-        sendautotype("insecure=1 ");
+        type_string "insecure=1 ";
         sleep 20;
     }
 
@@ -117,7 +117,7 @@ sub run() {
         send_key "1";    # runlevel 1
         send_key "f10";  # boot
         sleep(40);
-        sendautotype( "
+        type_string( "
 ls -ld /tmp
 chmod 1777 /tmp
 init 5

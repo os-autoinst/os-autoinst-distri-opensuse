@@ -22,12 +22,12 @@ sub run() {
 
     send_key "ctrl-l";
     sleep 1;
-    sendautotype "https://pdb.suse.de" . "\n";
+    type_string "https://pdb.suse.de" . "\n";
     sleep 5;                                                #open this site
     checkneedle( "firefox_https-risk", 3 );                 #will get untrusted page
     send_key "ctrl-l";
     sleep 1;
-    sendautotype "https://svn.provo.novell.com/svn/opsqa/trunk/tests/qa_test_firefox/qa_test_firefox/test_source/pdb.suse.de" . "\n";
+    type_string "https://svn.provo.novell.com/svn/opsqa/trunk/tests/qa_test_firefox/qa_test_firefox/test_source/pdb.suse.de" . "\n";
     sleep 5;
     checkneedle( "firefox_page-pdbsuse", 5 );
     send_key "ctrl-s";
@@ -37,7 +37,7 @@ sub run() {
     sleep 1;
     send_key "backspace";
     sleep 1;
-    sendautotype "/home/" . $username . "/pdb.suse.de" . "\n";
+    type_string "/home/" . $username . "/pdb.suse.de" . "\n";
     sleep 1;
 
     send_key "alt-e";
@@ -64,7 +64,7 @@ sub run() {
     sleep 1;
     send_key "ret";
     sleep 1;
-    sendautotype "/home/" . $username . "/pdb.suse.de" . "\n";
+    type_string "/home/" . $username . "/pdb.suse.de" . "\n";
     sleep 1;
 
     #recover all the changes done to "Preference"
@@ -94,7 +94,7 @@ sub run() {
     sleep 1;
     send_key "ctrl-l";
     sleep 1;
-    sendautotype "https://pdb.suse.de" . "\n";
+    type_string "https://pdb.suse.de" . "\n";
     sleep 5;            #open this site again
     checkneedle( "firefox_https-pdbsuse", 3 );    #will get untrusted page
 

@@ -25,7 +25,7 @@ sub run() {
     for my $site (@sites) {
         send_key "ctrl-l";
         sleep 1;
-        sendautotype $site. "\n";
+        type_string $site. "\n";
         sleep 5;
         $site =~ s{\.com}{};
         $site =~ s{.*\.}{};

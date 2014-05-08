@@ -18,7 +18,7 @@ sub run() {
     waitstillimage( 12, 90 );
     script_run('cd /var/tmp ; mkdir mnt ; sshfs localhost:/ mnt');
     waitforneedle( "accept-ssh-host-key", 3 );
-    sendautotype("yes\n");    # trust ssh host key
+    type_string "yes\n";    # trust ssh host key
     sendpassword;
     send_key "ret";
     waitforneedle( 'sshfs-accepted', 3 );

@@ -54,9 +54,9 @@ sub run() {
         waitidle;
 
         # log in
-        sendautotype $username. "\n";
+        type_string $username. "\n";
         sleep 1;
-        sendautotype $password. "\n";
+        type_string $password. "\n";
     }
 
     waitforneedle 'test-consoletest_finish-1', 300;

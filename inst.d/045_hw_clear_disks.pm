@@ -17,11 +17,11 @@ sub run() {
     sleep 3;
     my $disks = $bmwqemu::backend->{'hardware'}->{'disks'};
     for my $disk (@$disks) {
-        sendautotype "wipefs -a $disk\n";
+        type_string "wipefs -a $disk\n";
         sleep 1;
-        sendautotype "dd if=/dev/zero of=$disk bs=1M count=1\n";
+        type_string "dd if=/dev/zero of=$disk bs=1M count=1\n";
         sleep 2;
-        sendautotype "blockdev --rereadpt $disk\n";
+        type_string "blockdev --rereadpt $disk\n";
         sleep 4;
     }
     waitstillimage;

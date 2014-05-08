@@ -7,7 +7,7 @@ sub open_tab($) {
     my $addr = shift;
     send_key "ctrl-t";    # new tab
     sleep 2;
-    sendautotype($addr);
+    type_string $addr;
     sleep 2;
     send_key "ret";
     sleep 6;

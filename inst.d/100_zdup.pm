@@ -21,7 +21,7 @@ sub run() {
     }
     if ( $ENV{EVERGREEN} ) {
         script_sudo("mkdir /etc/zypp/vendors.d");
-        sendautotype(
+        type_string(
             "sudo dd of=/etc/zypp/vendors.d/evergreen <<EOF
 [main]
 vendors = openSUSE Evergreen,suse,opensuse
@@ -41,9 +41,9 @@ EOF\n"
         send_key "2";    # ignore unresolvable
         send_key "ret", 1;
     }
-    sendautotype("1\n");    # some conflicts can not be ignored
+    type_string "1\n";    # some conflicts can not be ignored
     $self->check_screen;
-    sendautotype("y\n");    # confirm
+    type_string "y\n";    # confirm
     local $ENV{SCREENSHOTINTERVAL} = 2.5;
     for ( 1 .. 12 ) {
         sleep 60;
@@ -59,7 +59,7 @@ EOF\n"
     send_key "ctrl-alt-f4";
     sleep 3;
 
-    sendautotype "n\n";                                 # don't view notifications
+    type_string "n\n";                                 # don't view notifications
 }
 
 1;

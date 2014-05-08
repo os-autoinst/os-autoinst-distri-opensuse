@@ -22,7 +22,7 @@ sub addpart($$) {
     for ( 1 .. 10 ) {
         send_key "backspace";
     }
-    sendautotype( $size . "mb" );
+    type_string  $size . "mb" ;
     waitidle 5;
     send_key $cmd{"next"};
     waitidle 5;
@@ -74,7 +74,7 @@ sub addraid($;$) {
             }
         }
         else {
-            sendautotype("\t$chunksize");
+            type_string "\t$chunksize";
         }
     }
     send_key $cmd{"next"};

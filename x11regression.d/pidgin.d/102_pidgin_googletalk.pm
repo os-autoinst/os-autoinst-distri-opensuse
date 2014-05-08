@@ -32,11 +32,11 @@ sub run() {
     sleep 2;
     send_key "alt-u";
     sleep 1;
-    sendautotype("$USERNAME");
+    type_string "$USERNAME";
     sleep 2;
     send_key "alt-p";
     sleep 1;
-    sendautotype("$PASSWD");
+    type_string "$PASSWD";
     sleep 2;
     send_key "alt-a";
     waitidle;
@@ -58,7 +58,7 @@ sub run() {
     sleep 2;
     send_key "ret";
     sleep 2;
-    sendautotype("hello world!\n");
+    type_string "hello world!\n";
     sleep 2;
     waitidle;
     sleep 10;

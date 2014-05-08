@@ -37,7 +37,7 @@ sub run() {
     # Open "Email link" to launch default email client (evolution)
     send_key "ctrl-f";
     sleep 1;                                                #"Search all add-ons"
-    sendautotype "icedTea\n";
+    type_string "icedTea\n";
     sleep 2;
 
     #Switch to "My Add-ons"
@@ -60,7 +60,7 @@ sub run() {
     #Test java plugin on website javatester.org
     send_key "ctrl-t";
     sleep 1;
-    sendautotype "javatester.org/version.html\n";
+    type_string "javatester.org/version.html\n";
     sleep 5;
     checkneedle( "test-firefox_java-2", 5 );
 
@@ -73,7 +73,7 @@ sub run() {
     #Test java plugin again
     send_key "ctrl-t";
     sleep 2;
-    sendautotype "javatester.org/version.html\n";
+    type_string "javatester.org/version.html\n";
     sleep 4;
     checkneedle( "test-firefox_java-java_warning", 5 );    #Java - unsigned application warning
     send_key "tab";                                         #Proceed

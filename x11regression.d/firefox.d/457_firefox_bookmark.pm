@@ -19,7 +19,7 @@ sub run() {
     sleep 1;
     send_key "tab";
     sleep 1;
-    sendautotype "www.baidu.com";
+    type_string "www.baidu.com";
     send_key "ret";
     sleep 3;
 
@@ -28,7 +28,7 @@ sub run() {
 
     # bookmark the page
     send_key "ctrl-l";
-    sendautotype "www.baidu.com";
+    type_string "www.baidu.com";
     sleep 1;
     send_key "ret";
     sleep 6;
@@ -57,7 +57,7 @@ sub run() {
     send_key "tab";
     send_key "tab";
     send_key "tab";
-    sendautotype "www.baidu.com";
+    type_string "www.baidu.com";
     send_key "ret";
     send_key "ret";
     send_key "tab";

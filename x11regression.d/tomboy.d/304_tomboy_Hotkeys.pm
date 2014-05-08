@@ -25,9 +25,9 @@ sub run() {
 
     # set Hotkeys
     for ( 1 .. 4 ) {
-        sendautotype "\t";
+        type_string "\t";
     }
-    sendautotype "<Alt>F10\t<Alt>F9";
+    type_string "<Alt>F10\t<Alt>F9";
     $self->check_screen;
     sleep 2;
     send_key "esc";
@@ -37,7 +37,7 @@ sub run() {
     # logout
     send_key "alt-f2";
     sleep 1;
-    sendautotype "gnome-session-quit --logout --force\n";
+    type_string "gnome-session-quit --logout --force\n";
     sleep 20;
     waitidle;
 
@@ -93,7 +93,7 @@ sub run() {
 
     send_key "alt-f9";
     sleep 2;
-    sendautotype "sssss\n";
+    type_string "sssss\n";
     sleep 1;
     $self->check_screen;
     sleep 1;

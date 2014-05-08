@@ -10,11 +10,11 @@ sub run() {
     mouse_hide(1);
     x11_start_program("xterm");
     sleep 2;
-    sendautotype("cd\n");
+    type_string "cd\n";
     sleep 1;             # go to $HOME (for KDE)
     send_key "ctrl-l";    # clear
     for ( 1 .. 13 ) { send_key "ret" }
-    sendautotype("echo If you can see this text xterm is working.\n");
+    type_string "echo If you can see this text xterm is working.\n";
     sleep 2;
     $self->check_screen;
     send_key "alt-f4";

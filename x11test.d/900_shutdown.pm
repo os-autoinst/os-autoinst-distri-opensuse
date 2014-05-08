@@ -14,11 +14,10 @@ sub run() {
 
         return; # we don't want qemu "to crash" 
 
-        sendautotype "\t";
+        type_string "\t";
         waitforneedle( "kde-turn-off-selected", 2 );
-        sendautotype "\n";
-
-        waitforneedle( "splashscreen", 40 );
+        type_string "\n";
+	waitforneedle( "splashscreen", 40 );
     }
 
     if ( $ENV{DESKTOP} eq "gnome" ) {
@@ -34,7 +33,7 @@ sub run() {
                                       #    sleep 3;
                                       #    qemusend "system_powerdown"; # shutdown
                                       #}
-        waitinststage( "splashscreen", 40 );
+        waitforneedle( "splashscreen", 40 );
     }
 
     if ( $ENV{DESKTOP} eq "xfce" ) {
@@ -42,13 +41,13 @@ sub run() {
             send_key "alt-f4";         # opens log out popup after all windows closed
         }
         waitidle;
-        sendautotype "\t\t";          # select shutdown
+        type_string "\t\t";          # select shutdown
         sleep 1;
 
         return; # we don't want qemu "to crash" 
 
         #$self->check_screen;
-        sendautotype "\n";
+        type_string "\n";
         waitforneedle("splashscreen");
     }
 

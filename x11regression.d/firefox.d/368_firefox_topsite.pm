@@ -38,7 +38,7 @@ sub run() {
     for my $site (@topsite) {
         send_key "ctrl-l";
         sleep 1;
-        sendautotype $site. "\n";
+        type_string $site. "\n";
         sleep 8;
         $site =~ s{\.(com|org|net)$}{};
         $site =~ s{.*\.}{};
@@ -48,7 +48,7 @@ sub run() {
     #visit sf.net, check it will redirect to sourceforge.net
     send_key "ctrl-l";
     sleep 1;
-    sendautotype "www.sf.net\n";
+    type_string "www.sf.net\n";
     sleep 5;
     checkneedle( "firefox_page-sourceforge", 5 );
     send_key "ctrl-shift-h";

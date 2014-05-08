@@ -25,10 +25,10 @@ sub run() {
     sleep 2;
     send_key "tab";
     for ( 1 .. 15 ) { send_key "backspace" }
-    sendautotype($hostname);
+    type_string $hostname;
     send_key "tab";
     for ( 1 .. 15 ) { send_key "backspace" }
-    sendautotype($domain);
+    type_string $domain;
     sleep 5;
     $self->check_screen;
     send_key "alt-o";       # confirm possible network manager warning

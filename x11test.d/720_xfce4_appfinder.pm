@@ -15,7 +15,7 @@ sub run() {
     send_key "alt-f2";
     sleep 2;
     send_key "down";
-    sendautotype "about\n";
+    type_string "about\n";
     $self->check_screen;
     send_key "ret", 1;
     $self->check_screen;

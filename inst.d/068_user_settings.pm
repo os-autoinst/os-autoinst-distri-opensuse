@@ -13,13 +13,13 @@ sub run() {
 
     # user setup
     waitforneedle( "inst-usersetup", 5 );
-    sendautotype($realname);
+    type_string $realname;
     send_key "tab";
 
     #sleep 1;
     send_key "tab";
     for ( 1 .. 2 ) {
-        sendautotype("$password\t");
+        type_string "$password\t";
     }
     waitforneedle( "inst-userinfostyped", 5 );
     if ( $ENV{NOAUTOLOGIN} ) {
@@ -57,7 +57,7 @@ sub run() {
     if ( $ENV{DOCRUN} ) {    # root user
         waitidle;
         for ( 1 .. 2 ) {
-            sendautotype("$password\t");
+            type_string "$password\t";
             sleep 1;
         }
         waitforneedle( "rootpassword-typed", 3 );

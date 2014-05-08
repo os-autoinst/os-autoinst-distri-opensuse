@@ -50,7 +50,7 @@ sub run() {
     # Confirm the page title and url.
     send_key "apostrophe";
     sleep 1;
-    sendautotype "news";
+    type_string "news";
     send_key "esc";
     sleep 1;    # Find News link
     send_key "menu";
@@ -69,7 +69,7 @@ sub run() {
     sleep 1;
     send_key "alt-d";
     sleep 1;
-    sendautotype "http://mozilla.org/\n";
+    type_string "http://mozilla.org/\n";
     sleep 10;         # A non-secure site (http)
     checkneedle( "test-firefox_tab-3", 5 );
 
@@ -77,7 +77,7 @@ sub run() {
     sleep 1;
     send_key "alt-d";
     sleep 1;
-    sendautotype "https://digitalid.verisign.com/\n";
+    type_string "https://digitalid.verisign.com/\n";
     sleep 10;         # A secure site (https)
     checkneedle( "test-firefox_tab-4", 5 );
 

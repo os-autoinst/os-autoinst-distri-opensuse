@@ -39,7 +39,7 @@ sub run() {
     sleep 5;                                                # Add-ons Manager
     send_key "alt-d";
     sleep 2;
-    sendautotype "https://addons.mozilla.org/firefox/downloads/latest/8051/addon-8051-latest.xpi\n";
+    type_string "https://addons.mozilla.org/firefox/downloads/latest/8051/addon-8051-latest.xpi\n";
     sleep 15;                                               # Install the extension
     checkneedle( "test-firefox_mhtml-1", 5 );
     send_key "ret";
@@ -56,7 +56,7 @@ sub run() {
     send_key "down";
     send_key "right";
     sleep 1;
-    sendautotype "google\n";                                # find the directory www.gnu.org and enter
+    type_string "google\n";                                # find the directory www.gnu.org and enter
     sleep 5;
     send_key "tab";
     checkneedle( "test-firefox_mhtml-2", 5 );
@@ -65,7 +65,7 @@ sub run() {
     # Open remote mhtml address
     send_key "alt-d";
     sleep 1;
-    sendautotype "http://www.fileformat.info/format/mime-html/sample/9c96b3d179f84b98b35d4c8c2ec13e04/google.mht\n";
+    type_string "http://www.fileformat.info/format/mime-html/sample/9c96b3d179f84b98b35d4c8c2ec13e04/google.mht\n";
     sleep 10;
     checkneedle( "test-firefox_mthml-3", 5 );
     sleep 2;
@@ -81,7 +81,7 @@ sub run() {
     # Remove the UnMHT extension
     # send_key "ctrl-shift-a"; sleep 5; # "Add-ons" Manager
     # send_key "ctrl-f"; sleep 1;
-    # sendautotype "unmht\n"; sleep 2; # Search
+    # type_string "unmht\n"; sleep 2; # Search
     # for (1...5){
     #    send_key "tab";sleep 1;
     # }
@@ -102,7 +102,7 @@ sub run() {
     # send_key "ctrl-w"; # Close the only tab (exit)
     # send_key "ret"; sleep 2; # confirm "save&quit"
     # x11_start_program("xterm"); sleep 2;
-    # sendautotype "rm -f ~/.mozilla/firefox/*.default/prefs.js\n"; sleep 1; # Remove prefs.js to avoid browser remember default folder used by "Open File" window
+    # type_string "rm -f ~/.mozilla/firefox/*.default/prefs.js\n"; sleep 1; # Remove prefs.js to avoid browser remember default folder used by "Open File" window
     # send_key "ctrl-d"; # Exit xterm
 
     send_key "alt-f4";

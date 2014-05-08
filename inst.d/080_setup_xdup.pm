@@ -15,12 +15,12 @@ sub run() {
     # log into text console
     send_key "ctrl-alt-f4";
     sleep 2;
-    sendautotype "$username\n";
+    type_string "$username\n";
     sleep 2;
     sendpassword;
-    sendautotype "\n";
+    type_string "\n";
     sleep 3;
-    sendautotype "PS1=\$\n";    # set constant shell promt
+    type_string "PS1=\$\n";    # set constant shell promt
     sleep 1;
 }
 

@@ -33,21 +33,21 @@ sub run() {
     # http://www.novell.com
     send_key "alt-d";
     sleep 1;
-    sendautotype "https://www.novell.com\n";
+    type_string "https://www.novell.com\n";
     sleep 25;
     checkneedle( "test-firefox_url-novell-1", 5 );
 
     # Switch to communities and enter the link
     send_key "apostrophe";
     sleep 1;    #open quick find (links only)
-    sendautotype "communities\n";
+    type_string "communities\n";
     sleep 10;
     checkneedle( "test-firefox_url-novell-2", 5 );
 
     # http://www.wikipedia.org
     send_key "alt-d";
     sleep 1;
-    sendautotype "www.wikipedia.org\n";
+    type_string "www.wikipedia.org\n";
     sleep 10;
     checkneedle( "test-firefox_url-wikipedia-1", 5 );
 
@@ -56,14 +56,14 @@ sub run() {
     send_key "tab";    #remove the focus from input box
     send_key "apostrophe";
     sleep 2;          #open quick find (links only)
-    sendautotype "Deutsch\n";
+    type_string "Deutsch\n";
     sleep 7;
     checkneedle( "test-firefox_url-wikipedia-2", 5 );
 
     # http://maps.google.com
     send_key "alt-d";
     sleep 1;
-    sendautotype "maps.google.com\n";
+    type_string "maps.google.com\n";
     sleep 15;
     send_key "tab";    #remove the focus from input box
     checkneedle( "test-firefox_url-googlemaps-1", 5 );
@@ -72,7 +72,7 @@ sub run() {
     # Switch to "SIGN IN", enter the link
     send_key "apostrophe";
     sleep 2;          #open quick find (links only)
-    sendautotype "sign in\n";
+    type_string "sign in\n";
     sleep 7;
     checkneedle( "test-firefox_url-googlemaps-2", 5 );
 

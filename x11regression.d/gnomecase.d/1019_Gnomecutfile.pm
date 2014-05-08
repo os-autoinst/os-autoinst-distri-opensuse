@@ -16,7 +16,7 @@ sub run() {
     x11_start_program("nautilus");
     send_key "ctrl-l";
     sleep 2;
-    sendautotype("/tmp");
+    type_string "/tmp";
     sleep 2;
     send_key "ret";
     sleep 2;
@@ -26,7 +26,7 @@ sub run() {
     sleep 2;
     send_key "f";
     sleep 2;
-    sendautotype("openqatest");
+    type_string "openqatest";
     sleep 2;
     send_key "ret";
     send_key "ret";
@@ -39,7 +39,7 @@ sub run() {
     sleep 2;
     send_key "f";
     sleep 2;
-    sendautotype("a");
+    type_string "a";
     sleep 2;
     send_key "ret";
     sleep 2;
@@ -51,7 +51,7 @@ sub run() {
     sleep 2;
     send_key "f";
     sleep 2;
-    sendautotype("b");
+    type_string "b";
     sleep 2;
     send_key "ret";
     sleep 2;

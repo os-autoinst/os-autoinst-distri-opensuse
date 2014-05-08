@@ -20,13 +20,13 @@ sub run() {
     # create a note type something and undo it
     send_key "ctrl-n";
     sleep 1;
-    sendautotype "hehe";
+    type_string "hehe";
     sleep 1;
     send_key "ctrl-z";
     sleep 1;
     $self->check_screen;
     sleep 1;
-    sendautotype "hehe";
+    type_string "hehe";
     sleep 1;
     send_key "alt-f4";
     waitidle;
@@ -56,7 +56,7 @@ sub run() {
     sleep 1;
     send_key "ret";
     sleep 1;
-    sendautotype "hehe";
+    type_string "hehe";
     sleep 1;
     send_key "ctrl-z";
     sleep 1;

@@ -37,7 +37,7 @@ sub run() {
     sleep 1;
     send_key "alt-s";
     sleep 1;                                                #Search (To avoid using "Tab" as much as possible)
-    sendautotype "Getting";
+    type_string "Getting";
     sleep 3;
     send_key "tab";
     send_key "down";                                         #Focus on the "Getting Start" bookmark
@@ -49,7 +49,7 @@ sub run() {
 
     #Add bookmarks
     send_key "f6";
-    sendautotype "www.google.com\n";
+    type_string "www.google.com\n";
     sleep 3;
     send_key "ctrl-d";
     sleep 1;                                                #Add bookmark
@@ -80,7 +80,7 @@ sub run() {
     send_key "alt-n";
     sleep 1;
     send_key "ctrl-a";
-    sendautotype "suse-test\n";
+    type_string "suse-test\n";
     sleep 1;                                                #Input folder name
     checkneedle( "test-firefox_bookmarks-folder", 5 );
 
@@ -91,9 +91,9 @@ sub run() {
     sleep 1;                                                # New Bookmark
     send_key "alt-n";
     send_key "ctrl-a";                                       #Name
-    sendautotype "Free Software Foundation";
+    type_string "Free Software Foundation";
     send_key "alt-l";                                        #Location
-    sendautotype "http://www.fsf.org/\n";
+    type_string "http://www.fsf.org/\n";
     sleep 1;                                                #Add
     send_key "right";
     sleep 1;                                                #Unfolder
@@ -107,7 +107,7 @@ sub run() {
 
     #Delete bookmarks
     send_key "alt-s";                                        #Search field
-    sendautotype "Free\n";
+    type_string "Free\n";
     sleep 1;
     send_key "tab";
     send_key "down";                                         #Focus on the bookmark to be deleted
@@ -129,17 +129,17 @@ sub run() {
     foreach ( 1 .. 5 ) { send_key "down"; }                  #Move to Google bookmark we created at the beginning
     sleep 2;
     send_key "alt-n";                                        #Name
-    sendautotype "Google Maps";
+    type_string "Google Maps";
     sleep 1;
     send_key "alt-l";                                        #Location
-    sendautotype "https://maps.google.com";
+    type_string "https://maps.google.com";
     sleep 1;
     send_key "alt-f4";
     sleep 1;                                                #Close bookmarks window
     checkneedle( "test-firefox_bookmarks-edit02", 5 );
     sleep 1;
     send_key "alt-s";
-    sendautotype "Maps";
+    type_string "Maps";
     sleep 1;
     send_key "tab";
     send_key "down";

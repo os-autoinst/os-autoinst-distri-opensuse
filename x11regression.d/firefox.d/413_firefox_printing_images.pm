@@ -54,7 +54,7 @@ sub run() {
 
         send_key "alt-d";
         sleep 1;
-        sendautotype $base_url. $_->{image_file} . "\n";    # Full URL
+        type_string $base_url. $_->{image_file} . "\n";    # Full URL
         sleep 8;
 
         send_key "ctrl-p";
@@ -65,7 +65,7 @@ sub run() {
         # Set file name
         send_key "alt-n";
         sleep 1;
-        sendautotype $_->{name} . ".pdf";
+        type_string $_->{name} . ".pdf";
 
         # Print
         send_key "alt-p";
