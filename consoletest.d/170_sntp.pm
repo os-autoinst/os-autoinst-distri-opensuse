@@ -13,7 +13,7 @@ sub run() {
     script_sudo("perl qa_ntp.pl");
     waitidle(90);
     $self->check_screen;
-    sendkey("ctrl-l");    # clear screen
+    send_key "ctrl-l";    # clear screen
     script_run('echo sntp returned $?');
     $self->check_screen;
 }

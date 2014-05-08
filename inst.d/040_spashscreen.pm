@@ -15,7 +15,7 @@ sub run() {
 
     # time to load kernel+initrd
     waitforneedle( "inst-splashscreen", 12 );
-    sendkey "esc";
+    send_key "esc";
 }
 
 1;

@@ -14,13 +14,13 @@ sub run() {
     mouse_hide();
     x11_start_program("firefox");
     waitforneedle( "start-firefox", 5 );
-    if ( $ENV{UPGRADE} ) { sendkey("alt-d"); waitidle; }    # dont check for updated plugins
+    if ( $ENV{UPGRADE} ) { send_key "alt-d"; waitidle; }    # dont check for updated plugins
     if ( $ENV{DESKTOP} =~ /xfce|lxde/i ) {
-        sendkey "ret";                                      # confirm default browser setting popup
+        send_key "ret";                                      # confirm default browser setting popup
         waitidle;
     }
 
-    sendkey "ctrl-l";
+    send_key "ctrl-l";
     sleep 2;
 
     #login mail.google.com
@@ -29,59 +29,59 @@ sub run() {
     checkneedle( "firefox_page-gmail1", 5 );
     sendautotype "nooops6";
     sleep 1;
-    sendkey "tab";
+    send_key "tab";
     sleep 1;
     sendautotype "opensuse\n";
     sleep 6;
     checkneedle( "firefox_page-gmail2", 5 );
-    sendkey "alt-r";
+    send_key "alt-r";
     sleep 1;    #remember password
-    sendkey "r";
+    send_key "r";
     sleep 1;
 
     #clear recent history otherwise gmail will login automatically
-    sendkey "ctrl-shift-delete";
+    send_key "ctrl-shift-delete";
     sleep 2;
-    sendkey "shift-tab";
+    send_key "shift-tab";
     sleep 1;    #select clear now
-    sendkey "ret";
+    send_key "ret";
     sleep 1;
 
     #login mail.google.com again to check the password
-    sendkey "ctrl-l";
+    send_key "ctrl-l";
     sleep 2;
     sendautotype "mail.google.com\n";
     sleep 5;
     checkneedle( "firefox_page-gmail3", 5 );
 
     #recover all the changes
-    #    sendkey "alt-e"; sleep 1;
-    #    sendkey "n"; sleep 1;
+    #    send_key "alt-e"; sleep 1;
+    #    send_key "n"; sleep 1;
     #    for(1..3) {            #select the "Security" tab of Preference
-    #        sendkey "left"; sleep 1;
+    #        send_key "left"; sleep 1;
     #    }
-    #    sendkey "alt-p"; sleep 1;
-    #    sendkey "alt-a"; sleep 1;
-    #    sendkey "y"; sleep 1;
-    #    sendkey "alt-c"; sleep 1;
-    #    sendkey "esc"; sleep 1;            #close the Preference
-    #    sendkey "alt-e"; sleep 1;
-    #    sendkey "n"; sleep 1;
+    #    send_key "alt-p"; sleep 1;
+    #    send_key "alt-a"; sleep 1;
+    #    send_key "y"; sleep 1;
+    #    send_key "alt-c"; sleep 1;
+    #    send_key "esc"; sleep 1;            #close the Preference
+    #    send_key "alt-e"; sleep 1;
+    #    send_key "n"; sleep 1;
     #    for(1..3) {                #switch the tab from "Security" to "General"
-    #        sendkey "right"; sleep 1;
+    #        send_key "right"; sleep 1;
     #    }
-    #    sendkey "esc"; sleep 1;
+    #    send_key "esc"; sleep 1;
 
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 2;
-    sendkey "ret";
+    send_key "ret";
     sleep 2;    # confirm "save&quit"
 
-    sendkey "alt-f2";
+    send_key "alt-f2";
     sleep 2;
     sendautotype "rm -rf .mozilla\n";
     sleep 2;
-    sendkey "ret";
+    send_key "ret";
     sleep 5;
 }
 

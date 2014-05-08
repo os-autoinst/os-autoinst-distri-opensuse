@@ -11,35 +11,35 @@ sub run() {
     sleep 2;
     $self->take_screenshot();
 
-    sendkey "ctrl-c";
+    send_key "ctrl-c";
     sleep 1;
-    sendkey "ctrl-d";    # logout
+    send_key "ctrl-d";    # logout
     sleep 2;
 
     $self->take_screenshot();
 
     if ( checkEnv( "DESKTOP", "textmode" ) ) {
-        sendkey "ctrl-alt-f1";    # go back to first console
+        send_key "ctrl-alt-f1";    # go back to first console
     }
     else {
-        sendkey "ctrl-alt-f7";    # go back to X11
+        send_key "ctrl-alt-f7";    # go back to X11
         sleep 2;
-        sendkey "backspace";      # deactivate blanking
+        send_key "backspace";      # deactivate blanking
         sleep 2;
         if ( checkneedle("screenlock") ) {
             if ( checkEnv( "DESKTOP", "gnome" ) ) {
-                sendkey "esc";
+                send_key "esc";
                 sleep 1;
             }
             sendpassword;
-            sendkey "ret";
+            send_key "ret";
         }
 
         # workaround for bug 834165. Apper should not try to
         # refresh repos when the console is not active:
         if ( checkneedle("apper-refresh-popup-bnc834165") ) {
             ++$self->{dents};
-            sendkey 'alt-c';
+            send_key 'alt-c';
             sleep 30;
         }
         mouse_hide(1);

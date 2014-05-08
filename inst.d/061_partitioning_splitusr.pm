@@ -7,40 +7,40 @@ sub is_applicable() {
 
 sub run() {
     my $self = shift;
-    sendkeyw "alt-e";    # Edit
+    send_key "alt-e", 1;    # Edit
                          # select vda2
-    sendkey "right";
-    sendkey "down";      # only works with multiple HDDs
-    sendkey "right";
-    sendkey "down";
-    sendkey "tab";
-    sendkey "tab";
-    sendkey "down";
+    send_key "right";
+    send_key "down";      # only works with multiple HDDs
+    send_key "right";
+    send_key "down";
+    send_key "tab";
+    send_key "tab";
+    send_key "down";
 
-    #sendkey "right"; sendkey "down"; sendkey "down";
-    sendkeyw "alt-i";    # Resize
-    sendkey "alt-u";     # Custom
+    #send_key "right"; send_key "down"; send_key "down";
+    send_key "alt-i", 1;    # Resize
+    send_key "alt-u";     # Custom
     sendautotype "1.5G";
     sleep 2;
-    sendkeyw "ret";
+    send_key "ret", 1;
 
     # add /usr
-    sendkey $cmd{addpart};
+    send_key $cmd{addpart};
     waitidle 4;
-    sendkey $cmd{"next"};
+    send_key $cmd{"next"};
     waitidle 3;
     for ( 1 .. 10 ) {
-        sendkey "backspace";
+        send_key "backspace";
     }
     sendautotype("4.5G");
-    sendkeyw $cmd{"next"};
-    sendkey "alt-m";           # Mount Point
+    send_key $cmd{"next"}, 1;
+    send_key "alt-m";           # Mount Point
     sendautotype("/usr\b");    # Backspace to break bad completion to /usr/local
     waitforneedle( "partition-splitusr-submitted-usr", 3 );
-    sendkey $cmd{"finish"};
+    send_key $cmd{"finish"};
     waitforneedle( "partition-splitusr-finished", 3 );
-    sendkeyw $cmd{"accept"};
-    sendkey "alt-y";           # Quit the warning window
+    send_key $cmd{"accept"}, 1;
+    send_key "alt-y";           # Quit the warning window
 }
 
 1;

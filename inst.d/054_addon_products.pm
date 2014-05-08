@@ -14,24 +14,24 @@ sub run() {
     if ( !$ENV{NET} && !$ENV{DUD} ) {
         waitstillimage();
         sleep 5;                 # try
-        sendkey $cmd{"next"};    # use network
+        send_key $cmd{"next"};    # use network
         waitstillimage(20);
-        sendkeyw "alt-o";        # OK DHCP network
+        send_key "alt-o", 1;        # OK DHCP network
     }
     my $repo = 0;
     $repo++ if $ENV{DUD};
     foreach my $url ( split( /\+/, $ENV{ADDONURL} ) ) {
-        if ( $repo++ ) { sendkeyw "alt-a"; }    # Add another
-        sendkeyw $cmd{"xnext"};                 # Specify URL (default)
+        if ( $repo++ ) { send_key "alt-a", 1; }    # Add another
+        send_key $cmd{"xnext"}, 1;                 # Specify URL (default)
         sendautotype($url);
-        sendkeyw $cmd{"next"};
+        send_key $cmd{"next"}, 1;
         if ( $ENV{ADDONURL} !~ m{/update/} ) {    # update is already trusted, so would trigger "delete"
-            sendkey "alt-i";
-            sendkeyw "alt-t";                     # confirm import (trust) key
+            send_key "alt-i";
+            send_key "alt-t", 1;                     # confirm import (trust) key
         }
     }
     $self->check_screen;
-    sendkeyw $cmd{"next"};                        # done
+    send_key $cmd{"next"}, 1;                        # done
 }
 
 1;

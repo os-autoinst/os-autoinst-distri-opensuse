@@ -9,7 +9,7 @@ sub run() {
     my $self = shift;
     x11_start_program("khelpcenter");
     $self->check_screen;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 2;
 }
 

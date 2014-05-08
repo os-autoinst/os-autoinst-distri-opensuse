@@ -15,14 +15,14 @@ sub run() {
     sleep 3;
 
     # test broken undo
-    sendkey "shift-left";
-    sendkey "2";
-    sendkey "ctrl-z";    # undo produces "12" instead of "1"
+    send_key "shift-left";
+    send_key "2";
+    send_key "ctrl-z";    # undo produces "12" instead of "1"
     sleep 3;
     $self->check_screen;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     waitforneedle( 'oomath-prompt', 5 );
-    sendkey "alt-w";     # Without saving
+    send_key "alt-w";     # Without saving
 }
 
 1;

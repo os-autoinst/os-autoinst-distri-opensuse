@@ -16,11 +16,11 @@ sub run() {
 
     # open Hotkeys sheet
     x11_start_program("tomboy note");
-    sendkey "alt-e";
+    send_key "alt-e";
     sleep 1;
-    sendkey "p";
+    send_key "p";
     sleep 1;
-    sendkey "right";
+    send_key "right";
     sleep 1;
 
     # set Hotkeys
@@ -30,90 +30,90 @@ sub run() {
     sendautotype "<Alt>F10\t<Alt>F9";
     $self->check_screen;
     sleep 2;
-    sendkey "esc";
+    send_key "esc";
     waitidle;
-    sendkey "alt-f4";
+    send_key "alt-f4";
 
     # logout
-    sendkey "alt-f2";
+    send_key "alt-f2";
     sleep 1;
     sendautotype "gnome-session-quit --logout --force\n";
     sleep 20;
     waitidle;
 
     # login and open tomboy again
-    sendkey "ret";
+    send_key "ret";
     sleep 2;
     waitstillimage;
     sendpassword();
     sleep 2;
-    sendkey "ret";
+    send_key "ret";
     sleep 20;
     waitidle;
     x11_start_program("tomboy note");
 
     # test hotkeys
-    sendkey "alt-f12";
+    send_key "alt-f12";
     sleep 1;
     waitidle;
     $self->check_screen;
     sleep 1;
-    sendkey "esc";
+    send_key "esc";
     sleep 2;
 
-    sendkey "alt-f11";
+    send_key "alt-f11";
     sleep 1;
-    sendkey "up";
+    send_key "up";
     sleep 1;
     waitidle;
     $self->check_screen;
     sleep 1;
-    sendkey "ctrl-w";
+    send_key "ctrl-w";
     sleep 2;
 
-    sendkey "alt-f10";
+    send_key "alt-f10";
     sleep 10;
     waitidle;
     $self->check_screen;
     sleep 1;
-    sendkey "alt-t";
+    send_key "alt-t";
     sleep 3;
-    sendkey "esc";
+    send_key "esc";
     sleep 1;
-    sendkey "right";
+    send_key "right";
     sleep 1;
-    sendkey "right";
+    send_key "right";
     sleep 1;
-    sendkey "right";
+    send_key "right";
     sleep 1;
-    sendkey "ret";
+    send_key "ret";
     sleep 3;
-    sendkey "alt-d";
+    send_key "alt-d";
     sleep 2;
 
-    sendkey "alt-f9";
+    send_key "alt-f9";
     sleep 2;
     sendautotype "sssss\n";
     sleep 1;
     $self->check_screen;
     sleep 1;
-    sendkey "ctrl-a";
+    send_key "ctrl-a";
     sleep 1;
-    sendkey "delete";
+    send_key "delete";
     sleep 1;
 
     # to check all hotkeys
-    sendkey "alt-e";
+    send_key "alt-e";
     sleep 1;
-    sendkey "p";
+    send_key "p";
     sleep 1;
-    sendkey "right";
+    send_key "right";
     sleep 1;
     $self->check_screen;
     sleep 1;
-    sendkey "esc";
+    send_key "esc";
     sleep 2;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 2;
 }
 

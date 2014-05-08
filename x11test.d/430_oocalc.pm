@@ -15,10 +15,10 @@ sub run() {
     sendautotype("Hello World!\n");
     sleep 2;
     $self->check_screen;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 2;
     $self->check_screen;
-    sendkey "alt-w";
+    send_key "alt-w";
     sleep 2;           # _w_ithout saving
 }
 

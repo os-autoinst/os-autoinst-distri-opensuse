@@ -14,15 +14,15 @@ sub is_applicable {
 # this part contains the steps to run this test
 sub run() {
     my $self = shift;
-    sendkey "alt+f1";
+    send_key "alt+f1";
     sleep 2;
     for ( 1 .. 8 ) {
-        sendkey "down";
+        send_key "down";
         sleep 1;
         $self->check_screen;
         sleep 1;
     }
-    sendkey "esc";
+    send_key "esc";
 }
 
 1;

@@ -14,20 +14,20 @@ sub run() {
     my $timeout = 300;
     if ( $ENV{'RESCUECD'} ) {
         waitforneedle( 'displaymanager', $timeout );
-        sendkey("tab");
+        send_key "tab";
         sleep 2;
-        sendkey("tab");
+        send_key "tab";
         sleep 2;
-        sendkey("tab");
+        send_key "tab";
         sleep 2;
-        sendkey("ret");
+        send_key "ret";
         $timeout = 60;
     }
     waitforneedle( "desktop-at-first-boot", $timeout );
 
     ## duplicated from second stage, combine!
     if ( checkEnv( 'DESKTOP', 'kde' ) ) {
-        sendkey "esc";
+        send_key "esc";
         sleep 2;
         $self->take_screenshot();
     }

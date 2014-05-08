@@ -10,8 +10,8 @@ sub run() {
     ensure_installed("Mesa-demo-x");
     x11_start_program("glxgears");
     $self->check_screen;
-    sendkeyw "alt-f4";
-    sendkey "ret";
+    send_key "alt-f4", 1;
+    send_key "ret", 1;
     sleep 5;    # time to close
 }
 

@@ -18,27 +18,27 @@ sub run() {
     mouse_hide();
     x11_start_program("firefox");
     waitforneedle( "start-firefox", 5 );
-    if ( $ENV{UPGRADE} ) { sendkey("alt-d"); waitidle; }    # dont check for updated plugins
+    if ( $ENV{UPGRADE} ) { send_key "alt-d"; waitidle; }    # dont check for updated plugins
     if ( $ENV{DESKTOP} =~ /xfce|lxde/i ) {
-        sendkey "ret";                                      # confirm default browser setting popup
+        send_key "ret";                                      # confirm default browser setting popup
         waitidle;
     }
 
     #install a firefox addon
-    sendkey "ctrl-l";
+    send_key "ctrl-l";
     sleep 1;
     sendautotype $addon. "\n";
     sleep 18;                                               #download addon need a long time
     checkneedle( "firefox_addon-unmht", 8 );                #wait for the install button
-    sendkey "ret";
+    send_key "ret";
     sleep 1;                                                #install
 
     #open ie6 mht file
-    sendkey "alt-e";
+    send_key "alt-e";
     sleep 1;
-    sendkey "alt";
+    send_key "alt";
     sleep 1;
-    sendkey "ctrl-l";
+    send_key "ctrl-l";
     sleep 1;
     sendautotype $ie6url. "\n";
     sleep 25;                                               #the file need a long time to load
@@ -46,15 +46,15 @@ sub run() {
     sleep 3;
 
     #open ie7 file (IIS)
-    sendkey "ctrl-l";
+    send_key "ctrl-l";
     sleep 1;
     sendautotype $ie7url. "\n";
     sleep 12;
     checkneedle( "firefox_page-ie7", 10 );
 
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 2;
-    sendkey "ret";
+    send_key "ret";
     sleep 2;    # confirm "save&quit"
 }
 

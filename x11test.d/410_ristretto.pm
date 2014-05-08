@@ -13,10 +13,10 @@ sub is_applicable {
 sub run() {
     my $self = shift;
     x11_start_program("ristretto /usr/share/wallpapers/xfce/default.wallpaper");
-    sendkey "ctrl-m";
+    send_key "ctrl-m";
     sleep 2;
     $self->check_screen;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 2;
 }
 

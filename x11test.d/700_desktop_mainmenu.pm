@@ -13,17 +13,17 @@ sub run() {
     elsif ( $ENV{DESKTOP} eq "xfce" ) {
         mouse_set( 0, 0 );
         sleep 1;
-        sendkey "ctrl-esc";                      # open menu
+        send_key "ctrl-esc";                      # open menu
         sleep 1;
-        sendkey "up";                            # go into Applications submenu
+        send_key "up";                            # go into Applications submenu
     }
     else {
-        sendkey "alt-f1";                        # open main menu
+        send_key "alt-f1";                        # open main menu
     }
     sleep 2;
     sleep 10 if $ENV{NICEVIDEO};
     $self->check_screen;
-    sendkey "esc";
+    send_key "esc";
     waitidle;
 }
 

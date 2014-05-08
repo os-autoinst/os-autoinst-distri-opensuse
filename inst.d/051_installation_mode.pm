@@ -17,20 +17,20 @@ sub run() {
 
     # Installation Mode = new Installation or Upgrade
     if ( $ENV{UPGRADE} ) {
-        sendkeyw $cmd{"update"};
-        sendkeyw $cmd{"next"};
+        send_key $cmd{"update"}, 1;
+        send_key $cmd{"next"}, 1;
         waitforneedle( "select-for-update", 10 );
     }
     else {
         if ( $ENV{ADDONURL} ) {
-            sendkey "alt-c";    # Include Add-On Products
+            send_key "alt-c";    # Include Add-On Products
             waitforneedle( "addonproduct-included", 10 );
         }
         if ( $ENV{AUTOCONF} ) {
-            sendkey "alt-s";    # toggle automatic configuration
+            send_key "alt-s";    # toggle automatic configuration
             waitforneedle( "autoconf-deselected", 10 );
         }
-        sendkeyw $cmd{"next"};
+        send_key $cmd{"next"}, 1;
     }
 }
 

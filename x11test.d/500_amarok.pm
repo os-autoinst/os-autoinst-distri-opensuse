@@ -14,9 +14,9 @@ sub run() {
     $self->check_DTMF('123A456B789C*0#D');
     sleep 2;
     $self->check_screen;
-    sendkeyw "alt-y";    # use music path as collection folder
+    send_key "alt-y";    # use music path as collection folder
     $self->check_screen;
-    sendkey "ctrl-q";    # really quit (alt-f4 just backgrounds)
+    send_key "ctrl-q";    # really quit (alt-f4 just backgrounds)
     sleep 2;
     waitidle;
     x11_start_program("killall amarok") unless $ENV{NICEVIDEO};    # to be sure that it does not interfere with later tests

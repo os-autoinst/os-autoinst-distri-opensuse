@@ -16,17 +16,17 @@ sub run() {
         last if $ret->{needle}->has_tag("yast2_bootloader-initialed");
     }
     waitstillimage( 12, 60 );
-    sendkey "ctrl-l";    # redraw in case kernel painted on us
+    send_key "ctrl-l";    # redraw in case kernel painted on us
     sleep 2;
     $self->check_screen;
     waitidle 5;
-    sendkey "alt-o";     # OK => Close # might just close warning on livecd
+    send_key "alt-o";     # OK => Close # might just close warning on livecd
     sleep 2;
-    sendkey "alt-o";     # OK => Close
+    send_key "alt-o";     # OK => Close
     waitstillimage( 16, 60 );
     $self->take_screenshot;
     waitidle 5;
-    sendkey "ctrl-l";
+    send_key "ctrl-l";
     script_run('echo $?');
     waitforneedle( "exited-bootloader", 2 );
     script_run('rpm -q hwinfo');

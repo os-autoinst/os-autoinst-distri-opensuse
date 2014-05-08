@@ -23,7 +23,7 @@ sub install_pkg() {
     sleep 3;
     if ($password) {
         sendpassword;
-        sendkeyw "ret";
+        send_key "ret", 1;
     }
 
     # Install packages
@@ -32,7 +32,7 @@ sub install_pkg() {
     sleep 3;
     if ($password) {
         sendpassword;
-        sendkeyw "ret";
+        send_key "ret", 1;
     }
     sleep 60;
     sendautotype("\n");    # prevent the screensaver...
@@ -46,27 +46,27 @@ sub install_pkg() {
     waitidle;
     sleep 2;
 
-    #sendkey "alt-f4";sleep 2; #close xterm
+    #send_key "alt-f4";sleep 2; #close xterm
 
     # Enable the showoffline
     sendautotype("pidgin\n");    # enable the pidgin
     waitidle;
     sleep 2;
 
-    sendkey "alt-c";
+    send_key "alt-c";
     waitidle;
     sleep 5;
-    sendkey "alt-b";
+    send_key "alt-b";
     sleep 2;
-    sendkey "o";
+    send_key "o";
     waitidle;
     sleep 2;
     waitforneedle( "pidgin-showoff", 10 );    #enable show offline
-    sendkey "o";
+    send_key "o";
 
-    sendkey "ctrl-q";
+    send_key "ctrl-q";
     sleep 2;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 2;                                  #close xterm
 }
 

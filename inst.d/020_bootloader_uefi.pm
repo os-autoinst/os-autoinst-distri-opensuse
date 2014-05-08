@@ -17,28 +17,28 @@ sub run() {
         qemusend "eject -f ide1-cd0";
         qemusend "system_reset";
         sleep 10;
-        sendkey "ret";    # boot
+        send_key "ret";    # boot
         return;
     }
 
     if ( $ENV{MEDIACHECK} ) {    # special
                                  # only run this one
         for ( 1 .. 2 ) {
-            sendkey "down";
+            send_key "down";
         }
         sleep 3;
-        sendkey "ret";
+        send_key "ret";
         return;
     }
     if ( $ENV{PROMO} ) {
         if ( checkEnv( "DESKTOP", "gnome" ) ) {
-            sendkey "down" unless $ENV{OSP_SPECIAL};
-            sendkey "down";
+            send_key "down" unless $ENV{OSP_SPECIAL};
+            send_key "down";
         }
         elsif ( checkEnv( "DESKTOP", "kde" ) ) {
 
             # KDE is first entry for OSP image
-            sendkey "down" unless $ENV{OSP_SPECIAL};
+            send_key "down" unless $ENV{OSP_SPECIAL};
         }
         else {
             die "unsupported desktop $ENV{DESKTOP}\n";
@@ -47,17 +47,17 @@ sub run() {
 
     # assume bios+grub+anim already waited in start.sh
     # in grub2 it's tricky to set the screen resolution
-    sendkey "e";
-    for ( 1 .. 4 ) { sendkey "down"; }
-    sendkey "end";
+    send_key "e";
+    for ( 1 .. 4 ) { send_key "down"; }
+    send_key "end";
     if ( $ENV{NETBOOT} && $ENV{SUSEMIRROR} ) {
-        for ( 1 .. 49 ) { sendkey "backspace"; }
+        for ( 1 .. 49 ) { send_key "backspace"; }
         sendautotype( $ENV{SUSEMIRROR} );
     }
-    sendkey "spc";
+    send_key "spc";
 
     # if($ENV{PROMO}) {
-    #     for(1..2) {sendkey "down";} # select KDE Live
+    #     for(1..2) {send_key "down";} # select KDE Live
     # }
 
     # 1024x768
@@ -114,8 +114,8 @@ sub run() {
     }
 
     if ( $ENV{LIVETEST} && $ENV{LIVEOBSWORKAROUND} ) {
-        sendkey("1");                                                                                   # runlevel 1
-        sendkey("f10");                                                                                 # boot
+        send_key "1";    # runlevel 1
+        send_key "f10";  # boot
         sleep(40);
         sendautotype( "
 ls -ld /tmp
@@ -127,7 +127,7 @@ exit
     }
 
     # boot
-    sendkey "f10";
+    send_key "f10";
 
 }
 

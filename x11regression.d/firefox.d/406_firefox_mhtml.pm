@@ -27,43 +27,43 @@ sub run() {
     # Launch firefox
     x11_start_program("firefox");
     waitforneedle( "start-firefox", 5 );
-    if ( $ENV{UPGRADE} ) { sendkey("alt-d"); waitidle; }    # Don't check for updated plugins
+    if ( $ENV{UPGRADE} ) { send_key "alt-d"; waitidle; }    # Don't check for updated plugins
     if ( $ENV{DESKTOP} =~ /xfce|lxde/i ) {
-        sendkey "ret";                                      # Confirm default browser setting popup
+        send_key "ret";                                      # Confirm default browser setting popup
         waitidle;
     }
-    sendkey "alt-f10";                                      # Maximize
+    send_key "alt-f10";                                      # Maximize
 
     # Install UnMHT extension
-    sendkey "ctrl-shift-a";
+    send_key "ctrl-shift-a";
     sleep 5;                                                # Add-ons Manager
-    sendkey "alt-d";
+    send_key "alt-d";
     sleep 2;
     sendautotype "https://addons.mozilla.org/firefox/downloads/latest/8051/addon-8051-latest.xpi\n";
     sleep 15;                                               # Install the extension
     checkneedle( "test-firefox_mhtml-1", 5 );
-    sendkey "ret";
+    send_key "ret";
     sleep 2;
-    sendkey "ctrl-w";
+    send_key "ctrl-w";
 
     # Open mhtml file
-    sendkey "ctrl-o";
+    send_key "ctrl-o";
     sleep 1;                                                #"Open File" window
     checkneedle( "test-firefox-openfile-1", 5 );
 
     # Find .mht file to open
-    sendkey "left";
-    sendkey "down";
-    sendkey "right";
+    send_key "left";
+    send_key "down";
+    send_key "right";
     sleep 1;
     sendautotype "google\n";                                # find the directory www.gnu.org and enter
     sleep 5;
-    sendkey "tab";
+    send_key "tab";
     checkneedle( "test-firefox_mhtml-2", 5 );
     sleep 2;
 
     # Open remote mhtml address
-    sendkey "alt-d";
+    send_key "alt-d";
     sleep 1;
     sendautotype "http://www.fileformat.info/format/mime-html/sample/9c96b3d179f84b98b35d4c8c2ec13e04/google.mht\n";
     sleep 10;
@@ -79,35 +79,35 @@ sub run() {
     ###############################################################
 
     # Remove the UnMHT extension
-    # sendkey "ctrl-shift-a"; sleep 5; # "Add-ons" Manager
-    # sendkey "ctrl-f"; sleep 1;
+    # send_key "ctrl-shift-a"; sleep 5; # "Add-ons" Manager
+    # send_key "ctrl-f"; sleep 1;
     # sendautotype "unmht\n"; sleep 2; # Search
     # for (1...5){
-    #    sendkey "tab";sleep 1;
+    #    send_key "tab";sleep 1;
     # }
-    # sendkey "left"; # Select "My Add-ons"
-    # sendkey "tab"; sendkey "down";
+    # send_key "left"; # Select "My Add-ons"
+    # send_key "tab"; send_key "down";
     # for (1...4){
-    #     sendkey "tab"; sleep 1;
+    #     send_key "tab"; sleep 1;
     # }
-    # sendkey "spc"; sleep 1;# Remove
-    # sendkey "ctrl-f"; sleep 1;
+    # send_key "spc"; sleep 1;# Remove
+    # send_key "ctrl-f"; sleep 1;
     # for (1...5){
-    #     sendkey "tab";sleep 1;
+    #     send_key "tab";sleep 1;
     # }
-    # sendkey "right";
-    # sendkey "ctrl-w"; # Close "Add-ons" Manager
+    # send_key "right";
+    # send_key "ctrl-w"; # Close "Add-ons" Manager
     #
 
-    # sendkey "ctrl-w"; # Close the only tab (exit)
-    # sendkey "ret"; sleep 2; # confirm "save&quit"
+    # send_key "ctrl-w"; # Close the only tab (exit)
+    # send_key "ret"; sleep 2; # confirm "save&quit"
     # x11_start_program("xterm"); sleep 2;
     # sendautotype "rm -f ~/.mozilla/firefox/*.default/prefs.js\n"; sleep 1; # Remove prefs.js to avoid browser remember default folder used by "Open File" window
-    # sendkey "ctrl-d"; # Exit xterm
+    # send_key "ctrl-d"; # Exit xterm
 
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 1;                                 # Exit firefox
-    sendkey "ret";                           # confirm "save&quit"
+    send_key "ret";                           # confirm "save&quit"
     x11_start_program("rm -rf .mozilla");    # Clear profile directory
     x11_start_program("rm -rf google.mht\n");
     sleep 1;                                 # Remove .mht file

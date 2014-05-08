@@ -23,7 +23,7 @@ sub install_pkg() {
     sleep 3;
     if ($password) {
         sendpassword;
-        sendkeyw "ret";
+        send_key "ret", 1;
     }
     waitidle;
     sleep 10;
@@ -35,7 +35,7 @@ sub install_pkg() {
     waitforneedle( "pidgin-pkg-removed", 10 );    #make sure pkgs removed.
     waitidle;
     sleep 2;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 2;                                      #close xterm
 }
 

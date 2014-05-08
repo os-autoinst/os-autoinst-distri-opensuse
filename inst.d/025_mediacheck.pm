@@ -9,7 +9,7 @@ sub is_applicable() {
 sub run {
     my $self = shift;
     waitforneedle( "mediacheck-ok", 300 );
-    sendkey "ret";
+    send_key "ret";
 }
 
 sub test_flags() {

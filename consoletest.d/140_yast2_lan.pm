@@ -12,33 +12,33 @@ sub run() {
     # FIXME: add waitforneedle here
     $self->take_screenshot;
     if ( $ENV{LIVETEST} || $ENV{DISTRI} eq "sled-11" || $ENV{LAPTOP} ) {
-        sendkey "ret";      # confirm networkmanager popup
+        send_key "ret";      # confirm networkmanager popup
         sleep 1;
-        sendkey "alt-t";    # traditional ifup
+        send_key "alt-t";    # traditional ifup
         sleep 1;
     }
 
     my $hostname = "susetest";
     my $domain   = "zq1.de";
 
-    sendkey("alt-s");       # open hostname tab
+    send_key "alt-s";       # open hostname tab
     sleep 2;
-    sendkey("tab");
-    for ( 1 .. 15 ) { sendkey("backspace") }
+    send_key "tab";
+    for ( 1 .. 15 ) { send_key "backspace" }
     sendautotype($hostname);
-    sendkey("tab");
-    for ( 1 .. 15 ) { sendkey("backspace") }
+    send_key "tab";
+    for ( 1 .. 15 ) { send_key "backspace" }
     sendautotype($domain);
     sleep 5;
     $self->check_screen;
-    sendkey("alt-o");       # confirm possible network manager warning
-    sendkey("alt-o");       # OK=>Save&Exit
+    send_key "alt-o";       # confirm possible network manager warning
+    send_key "alt-o";       # OK=>Save&Exit
     sleep 20;
     waitidle();
     waitidle(180);
 
-    sendkey("ret");
-    sendkey("ctrl-l");      # clear screen
+    send_key "ret";
+    send_key "ctrl-l";      # clear screen
     script_run('echo $?');
     script_run('hostname');
     $self->check_screen;

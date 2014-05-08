@@ -16,9 +16,9 @@ sub run() {
     sleep 60;
     waitidle;
     ensure_installed("tomboy");
-    sendkey "ret";
+    send_key "ret";
     sleep 90;
-    sendkey "esc";
+    send_key "esc";
     sleep 5;
     waitidle;
 

@@ -20,7 +20,7 @@ sub run() {
     waitforneedle( "accept-ssh-host-key", 3 );
     sendautotype("yes\n");    # trust ssh host key
     sendpassword;
-    sendkey "ret";
+    send_key "ret";
     waitforneedle( 'sshfs-accepted', 3 );
     script_run('cd mnt/tmp');
     script_run("zypper -n in xdelta");

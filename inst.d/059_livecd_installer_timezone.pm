@@ -12,7 +12,7 @@ sub is_applicable() {
 
 sub run() {
     waitforneedle( "inst-timezone", 125 ) || die 'no timezone';
-    sendkey $cmd{"next"};
+    send_key $cmd{"next"};
 }
 
 1;

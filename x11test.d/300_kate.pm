@@ -17,15 +17,15 @@ sub run() {
     $self->check_screen;
 
     # close welcome screen
-    sendkey 'alt-c';
+    send_key 'alt-c';
     sleep 2;
     sendautotype("If you can see this text kate is working.\n");
     sleep 2;
     $self->check_screen;
-    sendkey "ctrl-q";
+    send_key "ctrl-q";
     sleep 2;
     $self->check_screen;
-    sendkey "alt-d";
+    send_key "alt-d";
     sleep 2;    # discard
 }
 
