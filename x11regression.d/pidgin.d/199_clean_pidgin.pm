@@ -13,12 +13,12 @@ sub install_pkg() {
     my $self = shift;
 
     x11_start_program("xterm");
-    sendautotype("rpm -qa @packages\n");
+    type_string "rpm -qa @packages\n";
     waitidle;
     sleep 5;
 
     # Remove packages
-    sendautotype("xdg-su -c 'rpm -e @packages'\n");
+    type_string "xdg-su -c 'rpm -e @packages'\n";
     waitidle;
     sleep 3;
     if ($password) {
@@ -27,9 +27,9 @@ sub install_pkg() {
     }
     waitidle;
     sleep 10;
-    sendautotype("clear\n");
+    type_string "clear\n";
     sleep 2;
-    sendautotype("rpm -qa @packages\n");
+    type_string "rpm -qa @packages\n";
     waitidle;
     sleep 2;
     waitforneedle( "pidgin-pkg-removed", 10 );    #make sure pkgs removed.

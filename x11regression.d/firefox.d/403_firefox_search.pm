@@ -27,7 +27,7 @@ sub run() {
     checkneedle( "firefox_page-google", 5 );                #check point 1
     send_key "ctrl-k";
     sleep 1;
-    sendautotype "opensuse" . "\n";
+    type_string "opensuse" . "\n";
     sleep 5;
     checkneedle( "firefox_search-opensuse", 5 );            #check point 2
     send_key "ctrl-k";

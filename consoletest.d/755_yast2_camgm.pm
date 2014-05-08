@@ -8,20 +8,20 @@ sub run() {
     script_sudo("/sbin/yast2 ca_mgm");
     waitstillimage( 12, 90 );
     send_key "alt-c", 1;    # create root CA
-    sendautotype "autoinstCA\tsusetest.zq1.de\t\t\t\tOrg\tOU\topenQAserver\tfranconia\t\b\b\bGermany";
+    type_string "autoinstCA\tsusetest.zq1.de\t\t\t\tOrg\tOU\topenQAserver\tfranconia\t\b\b\bGermany";
     send_key "alt-n", 1;
-    sendautotype "$password\t$password";
+    type_string "$password\t$password";
     send_key "alt-n", 1;
     send_key "alt-t", 1;    # create CA
 
     if (1) {
         send_key "alt-e";    # enter CA
-        sendautotype $password;
+        type_string $password;
         send_key "alt-o";    # OK
         send_key "alt-e";    # cErtificates
         send_key "alt-a";    # add
         send_key "ret", 1;     # Server cert
-        sendautotype "susetest.zq1.de";
+        type_string "susetest.zq1.de";
         send_key "alt-n", 1;
         send_key "alt-u";     # Use CA pw
         send_key "alt-n", 1;
@@ -35,7 +35,7 @@ sub run() {
         sleep 1;
         send_key "alt-o";     # hostname warning - might or might not be needed
         send_key "alt-p", 1;    # select PW field
-        sendautotype $password;
+        type_string $password;
         send_key "alt-o";    # OK
         send_key "alt-o";     # OK "has been written"
                              # files are in /etc/ssl/servercerts/server*

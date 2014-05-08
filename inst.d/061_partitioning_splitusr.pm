@@ -20,7 +20,7 @@ sub run() {
     #send_key "right"; send_key "down"; send_key "down";
     send_key "alt-i", 1;    # Resize
     send_key "alt-u";     # Custom
-    sendautotype "1.5G";
+    type_string "1.5G";
     sleep 2;
     send_key "ret", 1;
 
@@ -32,10 +32,10 @@ sub run() {
     for ( 1 .. 10 ) {
         send_key "backspace";
     }
-    sendautotype("4.5G");
+    type_string "4.5G";
     send_key $cmd{"next"}, 1;
     send_key "alt-m";           # Mount Point
-    sendautotype("/usr\b");    # Backspace to break bad completion to /usr/local
+    type_string "/usr\b";    # Backspace to break bad completion to /usr/local
     waitforneedle( "partition-splitusr-submitted-usr", 3 );
     send_key $cmd{"finish"};
     waitforneedle( "partition-splitusr-finished", 3 );

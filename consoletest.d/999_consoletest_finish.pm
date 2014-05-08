@@ -7,7 +7,7 @@ sub run() {
     # cleanup
     script_sudo_logout;
     sleep 2;
-    sendautotype "loginctl --no-pager\n";
+    type_string "loginctl --no-pager\n";
     sleep 2;
     $self->take_screenshot();
 

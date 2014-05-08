@@ -10,11 +10,11 @@ sub run() {
     if (0) {                                                # 4.0b10 changed default value - b12 has showQuitWarning
         send_key "ctrl-t";
         sleep 1;
-        sendautotype "about:config\n";
+        type_string "about:config\n";
         sleep 1;
         send_key "ret";
         waitidle;
-        sendautotype "showQuit\n\t";
+        type_string "showQuit\n\t";
         sleep 1;
         send_key "ret";
         waitidle;

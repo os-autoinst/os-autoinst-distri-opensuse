@@ -22,19 +22,19 @@ sub run() {
 
     send_key "ctrl-l";
     sleep 1;
-    sendautotype "https://www.google.com" . "\n";
+    type_string "https://www.google.com" . "\n";
     sleep 6;
     checkneedle( "firefox_https-google", 3 );
 
     send_key "ctrl-l";
     sleep 1;
-    sendautotype "http://147.2.207.207/repo" . "\n";
+    type_string "http://147.2.207.207/repo" . "\n";
     sleep 3;
     checkneedle( "firefox_http207", 3 );
 
     send_key "ctrl-l";
     sleep 1;
-    sendautotype "https://147.2.207.207/repo" . "\n";
+    type_string "https://147.2.207.207/repo" . "\n";
     sleep 3;
     checkneedle( "firefox_https-risk", 3 );
     send_key "shift-tab";

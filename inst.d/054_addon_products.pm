@@ -23,7 +23,7 @@ sub run() {
     foreach my $url ( split( /\+/, $ENV{ADDONURL} ) ) {
         if ( $repo++ ) { send_key "alt-a", 1; }    # Add another
         send_key $cmd{"xnext"}, 1;                 # Specify URL (default)
-        sendautotype($url);
+        type_string $url;
         send_key $cmd{"next"}, 1;
         if ( $ENV{ADDONURL} !~ m{/update/} ) {    # update is already trusted, so would trigger "delete"
             send_key "alt-i";

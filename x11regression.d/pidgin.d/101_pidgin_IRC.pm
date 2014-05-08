@@ -31,7 +31,7 @@ sub run() {
     sleep 2;
     send_key "alt-u";
     sleep 1;
-    sendautotype("$CHANNELNAME");
+    type_string "$CHANNELNAME";
     sleep 2;
     send_key "alt-a";
     waitidle;
@@ -53,7 +53,7 @@ sub run() {
     # input "#"
     send_key "shift-3";
     sleep 2;
-    sendautotype("sledtesting");
+    type_string "sledtesting";
     sleep 2;
     send_key "alt-j";
     waitidle;

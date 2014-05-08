@@ -27,7 +27,7 @@ sub run() {
 
     send_key "ctrl-l";
     sleep 1;
-    sendautotype "ftp://ftp.novell.com" . "\n";
+    type_string "ftp://ftp.novell.com" . "\n";
     sleep 5;                                                #open the novell.com
     send_key "ctrl-p";
     sleep 1;
@@ -38,7 +38,7 @@ sub run() {
     }
     send_key "left";
     sleep 1;
-    sendautotype "/home/" . $username . "/" . "\n";         #firefox-bug 894966
+    type_string "/home/" . $username . "/" . "\n";         #firefox-bug 894966
     sleep 5;
 
     #check the pdf file

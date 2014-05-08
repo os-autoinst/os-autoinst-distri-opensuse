@@ -33,7 +33,7 @@ sub run() {
     # Open www.google.com
     send_key "alt-d";
     sleep 1;
-    sendautotype "www.google.com\n";
+    type_string "www.google.com\n";
     sleep 8;
     checkneedle( "test-firefox_sendlink-1", 5 );
     sleep 2;
@@ -63,7 +63,7 @@ sub run() {
 
     #Identity
     send_key "alt-a";    #Set Email Address
-    sendautotype "novell\@novell.com";
+    type_string "novell\@novell.com";
     send_key "alt-o";
     sleep 2;
     send_key "alt-s";
@@ -71,10 +71,10 @@ sub run() {
 
     #Receiving Email
     send_key "alt-s";    #Set Server
-    sendautotype "imap.novell.com";
+    type_string "imap.novell.com";
     sleep 1;
     send_key "alt-n";    #Set Username
-    sendautotype "novell-test";
+    type_string "novell-test";
     sleep 1;
     send_key "alt-o";
     sleep 1;
@@ -83,7 +83,7 @@ sub run() {
     send_key "alt-o";
     sleep 1;            #Sending Email
     send_key "alt-s";    # Set Server
-    sendautotype "smtp.novell.com";
+    type_string "smtp.novell.com";
     sleep 1;
     send_key "alt-o";
     sleep 1;

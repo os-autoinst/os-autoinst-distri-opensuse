@@ -28,7 +28,7 @@ sub run() {
     waitserial( "worked", 700 ) || die "zypper failed";
     script_run("zypper patch -l && echo 'worked' > /dev/$serialdev");    # first one might only have installed "update-test-affects-package-manager"
     if ( checkneedle("test-zypper_up-confirm") ) {
-        sendautotype "y\n";
+        type_string "y\n";
     }
     waitserial( "worked", 700 ) || die "zypper failed";
     script_run( "rpm -q libzypp zypper", 0 );

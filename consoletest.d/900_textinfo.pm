@@ -9,7 +9,7 @@ sub run() {
 
     #	$self->check_screen;
     script_run('df');
-    sendautotype "/sbin/btrfs filesystem df /\n" if $ENV{BTRFS};
+    type_string "/sbin/btrfs filesystem df /\n" if $ENV{BTRFS};
     script_run('free');
     script_run('rpm -qa kernel-*');
     script_run('grep DISPLAYMANAGER /etc/sysconfig/displaymanager');

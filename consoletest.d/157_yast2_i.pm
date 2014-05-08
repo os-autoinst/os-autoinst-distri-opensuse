@@ -5,7 +5,7 @@ sub run() {
     my $self = shift;
     script_sudo("/sbin/yast2 -i");
     waitstillimage( 36, 90 );
-    sendautotype("xdelta\n");
+    type_string "xdelta\n";
     sleep 3;
     send_key "spc";    # select for install
     sleep 1;

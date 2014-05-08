@@ -91,7 +91,7 @@ sub run() {
         send_key "alt-d";
         sleep 1;
         if ( $_->{remark} eq "offline" ) {
-            sendautotype "developer.mozilla.org/en/docs/Windows_Build_Prerequisites\n";    # Do not use base url here
+            type_string "developer.mozilla.org/en/docs/Windows_Build_Prerequisites\n";    # Do not use base url here
             sleep 15;
 
             # Set offline
@@ -101,7 +101,7 @@ sub run() {
 
         }
         else {
-            sendautotype $base_url. $_->{name} . ".html\n";                                # Full URL
+            type_string $base_url. $_->{name} . ".html\n";                                # Full URL
         }
 
         sleep 10;
@@ -125,13 +125,13 @@ sub run() {
         # Set file name
         send_key "alt-n";
         sleep 1;
-        sendautotype $_->{name} . ".pdf";
+        type_string $_->{name} . ".pdf";
 
         # We test the print range at the same time when in offline mode
         if ( $_->{remark} eq "offline" ) {
             send_key "alt-e";
             sleep 1;
-            sendautotype "1-2";
+            type_string "1-2";
             sleep 1;
         }
 

@@ -14,8 +14,8 @@ sub run() {
     sleep 2;
     waitidle;
     $self->check_screen;
-    sendautotype("cd\n");
-    sendautotype("tracker-search newfile\n");
+    type_string "cd\n";
+    type_string "tracker-search newfile\n";
     sleep 2;
     waitstillimage;
     $self->check_screen;

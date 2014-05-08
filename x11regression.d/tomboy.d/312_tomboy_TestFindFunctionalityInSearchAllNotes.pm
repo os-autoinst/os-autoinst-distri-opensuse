@@ -20,14 +20,14 @@ sub run() {
     # create a note
     send_key "ctrl-n";
     sleep 2;
-    sendautotype "hehe";
+    type_string "hehe";
     sleep 1;
     send_key "alt-f4";
     waitidle;
 
     send_key "alt-f9";
     sleep 2;
-    sendautotype "hehe";
+    type_string "hehe";
     sleep 1;
     $self->check_screen;
     sleep 2;

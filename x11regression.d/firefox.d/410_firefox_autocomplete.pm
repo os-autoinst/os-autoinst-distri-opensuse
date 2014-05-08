@@ -32,17 +32,17 @@ sub run() {
 
     # Open testing webpage for autocomplete
     send_key "f6";
-    sendautotype "debugtheweb.com/test/passwordautocomplete.asp\n";
+    type_string "debugtheweb.com/test/passwordautocomplete.asp\n";
     sleep 4;
     checkneedle( "firefox_autocomplete-testpage", 5 );
 
     send_key "tab";
     send_key "tab";
     sleep 1;                                                # Focus to Username input field
-    sendautotype "suse-test";
+    type_string "suse-test";
     send_key "tab";
     sleep 1;                                                # Password field
-    sendautotype "testpassword";
+    type_string "testpassword";
     send_key "tab";                                          # "Standard Submit" button
     send_key "ret";
     sleep 3;
@@ -62,7 +62,7 @@ sub run() {
     x11_start_program("firefox");
     sleep 5;
     send_key "f6";
-    sendautotype "debugtheweb.com/test/passwordautocomplete.asp\n";
+    type_string "debugtheweb.com/test/passwordautocomplete.asp\n";
     sleep 4;
     checkneedle( "firefox_autocomplete-testpage_filled", 5 );
 

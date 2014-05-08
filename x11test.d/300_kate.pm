@@ -19,7 +19,7 @@ sub run() {
     # close welcome screen
     send_key 'alt-c';
     sleep 2;
-    sendautotype("If you can see this text kate is working.\n");
+    type_string "If you can see this text kate is working.\n";
     sleep 2;
     $self->check_screen;
     send_key "ctrl-q";

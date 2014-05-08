@@ -42,11 +42,11 @@ sub run() {
     }
     send_key "alt-u";
     sleep 1;            #choose "Use a master password"
-    sendautotype $master_passwd;
+    type_string $master_passwd;
     sleep 1;
     send_key "tab";
     sleep 1;            #re-enter password
-    sendautotype $master_passwd. "\n";
+    type_string $master_passwd. "\n";
     sleep 1;
     send_key "ret";
     sleep 1;            #"Password Change Succeeded" diag
@@ -55,21 +55,21 @@ sub run() {
 
     send_key "ctrl-l";
     sleep 1;
-    sendautotype $test_site. "\n";
+    type_string $test_site. "\n";
     sleep 5;
     checkneedle( "firefox_page-calendar", 5 );
-    sendautotype $gmailuser;
+    type_string $gmailuser;
     sleep 1;
     send_key "tab";
     sleep 1;
-    sendautotype $gmailpasswd. "\n";
+    type_string $gmailpasswd. "\n";
     sleep 5;
     checkneedle( "firefox_remember-password", 5 );
     send_key "alt-r";
     sleep 1;    #remember password
     send_key "r";
     sleep 1;
-    sendautotype $master_passwd. "\n";
+    type_string $master_passwd. "\n";
     sleep 1;
     send_key "alt-e";
     sleep 1;
@@ -101,10 +101,10 @@ sub run() {
     #login calendar.google.com again to check the password
     send_key "ctrl-l";
     sleep 2;
-    sendautotype $test_site. "\n";
+    type_string $test_site. "\n";
     sleep 5;
     checkneedle( "firefox_passwd-required", 5 );
-    sendautotype $master_passwd. "\n";
+    type_string $master_passwd. "\n";
     sleep 1;
     checkneedle( "firefox_page-calendar-passwd", 3 );
 
@@ -123,7 +123,7 @@ sub run() {
     sleep 1;    #close the "Saved..." dialog
     send_key "alt-u";
     sleep 2;    #disable the master password
-    sendautotype $master_passwd. "\n";
+    type_string $master_passwd. "\n";
     sleep 1;
     send_key "ret";
     sleep 1;    #answer to the popup window

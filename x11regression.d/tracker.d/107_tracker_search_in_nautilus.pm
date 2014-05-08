@@ -16,12 +16,12 @@ sub run() {
     $self->check_screen;
     send_key "ctrl-f";
     sleep 2;
-    sendautotype("newfile");
+    type_string "newfile";
     send_key "ret";
     sleep 2;
     waitidle;
     $self->check_screen;    # should open file newfile
-    sendautotype("Hello world.\n");
+    type_string "Hello world.\n";
     sleep 2;
     send_key "ctrl-s";
     sleep 2;

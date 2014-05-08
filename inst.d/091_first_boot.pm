@@ -16,9 +16,9 @@ sub run() {
 
     if ( $ENV{'NOAUTOLOGIN'} ) {
         waitforneedle( 'displaymanager', 200 );
-        sendautotype($username);
+        type_string $username;
         send_key "ret";
-        sendautotype("$password");
+        type_string "$password";
         send_key "ret";
     }
 

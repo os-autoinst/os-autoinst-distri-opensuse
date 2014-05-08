@@ -27,7 +27,7 @@ sub run() {
     #install a firefox addon
     send_key "ctrl-l";
     sleep 1;
-    sendautotype $addon. "\n";
+    type_string $addon. "\n";
     sleep 18;                                               #download addon need a long time
     checkneedle( "firefox_addon-unmht", 8 );                #wait for the install button
     send_key "ret";
@@ -40,7 +40,7 @@ sub run() {
     sleep 1;
     send_key "ctrl-l";
     sleep 1;
-    sendautotype $ie6url. "\n";
+    type_string $ie6url. "\n";
     sleep 25;                                               #the file need a long time to load
     checkneedle( "firefox_page-ie6", 20 );
     sleep 3;
@@ -48,7 +48,7 @@ sub run() {
     #open ie7 file (IIS)
     send_key "ctrl-l";
     sleep 1;
-    sendautotype $ie7url. "\n";
+    type_string $ie7url. "\n";
     sleep 12;
     checkneedle( "firefox_page-ie7", 10 );
 

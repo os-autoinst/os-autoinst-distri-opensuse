@@ -11,7 +11,7 @@ sub run() {
     sleep 2;
     waitidle;    # extra wait because oo sometimes appears to be idle during start
     $self->check_screen;
-    sendautotype("Hello World!");
+    type_string "Hello World!";
     sleep 2;
     $self->check_screen;
     send_key "alt-f4";

@@ -11,7 +11,7 @@ sub is_applicable() {
 sub run() {
     my $self = shift;
     x11_start_program("oomath");
-    sendautotype "E %PHI = H %PHI\nnewline\n1 = 1";
+    type_string "E %PHI = H %PHI\nnewline\n1 = 1";
     sleep 3;
 
     # test broken undo

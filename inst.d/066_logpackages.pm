@@ -15,10 +15,10 @@ sub run() {
     #send_key "ctrl-alt-shift-x"; sleep 3;
     send_key "ctrl-alt-f2";
     waitforneedle("inst-console");
-    sendautotype "(cat .timestamp ; echo .packages.initrd: ; cat .packages.initrd)>/dev/$serialdev\n";
-    sendautotype "(echo .packages.root: ; cat .packages.root)>/dev/$serialdev\n";
+    type_string "(cat .timestamp ; echo .packages.initrd: ; cat .packages.initrd)>/dev/$serialdev\n";
+    type_string "(echo .packages.root: ; cat .packages.root)>/dev/$serialdev\n";
     waitforneedle( "inst-packagestyped", 150 );
-    sendautotype "ls -lR /update\n";
+    type_string "ls -lR /update\n";
     $self->take_screenshot;
     waitidle;
 

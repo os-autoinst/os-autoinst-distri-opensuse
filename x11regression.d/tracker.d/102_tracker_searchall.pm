@@ -14,7 +14,7 @@ sub run() {
     sleep 2;
     waitidle;
     $self->check_screen;
-    sendautotype("newfile");
+    type_string "newfile";
     sleep 2;
     waitstillimage;
     $self->check_screen;

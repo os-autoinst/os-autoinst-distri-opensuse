@@ -20,7 +20,7 @@ sub run() {
     sleep 2;
     send_key "ctrl-home";
     sleep 2;
-    sendautotype "Rename_";
+    type_string "Rename_";
     sleep 1;
     send_key "ctrl-w";
     waitidle;
@@ -43,7 +43,7 @@ sub run() {
     # logout
     send_key "alt-f2";
     sleep 1;
-    sendautotype "gnome-session-quit --logout --force\n";
+    type_string "gnome-session-quit --logout --force\n";
     sleep 20;
     waitidle;
 

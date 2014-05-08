@@ -9,9 +9,9 @@ sub run() {
     my $self = shift;
 
     # log in
-    sendautotype $username. "\n";
+    type_string $username. "\n";
     sleep 1;
-    sendautotype $password. "\n";
+    type_string $password. "\n";
     waitidle;
 }
 

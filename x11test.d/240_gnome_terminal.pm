@@ -17,7 +17,7 @@ sub run() {
     sleep 2;
     send_key "ctrl-shift-t";
     for ( 1 .. 13 ) { send_key "ret" }
-    sendautotype("echo If you can see this text gnome-terminal is working.\n");
+    type_string "echo If you can see this text gnome-terminal is working.\n";
     sleep 2;
     $self->check_screen;
     sleep 2;

@@ -44,9 +44,9 @@ sub run() {
     send_key "down";
     send_key "right";
     sleep 1;
-    sendautotype "www.gnu\n";                               # find the directory www.gnu.org and enter
+    type_string "www.gnu\n";                               # find the directory www.gnu.org and enter
     sleep 2;
-    sendautotype "index\n";                                 # Find file index.html and open it
+    type_string "index\n";                                 # Find file index.html and open it
     sleep 5;
     checkneedle( "test-firefox_lcoalpage-1", 5 );
 

@@ -12,9 +12,9 @@ sub run() {
         send_key "ctrl-alt-delete";    # shutdown
         waitforneedle 'logoutdialog', 15;
 
-        sendautotype "\t";
+        type_string "\t";
         waitforneedle( "kde-turn-off-selected", 2 );
-        sendautotype "\n";
+        type_string "\n";
         waitinststage( "splashscreen", 40 );
     }
 
@@ -37,11 +37,11 @@ sub run() {
             send_key "alt-f4";         # opens log out popup after all windows closed
         }
         waitidle;
-        sendautotype "\t\t";          # select shutdown
+        type_string "\t\t";          # select shutdown
         sleep 1;
 
         #$self->check_screen;
-        sendautotype "\n";
+        type_string "\n";
         waitinststage("splashscreen");
     }
 

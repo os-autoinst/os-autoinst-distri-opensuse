@@ -86,26 +86,26 @@ sub run() {
         send_key "ret";
     }
 
-    #sendautotype("nohz=off "); # NOHZ caused errors with 2.6.26
-    #sendautotype("nomodeset "); # coolo said, 12.3-MS0 kernel/kms broken with cirrus/vesa #fixed 2012-11-06
+    #type_string "nohz=off "; # NOHZ caused errors with 2.6.26
+    #type_string "nomodeset "; # coolo said, 12.3-MS0 kernel/kms broken with cirrus/vesa #fixed 2012-11-06
 
     # https://wiki.archlinux.org/index.php/Kernel_Mode_Setting#Forcing_modes_and_EDID
-    sendautotype("vga=791 ");
-    sendautotype("Y2DEBUG=1 ");
-    sendautotype( "video=1024x768-16 ",                              13 );
-    sendautotype( "drm_kms_helper.edid_firmware=edid/1024x768.bin ", 7 );
+    type_string "vga=791 ";
+    type_string "Y2DEBUG=1 ";
+    type_string  "video=1024x768-16 ",                              13 ;
+    type_string  "drm_kms_helper.edid_firmware=edid/1024x768.bin ", 7 ;
     waitforneedle( "inst-video-typed", 13 );
     if ( !$ENV{NICEVIDEO} ) {
-        sendautotype( "console=ttyS0 ", 7 );    # to get crash dumps as text
-        sendautotype( "console=tty ",   7 );    # to get crash dumps as text
+        type_string  "console=ttyS0 ", 7 ;    # to get crash dumps as text
+        type_string  "console=tty ",   7 ;    # to get crash dumps as text
         waitforneedle( "inst-consolesettingstyped", 30 );
         my $e = $ENV{EXTRABOOTPARAMS};
 
         #	if($ENV{RAIDLEVEL}) {$e="linuxrc=trace"}
-        if ($e) { sendautotype( "$e ", 13 ); sleep 10; }
+        if ($e) { type_string  "$e ", 13 ; sleep 10; }
     }
 
-    #sendautotype("kiwidebug=1 ");
+    #type_string "kiwidebug=1 ";
 
     # set HTTP-source to not use factory-snapshot
     if ( $ENV{NETBOOT} ) {
@@ -122,7 +122,7 @@ sub run() {
         #download.opensuse.org
         if ($mirroraddr) {
             for ( 1 .. 22 ) { send_key "backspace" }
-            sendautotype($mirroraddr);
+            type_string $mirroraddr;
         }
         send_key "tab";
 
@@ -135,7 +135,7 @@ sub run() {
             for ( 1 .. 10 ) { send_key "left"; }
         }
         for ( 1 .. 22 ) { send_key "backspace"; }
-        sendautotype($mirrorpath);
+        type_string $mirrorpath;
 
         waitforneedle( "inst-mirror_is_setup", 2 );
         send_key "ret";
@@ -148,18 +148,18 @@ sub run() {
                 send_key "down";
             }
             send_key "ret";
-            sendautotype("$proxyhost\t$proxyport\n");
+            type_string "$proxyhost\t$proxyport\n";
             waitforneedle( "inst-proxy_is_setup", 2 );
 
             # add boot parameters
             # ZYPP... enables proxy caching
         }
 
-        #sendautotype("ZYPP_ARIA2C=0 "); sleep 9;
-        #sendautotype("ZYPP_MULTICURL=0 "); sleep 2;
+        #type_string "ZYPP_ARIA2C=0 "; sleep 9;
+        #type_string "ZYPP_MULTICURL=0 "; sleep 2;
     }
 
-    #if($ENV{BTRFS}) {sleep 9; sendautotype("squash=0 loadimage=0 ");sleep 21} # workaround 697671
+    #if($ENV{BTRFS}) {sleep 9; type_string "squash=0 loadimage=0 ";sleep 21} # workaround 697671
 
     # set language last so that above typing will not depend on keyboard layout
     if ( $ENV{INSTLANG} ) {
@@ -251,21 +251,21 @@ sub run() {
 
     if ( $ENV{ISO} =~ m/i586/ ) {
 
-        #	sendautotype("info=");sleep 4; sendautotype("http://zq1.de/i "); sleep 15; sendautotype("insecure=1 "); sleep 15;
+        #	type_string "info=";sleep 4; type_string "http://zq1.de/i "; sleep 15; type_string "insecure=1 "; sleep 15;
     }
     my $args = "";
     if ( $ENV{AUTOYAST} ) {
         $args .= " netsetup=dhcp,all autoyast=$ENV{AUTOYAST} ";
     }
-    sendautotype $args;
+    type_string $args;
     if ( 0 && $ENV{RAIDLEVEL} ) {
 
         # workaround bnc#711724
         $ENV{ADDONURL} = "http://download.opensuse.org/repositories/home:/snwint/openSUSE_Factory/";    #TODO: drop
         $ENV{DUD}      = "dud=http://zq1.de/bl10";
-        sendautotype("$ENV{DUD} ");
+        type_string "$ENV{DUD} ";
         sleep 20;
-        sendautotype("insecure=1 ");
+        type_string "insecure=1 ";
         sleep 20;
     }
 
@@ -273,7 +273,7 @@ sub run() {
         send_key "1";       # runlevel 1
         send_key "ret";    # boot
         sleep(40);
-        sendautotype( "
+        type_string( "
 ls -ld /tmp
 chmod 1777 /tmp
 init 5

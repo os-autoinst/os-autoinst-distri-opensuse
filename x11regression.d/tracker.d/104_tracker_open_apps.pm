@@ -14,7 +14,7 @@ sub run() {
     sleep 2;
     waitidle;    # extra wait because oo sometimes appears to be idle during start
     $self->check_screen;
-    sendautotype("cheese");
+    type_string "cheese";
     sleep 2;
     waitstillimage;
     $self->check_screen;

@@ -24,14 +24,14 @@ sub run() {
     sleep 2;
 
     #login mail.google.com
-    sendautotype "mail.google.com\n";
+    type_string "mail.google.com\n";
     sleep 4;
     checkneedle( "firefox_page-gmail1", 5 );
-    sendautotype "nooops6";
+    type_string "nooops6";
     sleep 1;
     send_key "tab";
     sleep 1;
-    sendautotype "opensuse\n";
+    type_string "opensuse\n";
     sleep 6;
     checkneedle( "firefox_page-gmail2", 5 );
     send_key "alt-r";
@@ -50,7 +50,7 @@ sub run() {
     #login mail.google.com again to check the password
     send_key "ctrl-l";
     sleep 2;
-    sendautotype "mail.google.com\n";
+    type_string "mail.google.com\n";
     sleep 5;
     checkneedle( "firefox_page-gmail3", 5 );
 
@@ -79,7 +79,7 @@ sub run() {
 
     send_key "alt-f2";
     sleep 2;
-    sendautotype "rm -rf .mozilla\n";
+    type_string "rm -rf .mozilla\n";
     sleep 2;
     send_key "ret";
     sleep 5;
