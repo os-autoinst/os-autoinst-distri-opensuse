@@ -27,12 +27,12 @@ sub run() {
     # Launch firefox
     x11_start_program("firefox");
     waitforneedle( "start-firefox", 5 );
-    if ( $ENV{UPGRADE} ) { sendkey("alt-d"); waitidle; }    # Don't check for updated plugins
+    if ( $ENV{UPGRADE} ) { send_key "alt-d"; waitidle; }    # Don't check for updated plugins
     if ( $ENV{DESKTOP} =~ /xfce|lxde/i ) {
-        sendkey "ret";                                      # Confirm default browser setting popup
+        send_key "ret";                                      # Confirm default browser setting popup
         waitidle;
     }
-    sendkey "alt-f10";
+    send_key "alt-f10";
     sleep 1;                                                # Maximize
 
     # Define the pages to be tested (last part of urls)
@@ -52,37 +52,37 @@ sub run() {
 
     foreach (@test_images) {
 
-        sendkey "alt-d";
+        send_key "alt-d";
         sleep 1;
         sendautotype $base_url. $_->{image_file} . "\n";    # Full URL
         sleep 8;
 
-        sendkey "ctrl-p";
+        send_key "ctrl-p";
         sleep 1;                                            # Open "Print" window
 
-        sendkey "tab";                                      # Choose "Print to File"
+        send_key "tab";                                      # Choose "Print to File"
 
         # Set file name
-        sendkey "alt-n";
+        send_key "alt-n";
         sleep 1;
         sendautotype $_->{name} . ".pdf";
 
         # Print
-        sendkey "alt-p";
+        send_key "alt-p";
         sleep 5;
 
         # Open printed pdf file by evince
         x11_start_program( "evince " . $_->{name} . ".pdf" );
         sleep 3;
-        sendkey "f5";
+        send_key "f5";
         sleep 2;    # Slide mode
 
         checkneedle( "test-firefox_printing_images-" . $_->{name}, 5 );
         sleep 1;
 
-        sendkey "esc";
+        send_key "esc";
         sleep 1;
-        sendkey "alt-f4";
+        send_key "alt-f4";
         sleep 1;    # Close evince
     }
 

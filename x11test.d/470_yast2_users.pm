@@ -4,9 +4,9 @@ use bmwqemu;
 sub run() {
     my $self = shift;
     x11_start_program("xdg-su -c '/sbin/yast2 users'");
-    if ($password) { sendpassword; sendkeyw "ret"; }
+    if ($password) { sendpassword; send_key "ret", 1; }
     $self->check_screen;
-    sendkey "alt-o";    # OK => Exit
+    send_key "alt-o";    # OK => Exit
 }
 
 1;

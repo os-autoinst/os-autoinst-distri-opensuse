@@ -15,13 +15,13 @@ sub run() {
     mouse_hide(1);
     x11_start_program("gnome-terminal");
     sleep 2;
-    sendkey "ctrl-shift-t";
-    for ( 1 .. 13 ) { sendkey "ret" }
+    send_key "ctrl-shift-t";
+    for ( 1 .. 13 ) { send_key "ret" }
     sendautotype("echo If you can see this text gnome-terminal is working.\n");
     sleep 2;
     $self->check_screen;
     sleep 2;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 2;
 }
 

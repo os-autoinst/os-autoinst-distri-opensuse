@@ -17,7 +17,7 @@ sub run() {
     script_run('echo $?');
     $self->check_screen;
     sleep 5;
-    sendkey "ctrl-l";    # clear screen to see that second update does not do any more
+    send_key "ctrl-l";    # clear screen to see that second update does not do any more
     my $pkgname = "xdelta";
     script_run("rpm -e $pkgname && echo 'package_removed' > /dev/$serialdev");
     waitserial("package_removed") || die "package remove failed";

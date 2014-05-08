@@ -13,8 +13,8 @@ sub run() {
     my $self = shift;
     x11_start_program("banshee");
     $self->check_screen;
-    sendkey "ctrl-q";    # really quit (alt-f4 just backgrounds)
-    sendkey "alt-f4";
+    send_key "ctrl-q";    # really quit (alt-f4 just backgrounds)
+    send_key "alt-f4";
     waitidle;
 }
 

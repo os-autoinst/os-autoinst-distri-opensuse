@@ -22,46 +22,46 @@ sub run() {
     # Launch firefox
     x11_start_program("firefox");
     waitforneedle( "start-firefox", 5 );
-    if ( $ENV{UPGRADE} ) { sendkey("alt-d"); waitidle; }    # Don't check for updated plugins
+    if ( $ENV{UPGRADE} ) { send_key "alt-d"; waitidle; }    # Don't check for updated plugins
     if ( $ENV{DESKTOP} =~ /xfce|lxde/i ) {
-        sendkey "ret";                                      # Confirm default browser setting popup
+        send_key "ret";                                      # Confirm default browser setting popup
         waitidle;
     }
-    sendkey "alt-f10";
+    send_key "alt-f10";
     sleep 1;                                                # Maximize
 
     # Open testing webpage for autocomplete
-    sendkey "f6";
+    send_key "f6";
     sendautotype "debugtheweb.com/test/passwordautocomplete.asp\n";
     sleep 4;
     checkneedle( "firefox_autocomplete-testpage", 5 );
 
-    sendkey "tab";
-    sendkey "tab";
+    send_key "tab";
+    send_key "tab";
     sleep 1;                                                # Focus to Username input field
     sendautotype "suse-test";
-    sendkey "tab";
+    send_key "tab";
     sleep 1;                                                # Password field
     sendautotype "testpassword";
-    sendkey "tab";                                          # "Standard Submit" button
-    sendkey "ret";
+    send_key "tab";                                          # "Standard Submit" button
+    send_key "ret";
     sleep 3;
 
     checkneedle( "fierfox_autocomplete-1", 5 );
 
-    sendkey "alt-r";
-    sendkey "alt-r";
-    sendkey "ret";                                          #Remember Password
+    send_key "alt-r";
+    send_key "alt-r";
+    send_key "ret";                                          #Remember Password
     sleep 5;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 1;                                                #Close browser
-    sendkey "ret";
+    send_key "ret";
     sleep 2;                                                # confirm "save&quit"
 
     #Launch firefox again
     x11_start_program("firefox");
     sleep 5;
-    sendkey "f6";
+    send_key "f6";
     sendautotype "debugtheweb.com/test/passwordautocomplete.asp\n";
     sleep 4;
     checkneedle( "firefox_autocomplete-testpage_filled", 5 );

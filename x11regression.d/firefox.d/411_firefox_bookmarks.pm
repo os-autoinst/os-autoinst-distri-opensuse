@@ -24,127 +24,127 @@ sub run() {
     # Launch firefox
     x11_start_program("firefox");
     waitforneedle( "start-firefox", 5 );
-    if ( $ENV{UPGRADE} ) { sendkey("alt-d"); waitidle; }    # Don't check for updated plugins
+    if ( $ENV{UPGRADE} ) { send_key "alt-d"; waitidle; }    # Don't check for updated plugins
     if ( $ENV{DESKTOP} =~ /xfce|lxde/i ) {
-        sendkey "ret";                                      # Confirm default browser setting popup
+        send_key "ret";                                      # Confirm default browser setting popup
         waitidle;
     }
-    sendkey "alt-f10";
+    send_key "alt-f10";
     sleep 1;                                                # Maximize
 
     #View bookmarks
-    sendkey "ctrl-b";
+    send_key "ctrl-b";
     sleep 1;
-    sendkey "alt-s";
+    send_key "alt-s";
     sleep 1;                                                #Search (To avoid using "Tab" as much as possible)
     sendautotype "Getting";
     sleep 3;
-    sendkey "tab";
-    sendkey "down";                                         #Focus on the "Getting Start" bookmark
-    sendkey "ret";
+    send_key "tab";
+    send_key "down";                                         #Focus on the "Getting Start" bookmark
+    send_key "ret";
     sleep 10;                                               #Open the bookmark
     checkneedle( "test-firefox_bookmarks-open", 5 );
-    sendkey "ctrl-b";
+    send_key "ctrl-b";
     sleep 2;                                                #Close bookmarks sidebar
 
     #Add bookmarks
-    sendkey "f6";
+    send_key "f6";
     sendautotype "www.google.com\n";
     sleep 3;
-    sendkey "ctrl-d";
+    send_key "ctrl-d";
     sleep 1;                                                #Add bookmark
     checkneedle( "test-firefox_bookmarks-add01", 5 );
-    sendkey "ret";
-    sendkey "ctrl-b";
+    send_key "ret";
+    send_key "ctrl-b";
     sleep 1;                                                #Open sidebar
-    sendkey "tab";
-    sendkey "down";
-    sendkey "ret";
+    send_key "tab";
+    send_key "down";
+    send_key "ret";
     sleep 2;                                                #Unfold Bookmarks Menu
     checkneedle( "test-firefox_bookmarks-add02", 5 );
-    sendkey "ctrl-b";
+    send_key "ctrl-b";
     sleep 2;                                                #Close bookmarks sidebar
 
     #New Folder
-    sendkey "ctrl-b";
+    send_key "ctrl-b";
     sleep 1;                                                #Open sidebar
-    sendkey "tab";
-    sendkey "right";                                        #Unfold Bookmarks Toolbar
-    sendkey "down";
-    sendkey "up";
+    send_key "tab";
+    send_key "right";                                        #Unfold Bookmarks Toolbar
+    send_key "down";
+    send_key "up";
     sleep 1;                                                #Make focus
-    sendkey "menu";
+    send_key "menu";
     sleep 1;                                                #Right click menu
-    sendkey "f";
+    send_key "f";
     sleep 1;                                                #New Folder
-    sendkey "alt-n";
+    send_key "alt-n";
     sleep 1;
-    sendkey "ctrl-a";
+    send_key "ctrl-a";
     sendautotype "suse-test\n";
     sleep 1;                                                #Input folder name
     checkneedle( "test-firefox_bookmarks-folder", 5 );
 
     #New bookmarks
-    sendkey "menu";
+    send_key "menu";
     sleep 1;                                                #Right click menu
-    sendkey "b";
+    send_key "b";
     sleep 1;                                                # New Bookmark
-    sendkey "alt-n";
-    sendkey "ctrl-a";                                       #Name
+    send_key "alt-n";
+    send_key "ctrl-a";                                       #Name
     sendautotype "Free Software Foundation";
-    sendkey "alt-l";                                        #Location
+    send_key "alt-l";                                        #Location
     sendautotype "http://www.fsf.org/\n";
     sleep 1;                                                #Add
-    sendkey "right";
+    send_key "right";
     sleep 1;                                                #Unfolder
     checkneedle( "test-firefox_bookmarks-new", 5 );
 
     #Surf bookmarks
-    sendkey "down";                                         #Focus on new created bookmark
-    sendkey "ret";
+    send_key "down";                                         #Focus on new created bookmark
+    send_key "ret";
     sleep 5;
     checkneedle( "test-firefox_bookmarks-surf", 5 );
 
     #Delete bookmarks
-    sendkey "alt-s";                                        #Search field
+    send_key "alt-s";                                        #Search field
     sendautotype "Free\n";
     sleep 1;
-    sendkey "tab";
-    sendkey "down";                                         #Focus on the bookmark to be deleted
-    sendkey "menu";
+    send_key "tab";
+    send_key "down";                                         #Focus on the bookmark to be deleted
+    send_key "menu";
     sleep 1;
-    sendkey "d";
+    send_key "d";
     sleep 1;                                                #Delete
-    sendkey "alt-s";
-    sendkey "delete";
+    send_key "alt-s";
+    send_key "delete";
     sleep 1;                                                #Cancel searched
     checkneedle( "test-firefox_bookmarks-delete", 5 );
 
     #Edit bookmark proerties
-    sendkey "ctrl-shift-o";
+    send_key "ctrl-shift-o";
     sleep 2;
     checkneedle( "test-firefox_bookmarks-edit01", 5 );
-    sendkey "down";
-    sendkey "ret";                                          #Bookmarks Menu
-    foreach ( 1 .. 5 ) { sendkey "down"; }                  #Move to Google bookmark we created at the beginning
+    send_key "down";
+    send_key "ret";                                          #Bookmarks Menu
+    foreach ( 1 .. 5 ) { send_key "down"; }                  #Move to Google bookmark we created at the beginning
     sleep 2;
-    sendkey "alt-n";                                        #Name
+    send_key "alt-n";                                        #Name
     sendautotype "Google Maps";
     sleep 1;
-    sendkey "alt-l";                                        #Location
+    send_key "alt-l";                                        #Location
     sendautotype "https://maps.google.com";
     sleep 1;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 1;                                                #Close bookmarks window
     checkneedle( "test-firefox_bookmarks-edit02", 5 );
     sleep 1;
-    sendkey "alt-s";
+    send_key "alt-s";
     sendautotype "Maps";
     sleep 1;
-    sendkey "tab";
-    sendkey "down";
+    send_key "tab";
+    send_key "down";
     sleep 1;                                                #Focus on "Google Maps" bookmark
-    sendkey "ret";
+    send_key "ret";
     sleep 5;                                                #Load the bookmark
     checkneedle( "test-firefox_bookmarks-edit03", 5 );
     sleep 1;

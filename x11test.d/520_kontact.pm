@@ -21,9 +21,9 @@ sub run() {
 
     # waitforneedle("kontact-assistant", 20);
     waitforneedle( "test-kontact-1", 20 );    # tips window or assistant
-    sendkey "alt-f4";
+    send_key "alt-f4";
     waitforneedle( "kontact-window", 3 );
-    sendkey "alt-f4";
+    send_key "alt-f4";
 }
 
 1;

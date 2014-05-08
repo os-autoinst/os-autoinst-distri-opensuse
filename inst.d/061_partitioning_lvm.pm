@@ -11,24 +11,24 @@ sub run() {
     # workaround for new style
     my $closedialog;
     my $ret = waitforneedle( [ 'partioning-edit-proposal-button' ], 40 );
-    sendkey "alt-d";
+    send_key "alt-d";
     sleep 2;
 
-    sendkeyw "alt-l";    # enable LVM-based proposal
+    send_key "alt-l", 1;    # enable LVM-based proposal
     if ( $ENV{ENCRYPT} ) {
-        sendkeyw "alt-y";
+        send_key "alt-y", 1;
         waitforneedle("inst-encrypt-password-prompt");
         sendpassword;
-        sendkey "tab";
+        send_key "tab";
         sendpassword;
-        sendkeyw "ret";
+        send_key "ret", 1;
         waitforneedle( "partition-cryptlvm-summary", 3 );
     }
     else {
         waitforneedle( "partition-lvm-summary", 3 );
     }
     waitidle 5;
-    sendkey "alt-o";
+    send_key "alt-o";
 }
 
 1;

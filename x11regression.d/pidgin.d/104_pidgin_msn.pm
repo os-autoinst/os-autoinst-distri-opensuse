@@ -20,52 +20,52 @@ sub run() {
     sleep 2;
 
     # Create account
-    sendkey "alt-a";
+    send_key "alt-a";
     sleep 2;
 
     # Choose Protocol "MSN"
-    sendkey "spc";
+    send_key "spc";
     sleep 2;
     foreach ( 1 .. $MSN ) {
-        sendkey "down";
+        send_key "down";
         sleep 1;
     }
-    sendkey "ret";
+    send_key "ret";
     sleep 2;
-    sendkey "alt-u";
+    send_key "alt-u";
     sleep 1;
     sendautotype("$USERNAME");
     sleep 2;
-    sendkey "shift-2";
+    send_key "shift-2";
     sleep 2;
     sendautotype("$DOMAIN");
     sleep 2;
-    sendkey "dot";
+    send_key "dot";
     sleep 1;
     sendautotype("com");
     sleep 2;
-    sendkey "alt-p";
+    send_key "alt-p";
     sleep 1;
     sendautotype("$PASSWD");
     sleep 2;
-    sendkey "alt-a";
+    send_key "alt-a";
     waitidle;
     sleep 45;    # Connect to MSN are very slow
                  # Should create MSN account
     $self->check_screen;
 
     # Close account manager
-    sendkey "ctrl-a";
+    send_key "ctrl-a";
     sleep 2;
-    sendkey "alt-c";
+    send_key "alt-c";
     sleep 2;
 
     # Open a chat
-    sendkey "tab";
+    send_key "tab";
     sleep 2;
-    sendkey "down";
+    send_key "down";
     sleep 2;
-    sendkey "ret";
+    send_key "ret";
     sleep 2;
     sendautotype("hello world!\n");
     sleep 2;
@@ -77,17 +77,17 @@ sub run() {
 
     # Cleaning
     # Close the conversation
-    sendkey "ctrl-w";
+    send_key "ctrl-w";
     sleep 2;
-    sendkey "ctrl-a";
+    send_key "ctrl-a";
     sleep 2;
-    sendkey "right";
+    send_key "right";
     sleep 2;
-    sendkey "ret";
+    send_key "ret";
     sleep 2;
-    sendkey "alt-d";
+    send_key "alt-d";
     sleep 2;
-    sendkey "alt-d";
+    send_key "alt-d";
     waitidle;
     sleep 2;
 
@@ -95,9 +95,9 @@ sub run() {
     $self->check_screen;
 
     # Exit
-    sendkey "alt-c";
+    send_key "alt-c";
     sleep 2;
-    sendkey "ctrl-q";
+    send_key "ctrl-q";
     sleep 2;
 }
 

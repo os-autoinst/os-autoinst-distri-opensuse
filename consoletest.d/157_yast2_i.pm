@@ -7,19 +7,19 @@ sub run() {
     waitstillimage( 36, 90 );
     sendautotype("xdelta\n");
     sleep 3;
-    sendkey "spc";    # select for install
+    send_key "spc";    # select for install
     sleep 1;
     $self->check_screen;
     sleep 2;
-    sendkeyw "alt-a";    # accept
+    send_key "alt-a", 1;    # accept
     waitstillimage( 16, 60 );
     waitforneedle( 'test-yast2_i-shows-summary', 2 );
-    sendkeyw "alt-f";    # finish yast2_i
+    send_key "alt-f", 1;    # finish yast2_i
     sleep 1;
     script_run('echo $?');
     $self->check_screen;
     sleep 3;
-    sendkey "ctrl-l";                                                            # clear screen to see that second update does not do any more
+    send_key "ctrl-l";                                                            # clear screen to see that second update does not do any more
     script_sudo("rpm -e  xdelta && echo 'xdelta_removed' > /dev/$serialdev");    # extra space to have different result images than for zypper_in test
     waitserial("xdelta_removed") || die "xdelta remove failed";
     script_run("rpm -q xdelta");

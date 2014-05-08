@@ -54,12 +54,12 @@ sub run() {
     # Launch firefox
     x11_start_program("firefox");
     waitforneedle( "start-firefox", 5 );
-    if ( $ENV{UPGRADE} ) { sendkey("alt-d"); waitidle; }    # Don't check for updated plugins
+    if ( $ENV{UPGRADE} ) { send_key "alt-d"; waitidle; }    # Don't check for updated plugins
     if ( $ENV{DESKTOP} =~ /xfce|lxde/i ) {
-        sendkey "ret";                                      # Confirm default browser setting popup
+        send_key "ret";                                      # Confirm default browser setting popup
         waitidle;
     }
-    sendkey "alt-f10";
+    send_key "alt-f10";
     sleep 1;                                                # Maximize
 
     # Define the pages to be tested (last part of urls)
@@ -88,16 +88,16 @@ sub run() {
 
     foreach (@test_pages) {
 
-        sendkey "alt-d";
+        send_key "alt-d";
         sleep 1;
         if ( $_->{remark} eq "offline" ) {
             sendautotype "developer.mozilla.org/en/docs/Windows_Build_Prerequisites\n";    # Do not use base url here
             sleep 15;
 
             # Set offline
-            sendkey "alt-f";
+            send_key "alt-f";
             sleep 1;
-            sendkey "k";
+            send_key "k";
 
         }
         else {
@@ -105,73 +105,73 @@ sub run() {
         }
 
         sleep 10;
-        sendkey "ctrl-p";
+        send_key "ctrl-p";
         sleep 1;                                                                           # Open "Print" window
 
         # Test landscape printing
         if ( $_->{remark} eq "landscape" ) {
-            sendkey "ctrl-pgdn";
+            send_key "ctrl-pgdn";
             sleep 1;                                                                       # Switch to "Page setup" tab
-            sendkey "alt-i";
-            sendkey "down";
+            send_key "alt-i";
+            send_key "down";
             sleep 1;                                                                       # Set to landscape
-            sendkey "ctrl-pgup";
+            send_key "ctrl-pgup";
             sleep 1;                                                                       # Switch back to "General" tab
         }
         else {
-            sendkey "tab";                                                                 # Choose "Print to File"
+            send_key "tab";                                                                 # Choose "Print to File"
         }
 
         # Set file name
-        sendkey "alt-n";
+        send_key "alt-n";
         sleep 1;
         sendautotype $_->{name} . ".pdf";
 
         # We test the print range at the same time when in offline mode
         if ( $_->{remark} eq "offline" ) {
-            sendkey "alt-e";
+            send_key "alt-e";
             sleep 1;
             sendautotype "1-2";
             sleep 1;
         }
 
         # Print
-        sendkey "alt-p";
+        send_key "alt-p";
         sleep 5;
 
         # Some restore work for each test
         if ( $_->{remark} eq "landscape" ) {    # Restore the orientation to portrait
-            sendkey "alt-f";
+            send_key "alt-f";
             sleep 1;
-            sendkey "u";
+            send_key "u";
             sleep 1;
-            sendkey "alt-o";
+            send_key "alt-o";
             sleep 1;
-            sendkey "alt-a";
+            send_key "alt-a";
             sleep 1;
         }
         elsif ( $_->{remark} eq "offline" ) {    # Disable offline mode
-            sendkey "alt-f";
+            send_key "alt-f";
             sleep 1;
-            sendkey "k";
+            send_key "k";
         }
 
         # Open printed pdf file by evince
         x11_start_program( "evince " . $_->{name} . ".pdf" );
         sleep 3;
-        sendkey "f5";
+        send_key "f5";
         sleep 2;                                 # Slide mode
 
         # Use Pagedown to view every page
         for ( my $i = 0 ; $i <= $_->{page_down} ; $i++ ) {
             checkneedle( "test-firefox_printing-" . $_->{name} . "_" . $i, 5 );
-            sendkey "pgdn";
+            send_key "pgdn";
             sleep 1;
         }
 
-        sendkey "esc";
+        send_key "esc";
         sleep 1;
-        sendkey "alt-f4";
+        send_key "alt-f4";
         sleep 1;                                 # Close evince
     }
 

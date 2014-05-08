@@ -16,41 +16,41 @@ sub run() {
     x11_start_program("tomboy note");
 
     # select "start note", to see that start note cann't be deleted
-    sendkey "tab";
+    send_key "tab";
     sleep 2;
-    sendkey "down";
+    send_key "down";
     sleep 2;
-    sendkey "down";
+    send_key "down";
     sleep 2;
-    sendkey "ret";
+    send_key "ret";
     sleep 2;
     waitidle;
     checkneedle( "tomboy_delete_0", 5 );    # to see if the delete buttom is avaiable
     sleep 2;
 
     # press the delete button
-    sendkey "alt-t";
+    send_key "alt-t";
     sleep 2;
-    sendkey "esc";
+    send_key "esc";
     sleep 2;
-    sendkey "right";
+    send_key "right";
     sleep 2;
-    sendkey "right";
+    send_key "right";
     sleep 2;
-    sendkey "right";
+    send_key "right";
     sleep 2;
-    sendkey "ret";
+    send_key "ret";
     sleep 2;
-    sendkey "ret";
+    send_key "ret";
     sleep 2;
     waitstillimage;
 
-    #sendkey "alt-d"; #FIXME
-    sendkey "alt-c";     #FIXME
-    sendkey "ctrl-w";    #FIXME It's really awkward that the start note can be deleted in this test version, so I just cancel the delete process here, and close start note page manually.
+    #send_key "alt-d"; #FIXME
+    send_key "alt-c";     #FIXME
+    send_key "ctrl-w";    #FIXME It's really awkward that the start note can be deleted in this test version, so I just cancel the delete process here, and close start note page manually.
     checkneedle( "tomboy_delete_1", 5 );    # to see if start note still there
-    sendkey "tab";                          # move the cursor back to text.
-    sendkey "alt-f4";
+    send_key "tab";                          # move the cursor back to text.
+    send_key "alt-f4";
     sleep 2;
     waitidle;
 }

@@ -10,7 +10,7 @@ sub run() {
     ensure_installed("inkscape");
     x11_start_program("inkscape");
     $self->check_screen;
-    sendkey "alt-f4";    # Exit
+    send_key "alt-f4";    # Exit
 }
 
 1;

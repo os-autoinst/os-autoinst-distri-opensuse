@@ -10,11 +10,11 @@ sub is_applicable() {
 sub run() {
     waitforneedle( "inst-bootmenu", 30 );
     sleep 2;
-    sendkey "ret";    # boot
+    send_key "ret";    # boot
 
     waitforneedle( "grub-opensuse-13.1", 15 );
     sleep 1;
-    sendkey "ret";
+    send_key "ret";
 
     waitforneedle( "desktop-at-first-boot", 300 );
 

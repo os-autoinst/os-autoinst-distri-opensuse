@@ -14,11 +14,11 @@ sub run() {
     my $self = shift;
     x11_start_program("thunar");
     sleep 10;
-    sendkey "shift-tab";
-    sendkey "home";
-    sendkey "down";
+    send_key "shift-tab";
+    send_key "home";
+    send_key "down";
     $self->check_screen;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 2;
 }
 

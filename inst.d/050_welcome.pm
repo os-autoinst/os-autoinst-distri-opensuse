@@ -12,13 +12,13 @@ sub run() {
     my $ret = waitforneedle( [qw/inst-welcome inst-betawarning/], 3 );
 
     if ( $ret->{needle}->has_tag("inst-betawarning") ) {
-        sendkey "ret";
+        send_key "ret";
         waitforneedle( "inst-welcome", 5 );
     }
 
     #	if($ENV{BETA}) {
     #		waitforneedle("inst-betawarning", 5);
-    #		sendkey "ret";
+    #		send_key "ret";
     #	} elsif (checkneedle("inst-betawarning", 2)) {
     #		mydie("beta warning found in non-beta");
     #	}
@@ -26,17 +26,17 @@ sub run() {
     # animated cursor wastes disk space, so it is moved to bottom right corner
     mouse_hide;
 
-    #sendkey "alt-o"; # beta warning
+    #send_key "alt-o"; # beta warning
     waitidle;
 
     # license+lang
     if ( $ENV{HASLICENSE} ) {
-        sendkey $cmd{"accept"};    # accept license
+        send_key $cmd{"accept"};    # accept license
     }
     waitforneedle( "languagepicked", 2 );
-    sendkey $cmd{"next"};
+    send_key $cmd{"next"};
     if ( checkneedle( "langincomplete", 1 ) ) {
-        sendkey "alt-f";
+        send_key "alt-f";
     }
 }
 

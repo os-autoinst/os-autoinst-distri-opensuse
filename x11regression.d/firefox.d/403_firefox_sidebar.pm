@@ -21,86 +21,86 @@ sub run() {
     mouse_hide();
     x11_start_program("firefox");
     waitforneedle( "start-firefox", 5 );
-    if ( $ENV{UPGRADE} ) { sendkey("alt-d"); waitidle; }    # dont check for updated plugins
+    if ( $ENV{UPGRADE} ) { send_key "alt-d"; waitidle; }    # dont check for updated plugins
     if ( $ENV{DESKTOP} =~ /xfce|lxde/i ) {
-        sendkey "ret";                                      # confirm default browser setting popup
+        send_key "ret";                                      # confirm default browser setting popup
         waitidle;
     }
-    sendkey "ctrl-b";
+    send_key "ctrl-b";
     sleep 1;                                                #open the bookmark sidebar
-    sendkey "tab";
+    send_key "tab";
     sleep 1;
-    sendkey "ret";
+    send_key "ret";
     sleep 1;                                                #unfold the "Bookmarks Toolbar"
-    sendkey "down";
+    send_key "down";
     sleep 1;                                                #down twice to select the "openSUSE" folder
-    sendkey "down";
+    send_key "down";
     sleep 1;
-    sendkey "ret";
+    send_key "ret";
     sleep 1;                                                #open the "openSUSE" folder
-    sendkey "down";
+    send_key "down";
     sleep 1;                                                #down twice to select the "openSUSE Documentation"
-    sendkey "down";
+    send_key "down";
     sleep 1;
-    sendkey "ret";
+    send_key "ret";
     sleep 5;                                                #open the selected bookmark
     checkneedle( "firefox_sidebar-bookmark", 5 );
-    sendkey "ctrl-b";
+    send_key "ctrl-b";
     sleep 1;                                                #close the "Bookmark sidebar"
 
     #begin to test the history sidebar
-    sendkey "ctrl-h";
+    send_key "ctrl-h";
     sleep 1;
-    sendkey "tab";
+    send_key "tab";
     sleep 1;                                                #twice tab to select the "Today"
-    sendkey "tab";
+    send_key "tab";
     sleep 1;
-    sendkey "ret";
+    send_key "ret";
     sleep 1;                                                #unfold the "Today"
-    sendkey "down";
+    send_key "down";
     sleep 1;                                                #select the first history
-    sendkey "down";
+    send_key "down";
     sleep 1;
-    sendkey "ret";
+    send_key "ret";
     sleep 5;
     checkneedle( "firefox_sidebar-history", 5 );
-    sendkey "ctrl-h";
+    send_key "ctrl-h";
     sleep 1;
 
     #recover all the changes
-    sendkey "ctrl-b";
+    send_key "ctrl-b";
     sleep 1;
-    sendkey "tab";
+    send_key "tab";
     sleep 1;
-    sendkey "down";
+    send_key "down";
     sleep 1;    #down twice to select the "openSUSE" folder
-    sendkey "down";
+    send_key "down";
     sleep 1;
-    sendkey "ret";
+    send_key "ret";
     sleep 1;    #close the "openSUSE" folder
-    sendkey "up";
+    send_key "up";
     sleep 1;
-    sendkey "up";
+    send_key "up";
     sleep 1;
-    sendkey "ret";
+    send_key "ret";
     sleep 1;    #close the "Bookmark Toolbar"
-    sendkey "ctrl-b";
+    send_key "ctrl-b";
     sleep 1;    #close the bookmark sidebar
 
-    sendkey "ctrl-h";
+    send_key "ctrl-h";
     sleep 1;
-    sendkey "tab";
+    send_key "tab";
     sleep 1;    #twice tab to select the "Today"
-    sendkey "tab";
+    send_key "tab";
     sleep 1;
-    sendkey "ret";
+    send_key "ret";
     sleep 1;    #close the "Today"
-    sendkey "ctrl-h";
+    send_key "ctrl-h";
     sleep 1;
 
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 2;
-    sendkey "ret";
+    send_key "ret";
     sleep 2;    # confirm "save&quit"
 }
 

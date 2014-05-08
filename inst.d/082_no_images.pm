@@ -10,10 +10,10 @@ sub is_applicable() {
 }
 
 sub run() {
-    sendkey $cmd{change};    # Change
+    send_key $cmd{change};    # Change
     sleep 3;
     my $images = ( $ENV{VIDEOMODE} eq "text" ) ? "alt-i" : "i";
-    sendkey $images;         # Images
+    send_key $images;         # Images
     sleep 10;
 }
 

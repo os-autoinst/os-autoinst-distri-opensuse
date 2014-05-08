@@ -20,16 +20,16 @@ sub run() {
         # KDE is default
     }
     elsif ( $d eq "gnome" ) {
-        sendkey $key;
+        send_key $key;
         waitforneedle( "gnome-selected", 3 );
     }
     else {    # lower selection level
-        sendkey "alt-o";    #TODO translate
+        send_key "alt-o";    #TODO translate
         waitforneedle( "other-desktop", 3 );
-        sendkey $key;
+        send_key $key;
         sleep 3;            # needles for else cases missing
     }
-    sendkey $cmd{"next"};
+    send_key $cmd{"next"};
 
     # ending at partition layout screen
 }

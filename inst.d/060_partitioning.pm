@@ -12,54 +12,54 @@ sub is_applicable() {
 #   $type == 3 => 0xFD Linux RAID
 sub addpart($$) {
     my ( $size, $type ) = @_;
-    sendkey $cmd{addpart};
+    send_key $cmd{addpart};
     waitidle 5;
-    sendkey $cmd{"next"};
+    send_key $cmd{"next"};
     waitidle 5;
 
     # the input point at the head of the lineedit, move it to the end
-    if ( $ENV{GNOME} ) { sendkey "end" }
+    if ( $ENV{GNOME} ) { send_key "end" }
     for ( 1 .. 10 ) {
-        sendkey "backspace";
+        send_key "backspace";
     }
     sendautotype( $size . "mb" );
     waitidle 5;
-    sendkey $cmd{"next"};
+    send_key $cmd{"next"};
     waitidle 5;
-    sendkey $cmd{"donotformat"};
+    send_key $cmd{"donotformat"};
     waitidle 5;
-    sendkey "tab";
+    send_key "tab";
     waitidle 5;
 
     for ( 1 .. $type ) {
         waitidle 5;
-        sendkey "down";
+        send_key "down";
     }
     waitidle 5;
-    sendkey $cmd{finish};
+    send_key $cmd{finish};
 }
 
 sub addraid($;$) {
     my ( $step, $chunksize ) = @_;
-    sendkey "spc";
+    send_key "spc";
     for ( 1 .. 3 ) {
         for ( 1 .. $step ) {
-            sendkey "ctrl-down";
+            send_key "ctrl-down";
         }
 
         # in GNOME Live case, press space will direct added this item
         if ( $ENV{GNOME} ) {
-            sendkey "ctrl-spc";
+            send_key "ctrl-spc";
         }
         else {
-            sendkey "spc";
+            send_key "spc";
         }
     }
 
     # add
-    sendkey $cmd{"add"};
+    send_key $cmd{"add"};
     waitidle 3;
-    sendkey $cmd{"next"};
+    send_key $cmd{"next"};
     waitidle 3;
 
     # chunk size selection
@@ -67,17 +67,17 @@ sub addraid($;$) {
 
         # workaround for gnomelive with chunksize 64kb
         if ( $ENV{GNOME} ) {
-            sendkey "alt-c";
-            sendkey "home";
+            send_key "alt-c";
+            send_key "home";
             for ( 1 .. 4 ) {
-                sendkey "down";
+                send_key "down";
             }
         }
         else {
             sendautotype("\t$chunksize");
         }
     }
-    sendkey $cmd{"next"};
+    send_key $cmd{"next"};
     waitidle 3;
 }
 
@@ -85,15 +85,15 @@ sub setraidlevel($) {
     my $level = shift;
     my %entry = ( 0 => 0, 1 => 1, 5 => 2, 6 => 3, 10 => 4 );
     for ( 0 .. $entry{$level} ) {
-        sendkey "tab";
+        send_key "tab";
     }
-    sendkey "spc";    # set entry
+    send_key "spc";    # set entry
     for ( $entry{$level} .. $entry{10} ) {
-        sendkey "tab";
+        send_key "tab";
     }
 
     # skip RAID name input
-    sendkey "tab";
+    send_key "tab";
 }
 
 # Entry test code
@@ -118,14 +118,14 @@ sub run() {
     if ( $ENV{TOGGLEHOME} && !$ENV{LIVECD} ) {
         my $homekey = checkEnv( 'VIDEOMODE', "text" ) ? "alt-p" : "alt-h";
         if ($newstyle) {
-            sendkey 'alt-d';
+            send_key 'alt-d';
             $closedialog = 1;
             $homekey     = 'alt-p';
         }
-        sendkey $homekey;
+        send_key $homekey;
         waitforneedle( "disabledhome", 10 );
         if ($closedialog) {
-            sendkey 'alt-o';
+            send_key 'alt-o';
             $closedialog = 0;
         }
         waitidle 5;
@@ -134,24 +134,24 @@ sub run() {
     if ( defined( $ENV{RAIDLEVEL} ) ) {
 
         # create partitioning
-        sendkey $cmd{createpartsetup};
+        send_key $cmd{createpartsetup};
         waitforneedle( 'createpartsetup', 3 );
 
         # user defined
-        sendkey $cmd{custompart};
-        sendkey $cmd{"next"};
+        send_key $cmd{custompart};
+        send_key $cmd{"next"};
         waitforneedle( 'custompart', 9 );
 
-        sendkey "tab";
-        sendkey "down";    # select disks
+        send_key "tab";
+        send_key "down";    # select disks
                            # seems GNOME tree list didn't eat right arrow key
         if ( $ENV{GNOME} ) {
-            sendkey "spc";    # unfold disks
+            send_key "spc";    # unfold disks
         }
         else {
-            sendkey "right";    # unfold disks
+            send_key "right";    # unfold disks
         }
-        sendkey "down";         # select first disk
+        send_key "down";         # select first disk
         waitidle 5;
 
         for ( 1 .. 4 ) {
@@ -164,97 +164,97 @@ sub run() {
             waitforneedle( 'raid-partition', 5 );
 
             # select next disk
-            sendkey "shift-tab";
-            sendkey "shift-tab";
+            send_key "shift-tab";
+            send_key "shift-tab";
 
             # walk through sub-tree
             if ( $ENV{GNOME} ) {
-                for ( 1 .. 3 ) { sendkey "down" }
+                for ( 1 .. 3 ) { send_key "down" }
             }
-            sendkey "down";
+            send_key "down";
         }
 
         # select RAID add
-        sendkey $cmd{addraid};
+        send_key $cmd{addraid};
         waitidle 4;
 
         if ( !defined( $ENV{RAIDLEVEL} ) ) { $ENV{RAIDLEVEL} = 6 }
         setraidlevel( $ENV{RAIDLEVEL} );
-        sendkey "down";    # start at second partition (i.e. sda2)
+        send_key "down";    # start at second partition (i.e. sda2)
                            # in this case, press down key doesn't move to next one but itself
-        if ( $ENV{GNOME} ) { sendkey "down" }
+        if ( $ENV{GNOME} ) { send_key "down" }
         addraid( 3, 6 );
 
         # workaround for gnomelive, double alt-f available in same page
         if ( $ENV{GNOME} ) {
-            sendkey "spc";
+            send_key "spc";
         }
         else {
-            sendkey $cmd{"finish"};
+            send_key $cmd{"finish"};
         }
         waitidle 3;
 
         # select RAID add
-        sendkey $cmd{addraid};
+        send_key $cmd{addraid};
         waitidle 4;
         setraidlevel(1);    # RAID 1 for /boot
         addraid(2);
 
-        sendkey "alt-s";    # change filesystem to FAT for /boot
+        send_key "alt-s";    # change filesystem to FAT for /boot
         for ( 1 .. 3 ) {
-            sendkey "down";    # select Ext4
+            send_key "down";    # select Ext4
         }
 
-        sendkey $cmd{"mountpoint"};
+        send_key $cmd{"mountpoint"};
         for ( 1 .. 3 ) {
-            sendkey "down";
+            send_key "down";
         }
-        sendkey $cmd{"finish"};
+        send_key $cmd{"finish"};
 
         # workaround for gnomelive, double alt-f available in same page
         if ( $ENV{GNOME} ) {
-            sendkey $cmd{"finish"};
-            sendkey "spc";
+            send_key $cmd{"finish"};
+            send_key "spc";
         }
         waitidle 3;
 
         # select RAID add
-        sendkey $cmd{addraid};
+        send_key $cmd{addraid};
         waitidle 4;
         setraidlevel(0);    # RAID 0 for swap
         addraid(1);
 
         # select file-system
-        sendkey $cmd{filesystem};
-        sendkey "end";      # swap at end of list
-        sendkey $cmd{"finish"};
+        send_key $cmd{filesystem};
+        send_key "end";      # swap at end of list
+        send_key $cmd{"finish"};
         waitidle 3;
 
         # done
-        sendkey $cmd{"accept"};
+        send_key $cmd{"accept"};
         waitforneedle( 'acceptedpartitioning', 6 );
     }
     elsif ( $ENV{BTRFS} ) {
         if ($newstyle) {
-            sendkey "alt-d";
+            send_key "alt-d";
             $closedialog = 1;
         }
         if ( !checkneedle('usebtrfs') ) {
             waitidle 3;
             if ($newstyle) {
-                sendkey "alt-f";
+                send_key "alt-f";
                 sleep 2;
-                sendkey "b";    # use btrfs
+                send_key "b";    # use btrfs
             }
             else {
-                sendkey "alt-u";    # use btrfs
+                send_key "alt-u";    # use btrfs
             }
         }
         sleep 3;
         waitforneedle( 'usebtrfs', 3 );
 
         if ($closedialog) {
-            sendkey 'alt-o';
+            send_key 'alt-o';
             $closedialog = 0;
         }
     }

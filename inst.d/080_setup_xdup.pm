@@ -13,7 +13,7 @@ sub run() {
     waitidle;
 
     # log into text console
-    sendkey "ctrl-alt-f4";
+    send_key "ctrl-alt-f4";
     sleep 2;
     sendautotype "$username\n";
     sleep 2;

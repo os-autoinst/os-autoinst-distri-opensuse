@@ -14,10 +14,10 @@ sub run() {
     sendautotype("Hello World!");
     sleep 2;
     $self->check_screen;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 2;
     waitforneedle( "ooffice-save-prompt", 8 );
-    sendkey "alt-w";
+    send_key "alt-w";
     sleep 2;     # *W*ithout saving
 }
 

@@ -15,29 +15,29 @@ sub run() {
     mouse_hide();
     x11_start_program("firefox");
     waitforneedle( "start-firefox", 5 );
-    if ( $ENV{UPGRADE} ) { sendkey("alt-d"); waitidle; }    # dont check for updated plugins
+    if ( $ENV{UPGRADE} ) { send_key "alt-d"; waitidle; }    # dont check for updated plugins
     if ( $ENV{DESKTOP} =~ /xfce|lxde/i ) {
-        sendkey "ret";                                      # confirm default browser setting popup
+        send_key "ret";                                      # confirm default browser setting popup
         waitidle;
     }
 
-    sendkey "ctrl-n";
+    send_key "ctrl-n";
     sleep 5;
     checkneedle( "start-firefox", 5 );
-    sendkey "ctrl-w";
+    send_key "ctrl-w";
     sleep 1;
 
-    sendkey "shift-tab";
+    send_key "shift-tab";
     sleep 1;
-    sendkey "shift-ret";
+    send_key "shift-ret";
     sleep 6;
     checkneedle( "firefox_page-opensuse-sponsors", 5 );
-    sendkey "ctrl-w";
+    send_key "ctrl-w";
     sleep 1;
 
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 2;
-    sendkey "ret";
+    send_key "ret";
     sleep 2;    # confirm "save&quit"
 }
 

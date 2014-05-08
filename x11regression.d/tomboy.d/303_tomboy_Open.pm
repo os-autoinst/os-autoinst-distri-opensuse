@@ -16,57 +16,57 @@ sub run() {
 
     # open start note and take screenshot
     x11_start_program("tomboy note");
-    sendkey "alt-f11";
+    send_key "alt-f11";
     sleep 2;
-    sendkey "ctrl-home";
+    send_key "ctrl-home";
     sleep 2;
     sendautotype "Rename_";
     sleep 1;
-    sendkey "ctrl-w";
+    send_key "ctrl-w";
     waitidle;
 
     # Check hotkey for open "start here" still works
-    sendkey "alt-fll";
+    send_key "alt-fll";
     sleep 2;
     waitstillimage;
     checkneedle( "tomboy_open_0", 5 );
 
-    sendkey "shift-up";
+    send_key "shift-up";
     sleep 2;
-    sendkey "delete";
+    send_key "delete";
     sleep 2;
-    sendkey "ctrl-w";
+    send_key "ctrl-w";
     sleep 2;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 2;
 
     # logout
-    sendkey "alt-f2";
+    send_key "alt-f2";
     sleep 1;
     sendautotype "gnome-session-quit --logout --force\n";
     sleep 20;
     waitidle;
 
     # login
-    sendkey "ret";
+    send_key "ret";
     sleep 2;
     waitstillimage;
     sendpassword();
     sleep 2;
-    sendkey "ret";
+    send_key "ret";
     sleep 20;
     waitidle;
 
     # open start note again and take screenshot
     x11_start_program("tomboy note");
-    sendkey "alt-f11";
+    send_key "alt-f11";
     sleep 2;
-    sendkey "up";
+    send_key "up";
     sleep 1;
     checkneedle( "tomboy_open_1", 5 );
-    sendkey "ctrl-w";
+    send_key "ctrl-w";
     sleep 2;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 2;
     waitidle;
 }

@@ -61,13 +61,13 @@ sub run() {
             sleep 1;
         }
         waitforneedle( "rootpassword-typed", 3 );
-        sendkey $cmd{"next"};
+        send_key $cmd{"next"};
 
         # loading cracklib
         waitidle 6;
 
         # PW too easy (cracklib)
-        sendkey "ret";
+        send_key "ret";
         waitidle;
     }
 }

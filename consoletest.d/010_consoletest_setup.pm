@@ -6,7 +6,7 @@ sub run() {
 
     # init
     # log into text console
-    sendkey "ctrl-alt-f4";
+    send_key "ctrl-alt-f4";
     waitforneedle( "text-login", 10 );
     sendautotype "$username\n";
     sleep 2;

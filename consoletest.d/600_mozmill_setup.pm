@@ -11,7 +11,7 @@ sub run() {
     my $self = shift;
     script_sudo("zypper -n in gcc python-devel python-pip mercurial curlftpfs");
     $self->check_screen;
-    sendkey "ctrl-l";
+    send_key "ctrl-l";
 
     #script_sudo("pip install mozmill mercurial");
     script_sudo("pip install mozmill mercurial");
@@ -20,7 +20,7 @@ sub run() {
     sleep 5;
     waitidle(50);
     $self->check_screen;
-    sendkey "ctrl-l";
+    send_key "ctrl-l";
     script_run("cd /tmp");    # dont use home to not confuse dolphin test
     script_run("wget -q openqa.opensuse.org/opensuse/qatests/qa_mozmill_setup.sh");
     local $bmwqemu::timesidleneeded = 3;

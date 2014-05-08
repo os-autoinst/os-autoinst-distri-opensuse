@@ -9,7 +9,7 @@ sub run() {
     my $self = shift;
 
     if ( $ENV{DESKTOP} eq "kde" ) {
-        sendkey "ctrl-alt-delete";    # shutdown
+        send_key "ctrl-alt-delete";    # shutdown
         waitforneedle 'logoutdialog', 15;
 
         return; # we don't want qemu "to crash" 
@@ -22,15 +22,15 @@ sub run() {
     }
 
     if ( $ENV{DESKTOP} eq "gnome" ) {
-        sendkey "ctrl-alt-delete";    # shutdown
+        send_key "ctrl-alt-delete";    # shutdown
         waitforneedle 'logoutdialog', 15;
 
         return; # we don't want qemu "to crash" 
 
-        sendkey "ret";                # confirm shutdown
+        send_key "ret";                # confirm shutdown
                                       #if(!$ENV{GNOME2}) {
                                       #    sleep 3;
-                                      #    sendkey "ctrl-alt-f1";
+                                      #    send_key "ctrl-alt-f1";
                                       #    sleep 3;
                                       #    qemusend "system_powerdown"; # shutdown
                                       #}
@@ -39,7 +39,7 @@ sub run() {
 
     if ( $ENV{DESKTOP} eq "xfce" ) {
         for ( 1 .. 5 ) {
-            sendkey "alt-f4";         # opens log out popup after all windows closed
+            send_key "alt-f4";         # opens log out popup after all windows closed
         }
         waitidle;
         sendautotype "\t\t";          # select shutdown

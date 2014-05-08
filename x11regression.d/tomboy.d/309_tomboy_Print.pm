@@ -18,29 +18,29 @@ sub run() {
     x11_start_program("tomboy note");
 
     # open a note and print to file
-    sendkey "tab";
+    send_key "tab";
     sleep 1;
-    sendkey "down";
+    send_key "down";
     sleep 1;
-    sendkey "ret";
+    send_key "ret";
     sleep 3;
-    sendkey "ctrl-p";
+    send_key "ctrl-p";
     sleep 3;
-    sendkey "tab";
+    send_key "tab";
     sleep 1;
-    sendkey "alt-v";
+    send_key "alt-v";
     sleep 5;    #FIXME Print to file failed in this version, so just replace with preview.
-                #sendkey "alt-p"; sleep 2; #FIXME
-                #sendkey "alt-r"; sleep 5; #FIXME
+                #send_key "alt-p"; sleep 2; #FIXME
+                #send_key "alt-r"; sleep 5; #FIXME
 
     waitidle;
     $self->check_screen;
     sleep 2;
-    sendkey "ctrl-w";
+    send_key "ctrl-w";
     sleep 2;
-    sendkey "ctrl-w";
+    send_key "ctrl-w";
     sleep 2;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 2;
     waitidle;
 }

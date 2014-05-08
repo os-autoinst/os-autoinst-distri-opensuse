@@ -18,85 +18,85 @@ sub run() {
     x11_start_program("tomboy note");
 
     # create a note type something and undo it
-    sendkey "ctrl-n";
+    send_key "ctrl-n";
     sleep 1;
     sendautotype "hehe";
     sleep 1;
-    sendkey "ctrl-z";
+    send_key "ctrl-z";
     sleep 1;
     $self->check_screen;
     sleep 1;
     sendautotype "hehe";
     sleep 1;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     waitidle;
 
     # reopen it and undo again, check the last change still can be undo
-    sendkey "alt-f9";
+    send_key "alt-f9";
     sleep 1;
-    sendkey "tab";
+    send_key "tab";
     sleep 1;
-    sendkey "up";
+    send_key "up";
     sleep 1;
-    sendkey "ret";
+    send_key "ret";
     sleep 1;
-    sendkey "ctrl-z";
+    send_key "ctrl-z";
     sleep 1;
     $self->check_screen;
     sleep 1;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     waitidle;
 
     # Edit not and redo
-    sendkey "alt-f9";
+    send_key "alt-f9";
     sleep 1;
-    sendkey "tab";
+    send_key "tab";
     sleep 1;
-    sendkey "up";
+    send_key "up";
     sleep 1;
-    sendkey "ret";
+    send_key "ret";
     sleep 1;
     sendautotype "hehe";
     sleep 1;
-    sendkey "ctrl-z";
+    send_key "ctrl-z";
     sleep 1;
-    sendkey "shift-ctrl-z";
+    send_key "shift-ctrl-z";
     sleep 1;
     $self->check_screen;
     sleep 1;
-    sendkey "ctrl-z";
+    send_key "ctrl-z";
     sleep 1;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     waitidle;
 
     # Reopen it and redo
-    sendkey "alt-f9";
+    send_key "alt-f9";
     sleep 1;
-    sendkey "tab";
+    send_key "tab";
     sleep 1;
-    sendkey "up";
+    send_key "up";
     sleep 1;
-    sendkey "ret";
+    send_key "ret";
     sleep 1;
-    sendkey "shift-ctrl-z";
+    send_key "shift-ctrl-z";
     sleep 1;
     $self->check_screen;
     sleep 2;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     waitidle;
 
     # Delete the note
-    sendkey "alt-f9";
+    send_key "alt-f9";
     sleep 1;
-    sendkey "tab";
+    send_key "tab";
     sleep 1;
-    sendkey "up";
+    send_key "up";
     sleep 1;
-    sendkey "delete";
+    send_key "delete";
     sleep 1;
-    sendkey "alt-d";
+    send_key "alt-d";
     sleep 1;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     waitidle;
 
     # Kill tomboy note

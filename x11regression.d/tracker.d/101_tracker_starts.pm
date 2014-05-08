@@ -14,7 +14,7 @@ sub run() {
     sleep 2;
     waitidle;
     $self->check_screen;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 2;
 
     #$self->check_screen;

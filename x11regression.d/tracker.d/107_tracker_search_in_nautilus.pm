@@ -14,23 +14,23 @@ sub run() {
     sleep 2;
     waitidle;
     $self->check_screen;
-    sendkey "ctrl-f";
+    send_key "ctrl-f";
     sleep 2;
     sendautotype("newfile");
-    sendkey "ret";
+    send_key "ret";
     sleep 2;
     waitidle;
     $self->check_screen;    # should open file newfile
     sendautotype("Hello world.\n");
     sleep 2;
-    sendkey "ctrl-s";
+    send_key "ctrl-s";
     sleep 2;
     waitstillimage;
     $self->check_screen;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 2;                #close gedit
     $self->check_screen;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 2;                #close nautilus
 }
 

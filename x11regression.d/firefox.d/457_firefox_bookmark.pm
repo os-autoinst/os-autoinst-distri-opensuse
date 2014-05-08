@@ -13,71 +13,71 @@ sub run() {
     sleep 10;
 
     # first confirm www.baidu.com has not been bookmarked yet.
-    sendkey "ctrl-shift-o";
+    send_key "ctrl-shift-o";
     sleep 1;
-    sendkey "tab";
+    send_key "tab";
     sleep 1;
-    sendkey "tab";
+    send_key "tab";
     sleep 1;
     sendautotype "www.baidu.com";
-    sendkey "ret";
+    send_key "ret";
     sleep 3;
 
     checkneedle( "bookmark-not-yet", 2 );
-    sendkey "alt-f4";
+    send_key "alt-f4";
 
     # bookmark the page
-    sendkey "ctrl-l";
+    send_key "ctrl-l";
     sendautotype "www.baidu.com";
     sleep 1;
-    sendkey "ret";
+    send_key "ret";
     sleep 6;
     checkneedle( "bookmark-baidu-main", 3 );
 
-    sendkey "ctrl-d";
+    send_key "ctrl-d";
     sleep 2;
     checkneedle( "bookmarking", 3 );
-    sendkey "ret";
+    send_key "ret";
     sleep 2;
 
     # check all bookmarked page and open baidu mainpage in a new tab
-    sendkey "ctrl-t";
+    send_key "ctrl-t";
     sleep 1;
-    sendkey "ctrl-shift-o";
+    send_key "ctrl-shift-o";
     sleep 1;
 
 ## check toolbar menu and unsorted section displayed; and baidu mainpage in menu section
     checkneedle( "bookmark-all-bookmark-menu", 3 );
-    sendkey "down";
+    send_key "down";
     sleep 1;
-    sendkey "ret";
+    send_key "ret";
     checkneedle( "bookmark-baidu-under-bookmark-menu", 3 );
 
 ## open baidu page
-    sendkey "tab";
-    sendkey "tab";
-    sendkey "tab";
+    send_key "tab";
+    send_key "tab";
+    send_key "tab";
     sendautotype "www.baidu.com";
-    sendkey "ret";
-    sendkey "ret";
-    sendkey "tab";
-    sendkey "tab";
-    sendkey "ret";
+    send_key "ret";
+    send_key "ret";
+    send_key "tab";
+    send_key "tab";
+    send_key "ret";
     sleep 2;
 
     checkneedle( "bookmark-baidu-main", 2 );
 
     # close the bookmark lib page and then close firefox
-    sendkey "alt-tab";
+    send_key "alt-tab";
     sleep 2;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 5;
     checkneedle( "bookmark-menu-closed", 3 );
 
 ## close firefox
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 1;
-    sendkey "ret";
+    send_key "ret";
 }
 
 1;
