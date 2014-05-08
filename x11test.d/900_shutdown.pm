@@ -58,8 +58,8 @@ sub run() {
         waitidle;
 
         #$self->check_screen;
-        #sendkey "ctrl-alt-f1"; # work-around for LXDE bug 619769 ; not needed in Factory anymore
-        waitforneedle("splashscreen");
+        #send_key "ctrl-alt-f1"; # work-around for LXDE bug 619769 ; not needed in Factory anymore
+        assert_screen "splashscreen";
     }
 }
 
