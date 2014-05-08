@@ -26,34 +26,34 @@ sub run() {
     # Launch firefox
     x11_start_program("firefox");
     waitforneedle( "start-firefox", 5 );
-    if ( $ENV{UPGRADE} ) { sendkey("alt-d"); waitidle; }    # Don't check for updated plugins
+    if ( $ENV{UPGRADE} ) { send_key "alt-d"; waitidle; }    # Don't check for updated plugins
     if ( $ENV{DESKTOP} =~ /xfce|lxde/i ) {
-        sendkey "ret";                                      # Confirm default browser setting popup
+        send_key "ret";                                      # Confirm default browser setting popup
         waitidle;
     }
 
-    sendkey "alt-f10";                                      # Maximize
+    send_key "alt-f10";                                      # Maximize
 
     # Open static html page
-    sendkey "ctrl-o";
+    send_key "ctrl-o";
     sleep 1;                                                #"Open File" window
     checkneedle( "test-firefox-openfile-1", 5 );
 
     # Find index.html file to open
-    sendkey "left";
-    sendkey "down";
-    sendkey "right";
+    send_key "left";
+    send_key "down";
+    send_key "right";
     sleep 1;
-    sendautotype "www.gnu\n";                               # find the directory www.gnu.org and enter
+    type_string "www.gnu\n";                               # find the directory www.gnu.org and enter
     sleep 2;
-    sendautotype "index\n";                                 # Find file index.html and open it
+    type_string "index\n";                                 # Find file index.html and open it
     sleep 5;
     checkneedle( "test-firefox_lcoalpage-1", 5 );
 
     # Restore and close
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 1;                                                # Exit firefox
-    sendkey "ret";                                          # Confirm "save&quit"
+    send_key "ret";                                          # Confirm "save&quit"
     x11_start_program("rm -rf .mozilla\n");                 # Clear profile directory
     x11_start_program("rm -rf www.gnu.org\n");              # Remove www.gnu.org directory
     sleep 2;

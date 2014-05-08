@@ -12,13 +12,13 @@ sub run() {
     sleep 2;
     waitstillimage;    # extra wait because oo sometimes appears to be idle during start
     $self->check_screen;
-    sendautotype("Hello World!\n");
+    type_string "Hello World!\n";
     sleep 2;
     $self->check_screen;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 2;
     $self->check_screen;
-    sendkey "alt-w";
+    send_key "alt-w";
     sleep 2;           # _w_ithout saving
 }
 

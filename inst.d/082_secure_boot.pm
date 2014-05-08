@@ -15,15 +15,15 @@ sub run() {
     waitforneedle("inst-overview-secureboot");
 
     $cmd{bootloader} = "alt-b" if checkEnv( 'VIDEOMODE', "text" );
-    sendkey $cmd{change};        # Change
-    sendkey $cmd{bootloader};    # Bootloader
+    send_key $cmd{change};        # Change
+    send_key $cmd{bootloader};    # Bootloader
     sleep 4;
 
     # Is secure boot enabled?
     waitforneedle( "bootloader-secureboot-enabled", 5 );
-    sendkey $cmd{accept};        # Accept
+    send_key $cmd{accept};        # Accept
     sleep 2;
-    sendkey "alt-o";             # cOntinue
+    send_key "alt-o";             # cOntinue
     waitidle;
 }
 

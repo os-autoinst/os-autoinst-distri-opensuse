@@ -10,18 +10,18 @@ sub run() {
     mouse_hide(1);
     x11_start_program("xterm");
     script_run("ssh -XC root\@localhost xterm");
-    sendautotype("yes\n");
+    type_string "yes\n";
     waitidle(6);
-    sendautotype("$password\n");
+    type_string "$password\n";
     sleep 2;
-    for ( 1 .. 13 ) { sendkey "ret" }
-    sendautotype "PS1=\"# \"\n";
-    sendautotype("echo If you can see this text, ssh-X-forwarding  is working.\n");
+    for ( 1 .. 13 ) { send_key "ret" }
+    type_string "PS1=\"# \"\n";
+    type_string "echo If you can see this text, ssh-X-forwarding  is working.\n";
     sleep 2;
     $self->check_screen;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 1;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 2;
 }
 

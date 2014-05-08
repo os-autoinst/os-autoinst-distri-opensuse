@@ -10,14 +10,14 @@ sub run() {
     ensure_installed("yelp");
     x11_start_program("gnucash");
     $self->check_screen;
-    sendkey "ctrl-h";    # open user tutorial
+    send_key "ctrl-h";    # open user tutorial
     waitidle 5;
     $self->check_screen;
-    sendkey "alt-f4";    # Leave tutorial window
+    send_key "alt-f4";    # Leave tutorial window
                          # Leave tips windows for GNOME case
-    if ( $ENV{DESKTOP} eq "gnome" || $ENV{DESKTOP} eq "xfce" ) { sleep 3; sendkey "alt-c"; }
+    if ( $ENV{DESKTOP} eq "gnome" || $ENV{DESKTOP} eq "xfce" ) { sleep 3; send_key "alt-c"; }
     waitidle;
-    sendkey "ctrl-q";    # Exit
+    send_key "ctrl-q";    # Exit
 }
 
 1;

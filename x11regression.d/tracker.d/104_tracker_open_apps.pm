@@ -14,21 +14,21 @@ sub run() {
     sleep 2;
     waitidle;    # extra wait because oo sometimes appears to be idle during start
     $self->check_screen;
-    sendautotype("cheese");
+    type_string "cheese";
     sleep 2;
     waitstillimage;
     $self->check_screen;
-    sendkey "tab";
+    send_key "tab";
     sleep 2;
-    sendkey "down";
+    send_key "down";
     sleep 2;
-    sendkey "ret";
+    send_key "ret";
     sleep 2;
     waitidle;
     $self->check_screen;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 2;    #close cheese
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 2;    #close tracker
 
     #       $self->check_screen;

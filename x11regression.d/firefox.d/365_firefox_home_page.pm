@@ -14,46 +14,46 @@ sub run() {
     mouse_hide();
     x11_start_program("firefox");
     waitforneedle( "start-firefox", 5 );
-    if ( $ENV{UPGRADE} ) { sendkey("alt-d"); waitidle; }    # dont check for updated plugins
+    if ( $ENV{UPGRADE} ) { send_key "alt-d"; waitidle; }    # dont check for updated plugins
     if ( $ENV{DESKTOP} =~ /xfce|lxde/i ) {
-        sendkey "ret";                                      # confirm default browser setting popup
+        send_key "ret";                                      # confirm default browser setting popup
         waitidle;
     }
 
-    sendkey "alt-e";
+    send_key "alt-e";
     sleep 1;
-    sendkey "n";
+    send_key "n";
     sleep 1;
-    sendkey "alt-p";
+    send_key "alt-p";
     sleep 1;
-    sendautotype "www.google.com";
+    type_string "www.google.com";
     sleep 2;
     checkneedle( "firefox_pref-general-homepage", 5 );
-    sendkey "ret";
+    send_key "ret";
     sleep 1;
-    sendkey "alt-home";
+    send_key "alt-home";
     sleep 5;
     checkneedle( "firefox_page-google", 5 );
 
     #exit and relaunch the browser
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 2;
     x11_start_program("firefox");
     checkneedle( "firefox_page-google", 5 );
 
     #recover all the changes, home page
-    sendkey "alt-e";
+    send_key "alt-e";
     sleep 1;
-    sendkey "n";
+    send_key "n";
     sleep 1;
-    sendkey "alt-r";
+    send_key "alt-r";
     sleep 1;    #choose "Restore to Default"
-    sendkey "esc";
+    send_key "esc";
     sleep 1;
 
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 2;
-    sendkey "ret";
+    send_key "ret";
     sleep 2;    # confirm "save&quit"
 }
 

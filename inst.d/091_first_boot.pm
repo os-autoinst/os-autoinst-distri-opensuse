@@ -14,34 +14,12 @@ sub run() {
     #waitforneedle "automaticconfiguration", 70;
     mouse_hide();
 
-    # old code likely to not work at all
-    #	local $ENV{SCREENSHOTINTERVAL}=$ENV{SCREENSHOTINTERVAL}*3;
-    #
-    #	# read sub-stages of automaticconfiguration
-    #	set_ocr_rect(240,256,530,100);
-    #	# waitforneedle("users-booted", 180);
-    #	set_ocr_rect();
-    #	my $img=getcurrentscreenshot();
-    #	my $ocr=ocr::get_ocr($img, "-l 200", [250,100,600,500]);
-    #	diag "post-install-ocr: $ocr";
-    #	if($ocr=~m/Installation of package .* failed/i or checkneedle("install-failed", 1)) {
-    #		sendkeyw "alt-d"; # see details of failure
-    #		if(1) { # ignore
-    #			$self->take_screenshot; sleep 2;
-    #			sendkeyw "alt-i";
-    #			sendkey "ret";
-    #			waitstillimage(50,900);
-    #		} else {
-    #			alarm 3; # end here as we can not continue
-    #		}
-    #	}
-
     if ( $ENV{'NOAUTOLOGIN'} ) {
         waitforneedle( 'displaymanager', 200 );
-        sendautotype($username);
-        sendkey("ret");
-        sendautotype("$password");
-        sendkey("ret");
+        type_string $username;
+        send_key "ret";
+        type_string "$password";
+        send_key "ret";
     }
 
     # Check for errors during first boot
@@ -51,25 +29,25 @@ sub run() {
         my $ret = waitforneedle( \@tags, 200 );
         last if $ret->{needle}->has_tag("desktop-at-first-boot");
 	if ($ret->{needle}->has_tag("kde-greeter")) {
-   	  sendkey "esc";
+   	  send_key "esc";
 	  @tags = grep { $_ ne 'kde-greeter' } @tags;
 	  push(@tags, "drkonqi-crash");
 	  next;
 	}
         if ($ret->{needle}->has_tag("drkonqi-crash")) {
-          sendkey "alt-d";
+          send_key "alt-d";
 	  # maximize
-	  sendkey "alt-shift-f3";
+	  send_key "alt-shift-f3";
 	  sleep 8;
 	  $self->take_screenshot;
-	  sendkey "alt-c";
+	  send_key "alt-c";
           @tags = grep { $_ ne 'drkonqi-crash' } @tags;
           next;
         }
 
         $self->take_screenshot;
         sleep 2;
-        sendkey "ret";
+        send_key "ret";
         $err = 1;
     }
 

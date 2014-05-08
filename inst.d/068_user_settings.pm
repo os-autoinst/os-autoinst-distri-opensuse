@@ -13,13 +13,13 @@ sub run() {
 
     # user setup
     waitforneedle( "inst-usersetup", 5 );
-    sendautotype($realname);
-    sendkey "tab";
+    type_string $realname;
+    send_key "tab";
 
     #sleep 1;
-    sendkey "tab";
+    send_key "tab";
     for ( 1 .. 2 ) {
-        sendautotype("$password\t");
+        type_string "$password\t";
     }
     waitforneedle( "inst-userinfostyped", 5 );
     if ( $ENV{NOAUTOLOGIN} ) {
@@ -31,7 +31,7 @@ sub run() {
             }
             else {
                 ++$self->{dents};
-                sendkey $cmd{"noautologin"};
+                send_key $cmd{"noautologin"};
             }
         }
         # report the failure or green
@@ -40,34 +40,34 @@ sub run() {
         }
     }
     if ( $ENV{DOCRUN} ) {
-        sendkey $cmd{"otherrootpw"};
+        send_key $cmd{"otherrootpw"};
         waitforneedle( "rootpwdisabled", 5 );
     }
 
     # done user setup
-    sendkey $cmd{"next"};
+    send_key $cmd{"next"};
 
     # loading cracklib
     waitforneedle( "inst-userpasswdtoosimple", 6 );
-    sendkey "ret";
+    send_key "ret";
 
     #sleep 1;
     # PW too easy (only chars)
-    #sendkey "ret";
+    #send_key "ret";
     if ( $ENV{DOCRUN} ) {    # root user
         waitidle;
         for ( 1 .. 2 ) {
-            sendautotype("$password\t");
+            type_string "$password\t";
             sleep 1;
         }
         waitforneedle( "rootpassword-typed", 3 );
-        sendkey $cmd{"next"};
+        send_key $cmd{"next"};
 
         # loading cracklib
         waitidle 6;
 
         # PW too easy (cracklib)
-        sendkey "ret";
+        send_key "ret";
         waitidle;
     }
 }

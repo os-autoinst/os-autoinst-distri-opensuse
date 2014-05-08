@@ -11,34 +11,34 @@ sub run() {
     # 550_reboot_kde
     if ( $ENV{DESKTOP} eq "kde" || $ENV{DESKTOP} eq "gnome" ) {
         waitidle;
-        sendkey "ctrl-alt-delete";    # reboot
+        send_key "ctrl-alt-delete";    # reboot
         waitforneedle 'logoutdialog', 15;
-        sendkey "tab";
-        sendkey "tab";
+        send_key "tab";
+        send_key "tab";
         sleep 1;
         $self->take_screenshot;
-        sendkey "ret";                # confirm
+        send_key "ret";                # confirm
     }
 
     # 550_reboot_xfce
     if ( $ENV{DESKTOP} eq "xfce" ) {
-        sendkey "ctrl-alt-delete";    # reboot
+        send_key "ctrl-alt-delete";    # reboot
         waitforneedle 'logoutdialog', 15;
 
         #waitidle;
-        #sendkey "alt-f4"; # open popup
+        #send_key "alt-f4"; # open popup
         #waitidle;
-        sendkey "tab";    # reboot
+        send_key "tab";    # reboot
         sleep 1;
         $self->take_screenshot;
-        sendkey "ret";    # confirm
+        send_key "ret";    # confirm
     }
 
     # 550_reboot_lxde
     if ( $ENV{DESKTOP} eq "lxde" ) {
         waitidle;
 
-        #sendkey "ctrl-alt-delete"; # does open task manager instead of reboot
+        #send_key "ctrl-alt-delete"; # does open task manager instead of reboot
         x11_start_program("xterm");
         script_sudo "/sbin/reboot", 0;
     }
@@ -54,9 +54,9 @@ sub run() {
         waitidle;
 
         # log in
-        sendautotype $username. "\n";
+        type_string $username. "\n";
         sleep 1;
-        sendautotype $password. "\n";
+        type_string $password. "\n";
     }
 
     waitforneedle 'test-consoletest_finish-1', 300;

@@ -22,62 +22,62 @@ sub run() {
     # Launch firefox
     x11_start_program("firefox");
     waitforneedle( "start-firefox", 5 );
-    if ( $ENV{UPGRADE} ) { sendkey("alt-d"); waitidle; }    # Don't check for updated plugins
+    if ( $ENV{UPGRADE} ) { send_key "alt-d"; waitidle; }    # Don't check for updated plugins
     if ( $ENV{DESKTOP} =~ /xfce|lxde/i ) {
-        sendkey "ret";                                      # Confirm default browser setting popup
+        send_key "ret";                                      # Confirm default browser setting popup
         waitidle;
     }
-    sendkey "alt-f10";
+    send_key "alt-f10";
     sleep 1;                                                # Maximize
 
     # Open Add-ons Manager
-    sendkey "ctrl-shift-a";
+    send_key "ctrl-shift-a";
     sleep 2;
 
     # Open "Email link" to launch default email client (evolution)
-    sendkey "ctrl-f";
+    send_key "ctrl-f";
     sleep 1;                                                #"Search all add-ons"
-    sendautotype "icedTea\n";
+    type_string "icedTea\n";
     sleep 2;
 
     #Switch to "My Add-ons"
     foreach ( 1 .. 5 ) {
-        sendkey "tab";
+        send_key "tab";
     }
-    sendkey "left";
+    send_key "left";
     sleep 2;
 
     waitforneedle( "test-firefox_java-1", 5 );
 
     #Focus to "Always Activate"
-    sendkey "tab";
-    sendkey "down";
-    sendkey "tab";
-    sendkey "tab";
-    sendkey "down";    #Switch to "Never Active"
+    send_key "tab";
+    send_key "down";
+    send_key "tab";
+    send_key "tab";
+    send_key "down";    #Switch to "Never Active"
     sleep 2;
 
     #Test java plugin on website javatester.org
-    sendkey "ctrl-t";
+    send_key "ctrl-t";
     sleep 1;
-    sendautotype "javatester.org/version.html\n";
+    type_string "javatester.org/version.html\n";
     sleep 5;
     checkneedle( "test-firefox_java-2", 5 );
 
     #Close tab, return to Add-ons Manager
-    sendkey "ctrl-w";
+    send_key "ctrl-w";
     sleep 2;
-    sendkey "down";
+    send_key "down";
     sleep 1;    #Switch back to "Always Activate"
 
     #Test java plugin again
-    sendkey "ctrl-t";
+    send_key "ctrl-t";
     sleep 2;
-    sendautotype "javatester.org/version.html\n";
+    type_string "javatester.org/version.html\n";
     sleep 4;
     checkneedle( "test-firefox_java-java_warning", 5 );    #Java - unsigned application warning
-    sendkey "tab";                                         #Proceed
-    sendkey "ret";
+    send_key "tab";                                         #Proceed
+    send_key "ret";
     sleep 3;
     checkneedle( "test-firefox_java-3", 5 );
 

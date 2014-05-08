@@ -10,7 +10,7 @@ sub is_applicable() {
 
 sub run() {
     waitstillimage();
-    sendkey $cmd{"next"};
+    send_key $cmd{"next"};
     waitforneedle("after-paritioning");
 }
 

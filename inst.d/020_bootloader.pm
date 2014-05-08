@@ -15,9 +15,9 @@ sub run() {
     }
     if ( $ENV{USBBOOT} ) {
         waitforneedle( "boot-menu", 1 );
-        sendkey "f12";
+        send_key "f12";
         waitforneedle( "boot-menu-usb", 4 );
-        sendkey( 2 + $ENV{NUMDISKS} );
+        send_key( 2 + $ENV{NUMDISKS} );
     }
 
     waitforneedle( "inst-bootmenu", 15 );
@@ -25,17 +25,17 @@ sub run() {
         qemusend "eject -f ide1-cd0";
         qemusend "system_reset";
         sleep 10;
-        sendkey "ret";    # boot
+        send_key "ret";    # boot
         return;
     }
 
     if ( $ENV{MEMTEST} ) {    # special
                               # only run this one
         for ( 1 .. 6 ) {
-            sendkey "down";
+            send_key "down";
         }
         waitforneedle( "inst-onmemtest", 3 );
-        sendkey "ret";
+        send_key "ret";
         sleep 6000;
         exit 0;               # done
     }
@@ -45,10 +45,10 @@ sub run() {
 
         # installation (instead of HDDboot on non-live)
         # installation (instead of live):
-        sendkey "down";
+        send_key "down";
         if ( $ENV{MEDIACHECK} ) {
-            sendkey "down";    # rescue
-            sendkey "down";    # media check
+            send_key "down";    # rescue
+            send_key "down";    # media check
             waitforneedle( "inst-onmediacheck", 3 );
         }
 
@@ -56,13 +56,13 @@ sub run() {
     else {
         if ( $ENV{PROMO} ) {
             if ( checkEnv( "DESKTOP", "gnome" ) ) {
-                sendkey "down" unless $ENV{OSP_SPECIAL};
-                sendkey "down";
+                send_key "down" unless $ENV{OSP_SPECIAL};
+                send_key "down";
             }
             elsif ( checkEnv( "DESKTOP", "kde" ) ) {
-                sendkey "down" unless $ENV{OSP_SPECIAL};
-                sendkey "down";
-                sendkey "down";
+                send_key "down" unless $ENV{OSP_SPECIAL};
+                send_key "down";
+                send_key "down";
             }
             else {
                 die "unsupported desktop $ENV{DESKTOP}\n";
@@ -72,46 +72,46 @@ sub run() {
 
     # 1024x768
     if ( $ENV{RES1024} ) {    # default is 800x600
-        sendkey "f3";
-        sendkey "down";
+        send_key "f3";
+        send_key "down";
         waitforneedle("inst-resolutiondetected");
-        sendkey "ret";
+        send_key "ret";
     }
     elsif ( checkEnv( 'VIDEOMODE', "text" ) ) {
-        sendkey "f3";
+        send_key "f3";
         for ( 1 .. 2 ) {
-            sendkey "up";
+            send_key "up";
         }
         waitforneedle( "inst-textselected", 5 );
-        sendkey "ret";
+        send_key "ret";
     }
 
-    #sendautotype("nohz=off "); # NOHZ caused errors with 2.6.26
-    #sendautotype("nomodeset "); # coolo said, 12.3-MS0 kernel/kms broken with cirrus/vesa #fixed 2012-11-06
+    #type_string "nohz=off "; # NOHZ caused errors with 2.6.26
+    #type_string "nomodeset "; # coolo said, 12.3-MS0 kernel/kms broken with cirrus/vesa #fixed 2012-11-06
 
     # https://wiki.archlinux.org/index.php/Kernel_Mode_Setting#Forcing_modes_and_EDID
-    sendautotype("vga=791 ");
-    sendautotype("Y2DEBUG=1 ");
-    sendautotype( "video=1024x768-16 ",                              13 );
-    sendautotype( "drm_kms_helper.edid_firmware=edid/1024x768.bin ", 7 );
+    type_string "vga=791 ";
+    type_string "Y2DEBUG=1 ";
+    type_string  "video=1024x768-16 ",                              13 ;
+    type_string  "drm_kms_helper.edid_firmware=edid/1024x768.bin ", 7 ;
     waitforneedle( "inst-video-typed", 13 );
     if ( !$ENV{NICEVIDEO} ) {
-        sendautotype( "console=ttyS0 ", 7 );    # to get crash dumps as text
-        sendautotype( "console=tty ",   7 );    # to get crash dumps as text
+        type_string  "console=ttyS0 ", 7 ;    # to get crash dumps as text
+        type_string  "console=tty ",   7 ;    # to get crash dumps as text
         waitforneedle( "inst-consolesettingstyped", 30 );
         my $e = $ENV{EXTRABOOTPARAMS};
 
         #	if($ENV{RAIDLEVEL}) {$e="linuxrc=trace"}
-        if ($e) { sendautotype( "$e ", 13 ); sleep 10; }
+        if ($e) { type_string  "$e ", 13 ; sleep 10; }
     }
 
-    #sendautotype("kiwidebug=1 ");
+    #type_string "kiwidebug=1 ";
 
     # set HTTP-source to not use factory-snapshot
     if ( $ENV{NETBOOT} ) {
-        sendkey "f4";
+        send_key "f4";
         waitforneedle( "inst-instsourcemenu", 4 );
-        sendkey "ret";
+        send_key "ret";
         waitforneedle( "inst-instsourcedialog", 4 );
         my $mirroraddr = "";
         my $mirrorpath = "/factory";
@@ -121,45 +121,45 @@ sub run() {
 
         #download.opensuse.org
         if ($mirroraddr) {
-            for ( 1 .. 22 ) { sendkey "backspace" }
-            sendautotype($mirroraddr);
+            for ( 1 .. 22 ) { send_key "backspace" }
+            type_string $mirroraddr;
         }
-        sendkey "tab";
+        send_key "tab";
 
         # change dir
         # leave /repo/oss/ (10 chars)
         if ( $ENV{FULLURL} ) {
-            for ( 1 .. 10 ) { sendkey "backspace" }
+            for ( 1 .. 10 ) { send_key "backspace" }
         }
         else {
-            for ( 1 .. 10 ) { sendkey "left"; }
+            for ( 1 .. 10 ) { send_key "left"; }
         }
-        for ( 1 .. 22 ) { sendkey "backspace"; }
-        sendautotype($mirrorpath);
+        for ( 1 .. 22 ) { send_key "backspace"; }
+        type_string $mirrorpath;
 
         waitforneedle( "inst-mirror_is_setup", 2 );
-        sendkey "ret";
+        send_key "ret";
 
         # HTTP-proxy
         if ( $ENV{HTTPPROXY} && $ENV{HTTPPROXY} =~ m/([0-9.]+):(\d+)/ ) {
             my ( $proxyhost, $proxyport ) = ( $1, $2 );
-            sendkey "f4";
+            send_key "f4";
             for ( 1 .. 4 ) {
-                sendkey "down";
+                send_key "down";
             }
-            sendkey "ret";
-            sendautotype("$proxyhost\t$proxyport\n");
+            send_key "ret";
+            type_string "$proxyhost\t$proxyport\n";
             waitforneedle( "inst-proxy_is_setup", 2 );
 
             # add boot parameters
             # ZYPP... enables proxy caching
         }
 
-        #sendautotype("ZYPP_ARIA2C=0 "); sleep 9;
-        #sendautotype("ZYPP_MULTICURL=0 "); sleep 2;
+        #type_string "ZYPP_ARIA2C=0 "; sleep 9;
+        #type_string "ZYPP_MULTICURL=0 "; sleep 2;
     }
 
-    #if($ENV{BTRFS}) {sleep 9; sendautotype("squash=0 loadimage=0 ");sleep 21} # workaround 697671
+    #if($ENV{BTRFS}) {sleep 9; type_string "squash=0 loadimage=0 ";sleep 21} # workaround 697671
 
     # set language last so that above typing will not depend on keyboard layout
     if ( $ENV{INSTLANG} ) {
@@ -237,43 +237,43 @@ sub run() {
 
         if ( $n && $n != $en_us ) {
             $n -= $en_us;
-            sendkey "f2";
+            send_key "f2";
             waitforneedle( "inst-languagemenu", 6 );
             for ( 1 .. abs($n) ) {
-                sendkey( $n < 0 ? "up" : "down" );
+                send_key($n < 0 ? "up" : "down");
             }
 
             # TODO: add needles for some often tested
             sleep 2;
-            sendkey "ret";
+            send_key "ret";
         }
     }
 
     if ( $ENV{ISO} =~ m/i586/ ) {
 
-        #	sendautotype("info=");sleep 4; sendautotype("http://zq1.de/i "); sleep 15; sendautotype("insecure=1 "); sleep 15;
+        #	type_string "info=";sleep 4; type_string "http://zq1.de/i "; sleep 15; type_string "insecure=1 "; sleep 15;
     }
     my $args = "";
     if ( $ENV{AUTOYAST} ) {
         $args .= " netsetup=dhcp,all autoyast=$ENV{AUTOYAST} ";
     }
-    sendautotype $args;
+    type_string $args;
     if ( 0 && $ENV{RAIDLEVEL} ) {
 
         # workaround bnc#711724
         $ENV{ADDONURL} = "http://download.opensuse.org/repositories/home:/snwint/openSUSE_Factory/";    #TODO: drop
         $ENV{DUD}      = "dud=http://zq1.de/bl10";
-        sendautotype("$ENV{DUD} ");
+        type_string "$ENV{DUD} ";
         sleep 20;
-        sendautotype("insecure=1 ");
+        type_string "insecure=1 ";
         sleep 20;
     }
 
     if ( $ENV{LIVETEST} && $ENV{LIVEOBSWORKAROUND} ) {
-        sendkey("1");                                                                                   # runlevel 1
-        sendkey("ret");                                                                                 # boot
+        send_key "1";       # runlevel 1
+        send_key "ret";    # boot
         sleep(40);
-        sendautotype( "
+        type_string( "
 ls -ld /tmp
 chmod 1777 /tmp
 init 5
@@ -283,7 +283,7 @@ exit
     }
 
     # boot
-    sendkey "ret";
+    send_key "ret";
 }
 
 sub test_flags() {

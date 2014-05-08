@@ -12,9 +12,9 @@ sub run() {
     sleep 3;
     $self->check_DTMF('123A456B789C*0#D');
     $self->check_screen;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 2;
-    sendkeyw "ret";             # confirm "save&quit"
+    send_key "ret", 1;             # confirm "save&quit"
 }
 
 1;

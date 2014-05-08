@@ -23,12 +23,12 @@ sub run() {
     script_run("zypper patch -l && echo 'worked' > /dev/$serialdev");
     my $ret = waitforneedle( [qw/test-zypper_up-confirm test-zypper_up-nothingtodo/] );
     if ( $ret->{needle}->has_tag("test-zypper_up-confirm") ) {
-        sendkey "y\n";
+        send_key "y\n";
     }
     waitserial( "worked", 700 ) || die "zypper failed";
     script_run("zypper patch -l && echo 'worked' > /dev/$serialdev");    # first one might only have installed "update-test-affects-package-manager"
     if ( checkneedle("test-zypper_up-confirm") ) {
-        sendautotype "y\n";
+        type_string "y\n";
     }
     waitserial( "worked", 700 ) || die "zypper failed";
     script_run( "rpm -q libzypp zypper", 0 );
@@ -37,7 +37,7 @@ sub run() {
 
     # XXX: does this below make any sense? what if updates got
     # published meanwhile?
-    sendkey "ctrl-l";    # clear screen to see that second update does not do any more
+    send_key "ctrl-l";    # clear screen to see that second update does not do any more
     script_run( "zypper -n -q patch", 0 );
     script_run('echo $?');
     script_run('exit');

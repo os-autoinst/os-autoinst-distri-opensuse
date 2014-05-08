@@ -9,9 +9,9 @@ sub run() {
     my $self = shift;
 
     # Eject the DVD
-    sendkey "ctrl-alt-f3";
+    send_key "ctrl-alt-f3";
     sleep 4;
-    sendkey "ctrl-alt-delete";
+    send_key "ctrl-alt-delete";
 
     # Bug in 13.1?
     qemusend "system_reset";
@@ -21,9 +21,9 @@ sub run() {
     wait_encrypt_prompt;
     waitforneedle( "grub-reboot-windows", 25 );
 
-    sendkey "down";
-    sendkey "down";
-    sendkey "ret";
+    send_key "down";
+    send_key "down";
+    send_key "ret";
     waitforneedle( "windows8", 80 );
 }
 

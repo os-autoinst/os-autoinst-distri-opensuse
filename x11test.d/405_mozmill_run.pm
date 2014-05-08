@@ -18,11 +18,11 @@ sub run() {
     local $bmwqemu::timesidleneeded = 4;
 
     for ( 1 .. 12 ) {    # one test takes ~7 mins
-        sendkey "shift";    # avoid blank/screensaver
+        send_key "shift";    # avoid blank/screensaver
         last if waitserial( "mozmill testrun finished", 120 );
     }
     $self->check_screen;
-    sendkey "alt-f4";
+    send_key "alt-f4";
 }
 
 1;

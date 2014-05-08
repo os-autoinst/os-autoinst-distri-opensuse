@@ -18,8 +18,8 @@ sub run() {
     script_run('alsamixer');
     sleep 1;
     $self->check_screen;
-    sendkey "esc";
-    sendkey "esc";
+    send_key "esc";
+    send_key "esc";
 }
 
 1;

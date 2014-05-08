@@ -13,20 +13,20 @@ sub run() {
         last unless ( $ret->{needle}->has_tag("yast-error-ntp") || $ret->{needle}->has_tag("hooks-results") );
         ++$self->{dents};
         diag "warning popup caused dent";
-        sendkey "ret";
+        send_key "ret";
         pop @tags;
     }
 
     if ( $ENV{LIVECD} ) {
 
         # LiveCD needs confirmation for reboot
-        sendkey $cmd{"rebootnow"};
+        send_key $cmd{"rebootnow"};
     }
 
     # XXX old stuff
     #		if($ENV{XDEBUG} && waitforneedle("the-system-will-reboot-now", 3000)) {
-    #			sendkey "alt-s";
-    #			sendkey "ctrl-alt-f2";
+    #			send_key "alt-s";
+    #			send_key "ctrl-alt-f2";
     #			if(!$ENV{NET}) {
     #				script_run "dhcpcd eth0";
     #				#ifconfig eth0 10.0.2.15
@@ -39,16 +39,16 @@ sub run() {
     #			script_run "wget www3.zq1.de/bernhard/linux/xdebug";
     #			script_run "sh -x xdebug";
     #			sleep 99;
-    #			sendkey "ctrl-d";
+    #			send_key "ctrl-d";
     #			script_run "umount /mnt";
     #			waitidle;
     #			sleep 20;
-    #			sendkey "ctrl-alt-f7";
+    #			send_key "ctrl-alt-f7";
     #			sleep 5;
-    #			sendkey "alt-o";
+    #			send_key "alt-o";
     #		}
     #		if($ENV{UPGRADE}) {
-    #			sendkey "alt-n"; # ignore repos dialog
+    #			send_key "alt-n"; # ignore repos dialog
     #			waitstillimage(6,60);
     #		}
 
@@ -60,7 +60,7 @@ sub run() {
     for (my $counter = 20; $counter > 0; $counter--) {
       $ret = checkneedle( [ 'inst-bootmenu', 'grub2' ], 3 );
       if ( defined($ret) ) {
-        sendkey "ret";    # avoid timeout for booting to HDD
+        send_key "ret";    # avoid timeout for booting to HDD
         last;
       }
     }

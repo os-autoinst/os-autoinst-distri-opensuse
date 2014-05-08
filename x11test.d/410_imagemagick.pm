@@ -14,12 +14,12 @@ sub run() {
     script_run("curl openqa.opensuse.org/opensuse/qatests/img.tar.gz | tar xz");
     script_run("ls;display *.png");
     for ( 1 .. 3 ) {
-        sendkey "spc";
+        send_key "spc";
         sleep 3;
         $self->check_screen;
     }
-    sendkey "alt-f4";    # close display
-    sendkey "alt-f4";    # close xterm
+    send_key "alt-f4";    # close display
+    send_key "alt-f4";    # close xterm
 }
 
 1;

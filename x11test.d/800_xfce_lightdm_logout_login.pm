@@ -13,11 +13,11 @@ sub is_applicable {
 sub run() {
     my $self = shift;
     x11_start_program("xfce4-session-logout");
-    sendkey "alt-l";
+    send_key "alt-l";
     sleep 10;
     $self->check_screen;
     sendpassword;
-    sendkey "ret";
+    send_key "ret";
     sleep 10;
 }
 

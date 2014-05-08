@@ -14,39 +14,39 @@ sub run() {
     mouse_hide();
     x11_start_program("firefox");
     waitforneedle( "start-firefox", 5 );
-    if ( $ENV{UPGRADE} ) { sendkey("alt-d"); waitidle; }    # dont check for updated plugins
+    if ( $ENV{UPGRADE} ) { send_key "alt-d"; waitidle; }    # dont check for updated plugins
     if ( $ENV{DESKTOP} =~ /xfce|lxde/i ) {
-        sendkey "ret";                                      # confirm default browser setting popup
+        send_key "ret";                                      # confirm default browser setting popup
         waitidle;
     }
 
     my @sites = ( 'www.baidu.com', 'www.novell.com', 'www.google.com' );
 
     for my $site (@sites) {
-        sendkey "ctrl-l";
+        send_key "ctrl-l";
         sleep 1;
-        sendautotype $site. "\n";
+        type_string $site. "\n";
         sleep 5;
         $site =~ s{\.com}{};
         $site =~ s{.*\.}{};
         checkneedle( "firefox_page-" . $site, 5 );
     }
 
-    sendkey "alt-left";
+    send_key "alt-left";
     sleep 2;
-    sendkey "alt-left";
+    send_key "alt-left";
     sleep 3;
     checkneedle( "firefox_page-baidu", 5 );
-    sendkey "alt-right";
+    send_key "alt-right";
     sleep 3;
     checkneedle( "firefox_page-novell", 5 );
-    sendkey "f5";
+    send_key "f5";
     sleep 3;
     checkneedle( "firefox_page-novell", 5 );
 
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 2;
-    sendkey "ret";
+    send_key "ret";
     sleep 2;    # confirm "save&quit"
 }
 

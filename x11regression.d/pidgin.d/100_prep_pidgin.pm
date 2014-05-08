@@ -13,60 +13,60 @@ sub install_pkg() {
     my $self = shift;
 
     x11_start_program("xterm");
-    sendautotype("rpm -qa @packages\n");
+    type_string "rpm -qa @packages\n";
     waitidle;
     sleep 5;
 
     # Remove screensaver
-    sendautotype("xdg-su -c 'rpm -e gnome-screensaver'\n");
+    type_string "xdg-su -c 'rpm -e gnome-screensaver'\n";
     waitidle;
     sleep 3;
     if ($password) {
         sendpassword;
-        sendkeyw "ret";
+        send_key "ret", 1;
     }
 
     # Install packages
-    sendautotype("xdg-su -c 'zypper -n in @packages'\n");
+    type_string "xdg-su -c 'zypper -n in @packages'\n";
     waitidle;
     sleep 3;
     if ($password) {
         sendpassword;
-        sendkeyw "ret";
+        send_key "ret", 1;
     }
     sleep 60;
-    sendautotype("\n");    # prevent the screensaver...
+    type_string "\n";    # prevent the screensaver...
     waitforneedle( "pidgin-pkg", 500 );    #make sure pkgs installed
     waitidle;
     sleep 2;
-    sendautotype("rpm -qa @packages\n");
+    type_string "rpm -qa @packages\n";
     waitidle;
     sleep 2;
     waitforneedle( "pidgin-pkg-installed", 10 );    #make sure pkgs installed
     waitidle;
     sleep 2;
 
-    #sendkey "alt-f4";sleep 2; #close xterm
+    #send_key "alt-f4";sleep 2; #close xterm
 
     # Enable the showoffline
-    sendautotype("pidgin\n");    # enable the pidgin
+    type_string "pidgin\n";    # enable the pidgin
     waitidle;
     sleep 2;
 
-    sendkey "alt-c";
+    send_key "alt-c";
     waitidle;
     sleep 5;
-    sendkey "alt-b";
+    send_key "alt-b";
     sleep 2;
-    sendkey "o";
+    send_key "o";
     waitidle;
     sleep 2;
     waitforneedle( "pidgin-showoff", 10 );    #enable show offline
-    sendkey "o";
+    send_key "o";
 
-    sendkey "ctrl-q";
+    send_key "ctrl-q";
     sleep 2;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 2;                                  #close xterm
 }
 

@@ -9,7 +9,7 @@ sub run() {
 
     #	$self->check_screen;
     script_run('df');
-    sendautotype "/sbin/btrfs filesystem df /\n" if $ENV{BTRFS};
+    type_string "/sbin/btrfs filesystem df /\n" if $ENV{BTRFS};
     script_run('free');
     script_run('rpm -qa kernel-*');
     script_run('grep DISPLAYMANAGER /etc/sysconfig/displaymanager');
@@ -23,7 +23,7 @@ sub run() {
     script_run("rpm -qa > /dev/$serialdev && echo 'rpm_qa_outputted' > /dev/$serialdev");
     waitserial( 'rpm_qa_outputted', 30 ) || die "rpm_qa_outputted cannot found or it took too long time to finish";
     $self->take_screenshot;
-    sendkey "ctrl-l";                      # clear the screen
+    send_key "ctrl-l";                      # clear the screen
     script_sudo("tar cjf /tmp/logs.tar.bz2 /var/log");
     upload_logs("/tmp/logs.tar.bz2");
     script_run("echo 'textinfo_ok' >  /dev/$serialdev");

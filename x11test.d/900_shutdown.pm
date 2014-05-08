@@ -9,23 +9,23 @@ sub run() {
     my $self = shift;
 
     if ( $ENV{DESKTOP} eq "kde" ) {
-        sendkey "ctrl-alt-delete";    # shutdown
+        send_key "ctrl-alt-delete";    # shutdown
         waitforneedle 'logoutdialog', 15;
 
-        sendautotype "\t";
+        type_string "\t";
         waitforneedle( "kde-turn-off-selected", 2 );
-        sendautotype "\n";
+        type_string "\n";
         waitinststage( "splashscreen", 40 );
     }
 
     if ( $ENV{DESKTOP} eq "gnome" ) {
-        sendkey "ctrl-alt-delete";    # shutdown
+        send_key "ctrl-alt-delete";    # shutdown
         waitforneedle 'logoutdialog', 15;
 
-        sendkey "ret";                # confirm shutdown
+        send_key "ret";                # confirm shutdown
                                       #if(!$ENV{GNOME2}) {
                                       #    sleep 3;
-                                      #    sendkey "ctrl-alt-f1";
+                                      #    send_key "ctrl-alt-f1";
                                       #    sleep 3;
                                       #    qemusend "system_powerdown"; # shutdown
                                       #}
@@ -34,14 +34,14 @@ sub run() {
 
     if ( $ENV{DESKTOP} eq "xfce" ) {
         for ( 1 .. 5 ) {
-            sendkey "alt-f4";         # opens log out popup after all windows closed
+            send_key "alt-f4";         # opens log out popup after all windows closed
         }
         waitidle;
-        sendautotype "\t\t";          # select shutdown
+        type_string "\t\t";          # select shutdown
         sleep 1;
 
         #$self->check_screen;
-        sendautotype "\n";
+        type_string "\n";
         waitinststage("splashscreen");
     }
 
@@ -50,7 +50,7 @@ sub run() {
         waitidle;
 
         #$self->check_screen;
-        #sendkey "ctrl-alt-f1"; # work-around for LXDE bug 619769 ; not needed in Factory anymore
+        #send_key "ctrl-alt-f1"; # work-around for LXDE bug 619769 ; not needed in Factory anymore
         waitinststage("splashscreen");
     }
 }

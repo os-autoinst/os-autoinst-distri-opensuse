@@ -14,45 +14,45 @@ sub run() {
     mouse_hide();
     x11_start_program("firefox");
     waitforneedle( "start-firefox", 5 );
-    if ( $ENV{UPGRADE} ) { sendkey("alt-d"); waitidle; }    # dont check for updated plugins
+    if ( $ENV{UPGRADE} ) { send_key "alt-d"; waitidle; }    # dont check for updated plugins
     if ( $ENV{DESKTOP} =~ /xfce|lxde/i ) {
-        sendkey "ret";                                      # confirm default browser setting popup
+        send_key "ret";                                      # confirm default browser setting popup
         waitidle;
     }
 
-    sendkey "ctrl-l";
+    send_key "ctrl-l";
     sleep 1;
-    sendautotype "https://www.google.com" . "\n";
+    type_string "https://www.google.com" . "\n";
     sleep 6;
     checkneedle( "firefox_https-google", 3 );
 
-    sendkey "ctrl-l";
+    send_key "ctrl-l";
     sleep 1;
-    sendautotype "http://147.2.207.207/repo" . "\n";
+    type_string "http://147.2.207.207/repo" . "\n";
     sleep 3;
     checkneedle( "firefox_http207", 3 );
 
-    sendkey "ctrl-l";
+    send_key "ctrl-l";
     sleep 1;
-    sendautotype "https://147.2.207.207/repo" . "\n";
+    type_string "https://147.2.207.207/repo" . "\n";
     sleep 3;
     checkneedle( "firefox_https-risk", 3 );
-    sendkey "shift-tab";
+    send_key "shift-tab";
     sleep 1;    #select "I Understand..."
-    sendkey "ret";
+    send_key "ret";
     sleep 1;    #open the "I Understand..."
-    sendkey "tab";
+    send_key "tab";
     sleep 1;    #select the "Add Exception"
-    sendkey "ret";
+    send_key "ret";
     sleep 1;    #click "Add Exception"
     checkneedle( "firefox_addexcept", 3 );
-    sendkey "alt-c";
+    send_key "alt-c";
     sleep 1;
     checkneedle( "firefox_https-207", 3 );
 
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 2;
-    sendkey "ret";
+    send_key "ret";
     sleep 2;    # confirm "save&quit"
 }
 

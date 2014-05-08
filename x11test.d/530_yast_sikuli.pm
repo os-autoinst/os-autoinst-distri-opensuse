@@ -20,7 +20,7 @@ sub run() {
     script_run("./run_ykuli.sh ; echo yastsikuli finished > /dev/ttyS0");
     waitserial( "yastsikuli finished", 680 );
     $self->check_screen;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     script_sudo_logout();
 }
 

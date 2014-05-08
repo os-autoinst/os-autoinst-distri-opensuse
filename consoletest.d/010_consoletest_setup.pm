@@ -6,17 +6,17 @@ sub run() {
 
     # init
     # log into text console
-    sendkey "ctrl-alt-f4";
+    send_key "ctrl-alt-f4";
     waitforneedle( "text-login", 10 );
-    sendautotype "$username\n";
+    type_string "$username\n";
     sleep 2;
     sendpassword;
-    sendautotype "\n";
+    type_string "\n";
     sleep 3;
-    sendautotype "PS1=\$\n";    # set constant shell promt
+    type_string "PS1=\$\n";    # set constant shell promt
     sleep 1;
 
-    #sendautotype 'PS1=\$\ '."\n"; # qemu-0.12.4 can not do backslash yet. http://permalink.gmane.org/gmane.comp.emulators.qemu/71856
+    #type_string 'PS1=\$\ '."\n"; # qemu-0.12.4 can not do backslash yet. http://permalink.gmane.org/gmane.comp.emulators.qemu/71856
 
     script_sudo("chown $username /dev/$serialdev");
     script_run("echo 010_consoletest_setup OK > /dev/$serialdev");

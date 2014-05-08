@@ -15,14 +15,14 @@ sub run() {
     mouse_hide(1);
     x11_start_program("xfce4-terminal");
     sleep 2;
-    sendkey "ctrl-shift-t";
-    for ( 1 .. 13 ) { sendkey "ret" }
-    sendautotype("echo If you can see this text xfce4-terminal is working.\n");
+    send_key "ctrl-shift-t";
+    for ( 1 .. 13 ) { send_key "ret" }
+    type_string "echo If you can see this text xfce4-terminal is working.\n";
     sleep 2;
     $self->check_screen;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 2;
-    sendkey "alt-w";
+    send_key "alt-w";
     sleep 2;    # confirm close of multi-tab window
 }
 

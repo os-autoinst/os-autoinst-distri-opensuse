@@ -5,13 +5,13 @@ my @sites = qw(en.opensuse.org www.slashdot.com www.freshmeat.net www.microsoft.
 
 sub open_tab($) {
     my $addr = shift;
-    sendkey "ctrl-t";    # new tab
+    send_key "ctrl-t";    # new tab
     sleep 2;
-    sendautotype($addr);
+    type_string $addr;
     sleep 2;
-    sendkey "ret";
+    send_key "ret";
     sleep 6;
-    sendkey "pgdn";
+    send_key "pgdn";
     sleep 1;
 }
 
@@ -28,17 +28,17 @@ sub run() {
         if ( $site =~ m/openqa/ ) { $self->check_screen; }
     }
     $self->check_screen;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 2;
-    sendkey "ret";    # confirm "save&quit"
+    send_key "ret";    # confirm "save&quit"
     waitidle;
 
     # re-open to see how long it takes to open all tabs together
     x11_start_program("firefox");
     $self->check_screen;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 2;
-    sendkey "ret";    # confirm "save&quit"
+    send_key "ret";    # confirm "save&quit"
 }
 
 1;

@@ -24,17 +24,17 @@ sub run() {
     my $self = shift;
     if ( $ENV{DOCRUN} || checkneedle( "software-conflict", 1 ) || ocrconflict ) {
         $cmd{software} = "alt-s" if $ENV{VIDEOMODE} eq "text";
-        sendkey $cmd{change};      # Change
-        sendkey $cmd{software};    # Software
+        send_key $cmd{change};      # Change
+        send_key $cmd{software};    # Software
         waitidle;
         for ( 1 .. 3 ) {
-            sendkey "down";
+            send_key "down";
         }
         sleep 4;
         $self->check_screen("toaccept");
-        sendkey $cmd{accept};      # Accept
+        send_key $cmd{accept};      # Accept
         sleep 2;
-        sendkey "alt-o";           # cOntinue
+        send_key "alt-o";           # cOntinue
         waitidle;
     }
 }

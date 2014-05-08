@@ -14,43 +14,43 @@ sub run() {
     mouse_hide();
     x11_start_program("firefox");
     waitforneedle( "start-firefox", 5 );
-    if ( $ENV{UPGRADE} ) { sendkey("alt-d"); waitidle; }    # dont check for updated plugins
+    if ( $ENV{UPGRADE} ) { send_key "alt-d"; waitidle; }    # dont check for updated plugins
     if ( $ENV{DESKTOP} =~ /xfce|lxde/i ) {
-        sendkey "ret";                                      # confirm default browser setting popup
+        send_key "ret";                                      # confirm default browser setting popup
         waitidle;
     }
 
-    sendkey "ctrl-k";
+    send_key "ctrl-k";
     sleep 1;
-    sendkey "ret";
+    send_key "ret";
     sleep 5;
     checkneedle( "firefox_page-google", 5 );                #check point 1
-    sendkey "ctrl-k";
+    send_key "ctrl-k";
     sleep 1;
-    sendautotype "opensuse" . "\n";
+    type_string "opensuse" . "\n";
     sleep 5;
     checkneedle( "firefox_search-opensuse", 5 );            #check point 2
-    sendkey "ctrl-k";
+    send_key "ctrl-k";
     sleep 1;
-    sendkey "f4";
+    send_key "f4";
     sleep 1;
-    sendkey "y";
+    send_key "y";
     sleep 1;                                                #select the yahoo as search engine
-    sendkey "ret";
+    send_key "ret";
     sleep 5;
     checkneedle( "firefox_yahoo-search", 5 );               #check point 4
 
     #recover the changes, change search engine to google
-    sendkey "ctrl-k";
+    send_key "ctrl-k";
     sleep 1;
-    sendkey "f4";
+    send_key "f4";
     sleep 1;
-    sendkey "g";
+    send_key "g";
     sleep 1;
 
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 2;
-    sendkey "ret";
+    send_key "ret";
     sleep 2;    # confirm "save&quit"
 }
 

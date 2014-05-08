@@ -11,9 +11,9 @@ sub run() {
     my $self = shift;
 
     $self->check_screen;
-    sendkeyw $cmd{"next"};
+    send_key $cmd{"next"}, 1;
     waitforneedle( "remove-repository", 10 );
-    sendkeyw $cmd{"next"};
+    send_key $cmd{"next"}, 1;
     waitforneedle( "installation-settings", 10 );
 }
 

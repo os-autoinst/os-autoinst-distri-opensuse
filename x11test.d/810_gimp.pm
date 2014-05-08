@@ -11,7 +11,7 @@ sub run() {
     ensure_installed("gimp");
     x11_start_program("gimp");
     waitforneedle("test-gimp-1", 20);
-    sendkey "alt-f4";    # Exit
+    send_key "alt-f4";    # Exit
 }
 
 1;

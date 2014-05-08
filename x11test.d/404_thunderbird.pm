@@ -10,8 +10,8 @@ sub run() {
     ensure_installed("thunderbird");
     x11_start_program("thunderbird");
     $self->check_screen;
-    sendkeyw "alt-f4";    # close wizzard
-    sendkeyw "alt-f4";    # close prog
+    send_key "alt-f4", 1;    # close wizzard
+    send_key "alt-f4", 1;    # close prog
 }
 
 1;

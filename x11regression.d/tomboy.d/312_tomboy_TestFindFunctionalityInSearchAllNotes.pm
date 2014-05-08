@@ -18,81 +18,81 @@ sub run() {
     x11_start_program("tomboy note");
 
     # create a note
-    sendkey "ctrl-n";
+    send_key "ctrl-n";
     sleep 2;
-    sendautotype "hehe";
+    type_string "hehe";
     sleep 1;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     waitidle;
 
-    sendkey "alt-f9";
+    send_key "alt-f9";
     sleep 2;
-    sendautotype "hehe";
+    type_string "hehe";
     sleep 1;
     $self->check_screen;
     sleep 2;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     waitidle;
 
     # test Edit->preferences
-    sendkey "alt-f9";
+    send_key "alt-f9";
     sleep 2;
-    sendkey "alt-e";
+    send_key "alt-e";
     sleep 1;
-    sendkey "p";
+    send_key "p";
     sleep 1;
     $self->check_screen;
     sleep 2;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 1;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     waitidle;
 
     # test Help->Contents
-    sendkey "alt-f9";
+    send_key "alt-f9";
     sleep 2;
-    sendkey "alt-h";
+    send_key "alt-h";
     sleep 1;
-    sendkey "c";
+    send_key "c";
     sleep 1;
     $self->check_screen;
     sleep 2;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 1;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     waitidle;
 
     # test Help-> About
-    sendkey "alt-f9";
+    send_key "alt-f9";
     sleep 2;
-    sendkey "alt-h";
-    sendkey "a";
+    send_key "alt-h";
+    send_key "a";
     sleep 1;
     $self->check_screen;
     sleep 2;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 1;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     waitidle;
 
     # test File->Close
-    sendkey "alt-f";
+    send_key "alt-f";
     sleep 1;
-    sendkey "c";
+    send_key "c";
     sleep 1;
     $self->check_screen;
     sleep 2;
 
     # delete the created note
-    sendkey "alt-f9";
+    send_key "alt-f9";
     sleep 1;
-    sendkey "up";
+    send_key "up";
     sleep 1;
-    sendkey "delete";
+    send_key "delete";
     sleep 1;
-    sendkey "alt-d";
+    send_key "alt-d";
     sleep 1;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     waitidle;
 }
 

@@ -9,7 +9,7 @@ sub is_applicable() {
 sub run() {
     my $self = shift;
     $ENV{ZDUPREPOS} ||= "http://$ENV{SUSEMIRROR}/repo/oss/";
-    sendkey "ctrl-l";
+    send_key "ctrl-l";
     script_sudo("killall gpk-update-icon packagekitd");
     unless ( $ENV{EVERGREEN} ) {
         script_sudo("zypper modifyrepo --all --disable");
@@ -21,7 +21,7 @@ sub run() {
     }
     if ( $ENV{EVERGREEN} ) {
         script_sudo("mkdir /etc/zypp/vendors.d");
-        sendautotype(
+        type_string(
             "sudo dd of=/etc/zypp/vendors.d/evergreen <<EOF
 [main]
 vendors = openSUSE Evergreen,suse,opensuse
@@ -37,31 +37,29 @@ EOF\n"
     script_sudo("zypper dup -l");
     $self->check_screen;
 
-    #for(1..20) { sendkeyw "3"; # ignore unresolvable
-    #}
     for ( 1 .. 20 ) {
-        sendkey "2";    # ignore unresolvable
-        sendkeyw "ret";
+        send_key "2";    # ignore unresolvable
+        send_key "ret", 1;
     }
-    sendautotype("1\n");    # some conflicts can not be ignored
+    type_string "1\n";    # some conflicts can not be ignored
     $self->check_screen;
-    sendautotype("y\n");    # confirm
+    type_string "y\n";    # confirm
     local $ENV{SCREENSHOTINTERVAL} = 2.5;
     for ( 1 .. 12 ) {
         sleep 60;
-        sendkey "shift";    # prevent console screensaver
+        send_key "shift";    # prevent console screensaver
     }
     for ( 1 .. 12 ) {
-        waitstillimage( 60, 66 ) || sendkey "shift";    # prevent console screensaver
+        waitstillimage( 60, 66 ) || send_key "shift";    # prevent console screensaver
     }
     waitstillimage( 60, 5000 );                         # wait for upgrade to finish
 
     $self->check_screen;
     sleep 2;
-    sendkey "ctrl-alt-f4";
+    send_key "ctrl-alt-f4";
     sleep 3;
 
-    sendautotype "n\n";                                 # don't view notifications
+    type_string "n\n";                                 # don't view notifications
 }
 
 1;

@@ -21,9 +21,9 @@ sub run() {
     mouse_hide();
     x11_start_program("firefox");
     waitforneedle( "start-firefox", 5 );
-    if ( $ENV{UPGRADE} ) { sendkey("alt-d"); waitidle; }    # dont check for updated plugins
+    if ( $ENV{UPGRADE} ) { send_key "alt-d"; waitidle; }    # dont check for updated plugins
     if ( $ENV{DESKTOP} =~ /xfce|lxde/i ) {
-        sendkey "ret";                                      # confirm default browser setting popup
+        send_key "ret";                                      # confirm default browser setting popup
         waitidle;
     }
 
@@ -32,118 +32,118 @@ sub run() {
     my $gmailuser     = "nooops6";
     my $gmailpasswd   = "opensuse";
 
-    sendkey "alt-e";
+    send_key "alt-e";
     sleep 1;
-    sendkey "n";
+    send_key "n";
     sleep 1;
     for ( 1 .. 3 ) {    #select the "Security" tab of Preference
-        sendkey "left";
+        send_key "left";
         sleep 1;
     }
-    sendkey "alt-u";
+    send_key "alt-u";
     sleep 1;            #choose "Use a master password"
-    sendautotype $master_passwd;
+    type_string $master_passwd;
     sleep 1;
-    sendkey "tab";
+    send_key "tab";
     sleep 1;            #re-enter password
-    sendautotype $master_passwd. "\n";
+    type_string $master_passwd. "\n";
     sleep 1;
-    sendkey "ret";
+    send_key "ret";
     sleep 1;            #"Password Change Succeeded" diag
-    sendkey "esc";
+    send_key "esc";
     sleep 1;
 
-    sendkey "ctrl-l";
+    send_key "ctrl-l";
     sleep 1;
-    sendautotype $test_site. "\n";
+    type_string $test_site. "\n";
     sleep 5;
     checkneedle( "firefox_page-calendar", 5 );
-    sendautotype $gmailuser;
+    type_string $gmailuser;
     sleep 1;
-    sendkey "tab";
+    send_key "tab";
     sleep 1;
-    sendautotype $gmailpasswd. "\n";
+    type_string $gmailpasswd. "\n";
     sleep 5;
     checkneedle( "firefox_remember-password", 5 );
-    sendkey "alt-r";
+    send_key "alt-r";
     sleep 1;    #remember password
-    sendkey "r";
+    send_key "r";
     sleep 1;
-    sendautotype $master_passwd. "\n";
+    type_string $master_passwd. "\n";
     sleep 1;
-    sendkey "alt-e";
+    send_key "alt-e";
     sleep 1;
-    sendkey "n";
+    send_key "n";
     sleep 1;
-    sendkey "alt-p";
+    send_key "alt-p";
     sleep 1;    #open the "Saved Passwords" diag
     checkneedle( "firefox_saved-passowrds", 5 );    #check if the passwd is saved
-    sendkey "alt-c";
+    send_key "alt-c";
     sleep 1;                                        #close the dialog
-    sendkey "esc";
+    send_key "esc";
     sleep 1;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 2;                                        #quit firefox and then re-launch
-    sendkey "ret";
+    send_key "ret";
     sleep 2;                                        # confirm "save&quit"
 
     #re-open firefox and login the calendar
     x11_start_program("firefox");
 
     #clear recent history otherwise calendar will login automatically
-    sendkey "ctrl-shift-delete";
+    send_key "ctrl-shift-delete";
     sleep 1;
-    sendkey "shift-tab";
+    send_key "shift-tab";
     sleep 1;                                        #select clear now
-    sendkey "ret";
+    send_key "ret";
     sleep 1;
 
     #login calendar.google.com again to check the password
-    sendkey "ctrl-l";
+    send_key "ctrl-l";
     sleep 2;
-    sendautotype $test_site. "\n";
+    type_string $test_site. "\n";
     sleep 5;
     checkneedle( "firefox_passwd-required", 5 );
-    sendautotype $master_passwd. "\n";
+    type_string $master_passwd. "\n";
     sleep 1;
     checkneedle( "firefox_page-calendar-passwd", 3 );
 
     #recover all the changes
-    sendkey "alt-e";
+    send_key "alt-e";
     sleep 1;
-    sendkey "n";
+    send_key "n";
     sleep 1;
-    sendkey "alt-p";
+    send_key "alt-p";
     sleep 1;    #open the "Saved Passwords" diag
-    sendkey "alt-a";
+    send_key "alt-a";
     sleep 1;    #remove all the saved passwords
-    sendkey "y";
+    send_key "y";
     sleep 1;    #confirm the removing
-    sendkey "alt-c";
+    send_key "alt-c";
     sleep 1;    #close the "Saved..." dialog
-    sendkey "alt-u";
+    send_key "alt-u";
     sleep 2;    #disable the master password
-    sendautotype $master_passwd. "\n";
+    type_string $master_passwd. "\n";
     sleep 1;
-    sendkey "ret";
+    send_key "ret";
     sleep 1;    #answer to the popup window
-    sendkey "esc";
+    send_key "esc";
     sleep 1;    #close the Preference
-    sendkey "alt-e";
+    send_key "alt-e";
     sleep 1;
-    sendkey "n";
+    send_key "n";
     sleep 1;
 
     for ( 1 .. 3 ) {    #switch the tab from "Security" to "General"
-        sendkey "right";
+        send_key "right";
         sleep 1;
     }
-    sendkey "esc";
+    send_key "esc";
     sleep 1;
 
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 2;
-    sendkey "ret";
+    send_key "ret";
     sleep 2;            # confirm "save&quit"
 }
 

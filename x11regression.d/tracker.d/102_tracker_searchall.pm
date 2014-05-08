@@ -14,11 +14,11 @@ sub run() {
     sleep 2;
     waitidle;
     $self->check_screen;
-    sendautotype("newfile");
+    type_string "newfile";
     sleep 2;
     waitstillimage;
     $self->check_screen;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 2;
 
     #$self->check_screen;

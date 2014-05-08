@@ -17,19 +17,19 @@ sub run() {
     x11_start_program("tomboy note");
     while ( checkneedle( "tomboy_command_not_found", 5 ) ) {
         sleep 30;
-        sendkey "ret";
+        send_key "ret";
         sleep 1;
     }
     sleep 1;
 
     # open the menu
-    sendkey "alt-f12";
+    send_key "alt-f12";
     sleep 2;
     checkneedle( "tomboy_menu", 5 );
     sleep 2;
-    sendkey "esc";
+    send_key "esc";
     sleep 3;
-    sendkey "alt-f4";
+    send_key "alt-f4";
     sleep 7;
     waitidle;
 }

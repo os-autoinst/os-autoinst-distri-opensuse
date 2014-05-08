@@ -20,11 +20,11 @@ sub run() {
     my $ret = waitforneedle( "ssh-login", 60 );
 
     if ( $ret->{needle}->has_tag("ssh-login") ) {
-        sendautotype "yes\n";
+        type_string "yes\n";
     }
     sleep 3;
     sendpassword;
-    sendautotype "\n";
+    type_string "\n";
     waitforneedle( "ssh-login-ok", 10 );
 }
 
