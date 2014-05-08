@@ -14,7 +14,7 @@ sub run() {
     my $self = shift;
 
     # time to load kernel+initrd
-    waitforneedle( "inst-splashscreen", 12 );
+    assert_screen  "inst-splashscreen", 12 ;
     send_key "esc";
 }
 

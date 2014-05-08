@@ -8,15 +8,15 @@ sub is_applicable() {
 }
 
 sub run() {
-    waitforneedle( "inst-bootmenu", 30 );
+    assert_screen  "inst-bootmenu", 30 ;
     sleep 2;
     send_key "ret";    # boot
 
-    waitforneedle( "grub-opensuse-13.1", 15 );
+    assert_screen  "grub-opensuse-13.1", 15 ;
     sleep 1;
     send_key "ret";
 
-    waitforneedle( "desktop-at-first-boot", 300 );
+    assert_screen  "desktop-at-first-boot", 300 ;
 
 }
 

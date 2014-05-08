@@ -5,7 +5,7 @@ use bmwqemu;
 sub run() {
     my $self = shift;
     script_run('test -L /etc/mtab && echo OK || echo fail');
-    waitforneedle( "test-mtab-1", 3 );
+    assert_screen "test-mtab-1", 3;
     script_run('cat /etc/mtab');
     $self->take_screenshot;
 }

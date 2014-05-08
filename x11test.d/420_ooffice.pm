@@ -16,7 +16,7 @@ sub run() {
     $self->check_screen;
     send_key "alt-f4";
     sleep 2;
-    waitforneedle( "ooffice-save-prompt", 8 );
+    assert_screen  "ooffice-save-prompt", 8 ;
     send_key "alt-w";
     sleep 2;     # *W*ithout saving
 }

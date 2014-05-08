@@ -10,7 +10,7 @@ sub run() {
 
     become_root();
     script_run("grep -l cd:/// /etc/zypp/repos.d/* | xargs rm -v");
-    waitforneedle("cdreporemoved");
+    assert_screen "cdreporemoved";
     script_run('exit');
 }
 

@@ -12,7 +12,7 @@ sub run() {
     my $self = shift;
     script_sudo("/sbin/yast2 bootloader");
     while (1) {
-        my $ret = waitforneedle( "yast2_bootloader-initialed", 300 );
+        my $ret = assert_screen "yast2_bootloader-initialed", 300;
         last if $ret->{needle}->has_tag("yast2_bootloader-initialed");
     }
     waitstillimage( 12, 60 );
@@ -28,7 +28,7 @@ sub run() {
     waitidle 5;
     send_key "ctrl-l";
     script_run('echo $?');
-    waitforneedle( "exited-bootloader", 2 );
+    assert_screen "exited-bootloader", 2;
     script_run('rpm -q hwinfo');
     $self->take_screenshot;
 }

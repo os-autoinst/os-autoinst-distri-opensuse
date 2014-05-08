@@ -17,7 +17,7 @@ sub run() {
     $self->check_screen;
     waitidle 5;
     script_run('ssh root@localhost -t echo LOGIN_SUCCESSFUL');
-    my $ret = waitforneedle( "ssh-login", 60 );
+    my $ret = assert_screen "ssh-login", 60;
 
     if ( $ret->{needle}->has_tag("ssh-login") ) {
         type_string "yes\n";
@@ -25,7 +25,7 @@ sub run() {
     sleep 3;
     sendpassword;
     type_string "\n";
-    waitforneedle( "ssh-login-ok", 10 );
+    assert_screen "ssh-login-ok", 10;
 }
 
 sub test_flags() {

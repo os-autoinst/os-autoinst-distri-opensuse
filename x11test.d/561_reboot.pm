@@ -12,7 +12,7 @@ sub run() {
     if ( $ENV{DESKTOP} eq "kde" || $ENV{DESKTOP} eq "gnome" ) {
         waitidle;
         send_key "ctrl-alt-delete";    # reboot
-        waitforneedle 'logoutdialog', 15;
+        assert_screen 'logoutdialog', 15;
         send_key "tab";
         send_key "tab";
         sleep 1;
@@ -23,7 +23,7 @@ sub run() {
     # 550_reboot_xfce
     if ( $ENV{DESKTOP} eq "xfce" ) {
         send_key "ctrl-alt-delete";    # reboot
-        waitforneedle 'logoutdialog', 15;
+        assert_screen 'logoutdialog', 15;
 
         #waitidle;
         #send_key "alt-f4"; # open popup
@@ -43,14 +43,14 @@ sub run() {
         script_sudo "/sbin/reboot", 0;
     }
 
-    waitforneedle( "bootloader", 100 );    # wait until reboot
+    assert_screen  "bootloader", 100 ;    # wait until reboot
     if ( $ENV{ENCRYPT} ) {
         wait_encrypt_prompt;
     }
 
     # 570_xfce_login_after_reboot
     if ( $ENV{NOAUTOLOGIN} || $ENV{XDMUSED} ) {
-        waitforneedle( 'displaymanager', 200 );
+        assert_screen  'displaymanager', 200 ;
         waitidle;
 
         # log in
@@ -59,7 +59,7 @@ sub run() {
         type_string $password. "\n";
     }
 
-    waitforneedle 'test-consoletest_finish-1', 300;
+    assert_screen 'test-consoletest_finish-1', 300;
     mouse_hide(1);
 }
 

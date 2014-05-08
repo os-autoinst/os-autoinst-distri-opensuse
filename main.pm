@@ -97,7 +97,7 @@ while ( !getcurrentscreenshot() ) {
     sleep 1;
 }
 
-#waitforneedle "inst-bootmenu",12; # wait for welcome animation to finish
+#assert_screen "inst-bootmenu",12; # wait for welcome animation to finish
 
 if ( $ENV{LIVETEST} && ( $ENV{LIVECD} || $ENV{PROMO} ) ) {
     $username = "linux";    # LiveCD account

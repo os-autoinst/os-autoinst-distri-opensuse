@@ -12,7 +12,7 @@ sub run() {
     my $self = shift;
 
     # Make sure that we are in the installation overview with SB enabled
-    waitforneedle("inst-overview-secureboot");
+    assert_screen "inst-overview-secureboot";
 
     $cmd{bootloader} = "alt-b" if checkEnv( 'VIDEOMODE', "text" );
     send_key $cmd{change};        # Change
@@ -20,7 +20,7 @@ sub run() {
     sleep 4;
 
     # Is secure boot enabled?
-    waitforneedle( "bootloader-secureboot-enabled", 5 );
+    assert_screen  "bootloader-secureboot-enabled", 5 ;
     send_key $cmd{accept};        # Accept
     sleep 2;
     send_key "alt-o";             # cOntinue

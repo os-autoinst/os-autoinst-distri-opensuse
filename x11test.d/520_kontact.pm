@@ -19,10 +19,10 @@ sub run() {
     sleep 2;
     x11_start_program("kontact");
 
-    # waitforneedle("kontact-assistant", 20);
-    waitforneedle( "test-kontact-1", 20 );    # tips window or assistant
+    # assert_screen "kontact-assistant", 20;
+    assert_screen  "test-kontact-1", 20 ;    # tips window or assistant
     send_key "alt-f4";
-    waitforneedle( "kontact-window", 3 );
+    assert_screen  "kontact-window", 3 ;
     send_key "alt-f4";
 }
 
