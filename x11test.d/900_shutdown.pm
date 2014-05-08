@@ -12,15 +12,20 @@ sub run() {
         sendkey "ctrl-alt-delete";    # shutdown
         waitforneedle 'logoutdialog', 15;
 
+        return; # we don't want qemu "to crash" 
+
         sendautotype "\t";
         waitforneedle( "kde-turn-off-selected", 2 );
         sendautotype "\n";
-        waitinststage( "splashscreen", 40 );
+
+        waitforneedle( "splashscreen", 40 );
     }
 
     if ( $ENV{DESKTOP} eq "gnome" ) {
         sendkey "ctrl-alt-delete";    # shutdown
         waitforneedle 'logoutdialog', 15;
+
+        return; # we don't want qemu "to crash" 
 
         sendkey "ret";                # confirm shutdown
                                       #if(!$ENV{GNOME2}) {
@@ -40,10 +45,14 @@ sub run() {
         sendautotype "\t\t";          # select shutdown
         sleep 1;
 
+        return; # we don't want qemu "to crash" 
+
         #$self->check_screen;
         sendautotype "\n";
-        waitinststage("splashscreen");
+        waitforneedle("splashscreen");
     }
+
+    return; # we don't want qemu "to crash" - we need to make os-autoinst catch this properly first
 
     if ( $ENV{DESKTOP} =~ m/lxde|minimalx|textmode/ ) {
         qemusend "system_powerdown";    # shutdown
@@ -51,7 +60,7 @@ sub run() {
 
         #$self->check_screen;
         #sendkey "ctrl-alt-f1"; # work-around for LXDE bug 619769 ; not needed in Factory anymore
-        waitinststage("splashscreen");
+        waitforneedle("splashscreen");
     }
 }
 
