@@ -7,7 +7,7 @@ sub run() {
     sleep 2;
     script_sudo("zypper -n in alsa-utils");
     script_run("cd /tmp;wget openqa.opensuse.org/opensuse/audio/bar.wav");
-    $self->check_screen;
+    assert_screen 'test-aplay-1', 3;
     script_run('clear');
     script_run('set_default_volume -f');
     $self->start_audiocapture;
@@ -17,7 +17,7 @@ sub run() {
     $self->check_DTMF('123A456B789C*0#D');
     script_run('alsamixer');
     sleep 1;
-    $self->check_screen;
+    assert_screen 'test-aplay-2', 3;
     send_key "esc";
     send_key "esc";
 }

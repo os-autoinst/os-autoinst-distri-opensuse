@@ -30,7 +30,7 @@ sub run() {
     for ( 1 .. 15 ) { send_key "backspace" }
     type_string $domain;
     sleep 5;
-    $self->check_screen;
+    assert_screen 'test-yast2_lan-1', 3;
     send_key "alt-o";       # confirm possible network manager warning
     send_key "alt-o";       # OK=>Save&Exit
     sleep 20;
@@ -41,7 +41,7 @@ sub run() {
     send_key "ctrl-l";      # clear screen
     script_run('echo $?');
     script_run('hostname');
-    $self->check_screen;
+    assert_screen 'test-yast2_lan-2', 3;
 }
 
 sub test_flags() {

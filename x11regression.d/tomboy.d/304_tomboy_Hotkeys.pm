@@ -28,7 +28,7 @@ sub run() {
         type_string "\t";
     }
     type_string "<Alt>F10\t<Alt>F9";
-    $self->check_screen;
+    assert_screen 'test-tomboy_Hotkeys-1', 3;
     sleep 2;
     send_key "esc";
     waitidle;
@@ -56,7 +56,7 @@ sub run() {
     send_key "alt-f12";
     sleep 1;
     waitidle;
-    $self->check_screen;
+    assert_screen 'test-tomboy_Hotkeys-2', 3;
     sleep 1;
     send_key "esc";
     sleep 2;
@@ -66,7 +66,7 @@ sub run() {
     send_key "up";
     sleep 1;
     waitidle;
-    $self->check_screen;
+    assert_screen 'test-tomboy_Hotkeys-3', 3;
     sleep 1;
     send_key "ctrl-w";
     sleep 2;
@@ -74,7 +74,7 @@ sub run() {
     send_key "alt-f10";
     sleep 10;
     waitidle;
-    $self->check_screen;
+    assert_screen 'test-tomboy_Hotkeys-4', 3;
     sleep 1;
     send_key "alt-t";
     sleep 3;
@@ -95,7 +95,7 @@ sub run() {
     sleep 2;
     type_string "sssss\n";
     sleep 1;
-    $self->check_screen;
+    assert_screen 'test-tomboy_Hotkeys-5', 3;
     sleep 1;
     send_key "ctrl-a";
     sleep 1;
@@ -109,7 +109,7 @@ sub run() {
     sleep 1;
     send_key "right";
     sleep 1;
-    $self->check_screen;
+    assert_screen 'test-tomboy_Hotkeys-6', 3;
     sleep 1;
     send_key "esc";
     sleep 2;

@@ -24,7 +24,7 @@ sub run() {
     sleep 1;
     send_key "ctrl-z";
     sleep 1;
-    $self->check_screen;
+    assert_screen 'test-tomboy_TestUndoRedoFeature-1', 3;
     sleep 1;
     type_string "hehe";
     sleep 1;
@@ -42,7 +42,7 @@ sub run() {
     sleep 1;
     send_key "ctrl-z";
     sleep 1;
-    $self->check_screen;
+    assert_screen 'test-tomboy_TestUndoRedoFeature-2', 3;
     sleep 1;
     send_key "alt-f4";
     waitidle;
@@ -62,7 +62,7 @@ sub run() {
     sleep 1;
     send_key "shift-ctrl-z";
     sleep 1;
-    $self->check_screen;
+    assert_screen 'test-tomboy_TestUndoRedoFeature-3', 3;
     sleep 1;
     send_key "ctrl-z";
     sleep 1;
@@ -80,7 +80,7 @@ sub run() {
     sleep 1;
     send_key "shift-ctrl-z";
     sleep 1;
-    $self->check_screen;
+    assert_screen 'test-tomboy_TestUndoRedoFeature-4', 3;
     sleep 2;
     send_key "alt-f4";
     waitidle;

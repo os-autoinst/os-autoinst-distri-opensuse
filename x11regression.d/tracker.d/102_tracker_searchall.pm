@@ -13,15 +13,15 @@ sub run() {
     x11_start_program("tracker-needle");
     sleep 2;
     waitidle;
-    $self->check_screen;
+    assert_screen 'test-tracker_searchall-1', 3;
     type_string "newfile";
     sleep 2;
     waitstillimage;
-    $self->check_screen;
+    assert_screen 'test-tracker_searchall-2', 3;
     send_key "alt-f4";
     sleep 2;
 
-    #$self->check_screen;
+    # assert_screen 'test-tracker_searchall-3', 3;
 }
 
 1;

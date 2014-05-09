@@ -18,7 +18,7 @@ sub run() {
     waitstillimage( 12, 60 );
     send_key "ctrl-l";    # redraw in case kernel painted on us
     sleep 2;
-    $self->check_screen;
+    assert_screen 'test-yast2_bootloader-1', 3;
     waitidle 5;
     send_key "alt-o";     # OK => Close # might just close warning on livecd
     sleep 2;

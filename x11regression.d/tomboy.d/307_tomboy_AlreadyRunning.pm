@@ -17,7 +17,7 @@ sub run() {
     # open tomboy
     x11_start_program("tomboy note");
     waitidle;
-    $self->check_screen;
+    assert_screen 'test-tomboy_AlreadyRunning-1', 3;
     sleep 2;
     send_key "alt-f4";
     sleep 2;
@@ -25,7 +25,7 @@ sub run() {
     # open again
     x11_start_program("tomboy note");
     waitidle;
-    $self->check_screen;
+    assert_screen 'test-tomboy_AlreadyRunning-2', 3;
     sleep 2;
     send_key "alt-f4";
     sleep 2;

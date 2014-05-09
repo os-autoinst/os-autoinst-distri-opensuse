@@ -11,13 +11,13 @@ sub run() {
     x11_start_program("oocalc");
     sleep 2;
     waitstillimage;    # extra wait because oo sometimes appears to be idle during start
-    $self->check_screen;
+    assert_screen 'test-oocalc-1', 3;
     type_string "Hello World!\n";
     sleep 2;
-    $self->check_screen;
+    assert_screen 'test-oocalc-2', 3;
     send_key "alt-f4";
     sleep 2;
-    $self->check_screen;
+    assert_screen 'test-oocalc-3', 3;
     send_key "alt-w";
     sleep 2;           # _w_ithout saving
 }

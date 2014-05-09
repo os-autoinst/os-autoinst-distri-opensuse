@@ -9,7 +9,7 @@ sub run() {
     # Install apache2
     script_sudo("zypper -n -q in apache2");
     waitidle(10);
-    $self->check_screen;
+    assert_screen 'test-http_srv-1', 3;
 
     # After installation, apache2 is disabled
     script_sudo("systemctl status apache2.service | tee /dev/ttyS0 -");

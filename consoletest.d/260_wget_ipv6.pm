@@ -10,7 +10,7 @@ sub run() {
     my $self = shift;
     script_run('rpm -q wget');
     script_run('wget -O- -q www3.zq1.de/test.txt');
-    $self->check_screen;
+    assert_screen 'test-wget_ipv6-1', 3;
 }
 
 1;

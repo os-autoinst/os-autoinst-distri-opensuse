@@ -17,7 +17,7 @@ sub run() {
     send_key "shift-tab";
     send_key "home";
     send_key "down";
-    $self->check_screen;
+    assert_screen 'test-thunar-1', 3;
     send_key "alt-f4";
     sleep 2;
 }

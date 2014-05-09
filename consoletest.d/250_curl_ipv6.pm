@@ -10,10 +10,10 @@ sub run() {
     my $self = shift;
     script_run('curl www3.zq1.de/test.txt');
     sleep 2;
-    $self->check_screen;
+    assert_screen 'test-curl_ipv6-1', 3;
     script_run('rpm -q curl libcurl4');
     sleep 2;
-    $self->check_screen;
+    assert_screen 'test-curl_ipv6-2', 3;
 }
 
 1;

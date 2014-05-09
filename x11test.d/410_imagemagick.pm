@@ -16,7 +16,7 @@ sub run() {
     for ( 1 .. 3 ) {
         send_key "spc";
         sleep 3;
-        $self->check_screen;
+        assert_screen 'test-imagemagick-1', 3;
     }
     send_key "alt-f4";    # close display
     send_key "alt-f4";    # close xterm

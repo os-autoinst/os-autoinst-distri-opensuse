@@ -15,7 +15,7 @@ sub run() {
     x11_start_program("xfce4-session-logout");
     send_key "alt-l";
     sleep 10;
-    $self->check_screen;
+    assert_screen 'test-xfce_lightdm_logout_login-1', 3;
     sendpassword;
     send_key "ret";
     sleep 10;

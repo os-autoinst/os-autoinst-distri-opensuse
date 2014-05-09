@@ -14,7 +14,7 @@ sub run() {
     my $self = shift;
     x11_start_program('notify-send --expire-time=10 Test');
     sleep 2;
-    $self->check_screen;
+    assert_screen 'test-xfce_notification-1', 3;
     sleep 10;
 }
 

@@ -43,7 +43,7 @@ sub run() {
     sleep 15;
 
     # Should create GoogleTalk account
-    $self->check_screen;
+    assert_screen 'test-pidgin_googletalk-1', 3;
 
     # Close account manager
     send_key "ctrl-a";
@@ -64,7 +64,7 @@ sub run() {
     sleep 10;
 
     # Should see "hello world!" in screen.
-    $self->check_screen;
+    assert_screen 'test-pidgin_googletalk-2', 3;
 
     # Cleaning
     # Close the conversation
@@ -85,7 +85,7 @@ sub run() {
     sleep 2;
 
     # Should not have any account
-    $self->check_screen;
+    assert_screen 'test-pidgin_googletalk-3', 3;
 
     # Exit
     send_key "alt-c";

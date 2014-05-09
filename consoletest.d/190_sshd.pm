@@ -14,7 +14,7 @@ sub run() {
     script_run('echo $?');
     script_run('rcsshd status');
     script_run('exit');
-    $self->check_screen;
+    assert_screen 'test-sshd-1', 3;
     waitidle 5;
     script_run('ssh root@localhost -t echo LOGIN_SUCCESSFUL');
     my $ret = assert_screen "ssh-login", 60;

@@ -8,7 +8,7 @@ sub is_applicable() {
 sub run() {
     my $self = shift;
     x11_start_program("systemsettings");
-    $self->check_screen;
+    assert_screen 'test-systemsettings-1', 3;
     send_key "alt-f4";
     sleep 2;
 }

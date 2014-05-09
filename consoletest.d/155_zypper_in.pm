@@ -15,7 +15,7 @@ sub run() {
     waitserial( "installed", 200 ) || die "zypper install failed";
     waitidle 5;
     script_run('echo $?');
-    $self->check_screen;
+    assert_screen 'test-zypper_in-1', 3;
     sleep 5;
     send_key "ctrl-l";    # clear screen to see that second update does not do any more
     my $pkgname = "xdelta";
@@ -23,7 +23,7 @@ sub run() {
     waitserial("package_removed") || die "package remove failed";
     script_run("rpm -q $pkgname");
     script_run('exit');
-    $self->check_screen;
+    assert_screen 'test-zypper_in-2', 3;
 }
 
 1;

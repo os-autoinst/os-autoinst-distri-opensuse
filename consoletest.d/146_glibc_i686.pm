@@ -6,7 +6,7 @@ sub run() {
     my $self = shift;
     script_run("clear");
     script_run("/lib/libc.so.*");
-    $self->check_screen;
+    assert_screen 'test-glib_i686-1', 3;
 }
 
 1;

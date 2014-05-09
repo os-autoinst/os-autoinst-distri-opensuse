@@ -18,7 +18,7 @@ sub run() {
     type_string "PS1=\"# \"\n";
     type_string "echo If you can see this text, ssh-X-forwarding  is working.\n";
     sleep 2;
-    $self->check_screen;
+    assert_screen 'test-sshxterm-1', 3;
     send_key "alt-f4";
     sleep 1;
     send_key "alt-f4";

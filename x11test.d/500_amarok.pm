@@ -13,9 +13,9 @@ sub run() {
     sleep 3;
     $self->check_DTMF('123A456B789C*0#D');
     sleep 2;
-    $self->check_screen;
+    assert_screen 'test-amarok-1', 3;
     send_key "alt-y";    # use music path as collection folder
-    $self->check_screen;
+    assert_screen 'test-amarok-2', 3;
     send_key "ctrl-q";    # really quit (alt-f4 just backgrounds)
     sleep 2;
     waitidle;

@@ -13,16 +13,16 @@ sub run() {
     x11_start_program("xterm");
     sleep 2;
     waitidle;
-    $self->check_screen;
+    assert_screen 'test-tracker_by_command-1', 3;
     type_string "cd\n";
     type_string "tracker-search newfile\n";
     sleep 2;
     waitstillimage;
-    $self->check_screen;
+    assert_screen 'test-tracker_by_command-2', 3;
     send_key "alt-f4";
     sleep 2;    #close xterm
 
-    #       $self->check_screen;
+    #       assert_screen 'test-tracker_by_command-3', 3;
 }
 
 1;

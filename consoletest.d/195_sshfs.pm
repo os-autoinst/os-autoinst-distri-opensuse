@@ -32,7 +32,7 @@ sub run() {
 
     # become user again
     script_run('exit');
-    $self->check_screen;
+    assert_screen 'test-sshfs-1', 3;
 }
 
 1;

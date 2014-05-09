@@ -13,11 +13,11 @@ sub run() {
     x11_start_program("tracker-needle");
     sleep 2;
     waitidle;
-    $self->check_screen;
+    assert_screen 'test-tracker_starts-1', 3;
     send_key "alt-f4";
     sleep 2;
 
-    #$self->check_screen;
+    # assert_screen 'test-tracker_starts-2', 3;
 }
 
 1;

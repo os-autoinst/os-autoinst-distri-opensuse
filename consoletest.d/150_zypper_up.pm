@@ -41,7 +41,7 @@ sub run() {
     script_run( "zypper -n -q patch", 0 );
     script_run('echo $?');
     script_run('exit');
-    $self->check_screen;
+    assert_screen 'test-zypper_up-1', 3;
 }
 
 sub test_flags() {
