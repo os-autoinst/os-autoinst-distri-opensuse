@@ -14,7 +14,7 @@ sub run() {
     my $self = shift;
     x11_start_program("eog /usr/share/wallpapers/openSUSEdefault/contents/images/1280x1024.jpg");
     sleep 2;
-    $self->check_screen;
+    assert_screen 'test-eog-1', 3;
     sleep 2;
     send_key "alt-f4";
     sleep 2;

@@ -45,7 +45,7 @@ sub run() {
         mouse_hide(1);
     }
     waitidle;
-    $self->check_screen();
+    assert_screen 'test-consoletest_finish-1', 3;
 }
 
 sub test_flags() {

@@ -31,7 +31,7 @@ sub run() {
         send_key "down";
         send_key "down";
         send_key "ret", 1;      # Export as Common Server Certificate
-        $self->check_screen();
+	assert_screen 'test-yast2-camgm-1', 3;
         sleep 1;
         send_key "alt-o";     # hostname warning - might or might not be needed
         send_key "alt-p", 1;    # select PW field

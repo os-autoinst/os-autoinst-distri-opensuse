@@ -22,7 +22,7 @@ sub run() {
     }
     sleep 2;
     sleep 10 if $ENV{NICEVIDEO};
-    $self->check_screen;
+    assert_screen 'test-desktop_mainmenu-1', 3;
     send_key "esc";
     waitidle;
 }

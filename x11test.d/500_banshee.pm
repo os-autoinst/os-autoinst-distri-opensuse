@@ -12,7 +12,7 @@ sub is_applicable() {
 sub run() {
     my $self = shift;
     x11_start_program("banshee");
-    $self->check_screen;
+    assert_screen 'test-banshee-1', 3;
     send_key "ctrl-q";    # really quit (alt-f4 just backgrounds)
     send_key "alt-f4";
     waitidle;

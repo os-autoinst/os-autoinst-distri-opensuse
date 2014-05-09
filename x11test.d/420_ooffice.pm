@@ -10,10 +10,10 @@ sub run() {
     x11_start_program("oowriter");
     sleep 2;
     waitidle;    # extra wait because oo sometimes appears to be idle during start
-    $self->check_screen;
+    assert_screen 'test-ooffice-1', 3;
     type_string "Hello World!";
     sleep 2;
-    $self->check_screen;
+    assert_screen 'test-ooffice-2', 3;
     send_key "alt-f4";
     sleep 2;
     assert_screen  "ooffice-save-prompt", 8 ;

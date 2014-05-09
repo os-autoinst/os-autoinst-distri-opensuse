@@ -29,7 +29,7 @@ sub run() {
     sleep 2;
     type_string "hehe";
     sleep 1;
-    $self->check_screen;
+    assert_screen 'test-tomboy_TestFindFunctionalityInSearchAllNotes-1', 3;
     sleep 2;
     send_key "alt-f4";
     waitidle;
@@ -41,7 +41,7 @@ sub run() {
     sleep 1;
     send_key "p";
     sleep 1;
-    $self->check_screen;
+    assert_screen 'test-tomboy_TestFindFunctionalityInSearchAllNotes-2', 3;
     sleep 2;
     send_key "alt-f4";
     sleep 1;
@@ -55,7 +55,7 @@ sub run() {
     sleep 1;
     send_key "c";
     sleep 1;
-    $self->check_screen;
+    assert_screen 'test-tomboy_TestFindFunctionalityInSearchAllNotes-3', 3;
     sleep 2;
     send_key "alt-f4";
     sleep 1;
@@ -68,7 +68,7 @@ sub run() {
     send_key "alt-h";
     send_key "a";
     sleep 1;
-    $self->check_screen;
+    assert_screen 'test-tomboy_TestFindFunctionalityInSearchAllNotes-4', 3;
     sleep 2;
     send_key "alt-f4";
     sleep 1;
@@ -80,7 +80,7 @@ sub run() {
     sleep 1;
     send_key "c";
     sleep 1;
-    $self->check_screen;
+    assert_screen 'test-tomboy_TestFindFunctionalityInSearchAllNotes-5', 3;
     sleep 2;
 
     # delete the created note

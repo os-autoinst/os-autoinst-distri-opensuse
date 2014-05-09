@@ -19,7 +19,7 @@ sub run() {
     for ( 1 .. 13 ) { send_key "ret" }
     type_string "echo If you can see this text gnome-terminal is working.\n";
     sleep 2;
-    $self->check_screen;
+    assert_screen 'test-gnome_terminal-1', 3;
     sleep 2;
     send_key "alt-f4";
     sleep 2;

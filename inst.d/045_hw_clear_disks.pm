@@ -25,7 +25,7 @@ sub run() {
         sleep 4;
     }
     waitstillimage;
-    $self->check_screen;
+    assert_screen 'test-hw_clear_disks-1', 3;
 
     #send_key "ctrl-d"; sleep 3;
     my $instcon = ( $ENV{VIDEOMODE} eq "text" ) ? 1 : 7;

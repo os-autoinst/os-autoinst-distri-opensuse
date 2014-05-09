@@ -16,7 +16,7 @@ sub run() {
     for ( 1 .. 13 ) { send_key "ret" }
     type_string "echo If you can see this text xterm is working.\n";
     sleep 2;
-    $self->check_screen;
+    assert_screen 'test-xterm-1', 3;
     send_key "alt-f4";
 }
 

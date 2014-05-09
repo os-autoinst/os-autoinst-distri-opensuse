@@ -15,7 +15,7 @@ sub run() {
     x11_start_program("ristretto /usr/share/wallpapers/xfce/default.wallpaper");
     send_key "ctrl-m";
     sleep 2;
-    $self->check_screen;
+    assert_screen 'test-ristretto-1', 3;
     send_key "alt-f4";
     sleep 2;
 }

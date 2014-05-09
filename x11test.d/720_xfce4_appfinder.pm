@@ -16,9 +16,9 @@ sub run() {
     sleep 2;
     send_key "down";
     type_string "about\n";
-    $self->check_screen;
+    assert_screen 'test-xfce4_appfinder-1', 3;
     send_key "ret", 1;
-    $self->check_screen;
+    assert_screen 'test-xfce4_appfinder-2', 3;
     send_key "alt-f4";
     sleep 2;
 }

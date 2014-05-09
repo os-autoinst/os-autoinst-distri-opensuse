@@ -30,7 +30,7 @@ sub run() {
             send_key "alt-t", 1;                     # confirm import (trust) key
         }
     }
-    $self->check_screen;
+    assert_screen 'test-addon_product-1', 3;
     send_key $cmd{"next"}, 1;                        # done
 }
 

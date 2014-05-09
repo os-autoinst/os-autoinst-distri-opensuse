@@ -21,7 +21,7 @@ sub run() {
     waitidle(5);
     die if waitserial( ".*Syntax error.*", 2 );
 
-    $self->check_screen;
+    assert_screen 'test-mysql_srv-1', 3;
 }
 
 1;

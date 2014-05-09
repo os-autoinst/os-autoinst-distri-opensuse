@@ -34,7 +34,7 @@ sub run() {
                 #send_key "alt-r"; sleep 5; #FIXME
 
     waitidle;
-    $self->check_screen;
+    assert_screen 'test-tomboy_Print-1', 3;
     sleep 2;
     send_key "ctrl-w";
     sleep 2;

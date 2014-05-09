@@ -19,7 +19,7 @@ sub run() {
     send_key "2";
     send_key "ctrl-z";    # undo produces "12" instead of "1"
     sleep 3;
-    $self->check_screen;
+    assert_screen 'test-oomath-1', 3;
     send_key "alt-f4";
     assert_screen  'oomath-prompt', 5 ;
     send_key "alt-w";     # Without saving

@@ -14,17 +14,17 @@ sub run() {
     my $self = shift;
     ensure_installed("kate");
     x11_start_program("kate");
-    $self->check_screen;
+    assert_screen 'test-kate-1', 3;
 
     # close welcome screen
     send_key 'alt-c';
     sleep 2;
     type_string "If you can see this text kate is working.\n";
     sleep 2;
-    $self->check_screen;
+    assert_screen 'test-kate-2', 3;
     send_key "ctrl-q";
     sleep 2;
-    $self->check_screen;
+    assert_screen 'test-kate-3', 3;
     send_key "alt-d";
     sleep 2;    # discard
 }

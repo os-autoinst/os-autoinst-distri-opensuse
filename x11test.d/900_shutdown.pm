@@ -46,7 +46,7 @@ sub run() {
 
         return; # we don't want qemu "to crash" 
 
-        #$self->check_screen;
+        # assert_screen 'test-shutdown-1', 3;
         type_string "\n";
         waitforneedle("splashscreen");
     }
@@ -57,8 +57,8 @@ sub run() {
         qemusend "system_powerdown";    # shutdown
         waitidle;
 
-        #$self->check_screen;
-        #send_key "ctrl-alt-f1"; # work-around for LXDE bug 619769 ; not needed in Factory anymore
+        # assert_screen 'test-shutdown-2', 3;
+        # send_key "ctrl-alt-f1"; # work-around for LXDE bug 619769 ; not needed in Factory anymore
         assert_screen "splashscreen";
     }
 }

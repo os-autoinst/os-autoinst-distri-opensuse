@@ -19,7 +19,7 @@ sub run() {
     for ( 1 .. 8 ) {
         send_key "down";
         sleep 1;
-        $self->check_screen;
+        assert_screen 'test-xfce_main_menu-1', 3;
         sleep 1;
     }
     send_key "esc";

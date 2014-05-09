@@ -5,7 +5,7 @@ sub run() {
     my $self = shift;
     mouse_hide(1);
     x11_start_program("firefox");
-    $self->check_screen;
+    assert_screen 'test-firefox-1', 3;
     if ( $ENV{UPGRADE} ) { send_key "alt-d"; waitidle; }    # dont check for updated plugins
     if (0) {                                                # 4.0b10 changed default value - b12 has showQuitWarning
         send_key "ctrl-t";
@@ -24,12 +24,12 @@ sub run() {
 
     # just leave it here, then don't need modify test-firefox-2 and test-firefox-3
     # tag in all related needles
-    $self->check_screen;
+    assert_screen 'test-firefox-2', 3;
     send_key "alt-h";
     sleep 2;    # Help
     send_key "a";
     sleep 2;    # About
-    $self->check_screen;
+    assert_screen 'test-firefox-3', 3;
     send_key "alt-f4";
     sleep 2;    # close About
     send_key "alt-f4";

@@ -12,7 +12,7 @@ sub run() {
     script_run("cd /tmp ; wget -q openqa.opensuse.org/opensuse/qatests/qa_syslinux.sh");
     send_key "ctrl-l";
     script_sudo("sh -x qa_syslinux.sh");
-    $self->check_screen;
+    assert_screen 'test-syslinux-1', 3;
 }
 
 1;

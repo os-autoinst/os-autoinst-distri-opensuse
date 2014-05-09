@@ -22,12 +22,12 @@ sub is_applicable {
 sub run() {
     my $self = shift;
     x11_start_program("firefox");
-    $self->check_screen;
+    assert_screen 'test-firefox_stress-1', 3;
     foreach my $site (@sites) {
         open_tab($site);
-        if ( $site =~ m/openqa/ ) { $self->check_screen; }
+        if ( $site =~ m/openqa/ ) { assert_screen 'test-firefox_stress-2', 3; }
     }
-    $self->check_screen;
+    assert_screen 'test-firefox_stress-3', 3;
     send_key "alt-f4";
     sleep 2;
     send_key "ret";    # confirm "save&quit"
@@ -35,7 +35,7 @@ sub run() {
 
     # re-open to see how long it takes to open all tabs together
     x11_start_program("firefox");
-    $self->check_screen;
+    assert_screen 'test-firefox_stress-4', 3;
     send_key "alt-f4";
     sleep 2;
     send_key "ret";    # confirm "save&quit"

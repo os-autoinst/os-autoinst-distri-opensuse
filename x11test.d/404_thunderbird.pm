@@ -9,7 +9,7 @@ sub run() {
     my $self = shift;
     ensure_installed("thunderbird");
     x11_start_program("thunderbird");
-    $self->check_screen;
+    assert_screen 'test-thunderbird-1', 3;
     send_key "alt-f4", 1;    # close wizzard
     send_key "alt-f4", 1;    # close prog
 }

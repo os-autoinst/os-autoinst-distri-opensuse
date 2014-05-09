@@ -64,7 +64,7 @@ sub run() {
     sleep 2;
     send_key "alt-f4";
     sleep 2;
-    $self->check_screen;
+    assert_screen 'test-Gnomecutfile-1', 3;
     sleep 2;    #
     send_key "down";
     sleep 2;
@@ -78,7 +78,7 @@ sub run() {
     sleep 2;
     send_key "ctrl-v";
     sleep 2;
-    $self->check_screen;
+    assert_screen 'test-Gnomecutfile-2', 3;
     sleep 2;    #to make sure file1 was aleady moved to a dir
     send_key "alt-left";
     sleep 2;
@@ -86,7 +86,7 @@ sub run() {
     sleep 2;
     send_key "ret";
     sleep 2;
-    $self->check_screen;
+    assert_screen 'test-Gnomecutfile-3', 3;
     sleep 2;    #to make sure there is no file1 in b dir
     send_key "alt-f4";
     sleep 2;

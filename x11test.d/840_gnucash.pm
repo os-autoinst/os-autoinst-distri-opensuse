@@ -9,10 +9,10 @@ sub run() {
     # needed for viewing
     ensure_installed("yelp");
     x11_start_program("gnucash");
-    $self->check_screen;
+    assert_screen 'test-gnucash-1', 3;
     send_key "ctrl-h";    # open user tutorial
     waitidle 5;
-    $self->check_screen;
+    assert_screen 'test-gnucash-2', 3;
     send_key "alt-f4";    # Leave tutorial window
                          # Leave tips windows for GNOME case
     if ( $ENV{DESKTOP} eq "gnome" || $ENV{DESKTOP} eq "xfce" ) { sleep 3; send_key "alt-c"; }
