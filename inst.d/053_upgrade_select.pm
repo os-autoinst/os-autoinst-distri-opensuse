@@ -15,6 +15,9 @@ sub run() {
     send_key $cmd{"next"}, 1;
     assert_screen  "remove-repository", 10 ;
     send_key $cmd{"next"}, 1;
+    if (check_screen('network-not-configured', 5)) {
+       send_key 'alt-n';
+    }
     assert_screen  "installation-settings", 10 ;
 }
 
