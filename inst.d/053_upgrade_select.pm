@@ -10,7 +10,8 @@ sub is_applicable() {
 sub run() {
     my $self = shift;
 
-    assert_screen  "select-for-update", 10 ;
+    # hardware detection can take a while
+    assert_screen  "select-for-update", 100 ;
     send_key $cmd{"next"}, 1;
     assert_screen  "remove-repository", 10 ;
     send_key $cmd{"next"}, 1;
