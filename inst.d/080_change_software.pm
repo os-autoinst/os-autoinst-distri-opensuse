@@ -22,7 +22,7 @@ sub ocrconflict() {
 
 sub run() {
     my $self = shift;
-    if ( $ENV{DOCRUN} || checkneedle( "software-conflict", 1 ) || ocrconflict ) {
+    if ( $ENV{DOCRUN} || check_screen  "software-conflict", 1  || ocrconflict ) {
         $cmd{software} = "alt-s" if $ENV{VIDEOMODE} eq "text";
         send_key $cmd{change};      # Change
         send_key $cmd{software};    # Software

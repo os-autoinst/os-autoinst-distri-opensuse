@@ -24,15 +24,15 @@ sub run() {
     sleep 1;
     type_string "https://pdb.suse.de" . "\n";
     sleep 5;                                                #open this site
-    checkneedle( "firefox_https-risk", 3 );                 #will get untrusted page
+    check_screen  "firefox_https-risk", 3 ;                 #will get untrusted page
     send_key "ctrl-l";
     sleep 1;
     type_string "https://svn.provo.novell.com/svn/opsqa/trunk/tests/qa_test_firefox/qa_test_firefox/test_source/pdb.suse.de" . "\n";
     sleep 5;
-    checkneedle( "firefox_page-pdbsuse", 5 );
+    check_screen  "firefox_page-pdbsuse", 5 ;
     send_key "ctrl-s";
     sleep 2;
-    checkneedle( "firefox_saveas", 5 );
+    check_screen  "firefox_saveas", 5 ;
     send_key "ctrl-a";
     sleep 1;
     send_key "backspace";
@@ -96,7 +96,7 @@ sub run() {
     sleep 1;
     type_string "https://pdb.suse.de" . "\n";
     sleep 5;            #open this site again
-    checkneedle( "firefox_https-pdbsuse", 3 );    #will get untrusted page
+    check_screen  "firefox_https-pdbsuse", 3 ;    #will get untrusted page
 
     send_key "alt-f4";
     sleep 2;

@@ -31,7 +31,7 @@ sub run() {
     sleep 5;                                                #open the novell.com
     send_key "ctrl-p";
     sleep 1;
-    checkneedle( "firefox_print", 3 );
+    check_screen  "firefox_print", 3 ;
     for ( 1 .. 2 ) {                                        #
         send_key "tab";
         sleep 1;
@@ -44,7 +44,7 @@ sub run() {
     #check the pdf file
     x11_start_program( "evince /home/" . $username . "/" . "mozilla.pdf" );
     sleep 4;
-    checkneedle( "firefox_printpdf_evince", 5 );
+    check_screen  "firefox_printpdf_evince", 5 ;
     send_key "alt-f4";
     sleep 2;                                                #close evince
 

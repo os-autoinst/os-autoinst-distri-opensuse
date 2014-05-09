@@ -24,12 +24,12 @@ sub run() {
     sleep 1;
     send_key "ret";
     sleep 5;
-    checkneedle( "firefox_page-google", 5 );                #check point 1
+    check_screen  "firefox_page-google", 5 ;                #check point 1
     send_key "ctrl-k";
     sleep 1;
     type_string "opensuse" . "\n";
     sleep 5;
-    checkneedle( "firefox_search-opensuse", 5 );            #check point 2
+    check_screen  "firefox_search-opensuse", 5 ;            #check point 2
     send_key "ctrl-k";
     sleep 1;
     send_key "f4";
@@ -38,7 +38,7 @@ sub run() {
     sleep 1;                                                #select the yahoo as search engine
     send_key "ret";
     sleep 5;
-    checkneedle( "firefox_yahoo-search", 5 );               #check point 4
+    check_screen  "firefox_yahoo-search", 5 ;               #check point 4
 
     #recover the changes, change search engine to google
     send_key "ctrl-k";

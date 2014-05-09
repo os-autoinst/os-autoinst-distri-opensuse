@@ -27,12 +27,12 @@ sub run() {
     }
     waitserial( "worked", 700 ) || die "zypper failed";
     script_run("zypper patch -l && echo 'worked' > /dev/$serialdev");    # first one might only have installed "update-test-affects-package-manager"
-    if ( checkneedle("test-zypper_up-confirm") ) {
+    if ( check_screen "test-zypper_up-confirm" ) {
         type_string "y\n";
     }
     waitserial( "worked", 700 ) || die "zypper failed";
     script_run( "rpm -q libzypp zypper", 0 );
-    checkneedle( "rpm-q-libzypp", 5 );
+    check_screen  "rpm-q-libzypp", 5 ;
     $self->take_screenshot;
 
     # XXX: does this below make any sense? what if updates got

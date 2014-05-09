@@ -24,12 +24,12 @@ sub run() {
     #clear recent history otherwise calendar will login automatically
     send_key "ctrl-shift-h";
     sleep 2;
-    checkneedle( "firefox_history", 3 );                    #open the "history"
+    check_screen  "firefox_history", 3 ;                    #open the "history"
     send_key "ctrl-a";
     sleep 1;                                                #select all
     send_key "delete";
     sleep 1;                                                #delete all
-    checkneedle( "firefox_history-empty", 3 );              #confirm all history removed
+    check_screen  "firefox_history-empty", 3 ;              #confirm all history removed
     send_key "alt-f4";
     sleep 12;
 
@@ -42,7 +42,7 @@ sub run() {
         sleep 8;
         $site =~ s{\.(com|org|net)$}{};
         $site =~ s{.*\.}{};
-        checkneedle( "firefox_page-" . $site, 7 );
+        check_screen  "firefox_page-" . $site, 7 ;
     }
 
     #visit sf.net, check it will redirect to sourceforge.net
@@ -50,18 +50,18 @@ sub run() {
     sleep 1;
     type_string "www.sf.net\n";
     sleep 5;
-    checkneedle( "firefox_page-sourceforge", 5 );
+    check_screen  "firefox_page-sourceforge", 5 ;
     send_key "ctrl-shift-h";
     sleep 2;    #open "show all history"
-    checkneedle( "firefox_history-sourceforge", 3 );
+    check_screen  "firefox_history-sourceforge", 3 ;
     send_key "shift-f10";
     sleep 1;    #send right click on the item
     send_key "d";
     sleep 1;    #delete the selected item
-    checkneedle( "firefox_history-ftpnovell", 3 );    #confirm the sf hitory was deleted
+    check_screen  "firefox_history-ftpnovell", 3 ;    #confirm the sf hitory was deleted
     send_key "ret";
     sleep 3;                                          #open an item in history
-    checkneedle( "firefox_page-ftpnovell", 5 );
+    check_screen  "firefox_page-ftpnovell", 5 ;
 
     send_key "alt-f4";
     sleep 2;                                          #two alt-f4 to close firefox and history
