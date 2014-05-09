@@ -12,9 +12,9 @@ sub run() {
 
     $self->check_screen;
     send_key $cmd{"next"}, 1;
-    waitforneedle( "remove-repository", 10 );
+    assert_screen  "remove-repository", 10 ;
     send_key $cmd{"next"}, 1;
-    waitforneedle( "installation-settings", 10 );
+    assert_screen  "installation-settings", 10 ;
 }
 
 1;

@@ -10,7 +10,7 @@ sub run() {
     if ( $ENV{UPGRADE} ) {
         send_key $cmd{update};
         sleep 1;
-        my $ret = waitforneedle( [qw/startupdate startupdate-conflict/], 5 );
+        my $ret = assert_screen  [qw/startupdate startupdate-conflict/], 5 ;
 
         while ( $ret->{needle}->has_tag("startupdate-conflict") ) {
             $self->take_screenshot;
@@ -18,20 +18,20 @@ sub run() {
 
             send_key $cmd{change}, 1;
             send_key $cmd{"package"}, 1;
-            waitforneedle( "package-conflict", 5 );
+            assert_screen  "package-conflict", 5 ;
             $self->take_screenshot;
             send_key "alt-1", 1;    # We hope that zypper makes the best suggestion here
             send_key $cmd{ok}, 1;
 
-            waitforneedle( "package-resolve-conflict", 5 );
+            assert_screen  "package-resolve-conflict", 5 ;
             send_key $cmd{accept}, 1;
 
-            waitforneedle( "automatic-changes", 5 );
+            assert_screen  "automatic-changes", 5 ;
             send_key $cmd{"continue"}, 1;
 
             send_key $cmd{update};
             sleep 1;
-            $ret = waitforneedle( [qw/startupdate startupdate-conflict/], 5 );
+            $ret = assert_screen  [qw/startupdate startupdate-conflict/], 5 ;
         }
 
         # confirm
@@ -45,12 +45,12 @@ sub run() {
     }
     else {
         send_key $cmd{install};
-        waitforneedle("startinstall");
+        assert_screen "startinstall";
 
         # confirm
         $self->take_screenshot;
         send_key $cmd{install};
-        waitforneedle("inst-packageinstallationstarted");
+        assert_screen "inst-packageinstallationstarted";
     }
     if ( !$ENV{LIVECD} && !$ENV{NICEVIDEO} && !$ENV{UPGRADE} && !checkEnv( 'VIDEOMODE', 'text' ) ) {
         while (1) {
@@ -58,19 +58,19 @@ sub run() {
             if ( defined($ret) ) {
                 last if $ret->{needle}->has_tag("installation-details-view");
                 # intention to let this test fail
-                waitforneedle( 'installation-details-view', 1 ) if ( $ret->{needle}->has_tag("inst-bootmenu") || $ret->{needle}->has_tag("grub2") );
+                assert_screen  'installation-details-view', 1  if ( $ret->{needle}->has_tag("inst-bootmenu") || $ret->{needle}->has_tag("grub2") );
             }
             send_key $cmd{instdetails};
         }
         if ( $ENV{DVD} && !$ENV{NOIMAGES} ) {
             if ( checkEnv( 'DESKTOP', 'kde' ) ) {
-                waitforneedle( 'kde-imagesused', 500 );
+                assert_screen  'kde-imagesused', 500 ;
             }
             elsif ( checkEnv( 'DESKTOP', 'gnome' ) ) {
-                waitforneedle( 'gnome-imagesused', 500 );
+                assert_screen  'gnome-imagesused', 500 ;
             }
             elsif ( !checkEnv( "DESKTOP", "textmode" ) ) {
-                waitforneedle( 'x11-imagesused', 500 );
+                assert_screen  'x11-imagesused', 500 ;
             }
         }
     }

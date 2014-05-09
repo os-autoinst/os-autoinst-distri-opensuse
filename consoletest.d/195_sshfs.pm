@@ -17,11 +17,11 @@ sub run() {
     script_run("zypper -n in sshfs");
     waitstillimage( 12, 90 );
     script_run('cd /var/tmp ; mkdir mnt ; sshfs localhost:/ mnt');
-    waitforneedle( "accept-ssh-host-key", 3 );
+    assert_screen "accept-ssh-host-key", 3;
     type_string "yes\n";    # trust ssh host key
     sendpassword;
     send_key "ret";
-    waitforneedle( 'sshfs-accepted', 3 );
+    assert_screen 'sshfs-accepted', 3;
     script_run('cd mnt/tmp');
     script_run("zypper -n in xdelta");
     script_run("rpm -e xdelta");

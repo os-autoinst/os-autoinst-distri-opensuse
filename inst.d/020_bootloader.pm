@@ -14,13 +14,13 @@ sub run() {
         return;
     }
     if ( $ENV{USBBOOT} ) {
-        waitforneedle( "boot-menu", 1 );
+        assert_screen  "boot-menu", 1 ;
         send_key "f12";
-        waitforneedle( "boot-menu-usb", 4 );
+        assert_screen  "boot-menu-usb", 4 ;
         send_key( 2 + $ENV{NUMDISKS} );
     }
 
-    waitforneedle( "inst-bootmenu", 15 );
+    assert_screen  "inst-bootmenu", 15 ;
     if ( $ENV{ZDUP} || $ENV{WDUP} ) {
         qemusend "eject -f ide1-cd0";
         qemusend "system_reset";
@@ -34,7 +34,7 @@ sub run() {
         for ( 1 .. 6 ) {
             send_key "down";
         }
-        waitforneedle( "inst-onmemtest", 3 );
+        assert_screen  "inst-onmemtest", 3 ;
         send_key "ret";
         sleep 6000;
         exit 0;               # done
@@ -49,7 +49,7 @@ sub run() {
         if ( $ENV{MEDIACHECK} ) {
             send_key "down";    # rescue
             send_key "down";    # media check
-            waitforneedle( "inst-onmediacheck", 3 );
+            assert_screen  "inst-onmediacheck", 3 ;
         }
 
     }
@@ -74,7 +74,7 @@ sub run() {
     if ( $ENV{RES1024} ) {    # default is 800x600
         send_key "f3";
         send_key "down";
-        waitforneedle("inst-resolutiondetected");
+        assert_screen "inst-resolutiondetected";
         send_key "ret";
     }
     elsif ( checkEnv( 'VIDEOMODE', "text" ) ) {
@@ -82,7 +82,7 @@ sub run() {
         for ( 1 .. 2 ) {
             send_key "up";
         }
-        waitforneedle( "inst-textselected", 5 );
+        assert_screen  "inst-textselected", 5 ;
         send_key "ret";
     }
 
@@ -94,11 +94,11 @@ sub run() {
     type_string "Y2DEBUG=1 ";
     type_string  "video=1024x768-16 ",                              13 ;
     type_string  "drm_kms_helper.edid_firmware=edid/1024x768.bin ", 7 ;
-    waitforneedle( "inst-video-typed", 13 );
+    assert_screen  "inst-video-typed", 13 ;
     if ( !$ENV{NICEVIDEO} ) {
         type_string  "console=ttyS0 ", 7 ;    # to get crash dumps as text
         type_string  "console=tty ",   7 ;    # to get crash dumps as text
-        waitforneedle( "inst-consolesettingstyped", 30 );
+        assert_screen  "inst-consolesettingstyped", 30 ;
         my $e = $ENV{EXTRABOOTPARAMS};
 
         #	if($ENV{RAIDLEVEL}) {$e="linuxrc=trace"}
@@ -110,9 +110,9 @@ sub run() {
     # set HTTP-source to not use factory-snapshot
     if ( $ENV{NETBOOT} ) {
         send_key "f4";
-        waitforneedle( "inst-instsourcemenu", 4 );
+        assert_screen  "inst-instsourcemenu", 4 ;
         send_key "ret";
-        waitforneedle( "inst-instsourcedialog", 4 );
+        assert_screen  "inst-instsourcedialog", 4 ;
         my $mirroraddr = "";
         my $mirrorpath = "/factory";
         if ( $ENV{SUSEMIRROR} && $ENV{SUSEMIRROR} =~ m{^([a-zA-Z0-9.-]*)(/.*)$} ) {
@@ -137,7 +137,7 @@ sub run() {
         for ( 1 .. 22 ) { send_key "backspace"; }
         type_string $mirrorpath;
 
-        waitforneedle( "inst-mirror_is_setup", 2 );
+        assert_screen  "inst-mirror_is_setup", 2 ;
         send_key "ret";
 
         # HTTP-proxy
@@ -149,7 +149,7 @@ sub run() {
             }
             send_key "ret";
             type_string "$proxyhost\t$proxyport\n";
-            waitforneedle( "inst-proxy_is_setup", 2 );
+            assert_screen  "inst-proxy_is_setup", 2 ;
 
             # add boot parameters
             # ZYPP... enables proxy caching
@@ -238,7 +238,7 @@ sub run() {
         if ( $n && $n != $en_us ) {
             $n -= $en_us;
             send_key "f2";
-            waitforneedle( "inst-languagemenu", 6 );
+            assert_screen  "inst-languagemenu", 6 ;
             for ( 1 .. abs($n) ) {
                 send_key($n < 0 ? "up" : "down");
             }

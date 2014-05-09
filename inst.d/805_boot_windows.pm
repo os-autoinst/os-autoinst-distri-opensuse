@@ -19,12 +19,12 @@ sub run() {
     # qemusend "eject ide1-cd0";
 
     wait_encrypt_prompt;
-    waitforneedle( "grub-reboot-windows", 25 );
+    assert_screen  "grub-reboot-windows", 25 ;
 
     send_key "down";
     send_key "down";
     send_key "ret";
-    waitforneedle( "windows8", 80 );
+    assert_screen  "windows8", 80 ;
 }
 
 1;

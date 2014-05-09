@@ -105,13 +105,13 @@ sub run() {
     # to the new way.
     my $newstyle;
     my $closedialog;
-    my $ret = waitforneedle( [ 'partitioning', 'partioning-edit-proposal-button' ], 40 );
+    my $ret = assert_screen  [ 'partitioning', 'partioning-edit-proposal-button' ], 40 ;
     if ( $ret->{needle}->has_tag('partioning-edit-proposal-button') ) {
         $newstyle = 1;
     }
 
     if ( $ENV{DUALBOOT} ) {
-        waitforneedle( 'partitioning-windows', 40 );
+        assert_screen  'partitioning-windows', 40 ;
     }
 
     # XXX: why is that here?
@@ -123,7 +123,7 @@ sub run() {
             $homekey     = 'alt-p';
         }
         send_key $homekey;
-        waitforneedle( "disabledhome", 10 );
+        assert_screen  "disabledhome", 10 ;
         if ($closedialog) {
             send_key 'alt-o';
             $closedialog = 0;
@@ -135,12 +135,12 @@ sub run() {
 
         # create partitioning
         send_key $cmd{createpartsetup};
-        waitforneedle( 'createpartsetup', 3 );
+        assert_screen  'createpartsetup', 3 ;
 
         # user defined
         send_key $cmd{custompart};
         send_key $cmd{"next"};
-        waitforneedle( 'custompart', 9 );
+        assert_screen  'custompart', 9 ;
 
         send_key "tab";
         send_key "down";    # select disks
@@ -161,7 +161,7 @@ sub run() {
             addpart( 5300, 3 );    # root
             waitidle 5;
             addpart( 300, 3 );     # swap
-            waitforneedle( 'raid-partition', 5 );
+            assert_screen  'raid-partition', 5 ;
 
             # select next disk
             send_key "shift-tab";
@@ -232,7 +232,7 @@ sub run() {
 
         # done
         send_key $cmd{"accept"};
-        waitforneedle( 'acceptedpartitioning', 6 );
+        assert_screen  'acceptedpartitioning', 6 ;
     }
     elsif ( $ENV{BTRFS} ) {
         if ($newstyle) {
@@ -251,7 +251,7 @@ sub run() {
             }
         }
         sleep 3;
-        waitforneedle( 'usebtrfs', 3 );
+        assert_screen  'usebtrfs', 3 ;
 
         if ($closedialog) {
             send_key 'alt-o';

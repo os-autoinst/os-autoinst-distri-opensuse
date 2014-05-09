@@ -10,14 +10,14 @@ sub is_applicable() {
 
 sub run() {
     my $self = shift;
-    waitforneedle("before-package-selection");
+    assert_screen "before-package-selection";
 
     #send_key "ctrl-alt-shift-x"; sleep 3;
     send_key "ctrl-alt-f2";
-    waitforneedle("inst-console");
+    assert_screen "inst-console";
     type_string "(cat .timestamp ; echo .packages.initrd: ; cat .packages.initrd)>/dev/$serialdev\n";
     type_string "(echo .packages.root: ; cat .packages.root)>/dev/$serialdev\n";
-    waitforneedle( "inst-packagestyped", 150 );
+    assert_screen  "inst-packagestyped", 150 ;
     type_string "ls -lR /update\n";
     $self->take_screenshot;
     waitidle;
@@ -29,7 +29,7 @@ sub run() {
     else {
         send_key "ctrl-alt-f7";
     }
-    waitforneedle( "inst-returned-to-yast", 15 );
+    assert_screen  "inst-returned-to-yast", 15 ;
 
 }
 

@@ -21,7 +21,7 @@ sub run() {
     sleep 3;
     $self->check_screen;
     send_key "alt-f4";
-    waitforneedle( 'oomath-prompt', 5 );
+    assert_screen  'oomath-prompt', 5 ;
     send_key "alt-w";     # Without saving
 }
 

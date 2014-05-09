@@ -12,7 +12,7 @@ sub run() {
     my $self = shift;
 
     # user setup
-    waitforneedle( "inst-usersetup", 5 );
+    assert_screen  "inst-usersetup", 5 ;
     type_string $realname;
     send_key "tab";
 
@@ -21,7 +21,7 @@ sub run() {
     for ( 1 .. 2 ) {
         type_string "$password\t";
     }
-    waitforneedle( "inst-userinfostyped", 5 );
+    assert_screen  "inst-userinfostyped", 5 ;
     if ( $ENV{NOAUTOLOGIN} ) {
         my $ret;
         for (my $counter = 10; $counter > 0; $counter--) {
@@ -36,19 +36,19 @@ sub run() {
         }
         # report the failure or green
         unless ( defined($ret) ) {
-            waitforneedle( "autologindisabled", 1 );
+            assert_screen  "autologindisabled", 1 ;
         }
     }
     if ( $ENV{DOCRUN} ) {
         send_key $cmd{"otherrootpw"};
-        waitforneedle( "rootpwdisabled", 5 );
+        assert_screen  "rootpwdisabled", 5 ;
     }
 
     # done user setup
     send_key $cmd{"next"};
 
     # loading cracklib
-    waitforneedle( "inst-userpasswdtoosimple", 6 );
+    assert_screen  "inst-userpasswdtoosimple", 6 ;
     send_key "ret";
 
     #sleep 1;
@@ -60,7 +60,7 @@ sub run() {
             type_string "$password\t";
             sleep 1;
         }
-        waitforneedle( "rootpassword-typed", 3 );
+        assert_screen  "rootpassword-typed", 3 ;
         send_key $cmd{"next"};
 
         # loading cracklib

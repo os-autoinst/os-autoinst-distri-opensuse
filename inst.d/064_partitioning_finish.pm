@@ -11,7 +11,7 @@ sub is_applicable() {
 sub run() {
     waitstillimage();
     send_key $cmd{"next"};
-    waitforneedle("after-paritioning");
+    assert_screen "after-paritioning";
 }
 
 1;

@@ -7,7 +7,7 @@ sub run() {
     # init
     # log into text console
     send_key "ctrl-alt-f4";
-    waitforneedle( "text-login", 10 );
+    assert_screen "text-login", 10;
     type_string "$username\n";
     sleep 2;
     sendpassword;

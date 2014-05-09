@@ -10,19 +10,19 @@ sub run() {
 
     if ( $ENV{DESKTOP} eq "kde" ) {
         send_key "ctrl-alt-delete";    # shutdown
-        waitforneedle 'logoutdialog', 15;
+        assert_screen 'logoutdialog', 15;
 
         return; # we don't want qemu "to crash" 
 
         type_string "\t";
-        waitforneedle( "kde-turn-off-selected", 2 );
+        assert_screen  "kde-turn-off-selected", 2 ;
         type_string "\n";
 	waitforneedle( "splashscreen", 40 );
     }
 
     if ( $ENV{DESKTOP} eq "gnome" ) {
         send_key "ctrl-alt-delete";    # shutdown
-        waitforneedle 'logoutdialog', 15;
+        assert_screen 'logoutdialog', 15;
 
         return; # we don't want qemu "to crash" 
 
@@ -58,8 +58,8 @@ sub run() {
         waitidle;
 
         #$self->check_screen;
-        #sendkey "ctrl-alt-f1"; # work-around for LXDE bug 619769 ; not needed in Factory anymore
-        waitforneedle("splashscreen");
+        #send_key "ctrl-alt-f1"; # work-around for LXDE bug 619769 ; not needed in Factory anymore
+        assert_screen "splashscreen";
     }
 }
 

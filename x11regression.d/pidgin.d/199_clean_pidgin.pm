@@ -32,7 +32,7 @@ sub install_pkg() {
     type_string "rpm -qa @packages\n";
     waitidle;
     sleep 2;
-    waitforneedle( "pidgin-pkg-removed", 10 );    #make sure pkgs removed.
+    assert_screen  "pidgin-pkg-removed", 10 ;    #make sure pkgs removed.
     waitidle;
     sleep 2;
     send_key "alt-f4";
