@@ -77,7 +77,7 @@ sub run() {
         send_key "f5";
         sleep 2;    # Slide mode
 
-        checkneedle( "test-firefox_printing_images-" . $_->{name}, 5 );
+        check_screen  "test-firefox_printing_images-" . $_->{name}, 5 ;
         sleep 1;
 
         send_key "esc";

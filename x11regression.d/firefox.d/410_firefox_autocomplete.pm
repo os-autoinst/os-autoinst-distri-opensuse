@@ -34,7 +34,7 @@ sub run() {
     send_key "f6";
     type_string "debugtheweb.com/test/passwordautocomplete.asp\n";
     sleep 4;
-    checkneedle( "firefox_autocomplete-testpage", 5 );
+    check_screen  "firefox_autocomplete-testpage", 5 ;
 
     send_key "tab";
     send_key "tab";
@@ -47,7 +47,7 @@ sub run() {
     send_key "ret";
     sleep 3;
 
-    checkneedle( "fierfox_autocomplete-1", 5 );
+    check_screen  "fierfox_autocomplete-1", 5 ;
 
     send_key "alt-r";
     send_key "alt-r";
@@ -64,7 +64,7 @@ sub run() {
     send_key "f6";
     type_string "debugtheweb.com/test/passwordautocomplete.asp\n";
     sleep 4;
-    checkneedle( "firefox_autocomplete-testpage_filled", 5 );
+    check_screen  "firefox_autocomplete-testpage_filled", 5 ;
 
     # Restore and close firefox
     x11_start_program("killall -9 firefox");                # Exit firefox

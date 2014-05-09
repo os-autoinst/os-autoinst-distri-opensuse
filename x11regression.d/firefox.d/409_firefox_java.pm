@@ -62,7 +62,7 @@ sub run() {
     sleep 1;
     type_string "javatester.org/version.html\n";
     sleep 5;
-    checkneedle( "test-firefox_java-2", 5 );
+    check_screen  "test-firefox_java-2", 5 ;
 
     #Close tab, return to Add-ons Manager
     send_key "ctrl-w";
@@ -75,11 +75,11 @@ sub run() {
     sleep 2;
     type_string "javatester.org/version.html\n";
     sleep 4;
-    checkneedle( "test-firefox_java-java_warning", 5 );    #Java - unsigned application warning
+    check_screen  "test-firefox_java-java_warning", 5 ;    #Java - unsigned application warning
     send_key "tab";                                         #Proceed
     send_key "ret";
     sleep 3;
-    checkneedle( "test-firefox_java-3", 5 );
+    check_screen  "test-firefox_java-3", 5 ;
 
     # Restore and close firefox
     x11_start_program("killall -9 firefox");               # Exit firefox

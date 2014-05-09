@@ -22,10 +22,10 @@ sub run() {
         waitidle;
     }
 
-    checkneedle( "firefox_know-rights", 3 );
+    check_screen  "firefox_know-rights", 3 ;
     send_key "alt-k";
     sleep 1;                                                #click know your rights
-    checkneedle( "firefox_about-rights", 3 );
+    check_screen  "firefox_about-rights", 3 ;
     send_key "ctrl-w";
     sleep 1;
 

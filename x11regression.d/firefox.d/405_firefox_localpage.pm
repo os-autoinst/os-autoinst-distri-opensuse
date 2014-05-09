@@ -37,7 +37,7 @@ sub run() {
     # Open static html page
     send_key "ctrl-o";
     sleep 1;                                                #"Open File" window
-    checkneedle( "test-firefox-openfile-1", 5 );
+    check_screen  "test-firefox-openfile-1", 5 ;
 
     # Find index.html file to open
     send_key "left";
@@ -48,7 +48,7 @@ sub run() {
     sleep 2;
     type_string "index\n";                                 # Find file index.html and open it
     sleep 5;
-    checkneedle( "test-firefox_lcoalpage-1", 5 );
+    check_screen  "test-firefox_lcoalpage-1", 5 ;
 
     # Restore and close
     send_key "alt-f4";

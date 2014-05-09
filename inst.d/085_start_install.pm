@@ -54,7 +54,7 @@ sub run() {
     }
     if ( !$ENV{LIVECD} && !$ENV{NICEVIDEO} && !$ENV{UPGRADE} && !checkEnv( 'VIDEOMODE', 'text' ) ) {
         while (1) {
-            my $ret = checkneedle( [ 'installation-details-view', 'inst-bootmenu', 'grub2' ], 3 );
+            my $ret = check_screen  [ 'installation-details-view', 'inst-bootmenu', 'grub2' ], 3 ;
             if ( defined($ret) ) {
                 last if $ret->{needle}->has_tag("installation-details-view");
                 # intention to let this test fail

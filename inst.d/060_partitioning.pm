@@ -239,7 +239,7 @@ sub run() {
             send_key "alt-d";
             $closedialog = 1;
         }
-        if ( !checkneedle('usebtrfs') ) {
+        if ( !check_screen 'usebtrfs' ) {
             waitidle 3;
             if ($newstyle) {
                 send_key "alt-f";

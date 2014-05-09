@@ -164,7 +164,7 @@ sub run() {
 
         # Use Pagedown to view every page
         for ( my $i = 0 ; $i <= $_->{page_down} ; $i++ ) {
-            checkneedle( "test-firefox_printing-" . $_->{name} . "_" . $i, 5 );
+            check_screen  "test-firefox_printing-" . $_->{name} . "_" . $i, 5 ;
             send_key "pgdn";
             sleep 1;
         }

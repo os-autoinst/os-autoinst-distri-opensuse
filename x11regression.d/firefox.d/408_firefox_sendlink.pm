@@ -35,7 +35,7 @@ sub run() {
     sleep 1;
     type_string "www.google.com\n";
     sleep 8;
-    checkneedle( "test-firefox_sendlink-1", 5 );
+    check_screen  "test-firefox_sendlink-1", 5 ;
     sleep 2;
 
     # Open "Email link" to launch default email client (evolution)
@@ -45,7 +45,7 @@ sub run() {
     sleep 3;
 
     #Close the window if there is a unstable warning for this version
-    if ( checkneedle( "test-firefox_sendlink-unstable_warning", 5 ) ) {
+    if ( check_screen  "test-firefox_sendlink-unstable_warning", 5  ) {
         sleep 1;
         send_key "alt-o";
         sleep 1;    #Close warning window
@@ -100,7 +100,7 @@ sub run() {
     send_key "esc";
     sleep 3;
 
-    checkneedle( "test-firefox_sendlink-3", 5 );
+    check_screen  "test-firefox_sendlink-3", 5 ;
     sleep 2;
 
     # Restore and close firefox

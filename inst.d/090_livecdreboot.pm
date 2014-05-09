@@ -55,10 +55,10 @@ sub run() {
     # meaning of this needle is unclear. It's used in grub as well as
     # 2nd stage automatic configuration. And then ere is also
     # reboot_after_install from 800_reboot_after_install.pm
-    # should assert_screen wait for all three at the same time and then have only checkneedle afterwards?
+    # should assert_screen wait for all three at the same time and then have only check_screen afterwards?
     my $ret;
     for (my $counter = 20; $counter > 0; $counter--) {
-      $ret = checkneedle( [ 'inst-bootmenu', 'grub2' ], 3 );
+      $ret = check_screen  [ 'inst-bootmenu', 'grub2' ], 3 ;
       if ( defined($ret) ) {
         send_key "ret";    # avoid timeout for booting to HDD
         last;

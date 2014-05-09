@@ -22,15 +22,15 @@ sub run() {
 
     send_key "shift-f10";
     sleep 1;
-    checkneedle( "firefox_contentmenu", 5 );
+    check_screen  "firefox_contentmenu", 5 ;
     send_key "down";
     sleep 1;
     send_key "down";
     sleep 1;
-    checkneedle( "firefox_contentmenu-arrow", 5 );
+    check_screen  "firefox_contentmenu-arrow", 5 ;
     send_key "i";
     sleep 2;
-    checkneedle( "firefox_pageinfo", 5 );    #the page info of opensuse.org
+    check_screen  "firefox_pageinfo", 5 ;    #the page info of opensuse.org
     sleep 2;
     send_key "alt-f4";
     sleep 1;                                 #close the page info window

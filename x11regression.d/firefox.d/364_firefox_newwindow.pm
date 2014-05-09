@@ -23,7 +23,7 @@ sub run() {
 
     send_key "ctrl-n";
     sleep 5;
-    checkneedle( "start-firefox", 5 );
+    check_screen  "start-firefox", 5 ;
     send_key "ctrl-w";
     sleep 1;
 
@@ -31,7 +31,7 @@ sub run() {
     sleep 1;
     send_key "shift-ret";
     sleep 6;
-    checkneedle( "firefox_page-opensuse-sponsors", 5 );
+    check_screen  "firefox_page-opensuse-sponsors", 5 ;
     send_key "ctrl-w";
     sleep 1;
 

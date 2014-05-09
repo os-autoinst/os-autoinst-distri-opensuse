@@ -26,7 +26,7 @@ sub run() {
         sleep 2;
         send_key "backspace";      # deactivate blanking
         sleep 2;
-        if ( checkneedle("screenlock") ) {
+        if ( check_screen "screenlock" ) {
             if ( checkEnv( "DESKTOP", "gnome" ) ) {
                 send_key "esc";
                 sleep 1;
@@ -37,7 +37,7 @@ sub run() {
 
         # workaround for bug 834165. Apper should not try to
         # refresh repos when the console is not active:
-        if ( checkneedle("apper-refresh-popup-bnc834165") ) {
+        if ( check_screen "apper-refresh-popup-bnc834165" ) {
             ++$self->{dents};
             send_key 'alt-c';
             sleep 30;

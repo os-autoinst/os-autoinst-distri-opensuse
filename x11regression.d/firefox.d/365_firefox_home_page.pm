@@ -28,18 +28,18 @@ sub run() {
     sleep 1;
     type_string "www.google.com";
     sleep 2;
-    checkneedle( "firefox_pref-general-homepage", 5 );
+    check_screen  "firefox_pref-general-homepage", 5 ;
     send_key "ret";
     sleep 1;
     send_key "alt-home";
     sleep 5;
-    checkneedle( "firefox_page-google", 5 );
+    check_screen  "firefox_page-google", 5 ;
 
     #exit and relaunch the browser
     send_key "alt-f4";
     sleep 2;
     x11_start_program("firefox");
-    checkneedle( "firefox_page-google", 5 );
+    check_screen  "firefox_page-google", 5 ;
 
     #recover all the changes, home page
     send_key "alt-e";

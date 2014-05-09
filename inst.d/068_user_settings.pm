@@ -25,7 +25,7 @@ sub run() {
     if ( $ENV{NOAUTOLOGIN} ) {
         my $ret;
         for (my $counter = 10; $counter > 0; $counter--) {
-            $ret = checkneedle( "autologindisabled", 3 );
+            $ret = check_screen  "autologindisabled", 3 ;
             if ( defined($ret) ) {
                 last;
             }

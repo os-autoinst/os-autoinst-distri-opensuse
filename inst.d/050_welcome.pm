@@ -19,7 +19,7 @@ sub run() {
     #	if($ENV{BETA}) {
     #		assert_screen "inst-betawarning", 5;
     #		send_key "ret";
-    #	} elsif (checkneedle("inst-betawarning", 2)) {
+    #	} elsif (check_screen "inst-betawarning", 2) {
     #		mydie("beta warning found in non-beta");
     #	}
 
@@ -35,7 +35,7 @@ sub run() {
     }
     assert_screen  "languagepicked", 2 ;
     send_key $cmd{"next"};
-    if ( checkneedle( "langincomplete", 1 ) ) {
+    if ( check_screen  "langincomplete", 1  ) {
         send_key "alt-f";
     }
 }

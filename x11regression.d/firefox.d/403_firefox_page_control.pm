@@ -29,20 +29,20 @@ sub run() {
         sleep 5;
         $site =~ s{\.com}{};
         $site =~ s{.*\.}{};
-        checkneedle( "firefox_page-" . $site, 5 );
+        check_screen  "firefox_page-" . $site, 5 ;
     }
 
     send_key "alt-left";
     sleep 2;
     send_key "alt-left";
     sleep 3;
-    checkneedle( "firefox_page-baidu", 5 );
+    check_screen  "firefox_page-baidu", 5 ;
     send_key "alt-right";
     sleep 3;
-    checkneedle( "firefox_page-novell", 5 );
+    check_screen  "firefox_page-novell", 5 ;
     send_key "f5";
     sleep 3;
-    checkneedle( "firefox_page-novell", 5 );
+    check_screen  "firefox_page-novell", 5 ;
 
     send_key "alt-f4";
     sleep 2;

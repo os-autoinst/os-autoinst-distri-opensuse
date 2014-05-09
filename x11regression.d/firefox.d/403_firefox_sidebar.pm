@@ -44,7 +44,7 @@ sub run() {
     sleep 1;
     send_key "ret";
     sleep 5;                                                #open the selected bookmark
-    checkneedle( "firefox_sidebar-bookmark", 5 );
+    check_screen  "firefox_sidebar-bookmark", 5 ;
     send_key "ctrl-b";
     sleep 1;                                                #close the "Bookmark sidebar"
 
@@ -63,7 +63,7 @@ sub run() {
     sleep 1;
     send_key "ret";
     sleep 5;
-    checkneedle( "firefox_sidebar-history", 5 );
+    check_screen  "firefox_sidebar-history", 5 ;
     send_key "ctrl-h";
     sleep 1;
 

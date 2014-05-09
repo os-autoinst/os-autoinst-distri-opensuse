@@ -23,7 +23,7 @@ sub run() {
     send_key "ret";
     sleep 3;
 
-    checkneedle( "bookmark-not-yet", 2 );
+    check_screen  "bookmark-not-yet", 2 ;
     send_key "alt-f4";
 
     # bookmark the page
@@ -32,11 +32,11 @@ sub run() {
     sleep 1;
     send_key "ret";
     sleep 6;
-    checkneedle( "bookmark-baidu-main", 3 );
+    check_screen  "bookmark-baidu-main", 3 ;
 
     send_key "ctrl-d";
     sleep 2;
-    checkneedle( "bookmarking", 3 );
+    check_screen  "bookmarking", 3 ;
     send_key "ret";
     sleep 2;
 
@@ -47,11 +47,11 @@ sub run() {
     sleep 1;
 
 ## check toolbar menu and unsorted section displayed; and baidu mainpage in menu section
-    checkneedle( "bookmark-all-bookmark-menu", 3 );
+    check_screen  "bookmark-all-bookmark-menu", 3 ;
     send_key "down";
     sleep 1;
     send_key "ret";
-    checkneedle( "bookmark-baidu-under-bookmark-menu", 3 );
+    check_screen  "bookmark-baidu-under-bookmark-menu", 3 ;
 
 ## open baidu page
     send_key "tab";
@@ -65,14 +65,14 @@ sub run() {
     send_key "ret";
     sleep 2;
 
-    checkneedle( "bookmark-baidu-main", 2 );
+    check_screen  "bookmark-baidu-main", 2 ;
 
     # close the bookmark lib page and then close firefox
     send_key "alt-tab";
     sleep 2;
     send_key "alt-f4";
     sleep 5;
-    checkneedle( "bookmark-menu-closed", 3 );
+    check_screen  "bookmark-menu-closed", 3 ;
 
 ## close firefox
     send_key "alt-f4";
