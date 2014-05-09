@@ -46,7 +46,10 @@ sub run() {
         # installation (instead of HDDboot on non-live)
         # installation (instead of live):
         send_key "down";
-        if ( $ENV{MEDIACHECK} ) {
+        if ( $ENV{UPGRADE} ) {
+            send_key "down";    # upgrade
+        } elsif ( $ENV{MEDIACHECK} ) {
+            send_key "down";    # upgrade
             send_key "down";    # rescue
             send_key "down";    # media check
             assert_screen  "inst-onmediacheck", 3 ;

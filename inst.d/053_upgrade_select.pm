@@ -10,7 +10,7 @@ sub is_applicable() {
 sub run() {
     my $self = shift;
 
-    $self->check_screen;
+    assert_screen  "select-for-update", 10 ;
     send_key $cmd{"next"}, 1;
     assert_screen  "remove-repository", 10 ;
     send_key $cmd{"next"}, 1;
