@@ -5,7 +5,7 @@ sub run() {
     my $self = shift;
     x11_start_program("xdg-su -c '/sbin/yast2 users'");
     if ($password) { sendpassword; send_key "ret", 1; }
-    $self->check_screen;
+    assert_screen 'test-yast2_users-1', 30;
     send_key "alt-o";    # OK => Exit
 }
 
