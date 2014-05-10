@@ -8,17 +8,12 @@ sub is_applicable() {
 sub run() {
     my $self = shift;
     x11_start_program("oowriter");
-    sleep 2;
-    waitidle;    # extra wait because oo sometimes appears to be idle during start
-    assert_screen 'test-ooffice-1', 3;
+    assert_screen 'test-ooffice-1', 10;
     type_string "Hello World!";
-    sleep 2;
-    assert_screen 'test-ooffice-2', 3;
+    assert_screen 'test-ooffice-2', 5;
     send_key "alt-f4";
-    sleep 2;
-    assert_screen  "ooffice-save-prompt", 8 ;
-    send_key "alt-w";
-    sleep 2;     # *W*ithout saving
+    assert_screen  "ooffice-save-prompt", 8;
+    send_key "alt-w"; # *W*ithout saving
 }
 
 1;
