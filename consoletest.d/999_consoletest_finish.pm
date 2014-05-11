@@ -25,11 +25,10 @@ sub run() {
         send_key "ctrl-alt-f7";    # go back to X11
         sleep 2;
         send_key "backspace";      # deactivate blanking
-        sleep 2;
-        if ( check_screen "screenlock" ) {
+        if ( check_screen("screenlock") ) {
             if ( checkEnv( "DESKTOP", "gnome" ) ) {
                 send_key "esc";
-                sleep 1;
+                assert_screen "gnome-screenlock-password";
             }
             sendpassword;
             send_key "ret";
