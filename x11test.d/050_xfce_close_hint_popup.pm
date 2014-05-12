@@ -7,7 +7,7 @@ sub is_applicable() {
 
 sub run() {
     my $self = shift;
-    waitinststage "XFCE";
+    assert_screen "XFCE", 30;
     send_key "alt-c";    # close hint popup
     waitidle;
 }
