@@ -35,11 +35,14 @@ sub run() {
         }
 
         # confirm
-        $self->take_screenshot;
+        assert_screen 'startupdate';
         send_key $cmd{update};
 
-        sleep 5;
-
+        if (check_screen('ERROR-bootloader_preupdate', 3)) {
+	   send_key 'alt-n';
+	   ++$self->{dents};
+	}
+        assert_screen "inst-packageinstallationstarted";
         # view installation details
         send_key $cmd{instdetails};
     }
@@ -48,7 +51,6 @@ sub run() {
         assert_screen "startinstall";
 
         # confirm
-        $self->take_screenshot;
         send_key $cmd{install};
         assert_screen "inst-packageinstallationstarted";
     }

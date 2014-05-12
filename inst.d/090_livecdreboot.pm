@@ -6,15 +6,31 @@ sub run() {
     my $self = shift;
 
     # workaround for yast popups
-    my @tags = qw/rebootnow hooks-results yast-error-ntp/;
+    my @tags = qw/rebootnow/;
+    if ($ENV{UPGRADE}) {
+      push(@tags, "ERROR-removing-package");
+    }
     while (1) {
-        my $ret = assert_screen  \@tags, 1500 ;    # NET isos and UPGRADE are slow to install
+        my $ret = assert_screen  \@tags, 2000 ;    # NET isos and UPGRADE are slow to install
 
-        last unless ( $ret->{needle}->has_tag("yast-error-ntp") || $ret->{needle}->has_tag("hooks-results") );
-        ++$self->{dents};
-        diag "warning popup caused dent";
-        send_key "ret";
-        pop @tags;
+        if ( $ret->{needle}->has_tag("popup-warning") ) {
+          ++$self->{dents};
+          diag "warning popup caused dent";
+          send_key "ret";
+          pop @tags;
+          next;
+        }
+	# can happen multiple times
+	if ( $ret->{needle}->has_tag("ERROR-removing-package") ) {
+	   ++$self->{dents};
+           send_key 'alt-d';
+           assert_screen 'ERROR-removing-package-details'; 
+           send_key 'alt-i';
+           assert_screen 'ERROR-removing-package-warning';
+           send_key 'alt-o';
+           next;
+        }
+        last;
     }
 
     if ( $ENV{LIVECD} ) {
