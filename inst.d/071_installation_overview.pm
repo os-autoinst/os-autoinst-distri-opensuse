@@ -3,6 +3,10 @@ use strict;
 use base "installstep";
 use bmwqemu;
 
+sub is_applicable() {
+    return !$ENV{UPGRADE};
+}
+
 sub run() {
 
     # overview-generation

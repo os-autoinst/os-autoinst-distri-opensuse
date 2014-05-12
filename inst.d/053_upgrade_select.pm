@@ -17,8 +17,16 @@ sub run() {
     send_key $cmd{"next"}, 1;
     if (check_screen('network-not-configured', 5)) {
        send_key 'alt-n';
+       if (check_screen('ERROR-cannot-download-repositories')) {
+         send_key 'alt-o';
+         ++$self->{dents};
+       }
     }
-    assert_screen  "installation-settings", 10 ;
+    if (check_screen('ERROR-lilo-convert-failed', 10)) {
+       send_key 'alt-n';
+       ++$self->{dents};
+    }
+    assert_screen  "update-installation-overview", 15;
 }
 
 1;
