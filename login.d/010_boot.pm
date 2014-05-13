@@ -4,7 +4,7 @@ use bmwqemu;
 use Time::HiRes qw(sleep);
 
 sub is_applicable() {
-    return !$ENV{UEFI};
+    return !$vars{UEFI};
 }
 
 sub run() {

@@ -6,7 +6,7 @@ use bmwqemu;
 my @filenames = qw/newfile newpl.pl/;
 
 sub is_applicable() {
-    return $ENV{DESKTOP} =~ /kde|gnome/;
+    return $vars{DESKTOP} =~ /kde|gnome/;
 }
 
 sub run() {

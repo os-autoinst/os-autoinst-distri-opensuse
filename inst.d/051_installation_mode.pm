@@ -5,7 +5,7 @@ use bmwqemu;
 
 sub is_applicable() {
     my $self = shift;
-    return $self->SUPER::is_applicable && !$ENV{LIVECD} && !$ENV{UPGRADE};
+    return $self->SUPER::is_applicable && !$vars{LIVECD} && !$vars{UPGRADE};
 }
 
 sub run() {
@@ -15,11 +15,11 @@ sub run() {
     # includes downloads, so wait_idle is bad.
     assert_screen  "inst-instmode", 120 ;
 
-    if ( $ENV{ADDONURL} ) {
+    if ( $vars{ADDONURL} ) {
         send_key "alt-c";    # Include Add-On Products
         assert_screen  "addonproduct-included", 10 ;
     }
-    if ( $ENV{AUTOCONF} ) {
+    if ( $vars{AUTOCONF} ) {
         send_key "alt-s";    # toggle automatic configuration
         assert_screen  "autoconf-deselected", 10 ;
     }

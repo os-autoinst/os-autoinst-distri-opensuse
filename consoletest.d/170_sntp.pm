@@ -4,7 +4,7 @@ use bmwqemu;
 # for https://bugzilla.novell.com/show_bug.cgi?id=657626
 
 sub is_applicable() {
-    return ( $ENV{BIGTEST} );
+    return ( $vars{BIGTEST} );
 }
 
 sub run() {

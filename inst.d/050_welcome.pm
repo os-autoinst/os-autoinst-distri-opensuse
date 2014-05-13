@@ -16,7 +16,7 @@ sub run() {
         assert_screen  "inst-welcome", 5 ;
     }
 
-    #	if($ENV{BETA}) {
+    #	if($vars{BETA}) {
     #		assert_screen "inst-betawarning", 5;
     #		send_key "ret";
     #	} elsif (check_screen "inst-betawarning", 2) {
@@ -30,7 +30,7 @@ sub run() {
     wait_idle;
 
     # license+lang
-    if ( $ENV{HASLICENSE} ) {
+    if ( $vars{HASLICENSE} ) {
         send_key $cmd{"accept"};    # accept license
     }
     assert_screen  "languagepicked", 2 ;

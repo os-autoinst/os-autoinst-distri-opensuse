@@ -18,7 +18,7 @@ sub run() {
 
     $self->take_screenshot();
 
-    if ( checkEnv( "DESKTOP", "textmode" ) ) {
+    if ( check_var( "DESKTOP", "textmode" ) ) {
         send_key "ctrl-alt-f1";    # go back to first console
     }
     else {
@@ -26,7 +26,7 @@ sub run() {
         sleep 2;
         send_key "backspace";      # deactivate blanking
         if ( check_screen("screenlock") ) {
-            if ( checkEnv( "DESKTOP", "gnome" ) ) {
+            if ( check_var( "DESKTOP", "gnome" ) ) {
                 send_key "esc";
                 assert_screen "gnome-screenlock-password";
             }

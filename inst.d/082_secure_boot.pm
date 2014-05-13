@@ -5,7 +5,7 @@ use bmwqemu;
 
 sub is_applicable() {
     my $self = shift;
-    return $self->SUPER::is_applicable && $ENV{UEFI} && $ENV{SECUREBOOT};
+    return $self->SUPER::is_applicable && $vars{UEFI} && $vars{SECUREBOOT};
 }
 
 sub run() {
@@ -14,7 +14,7 @@ sub run() {
     # Make sure that we are in the installation overview with SB enabled
     assert_screen "inst-overview-secureboot";
 
-    $cmd{bootloader} = "alt-b" if checkEnv( 'VIDEOMODE', "text" );
+    $cmd{bootloader} = "alt-b" if check_var( 'VIDEOMODE', "text" );
     send_key $cmd{change};        # Change
     send_key $cmd{bootloader};    # Bootloader
     sleep 4;

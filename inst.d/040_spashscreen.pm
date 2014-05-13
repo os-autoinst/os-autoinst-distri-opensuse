@@ -6,7 +6,7 @@ use bmwqemu;
 
 sub is_applicable {
 
-    #return !$ENV{NICEVIDEO};
+    #return !$vars{NICEVIDEO};
     return 0;    # FIXME
 }
 

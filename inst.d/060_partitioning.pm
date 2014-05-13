@@ -5,7 +5,7 @@ use bmwqemu;
 
 sub is_applicable() {
     my $self = shift;
-    return $self->SUPER::is_applicable && !$ENV{UPGRADE};
+    return $self->SUPER::is_applicable && !$vars{UPGRADE};
 }
 
 # add a new primary partition
@@ -18,7 +18,7 @@ sub addpart($$) {
     wait_idle 5;
 
     # the input point at the head of the lineedit, move it to the end
-    if ( $ENV{GNOME} ) { send_key "end" }
+    if ( $vars{GNOME} ) { send_key "end" }
     for ( 1 .. 10 ) {
         send_key "backspace";
     }
@@ -48,7 +48,7 @@ sub addraid($;$) {
         }
 
         # in GNOME Live case, press space will direct added this item
-        if ( $ENV{GNOME} ) {
+        if ( $vars{GNOME} ) {
             send_key "ctrl-spc";
         }
         else {
@@ -66,7 +66,7 @@ sub addraid($;$) {
     if ($chunksize) {
 
         # workaround for gnomelive with chunksize 64kb
-        if ( $ENV{GNOME} ) {
+        if ( $vars{GNOME} ) {
             send_key "alt-c";
             send_key "home";
             for ( 1 .. 4 ) {
@@ -110,13 +110,13 @@ sub run() {
         $newstyle = 1;
     }
 
-    if ( $ENV{DUALBOOT} ) {
+    if ( $vars{DUALBOOT} ) {
         assert_screen  'partitioning-windows', 40 ;
     }
 
     # XXX: why is that here?
-    if ( $ENV{TOGGLEHOME} && !$ENV{LIVECD} ) {
-        my $homekey = checkEnv( 'VIDEOMODE', "text" ) ? "alt-p" : "alt-h";
+    if ( $vars{TOGGLEHOME} && !$vars{LIVECD} ) {
+        my $homekey = check_var( 'VIDEOMODE', "text" ) ? "alt-p" : "alt-h";
         if ($newstyle) {
             send_key 'alt-d';
             $closedialog = 1;
@@ -131,7 +131,7 @@ sub run() {
         wait_idle 5;
     }
 
-    if ( defined( $ENV{RAIDLEVEL} ) ) {
+    if ( defined( $vars{RAIDLEVEL} ) ) {
 
         # create partitioning
         send_key $cmd{createpartsetup};
@@ -145,7 +145,7 @@ sub run() {
         send_key "tab";
         send_key "down";    # select disks
                            # seems GNOME tree list didn't eat right arrow key
-        if ( $ENV{GNOME} ) {
+        if ( $vars{GNOME} ) {
             send_key "spc";    # unfold disks
         }
         else {
@@ -168,7 +168,7 @@ sub run() {
             send_key "shift-tab";
 
             # walk through sub-tree
-            if ( $ENV{GNOME} ) {
+            if ( $vars{GNOME} ) {
                 for ( 1 .. 3 ) { send_key "down" }
             }
             send_key "down";
@@ -178,15 +178,15 @@ sub run() {
         send_key $cmd{addraid};
         wait_idle 4;
 
-        if ( !defined( $ENV{RAIDLEVEL} ) ) { $ENV{RAIDLEVEL} = 6 }
-        setraidlevel( $ENV{RAIDLEVEL} );
+        if ( !defined( $vars{RAIDLEVEL} ) ) { $vars{RAIDLEVEL} = 6 }
+        setraidlevel( $vars{RAIDLEVEL} );
         send_key "down";    # start at second partition (i.e. sda2)
                            # in this case, press down key doesn't move to next one but itself
-        if ( $ENV{GNOME} ) { send_key "down" }
+        if ( $vars{GNOME} ) { send_key "down" }
         addraid( 3, 6 );
 
         # workaround for gnomelive, double alt-f available in same page
-        if ( $ENV{GNOME} ) {
+        if ( $vars{GNOME} ) {
             send_key "spc";
         }
         else {
@@ -212,7 +212,7 @@ sub run() {
         send_key $cmd{"finish"};
 
         # workaround for gnomelive, double alt-f available in same page
-        if ( $ENV{GNOME} ) {
+        if ( $vars{GNOME} ) {
             send_key $cmd{"finish"};
             send_key "spc";
         }
@@ -234,7 +234,7 @@ sub run() {
         send_key $cmd{"accept"};
         assert_screen  'acceptedpartitioning', 6 ;
     }
-    elsif ( $ENV{BTRFS} ) {
+    elsif ( $vars{BTRFS} ) {
         if ($newstyle) {
             send_key "alt-d";
             $closedialog = 1;

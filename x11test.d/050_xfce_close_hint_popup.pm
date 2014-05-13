@@ -2,7 +2,7 @@ use base "basetest";
 use bmwqemu;
 
 sub is_applicable() {
-    return ( $ENV{DESKTOP} eq "xfce" );
+    return ( $vars{DESKTOP} eq "xfce" );
 }
 
 sub run() {

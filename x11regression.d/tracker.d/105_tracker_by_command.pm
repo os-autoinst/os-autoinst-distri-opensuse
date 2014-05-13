@@ -5,7 +5,7 @@ use bmwqemu;
 # Modify to : Tracker - tracker search from the command line. tracker-search starts
 
 sub is_applicable() {
-    return $ENV{DESKTOP} =~ /kde|gnome/;
+    return $vars{DESKTOP} =~ /kde|gnome/;
 }
 
 sub run() {

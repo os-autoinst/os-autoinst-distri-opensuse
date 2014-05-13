@@ -3,23 +3,23 @@ use strict;
 use bmwqemu;
 
 sub is_applicable() {
-    return $ENV{ZDUP};
+    return $vars{ZDUP};
 }
 
 sub run() {
     my $self = shift;
-    $ENV{ZDUPREPOS} ||= "http://$ENV{SUSEMIRROR}/repo/oss/";
+    $vars{ZDUPREPOS} ||= "http://$vars{SUSEMIRROR}/repo/oss/";
     send_key "ctrl-l";
     script_sudo("killall gpk-update-icon packagekitd");
-    unless ( $ENV{EVERGREEN} ) {
+    unless ( $vars{EVERGREEN} ) {
         script_sudo("zypper modifyrepo --all --disable");
     }
-    if ( $ENV{TUMBLEWEED} ) {
+    if ( $vars{TUMBLEWEED} ) {
         script_sudo("zypper ar --refresh http://widehat.opensuse.org/distribution/openSUSE-current/repo/oss/ 'openSUSE Current OSS'");
         script_sudo("zypper ar --refresh http://widehat.opensuse.org/distribution/openSUSE-current/repo/non-oss/ 'openSUSE Current non-OSS'");
         script_sudo("zypper ar --refresh http://widehat.opensuse.org/update/openSUSE-current/ 'openSUSE Current Update'");
     }
-    if ( $ENV{EVERGREEN} ) {
+    if ( $vars{EVERGREEN} ) {
         script_sudo("mkdir /etc/zypp/vendors.d");
         type_string(
             "sudo dd of=/etc/zypp/vendors.d/evergreen <<EOF
@@ -29,7 +29,7 @@ EOF\n"
         );
     }
     my $nr = 1;
-    foreach my $r ( split( /\+/, $ENV{ZDUPREPOS} ) ) {
+    foreach my $r ( split( /\+/, $vars{ZDUPREPOS} ) ) {
         script_sudo("zypper addrepo $r repo$nr");
         $nr++;
     }
@@ -44,7 +44,7 @@ EOF\n"
     type_string "1\n";    # some conflicts can not be ignored
     assert_screen 'test-zdup-2', 3;
     type_string "y\n";    # confirm
-    local $ENV{SCREENSHOTINTERVAL} = 2.5;
+    local $vars{SCREENSHOTINTERVAL} = 2.5;
     for ( 1 .. 12 ) {
         sleep 60;
         send_key "shift";    # prevent console screensaver

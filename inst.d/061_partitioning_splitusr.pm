@@ -2,7 +2,7 @@ use base "basetest";
 use bmwqemu;
 
 sub is_applicable() {
-    return $ENV{SPLITUSR};
+    return $vars{SPLITUSR};
 }
 
 sub run() {

@@ -3,7 +3,7 @@ use bmwqemu;
 
 # test for bug https://bugzilla.novell.com/show_bug.cgi?id=598574
 sub is_applicable() {
-    return ( $ENV{BIGTEST} );
+    return ( $vars{BIGTEST} );
 }
 
 sub run() {

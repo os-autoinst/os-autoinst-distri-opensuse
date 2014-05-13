@@ -4,24 +4,24 @@ use bmwqemu;
 use Time::HiRes qw(sleep);
 
 sub is_applicable() {
-    return !$ENV{UEFI};
+    return !$vars{UEFI};
 }
 
 # hint: press shift-f10 trice for highest debug level
 sub run() {
-    if ( $ENV{IPXE} ) {
+    if ( $vars{IPXE} ) {
         sleep 60;
         return;
     }
-    if ( $ENV{USBBOOT} ) {
+    if ( $vars{USBBOOT} ) {
         assert_screen  "boot-menu", 1 ;
         send_key "f12";
         assert_screen  "boot-menu-usb", 4 ;
-        send_key( 2 + $ENV{NUMDISKS} );
+        send_key( 2 + $vars{NUMDISKS} );
     }
 
     assert_screen  "inst-bootmenu", 15 ;
-    if ( $ENV{ZDUP} || $ENV{WDUP} ) {
+    if ( $vars{ZDUP} || $vars{WDUP} ) {
         qemusend "eject -f ide1-cd0";
         qemusend "system_reset";
         sleep 10;
@@ -29,7 +29,7 @@ sub run() {
         return;
     }
 
-    if ( $ENV{MEMTEST} ) {    # special
+    if ( $vars{MEMTEST} ) {    # special
                               # only run this one
         for ( 1 .. 6 ) {
             send_key "down";
@@ -41,14 +41,14 @@ sub run() {
     }
 
     # assume bios+grub+anim already waited in start.sh
-    if ( !$ENV{LIVETEST} ) {
+    if ( !$vars{LIVETEST} ) {
 
         # installation (instead of HDDboot on non-live)
         # installation (instead of live):
         send_key "down";
-        if ( $ENV{UPGRADE} ) {
+        if ( $vars{UPGRADE} ) {
             send_key "down";    # upgrade
-        } elsif ( $ENV{MEDIACHECK} ) {
+        } elsif ( $vars{MEDIACHECK} ) {
             send_key "down";    # upgrade
             send_key "down";    # rescue
             send_key "down";    # media check
@@ -57,30 +57,30 @@ sub run() {
 
     }
     else {
-        if ( $ENV{PROMO} ) {
-            if ( checkEnv( "DESKTOP", "gnome" ) ) {
-                send_key "down" unless $ENV{OSP_SPECIAL};
+        if ( $vars{PROMO} ) {
+            if ( check_var( "DESKTOP", "gnome" ) ) {
+                send_key "down" unless $vars{OSP_SPECIAL};
                 send_key "down";
             }
-            elsif ( checkEnv( "DESKTOP", "kde" ) ) {
-                send_key "down" unless $ENV{OSP_SPECIAL};
+            elsif ( check_var( "DESKTOP", "kde" ) ) {
+                send_key "down" unless $vars{OSP_SPECIAL};
                 send_key "down";
                 send_key "down";
             }
             else {
-                die "unsupported desktop $ENV{DESKTOP}\n";
+                die "unsupported desktop $vars{DESKTOP}\n";
             }
         }
     }
 
     # 1024x768
-    if ( $ENV{RES1024} ) {    # default is 800x600
+    if ( $vars{RES1024} ) {    # default is 800x600
         send_key "f3";
         send_key "down";
         assert_screen "inst-resolutiondetected";
         send_key "ret";
     }
-    elsif ( checkEnv( 'VIDEOMODE', "text" ) ) {
+    elsif ( check_var( 'VIDEOMODE', "text" ) ) {
         send_key "f3";
         for ( 1 .. 2 ) {
             send_key "up";
@@ -98,27 +98,27 @@ sub run() {
     type_string  "video=1024x768-16 ",                              13 ;
     type_string  "drm_kms_helper.edid_firmware=edid/1024x768.bin ", 7 ;
     assert_screen  "inst-video-typed", 13 ;
-    if ( !$ENV{NICEVIDEO} ) {
+    if ( !$vars{NICEVIDEO} ) {
         type_string  "console=ttyS0 ", 7 ;    # to get crash dumps as text
         type_string  "console=tty ",   7 ;    # to get crash dumps as text
         assert_screen  "inst-consolesettingstyped", 30 ;
-        my $e = $ENV{EXTRABOOTPARAMS};
+        my $e = $vars{EXTRABOOTPARAMS};
 
-        #	if($ENV{RAIDLEVEL}) {$e="linuxrc=trace"}
+        #	if($vars{RAIDLEVEL}) {$e="linuxrc=trace"}
         if ($e) { type_string  "$e ", 13 ; sleep 10; }
     }
 
     #type_string "kiwidebug=1 ";
 
     # set HTTP-source to not use factory-snapshot
-    if ( $ENV{NETBOOT} ) {
+    if ( $vars{NETBOOT} ) {
         send_key "f4";
         assert_screen  "inst-instsourcemenu", 4 ;
         send_key "ret";
         assert_screen  "inst-instsourcedialog", 4 ;
         my $mirroraddr = "";
         my $mirrorpath = "/factory";
-        if ( $ENV{SUSEMIRROR} && $ENV{SUSEMIRROR} =~ m{^([a-zA-Z0-9.-]*)(/.*)$} ) {
+        if ( $vars{SUSEMIRROR} && $vars{SUSEMIRROR} =~ m{^([a-zA-Z0-9.-]*)(/.*)$} ) {
             ( $mirroraddr, $mirrorpath ) = ( $1, $2 );
         }
 
@@ -131,7 +131,7 @@ sub run() {
 
         # change dir
         # leave /repo/oss/ (10 chars)
-        if ( $ENV{FULLURL} ) {
+        if ( $vars{FULLURL} ) {
             for ( 1 .. 10 ) { send_key "backspace" }
         }
         else {
@@ -144,7 +144,7 @@ sub run() {
         send_key "ret";
 
         # HTTP-proxy
-        if ( $ENV{HTTPPROXY} && $ENV{HTTPPROXY} =~ m/([0-9.]+):(\d+)/ ) {
+        if ( $vars{HTTPPROXY} && $vars{HTTPPROXY} =~ m/([0-9.]+):(\d+)/ ) {
             my ( $proxyhost, $proxyport ) = ( $1, $2 );
             send_key "f4";
             for ( 1 .. 4 ) {
@@ -162,10 +162,10 @@ sub run() {
         #type_string "ZYPP_MULTICURL=0 "; sleep 2;
     }
 
-    #if($ENV{BTRFS}) {sleep 9; type_string "squash=0 loadimage=0 ";sleep 21} # workaround 697671
+    #if($vars{BTRFS}) {sleep 9; type_string "squash=0 loadimage=0 ";sleep 21} # workaround 697671
 
     # set language last so that above typing will not depend on keyboard layout
-    if ( $ENV{INSTLANG} ) {
+    if ( $vars{INSTLANG} ) {
 
         # positions in isolinux language selection ; order matters
         # from cpio -i --to-stdout languages < /mnt/boot/*/loader/bootlogo
@@ -235,7 +235,7 @@ sub run() {
         );
         my $n;
         my %isolinuxlangmap = map { lc($_) => $n++ } @isolinuxlangmap;
-        $n = $isolinuxlangmap{ lc( $ENV{INSTLANG} ) };
+        $n = $isolinuxlangmap{ lc( $vars{INSTLANG} ) };
         my $en_us = $isolinuxlangmap{en_us};
 
         if ( $n && $n != $en_us ) {
@@ -252,27 +252,28 @@ sub run() {
         }
     }
 
-    if ( $ENV{ISO} =~ m/i586/ ) {
+    if ( $vars{ISO} =~ m/i586/ ) {
 
         #	type_string "info=";sleep 4; type_string "http://zq1.de/i "; sleep 15; type_string "insecure=1 "; sleep 15;
     }
     my $args = "";
-    if ( $ENV{AUTOYAST} ) {
-        $args .= " netsetup=dhcp,all autoyast=$ENV{AUTOYAST} ";
+    if ( $vars{AUTOYAST} ) {
+        $args .= " netsetup=dhcp,all autoyast=$vars{AUTOYAST} ";
     }
     type_string $args;
-    if ( 0 && $ENV{RAIDLEVEL} ) {
+    if ( 0 && $vars{RAIDLEVEL} ) {
 
         # workaround bnc#711724
-        $ENV{ADDONURL} = "http://download.opensuse.org/repositories/home:/snwint/openSUSE_Factory/";    #TODO: drop
-        $ENV{DUD}      = "dud=http://zq1.de/bl10";
-        type_string "$ENV{DUD} ";
+        $vars{ADDONURL} = "http://download.opensuse.org/repositories/home:/snwint/openSUSE_Factory/";    #TODO: drop
+        $vars{DUD}      = "dud=http://zq1.de/bl10";
+        type_string "$vars{DUD} ";
         sleep 20;
         type_string "insecure=1 ";
         sleep 20;
+        save_vars();
     }
 
-    if ( $ENV{LIVETEST} && $ENV{LIVEOBSWORKAROUND} ) {
+    if ( $vars{LIVETEST} && $vars{LIVEOBSWORKAROUND} ) {
         send_key "1";       # runlevel 1
         send_key "ret";    # boot
         sleep(40);
