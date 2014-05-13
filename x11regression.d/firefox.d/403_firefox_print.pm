@@ -19,8 +19,8 @@ sub run() {
     mouse_hide();
     x11_start_program("firefox");
     assert_screen  "start-firefox", 5 ;
-    if ( $ENV{UPGRADE} ) { send_key "alt-d"; waitidle; }    # dont check for updated plugins
-    if ( $ENV{DESKTOP} =~ /xfce|lxde/i ) {
+    if ( $envs->{UPGRADE} ) { send_key "alt-d"; waitidle; }    # dont check for updated plugins
+    if ( $envs->{DESKTOP} =~ /xfce|lxde/i ) {
         send_key "ret";                                      # confirm default browser setting popup
         waitidle;
     }

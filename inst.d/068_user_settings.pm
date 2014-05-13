@@ -5,7 +5,7 @@ use bmwqemu;
 
 sub is_applicable() {
     my $self = shift;
-    return $self->SUPER::is_applicable && !$ENV{UPGRADE};
+    return $self->SUPER::is_applicable && !$envs->{UPGRADE};
 }
 
 sub run() {
@@ -22,7 +22,7 @@ sub run() {
         type_string "$password\t";
     }
     assert_screen  "inst-userinfostyped", 5 ;
-    if ( $ENV{NOAUTOLOGIN} ) {
+    if ( $envs->{NOAUTOLOGIN} ) {
         my $ret;
         for (my $counter = 10; $counter > 0; $counter--) {
             $ret = check_screen  "autologindisabled", 3 ;
@@ -39,7 +39,7 @@ sub run() {
             assert_screen  "autologindisabled", 1 ;
         }
     }
-    if ( $ENV{DOCRUN} ) {
+    if ( $envs->{DOCRUN} ) {
         send_key $cmd{"otherrootpw"};
         assert_screen  "rootpwdisabled", 5 ;
     }
@@ -54,7 +54,7 @@ sub run() {
     #sleep 1;
     # PW too easy (only chars)
     #send_key "ret";
-    if ( $ENV{DOCRUN} ) {    # root user
+    if ( $envs->{DOCRUN} ) {    # root user
         waitidle;
         for ( 1 .. 2 ) {
             type_string "$password\t";

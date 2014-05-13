@@ -2,15 +2,15 @@ use base "basetest";
 use bmwqemu;
 
 sub is_applicable() {
-    return $ENV{DESKTOP} =~ m/gnome|kde|xfce|lxde/;
+    return $envs->{DESKTOP} =~ m/gnome|kde|xfce|lxde/;
 }
 
 sub run() {
     my $self = shift;
-    if ( $ENV{DESKTOP} eq "lxde" ) {
+    if ( $envs->{DESKTOP} eq "lxde" ) {
         x11_start_program("lxpanelctl menu");    # or Super_L or Windows key
     }
-    elsif ( $ENV{DESKTOP} eq "xfce" ) {
+    elsif ( $envs->{DESKTOP} eq "xfce" ) {
         mouse_set( 0, 0 );
         sleep 1;
         send_key "ctrl-esc";                      # open menu
@@ -21,7 +21,7 @@ sub run() {
         send_key "alt-f1";                        # open main menu
     }
     sleep 2;
-    sleep 10 if $ENV{NICEVIDEO};
+    sleep 10 if $envs->{NICEVIDEO};
     assert_screen 'test-desktop_mainmenu-1', 3;
     send_key "esc";
     waitidle;

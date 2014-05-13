@@ -5,7 +5,7 @@ use bmwqemu;
 
 sub is_applicable() {
     my $self = shift;
-    return $self->SUPER::is_applicable && !$ENV{UPGRADE};
+    return $self->SUPER::is_applicable && !$envs->{UPGRADE};
 }
 
 sub run() {

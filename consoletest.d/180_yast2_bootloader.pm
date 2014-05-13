@@ -5,7 +5,7 @@ use bmwqemu;
 # https://bugzilla.novell.com/show_bug.cgi?id=610454
 
 sub is_applicable() {
-    return !$ENV{LIVETEST};
+    return !$envs->{LIVETEST};
 }
 
 sub run() {

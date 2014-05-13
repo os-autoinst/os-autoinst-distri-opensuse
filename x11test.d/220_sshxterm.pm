@@ -2,7 +2,7 @@ use base "basetest";
 use bmwqemu;
 
 sub is_applicable {
-    return !$ENV{NICEVIDEO} && !$ENV{LIVETEST};
+    return !$envs->{NICEVIDEO} && !$envs->{LIVETEST};
 }
 
 sub run() {

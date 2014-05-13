@@ -5,15 +5,15 @@ use bmwqemu;
 
 sub is_applicable() {
     my $self = shift;
-    $self->SUPER::is_applicable && !$ENV{LIVECD};
+    $self->SUPER::is_applicable && !$envs->{LIVECD};
 }
 
 sub run() {
     my %desktopkeys = ( kde => "k", gnome => "g", xfce => "x", lxde => "l", minimalx => "m", textmode => "i" );
     assert_screen  "desktop-selection", 30 ;
-    my $d = $ENV{DESKTOP};
+    my $d = $envs->{DESKTOP};
     diag "selecting desktop=$d";
-    $ENV{ uc($d) } = 1;
+    $envs->{ uc($d) } = 1;
     my $key = "alt-$desktopkeys{$d}";
     if ( $d eq "kde" ) {
 

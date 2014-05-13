@@ -7,7 +7,7 @@ use bmwqemu;
 # LiveCD installer excuses before then partition setup
 sub is_applicable() {
     my $self = shift;
-    return $self->SUPER::is_applicable && $ENV{LIVECD};
+    return $self->SUPER::is_applicable && $envs->{LIVECD};
 }
 
 sub run() {

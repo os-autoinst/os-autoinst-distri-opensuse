@@ -2,8 +2,8 @@ use base "basetest";
 use bmwqemu;
 
 sub is_applicable() {
-    return 0 if $ENV{NICEVIDEO};
-    return $ENV{DESKTOP} =~ /kde|gnome/ && !$ENV{LIVECD};
+    return 0 if $envs->{NICEVIDEO};
+    return $envs->{DESKTOP} =~ /kde|gnome/ && !$envs->{LIVECD};
 }
 
 sub run() {

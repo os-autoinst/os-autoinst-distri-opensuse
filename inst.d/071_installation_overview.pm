@@ -4,7 +4,7 @@ use base "installstep";
 use bmwqemu;
 
 sub is_applicable() {
-    return !$ENV{UPGRADE};
+    return !$envs->{UPGRADE};
 }
 
 sub run() {

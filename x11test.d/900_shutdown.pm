@@ -8,7 +8,7 @@ sub is_applicable() {
 sub run() {
     my $self = shift;
 
-    if ( $ENV{DESKTOP} eq "kde" ) {
+    if ( $envs->{DESKTOP} eq "kde" ) {
         send_key "ctrl-alt-delete";    # shutdown
         assert_screen 'logoutdialog', 15;
 
@@ -20,14 +20,14 @@ sub run() {
 	waitforneedle( "splashscreen", 40 );
     }
 
-    if ( $ENV{DESKTOP} eq "gnome" ) {
+    if ( $envs->{DESKTOP} eq "gnome" ) {
         send_key "ctrl-alt-delete";    # shutdown
         assert_screen 'logoutdialog', 15;
 
         return; # we don't want qemu "to crash" 
 
         send_key "ret";                # confirm shutdown
-                                      #if(!$ENV{GNOME2}) {
+                                      #if(!$envs->{GNOME2}) {
                                       #    sleep 3;
                                       #    send_key "ctrl-alt-f1";
                                       #    sleep 3;
@@ -36,7 +36,7 @@ sub run() {
         waitforneedle( "splashscreen", 40 );
     }
 
-    if ( $ENV{DESKTOP} eq "xfce" ) {
+    if ( $envs->{DESKTOP} eq "xfce" ) {
         for ( 1 .. 5 ) {
             send_key "alt-f4";         # opens log out popup after all windows closed
         }
@@ -53,7 +53,7 @@ sub run() {
 
     return; # we don't want qemu "to crash" - we need to make os-autoinst catch this properly first
 
-    if ( $ENV{DESKTOP} =~ m/lxde|minimalx|textmode/ ) {
+    if ( $envs->{DESKTOP} =~ m/lxde|minimalx|textmode/ ) {
         qemusend "system_powerdown";    # shutdown
         waitidle;
 

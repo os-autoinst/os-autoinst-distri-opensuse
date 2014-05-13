@@ -11,7 +11,7 @@ sub run() {
 
     # FIXME: add assert_screen here
     $self->take_screenshot;
-    if ( $ENV{LIVETEST} || $ENV{DISTRI} eq "sled-11" || $ENV{LAPTOP} ) {
+    if ( $envs->{LIVETEST} || $envs->{DISTRI} eq "sled-11" || $envs->{LAPTOP} ) {
         send_key "ret";      # confirm networkmanager popup
         sleep 1;
         send_key "alt-t";    # traditional ifup
