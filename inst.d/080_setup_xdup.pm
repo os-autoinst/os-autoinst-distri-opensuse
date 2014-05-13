@@ -3,7 +3,7 @@ use strict;
 use bmwqemu;
 
 sub is_applicable() {
-    return $ENV{ZDUP} || $ENV{WDUP};
+    return $envs->{ZDUP} || $envs->{WDUP};
 }
 
 sub run() {

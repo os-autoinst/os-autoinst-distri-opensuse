@@ -15,7 +15,7 @@ sub run() {
     assert_screen 'test-gnucash-2', 3;
     send_key "alt-f4";    # Leave tutorial window
                          # Leave tips windows for GNOME case
-    if ( $ENV{DESKTOP} eq "gnome" || $ENV{DESKTOP} eq "xfce" ) { sleep 3; send_key "alt-c"; }
+    if ( $envs->{DESKTOP} eq "gnome" || $envs->{DESKTOP} eq "xfce" ) { sleep 3; send_key "alt-c"; }
     waitidle;
     send_key "ctrl-q";    # Exit
 }

@@ -4,7 +4,7 @@ use bmwqemu;
 # for https://bugzilla.novell.com/show_bug.cgi?id=657626
 
 sub is_applicable() {
-    return ( $ENV{MOZILLATEST} );
+    return ( $envs->{MOZILLATEST} );
 }
 
 sub run() {
@@ -12,7 +12,7 @@ sub run() {
     x11_start_program("xterm");
     script_run("cd /tmp");
     script_run("wget -q openqa.opensuse.org/opensuse/qatests/qa_mozmill_run.sh");
-    local $ENV{SCREENSHOTINTERVAL} = 0.25;
+    local $envs->{SCREENSHOTINTERVAL} = 0.25;
     script_run("sh -x qa_mozmill_run.sh");
     sleep 30;
     local $bmwqemu::timesidleneeded = 4;

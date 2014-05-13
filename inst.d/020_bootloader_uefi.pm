@@ -4,16 +4,16 @@ use bmwqemu;
 use Time::HiRes qw(sleep);
 
 sub is_applicable() {
-    return $ENV{UEFI};
+    return $envs->{UEFI};
 }
 
 # hint: press shift-f10 trice for highest debug level
 sub run() {
     assert_screen  "bootloader-grub2", 15 ;
-    if ( $ENV{QEMUVGA} && $ENV{QEMUVGA} ne "cirrus" ) {
+    if ( $envs->{QEMUVGA} && $envs->{QEMUVGA} ne "cirrus" ) {
         sleep 5;
     }
-    if ( $ENV{ZDUP} || $ENV{WDUP} ) {
+    if ( $envs->{ZDUP} || $envs->{WDUP} ) {
         qemusend "eject -f ide1-cd0";
         qemusend "system_reset";
         sleep 10;
@@ -21,7 +21,7 @@ sub run() {
         return;
     }
 
-    if ( $ENV{MEDIACHECK} ) {    # special
+    if ( $envs->{MEDIACHECK} ) {    # special
                                  # only run this one
         for ( 1 .. 2 ) {
             send_key "down";
@@ -30,18 +30,18 @@ sub run() {
         send_key "ret";
         return;
     }
-    if ( $ENV{PROMO} ) {
+    if ( $envs->{PROMO} ) {
         if ( checkEnv( "DESKTOP", "gnome" ) ) {
-            send_key "down" unless $ENV{OSP_SPECIAL};
+            send_key "down" unless $envs->{OSP_SPECIAL};
             send_key "down";
         }
         elsif ( checkEnv( "DESKTOP", "kde" ) ) {
 
             # KDE is first entry for OSP image
-            send_key "down" unless $ENV{OSP_SPECIAL};
+            send_key "down" unless $envs->{OSP_SPECIAL};
         }
         else {
-            die "unsupported desktop $ENV{DESKTOP}\n";
+            die "unsupported desktop $envs->{DESKTOP}\n";
         }
     }
 
@@ -50,18 +50,18 @@ sub run() {
     send_key "e";
     for ( 1 .. 4 ) { send_key "down"; }
     send_key "end";
-    if ( $ENV{NETBOOT} && $ENV{SUSEMIRROR} ) {
+    if ( $envs->{NETBOOT} && $envs->{SUSEMIRROR} ) {
         for ( 1 .. 49 ) { send_key "backspace"; }
-        type_string  $ENV{SUSEMIRROR} ;
+        type_string  $envs->{SUSEMIRROR} ;
     }
     send_key "spc";
 
-    # if($ENV{PROMO}) {
+    # if($envs->{PROMO}) {
     #     for(1..2) {send_key "down";} # select KDE Live
     # }
 
     # 1024x768
-    if ( $ENV{RES1024} ) {    # default is 800x600
+    if ( $envs->{RES1024} ) {    # default is 800x600
         type_string "video=1024x768-16 ";
     }
     elsif ( checkEnv( 'VIDEOMODE', "text" ) ) {
@@ -77,43 +77,43 @@ sub run() {
     type_string "drm_kms_helper.edid_firmware=edid/1024x768.bin ";
     assert_screen  "inst-video-typed-grub2", 13 ;
 
-    if ( !$ENV{NICEVIDEO} ) {
+    if ( !$envs->{NICEVIDEO} ) {
         sleep 15;
         type_string "console=ttyS0 ";    # to get crash dumps as text
         sleep 15;
         type_string "console=tty ";      # to get crash dumps as text
-        my $e = $ENV{EXTRABOOTPARAMS};
+        my $e = $envs->{EXTRABOOTPARAMS};
 
-        #	if($ENV{RAIDLEVEL}) {$e="linuxrc=trace"}
+        #	if($envs->{RAIDLEVEL}) {$e="linuxrc=trace"}
         if ($e) { sleep 10; type_string "$e "; }
         sleep 15;                          # workaround slow gfxboot drawing 662991
     }
 
     #type_string "kiwidebug=1 ";
 
-    #if($ENV{BTRFS}) {sleep 9; type_string "squash=0 loadimage=0 ";sleep 21} # workaround 697671
+    #if($envs->{BTRFS}) {sleep 9; type_string "squash=0 loadimage=0 ";sleep 21} # workaround 697671
 
-    if ( $ENV{ISO} =~ m/i586/ ) {
+    if ( $envs->{ISO} =~ m/i586/ ) {
 
         #	type_string "info=";sleep 4; type_string "http://zq1.de/i "; sleep 15; type_string "insecure=1 "; sleep 15;
     }
     my $args = "";
-    if ( $ENV{AUTOYAST} ) {
-        $args .= " netsetup=dhcp,all autoyast=$ENV{AUTOYAST} ";
+    if ( $envs->{AUTOYAST} ) {
+        $args .= " netsetup=dhcp,all autoyast=$envs->{AUTOYAST} ";
     }
     type_string $args;
-    if ( 0 && $ENV{RAIDLEVEL} ) {
+    if ( 0 && $envs->{RAIDLEVEL} ) {
 
         # workaround bnc#711724
-        $ENV{ADDONURL} = "http://download.opensuse.org/repositories/home:/snwint/openSUSE_Factory/";    #TODO: drop
-        $ENV{DUD}      = "dud=http://zq1.de/bl10";
-        type_string "$ENV{DUD} ";
+        $envs->{ADDONURL} = "http://download.opensuse.org/repositories/home:/snwint/openSUSE_Factory/";    #TODO: drop
+        $envs->{DUD}      = "dud=http://zq1.de/bl10";
+        type_string "$envs->{DUD} ";
         sleep 20;
         type_string "insecure=1 ";
         sleep 20;
     }
 
-    if ( $ENV{LIVETEST} && $ENV{LIVEOBSWORKAROUND} ) {
+    if ( $envs->{LIVETEST} && $envs->{LIVEOBSWORKAROUND} ) {
         send_key "1";    # runlevel 1
         send_key "f10";  # boot
         sleep(40);

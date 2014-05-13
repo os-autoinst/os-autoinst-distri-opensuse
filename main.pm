@@ -21,9 +21,11 @@ our %valueranges = (
 
 our @can_randomize = qw/NOIMAGES REBOOTAFTERINSTALL DESKTOP VIDEOMODE/;
 
+our $envs = load_envs();
+
 sub logcurrentenv(@) {
     foreach my $k (@_) {
-        my $e = $ENV{$k};
+        my $e = $envs->{$k};
         next unless defined $e;
         diag("usingenv $k=$e");
     }
@@ -31,23 +33,23 @@ sub logcurrentenv(@) {
 
 sub setrandomenv() {
     for my $k (@can_randomize) {
-        next if defined $ENV{$k};
-        next if $k eq "DESKTOP" && $ENV{LIVECD};
-        if ( $ENV{DOCRUN} ) {
+        next if defined $envs->{$k};
+        next if $k eq "DESKTOP" && $envs->{LIVECD};
+        if ( $envs->{DOCRUN} ) {
             next if $k eq "VIDEOMODE";
             next if $k eq "NOIMAGES";
         }
         my @range = @{ $valueranges{$k} };
         my $rand  = int( rand( scalar @range ) );
-        $ENV{$k} = $range[$rand];
+        $envs->{$k} = $range[$rand];
         logcurrentenv($k);
     }
 }
 
 sub check_env() {
     for my $k ( keys %valueranges ) {
-        next unless exists $ENV{$k};
-        unless ( grep { $ENV{$k} eq $_ } @{ $valueranges{$k} } ) {
+        next unless exists $envs->{$k};
+        unless ( grep { $envs->{$k} eq $_ } @{ $valueranges{$k} } ) {
             die sprintf( "%s must be one of %s\n", $k, join( ',', @{ $valueranges{$k} } ) );
         }
     }
@@ -74,7 +76,7 @@ sub cleanup_needles() {
     remove_desktop_needles("minimalx");
     remove_desktop_needles("textmode");
 
-    if ( !$ENV{LIVECD} ) {
+    if ( !$envs->{LIVECD} ) {
         unregister_needle_tags("ENV-LIVECD-1");
     }
     else {
@@ -83,7 +85,7 @@ sub cleanup_needles() {
     if ( !checkEnv( "VIDEOMODE", "text" ) ) {
         unregister_needle_tags("ENV-VIDEOMODE-text");
     }
-    if ( $ENV{INSTLANG} && $ENV{INSTLANG} ne "en_US" ) {
+    if ( $envs->{INSTLANG} && $envs->{INSTLANG} ne "en_US" ) {
         unregister_needle_tags("ENV-INSTLANG-en_US");
     }
     else {    # english default
@@ -99,34 +101,36 @@ while ( !getcurrentscreenshot() ) {
 
 #assert_screen "inst-bootmenu",12; # wait for welcome animation to finish
 
-if ( $ENV{LIVETEST} && ( $ENV{LIVECD} || $ENV{PROMO} ) ) {
+if ( $envs->{LIVETEST} && ( $envs->{LIVECD} || $envs->{PROMO} ) ) {
     $username = "linux";    # LiveCD account
     $password = "";
 }
 
 check_env();
-setrandomenv if ( $ENV{RANDOMENV} );
+setrandomenv if ( $envs->{RANDOMENV} );
 
-unless ( $ENV{DESKTOP} ) {
+unless ( $envs->{DESKTOP} ) {
     if ( checkEnv( "VIDEOMODE", "text" ) ) {
-        $ENV{DESKTOP} = "textmode";
+        $envs->{DESKTOP} = "textmode";
     }
     else {
-        $ENV{DESKTOP} = "kde";
+        $envs->{DESKTOP} = "kde";
     }
 }
 if ( checkEnv( 'DESKTOP', 'minimalx' ) ) {
-    $ENV{'NOAUTOLOGIN'} = 1;
-    $ENV{XDMUSED} = 1;
+    $envs->{'NOAUTOLOGIN'} = 1;
+    $envs->{XDMUSED} = 1;
 }
 
-$ENV{SUSEMIRROR} ||= "download.opensuse.org/factory";
+$envs->{SUSEMIRROR} ||= "download.opensuse.org/factory";
 
 $needle::cleanuphandler = \&cleanup_needles;
 
-$ENV{SCREENSHOTINTERVAL} ||= .5;
+$envs->{SCREENSHOTINTERVAL} ||= .5;
 
-# dump other important ENV:
+save_envs($envs);
+
+# dump other important envrionment variables:
 logcurrentenv(qw"ADDONURL BIGTEST BTRFS DESKTOP HW HWSLOT LIVETEST LVM MOZILLATEST NOINSTALL REBOOTAFTERINSTALL UPGRADE USBBOOT TUMBLEWEED WDUP ZDUP ZDUPREPOS TEXTMODE DISTRI NOAUTOLOGIN QEMUCPU QEMUCPUS RAIDLEVEL ENCRYPT INSTLANG QEMUVGA DOCRUN UEFI DVD GNOME KDE ISO ISO_MAXSIZE LIVECD NETBOOT NICEVIDEO NOIMAGES PROMO QEMUVGA SPLITUSR VIDEOMODE");
 
 sub _wanted() {
@@ -134,27 +138,27 @@ sub _wanted() {
 }
 
 # load the tests in the right order
-if ( $ENV{REGRESSION} ) {
-    if ( $ENV{KEEPHDDS} ) {
-        autotest::loadtestdir("$ENV{CASEDIR}/login.d");
+if ( $envs->{REGRESSION} ) {
+    if ( $envs->{KEEPHDDS} ) {
+        autotest::loadtestdir("$envs->{CASEDIR}/login.d");
     }
     else {
-        autotest::loadtestdir("$ENV{CASEDIR}/inst.d");
+        autotest::loadtestdir("$envs->{CASEDIR}/inst.d");
     }
 
-    if ( $ENV{DESKTOP} =~ /gnome/ ) {
-        find( \&_wanted, "$ENV{CASEDIR}/x11regression.d" );
+    if ( $envs->{DESKTOP} =~ /gnome/ ) {
+        find( \&_wanted, "$envs->{CASEDIR}/x11regression.d" );
     }
 
 }
 else {
-    autotest::loadtestdir("$ENV{CASEDIR}/inst.d");
-    if ( !$ENV{'INSTALLONLY'} ) {
-        if ( !$ENV{NICEVIDEO} && !$ENV{DUALBOOT} ) {
-            autotest::loadtestdir("$ENV{CASEDIR}/consoletest.d");
+    autotest::loadtestdir("$envs->{CASEDIR}/inst.d");
+    if ( !$envs->{'INSTALLONLY'} ) {
+        if ( !$envs->{NICEVIDEO} && !$envs->{DUALBOOT} ) {
+            autotest::loadtestdir("$envs->{CASEDIR}/consoletest.d");
         }
-        if ( $ENV{DESKTOP} !~ /textmode|minimalx/ && !$ENV{DUALBOOT} ) {
-            autotest::loadtestdir("$ENV{CASEDIR}/x11test.d");
+        if ( $envs->{DESKTOP} !~ /textmode|minimalx/ && !$envs->{DUALBOOT} ) {
+            autotest::loadtestdir("$envs->{CASEDIR}/x11test.d");
         }
     }
 }

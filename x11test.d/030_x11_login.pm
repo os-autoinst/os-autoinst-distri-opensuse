@@ -2,7 +2,7 @@ use base "basetest";
 use bmwqemu;
 
 sub is_applicable() {
-    return $ENV{NOAUTOLOGIN} || $ENV{XDMUSED};
+    return $envs->{NOAUTOLOGIN} || $envs->{XDMUSED};
 }
 
 sub run() {

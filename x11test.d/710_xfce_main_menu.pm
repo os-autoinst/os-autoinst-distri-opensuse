@@ -8,7 +8,7 @@ use bmwqemu;
 # this function decides if the test shall run
 sub is_applicable {
     return 0;
-    return ( $ENV{DESKTOP} eq "xfce" );
+    return ( $envs->{DESKTOP} eq "xfce" );
 }
 
 # this part contains the steps to run this test

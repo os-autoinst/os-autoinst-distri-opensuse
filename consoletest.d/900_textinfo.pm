@@ -8,7 +8,7 @@ sub run() {
     script_run('uname -a');
 
     script_run('df');
-    type_string "/sbin/btrfs filesystem df /\n" if $ENV{BTRFS};
+    type_string "/sbin/btrfs filesystem df /\n" if $envs->{BTRFS};
     script_run('free');
     script_run('rpm -qa kernel-*');
     script_run('grep DISPLAYMANAGER /etc/sysconfig/displaymanager');
@@ -16,7 +16,7 @@ sub run() {
     script_run("ls -l /etc/ntp*");
     script_run("du /var/log/messages");
     assert_screen 'test-textinfo-1', 3;
-    local $ENV{SCREENSHOTINTERVAL} = 3;    # uninteresting stuff for automatic processing:
+    local $envs->{SCREENSHOTINTERVAL} = 3;    # uninteresting stuff for automatic processing:
     script_run("ps ax > /dev/$serialdev");
     script_run("systemctl --no-pager --full > /dev/$serialdev");
     script_run("rpm -qa > /dev/$serialdev && echo 'rpm_qa_outputted' > /dev/$serialdev");

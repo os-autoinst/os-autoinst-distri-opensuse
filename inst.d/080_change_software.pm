@@ -9,7 +9,7 @@ use bmwqemu;
 sub is_applicable() {
     my $self = shift;
     return 0;    # FIXME
-    return $self->SUPER::is_applicable && !$ENV{LIVECD};
+    return $self->SUPER::is_applicable && !$envs->{LIVECD};
 }
 
 sub ocrconflict() {
@@ -22,8 +22,8 @@ sub ocrconflict() {
 
 sub run() {
     my $self = shift;
-    if ( $ENV{DOCRUN} || check_screen  "software-conflict", 1  || ocrconflict ) {
-        $cmd{software} = "alt-s" if $ENV{VIDEOMODE} eq "text";
+    if ( $envs->{DOCRUN} || check_screen  "software-conflict", 1  || ocrconflict ) {
+        $cmd{software} = "alt-s" if $envs->{VIDEOMODE} eq "text";
         send_key $cmd{change};      # Change
         send_key $cmd{software};    # Software
         waitidle;

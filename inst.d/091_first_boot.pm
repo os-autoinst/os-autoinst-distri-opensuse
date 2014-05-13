@@ -6,15 +6,15 @@ use bmwqemu;
 sub run() {
     my $self = shift;
 
-    if ( $ENV{ENCRYPT} ) {
+    if ( $envs->{ENCRYPT} ) {
         wait_encrypt_prompt;
     }
 
-    #if($ENV{RAIDLEVEL} && !$ENV{LIVECD}) { do "$scriptdir/workaround/656536.pm" }
+    #if($envs->{RAIDLEVEL} && !$envs->{LIVECD}) { do "$scriptdir/workaround/656536.pm" }
     #assert_screen "automaticconfiguration", 70;
     mouse_hide();
 
-    if ( $ENV{'NOAUTOLOGIN'} ) {
+    if ( $envs->{'NOAUTOLOGIN'} ) {
         assert_screen  'displaymanager', 200 ;
         type_string $username;
         send_key "ret";

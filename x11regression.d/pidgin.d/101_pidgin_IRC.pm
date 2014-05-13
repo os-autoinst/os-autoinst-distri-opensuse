@@ -7,7 +7,7 @@ my $IRC         = 7;
 my $CHANNELNAME = "susetesting";
 
 sub is_applicable() {
-    return $ENV{DESKTOP} =~ /kde|gnome/;
+    return $envs->{DESKTOP} =~ /kde|gnome/;
 }
 
 sub run() {

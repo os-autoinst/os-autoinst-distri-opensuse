@@ -3,15 +3,15 @@ use strict;
 use bmwqemu;
 
 sub is_applicable() {
-    return $ENV{ISO_MAXSIZE};
+    return $envs->{ISO_MAXSIZE};
 }
 
 sub run {
     my $self   = shift;
-    my $iso    = $ENV{ISO};
+    my $iso    = $envs->{ISO};
     my $size   = -s $iso;
     my $result = 'ok';
-    my $max    = $ENV{ISO_MAXSIZE};
+    my $max    = $envs->{ISO_MAXSIZE};
     if ( $size > $max ) {
         $result = 'fail';
     }

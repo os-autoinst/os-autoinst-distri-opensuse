@@ -2,14 +2,14 @@ use base "basetest";
 use bmwqemu;
 
 sub is_applicable() {
-    return !$ENV{LIVETEST};
+    return !$envs->{LIVETEST};
 }
 
 sub run() {
     my $self = shift;
 
     # 550_reboot_kde
-    if ( $ENV{DESKTOP} eq "kde" || $ENV{DESKTOP} eq "gnome" ) {
+    if ( $envs->{DESKTOP} eq "kde" || $envs->{DESKTOP} eq "gnome" ) {
         waitidle;
         send_key "ctrl-alt-delete";    # reboot
         assert_screen 'logoutdialog', 15;
@@ -21,7 +21,7 @@ sub run() {
     }
 
     # 550_reboot_xfce
-    if ( $ENV{DESKTOP} eq "xfce" ) {
+    if ( $envs->{DESKTOP} eq "xfce" ) {
         send_key "ctrl-alt-delete";    # reboot
         assert_screen 'logoutdialog', 15;
 
@@ -35,7 +35,7 @@ sub run() {
     }
 
     # 550_reboot_lxde
-    if ( $ENV{DESKTOP} eq "lxde" ) {
+    if ( $envs->{DESKTOP} eq "lxde" ) {
         waitidle;
 
         #send_key "ctrl-alt-delete"; # does open task manager instead of reboot
@@ -44,12 +44,12 @@ sub run() {
     }
 
     assert_screen  "bootloader", 100 ;    # wait until reboot
-    if ( $ENV{ENCRYPT} ) {
+    if ( $envs->{ENCRYPT} ) {
         wait_encrypt_prompt;
     }
 
     # 570_xfce_login_after_reboot
-    if ( $ENV{NOAUTOLOGIN} || $ENV{XDMUSED} ) {
+    if ( $envs->{NOAUTOLOGIN} || $envs->{XDMUSED} ) {
         assert_screen  'displaymanager', 200 ;
         waitidle;
 

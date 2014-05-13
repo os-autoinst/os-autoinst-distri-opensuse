@@ -2,7 +2,7 @@ use base "basetest";
 use bmwqemu;
 
 sub is_applicable() {
-    return $ENV{LVM};
+    return $envs->{LVM};
 }
 
 sub run() {
@@ -15,7 +15,7 @@ sub run() {
     sleep 2;
 
     send_key "alt-l", 1;    # enable LVM-based proposal
-    if ( $ENV{ENCRYPT} ) {
+    if ( $envs->{ENCRYPT} ) {
         send_key "alt-y", 1;
         assert_screen "inst-encrypt-password-prompt";
         sendpassword;

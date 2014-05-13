@@ -5,7 +5,7 @@ use autotest;
 #testcase 4158-1249067 move(cut) a file with nautilus
 
 sub is_applicable {
-    return ( $ENV{DESKTOP} eq "gnome" );
+    return ( $envs->{DESKTOP} eq "gnome" );
 }
 
 #this part contains the steps to run this test
