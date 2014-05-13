@@ -55,7 +55,7 @@ sub run() {
     # PW too easy (only chars)
     #send_key "ret";
     if ( $ENV{DOCRUN} ) {    # root user
-        waitidle;
+        wait_idle;
         for ( 1 .. 2 ) {
             type_string "$password\t";
             sleep 1;
@@ -64,11 +64,11 @@ sub run() {
         send_key $cmd{"next"};
 
         # loading cracklib
-        waitidle 6;
+        wait_idle 6;
 
         # PW too easy (cracklib)
         send_key "ret";
-        waitidle;
+        wait_idle;
     }
 }
 

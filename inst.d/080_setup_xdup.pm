@@ -10,7 +10,7 @@ sub run() {
 
     # wait booted
     sleep 30;
-    waitidle;
+    wait_idle;
 
     # log into text console
     send_key "ctrl-alt-f4";

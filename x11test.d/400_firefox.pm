@@ -6,18 +6,18 @@ sub run() {
     mouse_hide(1);
     x11_start_program("firefox");
     assert_screen 'test-firefox-1', 3;
-    if ( $ENV{UPGRADE} ) { send_key "alt-d"; waitidle; }    # dont check for updated plugins
+    if ( $ENV{UPGRADE} ) { send_key "alt-d"; wait_idle; }    # dont check for updated plugins
     if (0) {                                                # 4.0b10 changed default value - b12 has showQuitWarning
         send_key "ctrl-t";
         sleep 1;
         type_string "about:config\n";
         sleep 1;
         send_key "ret";
-        waitidle;
+        wait_idle;
         type_string "showQuit\n\t";
         sleep 1;
         send_key "ret";
-        waitidle;
+        wait_idle;
         send_key "ctrl-w";
         sleep 1;
     }

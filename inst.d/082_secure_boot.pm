@@ -24,7 +24,7 @@ sub run() {
     send_key $cmd{accept};        # Accept
     sleep 2;
     send_key "alt-o";             # cOntinue
-    waitidle;
+    wait_idle;
 }
 
 1;

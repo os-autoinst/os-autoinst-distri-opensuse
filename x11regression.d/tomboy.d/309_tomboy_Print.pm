@@ -33,7 +33,7 @@ sub run() {
                 #send_key "alt-p"; sleep 2; #FIXME
                 #send_key "alt-r"; sleep 5; #FIXME
 
-    waitidle;
+    wait_idle;
     assert_screen 'test-tomboy_Print-1', 3;
     sleep 2;
     send_key "ctrl-w";
@@ -42,7 +42,7 @@ sub run() {
     sleep 2;
     send_key "alt-f4";
     sleep 2;
-    waitidle;
+    wait_idle;
 }
 
 1;

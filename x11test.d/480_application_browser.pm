@@ -10,7 +10,7 @@ sub run() {
     x11_start_program("application-browser");
     assert_screen 'test-application_browser-1', 3;
     send_key "alt-f4";
-    waitidle;
+    wait_idle;
 }
 
 1;

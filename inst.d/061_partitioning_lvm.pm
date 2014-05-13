@@ -27,7 +27,7 @@ sub run() {
     else {
         assert_screen  "partition-lvm-summary", 3 ;
     }
-    waitidle 5;
+    wait_idle 5;
     send_key "alt-o";
 }
 

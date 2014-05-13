@@ -26,9 +26,9 @@ sub run() {
 
     # add /usr
     send_key $cmd{addpart};
-    waitidle 4;
+    wait_idle 4;
     send_key $cmd{"next"};
-    waitidle 3;
+    wait_idle 3;
     for ( 1 .. 10 ) {
         send_key "backspace";
     }

@@ -13,9 +13,9 @@ sub is_applicable() {
 sub addpart($$) {
     my ( $size, $type ) = @_;
     send_key $cmd{addpart};
-    waitidle 5;
+    wait_idle 5;
     send_key $cmd{"next"};
-    waitidle 5;
+    wait_idle 5;
 
     # the input point at the head of the lineedit, move it to the end
     if ( $ENV{GNOME} ) { send_key "end" }
@@ -23,19 +23,19 @@ sub addpart($$) {
         send_key "backspace";
     }
     type_string  $size . "mb" ;
-    waitidle 5;
+    wait_idle 5;
     send_key $cmd{"next"};
-    waitidle 5;
+    wait_idle 5;
     send_key $cmd{"donotformat"};
-    waitidle 5;
+    wait_idle 5;
     send_key "tab";
-    waitidle 5;
+    wait_idle 5;
 
     for ( 1 .. $type ) {
-        waitidle 5;
+        wait_idle 5;
         send_key "down";
     }
-    waitidle 5;
+    wait_idle 5;
     send_key $cmd{finish};
 }
 
@@ -58,9 +58,9 @@ sub addraid($;$) {
 
     # add
     send_key $cmd{"add"};
-    waitidle 3;
+    wait_idle 3;
     send_key $cmd{"next"};
-    waitidle 3;
+    wait_idle 3;
 
     # chunk size selection
     if ($chunksize) {
@@ -78,7 +78,7 @@ sub addraid($;$) {
         }
     }
     send_key $cmd{"next"};
-    waitidle 3;
+    wait_idle 3;
 }
 
 sub setraidlevel($) {
@@ -128,7 +128,7 @@ sub run() {
             send_key 'alt-o';
             $closedialog = 0;
         }
-        waitidle 5;
+        wait_idle 5;
     }
 
     if ( defined( $ENV{RAIDLEVEL} ) ) {
@@ -152,14 +152,14 @@ sub run() {
             send_key "right";    # unfold disks
         }
         send_key "down";         # select first disk
-        waitidle 5;
+        wait_idle 5;
 
         for ( 1 .. 4 ) {
-            waitidle 5;
+            wait_idle 5;
             addpart( 100, 3 );    # boot
-            waitidle 5;
+            wait_idle 5;
             addpart( 5300, 3 );    # root
-            waitidle 5;
+            wait_idle 5;
             addpart( 300, 3 );     # swap
             assert_screen  'raid-partition', 5 ;
 
@@ -176,7 +176,7 @@ sub run() {
 
         # select RAID add
         send_key $cmd{addraid};
-        waitidle 4;
+        wait_idle 4;
 
         if ( !defined( $ENV{RAIDLEVEL} ) ) { $ENV{RAIDLEVEL} = 6 }
         setraidlevel( $ENV{RAIDLEVEL} );
@@ -192,11 +192,11 @@ sub run() {
         else {
             send_key $cmd{"finish"};
         }
-        waitidle 3;
+        wait_idle 3;
 
         # select RAID add
         send_key $cmd{addraid};
-        waitidle 4;
+        wait_idle 4;
         setraidlevel(1);    # RAID 1 for /boot
         addraid(2);
 
@@ -216,11 +216,11 @@ sub run() {
             send_key $cmd{"finish"};
             send_key "spc";
         }
-        waitidle 3;
+        wait_idle 3;
 
         # select RAID add
         send_key $cmd{addraid};
-        waitidle 4;
+        wait_idle 4;
         setraidlevel(0);    # RAID 0 for swap
         addraid(1);
 
@@ -228,7 +228,7 @@ sub run() {
         send_key $cmd{filesystem};
         send_key "end";      # swap at end of list
         send_key $cmd{"finish"};
-        waitidle 3;
+        wait_idle 3;
 
         # done
         send_key $cmd{"accept"};
@@ -240,7 +240,7 @@ sub run() {
             $closedialog = 1;
         }
         if ( !check_screen 'usebtrfs' ) {
-            waitidle 3;
+            wait_idle 3;
             if ($newstyle) {
                 send_key "alt-f";
                 sleep 2;

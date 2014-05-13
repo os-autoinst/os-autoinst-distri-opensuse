@@ -23,7 +23,7 @@ sub run() {
     type_string "hehe";
     sleep 1;
     send_key "alt-f4";
-    waitidle;
+    wait_idle;
 
     send_key "alt-f9";
     sleep 2;
@@ -32,7 +32,7 @@ sub run() {
     assert_screen 'test-tomboy_TestFindFunctionalityInSearchAllNotes-1', 3;
     sleep 2;
     send_key "alt-f4";
-    waitidle;
+    wait_idle;
 
     # test Edit->preferences
     send_key "alt-f9";
@@ -46,7 +46,7 @@ sub run() {
     send_key "alt-f4";
     sleep 1;
     send_key "alt-f4";
-    waitidle;
+    wait_idle;
 
     # test Help->Contents
     send_key "alt-f9";
@@ -60,7 +60,7 @@ sub run() {
     send_key "alt-f4";
     sleep 1;
     send_key "alt-f4";
-    waitidle;
+    wait_idle;
 
     # test Help-> About
     send_key "alt-f9";
@@ -73,7 +73,7 @@ sub run() {
     send_key "alt-f4";
     sleep 1;
     send_key "alt-f4";
-    waitidle;
+    wait_idle;
 
     # test File->Close
     send_key "alt-f";
@@ -93,7 +93,7 @@ sub run() {
     send_key "alt-d";
     sleep 1;
     send_key "alt-f4";
-    waitidle;
+    wait_idle;
 }
 
 1;

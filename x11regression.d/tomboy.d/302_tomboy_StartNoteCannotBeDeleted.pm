@@ -24,7 +24,7 @@ sub run() {
     sleep 2;
     send_key "ret";
     sleep 2;
-    waitidle;
+    wait_idle;
     check_screen  "tomboy_delete_0", 5 ;    # to see if the delete buttom is avaiable
     sleep 2;
 
@@ -52,7 +52,7 @@ sub run() {
     send_key "tab";                          # move the cursor back to text.
     send_key "alt-f4";
     sleep 2;
-    waitidle;
+    wait_idle;
 }
 
 1;

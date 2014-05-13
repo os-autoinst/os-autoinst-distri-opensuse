@@ -12,7 +12,7 @@ sub run() {
     my $self = shift;
     x11_start_program("tracker-needle");
     sleep 2;
-    waitidle;    # extra wait because oo sometimes appears to be idle during start
+    wait_idle;    # extra wait because oo sometimes appears to be idle during start
     assert_screen 'test-tracker_open_apps-1', 3;
     type_string "cheese";
     sleep 2;
@@ -24,7 +24,7 @@ sub run() {
     sleep 2;
     send_key "ret";
     sleep 2;
-    waitidle;
+    wait_idle;
     assert_screen 'test-tracker_open_apps-3', 3;
     send_key "alt-f4";
     sleep 2;    #close cheese

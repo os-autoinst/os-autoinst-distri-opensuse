@@ -21,10 +21,10 @@ sub run() {
     mouse_hide();
     x11_start_program("firefox");
     assert_screen  "start-firefox", 5 ;
-    if ( $ENV{UPGRADE} ) { send_key "alt-d"; waitidle; }    # Don't check for updated plugins
+    if ( $ENV{UPGRADE} ) { send_key "alt-d"; wait_idle; }    # Don't check for updated plugins
     if ( $ENV{DESKTOP} =~ /xfce|lxde/i ) {
         send_key "ret";                                      # Confirm default browser setting popup
-        waitidle;
+        wait_idle;
     }
     send_key "alt-f10";                                      # Maximize
 

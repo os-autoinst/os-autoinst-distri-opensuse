@@ -10,7 +10,7 @@ sub run() {
 
     # start akonadi server avoid self-test running when launch kontact
     x11_start_program("akonadictl start");
-    waitidle 3;
+    wait_idle 3;
 
     # Workaround: sometimes the account assistant behind of mainwindow or tips window
     # To disable it run at first time start

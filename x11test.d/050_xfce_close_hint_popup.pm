@@ -9,7 +9,7 @@ sub run() {
     my $self = shift;
     assert_screen "XFCE", 30;
     send_key "alt-c";    # close hint popup
-    waitidle;
+    wait_idle;
 }
 
 1;

@@ -31,7 +31,7 @@ sub run() {
     send_key "alt-f4";
     sleep 2;
     send_key "ret";    # confirm "save&quit"
-    waitidle;
+    wait_idle;
 
     # re-open to see how long it takes to open all tabs together
     x11_start_program("firefox");

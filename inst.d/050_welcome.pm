@@ -8,7 +8,7 @@ sub run() {
 
     assert_screen  [qw/inst-welcome inst-betawarning/], 500 ;    # live cds can take quite a long time to boot
                                                                   # we can't just wait for the needle as the beta popup may appear delayed and we're doomed
-    waitidle(5);
+    wait_idle 5;
     my $ret = assert_screen  [qw/inst-welcome inst-betawarning/], 3 ;
 
     if ( $ret->{needle}->has_tag("inst-betawarning") ) {
@@ -27,7 +27,7 @@ sub run() {
     mouse_hide;
 
     #send_key "alt-o"; # beta warning
-    waitidle;
+    wait_idle;
 
     # license+lang
     if ( $ENV{HASLICENSE} ) {

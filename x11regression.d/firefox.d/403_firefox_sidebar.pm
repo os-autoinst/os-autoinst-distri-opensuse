@@ -21,10 +21,10 @@ sub run() {
     mouse_hide();
     x11_start_program("firefox");
     assert_screen  "start-firefox", 5 ;
-    if ( $ENV{UPGRADE} ) { send_key "alt-d"; waitidle; }    # dont check for updated plugins
+    if ( $ENV{UPGRADE} ) { send_key "alt-d"; wait_idle; }    # dont check for updated plugins
     if ( $ENV{DESKTOP} =~ /xfce|lxde/i ) {
         send_key "ret";                                      # confirm default browser setting popup
-        waitidle;
+        wait_idle;
     }
     send_key "ctrl-b";
     sleep 1;                                                #open the bookmark sidebar

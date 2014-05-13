@@ -14,13 +14,13 @@ sub run() {
     my $self = shift;
     mouse_hide();
     sleep 60;
-    waitidle;
+    wait_idle;
     ensure_installed("tomboy");
     send_key "ret";
     sleep 90;
     send_key "esc";
     sleep 5;
-    waitidle;
+    wait_idle;
 
     #$self->take_screenshot;
 }

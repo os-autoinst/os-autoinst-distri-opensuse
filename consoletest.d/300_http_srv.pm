@@ -8,19 +8,19 @@ sub run() {
 
     # Install apache2
     script_sudo("zypper -n -q in apache2");
-    waitidle(10);
+    wait_idle 10;
     assert_screen 'test-http_srv-1', 3;
 
     # After installation, apache2 is disabled
     script_sudo("systemctl status apache2.service | tee /dev/ttyS0 -");
-    waitidle(5);
-    die unless waitserial( ".*disable.*", 2 );
+    wait_idle 5;
+    die unless wait_serial  ".*disable.*", 2 ;
 
     # Now must be enabled
     script_sudo("systemctl start apache2.service");
     script_sudo("systemctl status apache2.service | tee /dev/ttyS0 -");
-    waitidle(5);
-    die if waitserial( ".*Syntax error.*", 2 );
+    wait_idle 5;
+    die if wait_serial  ".*Syntax error.*", 2 ;
     $self->take_screenshot;
 }
 

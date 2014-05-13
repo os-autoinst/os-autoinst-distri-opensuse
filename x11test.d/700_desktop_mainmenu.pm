@@ -24,7 +24,7 @@ sub run() {
     sleep 10 if $ENV{NICEVIDEO};
     assert_screen 'test-desktop_mainmenu-1', 3;
     send_key "esc";
-    waitidle;
+    wait_idle;
 }
 
 sub ocr_checklist() {

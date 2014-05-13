@@ -12,14 +12,14 @@ sub run() {
     my $self = shift;
     x11_start_program("nautilus");
     sleep 2;
-    waitidle;
+    wait_idle;
     assert_screen 'test-tracker_search_in_nautilus-1', 3;
     send_key "ctrl-f";
     sleep 2;
     type_string "newfile";
     send_key "ret";
     sleep 2;
-    waitidle;
+    wait_idle;
     assert_screen 'test-tracker_search_in_nautilus-2', 3;  # should open file newfile
     type_string "Hello world.\n";
     sleep 2;

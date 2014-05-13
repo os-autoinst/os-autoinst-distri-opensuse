@@ -25,12 +25,12 @@ sub run() {
     if ( $ret->{needle}->has_tag("test-zypper_up-confirm") ) {
         send_key "y\n";
     }
-    waitserial( "worked", 700 ) || die "zypper failed";
+    wait_serial  "worked", 700  || die "zypper failed";
     script_run("zypper patch -l && echo 'worked' > /dev/$serialdev");    # first one might only have installed "update-test-affects-package-manager"
     if ( check_screen "test-zypper_up-confirm" ) {
         type_string "y\n";
     }
-    waitserial( "worked", 700 ) || die "zypper failed";
+    wait_serial  "worked", 700  || die "zypper failed";
     script_run( "rpm -q libzypp zypper", 0 );
     check_screen  "rpm-q-libzypp", 5 ;
     $self->take_screenshot;

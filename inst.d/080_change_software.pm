@@ -26,7 +26,7 @@ sub run() {
         $cmd{software} = "alt-s" if $ENV{VIDEOMODE} eq "text";
         send_key $cmd{change};      # Change
         send_key $cmd{software};    # Software
-        waitidle;
+        wait_idle;
         for ( 1 .. 3 ) {
             send_key "down";
         }
@@ -35,7 +35,7 @@ sub run() {
         send_key $cmd{accept};      # Accept
         sleep 2;
         send_key "alt-o";           # cOntinue
-        waitidle;
+        wait_idle;
     }
 }
 

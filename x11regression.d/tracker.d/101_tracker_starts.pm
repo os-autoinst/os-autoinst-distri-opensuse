@@ -12,7 +12,7 @@ sub run() {
     my $self = shift;
     x11_start_program("tracker-needle");
     sleep 2;
-    waitidle;
+    wait_idle;
     assert_screen 'test-tracker_starts-1', 3;
     send_key "alt-f4";
     sleep 2;

@@ -11,12 +11,12 @@ sub run() {
     x11_start_program("gnucash");
     assert_screen 'test-gnucash-1', 3;
     send_key "ctrl-h";    # open user tutorial
-    waitidle 5;
+    wait_idle 5;
     assert_screen 'test-gnucash-2', 3;
     send_key "alt-f4";    # Leave tutorial window
                          # Leave tips windows for GNOME case
     if ( $ENV{DESKTOP} eq "gnome" || $ENV{DESKTOP} eq "xfce" ) { sleep 3; send_key "alt-c"; }
-    waitidle;
+    wait_idle;
     send_key "ctrl-q";    # Exit
 }
 

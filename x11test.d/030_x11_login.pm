@@ -12,7 +12,7 @@ sub run() {
     type_string $username. "\n";
     sleep 1;
     type_string $password. "\n";
-    waitidle;
+    wait_idle;
 }
 
 1;

@@ -57,7 +57,7 @@ sub run() {
     #			sleep 99;
     #			send_key "ctrl-d";
     #			script_run "umount /mnt";
-    #			waitidle;
+    #			wait_idle;
     #			sleep 20;
     #			send_key "ctrl-alt-f7";
     #			sleep 5;
