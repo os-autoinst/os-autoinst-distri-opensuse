@@ -43,7 +43,7 @@ sub run() {
         }
         mouse_hide(1);
     }
-    waitidle;
+    wait_idle;
     assert_screen 'test-consoletest_finish-1', 3;
 }
 

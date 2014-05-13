@@ -16,7 +16,7 @@ sub run() {
 
     # open tomboy
     x11_start_program("tomboy note");
-    waitidle;
+    wait_idle;
     assert_screen 'test-tomboy_AlreadyRunning-1', 3;
     sleep 2;
     send_key "alt-f4";
@@ -24,7 +24,7 @@ sub run() {
 
     # open again
     x11_start_program("tomboy note");
-    waitidle;
+    wait_idle;
     assert_screen 'test-tomboy_AlreadyRunning-2', 3;
     sleep 2;
     send_key "alt-f4";

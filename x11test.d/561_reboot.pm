@@ -10,7 +10,7 @@ sub run() {
 
     # 550_reboot_kde
     if ( $ENV{DESKTOP} eq "kde" || $ENV{DESKTOP} eq "gnome" ) {
-        waitidle;
+        wait_idle;
         send_key "ctrl-alt-delete";    # reboot
         assert_screen 'logoutdialog', 15;
         send_key "tab";
@@ -25,9 +25,9 @@ sub run() {
         send_key "ctrl-alt-delete";    # reboot
         assert_screen 'logoutdialog', 15;
 
-        #waitidle;
+        #wait_idle;
         #send_key "alt-f4"; # open popup
-        #waitidle;
+        #wait_idle;
         send_key "tab";    # reboot
         sleep 1;
         $self->take_screenshot;
@@ -36,7 +36,7 @@ sub run() {
 
     # 550_reboot_lxde
     if ( $ENV{DESKTOP} eq "lxde" ) {
-        waitidle;
+        wait_idle;
 
         #send_key "ctrl-alt-delete"; # does open task manager instead of reboot
         x11_start_program("xterm");
@@ -51,7 +51,7 @@ sub run() {
     # 570_xfce_login_after_reboot
     if ( $ENV{NOAUTOLOGIN} || $ENV{XDMUSED} ) {
         assert_screen  'displaymanager', 200 ;
-        waitidle;
+        wait_idle;
 
         # log in
         type_string $username. "\n";

@@ -34,8 +34,8 @@ sub run() {
     send_key "alt-o";       # confirm possible network manager warning
     send_key "alt-o";       # OK=>Save&Exit
     sleep 20;
-    waitidle();
-    waitidle(180);
+    wait_idle;
+    wait_idle 180;
 
     send_key "ret";
     send_key "ctrl-l";      # clear screen

@@ -13,7 +13,7 @@ sub is_applicable() {
 sub run() {
     my $self = shift;
     x11_start_program("pidgin");
-    waitidle;
+    wait_idle;
     sleep 2;
 
     # Create account
@@ -34,7 +34,7 @@ sub run() {
     type_string "$CHANNELNAME";
     sleep 2;
     send_key "alt-a";
-    waitidle;
+    wait_idle;
     sleep 10;
 
     # Should create IRC account
@@ -56,7 +56,7 @@ sub run() {
     type_string "sledtesting";
     sleep 2;
     send_key "alt-j";
-    waitidle;
+    wait_idle;
     sleep 10;
 
     # Should open sledtesting channel
@@ -72,7 +72,7 @@ sub run() {
     send_key "alt-d";
     sleep 2;
     send_key "alt-d";
-    waitidle;
+    wait_idle;
     sleep 2;
 
     # Should not have any account

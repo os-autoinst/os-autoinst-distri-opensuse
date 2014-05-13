@@ -13,7 +13,7 @@ sub run() {
     #script_run("zypper ar http://download.opensuse.org/repositories/Cloud:/EC2/openSUSE_Factory/Cloud:EC2.repo"); # for suse-ami-tools
     script_run("zypper --gpg-auto-import-keys -n in screen xdelta && echo 'installed' > /dev/$serialdev");
     waitserial( "installed", 200 ) || die "zypper install failed";
-    waitidle 5;
+    wait_idle 5;
     script_run('echo $?');
     assert_screen 'test-zypper_in-1', 3;
     sleep 5;

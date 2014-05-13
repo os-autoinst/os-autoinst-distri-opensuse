@@ -12,7 +12,7 @@ sub run() {
     my $self = shift;
     x11_start_program("xterm");
     sleep 2;
-    waitidle;
+    wait_idle;
     assert_screen 'test-tracker_by_command-1', 3;
     type_string "cd\n";
     type_string "tracker-search newfile\n";

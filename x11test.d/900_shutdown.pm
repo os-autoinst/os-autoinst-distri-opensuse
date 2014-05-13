@@ -40,7 +40,7 @@ sub run() {
         for ( 1 .. 5 ) {
             send_key "alt-f4";         # opens log out popup after all windows closed
         }
-        waitidle;
+        wait_idle;
         type_string "\t\t";          # select shutdown
         sleep 1;
 
@@ -55,7 +55,7 @@ sub run() {
 
     if ( $ENV{DESKTOP} =~ m/lxde|minimalx|textmode/ ) {
         qemusend "system_powerdown";    # shutdown
-        waitidle;
+        wait_idle;
 
         # assert_screen 'test-shutdown-2', 3;
         # send_key "ctrl-alt-f1"; # work-around for LXDE bug 619769 ; not needed in Factory anymore

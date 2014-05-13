@@ -11,7 +11,7 @@ sub run() {
     x11_start_program("xterm");
     script_run("ssh -XC root\@localhost xterm");
     type_string "yes\n";
-    waitidle(6);
+    wait_idle 6;
     type_string "$password\n";
     sleep 2;
     for ( 1 .. 13 ) { send_key "ret" }

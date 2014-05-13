@@ -18,7 +18,7 @@ sub run() {
         x11_start_program("touch $_");
         sleep 2;
     }
-    waitidle;
+    wait_idle;
 }
 
 1;

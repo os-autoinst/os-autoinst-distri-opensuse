@@ -29,7 +29,7 @@ sub run() {
     type_string "hehe";
     sleep 1;
     send_key "alt-f4";
-    waitidle;
+    wait_idle;
 
     # reopen it and undo again, check the last change still can be undo
     send_key "alt-f9";
@@ -45,7 +45,7 @@ sub run() {
     assert_screen 'test-tomboy_TestUndoRedoFeature-2', 3;
     sleep 1;
     send_key "alt-f4";
-    waitidle;
+    wait_idle;
 
     # Edit not and redo
     send_key "alt-f9";
@@ -67,7 +67,7 @@ sub run() {
     send_key "ctrl-z";
     sleep 1;
     send_key "alt-f4";
-    waitidle;
+    wait_idle;
 
     # Reopen it and redo
     send_key "alt-f9";
@@ -83,7 +83,7 @@ sub run() {
     assert_screen 'test-tomboy_TestUndoRedoFeature-4', 3;
     sleep 2;
     send_key "alt-f4";
-    waitidle;
+    wait_idle;
 
     # Delete the note
     send_key "alt-f9";
@@ -97,11 +97,11 @@ sub run() {
     send_key "alt-d";
     sleep 1;
     send_key "alt-f4";
-    waitidle;
+    wait_idle;
 
     # Kill tomboy note
     x11_start_program("killall -9 tomboy");
-    waitidle;
+    wait_idle;
 }
 
 1;

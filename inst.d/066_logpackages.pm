@@ -20,7 +20,7 @@ sub run() {
     assert_screen  "inst-packagestyped", 150 ;
     type_string "ls -lR /update\n";
     $self->take_screenshot;
-    waitidle;
+    wait_idle;
 
     #send_key "ctrl-d"; sleep 3;
     if ( checkEnv( 'VIDEOMODE', 'text' ) ) {

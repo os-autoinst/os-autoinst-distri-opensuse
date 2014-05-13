@@ -14,7 +14,7 @@ sub run() {
     assert_screen  "inst-overview", 15 ;
 
     # preserve it for the video
-    waitidle 10;
+    wait_idle 10;
 }
 
 1;

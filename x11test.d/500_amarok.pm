@@ -18,7 +18,7 @@ sub run() {
     assert_screen 'test-amarok-2', 3;
     send_key "ctrl-q";    # really quit (alt-f4 just backgrounds)
     sleep 2;
-    waitidle;
+    wait_idle;
     x11_start_program("killall amarok") unless $ENV{NICEVIDEO};    # to be sure that it does not interfere with later tests
 }
 

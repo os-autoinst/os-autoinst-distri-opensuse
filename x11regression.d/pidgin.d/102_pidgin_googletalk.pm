@@ -14,7 +14,7 @@ sub is_applicable() {
 sub run() {
     my $self = shift;
     x11_start_program("pidgin");
-    waitidle;
+    wait_idle;
     sleep 2;
 
     # Create account
@@ -39,7 +39,7 @@ sub run() {
     type_string "$PASSWD";
     sleep 2;
     send_key "alt-a";
-    waitidle;
+    wait_idle;
     sleep 15;
 
     # Should create GoogleTalk account
@@ -60,7 +60,7 @@ sub run() {
     sleep 2;
     type_string "hello world!\n";
     sleep 2;
-    waitidle;
+    wait_idle;
     sleep 10;
 
     # Should see "hello world!" in screen.
@@ -81,7 +81,7 @@ sub run() {
     send_key "alt-d";
     sleep 2;
     send_key "alt-d";
-    waitidle;
+    wait_idle;
     sleep 2;
 
     # Should not have any account

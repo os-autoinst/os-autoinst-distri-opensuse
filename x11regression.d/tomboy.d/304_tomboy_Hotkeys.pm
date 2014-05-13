@@ -31,7 +31,7 @@ sub run() {
     assert_screen 'test-tomboy_Hotkeys-1', 3;
     sleep 2;
     send_key "esc";
-    waitidle;
+    wait_idle;
     send_key "alt-f4";
 
     # logout
@@ -39,7 +39,7 @@ sub run() {
     sleep 1;
     type_string "gnome-session-quit --logout --force\n";
     sleep 20;
-    waitidle;
+    wait_idle;
 
     # login and open tomboy again
     send_key "ret";
@@ -49,13 +49,13 @@ sub run() {
     sleep 2;
     send_key "ret";
     sleep 20;
-    waitidle;
+    wait_idle;
     x11_start_program("tomboy note");
 
     # test hotkeys
     send_key "alt-f12";
     sleep 1;
-    waitidle;
+    wait_idle;
     assert_screen 'test-tomboy_Hotkeys-2', 3;
     sleep 1;
     send_key "esc";
@@ -65,7 +65,7 @@ sub run() {
     sleep 1;
     send_key "up";
     sleep 1;
-    waitidle;
+    wait_idle;
     assert_screen 'test-tomboy_Hotkeys-3', 3;
     sleep 1;
     send_key "ctrl-w";
@@ -73,7 +73,7 @@ sub run() {
 
     send_key "alt-f10";
     sleep 10;
-    waitidle;
+    wait_idle;
     assert_screen 'test-tomboy_Hotkeys-4', 3;
     sleep 1;
     send_key "alt-t";

@@ -12,7 +12,7 @@ sub run() {
     my $self = shift;
 
     # autoconf phase
-    # includes downloads, so waitidle is bad.
+    # includes downloads, so wait_idle is bad.
     assert_screen  "inst-instmode", 120 ;
 
     if ( $ENV{ADDONURL} ) {

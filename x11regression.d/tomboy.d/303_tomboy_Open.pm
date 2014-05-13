@@ -23,7 +23,7 @@ sub run() {
     type_string "Rename_";
     sleep 1;
     send_key "ctrl-w";
-    waitidle;
+    wait_idle;
 
     # Check hotkey for open "start here" still works
     send_key "alt-fll";
@@ -45,7 +45,7 @@ sub run() {
     sleep 1;
     type_string "gnome-session-quit --logout --force\n";
     sleep 20;
-    waitidle;
+    wait_idle;
 
     # login
     send_key "ret";
@@ -55,7 +55,7 @@ sub run() {
     sleep 2;
     send_key "ret";
     sleep 20;
-    waitidle;
+    wait_idle;
 
     # open start note again and take screenshot
     x11_start_program("tomboy note");
@@ -68,7 +68,7 @@ sub run() {
     sleep 2;
     send_key "alt-f4";
     sleep 2;
-    waitidle;
+    wait_idle;
 }
 
 1;

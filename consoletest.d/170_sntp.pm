@@ -11,7 +11,7 @@ sub run() {
     my $self = shift;
     script_run("cd /tmp ; wget -q openqa.opensuse.org/opensuse/qatests/qa_ntp.pl");
     script_sudo("perl qa_ntp.pl");
-    waitidle(90);
+    wait_idle 90;
     assert_screen 'test-sntp-1', 3;
     send_key "ctrl-l";    # clear screen
     script_run('echo sntp returned $?');
