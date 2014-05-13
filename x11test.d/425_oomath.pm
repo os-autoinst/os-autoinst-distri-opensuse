@@ -4,8 +4,8 @@ use bmwqemu;
 # test for bug https://bugs.freedesktop.org/show_bug.cgi?id=42301
 
 sub is_applicable() {
-    return 0 if $ENV{NICEVIDEO};
-    return $ENV{DESKTOP} =~ /kde|gnome/ && !$ENV{LIVECD};
+    return 0 if $vars{NICEVIDEO};
+    return $vars{DESKTOP} =~ /kde|gnome/ && !$vars{LIVECD};
 }
 
 sub run() {

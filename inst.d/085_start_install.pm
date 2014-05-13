@@ -7,7 +7,7 @@ sub run() {
     my $self = shift;
 
     # start install
-    if ( $ENV{UPGRADE} ) {
+    if ( $vars{UPGRADE} ) {
         send_key $cmd{update};
         sleep 1;
         my $ret = assert_screen  [qw/startupdate startupdate-conflict/], 5 ;
@@ -54,7 +54,7 @@ sub run() {
         send_key $cmd{install};
         assert_screen "inst-packageinstallationstarted";
     }
-    if ( !$ENV{LIVECD} && !$ENV{NICEVIDEO} && !$ENV{UPGRADE} && !checkEnv( 'VIDEOMODE', 'text' ) ) {
+    if ( !$vars{LIVECD} && !$vars{NICEVIDEO} && !$vars{UPGRADE} && !checkEnv( 'VIDEOMODE', 'text' ) ) {
         while (1) {
             my $ret = check_screen  [ 'installation-details-view', 'inst-bootmenu', 'grub2' ], 3 ;
             if ( defined($ret) ) {
@@ -64,7 +64,7 @@ sub run() {
             }
             send_key $cmd{instdetails};
         }
-        if ( $ENV{DVD} && !$ENV{NOIMAGES} ) {
+        if ( $vars{DVD} && !$vars{NOIMAGES} ) {
             if ( checkEnv( 'DESKTOP', 'kde' ) ) {
                 assert_screen  'kde-imagesused', 500 ;
             }

@@ -3,7 +3,7 @@ use strict;
 use bmwqemu;
 
 sub is_applicable() {
-    return $ENV{MEDIACHECK};
+    return $vars{MEDIACHECK};
 }
 
 sub run {

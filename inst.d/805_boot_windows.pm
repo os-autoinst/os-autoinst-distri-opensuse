@@ -2,7 +2,7 @@ use base "installstep";
 use bmwqemu;
 
 sub is_applicable() {
-    return $ENV{DUALBOOT};
+    return $vars{DUALBOOT};
 }
 
 sub run() {

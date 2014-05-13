@@ -5,7 +5,7 @@ use bmwqemu;
 
 sub is_applicable() {
     my $self = shift;
-    $self->SUPER::is_applicable && !$ENV{LIVECD} && !$ENV{NICEVIDEO} && !$ENV{UPGRADE};
+    $self->SUPER::is_applicable && !$vars{LIVECD} && !$vars{NICEVIDEO} && !$vars{UPGRADE};
 }
 
 sub run() {

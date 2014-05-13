@@ -4,7 +4,7 @@ use bmwqemu;
 # http://mozmill-crowd.blargon7.com/#/functional/reports
 
 sub is_applicable() {
-    return ( $ENV{MOZILLATEST} );
+    return ( $vars{MOZILLATEST} );
 }
 
 sub run() {

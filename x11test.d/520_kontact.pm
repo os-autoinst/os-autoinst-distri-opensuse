@@ -2,7 +2,7 @@ use base "basetest";
 use bmwqemu;
 
 sub is_applicable() {
-    return $ENV{DESKTOP} eq "kde";
+    return $vars{DESKTOP} eq "kde";
 }
 
 sub run() {

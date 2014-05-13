@@ -2,7 +2,7 @@ use base "basetest";
 use bmwqemu;
 
 sub is_applicable() {
-    return !$ENV{LIVECD};
+    return !$vars{LIVECD};
 }
 
 sub run() {

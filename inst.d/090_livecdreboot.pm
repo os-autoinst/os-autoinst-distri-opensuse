@@ -7,7 +7,7 @@ sub run() {
 
     # workaround for yast popups
     my @tags = qw/rebootnow/;
-    if ($ENV{UPGRADE}) {
+    if ($vars{UPGRADE}) {
       push(@tags, "ERROR-removing-package");
     }
     while (1) {
@@ -33,17 +33,17 @@ sub run() {
         last;
     }
 
-    if ( $ENV{LIVECD} ) {
+    if ( $vars{LIVECD} ) {
 
         # LiveCD needs confirmation for reboot
         send_key $cmd{"rebootnow"};
     }
 
     # XXX old stuff
-    #		if($ENV{XDEBUG} && assert_screen "the-system-will-reboot-now", 3000) {
+    #		if($vars{XDEBUG} && assert_screen "the-system-will-reboot-now", 3000) {
     #			send_key "alt-s";
     #			send_key "ctrl-alt-f2";
-    #			if(!$ENV{NET}) {
+    #			if(!$vars{NET}) {
     #				script_run "dhcpcd eth0";
     #				#ifconfig eth0 10.0.2.15
     #				#route add default gw 10.0.2.2
@@ -63,7 +63,7 @@ sub run() {
     #			sleep 5;
     #			send_key "alt-o";
     #		}
-    #		if($ENV{UPGRADE}) {
+    #		if($vars{UPGRADE}) {
     #			send_key "alt-n"; # ignore repos dialog
     #			waitstillimage(6,60);
     #		}

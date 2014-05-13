@@ -10,7 +10,7 @@ my $DOMAIN   = "hotmail";
 my $PASSWD   = "OPENsuse";
 
 sub is_applicable() {
-    return $ENV{DESKTOP} =~ /kde|gnome/;
+    return $vars{DESKTOP} =~ /kde|gnome/;
 }
 
 sub run() {

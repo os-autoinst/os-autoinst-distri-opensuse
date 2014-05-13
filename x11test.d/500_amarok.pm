@@ -2,7 +2,7 @@ use base "basetest";
 use bmwqemu;
 
 sub is_applicable() {
-    return $ENV{DESKTOP} eq "kde";
+    return $vars{DESKTOP} eq "kde";
 }
 
 sub run() {
@@ -19,7 +19,7 @@ sub run() {
     send_key "ctrl-q";    # really quit (alt-f4 just backgrounds)
     sleep 2;
     wait_idle;
-    x11_start_program("killall amarok") unless $ENV{NICEVIDEO};    # to be sure that it does not interfere with later tests
+    x11_start_program("killall amarok") unless $vars{NICEVIDEO};    # to be sure that it does not interfere with later tests
 }
 
 1;

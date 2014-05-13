@@ -2,7 +2,7 @@ use base "basetest";
 use bmwqemu;
 
 sub is_applicable() {
-    return $ENV{DVD};
+    return $vars{DVD};
 }
 
 sub run() {

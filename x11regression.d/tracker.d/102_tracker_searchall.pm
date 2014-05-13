@@ -5,7 +5,7 @@ use bmwqemu;
 # Modify to : Tracker: Seach all date with tracker-needle
 
 sub is_applicable() {
-    return $ENV{DESKTOP} =~ /kde|gnome/;
+    return $vars{DESKTOP} =~ /kde|gnome/;
 }
 
 sub run() {

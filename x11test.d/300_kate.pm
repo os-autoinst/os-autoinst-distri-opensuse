@@ -6,7 +6,7 @@ use bmwqemu;
 
 # this function decides if the test shall run
 sub is_applicable {
-    return ( $ENV{DESKTOP} eq "kde" );
+    return ( $vars{DESKTOP} eq "kde" );
 }
 
 # this part contains the steps to run this test
