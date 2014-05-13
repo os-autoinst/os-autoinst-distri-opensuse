@@ -31,11 +31,11 @@ sub run() {
         return;
     }
     if ( $vars{PROMO} ) {
-        if ( checkEnv( "DESKTOP", "gnome" ) ) {
+        if ( check_var( "DESKTOP", "gnome" ) ) {
             send_key "down" unless $vars{OSP_SPECIAL};
             send_key "down";
         }
-        elsif ( checkEnv( "DESKTOP", "kde" ) ) {
+        elsif ( check_var( "DESKTOP", "kde" ) ) {
 
             # KDE is first entry for OSP image
             send_key "down" unless $vars{OSP_SPECIAL};
@@ -64,7 +64,7 @@ sub run() {
     if ( $vars{RES1024} ) {    # default is 800x600
         type_string "video=1024x768-16 ";
     }
-    elsif ( checkEnv( 'VIDEOMODE', "text" ) ) {
+    elsif ( check_var( 'VIDEOMODE', "text" ) ) {
         type_string "textmode=1 ";
     }
 

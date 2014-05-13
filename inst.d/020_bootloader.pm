@@ -58,11 +58,11 @@ sub run() {
     }
     else {
         if ( $vars{PROMO} ) {
-            if ( checkEnv( "DESKTOP", "gnome" ) ) {
+            if ( check_var( "DESKTOP", "gnome" ) ) {
                 send_key "down" unless $vars{OSP_SPECIAL};
                 send_key "down";
             }
-            elsif ( checkEnv( "DESKTOP", "kde" ) ) {
+            elsif ( check_var( "DESKTOP", "kde" ) ) {
                 send_key "down" unless $vars{OSP_SPECIAL};
                 send_key "down";
                 send_key "down";
@@ -80,7 +80,7 @@ sub run() {
         assert_screen "inst-resolutiondetected";
         send_key "ret";
     }
-    elsif ( checkEnv( 'VIDEOMODE', "text" ) ) {
+    elsif ( check_var( 'VIDEOMODE', "text" ) ) {
         send_key "f3";
         for ( 1 .. 2 ) {
             send_key "up";

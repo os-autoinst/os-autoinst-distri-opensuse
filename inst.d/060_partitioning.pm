@@ -116,7 +116,7 @@ sub run() {
 
     # XXX: why is that here?
     if ( $vars{TOGGLEHOME} && !$vars{LIVECD} ) {
-        my $homekey = checkEnv( 'VIDEOMODE', "text" ) ? "alt-p" : "alt-h";
+        my $homekey = check_var( 'VIDEOMODE', "text" ) ? "alt-p" : "alt-h";
         if ($newstyle) {
             send_key 'alt-d';
             $closedialog = 1;

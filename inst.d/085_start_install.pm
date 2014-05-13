@@ -54,7 +54,7 @@ sub run() {
         send_key $cmd{install};
         assert_screen "inst-packageinstallationstarted";
     }
-    if ( !$vars{LIVECD} && !$vars{NICEVIDEO} && !$vars{UPGRADE} && !checkEnv( 'VIDEOMODE', 'text' ) ) {
+    if ( !$vars{LIVECD} && !$vars{NICEVIDEO} && !$vars{UPGRADE} && !check_var( 'VIDEOMODE', 'text' ) ) {
         while (1) {
             my $ret = check_screen  [ 'installation-details-view', 'inst-bootmenu', 'grub2' ], 3 ;
             if ( defined($ret) ) {
@@ -65,13 +65,13 @@ sub run() {
             send_key $cmd{instdetails};
         }
         if ( $vars{DVD} && !$vars{NOIMAGES} ) {
-            if ( checkEnv( 'DESKTOP', 'kde' ) ) {
+            if ( check_var( 'DESKTOP', 'kde' ) ) {
                 assert_screen  'kde-imagesused', 500 ;
             }
-            elsif ( checkEnv( 'DESKTOP', 'gnome' ) ) {
+            elsif ( check_var( 'DESKTOP', 'gnome' ) ) {
                 assert_screen  'gnome-imagesused', 500 ;
             }
-            elsif ( !checkEnv( "DESKTOP", "textmode" ) ) {
+            elsif ( !check_var( "DESKTOP", "textmode" ) ) {
                 assert_screen  'x11-imagesused', 500 ;
             }
         }

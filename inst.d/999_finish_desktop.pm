@@ -26,7 +26,7 @@ sub run() {
     assert_screen  "desktop-at-first-boot", $timeout ;
 
     ## duplicated from second stage, combine!
-    if ( checkEnv( 'DESKTOP', 'kde' ) ) {
+    if ( check_var( 'DESKTOP', 'kde' ) ) {
         send_key "esc";
         sleep 2;
         $self->take_screenshot();

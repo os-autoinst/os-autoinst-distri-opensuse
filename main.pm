@@ -61,7 +61,7 @@ sub unregister_needle_tags($) {
 
 sub remove_desktop_needles($) {
     my $desktop = shift;
-    if ( !checkEnv( "DESKTOP", $desktop ) ) {
+    if ( !check_var( "DESKTOP", $desktop ) ) {
         unregister_needle_tags("ENV-DESKTOP-$desktop");
     }
 }
@@ -80,7 +80,7 @@ sub cleanup_needles() {
     else {
         unregister_needle_tags("ENV-LIVECD-0");
     }
-    if ( !checkEnv( "VIDEOMODE", "text" ) ) {
+    if ( !check_var( "VIDEOMODE", "text" ) ) {
         unregister_needle_tags("ENV-VIDEOMODE-text");
     }
     if ( $vars{INSTLANG} && $vars{INSTLANG} ne "en_US" ) {
@@ -108,14 +108,14 @@ check_env();
 setrandomenv if ( $vars{RANDOMENV} );
 
 unless ( $vars{DESKTOP} ) {
-    if ( checkEnv( "VIDEOMODE", "text" ) ) {
+    if ( check_var( "VIDEOMODE", "text" ) ) {
         $vars{DESKTOP} = "textmode";
     }
     else {
         $vars{DESKTOP} = "kde";
     }
 }
-if ( checkEnv( 'DESKTOP', 'minimalx' ) ) {
+if ( check_var( 'DESKTOP', 'minimalx' ) ) {
     $vars{'NOAUTOLOGIN'} = 1;
     $vars{XDMUSED} = 1;
 }
