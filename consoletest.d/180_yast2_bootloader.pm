@@ -16,7 +16,7 @@ sub run() {
     assert_screen 'exited-bootloader', 15;
     send_key "ctrl-l";
     script_run('echo "EXIT-$?" > /dev/serial');
-    die unless waitserial( "EXIT-0", 2 );
+    die unless wait_serial  "EXIT-0", 2 ;
     script_run('rpm -q hwinfo');
     $self->take_screenshot;
 }
