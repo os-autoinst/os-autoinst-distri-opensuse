@@ -15,8 +15,20 @@ sub run() {
         assert_screen 'logoutdialog', 15;
         send_key "tab";
         send_key "tab";
-        sleep 1;
-        $self->take_screenshot;
+        my $ret;
+        for (my $counter = 10; $counter > 0; $counter--) {
+            $ret = check_screen  "logoutdialog-reboot-highlighted", 3 ;
+            if ( defined($ret) ) {
+                last;
+            }
+            else {
+                send_key "tab";
+            }
+        }
+        # report the failure or green
+        unless ( defined($ret) ) {
+            assert_screen  "logoutdialog-reboot-highlighted", 1 ;
+        }
         send_key "ret";                # confirm
     }
 
@@ -29,7 +41,6 @@ sub run() {
         #send_key "alt-f4"; # open popup
         #wait_idle;
         send_key "tab";    # reboot
-        sleep 1;
         $self->take_screenshot;
         send_key "ret";    # confirm
     }
@@ -55,7 +66,6 @@ sub run() {
 
         # log in
         type_string $username. "\n";
-        sleep 1;
         type_string $password. "\n";
     }
 
