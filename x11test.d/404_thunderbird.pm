@@ -7,7 +7,7 @@ sub is_applicable() {
 
 sub run() {
     my $self = shift;
-    ensure_installed("thunderbird");
+    ensure_installed("MozillaThunderbird");
     x11_start_program("thunderbird");
     assert_screen 'test-thunderbird-1', 3;
     send_key "alt-f4", 1;    # close wizzard
