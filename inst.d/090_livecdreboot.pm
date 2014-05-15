@@ -84,8 +84,6 @@ sub run() {
     unless ( defined($ret) ) {
       assert_screen [ 'inst-bootmenu', 'grub2' ], 1 ;
     }
-    qemusend "eject ide1-cd0";
-    sleep 3;
 }
 
 1;
