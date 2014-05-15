@@ -5,12 +5,9 @@ sub run() {
     my $self = shift;
     become_root();
 
-    # cdrom is ejected already, disabled cdrom repo in zypper
-    script_run("zypper mr -d -R -m cd");
     script_run("zypper lr -d > /dev/$serialdev");
-    script_run("killall gpk-update-icon kpackagekitsmarticon packagekitd");
+    script_run("killall packagekitd");
 
-    #script_run("zypper ar http://download.opensuse.org/repositories/Cloud:/EC2/openSUSE_Factory/Cloud:EC2.repo"); # for suse-ami-tools
     script_run("zypper --gpg-auto-import-keys -n in screen xdelta && echo 'installed' > /dev/$serialdev");
     wait_serial  "installed", 200  || die "zypper install failed";
     wait_idle 5;

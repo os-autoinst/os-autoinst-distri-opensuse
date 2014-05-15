@@ -19,7 +19,6 @@ sub run() {
     my $self = shift;
     send_key "ctrl-alt-f3";
     sleep 4;
-    qemusend "eject ide1-cd0";
     send_key "ctrl-alt-delete";
 
     wait_encrypt_prompt;
