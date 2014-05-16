@@ -13,7 +13,7 @@ sub run() {
     my $self = shift;
     mouse_hide();
     x11_start_program("firefox");
-    assert_screen  "start-firefox", 5;
+    assert_screen "start-firefox", 5;
     if ( $vars{UPGRADE} ) { send_key "alt-d"; wait_idle; }    # dont check for updated plugins
     if ( $vars{DESKTOP} =~ /xfce|lxde/i ) {
         send_key "ret";                                      # confirm default browser setting popup
@@ -26,14 +26,14 @@ sub run() {
     #login mail.google.com
     type_string "mail.google.com\n";
     sleep 4;
-    check_screen  "firefox_page-gmail1", 5;
+    check_screen "firefox_page-gmail1", 5;
     type_string "nooops6";
     sleep 1;
     send_key "tab";
     sleep 1;
     type_string "opensuse\n";
     sleep 6;
-    check_screen  "firefox_page-gmail2", 5;
+    check_screen "firefox_page-gmail2", 5;
     send_key "alt-r";
     sleep 1;    #remember password
     send_key "r";
@@ -52,7 +52,7 @@ sub run() {
     sleep 2;
     type_string "mail.google.com\n";
     sleep 5;
-    check_screen  "firefox_page-gmail3", 5;
+    check_screen "firefox_page-gmail3", 5;
 
     #recover all the changes
     #    send_key "alt-e"; sleep 1;

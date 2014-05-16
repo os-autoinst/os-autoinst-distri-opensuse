@@ -25,7 +25,7 @@ sub run() {
 
     # Launch firefox
     x11_start_program("firefox");
-    assert_screen  "start-firefox", 5;
+    assert_screen "start-firefox", 5;
     if ( $vars{UPGRADE} ) { send_key "alt-d"; wait_idle; }    # Don't check for updated plugins
     if ( $vars{DESKTOP} =~ /xfce|lxde/i ) {
         send_key "ret";                                      # Confirm default browser setting popup
@@ -37,7 +37,7 @@ sub run() {
     # Open static html page
     send_key "ctrl-o";
     sleep 1;                                                #"Open File" window
-    check_screen  "test-firefox-openfile-1", 5;
+    check_screen "test-firefox-openfile-1", 5;
 
     # Find index.html file to open
     send_key "left";
@@ -48,7 +48,7 @@ sub run() {
     sleep 2;
     type_string "index\n";                                 # Find file index.html and open it
     sleep 5;
-    check_screen  "test-firefox_lcoalpage-1", 5;
+    check_screen "test-firefox_lcoalpage-1", 5;
 
     # Restore and close
     send_key "alt-f4";

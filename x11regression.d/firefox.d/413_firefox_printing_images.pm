@@ -26,7 +26,7 @@ sub run() {
 
     # Launch firefox
     x11_start_program("firefox");
-    assert_screen  "start-firefox", 5;
+    assert_screen "start-firefox", 5;
     if ( $vars{UPGRADE} ) { send_key "alt-d"; wait_idle; }    # Don't check for updated plugins
     if ( $vars{DESKTOP} =~ /xfce|lxde/i ) {
         send_key "ret";                                      # Confirm default browser setting popup
@@ -77,7 +77,7 @@ sub run() {
         send_key "f5";
         sleep 2;    # Slide mode
 
-        check_screen  "test-firefox_printing_images-" . $_->{name}, 5;
+        check_screen "test-firefox_printing_images-" . $_->{name}, 5;
         sleep 1;
 
         send_key "esc";

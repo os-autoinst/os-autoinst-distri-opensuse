@@ -11,9 +11,9 @@ sub run() {
     my $self = shift;
 
     # hardware detection can take a while
-    assert_screen  "select-for-update", 100;
+    assert_screen "select-for-update", 100;
     send_key $cmd{"next"}, 1;
-    assert_screen  "remove-repository", 10;
+    assert_screen "remove-repository", 10;
     send_key $cmd{"next"}, 1;
     if (check_screen('network-not-configured', 5)) {
         send_key 'alt-n';
@@ -26,7 +26,7 @@ sub run() {
         send_key 'alt-n';
         ++$self->{dents};
     }
-    assert_screen  "update-installation-overview", 15;
+    assert_screen "update-installation-overview", 15;
 }
 
 1;

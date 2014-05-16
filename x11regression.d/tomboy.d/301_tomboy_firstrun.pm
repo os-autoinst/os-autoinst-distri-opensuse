@@ -15,7 +15,7 @@ sub run() {
     my $self = shift;
     mouse_hide();
     x11_start_program("tomboy note");
-    while ( check_screen  "tomboy_command_not_found", 5  ) {
+    while ( check_screen "tomboy_command_not_found", 5  ) {
         sleep 30;
         send_key "ret";
         sleep 1;
@@ -25,7 +25,7 @@ sub run() {
     # open the menu
     send_key "alt-f12";
     sleep 2;
-    check_screen  "tomboy_menu", 5;
+    check_screen "tomboy_menu", 5;
     sleep 2;
     send_key "esc";
     sleep 3;

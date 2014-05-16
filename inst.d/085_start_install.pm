@@ -10,7 +10,7 @@ sub run() {
     if ( $vars{UPGRADE} ) {
         send_key $cmd{update};
         sleep 1;
-        my $ret = assert_screen  [qw/startupdate startupdate-conflict/], 5;
+        my $ret = assert_screen [qw/startupdate startupdate-conflict/], 5;
 
         while ( $ret->{needle}->has_tag("startupdate-conflict") ) {
             $self->take_screenshot;
@@ -18,20 +18,20 @@ sub run() {
 
             send_key $cmd{change}, 1;
             send_key $cmd{"package"}, 1;
-            assert_screen  "package-conflict", 5;
+            assert_screen "package-conflict", 5;
             $self->take_screenshot;
             send_key "alt-1", 1;    # We hope that zypper makes the best suggestion here
             send_key $cmd{ok}, 1;
 
-            assert_screen  "package-resolve-conflict", 5;
+            assert_screen "package-resolve-conflict", 5;
             send_key $cmd{accept}, 1;
 
-            assert_screen  "automatic-changes", 5;
+            assert_screen "automatic-changes", 5;
             send_key $cmd{"continue"}, 1;
 
             send_key $cmd{update};
             sleep 1;
-            $ret = assert_screen  [qw/startupdate startupdate-conflict/], 5;
+            $ret = assert_screen [qw/startupdate startupdate-conflict/], 5;
         }
 
         # confirm
@@ -56,23 +56,23 @@ sub run() {
     }
     if ( !$vars{LIVECD} && !$vars{NICEVIDEO} && !$vars{UPGRADE} && !check_var( 'VIDEOMODE', 'text' ) ) {
         while (1) {
-            my $ret = check_screen  [ 'installation-details-view', 'inst-bootmenu', 'grub2' ], 3;
+            my $ret = check_screen [ 'installation-details-view', 'inst-bootmenu', 'grub2' ], 3;
             if ( defined($ret) ) {
                 last if $ret->{needle}->has_tag("installation-details-view");
                 # intention to let this test fail
-                assert_screen  'installation-details-view', 1  if ( $ret->{needle}->has_tag("inst-bootmenu") || $ret->{needle}->has_tag("grub2") );
+                assert_screen 'installation-details-view', 1  if ( $ret->{needle}->has_tag("inst-bootmenu") || $ret->{needle}->has_tag("grub2") );
             }
             send_key $cmd{instdetails};
         }
         if ( $vars{DVD} && !$vars{NOIMAGES} ) {
             if ( check_var( 'DESKTOP', 'kde' ) ) {
-                assert_screen  'kde-imagesused', 500;
+                assert_screen 'kde-imagesused', 500;
             }
             elsif ( check_var( 'DESKTOP', 'gnome' ) ) {
-                assert_screen  'gnome-imagesused', 500;
+                assert_screen 'gnome-imagesused', 500;
             }
             elsif ( !check_var( "DESKTOP", "textmode" ) ) {
-                assert_screen  'x11-imagesused', 500;
+                assert_screen 'x11-imagesused', 500;
             }
         }
     }

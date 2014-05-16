@@ -20,7 +20,7 @@ sub run() {
     my $self = shift;
     mouse_hide();
     x11_start_program("firefox");
-    assert_screen  "start-firefox", 5;
+    assert_screen "start-firefox", 5;
     if ( $vars{UPGRADE} ) { send_key "alt-d"; wait_idle; }    # Don't check for updated plugins
     if ( $vars{DESKTOP} =~ /xfce|lxde/i ) {
         send_key "ret";                                      # Confirm default browser setting popup
@@ -35,21 +35,21 @@ sub run() {
     sleep 1;
     type_string "https://www.novell.com\n";
     sleep 25;
-    check_screen  "test-firefox_url-novell-1", 5;
+    check_screen "test-firefox_url-novell-1", 5;
 
     # Switch to communities and enter the link
     send_key "apostrophe";
     sleep 1;    #open quick find (links only)
     type_string "communities\n";
     sleep 10;
-    check_screen  "test-firefox_url-novell-2", 5;
+    check_screen "test-firefox_url-novell-2", 5;
 
     # http://www.wikipedia.org
     send_key "alt-d";
     sleep 1;
     type_string "www.wikipedia.org\n";
     sleep 10;
-    check_screen  "test-firefox_url-wikipedia-1", 5;
+    check_screen "test-firefox_url-wikipedia-1", 5;
 
     # Switch to "Deutsch", enter the link
     send_key "tab";
@@ -58,7 +58,7 @@ sub run() {
     sleep 2;          #open quick find (links only)
     type_string "Deutsch\n";
     sleep 7;
-    check_screen  "test-firefox_url-wikipedia-2", 5;
+    check_screen "test-firefox_url-wikipedia-2", 5;
 
     # http://maps.google.com
     send_key "alt-d";
@@ -66,7 +66,7 @@ sub run() {
     type_string "maps.google.com\n";
     sleep 15;
     send_key "tab";    #remove the focus from input box
-    check_screen  "test-firefox_url-googlemaps-1", 5;
+    check_screen "test-firefox_url-googlemaps-1", 5;
     sleep 2;
 
     # Switch to "SIGN IN", enter the link
@@ -74,7 +74,7 @@ sub run() {
     sleep 2;          #open quick find (links only)
     type_string "sign in\n";
     sleep 7;
-    check_screen  "test-firefox_url-googlemaps-2", 5;
+    check_screen "test-firefox_url-googlemaps-2", 5;
 
     # Restore and close firefox
     send_key "alt-f4";

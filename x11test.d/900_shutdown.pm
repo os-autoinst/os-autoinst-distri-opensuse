@@ -15,7 +15,7 @@ sub run() {
         return; # we don't want qemu "to crash"
 
         type_string "\t";
-        assert_screen  "kde-turn-off-selected", 2;
+        assert_screen "kde-turn-off-selected", 2;
         type_string "\n";
         waitforneedle( "splashscreen", 40 );
     }

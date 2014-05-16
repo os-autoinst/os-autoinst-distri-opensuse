@@ -11,7 +11,7 @@ sub run() {
         push(@tags, "ERROR-removing-package");
     }
     while (1) {
-        my $ret = assert_screen  \@tags, 2000;    # NET isos and UPGRADE are slow to install
+        my $ret = assert_screen \@tags, 2000;    # NET isos and UPGRADE are slow to install
 
         if ( $ret->{needle}->has_tag("popup-warning") ) {
             ++$self->{dents};
@@ -74,7 +74,7 @@ sub run() {
     # should assert_screen wait for all three at the same time and then have only check_screen afterwards?
     my $ret;
     for (my $counter = 20; $counter > 0; $counter--) {
-        $ret = check_screen  [ 'inst-bootmenu', 'grub2' ], 3;
+        $ret = check_screen [ 'inst-bootmenu', 'grub2' ], 3;
         if ( defined($ret) ) {
             send_key "ret";    # avoid timeout for booting to HDD
             last;

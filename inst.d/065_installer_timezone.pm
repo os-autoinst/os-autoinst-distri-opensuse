@@ -9,7 +9,7 @@ sub is_applicable() {
 }
 
 sub run() {
-    assert_screen  "inst-timezone", 125  || die 'no timezone';
+    assert_screen "inst-timezone", 125  || die 'no timezone';
     send_key $cmd{"next"};
 }
 

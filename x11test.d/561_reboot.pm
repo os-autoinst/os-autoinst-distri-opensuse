@@ -17,7 +17,7 @@ sub run() {
         send_key "tab";
         my $ret;
         for (my $counter = 10; $counter > 0; $counter--) {
-            $ret = check_screen  "logoutdialog-reboot-highlighted", 3;
+            $ret = check_screen "logoutdialog-reboot-highlighted", 3;
             if ( defined($ret) ) {
                 last;
             }
@@ -27,7 +27,7 @@ sub run() {
         }
         # report the failure or green
         unless ( defined($ret) ) {
-            assert_screen  "logoutdialog-reboot-highlighted", 1;
+            assert_screen "logoutdialog-reboot-highlighted", 1;
         }
         send_key "ret";                # confirm
     }
@@ -54,14 +54,14 @@ sub run() {
         script_sudo "/sbin/reboot", 0;
     }
 
-    assert_screen  "bootloader", 100;    # wait until reboot
+    assert_screen "bootloader", 100;    # wait until reboot
     if ( $vars{ENCRYPT} ) {
         wait_encrypt_prompt;
     }
 
     # 570_xfce_login_after_reboot
     if ( $vars{NOAUTOLOGIN} || $vars{XDMUSED} ) {
-        assert_screen  'displaymanager', 200;
+        assert_screen 'displaymanager', 200;
         wait_idle;
 
         # log in

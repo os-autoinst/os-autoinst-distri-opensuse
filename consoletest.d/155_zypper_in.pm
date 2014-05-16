@@ -9,7 +9,7 @@ sub run() {
     script_run("killall packagekitd");
 
     script_run("zypper --gpg-auto-import-keys -n in screen xdelta && echo 'installed' > /dev/$serialdev");
-    wait_serial  "installed", 200  || die "zypper install failed";
+    wait_serial "installed", 200  || die "zypper install failed";
     wait_idle 5;
     script_run('echo $?');
     assert_screen 'test-zypper_in-1', 3;

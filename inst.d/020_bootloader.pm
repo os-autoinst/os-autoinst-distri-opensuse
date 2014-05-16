@@ -14,13 +14,13 @@ sub run() {
         return;
     }
     if ( $vars{USBBOOT} ) {
-        assert_screen  "boot-menu", 1;
+        assert_screen "boot-menu", 1;
         send_key "f12";
-        assert_screen  "boot-menu-usb", 4;
+        assert_screen "boot-menu-usb", 4;
         send_key( 2 + $vars{NUMDISKS} );
     }
 
-    assert_screen  "inst-bootmenu", 15;
+    assert_screen "inst-bootmenu", 15;
     if ( $vars{ZDUP} || $vars{WDUP} ) {
         qemusend "eject -f ide1-cd0";
         qemusend "system_reset";
@@ -34,7 +34,7 @@ sub run() {
         for ( 1 .. 6 ) {
             send_key "down";
         }
-        assert_screen  "inst-onmemtest", 3;
+        assert_screen "inst-onmemtest", 3;
         send_key "ret";
         sleep 6000;
         exit 0;               # done
@@ -53,7 +53,7 @@ sub run() {
             send_key "down";    # upgrade
             send_key "down";    # rescue
             send_key "down";    # media check
-            assert_screen  "inst-onmediacheck", 3;
+            assert_screen "inst-onmediacheck", 3;
         }
 
     }
@@ -86,7 +86,7 @@ sub run() {
         for ( 1 .. 2 ) {
             send_key "up";
         }
-        assert_screen  "inst-textselected", 5;
+        assert_screen "inst-textselected", 5;
         send_key "ret";
     }
 
@@ -96,17 +96,17 @@ sub run() {
     # https://wiki.archlinux.org/index.php/Kernel_Mode_Setting#Forcing_modes_and_EDID
     type_string "vga=791 ";
     type_string "Y2DEBUG=1 ";
-    type_string  "video=1024x768-16 ",                              13;
-    type_string  "drm_kms_helper.edid_firmware=edid/1024x768.bin ", 7;
-    assert_screen  "inst-video-typed", 13;
+    type_string "video=1024x768-16 ",                              13;
+    type_string "drm_kms_helper.edid_firmware=edid/1024x768.bin ", 7;
+    assert_screen "inst-video-typed", 13;
     if ( !$vars{NICEVIDEO} ) {
-        type_string  "console=ttyS0 ", 7;    # to get crash dumps as text
-        type_string  "console=tty ",   7;    # to get crash dumps as text
-        assert_screen  "inst-consolesettingstyped", 30;
+        type_string "console=ttyS0 ", 7;    # to get crash dumps as text
+        type_string "console=tty ",   7;    # to get crash dumps as text
+        assert_screen "inst-consolesettingstyped", 30;
         my $e = $vars{EXTRABOOTPARAMS};
 
         #	if($vars{RAIDLEVEL}) {$e="linuxrc=trace"}
-        if ($e) { type_string  "$e ", 13; sleep 10; }
+        if ($e) { type_string "$e ", 13; sleep 10; }
     }
 
     #type_string "kiwidebug=1 ";
@@ -114,9 +114,9 @@ sub run() {
     # set HTTP-source to not use factory-snapshot
     if ( $vars{NETBOOT} ) {
         send_key "f4";
-        assert_screen  "inst-instsourcemenu", 4;
+        assert_screen "inst-instsourcemenu", 4;
         send_key "ret";
-        assert_screen  "inst-instsourcedialog", 4;
+        assert_screen "inst-instsourcedialog", 4;
         my $mirroraddr = "";
         my $mirrorpath = "/factory";
         if ( $vars{SUSEMIRROR} && $vars{SUSEMIRROR} =~ m{^([a-zA-Z0-9.-]*)(/.*)$} ) {
@@ -141,7 +141,7 @@ sub run() {
         for ( 1 .. 22 ) { send_key "backspace"; }
         type_string $mirrorpath;
 
-        assert_screen  "inst-mirror_is_setup", 2;
+        assert_screen "inst-mirror_is_setup", 2;
         send_key "ret";
 
         # HTTP-proxy
@@ -153,7 +153,7 @@ sub run() {
             }
             send_key "ret";
             type_string "$proxyhost\t$proxyport\n";
-            assert_screen  "inst-proxy_is_setup", 2;
+            assert_screen "inst-proxy_is_setup", 2;
 
             # add boot parameters
             # ZYPP... enables proxy caching
@@ -242,7 +242,7 @@ sub run() {
         if ( $n && $n != $en_us ) {
             $n -= $en_us;
             send_key "f2";
-            assert_screen  "inst-languagemenu", 6;
+            assert_screen "inst-languagemenu", 6;
             for ( 1 .. abs($n) ) {
                 send_key($n < 0 ? "up" : "down");
             }

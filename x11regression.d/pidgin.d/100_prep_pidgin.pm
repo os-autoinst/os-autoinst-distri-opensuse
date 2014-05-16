@@ -36,13 +36,13 @@ sub install_pkg() {
     }
     sleep 60;
     type_string "\n";    # prevent the screensaver...
-    assert_screen  "pidgin-pkg", 500;    #make sure pkgs installed
+    assert_screen "pidgin-pkg", 500;    #make sure pkgs installed
     wait_idle;
     sleep 2;
     type_string "rpm -qa @packages\n";
     wait_idle;
     sleep 2;
-    assert_screen  "pidgin-pkg-installed", 10;    #make sure pkgs installed
+    assert_screen "pidgin-pkg-installed", 10;    #make sure pkgs installed
     wait_idle;
     sleep 2;
 
@@ -61,7 +61,7 @@ sub install_pkg() {
     send_key "o";
     wait_idle;
     sleep 2;
-    assert_screen  "pidgin-showoff", 10;    #enable show offline
+    assert_screen "pidgin-showoff", 10;    #enable show offline
     send_key "o";
 
     send_key "ctrl-q";
