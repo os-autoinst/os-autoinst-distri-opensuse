@@ -15,17 +15,17 @@ sub run() {
     my $self = shift;
     mouse_hide();
     x11_start_program("firefox");
-    assert_screen  "start-firefox", 5 ;
+    assert_screen "start-firefox", 5;
     if ( $vars{UPGRADE} ) { send_key "alt-d"; wait_idle; }    # dont check for updated plugins
     if ( $vars{DESKTOP} =~ /xfce|lxde/i ) {
         send_key "ret";                                      # confirm default browser setting popup
         wait_idle;
     }
 
-    check_screen  "firefox_know-rights", 3 ;
+    check_screen "firefox_know-rights", 3;
     send_key "alt-k";
     sleep 1;                                                #click know your rights
-    check_screen  "firefox_about-rights", 3 ;
+    check_screen "firefox_about-rights", 3;
     send_key "ctrl-w";
     sleep 1;
 

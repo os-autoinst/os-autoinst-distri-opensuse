@@ -15,7 +15,7 @@ sub run() {
     mouse_hide();
 
     if ( $vars{'NOAUTOLOGIN'} ) {
-        assert_screen  'displaymanager', 200 ;
+        assert_screen 'displaymanager', 200;
         type_string $username;
         send_key "ret";
         type_string "$password";
@@ -26,23 +26,23 @@ sub run() {
     my $err = 0;
     my @tags = qw/desktop-at-first-boot install-failed kde-greeter/;
     while (1) {
-        my $ret = assert_screen  \@tags, 200 ;
+        my $ret = assert_screen \@tags, 200;
         last if $ret->{needle}->has_tag("desktop-at-first-boot");
-	if ($ret->{needle}->has_tag("kde-greeter")) {
-   	  send_key "esc";
-	  @tags = grep { $_ ne 'kde-greeter' } @tags;
-	  push(@tags, "drkonqi-crash");
-	  next;
-	}
+        if ($ret->{needle}->has_tag("kde-greeter")) {
+            send_key "esc";
+            @tags = grep { $_ ne 'kde-greeter' } @tags;
+            push(@tags, "drkonqi-crash");
+            next;
+        }
         if ($ret->{needle}->has_tag("drkonqi-crash")) {
-          send_key "alt-d";
-	  # maximize
-	  send_key "alt-shift-f3";
-	  sleep 8;
-	  $self->take_screenshot;
-	  send_key "alt-c";
-          @tags = grep { $_ ne 'drkonqi-crash' } @tags;
-          next;
+            send_key "alt-d";
+            # maximize
+            send_key "alt-shift-f3";
+            sleep 8;
+            $self->take_screenshot;
+            send_key "alt-c";
+            @tags = grep { $_ ne 'drkonqi-crash' } @tags;
+            next;
         }
 
         $self->take_screenshot;

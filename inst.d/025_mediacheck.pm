@@ -8,7 +8,7 @@ sub is_applicable() {
 
 sub run {
     my $self = shift;
-    assert_screen  "mediacheck-ok", 300 ;
+    assert_screen "mediacheck-ok", 300;
     send_key "ret";
 }
 

@@ -9,7 +9,7 @@ sub is_applicable() {
 
 # hint: press shift-f10 trice for highest debug level
 sub run() {
-    assert_screen  "bootloader-grub2", 15 ;
+    assert_screen "bootloader-grub2", 15;
     if ( $vars{QEMUVGA} && $vars{QEMUVGA} ne "cirrus" ) {
         sleep 5;
     }
@@ -22,7 +22,7 @@ sub run() {
     }
 
     if ( $vars{MEDIACHECK} ) {    # special
-                                 # only run this one
+        # only run this one
         for ( 1 .. 2 ) {
             send_key "down";
         }
@@ -52,7 +52,7 @@ sub run() {
     send_key "end";
     if ( $vars{NETBOOT} && $vars{SUSEMIRROR} ) {
         for ( 1 .. 49 ) { send_key "backspace"; }
-        type_string  $vars{SUSEMIRROR} ;
+        type_string $vars{SUSEMIRROR};
     }
     send_key "spc";
 
@@ -75,7 +75,7 @@ sub run() {
     type_string "vga=791 ";
     type_string "video=1024x768-16 ";
     type_string "drm_kms_helper.edid_firmware=edid/1024x768.bin ";
-    assert_screen  "inst-video-typed-grub2", 13 ;
+    assert_screen "inst-video-typed-grub2", 13;
 
     if ( !$vars{NICEVIDEO} ) {
         sleep 15;

@@ -10,7 +10,7 @@ sub run() {
     script_run("cd /tmp ; wget -q openqa.opensuse.org/opensuse/tools/recentchanges2.pl");
     script_run("rpm -qa | perl recentchanges2.pl > /dev/ttyS0");
     script_run("echo 'recentchanges_ok' >  /dev/ttyS0");
-    wait_serial  'recentchanges_ok', 200 ;
+    wait_serial 'recentchanges_ok', 200;
 }
 
 1;

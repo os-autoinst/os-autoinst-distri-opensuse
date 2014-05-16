@@ -13,7 +13,7 @@ sub run() {
     my $self = shift;
     mouse_hide();
     x11_start_program("firefox");
-    assert_screen  "start-firefox", 5 ;
+    assert_screen "start-firefox", 5;
     if ( $vars{UPGRADE} ) { send_key "alt-d"; wait_idle; }    # dont check for updated plugins
     if ( $vars{DESKTOP} =~ /xfce|lxde/i ) {
         send_key "ret";                                      # confirm default browser setting popup
@@ -22,15 +22,15 @@ sub run() {
 
     send_key "shift-f10";
     sleep 1;
-    check_screen  "firefox_contentmenu", 5 ;
+    check_screen "firefox_contentmenu", 5;
     send_key "down";
     sleep 1;
     send_key "down";
     sleep 1;
-    check_screen  "firefox_contentmenu-arrow", 5 ;
+    check_screen "firefox_contentmenu-arrow", 5;
     send_key "i";
     sleep 2;
-    check_screen  "firefox_pageinfo", 5 ;    #the page info of opensuse.org
+    check_screen "firefox_pageinfo", 5;    #the page info of opensuse.org
     sleep 2;
     send_key "alt-f4";
     sleep 1;                                 #close the page info window

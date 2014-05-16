@@ -20,7 +20,7 @@ sub run() {
     my $self = shift;
     mouse_hide();
     x11_start_program("firefox");
-    assert_screen  "start-firefox", 5 ;
+    assert_screen "start-firefox", 5;
     if ( $vars{UPGRADE} ) { send_key "alt-d"; wait_idle; }    # dont check for updated plugins
     if ( $vars{DESKTOP} =~ /xfce|lxde/i ) {
         send_key "ret";                                      # confirm default browser setting popup
@@ -57,14 +57,14 @@ sub run() {
     sleep 1;
     type_string $test_site. "\n";
     sleep 5;
-    check_screen  "firefox_page-calendar", 5 ;
+    check_screen "firefox_page-calendar", 5;
     type_string $gmailuser;
     sleep 1;
     send_key "tab";
     sleep 1;
     type_string $gmailpasswd. "\n";
     sleep 5;
-    check_screen  "firefox_remember-password", 5 ;
+    check_screen "firefox_remember-password", 5;
     send_key "alt-r";
     sleep 1;    #remember password
     send_key "r";
@@ -77,7 +77,7 @@ sub run() {
     sleep 1;
     send_key "alt-p";
     sleep 1;    #open the "Saved Passwords" diag
-    check_screen  "firefox_saved-passowrds", 5 ;    #check if the passwd is saved
+    check_screen "firefox_saved-passowrds", 5;    #check if the passwd is saved
     send_key "alt-c";
     sleep 1;                                        #close the dialog
     send_key "esc";
@@ -103,10 +103,10 @@ sub run() {
     sleep 2;
     type_string $test_site. "\n";
     sleep 5;
-    check_screen  "firefox_passwd-required", 5 ;
+    check_screen "firefox_passwd-required", 5;
     type_string $master_passwd. "\n";
     sleep 1;
-    check_screen  "firefox_page-calendar-passwd", 3 ;
+    check_screen "firefox_page-calendar-passwd", 3;
 
     #recover all the changes
     send_key "alt-e";

@@ -17,7 +17,7 @@ sub run() {
     my $self = shift;
     mouse_hide();
     x11_start_program("firefox");
-    assert_screen  "start-firefox", 5 ;
+    assert_screen "start-firefox", 5;
     if ( $vars{UPGRADE} ) { send_key "alt-d"; wait_idle; }    # dont check for updated plugins
     if ( $vars{DESKTOP} =~ /xfce|lxde/i ) {
         send_key "ret";                                      # confirm default browser setting popup
@@ -29,7 +29,7 @@ sub run() {
     sleep 1;
     type_string $addon. "\n";
     sleep 18;                                               #download addon need a long time
-    check_screen  "firefox_addon-unmht", 8 ;                #wait for the install button
+    check_screen "firefox_addon-unmht", 8;                #wait for the install button
     send_key "ret";
     sleep 1;                                                #install
 
@@ -42,7 +42,7 @@ sub run() {
     sleep 1;
     type_string $ie6url. "\n";
     sleep 25;                                               #the file need a long time to load
-    check_screen  "firefox_page-ie6", 20 ;
+    check_screen "firefox_page-ie6", 20;
     sleep 3;
 
     #open ie7 file (IIS)
@@ -50,7 +50,7 @@ sub run() {
     sleep 1;
     type_string $ie7url. "\n";
     sleep 12;
-    check_screen  "firefox_page-ie7", 10 ;
+    check_screen "firefox_page-ie7", 10;
 
     send_key "alt-f4";
     sleep 2;

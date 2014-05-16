@@ -13,7 +13,7 @@ sub run() {
     my $self = shift;
     mouse_hide();
     x11_start_program("firefox");
-    assert_screen  "start-firefox", 5 ;
+    assert_screen "start-firefox", 5;
     if ( $vars{UPGRADE} ) { send_key "alt-d"; wait_idle; }    # dont check for updated plugins
     if ( $vars{DESKTOP} =~ /xfce|lxde/i ) {
         send_key "ret";                                      # confirm default browser setting popup
@@ -29,20 +29,20 @@ sub run() {
         sleep 5;
         $site =~ s{\.com}{};
         $site =~ s{.*\.}{};
-        check_screen  "firefox_page-" . $site, 5 ;
+        check_screen "firefox_page-" . $site, 5;
     }
 
     send_key "alt-left";
     sleep 2;
     send_key "alt-left";
     sleep 3;
-    check_screen  "firefox_page-baidu", 5 ;
+    check_screen "firefox_page-baidu", 5;
     send_key "alt-right";
     sleep 3;
-    check_screen  "firefox_page-novell", 5 ;
+    check_screen "firefox_page-novell", 5;
     send_key "f5";
     sleep 3;
-    check_screen  "firefox_page-novell", 5 ;
+    check_screen "firefox_page-novell", 5;
 
     send_key "alt-f4";
     sleep 2;

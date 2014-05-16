@@ -22,7 +22,7 @@ sub run() {
     send_key "ctrl-alt-delete";
 
     wait_encrypt_prompt;
-    assert_screen  "reboot_after_install", 200 ;
+    assert_screen "reboot_after_install", 200;
 }
 
 1;

@@ -19,7 +19,7 @@ sub run() {
 
     for ( 1 .. 12 ) {    # one test takes ~7 mins
         send_key "shift";    # avoid blank/screensaver
-        last if wait_serial  "mozmill testrun finished", 120 ;
+        last if wait_serial "mozmill testrun finished", 120;
     }
     assert_screen 'test-mozmill_run-1', 3;
     send_key "alt-f4";

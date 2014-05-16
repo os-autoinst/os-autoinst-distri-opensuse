@@ -26,7 +26,7 @@ sub run() {
 
     # Launch firefox
     x11_start_program("firefox");
-    assert_screen  "start-firefox", 5 ;
+    assert_screen "start-firefox", 5;
     if ( $vars{UPGRADE} ) { send_key "alt-d"; wait_idle; }    # Don't check for updated plugins
     if ( $vars{DESKTOP} =~ /xfce|lxde/i ) {
         send_key "ret";                                      # Confirm default browser setting popup
@@ -41,7 +41,7 @@ sub run() {
     sleep 2;
     type_string "https://addons.mozilla.org/firefox/downloads/latest/8051/addon-8051-latest.xpi\n";
     sleep 15;                                               # Install the extension
-    check_screen  "test-firefox_mhtml-1", 5 ;
+    check_screen "test-firefox_mhtml-1", 5;
     send_key "ret";
     sleep 2;
     send_key "ctrl-w";
@@ -49,7 +49,7 @@ sub run() {
     # Open mhtml file
     send_key "ctrl-o";
     sleep 1;                                                #"Open File" window
-    check_screen  "test-firefox-openfile-1", 5 ;
+    check_screen "test-firefox-openfile-1", 5;
 
     # Find .mht file to open
     send_key "left";
@@ -59,7 +59,7 @@ sub run() {
     type_string "google\n";                                # find the directory www.gnu.org and enter
     sleep 5;
     send_key "tab";
-    check_screen  "test-firefox_mhtml-2", 5 ;
+    check_screen "test-firefox_mhtml-2", 5;
     sleep 2;
 
     # Open remote mhtml address
@@ -67,7 +67,7 @@ sub run() {
     sleep 1;
     type_string "http://www.fileformat.info/format/mime-html/sample/9c96b3d179f84b98b35d4c8c2ec13e04/google.mht\n";
     sleep 10;
-    check_screen  "test-firefox_mthml-3", 5 ;
+    check_screen "test-firefox_mthml-3", 5;
     sleep 2;
 
     # Restore and close

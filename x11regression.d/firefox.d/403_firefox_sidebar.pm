@@ -20,7 +20,7 @@ sub run() {
     my $self = shift;
     mouse_hide();
     x11_start_program("firefox");
-    assert_screen  "start-firefox", 5 ;
+    assert_screen "start-firefox", 5;
     if ( $vars{UPGRADE} ) { send_key "alt-d"; wait_idle; }    # dont check for updated plugins
     if ( $vars{DESKTOP} =~ /xfce|lxde/i ) {
         send_key "ret";                                      # confirm default browser setting popup
@@ -44,7 +44,7 @@ sub run() {
     sleep 1;
     send_key "ret";
     sleep 5;                                                #open the selected bookmark
-    check_screen  "firefox_sidebar-bookmark", 5 ;
+    check_screen "firefox_sidebar-bookmark", 5;
     send_key "ctrl-b";
     sleep 1;                                                #close the "Bookmark sidebar"
 
@@ -63,7 +63,7 @@ sub run() {
     sleep 1;
     send_key "ret";
     sleep 5;
-    check_screen  "firefox_sidebar-history", 5 ;
+    check_screen "firefox_sidebar-history", 5;
     send_key "ctrl-h";
     sleep 1;
 

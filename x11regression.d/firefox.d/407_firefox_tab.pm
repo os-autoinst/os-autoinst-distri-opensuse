@@ -25,7 +25,7 @@ sub run() {
 
     # Launch firefox
     x11_start_program("firefox");
-    assert_screen  "start-firefox", 5 ;
+    assert_screen "start-firefox", 5;
     if ( $vars{UPGRADE} ) { send_key "alt-d"; wait_idle; }    # Don't check for updated plugins
     if ( $vars{DESKTOP} =~ /xfce|lxde/i ) {
         send_key "ret";                                      # Confirm default browser setting popup
@@ -41,7 +41,7 @@ sub run() {
     sleep 1;                                                # Open a new tab by menu
     send_key "ctrl-t";                                       # Open a new tab by hotkey
     sleep 2;
-    check_screen  "test-firefox_tab-1", 5 ;
+    check_screen "test-firefox_tab-1", 5;
     sleep 2;
     send_key "ctrl-w";
     send_key "ctrl-w";                                       # Restore to one tab (Home Page)
@@ -60,7 +60,7 @@ sub run() {
     sleep 6;
     send_key "alt-2";
     sleep 5;          # Switch to the new opened tab
-    check_screen  "test-firefox_tab-2", 5 ;
+    check_screen "test-firefox_tab-2", 5;
     send_key "ctrl-w";
     sleep 1;          # Restore to one tab (Home Page)
 
@@ -71,7 +71,7 @@ sub run() {
     sleep 1;
     type_string "http://mozilla.org/\n";
     sleep 10;         # A non-secure site (http)
-    check_screen  "test-firefox_tab-3", 5 ;
+    check_screen "test-firefox_tab-3", 5;
 
     send_key "ctrl-t";
     sleep 1;
@@ -79,7 +79,7 @@ sub run() {
     sleep 1;
     type_string "https://digitalid.verisign.com/\n";
     sleep 10;         # A secure site (https)
-    check_screen  "test-firefox_tab-4", 5 ;
+    check_screen "test-firefox_tab-4", 5;
 
     send_key "ctrl-w";
     send_key "ctrl-w";    # Restore to one tab (Home Page)
@@ -89,11 +89,11 @@ sub run() {
     sleep 1;
     send_key "n";
     sleep 1;             # Open Preferences
-    check_screen  "firefox_pre-general", 5 ;
+    check_screen "firefox_pre-general", 5;
     sleep 5;
     send_key "right";
     sleep 2;             # Switch to the "Tabs" tab
-    check_screen  "test-firefox_tab-5", 5 ;
+    check_screen "test-firefox_tab-5", 5;
     sleep 2;
 
     send_key "left";

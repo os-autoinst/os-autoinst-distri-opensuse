@@ -22,7 +22,7 @@ sub ocrconflict() {
 
 sub run() {
     my $self = shift;
-    if ( $vars{DOCRUN} || check_screen  "software-conflict", 1  || ocrconflict ) {
+    if ( $vars{DOCRUN} || check_screen "software-conflict", 1  || ocrconflict ) {
         $cmd{software} = "alt-s" if $vars{VIDEOMODE} eq "text";
         send_key $cmd{change};      # Change
         send_key $cmd{software};    # Software
@@ -31,7 +31,7 @@ sub run() {
             send_key "down";
         }
         sleep 4;
-	assert_screen 'test-change_software-toaccept', 3;
+        assert_screen 'test-change_software-toaccept', 3;
         send_key $cmd{accept};      # Accept
         sleep 2;
         send_key "alt-o";           # cOntinue

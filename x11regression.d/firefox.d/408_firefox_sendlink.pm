@@ -21,7 +21,7 @@ sub run() {
 
     # Launch firefox
     x11_start_program("firefox");
-    assert_screen  "start-firefox", 5 ;
+    assert_screen "start-firefox", 5;
     if ( $vars{UPGRADE} ) { send_key "alt-d"; wait_idle; }    # Don't check for updated plugins
     if ( $vars{DESKTOP} =~ /xfce|lxde/i ) {
         send_key "ret";                                      # Confirm default browser setting popup
@@ -35,7 +35,7 @@ sub run() {
     sleep 1;
     type_string "www.google.com\n";
     sleep 8;
-    check_screen  "test-firefox_sendlink-1", 5 ;
+    check_screen "test-firefox_sendlink-1", 5;
     sleep 2;
 
     # Open "Email link" to launch default email client (evolution)
@@ -45,14 +45,14 @@ sub run() {
     sleep 3;
 
     #Close the window if there is a unstable warning for this version
-    if ( check_screen  "test-firefox_sendlink-unstable_warning", 5  ) {
+    if ( check_screen "test-firefox_sendlink-unstable_warning", 5  ) {
         sleep 1;
         send_key "alt-o";
         sleep 1;    #Close warning window
     }
 
     #Evolution Account Assistant
-    assert_screen  "test-firefox_sendlink-2", 15 ;
+    assert_screen "test-firefox_sendlink-2", 15;
     sleep 1;
     send_key "alt-o";
     sleep 1;
@@ -100,7 +100,7 @@ sub run() {
     send_key "esc";
     sleep 3;
 
-    check_screen  "test-firefox_sendlink-3", 5 ;
+    check_screen "test-firefox_sendlink-3", 5;
     sleep 2;
 
     # Restore and close firefox

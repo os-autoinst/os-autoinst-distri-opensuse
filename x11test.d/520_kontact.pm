@@ -20,9 +20,9 @@ sub run() {
     x11_start_program("kontact");
 
     # assert_screen "kontact-assistant", 20;
-    assert_screen  "test-kontact-1", 20 ;    # tips window or assistant
+    assert_screen "test-kontact-1", 20;    # tips window or assistant
     send_key "alt-f4";
-    assert_screen  "kontact-window", 3 ;
+    assert_screen "kontact-window", 3;
     send_key "alt-f4";
 }
 
