@@ -21,7 +21,7 @@ sub run() {
     sleep 3;
     assert_screen 'test-oomath-1', 3;
     send_key "alt-f4";
-    assert_screen  'oomath-prompt', 5 ;
+    assert_screen  'oomath-prompt', 5;
     send_key "alt-w";     # Without saving
 }
 

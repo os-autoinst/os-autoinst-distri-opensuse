@@ -13,7 +13,7 @@ sub run() {
     # live may take ages to boot
     my $timeout = 300;
     if ( $vars{'RESCUECD'} ) {
-        assert_screen  'displaymanager', $timeout ;
+        assert_screen  'displaymanager', $timeout;
         send_key "tab";
         sleep 2;
         send_key "tab";
@@ -23,7 +23,7 @@ sub run() {
         send_key "ret";
         $timeout = 60;
     }
-    assert_screen  "desktop-at-first-boot", $timeout ;
+    assert_screen  "desktop-at-first-boot", $timeout;
 
     ## duplicated from second stage, combine!
     if ( check_var( 'DESKTOP', 'kde' ) ) {

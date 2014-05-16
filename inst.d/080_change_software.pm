@@ -31,7 +31,7 @@ sub run() {
             send_key "down";
         }
         sleep 4;
-	assert_screen 'test-change_software-toaccept', 3;
+        assert_screen 'test-change_software-toaccept', 3;
         send_key $cmd{accept};      # Accept
         sleep 2;
         send_key "alt-o";           # cOntinue

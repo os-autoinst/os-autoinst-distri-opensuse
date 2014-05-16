@@ -31,14 +31,14 @@ sub run() {
         send_key "down";
         send_key "down";
         send_key "ret", 1;      # Export as Common Server Certificate
-	assert_screen 'test-yast2-camgm-1', 3;
+        assert_screen 'test-yast2-camgm-1', 3;
         sleep 1;
         send_key "alt-o";     # hostname warning - might or might not be needed
         send_key "alt-p", 1;    # select PW field
         type_string $password;
         send_key "alt-o";    # OK
         send_key "alt-o";     # OK "has been written"
-                             # files are in /etc/ssl/servercerts/server*
+        # files are in /etc/ssl/servercerts/server*
 
         send_key "alt-o";     # OK
 

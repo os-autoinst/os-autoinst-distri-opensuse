@@ -13,7 +13,7 @@ sub run() {
     my $self = shift;
     mouse_hide();
     x11_start_program("firefox");
-    assert_screen  "start-firefox", 5 ;
+    assert_screen  "start-firefox", 5;
     if ( $vars{UPGRADE} ) { send_key "alt-d"; wait_idle; }    # dont check for updated plugins
     if ( $vars{DESKTOP} =~ /xfce|lxde/i ) {
         send_key "ret";                                      # confirm default browser setting popup
@@ -21,10 +21,10 @@ sub run() {
     }
     send_key "alt-e";
     sleep 2;
-    check_screen  "firefox_menu-edit", 3 ;
+    check_screen  "firefox_menu-edit", 3;
     send_key "alt-v";
     sleep 2;
-    check_screen  "firefox_menu-view", 3 ;
+    check_screen  "firefox_menu-view", 3;
     for ( 1 .. 2 ) {                                        #select the "Character Encoding" menu
         send_key "up";
         sleep 1;
@@ -33,12 +33,12 @@ sub run() {
         send_key "right";
         sleep 1;
     }
-    check_screen  "firefox_menu-submenu", 3 ;
+    check_screen  "firefox_menu-submenu", 3;
     for ( 1 .. 3 ) {                                        #dismiss all opened menus one by one
         send_key "esc";
         sleep 1;
     }
-    assert_screen  "start-firefox", 3 ;
+    assert_screen  "start-firefox", 3;
 
     send_key "alt-f4";
     sleep 2;

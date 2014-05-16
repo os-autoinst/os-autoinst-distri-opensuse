@@ -21,7 +21,7 @@ sub run() {
 
     # Launch firefox
     x11_start_program("firefox");
-    assert_screen  "start-firefox", 5 ;
+    assert_screen  "start-firefox", 5;
     if ( $vars{UPGRADE} ) { send_key "alt-d"; wait_idle; }    # Don't check for updated plugins
     if ( $vars{DESKTOP} =~ /xfce|lxde/i ) {
         send_key "ret";                                      # Confirm default browser setting popup
@@ -47,7 +47,7 @@ sub run() {
     send_key "left";
     sleep 2;
 
-    assert_screen  "test-firefox_java-1", 5 ;
+    assert_screen  "test-firefox_java-1", 5;
 
     #Focus to "Always Activate"
     send_key "tab";
@@ -62,7 +62,7 @@ sub run() {
     sleep 1;
     type_string "javatester.org/version.html\n";
     sleep 5;
-    check_screen  "test-firefox_java-2", 5 ;
+    check_screen  "test-firefox_java-2", 5;
 
     #Close tab, return to Add-ons Manager
     send_key "ctrl-w";
@@ -75,11 +75,11 @@ sub run() {
     sleep 2;
     type_string "javatester.org/version.html\n";
     sleep 4;
-    check_screen  "test-firefox_java-java_warning", 5 ;    #Java - unsigned application warning
+    check_screen  "test-firefox_java-java_warning", 5;    #Java - unsigned application warning
     send_key "tab";                                         #Proceed
     send_key "ret";
     sleep 3;
-    check_screen  "test-firefox_java-3", 5 ;
+    check_screen  "test-firefox_java-3", 5;
 
     # Restore and close firefox
     x11_start_program("killall -9 firefox");               # Exit firefox

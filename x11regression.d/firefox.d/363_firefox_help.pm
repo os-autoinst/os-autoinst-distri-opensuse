@@ -14,7 +14,7 @@ sub run() {
     my $self = shift;
     mouse_hide();
     x11_start_program("firefox");
-    assert_screen  "start-firefox", 5 ;
+    assert_screen  "start-firefox", 5;
     if ( $vars{UPGRADE} ) { send_key "alt-d"; wait_idle; }    # dont check for updated plugins
     if ( $vars{DESKTOP} =~ /xfce|lxde/i ) {
         send_key "ret";                                      # confirm default browser setting popup
@@ -25,21 +25,21 @@ sub run() {
     sleep 1;
     send_key "h";
     sleep 6;
-    check_screen  "firefox_help-help", 8 ;
+    check_screen  "firefox_help-help", 8;
     send_key "ctrl-w";
     sleep 1;                                                #close the firefox help tab
     send_key "alt-h";
     sleep 1;
     send_key "t";
     sleep 1;
-    check_screen  "firefox_help-trouble", 3 ;
+    check_screen  "firefox_help-trouble", 3;
     send_key "ctrl-w";
     sleep 1;                                                #close the firefox troubleshooting tab
     send_key "alt-h";
     sleep 1;
     send_key "s";
     sleep 6;
-    check_screen  "firefox_help-feedback", 8 ;
+    check_screen  "firefox_help-feedback", 8;
     send_key "ctrl-w";
     sleep 1;                                                #close the firefox submit feedback tab
 
@@ -48,14 +48,14 @@ sub run() {
     sleep 1;
     send_key "f";
     sleep 6;
-    check_screen  "firefox_help-forgery", 5 ;               #need to close tab cause if open in current tab
+    check_screen  "firefox_help-forgery", 5;               #need to close tab cause if open in current tab
 
     #test firefox--about firefox
     send_key "alt-h";
     sleep 1;
     send_key "a";
     sleep 1;
-    check_screen  "firefox_help-about", 5 ;
+    check_screen  "firefox_help-about", 5;
     send_key "alt-f4";
     sleep 1;                                                #close the firefox about dialog
 
@@ -64,13 +64,13 @@ sub run() {
     sleep 1;
     send_key "r";
     sleep 2;
-    check_screen  "firefox_restart-addons-disable", 5 ;
+    check_screen  "firefox_restart-addons-disable", 5;
     send_key "ret";
     sleep 3;
-    check_screen  "firefox_safemode", 3 ;
+    check_screen  "firefox_safemode", 3;
     send_key "ret";
     sleep 4;
-    check_screen  "firefox_help-forgery", 5 ;    #will open last closed website
+    check_screen  "firefox_help-forgery", 5;    #will open last closed website
     send_key "ctrl-shift-a";
     sleep 3;
     send_key "tab";
@@ -79,7 +79,7 @@ sub run() {
     sleep 1;                                     #switch to extension column of add-ons
     send_key "down";
     sleep 1;
-    check_screen  "firefox_addons-safemode", 5 ;
+    check_screen  "firefox_addons-safemode", 5;
 
     #recover all changes--switch addons page to default column
     send_key "up";

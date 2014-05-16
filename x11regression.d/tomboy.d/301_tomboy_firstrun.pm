@@ -25,7 +25,7 @@ sub run() {
     # open the menu
     send_key "alt-f12";
     sleep 2;
-    check_screen  "tomboy_menu", 5 ;
+    check_screen  "tomboy_menu", 5;
     sleep 2;
     send_key "esc";
     sleep 3;

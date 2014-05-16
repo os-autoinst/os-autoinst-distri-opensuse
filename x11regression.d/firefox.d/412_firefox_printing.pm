@@ -53,7 +53,7 @@ sub run() {
 
     # Launch firefox
     x11_start_program("firefox");
-    assert_screen  "start-firefox", 5 ;
+    assert_screen  "start-firefox", 5;
     if ( $vars{UPGRADE} ) { send_key "alt-d"; wait_idle; }    # Don't check for updated plugins
     if ( $vars{DESKTOP} =~ /xfce|lxde/i ) {
         send_key "ret";                                      # Confirm default browser setting popup
@@ -164,7 +164,7 @@ sub run() {
 
         # Use Pagedown to view every page
         for ( my $i = 0 ; $i <= $_->{page_down} ; $i++ ) {
-            check_screen  "test-firefox_printing-" . $_->{name} . "_" . $i, 5 ;
+            check_screen  "test-firefox_printing-" . $_->{name} . "_" . $i, 5;
             send_key "pgdn";
             sleep 1;
         }

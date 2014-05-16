@@ -21,7 +21,7 @@ sub run() {
     assert_screen 'test-tracker_info-2', 3;
     send_key "alt-f4";
     sleep 2;    # close xterm
-                # assert_screen 'test-tracker_info-3', 3;
+    # assert_screen 'test-tracker_info-3', 3;
 }
 
 1;

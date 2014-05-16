@@ -51,7 +51,7 @@ sub run() {
     send_key "alt-a";
     wait_idle;
     sleep 45;    # Connect to MSN are very slow
-                 # Should create MSN account
+    # Should create MSN account
     assert_screen 'test-pidgin_msn-1', 3;
 
     # Close account manager

@@ -29,7 +29,7 @@ sub run() {
     send_key "alt-fll";
     sleep 2;
     waitstillimage;
-    check_screen  "tomboy_open_0", 5 ;
+    check_screen  "tomboy_open_0", 5;
 
     send_key "shift-up";
     sleep 2;
@@ -63,7 +63,7 @@ sub run() {
     sleep 2;
     send_key "up";
     sleep 1;
-    check_screen  "tomboy_open_1", 5 ;
+    check_screen  "tomboy_open_1", 5;
     send_key "ctrl-w";
     sleep 2;
     send_key "alt-f4";

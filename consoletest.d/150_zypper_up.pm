@@ -32,7 +32,7 @@ sub run() {
     }
     wait_serial  "worked", 700  || die "zypper failed";
     script_run( "rpm -q libzypp zypper", 0 );
-    check_screen  "rpm-q-libzypp", 5 ;
+    check_screen  "rpm-q-libzypp", 5;
     $self->take_screenshot;
 
     # XXX: does this below make any sense? what if updates got

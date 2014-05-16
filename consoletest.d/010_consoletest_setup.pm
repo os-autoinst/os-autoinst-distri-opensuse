@@ -22,7 +22,7 @@ sub run() {
     script_run("echo 010_consoletest_setup OK > /dev/$serialdev");
 
     # it is only a waste of time, if this does not work
-    alarm 3 unless wait_serial  "010_consoletest_setup OK", 10 ;
+    alarm 3 unless wait_serial  "010_consoletest_setup OK", 10;
     $self->take_screenshot;
 }
 

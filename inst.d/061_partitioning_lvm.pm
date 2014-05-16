@@ -10,7 +10,7 @@ sub run() {
 
     # workaround for new style
     my $closedialog;
-    my $ret = assert_screen  [ 'partioning-edit-proposal-button' ], 40 ;
+    my $ret = assert_screen  ['partioning-edit-proposal-button'], 40;
     send_key "alt-d";
     sleep 2;
 
@@ -22,10 +22,10 @@ sub run() {
         send_key "tab";
         sendpassword;
         send_key "ret", 1;
-        assert_screen  "partition-cryptlvm-summary", 3 ;
+        assert_screen  "partition-cryptlvm-summary", 3;
     }
     else {
-        assert_screen  "partition-lvm-summary", 3 ;
+        assert_screen  "partition-lvm-summary", 3;
     }
     wait_idle 5;
     send_key "alt-o";

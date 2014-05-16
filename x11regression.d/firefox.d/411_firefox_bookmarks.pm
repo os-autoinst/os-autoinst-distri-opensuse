@@ -23,7 +23,7 @@ sub run() {
 
     # Launch firefox
     x11_start_program("firefox");
-    assert_screen  "start-firefox", 5 ;
+    assert_screen  "start-firefox", 5;
     if ( $vars{UPGRADE} ) { send_key "alt-d"; wait_idle; }    # Don't check for updated plugins
     if ( $vars{DESKTOP} =~ /xfce|lxde/i ) {
         send_key "ret";                                      # Confirm default browser setting popup
@@ -43,7 +43,7 @@ sub run() {
     send_key "down";                                         #Focus on the "Getting Start" bookmark
     send_key "ret";
     sleep 10;                                               #Open the bookmark
-    check_screen  "test-firefox_bookmarks-open", 5 ;
+    check_screen  "test-firefox_bookmarks-open", 5;
     send_key "ctrl-b";
     sleep 2;                                                #Close bookmarks sidebar
 
@@ -53,7 +53,7 @@ sub run() {
     sleep 3;
     send_key "ctrl-d";
     sleep 1;                                                #Add bookmark
-    check_screen  "test-firefox_bookmarks-add01", 5 ;
+    check_screen  "test-firefox_bookmarks-add01", 5;
     send_key "ret";
     send_key "ctrl-b";
     sleep 1;                                                #Open sidebar
@@ -61,7 +61,7 @@ sub run() {
     send_key "down";
     send_key "ret";
     sleep 2;                                                #Unfold Bookmarks Menu
-    check_screen  "test-firefox_bookmarks-add02", 5 ;
+    check_screen  "test-firefox_bookmarks-add02", 5;
     send_key "ctrl-b";
     sleep 2;                                                #Close bookmarks sidebar
 
@@ -82,7 +82,7 @@ sub run() {
     send_key "ctrl-a";
     type_string "suse-test\n";
     sleep 1;                                                #Input folder name
-    check_screen  "test-firefox_bookmarks-folder", 5 ;
+    check_screen  "test-firefox_bookmarks-folder", 5;
 
     #New bookmarks
     send_key "menu";
@@ -97,13 +97,13 @@ sub run() {
     sleep 1;                                                #Add
     send_key "right";
     sleep 1;                                                #Unfolder
-    check_screen  "test-firefox_bookmarks-new", 5 ;
+    check_screen  "test-firefox_bookmarks-new", 5;
 
     #Surf bookmarks
     send_key "down";                                         #Focus on new created bookmark
     send_key "ret";
     sleep 5;
-    check_screen  "test-firefox_bookmarks-surf", 5 ;
+    check_screen  "test-firefox_bookmarks-surf", 5;
 
     #Delete bookmarks
     send_key "alt-s";                                        #Search field
@@ -118,12 +118,12 @@ sub run() {
     send_key "alt-s";
     send_key "delete";
     sleep 1;                                                #Cancel searched
-    check_screen  "test-firefox_bookmarks-delete", 5 ;
+    check_screen  "test-firefox_bookmarks-delete", 5;
 
     #Edit bookmark proerties
     send_key "ctrl-shift-o";
     sleep 2;
-    check_screen  "test-firefox_bookmarks-edit01", 5 ;
+    check_screen  "test-firefox_bookmarks-edit01", 5;
     send_key "down";
     send_key "ret";                                          #Bookmarks Menu
     foreach ( 1 .. 5 ) { send_key "down"; }                  #Move to Google bookmark we created at the beginning
@@ -136,7 +136,7 @@ sub run() {
     sleep 1;
     send_key "alt-f4";
     sleep 1;                                                #Close bookmarks window
-    check_screen  "test-firefox_bookmarks-edit02", 5 ;
+    check_screen  "test-firefox_bookmarks-edit02", 5;
     sleep 1;
     send_key "alt-s";
     type_string "Maps";
@@ -146,7 +146,7 @@ sub run() {
     sleep 1;                                                #Focus on "Google Maps" bookmark
     send_key "ret";
     sleep 5;                                                #Load the bookmark
-    check_screen  "test-firefox_bookmarks-edit03", 5 ;
+    check_screen  "test-firefox_bookmarks-edit03", 5;
     sleep 1;
 
     # Restore and close firefox

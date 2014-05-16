@@ -10,7 +10,7 @@ sub is_applicable() {
 
 sub run() {
     my %desktopkeys = ( kde => "k", gnome => "g", xfce => "x", lxde => "l", minimalx => "m", textmode => "i" );
-    assert_screen  "desktop-selection", 30 ;
+    assert_screen  "desktop-selection", 30;
     my $d = $vars{DESKTOP};
     diag "selecting desktop=$d";
     $vars{ uc($d) } = 1;
@@ -22,11 +22,11 @@ sub run() {
     }
     elsif ( $d eq "gnome" ) {
         send_key $key;
-        assert_screen  "gnome-selected", 3 ;
+        assert_screen  "gnome-selected", 3;
     }
     else {    # lower selection level
         send_key "alt-o";    #TODO translate
-        assert_screen  "other-desktop", 3 ;
+        assert_screen  "other-desktop", 3;
         send_key $key;
         sleep 3;            # needles for else cases missing
     }
