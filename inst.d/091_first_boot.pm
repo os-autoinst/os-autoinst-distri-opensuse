@@ -23,19 +23,20 @@ sub run() {
     }
 
     # Check for errors during first boot
-    my $err = 0;
+    my $err  = 0;
     my @tags = qw/desktop-at-first-boot install-failed kde-greeter/;
     while (1) {
         my $ret = assert_screen \@tags, 200;
         last if $ret->{needle}->has_tag("desktop-at-first-boot");
-        if ($ret->{needle}->has_tag("kde-greeter")) {
+        if ( $ret->{needle}->has_tag("kde-greeter") ) {
             send_key "esc";
-            @tags = grep { $_ ne 'kde-greeter' } @tags;
-            push(@tags, "drkonqi-crash");
+            sleep 3;
+            push( @tags, "drkonqi-crash" );
             next;
         }
-        if ($ret->{needle}->has_tag("drkonqi-crash")) {
+        if ( $ret->{needle}->has_tag("drkonqi-crash") ) {
             send_key "alt-d";
+
             # maximize
             send_key "alt-shift-f3";
             sleep 8;
@@ -59,4 +60,5 @@ sub test_flags() {
 }
 
 1;
+
 # vim: set sw=4 et:
