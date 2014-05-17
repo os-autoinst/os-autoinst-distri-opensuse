@@ -4,7 +4,7 @@ use base "installstep";
 use bmwqemu;
 
 sub is_applicable() {
-    return !$vars{UPGRADE};
+    return $self->SUPER::is_applicable && !$vars{UPGRADE};
 }
 
 sub run() {
