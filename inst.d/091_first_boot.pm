@@ -40,13 +40,13 @@ sub run() {
             # maximize
             send_key "alt-shift-f3";
             sleep 8;
-            $self->take_screenshot;
+            save_screenshot;
             send_key "alt-c";
             @tags = grep { $_ ne 'drkonqi-crash' } @tags;
             next;
         }
 
-        $self->take_screenshot;
+        save_screenshot;
         sleep 2;
         send_key "ret";
         $err = 1;

@@ -19,7 +19,7 @@ sub run() {
     type_string "(echo .packages.root: ; cat .packages.root)>/dev/$serialdev\n";
     assert_screen "inst-packagestyped", 150;
     type_string "ls -lR /update\n";
-    $self->take_screenshot;
+    save_screenshot;
     wait_idle;
 
     #send_key "ctrl-d"; sleep 3;

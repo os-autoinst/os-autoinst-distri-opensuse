@@ -29,7 +29,7 @@ sub run() {
     if ( check_var( 'DESKTOP', 'kde' ) ) {
         send_key "esc";
         sleep 2;
-        $self->take_screenshot();
+        save_screenshot();
     }
 }
 

@@ -28,7 +28,7 @@ sub run() {
     sleep 9;
     wait_idle 90;
     wait_serial "qa_mozmill_setup.sh done", 120  || die 'setup failed';
-    $self->take_screenshot;
+    save_screenshot;
 }
 
 1;

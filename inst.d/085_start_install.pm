@@ -13,13 +13,13 @@ sub run() {
         my $ret = assert_screen [qw/startupdate startupdate-conflict/], 5;
 
         while ( $ret->{needle}->has_tag("startupdate-conflict") ) {
-            $self->take_screenshot;
+            save_screenshot;
             send_key $cmd{ok}, 1;
 
             send_key $cmd{change}, 1;
             send_key $cmd{"package"}, 1;
             assert_screen "package-conflict", 5;
-            $self->take_screenshot;
+            save_screenshot;
             send_key "alt-1", 1;    # We hope that zypper makes the best suggestion here
             send_key $cmd{ok}, 1;
 

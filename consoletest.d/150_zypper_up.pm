@@ -19,7 +19,7 @@ sub run() {
         }
         script_run("zypper ar $repourl Factory");
     }
-    $self->take_screenshot;
+    save_screenshot;
     script_run("zypper patch -l && echo 'worked' > /dev/$serialdev");
     my $ret = assert_screen( [qw/test-zypper_up-confirm test-zypper_up-nothingtodo/] );
     if ( $ret->{needle}->has_tag("test-zypper_up-confirm") ) {
@@ -33,7 +33,7 @@ sub run() {
     wait_serial "worked", 700  || die "zypper failed";
     script_run( "rpm -q libzypp zypper", 0 );
     check_screen "rpm-q-libzypp", 5;
-    $self->take_screenshot;
+    save_screenshot;
 
     # XXX: does this below make any sense? what if updates got
     # published meanwhile?

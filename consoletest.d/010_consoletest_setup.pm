@@ -23,7 +23,7 @@ sub run() {
 
     # it is only a waste of time, if this does not work
     alarm 3 unless wait_serial "010_consoletest_setup OK", 10;
-    $self->take_screenshot;
+    save_screenshot;
 }
 
 sub test_flags() {

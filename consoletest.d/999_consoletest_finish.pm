@@ -9,14 +9,14 @@ sub run() {
     sleep 2;
     type_string "loginctl --no-pager\n";
     sleep 2;
-    $self->take_screenshot();
+    save_screenshot();
 
     send_key "ctrl-c";
     sleep 1;
     send_key "ctrl-d";    # logout
     sleep 2;
 
-    $self->take_screenshot();
+    save_screenshot();
 
     if ( check_var( "DESKTOP", "textmode" ) ) {
         send_key "ctrl-alt-f1";    # go back to first console
