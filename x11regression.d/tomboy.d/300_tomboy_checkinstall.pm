@@ -22,7 +22,7 @@ sub run() {
     sleep 5;
     wait_idle;
 
-    #$self->take_screenshot;
+    #save_screenshot;
 }
 
 1;
