@@ -13,7 +13,7 @@ sub run() {
     $self->start_audiocapture;
     script_run("aplay bar.wav ; echo aplay_finished > /dev/$serialdev");
     wait_serial 'aplay_finished';
-    save_screenshot;
+    $self->take_screenshot;
     $self->assert_DTMF('123A456B789C*0#D');
     script_run('alsamixer');
     sleep 1;

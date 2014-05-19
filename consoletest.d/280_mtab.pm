@@ -7,7 +7,7 @@ sub run() {
     script_run('test -L /etc/mtab && echo OK || echo fail');
     assert_screen "test-mtab-1", 3;
     script_run('cat /etc/mtab');
-    save_screenshot;
+    $self->take_screenshot;
 }
 
 1;

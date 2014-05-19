@@ -21,7 +21,7 @@ sub run() {
     script_sudo("systemctl status apache2.service | tee /dev/ttyS0 -");
     wait_idle 5;
     die if wait_serial ".*Syntax error.*", 2;
-    save_screenshot;
+    $self->take_screenshot;
 }
 
 1;

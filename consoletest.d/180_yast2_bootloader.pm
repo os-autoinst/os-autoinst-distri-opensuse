@@ -18,7 +18,7 @@ sub run() {
     script_run("echo \"EXIT-\$?\" > /dev/$serialdev");
     die unless wait_serial "EXIT-0", 2;
     script_run('rpm -q hwinfo');
-    save_screenshot;
+    $self->take_screenshot;
 }
 
 1;

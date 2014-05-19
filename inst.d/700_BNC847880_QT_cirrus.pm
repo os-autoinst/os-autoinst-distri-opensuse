@@ -16,7 +16,7 @@ sub run() {
     type_string "echo QT_GRAPHICSSYSTEM=native >> /etc/environment\n";
     type_string "exit\n";
     type_string "exit\n";
-    save_screenshot();
+    $self->take_screenshot();
 }
 
 1;

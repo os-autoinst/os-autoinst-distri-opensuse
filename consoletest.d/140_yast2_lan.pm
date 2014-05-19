@@ -10,7 +10,7 @@ sub run() {
     waitstillimage();
 
     # FIXME: add assert_screen here
-    save_screenshot;
+    $self->take_screenshot;
     if ( $vars{LIVETEST} || $vars{DISTRI} eq "sled-11" || $vars{LAPTOP} ) {
         send_key "ret";      # confirm networkmanager popup
         sleep 1;
