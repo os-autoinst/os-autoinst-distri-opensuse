@@ -21,13 +21,13 @@ sub run() {
     script_run("systemctl --no-pager --full > /dev/$serialdev");
     script_run("rpm -qa > /dev/$serialdev && echo 'rpm_qa_outputted' > /dev/$serialdev");
     wait_serial 'rpm_qa_outputted', 30  || die "rpm_qa_outputted cannot found or it took too long time to finish";
-    $self->take_screenshot;
+    save_screenshot;
     send_key "ctrl-l";                      # clear the screen
     script_sudo("tar cjf /tmp/logs.tar.bz2 /var/log");
     upload_logs("/tmp/logs.tar.bz2");
     script_run("echo 'textinfo_ok' >  /dev/$serialdev");
     wait_serial 'textinfo_ok', 5  || die "textinfo test failed";
-    $self->take_screenshot;
+    save_screenshot;
 
 }
 

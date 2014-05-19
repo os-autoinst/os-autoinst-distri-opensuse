@@ -41,7 +41,7 @@ sub run() {
         #send_key "alt-f4"; # open popup
         #wait_idle;
         send_key "tab";    # reboot
-        $self->take_screenshot;
+        save_screenshot;
         send_key "ret";    # confirm
     }
 
