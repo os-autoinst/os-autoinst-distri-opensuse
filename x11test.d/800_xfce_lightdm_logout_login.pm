@@ -14,11 +14,10 @@ sub run() {
     my $self = shift;
     x11_start_program("xfce4-session-logout");
     send_key "alt-l";
-    sleep 10;
-    assert_screen 'test-xfce_lightdm_logout_login-1', 3;
+    assert_screen 'test-xfce_lightdm_logout_login-1', 13;
+    mouse_hide();
     sendpassword;
     send_key "ret";
-    sleep 10;
 }
 
 1;
