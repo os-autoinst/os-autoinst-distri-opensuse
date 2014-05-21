@@ -9,7 +9,7 @@ sub run() {
     # Killall is used here, make sure that is installed
     script_run("zypper -n -q in psmisc");
 
-    script_run("killall gpk-update-icon kpackagekitsmarticon packagekitd");
+    script_run("killall packagekitd");
     if ( !$vars{NET} && !$vars{TUMBLEWEED} && !$vars{EVERGREEN} && $vars{SUSEMIRROR} ) {
 
         # non-NET installs have only milestone repo, which might be incompatible.
@@ -17,7 +17,8 @@ sub run() {
         unless ( $vars{FULLURL} ) {
             $repourl = $repourl . "/repo/oss";
         }
-        script_run("zypper ar $repourl Factory");
+        script_run("zypper ar -c $repourl Factory && echo 'worked' > /dev/$serialdev");
+        wait_serial "worked", 10  || die "zypper failed";
     }
     save_screenshot;
     script_run("zypper patch -l && echo 'worked' > /dev/$serialdev");
