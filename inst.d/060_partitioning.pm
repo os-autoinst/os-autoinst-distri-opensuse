@@ -156,11 +156,11 @@ sub run() {
 
         for ( 1 .. 4 ) {
             wait_idle 5;
-            addpart( 100, 3 );    # boot
+            addpart( 300, 3 );    # boot
             wait_idle 5;
             addpart( 5300, 3 );    # root
             wait_idle 5;
-            addpart( 300, 3 );     # swap
+            addpart( 100, 3 );     # swap
             assert_screen 'raid-partition', 5;
 
             # select next disk
