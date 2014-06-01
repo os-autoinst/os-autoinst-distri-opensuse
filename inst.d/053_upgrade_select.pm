@@ -22,7 +22,7 @@ sub run() {
             ++$self->{dents};
         }
     }
-    if (check_screen('ERROR-lilo-convert-failed', 10)) {
+    if (check_screen('list-of-online-repositories', 10)) {
         send_key 'alt-n';
         ++$self->{dents};
     }
