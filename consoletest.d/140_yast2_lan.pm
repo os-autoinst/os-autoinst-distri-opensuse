@@ -1,4 +1,4 @@
-use base "basetest";
+use base "yasttest";
 use bmwqemu;
 
 # test yast2 lan functionality
