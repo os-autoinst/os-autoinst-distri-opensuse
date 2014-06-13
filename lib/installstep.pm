@@ -15,8 +15,19 @@ sub test_flags() {
 
 sub post_fail_hook() {
     my $self = shift;
-    my @tags = qw/yast-still-running linuxrc-install-fail/;
-    if ( check_screen \@tags, 5 ) {
+    my @tags = qw/yast-still-running linuxrc-install-fail linuxrc-repo-not-found/;
+    my $ret = check_screen( \@tags, 5 );
+    if ($ret && $ret->{needle}->has_tag("linuxrc-repo-not-found")) {
+        send_key "ctrl-alt-f9";
+        wait_idle;
+        assert_screen "inst-console";
+        type_string "blkid\n";
+        save_screenshot();
+        send_key "ctrl-alt-f3";
+        wait_idle;
+        sleep 1;
+        save_screenshot();
+    } elsif ($ret) {
         send_key "ctrl-alt-f2";
         assert_screen "inst-console";
         if ( !$bmwqemu::vars{NET} ) {
@@ -27,7 +38,7 @@ sub post_fail_hook() {
         }
         type_string "save_y2logs /tmp/y2logs.tar.bz2\n";
         upload_logs "/tmp/y2logs.tar.bz2";
-        $self->take_screenshot();
+        save_screnshot();
     }
 }
 
