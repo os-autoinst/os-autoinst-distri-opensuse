@@ -1,6 +1,6 @@
-language: perl
+language: c # prevent it from using perlbrew which does not support threads
 install:
+  - sudo apt-get -y install libdata-dump-perl libjson-perl
   - git clone git://github.com/os-autoinst/os-autoinst
-  - cpanm -nq Data::Dump
 script:
   - make test
