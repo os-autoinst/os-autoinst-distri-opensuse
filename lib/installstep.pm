@@ -38,7 +38,7 @@ sub post_fail_hook() {
         }
         type_string "save_y2logs /tmp/y2logs.tar.bz2\n";
         upload_logs "/tmp/y2logs.tar.bz2";
-        save_screnshot();
+        save_screenshot();
     }
 }
 
