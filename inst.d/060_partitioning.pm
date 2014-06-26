@@ -121,9 +121,18 @@ sub run() {
             send_key 'alt-d';
             $closedialog = 1;
             $homekey     = 'alt-p';
+            wait_idle 5;
         }
         send_key $homekey;
-        assert_screen "disabledhome", 10;
+        for ( 1 .. 3 ) {
+            if ( !check_screen "disabledhome", 8 ) {
+                send_key $homekey;
+            }
+            else {
+                last;
+            }
+        }
+        assert_screen "disabledhome", 5;
         if ($closedialog) {
             send_key 'alt-o';
             $closedialog = 0;
