@@ -263,9 +263,10 @@ sub run() {
     }
     my $args = "";
     if ( $vars{AUTOYAST} ) {
-        $args .= " netsetup=dhcp,all autoyast=$vars{AUTOYAST} ";
+        $args .= " netsetup=dhcp,all autoyast=http://$vars{OPENQA_HOSTNAME}/test-data/$vars{DISTRI}/data/$vars{AUTOYAST} ";
     }
     type_string $args;
+    save_screenshot;
     if ( 0 && $vars{RAIDLEVEL} ) {
 
         # workaround bnc#711724

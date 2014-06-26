@@ -46,7 +46,9 @@ sub run() {
         # view installation details
         send_key $cmd{instdetails};
     }
-    else {
+    elsif ( $vars{AUTOYAST} ) {
+        assert_screen("inst-packageinstallationstarted");
+    } else {
         send_key $cmd{install};
         assert_screen "startinstall";
 
