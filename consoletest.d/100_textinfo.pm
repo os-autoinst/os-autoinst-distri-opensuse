@@ -6,10 +6,24 @@ use bmwqemu;
 sub run() {
     my $self = shift;
     script_run('uname -a');
-
-    script_run('df');
-    type_string "/sbin/btrfs filesystem df /\n" if $vars{BTRFS};
     script_run('free');
+    script_run('/usr/sbin/btrfs filesystem df /');
+    save_screenshot;
+    send_key "ctrl-l";                      # clear the screen
+    script_run('df -h');
+    save_screenshot;
+    send_key "ctrl-l";                      # clear the screen
+    script_run('ip -o a s');
+    save_screenshot;
+    send_key "ctrl-l";                      # clear the screen
+    script_run('ip r s');
+    script_run('ip -6 r s');
+    save_screenshot;
+    send_key "ctrl-l";                      # clear the screen
+    script_run('cat /etc/resolv.conf');
+    script_run('ls -al /etc/sysconfig/network');
+    save_screenshot;
+    send_key "ctrl-l";                      # clear the screen
     script_run('rpm -qa kernel-*');
     script_run('grep DISPLAYMANAGER /etc/sysconfig/displaymanager');
     script_run('grep DEFAULT /etc/sysconfig/windowmanager');
