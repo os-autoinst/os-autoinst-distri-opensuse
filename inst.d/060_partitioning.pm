@@ -121,8 +121,8 @@ sub run() {
             send_key 'alt-d';
             $closedialog = 1;
             $homekey     = 'alt-p';
-            wait_idle 5;
         }
+        assert_screen "partition-proposals-window", 5;
         send_key $homekey;
         for ( 1 .. 3 ) {
             if ( !check_screen "disabledhome", 8 ) {
@@ -248,8 +248,8 @@ sub run() {
             send_key "alt-d";
             $closedialog = 1;
         }
-        if ( !check_screen 'usebtrfs' ) {
-            wait_idle 3;
+        assert_screen "partition-proposals-window", 5;
+        if ( !check_screen 'usebtrfs', 3 ) {
             if ($newstyle) {
                 send_key "alt-f";
                 sleep 2;
