@@ -11,7 +11,7 @@ sub run() {
     my $self = shift;
 
     # live may take ages to boot
-    my $timeout = 300;
+    my $timeout = 600;
     if ( $vars{'RESCUECD'} ) {
         assert_screen 'displaymanager', $timeout;
         send_key "tab";
