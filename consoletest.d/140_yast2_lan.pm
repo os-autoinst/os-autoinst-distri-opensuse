@@ -38,10 +38,19 @@ sub run() {
     wait_idle 180;
 
     send_key "ret";
+    save_screenshot;
+
     send_key "ctrl-l";      # clear screen
     script_run('echo $?');
     script_run('hostname');
     assert_screen 'test-yast2_lan-2', 3;
+
+    send_key "ctrl-l";      # clear screen
+    script_run('ip -o a s');
+    script_run('ip r s');
+    script_run('host '.$vars{OPENQA_HOSTNAME});
+    script_run('echo $?');
+    assert_screen 'yast2_lan-network_ok', 3;
 }
 
 sub test_flags() {
