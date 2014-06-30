@@ -22,12 +22,12 @@ sub run() {
     script_run("echo 010_consoletest_setup OK > /dev/$serialdev");
 
     # it is only a waste of time, if this does not work
-    alarm 3 unless wait_serial "010_consoletest_setup OK", 10;
+    wait_serial "010_consoletest_setup OK", 10;
     save_screenshot;
 }
 
 sub test_flags() {
-    return { 'milestone' => 1 };
+    return { 'important' => 1, 'milestone' => 1, 'fatal' => 1 };
 }
 
 1;
