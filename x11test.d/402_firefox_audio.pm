@@ -8,7 +8,7 @@ sub is_applicable {
 sub run() {
     my $self = shift;
     $self->start_audiocapture;
-    x11_start_program("firefox http://openqa.opensuse.org/opensuse/audio/bar.oga");
+    x11_start_program("firefox http://$vars{OPENQA_HOSTNAME}/test-data/$vars{DISTRI}/data/bar.oga");
     sleep 3;
     $self->assert_DTMF('123A456B789C*0#D');
     assert_screen 'test-firefox_audio-1', 3;
