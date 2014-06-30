@@ -1,8 +1,10 @@
-use base "basetest";
+#!/usr/bin/perl -w
+use strict;
+use base "installstep";
 use bmwqemu;
 
 sub is_applicable() {
-    return $vars{LVM};
+    return $vars{LVM} && !$vars{AUTOYAST};
 }
 
 sub run() {
