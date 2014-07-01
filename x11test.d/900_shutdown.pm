@@ -1,10 +1,6 @@
 use base "basetest";
 use bmwqemu;
 
-sub is_applicable() {
-    return 1;
-}
-
 sub run() {
     my $self = shift;
 
@@ -12,19 +8,14 @@ sub run() {
         send_key "ctrl-alt-delete";    # shutdown
         assert_screen 'logoutdialog', 15;
 
-        return; # we don't want qemu "to crash"
-
         type_string "\t";
         assert_screen "kde-turn-off-selected", 2;
         type_string "\n";
-        waitforneedle( "splashscreen", 40 );
     }
 
     if ( $vars{DESKTOP} eq "gnome" ) {
         send_key "ctrl-alt-delete";    # shutdown
         assert_screen 'logoutdialog', 15;
-
-        return; # we don't want qemu "to crash"
 
         send_key "ret";                # confirm shutdown
         #if(!$vars{GNOME2}) {
@@ -33,7 +24,6 @@ sub run() {
         #    sleep 3;
         #    qemusend "system_powerdown"; # shutdown
         #}
-        waitforneedle( "splashscreen", 40 );
     }
 
     if ( $vars{DESKTOP} eq "xfce" ) {
@@ -44,23 +34,18 @@ sub run() {
         type_string "\t\t";          # select shutdown
         sleep 1;
 
-        return; # we don't want qemu "to crash"
-
         # assert_screen 'test-shutdown-1', 3;
         type_string "\n";
-        waitforneedle("splashscreen");
     }
-
-    return; # we don't want qemu "to crash" - we need to make os-autoinst catch this properly first
 
     if ( $vars{DESKTOP} =~ m/lxde|minimalx|textmode/ ) {
         qemusend "system_powerdown";    # shutdown
-        wait_idle;
 
         # assert_screen 'test-shutdown-2', 3;
         # send_key "ctrl-alt-f1"; # work-around for LXDE bug 619769 ; not needed in Factory anymore
-        assert_screen "splashscreen";
     }
+
+    assert_screen "splashscreen";
 }
 
 1;

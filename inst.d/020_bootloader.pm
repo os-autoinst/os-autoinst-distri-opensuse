@@ -265,7 +265,7 @@ sub run() {
     if ( $vars{AUTOYAST} ) {
         $args .= " netsetup=dhcp,all autoyast=http://$vars{OPENQA_HOSTNAME}/test-data/$vars{DISTRI}/data/$vars{AUTOYAST} ";
     }
-    type_string $args;
+    type_string $args, 13;
     save_screenshot;
     if ( 0 && $vars{RAIDLEVEL} ) {
 
