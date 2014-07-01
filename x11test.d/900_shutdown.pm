@@ -45,7 +45,7 @@ sub run() {
         # send_key "ctrl-alt-f1"; # work-around for LXDE bug 619769 ; not needed in Factory anymore
     }
 
-    assert_screen "splashscreen";
+    assert_screen "machine-is-shutdown";
 }
 
 1;
