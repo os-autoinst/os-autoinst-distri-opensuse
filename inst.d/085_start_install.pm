@@ -50,6 +50,10 @@ sub run() {
         assert_screen("inst-packageinstallationstarted", 120);
     } else {
         send_key $cmd{install};
+        while ( my $ret = check_screen( [qw/confirmlicense startinstall/] ), 5 ) {
+            last if $ret->{needle}->has_tag("startinstall");
+            send_key $cmd{acceptlicense}, 1;
+        }
         assert_screen "startinstall";
 
         # confirm
