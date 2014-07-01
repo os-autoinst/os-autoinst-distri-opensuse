@@ -5,7 +5,7 @@ use bmwqemu;
 
 sub is_applicable() {
     my $self = shift;
-    return $self->SUPER::is_applicable && !$vars{LIVECD} && !$vars{UPGRADE};
+    return $self->SUPER::is_applicable && !$vars{LIVECD} && !$vars{UPGRADE} && !$vars{AUTOYAST};
 }
 
 sub run() {

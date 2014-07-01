@@ -6,7 +6,7 @@ sub run() {
     script_run("killall gpk-update-icon kpackagekitsmarticon packagekitd");
     sleep 2;
     script_sudo("zypper -n in alsa-utils");
-    script_run("cd /tmp;wget openqa.opensuse.org/opensuse/audio/bar.wav");
+    script_run("cd /tmp;wget http://$vars{OPENQA_HOSTNAME}/test-data/$vars{DISTRI}/data/bar.wav");
     assert_screen 'test-aplay-1', 3;
     script_run('clear');
     script_run('set_default_volume -f');
