@@ -16,14 +16,13 @@ sub run() {
     if ( $vars{DESKTOP} eq "gnome" ) {
         send_key "ctrl-alt-delete";    # shutdown
         assert_screen 'logoutdialog', 15;
-
         send_key "ret";                # confirm shutdown
-        #if(!$vars{GNOME2}) {
-        #    sleep 3;
-        #    send_key "ctrl-alt-f1";
-        #    sleep 3;
-        #    qemusend "system_powerdown"; # shutdown
-        #}
+
+        if ($vars{SHUTDOWN_NEEDS_AUTH}) {
+            assert_screen 'shutdown-auth', 15;
+            sendpassword;
+            send_key "ret";
+        }
     }
 
     if ( $vars{DESKTOP} eq "xfce" ) {

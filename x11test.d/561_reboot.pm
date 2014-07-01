@@ -30,6 +30,12 @@ sub run() {
             assert_screen "logoutdialog-reboot-highlighted", 1;
         }
         send_key "ret";                # confirm
+
+        if ($vars{SHUTDOWN_NEEDS_AUTH}) {
+            assert_screen 'reboot-auth', 15;
+            sendpassword;
+            send_key "ret";
+        }
     }
 
     # 550_reboot_xfce
