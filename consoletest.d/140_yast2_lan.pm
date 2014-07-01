@@ -48,7 +48,7 @@ sub run() {
     send_key "ctrl-l";      # clear screen
     script_run('ip -o a s');
     script_run('ip r s');
-    script_run('host '.$vars{OPENQA_HOSTNAME});
+    script_run('getent ahosts '.$vars{OPENQA_HOSTNAME});
     script_run('echo $?');
     assert_screen 'yast2_lan-network_ok', 3;
 }
