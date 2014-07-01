@@ -42,8 +42,9 @@ sub run() {
     script_run('ip -o a s');
     script_run('ip r s');
     script_run('getent ahosts '.$vars{OPENQA_HOSTNAME});
-    script_run('echo $?');
-    assert_screen 'yast2_lan-network_ok', 3;
+    #
+    script_run("echo \"EXIT-\$?\" > /dev/$serialdev");
+    die unless wait_serial "EXIT-0", 2;
 }
 
 sub test_flags() {
