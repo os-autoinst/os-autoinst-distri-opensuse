@@ -25,11 +25,12 @@ sub run() {
     # Check for errors during first boot
     my $err  = 0;
     # always check the KDE greeter appears early then desktop appears if KDE environment
+    my @tags;
     if ( check_var( 'DESKTOP', 'kde' ) ) {
-        my @tags = qw/install-failed kde-greeter/;
+        @tags = qw/install-failed kde-greeter/;
     }
     else {
-        my @tags = qw/desktop-at-first-boot install-failed/;
+        @tags = qw/desktop-at-first-boot install-failed/;
     }
     while (1) {
         my $ret = assert_screen \@tags, 300;
