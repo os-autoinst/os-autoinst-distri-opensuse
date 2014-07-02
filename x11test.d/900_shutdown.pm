@@ -47,5 +47,9 @@ sub run() {
     assert_screen "machine-is-shutdown";
 }
 
+sub test_flags() {
+    return { 'norollback' => 1 };
+}
+
 1;
 # vim: set sw=4 et:
