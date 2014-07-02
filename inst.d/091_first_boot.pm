@@ -24,17 +24,27 @@ sub run() {
 
     # Check for errors during first boot
     my $err  = 0;
-    my @tags = qw/desktop-at-first-boot install-failed kde-greeter/;
+    my @tags = qw/desktop-at-first-boot install-failed/;
     while (1) {
-        my $ret = assert_screen \@tags, 300;
-        last if $ret->{needle}->has_tag("desktop-at-first-boot");
-        if ( $ret->{needle}->has_tag("kde-greeter") ) {
-            send_key "esc";
+        my $ret = assert_screen \@tags, 400;
+        if ( $ret->{needle}->has_tag("desktop-at-first-boot") && !check_var( "DESKTOP", "kde" ) ) {
+            last;
+        }
+        elsif ( $ret->{needle}->has_tag("desktop-at-first-boot") && check_var( "DESKTOP", "kde" ) ) {
+            # a special case for KDE greeter
+            wait_idle 5;
+            send_key "esc"; # close the KDE greeter
             sleep 3;
+            push( @tags, "generic-desktop" );
             push( @tags, "drkonqi-crash" );
+            @tags = grep { $_ ne 'desktop-at-first-boot' } @tags;
             next;
         }
-        if ( $ret->{needle}->has_tag("drkonqi-crash") ) {
+        elsif ( $ret->{needle}->has_tag("generic-desktop") ) {
+            last;
+        }
+        elsif ( $ret->{needle}->has_tag("drkonqi-crash") ) {
+            # handle for KDE greeter crashed and drkonqi popup
             send_key "alt-d";
 
             # maximize
@@ -50,6 +60,7 @@ sub run() {
         sleep 2;
         send_key "ret";
         $err = 1;
+        last if $err;
     }
 
     mydie if $err;

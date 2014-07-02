@@ -75,7 +75,7 @@ sub run() {
         type_string $password. "\n";
     }
 
-    assert_screen 'test-consoletest_finish-1', 300;
+    assert_screen 'generic-desktop', 300;
     mouse_hide(1);
 }
 
