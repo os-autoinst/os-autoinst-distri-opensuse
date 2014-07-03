@@ -10,17 +10,7 @@ sub run() {
     script_run("zypper -n -q in psmisc");
 
     script_run("killall packagekitd");
-    if ( !$vars{NET} && !$vars{TUMBLEWEED} && !$vars{EVERGREEN} && $vars{SUSEMIRROR} ) {
-
-        # non-NET installs have only milestone repo, which might be incompatible.
-        my $repourl = 'http://' . $vars{SUSEMIRROR};
-        unless ( $vars{FULLURL} ) {
-            $repourl = $repourl . "/repo/oss";
-        }
-        script_run("zypper ar -c $repourl Factory && echo 'worked' > /dev/$serialdev");
-        wait_serial "worked", 10  || die "zypper failed";
-    }
-    save_screenshot;
+    wait_idle 5;
     script_run("zypper patch -l && echo 'worked' > /dev/$serialdev");
     my $ret = assert_screen( [qw/test-zypper_up-confirm test-zypper_up-nothingtodo/] );
     if ( $ret->{needle}->has_tag("test-zypper_up-confirm") ) {
