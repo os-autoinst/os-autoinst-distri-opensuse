@@ -47,10 +47,6 @@ sub run() {
     die unless wait_serial "EXIT-0", 2;
 }
 
-sub test_flags() {
-    return { 'milestone' => 1, 'fatal' => 1 };
-}
-
 1;
 
 # vim: set sw=4 et:
