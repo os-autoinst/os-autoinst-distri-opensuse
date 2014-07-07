@@ -21,6 +21,7 @@ sub run() {
     script_sudo("chown $username /dev/$serialdev");
     script_run("curl -sf http://$vars{OPENQA_HOSTNAME}/tests/$vars{TEST_ID}/data | cpio -id ; echo \"cpio-\$?\"> /dev/$serialdev");
     wait_serial "cpio-0", 10 || die;
+    script_run("ls -al data");
 
     save_screenshot;
 }

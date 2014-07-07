@@ -9,7 +9,7 @@ sub run() {
     script_run('set_default_volume -f');
     $self->start_audiocapture;
     script_run("aplay ~/data/bar.wav ; echo aplay-\$? > /dev/$serialdev");
-    wait_serial 'aplay-0';
+    wait_serial 'aplay-0' || die;
     save_screenshot;
     $self->assert_DTMF('123A456B789C*0#D');
     script_run('alsamixer');
