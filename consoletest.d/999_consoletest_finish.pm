@@ -44,7 +44,7 @@ sub run() {
         mouse_hide(1);
     }
     wait_idle;
-    assert_screen 'test-consoletest_finish-1', 3;
+    assert_screen 'generic-desktop', 3;
 }
 
 sub test_flags() {
