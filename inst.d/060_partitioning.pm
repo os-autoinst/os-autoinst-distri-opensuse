@@ -81,7 +81,7 @@ sub addraid($;$) {
         }
     }
     assert_screen 'partition-role', 6;
-    send_key "alt-o"; # Opeatation System
+    send_key "alt-o"; # Operating System
     send_key $cmd{"next"};
     wait_idle 3;
 }
