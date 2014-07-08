@@ -3,16 +3,13 @@ use bmwqemu;
 
 sub run() {
     my $self = shift;
-    script_run("killall gpk-update-icon kpackagekitsmarticon packagekitd");
-    sleep 2;
-    script_sudo("zypper -n in alsa-utils");
-    script_run("cd /tmp;wget http://$vars{OPENQA_HOSTNAME}/test-data/$vars{DISTRI}/data/bar.wav");
-    assert_screen 'test-aplay-1', 3;
+    script_sudo("~/data/install alsa-utils");
+    wait_serial "zypper-0" || die;
     script_run('clear');
     script_run('set_default_volume -f');
     $self->start_audiocapture;
-    script_run("aplay bar.wav ; echo aplay_finished > /dev/$serialdev");
-    wait_serial 'aplay_finished';
+    script_run("aplay ~/data/bar.wav ; echo aplay-\$? > /dev/$serialdev");
+    wait_serial 'aplay-0' || die;
     save_screenshot;
     $self->assert_DTMF('123A456B789C*0#D');
     script_run('alsamixer');

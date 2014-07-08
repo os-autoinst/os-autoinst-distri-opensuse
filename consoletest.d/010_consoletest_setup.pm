@@ -19,10 +19,10 @@ sub run() {
     #type_string 'PS1=\$\ '."\n"; # qemu-0.12.4 can not do backslash yet. http://permalink.gmane.org/gmane.comp.emulators.qemu/71856
 
     script_sudo("chown $username /dev/$serialdev");
-    script_run("echo 010_consoletest_setup OK > /dev/$serialdev");
+    script_run("curl -sf http://$vars{OPENQA_HOSTNAME}/tests/$vars{TEST_ID}/data | cpio -id ; echo \"cpio-\$?\"> /dev/$serialdev");
+    wait_serial "cpio-0", 10 || die;
+    script_run("ls -al data");
 
-    # it is only a waste of time, if this does not work
-    wait_serial "010_consoletest_setup OK", 10;
     save_screenshot;
 }
 

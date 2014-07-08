@@ -1,0 +1,32 @@
+#!/bin/sh -x
+
+uname -a
+
+free
+
+/usr/sbin/btrfs filesystem df /
+
+df -h
+
+ip -o a s
+
+ip r s
+
+ip -6 r s
+
+cat /etc/resolv.conf
+ls -al /etc/sysconfig/network
+rpm -qa 'kernel-*'
+grep DISPLAYMANAGER /etc/sysconfig/displaymanager
+grep DEFAULT /etc/sysconfig/windowmanager
+ls -l /etc/ntp*
+du /var/log/messages
+
+ps ax 
+
+systemctl --no-pager --full
+rpm -qa
+
+tar cjf /tmp/logs.tar.bz2 /var/log
+
+echo 'textinfo_done' > /dev/ttyS0
