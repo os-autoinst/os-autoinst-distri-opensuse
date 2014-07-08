@@ -9,7 +9,7 @@ sub run() {
     wait_serial 'textinfo_done', 5  || die "textinfo test failed";
     upload_logs("info.txt");
     upload_logs("/tmp/logs.tar.bz2");
-    save_screenshot;
+    assert_screen "texinfo-logs-uploaded";
 }
 
 1;
