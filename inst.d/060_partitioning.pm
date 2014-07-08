@@ -80,6 +80,7 @@ sub addraid($;$) {
             type_string "\t$chunksize";
         }
     }
+    send_key $cmd{"next"};
     assert_screen 'partition-role', 6;
     send_key "alt-o"; # Operating System
     send_key $cmd{"next"};
