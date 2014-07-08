@@ -25,6 +25,9 @@ sub addpart($$) {
     type_string $size . "mb";
     wait_idle 5;
     send_key $cmd{"next"};
+    assert_screen 'partition-role', 6;
+    send_key "alt-a"; # Raw Volume
+    send_key $cmd{"next"};
     wait_idle 5;
     send_key $cmd{"donotformat"};
     wait_idle 5;
@@ -77,6 +80,8 @@ sub addraid($;$) {
             type_string "\t$chunksize";
         }
     }
+    assert_screen 'partition-role', 6;
+    send_key "alt-o"; # Operating System
     send_key $cmd{"next"};
     wait_idle 3;
 }
@@ -165,11 +170,11 @@ sub run() {
 
         for ( 1 .. 4 ) {
             wait_idle 5;
-            addpart( 300, 3 );    # boot
+            addpart( 300, 2 );    # boot
             wait_idle 5;
-            addpart( 5300, 3 );    # root
+            addpart( 5300, 2 );    # root
             wait_idle 5;
-            addpart( 100, 3 );     # swap
+            addpart( 100, 2 );     # swap
             assert_screen 'raid-partition', 5;
 
             # select next disk
