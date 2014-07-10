@@ -4,6 +4,7 @@ use bmwqemu;
 sub run() {
     my $self = shift;
 
+    send_key "ctrl-l";
     script_sudo("hostname susetest");
     script_run('echo $?; hostname');
     assert_screen("hostname");
