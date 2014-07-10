@@ -89,17 +89,11 @@ sub addraid($;$) {
 
 sub setraidlevel($) {
     my $level = shift;
-    my %entry = ( 0 => 0, 1 => 1, 5 => 2, 6 => 3, 10 => 4 );
-    for ( 0 .. $entry{$level} ) {
-        send_key "tab";
-    }
-    send_key "spc";    # set entry
-    for ( $entry{$level} .. $entry{10} ) {
-        send_key "tab";
-    }
+    my %entry = ( 0 => 0, 1 => 1, 5 => 5, 6 => 6, 10 => 'g' );
+    send_key "alt-$entry{$level}";
 
-    # skip RAID name input
-    send_key "tab";
+    send_key "alt-i"; # move to RAID name input field
+    send_key "tab"; # skip RAID name input field
 }
 
 # Entry test code
@@ -154,7 +148,7 @@ sub run() {
 
         # user defined
         send_key $cmd{custompart};
-        send_key $cmd{"next"};
+        send_key $cmd{"next"}, 1;
         assert_screen 'custompart', 9;
 
         send_key "tab";
