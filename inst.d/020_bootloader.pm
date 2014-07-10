@@ -104,13 +104,13 @@ sub run() {
 
     assert_screen "inst-video-typed", 13;
     if ( !$vars{NICEVIDEO} ) {
-        type_string "console=ttyS0 ", 7;    # to get crash dumps as text
-        type_string "console=tty ",   7;    # to get crash dumps as text
+        type_string "console=ttyS0 ", 4;    # to get crash dumps as text
+        type_string "console=tty ",   4;    # to get crash dumps as text
         assert_screen "inst-consolesettingstyped", 30;
         my $e = $vars{EXTRABOOTPARAMS};
 
         #	if($vars{RAIDLEVEL}) {$e="linuxrc=trace"}
-        if ($e) { type_string "$e ", 13; sleep 10; }
+        if ($e) { type_string "$e ", 4; sleep 10; }
     }
 
     #type_string "kiwidebug=1 ";
