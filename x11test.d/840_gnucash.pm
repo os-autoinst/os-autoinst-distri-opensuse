@@ -1,6 +1,10 @@
 use base "basetest";
 use bmwqemu;
 
+sub is_applicable {
+    return !( $vars{FLAVOR} =~ m/^Staging2?[\-]DVD$/ );
+}
+
 sub run() {
     my $self = shift;
     ensure_installed("gnucash");
