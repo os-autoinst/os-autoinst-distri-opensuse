@@ -7,7 +7,6 @@ sub run() {
 
     type_string "PS1=\"# \"\n";
     script_run("killall gpk-update-icon kpackagekitsmarticon packagekitd");
-    sleep 2;
     script_run("zypper lr -d");
     save_screenshot; # take a screenshot before any changes
     send_key "ctrl-l";
@@ -29,6 +28,8 @@ sub run() {
         script_run("zypper lr -d");
         save_screenshot; # take a screenshot after the repo added
     }
+    # kill packagekit again before refresh repos
+    script_run("killall gpk-update-icon kpackagekitsmarticon packagekitd");
     script_run("zypper ref");
     script_run('echo $?');
     assert_screen("zypper_ref");
