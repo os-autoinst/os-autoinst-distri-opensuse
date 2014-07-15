@@ -21,7 +21,6 @@ sub run() {
     wait_serial "yastsikuli finished", 680;
     assert_screen 'test-yast_sikuli-2', 3;
     send_key "alt-f4";
-    script_sudo_logout();
 }
 
 1;
