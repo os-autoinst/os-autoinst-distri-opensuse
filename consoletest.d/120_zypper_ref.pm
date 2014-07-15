@@ -28,11 +28,16 @@ sub run() {
         script_run("zypper lr -d");
         save_screenshot; # take a screenshot after the repo added
     }
+    script_run("pkcon refresh && echo 'pkcon-worked' > /dev/$serialdev");
+    wait_serial "pkcon-worked", 20  || die "zypper failed";
+    save_screenshot;
+
     # kill packagekit again before refresh repos
     script_run("killall gpk-update-icon kpackagekitsmarticon packagekitd");
-    script_run("zypper ref");
-    script_run('echo $?');
-    assert_screen("zypper_ref");
+    script_run("while pgrep packagekitd; do sleep 1; done");
+    save_screenshot;
+    script_run("zypper ref && echo 'worked' > /dev/$serialdev");
+    wait_serial "worked", 10 || die "zypper failed";
     type_string "exit\n";
 }
 
