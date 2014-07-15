@@ -5,6 +5,7 @@ use bmwqemu;
 sub run() {
     my $self = shift;
     script_run("clear");
+    script_sudo("zypper in -C libc.so.6");
     script_run("/lib/libc.so.*");
     assert_screen 'test-glibc_i686-1', 3;
 }

@@ -28,8 +28,9 @@ sub run() {
         script_run("zypper lr -d");
         save_screenshot; # take a screenshot after the repo added
     }
-    script_run("pkcon refresh && echo 'pkcon-worked' > /dev/$serialdev");
-    wait_serial "pkcon-worked", 20  || die "zypper failed";
+    # don't check the exit status, pkcon doesn't exist in minimal installation
+    script_run("pkcon refresh ;  echo 'pkcon-finished' > /dev/$serialdev");
+    wait_serial "pkcon-finished", 20;
     save_screenshot;
 
     # kill packagekit again before refresh repos
@@ -38,6 +39,7 @@ sub run() {
     save_screenshot;
     script_run("zypper ref && echo 'worked' > /dev/$serialdev");
     wait_serial "worked", 10 || die "zypper failed";
+    assert_screen("zypper_ref");
     type_string "exit\n";
 }
 

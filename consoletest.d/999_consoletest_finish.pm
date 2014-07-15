@@ -5,8 +5,6 @@ sub run() {
     my $self = shift;
 
     # cleanup
-    script_sudo_logout;
-    sleep 2;
     type_string "loginctl --no-pager\n";
     sleep 2;
     save_screenshot();

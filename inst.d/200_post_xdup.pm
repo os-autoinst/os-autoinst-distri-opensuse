@@ -13,7 +13,6 @@ sub run() {
 
     # reboot after dup
     send_key "ctrl-alt-delete";
-    script_sudo_logout;
     sleep 50;
 }
 
