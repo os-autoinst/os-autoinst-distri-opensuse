@@ -14,13 +14,13 @@ sub run() {
     # After installation, apache2 is disabled
     script_sudo("systemctl status apache2.service | tee /dev/ttyS0 -");
     wait_idle 5;
-    die unless wait_serial ".*disable.*", 2;
+    wait_serial ".*disable.*", 2;
 
     # Now must be enabled
     script_sudo("systemctl start apache2.service");
     script_sudo("systemctl status apache2.service | tee /dev/ttyS0 -");
     wait_idle 5;
-    die if wait_serial ".*Syntax error.*", 2;
+    wait_serial ".*Syntax error.*", 2, 1 || die "have error while starting apache2";
     save_screenshot;
 }
 
