@@ -26,7 +26,7 @@ sub addpart($$) {
     wait_idle 5;
     send_key $cmd{"next"};
     assert_screen 'partition-role', 6;
-    send_key "alt-a"; # Raw Volume
+    send_key "alt-a";    # Raw Volume
     send_key $cmd{"next"};
     wait_idle 5;
     send_key $cmd{"donotformat"};
@@ -82,7 +82,7 @@ sub addraid($;$) {
     }
     send_key $cmd{"next"};
     assert_screen 'partition-role', 6;
-    send_key "alt-o"; # Operating System
+    send_key "alt-o";    # Operating System
     send_key $cmd{"next"};
     wait_idle 3;
 }
@@ -92,23 +92,15 @@ sub setraidlevel($) {
     my %entry = ( 0 => 0, 1 => 1, 5 => 5, 6 => 6, 10 => 'g' );
     send_key "alt-$entry{$level}";
 
-    send_key "alt-i"; # move to RAID name input field
-    send_key "tab"; # skip RAID name input field
+    send_key "alt-i";    # move to RAID name input field
+    send_key "tab";      # skip RAID name input field
 }
 
 # Entry test code
 sub run() {
 
-    # XXX: yast introduced a popup instead of immediate check boxes.
-    # this is a workaround to be able to deal with both old and new
-    # style. Needs to go away. BTRFS and TOGGLEHOME must be ajdusted
-    # to the new way.
-    my $newstyle;
     my $closedialog;
-    my $ret = assert_screen [ 'partitioning', 'partioning-edit-proposal-button' ], 40;
-    if ( $ret->{needle}->has_tag('partioning-edit-proposal-button') ) {
-        $newstyle = 1;
-    }
+    my $ret = assert_screen 'partioning-edit-proposal-button', 40;
 
     if ( $vars{DUALBOOT} ) {
         assert_screen 'partitioning-windows', 40;
@@ -117,11 +109,9 @@ sub run() {
     # XXX: why is that here?
     if ( $vars{TOGGLEHOME} && !$vars{LIVECD} ) {
         my $homekey = check_var( 'VIDEOMODE', "text" ) ? "alt-p" : "alt-h";
-        if ($newstyle) {
-            send_key 'alt-d';
-            $closedialog = 1;
-            $homekey     = 'alt-p';
-        }
+        send_key 'alt-d';
+        $closedialog = 1;
+        $homekey     = 'alt-p';
         assert_screen "partition-proposals-window", 5;
         send_key $homekey;
         for ( 1 .. 3 ) {
@@ -153,7 +143,7 @@ sub run() {
 
         send_key "tab";
         send_key "down";    # select disks
-        # seems GNOME tree list didn't eat right arrow key
+                            # seems GNOME tree list didn't eat right arrow key
         if ( $vars{GNOME} ) {
             send_key "spc";    # unfold disks
         }
@@ -190,7 +180,7 @@ sub run() {
         if ( !defined( $vars{RAIDLEVEL} ) ) { $vars{RAIDLEVEL} = 6 }
         setraidlevel( $vars{RAIDLEVEL} );
         send_key "down";    # start at second partition (i.e. sda2)
-        # in this case, press down key doesn't move to next one but itself
+            # in this case, press down key doesn't move to next one but itself
         if ( $vars{GNOME} ) { send_key "down" }
         addraid( 3, 6 );
 
@@ -235,7 +225,7 @@ sub run() {
 
         # select file-system
         send_key $cmd{filesystem};
-        send_key "end";      # swap at end of list
+        send_key "end";     # swap at end of list
         send_key $cmd{"finish"};
         wait_idle 3;
 
@@ -244,20 +234,13 @@ sub run() {
         assert_screen 'acceptedpartitioning', 6;
     }
     elsif ( $vars{BTRFS} ) {
-        if ($newstyle) {
-            send_key "alt-d";
-            $closedialog = 1;
-        }
+        send_key "alt-d";
+        $closedialog = 1;
         assert_screen "partition-proposals-window", 5;
         if ( !check_screen 'usebtrfs', 3 ) {
-            if ($newstyle) {
-                send_key "alt-f";
-                sleep 2;
-                send_key "b";    # use btrfs
-            }
-            else {
-                send_key "alt-u";    # use btrfs
-            }
+            send_key "alt-f";
+            sleep 2;
+            send_key "b";    # use btrfs
         }
         sleep 3;
         assert_screen 'usebtrfs', 3;
@@ -267,7 +250,23 @@ sub run() {
             $closedialog = 0;
         }
     }
+    elsif ( $vars{EXT4} ) {
+
+        # click the button
+        assert_and_click 'edit-proposal-settings';
+
+        # select the combo box
+        assert_and_click 'default-root-filesystem';
+
+        # select ext4
+        assert_and_click 'filesystem-ext4';
+        assert_screen 'ext4-selected';
+        assert_and_click 'ok-button';
+        mouse_hide;
+    }
+
 }
 
 1;
+
 # vim: set sw=4 et:
