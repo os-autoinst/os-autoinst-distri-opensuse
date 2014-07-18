@@ -51,8 +51,19 @@ sub run() {
     for ( 1 .. 4 ) { send_key "down"; }
     send_key "end";
     if ( $vars{NETBOOT} && $vars{SUSEMIRROR} ) {
-        for ( 1 .. 49 ) { send_key "backspace"; }
-        type_string $vars{SUSEMIRROR};
+        my $needle = assert_screen('preselected-repo')->{needle};
+        my $keys;
+        if ( $needle->has_tag('distribution_13_repo') ) {
+            $keys = length(
+                'http://download.opensuse.org/distribution/13.1/repo/oss/');
+        }
+        elsif ( $needle->has_tag('factory_repo') ) {
+            $keys = length('http://download.opensuse.org/factory/repo/oss/');
+        }
+        for ( 1 .. $keys ) { send_key "backspace"; }
+        assert_screen('inst_left');
+        type_string "http://" . $vars{SUSEMIRROR};
+        save_screenshot();
     }
     send_key "spc";
 
