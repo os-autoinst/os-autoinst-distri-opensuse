@@ -23,8 +23,12 @@ sub run() {
     sleep 2;
     sleep 10 if $vars{NICEVIDEO};
     assert_screen 'test-desktop_mainmenu-1', 3;
-    send_key "esc";
-    wait_idle;
+
+    if ( $vars{DESKTOP} eq "kde" ) {
+      send_key "alt-f1"; # kde closes more reliable than on esc as esc depends on focus
+    } else {
+      send_key "esc";
+    }
 }
 
 sub ocr_checklist() {
