@@ -38,7 +38,7 @@ sub run() {
     script_run("while pgrep packagekitd; do sleep 1; done");
     save_screenshot;
     script_run("zypper ref && echo 'worked' > /dev/$serialdev");
-    wait_serial "worked", 10 || die "zypper failed";
+    wait_serial("worked", 10) || die "zypper failed";
     assert_screen("zypper_ref");
     type_string "exit\n";
 }

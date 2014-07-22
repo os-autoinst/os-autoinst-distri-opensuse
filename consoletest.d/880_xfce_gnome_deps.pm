@@ -16,7 +16,7 @@ sub run() {
     script_run('rpm -qa "*nautilus*|*gnome*" | sort | tee /tmp/xfce-gnome-deps');
     script_sudo('mv /tmp/xfce-gnome-deps /var/log');
     script_run("echo 'gnome_deps_ok' >  /dev/ttyS0");
-    wait_serial 'gnome_deps_ok', 5;
+    wait_serial('gnome_deps_ok', 5);
 
 }
 
