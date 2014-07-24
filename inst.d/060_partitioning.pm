@@ -231,6 +231,10 @@ sub run() {
 
         # done
         send_key $cmd{"accept"};
+        # skip subvolumes shadowed warning
+        if ( check_screen 'subvolumes-shadowed', 5 ) {
+            send_key 'alt-y';
+        }
         assert_screen 'acceptedpartitioning', 6;
     }
     elsif ( $vars{BTRFS} ) {
