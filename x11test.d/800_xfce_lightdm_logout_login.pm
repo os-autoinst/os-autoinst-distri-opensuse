@@ -20,5 +20,9 @@ sub run() {
     send_key "ret";
 }
 
+sub test_flags() {
+    return { 'important' => 1 };
+}
+
 1;
 # vim: set sw=4 et:
