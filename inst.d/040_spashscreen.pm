@@ -1,5 +1,5 @@
 use strict;
-use base "basetest";
+use base "installbasetest";
 use bmwqemu;
 
 # TODO: what is this all about?

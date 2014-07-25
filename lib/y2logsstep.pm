@@ -1,16 +1,12 @@
-package installstep;
-use base "basetest";
+package y2logsstep;
+use base "installfromdvdstep";
 
 use bmwqemu;
 
 # using this as base class means only run when an install is needed
 sub is_applicable() {
     my $self = shift;
-    return $self->SUPER::is_applicable && !$bmwqemu::vars{NOINSTALL} && !$bmwqemu::vars{LIVETEST};
-}
-
-sub test_flags() {
-    return { 'fatal' => 1 };
+    return $self->SUPER::is_applicable && !$vars{NOINSTALL} && !$vars{LIVETEST} && !$vars{ZDUP};
 }
 
 sub post_fail_hook() {

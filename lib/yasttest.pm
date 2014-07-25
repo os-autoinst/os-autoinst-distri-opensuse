@@ -1,6 +1,7 @@
-# base for YaST tests. Switches to text console 2 and uploady y2logs
+# Base for YaST tests.  Switches to text console 2 and uploady y2logs
+
 package yasttest;
-use base "basetest";
+use base "opensusebasetest";
 
 use bmwqemu;
 

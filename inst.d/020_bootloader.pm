@@ -1,10 +1,11 @@
-use base "basetest";
+use base "installbasetest";
 use strict;
 use bmwqemu;
 use Time::HiRes qw(sleep);
 
 sub is_applicable() {
-    return !$vars{UEFI};
+    my $self = shift;
+    return $self->SUPER::is_applicable && !$vars{UEFI};
 }
 
 # hint: press shift-f10 trice for highest debug level
@@ -57,7 +58,6 @@ sub run() {
             send_key "down";    # media check
             assert_screen "inst-onmediacheck", 3;
         }
-
     }
     else {
         if ( $vars{PROMO} ) {
@@ -281,10 +281,6 @@ exit
 
     # boot
     send_key "ret";
-}
-
-sub test_flags() {
-    return { 'fatal' => 1 };
 }
 
 1;

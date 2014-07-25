@@ -1,10 +1,11 @@
-use base "basetest";
+use base "installbasetest";
 use strict;
 use bmwqemu;
 use Time::HiRes qw(sleep);
 
 sub is_applicable() {
-    return $vars{UEFI};
+    my $self = shift;
+    return $self->SUPER::is_applicable && $vars{UEFI};
 }
 
 # hint: press shift-f10 trice for highest debug level
@@ -133,10 +134,6 @@ exit
     # boot
     send_key "f10";
 
-}
-
-sub test_flags() {
-    return { 'fatal' => 1 };
 }
 
 1;

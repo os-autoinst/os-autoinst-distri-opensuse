@@ -1,11 +1,11 @@
 #!/usr/bin/perl -w
 use strict;
-use base "installstep";
+use base "noupdatestep";
 use bmwqemu;
 
 sub is_applicable() {
     my $self = shift;
-    return $self->SUPER::is_applicable && !$vars{LIVECD} && !$vars{UPGRADE} && !$vars{AUTOYAST};
+    return $self->SUPER::is_applicable && !$vars{LIVECD} && !$vars{AUTOYAST};
 }
 
 sub run() {

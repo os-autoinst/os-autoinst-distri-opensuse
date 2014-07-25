@@ -1,6 +1,5 @@
-
 use strict;
-use base "installstep";
+use base "y2logsstep";
 use bmwqemu;
 
 sub run() {

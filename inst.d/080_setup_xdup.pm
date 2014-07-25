@@ -1,9 +1,10 @@
-use base "basetest";
+use base "installbasetest";
 use strict;
 use bmwqemu;
 
 sub is_applicable() {
-    return $vars{ZDUP} || $vars{WDUP};
+    my $self = shift;
+    return $self->SUPER::is_applicable && ($vars{ZDUP} || $vars{WDUP});
 }
 
 sub run() {

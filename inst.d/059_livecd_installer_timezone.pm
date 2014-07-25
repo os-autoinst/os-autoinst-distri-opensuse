@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 use strict;
-use base "basenoupdate";
+use base "noupdatestep";
 use bmwqemu;
 
 # this test case are copied from 065_installer_timezone to adapt
