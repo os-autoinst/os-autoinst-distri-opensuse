@@ -24,13 +24,13 @@ sub run() {
             $repourl = $repourl . "/repo/oss";
         }
         script_run("zypper ar -c $repourl Factory && echo 'worked' > /dev/$serialdev");
-        wait_serial "worked", 10  || die "zypper failed";
+        wait_serial("worked", 10) || die "zypper failed";
         script_run("zypper lr -d");
         save_screenshot; # take a screenshot after the repo added
     }
     # don't check the exit status, pkcon doesn't exist in minimal installation
     script_run("pkcon refresh ;  echo 'pkcon-finished' > /dev/$serialdev");
-    wait_serial "pkcon-finished", 20;
+    wait_serial("pkcon-finished", 20);
     save_screenshot;
 
     # kill packagekit again before refresh repos
