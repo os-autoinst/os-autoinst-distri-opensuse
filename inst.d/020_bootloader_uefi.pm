@@ -14,7 +14,7 @@ sub run() {
     if ( $vars{QEMUVGA} && $vars{QEMUVGA} ne "cirrus" ) {
         sleep 5;
     }
-    if ( $vars{ZDUP} || $vars{WDUP} ) {
+    if ( $vars{ZDUP} ) {
         qemusend "eject -f ide1-cd0";
         qemusend "system_reset";
         sleep 10;

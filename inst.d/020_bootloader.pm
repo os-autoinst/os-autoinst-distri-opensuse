@@ -22,7 +22,7 @@ sub run() {
     }
 
     assert_screen "inst-bootmenu", 15;
-    if ( $vars{ZDUP} || $vars{WDUP} ) {
+    if ( $vars{ZDUP} ) {
         qemusend "eject -f ide1-cd0";
         qemusend "system_reset";
         sleep 10;

@@ -3,7 +3,7 @@ use strict;
 use bmwqemu;
 
 sub is_applicable() {
-    return $vars{ZDUP} || $vars{WDUP};
+    return $vars{ZDUP};
 }
 
 sub run() {
