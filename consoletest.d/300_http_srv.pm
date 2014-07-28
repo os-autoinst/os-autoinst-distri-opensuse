@@ -20,7 +20,7 @@ sub run() {
     script_sudo("systemctl start apache2.service");
     script_sudo("systemctl status apache2.service | tee /dev/ttyS0 -");
     wait_idle 5;
-    wait_serial(".*Syntax error.*", 2) || die "have error while starting apache2";
+    wait_serial(".*Syntax error.*", 2, 1) || die "have error while starting apache2";
     save_screenshot;
 }
 
