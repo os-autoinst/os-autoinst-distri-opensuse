@@ -26,10 +26,16 @@ sub run() {
         if ( check_screen("screenlock") ) {
             if ( check_var( "DESKTOP", "gnome" ) ) {
                 send_key "esc";
-                assert_screen "gnome-screenlock-password";
+                unless ( $vars{LIVECD} ) {
+                    assert_screen "gnome-screenlock-password";
+                    sendpassword;
+                    send_key "ret";
+                }
             }
-            sendpassword;
-            send_key "ret";
+            else {
+                sendpassword;
+                send_key "ret";
+            }
         }
 
         # workaround for bug 834165. Apper should not try to
@@ -50,4 +56,5 @@ sub test_flags() {
 }
 
 1;
+
 # vim: set sw=4 et:
