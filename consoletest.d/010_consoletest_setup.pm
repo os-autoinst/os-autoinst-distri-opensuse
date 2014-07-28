@@ -4,9 +4,11 @@ use bmwqemu;
 sub run() {
     my $self = shift;
 
+    wait_idle();
     # init
     # log into text console
     send_key "ctrl-alt-f4";
+    assert_screen "tty4-selected", 5;
     assert_screen "text-login", 10;
     type_string "$username\n";
     sleep 2;
