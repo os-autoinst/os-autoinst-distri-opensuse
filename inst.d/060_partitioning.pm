@@ -231,6 +231,7 @@ sub run() {
 
         # done
         send_key $cmd{"accept"};
+
         # skip subvolumes shadowed warning
         if ( check_screen 'subvolumes-shadowed', 5 ) {
             send_key 'alt-y';
@@ -266,6 +267,10 @@ sub run() {
         assert_and_click 'filesystem-ext4';
         assert_screen 'ext4-selected';
         assert_and_click 'ok-button';
+
+        # make sure we're back from the popup
+        assert_screen 'edit-proposal-settings';
+
         mouse_hide;
     }
 
