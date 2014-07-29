@@ -1,6 +1,10 @@
 use base "basetest";
 use bmwqemu;
 
+sub is_applicable {
+    return $self->SUPER::is_applicable && !( $vars{FLAVOR} =~ /^Staging2?[\-]DVD$/ );
+}
+
 sub run() {
     my $self = shift;
 
