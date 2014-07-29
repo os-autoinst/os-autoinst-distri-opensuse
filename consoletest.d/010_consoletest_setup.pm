@@ -5,6 +5,13 @@ sub run() {
     my $self = shift;
 
     wait_idle();
+    # let's see how it looks at the beginning
+    save_screenshot;
+
+    # verify there is a text console on tty1
+    send_key "ctrl-alt-f1";
+    assert_screen "tty1-selected", 15; 
+
     # init
     # log into text console
     send_key "ctrl-alt-f4";
