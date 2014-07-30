@@ -27,6 +27,8 @@ ps ax
 systemctl --no-pager --full
 rpm -qa
 
+journalctl -a --no-full -m > /var/log/journal.dump
+
 tar cjf /tmp/logs.tar.bz2 /var/log
 
 echo 'textinfo_done' > /dev/ttyS0
