@@ -1,0 +1,1 @@
+../tests.d/installation/start_install.pm

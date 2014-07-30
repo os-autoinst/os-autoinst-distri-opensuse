@@ -1,5 +1,5 @@
 package serverstep;
-use base "opensusebasetest";
+use base "consolestep";
 
 # Use this class for server tests
 sub is_applicable() {

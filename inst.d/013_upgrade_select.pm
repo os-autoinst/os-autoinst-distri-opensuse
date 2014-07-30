@@ -1,0 +1,1 @@
+../tests.d/installation/upgrade_select.pm

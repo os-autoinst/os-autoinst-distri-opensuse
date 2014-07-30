@@ -150,14 +150,9 @@ if ( $vars{REGRESSION} ) {
 
 }
 else {
-    autotest::loadtestdir("$vars{CASEDIR}/inst.d");
-    if ( !$vars{'INSTALLONLY'} ) {
-        if ( !$vars{NICEVIDEO} && !$vars{DUALBOOT} ) {
-            autotest::loadtestdir("$vars{CASEDIR}/consoletest.d");
-        }
-        if ( $vars{DESKTOP} !~ /textmode|minimalx/ && !$vars{DUALBOOT} ) {
-            autotest::loadtestdir("$vars{CASEDIR}/x11test.d");
-        }
+    my @testsd = qw/boot.d inst.d zdup.d consoletest.d x11test.d/;
+    foreach my $d (@testsd) {
+	autotest::loadtestdir("$vars{CASEDIR}/$d");
     }
 }
 

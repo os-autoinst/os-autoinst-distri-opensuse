@@ -1,0 +1,1 @@
+../tests.d/installation/installer_desktopselection.pm

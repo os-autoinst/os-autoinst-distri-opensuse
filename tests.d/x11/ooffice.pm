@@ -1,0 +1,21 @@
+use base "x11step";
+use bmwqemu;
+
+sub is_applicable() {
+    my $self = shift;
+    return $self->SUPER::is_applicable && $vars{DESKTOP} =~ /kde|gnome/;
+}
+
+sub run() {
+    my $self = shift;
+    x11_start_program("oowriter");
+    assert_screen 'test-ooffice-1', 10;
+    type_string "Hello World!";
+    assert_screen 'test-ooffice-2', 5;
+    send_key "alt-f4";
+    assert_screen "ooffice-save-prompt", 8;
+    send_key "alt-w"; # *W*ithout saving
+}
+
+1;
+# vim: set sw=4 et:
