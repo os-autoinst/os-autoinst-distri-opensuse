@@ -52,7 +52,7 @@ sub run() {
     send_key "end";
     if ( $vars{NETBOOT} && $vars{SUSEMIRROR} ) {
         assert_screen('no_install_url');
-        type_string "install=http://" . $vars{SUSEMIRROR};
+        type_string " install=http://" . $vars{SUSEMIRROR};
         save_screenshot();
     }
     send_key "spc";
