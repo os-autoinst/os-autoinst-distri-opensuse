@@ -40,12 +40,9 @@ sub run() {
 
     # 550_reboot_xfce
     if ( $vars{DESKTOP} eq "xfce" ) {
-        send_key "ctrl-alt-delete";    # reboot
+        wait_idle;
+        send_key "alt-f4"; # open logout dialog
         assert_screen 'logoutdialog', 15;
-
-        #wait_idle;
-        #send_key "alt-f4"; # open popup
-        #wait_idle;
         send_key "tab";    # reboot
         save_screenshot;
         send_key "ret";    # confirm
