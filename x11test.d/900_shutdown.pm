@@ -30,6 +30,7 @@ sub run() {
             send_key "alt-f4";         # opens log out popup after all windows closed
         }
         wait_idle;
+        assert_screen 'logoutdialog', 15;
         type_string "\t\t";          # select shutdown
         sleep 1;
 
