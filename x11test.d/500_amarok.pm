@@ -9,9 +9,9 @@ sub run() {
     my $self = shift;
     ensure_installed("amarok");
     $self->start_audiocapture;
-    x11_start_program("amarok http://openqa.opensuse.org/opensuse/audio/bar.oga");
+    x11_start_program("amarok http://openqa.opensuse.org/opensuse/audio/1d5d9dD.oga");
     sleep 3;
-    $self->assert_DTMF('123A456B789C*0#D');
+    $self->assert_DTMF('159D');
     sleep 2;
     assert_screen 'test-amarok-1', 3;
     send_key "alt-y";    # use music path as collection folder

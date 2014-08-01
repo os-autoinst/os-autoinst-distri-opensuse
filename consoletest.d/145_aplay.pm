@@ -8,10 +8,10 @@ sub run() {
     script_run('clear');
     script_run('set_default_volume -f');
     $self->start_audiocapture;
-    script_run("aplay ~/data/bar.wav ; echo aplay-\$? > /dev/$serialdev");
+    script_run("aplay ~/data/1d5d9dD.wav ; echo aplay-\$? > /dev/$serialdev");
     wait_serial('aplay-0') || die;
     save_screenshot;
-    $self->assert_DTMF('123A456B789C*0#D');
+    $self->assert_DTMF('159D');
     script_run('alsamixer');
     sleep 1;
     assert_screen 'test-aplay-2', 3;
