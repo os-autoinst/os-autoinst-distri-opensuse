@@ -82,15 +82,13 @@ sub run() {
     assert_screen "inst-video-typed-grub2", 13;
 
     if ( !$vars{NICEVIDEO} ) {
-        sleep 15;
+        type_string "plymouth.ignore-serial-consoles ", 7; # make plymouth go graphical
         type_string "console=ttyS0 ";    # to get crash dumps as text
-        sleep 15;
         type_string "console=tty ";      # to get crash dumps as text
         my $e = $vars{EXTRABOOTPARAMS};
 
         #	if($vars{RAIDLEVEL}) {$e="linuxrc=trace"}
-        if ($e) { sleep 10; type_string "$e "; }
-        sleep 15;                          # workaround slow gfxboot drawing 662991
+        if ($e) { type_string "$e "; }
     }
 
     #type_string "kiwidebug=1 ";
@@ -103,7 +101,7 @@ sub run() {
     }
     my $args = "";
     if ( $vars{AUTOYAST} ) {
-        $args .= " netsetup=dhcp,all autoyast=http://$vars{OPENQA_HOSTNAME}/test-data/$vars{DISTRI}/data/$vars{AUTOYAST} ";
+        $args .= " ifcfg=*=dhcp autoyast=http://$vars{OPENQA_HOSTNAME}/test-data/$vars{DISTRI}/data/$vars{AUTOYAST} ";
     }
     type_string $args;
     save_screenshot;
