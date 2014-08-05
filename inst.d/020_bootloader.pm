@@ -99,6 +99,7 @@ sub run() {
 
     assert_screen "inst-video-typed", 13;
     if ( !$vars{NICEVIDEO} ) {
+        type_string "plymouth.ignore-serial-consoles ", 4; # make plymouth go graphical
         type_string "console=ttyS0 ", 4;    # to get crash dumps as text
         type_string "console=tty ",   4;    # to get crash dumps as text
         assert_screen "inst-consolesettingstyped", 30;
@@ -254,7 +255,7 @@ sub run() {
 
     my $args = "";
     if ( $vars{AUTOYAST} ) {
-        $args .= " netsetup=dhcp,all";
+        $args .= " ifcfg=*=dhcp";
         $args .= " autoyast=http://$vars{OPENQA_HOSTNAME}/test-data/$vars{DISTRI}/data/$vars{AUTOYAST} ";
     }
     type_string $args, 13;
@@ -271,6 +272,11 @@ init 5
 exit
 " );
 
+    }
+
+    if ($vars{FIPS}) {
+        type_string " fips=1", 13;
+        save_screenshot;
     }
 
     # boot
