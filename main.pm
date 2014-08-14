@@ -129,7 +129,7 @@ $vars{SCREENSHOTINTERVAL} ||= .5;
 save_vars(); # update variables
 
 # dump other important ENV:
-logcurrentenv(qw"ADDONURL BIGTEST BTRFS DESKTOP HW HWSLOT LIVETEST LVM MOZILLATEST NOINSTALL REBOOTAFTERINSTALL UPGRADE USBBOOT TUMBLEWEED WDUP ZDUP ZDUPREPOS TEXTMODE DISTRI NOAUTOLOGIN QEMUCPU QEMUCPUS RAIDLEVEL ENCRYPT INSTLANG QEMUVGA DOCRUN UEFI DVD GNOME KDE ISO ISO_MAXSIZE LIVECD NETBOOT NICEVIDEO NOIMAGES PROMO QEMUVGA SPLITUSR VIDEOMODE");
+logcurrentenv(qw"ADDONURL BIGTEST BTRFS DESKTOP HW HWSLOT LIVETEST LVM MOZILLATEST NOINSTALL REBOOTAFTERINSTALL UPGRADE USBBOOT TUMBLEWEED ZDUP ZDUPREPOS TEXTMODE DISTRI NOAUTOLOGIN QEMUCPU QEMUCPUS RAIDLEVEL ENCRYPT INSTLANG QEMUVGA DOCRUN UEFI DVD GNOME KDE ISO ISO_MAXSIZE LIVECD NETBOOT NICEVIDEO NOIMAGES PROMO QEMUVGA SPLITUSR VIDEOMODE");
 
 sub _wanted() {
     autotest::loadtestdir("$File::Find::name") if -d;
@@ -150,14 +150,9 @@ if ( $vars{REGRESSION} ) {
 
 }
 else {
-    autotest::loadtestdir("$vars{CASEDIR}/inst.d");
-    if ( !$vars{'INSTALLONLY'} ) {
-        if ( !$vars{NICEVIDEO} && !$vars{DUALBOOT} ) {
-            autotest::loadtestdir("$vars{CASEDIR}/consoletest.d");
-        }
-        if ( $vars{DESKTOP} !~ /textmode|minimalx/ && !$vars{DUALBOOT} ) {
-            autotest::loadtestdir("$vars{CASEDIR}/x11test.d");
-        }
+    my @testsd = qw/boot.d inst.d zdup.d consoletest.d x11test.d/;
+    foreach my $d (@testsd) {
+	autotest::loadtestdir("$vars{CASEDIR}/$d");
     }
 }
 

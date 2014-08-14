@@ -1,0 +1,1 @@
+../tests.d/installation/addon_products.pm
