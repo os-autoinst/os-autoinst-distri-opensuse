@@ -10,6 +10,10 @@ sub is_applicable() {
 
 # hint: press shift-f10 trice for highest debug level
 sub run() {
+    if (check_screen "bootloader-shim-import-prompt", 15) {
+        send_key "down";
+        send_key "ret";
+    }
     assert_screen "bootloader-grub2", 15;
     if ( $vars{QEMUVGA} && $vars{QEMUVGA} ne "cirrus" ) {
         sleep 5;
