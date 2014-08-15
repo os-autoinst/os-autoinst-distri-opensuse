@@ -1,4 +1,4 @@
-use base "opensusebasetest";
+use base "installbasetest";
 use strict;
 use bmwqemu;
 use Time::HiRes qw(sleep);
