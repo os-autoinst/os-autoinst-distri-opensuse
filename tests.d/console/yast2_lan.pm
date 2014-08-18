@@ -8,13 +8,17 @@ sub run() {
     my $self = shift;
     script_sudo("/sbin/yast2 lan");
 
-    my $ret = assert_screen [qw/Networkmanager_controlled yast2_lan/], 12;
-    if($ret->{needle}->has_tag('Networkmanager_controlled')) {
-      send_key "ret";      # confirm networkmanager popup
-      assert_screen "Networkmanager_controlled-approved";
-      send_key "alt-c";
-      assert_screen 'yast2-lan-exited', 30;
-      return; # don't change any settings
+    my $ret = assert_screen [qw/Networkmanager_controlled yast2_lan install-susefirewall2/], 20;
+    if ( $ret->{needle}->has_tag('Networkmanager_controlled') ) {
+        send_key "ret";      # confirm networkmanager popup
+        assert_screen "Networkmanager_controlled-approved";
+        send_key "alt-c";
+        assert_screen 'yast2-lan-exited', 30;
+        return; # don't change any settings
+    }
+    if ( $ret->{needle}->has_tag('install-susefirewall2') ) {
+        send_key "alt-i"; # install SuSEfirewall2
+        assert_screen "yast2_lan", 30; # check yast2_lan again after SuSEfirewall2 installed
     }
 
     my $hostname = "susetest";
