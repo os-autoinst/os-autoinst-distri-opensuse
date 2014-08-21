@@ -17,9 +17,7 @@ sub run() {
     else {
         send_key "alt-f1";                        # open main menu
     }
-    sleep 2;
-    sleep 10 if $vars{NICEVIDEO};
-    assert_screen 'test-desktop_mainmenu-1', 3;
+    assert_screen 'test-desktop_mainmenu-1', 20;
 
     send_key "esc";
 }
