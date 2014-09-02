@@ -5,7 +5,7 @@ use Time::HiRes qw(sleep);
 
 sub is_applicable() {
     my $self = shift;
-    return $self->SUPER::is_applicable && !$vars{UEFI};
+    return $self->SUPER::is_applicable && !$vars{UEFI} && !$vars{MEDIACHECK} && !$vars{MEMTEST};
 }
 
 # hint: press shift-f10 trice for highest debug level
@@ -28,19 +28,6 @@ sub run() {
         sleep 10;
         send_key "ret";    # boot
         return;
-    }
-
-    # special
-    if ( $vars{MEMTEST} ) {
-        for ( 1 .. 6 ) {
-            send_key "down";
-        }
-        assert_screen "inst-onmemtest", 3;
-        send_key "ret";
-        assert_screen "pass-complete", 700;
-        send_key "esc";
-
-        # at this point the test is done - but Alberto will refactor this
     }
 
     # assume bios+grub+anim already waited in start.sh
