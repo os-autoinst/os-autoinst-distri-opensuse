@@ -4,7 +4,7 @@ use bmwqemu;
 
 sub is_applicable() {
     my $self = shift;
-    return $self->SUPER::is_applicable && $vars{MEDIACHECK};
+    return $self->SUPER::is_applicable && $vars{MEMTEST};
 }
 
 sub run {
@@ -12,13 +12,13 @@ sub run {
 
     assert_screen "inst-bootmenu", 15;
 
-    for ( 1 .. 4 ) {
+    for ( 1 .. 6 ) {
 	send_key "down";
     }
-    assert_screen "inst-onmediacheck", 3;
+    assert_screen "inst-onmemtest", 3;
     send_key "ret";
-    assert_screen "mediacheck-ok", 300;
-    send_key "ret";
+    assert_screen "pass-complete", 700;
+    send_key "esc";
 }
 
 sub test_flags() {
