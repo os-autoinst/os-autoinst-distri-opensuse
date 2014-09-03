@@ -1,7 +1,7 @@
 #!/bin/sh -xe
 
-killall gpk-update-icon kpackagekitsmarticon packagekitd || true
-sleep 2
+systemctl stop packagekit.service
 echo -e "\n\n\n" > /dev/ttyS0
 zypper -n in "$@"
 echo "zypper-$?" > /dev/ttyS0
+
