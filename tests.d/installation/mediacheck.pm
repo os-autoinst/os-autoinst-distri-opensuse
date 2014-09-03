@@ -13,6 +13,7 @@ sub run {
     assert_screen "inst-bootmenu", 15;
 
     for ( 1 .. 4 ) {
+	last if check_screen "inst-onmediacheck", 2;
 	send_key "down";
     }
     assert_screen "inst-onmediacheck", 3;
