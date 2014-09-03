@@ -13,7 +13,6 @@ sub is_applicable() {
 sub run() {
     my $self = shift;
     become_root();
-    script_run("killall gpk-update-icon kpackagekitsmarticon packagekitd");
     script_run("zypper -n in sshfs");
     waitstillimage( 12, 90 );
     script_run('cd /var/tmp ; mkdir mnt ; sshfs localhost:/ mnt');

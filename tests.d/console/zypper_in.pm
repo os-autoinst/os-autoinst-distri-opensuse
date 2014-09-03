@@ -6,7 +6,6 @@ sub run() {
     become_root();
 
     script_run("zypper lr -d > /dev/$serialdev");
-    script_run("killall packagekitd");
 
     script_run("zypper --gpg-auto-import-keys -n in screen xdelta && echo 'installed' > /dev/$serialdev");
     wait_serial("installed", 200) || die "zypper install failed";

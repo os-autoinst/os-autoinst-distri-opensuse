@@ -9,7 +9,6 @@ sub run() {
     # Killall is used here, make sure that is installed
     script_run("zypper -n -q in psmisc");
 
-    script_run("killall packagekitd");
     script_run("zypper patch -l && echo 'worked' > /dev/$serialdev");
     my $ret = assert_screen( [qw/test-zypper_up-confirm test-zypper_up-nothingtodo/] );
     if ( $ret->{needle}->has_tag("test-zypper_up-confirm") ) {

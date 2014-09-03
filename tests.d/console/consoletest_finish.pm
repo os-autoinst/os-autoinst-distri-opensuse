@@ -9,6 +9,8 @@ sub run() {
     sleep 2;
     save_screenshot();
 
+    script_run "systemctl unmask packagekit.service";
+
     send_key "ctrl-c";
     sleep 1;
     send_key "ctrl-d";    # logout

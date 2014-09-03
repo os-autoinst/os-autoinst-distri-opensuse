@@ -6,7 +6,6 @@ sub run() {
     become_root;
 
     type_string "PS1=\"# \"\n";
-    script_run("killall gpk-update-icon kpackagekitsmarticon packagekitd");
     script_run("zypper lr -d");
     save_screenshot; # take a screenshot before any changes
     send_key "ctrl-l";
@@ -28,15 +27,6 @@ sub run() {
         script_run("zypper lr -d");
         save_screenshot; # take a screenshot after the repo added
     }
-    # don't check the exit status, pkcon doesn't exist in minimal installation
-    script_run("pkcon refresh ;  echo 'pkcon-finished' > /dev/$serialdev");
-    wait_serial("pkcon-finished", 20);
-    save_screenshot;
-
-    # kill packagekit again before refresh repos
-    script_run("killall gpk-update-icon kpackagekitsmarticon packagekitd");
-    script_run("while pgrep packagekitd; do sleep 1; done");
-    save_screenshot;
     script_run("zypper ref && echo 'worked' > /dev/$serialdev");
     wait_serial("worked", 10) || die "zypper failed";
     assert_screen("zypper_ref");

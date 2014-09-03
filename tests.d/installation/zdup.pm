@@ -11,7 +11,6 @@ sub run() {
     my $self = shift;
     $vars{ZDUPREPOS} ||= "http://$vars{SUSEMIRROR}/repo/oss/";
     send_key "ctrl-l";
-    # script_sudo("killall gpk-update-icon packagekitd");
 
     # Disable all repos, so we do not need to remove one by one
     script_sudo("zypper modifyrepo --all --disable");
@@ -24,10 +23,6 @@ sub run() {
     script_sudo("zypper --gpg-auto-import-keys refresh");
 
     script_sudo("zypper dup -l");
-    # if ( check_screen "zypper-dup-packagekit", 3 ) {
-    # 	send_key "y", 1;
-    # 	send_key "ret", 1;
-    # }
     
     my $ret = assert_screen [qw/zypper-dup-continue zypper-dup-conflict/], 5;
     while ( $ret->{needle}->has_tag("zypper-dup-conflict") ) {
