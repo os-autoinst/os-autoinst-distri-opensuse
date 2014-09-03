@@ -13,6 +13,7 @@ sub run {
     assert_screen "inst-bootmenu", 15;
 
     for ( 1 .. 6 ) {
+	last if check_screen "inst-onmemtest", 2;
 	send_key "down";
     }
     assert_screen "inst-onmemtest", 3;
