@@ -29,8 +29,8 @@ sub run() {
 
     script_sudo("chown $username /dev/$serialdev");
     
-    script_run("systemctl mask packagekit.service");
-    script_run("systemctl stop packagekit.service");
+    script_sudo("systemctl mask packagekit.service");
+    script_sudo("systemctl stop packagekit.service");
 
     script_run("curl -v http://$vars{OPENQA_HOSTNAME}/tests/$vars{TEST_ID}/data > test.data; echo \"curl-\$?\" > /dev/$serialdev");
     wait_serial("curl-0", 10) || die 'curl failed';
