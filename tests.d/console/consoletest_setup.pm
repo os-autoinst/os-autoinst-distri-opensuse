@@ -15,7 +15,9 @@ sub run() {
     # init
     # log into text console
     send_key "ctrl-alt-f4";
-    assert_screen "tty4-selected", 5;
+    # we need to wait more than five seconds here to pass the idle timeout in
+    # case the system is still booting (https://bugzilla.novell.com/show_bug.cgi?id=895602)
+    assert_screen "tty4-selected", 10;
     assert_screen "text-login", 10;
     type_string "$username\n";
     sleep 2;
