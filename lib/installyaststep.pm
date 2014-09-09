@@ -6,7 +6,7 @@ use bmwqemu;
 # using this as base class means only run when an install is needed
 sub is_applicable() {
     my $self = shift;
-    return $self->SUPER::is_applicable && !$vars{NOINSTALL} && !$vars{LIVETEST} && !$vars{MEDIACHECK} && !$vars{MEMTEST} && !$vars{RESCUECD} && !$vars{ZDUP};
+    return $self->SUPER::is_applicable && !$vars{NOINSTALL} && !$vars{LIVETEST} && !$vars{MEDIACHECK} && !$vars{MEMTEST} && !$vars{RESCUECD} && !$vars{RESCUESYSTEM} && !$vars{ZDUP};
 }
 
 1;
