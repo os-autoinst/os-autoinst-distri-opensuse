@@ -150,7 +150,7 @@ if ( $vars{REGRESSION} ) {
 
 }
 else {
-    my @testsd = qw/boot.d inst.d zdup.d consoletest.d x11test.d/;
+    my @testsd = qw/boot.d inst.d rescuecd.d zdup.d consoletest.d x11test.d/;
     foreach my $d (@testsd) {
 	autotest::loadtestdir("$vars{CASEDIR}/$d");
     }

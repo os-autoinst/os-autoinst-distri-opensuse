@@ -5,7 +5,7 @@ use Time::HiRes qw(sleep);
 
 sub is_applicable() {
     my $self = shift;
-    return $self->SUPER::is_applicable && !$vars{UEFI} && !$vars{MEDIACHECK} && !$vars{MEMTEST};
+    return $self->SUPER::is_applicable && !$vars{UEFI} && !$vars{MEDIACHECK} && !$vars{MEMTEST} && !$vars{RESCUESYSTEM};
 }
 
 # hint: press shift-f10 trice for highest debug level
@@ -31,7 +31,7 @@ sub run() {
     }
 
     # assume bios+grub+anim already waited in start.sh
-    if ( !$vars{LIVETEST} ) {
+    if ( !$vars{LIVETEST} && !$vars{RESCUECD} ) {
 
         # installation (instead of HDDboot on non-live)
         # installation (instead of live):
@@ -96,7 +96,12 @@ sub run() {
         if ($e) { type_string "$e ", 4; sleep 10; }
     }
 
-    #type_string "kiwidebug=1 ";
+    # type_string "kiwidebug=1 ";
+
+    if ( $vars{RESCUECD} ) {
+        send_key "ret";    # boot
+        return;
+    }
 
     # set HTTP-source to not use factory-snapshot
     if ( $vars{NETBOOT} ) {
