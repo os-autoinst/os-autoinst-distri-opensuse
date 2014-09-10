@@ -39,12 +39,6 @@ sub run() {
         if ( $vars{UPGRADE} ) {
             send_key "down";    # upgrade
         }
-        elsif ( $vars{MEDIACHECK} ) {
-            send_key "down";    # upgrade
-            send_key "down";    # rescue
-            send_key "down";    # media check
-            assert_screen "inst-onmediacheck", 3;
-        }
     }
     else {
         if ( $vars{PROMO} ) {

@@ -36,12 +36,12 @@ sub run() {
         send_key "ret", 1;
     }
 
-    $ret = assert_screen [qw/zypper-dup-finish zypper-dup-retrieving zypper-dup-installing/], 5;
+    $ret = assert_screen [qw/zypper-dup-error zypper-dup-finish zypper-dup-retrieving zypper-dup-installing/], 5;
     while ( $ret->{needle}->has_tag("zypper-dup-retrieving") || $ret->{needle}->has_tag("zypper-dup-installing")) {
-	last if check_screen "zypper-dup-finish", 3;
+	last if check_screen [qw/zypper-dup-error "zypper-dup-finish/];
 	send_key "shift", 1;
 	sleep 10;
-	$ret = assert_screen [qw/zypper-dup-finish zypper-dup-retrieving zypper-dup-installing/], 5;
+	$ret = assert_screen [qw/zypper-dup-error zypper-dup-error zypper-dup-finish zypper-dup-retrieving zypper-dup-installing/], 10;
     }
 
     assert_screen "zypper-dup-finish", 2;
