@@ -9,7 +9,7 @@ sub is_applicable() {
 
 sub run() {
     my $self = shift;
-    $vars{ZDUPREPOS} ||= "http://$vars{SUSEMIRROR}/repo/oss/";
+    $vars{ZDUPREPOS} ||= "http://$vars{SUSEMIRROR}";
     send_key "ctrl-l";
 
     # Disable all repos, so we do not need to remove one by one
