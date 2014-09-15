@@ -8,7 +8,7 @@ sub run() {
 
     # Mount and show the local hard disk contect
     assert_and_dclick "hd-volume";
-    assert_screen "hd-mounted", 4;
+    assert_screen "hd-mounted", 6;
 
     x11_start_program("xterm");
     script_run "cd `cat /proc/self/mounts | grep /dev/vda2 | cut -d' ' -f2`";
