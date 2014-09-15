@@ -4,12 +4,11 @@ use bmwqemu;
 
 sub run() {
     # wait booted
-    sleep 30;
-    wait_idle;
+    assert_screen 'generic-desktop', 200;
 
     # log into text console
     send_key "ctrl-alt-f4";
-    assert_screen "linux-login", 2;
+    assert_screen "linux-login", 4;
     type_string "$username\n";
     sleep 2;
     sendpassword;
@@ -20,12 +19,14 @@ sub run() {
     # This do not work in 13.2
     # script_sudo "/sbin/init 3";
 
-    script_sudo "systemctl set-default multi-user.target";
+    # Remove the --force when this is fixed:
+    # https://bugzilla.redhat.com/show_bug.cgi?id=1075131
+    script_sudo "systemctl set-default --force multi-user.target";
     # The CD was ejected in the bootloader test
     script_sudo "/sbin/reboot";
 
     # login, again : )
-    assert_screen "linux-login", 30;
+    assert_screen "linux-login", 50;
     type_string "$username\n";
     sleep 2;
     sendpassword;
