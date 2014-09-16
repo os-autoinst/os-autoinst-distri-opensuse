@@ -9,7 +9,7 @@ sub is_applicable() {
 
     # Only because of kde/qt has a rendering error on i586 in qemu (bnc#847880).
     # Also check 700_BNC847880_QT_cirrus.pm
-    return 1 if $vars{DESKTOP} eq "kde";
+    # return 1 if $vars{DESKTOP} eq "kde";
 
     #	return 1 if $vars{DESKTOP} eq "kde" && !$vars{UPGRADE}; # FIXME
     #	return 1 if $vars{DESKTOP} eq "gnome" && !$vars{UPGRADE}; # FIXME
