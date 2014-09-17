@@ -5,7 +5,7 @@ use bmwqemu;
 sub run() {
     # reboot after dup
     send_key "ctrl-alt-delete";
-    sleep 50;
+    assert_screen "tty1-selected", 50;
 }
 
 1;
