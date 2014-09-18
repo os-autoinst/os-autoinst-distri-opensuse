@@ -28,7 +28,7 @@ sub run() {
         if ( check_screen("screenlock") ) {
             if ( check_var( "DESKTOP", "gnome" ) ) {
                 send_key "esc";
-                unless ( $vars{LIVECD} ) {
+                unless ( $vars{LIVETEST} ) {
                     assert_screen "gnome-screenlock-password";
                     sendpassword;
                     send_key "ret";
