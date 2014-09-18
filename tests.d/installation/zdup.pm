@@ -50,10 +50,6 @@ sub run() {
     }
 
     assert_screen "zypper-dup-finish", 2;
-
-    sleep 2;
-    send_key "ctrl-alt-f4";
-    sleep 3;
 }
 
 1;
