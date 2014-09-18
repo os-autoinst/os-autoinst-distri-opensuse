@@ -36,12 +36,17 @@ sub run() {
         send_key "ret", 1;
     }
 
-    $ret = assert_screen [qw/zypper-dup-error zypper-dup-finish zypper-dup-retrieving zypper-dup-installing/], 5;
-    while ( $ret->{needle}->has_tag("zypper-dup-retrieving") || $ret->{needle}->has_tag("zypper-dup-installing")) {
-        last if check_screen [qw/zypper-dup-error "zypper-dup-finish/];
+    my @tags = qw/zypper-dup-retrieving zypper-dup-installing zypper-view-notifications zypper-post-scripts/;
+    $ret = assert_screen \@tags, 5;
+    while ( defined($ret) ) {
+        last if check_screen [qw/zypper-dup-error zypper-dup-finish/];
+        if ( $ret->{needle}->has_tag("zypper-view-notifications") ) {
+            send_key "n", 1; # do not show notifications
+            send_key "ret", 1;
+        }
         send_key "shift", 1;
         sleep 10;
-        $ret = assert_screen [qw/zypper-dup-error zypper-dup-error zypper-dup-finish zypper-dup-retrieving zypper-dup-installing/], 10;
+        $ret = assert_screen \@tags, 10;
     }
 
     assert_screen "zypper-dup-finish", 2;
