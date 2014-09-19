@@ -55,7 +55,7 @@ sub run() {
 
         #send_key "ctrl-alt-delete"; # does open task manager instead of reboot
         x11_start_program("xterm");
-        script_sudo "/sbin/reboot", 0;
+        script_sudo "/sbin/reboot";
     }
 
     assert_screen "bootloader", 100;    # wait until reboot
