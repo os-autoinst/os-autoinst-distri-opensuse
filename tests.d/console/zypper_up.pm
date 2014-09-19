@@ -20,14 +20,14 @@ sub run() {
         type_string "y\n";
     }
     die "zypper failed" unless wait_serial "worked", 700;
-    script_run( "rpm -q libzypp zypper", 0 );
+    script_run("rpm -q libzypp zypper");
     check_screen "rpm-q-libzypp", 5;
     save_screenshot;
 
     # XXX: does this below make any sense? what if updates got
     # published meanwhile?
     send_key "ctrl-l";    # clear screen to see that second update does not do any more
-    script_run( "zypper -n -q patch", 0 );
+    script_run("zypper -n -q patch");
     script_run('echo $?');
     script_run('exit');
     assert_screen 'test-zypper_up-1', 3;

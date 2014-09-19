@@ -38,7 +38,13 @@ sub run() {
         type_string "\n";
     }
 
-    if ( $vars{DESKTOP} =~ m/lxde|minimalx|textmode/ ) {
+    if ( $vars{DESKTOP} eq "lxde" ) {
+        x11_start_program("lxsession-logout"); # opens logout dialog
+        assert_screen "logoutdialog", 20;
+        send_key "ret";
+    }
+
+    if ( $vars{DESKTOP} =~ m/minimalx|textmode/ ) {
         qemusend "system_powerdown";    # shutdown
 
         # assert_screen 'test-shutdown-2', 3;
