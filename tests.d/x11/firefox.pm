@@ -5,7 +5,7 @@ sub run() {
     my $self = shift;
     mouse_hide(1);
     x11_start_program("firefox");
-    assert_screen 'test-firefox-1', 3;
+    assert_screen 'test-firefox-1', 10;
     send_key "alt-h";
     sleep 2;    # Help
     send_key "a";
