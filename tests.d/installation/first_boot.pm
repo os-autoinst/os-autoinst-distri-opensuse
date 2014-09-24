@@ -23,7 +23,7 @@ sub run() {
 
     # Check for errors during first boot
     my $err  = 0;
-    my $timeout = 400;
+    my $timeout = 300;
     my @tags = qw/desktop-at-first-boot install-failed/;
     while (1) {
         my $ret = assert_screen \@tags, $timeout;
