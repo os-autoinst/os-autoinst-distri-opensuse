@@ -19,7 +19,7 @@ sub run() {
     assert_screen "bootloader", 50;
 
     # Wait until the point that consoletests can start working
-    assert_screen "desktop-at-first-boot", 400;
+    assert_screen "desktop-at-first-boot", 300;
 }
 
 1;

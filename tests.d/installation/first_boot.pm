@@ -23,9 +23,10 @@ sub run() {
 
     # Check for errors during first boot
     my $err  = 0;
+    my $timeout = 300;
     my @tags = qw/desktop-at-first-boot install-failed/;
     while (1) {
-        my $ret = assert_screen \@tags, 400;
+        my $ret = assert_screen \@tags, $timeout;
         if ( $ret->{needle}->has_tag("desktop-at-first-boot") && !check_var( "DESKTOP", "kde" ) ) {
             last;
         }
@@ -37,6 +38,7 @@ sub run() {
             push( @tags, "generic-desktop" );
             push( @tags, "drkonqi-crash" );
             @tags = grep { $_ ne 'desktop-at-first-boot' } @tags;
+            $timeout = 30; # decrease timeout to 30 seconds
             next;
         }
         elsif ( $ret->{needle}->has_tag("generic-desktop") ) {
