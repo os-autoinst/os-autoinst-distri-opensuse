@@ -89,10 +89,6 @@ sub post_fail_hook() {
     upload_logs "/tmp/journal";
     save_screenshot;
 
-    type_string "journalctl -b > /tmp/journal\n";
-    upload_logs "/tmp/journal";
-    save_screenshot;
-
     type_string "cat /var/log/X* > /tmp/Xlogs\n";
     upload_logs "/tmp/Xlogs";
     save_screenshot;
