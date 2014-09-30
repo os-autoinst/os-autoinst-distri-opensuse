@@ -1996,7 +1996,7 @@
                     {
                       backend   => "qemu",
                       name      => "32bit",
-                      settings  => [{ key => "QEMUCPU", value => "qemu32" }],
+                      settings  => [{ key => "QEMUCPU", value => "kvm32" }],
                       variables => "",
                     },
                     {
@@ -2010,7 +2010,7 @@
                       name      => "Laptop_32",
                       settings  => [
                                      { key => "LAPTOP", value => 1 },
-                                     { key => "QEMUCPU", value => "qemu32" },
+                                     { key => "QEMUCPU", value => "kvm32" },
                                    ],
                       variables => "",
                     },
@@ -2027,7 +2027,7 @@
                       backend   => "qemu",
                       name      => "USBboot_32",
                       settings  => [
-                                     { key => "QEMUCPU", value => "qemu32" },
+                                     { key => "QEMUCPU", value => "kvm32" },
                                      { key => "USBBOOT", value => 1 },
                                    ],
                       variables => "",
@@ -2045,7 +2045,7 @@
                       backend   => "qemu",
                       name      => "smp_32",
                       settings  => [
-                                     { key => "QEMUCPU", value => "qemu32" },
+                                     { key => "QEMUCPU", value => "kvm32" },
                                      { key => "QEMUCPUS", value => 4 },
                                      { key => "SMP", value => 1 },
                                    ],
