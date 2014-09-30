@@ -12,7 +12,7 @@ sub run() {
     script_run("zypper patch -l && echo 'worked' > /dev/$serialdev");
     my $ret = assert_screen( [qw/test-zypper_up-confirm test-zypper_up-nothingtodo/] );
     if ( $ret->{needle}->has_tag("test-zypper_up-confirm") ) {
-        send_key "y\n";
+        type_string "y\n";
     }
     die "zypper failed" unless wait_serial "worked", 700;
     script_run("zypper patch -l && echo 'worked' > /dev/$serialdev");    # first one might only have installed "update-test-affects-package-manager"
