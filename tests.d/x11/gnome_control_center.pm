@@ -9,13 +9,9 @@ sub run() {
     my $self = shift;
     mouse_hide(1);
     x11_start_program("gnome-control-center");
-    sleep 2;
-    send_key "detail\n";
-    sleep 2;
+    type_string "details\n";
     assert_screen 'test-gnome_control_center-1', 3;
-    sleep 2;
     send_key "alt-f4";
-    sleep 2;
 }
 
 1;
