@@ -58,7 +58,7 @@ sub run() {
         script_sudo "/sbin/reboot";
     }
 
-    assert_screen "bootloader", 100;    # wait until reboot
+    assert_screen "grub2", 100;    # wait until reboot
     if ( $vars{ENCRYPT} ) {
         wait_encrypt_prompt;
     }

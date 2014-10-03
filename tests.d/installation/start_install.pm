@@ -62,11 +62,11 @@ sub run() {
     }
     if ( !$vars{LIVECD} && !$vars{NICEVIDEO} && !$vars{UPGRADE} && !check_var( 'VIDEOMODE', 'text' ) ) {
         while (1) {
-            my $ret = check_screen [ 'installation-details-view', 'inst-bootmenu', 'grub2' ], 3;
+            my $ret = check_screen [ 'installation-details-view', 'grub2' ], 3;
             if ( defined($ret) ) {
                 last if $ret->{needle}->has_tag("installation-details-view");
                 # intention to let this test fail
-                assert_screen 'installation-details-view', 1  if ( $ret->{needle}->has_tag("inst-bootmenu") || $ret->{needle}->has_tag("grub2") );
+                assert_screen 'installation-details-view', 1  if $ret->{needle}->has_tag("grub2");
             }
             send_key $cmd{instdetails};
         }
