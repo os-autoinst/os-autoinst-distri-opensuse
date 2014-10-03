@@ -74,7 +74,7 @@ sub run() {
     # should assert_screen wait for all three at the same time and then have only check_screen afterwards?
     my $ret;
     for (my $counter = 20; $counter > 0; $counter--) {
-        $ret = check_screen [ 'inst-bootmenu', 'grub2' ], 3;
+        $ret = check_screen "grub2", 3;
         if ( defined($ret) ) {
             send_key "ret";    # avoid timeout for booting to HDD
             last;
@@ -82,7 +82,7 @@ sub run() {
     }
     # report the failure
     unless ( defined($ret) ) {
-        assert_screen [ 'inst-bootmenu', 'grub2' ], 1;
+        assert_screen "grub2", 1;
     }
 }
 
