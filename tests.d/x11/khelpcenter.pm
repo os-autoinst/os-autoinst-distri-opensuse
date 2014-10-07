@@ -3,7 +3,7 @@ use bmwqemu;
 
 sub run() {
     my $self = shift;
-    x11_start_program("khelpcenter");
+    x11_start_program("khelpcenter", 6, { valid => 1 } );
     if ( $vars{LIVETEST} ) {
         assert_screen 'test-khelpcenter-1', 15;
     }
