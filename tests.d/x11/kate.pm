@@ -7,8 +7,8 @@ use bmwqemu;
 # this part contains the steps to run this test
 sub run() {
     my $self = shift;
-    ensure_installed("kate", 6, { valid => 1 } );
-    x11_start_program("kate");
+    ensure_installed("kate");
+    x11_start_program("kate", 6, { valid => 1 } );
     assert_screen 'test-kate-1', 10;
 
     # close welcome screen
