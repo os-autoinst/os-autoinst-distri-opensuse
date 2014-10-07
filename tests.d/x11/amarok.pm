@@ -4,7 +4,7 @@ use bmwqemu;
 sub run() {
     my $self = shift;
     ensure_installed("amarok");
-    x11_start_program("amarok");
+    x11_start_program("amarok", 6, { valid => 1 } );
     assert_screen 'test-amarok-1', 3;
     send_key "alt-y";    # use music path as collection folder
     assert_screen 'test-amarok-2', 3;
