@@ -66,17 +66,14 @@ sub run() {
     #     for(1..2) {send_key "down";} # select KDE Live
     # }
 
-    # 1024x768
-    if ( $vars{RES1024} ) {    # default is 800x600
-        type_string "video=1024x768-16 ";
-    }
-    elsif ( check_var( 'VIDEOMODE', "text" ) ) {
+    if ( check_var( 'VIDEOMODE', "text" ) ) {
         type_string "textmode=1 ";
     }
 
     #type_string "nohz=off "; # NOHZ caused errors with 2.6.26
     #type_string "nomodeset "; # coolo said, 12.3-MS0 kernel/kms broken with cirrus/vesa #fixed 2012-11-06
 
+    type_string " \\\n"; # changed the line before typing video params
     # https://wiki.archlinux.org/index.php/Kernel_Mode_Setting#Forcing_modes_and_EDID
     type_string "vga=791 ";
     type_string "video=1024x768-16 ";
