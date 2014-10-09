@@ -5,7 +5,7 @@ use Time::HiRes qw(sleep);
 
 sub is_applicable() {
     my $self = shift;
-    return $self->SUPER::is_applicable && !$vars{UEFI} && !$vars{MEDIACHECK} && !$vars{MEMTEST} && !$vars{RESCUESYSTEM};
+    return $self->SUPER::is_applicable && !$vars{UEFI} && !$vars{OFW} && !$vars{MEDIACHECK} && !$vars{MEMTEST} && !$vars{RESCUESYSTEM};
 }
 
 # hint: press shift-f10 trice for highest debug level
