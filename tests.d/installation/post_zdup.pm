@@ -16,7 +16,7 @@ sub run() {
 
     # Reboot after dup
     send_key "ctrl-alt-delete";
-    assert_screen "bootloader", 50;
+    assert_screen "grub2", 50;
 
     # Wait until the point that consoletests can start working
     assert_screen "desktop-at-first-boot", 400;
