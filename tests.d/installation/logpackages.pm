@@ -17,7 +17,12 @@ sub run() {
     assert_screen "inst-console";
     type_string "(cat .timestamp ; echo .packages.initrd: ; cat .packages.initrd)>/dev/$serialdev\n";
     type_string "(echo .packages.root: ; cat .packages.root)>/dev/$serialdev\n";
-    assert_screen "inst-packagestyped", 150;
+    if (!$vars{OFW}) {
+        assert_screen "inst-packagestyped", 150;
+    }
+    else {
+        assert_screen "inst-packagestyped-ofw", 150;
+    }
     type_string "ls -lR /update\n";
     save_screenshot;
     wait_idle;
