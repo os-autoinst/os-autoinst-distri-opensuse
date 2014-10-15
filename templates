@@ -1456,7 +1456,7 @@
                       product    => {
                                       arch    => "i586-x86_64",
                                       distri  => "opensuse",
-                                      flavor  => "DVD",
+                                      flavor  => "DVD-Biarch",
                                       version => "Factory",
                                     },
                       test_suite => { name => "textmode" },
@@ -1466,7 +1466,7 @@
                       product    => {
                                       arch    => "i586-x86_64",
                                       distri  => "opensuse",
-                                      flavor  => "DVD",
+                                      flavor  => "DVD-Biarch",
                                       version => "Factory",
                                     },
                       test_suite => { name => "kde" },
@@ -1476,7 +1476,7 @@
                       product    => {
                                       arch    => "i586-x86_64",
                                       distri  => "opensuse",
-                                      flavor  => "DVD",
+                                      flavor  => "DVD-Biarch",
                                       version => "Factory",
                                     },
                       test_suite => { name => "kde" },
@@ -1486,7 +1486,7 @@
                       product    => {
                                       arch    => "i586-x86_64",
                                       distri  => "opensuse",
-                                      flavor  => "DVD",
+                                      flavor  => "DVD-Biarch",
                                       version => "Factory",
                                     },
                       test_suite => { name => "kde+btrfs" },
@@ -1496,7 +1496,7 @@
                       product    => {
                                       arch    => "i586-x86_64",
                                       distri  => "opensuse",
-                                      flavor  => "DVD",
+                                      flavor  => "DVD-Biarch",
                                       version => "Factory",
                                     },
                       test_suite => { name => "gnome" },
@@ -1506,7 +1506,7 @@
                       product    => {
                                       arch    => "i586-x86_64",
                                       distri  => "opensuse",
-                                      flavor  => "DVD",
+                                      flavor  => "DVD-Biarch",
                                       version => "Factory",
                                     },
                       test_suite => { name => "gnome+btrfs" },
@@ -1516,7 +1516,7 @@
                       product    => {
                                       arch    => "i586-x86_64",
                                       distri  => "opensuse",
-                                      flavor  => "DVD",
+                                      flavor  => "DVD-Biarch",
                                       version => "Factory",
                                     },
                       test_suite => { name => "minimalx" },
@@ -1526,7 +1526,7 @@
                       product    => {
                                       arch    => "i586-x86_64",
                                       distri  => "opensuse",
-                                      flavor  => "DVD",
+                                      flavor  => "DVD-Biarch",
                                       version => "Factory",
                                     },
                       test_suite => { name => "minimalx+btrfs" },
@@ -1536,7 +1536,7 @@
                       product    => {
                                       arch    => "i586-x86_64",
                                       distri  => "opensuse",
-                                      flavor  => "DVD",
+                                      flavor  => "DVD-Biarch",
                                       version => "Factory",
                                     },
                       test_suite => { name => "minimalx+btrfs+nosephome" },
@@ -1546,7 +1546,7 @@
                       product    => {
                                       arch    => "i586-x86_64",
                                       distri  => "opensuse",
-                                      flavor  => "DVD",
+                                      flavor  => "DVD-Biarch",
                                       version => "Factory",
                                     },
                       test_suite => { name => "textmode+btrfs" },
@@ -1556,7 +1556,7 @@
                       product    => {
                                       arch    => "i586-x86_64",
                                       distri  => "opensuse",
-                                      flavor  => "DVD",
+                                      flavor  => "DVD-Biarch",
                                       version => "Factory",
                                     },
                       test_suite => { name => "lxde" },
@@ -1566,7 +1566,7 @@
                       product    => {
                                       arch    => "i586-x86_64",
                                       distri  => "opensuse",
-                                      flavor  => "DVD",
+                                      flavor  => "DVD-Biarch",
                                       version => "Factory",
                                     },
                       test_suite => { name => "xfce" },
@@ -1576,7 +1576,7 @@
                       product    => {
                                       arch    => "i586-x86_64",
                                       distri  => "opensuse",
-                                      flavor  => "DVD",
+                                      flavor  => "DVD-Biarch",
                                       version => "Factory",
                                     },
                       test_suite => { name => "kde" },
@@ -1586,7 +1586,7 @@
                       product    => {
                                       arch    => "i586-x86_64",
                                       distri  => "opensuse",
-                                      flavor  => "DVD",
+                                      flavor  => "DVD-Biarch",
                                       version => "Factory",
                                     },
                       test_suite => { name => "kde" },
@@ -1596,7 +1596,7 @@
                       product    => {
                                       arch    => "i586-x86_64",
                                       distri  => "opensuse",
-                                      flavor  => "DVD",
+                                      flavor  => "DVD-Biarch",
                                       version => "Factory",
                                     },
                       test_suite => { name => "gnome" },
@@ -1606,7 +1606,7 @@
                       product    => {
                                       arch    => "i586-x86_64",
                                       distri  => "opensuse",
-                                      flavor  => "DVD",
+                                      flavor  => "DVD-Biarch",
                                       version => "Factory",
                                     },
                       test_suite => { name => "RAID0" },
@@ -1616,7 +1616,7 @@
                       product    => {
                                       arch    => "i586-x86_64",
                                       distri  => "opensuse",
-                                      flavor  => "DVD",
+                                      flavor  => "DVD-Biarch",
                                       version => "Factory",
                                     },
                       test_suite => { name => "RAID1" },
@@ -1626,7 +1626,7 @@
                       product    => {
                                       arch    => "i586-x86_64",
                                       distri  => "opensuse",
-                                      flavor  => "DVD",
+                                      flavor  => "DVD-Biarch",
                                       version => "Factory",
                                     },
                       test_suite => { name => "RAID5" },
@@ -1636,7 +1636,7 @@
                       product    => {
                                       arch    => "i586-x86_64",
                                       distri  => "opensuse",
-                                      flavor  => "DVD",
+                                      flavor  => "DVD-Biarch",
                                       version => "Factory",
                                     },
                       test_suite => { name => "RAID10" },
@@ -1646,7 +1646,7 @@
                       product    => {
                                       arch    => "i586-x86_64",
                                       distri  => "opensuse",
-                                      flavor  => "DVD",
+                                      flavor  => "DVD-Biarch",
                                       version => "Factory",
                                     },
                       test_suite => { name => "btrfscryptlvm" },
@@ -1656,7 +1656,7 @@
                       product    => {
                                       arch    => "i586-x86_64",
                                       distri  => "opensuse",
-                                      flavor  => "DVD",
+                                      flavor  => "DVD-Biarch",
                                       version => "Factory",
                                     },
                       test_suite => { name => "cryptlvm" },
@@ -1666,7 +1666,7 @@
                       product    => {
                                       arch    => "i586-x86_64",
                                       distri  => "opensuse",
-                                      flavor  => "DVD",
+                                      flavor  => "DVD-Biarch",
                                       version => "Factory",
                                     },
                       test_suite => { name => "install_only" },
@@ -1676,7 +1676,7 @@
                       product    => {
                                       arch    => "i586-x86_64",
                                       distri  => "opensuse",
-                                      flavor  => "DVD",
+                                      flavor  => "DVD-Biarch",
                                       version => "Factory",
                                     },
                       test_suite => { name => "update_121" },
@@ -1686,7 +1686,7 @@
                       product    => {
                                       arch    => "i586-x86_64",
                                       distri  => "opensuse",
-                                      flavor  => "DVD",
+                                      flavor  => "DVD-Biarch",
                                       version => "Factory",
                                     },
                       test_suite => { name => "update_122" },
@@ -1696,7 +1696,7 @@
                       product    => {
                                       arch    => "i586-x86_64",
                                       distri  => "opensuse",
-                                      flavor  => "DVD",
+                                      flavor  => "DVD-Biarch",
                                       version => "Factory",
                                     },
                       test_suite => { name => "update_123" },
@@ -1706,7 +1706,7 @@
                       product    => {
                                       arch    => "i586-x86_64",
                                       distri  => "opensuse",
-                                      flavor  => "DVD",
+                                      flavor  => "DVD-Biarch",
                                       version => "Factory",
                                     },
                       test_suite => { name => "dual_windows8" },
@@ -1996,7 +1996,7 @@
                     {
                       backend   => "qemu",
                       name      => "32bit",
-                      settings  => [{ key => "QEMUCPU", value => "qemu32" }],
+                      settings  => [{ key => "QEMUCPU", value => "kvm32" }],
                       variables => "",
                     },
                     {
@@ -2010,7 +2010,7 @@
                       name      => "Laptop_32",
                       settings  => [
                                      { key => "LAPTOP", value => 1 },
-                                     { key => "QEMUCPU", value => "qemu32" },
+                                     { key => "QEMUCPU", value => "kvm32" },
                                    ],
                       variables => "",
                     },
@@ -2027,7 +2027,7 @@
                       backend   => "qemu",
                       name      => "USBboot_32",
                       settings  => [
-                                     { key => "QEMUCPU", value => "qemu32" },
+                                     { key => "QEMUCPU", value => "kvm32" },
                                      { key => "USBBOOT", value => 1 },
                                    ],
                       variables => "",
@@ -2045,7 +2045,7 @@
                       backend   => "qemu",
                       name      => "smp_32",
                       settings  => [
-                                     { key => "QEMUCPU", value => "qemu32" },
+                                     { key => "QEMUCPU", value => "kvm32" },
                                      { key => "QEMUCPUS", value => 4 },
                                      { key => "SMP", value => 1 },
                                    ],
@@ -2078,7 +2078,7 @@
                     {
                       arch      => "i586-x86_64",
                       distri    => "opensuse",
-                      flavor    => "DVD",
+                      flavor    => "DVD-Biarch",
                       name      => "",
                       settings  => [{ key => "ISO_MAXSIZE", value => 8539996160 }],
                       variables => "",
