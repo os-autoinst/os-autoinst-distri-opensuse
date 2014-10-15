@@ -26,6 +26,13 @@ sub run() {
         send_key 'alt-n';
         ++$self->{dents};
     }
+    # Bug 881107 - there is 2nd license agreement screen in openSUSE upgrade
+    # http://bugzilla.opensuse.org/show_bug.cgi?id=881107
+    # (remove after the bug is closed)
+    if (check_screen('upgrade-li-cense-agreement', 10)) {
+        send_key 'alt-n';
+        ++$self->{dents};
+    }
     assert_screen "update-installation-overview", 15;
 }
 
