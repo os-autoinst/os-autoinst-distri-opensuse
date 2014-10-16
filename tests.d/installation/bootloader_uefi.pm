@@ -36,6 +36,7 @@ sub run() {
         return;
     }
     if ( $vars{PROMO} ) {
+        send_key "down";    # upgrade
         if ( check_var( "DESKTOP", "gnome" ) ) {
             send_key "down" unless $vars{OSP_SPECIAL};
             send_key "down";
