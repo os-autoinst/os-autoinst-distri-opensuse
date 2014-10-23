@@ -4,14 +4,17 @@ use bmwqemu;
 
 sub run() {
     my $self = shift;
+    # NET isos are slow to install
+    my $timeout = 2000;
 
     # workaround for yast popups
     my @tags = qw/rebootnow/;
     if ($vars{UPGRADE}) {
         push(@tags, "ERROR-removing-package");
+        $timeout = 3500; # upgrades are slower
     }
     while (1) {
-        my $ret = assert_screen \@tags, 2000;    # NET isos and UPGRADE are slow to install
+        my $ret = assert_screen \@tags, $timeout;
 
         if ( $ret->{needle}->has_tag("popup-warning") ) {
             ++$self->{dents};
