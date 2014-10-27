@@ -11,7 +11,7 @@ sub run() {
     my @tags = qw/rebootnow/;
     if ($vars{UPGRADE}) {
         push(@tags, "ERROR-removing-package");
-        $timeout = 3500; # upgrades are slower
+        $timeout = 5500; # upgrades are slower
     }
     while (1) {
         my $ret = assert_screen \@tags, $timeout;
