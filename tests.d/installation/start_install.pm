@@ -13,19 +13,24 @@ sub run() {
         my $ret = assert_screen [qw/startupdate startupdate-conflict/], 5;
 
         while ( $ret->{needle}->has_tag("startupdate-conflict") ) {
-            save_screenshot;
             send_key $cmd{ok}, 1;
 
-            send_key $cmd{change}, 1;
-            send_key $cmd{"package"}, 1;
-            assert_screen "package-conflict", 5;
-            save_screenshot;
-            send_key "alt-1", 1;    # We hope that zypper makes the best suggestion here
-            send_key $cmd{ok}, 1;
+            while ( !check_screen( 'packages-section-selected', 2 ) ) {
+                send_key 'tab';
+            }
 
-            assert_screen "package-resolve-conflict", 5;
-            send_key $cmd{accept}, 1;
+            assert_and_click 'packages-section-selected';
+            assert_screen "package-conflict", 20;
 
+            while ( !check_screen( 'all-conflicts-resolved-packages', 4 ) ) {
+                assert_and_click 'package-conflict-choice';
+                send_key $cmd{ok}, 1;
+            }
+            send_key $cmd{"accept"}, 1;
+
+            while ( check_screen( 'license-popup', 2 ) ) {
+                send_key $cmd{"accept"}, 1;
+            }
             assert_screen "automatic-changes", 5;
             send_key $cmd{"continue"}, 1;
 
@@ -38,19 +43,22 @@ sub run() {
         assert_screen 'startupdate';
         send_key $cmd{update};
 
-        if (check_screen('ERROR-bootloader_preupdate', 3)) {
+        if ( check_screen( 'ERROR-bootloader_preupdate', 3 ) ) {
             send_key 'alt-n';
             ++$self->{dents};
         }
         assert_screen "inst-packageinstallationstarted";
+
         # view installation details
         send_key $cmd{instdetails};
     }
     elsif ( $vars{AUTOYAST} ) {
-        assert_screen("inst-packageinstallationstarted", 120);
-    } else {
+        assert_screen( "inst-packageinstallationstarted", 120 );
+    }
+    else {
         send_key $cmd{install};
-        while ( my $ret = check_screen( [qw/confirmlicense startinstall/] ), 5 ) {
+        while ( my $ret = check_screen( [qw/confirmlicense startinstall/] ), 5 )
+        {
             last if $ret->{needle}->has_tag("startinstall");
             send_key $cmd{acceptlicense}, 1;
         }
@@ -60,13 +68,19 @@ sub run() {
         send_key $cmd{install};
         assert_screen "inst-packageinstallationstarted";
     }
-    if ( !$vars{LIVECD} && !$vars{NICEVIDEO} && !$vars{UPGRADE} && !check_var( 'VIDEOMODE', 'text' ) ) {
+    if (   !$vars{LIVECD}
+        && !$vars{NICEVIDEO}
+        && !$vars{UPGRADE}
+        && !check_var( 'VIDEOMODE', 'text' ) )
+    {
         while (1) {
             my $ret = check_screen [ 'installation-details-view', 'grub2' ], 3;
             if ( defined($ret) ) {
                 last if $ret->{needle}->has_tag("installation-details-view");
+
                 # intention to let this test fail
-                assert_screen 'installation-details-view', 1  if $ret->{needle}->has_tag("grub2");
+                assert_screen 'installation-details-view', 1
+                  if $ret->{needle}->has_tag("grub2");
             }
             send_key $cmd{instdetails};
         }
@@ -85,4 +99,5 @@ sub run() {
 }
 
 1;
+
 # vim: set sw=4 et:
