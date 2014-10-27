@@ -26,9 +26,9 @@ sub run() {
     script_sudo "/sbin/reboot";
 
     # login, again : )
-    assert_screen "grub2", 70; # boot menu appears
+    assert_screen "grub2", 10; # boot menu appears
     send_key "ret";
-    assert_screen "linux-login", 30; # login prompt appears
+    assert_screen "linux-login", 15; # login prompt appears
     type_string "$username\n";
     sleep 2;
     sendpassword;
