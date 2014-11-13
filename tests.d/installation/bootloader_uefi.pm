@@ -104,7 +104,7 @@ sub run() {
     }
     my $args = "";
     if ( $vars{AUTOYAST} ) {
-        $args .= " ifcfg=*=dhcp autoyast=http://$vars{OPENQA_HOSTNAME}/test-data/$vars{DISTRI}/data/$vars{AUTOYAST} ";
+        $args .= " ifcfg=*=dhcp autoyast=http://$vars{OPENQA_HOSTNAME}/tests/$vars{TEST_ID}/data/$vars{AUTOYAST} "
     }
     type_string $args;
     save_screenshot;
