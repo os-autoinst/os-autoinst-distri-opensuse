@@ -4,7 +4,7 @@ use bmwqemu;
 sub run() {
     my $self = shift;
     $self->start_audiocapture;
-    x11_start_program("firefox http://$vars{OPENQA_HOSTNAME}/test-data/$vars{DISTRI}/data/1d5d9dD.oga");
+    x11_start_program("firefox http://$vars{OPENQA_HOSTNAME}/tests/$vars{TEST_ID}/data/1d5d9dD.oga");
     sleep 3;
     $self->assert_DTMF('159D');
     assert_screen 'test-firefox_audio-1', 3;
