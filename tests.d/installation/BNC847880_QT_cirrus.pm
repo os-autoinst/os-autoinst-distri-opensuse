@@ -1,4 +1,4 @@
-use base "installstep";
+use base "y2logsstep";
 use bmwqemu;
 
 # Only because of kde/qt has a rendering error on i586 in qemu (bnc#847880).
@@ -6,7 +6,8 @@ use bmwqemu;
 
 sub is_applicable() {
     my $self = shift;
-    return $self->SUPER::is_applicable && $vars{DESKTOP} eq "kde" && !$vars{DUALBOOT};
+    return 0;
+    # return $self->SUPER::is_applicable && $vars{DESKTOP} eq "kde" && !$vars{DUALBOOT};
 }
 
 sub run() {
