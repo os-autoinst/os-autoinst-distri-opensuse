@@ -1,11 +1,10 @@
 #!/usr/bin/perl -w
 use strict;
-use base "y2logsstep";
+use base "installstep";
 use bmwqemu;
 
 sub is_applicable() {
-    my $self = shift;
-    return $self->SUPER::is_applicable && $vars{LVM} && !$vars{AUTOYAST};
+    return $vars{LVM} && !$vars{AUTOYAST};
 }
 
 sub run() {

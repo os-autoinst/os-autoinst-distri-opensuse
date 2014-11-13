@@ -1,4 +1,4 @@
-use base "installbasetest";
+use base "basetest";
 use bmwqemu;
 
 # using this as base class means only run when an install is needed
@@ -11,14 +11,25 @@ sub run() {
     my $self = shift;
 
     # live may take ages to boot
-    my $timeout = 600;
+    my $timeout = 300;
+    if ( $vars{'RESCUECD'} ) {
+        assert_screen 'displaymanager', $timeout;
+        send_key "tab";
+        sleep 2;
+        send_key "tab";
+        sleep 2;
+        send_key "tab";
+        sleep 2;
+        send_key "ret";
+        $timeout = 60;
+    }
     assert_screen "desktop-at-first-boot", $timeout;
 
     ## duplicated from second stage, combine!
     if ( check_var( 'DESKTOP', 'kde' ) ) {
         send_key "esc";
         sleep 2;
-        assert_screen "generic-desktop", 10;
+        save_screenshot();
     }
 }
 

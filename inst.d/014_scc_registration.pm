@@ -1,0 +1,1 @@
+../tests.d/installation/scc_registration.pm

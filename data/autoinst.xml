@@ -15,6 +15,9 @@
     </keyboard_values>
     <keymap>english-us</keymap>
   </keyboard>
+  <networking>
+    <keep_install_network config:type="boolean">true</keep_install_network>
+  </networking>
   <language>
     <language>en_US</language>
     <languages/>
@@ -25,7 +28,9 @@
   </ntp-client>
   <software>
     <patterns config:type="list">
-      <pattern>gnome</pattern>
+      <pattern>gnome-basic</pattern>
+      <!-- bnc# 886579 -->
+      <pattern>base</pattern>
     </patterns>
   </software>
   <suse_register>
@@ -38,7 +43,7 @@
   <users config:type="list">
     <user>
       <encrypted config:type="boolean">false</encrypted>
-      <fullname>Joe Sixpack</fullname>
+      <fullname>Bernhard M. Wiedemann</fullname>
       <gid>100</gid>
       <home>/home/bernhard</home>
       <password_settings>

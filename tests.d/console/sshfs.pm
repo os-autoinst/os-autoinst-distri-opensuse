@@ -5,9 +5,10 @@ sub is_applicable() {
     my $self = shift;
 
     # in live we don't have a password for root so ssh doesn't
-    # work anyways, and except staging_core image, the rest of
-    # staging_* images don't need run this test case
-    return $self->SUPER::is_applicable && !$vars{LIVETEST} && !( $vars{FLAVOR} =~ /^Staging2?[\-]DVD$/ );
+    # work anyways
+
+    # sshfs is not on SLE
+    $self->SUPER::is_applicable && !$vars{LIVETEST} && 0;
 }
 
 sub run() {

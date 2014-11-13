@@ -5,6 +5,8 @@ use bmwqemu;
 
 sub is_applicable() {
     my $self = shift;
+    # it's addon products in SLE
+    return 0 if $vars{DISTRI} eq 'sle';
     return $self->SUPER::is_applicable && !$vars{LIVECD} && !$vars{AUTOYAST};
 }
 

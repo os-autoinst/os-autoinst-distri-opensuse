@@ -1,9 +1,8 @@
-use base "y2logsstep";
+use base "installstep";
 use bmwqemu;
 
 sub is_applicable() {
-    my $self = shift;
-    return $self->SUPER::is_applicable && $vars{DUALBOOT};
+    return $vars{DUALBOOT};
 }
 
 sub run() {

@@ -1,11 +1,11 @@
 #!/usr/bin/perl -w
 use strict;
-use base "noupdatestep";
+use base "basenoupdate";
 use bmwqemu;
 
 sub is_applicable() {
     my $self = shift;
-    return $self->SUPER::is_applicable && !$vars{AUTOYAST};
+    return $self->SUPER::is_applicable && !$vars{UPGRADE} && !$vars{AUTOYAST};
 }
 
 # add a new primary partition
@@ -24,9 +24,6 @@ sub addpart($$) {
     }
     type_string $size . "mb";
     wait_idle 5;
-    send_key $cmd{"next"};
-    assert_screen 'partition-role', 6;
-    send_key "alt-a";    # Raw Volume
     send_key $cmd{"next"};
     wait_idle 5;
     send_key $cmd{"donotformat"};
@@ -81,26 +78,37 @@ sub addraid($;$) {
         }
     }
     send_key $cmd{"next"};
-    assert_screen 'partition-role', 6;
-    send_key "alt-o";    # Operating System
-    send_key $cmd{"next"};
     wait_idle 3;
 }
 
 sub setraidlevel($) {
     my $level = shift;
-    my %entry = ( 0 => 0, 1 => 1, 5 => 5, 6 => 6, 10 => 'g' );
-    send_key "alt-$entry{$level}";
+    my %entry = ( 0 => 0, 1 => 1, 5 => 2, 6 => 3, 10 => 4 );
+    for ( 0 .. $entry{$level} ) {
+        send_key "tab";
+    }
+    send_key "spc";    # set entry
+    for ( $entry{$level} .. $entry{10} ) {
+        send_key "tab";
+    }
 
-    send_key "alt-i";    # move to RAID name input field
-    send_key "tab";      # skip RAID name input field
+    # skip RAID name input
+    send_key "tab";
 }
 
 # Entry test code
 sub run() {
 
+    # XXX: yast introduced a popup instead of immediate check boxes.
+    # this is a workaround to be able to deal with both old and new
+    # style. Needs to go away. BTRFS and TOGGLEHOME must be ajdusted
+    # to the new way.
+    my $newstyle;
     my $closedialog;
-    my $ret = assert_screen 'partioning-edit-proposal-button', 40;
+    my $ret = assert_screen [ 'partitioning', 'partioning-edit-proposal-button' ], 40;
+    if ( $ret->{needle}->has_tag('partioning-edit-proposal-button') ) {
+        $newstyle = 1;
+    }
 
     if ( $vars{DUALBOOT} ) {
         assert_screen 'partitioning-windows', 40;
@@ -109,20 +117,13 @@ sub run() {
     # XXX: why is that here?
     if ( $vars{TOGGLEHOME} && !$vars{LIVECD} ) {
         my $homekey = check_var( 'VIDEOMODE', "text" ) ? "alt-p" : "alt-h";
-        send_key 'alt-d';
-        $closedialog = 1;
-        $homekey     = 'alt-p';
-        assert_screen "partition-proposals-window", 5;
-        send_key $homekey;
-        for ( 1 .. 3 ) {
-            if ( !check_screen "disabledhome", 8 ) {
-                send_key $homekey;
-            }
-            else {
-                last;
-            }
+        if ($newstyle) {
+            send_key 'alt-d';
+            $closedialog = 1;
+            $homekey     = 'alt-p';
         }
-        assert_screen "disabledhome", 5;
+        send_key $homekey;
+        assert_screen "disabledhome", 10;
         if ($closedialog) {
             send_key 'alt-o';
             $closedialog = 0;
@@ -138,12 +139,12 @@ sub run() {
 
         # user defined
         send_key $cmd{custompart};
-        send_key $cmd{"next"}, 1;
+        send_key $cmd{"next"};
         assert_screen 'custompart', 9;
 
         send_key "tab";
         send_key "down";    # select disks
-                            # seems GNOME tree list didn't eat right arrow key
+        # seems GNOME tree list didn't eat right arrow key
         if ( $vars{GNOME} ) {
             send_key "spc";    # unfold disks
         }
@@ -155,11 +156,11 @@ sub run() {
 
         for ( 1 .. 4 ) {
             wait_idle 5;
-            addpart( 300, 2 );    # boot
+            addpart( 300, 3 );    # boot
             wait_idle 5;
-            addpart( 5300, 2 );    # root
+            addpart( 5300, 3 );    # root
             wait_idle 5;
-            addpart( 100, 2 );     # swap
+            addpart( 100, 3 );     # swap
             assert_screen 'raid-partition', 5;
 
             # select next disk
@@ -180,7 +181,7 @@ sub run() {
         if ( !defined( $vars{RAIDLEVEL} ) ) { $vars{RAIDLEVEL} = 6 }
         setraidlevel( $vars{RAIDLEVEL} );
         send_key "down";    # start at second partition (i.e. sda2)
-            # in this case, press down key doesn't move to next one but itself
+        # in this case, press down key doesn't move to next one but itself
         if ( $vars{GNOME} ) { send_key "down" }
         addraid( 3, 6 );
 
@@ -225,27 +226,29 @@ sub run() {
 
         # select file-system
         send_key $cmd{filesystem};
-        send_key "end";     # swap at end of list
+        send_key "end";      # swap at end of list
         send_key $cmd{"finish"};
         wait_idle 3;
 
         # done
         send_key $cmd{"accept"};
-
-        # skip subvolumes shadowed warning
-        if ( check_screen 'subvolumes-shadowed', 5 ) {
-            send_key 'alt-y';
-        }
         assert_screen 'acceptedpartitioning', 6;
     }
     elsif ( $vars{BTRFS} ) {
-        send_key "alt-d";
-        $closedialog = 1;
-        assert_screen "partition-proposals-window", 5;
-        if ( !check_screen 'usebtrfs', 3 ) {
-            send_key "alt-f";
-            sleep 2;
-            send_key "b";    # use btrfs
+        if ($newstyle) {
+            send_key "alt-d";
+            $closedialog = 1;
+        }
+        if ( !check_screen 'usebtrfs' ) {
+            wait_idle 3;
+            if ($newstyle) {
+                send_key "alt-f";
+                sleep 2;
+                send_key "b";    # use btrfs
+            }
+            else {
+                send_key "alt-u";    # use btrfs
+            }
         }
         sleep 3;
         assert_screen 'usebtrfs', 3;
@@ -255,27 +258,7 @@ sub run() {
             $closedialog = 0;
         }
     }
-    elsif ( $vars{EXT4} ) {
-
-        # click the button
-        assert_and_click 'edit-proposal-settings';
-
-        # select the combo box
-        assert_and_click 'default-root-filesystem';
-
-        # select ext4
-        assert_and_click 'filesystem-ext4';
-        assert_screen 'ext4-selected';
-        assert_and_click 'ok-button';
-
-        # make sure we're back from the popup
-        assert_screen 'edit-proposal-settings';
-
-        mouse_hide;
-    }
-
 }
 
 1;
-
 # vim: set sw=4 et:

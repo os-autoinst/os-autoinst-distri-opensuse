@@ -19,7 +19,7 @@ sub run() {
 
     #script_sudo("pip install mozmill==1.5.3 mercurial");
     sleep 5;
-    wait_idle 50;
+    wait_idle(50);
     assert_screen 'test-mozmill_setup-2', 3;
     send_key "ctrl-l";
     script_run("cd /tmp");    # dont use home to not confuse dolphin test
