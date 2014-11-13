@@ -108,6 +108,12 @@ sub run() {
     }
     type_string $args;
     save_screenshot;
+
+    if ($vars{FIPS}) {
+        type_string " fips=1", 13;
+        save_screenshot;
+    }
+
     if ( 0 && $vars{RAIDLEVEL} ) {
 
         # workaround bnc#711724
