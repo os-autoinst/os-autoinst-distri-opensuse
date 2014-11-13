@@ -34,7 +34,11 @@ sub run() {
         send_key "backspace";
     }
     type_string "4.5G";
-    send_key $cmd{"next"}, 1;
+    send_key $cmd{"next"};
+    assert_screen 'partition-role', 6;
+    send_key "alt-o";    # Operating System
+    send_key $cmd{"next"};
+    wait_idle 5;
     send_key "alt-m";           # Mount Point
     type_string "/usr\b";    # Backspace to break bad completion to /usr/local
     assert_screen "partition-splitusr-submitted-usr", 3;
