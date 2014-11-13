@@ -115,8 +115,12 @@ unless ( $vars{DESKTOP} ) {
         $vars{DESKTOP} = "kde";
     }
 }
+
+# SLE specific variables
+$vars{'NOAUTOLOGIN'} = 1;
+$vars{'HASLICENSE'} = 1;
+
 if ( check_var( 'DESKTOP', 'minimalx' ) ) {
-    $vars{'NOAUTOLOGIN'} = 1;
     $vars{XDMUSED} = 1;
 }
 
