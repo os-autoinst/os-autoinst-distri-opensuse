@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 use strict;
-use base "installstep";
+use base "y2logsstep";
 use bmwqemu;
 
 sub is_applicable() {
@@ -31,11 +31,10 @@ sub run() {
     #		mydie("beta warning found in non-beta");
     #	}
 
+    wait_idle;
+
     # animated cursor wastes disk space, so it is moved to bottom right corner
     mouse_hide;
-
-    #send_key "alt-o"; # beta warning
-    wait_idle;
 
     # license+lang
     if ( $vars{HASLICENSE} ) {

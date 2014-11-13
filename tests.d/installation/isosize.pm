@@ -1,9 +1,10 @@
-use base "basetest";
+use base "opensusebasetest";
 use strict;
 use bmwqemu;
 
 sub is_applicable() {
-    return $vars{ISO_MAXSIZE};
+    my $self = shift;
+    return $self->SUPER::is_applicable && $vars{ISO_MAXSIZE};
 }
 
 sub run {

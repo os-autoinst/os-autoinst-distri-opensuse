@@ -1,19 +1,24 @@
-use base "basetest";
+use base "installbasetest";
 use strict;
 use bmwqemu;
 use Time::HiRes qw(sleep);
 
 sub is_applicable() {
-    return $vars{UEFI};
+    my $self = shift;
+    return $self->SUPER::is_applicable && $vars{UEFI};
 }
 
 # hint: press shift-f10 trice for highest debug level
 sub run() {
+    if (check_screen "bootloader-shim-import-prompt", 15) {
+        send_key "down";
+        send_key "ret";
+    }
     assert_screen "bootloader-grub2", 15;
     if ( $vars{QEMUVGA} && $vars{QEMUVGA} ne "cirrus" ) {
         sleep 5;
     }
-    if ( $vars{ZDUP} || $vars{WDUP} ) {
+    if ( $vars{ZDUP} ) {
         qemusend "eject -f ide1-cd0";
         qemusend "system_reset";
         sleep 10;
@@ -30,7 +35,8 @@ sub run() {
         send_key "ret";
         return;
     }
-    if ( $vars{PROMO} ) {
+    if ( $vars{LIVETEST} && $vars{PROMO} ) {
+        send_key "down";    # upgrade
         if ( check_var( "DESKTOP", "gnome" ) ) {
             send_key "down" unless $vars{OSP_SPECIAL};
             send_key "down";
@@ -61,17 +67,14 @@ sub run() {
     #     for(1..2) {send_key "down";} # select KDE Live
     # }
 
-    # 1024x768
-    if ( $vars{RES1024} ) {    # default is 800x600
-        type_string "video=1024x768-16 ";
-    }
-    elsif ( check_var( 'VIDEOMODE', "text" ) ) {
+    if ( check_var( 'VIDEOMODE', "text" ) ) {
         type_string "textmode=1 ";
     }
 
     #type_string "nohz=off "; # NOHZ caused errors with 2.6.26
     #type_string "nomodeset "; # coolo said, 12.3-MS0 kernel/kms broken with cirrus/vesa #fixed 2012-11-06
 
+    type_string " \\\n"; # changed the line before typing video params
     # https://wiki.archlinux.org/index.php/Kernel_Mode_Setting#Forcing_modes_and_EDID
     type_string "vga=791 ";
     type_string "video=1024x768-16 ";
@@ -139,10 +142,6 @@ exit
     # boot
     send_key "f10";
 
-}
-
-sub test_flags() {
-    return { 'fatal' => 1 };
 }
 
 1;

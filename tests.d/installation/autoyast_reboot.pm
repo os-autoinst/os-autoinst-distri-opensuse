@@ -1,5 +1,5 @@
 use strict;
-use base "installstep";
+use base "y2logsstep";
 use bmwqemu;
 
 sub is_applicable() {
@@ -10,8 +10,7 @@ sub is_applicable() {
 sub run() {
     my $self = shift;
 
-    my @tags = qw/inst-bootmenu grub2/;
-    assert_screen( \@tags, 900 );
+    assert_screen( "grub2", 900 );
 }
 
 1;

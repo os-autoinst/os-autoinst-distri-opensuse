@@ -1,11 +1,11 @@
 #!/usr/bin/perl -w
 use strict;
-use base "basenoupdate";
+use base "noupdatestep";
 use bmwqemu;
 
 sub is_applicable() {
     my $self = shift;
-    return $self->SUPER::is_applicable && !$vars{UPGRADE} && !$vars{AUTOYAST};
+    return $self->SUPER::is_applicable && !$vars{AUTOYAST};
 }
 
 # add a new primary partition
@@ -261,4 +261,5 @@ sub run() {
 }
 
 1;
+
 # vim: set sw=4 et:

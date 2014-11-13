@@ -1,10 +1,11 @@
-use base "basetest";
+use base "installbasetest";
 use strict;
 use bmwqemu;
 use Time::HiRes qw(sleep);
 
 sub is_applicable() {
-    return !$vars{UEFI};
+    my $self = shift;
+    return $self->SUPER::is_applicable && !$vars{UEFI} && !$vars{OFW} && !$vars{MEDIACHECK} && !$vars{MEMTEST} && !$vars{RESCUESYSTEM};
 }
 
 # hint: press shift-f10 trice for highest debug level
@@ -21,7 +22,7 @@ sub run() {
     }
 
     assert_screen "inst-bootmenu", 15;
-    if ( $vars{ZDUP} || $vars{WDUP} ) {
+    if ( $vars{ZDUP} ) {
         qemusend "eject -f ide1-cd0";
         qemusend "system_reset";
         sleep 10;

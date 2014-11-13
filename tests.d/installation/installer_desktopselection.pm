@@ -5,7 +5,6 @@ use bmwqemu;
 
 sub is_applicable() {
     my $self = shift;
-    return 0 if $vars{DISTRI} eq 'sle';
     $self->SUPER::is_applicable && !$vars{LIVECD} && !$vars{AUTOYAST};
 }
 

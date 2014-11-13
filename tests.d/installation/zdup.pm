@@ -1,65 +1,55 @@
-use base "basetest";
+use base "installzdupstep";
 use strict;
 use bmwqemu;
 
 sub is_applicable() {
-    return $vars{ZDUP};
+    my $self = shift;
+    return $self->SUPER::is_applicable && $vars{ZDUP};
 }
 
 sub run() {
     my $self = shift;
-    $vars{ZDUPREPOS} ||= "http://$vars{SUSEMIRROR}/repo/oss/";
+    $vars{ZDUPREPOS} ||= "http://$vars{SUSEMIRROR}";
     send_key "ctrl-l";
-    script_sudo("killall gpk-update-icon packagekitd");
-    unless ( $vars{EVERGREEN} ) {
-        script_sudo("zypper modifyrepo --all --disable");
-    }
-    if ( $vars{TUMBLEWEED} ) {
-        script_sudo("zypper ar --refresh http://widehat.opensuse.org/distribution/openSUSE-current/repo/oss/ 'openSUSE Current OSS'");
-        script_sudo("zypper ar --refresh http://widehat.opensuse.org/distribution/openSUSE-current/repo/non-oss/ 'openSUSE Current non-OSS'");
-        script_sudo("zypper ar --refresh http://widehat.opensuse.org/update/openSUSE-current/ 'openSUSE Current Update'");
-    }
-    if ( $vars{EVERGREEN} ) {
-        script_sudo("mkdir /etc/zypp/vendors.d");
-        type_string(
-            "sudo dd of=/etc/zypp/vendors.d/evergreen <<EOF
-[main]
-vendors = openSUSE Evergreen,suse,opensuse
-EOF\n"
-        );
-    }
+
+    # Disable all repos, so we do not need to remove one by one
+    script_sudo("zypper modifyrepo --all --disable");
+
     my $nr = 1;
     foreach my $r ( split( /\+/, $vars{ZDUPREPOS} ) ) {
         script_sudo("zypper addrepo $r repo$nr");
         $nr++;
     }
     script_sudo("zypper --gpg-auto-import-keys refresh");
-    script_sudo("zypper dup -l");
-    assert_screen 'test-zdup-1', 3;
 
-    for ( 1 .. 20 ) {
-        send_key "2";    # ignore unresolvable
+    script_sudo("zypper dup -l");
+    
+    my $ret = assert_screen [qw/zypper-dup-continue zypper-dup-conflict/], 10;
+    while ( $ret->{needle}->has_tag("zypper-dup-conflict") ) {
+        send_key "1", 1;
+        send_key "ret", 1;
+        $ret = assert_screen [qw/zypper-dup-continue zypper-dup-conflict/], 5;
+    }
+
+    if ( $ret->{needle}->has_tag("zypper-dup-continue") ) {
+        send_key "y", 1;
         send_key "ret", 1;
     }
-    type_string "1\n";    # some conflicts can not be ignored
-    assert_screen 'test-zdup-2', 3;
-    type_string "y\n";    # confirm
-    local $vars{SCREENSHOTINTERVAL} = 2.5;
-    for ( 1 .. 12 ) {
-        sleep 60;
-        send_key "shift";    # prevent console screensaver
-    }
-    for ( 1 .. 12 ) {
-        waitstillimage( 60, 66 ) || send_key "shift";    # prevent console screensaver
-    }
-    waitstillimage( 60, 5000 );                         # wait for upgrade to finish
 
-    assert_screen 'test-zdup-3', 3;
-    sleep 2;
-    send_key "ctrl-alt-f4";
-    sleep 3;
+    my @tags = qw/zypper-dup-retrieving zypper-dup-installing zypper-view-notifications zypper-post-scripts/;
+    $ret = assert_screen \@tags, 5;
+    while ( defined($ret) ) {
+        last if check_screen [qw/zypper-dup-error zypper-dup-finish/];
+        if ( $ret->{needle}->has_tag("zypper-view-notifications") ) {
+            send_key "n", 1; # do not show notifications
+            send_key "ret", 1;
+        }
+        send_key "shift", 1;
+        sleep 10;
+        $ret = assert_screen \@tags, 10;
+    }
 
-    type_string "n\n";                                 # don't view notifications
+    assert_screen "zypper-dup-finish", 2;
 }
 
 1;

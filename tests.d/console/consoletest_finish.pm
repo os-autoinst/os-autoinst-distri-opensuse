@@ -5,11 +5,11 @@ sub run() {
     my $self = shift;
 
     # cleanup
-    script_sudo_logout;
-    sleep 2;
     type_string "loginctl --no-pager\n";
     sleep 2;
     save_screenshot();
+
+    script_sudo "systemctl unmask packagekit.service";
 
     send_key "ctrl-c";
     sleep 1;
@@ -28,10 +28,8 @@ sub run() {
         if ( check_screen("screenlock") ) {
             if ( check_var( "DESKTOP", "gnome" ) ) {
                 send_key "esc";
-
-                # you might get shield but not password prompt
-                # if desktop lock has not timeout yet
-                if ( check_screen("gnome-screenlock-password") ) {
+                unless ( $vars{LIVETEST} ) {
+                    assert_screen "gnome-screenlock-password";
                     sendpassword;
                     send_key "ret";
                 }

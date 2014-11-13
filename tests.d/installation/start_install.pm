@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 use strict;
-use base "installstep";
+use base "y2logsstep";
 use bmwqemu;
 
 sub run() {
@@ -90,4 +90,5 @@ sub run() {
 }
 
 1;
+
 # vim: set sw=4 et:

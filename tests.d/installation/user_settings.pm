@@ -1,13 +1,11 @@
 #!/usr/bin/perl -w
 use strict;
-use base "basenoupdate";
+use base "noupdatestep";
 use bmwqemu;
 
 sub is_applicable() {
     my $self = shift;
-
-    # sles doesn't have user settings apparently
-    return $self->SUPER::is_applicable && !$vars{UPGRADE} && !$vars{AUTOYAST};
+    return $self->SUPER::is_applicable && !$vars{AUTOYAST};
 }
 
 sub run() {
@@ -54,3 +52,4 @@ sub run() {
 }
 
 1;
+# vim: set sw=4 et:

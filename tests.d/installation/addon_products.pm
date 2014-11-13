@@ -1,11 +1,11 @@
 #!/usr/bin/perl -w
 use strict;
-use base "installstep";
+use base "y2logsstep";
 use bmwqemu;
 
 sub is_applicable() {
     my $self = shift;
-    $self->SUPER::is_applicable && !$vars{AUTOYAST};
+    return $self->SUPER::is_applicable && !$vars{LIVECD} && $vars{ADDONURL} && !$vars{AUTOYAST};
 }
 
 sub run() {
@@ -19,3 +19,4 @@ sub run() {
 }
 
 1;
+# vim: set sw=4 et:

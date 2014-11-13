@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 use strict;
-use base "installstep";
+use base "y2logsstep";
 
 use bmwqemu;
 

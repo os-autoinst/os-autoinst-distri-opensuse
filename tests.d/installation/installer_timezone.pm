@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 use strict;
-use base "basenoupdate";
+use base "noupdatestep";
 use bmwqemu;
 
 sub is_applicable() {

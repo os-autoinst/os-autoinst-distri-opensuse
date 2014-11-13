@@ -1,20 +1,25 @@
-use base "basetest";
+use base "installzdupstep";
 use strict;
 use bmwqemu;
 
-sub is_applicable() {
-    return $vars{ZDUP} || $vars{WDUP};
-}
-
 sub run() {
+    send_key "ctrl-l", 1;
 
-    # make sure we are on a text console (workaround restart-X11 bug)
-    send_key "ctrl-alt-f4";
+    # Print zypper repos
+    script_sudo "zypper lr -d";
+    # Remove the --force when this is fixed:
+    # https://bugzilla.redhat.com/show_bug.cgi?id=1075131
+    script_sudo "systemctl set-default --force graphical.target";
+    sleep 5;
 
-    # reboot after dup
+    save_screenshot;
+
+    # Reboot after dup
     send_key "ctrl-alt-delete";
-    script_sudo_logout;
-    sleep 50;
+    assert_screen "grub2", 50;
+
+    # Wait until the point that consoletests can start working
+    assert_screen "desktop-at-first-boot", 400;
 }
 
 1;

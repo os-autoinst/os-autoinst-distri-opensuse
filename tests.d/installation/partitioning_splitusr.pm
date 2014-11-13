@@ -1,8 +1,9 @@
-use base "basetest";
+use base "y2logsstep";
 use bmwqemu;
 
 sub is_applicable() {
-    return $vars{SPLITUSR};
+    my $self = shift;
+    return $self->SUPER::is_applicable && $vars{SPLITUSR};
 }
 
 sub run() {
