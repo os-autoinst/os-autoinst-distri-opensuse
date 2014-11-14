@@ -1,11 +1,6 @@
 use base "gnomestep";
 use bmwqemu;
 
-sub is_applicable() {
-    my $self = shift;
-    return gnomestep_is_applicable && !$vars{LIVECD} && $vars{FLAVOR} ne "Server-DVD";
-}
-
 sub run() {
     my $self = shift;
     x11_start_program("rhythmbox");

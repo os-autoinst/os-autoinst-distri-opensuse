@@ -4,11 +4,6 @@ use base "y2logsstep";
 
 use bmwqemu;
 
-sub is_applicable() {
-    my $self = shift;
-    return y2logsstep_is_applicable && !$vars{LIVECD}  && !$vars{AUTOYAST};
-}
-
 sub run() {
     my $self = shift;
     assert_screen( "scc-registration", 30 );

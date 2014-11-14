@@ -4,11 +4,6 @@ use bmwqemu;
 # test yast2 bootloader functionality
 # https://bugzilla.novell.com/show_bug.cgi?id=610454
 
-sub is_applicable() {
-    my $self = shift;
-    return yaststep_is_applicable && !$vars{LIVETEST};
-}
-
 sub run() {
     my $self = shift;
     script_sudo("/sbin/yast2 bootloader");

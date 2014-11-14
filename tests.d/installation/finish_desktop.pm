@@ -2,11 +2,6 @@ use base "installbasetest";
 use bmwqemu;
 
 # using this as base class means only run when an install is needed
-sub is_applicable() {
-    my $self = shift;
-    return installbasetest_is_applicable && $vars{LIVETEST};
-}
-
 sub run() {
     my $self = shift;
 

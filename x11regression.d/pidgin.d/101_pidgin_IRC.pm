@@ -6,10 +6,6 @@ use bmwqemu;
 my $IRC         = 7;
 my $CHANNELNAME = "susetesting";
 
-sub is_applicable() {
-    return $vars{DESKTOP} =~ /kde|gnome/;
-}
-
 sub run() {
     my $self = shift;
     x11_start_program("pidgin");

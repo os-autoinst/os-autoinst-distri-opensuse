@@ -3,11 +3,6 @@ use strict;
 use base "y2logsstep";
 use bmwqemu;
 
-sub is_applicable() {
-    my $self = shift;
-    return y2logsstep_is_applicable && $vars{LVM} && !$vars{AUTOYAST};
-}
-
 sub run() {
     my $self = shift;
 

@@ -1,11 +1,6 @@
 use base "x11step";
 use bmwqemu;
 
-sub is_applicable() {
-    my $self = shift;
-    return x11step_is_applicable && $vars{DESKTOP} =~ /kde|gnome/ && $vars{FLAVOR} ne "Server-DVD";
-}
-
 sub run() {
     my $self = shift;
     x11_start_program("oowriter");

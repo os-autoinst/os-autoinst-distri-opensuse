@@ -4,11 +4,6 @@ use bmwqemu;
 
 # install tomboy
 
-# this function decides if the test shall run
-sub is_applicable {
-    return ( $vars{DESKTOP} eq "gnome" );
-}
-
 # this part contains the steps to run this test
 sub run() {
     my $self = shift;

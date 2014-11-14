@@ -3,11 +3,6 @@ use bmwqemu;
 
 # test for bug https://bugs.freedesktop.org/show_bug.cgi?id=42301
 
-sub is_applicable() {
-    my $self = shift;
-    return x11step_is_applicable && !$vars{NICEVIDEO} && $vars{DESKTOP} =~ /kde|gnome/ && !$vars{LIVECD} && $vars{FLAVOR} ne "Server-DVD";
-}
-
 sub run() {
     my $self = shift;
     x11_start_program("oomath");

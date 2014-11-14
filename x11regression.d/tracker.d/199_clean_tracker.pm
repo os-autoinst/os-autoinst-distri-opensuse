@@ -5,10 +5,6 @@ use bmwqemu;
 
 my @filenames = qw/newfile newpl.pl/;
 
-sub is_applicable() {
-    return $vars{DESKTOP} =~ /kde|gnome/;
-}
-
 sub run() {
     my $self = shift;
 

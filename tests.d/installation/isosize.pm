@@ -2,10 +2,6 @@ use base "opensusebasetest";
 use strict;
 use bmwqemu;
 
-sub is_applicable() {
-    return $vars{ISO_MAXSIZE};
-}
-
 sub run {
     my $self   = shift;
     my $iso    = $vars{ISO};

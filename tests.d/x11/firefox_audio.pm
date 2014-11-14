@@ -1,11 +1,6 @@
 use base "x11step";
 use bmwqemu;
 
-sub is_applicable {
-    my $self = shift;
-    return x11step_is_applicable && !$vars{NICEVIDEO};
-}
-
 sub run() {
     my $self = shift;
     $self->start_audiocapture;

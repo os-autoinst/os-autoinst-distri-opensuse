@@ -15,11 +15,6 @@ sub open_tab($) {
     sleep 1;
 }
 
-sub is_applicable {
-    my $self = shift;
-    return bigx11step_is_applicable && !$vars{NICEVIDEO};
-}
-
 sub run() {
     my $self = shift;
     x11_start_program("firefox");

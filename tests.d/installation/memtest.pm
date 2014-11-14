@@ -2,10 +2,6 @@ use base "opensusebasetest";
 use strict;
 use bmwqemu;
 
-sub is_applicable() {
-    return $vars{MEMTEST};
-}
-
 sub run {
     my $self = shift;
 

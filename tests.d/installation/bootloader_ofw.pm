@@ -3,11 +3,6 @@ use strict;
 use bmwqemu;
 use Time::HiRes qw(sleep);
 
-sub is_applicable() {
-    my $self = shift;
-    return installbasetest_is_applicable && $vars{OFW};
-}
-
 # hint: press shift-f10 trice for highest debug level
 sub run() {
     if (check_screen "bootloader-ofw", 15) {

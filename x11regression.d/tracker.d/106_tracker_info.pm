@@ -4,10 +4,6 @@ use bmwqemu;
 # Case 1248741 - Beagle: beagle text filter extracts content
 # Modify to : Tracker - tracker info for files
 
-sub is_applicable() {
-    return $vars{DESKTOP} =~ /kde|gnome/;
-}
-
 sub run() {
     my $self = shift;
     x11_start_program("xterm");

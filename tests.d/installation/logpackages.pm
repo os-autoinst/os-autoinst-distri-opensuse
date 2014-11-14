@@ -3,11 +3,6 @@ use strict;
 use base "noupdatestep";
 use bmwqemu;
 
-sub is_applicable() {
-    my $self = shift;
-    noupdatestep_is_applicable && !$vars{LIVECD} && !$vars{NICEVIDEO} && !$vars{AUTOYAST};
-}
-
 sub run() {
     my $self = shift;
     assert_screen "before-package-selection";

@@ -5,10 +5,6 @@ use bmwqemu;
 
 my @packages = qw/pidgin pidgin-otr/;
 
-sub is_applicable() {
-    return $vars{DESKTOP} =~ /kde|gnome/;
-}
-
 sub install_pkg() {
     my $self = shift;
 

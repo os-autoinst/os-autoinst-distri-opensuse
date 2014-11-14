@@ -4,10 +4,6 @@ use bmwqemu;
 # Case 1248738 - Beagle: Search all data with beagle-search
 # Modify to : Tracker: Seach all date with tracker-needle
 
-sub is_applicable() {
-    return $vars{DESKTOP} =~ /kde|gnome/;
-}
-
 sub run() {
     my $self = shift;
     x11_start_program("tracker-needle");

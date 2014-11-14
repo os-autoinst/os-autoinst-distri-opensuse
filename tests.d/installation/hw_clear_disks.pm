@@ -3,11 +3,6 @@ use strict;
 use base "y2logsstep";
 use bmwqemu;
 
-sub is_applicable() {
-    my $self = shift;
-    y2logsstep_is_applicable && $vars{HW} && !$vars{KEEPHDDS};
-}
-
 sub run() {
     my $self = shift;
     waitstillimage( 30, 290 );

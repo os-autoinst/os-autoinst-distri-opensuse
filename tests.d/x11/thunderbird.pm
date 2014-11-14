@@ -1,11 +1,6 @@
 use base "gnomestep";
 use bmwqemu;
 
-sub is_applicable() {
-    my $self = shift;
-    return gnomestep_is_applicable && !$vars{LIVECD};
-}
-
 sub run() {
     my $self = shift;
     ensure_installed("MozillaThunderbird");

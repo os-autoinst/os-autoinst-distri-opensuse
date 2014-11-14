@@ -1,11 +1,6 @@
 use base "y2logsstep";
 use bmwqemu;
 
-sub is_applicable() {
-    my $self = shift;
-    return y2logsstep_is_applicable && $vars{SPLITUSR};
-}
-
 sub run() {
     my $self = shift;
     send_key "alt-e", 1;    # Edit

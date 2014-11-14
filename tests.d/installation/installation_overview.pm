@@ -3,11 +3,6 @@ use strict;
 use base "noupdatestep";
 use bmwqemu;
 
-sub is_applicable() {
-    my $self = shift;
-    return noupdatestep_is_applicable && !$vars{AUTOYAST};
-}
-
 sub run() {
 
     # overview-generation

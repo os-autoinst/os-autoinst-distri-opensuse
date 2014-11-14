@@ -3,11 +3,6 @@ use bmwqemu;
 
 # for https://bugzilla.novell.com/show_bug.cgi?id=657626
 
-sub is_applicable() {
-    my $self = shift;
-    return x11step_is_applicable && $vars{MOZILLATEST};
-}
-
 sub run() {
     my $self = shift;
     x11_start_program("xterm");

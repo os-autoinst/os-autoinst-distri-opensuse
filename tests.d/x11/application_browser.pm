@@ -1,11 +1,6 @@
 use base "gnomestep";
 use bmwqemu;
 
-sub is_applicable() {
-    my $self = shift;
-    return gnomestep_is_applicable && $vars{GNOME2};
-}
-
 sub run() {
     my $self = shift;
     x11_start_program("application-browser");

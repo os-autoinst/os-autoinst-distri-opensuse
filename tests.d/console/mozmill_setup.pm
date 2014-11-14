@@ -3,11 +3,6 @@ use bmwqemu;
 
 # http://mozmill-crowd.blargon7.com/#/functional/reports
 
-sub is_applicable() {
-    my $self = shift;
-    return consolestep_is_applicable && $vars{MOZILLATEST};
-}
-
 sub run() {
     my $self = shift;
     script_sudo("zypper -n in gcc python-devel python-pip mercurial curlftpfs");

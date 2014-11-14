@@ -6,10 +6,6 @@ use bmwqemu;
 # Used for 106_tracker_info
 my @filenames = qw/newfile newpl.pl/;
 
-sub is_applicable() {
-    return $vars{DESKTOP} =~ /kde|gnome/;
-}
-
 sub run() {
     my $self = shift;
 

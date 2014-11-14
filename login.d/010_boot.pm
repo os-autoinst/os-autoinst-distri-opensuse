@@ -3,10 +3,6 @@ use strict;
 use bmwqemu;
 use Time::HiRes qw(sleep);
 
-sub is_applicable() {
-    return !$vars{UEFI};
-}
-
 sub run() {
     assert_screen "inst-bootmenu", 30;
     sleep 2;

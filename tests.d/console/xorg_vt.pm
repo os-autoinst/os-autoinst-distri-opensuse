@@ -1,11 +1,6 @@
 use base "consolestep";
 use bmwqemu;
 
-sub is_applicable {
-    my $self = shift;
-    return consolestep_is_applicable && $vars{DESKTOP} !~ /textmode/;
-}
-
 sub run() {
     my $self = shift;
 

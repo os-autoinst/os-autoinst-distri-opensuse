@@ -4,10 +4,6 @@ use bmwqemu;
 # Case 1248747 - Beagle: beagled starts
 # Modify to : Tracker - tracker search from the command line. tracker-search starts
 
-sub is_applicable() {
-    return $vars{DESKTOP} =~ /kde|gnome/;
-}
-
 sub run() {
     my $self = shift;
     x11_start_program("xterm");

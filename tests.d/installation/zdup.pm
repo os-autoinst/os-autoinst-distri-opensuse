@@ -2,11 +2,6 @@ use base "installzdupstep";
 use strict;
 use bmwqemu;
 
-sub is_applicable() {
-    my $self = shift;
-    return installzdupstep_is_applicable && $vars{ZDUP};
-}
-
 sub run() {
     my $self = shift;
     $vars{ZDUPREPOS} ||= "http://$vars{SUSEMIRROR}";

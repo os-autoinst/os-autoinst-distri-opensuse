@@ -2,11 +2,6 @@ use base "opensusebasetest";
 use strict;
 use bmwqemu;
 
-sub is_applicable() {
-    my $self = shift;
-    return opensusebasetest_is_applicable && $vars{RESCUESYSTEM};
-}
-
 sub run {
     my $self = shift;
 

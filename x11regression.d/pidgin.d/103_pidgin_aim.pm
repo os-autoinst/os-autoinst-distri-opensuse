@@ -10,10 +10,6 @@ my $USERNAME1 = "nooops_test4";
 my $DOMAIN    = "aim";
 my $PASSWD    = "opensuse";
 
-sub is_applicable() {
-    return $vars{DESKTOP} =~ /kde|gnome/;
-}
-
 sub run() {
     my $self = shift;
     x11_start_program("pidgin");

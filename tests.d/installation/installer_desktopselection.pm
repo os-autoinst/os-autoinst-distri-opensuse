@@ -3,11 +3,6 @@ use strict;
 use base "noupdatestep";
 use bmwqemu;
 
-sub is_applicable() {
-    my $self = shift;
-    noupdatestep_is_applicable && !$vars{LIVECD} && !$vars{AUTOYAST};
-}
-
 sub run() {
     my %desktopkeys = ( kde => "k", gnome => "g", xfce => "x", lxde => "l", minimalx => "m", textmode => "i" );
     assert_screen "desktop-selection", 30;

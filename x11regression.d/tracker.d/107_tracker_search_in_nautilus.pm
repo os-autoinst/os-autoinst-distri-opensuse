@@ -4,10 +4,6 @@ use bmwqemu;
 # Case 1248746 - Beagle: Find a file with Search in Nautilus
 # Modify to : Tracker - Find a file with Search in Nautilus
 
-sub is_applicable() {
-    return $vars{DESKTOP} =~ /kde|gnome/;
-}
-
 sub run() {
     my $self = shift;
     x11_start_program("nautilus");

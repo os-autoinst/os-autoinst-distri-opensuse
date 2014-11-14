@@ -1,11 +1,6 @@
 use base "x11step";
 use bmwqemu;
 
-sub is_applicable() {
-    my $self = shift;
-    return x11step_is_applicable && !$vars{LIVECD};
-}
-
 sub run() {
     my $self = shift;
     ensure_installed("inkscape");

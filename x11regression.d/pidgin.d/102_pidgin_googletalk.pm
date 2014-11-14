@@ -7,10 +7,6 @@ my $GOOGLETALK = 4;
 my $USERNAME   = "nooops6";
 my $PASSWD     = "opensuse";
 
-sub is_applicable() {
-    return $vars{DESKTOP} =~ /kde|gnome/;
-}
-
 sub run() {
     my $self = shift;
     x11_start_program("pidgin");
