@@ -156,12 +156,8 @@ sub installzdupstep_is_applicable() {
     return installbasetest_is_applicable && !$vars{NOINSTALL} && !$vars{LIVETEST} && !$vars{MEDIACHECK} && !$vars{MEMTEST} && !$vars{RESCUECD} && !$vars{RESCUESYSTEM} && $vars{ZDUP};
 }
 
-sub y2logsstep_isapplicable() {
-    return installyaststep_is_applicable;
-}
-
 sub noupdatestep_is_applicable() {
-    return y2logsstep_is_applicable && !$vars{UPGRADE};
+    return installyaststep_is_applicable && !$vars{UPGRADE};
 }
 
 sub bigx11step_is_applicable() {
@@ -214,78 +210,32 @@ sub load_x11regresion_tests() {
     autotest::loadtest("$vars{CASEDIR}/x11regression.d/firefox.d/413_firefox_printing_images.pm");
     autotest::loadtest("$vars{CASEDIR}/x11regression.d/firefox.d/457_firefox_bookmark.pm");
     if (( $vars{DESKTOP} eq "gnome" )) {
+	autotest::loadtest("$vars{CASEDIR}/x11regression.d/tomboy.d/304_tomboy_Hotkeys.pm");
+        autotest::loadtest("$vars{CASEDIR}/x11regression.d/tomboy.d/307_tomboy_AlreadyRunning.pm");
+        autotest::loadtest("$vars{CASEDIR}/x11regression.d/tomboy.d/312_tomboy_TestFindFunctionalityInSearchAllNotes.pm");
+        autotest::loadtest("$vars{CASEDIR}/x11regression.d/tomboy.d/313_tomboy_TestUndoRedoFeature.pm");
+        autotest::loadtest("$vars{CASEDIR}/x11regression.d/tomboy.d/301_tomboy_firstrun.pm");
+        autotest::loadtest("$vars{CASEDIR}/x11regression.d/tomboy.d/302_tomboy_StartNoteCannotBeDeleted.pm");
+        autotest::loadtest("$vars{CASEDIR}/x11regression.d/tomboy.d/303_tomboy_Open.pm");
+        autotest::loadtest("$vars{CASEDIR}/x11regression.d/tomboy.d/309_tomboy_Print.pm");
+	autotest::loadtest("$vars{CASEDIR}/x11regression.d/tomboy.d/300_tomboy_checkinstall.pm");
         autotest::loadtest("$vars{CASEDIR}/x11regression.d/gnomecase.d/1019_Gnomecutfile.pm");
     }
     if ($vars{DESKTOP} =~ /kde|gnome/) {
         autotest::loadtest("$vars{CASEDIR}/x11regression.d/pidgin.d/101_pidgin_IRC.pm");
-    }
-    if ($vars{DESKTOP} =~ /kde|gnome/) {
         autotest::loadtest("$vars{CASEDIR}/x11regression.d/pidgin.d/102_pidgin_googletalk.pm");
-    }
-    if ($vars{DESKTOP} =~ /kde|gnome/) {
         autotest::loadtest("$vars{CASEDIR}/x11regression.d/pidgin.d/103_pidgin_aim.pm");
-    }
-    if ($vars{DESKTOP} =~ /kde|gnome/) {
         autotest::loadtest("$vars{CASEDIR}/x11regression.d/pidgin.d/100_prep_pidgin.pm");
-    }
-    if ($vars{DESKTOP} =~ /kde|gnome/) {
         autotest::loadtest("$vars{CASEDIR}/x11regression.d/pidgin.d/104_pidgin_msn.pm");
-    }
-    if ($vars{DESKTOP} =~ /kde|gnome/) {
         autotest::loadtest("$vars{CASEDIR}/x11regression.d/pidgin.d/199_clean_pidgin.pm");
-    }
-    if (( $vars{DESKTOP} eq "gnome" )) {
-        autotest::loadtest("$vars{CASEDIR}/x11regression.d/tomboy.d/304_tomboy_Hotkeys.pm");
-    }
-    if (( $vars{DESKTOP} eq "gnome" )) {
-        autotest::loadtest("$vars{CASEDIR}/x11regression.d/tomboy.d/307_tomboy_AlreadyRunning.pm");
-    }
-    if (( $vars{DESKTOP} eq "gnome" )) {
-        autotest::loadtest("$vars{CASEDIR}/x11regression.d/tomboy.d/312_tomboy_TestFindFunctionalityInSearchAllNotes.pm");
-    }
-    if (( $vars{DESKTOP} eq "gnome" )) {
-        autotest::loadtest("$vars{CASEDIR}/x11regression.d/tomboy.d/313_tomboy_TestUndoRedoFeature.pm");
-    }
-    if (( $vars{DESKTOP} eq "gnome" )) {
-        autotest::loadtest("$vars{CASEDIR}/x11regression.d/tomboy.d/301_tomboy_firstrun.pm");
-    }
-    if (( $vars{DESKTOP} eq "gnome" )) {
-        autotest::loadtest("$vars{CASEDIR}/x11regression.d/tomboy.d/302_tomboy_StartNoteCannotBeDeleted.pm");
-    }
-    if (( $vars{DESKTOP} eq "gnome" )) {
-        autotest::loadtest("$vars{CASEDIR}/x11regression.d/tomboy.d/303_tomboy_Open.pm");
-    }
-    if (( $vars{DESKTOP} eq "gnome" )) {
-        autotest::loadtest("$vars{CASEDIR}/x11regression.d/tomboy.d/309_tomboy_Print.pm");
-    }
-    if (( $vars{DESKTOP} eq "gnome" )) {
-        autotest::loadtest("$vars{CASEDIR}/x11regression.d/tomboy.d/300_tomboy_checkinstall.pm");
-    }
-    if ($vars{DESKTOP} =~ /kde|gnome/) {
-        autotest::loadtest("$vars{CASEDIR}/x11regression.d/tracker.d/100_prep_tracker.pm");
-    }
-    if ($vars{DESKTOP} =~ /kde|gnome/) {
+	autotest::loadtest("$vars{CASEDIR}/x11regression.d/tracker.d/100_prep_tracker.pm");
         autotest::loadtest("$vars{CASEDIR}/x11regression.d/tracker.d/101_tracker_starts.pm");
-    }
-    if ($vars{DESKTOP} =~ /kde|gnome/) {
         autotest::loadtest("$vars{CASEDIR}/x11regression.d/tracker.d/102_tracker_searchall.pm");
-    }
-    if ($vars{DESKTOP} =~ /kde|gnome/) {
         autotest::loadtest("$vars{CASEDIR}/x11regression.d/tracker.d/103_tracker_pref_starts.pm");
-    }
-    if ($vars{DESKTOP} =~ /kde|gnome/) {
         autotest::loadtest("$vars{CASEDIR}/x11regression.d/tracker.d/104_tracker_open_apps.pm");
-    }
-    if ($vars{DESKTOP} =~ /kde|gnome/) {
         autotest::loadtest("$vars{CASEDIR}/x11regression.d/tracker.d/105_tracker_by_command.pm");
-    }
-    if ($vars{DESKTOP} =~ /kde|gnome/) {
         autotest::loadtest("$vars{CASEDIR}/x11regression.d/tracker.d/107_tracker_search_in_nautilus.pm");
-    }
-    if ($vars{DESKTOP} =~ /kde|gnome/) {
         autotest::loadtest("$vars{CASEDIR}/x11regression.d/tracker.d/199_clean_tracker.pm");
-    }
-    if ($vars{DESKTOP} =~ /kde|gnome/) {
         autotest::loadtest("$vars{CASEDIR}/x11regression.d/tracker.d/106_tracker_info.pm");
     }
 }
@@ -327,16 +277,16 @@ sub is_reboot_after_installation_necessary() {
 }
 
 sub load_inst_tests() {
-    if (y2logsstep_is_applicable && !$vars{AUTOYAST}) {
+    if (installyaststep_is_applicable && !$vars{AUTOYAST}) {
         autotest::loadtest("$vars{CASEDIR}/tests.d/installation/welcome.pm");
     }
     if (noupdatestep_is_applicable && !$vars{LIVECD} && !$vars{AUTOYAST}) {
         autotest::loadtest("$vars{CASEDIR}/tests.d/installation/installation_mode.pm");
     }
-    if (y2logsstep_is_applicable && !$vars{LIVECD} && $vars{UPGRADE}) {
+    if (installyaststep_is_applicable && !$vars{LIVECD} && $vars{UPGRADE}) {
         autotest::loadtest("$vars{CASEDIR}/tests.d/installation/upgrade_select.pm");
     }
-    if (y2logsstep_is_applicable && !$vars{LIVECD} && $vars{ADDONURL} && !$vars{AUTOYAST}) {
+    if (installyaststep_is_applicable && !$vars{LIVECD} && $vars{ADDONURL} && !$vars{AUTOYAST}) {
         autotest::loadtest("$vars{CASEDIR}/tests.d/installation/addon_products.pm");
     }
     if (noupdatestep_is_applicable && $vars{LIVECD}) {
@@ -345,10 +295,10 @@ sub load_inst_tests() {
     if (noupdatestep_is_applicable && !$vars{AUTOYAST}) {
         autotest::loadtest("$vars{CASEDIR}/tests.d/installation/partitioning.pm");
     }
-    if (y2logsstep_is_applicable && $vars{LVM} && !$vars{AUTOYAST}) {
+    if (installyaststep_is_applicable && $vars{LVM} && !$vars{AUTOYAST}) {
         autotest::loadtest("$vars{CASEDIR}/tests.d/installation/partitioning_lvm.pm");
     }
-    if (y2logsstep_is_applicable && $vars{SPLITUSR}) {
+    if (installyaststep_is_applicable && $vars{SPLITUSR}) {
         autotest::loadtest("$vars{CASEDIR}/tests.d/installation/partitioning_splitusr.pm");
     }
     if (noupdatestep_is_applicable && !$vars{AUTOYAST}) {
@@ -369,26 +319,26 @@ sub load_inst_tests() {
     if (noupdatestep_is_applicable && !$vars{AUTOYAST}) {
         autotest::loadtest("$vars{CASEDIR}/tests.d/installation/installation_overview.pm");
     }
-    if (y2logsstep_is_applicable && $vars{UEFI} && $vars{SECUREBOOT}) {
+    if (installyaststep_is_applicable && $vars{UEFI} && $vars{SECUREBOOT}) {
         autotest::loadtest("$vars{CASEDIR}/tests.d/installation/secure_boot.pm");
     }
-    if (y2logsstep_is_applicable) {
+    if (installyaststep_is_applicable) {
         autotest::loadtest("$vars{CASEDIR}/tests.d/installation/start_install.pm");
     }
-    if (y2logsstep_is_applicable && $vars{AUTOYAST}) {
+    if (installyaststep_is_applicable && $vars{AUTOYAST}) {
         autotest::loadtest("$vars{CASEDIR}/tests.d/installation/autoyast_reboot.pm");
     }
-    if (y2logsstep_is_applicable && !$vars{AUTOYAST}) {
+    if (installyaststep_is_applicable && !$vars{AUTOYAST}) {
         autotest::loadtest("$vars{CASEDIR}/tests.d/installation/livecdreboot.pm");
     }
-    if (y2logsstep_is_applicable) {
+    if (installyaststep_is_applicable) {
         autotest::loadtest("$vars{CASEDIR}/tests.d/installation/first_boot.pm");
     }
     if (is_reboot_after_installation_necessary()) {
 	autotest::loadtest("$vars{CASEDIR}/tests.d/installation/reboot_after_install.pm");
     }
     
-    if (y2logsstep_is_applicable && $vars{DUALBOOT}) {
+    if (installyaststep_is_applicable && $vars{DUALBOOT}) {
         autotest::loadtest("$vars{CASEDIR}/tests.d/installation/boot_windows.pm");
     }
     if (installbasetest_is_applicable && $vars{LIVETEST}) {
@@ -490,7 +440,6 @@ sub load_consoletests() {
     if (consolestep_is_applicable) {
         autotest::loadtest("$vars{CASEDIR}/tests.d/console/consoletest_finish.pm");
     }
-
 }
 
 sub load_x11tests(){
@@ -631,10 +580,7 @@ if ( $vars{REGRESSION} ) {
         load_inst_tests();
     }
 
-    if ( $vars{DESKTOP} =~ /gnome/ ) {
-        load_x11regresion_tests();
-    }
-
+    load_x11regresion_tests();
 }
 else {
     load_boot_tests();
