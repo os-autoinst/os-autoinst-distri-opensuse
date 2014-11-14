@@ -437,7 +437,6 @@ sub load_x11tests(){
     if ( $vars{FLAVOR} ne "Server-DVD" ) {
         if (gnomestep_is_applicable) {
             loadtest "x11/eog.pm";
-            loadtest "x11/banshee.pm";
             loadtest "x11/rhythmbox.pm";
         }
         if ( $vars{DESKTOP} =~ /kde|gnome/ ) {
