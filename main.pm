@@ -240,21 +240,14 @@ sub load_boot_tests(){
     }
     if ($vars{OFW}) {
         autotest::loadtest("$vars{CASEDIR}/tests.d/installation/bootloader_ofw.pm");
-    }
-    if (!$vars{UEFI} && !$vars{OFW} && !$vars{MEDIACHECK} && !$vars{MEMTEST} && !$vars{RESCUESYSTEM}) {
+    } elsif ($vars{UEFI}) {
+	autotest::loadtest("$vars{CASEDIR}/tests.d/installation/bootloader_uefi.pm");
+    } elsif ($vars{MEDIACHECK}) {
+	autotest::loadtest("$vars{CASEDIR}/tests.d/installation/mediacheck.pm");
+    } elsif ($vars{MEMTEST}) {
+	autotest::loadtest("$vars{CASEDIR}/tests.d/installation/memtest.pm");
+    } elsif ($vars{RESCUESYSTEM}) {
         autotest::loadtest("$vars{CASEDIR}/tests.d/installation/bootloader.pm");
-    }
-    if ($vars{UEFI}) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/installation/bootloader_uefi.pm");
-    }
-    if ($vars{MEDIACHECK}) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/installation/mediacheck.pm");
-    }
-    if ($vars{MEMTEST}) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/installation/memtest.pm");
-    }
-    if ($vars{RESCUESYSTEM}) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/installation/rescuesystem.pm");
     }
 }
 
@@ -315,8 +308,7 @@ sub load_inst_tests() {
     }
     if ($vars{AUTOYAST}) {
         autotest::loadtest("$vars{CASEDIR}/tests.d/installation/autoyast_reboot.pm");
-    }
-    if (!$vars{AUTOYAST}) {
+    } else {
         autotest::loadtest("$vars{CASEDIR}/tests.d/installation/livecdreboot.pm");
     }
     if (installyaststep_is_applicable) {
