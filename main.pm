@@ -168,86 +168,95 @@ sub gnomestep_is_applicable() {
     return $vars{DESKTOP} eq "gnome";
 }
 
+sub loadtest($) {
+    my ($test) = @_;
+    autotest::loadtest("$vars{CASEDIR}/test/$test");
+}
+
 sub load_x11regresion_tests() {
-    autotest::loadtest("$vars{CASEDIR}/x11regression.d/firefox.d/355_firefox_launch.pm");
-    autotest::loadtest("$vars{CASEDIR}/x11regression.d/firefox.d/360_firefox_menu.pm");
-    autotest::loadtest("$vars{CASEDIR}/x11regression.d/firefox.d/361_firefox_contentmenu.pm");
-    autotest::loadtest("$vars{CASEDIR}/x11regression.d/firefox.d/363_firefox_help.pm");
-    autotest::loadtest("$vars{CASEDIR}/x11regression.d/firefox.d/364_firefox_newwindow.pm");
-    autotest::loadtest("$vars{CASEDIR}/x11regression.d/firefox.d/365_firefox_home_page.pm");
-    autotest::loadtest("$vars{CASEDIR}/x11regression.d/firefox.d/368_firefox_topsite.pm");
-    autotest::loadtest("$vars{CASEDIR}/x11regression.d/firefox.d/403_firefox_https.pm");
-    autotest::loadtest("$vars{CASEDIR}/x11regression.d/firefox.d/403_firefox_importssl.pm");
-    autotest::loadtest("$vars{CASEDIR}/x11regression.d/firefox.d/403_firefox_loadie6.pm");
-    autotest::loadtest("$vars{CASEDIR}/x11regression.d/firefox.d/403_firefox_page_control.pm");
-    autotest::loadtest("$vars{CASEDIR}/x11regression.d/firefox.d/403_firefox_password_i.pm");
-    autotest::loadtest("$vars{CASEDIR}/x11regression.d/firefox.d/403_firefox_print.pm");
-    autotest::loadtest("$vars{CASEDIR}/x11regression.d/firefox.d/403_firefox_remember_passwd.pm");
-    autotest::loadtest("$vars{CASEDIR}/x11regression.d/firefox.d/403_firefox_search.pm");
-    autotest::loadtest("$vars{CASEDIR}/x11regression.d/firefox.d/403_firefox_sidebar.pm");
-    autotest::loadtest("$vars{CASEDIR}/x11regression.d/firefox.d/403_firefox_urlprotocols.pm");
-    autotest::loadtest("$vars{CASEDIR}/x11regression.d/firefox.d/404_firefox_url.pm");
-    autotest::loadtest("$vars{CASEDIR}/x11regression.d/firefox.d/405_firefox_localpage.pm");
-    autotest::loadtest("$vars{CASEDIR}/x11regression.d/firefox.d/406_firefox_mhtml.pm");
-    autotest::loadtest("$vars{CASEDIR}/x11regression.d/firefox.d/407_firefox_tab.pm");
-    autotest::loadtest("$vars{CASEDIR}/x11regression.d/firefox.d/408_firefox_sendlink.pm");
-    autotest::loadtest("$vars{CASEDIR}/x11regression.d/firefox.d/409_firefox_java.pm");
-    autotest::loadtest("$vars{CASEDIR}/x11regression.d/firefox.d/410_firefox_autocomplete.pm");
-    autotest::loadtest("$vars{CASEDIR}/x11regression.d/firefox.d/411_firefox_bookmarks.pm");
-    autotest::loadtest("$vars{CASEDIR}/x11regression.d/firefox.d/412_firefox_printing.pm");
-    autotest::loadtest("$vars{CASEDIR}/x11regression.d/firefox.d/413_firefox_printing_images.pm");
-    autotest::loadtest("$vars{CASEDIR}/x11regression.d/firefox.d/457_firefox_bookmark.pm");
+    loadtest "x11regressions/firefox/firefox_launch.pm";
+    loadtest "x11regressions/firefox/firefox_menu.pm";
+    loadtest "x11regressions/firefox/firefox_contentmenu.pm";
+    loadtest "x11regressions/firefox/firefox_help.pm";
+    loadtest "x11regressions/firefox/firefox_newwindow.pm";
+    loadtest "x11regressions/firefox/firefox_home_page.pm";
+    loadtest "x11regressions/firefox/firefox_topsite.pm";
+    loadtest "x11regressions/firefox/firefox_https.pm";
+    loadtest "x11regressions/firefox/firefox_importssl.pm";
+    loadtest "x11regressions/firefox/firefox_loadie6.pm";
+    loadtest "x11regressions/firefox/firefox_page_control.pm";
+    loadtest "x11regressions/firefox/firefox_password_i.pm";
+    loadtest "x11regressions/firefox/firefox_print.pm";
+    loadtest "x11regressions/firefox/firefox_remember_passwd.pm";
+    loadtest "x11regressions/firefox/firefox_search.pm";
+    loadtest "x11regressions/firefox/firefox_sidebar.pm";
+    loadtest "x11regressions/firefox/firefox_urlprotocols.pm";
+    loadtest "x11regressions/firefox/firefox_url.pm";
+    loadtest "x11regressions/firefox/firefox_localpage.pm";
+    loadtest "x11regressions/firefox/firefox_mhtml.pm";
+    loadtest "x11regressions/firefox/firefox_tab.pm";
+    loadtest "x11regressions/firefox/firefox_sendlink.pm";
+    loadtest "x11regressions/firefox/firefox_java.pm";
+    loadtest "x11regressions/firefox/firefox_autocomplete.pm";
+    loadtest "x11regressions/firefox/firefox_bookmarks.pm";
+    loadtest "x11regressions/firefox/firefox_printing.pm";
+    loadtest "x11regressions/firefox/firefox_printing_images.pm";
+    loadtest "x11regressions/firefox/firefox_bookmark.pm";
     if (( $vars{DESKTOP} eq "gnome" )) {
-	autotest::loadtest("$vars{CASEDIR}/x11regression.d/tomboy.d/304_tomboy_Hotkeys.pm");
-        autotest::loadtest("$vars{CASEDIR}/x11regression.d/tomboy.d/307_tomboy_AlreadyRunning.pm");
-        autotest::loadtest("$vars{CASEDIR}/x11regression.d/tomboy.d/312_tomboy_TestFindFunctionalityInSearchAllNotes.pm");
-        autotest::loadtest("$vars{CASEDIR}/x11regression.d/tomboy.d/313_tomboy_TestUndoRedoFeature.pm");
-        autotest::loadtest("$vars{CASEDIR}/x11regression.d/tomboy.d/301_tomboy_firstrun.pm");
-        autotest::loadtest("$vars{CASEDIR}/x11regression.d/tomboy.d/302_tomboy_StartNoteCannotBeDeleted.pm");
-        autotest::loadtest("$vars{CASEDIR}/x11regression.d/tomboy.d/303_tomboy_Open.pm");
-        autotest::loadtest("$vars{CASEDIR}/x11regression.d/tomboy.d/309_tomboy_Print.pm");
-	autotest::loadtest("$vars{CASEDIR}/x11regression.d/tomboy.d/300_tomboy_checkinstall.pm");
-        autotest::loadtest("$vars{CASEDIR}/x11regression.d/gnomecase.d/1019_Gnomecutfile.pm");
+        loadtest "x11regressions/tomboy/tomboy_Hotkeys.pm";
+        loadtest "x11regressions/tomboy/tomboy_AlreadyRunning.pm";
+        loadtest "x11regressions/tomboy/tomboy_TestFindFunctionalityInSearchAllNotes.pm";
+        loadtest "x11regressions/tomboy/tomboy_TestUndoRedoFeature.pm";
+        loadtest "x11regressions/tomboy/tomboy_firstrun.pm";
+        loadtest "x11regressions/tomboy/tomboy_StartNoteCannotBeDeleted.pm";
+        loadtest "x11regressions/tomboy/tomboy_Open.pm";
+        loadtest "x11regressions/tomboy/tomboy_Print.pm";
+        loadtest "x11regressions/tomboy/tomboy_checkinstall.pm";
+        loadtest "x11regressions/gnomecase/Gnomecutfile.pm";
     }
     if ($vars{DESKTOP} =~ /kde|gnome/) {
-        autotest::loadtest("$vars{CASEDIR}/x11regression.d/pidgin.d/101_pidgin_IRC.pm");
-        autotest::loadtest("$vars{CASEDIR}/x11regression.d/pidgin.d/102_pidgin_googletalk.pm");
-        autotest::loadtest("$vars{CASEDIR}/x11regression.d/pidgin.d/103_pidgin_aim.pm");
-        autotest::loadtest("$vars{CASEDIR}/x11regression.d/pidgin.d/100_prep_pidgin.pm");
-        autotest::loadtest("$vars{CASEDIR}/x11regression.d/pidgin.d/104_pidgin_msn.pm");
-        autotest::loadtest("$vars{CASEDIR}/x11regression.d/pidgin.d/199_clean_pidgin.pm");
-	autotest::loadtest("$vars{CASEDIR}/x11regression.d/tracker.d/100_prep_tracker.pm");
-        autotest::loadtest("$vars{CASEDIR}/x11regression.d/tracker.d/101_tracker_starts.pm");
-        autotest::loadtest("$vars{CASEDIR}/x11regression.d/tracker.d/102_tracker_searchall.pm");
-        autotest::loadtest("$vars{CASEDIR}/x11regression.d/tracker.d/103_tracker_pref_starts.pm");
-        autotest::loadtest("$vars{CASEDIR}/x11regression.d/tracker.d/104_tracker_open_apps.pm");
-        autotest::loadtest("$vars{CASEDIR}/x11regression.d/tracker.d/105_tracker_by_command.pm");
-        autotest::loadtest("$vars{CASEDIR}/x11regression.d/tracker.d/107_tracker_search_in_nautilus.pm");
-        autotest::loadtest("$vars{CASEDIR}/x11regression.d/tracker.d/199_clean_tracker.pm");
-        autotest::loadtest("$vars{CASEDIR}/x11regression.d/tracker.d/106_tracker_info.pm");
+        loadtest "x11regressions/pidgin/pidgin_IRC.pm";
+        loadtest "x11regressions/pidgin/pidgin_googletalk.pm";
+        loadtest "x11regressions/pidgin/pidgin_aim.pm";
+        loadtest "x11regressions/pidgin/prep_pidgin.pm";
+        loadtest "x11regressions/pidgin/pidgin_msn.pm";
+        loadtest "x11regressions/pidgin/clean_pidgin.pm";
+        loadtest "x11regressions/tracker/prep_tracker.pm";
+        loadtest "x11regressions/tracker/tracker_starts.pm";
+        loadtest "x11regressions/tracker/tracker_searchall.pm";
+        loadtest "x11regressions/tracker/tracker_pref_starts.pm";
+        loadtest "x11regressions/tracker/tracker_open_apps.pm";
+        loadtest "x11regressions/tracker/tracker_by_command.pm";
+        loadtest "x11regressions/tracker/tracker_search_in_nautilus.pm";
+        loadtest "x11regressions/tracker/clean_tracker.pm";
+        loadtest "x11regressions/tracker/tracker_info.pm";
     }
 }
 
 sub load_login_tests(){
     if (!$vars{UEFI}) {
-        autotest::loadtest("$vars{CASEDIR}/login.d/010_boot.pm");
+        loadtest "login/boot.pm";
     }
 }
 
 sub load_boot_tests(){
     if ($vars{ISO_MAXSIZE}) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/installation/isosize.pm");
+        loadtest "installation/isosize.pm";
     }
     if ($vars{OFW}) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/installation/bootloader_ofw.pm");
-    } elsif ($vars{UEFI}) {
-	autotest::loadtest("$vars{CASEDIR}/tests.d/installation/bootloader_uefi.pm");
-    } elsif ($vars{MEDIACHECK}) {
-	autotest::loadtest("$vars{CASEDIR}/tests.d/installation/mediacheck.pm");
-    } elsif ($vars{MEMTEST}) {
-	autotest::loadtest("$vars{CASEDIR}/tests.d/installation/memtest.pm");
-    } elsif ($vars{RESCUESYSTEM}) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/installation/bootloader.pm");
+        loadtest "installation/bootloader_ofw.pm";
+    }
+    elsif ($vars{UEFI}) {
+        loadtest "installation/bootloader_uefi.pm";
+    }
+    elsif ($vars{MEDIACHECK}) {
+        loadtest "installation/mediacheck.pm";
+    }
+    elsif ($vars{MEMTEST}) {
+        loadtest "installation/memtest.pm";
+    }
+    elsif ($vars{RESCUESYSTEM}) {
+        loadtest "installation/bootloader.pm";
     }
 }
 
@@ -259,248 +268,241 @@ sub is_reboot_after_installation_necessary() {
 
 sub load_inst_tests() {
     if (!$vars{AUTOYAST}) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/installation/welcome.pm");
+        loadtest "installation/welcome.pm";
     }
     if (noupdatestep_is_applicable && !$vars{LIVECD} && !$vars{AUTOYAST}) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/installation/installation_mode.pm");
+        loadtest "installation/installation_mode.pm";
     }
     if (!$vars{LIVECD} && $vars{UPGRADE}) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/installation/upgrade_select.pm");
+        loadtest "installation/upgrade_select.pm";
     }
     if (!$vars{LIVECD} && $vars{ADDONURL} && !$vars{AUTOYAST}) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/installation/addon_products.pm");
+        loadtest "installation/addon_products.pm";
     }
     if (noupdatestep_is_applicable && $vars{LIVECD}) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/installation/livecd_installer_timezone.pm");
+        loadtest "installation/livecd_installer_timezone.pm";
     }
     if (noupdatestep_is_applicable && !$vars{AUTOYAST}) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/installation/partitioning.pm");
+        loadtest "installation/partitioning.pm";
     }
     if ($vars{LVM} && !$vars{AUTOYAST}) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/installation/partitioning_lvm.pm");
+        loadtest "installation/partitioning_lvm.pm";
     }
     if ($vars{SPLITUSR}) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/installation/partitioning_splitusr.pm");
+        loadtest "installation/partitioning_splitusr.pm";
     }
     if (noupdatestep_is_applicable && !$vars{AUTOYAST}) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/installation/partitioning_finish.pm");
+        loadtest "installation/partitioning_finish.pm";
     }
     if (noupdatestep_is_applicable && !$vars{LIVECD} && !$vars{AUTOYAST}) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/installation/installer_timezone.pm");
+        loadtest "installation/installer_timezone.pm";
     }
     if (noupdatestep_is_applicable && !$vars{LIVECD} && !$vars{NICEVIDEO} && !$vars{AUTOYAST}) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/installation/logpackages.pm");
+        loadtest "installation/logpackages.pm";
     }
     if (noupdatestep_is_applicable && !$vars{LIVECD} && !$vars{AUTOYAST}) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/installation/installer_desktopselection.pm");
+        loadtest "installation/installer_desktopselection.pm";
     }
     if (noupdatestep_is_applicable && !$vars{AUTOYAST}) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/installation/user_settings.pm");
+        loadtest "installation/user_settings.pm";
     }
     if (noupdatestep_is_applicable && !$vars{AUTOYAST}) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/installation/installation_overview.pm");
+        loadtest "installation/installation_overview.pm";
     }
     if ($vars{UEFI} && $vars{SECUREBOOT}) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/installation/secure_boot.pm");
+        loadtest "installation/secure_boot.pm";
     }
     if (installyaststep_is_applicable) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/installation/start_install.pm");
+        loadtest "installation/start_install.pm";
     }
     if ($vars{AUTOYAST}) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/installation/autoyast_reboot.pm");
-    } else {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/installation/livecdreboot.pm");
+        loadtest "installation/autoyast_reboot.pm";
+    }
+    else {
+        loadtest "installation/livecdreboot.pm";
     }
     if (installyaststep_is_applicable) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/installation/first_boot.pm");
+        loadtest "installation/first_boot.pm";
     }
     if (is_reboot_after_installation_necessary()) {
-	autotest::loadtest("$vars{CASEDIR}/tests.d/installation/reboot_after_install.pm");
+        loadtest "installation/reboot_after_install.pm";
     }
-    
+
     if ($vars{DUALBOOT}) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/installation/boot_windows.pm");
+        loadtest "installation/boot_windows.pm";
     }
     if ($vars{LIVETEST}) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/installation/finish_desktop.pm");
+        loadtest "installation/finish_desktop.pm";
     }
 }
 
 sub load_rescuecd_tests() {
     if (rescuecdstep_is_applicable) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/rescuecd/rescuecd.pm");
+        loadtest "rescuecd/rescuecd.pm";
     }
 }
 
 sub load_zdup_tests() {
     if (installzdupstep_is_applicable) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/installation/setup_zdup.pm");
+        loadtest "installation/setup_zdup.pm";
     }
     if (installzdupstep_is_applicable && $vars{ZDUP}) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/installation/zdup.pm");
+        loadtest "installation/zdup.pm";
     }
     if (installzdupstep_is_applicable) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/installation/post_zdup.pm");
+        loadtest "installation/post_zdup.pm";
     }
 }
 
 sub load_consoletests() {
     if (consolestep_is_applicable) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/console/consoletest_setup.pm");
-        autotest::loadtest("$vars{CASEDIR}/tests.d/console/textinfo.pm");
-        autotest::loadtest("$vars{CASEDIR}/tests.d/console/hostname.pm");
-	if ($vars{DESKTOP} !~ /textmode/) {
-	    autotest::loadtest("$vars{CASEDIR}/tests.d/console/xorg_vt.pm");
-	}
-        autotest::loadtest("$vars{CASEDIR}/tests.d/console/zypper_ref.pm");
-        autotest::loadtest("$vars{CASEDIR}/tests.d/console/yast2_lan.pm");
-        autotest::loadtest("$vars{CASEDIR}/tests.d/console/aplay.pm");
-        autotest::loadtest("$vars{CASEDIR}/tests.d/console/glibc_i686.pm");
-        autotest::loadtest("$vars{CASEDIR}/tests.d/console/zypper_up.pm");
-        autotest::loadtest("$vars{CASEDIR}/tests.d/console/zypper_in.pm");
-        autotest::loadtest("$vars{CASEDIR}/tests.d/console/yast2_i.pm");
-	if (!$vars{LIVETEST}) {
-	    autotest::loadtest("$vars{CASEDIR}/tests.d/console/yast2_bootloader.pm");
-	}
-        autotest::loadtest("$vars{CASEDIR}/tests.d/console/sshd.pm");
+        loadtest "console/consoletest_setup.pm";
+        loadtest "console/textinfo.pm";
+        loadtest "console/hostname.pm";
+        if ($vars{DESKTOP} !~ /textmode/) {
+            loadtest "console/xorg_vt.pm";
+        }
+        loadtest "console/zypper_ref.pm";
+        loadtest "console/yast2_lan.pm";
+        loadtest "console/aplay.pm";
+        loadtest "console/glibc_i686.pm";
+        loadtest "console/zypper_up.pm";
+        loadtest "console/zypper_in.pm";
+        loadtest "console/yast2_i.pm";
+        if (!$vars{LIVETEST}) {
+            loadtest "console/yast2_bootloader.pm";
+        }
+        loadtest "console/sshd.pm";
         if (!$vars{LIVETEST} && !( $vars{FLAVOR} =~ /^Staging2?[\-]DVD$/ )) {
-	    # in live we don't have a password for root so ssh doesn't
-	    # work anyways, and except staging_core image, the rest of
-	    # staging_* images don't need run this test case
-	    autotest::loadtest("$vars{CASEDIR}/tests.d/console/sshfs.pm");
-	}
-	if ($vars{BIGTEST}) {
-	    autotest::loadtest("$vars{CASEDIR}/tests.d/console/sntp.pm");
-	    autotest::loadtest("$vars{CASEDIR}/tests.d/console/curl_ipv6.pm");
-	    autotest::loadtest("$vars{CASEDIR}/tests.d/console/wget_ipv6.pm");
-	    autotest::loadtest("$vars{CASEDIR}/tests.d/console/syslinux.pm");
-	}
-	autotest::loadtest("$vars{CASEDIR}/tests.d/console/mtab.pm");
+            # in live we don't have a password for root so ssh doesn't
+            # work anyways, and except staging_core image, the rest of
+            # staging_* images don't need run this test case
+            loadtest "console/sshfs.pm";
+        }
+        if ($vars{BIGTEST}) {
+            loadtest "console/sntp.pm";
+            loadtest "console/curl_ipv6.pm";
+            loadtest "console/wget_ipv6.pm";
+            loadtest "console/syslinux.pm";
+        }
+        loadtest "console/mtab.pm";
         if (!$vars{NOINSTALL} && !$vars{LIVETEST} && ( $vars{DESKTOP} eq "textmode" )) {
-	    autotest::loadtest("$vars{CASEDIR}/tests.d/console/http_srv.pm");
-	    autotest::loadtest("$vars{CASEDIR}/tests.d/console/mysql_srv.pm");
-	}
-	if ($vars{MOZILLATEST}) {
-	    autotest::loadtest("$vars{CASEDIR}/tests.d/console/mozmill_setup.pm");
-	}
-	if ($vars{DESKTOP} eq "xfce") {
-	    autotest::loadtest("$vars{CASEDIR}/tests.d/console/xfce_gnome_deps.pm");
-	}
-	autotest::loadtest("$vars{CASEDIR}/tests.d/console/consoletest_finish.pm");
+            loadtest "console/http_srv.pm";
+            loadtest "console/mysql_srv.pm";
+        }
+        if ($vars{MOZILLATEST}) {
+            loadtest "console/mozmill_setup.pm";
+        }
+        if ($vars{DESKTOP} eq "xfce") {
+            loadtest "console/xfce_gnome_deps.pm";
+        }
+        loadtest "console/consoletest_finish.pm";
     }
 }
 
 sub load_x11tests(){
     return unless (!$vars{INSTALLONLY} && $vars{DESKTOP} !~ /textmode|minimalx/ && !$vars{DUALBOOT} && !$vars{MEDIACHECK} && !$vars{MEMTEST} && !$vars{RESCUECD} && !$vars{RESCUESYSTEM});
-    
+
     if ( $vars{NOAUTOLOGIN} || $vars{XDMUSED} ) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/x11/x11_login.pm");
+        loadtest "x11/x11_login.pm";
     }
     if (xfcestep_is_applicable) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/x11/xfce_close_hint_popup.pm");
+        loadtest "x11/xfce_close_hint_popup.pm";
+        loadtest "x11/xfce4_terminal.pm";
     }
     if (!$vars{NICEVIDEO}) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/x11/xterm.pm");
-    }
-    if (!$vars{NICEVIDEO} && !$vars{LIVETEST}) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/x11/sshxterm.pm");
+        loadtest "x11/xterm.pm";
+        loadtest "x11/sshxterm.pm" unless $vars{LIVETEST};
     }
     if (gnomestep_is_applicable) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/x11/gnome_control_center.pm");
-        autotest::loadtest("$vars{CASEDIR}/tests.d/x11/gnome_terminal.pm");
-	autotest::loadtest("$vars{CASEDIR}/tests.d/x11/gedit.pm");
-    }
-    if (xfcestep_is_applicable) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/x11/xfce4_terminal.pm");
+        loadtest "x11/gnome_control_center.pm";
+        loadtest "x11/gnome_terminal.pm";
+        loadtest "x11/gedit.pm";
     }
     if (kdestep_is_applicable) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/x11/kate.pm");
+        loadtest "x11/kate.pm";
     }
-    autotest::loadtest("$vars{CASEDIR}/tests.d/x11/firefox.pm");
+    loadtest "x11/firefox.pm";
     if (!$vars{NICEVIDEO}) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/x11/firefox_audio.pm");
+        loadtest "x11/firefox_audio.pm";
     }
     if (bigx11step_is_applicable && !$vars{NICEVIDEO}) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/x11/firefox_stress.pm");
+        loadtest "x11/firefox_stress.pm";
     }
     if (gnomestep_is_applicable && !$vars{LIVECD}) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/x11/thunderbird.pm");
+        loadtest "x11/thunderbird.pm";
     }
     if ($vars{MOZILLATEST}) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/x11/mozmill_run.pm");
+        loadtest "x11/mozmill_run.pm";
     }
     if (!( $vars{FLAVOR} =~ /^Staging2?[\-]DVD$/ || $vars{FLAVOR} eq 'Rescue-CD' )) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/x11/chromium.pm");
+        loadtest "x11/chromium.pm";
     }
     if (bigx11step_is_applicable) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/x11/imagemagick.pm");
+        loadtest "x11/imagemagick.pm";
     }
     if (xfcestep_is_applicable) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/x11/ristretto.pm");
+        loadtest "x11/ristretto.pm";
     }
     if (gnomestep_is_applicable) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/x11/eog.pm");
+        loadtest "x11/eog.pm";
     }
     if ($vars{DESKTOP} =~ /kde|gnome/ && $vars{FLAVOR} ne "Server-DVD") {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/x11/ooffice.pm");
+        loadtest "x11/ooffice.pm";
     }
     if (!$vars{NICEVIDEO} && $vars{DESKTOP} =~ /kde|gnome/ && !$vars{LIVECD} && $vars{FLAVOR} ne "Server-DVD") {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/x11/oomath.pm");
+        loadtest "x11/oomath.pm";
     }
     if (!$vars{NICEVIDEO} && $vars{DESKTOP} =~ /kde|gnome/ && !$vars{LIVECD} && $vars{FLAVOR} ne "Server-DVD") {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/x11/oocalc.pm");
+        loadtest "x11/oocalc.pm";
     }
     if (kdestep_is_applicable) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/x11/khelpcenter.pm");
-	autotest::loadtest("$vars{CASEDIR}/tests.d/x11/systemsettings.pm");
-	autotest::loadtest("$vars{CASEDIR}/tests.d/x11/dolphin.pm");
+        loadtest "x11/khelpcenter.pm";
+        loadtest "x11/systemsettings.pm";
+        loadtest "x11/dolphin.pm";
     }
-    autotest::loadtest("$vars{CASEDIR}/tests.d/x11/yast2_users.pm");
+    loadtest "x11/yast2_users.pm";
     if (gnomestep_is_applicable && $vars{GNOME2}) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/x11/application_browser.pm");
+        loadtest "x11/application_browser.pm";
     }
     if (xfcestep_is_applicable) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/x11/thunar.pm");
-    }
-    if (gnomestep_is_applicable) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/x11/nautilus.pm");
+        loadtest "x11/thunar.pm";
     }
     if (bigx11step_is_applicable && !$vars{NICEVIDEO}) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/x11/glxgears.pm");
+        loadtest "x11/glxgears.pm";
     }
     if (kdestep_is_applicable) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/x11/amarok.pm");
-	autotest::loadtest("$vars{CASEDIR}/tests.d/x11/kontact.pm");
+        loadtest "x11/amarok.pm";
+        loadtest "x11/kontact.pm";
     }
-    if (gnomestep_is_applicable && !$vars{LIVECD}) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/x11/gnome_music.pm");
-    }
-    if (gnomestep_is_applicable && $vars{FLAVOR} ne "Server-DVD") {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/x11/evolution.pm");
+    if (gnomestep_is_applicable) {
+        loadtest "x11/nautilus.pm" unless $vars{LIVECD};
+        loadtest "x11/gnome_music.pm";
+        loadtest "x11/evolution.pm" unless ($vars{FLAVOR} eq "Server-DVD");
     }
     if (!$vars{LIVETEST}) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/x11/reboot.pm");
+        loadtest "x11/reboot.pm";
     }
-    autotest::loadtest("$vars{CASEDIR}/tests.d/x11/desktop_mainmenu.pm");
-    
+    loadtest "x11/desktop_mainmenu.pm";
+
     if (xfcestep_is_applicable) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/x11/xfce4_appfinder.pm");
-        autotest::loadtest("$vars{CASEDIR}/tests.d/x11/xfce_notification.pm");
-	if (!( $vars{FLAVOR} eq 'Rescue-CD' )) {
-	    autotest::loadtest("$vars{CASEDIR}/tests.d/x11/xfce_lightdm_logout_login.pm");
-	}
+        loadtest "x11/xfce4_appfinder.pm";
+        loadtest "x11/xfce_notification.pm";
+        if (!( $vars{FLAVOR} eq 'Rescue-CD' )) {
+            loadtest "x11/xfce_lightdm_logout_login.pm";
+        }
     }
-    
-    if (!$vars{NICEVIDEO} && !$vars{LIVECD}) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/x11/gimp.pm");
-    }
-    if (!$vars{LIVECD}) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/x11/inkscape.pm");
+
+    unless ($vars{LIVECD}) {
+        loadtest "x11/inkscape.pm";
+        if (!$vars{NICEVIDEO}) {
+            loadtest "x11/gimp.pm";
+        }
     }
     if (!( $vars{FLAVOR} =~ m/^Staging2?[\-]DVD$/ ) && !( $vars{FLAVOR} =~ m/^Rescue-CD$/ )) {
-        autotest::loadtest("$vars{CASEDIR}/tests.d/x11/gnucash.pm");
+        loadtest "x11/gnucash.pm";
     }
-    autotest::loadtest("$vars{CASEDIR}/tests.d/x11/shutdown.pm");
+    loadtest "x11/shutdown.pm";
 }
 
 # load the tests in the right order
