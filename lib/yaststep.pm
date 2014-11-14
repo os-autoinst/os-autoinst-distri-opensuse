@@ -24,5 +24,9 @@ sub post_fail_hook() {
     save_screenshot;
 }
 
+sub is_applicable() {
+    return yaststep_is_applicable;
+}
+
 1;
 # vim: set sw=4 et:

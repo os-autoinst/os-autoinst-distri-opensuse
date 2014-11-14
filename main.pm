@@ -131,6 +131,40 @@ save_vars(); # update variables
 # dump other important ENV:
 logcurrentenv(qw"ADDONURL BIGTEST BTRFS DESKTOP HW HWSLOT LIVETEST LVM MOZILLATEST NOINSTALL REBOOTAFTERINSTALL UPGRADE USBBOOT TUMBLEWEED ZDUP ZDUPREPOS TEXTMODE DISTRI NOAUTOLOGIN QEMUCPU QEMUCPUS RAIDLEVEL ENCRYPT INSTLANG QEMUVGA DOCRUN UEFI DVD GNOME KDE ISO ISO_MAXSIZE LIVECD NETBOOT NICEVIDEO NOIMAGES PROMO QEMUVGA SPLITUSR VIDEOMODE");
 
+sub load_x11regresion_tests() {
+    for $d (qw(firefox gnomecase pidgin tomboy tracker)) {
+        autotest::loadtestdir("$vars{CASEDIR}/$d.d");
+    }
+}
+
+sub load_login_tests(){
+    autotest::loadtestdir("$vars{CASEDIR}/login.d");
+}
+
+sub load_boot_tests(){
+    autotest::loadtestdir("$vars{CASEDIR}/boot.d");
+}
+
+sub load_inst_tests() {
+    autotest::loadtestdir("$vars{CASEDIR}/inst.d");
+}
+
+sub load_rescuecd_tests() {
+    autotest::loadtestdir("$vars{CASEDIR}/rescuecd.d");
+}
+
+sub load_zdup_tests() {
+    autotest::loadtestdir("$vars{CASEDIR}/zdup.d");
+}
+
+sub load_consoletests() {
+    autotest::loadtestdir("$vars{CASEDIR}/consoletest.d");
+}
+
+sub load_x11tests(){
+    autotest::loadtestdir("$vars{CASEDIR}/x11test.d");
+}
+
 sub _wanted() {
     autotest::loadtestdir("$File::Find::name") if -d;
 }
@@ -138,22 +172,24 @@ sub _wanted() {
 # load the tests in the right order
 if ( $vars{REGRESSION} ) {
     if ( $vars{KEEPHDDS} ) {
-        autotest::loadtestdir("$vars{CASEDIR}/login.d");
+        load_login_tests();
     }
     else {
-        autotest::loadtestdir("$vars{CASEDIR}/inst.d");
+        load_inst_tests();
     }
 
     if ( $vars{DESKTOP} =~ /gnome/ ) {
-        find( \&_wanted, "$vars{CASEDIR}/x11regression.d" );
+        load_x11regresion_tests();
     }
 
 }
 else {
-    my @testsd = qw/boot.d inst.d rescuecd.d zdup.d consoletest.d x11test.d/;
-    foreach my $d (@testsd) {
-        autotest::loadtestdir("$vars{CASEDIR}/$d");
-    }
+    load_boot_tests();
+    load_inst_tests();
+    load_rescuecd_tests();
+    load_zdup_tests();
+    load_consoletests();
+    load_x11tests();
 }
 
 1;

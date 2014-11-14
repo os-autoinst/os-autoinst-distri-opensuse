@@ -3,7 +3,7 @@ use base "basetest";
 
 # Base class for all openSUSE tests
 
-sub is_applicable() {
+sub opensusebasetest_is_applicable() {
     my $self = shift;
     return basetest_is_applicable;
 }
@@ -66,6 +66,10 @@ sub gnomestep_is_applicable() {
 sub serverstep_is_applicable() {
     my $self = shift;
     return consolestep_is_applicable && !$bmwqemu::vars{NOINSTALL} && !$bmwqemu::vars{LIVETEST} && ( $bmwqemu::vars{DESKTOP} eq "textmode" );
+}
+
+sub is_applicable() {
+    return opensusebasetest_is_applicable;
 }
 
 1;
