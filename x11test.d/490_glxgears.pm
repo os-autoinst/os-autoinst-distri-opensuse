@@ -1,1 +1,0 @@
-../tests.d/x11/glxgears.pm

@@ -1,1 +1,0 @@
-../tests.d/x11/x11_login.pm

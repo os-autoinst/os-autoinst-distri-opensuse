@@ -1,1 +1,0 @@
-../tests.d/installation/finish_desktop.pm

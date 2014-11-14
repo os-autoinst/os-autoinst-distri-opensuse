@@ -1,1 +1,0 @@
-../tests.d/installation/installation_overview.pm

@@ -1,1 +1,0 @@
-../tests.d/console/curl_ipv6.pm

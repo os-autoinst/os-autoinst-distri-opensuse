@@ -1,1 +1,0 @@
-../tests.d/x11/yast2_users.pm
