@@ -131,6 +131,59 @@ save_vars(); # update variables
 # dump other important ENV:
 logcurrentenv(qw"ADDONURL BIGTEST BTRFS DESKTOP HW HWSLOT LIVETEST LVM MOZILLATEST NOINSTALL REBOOTAFTERINSTALL UPGRADE USBBOOT TUMBLEWEED ZDUP ZDUPREPOS TEXTMODE DISTRI NOAUTOLOGIN QEMUCPU QEMUCPUS RAIDLEVEL ENCRYPT INSTLANG QEMUVGA DOCRUN UEFI DVD GNOME KDE ISO ISO_MAXSIZE LIVECD NETBOOT NICEVIDEO NOIMAGES PROMO QEMUVGA SPLITUSR VIDEOMODE");
 
+
+sub x11step_is_applicable() {
+    return !$vars{INSTALLONLY} && $vars{DESKTOP} !~ /textmode|minimalx/ && !$vars{DUALBOOT} && !$vars{MEDIACHECK} && !$vars{MEMTEST} && !$vars{RESCUECD} && !$vars{RESCUESYSTEM};
+}
+
+sub xfcestep_is_applicable() {
+    return x11step_is_applicable && ( $vars{DESKTOP} eq "xfce" );
+}
+
+sub rescuecdstep_is_applicable() {
+    return $vars{RESCUECD};
+}
+
+sub consolestep_is_applicable() {
+    return !$vars{INSTALLONLY} && !$vars{NICEVIDEO} && !$vars{DUALBOOT} && !$vars{MEDIACHECK} && !$vars{RESCUECD} && !$vars{RESCUESYSTEM} && !$vars{MEMTEST};
+}
+
+sub kdestep_is_applicable() {
+    return x11step_is_applicable && ( $vars{DESKTOP} eq "kde" );
+}
+
+sub installzdupstep_is_applicable() {
+    return installbasetest_is_applicable && !$vars{NOINSTALL} && !$vars{LIVETEST} && !$vars{MEDIACHECK} && !$vars{MEMTEST} && !$vars{RESCUECD} && !$vars{RESCUESYSTEM} && $vars{ZDUP};
+}
+
+sub y2logsstep_isapplicable() {
+    return installyaststep_is_applicable;
+}
+
+sub noupdatestep_is_applicable() {
+    return y2logsstep_is_applicable && !$vars{UPGRADE};
+}
+
+sub bigx11step_is_applicable() {
+    return x11step_is_applicable && $vars{BIGTEST};
+}
+
+sub bigconsolestep_is_applicable() {
+    return consolestep_is_applicable && $vars{BIGTEST};
+}
+
+sub installyaststep_is_applicable() {
+    return installbasetest_is_applicable && !$vars{NOINSTALL} && !$vars{LIVETEST} && !$vars{MEDIACHECK} && !$vars{MEMTEST} && !$vars{RESCUECD} && !$vars{RESCUESYSTEM} && !$vars{ZDUP};
+}
+
+sub gnomestep_is_applicable() {
+    return x11step_is_applicable && ( $vars{DESKTOP} eq "gnome" );
+}
+
+sub serverstep_is_applicable() {
+    return consolestep_is_applicable && !$bmwqemu::vars{NOINSTALL} && !$bmwqemu::vars{LIVETEST} && ( $bmwqemu::vars{DESKTOP} eq "textmode" );
+}
+
 sub load_x11regresion_tests() {
     autotest::loadtest("$vars{CASEDIR}/x11regression.d/firefox.d/355_firefox_launch.pm");
     autotest::loadtest("$vars{CASEDIR}/x11regression.d/firefox.d/360_firefox_menu.pm");
@@ -262,9 +315,15 @@ sub load_boot_tests(){
     if ($vars{MEMTEST}) {
         autotest::loadtest("$vars{CASEDIR}/tests.d/installation/memtest.pm");
     }
-    if (opensusebasetest_is_applicable && $vars{RESCUESYSTEM}) {
+    if ($vars{RESCUESYSTEM}) {
         autotest::loadtest("$vars{CASEDIR}/tests.d/installation/rescuesystem.pm");
     }
+}
+
+sub is_reboot_after_installation_necessary() {
+    return 0 if $vars{LIVETEST} || $vars{NICEVIDEO} || $vars{DUALBOOT} || $vars{MEDIACHECK} || $vars{MEMTEST} || $vars{RESCUECD} || $vars{RESCUESYSTEM} || $vars{ZDUP};
+
+    return $vars{REBOOTAFTERINSTALL} && !$vars{UPGRADE};
 }
 
 sub load_inst_tests() {
@@ -325,8 +384,10 @@ sub load_inst_tests() {
     if (y2logsstep_is_applicable) {
         autotest::loadtest("$vars{CASEDIR}/tests.d/installation/first_boot.pm");
     }
-    autotest::loadtest("$vars{CASEDIR}/tests.d/installation/BNC847880_QT_cirrus.pm");
-    autotest::loadtest("$vars{CASEDIR}/tests.d/installation/reboot_after_install.pm");
+    if (is_reboot_after_installation_necessary()) {
+	autotest::loadtest("$vars{CASEDIR}/tests.d/installation/reboot_after_install.pm");
+    }
+    
     if (y2logsstep_is_applicable && $vars{DUALBOOT}) {
         autotest::loadtest("$vars{CASEDIR}/tests.d/installation/boot_windows.pm");
     }
@@ -396,7 +457,12 @@ sub load_consoletests() {
     if (consolestep_is_applicable) {
         autotest::loadtest("$vars{CASEDIR}/tests.d/console/sshd.pm");
     }
-    autotest::loadtest("$vars{CASEDIR}/tests.d/console/sshfs.pm");
+    if (consolestep_is_applicable && !$vars{LIVETEST} && !( $vars{FLAVOR} =~ /^Staging2?[\-]DVD$/ )) {
+	# in live we don't have a password for root so ssh doesn't
+	# work anyways, and except staging_core image, the rest of
+	# staging_* images don't need run this test case
+	autotest::loadtest("$vars{CASEDIR}/tests.d/console/sshfs.pm");
+    }
     if (bigconsolestep_is_applicable) {
         autotest::loadtest("$vars{CASEDIR}/tests.d/console/curl_ipv6.pm");
     }

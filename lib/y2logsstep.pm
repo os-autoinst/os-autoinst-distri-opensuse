@@ -32,9 +32,5 @@ sub post_fail_hook() {
     }
 }
 
-sub is_applicable() {
-    return y2logsstep_is_applicable;
-}
-
 1;
 # vim: set sw=4 et:
