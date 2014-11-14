@@ -274,14 +274,11 @@ sub load_inst_tests() {
     if (!$vars{AUTOYAST}) {
         loadtest "installation/welcome.pm";
     }
-    if (noupdatestep_is_applicable && !$vars{LIVECD} && !$vars{AUTOYAST}) {
-        loadtest "installation/installation_mode.pm";
-    }
     if (!$vars{LIVECD} && $vars{UPGRADE}) {
         loadtest "installation/upgrade_select.pm";
     }
     loadtest "installation/scc_registration.pm";
-    if (!$vars{LIVECD} && $vars{ADDONURL} && !$vars{AUTOYAST}) {
+    if (!$vars{LIVECD} && !$vars{AUTOYAST}) {
         loadtest "installation/addon_products.pm";
     }
     if (noupdatestep_is_applicable && $vars{LIVECD}) {
@@ -304,9 +301,6 @@ sub load_inst_tests() {
     }
     if (noupdatestep_is_applicable && !$vars{LIVECD} && !$vars{NICEVIDEO} && !$vars{AUTOYAST}) {
         loadtest "installation/logpackages.pm";
-    }
-    if (noupdatestep_is_applicable && !$vars{LIVECD} && !$vars{AUTOYAST}) {
-        loadtest "installation/installer_desktopselection.pm";
     }
     if (noupdatestep_is_applicable && !$vars{AUTOYAST}) {
         loadtest "installation/user_settings.pm";
@@ -402,7 +396,7 @@ sub load_consoletests() {
 sub load_x11tests(){
     return unless (!$vars{INSTALLONLY} && $vars{DESKTOP} !~ /textmode|minimalx/ && !$vars{DUALBOOT} && !$vars{MEDIACHECK} && !$vars{MEMTEST} && !$vars{RESCUECD} && !$vars{RESCUESYSTEM});
 
-    if ( $vars{NOAUTOLOGIN} || $vars{XDMUSED} ) {
+    if ( $vars{XDMUSED} ) {
         loadtest "x11/x11_login.pm";
     }
     if (xfcestep_is_applicable) {
@@ -437,19 +431,17 @@ sub load_x11tests(){
     if (xfcestep_is_applicable) {
         loadtest "x11/ristretto.pm";
     }
-    if (gnomestep_is_applicable) {
-        loadtest "x11/eog.pm";
-	loadtest "x11/banshee.pm";
-	loadtest "x11/rhythmbox.pm";
-    }
-    if ($vars{DESKTOP} =~ /kde|gnome/ && $vars{FLAVOR} ne "Server-DVD") {
-        loadtest "x11/ooffice.pm";
-    }
-    if (!$vars{NICEVIDEO} && $vars{DESKTOP} =~ /kde|gnome/ && !$vars{LIVECD} && $vars{FLAVOR} ne "Server-DVD") {
-        loadtest "x11/oomath.pm";
-    }
-    if (!$vars{NICEVIDEO} && $vars{DESKTOP} =~ /kde|gnome/ && !$vars{LIVECD} && $vars{FLAVOR} ne "Server-DVD") {
-        loadtest "x11/oocalc.pm";
+    if ( $vars{FLAVOR} ne "Server-DVD" ) {
+        if (gnomestep_is_applicable) {
+            loadtest "x11/eog.pm";
+            loadtest "x11/banshee.pm";
+            loadtest "x11/rhythmbox.pm";
+        }
+        if ( $vars{DESKTOP} =~ /kde|gnome/ ) {
+            loadtest "x11/ooffice.pm";
+            loadtest "x11/oomath.pm";
+            loadtest "x11/oocalc.pm";
+        }
     }
     if (kdestep_is_applicable) {
         loadtest "x11/khelpcenter.pm";
@@ -472,7 +464,6 @@ sub load_x11tests(){
     }
     if (gnomestep_is_applicable) {
         loadtest "x11/nautilus.pm" unless $vars{LIVECD};
-        loadtest "x11/gnome_music.pm";
         loadtest "x11/evolution.pm" unless ($vars{FLAVOR} eq "Server-DVD");
     }
     if (!$vars{LIVETEST}) {
