@@ -170,7 +170,7 @@ sub gnomestep_is_applicable() {
 
 sub loadtest($) {
     my ($test) = @_;
-    autotest::loadtest("$vars{CASEDIR}/test/$test");
+    autotest::loadtest("$vars{CASEDIR}/tests/$test");
 }
 
 sub load_x11regresion_tests() {
