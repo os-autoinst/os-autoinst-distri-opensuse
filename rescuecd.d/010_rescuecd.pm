@@ -1,1 +1,0 @@
-../tests.d/rescuecd/rescuecd.pm

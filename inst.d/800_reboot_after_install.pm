@@ -1,1 +1,0 @@
-../tests.d/installation/reboot_after_install.pm

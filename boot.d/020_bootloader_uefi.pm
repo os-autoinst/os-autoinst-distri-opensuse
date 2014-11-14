@@ -1,1 +1,0 @@
-../tests.d/installation/bootloader_uefi.pm

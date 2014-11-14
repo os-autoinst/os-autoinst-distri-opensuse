@@ -1,1 +1,0 @@
-../tests.d/console/hostname.pm

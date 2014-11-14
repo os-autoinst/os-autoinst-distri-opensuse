@@ -16,7 +16,8 @@ sub post_fail_hook() {
         wait_idle;
         sleep 1;
         save_screenshot();
-    } elsif ($ret) {
+    }
+    elsif ($ret) {
         send_key "ctrl-alt-f2";
         assert_screen "inst-console";
         if ( !$bmwqemu::vars{NET} ) {

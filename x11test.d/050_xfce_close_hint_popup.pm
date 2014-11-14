@@ -1,1 +1,0 @@
-../tests.d/x11/xfce_close_hint_popup.pm
