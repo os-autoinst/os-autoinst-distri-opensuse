@@ -1,1 +1,0 @@
-../tests.d/installation/livecd_installer_timezone.pm

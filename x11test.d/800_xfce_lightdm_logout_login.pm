@@ -1,1 +1,0 @@
-../tests.d/x11/xfce_lightdm_logout_login.pm

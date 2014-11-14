@@ -1,1 +1,0 @@
-../tests.d/console/glibc_i686.pm

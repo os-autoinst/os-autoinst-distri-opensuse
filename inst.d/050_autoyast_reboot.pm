@@ -1,1 +1,0 @@
-../tests.d/installation/autoyast_reboot.pm

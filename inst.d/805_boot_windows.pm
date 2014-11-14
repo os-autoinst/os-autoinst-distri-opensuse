@@ -1,1 +1,0 @@
-../tests.d/installation/boot_windows.pm

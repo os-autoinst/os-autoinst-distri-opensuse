@@ -1,1 +1,0 @@
-../tests.d/console/wget_ipv6.pm

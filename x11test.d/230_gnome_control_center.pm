@@ -1,1 +1,0 @@
-../tests.d/x11/gnome_control_center.pm

@@ -1,1 +1,0 @@
-../tests.d/console/xorg_vt.pm

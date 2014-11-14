@@ -1,1 +1,0 @@
-../tests.d/console/xfce_gnome_deps.pm

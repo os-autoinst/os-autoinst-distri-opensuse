@@ -1,1 +1,0 @@
-../tests.d/installation/partitioning_finish.pm
