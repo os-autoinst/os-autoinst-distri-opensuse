@@ -10,7 +10,7 @@ sub run() {
 
     # verify there is a text console on tty1
     send_key "ctrl-alt-f1";
-    assert_screen "tty1-selected", 15; 
+    assert_screen "tty1-selected", 15;
 
     # init
     # log into text console
@@ -30,7 +30,7 @@ sub run() {
     #type_string 'PS1=\$\ '."\n"; # qemu-0.12.4 can not do backslash yet. http://permalink.gmane.org/gmane.comp.emulators.qemu/71856
 
     script_sudo("chown $username /dev/$serialdev");
-    
+
     script_sudo("systemctl mask packagekit.service");
     script_sudo("systemctl stop packagekit.service");
 

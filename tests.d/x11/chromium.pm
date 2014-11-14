@@ -3,7 +3,7 @@ use bmwqemu;
 
 sub is_applicable {
     my $self = shift;
-    return $self->SUPER::is_applicable && !( $vars{FLAVOR} =~ /^Staging2?[\-]DVD$/ || $vars{FLAVOR} eq 'Rescue-CD' );
+    return x11step_is_applicable && !( $vars{FLAVOR} =~ /^Staging2?[\-]DVD$/ || $vars{FLAVOR} eq 'Rescue-CD' );
 }
 
 sub run() {

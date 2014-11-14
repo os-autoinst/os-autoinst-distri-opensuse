@@ -3,7 +3,7 @@ use bmwqemu;
 
 sub is_applicable() {
     my $self = shift;
-    return $self->SUPER::is_applicable && ( $vars{NOAUTOLOGIN} || $vars{XDMUSED} );
+    return x11step_is_applicable && ( $vars{NOAUTOLOGIN} || $vars{XDMUSED} );
 }
 
 sub run() {

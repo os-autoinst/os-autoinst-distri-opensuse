@@ -4,7 +4,7 @@ use bmwqemu;
 # XXX TODO - is using KDE variable here
 sub is_applicable() {
     my $self = shift;
-    return $self->SUPER::is_applicable && !$vars{NICEVIDEO} && !$vars{LIVECD};
+    return x11step_is_applicable && !$vars{NICEVIDEO} && !$vars{LIVECD};
 }
 
 sub run() {

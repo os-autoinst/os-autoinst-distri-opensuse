@@ -5,7 +5,7 @@ use bmwqemu;
 
 sub is_applicable() {
     my $self = shift;
-    return $self->SUPER::is_applicable && $vars{UEFI} && $vars{SECUREBOOT};
+    return y2logsstep_is_applicable && $vars{UEFI} && $vars{SECUREBOOT};
 }
 
 sub run() {

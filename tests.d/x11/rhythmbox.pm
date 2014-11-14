@@ -3,7 +3,7 @@ use bmwqemu;
 
 sub is_applicable() {
     my $self = shift;
-    return $self->SUPER::is_applicable && !$vars{LIVECD} && $vars{FLAVOR} ne "Server-DVD";
+    return gnomestep_is_applicable && !$vars{LIVECD} && $vars{FLAVOR} ne "Server-DVD";
 }
 
 sub run() {

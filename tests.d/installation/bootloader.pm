@@ -5,7 +5,7 @@ use Time::HiRes qw(sleep);
 
 sub is_applicable() {
     my $self = shift;
-    return $self->SUPER::is_applicable && !$vars{UEFI} && !$vars{OFW} && !$vars{MEDIACHECK} && !$vars{MEMTEST} && !$vars{RESCUESYSTEM};
+    return installbasetest_is_applicable && !$vars{UEFI} && !$vars{OFW} && !$vars{MEDIACHECK} && !$vars{MEMTEST} && !$vars{RESCUESYSTEM};
 }
 
 # hint: press shift-f10 trice for highest debug level
@@ -74,7 +74,7 @@ sub run() {
         send_key "ret";
     }
 
-# https://wiki.archlinux.org/index.php/Kernel_Mode_Setting#Forcing_modes_and_EDID
+    # https://wiki.archlinux.org/index.php/Kernel_Mode_Setting#Forcing_modes_and_EDID
     type_string "vga=791 ";
     type_string "Y2DEBUG=1 ";
     type_string "video=1024x768-16 ", 13;

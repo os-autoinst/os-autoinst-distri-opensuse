@@ -4,7 +4,7 @@ use bmwqemu;
 
 sub is_applicable() {
     my $self = shift;
-    return $self->SUPER::is_applicable && !$vars{LIVECD} && $vars{UPGRADE};
+    return y2logsstep_is_applicable && !$vars{LIVECD} && $vars{UPGRADE};
 }
 
 sub run() {

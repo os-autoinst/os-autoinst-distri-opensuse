@@ -3,7 +3,7 @@ use bmwqemu;
 
 sub is_applicable() {
     my $self = shift;
-    return $self->SUPER::is_applicable && !$vars{LIVETEST};
+    return x11step_is_applicable && !$vars{LIVETEST};
 }
 
 sub run() {

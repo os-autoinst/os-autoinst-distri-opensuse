@@ -4,7 +4,7 @@ use bmwqemu;
 # run all application tests after an extra reboot
 # first boot is special - could have used kexec and has second stage configuration
 sub is_applicable() {
-    
+
     return 0 if $vars{LIVETEST} || $vars{NICEVIDEO} || $vars{DUALBOOT} || $vars{MEDIACHECK} || $vars{MEMTEST} || $vars{RESCUECD} || $vars{RESCUESYSTEM} || $vars{ZDUP};
 
     # Only because of kde/qt has a rendering error on i586 in qemu (bnc#847880).

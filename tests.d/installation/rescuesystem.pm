@@ -4,7 +4,7 @@ use bmwqemu;
 
 sub is_applicable() {
     my $self = shift;
-    return $self->SUPER::is_applicable && $vars{RESCUESYSTEM};
+    return opensusebasetest_is_applicable && $vars{RESCUESYSTEM};
 }
 
 sub run {
@@ -13,8 +13,8 @@ sub run {
     assert_screen "inst-bootmenu", 15;
 
     for ( 1 .. 10 ) {
-	last if check_screen "inst-rescuesystem", 2;
-	send_key "down";
+        last if check_screen "inst-rescuesystem", 2;
+        send_key "down";
     }
     assert_screen "inst-rescuesystem", 3;
     send_key "ret";

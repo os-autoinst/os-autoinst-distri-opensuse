@@ -3,7 +3,7 @@ use bmwqemu;
 
 sub is_applicable() {
     my $self = shift;
-    return $self->SUPER::is_applicable && !$vars{LIVECD};
+    return gnomestep_is_applicable && !$vars{LIVECD};
 }
 
 sub run() {

@@ -8,7 +8,7 @@ use bmwqemu;
 # this function decides if the test shall run
 sub is_applicable {
     my $self = shift;
-    return $self->SUPER::is_applicable && ( $vars{DESKTOP} eq "xfce" );
+    return consolestep_is_applicable && ( $vars{DESKTOP} eq "xfce" );
 }
 
 # this part contains the steps to run this test

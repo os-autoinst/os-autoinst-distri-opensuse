@@ -5,7 +5,7 @@ use bmwqemu;
 
 sub is_applicable() {
     my $self = shift;
-    return $self->SUPER::is_applicable && !$vars{AUTOYAST};
+    return noupdatestep_is_applicable && !$vars{AUTOYAST};
 }
 
 # add a new primary partition
@@ -143,7 +143,7 @@ sub run() {
 
         send_key "tab";
         send_key "down";    # select disks
-                            # seems GNOME tree list didn't eat right arrow key
+        # seems GNOME tree list didn't eat right arrow key
         if ( $vars{GNOME} ) {
             send_key "spc";    # unfold disks
         }
@@ -180,7 +180,7 @@ sub run() {
         if ( !defined( $vars{RAIDLEVEL} ) ) { $vars{RAIDLEVEL} = 6 }
         setraidlevel( $vars{RAIDLEVEL} );
         send_key "down";    # start at second partition (i.e. sda2)
-            # in this case, press down key doesn't move to next one but itself
+        # in this case, press down key doesn't move to next one but itself
         if ( $vars{GNOME} ) { send_key "down" }
         addraid( 3, 6 );
 

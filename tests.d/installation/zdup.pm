@@ -4,7 +4,7 @@ use bmwqemu;
 
 sub is_applicable() {
     my $self = shift;
-    return $self->SUPER::is_applicable && $vars{ZDUP};
+    return installzdupstep_is_applicable && $vars{ZDUP};
 }
 
 sub run() {
@@ -23,7 +23,7 @@ sub run() {
     script_sudo("zypper --gpg-auto-import-keys refresh");
 
     script_sudo("zypper dup -l");
-    
+
     my $ret = assert_screen [qw/zypper-dup-continue zypper-dup-conflict/], 10;
     while ( $ret->{needle}->has_tag("zypper-dup-conflict") ) {
         send_key "1", 1;

@@ -5,7 +5,7 @@ use Time::HiRes qw(sleep);
 
 sub is_applicable() {
     my $self = shift;
-    return $self->SUPER::is_applicable && $vars{OFW};
+    return installbasetest_is_applicable && $vars{OFW};
 }
 
 # hint: press shift-f10 trice for highest debug level

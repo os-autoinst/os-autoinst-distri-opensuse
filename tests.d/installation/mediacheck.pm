@@ -4,7 +4,7 @@ use bmwqemu;
 
 sub is_applicable() {
     my $self = shift;
-    return $self->SUPER::is_applicable && $vars{MEDIACHECK};
+    return opensusebasetest_is_applicable && $vars{MEDIACHECK};
 }
 
 sub run {
@@ -13,8 +13,8 @@ sub run {
     assert_screen "inst-bootmenu", 15;
 
     for ( 1 .. 10 ) {
-	last if check_screen "inst-onmediacheck", 2;
-	send_key "down";
+        last if check_screen "inst-onmediacheck", 2;
+        send_key "down";
     }
     assert_screen "inst-onmediacheck", 3;
     send_key "ret";

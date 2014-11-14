@@ -3,7 +3,7 @@ use bmwqemu;
 
 sub is_applicable() {
     my $self = shift;
-    return $self->SUPER::is_applicable && $vars{SPLITUSR};
+    return y2logsstep_is_applicable && $vars{SPLITUSR};
 }
 
 sub run() {

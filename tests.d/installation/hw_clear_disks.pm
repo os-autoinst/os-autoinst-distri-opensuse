@@ -5,7 +5,7 @@ use bmwqemu;
 
 sub is_applicable() {
     my $self = shift;
-    $self->SUPER::is_applicable && $vars{HW} && !$vars{KEEPHDDS};
+    y2logsstep_is_applicable && $vars{HW} && !$vars{KEEPHDDS};
 }
 
 sub run() {
