@@ -256,6 +256,9 @@ sub load_boot_tests(){
         loadtest "installation/memtest.pm";
     }
     elsif ($vars{RESCUESYSTEM}) {
+        loadtest "installation/rescuesystem.pm");
+    }
+    else {
         loadtest "installation/bootloader.pm";
     }
 }
