@@ -277,8 +277,8 @@ sub load_inst_tests() {
     if (!$vars{LIVECD} && $vars{UPGRADE}) {
         loadtest "installation/upgrade_select.pm";
     }
-    loadtest "installation/scc_registration.pm";
     if (!$vars{LIVECD} && !$vars{AUTOYAST}) {
+        loadtest "installation/scc_registration.pm";
         loadtest "installation/addon_products.pm";
     }
     if (noupdatestep_is_applicable && $vars{LIVECD}) {
