@@ -3,8 +3,7 @@ use strict;
 use bmwqemu;
 
 sub is_applicable() {
-    my $self = shift;
-    return opensusebasetest_is_applicable && $vars{MEDIACHECK};
+    return $vars{MEDIACHECK};
 }
 
 sub run {
