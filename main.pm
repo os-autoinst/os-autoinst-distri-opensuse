@@ -116,11 +116,14 @@ unless ( $vars{DESKTOP} ) {
     }
 }
 if ( check_var( 'DESKTOP', 'minimalx' ) ) {
-    $vars{'NOAUTOLOGIN'} = 1;
+    $vars{NOAUTOLOGIN} = 1;
     $vars{XDMUSED} = 1;
 }
 
+# openSUSE specific variables
 $vars{SUSEMIRROR} ||= "download.opensuse.org/factory";
+$vars{PACKAGETOINSTALL} = "xdelta";
+$vars{DEFAULT_WALLPAPER} = 'openSUSEdefault';
 
 $needle::cleanuphandler = \&cleanup_needles;
 
