@@ -6,7 +6,7 @@ use bmwqemu;
 sub run() {
     my $self = shift;
 
-    wait_idle;
+    assert_screen "inst-rootpassword", 6;
     for ( 1 .. 2 ) {
         type_string "$password\t";
         sleep 1;
@@ -14,10 +14,7 @@ sub run() {
     assert_screen "rootpassword-typed", 3;
     send_key $cmd{"next"};
 
-    # loading cracklib
-    wait_idle 6;
-
     # PW too easy (cracklib)
+    assert_screen "inst-userpasswdtoosimple", 10;
     send_key "ret";
-    wait_idle;
 }

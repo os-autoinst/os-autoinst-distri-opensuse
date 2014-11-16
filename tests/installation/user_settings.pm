@@ -7,7 +7,7 @@ sub run() {
     my $self = shift;
 
     # user setup
-    assert_screen "inst-usersetup", 5;
+    assert_screen "inst-usersetup", 10;
     type_string $realname;
     send_key "tab";
 
@@ -16,23 +16,10 @@ sub run() {
     for ( 1 .. 2 ) {
         type_string "$password\t";
     }
-    assert_screen "inst-userinfostyped", 5;
-    if ( $vars{NOAUTOLOGIN} ) {
-        my $ret;
-        for (my $counter = 10; $counter > 0; $counter--) {
-            $ret = check_screen "autologindisabled", 3;
-            if ( defined($ret) ) {
-                last;
-            }
-            else {
-                ++$self->{dents};
-                send_key $cmd{"noautologin"};
-            }
-        }
-        # report the failure or green
-        unless ( defined($ret) ) {
-            assert_screen "autologindisabled", 1;
-        }
+    assert_screen( "inst-userinfostyped", 5 );
+    if ( $vars{NOAUTOLOGIN} && !check_screen('autologindisabled') ) {
+        send_key $cmd{"noautologin"};
+        assert_screen "autologindisabled", 5;
     }
     if ( $vars{DOCRUN} ) {
         send_key $cmd{"otherrootpw"};
