@@ -32,18 +32,6 @@ sub run() {
     # loading cracklib
     assert_screen( "inst-userpasswdtoosimple", 6 );
     send_key "ret";
-
-    assert_screen( "inst-rootpassword", 6 );
-    for ( 1 .. 2 ) {
-        type_string("$password\t");
-        sleep 1;
-    }
-    assert_screen( "rootpassword-typed", 3 );
-    send_key $cmd{"next"};
-
-    # PW too easy (cracklib)
-    assert_screen( "inst-userpasswdtoosimple", 10 );
-    send_key "ret";
 }
 
 1;
