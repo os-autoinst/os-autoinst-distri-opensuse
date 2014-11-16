@@ -45,26 +45,6 @@ sub run() {
     # loading cracklib
     assert_screen "inst-userpasswdtoosimple", 6;
     send_key "ret";
-
-    #sleep 1;
-    # PW too easy (only chars)
-    #send_key "ret";
-    if ( $vars{DOCRUN} ) {    # root user
-        wait_idle;
-        for ( 1 .. 2 ) {
-            type_string "$password\t";
-            sleep 1;
-        }
-        assert_screen "rootpassword-typed", 3;
-        send_key $cmd{"next"};
-
-        # loading cracklib
-        wait_idle 6;
-
-        # PW too easy (cracklib)
-        send_key "ret";
-        wait_idle;
-    }
 }
 
 1;
