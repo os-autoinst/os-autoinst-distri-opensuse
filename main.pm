@@ -117,14 +117,17 @@ unless ( $vars{DESKTOP} ) {
 }
 
 # SLE specific variables
-$vars{'NOAUTOLOGIN'} = 1;
-$vars{'HASLICENSE'} = 1;
+$vars{NOAUTOLOGIN} = 1;
+$vars{HASLICENSE} = 1;
 
 if ( check_var( 'DESKTOP', 'minimalx' ) ) {
     $vars{XDMUSED} = 1;
 }
 
+# openSUSE specific variables
 $vars{SUSEMIRROR} ||= "download.opensuse.org/factory";
+$vars{PACKAGETOINSTALL} = "sysstat";
+$vars{DEFAULT_WALLPAPER} = 'SLEdefault';
 
 $needle::cleanuphandler = \&cleanup_needles;
 
