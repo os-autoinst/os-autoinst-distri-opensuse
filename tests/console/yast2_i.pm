@@ -2,29 +2,37 @@ use base "yaststep";
 use bmwqemu;
 
 sub run() {
-    my $self = shift;
-    script_sudo("/sbin/yast2 -i");
-    waitstillimage( 36, 90 );
-    type_string "xdelta\n";
+    my $self    = shift;
+    my $pkgname = $vars{PACKAGETOINSTALL};
+
+    become_root();
+    type_string "PS1=\"# \"\n";
+
+    if ( $vars{UPGRADE} ) {
+        # old versions had a different default and we don't necessarly update
+        script_run('echo PKGMGR_ACTION_AT_EXIT=summary >> /etc/sysconfig/yast2');
+    }
+
+    script_run("/sbin/yast2 sw_single; echo yast2-i-status-\$? > /dev/$serialdev");
+    assert_screen 'empty-yast2-sw_single';
+    type_string("$pkgname\n");
     sleep 3;
     send_key "spc";    # select for install
-    assert_screen 'test-yast2_i-1', 4;
-    sleep 2;
-    send_key "alt-a", 1;    # accept
-    waitstillimage( 16, 60 );
-    assert_screen 'test-yast2_i-shows-summary', 2;
-    send_key "alt-f", 1;    # finish yast2_i
     sleep 1;
-    script_run('echo $?');
-    assert_screen 'test-yast2_i-2', 3;
-    sleep 3;
-    send_key "ctrl-l";                                                            # clear screen to see that second update does not do any more
-    script_sudo("rpm -e  xdelta && echo 'xdelta_removed' > /dev/$serialdev");    # extra space to have different result images than for zypper_in test
-    wait_serial("xdelta_removed") || die "xdelta remove failed";
-    script_run("rpm -q xdelta");
+    assert_screen "package-$pkgname-selected-for-install", 3;
+    send_key "alt-a", 1;    # accept
+    assert_screen 'yast2-sw_shows_summary', 3;
+    send_key "alt-f";
+    wait_serial("yast2-i-status-0", 10) || die "yast didn't finish";
 
-    # make sure we go out of here
-    assert_screen 'test-yast2_i-xdelta-not-installed', 1;
+    send_key "ctrl-l";                  # clear screen to see that second update does not do any more
+    script_run("rpm -e $pkgname && echo '$pkgname_removed' > /dev/$serialdev");
+    wait_serial("$pkgname_removed") || die "$pkgname remove failed";
+
+    script_run("echo mark yast test"); # avoid zpper needle
+    script_run("rpm -q $pkgname");
+    script_run('exit');
+    assert_screen( "yast-package-$pkgname-not-installed", 1 );
 }
 
 1;
