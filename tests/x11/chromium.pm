@@ -16,12 +16,12 @@ sub run() {
     send_key "ctrl-l";
     sleep 1;
     type_string "about:\n";
-    assert_screen 'chromium-about', 3;
+    assert_screen 'chromium-about', 15;
 
     send_key "ctrl-l";
     sleep 1;
     type_string $vars{OPENQA_HOSTNAME}."\n";
-    assert_screen 'chromium-openqa', 10;
+    assert_screen 'chromium-openqa', 30;
 
     send_key "alt-f4";
 }
