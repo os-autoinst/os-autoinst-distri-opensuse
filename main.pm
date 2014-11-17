@@ -285,7 +285,7 @@ sub load_inst_tests() {
     }
     if (!$vars{LIVECD} && !$vars{AUTOYAST}) {
         loadtest "installation/scc_registration.pm";
-        loadtest "installation/addon_products.pm";
+        loadtest "installation/addon_products_sle.pm";
     }
     if (noupdatestep_is_applicable && $vars{LIVECD}) {
         loadtest "installation/livecd_installer_timezone.pm";
