@@ -310,6 +310,7 @@ sub load_inst_tests() {
     }
     if (noupdatestep_is_applicable && !$vars{AUTOYAST}) {
         loadtest "installation/user_settings.pm";
+        loadtest "installation/user_settings_root.pm";
     }
     if (noupdatestep_is_applicable && !$vars{AUTOYAST}) {
         loadtest "installation/installation_overview.pm";
