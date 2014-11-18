@@ -6,9 +6,6 @@ use bmwqemu;
 sub run() {
     my $self = shift;
 
-    # workaround for new style
-    my $closedialog;
-    my $ret = assert_screen ['partioning-edit-proposal-button'], 40;
     send_key "alt-d";
     sleep 2;
 
