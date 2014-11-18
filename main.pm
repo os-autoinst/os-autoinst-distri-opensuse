@@ -292,14 +292,24 @@ sub load_inst_tests() {
     }
     if (noupdatestep_is_applicable && !$vars{AUTOYAST}) {
         loadtest "installation/partitioning.pm";
-    }
-    if ($vars{LVM} && !$vars{AUTOYAST}) {
-        loadtest "installation/partitioning_lvm.pm";
-    }
-    if ($vars{SPLITUSR}) {
-        loadtest "installation/partitioning_splitusr.pm";
-    }
-    if (noupdatestep_is_applicable && !$vars{AUTOYAST}) {
+        if ( defined( $vars{RAIDLEVEL} ) ) {
+            loadtest "installation/partitioning_raid.pm";
+        }
+        elsif ( $vars{LVM} ) {
+            loadtest "installation/partitioning_lvm.pm";
+        }
+        if ( $vars{BTRFS} ) {
+            loadtest "installation/partitioning_btrfs.pm";
+        }
+        elsif ( $vars{EXT4} ) {
+            loadtest "installation/partitioning_ext4.pm";
+        }
+        if ( $vars{TOGGLEHOME} ) {
+            loadtest "installation/partitioning_togglehome.pm";
+        }
+        if ( $vars{SPLITUSR} ) {
+            loadtest "installation/partitioning_splitusr.pm";
+        }
         loadtest "installation/partitioning_finish.pm";
     }
     if (noupdatestep_is_applicable && !$vars{LIVECD} && !$vars{AUTOYAST}) {
