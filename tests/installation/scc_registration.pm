@@ -14,15 +14,11 @@ sub run() {
         send_key "tab";
         type_string $vars{SCC_REGCODE};
         send_key $cmd{"next"}, 1;
-        my @tags = qw/local-registration-servers registration-online-repos import-untrusted-gpg-key/;
+        my @tags = qw/local-registration-servers registration-online-repos/;
         while ( my $ret = check_screen(\@tags, 60 )) {
             if ($ret->{needle}->has_tag("local-registration-servers")) {
                 send_key $cmd{ok};
                 shift @tags;
-                next;
-            }
-            elsif ($ret->{needle}->has_tag("import-untrusted-gpg-key")) {
-                send_key "alt-c", 1;
                 next;
             }
             last;
