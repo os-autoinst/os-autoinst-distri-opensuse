@@ -18,3 +18,6 @@ sub run() {
     assert_screen "inst-userpasswdtoosimple", 10;
     send_key "ret";
 }
+
+1;
+# vim: set sw=4 et:
