@@ -11,22 +11,60 @@ sub run() {
 
     mouse_hide();
 
-    assert_screen( 'displaymanager', 200 );
-    if ( check_var( 'DESKTOP', 'minimalx' ) ) {
-        type_string($username);
+    if ( $vars{'NOAUTOLOGIN'} ) {
+        assert_screen 'displaymanager', 200;
+        # for GNOME pressing enter is enough to login bernhard
+        if ( check_var( 'DESKTOP', 'minimalx' ) ) {
+            type_string $username;
+        }
+        send_key "ret";
+        wait_idle;
+        type_string "$password";
+        send_key "ret";
     }
-    send_key("ret");
-    wait_idle;
-    type_string("$password");
-    send_key("ret");
 
-    assert_screen( "desktop-at-first-boot", 40 );
+    # Check for errors during first boot
+    my $err  = 0;
+    my @tags = qw/desktop-at-first-boot install-failed/;
+    while (1) {
+        my $ret = assert_screen \@tags, 400;
+        if ( $ret->{needle}->has_tag("desktop-at-first-boot") && !check_var( "DESKTOP", "kde" ) ) {
+            last;
+        }
+        elsif ( $ret->{needle}->has_tag("desktop-at-first-boot") && check_var( "DESKTOP", "kde" ) ) {
+            # a special case for KDE greeter
+            wait_idle 5;
+            send_key "esc"; # close the KDE greeter
+            sleep 3;
+            push( @tags, "generic-desktop" );
+            push( @tags, "drkonqi-crash" );
+            @tags = grep { $_ ne 'desktop-at-first-boot' } @tags;
+            next;
+        }
+        elsif ( $ret->{needle}->has_tag("generic-desktop") ) {
+            last;
+        }
+        elsif ( $ret->{needle}->has_tag("drkonqi-crash") ) {
+            # handle for KDE greeter crashed and drkonqi popup
+            send_key "alt-d";
 
-    if ( check_var( 'DESKTOP', 'kde' ) ) {
-        send_key "esc";
+            # maximize
+            send_key "alt-shift-f3";
+            sleep 8;
+            save_screenshot;
+            send_key "alt-c";
+            @tags = grep { $_ ne 'drkonqi-crash' } @tags;
+            next;
+        }
+
+        save_screenshot;
         sleep 2;
-        $self->take_screenshot();
+        send_key "ret";
+        $err = 1;
+        last if $err;
     }
+
+    mydie if $err;
 }
 
 sub test_flags() {
