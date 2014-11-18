@@ -13,19 +13,24 @@ sub run() {
         my $ret = assert_screen [qw/startupdate startupdate-conflict/], 5;
 
         while ( $ret->{needle}->has_tag("startupdate-conflict") ) {
-            save_screenshot;
             send_key $cmd{ok}, 1;
 
-            send_key $cmd{change}, 1;
-            send_key $cmd{"package"}, 1;
-            assert_screen "package-conflict", 5;
-            save_screenshot;
-            send_key "alt-1", 1;    # We hope that zypper makes the best suggestion here
-            send_key $cmd{ok}, 1;
+            while ( !check_screen( 'packages-section-selected', 2 ) ) {
+                send_key 'tab';
+            }
 
-            assert_screen "package-resolve-conflict", 5;
-            send_key $cmd{accept}, 1;
+            assert_and_click 'packages-section-selected';
+            assert_screen "package-conflict", 20;
 
+            while ( !check_screen( 'all-conflicts-resolved-packages', 4 ) ) {
+                assert_and_click 'package-conflict-choice';
+                send_key $cmd{ok}, 1;
+            }
+            send_key $cmd{"accept"}, 1;
+
+            while ( check_screen( 'license-popup', 2 ) ) {
+                send_key $cmd{"accept"}, 1;
+            }
             assert_screen "automatic-changes", 5;
             send_key $cmd{"continue"}, 1;
 
@@ -59,11 +64,6 @@ sub run() {
 
         # confirm
         send_key $cmd{install};
-
-        while(my $ret = check_screen([qw/import-untrusted-gpg-key inst-packageinstallationstarted/], 15)) {
-            last if ($ret->{needle}->has_tag("inst-packageinstallationstarted"));
-            send_key "alt-c", 1;
-        }
         assert_screen "inst-packageinstallationstarted";
     }
     if ( !$vars{LIVECD} && !$vars{NICEVIDEO} && !$vars{UPGRADE} && !check_var( 'VIDEOMODE', 'text' ) ) {

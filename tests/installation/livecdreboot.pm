@@ -6,7 +6,7 @@ sub run() {
     my $self = shift;
 
     # workaround for yast popups
-    my @tags = qw/rebootnow import-untrusted-gpg-key/;
+    my @tags = qw/rebootnow/;
     if ($vars{UPGRADE}) {
         push(@tags, "ERROR-removing-package");
     }
@@ -28,10 +28,6 @@ sub run() {
             send_key 'alt-i';
             assert_screen 'ERROR-removing-package-warning';
             send_key 'alt-o';
-            next;
-        }
-        if ( $ret->{needle}->has_tag("import-untrusted-gpg-key") ) {
-            send_key "alt-c", 1;
             next;
         }
         last;
