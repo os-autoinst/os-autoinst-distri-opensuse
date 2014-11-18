@@ -9,14 +9,16 @@ sub run() {
         wait_encrypt_prompt;
     }
 
-    #if($vars{RAIDLEVEL} && !$vars{LIVECD}) { do "$scriptdir/workaround/656536.pm" }
-    #assert_screen "automaticconfiguration", 70;
     mouse_hide();
 
     if ( $vars{'NOAUTOLOGIN'} ) {
         assert_screen 'displaymanager', 200;
-        type_string $username;
+        # for GNOME pressing enter is enough to login bernhard
+        if ( check_var( 'DESKTOP', 'minimalx' ) ) {
+            type_string $username;
+        }
         send_key "ret";
+        wait_idle;
         type_string "$password";
         send_key "ret";
     }
