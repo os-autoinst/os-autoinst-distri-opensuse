@@ -3,6 +3,7 @@ use bmwqemu;
 
 sub run() {
     my $self = shift;
+    send_key "ctrl-l";
     become_root();
     script_run("zypper -n in sshfs");
     waitstillimage( 12, 90 );
