@@ -152,7 +152,7 @@ sub kdestep_is_applicable() {
 }
 
 sub installzdupstep_is_applicable() {
-    return !$vars{NOINSTALL} && !$vars{LIVETEST} && !$vars{RESCUECD} && !$vars{RESCUESYSTEM} && $vars{ZDUP};
+    return !$vars{NOINSTALL} && !$vars{RESCUECD} && !$vars{RESCUESYSTEM} && $vars{ZDUP};
 }
 
 sub noupdatestep_is_applicable() {
@@ -164,7 +164,7 @@ sub bigx11step_is_applicable() {
 }
 
 sub installyaststep_is_applicable() {
-    return !$vars{NOINSTALL} && !$vars{LIVETEST} && !$vars{RESCUECD} && !$vars{RESCUESYSTEM} && !$vars{ZDUP};
+    return !$vars{NOINSTALL} && !$vars{RESCUECD} && !$vars{RESCUESYSTEM} && !$vars{ZDUP};
 }
 
 sub gnomestep_is_applicable() {
@@ -261,7 +261,7 @@ sub load_boot_tests(){
 }
 
 sub is_reboot_after_installation_necessary() {
-    return 0 if $vars{LIVETEST} || $vars{NICEVIDEO} || $vars{DUALBOOT} || $vars{RESCUECD} || $vars{RESCUESYSTEM} || $vars{ZDUP};
+    return 0 if $vars{NICEVIDEO} || $vars{DUALBOOT} || $vars{RESCUECD} || $vars{RESCUESYSTEM} || $vars{ZDUP};
 
     return $vars{REBOOTAFTERINSTALL} && !$vars{UPGRADE};
 }
@@ -343,9 +343,6 @@ sub load_inst_tests() {
 
     if ($vars{DUALBOOT}) {
         loadtest "installation/boot_windows.pm";
-    }
-    if ($vars{LIVETEST}) {
-        loadtest "installation/finish_desktop.pm";
     }
 }
 
@@ -537,7 +534,11 @@ elsif ($vars{MEMTEST}) {
 }
 else {
     load_boot_tests();
-    load_inst_tests();
+    if ($vars{LIVETEST}) {
+        loadtest "installation/finish_desktop.pm";
+    } else {
+	load_inst_tests();
+    }
     load_rescuecd_tests();
     load_zdup_tests();
     load_consoletests();
