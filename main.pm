@@ -144,7 +144,7 @@ sub rescuecdstep_is_applicable() {
 }
 
 sub consolestep_is_applicable() {
-    return !$vars{INSTALLONLY} && !$vars{NICEVIDEO} && !$vars{DUALBOOT} && !$vars{MEDIACHECK} && !$vars{RESCUECD} && !$vars{RESCUESYSTEM} && !$vars{MEMTEST};
+    return !$vars{INSTALLONLY} && !$vars{NICEVIDEO} && !$vars{DUALBOOT} && !$vars{RESCUECD} && !$vars{RESCUESYSTEM};
 }
 
 sub kdestep_is_applicable() {
@@ -152,7 +152,7 @@ sub kdestep_is_applicable() {
 }
 
 sub installzdupstep_is_applicable() {
-    return !$vars{NOINSTALL} && !$vars{LIVETEST} && !$vars{MEDIACHECK} && !$vars{MEMTEST} && !$vars{RESCUECD} && !$vars{RESCUESYSTEM} && $vars{ZDUP};
+    return !$vars{NOINSTALL} && !$vars{LIVETEST} && !$vars{RESCUECD} && !$vars{RESCUESYSTEM} && $vars{ZDUP};
 }
 
 sub noupdatestep_is_applicable() {
@@ -164,7 +164,7 @@ sub bigx11step_is_applicable() {
 }
 
 sub installyaststep_is_applicable() {
-    return !$vars{NOINSTALL} && !$vars{LIVETEST} && !$vars{MEDIACHECK} && !$vars{MEMTEST} && !$vars{RESCUECD} && !$vars{RESCUESYSTEM} && !$vars{ZDUP};
+    return !$vars{NOINSTALL} && !$vars{LIVETEST} && !$vars{RESCUECD} && !$vars{RESCUESYSTEM} && !$vars{ZDUP};
 }
 
 sub gnomestep_is_applicable() {
@@ -252,12 +252,6 @@ sub load_boot_tests(){
     elsif ($vars{UEFI}) {
         loadtest "installation/bootloader_uefi.pm";
     }
-    elsif ($vars{MEDIACHECK}) {
-        loadtest "installation/mediacheck.pm";
-    }
-    elsif ($vars{MEMTEST}) {
-        loadtest "installation/memtest.pm";
-    }
     elsif ($vars{RESCUESYSTEM}) {
         loadtest "installation/rescuesystem.pm";
     }
@@ -267,7 +261,7 @@ sub load_boot_tests(){
 }
 
 sub is_reboot_after_installation_necessary() {
-    return 0 if $vars{LIVETEST} || $vars{NICEVIDEO} || $vars{DUALBOOT} || $vars{MEDIACHECK} || $vars{MEMTEST} || $vars{RESCUECD} || $vars{RESCUESYSTEM} || $vars{ZDUP};
+    return 0 if $vars{LIVETEST} || $vars{NICEVIDEO} || $vars{DUALBOOT} || $vars{RESCUECD} || $vars{RESCUESYSTEM} || $vars{ZDUP};
 
     return $vars{REBOOTAFTERINSTALL} && !$vars{UPGRADE};
 }
@@ -420,7 +414,7 @@ sub load_consoletests() {
 }
 
 sub load_x11tests(){
-    return unless (!$vars{INSTALLONLY} && $vars{DESKTOP} !~ /textmode|minimalx/ && !$vars{DUALBOOT} && !$vars{MEDIACHECK} && !$vars{MEMTEST} && !$vars{RESCUECD} && !$vars{RESCUESYSTEM});
+    return unless (!$vars{INSTALLONLY} && $vars{DESKTOP} !~ /textmode|minimalx/ && !$vars{DUALBOOT} && !$vars{RESCUECD} && !$vars{RESCUESYSTEM});
 
     if ( $vars{NOAUTOLOGIN} || $vars{XDMUSED} ) {
         loadtest "x11/x11_login.pm";
@@ -534,6 +528,12 @@ if ( $vars{REGRESSION} ) {
     }
 
     load_x11regresion_tests();
+}
+elsif ($vars{MEDIACHECK}) {
+    loadtest "installation/mediacheck.pm";
+}
+elsif ($vars{MEMTEST}) {
+    loadtest "installation/memtest.pm";
 }
 else {
     load_boot_tests();
