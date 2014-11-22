@@ -1,4 +1,4 @@
-use base "installzdupstep";
+use base "installbasetest";
 use strict;
 use testapi;
 

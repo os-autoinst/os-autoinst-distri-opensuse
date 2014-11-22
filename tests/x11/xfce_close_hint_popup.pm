@@ -1,4 +1,4 @@
-use base "xfcestep";
+use base "opensusebasetest";
 use testapi;
 
 sub run() {

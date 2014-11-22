@@ -1,4 +1,4 @@
-use base "gnomestep";
+use base "opensusebasetest";
 use strict;
 use testapi;
 

@@ -1,4 +1,4 @@
-use base "kdestep";
+use base "opensusebasetest";
 use testapi;
 
 sub run() {

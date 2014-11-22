@@ -1,4 +1,4 @@
-use base "xfcestep";
+use base "opensusebasetest";
 use strict;
 use testapi;
 
