@@ -1,4 +1,4 @@
-use base "kdestep";
+use base "opensusebasetest";
 use strict;
 use testapi;
 

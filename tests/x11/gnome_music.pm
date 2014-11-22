@@ -1,4 +1,4 @@
-use base "gnomestep";
+use base "opensusebasetest";
 use testapi;
 
 sub run() {

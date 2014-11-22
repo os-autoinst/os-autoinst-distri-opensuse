@@ -1,4 +1,4 @@
-use base "consolestep";
+use base "opensusebasetest";
 use testapi;
 
 # this part contains the steps to run this test

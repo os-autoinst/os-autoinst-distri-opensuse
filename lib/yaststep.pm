@@ -1,7 +1,7 @@
 # Base for YaST tests.  Switches to text console 2 and uploady y2logs
 
 package yaststep;
-use base "consolestep";
+use base "opensusebasetest";
 
 use testapi;
 

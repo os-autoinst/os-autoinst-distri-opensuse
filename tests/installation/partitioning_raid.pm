@@ -1,8 +1,7 @@
 #!/usr/bin/perl -w
 use strict;
-use base "noupdatestep";
+use base "y2logsstep";
 use testapi;
-
 
 # add a new primary partition
 #   $type == 3 => 0xFD Linux RAID

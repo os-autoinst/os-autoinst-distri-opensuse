@@ -1,5 +1,5 @@
 use strict;
-use base "noupdatestep";
+use base "y2logsstep";
 use testapi;
 
 sub run() {

@@ -1,4 +1,4 @@
-use base "bigconsolestep";
+use base "opensusebasetest";
 use testapi;
 
 # test for equivalent of bug https://bugzilla.novell.com/show_bug.cgi?id=598574

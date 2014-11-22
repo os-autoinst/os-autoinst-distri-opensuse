@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 use strict;
-use base "noupdatestep";
+use base "y2logsstep";
 use testapi;
 
 # this test case are copied from 065_installer_timezone to adapt

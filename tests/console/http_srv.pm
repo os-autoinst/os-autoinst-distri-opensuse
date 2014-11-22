@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 use strict;
-use base "serverstep";
+use base "opensusebasetest";
 use testapi;
 
 sub run() {
