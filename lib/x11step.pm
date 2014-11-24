@@ -1,6 +1,6 @@
 package x11step;
 use base "opensusebasetest";
-use bmwqemu;
+use testapi;
 
 # Base class for all X11 tests
 

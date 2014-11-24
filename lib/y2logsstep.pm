@@ -1,6 +1,6 @@
 package y2logsstep;
 use base "installyaststep";
-use bmwqemu;
+use testapi;
 
 sub post_fail_hook() {
     my $self = shift;

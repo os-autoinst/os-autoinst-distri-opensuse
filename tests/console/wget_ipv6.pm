@@ -1,5 +1,5 @@
 use base "bigconsolestep";
-use bmwqemu;
+use testapi;
 
 # test for equivalent of bug https://bugzilla.novell.com/show_bug.cgi?id=598574
 sub run() {

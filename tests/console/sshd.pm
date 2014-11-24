@@ -1,5 +1,5 @@
 use base "consolestep";
-use bmwqemu;
+use testapi;
 
 # check if sshd works
 sub run() {

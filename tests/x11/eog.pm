@@ -1,6 +1,6 @@
 use base "gnomestep";
 use strict;
-use bmwqemu;
+use testapi;
 
 # test eye of gnome image viewer
 

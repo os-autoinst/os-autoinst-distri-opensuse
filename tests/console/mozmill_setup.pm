@@ -1,5 +1,5 @@
 use base "consolestep";
-use bmwqemu;
+use testapi;
 
 # http://mozmill-crowd.blargon7.com/#/functional/reports
 

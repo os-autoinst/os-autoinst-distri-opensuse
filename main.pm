@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 use strict;
-use bmwqemu;
+use testapi;
 use autotest;
 use needle;
 use File::Find;
@@ -99,9 +99,22 @@ while ( !getcurrentscreenshot() ) {
 
 #assert_screen "inst-bootmenu",12; # wait for welcome animation to finish
 
+    # defaults for username and password
+    if ($vars{LIVETEST}) {
+        $testapi::username = "root";
+        $testapi::password = '';
+    }
+    else {
+        $testapi::username = "bernhard";
+        $testapi::password = "nots3cr3t";
+    }
+
+    $testapi::username = $vars{USERNAME} if $vars{USERNAME};
+    $testapi::password = $vars{PASSWORD} if defined $vars{PASSWORD};
+
 if ( $vars{LIVETEST} && ( $vars{LIVECD} || $vars{PROMO} ) ) {
-    $username = "linux";    # LiveCD account
-    $password = "";
+    $testapi::username = "linux";    # LiveCD account
+    $testapi::password = "";
 }
 
 check_env();

@@ -1,5 +1,5 @@
 use base "basetest";
-use bmwqemu;
+use testapi;
 
 # Case 1248850 - Pidgin: Google talk
 

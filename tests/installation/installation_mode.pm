@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 use strict;
 use base "noupdatestep";
-use bmwqemu;
+use testapi;
 
 sub run() {
     my $self = shift;

@@ -7,7 +7,7 @@
 
 use strict;
 use base "basetest";
-use bmwqemu;
+use testapi;
 
 my $addon  = "https://addons.mozilla.org/firefox/downloads/latest/8051";
 my $ie6url = "https://svn.provo.novell.com/svn/opsqa/trunk/tests/qa_test_firefox/qa_test_firefox/test_source/NOVELL%20Worldwide.mht";

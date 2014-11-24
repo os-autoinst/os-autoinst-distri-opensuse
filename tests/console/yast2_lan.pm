@@ -1,5 +1,5 @@
 use base "yaststep";
-use bmwqemu;
+use testapi;
 
 # test yast2 lan functionality
 # https://bugzilla.novell.com/show_bug.cgi?id=600576

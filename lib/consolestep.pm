@@ -1,6 +1,6 @@
 package consolestep;
 use base "opensusebasetest";
-use bmwqemu;
+use testapi;
 
 # Base class for all console tests
 

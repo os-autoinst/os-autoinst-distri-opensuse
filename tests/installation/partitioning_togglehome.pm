@@ -1,5 +1,5 @@
 use base "y2logsstep";
-use bmwqemu;
+use testapi;
 
 # the test won't work atm
 sub run() {

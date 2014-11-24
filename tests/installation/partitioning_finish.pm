@@ -1,6 +1,6 @@
 use strict;
 use base "noupdatestep";
-use bmwqemu;
+use testapi;
 
 sub run() {
     waitstillimage();

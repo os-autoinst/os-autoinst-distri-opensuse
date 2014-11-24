@@ -1,5 +1,5 @@
 use base "basetest";
-use bmwqemu;
+use testapi;
 use autotest;
 
 #testcase 4158-1249067 move(cut) a file with nautilus

@@ -1,5 +1,5 @@
 use base "basetest";
-use bmwqemu;
+use testapi;
 
 # Case 1248747 - Beagle: beagled starts
 # Modify to : Tracker - tracker search from the command line. tracker-search starts

@@ -1,6 +1,6 @@
 use base "consolestep";
 use strict;
-use bmwqemu;
+use testapi;
 
 # show installed GNOME components, allows to look for possibly unwanted
 # dependencies

@@ -1,5 +1,5 @@
 use base "basetest";
-use bmwqemu;
+use testapi;
 
 # Case 1248746 - Beagle: Find a file with Search in Nautilus
 # Modify to : Tracker - Find a file with Search in Nautilus

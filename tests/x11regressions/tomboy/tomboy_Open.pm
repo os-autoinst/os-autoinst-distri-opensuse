@@ -1,6 +1,6 @@
 use base "basetest";
 use strict;
-use bmwqemu;
+use testapi;
 
 # test tomboy: open
 # testcase 1248874

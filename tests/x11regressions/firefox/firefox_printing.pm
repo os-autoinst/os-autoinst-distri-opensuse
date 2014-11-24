@@ -45,7 +45,7 @@
 
 use strict;
 use base "basetest";
-use bmwqemu;
+use testapi;
 
 sub run() {
     my $self = shift;

@@ -1,6 +1,6 @@
 use base "basetest";
 use strict;
-use bmwqemu;
+use testapi;
 
 # test tomboy: Hotkeys
 # testcase 1248875

@@ -3,7 +3,7 @@
 package yaststep;
 use base "consolestep";
 
-use bmwqemu;
+use testapi;
 
 sub post_fail_hook() {
     my $self = shift;

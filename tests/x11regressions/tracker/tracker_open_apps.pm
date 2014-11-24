@@ -1,5 +1,5 @@
 use base "basetest";
-use bmwqemu;
+use testapi;
 
 # Case 1248740 - Beagle: beagle-settings starts
 # Modify to : Tracker: tracker-preferences starts

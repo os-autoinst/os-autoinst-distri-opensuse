@@ -1,5 +1,5 @@
 use base "x11step";
-use bmwqemu;
+use testapi;
 
 # for https://bugzilla.novell.com/show_bug.cgi?id=657626
 

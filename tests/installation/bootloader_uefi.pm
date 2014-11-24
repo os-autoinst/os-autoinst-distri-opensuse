@@ -1,6 +1,6 @@
 use base "installbasetest";
 use strict;
-use bmwqemu;
+use testapi;
 use Time::HiRes qw(sleep);
 
 # hint: press shift-f10 trice for highest debug level

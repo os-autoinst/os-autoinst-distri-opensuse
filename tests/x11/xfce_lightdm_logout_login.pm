@@ -1,6 +1,6 @@
 use base "xfcestep";
 use strict;
-use bmwqemu;
+use testapi;
 
 # log out, check lightdm-gtk-greeter and log in again
 

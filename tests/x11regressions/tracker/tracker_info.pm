@@ -1,5 +1,5 @@
 use base "basetest";
-use bmwqemu;
+use testapi;
 
 # Case 1248741 - Beagle: beagle text filter extracts content
 # Modify to : Tracker - tracker info for files

@@ -1,5 +1,5 @@
 use base "basetest";
-use bmwqemu;
+use testapi;
 
 # Case 1248853 - Pidgin: Add MSN Account
 # Case 1248854 - Pidgin: Login to MSN and Send/Receive message

@@ -1,5 +1,5 @@
 use base "basetest";
-use bmwqemu;
+use testapi;
 
 # Case 1248738 - Beagle: Search all data with beagle-search
 # Modify to : Tracker: Seach all date with tracker-needle
