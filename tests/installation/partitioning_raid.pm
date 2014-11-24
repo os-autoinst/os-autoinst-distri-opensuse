@@ -139,7 +139,6 @@ sub run() {
     send_key $cmd{addraid};
     wait_idle 4;
 
-    if ( !defined( get_var("RAIDLEVEL") ) ) { get_var("RAIDLEVEL") = 6 }
     setraidlevel( get_var("RAIDLEVEL") );
     send_key "down";    # start at second partition (i.e. sda2)
     # in this case, press down key doesn't move to next one but itself

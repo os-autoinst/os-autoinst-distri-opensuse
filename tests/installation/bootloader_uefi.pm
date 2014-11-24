@@ -109,18 +109,6 @@ sub run() {
         save_screenshot;
     }
 
-    if ( 0 && get_var("RAIDLEVEL") ) {
-
-        # workaround bnc#711724
-        get_var("ADDONURL") = "http://download.opensuse.org/repositories/home:/snwint/openSUSE_Factory/";    #TODO: drop
-        get_var("DUD")      = "dud=http://zq1.de/bl10";
-        type_string get_var("DUD") . " ";
-        sleep 20;
-        type_string "insecure=1 ";
-        sleep 20;
-        save_vars();
-    }
-
     if ( get_var("LIVETEST") && get_var("LIVEOBSWORKAROUND") ) {
         send_key "1";    # runlevel 1
         send_key "f10";  # boot
