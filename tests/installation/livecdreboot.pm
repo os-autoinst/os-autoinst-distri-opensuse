@@ -68,7 +68,7 @@ sub run() {
     #		}
     #		if(get_var("UPGRADE")) {
     #			send_key "alt-n"; # ignore repos dialog
-    #			waitstillimage(6,60);
+    #			wait_still_screen(6,60);
     #		}
 
     # meaning of this needle is unclear. It's used in grub as well as

@@ -7,10 +7,10 @@ sub run() {
     my $self = shift;
     if ( get_var("VIDEOMODE") && check_var("VIDEOMODE", "text") ) { $cmd{xnext} = "alt-x" }
     if ( !get_var("NET") && !get_var("DUD") ) {
-        waitstillimage();
+        wait_still_screen();
         sleep 5;                 # try
         send_key $cmd{"next"};    # use network
-        waitstillimage(20);
+        wait_still_screen(20);
         send_key "alt-o", 1;        # OK DHCP network
     }
     my $repo = 0;

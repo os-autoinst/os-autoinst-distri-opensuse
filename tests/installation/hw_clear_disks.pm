@@ -5,7 +5,7 @@ use testapi;
 
 sub run() {
     my $self = shift;
-    waitstillimage( 30, 290 );
+    wait_still_screen( 30, 290 );
 
     #send_key "ctrl-alt-shift-x"; sleep 3;
     send_key "ctrl-alt-f2";
@@ -19,7 +19,7 @@ sub run() {
         type_string "blockdev --rereadpt $disk\n";
         sleep 4;
     }
-    waitstillimage;
+    wait_still_screen;
     assert_screen 'test-hw_clear_disks-1', 3;
 
     #send_key "ctrl-d"; sleep 3;

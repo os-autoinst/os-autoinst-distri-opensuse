@@ -39,7 +39,7 @@ sub run() {
     # login and open tomboy again
     send_key "ret";
     sleep 2;
-    waitstillimage;
+    wait_still_screen;
     sendpassword();
     sleep 2;
     send_key "ret";

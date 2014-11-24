@@ -23,7 +23,7 @@ sub run() {
     # Check hotkey for open "start here" still works
     send_key "alt-fll";
     sleep 2;
-    waitstillimage;
+    wait_still_screen;
     check_screen "tomboy_open_0", 5;
 
     send_key "shift-up";
@@ -45,7 +45,7 @@ sub run() {
     # login
     send_key "ret";
     sleep 2;
-    waitstillimage;
+    wait_still_screen;
     sendpassword();
     sleep 2;
     send_key "ret";

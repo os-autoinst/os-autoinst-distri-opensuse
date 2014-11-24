@@ -12,7 +12,7 @@ sub run() {
     assert_screen 'test-tracker_searchall-1', 3;
     type_string "newfile";
     sleep 2;
-    waitstillimage;
+    wait_still_screen;
     assert_screen 'test-tracker_searchall-2', 3;
     send_key "alt-f4";
     sleep 2;

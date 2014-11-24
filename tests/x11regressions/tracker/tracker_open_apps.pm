@@ -12,7 +12,7 @@ sub run() {
     assert_screen 'test-tracker_open_apps-1', 3;
     type_string "cheese";
     sleep 2;
-    waitstillimage;
+    wait_still_screen;
     assert_screen 'test-tracker_open_apps-2', 3;
     send_key "tab";
     sleep 2;

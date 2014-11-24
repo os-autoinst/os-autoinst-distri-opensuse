@@ -13,7 +13,7 @@ sub run() {
     type_string "cd\n";
     type_string "tracker-info newpl.pl\n";
     sleep 2;
-    waitstillimage;
+    wait_still_screen;
     assert_screen 'test-tracker_info-2', 3;
     send_key "alt-f4";
     sleep 2;    # close xterm

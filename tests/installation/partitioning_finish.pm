@@ -3,7 +3,7 @@ use base "noupdatestep";
 use testapi;
 
 sub run() {
-    waitstillimage();
+    wait_still_screen();
     send_key $cmd{"next"};
     assert_screen "after-paritioning";
 }
