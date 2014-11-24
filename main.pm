@@ -125,8 +125,8 @@ unless ( get_var("DESKTOP") ) {
 }
 
 # SLE specific variables
-$vars{NOAUTOLOGIN} = 1;
-$vars{HASLICENSE} = 1;
+set_var('NOAUTOLOGIN', 1);
+set_var('HASLICENSE', 1);
 
 if ( check_var( 'DESKTOP', 'minimalx' ) ) {
     set_var("XDMUSED", 1);
@@ -451,7 +451,7 @@ sub load_x11tests(){
             loadtest "x11/eog.pm";
             loadtest "x11/rhythmbox.pm";
         }
-        if ( $vars{DESKTOP} =~ /kde|gnome/ ) {
+        if ( get_var('DESKTOP') =~ /kde|gnome/ ) {
             loadtest "x11/ooffice.pm";
             loadtest "x11/oomath.pm";
             loadtest "x11/oocalc.pm";
