@@ -11,7 +11,7 @@ sub run {
     if ( $size > $max ) {
         $result = 'fail';
     }
-    diag("check if actual iso size $size fits $max: $result");
+    bmwqemu::diag("check if actual iso size $size fits $max: $result");
     $self->result($result);
 }
 
