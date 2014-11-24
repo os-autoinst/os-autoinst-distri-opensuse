@@ -4,7 +4,7 @@ use testapi;
 sub run() {
     my $self = shift;
 
-    wait_idle();
+    wait_idle;
     # let's see how it looks at the beginning
     save_screenshot;
 
@@ -27,18 +27,21 @@ sub run() {
     type_string "PS1=\$\n";    # set constant shell promt
     sleep 1;
 
-    #type_string 'PS1=\$\ '."\n"; # qemu-0.12.4 can not do backslash yet. http://permalink.gmane.org/gmane.comp.emulators.qemu/71856
+    become_root;
+    script_run "chown $username /dev/$serialdev";
 
-    script_sudo("chown $username /dev/$serialdev");
+    script_run "systemctl mask packagekit.service";
+    script_run "systemctl stop packagekit.service";
+    script_run "exit";
 
-    script_sudo("systemctl mask packagekit.service");
-    script_sudo("systemctl stop packagekit.service");
+    save_screenshot;
+    send_key "ctrl-l";
 
     script_run("curl -L -v http://" . get_var("OPENQA_HOSTNAME") . "/tests/" . get_var("TEST_ID") . "/data > test.data; echo \"curl-\$?\" > /dev/$serialdev");
     wait_serial("curl-0", 10) || die 'curl failed';
-    script_run(" cpio -id < test.data; echo \"cpio-\$?\"> /dev/$serialdev");
+    script_run " cpio -id < test.data; echo \"cpio-\$?\"> /dev/$serialdev";
     wait_serial("cpio-0", 10) || die 'cpio failed';
-    script_run("ls -al data");
+    script_run "ls -al data";
 
     save_screenshot;
 }
