@@ -11,7 +11,7 @@ sub run() {
 
     mouse_hide();
 
-    if ( get_var("'NOAUTOLOGIN'") ) {
+    if ( get_var("NOAUTOLOGIN") ) {
         assert_screen 'displaymanager', 200;
         # for GNOME pressing enter is enough to login bernhard
         if ( check_var( 'DESKTOP', 'minimalx' ) ) {
