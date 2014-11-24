@@ -281,7 +281,7 @@ sub load_inst_tests() {
     if (!get_var("AUTOYAST")) {
         loadtest "installation/welcome.pm";
     }
-    if (!get_var('LIVECD') && get_var('UPGRADE') {
+    if (!get_var('LIVECD') && get_var('UPGRADE') ) {
         loadtest "installation/upgrade_select.pm";
     }
     if (!get_var('LIVECD') && !get_var('AUTOYAST')) {
