@@ -9,17 +9,17 @@ sub run() {
     # Killall is used here, make sure that is installed
     script_run("zypper -n -q in psmisc");
 
-    script_run("zypper patch -l && echo 'worked' > /dev/$serialdev");
+    script_run("zypper patch -l && echo 'worked-patch' > /dev/$serialdev");
     my $ret = assert_screen( [qw/test-zypper_up-confirm test-zypper_up-nothingtodo/] );
     if ( $ret->{needle}->has_tag("test-zypper_up-confirm") ) {
         type_string "y\n";
     }
-    die "zypper failed" unless wait_serial "worked", 700;
-    script_run("zypper patch -l && echo 'worked' > /dev/$serialdev");    # first one might only have installed "update-test-affects-package-manager"
+    die "zypper failed" unless wait_serial "worked-patch", 700;
+    script_run("zypper patch -l && echo 'worked-2-patch' > /dev/$serialdev");    # first one might only have installed "update-test-affects-package-manager"
     if ( check_screen "test-zypper_up-confirm" ) {
         type_string "y\n";
     }
-    die "zypper failed" unless wait_serial "worked", 700;
+    die "zypper failed" unless wait_serial "worked-2-patch", 700;
     script_run("rpm -q libzypp zypper");
     check_screen "rpm-q-libzypp", 5;
     save_screenshot;
