@@ -5,7 +5,7 @@ sub run() {
     my $self = shift;
 
     # 550_reboot_kde
-    if ( $vars{DESKTOP} eq "kde" || $vars{DESKTOP} eq "gnome" ) {
+    if ( check_var("DESKTOP", "kde") || $vars{DESKTOP} eq "gnome" ) {
         wait_idle;
         send_key "ctrl-alt-delete";    # reboot
         assert_screen 'logoutdialog', 15;
@@ -35,7 +35,7 @@ sub run() {
     }
 
     # 550_reboot_xfce
-    if ( $vars{DESKTOP} eq "xfce" ) {
+    if ( check_var("DESKTOP", "xfce") ) {
         wait_idle;
         send_key "alt-f4"; # open logout dialog
         assert_screen 'logoutdialog', 15;
@@ -45,7 +45,7 @@ sub run() {
     }
 
     # 550_reboot_lxde
-    if ( $vars{DESKTOP} eq "lxde" ) {
+    if ( check_var("DESKTOP", "lxde") ) {
         wait_idle;
 
         #send_key "ctrl-alt-delete"; # does open task manager instead of reboot

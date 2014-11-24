@@ -23,7 +23,7 @@ sub run() {
     assert_screen 'test-hw_clear_disks-1', 3;
 
     #send_key "ctrl-d"; sleep 3;
-    my $instcon = ( $vars{VIDEOMODE} eq "text" ) ? 1 : 7;
+    my $instcon = ( check_var("VIDEOMODE", "text") ) ? 1 : 7;
     send_key "ctrl-alt-f$instcon";
     sleep 3;
 }

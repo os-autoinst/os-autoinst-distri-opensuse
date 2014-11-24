@@ -149,7 +149,7 @@ logcurrentenv(qw"ADDONURL BIGTEST BTRFS DESKTOP HW HWSLOT LIVETEST LVM MOZILLATE
 
 
 sub xfcestep_is_applicable() {
-    return $vars{DESKTOP} eq "xfce";
+    return check_var("DESKTOP", "xfce");
 }
 
 sub rescuecdstep_is_applicable() {
@@ -161,7 +161,7 @@ sub consolestep_is_applicable() {
 }
 
 sub kdestep_is_applicable() {
-    return $vars{DESKTOP} eq "kde";
+    return check_var("DESKTOP", "kde");
 }
 
 sub installzdupstep_is_applicable() {
@@ -181,7 +181,7 @@ sub installyaststep_is_applicable() {
 }
 
 sub gnomestep_is_applicable() {
-    return $vars{DESKTOP} eq "gnome";
+    return check_var("DESKTOP", "gnome");
 }
 
 sub loadtest($) {
@@ -218,7 +218,7 @@ sub load_x11regresion_tests() {
     loadtest "x11regressions/firefox/firefox_printing.pm";
     loadtest "x11regressions/firefox/firefox_printing_images.pm";
     loadtest "x11regressions/firefox/firefox_bookmark.pm";
-    if (( $vars{DESKTOP} eq "gnome" )) {
+    if (( check_var("DESKTOP", "gnome") )) {
         loadtest "x11regressions/tomboy/tomboy_Hotkeys.pm";
         loadtest "x11regressions/tomboy/tomboy_AlreadyRunning.pm";
         loadtest "x11regressions/tomboy/tomboy_TestFindFunctionalityInSearchAllNotes.pm";
@@ -409,14 +409,14 @@ sub load_consoletests() {
             loadtest "console/syslinux.pm";
         }
         loadtest "console/mtab.pm";
-        if (!$vars{NOINSTALL} && !$vars{LIVETEST} && ( $vars{DESKTOP} eq "textmode" )) {
+        if (!$vars{NOINSTALL} && !$vars{LIVETEST} && ( check_var("DESKTOP", "textmode") )) {
             loadtest "console/http_srv.pm";
             loadtest "console/mysql_srv.pm";
         }
         if ($vars{MOZILLATEST}) {
             loadtest "console/mozmill_setup.pm";
         }
-        if ($vars{DESKTOP} eq "xfce") {
+        if (check_var("DESKTOP", "xfce")) {
             loadtest "console/xfce_gnome_deps.pm";
         }
         loadtest "console/consoletest_finish.pm";
@@ -501,7 +501,7 @@ sub load_x11tests(){
     if (gnomestep_is_applicable) {
         loadtest "x11/nautilus.pm" unless $vars{LIVECD};
         loadtest "x11/gnome_music.pm";
-        loadtest "x11/evolution.pm" unless ($vars{FLAVOR} eq "Server-DVD");
+        loadtest "x11/evolution.pm" unless (check_var("FLAVOR", "Server-DVD"));
     }
     if (!$vars{LIVETEST}) {
         loadtest "x11/reboot.pm";

@@ -5,7 +5,7 @@ use testapi;
 
 sub run() {
     my $self = shift;
-    if ( $vars{VIDEOMODE} && $vars{VIDEOMODE} eq "text" ) { $cmd{xnext} = "alt-x" }
+    if ( $vars{VIDEOMODE} && check_var("VIDEOMODE", "text") ) { $cmd{xnext} = "alt-x" }
     if ( !$vars{NET} && !$vars{DUD} ) {
         waitstillimage();
         sleep 5;                 # try
