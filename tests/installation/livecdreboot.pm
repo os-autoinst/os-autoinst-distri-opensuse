@@ -1,6 +1,6 @@
 use strict;
 use base "y2logsstep";
-use bmwqemu;
+use testapi;
 
 sub run() {
     my $self = shift;
@@ -9,7 +9,7 @@ sub run() {
 
     # workaround for yast popups
     my @tags = qw/rebootnow/;
-    if ($vars{UPGRADE}) {
+    if (get_var("UPGRADE")) {
         push(@tags, "ERROR-removing-package");
         $timeout = 5500; # upgrades are slower
     }
@@ -18,7 +18,7 @@ sub run() {
 
         if ( $ret->{needle}->has_tag("popup-warning") ) {
             ++$self->{dents};
-            diag "warning popup caused dent";
+            bmwqemu::diag "warning popup caused dent";
             send_key "ret";
             pop @tags;
             next;
@@ -36,17 +36,17 @@ sub run() {
         last;
     }
 
-    if ( $vars{LIVECD} ) {
+    if ( get_var("LIVECD") ) {
 
         # LiveCD needs confirmation for reboot
         send_key $cmd{"rebootnow"};
     }
 
     # XXX old stuff
-    #		if($vars{XDEBUG} && assert_screen "the-system-will-reboot-now", 3000) {
+    #		if(get_var("XDEBUG") && assert_screen "the-system-will-reboot-now", 3000) {
     #			send_key "alt-s";
     #			send_key "ctrl-alt-f2";
-    #			if(!$vars{NET}) {
+    #			if(!get_var("NET")) {
     #				script_run "dhcpcd eth0";
     #				#ifconfig eth0 10.0.2.15
     #				#route add default gw 10.0.2.2
@@ -66,9 +66,9 @@ sub run() {
     #			sleep 5;
     #			send_key "alt-o";
     #		}
-    #		if($vars{UPGRADE}) {
+    #		if(get_var("UPGRADE")) {
     #			send_key "alt-n"; # ignore repos dialog
-    #			waitstillimage(6,60);
+    #			wait_still_screen(6,60);
     #		}
 
     # meaning of this needle is unclear. It's used in grub as well as

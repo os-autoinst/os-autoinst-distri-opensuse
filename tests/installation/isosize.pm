@@ -1,13 +1,13 @@
 use base "opensusebasetest";
 use strict;
-use bmwqemu;
+use testapi;
 
 sub run {
     my $self   = shift;
-    my $iso    = $vars{ISO};
+    my $iso    = get_var("ISO");
     my $size   = -s $iso;
     my $result = 'ok';
-    my $max    = $vars{ISO_MAXSIZE};
+    my $max    = get_var("ISO_MAXSIZE");
     if ( $size > $max ) {
         $result = 'fail';
     }

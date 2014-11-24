@@ -1,6 +1,6 @@
 use base "gnomestep";
 use strict;
-use bmwqemu;
+use testapi;
 
 # test gnome-terminal
 

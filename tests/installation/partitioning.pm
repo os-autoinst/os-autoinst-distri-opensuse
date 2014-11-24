@@ -1,14 +1,14 @@
 #!/usr/bin/perl -w
 use strict;
 use base "noupdatestep";
-use bmwqemu;
+use testapi;
 
 # Entry test code
 sub run() {
 
     assert_screen 'partioning-edit-proposal-button', 40;
 
-    if ( $vars{DUALBOOT} ) {
+    if ( get_var("DUALBOOT") ) {
         assert_screen 'partitioning-windows', 40;
     }
 

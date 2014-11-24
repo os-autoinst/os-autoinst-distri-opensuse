@@ -1,6 +1,6 @@
 use base "xfcestep";
 use strict;
-use bmwqemu;
+use testapi;
 
 # test thunar and open the root directory
 

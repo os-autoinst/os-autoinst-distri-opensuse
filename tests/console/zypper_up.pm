@@ -1,5 +1,5 @@
 use base "consolestep";
-use bmwqemu;
+use testapi;
 
 sub run() {
     my $self = shift;

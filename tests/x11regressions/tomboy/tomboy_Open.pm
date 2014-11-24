@@ -1,6 +1,6 @@
 use base "basetest";
 use strict;
-use bmwqemu;
+use testapi;
 
 # test tomboy: open
 # testcase 1248874
@@ -23,7 +23,7 @@ sub run() {
     # Check hotkey for open "start here" still works
     send_key "alt-fll";
     sleep 2;
-    waitstillimage;
+    wait_still_screen;
     check_screen "tomboy_open_0", 5;
 
     send_key "shift-up";
@@ -45,8 +45,8 @@ sub run() {
     # login
     send_key "ret";
     sleep 2;
-    waitstillimage;
-    sendpassword();
+    wait_still_screen;
+    type_password();
     sleep 2;
     send_key "ret";
     sleep 20;

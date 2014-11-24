@@ -1,5 +1,5 @@
 use base "basetest";
-use bmwqemu;
+use testapi;
 
 # Cleaning for testing pidgin
 
@@ -18,7 +18,7 @@ sub install_pkg() {
     wait_idle;
     sleep 3;
     if ($password) {
-        sendpassword;
+        type_password;
         send_key "ret", 1;
     }
     wait_idle;

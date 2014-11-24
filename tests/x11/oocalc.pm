@@ -1,11 +1,11 @@
 use base "x11step";
-use bmwqemu;
+use testapi;
 
 sub run() {
     my $self = shift;
     x11_start_program("oocalc");
     sleep 2;
-    waitstillimage;    # extra wait because oo sometimes appears to be idle during start
+    wait_still_screen;    # extra wait because oo sometimes appears to be idle during start
     assert_screen 'test-oocalc-1', 3;
     type_string "Hello World!\n";
     sleep 2;

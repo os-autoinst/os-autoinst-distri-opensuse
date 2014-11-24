@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 use strict;
 use base "noupdatestep";
-use bmwqemu;
+use testapi;
 
 sub run() {
     my $self = shift;
@@ -17,11 +17,11 @@ sub run() {
         type_string "$password\t";
     }
     assert_screen( "inst-userinfostyped", 5 );
-    if ( $vars{NOAUTOLOGIN} && !check_screen('autologindisabled') ) {
+    if ( get_var("NOAUTOLOGIN") && !check_screen('autologindisabled') ) {
         send_key $cmd{"noautologin"};
         assert_screen "autologindisabled", 5;
     }
-    if ( $vars{DOCRUN} ) {
+    if ( get_var("DOCRUN") ) {
         send_key $cmd{"otherrootpw"};
         assert_screen "rootpwdisabled", 5;
     }

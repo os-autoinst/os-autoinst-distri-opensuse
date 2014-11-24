@@ -1,5 +1,5 @@
 use base "consolestep";
-use bmwqemu;
+use testapi;
 
 sub run() {
     my $self = shift;
@@ -21,7 +21,7 @@ sub run() {
     assert_screen "text-login", 10;
     type_string "$username\n";
     sleep 2;
-    sendpassword;
+    type_password;
     type_string "\n";
     sleep 3;
     type_string "PS1=\$\n";    # set constant shell promt
@@ -34,7 +34,7 @@ sub run() {
     script_sudo("systemctl mask packagekit.service");
     script_sudo("systemctl stop packagekit.service");
 
-    script_run("curl -L -v http://$vars{OPENQA_HOSTNAME}/tests/$vars{TEST_ID}/data > test.data; echo \"curl-\$?\" > /dev/$serialdev");
+    script_run("curl -L -v http://" . get_var("OPENQA_HOSTNAME") . "/tests/" . get_var("TEST_ID") . "/data > test.data; echo \"curl-\$?\" > /dev/$serialdev");
     wait_serial("curl-0", 10) || die 'curl failed';
     script_run(" cpio -id < test.data; echo \"cpio-\$?\"> /dev/$serialdev");
     wait_serial("cpio-0", 10) || die 'cpio failed';

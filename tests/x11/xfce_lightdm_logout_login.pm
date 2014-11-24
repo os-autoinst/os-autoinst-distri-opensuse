@@ -1,6 +1,6 @@
 use base "xfcestep";
 use strict;
-use bmwqemu;
+use testapi;
 
 # log out, check lightdm-gtk-greeter and log in again
 
@@ -11,7 +11,7 @@ sub run() {
     send_key "alt-l";
     assert_screen 'test-xfce_lightdm_logout_login-1', 13;
     mouse_hide();
-    sendpassword;
+    type_password;
     send_key "ret";
 }
 

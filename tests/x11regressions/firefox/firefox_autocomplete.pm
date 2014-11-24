@@ -13,7 +13,7 @@
 
 use strict;
 use base "basetest";
-use bmwqemu;
+use testapi;
 
 sub run() {
     my $self = shift;
@@ -22,8 +22,8 @@ sub run() {
     # Launch firefox
     x11_start_program("firefox");
     assert_screen "start-firefox", 5;
-    if ( $vars{UPGRADE} ) { send_key "alt-d"; wait_idle; }    # Don't check for updated plugins
-    if ( $vars{DESKTOP} =~ /xfce|lxde/i ) {
+    if ( get_var("UPGRADE") ) { send_key "alt-d"; wait_idle; }    # Don't check for updated plugins
+    if ( get_var("DESKTOP") =~ /xfce|lxde/i ) {
         send_key "ret";                                      # Confirm default browser setting popup
         wait_idle;
     }

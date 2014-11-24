@@ -1,5 +1,5 @@
 use base "installbasetest";
-use bmwqemu;
+use testapi;
 
 # using this as base class means only run when an install is needed
 sub run() {

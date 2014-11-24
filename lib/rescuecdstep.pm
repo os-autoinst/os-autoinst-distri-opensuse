@@ -1,6 +1,6 @@
 package rescuecdstep;
 use base "opensusebasetest";
-use bmwqemu;
+use testapi;
 
 # Base class for all RESCUECD tests
 

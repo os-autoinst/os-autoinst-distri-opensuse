@@ -1,5 +1,5 @@
 use base "x11step";
-use bmwqemu;
+use testapi;
 
 sub run() {
     my $self = shift;
@@ -20,7 +20,7 @@ sub run() {
 
     send_key "ctrl-l";
     sleep 1;
-    type_string $vars{OPENQA_HOSTNAME}."\n";
+    type_string get_var("OPENQA_HOSTNAME")."\n";
     assert_screen 'chromium-openqa', 30;
 
     send_key "alt-f4";

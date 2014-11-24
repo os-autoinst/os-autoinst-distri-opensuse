@@ -1,6 +1,6 @@
 use base "basetest";
 use strict;
-use bmwqemu;
+use testapi;
 use Time::HiRes qw(sleep);
 
 sub run() {

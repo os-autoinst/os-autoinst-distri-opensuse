@@ -1,13 +1,13 @@
 #!/usr/bin/perl -w
 use strict;
 use base "y2logsstep";
-use bmwqemu;
+use testapi;
 
 sub run() {
     my $self = shift;
 
     # start install
-    if ( $vars{UPGRADE} ) {
+    if ( get_var("UPGRADE") ) {
         send_key $cmd{update};
         sleep 1;
         my $ret = assert_screen [qw/startupdate startupdate-conflict/], 5;
@@ -52,7 +52,7 @@ sub run() {
         # view installation details
         send_key $cmd{instdetails};
     }
-    elsif ( $vars{AUTOYAST} ) {
+    elsif ( get_var("AUTOYAST") ) {
         assert_screen( "inst-packageinstallationstarted", 120 );
     }
     else {
@@ -67,9 +67,9 @@ sub run() {
         send_key $cmd{install};
         assert_screen "inst-packageinstallationstarted";
     }
-    if (   !$vars{LIVECD}
-        && !$vars{NICEVIDEO}
-        && !$vars{UPGRADE}
+    if (   !get_var("LIVECD")
+        && !get_var("NICEVIDEO")
+        && !get_var("UPGRADE")
         && !check_var( 'VIDEOMODE', 'text' ) )
     {
         while (1) {
@@ -83,7 +83,7 @@ sub run() {
             }
             send_key $cmd{instdetails};
         }
-        if ( $vars{DVD} && !$vars{NOIMAGES} ) {
+        if ( get_var("DVD") && !get_var("NOIMAGES") ) {
             if ( check_var( 'DESKTOP', 'kde' ) ) {
                 assert_screen 'kde-imagesused', 500;
             }

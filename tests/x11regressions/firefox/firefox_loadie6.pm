@@ -7,7 +7,7 @@
 
 use strict;
 use base "basetest";
-use bmwqemu;
+use testapi;
 
 my $addon  = "https://addons.mozilla.org/firefox/downloads/latest/8051";
 my $ie6url = "https://svn.provo.novell.com/svn/opsqa/trunk/tests/qa_test_firefox/qa_test_firefox/test_source/NOVELL%20Worldwide.mht";
@@ -18,8 +18,8 @@ sub run() {
     mouse_hide();
     x11_start_program("firefox");
     assert_screen "start-firefox", 5;
-    if ( $vars{UPGRADE} ) { send_key "alt-d"; wait_idle; }    # dont check for updated plugins
-    if ( $vars{DESKTOP} =~ /xfce|lxde/i ) {
+    if ( get_var("UPGRADE") ) { send_key "alt-d"; wait_idle; }    # dont check for updated plugins
+    if ( get_var("DESKTOP") =~ /xfce|lxde/i ) {
         send_key "ret";                                      # confirm default browser setting popup
         wait_idle;
     }

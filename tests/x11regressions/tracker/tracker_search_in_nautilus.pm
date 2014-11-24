@@ -1,5 +1,5 @@
 use base "basetest";
-use bmwqemu;
+use testapi;
 
 # Case 1248746 - Beagle: Find a file with Search in Nautilus
 # Modify to : Tracker - Find a file with Search in Nautilus
@@ -21,7 +21,7 @@ sub run() {
     sleep 2;
     send_key "ctrl-s";
     sleep 2;
-    waitstillimage;
+    wait_still_screen;
     assert_screen 'test-tracker_search_in_nautilus-3', 3;
     send_key "alt-f4";
     sleep 2;                #close gedit

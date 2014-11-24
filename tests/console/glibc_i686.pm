@@ -1,5 +1,5 @@
 use base "consolestep";
-use bmwqemu;
+use testapi;
 
 # this part contains the steps to run this test
 sub run() {

@@ -1,6 +1,6 @@
 use base "basetest";
 use strict;
-use bmwqemu;
+use testapi;
 
 # test tomboy: Hotkeys
 # testcase 1248875
@@ -39,8 +39,8 @@ sub run() {
     # login and open tomboy again
     send_key "ret";
     sleep 2;
-    waitstillimage;
-    sendpassword();
+    wait_still_screen;
+    type_password();
     sleep 2;
     send_key "ret";
     sleep 20;

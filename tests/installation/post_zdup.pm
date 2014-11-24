@@ -1,6 +1,6 @@
 use base "installzdupstep";
 use strict;
-use bmwqemu;
+use testapi;
 
 sub run() {
     send_key "ctrl-l", 1;

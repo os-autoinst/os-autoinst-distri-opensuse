@@ -1,6 +1,6 @@
 use base "installbasetest";
 use strict;
-use bmwqemu;
+use testapi;
 use Time::HiRes qw(sleep);
 
 # hint: press shift-f10 trice for highest debug level
@@ -10,18 +10,18 @@ sub run() {
         send_key "ret";
     }
     assert_screen "bootloader-grub2", 15;
-    if ( $vars{QEMUVGA} && $vars{QEMUVGA} ne "cirrus" ) {
+    if ( get_var("QEMUVGA") && get_var("QEMUVGA") ne "cirrus" ) {
         sleep 5;
     }
-    if ( $vars{ZDUP} ) {
-        qemusend "eject -f ide1-cd0";
-        qemusend "system_reset";
+    if ( get_var("ZDUP") ) {
+        backend_send "eject -f ide1-cd0";
+        backend_send "system_reset";
         sleep 10;
         send_key "ret";    # boot
         return;
     }
 
-    if ( $vars{MEDIACHECK} ) {    # special
+    if ( get_var("MEDIACHECK") ) {    # special
         # only run this one
         for ( 1 .. 2 ) {
             send_key "down";
@@ -30,19 +30,19 @@ sub run() {
         send_key "ret";
         return;
     }
-    if ( $vars{LIVETEST} && $vars{PROMO} ) {
+    if ( get_var("LIVETEST") && get_var("PROMO") ) {
         send_key "down";    # upgrade
         if ( check_var( "DESKTOP", "gnome" ) ) {
-            send_key "down" unless $vars{OSP_SPECIAL};
+            send_key "down" unless get_var("OSP_SPECIAL");
             send_key "down";
         }
         elsif ( check_var( "DESKTOP", "kde" ) ) {
 
             # KDE is first entry for OSP image
-            send_key "down" unless $vars{OSP_SPECIAL};
+            send_key "down" unless get_var("OSP_SPECIAL");
         }
         else {
-            die "unsupported desktop $vars{DESKTOP}\n";
+            die "unsupported desktop " . get_var("DESKTOP");
         }
     }
 
@@ -51,14 +51,14 @@ sub run() {
     send_key "e";
     for ( 1 .. 4 ) { send_key "down"; }
     send_key "end";
-    if ( $vars{NETBOOT} && $vars{SUSEMIRROR} ) {
+    if ( get_var("NETBOOT") && get_var("SUSEMIRROR") ) {
         assert_screen('no_install_url');
-        type_string " install=http://" . $vars{SUSEMIRROR};
+        type_string " install=http://" . get_var("SUSEMIRROR");
         save_screenshot();
     }
     send_key "spc";
 
-    # if($vars{PROMO}) {
+    # if(get_var("PROMO")) {
     #     for(1..2) {send_key "down";} # select KDE Live
     # }
 
@@ -79,49 +79,37 @@ sub run() {
     #type_string "drm_kms_helper.edid_firmware=edid/1024x768.bin ";
     assert_screen "inst-video-typed-grub2", 13;
 
-    if ( !$vars{NICEVIDEO} ) {
+    if ( !get_var("NICEVIDEO") ) {
         type_string "plymouth.ignore-serial-consoles ", 7; # make plymouth go graphical
         type_string "console=ttyS0 ";    # to get crash dumps as text
         type_string "console=tty ";      # to get crash dumps as text
-        my $e = $vars{EXTRABOOTPARAMS};
+        my $e = get_var("EXTRABOOTPARAMS");
 
-        #	if($vars{RAIDLEVEL}) {$e="linuxrc=trace"}
+        #	if(get_var("RAIDLEVEL")) {$e="linuxrc=trace"}
         if ($e) { type_string "$e "; }
     }
 
     #type_string "kiwidebug=1 ";
 
-    #if($vars{BTRFS}) {sleep 9; type_string "squash=0 loadimage=0 ";sleep 21} # workaround 697671
+    #if(get_var("BTRFS")) {sleep 9; type_string "squash=0 loadimage=0 ";sleep 21} # workaround 697671
 
-    if ( $vars{ISO} =~ m/i586/ ) {
+    if ( get_var("ISO") =~ m/i586/ ) {
 
         #	type_string "info=";sleep 4; type_string "http://zq1.de/i "; sleep 15; type_string "insecure=1 "; sleep 15;
     }
     my $args = "";
-    if ( $vars{AUTOYAST} ) {
-        $args .= " ifcfg=*=dhcp autoyast=http://$vars{OPENQA_HOSTNAME}/tests/$vars{TEST_ID}/data/$vars{AUTOYAST} ";
+    if ( get_var("AUTOYAST") ) {
+        $args .= " ifcfg=*=dhcp autoyast=http://" . get_var("OPENQA_HOSTNAME") . "/tests/" . get_var("TEST_ID") . "/data/" . get_var("AUTOYAST") . " ";
     }
     type_string $args;
     save_screenshot;
 
-    if ($vars{FIPS}) {
+    if (get_var("FIPS")) {
         type_string " fips=1", 13;
         save_screenshot;
     }
 
-    if ( 0 && $vars{RAIDLEVEL} ) {
-
-        # workaround bnc#711724
-        $vars{ADDONURL} = "http://download.opensuse.org/repositories/home:/snwint/openSUSE_Factory/";    #TODO: drop
-        $vars{DUD}      = "dud=http://zq1.de/bl10";
-        type_string "$vars{DUD} ";
-        sleep 20;
-        type_string "insecure=1 ";
-        sleep 20;
-        save_vars();
-    }
-
-    if ( $vars{LIVETEST} && $vars{LIVEOBSWORKAROUND} ) {
+    if ( get_var("LIVETEST") && get_var("LIVEOBSWORKAROUND") ) {
         send_key "1";    # runlevel 1
         send_key "f10";  # boot
         sleep(40);

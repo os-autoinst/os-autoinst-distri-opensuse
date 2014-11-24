@@ -1,17 +1,17 @@
 use strict;
 use base "y2logsstep";
-use bmwqemu;
+use testapi;
 
 sub run() {
     my $self = shift;
 
-    if ( $vars{ENCRYPT} ) {
+    if ( get_var("ENCRYPT") ) {
         wait_encrypt_prompt;
     }
 
     mouse_hide();
 
-    if ( $vars{'NOAUTOLOGIN'} ) {
+    if ( get_var("'NOAUTOLOGIN'") ) {
         assert_screen 'displaymanager', 200;
         # for GNOME pressing enter is enough to login bernhard
         if ( check_var( 'DESKTOP', 'minimalx' ) ) {
@@ -64,7 +64,7 @@ sub run() {
         last if $err;
     }
 
-    mydie if $err;
+    die 'failed' if $err;
 }
 
 sub test_flags() {
@@ -78,7 +78,7 @@ sub post_fail_hook() {
     assert_screen("text-login", 10);
     type_string "root\n";
     sleep 2;
-    sendpassword;
+    type_password;
     type_string "\n";
     sleep 1;
 

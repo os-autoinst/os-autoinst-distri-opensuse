@@ -1,5 +1,5 @@
 use base "x11step";
-use bmwqemu;
+use testapi;
 
 # XXX TODO - is using KDE variable here
 sub run() {

@@ -1,5 +1,5 @@
 use base "consolestep";
-use bmwqemu;
+use testapi;
 
 sub run() {
     my $self = shift;
@@ -28,14 +28,14 @@ sub run() {
         if ( check_screen("screenlock") ) {
             if ( check_var( "DESKTOP", "gnome" ) ) {
                 send_key "esc";
-                unless ( $vars{LIVETEST} ) {
+                unless ( get_var("LIVETEST") ) {
                     assert_screen "gnome-screenlock-password";
-                    sendpassword;
+                    type_password;
                     send_key "ret";
                 }
             }
             else {
-                sendpassword;
+                type_password;
                 send_key "ret";
             }
         }
