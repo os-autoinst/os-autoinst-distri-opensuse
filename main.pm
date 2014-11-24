@@ -25,7 +25,7 @@ sub logcurrentenv(@) {
     foreach my $k (@_) {
         my $e = get_var("$k");
         next unless defined $e;
-        diag("usingenv $k=$e");
+        bmwqemu::diag("usingenv $k=$e");
     }
 }
 
