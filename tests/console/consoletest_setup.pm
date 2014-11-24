@@ -34,7 +34,7 @@ sub run() {
     script_sudo("systemctl mask packagekit.service");
     script_sudo("systemctl stop packagekit.service");
 
-    script_run("curl -L -v http://$vars{OPENQA_HOSTNAME}/tests/$vars{TEST_ID}/data > test.data; echo \"curl-\$?\" > /dev/$serialdev");
+    script_run("curl -L -v http://get_var("OPENQA_HOSTNAME")/tests/get_var("TEST_ID")/data > test.data; echo \"curl-\$?\" > /dev/$serialdev");
     wait_serial("curl-0", 10) || die 'curl failed';
     script_run(" cpio -id < test.data; echo \"cpio-\$?\"> /dev/$serialdev");
     wait_serial("cpio-0", 10) || die 'cpio failed';

@@ -18,7 +18,7 @@ sub run() {
         assert_screen 'logoutdialog', 15;
         send_key "ret";                # confirm shutdown
 
-        if ($vars{SHUTDOWN_NEEDS_AUTH}) {
+        if (get_var("SHUTDOWN_NEEDS_AUTH")) {
             assert_screen 'shutdown-auth', 15;
             sendpassword;
             send_key "ret";
@@ -44,7 +44,7 @@ sub run() {
         send_key "ret";
     }
 
-    if ( $vars{DESKTOP} =~ m/minimalx|textmode/ ) {
+    if ( get_var("DESKTOP") =~ m/minimalx|textmode/ ) {
         qemusend "system_powerdown";    # shutdown
 
         # assert_screen 'test-shutdown-2', 3;

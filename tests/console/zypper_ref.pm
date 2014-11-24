@@ -9,17 +9,17 @@ sub run() {
     script_run("zypper lr -d");
     save_screenshot; # take a screenshot before any changes
     send_key "ctrl-l";
-    if ( $vars{FLAVOR} =~ m/^Staging2?[\-]DVD$/ && $vars{SUSEMIRROR} ) {
+    if ( get_var("FLAVOR") =~ m/^Staging2?[\-]DVD$/ && get_var("SUSEMIRROR") ) {
         # remove Factory repos
         my $repos_folder = '/etc/zypp/repos.d';
         script_run("find $repos_folder/*.repo -type f -exec grep -q 'baseurl=http://download.opensuse.org/' {} \\; -delete", 5);
         script_run("zypper lr -d");
         save_screenshot; # take a screenshot after repos removed
     }
-    if ( !$vars{NET} && !$vars{TUMBLEWEED} && !$vars{EVERGREEN} && $vars{SUSEMIRROR} && !$vars{FLAVOR} =~ m/^Staging2?[\-]DVD$/ ) {
+    if ( !get_var("NET") && !get_var("TUMBLEWEED") && !get_var("EVERGREEN") && get_var("SUSEMIRROR") && !get_var("FLAVOR") =~ m/^Staging2?[\-]DVD$/ ) {
         # non-NET installs have only milestone repo, which might be incompatible.
-        my $repourl = 'http://' . $vars{SUSEMIRROR};
-        unless ( $vars{FULLURL} ) {
+        my $repourl = 'http://' . get_var("SUSEMIRROR");
+        unless ( get_var("FULLURL") ) {
             $repourl = $repourl . "/repo/oss";
         }
         script_run("zypper ar -c $repourl Factory && echo 'worked' > /dev/$serialdev");

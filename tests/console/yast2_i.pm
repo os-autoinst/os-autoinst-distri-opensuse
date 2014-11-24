@@ -3,12 +3,12 @@ use testapi;
 
 sub run() {
     my $self    = shift;
-    my $pkgname = $vars{PACKAGETOINSTALL};
+    my $pkgname = get_var("PACKAGETOINSTALL");
 
     become_root();
     type_string "PS1=\"# \"\n";
 
-    if ( $vars{UPGRADE} ) {
+    if ( get_var("UPGRADE") ) {
         # old versions had a different default and we don't necessarly update
         script_run('echo PKGMGR_ACTION_AT_EXIT=summary >> /etc/sysconfig/yast2');
     }

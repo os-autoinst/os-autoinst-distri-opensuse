@@ -5,7 +5,7 @@ sub run() {
     my $self = shift;
 
     # 550_reboot_kde
-    if ( check_var("DESKTOP", "kde") || $vars{DESKTOP} eq "gnome" ) {
+    if ( check_var("DESKTOP", "kde") || get_var("DESKTOP") eq "gnome" ) {
         wait_idle;
         send_key "ctrl-alt-delete";    # reboot
         assert_screen 'logoutdialog', 15;
@@ -27,7 +27,7 @@ sub run() {
         }
         send_key "ret";                # confirm
 
-        if ($vars{SHUTDOWN_NEEDS_AUTH}) {
+        if (get_var("SHUTDOWN_NEEDS_AUTH")) {
             assert_screen 'reboot-auth', 15;
             sendpassword;
             send_key "ret";
@@ -54,12 +54,12 @@ sub run() {
     }
 
     assert_screen "grub2", 100;    # wait until reboot
-    if ( $vars{ENCRYPT} ) {
+    if ( get_var("ENCRYPT") ) {
         wait_encrypt_prompt;
     }
 
     # 570_xfce_login_after_reboot
-    if ( $vars{NOAUTOLOGIN} || $vars{XDMUSED} ) {
+    if ( get_var("NOAUTOLOGIN") || get_var("XDMUSED") ) {
         assert_screen 'displaymanager', 200;
         wait_idle;
 

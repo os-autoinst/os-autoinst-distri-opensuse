@@ -4,14 +4,14 @@ use testapi;
 
 sub run() {
     my $self = shift;
-    $vars{ZDUPREPOS} ||= "http://$vars{SUSEMIRROR}";
+    get_var("ZDUPREPOS") ||= "http://get_var("SUSEMIRROR")";
     send_key "ctrl-l";
 
     # Disable all repos, so we do not need to remove one by one
     script_sudo("zypper modifyrepo --all --disable");
 
     my $nr = 1;
-    foreach my $r ( split( /\+/, $vars{ZDUPREPOS} ) ) {
+    foreach my $r ( split( /\+/, get_var("ZDUPREPOS") ) ) {
         script_sudo("zypper addrepo $r repo$nr");
         $nr++;
     }

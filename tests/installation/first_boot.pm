@@ -5,13 +5,13 @@ use testapi;
 sub run() {
     my $self = shift;
 
-    if ( $vars{ENCRYPT} ) {
+    if ( get_var("ENCRYPT") ) {
         wait_encrypt_prompt;
     }
 
     mouse_hide();
 
-    if ( $vars{'NOAUTOLOGIN'} ) {
+    if ( get_var("'NOAUTOLOGIN'") ) {
         assert_screen 'displaymanager', 200;
         # for GNOME pressing enter is enough to login bernhard
         if ( check_var( 'DESKTOP', 'minimalx' ) ) {

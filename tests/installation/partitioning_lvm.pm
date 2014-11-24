@@ -10,7 +10,7 @@ sub run() {
     sleep 2;
 
     send_key "alt-l", 1;    # enable LVM-based proposal
-    if ( $vars{ENCRYPT} ) {
+    if ( get_var("ENCRYPT") ) {
         send_key "alt-y", 1;
         assert_screen "inst-encrypt-password-prompt";
         sendpassword;

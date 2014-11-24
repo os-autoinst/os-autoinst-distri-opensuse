@@ -7,12 +7,12 @@ use testapi;
 sub run() {
     my $self = shift;
     assert_screen( "scc-registration", 30 );
-    if ($vars{SCC_EMAIL} && $vars{SCC_REGCODE} && (!$vars{SCC_REGISTER} || $vars{SCC_REGISTER} eq 'installation')) {
+    if (get_var("SCC_EMAIL") && get_var("SCC_REGCODE") && (!get_var("SCC_REGISTER") || get_var("SCC_REGISTER") eq 'installation')) {
 
         send_key "alt-e";    # select email field
-        type_string $vars{SCC_EMAIL};
+        type_string get_var("SCC_EMAIL");
         send_key "tab";
-        type_string $vars{SCC_REGCODE};
+        type_string get_var("SCC_REGCODE");
         send_key $cmd{"next"}, 1;
         my @tags = qw/local-registration-servers registration-online-repos/;
         while ( my $ret = check_screen(\@tags, 60 )) {

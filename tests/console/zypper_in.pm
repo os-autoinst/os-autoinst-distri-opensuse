@@ -7,7 +7,7 @@ sub run() {
 
     script_run("zypper lr -d > /dev/$serialdev");
 
-    my $pkgname = $vars{PACKAGETOINSTALL};
+    my $pkgname = get_var("PACKAGETOINSTALL");
     script_run("zypper -n in screen $pkgname && echo 'installed' > /dev/$serialdev");
     wait_serial("installed", 200) || die "zypper install failed";
     wait_idle 5;

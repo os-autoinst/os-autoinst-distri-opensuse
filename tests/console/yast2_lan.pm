@@ -45,7 +45,7 @@ sub run() {
     send_key "ctrl-l";      # clear screen
     script_run('ip -o a s');
     script_run('ip r s');
-    script_run('getent ahosts '.$vars{OPENQA_HOSTNAME});
+    script_run('getent ahosts '.get_var("OPENQA_HOSTNAME"));
     #
     script_run("echo \"EXIT-\$?\" > /dev/$serialdev");
     die unless wait_serial "EXIT-0", 2;

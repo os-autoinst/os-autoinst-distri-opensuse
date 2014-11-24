@@ -19,7 +19,7 @@ sub run() {
         assert_screen "inst-welcome", 5;
     }
 
-    #	if($vars{BETA}) {
+    #	if(get_var("BETA")) {
     #		assert_screen "inst-betawarning", 5;
     #		send_key "ret";
     #	} elsif (check_screen "inst-betawarning", 2) {
@@ -32,7 +32,7 @@ sub run() {
     mouse_hide;
 
     # license+lang
-    if ( $vars{HASLICENSE} ) {
+    if ( get_var("HASLICENSE") ) {
         send_key $cmd{"accept"};    # accept license
     }
     assert_screen "languagepicked", 2;
