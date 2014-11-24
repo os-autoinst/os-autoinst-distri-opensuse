@@ -30,12 +30,12 @@ sub run() {
                 send_key "esc";
                 unless ( get_var("LIVETEST") ) {
                     assert_screen "gnome-screenlock-password";
-                    sendpassword;
+                    type_password;
                     send_key "ret";
                 }
             }
             else {
-                sendpassword;
+                type_password;
                 send_key "ret";
             }
         }

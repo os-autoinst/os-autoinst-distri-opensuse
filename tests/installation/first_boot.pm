@@ -64,7 +64,7 @@ sub run() {
         last if $err;
     }
 
-    mydie if $err;
+    die 'failed' if $err;
 }
 
 sub test_flags() {
@@ -78,7 +78,7 @@ sub post_fail_hook() {
     assert_screen("text-login", 10);
     type_string "root\n";
     sleep 2;
-    sendpassword;
+    type_password;
     type_string "\n";
     sleep 1;
 

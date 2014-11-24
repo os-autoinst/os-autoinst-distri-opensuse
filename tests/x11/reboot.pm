@@ -29,7 +29,7 @@ sub run() {
 
         if (get_var("SHUTDOWN_NEEDS_AUTH")) {
             assert_screen 'reboot-auth', 15;
-            sendpassword;
+            type_password;
             send_key "ret";
         }
     }

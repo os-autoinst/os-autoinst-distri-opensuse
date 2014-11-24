@@ -18,7 +18,7 @@ sub install_pkg() {
     wait_idle;
     sleep 3;
     if ($password) {
-        sendpassword;
+        type_password;
         send_key "ret", 1;
     }
 
@@ -27,7 +27,7 @@ sub install_pkg() {
     wait_idle;
     sleep 3;
     if ($password) {
-        sendpassword;
+        type_password;
         send_key "ret", 1;
     }
     sleep 60;

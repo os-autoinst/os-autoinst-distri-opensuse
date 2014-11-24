@@ -4,7 +4,7 @@ use testapi;
 
 sub run() {
     my $self = shift;
-    get_var("ZDUPREPOS") ||= "http://get_var("SUSEMIRROR")";
+    get_var("ZDUPREPOS") ||= "http://" . get_var("SUSEMIRROR");
     send_key "ctrl-l";
 
     # Disable all repos, so we do not need to remove one by one

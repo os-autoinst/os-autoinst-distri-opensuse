@@ -18,7 +18,7 @@ sub run() {
 
         if ( $ret->{needle}->has_tag("popup-warning") ) {
             ++$self->{dents};
-            diag "warning popup caused dent";
+            bmwqemu::diag "warning popup caused dent";
             send_key "ret";
             pop @tags;
             next;

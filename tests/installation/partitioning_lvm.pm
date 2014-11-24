@@ -13,9 +13,9 @@ sub run() {
     if ( get_var("ENCRYPT") ) {
         send_key "alt-y", 1;
         assert_screen "inst-encrypt-password-prompt";
-        sendpassword;
+        type_password;
         send_key "tab";
-        sendpassword;
+        type_password;
         send_key "ret", 1;
         assert_screen "partition-cryptlvm-summary", 3;
     }

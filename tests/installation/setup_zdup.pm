@@ -11,7 +11,7 @@ sub run() {
     assert_screen "linux-login", 4;
     type_string "$username\n";
     sleep 2;
-    sendpassword;
+    type_password;
     type_string "\n";
     sleep 3;
 
@@ -31,7 +31,7 @@ sub run() {
     assert_screen "linux-login", 15; # login prompt appears
     type_string "$username\n";
     sleep 2;
-    sendpassword;
+    type_password;
     type_string "\n";
     sleep 3;
 
@@ -39,7 +39,7 @@ sub run() {
     # assert_screen "linux-login", 3;
     # type_string "$username\n";
     # sleep 2;
-    # sendpassword;
+    # type_password;
     # type_string "\n";
     # sleep 3;
 

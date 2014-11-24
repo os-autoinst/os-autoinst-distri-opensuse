@@ -40,7 +40,7 @@ sub run() {
     send_key "ret";
     sleep 2;
     wait_still_screen;
-    sendpassword();
+    type_password();
     sleep 2;
     send_key "ret";
     sleep 20;

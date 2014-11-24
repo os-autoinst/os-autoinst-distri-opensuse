@@ -18,8 +18,8 @@ sub run() {
 
     assert_screen "inst-bootmenu", 15;
     if ( get_var("ZDUP") ) {
-        qemusend "eject -f ide1-cd0";
-        qemusend "system_reset";
+        backend_send "eject -f ide1-cd0";
+        backend_send "system_reset";
         sleep 10;
         send_key "ret";    # boot
         return;
@@ -48,7 +48,7 @@ sub run() {
                 send_key "down";
             }
             else {
-                die "unsupported desktop get_var("DESKTOP")\n";
+                die "unsupported desktop " . get_var("DESKTOP");
             }
         }
     }
@@ -101,8 +101,7 @@ sub run() {
         assert_screen "inst-instsourcedialog", 4;
         my $mirroraddr = "";
         my $mirrorpath = "/factory";
-        if (   get_var("SUSEMIRROR")
-            && get_var("SUSEMIRROR") =~ m{^([a-zA-Z0-9.-]*)(/.*)$} )
+        if ( get_var("SUSEMIRROR", '') =~ m{^([a-zA-Z0-9.-]*)(/.*)$} )
         {
             ( $mirroraddr, $mirrorpath ) = ( $1, $2 );
         }
@@ -129,7 +128,7 @@ sub run() {
         send_key "ret";
 
         # HTTP-proxy
-        if ( get_var("HTTPPROXY") && get_var("HTTPPROXY") =~ m/([0-9.]+):(\d+)/ ) {
+        if ( get_var("HTTPPROXY", '') =~ m/([0-9.]+):(\d+)/ ) {
             my ( $proxyhost, $proxyport ) = ( $1, $2 );
             send_key "f4";
             for ( 1 .. 4 ) {
@@ -238,7 +237,7 @@ sub run() {
     my $args = "";
     if ( get_var("AUTOYAST") ) {
         $args .= " ifcfg=*=dhcp";
-        $args .= " autoyast=http://get_var("OPENQA_HOSTNAME")/tests/get_var("TEST_ID")/data/get_var("AUTOYAST") ";
+        $args .= " autoyast=http://" . get_var("OPENQA_HOSTNAME") . "/tests/" . get_var("TEST_ID") . "/data/" . get_var("AUTOYAST") . " ";
     }
     type_string $args, 13;
     save_screenshot;

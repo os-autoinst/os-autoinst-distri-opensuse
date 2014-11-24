@@ -14,8 +14,8 @@ sub run() {
         sleep 5;
     }
     if ( get_var("ZDUP") ) {
-        qemusend "eject -f ide1-cd0";
-        qemusend "system_reset";
+        backend_send "eject -f ide1-cd0";
+        backend_send "system_reset";
         sleep 10;
         send_key "ret";    # boot
         return;
@@ -42,7 +42,7 @@ sub run() {
             send_key "down" unless get_var("OSP_SPECIAL");
         }
         else {
-            die "unsupported desktop get_var("DESKTOP")\n";
+            die "unsupported desktop " . get_var("DESKTOP");
         }
     }
 
@@ -99,7 +99,7 @@ sub run() {
     }
     my $args = "";
     if ( get_var("AUTOYAST") ) {
-        $args .= " ifcfg=*=dhcp autoyast=http://get_var("OPENQA_HOSTNAME")/tests/get_var("TEST_ID")/data/get_var("AUTOYAST") ";
+        $args .= " ifcfg=*=dhcp autoyast=http://" . get_var("OPENQA_HOSTNAME") . "/tests/" . get_var("TEST_ID") . "/data/" . get_var("AUTOYAST") . " ";
     }
     type_string $args;
     save_screenshot;
@@ -114,7 +114,7 @@ sub run() {
         # workaround bnc#711724
         get_var("ADDONURL") = "http://download.opensuse.org/repositories/home:/snwint/openSUSE_Factory/";    #TODO: drop
         get_var("DUD")      = "dud=http://zq1.de/bl10";
-        type_string "get_var("DUD") ";
+        type_string get_var("DUD") . " ";
         sleep 20;
         type_string "insecure=1 ";
         sleep 20;
