@@ -1,13 +1,13 @@
 use base "x11step";
-use bmwqemu;
+use testapi;
 
 
 sub run() {
     my $self = shift;
-    if ( $vars{DESKTOP} eq "lxde" ) {
+    if ( check_var("DESKTOP", "lxde") ) {
         x11_start_program("lxpanelctl menu");    # or Super_L or Windows key
     }
-    elsif ( $vars{DESKTOP} eq "xfce" ) {
+    elsif ( check_var("DESKTOP", "xfce") ) {
         mouse_set( 0, 0 );
         sleep 1;
         send_key "ctrl-esc";                      # open menu

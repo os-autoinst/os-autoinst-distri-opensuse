@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 use strict;
 use base "y2logsstep";
-use bmwqemu;
+use testapi;
 
 sub run() {
     my $self = shift;

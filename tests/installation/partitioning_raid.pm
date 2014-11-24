@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 use strict;
 use base "noupdatestep";
-use bmwqemu;
+use testapi;
 
 
 # add a new primary partition
@@ -14,7 +14,7 @@ sub addpart($$) {
     wait_idle 5;
 
     # the input point at the head of the lineedit, move it to the end
-    if ( $vars{GNOME} ) { send_key "end" }
+    if ( get_var("GNOME") ) { send_key "end" }
     for ( 1 .. 10 ) {
         send_key "backspace";
     }
@@ -47,7 +47,7 @@ sub addraid($;$) {
         }
 
         # in GNOME Live case, press space will direct added this item
-        if ( $vars{GNOME} ) {
+        if ( get_var("GNOME") ) {
             send_key "ctrl-spc";
         }
         else {
@@ -65,7 +65,7 @@ sub addraid($;$) {
     if ($chunksize) {
 
         # workaround for gnomelive with chunksize 64kb
-        if ( $vars{GNOME} ) {
+        if ( get_var("GNOME") ) {
             send_key "alt-c";
             send_key "home";
             for ( 1 .. 4 ) {
@@ -106,7 +106,7 @@ sub run() {
     send_key "tab";
     send_key "down";    # select disks
     # seems GNOME tree list didn't eat right arrow key
-    if ( $vars{GNOME} ) {
+    if ( get_var("GNOME") ) {
         send_key "spc";    # unfold disks
     }
     else {
@@ -129,7 +129,7 @@ sub run() {
         send_key "shift-tab";
 
         # walk through sub-tree
-        if ( $vars{GNOME} ) {
+        if ( get_var("GNOME") ) {
             for ( 1 .. 3 ) { send_key "down" }
         }
         send_key "down";
@@ -139,15 +139,14 @@ sub run() {
     send_key $cmd{addraid};
     wait_idle 4;
 
-    if ( !defined( $vars{RAIDLEVEL} ) ) { $vars{RAIDLEVEL} = 6 }
-    setraidlevel( $vars{RAIDLEVEL} );
+    setraidlevel( get_var("RAIDLEVEL") );
     send_key "down";    # start at second partition (i.e. sda2)
     # in this case, press down key doesn't move to next one but itself
-    if ( $vars{GNOME} ) { send_key "down" }
+    if ( get_var("GNOME") ) { send_key "down" }
     addraid( 3, 6 );
 
     # workaround for gnomelive, double alt-f available in same page
-    if ( $vars{GNOME} ) {
+    if ( get_var("GNOME") ) {
         send_key "spc";
     }
     else {
@@ -173,7 +172,7 @@ sub run() {
     send_key $cmd{"finish"};
 
     # workaround for gnomelive, double alt-f available in same page
-    if ( $vars{GNOME} ) {
+    if ( get_var("GNOME") ) {
         send_key $cmd{"finish"};
         send_key "spc";
     }

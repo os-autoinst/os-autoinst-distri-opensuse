@@ -1,5 +1,5 @@
 use base "yaststep";
-use bmwqemu;
+use testapi;
 
 # test yast2 lan functionality
 # https://bugzilla.novell.com/show_bug.cgi?id=600576
@@ -45,7 +45,7 @@ sub run() {
     send_key "ctrl-l";      # clear screen
     script_run('ip -o a s');
     script_run('ip r s');
-    script_run('getent ahosts '.$vars{OPENQA_HOSTNAME});
+    script_run('getent ahosts '.get_var("OPENQA_HOSTNAME"));
     #
     script_run("echo \"EXIT-\$?\" > /dev/$serialdev");
     die unless wait_serial "EXIT-0", 2;

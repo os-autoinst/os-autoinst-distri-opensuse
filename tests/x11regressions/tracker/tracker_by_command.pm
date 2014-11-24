@@ -1,5 +1,5 @@
 use base "basetest";
-use bmwqemu;
+use testapi;
 
 # Case 1248747 - Beagle: beagled starts
 # Modify to : Tracker - tracker search from the command line. tracker-search starts
@@ -13,7 +13,7 @@ sub run() {
     type_string "cd\n";
     type_string "tracker-search newfile\n";
     sleep 2;
-    waitstillimage;
+    wait_still_screen;
     assert_screen 'test-tracker_by_command-2', 3;
     send_key "alt-f4";
     sleep 2;    #close xterm

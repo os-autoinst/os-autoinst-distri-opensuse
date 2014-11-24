@@ -1,5 +1,5 @@
 use base "x11step";
-use bmwqemu;
+use testapi;
 
 # for https://bugzilla.novell.com/show_bug.cgi?id=657626
 
@@ -8,7 +8,6 @@ sub run() {
     x11_start_program("xterm");
     script_run("cd /tmp");
     script_run("wget -q openqa.opensuse.org/opensuse/qatests/qa_mozmill_run.sh");
-    local $vars{SCREENSHOTINTERVAL} = 0.25;
     script_run("sh -x qa_mozmill_run.sh");
     sleep 30;
     local $bmwqemu::timesidleneeded = 4;

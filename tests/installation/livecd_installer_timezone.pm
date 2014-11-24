@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 use strict;
 use base "noupdatestep";
-use bmwqemu;
+use testapi;
 
 # this test case are copied from 065_installer_timezone to adapt
 # LiveCD installer excuses before then partition setup

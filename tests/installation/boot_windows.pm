@@ -1,5 +1,5 @@
 use base "y2logsstep";
-use bmwqemu;
+use testapi;
 
 sub run() {
     my $self = shift;
@@ -10,9 +10,9 @@ sub run() {
     send_key "ctrl-alt-delete";
 
     # Bug in 13.1?
-    qemusend "system_reset";
+    backend_send "system_reset";
 
-    # qemusend "eject ide1-cd0";
+    # backend_send "eject ide1-cd0";
 
     wait_encrypt_prompt;
     assert_screen "grub-reboot-windows", 25;

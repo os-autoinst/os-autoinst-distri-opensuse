@@ -1,7 +1,7 @@
 package installbasetest;
 use base "opensusebasetest";
 
-use bmwqemu;
+use testapi;
 
 # All steps in the installation are 'fatal'.
 

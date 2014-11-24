@@ -1,6 +1,6 @@
 use base "gnomestep";
 use strict;
-use bmwqemu;
+use testapi;
 
 # test gnome-control-center, with panel (boo#897687)
 

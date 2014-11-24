@@ -1,6 +1,6 @@
 use base "xfcestep";
 use strict;
-use bmwqemu;
+use testapi;
 
 # test ristretto and open the default wallpaper
 

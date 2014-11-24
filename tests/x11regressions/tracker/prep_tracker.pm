@@ -1,5 +1,5 @@
 use base "basetest";
-use bmwqemu;
+use testapi;
 
 # Preparation for testing tracker.
 

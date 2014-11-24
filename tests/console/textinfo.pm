@@ -1,6 +1,6 @@
 use base "consolestep";
 use strict;
-use bmwqemu;
+use testapi;
 
 # have various useful general info included in videos
 sub run() {

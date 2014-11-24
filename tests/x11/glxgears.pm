@@ -1,5 +1,5 @@
 use base "bigx11step";
-use bmwqemu;
+use testapi;
 
 sub run() {
     my $self = shift;

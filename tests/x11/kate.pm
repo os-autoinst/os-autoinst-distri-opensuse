@@ -1,6 +1,6 @@
 use base "kdestep";
 use strict;
-use bmwqemu;
+use testapi;
 
 # test kde text editor
 

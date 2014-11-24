@@ -1,6 +1,6 @@
 use base "basetest";
 use strict;
-use bmwqemu;
+use testapi;
 
 # test tomboy: start note cannot be deleted
 # testcase 1248873
@@ -38,7 +38,7 @@ sub run() {
     sleep 2;
     send_key "ret";
     sleep 2;
-    waitstillimage;
+    wait_still_screen;
 
     #send_key "alt-d"; #FIXME
     send_key "alt-c";     #FIXME

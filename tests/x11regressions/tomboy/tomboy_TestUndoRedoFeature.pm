@@ -1,6 +1,6 @@
 use base "basetest";
 use strict;
-use bmwqemu;
+use testapi;
 
 # test tomboy: Test 'undo'/'Redo' feature
 # testcase 1248884

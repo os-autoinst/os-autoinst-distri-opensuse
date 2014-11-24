@@ -1,5 +1,5 @@
 use base "basetest";
-use bmwqemu;
+use testapi;
 
 # Case 1248855 - Pidgin: Add AIM Account
 # Case 1248856 - Pidgin: Login to AIM Account and Send/Receive Message

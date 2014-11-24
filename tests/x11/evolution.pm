@@ -1,11 +1,11 @@
 use base "gnomestep";
-use bmwqemu;
+use testapi;
 
 sub run() {
     my $self = shift;
     x11_start_program("evolution");
-    if ( $vars{UPGRADE} ) { send_key "alt-f4"; wait_idle; }    # close mail format change notifier
-    if ( $vars{LIVETEST} ) {
+    if ( get_var("UPGRADE") ) { send_key "alt-f4"; wait_idle; }    # close mail format change notifier
+    if ( get_var("LIVETEST") ) {
         assert_screen 'test-evolution-1', 30;
     }
     else {

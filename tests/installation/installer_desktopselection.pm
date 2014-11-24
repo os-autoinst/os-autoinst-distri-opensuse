@@ -1,15 +1,12 @@
 #!/usr/bin/perl -w
 use strict;
 use base "noupdatestep";
-use bmwqemu;
+use testapi;
 
 sub run() {
     my %desktopkeys = ( kde => "k", gnome => "g", xfce => "x", lxde => "l", minimalx => "m", textmode => "i" );
     assert_screen "desktop-selection", 30;
-    my $d = $vars{DESKTOP};
-    diag "selecting desktop=$d";
-    $vars{ uc($d) } = 1;
-    save_vars();
+    my $d = get_var("DESKTOP");
     my $key = "alt-$desktopkeys{$d}";
     if ( $d eq "kde" ) {
 

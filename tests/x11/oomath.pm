@@ -1,5 +1,5 @@
 use base "x11step";
-use bmwqemu;
+use testapi;
 
 # test for bug https://bugs.freedesktop.org/show_bug.cgi?id=42301
 

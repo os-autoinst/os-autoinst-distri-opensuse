@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 use strict;
 use base "y2logsstep";
-use bmwqemu;
+use testapi;
 
 sub run() {
     my $self = shift;
@@ -10,12 +10,12 @@ sub run() {
     sleep 2;
 
     send_key "alt-l", 1;    # enable LVM-based proposal
-    if ( $vars{ENCRYPT} ) {
+    if ( get_var("ENCRYPT") ) {
         send_key "alt-y", 1;
         assert_screen "inst-encrypt-password-prompt";
-        sendpassword;
+        type_password;
         send_key "tab";
-        sendpassword;
+        type_password;
         send_key "ret", 1;
         assert_screen "partition-cryptlvm-summary", 3;
     }

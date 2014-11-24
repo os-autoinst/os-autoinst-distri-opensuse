@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 use strict;
 use base "noupdatestep";
-use bmwqemu;
+use testapi;
 
 sub run() {
     my $self = shift;
@@ -10,11 +10,11 @@ sub run() {
     # includes downloads, so wait_idle is bad.
     assert_screen "inst-instmode", 120;
 
-    if ( $vars{ADDONURL} ) {
+    if ( get_var("ADDONURL") ) {
         send_key "alt-c";    # Include Add-On Products
         assert_screen "addonproduct-included", 10;
     }
-    if ( $vars{AUTOCONF} ) {
+    if ( get_var("AUTOCONF") ) {
         send_key "alt-s";    # toggle automatic configuration
         assert_screen "autoconf-deselected", 10;
     }
