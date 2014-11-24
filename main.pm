@@ -39,7 +39,7 @@ sub setrandomenv() {
         }
         my @range = @{ $valueranges{$k} };
         my $rand  = int( rand( scalar @range ) );
-        get_var("$k") = $range[$rand];
+        set_var($k, $range[$rand]);
         logcurrentenv($k);
     }
 }
@@ -92,25 +92,20 @@ sub cleanup_needles() {
 
 }
 
-# wait for qemu to start
-while ( !getcurrentscreenshot() ) {
-    sleep 1;
-}
-
 #assert_screen "inst-bootmenu",12; # wait for welcome animation to finish
 
-    # defaults for username and password
-    if (get_var("LIVETEST")) {
-        $testapi::username = "root";
-        $testapi::password = '';
-    }
-    else {
-        $testapi::username = "bernhard";
-        $testapi::password = "nots3cr3t";
-    }
+# defaults for username and password
+if (get_var("LIVETEST")) {
+    $testapi::username = "root";
+    $testapi::password = '';
+}
+else {
+    $testapi::username = "bernhard";
+    $testapi::password = "nots3cr3t";
+}
 
-    $testapi::username = get_var("USERNAME") if get_var("USERNAME");
-    $testapi::password = get_var("PASSWORD") if defined get_var("PASSWORD");
+$testapi::username = get_var("USERNAME") if get_var("USERNAME");
+$testapi::password = get_var("PASSWORD") if defined get_var("PASSWORD");
 
 if ( get_var("LIVETEST") && ( get_var("LIVECD") || get_var("PROMO") ) ) {
     $testapi::username = "linux";    # LiveCD account
@@ -122,27 +117,28 @@ setrandomenv if ( get_var("RANDOMENV") );
 
 unless ( get_var("DESKTOP") ) {
     if ( check_var( "VIDEOMODE", "text" ) ) {
-        get_var("DESKTOP") = "textmode";
+        set_var("DESKTOP", "textmode");
     }
     else {
-        get_var("DESKTOP") = "kde";
+        set_var("DESKTOP", "kde");
     }
 }
 if ( check_var( 'DESKTOP', 'minimalx' ) ) {
-    get_var("NOAUTOLOGIN") = 1;
-    get_var("XDMUSED") = 1;
+    set_var("NOAUTOLOGIN", 1);
+    set_var("XDMUSED", 1);
 }
 
 # openSUSE specific variables
-get_var("SUSEMIRROR") ||= "download.opensuse.org/factory";
-get_var("PACKAGETOINSTALL") = "xdelta";
-get_var("DEFAULT_WALLPAPER") = 'openSUSEdefault';
+set_var("SUSEMIRROR", "download.opensuse.org/factory") unless get_var('SUSEMIRROR');
+set_var("PACKAGETOINSTALL", "xdelta");
+set_var("DEFAULT_WALLPAPER", 'openSUSEdefault');
+
+# set KDE and GNOME, ...
+set_var(uc(get_var('DESKTOP')), 1);
 
 $needle::cleanuphandler = \&cleanup_needles;
 
-get_var("SCREENSHOTINTERVAL") ||= .5;
-
-save_vars(); # update variables
+bmwqemu::save_vars(); # update variables
 
 # dump other important ENV:
 logcurrentenv(qw"ADDONURL BIGTEST BTRFS DESKTOP HW HWSLOT LIVETEST LVM MOZILLATEST NOINSTALL REBOOTAFTERINSTALL UPGRADE USBBOOT TUMBLEWEED ZDUP ZDUPREPOS TEXTMODE DISTRI NOAUTOLOGIN QEMUCPU QEMUCPUS RAIDLEVEL ENCRYPT INSTLANG QEMUVGA DOCRUN UEFI DVD GNOME KDE ISO ISO_MAXSIZE LIVECD NETBOOT NICEVIDEO NOIMAGES PROMO QEMUVGA SPLITUSR VIDEOMODE");
@@ -549,8 +545,9 @@ else {
     load_boot_tests();
     if (get_var("LIVETEST")) {
         loadtest "installation/finish_desktop.pm";
-    } else {
-	load_inst_tests();
+    }
+    else {
+        load_inst_tests();
     }
     load_rescuecd_tests();
     load_zdup_tests();

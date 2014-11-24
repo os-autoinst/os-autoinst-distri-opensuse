@@ -7,9 +7,6 @@ sub run() {
     my %desktopkeys = ( kde => "k", gnome => "g", xfce => "x", lxde => "l", minimalx => "m", textmode => "i" );
     assert_screen "desktop-selection", 30;
     my $d = get_var("DESKTOP");
-    bmwqemu::diag "selecting desktop=$d";
-    get_var(" uc($d) ") = 1;
-    save_vars();
     my $key = "alt-$desktopkeys{$d}";
     if ( $d eq "kde" ) {
 

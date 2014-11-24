@@ -101,8 +101,7 @@ sub run() {
         assert_screen "inst-instsourcedialog", 4;
         my $mirroraddr = "";
         my $mirrorpath = "/factory";
-        if ( get_var("SUSEMIRROR", '') =~ m{^([a-zA-Z0-9.-]*)(/.*)$} )
-        {
+        if ( get_var("SUSEMIRROR", '') =~ m{^([a-zA-Z0-9.-]*)(/.*)$} ){
             ( $mirroraddr, $mirrorpath ) = ( $1, $2 );
         }
 
