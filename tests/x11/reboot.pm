@@ -55,7 +55,9 @@ sub run() {
 
     assert_screen "grub2", 100;    # wait until reboot
     if ( get_var("ENCRYPT") ) {
-        wait_encrypt_prompt;
+        assert_screen("encrypted-disk-password-prompt");
+        type_password();    # enter PW at boot
+        send_key "ret";
     }
 
     # 570_xfce_login_after_reboot
