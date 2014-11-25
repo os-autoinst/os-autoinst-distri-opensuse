@@ -1,4 +1,4 @@
-use base "consolestep";
+use base "opensusebasetest";
 use testapi;
 
 # http://mozmill-crowd.blargon7.com/#/functional/reports

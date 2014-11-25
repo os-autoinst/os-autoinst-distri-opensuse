@@ -1,5 +1,5 @@
 package y2logsstep;
-use base "installyaststep";
+use base "installbasetest";
 use testapi;
 
 sub post_fail_hook() {
