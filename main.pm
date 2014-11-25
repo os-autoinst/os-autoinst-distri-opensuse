@@ -343,14 +343,19 @@ sub load_inst_tests() {
     else {
         loadtest "installation/livecdreboot.pm";
     }
+    if (get_var("ENCRYPT")) {
+        loadtest "installation/boot_encrypt.pm";
+    }
     if (installyaststep_is_applicable) {
         loadtest "installation/first_boot.pm";
     }
     if (is_reboot_after_installation_necessary()) {
+        loadtest "installation/reboot_eject_cd.pm";
         loadtest "installation/reboot_after_install.pm";
     }
 
     if (get_var("DUALBOOT")) {
+        loadtest "installation/reboot_eject_cd.pm";
         loadtest "installation/boot_windows.pm";
     }
 }
