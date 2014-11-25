@@ -1,4 +1,4 @@
-use base "opensusebasetest";
+use base "x11test";
 use testapi;
 
 # for https://bugzilla.novell.com/show_bug.cgi?id=717871

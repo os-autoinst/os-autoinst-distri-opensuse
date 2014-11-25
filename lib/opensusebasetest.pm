@@ -143,11 +143,7 @@ sub clear_and_verify_console {
 
 sub post_run_hook {
     my ($self) = @_;
-
-    # FIXME: there should be a test class that handles this
-    if ( $self->{'category'} eq 'x11' && $name ne 'shutdown' ) {
-        assert_screen('generic-desktop');
-    }
+    # overloaded in x11 and console
 }
 
 1;

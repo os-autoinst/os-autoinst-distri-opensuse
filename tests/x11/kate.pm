@@ -1,4 +1,4 @@
-use base "opensusebasetest";
+use base "x11test";
 use strict;
 use testapi;
 

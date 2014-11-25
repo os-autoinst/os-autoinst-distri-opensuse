@@ -1,4 +1,4 @@
-use base "opensusebasetest";
+use base "x11test";
 use testapi;
 
 # XXX TODO - is using KDE variable here

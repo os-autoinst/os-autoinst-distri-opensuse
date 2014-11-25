@@ -1,4 +1,4 @@
-use base "opensusebasetest";
+use base "x11test";
 use testapi;
 
 # test for bug https://bugs.freedesktop.org/show_bug.cgi?id=42301
