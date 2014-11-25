@@ -5,10 +5,6 @@ use testapi;
 sub run() {
     my $self = shift;
 
-    if ( get_var("ENCRYPT") ) {
-        wait_encrypt_prompt;
-    }
-
     mouse_hide();
 
     if ( get_var("NOAUTOLOGIN") ) {
