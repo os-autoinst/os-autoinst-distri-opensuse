@@ -133,13 +133,16 @@ sub ensure_installed {
     wait_still_screen( 7, 90 );    # wait for install
 }
 
-sub post_run_hook {
+sub clear_and_verify_console {
     my ($self) = @_;
 
-    if ( $self->{'category'} eq 'console' && $name ne 'consoletest_setup' ) {
-        # clear screen to make screen content independent from previous tests
-        testapi::clear_console;
-    }
+    send_key "ctrl-l";
+    assert_screen('cleared-console');
+
+}
+
+sub post_run_hook {
+    my ($self) = @_;
 
     # FIXME: there should be a test class that handles this
     if ( $self->{'category'} eq 'x11' && $name ne 'shutdown' ) {

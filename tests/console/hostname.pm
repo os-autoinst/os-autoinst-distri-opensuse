@@ -1,10 +1,9 @@
-use base "opensusebasetest";
+use base "consoletest";
 use testapi;
 
 sub run() {
     my $self = shift;
 
-    send_key "ctrl-l";
     script_sudo("hostname susetest");
     script_run('echo $?; hostname');
     assert_screen("hostname");

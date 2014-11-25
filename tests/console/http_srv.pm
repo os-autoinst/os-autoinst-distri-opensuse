@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 use strict;
-use base "opensusebasetest";
+use base "consoletest";
 use testapi;
 
 sub run() {
