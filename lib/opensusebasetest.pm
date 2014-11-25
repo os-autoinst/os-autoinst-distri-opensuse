@@ -1,6 +1,8 @@
 package opensusebasetest;
 use base "basetest";
 
+# Base class for all openSUSE tests
+
 use testapi qw(send_key %cmd assert_screen check_screen check_var get_var type_password);
 
 # this needs to move to the distribution
@@ -131,7 +133,19 @@ sub ensure_installed {
     wait_still_screen( 7, 90 );    # wait for install
 }
 
-# Base class for all openSUSE tests
+sub post_run_hook {
+    my ($self) = @_;
+
+    if ( $self->{'category'} eq 'console' && $name ne 'consoletest_setup' ) {
+        # clear screen to make screen content independent from previous tests
+        testapi::clear_console;
+    }
+
+    # FIXME: there should be a test class that handles this
+    if ( $self->{'category'} eq 'x11' && $name ne 'shutdown' ) {
+        assert_screen('generic-desktop');
+    }
+}
 
 1;
 # vim: set sw=4 et:
