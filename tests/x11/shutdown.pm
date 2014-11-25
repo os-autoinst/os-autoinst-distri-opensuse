@@ -1,3 +1,4 @@
+# don't use x11test, the end of this is not a desktop
 use base "opensusebasetest";
 use testapi;
 

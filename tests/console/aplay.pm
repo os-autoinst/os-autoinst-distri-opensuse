@@ -1,4 +1,4 @@
-use base "opensusebasetest";
+use base "consoletest";
 use testapi;
 
 sub run() {
@@ -15,7 +15,6 @@ sub run() {
     script_run('alsamixer');
     sleep 1;
     assert_screen 'test-aplay-2', 3;
-    send_key "esc";
     send_key "esc";
 }
 

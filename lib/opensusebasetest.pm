@@ -1,6 +1,8 @@
 package opensusebasetest;
 use base "basetest";
 
+# Base class for all openSUSE tests
+
 use testapi qw(send_key %cmd assert_screen check_screen check_var get_var type_password);
 
 # this needs to move to the distribution
@@ -131,7 +133,18 @@ sub ensure_installed {
     wait_still_screen( 7, 90 );    # wait for install
 }
 
-# Base class for all openSUSE tests
+sub clear_and_verify_console {
+    my ($self) = @_;
+
+    send_key "ctrl-l";
+    assert_screen('cleared-console');
+
+}
+
+sub post_run_hook {
+    my ($self) = @_;
+    # overloaded in x11 and console
+}
 
 1;
 # vim: set sw=4 et:

@@ -1,4 +1,4 @@
-use base "yaststep";
+use base "console_yasttest";
 use testapi;
 
 sub run() {
