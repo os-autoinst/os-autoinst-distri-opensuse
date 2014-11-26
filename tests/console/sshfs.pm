@@ -1,9 +1,8 @@
-use base "opensusebasetest";
+use base "consoletest";
 use testapi;
 
 sub run() {
     my $self = shift;
-    send_key "ctrl-l";
     become_root();
     script_run("zypper -n in sshfs");
     wait_still_screen( 12, 90 );

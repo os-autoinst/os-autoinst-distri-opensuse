@@ -1,4 +1,4 @@
-use base "opensusebasetest";
+use base "consoletest";
 use testapi;
 
 # test for equivalent of bug https://bugzilla.novell.com/show_bug.cgi?id=

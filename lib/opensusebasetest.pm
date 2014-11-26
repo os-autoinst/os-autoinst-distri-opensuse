@@ -1,10 +1,14 @@
 package opensusebasetest;
 use base "basetest";
 
+# Base class for all openSUSE tests
+
 use testapi qw(send_key %cmd assert_screen check_screen check_var get_var type_password);
 
 # this needs to move to the distribution
 sub init_cmd() {
+    my ($self) = @_;
+
     ## keyboard cmd vars
     %testapi::cmd = qw(
       next alt-n
@@ -68,7 +72,7 @@ sub init_cmd() {
 
 # this needs to move to the distribution
 sub x11_start_program($$$) {
-    my ($program, $timeout, $options) = @_;
+    my ($self, $program, $timeout, $options) = @_;
     send_key "alt-f2";
     assert_screen("desktop-runner", $timeout);
     type_string $program;
@@ -87,7 +91,7 @@ sub x11_start_program($$$) {
 
 # this needs to move to the distribution
 sub ensure_installed {
-    my @pkglist = @_;
+    my ($self, @pkglist) = @_;
     my $timeout;
     if ( $pkglist[-1] =~ /^[0-9]+$/ ) {
         $timeout = $pkglist[-1];
@@ -131,7 +135,18 @@ sub ensure_installed {
     wait_still_screen( 7, 90 );    # wait for install
 }
 
-# Base class for all openSUSE tests
+sub clear_and_verify_console {
+    my ($self) = @_;
+
+    send_key "ctrl-l";
+    assert_screen('cleared-console');
+
+}
+
+sub post_run_hook {
+    my ($self) = @_;
+    # overloaded in x11 and console
+}
 
 1;
 # vim: set sw=4 et:

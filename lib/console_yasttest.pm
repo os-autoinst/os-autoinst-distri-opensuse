@@ -1,6 +1,6 @@
 # Base for YaST tests.  Switches to text console 2 and uploady y2logs
 
-package yaststep;
+package console_yasttest;
 use base "opensusebasetest";
 
 use testapi;
@@ -22,6 +22,12 @@ sub post_fail_hook() {
     type_string "save_y2logs $fn\n";
     upload_logs $fn;
     save_screenshot;
+}
+
+sub post_run_hook {
+    my ($self) = @_;
+
+    $self->clear_and_verify_console;
 }
 
 1;
