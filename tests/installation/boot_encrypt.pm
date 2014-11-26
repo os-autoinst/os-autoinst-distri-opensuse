@@ -5,9 +5,7 @@ use testapi;
 sub run() {
     my $self = shift;
 
-    assert_screen("encrypted-disk-password-prompt");
-    type_password();    # enter PW at boot
-    send_key "ret";
+    $self->pass_disk_encrypt_check;
 }
 
 1;
