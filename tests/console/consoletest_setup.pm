@@ -21,6 +21,7 @@ sub run() {
     assert_screen "text-login", 10;
     type_string "$username\n";
     sleep 2;
+    assert_screen "password-prompt", 10;
     type_password;
     type_string "\n";
     sleep 3;
