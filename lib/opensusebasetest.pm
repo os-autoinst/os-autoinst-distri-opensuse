@@ -143,6 +143,14 @@ sub clear_and_verify_console {
 
 }
 
+sub pass_disk_encrypt_check {
+    my ($self) = @_;
+
+    assert_screen("encrypted-disk-password-prompt");
+    type_password();    # enter PW at boot
+    send_key "ret";
+}
+
 sub post_run_hook {
     my ($self) = @_;
     # overloaded in x11 and console
