@@ -3,7 +3,7 @@ use base "basetest";
 
 # Base class for all openSUSE tests
 
-use testapi qw(send_key %cmd assert_screen check_screen check_var get_var type_password);
+use testapi qw(send_key %cmd assert_screen check_screen check_var get_var type_password type_string);
 
 # this needs to move to the distribution
 sub init_cmd() {

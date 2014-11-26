@@ -180,6 +180,18 @@ sub gnomestep_is_applicable() {
     return check_var("DESKTOP", "gnome");
 }
 
+sub need_clear_repos() {
+    return get_var("FLAVOR") =~ m/^Staging2?[\-]DVD$/ && get_var("SUSEMIRROR");
+}
+
+sub have_scc_repos() {
+    return get_var('SCC_EMAIL') && get_var('SCC_REGCODE') && (get_var('SCC_REGISTER', 'console') eq 'console');
+}
+
+sub have_addn_repos() {
+    return !get_var("NET") && !get_var("TUMBLEWEED") && !get_var("EVERGREEN") && get_var("SUSEMIRROR") && !get_var("FLAVOR") =~ m/^Staging2?[\-]DVD$/;
+}
+
 sub loadtest($) {
     my ($test) = @_;
     autotest::loadtest(get_var("CASEDIR") . "/tests/$test");
@@ -385,6 +397,17 @@ sub load_consoletests() {
         loadtest "console/hostname.pm";
         if (get_var("DESKTOP") !~ /textmode/) {
             loadtest "console/xorg_vt.pm";
+        }
+        loadtest "console/zypper_lr.pm";
+        if (need_clear_repos) {
+            loadtest "console/zypper_clear_repos.pm";
+        }
+        # have SCC repo for SLE product
+        if (have_scc_repos) {
+            loadtest "console/zypper_ar_scc.pm";
+        }
+        elsif (have_addn_repos) {
+            loadtest "console/zypper_ar.pm";
         }
         loadtest "console/zypper_ref.pm";
         loadtest "console/yast2_lan.pm";
