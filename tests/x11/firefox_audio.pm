@@ -4,7 +4,7 @@ use testapi;
 sub run() {
     my $self = shift;
     $self->start_audiocapture;
-    x11_start_program("firefox " . get_var("AUTOINSTURL") . "/data/1d5d9dD.oga");
+    x11_start_program("firefox " . autoinst_url . "/data/1d5d9dD.oga");
     sleep 3;
     $self->assert_DTMF('159D');
     assert_screen 'test-firefox_audio-1', 3;

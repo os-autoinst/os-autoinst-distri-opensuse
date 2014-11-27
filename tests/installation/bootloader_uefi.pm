@@ -100,7 +100,7 @@ sub run() {
     my $args = "";
     if ( get_var("AUTOYAST") ) {
         $args .= " ifcfg=*=dhcp ";
-        $args .= "autoyast=" . get_var("AUTOINSTURL") . "/data/" . get_var("AUTOYAST") . " ";
+        $args .= "autoyast=" . autoinst_url . "/data/" . get_var("AUTOYAST") . " ";
 
     }
     type_string $args;
