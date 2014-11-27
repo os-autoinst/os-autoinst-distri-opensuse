@@ -38,7 +38,7 @@ sub run() {
     save_screenshot;
     send_key "ctrl-l";
 
-    script_run("curl -L -v " . get_var('AUTOINSTURL') . "/data > test.data; echo \"curl-\$?\" > /dev/$serialdev");
+    script_run("curl -L -v " . autoinst_url . "/data > test.data; echo \"curl-\$?\" > /dev/$serialdev");
     wait_serial("curl-0", 10) || die 'curl failed';
     script_run " cpio -id < test.data; echo \"cpio-\$?\"> /dev/$serialdev";
     wait_serial("cpio-0", 10) || die 'cpio failed';

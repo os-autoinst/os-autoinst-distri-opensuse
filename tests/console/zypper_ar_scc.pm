@@ -34,7 +34,7 @@ sub run() {
 
     wait_serial("yast-scc-done-0") || die "yast scc failed";
     type_string "zypper lr\n";
-	assert_screen "scc-repos-listed";
+    assert_screen "scc-repos-listed";
 
     type_string "exit\n";
 }
