@@ -112,6 +112,9 @@ if ( get_var("LIVETEST") && ( get_var("LIVECD") || get_var("PROMO") ) ) {
     $testapi::password = "";
 }
 
+# this is only valid for qemu, but better hardcode it here than in all tests
+set_var("AUTOINSTURL", "http://10.0.2.2:" . (get_var("QEMUPORT")+1));
+
 check_env();
 setrandomenv if ( get_var("RANDOMENV") );
 
