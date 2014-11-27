@@ -16,9 +16,7 @@ sub run() {
     # backend_send "eject ide1-cd0";
 
     if (get_var("ENCRYPT")) {
-        assert_screen("encrypted-disk-password-prompt");
-        type_password();    # enter PW at boot
-        send_key "ret";
+        $self->pass_disk_encrypt_check;
     }
 }
 

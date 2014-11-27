@@ -99,7 +99,9 @@ sub run() {
     }
     my $args = "";
     if ( get_var("AUTOYAST") ) {
-        $args .= " ifcfg=*=dhcp autoyast=http://" . get_var("OPENQA_HOSTNAME") . "/tests/" . get_var("TEST_ID") . "/data/" . get_var("AUTOYAST") . " ";
+        $args .= " ifcfg=*=dhcp ";
+        $args .= "autoyast=" . autoinst_url . "/data/" . get_var("AUTOYAST") . " ";
+
     }
     type_string $args;
     save_screenshot;
