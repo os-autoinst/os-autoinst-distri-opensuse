@@ -16,7 +16,7 @@ sub run() {
         send_key "alt-c";    # cancel librivox certificate
     }
     $self->start_audiocapture;
-    x11_start_program("amarok -l http://" . get_var("OPENQA_HOSTNAME") . "/tests/" . get_var("TEST_ID") . "/data/1d5d9dD.oga");
+    x11_start_program("amarok -l " . get_var("AUTOINSTURL") . "/data/1d5d9dD.oga");
     assert_screen 'test-amarok-3', 10;
     $self->assert_DTMF('159D');
     send_key "ctrl-q";    # really quit (alt-f4 just backgrounds)
