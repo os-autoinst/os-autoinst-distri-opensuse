@@ -8,7 +8,7 @@ use testapi ();
 sub post_run_hook {
     my ($self) = @_;
 
-    assert_screen('generic-desktop');
+    testapi::assert_screen('generic-desktop');
 }
 
 1;
