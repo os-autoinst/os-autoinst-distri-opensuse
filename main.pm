@@ -112,6 +112,10 @@ if ( get_var("LIVETEST") && ( get_var("LIVECD") || get_var("PROMO") ) ) {
     $testapi::password = "";
 }
 
+my $distri = testapi::get_var("CASEDIR") . '/lib/susedistribution.pm';
+require $distri;
+testapi::set_distribution(susedistribution->new());
+
 check_env();
 setrandomenv if ( get_var("RANDOMENV") );
 
@@ -181,7 +185,7 @@ sub gnomestep_is_applicable() {
 }
 
 sub need_clear_repos() {
-    return get_var("FLAVOR") =~ m/^Staging2?[\-]DVD$/ && get_var("SUSEMIRROR");
+    return get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/ && get_var("SUSEMIRROR");
 }
 
 sub have_scc_repos() {
@@ -189,7 +193,7 @@ sub have_scc_repos() {
 }
 
 sub have_addn_repos() {
-    return !get_var("NET") && !get_var("TUMBLEWEED") && !get_var("EVERGREEN") && get_var("SUSEMIRROR") && !get_var("FLAVOR") =~ m/^Staging2?[\-]DVD$/;
+    return !get_var("NET") && !get_var("TUMBLEWEED") && !get_var("EVERGREEN") && get_var("SUSEMIRROR") && !get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/;
 }
 
 sub loadtest($) {
@@ -420,7 +424,7 @@ sub load_consoletests() {
             loadtest "console/yast2_bootloader.pm";
         }
         loadtest "console/sshd.pm";
-        if (!get_var("LIVETEST") && !( get_var("FLAVOR") =~ /^Staging2?[\-]DVD$/ )) {
+        if (!get_var("LIVETEST") && !( get_var("FLAVOR", '') =~ /^Staging2?[\-]DVD$/ )) {
             # in live we don't have a password for root so ssh doesn't
             # work anyways, and except staging_core image, the rest of
             # staging_* images don't need run this test case
@@ -482,7 +486,7 @@ sub load_x11tests(){
     if (get_var("MOZILLATEST")) {
         loadtest "x11/mozmill_run.pm";
     }
-    if (!( get_var("FLAVOR") =~ /^Staging2?[\-]DVD$/ || get_var("FLAVOR") eq 'Rescue-CD' )) {
+    if (!( get_var("FLAVOR", '') =~ /^Staging2?[\-]DVD$/ || get_var("FLAVOR", '') eq 'Rescue-CD' )) {
         loadtest "x11/chromium.pm";
     }
     if (bigx11step_is_applicable) {
@@ -494,13 +498,13 @@ sub load_x11tests(){
     if (gnomestep_is_applicable) {
         loadtest "x11/eog.pm";
     }
-    if (get_var("DESKTOP") =~ /kde|gnome/ && get_var("FLAVOR") ne "Server-DVD") {
+    if (get_var("DESKTOP") =~ /kde|gnome/ && get_var("FLAVOR", '') ne "Server-DVD") {
         loadtest "x11/ooffice.pm";
     }
-    if (!get_var("NICEVIDEO") && get_var("DESKTOP") =~ /kde|gnome/ && !get_var("LIVECD") && get_var("FLAVOR") ne "Server-DVD") {
+    if (!get_var("NICEVIDEO") && get_var("DESKTOP") =~ /kde|gnome/ && !get_var("LIVECD") && get_var("FLAVOR", '') ne "Server-DVD") {
         loadtest "x11/oomath.pm";
     }
-    if (!get_var("NICEVIDEO") && get_var("DESKTOP") =~ /kde|gnome/ && !get_var("LIVECD") && get_var("FLAVOR") ne "Server-DVD") {
+    if (!get_var("NICEVIDEO") && get_var("DESKTOP") =~ /kde|gnome/ && !get_var("LIVECD") && get_var("FLAVOR", '') ne "Server-DVD") {
         loadtest "x11/oocalc.pm";
     }
     if (kdestep_is_applicable) {
@@ -546,7 +550,7 @@ sub load_x11tests(){
             loadtest "x11/gimp.pm";
         }
     }
-    if (!( get_var("FLAVOR") =~ m/^Staging2?[\-]DVD$/ ) && !( get_var("FLAVOR") =~ m/^Rescue-CD$/ )) {
+    if (!( get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/ ) && !check_var("FLAVOR", 'Rescue-CD') ) {
         loadtest "x11/gnucash.pm";
     }
     loadtest "x11/shutdown.pm";

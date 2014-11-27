@@ -1,6 +1,7 @@
 use strict;
 use base "y2logsstep";
 use testapi;
+use bmwqemu ();
 
 sub run() {
     my $self = shift;
