@@ -145,7 +145,7 @@ $needle::cleanuphandler = \&cleanup_needles;
 bmwqemu::save_vars(); # update variables
 
 # dump other important ENV:
-logcurrentenv(qw"ADDONURL BIGTEST BTRFS DESKTOP HW HWSLOT LIVETEST LVM MOZILLATEST NOINSTALL REBOOTAFTERINSTALL UPGRADE USBBOOT TUMBLEWEED ZDUP ZDUPREPOS TEXTMODE DISTRI NOAUTOLOGIN QEMUCPU QEMUCPUS RAIDLEVEL ENCRYPT INSTLANG QEMUVGA DOCRUN UEFI DVD GNOME KDE ISO ISO_MAXSIZE LIVECD NETBOOT NICEVIDEO NOIMAGES PROMO QEMUVGA SPLITUSR VIDEOMODE");
+logcurrentenv(qw"ADDONURL BIGTEST BTRFS DESKTOP HW HWSLOT LIVETEST LVM MOZILLATEST NOINSTALL REBOOTAFTERINSTALL UPGRADE USBBOOT ZDUP ZDUPREPOS TEXTMODE DISTRI NOAUTOLOGIN QEMUCPU QEMUCPUS RAIDLEVEL ENCRYPT INSTLANG QEMUVGA DOCRUN UEFI DVD GNOME KDE ISO ISO_MAXSIZE LIVECD NETBOOT NICEVIDEO NOIMAGES PROMO QEMUVGA SPLITUSR VIDEOMODE");
 
 
 sub xfcestep_is_applicable() {
@@ -188,12 +188,8 @@ sub need_clear_repos() {
     return get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/ && get_var("SUSEMIRROR");
 }
 
-sub have_scc_repos() {
-    return get_var('SCC_EMAIL') && get_var('SCC_REGCODE') && (get_var('SCC_REGISTER', 'console') eq 'console');
-}
-
 sub have_addn_repos() {
-    return !get_var("NET") && !get_var("TUMBLEWEED") && !get_var("EVERGREEN") && get_var("SUSEMIRROR") && !get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/;
+    return !get_var("NET") && !get_var("EVERGREEN") && get_var("SUSEMIRROR") && !get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/;
 }
 
 sub loadtest($) {
@@ -406,11 +402,7 @@ sub load_consoletests() {
         if (need_clear_repos) {
             loadtest "console/zypper_clear_repos.pm";
         }
-        # have SCC repo for SLE product
-        if (have_scc_repos) {
-            loadtest "console/zypper_ar_scc.pm";
-        }
-        elsif (have_addn_repos) {
+        if (have_addn_repos) {
             loadtest "console/zypper_ar.pm";
         }
         loadtest "console/zypper_ref.pm";
