@@ -5,7 +5,7 @@ use testapi;
 # have various useful general info included in videos
 sub run() {
     my $self = shift;
-    script_sudo("~/data/textinfo 2>&1 | tee ~/info.txt");
+    script_sudo("/home/$username/data/textinfo 2>&1 | tee /home/$username/info.txt");
     wait_serial('textinfo_done', 35) || die "textinfo test failed";
     upload_logs("info.txt");
     upload_logs("/tmp/logs.tar.bz2");

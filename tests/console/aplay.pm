@@ -3,7 +3,7 @@ use testapi;
 
 sub run() {
     my $self = shift;
-    script_sudo("~/data/install alsa-utils");
+    script_sudo("/home/$username/data/install alsa-utils");
     wait_serial("zypper-0") || die;
     script_run('clear');
     script_run('set_default_volume -f');

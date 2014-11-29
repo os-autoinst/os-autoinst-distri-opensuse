@@ -3,7 +3,7 @@ use base 'distribution';
 
 # Base class for all openSUSE tests
 
-use testapi qw(send_key %cmd assert_screen check_screen check_var get_var type_password type_string wait_idle);
+use testapi qw(send_key %cmd assert_screen check_screen check_var get_var type_password type_string wait_idle wait_serial);
 
 sub init() {
     my ($self) = @_;
@@ -145,21 +145,22 @@ sub ensure_installed {
 sub script_sudo($$) {
     my ($self, $prog, $wait) = @_;
 
-    type_string "sudo $prog\n";
-    if ( check_screen "sudo-passwordprompt", 3 ) {
-        type_password;
-        send_key "ret";
-    }
-    wait_idle($wait);
+    send_key 'ctrl-l';
+    type_string "su -c '$prog'\n";
+    assert_screen 'password-prompt';
+    type_password;
+    send_key "ret";
+    wait_idle $wait;
 }
 
 sub become_root() {
     my ($self) = @_;
 
-    testapi::script_sudo( "bash", 0 );    # become root
-    testapi::script_run("echo 'imroot' > /dev/$testapi::serialdev");
-    testapi::wait_serial( "imroot", 5 ) || die "Root prompt not there";
-    testapi::script_run("cd /tmp");
+    $self->script_sudo('bash', 1);
+    type_string "whoami > /dev/$testapi::serialdev\n";
+    wait_serial( "root", 2 ) || die "Root prompt not there";
+    type_string "cd /tmp\n";
+    send_key('ctrl-l');
 }
 
 1;
