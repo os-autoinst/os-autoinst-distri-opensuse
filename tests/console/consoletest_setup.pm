@@ -28,9 +28,9 @@ sub run() {
     type_string "PS1=\$\n";    # set constant shell promt
     sleep 1;
 
-    become_root;
-    script_run "chown $username /dev/$serialdev";
+    script_sudo "chown $username /dev/$serialdev";
 
+    become_root;
     script_run "systemctl mask packagekit.service";
     script_run "systemctl stop packagekit.service";
     script_run "exit";
