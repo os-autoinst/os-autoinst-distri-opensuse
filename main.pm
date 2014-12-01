@@ -157,7 +157,7 @@ sub rescuecdstep_is_applicable() {
 }
 
 sub consolestep_is_applicable() {
-    return !get_var("INSTALLONLY") && !get_var("NICEVIDEO") && !get_var("DUALBOOT") && !get_var("RESCUECD") && !get_var("RESCUESYSTEM");
+    return !get_var("INSTALLONLY") && !get_var("NICEVIDEO") && !get_var("DUALBOOT") && !get_var("RESCUECD");
 }
 
 sub kdestep_is_applicable() {
@@ -165,7 +165,7 @@ sub kdestep_is_applicable() {
 }
 
 sub installzdupstep_is_applicable() {
-    return !get_var("NOINSTALL") && !get_var("RESCUECD") && !get_var("RESCUESYSTEM") && get_var("ZDUP");
+    return !get_var("NOINSTALL") && !get_var("RESCUECD") && get_var("ZDUP");
 }
 
 sub noupdatestep_is_applicable() {
@@ -177,7 +177,7 @@ sub bigx11step_is_applicable() {
 }
 
 sub installyaststep_is_applicable() {
-    return !get_var("NOINSTALL") && !get_var("RESCUECD") && !get_var("RESCUESYSTEM") && !get_var("ZDUP");
+    return !get_var("NOINSTALL") && !get_var("RESCUECD") && !get_var("ZDUP");
 }
 
 sub gnomestep_is_applicable() {
@@ -273,16 +273,13 @@ sub load_boot_tests(){
     elsif (get_var("UEFI")) {
         loadtest "installation/bootloader_uefi.pm";
     }
-    elsif (get_var("RESCUESYSTEM")) {
-        loadtest "installation/rescuesystem.pm";
-    }
     else {
         loadtest "installation/bootloader.pm";
     }
 }
 
 sub is_reboot_after_installation_necessary() {
-    return 0 if get_var("NICEVIDEO") || get_var("DUALBOOT") || get_var("RESCUECD") || get_var("RESCUESYSTEM") || get_var("ZDUP");
+    return 0 if get_var("NICEVIDEO") || get_var("DUALBOOT") || get_var("RESCUECD") || get_var("ZDUP");
 
     return get_var("REBOOTAFTERINSTALL") && !get_var("UPGRADE");
 }
@@ -444,7 +441,7 @@ sub load_consoletests() {
 }
 
 sub load_x11tests(){
-    return unless (!get_var("INSTALLONLY") && get_var("DESKTOP") !~ /textmode|minimalx/ && !get_var("DUALBOOT") && !get_var("RESCUECD") && !get_var("RESCUESYSTEM"));
+    return unless (!get_var("INSTALLONLY") && get_var("DESKTOP") !~ /textmode|minimalx/ && !get_var("DUALBOOT") && !get_var("RESCUECD"));
 
     if ( get_var("NOAUTOLOGIN") || get_var("XDMUSED") ) {
         loadtest "x11/x11_login.pm";
@@ -564,6 +561,9 @@ elsif (get_var("MEDIACHECK")) {
 }
 elsif (get_var("MEMTEST")) {
     loadtest "installation/memtest.pm";
+}
+elsif (get_var("RESCUESYSTEM")) {
+    loadtest "installation/rescuesystem.pm";
 }
 else {
     load_boot_tests();
