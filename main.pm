@@ -285,22 +285,20 @@ sub is_reboot_after_installation_necessary() {
 }
 
 sub load_inst_tests() {
-    if (!get_var("AUTOYAST")) {
-        loadtest "installation/welcome.pm";
-    }
-    if (noupdatestep_is_applicable && !get_var("LIVECD") && !get_var("AUTOYAST")) {
+    loadtest "installation/welcome.pm";
+    if (noupdatestep_is_applicable && !get_var("LIVECD")) {
         loadtest "installation/installation_mode.pm";
     }
     if (!get_var("LIVECD") && get_var("UPGRADE")) {
         loadtest "installation/upgrade_select.pm";
     }
-    if (!get_var("LIVECD") && get_var("ADDONURL") && !get_var("AUTOYAST")) {
+    if (!get_var("LIVECD") && get_var("ADDONURL")) {
         loadtest "installation/addon_products.pm";
     }
     if (noupdatestep_is_applicable && get_var("LIVECD")) {
         loadtest "installation/livecd_installer_timezone.pm";
     }
-    if (noupdatestep_is_applicable && !get_var("AUTOYAST")) {
+    if (noupdatestep_is_applicable) {
         loadtest "installation/partitioning.pm";
         if ( defined( get_var("RAIDLEVEL") ) ) {
             loadtest "installation/partitioning_raid.pm";
@@ -322,22 +320,22 @@ sub load_inst_tests() {
         }
         loadtest "installation/partitioning_finish.pm";
     }
-    if (noupdatestep_is_applicable && !get_var("LIVECD") && !get_var("AUTOYAST")) {
+    if (noupdatestep_is_applicable && !get_var("LIVECD")) {
         loadtest "installation/installer_timezone.pm";
     }
-    if (noupdatestep_is_applicable && !get_var("LIVECD") && !get_var("NICEVIDEO") && !get_var("AUTOYAST")) {
+    if (noupdatestep_is_applicable && !get_var("LIVECD") && !get_var("NICEVIDEO")) {
         loadtest "installation/logpackages.pm";
     }
-    if (noupdatestep_is_applicable && !get_var("LIVECD") && !get_var("AUTOYAST")) {
+    if (noupdatestep_is_applicable && !get_var("LIVECD")) {
         loadtest "installation/installer_desktopselection.pm";
     }
-    if (noupdatestep_is_applicable && !get_var("AUTOYAST")) {
+    if (noupdatestep_is_applicable) {
         loadtest "installation/user_settings.pm";
         if ( get_var("DOCRUN") ) {    # root user
             loadtest "installation/user_settings_root.pm";
         }
     }
-    if (noupdatestep_is_applicable && !get_var("AUTOYAST")) {
+    if (noupdatestep_is_applicable) {
         loadtest "installation/installation_overview.pm";
     }
     if (get_var("UEFI") && get_var("SECUREBOOT")) {
@@ -346,12 +344,10 @@ sub load_inst_tests() {
     if (installyaststep_is_applicable) {
         loadtest "installation/start_install.pm";
     }
-    if (get_var("AUTOYAST")) {
-        loadtest "installation/autoyast_reboot.pm";
-    }
-    else {
-        loadtest "installation/livecdreboot.pm";
-    }
+    loadtest "installation/livecdreboot.pm";
+}
+
+sub load_reboot_tests() {
     if (get_var("ENCRYPT")) {
         loadtest "installation/boot_encrypt.pm";
     }
@@ -552,6 +548,7 @@ if ( get_var("REGRESSION") ) {
     }
     else {
         load_inst_tests();
+        load_reboot_tests();
     }
 
     load_x11regresion_tests();
@@ -570,8 +567,15 @@ else {
     if (get_var("LIVETEST")) {
         loadtest "installation/finish_desktop.pm";
     }
+    elsif (get_var("AUTOYAST")) {
+        # autoyast is very easy
+        loadtest "installation/start_install.pm";
+        loadtest "installation/autoyast_reboot.pm";
+        load_reboot_tests();
+    }
     else {
         load_inst_tests();
+        load_reboot_tests();
     }
     load_rescuecd_tests();
     load_zdup_tests();
