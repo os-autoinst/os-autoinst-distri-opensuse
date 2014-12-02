@@ -295,10 +295,12 @@ sub load_inst_tests() {
     if (!get_var('LIVECD') && get_var('UPGRADE') ) {
         loadtest "installation/upgrade_select.pm";
     }
-    if (!get_var('LIVECD')) {
-        loadtest "installation/scc_registration.pm";
-        loadtest "installation/addon_products_sle.pm";
+    loadtest "installation/check_medium.pm";
+    loadtest "installation/installation_mode.pm";
+    if (get_var("ADDONURL")) {
+      loadtest "installation/addon_products.pm";
     }
+    loadtest "installation/server_base_scenario.pm";
     if (noupdatestep_is_applicable && get_var("LIVECD")) {
         loadtest "installation/livecd_installer_timezone.pm";
     }
