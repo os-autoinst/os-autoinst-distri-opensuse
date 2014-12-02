@@ -159,7 +159,7 @@ sub rescuecdstep_is_applicable() {
 }
 
 sub consolestep_is_applicable() {
-    return !get_var("INSTALLONLY") && !get_var("NICEVIDEO") && !get_var("DUALBOOT") && !get_var("RESCUECD") && !get_var("RESCUESYSTEM");
+    return !get_var("INSTALLONLY") && !get_var("NICEVIDEO") && !get_var("DUALBOOT") && !get_var("RESCUECD");
 }
 
 sub kdestep_is_applicable() {
@@ -167,7 +167,7 @@ sub kdestep_is_applicable() {
 }
 
 sub installzdupstep_is_applicable() {
-    return !get_var("NOINSTALL") && !get_var("RESCUECD") && !get_var("RESCUESYSTEM") && get_var("ZDUP");
+    return !get_var("NOINSTALL") && !get_var("RESCUECD") && get_var("ZDUP");
 }
 
 sub noupdatestep_is_applicable() {
@@ -179,7 +179,7 @@ sub bigx11step_is_applicable() {
 }
 
 sub installyaststep_is_applicable() {
-    return !get_var("NOINSTALL") && !get_var("RESCUECD") && !get_var("RESCUESYSTEM") && !get_var("ZDUP");
+    return !get_var("NOINSTALL") && !get_var("RESCUECD") && !get_var("ZDUP");
 }
 
 sub gnomestep_is_applicable() {
@@ -279,35 +279,30 @@ sub load_boot_tests(){
     elsif (get_var("UEFI")) {
         loadtest "installation/bootloader_uefi.pm";
     }
-    elsif (get_var("RESCUESYSTEM")) {
-        loadtest "installation/rescuesystem.pm";
-    }
     else {
         loadtest "installation/bootloader.pm";
     }
 }
 
 sub is_reboot_after_installation_necessary() {
-    return 0 if get_var("NICEVIDEO") || get_var("DUALBOOT") || get_var("RESCUECD") || get_var("RESCUESYSTEM") || get_var("ZDUP");
+    return 0 if get_var("NICEVIDEO") || get_var("DUALBOOT") || get_var("RESCUECD") || get_var("ZDUP");
 
     return get_var("REBOOTAFTERINSTALL") && !get_var("UPGRADE");
 }
 
 sub load_inst_tests() {
-    if (!get_var("AUTOYAST")) {
-        loadtest "installation/welcome.pm";
-    }
+    loadtest "installation/welcome.pm";
     if (!get_var('LIVECD') && get_var('UPGRADE') ) {
         loadtest "installation/upgrade_select.pm";
     }
-    if (!get_var('LIVECD') && !get_var('AUTOYAST')) {
+    if (!get_var('LIVECD')) {
         loadtest "installation/scc_registration.pm";
         loadtest "installation/addon_products_sle.pm";
     }
     if (noupdatestep_is_applicable && get_var("LIVECD")) {
         loadtest "installation/livecd_installer_timezone.pm";
     }
-    if (noupdatestep_is_applicable && !get_var("AUTOYAST")) {
+    if (noupdatestep_is_applicable) {
         loadtest "installation/partitioning.pm";
         if ( defined( get_var("RAIDLEVEL") ) ) {
             loadtest "installation/partitioning_raid.pm";
@@ -329,17 +324,17 @@ sub load_inst_tests() {
         }
         loadtest "installation/partitioning_finish.pm";
     }
-    if (noupdatestep_is_applicable && !get_var("LIVECD") && !get_var("AUTOYAST")) {
+    if (noupdatestep_is_applicable && !get_var("LIVECD")) {
         loadtest "installation/installer_timezone.pm";
     }
-    if (noupdatestep_is_applicable && !get_var("LIVECD") && !get_var("NICEVIDEO") && !get_var("AUTOYAST")) {
+    if (noupdatestep_is_applicable && !get_var("LIVECD") && !get_var("NICEVIDEO")) {
         loadtest "installation/logpackages.pm";
     }
-    if (noupdatestep_is_applicable && !get_var('AUTOYAST')) {
+    if (noupdatestep_is_applicable) {
         loadtest "installation/user_settings.pm";
         loadtest "installation/user_settings_root.pm";
     }
-    if (noupdatestep_is_applicable && !get_var("AUTOYAST")) {
+    if (noupdatestep_is_applicable) {
         loadtest "installation/installation_overview.pm";
     }
     if (get_var("UEFI") && get_var("SECUREBOOT")) {
@@ -348,12 +343,10 @@ sub load_inst_tests() {
     if (installyaststep_is_applicable) {
         loadtest "installation/start_install.pm";
     }
-    if (get_var("AUTOYAST")) {
-        loadtest "installation/autoyast_reboot.pm";
-    }
-    else {
-        loadtest "installation/livecdreboot.pm";
-    }
+    loadtest "installation/livecdreboot.pm";
+}
+
+sub load_reboot_tests() {
     if (get_var("ENCRYPT")) {
         loadtest "installation/boot_encrypt.pm";
     }
@@ -441,7 +434,7 @@ sub load_consoletests() {
 }
 
 sub load_x11tests(){
-    return unless (!get_var("INSTALLONLY") && get_var("DESKTOP") !~ /textmode|minimalx/ && !get_var("DUALBOOT") && !get_var("RESCUECD") && !get_var("RESCUESYSTEM"));
+    return unless (!get_var("INSTALLONLY") && get_var("DESKTOP") !~ /textmode|minimalx/ && !get_var("DUALBOOT") && !get_var("RESCUECD"));
 
     if ( get_var("XDMUSED") ) {
         loadtest "x11/x11_login.pm";
@@ -500,6 +493,7 @@ sub load_x11tests(){
     }
     if (xfcestep_is_applicable) {
         loadtest "x11/thunar.pm";
+        loadtest "x11/reboot_xfce_pre.pm";
     }
     if (bigx11step_is_applicable && !get_var("NICEVIDEO")) {
         loadtest "x11/glxgears.pm";
@@ -507,10 +501,12 @@ sub load_x11tests(){
     if (kdestep_is_applicable) {
         loadtest "x11/amarok.pm";
         loadtest "x11/kontact.pm";
+        loadtest "x11/reboot_kde_pre.pm";
     }
     if (gnomestep_is_applicable) {
         loadtest "x11/nautilus.pm" unless get_var("LIVECD");
         loadtest "x11/evolution.pm" unless (check_var("FLAVOR", "Server-DVD"));
+        loadtest "x11/reboot_gnome_pre.pm";
     }
     if (!get_var("LIVETEST")) {
         loadtest "x11/reboot.pm";
@@ -535,6 +531,7 @@ if ( get_var("REGRESSION") ) {
     }
     else {
         load_inst_tests();
+        load_reboot_tests();
     }
 
     load_x11regresion_tests();
@@ -545,13 +542,23 @@ elsif (get_var("MEDIACHECK")) {
 elsif (get_var("MEMTEST")) {
     loadtest "installation/memtest.pm";
 }
+elsif (get_var("RESCUESYSTEM")) {
+    loadtest "installation/rescuesystem.pm";
+}
 else {
     load_boot_tests();
     if (get_var("LIVETEST")) {
         loadtest "installation/finish_desktop.pm";
     }
+    elsif (get_var("AUTOYAST")) {
+        # autoyast is very easy
+        loadtest "installation/start_install.pm";
+        loadtest "installation/autoyast_reboot.pm";
+        load_reboot_tests();
+    }
     else {
         load_inst_tests();
+        load_reboot_tests();
     }
     load_rescuecd_tests();
     load_zdup_tests();

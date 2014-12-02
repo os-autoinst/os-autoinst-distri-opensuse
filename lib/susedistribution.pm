@@ -81,6 +81,7 @@ sub init_cmd() {
 sub x11_start_program($$$) {
     my ($self, $program, $timeout, $options) = @_;
     send_key "alt-f2";
+    mouse_hide(1);
     assert_screen("desktop-runner", $timeout);
     type_string $program;
     if ( $options->{terminal} ) { send_key "alt-t"; sleep 3; }
