@@ -300,42 +300,21 @@ sub load_inst_tests() {
     if (get_var("ADDONURL")) {
       loadtest "installation/addon_products.pm";
     }
-    loadtest "installation/server_base_scenario.pm";
-    if (noupdatestep_is_applicable && get_var("LIVECD")) {
-        loadtest "installation/livecd_installer_timezone.pm";
-    }
     if (noupdatestep_is_applicable) {
-        loadtest "installation/partitioning.pm";
-        if ( defined( get_var("RAIDLEVEL") ) ) {
-            loadtest "installation/partitioning_raid.pm";
-        }
-        elsif ( get_var("LVM") ) {
-            loadtest "installation/partitioning_lvm.pm";
-        }
-        if ( get_var("BTRFS") ) {
-            loadtest "installation/partitioning_btrfs.pm";
-        }
-        elsif ( get_var("EXT4") ) {
-            loadtest "installation/partitioning_ext4.pm";
-        }
-        if ( get_var("TOGGLEHOME") ) {
-            loadtest "installation/partitioning_togglehome.pm";
-        }
-        if ( get_var("SPLITUSR") ) {
-            loadtest "installation/partitioning_splitusr.pm";
-        }
-        loadtest "installation/partitioning_finish.pm";
-    }
-    if (noupdatestep_is_applicable && !get_var("LIVECD")) {
         loadtest "installation/installer_timezone.pm";
     }
+
+    loadtest "installation/server_base_scenario.pm";
+
+    #loadtest "tests/installation/partitioning_sle11.pm";
+
     if (noupdatestep_is_applicable && !get_var("LIVECD") && !get_var("NICEVIDEO")) {
         loadtest "installation/logpackages.pm";
     }
-    if (noupdatestep_is_applicable) {
-        loadtest "installation/user_settings.pm";
-        loadtest "installation/user_settings_root.pm";
-    }
+ #   if (noupdatestep_is_applicable) {
+ #       loadtest "installation/user_settings.pm";
+ #       loadtest "installation/user_settings_root.pm";
+ #   }
     if (noupdatestep_is_applicable) {
         loadtest "installation/installation_overview.pm";
     }
