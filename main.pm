@@ -503,6 +503,7 @@ sub load_x11tests(){
     }
     if (xfcestep_is_applicable) {
         loadtest "x11/thunar.pm";
+        loadtest "x11/reboot_xfce_pre.pm";
     }
     if (bigx11step_is_applicable && !get_var("NICEVIDEO")) {
         loadtest "x11/glxgears.pm";
@@ -510,11 +511,13 @@ sub load_x11tests(){
     if (kdestep_is_applicable) {
         loadtest "x11/amarok.pm";
         loadtest "x11/kontact.pm";
+        loadtest "x11/reboot_kde_pre.pm";
     }
     if (gnomestep_is_applicable) {
         loadtest "x11/nautilus.pm" unless get_var("LIVECD");
         loadtest "x11/gnome_music.pm";
         loadtest "x11/evolution.pm" unless (check_var("FLAVOR", "Server-DVD"));
+        loadtest "x11/reboot_gnome_pre.pm";
     }
     if (!get_var("LIVETEST")) {
         loadtest "x11/reboot.pm";
