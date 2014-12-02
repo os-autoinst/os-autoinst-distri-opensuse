@@ -13,6 +13,7 @@ sub run() {
         send_key "ctrl-esc";                      # open menu
         sleep 1;
         send_key "up";                            # go into Applications submenu
+        mouse_hide(1);
     }
     else {
         send_key "alt-f1";                        # open main menu
