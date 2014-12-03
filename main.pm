@@ -331,6 +331,9 @@ sub load_inst_tests() {
     loadtest "installation/sle11_service.pm";
     loadtest "installation/sle11_user_authentication_method.pm";
     loadtest "installation/user_settings.pm";
+    loadtest "installation/sle11_releasenotes.pm";
+    loadtest "installation/sle11_hardware_config.pm";
+    loadtest "installation/sle11_install_finish.pm";
 }
 
 sub load_reboot_tests() {
