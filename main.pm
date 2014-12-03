@@ -132,6 +132,8 @@ unless ( get_var("DESKTOP") ) {
 set_var('NOAUTOLOGIN', 1);
 set_var('HASLICENSE', 1);
 
+set_var('OLD_IFCONFIG', 1);
+
 if ( check_var( 'DESKTOP', 'minimalx' ) ) {
     set_var("XDMUSED", 1);
 }
@@ -325,6 +327,9 @@ sub load_inst_tests() {
         loadtest "installation/start_install.pm";
     }
     loadtest "installation/livecdreboot.pm";
+ 
+    # 2nd stage
+    loadtest "installation/user_settings_root.pm";
 }
 
 sub load_reboot_tests() {
