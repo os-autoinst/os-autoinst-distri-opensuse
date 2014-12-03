@@ -8,7 +8,7 @@ sub use_wicked() {
 }
 
 sub use_ifconfig() {
-     type_string "dhcpcd eth0\n";
+    type_string "dhcpcd eth0\n";
 }
 
 sub post_fail_hook() {

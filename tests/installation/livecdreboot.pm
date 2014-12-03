@@ -41,7 +41,8 @@ sub run() {
 
         # LiveCD needs confirmation for reboot
         send_key $cmd{"rebootnow"};
-    } else {
+    }
+    else {
         send_key 'ret';
     }
 
@@ -83,7 +84,7 @@ sub run() {
         $ret = check_screen [qw(grub2 second-stage)], 3;
         if ( defined($ret) ) {
             if ($ret->{needle}->has_tag('grub2')) {
-              send_key "ret";    # avoid timeout for booting to HDD
+                send_key "ret";    # avoid timeout for booting to HDD
             }
             last;
         }
