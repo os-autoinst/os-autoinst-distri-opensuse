@@ -2,6 +2,15 @@ package y2logsstep;
 use base "installbasetest";
 use testapi;
 
+sub use_wicked() {
+    type_string "cd /proc/sys/net/ipv4/conf\n";
+    type_string "for i in *[0-9]; do echo BOOTPROTO=dhcp > /etc/sysconfig/network/ifcfg-\$i; wicked --debug all ifup \$i; done\n";
+}
+
+sub use_ifconfig() {
+     type_string "dhcpcd eth0\n";
+}
+
 sub post_fail_hook() {
     my $self = shift;
     my @tags = qw/yast-still-running linuxrc-install-fail linuxrc-repo-not-found/;
@@ -20,9 +29,13 @@ sub post_fail_hook() {
     elsif ($ret) {
         send_key "ctrl-alt-f2";
         assert_screen "inst-console";
-        if ( !$bmwqemu::vars{NET} ) {
-            type_string "cd /proc/sys/net/ipv4/conf\n";
-            type_string "for i in *[0-9]; do echo BOOTPROTO=dhcp > /etc/sysconfig/network/ifcfg-\$i; wicked --debug all ifup \$i; done\n";
+        if ( !get_var('NET') ) {
+            if ( get_var('OLD_IFCONFIG') ) {
+                use_ifconfig;
+            }
+            else  {
+                use_wicked;
+            }
             type_string "ifconfig -a\n";
             type_string "cat /etc/resolv.conf\n";
         }
