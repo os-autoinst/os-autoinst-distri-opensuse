@@ -300,7 +300,7 @@ sub load_inst_tests() {
     loadtest "installation/check_medium.pm";
     loadtest "installation/installation_mode.pm";
     if (get_var("ADDONURL")) {
-      loadtest "installation/addon_products.pm";
+        loadtest "installation/addon_products.pm";
     }
     if (noupdatestep_is_applicable) {
         loadtest "installation/installer_timezone.pm";
@@ -313,10 +313,6 @@ sub load_inst_tests() {
     if (noupdatestep_is_applicable && !get_var("LIVECD") && !get_var("NICEVIDEO")) {
         loadtest "installation/logpackages.pm";
     }
- #   if (noupdatestep_is_applicable) {
- #       loadtest "installation/user_settings.pm";
- #       loadtest "installation/user_settings_root.pm";
- #   }
     if (noupdatestep_is_applicable) {
         loadtest "installation/installation_overview.pm";
     }
@@ -327,9 +323,14 @@ sub load_inst_tests() {
         loadtest "installation/start_install.pm";
     }
     loadtest "installation/livecdreboot.pm";
- 
+
     # 2nd stage
     loadtest "installation/user_settings_root.pm";
+    loadtest "installation/sle11_network.pm";
+    loadtest "installation/sle11_ncc.pm";
+    loadtest "installation/sle11_service.pm";
+    loadtest "installation/sle11_user_authentication_method.pm";
+    loadtest "installation/user_settings.pm";
 }
 
 sub load_reboot_tests() {
