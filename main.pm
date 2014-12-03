@@ -133,6 +133,7 @@ set_var('NOAUTOLOGIN', 1);
 set_var('HASLICENSE', 1);
 
 set_var('OLD_IFCONFIG', 1);
+set_var('DM_NEEDS_USERNAME', 1);
 
 if ( check_var( 'DESKTOP', 'minimalx' ) ) {
     set_var("XDMUSED", 1);
@@ -143,11 +144,6 @@ set_var("DEFAULT_WALLPAPER", 'SLEdefault');
 
 # set KDE and GNOME, ...
 set_var(uc(get_var('DESKTOP')), 1);
-
-# for GNOME pressing enter is enough to login bernhard
-if ( check_var( 'DESKTOP', 'minimalx' ) ) {
-   set_var('DM_NEEDS_USERNAME', 1);
-}
 
 $needle::cleanuphandler = \&cleanup_needles;
 
