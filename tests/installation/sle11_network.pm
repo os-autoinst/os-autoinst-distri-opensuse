@@ -21,7 +21,8 @@ sub run(){
     assert_screen 'test-internet-connection', 30;
     send_key $cmd{next};
 
-    assert_screen 'internet-is-fine', 30;
+    # release notes download can take a while
+    assert_screen 'internet-is-fine', 90;
     send_key $cmd{next};
 }
 
