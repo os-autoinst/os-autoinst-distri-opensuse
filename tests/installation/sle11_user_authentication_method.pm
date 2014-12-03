@@ -5,7 +5,7 @@ use testapi;
 sub run(){
     my $self=shift;
 
-    check_screen 'user-authentification-method', 10;
+    assert_screen 'user-authentification-method', 10;
     send_key $cmd{next};
 }
 

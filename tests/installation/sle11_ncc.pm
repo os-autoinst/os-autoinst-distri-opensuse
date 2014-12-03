@@ -5,7 +5,7 @@ use testapi;
 sub run(){
     my $self=shift;
 
-    check_screen 'novell-customer-center', 10;
+    assert_screen 'novell-customer-center', 10;
 
     # configure later
     send_key "alt-c";
