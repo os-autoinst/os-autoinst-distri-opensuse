@@ -9,8 +9,7 @@ sub run() {
 
     if ( get_var("NOAUTOLOGIN") ) {
         assert_screen 'displaymanager', 200;
-        # for GNOME pressing enter is enough to login bernhard
-        if ( check_var( 'DESKTOP', 'minimalx' ) ) {
+        if ( get_var( 'DM_NEEDS_USERNAME' ) ) {
             type_string $username;
         }
         send_key "ret";
