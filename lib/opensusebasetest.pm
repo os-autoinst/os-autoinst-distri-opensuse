@@ -26,5 +26,41 @@ sub post_run_hook {
     # overloaded in x11 and console
 }
 
+sub registering_scc {
+    my ($self) = @_;
+
+    send_key "alt-e";    # select email field
+    type_string get_var("SCC_EMAIL");
+    send_key "tab";
+    type_string get_var("SCC_REGCODE");
+    send_key $cmd{"next"}, 1;
+    my @tags = qw/local-registration-servers registration-online-repos import-untrusted-gpg-key/;
+    while ( my $ret = check_screen(\@tags, 60 )) {
+        if ($ret->{needle}->has_tag("local-registration-servers")) {
+            send_key $cmd{ok};
+            @tags = grep { $_ ne 'local-registration-servers' } @tags;
+            next;
+        }
+        elsif ($ret->{needle}->has_tag("import-untrusted-gpg-key")) {
+            if (check_var("IMPORT_UNTRUSTED_KEY", 1)) {
+                send_key "alt-t", 1; # import
+            }
+            else {
+                send_key "alt-c", 1; # cancel
+            }
+            next;
+        }
+        elsif ($ret->{needle}->has_tag("registration-online-repos")) {
+            send_key "alt-y", 1; # want updates
+            @tags = grep { $_ ne 'registration-online-repos' } @tags;
+            next;
+        }
+        last;
+    }
+
+    assert_screen("module-selection");
+    send_key $cmd{"next"}, 1;
+}
+
 1;
 # vim: set sw=4 et:
