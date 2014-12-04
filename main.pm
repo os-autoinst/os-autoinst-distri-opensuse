@@ -135,6 +135,9 @@ set_var('HASLICENSE', 1);
 set_var('OLD_IFCONFIG', 1);
 set_var('DM_NEEDS_USERNAME', 1);
 
+# now that's fun - if AUTOCONF is set, autoconf is disabled
+set_var('AUTOCONF', 1);
+
 if ( check_var( 'DESKTOP', 'minimalx' ) ) {
     set_var("XDMUSED", 1);
 }
