@@ -5,7 +5,7 @@ use testapi;
 sub run(){
     my $self=shift;
 
-    assert_screen 'hardware-config', 30;
+    assert_screen 'hardware-config', 80;
     send_key $cmd{'next'};
 }
 

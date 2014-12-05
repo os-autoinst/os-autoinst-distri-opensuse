@@ -1,7 +1,7 @@
 package opensusebasetest;
 use base 'basetest';
 
-use testapi qw(send_key assert_screen type_password);
+use testapi qw(send_key assert_screen check_screen type_string type_password get_var);
 
 # Base class for all openSUSE tests
 
