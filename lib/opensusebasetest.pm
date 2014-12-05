@@ -33,11 +33,11 @@ sub registering_scc {
     type_string get_var("SCC_EMAIL");
     send_key "tab";
     type_string get_var("SCC_REGCODE");
-    send_key $cmd{"next"}, 1;
+    send_key "alt-n", 1;
     my @tags = qw/local-registration-servers registration-online-repos import-untrusted-gpg-key/;
     while ( my $ret = check_screen(\@tags, 60 )) {
         if ($ret->{needle}->has_tag("local-registration-servers")) {
-            send_key $cmd{ok};
+            send_key "alt-o";
             @tags = grep { $_ ne 'local-registration-servers' } @tags;
             next;
         }
@@ -59,7 +59,7 @@ sub registering_scc {
     }
 
     assert_screen("module-selection");
-    send_key $cmd{"next"}, 1;
+    send_key "alt-n", 1;
 }
 
 1;
