@@ -1,4 +1,4 @@
-use base "x11test";
+use base "opensusebasetest";
 use testapi;
 
 sub run() {
