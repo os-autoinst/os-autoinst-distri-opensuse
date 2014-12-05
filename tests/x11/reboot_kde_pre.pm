@@ -32,6 +32,12 @@ sub run() {
     }
 }
 
+# override post work, we don't need to check
+# desktop screenshot at the end
+sub post_run_hook {
+    my ($self) = @_;
+}
+
 sub test_flags() {
     return { 'important' => 1 };
 }
