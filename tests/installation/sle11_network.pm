@@ -4,13 +4,16 @@ use testapi;
 
 sub run(){
     my $self=shift;
+
+    # assert to ensure screen is ready for typing before typing
+    assert_screen 'network-config-ready', 4;
+    
     # Hostname
     send_key "alt-h";
     type_string "susetest";
     send_key "tab";
     type_string "zq1.de";
 
-    # TODO: assert
     assert_screen 'hostname-typed', 4;
     send_key $cmd{next};
 
@@ -21,6 +24,15 @@ sub run(){
     assert_screen 'test-internet-connection', 30;
     send_key $cmd{next};
 
+    # if a BETA run, allow server-side-errors and handle gracefully
+    if(get_var("BETA")) {
+	if ( check_screen 'server-side-error', 90 ) {
+		send_key "alt-o";
+	} elsif (check_screen 'server-side-error', 90) {
+    	mydie('Problem downloading release notes on non-beta');
+    	}	
+    }
+    
     # release notes download can take a while
     assert_screen 'internet-is-fine', 90;
     send_key $cmd{next};
