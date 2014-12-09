@@ -28,7 +28,7 @@ sub run() {
     for ( 1 .. 10 ) {
         send_key "backspace";
     }
-    type_string "4.5G";
+    type_string "5.0G";
     send_key $cmd{"next"};
     assert_screen 'partition-role', 6;
     send_key "alt-o";    # Operating System

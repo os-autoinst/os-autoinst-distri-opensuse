@@ -372,15 +372,9 @@ sub load_rescuecd_tests() {
 }
 
 sub load_zdup_tests() {
-    if (installzdupstep_is_applicable) {
-        loadtest "installation/setup_zdup.pm";
-    }
-    if (installzdupstep_is_applicable && get_var("ZDUP")) {
-        loadtest "installation/zdup.pm";
-    }
-    if (installzdupstep_is_applicable) {
-        loadtest "installation/post_zdup.pm";
-    }
+    loadtest "installation/setup_zdup.pm";
+    loadtest "installation/zdup.pm";
+    loadtest "installation/post_zdup.pm";
 }
 
 sub load_consoletests() {
@@ -556,12 +550,14 @@ else {
         loadtest "installation/autoyast_reboot.pm";
         load_reboot_tests();
     }
+    elsif (installzdupstep_is_applicable) {
+        load_zdup_tests();
+    }
     else {
         load_inst_tests();
         load_reboot_tests();
     }
     load_rescuecd_tests();
-    load_zdup_tests();
     load_consoletests();
     load_x11tests();
 }
