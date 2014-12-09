@@ -62,5 +62,31 @@ sub registering_scc {
     send_key "alt-n", 1;
 }
 
+sub export_logs {
+    my $self = shift;
+
+    send_key "ctrl-alt-f2";
+    assert_screen("text-login", 10);
+    type_string "root\n";
+    sleep 2;
+    type_password;
+    type_string "\n";
+    sleep 1;
+
+    save_screenshot;
+
+    type_string "cat /home/*/.xsession-errors* > /tmp/XSE\n";
+    upload_logs "/tmp/XSE";
+    save_screenshot;
+
+    type_string "journalctl -b > /tmp/journal\n";
+    upload_logs "/tmp/journal";
+    save_screenshot;
+
+    type_string "cat /var/log/X* > /tmp/Xlogs\n";
+    upload_logs "/tmp/Xlogs";
+    save_screenshot;
+}
+
 1;
 # vim: set sw=4 et:
