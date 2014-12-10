@@ -336,6 +336,7 @@ sub load_inst_tests() {
     loadtest "installation/livecdreboot.pm";
 
     # 2nd stage
+    loadtest "installation/sle11_wait_for_2nd_stage.pm";
     loadtest "installation/user_settings_root.pm";
     loadtest "installation/sle11_network.pm";
     loadtest "installation/sle11_ncc.pm";

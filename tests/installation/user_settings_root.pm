@@ -6,10 +6,6 @@ use testapi;
 sub run() {
     my $self = shift;
 
-    # on sle11 this is the first screen of 2nd stage, so hide the mouse
-    # does not harm on other distributions either
-    mouse_hide;
-
     assert_screen "inst-rootpassword", 6;
     for ( 1 .. 2 ) {
         type_string "$password\t";
