@@ -6,7 +6,7 @@ use testapi;
 
 sub run() {
     my $self = shift;
-    assert_screen( "scc-registration", 30 );
+    assert_screen( "scc-registration", 100 );
     if (get_var("SCC_EMAIL") && get_var("SCC_REGCODE") && (!get_var("SCC_REGISTER") || get_var("SCC_REGISTER") eq 'installation')) {
         $self->registering_scc;
     }
