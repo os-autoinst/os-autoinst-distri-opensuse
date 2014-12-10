@@ -24,7 +24,7 @@ sub run() {
     	assert_screen "inst-betawarning", 5;
     	send_key "ret";
     } elsif (check_screen "inst-betawarning", 2) {
-    	mydie("beta warning found in non-beta");
+    	die "beta warning found in non-beta";
     }
 
     wait_idle;

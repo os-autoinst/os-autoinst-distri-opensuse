@@ -26,12 +26,12 @@ sub run(){
 
     # if a BETA run, allow server-side-errors and handle gracefully
     if(get_var("BETA")) {
-	if ( check_screen 'server-side-error', 90 ) {
-		send_key "alt-o";
+		if ( check_screen 'server-side-error', 90 ) {
+			send_key "alt-o";
+		} 
 	} elsif (check_screen 'server-side-error', 90) {
-    	mydie('Problem downloading release notes on non-beta');
-    	}	
-    }
+    	die "Problem downloading release notes on non-beta";
+    }	
     
     # release notes download can take a while
     assert_screen 'internet-is-fine', 90;
