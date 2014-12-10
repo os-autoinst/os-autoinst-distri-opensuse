@@ -14,17 +14,18 @@ sub run() {
     if( $ret->{needle}->has_tag("linuxrc-repo-not-found") ) {
         die "installation didn't even start!\n";
     }
-    
+
     #if ( $ret->{needle}->has_tag("inst-betawarning") ) {
     #    send_key "ret";
     #    assert_screen "inst-welcome", 5;
     #}
 
     if(get_var("BETA")) {
-    	assert_screen "inst-betawarning", 5;
-    	send_key "ret";
-    } elsif (check_screen "inst-betawarning", 2) {
-    	mydie("beta warning found in non-beta");
+        assert_screen "inst-betawarning", 5;
+        send_key "ret";
+    }
+    elsif (check_screen "inst-betawarning", 2) {
+        die "beta warning found in non-beta";
     }
 
     wait_idle;

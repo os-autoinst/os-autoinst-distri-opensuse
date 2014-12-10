@@ -152,7 +152,7 @@ set_var(uc(get_var('DESKTOP')), 1);
 
 # for GNOME pressing enter is enough to login bernhard
 if ( check_var( 'DESKTOP', 'minimalx' ) ) {
-   set_var('DM_NEEDS_USERNAME', 1);
+    set_var('DM_NEEDS_USERNAME', 1);
 }
 
 $needle::cleanuphandler = \&cleanup_needles;
