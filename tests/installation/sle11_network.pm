@@ -7,7 +7,7 @@ sub run(){
 
     # assert to ensure screen is ready for typing before typing
     assert_screen 'network-config-ready', 10;
-    
+
     # Hostname
     send_key "alt-h";
     type_string "susetest";
