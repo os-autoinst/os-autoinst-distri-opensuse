@@ -79,19 +79,9 @@ sub run() {
     # 2nd stage automatic configuration. And then ere is also
     # reboot_after_install from 800_reboot_after_install.pm
     # should assert_screen wait for all three at the same time and then have only check_screen afterwards?
-    my $ret;
-    for (my $counter = 20; $counter > 0; $counter--) {
-        $ret = check_screen [qw(grub2 second-stage)], 3;
-        if ( defined($ret) ) {
-            if ($ret->{needle}->has_tag('grub2')) {
-                send_key "ret";    # avoid timeout for booting to HDD
-            }
-            last;
-        }
-    }
-    # report the failure
-    unless ( defined($ret) ) {
-        assert_screen "grub2", 1;
+    my $ret = assert_screen [qw(grub2 second-stage)], 3;
+    if ($ret->{needle}->has_tag('grub2')) {
+       send_key "ret";    # avoid timeout for booting to HDD
     }
 }
 
