@@ -9,7 +9,7 @@ sub run() {
 
     if ( get_var("NOAUTOLOGIN") ) {
         assert_screen 'displaymanager', 200;
-        if ( get_var( 'DM_NEEDS_USERNAME' ) ) {
+        if ( get_var('DM_NEEDS_USERNAME') ) {
             type_string $username;
         }
         send_key "ret";
