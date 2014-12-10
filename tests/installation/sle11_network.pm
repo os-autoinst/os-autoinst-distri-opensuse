@@ -6,7 +6,7 @@ sub run(){
     my $self=shift;
 
     # assert to ensure screen is ready for typing before typing
-    assert_screen 'network-config-ready', 4;
+    assert_screen 'network-config-ready', 10;
     
     # Hostname
     send_key "alt-h";
@@ -26,12 +26,12 @@ sub run(){
 
     # if a BETA run, allow server-side-errors and handle gracefully
     if(get_var("BETA")) {
-	if ( check_screen 'server-side-error', 90 ) {
-		send_key "alt-o";
+		if ( check_screen 'server-side-error', 90 ) {
+			send_key "alt-o";
+		} 
 	} elsif (check_screen 'server-side-error', 90) {
-    	mydie('Problem downloading release notes on non-beta');
-    	}	
-    }
+    	die "Problem downloading release notes on non-beta";
+    }	
     
     # release notes download can take a while
     assert_screen 'internet-is-fine', 90;
