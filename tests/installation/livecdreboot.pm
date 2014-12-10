@@ -81,7 +81,7 @@ sub run() {
     # should assert_screen wait for all three at the same time and then have only check_screen afterwards?
     my $ret = assert_screen [qw(grub2 second-stage)], 60;
     if ($ret->{needle}->has_tag('grub2')) {
-       send_key "ret";    # avoid timeout for booting to HDD
+        send_key "ret";    # avoid timeout for booting to HDD
     }
 }
 

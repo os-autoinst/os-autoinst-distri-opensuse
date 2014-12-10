@@ -28,11 +28,12 @@ sub run(){
     if(get_var("BETA")) {
         if ( check_screen 'server-side-error', 90 ) {
             send_key "alt-o";
-        } elsif (check_screen 'server-side-error', 90) {
+        }
+        elsif (check_screen 'server-side-error', 90) {
             die "Problem downloading release notes on non-beta";
         }
     }
-    
+
     # release notes download can take a while
     assert_screen 'internet-is-fine', 90;
     send_key $cmd{next};
