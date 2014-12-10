@@ -6,7 +6,7 @@ sub run(){
     my $self=shift;
 
     # assert to ensure screen is ready for typing before typing
-    assert_screen 'network-config-ready', 4;
+    assert_screen 'network-config-ready', 10;
     
     # Hostname
     send_key "alt-h";
