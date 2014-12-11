@@ -136,8 +136,8 @@ set_var('OLD_IFCONFIG', 1);
 set_var('DM_NEEDS_USERNAME', 1);
 
 if ( check_var('FLAVOR', 'Desktop-DVD') ) {
-  # now that's fun - if AUTOCONF is set, autoconf is disabled
-  set_var('AUTOCONF', 1);
+    # now that's fun - if AUTOCONF is set, autoconf is disabled
+    set_var('AUTOCONF', 1);
 }
 
 if ( check_var( 'DESKTOP', 'minimalx' ) ) {
@@ -326,6 +326,9 @@ sub load_inst_tests() {
     }
     if (noupdatestep_is_applicable) {
         loadtest "installation/installation_overview.pm";
+        if (!check_var('DESKTOP', 'gnome')) {
+            loadtest "installation/sle11_change_desktop.pm";
+        }
     }
     if (get_var("UEFI") && get_var("SECUREBOOT")) {
         loadtest "installation/secure_boot.pm";
