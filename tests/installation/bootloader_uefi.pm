@@ -5,6 +5,10 @@ use Time::HiRes qw(sleep);
 
 # hint: press shift-f10 trice for highest debug level
 sub run() {
+    if ( get_var("IPXE") ) {
+        sleep 60;
+        return;
+    }
     if (check_screen "bootloader-shim-import-prompt", 15) {
         send_key "down";
         send_key "ret";
@@ -21,15 +25,6 @@ sub run() {
         return;
     }
 
-    if ( get_var("MEDIACHECK") ) {    # special
-        # only run this one
-        for ( 1 .. 2 ) {
-            send_key "down";
-        }
-        sleep 3;
-        send_key "ret";
-        return;
-    }
     if ( get_var("LIVETEST") && get_var("PROMO") ) {
         send_key "down";    # upgrade
         if ( check_var( "DESKTOP", "gnome" ) ) {
@@ -66,13 +61,11 @@ sub run() {
         type_string "textmode=1 ";
     }
 
-    #type_string "nohz=off "; # NOHZ caused errors with 2.6.26
-    #type_string "nomodeset "; # coolo said, 12.3-MS0 kernel/kms broken with cirrus/vesa #fixed 2012-11-06
-
     type_string " \\\n"; # changed the line before typing video params
     # https://wiki.archlinux.org/index.php/Kernel_Mode_Setting#Forcing_modes_and_EDID
     type_string "vga=791 ";
-    type_string "video=1024x768-16 ";
+    type_string "Y2DEBUG=1 ";
+    type_string "video=1024x768-16 ", 13;
 
     # not needed anymore atm as cirrus has 1024 as default now:
     # https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=121a6a17439b000b9699c3fa876636db20fa4107
@@ -91,37 +84,17 @@ sub run() {
 
     #type_string "kiwidebug=1 ";
 
-    #if(get_var("BTRFS")) {sleep 9; type_string "squash=0 loadimage=0 ";sleep 21} # workaround 697671
-
-    if ( get_var("ISO") =~ m/i586/ ) {
-
-        #	type_string "info=";sleep 4; type_string "http://zq1.de/i "; sleep 15; type_string "insecure=1 "; sleep 15;
-    }
     my $args = "";
     if ( get_var("AUTOYAST") ) {
         $args .= " ifcfg=*=dhcp ";
         $args .= "autoyast=" . autoinst_url . "/data/" . get_var("AUTOYAST") . " ";
-
     }
-    type_string $args;
+    type_string $args, 13;
     save_screenshot;
 
     if (get_var("FIPS")) {
         type_string " fips=1", 13;
         save_screenshot;
-    }
-
-    if ( get_var("LIVETEST") && get_var("LIVEOBSWORKAROUND") ) {
-        send_key "1";    # runlevel 1
-        send_key "f10";  # boot
-        sleep(40);
-        type_string( "
-ls -ld /tmp
-chmod 1777 /tmp
-init 5
-exit
-" );
-
     }
 
     # boot
