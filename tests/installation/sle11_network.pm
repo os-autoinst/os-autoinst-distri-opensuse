@@ -21,7 +21,7 @@ sub run(){
     assert_screen 'network-config-done', 40; # longwait Net|DSL|Modem
     send_key $cmd{next};
 
-    assert_screen 'test-internet-connection', 30;
+    assert_screen 'test-internet-connection', 60;
     send_key $cmd{next};
 
     # if a BETA run, allow server-side-errors and handle gracefully
