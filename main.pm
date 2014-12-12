@@ -448,12 +448,8 @@ sub load_x11tests(){
         loadtest "x11/sshxterm.pm" unless get_var("LIVETEST");
     }
     if (gnomestep_is_applicable) {
-        loadtest "x11/gnome_control_center.pm";
         loadtest "x11/gnome_terminal.pm";
         loadtest "x11/gedit.pm";
-    }
-    if (kdestep_is_applicable) {
-        loadtest "x11/kate.pm";
     }
     loadtest "x11/firefox.pm";
     if (!get_var("NICEVIDEO")) {
@@ -499,8 +495,6 @@ sub load_x11tests(){
         loadtest "x11/glxgears.pm";
     }
     if (kdestep_is_applicable) {
-        loadtest "x11/amarok.pm";
-        loadtest "x11/kontact.pm";
         loadtest "x11/reboot_kde_pre.pm";
     }
     if (gnomestep_is_applicable) {
