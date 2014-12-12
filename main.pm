@@ -326,7 +326,9 @@ sub load_inst_tests() {
     }
     if (noupdatestep_is_applicable) {
         loadtest "installation/installation_overview.pm";
-        if (!check_var('DESKTOP', 'gnome')) {
+        if (get_var('PATTERNS')) {
+	    loadtest "installation/select_patterns.pm";
+        } elsif (!check_var('DESKTOP', 'gnome')) {
             loadtest "installation/sle11_change_desktop.pm";
         }
     }
