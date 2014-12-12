@@ -21,5 +21,11 @@ sub test_flags() {
     return { 'fatal' => 1, 'important' => 1 };
 }
 
+sub post_fail_hook() {
+    my $self = shift;
+
+    $self->export_logs();
+}
+
 1;
 # vim: set sw=4 et:
