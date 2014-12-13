@@ -25,7 +25,7 @@ sub run() {
     }
     assert_screen "languagepicked", 2;
     send_key $cmd{"next"};
-    if ( check_screen "langincomplete", 1  ) {
+    if ( !check_var('INSTLANG', 'en_US') && check_screen "langincomplete", 1  ) {
         send_key "alt-f";
     }
 }
