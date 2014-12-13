@@ -26,36 +26,37 @@ sub run {
 
     my %wanted_patterns;
     for my $p (split(/,/, get_var('PATTERNS'))) {
-      $wanted_patterns{$p} = 1;
+        $wanted_patterns{$p} = 1;
     }
 
     my $counter = 50;
     while (!check_screen('at-the-last-pattern', 1)) {
-      send_key 'down';
-      sleep 1; # see https://progress.opensuse.org/issues/5482
-      last unless ($counter--);
-      my $needs_to_be_selected;
-      my $ret = check_screen('on-pattern', 1);
+        send_key 'down';
+        sleep 1; # see https://progress.opensuse.org/issues/5482
+        last unless ($counter--);
+        my $needs_to_be_selected;
+        my $ret = check_screen('on-pattern', 1);
 
-      if ($ret) { # unneedled pattern
-	for my $wp (keys %wanted_patterns) {
-	  if ($ret->{needle}->has_tag("pattern-$wp")) {
-	    $needs_to_be_selected = 1;
-	  }
-	}
-      }
-      $needs_to_be_selected=1 if ($wanted_patterns{'all'});
+        if ($ret) { # unneedled pattern
+            for my $wp (keys %wanted_patterns) {
+                if ($ret->{needle}->has_tag("pattern-$wp")) {
+                    $needs_to_be_selected = 1;
+                }
+            }
+        }
+        $needs_to_be_selected=1 if ($wanted_patterns{'all'});
 
-      my $selected = check_screen([qw(current-pattern-selected on-category)], 1);
-      next if ($selected && $selected->{needle}->has_tag('on-category'));
-      
-      if ($needs_to_be_selected && !$selected) {
-	send_key ' ';
-	assert_screen 'current-pattern-selected', 2;
-      } elsif (!$needs_to_be_selected && $selected) {
-	send_key ' ';
-	assert_screen [qw(current-pattern-unselected current-pattern-autoselected)], 2;
-      }
+        my $selected = check_screen([qw(current-pattern-selected on-category)], 1);
+        next if ($selected && $selected->{needle}->has_tag('on-category'));
+
+        if ($needs_to_be_selected && !$selected) {
+            send_key ' ';
+            assert_screen 'current-pattern-selected', 2;
+        }
+        elsif (!$needs_to_be_selected && $selected) {
+            send_key ' ';
+            assert_screen [qw(current-pattern-unselected current-pattern-autoselected)], 2;
+        }
     }
 
     send_key 'alt-o';

@@ -9,6 +9,7 @@ sub run() {
     if (get_var("BETA")) {
         assert_screen "inst-betawarning", 500;
         send_key "ret";
+        assert_screen "inst-welcome", 10;
     }
     else {
         assert_screen "inst-welcome", 500;

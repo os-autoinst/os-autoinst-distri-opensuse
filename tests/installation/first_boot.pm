@@ -6,8 +6,8 @@ sub run() {
     my $self = shift;
 
     if (check_var('DESKTOP', 'textmode')) {
-      assert_screen 'linux-login', 200;
-      return;
+        assert_screen 'linux-login', 200;
+        return;
     }
 
     mouse_hide();
