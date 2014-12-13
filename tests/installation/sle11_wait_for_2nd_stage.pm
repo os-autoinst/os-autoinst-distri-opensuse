@@ -5,7 +5,7 @@ use testapi;
 sub run(){
     my $self=shift;
 
-    assert_screen "inst-rootpassword", 50;
+    assert_screen "second-stage", 50;
     mouse_hide;
 
 }
