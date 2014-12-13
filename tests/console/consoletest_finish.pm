@@ -20,6 +20,7 @@ sub run() {
 
     if ( check_var( "DESKTOP", "textmode" ) ) {
         send_key "ctrl-alt-f1";    # go back to first console
+        assert_screen 'linux-login', 10;
     }
     else {
         send_key "ctrl-alt-f7";    # go back to X11
@@ -48,9 +49,9 @@ sub run() {
             sleep 30;
         }
         mouse_hide(1);
+        wait_idle;
+        assert_screen 'generic-desktop', 3;
     }
-    wait_idle;
-    assert_screen 'generic-desktop', 3;
 }
 
 sub test_flags() {
