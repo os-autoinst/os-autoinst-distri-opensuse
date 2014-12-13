@@ -316,8 +316,13 @@ sub load_inst_tests() {
     if (noupdatestep_is_applicable) {
         loadtest "installation/installer_timezone.pm";
     }
-
-    loadtest "installation/server_base_scenario.pm";
+    if (check_var('FLAVOR', 'Server-DVD')) {
+      loadtest "installation/server_base_scenario.pm";
+    }
+    if (check_var('FLAVOR', 'Desktop-DVD')) {
+      loadtest "installation/user_settings.pm";
+      loadtest "installation/user_settings_root.pm";
+    }
 
     #loadtest "tests/installation/partitioning_sle11.pm";
 
@@ -342,12 +347,16 @@ sub load_inst_tests() {
 
     # 2nd stage
     loadtest "installation/sle11_wait_for_2nd_stage.pm";
-    loadtest "installation/user_settings_root.pm";
+    if (check_var('FLAVOR', 'Server-DVD')) {
+      loadtest "installation/user_settings_root.pm";
+    }
     loadtest "installation/sle11_network.pm";
     loadtest "installation/sle11_ncc.pm";
     loadtest "installation/sle11_service.pm";
     loadtest "installation/sle11_user_authentication_method.pm";
-    loadtest "installation/user_settings.pm";
+    if (check_var('FLAVOR', 'Server-DVD')) {
+      loadtest "installation/user_settings.pm";
+    }
     loadtest "installation/sle11_releasenotes.pm";
     loadtest "installation/sle11_hardware_config.pm";
     loadtest "installation/sle11_install_finish.pm";
