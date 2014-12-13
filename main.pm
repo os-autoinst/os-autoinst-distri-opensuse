@@ -352,9 +352,9 @@ sub load_inst_tests() {
     }
     loadtest "installation/sle11_network.pm";
     loadtest "installation/sle11_ncc.pm";
-    loadtest "installation/sle11_service.pm";
-    loadtest "installation/sle11_user_authentication_method.pm";
     if (check_var('FLAVOR', 'Server-DVD')) {
+      loadtest "installation/sle11_service.pm";
+      loadtest "installation/sle11_user_authentication_method.pm";
       loadtest "installation/user_settings.pm";
     }
     loadtest "installation/sle11_releasenotes.pm";
