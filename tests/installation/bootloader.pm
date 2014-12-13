@@ -53,14 +53,7 @@ sub run() {
         }
     }
 
-    # 1024x768
-    if ( get_var("RES1024") ) {    # default is 800x600
-        send_key "f3";
-        send_key "down";
-        assert_screen "inst-resolutiondetected";
-        send_key "ret";
-    }
-    elsif ( check_var( 'VIDEOMODE', "text" ) ) {
+    if ( check_var( 'VIDEOMODE', "text" ) ) {
         send_key "f3";
         for ( 1 .. 2 ) {
             send_key "up";
@@ -81,9 +74,10 @@ sub run() {
         type_string "console=tty ",   4;    # to get crash dumps as text
         assert_screen "inst-consolesettingstyped", 30;
         my $e = get_var("EXTRABOOTPARAMS");
-
-        #	if(get_var("RAIDLEVEL")) {$e="linuxrc=trace"}
-        if ($e) { type_string "$e ", 4; sleep 10; }
+        if ($e) {
+            type_string "$e ", 4;
+            save_screenshot;
+        }
     }
 
     # type_string "kiwidebug=1 ";
@@ -240,19 +234,6 @@ sub run() {
     }
     type_string $args, 13;
     save_screenshot;
-
-    if ( get_var("LIVETEST") && get_var("LIVEOBSWORKAROUND") ) {
-        send_key "1";      # runlevel 1
-        send_key "ret";    # boot
-        sleep(40);
-        type_string( "
-ls -ld /tmp
-chmod 1777 /tmp
-init 5
-exit
-" );
-
-    }
 
     if (get_var("FIPS")) {
         type_string " fips=1", 13;

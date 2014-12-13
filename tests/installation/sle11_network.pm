@@ -9,9 +9,13 @@ sub run(){
     assert_screen 'network-config-ready', 10;
 
     # Hostname
-    send_key "alt-h";
+    if (!check_var('DESKTOP', 'textmode')) {
+      send_key "alt-h";
+    }
+    for (1 .. 10) { send_key 'backspace'; }
     type_string "susetest";
     send_key "tab";
+    for (1 .. 10) { send_key 'backspace'; }
     type_string "zq1.de";
 
     assert_screen 'hostname-typed', 4;
@@ -21,7 +25,7 @@ sub run(){
     assert_screen 'network-config-done', 40; # longwait Net|DSL|Modem
     send_key $cmd{next};
 
-    assert_screen 'test-internet-connection', 30;
+    assert_screen 'test-internet-connection', 60;
     send_key $cmd{next};
 
     # if a BETA run, allow server-side-errors and handle gracefully
