@@ -53,7 +53,7 @@ sub run() {
     
     my $wfs = get_var('FILESYSTEM');
     
-    key_round "filesystem-$wfs", 'down';
+    key_round 'filesystem-$wfs', 'down';
 	send_key 'ret';
 	send_key 'alt+f';
 	send_key 'alt+a';
