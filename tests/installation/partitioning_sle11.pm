@@ -26,6 +26,7 @@ sub run() {
     assert_screen 'preparing-disk', 5;
     send_key 'alt-1';
     send_key $cmd{"next"};
+    send_key 'alt-h';
     send_key $cmd{"next"};
 
     assert_screen 'inst-overview', 5;
