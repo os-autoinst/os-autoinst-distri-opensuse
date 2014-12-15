@@ -2,6 +2,19 @@ use base "y2logsstep";
 use strict;
 use testapi;
 
+sub key_round($$) {
+    my ($tag, $key) = @_;
+
+    my $counter = 10;
+    while ( !check_screen( $tag, 1 ) ) {
+        send_key $key;
+        if (!$counter--) {
+            # DIE!
+            assert_screen $tag, 1;
+        }
+    }
+}
+
 sub run() {
 	my $self = shift;
 
