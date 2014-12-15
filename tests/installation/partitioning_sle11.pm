@@ -23,7 +23,8 @@ sub run() {
     send_key 'p'; # paritioning
     
     # Basic little hop through to give it a default scenario to edit
-    send_key 'alt+1';
+    send_key 'tab';
+    send_key 'space';
     send_key $cmd{"next"};
     send_key $cmd{"next"};
 
