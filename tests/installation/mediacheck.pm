@@ -13,7 +13,8 @@ sub run {
     }
     assert_screen "inst-onmediacheck", 3;
     send_key "ret";
-    assert_screen "mediacheck-ok", 300;
+    # the timeout is insane - but SLE11 DVDs take almost forever
+    assert_screen "mediacheck-ok", 1000;
     send_key "ret";
 }
 
