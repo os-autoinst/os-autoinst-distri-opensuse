@@ -66,6 +66,14 @@ sub remove_desktop_needles($) {
     }
 }
 
+sub remove_flavor_needles($) {
+    my ($flavor) = @_;
+ 
+    if ( !check_var( "FLAVOR", $flavor ) ) {
+        unregister_needle_tags("ENV-FLAVOR-$flavor");
+    }
+}
+
 sub cleanup_needles() {
     remove_desktop_needles("lxde");
     remove_desktop_needles("kde");
@@ -73,6 +81,10 @@ sub cleanup_needles() {
     remove_desktop_needles("xfce");
     remove_desktop_needles("minimalx");
     remove_desktop_needles("textmode");
+
+    remove_flavor_needles('Server-DVD');
+    remove_flavor_needles('Desktop-DVD');
+    remove_flavor_needles('Core-DVD');
 
     if ( !get_var("LIVECD") ) {
         unregister_needle_tags("ENV-LIVECD-1");
