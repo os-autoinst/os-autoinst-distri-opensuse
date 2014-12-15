@@ -23,8 +23,7 @@ sub run() {
     send_key 'p'; # paritioning
     
     # Basic little hop through to give it a default scenario to edit
-    send_key 'tab';
-    send_key ' ';
+    send_key 'alt-1';
     send_key $cmd{"next"};
     send_key $cmd{"next"};
 
@@ -33,7 +32,7 @@ sub run() {
     send_key 'p'; # paritioning
     
 
-    send_key 'alt+c';
+    send_key 'alt-c';
     send_key $cmd{"next"};
 
     assert_screen 'expert-partitioning', 5;
@@ -47,7 +46,7 @@ sub run() {
     send_key 'down'; #should be swap
     send_key 'down'; #should be root partition
     
-    send_key 'alt+s'; #goto filesystem list
+    send_key 'alt-s'; #goto filesystem list
     send_key ' '; #open filesystem list
     send_key 'home'; #go to top of the list
     
