@@ -10,7 +10,7 @@ sub run(){
 
     # Hostname
     if (!check_var('DESKTOP', 'textmode')) {
-        send_key "alt-h";
+        send_key "alt-o";
     }
     for (1 .. 10) { send_key 'backspace'; }
     type_string "susetest";
