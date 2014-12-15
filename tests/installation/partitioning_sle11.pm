@@ -2,19 +2,6 @@ use base "y2logsstep";
 use strict;
 use testapi;
 
-sub key_round($$) {
-    my ($tag, $key) = @_;
-
-    my $counter = 10;
-    while ( !check_screen( $tag, 1 ) ) {
-        send_key $key;
-        if (!$counter--) {
-            # DIE!
-            assert_screen $tag, 1;
-        }
-    }
-}
-
 sub run() {
 	my $self = shift;
 
@@ -23,6 +10,7 @@ sub run() {
     send_key 'p'; # paritioning
     
     # Basic little hop through to give it a default scenario to edit
+    assert_screen 'preparing-disk', 5;
     send_key 'alt-1';
     send_key $cmd{"next"};
     send_key $cmd{"next"};
@@ -31,7 +19,7 @@ sub run() {
     send_key $cmd{change};
     send_key 'p'; # paritioning
     
-
+    assert_screen 'preparing-disk', 5;
     send_key 'alt-c';
     send_key $cmd{"next"};
 
