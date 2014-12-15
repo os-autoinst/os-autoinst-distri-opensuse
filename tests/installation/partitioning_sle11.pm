@@ -24,7 +24,7 @@ sub run() {
     
     # Basic little hop through to give it a default scenario to edit
     send_key 'tab';
-    send_key 'space';
+    send_key ' ';
     send_key $cmd{"next"};
     send_key $cmd{"next"};
 
@@ -48,7 +48,7 @@ sub run() {
     send_key 'down'; #should be root partition
     
     send_key 'alt+s'; #goto filesystem list
-    send_key 'space'; #open filesystem list
+    send_key ' '; #open filesystem list
     send_key 'home'; #go to top of the list
     
     my $wfs = get_var('FILESYSTEM');
