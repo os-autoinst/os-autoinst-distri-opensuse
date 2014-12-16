@@ -13,7 +13,7 @@ sub run() {
     assert_screen 'preparing-disk', 5;
     send_key 'alt-1';
     send_key $cmd{"next"};
-    assert_screen 'preparing-disk', 5;
+    assert_screen 'preparing-disk-installing', 5;
     send_key 'alt-u'; #to use btrfs
     send_key $cmd{"next"};
 
