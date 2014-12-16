@@ -5,7 +5,7 @@ use testapi;
 sub run() {
 	my $self = shift;
 
-    assert_screen 'inst-overview', 5;
+    assert_screen 'inst-overview', 10;
     send_key $cmd{change};
     send_key 'p'; # partitioning
     
@@ -13,13 +13,13 @@ sub run() {
     assert_screen 'preparing-disk', 5;
     send_key 'alt-1';
     send_key $cmd{"next"};
-    assert_screen 'preparing-disk', 5;
+    assert_screen 'preparing-disk-installing', 5;
     send_key 'alt-u'; #to use btrfs
     send_key $cmd{"next"};
 
 	if ( !check_var( "FILESYSTEM", "btrfs" ) ) {
 		
-		assert_screen 'inst-overview', 5;
+		assert_screen 'inst-overview', 10;
 		send_key $cmd{change};
 		send_key 'p'; # partitioning
 		assert_screen 'preparing-disk', 5;
@@ -34,7 +34,9 @@ sub run() {
 		send_key 'down'; #should be boot
 		send_key 'down'; #should be swap
 		send_key 'down'; #should be root partition
-		send_key 'alt-e'; #got to actually edit..
+		assert_screen 'on-root-partition', 5;
+		send_key 'alt-e'; #got to actually edit
+		assert_screen 'editing-root-partition', 5;
 		send_key 'alt-s'; #goto filesystem list
 		send_key ' '; #open filesystem list
 		send_key 'home'; #go to top of the list
@@ -53,7 +55,7 @@ sub run() {
 				send_key 'ret';
 				send_key 'alt-f';
 				send_key 'alt-a';
-				assert_screen('inst-overview', 5);
+				assert_screen('inst-overview', 10);
 				last;
 			}
 		}
