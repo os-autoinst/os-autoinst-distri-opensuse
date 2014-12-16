@@ -68,7 +68,7 @@ sub remove_desktop_needles($) {
 
 sub remove_flavor_needles($) {
     my ($flavor) = @_;
- 
+
     if ( !check_var( "FLAVOR", $flavor ) ) {
         unregister_needle_tags("ENV-FLAVOR-$flavor");
     }
@@ -136,7 +136,7 @@ unless ( get_var("DESKTOP") ) {
         set_var("DESKTOP", "textmode");
     }
     else {
-        set_var("DESKTOP", "kde");
+        set_var("DESKTOP", "gnome");
     }
 }
 
@@ -319,38 +319,38 @@ sub is_reboot_after_installation_necessary() {
 
 sub load_inst_tests() {
     loadtest "installation/welcome.pm";
-    if (!get_var('LIVECD') && get_var('UPGRADE') ) {
-        loadtest "installation/upgrade_select.pm";
-    }
     loadtest "installation/check_medium.pm";
     loadtest "installation/installation_mode.pm";
-    if (get_var("ADDONURL")) {
-        loadtest "installation/addon_products.pm";
-    }
-    if (noupdatestep_is_applicable) {
-        loadtest "installation/installer_timezone.pm";
-    }
-    if (check_var('FLAVOR', 'Server-DVD')) {
-      loadtest "installation/server_base_scenario.pm";
-    }
-    if (check_var('FLAVOR', 'Desktop-DVD')) {
-      loadtest "installation/user_settings.pm";
-      loadtest "installation/user_settings_root.pm";
+    if (!get_var('LIVECD') && get_var('UPGRADE') ) {
+        loadtest "installation/upgrade_select_sle11.pm";
     }
 
-    if (noupdatestep_is_applicable && !get_var("LIVECD") && !get_var("NICEVIDEO")) {
-        loadtest "installation/logpackages.pm";
-    }
-    
-    if (noupdatestep_is_applicable && get_var('FILESYSTEM')) {
-    loadtest "installation/partitioning_sle11.pm";
-    }
-    
     if (noupdatestep_is_applicable) {
+        if (get_var("ADDONURL")) {
+            loadtest "installation/addon_products.pm";
+        }
+
+        loadtest "installation/installer_timezone.pm";
+        if (check_var('FLAVOR', 'Server-DVD')) {
+            loadtest "installation/server_base_scenario.pm";
+        }
+        if (check_var('FLAVOR', 'Desktop-DVD')) {
+            loadtest "installation/user_settings.pm";
+            loadtest "installation/user_settings_root.pm";
+        }
+
+        if (!get_var("LIVECD") && !get_var("NICEVIDEO")) {
+            loadtest "installation/logpackages.pm";
+        }
+
+        if (get_var('FILESYSTEM')) {
+            loadtest "installation/partitioning_sle11.pm";
+        }
         loadtest "installation/installation_overview.pm";
         if (get_var('PATTERNS')) {
-	    loadtest "installation/select_patterns.pm";
-        } elsif (!check_var('DESKTOP', 'gnome')) {
+            loadtest "installation/select_patterns.pm";
+        }
+        elsif (!check_var('DESKTOP', 'gnome')) {
             loadtest "installation/sle11_change_desktop.pm";
         }
     }
@@ -364,18 +364,20 @@ sub load_inst_tests() {
 
     # 2nd stage
     loadtest "installation/sle11_wait_for_2nd_stage.pm";
-    if (check_var('FLAVOR', 'Server-DVD')) {
-      loadtest "installation/user_settings_root.pm";
+    if (noupdatestep_is_applicable && check_var('FLAVOR', 'Server-DVD')) {
+        loadtest "installation/user_settings_root.pm";
     }
     loadtest "installation/sle11_network.pm";
     loadtest "installation/sle11_ncc.pm";
-    if (check_var('FLAVOR', 'Server-DVD')) {
-      loadtest "installation/sle11_service.pm";
-      loadtest "installation/sle11_user_authentication_method.pm";
-      loadtest "installation/user_settings.pm";
+    if (noupdatestep_is_applicable && check_var('FLAVOR', 'Server-DVD')) {
+        loadtest "installation/sle11_service.pm";
+        loadtest "installation/sle11_user_authentication_method.pm";
+        loadtest "installation/user_settings.pm";
     }
     loadtest "installation/sle11_releasenotes.pm";
-    loadtest "installation/sle11_hardware_config.pm";
+    if (noupdatestep_is_applicable) {
+        loadtest "installation/sle11_hardware_config.pm";
+    }
     loadtest "installation/sle11_install_finish.pm";
 }
 
@@ -585,8 +587,8 @@ else {
     }
     load_rescuecd_tests();
     if (!get_var('INSTALLONLY')) {
-      load_consoletests();
-      load_x11tests();
+        load_consoletests();
+        load_x11tests();
     }
 }
 
