@@ -5,7 +5,7 @@ use testapi;
 sub run() {
 	my $self = shift;
 
-    assert_screen 'inst-overview', 5;
+    assert_screen 'inst-overview', 10;
     send_key $cmd{change};
     send_key 'p'; # partitioning
     
@@ -19,7 +19,7 @@ sub run() {
 
 	if ( !check_var( "FILESYSTEM", "btrfs" ) ) {
 		
-		assert_screen 'inst-overview', 5;
+		assert_screen 'inst-overview', 10;
 		send_key $cmd{change};
 		send_key 'p'; # partitioning
 		assert_screen 'preparing-disk', 5;
@@ -55,7 +55,7 @@ sub run() {
 				send_key 'ret';
 				send_key 'alt-f';
 				send_key 'alt-a';
-				assert_screen('inst-overview', 5);
+				assert_screen('inst-overview', 10);
 				last;
 			}
 		}
