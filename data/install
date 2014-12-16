@@ -1,8 +1,0 @@
-#!/bin/sh -xe
-
-# minimal has no packagekit so we need to ignore the error
-systemctl stop packagekit.service || :
-echo -e "\n\n\n" > /dev/ttyS0
-zypper -n in "$@"
-echo "zypper-$?" > /dev/ttyS0
-
