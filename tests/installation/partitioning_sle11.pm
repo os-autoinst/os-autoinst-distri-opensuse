@@ -34,7 +34,9 @@ sub run() {
 		send_key 'down'; #should be boot
 		send_key 'down'; #should be swap
 		send_key 'down'; #should be root partition
-		send_key 'alt-e'; #got to actually edit..
+		assert_screen 'on-root-partition', 5;
+		send_key 'alt-e'; #got to actually edit
+		assert_screen 'editing-root-partition', 5;
 		send_key 'alt-s'; #goto filesystem list
 		send_key ' '; #open filesystem list
 		send_key 'home'; #go to top of the list
