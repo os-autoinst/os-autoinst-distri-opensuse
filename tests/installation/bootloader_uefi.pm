@@ -5,6 +5,8 @@ use Time::HiRes qw(sleep);
 
 # hint: press shift-f10 trice for highest debug level
 sub run() {
+    my ($self) = @_;
+
     if ( get_var("IPXE") ) {
         sleep 60;
         return;
@@ -25,19 +27,15 @@ sub run() {
         return;
     }
 
-    if ( get_var("LIVETEST") && get_var("PROMO") ) {
-        send_key "down";    # upgrade
-        if ( check_var( "DESKTOP", "gnome" ) ) {
-            send_key "down" unless get_var("OSP_SPECIAL");
-            send_key "down";
-        }
-        elsif ( check_var( "DESKTOP", "kde" ) ) {
-
-            # KDE is first entry for OSP image
-            send_key "down" unless get_var("OSP_SPECIAL");
+    if (get_var("UPGRADE")) {
+        $self->bootmenu_down_to('inst-onupgrade');
+    }
+    else {
+        if ( get_var("PROMO") || get_var('LIVETEST') ) {
+            $self->bootmenu_down_to("inst-live-" . get_var("DESKTOP"));
         }
         else {
-            die "unsupported desktop " . get_var("DESKTOP");
+            $self->bootmenu_down_to('inst-oninstallation');
         }
     }
 
