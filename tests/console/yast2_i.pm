@@ -8,11 +8,6 @@ sub run() {
     become_root();
     type_string "PS1=\"# \"\n";
 
-    if ( get_var("UPGRADE") ) {
-        # old versions had a different default and we don't necessarly update
-        script_run('echo PKGMGR_ACTION_AT_EXIT=summary >> /etc/sysconfig/yast2');
-    }
-
     script_run("/sbin/yast2 sw_single; echo yast2-i-status-\$? > /dev/$serialdev");
     assert_screen 'empty-yast2-sw_single';
     type_string("$pkgname\n");
@@ -21,8 +16,11 @@ sub run() {
     sleep 1;
     assert_screen "package-$pkgname-selected-for-install", 3;
     send_key "alt-a", 1;    # accept
-    assert_screen 'yast2-sw_shows_summary', 3;
-    send_key "alt-f";
+    # Upgrade tests and the old distributions eg. SLE11 doesn't shows the summary
+    unless ( get_var("YAST_SW_NO_SUMMARY") ) {
+        assert_screen 'yast2-sw_shows_summary', 3;
+        send_key "alt-f";
+    }
     wait_serial("yast2-i-status-0", 10) || die "yast didn't finish";
 
     send_key "ctrl-l";                  # clear screen to see that second update does not do any more

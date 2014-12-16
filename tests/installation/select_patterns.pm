@@ -29,13 +29,17 @@ sub run {
         $wanted_patterns{$p} = 1;
     }
 
-    my $counter = 50;
-    while (!check_screen('at-the-last-pattern', 1)) {
-        send_key 'down';
-        sleep 1; # see https://progress.opensuse.org/issues/5482
-        last unless ($counter--);
+    my $counter = 70;
+    while (1) {
+        my $ret = wait_screen_change {
+            send_key 'down';
+        };
+        # down didn't change the screen, so exit here
+        last if (!$ret);
+
+        die "looping for too long" unless ($counter--);
         my $needs_to_be_selected;
-        my $ret = check_screen('on-pattern', 1);
+        $ret = check_screen('on-pattern', 1);
 
         if ($ret) { # unneedled pattern
             for my $wp (keys %wanted_patterns) {
@@ -46,7 +50,7 @@ sub run {
         }
         $needs_to_be_selected=1 if ($wanted_patterns{'all'});
 
-        my $selected = check_screen([qw(current-pattern-selected on-category)], 1);
+        my $selected = check_screen([qw(current-pattern-selected on-category)], 0);
         next if ($selected && $selected->{needle}->has_tag('on-category'));
 
         if ($needs_to_be_selected && !$selected) {
@@ -62,6 +66,7 @@ sub run {
     send_key 'alt-o';
     assert_screen "inst-overview", 15;
 }
+
 
 1;
 # vim: set sw=4 et:
