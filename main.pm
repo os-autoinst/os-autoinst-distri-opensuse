@@ -338,11 +338,14 @@ sub load_inst_tests() {
       loadtest "installation/user_settings_root.pm";
     }
 
-    #loadtest "tests/installation/partitioning_sle11.pm";
-
     if (noupdatestep_is_applicable && !get_var("LIVECD") && !get_var("NICEVIDEO")) {
         loadtest "installation/logpackages.pm";
     }
+    
+    if (noupdatestep_is_applicable && get_var('FILESYSTEM')) {
+    loadtest "installation/partitioning_sle11.pm";
+    }
+    
     if (noupdatestep_is_applicable) {
         loadtest "installation/installation_overview.pm";
         if (get_var('PATTERNS')) {
