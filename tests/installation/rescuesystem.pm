@@ -7,11 +7,7 @@ sub run {
 
     assert_screen "inst-bootmenu", 15;
 
-    for ( 1 .. 10 ) {
-        last if check_screen "inst-rescuesystem", 2;
-        send_key "down";
-    }
-    assert_screen "inst-rescuesystem", 3;
+    $self->bootmenu_down_to('inst-rescuesystem');
     send_key "ret";
 
     # Login as root (no password)

@@ -10,6 +10,11 @@ sub run() {
     # includes downloads, so wait_idle is bad.
     assert_screen "inst-instmode", 120;
 
+    if ( get_var("UPGRADE") ) {
+        send_key "alt-u";    # Include Add-On Products
+        assert_screen "upgrade-selected", 2;
+    }
+
     if ( get_var("ADDONURL") ) {
         send_key "alt-c";    # Include Add-On Products
         assert_screen "addonproduct-included", 10;
