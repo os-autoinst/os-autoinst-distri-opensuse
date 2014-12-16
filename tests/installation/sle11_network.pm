@@ -5,25 +5,27 @@ use testapi;
 sub run(){
     my $self=shift;
 
-    # assert to ensure screen is ready for typing before typing
-    assert_screen 'network-config-ready', 10;
+    if (!get_var('UPGRADE')) {
+        # assert to ensure screen is ready for typing before typing
+        assert_screen 'network-config-ready', 10;
 
-    # Hostname
-    if (!check_var('DESKTOP', 'textmode')) {
-        send_key "alt-h";
+        # Hostname
+        if (!check_var('DESKTOP', 'textmode')) {
+            send_key "alt-h";
+        }
+        for (1 .. 10) { send_key 'backspace'; }
+        type_string "susetest";
+        send_key "tab";
+        for (1 .. 10) { send_key 'backspace'; }
+        type_string "zq1.de";
+
+        assert_screen 'hostname-typed', 4;
+        send_key $cmd{next};
+
+        # network conf
+        assert_screen 'network-config-done', 40; # longwait Net|DSL|Modem
+        send_key $cmd{next};
     }
-    for (1 .. 10) { send_key 'backspace'; }
-    type_string "susetest";
-    send_key "tab";
-    for (1 .. 10) { send_key 'backspace'; }
-    type_string "zq1.de";
-
-    assert_screen 'hostname-typed', 4;
-    send_key $cmd{next};
-
-    # network conf
-    assert_screen 'network-config-done', 40; # longwait Net|DSL|Modem
-    send_key $cmd{next};
 
     assert_screen 'test-internet-connection', 60;
     send_key $cmd{next};
