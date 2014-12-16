@@ -186,7 +186,7 @@ sub rescuecdstep_is_applicable() {
 }
 
 sub consolestep_is_applicable() {
-    return !get_var("INSTALLONLY") && !get_var("NICEVIDEO") && !get_var("DUALBOOT") && !get_var("RESCUECD");
+    return !get_var("NICEVIDEO") && !get_var("DUALBOOT") && !get_var("RESCUECD");
 }
 
 sub kdestep_is_applicable() {
@@ -460,7 +460,7 @@ sub load_consoletests() {
 }
 
 sub load_x11tests(){
-    return unless (!get_var("INSTALLONLY") && get_var("DESKTOP") !~ /textmode|minimalx/ && !get_var("DUALBOOT") && !get_var("RESCUECD"));
+    return unless (get_var("DESKTOP") !~ /textmode|minimalx/ && !get_var("DUALBOOT") && !get_var("RESCUECD"));
 
     if ( get_var("XDMUSED") ) {
         loadtest "x11/x11_login.pm";
@@ -584,8 +584,10 @@ else {
         load_reboot_tests();
     }
     load_rescuecd_tests();
-    load_consoletests();
-    load_x11tests();
+    if (!get_var('INSTALLONLY')) {
+      load_consoletests();
+      load_x11tests();
+    }
 }
 
 1;
