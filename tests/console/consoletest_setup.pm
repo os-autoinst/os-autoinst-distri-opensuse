@@ -20,7 +20,7 @@ sub run() {
     assert_screen "tty4-selected", 10;
     assert_screen "text-login", 10;
     type_string "$username\n";
-    if (!get_var("LIVECD")) {
+    if (!get_var("LIVETEST")) {
         assert_screen "password-prompt", 10;
         type_password;
         type_string "\n";
