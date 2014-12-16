@@ -136,6 +136,7 @@ if ( check_var( 'DESKTOP', 'minimalx' ) ) {
 set_var("SUSEMIRROR", "download.opensuse.org/factory") unless get_var('SUSEMIRROR');
 set_var("PACKAGETOINSTALL", "xdelta");
 set_var("DEFAULT_WALLPAPER", 'openSUSEdefault');
+set_var("YAST_SW_NO_SUMMARY", 1) if get_var('UPGRADE');
 
 # set KDE and GNOME, ...
 set_var(uc(get_var('DESKTOP')), 1);
