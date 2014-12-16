@@ -39,7 +39,7 @@ sub run {
 
         die "looping for too long" unless ($counter--);
         my $needs_to_be_selected;
-        my $ret = check_screen('on-pattern', 1);
+        $ret = check_screen('on-pattern', 1);
 
         if ($ret) { # unneedled pattern
             for my $wp (keys %wanted_patterns) {
