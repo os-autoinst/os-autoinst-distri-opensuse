@@ -159,6 +159,7 @@ if ( check_var( 'DESKTOP', 'minimalx' ) ) {
 
 set_var("PACKAGETOINSTALL", "sysstat");
 set_var("DEFAULT_WALLPAPER", 'SLEdefault');
+set_var("YAST_SW_NO_SUMMARY", 1);
 
 # set KDE and GNOME, ...
 set_var(uc(get_var('DESKTOP')), 1);
