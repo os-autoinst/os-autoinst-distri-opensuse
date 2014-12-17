@@ -28,6 +28,13 @@ sub run() {
         return;
     }
 
+    # type_string "kiwidebug=1 ";
+
+    if ( get_var("RESCUECD") ) {
+        send_key "ret";    # boot
+        return;
+    }
+
     if (get_var("UPGRADE")) {
         $self->bootmenu_down_to('inst-onupgrade');
     }
@@ -65,13 +72,6 @@ sub run() {
             type_string "$e ", 4;
             save_screenshot;
         }
-    }
-
-    # type_string "kiwidebug=1 ";
-
-    if ( get_var("RESCUECD") ) {
-        send_key "ret";    # boot
-        return;
     }
 
     # set HTTP-source to not use factory-snapshot
