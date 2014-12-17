@@ -28,12 +28,6 @@ sub run() {
         return;
     }
 
-    # type_string "kiwidebug=1 ";
-
-    if ( get_var("RESCUECD") ) {
-        send_key "ret";    # boot
-        return;
-    }
 
     if (get_var("UPGRADE")) {
         $self->bootmenu_down_to('inst-onupgrade');
