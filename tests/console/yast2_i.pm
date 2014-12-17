@@ -21,7 +21,8 @@ sub run() {
         assert_screen 'yast2-sw_shows_summary', 3;
         send_key "alt-f";
     }
-    wait_serial("yast2-i-status-0", 10) || die "yast didn't finish";
+    # yast might take a while on sle11 due to suseconfig
+    wait_serial("yast2-i-status-0", 40) || die "yast didn't finish";
 
     send_key "ctrl-l";                  # clear screen to see that second update does not do any more
     script_run("rpm -e $pkgname && echo '$pkgname removed' > /dev/$serialdev");
