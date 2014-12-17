@@ -75,6 +75,7 @@ sub run() {
 		send_key 'alt-d';
 		assert_screen 'add-partition', 5;
 		send_key 'alt-n';
+		assert_screen 'add-partition-size', 5;
 		send_key 'ctrl-a';
 		type_string "1 GB";
 		send_key 'alt-n';
@@ -101,6 +102,7 @@ sub run() {
 		send_key 'alt-d';
 		assert_screen 'add-partition', 5;
 		send_key 'alt-n';
+		assert_screen 'add-partition-size', 5;
 		send_key 'ctrl-a';
 		type_string "300 MB";
 		send_key 'alt-n';
@@ -113,6 +115,7 @@ sub run() {
 		send_key 'alt-d';
 		assert_screen 'add-partition', 5;
 		send_key 'alt-n';
+		assert_screen 'add-partition-size', 5;
 		send_key 'alt-n';
 		assert_screen 'add-partition-type', 5;
 		send_key 'alt-s'; #goto filesystem list
