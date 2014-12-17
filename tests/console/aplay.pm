@@ -13,7 +13,7 @@ echo -e "\n\n\n"
 zypper -n in alsa-utils alsa
 EOS
 
-    validate_script_output $script, sub { m/Installing:.*alsa/ };
+    validate_script_output $script, sub { m/Installing:.*alsa/ || m/'alsa' is already installed/ };
 
     $self->clear_and_verify_console;
     script_run('exit');

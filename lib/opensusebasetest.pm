@@ -91,6 +91,8 @@ sub export_logs {
 sub bootmenu_down_to($) {
     my ($self, $tag) = @_;
 
+    return if check_screen $tag, 2;
+
     for ( 1 .. 10 ) {
         my $ret = wait_screen_change {
             send_key 'down';
