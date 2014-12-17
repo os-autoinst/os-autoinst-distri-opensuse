@@ -217,10 +217,6 @@ sub need_clear_repos() {
     return get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/ && get_var("SUSEMIRROR");
 }
 
-sub have_scc_repos() {
-    return get_var('SCC_EMAIL') && get_var('SCC_REGCODE') && (get_var('SCC_REGISTER', 'console') eq 'console');
-}
-
 sub have_addn_repos() {
     return !get_var("NET") && !get_var("EVERGREEN") && get_var("SUSEMIRROR") && !get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/;
 }
@@ -423,11 +419,7 @@ sub load_consoletests() {
         if (need_clear_repos) {
             loadtest "console/zypper_clear_repos.pm";
         }
-        # have SCC repo for SLE product
-        if (have_scc_repos) {
-            loadtest "console/zypper_ar_scc.pm";
-        }
-        elsif (have_addn_repos) {
+        if (have_addn_repos) {
             loadtest "console/zypper_ar.pm";
         }
         loadtest "console/zypper_ref.pm";
