@@ -3,20 +3,20 @@ use strict;
 use testapi;
 
 sub run() {
-	my $self = shift;
+    my $self = shift;
 
     assert_screen 'inst-overview', 10;
     send_key $cmd{change};
     send_key 'p'; # partitioning
     
     if ( check_var( "FILESYSTEM", "btrfs" ) || get_var("BOO910346") ) { 
-    assert_screen 'preparing-disk', 5;
-    send_key 'alt-1';
-    send_key $cmd{"next"};
-    assert_screen 'preparing-disk-installing', 5;
-    send_key 'alt-u'; #to use btrfs
-    send_key $cmd{"next"};
-    assert_screen 'inst-overview', 10;
+		assert_screen 'preparing-disk', 5;
+		send_key 'alt-1';
+		send_key $cmd{"next"};
+		assert_screen 'preparing-disk-installing', 5;
+		send_key 'alt-u'; #to use btrfs
+		send_key $cmd{"next"};
+		assert_screen 'inst-overview', 10;
 	}
 	
 	if ( !check_var( "FILESYSTEM", "btrfs" ) && get_var("BOO910346") ) {

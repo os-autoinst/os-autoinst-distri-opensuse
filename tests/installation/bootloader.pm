@@ -1,3 +1,4 @@
+
 use base "installbasetest";
 use strict;
 use testapi;
@@ -5,6 +6,8 @@ use Time::HiRes qw(sleep);
 
 # hint: press shift-f10 trice for highest debug level
 sub run() {
+    my ($self) = @_;
+
     if ( get_var("IPXE") ) {
         sleep 60;
         return;
@@ -25,31 +28,22 @@ sub run() {
         return;
     }
 
-    # assume bios+grub+anim already waited in start.sh
-    if ( !get_var("LIVETEST") && !get_var("RESCUECD") ) {
+    # type_string "kiwidebug=1 ";
 
-        # installation (instead of HDDboot on non-live)
-        # installation (instead of live):
-        send_key "down";
-        if ( get_var("UPGRADE") ) {
-            send_key "down";    # upgrade
-        }
+    if ( get_var("RESCUECD") ) {
+        send_key "ret";    # boot
+        return;
+    }
+
+    if (get_var("UPGRADE")) {
+        $self->bootmenu_down_to('inst-onupgrade');
     }
     else {
-        if ( get_var("PROMO") ) {
-            send_key "down";    # upgrade
-            if ( check_var( "DESKTOP", "gnome" ) ) {
-                send_key "down" unless get_var("OSP_SPECIAL");
-                send_key "down";
-            }
-            elsif ( check_var( "DESKTOP", "kde" ) ) {
-                send_key "down" unless get_var("OSP_SPECIAL");
-                send_key "down";
-                send_key "down";
-            }
-            else {
-                die "unsupported desktop " . get_var("DESKTOP");
-            }
+        if ( get_var("PROMO") || get_var('LIVETEST') ) {
+            $self->bootmenu_down_to("inst-live-" . get_var("DESKTOP"));
+        }
+        else {
+            $self->bootmenu_down_to('inst-oninstallation');
         }
     }
 
@@ -78,13 +72,6 @@ sub run() {
             type_string "$e ", 4;
             save_screenshot;
         }
-    }
-
-    # type_string "kiwidebug=1 ";
-
-    if ( get_var("RESCUECD") ) {
-        send_key "ret";    # boot
-        return;
     }
 
     # set HTTP-source to not use factory-snapshot

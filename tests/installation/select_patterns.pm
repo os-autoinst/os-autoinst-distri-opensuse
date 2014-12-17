@@ -54,12 +54,14 @@ sub run {
         next if ($selected && $selected->{needle}->has_tag('on-category'));
 
         if ($needs_to_be_selected && !$selected) {
-            send_key ' ';
+            wait_screen_change {
+              send_key ' ';
+            };
             assert_screen 'current-pattern-selected', 2;
         }
         elsif (!$needs_to_be_selected && $selected) {
             send_key ' ';
-            assert_screen [qw(current-pattern-unselected current-pattern-autoselected)], 2;
+            assert_screen [qw(current-pattern-unselected current-pattern-autoselected)], 3;
         }
     }
 

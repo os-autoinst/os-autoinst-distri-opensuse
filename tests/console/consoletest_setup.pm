@@ -20,10 +20,11 @@ sub run() {
     assert_screen "tty4-selected", 10;
     assert_screen "text-login", 10;
     type_string "$username\n";
-    sleep 2;
-    assert_screen "password-prompt", 10;
-    type_password;
-    type_string "\n";
+    if (!get_var("LIVETEST")) {
+        assert_screen "password-prompt", 10;
+        type_password;
+        type_string "\n";
+    }
     sleep 3;
     type_string "PS1=\$\n";    # set constant shell promt
     sleep 1;

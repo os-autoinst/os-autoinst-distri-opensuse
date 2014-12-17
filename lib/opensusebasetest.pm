@@ -88,5 +88,21 @@ sub export_logs {
     save_screenshot;
 }
 
+sub bootmenu_down_to($) {
+    my ($self, $tag) = @_;
+
+    return if check_screen $tag, 2;
+
+    for ( 1 .. 10 ) {
+        my $ret = wait_screen_change {
+            send_key 'down';
+        };
+        last unless $ret;
+        return if check_screen $tag, 2;
+    }
+    # fail
+    assert_screen $tag, 3;
+}
+
 1;
 # vim: set sw=4 et:

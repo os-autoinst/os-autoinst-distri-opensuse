@@ -148,9 +148,11 @@ sub script_sudo($$) {
 
     send_key 'ctrl-l';
     type_string "su -c '$prog'\n";
-    assert_screen 'password-prompt';
-    type_password;
-    send_key "ret";
+    if (!get_var("LIVETEST")) {
+        assert_screen 'password-prompt';
+        type_password;
+        send_key "ret";
+    }
     wait_idle $wait;
 }
 
