@@ -9,6 +9,9 @@ sub run() {
     assert_screen "select-for-update", 100;
     send_key $cmd{"next"}, 1;
 
+    assert_screen 'previously-used-repositories', 5;
+    send_key $cmd{"next"}, 1;
+
     assert_screen "update-installation-overview", 15;
 }
 
