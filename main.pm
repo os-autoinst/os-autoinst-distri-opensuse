@@ -157,7 +157,7 @@ if ( check_var( 'DESKTOP', 'minimalx' ) ) {
     set_var("XDMUSED", 1);
 }
 
-set_var("PACKAGETOINSTALL", "sysstat");
+set_var("PACKAGETOINSTALL", "x3270");
 set_var("DEFAULT_WALLPAPER", 'SLEdefault');
 set_var("YAST_SW_NO_SUMMARY", 1);
 
