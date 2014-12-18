@@ -322,7 +322,7 @@ sub load_inst_tests() {
     }
 
     if (noupdatestep_is_applicable) {
-        if (get_var("ADDONURL")) {
+        if (get_var("ADDONURL") || get_var("ADDONS")) {
             loadtest "installation/addon_products.pm";
         }
 
