@@ -1,10 +1,11 @@
-#!/usr/bin/perl -w
 use strict;
 use base "y2logsstep";
 use testapi;
 
 sub run() {
-    my $self = shift;
+
+if ( get_var("ADDONURL") ){
+
     if ( get_var("VIDEOMODE") && check_var("VIDEOMODE", "text") ) { $cmd{xnext} = "alt-x" }
     if ( !get_var("NET") && !get_var("DUD") ) {
         wait_still_screen();
@@ -27,6 +28,9 @@ sub run() {
     }
     assert_screen 'test-addon_product-1', 3;
     send_key $cmd{"next"}, 1;                        # done
+	}
+	
+#TODO Implment test that uses ISO_1, _2, _3 to add addons
 }
 
 1;
