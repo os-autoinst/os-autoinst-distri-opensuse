@@ -29,7 +29,7 @@ sub run() {
 		send_key $cmd{"next"}, 1;                        # done
 	}
 	
-#TODO Implment test that uses ISO_1, _2, _3 to add addons
+#TODO Implment test that uses ISO_1 (SDK), _2 (HA), _3 (GEO) to add addons
 }
 
 1;
