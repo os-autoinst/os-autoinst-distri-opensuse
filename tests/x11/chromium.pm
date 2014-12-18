@@ -20,8 +20,8 @@ sub run() {
 
     send_key "ctrl-l";
     sleep 1;
-    type_string get_var("OPENQA_HOSTNAME")."\n";
-    assert_screen 'chromium-openqa', 30;
+    type_string "https://html5test.com/index.html\n";
+    assert_screen 'chromium-html5test', 30;
 
     send_key "alt-f4";
 }
