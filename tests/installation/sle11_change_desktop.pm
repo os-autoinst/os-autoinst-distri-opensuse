@@ -7,7 +7,9 @@ sub key_round($$) {
 
     my $counter = 10;
     while ( !check_screen( $tag, 1 ) ) {
-        send_key $key;
+        wait_screen_change {
+          send_key $key;
+	};
         if (!$counter--) {
             # DIE!
             assert_screen $tag, 1;
@@ -26,15 +28,15 @@ sub run {
 
     if (!check_var('DESKTOP', 'gnome')) {
         key_round('gnome-selected', 'down');
-        send_key ' ';
+	wait_screen_change { send_key ' '; };
     }
     if (check_var('DESKTOP', 'kde')) {
         key_round('kde-unselected', 'down');
-        send_key ' ';
+        wait_screen_change { send_key ' '; }
     }
     if (check_var('DESKTOP', 'textmode')) {
         key_round('x11-selected', 'down');
-        send_key ' ';
+        wait_screen_change { send_key ' '; };
     }
 
     assert_screen "desktop-selected", 5;
