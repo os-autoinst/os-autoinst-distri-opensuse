@@ -56,7 +56,13 @@ sub run {
 
     assert_screen "desktop-selected", 5;
 
-    send_key 'alt-o';
+    if (check_var('VIDEOMODE', 'text')) {
+      send_key 'alt-a'; # accept
+      assert_screen 'automatic-changes', 4;
+      send_key 'alt-o'; # OK
+    } else {
+      send_key 'alt-o'; # OK
+    }
     assert_screen "inst-overview", 15;
 
 }
