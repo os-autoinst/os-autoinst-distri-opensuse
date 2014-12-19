@@ -554,6 +554,7 @@ elsif (get_var("MEMTEST")) {
 }
 elsif (get_var("RESCUESYSTEM")) {
     loadtest "installation/rescuesystem.pm";
+    loadtest "installation/rescuesystem_validate_sle11sp3.pm";
 }
 else {
     load_boot_tests();
