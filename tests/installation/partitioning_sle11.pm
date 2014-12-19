@@ -16,7 +16,7 @@ sub run() {
 		assert_screen 'preparing-disk-installing', 5;
 		send_key 'alt-u'; #to use btrfs
 		send_key $cmd{"next"};
-		assert_screen 'inst-overview', 10;
+		assert_screen 'inst-overview', 30;
 	}
 	
 	if ( !check_var( "FILESYSTEM", "btrfs" ) && get_var("BOO910346") ) {
@@ -56,7 +56,7 @@ sub run() {
 				send_key 'ret';
 				send_key 'alt-f';
 				send_key 'alt-a';
-				assert_screen('inst-overview', 10);
+				assert_screen('inst-overview', 30);
 				last;
 			}
 		}
@@ -141,7 +141,7 @@ sub run() {
 		}
 		
 		send_key 'alt-a';
-		assert_screen('inst-overview', 10);
+		assert_screen('inst-overview', 30);
 	}
 }
 
