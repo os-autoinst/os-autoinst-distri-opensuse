@@ -7,7 +7,7 @@ sub run {
 
     # Check that there is access to the local hard disk
     type_string "mount /dev/vda2 /mnt && cat /mnt/etc/SuSE-release > /dev/$serialdev\n";
-    wait_serial("SUSE Linux Enterprise Server 11", 2) || die "Not SLES found"
+    wait_serial("SUSE Linux Enterprise Server 11", 2) || die "Not SLES found";
 }
 
 sub test_flags() {
