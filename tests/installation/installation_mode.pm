@@ -15,7 +15,7 @@ sub run() {
         assert_screen "upgrade-selected", 2;
     }
 
-    if ( get_var("ADDONURL") ) {
+    if ( get_var("ADDONURL") || get_var("ADDONS") ) {
         send_key "alt-c";    # Include Add-On Products
         assert_screen "addonproduct-included", 10;
     }

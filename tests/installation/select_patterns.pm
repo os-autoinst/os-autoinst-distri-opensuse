@@ -55,7 +55,7 @@ sub run {
 
         if ($needs_to_be_selected && !$selected) {
             wait_screen_change {
-              send_key ' ';
+                send_key ' ';
             };
             assert_screen 'current-pattern-selected', 2;
         }
