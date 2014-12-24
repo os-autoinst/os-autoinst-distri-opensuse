@@ -8,7 +8,7 @@ sub run() {
 
     # log into text console
     send_key "ctrl-alt-f4";
-    assert_screen "linux-login", 4;
+    assert_screen "linux-login", 15;
     type_string "$username\n";
     sleep 2;
     type_password;
