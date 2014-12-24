@@ -12,8 +12,7 @@ sub run() {
     ## duplicated from second stage, combine!
     if ( check_var( 'DESKTOP', 'kde' ) ) {
         send_key "esc";
-        sleep 2;
-        assert_screen "generic-desktop", 10;
+        assert_screen "generic-desktop", 25;
     }
 }
 
