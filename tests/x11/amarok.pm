@@ -25,5 +25,11 @@ sub run() {
     send_key "ctrl-q";    # really quit (alt-f4 just backgrounds)
 }
 
+sub post_fail_hook() {
+    my $self = shift;
+
+    $self->export_captured_audio();
+}
+
 1;
 # vim: set sw=4 et:
