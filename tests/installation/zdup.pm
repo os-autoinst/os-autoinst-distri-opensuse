@@ -5,19 +5,18 @@ use testapi;
 sub run() {
     my $self = shift;
     my $defaultrepo = "http://" . get_var("SUSEMIRROR");
-    send_key "ctrl-l";
 
     # Disable all repos, so we do not need to remove one by one
-    script_sudo("zypper modifyrepo --all --disable");
+    script_run("zypper modifyrepo --all --disable");
 
     my $nr = 1;
     foreach my $r ( split( /\+/, get_var("ZDUPREPOS", $defaultrepo) ) ) {
-        script_sudo("zypper addrepo $r repo$nr");
+        script_run("zypper addrepo $r repo$nr");
         $nr++;
     }
-    script_sudo("zypper --gpg-auto-import-keys refresh");
+    script_run("zypper --gpg-auto-import-keys refresh");
 
-    script_sudo("zypper dup -l");
+    script_run("zypper dup -l");
 
     my $ret = assert_screen [qw/zypper-dup-continue zypper-dup-conflict/], 10;
     while ( $ret->{needle}->has_tag("zypper-dup-conflict") ) {
@@ -31,7 +30,7 @@ sub run() {
         send_key "ret", 1;
     }
 
-    my @tags = qw/zypper-dup-retrieving zypper-dup-installing zypper-view-notifications zypper-post-scripts/;
+    my @tags = qw/zypper-dup-retrieving zypper-dup-installing zypper-view-notifications zypper-post-scripts zypper-dup-agreeing/;
     $ret = assert_screen \@tags, 5;
     while ( defined($ret) ) {
         last if check_screen [qw/zypper-dup-error zypper-dup-finish/];

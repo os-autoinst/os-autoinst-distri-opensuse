@@ -9,8 +9,8 @@ sub run() {
     # log into text console
     send_key "ctrl-alt-f4";
     assert_screen "linux-login", 15;
-    type_string "$username\n";
-    sleep 2;
+    type_string "root\n";
+    assert_screen 'password-prompt';
     type_password;
     type_string "\n";
     sleep 3;
@@ -21,16 +21,16 @@ sub run() {
 
     # Remove the --force when this is fixed:
     # https://bugzilla.redhat.com/show_bug.cgi?id=1075131
-    script_sudo "systemctl set-default --force multi-user.target";
+    script_run("systemctl set-default --force multi-user.target");
     # The CD was ejected in the bootloader test
-    script_sudo "/sbin/reboot";
+    script_run("/sbin/reboot");
 
     # login, again : )
-    assert_screen "grub2", 10; # boot menu appears
+    assert_screen "grub2", 30; # boot menu appears
     send_key "ret";
     assert_screen "linux-login", 30; # login prompt appears
-    type_string "$username\n";
-    sleep 2;
+    type_string "root\n";
+    assert_screen 'password-prompt';
     type_password;
     type_string "\n";
     sleep 3;
@@ -47,7 +47,7 @@ sub run() {
     sleep 1;
 
     # Disable console screensaver
-    script_sudo("setterm -blank 0");
+    script_run("setterm -blank 0");
 }
 
 1;

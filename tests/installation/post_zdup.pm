@@ -6,10 +6,10 @@ sub run() {
     send_key "ctrl-l", 1;
 
     # Print zypper repos
-    script_sudo "zypper lr -d";
+    script_run("zypper lr -d");
     # Remove the --force when this is fixed:
     # https://bugzilla.redhat.com/show_bug.cgi?id=1075131
-    script_sudo "systemctl set-default --force graphical.target";
+    script_run("systemctl set-default --force graphical.target");
     sleep 5;
 
     save_screenshot;
