@@ -88,6 +88,12 @@ sub export_logs {
     save_screenshot;
 }
 
+sub export_captured_audio {
+    my $self = shift;
+
+    upload_logs ref($self)."-captured.wav";
+}
+
 sub bootmenu_down_to($) {
     my ($self, $tag) = @_;
 
