@@ -85,7 +85,7 @@ sub x11_start_program($$$) {
     assert_screen("desktop-runner", $timeout);
     type_string $program;
     if ( $options->{terminal} ) { send_key "alt-t"; sleep 3; }
-    testapi::send_key "ret", 1;
+    send_key "ret", 1;
     # make sure desktop runner executed and closed when have had valid value
     # exec x11_start_program( $program, $timeout, { valid => 1 } );
     if ( $options->{valid} ) {
