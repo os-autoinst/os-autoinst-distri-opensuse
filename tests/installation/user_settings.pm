@@ -16,7 +16,7 @@ sub run() {
     for ( 1 .. 2 ) {
         type_string "$password\t";
     }
-    assert_screen( "inst-userinfostyped", 5 );
+    assert_screen  "inst-userinfostyped", 10;
     if ( get_var("NOAUTOLOGIN") && !check_screen('autologindisabled') ) {
         send_key $cmd{"noautologin"};
         assert_screen "autologindisabled", 5;
@@ -30,7 +30,7 @@ sub run() {
     send_key $cmd{"next"};
 
     # loading cracklib
-    assert_screen "inst-userpasswdtoosimple", 6;
+    assert_screen "inst-userpasswdtoosimple", 13;
     send_key "ret";
 }
 
