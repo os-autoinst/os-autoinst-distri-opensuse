@@ -13,8 +13,7 @@ sub run() {
     send_key "alt-f4";
     sleep 2;
     assert_screen 'test-oocalc-3', 3;
-    send_key "alt-w";
-    sleep 2;           # _w_ithout saving
+    assert_and_click 'dont-save-libreoffice-btn'; # _Don't save
 }
 
 sub ocr_checklist() {
