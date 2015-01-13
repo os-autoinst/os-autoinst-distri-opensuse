@@ -47,38 +47,38 @@ sub run() {
     }
 
     if ( get_var("ADDONS")) {
-		
-		foreach $a (split(/,/, get_var('ADDONS'))) {
-			send_key 'alt-d';	# DVD
-			send_key 'alt-n'; # next
+
+        foreach $a (split(/,/, get_var('ADDONS'))) {
+            send_key 'alt-d';	# DVD
+            send_key 'alt-n'; # next
             assert_screen 'dvd-selector', 3;
-			key_round 'addon-dvd-list', 'tab';
-			key_round "addon-dvd-$a", 'down';
-			send_key 'alt-o';
-			#Remove && ($a ne "sdk") when boo912256 is fixed, remove $a ne "geo" when boo912300 is fixed
+            key_round 'addon-dvd-list', 'tab';
+            key_round "addon-dvd-$a", 'down';
+            send_key 'alt-o';
+            #Remove '&& ($a ne "sdk")' when boo912256 is fixed, remove '&& ($a ne "geo")' when boo912300 is fixed
             if (get_var("BETA") && ($a ne "sdk") && ($a ne "geo")) {
-				assert_screen "addon-betawarning-$a", 10;
-		    	send_key "ret";
-				assert_screen "addon-license-beta", 10;
-			}
-			elsif ($a ne "geo") { # meant to be an else, remove if when boo912300 is fixed
-				assert_screen "addon-license-$a", 10;
-			}
-			if ($a ne "geo"){ # remove if when boo912300 is fixed
-			send_key 'alt-y'; # yes, agree
-            send_key 'alt-n';
-			}
+                assert_screen "addon-betawarning-$a", 10;
+                send_key "ret";
+                assert_screen "addon-license-beta", 10;
+            }
+            elsif ($a ne "geo") { # meant to be an else, remove if when boo912300 is fixed
+                assert_screen "addon-license-$a", 10;
+            } # remove line when boo912300 is fixed
+            if ($a ne "geo"){ # remove line when boo912300 is fixed
+                send_key 'alt-y'; # yes, agree
+                send_key 'alt-n';
+            } # remove line when boo912300 is fixed
             assert_screen 'addon-list';
             if ((split(/,/, get_var('ADDONS')))[-1] ne $a) {
-				send_key 'alt-a';
-				assert_screen 'addon-selection', 15;
+                send_key 'alt-a';
+                assert_screen 'addon-selection', 15;
             }
-		
-		}
 
-		send_key 'alt-n';
-		
-	}
+        }
+
+        send_key 'alt-n';
+
+    }
 }
 
 1;

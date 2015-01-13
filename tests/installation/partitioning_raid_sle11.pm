@@ -17,7 +17,7 @@ sub key_round($$) {
 }
 
 sub addraid($) {
-    my ( $step ) = @_;
+    my ($step) = @_;
     send_key "spc";
     for ( 1 .. 3 ) {
         for ( 1 .. $step ) {
@@ -43,9 +43,9 @@ sub addraid($) {
     send_key "alt-c";
     send_key "home";
     for ( 1 .. 4 ) {
-          send_key "down";
-     }
-            
+        send_key "down";
+    }
+
     send_key $cmd{"next"};
     assert_screen 'partition-role', 6;
     send_key "alt-o";    # Operating System
@@ -60,11 +60,11 @@ sub setraidlevel($) {
 }
 
 sub run() {
-    
+
     assert_screen 'inst-overview', 10;
     send_key $cmd{change};
     send_key 'p'; # partitioning
-    
+
     assert_screen 'preparing-disk', 5;
     send_key 'alt-c';
     send_key $cmd{"next"};
@@ -73,7 +73,7 @@ sub run() {
     send_key 'down';
     send_key 'right';
     send_key 'down'; #should select first disk'
-    
+
     for ( 1 .. 4 ) {
         send_key 'alt-d';
         assert_screen 'add-partition', 5;
@@ -90,7 +90,7 @@ sub run() {
         send_key 'down'; #Linux RAID System Type
         send_key 'alt-f';
         assert_screen('expert-partitioning', 5);
-        
+
         send_key 'alt-d';
         assert_screen 'add-partition', 5;
         send_key 'alt-n';
@@ -106,7 +106,7 @@ sub run() {
         send_key 'down'; #Linux RAID System Type
         send_key 'alt-f';
         assert_screen('expert-partitioning', 5);
-        
+
         send_key 'alt-d';
         assert_screen 'add-partition', 5;
         send_key 'alt-n';
@@ -120,12 +120,12 @@ sub run() {
         send_key 'down'; #Linux RAID System Type
         send_key 'alt-f';
         assert_screen('expert-partitioning', 5);
-        
+
         # select next disk
         send_key "shift-tab";
         send_key "shift-tab";
         send_key "down";
-        
+
     }
 
     # select RAID add
@@ -138,7 +138,7 @@ sub run() {
     for ( 1 .. 3 ) {
         for ( 1 .. 3 ) {
             send_key "ctrl-down";
-             send_key "spc";
+            send_key "spc";
         }
     }
     # add
@@ -146,13 +146,13 @@ sub run() {
     wait_idle 3;
     send_key $cmd{"next"};
     wait_idle 3;
-          
+
     send_key $cmd{"next"};
     assert_screen 'add-partition-type', 6;
     send_key 'alt-f';
     wait_idle 3;
 
-#rbrown
+    #rbrown
 
     # select RAID add
     send_key $cmd{addraid};
