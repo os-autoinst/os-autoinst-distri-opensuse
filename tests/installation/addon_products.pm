@@ -63,7 +63,7 @@ sub run() {
             }
             elsif ($a ne "geo") { # meant to be an else, remove if when boo912300 is fixed
                 assert_screen "addon-license-$a", 10;
-            } # remove line when boo912300 is fixed
+            }
             if ($a ne "geo"){ # remove line when boo912300 is fixed
                 send_key 'alt-y'; # yes, agree
                 send_key 'alt-n';
