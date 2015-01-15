@@ -297,7 +297,7 @@ sub load_boot_tests(){
         loadtest "installation/isosize.pm";
     }
     if (get_var("OFW")) {
-        loadtest "installation/bootloader_ofw.pm";
+        loadtest "installation/bootloader_ofw_yaboot.pm";
     }
     elsif (get_var("UEFI")) {
         loadtest "installation/bootloader_uefi.pm";
