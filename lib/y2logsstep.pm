@@ -43,6 +43,22 @@ sub post_fail_hook() {
         upload_logs "/tmp/y2logs.tar.bz2";
         save_screenshot();
     }
+    else {
+        # We ended up somewhere else, still in a phase we consider yast running
+        # (e.g. livecdrerboot did not see a grub screen and booted through to an installed system)
+        # so we try to perform a login on TTY2 and export yast logs
+        send_key "ctrl-alt-f2";
+        assert_screen("text-login", 10);
+        type_string "root\n";
+        sleep 2;
+        type_password;
+        type_string "\n";
+        sleep 1;
+
+        type_string "save_y2logs /tmp/y2logs.tar.bz2\n";
+        upload_logs "/tmp/y2logs.tar.bz2";
+        save_screenshot();
+    }
 }
 
 1;
