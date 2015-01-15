@@ -327,7 +327,7 @@ sub load_inst_tests() {
         }
 
         loadtest "installation/installer_timezone.pm";
-        if (check_var('FLAVOR', 'Server-DVD')) {
+        if (check_var('FLAVOR', 'Server-DVD') && !get_var("OFW")) {
             loadtest "installation/server_base_scenario.pm";
         }
         if (check_var('FLAVOR', 'Desktop-DVD')) {
