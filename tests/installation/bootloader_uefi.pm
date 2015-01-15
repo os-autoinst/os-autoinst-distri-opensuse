@@ -42,19 +42,17 @@ sub run() {
     # assume bios+grub+anim already waited in start.sh
     # in grub2 it's tricky to set the screen resolution
     send_key "e";
-    if ( get_var("GFXPAYLOAD") ) {
-        for ( 1 .. 2 ) { send_key "down"; }
-        send_key "end";
-        # delete "keep" word
-        for ( 1 .. 4 ) { send_key "backspace"; }
-        # hardcoded the value of gfxpayload to 1024x768
-        type_string "1024x768";
-        assert_screen "gfxpayload_changed", 10;
-        # back to the entry position
-        send_key "home";
-        for ( 1 .. 2 ) { send_key "up"; }
-        sleep 5;
-    }
+    for ( 1 .. 2 ) { send_key "down"; }
+    send_key "end";
+    # delete "keep" word
+    for ( 1 .. 4 ) { send_key "backspace"; }
+    # hardcoded the value of gfxpayload to 1024x768
+    type_string "1024x768";
+    assert_screen "gfxpayload_changed", 10;
+    # back to the entry position
+    send_key "home";
+    for ( 1 .. 2 ) { send_key "up"; }
+    sleep 5;
     for ( 1 .. 4 ) { send_key "down"; }
     send_key "end";
     if ( get_var("NETBOOT") && get_var("SUSEMIRROR") ) {
