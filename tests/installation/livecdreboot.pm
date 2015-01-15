@@ -75,12 +75,11 @@ sub run() {
     #			wait_still_screen(6,60);
     #		}
 
-    # meaning of this needle is unclear. It's used in grub as well as
-    # 2nd stage automatic configuration. And then ere is also
-    # reboot_after_install from 800_reboot_after_install.pm
-    # should assert_screen wait for all three at the same time and then have only check_screen afterwards?
-    my $ret = assert_screen [qw(grub2 second-stage)], 120;
-    if ($ret->{needle}->has_tag('grub2')) {
+    # Await a grub screen for 30s, if seen hit ENTER (in case we did not wait long enough, the 'grub timeout' would
+    # pass and still perform the boot; so we want a value short enough to not wait forever if grub does not appear,
+    # yet long enough to make sense to even have the test.
+    my $ret = check_screen "grub2", 30;
+    if ( defined($ret) ) {
         send_key "ret";    # avoid timeout for booting to HDD
     }
 }
