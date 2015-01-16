@@ -18,8 +18,15 @@ sub key_round($$) {
 sub run {
     my $self = shift;
 
-    key_round 'packages-section-selected', 'tab';
-    send_key 'ret';
+    if (check_var('VIDEOMODE', 'text')) {
+        send_key 'alt-c';
+        assert_screen 'inst-overview-options', 3;
+        send_key 'alt-s';
+    }
+    else {
+        key_round 'packages-section-selected', 'tab';
+        send_key 'ret';
+    }
 
     assert_screen 'pattern_selector';
     key_round 'patterns-list-selected', 'tab';

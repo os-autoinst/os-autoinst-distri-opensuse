@@ -27,10 +27,10 @@ sub run() {
     $repo++ if get_var("DUD");
 
     assert_screen 'addon-selection', 15;
+    
+    if ( get_var("VIDEOMODE") && check_var("VIDEOMODE", "text") ) { $cmd{xnext} = "alt-x" }
 
     if ( get_var("ADDONURL") ){
-
-        if ( get_var("VIDEOMODE") && check_var("VIDEOMODE", "text") ) { $cmd{xnext} = "alt-x" }
 
         foreach my $url ( split( /\+/, get_var("ADDONURL") ) ) {
             if ( $repo++ ) { send_key "alt-a", 1; }    # Add another
@@ -50,7 +50,7 @@ sub run() {
 
         foreach $a (split(/,/, get_var('ADDONS'))) {
             send_key 'alt-d';	# DVD
-            send_key 'alt-n'; # next
+            send_key $cmd{"xnext"}, 1;
             assert_screen 'dvd-selector', 3;
             key_round 'addon-dvd-list', 'tab';
             key_round "addon-dvd-$a", 'down';
