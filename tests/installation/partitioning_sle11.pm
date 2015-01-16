@@ -122,13 +122,13 @@ sub run() {
         send_key ' '; #open filesystem list
         send_key 'home'; #go to top of the list
 
-        my $counter = 20;
+        my $counter2 = 20;
         while (1) {
             my $ret = wait_screen_change {
                 send_key 'down';
             };
             # down didn't change the screen, so exit here
-            die "looping for too long/filesystem not found" if (!$ret || $counter-- == 0);
+            die "looping for too long/filesystem not found" if (!$ret || $counter2-- == 0);
 
             my $fs = get_var('FILESYSTEM');
 
