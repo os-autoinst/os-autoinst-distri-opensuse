@@ -127,8 +127,8 @@ sub run() {
         send_key "down";
 
     }
-
-    # select RAID add
+    
+    # select RAID add for /
     send_key 'alt-i';
     assert_screen('add-raid', 5);
     setraidlevel( get_var("RAIDLEVEL") );
@@ -136,10 +136,10 @@ sub run() {
     send_key "down";
     send_key "down"; # start at second partition (i.e. sda2)
     for ( 1 .. 3 ) {
-        for ( 1 .. 3 ) {
+       for ( 1 .. 3 ) {
             send_key "ctrl-down";
-            send_key "spc";
-        }
+       }
+       send_key "spc";
     }
     # add
     send_key $cmd{"add"};
@@ -149,48 +149,97 @@ sub run() {
 
     send_key $cmd{"next"};
     assert_screen 'add-partition-type', 6;
-    send_key 'alt-f';
-    wait_idle 3;
+    if ( get_var( "FILESYSTEM" )) {
+        send_key 'alt-s'; #goto filesystem list
+        send_key ' '; #open filesystem list
+        send_key 'home'; #go to top of the list
 
-    #rbrown
+        my $counter = 20;
+        while (1) {
+            my $ret = wait_screen_change {
+                send_key 'down';
+            };
+            # down didn't change the screen, so exit here
+            die "looping for too long/filesystem not found" if (!$ret || $counter-- == 0);
 
-    # select RAID add
-    send_key $cmd{addraid};
-    wait_idle 4;
-    setraidlevel(1);    # RAID 1 for /boot
-    addraid(2);
+            my $fs = get_var('FILESYSTEM');
 
-    send_key "alt-s";    # change filesystem to FAT for /boot
-    for ( 1 .. 3 ) {
-        send_key "down";    # select Ext4
+            if (check_screen("filesystem-$fs", 1)) {
+                send_key 'ret';
+                send_key 'alt-f';
+                wait_idle 3;
+                last;
+            }
+        }
     }
-
-    send_key $cmd{"mountpoint"};
-    for ( 1 .. 3 ) {
-        send_key "down";
+    else {
+        send_key 'alt-f';
+        wait_idle 3;
     }
-    send_key $cmd{"finish"};
-
-    # workaround for gnomelive, double alt-f available in same page
-    if ( get_var("GNOME") ) {
-        send_key $cmd{"finish"};
+    
+    # select RAID add for /boot
+    send_key 'alt-i';
+    assert_screen('add-raid', 5);
+    setraidlevel(1); # RAID 1 for /boot
+    key_round 'raid-devices-selected', 'tab';
+    send_key "down"; # start at the 300MB partition
+    for ( 1 .. 3 ) {
+        for ( 1 .. 2 ) {
+            send_key "ctrl-down";
+        }
         send_key "spc";
     }
+    # add
+    send_key $cmd{"add"};
+    wait_idle 3;
+    send_key $cmd{"next"};
     wait_idle 3;
 
-    # select RAID add
-    send_key $cmd{addraid};
-    wait_idle 4;
-    setraidlevel(0);    # RAID 0 for swap
-    addraid(1);
-
-    # select file-system
-    send_key $cmd{filesystem};
-    send_key "end";     # swap at end of list
-    send_key $cmd{"finish"};
+    send_key $cmd{"next"};
+    assert_screen 'add-partition-type', 6;
+    send_key 'alt-m'; #goto mount point
+    type_string "/boot";
+    send_key 'alt-f';
+    wait_idle 3;
+    
+    # select RAID add for swap
+    send_key 'alt-i';
+    assert_screen('add-raid', 5);
+    setraidlevel(0); # RAID 0 for swap
+    key_round 'raid-devices-selected', 'tab';
+    send_key "spc"; # only 4 partitions left
+    for ( 1 .. 3 ) {
+        send_key "ctrl-down";
+        send_key "spc";
+    }
+    # add
+    send_key $cmd{"add"};
+    wait_idle 3;
+    send_key $cmd{"next"};
     wait_idle 3;
 
-    # done
+    send_key $cmd{"next"};
+    assert_screen 'add-partition-type', 6;
+    send_key 'alt-s'; #goto filesystem list
+    send_key ' '; #open filesystem list
+    send_key 'home'; #go to top of the list
+
+    my $counter = 20;
+    while (1) {
+        my $ret = wait_screen_change {
+            send_key 'down';
+        };
+        # down didn't change the screen, so exit here
+        die "looping for too long/filesystem not found" if (!$ret || $counter-- == 0);
+
+        if (check_screen("filesystem-swap", 1)) {
+            send_key 'ret';
+            send_key 'alt-f';
+            assert_screen('expert-partitioning', 5);
+            last;
+        }
+    }
+
     send_key $cmd{"accept"};
 
     # skip subvolumes shadowed warning
@@ -198,6 +247,17 @@ sub run() {
         send_key 'alt-y';
     }
     assert_screen 'acceptedpartitioning', 6;
+    
+    #Bootloader needs to be installed to MBR
+    send_key 'alt-c';
+    send_key 'b';
+    assert_screen 'bootloader-settings', 6;
+    send_key 'alt-l';
+    assert_screen 'bootloader-installation-settings', 6;
+    send_key 'alt-m';
+    send_key 'alt-o';
+    assert_screen "inst-overview", 15;
+    
 }
 
 
