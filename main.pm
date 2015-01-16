@@ -345,7 +345,7 @@ sub load_inst_tests() {
         
         if (get_var('RAIDLEVEL')) {
 			loadtest "installation/partitioning_raid_sle11.pm";
-		}
+        }
 		
         loadtest "installation/installation_overview.pm";
         if (get_var('PATTERNS')) {
