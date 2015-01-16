@@ -339,9 +339,14 @@ sub load_inst_tests() {
             loadtest "installation/logpackages.pm";
         }
 
-        if (get_var('FILESYSTEM')) {
+        if (get_var('FILESYSTEM') && !get_var('RAIDLEVEL')) {
             loadtest "installation/partitioning_sle11.pm";
         }
+        
+        if (get_var('RAIDLEVEL')) {
+			loadtest "installation/partitioning_raid_sle11.pm";
+		}
+		
         loadtest "installation/installation_overview.pm";
         if (get_var('PATTERNS')) {
             loadtest "installation/select_patterns.pm";
