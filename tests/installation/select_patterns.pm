@@ -5,7 +5,7 @@ use testapi;
 sub key_round($$) {
     my ($tag, $key) = @_;
 
-    my $counter = 10;
+    my $counter = 15;
     while ( !check_screen( $tag, 1 ) ) {
         send_key $key;
         if (!$counter--) {
