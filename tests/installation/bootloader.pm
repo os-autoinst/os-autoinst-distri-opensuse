@@ -21,8 +21,8 @@ sub run() {
 
     assert_screen "inst-bootmenu", 15;
     if ( get_var("ZDUP") ) {
-        backend_send "eject -f ide1-cd0";
-        backend_send "system_reset";
+        eject_cd;
+        power('reset');
         sleep 10;
         send_key "ret";    # boot
         return;
