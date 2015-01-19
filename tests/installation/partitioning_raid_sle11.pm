@@ -127,7 +127,7 @@ sub run() {
         send_key "down";
 
     }
-    
+
     # select RAID add for /
     send_key 'alt-i';
     assert_screen('add-raid', 5);
@@ -136,10 +136,10 @@ sub run() {
     send_key "down";
     send_key "down"; # start at second partition (i.e. sda2)
     for ( 1 .. 3 ) {
-       for ( 1 .. 3 ) {
+        for ( 1 .. 3 ) {
             send_key "ctrl-down";
-       }
-       send_key "spc";
+        }
+        send_key "spc";
     }
     # add
     send_key $cmd{"add"};
@@ -149,7 +149,7 @@ sub run() {
 
     send_key $cmd{"next"};
     assert_screen 'add-partition-type', 6;
-    if ( get_var( "FILESYSTEM" )) {
+    if ( get_var("FILESYSTEM")) {
         send_key 'alt-s'; #goto filesystem list
         send_key ' '; #open filesystem list
         send_key 'home'; #go to top of the list
@@ -176,7 +176,7 @@ sub run() {
         send_key 'alt-f';
         wait_idle 3;
     }
-    
+
     # select RAID add for /boot
     send_key 'alt-i';
     assert_screen('add-raid', 5);
@@ -201,7 +201,7 @@ sub run() {
     type_string "/boot";
     send_key 'alt-f';
     wait_idle 3;
-    
+
     # select RAID add for swap
     send_key 'alt-i';
     assert_screen('add-raid', 5);
@@ -247,7 +247,7 @@ sub run() {
         send_key 'alt-y';
     }
     assert_screen 'acceptedpartitioning', 6;
-    
+
     #Bootloader needs to be installed to MBR
     send_key 'alt-c';
     send_key 'b';
@@ -257,7 +257,7 @@ sub run() {
     send_key 'alt-m';
     send_key 'alt-o';
     assert_screen "inst-overview", 15;
-    
+
 }
 
 

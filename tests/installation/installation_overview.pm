@@ -24,10 +24,10 @@ sub run() {
 
     # preserve it for the video
     wait_idle 10;
-    
+
     # check for dependency issues, if found, drill down to software selection, take a screenshot, then die
     if (check_screen("inst-overview-dep-warning",1)){
-       
+
         if (check_var('VIDEOMODE', 'text')) {
             send_key 'alt-c';
             assert_screen 'inst-overview-options', 3;
@@ -37,11 +37,11 @@ sub run() {
             key_round 'packages-section-selected', 'tab';
             send_key 'ret';
         }
-        
+
         assert_screen 'pattern_selector';
         send_key 'alt-o';
         assert_screen 'dependancy-issue', 5;
-        die "Dependency Warning Detected"
+        die "Dependency Warning Detected";
     }
 }
 
