@@ -65,7 +65,8 @@ sub run() {
 
         # confirm
         send_key $cmd{install};
-        assert_screen "inst-packageinstallationstarted";
+        # we need to wait a bit for the disks to be formatted
+        assert_screen "inst-packageinstallationstarted", 120;
     }
     if (   !get_var("LIVECD")
         && !get_var("NICEVIDEO")
