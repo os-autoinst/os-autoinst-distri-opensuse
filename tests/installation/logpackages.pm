@@ -10,9 +10,10 @@ sub run() {
     #send_key "ctrl-alt-shift-x"; sleep 3;
     send_key "ctrl-alt-f2";
     assert_screen "inst-console";
-    type_string "(cat .timestamp ; echo .packages.initrd: ; cat .packages.initrd)>/dev/$serialdev\n";
-    type_string "(echo .packages.root: ; cat .packages.root)>/dev/$serialdev\n";
-    assert_screen "inst-packagestyped", 150;
+    type_string "(cat .timestamp ; echo .packages.initrd: ; cat .packages.initrd; echo 'CAT_INITRD')>/dev/$serialdev\n";
+    wait_serial 'CAT_INITRD';
+    type_string "(echo .packages.root: ; cat .packages.root; echo 'PACKAGES_ROOT')>/dev/$serialdev\n";
+    wait_serial 'PACKAGES_ROOT';
     type_string "ls -lR /update\n";
     save_screenshot;
     wait_idle;
