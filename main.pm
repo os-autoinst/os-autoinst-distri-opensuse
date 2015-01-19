@@ -341,6 +341,9 @@ sub load_inst_tests() {
     }
     if (noupdatestep_is_applicable) {
         loadtest "installation/installation_overview.pm";
+        if (get_var('PATTERNS')) {
+           loadtest "installation/select_patterns.pm";
+        }
     }
     if (get_var("UEFI") && get_var("SECUREBOOT")) {
         loadtest "installation/secure_boot.pm";
