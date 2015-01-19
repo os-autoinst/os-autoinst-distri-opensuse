@@ -25,7 +25,7 @@ sub run() {
     # preserve it for the video
     wait_idle 10;
     
-    # check for dependancy issues, if found, drill down to software selection, take a screenshot, then die
+    # check for dependency issues, if found, drill down to software selection, take a screenshot, then die
     if (check_screen("inst-overview-dep-warning",1)){
        
         if (check_var('VIDEOMODE', 'text')) {
