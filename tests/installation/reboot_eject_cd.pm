@@ -11,9 +11,9 @@ sub run() {
     send_key "ctrl-alt-delete";
 
     # Bug in 13.1?
-    backend_send "system_reset";
+    power('reset');
 
-    # backend_send "eject ide1-cd0";
+    # eject_cd;
 
     if (get_var("ENCRYPT")) {
         $self->pass_disk_encrypt_check;
