@@ -26,7 +26,7 @@ sub run() {
     script_run("/sbin/reboot");
 
     # login, again : )
-    assert_screen "grub2", 30; # boot menu appears
+    assert_screen "grub2", 300; # boot menu appears
     send_key "ret";
     assert_screen "linux-login", 30; # login prompt appears
     type_string "root\n";
