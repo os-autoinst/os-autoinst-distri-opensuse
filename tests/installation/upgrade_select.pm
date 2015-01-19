@@ -28,6 +28,11 @@ sub run() {
         send_key 'alt-n';
         ++$self->{dents};
     }
+    if (check_screen('installed-product-incompatible', 10)) {
+        send_key 'alt-o'; # C&ontinue
+        ++$self->{dents};
+    }
+
     assert_screen "update-installation-overview", 15;
 }
 
