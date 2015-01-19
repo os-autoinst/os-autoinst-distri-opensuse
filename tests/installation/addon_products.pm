@@ -55,8 +55,8 @@ sub run() {
             key_round 'addon-dvd-list', 'tab';
             key_round "addon-dvd-$a", 'down';
             send_key 'alt-o';
-            #Remove '&& ($a ne "sdk")' when boo912256 is fixed, remove '&& ($a ne "geo")' when boo912300 is fixed
-            if (get_var("BETA") && ($a ne "sdk") && ($a ne "geo")) {
+            # remove '&& ($a ne "geo")' when boo912300 is fixed
+            if (get_var("BETA") && ($a ne "geo")) {
                 assert_screen "addon-betawarning-$a", 10;
                 send_key "ret";
                 assert_screen "addon-license-beta", 10;
