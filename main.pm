@@ -137,7 +137,7 @@ if ( check_var( 'DESKTOP', 'minimalx' ) ) {
 }
 
 set_var("PACKAGETOINSTALL", "sysstat");
-set_var("DEFAULT_WALLPAPER", 'SLEdefault');
+set_var("WALLPAPER", '/usr/share/wallpapers/SLEdefault/contents/images/1280x1024.jpg');
 
 # set KDE and GNOME, ...
 set_var(uc(get_var('DESKTOP')), 1);
