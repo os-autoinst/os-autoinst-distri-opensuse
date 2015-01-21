@@ -158,7 +158,7 @@ if ( check_var( 'DESKTOP', 'minimalx' ) ) {
 }
 
 set_var("PACKAGETOINSTALL", "x3270");
-set_var("DEFAULT_WALLPAPER", 'SLEdefault');
+set_var("WALLPAPER", '/usr/share/wallpapers/default-1600x1200.png');
 set_var("YAST_SW_NO_SUMMARY", 1);
 
 # set KDE and GNOME, ...
