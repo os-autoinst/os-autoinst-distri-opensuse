@@ -284,6 +284,9 @@ sub load_boot_tests(){
     elsif (get_var("UEFI")) {
         loadtest "installation/bootloader_uefi.pm";
     }
+    elsif ( get_var("IPMI_HOSTNAME") ) { # abuse of variable for now
+        loadtest "installation/qa_net.pm";
+    }
     else {
         loadtest "installation/bootloader.pm";
     }
@@ -332,7 +335,7 @@ sub load_inst_tests() {
     if (noupdatestep_is_applicable && !get_var("LIVECD")) {
         loadtest "installation/installer_timezone.pm";
     }
-    if (noupdatestep_is_applicable && !get_var("LIVECD") && !get_var("NICEVIDEO")) {
+    if (noupdatestep_is_applicable && !get_var("LIVECD") && !get_var("NICEVIDEO") && !get_var("IPMI_HOSTNAME")) {
         loadtest "installation/logpackages.pm";
     }
     if (noupdatestep_is_applicable) {
@@ -405,8 +408,10 @@ sub load_consoletests() {
         }
         loadtest "console/zypper_ref.pm";
         loadtest "console/yast2_lan.pm";
-        loadtest "console/aplay.pm";
-        loadtest "console/glibc_i686.pm";
+        if (!get_var("OFW")) {
+            loadtest "console/aplay.pm";
+            loadtest "console/glibc_i686.pm";
+        }
         loadtest "console/zypper_up.pm";
         loadtest "console/zypper_in.pm";
         loadtest "console/yast2_i.pm";
@@ -546,6 +551,7 @@ elsif (get_var("MEMTEST")) {
 }
 elsif (get_var("RESCUESYSTEM")) {
     loadtest "installation/rescuesystem.pm";
+    loadtest "installation/rescuesystem_validate_131.pm";
 }
 else {
     load_boot_tests();
