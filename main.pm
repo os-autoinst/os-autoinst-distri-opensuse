@@ -522,7 +522,7 @@ sub load_x11tests(){
     if (gnomestep_is_applicable) {
         loadtest "x11/nautilus.pm" unless get_var("LIVECD");
         loadtest "x11/evolution.pm" unless (check_var("FLAVOR", "Server-DVD"));
-        loadtest "x11/reboot_gnome_pre.pm";
+        loadtest "x11/reboot_gnome_pre_sle11.pm";
     }
     if (!get_var("LIVETEST")) {
         loadtest "x11/reboot.pm";
