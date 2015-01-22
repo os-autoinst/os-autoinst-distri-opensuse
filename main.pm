@@ -428,8 +428,10 @@ sub load_consoletests() {
         }
         loadtest "console/zypper_ref.pm";
         loadtest "console/yast2_lan.pm";
-        loadtest "console/aplay.pm";
-        loadtest "console/glibc_i686.pm";
+        if (!get_var("OFW")) {
+            loadtest "console/aplay.pm";
+            loadtest "console/glibc_i686.pm";
+        }
         loadtest "console/zypper_up.pm";
         loadtest "console/zypper_in.pm";
         loadtest "console/yast2_i.pm";
