@@ -1,7 +1,6 @@
-#!/usr/bin/perl -w
-package backend::s390x::get_to_yast;
+use base "installbasetest";
 
-use base ("basetest");
+use testapi;
 
 use strict;
 use warnings;
@@ -11,22 +10,6 @@ use Data::Dumper qw(Dumper);
 use Carp qw(confess cluck carp croak);
 
 use feature qw/say/;
-
-# use backend::s390x::s3270;
-
-##use testapi;  # get_var, ...
-
-sub new() {
-    my ($class, $s3270, $vars, @rest) = @_;
-
-    my $self = $class->SUPER::new($class, @rest);
-
-    $self->{s3270} = $s3270;
-    $self->{vars} = $vars;
-
-    return $self;
-}
-
 
 ###################################################################
 # linuxrc helpers
@@ -61,7 +44,7 @@ sub linuxrc_prompt () {
     my ($self, $prompt, %arg) = @_;
 
     $arg{value}   //= '';
-    $arg{timeout} //= 1;
+    $arg{timeout} //= 3;
 
     my $r = $self->{s3270}->expect_3270(output_delim => qr/(?:\[.*?\])?> /, timeout => $arg{timeout});
 
@@ -168,27 +151,47 @@ sub hash2parmfile() {
     return $parmfile_with_Newline_s;
 }
 
-sub run() {
+use backend::s390x::gnah;
+
 #<<< don't perltidy this part:
 # it makes perfect sense to have request and response _above_ each other
+sub run() {
+
     my $self = shift;
+
+    # debugging the vncviewer?
+    return if (check_var("DEBUG_VNC", "try vncviewer"));
 
     my $r;
 
-    my $s3270 = $self->{s3270};
+    my $s3270 = new gnah("s3270");
+
+    $self->{s3270} = $s3270;
+
+    say Dumper $s3270;
+
     eval {
+
+        ###################################################################
+	# connect to zVM, login to the guest
+	$r = $s3270->connect_and_login();
+
         ###################################################################
         # ftpboot
+	{
 
-        $s3270->sequence_3270(
-            qw{
-                String(ftpboot)
-                ENTER
-                Wait(InputField)
-              });
+	    $s3270->sequence_3270(
+		qw{
+                   String(ftpboot)
+                   ENTER
+                   Wait(InputField)
+                });
 
-        $r = $self->ftpboot_menu(qr/\Q$self->{vars}{FTPBOOT}{HOST}\E/);
-        $r = $self->ftpboot_menu(qr/\Q$self->{vars}{FTPBOOT}{DISTRO}\E/);
+	    my $host = get_var("FTPBOOT")->{HOST};
+	    my $distro = get_var("FTPBOOT")->{DISTRO};
+	    $r = $self->ftpboot_menu(qr/\Q$host\E/);
+	    $r = $self->ftpboot_menu(qr/\Q$distro\E/);
+	}
 
         ##############################
         # edit parmfile
@@ -200,7 +203,7 @@ sub run() {
             $r = $s3270->expect_3270(buffer_ready => qr/Input-mode/);
             ### say Dumper $r;
 
-            my $parmfile_href = $self->{vars}{PARMFILE};
+            my $parmfile_href = get_var("PARMFILE");
 
             $parmfile_href->{ssh}='1';
 
@@ -229,14 +232,14 @@ EO_frickin_boot_parms
         $self->linuxrc_menu("Main Menu", "Start Installation");
         $self->linuxrc_menu("Start Installation", "Start Installation or Update");
         $self->linuxrc_menu("Choose the source medium", "Network");
-        $self->linuxrc_menu("Choose the network protocol", $self->{vars}{INSTSRC}{PROTOCOL});
+        $self->linuxrc_menu("Choose the network protocol", get_var("INSTSRC")->{PROTOCOL});
 
-        if ($self->{vars}{PARMFILE}{ssh} eq "1") {
+        if (get_var("PARMFILE")->{ssh} eq "1") {
             $self->linuxrc_prompt("Enter your temporary SSH password.",
                                   value => "SSH!554!");
         }
 
-        if ($self->{vars}{NETWORK} eq "hsi-l3") {
+        if (check_var("NETWORK", "hsi-l3")) {
             $self->linuxrc_menu("Choose the network device",
                                 "\QIBM Hipersocket (0.0.7000)\E");
 
@@ -248,7 +251,7 @@ EO_frickin_boot_parms
             $self->linuxrc_menu("Automatic configuration via DHCP", "No");
 
         }
-        elsif ($self->{vars}{NETWORK} eq "hsi-l2") {
+        elsif (check_var("NETWORK", "hsi-l2")) {
             $self->linuxrc_menu("Choose the network device",
                                 "\QIBM Hipersocket (0.0.7100)\E");
 
@@ -262,14 +265,14 @@ EO_frickin_boot_parms
             $self->linuxrc_menu("Automatic configuration via DHCP", "No");
 
         }
-        elsif ($self->{vars}{NETWORK} eq "ctc") {
+        elsif (check_var("NETWORK", "ctc")) {
             $self->linuxrc_menu("Choose the network device", "\QIBM parallel CTC Adapter (0.0.0600)\E");
             $self->linuxrc_prompt("Device address for read channel");
             $self->linuxrc_prompt("Device address for write channel");
             $self->linuxrc_menu("Select protocol for this CTC device", "Compatibility mode");
             $self->linuxrc_menu("Automatic configuration via DHCP", "No");
         }
-        elsif ($self->{vars}{NETWORK} eq "vswitch-l3") {
+        elsif (check_var("NETWORK", "vswitch-l3")) {
             $self->linuxrc_menu("Choose the network device", "\QIBM OSA Express Network card (0.0.0700)\E");
             $self->linuxrc_menu("Please choose the physical medium", "Ethernet");
 
@@ -287,7 +290,7 @@ EO_frickin_boot_parms
             $self->linuxrc_menu("Automatic configuration via DHCP", "No");
 
         }
-        elsif ($self->{vars}{NETWORK} eq "vswitch-l2") {
+        elsif (check_var("NETWORK", "vswitch-l2")) {
             $self->linuxrc_menu("Choose the network device", "\QIBM OSA Express Network card (0.0.0800)\E");
             $self->linuxrc_menu("Please choose the physical medium", "Ethernet");
 
@@ -307,7 +310,7 @@ EO_frickin_boot_parms
             $self->linuxrc_menu("Automatic configuration via DHCP", "No");
 
         }
-        elsif ($self->{vars}{NETWORK} eq "iucv") {
+        elsif (check_var("NETWORK", "iucv")) {
             $self->linuxrc_menu("Choose the network device", "\QIBM IUCV\E");
 
             $self->linuxrc_prompt("\QPlease enter the name (user ID) of the target VM guest\E",
@@ -316,38 +319,38 @@ EO_frickin_boot_parms
             $self->linuxrc_menu("Automatic configuration via DHCP", "No");
         }
         else {
-            confess "unknown network device in vars.json: NETWORK = $self->{vars}{NETWORK}";
+            confess "unknown network device in vars.json: NETWORK = ${get_var('NETWORK')}";
         };
 
         # FIXME work around https://bugzilla.suse.com/show_bug.cgi?id=913723
         # normally use value from parmfile.
         $self->linuxrc_prompt("Enter your IPv4 address",
-                              value => $self->{vars}{PARMFILE}{HostIP});
+                              value => get_var("PARMFILE")->{HostIP});
 
         # FIXME: add NETMASK parameter to test "Entr your Netmask" branch
         # for now, give the netmask with the IP where needed.
-        #if ($self->{vars}{NETWORK} eq "hsi-l3"||
-        #    $self->{vars}{NETWORK} eq "hsi-l2"||
-        #    $self->{vars}{NETWORK} eq "vswitch-l3") {
+        #if (check_var("NETWORK", "hsi-l3")||
+        #    check_var("NETWORK", "hsi-l2")||
+        #    check_var("NETWORK", "vswitch-l3")) {
         #    $self->linuxrc_prompt("Enter your netmask. For a normal class C network, this is usually 255.255.255.0.",
         #                          timeout => 10, # allow for the CTC peer to react
         #        );
         #}
 
-        if ($self->{vars}{NETWORK} eq "hsi-l3"||
-            $self->{vars}{NETWORK} eq "hsi-l2"||
-            $self->{vars}{NETWORK} eq "vswitch-l2"||
-            $self->{vars}{NETWORK} eq "vswitch-l3") {
+        if (check_var("NETWORK", "hsi-l3")     ||
+            check_var("NETWORK", "hsi-l2")     ||
+            check_var("NETWORK", "vswitch-l2") ||
+            check_var("NETWORK", "vswitch-l3")) {
 
             $self->linuxrc_prompt("Enter the IP address of the gateway. Leave empty if you don't need one.");
             $self->linuxrc_prompt("Enter your search domains, separated by a space",
                                   timeout => 10);
         }
-        elsif ($self->{vars}{NETWORK} eq "ctc"||
-               $self->{vars}{NETWORK} eq "iucv") {
+        elsif (check_var("NETWORK", "ctc") ||
+               check_var("NETWORK", "iucv")) {
             # FIXME why is this needed?  it is in the parmfile!
             $self->linuxrc_prompt("Enter the IP address of the PLIP partner.",
-                                  value   => $self->{vars}{PARMFILE}{Gateway});
+                                  value   => get_var("PARMFILE")->{Gateway});
 
         };
 
@@ -355,22 +358,22 @@ EO_frickin_boot_parms
         $self->linuxrc_prompt("Enter the IP address of your name server.",
                               timeout => 10);
 
-        if ($self->{vars}{INSTSRC}{PROTOCOL} eq "HTTP" ||
-            $self->{vars}{INSTSRC}{PROTOCOL} eq "FTP" ||
-            $self->{vars}{INSTSRC}{PROTOCOL} eq "NFS") {
+        if (get_var("INSTSRC")->{PROTOCOL} eq "HTTP" ||
+            get_var("INSTSRC")->{PROTOCOL} eq "FTP" ||
+            get_var("INSTSRC")->{PROTOCOL} eq "NFS") {
 
             $self->linuxrc_prompt("Enter the IP address of the (HTTP|FTP|NFS) server",
-                                  value => $self->{vars}{INSTSRC}{HOST});
+                                  value => get_var("INSTSRC")->{HOST});
 
             $self->linuxrc_prompt("Enter the directory on the server",
-                                  value => $self->{vars}{INSTSRC}{DIR_ON_SERVER});
+                                  value => get_var("INSTSRC")->{DIR_ON_SERVER});
         }
         else {
-            confess "unknown installation source in vars.json: INSTSRC = $self->{vars}{INSTSRC}";
+            confess "unknown installation source in vars.json: INSTSRC = ${get_var('INSTSRC')}";
         };
 
-        if ($self->{vars}{INSTSRC}{PROTOCOL} eq "HTTP" ||
-            $self->{vars}{INSTSRC}{PROTOCOL} eq "FTP") {
+        if (get_var("INSTSRC")->{PROTOCOL} eq "HTTP" ||
+            get_var("INSTSRC")->{PROTOCOL} eq "FTP") {
             $self->linuxrc_menu("Do you need a username and password to access the (HTTP|FTP) server",
                                 "No");
 
@@ -386,17 +389,17 @@ EO_frickin_boot_parms
         ### say Dumper $r;
 
         $self->linuxrc_menu("Select the display type",
-                            $self->{vars}{DISPLAY}{TYPE});
+                            get_var("DISPLAY")->{TYPE});
 
-        if ($self->{vars}{DISPLAY}{TYPE} eq "VNC") {
+        if (get_var("DISPLAY")->{TYPE} eq "VNC") {
             $self->linuxrc_prompt("Enter your VNC password",
-                                  value => $self->{vars}{DISPLAY}{PASSWORD});
+                                  value => get_var("DISPLAY")->{PASSWORD});
         }
-        elsif ($self->{vars}{DISPLAY}{TYPE} eq "X11") {
+        elsif (get_var("DISPLAY")->{TYPE} eq "X11") {
             $self->linuxrc_prompt("Enter the IP address of the host running the X11 server.",
                                   value => "");
         }
-        elsif ($self->{vars}{DISPLAY}{TYPE} eq "SSH") {
+        elsif (get_var("DISPLAY")->{TYPE} eq "SSH") {
 
         };
 
@@ -409,9 +412,16 @@ EO_frickin_boot_parms
     # while developing: cluck.  in real life:  confess!
     # confess $@ if $@;
     cluck $@if $@;
+
+    ###################################################################
+    # now connect to the running VNC server
+    # FIXME: this should connect to the terminal, ssh or vnc or X11...
+    # and for SSH it then needs to start yast.
+    $bmwqemu::backend->connect_vnc();
+
     ### say Dumper $r;
 
-#>>> perltidy again from here on
 }
+#>>> perltidy again from here on
 
 1;
