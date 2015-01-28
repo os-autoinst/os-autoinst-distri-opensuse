@@ -302,6 +302,10 @@ sub load_boot_tests(){
     elsif (get_var("UEFI")) {
         loadtest "installation/bootloader_uefi.pm";
     }
+    elsif (check_var("BACKEND", "s390x")) {
+	bmwqemu::diag "trying installation/bootloader_s390.pm";
+        loadtest "installation/bootloader_s390.pm";
+    }
     else {
         loadtest "installation/bootloader.pm";
     }

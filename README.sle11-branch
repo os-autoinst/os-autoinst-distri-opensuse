@@ -1,0 +1,15 @@
+the test cases and needles need to be up to dayte anyhow and change at
+a very high pace.  So we pull in upstream via a separately cloned repo
+(on the master branch) and just symlink to that, like so:
+
+git clone https://github.com/os-autoinst/os-autoinst-distri-opensuse opensuse-testcases
+
+then just frequently 
+
+   (cd opensuse-testcases; git pull)
+
+
+this looks hacky :)
+
+consider submodules or special remotes with "subtree merges" as per
+git submodules --help?
