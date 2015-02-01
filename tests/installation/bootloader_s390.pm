@@ -44,7 +44,7 @@ sub linuxrc_prompt () {
     my ($self, $prompt, %arg) = @_;
 
     $arg{value}   //= '';
-    $arg{timeout} //= 3;
+    $arg{timeout} //= 7;
 
     my $r = $self->{s3270}->expect_3270(output_delim => qr/(?:\[.*?\])?> /, timeout => $arg{timeout});
 
@@ -162,7 +162,7 @@ sub run() {
     my $self = shift;
 
     # debugging the vncviewer?
-    return if (check_var("DEBUG_VNC", "try vncviewer"));
+    return if (exists get_var("DEBUG")->{"try vncviewer"});
 
     my $r;
 
@@ -207,7 +207,11 @@ sub run() {
 
             my $parmfile_href = get_var("PARMFILE");
 
-            $parmfile_href->{ssh}='1';
+            $parmfile_href->{ssh} = '1';
+
+	    if (exists get_var("DEBUG")->{"wait before yast"}) {
+		$parmfile_href->{startshell} = '1';
+	    }
 
             my $parmfile_with_Newline_s = &hash2parmfile($parmfile_href);
 
@@ -222,13 +226,19 @@ EO_frickin_boot_parms
 
             $r = $s3270->expect_3270(buffer_ready => qr/X E D I T/);
 
+	    ## HACK
+	    ## remove the "manual=1" and the empty line at the end of the parmfile
+            #$s3270->sequence_3270(qw{String(BOTTOM) ENTER String(DELETE) ENTER});
+            #$s3270->sequence_3270(qw{String(BOTTOM) ENTER String(DELETE) ENTER});
+
             $s3270->sequence_3270( qw{ String(FILE) ENTER });
+
         }
         ###################################################################
         # linuxrc
 
         # wait for linuxrc to come up...
-        $r = $s3270->expect_3270(output_delim => qr/>>> Linuxrc/, timeout=>20);
+        $r = $s3270->expect_3270(output_delim => qr/>>> Linuxrc/, timeout => 30);
         ### say Dumper $r;
 
         $self->linuxrc_menu("Main Menu", "Start Installation");
@@ -236,8 +246,11 @@ EO_frickin_boot_parms
         $self->linuxrc_menu("Choose the source medium", "Network");
         $self->linuxrc_menu("Choose the network protocol", get_var("INSTSRC")->{PROTOCOL});
 
+	## $r = $s3270->expect_3270(output_delim => qr/>>> SUSE/, timeout => 30);
+
         if (get_var("PARMFILE")->{ssh} eq "1") {
             $self->linuxrc_prompt("Enter your temporary SSH password.",
+				  timeout => 30,
                                   value => "SSH!554!");
         }
 
@@ -399,21 +412,29 @@ EO_frickin_boot_parms
         }
         elsif (get_var("DISPLAY")->{TYPE} eq "X11") {
             $self->linuxrc_prompt("Enter the IP address of the host running the X11 server.",
-                                  value => "");
+                                  value => get_var("DISPLAY")->{HOST});
         }
         elsif (get_var("DISPLAY")->{TYPE} eq "SSH") {
 
         };
 
+	my $output_delim = exists get_var("DEBUG")->{"wait before yast"} ?
+	    qr/\QATTENTION: Starting shell...\E/:
+	    qr/\Q*** Starting YaST2 ***\E/;
+
         $r = $s3270->expect_3270(
-            output_delim => qr/\Q*** Starting YaST2 ***\E/,
+            output_delim => $output_delim,
             timeout      => 20
             );
     };
 
-    # while developing: cluck.  in real life:  confess!
-    # confess $@ if $@;
-    cluck $@if $@;
+    if (exists get_var("DEBUG")->{"wait before yast"}) {
+	say "your shell is ready.\n".
+	    "when done, exit the shell there.\n".
+	    "Hit enter here to continue test run.";
+	
+	my $dummy = <STDIN>;
+    }
 
     ###################################################################
     # now connect to the running VNC server
