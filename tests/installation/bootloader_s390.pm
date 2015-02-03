@@ -166,7 +166,7 @@ sub run() {
 
     my $r;
 
-    my $s3270 = new gnah("s3270");
+    my $s3270 = console_proxy->new("s3270");
 
     $self->{s3270} = $s3270;
 
@@ -434,6 +434,9 @@ EO_frickin_boot_parms
 	    "Hit enter here to continue test run.";
 	
 	my $dummy = <STDIN>;
+
+	say "resuming test...";
+
     }
 
     ###################################################################
