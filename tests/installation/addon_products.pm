@@ -55,19 +55,16 @@ sub run() {
             key_round 'addon-dvd-list', 'tab';
             key_round "addon-dvd-$a", 'down';
             send_key 'alt-o';
-            # remove '&& ($a ne "geo")' when boo912300 is fixed
-            if (get_var("BETA") && ($a ne "geo")) {
+            if (get_var("BETA")) {
                 assert_screen "addon-betawarning-$a", 10;
                 send_key "ret";
                 assert_screen "addon-license-beta", 10;
             }
-            elsif ($a ne "geo") { # meant to be an else, remove if when boo912300 is fixed
+            else {
                 assert_screen "addon-license-$a", 10;
             }
-            if ($a ne "geo"){ # remove line when boo912300 is fixed
-                send_key 'alt-y'; # yes, agree
-                send_key 'alt-n';
-            } # remove line when boo912300 is fixed
+            send_key 'alt-y'; # yes, agree
+            send_key 'alt-n';
             assert_screen 'addon-list';
             if ((split(/,/, get_var('ADDONS')))[-1] ne $a) {
                 send_key 'alt-a';
