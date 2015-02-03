@@ -21,7 +21,7 @@ sub run() {
         send_key $cmd{"next"};    # use network
         assert_screen 'dhcp-network';
         send_key 'alt-d'; # DHCP
-        send_key "alt-o", 1;        # OK
+        send_key "alt-o", 2;        # OK
     }
     my $repo = 0;
     $repo++ if get_var("DUD");
