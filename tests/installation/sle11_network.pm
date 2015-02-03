@@ -28,7 +28,7 @@ sub run(){
     }
 
     assert_screen 'test-internet-connection', 60;
-    if (check_screen 'workaround-boo913722'){
+    if (check_screen 'workaround-boo913722') {
         record_soft_failure;
     }
     send_key $cmd{next};
@@ -37,7 +37,7 @@ sub run(){
     if(get_var("BETA")) {
         if (check_screen 'server-side-error', 90) {
             send_key "alt-o";
-            ++$self->{dents};
+            record_soft_failure;
         }
     }
     elsif (check_screen 'server-side-error', 90) {
