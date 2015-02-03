@@ -24,6 +24,9 @@ sub run(){
 
         # network conf
         assert_screen 'network-config-done', 40; # longwait Net|DSL|Modem
+        if (check_screen 'workaround-boo914288') {
+            record_soft_failure;
+        }
         send_key $cmd{next};
     }
 
