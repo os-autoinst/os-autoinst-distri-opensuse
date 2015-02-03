@@ -28,6 +28,9 @@ sub run(){
     }
 
     assert_screen 'test-internet-connection', 60;
+    if (check_screen 'workaround-boo913722'){
+        record_soft_failure;
+    }
     send_key $cmd{next};
 
     # if a BETA run, allow server-side-errors and handle gracefully
