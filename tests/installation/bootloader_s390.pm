@@ -60,7 +60,7 @@ sub linuxrc_prompt () {
     local $LIST_SEPARATOR = "\n";
 
     if (!grep /^$prompt/, @$r[0..(@$r-1)] ) {
-        confess"prompt does not match expected prompt (${prompt}) :\n"."@$r";
+        confess "prompt does not match expected prompt (${prompt}) :\n@$r\n";
     }
 
     my $sequence = ["Clear", "String($arg{value})", "ENTER"];
@@ -157,6 +157,203 @@ use backend::console_proxy;
 
 #<<< don't perltidy this part:
 # it makes perfect sense to have request and response _above_ each other
+
+sub linuxrc_manual() {
+    my $self = shift;
+
+    my $s3270 = $self->{s3270};
+    # wait for linuxrc to come up...
+    my $r = $s3270->expect_3270(output_delim => qr/>>> Linuxrc/, timeout => 30);
+    ### say Dumper $r;
+
+    $self->linuxrc_menu("Main Menu", "Start Installation");
+    $self->linuxrc_menu("Start Installation", "Start Installation or Update");
+    $self->linuxrc_menu("Choose the source medium", "Network");
+    $self->linuxrc_menu("Choose the network protocol", get_var("INSTSRC")->{PROTOCOL});
+
+    ## $r = $s3270->expect_3270(output_delim => qr/>>> SUSE/, timeout => 30);
+
+    if (get_var("PARMFILE")->{ssh} eq "1") {
+	$self->linuxrc_prompt("Enter your temporary SSH password.",
+			      timeout => 30,
+			      value => "SSH!554!");
+    }
+
+    if (check_var("NETWORK", "hsi-l3")) {
+	$self->linuxrc_menu("Choose the network device",
+			    "\QIBM Hipersocket (0.0.7000)\E");
+
+	$self->linuxrc_prompt("Device address for read channel");
+	$self->linuxrc_prompt("Device address for write channel");
+	$self->linuxrc_prompt("Device address for data channel");
+
+	$self->linuxrc_menu("Enable OSI Layer 2 support", "No");
+	$self->linuxrc_menu("Automatic configuration via DHCP", "No");
+
+    }
+    elsif (check_var("NETWORK", "hsi-l2")) {
+	$self->linuxrc_menu("Choose the network device",
+			    "\QIBM Hipersocket (0.0.7100)\E");
+
+	$self->linuxrc_prompt("Device address for read channel");
+	$self->linuxrc_prompt("Device address for write channel");
+	$self->linuxrc_prompt("Device address for data channel");
+
+	## FIXME which mac address if YES?
+	$self->linuxrc_menu("Enable OSI Layer 2 support", "Yes");
+	$self->linuxrc_prompt("\QMAC address. (Enter '+++' to abort).\E");
+	$self->linuxrc_menu("Automatic configuration via DHCP", "No");
+
+    }
+    elsif (check_var("NETWORK", "ctc")) {
+	$self->linuxrc_menu("Choose the network device", "\QIBM parallel CTC Adapter (0.0.0600)\E");
+	$self->linuxrc_prompt("Device address for read channel");
+	$self->linuxrc_prompt("Device address for write channel");
+	$self->linuxrc_menu("Select protocol for this CTC device", "Compatibility mode");
+	$self->linuxrc_menu("Automatic configuration via DHCP", "No");
+    }
+    elsif (check_var("NETWORK", "vswitch-l3")) {
+	$self->linuxrc_menu("Choose the network device", "\QIBM OSA Express Network card (0.0.0700)\E");
+	$self->linuxrc_menu("Please choose the physical medium", "Ethernet");
+
+	## in our set up, the default just works
+	$self->linuxrc_prompt("Enter the relative port number");
+
+	$self->linuxrc_prompt("Device address for read channel");
+	$self->linuxrc_prompt("Device address for write channel");
+	$self->linuxrc_prompt("Device address for data channel");
+
+	$self->linuxrc_prompt("\QPortname to use\E");
+
+	$self->linuxrc_menu("Enable OSI Layer 2 support", "No");
+
+	$self->linuxrc_menu("Automatic configuration via DHCP", "No");
+
+    }
+    elsif (check_var("NETWORK", "vswitch-l2")) {
+	$self->linuxrc_menu("Choose the network device", "\QIBM OSA Express Network card (0.0.0800)\E");
+	$self->linuxrc_menu("Please choose the physical medium", "Ethernet");
+
+	## in our set up, the default just works
+	$self->linuxrc_prompt("Enter the relative port number");
+
+	$self->linuxrc_prompt("Device address for read channel");
+	$self->linuxrc_prompt("Device address for write channel");
+	$self->linuxrc_prompt("Device address for data channel");
+
+	$self->linuxrc_prompt("\QPortname to use\E");
+
+	$self->linuxrc_menu("Enable OSI Layer 2 support", "Yes");
+	$self->linuxrc_prompt("\QMAC address. (Enter '+++' to abort).\E");
+
+	## TODO: vswitch L2 += DHCP
+	$self->linuxrc_menu("Automatic configuration via DHCP", "No");
+
+    }
+    elsif (check_var("NETWORK", "iucv")) {
+	$self->linuxrc_menu("Choose the network device", "\QIBM IUCV\E");
+
+	$self->linuxrc_prompt("\QPlease enter the name (user ID) of the target VM guest\E",
+			      value => "ROUTER01");
+
+	$self->linuxrc_menu("Automatic configuration via DHCP", "No");
+    }
+    else {
+	confess "unknown network device in vars.json: NETWORK = ${get_var('NETWORK')}";
+    };
+
+    # FIXME work around https://bugzilla.suse.com/show_bug.cgi?id=913723
+    # normally use value from parmfile.
+    $self->linuxrc_prompt("Enter your IPv4 address",
+			  value => get_var("PARMFILE")->{HostIP});
+
+    # FIXME: add NETMASK parameter to test "Entr your Netmask" branch
+    # for now, give the netmask with the IP where needed.
+    #if (check_var("NETWORK", "hsi-l3")||
+    #    check_var("NETWORK", "hsi-l2")||
+    #    check_var("NETWORK", "vswitch-l3")) {
+    #    $self->linuxrc_prompt("Enter your netmask. For a normal class C network, this is usually 255.255.255.0.",
+    #                          timeout => 10, # allow for the CTC peer to react
+    #        );
+    #}
+
+    if (check_var("NETWORK", "hsi-l3")     ||
+	check_var("NETWORK", "hsi-l2")     ||
+	check_var("NETWORK", "vswitch-l2") ||
+	check_var("NETWORK", "vswitch-l3")) {
+
+	$self->linuxrc_prompt("Enter the IP address of the gateway. Leave empty if you don't need one.");
+	$self->linuxrc_prompt("Enter your search domains, separated by a space",
+			      timeout => 10);
+    }
+    elsif (check_var("NETWORK", "ctc") ||
+	   check_var("NETWORK", "iucv")) {
+	# FIXME why is this needed?  it is in the parmfile!
+	$self->linuxrc_prompt("Enter the IP address of the PLIP partner.",
+			      value   => get_var("PARMFILE")->{Gateway});
+
+    };
+
+    # use value from parmfile
+    $self->linuxrc_prompt("Enter the IP address of your name server.",
+			  timeout => 10);
+
+    if (get_var("INSTSRC")->{PROTOCOL} eq "HTTP" ||
+	get_var("INSTSRC")->{PROTOCOL} eq "FTP" ||
+	get_var("INSTSRC")->{PROTOCOL} eq "NFS") {
+
+	$self->linuxrc_prompt("Enter the IP address of the (HTTP|FTP|NFS) server",
+			      value => get_var("INSTSRC")->{HOST});
+
+	$self->linuxrc_prompt("Enter the directory on the server",
+			      value => get_var("INSTSRC")->{DIR_ON_SERVER});
+    }
+    else {
+	confess "unknown installation source in vars.json: INSTSRC = ${get_var('INSTSRC')}";
+    };
+
+    if (get_var("INSTSRC")->{PROTOCOL} eq "HTTP" ||
+	get_var("INSTSRC")->{PROTOCOL} eq "FTP") {
+	$self->linuxrc_menu("Do you need a username and password to access the (HTTP|FTP) server",
+			    "No");
+
+	$self->linuxrc_menu("Use a HTTP proxy",
+			    "No");
+    }
+
+    $r = $s3270->expect_3270(
+	output_delim => qr/Reading Driver Update/,
+	timeout      => 50
+	);
+
+    ### say Dumper $r;
+
+    $self->linuxrc_menu("Select the display type",
+			get_var("DISPLAY")->{TYPE});
+
+    if (get_var("DISPLAY")->{TYPE} eq "VNC") {
+	$self->linuxrc_prompt("Enter your VNC password",
+			      value => get_var("DISPLAY")->{PASSWORD});
+    }
+    elsif (get_var("DISPLAY")->{TYPE} eq "X11") {
+	$self->linuxrc_prompt("Enter the IP address of the host running the X11 server.",
+			      value => get_var("DISPLAY")->{HOST});
+    }
+    elsif (get_var("DISPLAY")->{TYPE} eq "SSH") {
+
+    };
+}
+
+sub linuxrc_unattended() {
+    my $self = shift;
+    # nothing to do.  just wait.
+    my $r = $self->{s3270}->expect_3270(output_delim => qr/Reading driver update/,
+					timeout => 60);
+    my $r = $self->{s3270}->expect_3270(output_delim => qr/Loading Installation System/,
+					timeout => 60);
+
+}
+
 sub run() {
 
     my $self = shift;
@@ -169,8 +366,6 @@ sub run() {
     my $s3270 = console_proxy->new("s3270");
 
     $self->{s3270} = $s3270;
-
-    say Dumper $s3270;
 
     eval {
 
@@ -198,7 +393,7 @@ sub run() {
         ##############################
         # edit parmfile
         {
-            $r = $s3270->expect_3270(buffer_ready => qr/X E D I T/, timeout => 30);
+            $r = $s3270->expect_3270(buffer_ready => qr/X E D I T/, timeout => 90);
 
             $s3270->sequence_3270( qw{ String(INPUT) ENTER } );
 
@@ -226,198 +421,35 @@ EO_frickin_boot_parms
 
             $r = $s3270->expect_3270(buffer_ready => qr/X E D I T/);
 
-	    ## HACK
-	    ## remove the "manual=1" and the empty line at the end of the parmfile
-            #$s3270->sequence_3270(qw{String(BOTTOM) ENTER String(DELETE) ENTER});
-            #$s3270->sequence_3270(qw{String(BOTTOM) ENTER String(DELETE) ENTER});
+	    if (get_var("PARMFILE")->{manual} eq "0") {
+		## Remove the "manual=1" and the empty line at the end
+		## of the parmfile.
 
-            $s3270->sequence_3270( qw{ String(FILE) ENTER });
+		## HACK HACK HACK HACK this code just 'knows' there is
+		## an empty line and a single "manual=1" at the bottom
+		## of the ftpboot parmfile.  This may fail in obscure
+		## ways when that changes.
+		$s3270->sequence_3270(qw{String(BOTTOM) ENTER String(DELETE) ENTER});
+		$s3270->sequence_3270(qw{String(BOTTOM) ENTER String(DELETE) ENTER});
+	    };
+
+	    # save the parmfile.  ftpboot then starts the installation.
+	    $s3270->sequence_3270( qw{ String(FILE) ENTER });
 
         }
         ###################################################################
         # linuxrc
 
-        # wait for linuxrc to come up...
-        $r = $s3270->expect_3270(output_delim => qr/>>> Linuxrc/, timeout => 30);
-        ### say Dumper $r;
-
-        $self->linuxrc_menu("Main Menu", "Start Installation");
-        $self->linuxrc_menu("Start Installation", "Start Installation or Update");
-        $self->linuxrc_menu("Choose the source medium", "Network");
-        $self->linuxrc_menu("Choose the network protocol", get_var("INSTSRC")->{PROTOCOL});
-
-	## $r = $s3270->expect_3270(output_delim => qr/>>> SUSE/, timeout => 30);
-
-        if (get_var("PARMFILE")->{ssh} eq "1") {
-            $self->linuxrc_prompt("Enter your temporary SSH password.",
-				  timeout => 30,
-                                  value => "SSH!554!");
-        }
-
-        if (check_var("NETWORK", "hsi-l3")) {
-            $self->linuxrc_menu("Choose the network device",
-                                "\QIBM Hipersocket (0.0.7000)\E");
-
-            $self->linuxrc_prompt("Device address for read channel");
-            $self->linuxrc_prompt("Device address for write channel");
-            $self->linuxrc_prompt("Device address for data channel");
-
-            $self->linuxrc_menu("Enable OSI Layer 2 support", "No");
-            $self->linuxrc_menu("Automatic configuration via DHCP", "No");
-
-        }
-        elsif (check_var("NETWORK", "hsi-l2")) {
-            $self->linuxrc_menu("Choose the network device",
-                                "\QIBM Hipersocket (0.0.7100)\E");
-
-            $self->linuxrc_prompt("Device address for read channel");
-            $self->linuxrc_prompt("Device address for write channel");
-            $self->linuxrc_prompt("Device address for data channel");
-
-            ## FIXME which mac address if YES?
-            $self->linuxrc_menu("Enable OSI Layer 2 support", "Yes");
-            $self->linuxrc_prompt("\QMAC address. (Enter '+++' to abort).\E");
-            $self->linuxrc_menu("Automatic configuration via DHCP", "No");
-
-        }
-        elsif (check_var("NETWORK", "ctc")) {
-            $self->linuxrc_menu("Choose the network device", "\QIBM parallel CTC Adapter (0.0.0600)\E");
-            $self->linuxrc_prompt("Device address for read channel");
-            $self->linuxrc_prompt("Device address for write channel");
-            $self->linuxrc_menu("Select protocol for this CTC device", "Compatibility mode");
-            $self->linuxrc_menu("Automatic configuration via DHCP", "No");
-        }
-        elsif (check_var("NETWORK", "vswitch-l3")) {
-            $self->linuxrc_menu("Choose the network device", "\QIBM OSA Express Network card (0.0.0700)\E");
-            $self->linuxrc_menu("Please choose the physical medium", "Ethernet");
-
-            ## in our set up, the default just works
-            $self->linuxrc_prompt("Enter the relative port number");
-
-            $self->linuxrc_prompt("Device address for read channel");
-            $self->linuxrc_prompt("Device address for write channel");
-            $self->linuxrc_prompt("Device address for data channel");
-
-            $self->linuxrc_prompt("\QPortname to use\E");
-
-            $self->linuxrc_menu("Enable OSI Layer 2 support", "No");
-
-            $self->linuxrc_menu("Automatic configuration via DHCP", "No");
-
-        }
-        elsif (check_var("NETWORK", "vswitch-l2")) {
-            $self->linuxrc_menu("Choose the network device", "\QIBM OSA Express Network card (0.0.0800)\E");
-            $self->linuxrc_menu("Please choose the physical medium", "Ethernet");
-
-            ## in our set up, the default just works
-            $self->linuxrc_prompt("Enter the relative port number");
-
-            $self->linuxrc_prompt("Device address for read channel");
-            $self->linuxrc_prompt("Device address for write channel");
-            $self->linuxrc_prompt("Device address for data channel");
-
-            $self->linuxrc_prompt("\QPortname to use\E");
-
-            $self->linuxrc_menu("Enable OSI Layer 2 support", "Yes");
-            $self->linuxrc_prompt("\QMAC address. (Enter '+++' to abort).\E");
-
-            ## TODO: vswitch L2 += DHCP
-            $self->linuxrc_menu("Automatic configuration via DHCP", "No");
-
-        }
-        elsif (check_var("NETWORK", "iucv")) {
-            $self->linuxrc_menu("Choose the network device", "\QIBM IUCV\E");
-
-            $self->linuxrc_prompt("\QPlease enter the name (user ID) of the target VM guest\E",
-                value => "ROUTER01");
-
-            $self->linuxrc_menu("Automatic configuration via DHCP", "No");
-        }
-        else {
-            confess "unknown network device in vars.json: NETWORK = ${get_var('NETWORK')}";
-        };
-
-        # FIXME work around https://bugzilla.suse.com/show_bug.cgi?id=913723
-        # normally use value from parmfile.
-        $self->linuxrc_prompt("Enter your IPv4 address",
-                              value => get_var("PARMFILE")->{HostIP});
-
-        # FIXME: add NETMASK parameter to test "Entr your Netmask" branch
-        # for now, give the netmask with the IP where needed.
-        #if (check_var("NETWORK", "hsi-l3")||
-        #    check_var("NETWORK", "hsi-l2")||
-        #    check_var("NETWORK", "vswitch-l3")) {
-        #    $self->linuxrc_prompt("Enter your netmask. For a normal class C network, this is usually 255.255.255.0.",
-        #                          timeout => 10, # allow for the CTC peer to react
-        #        );
-        #}
-
-        if (check_var("NETWORK", "hsi-l3")     ||
-            check_var("NETWORK", "hsi-l2")     ||
-            check_var("NETWORK", "vswitch-l2") ||
-            check_var("NETWORK", "vswitch-l3")) {
-
-            $self->linuxrc_prompt("Enter the IP address of the gateway. Leave empty if you don't need one.");
-            $self->linuxrc_prompt("Enter your search domains, separated by a space",
-                                  timeout => 10);
-        }
-        elsif (check_var("NETWORK", "ctc") ||
-               check_var("NETWORK", "iucv")) {
-            # FIXME why is this needed?  it is in the parmfile!
-            $self->linuxrc_prompt("Enter the IP address of the PLIP partner.",
-                                  value   => get_var("PARMFILE")->{Gateway});
-
-        };
-
-        # use value from parmfile
-        $self->linuxrc_prompt("Enter the IP address of your name server.",
-                              timeout => 10);
-
-        if (get_var("INSTSRC")->{PROTOCOL} eq "HTTP" ||
-            get_var("INSTSRC")->{PROTOCOL} eq "FTP" ||
-            get_var("INSTSRC")->{PROTOCOL} eq "NFS") {
-
-            $self->linuxrc_prompt("Enter the IP address of the (HTTP|FTP|NFS) server",
-                                  value => get_var("INSTSRC")->{HOST});
-
-            $self->linuxrc_prompt("Enter the directory on the server",
-                                  value => get_var("INSTSRC")->{DIR_ON_SERVER});
-        }
-        else {
-            confess "unknown installation source in vars.json: INSTSRC = ${get_var('INSTSRC')}";
-        };
-
-        if (get_var("INSTSRC")->{PROTOCOL} eq "HTTP" ||
-            get_var("INSTSRC")->{PROTOCOL} eq "FTP") {
-            $self->linuxrc_menu("Do you need a username and password to access the (HTTP|FTP) server",
-                                "No");
-
-            $self->linuxrc_menu("Use a HTTP proxy",
-                                "No");
-        }
-
-        $r = $s3270->expect_3270(
-            output_delim => qr/Reading Driver Update/,
-            timeout      => 50
-            );
-
-        ### say Dumper $r;
-
-        $self->linuxrc_menu("Select the display type",
-                            get_var("DISPLAY")->{TYPE});
-
-        if (get_var("DISPLAY")->{TYPE} eq "VNC") {
-            $self->linuxrc_prompt("Enter your VNC password",
-                                  value => get_var("DISPLAY")->{PASSWORD});
-        }
-        elsif (get_var("DISPLAY")->{TYPE} eq "X11") {
-            $self->linuxrc_prompt("Enter the IP address of the host running the X11 server.",
-                                  value => get_var("DISPLAY")->{HOST});
-        }
-        elsif (get_var("DISPLAY")->{TYPE} eq "SSH") {
-
-        };
-
+	if (get_var("PARMFILE")->{manual} eq "0") {
+	    $self->linuxrc_unattended();
+	}
+	elsif (get_var("PARMFILE")->{manual} eq "1") {
+	    $self->linuxrc_manual();
+	}
+	else {
+	    die "must specify vars.json->PARMFILE->manual=[01]";
+	};
+ 
 	my $output_delim = exists get_var("DEBUG")->{"wait before yast"} ?
 	    qr/\QATTENTION: Starting shell...\E/:
 	    qr/\Q*** Starting YaST2 ***\E/;
