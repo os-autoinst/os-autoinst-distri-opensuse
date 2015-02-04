@@ -28,8 +28,6 @@ sub run() {
 
     assert_screen 'addon-selection', 15;
 
-    if ( get_var("VIDEOMODE") && check_var("VIDEOMODE", "text") ) { $cmd{xnext} = "alt-x" }
-
     if ( get_var("ADDONURL") ){
 
         foreach my $url ( split( /\+/, get_var("ADDONURL") ) ) {
