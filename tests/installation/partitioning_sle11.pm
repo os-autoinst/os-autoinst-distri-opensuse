@@ -72,6 +72,30 @@ sub run() {
         send_key 'down';
         send_key 'right';
         send_key 'down'; #should select first disk'
+        if (get_var("OFW")) {
+            send_key 'alt-d';
+            assert_screen 'add-partition', 5;
+            send_key 'alt-n';
+            assert_screen 'add-partition-size', 5;
+            send_key 'ctrl-a';
+            type_string "200 MB";
+            send_key 'alt-n';
+            assert_screen 'add-partition-type', 5;
+            send_key 'alt-d'; # goto nonfs types
+            send_key 'alt-i';
+            my $prep_counter = 20;
+            while (1) {
+                my $ret = wait_screen_change {
+                    send_key 'down';
+                };
+                die "looping for too long/PReP not found" if (!$ret || $prep_counter-- == 0);
+                if (check_screen("filesystem-prep", 1)) {
+                    send_key 'ret';
+                    assert_screen('expert-partitioning', 5);
+                    last;
+                }
+            }
+        }
         send_key 'alt-d';
         assert_screen 'add-partition', 5;
         send_key 'alt-n';
