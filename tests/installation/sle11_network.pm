@@ -24,20 +24,27 @@ sub run(){
 
         # network conf
         assert_screen 'network-config-done', 40; # longwait Net|DSL|Modem
+        if (check_screen 'workaround-boo914288') {
+            record_soft_failure;
+        }
         send_key $cmd{next};
     }
 
     assert_screen 'test-internet-connection', 60;
+    if (check_screen 'workaround-boo913722') {
+        record_soft_failure;
+    }
     send_key $cmd{next};
 
     # if a BETA run, allow server-side-errors and handle gracefully
     if(get_var("BETA")) {
-        if ( check_screen 'server-side-error', 90 ) {
+        if (check_screen 'server-side-error', 90) {
             send_key "alt-o";
+            record_soft_failure;
         }
-        elsif (check_screen 'server-side-error', 90) {
-            die "Problem downloading release notes on non-beta";
-        }
+    }
+    elsif (check_screen 'server-side-error', 90) {
+        die "Problem downloading release notes on non-beta";
     }
 
     # release notes download can take a while
