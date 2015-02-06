@@ -281,6 +281,9 @@ sub load_boot_tests(){
     if (get_var("OFW")) {
         loadtest "installation/bootloader_ofw.pm";
     }
+    elsif (check_var("ARCH", "aarch64")) {
+        loadtest "installation/bootloader_aarch64.pm";
+    }
     elsif (get_var("UEFI")) {
         loadtest "installation/bootloader_uefi.pm";
     }
