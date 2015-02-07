@@ -5,9 +5,24 @@ sub run() {
     my $self = shift;
 
     wait_idle;
-    power('acpi'); # request reboot through ACPI, requires to reset VM
-    assert_screen 'logoutdialog', 15;
-    send_key "tab";
+    send_key "alt-f1";
+    my $counter = 20;
+    while (1) {
+        my $selected = check_screen "shutdown_button", 0;
+        if (!$selected) {
+            wait_screen_change {
+                send_key "tab";
+            }
+        }
+        elsif ($selected) {
+            assert_screen "shutdown_button", 0;
+            send_key "ret";
+        }   
+        last if ($selected);
+        die "looping for too long" unless ($counter--);
+    }
+    
+    assert_screen "logoutdialog", 15;
     send_key "tab";
     my $ret;
     for (my $counter = 10; $counter > 0; $counter--) {
