@@ -21,24 +21,30 @@ sub run(){
     assert_screen 'release-notes', 100; # suseconfig run
     
     if (get_var("ADDONS")) {
-        foreach $a (split(/,/, get_var('ADDONS'))) {
-            if ($a eq 'sdk') { #workaround for boo916179
-                record_soft_failure;
-                next;
+        if (check_screen 'release-notes-tab') {
+            foreach $a (split(/,/, get_var('ADDONS'))) {
+                assert_and_click "release-notes-tab-$a";
+                assert_screen "release-notes-$a";
+            }
+            assert_and_click "release-notes-tab-sle";
+            assert_screen "release-notes-sle";
+        }
+        else {
+            foreach $a (split(/,/, get_var('ADDONS'))) {
+                send_key 'alt-p';
+                send_key ' ';
+                send_key 'pgup';
+                key_round "release-notes-list-$a", 'down';
+                send_key 'ret';
+                assert_screen "release-notes-$a";
             }
             send_key 'alt-p';
             send_key ' ';
             send_key 'pgup';
-            key_round "release-notes-list-$a", 'down';
+            key_round "release-notes-list-sle", 'down';
             send_key 'ret';
-            assert_screen "release-notes-$a";
+            assert_screen "release-notes-sle";
         }
-        send_key 'alt-p';
-        send_key ' ';
-        send_key 'pgup';
-        key_round "release-notes-list-sle", 'down';
-        send_key 'ret';
-        assert_screen "release-notes-sle";
     }
     else {
         assert_screen "release-notes-sle";
