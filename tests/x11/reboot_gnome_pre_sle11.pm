@@ -4,6 +4,7 @@ use testapi;
 sub run() {
     my $self = shift;
 
+sub powerdialog() {
     wait_idle;
     send_key "alt-f1";
     my $counter = 20;
@@ -21,6 +22,7 @@ sub run() {
         last if ($selected);
         die "looping for too long" unless ($counter--);
     }
+}
     
     assert_screen "logoutdialog", 15;
     send_key "tab";
