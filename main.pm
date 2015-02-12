@@ -306,6 +306,9 @@ sub load_boot_tests(){
         bmwqemu::diag "trying installation/bootloader_s390.pm";
         loadtest "installation/bootloader_s390.pm";
     }
+    elsif (get_var("PROXY")) {
+        loadtest "installation/proxy_boot.pm";
+    }
     else {
         loadtest "installation/bootloader.pm";
     }
@@ -339,7 +342,7 @@ sub load_inst_tests() {
             loadtest "installation/user_settings_root.pm";
         }
 
-        if (!get_var("LIVECD") && !get_var("NICEVIDEO")) {
+        if (!get_var("LIVECD") && !get_var("NICEVIDEO") && !get_var("PROXY")) {
             loadtest "installation/logpackages.pm";
         }
 
@@ -349,7 +352,6 @@ sub load_inst_tests() {
         elsif (get_var('FILESYSTEM')) {
             loadtest "installation/partitioning_sle11.pm";
         }
-
         loadtest "installation/installation_overview.pm";
         if (get_var('PATTERNS')) {
             loadtest "installation/select_patterns.pm";
@@ -367,6 +369,9 @@ sub load_inst_tests() {
     loadtest "installation/livecdreboot.pm";
 
     # 2nd stage
+    if (get_var("HAVALIDATION")) {
+            loadtest "installation/proxy_ha_start_2nd_stage.pm";
+    }
     loadtest "installation/sle11_wait_for_2nd_stage.pm";
     if (noupdatestep_is_applicable && check_var('FLAVOR', 'Server-DVD')) {
         loadtest "installation/user_settings_root.pm";
@@ -544,6 +549,17 @@ sub load_x11tests(){
     loadtest "x11/shutdown.pm";
 }
 
+sub load_ha_tests(){
+    loadtest "ha/ssh.pm";
+    loadtest "ha/iscsi_config.pm";
+    loadtest "ha/sle11_cluster_init.pm";
+    loadtest "ha/sle11_cluster_join.pm";
+    loadtest "ha/corosync.pm";
+    loadtest "ha/fencing.pm";
+    loadtest "ha/hawk.pm";
+    loadtest "ha/ocfs2.pm";
+}
+
 # load the tests in the right order
 if ( get_var("REGRESSION") ) {
     if ( get_var("KEEPHDDS") ) {
@@ -568,6 +584,10 @@ elsif (get_var("RESCUESYSTEM")) {
 }
 else {
     load_boot_tests();
+    if (get_var("HAVALIDATION")) {
+        loadtest "installation/proxy_ha_init.pm";
+        loadtest "installation/proxy_ha_ssh.pm";
+    }
     if (get_var("LIVETEST")) {
         loadtest "installation/finish_desktop.pm";
     }
@@ -588,6 +608,9 @@ else {
     if (!get_var('INSTALLONLY')) {
         load_consoletests();
         load_x11tests();
+    }
+    if (get_var("HAVALIDATION")) {
+        load_ha_tests();
     }
 }
 
