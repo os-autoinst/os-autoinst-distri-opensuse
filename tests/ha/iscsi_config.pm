@@ -4,12 +4,21 @@ use autotest;
 
 sub run() {
     type_string "zypper in -n yast2-iscsi-client open-iscsi\n";
+    type_string "echo '10.0.2.16    node1' >> /etc/hosts";
+    type_string "echo '10.0.2.17    node2' >> /etc/hosts";
+    type_string "echo '10.0.2.18    node3' >> /etc/hosts";
     send_key 'shift-ctrl-alt-g';
     type_string "echo 'InitiatorName=iqn.1996-04.de.suse:01:8f4aff8c879' > /etc/iscsi/initatorname.iscsi";
+    type_string "echo 'node1' > /etc/hostname";
+    type_string "echo 'node1' > /etc/HOSTNAME";
     send_key 'ctrl-pgdn';
     type_string "echo 'InitiatorName=iqn.1996-04.de.suse:01:8f4aff8c878' > /etc/iscsi/initatorname.iscsi";
+    type_string "echo 'node2' > /etc/hostname";
+    type_string "echo 'node2' > /etc/HOSTNAME";
     send_key 'ctrl-pgdn';
     type_string "echo 'InitiatorName=iqn.1996-04.de.suse:01:8f4aff8c877' > /etc/iscsi/initatorname.iscsi";
+    type_string "echo 'node3' > /etc/hostname";
+    type_string "echo 'node3' > /etc/HOSTNAME";
     send_key 'ctrl-pgup';
     send_key 'ctrl-pgup';
     send_key 'ctrl-alt-g';
