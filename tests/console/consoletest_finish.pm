@@ -30,6 +30,7 @@ sub run() {
             if ( check_var( "DESKTOP", "gnome" ) ) {
                 send_key "esc";
                 unless ( get_var("LIVETEST") ) {
+                    send_key "ctrl"; # show gnome screen lock in sle 11
                     assert_screen "gnome-screenlock-password";
                     type_password;
                     send_key "ret";
