@@ -43,7 +43,7 @@ sub run() {
     assert_screen 'proxy-terminator-started';
     send_key 'ctrl-pgup';
     send_key 'ctrl-pgup';
-    for my $i ( 1 .. 1 ) { #should be 3, cut down to 1 to speed time dev as snapshots are no good with nested virt
+    for my $i ( 1 .. 3 ) {
         createhavm "$i";
     }
 }

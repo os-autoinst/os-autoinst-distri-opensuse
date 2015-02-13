@@ -16,9 +16,9 @@ sub reconnecthainstall($) {
 sub run() {
     sleep 60; #should be 500ish, hacked for testing
     send_key 'shift-ctrl-alt-g';
-     for my $i ( 1 .. 1 ) { #should be 3, hacked for quick testing
+     for my $i ( 1 .. 3 ) {
         reconnecthainstall "$i";
-        #send_key 'ctrl-pgdn';
+        send_key 'ctrl-pgdn';
     }
     send_key 'ctrl-alt-g';
 }

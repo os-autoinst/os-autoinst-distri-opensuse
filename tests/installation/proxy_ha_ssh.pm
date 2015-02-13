@@ -16,9 +16,9 @@ sub starthainstall($) {
 
 sub run() {
     assert_screen 'proxy-terminator-clean';
-    for my $i ( 1 .. 1 ) { #should be 3, cut down to 1 to speed time dev as snapshots are no good with nested virt
+    for my $i ( 1 .. 3 ) {
         starthainstall "$i";
-        #send_key 'ctrl-pgdn';
+        send_key 'ctrl-pgdn';
     }
     send_key 'ctrl-alt-g'; #group all tabs together (changed in the vm from meta-g default)
 }
