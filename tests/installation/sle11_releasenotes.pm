@@ -23,10 +23,10 @@ sub run(){
     if (get_var("ADDONS")) {
         if (check_screen 'release-notes-tab') {
             foreach $a (split(/,/, get_var('ADDONS'))) {
-                assert_and_click "release-notes-tab-$a";
+                send_key 'alt-u';
                 assert_screen "release-notes-$a";
             }
-            assert_and_click "release-notes-tab-sle";
+            send_key 'alt-s';
             assert_screen "release-notes-sle";
         }
         else {

@@ -1,8 +1,11 @@
-use base "basetest";
+use base "installbasetest";
 use testapi;
 use autotest;
 
 sub run() {
+    if (check_var('DESKTOP', 'textmode')) {
+        assert_screen 'linux-login', 200;
+    }
     type_string "zypper in -n yast2-iscsi-client open-iscsi\n";
     type_string "echo '10.0.2.16    node1' >> /etc/hosts";
     type_string "echo '10.0.2.17    node2' >> /etc/hosts";
@@ -43,6 +46,8 @@ sub run() {
     assert_screen 'yast-iscsi-initiator-discovery';
     send_key 'alt-o';
     sleep 5;
+    type_string "ls -l /dev/disk/by-id/*\n";
+    assert_screen "iscsi-list";
     send_key 'alt-l';
     assert_screen 'proxy-terminator-clean';
 }

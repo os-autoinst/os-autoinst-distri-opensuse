@@ -1,4 +1,4 @@
-use base "basetest";
+use base "installbasetest";
 use testapi;
 use autotest;
 
