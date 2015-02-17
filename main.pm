@@ -546,7 +546,7 @@ sub load_x11tests(){
         }
     }
 
-    loadtest "x11/shutdown.pm";
+    loadtest "x11/shutdown_sle11.pm";
 }
 
 sub load_ha_tests(){
