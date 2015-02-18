@@ -128,13 +128,15 @@ sub hash2parmfile() {
     # Creatively use Text::Wrap for this, with 'String("' as line
     # prefix and '")\n' as line separator.  Actually '")\nNewline\n'
     # is the line separator :)
-    local $Text::Wrap::separator = "\")\nNewline\n";
+    local $Text::Wrap::separator;
+    $Text::Wrap::separator = "\")\nNewline\n";
 
     # For the maximum line length for the wrapping, the s3270
     # 'String("")' command characters in each line don't account for
     # the parmfile line length.  The X E D I T editor has a line
     # counter column to the left.
-    local $Text::Wrap::columns = 79 + length('String("') - length("00004 ");
+    local $Text::Wrap::columns;
+    $Text::Wrap::columns = 79 + length('String("') - length("00004 ");
 
     $parmfile_with_Newline_s = Text::Wrap::wrap(
         'String("',             # first line prefix
