@@ -4,7 +4,7 @@ use base "y2logsstep";
 use testapi;
 
 sub run() {
-    my %desktopkeys = ( kde => "k", gnome => "g", xfce => "x", lxde => "l", minimalx => "m", textmode => "i" );
+    my %desktopkeys = ( kde => "k", gnome => "g", xfce => "f", lxde => "x", minimalx => "m", textmode => "i" );
     assert_screen "desktop-selection", 30;
     my $d = get_var("DESKTOP");
     my $key = "alt-$desktopkeys{$d}";
