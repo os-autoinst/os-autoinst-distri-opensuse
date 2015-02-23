@@ -5,8 +5,8 @@ use testapi;
 sub run(){
     my $self=shift;
 
-    assert_screen "second-stage", 250;
     mouse_hide;
+    assert_screen "second-stage", 250;
 
 }
 
