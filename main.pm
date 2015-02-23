@@ -132,6 +132,13 @@ unless ( get_var("DESKTOP") ) {
 set_var('NOAUTOLOGIN', 1);
 set_var('HASLICENSE', 1);
 
+if ( !get_var('NETBOOT') ) {
+    set_var('DVD', 1);
+}
+if ( !check_var('FLAVOR', 'Desktop-DVD') ) {
+    set_var('NOIMAGES', 1);
+}
+
 if ( check_var( 'DESKTOP', 'minimalx' ) ) {
     set_var("XDMUSED", 1);
 }
@@ -352,7 +359,7 @@ sub load_inst_tests() {
     if (noupdatestep_is_applicable) {
         loadtest "installation/installation_overview.pm";
         if (get_var('PATTERNS')) {
-           loadtest "installation/select_patterns.pm";
+            loadtest "installation/select_patterns.pm";
         }
     }
     if (get_var("UEFI") && get_var("SECUREBOOT")) {
