@@ -72,14 +72,16 @@ sub run() {
 
     type_string " \\\n"; # changed the line before typing video params
     # https://wiki.archlinux.org/index.php/Kernel_Mode_Setting#Forcing_modes_and_EDID
-    type_string "vga=791 ";
     type_string "Y2DEBUG=1 ";
-    type_string "video=1024x768-16 ", 13;
+    if (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64')) {
+        type_string "vga=791 ";
+        type_string "video=1024x768-16 ", 13;
 
-    # not needed anymore atm as cirrus has 1024 as default now:
-    # https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=121a6a17439b000b9699c3fa876636db20fa4107
-    #type_string "drm_kms_helper.edid_firmware=edid/1024x768.bin ";
-    assert_screen "inst-video-typed-grub2", 13;
+        # not needed anymore atm as cirrus has 1024 as default now:
+        # https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=121a6a17439b000b9699c3fa876636db20fa4107
+        #type_string "drm_kms_helper.edid_firmware=edid/1024x768.bin ";
+        assert_screen "inst-video-typed-grub2", 13;
+    }
 
     if ( !get_var("NICEVIDEO") ) {
         type_string "plymouth.ignore-serial-consoles ", 7; # make plymouth go graphical
