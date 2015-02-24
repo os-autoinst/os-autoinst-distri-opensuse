@@ -10,7 +10,7 @@ sub run() {
     my $self = shift;
     script_run('rpm -qa "*nautilus*|*gnome*" | sort | tee /tmp/xfce-gnome-deps');
     script_sudo('mv /tmp/xfce-gnome-deps /var/log');
-    script_run("echo 'gnome_deps_ok' >  /dev/ttyS0");
+    script_run("echo 'gnome_deps_ok' >  /dev/$serialdev");
     wait_serial('gnome_deps_ok', 5);
 
 }

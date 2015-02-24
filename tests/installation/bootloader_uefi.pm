@@ -85,7 +85,7 @@ sub run() {
 
     if ( !get_var("NICEVIDEO") ) {
         type_string "plymouth.ignore-serial-consoles ", 7; # make plymouth go graphical
-        type_string "console=ttyS0 ";    # to get crash dumps as text
+        type_string "console=$serialdev ";    # to get crash dumps as text
         type_string "console=tty ";      # to get crash dumps as text
         my $e = get_var("EXTRABOOTPARAMS");
 
