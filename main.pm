@@ -133,7 +133,6 @@ if ( check_var( 'DESKTOP', 'minimalx' ) ) {
 }
 
 # openSUSE specific variables
-set_var("SUSEMIRROR", "download.opensuse.org/factory") unless get_var('SUSEMIRROR');
 set_var("PACKAGETOINSTALL", "xdelta");
 set_var("WALLPAPER", '/usr/share/wallpapers/openSUSEdefault/contents/images/1280x1024.jpg');
 set_var("YAST_SW_NO_SUMMARY", 1) if get_var('UPGRADE') || get_var("ZDUP");
