@@ -11,9 +11,11 @@ sub run() {
         sleep 60;
         return;
     }
-    if (check_screen "bootloader-shim-import-prompt", 15) {
-        send_key "down";
-        send_key "ret";
+    if (my $ret = check_screen [qw/bootloader-shim-import-prompt bootloader-grub2/], 15) {
+        if ($ret->{needle}->has_tag("bootloader-shim-import-prompt")) {
+            send_key "down";
+            send_key "ret";
+        }
     }
     assert_screen "bootloader-grub2", 15;
     if ( get_var("QEMUVGA") && get_var("QEMUVGA") ne "cirrus" ) {
