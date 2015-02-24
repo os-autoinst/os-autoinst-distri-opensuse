@@ -29,8 +29,17 @@ sub run {
     }
 
     assert_screen 'pattern_selector';
-    key_round 'patterns-list-selected', 'tab';
-
+    if (check_var('VIDEOMODE', 'text')) {
+        send_key 'alt-f';
+        for ( 1 .. 4 ) { send_key 'up'; }
+        send_key 'ret';
+        assert_screen 'patterns-list-selected', 5;
+        send_key 'tab';
+    }
+    else {
+        key_round 'patterns-list-selected', 'tab';
+    }
+    
     my %wanted_patterns;
     for my $p (split(/,/, get_var('PATTERNS'))) {
         $wanted_patterns{$p} = 1;
@@ -72,7 +81,14 @@ sub run {
         }
     }
 
-    send_key 'alt-o';
+    if (check_var('VIDEOMODE', 'text')) {
+        send_key 'alt-a'; # accept
+        assert_screen 'automatic-changes', 4;
+        send_key 'alt-o'; # OK
+    }
+    else {
+        send_key 'alt-o';
+    }
     assert_screen "inst-overview", 15;
 }
 
