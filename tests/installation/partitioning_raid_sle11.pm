@@ -71,8 +71,27 @@ sub run() {
     assert_screen 'expert-partitioning', 5;
     send_key 'down';
     send_key 'down';
-    send_key 'right';
-    send_key 'down'; #should select first disk'
+    if (get_var("OFW")) { ## no RAID /boot partition for ppc
+	    send_key 'alt-p';
+        send_key 'alt-n';
+        assert_screen 'add-partition-size', 5;
+        send_key 'ctrl-a';
+        type_string "500 MB";
+        send_key 'alt-n';
+        assert_screen 'add-partition-type', 5;
+        send_key 'alt-a';
+        send_key 'alt-m';
+        type_string "/boot";
+        send_key 'alt-f';
+        sleep 1;
+        send_key 'alt-s';
+        send_key 'right';
+        send_key 'down'; #should select first disk'
+	}
+	else {
+		send_key 'right';
+		send_key 'down'; #should select first disk'
+	}
 
     for ( 1 .. 4 ) {
         send_key 'alt-d';
@@ -178,29 +197,31 @@ sub run() {
     }
 
     # select RAID add for /boot
-    send_key 'alt-i';
-    assert_screen('add-raid', 5);
-    setraidlevel(1); # RAID 1 for /boot
-    key_round 'raid-devices-selected', 'tab';
-    send_key "down"; # start at the 300MB partition
-    for ( 1 .. 3 ) {
-        for ( 1 .. 2 ) {
-            send_key "ctrl-down";
+    if (!get_var("OFW")) { ## no RAID /boot partition for ppc
+        send_key 'alt-i';
+        assert_screen('add-raid', 5);
+        setraidlevel(1); # RAID 1 for /boot
+        key_round 'raid-devices-selected', 'tab';
+        send_key "down"; # start at the 300MB partition
+        for ( 1 .. 3 ) {
+            for ( 1 .. 2 ) {
+                send_key "ctrl-down";
+            }
+            send_key "spc";
         }
-        send_key "spc";
+        # add
+        send_key $cmd{"add"};
+        wait_idle 3;
+        send_key $cmd{"next"};
+        wait_idle 3;
+    
+        send_key $cmd{"next"};
+        assert_screen 'add-partition-type', 6;
+        send_key 'alt-m'; #goto mount point
+        type_string "/boot";
+        send_key 'alt-f';
+        wait_idle 3;
     }
-    # add
-    send_key $cmd{"add"};
-    wait_idle 3;
-    send_key $cmd{"next"};
-    wait_idle 3;
-
-    send_key $cmd{"next"};
-    assert_screen 'add-partition-type', 6;
-    send_key 'alt-m'; #goto mount point
-    type_string "/boot";
-    send_key 'alt-f';
-    wait_idle 3;
 
     # select RAID add for swap
     send_key 'alt-i';
