@@ -39,10 +39,6 @@ sub post_fail_hook() {
             type_string "ifconfig -a\n";
             type_string "cat /etc/resolv.conf\n";
         }
-        type_string "save_y2logs /tmp/y2logs.tar.bz2 && echo 'y2logs written' > /dev/$serialdev\n";
-        wait_serial ("y2logs written") || die "y2logs write failed";
-        upload_logs "/tmp/y2logs.tar.bz2";
-        save_screenshot();
     }
     else {
         # We ended up somewhere else, still in a phase we consider yast running
@@ -55,12 +51,12 @@ sub post_fail_hook() {
         type_password;
         type_string "\n";
         sleep 1;
-
-        type_string "save_y2logs /tmp/y2logs.tar.bz2 && echo 'y2logs written' > /dev/$serialdev\n";
-        wait_serial ("y2logs written") || die "y2logs write failed";
-        upload_logs "/tmp/y2logs.tar.bz2";
-        save_screenshot();
     }
+    type_string "save_y2logs /tmp/y2logs.tar.bz2; echo y2logs-saved-\$? > /dev/$serialdev\n";
+    $ret = wait_serial 'y2logs-saved-\d+';
+    die "failed to save y2logs" unless (defined $ret && $ret eq 'y2logs-saved-0');
+    upload_logs "/tmp/y2logs.tar.bz2";
+    save_screenshot();
 }
 
 1;
