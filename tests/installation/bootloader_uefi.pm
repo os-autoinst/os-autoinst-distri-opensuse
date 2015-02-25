@@ -11,9 +11,11 @@ sub run() {
         sleep 60;
         return;
     }
-    if (check_screen "bootloader-shim-import-prompt", 15) {
-        send_key "down";
-        send_key "ret";
+    if (my $ret = check_screen [qw/bootloader-shim-import-prompt bootloader-grub2/], 15) {
+        if ($ret->{needle}->has_tag("bootloader-shim-import-prompt")) {
+            send_key "down";
+            send_key "ret";
+        }
     }
     assert_screen "bootloader-grub2", 15;
     if ( get_var("QEMUVGA") && get_var("QEMUVGA") ne "cirrus" ) {
@@ -72,18 +74,20 @@ sub run() {
 
     type_string " \\\n"; # changed the line before typing video params
     # https://wiki.archlinux.org/index.php/Kernel_Mode_Setting#Forcing_modes_and_EDID
-    type_string "vga=791 ";
     type_string "Y2DEBUG=1 ";
-    type_string "video=1024x768-16 ", 13;
+    if (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64')) {
+        type_string "vga=791 ";
+        type_string "video=1024x768-16 ", 13;
 
-    # not needed anymore atm as cirrus has 1024 as default now:
-    # https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=121a6a17439b000b9699c3fa876636db20fa4107
-    #type_string "drm_kms_helper.edid_firmware=edid/1024x768.bin ";
-    assert_screen "inst-video-typed-grub2", 13;
+        # not needed anymore atm as cirrus has 1024 as default now:
+        # https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=121a6a17439b000b9699c3fa876636db20fa4107
+        #type_string "drm_kms_helper.edid_firmware=edid/1024x768.bin ";
+        assert_screen "inst-video-typed-grub2", 13;
+    }
 
     if ( !get_var("NICEVIDEO") ) {
         type_string "plymouth.ignore-serial-consoles ", 7; # make plymouth go graphical
-        type_string "console=ttyS0 ";    # to get crash dumps as text
+        type_string "console=$serialdev ";    # to get crash dumps as text
         type_string "console=tty ";      # to get crash dumps as text
         my $e = get_var("EXTRABOOTPARAMS");
 

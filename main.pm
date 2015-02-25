@@ -133,7 +133,6 @@ if ( check_var( 'DESKTOP', 'minimalx' ) ) {
 }
 
 # openSUSE specific variables
-set_var("SUSEMIRROR", "download.opensuse.org/factory") unless get_var('SUSEMIRROR');
 set_var("PACKAGETOINSTALL", "xdelta");
 set_var("WALLPAPER", '/usr/share/wallpapers/openSUSEdefault/contents/images/1280x1024.jpg');
 set_var("YAST_SW_NO_SUMMARY", 1) if get_var('UPGRADE') || get_var("ZDUP");
@@ -275,9 +274,6 @@ sub load_boot_tests(){
     }
     if (get_var("OFW")) {
         loadtest "installation/bootloader_ofw.pm";
-    }
-    elsif (check_var("ARCH", "aarch64")) {
-        loadtest "installation/bootloader_aarch64.pm";
     }
     elsif (get_var("UEFI")) {
         loadtest "installation/bootloader_uefi.pm";

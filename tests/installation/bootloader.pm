@@ -58,7 +58,7 @@ sub run() {
     assert_screen "inst-video-typed", 13;
     if ( !get_var("NICEVIDEO") ) {
         type_string "plymouth.ignore-serial-consoles ", 4; # make plymouth go graphical
-        type_string "console=ttyS0 ", 4;    # to get crash dumps as text
+        type_string "console=$serialdev ", 4;    # to get crash dumps as text
         type_string "console=tty ",   4;    # to get crash dumps as text
         assert_screen "inst-consolesettingstyped", 30;
         my $e = get_var("EXTRABOOTPARAMS");
