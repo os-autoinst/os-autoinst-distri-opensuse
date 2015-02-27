@@ -144,11 +144,6 @@
                     {
                       machine    => { name => "64bit" },
                       product    => { arch => "x86_64", distri => "opensuse", flavor => "DVD", version => "*" },
-                      test_suite => { name => "nice" },
-                    },
-                    {
-                      machine    => { name => "64bit" },
-                      product    => { arch => "x86_64", distri => "opensuse", flavor => "DVD", version => "*" },
                       test_suite => { name => "splitusr" },
                     },
                     {
@@ -168,7 +163,12 @@
                     },
                     {
                       machine    => { name => "32bit" },
-                      product    => { arch => "i686", distri => "opensuse", flavor => "GNOME-Live", version => "*" },
+                      product    => {
+                                      arch    => "i686",
+                                      distri  => "opensuse",
+                                      flavor  => "GNOME-Live",
+                                      version => "*",
+                                    },
                       test_suite => { name => "gnome-live" },
                     },
                     {
@@ -188,7 +188,12 @@
                     },
                     {
                       machine    => { name => "64bit" },
-                      product    => { arch => "x86_64", distri => "opensuse", flavor => "KDE-Live", version => "*" },
+                      product    => {
+                                      arch    => "x86_64",
+                                      distri  => "opensuse",
+                                      flavor  => "KDE-Live",
+                                      version => "*",
+                                    },
                       test_suite => { name => "kde-live" },
                     },
                     {
@@ -358,102 +363,202 @@
                     },
                     {
                       machine    => { name => "32bit" },
-                      product    => { arch => "i586-x86_64", distri => "opensuse", flavor => "DVD", version => "*" },
+                      product    => {
+                                      arch    => "i586-x86_64",
+                                      distri  => "opensuse",
+                                      flavor  => "DVD",
+                                      version => "*",
+                                    },
                       test_suite => { name => "textmode" },
                     },
                     {
                       machine    => { name => "64bit" },
-                      product    => { arch => "i586-x86_64", distri => "opensuse", flavor => "DVD", version => "*" },
+                      product    => {
+                                      arch    => "i586-x86_64",
+                                      distri  => "opensuse",
+                                      flavor  => "DVD",
+                                      version => "*",
+                                    },
                       test_suite => { name => "kde" },
                     },
                     {
                       machine    => { name => "32bit" },
-                      product    => { arch => "i586-x86_64", distri => "opensuse", flavor => "DVD", version => "*" },
+                      product    => {
+                                      arch    => "i586-x86_64",
+                                      distri  => "opensuse",
+                                      flavor  => "DVD",
+                                      version => "*",
+                                    },
                       test_suite => { name => "kde" },
                     },
                     {
                       machine    => { name => "32bit" },
-                      product    => { arch => "i586-x86_64", distri => "opensuse", flavor => "DVD", version => "*" },
+                      product    => {
+                                      arch    => "i586-x86_64",
+                                      distri  => "opensuse",
+                                      flavor  => "DVD",
+                                      version => "*",
+                                    },
                       test_suite => { name => "gnome" },
                     },
                     {
                       machine    => { name => "32bit" },
-                      product    => { arch => "i586-x86_64", distri => "opensuse", flavor => "DVD", version => "*" },
+                      product    => {
+                                      arch    => "i586-x86_64",
+                                      distri  => "opensuse",
+                                      flavor  => "DVD",
+                                      version => "*",
+                                    },
                       test_suite => { name => "minimalx" },
                     },
                     {
                       machine    => { name => "32bit" },
-                      product    => { arch => "i586-x86_64", distri => "opensuse", flavor => "DVD", version => "*" },
+                      product    => {
+                                      arch    => "i586-x86_64",
+                                      distri  => "opensuse",
+                                      flavor  => "DVD",
+                                      version => "*",
+                                    },
                       test_suite => { name => "minimalx+btrfs+nosephome" },
                     },
                     {
                       machine    => { name => "32bit" },
-                      product    => { arch => "i586-x86_64", distri => "opensuse", flavor => "DVD", version => "*" },
+                      product    => {
+                                      arch    => "i586-x86_64",
+                                      distri  => "opensuse",
+                                      flavor  => "DVD",
+                                      version => "*",
+                                    },
                       test_suite => { name => "lxde" },
                     },
                     {
                       machine    => { name => "32bit" },
-                      product    => { arch => "i586-x86_64", distri => "opensuse", flavor => "DVD", version => "*" },
+                      product    => {
+                                      arch    => "i586-x86_64",
+                                      distri  => "opensuse",
+                                      flavor  => "DVD",
+                                      version => "*",
+                                    },
                       test_suite => { name => "xfce" },
                     },
                     {
                       machine    => { name => "USBboot_32" },
-                      product    => { arch => "i586-x86_64", distri => "opensuse", flavor => "DVD", version => "*" },
+                      product    => {
+                                      arch    => "i586-x86_64",
+                                      distri  => "opensuse",
+                                      flavor  => "DVD",
+                                      version => "*",
+                                    },
                       test_suite => { name => "kde" },
                     },
                     {
                       machine    => { name => "Laptop_32" },
-                      product    => { arch => "i586-x86_64", distri => "opensuse", flavor => "DVD", version => "*" },
+                      product    => {
+                                      arch    => "i586-x86_64",
+                                      distri  => "opensuse",
+                                      flavor  => "DVD",
+                                      version => "*",
+                                    },
                       test_suite => { name => "kde" },
                     },
                     {
                       machine    => { name => "Laptop_32" },
-                      product    => { arch => "i586-x86_64", distri => "opensuse", flavor => "DVD", version => "*" },
+                      product    => {
+                                      arch    => "i586-x86_64",
+                                      distri  => "opensuse",
+                                      flavor  => "DVD",
+                                      version => "*",
+                                    },
                       test_suite => { name => "gnome" },
                     },
                     {
                       machine    => { name => "32bit" },
-                      product    => { arch => "i586-x86_64", distri => "opensuse", flavor => "DVD", version => "*" },
+                      product    => {
+                                      arch    => "i586-x86_64",
+                                      distri  => "opensuse",
+                                      flavor  => "DVD",
+                                      version => "*",
+                                    },
                       test_suite => { name => "RAID0" },
                     },
                     {
                       machine    => { name => "32bit" },
-                      product    => { arch => "i586-x86_64", distri => "opensuse", flavor => "DVD", version => "*" },
+                      product    => {
+                                      arch    => "i586-x86_64",
+                                      distri  => "opensuse",
+                                      flavor  => "DVD",
+                                      version => "*",
+                                    },
                       test_suite => { name => "RAID1" },
                     },
                     {
                       machine    => { name => "32bit" },
-                      product    => { arch => "i586-x86_64", distri => "opensuse", flavor => "DVD", version => "*" },
+                      product    => {
+                                      arch    => "i586-x86_64",
+                                      distri  => "opensuse",
+                                      flavor  => "DVD",
+                                      version => "*",
+                                    },
                       test_suite => { name => "RAID5" },
                     },
                     {
                       machine    => { name => "32bit" },
-                      product    => { arch => "i586-x86_64", distri => "opensuse", flavor => "DVD", version => "*" },
+                      product    => {
+                                      arch    => "i586-x86_64",
+                                      distri  => "opensuse",
+                                      flavor  => "DVD",
+                                      version => "*",
+                                    },
                       test_suite => { name => "RAID10" },
                     },
                     {
                       machine    => { name => "32bit" },
-                      product    => { arch => "i586-x86_64", distri => "opensuse", flavor => "DVD", version => "*" },
+                      product    => {
+                                      arch    => "i586-x86_64",
+                                      distri  => "opensuse",
+                                      flavor  => "DVD",
+                                      version => "*",
+                                    },
                       test_suite => { name => "cryptlvm" },
                     },
                     {
                       machine    => { name => "smp_32" },
-                      product    => { arch => "i586-x86_64", distri => "opensuse", flavor => "DVD", version => "*" },
+                      product    => {
+                                      arch    => "i586-x86_64",
+                                      distri  => "opensuse",
+                                      flavor  => "DVD",
+                                      version => "*",
+                                    },
                       test_suite => { name => "install_only" },
                     },
                     {
                       machine    => { name => "32bit" },
-                      product    => { arch => "i586-x86_64", distri => "opensuse", flavor => "DVD", version => "*" },
+                      product    => {
+                                      arch    => "i586-x86_64",
+                                      distri  => "opensuse",
+                                      flavor  => "DVD",
+                                      version => "*",
+                                    },
                       test_suite => { name => "update_121" },
                     },
                     {
                       machine    => { name => "32bit" },
-                      product    => { arch => "i586-x86_64", distri => "opensuse", flavor => "DVD", version => "*" },
+                      product    => {
+                                      arch    => "i586-x86_64",
+                                      distri  => "opensuse",
+                                      flavor  => "DVD",
+                                      version => "*",
+                                    },
                       test_suite => { name => "update_122" },
                     },
                     {
                       machine    => { name => "32bit" },
-                      product    => { arch => "i586-x86_64", distri => "opensuse", flavor => "DVD", version => "*" },
+                      product    => {
+                                      arch    => "i586-x86_64",
+                                      distri  => "opensuse",
+                                      flavor  => "DVD",
+                                      version => "*",
+                                    },
                       test_suite => { name => "update_123" },
                     },
                     {
@@ -678,7 +783,12 @@
                     },
                     {
                       machine    => { name => "USBboot_64" },
-                      product    => { arch => "x86_64", distri => "opensuse", flavor => "KDE-Live", version => "*" },
+                      product    => {
+                                      arch    => "x86_64",
+                                      distri  => "opensuse",
+                                      flavor  => "KDE-Live",
+                                      version => "*",
+                                    },
                       test_suite => { name => "kde-live" },
                     },
                     {
@@ -733,7 +843,12 @@
                     },
                     {
                       machine    => { name => "32bit" },
-                      product    => { arch => "i586-x86_64", distri => "opensuse", flavor => "DVD", version => "*" },
+                      product    => {
+                                      arch    => "i586-x86_64",
+                                      distri  => "opensuse",
+                                      flavor  => "DVD",
+                                      version => "*",
+                                    },
                       test_suite => { name => "mediacheck" },
                     },
                     {
@@ -753,7 +868,12 @@
                     },
                     {
                       machine    => { name => "32bit" },
-                      product    => { arch => "i686", distri => "opensuse", flavor => "GNOME-Live", version => "*" },
+                      product    => {
+                                      arch    => "i686",
+                                      distri  => "opensuse",
+                                      flavor  => "GNOME-Live",
+                                      version => "*",
+                                    },
                       test_suite => { name => "mediacheck" },
                     },
                     {
@@ -783,12 +903,22 @@
                     },
                     {
                       machine    => { name => "64bit" },
-                      product    => { arch => "x86_64", distri => "opensuse", flavor => "KDE-Live", version => "*" },
+                      product    => {
+                                      arch    => "x86_64",
+                                      distri  => "opensuse",
+                                      flavor  => "KDE-Live",
+                                      version => "*",
+                                    },
                       test_suite => { name => "mediacheck" },
                     },
                     {
                       machine    => { name => "64bit" },
-                      product    => { arch => "x86_64", distri => "opensuse", flavor => "KDE-Live", version => "*" },
+                      product    => {
+                                      arch    => "x86_64",
+                                      distri  => "opensuse",
+                                      flavor  => "KDE-Live",
+                                      version => "*",
+                                    },
                       test_suite => { name => "memtest" },
                     },
                     {
@@ -883,7 +1013,12 @@
                     },
                     {
                       machine    => { name => "32bit" },
-                      product    => { arch => "i586-x86_64", distri => "opensuse", flavor => "DVD", version => "*" },
+                      product    => {
+                                      arch    => "i586-x86_64",
+                                      distri  => "opensuse",
+                                      flavor  => "DVD",
+                                      version => "*",
+                                    },
                       test_suite => { name => "rescue_system" },
                     },
                     {
@@ -908,12 +1043,22 @@
                     },
                     {
                       machine    => { name => "32bit" },
-                      product    => { arch => "i686", distri => "opensuse", flavor => "GNOME-Live", version => "*" },
+                      product    => {
+                                      arch    => "i686",
+                                      distri  => "opensuse",
+                                      flavor  => "GNOME-Live",
+                                      version => "*",
+                                    },
                       test_suite => { name => "gnome" },
                     },
                     {
                       machine    => { name => "64bit" },
-                      product    => { arch => "x86_64", distri => "opensuse", flavor => "KDE-Live", version => "*" },
+                      product    => {
+                                      arch    => "x86_64",
+                                      distri  => "opensuse",
+                                      flavor  => "KDE-Live",
+                                      version => "*",
+                                    },
                       test_suite => { name => "kde" },
                     },
                     {
@@ -1036,47 +1181,6 @@
                   ],
   Products     => [
                     {
-                      arch     => "i586",
-                      distri   => "opensuse",
-                      flavor   => "DVD",
-                      settings => [
-                                    { key => "DVD", value => 1 },
-                                    { key => "ISO_MAXSIZE", value => 4700372992 },
-                                  ],
-                      version  => "",
-                    },
-                    {
-                      arch     => "x86_64",
-                      distri   => "opensuse",
-                      flavor   => "DVD",
-                      settings => [
-                                    { key => "DVD", value => 1 },
-                                    { key => "ISO_MAXSIZE", value => 4700372992 },
-                                  ],
-                      version  => "",
-                    },
-                    {
-                      arch     => "i686",
-                      distri   => "opensuse",
-                      flavor   => "GNOME-Live",
-                      settings => [
-                                    { key => "GNOME", value => 1 },
-                                    { key => "ISO_MAXSIZE", value => 999999999 },
-                                    { key => "LIVECD", value => 1 },
-                                  ],
-                      version  => "",
-                    },
-                    {
-                      arch     => "x86_64",
-                      distri   => "opensuse",
-                      flavor   => "GNOME-Live",
-                      settings => [
-                                    { key => "ISO_MAXSIZE", value => 999999999 },
-                                    { key => "LIVECD", value => 1 },
-                                  ],
-                      version  => "",
-                    },
-                    {
                       arch     => "i686",
                       distri   => "opensuse",
                       flavor   => "KDE-Live",
@@ -1084,7 +1188,7 @@
                                     { key => "ISO_MAXSIZE", value => 999999999 },
                                     { key => "LIVECD", value => 1 },
                                   ],
-                      version  => "",
+                      version  => "*",
                     },
                     {
                       arch     => "x86_64",
@@ -1094,7 +1198,7 @@
                                     { key => "ISO_MAXSIZE", value => 999999999 },
                                     { key => "LIVECD", value => 1 },
                                   ],
-                      version  => "",
+                      version  => "*",
                     },
                     {
                       arch     => "i586",
@@ -1104,7 +1208,7 @@
                                     { key => "ISO_MAXSIZE", value => 737280000 },
                                     { key => "NETBOOT", value => 1 },
                                   ],
-                      version  => "",
+                      version  => "*",
                     },
                     {
                       arch     => "x86_64",
@@ -1114,7 +1218,7 @@
                                     { key => "ISO_MAXSIZE", value => 737280000 },
                                     { key => "NETBOOT", value => 1 },
                                   ],
-                      version  => "",
+                      version  => "*",
                     },
                     {
                       arch     => "i686",
@@ -1124,7 +1228,7 @@
                                     { key => "ISO_MAXSIZE", value => 681574400 },
                                     { key => "LIVECD", value => 1 },
                                   ],
-                      version  => "",
+                      version  => "*",
                     },
                     {
                       arch     => "x86_64",
@@ -1134,14 +1238,14 @@
                                     { key => "ISO_MAXSIZE", value => 681574400 },
                                     { key => "LIVECD", value => 1 },
                                   ],
-                      version  => "",
+                      version  => "*",
                     },
                     {
                       arch     => "i586-x86_64",
                       distri   => "opensuse",
                       flavor   => "DVD",
                       settings => [{ key => "ISO_MAXSIZE", value => 8539996160 }],
-                      version  => "",
+                      version  => "*",
                     },
                     {
                       arch     => "i586",
@@ -1151,7 +1255,7 @@
                                     { key => "ISO_MAXSIZE", value => 4700372992 },
                                     { key => "PROMO", value => 1 },
                                   ],
-                      version  => "",
+                      version  => "*",
                     },
                     {
                       arch     => "x86_64",
@@ -1161,7 +1265,7 @@
                                     { key => "ISO_MAXSIZE", value => 4700372992 },
                                     { key => "PROMO", value => 1 },
                                   ],
-                      version  => "",
+                      version  => "*",
                     },
                     {
                       arch     => "i586",
@@ -1171,7 +1275,7 @@
                                     { key => "ISO_MAXSIZE", value => 4700372992 },
                                     { key => "PROMO", value => 1 },
                                   ],
-                      version  => "",
+                      version  => "*",
                     },
                     {
                       arch     => "x86_64",
@@ -1181,14 +1285,14 @@
                                     { key => "ISO_MAXSIZE", value => 4700372992 },
                                     { key => "PROMO", value => 1 },
                                   ],
-                      version  => "",
+                      version  => "*",
                     },
                     {
                       arch     => "x86_64",
                       distri   => "opensuse",
                       flavor   => "Staging-DVD",
                       settings => [{ key => "ISO_MAXSIZE", value => 4700372992 }],
-                      version  => "",
+                      version  => "*",
                     },
                     {
                       arch     => "x86_64",
@@ -1199,7 +1303,47 @@
                                     { key => "ISO_MAXSIZE", value => 4700372992 },
                                     { key => "NOIMAGES", value => 1 },
                                   ],
-                      version  => "",
+                      version  => "*",
+                    },
+                    {
+                      arch     => "i686",
+                      distri   => "opensuse",
+                      flavor   => "GNOME-Live",
+                      settings => [
+                                    { key => "ISO_MAXSIZE", value => 999999999 },
+                                    { key => "LIVECD", value => 1 },
+                                  ],
+                      version  => "*",
+                    },
+                    {
+                      arch     => "x86_64",
+                      distri   => "opensuse",
+                      flavor   => "GNOME-Live",
+                      settings => [
+                                    { key => "ISO_MAXSIZE", value => 999999999 },
+                                    { key => "LIVECD", value => 1 },
+                                  ],
+                      version  => "*",
+                    },
+                    {
+                      arch     => "i586",
+                      distri   => "opensuse",
+                      flavor   => "DVD",
+                      settings => [
+                                    { key => "DVD", value => 1 },
+                                    { key => "ISO_MAXSIZE", value => 4700372992 },
+                                  ],
+                      version  => "*",
+                    },
+                    {
+                      arch     => "x86_64",
+                      distri   => "opensuse",
+                      flavor   => "DVD",
+                      settings => [
+                                    { key => "DVD", value => 1 },
+                                    { key => "ISO_MAXSIZE", value => 4700372992 },
+                                  ],
+                      version  => "*",
                     },
                   ],
   TestSuites   => [
