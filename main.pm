@@ -148,13 +148,13 @@ set_var('OLD_IFCONFIG', 1);
 set_var('DM_NEEDS_USERNAME', 1);
 set_var('NOIMAGES', 1);
 
-if ( check_var('DESKTOP', 'gnome') || check_var('DESKTOP', 'kde') ) {
-    set_var('SHUTDOWN_NEEDS_AUTH', 1);
-}
-
 if ( check_var('FLAVOR', 'Desktop-DVD') ) {
     # now that's fun - if AUTOCONF is set, autoconf is disabled
     set_var('AUTOCONF', 1);
+}
+else {
+    # Server-DVD with gnome & kde need SHUTDOWN_NEEDS_AUTH
+    set_var('SHUTDOWN_NEEDS_AUTH', 1);
 }
 
 if ( check_var( 'DESKTOP', 'minimalx' ) ) {
