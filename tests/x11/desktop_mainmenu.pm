@@ -16,6 +16,7 @@ sub run() {
         mouse_hide(1);
     }
     else {
+        wait_idle;
         send_key "alt-f1";                        # open main menu
     }
     assert_screen 'test-desktop_mainmenu-1', 20;
