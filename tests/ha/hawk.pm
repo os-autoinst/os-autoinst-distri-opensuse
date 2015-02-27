@@ -4,7 +4,7 @@ use autotest;
 
 sub run() {
     type_string "exit\n";
-    type_string "firefox https://10.0.2.15:7630/\n";
+    type_string "firefox https://10.0.2.16:7630/\n";
     assert_and_click 'firefox-understand-risks';
     assert_and_click 'firefox-add-exception';
     assert_and_click 'firefox-confirm-exception';
