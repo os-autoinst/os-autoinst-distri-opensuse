@@ -30,7 +30,7 @@ sub createhavm($) {
     type_string "netsetup=dhcp,all ", 13;
     assert_screen "inst-ssh-typed", 13;
     send_key 'ret';
-    assert_screen "inst-ssh-ready", 240;
+    assert_screen "inst-ssh-ready", 500;
     send_key 'f8';
     send_key 'down';
     send_key 'ret';

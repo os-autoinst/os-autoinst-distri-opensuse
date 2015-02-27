@@ -6,10 +6,10 @@ sub starthainstall($) {
     my ($nodenum) = @_;
     my $nodeip = 5+$nodenum;
     type_string "ssh 10.0.2.1$nodeip -l root\n";
-    sleep 1;
+    sleep 10;
     type_string "yes\n";
     type_string "openqaha\n";
-    sleep 1;
+    sleep 10;
     type_string "yast\n";
     assert_screen 'inst-welcome-start', 15;
 }
