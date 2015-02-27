@@ -148,7 +148,7 @@ set_var('OLD_IFCONFIG', 1);
 set_var('DM_NEEDS_USERNAME', 1);
 set_var('NOIMAGES', 1);
 
-if ( check_var('DESKTOP', 'gnome') || check_var('DESKTOP', 'kde') ) {
+if ( check_var('FLAVOR', 'Server-DVD') && check_var('DESKTOP', 'gnome') || check_var('DESKTOP', 'kde') ) {
     set_var('SHUTDOWN_NEEDS_AUTH', 1);
 }
 
