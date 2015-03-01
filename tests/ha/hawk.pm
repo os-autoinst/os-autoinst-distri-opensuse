@@ -16,6 +16,8 @@ sub run() {
     type_string 'hacluster';
     send_key 'tab';
     type_string "linux\n";
+    assert_screen 'firefox-remember-password';
+    assert_and_click 'firefox-ignore-password';
     assert_screen 'hawk-dashboard';
 }
 
