@@ -12,7 +12,8 @@ sub run() {
     #assert_and_click 'firefox-add-exception';
     send_key 'tab';
     send_key 'ret';
-    assert_and_click 'firefox-confirm-exception';
+    #assert_and_click 'firefox-confirm-exception';
+    send_key 'alt-c';
     assert_screen 'hawk-login';
     assert_and_click 'hawk-username';
     type_string 'hacluster';
