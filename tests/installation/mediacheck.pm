@@ -10,7 +10,7 @@ sub run {
     $self->bootmenu_down_to('inst-onmediacheck');
     send_key "ret";
     # the timeout is insane - but SLE11 DVDs take almost forever
-    assert_screen "mediacheck-ok", 1000;
+    assert_screen "mediacheck-ok", 1600;
     send_key "ret";
 }
 
