@@ -14,7 +14,8 @@ sub run() {
     else {
         assert_screen "inst-welcome", 500;
     }
-
+    
+    wait_idle;
     # animated cursor wastes disk space, so it is moved to bottom right corner
     mouse_hide;
 
