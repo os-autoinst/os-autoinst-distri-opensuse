@@ -35,7 +35,7 @@ sub fixvmnetwork($) {
     sleep 5;
     type_string "sed -i 's/eth0/eth1/g' /etc/sysconfig/network/ifcfg-*\n";
     sleep 5;
-    type_string "systemctl network restart\n";
+    type_string "/etc/init.d/network restart\n";
     sleep 10;
     type_string "exit\n";
     send_key 'f8';
@@ -53,7 +53,9 @@ sub rebootvm($) {
     sleep 5;
     type_string "nots3cr3t\n";
     sleep 5;
-    type_string "systemctl reboot\n";
+    type_string "chkconfig sshd on\n";
+    sleep 5;
+    type_string "init 6\n";
     send_key 'f8';
     send_key 'down';
     send_key 'ret';

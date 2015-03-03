@@ -8,7 +8,11 @@ sub joincluster(){
     type_string "nots3cr3t\n";
     assert_screen 'cluster-join-finished',60;
     type_string "crm status\n";
-    assert_screen 'cluster-status';
+    if ( !check_screen('cluster-status') ) {
+        type_string "hb_report -f 00:00 hbreport\n";
+        upload_logs "/root/hbreport.tar.bz2";
+        save_screenshot();
+    }
     send_key 'ctrl-l';
 }
 
