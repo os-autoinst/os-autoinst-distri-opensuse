@@ -34,12 +34,31 @@ sub fixvmnetwork($) {
     type_string "sed -i 's/eth0/eth1/g' /etc/sysconfig/network/ifcfg-*\n";
     sleep 5;
     type_string "/etc/init.d/network restart\n";
-    sleep 5;
+    sleep 10;
+    type_string "exit\n";
     send_key 'f8'; #screen check
     send_key 'down'; #screen check
     send_key 'ret'; #screen check
     sleep 5;
     send_key 'ctrl-l';
+}
+
+sub rebootvm($) {
+my ($nodenum) = @_;
+    type_string "vncviewer localhost:9$nodenum -shared -fullscreen\n"; #screen check
+    check_screen 'vm-login', 40; #screen check
+    type_string "root\n";
+    sleep 5;
+    type_string "nots3cr3t\n";
+    sleep 5;
+    type_string "init 6\n";
+    send_key 'f8'; #screen check
+    send_key 'down'; #screen check
+    send_key 'ret'; #screen check
+    sleep 5;
+    send_key 'ctrl-l';
+}
+
 }
 
 sub run() {
@@ -53,6 +72,10 @@ sub run() {
     for my $i ( 2 .. 3 ) {
         fixvmnetwork "$i";
     }
+    for my $i ( 1 .. 3 ) {
+        rebootvm "$i";
+    }
+    sleep 120; # give them all time to reboot
     for my $i ( 1 .. 3 ) {
         connectssh "$i";
         send_key 'ctrl-pgdn';
