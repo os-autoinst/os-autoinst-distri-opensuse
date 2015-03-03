@@ -16,11 +16,11 @@ sub starthainstall($) {
 
 sub run() {
     assert_screen 'proxy-terminator-clean';
-    for my $i ( 1 .. 3 ) {
+    for my $i ( 1 .. 1 ) { #FIXME - Reduced to one to do cloning instead
         starthainstall "$i";
-        send_key 'ctrl-pgdn';
+        #send_key 'ctrl-pgdn'; #FIXME - Removed as no longer installing in parralel
     }
-    send_key 'ctrl-alt-g'; #group all tabs together (changed in the vm from meta-g default)
+    #send_key 'ctrl-alt-g'; #group all tabs together (changed in the vm from meta-g default) #FIXME - Removed as no longer installing in parralel
 }
 
 1;

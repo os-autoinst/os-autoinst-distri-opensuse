@@ -15,12 +15,12 @@ sub reconnecthainstall($) {
 
 sub run() {
     sleep 240; #500 is too long, seems to shut down the VMs
-    send_key 'shift-ctrl-alt-g';
-     for my $i ( 1 .. 3 ) {
+    #send_key 'shift-ctrl-alt-g'; #FIXME - Removed as no longer installing in parralel
+    for my $i ( 1 .. 1 ) { #FIXME - Reduced to one to do cloning instead
         reconnecthainstall "$i";
-        send_key 'ctrl-pgdn';
+        #send_key 'ctrl-pgdn'; #FIXME - Removed as no longer installing in parralel
     }
-    send_key 'ctrl-alt-g';
+    #send_key 'ctrl-alt-g'; #FIXME - Removed as no longer installing in parralel
 }
 
 1;

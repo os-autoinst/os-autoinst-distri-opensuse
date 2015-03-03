@@ -20,6 +20,7 @@ sub createhavm($) {
     script_run "qemu-img create -f qcow2 node$nodenum.img 10G";
     my $nodemac = 6+$nodenum;
     type_string "su -c 'qemu-kvm -m 1024 -vga cirrus -drive file=node$nodenum.img,id=hd1 -cdrom /dev/sr0 -drive if=scsi,id=addon_1,file=/dev/sr1,media=cdrom -drive if=scsi,id=addon_2,file=/dev/sr2,media=cdrom -drive if=scsi,id=addon_3,file=/dev/sr3,media=cdrom -vnc :9$nodenum,share=force-shared -netdev bridge,id=hn0 -device virtio-net,netdev=hn0,mac=52:54:00:12:34:5$nodemac &'\n";
+    sleep 5;
     type_string "nots3cr3t\n";
     sleep 5;
     type_string "vncviewer localhost:9$nodenum -shared -fullscreen\n";
@@ -43,7 +44,7 @@ sub run() {
     assert_screen 'proxy-terminator-started';
     send_key 'ctrl-pgup';
     send_key 'ctrl-pgup';
-    for my $i ( 1 .. 3 ) {
+    for my $i ( 1 .. 1 ) { #FIXME - Reduced to one to do cloning instead
         createhavm "$i";
     }
 }
