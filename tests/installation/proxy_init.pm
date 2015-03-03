@@ -15,7 +15,7 @@ sub key_round($$) {
     }
 }
 
-sub createhavm($) {
+sub createvm($) {
     my ($nodenum) = @_;
     script_run "qemu-img create -f qcow2 node$nodenum.img 10G";
     my $nodemac = 6+$nodenum;
@@ -44,9 +44,7 @@ sub run() {
     assert_screen 'proxy-terminator-started';
     send_key 'ctrl-pgup';
     send_key 'ctrl-pgup';
-    for my $i ( 1 .. 1 ) { #FIXME - Reduced to one to do cloning instead
-        createhavm "$i";
-    }
+    createvm "1"; # only need one VM now
 }
 
 1;

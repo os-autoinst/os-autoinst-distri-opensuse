@@ -2,7 +2,7 @@ use base "installbasetest";
 use strict;
 use testapi;
 
-sub reconnecthainstall($) {
+sub reconnectsshinstall($) {
     my ($nodenum) = @_;
     my $nodeip = 5+$nodenum;
     type_string "ssh 10.0.2.1$nodeip -l root\n";
@@ -15,12 +15,7 @@ sub reconnecthainstall($) {
 
 sub run() {
     sleep 240; #500 is too long, seems to shut down the VMs
-    #send_key 'shift-ctrl-alt-g'; #FIXME - Removed as no longer installing in parralel
-    for my $i ( 1 .. 1 ) { #FIXME - Reduced to one to do cloning instead
-        reconnecthainstall "$i";
-        #send_key 'ctrl-pgdn'; #FIXME - Removed as no longer installing in parralel
-    }
-    #send_key 'ctrl-alt-g'; #FIXME - Removed as no longer installing in parralel
+    reconnecthainstall "1";
 }
 
 1;
