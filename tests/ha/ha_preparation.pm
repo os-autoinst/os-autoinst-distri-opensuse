@@ -35,6 +35,8 @@ sub fixvmnetwork($) {
     sleep 5;
     type_string "/etc/init.d/network restart\n";
     sleep 10;
+    type_string "chkconfig sshd on\n";
+    sleep 5;
     type_string "exit\n";
     send_key 'f8'; #screen check
     send_key 'down'; #screen check
