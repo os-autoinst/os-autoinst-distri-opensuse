@@ -78,7 +78,15 @@ sub run() {
         rebootvm "$i";
     }
     sleep 120; # give them all time to reboot
-    for my $i ( 1 .. 3 ) {
+    #FIXME - quick hack
+    type_string "ssh 10.0.2.16 -l root\n";
+    sleep 10;
+    type_string "nots3cr3t\n";
+    sleep 10;
+    check_screen 'ha-ssh-login', 40; #should be assert
+    send_key 'ctrl-l';
+    send_key 'ctrl-pgdn';
+    for my $i ( 2.. 3 ) { #should be 1-3, see above FIXME
         connectssh "$i";
         send_key 'ctrl-pgdn';
     }
