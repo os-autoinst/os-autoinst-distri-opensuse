@@ -15,7 +15,7 @@ sub reconnectsshinstall($) {
 
 sub run() {
     sleep 240; #500 is too long, seems to shut down the VMs
-    reconnecthainstall "1";
+    reconnectsshinstall "1";
 }
 
 1;
