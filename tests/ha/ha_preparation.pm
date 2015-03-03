@@ -7,6 +7,8 @@ sub connectssh($) {
     my $nodeip = 5+$nodenum; 
     type_string "ssh 10.0.2.1$nodeip -l root\n";
     sleep 10;
+    type_string "yes\n";
+    sleep 10;
     type_string "nots3cr3t\n";
     sleep 10;
     check_screen 'ha-ssh-login', 40; #should be assert
@@ -35,8 +37,6 @@ sub fixvmnetwork($) {
     sleep 5;
     type_string "/etc/init.d/network restart\n";
     sleep 10;
-    type_string "chkconfig sshd on\n";
-    sleep 5;
     type_string "exit\n";
     send_key 'f8'; #screen check
     send_key 'down'; #screen check
@@ -52,6 +52,8 @@ my ($nodenum) = @_;
     type_string "root\n";
     sleep 5;
     type_string "nots3cr3t\n";
+    sleep 5;
+    type_string "chkconfig sshd on\n";
     sleep 5;
     type_string "init 6\n";
     send_key 'f8'; #screen check
