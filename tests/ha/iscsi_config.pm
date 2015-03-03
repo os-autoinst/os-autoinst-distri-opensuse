@@ -21,7 +21,9 @@ sub run() {
         send_key 'ctrl-pgdn';
     }
     send_key 'alt-i';
+    sleep 1;
     type_string '10.0.2.15';
+    sleep 1;
     send_key 'alt-n';
     for my $i ( 1 .. 3 ) {
         assert_screen 'yast-iscsi-discovered-targets';
@@ -33,9 +35,13 @@ sub run() {
         send_key 'ctrl-pgdn';
     }
     send_key 'alt-s';
+    sleep 1;
     send_key 'down';
+    sleep 1;
     send_key 'down';
+    sleep 1;
     send_key 'ret';
+    sleep 1;
     send_key 'alt-n';
     for my $i ( 1 .. 3 ) {
         assert_screen 'yast-iscsi-discovered-targets';

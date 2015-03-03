@@ -53,9 +53,22 @@ sub rebootvm($) {
     sleep 5;
     type_string "nots3cr3t\n";
     sleep 5;
-    type_string "chkconfig sshd on\n";
+    type_string "chkconfig sshd on\n"; # Bug? might not be needed
+    sleep 5;
+    type_string "chkconfig ntp on\n";
     sleep 5;
     type_string "init 6\n";
+    send_key 'f8';
+    send_key 'down';
+    send_key 'ret';
+    sleep 5;
+    send_key 'ctrl-l';
+}
+
+sub checkboot($) {
+    my ($nodenum) = @_;
+    type_string "vncviewer localhost:9$nodenum -shared -fullscreen\n";
+    assert_screen 'vm-login',240;
     send_key 'f8';
     send_key 'down';
     send_key 'ret';
@@ -69,14 +82,16 @@ sub run() {
     for my $i ( 1 .. 3 ) {
         startvm "$i";
     }
-    sleep 120; # give them all time to boot up
     for my $i ( 2 .. 3 ) {
+        checkboot "$i";
         fixvmnetwork "$i";
     }
     for my $i ( 1 .. 3 ) {
         rebootvm "$i";
     }
-    sleep 120; # give them all time to reboot
+    for my $i ( 1 .. 3 ) {
+        checkboot "$i";
+    }
     #FIXME - quick hack
     type_string "ssh 10.0.2.16 -l root\n";
     sleep 10;
@@ -94,7 +109,7 @@ sub run() {
     type_string "echo '10.0.2.16    node1' >> /etc/hosts\n";
     type_string "echo '10.0.2.17    node2' >> /etc/hosts\n";
     type_string "echo '10.0.2.18    node3' >> /etc/hosts\n";
-    type_string "rm -f /var/lib/pacemaker/cib/*\n";
+    type_string "rm -f /var/lib/pacemaker/cib/*\n";  #might not be needed
     send_key 'shift-ctrl-alt-g';
     type_string "echo 'InitiatorName=iqn.1996-04.de.suse:01:8f4aff8c879' > /etc/iscsi/initiatorname.iscsi\n";
     type_string "echo 'node1' > /etc/hostname\n";
