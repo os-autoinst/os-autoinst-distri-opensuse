@@ -394,7 +394,7 @@ sub load_reboot_tests() {
     if (get_var("ENCRYPT")) {
         loadtest "installation/boot_encrypt.pm";
     }
-    if (installyaststep_is_applicable && !get_var("HALIDATION")) {
+    if (installyaststep_is_applicable && !get_var("HAVALIDATION")) {
         loadtest "installation/first_boot.pm";
     }
     if (is_reboot_after_installation_necessary()) {
