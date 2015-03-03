@@ -369,8 +369,8 @@ sub load_inst_tests() {
     loadtest "installation/livecdreboot.pm";
 
     # 2nd stage
-    if (get_var("HAVALIDATION")) {
-            loadtest "installation/proxy_ha_start_2nd_stage.pm";
+    if (get_var("PROXY")) {
+            loadtest "installation/proxy_start_2nd_stage.pm";
     }
     loadtest "installation/sle11_wait_for_2nd_stage.pm";
     if (noupdatestep_is_applicable && check_var('FLAVOR', 'Server-DVD')) {
@@ -394,7 +394,7 @@ sub load_reboot_tests() {
     if (get_var("ENCRYPT")) {
         loadtest "installation/boot_encrypt.pm";
     }
-    if (installyaststep_is_applicable && !get_var("HAVALIDATION")) {
+    if (installyaststep_is_applicable && !get_var("HALIDATION")) {
         loadtest "installation/first_boot.pm";
     }
     if (is_reboot_after_installation_necessary()) {
@@ -583,9 +583,11 @@ elsif (get_var("RESCUESYSTEM")) {
 }
 else {
     load_boot_tests();
-    if (get_var("HAVALIDATION")) {
-        loadtest "installation/proxy_ha_init.pm";
-        loadtest "installation/proxy_ha_ssh.pm";
+    if (get_var("PROXY")) {
+        loadtest "installation/proxy_init.pm";
+        if (get_var("SSH")) {
+            loadtest "installation/proxy_ssh.pm";
+        }
     }
     if (get_var("LIVETEST")) {
         loadtest "installation/finish_desktop.pm";
