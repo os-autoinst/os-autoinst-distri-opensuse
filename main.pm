@@ -373,8 +373,8 @@ sub load_inst_tests() {
     loadtest "installation/livecdreboot.pm";
 
     # 2nd stage
-    if (get_var("HAVALIDATION")) {
-            loadtest "installation/proxy_ha_start_2nd_stage.pm";
+    if (get_var("PROXY")) {
+            loadtest "installation/proxy_start_2nd_stage.pm";
     }
     loadtest "installation/sle11_wait_for_2nd_stage.pm";
     if (noupdatestep_is_applicable && check_var('FLAVOR', 'Server-DVD')) {
@@ -554,6 +554,8 @@ sub load_x11tests(){
 }
 
 sub load_ha_tests(){
+    loadtest "ha/ha_vm_shutdown.pm";
+    loadtest "ha/ha_preparation.pm";
     loadtest "ha/iscsi_config.pm";
     loadtest "ha/sle11_cluster_init.pm";
     loadtest "ha/sle11_cluster_join.pm";
@@ -587,9 +589,11 @@ elsif (get_var("RESCUESYSTEM")) {
 }
 else {
     load_boot_tests();
-    if (get_var("HAVALIDATION")) {
-        loadtest "installation/proxy_ha_init.pm";
-        loadtest "installation/proxy_ha_ssh.pm";
+    if (get_var("PROXY")) {
+        loadtest "installation/proxy_init.pm";
+        if (get_var("SSH")) {
+            loadtest "installation/proxy_ssh.pm";
+        }
     }
     if (get_var("LIVETEST")) {
         loadtest "installation/finish_desktop.pm";
