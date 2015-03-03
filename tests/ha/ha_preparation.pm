@@ -59,8 +59,6 @@ my ($nodenum) = @_;
     send_key 'ctrl-l';
 }
 
-}
-
 sub run() {
     # TODO - Make this your snapshot,  this is where you want to restart every time you need to re-run HA validation
     type_string "cp node1.img node2.img && cp node1.img node3.img\n"; #copy disk image two new imgs
