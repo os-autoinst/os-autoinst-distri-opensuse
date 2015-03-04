@@ -79,7 +79,7 @@ sub run() {
         type_string "secureboot=1 ";
         type_string "vga=791 ";
         type_string "video=1024x768-16 ", 13;
-    
+
         # not needed anymore atm as cirrus has 1024 as default now:
         # https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=121a6a17439b000b9699c3fa876636db20fa4107
         #type_string "drm_kms_helper.edid_firmware=edid/1024x768.bin ";
