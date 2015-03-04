@@ -7,6 +7,8 @@ sub run(){
 
     assert_screen "second-stage", 250;
     mouse_hide;
+    sleep 1;
+    mouse_hide;
 
 }
 
