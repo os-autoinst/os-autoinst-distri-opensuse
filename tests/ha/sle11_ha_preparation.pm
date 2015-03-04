@@ -35,7 +35,7 @@ sub fixvmnetwork($) {
     sleep 5;
     type_string "sed -i 's/eth0/eth1/g' /etc/sysconfig/network/ifcfg-*\n";
     sleep 5;
-    type_string "systemctl network restart\n";
+    type_string "/etc/init.d/network restart\n";
     sleep 10;
     type_string "exit\n";
     send_key 'f8';
@@ -53,7 +53,11 @@ sub rebootvm($) {
     sleep 5;
     type_string "nots3cr3t\n";
     sleep 5;
-    type_string "systemctl reboot\n";
+    type_string "chkconfig sshd on\n"; # Bug? might not be needed
+    sleep 5;
+    type_string "chkconfig ntp on\n";
+    sleep 5;
+    type_string "init 6\n";
     send_key 'f8';
     send_key 'down';
     send_key 'ret';
@@ -105,7 +109,7 @@ sub run() {
     type_string "echo '10.0.2.16    node1' >> /etc/hosts\n";
     type_string "echo '10.0.2.17    node2' >> /etc/hosts\n";
     type_string "echo '10.0.2.18    node3' >> /etc/hosts\n";
-    type_string "rm -f /var/lib/pacemaker/cib/*\n"; # might not be needed
+    type_string "rm -f /var/lib/pacemaker/cib/*\n";  #might not be needed
     send_key 'shift-ctrl-alt-g';
     type_string "echo 'InitiatorName=iqn.1996-04.de.suse:01:8f4aff8c879' > /etc/iscsi/initiatorname.iscsi\n";
     type_string "echo 'node1' > /etc/hostname\n";
