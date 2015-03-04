@@ -15,8 +15,10 @@ sub run() {
         assert_screen "inst-welcome", 500;
     }
     
-    wait_idle;
     # animated cursor wastes disk space, so it is moved to bottom right corner
+    mouse_hide;
+    # the mouse is hard to convince at times
+    sleep 1;
     mouse_hide;
 
     # license+lang
