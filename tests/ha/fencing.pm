@@ -9,7 +9,7 @@ sub run() {
     sleep 15;
     type_string "crm status\n";
     assert_screen 'cluster-node-down';
-    sleep 120;
+    sleep 240;
     send_key 'ctrl-l';
     type_string "crm status\n";
     assert_screen 'cluster-node-returned';

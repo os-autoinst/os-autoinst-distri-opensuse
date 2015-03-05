@@ -33,7 +33,7 @@ sub fixvmnetwork($) {
     sleep 5;
     type_string "nots3cr3t\n";
     sleep 5;
-    type_string "sed -i 's/eth0/eth1/g' /etc/sysconfig/network/ifcfg-*\n";
+    type_string "cp /etc/sysconfig/network/ifcfg-eth0 etc/sysconfig/network/ifcfg-eth1 *\n"; 
     sleep 5;
     type_string "systemctl network restart\n";
     sleep 10;
@@ -101,7 +101,7 @@ sub run() {
     }
     send_key 'ctrl-alt-g';
     type_string "zypper -n in yast2-iscsi-client open-iscsi\n";
-    sleep 60; # Give it some time to do the install
+    sleep 120; # Give it some time to do the install
     type_string "echo '10.0.2.16    node1' >> /etc/hosts\n";
     type_string "echo '10.0.2.17    node2' >> /etc/hosts\n";
     type_string "echo '10.0.2.18    node3' >> /etc/hosts\n";
