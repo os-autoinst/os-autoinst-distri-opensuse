@@ -8,17 +8,20 @@ sub run() {
     for my $i ( 1 .. 3 ) {
         assert_screen 'yast-iscsi-client-loaded';
         send_key 'ctrl-pgdn';
+        sleep 2;
     }
     send_key 'alt-b';
     send_key 'alt-v';
     for my $i ( 1 .. 3 ) {
         assert_screen 'yast-iscsi-discovered-targets';
         send_key 'ctrl-pgdn';
+        sleep 2;
     }
     send_key 'alt-d';
     for my $i ( 1 .. 3 ) {
         assert_screen 'yast-iscsi-initiator-discovery';
         send_key 'ctrl-pgdn';
+        sleep 2;
     }
     send_key 'alt-i';
     sleep 1;
@@ -28,11 +31,13 @@ sub run() {
     for my $i ( 1 .. 3 ) {
         assert_screen 'yast-iscsi-discovered-targets';
         send_key 'ctrl-pgdn';
+        sleep 2;
     }
     send_key 'alt-l';
     for my $i ( 1 .. 3 ) {
         assert_screen 'yast-iscsi-initiator-login';
         send_key 'ctrl-pgdn';
+        sleep 2;
     }
     send_key 'alt-s';
     sleep 1;
@@ -46,6 +51,7 @@ sub run() {
     for my $i ( 1 .. 3 ) {
         assert_screen 'yast-iscsi-discovered-targets';
         send_key 'ctrl-pgdn';
+        sleep 2;
     }
     send_key 'alt-o';
     sleep 5;
