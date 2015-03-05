@@ -468,7 +468,7 @@ sub load_x11tests(){
     }
     loadtest "x11/firefox.pm";
     if (!get_var("NICEVIDEO")) {
-        loadtest "x11/firefox_audio.pm";
+        loadtest "x11/firefox_audio.pm" unless get_var("OFW");
     }
     if (bigx11step_is_applicable && !get_var("NICEVIDEO")) {
         loadtest "x11/firefox_stress.pm";
