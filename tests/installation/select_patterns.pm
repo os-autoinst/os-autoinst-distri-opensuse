@@ -47,6 +47,10 @@ sub run {
 
     my $counter = 70;
     while (1) {
+        if (check_screen('patterns-scroll-down', 5)) {
+            send_key 'pgdn';
+            send_key 'left';
+        }
         my $ret = wait_screen_change {
             send_key 'down';
         };
