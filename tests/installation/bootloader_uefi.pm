@@ -76,6 +76,7 @@ sub run() {
     # https://wiki.archlinux.org/index.php/Kernel_Mode_Setting#Forcing_modes_and_EDID
     type_string "Y2DEBUG=1 ";
     if (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64')) {
+        type_string "secureboot_enable=1 ";
         type_string "vga=791 ";
         type_string "video=1024x768-16 ", 13;
 
