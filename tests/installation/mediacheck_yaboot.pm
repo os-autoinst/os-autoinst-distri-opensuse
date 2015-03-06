@@ -7,7 +7,7 @@ sub run {
 
     assert_screen "bootloader-ofw-yaboot", 15;
 
-    type_string "install mediachech=1";
+    type_string "install mediacheck=1";
     send_key "ret";
 
     # the timeout is insane - but SLE11 DVDs take almost forever
