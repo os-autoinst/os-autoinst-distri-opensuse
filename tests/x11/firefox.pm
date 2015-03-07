@@ -8,9 +8,10 @@ sub run() {
     x11_start_program("firefox", 6, { valid => 1 } );
     assert_screen 'test-firefox-1', 60;
     if (get_var(DESKTOP) eq "kde") {
+        # uncheck Always perform default browser check, firefox audio without default browser check
         send_key "tab";
         send_key "tab";
-        send_key " ";       # uncheck Always perform default browser check, firefox audio without default browser check
+        send_key " ";
         send_key "alt-y";   # accept firefox as default browser
     }
     send_key "alt-h";
