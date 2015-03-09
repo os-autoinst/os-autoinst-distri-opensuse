@@ -47,7 +47,7 @@ sub run {
 
     my $counter = 70;
     while (1) {
-        if (check_screen('patterns-scroll-down', 5)) {
+        if (get_var("ADDONS") =~ 'sdk' && get_var('PATTERNS') && check_screen('patterns-scroll-down', 5)) {
             send_key 'pgdn';
             send_key 'left';
         }
