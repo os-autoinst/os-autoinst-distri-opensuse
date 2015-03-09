@@ -17,14 +17,14 @@ sub key_round($$) {
 
 sub run() {
     my $self = shift;
-    
+
     if ( get_var("UPGRADE") && get_var("ADDONS") ) { # Netwrok setup
-		if ( check_screen('network-setup', 10)) { # won't appear for NET installs
-			send_key $cmd{"next"};    # use network
-			assert_screen 'dhcp-network';
-			send_key 'alt-d'; # DHCP
-			send_key "alt-o", 2;        # OK
-		}
+        if ( check_screen('network-setup', 10)) { # won't appear for NET installs
+            send_key $cmd{"next"};    # use network
+            assert_screen 'dhcp-network';
+            send_key 'alt-d'; # DHCP
+            send_key "alt-o", 2;        # OK
+        }
     }
 
     # hardware detection can take a while
@@ -33,9 +33,9 @@ sub run() {
 
     assert_screen 'previously-used-repositories', 5;
     send_key $cmd{"next"}, 1;
-    
+
     if ( get_var("UPGRADE") && get_var("ADDONS") ) {
-		foreach $a (split(/,/, get_var('ADDONS'))) {
+        foreach $a (split(/,/, get_var('ADDONS'))) {
             send_key 'alt-d';	# DVD
             send_key $cmd{"xnext"}, 1;
             assert_screen 'dvd-selector', 3;
@@ -58,9 +58,9 @@ sub run() {
                 assert_screen 'addon-selection', 15;
             }
         }
-        
-	assert_screen 'addon-list', 5;
-    send_key $cmd{"next"}, 1;
+
+        assert_screen 'addon-list', 5;
+        send_key $cmd{"next"}, 1;
     }
 
     assert_screen "update-installation-overview", 15;

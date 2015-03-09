@@ -23,7 +23,7 @@ sub run() {
     if (!$selected) {
         key_round 'shutdown_button', 'tab'; # press tab till is shutdown button selected
     }
-    
+
     send_key "ret"; # press shutdown button
     assert_screen "logoutdialog", 15;
     send_key "tab";

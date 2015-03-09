@@ -82,28 +82,28 @@ sub run() {
         send_key 'alt-d';
         send_key 'alt-i';
         my $prep_counter = 20;
-            while (1) {
-                my $ret = wait_screen_change {
+        while (1) {
+            my $ret = wait_screen_change {
                 send_key 'down';
-                };
+            };
 
-                die "looping for too long/PReP not found" if (!$ret || $prep_counter-- == 0);
-                if (check_screen("filesystem-prep", 1)) {
-                    send_key 'ret';
-                    assert_screen('expert-partitioning', 5);
-                    last;
-                }
+            die "looping for too long/PReP not found" if (!$ret || $prep_counter-- == 0);
+            if (check_screen("filesystem-prep", 1)) {
+                send_key 'ret';
+                assert_screen('expert-partitioning', 5);
+                last;
             }
+        }
         send_key 'alt-f';
         sleep 1;
         send_key 'alt-s';
         send_key 'right';
         send_key 'down'; #should select first disk'
-        }
-        else {
-                send_key 'right';
-                send_key 'down'; #should select first disk'
-        }
+    }
+    else {
+        send_key 'right';
+        send_key 'down'; #should select first disk'
+    }
 
     for ( 1 .. 4 ) {
         send_key 'alt-d';

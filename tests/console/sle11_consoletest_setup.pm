@@ -32,7 +32,7 @@ sub run() {
     script_sudo "chown $username /dev/$serialdev";
 
     become_root;
-    script_run "chmod 444 /usr/sbin/packagekitd"; # packagekitd will be not executable 
+    script_run "chmod 444 /usr/sbin/packagekitd"; # packagekitd will be not executable
     script_run "exit";
 
     save_screenshot;

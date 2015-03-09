@@ -39,7 +39,7 @@ sub run {
     else {
         key_round 'patterns-list-selected', 'tab';
     }
-    
+
     my %wanted_patterns;
     for my $p (split(/,/, get_var('PATTERNS'))) {
         $wanted_patterns{$p} = 1;

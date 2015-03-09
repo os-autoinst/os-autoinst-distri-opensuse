@@ -4,7 +4,7 @@ use autotest;
 
 sub connectssh($) {
     my ($nodenum) = @_;
-    my $nodeip = 5+$nodenum; 
+    my $nodeip = 5+$nodenum;
     type_string "ssh 10.0.2.1$nodeip -l root\n";
     sleep 10;
     type_string "yes\n";

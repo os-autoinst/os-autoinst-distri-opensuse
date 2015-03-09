@@ -19,7 +19,7 @@ sub run(){
     my $self=shift;
 
     assert_screen 'release-notes', 100; # suseconfig run
-    
+
     if (get_var("ADDONS")) {
         if (check_screen 'release-notes-tab') {
             foreach $a (split(/,/, get_var('ADDONS'))) {

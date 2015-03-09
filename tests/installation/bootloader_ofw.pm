@@ -10,16 +10,16 @@ sub run() {
     send_key "up";
     send_key "up";
     if (check_var('VIDEOMODE', 'text')) {
-       send_key "e";
-       send_key "down";
-       send_key "down";
-       send_key "down";
-       send_key "end";
-       type_string " textmode=1", 15;
-       send_key "ctrl-x";
+        send_key "e";
+        send_key "down";
+        send_key "down";
+        send_key "down";
+        send_key "end";
+        type_string " textmode=1", 15;
+        send_key "ctrl-x";
     }
     else {
-       send_key "ret";
+        send_key "ret";
     }
 }
 

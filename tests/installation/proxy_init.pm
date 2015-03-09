@@ -35,7 +35,7 @@ sub createvm($) {
     send_key 'f8';
     send_key 'down';
     send_key 'ret';
-    send_key 'ctrl-l'
+    send_key 'ctrl-l';
 }
 
 sub run() {
