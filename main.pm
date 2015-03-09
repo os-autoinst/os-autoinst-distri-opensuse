@@ -486,7 +486,7 @@ sub load_x11tests(){
         loadtest "x11/gnome_terminal.pm";
         loadtest "x11/gedit.pm";
     }
-    loadtest "x11/firefox.pm";
+    loadtest "x11/sle11_firefox.pm";
     if (!get_var("NICEVIDEO")) {
         loadtest "x11/firefox_audio.pm" unless get_var("OFW");
     }
