@@ -1,6 +1,13 @@
+# we need the package here for shutdown_sle11 to inherit it
+package shutdown;
 # don't use x11test, the end of this is not a desktop
 use base "opensusebasetest";
 use testapi;
+
+# overloaded in sle11_shutdown
+sub trigger_shutdown_gnome_button() {
+    send_key "ctrl-alt-delete";
+}
 
 sub run() {
     my $self = shift;
@@ -15,7 +22,7 @@ sub run() {
     }
 
     if ( check_var("DESKTOP", "gnome") ) {
-        send_key "ctrl-alt-delete";    # shutdown
+        trigger_shutdown_gnome_button();
         assert_screen 'logoutdialog', 15;
         send_key "ret";                # confirm shutdown
 

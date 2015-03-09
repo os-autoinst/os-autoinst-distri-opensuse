@@ -110,5 +110,18 @@ sub bootmenu_down_to($) {
     assert_screen $tag, 3;
 }
 
+sub key_round($$;$) {
+    my ($tag, $key, $counter) = @_;
+
+    $counter //= 20;
+    while ( !check_screen( $tag, 1 ) ) {
+        send_key $key;
+        if (!$counter--) {
+            # DIE!
+            assert_screen $tag, 1;
+        }
+    }
+}
+
 1;
 # vim: set sw=4 et:
