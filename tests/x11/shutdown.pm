@@ -6,6 +6,7 @@ use testapi;
 
 # overloaded in sle11_shutdown
 sub trigger_shutdown_gnome_button() {
+    my ($self) = @_;
     send_key "ctrl-alt-delete";
 }
 
@@ -22,7 +23,7 @@ sub run() {
     }
 
     if ( check_var("DESKTOP", "gnome") ) {
-        trigger_shutdown_gnome_button();
+        $self->trigger_shutdown_gnome_button();
         assert_screen 'logoutdialog', 15;
         send_key "ret";                # confirm shutdown
 

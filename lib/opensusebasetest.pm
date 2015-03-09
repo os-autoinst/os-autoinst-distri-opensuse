@@ -111,10 +111,11 @@ sub bootmenu_down_to($) {
 }
 
 sub key_round($$;$) {
-    my ($tag, $key, $counter) = @_;
+    my ($self, $tag, $key, $counter, $timeout) = @_;
 
     $counter //= 20;
-    while ( !check_screen( $tag, 1 ) ) {
+    $timeout //= 1;
+    while ( !check_screen( $tag, $timeout ) ) {
         send_key $key;
         if (!$counter--) {
             # DIE!

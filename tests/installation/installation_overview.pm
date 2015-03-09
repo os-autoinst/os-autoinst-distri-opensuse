@@ -3,20 +3,8 @@ use strict;
 use base "y2logsstep";
 use testapi;
 
-sub key_round($$) {
-    my ($tag, $key) = @_;
-
-    my $counter = 15;
-    while ( !check_screen( $tag, 1 ) ) {
-        send_key $key;
-        if (!$counter--) {
-            # DIE!
-            assert_screen $tag, 1;
-        }
-    }
-}
-
 sub run() {
+    my ($self) = @_;
 
     # overview-generation
     # this is almost impossible to check for real
@@ -34,7 +22,7 @@ sub run() {
             send_key 'alt-s';
         }
         else {
-            key_round 'packages-section-selected', 'tab';
+            $self->key_round('packages-section-selected', 'tab');
             send_key 'ret';
         }
 

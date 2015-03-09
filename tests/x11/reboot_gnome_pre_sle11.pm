@@ -1,19 +1,6 @@
 use base "opensusebasetest";
 use testapi;
 
-sub key_round($$) {
-    my ($tag, $key) = @_;
-
-    my $counter = 20;
-    while ( !check_screen( $tag, 1 ) ) {
-        send_key $key;
-        if (!$counter--) {
-            # DIE!
-            assert_screen $tag, 1;
-        }
-    }
-}
-
 sub run() {
     my $self = shift;
 
@@ -21,7 +8,7 @@ sub run() {
     send_key "alt-f1"; # applicationsmenu
     my $selected = check_screen 'shutdown_button', 0;
     if (!$selected) {
-        key_round 'shutdown_button', 'tab'; # press tab till is shutdown button selected
+        $self->key_round('shutdown_button', 'tab', 20); # press tab till is shutdown button selected
     }
 
     send_key "ret"; # press shutdown button

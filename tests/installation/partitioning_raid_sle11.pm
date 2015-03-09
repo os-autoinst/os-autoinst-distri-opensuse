@@ -3,19 +3,6 @@ use strict;
 use base "y2logsstep";
 use testapi;
 
-sub key_round($$) {
-    my ($tag, $key) = @_;
-
-    my $counter = 10;
-    while ( !check_screen( $tag, 1 ) ) {
-        send_key $key;
-        if (!$counter--) {
-            # DIE!
-            assert_screen $tag, 1;
-        }
-    }
-}
-
 sub addraid($) {
     my ($step) = @_;
     send_key "spc";
@@ -54,12 +41,14 @@ sub addraid($) {
 }
 
 sub setraidlevel($) {
-    my $level = shift;
+    my ($level) = @_;
+
     my %entry = ( 0 => 0, 1 => 1, 5 => 5, 6 => 6, 10 => 'i' );
     send_key "alt-$entry{$level}";
 }
 
 sub run() {
+    my ($self) = @_;
 
     assert_screen 'inst-overview', 10;
     send_key $cmd{change};
@@ -163,7 +152,7 @@ sub run() {
     send_key 'alt-i';
     assert_screen('add-raid', 5);
     setraidlevel( get_var("RAIDLEVEL") );
-    key_round 'raid-devices-selected', 'tab';
+    $self->key_round('raid-devices-selected', 'tab');
     send_key "down";
     send_key "down"; # start at second partition (i.e. sda2)
     for ( 1 .. 3 ) {
@@ -212,7 +201,7 @@ sub run() {
     send_key 'alt-i';
     assert_screen('add-raid', 5);
     setraidlevel(1); # RAID 1 for /boot
-    key_round 'raid-devices-selected', 'tab';
+    $self->key_round('raid-devices-selected', 'tab');
     send_key "down"; # start at the 300MB partition
     for ( 1 .. 3 ) {
         for ( 1 .. 2 ) {
@@ -237,7 +226,7 @@ sub run() {
     send_key 'alt-i';
     assert_screen('add-raid', 5);
     setraidlevel(0); # RAID 0 for swap
-    key_round 'raid-devices-selected', 'tab';
+    $self->key_round('raid-devices-selected', 'tab');
     send_key "spc"; # only 4 partitions left
     for ( 1 .. 3 ) {
         send_key "ctrl-down";

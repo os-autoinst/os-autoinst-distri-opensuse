@@ -1,12 +1,14 @@
-use base "shutdown";
+use base 'shutdown';
 use testapi;
 
 sub trigger_shutdown_gnome_button() {
+    my ($self) = @_;
+
     wait_idle;
     send_key "alt-f1"; # applicationsmenu
     my $selected = check_screen 'shutdown_button', 0;
     if (!$selected) {
-        key_round 'shutdown_button', 'tab'; # press tab till is shutdown button selected
+        $self->key_round('shutdown_button', 'tab'); # press tab till is shutdown button selected
     }
     send_key "ret"; # press shutdown button
 }
