@@ -7,7 +7,7 @@ use Time::HiRes qw(sleep);
 sub run() {
     assert_screen "bootloader-ofw-yaboot", 15;
     if (check_var('VIDEOMODE', 'text')) {
-       type_string "install textmode=1", 15;
+        type_string "install textmode=1", 15;
     }
     send_key "ret";
 }

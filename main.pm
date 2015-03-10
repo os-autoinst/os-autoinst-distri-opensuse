@@ -199,7 +199,7 @@ sub have_addn_repos() {
 
 sub loadtest($) {
     my ($test) = @_;
-    autotest::loadtest(get_var("CASEDIR") . "/tests/$test");
+    autotest::loadtest("tests/$test");
 }
 
 sub load_x11regresion_tests() {

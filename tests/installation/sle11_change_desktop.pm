@@ -2,21 +2,6 @@ use base "y2logsstep";
 use strict;
 use testapi;
 
-sub key_round($$) {
-    my ($tag, $key) = @_;
-
-    my $counter = 10;
-    while ( !check_screen( $tag, 1 ) ) {
-        wait_screen_change {
-            send_key $key;
-        };
-        if (!$counter--) {
-            # DIE!
-            assert_screen $tag, 1;
-        }
-    }
-}
-
 sub run {
     my $self = shift;
 
@@ -27,7 +12,7 @@ sub run {
         send_key 'alt-s';
     }
     else {
-        key_round 'packages-section-selected', 'tab';
+        $self->key_round('packages-section-selected', 'tab', 10);
         send_key 'ret';
     }
 
@@ -40,19 +25,19 @@ sub run {
         send_key 'tab';
     }
     else {
-        key_round 'patterns-list-selected', 'tab';
+        $self->key_round('patterns-list-selected', 'tab', 10);
     }
 
     if (!check_var('DESKTOP', 'gnome')) {
-        key_round('gnome-selected', 'down');
+        $self->key_round('gnome-selected', 'down', 10);
         wait_screen_change { send_key ' '; };
     }
     if (check_var('DESKTOP', 'kde')) {
-        key_round('kde-unselected', 'down');
+        $self->key_round('kde-unselected', 'down', 10);
         wait_screen_change { send_key ' '; };
     }
     if (check_var('DESKTOP', 'textmode')) {
-        key_round('x11-selected', 'down');
+        $self->key_round('x11-selected', 'down', 10);
         wait_screen_change { send_key ' '; };
     }
 

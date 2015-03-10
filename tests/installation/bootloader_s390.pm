@@ -115,7 +115,7 @@ sub hash2parmfile() {
     # form needed in the parmfile.
     my @parmentries;
 
-    while (my ($k, $v) = each $parmfile_href) {
+    while (my ($k, $v) = each %{$parmfile_href}) {
         push @parmentries, "$k=$v";
     }
 
@@ -153,7 +153,7 @@ sub hash2parmfile() {
     return $parmfile_with_Newline_s;
 }
 
-use backend::s390x::gnah;
+use backend::console_proxy;
 
 #<<< don't perltidy this part:
 # it makes perfect sense to have request and response _above_ each other

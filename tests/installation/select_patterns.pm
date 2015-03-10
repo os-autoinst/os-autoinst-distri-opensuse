@@ -2,19 +2,6 @@ use base "y2logsstep";
 use strict;
 use testapi;
 
-sub key_round($$) {
-    my ($tag, $key) = @_;
-
-    my $counter = 15;
-    while ( !check_screen( $tag, 1 ) ) {
-        send_key $key;
-        if (!$counter--) {
-            # DIE!
-            assert_screen $tag, 1;
-        }
-    }
-}
-
 sub run {
     my $self = shift;
 
@@ -24,7 +11,7 @@ sub run {
         send_key 'alt-s';
     }
     else {
-        key_round 'packages-section-selected', 'tab';
+        $self->key_round('packages-section-selected', 'tab');
         send_key 'ret';
     }
 
@@ -37,9 +24,9 @@ sub run {
         send_key 'tab';
     }
     else {
-        key_round 'patterns-list-selected', 'tab';
+        $self->key_round('patterns-list-selected', 'tab');
     }
-    
+
     my %wanted_patterns;
     for my $p (split(/,/, get_var('PATTERNS'))) {
         $wanted_patterns{$p} = 1;
