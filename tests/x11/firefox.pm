@@ -1,11 +1,16 @@
+package firefox;
 use base "x11test";
 use testapi;
+
+sub start_firefox() {
+    x11_start_program("firefox", 6, { valid => 1 } );
+    assert_screen 'test-firefox-1', 35;
+}
 
 sub run() {
     my $self = shift;
     mouse_hide(1);
-    x11_start_program("firefox", 6, { valid => 1 } );
-    assert_screen 'test-firefox-1', 35;
+    $self->start_firefox();
     send_key "alt-h";
     sleep 2;    # Help
     send_key "a";
