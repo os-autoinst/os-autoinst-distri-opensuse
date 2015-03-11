@@ -1,6 +1,6 @@
 # use base qw(shutdown);
 # work around for broken base in perl < 5.20
-require 'shutdown';
+require 'shutdown.pm';
 push @ISA, 'shutdown';
 use testapi;
 
