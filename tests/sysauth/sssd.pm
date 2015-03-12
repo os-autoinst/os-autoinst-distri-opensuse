@@ -20,19 +20,15 @@ sub run() {
     );
     script_run "systemctl stop packagekit.service; systemctl mask packagekit.service";
     script_run "zypper -n refresh && zypper -n in @test_subjects";
-    save_screenshot;
 
     script_run "cd; curl -L -v ".autoinst_url."/data > tests.data && cpio -id < tests.data && ls -l data";
     script_run "mv data/sssd-tests.tgz ~/ && tar xvf sssd-tests.tgz";
-    save_screenshot;
 
     # The test scenarios are now ready to run
     my @scenario_failures;
     foreach my $scenario (qw/local ldap ldap-inherited-groups ldap-nested-groups krb/) {
-        script_run "cd ~/sssd-tests/$scenario; ./test.sh";
-        script_run "echo $scenario-\$? > /dev/$serialdev";
-        wait_serial "$scenario-0", 120 or push @scenario_failures, $scenario;
-        save_screenshot;
+        script_run "cd ~/sssd-tests/$scenario && clear && ./test.sh";
+        assert_screen "sssd-$scenario", 120
     }
     if (@scenario_failures) {
         die "Some test scenarios failed: @scenario_failures";
