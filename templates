@@ -897,6 +897,16 @@
                       test_suite => { name => "memtest" },
                     },
                     {
+                      machine    => { name => "64bit" },
+                      product    => {
+                                      arch    => "x86_64",
+                                      distri  => "opensuse",
+                                      flavor  => "GNOME-Live",
+                                      version => "*",
+                                    },
+                      test_suite => { name => "sysauth" },
+                    },
+                    {
                       machine    => { name => "32bit" },
                       product    => { arch => "i686", distri => "opensuse", flavor => "KDE-Live", version => "*" },
                       test_suite => { name => "mediacheck" },
@@ -1723,6 +1733,15 @@
                         { key => "HDDVERSION", value => "openSUSE-Staging-DVD" },
                         { key => "INSTALLONLY", value => 1 },
                         { key => "UPGRADE", value => 1 },
+                      ],
+                    },
+                    {
+                      name => "sysauth",
+                      prio => 50,
+                      settings => [
+                        { key => "DESKTOP", value => "gnome" },
+                        { key => "SYSAUTHTEST", value => 1 },
+                        { key => "LIVETEST", value => 1 },
                       ],
                     },
                   ],
