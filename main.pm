@@ -356,7 +356,6 @@ sub load_inst_tests() {
         elsif (get_var('FILESYSTEM')) {
             loadtest "installation/partitioning_sle11.pm";
         }
-        loadtest "installation/installation_overview.pm";
         if (get_var('PATTERNS')) {
             loadtest "installation/select_patterns.pm";
         }
@@ -368,6 +367,7 @@ sub load_inst_tests() {
         loadtest "installation/secure_boot.pm";
     }
     if (installyaststep_is_applicable) {
+        loadtest "installation/installation_overview.pm";
         loadtest "installation/start_install.pm";
     }
     loadtest "installation/livecdreboot.pm";
