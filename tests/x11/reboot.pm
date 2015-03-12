@@ -15,7 +15,9 @@ sub run() {
         wait_idle;
 
         # log in
-        type_string $username. "\n";
+        if (check_var('DESKTOP', 'gnome')) {
+            type_string $username. "\n";
+        }
         type_string $password. "\n";
     }
 
