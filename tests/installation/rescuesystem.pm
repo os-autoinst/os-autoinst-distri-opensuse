@@ -10,8 +10,15 @@ sub run {
     $self->bootmenu_down_to('inst-rescuesystem');
     send_key "ret";
 
+    if ( check_screen "keyboardmap-list", 100 ) {
+        send_key "ret";
+    }
+    else {
+        record_soft_failure;
+    }
+
     # Login as root (no password)
-    assert_screen "rescuesystem-login", 120;
+    assert_screen "rescuesystem-login", 20;
     type_string "root\n";
 
     # Clean the screen
