@@ -1,4 +1,4 @@
-use base "sysauthtest";
+use base "opensusebasetest";
 use testapi;
 
 #In the console of Live-CD system, grab the sysauthtests scripts and install the test subjects.
