@@ -357,8 +357,8 @@ sub load_inst_tests() {
         loadtest "installation/user_settings_root.pm";
     }
     if (noupdatestep_is_applicable) {
-        loadtest "installation/installation_overview.pm";
         if (get_var('PATTERNS')) {
+            loadtest "installation/installation_overview_before.pm";
             loadtest "installation/select_patterns.pm";
         }
     }
@@ -366,6 +366,7 @@ sub load_inst_tests() {
         loadtest "installation/secure_boot.pm";
     }
     if (installyaststep_is_applicable) {
+        loadtest "installation/installation_overview.pm";
         loadtest "installation/start_install.pm";
     }
     loadtest "installation/livecdreboot.pm";
