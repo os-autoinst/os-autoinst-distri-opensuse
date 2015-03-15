@@ -346,14 +346,15 @@ sub load_inst_tests() {
     }
     if (noupdatestep_is_applicable) {
         if (get_var('PATTERNS')) {
+            loadtest "installation/installation_overview_before.pm";
             loadtest "installation/select_patterns.pm";
         }
-        loadtest "installation/installation_overview.pm";
     }
     if (get_var("UEFI") && get_var("SECUREBOOT")) {
         loadtest "installation/secure_boot.pm";
     }
     if (installyaststep_is_applicable) {
+        loadtest "installation/installation_overview.pm";
         loadtest "installation/start_install.pm";
     }
     loadtest "installation/livecdreboot.pm";
