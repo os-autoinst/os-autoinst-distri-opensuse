@@ -357,9 +357,11 @@ sub load_inst_tests() {
             loadtest "installation/partitioning_sle11.pm";
         }
         if (get_var('PATTERNS')) {
+            loadtest "installation/installation_overview_before.pm";
             loadtest "installation/select_patterns.pm";
         }
         elsif (!check_var('DESKTOP', 'gnome')) {
+            loadtest "installation/installation_overview_before.pm";
             loadtest "installation/sle11_change_desktop.pm";
         }
     }
