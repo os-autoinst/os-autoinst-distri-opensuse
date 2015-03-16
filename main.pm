@@ -575,6 +575,11 @@ elsif (get_var("RESCUESYSTEM")) {
     loadtest "installation/rescuesystem.pm";
     loadtest "installation/rescuesystem_validate_131.pm";
 }
+elsif (get_var("SYSAUTHTEST")) {
+    # sysauth test script switches to tty and run test scripts in the console
+    load_boot_tests();
+    loadtest "sysauth/sssd.pm";
+}
 else {
     load_boot_tests();
     if (get_var("LIVETEST")) {
