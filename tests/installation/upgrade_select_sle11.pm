@@ -37,7 +37,9 @@ sub run() {
             else {
                 assert_screen "addon-license-$a", 10;
             }
+            sleep 2;
             send_key 'alt-y'; # yes, agree
+            sleep 2;
             send_key 'alt-n';
             assert_screen 'addon-list';
             if ((split(/,/, get_var('ADDONS')))[-1] ne $a) {
