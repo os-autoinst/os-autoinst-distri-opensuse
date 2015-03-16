@@ -1,0 +1,99 @@
+# base
+dn: dc=ldapdom,dc=net
+dc: ldapdom
+objectClass: top
+objectClass: domain
+
+dn: ou=UnixUser,dc=ldapdom,dc=net
+ou: UnixUser
+objectClass: top
+objectClass: organizationalUnit
+
+dn: ou=UnixGroup,dc=ldapdom,dc=net
+ou: UnixGroup
+objectClass: top
+objectClass: organizationalUnit
+
+# user1(9000) belongs to primary group 8000 (Staff, Unit1)
+dn: cn=user1,ou=UnixUser,dc=ldapdom,dc=net
+objectClass: account
+objectClass: posixAccount
+objectClass: top
+uid: user1
+cn: user1
+loginShell: /bin/bash
+uidNumber: 9000
+gidNumber: 8000
+homeDirectory: /tmp
+
+# user2(9001) also belongs to primary group 8000 (Student, Unit1)
+dn: cn=user2,ou=UnixUser,dc=ldapdom,dc=net
+objectClass: account
+objectClass: posixAccount
+objectClass: top
+uid: user2
+cn: user2
+loginShell: /bin/bash
+uidNumber: 9001
+gidNumber: 8000
+homeDirectory: /tmp
+
+# user3(9002) belongs to primary group 8001 (Staff, Unit2)
+dn: cn=user3,ou=UnixUser,dc=ldapdom,dc=net
+objectClass: account
+objectClass: posixAccount
+objectClass: top
+uid: user3
+cn: user3
+loginShell: /bin/bash
+uidNumber: 9002
+gidNumber: 8001
+homeDirectory: /tmp
+
+# Unit1 groups (All1, Staff)
+dn: ou=Unit1,ou=UnixGroup,dc=ldapdom,dc=net
+objectClass: organizationalUnit
+objectClass: top
+ou: Unit1
+
+dn: cn=Staff,ou=Unit1,ou=UnixGroup,dc=ldapdom,dc=net
+objectClass: groupOfNames
+objectClass: top
+cn: Staff
+member: cn=user1,ou=UnixUser,dc=ldapdom,dc=net
+
+dn: cn=Student,ou=Unit1,ou=UnixGroup,dc=ldapdom,dc=net
+objectClass: groupOfNames
+objectClass: top
+cn: Student
+member: cn=user2,ou=UnixUser,dc=ldapdom,dc=net
+
+dn: cn=All1, ou=Unit1,ou=UnixGroup,dc=ldapdom,dc=net
+objectClass: groupOfNames
+objectClass: posixGroup
+objectClass: top
+gidNumber: 8000
+cn: All1
+member: cn=Staff,ou=Unit1,ou=UnixGroup,dc=ldapdom,dc=net
+member: cn=Student,ou=Unit1,ou=UnixGroup,dc=ldapdom,dc=net
+
+# Unit2 groups (All2, Staff)
+dn: ou=Unit2,ou=UnixGroup,dc=ldapdom,dc=net
+objectClass: organizationalUnit
+objectClass: top
+ou: Unit2
+
+dn: cn=Staff,ou=Unit2,ou=UnixGroup,dc=ldapdom,dc=net
+objectClass: groupOfNames
+objectClass: top
+cn: Staff
+member: cn=user3,ou=UnixUser,dc=ldapdom,dc=net
+
+dn: cn=All2,ou=Unit2,ou=UnixGroup,dc=ldapdom,dc=net
+objectClass: groupOfNames
+objectClass: posixGroup
+objectClass: top
+gidNumber: 8001
+cn: All2
+member: cn=Staff,ou=Unit2,ou=UnixGroup,dc=ldapdom,dc=net
+

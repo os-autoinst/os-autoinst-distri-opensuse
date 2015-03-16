@@ -1,0 +1,2 @@
+cn=krbkdc,dc=ldapdom,dc=net#{HEX}70617373
+cn=krbadm,dc=ldapdom,dc=net#{HEX}70617373
