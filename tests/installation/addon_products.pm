@@ -8,8 +8,8 @@ sub run() {
     if ( check_screen('network-setup', 10)) { # won't appear for NET installs
         send_key $cmd{"next"};    # use network
         assert_screen 'dhcp-network';
-        send_key 'alt-d'; # DHCP
-        send_key "alt-o", 2;        # OK
+        send_key 'alt-d', 2;    # DHCP
+        send_key 'alt-o', 2;    # OK
     }
     my $repo = 0;
     $repo++ if get_var("DUD");
