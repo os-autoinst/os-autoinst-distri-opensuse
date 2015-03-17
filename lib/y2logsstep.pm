@@ -39,7 +39,8 @@ sub post_fail_hook() {
             type_string "ifconfig -a\n";
             type_string "cat /etc/resolv.conf\n";
         }
-        type_string "save_y2logs /tmp/y2logs.tar.bz2\n";
+        type_string "save_y2logs /tmp/y2logs.tar.bz2 && echo 'y2logs written' > /dev/$serialdev\n";
+        wait_serial ("y2logs written") || die "y2logs write failed";
         upload_logs "/tmp/y2logs.tar.bz2";
         save_screenshot();
     }
@@ -55,7 +56,8 @@ sub post_fail_hook() {
         type_string "\n";
         sleep 1;
 
-        type_string "save_y2logs /tmp/y2logs.tar.bz2\n";
+        type_string "save_y2logs /tmp/y2logs.tar.bz2 && echo 'y2logs written' > /dev/$serialdev\n";
+        wait_serial ("y2logs written") || die "y2logs write failed";
         upload_logs "/tmp/y2logs.tar.bz2";
         save_screenshot();
     }
