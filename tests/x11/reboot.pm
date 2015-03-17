@@ -15,7 +15,9 @@ sub run() {
         wait_idle;
 
         # log in
-        type_string $username. "\n";
+        if (get_var('DM_NEEDS_USERNAME')) {
+            type_string $username. "\n";
+        }
         type_string $password. "\n";
     }
 
