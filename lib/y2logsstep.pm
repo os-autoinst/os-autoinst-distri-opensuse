@@ -40,6 +40,7 @@ sub post_fail_hook() {
             type_string "cat /etc/resolv.conf\n";
         }
         type_string "save_y2logs /tmp/y2logs.tar.bz2\n";
+        wait_idle;
         upload_logs "/tmp/y2logs.tar.bz2";
         save_screenshot();
     }
