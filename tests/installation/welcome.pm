@@ -16,9 +16,10 @@ sub run() {
     }
 
     # animated cursor wastes disk space, so it is moved to bottom right corner
+    wait_idle;
     mouse_hide;
     # the mouse is hard to convince at times
-    sleep 1;
+    sleep 3;
     mouse_hide;
 
     # license+lang
