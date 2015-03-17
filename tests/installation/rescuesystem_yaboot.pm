@@ -9,6 +9,13 @@ sub run {
 
     type_string "rescue";
     send_key "ret";
+    
+    if ( check_screen "keyboardmap-list", 100 ) {
+        type_string "6\n";
+    }
+    else {
+        record_soft_failure;
+    }
 
     # Login as root (no password)
     assert_screen "rescuesystem-login", 120;
