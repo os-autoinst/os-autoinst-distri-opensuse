@@ -4,7 +4,12 @@ use testapi;
 sub run() {
     my $self = shift;
 
-    assert_screen "grub2", 100;    # wait until reboot
+    if ( get_var("OFW") ) {
+        assert_screen "bootloader-ofw", 100;
+    }
+    else {
+        assert_screen "grub2", 100;    # wait until reboot
+    }
     if ( get_var("ENCRYPT") ) {
         $self->pass_disk_encrypt_check;
     }
