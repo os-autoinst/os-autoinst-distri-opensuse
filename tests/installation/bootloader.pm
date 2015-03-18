@@ -210,7 +210,7 @@ sub run() {
 
     my $args = "";
     if ( get_var("AUTOYAST") ) {
-        $args .= " ifcfg=*=dhcp";
+        $args .= " netconfig=dhcp,all";
         $args .= " autoyast=" . autoinst_url . "/data/" . get_var("AUTOYAST") . " ";
     }
     type_string $args, 13;
