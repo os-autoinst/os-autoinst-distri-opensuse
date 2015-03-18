@@ -62,6 +62,7 @@ sub run() {
     send_key 'down';
     if (get_var("OFW")) { ## no RAID /boot partition for ppc
         send_key 'alt-p';
+        assert_screen 'add-partition', 5;
         send_key 'alt-n';
         assert_screen 'add-partition-size', 5;
         send_key 'ctrl-a';
