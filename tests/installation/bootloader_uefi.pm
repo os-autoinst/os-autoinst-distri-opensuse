@@ -59,7 +59,7 @@ sub run() {
     send_key "end";
     if ( get_var("NETBOOT") && get_var("SUSEMIRROR") ) {
         assert_screen('no_install_url');
-        type_string " install=http://" . get_var("SUSEMIRROR");
+        type_string " install=http://" . get_var("SUSEMIRROR"), 15;
         save_screenshot();
     }
     send_key "spc";
@@ -86,13 +86,16 @@ sub run() {
     }
 
     if ( !get_var("NICEVIDEO") ) {
-        type_string "plymouth.ignore-serial-consoles ", 7; # make plymouth go graphical
-        type_string "console=$serialdev ";    # to get crash dumps as text
-        type_string "console=tty ";      # to get crash dumps as text
+        type_string "plymouth.ignore-serial-consoles ", 15; # make plymouth go graphical
+        type_string " \\\n"; # changed the line before typing video params
+        type_string "console=$serialdev ", 15;    # to get crash dumps as text
+        type_string "console=tty ", 15;      # to get crash dumps as text
+        assert_screen "inst-consolesettingstyped", 10;
         my $e = get_var("EXTRABOOTPARAMS");
-
-        #	if(get_var("RAIDLEVEL")) {$e="linuxrc=trace"}
-        if ($e) { type_string "$e "; }
+        if ($e) {
+            type_string "$e ", 4;
+            save_screenshot;
+        }
     }
 
     #type_string "kiwidebug=1 ";
