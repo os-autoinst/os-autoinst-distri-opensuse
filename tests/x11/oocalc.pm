@@ -3,7 +3,7 @@ use testapi;
 
 sub run() {
     my $self = shift;
-    x11_start_program("oocalc");
+    x11_start_program("oocalc", 6, { valid => 1 } );
     sleep 2;
     wait_still_screen;    # extra wait because oo sometimes appears to be idle during start
     assert_screen 'test-oocalc-1', 3;
