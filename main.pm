@@ -306,6 +306,9 @@ sub load_boot_tests(){
     elsif (get_var("UEFI")) {
         loadtest "installation/bootloader_uefi.pm";
     }
+    elsif ( check_var("BACKEND", "ipmi") ) {
+        loadtest "installation/qa_net.pm";
+    }
     elsif (check_var("BACKEND", "s390x")) {
         bmwqemu::diag "trying installation/bootloader_s390.pm";
         loadtest "installation/bootloader_s390.pm";
@@ -376,7 +379,7 @@ sub load_inst_tests() {
 
     # 2nd stage
     if (get_var("PROXY")) {
-            loadtest "installation/proxy_start_2nd_stage.pm";
+        loadtest "installation/proxy_start_2nd_stage.pm";
     }
     loadtest "installation/sle11_wait_for_2nd_stage.pm";
     if (noupdatestep_is_applicable && check_var('FLAVOR', 'Server-DVD')) {
