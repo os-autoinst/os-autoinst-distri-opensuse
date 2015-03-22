@@ -295,6 +295,9 @@ sub is_reboot_after_installation_necessary() {
 sub load_inst_tests() {
     loadtest "installation/welcome.pm";
     loadtest "installation/good_buttons.pm";
+    if (get_var("MULTIPATH")) {
+        loadtest "installation/multipath.pm";
+    }
     if (noupdatestep_is_applicable && !get_var("LIVECD")) {
         loadtest "installation/installation_mode.pm";
     }
