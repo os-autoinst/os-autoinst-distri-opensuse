@@ -330,6 +330,9 @@ sub is_reboot_after_installation_necessary() {
 sub load_inst_tests() {
     loadtest "installation/welcome.pm";
     loadtest "installation/check_medium.pm";
+    if (get_var("MULTIPATH")) {
+        loadtest "installation/multipath.pm";
+    }
     loadtest "installation/installation_mode.pm";
     if (!get_var('LIVECD') && get_var('UPGRADE') ) {
         loadtest "installation/upgrade_select_sle11.pm";
