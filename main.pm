@@ -314,6 +314,9 @@ sub is_reboot_after_installation_necessary() {
 
 sub load_inst_tests() {
     loadtest "installation/welcome.pm";
+    if (get_var('MULTIPATH')) {
+        loadtest "installation/multipath.pm";
+    }
     if (!get_var('LIVECD') && get_var('UPGRADE') ) {
         loadtest "installation/upgrade_select.pm";
     }
