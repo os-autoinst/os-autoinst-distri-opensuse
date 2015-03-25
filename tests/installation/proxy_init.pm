@@ -17,12 +17,12 @@ sub createvm($) {
     type_string "sshpassword=openqaha ";
     type_string "netsetup=dhcp,all ", 13;
     assert_screen "inst-ssh-typed", 13;
-    send_key 'ret';
+    send_key 'ret', 1;
     assert_screen "inst-ssh-ready", 500;
-    send_key 'f8';
-    send_key 'down';
-    send_key 'ret';
-    send_key 'ctrl-l';
+    send_key 'f8', 1;
+    send_key 'down', 1;
+    send_key 'ret', 1;
+    send_key 'ctrl-l', 1;
 }
 
 sub run() {
@@ -31,8 +31,8 @@ sub run() {
     assert_and_click 'proxy-terminator-ha-icon';
     send_key 'ret';
     assert_screen 'proxy-terminator-started';
-    send_key 'ctrl-pgup';
-    send_key 'ctrl-pgup';
+    send_key 'ctrl-pgup', 1;
+    send_key 'ctrl-pgup', 1;
     $self->createvm("1"); # only need one VM now
 }
 

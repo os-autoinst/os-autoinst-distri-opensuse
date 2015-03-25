@@ -17,11 +17,11 @@ sub waitfor2ndstage($) {
     my ($nodenum) = @_;
     type_string "vncviewer localhost:9$nodenum -shared -fullscreen\n";
     assert_screen "inst-ssh-ready", 500;
-    send_key 'f8';
-    send_key 'down';
-    send_key 'ret';
+    send_key 'f8', 1;
+    send_key 'down', 1;
+    send_key 'ret', 1;
     sleep 5;
-    send_key 'ctrl-l';
+    send_key 'ctrl-l', 1;
 }
 
 sub run() {
