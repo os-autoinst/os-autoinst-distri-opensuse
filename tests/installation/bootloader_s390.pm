@@ -16,21 +16,21 @@ use feature qw/say/;
 
 sub linuxrc_menu() {
     my ($self, $menu_title, $menu_entry) = @_;
-    # get the menu (ends with /^>/)
+    # get the menu, ends with qr(^> ) prompt
     my $r = $self->{s3270}->expect_3270(output_delim => qr/^> /);
     ### say Dumper $r;
 
-    # newline separate list of strings when interpolating...
+    # newline separate list of strings when interpolating @${r]
     local $LIST_SEPARATOR = "\n";
 
     if (!grep /^$menu_title/, @$r) {
-        confess "menu does not match expected menu title ${menu_title}\n @${r}";
+	confess "menu does not match expected menu title ${menu_title}\n @${r}";
     }
 
     my @match_entry = grep /\) $menu_entry/, @$r;
 
     if (!@match_entry) {
-        confess "menu does not contain expected menu entry ${menu_entry}:\n@${r}";
+	confess "menu does not contain expected menu entry ${menu_entry}:\n@${r}";
     }
 
     my ($match_id) = $match_entry[0] =~ /(\d+)\)/;
@@ -60,7 +60,7 @@ sub linuxrc_prompt () {
     local $LIST_SEPARATOR = "\n";
 
     if (!grep /^$prompt/, @$r[0..(@$r-1)] ) {
-        confess "prompt does not match expected prompt (${prompt}) :\n@$r\n";
+	confess "prompt does not match expected prompt (${prompt}) :\n@$r\n";
     }
 
     my $sequence = ["Clear", "String($arg{value})", "ENTER"];
@@ -70,31 +70,31 @@ sub linuxrc_prompt () {
 
 }
 
-
 sub ftpboot_menu () {
     my ($self, $menu_entry) = @_;
-    # helper vars
-    my ($r_screenshot, $r_home_position, $s_home_position, $cursor_row, $row);
 
-    $r_screenshot = $self->{s3270}->expect_3270(clear_buffer => 1, flush_lines => undef, buffer_ready => qr/PF3=QUIT/);
+    my $r_screenshot = $self->{s3270}->expect_3270(clear_buffer => 1, flush_lines => undef, buffer_ready => qr/PF3=QUIT/);
+    ## say Dumper $r_screenshot;
 
-    # choose server
-
-    $r_home_position = $self->{s3270}->send_3270("Home");
+    my $r_home_position = $self->{s3270}->send_3270("Home");
     # Perl question:
     # Why can't I just call this function?  why do I need & ??
     # and why this FQDN?
-    $s_home_position = &backend::s390x::s3270::nice_3270_status($r_home_position->{terminal_status});
+    my $s_home_position = &backend::s390x::s3270::nice_3270_status($r_home_position->{terminal_status});
 
-    $cursor_row = $s_home_position->{cursor_row};
+    my $cursor_row = $s_home_position->{cursor_row};
 
-    ## say Dumper @$r_screenshot;
+    ## say Dumper $r_screenshot;
+    my $row = 0;
+    my $found = 0;
 
-    while ( ($row, my $content) = each(@$r_screenshot)) {
-        if ($content =~ $menu_entry) {
-            last;
-        }
+    foreach (@$r_screenshot) {
+	$found = 1, last if /$menu_entry/;
+	++$row;
     }
+
+    confess "ftpboot_menu: $menu_entry not found!\n" . join("\n", @$r_screenshot)
+	unless $found;
 
     my $sequence = ["Home", ("Down") x ($row-$cursor_row), "ENTER", "Wait(InputField)"];
     ### say "\$sequence=@$sequence";
@@ -133,15 +133,15 @@ sub hash2parmfile() {
 
     # For the maximum line length for the wrapping, the s3270
     # 'String("")' command characters in each line don't account for
-    # the parmfile line length.  The X E D I T editor has a line
+    # the parmfile line length.	 The X E D I T editor has a line
     # counter column to the left.
     local $Text::Wrap::columns;
     $Text::Wrap::columns = 79 + length('String("') - length("00004 ");
 
     $parmfile_with_Newline_s = Text::Wrap::wrap(
-        'String("',             # first line prefix
-        'String("',             # subsequent lines prefix
-        $parmfile_with_Newline_s
+	'String("',		# first line prefix
+	'String("',		# subsequent lines prefix
+	$parmfile_with_Newline_s
     );
 
     # If there is no 'Newline\n' at the end of the parmfile, the last
@@ -171,9 +171,9 @@ sub linuxrc_manual() {
     $self->linuxrc_menu("Choose the source medium", "Network");
     $self->linuxrc_menu("Choose the network protocol", get_var("INSTSRC")->{PROTOCOL});
 
-    ## $r = $s3270->expect_3270(output_delim => qr/>>> SUSE/, timeout => 30);
-
-    if (get_var("PARMFILE")->{ssh} eq "1") {
+    if (((get_var("PARMFILE")->{ssh} // "0" ) eq "1" ||
+	 (get_var("PARMFILE")->{sshd} // "0" ) eq "1") &&
+	(undef get_var("PARMFILE")->{sshpassword})) {
 	$self->linuxrc_prompt("Enter your temporary SSH password.",
 			      timeout => 30,
 			      value => "SSH!554!");
@@ -300,7 +300,8 @@ sub linuxrc_manual() {
 
     if (get_var("INSTSRC")->{PROTOCOL} eq "HTTP" ||
 	get_var("INSTSRC")->{PROTOCOL} eq "FTP" ||
-	get_var("INSTSRC")->{PROTOCOL} eq "NFS") {
+	get_var("INSTSRC")->{PROTOCOL} eq "NFS" ||
+	get_var("INSTSRC")->{PROTOCOL} eq "SMB") {
 
 	$self->linuxrc_prompt("Enter the IP address of the (HTTP|FTP|NFS) server",
 			      value => get_var("INSTSRC")->{HOST});
@@ -331,13 +332,14 @@ sub linuxrc_manual() {
     $self->linuxrc_menu("Select the display type",
 			get_var("DISPLAY")->{TYPE});
 
-    if (get_var("DISPLAY")->{TYPE} eq "VNC") {
+    if (get_var("DISPLAY")->{TYPE} eq "VNC" &&
+	(undef get_var("PARMFILE")->{VNCPassword})) {
 	$self->linuxrc_prompt("Enter your VNC password",
 			      value => get_var("DISPLAY")->{PASSWORD});
     }
     elsif (get_var("DISPLAY")->{TYPE} eq "X11") {
 	$self->linuxrc_prompt("Enter the IP address of the host running the X11 server.",
-			      value => get_var("DISPLAY")->{HOST});
+			      value => get_var("DISPLAY")->{HOST} . ":" . get_var("DISPLAY")->{SCREEN});
     }
     elsif (get_var("DISPLAY")->{TYPE} eq "SSH") {
 
@@ -347,19 +349,112 @@ sub linuxrc_manual() {
 sub linuxrc_unattended() {
     my $self = shift;
     # nothing to do.  just wait.
-    my $r = $self->{s3270}->expect_3270(output_delim => qr/Reading driver update/,
-					timeout => 60);
+    if (defined get_var("PARMFILE")->{dud}) {
+	my $r = $self->{s3270}->expect_3270(output_delim => qr/Reading driver update/,
+					    timeout => 60);
+	$r = $self->{s3270}->expect_3270(output_delim => qr/File not signed./,
+					 timeout => 60);
+	$self->linuxrc_menu("If you really trust your repository, you may continue in an insecure mode.",
+			    "OK");
+    };
     my $r = $self->{s3270}->expect_3270(output_delim => qr/Loading Installation System/,
 					timeout => 60);
+
+}
+
+sub get_to_yast() {
+    my $self = shift;
+    my $s3270 = $self->{s3270};
+
+    my $r;
+
+    ###################################################################
+    # ftpboot
+    {
+
+	$s3270->sequence_3270(
+	    "String(${\get_var('FTPBOOT')->{COMMAND}})",
+	    "ENTER",
+	    "Wait(InputField)",
+	    );
+
+	my $host = get_var("FTPBOOT")->{HOST};
+	my $distro = get_var("FTPBOOT")->{DISTRO};
+	sleep(1);
+	$r = $self->ftpboot_menu(qr/\Q$host\E/);
+	$r = $self->ftpboot_menu(qr/\Q$distro\E/);
+    }
+
+    ##############################
+    # edit parmfile
+    {
+	$r = $s3270->expect_3270(buffer_ready => qr/X E D I T/, timeout => 240);
+
+	$s3270->sequence_3270( qw{ String(INPUT) ENTER } );
+
+	$r = $s3270->expect_3270(buffer_ready => qr/Input-mode/);
+	### say Dumper $r;
+
+	my $parmfile_href = get_var("PARMFILE");
+
+	$parmfile_href->{ssh} = '1';
+
+	my $parmfile_with_Newline_s = &hash2parmfile($parmfile_href);
+
+	my $sequence = <<"EO_frickin_boot_parms";
+${parmfile_with_Newline_s}
+ENTER
+ENTER
+EO_frickin_boot_parms
+
+	# can't use qw{} because of space in commands...
+	$s3270->sequence_3270(split /\n/, $sequence);
+
+	$r = $s3270->expect_3270(buffer_ready => qr/X E D I T/);
+
+	## Remove the "manual=1" and the empty line at the end
+	## of the parmfile.
+
+	## HACK HACK HACK HACK this code just 'knows' there is
+	## an empty line and a single "manual=1" at the bottom
+	## of the ftpboot parmfile.  This may fail in obscure
+	## ways when that changes.
+	$s3270->sequence_3270(qw{String(BOTTOM) ENTER String(DELETE) ENTER});
+	$s3270->sequence_3270(qw{String(BOTTOM) ENTER String(DELETE) ENTER});
+
+	$r = $s3270->expect_3270(buffer_ready => qr/X E D I T/);
+
+	# save the parmfile.  ftpboot then starts the installation.
+	$s3270->sequence_3270( qw{ String(FILE) ENTER });
+
+    }
+    ###################################################################
+    # linuxrc
+
+    if (get_var("PARMFILE")->{manual} eq "0") {
+	$self->linuxrc_unattended();
+    }
+    elsif (get_var("PARMFILE")->{manual} eq "1") {
+	$self->linuxrc_manual();
+    }
+    else {
+	die "must specify vars.json->PARMFILE->manual=[01]";
+    };
+    my $startshell = get_var("PARMFILE")->{startshell} || "0";
+    my $output_delim = $startshell ?
+	qr/\QATTENTION: Starting shell...\E/:
+	qr/\Q*** Starting YaST2 ***\E/;
+
+    $r = $s3270->expect_3270(
+	output_delim => $output_delim,
+	timeout      => 20
+	);
 
 }
 
 sub run() {
 
     my $self = shift;
-
-    # debugging the vncviewer?
-    return if (exists get_var("DEBUG")->{"try vncviewer"});
 
     my $r;
 
@@ -368,116 +463,55 @@ sub run() {
     $self->{s3270} = $s3270;
 
     eval {
-
-        ###################################################################
+	###################################################################
 	# connect to zVM, login to the guest
-	$r = $s3270->connect_and_login();
+	my $reconnect = exists get_var("DEBUG")->{"no get_to_yast"};
+	$r = $s3270->connect_and_login($reconnect);
 
-        ###################################################################
-        # ftpboot
-	{
-
-	    $s3270->sequence_3270(
-		qw{
-                   String(ftpboot)
-                   ENTER
-                   Wait(InputField)
-                });
-
-	    my $host = get_var("FTPBOOT")->{HOST};
-	    my $distro = get_var("FTPBOOT")->{DISTRO};
-	    $r = $self->ftpboot_menu(qr/\Q$host\E/);
-	    $r = $self->ftpboot_menu(qr/\Q$distro\E/);
-	}
-
-        ##############################
-        # edit parmfile
-        {
-            $r = $s3270->expect_3270(buffer_ready => qr/X E D I T/, timeout => 90);
-
-            $s3270->sequence_3270( qw{ String(INPUT) ENTER } );
-
-            $r = $s3270->expect_3270(buffer_ready => qr/Input-mode/);
-            ### say Dumper $r;
-
-            my $parmfile_href = get_var("PARMFILE");
-
-            $parmfile_href->{ssh} = '1';
-
-	    if (exists get_var("DEBUG")->{"wait before yast"}) {
-		$parmfile_href->{startshell} = '1';
-	    }
-
-            my $parmfile_with_Newline_s = &hash2parmfile($parmfile_href);
-
-            my $sequence = <<"EO_frickin_boot_parms";
-${parmfile_with_Newline_s}
-ENTER
-ENTER
-EO_frickin_boot_parms
-
-            # can't use qw{} because of space in commands...
-            $s3270->sequence_3270(split /\n/, $sequence);
-
-            $r = $s3270->expect_3270(buffer_ready => qr/X E D I T/);
-
-	    if (get_var("PARMFILE")->{manual} eq "0") {
-		## Remove the "manual=1" and the empty line at the end
-		## of the parmfile.
-
-		## HACK HACK HACK HACK this code just 'knows' there is
-		## an empty line and a single "manual=1" at the bottom
-		## of the ftpboot parmfile.  This may fail in obscure
-		## ways when that changes.
-		$s3270->sequence_3270(qw{String(BOTTOM) ENTER String(DELETE) ENTER});
-		$s3270->sequence_3270(qw{String(BOTTOM) ENTER String(DELETE) ENTER});
-	    };
-
-	    # save the parmfile.  ftpboot then starts the installation.
-	    $s3270->sequence_3270( qw{ String(FILE) ENTER });
-
-        }
-        ###################################################################
-        # linuxrc
-
-	if (get_var("PARMFILE")->{manual} eq "0") {
-	    $self->linuxrc_unattended();
-	}
-	elsif (get_var("PARMFILE")->{manual} eq "1") {
-	    $self->linuxrc_manual();
-	}
-	else {
-	    die "must specify vars.json->PARMFILE->manual=[01]";
-	};
- 
-	my $output_delim = exists get_var("DEBUG")->{"wait before yast"} ?
-	    qr/\QATTENTION: Starting shell...\E/:
-	    qr/\Q*** Starting YaST2 ***\E/;
-
-        $r = $s3270->expect_3270(
-            output_delim => $output_delim,
-            timeout      => 20
-            );
+	$self->get_to_yast() unless $reconnect;
     };
 
-    if (exists get_var("DEBUG")->{"wait before yast"}) {
-	say "your shell is ready.\n".
-	    "when done, exit the shell there.\n".
-	    "Hit enter here to continue test run.";
-	
-	my $dummy = <STDIN>;
+    my $exception = $@;
 
-	say "resuming test...";
-
-    }
+    cluck $exception if $exception;
 
     ###################################################################
     # now connect to the running VNC server
     # FIXME: this should connect to the terminal, ssh or vnc or X11...
     # and for SSH it then needs to start yast.
-    $bmwqemu::backend->connect_vnc();
+    if ((get_var("PARMFILE")->{VNC} // "0") eq "1") {
+	if (exists get_var("DEBUG")->{"wait after linuxrc"}) {
+	    say "vnc should be running.\n".
+		"Hit enter here to vnc_connect.";
 
-    ### say Dumper $r;
+	    my $dummy = <STDIN>;
+
+	    say "doing vnc_connect...";
+
+	};
+	$bmwqemu::backend->connect_vnc();
+	# wait_still_screen();
+    }
+
+    if (exists get_var("DEBUG")->{"wait after linuxrc"}) {
+	say "get your system ready.\n".
+	    "Hit enter here to continue test run.";
+
+	# non-blocking wait for somthing on STDIN
+	my $s = IO::Select->new();
+	$s->add( \*STDIN );
+	my @ready;
+	while (!(@ready = $s->can_read())) { sleep 1; }
+	for my $fh (@ready) {
+	    my $input = <$fh>;
+	}
+
+	say "resuming test...";
+
+    }
+    else {
+	die $exception if $exception;
+    }
 
 }
 #>>> perltidy again from here on
