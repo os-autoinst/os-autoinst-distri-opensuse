@@ -35,6 +35,7 @@ sub run() {
     if ( get_var("ADDONS")) {
 
         foreach $a (split(/,/, get_var('ADDONS'))) {
+            mouse_hide;
             send_key 'alt-d';	# DVD
             send_key $cmd{"xnext"}, 1;
             assert_screen 'dvd-selector', 3;
