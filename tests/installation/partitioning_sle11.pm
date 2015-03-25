@@ -9,6 +9,25 @@ sub run() {
     send_key $cmd{change};
     send_key 'p'; # partitioning
 
+    if ( get_var ('LVM') ) {
+        assert_screen 'preparing-disk', 5;
+        send_key 'alt-1';
+        send_key $cmd{"next"};
+        assert_screen 'preparing-disk-installing', 5;
+        send_key 'alt-l', 1; #to use lvm
+        if ( get_var('ENCRYPT') ) {
+            send_key "alt-y", 1;
+            assert_screen "inst-encrypt-password-prompt";
+            type_password;
+            send_key "tab";
+            type_password;
+            send_key "ret", 1;
+        }
+        send_key $cmd{"next"};
+        assert_screen 'inst-overview', 30;
+    }
+    
+    
     if ( check_var( "FILESYSTEM", "btrfs" ) || get_var("BOO910346") ) {
         assert_screen 'preparing-disk', 5;
         send_key 'alt-1';
