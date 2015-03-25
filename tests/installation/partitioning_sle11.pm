@@ -27,7 +27,6 @@ sub run() {
         assert_screen 'inst-overview', 30;
     }
     
-    
     if ( check_var( "FILESYSTEM", "btrfs" ) || get_var("BOO910346") ) {
         assert_screen 'preparing-disk', 5;
         send_key 'alt-1';
