@@ -7,7 +7,7 @@ sub run() {
 
     # Password-less login to tty4 on Live-CD
     send_key "ctrl-alt-f4";
-    assert_screen "text-login", 10;
+    assert_screen "text-login", 30;
     type_string "$username\n";
     become_root;
 
@@ -37,6 +37,10 @@ sub run() {
     if (@scenario_failures) {
         die "Some test scenarios failed: @scenario_failures";
     }
+}
+
+sub test_flags {
+    return { important => 1 };
 }
 
 1;
