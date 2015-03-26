@@ -1,6 +1,7 @@
 #!/usr/bin/perl -w
 use strict;
 use testapi;
+use lockapi;
 use autotest;
 use needle;
 use File::Find;
@@ -110,6 +111,10 @@ sub cleanup_needles() {
 if (get_var("LIVETEST")) {
     $testapi::username = "root";
     $testapi::password = '';
+}
+elsif (get_var("AUTOYAST")) {
+    $testapi::username = "root";
+    $testapi::password = "root";
 }
 else {
     $testapi::username = "bernhard";
@@ -316,6 +321,11 @@ sub load_boot_tests(){
     elsif (get_var("PROXY")) {
         loadtest "installation/proxy_boot.pm";
     }
+    elsif (get_var("PXEBOOT")) {
+        mutex_lock('pxeboot_ready');
+        mutex_unlock('pxeboot_ready');
+        loadtest "autoyast/pxe_boot.pm";
+    }
     else {
         loadtest "installation/bootloader.pm";
     }
@@ -408,6 +418,7 @@ sub load_inst_tests() {
 }
 
 sub load_reboot_tests() {
+
     if (get_var("ENCRYPT")) {
         loadtest "installation/boot_encrypt.pm";
     }
@@ -418,7 +429,6 @@ sub load_reboot_tests() {
         loadtest "installation/reboot_eject_cd.pm";
         loadtest "installation/reboot_after_install.pm";
     }
-
     if (get_var("DUALBOOT")) {
         loadtest "installation/reboot_eject_cd.pm";
         loadtest "installation/boot_windows.pm";
@@ -577,6 +587,18 @@ sub load_ha_tests(){
     loadtest "ha/ocfs2.pm";
 }
 
+sub load_autoyast_tests(){
+#    init boot in load_boot_tests
+    loadtest("autoyast/system.pm");
+    loadtest("autoyast/console.pm");
+    loadtest("autoyast/login.pm");
+    loadtest("autoyast/repos.pm");
+    loadtest("autoyast/autoyast_verify.pm") if get_var("AUTOYAST_VERIFY");
+    loadtest("autoyast/useradd.pm") unless get_var("INSTALLONLY");
+    loadtest("autoyast/autoyast_reboot.pm");
+    #    next boot in load_reboot_tests
+}
+
 # load the tests in the right order
 if ( get_var("REGRESSION") ) {
     if ( get_var("KEEPHDDS") ) {
@@ -609,6 +631,9 @@ elsif (get_var("RESCUESYSTEM")) {
         loadtest "installation/rescuesystem_validate_sle11sp3.pm";
     }
 }
+elsif (get_var("SUPPORT_SERVER")) {
+    loadtest "support_server/boot/boot.pm";
+}
 else {
     load_boot_tests();
     if (get_var("PROXY")) {
@@ -621,10 +646,11 @@ else {
         loadtest "installation/finish_desktop.pm";
     }
     elsif (get_var("AUTOYAST")) {
-        # autoyast is very easy
-        loadtest "installation/start_install.pm";
-        loadtest "installation/autoyast_reboot.pm";
+# TODO: merge with autoyast/system.pm?
+#        loadtest "installation/start_install.pm";
+        load_autoyast_tests();
         load_reboot_tests();
+
     }
     elsif (installzdupstep_is_applicable) {
         load_zdup_tests();
