@@ -359,7 +359,7 @@ sub load_inst_tests() {
         if (defined(get_var('RAIDLEVEL'))) {
             loadtest "installation/partitioning_raid_sle11.pm";
         }
-        elsif (get_var('FILESYSTEM')) {
+        elsif (get_var('FILESYSTEM') || get_var('LVM')) {
             loadtest "installation/partitioning_sle11.pm";
         }
         if (get_var('PATTERNS')) {
