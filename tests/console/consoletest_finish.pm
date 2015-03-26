@@ -36,6 +36,13 @@ sub run() {
                     send_key "ret";
                 }
             }
+            elsif ( check_var( "DESKTOP", "minimalx" ) ) {
+                type_string "$username";
+                save_screenshot();
+                send_key "ret";
+                type_password;
+                send_key "ret";
+            }
             else {
                 type_password;
                 send_key "ret";

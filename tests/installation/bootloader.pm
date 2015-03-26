@@ -210,7 +210,12 @@ sub run() {
 
     my $args = "";
     if ( get_var("AUTOYAST") ) {
-        $args .= " ifcfg=*=dhcp";
+        if (get_var("VERSION")=~/^\D*11\D*/ ) { # sle11 does not have ifcfg
+            $args .= " netsetup=dhcp,all";
+        }
+        else {
+            $args .= " ifcfg=*=dhcp";
+        }
         $args .= " autoyast=" . autoinst_url . "/data/" . get_var("AUTOYAST") . " ";
     }
     type_string $args, 13;
@@ -220,6 +225,7 @@ sub run() {
         type_string " fips=1", 13;
         save_screenshot;
     }
+
 
     # boot
     send_key "ret";
