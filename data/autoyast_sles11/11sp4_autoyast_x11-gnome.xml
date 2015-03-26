@@ -1,0 +1,232 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <deploy_image>
+    <image_installation config:type="boolean">false</image_installation>
+  </deploy_image>
+  <general>
+    <ask-list config:type="list"/>
+    <mode>
+      <confirm config:type="boolean">false</confirm>
+      <final_halt config:type="boolean">false</final_halt>
+      <final_reboot config:type="boolean">false</final_reboot>
+      <halt config:type="boolean">false</halt>
+      <second_stage config:type="boolean">true</second_stage>
+    </mode>
+    <proposals config:type="list"/>
+    <signature-handling>
+      <accept_file_without_checksum config:type="boolean">false</accept_file_without_checksum>
+      <accept_non_trusted_gpg_key config:type="boolean">false</accept_non_trusted_gpg_key>
+      <accept_unknown_gpg_key config:type="boolean">false</accept_unknown_gpg_key>
+      <accept_unsigned_file config:type="boolean">false</accept_unsigned_file>
+      <accept_verification_failed config:type="boolean">false</accept_verification_failed>
+      <import_gpg_key config:type="boolean">false</import_gpg_key>
+    </signature-handling>
+    <storage/>
+  </general>
+  <http-server>
+    <Listen config:type="list">
+      <listentry>
+        <ADDRESS/>
+        <PORT>80</PORT>
+      </listentry>
+    </Listen>
+    <hosts config:type="list"/>
+    <modules config:type="list">
+      <module_entry>
+        <change>enable</change>
+        <default>1</default>
+        <name>authz_host</name>
+      </module_entry>
+      <module_entry>
+        <change>enable</change>
+        <default>1</default>
+        <name>actions</name>
+      </module_entry>
+      <module_entry>
+        <change>enable</change>
+        <default>1</default>
+        <name>alias</name>
+      </module_entry>
+      <module_entry>
+        <change>enable</change>
+        <default>1</default>
+        <name>authz_user</name>
+      </module_entry>
+      <module_entry>
+        <change>enable</change>
+        <default>1</default>
+        <name>authn_file</name>
+      </module_entry>
+      <module_entry>
+        <change>enable</change>
+        <default>1</default>
+        <name>authz_groupfile</name>
+      </module_entry>
+      <module_entry>
+        <change>enable</change>
+        <default>1</default>
+        <name>auth_basic</name>
+      </module_entry>
+      <module_entry>
+        <change>enable</change>
+        <default>1</default>
+        <name>autoindex</name>
+      </module_entry>
+      <module_entry>
+        <change>enable</change>
+        <default>1</default>
+        <name>cgi</name>
+      </module_entry>
+      <module_entry>
+        <change>enable</change>
+        <default>1</default>
+        <name>dir</name>
+      </module_entry>
+      <module_entry>
+        <change>enable</change>
+        <default>1</default>
+        <name>include</name>
+      </module_entry>
+      <module_entry>
+        <change>enable</change>
+        <default>1</default>
+        <name>log_config</name>
+      </module_entry>
+      <module_entry>
+        <change>enable</change>
+        <default>1</default>
+        <name>mime</name>
+      </module_entry>
+      <module_entry>
+        <change>enable</change>
+        <default>1</default>
+        <name>negotiation</name>
+      </module_entry>
+      <module_entry>
+        <change>enable</change>
+        <default>1</default>
+        <name>setenvif</name>
+      </module_entry>
+      <module_entry>
+        <change>enable</change>
+        <default>1</default>
+        <name>status</name>
+      </module_entry>
+      <module_entry>
+        <change>enable</change>
+        <default>1</default>
+        <name>userdir</name>
+      </module_entry>
+      <module_entry>
+        <change>enable</change>
+        <default>1</default>
+        <name>asis</name>
+      </module_entry>
+      <module_entry>
+        <change>enable</change>
+        <default>1</default>
+        <name>imagemap</name>
+      </module_entry>
+    </modules>
+    <service config:type="boolean">true</service>
+    <version>2.9</version>
+  </http-server>
+  <networking>
+    <interfaces config:type="list">
+      <interface>
+        <bootproto>dhcp</bootproto>
+        <device>eth0</device>        
+        <startmode>onboot</startmode>
+      </interface>
+    </interfaces>
+    <dhcp_options>
+      <dhclient_client_id/>
+      <dhclient_hostname_option/>
+    </dhcp_options>
+    <dns>
+      <dhcp_hostname config:type="boolean">false</dhcp_hostname>
+      <resolv_conf_policy/>
+      <write_hostname config:type="boolean">false</write_hostname>
+    </dns>
+    <ipv6 config:type="boolean">true</ipv6>
+    <keep_install_network config:type="boolean">false</keep_install_network>
+    <managed config:type="boolean">false</managed>
+    <routing>
+      <ipv4_forward config:type="boolean">false</ipv4_forward>
+      <ipv6_forward config:type="boolean">false</ipv6_forward>
+    </routing>
+  </networking>
+  <software>
+    <image/>
+    <instsource/>
+    <packages config:type="list">
+      <package>xinetd</package>
+      <package>tftp</package>
+      <package>mc</package>
+    </packages>
+    <patterns config:type="list">
+<!--      <pattern>Minimal</pattern>-->
+<!--          <pattern>apparmor</pattern>-->
+      <pattern>base</pattern>
+<!--      <pattern>documentation</pattern>-->
+      <pattern>gnome</pattern>
+      <!--      <pattern>x11</pattern>  -->
+    </patterns>
+
+  </software>
+  <tftp-server>
+    <start_tftpd config:type="boolean">true</start_tftpd>
+    <tftp_directory>/srv/tftpboot</tftp_directory>
+  </tftp-server>
+  <users config:type="list">
+          <user>
+                      <encrypted config:type="boolean">false</encrypted>
+                      <user_password>root</user_password>
+                      <username>root</username>
+          </user>
+<!--   	  <user>
+                      <encrypted config:type="boolean">false</encrypted>
+                      <username>bernhard</username>
+                      <user_password>root</user_password>
+                     <user_password>nots3cr3t</user_password>
+
+          </user>
+-->
+  </users>
+  <x11>
+    <display_manager>gdm</display_manager>
+<!--    <color_depth config:type="integer">16</color_depth>
+    <enable_3d config:type="boolean">true</enable_3d>
+    <monitor>
+      <display>
+        <max_hsync config:type="integer">94</max_hsync>
+        <max_vsync config:type="integer">75</max_vsync>
+        <min_hsync config:type="integer">31</min_hsync>
+        <min_vsync config:type="integer">50</min_vsync>
+      </display>
+      <monitor_device>1024X768@60HZ</monitor_device>
+    </monitor>
+    -->    
+    <resolution>1024x768</resolution>
+<!--    <window_manager>gnome</window_manager>-->    
+  </x11>
+
+<!--
+  <add-on>
+    <add_on_products config:type="list">
+      <listentry>
+        <media_url>http://10.0.2.1/repo/$RCE/SLES11-SP3-Updates/sle-11-x86_64/</media_url>
+        <product>SuSE-Linux-Updates</product>
+        <product_dir>/</product_dir>
+        <name>Updates</name> 
+      </listentry>
+    </add_on_products>
+  </add-on>
+-->
+
+  <runlevel>
+    <default>5</default>
+  </runlevel>
+
+</profile>

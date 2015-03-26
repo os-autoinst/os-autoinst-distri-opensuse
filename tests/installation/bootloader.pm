@@ -221,6 +221,7 @@ sub run() {
         save_screenshot;
     }
 
+
     # boot
     send_key "ret";
 }
