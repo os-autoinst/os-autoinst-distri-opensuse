@@ -80,7 +80,7 @@ sub run() {
         }
     }
 
-    if ( !check_var( "FILESYSTEM", "btrfs" ) && !get_var("BOO910346") ) {
+    if ( !check_var( "FILESYSTEM", "btrfs" ) && !get_var("BOO910346") && !get_var ('LVM') ) {
 
         assert_screen 'preparing-disk', 5;
         send_key 'alt-c';
