@@ -298,7 +298,7 @@ sub load_boot_tests(){
     elsif (get_var("UEFI")) {
         loadtest "installation/bootloader_uefi.pm";
     }
-    elsif ( get_var("IPMI_HOSTNAME") ) { # abuse of variable for now
+    elsif ( check_var("BACKEND", "ipmi") ) {
         loadtest "installation/qa_net.pm";
     }
     else {
