@@ -124,7 +124,7 @@ unless ( get_var("DESKTOP") ) {
         set_var("DESKTOP", "textmode");
     }
     else {
-        set_var("DESKTOP", "kde");
+        set_var("DESKTOP", "gnome");
     }
 }
 
