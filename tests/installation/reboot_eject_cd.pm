@@ -7,7 +7,7 @@ sub run() {
 
     # Eject the DVD
     send_key "ctrl-alt-f3";
-    sleep 4;
+    assert_screen('text-login');
     send_key "ctrl-alt-delete";
 
     # Bug in 13.1?
