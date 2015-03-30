@@ -112,14 +112,19 @@ sub ensure_installed {
     testapi::x11_start_program("xterm");
     assert_screen('xterm-started');
     type_string("pkcon install @pkglist\n");
-    my @tags = qw/Policykit Policykit-behind-window pkcon-proceed-prompt pkcon-succeeded/;
+    my @tags = qw/Policykit Policykit-behind-window PolicyKit-retry pkcon-proceed-prompt pkcon-succeeded/;
     while (1) {
         my $ret = assert_screen(\@tags, $timeout);
-        if ( $ret->{needle}->has_tag('Policykit') ) {
+        if ( $ret->{needle}->has_tag('Policykit') ||
+             $ret->{needle}->has_tag('PolicyKit-retry')) {
             type_password;
             send_key( "ret", 1 );
             @tags = grep { $_ ne 'Policykit' } @tags;
             @tags = grep { $_ ne 'Policykit-behind-window' } @tags;
+            if ( $ret->{needle}->has_tag('PolicyKit-retry')) {
+                # Only a single retry is acceptable
+                @tags = grep { $_ ne 'PolicyKit-retry' } @tags;
+            }
             next;
         }
         if ( $ret->{needle}->has_tag('Policykit-behind-window') ) {
