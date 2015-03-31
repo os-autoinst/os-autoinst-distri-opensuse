@@ -9,13 +9,19 @@ sub run() {
     send_key "up";
     send_key "up";
     send_key "up";
-    if (check_var('VIDEOMODE', 'text')) {
+    if (check_var('VIDEOMODE', 'text') || get_var('NETBOOT')) {
         send_key "e";
         send_key "down";
         send_key "down";
         send_key "down";
         send_key "end";
-        type_string " textmode=1", 15;
+        if (check_var('VIDEOMODE', 'text')) {
+            type_string " textmode=1", 15;
+        }
+        send_key "spc";
+        if ( get_var("NETBOOT") && get_var("SUSEMIRROR") ) {
+            type_string " install=http://" . get_var("SUSEMIRROR"), 15;
+        }
         send_key "ctrl-x";
     }
     else {
