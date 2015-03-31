@@ -5,12 +5,10 @@ sub run() {
     my $self = shift;
     x11_start_program("evolution");
     if ( get_var("UPGRADE") ) { send_key "alt-f4"; wait_idle; }    # close mail format change notifier
-    if ( get_var("LIVETEST") ) {
-        assert_screen 'test-evolution-1', 30;
+    if ( check_screen "evolution-default-client-ask", 20 ) {
+        assert_and_click "evolution-default-client-agree";
     }
-    else {
-        assert_screen 'test-evolution-1', 3;
-    }
+    assert_screen 'test-evolution-1', 30;
     send_key "ctrl-q";                                        # really quit (alt-f4 just backgrounds)
     send_key "alt-f4";
     wait_idle;
