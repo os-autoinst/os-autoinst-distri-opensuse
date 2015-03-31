@@ -18,7 +18,7 @@ sub run() {
         my $ret = assert_screen \@tags, $timeout;
 
         if ( $ret->{needle}->has_tag("popup-warning") ) {
-            ++$self->{dents};
+            record_soft_failure;
             bmwqemu::diag "warning popup caused dent";
             send_key "ret";
             pop @tags;
@@ -26,7 +26,7 @@ sub run() {
         }
         # can happen multiple times
         if ( $ret->{needle}->has_tag("ERROR-removing-package") ) {
-            ++$self->{dents};
+            record_soft_failure;
             send_key 'alt-d';
             assert_screen 'ERROR-removing-package-details';
             send_key 'alt-i';

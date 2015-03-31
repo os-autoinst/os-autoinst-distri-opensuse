@@ -45,7 +45,7 @@ sub run() {
 
         if ( check_screen( 'ERROR-bootloader_preupdate', 3 ) ) {
             send_key 'alt-n';
-            ++$self->{dents};
+            record_soft_failure;
         }
         assert_screen "inst-packageinstallationstarted";
 
