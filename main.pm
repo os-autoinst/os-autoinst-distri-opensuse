@@ -566,7 +566,6 @@ sub load_ha_tests(){
     loadtest "ha/sle11_ha_preparation.pm";
     loadtest "ha/iscsi_config.pm";
     loadtest "ha/sle11_cluster_init.pm";
-    loadtest "ha/sle11_cluster_join.pm";
     loadtest "ha/corosync.pm";
     loadtest "ha/fencing.pm";
     loadtest "ha/hawk.pm";
