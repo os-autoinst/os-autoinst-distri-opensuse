@@ -563,7 +563,6 @@ sub load_x11tests(){
 }
 
 sub load_ha_tests(){
-    loadtest "ha/ha_vm_shutdown.pm";
     loadtest "ha/sle11_ha_preparation.pm";
     loadtest "ha/iscsi_config.pm";
     loadtest "ha/sle11_cluster_init.pm";
