@@ -395,6 +395,9 @@ sub load_inst_tests() {
         loadtest "installation/sle11_user_authentication_method.pm";
         loadtest "installation/user_settings.pm";
     }
+    if (noupdatestep_is_applicable && get_var("ADDONS") =~ /smt/) {
+        loadtest "installation/smt_configuration.pm";
+    }
     loadtest "installation/sle11_releasenotes.pm";
     if (noupdatestep_is_applicable) {
         loadtest "installation/sle11_hardware_config.pm";
