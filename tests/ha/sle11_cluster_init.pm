@@ -1,9 +1,10 @@
 use base "installbasetest";
 use testapi;
 use autotest;
+use lockapi;
 
 sub run() {
-    if (check_var("WORKER_CLASS", "ha_master")) {
+    if (check_var("WORKER_CLASS" =~ /ha_master/)) {
         type_string "sleha-init -y -s /dev/disk/by-id/scsi-1LIO-ORG.FILEIO:348cfd84-58a1-426e-9797-e22f04cf207f\n";
         assert_screen 'cluster-init',60;
         type_string "crm status\n";
