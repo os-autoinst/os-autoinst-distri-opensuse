@@ -171,9 +171,9 @@ sub linuxrc_manual() {
     $self->linuxrc_menu("Choose the source medium", "Network");
     $self->linuxrc_menu("Choose the network protocol", get_var("INSTSRC")->{PROTOCOL});
 
-    if (((get_var("PARMFILE")->{ssh} // "0" ) eq "1" ||
-	 (get_var("PARMFILE")->{sshd} // "0" ) eq "1") &&
-	(undef get_var("PARMFILE")->{sshpassword})) {
+    if (((get_var("PARMFILE")->{ssh} // "0" ) eq "1" || (get_var("PARMFILE")->{sshd} // "0" ) eq "1") &&
+	 (undef get_var("PARMFILE")->{sshpassword})) {
+	die "temporary installation 'sshpassword' not set in PARMFILE in vars.json";
 	$self->linuxrc_prompt("Enter your temporary SSH password.",
 			      timeout => 30,
 			      value => "SSH!554!");
@@ -335,10 +335,11 @@ sub linuxrc_manual() {
     if (get_var("DISPLAY")->{TYPE} eq "VNC" &&
 	(undef get_var("PARMFILE")->{VNCPassword})) {
 	$self->linuxrc_prompt("Enter your VNC password",
-			      value => get_var("DISPLAY")->{PASSWORD});
+			      value => get_var("DISPLAY")->{PASSWORD} // die "vnc password unset in vars.json");
     }
     elsif (get_var("DISPLAY")->{TYPE} eq "X11") {
 	$self->linuxrc_prompt("Enter the IP address of the host running the X11 server.",
+			      # FIXME DISPLAY->SCREEN actually is (worker local) Xvnc now, i.e. VNC
 			      value => get_var("DISPLAY")->{HOST} . ":" . get_var("DISPLAY")->{SCREEN});
     }
     elsif (get_var("DISPLAY")->{TYPE} eq "SSH") {
@@ -441,14 +442,23 @@ EO_frickin_boot_parms
 	die "must specify vars.json->PARMFILE->manual=[01]";
     };
     my $startshell = get_var("PARMFILE")->{startshell} || "0";
-    my $output_delim = $startshell ?
-	qr/\QATTENTION: Starting shell...\E/:
-	qr/\Q*** Starting YaST2 ***\E/;
+    my $display_type = get_var("DISPLAY")->{TYPE};
+    my $output_delim =
+	$startshell ?
+	    qr/\QATTENTION: Starting shell...\E/ :
+	$display_type eq "SSH" ||
+	$display_type eq "SSH-X" ?
+	    qr/\Q***  run 'yast' to start the installation  ***\E/ :
+	$display_type eq "X11" ?
+	    qr/\Q***  run 'yast' to start the installation  ***\E/ :
+	$display_type eq "VNC" ?
+	    qr/\Q*** Starting YaST2 ***\E/ :
+	    die "unknown vars.json:DISPLAY->TYPE <$display_type>";
 
     $r = $s3270->expect_3270(
 	output_delim => $output_delim,
 	timeout      => 20
-	);
+    );
 
 }
 
@@ -458,8 +468,13 @@ sub run() {
 
     my $r;
 
-    my $s3270 = console_proxy->new("s3270");
+    # The backend magically sets up the s3270 zVM console from
+    # vars.json in the backend, so a later connect_and_login 'knows'
+    # what to do, again in the backend.
+    activate_console("bootloader", "s3270");
+    my $s3270 = console("bootloader");
 
+    # remember for the other methods in this test
     $self->{s3270} = $s3270;
 
     eval {
@@ -473,13 +488,14 @@ sub run() {
 
     my $exception = $@;
 
-    cluck $exception if $exception;
+    cluck join("\n", '#'x67, $exception, '#'x67) if $exception;
 
     ###################################################################
     # now connect to the running VNC server
     # FIXME: this should connect to the terminal, ssh or vnc or X11...
     # and for SSH it then needs to start yast.
-    if ((get_var("PARMFILE")->{VNC} // "0") eq "1") {
+    if (get_var("DISPLAY")->{TYPE} eq "VNC") {
+	# FIXME this really is just for itneractive debugging.  pull it out.
 	if (exists get_var("DEBUG")->{"wait after linuxrc"}) {
 	    say "vnc should be running.\n".
 		"Hit enter here to vnc_connect.";
@@ -489,10 +505,42 @@ sub run() {
 	    say "doing vnc_connect...";
 
 	};
-	$bmwqemu::backend->connect_vnc();
-	# wait_still_screen();
+
+	# The vnc parameters are taken from vars.json; connect to the
+	# Xvnc running on the system under test...
+	activate_console("installation", "remote-vnc" );
+    }
+    elsif (get_var("DISPLAY")->{TYPE} eq "X11") {
+	# connect via an ssh console, the start yast with the
+	# appropriate parameters.
+	# The ssh parameters are taken from vars.json
+	activate_console("ssh", "ssh");
+	my $ssh = console("ssh");
+	$ssh->send_3270("String(\"Y2FULLSCREEN=1 yast\")");
+	$ssh->send_3270("ENTER");
+    }
+    elsif (get_var("DISPLAY")->{TYPE} eq "SSH") {
+	# The ssh parameters are taken from vars.json
+	activate_console("ssh", "ssh");
+	my $ssh = console("ssh");
+	$ssh->send_3270("String(\"yast\")");
+	$ssh->send_3270("ENTER");
+    }
+    elsif (get_var("DISPLAY")->{TYPE} eq "SSH-X") {
+	# The ssh parameters are taken from vars.json
+	activate_console("ssh", "ssh-X");
+	my $ssh = console("ssh");
+	$ssh->send_3270("String(\"Y2FULLSCREEN=1 yast\")");
+	$ssh->send_3270("ENTER");
+    }
+    elsif (0) {
+	#activate_console("installation","remote-vnc");
+	#activate_console("installation","ssh");
+	#activate_console("installation","ssh-X");
+	#activate_console("installation","remote-X");
     }
 
+    # FIXME this really is just for itneractive debugging.  pull it out.
     if (exists get_var("DEBUG")->{"wait after linuxrc"}) {
 	say "get your system ready.\n".
 	    "Hit enter here to continue test run.";
