@@ -1,6 +1,11 @@
-language: c # prevent it from using perlbrew which does not support threads
+language: perl # prevent it from using perlbrew which does not support threads
+perl:
+  - "5.18-extras"
+before_install:
+  - eval $(curl https://travis-perl.github.io/init) --perl
 install:
   - sudo apt-get -y install libdata-dump-perl libjson-perl
   - git clone git://github.com/os-autoinst/os-autoinst
+  - cpanm -nq `cat os-autoinst/DEPENDENCIES.txt`
 script:
   - make test
