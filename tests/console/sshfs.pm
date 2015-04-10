@@ -9,6 +9,7 @@ sub run() {
     script_run('cd /var/tmp ; mkdir mnt ; sshfs localhost:/ mnt');
     assert_screen "accept-ssh-host-key", 3;
     type_string "yes\n";    # trust ssh host key
+    assert_screen 'password-prompt';
     type_password;
     send_key "ret";
     assert_screen 'sshfs-accepted', 3;

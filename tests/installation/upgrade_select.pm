@@ -14,23 +14,23 @@ sub run() {
         send_key 'alt-n';
         if (check_screen('ERROR-cannot-download-repositories')) {
             send_key 'alt-o';
-            ++$self->{dents};
+            record_soft_failure;
         }
     }
     if (check_screen('list-of-online-repositories', 10)) {
         send_key 'alt-n';
-        ++$self->{dents};
+        record_soft_failure;
     }
     # Bug 881107 - there is 2nd license agreement screen in openSUSE upgrade
     # http://bugzilla.opensuse.org/show_bug.cgi?id=881107
     # (remove after the bug is closed)
     if (check_screen('upgrade-li-cense-agreement', 10)) {
         send_key 'alt-n';
-        ++$self->{dents};
+        record_soft_failure;
     }
     if (check_screen('installed-product-incompatible', 10)) {
         send_key 'alt-o'; # C&ontinue
-        ++$self->{dents};
+        record_soft_failure;
     }
 
     assert_screen "update-installation-overview", 15;

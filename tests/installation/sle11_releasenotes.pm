@@ -19,14 +19,18 @@ sub run(){
         else {
             foreach $a (split(/,/, get_var('ADDONS'))) {
                 send_key 'alt-p', 1;
-                send_key ' ', 1;
+                if (!check_var('VIDEOMODE', 'text')) {
+                    send_key ' ', 1;
+                }
                 send_key 'pgup', 1;
                 $self->key_round("release-notes-list-$a", 'down');
                 send_key 'ret', 1;
                 assert_screen "release-notes-$a";
             }
             send_key 'alt-p', 1;
-            send_key ' ', 1;
+            if (!check_var('VIDEOMODE', 'text')) {
+                send_key ' ', 1;
+            }
             send_key 'pgup', 1;
             $self->key_round("release-notes-list-sle", 'down');
             send_key 'ret', 1;

@@ -269,16 +269,17 @@ sub run() {
     }
     assert_screen 'acceptedpartitioning', 6;
 
-    #Bootloader needs to be installed to MBR
-    send_key 'alt-c';
-    send_key 'b';
-    assert_screen 'bootloader-settings', 6;
-    send_key 'alt-l';
-    assert_screen 'bootloader-installation-settings', 6;
-    send_key 'alt-m';
-    send_key 'alt-o';
+    if ( !get_var("OFW") ) {
+        #Bootloader needs to be installed to MBR
+        send_key 'alt-c';
+        send_key 'b';
+        assert_screen 'bootloader-settings', 6;
+        send_key 'alt-l';
+        assert_screen 'bootloader-installation-settings', 6;
+        send_key 'alt-m';
+        send_key 'alt-o';
+    }
     assert_screen "inst-overview", 15;
-
 }
 
 

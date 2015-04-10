@@ -80,7 +80,12 @@ sub run {
     else {
         send_key 'alt-o';
     }
-    assert_screen "inst-overview", 15;
+    #Third party licenses sometimes appear
+    while ( my $ret = check_screen( [qw/3rdpartylicense inst-overview/] ), 15 ){
+            last if $ret->{needle}->has_tag("inst-overview");
+            send_key $cmd{acceptlicense}, 1;
+    }
+    assert_screen 'inst-overview', 15;
 }
 
 

@@ -295,6 +295,9 @@ sub is_reboot_after_installation_necessary() {
 sub load_inst_tests() {
     loadtest "installation/welcome.pm";
     loadtest "installation/good_buttons.pm";
+    if (get_var("MULTIPATH")) {
+        loadtest "installation/multipath.pm";
+    }
     if (noupdatestep_is_applicable && !get_var("LIVECD")) {
         loadtest "installation/installation_mode.pm";
     }
@@ -407,6 +410,7 @@ sub load_consoletests() {
         }
         loadtest "console/zypper_ref.pm";
         loadtest "console/yast2_lan.pm";
+        loadtest "console/curl_https.pm";
         if (!get_var("OFW")) {
             loadtest "console/aplay.pm";
             loadtest "console/glibc_i686.pm";
@@ -578,6 +582,7 @@ elsif (get_var("RESCUESYSTEM")) {
 elsif (get_var("SYSAUTHTEST")) {
     # sysauth test script switches to tty and run test scripts in the console
     load_boot_tests();
+    loadtest "installation/finish_desktop.pm";
     loadtest "sysauth/sssd.pm";
 }
 else {

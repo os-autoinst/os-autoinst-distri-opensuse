@@ -210,8 +210,11 @@ sub run() {
 
     my $args = "";
     if ( get_var("AUTOYAST") ) {
-        if (get_var("VERSION")=~/^\D*11\D*/ ) { # sle11 does not have ifcfg
+        if (get_var("VERSION")=~/^\D*10\D*/ ) { # sle10 does not have netconfig,ifcfg
             $args .= " netsetup=dhcp,all";
+        }
+        elsif (get_var("VERSION")=~/^\D*11\D*/ ) { # sle11 does not have ifcfg
+            $args .= " netconfig=dhcp,all";
         }
         else {
             $args .= " ifcfg=*=dhcp";

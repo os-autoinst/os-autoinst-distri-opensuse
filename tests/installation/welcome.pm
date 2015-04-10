@@ -15,13 +15,12 @@ sub run() {
         assert_screen "inst-welcome", 500;
     }
 
-    # animated cursor wastes disk space, so it is moved to bottom right corner
-    wait_idle;
-    mouse_hide;
-    # the mouse is hard to convince at times
-    sleep 3;
-    mouse_hide;
-
+    # mouse is tricky to move, punch the mouse 5 times
+    for my $i (0..5) {
+        wait_idle;
+        mouse_hide;
+    }
+    
     # license+lang
     if ( get_var("HASLICENSE") ) {
         send_key $cmd{"accept"};    # accept license
