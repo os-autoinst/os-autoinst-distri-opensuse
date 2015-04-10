@@ -311,6 +311,9 @@ sub load_boot_tests(){
     elsif (get_var("UEFI")) {
         loadtest "installation/bootloader_uefi.pm";
     }
+    elsif ( check_var("BACKEND", "ipmi") ) {
+        loadtest "installation/qa_net.pm";
+    }
     elsif (check_var("BACKEND", "s390x")) {
         bmwqemu::diag "trying installation/bootloader_s390.pm";
         loadtest "installation/bootloader_s390.pm";
@@ -337,6 +340,9 @@ sub is_reboot_after_installation_necessary() {
 sub load_inst_tests() {
     loadtest "installation/welcome.pm";
     loadtest "installation/check_medium.pm";
+    if (get_var("MULTIPATH")) {
+        loadtest "installation/multipath.pm";
+    }
     loadtest "installation/installation_mode.pm";
     if (!get_var('LIVECD') && get_var('UPGRADE') ) {
         loadtest "installation/upgrade_select_sle11.pm";
@@ -363,7 +369,7 @@ sub load_inst_tests() {
         if (defined(get_var('RAIDLEVEL'))) {
             loadtest "installation/partitioning_raid_sle11.pm";
         }
-        elsif (get_var('FILESYSTEM')) {
+        elsif (get_var('FILESYSTEM') || get_var('LVM')) {
             loadtest "installation/partitioning_sle11.pm";
         }
         if (get_var('PATTERNS')) {
@@ -386,7 +392,7 @@ sub load_inst_tests() {
 
     # 2nd stage
     if (get_var("PROXY")) {
-            loadtest "installation/proxy_start_2nd_stage.pm";
+        loadtest "installation/proxy_start_2nd_stage.pm";
     }
     loadtest "installation/sle11_wait_for_2nd_stage.pm";
     if (noupdatestep_is_applicable && check_var('FLAVOR', 'Server-DVD')) {
@@ -398,6 +404,9 @@ sub load_inst_tests() {
         loadtest "installation/sle11_service.pm";
         loadtest "installation/sle11_user_authentication_method.pm";
         loadtest "installation/user_settings.pm";
+    }
+    if (noupdatestep_is_applicable && get_var("ADDONS") =~ /smt/) {
+        loadtest "installation/smt_configuration.pm";
     }
     loadtest "installation/sle11_releasenotes.pm";
     if (noupdatestep_is_applicable) {
@@ -411,7 +420,7 @@ sub load_reboot_tests() {
     if (get_var("ENCRYPT")) {
         loadtest "installation/boot_encrypt.pm";
     }
-    if (installyaststep_is_applicable && !get_var("HAVALIDATION")) {
+    if (installyaststep_is_applicable) {
         loadtest "installation/first_boot.pm";
     }
     if (is_reboot_after_installation_necessary()) {
@@ -453,6 +462,7 @@ sub load_consoletests() {
         }
         loadtest "console/zypper_ref.pm";
         loadtest "console/yast2_lan.pm";
+        loadtest "console/curl_https.pm";
         if (!get_var("OFW")) {
             loadtest "console/aplay.pm";
             loadtest "console/glibc_i686.pm";
@@ -566,11 +576,9 @@ sub load_x11tests(){
 }
 
 sub load_ha_tests(){
-    loadtest "ha/ha_vm_shutdown.pm";
     loadtest "ha/sle11_ha_preparation.pm";
     loadtest "ha/iscsi_config.pm";
     loadtest "ha/sle11_cluster_init.pm";
-    loadtest "ha/sle11_cluster_join.pm";
     loadtest "ha/corosync.pm";
     loadtest "ha/fencing.pm";
     loadtest "ha/hawk.pm";
