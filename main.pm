@@ -329,7 +329,9 @@ sub is_reboot_after_installation_necessary() {
 
 sub load_inst_tests() {
     loadtest "installation/welcome.pm";
-    loadtest "installation/check_medium.pm";
+    if (!check_var('BACKEND', 'ipmi')) { # network installs in general, but we have no setting for it yet
+      loadtest "installation/check_medium.pm";
+    }
     if (get_var("MULTIPATH")) {
         loadtest "installation/multipath.pm";
     }
