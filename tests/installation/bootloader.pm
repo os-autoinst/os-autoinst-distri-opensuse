@@ -214,7 +214,8 @@ sub run() {
             $args .= " netsetup=dhcp,all";
         }
         elsif (get_var("VERSION")=~/^\D*11\D*/ ) { # sle11 does not have ifcfg
-            $args .= " netconfig=dhcp,all";
+            #$args .= " netconfig=dhcp,all";
+            $args .= " netsetup=dhcp,all";  #hotfix, netconfig seems not to work 
         }
         else {
             $args .= " ifcfg=*=dhcp";
