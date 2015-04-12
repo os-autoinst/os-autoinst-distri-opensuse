@@ -210,7 +210,16 @@ sub run() {
 
     my $args = "";
     if ( get_var("AUTOYAST") ) {
-        $args .= " netconfig=dhcp,all";
+        if (get_var("VERSION")=~/^\D*10\D*/ ) { # sle10 does not have netconfig,ifcfg
+            $args .= " netsetup=dhcp,all";
+        }
+        elsif (get_var("VERSION")=~/^\D*11\D*/ ) { # sle11 does not have ifcfg
+            #$args .= " netconfig=dhcp,all";
+            $args .= " netsetup=dhcp,all";  #hotfix, netconfig seems not to work 
+        }
+        else {
+            $args .= " ifcfg=*=dhcp";
+        }
         $args .= " autoyast=" . autoinst_url . "/data/" . get_var("AUTOYAST") . " ";
     }
     type_string $args, 13;
