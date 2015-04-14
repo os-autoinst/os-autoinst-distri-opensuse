@@ -51,7 +51,7 @@ sub run {
     }
 
     assert_screen "desktop-selected", 5;
-    
+
     if (check_var('VIDEOMODE', 'text')) {
         send_key 'alt-a'; # accept
         accept3rdparty;
