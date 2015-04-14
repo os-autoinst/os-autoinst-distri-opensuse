@@ -2,6 +2,15 @@ use base "y2logsstep";
 use strict;
 use testapi;
 
+sub accept3rdparty {
+    #Third party licenses sometimes appear
+    while ( my $ret = check_screen( [qw/3rdpartylicense automatic-changes inst-overview/] ), 15 ){
+            last if $ret->{needle}->has_tag("automatic-changes");
+            last if $ret->{needle}->has_tag("inst-overview");
+            send_key $cmd{acceptlicense}, 1;
+    }
+}
+
 sub run {
     my $self = shift;
 
@@ -45,16 +54,13 @@ sub run {
 
     if (check_var('VIDEOMODE', 'text')) {
         send_key 'alt-a'; # accept
+        accept3rdparty;
         assert_screen 'automatic-changes', 4;
         send_key 'alt-o'; # OK
     }
     else {
         send_key 'alt-o'; # OK
-    }
-    #Third party licenses sometimes appear
-    while ( my $ret = check_screen( [qw/3rdpartylicense inst-overview/] ), 15 ){
-            last if $ret->{needle}->has_tag("inst-overview");
-            send_key $cmd{acceptlicense}, 1;
+        accept3rdparty;
     }
     assert_screen 'inst-overview', 15;
 }
