@@ -372,18 +372,30 @@ sub get_to_yast() {
     ###################################################################
     # ftpboot
     {
-
-	$s3270->sequence_3270(
-	    "String(${\get_var('FTPBOOT')->{COMMAND}})",
-	    "ENTER",
-	    "Wait(InputField)",
+	my $zVM_bootloader = get_var('FTPBOOT')->{COMMAND};
+	# FIXME if this is qaboot, call it like this
+	# qaboot FTP_SERVER  DIR_TO_SUSE_INS
+	my $ftp_server = get_var('FTPBOOT')->{FTP_SERVER};
+	my $dir_with_suse_ins = get_var('FTPBOOT')->{PATH_TO_SUSE_INS};
+	if ($zVM_bootloader eq "qaboot") {
+	    $s3270->sequence_3270(
+		"String(\"$zVM_bootloader $ftp_server $dir_with_suse_ins\")",
+		"ENTER",
+		"Wait(InputField)",
+	    );
+	} else {
+	    $s3270->sequence_3270(
+		"String($zVM_bootloader)",
+		"ENTER",
+		"Wait(InputField)",
 	    );
 
-	my $host = get_var("FTPBOOT")->{HOST};
-	my $distro = get_var("FTPBOOT")->{DISTRO};
-	sleep(1);
-	$r = $self->ftpboot_menu(qr/\Q$host\E/);
-	$r = $self->ftpboot_menu(qr/\Q$distro\E/);
+	    my $host = get_var("FTPBOOT")->{HOST};
+	    my $distro = get_var("FTPBOOT")->{DISTRO};
+	    sleep(1);
+	    $r = $self->ftpboot_menu(qr/\Q$host\E/);
+	    $r = $self->ftpboot_menu(qr/\Q$distro\E/);
+	}
     }
 
     ##############################
@@ -488,7 +500,19 @@ sub run() {
 
     my $exception = $@;
 
-    cluck join("\n", '#'x67, $exception, '#'x67) if $exception;
+    die join("\n", '#'x67, $exception, '#'x67) if $exception;
+
+    # create a "ctrl-alt-f2" ssh console which can be the target of
+    # any send_key("ctrl-alt-fX") commands.  used in backend::s390x.
+    activate_console("ctrl-alt-f2", "ssh");
+
+    type_string("echo 'Hello, ssh World\! nice typing at the vnc front door here...'\n");
+
+    my $ssh = console("ctrl-alt-f2");
+    $ssh->send_3270('String("echo \'How about some speed typing at the x3270 script interface ;p ?\'")');
+    $ssh->send_3270('ENTER');
+    sleep 3;
+    type_string("echo 'gonna start the YaSTie now...'\n");
 
     ###################################################################
     # now connect to the running VNC server
@@ -514,33 +538,35 @@ sub run() {
 	# connect via an ssh console, the start yast with the
 	# appropriate parameters.
 	# The ssh parameters are taken from vars.json
-	activate_console("ssh", "ssh");
-	my $ssh = console("ssh");
+	activate_console("start-yast", "ssh");
+	my $ssh = console("start-yast");
 	$ssh->send_3270("String(\"Y2FULLSCREEN=1 yast\")");
 	$ssh->send_3270("ENTER");
+	#local $Devel::Trace::TRACE;
+	#$Devel::Trace::TRACE = 1;
+	activate_console("installation", "remote-window", 'YaST2@');
     }
     elsif (get_var("DISPLAY")->{TYPE} eq "SSH") {
 	# The ssh parameters are taken from vars.json
-	activate_console("ssh", "ssh");
-	my $ssh = console("ssh");
+	activate_console("installation", "ssh");
+	my $ssh = console("installation");
 	$ssh->send_3270("String(\"yast\")");
 	$ssh->send_3270("ENTER");
     }
     elsif (get_var("DISPLAY")->{TYPE} eq "SSH-X") {
 	# The ssh parameters are taken from vars.json
-	activate_console("ssh", "ssh-X");
-	my $ssh = console("ssh");
+	activate_console("start-yast", "ssh-X");
+	my $ssh = console("start-yast");
 	$ssh->send_3270("String(\"Y2FULLSCREEN=1 yast\")");
 	$ssh->send_3270("ENTER");
+	activate_console("installation", "remote-window", 'YaST2@');
     }
-    elsif (0) {
-	#activate_console("installation","remote-vnc");
-	#activate_console("installation","ssh");
-	#activate_console("installation","ssh-X");
-	#activate_console("installation","remote-X");
+    else {
+	die "unknown display type to access the host: ". get_var("DISPLAY")->{TYPE};
     }
-
-    # FIXME this really is just for itneractive debugging.  pull it out.
+    #local $Devel::Trace::TRACE;
+    #$Devel::Trace::TRACE = 1;
+    # FIXME this really is just for interactive debugging.  pull it out.
     if (exists get_var("DEBUG")->{"wait after linuxrc"}) {
 	say "get your system ready.\n".
 	    "Hit enter here to continue test run.";
@@ -560,6 +586,31 @@ sub run() {
     else {
 	die $exception if $exception;
     }
+
+    #local $Devel::Trace::TRACE;
+    #$Devel::Trace::TRACE = 1;
+    sleep 3;
+    select_console("ctrl-alt-f2");
+    type_string("echo 'Hello, just checking back at the c-a-f2'\n");
+    sleep 1;
+    if (get_var("DISPLAY")->{TYPE} eq "VNC") {
+	type_string("DISPLAY=:0 xterm -title 'a worker xterm on the SUT Xvnc :D' &\n");
+	select_console("installation");
+	type_string("ls -laR\n");
+    }
+    select_console("bootloader");
+    type_string("#cp q v dasd\n");
+    sleep 5;
+    select_console("installation");
+    type_string("exit # the xterm\n") if (get_var("DISPLAY")->{TYPE} eq "VNC");
+    sleep 3;
+    # DEBUG BUG FIXME FIXME FIXME why does this not work?  it works manually!
+    send_key("ctrl-alt-shift-x");
+    sleep 3;
+    select_console("ctrl-alt-f2");
+    type_string("echo 'and yet Hello, c-a-f2 World again!'\n");
+    sleep 5;
+    select_console("installation");
 
 }
 #>>> perltidy again from here on
