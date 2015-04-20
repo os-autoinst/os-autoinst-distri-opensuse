@@ -93,8 +93,10 @@ sub ftpboot_menu () {
 	++$row;
     }
 
-    confess "ftpboot_menu: $menu_entry not found!\n" . join("\n", @$r_screenshot)
-	unless $found;
+    if (!$found) {
+	$self->{s3270}->send_3270("PF(3)"); # quit ftpboot
+	confess "ftpboot_menu: $menu_entry not found!\n" . join("\n", @$r_screenshot);
+    }
 
     my $sequence = ["Home", ("Down") x ($row-$cursor_row), "ENTER", "Wait(InputField)"];
     ### say "\$sequence=@$sequence";
@@ -383,7 +385,8 @@ sub get_to_yast() {
 		"ENTER",
 		"Wait(InputField)",
 	    );
-	} else {
+	}
+	else {
 	    $s3270->sequence_3270(
 		"String($zVM_bootloader)",
 		"ENTER",
@@ -506,30 +509,21 @@ sub run() {
     # any send_key("ctrl-alt-fX") commands.  used in backend::s390x.
     activate_console("ctrl-alt-f2", "ssh");
 
-    type_string("echo 'Hello, ssh World\! nice typing at the vnc front door here...'\n");
+    if (exists get_var("DEBUG")->{"demo consoles"}) {
+	type_string("echo 'Hello, ssh World\! nice typing at the vnc front door here...'\n");
 
-    my $ssh = console("ctrl-alt-f2");
-    $ssh->send_3270('String("echo \'How about some speed typing at the x3270 script interface ;p ?\'")');
-    $ssh->send_3270('ENTER');
-    sleep 3;
-    type_string("echo 'gonna start the YaSTie now...'\n");
+	my $ssh = console("ctrl-alt-f2");
 
+	$ssh->send_3270('String("echo \'How about some speed typing at the x3270 script interface ;p ?\'")');
+	$ssh->send_3270('ENTER');
+	sleep 3;
+	type_string("echo 'gonna start the YaSTie now...'\n");
+    }
     ###################################################################
     # now connect to the running VNC server
     # FIXME: this should connect to the terminal, ssh or vnc or X11...
     # and for SSH it then needs to start yast.
     if (get_var("DISPLAY")->{TYPE} eq "VNC") {
-	# FIXME this really is just for itneractive debugging.  pull it out.
-	if (exists get_var("DEBUG")->{"wait after linuxrc"}) {
-	    say "vnc should be running.\n".
-		"Hit enter here to vnc_connect.";
-
-	    my $dummy = <STDIN>;
-
-	    say "doing vnc_connect...";
-
-	};
-
 	# The vnc parameters are taken from vars.json; connect to the
 	# Xvnc running on the system under test...
 	activate_console("installation", "remote-vnc" );
@@ -564,18 +558,45 @@ sub run() {
     else {
 	die "unknown display type to access the host: ". get_var("DISPLAY")->{TYPE};
     }
-    #local $Devel::Trace::TRACE;
-    #$Devel::Trace::TRACE = 1;
-    # FIXME this really is just for interactive debugging.  pull it out.
+
+    if (exists get_var("DEBUG")->{"demo consoles"}) {
+	#local $Devel::Trace::TRACE;
+	#$Devel::Trace::TRACE = 1;
+	sleep 3;
+	select_console("ctrl-alt-f2");
+	type_string("echo 'Hello, just checking back at the c-a-f2'\n");
+	sleep 1;
+	if (get_var("DISPLAY")->{TYPE} eq "VNC") {
+	    type_string("DISPLAY=:0 xterm -title 'a worker xterm on the SUT Xvnc :D' &\n");
+	    select_console("installation");
+	    type_string("ls -laR\n");
+	}
+	select_console("bootloader");
+	type_string("#cp q v dasd\n");
+	sleep 5;
+	select_console("installation");
+	type_string("exit\n") if (get_var("DISPLAY")->{TYPE} eq "VNC");
+	sleep 3;
+	# DEBUG BUG FIXME FIXME FIXME why does this not work?  it works manually!
+	send_key("ctrl-alt-shift-x");
+	sleep 3;
+	select_console("ctrl-alt-f2");
+	type_string("echo 'and yet Hello, c-a-f2 World again!'\n");
+	sleep 5;
+	select_console("installation");
+    }
+
+    # FIXME this is for interactive sessions.
     if (exists get_var("DEBUG")->{"wait after linuxrc"}) {
-	say "get your system ready.\n".
-	    "Hit enter here to continue test run.";
+	say "Hit enter here to continue test run.";
 
 	# non-blocking wait for somthing on STDIN
 	my $s = IO::Select->new();
 	$s->add( \*STDIN );
 	my @ready;
-	while (!(@ready = $s->can_read())) { sleep 1; }
+	while (!(@ready = $s->can_read())) {
+	    sleep 1;
+	}
 	for my $fh (@ready) {
 	    my $input = <$fh>;
 	}
@@ -586,32 +607,6 @@ sub run() {
     else {
 	die $exception if $exception;
     }
-
-    #local $Devel::Trace::TRACE;
-    #$Devel::Trace::TRACE = 1;
-    sleep 3;
-    select_console("ctrl-alt-f2");
-    type_string("echo 'Hello, just checking back at the c-a-f2'\n");
-    sleep 1;
-    if (get_var("DISPLAY")->{TYPE} eq "VNC") {
-	type_string("DISPLAY=:0 xterm -title 'a worker xterm on the SUT Xvnc :D' &\n");
-	select_console("installation");
-	type_string("ls -laR\n");
-    }
-    select_console("bootloader");
-    type_string("#cp q v dasd\n");
-    sleep 5;
-    select_console("installation");
-    type_string("exit # the xterm\n") if (get_var("DISPLAY")->{TYPE} eq "VNC");
-    sleep 3;
-    # DEBUG BUG FIXME FIXME FIXME why does this not work?  it works manually!
-    send_key("ctrl-alt-shift-x");
-    sleep 3;
-    select_console("ctrl-alt-f2");
-    type_string("echo 'and yet Hello, c-a-f2 World again!'\n");
-    sleep 5;
-    select_console("installation");
-
 }
 #>>> perltidy again from here on
 
