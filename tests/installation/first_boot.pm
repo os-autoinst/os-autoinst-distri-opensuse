@@ -10,11 +10,7 @@ sub run() {
         return;
     }
 
-    # mouse is tricky to move, punch the mouse 8 times
-    for my $i (0..8) {
-        wait_idle;
-        mouse_hide;
-    }
+    mouse_hide();
 
     if ( get_var("NOAUTOLOGIN") ) {
         assert_screen 'displaymanager', 200;
