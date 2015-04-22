@@ -15,8 +15,8 @@ sub run() {
         assert_screen "inst-welcome", 500;
     }
 
-    # mouse is tricky to move, punch the mouse 8 times
-    for my $i (0..8) {
+    # mouse is tricky to move, punch the mouse 5 times
+    for my $i (0..5) {
         wait_idle;
         mouse_hide;
     }
