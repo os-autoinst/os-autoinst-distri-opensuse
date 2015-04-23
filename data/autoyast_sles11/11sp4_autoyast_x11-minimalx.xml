@@ -170,7 +170,6 @@
 <!--          <pattern>apparmor</pattern>-->
       <pattern>base</pattern>
 <!--      <pattern>documentation</pattern>-->
-      <pattern>gnome</pattern>
       <pattern>x11</pattern>
     </patterns>
 
@@ -207,7 +206,10 @@
     </add_on_products>
   </add-on>
 -->
-
+  <x11>
+    <resolution>1024x768</resolution>
+    <window_manager>twm</window_manager>
+  </x11>
   <runlevel>
     <default>5</default>
   </runlevel>
