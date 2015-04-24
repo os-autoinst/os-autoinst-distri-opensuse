@@ -42,7 +42,7 @@ sub run {
     # wait for bootloader to appear
     my $ret;
 
-    my @needles = ("inst-bootmenu", "autoyast-error", "reboot-after-installation");
+    my @needles = ("autoyast-boot", "autoyast-error", "reboot-after-installation");
 
     push @needles, "autoyast-confirm" if get_var("AUTOYAST_CONFIRM");
     push @needles, "autoyast-postpartscript" if get_var("USRSCR_DIALOG");
@@ -61,7 +61,7 @@ sub run {
 
         #repeat until timeout or login screen
         if ( defined $ret ) {
-           last if $ret->{needle}->has_tag("inst-bootmenu") || $ret->{needle}->has_tag("reboot-after-installation");
+           last if $ret->{needle}->has_tag("autoyast-boot") || $ret->{needle}->has_tag("reboot-after-installation");
  
            if ( $ret->{needle}->has_tag('autoyast-error') ) {
               send_key "alt-s"; #stop
