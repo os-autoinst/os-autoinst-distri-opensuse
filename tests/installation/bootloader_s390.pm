@@ -93,8 +93,10 @@ sub ftpboot_menu () {
 	++$row;
     }
 
-    confess "ftpboot_menu: $menu_entry not found!\n" . join("\n", @$r_screenshot)
-	unless $found;
+    if (!$found) {
+	$self->{s3270}->send_3270("PF(3)"); # quit ftpboot
+	confess "ftpboot_menu: $menu_entry not found!\n" . join("\n", @$r_screenshot);
+    }
 
     my $sequence = ["Home", ("Down") x ($row-$cursor_row), "ENTER", "Wait(InputField)"];
     ### say "\$sequence=@$sequence";
@@ -171,9 +173,9 @@ sub linuxrc_manual() {
     $self->linuxrc_menu("Choose the source medium", "Network");
     $self->linuxrc_menu("Choose the network protocol", get_var("INSTSRC")->{PROTOCOL});
 
-    if (((get_var("PARMFILE")->{ssh} // "0" ) eq "1" ||
-	 (get_var("PARMFILE")->{sshd} // "0" ) eq "1") &&
-	(undef get_var("PARMFILE")->{sshpassword})) {
+    if (((get_var("PARMFILE")->{ssh} // "0" ) eq "1" || (get_var("PARMFILE")->{sshd} // "0" ) eq "1") &&
+	 (undef get_var("PARMFILE")->{sshpassword})) {
+	die "temporary installation 'sshpassword' not set in PARMFILE in vars.json";
 	$self->linuxrc_prompt("Enter your temporary SSH password.",
 			      timeout => 30,
 			      value => "SSH!554!");
@@ -335,10 +337,11 @@ sub linuxrc_manual() {
     if (get_var("DISPLAY")->{TYPE} eq "VNC" &&
 	(undef get_var("PARMFILE")->{VNCPassword})) {
 	$self->linuxrc_prompt("Enter your VNC password",
-			      value => get_var("DISPLAY")->{PASSWORD});
+			      value => get_var("DISPLAY")->{PASSWORD} // die "vnc password unset in vars.json");
     }
     elsif (get_var("DISPLAY")->{TYPE} eq "X11") {
 	$self->linuxrc_prompt("Enter the IP address of the host running the X11 server.",
+			      # FIXME DISPLAY->SCREEN actually is (worker local) Xvnc now, i.e. VNC
 			      value => get_var("DISPLAY")->{HOST} . ":" . get_var("DISPLAY")->{SCREEN});
     }
     elsif (get_var("DISPLAY")->{TYPE} eq "SSH") {
@@ -371,18 +374,31 @@ sub get_to_yast() {
     ###################################################################
     # ftpboot
     {
-
-	$s3270->sequence_3270(
-	    "String(${\get_var('FTPBOOT')->{COMMAND}})",
-	    "ENTER",
-	    "Wait(InputField)",
+	my $zVM_bootloader = get_var('FTPBOOT')->{COMMAND};
+	# FIXME if this is qaboot, call it like this
+	# qaboot FTP_SERVER  DIR_TO_SUSE_INS
+	my $ftp_server = get_var('FTPBOOT')->{FTP_SERVER};
+	my $dir_with_suse_ins = get_var('FTPBOOT')->{PATH_TO_SUSE_INS};
+	if ($zVM_bootloader eq "qaboot") {
+	    $s3270->sequence_3270(
+		"String(\"$zVM_bootloader $ftp_server $dir_with_suse_ins\")",
+		"ENTER",
+		"Wait(InputField)",
+	    );
+	}
+	else {
+	    $s3270->sequence_3270(
+		"String($zVM_bootloader)",
+		"ENTER",
+		"Wait(InputField)",
 	    );
 
-	my $host = get_var("FTPBOOT")->{HOST};
-	my $distro = get_var("FTPBOOT")->{DISTRO};
-	sleep(1);
-	$r = $self->ftpboot_menu(qr/\Q$host\E/);
-	$r = $self->ftpboot_menu(qr/\Q$distro\E/);
+	    my $host = get_var("FTPBOOT")->{HOST};
+	    my $distro = get_var("FTPBOOT")->{DISTRO};
+	    sleep(1);
+	    $r = $self->ftpboot_menu(qr/\Q$host\E/);
+	    $r = $self->ftpboot_menu(qr/\Q$distro\E/);
+	}
     }
 
     ##############################
@@ -441,14 +457,23 @@ EO_frickin_boot_parms
 	die "must specify vars.json->PARMFILE->manual=[01]";
     };
     my $startshell = get_var("PARMFILE")->{startshell} || "0";
-    my $output_delim = $startshell ?
-	qr/\QATTENTION: Starting shell...\E/:
-	qr/\Q*** Starting YaST2 ***\E/;
+    my $display_type = get_var("DISPLAY")->{TYPE};
+    my $output_delim =
+	$startshell ?
+	    qr/\QATTENTION: Starting shell...\E/ :
+	$display_type eq "SSH" ||
+	$display_type eq "SSH-X" ?
+	    qr/\Q***  run 'yast' to start the installation  ***\E/ :
+	$display_type eq "X11" ?
+	    qr/\Q***  run 'yast' to start the installation  ***\E/ :
+	$display_type eq "VNC" ?
+	    qr/\Q*** Starting YaST2 ***\E/ :
+	    die "unknown vars.json:DISPLAY->TYPE <$display_type>";
 
     $r = $s3270->expect_3270(
 	output_delim => $output_delim,
 	timeout      => 20
-	);
+    );
 
 }
 
@@ -458,8 +483,13 @@ sub run() {
 
     my $r;
 
-    my $s3270 = console_proxy->new("s3270");
+    # The backend magically sets up the s3270 zVM console from
+    # vars.json in the backend, so a later connect_and_login 'knows'
+    # what to do, again in the backend.
+    activate_console("bootloader", "s3270");
+    my $s3270 = console("bootloader");
 
+    # remember for the other methods in this test
     $self->{s3270} = $s3270;
 
     eval {
@@ -473,35 +503,100 @@ sub run() {
 
     my $exception = $@;
 
-    cluck $exception if $exception;
+    die join("\n", '#'x67, $exception, '#'x67) if $exception;
 
+    # create a "ctrl-alt-f2" ssh console which can be the target of
+    # any send_key("ctrl-alt-fX") commands.  used in backend::s390x.
+    activate_console("ctrl-alt-f2", "ssh");
+
+    if (exists get_var("DEBUG")->{"demo consoles"}) {
+	type_string("echo 'Hello, ssh World\! nice typing at the vnc front door here...'\n");
+
+	my $ssh = console("ctrl-alt-f2");
+
+	$ssh->send_3270('String("echo \'How about some speed typing at the x3270 script interface ;p ?\'")');
+	$ssh->send_3270('ENTER');
+	sleep 3;
+	type_string("echo 'gonna start the YaSTie now...'\n");
+    }
     ###################################################################
     # now connect to the running VNC server
     # FIXME: this should connect to the terminal, ssh or vnc or X11...
     # and for SSH it then needs to start yast.
-    if ((get_var("PARMFILE")->{VNC} // "0") eq "1") {
-	if (exists get_var("DEBUG")->{"wait after linuxrc"}) {
-	    say "vnc should be running.\n".
-		"Hit enter here to vnc_connect.";
-
-	    my $dummy = <STDIN>;
-
-	    say "doing vnc_connect...";
-
-	};
-	$bmwqemu::backend->connect_vnc();
-	# wait_still_screen();
+    if (get_var("DISPLAY")->{TYPE} eq "VNC") {
+	# The vnc parameters are taken from vars.json; connect to the
+	# Xvnc running on the system under test...
+	activate_console("installation", "remote-vnc" );
+    }
+    elsif (get_var("DISPLAY")->{TYPE} eq "X11") {
+	# connect via an ssh console, the start yast with the
+	# appropriate parameters.
+	# The ssh parameters are taken from vars.json
+	activate_console("start-yast", "ssh");
+	my $ssh = console("start-yast");
+	$ssh->send_3270("String(\"Y2FULLSCREEN=1 yast\")");
+	$ssh->send_3270("ENTER");
+	#local $Devel::Trace::TRACE;
+	#$Devel::Trace::TRACE = 1;
+	activate_console("installation", "remote-window", 'YaST2@');
+    }
+    elsif (get_var("DISPLAY")->{TYPE} eq "SSH") {
+	# The ssh parameters are taken from vars.json
+	activate_console("installation", "ssh");
+	my $ssh = console("installation");
+	$ssh->send_3270("String(\"yast\")");
+	$ssh->send_3270("ENTER");
+    }
+    elsif (get_var("DISPLAY")->{TYPE} eq "SSH-X") {
+	# The ssh parameters are taken from vars.json
+	activate_console("start-yast", "ssh-X");
+	my $ssh = console("start-yast");
+	$ssh->send_3270("String(\"Y2FULLSCREEN=1 yast\")");
+	$ssh->send_3270("ENTER");
+	activate_console("installation", "remote-window", 'YaST2@');
+    }
+    else {
+	die "unknown display type to access the host: ". get_var("DISPLAY")->{TYPE};
     }
 
+    if (exists get_var("DEBUG")->{"demo consoles"}) {
+	#local $Devel::Trace::TRACE;
+	#$Devel::Trace::TRACE = 1;
+	sleep 3;
+	select_console("ctrl-alt-f2");
+	type_string("echo 'Hello, just checking back at the c-a-f2'\n");
+	sleep 1;
+	if (get_var("DISPLAY")->{TYPE} eq "VNC") {
+	    type_string("DISPLAY=:0 xterm -title 'a worker xterm on the SUT Xvnc :D' &\n");
+	    select_console("installation");
+	    type_string("ls -laR\n");
+	}
+	select_console("bootloader");
+	type_string("#cp q v dasd\n");
+	sleep 5;
+	select_console("installation");
+	type_string("exit\n") if (get_var("DISPLAY")->{TYPE} eq "VNC");
+	sleep 3;
+	# DEBUG BUG FIXME FIXME FIXME why does this not work?  it works manually!
+	send_key("ctrl-alt-shift-x");
+	sleep 3;
+	select_console("ctrl-alt-f2");
+	type_string("echo 'and yet Hello, c-a-f2 World again!'\n");
+	sleep 5;
+	select_console("installation");
+    }
+
+    # FIXME this is for interactive sessions.
     if (exists get_var("DEBUG")->{"wait after linuxrc"}) {
-	say "get your system ready.\n".
-	    "Hit enter here to continue test run.";
+	say "Hit enter here to continue test run.";
 
 	# non-blocking wait for somthing on STDIN
 	my $s = IO::Select->new();
 	$s->add( \*STDIN );
 	my @ready;
-	while (!(@ready = $s->can_read())) { sleep 1; }
+	while (!(@ready = $s->can_read())) {
+	    sleep 1;
+	}
 	for my $fh (@ready) {
 	    my $input = <$fh>;
 	}
@@ -512,7 +607,6 @@ sub run() {
     else {
 	die $exception if $exception;
     }
-
 }
 #>>> perltidy again from here on
 
