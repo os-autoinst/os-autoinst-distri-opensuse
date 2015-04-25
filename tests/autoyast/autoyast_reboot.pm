@@ -25,7 +25,8 @@ sub run {
     type_string("shutdown -r now\n");
 
 #obsoletes installation/autoyast_reboot.pm
-    assert_screen( "autoyast-boot", 900 );
+    assert_screen( "bios-boot", 900 );
+    assert_screen( "autoyast-boot", 20 );
 
 
 
