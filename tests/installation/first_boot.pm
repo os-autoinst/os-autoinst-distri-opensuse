@@ -13,12 +13,20 @@ sub run() {
     mouse_hide();
 
     if ( get_var("NOAUTOLOGIN") ) {
-        assert_screen 'displaymanager', 200;
+        my $ret = assert_screen 'displaymanager', 200;
         if ( get_var('DM_NEEDS_USERNAME') ) {
             type_string $username;
         }
-        send_key "ret";
-        wait_idle;
+        if ( $ret->{needle}->has_tag("sddm") ) {
+            # make sure choose plasma5 session
+            assert_and_click "sddm-sessions-list";
+            assert_and_click "sddm-sessions-plasma5";
+            assert_and_click "sddm-password-input";
+        }
+        else {
+            send_key "ret";
+            wait_idle;
+        }
         type_string "$password";
         send_key "ret";
     }
