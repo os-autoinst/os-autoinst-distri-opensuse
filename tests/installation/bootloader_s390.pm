@@ -507,15 +507,18 @@ sub run() {
 
     # create a "ctrl-alt-f2" ssh console which can be the target of
     # any send_key("ctrl-alt-fX") commands.  used in backend::s390x.
-    activate_console("ctrl-alt-f2", "ssh");
+    activate_console("ctrl-alt-f2", "ssh-xterm_vt");
 
     if (exists get_var("DEBUG")->{"demo consoles"}) {
 	type_string("echo 'Hello, ssh World\! nice typing at the vnc front door here...'\n");
 
 	my $ssh = console("ctrl-alt-f2");
 
-	$ssh->send_3270('String("echo \'How about some speed typing at the x3270 script interface ;p ?\'")');
-	$ssh->send_3270('ENTER');
+	type_string("echo FOOBARBAZ >/dev/console\n");
+	wait_serial("FOOBARBAZ", 2);
+
+	#$ssh->send_3270('String("echo \'How about some speed typing at the x3270 script interface ;p ?\'")');
+	#$ssh->send_3270('ENTER');
 	sleep 3;
 	type_string("echo 'gonna start the YaSTie now...'\n");
     }
@@ -542,10 +545,8 @@ sub run() {
     }
     elsif (get_var("DISPLAY")->{TYPE} eq "SSH") {
 	# The ssh parameters are taken from vars.json
-	activate_console("installation", "ssh");
-	my $ssh = console("installation");
-	$ssh->send_3270("String(\"yast\")");
-	$ssh->send_3270("ENTER");
+	activate_console("installation", "ssh-xterm_vt");
+	type_string("yast\n");
     }
     elsif (get_var("DISPLAY")->{TYPE} eq "SSH-X") {
 	# The ssh parameters are taken from vars.json
@@ -573,6 +574,7 @@ sub run() {
 	}
 	select_console("bootloader");
 	type_string("#cp q v dasd\n");
+	wait_serial("0150", 2);
 	sleep 5;
 	select_console("installation");
 	type_string("exit\n") if (get_var("DISPLAY")->{TYPE} eq "VNC");
