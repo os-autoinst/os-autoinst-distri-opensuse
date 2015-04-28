@@ -7,9 +7,6 @@ sub run(){
 
     # long timeout for hardware detection to finish
     assert_screen 'install-completed', 40;
-    if ( get_var('WORKAROUND_BOO926960') ) {
-        send_key 'alt-c', 3;
-    }
     send_key $cmd{'finish'};
 }
 
