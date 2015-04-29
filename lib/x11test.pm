@@ -18,10 +18,18 @@ sub post_fail_hook() {
         sleep 1;
         save_screenshot;
 
-        my $fn = '/tmp/kde4_configs.tar.bz2';
-        my $cmd = sprintf 'tar cjf %s /home/%s/.kde4/share/config/*rc', $fn, $username;
-        type_string "$cmd\n";
-        upload_logs $fn;
+        if ( get_var('PLASMA5') ) {
+            my $fn = '/tmp/plasma5_configs.tar.bz2';
+            my $cmd = sprintf 'tar cjf %s /home/%s/.config/*rc', $fn, $username;
+            type_string "$cmd\n";
+            upload_logs $fn;
+        }
+        else {
+            my $fn = '/tmp/kde4_configs.tar.bz2';
+            my $cmd = sprintf 'tar cjf %s /home/%s/.kde4/share/config/*rc', $fn, $username;
+            type_string "$cmd\n";
+            upload_logs $fn;
+        }
         save_screenshot;
     }
 }
