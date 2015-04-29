@@ -84,6 +84,7 @@ sub x11_start_program($$$) {
     mouse_hide(1);
     assert_screen("desktop-runner", $timeout);
     type_string $program;
+    wait_idle 5;
     if ( $options->{terminal} ) { send_key "alt-t"; sleep 3; }
     send_key "ret", 1;
     # make sure desktop runner executed and closed when have had valid value
