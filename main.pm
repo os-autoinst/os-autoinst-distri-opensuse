@@ -453,7 +453,12 @@ sub load_x11tests(){
     return unless (!get_var("INSTALLONLY") && get_var("DESKTOP") !~ /textmode|minimalx/ && !get_var("DUALBOOT") && !get_var("RESCUECD"));
 
     if ( get_var("NOAUTOLOGIN") || get_var("XDMUSED") ) {
-        loadtest "x11/x11_login.pm";
+        if ( get_var("PLASMA5") ) {
+            loadtest "x11/plasma5_logout_in.pm";
+        }
+        else {
+            loadtest "x11/x11_login.pm";
+        }
     }
     if (xfcestep_is_applicable) {
         loadtest "x11/xfce_close_hint_popup.pm";
