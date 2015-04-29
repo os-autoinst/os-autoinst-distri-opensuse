@@ -20,11 +20,13 @@ sub run() {
     }
 
     assert_screen "inst-bootmenu", 15;
-    if ( get_var("ZDUP") ) {
-        eject_cd;
-        power('reset');
-        sleep 10;
-        send_key "ret";    # boot
+    if (get_var('ZDUP')) {
+        if (get_var('SUSEMIRROR') || get_var('ZDUPREPOS')) {
+            eject_cd;
+            power('reset');
+            sleep 10;
+        }
+        send_key 'ret';    # boot
         return;
     }
 

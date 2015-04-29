@@ -4,10 +4,18 @@ use testapi;
 
 sub run() {
     my $self = shift;
-    my $defaultrepo = "http://" . get_var("SUSEMIRROR");
 
     # Disable all repos, so we do not need to remove one by one
     script_run("zypper modifyrepo --all --disable");
+
+    my $defaultrepo;
+    if (get_var('SUSEMIRROR')) {
+        $defaultrepo = "http://" . get_var("SUSEMIRROR");
+    }
+    else {
+        # SUSEMIRROR not set, zdup from attached ISO
+        $defaultrepo = 'dvd:///';
+    }
 
     my $nr = 1;
     foreach my $r ( split( /\+/, get_var("ZDUPREPOS", $defaultrepo) ) ) {
