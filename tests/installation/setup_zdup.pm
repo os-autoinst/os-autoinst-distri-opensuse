@@ -4,7 +4,12 @@ use testapi;
 
 sub run() {
     # wait booted
-    assert_screen 'generic-desktop', 200;
+    if (get_var("NOAUTOLOGIN")) {
+        assert_screen 'displaymanager', 200;
+    }
+    else {
+        assert_screen 'generic-desktop', 200;
+    }
 
     # log into text console
     send_key "ctrl-alt-f4";
