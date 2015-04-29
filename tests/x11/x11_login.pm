@@ -5,10 +5,12 @@ sub run() {
     my $self = shift;
 
     # log in
-    type_string $username. "\n";
-    sleep 1;
-    type_string $password. "\n";
-    wait_idle;
+    type_string $username;
+    send_key "ret";
+    type_string "$password";
+    send_key "ret";
+
+    assert_screen 'generic-desktop', 20;
 }
 
 1;
