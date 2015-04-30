@@ -19,6 +19,11 @@ sub run() {
 
         if ( get_var("PLASMA5") ) {
             assert_and_click 'sddm_shutdown_option_btn';
+            # sometimes not reliable, since if clicked the background
+            # color of button should changed, thus check and click again
+            if ( check_screen("sddm_shutdown_option_btn", 1) ) {
+                assert_and_click 'sddm_shutdown_option_btn';
+            }
             assert_and_click 'sddm_shutdown_btn';
         }
         else {
