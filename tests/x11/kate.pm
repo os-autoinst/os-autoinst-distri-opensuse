@@ -11,9 +11,11 @@ sub run() {
     x11_start_program("kate", 6, { valid => 1 } );
     assert_screen 'test-kate-1', 10;
 
-    # close welcome screen
-    send_key 'alt-c';
-    sleep 2;
+    if ( !get_var("PLASMA5") ) {
+        # close welcome screen
+        send_key 'alt-c';
+        sleep 2;
+    }
     type_string "If you can see this text kate is working.\n";
     assert_screen 'test-kate-2', 5;
     send_key "ctrl-q";
