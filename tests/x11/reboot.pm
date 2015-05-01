@@ -22,6 +22,7 @@ sub run() {
             assert_and_click "sddm-sessions-list";
             assert_and_click "sddm-sessions-plasma5";
             assert_and_click "sddm-password-input";
+            type_string "$password";
             send_key "ret";
         }
         else {
