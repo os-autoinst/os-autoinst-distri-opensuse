@@ -14,14 +14,21 @@ sub run() {
         $self->pass_disk_encrypt_check;
     }
 
-    # 570_xfce_login_after_reboot
     if ( get_var("NOAUTOLOGIN") || get_var("XDMUSED") ) {
-        assert_screen 'displaymanager', 200;
+        my $ret = assert_screen 'displaymanager', 200;
         wait_idle;
-
-        # log in
-        type_string $username. "\n";
-        type_string $password. "\n";
+        if ( $ret->{needle}->has_tag("sddm") ) {
+            # make sure choose plasma5 session
+            assert_and_click "sddm-sessions-list";
+            assert_and_click "sddm-sessions-plasma5";
+            assert_and_click "sddm-password-input";
+            send_key "ret";
+        }
+        else {
+            # log in
+            type_string $username. "\n";
+            type_string $password. "\n";
+        }
     }
 
     assert_screen 'generic-desktop', 300;

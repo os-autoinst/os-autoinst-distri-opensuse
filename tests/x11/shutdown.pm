@@ -17,9 +17,20 @@ sub run() {
         send_key "ctrl-alt-delete";    # shutdown
         assert_screen 'logoutdialog', 15;
 
-        type_string "\t";
-        assert_screen "kde-turn-off-selected", 2;
-        type_string "\n";
+        if ( get_var("PLASMA5") ) {
+            assert_and_click 'sddm_shutdown_option_btn';
+            # sometimes not reliable, since if clicked the background
+            # color of button should changed, thus check and click again
+            if ( check_screen("sddm_shutdown_option_btn", 1) ) {
+                assert_and_click 'sddm_shutdown_option_btn';
+            }
+            assert_and_click 'sddm_shutdown_btn';
+        }
+        else {
+            type_string "\t";
+            assert_screen "kde-turn-off-selected", 2;
+            type_string "\n";
+        }
     }
 
     if ( check_var("DESKTOP", "gnome") ) {
