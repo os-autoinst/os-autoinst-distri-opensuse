@@ -7,7 +7,12 @@ sub run {
 
     assert_screen "inst-bootmenu", 15;
 
-    $self->bootmenu_down_to('inst-onmediacheck');
+    if (get_var('OFW')) {
+        $self->key_round('inst-onmediacheck', 'up');
+    } else {
+       $self->bootmenu_down_to('inst-onmediacheck');
+    }
+
     send_key "ret";
     # the timeout is insane - but SLE11 DVDs take almost forever
     assert_screen "mediacheck-ok", 3600;
