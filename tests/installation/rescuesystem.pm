@@ -7,7 +7,11 @@ sub run {
 
     assert_screen "inst-bootmenu", 15;
 
-    $self->bootmenu_down_to('inst-rescuesystem');
+    if (get_var('OFW')) {
+        $self->key_round('inst-rescuesystem', 'up');
+    } else {
+       $self->bootmenu_down_to('inst-rescuesystem');
+    }
     send_key "ret";
 
     if ( check_screen "keyboardmap-list", 100 ) {
