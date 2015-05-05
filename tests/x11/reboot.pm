@@ -28,6 +28,7 @@ sub run() {
         else {
             # log in
             type_string $username. "\n";
+            assert_screen "dm-password-input", 10;
             type_string $password. "\n";
         }
     }
