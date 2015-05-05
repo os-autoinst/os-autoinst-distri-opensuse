@@ -10,33 +10,38 @@ sub run() {
     if ( get_var("UPGRADE") ) {
         send_key $cmd{update};
         sleep 1;
-        my $ret = assert_screen [qw/startupdate startupdate-conflict/], 5;
+        my $ret = assert_screen [qw/startupdate startupdate-conflict license-popup/], 5;
 
-        while ( $ret->{needle}->has_tag("startupdate-conflict") ) {
+        while ( $ret->{needle}->has_tag("startupdate-conflict") || $ret->{needle}->has_tag("license-popup") ) {
+          if ( $ret->{needle}->has_tag("startupdate-conflict") ) {
             send_key $cmd{ok}, 1;
 
             while ( !check_screen( 'packages-section-selected', 2 ) ) {
-                send_key 'tab';
+              send_key 'tab';
             }
 
             assert_and_click 'packages-section-selected';
             assert_screen "package-conflict", 20;
 
             while ( !check_screen( 'all-conflicts-resolved-packages', 4 ) ) {
-                assert_and_click 'package-conflict-choice';
-                send_key $cmd{ok}, 1;
+              assert_and_click 'package-conflict-choice';
+              send_key $cmd{ok}, 1;
             }
             send_key $cmd{"accept"}, 1;
 
             while ( check_screen( 'license-popup', 2 ) ) {
-                send_key $cmd{"accept"}, 1;
+              send_key $cmd{"accept"}, 1;
             }
             assert_screen "automatic-changes", 5;
             send_key $cmd{"continue"}, 1;
 
             send_key $cmd{update};
             sleep 1;
-            $ret = assert_screen [qw/startupdate startupdate-conflict/], 5;
+          }
+          if ( $ret->{needle}->has_tag("license-popup") ) {
+            send_key $cmd{"accept"}, 1;
+          }
+          $ret = assert_screen [qw/startupdate startupdate-conflict license-popup/], 5;
         }
 
         # confirm
