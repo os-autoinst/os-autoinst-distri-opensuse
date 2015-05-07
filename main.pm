@@ -394,13 +394,13 @@ sub load_rescuecd_tests() {
 
 sub load_zdup_tests() {
     if (get_var('ZDUP_IN_X')) {
-        loadtest "installation/setup_zdup_keepX.pm";
+        loadtest 'installation/setup_zdup_keepX.pm';
     }
     else {
-        loadtest "installation/setup_zdup.pm";
+        loadtest 'installation/setup_zdup.pm';
     }
-    loadtest "installation/zdup.pm";
-    loadtest "installation/post_zdup.pm";
+    loadtest 'installation/zdup.pm';
+    loadtest 'installation/post_zdup.pm';
 }
 
 sub load_consoletests() {
