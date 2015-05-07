@@ -189,6 +189,10 @@ sub gnomestep_is_applicable() {
     return check_var("DESKTOP", "gnome");
 }
 
+sub lxdestep_is_applicable() {
+    return check_var("DESKTOP", "lxde");
+}
+
 sub need_clear_repos() {
     return get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/ && get_var("SUSEMIRROR");
 }
@@ -517,6 +521,9 @@ sub load_x11tests(){
     if (xfcestep_is_applicable) {
         loadtest "x11/thunar.pm";
         loadtest "x11/reboot_xfce_pre.pm";
+    }
+    if (lxdestep_is_applicable) {
+        loadtest "x11/reboot_lxde_pre.pm";
     }
     if (bigx11step_is_applicable && !get_var("NICEVIDEO")) {
         loadtest "x11/glxgears.pm";
