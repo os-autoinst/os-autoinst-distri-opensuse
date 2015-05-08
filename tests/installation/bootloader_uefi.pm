@@ -87,6 +87,7 @@ sub run() {
 
     if ( !get_var("NICEVIDEO") ) {
         type_string "plymouth.ignore-serial-consoles ", 15; # make plymouth go graphical
+        type_string "linuxrc.log=$serialdev ", 4;    #to get linuxrc logs in serial
         type_string " \\\n"; # changed the line before typing video params
         type_string "console=$serialdev ", 15;    # to get crash dumps as text
         type_string "console=tty ", 15;      # to get crash dumps as text
