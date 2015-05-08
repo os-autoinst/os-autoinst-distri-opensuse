@@ -135,7 +135,9 @@ if ( check_var( 'DESKTOP', 'minimalx' ) ) {
 # openSUSE specific variables
 set_var("PACKAGETOINSTALL", "xdelta");
 set_var("WALLPAPER", '/usr/share/wallpapers/openSUSEdefault/contents/images/1280x1024.jpg');
-set_var("YAST_SW_NO_SUMMARY", 1) if get_var('UPGRADE') || get_var("ZDUP");
+if ( !defined get_var( "YAST_SW_NO_SUMMARY" ) ) {
+    set_var("YAST_SW_NO_SUMMARY", 1) if get_var('UPGRADE') || get_var("ZDUP");
+}
 
 # set KDE and GNOME, ...
 set_var(uc(get_var('DESKTOP')), 1);
