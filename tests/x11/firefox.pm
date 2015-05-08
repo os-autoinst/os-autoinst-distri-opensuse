@@ -3,7 +3,7 @@ use base "x11test";
 use testapi;
 
 sub start_firefox() {
-    x11_start_program("firefox", 6, { valid => 1 } );
+    x11_start_program("firefox https://html5test.com/index.html", 6, { valid => 1 } );
     assert_screen 'test-firefox-1', 35;
 }
 
@@ -12,15 +12,19 @@ sub run() {
     mouse_hide(1);
     $self->start_firefox();
     send_key "alt-h";
-    sleep 2;    # Help
+    assert_screen 'firefox-help-menu', 3;
     send_key "a";
-    sleep 2;    # About
-    assert_screen 'test-firefox-3', 3;
+    assert_screen 'test-firefox-3', 10;
+
+    # close About
     send_key "alt-f4";
-    sleep 2;    # close About
+    assert_screen 'test-firefox-1', 3;
+
     send_key "alt-f4";
-    sleep 2;
-    send_key "ret";    # confirm "save&quit"
+    if (check_screen('firefox-save-and-quit', 4)) {
+       # confirm "save&quit"
+       send_key "ret";
+    }
 }
 
 1;
