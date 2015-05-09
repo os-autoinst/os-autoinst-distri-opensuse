@@ -5,33 +5,32 @@ use testapi;
 
 # add a new primary partition
 #   $type == 3 => 0xFD Linux RAID
-sub addpart($$) {
-    my ( $size, $type ) = @_;
+sub addpart($) {
+    my ( $size ) = @_;
     send_key $cmd{addpart};
-    wait_idle 5;
-    send_key $cmd{"next"};
-    wait_idle 5;
+    if ( check_screen( "partitioning-type", 2 ) ) {
+      send_key $cmd{"next"};
+    }
+    check_screen "partitioning-size", 5;
 
     for ( 1 .. 10 ) {
         send_key "backspace";
     }
     type_string $size . "mb";
-    wait_idle 5;
+    check_screen "partition-size", 3;
     send_key $cmd{"next"};
     assert_screen 'partition-role', 6;
     send_key "alt-a";    # Raw Volume
     send_key $cmd{"next"};
-    wait_idle 5;
+    assert_screen 'partition-format', 8;
     send_key $cmd{"donotformat"};
-    wait_idle 5;
     send_key "tab";
-    wait_idle 5;
 
-    for ( 1 .. $type ) {
-        wait_idle 5;
-        send_key "down";
+    while ( !check_screen("partition-selected-raid-type", 1 ) ) {
+        wait_screen_change {
+           send_key "down";
+        } || die "last item";
     }
-    wait_idle 5;
     send_key $cmd{finish};
 }
 
@@ -90,11 +89,11 @@ sub run() {
 
     for ( 1 .. 4 ) {
         wait_idle 5;
-        addpart( 300, 2 );    # boot
+        addpart( 300 );    # boot
         wait_idle 5;
-        addpart( 5300, 2 );    # root
+        addpart( 5300 );    # root
         wait_idle 5;
-        addpart( 100, 2 );     # swap
+        addpart( 100 );     # swap
         assert_screen 'raid-partition', 5;
 
         # select next disk
