@@ -5,12 +5,13 @@ sub run() {
     my $self = shift;
     $self->start_audiocapture;
     x11_start_program("firefox " . autoinst_url . "/data/1d5d9dD.oga");
-    sleep 3;
+    assert_screen 'test-firefox_audio-1', 12;
     $self->assert_DTMF('159D');
-    assert_screen 'test-firefox_audio-1', 3;
     send_key "alt-f4";
-    sleep 2;
-    send_key "ret", 1;             # confirm "save&quit"
+     if (check_screen('firefox-save-and-quit', 4)) {
+       # confirm "save&quit"
+       send_key "ret";
+    }
 }
 
 sub post_fail_hook() {
