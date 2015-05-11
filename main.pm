@@ -546,9 +546,7 @@ sub load_x11tests(){
         loadtest "x11/evolution.pm" unless (check_var("FLAVOR", "Server-DVD"));
         loadtest "x11/reboot_gnome_pre.pm";
     }
-    if (!get_var("LIVETEST")) {
-        loadtest "x11/reboot.pm";
-    }
+    loadtest "x11/reboot.pm";
     loadtest "x11/desktop_mainmenu.pm";
 
     if (xfcestep_is_applicable) {
