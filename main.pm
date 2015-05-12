@@ -329,11 +329,8 @@ sub load_inst_tests() {
         elsif ( get_var("LVM") ) {
             loadtest "installation/partitioning_lvm.pm";
         }
-        if ( get_var("BTRFS") ) {
-            loadtest "installation/partitioning_btrfs.pm";
-        }
-        elsif ( get_var("EXT4") ) {
-            loadtest "installation/partitioning_ext4.pm";
+        if ( get_var("FILESYSTEM") ) {
+            loadtest "installation/partitioning_filesystem.pm";
         }
         if ( get_var("TOGGLEHOME") ) {
             loadtest "installation/partitioning_togglehome.pm";
