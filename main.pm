@@ -364,6 +364,10 @@ sub load_inst_tests() {
             loadtest "installation/installation_overview_before.pm";
             loadtest "installation/select_patterns.pm";
         }
+        elsif (!check_var('DESKTOP', 'gnome')) {
+            loadtest "installation/installation_overview_before.pm";
+            loadtest "installation/change_desktop.pm";
+        }
     }
     if (get_var("UEFI") && get_var("SECUREBOOT")) {
         loadtest "installation/secure_boot.pm";
