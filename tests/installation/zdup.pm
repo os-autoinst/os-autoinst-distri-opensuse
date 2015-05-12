@@ -81,7 +81,7 @@ sub run() {
     }
 
     # wait for zypper dup finish, accept failures in meantime
-    $out = wait_serial([$zypper_dup_finish, $zypper_installing, $zypper_dup_notifications, $zypper_dup_error], 120);
+    $out = wait_serial([$zypper_dup_finish, $zypper_installing, $zypper_dup_notifications, $zypper_dup_error], 240);
     while ($out) {
         if ($out =~ $zypper_dup_notifications) {
             send_key 'n', 1; # do not show notifications
@@ -99,7 +99,7 @@ sub run() {
             # probably to avoid hitting black screen on video
             send_key 'shift', 1;
         }
-        $out = wait_serial([$zypper_dup_finish, $zypper_installing, $zypper_dup_notifications, $zypper_dup_error], 120);
+        $out = wait_serial([$zypper_dup_finish, $zypper_installing, $zypper_dup_notifications, $zypper_dup_error], 240);
     }
 
     assert_screen "zypper-dup-finish", 2;
