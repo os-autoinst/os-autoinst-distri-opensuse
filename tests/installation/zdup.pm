@@ -1,7 +1,6 @@
 use base "installbasetest";
 use strict;
 use testapi;
-use experimental 'smartmatch';
 
 sub run() {
     my $self = shift;
@@ -22,7 +21,7 @@ sub run() {
     script_run("zypper modifyrepo --all --disable | tee /dev/$serialdev");
     my $out = wait_serial([$zypper_packagekit, $zypper_repo_disabled], 120);
     while($out) {
-        if ($out ~~ [$zypper_packagekit, $zypper_packagekit_again]) {
+        if ($out =~ $zypper_packagekit || $out =~ $zypper_packagekit_again) {
             send_key 'y';
             send_key 'ret';
         }
