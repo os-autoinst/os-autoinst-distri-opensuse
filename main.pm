@@ -628,9 +628,7 @@ else {
 }
 
 if (get_var('STORE_ASSET')) {
-    # store resulting hdd as job asset
-    # this only creates link, actual upload is done after qemu stops
-    upload_image(1, get_var('STORE_ASSET'), 'assets_public');
+    loadtest 'support/upload_asset.pm';
 }
 
 1;
