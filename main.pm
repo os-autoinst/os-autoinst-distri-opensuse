@@ -147,6 +147,11 @@ if ( check_var( 'DESKTOP', 'minimalx' ) ) {
     set_var('DM_NEEDS_USERNAME', 1);
 }
 
+# ZDUP_IN_X imply ZDUP
+if ( get_var('ZDUP_IN_X')) {
+    set_var('ZDUP', 1);
+}
+
 $needle::cleanuphandler = \&cleanup_needles;
 
 bmwqemu::save_vars(); # update variables
@@ -394,9 +399,14 @@ sub load_rescuecd_tests() {
 }
 
 sub load_zdup_tests() {
-    loadtest "installation/setup_zdup.pm";
-    loadtest "installation/zdup.pm";
-    loadtest "installation/post_zdup.pm";
+    if (get_var('ZDUP_IN_X')) {
+        loadtest 'installation/setup_zdup_keepX.pm';
+    }
+    else {
+        loadtest 'installation/setup_zdup.pm';
+    }
+    loadtest 'installation/zdup.pm';
+    loadtest 'installation/post_zdup.pm';
 }
 
 sub load_consoletests() {
@@ -618,6 +628,12 @@ else {
     load_rescuecd_tests();
     load_consoletests();
     load_x11tests();
+}
+
+if (get_var('STORE_ASSET')) {
+    # store resulting hdd as job asset
+    # this only creates link, actual upload is done after qemu stops
+    upload_image(1, get_var('STORE_ASSET'), 'assets_public');
 }
 
 1;

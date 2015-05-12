@@ -153,7 +153,7 @@ sub script_sudo($$) {
     my ($self, $prog, $wait) = @_;
 
     send_key 'ctrl-l';
-    type_string "su -c '$prog'\n";
+    type_string "su -c \'$prog\'\n";
     if (!get_var("LIVETEST")) {
         assert_screen 'password-prompt';
         type_password;

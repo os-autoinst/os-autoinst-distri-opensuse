@@ -14,6 +14,9 @@ sub run() {
 
     save_screenshot;
 
+    # switch to tty3 (in case we are in X)
+    send_key "ctrl-alt-f3";
+    assert_screen "text-login", 5;
     # Reboot after dup
     send_key "ctrl-alt-delete";
     assert_screen "grub2", 50;
