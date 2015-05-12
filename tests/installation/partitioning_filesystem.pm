@@ -4,6 +4,8 @@ use base "y2logsstep";
 use testapi;
 
 sub run() {
+    
+    my $fs = get_var('FILESYSTEM');
 
     # click the button
     assert_and_click 'edit-proposal-settings';
@@ -11,9 +13,9 @@ sub run() {
     # select the combo box
     assert_and_click 'default-root-filesystem';
 
-    # select ext4
-    assert_and_click 'filesystem-ext4';
-    assert_screen 'ext4-selected';
+    # select filesystem
+    assert_and_click "filesystem-$fs";
+    assert_screen "$fs-selected";
     assert_and_click 'ok-button';
 
     # make sure we're back from the popup
