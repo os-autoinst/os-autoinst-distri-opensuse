@@ -380,7 +380,7 @@ sub load_inst_tests() {
         }
         elsif (!check_var('DESKTOP', 'gnome')) {
             loadtest "installation/installation_overview_before.pm";
-            loadtest "installation/sle11_change_desktop.pm";
+            loadtest "installation/change_desktop.pm";
         }
     }
     if (get_var("UEFI") && get_var("SECUREBOOT")) {
