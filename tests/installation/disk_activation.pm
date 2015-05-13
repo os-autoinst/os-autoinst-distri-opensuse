@@ -1,4 +1,4 @@
-use base "y2logstep";
+use base "y2logsstep";
 use strict;
 use testapi;
 
