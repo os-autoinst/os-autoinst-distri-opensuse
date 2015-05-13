@@ -30,6 +30,10 @@ sub run() {
         return;
     }
 
+    if ( get_var("BOOT_HDD_IMAGE") ) {
+        send_key "ret";    # boot from hd
+        return;
+    }
 
     if (get_var("UPGRADE")) {
         $self->bootmenu_down_to('inst-onupgrade');
