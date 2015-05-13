@@ -31,8 +31,7 @@ sub change_desktop() {
         send_key 'alt-f';
         for ( 1 .. 4 ) { send_key 'up'; }
         send_key 'ret';
-        assert_screen 'patterns-list-selected', 5;
-        send_key 'tab';
+        $self->key_round('patterns-list-selected', 'tab', 10);
     }
     else {
         $self->key_round('patterns-list-selected', 'tab', 10);
