@@ -342,7 +342,7 @@ sub load_inst_tests() {
     if (!check_var('BACKEND', 'ipmi') || !check_var('BACKEND', 's390x')) { # network installs in general, but we have no setting for it yet
         loadtest "installation/check_medium.pm";
     }
-    if (check_var('BACKEND', 's390x') {
+    if (check_var('BACKEND', 's390x')) {
         loadtest "installation/disk_activation.pm";
     }
     if (get_var("MULTIPATH")) {
