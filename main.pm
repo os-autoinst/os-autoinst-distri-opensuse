@@ -314,7 +314,7 @@ sub is_reboot_after_installation_necessary() {
 
 sub load_inst_tests() {
     loadtest "installation/welcome.pm";
-    if (check_var('BACKEND', 's390x') {
+    if (check_var('BACKEND', 's390x')) {
         loadtest "installation/disk_activation.pm";
     }
     if (get_var('MULTIPATH')) {
