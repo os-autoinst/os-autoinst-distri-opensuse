@@ -147,6 +147,11 @@ if ( check_var( 'DESKTOP', 'minimalx' ) ) {
     set_var('DM_NEEDS_USERNAME', 1);
 }
 
+# now Plasma 5 is default KDE desktop
+if ( check_var( 'DESKTOP', 'kde' ) ) {
+    set_var("PLASMA5", 1);
+}
+
 # ZDUP_IN_X imply ZDUP
 if ( get_var('ZDUP_IN_X')) {
     set_var('ZDUP', 1);
