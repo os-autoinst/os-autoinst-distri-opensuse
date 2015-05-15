@@ -80,6 +80,8 @@ sub init_cmd() {
 # this needs to move to the distribution
 sub x11_start_program($$$) {
     my ($self, $program, $timeout, $options) = @_;
+    # enable valid option as default
+    $options->{valid} //= 1;
     send_key "alt-f2";
     mouse_hide(1);
     assert_screen("desktop-runner", $timeout);
