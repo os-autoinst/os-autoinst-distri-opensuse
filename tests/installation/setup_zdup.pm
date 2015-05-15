@@ -26,13 +26,22 @@ sub run() {
 
     # Remove the --force when this is fixed:
     # https://bugzilla.redhat.com/show_bug.cgi?id=1075131
-    script_run("systemctl set-default --force multi-user.target");
+    if ( check_var( 'HDDVERSION', "SLES-11-sp3" ) ) { #set default runlevel 3 for sle11
+        type_string "sed -i 's/id:5:initdefault:/id:3:initdefault:/g' /etc/inittab\n";
+    }
+    else {
+        script_run("systemctl set-default --force multi-user.target");
+    }
     # The CD was ejected in the bootloader test
     script_run("/sbin/reboot");
 
     # login, again : )
     assert_screen "grub2", 300; # boot menu appears
     send_key "ret";
+    if ( check_var( 'HDDVERSION', "SLES-11-sp3" ) ) {
+        check_screen 'linux-login';
+        send_key "ctrl-alt-f4"; #switch to another tty, black background
+    }
     assert_screen "linux-login", 30; # login prompt appears
     type_string "root\n";
     assert_screen 'password-prompt';
