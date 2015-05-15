@@ -28,9 +28,9 @@ sub run() {
     # https://bugzilla.redhat.com/show_bug.cgi?id=1075131
     if ( check_var( 'HDDVERSION', "SLES-11-sp3" ) ) { #set default runlevel 3 for sle11
         type_string "sed -i 's/id:5:initdefault:/id:3:initdefault:/g' /etc/inittab\n";
-        }
+    }
     else {
-            script_run("systemctl set-default --force multi-user.target");
+        script_run("systemctl set-default --force multi-user.target");
     }
     # The CD was ejected in the bootloader test
     script_run("/sbin/reboot");
