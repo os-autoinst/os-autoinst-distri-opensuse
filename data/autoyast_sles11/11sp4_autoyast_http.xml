@@ -1,0 +1,443 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+
+
+  <general>
+    <ask-list config:type="list"/>
+    <mode>
+      <confirm config:type="boolean">false</confirm>
+    </mode>
+    <proposals config:type="list"/>
+    <signature-handling>
+      <accept_file_without_checksum config:type="boolean">true</accept_file_without_checksum>
+      <accept_non_trusted_gpg_key config:type="boolean">true</accept_non_trusted_gpg_key>
+      <accept_unknown_gpg_key config:type="boolean">true</accept_unknown_gpg_key>
+      <accept_unsigned_file config:type="boolean">true</accept_unsigned_file>
+      <accept_verification_failed config:type="boolean">false</accept_verification_failed>
+      <import_gpg_key config:type="boolean">true</import_gpg_key>
+    </signature-handling>
+  </general>
+  <networking>
+<!-- bnc#897129
+      <keep_install_network config:type="boolean">true</keep_install_network>
+-->
+      <interfaces config:type="list">
+        <interface>
+          <bootproto>dhcp</bootproto>
+          <device>eth0</device>
+          <startmode>auto</startmode>
+        </interface>
+        <interface>
+          <bootproto>static</bootproto>
+          <broadcast>127.255.255.255</broadcast>
+          <device>lo</device>
+          <firewall>no</firewall>
+          <ipaddr>127.0.0.1</ipaddr>
+          <netmask>255.0.0.0</netmask>
+          <network>127.0.0.0</network>
+          <prefixlen>8</prefixlen>
+          <usercontrol>no</usercontrol>
+        </interface>
+      </interfaces>
+  </networking>
+  <deploy_image>
+    <image_installation config:type="boolean">false</image_installation>
+  </deploy_image>
+  <firewall>
+    <FW_CONFIGURATIONS_EXT>apache2 apache2-ssl</FW_CONFIGURATIONS_EXT>
+    <FW_SERVICES_EXT_TCP>8080</FW_SERVICES_EXT_TCP>
+    <FW_SERVICES_EXT_UDP>9090</FW_SERVICES_EXT_UDP>
+    <enable_firewall config:type="boolean">true</enable_firewall>
+    <start_firewall config:type="boolean">true</start_firewall>
+  </firewall>
+  <files config:type="list">
+      <file>
+        <file_path>/etc/apache2/ssl.crt/server.crt</file_path>
+        <file_contents>
+<![CDATA[
+-----BEGIN CERTIFICATE-----
+MIIECjCCAvKgAwIBAgIBAzANBgkqhkiG9w0BAQUFADBHMQswCQYDVQQGEwJDWjEN
+MAsGA1UEChMEU1VTRTENMAsGA1UECxMEU0xFUzEaMBgGA1UEAxMRQXV0b3lhc3RU
+ZXN0aW5nQ0EwHhcNMTQwODA4MDk1MjU4WhcNMTUwODA4MDk1MjU4WjBMMQswCQYD
+VQQGEwJDWjENMAsGA1UEChMEU1VTRTENMAsGA1UECxMEU0xFUzEfMB0GA1UEAxMW
+c2xlcG9zYnVpbGRlcjMuc3VzZS5jejCCASIwDQYJKoZIhvcNAQEBBQADggEPADCC
+AQoCggEBALuPtLUOAUjztmj8eWc1JIEEiB9UjhuQs3SpR2zVbph/TL1lzIuxaNWX
+NDcueghLTux02yLjnHzpR4I5YDxwgpf2vf4IPFxsRTOPfeHlbxSfxWW36nz729Cq
+NhIeiVzlLy+UMJelGFfGDtuXeOTzi2rAGEKvUTn/JW1m8jpxJ7miEg8qz5tc5nmQ
+2pkx4WSh7OhKHkGN3i+dD7K7GDH0cIyu5SXnmmwfcX6f5okb7sFDXv+WpubqzNRI
+tX76a6piiW0HRlMPY/4dr36ppgdAd4Pw/wsTUS/XQnczEHyuRZOcIKUCA7148HYQ
+RnbWsjvadf2Whgnl7PBgS2sjgx9pazsCAwEAAaOB+zCB+DAJBgNVHRMEAjAAMDAG
+CWCGSAGG+EIBDQQjFiFZYVNUIEdlbmVyYXRlZCBTZXJ2ZXIgQ2VydGlmaWNhdGUw
+EQYJYIZIAYb4QgEBBAQDAgZAMA4GA1UdDwEB/wQEAwIDqDAdBgNVHQ4EFgQUH7cl
+cx8jFp5j0OjAVvpLdG9yA9UwdwYDVR0jBHAwboAUotnNrSO3GQdBvQr1u1ExhWmz
++R2hS6RJMEcxCzAJBgNVBAYTAkNaMQ0wCwYDVQQKEwRTVVNFMQ0wCwYDVQQLEwRT
+TEVTMRowGAYDVQQDExFBdXRveWFzdFRlc3RpbmdDQYIJAJUYjf18SpIlMA0GCSqG
+SIb3DQEBBQUAA4IBAQAD3HSuwFuEJI+sCxVwEe3yEUoBsug3J8T9HJKt4yfAJOcF
+utTr0QF1j3mQUHvlu/Wxm413po8lyJ1GqUmOMAKFO5cuiBALXrMIc8gXd0gHous9
+Q8rtJvDB5lB7Irfg4lTmSYdSP+D9RtFn8DAf+SGRbSoqgP+GZ3oMJYT/VcYezS7s
+jIrVJ47yWN///2Lv8tLmT0FX77LqBnZqxyz0gew9ROKkmu2AU8CQpcytSiPpWuBs
+ERCu0OHCcGCXrMXDh1LI/fhA4rZ2yVjq7TcKTrtq3jMBr+9VOsRkMMvYly1J9Hl7
+QxycbBY+B+wPk6cwxo3l2Qqa36sAwNySFXhY34n1
+-----END CERTIFICATE-----
+]]>
+       </file_contents>
+     </file>
+     <file>
+        <file_path>/etc/apache2/ssl.key/server.key</file_path>
+        <file_contents>
+<![CDATA[
+-----BEGIN RSA PRIVATE KEY-----
+MIIEpAIBAAKCAQEAu4+0tQ4BSPO2aPx5ZzUkgQSIH1SOG5CzdKlHbNVumH9MvWXM
+i7Fo1Zc0Ny56CEtO7HTbIuOcfOlHgjlgPHCCl/a9/gg8XGxFM4994eVvFJ/FZbfq
+fPvb0Ko2Eh6JXOUvL5Qwl6UYV8YO25d45POLasAYQq9ROf8lbWbyOnEnuaISDyrP
+m1zmeZDamTHhZKHs6EoeQY3eL50PsrsYMfRwjK7lJeeabB9xfp/miRvuwUNe/5am
+5urM1Ei1fvprqmKJbQdGUw9j/h2vfqmmB0B3g/D/CxNRL9dCdzMQfK5Fk5wgpQID
+vXjwdhBGdtayO9p1/ZaGCeXs8GBLayODH2lrOwIDAQABAoIBAQCAPVRXypiUUZXx
+mFZFe69Wy0tq6Hw1Wq1oYWllf1SbzcYhZR4CkS1VhIl+BTgIvbzbrVY7N5bCTRnI
+bwRerqqLzne+3dCvfJOgGkb+kcluN4NW9fXMuMNlm0tW/iv7KPQnOtIyjP3k3ZVB
+DQLqv54eQfMUfRwzZEEp2Q5baQy5PWpEilxdoqPZRogNahDTxLYl48PSHn0nIayF
+rHxkeR9OxsX4OJp7dU3v3aEe4jpJGXsMGxgquo3qaeo+WMN2pHvV1JobcGSMg3Vu
+XRXDFMXu0W5zi4K4fxrdqE97gYED3ZjWNNlXmxk88bCwnypKtKLaP5WgJQxBna3Y
+Z5ayEJFRAoGBAPUo6hLrsnTWB+OuIDFzePOrDc1k5eZg6tAtBtqNZ78hLhchHxoa
+IWTWD5sG2Rq2FK6OCR51lq6UPuECI714BptTTOIAA52LWnjIFeOgERH49/iZQeoM
+fcC4hGHW2sD63QvDddeUKQGdy8w9/0gLygg2GM8K65+boztfuquOLccDAoGBAMPa
+zk2uEOrt4L65YCOCIjFMfXy+xk8VXmjpd4J/bDQkkAmVegEiUUU9irr9+KpC+myz
+FO1U/jY0nPN1AvVXEPoIkDZPgEE0/242LVs7+T9Y30ZHEo9IxY02ZPnp53FBbdS9
+ovWGJ2emG0bAJvn4lZTtJNSew8AwmnGy4cni5plpAoGAZDY+QE+yGconXW0e4bfm
+2Auyz6OPyjURptjQ9WNZ5inE8lVqpjvKLLLHnEIXWrDVEWkj1xyP5HranRVH0LoQ
+UUuioLsKv0poR/jZ4brbX3Jawna7F9XVTYLfMjMmJj4lPxq9v8pjXLLIzIsHH8cZ
+5XNffrpjCFIRTkLaRigPFEsCgYBXBJpwzQvbNYGLe9WJMUJ74N5IVILLlFT0C/b7
+Vh3/NNeCSpWAd3zgZK2E015uV3/oV9DOedrQvqOVT8HWu65hSPi6CKyVTDTJBO02
+AfmF+biKAv3uB4kuaqKGnzQjj8x6nx8OM2LCnHy1/J3UpmvfVVXt2fRjKbUVG0NS
+bavDMQKBgQC4tNvm+dWhISL+CveToypjhdOHaMTYv8pllmM9MuKe5RX0n/drAhw5
+UGxacxRdglSl7BqW6gvC7LFGnzbWv4mZ8PqjvxGAROAkA5cwA6uW8UJ+FQBwUz8t
+Tmr9shvqBQKa2NyWfUBcct9hvmlrZD6fnc9a4+3nTxv3TJRwxBUc9Q==
+-----END RSA PRIVATE KEY-----
+]]>
+       </file_contents>
+     </file>
+  </files>
+  <http-server>
+    <Listen config:type="list">
+      <listentry>
+        <ADDRESS/>
+        <PORT>80</PORT>
+      </listentry>
+    </Listen>
+    <hosts config:type="list">
+      <hosts_entry>
+        <KEY>*:443/SSL</KEY>
+        <VALUE config:type="list">
+          <listentry>
+            <KEY>DocumentRoot</KEY>
+            <VALUE>/srv/www/htdocs</VALUE>
+          </listentry>
+          <listentry>
+            <KEY>ServerName</KEY>
+            <VALUE>sleposbuilder3.suse.cz</VALUE>
+          </listentry>
+          <listentry>
+            <KEY>ServerAdmin</KEY>
+            <VALUE>root@localhost</VALUE>
+          </listentry>
+          <listentry>
+            <KEY>_SECTION</KEY>
+            <OVERHEAD/>
+            <SECTIONNAME>Directory</SECTIONNAME>
+            <SECTIONPARAM>/srv/www/htdocs</SECTIONPARAM>
+            <VALUE config:type="list">
+              <listentry>
+                <KEY>AllowOverride</KEY>
+                <VALUE>None</VALUE>
+              </listentry>
+              <listentry>
+                <KEY>Order</KEY>
+                <VALUE>allow,deny</VALUE>
+              </listentry>
+              <listentry>
+                <KEY>Allow</KEY>
+                <VALUE>from all</VALUE>
+              </listentry>
+            </VALUE>
+          </listentry>
+          <listentry>
+            <KEY>_SECTION</KEY>
+            <OVERHEAD/>
+            <SECTIONNAME>IfDefine</SECTIONNAME>
+            <SECTIONPARAM>SSL</SECTIONPARAM>
+            <VALUE config:type="list">
+              <listentry>
+                <KEY>SSLCertificateFile</KEY>
+                <VALUE>/etc/apache2/ssl.crt/server.crt</VALUE>
+              </listentry>
+              <listentry>
+                <KEY>SSLCertificateKeyFile</KEY>
+                <VALUE>/etc/apache2/ssl.key/server.key</VALUE>
+              </listentry>
+              <listentry>
+                <KEY>SSLEngine</KEY>
+                <VALUE>on</VALUE>
+              </listentry>
+            </VALUE>
+          </listentry>
+        </VALUE>
+      </hosts_entry>
+      <hosts_entry>
+        <KEY>main</KEY>
+        <VALUE config:type="list">
+          <listentry>
+            <KEY>DocumentRoot</KEY>
+            <OVERHEAD>#
+# Global configuration that will be applicable for all virtual hosts, unless
+# deleted here, or overriden elswhere.
+# 
+
+</OVERHEAD>
+            <VALUE>"/srv/www/htdocs"</VALUE>
+          </listentry>
+          <listentry>
+            <KEY>_SECTION</KEY>
+            <OVERHEAD>
+#
+# Configure the DocumentRoot
+#
+</OVERHEAD>
+            <SECTIONNAME>Directory</SECTIONNAME>
+            <SECTIONPARAM>"/srv/www/htdocs"</SECTIONPARAM>
+            <VALUE config:type="list">
+              <listentry>
+                <KEY>Options</KEY>
+                <OVERHEAD> 	# Possible values for the Options directive are "None", "All",
+	# or any combination of:
+	#   Indexes Includes FollowSymLinks SymLinksifOwnerMatch ExecCGI MultiViews
+	#
+	# Note that "MultiViews" must be named *explicitly* - "Options All"
+	# doesn't give it to you.
+	#
+	# The Options directive is both complicated and important.  Please see
+	# http://httpd.apache.org/docs-2.2/mod/core.html#options
+	# for more information.
+</OVERHEAD>
+                <VALUE>None</VALUE>
+              </listentry>
+              <listentry>
+                <KEY>AllowOverride</KEY>
+                <OVERHEAD> 	# AllowOverride controls what directives may be placed in .htaccess files.
+	# It can be "All", "None", or any combination of the keywords:
+	#   Options FileInfo AuthConfig Limit
+</OVERHEAD>
+                <VALUE>None</VALUE>
+              </listentry>
+              <listentry>
+                <KEY>Order</KEY>
+                <OVERHEAD> 	# Controls who can get stuff from this server.
+</OVERHEAD>
+                <VALUE>allow,deny</VALUE>
+              </listentry>
+              <listentry>
+                <KEY>Allow</KEY>
+                <VALUE>from all</VALUE>
+              </listentry>
+            </VALUE>
+          </listentry>
+          <listentry>
+            <KEY>Alias</KEY>
+            <OVERHEAD>
+# Aliases: aliases can be added as needed (with no limit). The format is 
+# Alias fakename realname
+#
+# Note that if you include a trailing / on fakename then the server will
+# require it to be present in the URL.  So "/icons" isn't aliased in this
+# example, only "/icons/".  If the fakename is slash-terminated, then the 
+# realname must also be slash terminated, and if the fakename omits the 
+# trailing slash, the realname must also omit it.
+#
+# We include the /icons/ alias for FancyIndexed directory listings.  If you
+# do not use FancyIndexing, you may comment this out.
+#
+</OVERHEAD>
+            <VALUE>/icons/ "/usr/share/apache2/icons/"</VALUE>
+          </listentry>
+          <listentry>
+            <KEY>_SECTION</KEY>
+            <OVERHEAD>
+</OVERHEAD>
+            <SECTIONNAME>Directory</SECTIONNAME>
+            <SECTIONPARAM>"/usr/share/apache2/icons"</SECTIONPARAM>
+            <VALUE config:type="list">
+              <listentry>
+                <KEY>Options</KEY>
+                <VALUE>Indexes MultiViews</VALUE>
+              </listentry>
+              <listentry>
+                <KEY>AllowOverride</KEY>
+                <VALUE>None</VALUE>
+              </listentry>
+              <listentry>
+                <KEY>Order</KEY>
+                <VALUE>allow,deny</VALUE>
+              </listentry>
+              <listentry>
+                <KEY>Allow</KEY>
+                <VALUE>from all</VALUE>
+              </listentry>
+            </VALUE>
+          </listentry>
+          <listentry>
+            <KEY>ScriptAlias</KEY>
+            <OVERHEAD>
+# ScriptAlias: This controls which directories contain server scripts.
+# ScriptAliases are essentially the same as Aliases, except that
+# documents in the realname directory are treated as applications and
+# run by the server when requested rather than as documents sent to the client.
+# The same rules about trailing "/" apply to ScriptAlias directives as to
+# Alias.
+#
+</OVERHEAD>
+            <VALUE>/cgi-bin/ "/srv/www/cgi-bin/"</VALUE>
+          </listentry>
+          <listentry>
+            <KEY>_SECTION</KEY>
+            <OVERHEAD>
+# "/srv/www/cgi-bin" should be changed to whatever your ScriptAliased
+# CGI directory exists, if you have that configured.
+#
+</OVERHEAD>
+            <SECTIONNAME>Directory</SECTIONNAME>
+            <SECTIONPARAM>"/srv/www/cgi-bin"</SECTIONPARAM>
+            <VALUE config:type="list">
+              <listentry>
+                <KEY>AllowOverride</KEY>
+                <VALUE>None</VALUE>
+              </listentry>
+              <listentry>
+                <KEY>Options</KEY>
+                <VALUE>+ExecCGI -Includes</VALUE>
+              </listentry>
+              <listentry>
+                <KEY>Order</KEY>
+                <VALUE>allow,deny</VALUE>
+              </listentry>
+              <listentry>
+                <KEY>Allow</KEY>
+                <VALUE>from all</VALUE>
+              </listentry>
+            </VALUE>
+          </listentry>
+          <listentry>
+            <KEY>IncludeOptional</KEY>
+            <OVERHEAD>
+
+# Include all *.conf files from /etc/apache2/conf.d/.
+#
+# This is mostly meant as a place for other RPM packages to drop in their
+# configuration snippet.
+#
+# You can comment this out here if you want those bits include only in a
+# certain virtual host, but not here.
+#
+</OVERHEAD>
+            <VALUE>/etc/apache2/conf.d/*.conf</VALUE>
+          </listentry>
+          <listentry>
+            <KEY>IncludeOptional</KEY>
+            <OVERHEAD>
+# The manual... if it is installed ('?' means it won't complain)
+</OVERHEAD>
+            <VALUE>/etc/apache2/conf.d/apache2-manual?conf</VALUE>
+          </listentry>
+          <listentry>
+            <KEY>ServerName</KEY>
+            <VALUE>localhost</VALUE>
+          </listentry>
+          <listentry>
+            <KEY>ServerAdmin</KEY>
+            <VALUE>root@localhost</VALUE>
+          </listentry>
+        </VALUE>
+      </hosts_entry>
+    </hosts>
+    <modules config:type="list">
+      <module_entry>
+        <change>enable</change>
+        <default>0</default>
+        <name>env</name>
+      </module_entry>
+      <module_entry>
+        <change>enable</change>
+        <default>0</default>
+        <name>expires</name>
+      </module_entry>
+      <module_entry>
+        <change>disable</change>
+        <default>1</default>
+        <name>asis</name>
+      </module_entry>
+      <module_entry>
+        <change>disable</change>
+        <default>1</default>
+        <name>imagemap</name>
+      </module_entry>
+      <module_entry>
+        <change>enable</change>
+        <default>0</default>
+        <name>ssl</name>
+      </module_entry>
+      <module_entry>
+        <change>enable</change>
+        <name>socache_shmcb</name>
+        <userdefined config:type="boolean">true</userdefined>
+      </module_entry>
+      <module_entry>
+        <change>enable</change>
+        <name>authn_core</name>
+        <userdefined config:type="boolean">true</userdefined>
+      </module_entry>
+      <module_entry>
+        <change>enable</change>
+        <name>reqtimeout</name>
+        <userdefined config:type="boolean">true</userdefined>
+      </module_entry>
+      <module_entry>
+        <change>enable</change>
+        <name>authz_core</name>
+        <userdefined config:type="boolean">true</userdefined>
+      </module_entry>
+      <!-- bnc#896011 -->
+      <module_entry>
+        <change>enable</change>
+        <name>access_compat</name>
+        <userdefined config:type="boolean">true</userdefined>
+      </module_entry>
+    </modules>
+    <service config:type="boolean">true</service>
+    <version>2.9</version>
+  </http-server>
+  <services-manager>
+    <default_target>multi-user</default_target>
+    <services config:type="list">
+      <service>SuSEfirewall2</service>
+      <service>SuSEfirewall2_init</service>
+    </services>
+  </services-manager>
+  <software>
+    <image/>
+    <instsource/>
+    <packages config:type="list">
+      <package>apache2</package>
+      <package>apache2-prefork</package>
+      <package>SuSEfirewall2</package>
+    </packages>
+  </software>
+  <suse_register>
+    <do_registration config:type="boolean">false</do_registration>
+  </suse_register>
+  <users config:type="list">
+          <user>
+                      <encrypted config:type="boolean">false</encrypted>
+                      <user_password>root</user_password>
+                      <username>root</username>
+          </user>
+  </users>
+</profile>

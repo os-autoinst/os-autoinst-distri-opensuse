@@ -1,0 +1,110 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+
+
+  <deploy_image>
+    <image_installation config:type="boolean">false</image_installation>
+  </deploy_image>
+  <general>
+    <mode>
+      <confirm config:type="boolean">false</confirm>
+    </mode>
+  </general>
+  <networking>
+      <keep_install_network config:type="boolean">true</keep_install_network>
+  </networking>
+  <ftp-server>
+    <AnonAuthen>2</AnonAuthen>
+    <AnonCreatDirs>NO</AnonCreatDirs>
+    <AnonMaxRate>0</AnonMaxRate>
+    <AnonReadOnly>NO</AnonReadOnly>
+    <AntiWarez>YES</AntiWarez>
+    <Banner>Welcome message</Banner>
+    <CertFile/>
+    <ChrootEnable>NO</ChrootEnable>
+    <EnableUpload>YES</EnableUpload>
+    <FTPUser>ftp</FTPUser>
+    <FtpDirAnon>/tmp</FtpDirAnon>
+    <FtpDirLocal/>
+    <GuestUser/>
+    <LocalMaxRate>0</LocalMaxRate>
+    <MaxClientsNumber>10</MaxClientsNumber>
+    <MaxClientsPerIP>3</MaxClientsPerIP>
+    <MaxIdleTime>15</MaxIdleTime>
+    <PasMaxPort>40500</PasMaxPort>
+    <PasMinPort>40000</PasMinPort>
+    <PassiveMode>NO</PassiveMode>
+    <SSL>0</SSL>
+    <SSLEnable>NO</SSLEnable>
+    <SSLv2>NO</SSLv2>
+    <SSLv3>NO</SSLv3>
+    <StartDaemon>2</StartDaemon>
+    <StartXinetd>YES</StartXinetd>
+    <TLS>YES</TLS>
+    <Umask/>
+    <UmaskAnon/>
+    <UmaskLocal/>
+    <VerboseLogging>NO</VerboseLogging>
+    <VirtualUser>NO</VirtualUser>
+  </ftp-server>
+  <inetd>
+    <last_created config:type="integer">0</last_created>
+    <netd_conf config:type="list">
+      <conf>
+        <iid>1:/etc/xinetd.d/vsftpd</iid>
+        <protocol>tcp</protocol>
+        <script>vsftpd</script>
+        <server>/usr/sbin/vsftpd</server>
+        <service>ftp</service>
+      </conf>
+    </netd_conf>
+    <netd_status config:type="boolean">true</netd_status>
+  </inetd>
+  <software>
+    <image/>
+    <instsource/>
+    <packages config:type="list">
+      <package>xinetd</package>
+      <package>vsftpd</package>
+    </packages>
+  </software>
+  <suse_register>
+    <do_registration config:type="boolean">false</do_registration>
+  </suse_register>
+
+  <scripts>
+    <post-scripts config:type="list">
+      <script>
+        <filename>post-script.sh</filename>
+        <interpreter>shell</interpreter>
+        <location/>
+        <feedback config:type="boolean">false</feedback>
+        <source><![CDATA[#!/bin/sh
+# non-writable root of chroot (allow_writeable_chroot is by default false in vsftpd)
+/usr/bin/chmod 555 /srv/ftp
+# rw upload directory for anonymous and user account
+/usr/bin/install -d -m 0557 /srv/ftp/upload
+/usr/bin/install -d -m 0557 /home/user/upload
+# YaST note: set both listen and listen_ipv6 to NO in /etc/vsftpd.conf
+echo -e "\nlisten=NO\nlisten_ipv6=NO" >> /etc/vsftpd.conf
+        ]]></source>
+      </script>
+    </post-scripts>
+  </scripts>
+
+  <users config:type="list">
+          <user>
+                      <encrypted config:type="boolean">false</encrypted>
+                      <user_password>root</user_password>
+                      <username>root</username>
+          </user>
+          <user>
+                      <encrypted config:type="boolean">false</encrypted>
+                      <user_password>password</user_password>
+                      <username>user</username>
+          </user>
+
+  </users>
+
+</profile>

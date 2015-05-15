@@ -21,8 +21,10 @@ use testapi;
 sub run {
     my $self = shift;
     $self->result('fail'); # default result
-    
-    type_string "curl '" . get_var("AUTOYAST_VERIFY") . "' > verify.sh\n";
+
+    #todo: get the ip addresses by some function
+    my $verify_url .= 'http://10.0.2.1/data/' . get_var("AUTOYAST_VERIFY");
+    type_string "curl '" . $verify_url . "' > verify.sh\n";
     wait_idle(90);
     type_string "chmod 755 verify.sh\n";
     type_string "./verify.sh | tee /dev/$serialdev\n";
