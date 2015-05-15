@@ -623,6 +623,9 @@ else {
     elsif (installzdupstep_is_applicable) {
         load_zdup_tests();
     }
+    elsif (get_var("BOOT_HDD_IMAGE")) {
+        loadtest "installation/first_boot.pm";
+    }
     else {
         load_inst_tests();
         load_reboot_tests();
@@ -632,7 +635,10 @@ else {
     load_x11tests();
 }
 
-if (get_var('STORE_ASSET')) {
+if (get_var("STORE_HDD_1") || get_var("PUBLISH_HDD_1")) {
+    if (get_var("INSTALLONLY")) {
+        loadtest "shutdown/shutdown.pm";
+    }
     loadtest 'support/upload_asset.pm';
 }
 
