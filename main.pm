@@ -422,9 +422,6 @@ sub load_inst_tests() {
 
 sub load_reboot_tests() {
 
-    if (get_var("ENCRYPT")) {
-        loadtest "installation/boot_encrypt.pm";
-    }
     if (installyaststep_is_applicable) {
         loadtest "installation/first_boot.pm";
     }
