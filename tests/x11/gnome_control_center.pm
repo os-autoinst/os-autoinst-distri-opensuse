@@ -12,7 +12,7 @@ sub run() {
     assert_screen "gnome-control-center-started", 10;
     type_string "details";
     assert_screen "gnome-control-center-details-typed", 5;
-    send_key "ret";
+    assert_and_click "gnome-control-center-details";
     assert_screen 'test-gnome_control_center-1', 3;
     send_key "alt-f4";
 }
