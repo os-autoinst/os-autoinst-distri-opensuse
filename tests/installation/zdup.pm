@@ -7,7 +7,7 @@ sub run() {
 
     # precompile regexes
     my $zypper_dup_continue = qr/^Continue\? \[y/m;
-    my $zypper_dup_conflict = qr/^Choose from above solutions by number or cancel \[1/m;
+    my $zypper_dup_conflict = qr/^Choose from above solutions by number[\s\S,]* \[1/m;
     my $zypper_dup_notifications = qr/^View the notifications now\? \[y/m;
     my $zypper_dup_error = qr/^Abort, retry, ignore\? \[a/m;
     my $zypper_dup_finish = qr/^There are some running programs that might use files/m;
