@@ -9,7 +9,12 @@ sub run() {
     script_run("zypper lr -d");
     # Remove the --force when this is fixed:
     # https://bugzilla.redhat.com/show_bug.cgi?id=1075131
-    script_run("systemctl set-default --force graphical.target");
+     if ( check_var( 'HDDVERSION', "SLES-11-sp3" ) ) { #set back default runlevel 5 for sle11
+        type_string "sed -i 's/id:3:initdefault:/id:5:initdefault:/g' /etc/inittab\n";
+    }
+    else {
+        script_run("systemctl set-default --force graphical.target");
+    }
     sleep 5;
 
     save_screenshot;
