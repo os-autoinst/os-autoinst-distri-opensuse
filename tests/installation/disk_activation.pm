@@ -18,7 +18,7 @@ sub run {
     assert_screen 'dasd-selected';
     send_key 'alt-a';
     assert_screen 'action-list';
-    send_key 'alt-a';
+    send_key 'a';
     assert_screen 'dasd-active';
     send_key 'alt-n';
     assert_screen 'disk-activation', 15;
