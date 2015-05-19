@@ -7,10 +7,10 @@ sub run() {
 
     # precompile regexes
     my $zypper_dup_continue = qr/^Continue\? \[y/m;
-    my $zypper_dup_conflict = qr/^Choose from above solutions by number or cancel \[1/m;
+    my $zypper_dup_conflict = qr/^Choose from above solutions by number[\s\S,]* \[1/m;
     my $zypper_dup_notifications = qr/^View the notifications now\? \[y/m;
     my $zypper_dup_error = qr/^Abort, retry, ignore\? \[a/m;
-    my $zypper_dup_finish = qr/^There are some running programs that might use files/m;
+    my $zypper_dup_finish = qr/^There are some running programs that might use files|^ZYPPER-DONE/m;
     my $zypper_packagekit = qr/^Tell PackageKit to quit\?/m;
     my $zypper_packagekit_again = qr/^Try again\?/m;
     my $zypper_repo_disabled = qr/^Repository '\S+' has been successfully disabled./m;
@@ -52,7 +52,7 @@ sub run() {
     }
     script_run("zypper --gpg-auto-import-keys refresh");
 
-    script_run("zypper dup -l | tee /dev/$serialdev");
+    script_run("(zypper dup -l;echo ZYPPER-DONE) | tee /dev/$serialdev");
 
     $out = wait_serial([$zypper_dup_continue, $zypper_dup_conflict, $zypper_dup_error], 240);
     while($out) {
