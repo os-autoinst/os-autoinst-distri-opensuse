@@ -16,8 +16,10 @@ sub run() {
     }
 
     if ( get_var("ADDONURL") || get_var("ADDONS") ) {
-        send_key "alt-c";    # Include Add-On Products
-        assert_screen "addonproduct-included", 10;
+        if (!check_var('ADDONS', 'smt')) {  # no include for SMT add-on bnc928895
+            send_key "alt-c";    # Include Add-On Products
+            assert_screen "addonproduct-included", 10;
+        }
     }
     if ( get_var("AUTOCONF") ) {
         send_key "alt-s";    # toggle automatic configuration
