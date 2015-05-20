@@ -348,6 +348,7 @@ sub load_inst_tests() {
     if (get_var("MULTIPATH")) {
         loadtest "installation/multipath.pm";
     }
+    loadtest "installation/mouse_hide.pm";
     loadtest "installation/installation_mode.pm";
     if (!get_var('LIVECD') && get_var('UPGRADE') ) {
         loadtest "installation/upgrade_select_sle11.pm";
