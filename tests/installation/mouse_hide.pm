@@ -2,6 +2,7 @@ use base "opensusebasetest";
 use testapi;
 
 sub run() {
+    my $self = shift;
     if (check_screen('mouse-not-hidden', 120)) {
         die 'Mouse Stuck Detected';
     }
