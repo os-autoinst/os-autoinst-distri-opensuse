@@ -16,7 +16,8 @@ sub run() {
     }
 
     if ( get_var("ADDONURL") || get_var("ADDONS") ) {
-        if (!check_var('ADDONS', 'smt')) {  # no include for SMT add-on bnc928895
+        # Don't include add-on from separate media for SMT upgrade bnc928895
+        unless (get_var("UPGRADE") && check_var('ADDONS', 'smt')) {
             send_key "alt-c";    # Include Add-On Products
             assert_screen "addonproduct-included", 10;
         }

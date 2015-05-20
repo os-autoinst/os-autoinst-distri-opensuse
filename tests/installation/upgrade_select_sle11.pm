@@ -70,6 +70,9 @@ sub run() {
             send_key $cmd{"next"}, 1;
         }
     }
+    else {
+        send_key $cmd{"next"}, 1;
+    }
 
     assert_screen "update-installation-overview", 15;
 }
