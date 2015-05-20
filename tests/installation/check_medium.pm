@@ -5,7 +5,7 @@ use testapi;
 sub run {
     my $self = shift;
 
-    assert_screen "media-check", 8;
+    assert_screen "media-check", 20;
     send_key $cmd{"next"}, 1;
 }
 
