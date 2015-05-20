@@ -1,4 +1,4 @@
-use base "y2logsstep";
+use base "opensusebasetest";
 use testapi;
 
 sub run() {
