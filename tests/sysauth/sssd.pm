@@ -1,14 +1,9 @@
 use base "opensusebasetest";
 use testapi;
 
-#In the console of Live-CD system, grab the sysauthtests scripts and install the test subjects.
+# Test the integration between SSSD and its various backends - file database, LDAP, and Kerberos.
 sub run() {
-    wait_idle;
-
-    # Password-less login to tty4 on Live-CD
-    send_key "ctrl-alt-f4";
-    assert_screen "text-login", 30;
-    type_string "$username\n";
+    # Assume consoletest_setup is completed
     become_root;
 
     # Install test subjects and test scripts
@@ -27,7 +22,7 @@ sub run() {
     my @scenario_failures;
 
     foreach my $scenario (qw/local ldap ldap-inherited-groups ldap-nested-groups krb/) {
-        # Download the scenario directory
+        # Download the source code of test scenario
         script_run "cd ~/sssd && mkdir $scenario && curl -L -v ".autoinst_url."/data/sssd-tests/$scenario > $scenario/cdata";
         script_run "cd $scenario && cpio -idv < cdata && mv data/* ./; ls";
         validate_script_output "./test.sh", sub {
