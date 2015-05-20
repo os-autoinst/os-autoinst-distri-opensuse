@@ -6,7 +6,6 @@ sub run(){
     my $self=shift;
 
     assert_screen 'release-notes', 100; # suseconfig run
-
     if (get_var("ADDONS")) {
         if (check_screen 'release-notes-tab') {
             foreach $a (split(/,/, get_var('ADDONS'))) {
@@ -23,8 +22,6 @@ sub run(){
                     assert_screen "release-notes-sle";
                 }
             }
-            send_key 'alt-s';
-            assert_screen "release-notes-sle";
         }
         else {
             foreach $a (split(/,/, get_var('ADDONS'))) {
@@ -50,7 +47,6 @@ sub run(){
     else {
         assert_screen "release-notes-sle";
     }
-
     send_key $cmd{'next'};
 }
 
