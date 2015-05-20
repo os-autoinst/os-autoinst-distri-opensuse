@@ -18,6 +18,9 @@ sub run() {
     assert_screen "select-for-update", 100;
     send_key $cmd{"next"}, 1;
     assert_screen 'previously-used-repositories', 5;
+    if (!check_var('ADDONS', 'smt')) {
+        send_key $cmd{"next"}, 1;
+    }
 
     if (get_var("UPGRADE") && get_var("ADDONS")) {
         foreach $a (split(/,/, get_var('ADDONS'))) {
@@ -38,7 +41,6 @@ sub run() {
                 send_key "alt-o", 2;            # OK
             }
             else {
-                send_key $cmd{"next"}, 1;
                 send_key 'alt-d';	# DVD
                 send_key $cmd{"xnext"}, 1;
                 assert_screen 'dvd-selector', 3;
@@ -64,7 +66,6 @@ sub run() {
                 }
             }
         }
-
         if (!check_var('ADDONS', 'smt')) {  # no add-on list for SMT
             assert_screen 'addon-list', 5;
             send_key $cmd{"next"}, 1;
