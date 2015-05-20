@@ -9,6 +9,10 @@ sub run() {
     type_string "PS1=\"# \"\n";
 
     script_run("/sbin/yast2 sw_single; echo yast2-i-status-\$? > /dev/$serialdev");
+    if (check_screen('workaround-bsc924042')) {
+        send_key 'alt-o';
+        record_soft_failure;
+    }
     assert_screen 'empty-yast2-sw_single';
     type_string("$pkgname\n");
     sleep 3;
