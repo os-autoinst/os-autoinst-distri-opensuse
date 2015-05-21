@@ -13,35 +13,35 @@ sub run() {
         my $ret = assert_screen [qw/startupdate startupdate-conflict license-popup/], 5;
 
         while ( $ret->{needle}->has_tag("startupdate-conflict") || $ret->{needle}->has_tag("license-popup") ) {
-          if ( $ret->{needle}->has_tag("startupdate-conflict") ) {
-            send_key $cmd{ok}, 1;
+            if ( $ret->{needle}->has_tag("startupdate-conflict") ) {
+                send_key $cmd{ok}, 1;
 
-            while ( !check_screen( 'packages-section-selected', 2 ) ) {
-              send_key 'tab';
+                while ( !check_screen( 'packages-section-selected', 2 ) ) {
+                    send_key 'tab';
+                }
+
+                assert_and_click 'packages-section-selected';
+                assert_screen "package-conflict", 20;
+
+                while ( !check_screen( 'all-conflicts-resolved-packages', 4 ) ) {
+                    assert_and_click 'package-conflict-choice';
+                    send_key $cmd{ok}, 1;
+                }
+                send_key $cmd{"accept"}, 1;
+
+                while ( check_screen( 'license-popup', 2 ) ) {
+                    send_key $cmd{"accept"}, 1;
+                }
+                assert_screen "automatic-changes", 5;
+                send_key $cmd{"continue"}, 1;
+
+                send_key $cmd{update};
+                sleep 1;
             }
-
-            assert_and_click 'packages-section-selected';
-            assert_screen "package-conflict", 20;
-
-            while ( !check_screen( 'all-conflicts-resolved-packages', 4 ) ) {
-              assert_and_click 'package-conflict-choice';
-              send_key $cmd{ok}, 1;
+            if ( $ret->{needle}->has_tag("license-popup") ) {
+                send_key $cmd{"accept"}, 1;
             }
-            send_key $cmd{"accept"}, 1;
-
-            while ( check_screen( 'license-popup', 2 ) ) {
-              send_key $cmd{"accept"}, 1;
-            }
-            assert_screen "automatic-changes", 5;
-            send_key $cmd{"continue"}, 1;
-
-            send_key $cmd{update};
-            sleep 1;
-          }
-          if ( $ret->{needle}->has_tag("license-popup") ) {
-            send_key $cmd{"accept"}, 1;
-          }
-          $ret = assert_screen [qw/startupdate startupdate-conflict license-popup/], 5;
+            $ret = assert_screen [qw/startupdate startupdate-conflict license-popup/], 5;
         }
 
         # confirm
@@ -62,9 +62,18 @@ sub run() {
     }
     else {
         send_key $cmd{install};
-        while ( my $ret = check_screen( [qw/confirmlicense startinstall/] ), 5 ){
+        while ( my $ret = check_screen( [qw/confirmlicense startinstall/], 5 ) ) {
             last if $ret->{needle}->has_tag("startinstall");
             send_key $cmd{acceptlicense}, 1;
+        }
+        # TEMPORARLY: the yast team needs more infos about the problem we see
+        # where the popup does not appear even though the yast logs claim its there
+        if (!check_screen('startinstall')) {
+            send_key 'ctrl-l';
+            check_screen('startinstall', 10);
+            send_key 'ctrl-d';
+            check_screen('startinstall', 10);
+            send_key 'Y';
         }
         assert_screen "startinstall";
 
