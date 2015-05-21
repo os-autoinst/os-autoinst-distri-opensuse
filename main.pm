@@ -206,7 +206,7 @@ sub lxdestep_is_applicable() {
 }
 
 sub need_clear_repos() {
-    return get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/ && get_var("SUSEMIRROR");
+    return get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/;
 }
 
 sub have_addn_repos() {
