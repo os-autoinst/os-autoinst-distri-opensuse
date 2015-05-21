@@ -10,6 +10,12 @@ sub run() {
         return;
     }
 
+    # Wait for desktop to load after booting from an installed disk image
+    if ( check_var( "BOOT_HDD_IMAGE", 1 ) ) {
+        assert_screen "generic-desktop", 120;
+        return;
+    }
+
     mouse_hide();
 
     if ( get_var("NOAUTOLOGIN") ) {
@@ -31,7 +37,7 @@ sub run() {
         send_key "ret";
     }
 
-    # Check for errors during first boot
+    # Prepare the KDE desktop for the first run
     my $err  = 0;
     my @tags = qw/desktop-at-first-boot install-failed/;
     while (1) {
