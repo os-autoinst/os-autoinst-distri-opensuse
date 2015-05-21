@@ -605,7 +605,7 @@ elsif (get_var("RESCUESYSTEM")) {
 }
 elsif (get_var("SYSAUTHTEST")) {
     load_boot_tests();
-    loadtest "installation/first_boot.pm";
+    loadtest "installation/finish_desktop.pm";
     # sysauth test scenarios run in the console
     loadtest "console/consoletest_setup.pm";
     loadtest "sysauth/sssd.pm";
