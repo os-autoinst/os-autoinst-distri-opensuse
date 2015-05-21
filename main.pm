@@ -213,6 +213,10 @@ sub have_addn_repos() {
     return !get_var("NET") && !get_var("EVERGREEN") && get_var("SUSEMIRROR") && !get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/;
 }
 
+sub system_is_livesystem() {
+  return (check_var("FLAVOR", 'Rescue-CD') || get_var("LIVETEST"))
+}
+
 sub loadtest($) {
     my ($test) = @_;
     autotest::loadtest("tests/$test");
@@ -502,7 +506,7 @@ sub load_x11tests(){
     if (get_var("MOZILLATEST")) {
         loadtest "x11/mozmill_run.pm";
     }
-    if (!( get_var("FLAVOR", '') =~ /^Staging2?[\-]DVD$/ || get_var("FLAVOR", '') eq 'Rescue-CD' )) {
+    if (!( get_var("FLAVOR", '') =~ /^Staging2?[\-]DVD$/ || system_is_livesystem )) {
         loadtest "x11/chromium.pm";
     }
     if (bigx11step_is_applicable) {
@@ -575,7 +579,8 @@ sub load_x11tests(){
             loadtest "x11/gimp.pm";
         }
     }
-    if (!( get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/ ) && !check_var("FLAVOR", 'Rescue-CD') ) {
+    if (!( get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/ ) &&
+        !system_is_livesystem ) {
         loadtest "x11/gnucash.pm";
     }
     loadtest "x11/shutdown.pm";
