@@ -7,7 +7,7 @@ sub run() {
 
     # live may take ages to boot
     my $timeout = 600;
-    assert_screen "desktop-at-first-boot", $timeout;
+    assert_screen "generic-desktop", $timeout;
 
     ## duplicated from second stage, combine!
     if ( check_var( 'DESKTOP', 'kde' ) ) {

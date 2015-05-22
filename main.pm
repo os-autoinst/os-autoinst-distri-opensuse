@@ -609,9 +609,10 @@ elsif (get_var("RESCUESYSTEM")) {
     loadtest "installation/rescuesystem_validate_131.pm";
 }
 elsif (get_var("SYSAUTHTEST")) {
-    # sysauth test script switches to tty and run test scripts in the console
     load_boot_tests();
     loadtest "installation/finish_desktop.pm";
+    # sysauth test scenarios run in the console
+    loadtest "console/consoletest_setup.pm";
     loadtest "sysauth/sssd.pm";
 }
 else {
