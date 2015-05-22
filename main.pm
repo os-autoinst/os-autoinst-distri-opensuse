@@ -698,7 +698,7 @@ elsif (get_var("SUPPORT_SERVER")) {
      loadtest "support_server/wait.pm";
 }
 elsif (get_var("VIRTUALIZATION")) {
-    load_virtualizationtests();
+     load_virtualizationtests();
 }
 else {
     if (get_var("LIVETEST")) {
