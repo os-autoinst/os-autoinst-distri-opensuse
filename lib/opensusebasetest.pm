@@ -75,6 +75,22 @@ sub export_logs {
 
     save_screenshot;
 
+    if ( check_var("DESKTOP", "kde") ) {
+        if ( get_var('PLASMA5') ) {
+            my $fn = '/tmp/plasma5_configs.tar.bz2';
+            my $cmd = sprintf 'tar cjf %s /home/%s/.config/*rc', $fn, $username;
+            type_string "$cmd\n";
+            upload_logs $fn;
+        }
+        else {
+            my $fn = '/tmp/kde4_configs.tar.bz2';
+            my $cmd = sprintf 'tar cjf %s /home/%s/.kde4/share/config/*rc', $fn, $username;
+            type_string "$cmd\n";
+            upload_logs $fn;
+        }
+        save_screenshot;
+    }
+
     type_string "cat /home/*/.xsession-errors* > /tmp/XSE\n";
     upload_logs "/tmp/XSE";
     save_screenshot;
