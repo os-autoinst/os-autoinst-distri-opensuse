@@ -91,6 +91,9 @@ sub export_logs {
         save_screenshot;
     }
 
+    type_string "if [ -f /etc/OPENQA_ASSET_TAG ] ; then cat /etc/OPENQA_ASSET_TAG; fi\n";
+    save_screenshot;
+
     type_string "cat /home/*/.xsession-errors* > /tmp/XSE\n";
     upload_logs "/tmp/XSE";
     save_screenshot;
