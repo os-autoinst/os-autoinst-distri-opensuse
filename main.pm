@@ -167,7 +167,7 @@ $needle::cleanuphandler = \&cleanup_needles;
 bmwqemu::save_vars(); # update variables
 
 # dump other important ENV:
-logcurrentenv(qw"ADDONURL BIGTEST BTRFS DESKTOP HW HWSLOT LIVETEST LVM MOZILLATEST NOINSTALL REBOOTAFTERINSTALL UPGRADE USBBOOT ZDUP ZDUPREPOS TEXTMODE DISTRI NOAUTOLOGIN QEMUCPU QEMUCPUS RAIDLEVEL ENCRYPT INSTLANG QEMUVGA DOCRUN UEFI DVD GNOME KDE ISO ISO_MAXSIZE LIVECD NETBOOT NICEVIDEO NOIMAGES PROMO QEMUVGA SPLITUSR VIDEOMODE");
+logcurrentenv(qw"ADDONURL BIGTEST BTRFS DESKTOP HW HWSLOT LIVETEST LVM MOZILLATEST NOINSTALL REBOOTAFTERINSTALL UPGRADE USBBOOT ZDUP ZDUPREPOS TEXTMODE DISTRI NOAUTOLOGIN QEMUCPU QEMUCPUS RAIDLEVEL ENCRYPT INSTLANG QEMUVGA DOCRUN UEFI DVD GNOME KDE ISO ISO_MAXSIZE LIVECD NETBOOT NICEVIDEO NOIMAGES PROMO QEMUVGA SPLITUSR VIDEOMODE VIRTUALIZATION");
 
 
 sub xfcestep_is_applicable() {
@@ -484,6 +484,24 @@ sub load_consoletests() {
     }
 }
 
+sub load_virtualizationtests() {
+    # standalone suite to fit installation need
+    if ( get_var("STANDALONEVT") ) {
+	loadtest "virtualization/boot.pm";
+	loadtest "virtualization/installation.pm";
+	loadtest "virtualization/prepare_sle12.pm";
+    }
+    loadtest "virtualization/yast_virtualization.pm";
+    loadtest "virtualization/virt_install.pm";
+    loadtest "virtualization/virt_top.pm";
+    loadtest "virtualization/virtman_install.pm";
+    loadtest "virtualization/virtman_view.pm";
+    loadtest "virtualization/virtman_storage.pm";
+    loadtest "virtualization/virtman_virtualnet.pm";
+    loadtest "virtualization/virtman_networkinterface.pm";
+    loadtest "virtualization/virtman_create_guest.pm";
+}
+
 sub load_x11tests(){
     return unless (!get_var("INSTALLONLY") && get_var("DESKTOP") !~ /textmode|minimalx/ && !get_var("DUALBOOT") && !get_var("RESCUECD"));
 
@@ -678,6 +696,9 @@ elsif (get_var("SUPPORT_SERVER")) {
      loadtest "support_server/login.pm";
      loadtest "support_server/setup.pm";
      loadtest "support_server/wait.pm";
+}
+elsif (get_var("VIRTUALIZATION")) {
+     load_virtualizationtests();
 }
 else {
     if (get_var("LIVETEST")) {
