@@ -7,6 +7,7 @@ sub run() {
     my %desktopkeys = ( kde => "k", gnome => "g", xfce => "x", lxde => "l", minimalx => "m", textmode => "i" );
     assert_screen "desktop-selection", 30;
     my $d = get_var("DESKTOP");
+    if (not exists($desktopkeys{$d})) { $d = "minimalx" };
     my $key = "alt-$desktopkeys{$d}";
     if ( $d eq "kde" ) {
 
@@ -24,8 +25,20 @@ sub run() {
             my %desktopkeys = ( xfce => "f", lxde => "x", minimalx => "m", textmode => "i" );
             $key = "alt-$desktopkeys{$d}";
         }
-        send_key $key;
-        sleep 3;            # needles for else cases missing
+        send_key "$key";
+        sleep 3;
+        if ( $d eq "xfce" ) {
+            assert_screen "xfce-selected", 3;
+        }
+        elsif ( $d eq "lxde" ) {
+            assert_screen "lxde-selected", 3;
+        }
+        elsif ( $d eq "minimalx" ) {
+            assert_screen "minimalx-selected", 3;
+        }
+        elsif ( $d eq "textmode" ) {
+            assert_screen "textmode-selected", 3;
+        }
     }
     send_key $cmd{"next"};
 
