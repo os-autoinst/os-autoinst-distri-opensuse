@@ -75,6 +75,10 @@ sub run() {
         }
     }
 
+    if (get_var("DUD") == "iso" ) {
+        type_string "DUD=cd:/?all=1 ", 4; # load DUD from all cdroms
+    }
+
     # set HTTP-source to not use factory-snapshot
     if ( get_var("NETBOOT") ) {
         send_key "f4";
