@@ -7,7 +7,7 @@ use testapi;
 # this part contains the steps to run this test
 sub run() {
     my $self = shift;
-    x11_start_program('notify-send --expire-time=5 Test');
+    x11_start_program('notify-send --expire-time=30 Test');
     assert_screen 'test-xfce_notification-1', 5;
 }
 
