@@ -86,7 +86,12 @@ sub x11_start_program($$$) {
     mouse_hide(1);
     assert_screen("desktop-runner", $timeout);
     send_key 'a'; #workaround from problem with 'shift is pressed after a snapshot'
-    send_key 'backspace'; #workaround for problem with 'shift is pressed after a snapshot'
+    send_key 'backspace', 1; #workaround for problem with 'shift is pressed after a snapshot'
+    # check 3 times ensure desktop runner was there without any input
+    foreach my $i ( 1..3 ) {
+        last if check_screen "desktop-runner", 2;
+        send_key "backspace", 1;
+    }
     type_string $program;
     wait_idle 5;
     if ( $options->{terminal} ) { send_key "alt-t"; sleep 3; }
