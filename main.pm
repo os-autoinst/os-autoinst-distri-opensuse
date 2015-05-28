@@ -339,7 +339,7 @@ sub is_reboot_after_installation_necessary() {
 
 sub load_inst_tests() {
     loadtest "installation/welcome.pm";
-    if (!check_var('BACKEND', 'ipmi') && !check_var('BACKEND', 's390x')) { # network installs in general, but we have no setting for it yet
+    if (!check_var('BACKEND', 'ipmi') && !check_var('BACKEND', 's390x') && !get_var('USBBOOT')) { # network installs in general, but we have no setting for it yet
         loadtest "installation/check_medium.pm";
     }
     if (check_var('BACKEND', 's390x')) {
