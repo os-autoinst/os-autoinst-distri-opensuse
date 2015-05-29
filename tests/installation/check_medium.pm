@@ -1,4 +1,4 @@
-use base "opensusebasetest";
+use base "y2logsstep";
 use strict;
 use testapi;
 
