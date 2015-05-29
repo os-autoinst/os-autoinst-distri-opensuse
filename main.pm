@@ -567,7 +567,6 @@ sub load_x11tests(){
 
     if (xfcestep_is_applicable) {
         loadtest "x11/xfce4_appfinder.pm";
-        loadtest "x11/xfce_notification.pm";
         if (!( get_var("FLAVOR") eq 'Rescue-CD' )) {
             loadtest "x11/xfce_lightdm_logout_login.pm";
         }
