@@ -496,6 +496,9 @@ sub load_consoletests() {
 sub load_x11tests(){
     return unless (get_var("DESKTOP") !~ /textmode|minimalx/ && !get_var("DUALBOOT") && !get_var("RESCUECD"));
 
+    if (kdestep_is_applicable) {
+        loadtest "x11/sle11_kde_setup.pm";
+    }
     if ( get_var("XDMUSED") ) {
         loadtest "x11/x11_login.pm";
     }
