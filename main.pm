@@ -421,7 +421,11 @@ sub load_consoletests() {
         loadtest "console/textinfo.pm";
         loadtest "console/hostname.pm";
         if (get_var("FILESYSTEM") == "btrfs") {
-            loadtest "console/installation_snapshots.pm";
+            if (get_var("UPGRADE")) {
+                loadtest "console/upgrade_snapshots.pm";
+            } else {
+                loadtest "console/installation_snapshots.pm";
+            }
         }
         if (get_var("DESKTOP") !~ /textmode/) {
             loadtest "console/xorg_vt.pm";
