@@ -14,6 +14,12 @@ sub run() {
         send_key "e";
         #wait until we get to grub edit
         wait_idle(5);
+        #go down to kernel entry
+        send_key "down";
+        send_key "down";
+        send_key "down";
+        send_key "end";
+        wait_idle(5);
         # load kernel manually with append
         if (check_var('VIDEOMODE', 'text')) {
             type_string " textmode=1", 15;
@@ -25,8 +31,10 @@ sub run() {
             type_string " netsetup=dhcp,all", 15;
             type_string " autoyast=" . autoinst_url . "/data/" . get_var("AUTOYAST") . " ", 15;
         }
+        save_screenshot;
         send_key "ctrl-x";
     }
+    save_screenshot;
     send_key "ret";
 }
 
