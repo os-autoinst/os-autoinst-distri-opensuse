@@ -611,6 +611,15 @@ sub load_autoyast_tests(){
     #    next boot in load_reboot_tests
 }
 
+sub load_online_migration_tests() {
+    loadtest("online_migration/sle11/boot_to_console.pm");
+    loadtest("online_migration/sle11/add_beta_repos.pm");
+    loadtest("online_migration/sle11/yast2_online_update.pm");
+    loadtest("online_migration/sle11/yast2_wagon.pm");
+    loadtest("online_migration/sle11/reboot_to_console.pm");
+    loadtest("online_migration/sle11/check_upload_repos.pm");
+}
+
 # load the tests in the right order
 if ( get_var("REGRESSION") ) {
     if ( get_var("KEEPHDDS") ) {
@@ -645,6 +654,9 @@ elsif (get_var("RESCUESYSTEM")) {
 }
 elsif (get_var("SUPPORT_SERVER")) {
     loadtest "support_server/boot/boot.pm";
+}
+elsif (get_var("ONLINE_MIGRATION")) {
+    load_online_migration_tests();
 }
 else {
     load_boot_tests();
