@@ -6,8 +6,7 @@ sub run() {
     script_run("snapper list | tee /dev/$serialdev");
     # Check if the snapshots called 'before upgrade' and 'after upgrade' are
     # there.
-    wait_serial("before upgrade", 5);
-    wait_serial("after upgrade", 5);
+    wait_serial(qr/before upgrade.*(\n.*)+after upgrade/, 5);
 }
 
 sub test_flags() {
