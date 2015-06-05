@@ -405,7 +405,12 @@ sub load_inst_tests() {
         loadtest "installation/user_settings_root.pm";
     }
     loadtest "installation/sle11_network.pm";
-    loadtest "installation/sle11_ncc.pm";
+    if (get_var('NCC')) {
+        loadtest "installation/sle11_ncc.pm";
+        loadtest "installation/sle11_online_update.pm";
+    } else {
+        loadtest "installation/sle11_skip_ncc.pm";
+    }
     if (noupdatestep_is_applicable && check_var('FLAVOR', 'Server-DVD')) {
         loadtest "installation/sle11_service.pm";
         loadtest "installation/sle11_user_authentication_method.pm";
@@ -488,6 +493,9 @@ sub load_consoletests() {
         }
         if (check_var("DESKTOP", "xfce")) {
             loadtest "console/xfce_gnome_deps.pm";
+        }
+        if (get_var("NCC")) {
+            loadtest "console/sle11_ncc_checkrepos.pm";
         }
         loadtest "console/consoletest_finish.pm";
     }
