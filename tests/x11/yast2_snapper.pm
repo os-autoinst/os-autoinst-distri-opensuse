@@ -1,19 +1,10 @@
 use base "x11test";
 use testapi;
-# Wrap the commands for downloading extra data used in this test.
-# Does not care for getting a shell - just types the commands to a shell that
-# you have to provide before calling this.
-sub download_testdata() {
-    my $self = shift;
-    type_string "pushd ~\n";
-    script_run("curl -L -v " . autoinst_url . "/data > test.data; echo \"curl-\$?\" > /dev/$serialdev");
-    wait_serial("curl-0", 10) || die 'curl failed';
-    script_run " cpio -id < test.data; echo \"cpio-\$?\"> /dev/$serialdev";
-    wait_serial("cpio-0", 10) || die 'cpio failed';
-    script_run "ls -al data";
-    type_string "popd\n";
-    save_screenshot;
-}
+
+# Test for basic yast2-snapper functionality. It assumes the data of the
+# opensuse distri to be available at /home/$username/data (as granted by
+# console_setup.pm)
+
 # Helper for letting y2-snapper to create a snapper snapshot
 sub y2snapper_create_snapshot() {
     my $self = shift;
@@ -56,9 +47,8 @@ sub run() {
     send_key "alt-l";
     # Download & untar test files
     wait_idle;
-    $self->download_testdata();
     script_run "cd /tmp";
-    script_run "tar -xzf ~/data/yast2_snapper.tgz";
+    script_run "tar -xzf /home/$username/data/yast2_snapper.tgz";
     wait_idle;
     # Start the yast2 snapper module and wait until it is started
     script_run "yast2 snapper";
