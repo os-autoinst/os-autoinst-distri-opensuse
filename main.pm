@@ -501,7 +501,7 @@ sub load_x11tests(){
     if (xfcestep_is_applicable) {
         loadtest "x11/ristretto.pm";
     }
-    if ( !check_var('FLAVOR', 'Server-DVD') ) {
+    if ( !(check_var('FLAVOR', 'Server-DVD') || check_var('FLAVOR', 'Server-MINI')) ) {
         if (gnomestep_is_applicable) {
             loadtest "x11/eog.pm";
             loadtest "x11/rhythmbox.pm";
@@ -535,7 +535,7 @@ sub load_x11tests(){
     }
     if (gnomestep_is_applicable) {
         loadtest "x11/nautilus.pm" unless get_var("LIVECD");
-        loadtest "x11/evolution.pm" unless (check_var("FLAVOR", "Server-DVD"));
+        loadtest "x11/evolution.pm" unless (check_var("FLAVOR", "Server-DVD") || check_var("FLAVOR", "Server-MINI"));
         loadtest "x11/reboot_gnome_pre.pm";
     }
     if (!get_var("LIVETEST")) {
