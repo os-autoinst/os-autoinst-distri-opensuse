@@ -534,6 +534,9 @@ sub load_x11tests(){
         loadtest "x11/dolphin.pm";
     }
     loadtest "x11/yast2_users.pm";
+    if (check_var("FILESYSTEM", "btrfs")) {
+        loadtest "x11/yast2_snapper.pm";
+    }
     if (gnomestep_is_applicable && get_var("GNOME2")) {
         loadtest "x11/application_browser.pm";
     }
