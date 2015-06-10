@@ -452,7 +452,6 @@ sub load_consoletests() {
     if (consolestep_is_applicable) {
         loadtest "console/sle11_consoletest_setup.pm";
         loadtest "console/textinfo.pm";
-        loadtest "console/hostname.pm";
         if (get_var("DESKTOP") !~ /textmode/) {
             loadtest "console/xorg_vt.pm";
         }
