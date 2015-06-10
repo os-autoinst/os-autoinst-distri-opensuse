@@ -5,6 +5,7 @@ sub run() {
     my $self = shift;
 
     become_root;
+    type_string "PS1=\"# \"\n";
 
     script_run "hostnamectl set-hostname susetest && echo 'hostname_sets' > /dev/$serialdev";
     die "hostnamectl set failed" unless wait_serial "hostname_sets", 20;
