@@ -301,6 +301,10 @@ sub load_boot_tests(){
     elsif ( check_var("BACKEND", "ipmi") ) {
         loadtest "installation/qa_net.pm";
     }
+    elsif (check_var("BACKEND", "s390x")) {
+        bmwqemu::diag "trying installation/bootloader_s390.pm";
+        loadtest "installation/bootloader_s390.pm";
+    }
     else {
         loadtest "installation/bootloader.pm";
     }
