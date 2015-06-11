@@ -406,9 +406,7 @@ sub get_to_yast() {
     {
     $r = $s3270->expect_3270(buffer_ready => qr/X E D I T/, timeout => 240);
 
-    #rbrown - Experiment - do we need to use all of this s3270 magic or can we just use type_string and send_key?
-    #$s3270->sequence_3270( qw{ String(INPUT) ENTER } );
-    type_string 'INPUT/n';
+    $s3270->sequence_3270( qw{ String(INPUT) ENTER } );
 
     $r = $s3270->expect_3270(buffer_ready => qr/Input-mode/);
     ### say Dumper $r;
