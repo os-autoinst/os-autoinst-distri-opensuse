@@ -612,7 +612,7 @@ sub load_autoyast_tests(){
 }
 
 sub load_online_migration_tests() {
-    loadtest("online_migration/sle11/boot_to_console.pm");
+    loadtest("boot/boot_to_console.pm");
     loadtest("online_migration/sle11/add_beta_repos.pm");
     loadtest("online_migration/sle11/yast2_online_update.pm");
     loadtest("online_migration/sle11/yast2_wagon.pm");
