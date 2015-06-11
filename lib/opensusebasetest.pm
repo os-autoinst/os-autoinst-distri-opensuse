@@ -27,7 +27,7 @@ sub post_run_hook {
 }
 
 sub registering_scc {
-    my ($self) = @_;
+    my ($self, $counter) = @_;
 
     send_key "alt-e";    # select email field
     type_string get_var("SCC_EMAIL");
@@ -58,8 +58,53 @@ sub registering_scc {
         last;
     }
 
+    assert_screen("scc-update", 100);
+    send_key "alt-y", 1;
     assert_screen("module-selection");
-    send_key "alt-n", 1;
+    if (get_var('ADDONS')) {
+        send_key 'tab'; # jump to beginning of addon selection
+        foreach $a (split(/,/, get_var('ADDONS'))) {
+            $counter = 30;
+            while ($counter > 0) {
+                if (check_screen("scc-help-selected", 5 )) {
+                    send_key 'tab'; # end of addon fields, jump over control buttons
+                    send_key 'tab';
+                    send_key 'tab';
+                    send_key 'tab';
+                    send_key 'tab';
+                }
+                else {
+                    send_key ' ';   # select checkbox for needle match
+                    if (check_screen("scc-marked-$a", 5 )) {
+                        last;   # match, go to next addon
+                    }
+                    else {
+                        send_key ' ';   # unselect addon if it's not expected one
+                        send_key 'tab'; # go to next field
+                    }
+                }
+                $counter--;
+            }
+        }
+        send_key 'alt-n';   # next, all addons selected
+        foreach $a (split(/,/, get_var('ADDONS'))) {
+            assert_screen("scc-addon-license-$a");
+            send_key "alt-a";   # accept license
+            send_key "alt-n";   # next
+        }
+        foreach $a (split(/,/, get_var('ADDONS'))) {
+            if ($a ne 'sdk') {
+                $a = uc $a;     # change to uppercase to match variable
+                send_key 'tab'; # jump to code field
+                type_string get_var("SCC_REGCODE_$a");
+                send_key "alt-n";   # next
+            }
+        }
+    }
+    else {
+        send_key "alt-n";   # next
+    }
+    sleep 10;   # scc registration need some time
 }
 
 sub export_logs {

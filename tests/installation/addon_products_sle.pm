@@ -6,7 +6,7 @@ use testapi;
 sub run() {
     my $self = shift;
 
-    assert_screen 'inst-addon', 3;
+    assert_screen 'inst-addon';
     if ( get_var("ADDONS")) {
         send_key 'alt-k';   # install with addons
         foreach $a (split(/,/, get_var('ADDONS'))) {
