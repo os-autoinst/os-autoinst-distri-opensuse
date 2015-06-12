@@ -27,7 +27,7 @@ sub run() {
     assert_screen "grub2", 50;
 
     if ( get_var("NOAUTOLOGIN") ) {
-    my $ret = assert_screen 'displaymanager', 200;
+        my $ret = assert_screen 'displaymanager', 200;
         if ( get_var('DM_NEEDS_USERNAME') ) {
             type_string $username;
         }
