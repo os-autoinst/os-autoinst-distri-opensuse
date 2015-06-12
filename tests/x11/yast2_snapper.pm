@@ -41,8 +41,8 @@ sub y2snapper_select_snapshot() {
     return 0 unless (check_screen('yast2_snapper-new_snapshot', 3));
 
     until (check_screen('yast2_snapper-new_snapshot_selected', 5) || $limit > 20) {
-      $limit++;
-      send_key "down";
+        $limit++;
+        send_key "down";
     }
     if (check_screen('yast2_snapper-new_snapshot_selected', 5)) {
         return 1;
@@ -80,10 +80,7 @@ sub run() {
     script_run "yast2 snapper";
     assert_screen 'yast2_snapper-snapshots', 100;
     # Make sure the test snapshot is not there
-    if (check_screen('yast2_snapper-new_snapshot', 5)) {
-      $self->result('fail');
-      return;
-    }
+    die("Unexpected snapshot found") if (check_screen('yast2_snapper-new_snapshot', 5));
 
     # Create a new snapshot
     $self->y2snapper_create_snapshot();
@@ -102,9 +99,8 @@ sub run() {
     assert_screen 'yast2_snapper-snapshots', 100;
     # Select the new snapshot
     unless ($self->y2snapper_select_snapshot) {
-      $self->result('fail');
-      $self->clean_and_quit;
-      return;
+        $self->clean_and_quit;
+        die("Failed to select the snapshot in order to show differences");
     }
     # Press 'S'how changes button and select both directories that have been
     # extracted from the tarball
@@ -125,9 +121,8 @@ sub run() {
 
     # Select the new snapshot
     unless ($self->y2snapper_select_snapshot) {
-      $self->result('fail');
-      $self->clean_and_quit;
-      return;
+        $self->clean_and_quit;
+        die("Failed to select the snapshot in order to delete it");
     }
     # Dele't'e the snapshot
     send_key "alt-t";
@@ -136,9 +131,10 @@ sub run() {
     # Make sure the snapshot is not longer there
     assert_screen 'yast2_snapper-snapshots', 100;
     if (check_screen('yast2_snapper-new_snapshot', 5)) {
-      $self->result('fail');
+        $self->clean_and_quit;
+        die("The snapshot is still visible after trying to delete it");
     }
-
+    # Success
     $self->clean_and_quit;
 }
 
