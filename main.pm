@@ -205,6 +205,10 @@ sub lxdestep_is_applicable() {
     return check_var("DESKTOP", "lxde");
 }
 
+sub snapper_is_applicable() {
+    return (check_var("FILESYSTEM", "btrfs") && get_var("HDDSIZEGB") > 10);
+}
+
 sub need_clear_repos() {
     return get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/;
 }
@@ -420,7 +424,7 @@ sub load_consoletests() {
         loadtest "console/consoletest_setup.pm";
         loadtest "console/textinfo.pm";
         loadtest "console/hostname.pm";
-        if (get_var("FILESYSTEM") == "btrfs") {
+        if (snapper_is_applicable) {
             if (get_var("UPGRADE")) {
                 loadtest "console/upgrade_snapshots.pm";
             } else {
@@ -541,7 +545,7 @@ sub load_x11tests(){
         loadtest "x11/dolphin.pm";
     }
     loadtest "x11/yast2_users.pm";
-    if (check_var("FILESYSTEM", "btrfs")) {
+    if (snapper_is_applicable) {
         loadtest "x11/yast2_snapper.pm";
     }
     if (gnomestep_is_applicable && get_var("GNOME2")) {
