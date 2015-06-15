@@ -108,6 +108,14 @@ sub cleanup_needles() {
 
 }
 
+sub is_server() {
+    return check_var('FLAVOR', 'Server-DVD') || check_var('FLAVOR', 'Server-MINI');
+}
+
+sub is_desktop() {
+    return check_var('FLAVOR', 'Desktop-DVD') || check_var('FLAVOR', 'Desktop-MINI');
+}
+
 #assert_screen "inst-bootmenu",12; # wait for welcome animation to finish
 
 # defaults for username and password
@@ -156,7 +164,7 @@ set_var('OLD_IFCONFIG', 1);
 set_var('DM_NEEDS_USERNAME', 1);
 set_var('NOIMAGES', 1);
 
-if ( is_desktop() ) {
+if ( is_desktop ) {
     # now that's fun - if AUTOCONF is set, autoconf is disabled
     set_var('AUTOCONF', 1);
 }
@@ -231,14 +239,6 @@ sub need_clear_repos() {
 
 sub have_addn_repos() {
     return !get_var("NET") && !get_var("EVERGREEN") && get_var("SUSEMIRROR") && !get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/;
-}
-
-sub is_server() {
-    return check_var('FLAVOR', 'Server-DVD') || check_var('FLAVOR', 'Server-MINI');
-}
-
-sub is_desktop() {
-    return check_var('FLAVOR', 'Desktop-DVD') || check_var('FLAVOR', 'Desktop-MINI');
 }
 
 sub loadtest($) {
