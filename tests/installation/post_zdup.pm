@@ -26,6 +26,18 @@ sub run() {
     send_key "ctrl-alt-delete";
     assert_screen "grub2", 50;
 
+    if ( get_var("NOAUTOLOGIN") ) {
+        my $ret = assert_screen 'displaymanager', 200;
+        if ( get_var('DM_NEEDS_USERNAME') ) {
+            type_string $username;
+        }
+        else {
+            send_key "ret";
+            wait_idle;
+        }
+        type_string "$password";
+        send_key "ret";
+    }
     # Wait until the point that consoletests can start working
     assert_screen "desktop-at-first-boot", 400;
 }
