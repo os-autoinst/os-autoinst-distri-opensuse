@@ -202,6 +202,10 @@ sub gnomestep_is_applicable() {
     return check_var("DESKTOP", "gnome");
 }
 
+sub snapper_is_applicable() {
+    return (check_var("FILESYSTEM", "btrfs") && get_var("HDDSIZEGB") > 10);
+}
+
 sub need_clear_repos() {
     return get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/ && get_var("SUSEMIRROR");
 }
@@ -414,7 +418,7 @@ sub load_consoletests() {
         loadtest "console/consoletest_setup.pm";
         loadtest "console/textinfo.pm";
         loadtest "console/hostname.pm";
-        if (get_var("FILESYSTEM") == "btrfs") {
+        if (snapper_is_applicable) {
             if (get_var("UPGRADE")) {
                 loadtest "console/upgrade_snapshots.pm";
             } else {
