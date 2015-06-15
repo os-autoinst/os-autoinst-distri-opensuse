@@ -6,6 +6,7 @@ sub run(){
     my $self=shift;
 
     assert_screen 'network-services', 30;
+    sleep 2;
     send_key $cmd{next};
 }
 
