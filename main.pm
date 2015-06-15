@@ -633,23 +633,26 @@ elsif (get_var("SYSAUTHTEST")) {
     loadtest "sysauth/sssd.pm";
 }
 else {
-    load_boot_tests();
     if (get_var("LIVETEST")) {
+        load_boot_tests();
         loadtest "installation/finish_desktop.pm";
     }
     elsif (get_var("AUTOYAST")) {
         # autoyast is very easy
+        load_boot_tests();
         loadtest "installation/start_install.pm";
         loadtest "installation/autoyast_reboot.pm";
         load_reboot_tests();
     }
     elsif (installzdupstep_is_applicable) {
+        load_boot_tests();
         load_zdup_tests();
     }
     elsif (get_var("BOOT_HDD_IMAGE")) {
         loadtest "installation/first_boot.pm";
     }
     else {
+        load_boot_tests();
         load_inst_tests();
         load_reboot_tests();
     }
