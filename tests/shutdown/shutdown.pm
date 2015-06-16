@@ -22,9 +22,8 @@ use ttylogin;
 sub run {
 
     ttylogin ('4', "root");
-    type_string "reboot\n";
-    assert_screen "bios-boot", 100;
-
+    type_string "poweroff\n";
+    assert_shutdown;
 }
 
 sub test_flags {
