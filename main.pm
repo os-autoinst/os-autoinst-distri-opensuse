@@ -214,6 +214,10 @@ sub have_addn_repos() {
     return !get_var("NET") && !get_var("EVERGREEN") && get_var("SUSEMIRROR") && !get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/;
 }
 
+sub is_server() {
+    return check_var('FLAVOR', 'Server-DVD') || check_var('FLAVOR', 'Server-MINI');
+}
+
 sub loadtest($) {
     my ($test) = @_;
     autotest::loadtest(get_var("CASEDIR") . "/tests/$test");
@@ -505,7 +509,7 @@ sub load_x11tests(){
     if (xfcestep_is_applicable) {
         loadtest "x11/ristretto.pm";
     }
-    if ( !check_var('FLAVOR', 'Server-DVD') ) {
+    if ( !is_server ) {
         if (gnomestep_is_applicable) {
             loadtest "x11/eog.pm";
             loadtest "x11/rhythmbox.pm";
@@ -539,7 +543,7 @@ sub load_x11tests(){
     }
     if (gnomestep_is_applicable) {
         loadtest "x11/nautilus.pm" unless get_var("LIVECD");
-        loadtest "x11/evolution.pm" unless (check_var("FLAVOR", "Server-DVD"));
+        loadtest "x11/evolution.pm" unless (is_server);
         loadtest "x11/reboot_gnome_pre.pm";
     }
     if (!get_var("LIVETEST")) {
