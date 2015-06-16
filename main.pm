@@ -87,6 +87,9 @@ sub cleanup_needles() {
     remove_flavor_needles('Desktop-DVD');
     remove_flavor_needles('Core-DVD');
 
+    remove_flavor_needles('Server-MINI');
+    remove_flavor_needles('Desktop-MINI');
+
     if ( !get_var("LIVECD") ) {
         unregister_needle_tags("ENV-LIVECD-1");
     }
@@ -103,6 +106,14 @@ sub cleanup_needles() {
         unregister_needle_tags("ENV-INSTLANG-de_DE");
     }
 
+}
+
+sub is_server() {
+    return check_var('FLAVOR', 'Server-DVD') || check_var('FLAVOR', 'Server-MINI');
+}
+
+sub is_desktop() {
+    return check_var('FLAVOR', 'Desktop-DVD') || check_var('FLAVOR', 'Desktop-MINI');
 }
 
 #assert_screen "inst-bootmenu",12; # wait for welcome animation to finish
@@ -153,7 +164,7 @@ set_var('OLD_IFCONFIG', 1);
 set_var('DM_NEEDS_USERNAME', 1);
 set_var('NOIMAGES', 1);
 
-if ( check_var('FLAVOR', 'Desktop-DVD') ) {
+if ( is_desktop ) {
     # now that's fun - if AUTOCONF is set, autoconf is disabled
     set_var('AUTOCONF', 1);
 }
@@ -339,7 +350,7 @@ sub is_reboot_after_installation_necessary() {
 
 sub load_inst_tests() {
     loadtest "installation/welcome.pm";
-    if (!check_var('BACKEND', 'ipmi') && !check_var('BACKEND', 's390x') && !get_var('USBBOOT')) { # network installs in general, but we have no setting for it yet
+    if (!check_var('BACKEND', 'ipmi') && !check_var('BACKEND', 's390x') && !get_var('USBBOOT') && !get_var('NETBOOT')) { # network installs in general, but we have no setting for it yet
         loadtest "installation/check_medium.pm";
     }
     if (check_var('BACKEND', 's390x')) {
@@ -360,10 +371,10 @@ sub load_inst_tests() {
         }
 
         loadtest "installation/installer_timezone.pm";
-        if (check_var('FLAVOR', 'Server-DVD') && !get_var("OFW") && !check_var('BACKEND', 's390x')) {
+        if (is_server && !get_var("OFW") && !check_var('BACKEND', 's390x')) {
             loadtest "installation/server_base_scenario.pm";
         }
-        if (check_var('FLAVOR', 'Desktop-DVD')) {
+        if (is_desktop) {
             loadtest "installation/user_settings.pm";
             loadtest "installation/user_settings_root.pm";
         }
@@ -401,12 +412,17 @@ sub load_inst_tests() {
         loadtest "installation/proxy_start_2nd_stage.pm";
     }
     loadtest "installation/sle11_wait_for_2nd_stage.pm";
-    if (noupdatestep_is_applicable && check_var('FLAVOR', 'Server-DVD')) {
+    if (noupdatestep_is_applicable && is_server) {
         loadtest "installation/user_settings_root.pm";
     }
     loadtest "installation/sle11_network.pm";
-    loadtest "installation/sle11_ncc.pm";
-    if (noupdatestep_is_applicable && check_var('FLAVOR', 'Server-DVD')) {
+    if (get_var('NCC')) {
+        loadtest "installation/sle11_ncc.pm";
+        loadtest "installation/sle11_online_update.pm";
+    } else {
+        loadtest "installation/sle11_skip_ncc.pm";
+    }
+    if (noupdatestep_is_applicable && is_server) {
         loadtest "installation/sle11_service.pm";
         loadtest "installation/sle11_user_authentication_method.pm";
         loadtest "installation/user_settings.pm";
@@ -488,6 +504,9 @@ sub load_consoletests() {
         if (check_var("DESKTOP", "xfce")) {
             loadtest "console/xfce_gnome_deps.pm";
         }
+        if (get_var("NCC")) {
+            loadtest "console/sle11_ncc_checkrepos.pm";
+        }
         loadtest "console/consoletest_finish.pm";
     }
 }
@@ -529,7 +548,7 @@ sub load_x11tests(){
     if (xfcestep_is_applicable) {
         loadtest "x11/ristretto.pm";
     }
-    if ( !check_var('FLAVOR', 'Server-DVD') ) {
+    if ( !is_server ) {
         if (gnomestep_is_applicable) {
             loadtest "x11/eog.pm";
             loadtest "x11/banshee.pm";
@@ -561,7 +580,7 @@ sub load_x11tests(){
     }
     if (gnomestep_is_applicable) {
         loadtest "x11/nautilus.pm" unless get_var("LIVECD");
-        loadtest "x11/evolution.pm" unless (check_var("FLAVOR", "Server-DVD"));
+        loadtest "x11/evolution.pm" unless (is_server);
         loadtest "x11/reboot_gnome_pre_sle11.pm";
     }
     if (!get_var("LIVETEST")) {
@@ -602,6 +621,15 @@ sub load_autoyast_tests(){
     #    next boot in load_reboot_tests
 }
 
+sub load_online_migration_tests() {
+    loadtest("boot/boot_to_console.pm");
+    loadtest("online_migration/sle11/add_beta_repos.pm");
+    loadtest("online_migration/sle11/yast2_online_update.pm");
+    loadtest("online_migration/sle11/yast2_wagon.pm");
+    loadtest("online_migration/sle11/reboot_to_console.pm");
+    loadtest("online_migration/sle11/check_upload_repos.pm");
+}
+
 # load the tests in the right order
 if ( get_var("REGRESSION") ) {
     if ( get_var("KEEPHDDS") ) {
@@ -636,6 +664,9 @@ elsif (get_var("RESCUESYSTEM")) {
 }
 elsif (get_var("SUPPORT_SERVER")) {
     loadtest "support_server/boot/boot.pm";
+}
+elsif (get_var("ONLINE_MIGRATION")) {
+    load_online_migration_tests();
 }
 else {
     load_boot_tests();
