@@ -82,7 +82,6 @@ sub run() {
         # select a net installation source (http, ftp, nfs, smb) by using key_round
         $self->key_round('inst-instsourcemenu-' . get_var('INSTALL_SOURCE'), 'down');
         send_key "ret";
-        assert_screen "inst-instsourcedialog-" . get_var('INSTALL_SOURCE'), 4;
         
         my $mirroraddr = "";
         my $mirrorpath = "/factory";
