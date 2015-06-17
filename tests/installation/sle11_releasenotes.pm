@@ -9,9 +9,9 @@ sub run(){
     if (get_var("ADDONS")) {
         if (check_screen 'release-notes-tab') {
             foreach $a (split(/,/, get_var('ADDONS'))) {
-                if ($a eq 'smt') {
+                if ($a eq 'smt' || check_var('FLAVOR', 'Desktop-DVD')) {
                     send_key 'alt-s';
-                    assert_screen "release-notes-smt";
+                    assert_screen "release-notes-$a";
                     send_key 'alt-u';
                     assert_screen "release-notes-sle";
                 }
