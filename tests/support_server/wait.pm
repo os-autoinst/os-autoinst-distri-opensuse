@@ -17,26 +17,33 @@
 use strict;
 use base 'basetest';
 use testapi;
+use lockapi;
+use mmapi;
 
 sub run {
+
     my $self = shift;
-    assert_screen( "autoyast-system-login-console", 20 );
-    $self->result('fail'); # default result
-    type_string "$username\n";
-    sleep 10;
-    type_password;
-    send_key "ret";
-    sleep 10;
+
+    mutex_create('pxeboot_ready');
     
-    type_string "echo SERIAL OK | tee /dev/$serialdev";
-    send_key "ret";
-    die unless wait_serial("SERIAL OK", 100);
-    wait_idle(10);
-    type_string "cat /proc/cmdline\n";
-    wait_idle(10);
-    save_screenshot;
+    while (1) {
+        my $s = get_children_by_state('scheduled');
+        my $r = get_children_by_state('running');
+        my $n = @$s + @$r;
+
+        print "Waiting for $n jobs to finish\n";
+
+        use Data::Dumper;
+        print Dumper($s, $r);
+
+        last if $n == 0;
+        sleep 1;
+    }
+
     $self->result('ok');
+
 }
+
 
 sub test_flags {
     # without anything - rollback to 'lastgood' snapshot if failed
@@ -47,5 +54,3 @@ sub test_flags {
 }
 
 1;
-
-# vim: set sw=4 et:

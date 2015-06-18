@@ -17,25 +17,17 @@
 use strict;
 use base 'basetest';
 use testapi;
+use lockapi;
+use mmapi;
 
 sub run {
-    my $self = shift;
-    assert_screen( "autoyast-system-login-console", 20 );
-    $self->result('fail'); # default result
-    type_string "$username\n";
-    sleep 10;
-    type_password;
-    send_key "ret";
-    sleep 10;
-    
-    type_string "echo SERIAL OK | tee /dev/$serialdev";
-    send_key "ret";
-    die unless wait_serial("SERIAL OK", 100);
-    wait_idle(10);
-    type_string "cat /proc/cmdline\n";
-    wait_idle(10);
-    save_screenshot;
-    $self->result('ok');
+
+    assert_screen( "inst-bootmenu", 30 );
+    send_key "ret"; #faster boot
+
+    assert_screen( "autoyast-boot", 3 );
+    send_key "ret"; #faster boot
+
 }
 
 sub test_flags {
