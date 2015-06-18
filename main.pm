@@ -389,6 +389,10 @@ sub load_inst_tests() {
         elsif (get_var('FILESYSTEM') || get_var('LVM')) {
             loadtest "installation/partitioning_sle11.pm";
         }
+        elsif (is_desktop && get_var("ADDONS") =~ /sdk/ && get_var('PATTERNS')) {
+            loadtest "installation/partitioning_sle11_desktop_sdk.pm";
+        }
+
         if (get_var('PATTERNS')) {
             loadtest "installation/installation_overview_before.pm";
             loadtest "installation/select_patterns.pm";
