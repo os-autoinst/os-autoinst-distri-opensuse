@@ -26,9 +26,9 @@ sub run(){
 
     assert_screen 'ncc-input-emailaddress', 20;
     type_string $emailaddr;
-    $self->key_round('ncc-confirm-emailaddress', 'tab');
+    send_key_until_needlematch 'ncc-confirm-emailaddress', 'tab';
     type_string $emailaddr;
-    $self->key_round('ncc-input-activationcode', 'tab');
+    send_key_until_needlematch 'ncc-input-activationcode', 'tab';
     type_string $ncc_code;
     
     if (get_var("ADDONS")) {
@@ -36,21 +36,21 @@ sub run(){
             next if ($a =~ /sdk/);
             if ($a eq 'ha') {
                 my $hacode = get_var("NCC_HA_CODE");
-                $self->key_round('ncc-input-hacode', 'tab');
+                send_key_until_needlematch 'ncc-input-hacode', 'tab';
                 type_string $hacode;
             }
             if ($a eq 'geo') {
                 my $geocode = get_var("NCC_GEO_CODE");
-                $self->key_round('ncc-input-geocode', 'tab');
+                send_key_until_needlematch 'ncc-input-geocode', 'tab';
                 type_string $geocode;
             }
         }
     }
 
-    $self->key_round('ncc-submit', 'tab');
+    send_key_until_needlematch 'ncc-submit', 'tab';
     send_key 'ret';
 
-    $self->key_round('ncc-continue-process', 'tab');
+    send_key_until_needlematch 'ncc-continue-process', 'tab';
     send_key 'ret';
 
     ncc_continue_actions();

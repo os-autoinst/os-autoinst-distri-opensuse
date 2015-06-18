@@ -38,8 +38,8 @@ sub run() {
             send_key 'alt-d';	# DVD
             send_key $cmd{"xnext"}, 1;
             assert_screen 'dvd-selector', 3;
-            $self->key_round('addon-dvd-list', 'tab');
-            $self->key_round("addon-dvd-$a", 'down');
+            send_key_until_needlematch 'addon-dvd-list', 'tab';
+            send_key_until_needlematch "addon-dvd-$a", 'down';
             send_key 'alt-o';
             if (get_var("BETA")) {
                 assert_screen "addon-betawarning-$a", 10;

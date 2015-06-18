@@ -13,8 +13,8 @@ sub run() {
             send_key 'alt-d';   # DVD
             send_key 'alt-n', 3;
             assert_screen 'dvd-selector', 3;
-            $self->key_round('addon-dvd-list', 'tab', 10);  # jump into addon list
-            $self->key_round("addon-dvd-$a", 'down', 10);   # select addon in list
+            send_key_until_needlematch 'addon-dvd-list', 'tab', 10;  # jump into addon list
+            send_key_until_needlematch "addon-dvd-$a", 'down', 10;   # select addon in list
             send_key 'alt-o';   # continue
             if (get_var("BETA")) {
                 assert_screen "addon-betawarning-$a", 10;

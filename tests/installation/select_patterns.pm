@@ -20,7 +20,7 @@ sub run {
         send_key 'alt-s';
     }
     else {
-        $self->key_round('packages-section-selected', 'tab');
+        send_key_until_needlematch 'packages-section-selected', 'tab';
         send_key 'ret';
     }
 
@@ -33,7 +33,7 @@ sub run {
         send_key 'tab';
     }
     else {
-        $self->key_round('patterns-list-selected', 'tab');
+        send_key_until_needlematch 'patterns-list-selected', 'tab';
     }
 
     my %wanted_patterns;

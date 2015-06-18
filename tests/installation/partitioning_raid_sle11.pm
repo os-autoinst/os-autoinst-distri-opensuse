@@ -153,7 +153,7 @@ sub run() {
     send_key 'alt-i';
     assert_screen('add-raid', 5);
     setraidlevel( get_var("RAIDLEVEL") );
-    $self->key_round('raid-devices-selected', 'tab');
+    send_key_until_needlematch 'raid-devices-selected', 'tab';
     send_key "down";
     send_key "down"; # start at second partition (i.e. sda2)
     for ( 1 .. 3 ) {
@@ -202,7 +202,7 @@ sub run() {
     send_key 'alt-i';
     assert_screen('add-raid', 5);
     setraidlevel(1); # RAID 1 for /boot
-    $self->key_round('raid-devices-selected', 'tab');
+    send_key_until_needlematch 'raid-devices-selected', 'tab';
     send_key "down"; # start at the 300MB partition
     for ( 1 .. 3 ) {
         for ( 1 .. 2 ) {
@@ -227,7 +227,7 @@ sub run() {
     send_key 'alt-i';
     assert_screen('add-raid', 5);
     setraidlevel(0); # RAID 0 for swap
-    $self->key_round('raid-devices-selected', 'tab');
+    send_key_until_needlematch 'raid-devices-selected', 'tab';
     send_key "spc"; # only 4 partitions left
     for ( 1 .. 3 ) {
         send_key "ctrl-down";

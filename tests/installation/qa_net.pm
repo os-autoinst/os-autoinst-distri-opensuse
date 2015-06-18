@@ -11,7 +11,8 @@ sub run() {
     assert_screen "qa-net-selection", 300;
     $bmwqemu::backend->relogin_vnc();
 
-    #$self->key_round("qa-net-selection-" . get_var('DISTRI') . "-" . get_var("VERSION"), 'down', 30, 3); #Don't use keyround to pick first menu tier as dist network sources might not be ready when openQA is running tests
+    #send_key_until_needlematch "qa-net-selection-" . get_var('DISTRI') . "-" . get_var("VERSION"), 'down', 30, 3;
+    #Don't use send_key_until_needlematch to pick first menu tier as dist network sources might not be ready when openQA is running tests
     send_key 'esc';
     assert_screen 'qa-net-boot', 8;
 

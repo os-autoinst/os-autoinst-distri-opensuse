@@ -25,9 +25,9 @@ sub run() {
     if (get_var("UPGRADE") && get_var("ADDONS")) {
         foreach $a (split(/,/, get_var('ADDONS'))) {
             if ($a eq 'smt') {
-                $self->key_round('used-repo-list', 'tab', 5);       # enable SMT repository
-                $self->key_round('smt-repo-selected', 'down', 5);
-                $self->key_round('used-smt-enabled', 'alt-t', 5);
+                send_key_until_needlematch 'used-repo-list', 'tab', 5;       # enable SMT repository
+                send_key_until_needlematch 'smt-repo-selected', 'down', 5;
+                send_key_until_needlematch 'used-smt-enabled', 'alt-t', 5;
                 send_key $cmd{"next"}, 1;
                 if (check_screen('network-not-configured', 5)) {
                     send_key 'ret', 1;          # Yes
@@ -44,8 +44,8 @@ sub run() {
                 send_key 'alt-d';	# DVD
                 send_key $cmd{"xnext"}, 1;
                 assert_screen 'dvd-selector', 3;
-                $self->key_round('addon-dvd-list', 'tab', 10);
-                $self->key_round("addon-dvd-$a", 'down', 10);
+                send_key_until_needlematch 'addon-dvd-list', 'tab', 10;
+                send_key_until_needlematch "addon-dvd-$a", 'down', 10;
                 send_key 'alt-o';
                 if (get_var("BETA")) {
                     assert_screen "addon-betawarning-$a", 10;

@@ -79,8 +79,8 @@ sub run() {
     if ( get_var("NETBOOT") ) {
         send_key "f4";
         assert_screen "inst-instsourcemenu", 4;
-        # select a net installation source (http, ftp, nfs, smb) by using key_round
-        $self->key_round('inst-instsourcemenu-' . get_var('INSTALL_SOURCE'), 'down');
+        # select a net installation source (http, ftp, nfs, smb) by using send_key_until_needlematch
+        send_key_until_needlematch 'inst-instsourcemenu-' . get_var('INSTALL_SOURCE'), 'down';
         send_key "ret";
         assert_screen "inst-instsourcedialog-" . get_var('INSTALL_SOURCE'), 4;
         
