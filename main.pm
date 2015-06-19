@@ -511,6 +511,10 @@ sub load_consoletests() {
         if (get_var("NCC")) {
             loadtest "console/sle11_ncc_checkrepos.pm";
         }
+        loadtest "console/postgresql94.pm";
+        if (is_server) {
+            loadtest "console/postgresql94server.pm";        
+        }
         loadtest "console/consoletest_finish.pm";
     }
 }
