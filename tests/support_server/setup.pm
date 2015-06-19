@@ -16,8 +16,6 @@
 use strict;
 use base 'basetest';
 use testapi;
-use lockapi;
-use mmapi;
 
 my $pxe_server_set = 0;
 my $quemu_proxy_set = 0;

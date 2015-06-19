@@ -16,8 +16,6 @@
 use strict;
 use base 'basetest';
 use testapi;
-use lockapi;
-use mmapi;
 
 sub run {
 
