@@ -8,7 +8,7 @@ sub run() {
     my $self = shift;
     script_sudo("/sbin/yast2 lan");
 
-    my $ret = assert_screen [qw/Networkmanager_controlled yast2_lan install-susefirewall2/], 20;
+    my $ret = assert_screen [qw/Networkmanager_controlled yast2_lan install-susefirewall2/], 30;
     if ( $ret->{needle}->has_tag('Networkmanager_controlled') ) {
         send_key "ret";      # confirm networkmanager popup
         assert_screen "Networkmanager_controlled-approved";
