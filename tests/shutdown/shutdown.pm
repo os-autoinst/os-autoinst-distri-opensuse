@@ -17,30 +17,18 @@
 use strict;
 use base 'basetest';
 use testapi;
+use ttylogin;
 
 sub run {
-    my $self = shift;
 
-    send_key "ctrl-alt-f4";
-    assert_screen "text-login", 20;
-    type_string "$username\n";
-    if (!get_var("LIVETEST")) {
-        assert_screen "password-prompt", 20;
-        type_password;
-        type_string "\n";
-    }
-    sleep 3;
-    script_sudo "reboot";
+    ttylogin ('4', "root");
+    type_string "reboot\n";
     assert_screen "bios-boot", 100;
 
 }
 
 sub test_flags {
-    # without anything - rollback to 'lastgood' snapshot if failed
-    # 'fatal' - whole test suite is in danger if this fails
-    # 'milestone' - after this test succeeds, update 'lastgood'
-    # 'important' - if this fails, set the overall state to 'fail'
-    return { important => 1 };
+    return { fatal => 1 };
 }
 
 1;
