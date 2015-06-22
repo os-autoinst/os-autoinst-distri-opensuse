@@ -357,6 +357,7 @@ sub load_inst_tests() {
         }
         loadtest "installation/partitioning_finish.pm";
     }
+    loadtest "installation/releasenotes.pm";
     if (noupdatestep_is_applicable && !get_var("LIVECD")) {
         loadtest "installation/installer_timezone.pm";
     }
