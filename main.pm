@@ -608,5 +608,11 @@ else {
     load_x11tests();
 }
 
+if (get_var("STORE_HDD_1") || get_var("PUBLISH_HDD_1")) {
+    if (get_var("INSTALLONLY")) {
+        loadtest "shutdown/shutdown.pm";
+    }
+}
+
 1;
 # vim: set sw=4 et:
