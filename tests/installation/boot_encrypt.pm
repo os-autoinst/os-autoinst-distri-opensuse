@@ -1,5 +1,5 @@
 use strict;
-use base "y2logsstep";
+use base "installbasetest";
 use testapi;
 
 sub run() {
