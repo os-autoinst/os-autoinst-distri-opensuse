@@ -233,7 +233,7 @@ sub run() {
 
     my $args = "";
     if ( get_var("AUTOYAST") ) {
-        $args .= " netsetup=dhcp,all";
+        $args .= " netdevice=eth0 netsetup=dhcp,all";
         $args .= " autoyast=" . autoinst_url . "/data/" . get_var("AUTOYAST") . " ";
     }
     type_string $args, 13;
