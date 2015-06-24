@@ -21,27 +21,30 @@ use virtmanager;
 
 sub run {
     launch_virtmanager();
+
     # method: cdrom, net, pxe, image
     # only CDROM supported now
     my $guest;
-    $guest->{name} = "SLE12Guest";
-    $guest->{method} = "cdrom";
+    $guest->{name}      = "SLE12Guest";
+    $guest->{method}    = "cdrom";
     $guest->{automatic} = "true";
-    $guest->{memory} = "512";
-    $guest->{cpu} = "1";
-    $guest->{custom} = "true";
-    $guest->{advanced} = "true";
-    $guest->{netmac} = "52:54:00:66:0b:fd";
-    
+    $guest->{memory}    = "512";
+    $guest->{cpu}       = "1";
+    $guest->{custom}    = "true";
+    $guest->{advanced}  = "true";
+    $guest->{netmac}    = "52:54:00:66:0b:fd";
+
     create_guest($guest);
-    if (get_var("DESKTOP") ne "icewm") {
+    if ( get_var("DESKTOP") ne "icewm" ) {
         assert_screen "virtman-sle12-gnome_guest_install_in_progress", 50;
-    } else {
-	assert_screen "virtman_guest_install_in_progress", 50;
+    }
+    else {
+        assert_screen "virtman_guest_install_in_progress", 50;
     }
 }
 
 sub test_flags {
+
     # without anything - rollback to 'lastgood' snapshot if failed
     # 'fatal' - whole test suite is in danger if this fails
     # 'milestone' - after this test succeeds, update 'lastgood'

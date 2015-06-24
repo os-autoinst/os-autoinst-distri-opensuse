@@ -21,51 +21,68 @@ use virtmanager;
 
 sub run {
     ensure_installed("virt-manager");
+
     # enable all view options
     launch_virtmanager();
+
     # go to preferences
     send_key "alt-e";
     send_key "p", 1;
+
     # go to polling
     send_key "right";
-    for (1 .. 3) { send_key "tab"; }
+    for ( 1 .. 3 ) { send_key "tab"; }
     save_screenshot;
+
     # activate disk I/O
-    send_key "spc"; sleep 1;
+    send_key "spc";
+    sleep 1;
     send_key "tab";
+
     # acrtivate net I/O
-    send_key "spc"; sleep 1;
+    send_key "spc";
+    sleep 1;
     send_key "tab";
+
     # activate Mem stat
-    send_key "spc"; sleep 1;
+    send_key "spc";
+    sleep 1;
+
     # close preferences
     send_key "alt-c";
-    send_key "esc"; sleep 1;
+    send_key "esc";
+    sleep 1;
 
     # go to view now
     send_key "alt-v", 1;
     send_key "right", 1;
+
     # activate everything
-    for (1 .. 4) {
-	send_key "down";
-	send_key "spc"; sleep 1
+    for ( 1 .. 4 ) {
+        send_key "down";
+        send_key "spc";
+        sleep 1;
     }
-    
-    if (get_var("DESKTOP") ne "icewm") {
-	assert_screen "virtman-sle12-gnome_viewcheck", 30;
-    } else {
-	# this should be icewm desktop, with a very basic gnome theme
-	assert_screen "virtman-viewcheck", 30;
+
+    if ( get_var("DESKTOP") ne "icewm" ) {
+        assert_screen "virtman-sle12-gnome_viewcheck", 30;
     }
+    else {
+        # this should be icewm desktop, with a very basic gnome theme
+        assert_screen "virtman-viewcheck", 30;
+    }
+
     # close every opne windows
     send_key "esc";
     send_key "alt-f", 1;
     send_key "q";
+
     # close the xterm
     send_key "alt-f4";
 }
 
 sub test_flags {
+
     # without anything - rollback to 'lastgood' snapshot if failed
     # 'fatal' - whole test suite is in danger if this fails
     # 'milestone' - after this test succeeds, update 'lastgood'
