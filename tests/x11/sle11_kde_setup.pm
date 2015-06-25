@@ -9,12 +9,12 @@ sub run() {
     # e.g. xterm https://openqa.suse.de/tests/49520/modules/yast2_users/steps/2
     send_key "alt-f2";  # run command window
     assert_screen 'desktop-runner';
-    $self->key_round('run-command-settings', 'tab', 5);
+    send_key_until_needlematch 'run-command-settings', 'tab', 5;
     sleep 2;
     send_key ' ';       # enter KDE run command (KRunner) settings
-    $self->key_round('run-command-filter', 'tab', 5);
+    send_key_until_needlematch 'run-command-filter', 'tab', 5;
     type_string('app'); # filter applications feature
-    $self->key_round('run-command-app-checkbox', 'tab', 5);
+    send_key_until_needlematch 'run-command-app-checkbox', 'tab', 5;
     send_key ' ';       # uncheck find applications feature
     send_key "alt-o";   # OK
     sleep 2;

@@ -17,7 +17,7 @@ sub run() {
     assert_screen("linuxrc-system_boot-select-a-system-to-boot", 60);
 
     # Press [Enter] till the last dialog for booting appears
-    $self->key_round("linuxrc-system-boot-kernel-options", "ret", 8);
+    send_key_until_needlematch "linuxrc-system-boot-kernel-options", "ret", 8;
 
     # Confirm booting
     bmwqemu::diag "Booting the installed system now...";

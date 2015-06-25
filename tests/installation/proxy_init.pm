@@ -12,7 +12,7 @@ sub createvm($) {
     sleep 5;
     type_string "vncviewer localhost:9$nodenum -shared -fullscreen\n";
     assert_screen "inst-bootmenu", 15;
-    $self->key_round('inst-oninstallation', 'down');
+    send_key_until_needlematch 'inst-oninstallation', 'down';
     type_string "ssh=1 ";
     type_string "sshpassword=openqaha ";
     type_string "netsetup=dhcp,all ", 13;

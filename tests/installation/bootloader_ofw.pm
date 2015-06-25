@@ -8,7 +8,7 @@ sub run() {
     my $self = shift;
 
     assert_screen "bootloader-ofw", 15;
-    $self->key_round('inst-oninstallation', 'up');
+    send_key_until_needlematch 'inst-oninstallation', 'up';
     if (check_var('VIDEOMODE', 'text') || get_var('NETBOOT')) {
         # edit menu
         send_key "e";

@@ -22,7 +22,7 @@ sub change_desktop() {
         send_key 'alt-s';
     }
     else {
-        $self->key_round('packages-section-selected', 'tab', 10);
+        send_key_until_needlematch 'packages-section-selected', 'tab', 10;
         send_key 'ret';
     }
 
@@ -31,22 +31,22 @@ sub change_desktop() {
         send_key 'alt-f';
         for ( 1 .. 4 ) { send_key 'up'; }
         send_key 'ret';
-        $self->key_round('patterns-list-selected', 'tab', 10);
+        send_key_until_needlematch 'patterns-list-selected', 'tab', 10;
     }
     else {
-        $self->key_round('patterns-list-selected', 'tab', 10);
+        send_key_until_needlematch 'patterns-list-selected', 'tab', 10;
     }
 
     if (!check_var('DESKTOP', 'gnome')) {
-        $self->key_round('gnome-selected', 'down', 10);
+        send_key_until_needlematch 'gnome-selected', 'down', 10;
         wait_screen_change { send_key ' '; };
     }
     if (check_var('DESKTOP', 'kde')) {
-        $self->key_round('kde-unselected', 'down', 10);
+        send_key_until_needlematch 'kde-unselected', 'down', 10;
         wait_screen_change { send_key ' '; };
     }
     if (check_var('DESKTOP', 'textmode')) {
-        $self->key_round('x11-selected', 'down', 10);
+        send_key_until_needlematch 'x11-selected', 'down', 10;
         wait_screen_change { send_key ' '; };
     }
 

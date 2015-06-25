@@ -8,7 +8,7 @@ sub run() {
     send_key "alt-f1"; # applicationsmenu
     my $selected = check_screen 'shutdown_button', 0;
     if (!$selected) {
-        $self->key_round('shutdown_button', 'tab', 20); # press tab till is shutdown button selected
+        send_key_until_needlematch 'shutdown_button', 'tab', 20; # press tab till is shutdown button selected
     }
 
     send_key "ret"; # press shutdown button

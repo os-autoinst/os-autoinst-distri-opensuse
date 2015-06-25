@@ -30,7 +30,7 @@ sub run(){
                     send_key ' ', 1;
                 }
                 send_key 'pgup', 1;
-                $self->key_round("release-notes-list-$a", 'down');
+                send_key_until_needlematch "release-notes-list-$a", 'down';
                 send_key 'ret', 1;
                 assert_screen "release-notes-$a";
             }
@@ -39,7 +39,7 @@ sub run(){
                 send_key ' ', 1;
             }
             send_key 'pgup', 1;
-            $self->key_round("release-notes-list-sle", 'down');
+            send_key_until_needlematch "release-notes-list-sle", 'down';
             send_key 'ret', 1;
             assert_screen "release-notes-sle";
         }

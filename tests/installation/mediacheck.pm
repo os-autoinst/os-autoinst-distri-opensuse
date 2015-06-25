@@ -8,7 +8,7 @@ sub run {
     assert_screen "inst-bootmenu", 15;
 
     if (get_var('OFW')) {
-        $self->key_round('inst-onmediacheck', 'up');
+        send_key_until_needlematch 'inst-onmediacheck', 'up';
     } else {
        $self->bootmenu_down_to('inst-onmediacheck');
     }
