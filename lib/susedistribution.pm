@@ -125,6 +125,7 @@ sub ensure_installed {
 
     testapi::x11_start_program("xterm");
     assert_screen('xterm-started');
+<<<<<<< HEAD
     $self->script_sudo("chown $testapi::username /dev/$testapi::serialdev && echo 'chown-SUCCEEDED' > /dev/$testapi::serialdev");
     wait_serial ('chown-SUCCEEDED');
     type_string("pkcon install @pkglist; RET=\$?; echo \"\n  pkcon finished\n\"; echo \"pkcon-\${RET}-\" > /dev/$testapi::serialdev\n");
@@ -138,6 +139,16 @@ while (1) {
         }
         if ( $ret->{needle}->has_tag('Policykit') ||
              $ret->{needle}->has_tag('PolicyKit-retry')) {
+=======
+    type_string("pkcon install @pkglist\n");
+    my @tags =
+      qw/Policykit Policykit-behind-window PolicyKit-retry pkcon-proceed-prompt pkcon-succeeded/;
+    while (1) {
+        my $ret = assert_screen( \@tags, $timeout );
+        if (   $ret->{needle}->has_tag('Policykit')
+            || $ret->{needle}->has_tag('PolicyKit-retry') )
+        {
+>>>>>>> perltidy fix; icewm don't have a desktop-runner, using the dedicated
             type_password;
             send_key( "ret", 1 );
             @tags = grep { $_ ne 'Policykit' } @tags;
@@ -162,8 +173,13 @@ while (1) {
         }
     }
 
+<<<<<<< HEAD
     wait_serial ('pkcon-0-', 27) || die "pkcon install did not succeed";
     send_key("alt-f4"); # close xterm
+=======
+    if ($password) { type_password; send_key( "ret", 1 ); }
+    wait_still_screen( 7, 90 );    # wait for install
+>>>>>>> perltidy fix; icewm don't have a desktop-runner, using the dedicated
 }
 
 sub script_sudo($$) {
