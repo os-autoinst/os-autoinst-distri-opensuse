@@ -52,9 +52,8 @@ sub post_fail_hook() {
         type_string "\n";
         sleep 1;
     }
-    type_string "save_y2logs /tmp/y2logs.tar.bz2; echo y2logs-saved-\$? > /dev/$serialdev\n";
-    $ret = wait_serial 'y2logs-saved-\d+';
-    die "failed to save y2logs" unless (defined $ret && $ret =~ /y2logs-saved-0/);
+    type_string "save_y2logs /tmp/y2logs.tar.bz2 && echo 'y2logs-saved' > /dev/$serialdev\n";
+    wait_serial 'y2logs-saved';
     upload_logs "/tmp/y2logs.tar.bz2";
     save_screenshot();
 }
