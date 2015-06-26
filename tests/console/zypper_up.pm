@@ -6,18 +6,23 @@ sub run() {
 
     become_root();
 
-    script_run("zypper patch -l && echo 'worked-patch' > /dev/$serialdev");
+    script_run("zypper patch -l; echo 'worked-patch-\$?' > /dev/$serialdev");
     my $ret = assert_screen( [qw/test-zypper_up-confirm test-zypper_up-nothingtodo/] );
     if ( $ret->{needle}->has_tag("test-zypper_up-confirm") ) {
         type_string "y\n";
     }
-    die "zypper failed" unless wait_serial "worked-patch", 700;
-    script_run("zypper patch -l && echo 'worked-2-patch' > /dev/$serialdev");    # first one might only have installed "update-test-affects-package-manager"
-    $ret = check_screen [qw/test-zypper_up-confirm test-zypper_up-nothingtodo/];
+    $ret = wait_serial "worked-patch-\?-", 700;
+    $ret =~ /worked-patch-(\d+)/;
+    die "zypper failed with code $1" unless $1 == 0 || $1 == 102 || $1 == 103;
+
+    script_run("zypper patch -l; echo 'worked-2-patch-\$?-' > /dev/$serialdev");    # first one might only have installed "update-test-affects-package-manager"
+    $ret = assert_screen [qw/test-zypper_up-confirm test-zypper_up-nothingtodo/];
     if ( $ret && $ret->{needle}->has_tag("test-zypper_up-confirm") ) {
         type_string "y\n";
     }
-    die "zypper failed" unless wait_serial "worked-2-patch", 700;
+    $ret = wait_serial "worked-2-patch-\?-", 1500;
+    $ret =~ /worked-2-patch-(\d+)/;
+    die "zypper failed with code $1" unless $1 == 0 || $1 == 102;
 
     assert_script_run("rpm -q libzypp zypper");
 
@@ -30,7 +35,7 @@ sub run() {
 }
 
 sub test_flags() {
-    return { 'milestone' => 1 };
+    return { 'milestone' => 1, 'fatal' => 1 };
 }
 
 1;
