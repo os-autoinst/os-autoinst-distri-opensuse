@@ -20,7 +20,7 @@ use testapi;
 sub run() {
     become_root();
 
-    assert_script_run("zypper -n patch -l -r openqa0");
+    assert_script_run("zypper -n patch -l -r incident0");
 
     script_run('exit');
 }
