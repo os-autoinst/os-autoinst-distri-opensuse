@@ -665,7 +665,6 @@ if (get_var("STORE_HDD_1") || get_var("PUBLISH_HDD_1")) {
     if (get_var("INSTALLONLY")) {
         loadtest "shutdown/shutdown.pm";
     }
-    loadtest 'support/upload_asset.pm';
 }
 
 1;

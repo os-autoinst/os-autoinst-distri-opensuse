@@ -71,8 +71,7 @@ sub run() {
         # send_key "ctrl-alt-f1"; # work-around for LXDE bug 619769 ; not needed in Factory anymore
     }
 
-    # qemu is not reliable in sending last screenshot, so don't assert here
-    check_screen "machine-is-shutdown", 30;
+    assert_shutdown;
 }
 
 sub test_flags() {
