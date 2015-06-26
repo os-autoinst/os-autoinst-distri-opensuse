@@ -7,9 +7,11 @@ sub run() {
     my $val = get_var("ZYPPER_ADD_REPOS");
     return unless $val;
 
+    my $prefix = get_var("ZYPPER_ADD_REPO_PREFIX") || 'openqa';
+
     my $i = 0;
     for my $url (split(/,/, $val)) {
-        assert_script_run("zypper -n ar -c -f $url openqa$i");
+        assert_script_run("zypper -n ar -c -f $url $prefix$i");
         ++$i;
     }
 
