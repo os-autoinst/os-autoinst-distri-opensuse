@@ -630,6 +630,7 @@ elsif (get_var("SYSAUTHTEST")) {
     loadtest "installation/finish_desktop.pm";
     # sysauth test scenarios run in the console
     loadtest "console/consoletest_setup.pm";
+    loadtest "console/zypper_ar.pm";
     loadtest "sysauth/sssd.pm";
 }
 else {
