@@ -10,7 +10,7 @@ sub run(){
     if (get_var("ADDONS")) {
         foreach $a (split(/,/, get_var('ADDONS'))) {
             send_key 'alt-s';   # jump to first tab
-            $self->key_round("release-notes-tab-$a", 'right');
+            send_key_until_needlematch("release-notes-tab-$a", 'right');
         }
     }
     send_key 'alt-o';   # exit release notes window
