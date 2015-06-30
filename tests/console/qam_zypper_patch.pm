@@ -20,13 +20,18 @@ use testapi;
 sub run() {
     become_root();
 
-    assert_script_run("zypper -n patch -l -r incident0");
+    # can't use assert_script_run as zypper patch returns different return
+    # values
+    script_run("zypper -n patch -l -r incident0; echo zypper-patch-\$?- > /dev/$serialdev");
+    $ret = wait_serial "zypper-patch-\?-", 300;
+    $ret =~ /zypper-patch-(\d+)/;
+    die "zypper failed with code $1" unless $1 == 0 || $1 == 102 || $1 == 103;
 
     script_run('exit');
 }
 
 sub test_flags() {
-    return { 'fatal' => 1, };
+    return { 'fatal' => 1, milestone => 1 };
 }
 
 1;
