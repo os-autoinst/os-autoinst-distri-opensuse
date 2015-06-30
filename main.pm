@@ -149,6 +149,10 @@ set_var("WALLPAPER", '/usr/share/wallpapers/SLEdefault/contents/images/1280x1024
 # set KDE and GNOME, ...
 set_var(uc(get_var('DESKTOP')), 1);
 
+if ( check_var('DESKTOP', 'gnome') || check_var('DESKTOP', 'kde') ) {
+    set_var('SHUTDOWN_NEEDS_AUTH', 1);
+}
+
 # for GNOME pressing enter is enough to login bernhard
 if ( check_var( 'DESKTOP', 'minimalx' ) ) {
     set_var('DM_NEEDS_USERNAME', 1);
