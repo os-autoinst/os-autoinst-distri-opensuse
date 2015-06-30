@@ -220,7 +220,7 @@ sub is_server() {
 
 sub loadtest($) {
     my ($test) = @_;
-    autotest::loadtest(get_var("CASEDIR") . "/tests/$test");
+    autotest::loadtest("tests/$test");
 }
 
 sub load_x11regresion_tests() {
@@ -564,6 +564,17 @@ sub load_x11tests(){
     loadtest "x11/shutdown.pm";
 }
 
+sub load_applicationstests {
+    my $anyloaded = 0;
+    if (my $val = get_var("APPTESTS")) {
+        for my $test (split(/,/, $val)) {
+            loadtest "$test.pm";
+        }
+        $anyloaded = 1;
+    }
+    return $anyloaded;
+}
+
 # load the tests in the right order
 if ( get_var("REGRESSION") ) {
     if ( get_var("KEEPHDDS") ) {
@@ -587,26 +598,43 @@ elsif (get_var("RESCUESYSTEM")) {
     loadtest "installation/rescuesystem_validate_sle11sp3.pm";
 }
 else {
-    load_boot_tests();
     if (get_var("LIVETEST")) {
+        load_boot_tests();
         loadtest "installation/finish_desktop.pm";
     }
     elsif (get_var("AUTOYAST")) {
         # autoyast is very easy
+        load_boot_tests();
         loadtest "installation/start_install.pm";
         loadtest "installation/autoyast_reboot.pm";
         load_reboot_tests();
     }
     elsif (installzdupstep_is_applicable) {
+        load_boot_tests();
         load_zdup_tests();
     }
+    elsif (get_var("BOOT_HDD_IMAGE")) {
+        if (get_var("ENCRYPT")) {
+            loadtest "installation/boot_encrypt.pm";
+        }
+        loadtest "installation/first_boot.pm";
+    }
     else {
+        load_boot_tests();
         load_inst_tests();
         load_reboot_tests();
     }
-    load_rescuecd_tests();
-    load_consoletests();
-    load_x11tests();
+    unless (load_applicationstests()) {
+        load_rescuecd_tests();
+        load_consoletests();
+        load_x11tests();
+    }
+}
+
+if (get_var("STORE_HDD_1") || get_var("PUBLISH_HDD_1")) {
+    if (get_var("INSTALLONLY")) {
+        loadtest "shutdown/shutdown.pm";
+    }
 }
 
 1;
