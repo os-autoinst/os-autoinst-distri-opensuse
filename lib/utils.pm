@@ -53,9 +53,11 @@ sub wait_reboot {
         }
         else {
             # log in
-            assert_screen "dm-password-input", 10;
-            type_string $password. "\n";
+            #assert_screen "dm-password-input", 10;
+            send_key "ret";
+            wait_idle;
         }
+        type_string $password. "\n";
     }
 
     assert_screen 'generic-desktop', 300;
