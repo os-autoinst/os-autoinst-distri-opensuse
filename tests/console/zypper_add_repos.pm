@@ -2,10 +2,10 @@ use base "consoletest";
 use testapi;
 
 sub run() {
-    become_root();
-
     my $val = get_var("ZYPPER_ADD_REPOS");
     return unless $val;
+
+    become_root();
 
     my $prefix = get_var("ZYPPER_ADD_REPO_PREFIX") || 'openqa';
 
