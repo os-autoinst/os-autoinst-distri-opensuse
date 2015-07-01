@@ -99,22 +99,16 @@ sub run {
 
     if ( exists $server_roles{'pxe'} ) {    
        setup_dhcp_server();
-       #setup pxe server
        setup_pxe_server();
        setup_tftp_server();
     }
     if ( exists $server_roles{'qemuproxy'} ) {    
-       #setup pxe server
        setup_http_server();
        $setup_script.="curl -f -v " . autoinst_url . "/data/supportserver/proxy.conf | sed -e 's|#AUTOINST_URL#|" . autoinst_url . "|g' >/etc/apache2/vhosts.d/proxy.conf\n";
        $setup_script.="systemctl restart apache2.service\n";
-
     }
 
     script_output("$setup_script");
-
-
-
 }
 
 sub test_flags {
