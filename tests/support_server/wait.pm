@@ -23,6 +23,8 @@ sub run {
 
     my $self = shift;
 
+    wait_idle(100);
+
     mutex_create('pxeboot_ready');
     
     while (1) {
