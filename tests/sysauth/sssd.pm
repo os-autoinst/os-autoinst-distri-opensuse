@@ -15,6 +15,7 @@ sub run() {
     /;
     script_run "systemctl stop packagekit.service; systemctl mask packagekit.service";
     script_run "zypper -n refresh && zypper -n in @test_subjects";
+    wait_idle;
 
     script_run "cd; curl -L -v ".autoinst_url."/data/sssd-tests > sssd-tests.data && cpio -id < sssd-tests.data && mv data sssd && ls sssd";
 
