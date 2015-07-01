@@ -660,10 +660,22 @@ else {
         load_inst_tests();
         load_reboot_tests();
     }
+
     unless (load_applicationstests()) {
-        load_rescuecd_tests();
-        load_consoletests();
-        load_x11tests();
+        if (get_var("SLENKINS_NODEFILE")) {
+            my $node = get_var("SLENKINS_NODE");
+            if ($node && $node ne 'control' ) {
+                loadtest "slenkins/slenkins_node.pm";
+            }
+            else {
+                loadtest "slenkins/slenkins_control.pm";
+            }
+        }
+        else {
+            load_rescuecd_tests();
+            load_consoletests();
+            load_x11tests();
+        }
     }
 }
 
