@@ -26,6 +26,8 @@ sub run() {
     become_root;
     script_run "systemctl mask packagekit.service";
     script_run "systemctl stop packagekit.service";
+    script_run "zypper -n install curl; echo \"zypper-curl-\$?-\" > /dev/$serialdev";
+    wait_serial "zypper-curl-0-";
     script_run "exit";
 
     save_screenshot;
