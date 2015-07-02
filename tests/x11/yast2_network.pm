@@ -44,8 +44,8 @@ sub run() {
   script_run "yast2 firewall enable";
 
   # Enable routing
-  start_yast2_lan();
-  enable_routing();
+  start_yast2_lan;
+  enable_routing;
 
   # Save settings
   send_key "alt-o";
@@ -55,12 +55,13 @@ sub run() {
   script_run "yast2 firewall disable";
 
   # Check that routing is still enabled
-  check_routing_enabled_console();
-  start_yast2_lan();
-  check_routing_enabled_ui();
+  check_routing_enabled_console;
+  start_yast2_lan;
+  check_routing_enabled_ui;
 
-  # Success
-  $self->clean_and_quit;
+  # Exit
+  send_key "alt-o";
+  script_run "exit";
 }
 
 1;
