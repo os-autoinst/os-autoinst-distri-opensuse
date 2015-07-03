@@ -221,6 +221,10 @@ sub system_is_livesystem() {
   return (check_var("FLAVOR", 'Rescue-CD') || get_var("LIVETEST"))
 }
 
+sub is_server() {
+  return (get_var("OFW") || check_var("FLAVOR","Server-DVD"));
+}
+
 sub loadtest($) {
     my ($test) = @_;
     autotest::loadtest("tests/$test");
