@@ -21,7 +21,9 @@ sub run(){
         }
     }
     send_key 'alt-o';   # exit release notes window
-    send_key 'alt-e';   # select region as previous selected
+    if (!get_var("UPGRADE")) {
+        send_key 'alt-e';   # select timezone region as previously selected
+    }
 }
 
 1;
