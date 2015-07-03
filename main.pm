@@ -516,7 +516,7 @@ sub load_x11tests(){
     if (bigx11step_is_applicable && !get_var("NICEVIDEO")) {
         loadtest "x11/firefox_stress.pm";
     }
-    if (gnomestep_is_applicable && !get_var("LIVECD")) {
+    if (gnomestep_is_applicable && !get_var("LIVECD") || !is_server) {
         loadtest "x11/thunderbird.pm";
     }
     if (get_var("MOZILLATEST")) {
@@ -534,13 +534,13 @@ sub load_x11tests(){
     if (gnomestep_is_applicable) {
         loadtest "x11/eog.pm";
     }
-    if (get_var("DESKTOP") =~ /kde|gnome/ && get_var("FLAVOR", '') ne "Server-DVD") {
+    if (get_var("DESKTOP") =~ /kde|gnome/ && !is_server) {
         loadtest "x11/ooffice.pm";
     }
-    if (!get_var("NICEVIDEO") && get_var("DESKTOP") =~ /kde|gnome/ && !get_var("LIVECD") && get_var("FLAVOR", '') ne "Server-DVD") {
+    if (!get_var("NICEVIDEO") && get_var("DESKTOP") =~ /kde|gnome/ && !is_server) {
         loadtest "x11/oomath.pm";
     }
-    if (!get_var("NICEVIDEO") && get_var("DESKTOP") =~ /kde|gnome/ && !get_var("LIVECD") && get_var("FLAVOR", '') ne "Server-DVD") {
+    if (!get_var("NICEVIDEO") && get_var("DESKTOP") =~ /kde|gnome/ && !get_var("LIVECD") && !is_server) {
         loadtest "x11/oocalc.pm";
     }
     if (kdestep_is_applicable) {
@@ -578,7 +578,7 @@ sub load_x11tests(){
     if (gnomestep_is_applicable) {
         loadtest "x11/nautilus.pm" unless get_var("LIVECD");
         loadtest "x11/gnome_music.pm";
-        loadtest "x11/evolution.pm" unless (check_var("FLAVOR", "Server-DVD"));
+        loadtest "x11/evolution.pm" unless is_server;
         loadtest "x11/reboot_gnome_pre.pm";
     }
     loadtest "x11/reboot.pm";
