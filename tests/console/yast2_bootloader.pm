@@ -6,6 +6,9 @@ use testapi;
 
 sub run() {
     my $self = shift;
+
+    assert_script_sudo "zypper -n in yast2-bootloader"; # make sure yast2 bootloader module installed
+
     script_sudo("/sbin/yast2 bootloader");
     my $ret = assert_screen "test-yast2_bootloader-1", 300;
     send_key "alt-o";     # OK => Close
