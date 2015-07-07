@@ -7,9 +7,9 @@ sub add_user() {
     type_string "Test user";
     assert_screen "yast2_users-username";
     send_key "alt-p";
-    type_string "nots3cr3t.";
+    type_password "nots3cr3t.";
     send_key "tab";
-    type_string "nots3cr3t.";
+    type_password "nots3cr3t.";
     send_key "alt-o";
     assert_screen "yast2_users-disable_autologin";
     send_key "alt-n";
@@ -34,9 +34,9 @@ sub remove_user() {
 }
 
 sub add_passwordless_user() {
-    script_run "pam-config -a --unix-nullok";
-    script_run "useradd test -c 'Test user'";
-    script_run "passwd -d test";
+    assert_script_run "pam-config -a --unix-nullok";
+    assert_script_run "useradd test -c 'Test user'";
+    assert_script_run "passwd -d test";
 }
 
 sub edit_passwordless_user() {
@@ -46,12 +46,12 @@ sub edit_passwordless_user() {
 }
 
 sub remove_passwordless_user() {
-    script_run "pam-config -d --unix-nullok";
-    script_run "userdel test";
+    assert_script_run "pam-config -d --unix-nullok";
+    assert_script_run "userdel test";
 }
 
 sub start_yast2_users() {
-    script_run "yast2 users";
+    assert_script_run "yast2 users";
     assert_screen "yast2_users-users";
 }
 
