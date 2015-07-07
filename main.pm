@@ -447,6 +447,7 @@ sub load_consoletests() {
         }
         loadtest "console/zypper_ref.pm";
         loadtest "console/yast2_lan.pm";
+        loadtest "console/yast2_users.pm";
         loadtest "console/curl_https.pm";
         if (!get_var("OFW")) {
             loadtest "console/aplay.pm";
