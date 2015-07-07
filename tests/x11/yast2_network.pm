@@ -30,8 +30,6 @@ sub start_yast2_lan() {
 
 # Test for basic yast2-network functionality.
 sub run() {
-  my $self = shift;
-
   # Make sure yast2-network ins installed (if not, install it)
   ensure_installed "yast2-network";
 
