@@ -1,10 +1,9 @@
 use strict;
 use base "y2logsstep";
 use testapi;
+use utils;
 
 sub run() {
-    my $self = shift;
-
     # Eject the DVD
     send_key "ctrl-alt-f3";
     assert_screen('text-login');
@@ -15,9 +14,7 @@ sub run() {
 
     # eject_cd;
 
-    if (get_var("ENCRYPT")) {
-        $self->pass_disk_encrypt_check;
-    }
+    unlock_if_encrypted;
 }
 
 1;

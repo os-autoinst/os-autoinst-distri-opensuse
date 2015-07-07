@@ -37,6 +37,18 @@ sub run() {
         assert_screen 'addon-list', 5;
         send_key 'alt-n', 3;    # done
     }
+    elsif ( get_var("ADDONURL")) {
+        send_key 'alt-k';   # install with addons
+        send_key 'alt-u';   # specify url
+        send_key 'alt-n';
+        assert_screen 'addonurl-entry', 3;
+        type_string get_var("ADDONURL");
+        send_key 'alt-e';   # name
+        type_string "incident0";
+        send_key 'alt-n';
+        assert_screen 'addonproduct-selection', 3;
+        send_key 'alt-n';
+    }
     else {
         send_key 'alt-n', 3;    # done
     }

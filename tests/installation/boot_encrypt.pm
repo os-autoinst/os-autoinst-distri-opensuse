@@ -1,11 +1,9 @@
 use strict;
 use base "installbasetest";
-use testapi;
+use utils;
 
 sub run() {
-    my $self = shift;
-
-    $self->pass_disk_encrypt_check;
+    unlock_if_encrypted;
 }
 
 1;
