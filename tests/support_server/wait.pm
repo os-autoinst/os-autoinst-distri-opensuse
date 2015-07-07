@@ -16,45 +16,42 @@
 use strict;
 use base 'basetest';
 use testapi;
+use lockapi;
+use mmapi;
 
 sub run {
+
     my $self = shift;
 
-    #need to ensure we have commandline
-    wait_idle(30);
-    #add user for opensuse tests
-    $testapi::username = "bernhard";
-    # $testapi::password = "nots3cr3t";
-    $testapi::password = "root";
+    wait_idle(100);
 
+    mutex_create('pxeboot_ready');
+    
+    while (1) {
+        my $s = get_children_by_state('scheduled');
+        my $r = get_children_by_state('running');
+        my $n = @$s + @$r;
 
-    type_string("useradd -m -c \"$testapi::realname\" $testapi::username\n");
-    sleep 1;
-    type_string("passwd $testapi::username\n");
-    sleep 1;
-    type_password;send_key "ret";
-    sleep 1;
-    type_password;send_key "ret";
-    sleep 1;
+        print "Waiting for $n jobs to finish\n";
 
-#check if user exists
-    type_string "ls /home | tee /dev/$serialdev\n";
-    wait_serial("$testapi::username", 200);
+        use Data::Dumper;
+        print Dumper($s, $r);
 
+        last if $n == 0;
+        sleep 1;
+    }
 
-
-
+    $self->result('ok');
 
 }
+
 
 sub test_flags {
     # without anything - rollback to 'lastgood' snapshot if failed
     # 'fatal' - whole test suite is in danger if this fails
     # 'milestone' - after this test succeeds, update 'lastgood'
     # 'important' - if this fails, set the overall state to 'fail'
-    return { important => 1 };
+    return { important => 1, fatal => 1 };
 }
 
 1;
-
-# vim: set sw=4 et:

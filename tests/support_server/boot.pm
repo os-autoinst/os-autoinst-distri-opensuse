@@ -18,32 +18,12 @@ use base 'basetest';
 use testapi;
 
 sub run {
-    my $self = shift;
 
-    #need to ensure we have commandline
-    wait_idle(30);
-    #add user for opensuse tests
-    $testapi::username = "bernhard";
-    # $testapi::password = "nots3cr3t";
-    $testapi::password = "root";
+    assert_screen( "inst-bootmenu", 30 );
+    send_key "ret"; #faster boot
 
-
-    type_string("useradd -m -c \"$testapi::realname\" $testapi::username\n");
-    sleep 1;
-    type_string("passwd $testapi::username\n");
-    sleep 1;
-    type_password;send_key "ret";
-    sleep 1;
-    type_password;send_key "ret";
-    sleep 1;
-
-#check if user exists
-    type_string "ls /home | tee /dev/$serialdev\n";
-    wait_serial("$testapi::username", 200);
-
-
-
-
+    assert_screen( "autoyast-boot", 3 );
+    send_key "ret"; #faster boot
 
 }
 
@@ -52,7 +32,7 @@ sub test_flags {
     # 'fatal' - whole test suite is in danger if this fails
     # 'milestone' - after this test succeeds, update 'lastgood'
     # 'important' - if this fails, set the overall state to 'fail'
-    return { important => 1 };
+    return { important => 1, fatal => 1 };
 }
 
 1;

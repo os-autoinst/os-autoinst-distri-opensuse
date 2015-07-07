@@ -233,7 +233,10 @@ sub run() {
 
     my $args = "";
     if ( get_var("AUTOYAST") ) {
-        $args .= " netsetup=dhcp,all";
+        my $netsetup = " ifcfg=*=dhcp"; #need this instead of netsetup as default, see bsc#932692
+        $netsetup = " ".get_var("NETWORK_INIT_PARAM") if defined get_var("NETWORK_INIT_PARAM"); #e.g netsetup=dhcp,all
+        $netsetup = " netsetup=dhcp,all" if defined get_var("USE_NETSETUP"); #netsetup override for sle11
+        $args .= $netsetup;
         $args .= " autoyast=" . autoinst_url . "/data/" . get_var("AUTOYAST") . " ";
     }
     type_string $args, 13;
