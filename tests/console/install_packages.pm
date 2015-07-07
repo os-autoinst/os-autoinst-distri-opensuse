@@ -7,7 +7,7 @@ sub run() {
     my $packages = get_var("INSTALL_PACKAGES");
 
     assert_script_run("zypper -n in -l $packages");
-    assert_script_run("rpm -q $packages");
+    assert_script_run("rpm -q $packages | tee /dev/$serialdev");
 
     script_run('exit');
 }
