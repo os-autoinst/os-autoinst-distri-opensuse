@@ -34,7 +34,7 @@ sub registering_scc {
     send_key "tab";
     type_string get_var("SCC_REGCODE");
     send_key "alt-n", 1;
-    my @tags = qw/local-registration-servers registration-online-repos import-untrusted-gpg-key/;
+    my @tags = qw/local-registration-servers registration-online-repos import-untrusted-gpg-key module-selection/;
     while ( my $ret = check_screen(\@tags, 60 )) {
         if ($ret->{needle}->has_tag("local-registration-servers")) {
             send_key "alt-o";
@@ -58,8 +58,6 @@ sub registering_scc {
         last;
     }
 
-    assert_screen("scc-update", 100);
-    send_key "alt-y", 1;
     assert_screen("module-selection");
     if (get_var('ADDONS')) {
         send_key 'tab'; # jump to beginning of addon selection
