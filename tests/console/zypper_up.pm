@@ -6,20 +6,12 @@ sub run() {
 
     become_root();
 
-    script_run("zypper patch -l; echo 'worked-patch-\$?' > /dev/$serialdev");
-    my $ret = assert_screen( [qw/test-zypper_up-confirm test-zypper_up-nothingtodo/] );
-    if ( $ret->{needle}->has_tag("test-zypper_up-confirm") ) {
-        type_string "y\n";
-    }
+    script_run("zypper -n patch -l; echo 'worked-patch-\$?' > /dev/$serialdev");
     $ret = wait_serial "worked-patch-\?-", 700;
     $ret =~ /worked-patch-(\d+)/;
     die "zypper failed with code $1" unless $1 == 0 || $1 == 102 || $1 == 103;
 
-    script_run("zypper patch -l; echo 'worked-2-patch-\$?-' > /dev/$serialdev");    # first one might only have installed "update-test-affects-package-manager"
-    $ret = assert_screen [qw/test-zypper_up-confirm test-zypper_up-nothingtodo/];
-    if ( $ret && $ret->{needle}->has_tag("test-zypper_up-confirm") ) {
-        type_string "y\n";
-    }
+    script_run("zypper -n patch -l; echo 'worked-2-patch-\$?-' > /dev/$serialdev");    # first one might only have installed "update-test-affects-package-manager"
     $ret = wait_serial "worked-2-patch-\?-", 1500;
     $ret =~ /worked-2-patch-(\d+)/;
     die "zypper failed with code $1" unless $1 == 0 || $1 == 102;
