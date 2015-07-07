@@ -1,0 +1,31 @@
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+<deploy_image>
+<image_installation config:type="boolean">false</image_installation>
+</deploy_image>
+<general>
+<ask-list config:type="list"/>
+<mode>
+<confirm config:type="boolean">false</confirm>
+<final_halt config:type="boolean">false</final_halt>
+<final_reboot config:type="boolean">false</final_reboot>
+<halt config:type="boolean">false</halt>
+<second_stage config:type="boolean">false</second_stage>
+</mode>
+<proposals config:type="list"/>
+<signature-handling>
+<accept_file_without_checksum config:type="boolean">true</accept_file_without_checksum>
+<accept_non_trusted_gpg_key config:type="boolean">true</accept_non_trusted_gpg_key>
+<accept_unknown_gpg_key config:type="boolean">true</accept_unknown_gpg_key>
+<accept_unsigned_file config:type="boolean">false</accept_unsigned_file>
+<accept_verification_failed config:type="boolean">false</accept_verification_failed>
+<import_gpg_key config:type="boolean">true</import_gpg_key>
+</signature-handling>
+<storage/>
+</general>
+<groups config:type="list"/>
+<login_settings/>
+<upgrade>
+<only_installed_packages config:type="boolean">false</only_installed_packages>
+<stop_on_solver_conflict config:type="boolean">true</stop_on_solver_conflict>
+</upgrade>
+</profile>
