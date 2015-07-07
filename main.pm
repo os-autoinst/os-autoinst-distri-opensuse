@@ -123,7 +123,7 @@ if (get_var("LIVETEST")) {
     $testapi::username = "root";
     $testapi::password = '';
 }
-elsif (get_var("AUTOYAST")) {
+elsif (get_var("AUTOYAST") || get_var("SUPPORT_SERVER") ) {
     $testapi::username = "root";
     $testapi::password = "root";
 }
@@ -622,9 +622,10 @@ sub load_autoyast_tests(){
     loadtest("autoyast/system.pm");
     loadtest("autoyast/console.pm");
     loadtest("autoyast/login.pm");
-    loadtest("autoyast/repos.pm");
+    loadtest("autoyast/repos.pm") unless get_var("SUPPORT_SERVER_GENERATOR");
     loadtest("autoyast/autoyast_verify.pm") if get_var("AUTOYAST_VERIFY");
     loadtest("autoyast/useradd.pm") unless get_var("INSTALLONLY");
+    loadtest("support/upload_asset.pm") if get_var("STORE_ASSET");
     loadtest("autoyast/autoyast_reboot.pm");
     #    next boot in load_reboot_tests
 }
@@ -671,7 +672,10 @@ elsif (get_var("RESCUESYSTEM")) {
     }
 }
 elsif (get_var("SUPPORT_SERVER")) {
-    loadtest "support_server/boot/boot.pm";
+    loadtest "support_server/boot.pm";
+    loadtest "support_server/login.pm";
+    loadtest "support_server/setup.pm";
+    loadtest "support_server/wait.pm";
 }
 elsif (get_var("ONLINE_MIGRATION")) {
     load_online_migration_tests();
