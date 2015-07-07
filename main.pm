@@ -176,6 +176,7 @@ if (get_var("YAST_RUN_ONLY")) {
     unless (get_var("YAST_SKIP_CONSOLE")) {
         push @console_tests, "console/yast2_i.pm";
         push @console_tests, "console/yast2_bootloader.pm";
+        push @console_tests, "console/yast2_users.pm";
     }
     unless (get_var("YAST_SKIP_X11")) {
         $data_needed = 1; # Because of yast2_snapper
