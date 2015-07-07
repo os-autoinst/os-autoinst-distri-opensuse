@@ -8,6 +8,8 @@ sub run() {
     become_root();
     type_string "PS1=\"# \"\n";
 
+    assert_script_run "zypper -n in yast2-packager"; # make sure yast2 sw_single module installed
+
     script_run("/sbin/yast2 sw_single; echo yast2-i-status-\$? > /dev/$serialdev");
     if (check_screen('workaround-bsc924042')) {
         send_key 'alt-o';

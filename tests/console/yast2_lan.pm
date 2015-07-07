@@ -6,6 +6,9 @@ use testapi;
 
 sub run() {
     my $self = shift;
+
+    assert_script_sudo "zypper -n in yast2-network"; # make sure yast2 lan module installed
+
     script_sudo("/sbin/yast2 lan");
 
     my $ret = assert_screen [qw/Networkmanager_controlled yast2_lan install-susefirewall2/], 30;
