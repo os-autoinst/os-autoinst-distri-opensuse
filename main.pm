@@ -147,13 +147,16 @@ if ( check_var( 'DESKTOP', 'minimalx' ) ) {
     set_var("XDMUSED", 1);
 }
 
-set_var("PACKAGETOINSTALL", "x3270");
+unless (get_var('PACKAGETOINSTALL')) {
+    set_var("PACKAGETOINSTALL", "x3270");
+}
 set_var("WALLPAPER", '/usr/share/wallpapers/SLEdefault/contents/images/1280x1024.jpg');
 
 # set KDE and GNOME, ...
 set_var(uc(get_var('DESKTOP')), 1);
 
-if ( check_var('DESKTOP', 'gnome') || check_var('DESKTOP', 'kde') ) {
+# SLE needs auth for shutdown
+if ( !get_var('SHUTDOWN_NEEDS_AUTH') && !check_var('FLAVOR', 'Desktop-DVD') ) {
     set_var('SHUTDOWN_NEEDS_AUTH', 1);
 }
 
