@@ -155,7 +155,8 @@ set_var("WALLPAPER", '/usr/share/wallpapers/SLEdefault/contents/images/1280x1024
 # set KDE and GNOME, ...
 set_var(uc(get_var('DESKTOP')), 1);
 
-if ( check_var('DESKTOP', 'gnome') || check_var('DESKTOP', 'kde') ) {
+# SLE needs auth for shutdown
+if ( !get_var('SHUTDOWN_NEEDS_AUTH') && !check_var('FLAVOR', 'Desktop-DVD') ) {
     set_var('SHUTDOWN_NEEDS_AUTH', 1);
 }
 
