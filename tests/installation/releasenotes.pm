@@ -8,12 +8,12 @@ sub run(){
     if (check_var('VIDEOMODE', 'text')) {
         send_key "alt-l";   # open release notes window
         send_key 'alt-s';   # jump to first tab
-        assert_screen 'release-notes-tab-sle';
     }
     else {
         assert_and_click 'release-notes-button';    # open release notes window
         assert_and_click 'release-notes-tab-sle';   # click on first SLES tab
     }
+    assert_screen 'release-notes-sle';  # SLE release notes
     if (get_var("ADDONS")) {
         foreach $a (split(/,/, get_var('ADDONS'))) {
             send_key 'alt-s';   # jump to first tab
