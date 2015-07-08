@@ -458,7 +458,6 @@ sub load_consoletests() {
             loadtest "console/yast2_bootloader.pm";
         }
         loadtest "console/sshd.pm";
-        loadtest "console/docker.pm";
         if (get_var("BIGTEST")) {
             loadtest "console/sntp.pm";
             loadtest "console/curl_ipv6.pm";
