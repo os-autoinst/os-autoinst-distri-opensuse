@@ -147,7 +147,9 @@ if ( check_var( 'DESKTOP', 'minimalx' ) ) {
     set_var("XDMUSED", 1);
 }
 
-set_var("PACKAGETOINSTALL", "x3270");
+unless (get_var('PACKAGETOINSTALL')) {
+    set_var("PACKAGETOINSTALL", "x3270");
+}
 set_var("WALLPAPER", '/usr/share/wallpapers/SLEdefault/contents/images/1280x1024.jpg');
 
 # set KDE and GNOME, ...
