@@ -19,28 +19,11 @@ our %valueranges = (
     VIDEOMODE => [ "", "text" ],
 );
 
-our @can_randomize = qw/NOIMAGES REBOOTAFTERINSTALL DESKTOP VIDEOMODE/;
-
 sub logcurrentenv(@) {
     foreach my $k (@_) {
         my $e = get_var("$k");
         next unless defined $e;
         bmwqemu::diag("usingenv $k=$e");
-    }
-}
-
-sub setrandomenv() {
-    for my $k (@can_randomize) {
-        next if defined get_var("$k");
-        next if $k eq "DESKTOP" && get_var("LIVECD");
-        if ( get_var("DOCRUN") ) {
-            next if $k eq "VIDEOMODE";
-            next if $k eq "NOIMAGES";
-        }
-        my @range = @{ $valueranges{$k} };
-        my $rand  = int( rand( scalar @range ) );
-        set_var($k, $range[$rand]);
-        logcurrentenv($k);
     }
 }
 
@@ -129,7 +112,6 @@ require $distri;
 testapi::set_distribution(susedistribution->new());
 
 check_env();
-setrandomenv if ( get_var("RANDOMENV") );
 
 unless ( get_var("DESKTOP") ) {
     if ( check_var( "VIDEOMODE", "text" ) ) {
