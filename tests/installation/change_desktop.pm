@@ -26,6 +26,19 @@ sub change_desktop() {
         send_key 'ret';
     }
 
+    if (check_screen('dependancy-issue', 10) && get_var("WORKAROUND_DEPS")) {
+        while ( check_screen 'dependancy-issue', 5 ) {
+            if (check_var('VIDEOMODE', 'text')) {
+                send_key 'alt-s', 3;
+            }
+            else {
+                send_key 'alt-1', 3;
+            }
+            send_key 'spc', 3;
+            send_key 'alt-o', 3;
+        }
+    }
+
     assert_screen 'pattern_selector';
     if (check_var('VIDEOMODE', 'text')) {
         send_key 'alt-f';
