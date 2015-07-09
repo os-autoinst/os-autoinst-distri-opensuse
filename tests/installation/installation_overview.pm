@@ -26,6 +26,8 @@ sub run() {
             send_key 'ret';
         }
 
+        assert_screen 'dependancy-issue'; #make sure the dependancy issue is actually showing
+
         if (get_var("WORKAROUND_DEPS")) {
             while ( check_screen 'dependancy-issue', 5 ) {
                 if (check_var('VIDEOMODE', 'text')) {
