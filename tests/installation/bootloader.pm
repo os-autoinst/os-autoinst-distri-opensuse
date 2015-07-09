@@ -232,13 +232,18 @@ sub run() {
     }
 
     my $args = "";
-    if ( get_var("AUTOYAST") ) {
+    if ( get_var("AUTOYAST") || get_var("AUTOUPGRADE")) {
         my $netsetup = " ifcfg=*=dhcp"; #need this instead of netsetup as default, see bsc#932692
         $netsetup = " ".get_var("NETWORK_INIT_PARAM") if defined get_var("NETWORK_INIT_PARAM"); #e.g netsetup=dhcp,all
         $netsetup = " netsetup=dhcp,all" if defined get_var("USE_NETSETUP"); #netsetup override for sle11
         $args .= $netsetup;
         $args .= " autoyast=" . autoinst_url . "/data/" . get_var("AUTOYAST") . " ";
     }
+
+    if ( get_var("AUTOUPGRADE")) {
+        $args .= " autoupgrade=1";
+    }
+
     type_string $args, 13;
     save_screenshot;
 
@@ -247,11 +252,9 @@ sub run() {
         save_screenshot;
     }
 
-
     # boot
     send_key "ret";
 }
 
 1;
-
 # vim: set sw=4 et:
