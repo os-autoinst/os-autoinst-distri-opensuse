@@ -15,7 +15,7 @@ sub run() {
 
     # check for dependency issues, if found, drill down to software selection, take a screenshot, then die
     if (check_screen("inst-overview-dep-warning",1)){
-
+        record_soft_failure;
         if (check_var('VIDEOMODE', 'text')) {
             send_key 'alt-c';
             assert_screen 'inst-overview-options', 3;
@@ -28,8 +28,16 @@ sub run() {
 
         assert_screen 'pattern_selector';
         send_key 'alt-o';
-        assert_screen 'dependancy-issue', 5;
-        die "Dependency Warning Detected";
+        while ( check_screen 'dependancy-issue', 5 ) {
+            if (check_var('VIDEOMODE', 'text')) {
+                send_key 'alt-s', 3;
+            }
+            else {
+                send_key 'alt-1', 3;
+            }
+            send_key 'spc', 3;
+            send_key 'alt-o', 3;
+        }
     }
 }
 
