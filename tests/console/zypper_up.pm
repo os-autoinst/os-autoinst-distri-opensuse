@@ -6,35 +6,28 @@ sub run() {
 
     become_root();
 
-    # Killall is used here, make sure that is installed
-    script_run("zypper -n -q in psmisc");
+    script_run("zypper -n patch --with-interactive -l; echo 'worked-patch-\$?' > /dev/$serialdev");
+    $ret = wait_serial "worked-patch-\?-", 700;
+    $ret =~ /worked-patch-(\d+)/;
+    die "zypper failed with code $1" unless $1 == 0 || $1 == 102 || $1 == 103;
 
-    script_run("zypper patch -l && echo 'worked-patch' > /dev/$serialdev");
-    my $ret = assert_screen( [qw/test-zypper_up-confirm test-zypper_up-nothingtodo/] );
-    if ( $ret->{needle}->has_tag("test-zypper_up-confirm") ) {
-        type_string "y\n";
-    }
-    die "zypper failed" unless wait_serial "worked-patch", 700;
-    script_run("zypper patch -l && echo 'worked-2-patch' > /dev/$serialdev");    # first one might only have installed "update-test-affects-package-manager"
-    if ( check_screen "test-zypper_up-confirm" ) {
-        type_string "y\n";
-    }
-    die "zypper failed" unless wait_serial "worked-2-patch", 700;
-    script_run("rpm -q libzypp zypper");
-    check_screen "rpm-q-libzypp", 5;
-    save_screenshot;
+    script_run("zypper -n patch --with-interactive -l; echo 'worked-2-patch-\$?-' > /dev/$serialdev");    # first one might only have installed "update-test-affects-package-manager"
+    $ret = wait_serial "worked-2-patch-\?-", 1500;
+    $ret =~ /worked-2-patch-(\d+)/;
+    die "zypper failed with code $1" unless $1 == 0 || $1 == 102;
+
+    assert_script_run("rpm -q libzypp zypper");
 
     # XXX: does this below make any sense? what if updates got
     # published meanwhile?
     send_key "ctrl-l";    # clear screen to see that second update does not do any more
-    script_run("zypper -n -q patch");
-    script_run('echo $?');
+    assert_script_run("zypper -n -q patch");
+
     script_run('exit');
-    assert_screen 'test-zypper_up-1', 3;
 }
 
 sub test_flags() {
-    return { 'milestone' => 1 };
+    return { 'milestone' => 1, 'fatal' => 1 };
 }
 
 1;

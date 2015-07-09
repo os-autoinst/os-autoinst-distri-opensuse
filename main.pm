@@ -604,6 +604,17 @@ sub load_x11tests(){
     loadtest "x11/shutdown.pm";
 }
 
+sub load_applicationstests {
+    my $anyloaded = 0;
+    if (my $val = get_var("APPTESTS")) {
+        for my $test (split(/,/, $val)) {
+            loadtest "$test.pm";
+        }
+        $anyloaded = 1;
+    }
+    return $anyloaded;
+}
+
 # load the tests in the right order
 if ( get_var("REGRESSION") ) {
     if ( get_var("KEEPHDDS") ) {
@@ -661,9 +672,11 @@ else {
         load_inst_tests();
         load_reboot_tests();
     }
-    load_rescuecd_tests();
-    load_consoletests();
-    load_x11tests();
+    unless (load_applicationstests()) {
+        load_rescuecd_tests();
+        load_consoletests();
+        load_x11tests();
+    }
 }
 
 if (get_var("STORE_HDD_1") || get_var("PUBLISH_HDD_1")) {

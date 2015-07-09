@@ -1,11 +1,9 @@
 use strict;
-use base "y2logsstep";
-use testapi;
+use base "installbasetest";
+use utils;
 
 sub run() {
-    my $self = shift;
-
-    $self->pass_disk_encrypt_check;
+    unlock_if_encrypted;
 }
 
 1;
