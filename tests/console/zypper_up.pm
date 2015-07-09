@@ -6,12 +6,12 @@ sub run() {
 
     become_root();
 
-    script_run("zypper -n patch -l; echo 'worked-patch-\$?' > /dev/$serialdev");
+    script_run("zypper -n patch --with-interactive -l; echo 'worked-patch-\$?' > /dev/$serialdev");
     $ret = wait_serial "worked-patch-\?-", 700;
     $ret =~ /worked-patch-(\d+)/;
     die "zypper failed with code $1" unless $1 == 0 || $1 == 102 || $1 == 103;
 
-    script_run("zypper -n patch -l; echo 'worked-2-patch-\$?-' > /dev/$serialdev");    # first one might only have installed "update-test-affects-package-manager"
+    script_run("zypper -n patch --with-interactive -l; echo 'worked-2-patch-\$?-' > /dev/$serialdev");    # first one might only have installed "update-test-affects-package-manager"
     $ret = wait_serial "worked-2-patch-\?-", 1500;
     $ret =~ /worked-2-patch-(\d+)/;
     die "zypper failed with code $1" unless $1 == 0 || $1 == 102;
