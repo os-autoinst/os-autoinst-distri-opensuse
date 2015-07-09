@@ -39,6 +39,8 @@ sub run() {
                 send_key 'spc', 3;
                 send_key 'alt-o', 3;
             }
+            send_key 'alt-a', 3;
+            assert_screen "inst-overview", 15; # Make sure you're back on the inst-overview before doing anything else
         }
         else {
             save_screenshot;
