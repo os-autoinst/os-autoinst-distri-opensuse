@@ -146,7 +146,7 @@ set_var("WALLPAPER", '/usr/share/wallpapers/SLEdefault/contents/images/1280x1024
 set_var(uc(get_var('DESKTOP')), 1);
 
 # SLE needs auth for shutdown
-if ( !get_var('SHUTDOWN_NEEDS_AUTH') && !is_desktop ) {
+if ( !defined get_var('SHUTDOWN_NEEDS_AUTH') && !is_desktop ) {
     set_var('SHUTDOWN_NEEDS_AUTH', 1);
 }
 
