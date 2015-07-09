@@ -58,9 +58,16 @@ sub run() {
     $out = wait_serial([$zypper_dup_continue, $zypper_dup_conflict, $zypper_dup_error], 240);
     while($out) {
         if ($out =~ $zypper_dup_conflict) {
-            record_soft_failure;
-            send_key '1', 1;
-            send_key 'ret', 1;
+            if (get_var("WORKAROUND_DEPS")) {
+                record_soft_failure;
+                send_key '1', 1;
+                send_key 'ret', 1;
+            }
+            else {
+                $self->result('fail');
+                save_screenshot;
+                return;
+            }
         }
         elsif ($out =~ $zypper_dup_continue) {
             # confirm zypper dup continue

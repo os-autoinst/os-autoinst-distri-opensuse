@@ -4,7 +4,7 @@ use base "y2logsstep";
 use testapi;
 
 sub run() {
-    my ($self) = @_;
+    my ($self) = shift;
 
     # overview-generation
     # this is almost impossible to check for real
@@ -26,17 +26,21 @@ sub run() {
             send_key 'ret';
         }
 
-        assert_screen 'pattern_selector';
-        send_key 'alt-o';
-        while ( check_screen 'dependancy-issue', 5 ) {
-            if (check_var('VIDEOMODE', 'text')) {
-                send_key 'alt-s', 3;
+        if (get_var("WORKAROUND_DEPS")) {
+            while ( check_screen 'dependancy-issue', 5 ) {
+                if (check_var('VIDEOMODE', 'text')) {
+                    send_key 'alt-s', 3;
+                }
+                else {
+                    send_key 'alt-1', 3;
+                }
+                send_key 'spc', 3;
+                send_key 'alt-o', 3;
             }
-            else {
-                send_key 'alt-1', 3;
-            }
-            send_key 'spc', 3;
-            send_key 'alt-o', 3;
+        }
+        else {
+            save_screenshot;
+            die 'Dependancy Problems';
         }
     }
 }
