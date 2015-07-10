@@ -10,4 +10,4 @@ install:
   - cpanm -nq `cat os-autoinst/DEPENDENCIES.txt`
 script:
   - make test
-sudo: false
+sudo: required
