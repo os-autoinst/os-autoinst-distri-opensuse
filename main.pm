@@ -19,28 +19,11 @@ our %valueranges = (
     VIDEOMODE => [ "", "text" ],
 );
 
-our @can_randomize = qw/NOIMAGES REBOOTAFTERINSTALL DESKTOP VIDEOMODE/;
-
 sub logcurrentenv(@) {
     foreach my $k (@_) {
         my $e = get_var("$k");
         next unless defined $e;
         bmwqemu::diag("usingenv $k=$e");
-    }
-}
-
-sub setrandomenv() {
-    for my $k (@can_randomize) {
-        next if defined get_var("$k");
-        next if $k eq "DESKTOP" && get_var("LIVECD");
-        if ( get_var("DOCRUN") ) {
-            next if $k eq "VIDEOMODE";
-            next if $k eq "NOIMAGES";
-        }
-        my @range = @{ $valueranges{$k} };
-        my $rand  = int( rand( scalar @range ) );
-        set_var($k, $range[$rand]);
-        logcurrentenv($k);
     }
 }
 
@@ -92,6 +75,14 @@ sub cleanup_needles() {
 
 }
 
+sub is_server() {
+    return check_var('FLAVOR', 'Server-DVD') || check_var('FLAVOR', 'Server-MINI');
+}
+
+sub is_desktop() {
+    return check_var('FLAVOR', 'Desktop-DVD') || check_var('FLAVOR', 'Desktop-MINI');
+}
+
 #assert_screen "inst-bootmenu",12; # wait for welcome animation to finish
 
 # defaults for username and password
@@ -121,7 +112,6 @@ require $distri;
 testapi::set_distribution(susedistribution->new());
 
 check_env();
-setrandomenv if ( get_var("RANDOMENV") );
 
 unless ( get_var("DESKTOP") ) {
     if ( check_var( "VIDEOMODE", "text" ) ) {
@@ -139,7 +129,7 @@ set_var('HASLICENSE', 1);
 if ( !get_var('NETBOOT') ) {
     set_var('DVD', 1);
 }
-if ( !check_var('FLAVOR', 'Desktop-DVD') ) {
+if ( !is_desktop ) {
     set_var('NOIMAGES', 1);
 }
 
@@ -156,7 +146,7 @@ set_var("WALLPAPER", '/usr/share/wallpapers/SLEdefault/contents/images/1280x1024
 set_var(uc(get_var('DESKTOP')), 1);
 
 # SLE needs auth for shutdown
-if ( !get_var('SHUTDOWN_NEEDS_AUTH') && !check_var('FLAVOR', 'Desktop-DVD') ) {
+if ( !defined get_var('SHUTDOWN_NEEDS_AUTH') && !is_desktop ) {
     set_var('SHUTDOWN_NEEDS_AUTH', 1);
 }
 
@@ -219,10 +209,6 @@ sub have_scc_repos() {
 
 sub have_addn_repos() {
     return !get_var("NET") && !get_var("EVERGREEN") && get_var("SUSEMIRROR") && !get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/;
-}
-
-sub is_server() {
-    return check_var('FLAVOR', 'Server-DVD') || check_var('FLAVOR', 'Server-MINI');
 }
 
 sub loadtest($) {
