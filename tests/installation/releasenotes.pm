@@ -34,6 +34,10 @@ sub run(){
     }
 
     send_key 'alt-o';   # exit release notes window
+    if (check_screen 'release-notes-sle', 5) { #rbrown - quick workaround to unblock stagings when the OK button seemed to suddenly become Close
+        record_soft_failure;
+        send_key 'alt-c';
+    }
     if (!get_var("UPGRADE")) {
         send_key 'alt-e';   # select timezone region as previously selected
     }
