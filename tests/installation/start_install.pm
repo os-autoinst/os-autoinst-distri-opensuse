@@ -66,15 +66,6 @@ sub run() {
             last if $ret->{needle}->has_tag("startinstall");
             send_key $cmd{acceptlicense}, 1;
         }
-        # TEMPORARLY: the yast team needs more infos about the problem we see
-        # where the popup does not appear even though the yast logs claim its there
-        if (!check_screen('startinstall')) {
-            send_key 'ctrl-l';
-            check_screen('startinstall', 10);
-            send_key 'ctrl-d';
-            check_screen('startinstall', 10);
-            send_key 'Y';
-        }
         assert_screen "startinstall";
 
         # confirm
