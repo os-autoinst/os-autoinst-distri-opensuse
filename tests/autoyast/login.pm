@@ -21,7 +21,7 @@ sub run {
     my $self = shift;
     assert_screen( "autoyast-system-login-console", 20 );
     $self->result('fail'); # default result
-    type_string "$username\n";
+    type_string "root\n";
     sleep 10;
     type_password;
     send_key "ret";
