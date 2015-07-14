@@ -34,7 +34,7 @@ sub run(){
     }
 
     send_key 'alt-o';   # exit release notes window
-    if (check_screen 'release-notes-sle', 5) { #rbrown - quick workaround to unblock stagings when the OK button seemed to suddenly become Close
+    if (check_screen 'releasenotes-still-open', 5) { #rbrown - quick workaround to unblock stagings when the OK button seemed to suddenly become Close
         record_soft_failure;
         send_key 'alt-c';
     }
