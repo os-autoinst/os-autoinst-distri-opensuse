@@ -108,7 +108,9 @@ sub run {
        $setup_script.="systemctl restart apache2.service\n";
     }
 
-    script_output("$setup_script");
+    die "no services configured, SUPPORT_SERVER_ROLES variable missing?" unless $setup_script;
+
+    script_output($setup_script);
 }
 
 sub test_flags {

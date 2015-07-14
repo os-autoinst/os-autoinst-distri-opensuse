@@ -19,12 +19,8 @@ use testapi;
 
 sub run {
 
-    # need username = "root";
-    #    password = "root";
-    # for autoyast_supportserver.xml compatibility
-
     assert_screen( "autoyast-system-login-console", 30 );
-    type_string "$username\n";
+    type_string "root\n";
     sleep 1;
     type_password;
     type_string "\n";

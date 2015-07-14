@@ -210,12 +210,12 @@
           <user>
                       <encrypted config:type="boolean">false</encrypted>
                       <username>root</username>
-                      <user_password>root</user_password>
+                      <user_password>nots3cr3t</user_password>
           </user>
 	  <user>
                       <encrypted config:type="boolean">false</encrypted>
-                      <username>user</username>
-                      <user_password>root</user_password>
+                      <username>bernhard</username>
+                      <user_password>nots3cr3t</user_password>
           </user>
   </users>
 
