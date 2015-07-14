@@ -1,6 +1,7 @@
 #!/usr/bin/perl -w
 use strict;
 use testapi;
+use lockapi;
 use autotest;
 use needle;
 use File::Find;
@@ -301,6 +302,11 @@ sub load_boot_tests(){
     elsif (check_var("BACKEND", "s390x")) {
         bmwqemu::diag "trying installation/bootloader_s390.pm";
         loadtest "installation/bootloader_s390.pm";
+    }
+    elsif (get_var("PXEBOOT")) {
+        mutex_lock('pxeboot_ready');
+        mutex_unlock('pxeboot_ready');
+        loadtest "autoyast/pxe_boot.pm";
     }
     else {
         loadtest "installation/bootloader.pm";
