@@ -594,14 +594,26 @@ if ( get_var("REGRESSION") ) {
     load_x11regresion_tests();
 }
 elsif (get_var("MEDIACHECK")) {
-    loadtest "installation/mediacheck.pm";
+    if (get_var("OFW")) {
+        loadtest "installation/mediacheck_yaboot.pm";
+    }
+    else {
+        loadtest "installation/mediacheck.pm";
+    }
 }
 elsif (get_var("MEMTEST")) {
-    loadtest "installation/memtest.pm";
+    if (!get_var("OFW")) { #no memtest on PPC
+        loadtest "installation/memtest.pm";
+    }
 }
 elsif (get_var("RESCUESYSTEM")) {
-    loadtest "installation/rescuesystem.pm";
-    loadtest "installation/rescuesystem_validate_sle11sp3.pm";
+    if (get_var("OFW")) {
+        loadtest "installation/rescuesystem_yaboot.pm";
+    }
+    else {
+        loadtest "installation/rescuesystem.pm";
+        loadtest "installation/rescuesystem_validate_sle11sp3.pm";
+    }
 }
 elsif (get_var("SUPPORT_SERVER")) {
     loadtest "support_server/boot.pm";
