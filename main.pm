@@ -91,10 +91,6 @@ if (get_var("LIVETEST")) {
     $testapi::username = "root";
     $testapi::password = '';
 }
-elsif (get_var("AUTOYAST") || get_var("SUPPORT_SERVER") ) {
-    $testapi::username = "root";
-    $testapi::password = "root";
-}
 else {
     $testapi::username = "bernhard";
     $testapi::password = "nots3cr3t";
