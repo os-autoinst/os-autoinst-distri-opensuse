@@ -94,7 +94,7 @@ sub run() {
         addpart( 5300 );    # root
         wait_idle 5;
         addpart( 100 );     # swap
-        assert_screen 'raid-partition', 5;
+        assert_screen 'raid-partition', 15;
 
         # select next disk
         send_key "shift-tab";
