@@ -395,7 +395,7 @@ sub load_inst_tests() {
 
         if (get_var('PATTERNS')) {
             loadtest "installation/installation_overview_before.pm";
-            loadtest "installation/select_patterns.pm";
+            loadtest "installation/select_patterns_sle11.pm";
         }
         elsif (!check_var('DESKTOP', 'gnome')) {
             loadtest "installation/installation_overview_before.pm";
