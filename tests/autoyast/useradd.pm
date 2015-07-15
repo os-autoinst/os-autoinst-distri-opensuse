@@ -24,9 +24,7 @@ sub run {
     wait_idle(30);
     #add user for opensuse tests
     $testapi::username = "bernhard";
-    # $testapi::password = "nots3cr3t";
-    $testapi::password = "root";
-
+    $testapi::password = "nots3cr3t";
 
     type_string("useradd -m -c \"$testapi::realname\" $testapi::username\n");
     sleep 1;
