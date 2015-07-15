@@ -43,6 +43,7 @@ sub run {
         for ( 1 .. 4 ) { send_key 'up'; }
         send_key 'ret';
         assert_screen 'patterns-list-selected', 5;
+        send_key 'tab';
     }
     else {
         send_key_until_needlematch 'patterns-list-selected', 'tab';
