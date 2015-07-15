@@ -16,7 +16,7 @@ sub run() {
     mouse_hide(1);
     $self->start_firefox();
     send_key "alt-h";
-    assert_screen 'firefox-help-menu', 3;
+    assert_screen 'firefox-help-menu', 10;
     send_key "a";
     assert_screen 'test-firefox-3', 10;
 
