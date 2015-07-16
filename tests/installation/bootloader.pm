@@ -237,7 +237,7 @@ sub run() {
         $netsetup = " ".get_var("NETWORK_INIT_PARAM") if defined get_var("NETWORK_INIT_PARAM"); #e.g netsetup=dhcp,all
         $netsetup = " netsetup=dhcp,all" if defined get_var("USE_NETSETUP"); #netsetup override for sle11
         $args .= $netsetup;
-        $args .= " autoyast=" . autoinst_url . "/data/" . get_var("AUTOYAST") . " ";
+        $args .= " autoyast=" . data_url(get_var("AUTOYAST")) . " ";
     }
 
     if ( get_var("AUTOUPGRADE")) {
