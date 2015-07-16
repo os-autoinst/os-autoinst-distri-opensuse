@@ -3,6 +3,15 @@ use base "y2logsstep";
 use testapi;
 use bmwqemu ();
 
+sub use_wicked() {
+    type_string "cd /proc/sys/net/ipv4/conf\n";
+    type_string "for i in *[0-9]; do echo BOOTPROTO=dhcp > /etc/sysconfig/network/ifcfg-\$i; wicked --debug all ifup \$i; done\n";
+}
+
+sub use_ifconfig() {
+    type_string "dhcpcd eth0\n";
+}
+
 sub run() {
     my $self = shift;
     # NET isos are slow to install
@@ -36,6 +45,23 @@ sub run() {
         }
         last;
     }
+    
+    send_key 'alt-s'; # Stop the reboot countdown
+    
+    send_key "ctrl-alt-f2";
+    assert_screen "inst-console";
+
+    $self->get_ip_address();
+    $self->save_upload_y2logs();
+
+    if (check_var('VIDEOMODE', 'text')) {
+        send_key 'ctrl-alt-f1'; # get back to YaST
+    }
+    else {
+        send_key 'ctrl-alt-f7'; # get back to YaST
+    }
+    
+    assert_screen 'rebootnow';
 
     if ( get_var("LIVECD") ) {
 
