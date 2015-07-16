@@ -4,7 +4,7 @@ use testapi;
 sub run() {
     my $self = shift;
     x11_start_program("oowriter");
-    assert_screen 'test-ooffice-1', 10;
+    assert_screen 'test-ooffice-1', 30;
     type_string "Hello World!";
     assert_screen 'test-ooffice-2', 5;
     send_key "alt-f4";
