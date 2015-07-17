@@ -123,10 +123,6 @@ if (get_var("LIVETEST")) {
     $testapi::username = "root";
     $testapi::password = '';
 }
-elsif (get_var("AUTOYAST") || get_var("SUPPORT_SERVER") ) {
-    $testapi::username = "root";
-    $testapi::password = "root";
-}
 else {
     $testapi::username = "bernhard";
     $testapi::password = "nots3cr3t";
@@ -624,7 +620,6 @@ sub load_autoyast_tests(){
     loadtest("autoyast/login.pm");
     loadtest("autoyast/repos.pm") unless get_var("SUPPORT_SERVER_GENERATOR");
     loadtest("autoyast/autoyast_verify.pm") if get_var("AUTOYAST_VERIFY");
-    loadtest("autoyast/useradd.pm") unless get_var("INSTALLONLY");
     loadtest("autoyast/autoyast_reboot.pm");
     #    next boot in load_reboot_tests
 }
