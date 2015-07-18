@@ -7,9 +7,9 @@ sub add_user() {
     type_string "Test user";
     assert_screen "yast2_users-username";
     send_key "alt-p";
-    type_password "nots3cr3t.";
+    type_password;
     send_key "tab";
-    type_password "nots3cr3t.";
+    type_password;
     send_key "alt-o";
     assert_screen "yast2_users-disable_autologin";
     send_key "alt-n";
