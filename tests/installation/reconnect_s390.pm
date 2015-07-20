@@ -22,7 +22,10 @@ sub run() {
     deactivate_console("ctrl-alt-f6");
     deactivate_console("installation");
 
-    wait_serial("Welcome to SUSE Linux Enterprise Server");
+    send_key 'ctrl-alt-f1'; #Debug for rbrown
+    save_screenshot; #Debug for rbrown
+
+    wait_serial("Welcome to SUSE Linux Enterprise Server", 300);
 
     activate_console("ctrl-alt-f2", "ssh-xterm_vt");
     activate_console("ctrl-alt-f3", "ssh-xterm_vt");
@@ -30,6 +33,7 @@ sub run() {
     activate_console("ctrl-alt-f5", "ssh-xterm_vt");
     activate_console("ctrl-alt-f6", "ssh-xterm_vt");
 
+#TODO - this test probably needs to be smarter and use one of the newly created xterms to configure/start VNC, and then be dumber, because we're not going to test X11, SSH-X and SSH textmode after this point
     if (get_var("DISPLAY")->{TYPE} eq "VNC") {
     # The vnc parameters are taken from vars.json; connect to the
     # Xvnc running on the system under test...
