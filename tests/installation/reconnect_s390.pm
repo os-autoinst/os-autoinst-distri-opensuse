@@ -15,11 +15,11 @@ use feature qw/say/;
 sub run() {
     
     # deactivate all the consoles
-    deactivate_console("ctrl-alt-f2", "ssh-xterm_vt");
-    deactivate_console("ctrl-alt-f3", "ssh-xterm_vt");
-    deactivate_console("ctrl-alt-f4", "ssh-xterm_vt");
-    deactivate_console("ctrl-alt-f5", "ssh-xterm_vt");
-    deactivate_console("ctrl-alt-f6", "ssh-xterm_vt");
+    deactivate_console("ctrl-alt-f2");
+    deactivate_console("ctrl-alt-f3");
+    deactivate_console("ctrl-alt-f4");
+    deactivate_console("ctrl-alt-f5");
+    deactivate_console("ctrl-alt-f6");
     deactivate_console("installation");
 
     wait_serial("Welcome to SUSE Linux Enterprise Server");
