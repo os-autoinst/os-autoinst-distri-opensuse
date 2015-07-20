@@ -64,3 +64,5 @@ sub run() {
         die "unknown display type to access the host: ". get_var("DISPLAY")->{TYPE};
     }
 }
+
+1;
