@@ -392,6 +392,9 @@ sub load_reboot_tests() {
     if (get_var("ENCRYPT")) {
         loadtest "installation/boot_encrypt.pm";
     }
+    if (check_var("BACKEND", "s390x")) {
+        loadtest "installation/reconnect_s390.pm";
+    }
     if (installyaststep_is_applicable) {
         loadtest "installation/first_boot.pm";
     }
@@ -550,6 +553,9 @@ sub load_x11tests(){
     }
     if (!get_var("LIVETEST")) {
         loadtest "x11/reboot.pm";
+    }
+    if (check_var("BACKEND", "s390x")) {
+        loadtest "installation/reconnect_s390.pm";
     }
     loadtest "x11/desktop_mainmenu.pm";
 
