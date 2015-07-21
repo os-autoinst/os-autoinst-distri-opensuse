@@ -36,6 +36,23 @@ sub run() {
         }
         last;
     }
+    
+    send_key 'alt-s'; # Stop the reboot countdown
+    
+    send_key "ctrl-alt-f2";
+    assert_screen "inst-console";
+
+    get_ip_address();
+    save_upload_y2logs();
+
+    if (check_var('VIDEOMODE', 'text')) {
+        send_key 'ctrl-alt-f1'; # get back to YaST
+    }
+    else {
+        send_key 'ctrl-alt-f7'; # get back to YaST
+    }
+    
+    assert_screen 'rebootnow';
 
     if ( get_var("LIVECD") ) {
 
