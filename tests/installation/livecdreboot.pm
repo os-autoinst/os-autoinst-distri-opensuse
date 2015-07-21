@@ -42,8 +42,8 @@ sub run() {
     send_key "ctrl-alt-f2";
     assert_screen "inst-console";
 
-    get_ip_address();
-    save_upload_y2logs();
+    $self->get_ip_address();
+    $self->save_upload_y2logs();
 
     if (check_var('VIDEOMODE', 'text')) {
         send_key 'ctrl-alt-f1'; # get back to YaST
