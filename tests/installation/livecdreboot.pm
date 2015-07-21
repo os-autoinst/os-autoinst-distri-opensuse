@@ -60,7 +60,7 @@ sub run() {
         send_key $cmd{"rebootnow"};
     }
     else {
-        send_key 'ret';
+        send_key 'alt-o';
     }
 
     # XXX old stuff
