@@ -95,10 +95,6 @@ sub run() {
         type_string "console=$serialdev ", 15;    # to get crash dumps as text
         type_string "console=tty ", 15;      # to get crash dumps as text
         assert_screen "inst-consolesettingstyped", 10;
-
-        type_string "reboot=soft,efi ", 15; # rbrown workaround for EFI booting bsc#939216
-        record_soft_failure; # declare a soft fail here to remind rbrown to re-evaluate this setting bsc#939216
-
         my $e = get_var("EXTRABOOTPARAMS");
         if ($e) {
             type_string "$e ", 4;
