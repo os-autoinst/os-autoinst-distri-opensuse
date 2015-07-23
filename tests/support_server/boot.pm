@@ -22,7 +22,7 @@ sub run {
     assert_screen( "inst-bootmenu", 30 );
     send_key "ret"; #faster boot
 
-    assert_screen( "autoyast-boot", 3 );
+    assert_screen( "autoyast-boot", 10 );
     send_key "ret"; #faster boot
 
 }
