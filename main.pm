@@ -466,6 +466,9 @@ sub load_consoletests() {
         if (check_var("DESKTOP", "xfce")) {
             loadtest "console/xfce_gnome_deps.pm";
         }
+        if (get_var("CLONE_SYSTEM")) {
+            loadtest "console/yast2_clone_system.pm";
+        }
         loadtest "console/consoletest_finish.pm";
     }
 }
