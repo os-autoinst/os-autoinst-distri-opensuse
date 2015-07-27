@@ -232,34 +232,13 @@ sub loadtest($) {
 }
 
 sub load_x11regresion_tests() {
-    loadtest "x11regressions/firefox/firefox_launch.pm";
-    loadtest "x11regressions/firefox/firefox_menu.pm";
-    loadtest "x11regressions/firefox/firefox_contentmenu.pm";
-    loadtest "x11regressions/firefox/firefox_help.pm";
-    loadtest "x11regressions/firefox/firefox_newwindow.pm";
-    loadtest "x11regressions/firefox/firefox_home_page.pm";
-    loadtest "x11regressions/firefox/firefox_topsite.pm";
-    loadtest "x11regressions/firefox/firefox_https.pm";
-    loadtest "x11regressions/firefox/firefox_importssl.pm";
-    loadtest "x11regressions/firefox/firefox_loadie6.pm";
-    loadtest "x11regressions/firefox/firefox_page_control.pm";
-    loadtest "x11regressions/firefox/firefox_password_i.pm";
-    loadtest "x11regressions/firefox/firefox_print.pm";
-    loadtest "x11regressions/firefox/firefox_remember_passwd.pm";
-    loadtest "x11regressions/firefox/firefox_search.pm";
-    loadtest "x11regressions/firefox/firefox_sidebar.pm";
-    loadtest "x11regressions/firefox/firefox_urlprotocols.pm";
-    loadtest "x11regressions/firefox/firefox_url.pm";
-    loadtest "x11regressions/firefox/firefox_localpage.pm";
-    loadtest "x11regressions/firefox/firefox_mhtml.pm";
-    loadtest "x11regressions/firefox/firefox_tab.pm";
-    loadtest "x11regressions/firefox/firefox_sendlink.pm";
-    loadtest "x11regressions/firefox/firefox_java.pm";
-    loadtest "x11regressions/firefox/firefox_autocomplete.pm";
-    loadtest "x11regressions/firefox/firefox_bookmarks.pm";
-    loadtest "x11regressions/firefox/firefox_printing.pm";
-    loadtest "x11regressions/firefox/firefox_printing_images.pm";
-    loadtest "x11regressions/firefox/firefox_bookmark.pm";
+    if (( check_var("DESKTOP", "gnome") )) {
+        loadtest "x11regressions/firefox/firefox_smoke.pm";
+        loadtest "x11regressions/firefox/firefox_localfiles.pm";
+        loadtest "x11regressions/firefox/firefox_emaillink.pm";
+        loadtest "x11regressions/firefox/firefox_urlsprotocols.pm";
+        loadtest "x11regressions/firefox/firefox_downloading.pm";
+    }
     if (( check_var("DESKTOP", "gnome") )) {
         loadtest "x11regressions/tomboy/tomboy_Hotkeys.pm";
         loadtest "x11regressions/tomboy/tomboy_AlreadyRunning.pm";
