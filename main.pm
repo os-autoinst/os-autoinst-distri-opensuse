@@ -206,7 +206,8 @@ sub lxdestep_is_applicable() {
 }
 
 sub snapper_is_applicable() {
-    return (check_var("FILESYSTEM", "btrfs") && get_var("HDDSIZEGB") > 10);
+    my $fs = get_var("FILESYSTEM", 'btrfs');
+    return ( $fs eq "btrfs" && get_var("HDDSIZEGB") > 10);
 }
 
 sub need_clear_repos() {
@@ -427,9 +428,9 @@ sub load_consoletests() {
     if (consolestep_is_applicable) {
         loadtest "console/consoletest_setup.pm";
         loadtest "console/textinfo.pm";
-        loadtest "console/snapper_snapshots.pm";
         loadtest "console/hostname.pm";
         if (snapper_is_applicable) {
+            loadtest "console/snapper_snapshots.pm";
             if (get_var("UPGRADE")) {
                 loadtest "console/upgrade_snapshots.pm";
             } else {
