@@ -1,6 +1,7 @@
 package y2logsstep;
 use base "installbasetest";
 use testapi;
+use Mail::Sendmail; #FIXME - RBrown - see sub notify_mail - experimental, probably should move this to the backend as a testapi option if it works
 
 sub use_wicked() {
     type_string "cd /proc/sys/net/ipv4/conf\n";
@@ -65,10 +66,27 @@ sub save_upload_y2logs() {
     save_screenshot();
 }
 
+sub notify_mail($) { #FIXME RBrown - Experiment - get this post fail hook to notify someone that yast broke
+    my $self = shift;
+    my ($emailaddr) = @_;
+    my $module = sprintf '%s', ref $self;
+    my @testname = split(/-/, get_var('NAME'), 2);
+    my $testnum = $testname[0];
+    $testnum =~ s/^0+//;
+    my $openQAhost = get_var('OPENQA_HOSTNAME');
+    sendmail(
+        From    => 'openqa@suse.de',
+        To      => "$emailaddr",
+        Subject => "openQA Module Failure Notification - $module",
+        Message => "openQA has detected a failure in $module.\nPlease see the results at https://$openQAhost/tests/$testnum",
+    );
+}
+
 sub post_fail_hook() {
     my $self = shift;
     get_to_console;
     save_upload_y2logs;
+    notify_mail 'rbrown@suse.de'; #FIXME RBrown - Experiment
 }
 
 1;
