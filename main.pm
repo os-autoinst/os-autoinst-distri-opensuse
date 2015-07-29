@@ -591,8 +591,8 @@ sub load_autoyast_tests(){
 
 # load the tests in the right order
 if ( get_var("REGRESSION") ) {
-    if ( get_var("KEEPHDDS") ) {
-        load_login_tests();
+    if ( get_var("HDD_1") ) {
+        loadtest "boot/boot_to_desktop.pm";
     }
     else {
         load_inst_tests();
