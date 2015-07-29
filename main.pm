@@ -255,11 +255,9 @@ sub load_x11regresion_tests() {
         loadtest "x11regressions/gnomecase/Gnomecutfile.pm";
     }
     if (get_var("DESKTOP") =~ /kde|gnome/) {
-        loadtest "x11regressions/pidgin/pidgin_IRC.pm";
-        loadtest "x11regressions/pidgin/pidgin_googletalk.pm";
-        loadtest "x11regressions/pidgin/pidgin_aim.pm";
         loadtest "x11regressions/pidgin/prep_pidgin.pm";
-        loadtest "x11regressions/pidgin/pidgin_msn.pm";
+        loadtest "x11regressions/pidgin/pidgin_IRC.pm";
+        loadtest "x11regressions/pidgin/pidgin_aim.pm";
         loadtest "x11regressions/pidgin/clean_pidgin.pm";
         loadtest "x11regressions/tracker/prep_tracker.pm";
         loadtest "x11regressions/tracker/tracker_starts.pm";
