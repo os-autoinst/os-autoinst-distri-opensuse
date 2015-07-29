@@ -1,16 +1,12 @@
-use base "basetest";
+use base "x11test";
+use strict;
 use testapi;
 
 # Case 1248849 - Pidgin: IRC
-
-my $IRC         = 7;
-my $CHANNELNAME = "susetesting";
-
 sub run() {
     my $self = shift;
+    my $CHANNELNAME = "susetesting";
     x11_start_program("pidgin");
-    wait_idle;
-    sleep 2;
 
     # Create account
     send_key "alt-a";
@@ -19,10 +15,7 @@ sub run() {
     sleep 2;
 
     # Choose Protocol "IRC"
-    foreach ( 1 .. $IRC ) {
-        send_key "down";
-        sleep 1;
-    }
+    send_key_until_needlematch 'pidgin-protocol-irc', 'down';
     send_key "ret";
     sleep 2;
     send_key "alt-u";
@@ -30,33 +23,33 @@ sub run() {
     type_string "$CHANNELNAME";
     sleep 2;
     send_key "alt-a";
-    wait_idle;
-    sleep 10;
 
     # Should create IRC account
-    assert_screen 'test-pidgin_IRC-1', 3;
+    assert_screen 'pidgin-irc-account', 3;
 
     # Close account manager
     send_key "ctrl-a";
     sleep 2;
     send_key "alt-c";
-    sleep 2;
+    sleep 15; # need time to connect server
 
     # Join a chat
     send_key "ctrl-c";
     sleep 2;
 
-    # input "#"
-    send_key "shift-3";
-    sleep 2;
-    type_string "sledtesting";
+    type_string "#sledtesting";
     sleep 2;
     send_key "alt-j";
-    wait_idle;
-    sleep 10;
 
     # Should open sledtesting channel
-    assert_screen 'test-pidgin_IRC-2', 3;
+    assert_screen 'pidgin-irc-sledtesting', 3;
+
+    # Send a message
+    send_key "alt-tab";
+    type_string "Hello from openQA\n";
+    assert_screen 'pidgin-irc-msgsent', 3;
+    send_key "ctrl-w";
+    sleep 2;
 
     # Cleaning
     send_key "ctrl-a";
@@ -68,11 +61,9 @@ sub run() {
     send_key "alt-d";
     sleep 2;
     send_key "alt-d";
-    wait_idle;
-    sleep 2;
 
-    # Should not have any account
-    assert_screen 'test-pidgin_IRC-3', 3;
+    # Should not have any account and show welcome window
+    assert_screen 'pidgin-welcome', 3;
 
     # Exit
     send_key "alt-c";
