@@ -9,12 +9,13 @@ sub run(){
         if (check_var('VIDEOMODE', 'text')) {
             send_key "alt-l";   # open release notes window
             send_key 'alt-s';   # select SLES SP1 release notes
+            assert_screen 'release-notes-sle';  # SLE release notes
         }
         else {
             assert_and_click 'release-notes-button';    # open release notes window
-            assert_and_click 'release-notes-tab-sle';   # click on first SLES tab
+            assert_and_click 'release-notes-tab';       # click on first SLES tab
+            send_key_until_needlematch("release-notes-sle", 'right'); # tab not visible with three add-ons
         }
-        assert_screen 'release-notes-sle';  # SLE release notes
         foreach $a (split(/,/, get_var('ADDONS'))) {
             send_key 'left';    # move to first tab
             send_key 'left';
