@@ -97,6 +97,9 @@ sub run() {
     # yet long enough to make sense to even have the test.
     my $ret = check_screen "grub2", 30;
     if ( defined($ret) ) {
+        if ( get_var("XEN") ) {
+            $self->bootmenu_down_to("bootmenu-xen-kernel");
+        }
         send_key "ret";    # avoid timeout for booting to HDD
     }
 }
