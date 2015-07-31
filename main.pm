@@ -232,11 +232,9 @@ sub load_x11regresion_tests() {
         loadtest "x11regressions/gnomecase/Gnomecutfile.pm";
     }
     if (get_var("DESKTOP") =~ /kde|gnome/) {
-        loadtest "x11regressions/pidgin/pidgin_IRC.pm";
-        loadtest "x11regressions/pidgin/pidgin_googletalk.pm";
-        loadtest "x11regressions/pidgin/pidgin_aim.pm";
         loadtest "x11regressions/pidgin/prep_pidgin.pm";
-        loadtest "x11regressions/pidgin/pidgin_msn.pm";
+        loadtest "x11regressions/pidgin/pidgin_IRC.pm";
+        loadtest "x11regressions/pidgin/pidgin_aim.pm";
         loadtest "x11regressions/pidgin/clean_pidgin.pm";
         loadtest "x11regressions/tracker/prep_tracker.pm";
         loadtest "x11regressions/tracker/tracker_starts.pm";
@@ -364,6 +362,9 @@ sub load_reboot_tests() {
     if (get_var("ENCRYPT")) {
         loadtest "installation/boot_encrypt.pm";
     }
+    if (check_var("BACKEND", "s390x")) {
+        loadtest "installation/reconnect_s390.pm";
+    }
     if (installyaststep_is_applicable) {
         loadtest "installation/first_boot.pm";
     }
@@ -439,6 +440,9 @@ sub load_consoletests() {
         }
         if (check_var("DESKTOP", "xfce")) {
             loadtest "console/xfce_gnome_deps.pm";
+        }
+        if (get_var("CLONE_SYSTEM")) {
+            loadtest "console/yast2_clone_system.pm";
         }
         loadtest "console/consoletest_finish.pm";
     }
@@ -522,6 +526,9 @@ sub load_x11tests(){
     if (!get_var("LIVETEST")) {
         loadtest "x11/reboot.pm";
     }
+    if (check_var("BACKEND", "s390x")) {
+        loadtest "installation/reconnect_s390.pm";
+    }
     loadtest "x11/desktop_mainmenu.pm";
 
     if (xfcestep_is_applicable) {
@@ -553,15 +560,14 @@ sub load_autoyast_tests(){
     loadtest("autoyast/login.pm");
     loadtest("autoyast/repos.pm") unless get_var("SUPPORT_SERVER_GENERATOR");
     loadtest("autoyast/autoyast_verify.pm") if get_var("AUTOYAST_VERIFY");
-    loadtest("autoyast/useradd.pm") unless get_var("INSTALLONLY");
     loadtest("autoyast/autoyast_reboot.pm");
     #    next boot in load_reboot_tests
 }
 
 # load the tests in the right order
 if ( get_var("REGRESSION") ) {
-    if ( get_var("KEEPHDDS") ) {
-        load_login_tests();
+    if ( get_var("HDD_1") ) {
+        loadtest "boot/boot_to_desktop.pm";
     }
     else {
         load_inst_tests();
@@ -597,6 +603,10 @@ elsif (get_var("SUPPORT_SERVER")) {
     loadtest "support_server/login.pm";
     loadtest "support_server/setup.pm";
     loadtest "support_server/wait.pm";
+}
+elsif (get_var("QA_TESTSET")) {
+    loadtest "installation/first_boot.pm";
+    loadtest "qa_automation/acceptance.pm";
 }
 else {
     if (get_var("LIVETEST")) {
