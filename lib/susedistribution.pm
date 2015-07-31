@@ -176,7 +176,7 @@ sub become_root() {
 
     $self->script_sudo('bash', 1);
     type_string "whoami > /dev/$testapi::serialdev\n";
-    wait_serial( "root", 2 ) || die "Root prompt not there";
+    wait_serial( "root", 6 ) || die "Root prompt not there";
     type_string "cd /tmp\n";
     send_key('ctrl-l');
 }

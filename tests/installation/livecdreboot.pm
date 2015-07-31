@@ -36,6 +36,23 @@ sub run() {
         }
         last;
     }
+    
+    send_key 'alt-s'; # Stop the reboot countdown
+    
+    send_key "ctrl-alt-f2";
+    assert_screen "inst-console";
+
+    $self->get_ip_address();
+    $self->save_upload_y2logs();
+
+    if (check_var('VIDEOMODE', 'text')) {
+        send_key 'ctrl-alt-f1'; # get back to YaST
+    }
+    else {
+        send_key 'ctrl-alt-f7'; # get back to YaST
+    }
+    
+    assert_screen 'rebootnow';
 
     if ( get_var("LIVECD") ) {
 
@@ -43,7 +60,7 @@ sub run() {
         send_key $cmd{"rebootnow"};
     }
     else {
-        send_key 'ret';
+        send_key 'alt-o';
     }
 
     # XXX old stuff
@@ -80,6 +97,9 @@ sub run() {
     # yet long enough to make sense to even have the test.
     my $ret = check_screen "grub2", 30;
     if ( defined($ret) ) {
+        if ( get_var("XEN") ) {
+            $self->bootmenu_down_to("bootmenu-xen-kernel");
+        }
         send_key "ret";    # avoid timeout for booting to HDD
     }
 }

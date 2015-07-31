@@ -24,7 +24,7 @@ sub run() {
     send_key "alt-a", 1;    # accept
     # Upgrade tests and the old distributions eg. SLE11 doesn't shows the summary
     unless ( get_var("YAST_SW_NO_SUMMARY") ) {
-        assert_screen 'yast2-sw_shows_summary', 30;
+        assert_screen 'yast2-sw_shows_summary', 60;
         send_key "alt-f";
     }
     # yast might take a while on sle11 due to suseconfig

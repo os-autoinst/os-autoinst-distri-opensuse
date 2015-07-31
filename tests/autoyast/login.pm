@@ -14,7 +14,7 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
 use strict;
-use base 'basetest';
+use base 'y2logsstep';
 use testapi;
 
 sub run {

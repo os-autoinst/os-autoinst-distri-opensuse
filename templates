@@ -3216,6 +3216,14 @@
                         { key => "INSTALLONLY", value => 1 },
                         { key => "MULTIPATH", value => 1 },
                       ],
+                    }{
+                      name => "xen",
+                      settings => [
+                        { key => "DESKTOP", value => "gnome" },
+                        { key => "PATTERNS", value => "gnome,base,enhanced_base,apparmor,yast2_basis,sw_management,multimedia,office,fonts,x11,imaging,games,non_oss,xen_server" },
+                        { key => "INSTALLONLY", value => 1 },
+                        { key => "XEN", value => 1 },
+                      ],
                     },
                   ],
 }

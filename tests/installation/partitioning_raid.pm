@@ -91,7 +91,7 @@ sub run() {
         wait_idle 5;
         addpart( 300 );    # boot
         wait_idle 5;
-        addpart( 5300 );    # root
+        addpart( 8000 );    # root
         wait_idle 5;
         addpart( 100 );     # swap
         assert_screen 'raid-partition', 15;

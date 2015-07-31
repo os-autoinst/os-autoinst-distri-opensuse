@@ -206,7 +206,8 @@ sub lxdestep_is_applicable() {
 }
 
 sub snapper_is_applicable() {
-    return (check_var("FILESYSTEM", "btrfs") && get_var("HDDSIZEGB") > 10);
+    my $fs = get_var("FILESYSTEM", 'btrfs');
+    return ( $fs eq "btrfs" && get_var("HDDSIZEGB") > 10);
 }
 
 sub need_clear_repos() {
@@ -408,6 +409,7 @@ sub load_consoletests() {
         loadtest "console/textinfo.pm";
         loadtest "console/hostname.pm";
         if (snapper_is_applicable) {
+            loadtest "console/snapper_snapshots.pm";
             if (get_var("UPGRADE")) {
                 loadtest "console/upgrade_snapshots.pm";
             } else {
@@ -461,6 +463,9 @@ sub load_consoletests() {
         }
         if (check_var("DESKTOP", "xfce")) {
             loadtest "console/xfce_gnome_deps.pm";
+        }
+        if (get_var("CLONE_SYSTEM")) {
+            loadtest "console/yast2_clone_system.pm";
         }
         loadtest "console/consoletest_finish.pm";
     }

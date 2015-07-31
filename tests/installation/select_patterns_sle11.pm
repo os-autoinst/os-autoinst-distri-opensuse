@@ -11,14 +11,6 @@ sub accept3rdparty {
     }
 }
 
-sub movedownelseend {
-    my $ret = wait_screen_change {
-        send_key 'down';
-    };
-    # down didn't change the screen, so exit here
-    last if (!$ret);
-}
-
 sub run {
     my $self = shift;
 
@@ -51,11 +43,10 @@ sub run {
         for ( 1 .. 4 ) { send_key 'up'; }
         send_key 'ret';
         assert_screen 'patterns-list-selected', 5;
+        send_key 'tab';
     }
     else {
-        send_key 'tab';
-        send_key ' ', 2;
-        assert_screen 'patterns-list-selected', 5;
+        send_key_until_needlematch 'patterns-list-selected', 'tab';
     }
 
     my %wanted_patterns;
@@ -65,9 +56,19 @@ sub run {
 
     my $counter = 70;
     while (1) {
+        if (get_var("ADDONS") =~ 'sdk' && get_var('PATTERNS') && check_screen('patterns-scroll-down', 5)) {
+            send_key 'pgdn';
+            send_key 'left';
+        }
+        my $ret = wait_screen_change {
+            send_key 'down';
+        };
+        # down didn't change the screen, so exit here
+        last if (!$ret);
+
         die "looping for too long" unless ($counter--);
         my $needs_to_be_selected;
-        my $ret = check_screen('on-pattern', 1);
+        $ret = check_screen('on-pattern', 1);
 
         if ($ret) { # unneedled pattern
             for my $wp (keys %wanted_patterns) {
@@ -79,10 +80,8 @@ sub run {
         $needs_to_be_selected=1 if ($wanted_patterns{'all'});
 
         my $selected = check_screen([qw(current-pattern-selected on-category)], 0);
-        if ($selected && $selected->{needle}->has_tag('on-category')) {
-            movedownelseend;
-            next;
-        }
+        next if ($selected && $selected->{needle}->has_tag('on-category'));
+
         if ($needs_to_be_selected && !$selected) {
             wait_screen_change {
                 send_key ' ';
@@ -93,7 +92,6 @@ sub run {
             send_key ' ';
             assert_screen [qw(current-pattern-unselected current-pattern-autoselected)], 3;
         }
-        movedownelseend;
     }
 
     if (check_var('VIDEOMODE', 'text')) {
@@ -108,6 +106,7 @@ sub run {
     }
     assert_screen 'inst-overview', 15;
 }
+
 
 1;
 # vim: set sw=4 et:

@@ -8,9 +8,9 @@ sub run() {
 
     assert_screen 'inst-addon';
     if ( get_var("ADDONS")) {
-        send_key 'alt-k';   # install with addons
+        send_key 'alt-k', 3;   # install with addons
         foreach $a (split(/,/, get_var('ADDONS'))) {
-            send_key 'alt-d';   # DVD
+            send_key 'alt-d', 3;   # DVD
             send_key 'alt-n', 3;
             assert_screen 'dvd-selector', 3;
             send_key_until_needlematch 'addon-dvd-list', 'tab', 10;  # jump into addon list

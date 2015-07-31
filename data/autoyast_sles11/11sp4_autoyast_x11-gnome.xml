@@ -74,17 +74,15 @@
   <users config:type="list">
           <user>
                       <encrypted config:type="boolean">false</encrypted>
-                      <user_password>root</user_password>
+                      <user_password>nots3cr3t</user_password>
                       <username>root</username>
           </user>
-<!--   	  <user>
+          <user>
                       <encrypted config:type="boolean">false</encrypted>
                       <username>bernhard</username>
-                      <user_password>root</user_password>
-                     <user_password>nots3cr3t</user_password>
+                      <user_password>nots3cr3t</user_password>
 
           </user>
--->
   </users>
   <x11>
     <display_manager>gdm</display_manager>

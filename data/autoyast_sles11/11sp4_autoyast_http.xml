@@ -436,8 +436,13 @@ Tmr9shvqBQKa2NyWfUBcct9hvmlrZD6fnc9a4+3nTxv3TJRwxBUc9Q==
   <users config:type="list">
           <user>
                       <encrypted config:type="boolean">false</encrypted>
-                      <user_password>root</user_password>
+                      <user_password>nots3cr3t</user_password>
                       <username>root</username>
+          </user>
+          <user>
+                      <encrypted config:type="boolean">false</encrypted>
+                      <user_password>nots3cr3t</user_password>
+                      <username>bernhard</username>
           </user>
   </users>
 </profile>

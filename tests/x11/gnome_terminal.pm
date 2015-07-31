@@ -9,7 +9,7 @@ sub run() {
     my $self = shift;
     mouse_hide(1);
     x11_start_program("gnome-terminal");
-    sleep 2;
+    sleep 10;
     send_key "ctrl-shift-t";
     for ( 1 .. 13 ) { send_key "ret" }
     type_string "echo If you can see this text gnome-terminal is working.\n";

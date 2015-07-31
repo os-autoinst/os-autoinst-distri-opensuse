@@ -182,8 +182,13 @@
   <users config:type="list">
           <user>
                       <encrypted config:type="boolean">false</encrypted>
-                      <user_password>root</user_password>
                       <username>root</username>
+                      <user_password>nots3cr3t</user_password>
+          </user>
+          <user>
+                      <encrypted config:type="boolean">false</encrypted>
+                      <username>bernhard</username>
+                      <user_password>nots3cr3t</user_password>
           </user>
   </users>
 

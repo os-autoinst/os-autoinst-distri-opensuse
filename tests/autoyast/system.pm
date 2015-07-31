@@ -14,7 +14,7 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
 use strict;
-use base 'basetest';
+use base 'y2logsstep';
 use testapi;
 
 sub save_logs_and_continue
@@ -155,14 +155,6 @@ sub run {
 
 
 
-}
-
-sub test_flags {
-    # without anything - rollback to 'lastgood' snapshot if failed
-    # 'fatal' - whole test suite is in danger if this fails
-    # 'milestone' - after this test succeeds, update 'lastgood'
-    # 'important' - if this fails, set the overall state to 'fail'
-    return { important => 1 };
 }
 
 1;
