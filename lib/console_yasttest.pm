@@ -46,7 +46,8 @@ sub run_yast_cli_test {
     script_run("if [ -d t ]; then echo 'run' | tee /dev/$serialdev; fi");
     assert_script_run 'prove' if wait_serial 'run', 10;
 
-    script_run "cd .."
+    script_run "cd ..";
+    script_run "rm -rf $repo";
 }
 
 1;
