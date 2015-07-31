@@ -233,13 +233,6 @@ sub loadtest($) {
 
 sub load_x11regresion_tests() {
     if (( check_var("DESKTOP", "gnome") )) {
-        loadtest "x11regressions/firefox/firefox_smoke.pm";
-        loadtest "x11regressions/firefox/firefox_localfiles.pm";
-        loadtest "x11regressions/firefox/firefox_emaillink.pm";
-        loadtest "x11regressions/firefox/firefox_urlsprotocols.pm";
-        loadtest "x11regressions/firefox/firefox_downloading.pm";
-    }
-    if (( check_var("DESKTOP", "gnome") )) {
         loadtest "x11regressions/tomboy/tomboy_Hotkeys.pm";
         loadtest "x11regressions/tomboy/tomboy_AlreadyRunning.pm";
         loadtest "x11regressions/tomboy/tomboy_TestFindFunctionalityInSearchAllNotes.pm";
