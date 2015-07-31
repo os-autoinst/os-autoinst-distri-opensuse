@@ -30,5 +30,24 @@ sub post_run_hook {
     $self->clear_and_verify_console;
 }
 
+# Executes the command line tests from a yast repository (in master or in the
+# given optional branch) using prove
+sub run_yast_cli_test {
+    my ($self, $repo, $branch) = @_;
+    my $action;
+
+    script_run "git clone https://github.com/yast/$repo.git";
+    script_run "cd $repo";
+
+    if ($branch) {
+        script_run "git checkout $branch";
+    }
+    # Run 'prove' only if there is a directory called t
+    script_run("if [ -d t ]; then echo 'run' | tee /dev/$serialdev; fi");
+    assert_script_run 'prove' if wait_serial 'run', 10;
+
+    script_run "cd .."
+}
+
 1;
 # vim: set sw=4 et:
