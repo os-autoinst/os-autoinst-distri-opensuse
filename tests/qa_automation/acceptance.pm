@@ -31,6 +31,7 @@ sub run() {
         elsif ($ret) {
             last;
         }
+        # change the screen periodically to avoid standstill detection for long running tests
         send_key '.';
     }
     # output the QADB link
