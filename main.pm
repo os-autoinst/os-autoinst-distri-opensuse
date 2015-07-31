@@ -628,7 +628,6 @@ elsif (get_var("SUPPORT_SERVER")) {
     loadtest "support_server/wait.pm";
 }
 elsif (get_var("QA_TESTSET")) {
-    loadtest "installation/first_boot.pm";
     loadtest "qa_automation/acceptance.pm";
 }
 else {
