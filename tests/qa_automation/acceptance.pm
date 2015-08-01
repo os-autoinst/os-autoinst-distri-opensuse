@@ -3,7 +3,18 @@ use testapi;
 
 # qa_testset_automation validation test
 sub run() {
-    become_root;
+    assert_screen "inst-bootmenu", 30;
+    send_key "ret";    # boot
+
+    assert_screen "grub2", 15;
+    send_key "ret";
+
+    assert_screen "text-login", 50;
+    type_string "root\n";
+    assert_screen "password-prompt", 10;
+    type_password;
+    type_string "\n";
+    sleep 1;
 
     # Add Repo - http://dist.nue.suse.com/ibs/QA:/Head/SLE-12-SP1/
     assert_script_run "zypper --no-gpg-check -n ar -f " . get_var('QA_HEAD_REPO') . " qa_ibs";
@@ -16,7 +27,7 @@ sub run() {
 
     # Trigger run script
     # Stress Validation - /usr/share/qa/qaset/run/acceptance-run
-    assert_script_run "/usr/share/qa/qaset/run/" . get_var('QA_TESTSET') . "/regression-run";
+    assert_script_run "/usr/share/qa/qaset/run/" . get_var('QA_TESTSET') . "-run";
 
     # This tests creates 2 screens 1 Main screen, 1 screen for specific test/module
     # Monitor - Connect to Main Screen
