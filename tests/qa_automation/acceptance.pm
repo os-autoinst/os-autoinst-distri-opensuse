@@ -16,6 +16,16 @@ sub run() {
     type_string "\n";
     sleep 1;
 
+    # remove SLES
+    assert_script_run "zypper rr 1";
+    # remove SDK
+    assert_script_run "zypper rr 1";
+
+    my $repo = get_var('HOST') . "/assets/repo/" . get_var('REPO_0');
+    assert_script_run "zypper -n ar -f $repo sles";
+    $repo = get_var('HOST') . "/assets/repo/" . get_var('REPO_1');
+    assert_script_run "zypper -n ar -f $repo sdk";
+
     # Add Repo - http://dist.nue.suse.com/ibs/QA:/Head/SLE-12-SP1/
     assert_script_run "zypper --no-gpg-check -n ar -f " . get_var('QA_HEAD_REPO') . " qa_ibs";
 
@@ -31,7 +41,7 @@ sub run() {
 
     # This tests creates 2 screens 1 Main screen, 1 screen for specific test/module
     # Monitor - Connect to Main Screen
-    type_string "screen -r `screen -ls | grep regression | cut -d\".\" -f1`\n";
+    type_string "screen -r `screen -ls | grep " . get_var('QA_TESTSET') . " | cut -d\".\" -f1`\n";
 
     # When finished, the screen will terminate
     for (1..60) {
@@ -56,7 +66,7 @@ sub run() {
     # output the failed tests to serial console
     type_string "export PS1=#\n";
     type_string "find /var/log/qa/oldlogs/ -name test_results | xargs grep -l -B1 ^1 | tee -a /dev/$serialdev\n";
-    check_screen 'no_output_from_qa_find';
+    assert_screen 'no_output_from_qa_find';
 }
 
 sub test_flags {
