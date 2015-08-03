@@ -511,14 +511,14 @@ sub load_x11tests(){
     if (gnomestep_is_applicable) {
         loadtest "x11/eog.pm";
     }
-    if (get_var("DESKTOP") =~ /kde|gnome/ && !is_server) {
-        loadtest "x11/ooffice.pm";
-    }
     if (!get_var("NICEVIDEO") && get_var("DESKTOP") =~ /kde|gnome/ && !is_server) {
         loadtest "x11/oomath.pm";
     }
     if (!get_var("NICEVIDEO") && get_var("DESKTOP") =~ /kde|gnome/ && !get_var("LIVECD") && !is_server) {
         loadtest "x11/oocalc.pm";
+    }
+    if (get_var("DESKTOP") =~ /kde|gnome/ && !is_server) {
+        loadtest "x11/ooffice.pm";
     }
     if (kdestep_is_applicable) {
         loadtest "x11/khelpcenter.pm";
