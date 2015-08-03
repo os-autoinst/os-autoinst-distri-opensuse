@@ -8,7 +8,12 @@ sub run() {
     my $self = shift;
 
     assert_screen "bootloader-ofw", 15;
-    send_key_until_needlematch 'inst-oninstallation', 'up';
+    if (get_var("UPGRADE")) {
+        send_key_until_needlematch 'inst-onupgrade', 'up';
+    }
+    else {
+        send_key_until_needlematch 'inst-oninstallation', 'up';
+    }
     if (check_var('VIDEOMODE', 'text') || get_var('NETBOOT')) {
         # edit menu
         send_key "e";
