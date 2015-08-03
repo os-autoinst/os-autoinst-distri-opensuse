@@ -219,6 +219,13 @@ sub load_x11regresion_tests() {
     loadtest "x11regressions/firefox/sle12/firefox_emaillink.pm";
     loadtest "x11regressions/firefox/sle12/firefox_urlsprotocols.pm";
     loadtest "x11regressions/firefox/sle12/firefox_downloading.pm";
+    loadtest "x11regressions/firefox/sle12/firefox_extcontent.pm";
+    loadtest "x11regressions/firefox/sle12/firefox_java.pm";
+    loadtest "x11regressions/firefox/sle12/firefox_headers.pm";
+    loadtest "x11regressions/firefox/sle12/firefox_pdf.pm";
+    loadtest "x11regressions/firefox/sle12/firefox_pagesaving.pm";
+    loadtest "x11regressions/firefox/sle12/firefox_changesaving.pm";
+    loadtest "x11regressions/firefox/sle12/firefox_flashplayer.pm";
     if (( check_var("DESKTOP", "gnome") )) {
         loadtest "x11regressions/tomboy/tomboy_Hotkeys.pm";
         loadtest "x11regressions/tomboy/tomboy_AlreadyRunning.pm";
