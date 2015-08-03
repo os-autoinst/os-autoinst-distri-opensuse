@@ -51,6 +51,7 @@ sub run() {
     assert_screen('firefox-email_link-send',10);
 
     send_key "esc";
+    sleep 2;
 
     # Exit
     send_key "alt-f4";
