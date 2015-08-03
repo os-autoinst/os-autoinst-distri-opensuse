@@ -214,11 +214,11 @@ sub loadtest($) {
 }
 
 sub load_x11regresion_tests() {
-    loadtest "x11regressions/firefox/firefox_smoke.pm";
-    loadtest "x11regressions/firefox/firefox_localfiles.pm";
-    loadtest "x11regressions/firefox/firefox_emaillink.pm";
-    loadtest "x11regressions/firefox/firefox_urlsprotocols.pm";
-    loadtest "x11regressions/firefox/firefox_downloading.pm";
+    loadtest "x11regressions/firefox/sle12/firefox_smoke.pm";
+    loadtest "x11regressions/firefox/sle12/firefox_localfiles.pm";
+    loadtest "x11regressions/firefox/sle12/firefox_emaillink.pm";
+    loadtest "x11regressions/firefox/sle12/firefox_urlsprotocols.pm";
+    loadtest "x11regressions/firefox/sle12/firefox_downloading.pm";
     if (( check_var("DESKTOP", "gnome") )) {
         loadtest "x11regressions/tomboy/tomboy_Hotkeys.pm";
         loadtest "x11regressions/tomboy/tomboy_AlreadyRunning.pm";
