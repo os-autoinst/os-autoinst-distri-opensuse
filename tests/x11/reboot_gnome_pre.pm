@@ -27,8 +27,9 @@ sub run() {
 
     if (get_var("SHUTDOWN_NEEDS_AUTH")) {
         assert_screen 'reboot-auth', 15;
-        sleep 1;
+        sleep 3;
         type_password;
+        sleep 3;
         send_key "ret";
 
         if (check_screen('please-try-again', 3)) {
