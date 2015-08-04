@@ -51,7 +51,7 @@ sub run_yast_cli_test {
       script_run "# Skip running 'prove'";
     }
 
-    script_run "cd ..";
+    script_run 'cd ..';
     script_run "rm -rf $repo";
 }
 

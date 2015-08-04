@@ -14,7 +14,7 @@ sub run() {
     $self->run_yast_cli_test('yast-dns-server');
 
     # Exit from root
-    script_run "exit";
+    script_run 'exit';
 }
 
 1;
