@@ -237,6 +237,13 @@ sub load_x11regresion_tests() {
         loadtest "x11regressions/gnote/gnote_edit_format.pm";
         loadtest "x11regressions/gnote/gnote_search_all.pm";
         loadtest "x11regressions/gnote/gnote_search_body.pm";
+        loadtest "x11regressions/evince/evince_open.pm";
+        loadtest "x11regressions/evince/evince_view.pm";
+        loadtest "x11regressions/evince/evince_rotate_zoom.pm";
+        loadtest "x11regressions/evince/evince_find.pm";
+        loadtest "x11regressions/gedit/gedit_launch.pm";
+        loadtest "x11regressions/gedit/gedit_save.pm";
+        loadtest "x11regressions/gedit/gedit_about.pm";
     }
     if (get_var("DESKTOP") =~ /kde|gnome/) {
         loadtest "x11regressions/pidgin/prep_pidgin.pm";
@@ -577,6 +584,7 @@ if ( get_var("REGRESSION") ) {
         loadtest "boot/boot_to_desktop.pm";
     }
     else {
+        load_boot_tests();
         load_inst_tests();
         load_reboot_tests();
     }
