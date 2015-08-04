@@ -36,15 +36,20 @@ sub run_yast_cli_test {
     my ($self, $repo, $branch) = @_;
     my $action;
 
-    script_run "git clone https://github.com/yast/$repo.git";
+    assert_script_run "git clone https://github.com/yast/$repo.git";
     script_run "cd $repo";
 
     if ($branch) {
-        script_run "git checkout $branch";
+        assert_script_run "git checkout $branch";
     }
     # Run 'prove' only if there is a directory called t
-    script_run("if [ -d t ]; then echo 'run' | tee /dev/$serialdev; fi");
-    assert_script_run 'prove' if wait_serial 'run', 10;
+    script_run("if [ -d t ]; then echo -n 'run'; else echo -n 'skip'; fi > /dev/$serialdev");
+    $action = wait_serial(['run', 'skip'], 10);
+    if ($action eq 'run') {
+      assert_script_run 'prove';
+    } else {
+      script_run "# Skip running 'prove'";
+    }
 
     script_run "cd ..";
     script_run "rm -rf $repo";
