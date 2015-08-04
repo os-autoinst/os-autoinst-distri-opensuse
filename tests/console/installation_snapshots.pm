@@ -6,6 +6,7 @@ sub run() {
     script_run("snapper list | tee /dev/$serialdev");
     # Check if the snapshot called 'after installation' is there
     wait_serial("after installation", 5);
+    script_run("exit");
 }
 
 sub test_flags() {
