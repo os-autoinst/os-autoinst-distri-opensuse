@@ -47,8 +47,6 @@ sub run_yast_cli_test {
     $action = wait_serial(['run', 'skip'], 10);
     if ($action eq 'run') {
       assert_script_run 'prove';
-    } else {
-      script_run "# Skip running 'prove'";
     }
 
     script_run 'cd ..';
