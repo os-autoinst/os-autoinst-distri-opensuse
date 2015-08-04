@@ -1,0 +1,11 @@
+directory.yast
+license.es.txt
+license.fr.txt
+license.it.txt
+license.ja.txt
+license.ko.txt
+license.pt_BR.txt
+license.ru.txt
+license.txt
+license.zh_CN.txt
+license.zh_TW.txt
