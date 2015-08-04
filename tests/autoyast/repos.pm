@@ -54,6 +54,8 @@ sub run {
         upload_logs "/tmp/y2logs.tar.bz2";
     }
 
+    type_string "rm -f /root/autoinst.xml\n";
+
     wait_idle(30);
     type_string "yast2 --ncurses clone_system ; echo CLONED >/dev/$serialdev\n";
     while (!wait_serial("CLONED", 200)) {
