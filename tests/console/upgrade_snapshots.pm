@@ -7,6 +7,7 @@ sub run() {
     # Check if the snapshots called 'before upgrade' and 'after upgrade' are
     # there.
     wait_serial(qr/before upgrade.*(\n.*)+after upgrade/, 5);
+    script_run("exit");
 }
 
 sub test_flags() {
