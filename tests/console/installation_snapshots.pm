@@ -1,12 +1,19 @@
-use base "consoletest";
+use base 'consoletest';
 use testapi;
+
+# fate#317973: Create initial snapshot at the end of installation/update
+# bnc#935923: Cleanup and consistent naming for snapshots made during installation
+#
+# Checks that the initial snapshot is created, its strategy is set to "number"
+# and user data is set to "important=yes"
 
 sub run() {
     become_root();
     script_run("snapper list | tee /dev/$serialdev");
     # Check if the snapshot called 'after installation' is there
-    wait_serial("after installation", 5);
-    script_run("exit");
+    wait_serial('single\s*(\|[^|]*){4}\s*\|\s*number\s*\|\s*after installation\s*\|\s*important=yes', 5) || die 'installation snapshot test failed';
+    script_run('exit');
+    send_key 'ctrl-l';
 }
 
 sub test_flags() {
