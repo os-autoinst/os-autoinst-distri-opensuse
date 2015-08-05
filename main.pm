@@ -402,6 +402,7 @@ sub load_consoletests() {
         loadtest "console/textinfo.pm";
         loadtest "console/hostname.pm";
         loadtest "console/yast2_cmdline.pm";
+        loadtest "console/yast2_dns_server.pm";
         if (snapper_is_applicable) {
             loadtest "console/snapper_snapshots.pm";
             if (get_var("UPGRADE")) {
