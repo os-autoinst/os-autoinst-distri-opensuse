@@ -37,7 +37,7 @@ sub run() {
     #
     become_root;
     # Make sure packages are installed
-    assert_script_run 'zypper -n in yast2-dns-server bind';
+    assert_script_run 'zypper -n in yast2-dns-server bind SuSEfirewall2';
     # Let's pretend this is the first execution (could not be the case if
     # yast2_cmdline was executed before)
     script_run 'rm /var/lib/YaST2/dns_server';
