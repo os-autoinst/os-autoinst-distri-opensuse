@@ -1,24 +1,18 @@
-use base "basetest";
+use base "x11test";
+use strict;
 use testapi;
 
-# Case 1248747 - Beagle: beagled starts
-# Modify to : Tracker - tracker search from the command line. tracker-search starts
+# Case 1436343 - Tracker: search from command line
 
 sub run() {
     my $self = shift;
     x11_start_program("xterm");
     sleep 2;
     wait_idle;
-    assert_screen 'test-tracker_by_command-1', 3;
-    type_string "cd\n";
-    type_string "tracker-search newfile\n";
-    sleep 2;
-    wait_still_screen;
-    assert_screen 'test-tracker_by_command-2', 3;
-    send_key "alt-f4";
-    sleep 2;    #close xterm
-
-    #       assert_screen 'test-tracker_by_command-3', 3;
+    script_run "tracker-search newfile";
+    sleep 5;
+    assert_screen 'tracker-cmdsearch-newfile';
+    script_run "exit";
 }
 
 1;

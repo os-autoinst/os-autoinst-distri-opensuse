@@ -1,4 +1,5 @@
-use base "basetest";
+use base "x11test";
+use strict;
 use testapi;
 
 # Clean for testing tracker.
