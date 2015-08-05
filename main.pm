@@ -207,7 +207,7 @@ sub lxdestep_is_applicable() {
 
 sub snapper_is_applicable() {
     my $fs = get_var("FILESYSTEM", 'btrfs');
-    return ( $fs eq "btrfs" && get_var("HDDSIZEGB") > 10);
+    return ( $fs eq "btrfs" && get_var("HDDSIZEGB", 10) > 10);
 }
 
 sub need_clear_repos() {
