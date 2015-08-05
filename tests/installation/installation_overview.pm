@@ -9,6 +9,9 @@ sub run() {
     # overview-generation
     # this is almost impossible to check for real
     assert_screen "inst-overview", 15;
+    if ( get_var("XEN") ) {
+        assert_screen "inst-xen-pattern", 5;
+    }
 
     # preserve it for the video
     wait_idle 10;

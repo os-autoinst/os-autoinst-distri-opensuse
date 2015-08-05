@@ -13,7 +13,7 @@ sub run() {
     my $zypper_dup_finish = qr/^There are some running programs that might use files|^ZYPPER-DONE/m;
     my $zypper_packagekit = qr/^Tell PackageKit to quit\?/m;
     my $zypper_packagekit_again = qr/^Try again\?/m;
-    my $zypper_repo_disabled = qr/^Repository '\S+' has been successfully disabled./m;
+    my $zypper_repo_disabled = qr/^Repository '[^']+' has been successfully disabled./m;
     my $zypper_installing = qr/Installing: \S+/;
     my $zypper_dup_fileconflict = qr/^File conflicts .*^Continue\? \[y/ms;
 

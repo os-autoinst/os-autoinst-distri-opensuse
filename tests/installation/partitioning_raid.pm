@@ -83,9 +83,34 @@ sub run() {
 
     send_key "tab";
     send_key "down";    # select disks
-    send_key "right";    # unfold disks
-    send_key "down";         # select first disk
-    wait_idle 5;
+    if (get_var("OFW")) { ## no RAID /boot partition for ppc
+        send_key 'alt-p';
+        assert_screen 'partitioning-type', 5;
+        send_key 'alt-n';
+        assert_screen 'partitioning-size', 5;
+        send_key 'ctrl-a';
+        type_string "200 MB";
+        send_key 'alt-n';
+        assert_screen 'partition-role', 6;
+        send_key "alt-a";    # Raw Volume
+        send_key 'alt-n';
+        assert_screen 'partition-format', 5;
+        send_key 'alt-d';
+        send_key 'alt-i';
+        send_key_until_needlematch 'filesystem-prep', 'down';
+        send_key 'ret';
+        send_key 'alt-f';
+        assert_screen 'custompart', 9;
+        send_key 'alt-s';
+        send_key 'right';
+        send_key 'down'; #should select first disk'
+        wait_idle 5;
+    }
+    else {
+        send_key "right";    # unfold disks
+        send_key "down";         # select first disk
+        wait_idle 5;
+    }
 
     for ( 1 .. 4 ) {
         wait_idle 5;

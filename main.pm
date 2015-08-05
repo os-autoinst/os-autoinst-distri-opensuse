@@ -206,7 +206,8 @@ sub lxdestep_is_applicable() {
 }
 
 sub snapper_is_applicable() {
-    return (check_var("FILESYSTEM", "btrfs") && get_var("HDDSIZEGB") > 10);
+    my $fs = get_var("FILESYSTEM", 'btrfs');
+    return ( $fs eq "btrfs" && get_var("HDDSIZEGB") > 10);
 }
 
 sub need_clear_repos() {
@@ -231,34 +232,6 @@ sub loadtest($) {
 }
 
 sub load_x11regresion_tests() {
-    loadtest "x11regressions/firefox/firefox_launch.pm";
-    loadtest "x11regressions/firefox/firefox_menu.pm";
-    loadtest "x11regressions/firefox/firefox_contentmenu.pm";
-    loadtest "x11regressions/firefox/firefox_help.pm";
-    loadtest "x11regressions/firefox/firefox_newwindow.pm";
-    loadtest "x11regressions/firefox/firefox_home_page.pm";
-    loadtest "x11regressions/firefox/firefox_topsite.pm";
-    loadtest "x11regressions/firefox/firefox_https.pm";
-    loadtest "x11regressions/firefox/firefox_importssl.pm";
-    loadtest "x11regressions/firefox/firefox_loadie6.pm";
-    loadtest "x11regressions/firefox/firefox_page_control.pm";
-    loadtest "x11regressions/firefox/firefox_password_i.pm";
-    loadtest "x11regressions/firefox/firefox_print.pm";
-    loadtest "x11regressions/firefox/firefox_remember_passwd.pm";
-    loadtest "x11regressions/firefox/firefox_search.pm";
-    loadtest "x11regressions/firefox/firefox_sidebar.pm";
-    loadtest "x11regressions/firefox/firefox_urlprotocols.pm";
-    loadtest "x11regressions/firefox/firefox_url.pm";
-    loadtest "x11regressions/firefox/firefox_localpage.pm";
-    loadtest "x11regressions/firefox/firefox_mhtml.pm";
-    loadtest "x11regressions/firefox/firefox_tab.pm";
-    loadtest "x11regressions/firefox/firefox_sendlink.pm";
-    loadtest "x11regressions/firefox/firefox_java.pm";
-    loadtest "x11regressions/firefox/firefox_autocomplete.pm";
-    loadtest "x11regressions/firefox/firefox_bookmarks.pm";
-    loadtest "x11regressions/firefox/firefox_printing.pm";
-    loadtest "x11regressions/firefox/firefox_printing_images.pm";
-    loadtest "x11regressions/firefox/firefox_bookmark.pm";
     if (( check_var("DESKTOP", "gnome") )) {
         loadtest "x11regressions/tomboy/tomboy_Hotkeys.pm";
         loadtest "x11regressions/tomboy/tomboy_AlreadyRunning.pm";
@@ -428,7 +401,9 @@ sub load_consoletests() {
         loadtest "console/consoletest_setup.pm";
         loadtest "console/textinfo.pm";
         loadtest "console/hostname.pm";
+        loadtest "console/yast2_cmdline.pm";
         if (snapper_is_applicable) {
+            loadtest "console/snapper_snapshots.pm";
             if (get_var("UPGRADE")) {
                 loadtest "console/upgrade_snapshots.pm";
             } else {
@@ -483,6 +458,9 @@ sub load_consoletests() {
         if (check_var("DESKTOP", "xfce")) {
             loadtest "console/xfce_gnome_deps.pm";
         }
+        if (get_var("CLONE_SYSTEM")) {
+            loadtest "console/yast2_clone_system.pm";
+        }
         loadtest "console/consoletest_finish.pm";
     }
 }
@@ -534,14 +512,14 @@ sub load_x11tests(){
     if (gnomestep_is_applicable) {
         loadtest "x11/eog.pm";
     }
-    if (get_var("DESKTOP") =~ /kde|gnome/ && !is_server) {
-        loadtest "x11/ooffice.pm";
-    }
     if (!get_var("NICEVIDEO") && get_var("DESKTOP") =~ /kde|gnome/ && !is_server) {
         loadtest "x11/oomath.pm";
     }
     if (!get_var("NICEVIDEO") && get_var("DESKTOP") =~ /kde|gnome/ && !get_var("LIVECD") && !is_server) {
         loadtest "x11/oocalc.pm";
+    }
+    if (get_var("DESKTOP") =~ /kde|gnome/ && !is_server) {
+        loadtest "x11/ooffice.pm";
     }
     if (kdestep_is_applicable) {
         loadtest "x11/khelpcenter.pm";
