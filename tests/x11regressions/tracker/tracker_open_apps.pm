@@ -1,19 +1,19 @@
-use base "basetest";
+use base "x11test";
+use strict;
 use testapi;
 
-# Case 1248740 - Beagle: beagle-settings starts
-# Modify to : Tracker: tracker-preferences starts
+# Case 1436342 - Tracker: search application in tracker and open it
 
 sub run() {
     my $self = shift;
     x11_start_program("tracker-needle");
     sleep 2;
     wait_idle;    # extra wait because oo sometimes appears to be idle during start
-    assert_screen 'test-tracker_open_apps-1', 3;
+    assert_screen 'tracker-needle-launched';
     type_string "cheese";
+    sleep 8;
+    assert_screen 'tracker-search-cheese';
     sleep 2;
-    wait_still_screen;
-    assert_screen 'test-tracker_open_apps-2', 3;
     send_key "tab";
     sleep 2;
     send_key "down";
@@ -21,13 +21,11 @@ sub run() {
     send_key "ret";
     sleep 2;
     wait_idle;
-    assert_screen 'test-tracker_open_apps-3', 3;
+    assert_screen 'cheese-launched';
     send_key "alt-f4";
     sleep 2;    #close cheese
     send_key "alt-f4";
-    sleep 2;    #close tracker
 
-    #       assert_screen 'test-tracker_open_apps-4', 3;
 }
 
 1;

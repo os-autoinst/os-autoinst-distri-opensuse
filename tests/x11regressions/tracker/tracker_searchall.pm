@@ -1,23 +1,28 @@
-use base "basetest";
+use base "x11test";
+use strict;
 use testapi;
-
-# Case 1248738 - Beagle: Search all data with beagle-search
-# Modify to : Tracker: Seach all date with tracker-needle
 
 sub run() {
     my $self = shift;
     x11_start_program("tracker-needle");
     sleep 2;
     wait_idle;
-    assert_screen 'test-tracker_searchall-1', 3;
+    assert_screen 'tracker-needle-launched';
+    send_key "tab";
+    wait_idle;
+    send_key "tab";
+    wait_idle;
+    send_key "right";
+    wait_idle;
+    send_key "ret";
+    #switch to search input field
+    for ( 1 .. 4 ) { send_key "right" }
     type_string "newfile";
-    sleep 2;
-    wait_still_screen;
-    assert_screen 'test-tracker_searchall-2', 3;
+    sleep 5;
+    assert_screen 'tracker-search-result';
     send_key "alt-f4";
     sleep 2;
 
-    # assert_screen 'test-tracker_searchall-3', 3;
 }
 
 1;

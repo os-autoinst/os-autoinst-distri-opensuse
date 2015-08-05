@@ -1,15 +1,15 @@
-use base "basetest";
+use base "x11test";
+use strict;
 use testapi;
 
-# Case 1248740 - Beagle: beagle-settings starts
-# Modify to : Tracker: tracker-preferences starts
+# Case 1436344-start preference of tracker
 
 sub run() {
     my $self = shift;
     x11_start_program("tracker-preferences");
     sleep 2;
     wait_idle;
-    assert_screen 'test-tracker_pref_starts-1', 3;
+    assert_screen 'tracker_pref_launched';
     send_key "alt-f4";
     sleep 2;
 
