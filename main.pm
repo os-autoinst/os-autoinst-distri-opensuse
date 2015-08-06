@@ -227,16 +227,16 @@ sub load_x11regresion_tests() {
     loadtest "x11regressions/firefox/sle12/firefox_changesaving.pm";
     loadtest "x11regressions/firefox/sle12/firefox_flashplayer.pm";
     if (( check_var("DESKTOP", "gnome") )) {
-        loadtest "x11regressions/tomboy/tomboy_Hotkeys.pm";
-        loadtest "x11regressions/tomboy/tomboy_AlreadyRunning.pm";
-        loadtest "x11regressions/tomboy/tomboy_TestFindFunctionalityInSearchAllNotes.pm";
-        loadtest "x11regressions/tomboy/tomboy_TestUndoRedoFeature.pm";
-        loadtest "x11regressions/tomboy/tomboy_firstrun.pm";
-        loadtest "x11regressions/tomboy/tomboy_StartNoteCannotBeDeleted.pm";
-        loadtest "x11regressions/tomboy/tomboy_Open.pm";
-        loadtest "x11regressions/tomboy/tomboy_Print.pm";
-        loadtest "x11regressions/tomboy/tomboy_checkinstall.pm";
-        loadtest "x11regressions/gnomecase/Gnomecutfile.pm";
+        loadtest "x11regressions/gnomecase/nautilus_cut_file.pm";
+        loadtest "x11regressions/gnomecase/nautilus_permission.pm";
+        loadtest "x11regressions/gnomecase/nautilus_open_ftp.pm";
+        loadtest "x11regressions/gnote/gnote_first_run.pm";
+        loadtest "x11regressions/gnote/gnote_link_note.pm";
+        loadtest "x11regressions/gnote/gnote_rename_title.pm";
+        loadtest "x11regressions/gnote/gnote_undo_redo.pm";
+        loadtest "x11regressions/gnote/gnote_edit_format.pm";
+        loadtest "x11regressions/gnote/gnote_search_all.pm";
+        loadtest "x11regressions/gnote/gnote_search_body.pm";
     }
     if (get_var("DESKTOP") =~ /kde|gnome/) {
         loadtest "x11regressions/pidgin/prep_pidgin.pm";
@@ -249,9 +249,9 @@ sub load_x11regresion_tests() {
         loadtest "x11regressions/tracker/tracker_pref_starts.pm";
         loadtest "x11regressions/tracker/tracker_open_apps.pm";
         loadtest "x11regressions/tracker/tracker_by_command.pm";
+        loadtest "x11regressions/tracker/tracker_info.pm";
         loadtest "x11regressions/tracker/tracker_search_in_nautilus.pm";
         loadtest "x11regressions/tracker/clean_tracker.pm";
-        loadtest "x11regressions/tracker/tracker_info.pm";
     }
 }
 
