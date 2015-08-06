@@ -4,7 +4,6 @@ use testapi;
 sub run() {
     my $self = shift;
     x11_start_program("evolution");
-    if ( get_var("UPGRADE") ) { send_key "alt-f4"; wait_idle; }    # close mail format change notifier
     if ( check_screen "evolution-default-client-ask", 20 ) {
         assert_and_click "evolution-default-client-agree";
     }
