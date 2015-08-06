@@ -409,7 +409,6 @@ sub load_consoletests() {
         loadtest "console/textinfo.pm";
         loadtest "console/hostname.pm";
         if (snapper_is_applicable) {
-            loadtest "console/snapper_snapshots.pm";
             if (get_var("UPGRADE")) {
                 loadtest "console/upgrade_snapshots.pm";
             } else {
