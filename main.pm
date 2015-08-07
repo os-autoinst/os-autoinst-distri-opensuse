@@ -200,6 +200,11 @@ sub gnomestep_is_applicable() {
     return check_var("DESKTOP", "gnome");
 }
 
+sub snapper_is_applicable() {
+    my $fs = get_var ("FILESYSTEM", 'btrfs');
+    return ( $fs eq "btrfs" && get_var("HDDSIZEGB", 10) > 10);
+}
+
 sub need_clear_repos() {
     return get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/ && get_var("SUSEMIRROR");
 }
@@ -407,6 +412,13 @@ sub load_consoletests() {
         loadtest "console/consoletest_setup.pm";
         loadtest "console/textinfo.pm";
         loadtest "console/hostname.pm";
+        if (snapper_is_applicable) {
+            if (get_var("UPGRADE")) {
+                loadtest "console/upgrade_snapshots.pm";
+            } else {
+                loadtest "console/installation_snapshots.pm";
+            }
+        }
         if (get_var("DESKTOP") !~ /textmode/) {
             loadtest "console/xorg_vt.pm";
         }
@@ -516,6 +528,9 @@ sub load_x11tests(){
         loadtest "x11/dolphin.pm";
     }
     loadtest "x11/yast2_users.pm";
+    if (snapper_is_applicable) {
+        loadtest "x11/yast2_snapper.pm";
+    }
     if (gnomestep_is_applicable && get_var("GNOME2")) {
         loadtest "x11/application_browser.pm";
     }
