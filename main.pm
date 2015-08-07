@@ -84,6 +84,10 @@ sub is_desktop() {
     return check_var('FLAVOR', 'Desktop-DVD') || check_var('FLAVOR', 'Desktop-MINI');
 }
 
+sub is_jeos() {
+    return check_var('FLAVOR', 'JeOS-for-kvm') || check_var('FLAVOR', 'JeOS-for-openStack-Cloud')
+}
+
 #assert_screen "inst-bootmenu",12; # wait for welcome animation to finish
 
 # defaults for username and password
@@ -420,8 +424,10 @@ sub load_consoletests() {
         loadtest "console/zypper_ref.pm";
         loadtest "console/yast2_lan.pm";
         loadtest "console/curl_https.pm";
-        if (!get_var("OFW")) {
+        if (!get_var("OFW") && !is_jeos) {
             loadtest "console/aplay.pm";
+        }
+        if (!get_var("OFW")) {
             loadtest "console/glibc_i686.pm";
         }
         loadtest "console/zypper_up.pm";
@@ -623,6 +629,17 @@ else {
             loadtest "installation/boot_encrypt.pm";
         }
         loadtest "installation/first_boot.pm";
+    }
+    elsif (is_jeos) {
+        if (get_var("ISO_MAXSIZE")) {
+            loadtest "jeos/imgsize.pm"
+        }
+        loadtest "installation/first_boot.pm";
+        loadtest "jeos/firstrun.pm";
+        loadtest "jeos/diskusage.pm";
+        if (get_var("SCC_EMAIL") && get_var("SCC_REGCODE")) {
+            loadtest "jeos/sccreg.pm";
+        }
     }
     else {
         load_boot_tests();
