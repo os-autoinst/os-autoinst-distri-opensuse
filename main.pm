@@ -571,6 +571,7 @@ sub load_autoyast_tests(){
     loadtest("autoyast/system.pm");
     loadtest("autoyast/console.pm");
     loadtest("autoyast/login.pm");
+    loadtest("autoyast/wicked.pm");
     loadtest("autoyast/repos.pm") unless get_var("SUPPORT_SERVER_GENERATOR");
     loadtest("autoyast/autoyast_verify.pm") if get_var("AUTOYAST_VERIFY");
     loadtest("autoyast/autoyast_reboot.pm");
