@@ -230,6 +230,19 @@ sub load_x11regresion_tests() {
     loadtest "x11regressions/firefox/sle12/firefox_pagesaving.pm";
     loadtest "x11regressions/firefox/sle12/firefox_changesaving.pm";
     loadtest "x11regressions/firefox/sle12/firefox_flashplayer.pm";
+    loadtest "x11regressions/firefox/sle12/firefox_ssl.pm";
+    loadtest "x11regressions/firefox/sle12/firefox_passwd.pm";
+    loadtest "x11regressions/firefox/sle12/firefox_mhtml.pm";
+    loadtest "x11regressions/firefox/sle12/firefox_plugins.pm";
+    loadtest "x11regressions/firefox/sle12/firefox_extensions.pm";
+    loadtest "x11regressions/firefox/sle12/firefox_appearance.pm";
+    loadtest "x11regressions/firefox/sle12/firefox_html5.pm";
+    loadtest "x11regressions/firefox/sle12/firefox_private.pm";
+    loadtest "x11regressions/firefox/sle12/firefox_fullscreen.pm";
+    loadtest "x11regressions/firefox/sle12/firefox_health.pm";
+    loadtest "x11regressions/firefox/sle12/firefox_developertool.pm";
+    loadtest "x11regressions/firefox/sle12/firefox_gnomeshell.pm";
+    loadtest "x11regressions/firefox/sle12/firefox_rss.pm";
     if (( check_var("DESKTOP", "gnome") )) {
         loadtest "x11regressions/gnomecase/nautilus_cut_file.pm";
         loadtest "x11regressions/gnomecase/nautilus_permission.pm";
