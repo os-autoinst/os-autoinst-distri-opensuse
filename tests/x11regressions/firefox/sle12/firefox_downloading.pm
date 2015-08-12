@@ -10,14 +10,19 @@ my $dl_link_02 = "http://download.opensuse.org/distribution/13.2/iso/openSUSE-13
 sub dl_location_switch {
     my ($tg) = @_;
     send_key "alt-e";
+    sleep 1;
     send_key "n";
     assert_screen('firefox-downloading-preferences',15);
 
-    send_key "alt-a"; #"Always ask me where to save files"
+    sleep 1;
     if($tg ne "ask") {
-        send_key "up"; #"Save files to Downloads"
+        send_key "alt-v"; #"Save files to Downloads"
+    }
+    else {
+        send_key "alt-a"; #"Always ask me where to save files"
     }
 
+    sleep 1;
     send_key "alt-f4";
 }
 
@@ -26,9 +31,8 @@ sub dl_save {
     send_key "alt-d";
     sleep 1;
     type_string $link;
-    sleep 5;
-    send_key "tab";
-    send_key "ret";
+    sleep 2;
+    assert_and_click ("firefox-downloading-save_enabled", "left", 60);
 }
 
 sub dl_pause {
@@ -49,10 +53,8 @@ sub run() {
     mouse_hide(1);
 
     # Clean & Start Firefox
-    x11_start_program("xterm");
-    type_string "killall -9 firefox;rm -rf .moz*;rm -rf Downloads/*;firefox &>/dev/null &\n";
-    sleep 1;
-    send_key "ctrl-d";
+    x11_start_program("xterm -e \"killall -9 firefox;rm -rf Downloads/*;rm -rf .moz*\"");
+    x11_start_program("firefox");
     assert_screen('firefox-launch',45);
 
     dl_location_switch("ask");
@@ -63,12 +65,9 @@ sub run() {
     send_key "alt-s";
     sleep 3;
 
-    for my $i (0..2) {
-        send_key "tab";
-    }
-    send_key "ret";
+    assert_and_click('firefox-downloading-saving_dialog','left',20);
 
-    sleep 15;
+    sleep 10;
     assert_screen('firefox-downloading-library',25);
 
     # Pause
@@ -77,6 +76,7 @@ sub run() {
 
     # Resume
     send_key "shift-f10";
+    sleep 1;
     send_key "r"; #"Resume"
     sleep 5;
 
@@ -100,6 +100,7 @@ sub run() {
     # Remove from history
     dl_cancel();
     send_key "shift-f10";
+    sleep 1;
     send_key "e";#"Remove From History"
     sleep 1;
     assert_screen('firefox-downloading-blank_list',15);
@@ -121,6 +122,7 @@ sub run() {
     dl_cancel();
 
     send_key "shift-f10";
+    sleep 1;
     send_key "d"; #"Clear Downloads"
     sleep 1;
     assert_screen('firefox-downloading-blank_list',5);

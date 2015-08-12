@@ -1,4 +1,4 @@
-# Case#1436061: Firefox: Flash Player
+# Case#1479221: Firefox: HTML5 Video
 
 use strict;
 use base "x11test";
@@ -14,15 +14,24 @@ sub run() {
 
     send_key "esc";
     send_key "alt-d";
-    type_string "http://www.adobe.com/software/flash/about/\n";
-    assert_screen('firefox-flashplayer-verify_loaded',45);
+    type_string "youtube.com/html5\n";
 
+    assert_screen('firefox-html5-youtube',35);
     send_key "pgdn";
-    assert_screen('firefox-flashplayer-verify',25);
+    send_key "up";
+    sleep 1;
+    assert_screen('firefox-html5-support',5);
+    assert_and_click('firefox-html5-request');
 
+    assert_screen('firefox-html5-youtube',35);
+    send_key "pgdn";
+    send_key "up";
+    assert_screen('firefox-html5-enabled',5);
+
+    sleep 1;
     send_key "esc";
     send_key "alt-d";
-    type_string "https://www.youtube.com/watch?v=Z4j5rJQMdOU\n";
+    type_string "youtube.com/watch?v=Z4j5rJQMdOU\n";
     assert_screen('firefox-flashplayer-video_loaded',45);
 
     # Exit

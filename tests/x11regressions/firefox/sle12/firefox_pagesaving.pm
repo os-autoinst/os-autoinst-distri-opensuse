@@ -9,17 +9,21 @@ sub run() {
 
     # Clean and Start Firefox
     x11_start_program("xterm");
-    type_string "killall -9 firefox;rm -rf .moz* Downloads/*;firefox &>/dev/null &\n";
-    assert_screen('firefox-launch',30);
+    type_string "killall -9 firefox;rm -rf .moz* Downloads/*\n";
+    sleep 1;
+    x11_start_program("firefox");
+    assert_screen('firefox-launch',45);
 
     send_key "esc";
+    sleep 1;
     send_key "alt-d";
+    sleep 1;
     type_string "http://www.mozilla.org/en-US\n";
 
-    check_screen('firefox-pagesaving-load',45);
+    assert_screen('firefox-pagesaving-load',45);
 
     send_key "ctrl-s";
-    check_screen('firefox-pagesaving-saveas',10);
+    assert_screen('firefox-pagesaving-saveas',10);
 
     send_key "alt-s";
     sleep 5;

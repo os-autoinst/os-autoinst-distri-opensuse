@@ -10,14 +10,14 @@ sub run() {
     my $ext_link="http://mirror.bej.suse.com/dist/install/SLP/SLE-12-Server-GM/x86_64/dvd1/";
 
     # Clean and Start Firefox
-    x11_start_program("xterm");
-    type_string "killall -9 firefox;rm -rf .moz*;firefox &>/dev/null &\n";
-    sleep 1;
-    send_key "ctrl-d";
-    assert_screen('firefox-launch',20);
+    x11_start_program("xterm -e \"killall -9 firefox;rm -rf .moz*\"");
+    x11_start_program("firefox");
+    assert_screen('firefox-launch',45);
 
     send_key "esc";
+    sleep 1;
     send_key "alt-d";
+    sleep 1;
     type_string $ext_link."\n";
 
     assert_screen('firefox-extcontent-pageloaded',35);
@@ -28,6 +28,7 @@ sub run() {
     assert_screen('firefox-extcontent-opening',15);
 
     send_key "alt-o";
+    sleep 1;
     send_key "ret";
 
     assert_screen('firefox-extcontent-archive_manager',10);

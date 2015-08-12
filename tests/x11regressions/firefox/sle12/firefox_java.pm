@@ -7,18 +7,6 @@ use testapi;
 sub run() {
     mouse_hide(1);
 
-    sub send_repkey($;$;$) {
-        my $key = shift;
-        my $times = shift;
-        my $wait = shift || 0;
-        for (my $i=1; $i <= $times; $i++) { 
-            bmwqemu::log_call('send_key', key => $key);
-            eval { $bmwqemu::backend->send_key($key); };
-            bmwqemu::mydie("Error send_key key=$key: $@\n") if ($@);
-            wait_idle() if $wait;
-        }
-    }
-
     sub java_testing {
         sleep 1; send_key "ctrl-t";
         sleep 2; send_key "alt-d";
@@ -26,31 +14,30 @@ sub run() {
     }
 
     # Clean and Start Firefox
-    x11_start_program("xterm");
-    type_string "killall -9 firefox;rm -rf .moz* .config/iced* .cache/iced*;firefox &>/dev/null &\n";
-    send_key "ctrl-d";
-    assert_screen('firefox-launch',30);
+    x11_start_program("xterm -e \"killall -9 firefox;rm -rf .moz* .config/iced* .cache/iced*\"");
+    x11_start_program("firefox");
+    assert_screen('firefox-launch',45);
 
     send_key "ctrl-shift-a";
 
     assert_screen("firefox-java-addonsmanager",10);
 
     send_key "/";
+    sleep 1;
     type_string "iced\n";
 
     #Focus to "Available Add-ons"
-    send_repkey("tab",5);
-
-    #Focus to "My Add-ons"
-    sleep 1; send_key "up";
-    sleep 1; send_key "tab";
-    sleep 1; send_key "down";
+    assert_and_click "firefox-java-myaddons";
 
     #Focus to "Ask to Activate"
-    sleep 1; send_repkey("tab",2);
+    sleep 1;
+    assert_and_click "firefox-java-asktoactivate";
 
     #Focus to "Never Activate"
-    sleep 1; send_key "up";
+    sleep 1;
+    send_key "up";
+    sleep 1;
+    send_key "ret";
 
     assert_screen("firefox-java-neveractive",10);
 
@@ -59,16 +46,14 @@ sub run() {
 
     send_key "ctrl-w";
 
-    sleep 1; send_repkey("down",2);
+    for my $i (1..2) { sleep 1; send_key "down"; }
     assert_screen("firefox-java-active",10);
 
     java_testing();
     assert_screen("firefox-java-security",50);
 
-    sleep 1; send_repkey("tab",3);
-    send_key "spc";
-
-    check_screen("firefox-java-run_confirm",10);
+    assert_and_click "firefox-java-securityrun";
+    assert_screen("firefox-java-run_confirm",10);
     send_key "ret";
     assert_screen("firefox-java-verifypassed",45);
 

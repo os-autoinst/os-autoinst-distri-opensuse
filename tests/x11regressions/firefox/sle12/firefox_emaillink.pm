@@ -8,10 +8,8 @@ sub run() {
     mouse_hide(1);
 
     # Clean and Start Firefox
-    x11_start_program("xterm");
-    type_string "killall -9 firefox;rm -rf .config/evolution;rm -rf .mozilla;firefox &>/dev/null &\n";
-    sleep 1;
-    send_key "ctrl-d";
+    x11_start_program("xterm -e \"killall -9 firefox;rm -rf .config/evolution;rm -rf .moz*\"");
+    x11_start_program("firefox");
     assert_screen('firefox-gnome',45);
 
     # Email link

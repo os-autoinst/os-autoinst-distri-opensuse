@@ -8,11 +8,9 @@ sub run() {
     mouse_hide(1);
 
     # Clean and Start Firefox
-    x11_start_program("xterm");
-    type_string "killall -9 firefox;rm -rf .moz*;firefox &>/dev/null &\n";
-    sleep 1;
-    send_key "ctrl-d";
-    assert_screen('firefox-launch',20);
+    x11_start_program("xterm -e \"killall -9 firefox;rm -rf .moz*\"");
+    x11_start_program("firefox");
+    assert_screen('firefox-launch',45);
 
     # sites_url
     my %sites_url = (
@@ -25,6 +23,7 @@ sub run() {
 
     for my $proto (keys %sites_url) {
         send_key "esc";
+        sleep 1;
         send_key "alt-d";
         sleep 1;
         type_string $sites_url{$proto}. "\n";
@@ -35,8 +34,10 @@ sub run() {
     send_key "alt-f4";
     
     # Umount smb directory from desktop
-    assert_and_click('firefox-urls_protocols-umnt_smb'); sleep 1;
-    send_key "shift-f10"; sleep 1;
+    assert_and_click('firefox-urls_protocols-umnt_smb');
+    sleep 1;
+    send_key "shift-f10";
+    sleep 1;
     send_key "u";
 
     if (check_screen('firefox-save-and-quit', 4)) {

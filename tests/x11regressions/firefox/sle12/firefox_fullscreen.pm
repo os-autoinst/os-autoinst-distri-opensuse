@@ -1,4 +1,4 @@
-# Case#1436066: Firefox: HTTP Headers
+# Case#1479413: Firefox: Full Screen Browsing
 
 use strict;
 use base "x11test";
@@ -10,25 +10,21 @@ sub run() {
     # Clean and Start Firefox
     x11_start_program("xterm -e \"killall -9 firefox;rm -rf .moz*\"");
     x11_start_program("firefox");
-    assert_screen('firefox-launch',45);
+    assert_screen('firefox-launch', 25);
 
     send_key "esc";
-    send_key "ctrl-shift-q";
     sleep 1;
     send_key "alt-d";
-    sleep 2;
-    type_string "www.gnu.org\n";
-    assert_screen('firefox-headers-website',45);
+    sleep 1;
+    type_string "file:///usr/share/w3m/w3mhelp.html\n";
+    assert_screen('firefox-fullscreen-page', 15);
 
-    sleep 10;
-    send_key "down";
-    assert_screen('firefox-headers-first_item',5);
+    send_key "f11";
+    assert_screen('firefox-fullscreen-enter',15);
 
-    send_key "shift-f10";
-    #"Edit and Resend"
-    send_key "r";
-
-    assert_screen('firefox-headers-user_agent',5);
+    sleep 1;
+    send_key "f11";
+    assert_screen('firefox-fullscreen-page',15);
 
     # Exit
     send_key "alt-f4";
