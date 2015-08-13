@@ -68,10 +68,8 @@ sub run() {
 
     send_key "alt-a", 1; # accept
 
-    if ( !check_var( 'DISTRI', 'opensuse' ) ) {
-        assert_screen 'yast2-sw_autochange_no_mc-lang', 60;
-        send_key "alt-o"; # Ok
-    }
+    assert_screen 'yast2-sw_autochange_no_mc-lang', 60;
+    send_key "alt-o"; # Ok
     end_yast();
 
 #    This testcase is disabled because we consider it not just package manager
