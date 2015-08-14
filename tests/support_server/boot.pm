@@ -19,9 +19,10 @@ use testapi;
 
 sub run {
 
-    assert_screen( "inst-bootmenu", 30 );
-    send_key "ret"; #faster boot
-
+    unless (get_var("BOOTFROM") eq 'c' ) {
+       check_screen( "inst-bootmenu", 10 );
+       send_key "ret"; #faster boot if boot from cd
+    }
     assert_screen( "autoyast-boot", 10 );
     send_key "ret"; #faster boot
 
