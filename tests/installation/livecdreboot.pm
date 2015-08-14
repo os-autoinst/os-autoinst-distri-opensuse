@@ -40,7 +40,17 @@ sub run() {
     send_key 'alt-s'; # Stop the reboot countdown
     
     send_key "ctrl-alt-f2";
-    assert_screen "inst-console";
+    if ( get_var("LIVECD") ) {
+        # LIVE CDa do not run inst-consoles as started by inst-linux (it's regular live run, auto-starting yast live installer)
+        assert_screen "text-login", 10;
+        type_string "$username\n";
+        assert_screen "password-prompt", 10;
+        type_password;
+        type_string "\n";
+        sleep 1;
+    } else {
+      assert_screen "inst-console";
+    }
 
     $self->get_ip_address();
     $self->save_upload_y2logs();
