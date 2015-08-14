@@ -85,7 +85,11 @@ sub is_desktop() {
 }
 
 sub is_jeos() {
-    return check_var('FLAVOR', 'JeOS-for-kvm') || check_var('FLAVOR', 'JeOS-for-openStack-Cloud')
+    return check_var('FLAVOR', 'JeOS-for-kvm') || check_var('FLAVOR', 'JeOS-for-openStack-Cloud');
+}
+
+sub is_staging () {
+    return get_var('STAGING');
 }
 
 #assert_screen "inst-bootmenu",12; # wait for welcome animation to finish
@@ -443,7 +447,7 @@ sub load_consoletests() {
         loadtest "console/zypper_ref.pm";
         loadtest "console/yast2_lan.pm";
         loadtest "console/curl_https.pm";
-        if (!get_var("OFW") && !is_jeos) {
+        if (!get_var("OFW") && !is_jeos && !is_staging) {
             loadtest "console/aplay.pm";
         }
         if (!get_var("OFW")) {
