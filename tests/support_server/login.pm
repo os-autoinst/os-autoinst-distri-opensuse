@@ -19,7 +19,7 @@ use testapi;
 
 sub run {
 
-    if (wait_serial("login:",30)) { #fallback to needle based detection
+    if (! wait_serial("login:",30)) { #fallback to needle based detection
         assert_screen( "autoyast-system-login-console", 30 );
     }
     type_string "root\n";
