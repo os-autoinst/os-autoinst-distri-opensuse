@@ -659,6 +659,12 @@ elsif (get_var("SYSAUTHTEST")) {
     loadtest "console/zypper_ar.pm";
     loadtest "sysauth/sssd.pm";
 }
+ elsif (get_var("SUPPORT_SERVER")) {
+     loadtest "support_server/boot.pm";
+     loadtest "support_server/login.pm";
+     loadtest "support_server/setup.pm";
+     loadtest "support_server/wait.pm";
+}
 else {
     if (get_var("LIVETEST")) {
         load_boot_tests();
