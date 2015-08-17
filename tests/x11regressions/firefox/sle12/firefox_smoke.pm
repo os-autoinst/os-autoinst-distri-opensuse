@@ -8,16 +8,16 @@ sub run() {
     mouse_hide(1);
 
     # Clean and Start Firefox
-    x11_start_program("xterm");
-    type_string "killall -9 firefox;rm -rf .moz*;firefox &>/dev/null &\n";
-    sleep 1;
-    send_key "ctrl-d";
+    x11_start_program("xterm -e \"killall -9 firefox;rm -rf .moz*\"");
+    x11_start_program("firefox");
     assert_screen('firefox-gnome',45);
 
     # Links navigation
     send_key "/";
+    sleep 1;
     type_string "blogs\n";
-    assert_screen('firefox-links_nav-suse_blogs',30);
+    sleep 1;
+    assert_screen('firefox-links_nav-suse_blogs',50);
 
     # Topsites
     my @topsite = ( 'www.gnu.org', 'www.opensuse.org', 'www.twitter.com' );
@@ -26,7 +26,7 @@ sub run() {
         send_key "alt-d";
         sleep 1;
         type_string $site. "\n";
-        assert_screen('firefox-topsite_' . $site, 20);
+        assert_screen('firefox-topsite_' . $site, 65);
     }
 
     # Help

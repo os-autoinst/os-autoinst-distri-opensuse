@@ -8,11 +8,9 @@ sub run() {
     mouse_hide(1);
 
     # Clean and Start Firefox
-    x11_start_program("xterm");
-    type_string "killall -9 firefox;rm -rf .mozilla;firefox &>/dev/null &\n";
-    sleep 1;
-    send_key "ctrl-d";
-    assert_screen('firefox-launch',20);
+    x11_start_program("xterm -e \"killall -9 firefox;rm -rf .moz*\"");
+    x11_start_program("firefox");
+    assert_screen('firefox-launch',45);
 
     # html
     send_key "ctrl-o";

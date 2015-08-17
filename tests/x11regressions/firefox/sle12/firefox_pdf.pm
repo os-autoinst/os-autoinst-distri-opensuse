@@ -7,23 +7,10 @@ use testapi;
 sub run() {
     mouse_hide(1);
 
-    sub send_repkey($;$;$) {
-        my $key = shift;
-        my $times = shift;
-        my $wait = shift || 0;
-        for (my $i=1; $i <= $times; $i++) { 
-            bmwqemu::log_call('send_key', key => $key);
-            eval { $bmwqemu::backend->send_key($key); };
-            bmwqemu::mydie("Error send_key key=$key: $@\n") if ($@);
-            wait_idle() if $wait;
-        }
-    }
-
     # Clean and Start Firefox
-    x11_start_program("xterm");
-    type_string "killall -9 firefox;rm -rf .moz*;firefox &>/dev/null &\n";
-    send_key "ctrl-d";
-    assert_screen('firefox-launch',30);
+    x11_start_program("xterm -e \"killall -9 firefox;rm -rf .moz*\"");
+    x11_start_program("firefox");
+    assert_screen('firefox-launch',35);
 
     send_key "esc";
     send_key "alt-d";
@@ -31,34 +18,31 @@ sub run() {
 
     assert_screen('firefox-pdf-load',45);
 
-    sleep 2;
-    send_repkey("tab",5);
-    send_repkey("ret",2);
+    sleep 1;
+    for my $i (1..2) { assert_and_click 'firefox-pdf-zoom_out_button'; }
     assert_screen('firefox-pdf-zoom_out',5);
 
     send_key "tab";
-    send_repkey("ret",4);
+    for my $i (1..4) { assert_and_click 'firefox-pdf-zoom_in_button'; }
     assert_screen('firefox-pdf-zoom_in',5);
 
-    send_key "tab";
-    send_key "up";
-    send_key "down"; #"Actual Size"
-    send_key "ret";
+    assert_and_click 'firefox-pdf-zoom_menu';
+    sleep 1;
+    assert_and_click 'firefox-pdf-zoom_menu_actual_size'; #"Actual Size"
     assert_screen('firefox-pdf-actual_size',5);
 
-    send_key "tab";
-    send_key "ret"; #Full Screen
-    #assert_and_click('firefox-pdf-allow_fullscreen',5);
-    mouse_set(550,170);
-    mouse_click();
     sleep 1;
-    mouse_hide(1);
-    sleep 1;
-    assert_screen('firefox-pdf-fullscreen',10);
+    assert_and_click 'firefox-pdf-icon_fullscreen'; #Full Screen
+    assert_and_click('firefox-pdf-allow_fullscreen');
 
     send_key "esc";
-    send_repkey("tab",5);
-    send_repkey("pgdn",6);
+    sleep 1;
+    assert_and_click "firefox-pdf-actual_size";
+    assert_and_click "firefox-pdf-page";
+    sleep 1;
+    send_key "3";
+    send_key "ret";
+    sleep 1;
     assert_screen('firefox-pdf-pagedown',5);
 
     # Exit

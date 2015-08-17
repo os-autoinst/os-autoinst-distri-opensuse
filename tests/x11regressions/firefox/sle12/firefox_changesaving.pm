@@ -15,29 +15,35 @@ sub run() {
     assert_screen('firefox-launch',35);
 
     send_key "alt-tab"; #Switch to xterm
+    sleep 1;
     type_string "$changesaving_checktimestamp > dfa\n";
 
     send_key "alt-tab"; #Switch to firefox
 
+    sleep 1;
     send_key "alt-e";
+    sleep 1;
     send_key "n";
     assert_screen('firefox-changesaving-preferences',10);
 
     send_key "alt-s";
+    sleep 1;
     send_key "down"; #Show a blank page
     assert_screen('firefox-changesaving-showblankpage',10);
 
     send_key "esc";
-
+    sleep 1;
     send_key "alt-tab"; #Switch to xterm
-
+    sleep 1;
     type_string "$changesaving_checktimestamp > dfb\n";
     sleep 1;
     send_key "ctrl-l";
+    sleep 1;
     type_string "diff dfa dfb\n";
 
     assert_screen('firefox-changesaving-diffresult',5);
     type_string "rm df*\n";#Clear
+    sleep 1;
     send_key "ctrl-d";
     sleep 1;
 
