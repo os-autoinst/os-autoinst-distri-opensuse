@@ -401,9 +401,9 @@ sub load_consoletests() {
         loadtest "console/consoletest_setup.pm";
         loadtest "console/textinfo.pm";
         loadtest "console/hostname.pm";
-# The yast tests are not really ready for production - they break in staging tests
-#        loadtest "console/yast2_cmdline.pm";
-#        loadtest "console/yast2_dns_server.pm";
+        loadtest "console/yast2_cmdline.pm";
+        loadtest "console/yast2_dns_server.pm";
+        loadtest "console/yast2_nfs_client.pm";
         if (snapper_is_applicable) {
             if (get_var("UPGRADE")) {
                 loadtest "console/upgrade_snapshots.pm";
