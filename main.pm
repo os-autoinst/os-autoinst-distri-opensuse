@@ -92,6 +92,10 @@ sub cleanup_needles() {
 
 }
 
+sub is_staging () {
+    return get_var('STAGING');
+}
+
 #assert_screen "inst-bootmenu",12; # wait for welcome animation to finish
 
 # defaults for username and password
@@ -401,9 +405,6 @@ sub load_consoletests() {
         loadtest "console/consoletest_setup.pm";
         loadtest "console/textinfo.pm";
         loadtest "console/hostname.pm";
-        loadtest "console/yast2_cmdline.pm";
-        loadtest "console/yast2_dns_server.pm";
-        loadtest "console/yast2_nfs_client.pm";
         if (snapper_is_applicable) {
             if (get_var("UPGRADE")) {
                 loadtest "console/upgrade_snapshots.pm";
@@ -424,8 +425,16 @@ sub load_consoletests() {
         loadtest "console/zypper_ref.pm";
         loadtest "console/yast2_lan.pm";
         loadtest "console/curl_https.pm";
+        if (!is_staging) {
+            # TEST DEVELOPERS - Put tests that you don't want to run in stagings below here
+            if (!get_var("OFW")) {
+                loadtest "console/aplay.pm";
+            }
+            loadtest "console/yast2_cmdline.pm";
+            loadtest "console/yast2_dns_server.pm";
+            loadtest "console/yast2_nfs_client.pm";
+        }
         if (!get_var("OFW")) {
-            loadtest "console/aplay.pm";
             loadtest "console/glibc_i686.pm";
         }
         loadtest "console/zypper_up.pm";
