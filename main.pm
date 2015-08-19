@@ -442,7 +442,7 @@ sub load_consoletests() {
         if (snapper_is_applicable) {
             if (get_var("UPGRADE")) {
                 loadtest "console/upgrade_snapshots.pm";
-            } else {
+            } elsif (!get_var("ZDUP")) { # zypper doesn't do upgrade or installation snapshots
                 loadtest "console/installation_snapshots.pm";
             }
         }
@@ -523,7 +523,7 @@ sub load_x11tests(){
         loadtest "x11/kate.pm";
     }
     loadtest "x11/firefox.pm";
-    if (!get_var("NICEVIDEO")) {
+    if (!get_var("NICEVIDEO") && !get_var("OFW")) {
         loadtest "x11/firefox_audio.pm";
     }
     if (bigx11step_is_applicable && !get_var("NICEVIDEO")) {
