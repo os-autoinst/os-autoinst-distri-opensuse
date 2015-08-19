@@ -626,6 +626,21 @@ sub load_autoyast_tests(){
     #    next boot in load_reboot_tests
 }
 
+sub load_skenkins_tests {
+    my $anyloaded = 0;
+    if (get_var("SLENKINS_NODEFILE")) {
+        my $node = get_var("SLENKINS_NODE");
+        if ($node && $node ne 'control' ) {
+            loadtest "slenkins/slenkins_node.pm";
+        }
+        else {
+            loadtest "slenkins/slenkins_control.pm";
+        }
+        $anyloaded = 1;
+    }
+    return $anyloaded;
+}
+
 # load the tests in the right order
 if ( get_var("REGRESSION") ) {
     if ( get_var("HDD_1") ) {
@@ -695,7 +710,7 @@ else {
         load_inst_tests();
         load_reboot_tests();
     }
-    unless (load_applicationstests()) {
+    unless (load_applicationstests() || load_skenkins_tests()) {
         load_rescuecd_tests();
         load_consoletests();
         load_x11tests();
