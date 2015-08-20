@@ -463,8 +463,11 @@ sub load_consoletests() {
         loadtest "console/zypper_ref.pm";
         loadtest "console/yast2_lan.pm";
         loadtest "console/curl_https.pm";
-        if (!get_var("OFW") && !is_jeos && !is_staging) {
-            loadtest "console/aplay.pm";
+        if (!is_staging) {
+            # TEST DEVELOPERS - Put tests that you don't want to run in stagings below here
+            if (!get_var("OFW") && !is_jeos) {
+                loadtest "console/aplay.pm";
+            }
         }
         if (!get_var("OFW")) {
             loadtest "console/glibc_i686.pm";
