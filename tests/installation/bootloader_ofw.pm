@@ -11,6 +11,9 @@ sub run() {
     if (get_var("UPGRADE")) {
         send_key_until_needlematch 'inst-onupgrade', 'up';
     }
+    elsif (get_var("ZDUP")) {
+        assert_screen 'inst-onlocal';
+    }
     else {
         send_key_until_needlematch 'inst-oninstallation', 'up';
     }
