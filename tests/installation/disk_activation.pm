@@ -20,6 +20,19 @@ sub run {
     assert_screen 'action-list';
     send_key 'a';
     assert_screen 'dasd-active';
+    if ( !get_var('UPGRADE') && !get_var('ZDUP') ) {
+        send_key 'alt-s';
+        assert_screen 'dasd-selected';
+        send_key 'alt-a';
+        assert_screen 'action-list';
+        send_key 'f';
+        send_key 'f'; # Pressing f twice because of bsc#940817
+        send_key 'return';
+        assert_screen 'confirm-format';
+        send_key 'alt-y';
+        assert_screen 'process-format'; 
+        assert_screen 'disk-activation', 600;
+    }
     send_key 'alt-n';
     assert_screen 'disk-activation', 15;
     send_key 'alt-n';
