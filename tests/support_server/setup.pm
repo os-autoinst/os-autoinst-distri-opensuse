@@ -42,9 +42,9 @@ sub setup_http_server
 {
     return if $http_server_set;
 
-    $setup_script.="systemctl stop apache2.service\n";
+    $setup_script.="rcapache2 stop\n";
     $setup_script.="curl -f -v " . autoinst_url . "/data/supportserver/http/apache2  >/etc/sysconfig/apache2\n";
-    $setup_script.="systemctl start apache2.service\n";
+    $setup_script.="rcapache2 start\n";
 
     $http_server_set = 1;
 }
@@ -60,8 +60,8 @@ sub setup_tftp_server
 {
     return if $tftp_server_set;
 
-    $setup_script.="systemctl stop atftpd.service\n";
-    $setup_script.="systemctl start atftpd.service\n";
+    $setup_script.="rcatftpd stop\n";
+    $setup_script.="rcatftpd start\n";
 
     $tftp_server_set = 1;
 }
@@ -70,10 +70,10 @@ sub setup_dhcp_server
 {
     return if $dhcp_server_set;
 
-    $setup_script.="systemctl stop dhcpd.service\n";
+    $setup_script.="rcdhcpd stop\n";
     $setup_script.="curl -f -v " . autoinst_url . "/data/supportserver/dhcp/dhcpd.conf  >/etc/dhcpd.conf \n";
     $setup_script.="curl -f -v " . autoinst_url . "/data/supportserver/dhcp/sysconfig/dhcpd  >/etc/sysconfig/dhcpd \n";
-    $setup_script.="systemctl start dhcpd.service\n";
+    $setup_script.="rcdhcpd start\n";
 
     $dhcp_server_set = 1;
 }
@@ -94,6 +94,7 @@ sub setup_nfs_mount
 
 sub run {
 
+
     my @server_roles=split(',|;',lc(get_var("SUPPORT_SERVER_ROLES")) );
     my %server_roles= map { $_ => 1 } @server_roles;
 
@@ -105,7 +106,7 @@ sub run {
     if ( exists $server_roles{'qemuproxy'} ) {    
        setup_http_server();
        $setup_script.="curl -f -v " . autoinst_url . "/data/supportserver/proxy.conf | sed -e 's|#AUTOINST_URL#|" . autoinst_url . "|g' >/etc/apache2/vhosts.d/proxy.conf\n";
-       $setup_script.="systemctl restart apache2.service\n";
+       $setup_script.="rcapache2 restart\n";
     }
 
     die "no services configured, SUPPORT_SERVER_ROLES variable missing?" unless $setup_script;
