@@ -20,7 +20,7 @@ sub run {
     assert_screen 'action-list';
     send_key 'a';
     assert_screen 'dasd-active';
-    if !get_var('UPGRADE') && !get_var('ZDUP') {
+    if ( !get_var('UPGRADE') ) && ( !get_var('ZDUP') ) {
         send_key 'alt-s';
         assert_screen 'dasd-selected';
         send_key 'alt-a';
