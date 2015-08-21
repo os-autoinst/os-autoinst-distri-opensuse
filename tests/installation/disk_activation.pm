@@ -31,11 +31,9 @@ sub run {
         assert_screen 'confirm-format';
         send_key 'alt-y';
         assert_screen 'process-format'; # Make sure formatting starts
-        if ( !check_screen 'process-format', 600 ) {
-            last
-        } else {
-            die 'formatting took too long';
-        } 
+        until (check_screen 'process-format', 600 || die 'formatting took too long') {
+            printf 'formating ...';
+        }
     }
     send_key 'alt-n';
     assert_screen 'disk-activation', 15;
