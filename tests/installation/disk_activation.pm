@@ -27,7 +27,7 @@ sub run {
         assert_screen 'action-list';
         send_key 'f';
         send_key 'f'; # Pressing f twice because of bsc#940817
-        send_key 'return';
+        send_key 'ret';
         assert_screen 'confirm-format';
         send_key 'alt-y';
         assert_screen 'process-format'; 
