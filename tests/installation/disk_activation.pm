@@ -30,8 +30,12 @@ sub run {
         send_key 'ret';
         assert_screen 'confirm-format';
         send_key 'alt-y';
-        assert_screen 'process-format'; 
-        assert_screen 'disk-activation', 600;
+        assert_screen 'process-format'; # Make sure formatting starts
+        if ( !check_screen 'process-format', 600 ) {
+            last
+        } else {
+            die 'formatting took too long';
+        } 
     }
     send_key 'alt-n';
     assert_screen 'disk-activation', 15;
