@@ -13,11 +13,11 @@ sub run() {
     script_run 'cd ltp-full-20150420';
     script_run 'setterm -blank 0';   # disable screensaver
     assert_script_run './configure --with-open-posix-testsuite', 100;
-    assert_script_run 'make all', 500;
-    assert_script_run 'make install', 200;
+    assert_script_run 'make all', 800;
+    assert_script_run 'make install', 400;
     script_run 'cd /opt/ltp/';
     script_run "./runltp -f syscalls;echo runltp syscalls PASSED-\$?|tee /dev/$serialdev";
-    wait_serial('runltp syscalls PASSED-[01]', 1000) || die 'runltp syscalls FAILED';
+    wait_serial('runltp syscalls PASSED-[01]', 1200) || die 'runltp syscalls FAILED';
     script_run 'cat output/*.failed';    # print what tests failed
     sleep 5;
     save_screenshot;
