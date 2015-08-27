@@ -148,6 +148,9 @@ if (get_var('HDD_1') =~ /\D*-11-\S*/) {
 unless (get_var('PACKAGETOINSTALL')) {
     set_var("PACKAGETOINSTALL", "x3270");
 }
+unless (get_var('PACKAGETOINSTALLWITHRECOMMENDS')) {
+    set_var("PACKAGETOINSTALLWITHRECOMMENDS", "dasher");
+}
 set_var("WALLPAPER", '/usr/share/wallpapers/SLEdefault/contents/images/1280x1024.jpg');
 
 # set KDE and GNOME, ...
