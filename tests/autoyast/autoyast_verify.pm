@@ -20,11 +20,10 @@ use testapi;
 sub run {
     my $self = shift;
     $self->result('fail'); # default result
-    #todo: get the ip addresses by some function
+    #todo: get the ip addresses by some function (or ENV)
     my $verify_url = autoinst_url();
-    $verify_url = 'http://10.0.2.1' if get_var("PXEBOOT");
-
-    type_string "curl '" . $verify_url . "/data/" . get_var("AUTOYAST_VERIFY") . "' > verify.sh\n";
+    my $server_ip = '10.0.2.1';
+    type_string "curl '" . $verify_url . "/data/" . get_var("AUTOYAST_VERIFY") . "' | sed -e 's|#SERVER_URL#|" . $server_ip . "|g' > verify.sh\n";
     wait_idle(90);
     type_string "chmod 755 verify.sh\n";
     type_string "./verify.sh | tee /dev/$serialdev\n";
