@@ -1,0 +1,82 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <!-- autoyast tftp test on local machine    -->
+  <general>
+    <mode>
+      <confirm config:type="boolean">false</confirm>
+    </mode>
+  </general>
+  <keyboard>
+    <keyboard_values>
+      <delay/>
+      <discaps config:type="boolean">false</discaps>
+      <numlock>bios</numlock>
+      <rate/>
+    </keyboard_values>
+    <keymap>english-us</keymap>
+  </keyboard>
+  <language>
+    <language>en_US</language>
+    <languages/>
+  </language>
+  <ntp-client>
+    <ntp_policy>auto</ntp_policy>
+    <peers config:type="list"/>
+  </ntp-client>
+  <software>
+    <packages config:type="list">
+      <package>xinetd</package>
+      <package>tftp</package>
+      <package>zypper</package>
+    </packages>
+    <patterns config:type="list">
+      <pattern>base</pattern>
+      <pattern>x11</pattern>
+    </patterns>
+  </software>
+  <networking>
+    <interfaces config:type="list">
+      <interface>
+        <bootproto>dhcp</bootproto>
+        <device>eth0</device>
+        <dhclient_set_default_route>yes</dhclient_set_default_route>
+        <startmode>auto</startmode>
+      </interface>
+    </interfaces>
+  </networking>
+  <timezone>
+    <hwclock>UTC</hwclock>
+    <timezone>Europe/Prague</timezone>
+  </timezone>
+  <tftp-server>
+    <start_tftpd config:type="boolean">true</start_tftpd>
+    <tftp_directory>/srv/tftpboot</tftp_directory>
+  </tftp-server>
+  <scripts>
+    <post-scripts config:type="list">
+      <script>
+        <filename>post-script.sh</filename>
+        <interpreter>shell</interpreter>
+        <location/>
+        <feedback config:type="boolean">false</feedback>
+        <source><![CDATA[#!/bin/sh
+chmod 755 /srv/tftpboot
+        ]]></source>
+      </script>
+    </post-scripts>
+  </scripts>
+
+  <users config:type="list">
+    <user>
+      <encrypted config:type="boolean">false</encrypted>
+      <user_password>nots3cr3t</user_password>
+      <username>bernhard</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">false</encrypted>
+      <user_password>nots3cr3t</user_password>
+      <username>root</username>
+    </user>
+  </users>
+</profile>
