@@ -6,10 +6,6 @@ sub run() {
 
     become_root;
 
-    # Installing a minimal system gives a pattern conflicting with anything not minimal
-    # Let's uninstall 'the pattern' (no packages affected) in order to be able to install docker
-    script_run "zypper -n rm patterns-openSUSE-minimal_base-conflicts && echo 'patterns-openSUSE-minimal_base-conflicts removed' > /dev/$serialdev";
-
     # install the docker package
     script_run "zypper -n in docker && echo 'docker_installed' > /dev/$serialdev";
     die "docker install failed" unless wait_serial "docker_installed", 200;
