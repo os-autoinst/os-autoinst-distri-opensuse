@@ -11,9 +11,9 @@ sub assert_running() {
     my $running = shift;
 
     if ($running) {
-        assert_script_run 'systemctl is-active named | grep active';
+        assert_script_run 'systemctl is-active named | grep -E "^active"';
     } else {
-        assert_script_run 'systemctl is-active named | grep unknown';
+        assert_script_run 'systemctl is-active named | grep -E "^(inactive|unknown)"';
     }
 }
 
