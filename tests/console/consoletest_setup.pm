@@ -29,7 +29,7 @@ sub run() {
     script_run "systemctl stop packagekit.service";
     # Installing a minimal system gives a pattern conflicting with anything not minimal
     # Let's uninstall 'the pattern' (no packages affected) in order to be able to install stuff
-    assert_script_run "zypper -n rm patterns-openSUSE-minimal_base-conflicts";
+    script_run "zypper -n rm patterns-openSUSE-minimal_base-conflicts";
     # Install curl and tar in order to get the test data
     assert_script_run "zypper -n install curl tar";
     script_run "exit";
