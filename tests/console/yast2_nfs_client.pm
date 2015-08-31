@@ -18,7 +18,7 @@ sub run() {
     assert_script_run 'mkdir -p /tmp/nfs/server';
     assert_script_run 'echo "It worked" > /tmp/nfs/server/file.txt';
     # Serve the share
-    assert_script_run 'echo /tmp/nfs/server *(ro) >> /etc/exports';
+    assert_script_run 'echo "/tmp/nfs/server *(ro)" >> /etc/exports';
     assert_script_run 'systemctl start nfs-server';
 
     #
