@@ -24,7 +24,7 @@ sub run {
         send_key 'alt-o';   # continue
         while (check_screen 'process-format') { # format progress
             printf "formating ...\n";
-            sleep 2;
+            sleep 20;
         }
     }
     if (!get_var('UPGRADE') && !get_var('ZDUP')) {
@@ -40,7 +40,7 @@ sub run {
             send_key 'alt-y';
             while (check_screen 'process-format') {
                 printf "formating ...\n";
-                sleep 2;
+                sleep 20;
             }
         }
     }
