@@ -2,13 +2,13 @@ language: perl # prevent it from using perlbrew which does not support threads
 perl:
   - "5.18-extras"
 before_install:
-  - eval $(curl https://travis-perl.github.io/init) --perl
+  - echo "deb http://us.archive.ubuntu.com/ubuntu trusty main" | sudo tee /etc/apt/sources.list.d/trusty.list
+  - sudo apt-get update
 install:
-  - perlbrew list
   - sudo apt-get install libdbus-1-dev
   - cpanm -nq JSON Data::Dump
   - git clone git://github.com/os-autoinst/os-autoinst
+  - cpanm -nq Net::DBus
   - cpanm -nq `cat os-autoinst/DEPENDENCIES.txt`
 script:
   - make test
-sudo: required
