@@ -684,7 +684,6 @@ else {
         if (get_var("ISO_MAXSIZE")) {
             loadtest "jeos/imgsize.pm"
         }
-        loadtest "installation/first_boot.pm";
         loadtest "jeos/firstrun.pm";
         loadtest "jeos/diskusage.pm";
         if (get_var("SCC_EMAIL") && get_var("SCC_REGCODE")) {
