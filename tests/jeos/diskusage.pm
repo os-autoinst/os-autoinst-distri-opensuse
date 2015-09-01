@@ -8,11 +8,6 @@ sub run() {
     my $result   = 'ok';
     my $datamax    = get_var("BTRFS_MAXDATASIZE");
 
-    assert_screen 'linux-login';
-    ttylogin;
-    
-    become_root;
-
     script_run "echo btrfs-data=\$(btrfs filesystem df -b / | grep Data | sed -n -e 's/^.*used=//p') | tee -a /dev/$serialdev"; # spit out only the part of the btrfs filesystem size we're interested in
     my $datasize = wait_serial 'btrfs-data=\d+' =~ m/(\d\S*)$/; # https://xkcd.com/208/
     die "failed to get btrfs-data size" unless (defined $datasize); # shouldn't ever happen, bet just incase it does
@@ -21,11 +16,6 @@ sub run() {
         $result = 'fail';
     }
     $self->result($result);
-    
-    script_run 'exit'; # leave root
-    script_run 'exit'; # leave user
-    
-    
 }
 
 sub test_flags() {

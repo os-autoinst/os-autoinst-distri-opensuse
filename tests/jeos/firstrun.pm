@@ -5,41 +5,50 @@ use ttylogin;
 
 sub run() {
     my $self = shift;
-    assert_screen 'linux-login';
 
+    assert_screen "jeos-grub2", 15;
+    send_key 'ret'; # Press enter
+    assert_screen 'jeos-keylayout'; # Language picker
+
+    if (get_var("INSTLANG")) {
+        my $lang = get_var("INSTLANG");
+        send_key_until_needlematch "jeos-lang-$lang", 'u'; # Press u until it gets to the $lang menu option
+        send_key 'ret';
+        send_key_until_needlematch "jeos-system-locale-$lang", 'e', 50;
+        send_key 'ret';
+    } else {
+        send_key_until_needlematch 'jeos-lang-us', 'u'; # Press u until it gets to the US menu option
+        send_key 'ret';
+        send_key_until_needlematch 'jeos-system-locale-us', 'e', 50;
+        send_key 'ret';
+
+    }
+    assert_screen 'jeos-timezone';  # timzezone window, continue with selected timezone
+    send_key "ret";
+    assert_screen 'jeos-root-password'; # set root password
+    type_password;
+    send_key 'ret'; # Press enter, go to License
+    assert_screen 'linux-login';
     send_key 'ctrl-alt-f4';
     assert_screen 'tty4-selected';
     assert_screen 'text-login';
     type_string "root\n";
     assert_screen 'password-prompt', 10;
-    type_string "linux\n";
-    assert_screen 'text-logged-in';
-    
-    assert_screen 'jeos-keylayout'; # Language picker
-    
-    #TODO - add support for INSTLANG. The next two lines are a 'dead end' because the menu is longer than 20 characters and send_key_until_needlematch will never get to the default of US
-    #my $chosenlang = get_var("INSTLANG") || 'en_US'; # If INSTLANG not set, use en_US
-    #send_key_until_needlematch "jeos-lang-$chosenlang", 'down'; 
-    
-    send_key_until_needlematch 'jeos-lang-en_US', 'u'; # Press u until it gets to the US menu option
-    send_key 'spc'; # Select option
-    assert_screen 'jeos-langselected'; # Make sure its selected
-    send_key 'ret'; # Press enter, go to License
-    
+    type_password;
+    send_key 'ret';
     assert_screen 'jeos-license'; # License time
     send_key_until_needlematch 'jeos-license-end', 'pgdn'; # Might as well scroll to the bottom, somewhat redundant
-    send_key 'q';
+    send_key 'q';   # quit license
     assert_screen 'jeos-doyouaccept';
-    send_key 'y';
+    send_key 'y';   # acept license
     send_key 'ret';
     assert_screen 'jeos-firstrun-finished'; # Check the config made
-
-    type_string "useradd -m $username\n"; # Make bernhard his account    
-    type_string "echo 'root:$password' | chpasswd\n"; # need to fix roots password
-    type_string "echo '$username:$password' | chpasswd\n"; # need to fix bernhards password
-    
-    script_run 'exit'; # Get back to tty so it can work
-    
+    script_run "useradd -m $username"; # Make bernhard his account
+    script_run "passwd $username"; # set bernhards password
+    type_password;
+    send_key 'ret';
+    type_password;
+    send_key 'ret';
 }
 
 sub test_flags() {
