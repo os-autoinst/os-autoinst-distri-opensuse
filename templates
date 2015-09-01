@@ -3222,7 +3222,8 @@
                         { key => "INSTALLONLY", value => 1 },
                         { key => "MULTIPATH", value => 1 },
                       ],
-                    }{
+                    },
+                    {
                       name => "xen",
                       settings => [
                         { key => "DESKTOP", value => "gnome" },
