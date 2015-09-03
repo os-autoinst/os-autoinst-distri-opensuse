@@ -31,11 +31,10 @@ sub run() {
     wait_serial("yast2-i-status-0", 60) || die "yast didn't finish";
 
     send_key "ctrl-l";                  # clear screen to see that second update does not do any more
-    script_run("rpm -e $pkgname && echo '$pkgname removed' > /dev/$serialdev");
-    wait_serial("$pkgname removed") || die "$pkgname remove failed";
-
+    assert_script_run("rpm -e $pkgname");   # erase $pkgname
     script_run("echo mark yast test"); # avoid zpper needle
     script_run("rpm -q $pkgname");
+    sleep 2;
     script_run('exit');
     assert_screen( "yast-package-$pkgname-not-installed", 1 );
 }
