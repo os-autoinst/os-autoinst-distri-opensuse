@@ -3,11 +3,13 @@ use testapi;
 
 sub run() {
     my $self    = shift;
-    my $pkgname = 'yast2-buildtools';
-    my $recommended = 'cmake';
+    my $pkgname     = get_var("PACKAGETOINSTALL_RECOMMENDER", "yast2-nfs-client");
+    my $recommended = get_var("PACKAGETOINSTALL_RECOMMENDED", "nfs-client");
 
     become_root();
     type_string "PS1=\"# \"\n";
+
+    assert_script_run "zypper -n rm $pkgname $recommended";
 
     assert_script_run "zypper -n in yast2-packager"; # make sure yast2 sw_single module installed
 
