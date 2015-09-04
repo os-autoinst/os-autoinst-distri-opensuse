@@ -593,18 +593,16 @@ sub load_x11tests(){
 }
 
 sub load_applicationstests {
-    my $anyloaded = 0;
     if (my $val = get_var("APPTESTS")) {
         for my $test (split(/,/, $val)) {
             loadtest "$test.pm";
         }
-        $anyloaded = 1;
+        return 1;
     }
-    return $anyloaded;
+    return 0;
 }
 
 sub load_skenkins_tests {
-    my $anyloaded = 0;
     if (get_var("SLENKINS_NODEFILE")) {
         my $node = get_var("SLENKINS_NODE");
         if ($node && $node ne 'control' ) {
@@ -613,9 +611,9 @@ sub load_skenkins_tests {
         else {
             loadtest "slenkins/slenkins_control.pm";
         }
-        $anyloaded = 1;
+        return 1;
     }
-    return $anyloaded;
+    return 0;
 }
 
 # load the tests in the right order
