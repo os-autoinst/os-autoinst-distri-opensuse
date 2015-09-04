@@ -603,6 +603,21 @@ sub load_applicationstests {
     return $anyloaded;
 }
 
+sub load_skenkins_tests {
+    my $anyloaded = 0;
+    if (get_var("SLENKINS_NODEFILE")) {
+        my $node = get_var("SLENKINS_NODE");
+        if ($node && $node ne 'control' ) {
+            loadtest "slenkins/slenkins_node.pm";
+        }
+        else {
+            loadtest "slenkins/slenkins_control.pm";
+        }
+        $anyloaded = 1;
+    }
+    return $anyloaded;
+}
+
 # load the tests in the right order
 if ( get_var("REGRESSION") ) {
     if ( get_var("KEEPHDDS") ) {
@@ -661,21 +676,10 @@ else {
         load_reboot_tests();
     }
 
-    unless (load_applicationstests()) {
-        if (get_var("SLENKINS_NODEFILE")) {
-            my $node = get_var("SLENKINS_NODE");
-            if ($node && $node ne 'control' ) {
-                loadtest "slenkins/slenkins_node.pm";
-            }
-            else {
-                loadtest "slenkins/slenkins_control.pm";
-            }
-        }
-        else {
-            load_rescuecd_tests();
-            load_consoletests();
-            load_x11tests();
-        }
+    unless (load_applicationstests() || load_skenkins_tests()) {
+        load_rescuecd_tests();
+        load_consoletests();
+        load_x11tests();
     }
 }
 
