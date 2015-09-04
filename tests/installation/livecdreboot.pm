@@ -43,10 +43,8 @@ sub run() {
     if ( get_var("LIVECD") ) {
         # LIVE CDa do not run inst-consoles as started by inst-linux (it's regular live run, auto-starting yast live installer)
         assert_screen "text-login", 10;
-        type_string "$username\n";
-        assert_screen "password-prompt", 10;
-        type_password;
-        type_string "\n";
+        # login as root, who does not have a password on Live-CDs
+        type_string "root\n";
         sleep 1;
     } else {
       assert_screen "inst-console";
