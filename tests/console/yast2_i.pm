@@ -3,7 +3,7 @@ use testapi;
 
 sub run() {
     my $self    = shift;
-    my $pkgname = get_var("PACKAGETOINSTALL");
+    my $pkgname = get_var('PACKAGETOINSTALLWITHRECOMMENDS', 'powertop');
 
     become_root();
     type_string "PS1=\"# \"\n";
@@ -11,17 +11,32 @@ sub run() {
     assert_script_run "zypper -n in yast2-packager"; # make sure yast2 sw_single module installed
 
     script_run("/sbin/yast2 sw_single; echo yast2-i-status-\$? > /dev/$serialdev");
-    if (check_screen('workaround-bsc924042')) {
+    if (check_screen('workaround-bsc924042', 10)) {
         send_key 'alt-o';
         record_soft_failure;
     }
     assert_screen 'empty-yast2-sw_single';
+
+    # Testcase according to https://fate.suse.com/318099
+    # TC1: Prerequisite: package -> package-lang
+    # Select a certain package (package), check that another (package-lang) gets selected/installed 
     type_string("$pkgname\n");
     sleep 3;
     send_key "spc";    # select for install
-    sleep 1;
-    assert_screen "package-$pkgname-selected-for-install", 3;
+
+    assert_screen "package-$pkgname-and-recommended-selected-for-install", 5;
+
+    # TC2b:Prerequisite: package -> package-lang
+    # Given that package is not installed,
+    # uncheck Dependencies/Install Recommended Packages,
+    # select package, verify that package-lang is NOT selected
+    send_key "alt-d"; # Menu "Dependencies"
+    assert_screen 'yast2-sw_install_recommended_packages_enabled', 60;
+    send_key "alt-r"; # Submenu Install Recommended Packages
+
+    assert_screen "package-$pkgname-only-selected-for-install", 5;
     send_key "alt-a", 1;    # accept
+
     # Upgrade tests and the old distributions eg. SLE11 doesn't shows the summary
     unless ( get_var("YAST_SW_NO_SUMMARY") ) {
         assert_screen 'yast2-sw_shows_summary', 60;
