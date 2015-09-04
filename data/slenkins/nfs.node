@@ -1,0 +1,11 @@
+node client1
+repo slenkins
+install twopence-nfs-client
+
+node client2
+repo slenkins
+install twopence-nfs-client
+
+node server
+repo slenkins
+install nfs-kernel-server
