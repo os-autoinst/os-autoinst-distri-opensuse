@@ -25,15 +25,17 @@ sub registering_scc {
     type_string get_var("SCC_EMAIL");
     send_key "tab";
     type_string get_var("SCC_REGCODE");
+    save_screenshot;
     send_key "alt-n", 1;
     my @tags = qw/local-registration-servers registration-online-repos import-untrusted-gpg-key module-selection/;
-    while ( my $ret = check_screen(\@tags, 60 )) {
-        if ($ret->{needle}->has_tag("local-registration-servers")) {
+    push @tags, 'untrusted-ca-cert' if get_var('SCC_URL');
+    while (check_screen(\@tags, 60 )) {
+        if (match_has_tag("local-registration-servers")) {
             send_key "alt-o";
             @tags = grep { $_ ne 'local-registration-servers' } @tags;
             next;
         }
-        elsif ($ret->{needle}->has_tag("import-untrusted-gpg-key")) {
+        elsif (match_has_tag("import-untrusted-gpg-key")) {
             if (check_var("IMPORT_UNTRUSTED_KEY", 1)) {
                 send_key "alt-t", 1; # import
             }
@@ -42,18 +44,25 @@ sub registering_scc {
             }
             next;
         }
-        elsif ($ret->{needle}->has_tag("registration-online-repos")) {
+        elsif (match_has_tag("registration-online-repos")) {
             send_key "alt-y", 1; # want updates
             @tags = grep { $_ ne 'registration-online-repos' } @tags;
+            next;
+        }
+        elsif (get_var('SCC_URL') && match_has_tag("untrusted-ca-cert")) {
+            # bsc#943966
+            record_soft_failure if get_var('SCC_CERT');
+            send_key "alt-t", 1; # trust
+            @tags = grep { $_ ne 'untrusted-ca-cert' } @tags;
             next;
         }
         last;
     }
 
     assert_screen("module-selection");
-    if (get_var('ADDONS')) {
+    if (get_var('SCC_ADDONS')) {
         send_key 'tab'; # jump to beginning of addon selection
-        foreach $a (split(/,/, get_var('ADDONS'))) {
+        for $a (split(/,/, get_var('SCC_ADDONS'))) {
             $counter = 30;
             while ($counter > 0) {
                 if (check_screen("scc-help-selected", 5 )) {
@@ -77,16 +86,17 @@ sub registering_scc {
             }
         }
         send_key 'alt-n';   # next, all addons selected
-        foreach $a (split(/,/, get_var('ADDONS'))) {
+        for $a (split(/,/, get_var('SCC_ADDONS'))) {
             assert_screen("scc-addon-license-$a");
             send_key "alt-a";   # accept license
             send_key "alt-n";   # next
         }
-        foreach $a (split(/,/, get_var('ADDONS'))) {
-            if ($a ne 'sdk') {
-                $a = uc $a;     # change to uppercase to match variable
+        for $a (split(/,/, get_var('SCC_ADDONS'))) {
+            $a = uc $a;     # change to uppercase to match variable
+            if (my $regcode = get_var("SCC_REGCODE_$a")) {
+                assert_screen("scc-addon-regcode-$a");
                 send_key 'tab'; # jump to code field
-                type_string get_var("SCC_REGCODE_$a");
+                type_string ;
                 send_key "alt-n";   # next
             }
         }
