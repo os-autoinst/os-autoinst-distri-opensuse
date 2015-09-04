@@ -604,14 +604,13 @@ sub load_x11tests(){
 }
 
 sub load_applicationstests {
-    my $anyloaded = 0;
     if (my $val = get_var("APPTESTS")) {
         for my $test (split(/,/, $val)) {
             loadtest "$test.pm";
         }
-        $anyloaded = 1;
+        return 1;
     }
-    return $anyloaded;
+    return 0;
 }
 
 sub load_autoyast_tests(){
@@ -624,6 +623,20 @@ sub load_autoyast_tests(){
     loadtest("autoyast/autoyast_verify.pm") if get_var("AUTOYAST_VERIFY");
     loadtest("autoyast/autoyast_reboot.pm");
     #    next boot in load_reboot_tests
+}
+
+sub load_skenkins_tests {
+    if (get_var("SLENKINS_NODEFILE")) {
+        my $node = get_var("SLENKINS_NODE");
+        if ($node && $node ne 'control' ) {
+            loadtest "slenkins/slenkins_node.pm";
+        }
+        else {
+            loadtest "slenkins/slenkins_control.pm";
+        }
+        return 1;
+    }
+    return 0;
 }
 
 # load the tests in the right order
@@ -695,7 +708,7 @@ else {
         load_inst_tests();
         load_reboot_tests();
     }
-    unless (load_applicationstests()) {
+    unless (load_applicationstests() || load_skenkins_tests()) {
         load_rescuecd_tests();
         load_consoletests();
         load_x11tests();
