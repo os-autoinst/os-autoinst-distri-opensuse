@@ -64,8 +64,25 @@ sub run() {
     # QA DB upload happens for each module
     # output the failed tests to serial console
     type_string "export PS1=#\n";
+    # qa_testset_automation deleted oldlog folders, so we add it back to adopt it
+    assert_script_run "mkdir /var/log/qa/oldlogs; cd /var/log/qa/oldlogs; for i in /var/log/qaset/log/*.bz2; do tar -xjvf \$i; done";
     type_string "find /var/log/qa/oldlogs/ -name test_results | xargs grep -l -B1 ^1 | tee -a /dev/$serialdev\n";
     assert_screen 'no_output_from_qa_find';
+    # create a junit report
+    if (check_var("QA_TESTSET", "acceptance")) {
+        assert_script_run "/usr/share/qa/qaset/bin/junitxml_generator.py -t stress_validation  -l /var/log/qaset/runs/ -s /var/log/qaset/submission/ -o /tmp/junit.xml";
+    }
+    elsif  (check_var("QA_TESTSET", "regression")) {
+         assert_script_run "/usr/share/qa/qaset/bin/junitxml_generator.py -t user_regression  -l /var/log/qaset/runs/ -s /var/log/qaset/submission/ -o /tmp/junit.xml";
+    }
+    elsif  (check_var("QA_TESTSET", "kernel")) {
+        assert_script_run "/usr/share/qa/qaset/bin/junitxml_generator.py -t kernel_regression  -l /var/log/qaset/runs/ -s /var/log/qaset/submission/ -o /tmp/junit.xml";
+    }
+    else {
+        assert_script_run "/usr/share/qa/qaset/bin/junitxml_generator.py -t all -l /var/log/qaset/runs/ -s /var/log/qaset/submission/ -o /tmp/junit.xml";
+    }
+    assert_script_run "ls -l /tmp/";
+    parse_junit_log("/tmp/junit.xml");
 }
 
 sub test_flags {
@@ -73,4 +90,4 @@ sub test_flags {
 }
 
 1;
-
+a
