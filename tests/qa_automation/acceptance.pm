@@ -90,4 +90,3 @@ sub test_flags {
 }
 
 1;
-a
