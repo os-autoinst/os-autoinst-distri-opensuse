@@ -1,7 +1,10 @@
 use base "installbasetest";
 use strict;
-use testapi;
+
 use Time::HiRes qw(sleep);
+
+use testapi;
+use registration;
 
 # hint: press shift-f10 trice for highest debug level
 sub run() {
@@ -40,6 +43,7 @@ sub run() {
             type_string " autoyast=" . autoinst_url . "/data/" . get_var("AUTOYAST") . " ", 15;
         }
         save_screenshot;
+        registration_bootloader_params;
         send_key "ctrl-x";
     }
     save_screenshot;

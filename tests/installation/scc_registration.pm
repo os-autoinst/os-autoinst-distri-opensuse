@@ -1,14 +1,28 @@
-#!/usr/bin/perl -w
+# Copyright (C) 2014,2015 SUSE Linux GmbH
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, see <http://www.gnu.org/licenses/>.
+
 use strict;
 use base "y2logsstep";
 
 use testapi;
+use registration;
 
 sub run() {
-    my $self = shift;
     assert_screen( "scc-registration", 100 );
-    if (get_var("SCC_EMAIL") && get_var("SCC_REGCODE") && (!get_var("SCC_REGISTER") || get_var("SCC_REGISTER") eq 'installation')) {
-        $self->registering_scc;
+    if (get_var("SCC_REGISTER", '') eq 'installation') {
+        fill_in_registration_data;
     }
     else {
         send_key "alt-s", 1;     # skip SCC registration
@@ -20,5 +34,4 @@ sub run() {
 }
 
 1;
-
 # vim: set sw=4 et:

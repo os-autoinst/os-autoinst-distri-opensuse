@@ -1,8 +1,10 @@
-
 use base "installbasetest";
 use strict;
-use testapi;
+
 use Time::HiRes qw(sleep);
+
+use testapi;
+use registration;
 
 # hint: press shift-f10 trice for highest debug level
 sub run() {
@@ -252,15 +254,7 @@ sub run() {
         save_screenshot;
     }
 
-    # https://www.suse.com/documentation/smt11/book_yep/data/smt_client_parameters.html
-    # SCC_URL=https://smt.example.com/connect/
-    if (my $url = get_var("SCC_URL")) {
-        type_string " regurl=$url", 13;
-        if ($url = get_var("SCC_CERT")) {
-            type_string " regcert=$url", 13;
-        }
-        save_screenshot;
-    }
+    registration_bootloader_params;
 
     # boot
     send_key "ret";
