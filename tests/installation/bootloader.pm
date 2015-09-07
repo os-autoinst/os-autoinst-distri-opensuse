@@ -252,6 +252,16 @@ sub run() {
         save_screenshot;
     }
 
+    # https://www.suse.com/documentation/smt11/book_yep/data/smt_client_parameters.html
+    # SCC_URL=https://smt.example.com/connect/
+    if (my $url = get_var("SCC_URL")) {
+        type_string " regurl=$url", 13;
+        if ($url = get_var("SCC_CERT")) {
+            type_string " regcert=$url", 13;
+        }
+        save_screenshot;
+    }
+
     # boot
     send_key "ret";
 }
