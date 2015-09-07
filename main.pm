@@ -220,7 +220,7 @@ sub need_clear_repos() {
 }
 
 sub have_scc_repos() {
-    return get_var('SCC_EMAIL') && get_var('SCC_REGCODE') && (get_var('SCC_REGISTER', 'console') eq 'console');
+    return check_var('SCC_REGISTER', 'console');
 }
 
 sub have_addn_repos() {
