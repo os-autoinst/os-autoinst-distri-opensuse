@@ -6,6 +6,8 @@ before_install:
 install:
   - perlbrew list
   - sudo apt-get install libdbus-1-dev
+  # waiting for https://rt.cpan.org/Public/Bug/Display.html?id=106808
+  - cpanm -nq ExtUtils::MakeMaker@7.04 Net::DBus
   - cpanm -nq JSON Data::Dump
   - git clone git://github.com/os-autoinst/os-autoinst
   - cpanm -nq `cat os-autoinst/DEPENDENCIES.txt`
