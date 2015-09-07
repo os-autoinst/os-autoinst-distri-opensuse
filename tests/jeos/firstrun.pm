@@ -8,7 +8,7 @@ sub run() {
 
     assert_screen "jeos-grub2", 15;
     send_key 'ret'; # Press enter
-    assert_screen 'jeos-keylayout'; # Language picker
+    assert_screen 'jeos-keylayout', 200; # Language picker
 
     if (get_var("INSTLANG")) {
         my $lang = get_var("INSTLANG");
