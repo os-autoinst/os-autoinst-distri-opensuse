@@ -28,7 +28,7 @@ sub fill_in_registration_data {
 
     send_key "alt-e";    # select email field
     type_string get_var("SCC_EMAIL");
-    send_key "tab";
+    send_key "alt-c";    # select registration code field
     type_string get_var("SCC_REGCODE");
     save_screenshot;
     send_key "alt-n", 1;
