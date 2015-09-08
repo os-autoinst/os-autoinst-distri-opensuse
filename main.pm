@@ -163,6 +163,17 @@ if ( check_var( 'DESKTOP', 'minimalx' ) ) {
     set_var('DM_NEEDS_USERNAME', 1);
 }
 
+# use Fake SCC regcodes if none provided
+if (!get_var('SCC_REGCODE') && get_var('FAKE_SCC_REGCODE')) {
+    my @copy_vars = qw/REGCODE EMAIL URL CERT/;
+    for my $i (map {uc} split(/,/, get_var('SCC_ADDONS'))) {
+        push @copy_vars, "REGCODE_$i" if get_var("FAKE_SCC_REGCODE_$i");
+    }
+    for my $i (@copy_vars) {
+        set_var("SCC_$i", get_var("FAKE_SCC_$i")) unless get_var("SCC_$i");
+    }
+}
+
 $needle::cleanuphandler = \&cleanup_needles;
 
 bmwqemu::save_vars(); # update variables
@@ -217,7 +228,7 @@ sub need_clear_repos() {
 }
 
 sub have_scc_repos() {
-    return get_var('SCC_EMAIL') && get_var('SCC_REGCODE') && (get_var('SCC_REGISTER', 'console') eq 'console');
+    return check_var('SCC_REGISTER', 'console');
 }
 
 sub have_addn_repos() {
