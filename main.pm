@@ -320,6 +320,9 @@ sub load_inst_tests() {
         if ( defined( get_var("RAIDLEVEL") ) ) {
             loadtest "installation/partitioning_raid.pm";
         }
+        elsif ( get_var("MANUALLVM") ) {
+            loadtest "installation/partitioning_manuallvm.pm";
+        }
         elsif ( get_var("LVM") ) {
             loadtest "installation/partitioning_lvm.pm";
         }
