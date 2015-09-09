@@ -22,7 +22,7 @@ use strict;
 
 use testapi;
 
-our @EXPORT = qw/fill_in_registration_data registration_bootloader_params/;
+our @EXPORT = qw/fill_in_registration_data registration_bootloader_params yast_scc_registration/;
 
 sub fill_in_registration_data {
 
@@ -123,6 +123,18 @@ sub registration_bootloader_params
         }
         save_screenshot;
     }
+}
+
+sub yast_scc_registration {
+
+    script_run "yast2 scc; echo yast-scc-done-\$? > /dev/$serialdev";
+    assert_screen 'scc-registration', 30;
+
+    fill_in_registration_data;
+
+    wait_serial('yast-scc-done-0') || die 'yast scc failed';
+    script_run 'zypper lr';
+    assert_screen 'scc-repos-listed';
 }
 
 1;

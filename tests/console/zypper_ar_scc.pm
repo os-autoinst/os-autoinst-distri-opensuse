@@ -26,14 +26,7 @@ sub run() {
     if (my $u = get_var('SCC_URL')) {
         type_string "echo 'url: $u' > /etc/SUSEConnect\n";
     }
-    type_string "yast scc; echo yast-scc-done-\$? > /dev/$serialdev\n";
-    assert_screen( "scc-registration", 30 );
-
-    fill_in_registration_data;
-
-    wait_serial("yast-scc-done-0") || die "yast scc failed";
-    type_string "zypper lr\n";
-    assert_screen "scc-repos-listed";
+    yast_scc_registration;
 
     type_string "exit\n";
 }
