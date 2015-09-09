@@ -82,9 +82,9 @@ sub run() {
         send_key "f4";
         assert_screen "inst-instsourcemenu", 4;
         # select a net installation source (http, ftp, nfs, smb) by using send_key_until_needlematch
-        send_key_until_needlematch 'inst-instsourcemenu-' . get_var('INSTALL_SOURCE'), 'down';
+        send_key_until_needlematch 'inst-instsourcemenu-' . get_var('INSTALL_SOURCE', 'http'), 'down';
         send_key "ret";
-        assert_screen "inst-instsourcedialog-" . get_var('INSTALL_SOURCE'), 4;
+        assert_screen "inst-instsourcedialog-" . get_var('INSTALL_SOURCE', 'http'), 4;
         
         my $mirroraddr = "";
         my $mirrorpath = "/factory";
