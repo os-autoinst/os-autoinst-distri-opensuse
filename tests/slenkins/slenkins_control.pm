@@ -60,8 +60,8 @@ sub run {
 
         zypper -n --no-gpg-checks ar " . get_var('SLENKINS_REPO') . " slenkins
 
-        #FIXME: the extra packages are workarounds for broken deps
-        zypper -n --no-gpg-checks in " . get_var('SLENKINS_CONTROL') . " susetest-python python-twopence slenkins-tests twopence-shell-client slenkins-utils
+        # slenkins-engine-tests is required for /usr/lib/slenkins/lib/slenkins-functions.sh below
+        zypper -n --no-gpg-checks in " . get_var('SLENKINS_CONTROL') . " slenkins-engine-tests
     ", 100);
 
     for my $n (@nodes) {
