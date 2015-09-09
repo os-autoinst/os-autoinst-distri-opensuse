@@ -58,7 +58,8 @@ sub run {
         chmod 600 /root/.ssh/*
         chmod 700 /root/.ssh
 
-        zypper -n --no-gpg-checks ar " . get_var('SLENKINS_REPO') . " slenkins
+        zypper -n --no-gpg-checks ar '" . get_var('SLENKINS_TESTSUITES_REPO') . "' slenkins_testsuites
+        zypper -n --no-gpg-checks ar '" . get_var('SLENKINS_REPO') . "' slenkins
 
         # slenkins-engine-tests is required for /usr/lib/slenkins/lib/slenkins-functions.sh below
         zypper -n --no-gpg-checks in " . get_var('SLENKINS_CONTROL') . " slenkins-engine-tests

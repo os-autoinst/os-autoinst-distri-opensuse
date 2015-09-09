@@ -42,7 +42,7 @@ sub run {
                 configure_default_gateway;
                 configure_static_ip("10.0.2.$ip_num/24");
                 configure_static_dns(get_host_resolv_conf());
-                script_output("zypper -n --no-gpg-checks ar " . get_var('SLENKINS_REPO') . " slenkins", 100);
+                script_output("zypper -n --no-gpg-checks ar '" . get_var('SLENKINS_TESTSUITES_REPO') . "' slenkins_testsuites", 100);
                 $configured = 1;
             }
             $ip_num++;
