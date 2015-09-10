@@ -649,7 +649,8 @@ sub load_skenkins_tests {
 
 # load the tests in the right order
 if ( get_var("REGRESSION") ) {
-    if ( get_var("HDD_1") ) {
+    # FIXME: only load_x11regresion_tests is special here => integrate below
+    if ( get_var("BOOT_HDD_IMAGE") ) {
         loadtest "boot/boot_to_desktop.pm";
     }
     else {
@@ -696,10 +697,7 @@ else {
         load_zdup_tests();
     }
     elsif (get_var("BOOT_HDD_IMAGE")) {
-        if (get_var("ENCRYPT")) {
-            loadtest "installation/boot_encrypt.pm";
-        }
-        loadtest "installation/first_boot.pm";
+        loadtest "boot/boot_to_desktop.pm";
     }
     elsif (is_jeos) {
         if (get_var("ISO_MAXSIZE")) {
