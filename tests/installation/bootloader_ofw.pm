@@ -57,6 +57,12 @@ sub run() {
     }
     save_screenshot;
     send_key "ret";
+    if (get_var("ZDUP")) {
+        wait_idle(5);
+        type_string "boot disk",15;
+        save_screenshot
+        send_key "ret";
+    }
 }
 
 1;
