@@ -3,7 +3,7 @@ use testapi;
 use utils;
 
 sub run() {
-    wait_reboot;
+    wait_boot;
 }
 
 sub test_flags() {

@@ -9,7 +9,7 @@ use strict;
 
 use testapi;
 
-our @EXPORT = qw/wait_reboot unlock_if_encrypted/;
+our @EXPORT = qw/wait_boot unlock_if_encrypted/;
 
 sub unlock_if_encrypted {
 
@@ -20,12 +20,25 @@ sub unlock_if_encrypted {
     send_key "ret";
 }
 
-sub wait_reboot {
+# makes sure bootloader appears and then boots to desktop resp text
+# mode. Handles unlocking encrypted disk if needed.
+# arguments: bootloader_time => seconds # now long to wait for bootloader to appear
+sub wait_boot {
+    my %args = @_;
+    my $bootloader_time = $args{bootloader_time} // 100;
+
     if ( get_var("OFW") ) {
-        assert_screen "bootloader-ofw", 100;
+        assert_screen "bootloader-ofw", $bootloader_time;
     }
     else {
-        assert_screen "grub2", 100;    # wait until reboot
+        check_screen([qw/bootloader-shim-import-prompt grub2/], $bootloader_time);
+        if (match_has_tag("bootloader-shim-import-prompt")) {
+            send_key "down";
+            send_key "ret";
+            $bootloader_time = 15;
+        }
+
+        assert_screen "grub2", $bootloader_time;
     }
 
     unlock_if_encrypted;
@@ -38,12 +51,12 @@ sub wait_reboot {
     mouse_hide();
 
     if ( get_var("NOAUTOLOGIN") || get_var("XDMUSED") ) {
-        my $ret = assert_screen 'displaymanager', 200;
+        assert_screen 'displaymanager', 200;
         wait_idle;
         if ( get_var('DM_NEEDS_USERNAME') ) {
             type_string $username;
         }
-        if ( $ret->{needle}->has_tag("sddm") ) {
+        if ( match_has_tag("sddm") ) {
             # make sure choose plasma5 session
             assert_and_click "sddm-sessions-list";
             assert_and_click "sddm-sessions-plasma5";
