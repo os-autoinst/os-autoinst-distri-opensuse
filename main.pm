@@ -666,7 +666,7 @@ else {
         load_zdup_tests();
     }
     elsif (get_var("BOOT_HDD_IMAGE")) {
-        loadtest "installation/first_boot.pm";
+        loadtest "boot/boot_to_desktop.pm";
     }
     else {
         load_boot_tests();
