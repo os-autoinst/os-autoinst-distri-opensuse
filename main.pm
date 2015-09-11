@@ -356,7 +356,7 @@ sub load_inst_tests() {
         loadtest "installation/upgrade_select.pm";
     }
     if (!get_var('LIVECD')) {
-        if (get_var('SCC_REGISTER') =~ m/installation/) {
+        if (get_var('SCC_REGISTER', 'installation') =~ m/installation/) {
             loadtest "installation/scc_registration.pm";
         }
         loadtest "installation/addon_products_sle.pm";
