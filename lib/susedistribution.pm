@@ -121,7 +121,7 @@ sub ensure_installed {
 
     testapi::x11_start_program("xterm");
     assert_screen('xterm-started');
-    type_string("pkcon install @pkglist; RET=$?; echo \"\n  pkcon finished\n\"; echo \"pkcon-\${RET}-\" > /dev/$serialdev\n");
+    type_string("pkcon install @pkglist; RET=$?; echo \"\n  pkcon finished\n\"; echo \"pkcon-\${RET}-\" > /dev/$testapi::serialdev\n");
     my @tags = qw/Policykit Policykit-behind-window PolicyKit-retry pkcon-proceed-prompt pkcon-finished/;
     while (1) {
         my $ret = assert_screen(\@tags, $timeout);
