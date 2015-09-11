@@ -19,7 +19,7 @@ sub run() {
     else {
         send_key_until_needlematch 'inst-oninstallation', 'up';
     }
-    if (check_var('VIDEOMODE', 'text') || get_var('NETBOOT') || get_var('AUTOYAST')) {
+    if (check_var('VIDEOMODE', 'text') || get_var('NETBOOT') || get_var('AUTOYAST') || get_var('SCC_URL')) {
         # edit menu
         send_key "e";
         #wait until we get to grub edit
