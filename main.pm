@@ -356,7 +356,9 @@ sub load_inst_tests() {
         loadtest "installation/upgrade_select.pm";
     }
     if (!get_var('LIVECD')) {
-        loadtest "installation/scc_registration.pm";
+        if (get_var('SCC_REGISTER') =~ m/installation/) {
+            loadtest "installation/scc_registration.pm";
+        }
         loadtest "installation/addon_products_sle.pm";
     }
     if (noupdatestep_is_applicable && get_var("LIVECD")) {
@@ -581,6 +583,9 @@ sub load_x11tests(){
     }
     if (bigx11step_is_applicable && !get_var("NICEVIDEO")) {
         loadtest "x11/glxgears.pm";
+    }
+    if (get_var('SCC_REGISTER') =~ m/postregistration/) {
+        loadtest "x11/scc_postregistration.pm";
     }
     if (kdestep_is_applicable) {
         loadtest "x11/amarok.pm";
