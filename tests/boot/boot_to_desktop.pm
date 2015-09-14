@@ -4,7 +4,9 @@ use testapi;
 use utils;
 
 sub run() {
-    wait_boot bootloader_time => 30;
+    # we have some tests that waits for dvd boot menu timeout and boot from hdd
+    # - the timeout here must cover it
+    wait_boot bootloader_time => 80;
 }
 
 sub test_flags() {
