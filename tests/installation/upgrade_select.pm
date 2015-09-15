@@ -5,6 +5,14 @@ use testapi;
 sub run() {
     my $self = shift;
 
+    if (get_var('ENCRYPT')) {
+        assert_screen "upgrade-unlock-disk";
+        send_key 'alt-p'; # provide password
+        assert_screen "upgrade-enter-password";
+        type_password;
+        send_key $cmd{ok};
+    }
+
     # hardware detection can take a while
     assert_screen "select-for-update", 100;
     send_key $cmd{"next"}, 1;
