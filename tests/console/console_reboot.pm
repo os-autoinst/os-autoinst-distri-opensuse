@@ -6,7 +6,7 @@ use ttylogin;
 sub run() {
     become_root;
     type_string "reboot\n";
-    wait_reboot;
+    wait_boot;
     ttylogin;
     type_string "PS1=\$\n";    # set constant shell promt
 }

@@ -1,0 +1,13 @@
+# Client node
+node      client
+install   rpcbind
+install   ypbind
+install   yp-tools
+install   pam-test-utils
+
+# Server node
+node      server
+install   rpcbind
+install   ypserv
+# needed for mkpasswd
+install   whois

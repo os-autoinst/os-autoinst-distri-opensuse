@@ -43,7 +43,7 @@ sub run() {
     }
     else {
         # SUSEMIRROR not set, zdup from attached ISO
-        $defaultrepo = 'dvd:///';
+        $defaultrepo = 'dvd:/?devices=/dev/sr0';
     }
 
     my $nr = 1;

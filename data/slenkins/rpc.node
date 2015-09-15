@@ -1,0 +1,15 @@
+# Client node
+node		client
+install		tunctl
+install		twopence-rpc-client
+# This forces the packages to be updated to the latest available binary rpm
+install		rpcbind
+install		libtirpc1
+
+# Server node
+node		server
+install		rpcbind
+install		twopence-rpc-client
+# This forces the packages to be updated to the latest available binary rpm
+install		rpcbind
+install		libtirpc1

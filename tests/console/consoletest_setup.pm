@@ -24,10 +24,14 @@ sub run() {
     script_sudo "chown $username /dev/$serialdev";
 
     become_root;
+    # Stop packagekit
     script_run "systemctl mask packagekit.service";
     script_run "systemctl stop packagekit.service";
-    script_run "zypper -n install curl tar; echo \"zypper-curl-\$?-\" > /dev/$serialdev";
-    wait_serial "zypper-curl-0-";
+    # Installing a minimal system gives a pattern conflicting with anything not minimal
+    # Let's uninstall 'the pattern' (no packages affected) in order to be able to install stuff
+    script_run "zypper -n rm patterns-openSUSE-minimal_base-conflicts";
+    # Install curl and tar in order to get the test data
+    assert_script_run "zypper -n install curl tar";
     script_run "exit";
 
     save_screenshot;

@@ -16,14 +16,20 @@ sub run() {
     # disable packagekitd
     script_run 'systemctl mask packagekit.service';
     script_run 'systemctl stop packagekit.service';
-    # add SLES libraries for toolchain repo
-    assert_script_run 'zypper ar http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Toolchain/12/x86_64/update/ SLE-Module-Toolchain';
-    assert_script_run 'zypper ar http://download.suse.de/ibs/SUSE/Updates/SLE-SERVER/12/x86_64/update/ SLE-SERVER';
-    assert_script_run 'zypper -n in gcc5 gcc5-c++ binutils gdb';
+    # scc registration is mandatory
+    script_run 'zypper lr -d';
+    assert_screen 'pool-and-update-channel';
+    # toolchain channels
+    if (!check_var('ADDONS', 'tcm')) {
+        my $arch = get_var('ARCH');
+        assert_script_run "zypper ar -f http://download.suse.de/ibs/SUSE/Products/SLE-Module-Toolchain/12/$arch/product/ SLE-Module-Toolchain12-Pool";
+        assert_script_run "zypper ar -f http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Toolchain/12/$arch/update/ SLE-Module-Toolchain12-Updates";
+    }
+    assert_script_run 'zypper -n in -t pattern gcc5';
     assert_script_run 'zypper -n up';
     # reboot when runing processes use deleted files after packages update
-    type_string "zypper ps|grep 'PID' && echo reboot|tee /dev/$serialdev\n";
-    if (wait_serial("reboot", 100)) {
+    type_string "zypper ps|grep 'PPID' || echo OK | tee /dev/$serialdev\n";
+    if (!wait_serial("OK", 100)) {
         type_string "shutdown -r now\n";
         assert_screen 'displaymanager', 150;
         send_key 'ctrl-alt-f4';

@@ -1,7 +1,10 @@
 use base "installbasetest";
 use strict;
-use testapi;
+
 use Time::HiRes qw(sleep);
+
+use testapi;
+use registration;
 
 # hint: press shift-f10 trice for highest debug level
 sub run() {
@@ -11,11 +14,10 @@ sub run() {
         sleep 60;
         return;
     }
-    if (my $ret = check_screen [qw/bootloader-shim-import-prompt bootloader-grub2/], 15) {
-        if ($ret->{needle}->has_tag("bootloader-shim-import-prompt")) {
-            send_key "down";
-            send_key "ret";
-        }
+    check_screen([qw/bootloader-shim-import-prompt bootloader-grub2/], 15);
+    if (match_has_tag("bootloader-shim-import-prompt")) {
+        send_key "down";
+        send_key "ret";
     }
     assert_screen "bootloader-grub2", 15;
     if ( get_var("QEMUVGA") && get_var("QEMUVGA") ne "cirrus" ) {
@@ -116,6 +118,8 @@ sub run() {
         type_string " fips=1", 13;
         save_screenshot;
     }
+
+    registration_bootloader_params;
 
     # boot
     send_key "f10";

@@ -1,0 +1,9 @@
+node    client
+install tcpd
+install libwrap0
+install rsh
+
+node    server
+install tcpd
+install libwrap0
+install rsh-server

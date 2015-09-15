@@ -24,26 +24,27 @@ sub run {
         send_key 'alt-o';   # continue
         while (check_screen 'process-format') { # format progress
             printf "formating ...\n";
-            sleep 2;
+            sleep 20;
         }
     }
-    if (!get_var('UPGRADE') && !get_var('ZDUP')) {
-        send_key 'alt-s';   # select all
-        assert_screen 'dasd-selected';
-        send_key 'alt-a';   # perform action button
-        if (check_screen 'dasd-device-formatted'){
-            assert_screen 'action-list';
-            send_key 'f';
-            send_key 'f';   # Pressing f twice because of bsc#940817
-            send_key 'ret';
-            assert_screen 'confirm-format';
-            send_key 'alt-y';
-            while (check_screen 'process-format') {
-                printf "formating ...\n";
-                sleep 2;
-            }
-        }
-    }
+    ### Commented out below becuase of bsc#937340
+    #elsif (!get_var('UPGRADE') && !get_var('ZDUP')) {
+    #    send_key 'alt-s';   # select all
+    #    assert_screen 'dasd-selected';
+    #    send_key 'alt-a';   # perform action button
+    #    if (check_screen 'dasd-device-formatted'){
+    #        assert_screen 'action-list';
+    #        send_key 'f';
+    #        send_key 'f';   # Pressing f twice because of bsc#940817
+    #        send_key 'ret';
+    #        assert_screen 'confirm-format';
+    #        send_key 'alt-y';
+    #        while (check_screen 'process-format') {
+    #            printf "formating ...\n";
+    #            sleep 20;
+    #       }
+    #   }
+    #}
     sleep 5;
     assert_screen 'dasd-active';
     send_key 'alt-n';   # next

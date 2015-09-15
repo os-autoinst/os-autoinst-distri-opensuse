@@ -121,8 +121,8 @@ sub ensure_installed {
 
     testapi::x11_start_program("xterm");
     assert_screen('xterm-started');
-    type_string("pkcon install @pkglist\n");
-    my @tags = qw/Policykit Policykit-behind-window PolicyKit-retry pkcon-proceed-prompt pkcon-succeeded/;
+    type_string("pkcon install @pkglist; echo \"\npkcon-\$?-\n\"\n");
+    my @tags = qw/Policykit Policykit-behind-window PolicyKit-retry pkcon-proceed-prompt pkcon-finished/;
     while (1) {
         my $ret = assert_screen(\@tags, $timeout);
         if ( $ret->{needle}->has_tag('Policykit') ||
@@ -148,7 +148,8 @@ sub ensure_installed {
             @tags = grep { $_ ne 'pkcon-proceed-prompt' } @tags;
             next;
         }
-        if ( $ret->{needle}->has_tag('pkcon-succeeded') ) {
+        # Check if we get ANY return value from pkcon on the serial... short delay, as we might still need to catch needles
+        if ( $ret->{needle}->has_tag('pkcon-finished') ) {
             send_key("alt-f4");    # close xterm
             return;
         }

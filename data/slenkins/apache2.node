@@ -1,0 +1,9 @@
+# Server node
+node          server
+install       tests-apache2-tests-server
+install       apache2 ed
+
+# Client node
+node          client
+install       tests-apache2-tests-client
+

@@ -1,8 +1,10 @@
-
 use base "installbasetest";
 use strict;
-use testapi;
+
 use Time::HiRes qw(sleep);
+
+use testapi;
+use registration;
 
 # hint: press shift-f10 trice for highest debug level
 sub run() {
@@ -80,9 +82,9 @@ sub run() {
         send_key "f4";
         assert_screen "inst-instsourcemenu", 4;
         # select a net installation source (http, ftp, nfs, smb) by using send_key_until_needlematch
-        send_key_until_needlematch 'inst-instsourcemenu-' . get_var('INSTALL_SOURCE'), 'down';
+        send_key_until_needlematch 'inst-instsourcemenu-' . get_var('INSTALL_SOURCE', 'http'), 'down';
         send_key "ret";
-        assert_screen "inst-instsourcedialog-" . get_var('INSTALL_SOURCE'), 4;
+        assert_screen "inst-instsourcedialog-" . get_var('INSTALL_SOURCE', 'http'), 4;
         
         my $mirroraddr = "";
         my $mirrorpath = "/factory";
@@ -251,6 +253,8 @@ sub run() {
         type_string " fips=1", 13;
         save_screenshot;
     }
+
+    registration_bootloader_params;
 
     # boot
     send_key "ret";
