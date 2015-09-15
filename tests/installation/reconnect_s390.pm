@@ -13,20 +13,9 @@ use feature qw/say/;
 
 
 sub run() {
-    
-    # deactivate all the consoles
-    deactivate_console("ctrl-alt-f2");
-    deactivate_console("ctrl-alt-f3");
-    deactivate_console("ctrl-alt-f4");
-    deactivate_console("ctrl-alt-f5");
-    deactivate_console("ctrl-alt-f6");
-    deactivate_console("installation");
-
-    save_screenshot; #Debug for rbrown
 
     wait_serial("Welcome to SUSE Linux Enterprise Server", 300);
-
-    save_screenshot; #More Debug for rbrown
+    sleep 10; #Slight delay to make sure the machine has really started and is ready for connection via SSH
 
     activate_console("ctrl-alt-f2", "ssh-xterm_vt");
     activate_console("ctrl-alt-f3", "ssh-xterm_vt");
@@ -39,34 +28,6 @@ sub run() {
     # The vnc parameters are taken from vars.json; connect to the
     # Xvnc running on the system under test...
     activate_console("installation", "remote-vnc" );
-    }
-    elsif (get_var("DISPLAY")->{TYPE} eq "X11") {
-        # connect via an ssh console, the start yast with the
-        # appropriate parameters.
-        # The ssh parameters are taken from vars.json
-        activate_console("start-yast", "ssh");
-        my $ssh = console("start-yast");
-        $ssh->send_3270("String(\"Y2FULLSCREEN=1 yast\")");
-        $ssh->send_3270("ENTER");
-        #local $Devel::Trace::TRACE;
-        #$Devel::Trace::TRACE = 1;
-        activate_console("installation", "remote-window", 'YaST2@');
-    }
-    elsif (get_var("DISPLAY")->{TYPE} eq "SSH") {
-        # The ssh parameters are taken from vars.json
-        activate_console("installation", "ssh-xterm_vt");
-        type_string("yast\n");
-    }
-    elsif (get_var("DISPLAY")->{TYPE} eq "SSH-X") {
-        # The ssh parameters are taken from vars.json
-        activate_console("start-yast", "ssh-X");
-        my $ssh = console("start-yast");
-        $ssh->send_3270("String(\"Y2FULLSCREEN=1 yast\")");
-        $ssh->send_3270("ENTER");
-        activate_console("installation", "remote-window", 'YaST2@');
-    }
-    else {
-        die "unknown display type to access the host: ". get_var("DISPLAY")->{TYPE};
     }
 }
 
