@@ -178,7 +178,7 @@ sub linuxrc_manual() {
         die "temporary installation 'sshpassword' not set in PARMFILE in vars.json";
         $self->linuxrc_prompt("Enter your temporary SSH password.",
                       timeout => 30,
-                      value => "SSH!554!");
+                      value => "nots3cr3t");
     }
 
     if (check_var("NETWORK", "hsi-l3")) {
