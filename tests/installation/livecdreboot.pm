@@ -68,10 +68,14 @@ sub run() {
         send_key $cmd{"rebootnow"};
     }
     else {
-        deactivate_console('ctrl-alt-f2');
+        if (check_var('BACKEND', 's390x')) {
+            deactivate_console('ctrl-alt-f2');
+        }
         send_key 'alt-o';
-        deactivate_console("installation"); #Not sure if this is the right place, but this is the last time s390x needs the UI
-        select_console('bootloader');
+        if (check_var('BACKEND', 's390x')) {
+                deactivate_console("installation"); #Not sure if this is the right place, but this is the last time s390x needs the UI
+                select_console('bootloader');
+        }
     }
 
     # XXX old stuff
