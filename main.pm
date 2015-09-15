@@ -570,6 +570,8 @@ sub load_x11tests(){
         loadtest "x11/reboot_gnome_pre.pm";
     }
     loadtest "x11/reboot.pm";
+    # After a reboot, the user no longer has access to the serial device. Restore access.
+    loadtest "x11/user-serial-access.pm";
     loadtest "x11/desktop_mainmenu.pm";
 
     if (xfcestep_is_applicable) {
