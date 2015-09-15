@@ -121,10 +121,13 @@ sub ensure_installed {
 
     testapi::x11_start_program("xterm");
     assert_screen('xterm-started');
-    type_string("pkcon install @pkglist; echo \"\npkcon-\$?-\n\"\n");
-    my @tags = qw/Policykit Policykit-behind-window PolicyKit-retry pkcon-proceed-prompt pkcon-finished/;
+    $self->script_sudo("chown $testapi::username /dev/$testapi::serialdev && echo 'chown-SUCCEEDED' > /dev/$testapi::serialdev");
+    wait_serial ('chown-SUCCEEDED');
+    type_string("pkcon install @pkglist; RET=$?; echo \"\n  pkcon finished\n\"; echo \"pkcon-\${RET}-\" > /dev/$testapi::serialdev\n");
+    my @tags = qw/Policykit Policykit-behind-window PolicyKit-retry pkcon-proceed-prompt/;
     while (1) {
-        my $ret = assert_screen(\@tags, $timeout);
+        my $ret = check_screen(\@tags, $timeout);
+        last unless $ret;
         if ( $ret->{needle}->has_tag('Policykit') ||
              $ret->{needle}->has_tag('PolicyKit-retry')) {
             type_password;
@@ -148,15 +151,10 @@ sub ensure_installed {
             @tags = grep { $_ ne 'pkcon-proceed-prompt' } @tags;
             next;
         }
-        # Check if we get ANY return value from pkcon on the serial... short delay, as we might still need to catch needles
-        if ( $ret->{needle}->has_tag('pkcon-finished') ) {
-            send_key("alt-f4");    # close xterm
-            return;
-        }
     }
 
-    if ($password) { type_password; send_key("ret", 1); }
-    wait_still_screen( 7, 90 );    # wait for install
+    wait_serial ('pkcon-0-', 27) || die "pkcon install did not succeed";
+    send_key("alt-f4"); # close xterm
 }
 
 sub script_sudo($$) {
