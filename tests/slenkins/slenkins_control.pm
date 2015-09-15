@@ -62,7 +62,7 @@ sub run {
         zypper -n --no-gpg-checks ar '" . get_var('SLENKINS_REPO') . "' slenkins
 
         # slenkins-engine-tests is required for /usr/lib/slenkins/lib/slenkins-functions.sh below
-        zypper -n --no-gpg-checks in " . get_var('SLENKINS_CONTROL') . " slenkins-engine-tests
+        zypper -n --no-gpg-checks in " . get_var('SLENKINS_CONTROL') . " slenkins-engine-tests slenkins
     ", 100);
 
     for my $n (@nodes) {
