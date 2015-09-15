@@ -23,7 +23,7 @@ sub run() {
     activate_console("ctrl-alt-f5", "ssh-xterm_vt");
     activate_console("ctrl-alt-f6", "ssh-xterm_vt");
 
-    if (!check_var('DESKTOP', 'textmode') {
+    if (!check_var('DESKTOP', 'textmode')) {
         if (get_var("DISPLAY")->{TYPE} eq "VNC") {
         # The vnc parameters are taken from vars.json; connect to the
         # Xvnc running on the system under test...
