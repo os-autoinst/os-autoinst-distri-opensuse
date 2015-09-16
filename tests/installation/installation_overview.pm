@@ -51,6 +51,12 @@ sub run() {
             die 'Dependancy Problems';
         }
     }
+    
+    if (check_var('BACKEND', 's390x')) { # s390x always needs SSH
+        send_key_until_needlematch 'ssh-blocked-selected', 'tab';
+        send_key 'ret';
+        assert_screen 'ssh-open';
+    }
 }
 
 1;
