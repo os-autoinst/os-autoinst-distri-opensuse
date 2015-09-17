@@ -609,6 +609,8 @@ sub run() {
     else {
         die $exception if $exception;
     }
+
+    $self->result('ok');
 }
 #>>> perltidy again from here on
 
