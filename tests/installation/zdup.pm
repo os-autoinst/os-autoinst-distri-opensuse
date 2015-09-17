@@ -43,7 +43,9 @@ sub run() {
     }
     else {
         # SUSEMIRROR not set, zdup from attached ISO
-        $defaultrepo = 'dvd:/?devices=/dev/sr4';
+        my $build = get_var("BUILD");
+        script_run("export buildcd=\$(ls -la /dev/disk/by-label/|grep $build|awk '{print \$9}')");
+        $defaultrepo = "dvd:/?devices=/dev/disk/by-label/\$buildcd";
     }
 
     my $nr = 1;
