@@ -512,6 +512,10 @@ sub load_x11tests(){
     }
     if (!( get_var("FLAVOR", '') =~ /^Staging2?[\-]DVD$/ || system_is_livesystem )) {
         loadtest "x11/chromium.pm";
+        if (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64')) {
+            # GOOGLE Chrome only exists for i586 and x86_64 arch
+            loadtest "x11/chrome.pm";
+        }
     }
     if (bigx11step_is_applicable) {
         loadtest "x11/imagemagick.pm";
