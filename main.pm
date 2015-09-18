@@ -471,7 +471,7 @@ sub load_consoletests() {
         }
         # have SCC repo for SLE product
         if (have_scc_repos) {
-            loadtest "console/zypper_ar_scc.pm";
+            loadtest "console/yast_scc.pm";
         }
         elsif (have_addn_repos) {
             loadtest "console/zypper_ar.pm";
@@ -586,9 +586,6 @@ sub load_x11tests(){
     }
     if (bigx11step_is_applicable && !get_var("NICEVIDEO")) {
         loadtest "x11/glxgears.pm";
-    }
-    if (get_var('SCC_REGISTER') =~ m/postregistration/) {
-        loadtest "x11/scc_postregistration.pm";
     }
     if (kdestep_is_applicable) {
         loadtest "x11/amarok.pm";
