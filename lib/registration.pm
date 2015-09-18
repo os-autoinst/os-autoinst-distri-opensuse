@@ -132,6 +132,13 @@ sub yast_scc_registration {
 
     fill_in_registration_data;
 
+    # if addons where selected yast shows the software install
+    # dialog
+    if (get_var('SCC_ADDONS')) {
+        assert_screen("yast_scc-pkgtoinstall");
+        send_key "alt-a";
+    }
+
     wait_serial('yast-scc-done-0') || die 'yast scc failed';
     script_run 'zypper lr';
     assert_screen 'scc-repos-listed';
