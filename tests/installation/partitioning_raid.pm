@@ -56,12 +56,10 @@ sub addraid($;$) {
     }
     send_key $cmd{"next"};
     assert_screen 'partition-role', 6;
-    if ($step == 3 and get_var("LVM"))
-    {
+    if ($step == 3 and get_var("LVM")) {
       send_key "alt-a";    # Raw Volume
     }
-    else
-    {
+    else {
       send_key "alt-o";    # Operating System
     }
     send_key $cmd{"next"};
@@ -221,8 +219,7 @@ sub run() {
     wait_idle 3;
 
     # LVM on top of raid if needed
-    if (get_var("LVM"))
-    {
+    if (get_var("LVM")) {
         set_lvm();
     }
 
@@ -234,12 +231,10 @@ sub run() {
         send_key 'alt-y';
     }
 
-    if (get_var("LVM"))
-    {
+    if (get_var("LVM")) {
       assert_screen 'acceptedpartitioningraidlvm', 6;
     }
-    else
-    {
+    else {
       assert_screen 'acceptedpartitioning', 6;
     }
 }
