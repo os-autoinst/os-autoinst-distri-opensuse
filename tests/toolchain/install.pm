@@ -5,8 +5,8 @@ use testapi;
 sub run() {
     my $self = shift;
 
+    send_key 'ctrl-alt-f4';
     if (!check_var('ARCH', 's390x')) {
-        send_key 'ctrl-alt-f4';
         assert_screen 'tty4-selected';
         assert_screen 'text-login';
         type_string "root\n";
