@@ -7,7 +7,7 @@ sub run() {
     script_run("clear");
     script_sudo("zypper -n in -C libc.so.6");
     script_run("/lib/libc.so.*");
-    assert_screen 'test-glibc_i686-1', 3;
+    assert_screen 'test-glibc_i686-1', 100;
 }
 
 1;
