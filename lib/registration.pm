@@ -127,12 +127,41 @@ sub registration_bootloader_params
 
 sub yast_scc_registration {
 
-    script_run "yast2 scc; echo yast-scc-done-\$? > /dev/$serialdev";
+    script_run "yast2 scc; echo yast-scc-done-\$?- > /dev/$serialdev";
     assert_screen 'scc-registration', 30;
 
     fill_in_registration_data;
 
-    wait_serial('yast-scc-done-0') || die 'yast scc failed';
+    my $timeout = 30;
+
+    # if addons where selected yast shows the software install
+    # dialog
+    if (get_var('SCC_ADDONS')) {
+        assert_screen("yast_scc-pkgtoinstall");
+        send_key "alt-a";
+
+        while (check_screen([qw/yast_scc-license-dialog yast_scc-automatic-changes/])) {
+            if (match_has_tag('yast_scc-license-dialog')) {
+                send_key "alt-a";
+                next;
+            }
+            last;
+        }
+        send_key "alt-o";
+        # Upgrade tests and the old distributions eg. SLE11 don't
+        # show the summary
+        if ( get_var("YAST_SW_NO_SUMMARY") ) {
+            $timeout = 900; # installation of an addon may take long
+        }
+        else {
+            assert_screen 'yast_scc-installation-summary', 900;
+            send_key "alt-f";
+        }
+    }
+
+    my $ret = wait_serial "yast-scc-done-\\d+-", $timeout;
+    die "yast scc failed" unless (defined $ret && $ret =~ /yast-scc-done-0-/);
+
     script_run 'zypper lr';
     assert_screen 'scc-repos-listed';
 }
