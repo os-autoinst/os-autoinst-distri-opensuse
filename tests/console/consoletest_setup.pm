@@ -24,6 +24,11 @@ sub run() {
     script_sudo "chown $username /dev/$serialdev";
 
     become_root;
+    # Export the existing status of running tasks for future reference (fail would export it again)
+    type_string "ps axf > /tmp/psaxf_consoletest_setup.log\n";
+    upload_logs "/tmp/psaxf_consoletest_setup.log";
+    save_screenshot;
+
     # Stop packagekit
     script_run "systemctl mask packagekit.service";
     script_run "systemctl stop packagekit.service";
