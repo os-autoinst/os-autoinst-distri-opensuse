@@ -42,6 +42,10 @@ sub export_logs {
     type_string "cat /var/log/X* > /tmp/Xlogs\n";
     upload_logs "/tmp/Xlogs";
     save_screenshot;
+
+    type_string "ps axf > /tmp/psaxf.log\n";
+    upload_logs "/tmp/psaxf.log";
+    save_screenshot;
 }
 
 sub export_captured_audio {
