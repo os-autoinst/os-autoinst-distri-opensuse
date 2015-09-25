@@ -3,19 +3,20 @@ use testapi;
 
 sub run() {
     my $self = shift;
+    my $arch;
     if (check_var('ARCH', 'i586')) {
-      my $ARCH="i386";
+      $arch="i386";
     } else {
-      my $ARCH="x86_64";
+      $arch="x86_64";
     }
-    my $CHROME_URL = "https://dl.google.com/linux/direct/google-chrome-stable_current_${ARCH}.rpm";
+    my $chrome_url = "https://dl.google.com/linux/direct/google-chrome-stable_current_$arch.rpm";
 
     mouse_hide;
 
     x11_start_program("xterm");
     assert_screen('xterm-started');
 
-    script_sudo "zypper -n install $CHROME_URL; echo \"zypper-chrome-\$?- > /dev/$serialdev\"";
+    script_sudo "zypper -n install $chrome_url; echo \"zypper-chrome-\$?- > /dev/$serialdev\"";
     wait_serial "zypper-chrome-0-";
     save_screenshot;
     send_key "alt-f4";
