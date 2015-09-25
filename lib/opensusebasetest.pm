@@ -46,6 +46,14 @@ sub export_logs {
     type_string "ps axf > /tmp/psaxf.log\n";
     upload_logs "/tmp/psaxf.log";
     save_screenshot;
+
+    type_string "systemctl list-unit-files > /tmp/systemctl_unit-files.log\n";
+    upload_logs "/tmp/systemctl_unit-files.log";
+    type_string "systemctl status > /tmp/systemctl_status.log\n";
+    upload_logs "/tmp/systemctl_status.log";
+    type_string "systemctl > /tmp/systemctl.log\n";
+    upload_logs "/tmp/systemctl.log";
+    save_screenshot;
 }
 
 sub export_captured_audio {
