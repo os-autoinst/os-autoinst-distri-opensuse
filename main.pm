@@ -85,7 +85,7 @@ sub is_desktop() {
 }
 
 sub is_jeos() {
-    return check_var('FLAVOR', 'JeOS-for-kvm') || check_var('FLAVOR', 'JeOS-for-openStack-Cloud');
+    return get_var('FLAVOR', '') =~ /^JeOS/;
 }
 
 sub is_staging () {
@@ -318,7 +318,8 @@ sub load_boot_tests(){
     elsif (check_var("ARCH", "aarch64")) {
         loadtest "installation/bootloader_aarch64.pm";
     }
-    elsif (get_var("UEFI")) {
+    elsif (get_var("UEFI") || is_jeos) {
+        # TODO: rename to bootloader_grub2
         loadtest "installation/bootloader_uefi.pm";
     }
     elsif ( check_var("BACKEND", "ipmi") ) {
@@ -489,6 +490,9 @@ sub load_consoletests() {
             loadtest "console/glibc_i686.pm";
         }
         loadtest "console/zypper_up.pm";
+        if (is_jeos) {
+            loadtest "console/console_reboot.pm";
+        }
         loadtest "console/zypper_in.pm";
         loadtest "console/yast2_i.pm";
         if (!get_var("LIVETEST")) {
@@ -705,9 +709,7 @@ else {
         loadtest "boot/boot_to_desktop.pm";
     }
     elsif (is_jeos) {
-        if (get_var("ISO_MAXSIZE")) {
-            loadtest "jeos/imgsize.pm"
-        }
+        load_boot_tests();
         loadtest "jeos/firstrun.pm";
         loadtest "jeos/diskusage.pm";
         if (get_var("SCC_EMAIL") && get_var("SCC_REGCODE")) {
