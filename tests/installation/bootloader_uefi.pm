@@ -41,7 +41,7 @@ sub run() {
         if ( get_var("PROMO") || get_var('LIVETEST') ) {
             $self->bootmenu_down_to("inst-live-" . get_var("DESKTOP"));
         }
-        else {
+        elsif ( ! get_var("JEOS") ) {
             $self->bootmenu_down_to('inst-oninstallation');
         }
     }
@@ -49,16 +49,27 @@ sub run() {
     # assume bios+grub+anim already waited in start.sh
     # in grub2 it's tricky to set the screen resolution
     send_key "e";
-    for ( 1 .. 2 ) { send_key "down"; }
-    send_key "end";
-    # delete "keep" word
-    for ( 1 .. 4 ) { send_key "backspace"; }
+    if ( get_var("JEOS") ) {
+        for ( 1 .. 3 ) { send_key "down"; }
+        send_key "end";
+        # delete "800x600"
+        for ( 1 .. 7 ) { send_key "backspace"; }
+    }
+    else {
+        for ( 1 .. 2 ) { send_key "down"; }
+        send_key "end";
+        # delete "keep" word
+        for ( 1 .. 4 ) { send_key "backspace"; }
+    }
     # hardcoded the value of gfxpayload to 1024x768
     type_string "1024x768";
     assert_screen "gfxpayload_changed", 10;
     # back to the entry position
     send_key "home";
     for ( 1 .. 2 ) { send_key "up"; }
+    if ( get_var("JEOS") ) {
+        send_key "up";
+    }
     sleep 5;
     for ( 1 .. 4 ) { send_key "down"; }
     send_key "end";
@@ -81,7 +92,8 @@ sub run() {
     # https://wiki.archlinux.org/index.php/Kernel_Mode_Setting#Forcing_modes_and_EDID
     type_string "Y2DEBUG=1 ";
     if (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64')) {
-        type_string "vga=791 ";
+        # for some reason this cause wrong colors jeos!?
+        type_string "vga=791 " unless get_var('JEOS');
         type_string "video=1024x768-16 ", 13;
 
         # not needed anymore atm as cirrus has 1024 as default now:
@@ -90,7 +102,7 @@ sub run() {
         assert_screen "inst-video-typed-grub2", 13;
     }
 
-    if ( !get_var("NICEVIDEO") ) {
+    if ( !get_var("NICEVIDEO") && !get_var('JEOS') ) {
         type_string "plymouth.ignore-serial-consoles ", 15; # make plymouth go graphical
         type_string "linuxrc.log=$serialdev ", 4;    #to get linuxrc logs in serial
         type_string " \\\n"; # changed the line before typing video params
