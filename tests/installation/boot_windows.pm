@@ -4,7 +4,7 @@ use testapi;
 sub run() {
     my $self = shift;
 
-    assert_screen "grub-reboot-windows", 25;
+    assert_screen "grub-reboot-windows", 125;
 
     send_key "down";
     send_key "down";
