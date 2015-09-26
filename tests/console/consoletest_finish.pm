@@ -56,8 +56,9 @@ sub run() {
             send_key 'alt-c';
             sleep 30;
         }
-        mouse_hide(1);
         wait_idle;
+        mouse_hide(1);
+        sleep 1;
         assert_screen 'generic-desktop', 3;
     }
 }
