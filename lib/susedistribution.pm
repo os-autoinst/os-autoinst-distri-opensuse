@@ -123,8 +123,8 @@ sub ensure_installed {
     assert_screen('xterm-started');
     $self->script_sudo("chown $testapi::username /dev/$testapi::serialdev && echo 'chown-SUCCEEDED' > /dev/$testapi::serialdev");
     wait_serial ('chown-SUCCEEDED');
-    type_string("pkcon install @pkglist; RET=$?; echo \"\n  pkcon finished\n\"; echo \"pkcon-\${RET}-\" > /dev/$testapi::serialdev\n");
-    my @tags = qw/Policykit Policykit-behind-window PolicyKit-retry pkcon-proceed-prompt PolicyKit-CapsLock-on/;
+    type_string("pkcon install @pkglist; RET=\$?; echo \"\n  pkcon finished\n\"; echo \"pkcon-\${RET}-\" > /dev/$testapi::serialdev\n");
+    my @tags = qw/Policykit Policykit-behind-window PolicyKit-retry pkcon-proceed-prompt/;
     while (1) {
         my $ret = check_screen(\@tags, $timeout);
         last unless $ret;
