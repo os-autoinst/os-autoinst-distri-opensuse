@@ -124,7 +124,7 @@ sub ensure_installed {
     $self->script_sudo("chown $testapi::username /dev/$testapi::serialdev && echo 'chown-SUCCEEDED' > /dev/$testapi::serialdev");
     wait_serial ('chown-SUCCEEDED');
     type_string("pkcon install @pkglist; RET=$?; echo \"\n  pkcon finished\n\"; echo \"pkcon-\${RET}-\" > /dev/$testapi::serialdev\n");
-    my @tags = qw/Policykit Policykit-behind-window PolicyKit-retry pkcon-proceed-prompt/;
+    my @tags = qw/Policykit Policykit-behind-window PolicyKit-retry pkcon-proceed-prompt PolicyKit-CapsLock-on/;
     while (1) {
         my $ret = check_screen(\@tags, $timeout);
         last unless $ret;
@@ -134,6 +134,9 @@ sub ensure_installed {
             send_key( "ret", 1 );
             @tags = grep { $_ ne 'Policykit' } @tags;
             @tags = grep { $_ ne 'Policykit-behind-window' } @tags;
+            if ( $ret->{needle}->has_tag('PolicyKit-CapsLock-on')) {
+                send_key( "caps_lock" );
+            }
             if ( $ret->{needle}->has_tag('PolicyKit-retry')) {
                 # Only a single retry is acceptable
                 @tags = grep { $_ ne 'PolicyKit-retry' } @tags;
