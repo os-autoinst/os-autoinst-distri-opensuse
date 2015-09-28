@@ -39,14 +39,6 @@ sub run() {
     type_string "about:\n";
     assert_screen 'google-chrome-about', 15;
 
-    if ( check_screen('chrome_search_tips', 10) ) {
-        send_key "esc";
-    }
-    send_key "ctrl-l";
-    sleep 1;
-    type_string "https://html5test.com/index.html\n";
-    assert_screen 'google-chrome-html5test', 30;
-
     send_key "alt-f4";
 }
 
