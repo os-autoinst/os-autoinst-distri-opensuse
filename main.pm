@@ -460,7 +460,9 @@ sub load_consoletests() {
         if (!get_var("NOINSTALL") && !get_var("LIVETEST") && ( check_var("DESKTOP", "textmode") )) {
             loadtest "console/http_srv.pm";
             loadtest "console/mysql_srv.pm";
-            loadtest "console/docker.pm";
+            if (check_var('ARCH', 'x86_64')) {
+                loadtest "console/docker.pm";
+            }
         }
         if (get_var("MOZILLATEST")) {
             loadtest "console/mozmill_setup.pm";
