@@ -134,6 +134,9 @@ sub ensure_installed {
             send_key( "ret", 1 );
             @tags = grep { $_ ne 'Policykit' } @tags;
             @tags = grep { $_ ne 'Policykit-behind-window' } @tags;
+            if ( $ret->{needle}->has_tag('PolicyKit-CapsLock-on')) {
+                send_key( "caps_lock" );
+            }
             if ( $ret->{needle}->has_tag('PolicyKit-retry')) {
                 # Only a single retry is acceptable
                 @tags = grep { $_ ne 'PolicyKit-retry' } @tags;
