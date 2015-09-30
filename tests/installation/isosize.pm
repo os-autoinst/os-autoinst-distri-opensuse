@@ -4,11 +4,11 @@ use testapi;
 
 sub run {
     my $self   = shift;
-    my $iso    = get_var("ISO");
-    my $size   = -s $iso;
+    my $iso    = get_var("ISO") || get_var('HDD_1');
+    my $size   = $iso?-s $iso:0;
     my $result = 'ok';
-    my $max    = get_var("ISO_MAXSIZE");
-    if ( $size > $max ) {
+    my $max    = get_var("ISO_MAXSIZE", 0);
+    if (!$size || !$max || $size > $max ) {
         $result = 'fail';
     }
     bmwqemu::diag("check if actual iso size $size fits $max: $result");
