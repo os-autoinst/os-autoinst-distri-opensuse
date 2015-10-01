@@ -33,6 +33,12 @@ sub run() {
     send_key "alt-o";
     # close the xterm
     send_key "alt-f4";
+    # now need to start libvirtd
+    x11_start_program("xterm");
+    wait_idle;
+    become_root;
+    script_run "systemctl start libvirtd";
+    wait_idle;
 }
 
 1;
