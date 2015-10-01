@@ -132,12 +132,11 @@ sub ensure_installed {
 
     testapi::x11_start_program("xterm");
     assert_screen('xterm-started');
-<<<<<<< HEAD
     $self->script_sudo("chown $testapi::username /dev/$testapi::serialdev && echo 'chown-SUCCEEDED' > /dev/$testapi::serialdev");
     wait_serial ('chown-SUCCEEDED');
     type_string("pkcon install @pkglist; RET=\$?; echo \"\n  pkcon finished\n\"; echo \"pkcon-\${RET}-\" > /dev/$testapi::serialdev\n");
     my @tags = qw/Policykit Policykit-behind-window PolicyKit-retry PolicyKit-CapsOn pkcon-proceed-prompt/;
-    while (1) {
+while (1) {
         my $ret = check_screen(\@tags, $timeout);
         last unless $ret;
         if ( $ret->{needle}->has_tag('PolicyKit-CapsOn')) {
@@ -146,16 +145,6 @@ sub ensure_installed {
         }
         if ( $ret->{needle}->has_tag('Policykit') ||
              $ret->{needle}->has_tag('PolicyKit-retry')) {
-=======
-    type_string("pkcon install @pkglist\n");
-    my @tags =
-      qw/Policykit Policykit-behind-window PolicyKit-retry pkcon-proceed-prompt pkcon-succeeded/;
-    while (1) {
-        my $ret = assert_screen( \@tags, $timeout );
-        if (   $ret->{needle}->has_tag('Policykit')
-            || $ret->{needle}->has_tag('PolicyKit-retry') )
-        {
->>>>>>> perltidy fix; icewm don't have a desktop-runner, using the dedicated
             type_password;
             send_key( "ret", 1 );
             @tags = grep { $_ ne 'Policykit' } @tags;
