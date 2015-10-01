@@ -128,16 +128,16 @@ sub ensure_installed {
     while (1) {
         my $ret = check_screen(\@tags, $timeout);
         last unless $ret;
+        if ( $ret->{needle}->has_tag('PolicyKit-CapsOn')) {
+            send_key ( "caps_lock" );
+            @tags = grep { $_ ne 'PolicyKit-CapsOn' } @tags;
+        }
         if ( $ret->{needle}->has_tag('Policykit') ||
              $ret->{needle}->has_tag('PolicyKit-retry')) {
             type_password;
             send_key( "ret", 1 );
             @tags = grep { $_ ne 'Policykit' } @tags;
             @tags = grep { $_ ne 'Policykit-behind-window' } @tags;
-            if ( $ret->{needle}->has_tag('PolicyKit-CapsOn')) {
-                send_key ( "caps_lock" );
-                @tags = grep { $_ ne 'PolicyKit-CapsOn' } @tags;
-            }
             if ( $ret->{needle}->has_tag('PolicyKit-retry')) {
                 # Only a single retry is acceptable
                 @tags = grep { $_ ne 'PolicyKit-retry' } @tags;
