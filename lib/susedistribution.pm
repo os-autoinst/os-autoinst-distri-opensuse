@@ -169,13 +169,8 @@ while (1) {
         }
     }
 
-<<<<<<< HEAD
     wait_serial ('pkcon-0-', 27) || die "pkcon install did not succeed";
     send_key("alt-f4"); # close xterm
-=======
-    if ($password) { type_password; send_key( "ret", 1 ); }
-    wait_still_screen( 7, 90 );    # wait for install
->>>>>>> perltidy fix; icewm don't have a desktop-runner, using the dedicated
 }
 
 sub script_sudo($$) {
