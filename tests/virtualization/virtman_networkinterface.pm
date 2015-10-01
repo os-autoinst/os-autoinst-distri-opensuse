@@ -22,11 +22,9 @@ use virtmanager;
 sub go_for_netif {
     my $netif = shift;
     launch_virtmanager();
-
     # go tab networkd interface
     connection_details("netinterface");
     create_netinterface($netif);
-
     # close virt-manager details
     send_key "ctrl-w";
 }
@@ -34,89 +32,85 @@ sub go_for_netif {
 sub checking_netif_result {
     my $volumes = shift;
     x11_start_program("xterm");
+    wait_idle;
     send_key "alt-f10";
-    sudo_root();
-    type_string "ip link show";
-    send_key "ret";
+    become_root();
+    type_string "ip link show"; send_key "ret";
+    wait_idle;
     save_screenshot;
-    sleep 1;
-
-    if ( get_var("DESKTOP") ne "icewm" ) {
-        assert_screen "virtman-sle12-gnome_netifcheck", 20;
-    }
-    else {
-        assert_screen "virtman_netifcheck", 20;
+    if (get_var("DESKTOP") !~ /icewm/) {
+	assert_screen "virtman-sle12-gnome_netifcheck", 20;
+    } else {
+	assert_screen "virtman_netifcheck", 20;
     }
 }
 
+
 sub run {
     my $netif = {
-        "type"      => "bridge",    # type: bridge, bond, ethernet, vlan
-        "name"      => "br1",
-        "startmode" => "onboot",    # none, onboot, hotplug
-        "activenow" => "true",      # true / false
-        "ipsetting" => {            # only support manual mode
-            "manually" => {
-
-                #"ipv6" => "", # no support
-                "active" => "true",
-                "ipv4"   => {
-                    "mode"    => "static",       # dhcp, static, noconf
-                    "address" => "10.0.2.99",
-                    "gateway" => "10.0.2.254",
-                },
-            },
-            "copy" => {                          # FIXME
-                "active"         => "false",
-                "childinterface" => "",
-            },
-        },
-
-        # only in bridge setting
-        "bridgesettings" => {
-            "fwddelay" => "0.5",                 # in seconds
-            "stp"      => "true",                # true / false
-        },
-        "interface" => "other",                  # lo or other
-                                                 # vlantag only exist with VLAN
-        "vlantag"   => "3",
+	"type" => "bridge", # type: bridge, bond, ethernet, vlan
+	"name" => "br1",
+	"startmode" => "onboot", # none, onboot, hotplug
+	"activenow" => "true", # true / false
+	"ipsetting" => { # only support manual mode
+	    "manually" => {
+		#"ipv6" => "", # no support
+		"active" => "true",
+		"ipv4" => {
+		    "mode" => "static", # dhcp, static, noconf
+		    "address" => "10.0.2.99",
+		    "gateway" => "10.0.2.254",
+		}, 
+	    },
+	    "copy" => { # FIXME
+		"active" => "false",
+		"childinterface" => "",
+	    },
+	},
+	# only in bridge setting
+	"bridgesettings" => {
+	    "fwddelay" => "0.5", # in seconds
+	    "stp" => "true", # true / false
+	},
+	"interface" => "other", # lo or other
+	# vlantag only exist with VLAN
+	"vlantag" => "3",
     };
     go_for_netif($netif);
+    
+#    $netif->{type} = "bond";
+#    $netif->{name} = "bond1";
+#    $netif->{startmode} = "none";
+#    $netif->{activenow} = "false";
+#    $netif->{ipsetting}{manually}{active} = "true";
+#    $netif->{ipsetting}{copy}{active} = "false";
+#    $netif->{interface} = "other";
+#    go_for_netif($netif);
 
-    #    $netif->{type} = "bond";
-    #    $netif->{name} = "bond1";
-    #    $netif->{startmode} = "none";
-    #    $netif->{activenow} = "false";
-    #    $netif->{ipsetting}{manually}{active} = "true";
-    #    $netif->{ipsetting}{copy}{active} = "false";
-    #    $netif->{interface} = "other";
-    #    go_for_netif($netif);
-
-    $netif->{type}                            = "vlan";
-    $netif->{startmode}                       = "onboot";
-    $netif->{activenow}                       = "false";
-    $netif->{ipsetting}{manually}{active}     = "true";
+    $netif->{type} = "vlan";
+    $netif->{startmode} = "onboot";
+    $netif->{activenow} = "false";
+    $netif->{ipsetting}{manually}{active} = "true";
     $netif->{ipsetting}{manually}{ipv4}{mode} = "dhcp";
-    $netif->{vlantag}                         = "2";
-    $netif->{interface}                       = "other";
+    $netif->{vlantag} = "2";
+    $netif->{interface} = "other";
     go_for_netif($netif);
     delete_netinterface();
 
-    $netif->{type}                               = "ethernet";
-    $netif->{startmode}                          = "hotplug";
-    $netif->{activenow}                          = "true";
-    $netif->{ipsetting}{manually}{active}        = "true";
-    $netif->{ipsetting}{manually}{ipv4}{mode}    = "static";
+    $netif->{type} = "ethernet";
+    $netif->{startmode} = "hotplug";
+    $netif->{activenow} = "true";
+    $netif->{ipsetting}{manually}{active} = "true";
+    $netif->{ipsetting}{manually}{ipv4}{mode} = "static";
     $netif->{ipsetting}{manually}{ipv4}{address} = "10.1.2.22";
     $netif->{ipsetting}{manually}{ipv4}{gateway} = "10.1.2.25";
-    $netif->{interface}                          = "other";
+    $netif->{interface} = "other";
     go_for_netif($netif);
 
     checking_netif_result();
 }
 
 sub test_flags {
-
     # without anything - rollback to 'lastgood' snapshot if failed
     # 'fatal' - whole test suite is in danger if this fails
     # 'milestone' - after this test succeeds, update 'lastgood'
