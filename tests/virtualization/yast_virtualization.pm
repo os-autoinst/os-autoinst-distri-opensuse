@@ -2,7 +2,6 @@ use base "basetest";
 use strict;
 use testapi;
 
-
 sub run() {
     my $self = shift;
     x11_start_program("xterm");
@@ -35,10 +34,20 @@ sub run() {
     send_key "alt-f4";
     # now need to start libvirtd
     x11_start_program("xterm");
+    send_key "alt-f10";
     wait_idle;
     become_root;
-    script_run "systemctl start libvirtd";
+    type_string "modprobe kvm";
+    send_key "ret";
+    type_string "systemctl start libvirtd", 50;
+    send_key "ret";
     wait_idle;
+    type_string "systemctl status libvirtd", 50;
+    send_key "ret";
+    save_screenshot;
+    assert_screen "virt-sle12sp1-gnome_libvirtd_status", 50;
+    # close the xterm
+    send_key "alt-f4";
 }
 
 1;
