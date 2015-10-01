@@ -20,26 +20,38 @@ use testapi;
 use virtmanager;
 
 sub run {
-    launch_virtmanager();
-    # method: cdrom, net, pxe, image
-    # only CDROM supported now
-    my $guest;
-    $guest->{name} = "SLE12Guest";
-    $guest->{method} = "cdrom";
-    $guest->{automatic} = "true";
-    $guest->{memory} = "512";
-    $guest->{cpu} = "1";
-    $guest->{custom} = "true";
-    $guest->{advanced} = "true";
-    $guest->{netmac} = "52:54:00:66:0b:fd";
-    
-    create_guest($guest);
+    my $self = shift;
 
-    if (get_var("DESKTOP") !~ /icewm/) {
-        assert_screen "virtman-sle12-gnome_guest_install_in_progress", 50;
+    # login and preparation of the system
+    if (get_var("DESKTOP") =~ /icewm/) {
+	send_key "ret";
+	assert_screen "SLE12_login", 520;
+	type_string "linux";
+	send_key "ret", 1;
+	type_string $password;
+	send_key "ret", 1;
+	save_screenshot;
+	# install and launch polkit	
+	x11_start_program("xterm");		
+	become_root();	
+	script_run "zypper -n in polkit-gnome";
+	# exit root, and be the default user
+	type_string "exit\n"; sleep 1;
+	type_string "nohup /usr/lib/polkit-gnome-authentication-agent-1 &";
+	send_key "ret";
     } else {
-	assert_screen "virtman_guest_install_in_progress", 50;
+    # auto-login has been selected for gnome
+	assert_screen "virt-manager_SLE12_desktop", 520;
     }
+    x11_start_program("xterm");
+    wait_idle;
+    become_root;
+    script_run("hostname susetest");
+    script_run("echo susetest > /etc/hostname");
+    wait_idle;
+
+    send_key "alt-f4";
+    save_screenshot;
 }
 
 sub test_flags {
@@ -47,7 +59,7 @@ sub test_flags {
     # 'fatal' - whole test suite is in danger if this fails
     # 'milestone' - after this test succeeds, update 'lastgood'
     # 'important' - if this fails, set the overall state to 'fail'
-    return { 'important' => 0, 'fatal' => 0, };
+    return { fatal => 0, important => 0, milestone => 1 };
 }
 
 1;
