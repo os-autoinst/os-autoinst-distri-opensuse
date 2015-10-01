@@ -129,7 +129,7 @@ sub ensure_installed {
         my $ret = check_screen(\@tags, $timeout);
         last unless $ret;
         if ( $ret->{needle}->has_tag('PolicyKit-CapsOn')) {
-            send_key ( "caps_lock" );
+            send_key ( "caps" );
             @tags = grep { $_ ne 'PolicyKit-CapsOn' } @tags;
         }
         if ( $ret->{needle}->has_tag('Policykit') ||
