@@ -47,9 +47,11 @@ sub run {
     #}
     sleep 5;
     assert_screen 'dasd-active';
-    send_key 'alt-n', 1;   # next
+    send_key 'alt-n';   # next
+    sleep 5;
     assert_screen 'disk-activation', 15;
-    send_key 'alt-n', 1;   # next
+    send_key 'alt-n';   # next
+    sleep 5;
 }
 
 1;
