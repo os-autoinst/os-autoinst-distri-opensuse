@@ -11,25 +11,25 @@ sub run() {
     become_root;
     script_run "yast2 virtualization";
     wait_idle;
-    save_screenshot;
-    assert_screen "virt-sle12sp1-gnome_yast_virtualization";
-    send_key "alt-f4";
+    assert_screen "virt-sle12sp1-gnome_yast_virtualization", 50;
     # select everything
-    send_key "alt-x"; # XEN Server
-    send_key "e"; # Xen tools
-    send_key "k"; # KVM Server
-    send_key "v"; # KVM tools
-    send_key "l"; # libvirt-lxc
+    send_key "alt-x", 10; # XEN Server
+    send_key "alt-e", 10; # Xen tools
+    send_key "alt-k", 10; # KVM Server
+    send_key "alt-v", 10; # KVM tools
+    send_key "alt-l", 10; # libvirt-lxc
 
     # launch the installation
     send_key "alt-a";
-    assert_screen "virt-sle12sp1-gnome_yast_virtualization_graphics";
+    assert_screen "virt-sle12sp1-gnome_yast_virtualization_install_progress", 100;
+    # answer question of installing graphics stuff
+    #assert_screen "virt-sle12sp1-gnome_yast_virtualization_graphics", 100;
+    # select yes
+    #send_key "alt-y";
+    assert_screen "virt-sle12sp1-gnome_yast_virtualization_bridge", 200;
     # select yes
     send_key "alt-y";
-    assert_screen "virt-sle12sp1-gnome_yast_virtualization_bridge";
-    # select yes
-    send_key "alt-y";
-    assert_screen "virt-sle12sp1-gnome_yast_virtualization_OK";
+    assert_screen "virt-sle12sp1-gnome_yast_virtualization_OK", 200;
     send_key "alt-o";
     # close the xterm
     send_key "alt-f4";
