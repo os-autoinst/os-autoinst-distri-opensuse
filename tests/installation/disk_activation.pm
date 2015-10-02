@@ -52,6 +52,12 @@ sub run {
     assert_screen 'disk-activation', 15;
     send_key 'alt-n';   # next
     sleep 5;
+
+    if (check_screen('disk-activation', 5)) {
+        record_soft_failure;
+        send_key 'alt-n';   # next
+        sleep 5;
+    }
 }
 
 1;
