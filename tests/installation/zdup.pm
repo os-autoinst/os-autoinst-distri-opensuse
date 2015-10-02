@@ -44,16 +44,21 @@ sub run() {
     else {
         # SUSEMIRROR not set, zdup from attached ISO
         my $build = get_var("BUILD");
-        script_run("export buildcd=\$(ls -la /dev/disk/by-label/|grep $build|awk '{print \$9}')");
-        $defaultrepo = "dvd:/?devices=/dev/disk/by-label/\$buildcd";
+        my $flavor = get_var("FLAVOR");
+        script_run "ls -al /dev/disk/by-label";
+        script_run "";
+        # try to find iso by build id in label (like in SLE)
+        script_run "shopt -s nullglob; repo=(/dev/disk/by-label/*$build); shopt -u nullglob";
+        # if that fails, e.g. if volume descriptor too long, just try /dev/sr0
+        $defaultrepo = "dvd:/?devices=\${repo:-/dev/sr0}";
     }
 
     my $nr = 1;
     foreach my $r ( split( /\+/, get_var("ZDUPREPOS", $defaultrepo) ) ) {
-        script_run("zypper addrepo $r repo$nr");
+        assert_script_run("zypper -n addrepo \"$r\" repo$nr");
         $nr++;
     }
-    script_run("zypper --gpg-auto-import-keys refresh");
+    assert_script_run("zypper -n refresh");
 
     script_run("(zypper dup -l;echo ZYPPER-DONE) | tee /dev/$serialdev");
 
