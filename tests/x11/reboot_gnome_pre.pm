@@ -14,13 +14,11 @@ sub run() {
         sleep 3;
         type_password;
         sleep 3;
+        assert_and_click 'reboot-auth-typed', 2; # Extra assert_and_click (with right click) to check the correct number of characters is typed and open up the 'show text' option
+        assert_and_click 'reboot-auth-showtext'; # Click the 'Show Text' Option to enable the display of the typed text
+        assert_screen 'reboot-auth-correct-password'; # Check the password is correct
         send_key "ret";
 
-        if (check_screen('please-try-again', 3)) {
-            record_soft_failure;
-            type_password;
-            send_key "ret";
-        }
     }
 }
 
