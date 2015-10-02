@@ -92,8 +92,7 @@ sub run() {
     # https://wiki.archlinux.org/index.php/Kernel_Mode_Setting#Forcing_modes_and_EDID
     type_string "Y2DEBUG=1 ";
     if (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64')) {
-        # for some reason this cause wrong colors jeos!?
-        type_string "vga=791 " unless get_var('JEOS');
+        type_string "vga=791 ";
         type_string "video=1024x768-16 ", 13;
 
         # not needed anymore atm as cirrus has 1024 as default now:
