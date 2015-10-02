@@ -25,10 +25,13 @@ sub run() {
     #assert_screen "virt-sle12sp1-gnome_yast_virtualization_graphics", 100;
     # select yes
     #send_key "alt-y";
-    assert_screen "virt-sle12sp1-gnome_yast_virtualization_bridge", 200;
-    # select yes
-    send_key "alt-y";
-    assert_screen "virt-sle12sp1-gnome_yast_virtualization_OK", 200;
+    if (get_var("STANDALONEVT")) {
+	assert_screen "virt-sle12sp1-gnome_yast_virtualization_OK", 200;
+    } else {
+	assert_screen "virt-sle12sp1-gnome_yast_virtualization_bridge", 200;
+	# select yes
+	send_key "alt-y";
+    }
     send_key "alt-o";
     # close the xterm
     send_key "alt-f4";
@@ -37,15 +40,13 @@ sub run() {
     send_key "alt-f10";
     wait_idle;
     become_root;
-    type_string "modprobe kvm";
-    send_key "ret";
     type_string "systemctl start libvirtd", 50;
     send_key "ret";
     wait_idle;
     type_string "systemctl status libvirtd", 50;
     send_key "ret";
     save_screenshot;
-    assert_screen "virt-sle12sp1-gnome_libvirtd_status", 50;
+    assert_screen "virt-sle12sp1-gnome_libvirtd_status", 20;
     # close the xterm
     send_key "alt-f4";
 }
