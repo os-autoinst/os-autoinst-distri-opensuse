@@ -9,6 +9,7 @@ sub run() {
     wait_boot;
     ttylogin;
     type_string "PS1=\$\n";    # set constant shell promt
+    assert_script_sudo "chown $username /dev/$serialdev";
 }
 
 sub test_flags() {
