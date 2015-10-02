@@ -51,7 +51,18 @@ sub run {
     wait_idle;
 
     send_key "alt-f4";
-    save_screenshot;
+    # do the update
+#    type_string ("mkdir /mnt/install && mount 10.0.1.99:/volume1/install /mnt/install\n");
+#    wait_idle;
+#    type_string ("zypper addrepo /mnt/install/suse/sle12sp1/suse/ sle12sp1\n");
+#    wait_idle;
+#    type_string ("zypper refresh\n");
+#    wait_idle;
+#    type_string ("zypper -n up --replacefiles\n");
+#    wait_idle;
+#   type_string ("reboot\n");
+#    save_screenshot;
+#    assert_screen "virt-manager_SLE12_desktop", 520;
 }
 
 sub test_flags {
