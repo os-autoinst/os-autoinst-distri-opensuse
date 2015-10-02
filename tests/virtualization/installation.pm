@@ -78,8 +78,8 @@ sub run {
     for (1 .. 3) { send_key "down", 3; }
     send_key "spc", 2;
     # select KVM
-#    for (1 .. 3) {send_key "down", 3; }
-#    send_key "spc", 2;
+    for (1 .. 3) {send_key "down", 3; }
+    send_key "spc", 2;
     if (get_var("DESKTOP") =~ /icewm/) {
 	# remove Gnome desktop
 	for (1 .. 3) {send_key "down", 3; }
