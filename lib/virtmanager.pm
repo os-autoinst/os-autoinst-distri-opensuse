@@ -15,7 +15,6 @@ sub launch_virtmanager() {
     send_key "ret";
     wait_idle;
     type_password;
-    wait_idle;
     send_key "ret";
     wait_idle;
     save_screenshot;
@@ -98,12 +97,10 @@ sub create_vnet {
     assert_and_click "SLE12_virt-manager_vnet_plus";
 
     # step 1
-    save_screenshot;
     # go to text
     type_string $vnet->{name}, 30;
     save_screenshot;
-    send_key "ret";
-    sleep 1;
+    send_key "ret", 10;
     # step 2
     save_screenshot;
     # got to enable_ipv4
@@ -137,14 +134,11 @@ sub create_vnet {
 	# if not staticrouteipv4 we can go next
     } else {
 	# disable IPV4
-	send_key "spc";
-	sleep 1;
+	send_key "spc", 10;
     }
     save_screenshot;
-    send_key "alt-f";
-    sleep 1;
+    send_key "alt-f", 10;
     # step 3
-    save_screenshot;
     if ($vnet->{ipv6}{active} eq "true") {
 	send_key "tab";
 	send_key "spc";
@@ -346,10 +340,10 @@ sub create_new_volume {
 	send_key "alt-n", 1;
     }
     type_string $volume->{name}, 20;
-    send_key "tab", 1;
+    send_key "tab", 10;
     # default is qcow2 go to the upper selection
     for (1 .. 4) { send_key "up"; }
-    # order is: raw, "cow", qcow, qed, vmdk, vpc, vdi
+    # order is: qcow2, raw, cow, qcow, qed, vmdk, vpc, vdi
     # there is no cow format under SLE12SP1, so using an index=0
     # to start loop down in that case
     my $index = 0; my $index_down;
@@ -368,9 +362,9 @@ sub create_new_volume {
 	$index_down = $index + 2;
         loop_down($index_down);
 	if ($volume->{backingstore} ne "") {
-	    send_key "tab", 1;
-	    send_key "spc";
-	    send_key "tab", 1;
+	    send_key "tab", 10;
+	    send_key "spc", 10;
+	    send_key "tab", 10;
 	    type_string $volume->{backingstore}, 50;
 	} else { send_key "tab", 1; }
     } elsif ($volume->{format} eq "qed") {
@@ -393,9 +387,9 @@ sub create_new_volume {
 	type_string $volume->{allocation};
     }
     # alt-f is used for format also! duplicate shortcut....
-    send_key "alt-f", 1;
-    send_key "alt-f", 1;
-    send_key "ret", 1;
+    send_key "alt-f", 4;
+    send_key "alt-f", 4;
+    #send_key "ret", 4;
     save_screenshot;
     # close error windows in case of....
     #send_key "alt-c", 1;
@@ -553,15 +547,15 @@ sub create_guest {
     # step 2: media installation
     send_key "alt-f", 10;
     # step 3: Mem and CPU
-    send_key "tab"; sleep 1;
-    type_string $guest->{memory}; sleep 1;
-    send_key "tab"; sleep 1;
-    type_string $guest->{cpu}; sleep 1;
+    send_key "tab", 10;
+    type_string $guest->{memory}, 50;
+    send_key "tab", 10;
+    type_string $guest->{cpu}, 50;
     save_screenshot;
-    send_key "alt-f"; sleep 1;
+    send_key "alt-f", 10;
     # step 4: storage
-    send_key "alt-m"; sleep 1;
-    send_key "alt-w"; sleep 1;
+    send_key "alt-m", 10;
+    send_key "alt-w", 10;
 
     my $newvolume = {
         "name" => "guest",
@@ -574,26 +568,17 @@ sub create_guest {
     # choose this volume and press alt-v
     #send_key "tab"; sleep 1;
     if (get_var("DESKTOP") !~ /icewm/) {
-#	assert_and_click "virtman-sle12-gnome_select_volume";
-	save_screenshot;
 	assert_and_click "virtman-sle12-gnome_choose_volume";
     } else {
-#	assert_and_click "virtman_select_volume";
-	save_screenshot;
 	assert_and_click "virtman_choose_volume";
     }
-    save_screenshot;
     # go to last step
-    send_key "alt-f"; sleep 1;
-    save_screenshot;
+    send_key "alt-f", 10;
     # step 5: last conf
-    send_key "tab"; sleep 1;
-    save_screenshot;
+    send_key "tab", 10;
     type_string $guest->{name}, 50;
-    save_screenshot;
     # be sure to be in "customize"
-    send_key "tab", 1;
-    save_screenshot;
+    send_key "tab", 10;
     if ($guest->{custom} eq "true") {
 	send_key "alt-u";
     }
@@ -603,7 +588,7 @@ sub create_guest {
 	send_key "spc";
 	send_key "tab";
 	# unselect and select FIXED MAC
-	send_key "alt-m"; sleep 1;
+	send_key "alt-m", 10;
 	send_key "alt-m";
 	send_key "tab";
 	# enter custom mac
@@ -613,10 +598,10 @@ sub create_guest {
     send_key "alt-f";
     if ($guest->{custom} eq "true") {
 	send_key "tab"; send_key "tab";
-	send_key "tab"; sleep 1;
+	send_key "tab", 10;
 	for (1 .. 11) {
 	    # parse all options
-	    send_key "down"; sleep 1;
+	    send_key "down", 10;
 	}
 	save_screenshot;
 	send_key "up";
@@ -634,7 +619,6 @@ sub create_guest {
     }
     # install begin
     assert_and_click "virtman_guest_begin_install";
-    save_screenshot;
 }
 
 
