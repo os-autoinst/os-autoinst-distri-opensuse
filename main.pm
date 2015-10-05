@@ -430,9 +430,13 @@ sub load_consoletests() {
             if (!get_var("OFW")) {
                 loadtest "console/aplay.pm";
             }
-            loadtest "console/yast2_cmdline.pm";
-            loadtest "console/yast2_dns_server.pm";
-            loadtest "console/yast2_nfs_client.pm";
+	    # yast-lan related tests do not work when using networkmanager.
+	    # (Livesystem and laptops do use networkmanager)
+            if (!get_var("LIVETEST") && !get_var("LAPTOP")) {
+                loadtest "console/yast2_cmdline.pm";
+                loadtest "console/yast2_dns_server.pm";
+                loadtest "console/yast2_nfs_client.pm";
+            }
         }
         if (!get_var("OFW")) {
             loadtest "console/glibc_i686.pm";
