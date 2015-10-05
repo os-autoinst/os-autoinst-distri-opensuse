@@ -35,10 +35,12 @@ sub wait_boot {
         if (match_has_tag("bootloader-shim-import-prompt")) {
             send_key "down";
             send_key "ret";
-            $bootloader_time = 15;
+            assert_screen "grub2", 15;
         }
-
-        assert_screen "grub2", $bootloader_time;
+        elsif (! match_has_tag("grub2")) {
+            # check_screen timeout
+            die "needle 'grub2' not found";
+        }
     }
 
     unlock_if_encrypted;
