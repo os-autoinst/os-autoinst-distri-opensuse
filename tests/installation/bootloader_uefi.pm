@@ -24,13 +24,11 @@ sub run() {
         sleep 5;
     }
     if ( get_var("ZDUP") ) {
-        # if SUSEMIRROR nor ZDUPREPOS are specified, we are ZDUPing from new ISO
-        if (get_var('SUSEMIRROR') || get_var('ZDUPREPOS')) {
-            eject_cd;
-            power('reset');
-            sleep 10;
-        }
-        send_key 'ret';    # boot
+        # uefi bootloader has no "boot from harddisk" option. So we
+        # have to just reboot here
+        eject_cd;
+        power('reset');
+        assert_screen("grub2");
         return;
     }
 

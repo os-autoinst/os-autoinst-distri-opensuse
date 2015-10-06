@@ -28,7 +28,7 @@ sub run() {
             power('reset');
             sleep 10;
         }
-        send_key 'ret';    # boot
+        send_key 'ret';    # boot from hard disk
         return;
     }
 
@@ -44,7 +44,7 @@ sub run() {
         if ( get_var("PROMO") || get_var('LIVETEST') ) {
             $self->bootmenu_down_to("inst-live-" . get_var("DESKTOP"));
         }
-        else {
+        elsif ( ! get_var("JEOS") ) {
             $self->bootmenu_down_to('inst-oninstallation');
         }
     }
