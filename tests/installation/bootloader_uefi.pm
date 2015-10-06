@@ -33,14 +33,15 @@ sub run() {
     }
 
     if (get_var("UPGRADE")) {
-        $self->bootmenu_down_to('inst-onupgrade');
+        # random magic numbers
+        send_key_until_needlematch('inst-onupgrade', 'down', 10, 5);
     }
     else {
         if ( get_var("PROMO") || get_var('LIVETEST') ) {
-            $self->bootmenu_down_to("inst-live-" . get_var("DESKTOP"));
+            send_key_until_needlematch("inst-live-" . get_var("DESKTOP"), 'down', 10, 5);
         }
         elsif ( ! get_var("JEOS") ) {
-            $self->bootmenu_down_to('inst-oninstallation');
+            send_key_until_needlematch('inst-oninstallation', 'down', 10, 5);
         }
     }
 
