@@ -15,7 +15,7 @@ sub run() {
         assert_screen "upgrade-selected", 2;
     }
 
-    if ( get_var("ADDONURL") || get_var("ADDONS") ) {
+    if ( get_var("ADDONURL") || (get_var("ADDONS") && !get_var("DUD")) ) {
         # Don't include add-on from separate media for SMT upgrade bnc928895
         unless (get_var("UPGRADE") && check_var('ADDONS', 'smt')) {
             send_key "alt-c";    # Include Add-On Products
