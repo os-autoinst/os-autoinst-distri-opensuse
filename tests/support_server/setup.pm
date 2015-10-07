@@ -15,6 +15,7 @@
 
 use strict;
 use base 'basetest';
+use lockapi;
 use testapi;
 
 my $pxe_server_set = 0;
@@ -26,6 +27,8 @@ my $dhcp_server_set = 0;
 my $nfs_mount_set = 0;
 
 my $setup_script;
+
+my @mutexes;
 
 sub setup_pxe_server
 {
@@ -102,22 +105,33 @@ sub run {
        setup_dhcp_server();
        setup_pxe_server();
        setup_tftp_server();
+       push @mutexes,'pxe';
     }
     if ( exists $server_roles{'tftp'} ) {    
        setup_tftp_server();
+       push @mutexes,'tftp';
     }
     if ( exists $server_roles{'dhcp'} ) {    
        setup_dhcp_server();
+       push @mutexes,'dhcp';
     }
     if ( exists $server_roles{'qemuproxy'} ) {    
        setup_http_server();
        $setup_script.="curl -f -v " . autoinst_url . "/data/supportserver/proxy.conf | sed -e 's|#AUTOINST_URL#|" . autoinst_url . "|g' >/etc/apache2/vhosts.d/proxy.conf\n";
        $setup_script.="rcapache2 restart\n";
+       push @mutexes,'qemuproxy';
     }
 
     die "no services configured, SUPPORT_SERVER_ROLES variable missing?" unless $setup_script;
 
     script_output($setup_script);
+
+    #create mutexes for running services
+    wait_idle(100);
+    foreach my $mutex (@mutexes) {
+      mutex_create($mutex);
+    }
+
 }
 
 sub test_flags {

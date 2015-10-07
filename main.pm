@@ -288,8 +288,8 @@ sub load_boot_tests(){
         loadtest "installation/qa_net.pm";
     }
     elsif (get_var("PXEBOOT")) {
-        mutex_lock('pxeboot_ready');
-        mutex_unlock('pxeboot_ready');
+        mutex_lock('pxe');
+        mutex_unlock('pxe');
         loadtest "autoyast/pxe_boot.pm";
     }
     else {

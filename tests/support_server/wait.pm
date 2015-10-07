@@ -16,16 +16,13 @@
 use strict;
 use base 'basetest';
 use testapi;
-use lockapi;
 use mmapi;
 
 sub run {
 
     my $self = shift;
 
-    wait_idle(100);
 
-    mutex_create('pxeboot_ready');
     
     while (1) {
         my $s = get_children_by_state('scheduled');
