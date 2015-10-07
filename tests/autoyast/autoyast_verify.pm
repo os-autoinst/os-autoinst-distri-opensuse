@@ -16,10 +16,20 @@
 use strict;
 use base 'basetest';
 use testapi;
+use lockapi;
 
 sub run {
     my $self = shift;
     $self->result('fail'); # default result
+
+    #wait for supportserver if not yet ready
+    my $roles_r = get_var_array('SUPPORT_SERVER_ROLES');
+    foreach my $role (@$roles_r) {
+        #printf("rolemutex=$role\n");#debug
+        mutex_lock($role);
+        mutex_unlock($role);
+    }   
+      
     #todo: get the ip addresses by some function (or ENV)
     my $verify_url = autoinst_url();
     my $server_ip = '10.0.2.1';
