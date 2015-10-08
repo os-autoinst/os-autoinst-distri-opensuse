@@ -19,12 +19,23 @@ use testapi;
 
 sub run {
 
-    assert_screen( "autoyast-system-login-console", 30 );
+    if ( get_var("SUPPORTSERVER_NEEDLE_LOGIN") ) { 
+        #fallback to needle based detection, if serial console not set or not supported
+        assert_screen( "autoyast-system-login-console", 30 );
+    }
+    else {
+        wait_serial("login:",30);
+    }
+
     type_string "root\n";
     sleep 1;
     type_password;
     type_string "\n";
-    sleep 1;
+
+    type_string "echo LOK >/dev/$serialdev";
+    send_key "ret";
+    wait_serial("LOK", 100);
+
 }
 
 sub test_flags {

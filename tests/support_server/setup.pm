@@ -15,6 +15,7 @@
 
 use strict;
 use base 'basetest';
+use lockapi;
 use testapi;
 
 my $pxe_server_set = 0;
@@ -26,6 +27,8 @@ my $dhcp_server_set = 0;
 my $nfs_mount_set = 0;
 
 my $setup_script;
+
+my @mutexes;
 
 sub setup_pxe_server
 {
@@ -42,9 +45,9 @@ sub setup_http_server
 {
     return if $http_server_set;
 
-    $setup_script.="systemctl stop apache2.service\n";
+    $setup_script.="rcapache2 stop\n";
     $setup_script.="curl -f -v " . autoinst_url . "/data/supportserver/http/apache2  >/etc/sysconfig/apache2\n";
-    $setup_script.="systemctl start apache2.service\n";
+    $setup_script.="rcapache2 start\n";
 
     $http_server_set = 1;
 }
@@ -60,8 +63,8 @@ sub setup_tftp_server
 {
     return if $tftp_server_set;
 
-    $setup_script.="systemctl stop atftpd.service\n";
-    $setup_script.="systemctl start atftpd.service\n";
+    $setup_script.="rcatftpd stop\n";
+    $setup_script.="rcatftpd start\n";
 
     $tftp_server_set = 1;
 }
@@ -70,10 +73,10 @@ sub setup_dhcp_server
 {
     return if $dhcp_server_set;
 
-    $setup_script.="systemctl stop dhcpd.service\n";
+    $setup_script.="rcdhcpd stop\n";
     $setup_script.="curl -f -v " . autoinst_url . "/data/supportserver/dhcp/dhcpd.conf  >/etc/dhcpd.conf \n";
     $setup_script.="curl -f -v " . autoinst_url . "/data/supportserver/dhcp/sysconfig/dhcpd  >/etc/sysconfig/dhcpd \n";
-    $setup_script.="systemctl start dhcpd.service\n";
+    $setup_script.="rcdhcpd start\n";
 
     $dhcp_server_set = 1;
 }
@@ -94,6 +97,7 @@ sub setup_nfs_mount
 
 sub run {
 
+
     my @server_roles=split(',|;',lc(get_var("SUPPORT_SERVER_ROLES")) );
     my %server_roles= map { $_ => 1 } @server_roles;
 
@@ -101,16 +105,33 @@ sub run {
        setup_dhcp_server();
        setup_pxe_server();
        setup_tftp_server();
+       push @mutexes,'pxe';
+    }
+    if ( exists $server_roles{'tftp'} ) {    
+       setup_tftp_server();
+       push @mutexes,'tftp';
+    }
+    if ( exists $server_roles{'dhcp'} ) {    
+       setup_dhcp_server();
+       push @mutexes,'dhcp';
     }
     if ( exists $server_roles{'qemuproxy'} ) {    
        setup_http_server();
        $setup_script.="curl -f -v " . autoinst_url . "/data/supportserver/proxy.conf | sed -e 's|#AUTOINST_URL#|" . autoinst_url . "|g' >/etc/apache2/vhosts.d/proxy.conf\n";
-       $setup_script.="systemctl restart apache2.service\n";
+       $setup_script.="rcapache2 restart\n";
+       push @mutexes,'qemuproxy';
     }
 
     die "no services configured, SUPPORT_SERVER_ROLES variable missing?" unless $setup_script;
 
     script_output($setup_script);
+
+    #create mutexes for running services
+    wait_idle(100);
+    foreach my $mutex (@mutexes) {
+      mutex_create($mutex);
+    }
+
 }
 
 sub test_flags {

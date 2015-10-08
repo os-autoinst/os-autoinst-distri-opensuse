@@ -1,6 +1,7 @@
 #!/usr/bin/perl -w
 use strict;
 use testapi;
+use lockapi;
 use autotest;
 use needle;
 use File::Find;
@@ -285,6 +286,11 @@ sub load_boot_tests(){
     }
     elsif ( get_var("IPMI_HOSTNAME") ) { # abuse of variable for now
         loadtest "installation/qa_net.pm";
+    }
+    elsif (get_var("PXEBOOT")) {
+        mutex_lock('pxe');
+        mutex_unlock('pxe');
+        loadtest "autoyast/pxe_boot.pm";
     }
     else {
         loadtest "installation/bootloader.pm";
@@ -626,6 +632,17 @@ sub load_skenkins_tests {
     return 0;
 }
 
+sub load_autoyast_tests(){
+#    init boot in load_boot_tests
+    loadtest("autoyast/system.pm");
+    loadtest("autoyast/console.pm");
+    loadtest("autoyast/login.pm");
+    loadtest("autoyast/repos.pm") unless get_var("SUPPORT_SERVER_GENERATOR");
+    loadtest("autoyast/autoyast_verify.pm") if get_var("AUTOYAST_VERIFY");
+    loadtest("autoyast/autoyast_reboot.pm");
+    #    next boot in load_reboot_tests
+}
+
 # load the tests in the right order
 if ( get_var("REGRESSION") ) {
     if ( get_var("KEEPHDDS") ) {
@@ -659,16 +676,20 @@ elsif (get_var("SYSAUTHTEST")) {
     loadtest "console/zypper_ar.pm";
     loadtest "sysauth/sssd.pm";
 }
+elsif (get_var("SUPPORT_SERVER")) {
+     loadtest "support_server/boot.pm";
+     loadtest "support_server/login.pm";
+     loadtest "support_server/setup.pm";
+     loadtest "support_server/wait.pm";
+}
 else {
     if (get_var("LIVETEST")) {
         load_boot_tests();
         loadtest "installation/finish_desktop.pm";
     }
     elsif (get_var("AUTOYAST")) {
-        # autoyast is very easy
         load_boot_tests();
-        loadtest "installation/start_install.pm";
-        loadtest "installation/autoyast_reboot.pm";
+        load_autoyast_tests();
         load_reboot_tests();
     }
     elsif (installzdupstep_is_applicable) {
