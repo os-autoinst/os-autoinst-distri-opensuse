@@ -647,14 +647,17 @@ sub load_applicationstests {
 }
 
 sub load_skenkins_tests {
-    if (get_var("SLENKINS_NODEFILE")) {
-        my $node = get_var("SLENKINS_NODE");
-        if ($node && $node ne 'control') {
-            loadtest "slenkins/slenkins_node.pm";
+    if (get_var("SLENKINS_CONTROL")) {
+        unless (get_var("SUPPORT_SERVER")) {
+            loadtest "slenkins/login.pm";
+            loadtest "slenkins/slenkins_control_network.pm";
         }
-        else {
-            loadtest "slenkins/slenkins_control.pm";
-        }
+        loadtest "slenkins/slenkins_control.pm";
+        return 1;
+    }
+    elsif (get_var("SLENKINS_NODE")) {
+        loadtest "slenkins/login.pm";
+        loadtest "slenkins/slenkins_node.pm";
         return 1;
     }
     return 0;
@@ -708,7 +711,9 @@ elsif (get_var("SUPPORT_SERVER")) {
     loadtest "support_server/boot.pm";
     loadtest "support_server/login.pm";
     loadtest "support_server/setup.pm";
-    loadtest "support_server/wait.pm";
+    unless (load_skenkins_tests()) {    # either run the slenkins control node or just wait for connections
+        loadtest "support_server/wait.pm";
+    }
 }
 elsif (get_var("EXTRATEST")) {
     load_boot_tests();

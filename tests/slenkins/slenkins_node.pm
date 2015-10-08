@@ -24,39 +24,39 @@ use ttylogin;
 sub run {
     my $self = shift;
 
-    ttylogin('4', "root");
+    my $children = get_children();
+    # there should be only one child - the control job
+    my $control_id = (keys %$children)[0];
 
-    my $configured = 0;
-    my $ip_num     = 15;
-    open(FH, '<', get_var('CASEDIR') . "/data/slenkins/" . get_var('SLENKINS_NODEFILE'));
-    my $name;
-    while (<FH>) {
-        print "read $_\n";
-        my ($var, $value) = split /\s+/, $_;
-        print "read '$_' '$var' '$value'\n";
-        if ($var eq 'node') {
-            print "found name $value\n";
-            $name = $value;
-
-            if ($name eq get_var('SLENKINS_NODE')) {
-                configure_default_gateway;
-                configure_static_ip("10.0.2.$ip_num/24");
-                configure_static_dns(get_host_resolv_conf());
-                script_output("zypper -n --no-gpg-checks ar '" . get_var('SLENKINS_TESTSUITES_REPO') . "' slenkins_testsuites", 100);
-                $configured = 1;
-            }
-            $ip_num++;
-        }
-        elsif ($var eq 'install' && $name eq get_var('SLENKINS_NODE')) {
-            print "found install $value\n";
-            script_output("zypper -n --no-gpg-checks in $value\n", 100);
-        }
+    unless ($control_id) {
+        print "Control node does not exist, nothing to do\n";
+        return;
     }
-    close(FH);
 
-    die "node '" . get_var('SLENKINS_NODE') . "'not found in " . get_var('SLENKINS_NODEFILE') unless $configured;
+    my $control_settings = get_job_info($control_id)->{settings};
 
-    script_output("
+    configure_hostname(get_var('SLENKINS_NODE'));
+
+    my $ip = get_var('SLENKINS_IP');
+    if (!$ip || $ip eq 'dhcp') {
+        # wait until the control node starts the dhcp server
+        mutex_lock('dhcp', $control_id);
+        mutex_unlock('dhcp');
+        configure_dhcp();
+    }
+    else {
+        configure_default_gateway;
+        configure_static_ip($ip);
+    }
+
+    configure_static_dns(get_host_resolv_conf());
+    my $conf_script = "zypper -n --no-gpg-checks ar '" . get_var('SLENKINS_TESTSUITES_REPO') . "' slenkins_testsuites\n";
+
+    if (get_var('SLENKINS_INSTALL')) {
+        $conf_script .= "zypper -n --no-gpg-checks in " . join(' ', split(/[\s,]+/, get_var('SLENKINS_INSTALL'))) . "\n";
+    }
+
+    $conf_script .= "
         useradd -m testuser
         mkdir /root/.ssh
         mkdir /home/testuser/.ssh
@@ -70,26 +70,15 @@ sub run {
         chmod 700 /home/testuser/.ssh
         rcSuSEfirewall2 stop
         rcsshd restart
-    ", 100);
+    ";
+    script_output($conf_script, 100);
 
     # send messages logged during the testsuite runtime to serial
     type_string("journalctl -f >/dev/$serialdev\n");
 
     mutex_create(get_var('SLENKINS_NODE'));
 
-    while (1) {
-        my $s = get_children_by_state('scheduled');
-        my $r = get_children_by_state('running');
-        next unless defined $s && defined $r;
-
-        my $n = @$s + @$r;
-
-        print "Waiting for $n jobs to finish\n";
-
-        last if $n == 0;
-        sleep 1;
-    }
-
+    wait_for_children;
 }
 
 sub test_flags {

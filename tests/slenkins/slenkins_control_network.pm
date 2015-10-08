@@ -16,16 +16,18 @@
 use strict;
 use base 'basetest';
 use testapi;
+use lockapi;
 use mmapi;
+use mm_network;
+use ttylogin;
 
 sub run {
     my $self = shift;
 
-    wait_for_children;
-
-    $self->result('ok');
+    configure_default_gateway;
+    configure_static_ip('10.0.2.1/24');
+    configure_static_dns(get_host_resolv_conf());
 }
-
 
 sub test_flags {
     # without anything - rollback to 'lastgood' snapshot if failed
@@ -36,3 +38,5 @@ sub test_flags {
 }
 
 1;
+
+# vim: set sw=4 et:

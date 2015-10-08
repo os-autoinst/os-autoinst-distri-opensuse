@@ -9,7 +9,13 @@ use Exporter;
 
 use testapi;
 
-our @EXPORT = qw/get_host_resolv_conf configure_static_ip configure_default_gateway configure_static_dns/;
+our @EXPORT = qw/configure_hostname get_host_resolv_conf configure_static_ip configure_dhcp configure_default_gateway configure_static_dns/;
+
+sub configure_hostname {
+    my ($hostname) = @_;
+    type_string "echo '$hostname' > /etc/hostname\n";
+    type_string "hostname '$hostname'\n";
+}
 
 sub get_host_resolv_conf {
     my %conf;
@@ -31,6 +37,21 @@ sub configure_static_ip {
     type_string "cd /proc/sys/net/ipv4/conf\n";
     type_string "for i in *[0-9]; do ";
     type_string("echo \"STARTMODE='auto'\nBOOTPROTO='static'\nIPADDR='$ip'\" > /etc/sysconfig/network/ifcfg-\$i;");
+    type_string("done\n");
+    wait_idle(20);
+    save_screenshot;
+    type_string("rcnetwork restart\n");
+    type_string("ip addr\n");
+    type_string("cd -\n");
+    wait_idle(20);
+    save_screenshot;
+}
+
+sub configure_dhcp {
+    my () = @_;
+    type_string "cd /proc/sys/net/ipv4/conf\n";
+    type_string "for i in *[0-9]; do ";
+    type_string("echo \"STARTMODE='auto'\nBOOTPROTO='dhcp'\n\" > /etc/sysconfig/network/ifcfg-\$i;");
     type_string("done\n");
     wait_idle(20);
     save_screenshot;

@@ -17,6 +17,7 @@ use strict;
 use base 'basetest';
 use lockapi;
 use testapi;
+use mm_network;
 
 my $pxe_server_set  = 0;
 my $quemu_proxy_set = 0;
@@ -91,6 +92,9 @@ sub setup_nfs_mount {
 
 sub run {
 
+    configure_default_gateway;
+    configure_static_ip('10.0.2.1/24');
+    configure_static_dns(get_host_resolv_conf());
 
     my @server_roles = split(',|;', lc(get_var("SUPPORT_SERVER_ROLES")));
     my %server_roles = map { $_ => 1 } @server_roles;
