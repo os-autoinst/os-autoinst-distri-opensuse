@@ -113,7 +113,7 @@ sub run() {
     my $ret = check_screen "grub2", 30;
     if ( defined($ret) ) {
         if ( get_var("XEN") ) {
-            $self->bootmenu_down_to("bootmenu-xen-kernel");
+            send_key_until_needlematch("bootmenu-xen-kernel", 'down', 10, 5);
         }
         send_key "ret";    # avoid timeout for booting to HDD
     }

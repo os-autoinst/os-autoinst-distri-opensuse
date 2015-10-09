@@ -7,7 +7,7 @@ sub run {
 
     assert_screen "inst-bootmenu", 15;
 
-    $self->bootmenu_down_to('inst-onmemtest');
+    send_key_until_needlematch('inst-onmemtest', 'down', 10, 5);
     send_key "ret";
     assert_screen "pass-complete", 700;
     send_key "esc";
