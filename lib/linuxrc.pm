@@ -54,7 +54,7 @@ sub boot_with_parameters {
         die "Installation media not booted, use wait_for_bootmenu() first";
     }
 
-    $self->bootmenu_down_to($boot_selection);
+    send_key_until_needlematch($boot_selection, 'down', 10, 5);
 
     type_string $parameters;
     save_screenshot;
