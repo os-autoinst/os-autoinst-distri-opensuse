@@ -28,7 +28,7 @@ sub run() {
             power('reset');
             sleep 10;
         }
-        send_key 'ret';    # boot
+        send_key 'ret';    # boot from hard disk
         return;
     }
 
@@ -38,14 +38,15 @@ sub run() {
     }
 
     if (get_var("UPGRADE")) {
-        $self->bootmenu_down_to('inst-onupgrade');
+        # random magic numbers
+        send_key_until_needlematch('inst-onupgrade', 'down', 10, 5);
     }
     else {
         if ( get_var("PROMO") || get_var('LIVETEST') ) {
-            $self->bootmenu_down_to("inst-live-" . get_var("DESKTOP"));
+            send_key_until_needlematch("inst-live-" . get_var("DESKTOP"), 'down', 10, 5);
         }
-        else {
-            $self->bootmenu_down_to('inst-oninstallation');
+        elsif ( ! get_var("JEOS") ) {
+            send_key_until_needlematch('inst-oninstallation', 'down', 10, 5);
         }
     }
 

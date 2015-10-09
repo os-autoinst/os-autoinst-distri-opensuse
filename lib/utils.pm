@@ -26,6 +26,7 @@ sub unlock_if_encrypted {
 sub wait_boot {
     my %args = @_;
     my $bootloader_time = $args{bootloader_time} // 100;
+    my $textmode = $args{textmode};
 
     if ( get_var("OFW") ) {
         assert_screen "bootloader-ofw", $bootloader_time;
@@ -43,7 +44,7 @@ sub wait_boot {
 
     unlock_if_encrypted;
 
-    if (check_var('DESKTOP', 'textmode')) {
+    if ($textmode || check_var('DESKTOP', 'textmode')) {
         assert_screen 'linux-login', 200;
         return;
     }

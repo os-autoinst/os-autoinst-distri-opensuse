@@ -11,7 +11,9 @@ sub run() {
     become_root();
     script_run("snapper list | tee /dev/$serialdev");
     # Check if the snapshot called 'after installation' is there
-    wait_serial('single\s*(\|[^|]*){4}\s*\|\s*number\s*\|\s*after installation\s*\|\s*important=yes', 5) || die 'installation snapshot test failed';
+    my $pattern = 'single\s*(\|[^|]*){4}\s*\|\s*number\s*\|\s*after installation\s*\|\s*important=yes';
+    $pattern = 'single\s*(\|[^|]*){4}\s*\|\s*number\s*\|\s*Initial Status\s*\|\s*important=yes' if get_var('JEOS');
+    wait_serial($pattern, 5) || die 'installation snapshot test failed';
     script_run('exit');
     send_key 'ctrl-l';
 }

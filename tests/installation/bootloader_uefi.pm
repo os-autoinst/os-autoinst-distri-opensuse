@@ -24,25 +24,24 @@ sub run() {
         sleep 5;
     }
     if ( get_var("ZDUP") ) {
-        # if SUSEMIRROR nor ZDUPREPOS are specified, we are ZDUPing from new ISO
-        if (get_var('SUSEMIRROR') || get_var('ZDUPREPOS')) {
-            eject_cd;
-            power('reset');
-            sleep 10;
-        }
-        send_key 'ret';    # boot
+        # uefi bootloader has no "boot from harddisk" option. So we
+        # have to just reboot here
+        eject_cd;
+        power('reset');
+        assert_screen("grub2");
         return;
     }
 
     if (get_var("UPGRADE")) {
-        $self->bootmenu_down_to('inst-onupgrade');
+        # random magic numbers
+        send_key_until_needlematch('inst-onupgrade', 'down', 10, 5);
     }
     else {
         if ( get_var("PROMO") || get_var('LIVETEST') ) {
-            $self->bootmenu_down_to("inst-live-" . get_var("DESKTOP"));
+            send_key_until_needlematch("inst-live-" . get_var("DESKTOP"), 'down', 10, 5);
         }
         elsif ( ! get_var("JEOS") ) {
-            $self->bootmenu_down_to('inst-oninstallation');
+            send_key_until_needlematch('inst-oninstallation', 'down', 10, 5);
         }
     }
 
@@ -92,8 +91,7 @@ sub run() {
     # https://wiki.archlinux.org/index.php/Kernel_Mode_Setting#Forcing_modes_and_EDID
     type_string "Y2DEBUG=1 ";
     if (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64')) {
-        # for some reason this cause wrong colors jeos!?
-        type_string "vga=791 " unless get_var('JEOS');
+        type_string "vga=791 ";
         type_string "video=1024x768-16 ", 13;
 
         # not needed anymore atm as cirrus has 1024 as default now:
