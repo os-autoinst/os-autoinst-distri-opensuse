@@ -10,7 +10,7 @@ sub run {
     if (get_var('OFW')) {
         send_key_until_needlematch 'inst-onmediacheck', 'up';
     } else {
-       $self->bootmenu_down_to('inst-onmediacheck');
+       send_key_until_needlematch('inst-onmediacheck', 'down', 10, 5);
     }
 
     send_key "ret";
