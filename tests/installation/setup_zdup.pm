@@ -39,6 +39,12 @@ sub run() {
 
     # Disable console screensaver
     assert_script_run("setterm -blank 0");
+
+    # bnc#949188. kernel panic on 13.2
+    if (get_var('HDD_1', '') =~ /opensuse-13\.2/) {
+        record_soft_failure;
+        assert_script_run("zypper -n rm apparmor-abstractions");
+    }
 }
 
 1;
