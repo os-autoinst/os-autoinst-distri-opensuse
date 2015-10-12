@@ -32,7 +32,9 @@ sub wait_boot {
         assert_screen "bootloader-ofw", $bootloader_time;
     }
     else {
-        check_screen([qw/bootloader-shim-import-prompt grub2/], $bootloader_time);
+        my @tags = ('grub2');
+        push @tags, 'bootloader-shim-import-prompt' if get_var('UEFI');
+        check_screen(\@tags, $bootloader_time);
         if (match_has_tag("bootloader-shim-import-prompt")) {
             send_key "down";
             send_key "ret";
