@@ -13,10 +13,8 @@ sub run() {
     assert_screen('firefox-launch',45);
 
     send_key "esc";
-    send_key "ctrl-shift-q";
-    sleep 1;
-    send_key "alt-d";
-    sleep 2;
+    send_key "ctrl-shift-q", 1;
+    send_key "alt-d", 1;
     type_string "www.gnu.org\n";
     assert_screen('firefox-headers-website',45);
 

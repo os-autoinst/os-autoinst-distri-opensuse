@@ -21,7 +21,7 @@ sub run() {
     send_key "/";
     sleep 1;
     type_string "raw data\n";
-    check_screen('firefox-health-report',15);
+    check_screen('firefox-health-report-rawdata',15);
 
     # Exit
     send_key "alt-f4";

@@ -50,11 +50,12 @@ sub run() {
     assert_screen("firefox-java-active",10);
 
     java_testing();
-    assert_screen("firefox-java-security",50);
 
-    assert_and_click "firefox-java-securityrun";
-    assert_screen("firefox-java-run_confirm",10);
-    send_key "ret";
+    # following steps were not needful in newer firefox
+    # assert_screen("firefox-java-security",50);
+    # assert_and_click "firefox-java-securityrun";
+    # assert_screen("firefox-java-run_confirm",10);
+    # send_key "ret";
     assert_screen("firefox-java-verifypassed",45);
 
     # Exit
