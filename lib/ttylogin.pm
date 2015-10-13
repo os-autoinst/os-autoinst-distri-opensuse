@@ -23,7 +23,7 @@ sub ttylogin {
 
     # different console-behaviour for s390x
     if (check_var('BACKEND', 's390x')) {
-      script_run ("su -m $user");
+      script_run ("su - $user");
     } 
     else {
       assert_screen "text-login", 10;
