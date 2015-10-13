@@ -10,9 +10,11 @@ sub run() {
     # let's see how it looks at the beginning
     save_screenshot;
 
-    # verify there is a text console on tty1
-    send_key "ctrl-alt-f1";
-    assert_screen "tty1-selected", 15;
+    if ( !check_var('BACKEND', 's390x')) {
+        # verify there is a text console on tty1
+        send_key "ctrl-alt-f1";
+        assert_screen "tty1-selected", 15;
+    }
 
     # init
     ttylogin;
