@@ -42,15 +42,25 @@ sub run() {
         $defaultrepo = "http://" . get_var("SUSEMIRROR");
     }
     else {
-        # SUSEMIRROR not set, zdup from attached ISO
-        my $build = get_var("BUILD");
-        my $flavor = get_var("FLAVOR");
-        script_run "ls -al /dev/disk/by-label";
-        script_run "";
-        # try to find iso by build id in label (like in SLE)
-        script_run "shopt -s nullglob; repo=(/dev/disk/by-label/*$build); shopt -u nullglob";
-        # if that fails, e.g. if volume descriptor too long, just try /dev/sr0
-        $defaultrepo = "dvd:/?devices=\${repo:-/dev/sr0}";
+        #SUSEMIRROR not set, zdup from ftp source for online migration
+        if (check_var('TEST', "migration_zdup_online_sle12_ga")) {
+            my $flavor = get_var("FLAVOR");
+            my $version = get_var("VERSION");
+            my $build = get_var("BUILD");
+            my $arch = get_var("ARCH");
+            $defaultrepo = "ftp://openqa.suse.de/SLE-$version-$flavor-$arch-Build$build-Media1";
+        }
+        else {
+            # SUSEMIRROR not set, zdup from attached ISO
+            my $build = get_var("BUILD");
+            my $flavor = get_var("FLAVOR");
+            script_run "ls -al /dev/disk/by-label";
+            script_run "";
+            # try to find iso by build id in label (like in SLE)
+            script_run "shopt -s nullglob; repo=(/dev/disk/by-label/*$build); shopt -u nullglob";
+            # if that fails, e.g. if volume descriptor too long, just try /dev/sr0
+            $defaultrepo = "dvd:/?devices=\${repo:-/dev/sr0}";
+        }
     }
 
     my $nr = 1;
