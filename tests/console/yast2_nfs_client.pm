@@ -46,7 +46,9 @@ sub run() {
     # Check the result
     #
     script_run "cat /tmp/nfs/client/file.txt > /dev/$serialdev";
-    wait_serial('It worked', 10);
+
+    # Wait for more than 90 seconds due to NFSD's 90 second grace period.
+    wait_serial('It worked', 100) || die "Reading from nfs failed.";
 
     # Exit from root
     script_run 'exit';
