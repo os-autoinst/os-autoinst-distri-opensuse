@@ -12,27 +12,24 @@ sub run() {
     x11_start_program("firefox");
     assert_screen('firefox-launch',35);
 
-    send_key "alt-v";
-    sleep 1;
+    send_key "alt-v", 1;
     send_key "t";
-    sleep 1;
     send_key "c";
 
     assert_and_click "firefox-rss-close_hint";
+    assert_and_click "firefox-click-scrollbar";
     assert_and_click ("firefox-rss-button","right");
 
     send_key "a";
-    sleep 1;
     send_key "ctrl-w";
     send_key "alt-f10";
     assert_screen("firefox-rss-button_disabled",15);
 
-    sleep 2;
     send_key "esc";
     send_key "alt-d";
     type_string "www.gnu.org\n";
-    sleep 10;
-    assert_and_click "firefox-rss-button_enabled";
+
+    assert_and_click "firefox-rss-button_enabled", "left", 10;
     assert_screen("firefox-rss-page",35);
 
     # Exit
