@@ -17,8 +17,8 @@ sub run() {
     assert_screen('xterm-started');
 
     # fetch the google key first
-    assert_script_run "wget https://dl.google.com/linux/linux_signing_key.pub";
-    script_sudo "sudo rpm --import linux_signing_key.pub";
+    assert_script_run "wget https://dl.google.com/linux/linux_signing_key.pub -O /tmp/linux-signing-key.pub";
+    script_sudo "sudo rpm --import /tmp/linux_signing_key.pub";
 
     # validate it's properly installed
     script_run "rpm -qi gpg-pubkey-7fac5991-*";
