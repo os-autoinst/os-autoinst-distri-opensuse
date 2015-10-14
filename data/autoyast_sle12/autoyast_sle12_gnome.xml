@@ -25,17 +25,10 @@
   </ntp-client>
   <software>
     <packages config:type="list">
-      <package>glibc</package>
       <package>grub2</package>
-      <package>snapper</package>
-      <package>syslinux</package>
-      <package>kdump</package>
       <package>sles-release</package>
-      <package>kexec-tools</package>
-      <package>perl-Bootloader-YAML</package>
     </packages>
     <patterns config:type="list">
-      <pattern>32bit</pattern>
       <pattern>Minimal</pattern>
       <pattern>apparmor</pattern>
       <pattern>base</pattern>
