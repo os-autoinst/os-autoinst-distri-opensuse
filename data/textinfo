@@ -9,6 +9,8 @@ uname -a
 
 free
 
+mount
+
 /usr/sbin/btrfs filesystem df /
 
 df -h
