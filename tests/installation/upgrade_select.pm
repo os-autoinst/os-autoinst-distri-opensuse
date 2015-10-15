@@ -37,6 +37,9 @@ sub run() {
             send_key 'alt-n';
             record_soft_failure;
         }
+        if (check_screen('beta-warning', 10)) {
+            send_key 'alt-o';
+        }
         if (check_screen('installed-product-incompatible', 10)) {
             send_key 'alt-o'; # C&ontinue
             record_soft_failure;
