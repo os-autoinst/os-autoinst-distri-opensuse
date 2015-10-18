@@ -439,7 +439,9 @@ sub load_consoletests() {
                 loadtest "console/yast2_nfs_client.pm";
             }
         }
-        if (!get_var("OFW")) {
+        if(check_var('ARCH', 'x86_64') ||
+           check_var('ARCH', 'i686') ||
+           check_var('ARCH', 'i586')) {
             loadtest "console/glibc_i686.pm";
         }
         loadtest "console/zypper_up.pm";
