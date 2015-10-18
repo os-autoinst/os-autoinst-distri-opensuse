@@ -1,10 +1,5 @@
 #!/bin/sh -x
 
-case `uname -m` in
-	ppc64*) serial=hvc0;;
-	*)      serial=ttyS0;;
-esac
-
 uname -a
 
 free
@@ -37,5 +32,3 @@ rpm -qa
 journalctl -a --no-full -m > /var/log/journal.dump
 
 tar cjf /tmp/logs.tar.bz2 /var/log
-
-echo 'textinfo_done' > /dev/$serial
