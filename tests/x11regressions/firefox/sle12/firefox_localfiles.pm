@@ -13,20 +13,17 @@ sub run() {
     assert_screen('firefox-launch',45);
 
     # html
-    send_key "ctrl-o";
-    send_key "down";
+    send_key "alt-d";
     type_string "/usr/share/w3m/w3mhelp.html\n";
     assert_screen('firefox-local_files-html',30);
 
     # wav
-    send_key "ctrl-o";
-    send_key "down";
+    send_key "alt-d";
     type_string "/usr/share/sounds/alsa/test.wav\n";
     assert_screen('firefox-local_files-wav',30);
 
     # so
-    send_key "ctrl-o";
-    send_key "down";
+    send_key "alt-d";
     type_string "/usr/lib/libnss3.so\n";
     assert_screen('firefox-local_files-so',30);
     send_key "esc";

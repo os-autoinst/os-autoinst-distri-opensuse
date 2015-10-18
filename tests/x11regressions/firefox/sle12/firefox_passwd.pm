@@ -21,7 +21,7 @@ sub run() {
     assert_and_click('firefox-passwd-security');
 
     sleep 1;
-    send_key "alt-u";
+    send_key "alt-shift-u";
 
     assert_screen('firefox-passwd-master_setting',10);
 
@@ -62,20 +62,21 @@ sub run() {
     send_key "alt-e";
     send_key "n";#Preferences
     sleep 1;
-    send_key "alt-p";#"Saved Passwords..."
+    assert_and_click('firefox-passwd-security');
+    send_key "alt-shift-p";#"Saved Passwords..."
     sleep 1;
-    send_key "alt-p";#"Show Passwords"
+    send_key "alt-shift-p";#"Show Passwords"
     sleep 1;
     type_string $masterpw."\n";
     sleep 1;
     assert_screen('firefox-passwd-saved',10);
 
     sleep 1;
-    send_key "alt-r";#"Remove"
+    send_key "alt-shift-r";#"Remove"
     sleep 1;
-    send_key "alt-c";
+    send_key "alt-shift-c";
     sleep 1;
-    send_key "esc";
+    send_key "ctrl-w";
     sleep 1;
     send_key "f5";
     assert_screen('firefox-passwd-input_username',45);

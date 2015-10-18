@@ -31,16 +31,12 @@ sub run() {
     assert_screen('firefox-ssl-loadpage',35);
 
     send_key "alt-e";
-    sleep 1;
-    send_key "n";
+    send_key "n", 1;
 
-    sleep 2;
     assert_and_click('firefox-ssl-preference_advanced');
-
-    sleep 1;
     assert_and_click('firefox-ssl-advanced_certificate');
 
-    send_key "alt-s";
+    send_key "alt-shift-c";
 
     sleep 1;
     type_string "CNNIC";
@@ -64,8 +60,8 @@ sub run() {
     sleep 1;
     assert_screen('firefox-ssl-servers_cert',5);
 
-    send_key "alt-f4";
-    send_key "alt-f4";
+    send_key "alt-f4", 1;
+    send_key "ctrl-w";
 
     send_key "alt-d";
     type_string "https://www.cnnic.cn/\n";
