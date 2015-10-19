@@ -35,6 +35,10 @@ sub run() {
     # Install - zypper in qa_testset_automation
     assert_script_run "zypper -n in qa_testset_automation";
 
+    # For test only
+    #assert_script_run "mkdir /root/qaset";
+    #assert_script_run "echo 'SQ_TEST_RUN_LIST=(\n _reboot_off\n findutils\n sharutils\n)' > /root/qaset/config";
+
     # Trigger run script
     # Stress Validation - /usr/share/qa/qaset/run/acceptance-run
     assert_script_run "/usr/share/qa/qaset/run/" . get_var('QA_TESTSET') . "-run";
@@ -44,7 +48,7 @@ sub run() {
     type_string "screen -r `screen -ls | grep " . get_var('QA_TESTSET') . " | cut -d\".\" -f1`\n";
 
     # When finished, the screen will terminate
-    for (1..150) {
+    for (1..60) {
         my $ret = check_screen [qw/qa_screen_done qa_error/], 120;
         if ($ret && $ret->{needle}->has_tag('qa_error')) {
             die "run failed";
@@ -64,26 +68,29 @@ sub run() {
 
     # QA DB upload happens for each module
     # output the failed tests to serial console
-    type_string "export PS1=#\n";
-    # qa_testset_automation deleted oldlog folders, so we add it back to adopt it
+    assert_script_run "export PS1=#";
+    # qa_testset_automation remove the oldlogs, we create it back here for junit collecting information
     assert_script_run "mkdir /var/log/qa/oldlogs; cd /var/log/qa/oldlogs; for i in /var/log/qaset/log/*.bz2; do tar -xjvf \$i; done";
     type_string "find /var/log/qa/oldlogs/ -name test_results | xargs grep -l -B1 ^1 | tee -a /dev/$serialdev\n";
     assert_screen 'no_output_from_qa_find';
-    # create a junit report
-    if (check_var("QA_TESTSET", "acceptance")) {
-        assert_script_run "/usr/share/qa/qaset/bin/junitxml_generator.py -t stress_validation  -l /var/log/qaset/runs/ -s /var/log/qaset/submission/ -o /tmp/junit.xml";
+
+    # test junit
+    my $testset = get_var('QA_TESTSET');
+    if ($testset == "acceptance") { 
+        my $type = "stress_validation";
     }
-    elsif  (check_var("QA_TESTSET", "regression")) {
-         assert_script_run "/usr/share/qa/qaset/bin/junitxml_generator.py -t user_regression  -l /var/log/qaset/runs/ -s /var/log/qaset/submission/ -o /tmp/junit.xml";
+    elsif  ($testset == "regression") {
+        my $type = "user_regression";
     }
-    elsif  (check_var("QA_TESTSET", "kernel")) {
-        assert_script_run "/usr/share/qa/qaset/bin/junitxml_generator.py -t kernel_regression  -l /var/log/qaset/runs/ -s /var/log/qaset/submission/ -o /tmp/junit.xml";
+    elsif  ($testset == "kernel") {
+        my $type = "kernel_regression";
     }
     else {
-        assert_script_run "/usr/share/qa/qaset/bin/junitxml_generator.py -t all -l /var/log/qaset/runs/ -s /var/log/qaset/submission/ -o /tmp/junit.xml";
+        my $type = "all";
     }
+    assert_script_run "/usr/share/qa/qaset/bin/junitxml_generator.py -t " . $type . " -l /var/log/qaset/runs/ -s /var/log/qaset/submission/ -o /tmp/junit.xml";
     assert_script_run "ls -l /tmp/";
-    parse_junit_log("/tmp/junit.xml");
+    parse_junit_log("/tmp/junit.xml");    
 }
 
 sub test_flags {
@@ -91,3 +98,4 @@ sub test_flags {
 }
 
 1;
+
