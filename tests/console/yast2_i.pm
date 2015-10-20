@@ -48,11 +48,14 @@ sub run() {
     assert_screen "$pkgname-selected-for-install", 10;
 
     send_key "alt-a", 1;    # accept
-    # Upgrade tests and the old distributions eg. SLE11 doesn't shows the summary
-    unless ( get_var("YAST_SW_NO_SUMMARY") ) {
-        assert_screen 'yast2-sw_shows_summary', 60;
-        send_key "alt-f";
+
+    # Whether summary is shown depends on PKGMGR_ACTION_AT_EXIT in /etc/sysconfig/yast2
+    # We actually can never be sure how this is set, so let's just check:
+    if (check_screen('yast2-sw_shows_summary', 10)) {
+        send_key 'alt-f';
+        record_soft_failure if get_var("YAST_SW_NO_SUMMARY");
     }
+
     # yast might take a while on sle11 due to suseconfig
     wait_serial("yast2-i-status-0", 60) || die "yast didn't finish";
 
