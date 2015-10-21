@@ -16,17 +16,17 @@ sub run() {
     x11_start_program("xterm");
     assert_screen('xterm-started');
 
-    # fetch the google key first
-    assert_script_run "wget https://dl.google.com/linux/linux_signing_key.pub -O /tmp/linux-signing-key.pub";
-    script_sudo "sudo rpm --import /tmp/linux_signing_key.pub";
+    # install the google key first
+    become_root;
+    assert_script_run "rpm --import https://dl.google.com/linux/linux_signing_key.pub";
 
     # validate it's properly installed
     script_run "rpm -qi gpg-pubkey-7fac5991-*";
     assert_screen 'google-key-installed';
 
-    script_sudo "zypper -n install $chrome_url; echo zypper-chrome-\$?- > /dev/$serialdev";
-    wait_serial "zypper-chrome-0-" || die "didn't install chrome";
+    assert_script_run "zypper -n install $chrome_url";
     save_screenshot;
+    # closing xterm
     send_key "alt-f4";
 
     x11_start_program("google-chrome");
