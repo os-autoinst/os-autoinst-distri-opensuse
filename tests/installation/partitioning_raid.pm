@@ -56,8 +56,14 @@ sub addraid($;$) {
     }
     send_key $cmd{"next"};
     assert_screen 'partition-role', 6;
-    send_key "alt-o";    # Operating System
+    if ($step == 3 and get_var("LVM")) {
+      send_key "alt-a";    # Raw Volume
+    }
+    else {
+      send_key "alt-o";    # Operating System
+    }
     send_key $cmd{"next"};
+
     wait_idle 3;
 }
 
@@ -68,6 +74,46 @@ sub setraidlevel($) {
 
     send_key "alt-i";    # move to RAID name input field
     send_key "tab";      # skip RAID name input field
+}
+
+sub set_lvm() {
+    send_key "shift-tab";
+    # select LVM
+    send_key "down";
+
+    # create volume group
+    send_key "alt-d";
+    send_key "down";
+    send_key "ret";
+
+    assert_screen 'lvmsetupraid', 6;
+    # add all unformated lvm devices
+    send_key "alt-d";
+
+    # set volume name
+    send_key "alt-v";
+    type_string "root";
+
+    send_key $cmd{"finish"};
+
+    # create logical volume
+    send_key "alt-d";
+    send_key "down";
+    send_key "down";
+    send_key "ret";
+
+    # create normal volume with name root
+    type_string "root";
+    send_key $cmd{"next"};
+
+    # keep default
+    send_key $cmd{"next"};
+
+    send_key "alt-o";    # Operating System
+    send_key $cmd{"next"};
+
+    # keep deafult to mount as root and btrfs
+    send_key $cmd{finish};
 }
 
 sub run() {
@@ -172,6 +218,11 @@ sub run() {
     send_key $cmd{"finish"};
     wait_idle 3;
 
+    # LVM on top of raid if needed
+    if (get_var("LVM")) {
+        set_lvm();
+    }
+
     # done
     send_key $cmd{"accept"};
 
@@ -179,7 +230,13 @@ sub run() {
     if ( check_screen 'subvolumes-shadowed', 5 ) {
         send_key 'alt-y';
     }
-    assert_screen 'acceptedpartitioning', 6;
+
+    if (get_var("LVM")) {
+      assert_screen 'acceptedpartitioningraidlvm', 6;
+    }
+    else {
+      assert_screen 'acceptedpartitioning', 6;
+    }
 }
 
 
