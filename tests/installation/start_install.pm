@@ -61,6 +61,7 @@ sub run() {
         assert_screen( "inst-packageinstallationstarted", 120 );
     }
     else {
+        sleep 2;    # textmode is sometimes pressing alt-i too early
         send_key $cmd{install};
         while ( my $ret = check_screen( [qw/confirmlicense startinstall/], 5 ) ) {
             last if $ret->{needle}->has_tag("startinstall");
