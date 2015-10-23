@@ -3,7 +3,8 @@ use base 'distribution';
 
 # Base class for all openSUSE tests
 
-use testapi qw(send_key %cmd assert_screen check_screen check_var get_var type_password type_string wait_idle wait_serial mouse_hide);
+use testapi
+  qw(send_key %cmd assert_screen check_screen check_var get_var type_password type_string wait_idle wait_serial mouse_hide);
 
 sub init() {
     my ($self) = @_;
@@ -50,7 +51,7 @@ sub init_cmd() {
       bootloader b
     );
 
-    if ( check_var('INSTLANG', "de_DE") ) {
+    if ( check_var( 'INSTLANG', "de_DE" ) ) {
         $testapi::cmd{"next"}            = "alt-w";
         $testapi::cmd{"createpartsetup"} = "alt-e";
         $testapi::cmd{"custompart"}      = "alt-b";
@@ -68,10 +69,10 @@ sub init_cmd() {
         $testapi::cmd{"change"}      = "alt-n";
         $testapi::cmd{"software"}    = "w";
     }
-    if ( check_var('INSTLANG', "es_ES") ) {
+    if ( check_var( 'INSTLANG', "es_ES" ) ) {
         $testapi::cmd{"next"} = "alt-i";
     }
-    if ( check_var('INSTLANG', "fr_FR") ) {
+    if ( check_var( 'INSTLANG', "fr_FR" ) ) {
         $testapi::cmd{"next"} = "alt-s";
     }
     ## keyboard cmd vars end
@@ -79,21 +80,31 @@ sub init_cmd() {
 
 # this needs to move to the distribution
 sub x11_start_program($$$) {
-    my ($self, $program, $timeout, $options) = @_;
+    my ( $self, $program, $timeout, $options ) = @_;
+
     # enable valid option as default
     $options->{valid} //= 1;
-    send_key "alt-f2";
+    if ( get_var("DESKTOP") eq "icewm" ) {
+
+        # no desktop-runner under icewm
+        send_key "ctrl-alt-spc";
+    }
+    else {
+        send_key "alt-f2";
+    }
     mouse_hide(1);
     assert_screen("desktop-runner", $timeout);
     type_string $program;
     wait_idle 5;
     if ( $options->{terminal} ) { send_key "alt-t"; sleep 3; }
     send_key "ret", 1;
+
     # make sure desktop runner executed and closed when have had valid value
     # exec x11_start_program( $program, $timeout, { valid => 1 } );
-    if ( $options->{valid} ) {
+    if ( $options->{valid} && get_var("DESKTOP") ne "icewm" ) {
+
         # check 3 times
-        foreach my $i ( 1..3 ) {
+        foreach my $i ( 1 .. 3 ) {
             last unless check_screen "desktop-runner-border", 2;
             send_key "ret", 1;
         }
@@ -102,7 +113,7 @@ sub x11_start_program($$$) {
 
 # this needs to move to the distribution
 sub ensure_installed {
-    my ($self, @pkglist) = @_;
+    my ( $self, @pkglist ) = @_;
     my $timeout;
     if ( $pkglist[-1] =~ /^[0-9]+$/ ) {
         $timeout = $pkglist[-1];
@@ -118,7 +129,7 @@ sub ensure_installed {
     wait_serial ('chown-SUCCEEDED');
     type_string("pkcon install @pkglist; RET=\$?; echo \"\n  pkcon finished\n\"; echo \"pkcon-\${RET}-\" > /dev/$testapi::serialdev\n");
     my @tags = qw/Policykit Policykit-behind-window PolicyKit-retry PolicyKit-CapsOn pkcon-proceed-prompt/;
-    while (1) {
+while (1) {
         my $ret = check_screen(\@tags, $timeout);
         last unless $ret;
         if ( $ret->{needle}->has_tag('PolicyKit-CapsOn')) {
@@ -131,7 +142,8 @@ sub ensure_installed {
             send_key( "ret", 1 );
             @tags = grep { $_ ne 'Policykit' } @tags;
             @tags = grep { $_ ne 'Policykit-behind-window' } @tags;
-            if ( $ret->{needle}->has_tag('PolicyKit-retry')) {
+            if ( $ret->{needle}->has_tag('PolicyKit-retry') ) {
+
                 # Only a single retry is acceptable
                 @tags = grep { $_ ne 'PolicyKit-retry' } @tags;
             }
@@ -155,11 +167,11 @@ sub ensure_installed {
 }
 
 sub script_sudo($$) {
-    my ($self, $prog, $wait) = @_;
+    my ( $self, $prog, $wait ) = @_;
 
     send_key 'ctrl-l';
     type_string "su -c \'$prog\'\n";
-    if (!get_var("LIVETEST")) {
+    if ( !get_var("LIVETEST") ) {
         assert_screen 'password-prompt';
         type_password;
         send_key "ret";
@@ -170,7 +182,7 @@ sub script_sudo($$) {
 sub become_root() {
     my ($self) = @_;
 
-    $self->script_sudo('bash', 1);
+    $self->script_sudo( 'bash', 1 );
     type_string "whoami > /dev/$testapi::serialdev\n";
     wait_serial( "root", 6 ) || die "Root prompt not there";
     type_string "cd /tmp\n";
@@ -178,4 +190,5 @@ sub become_root() {
 }
 
 1;
+
 # vim: set sw=4 et:
