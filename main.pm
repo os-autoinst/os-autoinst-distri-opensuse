@@ -506,7 +506,7 @@ sub load_consoletests() {
             loadtest "console/syslinux.pm";
         }
         loadtest "console/mtab.pm";
-        if (!get_var("NOINSTALL") && !get_var("LIVETEST") && ( check_var("DESKTOP", "textmode") )) {
+        if (!get_var("NOINSTALL") && !get_var("LIVETEST") && !is_desktop && ( check_var("DESKTOP", "textmode") )) {
             loadtest "console/http_srv.pm";
             loadtest "console/mysql_srv.pm";
         }
