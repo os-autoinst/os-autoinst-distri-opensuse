@@ -21,7 +21,7 @@ sub run() {
 }
 
 sub test_flags() {
-    return { 'important' => 1 };
+    return { important => 1 };
 }
 
 1;
