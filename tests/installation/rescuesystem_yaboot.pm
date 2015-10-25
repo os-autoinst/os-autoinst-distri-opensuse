@@ -28,7 +28,7 @@ sub run {
 }
 
 sub test_flags() {
-    return { fatal => 1, important => 1 };
+    return { fatal => 1 };
 }
 
 1;
