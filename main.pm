@@ -9,15 +9,15 @@ use File::Find;
 our %valueranges = (
 
     #   LVM=>[0,1],
-    NOIMAGES           => [ 0, 1 ],
-    REBOOTAFTERINSTALL => [ 0, 1 ],
-    DOCRUN             => [ 0, 1 ],
+    NOIMAGES           => [0, 1],
+    REBOOTAFTERINSTALL => [0, 1],
+    DOCRUN             => [0, 1],
 
     #   BTRFS=>[0,1],
     DESKTOP => [qw(kde gnome xfce lxde minimalx textmode)],
 
     #   ROOTFS=>[qw(ext3 xfs jfs btrfs reiserfs)],
-    VIDEOMODE => [ "", "text" ],
+    VIDEOMODE => ["", "text"],
 );
 
 our @can_randomize = qw/NOIMAGES REBOOTAFTERINSTALL DESKTOP VIDEOMODE/;
@@ -34,35 +34,35 @@ sub setrandomenv() {
     for my $k (@can_randomize) {
         next if defined get_var("$k");
         next if $k eq "DESKTOP" && get_var("LIVECD");
-        if ( get_var("DOCRUN") ) {
+        if (get_var("DOCRUN")) {
             next if $k eq "VIDEOMODE";
             next if $k eq "NOIMAGES";
         }
-        my @range = @{ $valueranges{$k} };
-        my $rand  = int( rand( scalar @range ) );
+        my @range = @{$valueranges{$k}};
+        my $rand  = int(rand(scalar @range));
         set_var($k, $range[$rand]);
         logcurrentenv($k);
     }
 }
 
 sub check_env() {
-    for my $k ( keys %valueranges ) {
+    for my $k (keys %valueranges) {
         next unless get_var($k);
-        unless ( grep { get_var($k) eq $_ } @{ $valueranges{$k} } ) {
-            die sprintf( "%s must be one of %s\n", $k, join( ',', @{ $valueranges{$k} } ) );
+        unless (grep { get_var($k) eq $_ } @{$valueranges{$k}}) {
+            die sprintf("%s must be one of %s\n", $k, join(',', @{$valueranges{$k}}));
         }
     }
 }
 
 sub unregister_needle_tags($) {
     my $tag = shift;
-    my @a   = @{ needle::tags($tag) };
+    my @a   = @{needle::tags($tag)};
     for my $n (@a) { $n->unregister(); }
 }
 
 sub remove_desktop_needles($) {
     my $desktop = shift;
-    if ( !check_var( "DESKTOP", $desktop ) ) {
+    if (!check_var("DESKTOP", $desktop)) {
         unregister_needle_tags("ENV-DESKTOP-$desktop");
     }
 }
@@ -75,16 +75,16 @@ sub cleanup_needles() {
     remove_desktop_needles("minimalx");
     remove_desktop_needles("textmode");
 
-    if ( !get_var("LIVECD") ) {
+    if (!get_var("LIVECD")) {
         unregister_needle_tags("ENV-LIVECD-1");
     }
     else {
         unregister_needle_tags("ENV-LIVECD-0");
     }
-    if ( !check_var( "VIDEOMODE", "text" ) ) {
+    if (!check_var("VIDEOMODE", "text")) {
         unregister_needle_tags("ENV-VIDEOMODE-text");
     }
-    if ( get_var("INSTLANG") && get_var("INSTLANG") ne "en_US" ) {
+    if (get_var("INSTLANG") && get_var("INSTLANG") ne "en_US") {
         unregister_needle_tags("ENV-INSTLANG-en_US");
     }
     else {    # english default
@@ -112,7 +112,7 @@ else {
 $testapi::username = get_var("USERNAME") if get_var("USERNAME");
 $testapi::password = get_var("PASSWORD") if defined get_var("PASSWORD");
 
-if ( get_var("LIVETEST") && ( get_var("LIVECD") || get_var("PROMO") ) ) {
+if (get_var("LIVETEST") && (get_var("LIVECD") || get_var("PROMO"))) {
     $testapi::username = "linux";    # LiveCD account
     $testapi::password = "";
 }
@@ -122,25 +122,25 @@ require $distri;
 testapi::set_distribution(susedistribution->new());
 
 check_env();
-setrandomenv if ( get_var("RANDOMENV") );
+setrandomenv if (get_var("RANDOMENV"));
 
-unless ( get_var("DESKTOP") ) {
-    if ( check_var( "VIDEOMODE", "text" ) ) {
+unless (get_var("DESKTOP")) {
+    if (check_var("VIDEOMODE", "text")) {
         set_var("DESKTOP", "textmode");
     }
     else {
         set_var("DESKTOP", "kde");
     }
 }
-if ( check_var( 'DESKTOP', 'minimalx' ) ) {
+if (check_var('DESKTOP', 'minimalx')) {
     set_var("NOAUTOLOGIN", 1);
-    set_var("XDMUSED", 1);
+    set_var("XDMUSED",     1);
 }
 
 # openSUSE specific variables
 set_var("PACKAGETOINSTALL", "xdelta");
-set_var("WALLPAPER", '/usr/share/wallpapers/openSUSEdefault/contents/images/1280x1024.jpg');
-if ( !defined get_var( "YAST_SW_NO_SUMMARY" ) ) {
+set_var("WALLPAPER",        '/usr/share/wallpapers/openSUSEdefault/contents/images/1280x1024.jpg');
+if (!defined get_var("YAST_SW_NO_SUMMARY")) {
     set_var("YAST_SW_NO_SUMMARY", 1) if get_var('UPGRADE') || get_var("ZDUP");
 }
 
@@ -148,23 +148,23 @@ if ( !defined get_var( "YAST_SW_NO_SUMMARY" ) ) {
 set_var(uc(get_var('DESKTOP')), 1);
 
 # for GNOME pressing enter is enough to login bernhard
-if ( check_var( 'DESKTOP', 'minimalx' ) ) {
+if (check_var('DESKTOP', 'minimalx')) {
     set_var('DM_NEEDS_USERNAME', 1);
 }
 
 # now Plasma 5 is default KDE desktop
-if ( check_var( 'DESKTOP', 'kde' ) ) {
+if (check_var('DESKTOP', 'kde')) {
     set_var("PLASMA5", 1);
 }
 
 # ZDUP_IN_X imply ZDUP
-if ( get_var('ZDUP_IN_X')) {
+if (get_var('ZDUP_IN_X')) {
     set_var('ZDUP', 1);
 }
 
 $needle::cleanuphandler = \&cleanup_needles;
 
-bmwqemu::save_vars(); # update variables
+bmwqemu::save_vars();    # update variables
 
 # dump other important ENV:
 logcurrentenv(qw"ADDONURL BIGTEST BTRFS DESKTOP HW HWSLOT LIVETEST LVM MOZILLATEST NOINSTALL REBOOTAFTERINSTALL UPGRADE USBBOOT ZDUP ZDUPREPOS TEXTMODE DISTRI NOAUTOLOGIN QEMUCPU QEMUCPUS RAIDLEVEL ENCRYPT INSTLANG QEMUVGA DOCRUN UEFI DVD GNOME KDE ISO ISO_MAXSIZE LIVECD NETBOOT NICEVIDEO NOIMAGES PROMO QEMUVGA SPLITUSR VIDEOMODE");
@@ -212,7 +212,7 @@ sub lxdestep_is_applicable() {
 
 sub snapper_is_applicable() {
     my $fs = get_var("FILESYSTEM", 'btrfs');
-    return ( $fs eq "btrfs" && get_var("HDDSIZEGB", 10) > 10);
+    return ($fs eq "btrfs" && get_var("HDDSIZEGB", 10) > 10);
 }
 
 sub need_clear_repos() {
@@ -224,11 +224,11 @@ sub have_addn_repos() {
 }
 
 sub system_is_livesystem() {
-  return (check_var("FLAVOR", 'Rescue-CD') || get_var("LIVETEST"))
+    return (check_var("FLAVOR", 'Rescue-CD') || get_var("LIVETEST"));
 }
 
 sub is_server() {
-  return (get_var("OFW") || check_var("FLAVOR","Server-DVD"));
+    return (get_var("OFW") || check_var("FLAVOR", "Server-DVD"));
 }
 
 sub loadtest($) {
@@ -237,7 +237,7 @@ sub loadtest($) {
 }
 
 sub load_x11regresion_tests() {
-    if (( check_var("DESKTOP", "gnome") )) {
+    if ((check_var("DESKTOP", "gnome"))) {
         loadtest "x11regressions/tomboy/tomboy_Hotkeys.pm";
         loadtest "x11regressions/tomboy/tomboy_AlreadyRunning.pm";
         loadtest "x11regressions/tomboy/tomboy_TestFindFunctionalityInSearchAllNotes.pm";
@@ -268,13 +268,13 @@ sub load_x11regresion_tests() {
     }
 }
 
-sub load_login_tests(){
+sub load_login_tests() {
     if (!get_var("UEFI")) {
         loadtest "login/boot.pm";
     }
 }
 
-sub load_boot_tests(){
+sub load_boot_tests() {
     if (get_var("ISO_MAXSIZE")) {
         loadtest "installation/isosize.pm";
     }
@@ -284,7 +284,7 @@ sub load_boot_tests(){
     elsif (get_var("UEFI")) {
         loadtest "installation/bootloader_uefi.pm";
     }
-    elsif ( get_var("IPMI_HOSTNAME") ) { # abuse of variable for now
+    elsif (get_var("IPMI_HOSTNAME")) {    # abuse of variable for now
         loadtest "installation/qa_net.pm";
     }
     elsif (get_var("PXEBOOT")) {
@@ -323,19 +323,19 @@ sub load_inst_tests() {
     }
     if (noupdatestep_is_applicable) {
         loadtest "installation/partitioning.pm";
-        if ( defined( get_var("RAIDLEVEL") ) ) {
+        if (defined(get_var("RAIDLEVEL"))) {
             loadtest "installation/partitioning_raid.pm";
         }
-        elsif ( get_var("LVM") ) {
+        elsif (get_var("LVM")) {
             loadtest "installation/partitioning_lvm.pm";
         }
-        if ( get_var("FILESYSTEM") ) {
+        if (get_var("FILESYSTEM")) {
             loadtest "installation/partitioning_filesystem.pm";
         }
-        if ( get_var("TOGGLEHOME") ) {
+        if (get_var("TOGGLEHOME")) {
             loadtest "installation/partitioning_togglehome.pm";
         }
-        if ( get_var("SPLITUSR") ) {
+        if (get_var("SPLITUSR")) {
             loadtest "installation/partitioning_splitusr.pm";
         }
         loadtest "installation/partitioning_finish.pm";
@@ -351,7 +351,7 @@ sub load_inst_tests() {
     }
     if (noupdatestep_is_applicable) {
         loadtest "installation/user_settings.pm";
-        if ( get_var("DOCRUN") ) {    # root user
+        if (get_var("DOCRUN")) {    # root user
             loadtest "installation/user_settings_root.pm";
         }
     }
@@ -409,7 +409,8 @@ sub load_consoletests() {
         if (snapper_is_applicable) {
             if (get_var("UPGRADE")) {
                 loadtest "console/upgrade_snapshots.pm";
-            } else {
+            }
+            else {
                 loadtest "console/installation_snapshots.pm";
             }
         }
@@ -431,17 +432,18 @@ sub load_consoletests() {
             if (!get_var("OFW")) {
                 loadtest "console/aplay.pm";
             }
-	    # yast-lan related tests do not work when using networkmanager.
-	    # (Livesystem and laptops do use networkmanager)
+            # yast-lan related tests do not work when using networkmanager.
+            # (Livesystem and laptops do use networkmanager)
             if (!get_var("LIVETEST") && !get_var("LAPTOP")) {
                 loadtest "console/yast2_cmdline.pm";
                 loadtest "console/yast2_dns_server.pm";
                 loadtest "console/yast2_nfs_client.pm";
             }
         }
-        if(check_var('ARCH', 'x86_64') ||
-           check_var('ARCH', 'i686') ||
-           check_var('ARCH', 'i586')) {
+        if (   check_var('ARCH', 'x86_64')
+            || check_var('ARCH', 'i686')
+            || check_var('ARCH', 'i586'))
+        {
             loadtest "console/glibc_i686.pm";
         }
         loadtest "console/zypper_up.pm";
@@ -451,7 +453,7 @@ sub load_consoletests() {
             loadtest "console/yast2_bootloader.pm";
         }
         loadtest "console/sshd.pm";
-        if (!get_var("LIVETEST") && !( get_var("FLAVOR", '') =~ /^Staging2?[\-]DVD$/ )) {
+        if (!get_var("LIVETEST") && !(get_var("FLAVOR", '') =~ /^Staging2?[\-]DVD$/)) {
             # in live we don't have a password for root so ssh doesn't
             # work anyways, and except staging_core image, the rest of
             # staging_* images don't need run this test case
@@ -464,7 +466,7 @@ sub load_consoletests() {
             loadtest "console/syslinux.pm";
         }
         loadtest "console/mtab.pm";
-        if (!get_var("NOINSTALL") && !get_var("LIVETEST") && ( check_var("DESKTOP", "textmode") )) {
+        if (!get_var("NOINSTALL") && !get_var("LIVETEST") && (check_var("DESKTOP", "textmode"))) {
             loadtest "console/http_srv.pm";
             loadtest "console/mysql_srv.pm";
             if (check_var('ARCH', 'x86_64')) {
@@ -484,10 +486,10 @@ sub load_consoletests() {
     }
 }
 
-sub load_x11tests(){
+sub load_x11tests() {
     return unless (!get_var("INSTALLONLY") && get_var("DESKTOP") !~ /textmode|minimalx/ && !get_var("DUALBOOT") && !get_var("RESCUECD"));
 
-    if ( get_var("NOAUTOLOGIN") || get_var("XDMUSED") ) {
+    if (get_var("NOAUTOLOGIN") || get_var("XDMUSED")) {
         loadtest "x11/x11_login.pm";
     }
     if (xfcestep_is_applicable) {
@@ -519,7 +521,7 @@ sub load_x11tests(){
     if (get_var("MOZILLATEST")) {
         loadtest "x11/mozmill_run.pm";
     }
-    if (!( get_var("FLAVOR", '') =~ /^Staging2?[\-]DVD$/ || system_is_livesystem )) {
+    if (!(get_var("FLAVOR", '') =~ /^Staging2?[\-]DVD$/ || system_is_livesystem)) {
         loadtest "x11/chromium.pm";
         if (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64')) {
             # GOOGLE Chrome only exists for i586 and x86_64 arch
@@ -569,7 +571,7 @@ sub load_x11tests(){
     if (kdestep_is_applicable) {
         loadtest "x11/amarok.pm";
         loadtest "x11/kontact.pm";
-        if ( get_var("PLASMA5") ) {
+        if (get_var("PLASMA5")) {
             loadtest "x11/reboot_plasma5_pre.pm";
         }
         else {
@@ -587,7 +589,7 @@ sub load_x11tests(){
 
     if (xfcestep_is_applicable) {
         loadtest "x11/xfce4_appfinder.pm";
-        if (!( get_var("FLAVOR") eq 'Rescue-CD' )) {
+        if (!(get_var("FLAVOR") eq 'Rescue-CD')) {
             loadtest "x11/xfce_lightdm_logout_login.pm";
         }
     }
@@ -598,8 +600,9 @@ sub load_x11tests(){
             loadtest "x11/gimp.pm";
         }
     }
-    if (!( get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/ ) &&
-        !system_is_livesystem ) {
+    if (   !(get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/)
+        && !system_is_livesystem)
+    {
         loadtest "x11/gnucash.pm";
     }
     loadtest "x11/shutdown.pm";
@@ -618,7 +621,7 @@ sub load_applicationstests {
 sub load_skenkins_tests {
     if (get_var("SLENKINS_NODEFILE")) {
         my $node = get_var("SLENKINS_NODE");
-        if ($node && $node ne 'control' ) {
+        if ($node && $node ne 'control') {
             loadtest "slenkins/slenkins_node.pm";
         }
         else {
@@ -629,8 +632,8 @@ sub load_skenkins_tests {
     return 0;
 }
 
-sub load_autoyast_tests(){
-#    init boot in load_boot_tests
+sub load_autoyast_tests() {
+    #    init boot in load_boot_tests
     loadtest("autoyast/system.pm");
     loadtest("autoyast/console.pm");
     loadtest("autoyast/login.pm");
@@ -641,8 +644,8 @@ sub load_autoyast_tests(){
 }
 
 # load the tests in the right order
-if ( get_var("REGRESSION") ) {
-    if ( get_var("KEEPHDDS") ) {
+if (get_var("REGRESSION")) {
+    if (get_var("KEEPHDDS")) {
         load_login_tests();
     }
     else {
@@ -674,10 +677,10 @@ elsif (get_var("SYSAUTHTEST")) {
     loadtest "sysauth/sssd.pm";
 }
 elsif (get_var("SUPPORT_SERVER")) {
-     loadtest "support_server/boot.pm";
-     loadtest "support_server/login.pm";
-     loadtest "support_server/setup.pm";
-     loadtest "support_server/wait.pm";
+    loadtest "support_server/boot.pm";
+    loadtest "support_server/login.pm";
+    loadtest "support_server/setup.pm";
+    loadtest "support_server/wait.pm";
 }
 else {
     if (get_var("LIVETEST")) {

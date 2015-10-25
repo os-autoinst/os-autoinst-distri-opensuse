@@ -9,12 +9,13 @@ sub run {
 
     if (get_var('OFW')) {
         send_key_until_needlematch 'inst-rescuesystem', 'up';
-    } else {
-       send_key_until_needlematch('inst-rescuesystem', 'down', 10, 5);
+    }
+    else {
+        send_key_until_needlematch('inst-rescuesystem', 'down', 10, 5);
     }
     send_key "ret";
 
-    if ( check_screen "keyboardmap-list", 100 ) {
+    if (check_screen "keyboardmap-list", 100) {
         send_key "ret";
     }
     else {
@@ -32,7 +33,7 @@ sub run {
 }
 
 sub test_flags() {
-    return { fatal => 1 };
+    return {fatal => 1};
 }
 
 1;

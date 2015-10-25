@@ -6,13 +6,14 @@ sub add_beta_repo {
     my ($a, $repo) = @_;
     my $alias;
     if ($a ne '') {
-        $alias = 'beta-'.$a;    
-    } else {
+        $alias = 'beta-' . $a;
+    }
+    else {
         $alias = 'beta';
     }
 
-    my $script = "zypper ar -f ".get_var($repo)." ".$alias."\n";
-    validate_script_output $script, sub {m/successfully added/};
+    my $script = "zypper ar -f " . get_var($repo) . " " . $alias . "\n";
+    validate_script_output $script, sub { m/successfully added/ };
 }
 
 sub run() {
@@ -23,7 +24,7 @@ sub run() {
     add_beta_repo('', 'BETA_REPO_0');
 
     # add addon beta repo
-    if ( get_var('ADDONS') ) {
+    if (get_var('ADDONS')) {
         foreach my $a (split /,/, get_var('ADDONS')) {
             if ($a eq "sdk") {
                 type_string "clear\n";
@@ -42,7 +43,7 @@ sub run() {
 }
 
 sub test_flags {
-    return { important => 1 };
+    return {important => 1};
 }
 
 1;

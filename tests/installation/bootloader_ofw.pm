@@ -23,7 +23,8 @@ sub run() {
         if (get_var("ZDUP")) {
             send_key "down";
             send_key "ret";
-        } else {
+        }
+        else {
             # edit menu
             send_key "e";
             #wait until we get to grub edit
@@ -39,18 +40,18 @@ sub run() {
             if (check_var('VIDEOMODE', 'text')) {
                 type_string " textmode=1", 15;
             }
-            if ( get_var("NETBOOT") && get_var("SUSEMIRROR") ) {
+            if (get_var("NETBOOT") && get_var("SUSEMIRROR")) {
                 type_string " install=http://" . get_var("SUSEMIRROR"), 15;
             }
-            if ( get_var("AUTOYAST") || get_var("AUTOUPGRADE")) {
-                my $netsetup = " ifcfg=*=dhcp"; #need this instead of netsetup as default, see bsc#932692
-                $netsetup = " ".get_var("NETWORK_INIT_PARAM") if defined get_var("NETWORK_INIT_PARAM"); #e.g netsetup=dhcp,all
-                $netsetup = " netsetup=dhcp,all" if defined get_var("USE_NETSETUP"); #netsetup override for sle11
+            if (get_var("AUTOYAST") || get_var("AUTOUPGRADE")) {
+                my $netsetup = " ifcfg=*=dhcp";    #need this instead of netsetup as default, see bsc#932692
+                $netsetup = " " . get_var("NETWORK_INIT_PARAM") if defined get_var("NETWORK_INIT_PARAM");    #e.g netsetup=dhcp,all
+                $netsetup = " netsetup=dhcp,all" if defined get_var("USE_NETSETUP");                         #netsetup override for sle11
                 $args .= $netsetup;
                 $args .= " autoyast=" . data_url(get_var("AUTOYAST")) . " ";
             }
 
-            if ( get_var("AUTOUPGRADE")) {
+            if (get_var("AUTOUPGRADE")) {
                 $args .= " autoupgrade=1";
             }
 

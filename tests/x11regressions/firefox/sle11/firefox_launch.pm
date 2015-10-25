@@ -16,15 +16,15 @@ sub run() {
     mouse_hide();
     x11_start_program("firefox");
     assert_screen "start-firefox", 5;
-    if ( get_var("UPGRADE") ) { send_key "alt-d"; wait_idle; }    # dont check for updated plugins
-    if ( get_var("DESKTOP") =~ /xfce|lxde/i ) {
-        send_key "ret";                                      # confirm default browser setting popup
+    if (get_var("UPGRADE")) { send_key "alt-d"; wait_idle; }    # dont check for updated plugins
+    if (get_var("DESKTOP") =~ /xfce|lxde/i) {
+        send_key "ret";                                         # confirm default browser setting popup
         wait_idle;
     }
 
     check_screen "firefox_know-rights", 3;
     send_key "alt-k";
-    sleep 1;                                                #click know your rights
+    sleep 1;                                                    #click know your rights
     check_screen "firefox_about-rights", 3;
     send_key "ctrl-w";
     sleep 1;
@@ -32,7 +32,7 @@ sub run() {
     send_key "alt-f4";
     sleep 2;
     send_key "ret";
-    sleep 2;                                                # confirm "save&quit"
+    sleep 2;                                                    # confirm "save&quit"
 }
 
 1;

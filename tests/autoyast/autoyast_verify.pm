@@ -20,7 +20,7 @@ use lockapi;
 
 sub run {
     my $self = shift;
-    $self->result('fail'); # default result
+    $self->result('fail');    # default result
 
     #wait for supportserver if not yet ready
     my $roles_r = get_var_array('SUPPORT_SERVER_ROLES');
@@ -28,11 +28,11 @@ sub run {
         #printf("rolemutex=$role\n");#debug
         mutex_lock($role);
         mutex_unlock($role);
-    }   
-      
+    }
+
     #todo: get the ip addresses by some function (or ENV)
     my $verify_url = autoinst_url();
-    my $server_ip = '10.0.2.1';
+    my $server_ip  = '10.0.2.1';
     type_string "curl '" . $verify_url . "/data/" . get_var("AUTOYAST_VERIFY") . "' | sed -e 's|#SERVER_URL#|" . $server_ip . "|g' > verify.sh\n";
     wait_idle(90);
     type_string "chmod 755 verify.sh\n";
@@ -53,7 +53,7 @@ sub test_flags {
     # 'fatal' - whole test suite is in danger if this fails
     # 'milestone' - after this test succeeds, update 'lastgood'
     # 'important' - if this fails, set the overall state to 'fail'
-    return { fatal => 1 };
+    return {fatal => 1};
 }
 
 1;

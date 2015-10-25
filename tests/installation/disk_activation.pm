@@ -6,23 +6,23 @@ sub run {
     my $self = shift;
 
     assert_screen 'disk-activation', 15;
-    send_key 'alt-d';   # configure DASD disk
+    send_key 'alt-d';    # configure DASD disk
     assert_screen 'dasd-disk-management';
-    send_key 'alt-m';   # minimum channel ID
+    send_key 'alt-m';    # minimum channel ID
     type_string '0.0.0150';
-    send_key 'alt-x';   # maximum channel ID
+    send_key 'alt-x';    # maximum channel ID
     type_string '0.0.0150';
-    send_key 'alt-f';   # filter button
+    send_key 'alt-f';    # filter button
     assert_screen 'dasd-unselected';
-    send_key 'alt-s';   # select all
+    send_key 'alt-s';    # select all
     assert_screen 'dasd-selected';
-    send_key 'alt-a';   # perform action button
+    send_key 'alt-a';    # perform action button
     assert_screen 'action-list';
-    send_key 'a';       # activate
+    send_key 'a';        # activate
 
     if (check_screen 'dasd-format-device') {    # format device pop-up
-        send_key 'alt-o';   # continue
-        while (check_screen 'process-format') { # format progress
+        send_key 'alt-o';                          # continue
+        while (check_screen 'process-format') {    # format progress
             printf "formating ...\n";
             sleep 20;
         }
@@ -47,10 +47,10 @@ sub run {
     #}
     sleep 5;
     assert_screen 'dasd-active';
-    send_key 'alt-n';   # next
+    send_key 'alt-n';    # next
     sleep 5;
     assert_screen 'disk-activation', 15;
-    send_key 'alt-n';   # next
+    send_key 'alt-n';    # next
     sleep 5;
 }
 

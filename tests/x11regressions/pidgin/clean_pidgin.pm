@@ -4,7 +4,7 @@ use testapi;
 
 # Cleaning for testing pidgin
 sub remove_pkg() {
-    my $self = shift;
+    my $self     = shift;
     my @packages = qw/pidgin pidgin-otr/;
     x11_start_program("xterm");
 

@@ -3,9 +3,9 @@ use base "x11test";
 use testapi;
 
 sub start_firefox() {
-    x11_start_program("firefox https://html5test.com/index.html", 6, { valid => 1 } );
+    x11_start_program("firefox https://html5test.com/index.html", 6, {valid => 1});
     # workaround for reader view , it grabed the focus than mainwindow
-    if ( check_screen('firefox_readerview_window', 30) ) {
+    if (check_screen('firefox_readerview_window', 30)) {
         assert_and_click 'firefox_readerview_window';
     }
     assert_screen 'test-firefox-1', 35;
@@ -26,8 +26,8 @@ sub run() {
 
     send_key "alt-f4";
     if (check_screen('firefox-save-and-quit', 4)) {
-       # confirm "save&quit"
-       send_key "ret";
+        # confirm "save&quit"
+        send_key "ret";
     }
 }
 

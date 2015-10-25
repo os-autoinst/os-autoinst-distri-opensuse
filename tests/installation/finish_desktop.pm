@@ -10,14 +10,14 @@ sub run() {
     assert_screen "generic-desktop", $timeout;
 
     ## duplicated from second stage, combine!
-    if ( check_var( 'DESKTOP', 'kde' ) ) {
+    if (check_var('DESKTOP', 'kde')) {
         send_key "esc";
         assert_screen "generic-desktop", 25;
     }
 }
 
 sub test_flags() {
-    return { fatal => 1 };
+    return {fatal => 1};
 }
 
 sub post_fail_hook() {

@@ -7,24 +7,26 @@ use testapi;
 
 # Assert if the dns service is running or stopped
 sub assert_running() {
-    my $self = shift;
+    my $self    = shift;
     my $running = shift;
 
     if ($running) {
         assert_script_run 'systemctl is-active named | grep -E "^active"';
-    } else {
+    }
+    else {
         assert_script_run 'systemctl is-active named | grep -E "^(inactive|unknown)"';
     }
 }
 
 # Assert if the dns service is enabled or disabled
 sub assert_enabled() {
-    my $self = shift;
+    my $self    = shift;
     my $enabled = shift;
 
     if ($enabled) {
         assert_script_run 'systemctl is-enabled named | grep enabled';
-    } else {
+    }
+    else {
         assert_script_run 'systemctl is-enabled named | grep disabled';
     }
 }
@@ -32,7 +34,7 @@ sub assert_enabled() {
 sub run() {
     my $self = shift;
 
-    # 
+    #
     # Preparation
     #
     become_root;

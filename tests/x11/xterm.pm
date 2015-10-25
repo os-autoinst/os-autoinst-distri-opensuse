@@ -7,9 +7,9 @@ sub run() {
     x11_start_program("xterm");
     sleep 2;
     type_string "cd\n";
-    sleep 1;             # go to $HOME (for KDE)
+    sleep 1;              # go to $HOME (for KDE)
     send_key "ctrl-l";    # clear
-    for ( 1 .. 13 ) { send_key "ret" }
+    for (1 .. 13) { send_key "ret" }
     type_string "echo If you can see this text xterm is working.\n";
     sleep 2;
     assert_screen 'test-xterm-1', 3;

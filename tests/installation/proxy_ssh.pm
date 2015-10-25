@@ -4,7 +4,7 @@ use testapi;
 
 sub startsshinstall($) {
     my ($nodenum) = @_;
-    my $nodeip = 5+$nodenum;
+    my $nodeip = 5 + $nodenum;
     type_string "ssh 10.0.2.1$nodeip -l root\n";
     sleep 10;
     type_string "yes\n";
@@ -17,7 +17,7 @@ sub startsshinstall($) {
 
 sub run() {
     assert_screen 'proxy-terminator-clean';
-    startsshinstall "1"; # only need one VM now
+    startsshinstall "1";    # only need one VM now
 }
 
 1;

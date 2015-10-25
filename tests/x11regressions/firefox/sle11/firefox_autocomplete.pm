@@ -22,13 +22,13 @@ sub run() {
     # Launch firefox
     x11_start_program("firefox");
     assert_screen "start-firefox", 5;
-    if ( get_var("UPGRADE") ) { send_key "alt-d"; wait_idle; }    # Don't check for updated plugins
-    if ( get_var("DESKTOP") =~ /xfce|lxde/i ) {
-        send_key "ret";                                      # Confirm default browser setting popup
+    if (get_var("UPGRADE")) { send_key "alt-d"; wait_idle; }    # Don't check for updated plugins
+    if (get_var("DESKTOP") =~ /xfce|lxde/i) {
+        send_key "ret";                                         # Confirm default browser setting popup
         wait_idle;
     }
     send_key "alt-f10";
-    sleep 1;                                                # Maximize
+    sleep 1;                                                    # Maximize
 
     # Open testing webpage for autocomplete
     send_key "f6";
@@ -38,12 +38,12 @@ sub run() {
 
     send_key "tab";
     send_key "tab";
-    sleep 1;                                                # Focus to Username input field
+    sleep 1;                                                    # Focus to Username input field
     type_string "suse-test";
     send_key "tab";
-    sleep 1;                                                # Password field
+    sleep 1;                                                    # Password field
     type_string "testpassword";
-    send_key "tab";                                          # "Standard Submit" button
+    send_key "tab";                                             # "Standard Submit" button
     send_key "ret";
     sleep 3;
 
@@ -51,12 +51,12 @@ sub run() {
 
     send_key "alt-r";
     send_key "alt-r";
-    send_key "ret";                                          #Remember Password
+    send_key "ret";                                             #Remember Password
     sleep 5;
     send_key "alt-f4";
-    sleep 1;                                                #Close browser
+    sleep 1;                                                    #Close browser
     send_key "ret";
-    sleep 2;                                                # confirm "save&quit"
+    sleep 2;                                                    # confirm "save&quit"
 
     #Launch firefox again
     x11_start_program("firefox");
@@ -67,8 +67,8 @@ sub run() {
     check_screen "firefox_autocomplete-testpage_filled", 5;
 
     # Restore and close firefox
-    x11_start_program("killall -9 firefox");                # Exit firefox
-    x11_start_program("rm -rf .mozilla");                   # Clear profile directory
+    x11_start_program("killall -9 firefox");                    # Exit firefox
+    x11_start_program("rm -rf .mozilla");                       # Clear profile directory
     sleep 2;
 }
 

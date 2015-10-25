@@ -10,29 +10,29 @@ sub run() {
     # Clean and Start Firefox
     x11_start_program("xterm -e \"killall -9 firefox;rm -rf .moz*\"");
     x11_start_program("firefox");
-    assert_screen('firefox-launch',45);
+    assert_screen('firefox-launch', 45);
 
     # html
     send_key "alt-d";
     type_string "/usr/share/w3m/w3mhelp.html\n";
-    assert_screen('firefox-local_files-html',30);
+    assert_screen('firefox-local_files-html', 30);
 
     # wav
     send_key "alt-d";
     type_string "/usr/share/sounds/alsa/test.wav\n";
-    assert_screen('firefox-local_files-wav',30);
+    assert_screen('firefox-local_files-wav', 30);
 
     # so
     send_key "alt-d";
     type_string "/usr/lib/libnss3.so\n";
-    assert_screen('firefox-local_files-so',30);
+    assert_screen('firefox-local_files-so', 30);
     send_key "esc";
 
     # Exit
     send_key "alt-f4";
     if (check_screen('firefox-save-and-quit', 4)) {
-       # confirm "save&quit"
-       send_key "ret";
+        # confirm "save&quit"
+        send_key "ret";
     }
 }
 1;

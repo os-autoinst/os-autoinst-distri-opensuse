@@ -12,12 +12,12 @@ sub run() {
     my @tags = qw/rebootnow/;
     if (get_var("UPGRADE")) {
         push(@tags, "ERROR-removing-package");
-        $timeout = 5500; # upgrades are slower
+        $timeout = 5500;    # upgrades are slower
     }
     while (1) {
         my $ret = assert_screen \@tags, $timeout;
 
-        if ( $ret->{needle}->has_tag("popup-warning") ) {
+        if ($ret->{needle}->has_tag("popup-warning")) {
             record_soft_failure;
             bmwqemu::diag "warning popup caused dent";
             send_key "ret";
@@ -25,7 +25,7 @@ sub run() {
             next;
         }
         # can happen multiple times
-        if ( $ret->{needle}->has_tag("ERROR-removing-package") ) {
+        if ($ret->{needle}->has_tag("ERROR-removing-package")) {
             record_soft_failure;
             send_key 'alt-d';
             assert_screen 'ERROR-removing-package-details';
@@ -36,33 +36,34 @@ sub run() {
         }
         last;
     }
-    
-    send_key 'alt-s'; # Stop the reboot countdown
-    
+
+    send_key 'alt-s';    # Stop the reboot countdown
+
     send_key "ctrl-alt-f2";
-    if ( get_var("LIVECD") ) {
+    if (get_var("LIVECD")) {
         # LIVE CDa do not run inst-consoles as started by inst-linux (it's regular live run, auto-starting yast live installer)
         assert_screen "text-login", 10;
         # login as root, who does not have a password on Live-CDs
         type_string "root\n";
         sleep 1;
-    } else {
-      assert_screen "inst-console";
+    }
+    else {
+        assert_screen "inst-console";
     }
 
     $self->get_ip_address();
     $self->save_upload_y2logs();
 
     if (check_var('VIDEOMODE', 'text')) {
-        send_key 'ctrl-alt-f1'; # get back to YaST
+        send_key 'ctrl-alt-f1';    # get back to YaST
     }
     else {
-        send_key 'ctrl-alt-f7'; # get back to YaST
+        send_key 'ctrl-alt-f7';    # get back to YaST
     }
-    
+
     assert_screen 'rebootnow';
 
-    if ( get_var("LIVECD") ) {
+    if (get_var("LIVECD")) {
 
         # LiveCD needs confirmation for reboot
         send_key $cmd{"rebootnow"};
@@ -73,8 +74,8 @@ sub run() {
         }
         send_key 'alt-o';
         if (check_var('BACKEND', 's390x')) {
-                deactivate_console("installation"); #Not sure if this is the right place, but this is the last time s390x needs the UI
-                select_console('bootloader');
+            deactivate_console("installation");    #Not sure if this is the right place, but this is the last time s390x needs the UI
+            select_console('bootloader');
         }
     }
 
@@ -111,8 +112,8 @@ sub run() {
     # pass and still perform the boot; so we want a value short enough to not wait forever if grub does not appear,
     # yet long enough to make sense to even have the test.
     my $ret = check_screen "grub2", 30;
-    if ( defined($ret) ) {
-        if ( get_var("XEN") ) {
+    if (defined($ret)) {
+        if (get_var("XEN")) {
             send_key_until_needlematch("bootmenu-xen-kernel", 'down', 10, 5);
         }
         send_key "ret";    # avoid timeout for booting to HDD

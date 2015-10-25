@@ -24,14 +24,14 @@ use ttylogin;
 sub run {
     my $self = shift;
 
-    ttylogin ('4', "root");
+    ttylogin('4', "root");
 
     configure_default_gateway;
     configure_static_ip('10.0.2.1/24');
     configure_static_dns(get_host_resolv_conf());
 
     my $ip_num = 15;
-    my $conf = "";
+    my $conf   = "";
     open(FH, '<', get_var('CASEDIR') . "/data/slenkins/" . get_var('SLENKINS_NODEFILE'));
     my $name;
     my @nodes;
@@ -166,7 +166,7 @@ sub test_flags {
     # 'fatal' - whole test suite is in danger if this fails
     # 'milestone' - after this test succeeds, update 'lastgood'
     # 'important' - if this fails, set the overall state to 'fail'
-    return { fatal => 1 };
+    return {fatal => 1};
 }
 
 1;

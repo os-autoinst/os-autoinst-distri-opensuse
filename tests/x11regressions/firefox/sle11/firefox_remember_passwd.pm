@@ -21,9 +21,9 @@ sub run() {
     mouse_hide();
     x11_start_program("firefox");
     assert_screen "start-firefox", 5;
-    if ( get_var("UPGRADE") ) { send_key "alt-d"; wait_idle; }    # dont check for updated plugins
-    if ( get_var("DESKTOP") =~ /xfce|lxde/i ) {
-        send_key "ret";                                      # confirm default browser setting popup
+    if (get_var("UPGRADE")) { send_key "alt-d"; wait_idle; }    # dont check for updated plugins
+    if (get_var("DESKTOP") =~ /xfce|lxde/i) {
+        send_key "ret";                                         # confirm default browser setting popup
         wait_idle;
     }
 
@@ -36,20 +36,20 @@ sub run() {
     sleep 1;
     send_key "n";
     sleep 1;
-    for ( 1 .. 3 ) {    #select the "Security" tab of Preference
+    for (1 .. 3) {    #select the "Security" tab of Preference
         send_key "left";
         sleep 1;
     }
     send_key "alt-u";
-    sleep 1;            #choose "Use a master password"
+    sleep 1;          #choose "Use a master password"
     type_string $master_passwd;
     sleep 1;
     send_key "tab";
-    sleep 1;            #re-enter password
+    sleep 1;          #re-enter password
     type_string $master_passwd. "\n";
     sleep 1;
     send_key "ret";
-    sleep 1;            #"Password Change Succeeded" diag
+    sleep 1;          #"Password Change Succeeded" diag
     send_key "esc";
     sleep 1;
 
@@ -79,13 +79,13 @@ sub run() {
     sleep 1;    #open the "Saved Passwords" diag
     check_screen "firefox_saved-passowrds", 5;    #check if the passwd is saved
     send_key "alt-c";
-    sleep 1;                                        #close the dialog
+    sleep 1;                                      #close the dialog
     send_key "esc";
     sleep 1;
     send_key "alt-f4";
-    sleep 2;                                        #quit firefox and then re-launch
+    sleep 2;                                      #quit firefox and then re-launch
     send_key "ret";
-    sleep 2;                                        # confirm "save&quit"
+    sleep 2;                                      # confirm "save&quit"
 
     #re-open firefox and login the calendar
     x11_start_program("firefox");
@@ -94,7 +94,7 @@ sub run() {
     send_key "ctrl-shift-delete";
     sleep 1;
     send_key "shift-tab";
-    sleep 1;                                        #select clear now
+    sleep 1;                                      #select clear now
     send_key "ret";
     sleep 1;
 
@@ -134,7 +134,7 @@ sub run() {
     send_key "n";
     sleep 1;
 
-    for ( 1 .. 3 ) {    #switch the tab from "Security" to "General"
+    for (1 .. 3) {    #switch the tab from "Security" to "General"
         send_key "right";
         sleep 1;
     }
@@ -144,7 +144,7 @@ sub run() {
     send_key "alt-f4";
     sleep 2;
     send_key "ret";
-    sleep 2;            # confirm "save&quit"
+    sleep 2;          # confirm "save&quit"
 }
 
 1;

@@ -10,15 +10,15 @@ use registration;
 sub run() {
     my ($self) = @_;
 
-    if ( get_var("IPXE") ) {
+    if (get_var("IPXE")) {
         sleep 60;
         return;
     }
-    if ( get_var("USBBOOT") ) {
+    if (get_var("USBBOOT")) {
         assert_screen "boot-menu", 1;
         send_key "f12";
         assert_screen "boot-menu-usb", 4;
-        send_key( 2 + get_var("NUMDISKS") );
+        send_key(2 + get_var("NUMDISKS"));
     }
 
     assert_screen "inst-bootmenu", 15;
@@ -27,7 +27,7 @@ sub run() {
         return;
     }
 
-    if ( get_var("BOOT_HDD_IMAGE") ) {
+    if (get_var("BOOT_HDD_IMAGE")) {
         send_key "ret";    # boot from hd
         return;
     }
@@ -37,17 +37,17 @@ sub run() {
         send_key_until_needlematch('inst-onupgrade', 'down', 10, 5);
     }
     else {
-        if ( get_var("PROMO") || get_var('LIVETEST') ) {
+        if (get_var("PROMO") || get_var('LIVETEST')) {
             send_key_until_needlematch("inst-live-" . get_var("DESKTOP"), 'down', 10, 5);
         }
-        elsif ( ! get_var("JEOS") ) {
+        elsif (!get_var("JEOS")) {
             send_key_until_needlematch('inst-oninstallation', 'down', 10, 5);
         }
     }
 
-    if ( check_var( 'VIDEOMODE', "text" ) ) {
+    if (check_var('VIDEOMODE', "text")) {
         send_key "f3";
-        for ( 1 .. 2 ) {
+        for (1 .. 2) {
             send_key "up";
         }
         assert_screen "inst-textselected", 5;
@@ -60,12 +60,12 @@ sub run() {
     type_string "video=1024x768-16 ", 13;
 
     assert_screen "inst-video-typed", 13;
-    if ( !get_var("NICEVIDEO") ) {
-        type_string "plymouth.ignore-serial-consoles ", 4; # make plymouth go graphical
-        type_string "linuxrc.log=$serialdev ", 4;    #to get linuxrc logs in serial
-        type_string "console=$serialdev ", 4;    # to get crash dumps as text
-        type_string "console=tty ",   4;    # to get crash dumps as text
-        assert_screen "inst-consolesettingstyped", 30;
+    if (!get_var("NICEVIDEO")) {
+        type_string "plymouth.ignore-serial-consoles ", 4;    # make plymouth go graphical
+        type_string "linuxrc.log=$serialdev ",          4;    #to get linuxrc logs in serial
+        type_string "console=$serialdev ",              4;    # to get crash dumps as text
+        type_string "console=tty ",                     4;    # to get crash dumps as text
+        assert_screen "inst-consolesettingstyped",      30;
         my $e = get_var("EXTRABOOTPARAMS");
         if ($e) {
             type_string "$e ", 4;
@@ -74,59 +74,59 @@ sub run() {
     }
 
     # set HTTP-source to not use factory-snapshot
-    if ( get_var("NETBOOT") ) {
+    if (get_var("NETBOOT")) {
         send_key "f4";
         assert_screen "inst-instsourcemenu", 4;
         # select a net installation source (http, ftp, nfs, smb) by using send_key_until_needlematch
         send_key_until_needlematch 'inst-instsourcemenu-' . get_var('INSTALL_SOURCE', 'http'), 'down';
         send_key "ret";
         assert_screen "inst-instsourcedialog-" . get_var('INSTALL_SOURCE', 'http'), 4;
-        
+
         my $mirroraddr = "";
         my $mirrorpath = "/factory";
-        if ( get_var("SUSEMIRROR", '') =~ m{^([a-zA-Z0-9.-]*)(/.*)$} ){
-            ( $mirroraddr, $mirrorpath ) = ( $1, $2 );
+        if (get_var("SUSEMIRROR", '') =~ m{^([a-zA-Z0-9.-]*)(/.*)$}) {
+            ($mirroraddr, $mirrorpath) = ($1, $2);
         }
 
         #download.opensuse.org
         if ($mirroraddr) {
-            for ( 1 .. 22 ) { send_key "backspace" }
+            for (1 .. 22) { send_key "backspace" }
             type_string $mirroraddr, 4;
         }
         send_key "tab";
 
         # smb share dir
-        if ( check_var('INSTALL_SOURCE', "smb") ) {
-            for ( 1 .. 10 ) { send_key "backspace" }
-            type_string  get_var("SHARE_NAME");
+        if (check_var('INSTALL_SOURCE', "smb")) {
+            for (1 .. 10) { send_key "backspace" }
+            type_string get_var("SHARE_NAME");
             send_key "tab";
         }
 
         # change dir
         # leave /repo/oss/ (10 chars)
-        if ( get_var("FULLURL") ) {
-            for ( 1 .. 10 ) { send_key "backspace" }
+        if (get_var("FULLURL")) {
+            for (1 .. 10) { send_key "backspace" }
         }
         else {
-            for ( 1 .. 10 ) { send_key "left"; }
+            for (1 .. 10) { send_key "left"; }
         }
-        for ( 1 .. 22 ) { send_key "backspace"; }
+        for (1 .. 22) { send_key "backspace"; }
 
         # nfs directory prefix
-        if ( check_var('INSTALL_SOURCE', "nfs") && get_var("DIR_PREFIX") ) {
-            $mirrorpath = get_var("DIR_PREFIX").$mirrorpath;
+        if (check_var('INSTALL_SOURCE', "nfs") && get_var("DIR_PREFIX")) {
+            $mirrorpath = get_var("DIR_PREFIX") . $mirrorpath;
         }
-        # add a interval to prevent typo 
+        # add a interval to prevent typo
         type_string $mirrorpath, 4;
 
         assert_screen "inst-mirror_is_setup", 2;
         send_key "ret";
 
         # HTTP-proxy
-        if ( get_var("HTTPPROXY", '') =~ m/([0-9.]+):(\d+)/ ) {
-            my ( $proxyhost, $proxyport ) = ( $1, $2 );
+        if (get_var("HTTPPROXY", '') =~ m/([0-9.]+):(\d+)/) {
+            my ($proxyhost, $proxyport) = ($1, $2);
             send_key "f4";
-            for ( 1 .. 4 ) {
+            for (1 .. 4) {
                 send_key "down";
             }
             send_key "ret";
@@ -142,7 +142,7 @@ sub run() {
     }
 
     # set language last so that above typing will not depend on keyboard layout
-    if ( get_var("INSTLANG") ) {
+    if (get_var("INSTLANG")) {
 
         # positions in isolinux language selection ; order matters
         # from cpio -i --to-stdout languages < /mnt/boot/*/loader/bootlogo
@@ -212,15 +212,15 @@ sub run() {
         );
         my $n;
         my %isolinuxlangmap = map { lc($_) => $n++ } @isolinuxlangmap;
-        $n = $isolinuxlangmap{ lc( get_var("INSTLANG") ) };
+        $n = $isolinuxlangmap{lc(get_var("INSTLANG"))};
         my $en_us = $isolinuxlangmap{en_us};
 
-        if ( $n && $n != $en_us ) {
+        if ($n && $n != $en_us) {
             $n -= $en_us;
             send_key "f2";
             assert_screen "inst-languagemenu", 6;
-            for ( 1 .. abs($n) ) {
-                send_key( $n < 0 ? "up" : "down" );
+            for (1 .. abs($n)) {
+                send_key($n < 0 ? "up" : "down");
             }
 
             # TODO: add needles for some often tested
@@ -230,15 +230,15 @@ sub run() {
     }
 
     my $args = "";
-    if ( get_var("AUTOYAST") || get_var("AUTOUPGRADE")) {
-        my $netsetup = " ifcfg=*=dhcp"; #need this instead of netsetup as default, see bsc#932692
-        $netsetup = " ".get_var("NETWORK_INIT_PARAM") if defined get_var("NETWORK_INIT_PARAM"); #e.g netsetup=dhcp,all
-        $netsetup = " netsetup=dhcp,all" if defined get_var("USE_NETSETUP"); #netsetup override for sle11
+    if (get_var("AUTOYAST") || get_var("AUTOUPGRADE")) {
+        my $netsetup = " ifcfg=*=dhcp";    #need this instead of netsetup as default, see bsc#932692
+        $netsetup = " " . get_var("NETWORK_INIT_PARAM") if defined get_var("NETWORK_INIT_PARAM");    #e.g netsetup=dhcp,all
+        $netsetup = " netsetup=dhcp,all" if defined get_var("USE_NETSETUP");                         #netsetup override for sle11
         $args .= $netsetup;
         $args .= " autoyast=" . data_url(get_var("AUTOYAST")) . " ";
     }
 
-    if ( get_var("AUTOUPGRADE")) {
+    if (get_var("AUTOUPGRADE")) {
         $args .= " autoupgrade=1";
     }
 

@@ -2,25 +2,25 @@ use base "opensusebasetest";    # use opensusebasetest to avoid fatal flag
 use strict;
 use testapi;
 
-sub run(){
+sub run() {
 
     my @addons = split(/,/, get_var('ADDONS', ''));
     if (check_var('SCC_REGISTER', 'installation')) {
-       push @addons, split(/,/, get_var('SCC_ADDONS', ''));
+        push @addons, split(/,/, get_var('SCC_ADDONS', ''));
     }
     if (@addons) {
         if (check_var('VIDEOMODE', 'text')) {
-            send_key "alt-l";   # open release notes window
-            send_key 'alt-s';   # select SLES SP1 release notes
-            assert_screen 'release-notes-sle';  # SLE release notes
+            send_key "alt-l";                     # open release notes window
+            send_key 'alt-s';                     # select SLES SP1 release notes
+            assert_screen 'release-notes-sle';    # SLE release notes
         }
         else {
             assert_and_click 'release-notes-button';    # open release notes window
             assert_and_click 'release-notes-tab';       # click on first SLES tab
-            send_key_until_needlematch("release-notes-sle", 'right'); # tab not visible with three add-ons
+            send_key_until_needlematch("release-notes-sle", 'right');    # tab not visible with three add-ons
         }
         for $a (@addons) {
-            send_key 'left';    # move to first tab
+            send_key 'left';                                             # move to first tab
             send_key 'left';
             send_key 'left';
             send_key 'left';
@@ -29,12 +29,12 @@ sub run(){
     }
     else {
         if (check_var('VIDEOMODE', 'text')) {
-            send_key "alt-l";   # open release notes window
+            send_key "alt-l";                                            # open release notes window
         }
         else {
-            assert_and_click 'release-notes-button';    # open release notes window
+            assert_and_click 'release-notes-button';                     # open release notes window
         }
-        assert_screen 'release-notes-sle';  # SLE release notes
+        assert_screen 'release-notes-sle';                               # SLE release notes
     }
     # exit release notes window
     if (check_var('VIDEOMODE', 'text')) {
@@ -44,7 +44,7 @@ sub run(){
         send_key 'alt-c';
     }
     if (!get_var("UPGRADE")) {
-        send_key 'alt-e';   # select timezone region as previously selected
+        send_key 'alt-e';                                                # select timezone region as previously selected
     }
 }
 

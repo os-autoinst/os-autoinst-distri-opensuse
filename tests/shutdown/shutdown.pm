@@ -21,13 +21,13 @@ use ttylogin;
 
 sub run {
 
-    ttylogin ('4', "root");
+    ttylogin('4', "root");
     type_string "poweroff\n";
     assert_shutdown;
 }
 
 sub test_flags {
-    return { fatal => 1 };
+    return {fatal => 1};
 }
 
 1;

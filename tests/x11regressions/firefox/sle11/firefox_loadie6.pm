@@ -18,9 +18,9 @@ sub run() {
     mouse_hide();
     x11_start_program("firefox");
     assert_screen "start-firefox", 5;
-    if ( get_var("UPGRADE") ) { send_key "alt-d"; wait_idle; }    # dont check for updated plugins
-    if ( get_var("DESKTOP") =~ /xfce|lxde/i ) {
-        send_key "ret";                                      # confirm default browser setting popup
+    if (get_var("UPGRADE")) { send_key "alt-d"; wait_idle; }    # dont check for updated plugins
+    if (get_var("DESKTOP") =~ /xfce|lxde/i) {
+        send_key "ret";                                         # confirm default browser setting popup
         wait_idle;
     }
 
@@ -28,10 +28,10 @@ sub run() {
     send_key "ctrl-l";
     sleep 1;
     type_string $addon. "\n";
-    sleep 18;                                               #download addon need a long time
-    check_screen "firefox_addon-unmht", 8;                #wait for the install button
+    sleep 18;                                                   #download addon need a long time
+    check_screen "firefox_addon-unmht", 8;                      #wait for the install button
     send_key "ret";
-    sleep 1;                                                #install
+    sleep 1;                                                    #install
 
     #open ie6 mht file
     send_key "alt-e";
@@ -41,7 +41,7 @@ sub run() {
     send_key "ctrl-l";
     sleep 1;
     type_string $ie6url. "\n";
-    sleep 25;                                               #the file need a long time to load
+    sleep 25;                                                   #the file need a long time to load
     check_screen "firefox_page-ie6", 20;
     sleep 3;
 

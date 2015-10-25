@@ -9,7 +9,7 @@ sub run() {
     type_string "PS1=\"# \"\n";
     # non-NET installs have only milestone repo, which might be incompatible.
     my $repourl = 'http://' . get_var("SUSEMIRROR");
-    unless ( get_var("FULLURL") ) {
+    unless (get_var("FULLURL")) {
         $repourl = $repourl . "/repo/oss";
     }
     type_string "zypper ar -c $repourl Factory; echo zypper-ar-done-\$? > /dev/$serialdev\n";
@@ -21,7 +21,7 @@ sub run() {
 }
 
 sub test_flags() {
-    return { important => 1, };
+    return {important => 1,};
 }
 
 1;

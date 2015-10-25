@@ -14,7 +14,7 @@ sub run() {
     assert_screen 'evince-rotate-right', 5;
     send_key "ctrl-left";
 
-    send_key "ctrl-+";    # zoom in
+    send_key "ctrl-+";        # zoom in
     assert_screen 'evince-zoom-in', 5;
 
     for (1 .. 2) {

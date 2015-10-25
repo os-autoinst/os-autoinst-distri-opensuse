@@ -7,7 +7,7 @@ sub run() {
     my $self = shift;
 
     assert_screen "inst-rootpassword", 6;
-    for ( 1 .. 2 ) {
+    for (1 .. 2) {
         type_string "$password\t";
         sleep 1;
     }
@@ -16,10 +16,10 @@ sub run() {
 
     # PW too easy (cracklib)
     # If check_screen added to workaround bsc#937012
-    if ( check_screen ('inst-userpasswdtoosimple', 13) ) { 
-        send_key "ret"; 
+    if (check_screen('inst-userpasswdtoosimple', 13)) {
+        send_key "ret";
     }
-    else {    
+    else {
         record_soft_failure;
     }
 }

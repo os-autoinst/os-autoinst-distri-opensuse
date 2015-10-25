@@ -17,7 +17,7 @@ sub run() {
     # check the status
     script_run "/etc/init.d/postgresql status > /dev/$serialdev";
     die "postgresql94 server status failed" unless wait_serial "running", 200;
-    
+
     script_run "exit";
 }
 

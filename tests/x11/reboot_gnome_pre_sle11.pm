@@ -5,19 +5,19 @@ sub run() {
     my $self = shift;
 
     wait_idle;
-    send_key "alt-f1"; # applicationsmenu
+    send_key "alt-f1";    # applicationsmenu
     my $selected = check_screen 'shutdown_button', 0;
     if (!$selected) {
-        send_key_until_needlematch 'shutdown_button', 'tab', 20; # press tab till is shutdown button selected
+        send_key_until_needlematch 'shutdown_button', 'tab', 20;    # press tab till is shutdown button selected
     }
 
-    send_key "ret"; # press shutdown button
+    send_key "ret";                                                 # press shutdown button
     assert_screen "logoutdialog", 15;
     send_key "tab";
     my $ret;
     for (my $counter = 10; $counter > 0; $counter--) {
         $ret = check_screen "logoutdialog-reboot-highlighted", 3;
-        if ( defined($ret) ) {
+        if (defined($ret)) {
             last;
         }
         else {
@@ -25,10 +25,10 @@ sub run() {
         }
     }
     # report the failure or green
-    unless ( defined($ret) ) {
+    unless (defined($ret)) {
         assert_screen "logoutdialog-reboot-highlighted", 1;
     }
-    send_key "ret";                # confirm
+    send_key "ret";    # confirm
 
     if (get_var("SHUTDOWN_NEEDS_AUTH")) {
         assert_screen 'reboot-auth', 15;
@@ -40,7 +40,7 @@ sub run() {
 }
 
 sub test_flags() {
-    return { important => 1 };
+    return {important => 1};
 }
 1;
 

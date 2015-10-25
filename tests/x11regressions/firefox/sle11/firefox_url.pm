@@ -21,12 +21,12 @@ sub run() {
     mouse_hide();
     x11_start_program("firefox");
     assert_screen "start-firefox", 5;
-    if ( get_var("UPGRADE") ) { send_key "alt-d"; wait_idle; }    # Don't check for updated plugins
-    if ( get_var("DESKTOP") =~ /xfce|lxde/i ) {
-        send_key "ret";                                      # Confirm default browser setting popup
+    if (get_var("UPGRADE")) { send_key "alt-d"; wait_idle; }    # Don't check for updated plugins
+    if (get_var("DESKTOP") =~ /xfce|lxde/i) {
+        send_key "ret";                                         # Confirm default browser setting popup
         wait_idle;
     }
-    send_key "alt-f10";                                      # Maximize
+    send_key "alt-f10";                                         # Maximize
 
     # Open the following URL's in firefox and navigate a few links on each site.
 
@@ -55,7 +55,7 @@ sub run() {
     send_key "tab";
     send_key "tab";    #remove the focus from input box
     send_key "apostrophe";
-    sleep 2;          #open quick find (links only)
+    sleep 2;           #open quick find (links only)
     type_string "Deutsch\n";
     sleep 7;
     check_screen "test-firefox_url-wikipedia-2", 5;
@@ -71,7 +71,7 @@ sub run() {
 
     # Switch to "SIGN IN", enter the link
     send_key "apostrophe";
-    sleep 2;          #open quick find (links only)
+    sleep 2;           #open quick find (links only)
     type_string "sign in\n";
     sleep 7;
     check_screen "test-firefox_url-googlemaps-2", 5;
@@ -79,7 +79,7 @@ sub run() {
     # Restore and close firefox
     send_key "alt-f4";
     sleep 1;                                 # Exit firefox
-    send_key "ret";                           # Confirm "save&quit"
+    send_key "ret";                          # Confirm "save&quit"
     x11_start_program("rm -rf .mozilla");    # Clear profile directory
     sleep 2;
 

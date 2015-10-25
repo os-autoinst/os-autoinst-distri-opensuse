@@ -14,14 +14,14 @@ sub run() {
     script_run 'mkdir llvm-3.6.2.src/tools/clang';
     script_run 'mv cfe-3.6.2.src/* llvm-3.6.2.src/tools/clang/';
     script_run 'cd llvm-3.6.2.src';
-    assert_script_run './configure --disable-bindings', 100;
+    assert_script_run './configure --disable-bindings',      100;
     assert_script_run 'make -j$(getconf _NPROCESSORS_ONLN)', 4000;
     script_run 'cd tools/clang';
     assert_script_run 'make test', 500;
 }
 
 sub test_flags() {
-    return { important => 1 };
+    return {important => 1};
 }
 
 1;

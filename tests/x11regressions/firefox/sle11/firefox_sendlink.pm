@@ -22,13 +22,13 @@ sub run() {
     # Launch firefox
     x11_start_program("firefox");
     assert_screen "start-firefox", 5;
-    if ( get_var("UPGRADE") ) { send_key "alt-d"; wait_idle; }    # Don't check for updated plugins
-    if ( get_var("DESKTOP") =~ /xfce|lxde/i ) {
-        send_key "ret";                                      # Confirm default browser setting popup
+    if (get_var("UPGRADE")) { send_key "alt-d"; wait_idle; }    # Don't check for updated plugins
+    if (get_var("DESKTOP") =~ /xfce|lxde/i) {
+        send_key "ret";                                         # Confirm default browser setting popup
         wait_idle;
     }
     send_key "alt-f10";
-    sleep 1;                                                # Maximize
+    sleep 1;                                                    # Maximize
 
     # Open www.google.com
     send_key "alt-d";
@@ -45,7 +45,7 @@ sub run() {
     sleep 3;
 
     #Close the window if there is a unstable warning for this version
-    if ( check_screen "test-firefox_sendlink-unstable_warning", 5  ) {
+    if (check_screen "test-firefox_sendlink-unstable_warning", 5) {
         sleep 1;
         send_key "alt-o";
         sleep 1;    #Close warning window
@@ -67,7 +67,7 @@ sub run() {
     send_key "alt-o";
     sleep 2;
     send_key "alt-s";
-    sleep 5;            #Skip Lookup
+    sleep 5;             #Skip Lookup
 
     #Receiving Email
     send_key "alt-s";    #Set Server
@@ -81,7 +81,7 @@ sub run() {
 
     #Receiving Options
     send_key "alt-o";
-    sleep 1;            #Sending Email
+    sleep 1;             #Sending Email
     send_key "alt-s";    # Set Server
     type_string "smtp.novell.com";
     sleep 1;
@@ -94,7 +94,7 @@ sub run() {
 
     #Done
     send_key "alt-a";
-    sleep 15;           #Applied
+    sleep 15;            #Applied
 
     #Cancel Mail authentication request dialog
     send_key "esc";

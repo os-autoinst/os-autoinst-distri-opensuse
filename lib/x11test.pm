@@ -17,8 +17,8 @@ sub post_fail_hook() {
     sleep 1;
     save_screenshot;
 
-    if ( check_var("DESKTOP", "kde") ) {
-        if ( get_var('PLASMA5') ) {
+    if (check_var("DESKTOP", "kde")) {
+        if (get_var('PLASMA5')) {
             my $fn = '/tmp/plasma5_configs.tar.bz2';
             my $cmd = sprintf 'tar cjf %s /home/%s/.config/*rc', $fn, $username;
             type_string "$cmd\n";
@@ -49,15 +49,15 @@ sub check_kwallet {
     my ($self, $enable) = @_;
     # enable = 1 as enable kwallet, archive kwallet enabling process
     # enable = 0 as disable kwallet, just close the popup dialog
-    $enable //= 0; # default is disable kwallet
+    $enable //= 0;    # default is disable kwallet
 
-    if ( check_screen ( "kwallet-wizard", 5 ) ) {
-        if ( $enable ) {
+    if (check_screen("kwallet-wizard", 5)) {
+        if ($enable) {
             send_key "alt-n";
             sleep 2;
             send_key "spc";
             sleep 2;
-            send_key "down"; # use traditional way
+            send_key "down";    # use traditional way
             type_password;
             send_key "tab";
             sleep 1;

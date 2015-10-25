@@ -2,7 +2,7 @@ use base "console_yasttest";
 use testapi;
 
 sub run() {
-    my $self    = shift;
+    my $self        = shift;
     my $pkgname     = get_var("PACKAGETOINSTALL_RECOMMENDER", "yast2-nfs-client");
     my $recommended = get_var("PACKAGETOINSTALL_RECOMMENDED", "nfs-client");
 
@@ -11,7 +11,7 @@ sub run() {
 
     assert_script_run "zypper -n rm $pkgname $recommended", 90;
 
-    assert_script_run "zypper -n in yast2-packager", 90; # make sure yast2 sw_single module installed
+    assert_script_run "zypper -n in yast2-packager", 90;    # make sure yast2 sw_single module installed
 
     script_run("/sbin/yast2 sw_single; echo yast2-i-status-\$? > /dev/$serialdev");
     if (check_screen('workaround-bsc924042', 10)) {
@@ -28,8 +28,8 @@ sub run() {
     send_key "spc";    # select for install
     assert_screen "$pkgname-selected-for-install", 5;
 
-    send_key "alt-p"; # go to search box again
-    for ( 1 .. length($pkgname) ) { send_key "backspace" }
+    send_key "alt-p";    # go to search box again
+    for (1 .. length($pkgname)) { send_key "backspace" }
     type_string("$recommended\n");
     assert_screen "$recommended-selected-for-install", 10;
 
@@ -37,13 +37,13 @@ sub run() {
     # Given that package is not installed,
     # uncheck Dependencies/Install Recommended Packages,
     # select the package, verify that recommended package is NOT selected
-    send_key "alt-d"; # Menu "Dependencies"
+    send_key "alt-d";    # Menu "Dependencies"
     assert_screen 'yast2-sw_install_recommended_packages_enabled', 60;
-    send_key "alt-r"; # Submenu Install Recommended Packages
+    send_key "alt-r";    # Submenu Install Recommended Packages
 
     assert_screen "$recommended-not-selected-for-install", 5;
-    send_key "alt-p"; # go to search box again
-    for ( 1 .. length($recommended) ) { send_key "backspace" }
+    send_key "alt-p";    # go to search box again
+    for (1 .. length($recommended)) { send_key "backspace" }
     type_string("$pkgname\n");
     assert_screen "$pkgname-selected-for-install", 10;
 
@@ -59,13 +59,13 @@ sub run() {
     # yast might take a while on sle11 due to suseconfig
     wait_serial("yast2-i-status-0", 60) || die "yast didn't finish";
 
-    send_key "ctrl-l";                  # clear screen to see that second update does not do any more
-    assert_script_run("rpm -e $pkgname");   # erase $pkgname
-    script_run("echo mark yast test"); # avoid zpper needle
+    send_key "ctrl-l";                       # clear screen to see that second update does not do any more
+    assert_script_run("rpm -e $pkgname");    # erase $pkgname
+    script_run("echo mark yast test");       # avoid zpper needle
     script_run("rpm -q $pkgname");
     sleep 2;
     script_run('exit');
-    assert_screen( "yast-package-$pkgname-not-installed", 1 );
+    assert_screen("yast-package-$pkgname-not-installed", 1);
 }
 
 1;

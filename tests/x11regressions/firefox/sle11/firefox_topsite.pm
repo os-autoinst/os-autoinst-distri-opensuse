@@ -15,25 +15,25 @@ sub run() {
     mouse_hide();
     x11_start_program("firefox");
     assert_screen "start-firefox", 5;
-    if ( get_var("UPGRADE") ) { send_key "alt-d"; wait_idle; }    # dont check for updated plugins
-    if ( get_var("DESKTOP") =~ /xfce|lxde/i ) {
-        send_key "ret";                                      # confirm default browser setting popup
+    if (get_var("UPGRADE")) { send_key "alt-d"; wait_idle; }    # dont check for updated plugins
+    if (get_var("DESKTOP") =~ /xfce|lxde/i) {
+        send_key "ret";                                         # confirm default browser setting popup
         wait_idle;
     }
 
     #clear recent history otherwise calendar will login automatically
     send_key "ctrl-shift-h";
     sleep 2;
-    check_screen "firefox_history", 3;                    #open the "history"
+    check_screen "firefox_history", 3;                          #open the "history"
     send_key "ctrl-a";
-    sleep 1;                                                #select all
+    sleep 1;                                                    #select all
     send_key "delete";
-    sleep 1;                                                #delete all
-    check_screen "firefox_history-empty", 3;              #confirm all history removed
+    sleep 1;                                                    #delete all
+    check_screen "firefox_history-empty", 3;                    #confirm all history removed
     send_key "alt-f4";
     sleep 12;
 
-    my @topsite = ( 'www.yahoo.com', 'www.amazon.com', 'www.ebay.com', 'slashdot.org', 'www.wikipedia.org', 'www.flickr.com', 'www.facebook.com', 'www.youtube.com', 'ftp://ftp.novell.com' );
+    my @topsite = ('www.yahoo.com', 'www.amazon.com', 'www.ebay.com', 'slashdot.org', 'www.wikipedia.org', 'www.flickr.com', 'www.facebook.com', 'www.youtube.com', 'ftp://ftp.novell.com');
 
     for my $site (@topsite) {
         send_key "ctrl-l";
@@ -60,15 +60,15 @@ sub run() {
     sleep 1;    #delete the selected item
     check_screen "firefox_history-ftpnovell", 3;    #confirm the sf hitory was deleted
     send_key "ret";
-    sleep 3;                                          #open an item in history
+    sleep 3;                                        #open an item in history
     check_screen "firefox_page-ftpnovell", 5;
 
     send_key "alt-f4";
-    sleep 2;                                          #two alt-f4 to close firefox and history
+    sleep 2;                                        #two alt-f4 to close firefox and history
     send_key "alt-f4";
     sleep 2;
     send_key "ret";
-    sleep 2;                                          # confirm "save&quit"
+    sleep 2;                                        # confirm "save&quit"
 }
 
 1;

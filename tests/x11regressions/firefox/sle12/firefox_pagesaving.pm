@@ -12,7 +12,7 @@ sub run() {
     type_string "killall -9 firefox;rm -rf .moz* Downloads/*\n";
     sleep 1;
     x11_start_program("firefox");
-    assert_screen('firefox-launch',45);
+    assert_screen('firefox-launch', 45);
 
     send_key "esc";
     sleep 1;
@@ -20,25 +20,25 @@ sub run() {
     sleep 1;
     type_string "http://www.mozilla.org/en-US\n";
 
-    assert_screen('firefox-pagesaving-load',45);
+    assert_screen('firefox-pagesaving-load', 45);
 
     send_key "ctrl-s";
-    assert_screen('firefox-pagesaving-saveas',10);
+    assert_screen('firefox-pagesaving-saveas', 10);
 
     send_key "alt-s";
     sleep 5;
 
     # Exit
     send_key "alt-f4";
-    
+
     if (check_screen('firefox-save-and-quit', 4)) {
-       # confirm "save&quit"
-       send_key "ret";
+        # confirm "save&quit"
+        send_key "ret";
     }
 
     send_key "ctrl-l";
     type_string "ls Downloads/\n";
-    assert_screen('firefox-pagesaving-downloads',10);
+    assert_screen('firefox-pagesaving-downloads', 10);
     type_string "rm -rf Downloads/*\n";
     send_key "ctrl-d";
 

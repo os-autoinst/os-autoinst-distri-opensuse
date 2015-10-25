@@ -19,12 +19,12 @@ use testapi;
 
 sub run {
 
-    if ( get_var("SUPPORTSERVER_NEEDLE_LOGIN") ) { 
+    if (get_var("SUPPORTSERVER_NEEDLE_LOGIN")) {
         #fallback to needle based detection, if serial console not set or not supported
-        assert_screen( "autoyast-system-login-console", 30 );
+        assert_screen("autoyast-system-login-console", 30);
     }
     else {
-        wait_serial("login:",30);
+        wait_serial("login:", 30);
     }
 
     type_string "root\n";
@@ -43,7 +43,7 @@ sub test_flags {
     # 'fatal' - whole test suite is in danger if this fails
     # 'milestone' - after this test succeeds, update 'lastgood'
     # 'important' - if this fails, set the overall state to 'fail'
-    return { fatal => 1 };
+    return {fatal => 1};
 }
 
 1;

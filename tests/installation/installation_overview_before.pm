@@ -14,7 +14,7 @@ sub run() {
     wait_idle 10;
 
     # check for dependency issues, if found, drill down to software selection, take a screenshot, then die
-    if (check_screen("inst-overview-dep-warning",1)){
+    if (check_screen("inst-overview-dep-warning", 1)) {
         record_soft_failure;
         if (check_var('VIDEOMODE', 'text')) {
             send_key 'alt-c';
@@ -26,22 +26,22 @@ sub run() {
             send_key 'ret';
         }
 
-        assert_screen 'dependancy-issue'; #make sure the dependancy issue is actually showing
+        assert_screen 'dependancy-issue';    #make sure the dependancy issue is actually showing
 
         if (get_var("WORKAROUND_DEPS")) {
-            while ( check_screen 'dependancy-issue', 5 ) {
+            while (check_screen 'dependancy-issue', 5) {
                 if (check_var('VIDEOMODE', 'text')) {
                     send_key 'alt-s', 3;
                 }
                 else {
                     send_key 'alt-1', 3;
                 }
-                send_key 'spc', 3;
+                send_key 'spc',   3;
                 send_key 'alt-o', 3;
             }
-            send_key 'alt-a', 3;
-            send_key 'alt-o', 3;
-            assert_screen "inst-overview-after-depfix", 15; # Make sure you're back on the inst-overview before doing anything else
+            send_key 'alt-a',                           3;
+            send_key 'alt-o',                           3;
+            assert_screen "inst-overview-after-depfix", 15;    # Make sure you're back on the inst-overview before doing anything else
         }
         else {
             save_screenshot;

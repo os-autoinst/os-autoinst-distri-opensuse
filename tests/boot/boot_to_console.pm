@@ -21,7 +21,7 @@ sub run() {
 
     send_key "ctrl-alt-f4";
     assert_screen "tty4-selected", 10;
-    assert_screen "text-login", 10;
+    assert_screen "text-login",    10;
     type_string "$username\n";
     assert_screen "password-prompt", 10;
     type_password;
@@ -33,7 +33,7 @@ sub run() {
 }
 
 sub test_flags() {
-    return { fatal => 1 };
+    return {fatal => 1};
 }
 
 1;

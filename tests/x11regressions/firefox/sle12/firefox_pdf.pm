@@ -10,29 +10,29 @@ sub run() {
     # Clean and Start Firefox
     x11_start_program("xterm -e \"killall -9 firefox;rm -rf .moz*\"");
     x11_start_program("firefox");
-    assert_screen('firefox-launch',35);
+    assert_screen('firefox-launch', 35);
 
     send_key "esc";
     send_key "alt-d";
     type_string "http://www.gnupg.org/gph/en/manual.pdf\n";
 
-    assert_screen('firefox-pdf-load',45);
+    assert_screen('firefox-pdf-load', 45);
 
     sleep 1;
-    for my $i (1..2) { assert_and_click 'firefox-pdf-zoom_out_button'; }
-    assert_screen('firefox-pdf-zoom_out',5);
+    for my $i (1 .. 2) { assert_and_click 'firefox-pdf-zoom_out_button'; }
+    assert_screen('firefox-pdf-zoom_out', 5);
 
     send_key "tab";
-    for my $i (1..4) { assert_and_click 'firefox-pdf-zoom_in_button'; }
-    assert_screen('firefox-pdf-zoom_in',5);
+    for my $i (1 .. 4) { assert_and_click 'firefox-pdf-zoom_in_button'; }
+    assert_screen('firefox-pdf-zoom_in', 5);
 
     assert_and_click 'firefox-pdf-zoom_menu';
     sleep 1;
-    assert_and_click 'firefox-pdf-zoom_menu_actual_size'; #"Actual Size"
-    assert_screen('firefox-pdf-actual_size',5);
+    assert_and_click 'firefox-pdf-zoom_menu_actual_size';    #"Actual Size"
+    assert_screen('firefox-pdf-actual_size', 5);
 
     sleep 1;
-    assert_and_click 'firefox-pdf-icon_fullscreen'; #Full Screen
+    assert_and_click 'firefox-pdf-icon_fullscreen';          #Full Screen
     assert_and_click('firefox-pdf-allow_fullscreen');
 
     send_key "esc";
@@ -43,14 +43,14 @@ sub run() {
     send_key "3";
     send_key "ret";
     sleep 1;
-    assert_screen('firefox-pdf-pagedown',5);
+    assert_screen('firefox-pdf-pagedown', 5);
 
     # Exit
     send_key "alt-f4";
-    
+
     if (check_screen('firefox-save-and-quit', 4)) {
-       # confirm "save&quit"
-       send_key "ret";
+        # confirm "save&quit"
+        send_key "ret";
     }
 }
 1;

@@ -20,9 +20,9 @@ use testapi;
 use registration;
 
 sub run() {
-    assert_screen( "scc-registration", 100 );
-    send_key "alt-s", 1;     # skip SCC registration
-    if ( check_screen( "scc-skip-reg-warning", 10 ) ) {
+    assert_screen("scc-registration", 100);
+    send_key "alt-s", 1;    # skip SCC registration
+    if (check_screen("scc-skip-reg-warning", 10)) {
         send_key "alt-y", 1;    # confirmed skip SCC registration
     }
 }

@@ -6,14 +6,14 @@ use testapi;
 # add a new primary partition
 #   $type == 3 => 0xFD Linux RAID
 sub addpart($) {
-    my ( $size ) = @_;
+    my ($size) = @_;
     send_key $cmd{addpart};
-    if ( check_screen( "partitioning-type", 2 ) ) {
-      send_key $cmd{"next"};
+    if (check_screen("partitioning-type", 2)) {
+        send_key $cmd{"next"};
     }
     check_screen "partitioning-size", 5;
 
-    for ( 1 .. 10 ) {
+    for (1 .. 10) {
         send_key "backspace";
     }
     type_string $size . "mb";
@@ -26,19 +26,19 @@ sub addpart($) {
     send_key $cmd{"donotformat"};
     send_key "tab";
 
-    while ( !check_screen("partition-selected-raid-type", 1 ) ) {
+    while (!check_screen("partition-selected-raid-type", 1)) {
         wait_screen_change {
-           send_key "down";
+            send_key "down";
         } || die "last item";
     }
     send_key $cmd{finish};
 }
 
 sub addraid($;$) {
-    my ( $step, $chunksize ) = @_;
+    my ($step, $chunksize) = @_;
     send_key "spc";
-    for ( 1 .. 3 ) {
-        for ( 1 .. $step ) {
+    for (1 .. 3) {
+        for (1 .. $step) {
             send_key "ctrl-down";
         }
         send_key "spc";
@@ -57,10 +57,10 @@ sub addraid($;$) {
     send_key $cmd{"next"};
     assert_screen 'partition-role', 6;
     if ($step == 3 and get_var("LVM")) {
-      send_key "alt-a";    # Raw Volume
+        send_key "alt-a";    # Raw Volume
     }
     else {
-      send_key "alt-o";    # Operating System
+        send_key "alt-o";    # Operating System
     }
     send_key $cmd{"next"};
 
@@ -69,11 +69,11 @@ sub addraid($;$) {
 
 sub setraidlevel($) {
     my $level = shift;
-    my %entry = ( 0 => 0, 1 => 1, 5 => 5, 6 => 6, 10 => 'g' );
+    my %entry = (0 => 0, 1 => 1, 5 => 5, 6 => 6, 10 => 'g');
     send_key "alt-$entry{$level}";
 
-    send_key "alt-i";    # move to RAID name input field
-    send_key "tab";      # skip RAID name input field
+    send_key "alt-i";        # move to RAID name input field
+    send_key "tab";          # skip RAID name input field
 }
 
 sub set_lvm() {
@@ -129,7 +129,7 @@ sub run() {
 
     send_key "tab";
     send_key "down";    # select disks
-    if (get_var("OFW")) { ## no RAID /boot partition for ppc
+    if (get_var("OFW")) {    ## no RAID /boot partition for ppc
         send_key 'alt-p';
         assert_screen 'partitioning-type', 5;
         send_key 'alt-n';
@@ -149,22 +149,22 @@ sub run() {
         assert_screen 'custompart', 9;
         send_key 'alt-s';
         send_key 'right';
-        send_key 'down'; #should select first disk'
+        send_key 'down';     #should select first disk'
         wait_idle 5;
     }
     else {
         send_key "right";    # unfold disks
-        send_key "down";         # select first disk
+        send_key "down";     # select first disk
         wait_idle 5;
     }
 
-    for ( 1 .. 4 ) {
+    for (1 .. 4) {
         wait_idle 5;
-        addpart( 300 );    # boot
+        addpart(300);        # boot
         wait_idle 5;
-        addpart( 8000 );    # root
+        addpart(8000);       # root
         wait_idle 5;
-        addpart( 100 );     # swap
+        addpart(100);        # swap
         assert_screen 'raid-partition', 15;
 
         # select next disk
@@ -179,10 +179,10 @@ sub run() {
     send_key $cmd{addraid};
     wait_idle 4;
 
-    setraidlevel( get_var("RAIDLEVEL") );
+    setraidlevel(get_var("RAIDLEVEL"));
     send_key "down";    # start at second partition (i.e. sda2)
-    # in this case, press down key doesn't move to next one but itself
-    addraid( 3, 6 );
+                        # in this case, press down key doesn't move to next one but itself
+    addraid(3, 6);
 
     send_key $cmd{"finish"};
     wait_idle 3;
@@ -194,12 +194,12 @@ sub run() {
     addraid(2);
 
     send_key "alt-s";    # change filesystem to FAT for /boot
-    for ( 1 .. 3 ) {
+    for (1 .. 3) {
         send_key "down";    # select Ext4
     }
 
     send_key $cmd{"mountpoint"};
-    for ( 1 .. 3 ) {
+    for (1 .. 3) {
         send_key "down";
     }
     send_key $cmd{"finish"};
@@ -227,15 +227,15 @@ sub run() {
     send_key $cmd{"accept"};
 
     # skip subvolumes shadowed warning
-    if ( check_screen 'subvolumes-shadowed', 5 ) {
+    if (check_screen 'subvolumes-shadowed', 5) {
         send_key 'alt-y';
     }
 
     if (get_var("LVM")) {
-      assert_screen 'acceptedpartitioningraidlvm', 6;
+        assert_screen 'acceptedpartitioningraidlvm', 6;
     }
     else {
-      assert_screen 'acceptedpartitioning', 6;
+        assert_screen 'acceptedpartitioning', 6;
     }
 }
 

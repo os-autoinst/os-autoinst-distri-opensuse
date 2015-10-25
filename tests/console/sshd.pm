@@ -5,7 +5,7 @@ use testapi;
 sub run() {
     my $self = shift;
     # new user to test sshd
-    my $ssh_testman = "sshboy";
+    my $ssh_testman        = "sshboy";
     my $ssh_testman_passwd = "let3me2in1";
 
     become_root();
@@ -27,10 +27,10 @@ sub run() {
     type_string "$ssh_testman_passwd\n";
     script_run('exit');
     # login use new user account
-    script_run('ssh '.$ssh_testman.'@localhost -t echo LOGIN_SUCCESSFUL');
+    script_run('ssh ' . $ssh_testman . '@localhost -t echo LOGIN_SUCCESSFUL');
     my $ret = assert_screen "ssh-login", 60;
 
-    if ( $ret->{needle}->has_tag("ssh-login") ) {
+    if ($ret->{needle}->has_tag("ssh-login")) {
         type_string "yes\n";
     }
     sleep 3;
@@ -39,7 +39,7 @@ sub run() {
 }
 
 sub test_flags() {
-    return { milestone => 1 };
+    return {milestone => 1};
 }
 
 1;

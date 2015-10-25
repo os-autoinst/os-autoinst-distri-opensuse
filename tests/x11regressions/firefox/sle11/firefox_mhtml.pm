@@ -27,20 +27,20 @@ sub run() {
     # Launch firefox
     x11_start_program("firefox");
     assert_screen "start-firefox", 5;
-    if ( get_var("UPGRADE") ) { send_key "alt-d"; wait_idle; }    # Don't check for updated plugins
-    if ( get_var("DESKTOP") =~ /xfce|lxde/i ) {
-        send_key "ret";                                      # Confirm default browser setting popup
+    if (get_var("UPGRADE")) { send_key "alt-d"; wait_idle; }    # Don't check for updated plugins
+    if (get_var("DESKTOP") =~ /xfce|lxde/i) {
+        send_key "ret";                                         # Confirm default browser setting popup
         wait_idle;
     }
-    send_key "alt-f10";                                      # Maximize
+    send_key "alt-f10";                                         # Maximize
 
     # Install UnMHT extension
     send_key "ctrl-shift-a";
-    sleep 5;                                                # Add-ons Manager
+    sleep 5;                                                    # Add-ons Manager
     send_key "alt-d";
     sleep 2;
     type_string "https://addons.mozilla.org/firefox/downloads/latest/8051/addon-8051-latest.xpi\n";
-    sleep 15;                                               # Install the extension
+    sleep 15;                                                   # Install the extension
     check_screen "test-firefox_mhtml-1", 5;
     send_key "ret";
     sleep 2;
@@ -48,7 +48,7 @@ sub run() {
 
     # Open mhtml file
     send_key "ctrl-o";
-    sleep 1;                                                #"Open File" window
+    sleep 1;                                                    #"Open File" window
     check_screen "test-firefox-openfile-1", 5;
 
     # Find .mht file to open
@@ -56,7 +56,7 @@ sub run() {
     send_key "down";
     send_key "right";
     sleep 1;
-    type_string "google\n";                                # find the directory www.gnu.org and enter
+    type_string "google\n";                                     # find the directory www.gnu.org and enter
     sleep 5;
     send_key "tab";
     check_screen "test-firefox_mhtml-2", 5;
@@ -107,7 +107,7 @@ sub run() {
 
     send_key "alt-f4";
     sleep 1;                                 # Exit firefox
-    send_key "ret";                           # confirm "save&quit"
+    send_key "ret";                          # confirm "save&quit"
     x11_start_program("rm -rf .mozilla");    # Clear profile directory
     x11_start_program("rm -rf google.mht\n");
     sleep 1;                                 # Remove .mht file

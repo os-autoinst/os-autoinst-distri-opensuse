@@ -9,7 +9,7 @@ sub run() {
 
     my $repo_url = get_var("VERSION");
     $repo_url = "13.2_Update" if ($repo_url eq "13.2");
-    $repo_url = "Factory" if ($repo_url eq "Tumbleweed");
+    $repo_url = "Factory"     if ($repo_url eq "Tumbleweed");
     $repo_url = "http://download.opensuse.org/repositories/YaST:/Head/openSUSE_$repo_url/";
 
     become_root;
@@ -18,7 +18,7 @@ sub run() {
 }
 
 sub test_flags() {
-    return { fatal => 1 };
+    return {fatal => 1};
 }
 
 1;

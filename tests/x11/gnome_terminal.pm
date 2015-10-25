@@ -11,7 +11,7 @@ sub run() {
     x11_start_program("gnome-terminal");
     sleep 10;
     send_key "ctrl-shift-t";
-    for ( 1 .. 13 ) { send_key "ret" }
+    for (1 .. 13) { send_key "ret" }
     type_string "echo If you can see this text gnome-terminal is working.\n";
     sleep 2;
     assert_screen 'test-gnome_terminal-1', 3;

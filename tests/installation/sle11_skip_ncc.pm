@@ -2,8 +2,8 @@ use base "y2logsstep";
 use strict;
 use testapi;
 
-sub run(){
-    my $self=shift;
+sub run() {
+    my $self = shift;
 
     assert_screen 'novell-customer-center', 30;
 

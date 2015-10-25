@@ -11,7 +11,7 @@ sub run() {
     x11_start_program("chromium");
 
     assert_screen 'chromium-main-window', 10;
-    send_key "esc"; # get rid of popup
+    send_key "esc";    # get rid of popup
     sleep 1;
     send_key "ctrl-l";
     sleep 1;

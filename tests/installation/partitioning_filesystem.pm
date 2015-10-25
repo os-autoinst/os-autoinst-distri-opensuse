@@ -4,7 +4,7 @@ use base "y2logsstep";
 use testapi;
 
 sub run() {
-    
+
     my $fs = get_var('FILESYSTEM');
 
     # click the button

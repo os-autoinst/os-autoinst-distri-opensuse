@@ -4,7 +4,7 @@ use testapi;
 
 # Case 1248849 - Pidgin: IRC
 sub run() {
-    my $self = shift;
+    my $self        = shift;
     my $CHANNELNAME = "susetesting";
     x11_start_program("pidgin");
 
@@ -31,7 +31,7 @@ sub run() {
     send_key "ctrl-a";
     sleep 2;
     send_key "alt-c";
-    sleep 15; # need time to connect server
+    sleep 15;    # need time to connect server
 
     # Join a chat
     send_key "ctrl-c";

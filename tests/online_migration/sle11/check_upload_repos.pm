@@ -5,7 +5,7 @@ sub run() {
     my $self = shift;
 
     my $script = 'zypper lr | tee zypper_lr.txt';
-    validate_script_output $script, sub {m/nu_novell_com/};
+    validate_script_output $script, sub { m/nu_novell_com/ };
 
     type_string "clear\n";
     upload_logs "zypper_lr.txt";

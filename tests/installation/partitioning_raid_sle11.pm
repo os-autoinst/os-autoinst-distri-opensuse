@@ -6,13 +6,13 @@ use testapi;
 sub addraid($) {
     my ($step) = @_;
     send_key "spc";
-    for ( 1 .. 3 ) {
-        for ( 1 .. $step ) {
+    for (1 .. 3) {
+        for (1 .. $step) {
             send_key "ctrl-down";
         }
 
         # in GNOME Live case, press space will direct added this item
-        if ( get_var("GNOME") ) {
+        if (get_var("GNOME")) {
             send_key "ctrl-spc";
         }
         else {
@@ -29,7 +29,7 @@ sub addraid($) {
     # chunk size selection
     send_key "alt-c";
     send_key "home";
-    for ( 1 .. 4 ) {
+    for (1 .. 4) {
         send_key "down";
     }
 
@@ -43,7 +43,7 @@ sub addraid($) {
 sub setraidlevel($) {
     my ($level) = @_;
 
-    my %entry = ( 0 => 0, 1 => 1, 5 => 5, 6 => 6, 10 => 'i' );
+    my %entry = (0 => 0, 1 => 1, 5 => 5, 6 => 6, 10 => 'i');
     send_key "alt-$entry{$level}";
 }
 
@@ -52,7 +52,7 @@ sub run() {
 
     assert_screen 'inst-overview', 10;
     send_key $cmd{change};
-    send_key 'p'; # partitioning
+    send_key 'p';    # partitioning
 
     assert_screen 'preparing-disk', 5;
     send_key 'alt-c';
@@ -60,7 +60,7 @@ sub run() {
     assert_screen 'expert-partitioning', 5;
     send_key 'down';
     send_key 'down';
-    if (get_var("OFW")) { ## no RAID /boot partition for ppc
+    if (get_var("OFW")) {    ## no RAID /boot partition for ppc
         send_key 'alt-p';
         assert_screen 'add-partition', 5;
         send_key 'alt-n';
@@ -88,14 +88,14 @@ sub run() {
         sleep 1;
         send_key 'alt-s';
         send_key 'right';
-        send_key 'down'; #should select first disk'
+        send_key 'down';    #should select first disk'
     }
     else {
         send_key 'right';
-        send_key 'down'; #should select first disk'
+        send_key 'down';    #should select first disk'
     }
 
-    for ( 1 .. 4 ) {
+    for (1 .. 4) {
         send_key 'alt-d';
         assert_screen 'add-partition', 5;
         send_key 'alt-n';
@@ -104,11 +104,11 @@ sub run() {
         type_string "1 GB";
         send_key 'alt-n';
         assert_screen 'add-partition-type', 5;
-        send_key 'alt-d'; #Do not format partition
-        send_key 'alt-i'; #Filesystem ID
+        send_key 'alt-d';    #Do not format partition
+        send_key 'alt-i';    #Filesystem ID
         send_key 'down';
         send_key 'down';
-        send_key 'down'; #Linux RAID System Type
+        send_key 'down';     #Linux RAID System Type
         send_key 'alt-f';
         assert_screen('expert-partitioning', 5);
 
@@ -120,11 +120,11 @@ sub run() {
         type_string "300 MB";
         send_key 'alt-n';
         assert_screen 'add-partition-type', 5;
-        send_key 'alt-d'; #Do not format partition
-        send_key 'alt-i'; #Filesystem ID
+        send_key 'alt-d';    #Do not format partition
+        send_key 'alt-i';    #Filesystem ID
         send_key 'down';
         send_key 'down';
-        send_key 'down'; #Linux RAID System Type
+        send_key 'down';     #Linux RAID System Type
         send_key 'alt-f';
         assert_screen('expert-partitioning', 5);
 
@@ -134,11 +134,11 @@ sub run() {
         assert_screen 'add-partition-size', 5;
         send_key 'alt-n';
         assert_screen 'add-partition-type', 5;
-        send_key 'alt-d'; #Do not format partition
-        send_key 'alt-i'; #Filesystem ID
+        send_key 'alt-d';    #Do not format partition
+        send_key 'alt-i';    #Filesystem ID
         send_key 'down';
         send_key 'down';
-        send_key 'down'; #Linux RAID System Type
+        send_key 'down';     #Linux RAID System Type
         send_key 'alt-f';
         assert_screen('expert-partitioning', 5);
 
@@ -152,12 +152,12 @@ sub run() {
     # select RAID add for /
     send_key 'alt-i';
     assert_screen('add-raid', 5);
-    setraidlevel( get_var("RAIDLEVEL") );
+    setraidlevel(get_var("RAIDLEVEL"));
     send_key_until_needlematch 'raid-devices-selected', 'tab';
     send_key "down";
-    send_key "down"; # start at second partition (i.e. sda2)
-    for ( 1 .. 3 ) {
-        for ( 1 .. 3 ) {
+    send_key "down";    # start at second partition (i.e. sda2)
+    for (1 .. 3) {
+        for (1 .. 3) {
             send_key "ctrl-down";
         }
         send_key "spc";
@@ -170,10 +170,10 @@ sub run() {
 
     send_key $cmd{"next"};
     assert_screen 'add-partition-type', 6;
-    if ( get_var("FILESYSTEM")) {
-        send_key 'alt-s'; #goto filesystem list
-        send_key ' '; #open filesystem list
-        send_key 'home'; #go to top of the list
+    if (get_var("FILESYSTEM")) {
+        send_key 'alt-s';    #goto filesystem list
+        send_key ' ';        #open filesystem list
+        send_key 'home';     #go to top of the list
 
         my $counter = 20;
         while (1) {
@@ -201,11 +201,11 @@ sub run() {
     # select RAID add for /boot
     send_key 'alt-i';
     assert_screen('add-raid', 5);
-    setraidlevel(1); # RAID 1 for /boot
+    setraidlevel(1);    # RAID 1 for /boot
     send_key_until_needlematch 'raid-devices-selected', 'tab';
-    send_key "down"; # start at the 300MB partition
-    for ( 1 .. 3 ) {
-        for ( 1 .. 2 ) {
+    send_key "down";    # start at the 300MB partition
+    for (1 .. 3) {
+        for (1 .. 2) {
             send_key "ctrl-down";
         }
         send_key "spc";
@@ -218,7 +218,7 @@ sub run() {
 
     send_key $cmd{"next"};
     assert_screen 'add-partition-type', 6;
-    send_key 'alt-m'; #goto mount point
+    send_key 'alt-m';    #goto mount point
     type_string "/boot";
     send_key 'alt-f';
     wait_idle 3;
@@ -226,10 +226,10 @@ sub run() {
     # select RAID add for swap
     send_key 'alt-i';
     assert_screen('add-raid', 5);
-    setraidlevel(0); # RAID 0 for swap
+    setraidlevel(0);     # RAID 0 for swap
     send_key_until_needlematch 'raid-devices-selected', 'tab';
-    send_key "spc"; # only 4 partitions left
-    for ( 1 .. 3 ) {
+    send_key "spc";      # only 4 partitions left
+    for (1 .. 3) {
         send_key "ctrl-down";
         send_key "spc";
     }
@@ -241,9 +241,9 @@ sub run() {
 
     send_key $cmd{"next"};
     assert_screen 'add-partition-type', 6;
-    send_key 'alt-s'; #goto filesystem list
-    send_key ' '; #open filesystem list
-    send_key 'home'; #go to top of the list
+    send_key 'alt-s';    #goto filesystem list
+    send_key ' ';        #open filesystem list
+    send_key 'home';     #go to top of the list
 
     my $counter = 20;
     while (1) {
@@ -264,12 +264,12 @@ sub run() {
     send_key $cmd{"accept"};
 
     # skip subvolumes shadowed warning
-    if ( check_screen 'subvolumes-shadowed', 5 ) {
+    if (check_screen 'subvolumes-shadowed', 5) {
         send_key 'alt-y';
     }
     assert_screen 'acceptedpartitioning', 6;
 
-    if ( !get_var("OFW") ) {
+    if (!get_var("OFW")) {
         #Bootloader needs to be installed to MBR
         send_key 'alt-c';
         send_key 'b';

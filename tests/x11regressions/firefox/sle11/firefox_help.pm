@@ -15,9 +15,9 @@ sub run() {
     mouse_hide();
     x11_start_program("firefox");
     assert_screen "start-firefox", 5;
-    if ( get_var("UPGRADE") ) { send_key "alt-d"; wait_idle; }    # dont check for updated plugins
-    if ( get_var("DESKTOP") =~ /xfce|lxde/i ) {
-        send_key "ret";                                      # confirm default browser setting popup
+    if (get_var("UPGRADE")) { send_key "alt-d"; wait_idle; }    # dont check for updated plugins
+    if (get_var("DESKTOP") =~ /xfce|lxde/i) {
+        send_key "ret";                                         # confirm default browser setting popup
         wait_idle;
     }
 
@@ -27,28 +27,28 @@ sub run() {
     sleep 6;
     check_screen "firefox_help-help", 8;
     send_key "ctrl-w";
-    sleep 1;                                                #close the firefox help tab
+    sleep 1;                                                    #close the firefox help tab
     send_key "alt-h";
     sleep 1;
     send_key "t";
     sleep 1;
     check_screen "firefox_help-trouble", 3;
     send_key "ctrl-w";
-    sleep 1;                                                #close the firefox troubleshooting tab
+    sleep 1;                                                    #close the firefox troubleshooting tab
     send_key "alt-h";
     sleep 1;
     send_key "s";
     sleep 6;
     check_screen "firefox_help-feedback", 8;
     send_key "ctrl-w";
-    sleep 1;                                                #close the firefox submit feedback tab
+    sleep 1;                                                    #close the firefox submit feedback tab
 
     #test firefox--report web forgery
     send_key "alt-h";
     sleep 1;
     send_key "f";
     sleep 6;
-    check_screen "firefox_help-forgery", 5;               #need to close tab cause if open in current tab
+    check_screen "firefox_help-forgery", 5;                     #need to close tab cause if open in current tab
 
     #test firefox--about firefox
     send_key "alt-h";
@@ -57,7 +57,7 @@ sub run() {
     sleep 1;
     check_screen "firefox_help-about", 5;
     send_key "alt-f4";
-    sleep 1;                                                #close the firefox about dialog
+    sleep 1;                                                    #close the firefox about dialog
 
     #test firefox help--restart with addons disable
     send_key "alt-h";
@@ -76,7 +76,7 @@ sub run() {
     send_key "tab";
     sleep 1;
     send_key "tab";
-    sleep 1;                                     #switch to extension column of add-ons
+    sleep 1;                                   #switch to extension column of add-ons
     send_key "down";
     sleep 1;
     check_screen "firefox_addons-safemode", 5;
@@ -85,12 +85,12 @@ sub run() {
     send_key "up";
     sleep 1;
     send_key "ctrl-w";
-    sleep 1;                                     #close the firefox addons tab
+    sleep 1;                                   #close the firefox addons tab
 
     send_key "alt-f4";
     sleep 2;
     send_key "ret";
-    sleep 2;                                     # confirm "save&quit"
+    sleep 2;                                   # confirm "save&quit"
 }
 
 1;

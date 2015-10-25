@@ -21,7 +21,7 @@ sub run() {
 
         # Remove the --force when this is fixed:
         # https://bugzilla.redhat.com/show_bug.cgi?id=1075131
-        if ( check_var( 'HDDVERSION', "SLES-11" ) ) { #set default runlevel 3 for sle11
+        if (check_var('HDDVERSION', "SLES-11")) {    #set default runlevel 3 for sle11
             type_string "sed -i 's/id:5:initdefault:/id:3:initdefault:/g' /etc/inittab\n";
         }
         else {

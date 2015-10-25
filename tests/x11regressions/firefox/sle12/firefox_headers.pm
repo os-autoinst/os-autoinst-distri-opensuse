@@ -10,30 +10,30 @@ sub run() {
     # Clean and Start Firefox
     x11_start_program("xterm -e \"killall -9 firefox;rm -rf .moz*\"");
     x11_start_program("firefox");
-    assert_screen('firefox-launch',45);
+    assert_screen('firefox-launch', 45);
 
     send_key "esc";
     send_key "ctrl-shift-q", 1;
-    send_key "alt-d", 1;
+    send_key "alt-d",        1;
     type_string "www.gnu.org\n";
-    assert_screen('firefox-headers-website',45);
+    assert_screen('firefox-headers-website', 45);
 
     sleep 10;
     send_key "down";
-    assert_screen('firefox-headers-first_item',5);
+    assert_screen('firefox-headers-first_item', 5);
 
     send_key "shift-f10";
     #"Edit and Resend"
     send_key "r";
 
-    assert_screen('firefox-headers-user_agent',5);
+    assert_screen('firefox-headers-user_agent', 5);
 
     # Exit
     send_key "alt-f4";
-    
+
     if (check_screen('firefox-save-and-quit', 4)) {
-       # confirm "save&quit"
-       send_key "ret";
+        # confirm "save&quit"
+        send_key "ret";
     }
 }
 1;

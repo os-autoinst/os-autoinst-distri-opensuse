@@ -18,7 +18,7 @@ sub run() {
 
     save_screenshot();
 
-    if ( check_var( "DESKTOP", "textmode" ) ) {
+    if (check_var("DESKTOP", "textmode")) {
         send_key "ctrl-alt-f1";    # go back to first console
         assert_screen 'linux-login', 10;
     }
@@ -26,17 +26,17 @@ sub run() {
         send_key "ctrl-alt-f7";    # go back to X11
         sleep 2;
         send_key "backspace";      # deactivate blanking
-        if ( check_screen("screenlock") ) {
-            if ( check_var( "DESKTOP", "gnome" ) ) {
+        if (check_screen("screenlock")) {
+            if (check_var("DESKTOP", "gnome")) {
                 send_key "esc";
-                unless ( get_var("LIVETEST") ) {
-                    send_key "ctrl"; # show gnome screen lock in sle 11
+                unless (get_var("LIVETEST")) {
+                    send_key "ctrl";    # show gnome screen lock in sle 11
                     assert_screen "gnome-screenlock-password";
                     type_password;
                     send_key "ret";
                 }
             }
-            elsif ( check_var( "DESKTOP", "minimalx" ) ) {
+            elsif (check_var("DESKTOP", "minimalx")) {
                 type_string "$username";
                 save_screenshot();
                 send_key "ret";
@@ -51,7 +51,7 @@ sub run() {
 
         # workaround for bug 834165. Apper should not try to
         # refresh repos when the console is not active:
-        if ( get_var("DESKTOP", '') eq 'kde' && check_screen "apper-refresh-popup-bnc834165" ) {
+        if (get_var("DESKTOP", '') eq 'kde' && check_screen "apper-refresh-popup-bnc834165") {
             record_soft_failure;
             send_key 'alt-c';
             sleep 30;
@@ -63,7 +63,7 @@ sub run() {
 }
 
 sub test_flags() {
-    return { milestone => 1, fatal => 1 };
+    return {milestone => 1, fatal => 1};
 }
 
 1;

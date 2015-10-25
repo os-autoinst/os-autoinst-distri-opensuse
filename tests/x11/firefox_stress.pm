@@ -21,7 +21,7 @@ sub run() {
     assert_screen 'test-firefox_stress-1', 3;
     foreach my $site (@sites) {
         open_tab($site);
-        if ( $site =~ m/openqa/ ) { assert_screen 'test-firefox_stress-2', 3; }
+        if ($site =~ m/openqa/) { assert_screen 'test-firefox_stress-2', 3; }
     }
     assert_screen 'test-firefox_stress-3', 3;
     send_key "alt-f4";

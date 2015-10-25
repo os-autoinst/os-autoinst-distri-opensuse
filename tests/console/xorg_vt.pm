@@ -6,11 +6,11 @@ sub run() {
 
     send_key "ctrl-l";
     script_run('ps -ef | grep bin/X');
-    assert_screen("xorg-tty7"); # suppose used terminal is tty7
+    assert_screen("xorg-tty7");    # suppose used terminal is tty7
 }
 
 sub test_flags() {
-    return { important => 1 };
+    return {important => 1};
 }
 
 1;

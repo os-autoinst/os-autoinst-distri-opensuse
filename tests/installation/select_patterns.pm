@@ -4,10 +4,10 @@ use testapi;
 
 sub accept3rdparty {
     #Third party licenses sometimes appear
-    while ( my $ret = check_screen( [qw/3rdpartylicense automatic-changes inst-overview/] ), 15 ){
-            last if $ret->{needle}->has_tag("automatic-changes");
-            last if $ret->{needle}->has_tag("inst-overview");
-            send_key $cmd{acceptlicense}, 1;
+    while (my $ret = check_screen([qw/3rdpartylicense automatic-changes inst-overview/]), 15) {
+        last if $ret->{needle}->has_tag("automatic-changes");
+        last if $ret->{needle}->has_tag("inst-overview");
+        send_key $cmd{acceptlicense}, 1;
     }
 }
 
@@ -33,14 +33,14 @@ sub run {
     }
 
     if (check_screen('dependancy-issue', 10) && get_var("WORKAROUND_DEPS")) {
-        while ( check_screen 'dependancy-issue', 5 ) {
+        while (check_screen 'dependancy-issue', 5) {
             if (check_var('VIDEOMODE', 'text')) {
                 send_key 'alt-s', 3;
             }
             else {
                 send_key 'alt-1', 3;
             }
-            send_key 'spc', 3;
+            send_key 'spc',   3;
             send_key 'alt-o', 3;
         }
     }
@@ -48,13 +48,13 @@ sub run {
     assert_screen 'pattern_selector';
     if (check_var('VIDEOMODE', 'text')) {
         send_key 'alt-f';
-        for ( 1 .. 4 ) { send_key 'up'; }
+        for (1 .. 4) { send_key 'up'; }
         send_key 'ret';
         assert_screen 'patterns-list-selected', 5;
     }
     else {
         send_key 'tab';
-        send_key ' ', 2;
+        send_key ' ',                           2;
         assert_screen 'patterns-list-selected', 5;
     }
 
@@ -69,14 +69,14 @@ sub run {
         my $needs_to_be_selected;
         my $ret = check_screen('on-pattern', 1);
 
-        if ($ret) { # unneedled pattern
+        if ($ret) {    # unneedled pattern
             for my $wp (keys %wanted_patterns) {
                 if ($ret->{needle}->has_tag("pattern-$wp")) {
                     $needs_to_be_selected = 1;
                 }
             }
         }
-        $needs_to_be_selected=1 if ($wanted_patterns{'all'});
+        $needs_to_be_selected = 1 if ($wanted_patterns{'all'});
 
         my $selected = check_screen([qw(current-pattern-selected on-category)], 0);
         if ($selected && $selected->{needle}->has_tag('on-category')) {
@@ -97,10 +97,10 @@ sub run {
     }
 
     if (check_var('VIDEOMODE', 'text')) {
-        send_key 'alt-a'; # accept
+        send_key 'alt-a';    # accept
         accept3rdparty;
         assert_screen 'automatic-changes', 4;
-        send_key 'alt-o'; # OK
+        send_key 'alt-o';    # OK
     }
     else {
         send_key 'alt-o';

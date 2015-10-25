@@ -14,9 +14,9 @@ sub run() {
     mouse_hide();
     x11_start_program("firefox");
     assert_screen "start-firefox", 5;
-    if ( get_var("UPGRADE") ) { send_key "alt-d"; wait_idle; }    # dont check for updated plugins
-    if ( get_var("DESKTOP") =~ /xfce|lxde/i ) {
-        send_key "ret";                                      # confirm default browser setting popup
+    if (get_var("UPGRADE")) { send_key "alt-d"; wait_idle; }    # dont check for updated plugins
+    if (get_var("DESKTOP") =~ /xfce|lxde/i) {
+        send_key "ret";                                         # confirm default browser setting popup
         wait_idle;
     }
 
@@ -33,16 +33,16 @@ sub run() {
     check_screen "firefox_pageinfo", 5;    #the page info of opensuse.org
     sleep 2;
     send_key "alt-f4";
-    sleep 1;                                 #close the page info window
+    sleep 1;                               #close the page info window
     send_key "shift-f10";
     sleep 1;
     send_key "esc";
-    sleep 1;                                 #show that esc key can dismiss the menu
+    sleep 1;                               #show that esc key can dismiss the menu
 
     send_key "alt-f4";
     sleep 2;
     send_key "ret";
-    sleep 2;                                 # confirm "save&quit"
+    sleep 2;                               # confirm "save&quit"
 }
 
 1;

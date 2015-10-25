@@ -12,12 +12,12 @@ sub run() {
 
     mouse_hide();
 
-    if ( get_var("NOAUTOLOGIN") ) {
+    if (get_var("NOAUTOLOGIN")) {
         my $ret = assert_screen 'displaymanager', 200;
-        if ( get_var('DM_NEEDS_USERNAME') ) {
+        if (get_var('DM_NEEDS_USERNAME')) {
             type_string $username;
         }
-        if ( $ret->{needle}->has_tag("sddm") ) {
+        if ($ret->{needle}->has_tag("sddm")) {
             # make sure choose plasma5 session
             assert_and_click "sddm-sessions-list";
             assert_and_click "sddm-sessions-plasma5";
@@ -36,23 +36,23 @@ sub run() {
     my @tags = qw/desktop-at-first-boot install-failed/;
     while (1) {
         my $ret = assert_screen \@tags, 400;
-        if ( $ret->{needle}->has_tag("desktop-at-first-boot") && !check_var( "DESKTOP", "kde" ) ) {
+        if ($ret->{needle}->has_tag("desktop-at-first-boot") && !check_var("DESKTOP", "kde")) {
             last;
         }
-        elsif ( $ret->{needle}->has_tag("desktop-at-first-boot") && check_var( "DESKTOP", "kde" ) ) {
+        elsif ($ret->{needle}->has_tag("desktop-at-first-boot") && check_var("DESKTOP", "kde")) {
             # a special case for KDE greeter
             wait_idle 5;
-            send_key "esc"; # close the KDE greeter
+            send_key "esc";    # close the KDE greeter
             sleep 3;
-            push( @tags, "generic-desktop" );
-            push( @tags, "drkonqi-crash" );
+            push(@tags, "generic-desktop");
+            push(@tags, "drkonqi-crash");
             @tags = grep { $_ ne 'desktop-at-first-boot' } @tags;
             next;
         }
-        elsif ( $ret->{needle}->has_tag("generic-desktop") ) {
+        elsif ($ret->{needle}->has_tag("generic-desktop")) {
             last;
         }
-        elsif ( $ret->{needle}->has_tag("drkonqi-crash") ) {
+        elsif ($ret->{needle}->has_tag("drkonqi-crash")) {
             # handle for KDE greeter crashed and drkonqi popup
             send_key "alt-d";
 
@@ -76,7 +76,7 @@ sub run() {
 }
 
 sub test_flags() {
-    return { fatal => 1, milestone => 1 };
+    return {fatal => 1, milestone => 1};
 }
 
 sub post_fail_hook() {

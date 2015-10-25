@@ -5,7 +5,7 @@ use testapi;
 # Base class for all RESCUECD tests
 
 sub test_flags() {
-    return { fatal => 1 };
+    return {fatal => 1};
 }
 
 1;

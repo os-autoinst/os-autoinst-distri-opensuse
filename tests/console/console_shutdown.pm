@@ -15,7 +15,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 use strict;
-use base 'basetest'; # don' use consoletest to avoid post run hook
+use base 'basetest';    # don' use consoletest to avoid post run hook
 use testapi;
 
 sub run {
@@ -25,7 +25,7 @@ sub run {
 }
 
 sub test_flags {
-    return { fatal => 1 };
+    return {fatal => 1};
 }
 
 1;

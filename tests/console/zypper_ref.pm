@@ -9,7 +9,7 @@ sub run() {
     type_string "PS1=\"# \"\n";
     script_run("zypper ref; echo zypper-ref-\$? > /dev/$serialdev");
     # don't trust graphic driver repo
-    if ( check_screen("new-repo-need-key", 20) ) {
+    if (check_screen("new-repo-need-key", 20)) {
         type_string "r\n";
     }
     wait_serial("zypper-ref-0") || die "zypper ref failed";
@@ -19,7 +19,7 @@ sub run() {
 }
 
 sub test_flags() {
-    return { important => 1, milestone => 1, };
+    return {important => 1, milestone => 1,};
 }
 
 1;

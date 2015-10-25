@@ -19,7 +19,7 @@ sub run() {
     wait_idle;
 
     #send_key "ctrl-d"; sleep 3;
-    if ( check_var( 'VIDEOMODE', 'text' ) ) {
+    if (check_var('VIDEOMODE', 'text')) {
         send_key "ctrl-alt-f1";
     }
     else {
