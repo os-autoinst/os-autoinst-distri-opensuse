@@ -9,6 +9,11 @@ sub run() {
 
     assert_script_sudo "zypper -n in yast2-network"; # make sure yast2 lan module installed
 
+    # those two are for debugging purposes only
+    script_run('ip a');
+    script_run('ls -alF /etc/sysconfig/network/');
+    save_screenshot;
+    
     script_sudo("/sbin/yast2 lan");
 
     my $ret = assert_screen [qw/Networkmanager_controlled yast2_lan install-susefirewall2/], 60;
