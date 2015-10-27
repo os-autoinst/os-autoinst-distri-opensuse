@@ -51,8 +51,8 @@ sub run() {
         script_run "";
         # try to find iso by build id in label (like in SLE)
         script_run "for dev in sr0 sr1 sr2 sr3; do
-            dev=`$ddcmd`
-            case \$dev in
+            label=`$ddcmd`
+            case \$label in
               $flavor-*$build) dev='/dev/\$dev'; break;;
               *) continue;;
             esac
