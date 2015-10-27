@@ -45,5 +45,34 @@ sub post_run_hook {
     assert_screen('generic-desktop');
 }
 
+sub check_kwallet {
+    my ($self, $enable) = @_;
+    # enable = 1 as enable kwallet, archive kwallet enabling process
+    # enable = 0 as disable kwallet, just close the popup dialog
+    $enable //= 0; # default is disable kwallet
+
+    if ( check_screen ( "kwallet-wizard", 5 ) ) {
+        if ( $enable ) {
+            send_key "alt-n";
+            sleep 2;
+            send_key "spc";
+            sleep 2;
+            send_key "down"; # use traditional way
+            type_password;
+            send_key "tab";
+            sleep 1;
+            type_password;
+            send_key "alt-f";
+
+            assert_screen "kwallet-opening", 5;
+            type_password;
+            send_key "ret", 1;
+        }
+        else {
+            send_key "alt-f4", 1;
+        }
+    }
+}
+
 1;
 # vim: set sw=4 et:
