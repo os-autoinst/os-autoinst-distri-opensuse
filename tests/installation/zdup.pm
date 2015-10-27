@@ -50,13 +50,14 @@ sub run() {
         script_run "ls -al $path";
         script_run "";
         # try to find iso by build id in label (like in SLE)
-        script_run "for dev in sr0 sr1 sr2 sr3; do
+        script_run "for dev in sr0 sr1 sr2 sr3 sr4 sr5; do
             label=`$ddcmd`
             case \$label in
-              $flavor-*$build) dev='/dev/\$dev'; break;;
+              *$flavor-*$build*) echo \"\$dev match\"; export dev=\"/dev/\$dev\"; break;;
               *) continue;;
             esac
-            done";
+            done
+            echo \"found dev \$dev with label \$label\"";
         # if that fails, e.g. if volume descriptor too long, just try /dev/sr0
         $defaultrepo = "dvd:/?devices=\${dev:-/dev/sr0}";
     }
