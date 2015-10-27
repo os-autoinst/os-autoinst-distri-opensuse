@@ -24,6 +24,10 @@ sub run() {
     assert_screen 'chromium-html5test', 30;
 
     send_key "alt-f4";
+
+    # check kwallet and cancel it
+    # 1 => enable, 0 => cancel
+    $self->check_kwallet(0);
 }
 
 1;
