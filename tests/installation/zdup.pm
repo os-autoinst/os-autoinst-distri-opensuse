@@ -45,21 +45,12 @@ sub run() {
         # SUSEMIRROR not set, zdup from attached ISO
         my $build = get_var("BUILD");
         my $flavor = get_var("FLAVOR");
-        my $ddcmd = "dd if=/dev/\$dev of=/dev/stdout bs=1 skip=35391 count=256 2>/dev/null | sed -e 's\@ .*\@\@'";
-        my $path = "/dev/disk/by-label";
-        script_run "ls -al $path";
+        script_run "ls -al /dev/disk/by-label";
         script_run "";
         # try to find iso by build id in label (like in SLE)
-        script_run "for dev in sr0 sr1 sr2 sr3 sr4 sr5; do
-            label=`$ddcmd`
-            case \$label in
-              *$flavor-*$build*) echo \"\$dev match\"; export dev=\"/dev/\$dev\"; break;;
-              *) continue;;
-            esac
-            done
-            echo \"found dev \$dev with label \$label\"";
+        script_run "shopt -s nullglob; repo=(/dev/disk/by-label/*$build); shopt -u nullglob";
         # if that fails, e.g. if volume descriptor too long, just try /dev/sr0
-        $defaultrepo = "dvd:/?devices=\${dev:-/dev/sr0}";
+        $defaultrepo = "dvd:/?devices=\${repo:-/dev/sr0}";
     }
 
     my $nr = 1;
