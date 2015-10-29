@@ -6,6 +6,7 @@ use ttylogin;
 sub run() {
     my $self = shift;
 
+    sleep 30;
     wait_idle;
     # let's see how it looks at the beginning
     save_screenshot;

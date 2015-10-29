@@ -20,8 +20,23 @@ use testapi;
 use ttylogin;
 
 sub run {
-
     ttylogin ('4', "root");
+    if ( get_var("CLEAN_UDEV") ) {
+        type_string "rm -f /etc/udev/rules.d/70-persistent-net.rules\n";
+    }
+    if ( get_var("SYSTEMD_TARGET") ) {
+        type_string "systemctl set-default " . get_var("SYSTEMD_TARGET") . "\n";
+        type_string "systemctl status default.target\n";
+        type_string "systemctl mask packagekit.service\n";
+        type_string "systemctl stop packagekit.service\n";
+        save_screenshot;
+        type_string "zypper -n rm plymouth\n";
+        wait_idle ;
+        save_screenshot;
+        type_string "mkinitrd\n";
+        wait_idle ;
+        save_screenshot;
+    }
     type_string "poweroff\n";
     assert_shutdown;
 }

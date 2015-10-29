@@ -1,35 +1,26 @@
 use base "hacluster";
 use testapi;
+use lockapi;
+use Time::HiRes qw(sleep);
 
 sub run() {
-   script_run "systemctl restart wicked.service", 60; #update dynamic DNS just in case
-   script_run "ha-cluster-init"; 
-   assert_screen "ha-cluster-init-watchdog-warning";
-   send_key "ctrl-c";
-   script_run "echo softdog > /etc/modules-load.d/softdog.conf";
-   script_run "systemctl restart systemd-modules-load.service";
-   script_run "echo \"softdog=`lsmod | grep softdog | wc -l`\" > /dev/$serialdev";
-   wait_serial("softdog=1"); #softdog is enabled
-   send_key "ctrl-l"; #clear screen
-   script_run "ha-cluster-init"; 
-   assert_screen "ha-cluster-init-network-address-to-bind";
-   send_key "ret";
-   assert_screen "ha-cluster-init-multicast-address";
-   send_key "ret";
-   assert_screen "ha-cluster-init-multicast-port";
-   send_key "ret";
-   assert_screen "ha-cluster-init-configure-sbd";
-   type_string "y\n";
-   assert_screen "ha-cluster-init-configure-sbd-path";
-   #FIXME: I don't like the path here
-   type_string "/dev/disk/by-path/ip-*-lun-0\n";
-   assert_screen "ha-cluster-init-configure-sbd-confirmation";
-   type_string "y\n";
-   assert_screen "ha-cluster-init-administration-ip", 180;
-   type_string "n\n";
-   assert_screen "ha-cluster-init-done";
-   upload_logs "/var/log/ha-cluster-bootstrap.log";
-   
+    type_string "SuSEfirewall2 off\n";
+    #FIXME: I don't like the path here
+    my $cluster_init = script_output "ha-cluster-init -y -s /dev/disk/by-path/ip-*-lun-0; echo ha_cluster_init=\$?", 120;
+    if ($cluster_init =~ /ha_cluster_init=1/) { #failed to initialize the cluster, trying again
+        script_run "ha-cluster-init -y -s /dev/disk/by-path/ip-*-lun-0; echo ha_cluster_init=\$? > /dev/$serialdev", 120;
+        upload_logs "/var/log/ha-cluster-bootstrap.log";
+        die "ha-cluster-init failed" unless wait_serial "ha_cluster_init=0", 60;
+    }
+    upload_logs "/var/log/ha-cluster-bootstrap.log";
+    type_string "crm_mon -1\n";
+    save_screenshot;
+    mutex_create "MUTEX_HA_" . get_var("CLUSTERNAME");
+    #mutex_unlock "MUTEX_HA_NODE_JOINED_" . get_var("CLUSTERNAME"); # should be mutex_lock
+    sleep 60; # mutex_unlock doesn't work in this thread, that's the workaround
+    mutex_unlock "MUTEX_HA_" . get_var("CLUSTERNAME"); #should be mutex_lock
+    type_string "crm_mon -1\n";
+    save_screenshot;
 }
 
 sub test_flags {
