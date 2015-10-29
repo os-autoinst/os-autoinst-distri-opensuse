@@ -6,7 +6,8 @@ sub run() {
     x11_start_program("oowriter");
     assert_screen 'test-ooffice-1', 30;
     # clicking the writing area to make sure the cursor addressed there
-    assert_and_click 'ooffice-writing-area', 10;
+    assert_and_click 'ooffice-writing-area', 'left', 10;
+    wait_idle 10;
     type_string "Hello World!";
     assert_screen 'test-ooffice-2', 5;
     send_key "alt-f4";
