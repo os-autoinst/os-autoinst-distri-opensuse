@@ -30,6 +30,9 @@ sub run() {
 
     my $hostname = "susetest";
     my $domain   = "zq1.de";
+    if ( get_var("HOSTNAME") ) {
+        $hostname = get_var("HOSTNAME");
+    }
 
     send_key "alt-s";       # open hostname tab
     assert_screen "yast2_lan-hostname-tab";
