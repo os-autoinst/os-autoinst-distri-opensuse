@@ -4,6 +4,7 @@ use testapi;
 
 sub run() {
     my $self = shift;
+    wait_idle;
     if ( check_var("DESKTOP", "lxde") ) {
         x11_start_program("lxpanelctl menu");    # or Super_L or Windows key
     }
@@ -16,7 +17,6 @@ sub run() {
         mouse_hide(1);
     }
     else {
-        wait_idle;
         send_key "alt-f1";                        # open main menu
     }
     assert_screen 'test-desktop_mainmenu-1', 20;
