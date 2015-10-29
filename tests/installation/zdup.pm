@@ -17,6 +17,8 @@ sub run() {
     my $zypper_installing        = qr/Installing: \S+/;
     my $zypper_dup_fileconflict  = qr/^File conflicts .*^Continue\? \[y/ms;
 
+    # before disable we need to have cdrkit installed to get proper iso appid
+    script_run "zypper -n in cdrkit-cdrtools-compat";
     # Disable all repos, so we do not need to remove one by one
     # beware PackageKit!
     script_run("zypper modifyrepo --all --disable | tee /dev/$serialdev");
@@ -56,10 +58,18 @@ sub run() {
             my $flavor = get_var("FLAVOR");
             script_run "ls -al /dev/disk/by-label";
             script_run "";
-            # try to find iso by build id in label (like in SLE)
-            script_run "shopt -s nullglob; repo=(/dev/disk/by-label/*$build); shopt -u nullglob";
+            my $isoinfo = "isoinfo -d -i /dev/\$dev | grep \"Application id\" | awk -F \" \" '{print \$3}'";
+
+            script_run "for dev in sr0 sr1 sr2 sr3 sr4 sr5; do
+                       label=`$isoinfo`
+                       case \$label in
+                           *$flavor-*$build*) echo \"\$dev match\"; export dev=\"/dev/\$dev\"; break;;
+                           *) continue;;
+                       esac
+                       done
+                       echo \"found dev \$dev with label \$label\"";
             # if that fails, e.g. if volume descriptor too long, just try /dev/sr0
-            $defaultrepo = "dvd:/?devices=\${repo:-/dev/sr0}";
+            $defaultrepo = "dvd:/?devices=\${dev:-/dev/sr0}";
         }
     }
 
