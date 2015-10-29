@@ -19,12 +19,12 @@ use testapi;
 
 sub run {
 
-    unless (get_var("BOOTFROM") eq 'c' ) {
-       check_screen( "inst-bootmenu", 10 );
-       send_key "ret"; #faster boot if boot from cd
+    unless (get_var("BOOTFROM") eq 'c') {
+        check_screen("inst-bootmenu", 10);
+        send_key "ret";    #faster boot if boot from cd
     }
-    assert_screen( "autoyast-boot", 10 );
-    send_key "ret"; #faster boot
+    assert_screen("autoyast-boot", 10);
+    send_key "ret";        #faster boot
 
 }
 
@@ -33,7 +33,7 @@ sub test_flags {
     # 'fatal' - whole test suite is in danger if this fails
     # 'milestone' - after this test succeeds, update 'lastgood'
     # 'important' - if this fails, set the overall state to 'fail'
-    return { important => 1, fatal => 1 };
+    return {fatal => 1};
 }
 
 1;

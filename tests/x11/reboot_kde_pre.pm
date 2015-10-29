@@ -12,7 +12,7 @@ sub run() {
     my $ret;
     for (my $counter = 10; $counter > 0; $counter--) {
         $ret = check_screen "logoutdialog-reboot-highlighted", 3;
-        if ( defined($ret) ) {
+        if (defined($ret)) {
             last;
         }
         else {
@@ -20,10 +20,10 @@ sub run() {
         }
     }
     # report the failure or green
-    unless ( defined($ret) ) {
+    unless (defined($ret)) {
         assert_screen "logoutdialog-reboot-highlighted", 1;
     }
-    send_key "ret";                # confirm
+    send_key "ret";    # confirm
 
     if (get_var("SHUTDOWN_NEEDS_AUTH")) {
         assert_screen 'reboot-auth', 15;
@@ -33,7 +33,7 @@ sub run() {
 }
 
 sub test_flags() {
-    return { 'important' => 1 };
+    return {important => 1};
 }
 1;
 

@@ -4,7 +4,7 @@ use testapi;
 
 sub reconnectsshinstall($) {
     my ($nodenum) = @_;
-    my $nodeip = 5+$nodenum;
+    my $nodeip = 5 + $nodenum;
     type_string "ssh 10.0.2.1$nodeip -l root\n";
     sleep 10;
     type_string "openqaha\n";
@@ -17,9 +17,9 @@ sub waitfor2ndstage($) {
     my ($nodenum) = @_;
     type_string "vncviewer localhost:9$nodenum -shared -fullscreen\n";
     assert_screen "inst-ssh-ready", 500;
-    send_key 'f8', 1;
-    send_key 'down', 1;
-    send_key 'ret', 1;
+    send_key 'f8',                  1;
+    send_key 'down',                1;
+    send_key 'ret',                 1;
     sleep 5;
     send_key 'ctrl-l', 1;
 }

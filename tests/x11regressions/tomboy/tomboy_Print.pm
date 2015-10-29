@@ -25,8 +25,8 @@ sub run() {
     sleep 1;
     send_key "alt-v";
     sleep 5;    #FIXME Print to file failed in this version, so just replace with preview.
-    #send_key "alt-p"; sleep 2; #FIXME
-    #send_key "alt-r"; sleep 5; #FIXME
+                #send_key "alt-p"; sleep 2; #FIXME
+                #send_key "alt-r"; sleep 5; #FIXME
 
     wait_idle;
     assert_screen 'test-tomboy_Print-1', 3;

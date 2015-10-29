@@ -20,7 +20,7 @@ use testapi;
 use registration;
 
 sub run() {
-    assert_screen( "scc-registration", 100 );
+    assert_screen("scc-registration", 100);
     fill_in_registration_data;
 }
 

@@ -3,8 +3,8 @@ use testapi;
 
 sub run() {
     my $self = shift;
-    x11_start_program("khelpcenter", 6, { valid => 1 } );
-    if ( get_var("LIVETEST") ) {
+    x11_start_program("khelpcenter", 6, {valid => 1});
+    if (get_var("LIVETEST")) {
         assert_screen 'test-khelpcenter-1', 15;
     }
     else {

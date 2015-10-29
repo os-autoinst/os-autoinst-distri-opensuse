@@ -19,7 +19,7 @@ sub run() {
     sleep 1;
 
     # set Hotkeys
-    for ( 1 .. 4 ) {
+    for (1 .. 4) {
         type_string "\t";
     }
     type_string "<Alt>F10\t<Alt>F9";

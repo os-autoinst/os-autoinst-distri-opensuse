@@ -6,10 +6,10 @@ use testapi;
 sub accept3rdparty {
     my ($self) = @_;
     #Third party licenses sometimes appear
-    while ( my $ret = check_screen( [qw/3rdpartylicense automatic-changes inst-overview/] ), 15 ){
-            last if $ret->{needle}->has_tag("automatic-changes");
-            last if $ret->{needle}->has_tag("inst-overview");
-            send_key $cmd{acceptlicense}, 1;
+    while (my $ret = check_screen([qw/3rdpartylicense automatic-changes inst-overview/]), 15) {
+        last if $ret->{needle}->has_tag("automatic-changes");
+        last if $ret->{needle}->has_tag("inst-overview");
+        send_key $cmd{acceptlicense}, 1;
     }
 }
 
@@ -27,14 +27,14 @@ sub change_desktop() {
     }
 
     if (check_screen('dependancy-issue', 10) && get_var("WORKAROUND_DEPS")) {
-        while ( check_screen 'dependancy-issue', 5 ) {
+        while (check_screen 'dependancy-issue', 5) {
             if (check_var('VIDEOMODE', 'text')) {
                 send_key 'alt-s', 3;
             }
             else {
                 send_key 'alt-1', 3;
             }
-            send_key 'spc', 3;
+            send_key 'spc',   3;
             send_key 'alt-o', 3;
         }
     }
@@ -42,7 +42,7 @@ sub change_desktop() {
     assert_screen 'pattern_selector';
     if (check_var('VIDEOMODE', 'text')) {
         send_key 'alt-f';
-        for ( 1 .. 4 ) { send_key 'up'; }
+        for (1 .. 4) { send_key 'up'; }
         send_key 'ret';
         send_key_until_needlematch 'patterns-list-selected', 'tab', 10;
     }
@@ -66,13 +66,13 @@ sub change_desktop() {
     assert_screen "desktop-selected", 5;
 
     if (check_var('VIDEOMODE', 'text')) {
-        send_key 'alt-a'; # accept
+        send_key 'alt-a';    # accept
         accept3rdparty;
         assert_screen 'automatic-changes', 4;
-        send_key 'alt-o'; # OK
+        send_key 'alt-o';    # OK
     }
     else {
-        send_key 'alt-o'; # OK
+        send_key 'alt-o';    # OK
         accept3rdparty;
     }
     assert_screen 'inst-overview', 15;

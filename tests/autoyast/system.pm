@@ -17,8 +17,7 @@ use strict;
 use base 'y2logsstep';
 use testapi;
 
-sub save_logs_and_continue
-{
+sub save_logs_and_continue {
     my $name = shift;
     # seve logs and continue
     send_key "ctrl-alt-f2";
@@ -43,51 +42,51 @@ sub run {
 
     my @needles = ("bios-boot", "autoyast-error", "reboot-after-installation");
 
-    push @needles, "autoyast-confirm" if get_var("AUTOYAST_CONFIRM");
+    push @needles, "autoyast-confirm"        if get_var("AUTOYAST_CONFIRM");
     push @needles, "autoyast-postpartscript" if get_var("USRSCR_DIALOG");
     my $postpartscript = 0;
-    my $confirmed = 0;
+    my $confirmed      = 0;
 
-    my $maxtime = 2000;
+    my $maxtime   = 2000;
     my $checktime = 30;
-    my $looptime = 0;
-    my $i = 1;
-    my $timeout = 0;
+    my $looptime  = 0;
+    my $i         = 1;
+    my $timeout   = 0;
 
-    while (! $timeout) {
+    while (!$timeout) {
         mouse_hide(1);
-        $ret = check_screen( [@needles], $checktime );
+        $ret = check_screen([@needles], $checktime);
 
         #repeat until timeout or login screen
-        if ( defined $ret ) {
-           last if $ret->{needle}->has_tag("bios-boot") || $ret->{needle}->has_tag("reboot-after-installation");
- 
-           if ( $ret->{needle}->has_tag('autoyast-error') ) {
-              send_key "alt-s"; #stop
-              save_logs_and_continue("stage1_error$i");
-              $i++;
-              send_key "tab"; #continue
-              send_key "ret";
-              wait_idle(5);
-              #mark as failed
-              $self->result('fail');
-           }
-           elsif ( $ret->{needle}->has_tag('autoyast-confirm') ) {
-              # select network (second entry)
-              send_key "ret";
+        if (defined $ret) {
+            last if $ret->{needle}->has_tag("bios-boot") || $ret->{needle}->has_tag("reboot-after-installation");
 
-              assert_screen( "startinstall", 20 );
+            if ($ret->{needle}->has_tag('autoyast-error')) {
+                send_key "alt-s";    #stop
+                save_logs_and_continue("stage1_error$i");
+                $i++;
+                send_key "tab";      #continue
+                send_key "ret";
+                wait_idle(5);
+                #mark as failed
+                $self->result('fail');
+            }
+            elsif ($ret->{needle}->has_tag('autoyast-confirm')) {
+                # select network (second entry)
+                send_key "ret";
 
-              send_key "tab";
-              send_key "ret";
-              wait_idle(5);
-              @needles = grep { $_ ne 'autoyast-confirm' } @needles;
-              $confirmed = 1;
-           }
-           elsif ( $ret->{needle}->has_tag('autoyast-postpartscript') ) {
-              @needles = grep { $_ ne 'autoyast-postpartscript' } @needles;
-              $postpartscript = 1;
-           }
+                assert_screen("startinstall", 20);
+
+                send_key "tab";
+                send_key "ret";
+                wait_idle(5);
+                @needles = grep { $_ ne 'autoyast-confirm' } @needles;
+                $confirmed = 1;
+            }
+            elsif ($ret->{needle}->has_tag('autoyast-postpartscript')) {
+                @needles = grep { $_ ne 'autoyast-postpartscript' } @needles;
+                $postpartscript = 1;
+            }
         }
 
         $looptime = $looptime + $checktime;
@@ -96,7 +95,7 @@ sub run {
     }
 
 
-    if ($timeout) { #timeout - save log
+    if ($timeout) {    #timeout - save log
         save_logs_and_continue("stage1_timeout");
         $self->result('fail');
         return;
@@ -112,38 +111,38 @@ sub run {
 
 
 
-    $maxtime = 1000;
+    $maxtime   = 1000;
     $checktime = 30;
-    $looptime = 0;
-    $timeout = 0;
-    while (! $timeout) {
+    $looptime  = 0;
+    $timeout   = 0;
+    while (!$timeout) {
 
         mouse_hide(1);
-        $ret = check_screen( ["reboot-after-installation", "autoyast-error" ], $checktime );
+        $ret = check_screen(["reboot-after-installation", "autoyast-error"], $checktime);
 
-        
+
         #repeat until timeout or login screen
-        if ( defined $ret ) {
-           if ( $ret->{needle}->has_tag('autoyast-error') ) {
-              send_key "alt-s"; #stop
-              save_logs_and_continue("stage2_error$i");
-              $i++;
-              send_key "tab"; #continue
-              send_key "ret";
-              wait_idle(5);
-              #mark as failed
-              $self->result('fail');
-           }
-           else { #all ok
-              last;
-           }
+        if (defined $ret) {
+            if ($ret->{needle}->has_tag('autoyast-error')) {
+                send_key "alt-s";    #stop
+                save_logs_and_continue("stage2_error$i");
+                $i++;
+                send_key "tab";      #continue
+                send_key "ret";
+                wait_idle(5);
+                #mark as failed
+                $self->result('fail');
+            }
+            else {                   #all ok
+                last;
+            }
         }
         $looptime = $looptime + $checktime;
         $timeout = 1 if $looptime > $maxtime;
 
     }
-    
-    if ($timeout) { #timeout - save log
+
+    if ($timeout) {                  #timeout - save log
         save_logs_and_continue("stage2_timeout");
         $self->result('fail');
         return;

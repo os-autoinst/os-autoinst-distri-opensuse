@@ -3,7 +3,7 @@ use testapi;
 
 sub run() {
     my $self = shift;
-    x11_start_program("oocalc", 6, { valid => 1 } );
+    x11_start_program("oocalc", 6, {valid => 1});
     sleep 2;
     wait_still_screen;    # extra wait because oo sometimes appears to be idle during start
     assert_screen 'test-oocalc-1', 3;
@@ -14,7 +14,7 @@ sub run() {
     send_key "alt-f4";
     sleep 2;
     assert_screen 'test-oocalc-3', 3;
-    assert_and_click 'dont-save-libreoffice-btn'; # _Don't save
+    assert_and_click 'dont-save-libreoffice-btn';    # _Don't save
 }
 
 sub ocr_checklist() {

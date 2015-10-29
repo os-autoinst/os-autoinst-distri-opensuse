@@ -5,7 +5,7 @@ use testapi;
 
 sub run() {
     my $self = shift;
-    wait_still_screen( 30, 290 );
+    wait_still_screen(30, 290);
 
     #send_key "ctrl-alt-shift-x"; sleep 3;
     send_key "ctrl-alt-f2";
@@ -23,7 +23,7 @@ sub run() {
     assert_screen 'test-hw_clear_disks-1', 3;
 
     #send_key "ctrl-d"; sleep 3;
-    my $instcon = ( check_var("VIDEOMODE", "text") ) ? 1 : 7;
+    my $instcon = (check_var("VIDEOMODE", "text")) ? 1 : 7;
     send_key "ctrl-alt-f$instcon";
     sleep 3;
 }

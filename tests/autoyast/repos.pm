@@ -19,8 +19,8 @@ use testapi;
 
 sub run {
     my $self = shift;
-    $self->result('ok'); # default result
-    #this checks also network connectivity
+    $self->result('ok');    # default result
+                            #this checks also network connectivity
     type_string "ip addr\n";
     type_string "zypper ref | tee /dev/$serialdev";
     send_key "ret";
@@ -47,7 +47,7 @@ sub run {
         wait_idle(30);
         upload_logs "/tmp/y2logs.tar.bz2";
         save_screenshot;
-        $self->result('fail'); 
+        $self->result('fail');
     }
     else {
         type_string "save_y2logs /tmp/y2logs.tar.bz2\n";
@@ -59,7 +59,7 @@ sub run {
     wait_idle(30);
     type_string "yast2 --ncurses clone_system ; echo CLONED >/dev/$serialdev\n";
     while (!wait_serial("CLONED", 200)) {
-        $self->result('fail'); 
+        $self->result('fail');
         save_screenshot;
         send_key "ret";
     }
@@ -91,7 +91,7 @@ sub test_flags {
     # 'fatal' - whole test suite is in danger if this fails
     # 'milestone' - after this test succeeds, update 'lastgood'
     # 'important' - if this fails, set the overall state to 'fail'
-    return { important => 1 };
+    return {important => 1};
 }
 
 1;

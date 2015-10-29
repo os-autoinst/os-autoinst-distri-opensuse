@@ -7,7 +7,7 @@ sub run() {
 
     if (get_var('ENCRYPT')) {
         assert_screen "upgrade-unlock-disk";
-        send_key 'alt-p'; # provide password
+        send_key 'alt-p';    # provide password
         assert_screen "upgrade-enter-password";
         type_password;
         send_key $cmd{ok};
@@ -41,7 +41,7 @@ sub run() {
             send_key 'alt-o';
         }
         if (check_screen('installed-product-incompatible', 10)) {
-            send_key 'alt-o'; # C&ontinue
+            send_key 'alt-o';    # C&ontinue
             record_soft_failure;
         }
 

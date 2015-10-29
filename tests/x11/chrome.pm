@@ -5,9 +5,10 @@ sub run() {
     my $self = shift;
     my $arch;
     if (check_var('ARCH', 'i586')) {
-      $arch="i386";
-    } else {
-      $arch="x86_64";
+        $arch = "i386";
+    }
+    else {
+        $arch = "x86_64";
     }
     my $chrome_url = "https://dl.google.com/linux/direct/google-chrome-stable_current_$arch.rpm";
 

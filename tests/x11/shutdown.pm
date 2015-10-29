@@ -13,15 +13,15 @@ sub trigger_shutdown_gnome_button() {
 sub run() {
     my $self = shift;
 
-    if ( check_var("DESKTOP", "kde") ) {
+    if (check_var("DESKTOP", "kde")) {
         send_key "ctrl-alt-delete";    # shutdown
         assert_screen 'logoutdialog', 15;
 
-        if ( get_var("PLASMA5") ) {
+        if (get_var("PLASMA5")) {
             assert_and_click 'sddm_shutdown_option_btn';
             # sometimes not reliable, since if clicked the background
             # color of button should changed, thus check and click again
-            if ( check_screen("sddm_shutdown_option_btn", 1) ) {
+            if (check_screen("sddm_shutdown_option_btn", 1)) {
                 assert_and_click 'sddm_shutdown_option_btn';
             }
             assert_and_click 'sddm_shutdown_btn';
@@ -33,10 +33,10 @@ sub run() {
         }
     }
 
-    if ( check_var("DESKTOP", "gnome") ) {
+    if (check_var("DESKTOP", "gnome")) {
         $self->trigger_shutdown_gnome_button();
         assert_screen 'logoutdialog', 15;
-        send_key "ret";                # confirm shutdown
+        send_key "ret";    # confirm shutdown
 
         if (get_var("SHUTDOWN_NEEDS_AUTH")) {
             assert_screen 'shutdown-auth', 15;
@@ -45,26 +45,26 @@ sub run() {
         }
     }
 
-    if ( check_var("DESKTOP", "xfce") ) {
-        for ( 1 .. 5 ) {
-            send_key "alt-f4";         # opens log out popup after all windows closed
+    if (check_var("DESKTOP", "xfce")) {
+        for (1 .. 5) {
+            send_key "alt-f4";    # opens log out popup after all windows closed
         }
         wait_idle;
         assert_screen 'logoutdialog', 15;
-        type_string "\t\t";          # select shutdown
+        type_string "\t\t";       # select shutdown
         sleep 1;
 
         # assert_screen 'test-shutdown-1', 3;
         type_string "\n";
     }
 
-    if ( check_var("DESKTOP", "lxde") ) {
-        x11_start_program("lxsession-logout"); # opens logout dialog
+    if (check_var("DESKTOP", "lxde")) {
+        x11_start_program("lxsession-logout");    # opens logout dialog
         assert_screen "logoutdialog", 20;
         send_key "ret";
     }
 
-    if ( get_var("DESKTOP") =~ m/minimalx|textmode/ ) {
+    if (get_var("DESKTOP") =~ m/minimalx|textmode/) {
         power('off');
 
         # assert_screen 'test-shutdown-2', 3;
@@ -75,7 +75,7 @@ sub run() {
 }
 
 sub test_flags() {
-    return { 'norollback' => 1 };
+    return {'norollback' => 1};
 }
 
 1;

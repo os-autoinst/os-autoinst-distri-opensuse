@@ -21,44 +21,44 @@ sub run() {
     mouse_hide();
     x11_start_program("firefox");
     assert_screen "start-firefox", 5;
-    if ( get_var("UPGRADE") ) { send_key "alt-d"; wait_idle; }    # dont check for updated plugins
-    if ( get_var("DESKTOP") =~ /xfce|lxde/i ) {
-        send_key "ret";                                      # confirm default browser setting popup
+    if (get_var("UPGRADE")) { send_key "alt-d"; wait_idle; }    # dont check for updated plugins
+    if (get_var("DESKTOP") =~ /xfce|lxde/i) {
+        send_key "ret";                                         # confirm default browser setting popup
         wait_idle;
     }
     send_key "ctrl-b";
-    sleep 1;                                                #open the bookmark sidebar
+    sleep 1;                                                    #open the bookmark sidebar
     send_key "tab";
     sleep 1;
     send_key "ret";
-    sleep 1;                                                #unfold the "Bookmarks Toolbar"
+    sleep 1;                                                    #unfold the "Bookmarks Toolbar"
     send_key "down";
-    sleep 1;                                                #down twice to select the "openSUSE" folder
-    send_key "down";
-    sleep 1;
-    send_key "ret";
-    sleep 1;                                                #open the "openSUSE" folder
-    send_key "down";
-    sleep 1;                                                #down twice to select the "openSUSE Documentation"
+    sleep 1;                                                    #down twice to select the "openSUSE" folder
     send_key "down";
     sleep 1;
     send_key "ret";
-    sleep 5;                                                #open the selected bookmark
+    sleep 1;                                                    #open the "openSUSE" folder
+    send_key "down";
+    sleep 1;                                                    #down twice to select the "openSUSE Documentation"
+    send_key "down";
+    sleep 1;
+    send_key "ret";
+    sleep 5;                                                    #open the selected bookmark
     check_screen "firefox_sidebar-bookmark", 5;
     send_key "ctrl-b";
-    sleep 1;                                                #close the "Bookmark sidebar"
+    sleep 1;                                                    #close the "Bookmark sidebar"
 
     #begin to test the history sidebar
     send_key "ctrl-h";
     sleep 1;
     send_key "tab";
-    sleep 1;                                                #twice tab to select the "Today"
+    sleep 1;                                                    #twice tab to select the "Today"
     send_key "tab";
     sleep 1;
     send_key "ret";
-    sleep 1;                                                #unfold the "Today"
+    sleep 1;                                                    #unfold the "Today"
     send_key "down";
-    sleep 1;                                                #select the first history
+    sleep 1;                                                    #select the first history
     send_key "down";
     sleep 1;
     send_key "ret";

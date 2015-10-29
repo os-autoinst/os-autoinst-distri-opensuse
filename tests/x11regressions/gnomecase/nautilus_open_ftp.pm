@@ -16,7 +16,7 @@ sub run() {
 
     send_key "shift-f10";
     assert_screen 'nautilus-ftp-rightkey-menu', 3;
-    send_key "u";           #umount the ftp
+    send_key "u";    #umount the ftp
 
     send_key "ctrl-w";
 }

@@ -16,7 +16,7 @@ sub run() {
     wait_idle;
     send_key "ret";
     #switch to search input field
-    for ( 1 .. 4 ) { send_key "right" }
+    for (1 .. 4) { send_key "right" }
     type_string "newfile";
     sleep 5;
     assert_screen 'tracker-search-result';

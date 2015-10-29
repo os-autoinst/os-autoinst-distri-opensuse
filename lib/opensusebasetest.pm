@@ -59,7 +59,7 @@ sub export_logs {
 sub export_captured_audio {
     my $self = shift;
 
-    upload_logs ref($self)."-captured.wav";
+    upload_logs ref($self) . "-captured.wav";
 }
 
 1;

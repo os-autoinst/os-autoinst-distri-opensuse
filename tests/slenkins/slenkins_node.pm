@@ -24,10 +24,10 @@ use ttylogin;
 sub run {
     my $self = shift;
 
-    ttylogin ('4', "root");
+    ttylogin('4', "root");
 
     my $configured = 0;
-    my $ip_num = 15;
+    my $ip_num     = 15;
     open(FH, '<', get_var('CASEDIR') . "/data/slenkins/" . get_var('SLENKINS_NODEFILE'));
     my $name;
     while (<FH>) {
@@ -97,7 +97,7 @@ sub test_flags {
     # 'fatal' - whole test suite is in danger if this fails
     # 'milestone' - after this test succeeds, update 'lastgood'
     # 'important' - if this fails, set the overall state to 'fail'
-    return { fatal => 1 };
+    return {fatal => 1};
 }
 
 1;

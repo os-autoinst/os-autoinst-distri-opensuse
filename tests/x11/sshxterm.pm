@@ -10,7 +10,7 @@ sub run() {
     wait_idle 6;
     type_string "$password\n";
     sleep 2;
-    for ( 1 .. 13 ) { send_key "ret" }
+    for (1 .. 13) { send_key "ret" }
     type_string "PS1=\"# \"\n";
     type_string "echo If you can see this text, ssh-X-forwarding  is working.\n";
     sleep 2;

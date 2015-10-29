@@ -6,7 +6,7 @@ use testapi;
 # this test case are copied from 065_installer_timezone to adapt
 # LiveCD installer excuses before then partition setup
 sub run() {
-    assert_screen "inst-timezone", 125  || die 'no timezone';
+    assert_screen "inst-timezone", 125 || die 'no timezone';
     send_key $cmd{"next"};
 }
 

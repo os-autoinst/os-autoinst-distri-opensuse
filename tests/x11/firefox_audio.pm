@@ -8,9 +8,9 @@ sub run() {
     assert_screen 'test-firefox_audio-1', 35;
     $self->assert_DTMF('159D');
     send_key "alt-f4";
-     if (check_screen('firefox-save-and-quit', 4)) {
-       # confirm "save&quit"
-       send_key "ret";
+    if (check_screen('firefox-save-and-quit', 4)) {
+        # confirm "save&quit"
+        send_key "ret";
     }
 }
 

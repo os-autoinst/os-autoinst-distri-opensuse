@@ -5,7 +5,7 @@ sub run() {
     my $self = shift;
     become_root();
     script_run("zypper -n in sshfs");
-    wait_still_screen( 12, 90 );
+    wait_still_screen(12, 90);
     script_run('cd /var/tmp ; mkdir mnt ; sshfs localhost:/ mnt');
     assert_screen "accept-ssh-host-key", 3;
     type_string "yes\n";    # trust ssh host key

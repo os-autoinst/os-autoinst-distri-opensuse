@@ -5,7 +5,7 @@ use testapi;
 # Case 1248855 - Pidgin: Add AIM Account
 # Case 1248856 - Pidgin: Login to AIM Account and Send/Receive Message
 sub run() {
-    my $self = shift;
+    my $self      = shift;
     my $USERNAME  = "nooops_test3";
     my $USERNAME1 = "nooops_test4";
     my $DOMAIN    = "aim";
@@ -25,7 +25,7 @@ sub run() {
     send_key "alt-u";
     sleep 1;
 
-    type_string $USERNAME."@".$DOMAIN.".com";
+    type_string $USERNAME. "@" . $DOMAIN . ".com";
     sleep 2;
     send_key "alt-p";
     sleep 1;
@@ -43,7 +43,7 @@ sub run() {
     sleep 2;
     send_key "alt-u";
     sleep 1;
-    type_string $USERNAME1."@".$DOMAIN.".com";
+    type_string $USERNAME1. "@" . $DOMAIN . ".com";
     sleep 2;
     send_key "alt-p";
     sleep 1;

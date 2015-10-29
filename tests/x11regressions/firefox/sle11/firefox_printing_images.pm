@@ -27,23 +27,23 @@ sub run() {
     # Launch firefox
     x11_start_program("firefox");
     assert_screen "start-firefox", 5;
-    if ( get_var("UPGRADE") ) { send_key "alt-d"; wait_idle; }    # Don't check for updated plugins
-    if ( get_var("DESKTOP") =~ /xfce|lxde/i ) {
-        send_key "ret";                                      # Confirm default browser setting popup
+    if (get_var("UPGRADE")) { send_key "alt-d"; wait_idle; }    # Don't check for updated plugins
+    if (get_var("DESKTOP") =~ /xfce|lxde/i) {
+        send_key "ret";                                         # Confirm default browser setting popup
         wait_idle;
     }
     send_key "alt-f10";
-    sleep 1;                                                # Maximize
+    sleep 1;                                                    # Maximize
 
     # Define the pages to be tested (last part of urls)
 
     my @test_images = (
 
-        { name => 'small_gif',    image_file => 'neticon.gif' },
-        { name => 'large_gif',    image_file => 'toucan.gif' },
-        { name => 'small_jpg',    image_file => 'station.jpg' },
-        { name => 'large_jpg',    image_file => 'MoonBkside.jpg' },
-        { name => 'animated_gif', image_file => 'aflag.gif' },
+        {name => 'small_gif',    image_file => 'neticon.gif'},
+        {name => 'large_gif',    image_file => 'toucan.gif'},
+        {name => 'small_jpg',    image_file => 'station.jpg'},
+        {name => 'large_jpg',    image_file => 'MoonBkside.jpg'},
+        {name => 'animated_gif', image_file => 'aflag.gif'},
 
     );
 
@@ -58,9 +58,9 @@ sub run() {
         sleep 8;
 
         send_key "ctrl-p";
-        sleep 1;                                            # Open "Print" window
+        sleep 1;                                           # Open "Print" window
 
-        send_key "tab";                                      # Choose "Print to File"
+        send_key "tab";                                    # Choose "Print to File"
 
         # Set file name
         send_key "alt-n";
@@ -72,7 +72,7 @@ sub run() {
         sleep 5;
 
         # Open printed pdf file by evince
-        x11_start_program( "evince " . $_->{name} . ".pdf" );
+        x11_start_program("evince " . $_->{name} . ".pdf");
         sleep 3;
         send_key "f5";
         sleep 2;    # Slide mode

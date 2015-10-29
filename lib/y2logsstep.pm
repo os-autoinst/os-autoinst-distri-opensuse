@@ -12,11 +12,11 @@ sub use_ifconfig() {
 }
 
 sub get_ip_address() {
-    if ( !get_var('NET') && !check_var('BACKEND', 's390x') ) {
-        if ( get_var('OLD_IFCONFIG') ) {
+    if (!get_var('NET') && !check_var('BACKEND', 's390x')) {
+        if (get_var('OLD_IFCONFIG')) {
             use_ifconfig;
         }
-        else  {
+        else {
             use_wicked;
         }
         type_string "ifconfig -a\n";
@@ -26,7 +26,7 @@ sub get_ip_address() {
 
 sub get_to_console() {
     my @tags = qw/yast-still-running linuxrc-install-fail linuxrc-repo-not-found/;
-    my $ret = check_screen( \@tags, 5 );
+    my $ret = check_screen(\@tags, 5);
     if ($ret && $ret->{needle}->has_tag("linuxrc-repo-not-found")) {
         send_key "ctrl-alt-f9";
         wait_idle;

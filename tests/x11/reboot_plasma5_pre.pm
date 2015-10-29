@@ -10,7 +10,7 @@ sub run() {
     assert_and_click 'sddm_reboot_option_btn';
     # sometimes not reliable, since if clicked the background
     # color of button should changed, thus check and click again
-    if ( check_screen("sddm_reboot_option_btn", 1) ) {
+    if (check_screen("sddm_reboot_option_btn", 1)) {
         assert_and_click 'sddm_reboot_option_btn';
     }
     assert_and_click 'sddm_reboot_btn';
@@ -23,7 +23,7 @@ sub run() {
 }
 
 sub test_flags() {
-    return { 'important' => 1 };
+    return {important => 1};
 }
 1;
 

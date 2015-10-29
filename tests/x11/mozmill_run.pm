@@ -12,7 +12,7 @@ sub run() {
     sleep 30;
     local $bmwqemu::timesidleneeded = 4;
 
-    for ( 1 .. 12 ) {    # one test takes ~7 mins
+    for (1 .. 12) {    # one test takes ~7 mins
         send_key "shift";    # avoid blank/screensaver
         last if wait_serial "mozmill testrun finished", 120;
     }

@@ -19,12 +19,12 @@ sub run() {
     mouse_hide;
 
     # license+lang
-    if ( get_var("HASLICENSE") ) {
+    if (get_var("HASLICENSE")) {
         send_key $cmd{"accept"};    # accept license
     }
     assert_screen "languagepicked", 2;
     send_key $cmd{"next"};
-    if ( !check_var('INSTLANG', 'en_US') && check_screen "langincomplete", 1  ) {
+    if (!check_var('INSTLANG', 'en_US') && check_screen "langincomplete", 1) {
         send_key "alt-f";
     }
 }

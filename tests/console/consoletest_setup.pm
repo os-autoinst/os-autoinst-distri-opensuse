@@ -10,7 +10,7 @@ sub run() {
     # let's see how it looks at the beginning
     save_screenshot;
 
-    if ( !check_var('BACKEND', 's390x')) {
+    if (!check_var('BACKEND', 's390x')) {
         # verify there is a text console on tty1
         send_key "ctrl-alt-f1";
         assert_screen "tty1-selected", 15;
@@ -60,7 +60,7 @@ sub post_fail_hook() {
 }
 
 sub test_flags() {
-    return { 'important' => 1, 'milestone' => 1, 'fatal' => 1 };
+    return {milestone => 1, fatal => 1};
 }
 
 1;

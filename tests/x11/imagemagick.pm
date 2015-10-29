@@ -9,7 +9,7 @@ sub run() {
     script_run("cd /tmp; mkdir img ; cd img");
     script_run("curl openqa.opensuse.org/opensuse/qatests/img.tar.gz | tar xz");
     script_run("ls;display *.png");
-    for ( 1 .. 3 ) {
+    for (1 .. 3) {
         send_key "spc";
         sleep 3;
         assert_screen 'test-imagemagick-1', 3;

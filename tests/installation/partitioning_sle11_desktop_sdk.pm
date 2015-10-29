@@ -7,7 +7,7 @@ sub run() {
 
     assert_screen 'inst-overview', 10;
     send_key $cmd{change};
-    send_key 'p'; # partitioning
+    send_key 'p';    # partitioning
 
     assert_screen 'preparing-disk', 5;
     send_key 'alt-c';
@@ -16,7 +16,7 @@ sub run() {
     send_key 'down';
     send_key 'down';
     send_key 'right';
-    send_key 'down'; #should select first disk'
+    send_key 'down';    #should select first disk'
     send_key 'alt-d';
     assert_screen 'add-partition', 5;
     send_key 'alt-n';
@@ -25,9 +25,9 @@ sub run() {
     type_string "1 GB";
     send_key 'alt-n';
     assert_screen 'add-partition-type', 5;
-    send_key 'alt-s'; #goto filesystem list
-    send_key ' '; #open filesystem list
-    send_key 'home'; #go to top of the list
+    send_key 'alt-s';    #goto filesystem list
+    send_key ' ';        #open filesystem list
+    send_key 'home';     #go to top of the list
 
     my $counter = 20;
     while (1) {

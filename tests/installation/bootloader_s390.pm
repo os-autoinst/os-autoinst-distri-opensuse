@@ -59,7 +59,7 @@ sub linuxrc_prompt () {
     # newline separate list of strings when interpolating...
     local $LIST_SEPARATOR = "\n";
 
-    if (!grep /^$prompt/, @$r[0..(@$r-1)] ) {
+    if (!grep /^$prompt/, @$r[0 .. (@$r - 1)]) {
         confess "prompt does not match expected prompt (${prompt}) :\n@$r\n";
     }
 
@@ -85,7 +85,7 @@ sub ftpboot_menu () {
     my $cursor_row = $s_home_position->{cursor_row};
 
     ## say Dumper $r_screenshot;
-    my $row = 0;
+    my $row   = 0;
     my $found = 0;
 
     foreach (@$r_screenshot) {
@@ -94,11 +94,11 @@ sub ftpboot_menu () {
     }
 
     if (!$found) {
-        $self->{s3270}->send_3270("PF(3)"); # quit ftpboot
+        $self->{s3270}->send_3270("PF(3)");    # quit ftpboot
         confess "ftpboot_menu: $menu_entry not found!\n" . join("\n", @$r_screenshot);
     }
 
-    my $sequence = ["Home", ("Down") x ($row-$cursor_row), "ENTER", "Wait(InputField)"];
+    my $sequence = ["Home", ("Down") x ($row - $cursor_row), "ENTER", "Wait(InputField)"];
     ### say "\$sequence=@$sequence";
 
     $self->{s3270}->sequence_3270(@$sequence);
@@ -121,7 +121,7 @@ sub hash2parmfile() {
         push @parmentries, "$k=$v";
     }
 
-    my $parmfile_with_Newline_s = join( " ", @parmentries);
+    my $parmfile_with_Newline_s = join(" ", @parmentries);
 
     # Chop this long line up in hunks less than 80 characters wide, to
     # send them to the host with s3270 "String(...)" commands, with
@@ -141,9 +141,9 @@ sub hash2parmfile() {
     $Text::Wrap::columns = 79 + length('String("') - length("00004 ");
 
     $parmfile_with_Newline_s = Text::Wrap::wrap(
-    'String("',        # first line prefix
-    'String("',        # subsequent lines prefix
-    $parmfile_with_Newline_s
+        'String("',    # first line prefix
+        'String("',    # subsequent lines prefix
+        $parmfile_with_Newline_s
     );
 
     # If there is no 'Newline\n' at the end of the parmfile, the last

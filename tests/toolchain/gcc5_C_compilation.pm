@@ -11,10 +11,10 @@ sub run() {
     script_run "wget $package";
     script_run 'tar jxf ltp-full-20150420.tar.bz2';
     script_run 'cd ltp-full-20150420';
-    script_run 'setterm -blank 0';   # disable screensaver
+    script_run 'setterm -blank 0';    # disable screensaver
     assert_script_run './configure --with-open-posix-testsuite', 100;
-    assert_script_run 'make all', 800;
-    assert_script_run 'make install', 400;
+    assert_script_run 'make all',                                800;
+    assert_script_run 'make install',                            400;
     script_run 'cd /opt/ltp/';
     script_run "./runltp -f syscalls;echo runltp syscalls PASSED-\$?|tee /dev/$serialdev";
     wait_serial('runltp syscalls PASSED-[01]', 1200) || die 'runltp syscalls FAILED';
@@ -24,7 +24,7 @@ sub run() {
 }
 
 sub test_flags() {
-    return { 'important' => 1 };
+    return {important => 1};
 }
 
 1;

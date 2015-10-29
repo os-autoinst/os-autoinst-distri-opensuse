@@ -50,7 +50,7 @@ sub init_cmd() {
       bootloader b
     );
 
-    if ( check_var('INSTLANG', "de_DE") ) {
+    if (check_var('INSTLANG', "de_DE")) {
         $testapi::cmd{"next"}            = "alt-w";
         $testapi::cmd{"createpartsetup"} = "alt-e";
         $testapi::cmd{"custompart"}      = "alt-b";
@@ -68,10 +68,10 @@ sub init_cmd() {
         $testapi::cmd{"change"}      = "alt-n";
         $testapi::cmd{"software"}    = "w";
     }
-    if ( check_var('INSTLANG', "es_ES") ) {
+    if (check_var('INSTLANG', "es_ES")) {
         $testapi::cmd{"next"} = "alt-i";
     }
-    if ( check_var('INSTLANG', "fr_FR") ) {
+    if (check_var('INSTLANG', "fr_FR")) {
         $testapi::cmd{"next"} = "alt-s";
     }
     ## keyboard cmd vars end
@@ -87,13 +87,13 @@ sub x11_start_program($$$) {
     assert_screen("desktop-runner", $timeout);
     type_string $program;
     wait_idle 5;
-    if ( $options->{terminal} ) { send_key "alt-t"; sleep 3; }
+    if ($options->{terminal}) { send_key "alt-t"; sleep 3; }
     send_key "ret", 1;
     # make sure desktop runner executed and closed when have had valid value
     # exec x11_start_program( $program, $timeout, { valid => 1 } );
-    if ( $options->{valid} ) {
+    if ($options->{valid}) {
         # check 3 times
-        foreach my $i ( 1..3 ) {
+        foreach my $i (1 .. 3) {
             last unless check_screen "desktop-runner-border", 2;
             send_key "ret", 1;
         }
@@ -104,7 +104,7 @@ sub x11_start_program($$$) {
 sub ensure_installed {
     my ($self, @pkglist) = @_;
     my $timeout;
-    if ( $pkglist[-1] =~ /^[0-9]+$/ ) {
+    if ($pkglist[-1] =~ /^[0-9]+$/) {
         $timeout = $pkglist[-1];
         pop @pkglist;
     }
@@ -115,34 +115,25 @@ sub ensure_installed {
     testapi::x11_start_program("xterm");
     assert_screen('xterm-started');
     $self->script_sudo("chown $testapi::username /dev/$testapi::serialdev && echo 'chown-SUCCEEDED' > /dev/$testapi::serialdev");
-    wait_serial ('chown-SUCCEEDED');
+    wait_serial('chown-SUCCEEDED');
     type_string("pkcon install @pkglist; RET=\$?; echo \"\n  pkcon finished\n\"; echo \"pkcon-\${RET}-\" > /dev/$testapi::serialdev\n");
-    my @tags = qw/Policykit Policykit-behind-window PolicyKit-retry PolicyKit-CapsOn pkcon-proceed-prompt/;
+    my @tags = qw/Policykit Policykit-behind-window pkcon-proceed-prompt/;
     while (1) {
         my $ret = check_screen(\@tags, $timeout);
         last unless $ret;
-        if ( $ret->{needle}->has_tag('PolicyKit-CapsOn')) {
-            send_key ( "caps" );
-            @tags = grep { $_ ne 'PolicyKit-CapsOn' } @tags;
-        }
-        if ( $ret->{needle}->has_tag('Policykit') ||
-             $ret->{needle}->has_tag('PolicyKit-retry')) {
+        if ($ret->{needle}->has_tag('Policykit')) {
             type_password;
-            send_key( "ret", 1 );
+            send_key("ret", 1);
             @tags = grep { $_ ne 'Policykit' } @tags;
             @tags = grep { $_ ne 'Policykit-behind-window' } @tags;
-            if ( $ret->{needle}->has_tag('PolicyKit-retry')) {
-                # Only a single retry is acceptable
-                @tags = grep { $_ ne 'PolicyKit-retry' } @tags;
-            }
             next;
         }
-        if ( $ret->{needle}->has_tag('Policykit-behind-window') ) {
+        if ($ret->{needle}->has_tag('Policykit-behind-window')) {
             send_key("alt-tab");
             sleep 3;
             next;
         }
-        if ( $ret->{needle}->has_tag('pkcon-proceed-prompt') ) {
+        if ($ret->{needle}->has_tag('pkcon-proceed-prompt')) {
             send_key("y");
             send_key("ret");
             @tags = grep { $_ ne 'pkcon-proceed-prompt' } @tags;
@@ -150,8 +141,8 @@ sub ensure_installed {
         }
     }
 
-    wait_serial ('pkcon-0-', 27) || die "pkcon install did not succeed";
-    send_key("alt-f4"); # close xterm
+    wait_serial('pkcon-0-', 27) || die "pkcon install did not succeed";
+    send_key("alt-f4");    # close xterm
 }
 
 sub script_sudo($$) {
@@ -172,7 +163,7 @@ sub become_root() {
 
     $self->script_sudo('bash', 1);
     type_string "whoami > /dev/$testapi::serialdev\n";
-    wait_serial( "root", 6 ) || die "Root prompt not there";
+    wait_serial("root", 6) || die "Root prompt not there";
     type_string "cd /tmp\n";
     send_key('ctrl-l');
 }

@@ -20,18 +20,18 @@ sub run() {
     assert_screen('firefox-fullscreen-page', 15);
 
     send_key "f11";
-    assert_screen('firefox-fullscreen-enter',15);
+    assert_screen('firefox-fullscreen-enter', 15);
 
     sleep 1;
     send_key "f11";
-    assert_screen('firefox-fullscreen-page',15);
+    assert_screen('firefox-fullscreen-page', 15);
 
     # Exit
     send_key "alt-f4";
-    
+
     if (check_screen('firefox-save-and-quit', 4)) {
-       # confirm "save&quit"
-       send_key "ret";
+        # confirm "save&quit"
+        send_key "ret";
     }
 }
 1;

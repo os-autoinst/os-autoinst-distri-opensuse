@@ -10,17 +10,17 @@ sub run() {
     # Clean and Start Firefox
     x11_start_program("xterm -e \"killall -9 firefox;rm -rf .moz*\"");
     x11_start_program("firefox");
-    assert_screen('firefox-gnome',45);
+    assert_screen('firefox-gnome', 45);
 
     # Links navigation
     send_key "/";
     sleep 1;
     type_string "blogs\n";
     sleep 1;
-    assert_screen('firefox-links_nav-suse_blogs',50);
+    assert_screen('firefox-links_nav-suse_blogs', 50);
 
     # Topsites
-    my @topsite = ( 'www.gnu.org', 'www.opensuse.org', 'www.twitter.com' );
+    my @topsite = ('www.gnu.org', 'www.opensuse.org', 'www.twitter.com');
     for my $site (@topsite) {
         send_key "esc";
         send_key "alt-d";
@@ -33,14 +33,14 @@ sub run() {
     send_key "alt-h";
     sleep 1;
     send_key "a";
-    assert_screen('firefox-help',5);
+    assert_screen('firefox-help', 5);
     send_key "esc";
 
     # Exit
     send_key "alt-f4";
     if (check_screen('firefox-save-and-quit', 4)) {
-       # confirm "save&quit"
-       send_key "ret";
+        # confirm "save&quit"
+        send_key "ret";
     }
 }
 1;

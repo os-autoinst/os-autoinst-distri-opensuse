@@ -13,16 +13,16 @@ sub run() {
     type_string 'To search for';
     assert_screen 'evince-search-1stresult', 10;
 
-    for ( 1..2 ) {
+    for (1 .. 2) {
         send_key "ctrl-g";    # go to next result
     }
     assert_screen 'evince-search-3rdresult', 5;
 
-    for ( 1..2 ) {
+    for (1 .. 2) {
         send_key "ctrl-shift-g";    # go to previous result
     }
     assert_screen 'evince-search-1stresult', 5;
-    
+
     send_key "esc", 1;
     send_key "ctrl-w";
 }

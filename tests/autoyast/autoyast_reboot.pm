@@ -23,17 +23,17 @@ sub run {
 
     type_string("shutdown -r now\n");
 
-#obsoletes installation/autoyast_reboot.pm
-    assert_screen( "bios-boot", 900 );
-    assert_screen( "autoyast-boot", 20 );
+    #obsoletes installation/autoyast_reboot.pm
+    assert_screen("bios-boot",     900);
+    assert_screen("autoyast-boot", 20);
 
 
 
 ##-> into installation/first_boot.pm
-#     assert_screen("autoyast-boot", 200);#both for PXE and ISO boot
-#     
-#     my $ret = assert_screen("autoyast-system-login", 1000);    
-# 
+    #     assert_screen("autoyast-boot", 200);#both for PXE and ISO boot
+    #
+    #     my $ret = assert_screen("autoyast-system-login", 1000);
+    #
 
 }
 
@@ -42,7 +42,7 @@ sub test_flags {
     # 'fatal' - whole test suite is in danger if this fails
     # 'milestone' - after this test succeeds, update 'lastgood'
     # 'important' - if this fails, set the overall state to 'fail'
-    return { important => 1 };
+    return {important => 1};
 }
 
 1;

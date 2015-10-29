@@ -9,8 +9,8 @@ sub run {
 
     type_string "rescue";
     send_key "ret";
-    
-    if ( check_screen "keyboardmap-list", 100 ) {
+
+    if (check_screen "keyboardmap-list", 100) {
         type_string "6\n";
     }
     else {
@@ -28,7 +28,7 @@ sub run {
 }
 
 sub test_flags() {
-    return { 'fatal' => 1, 'important' => 1 };
+    return {fatal => 1};
 }
 
 1;

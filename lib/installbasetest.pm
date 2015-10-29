@@ -4,7 +4,7 @@ use base "opensusebasetest";
 # All steps in the installation are 'fatal'.
 
 sub test_flags() {
-    return { 'fatal' => 1 };
+    return {fatal => 1};
 }
 
 1;

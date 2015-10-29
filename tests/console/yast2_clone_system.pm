@@ -2,7 +2,7 @@ use base "console_yasttest";
 use testapi;
 
 sub run() {
-    my $self    = shift;
+    my $self = shift;
 
     become_root();
     type_string "PS1=\"# \"\n";

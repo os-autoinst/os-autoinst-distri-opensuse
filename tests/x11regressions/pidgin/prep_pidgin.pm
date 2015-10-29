@@ -16,9 +16,9 @@ sub pidgin_preparation() {
         type_password;
         send_key "ret", 1;
     }
-    sleep 60;    # give time to install
+    sleep 60;            # give time to install
     type_string "\n";    # prevent the screensaver...
-    # make sure pkgs installed
+                         # make sure pkgs installed
     type_string "clear;rpm -qa @packages\n";
     assert_screen "pidgin-pkg-installed", 10;
 
@@ -50,7 +50,7 @@ sub pidgin_preparation() {
     assert_screen "pidgin-showoffline-on", 10;
     send_key "esc";
 
-    send_key "ctrl-q";    # quit pidgin
+    send_key "ctrl-q";       # quit pidgin
     sleep 1;
     type_string "exit\n";    # close xterm
     sleep 2;

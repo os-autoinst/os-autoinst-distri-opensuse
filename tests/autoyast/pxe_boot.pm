@@ -19,25 +19,25 @@ use testapi;
 
 sub run {
     # wait for bootloader to appear
-    assert_screen( "autoyast-boot", 300 );
+    assert_screen("autoyast-boot", 300);
 
     # select network (second entry)
     send_key "down";
 
     send_key "tab";
 
-    type_string "  ";#need to separate default params
+    type_string "  ";    #need to separate default params
     type_string "vga=791 ";
     type_string "Y2DEBUG=1 ";
     type_string "video=1024x768-16 ", 13;
 
     if (get_var("AUTOYAST")) {
-        my $proto= get_var("PROTO") || 'http';
-    
+        my $proto = get_var("PROTO") || 'http';
+
         #edit parameters
-	if (get_var("UPGRADE_FROM_AUTOYAST") || get_var("UPGRADE")) {
-		type_string " autoupgrade=1";
-	}
+        if (get_var("UPGRADE_FROM_AUTOYAST") || get_var("UPGRADE")) {
+            type_string " autoupgrade=1";
+        }
         type_string " autoyast=$proto://10.0.2.1/data/" . get_var("AUTOYAST");
 
     }
@@ -53,7 +53,7 @@ sub test_flags {
     # 'fatal' - whole test suite is in danger if this fails
     # 'milestone' - after this test succeeds, update 'lastgood'
     # 'important' - if this fails, set the overall state to 'fail'
-    return { important => 1, fatal => 1 };
+    return {fatal => 1};
 }
 
 1;

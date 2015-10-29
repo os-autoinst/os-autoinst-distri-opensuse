@@ -12,7 +12,7 @@ sub run() {
     assert_screen 'test-ooffice-2', 5;
     send_key "alt-f4";
     assert_screen "ooffice-save-prompt", 8;
-    assert_and_click 'dont-save-libreoffice-btn'; # _Don't save
+    assert_and_click 'dont-save-libreoffice-btn';    # _Don't save
 }
 
 1;

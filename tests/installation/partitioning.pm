@@ -8,7 +8,7 @@ sub run() {
 
     assert_screen 'partioning-edit-proposal-button', 40;
 
-    if ( get_var("DUALBOOT") ) {
+    if (get_var("DUALBOOT")) {
         assert_screen 'partitioning-windows', 40;
     }
 

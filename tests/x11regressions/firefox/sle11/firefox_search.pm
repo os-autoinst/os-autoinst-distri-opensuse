@@ -14,9 +14,9 @@ sub run() {
     mouse_hide();
     x11_start_program("firefox");
     assert_screen "start-firefox", 5;
-    if ( get_var("UPGRADE") ) { send_key "alt-d"; wait_idle; }    # dont check for updated plugins
-    if ( get_var("DESKTOP") =~ /xfce|lxde/i ) {
-        send_key "ret";                                      # confirm default browser setting popup
+    if (get_var("UPGRADE")) { send_key "alt-d"; wait_idle; }    # dont check for updated plugins
+    if (get_var("DESKTOP") =~ /xfce|lxde/i) {
+        send_key "ret";                                         # confirm default browser setting popup
         wait_idle;
     }
 
@@ -24,21 +24,21 @@ sub run() {
     sleep 1;
     send_key "ret";
     sleep 5;
-    check_screen "firefox_page-google", 5;                #check point 1
+    check_screen "firefox_page-google", 5;                      #check point 1
     send_key "ctrl-k";
     sleep 1;
     type_string "opensuse" . "\n";
     sleep 5;
-    check_screen "firefox_search-opensuse", 5;            #check point 2
+    check_screen "firefox_search-opensuse", 5;                  #check point 2
     send_key "ctrl-k";
     sleep 1;
     send_key "f4";
     sleep 1;
     send_key "y";
-    sleep 1;                                                #select the yahoo as search engine
+    sleep 1;                                                    #select the yahoo as search engine
     send_key "ret";
     sleep 5;
-    check_screen "firefox_yahoo-search", 5;               #check point 4
+    check_screen "firefox_yahoo-search", 5;                     #check point 4
 
     #recover the changes, change search engine to google
     send_key "ctrl-k";

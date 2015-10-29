@@ -10,7 +10,7 @@ sub run() {
     my $self = shift;
     mouse_hide();
     x11_start_program("tomboy note");
-    while ( check_screen "tomboy_command_not_found", 5  ) {
+    while (check_screen "tomboy_command_not_found", 5) {
         sleep 30;
         send_key "ret";
         sleep 1;

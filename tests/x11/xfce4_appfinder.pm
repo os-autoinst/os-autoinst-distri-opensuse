@@ -12,7 +12,7 @@ sub run() {
     send_key "down";
     type_string "about\n";
     assert_screen 'test-xfce4_appfinder-1', 3;
-    send_key "ret", 1;
+    send_key "ret",                         1;
     assert_screen 'test-xfce4_appfinder-2', 3;
     send_key "alt-f4";
     sleep 2;

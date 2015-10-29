@@ -18,7 +18,7 @@ sub run() {
     # we need to wait more than five seconds here to pass the idle timeout in
     # case the system is still booting (https://bugzilla.novell.com/show_bug.cgi?id=895602)
     assert_screen "tty4-selected", 10;
-    assert_screen "text-login", 10;
+    assert_screen "text-login",    10;
     type_string "$username\n";
     if (!get_var("LIVETEST")) {
         assert_screen "password-prompt", 10;
@@ -32,7 +32,7 @@ sub run() {
     script_sudo "chown $username /dev/$serialdev";
 
     become_root;
-    script_run "chmod 444 /usr/sbin/packagekitd"; # packagekitd will be not executable
+    script_run "chmod 444 /usr/sbin/packagekitd";    # packagekitd will be not executable
     script_run "exit";
 
     save_screenshot;
@@ -48,7 +48,7 @@ sub run() {
 }
 
 sub test_flags() {
-    return { 'important' => 1, 'milestone' => 1, 'fatal' => 1 };
+    return {milestone => 1, fatal => 1};
 }
 
 1;

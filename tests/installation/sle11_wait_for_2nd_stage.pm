@@ -3,7 +3,7 @@ use strict;
 use testapi;
 use utils;
 
-sub run(){
+sub run() {
     unlock_if_encrypted;
     assert_screen "second-stage", 250;
     mouse_hide;

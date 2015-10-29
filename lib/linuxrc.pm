@@ -19,11 +19,11 @@ sub wait_for_bootmenu() {
     my $dvd_found = 0;
 
     # Tries to find CD/DVD entry one by one from the top.
-    for my $try (1..10) {
-        my $tag = "boot-menu-boot-device-".$try."-dvd";
+    for my $try (1 .. 10) {
+        my $tag = "boot-menu-boot-device-" . $try . "-dvd";
 
         if (check_screen($tag, 0)) {
-            bmwqemu::diag "DVD found at position ".$try.", tag: ".$tag;
+            bmwqemu::diag "DVD found at position " . $try . ", tag: " . $tag;
             $dvd_found = $try;
             type_string $try;
             last;
@@ -46,8 +46,8 @@ sub wait_for_bootmenu() {
 # @param string parameters
 # @param boot selection needle, default: inst-oninstallation
 sub boot_with_parameters {
-    my $self = shift;
-    my $parameters = shift;
+    my $self           = shift;
+    my $parameters     = shift;
     my $boot_selection = shift || "inst-oninstallation";
 
     unless (check_screen("inst-bootmenu", 0)) {

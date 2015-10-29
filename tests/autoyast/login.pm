@@ -19,14 +19,14 @@ use testapi;
 
 sub run {
     my $self = shift;
-    assert_screen( "autoyast-system-login-console", 20 );
-    $self->result('fail'); # default result
+    assert_screen("autoyast-system-login-console", 20);
+    $self->result('fail');    # default result
     type_string "root\n";
     sleep 10;
     type_password;
     send_key "ret";
     sleep 10;
-    
+
     type_string "echo SERIAL OK | tee /dev/$serialdev";
     send_key "ret";
     die unless wait_serial("SERIAL OK", 100);
@@ -42,7 +42,7 @@ sub test_flags {
     # 'fatal' - whole test suite is in danger if this fails
     # 'milestone' - after this test succeeds, update 'lastgood'
     # 'important' - if this fails, set the overall state to 'fail'
-    return { important => 1, fatal => 1 };
+    return {fatal => 1};
 }
 
 1;

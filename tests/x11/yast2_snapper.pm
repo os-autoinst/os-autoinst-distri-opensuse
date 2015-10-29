@@ -9,7 +9,7 @@ use testapi;
 sub y2snapper_create_snapshot() {
     my $self = shift;
     my $name = shift || "Awesome Snapshot";
-   # Open the 'C'reate dialog and wait until it is there
+    # Open the 'C'reate dialog and wait until it is there
     send_key "alt-c";
     assert_screen 'yast2_snapper-createsnapshotdialog', 100;
     # Fill the form and finish by pressing the 'O'k-button
@@ -34,7 +34,7 @@ sub y2snapper_create_snapshot() {
 #
 # Called when the list has been just loaded, so the top most item is selected
 sub y2snapper_select_snapshot() {
-    my $limit = 0; # Just in case the needles don't match at all (sh*t happens)
+    my $limit = 0;    # Just in case the needles don't match at all (sh*t happens)
 
     return 1 if (check_screen('yast2_snapper-new_snapshot_selected', 3));
     # Return false if there is no snapshot to select
@@ -46,7 +46,8 @@ sub y2snapper_select_snapshot() {
     }
     if (check_screen('yast2_snapper-new_snapshot_selected', 5)) {
         return 1;
-    } else {
+    }
+    else {
         return 0;
     }
 }

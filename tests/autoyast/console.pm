@@ -24,8 +24,8 @@ sub run {
     send_key "ctrl-alt-f2";
     sleep 10;
     send_key "ret";
-    
-    if (!check_screen( "autoyast-system-login-console", 300 )) {
+
+    if (!check_screen("autoyast-system-login-console", 300)) {
         $self->result('fail');
         # back to console 1, maybe we can login there to continue with testing
         send_key "alt-f1";
@@ -39,7 +39,7 @@ sub run {
         save_screenshot;
         send_key "alt-f2";
         sleep 5;
-        
+
     }
 }
 

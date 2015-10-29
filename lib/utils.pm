@@ -24,11 +24,11 @@ sub unlock_if_encrypted {
 # mode. Handles unlocking encrypted disk if needed.
 # arguments: bootloader_time => seconds # now long to wait for bootloader to appear
 sub wait_boot {
-    my %args = @_;
+    my %args            = @_;
     my $bootloader_time = $args{bootloader_time} // 100;
-    my $textmode = $args{textmode};
+    my $textmode        = $args{textmode};
 
-    if ( get_var("OFW") ) {
+    if (get_var("OFW")) {
         assert_screen "bootloader-ofw", $bootloader_time;
     }
     else {
@@ -40,7 +40,7 @@ sub wait_boot {
             send_key "ret";
             assert_screen "grub2", 15;
         }
-        elsif (! match_has_tag("grub2")) {
+        elsif (!match_has_tag("grub2")) {
             # check_screen timeout
             die "needle 'grub2' not found";
         }
@@ -55,13 +55,13 @@ sub wait_boot {
 
     mouse_hide();
 
-    if ( get_var("NOAUTOLOGIN") || get_var("XDMUSED") ) {
+    if (get_var("NOAUTOLOGIN") || get_var("XDMUSED")) {
         assert_screen 'displaymanager', 200;
         wait_idle;
-        if ( get_var('DM_NEEDS_USERNAME') ) {
+        if (get_var('DM_NEEDS_USERNAME')) {
             type_string $username;
         }
-        if ( match_has_tag("sddm") ) {
+        if (match_has_tag("sddm")) {
             # make sure choose plasma5 session
             assert_and_click "sddm-sessions-list";
             assert_and_click "sddm-sessions-plasma5";

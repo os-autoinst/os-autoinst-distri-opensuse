@@ -12,14 +12,14 @@ sub run() {
     send_key_until_needlematch 'nautilus-newfile-matched', 'right', 15;
     send_key "shift-f10";
     assert_screen 'nautilus-rightkey-menu', 3;
-    send_key "r";           #choose properties
-    assert_screen 'nautilus-properties',5;
-    send_key "up";          #move focus onto tab
+    send_key "r";    #choose properties
+    assert_screen 'nautilus-properties', 5;
+    send_key "up";       #move focus onto tab
     sleep 2;
-    send_key "right";       #move to tab Permissions
+    send_key "right";    #move to tab Permissions
     for (1 .. 4) { send_key "tab" }
     send_key "ret";
-    assert_screen 'nautilus-access-permission',3;
+    assert_screen 'nautilus-access-permission', 3;
     send_key "down";
     sleep 1;
     send_key "ret";
@@ -27,23 +27,23 @@ sub run() {
     send_key "tab";
     sleep 1;
     send_key "ret";
-    assert_screen 'nautilus-access-permission',3;
+    assert_screen 'nautilus-access-permission', 3;
     send_key "down";
     sleep 1;
     send_key "ret";
     sleep 1;
-    send_key "esc";         #close the dialog
+    send_key "esc";    #close the dialog
     sleep 1;
     #reopen the properties menu to check if the changes kept
     send_key "shift-f10";
     assert_screen 'nautilus-rightkey-menu', 3;
-    send_key "r";           #choose properties
-    assert_screen 'nautilus-properties',5;
-    send_key "up";          #move focus onto tab
+    send_key "r";      #choose properties
+    assert_screen 'nautilus-properties', 5;
+    send_key "up";       #move focus onto tab
     sleep 2;
-    send_key "right";       #move to tab Permissions
-    assert_screen 'nautilus-permissions-changed',3;
-    send_key "esc";         #close the dialog
+    send_key "right";    #move to tab Permissions
+    assert_screen 'nautilus-permissions-changed', 3;
+    send_key "esc";      #close the dialog
 
 
     #clean: remove the created new note

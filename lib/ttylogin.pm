@@ -14,7 +14,7 @@ our @EXPORT = qw/ttylogin/;
 sub ttylogin {
 
     my $ttynr = shift || '4';
-    my $user = shift || $username;
+    my $user  = shift || $username;
     # log into text console
     send_key "ctrl-alt-f$ttynr";
     # we need to wait more than five seconds here to pass the idle timeout in
@@ -23,16 +23,16 @@ sub ttylogin {
 
     # different console-behaviour for s390x
     if (check_var('BACKEND', 's390x')) {
-      script_run ("su - $user");
-    } 
+        script_run("su - $user");
+    }
     else {
-      assert_screen "text-login", 10;
-      type_string "$user\n";
-      if (!get_var("LIVETEST")) {
-          assert_screen "password-prompt", 10;
-          type_password;
-          type_string "\n";
-      } 
+        assert_screen "text-login", 10;
+        type_string "$user\n";
+        if (!get_var("LIVETEST")) {
+            assert_screen "password-prompt", 10;
+            type_password;
+            type_string "\n";
+        }
     }
     assert_screen "text-logged-in", 10;
 }

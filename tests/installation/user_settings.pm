@@ -13,15 +13,15 @@ sub run() {
 
     #sleep 1;
     send_key "tab";
-    for ( 1 .. 2 ) {
+    for (1 .. 2) {
         type_string "$password\t";
     }
-    assert_screen  "inst-userinfostyped", 10;
-    if ( get_var("NOAUTOLOGIN") && !check_screen('autologindisabled') ) {
+    assert_screen "inst-userinfostyped", 10;
+    if (get_var("NOAUTOLOGIN") && !check_screen('autologindisabled')) {
         send_key $cmd{"noautologin"};
         assert_screen "autologindisabled", 5;
     }
-    if ( get_var("DOCRUN") ) {
+    if (get_var("DOCRUN")) {
         send_key $cmd{"otherrootpw"};
         assert_screen "rootpwdisabled", 5;
     }
@@ -31,10 +31,10 @@ sub run() {
 
     # loading cracklib
     # If check_screen added to workaround bsc#937012
-    if ( check_screen ('inst-userpasswdtoosimple', 13) ) { 
-        send_key "ret"; 
+    if (check_screen('inst-userpasswdtoosimple', 13)) {
+        send_key "ret";
     }
-    else {    
+    else {
         record_soft_failure;
     }
 }

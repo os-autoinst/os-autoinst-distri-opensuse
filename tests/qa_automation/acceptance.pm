@@ -44,7 +44,7 @@ sub run() {
     type_string "screen -r `screen -ls | grep " . get_var('QA_TESTSET') . " | cut -d\".\" -f1`\n";
 
     # When finished, the screen will terminate
-    for (1..60) {
+    for (1 .. 60) {
         my $ret = check_screen [qw/qa_screen_done qa_error/], 120;
         if ($ret && $ret->{needle}->has_tag('qa_error')) {
             die "run failed";
@@ -56,11 +56,10 @@ sub run() {
         send_key '.';
     }
     # output the QADB link
-    type_string  "grep -E \"http://.*/submission.php.*submission_id=[0-9]+\"  /var/log/qaset/submission/submission-*.log " .
-                 "| awk -F\": \"  '{print $2}' | tee -a /dev/$serialdev\n";
+    type_string "grep -E \"http://.*/submission.php.*submission_id=[0-9]+\"  /var/log/qaset/submission/submission-*.log " . "| awk -F\": \"  '{print $2}' | tee -a /dev/$serialdev\n";
 
     # can't use upload_log, so do a loop version of it
-    assert_script_run "cd /var/log/qaset/log; for i in *.bz2; do curl --form upload=\@\$i " . autoinst_url() ."/uploadlog/`basename \$i`; done";
+    assert_script_run "cd /var/log/qaset/log; for i in *.bz2; do curl --form upload=\@\$i " . autoinst_url() . "/uploadlog/`basename \$i`; done";
 
     # QA DB upload happens for each module
     # output the failed tests to serial console
@@ -70,7 +69,7 @@ sub run() {
 }
 
 sub test_flags {
-    return { important => 1 };
+    return {important => 1};
 }
 
 1;

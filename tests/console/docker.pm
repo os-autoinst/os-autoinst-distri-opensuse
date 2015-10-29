@@ -16,7 +16,7 @@ sub run() {
 
     # pull the alpine image
     script_run "docker pull alpine && echo 'docker_pull' > /dev/$serialdev";
-    die "docker pull alpine image failed" unless wait_serial "docker_pull", 300; # increase timeout, on systems using devicemapper as storage backend docker's initialization can take some time
+    die "docker pull alpine image failed" unless wait_serial "docker_pull", 300;    # increase timeout, on systems using devicemapper as storage backend docker's initialization can take some time
 
     # make sure we can actually start a container
     script_run "docker run --rm alpine echo 'hello_from_container' > /dev/$serialdev";

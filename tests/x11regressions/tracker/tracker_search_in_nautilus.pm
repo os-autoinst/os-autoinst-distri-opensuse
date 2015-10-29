@@ -12,11 +12,11 @@ sub run() {
     wait_idle;
     send_key "ret";
     wait_idle;
-    assert_screen 'gedit-launched', 3;  # should open file newfile
+    assert_screen 'gedit-launched', 3;    # should open file newfile
     send_key "alt-f4";
-    sleep 2;                #close gedit
+    sleep 2;                              #close gedit
     send_key "alt-f4";
-    sleep 2;                #close nautilus
+    sleep 2;                              #close nautilus
 }
 
 1;

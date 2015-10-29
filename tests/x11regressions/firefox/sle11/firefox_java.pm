@@ -22,13 +22,13 @@ sub run() {
     # Launch firefox
     x11_start_program("firefox");
     assert_screen "start-firefox", 5;
-    if ( get_var("UPGRADE") ) { send_key "alt-d"; wait_idle; }    # Don't check for updated plugins
-    if ( get_var("DESKTOP") =~ /xfce|lxde/i ) {
-        send_key "ret";                                      # Confirm default browser setting popup
+    if (get_var("UPGRADE")) { send_key "alt-d"; wait_idle; }    # Don't check for updated plugins
+    if (get_var("DESKTOP") =~ /xfce|lxde/i) {
+        send_key "ret";                                         # Confirm default browser setting popup
         wait_idle;
     }
     send_key "alt-f10";
-    sleep 1;                                                # Maximize
+    sleep 1;                                                    # Maximize
 
     # Open Add-ons Manager
     send_key "ctrl-shift-a";
@@ -36,12 +36,12 @@ sub run() {
 
     # Open "Email link" to launch default email client (evolution)
     send_key "ctrl-f";
-    sleep 1;                                                #"Search all add-ons"
+    sleep 1;                                                    #"Search all add-ons"
     type_string "icedTea\n";
     sleep 2;
 
     #Switch to "My Add-ons"
-    foreach ( 1 .. 5 ) {
+    foreach (1 .. 5) {
         send_key "tab";
     }
     send_key "left";
@@ -76,14 +76,14 @@ sub run() {
     type_string "javatester.org/version.html\n";
     sleep 4;
     check_screen "test-firefox_java-java_warning", 5;    #Java - unsigned application warning
-    send_key "tab";                                         #Proceed
+    send_key "tab";                                      #Proceed
     send_key "ret";
     sleep 3;
     check_screen "test-firefox_java-3", 5;
 
     # Restore and close firefox
-    x11_start_program("killall -9 firefox");               # Exit firefox
-    x11_start_program("rm -rf .mozilla");                  # Clear profile directory
+    x11_start_program("killall -9 firefox");             # Exit firefox
+    x11_start_program("rm -rf .mozilla");                # Clear profile directory
     sleep 2;
 
 }

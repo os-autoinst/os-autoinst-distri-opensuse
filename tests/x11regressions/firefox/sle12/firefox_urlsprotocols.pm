@@ -10,14 +10,14 @@ sub run() {
     # Clean and Start Firefox
     x11_start_program("xterm -e \"killall -9 firefox;rm -rf .moz*\"");
     x11_start_program("firefox");
-    assert_screen('firefox-launch',45);
+    assert_screen('firefox-launch', 45);
 
     # sites_url
     my %sites_url = (
-        http => "http://jekyllrb.com/",
+        http  => "http://jekyllrb.com/",
         https => "https://www.google.com/",
-        ftp => "ftp://mirror.bej.suse.com/",
-        smb => "smb://mirror.bej.suse.com/dist",
+        ftp   => "ftp://mirror.bej.suse.com/",
+        smb   => "smb://mirror.bej.suse.com/dist",
         local => "file:///usr/share/w3m/w3mhelp.html"
     );
 
@@ -26,13 +26,13 @@ sub run() {
         sleep 1;
         send_key "alt-d";
         sleep 1;
-        type_string $sites_url{$proto}. "\n";
+        type_string $sites_url{$proto} . "\n";
         assert_screen('firefox-urls_protocols-' . $proto, 30);
     }
 
     # Exit
     send_key "alt-f4";
-    
+
     # Umount smb directory from desktop
     assert_and_click('firefox-urls_protocols-umnt_smb');
     sleep 1;
@@ -41,8 +41,8 @@ sub run() {
     send_key "u";
 
     if (check_screen('firefox-save-and-quit', 4)) {
-       # confirm "save&quit"
-       send_key "ret";
+        # confirm "save&quit"
+        send_key "ret";
     }
 }
 1;
