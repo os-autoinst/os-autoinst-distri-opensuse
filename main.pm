@@ -569,6 +569,7 @@ sub load_x11tests(){
     if (kdestep_is_applicable) {
         loadtest "x11/amarok.pm";
         loadtest "x11/kontact.pm";
+        loadtest "x11/vlc.pm";
         if ( get_var("PLASMA5") ) {
             loadtest "x11/reboot_plasma5_pre.pm";
         }
