@@ -75,20 +75,7 @@ sub run() {
     assert_screen 'no_output_from_qa_find';
 
     # test junit
-    my $testset = get_var('QA_TESTSET');
-    if ($testset == "acceptance") { 
-        my $type = "stress_validation";
-    }
-    elsif  ($testset == "regression") {
-        my $type = "user_regression";
-    }
-    elsif  ($testset == "kernel") {
-        my $type = "kernel_regression";
-    }
-    else {
-        my $type = "all";
-    }
-    assert_script_run "/usr/share/qa/qaset/bin/junitxml_generator.py -t " . $type . " -l /var/log/qaset/runs/ -s /var/log/qaset/submission/ -o /tmp/junit.xml";
+    assert_script_run "/usr/share/qa/qaset/bin/junitxml_generator.py -t stress_validation -l /var/log/qaset/runs/ -s /var/log/qaset/submission/ -o /tmp/junit.xml";
     assert_script_run "ls -l /tmp/";
     parse_junit_log("/tmp/junit.xml");    
 }
