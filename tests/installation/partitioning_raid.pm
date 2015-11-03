@@ -114,6 +114,7 @@ sub set_lvm() {
 
     # keep deafult to mount as root and btrfs
     send_key $cmd{finish};
+    wait_idle 4;
 }
 
 sub run() {
