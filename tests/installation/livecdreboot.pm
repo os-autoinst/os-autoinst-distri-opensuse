@@ -5,40 +5,24 @@ use bmwqemu ();
 
 sub run() {
     my $self = shift;
-    # NET isos are slow to install
-    my $timeout = 2000;
 
-    # workaround for yast popups
-    my @tags = qw/rebootnow/;
-    if (get_var("UPGRADE")) {
-        push(@tags, "ERROR-removing-package");
-        $timeout = 5500;    # upgrades are slower
-    }
     while (1) {
-        my $ret = assert_screen \@tags, $timeout;
-
-        if ($ret->{needle}->has_tag("popup-warning")) {
-            record_soft_failure;
-            bmwqemu::diag "warning popup caused dent";
-            send_key "ret";
-            pop @tags;
-            next;
+        if (check_screen 'inst-finish', 120) {
+            last;
         }
-        # can happen multiple times
-        if ($ret->{needle}->has_tag("ERROR-removing-package")) {
-            record_soft_failure;
-            send_key 'alt-d';
-            assert_screen 'ERROR-removing-package-details';
-            send_key 'alt-i';
-            assert_screen 'ERROR-removing-package-warning';
-            send_key 'alt-o';
-            next;
+        if (wait_still_screen(10, 11)) {    # avoid black screen
+            mouse_set(50, 50);
+            mouse_hide;
         }
-        last;
+        if (check_screen 'inst-error', 5) {
+            record_soft_failure;
+            send_key "alt-y";   # retry
+        }
     }
 
-    send_key 'alt-s';    # Stop the reboot countdown
-
+    if (assert_screen 'rebootnow', 240) {
+        send_key 'alt-s';   # Stop the reboot countdown
+    }
     send_key "ctrl-alt-f2";
     if (get_var("LIVECD")) {
         # LIVE CDa do not run inst-consoles as started by inst-linux (it's regular live run, auto-starting yast live installer)
