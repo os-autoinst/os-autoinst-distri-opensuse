@@ -7,21 +7,28 @@ sub run() {
     my $self = shift;
 
     while (1) {
-        if (check_screen 'inst-finish', 120) {
+        if (check_screen 'inst-finish', 180) {
             last;
         }
-        if (wait_still_screen(10, 11)) {    # avoid black screen
-            mouse_set(50, 50);
-            mouse_hide;
-        }
-        if (check_screen 'inst-error', 5) {
-            record_soft_failure;
-            send_key "alt-y";   # retry
+        mouse_set(50, 50);  # avoid black screen
+        mouse_hide;
+        if (wait_still_screen(10, 11)) {    # don't look for pop-ups when screen is changing
+            if (check_screen 'inst-error-details', 1) {
+                send_key "alt-d", 2;   # details
+            }
+            if (check_screen 'inst-error-retry', 1) {
+                record_soft_failure;
+                send_key "alt-y", 2;   # retry
+            }
+            if (check_screen 'inst-error-info', 1) {
+                record_soft_failure;
+                send_key "alt-o", 2;   # OK
+            }
         }
     }
 
-    if (assert_screen 'rebootnow', 240) {
-        send_key 'alt-s';   # Stop the reboot countdown
+    if (assert_screen 'rebootnow', 420) {
+        send_key 'alt-s', 4;   # Stop the reboot countdown
     }
     send_key "ctrl-alt-f2";
     if (get_var("LIVECD")) {
