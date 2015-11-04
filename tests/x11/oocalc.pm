@@ -7,6 +7,7 @@ sub run() {
     sleep 2;
     wait_still_screen;    # extra wait because oo sometimes appears to be idle during start
     assert_screen 'test-oocalc-1', 3;
+    assert_and_click 'input-area-oocalc', 'left', 10;
     wait_idle 10;
     type_string "Hello World!\n";
     sleep 2;
