@@ -6,7 +6,7 @@ use ttylogin;
 sub run() {
     my $self = shift;
 
-    assert_screen 'jeos-license';    # License time
+    assert_screen 'jeos-license', 60;    # License time
     send_key 'ret';
     assert_screen 'jeos-doyouaccept';
     send_key 'ret';
