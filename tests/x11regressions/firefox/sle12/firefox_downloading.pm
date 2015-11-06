@@ -9,7 +9,7 @@ my $dl_link_02 = "http://download.opensuse.org/distribution/13.2/iso/openSUSE-13
 
 sub dl_location_switch {
     my ($tg) = @_;
-    send_key "alt-e";
+    send_key "alt-e", 1;
     send_key "n";
     assert_screen('firefox-downloading-preferences', 15);
 
@@ -26,6 +26,11 @@ sub dl_save {
     my ($link) = @_;
     send_key "alt-d";
     type_string $link;
+
+    # check if downloading content open with default application
+    if ( check_screen 'firefox-downloading-openwith', 20 ) {
+        send_key "alt-s";
+    }
     assert_and_click("firefox-downloading-save_enabled", "left", 60);
 }
 
