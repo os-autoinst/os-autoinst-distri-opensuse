@@ -1,9 +1,8 @@
 use base "qa_run";
 use testapi;
 
-sub create_qaset_config() {
-    # Add test list 4 for userspace
-    assert_script_run "echo 'SQ_TEST_RUN_LIST=(\n _reboot_off\n fetchmail\n php5\n systemd\n)' > /root/qaset/config";
+sub test_run_list() {
+    return qw(_reboot_off fetchmail php5 systemd);
 }
 
 sub test_suite() {

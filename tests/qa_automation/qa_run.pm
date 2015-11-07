@@ -3,7 +3,14 @@ use base "opensusebasetest";
 use testapi;
 
 sub create_qaset_config() {
-    # nothing by default
+    my $self = shift;
+    my @list = $self->test_run_list();
+    return unless @list;
+    assert_script_run "echo 'SQ_TEST_RUN_LIST=(\n " . join("\n ", @list) . "\n )' > /root/qaset/config";
+}
+
+sub test_run_list() {
+    return ();
 }
 
 sub junit_type() {
@@ -71,10 +78,11 @@ sub run() {
             last;
         }
         # change the screen periodically to avoid standstill detection for long running tests
-        send_key '.';
+        my $time = time;
+        type_string "$time\n";
     }
     # output the QADB link
-    type_string "grep -E \"http://.*/submission.php.*submission_id=[0-9]+\"  /var/log/qaset/submission/submission-*.log " . "| awk -F\": \"  '{print $2}' | tee -a /dev/$serialdev\n";
+    type_string "grep -E \"http://.*/submission.php.*submission_id=[0-9]+\"  /var/log/qaset/submission/submission-*.log " . "| awk -F\": \"  '{print \$2}' | tee -a /dev/$serialdev\n";
 
     # can't use upload_log, so do a loop version of it
     assert_script_run "cd /var/log/qaset/log; for i in *.bz2; do curl --form upload=\@\$i " . autoinst_url() . "/uploadlog/`basename \$i`; done";
@@ -84,8 +92,6 @@ sub run() {
     assert_script_run "export PS1=#";
     # qa_testset_automation remove the oldlogs, we create it back here for junit collecting information
     assert_script_run "mkdir /var/log/qa/oldlogs; cd /var/log/qa/oldlogs; for i in /var/log/qaset/log/*.bz2; do tar -xjvf \$i; done";
-    type_string "find /var/log/qa/oldlogs/ -name test_results | xargs grep -l -B1 ^1 | tee -a /dev/$serialdev\n";
-    assert_screen 'no_output_from_qa_find';
 
     # test junit
     my $junit_type = $self->junit_type();

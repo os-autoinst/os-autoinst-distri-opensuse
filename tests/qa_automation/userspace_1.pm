@@ -1,9 +1,8 @@
 use base "qa_run";
 use testapi;
 
-sub create_qaset_config() {
-    # Add test list 1 for userspace
-    assert_script_run "echo 'SQ_TEST_RUN_LIST=(\n _reboot_off\n apache\n apparmor\n apparmor_profiles\n bind\n bzip2\n)' > /root/qaset/config";
+sub test_run_list() {
+    return qw(_reboot_off apache apparmor apparmor_profiles bind bzip2);
 }
 
 sub test_suite() {
