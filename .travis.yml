@@ -10,7 +10,9 @@ install:
   - cpanm -nq ExtUtils::MakeMaker@7.04 Net::DBus
   - cpanm -nq JSON Data::Dump
   - git clone git://github.com/os-autoinst/os-autoinst
+  - ln -s os-autoinst/tools .
   - cpanm -nq `cat os-autoinst/DEPENDENCIES.txt`
 script:
   - make test
+  - ./tools/tidy --check
 sudo: required

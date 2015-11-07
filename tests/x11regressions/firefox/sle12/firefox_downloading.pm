@@ -28,7 +28,7 @@ sub dl_save {
     type_string $link;
 
     # check if downloading content open with default application
-    if ( check_screen 'firefox-downloading-openwith', 20 ) {
+    if (check_screen 'firefox-downloading-openwith', 20) {
         send_key "alt-s";
     }
     assert_and_click("firefox-downloading-save_enabled", "left", 60);

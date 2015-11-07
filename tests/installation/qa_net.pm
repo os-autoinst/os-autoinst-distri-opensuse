@@ -19,7 +19,7 @@ sub run() {
     my $arch       = get_var('ARCH');
     my $type_speed = 20;
     my $path       = "/mnt/openqa/repo/" . get_var('REPO_10') . "/boot/$arch/loader";
-    my $repo = get_var('HOST') . "/assets/repo/" . get_var('REPO_10');
+    my $repo       = get_var('HOST') . "/assets/repo/" . get_var('REPO_10');
     type_string "$path/linux initrd=$path/initrd install=$repo ", $type_speed;
 
     type_string "vga=791 ",                   $type_speed;
