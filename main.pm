@@ -689,7 +689,7 @@ elsif (get_var("SUPPORT_SERVER")) {
     loadtest "support_server/wait.pm";
 }
 elsif (get_var("QA_TESTSET")) {
-    loadtest "qa_automation/acceptance.pm";
+    loadtest "qa_automation/" . get_var("QA_TESTSET") . ".pm";
 }
 else {
     if (get_var("LIVETEST")) {
