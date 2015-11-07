@@ -13,7 +13,7 @@ sub run() {
     script_run('ip a');
     script_run('ls -alF /etc/sysconfig/network/');
     save_screenshot;
-    
+
     script_sudo("/sbin/yast2 lan");
 
     my $ret = assert_screen [qw/Networkmanager_controlled yast2_lan install-susefirewall2/], 60;
