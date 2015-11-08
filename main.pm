@@ -166,7 +166,7 @@ if ( check_var( 'DESKTOP', 'minimalx' ) ) {
 # use Fake SCC regcodes if none provided
 if (!get_var('SCC_REGCODE') && get_var('FAKE_SCC_REGCODE')) {
     my @copy_vars = qw/REGCODE EMAIL URL CERT/;
-    for my $i (map {uc} split(/,/, get_var('SCC_ADDONS'))) {
+    for my $i (map {uc} split(/,/, get_var('SCC_ADDONS', ''))) {
         push @copy_vars, "REGCODE_$i" if get_var("FAKE_SCC_REGCODE_$i");
     }
     for my $i (@copy_vars) {
