@@ -33,6 +33,12 @@ sub run() {
     send_key "alt-c";
     sleep 15;    # need time to connect server
 
+    # Warning of spoofing ip may appear
+    if (check_screen("pidgin-spoofing-ip", 10)) {
+        send_key "alt-tab";
+        send_key "ctrl-w", 1;    # close it
+    }
+
     # Join a chat
     send_key "ctrl-c";
     sleep 2;
