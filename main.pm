@@ -712,6 +712,14 @@ else {
         load_boot_tests();
         loadtest "jeos/firstrun.pm";
         loadtest "jeos/diskusage.pm";
+        loadtest "jeos/root_fs_size.pm";
+        loadtest "jeos/gpt_ptable.pm";
+        loadtest "jeos/mount_by_label.pm";
+        loadtest "jeos/kdump_disabled.pm";
+        loadtest "jeos/firewall_enabled.pm";
+        loadtest "jeos/ssh_running.pm";
+        loadtest "jeos/vim_installed.pm";
+        loadtest "jeos/snapper_undochange.pm";
         if (get_var("SCC_EMAIL") && get_var("SCC_REGCODE")) {
             loadtest "jeos/sccreg.pm";
         }
