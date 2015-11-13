@@ -56,6 +56,12 @@ sub run() {
             }
 
             type_string $args, 13;
+
+            if (get_var("FIPS")) {
+                type_string " fips=1", 13;
+                save_screenshot;
+            }
+
             save_screenshot;
             registration_bootloader_params;
             send_key "ctrl-x";
