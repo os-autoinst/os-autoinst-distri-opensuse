@@ -24,6 +24,8 @@ use ttylogin;
 sub run {
     my $self = shift;
 
+    my $net_conf = parse_network_configuration();
+
     script_output("
         mkdir /root/.ssh
         curl -f -v " . autoinst_url . "/data/slenkins/ssh/id_rsa > /root/.ssh/id_rsa
@@ -52,7 +54,7 @@ sub run {
 
     # parse dhcpd.leases - now it should contain entries for all nodes
     my %dhcp_leases;
-    my $dhcp_leases_file = script_output("cat /var/lib/dhcp/db/dhcpd.leases");
+    my $dhcp_leases_file = script_output("cat /var/lib/dhcp/db/dhcpd.leases\n");
 
     my $lease_ip;
     for my $l (split /\n/, $dhcp_leases_file) {
@@ -60,22 +62,46 @@ sub run {
             $lease_ip = $1;
         }
         elsif ($l =~ /client-hostname\s+"(.*)"/) {
-            $dhcp_leases{$1} = $lease_ip;
+            my $hostname = lc($1);
+            $dhcp_leases{$hostname} //= [];
+            push @{$dhcp_leases{$hostname}}, $lease_ip;
         }
     }
 
     # generate configuration
     my $conf = "";
 
+    my $i = 0;
     for my $p (@$parents) {
         my $node = $settings{$p}->{SLENKINS_NODE};
-        my $ip   = $settings{$p}->{SLENKINS_IP};
+        my $networks = $settings{$p}->{NETWORKS} // 'fixed';
+        my @external_ip;
+        my @internal_ip;
+        my @nic;
 
-        if (!$ip || $ip eq 'dhcp') {
-            $ip = $dhcp_leases{$node};
+        my $eth = 0;
+        for my $network (split /\s*,\s*/, $networks) {
+            if ($net_conf->{$network}->{dhcp}) {
+                for my $ip (@{$dhcp_leases{lc($node)}}) {
+                    if (check_ip_in_subnet($net_conf->{$network}, $ip)) {
+                        push @external_ip, $ip;
+                        push @internal_ip, $ip;
+                        last;
+                    }
+                }
+            }
+            else {
+                push @external_ip, "N/A";
+                # generate some ip, the test is responsible for configuring it on the node
+                push @internal_ip, ip_in_subnet($net_conf->{$network}, $i + 15);
+            }
+            push @nic, "eth$eth";
+            $eth++;
         }
-
-        $conf .= "EXTERNAL_IP_" . uc($node) . "=$ip\n";
+        $conf .= "EXTERNAL_IP_" . uc($node) . "='" . join(' ', @external_ip) . "'\n";
+        $conf .= "INTERNAL_IP_" . uc($node) . "='" . join(' ', @internal_ip) . "'\n";
+        $conf .= "NIC_" . uc($node) . "='" . join(' ', @nic) . "'\n";
+        $i++;
     }
     print "$conf\n";
 
@@ -118,12 +144,12 @@ sub run {
           echo "Preparations for node $node_name"
           node=${node_name^^}
 
-          #FIXME: support multiple networks
-          eval "EXTERNAL_IP=\$EXTERNAL_IP_${node}"
-          INTERNAL_IP=$EXTERNAL_IP
+          eval "EXTERNAL_IP=( \$EXTERNAL_IP_${node} )"
+          eval "INTERNAL_IP=( \$INTERNAL_IP_${node} )"
+          eval "NIC=\$NIC_${node}"
           # Define node-related environment file/variables
           echo "Setting environment variables for the node $node_name"
-          set-node-environment $node_name eth0
+          set-node-environment $node_name "$NIC"
           echo
         done
 

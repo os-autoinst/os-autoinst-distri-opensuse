@@ -35,19 +35,17 @@ sub run {
 
     my $control_settings = get_job_info($control_id)->{settings};
 
+    # copy the network configuration from control node
+    for (my $i = 0; $i < 10; $i++) {
+        set_var("NETWORK$i", $control_settings->{"NETWORK$i"}) if $control_settings->{"NETWORK$i"};
+    }
+
+    type_string("rcnetwork stop\n");
     configure_hostname(get_var('SLENKINS_NODE'));
 
-    my $ip = get_var('SLENKINS_IP');
-    if (!$ip || $ip eq 'dhcp') {
-        # wait until the control node starts the dhcp server
-        mutex_lock('dhcp', $control_id);
-        mutex_unlock('dhcp');
-        configure_dhcp();
-    }
-    else {
-        configure_default_gateway;
-        configure_static_ip($ip);
-    }
+    mutex_lock('dhcp', $control_id);
+    mutex_unlock('dhcp');
+    configure_dhcp();
 
     configure_static_dns(get_host_resolv_conf());
     my $conf_script = "zypper -n --no-gpg-checks ar '" . get_var('SLENKINS_TESTSUITES_REPO') . "' slenkins_testsuites\n";
@@ -73,6 +71,7 @@ sub run {
     ";
     script_output($conf_script, 100);
 
+    type_string("cat /var/log/messages >/dev/$serialdev\n");
     # send messages logged during the testsuite runtime to serial
     type_string("journalctl -f >/dev/$serialdev\n");
 
