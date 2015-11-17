@@ -113,6 +113,11 @@ sub run() {
     # yet long enough to make sense to even have the test.
     my $ret = check_screen "grub2", 30;
     if (defined($ret)) {
+        if (get_var("BOOT_TO_SNAPSHOT")) {
+            send_key_until_needlematch("boot-menu-snapshot", 'down', 10, 5);
+            send_key "ret";
+            assert_screen("boot-menu-snapshot-list");
+        }
         if (get_var("XEN")) {
             send_key_until_needlematch("bootmenu-xen-kernel", 'down', 10, 5);
         }
