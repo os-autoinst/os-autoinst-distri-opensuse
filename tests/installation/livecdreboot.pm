@@ -115,8 +115,12 @@ sub run() {
     if (defined($ret)) {
         if (get_var("BOOT_TO_SNAPSHOT")) {
             send_key_until_needlematch("boot-menu-snapshot", 'down', 10, 5);
-            send_key "ret";
+            send_key 'ret';
             assert_screen("boot-menu-snapshot-list");
+            send_key 'ret';
+            assert_screen("boot-menu-snapshot-bootmenu");
+            send_key 'down', 1;
+            save_screenshot;
         }
         if (get_var("XEN")) {
             send_key_until_needlematch("bootmenu-xen-kernel", 'down', 10, 5);
