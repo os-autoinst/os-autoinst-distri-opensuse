@@ -7,17 +7,18 @@ use testapi;
 #   $type == 3 => 0xFD Linux RAID
 sub addpart($) {
     my ($size) = @_;
+    assert_screen "expert-partitioner", 10;
     send_key $cmd{addpart};
-    if (check_screen("partitioning-type", 2)) {
-        send_key $cmd{"next"};
-    }
-    check_screen "partitioning-size", 5;
+    assert_screen "partitioning-type", 5;
+    send_key $cmd{"next"};
+
+    assert_screen "partition-size", 5;
 
     for (1 .. 10) {
         send_key "backspace";
     }
     type_string $size . "mb";
-    check_screen "partition-size", 3;
+    assert_screen "partition-size", 3;
     send_key $cmd{"next"};
     assert_screen 'partition-role', 6;
     send_key "alt-a";    # Raw Volume
@@ -160,11 +161,8 @@ sub run() {
     }
 
     for (1 .. 4) {
-        wait_idle 5;
         addpart(300);        # boot
-        wait_idle 5;
         addpart(8000);       # root
-        wait_idle 5;
         addpart(100);        # swap
         assert_screen 'raid-partition', 15;
 
