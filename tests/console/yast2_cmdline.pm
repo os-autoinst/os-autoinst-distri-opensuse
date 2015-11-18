@@ -5,13 +5,15 @@ sub run() {
     my $self = shift;
 
     become_root();
-    # Install git
-    assert_script_run 'zypper -n install git-core';
+    # Install test requirement
+    assert_script_run 'zypper -n in rpm-build';
 
-    # Run all the existing YaST CLI tests
-    $self->run_yast_cli_test('yast-network');
-    assert_script_run 'zypper -n install bind yast2-dns-server';
-    $self->run_yast_cli_test('yast-dns-server');
+    # Enable source repo
+    assert_script_run 'zypper mr -e repo-source';
+
+    # Run YaST CLI tests
+    $self->run_yast_cli_test('yast2-network');
+    $self->run_yast_cli_test('yast2-dns-server');
 
     # Exit from root
     script_run 'exit';
