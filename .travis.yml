@@ -14,5 +14,4 @@ install:
   - cpanm -nq `cat os-autoinst/DEPENDENCIES.txt`
 script:
   - make test
-  - ./tools/tidy --check
 sudo: required
