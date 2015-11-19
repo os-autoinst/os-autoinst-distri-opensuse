@@ -425,11 +425,11 @@ sub load_consoletests() {
             loadtest "console/zypper_ar.pm";
         }
         loadtest "console/zypper_ref.pm";
-        loadtest "console/a2ps.pm";
         loadtest "console/yast2_lan.pm";
         loadtest "console/curl_https.pm";
         if (!is_staging) {
             # TEST DEVELOPERS - Put tests that you don't want to run in stagings below here
+            loadtest "console/a2ps.pm"; # a2ps is not a ring package and thus not available in staging
             if (!get_var("OFW")) {
                 loadtest "console/aplay.pm";
             }
