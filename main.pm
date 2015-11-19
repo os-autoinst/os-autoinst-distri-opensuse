@@ -425,6 +425,7 @@ sub load_consoletests() {
             loadtest "console/zypper_ar.pm";
         }
         loadtest "console/zypper_ref.pm";
+        loadtest "console/a2ps.pm";
         loadtest "console/yast2_lan.pm";
         loadtest "console/curl_https.pm";
         if (!is_staging) {
