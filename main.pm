@@ -486,6 +486,21 @@ sub load_consoletests() {
     }
 }
 
+sub load_yast2ui_tests() {
+    return unless (!get_var("INSTALLONLY") && get_var("DESKTOP") !~ /textmode|minimalx/ && !get_var("DUALBOOT") && !get_var("RESCUECD") && get_var("Y2UITEST"));
+
+    loadtest "yast2_ui/yast2_control_center.pm";
+    loadtest "yast2_ui/yast2_bootloader.pm";
+    loadtest "yast2_ui/yast2_datetime.pm";
+    loadtest "yast2_ui/yast2_firewall.pm";
+    loadtest "yast2_ui/yast2_hostnames.pm";
+    loadtest "yast2_ui/yast2_lang.pm";
+    loadtest "yast2_ui/yast2_network_settings.pm";
+    loadtest "yast2_ui/yast2_snapper.pm";
+    loadtest "yast2_ui/yast2_software_management.pm";
+    loadtest "yast2_ui/yast2_users.pm";
+}
+
 sub load_x11tests() {
     return unless (!get_var("INSTALLONLY") && get_var("DESKTOP") !~ /textmode|minimalx/ && !get_var("DUALBOOT") && !get_var("RESCUECD"));
 
@@ -681,6 +696,15 @@ elsif (get_var("SUPPORT_SERVER")) {
     loadtest "support_server/login.pm";
     loadtest "support_server/setup.pm";
     loadtest "support_server/wait.pm";
+}
+elsif (get_var("Y2UITEST")) {
+    load_boot_tests();
+    loadtest "installation/finish_desktop.pm";
+    # setup $serialdev permission and so on
+    loadtest "console/consoletest_setup.pm";
+    # back to desktop
+    loadtest "console/consoletest_finish.pm";
+    load_yast2ui_tests();
 }
 else {
     if (get_var("LIVETEST")) {
