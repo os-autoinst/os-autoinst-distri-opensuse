@@ -462,6 +462,7 @@ sub load_consoletests() {
             } elsif (!get_var("ZDUP")) { # zypper doesn't do upgrade or installation snapshots
                 loadtest "console/installation_snapshots.pm";
             }
+            loadtest "console/snapper_undochange.pm";
         }
         if (get_var("DESKTOP") !~ /textmode/) {
             loadtest "console/xorg_vt.pm";
@@ -712,6 +713,13 @@ else {
         load_boot_tests();
         loadtest "jeos/firstrun.pm";
         loadtest "jeos/diskusage.pm";
+        loadtest "jeos/root_fs_size.pm";
+        loadtest "jeos/gpt_ptable.pm";
+        loadtest "jeos/mount_by_label.pm";
+        loadtest "jeos/kdump_disabled.pm";
+        loadtest "jeos/firewall_enabled.pm";
+        loadtest "jeos/ssh_running.pm";
+        loadtest "jeos/vim_installed.pm";
         if (get_var("SCC_EMAIL") && get_var("SCC_REGCODE")) {
             loadtest "jeos/sccreg.pm";
         }
