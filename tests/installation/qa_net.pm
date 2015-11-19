@@ -9,7 +9,6 @@ sub run() {
     my ($self) = @_;
 
     assert_screen "qa-net-selection", 300;
-    $bmwqemu::backend->relogin_vnc();
 
     #send_key_until_needlematch "qa-net-selection-" . get_var('DISTRI') . "-" . get_var("VERSION"), 'down', 30, 3;
     #Don't use send_key_until_needlematch to pick first menu tier as dist network sources might not be ready when openQA is running tests
