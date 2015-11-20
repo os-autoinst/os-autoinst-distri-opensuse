@@ -48,5 +48,12 @@ sub run() {
     }
 }
 
+sub post_fail_hook() {
+    send_key 'alt-c';                                                    # close release notes
+    if (!get_var("UPGRADE")) {
+        send_key 'alt-e', 4;                                             # select timezone region as previously selected
+    }
+}
+
 1;
 # vim: sw=4 et
