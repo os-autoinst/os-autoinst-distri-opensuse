@@ -227,6 +227,10 @@ sub is_server() {
     return (get_var("OFW") || check_var("FLAVOR", "Server-DVD"));
 }
 
+sub is_staging () {
+    return get_var('STAGING');
+}
+
 sub loadtest($) {
     my ($test) = @_;
     autotest::loadtest("tests/$test");
