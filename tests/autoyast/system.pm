@@ -24,7 +24,7 @@ sub save_logs_and_continue {
     send_key "alt-f2";
     sleep 5;
     wait_idle(5);
-    assert_screen "inst-console";
+    assert_screen ["inst-console"];
     type_string "save_y2logs /tmp/y2logs-$name.tar.bz2\n";
     upload_logs "/tmp/y2logs-$name.tar.bz2";
     save_screenshot;
@@ -47,11 +47,12 @@ sub run {
     my $postpartscript = 0;
     my $confirmed      = 0;
 
-    my $maxtime   = 2000;
-    my $checktime = 30;
-    my $looptime  = 0;
-    my $i         = 1;
-    my $timeout   = 0;
+    my $maxtime    = 2000;
+    my $checktime  = 30;
+    my $looptime   = 0;
+    my $i          = 1;
+    my $timeout    = 0;
+    my $num_errors = 0;
 
     while (!$timeout) {
         mouse_hide(1);
@@ -68,8 +69,7 @@ sub run {
                 send_key "tab";      #continue
                 send_key "ret";
                 wait_idle(5);
-                #mark as failed
-                $self->result('fail');
+                $num_errors++;
             }
             elsif ($ret->{needle}->has_tag('autoyast-confirm')) {
                 # select network (second entry)
@@ -130,8 +130,7 @@ sub run {
                 send_key "tab";      #continue
                 send_key "ret";
                 wait_idle(5);
-                #mark as failed
-                $self->result('fail');
+                $num_errors++;
             }
             else {                   #all ok
                 last;
@@ -146,6 +145,12 @@ sub run {
         save_logs_and_continue("stage2_timeout");
         $self->result('fail');
         return;
+    }
+
+    my $expect_errors = get_var("AUTOYAST_EXPECT_ERRORS") // 0;
+    if ($num_errors != $expect_errors) {
+        #mark as failed
+        $self->result('fail');
     }
 
     #go to text console if graphical login detected
