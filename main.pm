@@ -93,10 +93,6 @@ sub cleanup_needles() {
 
 }
 
-sub is_staging () {
-    return get_var('STAGING');
-}
-
 #assert_screen "inst-bootmenu",12; # wait for welcome animation to finish
 
 # defaults for username and password
@@ -427,20 +423,6 @@ sub load_consoletests() {
         loadtest "console/zypper_ref.pm";
         loadtest "console/yast2_lan.pm";
         loadtest "console/curl_https.pm";
-        if (!is_staging) {
-            # TEST DEVELOPERS - Put tests that you don't want to run in stagings below here
-            loadtest "console/a2ps.pm";    # a2ps is not a ring package and thus not available in staging
-            if (!get_var("OFW")) {
-                loadtest "console/aplay.pm";
-            }
-            # yast-lan related tests do not work when using networkmanager.
-            # (Livesystem and laptops do use networkmanager)
-            if (!get_var("LIVETEST") && !get_var("LAPTOP")) {
-                loadtest "console/yast2_cmdline.pm";
-                loadtest "console/yast2_dns_server.pm";
-                loadtest "console/yast2_nfs_client.pm";
-            }
-        }
         if (   check_var('ARCH', 'x86_64')
             || check_var('ARCH', 'i686')
             || check_var('ARCH', 'i586'))
@@ -500,6 +482,33 @@ sub load_yast2ui_tests() {
     loadtest "yast2_ui/yast2_snapper.pm";
     loadtest "yast2_ui/yast2_software_management.pm";
     loadtest "yast2_ui/yast2_users.pm";
+}
+
+sub load_extra_test () {
+    # Put tests that filled the conditions below
+    # 1) you don't want to run in stagings below here
+    # 2) the application is not rely on desktop environment
+    # 3) running based on preinstalled image
+    return unless get_var("EXTRATEST");
+
+    load_boot_tests();
+    loadtest "installation/finish_desktop.pm";
+    # setup $serialdev permission and so on
+    loadtest "console/consoletest_setup.pm";
+    loadtest "console/zypper_lr.pm";
+    loadtest "console/zypper_ref.pm";
+
+    # start extra console tests from here
+    if (!get_var("OFW")) {
+        loadtest "console/aplay.pm";
+    }
+    loadtest "console/a2ps.pm";    # a2ps is not a ring package and thus not available in staging
+
+    # finished console test and back to desktop
+    loadtest "console/consoletest_finish.pm";
+
+    # start extra x11 tests from here
+
 }
 
 sub load_x11tests() {
@@ -567,7 +576,6 @@ sub load_x11tests() {
         loadtest "x11/systemsettings.pm";
         loadtest "x11/dolphin.pm";
     }
-    loadtest "x11/yast2_users.pm";
     if (snapper_is_applicable) {
         loadtest "x11/yast2_snapper.pm";
     }
@@ -698,11 +706,26 @@ elsif (get_var("SUPPORT_SERVER")) {
     loadtest "support_server/setup.pm";
     loadtest "support_server/wait.pm";
 }
+elsif (get_var("EXTRATEST")) {
+    load_boot_tests();
+    loadtest "installation/finish_desktop.pm";
+    load_extra_test();
+}
 elsif (get_var("Y2UITEST")) {
     load_boot_tests();
     loadtest "installation/finish_desktop.pm";
     # setup $serialdev permission and so on
     loadtest "console/consoletest_setup.pm";
+    # start extra yast console test from here
+    loadtest "console/zypper_lr.pm";
+    loadtest "console/zypper_ref.pm";
+    # yast-lan related tests do not work when using networkmanager.
+    # (Livesystem and laptops do use networkmanager)
+    if (!get_var("LIVETEST") && !get_var("LAPTOP")) {
+        loadtest "console/yast2_cmdline.pm";
+        loadtest "console/yast2_dns_server.pm";
+        loadtest "console/yast2_nfs_client.pm";
+    }
     # back to desktop
     loadtest "console/consoletest_finish.pm";
     load_yast2ui_tests();
