@@ -49,6 +49,11 @@ sub run() {
 
     send_key "alt-a", 1;    # accept
 
+    # automatic changes for manual selections
+    if (check_screen('yast2-sw-packages-autoselected', 10)) {
+        send_key 'alt-o';
+    }
+
     # Whether summary is shown depends on PKGMGR_ACTION_AT_EXIT in /etc/sysconfig/yast2
     # We actually can never be sure how this is set, so let's just check:
     if (check_screen('yast2-sw_shows_summary', 10)) {
