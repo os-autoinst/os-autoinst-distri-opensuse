@@ -11,6 +11,7 @@ sub run() {
     assert_script_run("curl https://www.suse.com -o /tmp/suse.html");
     assert_script_run("a2ps -o /tmp/suse.ps /tmp/suse.html");
     assert_screen "a2ps_saved";
+    script_run('exit');
 }
 
 1;
