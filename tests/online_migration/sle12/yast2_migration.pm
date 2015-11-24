@@ -13,7 +13,7 @@ sub run {
         assert_screen 'yast2-migration-updatesoverview', 10;
         send_key "alt-a";
     }
-    
+
     # wait for migration target after needed updates installed
     assert_screen 'yast2-migration-target', 300;
     send_key "alt-n";
@@ -27,7 +27,7 @@ sub run {
         send_key_until_needlematch 'disable-repo', 'down', 3;   
         send_key "ret", 1;
     }
-    
+
     send_key "alt-n";
     assert_screen 'yast2-migration-startupgrade', 10;
     send_key "alt-u";
@@ -70,7 +70,7 @@ sub run {
 }
 
 sub test_flags() {
-    return { 'fatal' => 1, 'important' => 1};
+    return {'fatal' => 1, 'important' => 1};
 }
 
 1;

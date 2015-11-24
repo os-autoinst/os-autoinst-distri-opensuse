@@ -5,9 +5,9 @@ use utils;
 
 sub run() {
     send_key "ctrl-l", 1;
-    
+
     # print repos to screen and serial console after online migration
-    script_run("zypper lr -u| tee /dev/$serialdev");
+    script_run("zypper lr -u | tee /dev/$serialdev");
     save_screenshot;
 
     # reboot to upgraded system after online migration

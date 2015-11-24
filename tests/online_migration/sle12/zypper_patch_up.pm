@@ -4,6 +4,7 @@ use testapi;
 
 sub run() {
     my $self = shift;
+
     my $zypper_continue = qr/^Continue\? \[y/m;
     my $zypper_conflict = qr/^Choose from above solutions by number[\s\S,]* \[1/m;
     my $zypper_error = qr/^Abort, retry, ignore\? \[a/m;
@@ -34,7 +35,7 @@ sub run() {
 }
 
 sub test_flags() {
-    return { 'fatal' => 1 };
+    return {'fatal' => 1};
 }
 
 1;
