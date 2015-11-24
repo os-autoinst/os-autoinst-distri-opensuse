@@ -657,6 +657,16 @@ sub load_skenkins_tests {
     return 0;
 }
 
+sub load_online_migration_tests {
+    loadtest("boot/boot_to_console.pm");
+    loadtest("online_migration/sle12/register_via_scc_smt.pm");
+    loadtest("online_migration/sle12/zypper_patch_up.pm") if (get_var("FULL_UPDATE_BEFORE_MIGRATION"));
+    loadtest("online_migration/sle12/migration_preparation.pm");
+    loadtest("online_migration/sle12/yast2_migration.pm") if (get_var("MIGRATION_METHOD") eq 'yast');
+    loadtest("online_migration/sle12/zypper_migration.pm") if (get_var("MIGRATION_METHOD") eq 'zypper');
+    loadtest("online_migration/sle12/post_migration.pm");
+}
+
 # load the tests in the right order
 if ( get_var("REGRESSION") ) {
     # FIXME: only load_x11regresion_tests is special here => integrate below
@@ -691,6 +701,9 @@ elsif (get_var("SUPPORT_SERVER")) {
 }
 elsif (get_var("QA_TESTSET")) {
     loadtest "qa_automation/" . get_var("QA_TESTSET") . ".pm";
+}
+elsif (get_var("ONLINE_MIGRATION")) {
+    load_online_migration_tests();
 }
 else {
     if (get_var("LIVETEST")) {
