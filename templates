@@ -3220,6 +3220,7 @@
                       settings => [
                         { key => "DESKTOP", value => "gnome" },
                         { key => "INSTALLONLY", value => 1 },
+                        { key => "HDDSIZEGB", value => 20 },
                         { key => "STORE_HDD_1", value => "gnome_image.qcow2" },
                       ],
                     },
@@ -3229,6 +3230,7 @@
                         { key => "BOOT_HDD_IMAGE", value => 1 },
                         { key => "DESKTOP", value => "gnome" },
                         { key => "HDD_1", value => "gnome_image.qcow2" },
+                        { key => "HDDSIZEGB", value => 20 },
                         { key => "START_AFTER_TEST", value => "install-gnome-image" },
                         { key => "Y2UITEST", value => 1 },
                       ],
