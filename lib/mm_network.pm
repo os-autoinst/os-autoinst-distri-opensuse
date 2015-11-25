@@ -81,7 +81,7 @@ sub configure_static_dns {
 
 sub parse_network_configuration {
     my @networks = ('fixed');
-    @networks = split /\s*,\s*/, get_var("NETWORKS");
+    @networks = split /\s*,\s*/, get_var("NETWORKS") if get_var("NETWORKS");
     my @mac = split /\s*,\s*/, get_var("NICMAC");
     my $net_conf = {};
 
