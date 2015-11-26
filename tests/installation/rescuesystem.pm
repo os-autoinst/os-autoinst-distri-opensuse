@@ -7,6 +7,16 @@ sub run {
 
     assert_screen "inst-bootmenu", 15;
 
+    # after installation-images 14.210 added a submenu
+    if (check_screen "inst-submenu-more", 1) {
+        if (get_var('OFW')) {
+            send_key_until_needlematch 'inst-onmore', 'up';
+        }
+        else {
+            send_key_until_needlematch('inst-onmore', 'down', 10, 5);
+        }
+        send_key "ret";
+    }
     if (get_var('OFW')) {
         send_key_until_needlematch 'inst-rescuesystem', 'up';
     }
