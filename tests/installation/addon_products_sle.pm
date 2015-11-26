@@ -16,7 +16,8 @@ sub run() {
             send_key_until_needlematch 'addon-dvd-list', 'tab', 10;     # jump into addon list
             send_key_until_needlematch "addon-dvd-$a",   'down', 10;    # select addon in list
             send_key 'alt-o';                                           # continue
-            if (get_var("BETA")) {
+            my $b = uc $a;                                              # variable name is upper case
+            if (get_var("BETA_$b")) {
                 assert_screen "addon-betawarning-$a", 10;
                 send_key "ret";
                 assert_screen "addon-license-beta", 10;
