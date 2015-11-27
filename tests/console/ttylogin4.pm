@@ -21,6 +21,7 @@ use ttylogin;
 
 sub run() {
     ttylogin;
+    type_string "PS1=\$\n";    # set constant shell promt
 }
 
 sub test_flags() {
