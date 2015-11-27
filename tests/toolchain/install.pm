@@ -5,16 +5,8 @@ use testapi;
 sub run() {
     my $self = shift;
 
-    send_key 'ctrl-alt-f4';
-    if (!check_var('ARCH', 's390x')) {
-        assert_screen 'tty4-selected';
-        assert_screen 'text-login';
-        type_string "root\n";
-        assert_screen 'password-prompt', 10;
-        type_password;
-        send_key 'ret';
-    }
-    assert_screen 'text-logged-in';
+    select_console('root-console');
+
     # disable packagekitd
     script_run 'systemctl mask packagekit.service';
     script_run 'systemctl stop packagekit.service';

@@ -67,7 +67,7 @@ sub fill_in_registration_data {
     assert_screen("module-selection");
     if (get_var('SCC_ADDONS')) {
         send_key 'tab';                 # jump to beginning of addon selection
-        for $a (split(/,/, get_var('SCC_ADDONS'))) {
+        for my $a (split(/,/, get_var('SCC_ADDONS'))) {
             my $counter = 30;
             while ($counter > 0) {
                 if (check_screen("scc-help-selected", 5)) {

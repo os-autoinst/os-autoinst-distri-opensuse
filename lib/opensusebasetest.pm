@@ -21,14 +21,7 @@ sub post_run_hook {
 sub export_logs {
     my $self = shift;
 
-    send_key "ctrl-alt-f2";
-    assert_screen("text-login", 10);
-    type_string "root\n";
-    sleep 2;
-    type_password;
-    type_string "\n";
-    sleep 1;
-
+    select_console 'root-console';
     save_screenshot;
 
     type_string "cat /home/*/.xsession-errors* > /tmp/XSE\n";

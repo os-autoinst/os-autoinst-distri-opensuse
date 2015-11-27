@@ -28,13 +28,7 @@ sub save_upload_y2logs() {
 sub post_fail_hook() {
     my $self = shift;
 
-    send_key "ctrl-alt-f2";
-    assert_screen("text-login", 10);
-    type_string "root\n";
-    sleep 2;
-    type_password;
-    type_string "\n";
-    sleep 1;
+    select_console 'root-console';
     save_screenshot;
 
     if (check_var("DESKTOP", "kde")) {

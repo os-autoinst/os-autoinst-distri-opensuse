@@ -19,7 +19,6 @@ use testapi;
 use lockapi;
 use mmapi;
 use mm_network;
-use ttylogin;
 
 sub run {
     my $self = shift;

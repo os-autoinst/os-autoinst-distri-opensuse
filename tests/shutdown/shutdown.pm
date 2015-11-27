@@ -17,11 +17,10 @@
 use strict;
 use base 'basetest';
 use testapi;
-use ttylogin;
 
 sub run {
 
-    ttylogin('4', "root");
+    select_console('root-console');
     type_string "poweroff\n";
     assert_shutdown;
 }

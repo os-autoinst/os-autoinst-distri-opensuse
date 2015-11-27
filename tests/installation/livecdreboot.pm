@@ -39,28 +39,12 @@ sub run() {
 
     send_key 'alt-s';    # Stop the reboot countdown
 
-    send_key "ctrl-alt-f2";
-    if (get_var("LIVECD")) {
-        # LIVE CDa do not run inst-consoles as started by inst-linux (it's regular live run, auto-starting yast live installer)
-        assert_screen "text-login", 10;
-        # login as root, who does not have a password on Live-CDs
-        type_string "root\n";
-        sleep 1;
-    }
-    else {
-        assert_screen "inst-console";
-    }
+    select_console 'install-shell';
 
     $self->get_ip_address();
     $self->save_upload_y2logs();
 
-    if (check_var('VIDEOMODE', 'text')) {
-        send_key 'ctrl-alt-f1';    # get back to YaST
-    }
-    else {
-        send_key 'ctrl-alt-f7';    # get back to YaST
-    }
-
+    select_console 'installation';
     assert_screen 'rebootnow';
 
     if (get_var("LIVECD")) {

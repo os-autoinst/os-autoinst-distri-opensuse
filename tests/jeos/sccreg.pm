@@ -1,7 +1,6 @@
 use base "opensusebasetest";
 use strict;
 use testapi;
-use ttylogin;
 
 sub run() {
     my $sccmail = get_var("SCC_EMAIL");

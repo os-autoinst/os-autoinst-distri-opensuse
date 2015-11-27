@@ -1,7 +1,6 @@
 use base "opensusebasetest";
 use strict;
 use testapi;
-use ttylogin;
 
 sub select_locale {
     my $lang = get_var("INSTLANG", 'us');
@@ -40,7 +39,7 @@ sub run() {
 
     assert_screen 'linux-login';
 
-    ttylogin 4, 'root';
+    select_console 'root-console';
 
     assert_script_run "useradd -m $username";      # create bernhard account
     my $str = time;

@@ -2,7 +2,6 @@ use base "installbasetest";
 use strict;
 use testapi;
 use utils;
-use ttylogin;
 
 sub run() {
 
@@ -17,7 +16,7 @@ sub run() {
         # This do not work in 13.2
         # script_sudo "/sbin/init 3";
 
-        ttylogin('4', 'root');
+        select_console('root-console');
 
         # Remove the --force when this is fixed:
         # https://bugzilla.redhat.com/show_bug.cgi?id=1075131
@@ -32,7 +31,7 @@ sub run() {
 
         wait_boot textmode => 1;
 
-        ttylogin('4', 'root');
+        select_console('root-console');
     }
 
     script_run "PS1=\$";    # set constant shell promt
