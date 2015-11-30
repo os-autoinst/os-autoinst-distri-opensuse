@@ -483,7 +483,9 @@ sub load_yast2ui_tests() {
     loadtest "yast2_ui/yast2_hostnames.pm";
     loadtest "yast2_ui/yast2_lang.pm";
     loadtest "yast2_ui/yast2_network_settings.pm";
-    loadtest "yast2_ui/yast2_snapper.pm";
+    if (snapper_is_applicable) {
+        loadtest "yast2_ui/yast2_snapper.pm";
+    }
     loadtest "yast2_ui/yast2_software_management.pm";
     loadtest "yast2_ui/yast2_users.pm";
 }
