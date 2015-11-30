@@ -26,7 +26,7 @@ sub run() {
         type_string "\n";
     }
     sleep 3;
-    type_string "PS1=\$\n";    # set constant shell promt
+    ensure_valid_prompt();
     sleep 1;
 
     script_sudo "chown $username /dev/$serialdev";

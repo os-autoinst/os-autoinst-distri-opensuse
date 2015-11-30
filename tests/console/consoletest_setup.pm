@@ -17,7 +17,7 @@ sub run() {
 
     # init
     select_console('user-console');
-    type_string "PS1=\$\n";    # set constant shell promt
+    ensure_valid_prompt();
 
     script_sudo "chown $username /dev/$serialdev";
 

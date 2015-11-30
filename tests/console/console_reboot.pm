@@ -8,7 +8,7 @@ sub run() {
     reset_consoles;
     wait_boot;
     select_console('user-console');
-    type_string "PS1=\$\n";    # set constant shell promt
+    ensure_valid_prompt();
     assert_script_sudo "chown $username /dev/$serialdev";
 }
 

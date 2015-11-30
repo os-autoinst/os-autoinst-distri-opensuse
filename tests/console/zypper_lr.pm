@@ -5,8 +5,7 @@ sub run() {
     my $self = shift;
 
     become_root;
-
-    type_string "PS1=\"# \"\n";
+    ensure_valid_root_prompt();
     script_run("zypper lr -d; echo zypper-lr-\$? > /dev/$serialdev");
     wait_serial("zypper-lr-0") || die "zypper lr failed";
     save_screenshot;

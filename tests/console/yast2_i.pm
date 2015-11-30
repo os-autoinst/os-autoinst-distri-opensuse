@@ -7,7 +7,7 @@ sub run() {
     my $recommended = get_var("PACKAGETOINSTALL_RECOMMENDED", "nfs-client");
 
     become_root();
-    type_string "PS1=\"# \"\n";
+    ensure_valid_root_prompt();
 
     assert_script_run "zypper -n rm $pkgname $recommended", 90;
 
