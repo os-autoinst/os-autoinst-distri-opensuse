@@ -391,7 +391,7 @@ sub load_inst_tests() {
     if (noupdatestep_is_applicable && !get_var("LIVECD")) {
         loadtest "installation/installer_timezone.pm";
     }
-    if (noupdatestep_is_applicable && !get_var("LIVECD") && !get_var("NICEVIDEO") && !get_var("IPMI_HOSTNAME")) {
+    if (noupdatestep_is_applicable && !get_var("LIVECD")) {
         loadtest "installation/logpackages.pm";
     }
     if (noupdatestep_is_applicable) {
