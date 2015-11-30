@@ -34,7 +34,7 @@ sub run() {
         }
         elsif ($out =~ $zypper_continue) {
             send_key "y", 1;
-            send_key "ret";    
+            send_key "ret";
         }
         elsif ($out =~ $zypper_migration_done) {
             last;

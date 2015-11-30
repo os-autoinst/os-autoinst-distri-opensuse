@@ -33,7 +33,7 @@ sub run {
     assert_screen "yast2-migration-upgrading", 30;
 
     # start migration
-    my @tags = qw/yast2-migration-wrongdigest yast2-migration-packagebroken yast2-migration-internal-error yast2-migration-finish/;
+    my @tags    = qw/yast2-migration-wrongdigest yast2-migration-packagebroken yast2-migration-internal-error yast2-migration-finish/;
     my $timeout = 5000;
     while (1) {
         my $ret = check_screen \@tags, $timeout;
@@ -48,7 +48,7 @@ sub run {
             send_key "alt-d";
             save_screenshot;
             send_key "alt-s";
-            return;   
+            return;
         }
         elsif ($ret->{needle}->has_tag("yast2-migration-wrongdigest")) {
             $self->result('fail');

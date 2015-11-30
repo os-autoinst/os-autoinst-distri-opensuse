@@ -29,7 +29,7 @@ sub run() {
            send_key "ret";
        }
        elsif ($out =~ $zypper_finish) {
-           last;    
+           last;
        }
        $out = wait_serial([$zypper_continue, $zypper_conflict, $zypper_error, $zypper_fileconflict, $zypper_finish], 5000);
     }
