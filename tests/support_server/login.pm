@@ -21,10 +21,10 @@ sub run {
 
     if (get_var("SUPPORTSERVER_NEEDLE_LOGIN")) {
         #fallback to needle based detection, if serial console not set or not supported
-        assert_screen("autoyast-system-login-console", 30);
+        assert_screen("autoyast-system-login-console", 200);
     }
     else {
-        wait_serial("login:", 30);
+        wait_serial("login:", 200);
     }
 
     type_string "root\n";

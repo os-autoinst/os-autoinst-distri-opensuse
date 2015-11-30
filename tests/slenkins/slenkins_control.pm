@@ -24,33 +24,7 @@ use ttylogin;
 sub run {
     my $self = shift;
 
-    ttylogin('4', "root");
-
-    configure_default_gateway;
-    configure_static_ip('10.0.2.1/24');
-    configure_static_dns(get_host_resolv_conf());
-
-    my $ip_num = 15;
-    my $conf   = "";
-    open(FH, '<', get_var('CASEDIR') . "/data/slenkins/" . get_var('SLENKINS_NODEFILE'));
-    my $name;
-    my @nodes;
-    while (<FH>) {
-        my ($var, $value) = split /\s+/, $_;
-        if ($var eq 'node') {
-            $name = $value;
-            push @nodes, $name;
-
-            my $ip = "10.0.2.$ip_num";
-            $conf .= "EXTERNAL_IP_" . uc($name) . "=$ip\n";
-
-            $ip_num++;
-        }
-    }
-    close(FH);
-
-
-    print "$conf\n";
+    my $net_conf = parse_network_configuration();
 
     script_output("
         mkdir /root/.ssh
@@ -65,10 +39,71 @@ sub run {
         zypper -n --no-gpg-checks in " . get_var('SLENKINS_CONTROL') . " slenkins-engine-tests slenkins
     ", 100);
 
-    for my $n (@nodes) {
-        print "waiting for node $n\n";
-        mutex_lock($n);
+    my $parents = get_parents();
+    my %settings;
+
+    # wait for parents (nodes)
+    for my $p (@$parents) {
+        $settings{$p} = get_job_info($p)->{settings};
+
+        my $node = $settings{$p}->{SLENKINS_NODE};
+
+        die "parent has no SLENKINS_NODE variable defined" unless $node;
+        mutex_lock($node);
     }
+
+    # parse dhcpd.leases - now it should contain entries for all nodes
+    my %dhcp_leases;
+    my $dhcp_leases_file = script_output("cat /var/lib/dhcp/db/dhcpd.leases\n");
+
+    my $lease_ip;
+    for my $l (split /\n/, $dhcp_leases_file) {
+        if ($l =~ /^lease\s+([0-9.]+)/) {
+            $lease_ip = $1;
+        }
+        elsif ($l =~ /client-hostname\s+"(.*)"/) {
+            my $hostname = lc($1);
+            $dhcp_leases{$hostname} //= [];
+            push @{$dhcp_leases{$hostname}}, $lease_ip;
+        }
+    }
+
+    # generate configuration
+    my $conf = "";
+
+    my $i = 0;
+    for my $p (@$parents) {
+        my $node = $settings{$p}->{SLENKINS_NODE};
+        my $networks = $settings{$p}->{NETWORKS} // 'fixed';
+        my @external_ip;
+        my @internal_ip;
+        my @nic;
+
+        my $eth = 0;
+        for my $network (split /\s*,\s*/, $networks) {
+            if ($net_conf->{$network}->{dhcp}) {
+                for my $ip (@{$dhcp_leases{lc($node)}}) {
+                    if (check_ip_in_subnet($net_conf->{$network}, $ip)) {
+                        push @external_ip, $ip;
+                        push @internal_ip, $ip;
+                        last;
+                    }
+                }
+            }
+            else {
+                push @external_ip, "N/A";
+                # generate some ip, the test is responsible for configuring it on the node
+                push @internal_ip, ip_in_subnet($net_conf->{$network}, $i + 15);
+            }
+            push @nic, "eth$eth";
+            $eth++;
+        }
+        $conf .= "EXTERNAL_IP_" . uc($node) . "='" . join(' ', @external_ip) . "'\n";
+        $conf .= "INTERNAL_IP_" . uc($node) . "='" . join(' ', @internal_ip) . "'\n";
+        $conf .= "NIC_" . uc($node) . "='" . join(' ', @nic) . "'\n";
+        $i++;
+    }
+    print "$conf\n";
 
     script_output('
         #FIXME: can we move the following line to script_output function?
@@ -85,10 +120,6 @@ sub run {
         # we already have the correct control pkg installed, guess these vars from it
         export PROJECT_NAME=`echo /var/lib/slenkins/*/*/nodes | cut -d / -f 5`
         export CONTROL_PKG=`echo /var/lib/slenkins/*/*/nodes | cut -d / -f 6`
-
-        # openqa does not support complete node syntax yet
-        # replace the nodes file from package with a simpler version that is verified to work with openqa
-        curl -f -v ' . autoinst_url . '/data/slenkins/' . get_var('SLENKINS_NODEFILE') . ' >/var/lib/slenkins/$PROJECT_NAME/$CONTROL_PKG/nodes
 
         # Create workspace
         export WORKSPACE=/tmp/slenkins
@@ -113,12 +144,12 @@ sub run {
           echo "Preparations for node $node_name"
           node=${node_name^^}
 
-          #FIXME: support multiple networks
-          eval "EXTERNAL_IP=\$EXTERNAL_IP_${node}"
-          INTERNAL_IP=$EXTERNAL_IP
+          eval "EXTERNAL_IP=( \$EXTERNAL_IP_${node} )"
+          eval "INTERNAL_IP=( \$INTERNAL_IP_${node} )"
+          eval "NIC=\$NIC_${node}"
           # Define node-related environment file/variables
           echo "Setting environment variables for the node $node_name"
-          set-node-environment $node_name eth0
+          set-node-environment $node_name "$NIC"
           echo
         done
 

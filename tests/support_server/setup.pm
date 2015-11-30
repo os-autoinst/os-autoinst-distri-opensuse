@@ -17,6 +17,7 @@ use strict;
 use base 'basetest';
 use lockapi;
 use testapi;
+use mm_network;
 
 my $pxe_server_set  = 0;
 my $quemu_proxy_set = 0;
@@ -65,12 +66,77 @@ sub setup_tftp_server {
     $tftp_server_set = 1;
 }
 
+sub setup_networks {
+    my $net_conf = parse_network_configuration();
+
+    for my $network (keys %$net_conf) {
+        my $server_ip = ip_in_subnet($net_conf->{$network}, 1);
+        $setup_script .= "NIC=`grep $net_conf->{$network}->{mac} /sys/class/net/*/address |cut -d / -f 5`\n";
+        $setup_script .= "cat > /etc/sysconfig/network/ifcfg-\$NIC <<EOT\n";
+        $setup_script .= "IPADDR=$server_ip\n";
+        $setup_script .= "NETMASK=$net_conf->{$network}->{subnet_mask}\n";
+        $setup_script .= "STARTMODE='auto'\n";
+        $setup_script .= "EOT\n";
+    }
+    $setup_script .= "rcnetwork restart\n";
+
+    $setup_script .= "FIXED_NIC=`grep $net_conf->{fixed}->{mac} /sys/class/net/*/address |cut -d / -f 5`\n";
+    $setup_script .= "iptables -t nat -A POSTROUTING -o \$FIXED_NIC -j MASQUERADE\n";
+    for my $network (keys %$net_conf) {
+        next if $network eq 'fixed';
+        next unless $net_conf->{$network}->{gateway};
+        "NIC=`grep $net_conf->{$network}->{mac} /sys/class/net/*/address |cut -d / -f 5`\n";
+        $setup_script .= "iptables -A FORWARD -i \$FIXED_NIC -o \$NIC -m state  --state RELATED,ESTABLISHED -j ACCEPT\n";
+        $setup_script .= "iptables -A FORWARD -i \$NIC -o \$FIXED_NIC -j ACCEPT\n";
+    }
+    $setup_script .= "echo 1 > /proc/sys/net/ipv4/ip_forward\n";
+    $setup_script .= "ip route\n";
+    $setup_script .= "ip addr\n";
+    $setup_script .= "iptables -v -L\n";
+}
+
 sub setup_dhcp_server {
     return if $dhcp_server_set;
+    my $net_conf = parse_network_configuration();
 
     $setup_script .= "rcdhcpd stop\n";
-    $setup_script .= "curl -f -v " . autoinst_url . "/data/supportserver/dhcp/dhcpd.conf  >/etc/dhcpd.conf \n";
+    $setup_script .= "cat  >/etc/dhcpd.conf <<EOT\n";
+    $setup_script .= "default-lease-time 14400;\n";
+    $setup_script .= "ddns-update-style none;\n";
+    $setup_script .= "dhcp-cache-threshold 0;\n";
+    $setup_script .= "\n";
+    for my $network (keys %$net_conf) {
+        next unless $net_conf->{$network}->{dhcp};
+        my $server_ip = ip_in_subnet($net_conf->{$network}, 1);
+        $setup_script .= "subnet $net_conf->{$network}->{subnet_ip} netmask $net_conf->{$network}->{subnet_mask} {\n";
+        $setup_script .= "  range  " . ip_in_subnet($net_conf->{$network}, 15) . "  " . ip_in_subnet($net_conf->{$network}, 100) . ";\n";
+        $setup_script .= "  default-lease-time 14400;\n";
+        $setup_script .= "  max-lease-time 172800;\n";
+        $setup_script .= "  option domain-name \"test\";\n";
+        #        $setup_script .= "  option domain-name-servers  $server_ip,  $server_ip;\n";
+        if ($net_conf->{$network}->{gateway}) {
+            if ($network eq 'fixed') {
+                $setup_script .= "  option routers 10.0.2.2;\n";
+            }
+            else {
+                $setup_script .= "  option routers $server_ip;\n";
+            }
+        }
+        $setup_script .= "  filename \"/boot/pxelinux.0\";\n";
+        $setup_script .= "  next-server $server_ip;\n";
+        $setup_script .= "}\n";
+    }
+    $setup_script .= "EOT\n";
+
     $setup_script .= "curl -f -v " . autoinst_url . "/data/supportserver/dhcp/sysconfig/dhcpd  >/etc/sysconfig/dhcpd \n";
+    $setup_script .= "NIC_LIST=\"";
+    for my $network (keys %$net_conf) {
+        next unless $net_conf->{$network}->{dhcp};
+        $setup_script .= "`grep $net_conf->{$network}->{mac} /sys/class/net/*/address |cut -d / -f 5` ";
+    }
+    $setup_script .= "\"\n";
+    $setup_script .= 'sed -i -e "s|^DHCPD_INTERFACE=.*|DHCPD_INTERFACE=\"$NIC_LIST\"|" /etc/sysconfig/dhcpd' . "\n";
+
     $setup_script .= "rcdhcpd start\n";
 
     $dhcp_server_set = 1;
@@ -91,9 +157,14 @@ sub setup_nfs_mount {
 
 sub run {
 
+    configure_default_gateway;
+    configure_static_ip('10.0.2.1/24');
+    configure_static_dns(get_host_resolv_conf());
 
     my @server_roles = split(',|;', lc(get_var("SUPPORT_SERVER_ROLES")));
     my %server_roles = map { $_ => 1 } @server_roles;
+
+    setup_networks();
 
     if (exists $server_roles{'pxe'}) {
         setup_dhcp_server();
@@ -118,10 +189,11 @@ sub run {
 
     die "no services configured, SUPPORT_SERVER_ROLES variable missing?" unless $setup_script;
 
-    script_output($setup_script);
+    print $setup_script;
+
+    script_output($setup_script, 200);
 
     #create mutexes for running services
-    wait_idle(100);
     foreach my $mutex (@mutexes) {
         mutex_create($mutex);
     }
