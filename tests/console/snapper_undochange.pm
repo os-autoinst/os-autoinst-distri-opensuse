@@ -12,12 +12,12 @@ sub run() {
     my $snapaf = script_output "snapper create -p -d 'after undochange test'";
 
     # Delete snapfile
-    script_run "snapper undochange $snapbf..$snapaf";
+    script_run "snapper undochange $snapbf..$snapaf $snapfile";
     script_run "test -f $snapfile || echo \"snap-ba-ok\" > /dev/$serialdev";
     wait_serial("snap-ba-ok", 10) || die "Snapper undochange $snapbf..$snapaf failed";
 
     # Restore snapfile
-    script_run "snapper undochange $snapaf..$snapbf";
+    script_run "snapper undochange $snapaf..$snapbf $snapfile";
     script_run "test -f $snapfile && echo \"snap-ab-ok\" > /dev/$serialdev";
     wait_serial("snap-ab-ok", 10) || die "Snapper undochange $snapaf..$snapbf failed";
 
