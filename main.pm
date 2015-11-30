@@ -713,6 +713,9 @@ else {
     }
     elsif (get_var("BOOT_HDD_IMAGE")) {
         loadtest "boot/boot_to_desktop.pm";
+        if (get_var("ADDONS")) {
+            loadtest "installation/addon_products_yast2.pm";
+        }
     }
     elsif (is_jeos) {
         load_boot_tests();
