@@ -98,19 +98,19 @@ sub fill_in_registration_data {
         }
         if (check_screen("scc-addon-regcodes", 5)) {    # no step of input regcodes and skip it if register via smt
             for $a (split(/,/, get_var('SCC_ADDONS'))) {
-                next if ($a !~ /ha|geo|we/);   # skip addons that no need regcode
-                $a = uc $a;                    # change to uppercase to match variable
+                next if ($a !~ /ha|geo|we/);            # skip addons that no need regcode
+                $a = uc $a;                             # change to uppercase to match variable
                 if (my $regcode = get_var("SCC_REGCODE_$a")) {
                     assert_screen("scc-addon-regcode-$a");
-                    send_key 'tab';            # jump to code field
+                    send_key 'tab';                     # jump to code field
                     type_string $regcode;
                 }
             }
-            send_key "alt-n";          # next
+            send_key "alt-n";                           # next
         }
     }
     else {
-        send_key "alt-n";                  # next
+        send_key "alt-n";                               # next
     }
     # scc registration need some time
     # and meanwhile would ask importing untrusted gpg keys if select specific addons such like WE
