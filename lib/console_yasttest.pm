@@ -2,20 +2,14 @@
 
 package console_yasttest;
 use base "opensusebasetest";
+use strict;
 
 use testapi;
 
 sub post_fail_hook() {
     my $self = shift;
 
-    send_key "ctrl-alt-f2";
-    assert_screen("text-login", 10);
-    type_string "root\n";
-    sleep 2;
-    type_password;
-    type_string "\n";
-    sleep 1;
-
+    select_console 'root-console';
     save_screenshot;
 
     my $fn = sprintf '/tmp/y2logs-%s.tar.bz2', ref $self;

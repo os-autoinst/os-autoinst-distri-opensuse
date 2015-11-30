@@ -1,7 +1,6 @@
 use base "opensusebasetest";
 use strict;
 use testapi;
-use ttylogin;
 
 sub run() {
     my $self    = shift;

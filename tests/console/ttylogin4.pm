@@ -17,10 +17,9 @@
 use base "consoletest";
 use testapi;
 
-use ttylogin;
 
 sub run() {
-    ttylogin;
+    select_console('user-console');
     type_string "PS1=\$\n";    # set constant shell promt
 }
 

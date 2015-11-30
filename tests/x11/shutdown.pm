@@ -66,9 +66,6 @@ sub run() {
 
     if (get_var("DESKTOP") =~ m/minimalx|textmode/) {
         power('off');
-
-        # assert_screen 'test-shutdown-2', 3;
-        # send_key "ctrl-alt-f1"; # work-around for LXDE bug 619769 ; not needed in Factory anymore
     }
 
     assert_shutdown;

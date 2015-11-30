@@ -1,13 +1,12 @@
 use base "consoletest";
 use testapi;
 use utils;
-use ttylogin;
 
 sub run() {
     become_root;
     type_string "reboot\n";
     wait_boot;
-    ttylogin;
+    select_console('user-console');
     type_string "PS1=\$\n";    # set constant shell promt
     assert_script_sudo "chown $username /dev/$serialdev";
 }

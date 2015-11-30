@@ -1,7 +1,6 @@
 use strict;
 use base "consoletest";
 use testapi;
-use ttylogin;
 
 # a2ps is available by default only in openSUSE*
 

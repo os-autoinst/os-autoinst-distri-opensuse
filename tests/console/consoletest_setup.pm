@@ -1,7 +1,6 @@
 use base "consoletest";
 use testapi;
 
-use ttylogin;
 
 sub run() {
     my $self = shift;
@@ -17,11 +16,8 @@ sub run() {
     }
 
     # init
-    ttylogin;
-
-    sleep 3;
+    select_console('user-console');
     type_string "PS1=\$\n";    # set constant shell promt
-    sleep 1;
 
     script_sudo "chown $username /dev/$serialdev";
 
@@ -44,7 +40,7 @@ sub run() {
     save_screenshot;
     send_key "ctrl-l";
 
-    script_run("curl -L -v " . autoinst_url . "/data > test.data; echo \"curl-\$?\" > /dev/$serialdev");
+    script_run("curl -L -v " . autoinst_url('/data') . " > test.data; echo \"curl-\$?\" > /dev/$serialdev");
     wait_serial("curl-0", 10) || die 'curl failed';
     script_run " cpio -id < test.data; echo \"cpio-\$?\"> /dev/$serialdev";
     wait_serial("cpio-0", 10) || die 'cpio failed';

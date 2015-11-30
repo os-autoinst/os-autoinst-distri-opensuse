@@ -1,8 +1,10 @@
 package susedistribution;
 use base 'distribution';
+use strict;
 
 # Base class for all openSUSE tests
 
+# don't import script_run - it will overwrite script_run from distribution and create a recursion
 use testapi qw(send_key %cmd assert_screen check_screen check_var get_var type_password type_string wait_idle wait_serial mouse_hide);
 
 sub init() {
@@ -10,9 +12,9 @@ sub init() {
 
     $self->SUPER::init();
     $self->init_cmd();
+    $self->init_consoles();
 }
 
-# this needs to move to the distribution
 sub init_cmd() {
     my ($self) = @_;
 
@@ -77,7 +79,6 @@ sub init_cmd() {
     ## keyboard cmd vars end
 }
 
-# this needs to move to the distribution
 sub x11_start_program($$$) {
     my ($self, $program, $timeout, $options) = @_;
     # enable valid option as default
@@ -100,7 +101,6 @@ sub x11_start_program($$$) {
     }
 }
 
-# this needs to move to the distribution
 sub ensure_installed {
     my ($self, @pkglist) = @_;
     my $timeout;
@@ -166,6 +166,87 @@ sub become_root() {
     wait_serial("root", 6) || die "Root prompt not there";
     type_string "cd /tmp\n";
     send_key('ctrl-l');
+}
+
+# initialize the consoles needed during our tests
+sub init_consoles {
+    my ($self) = @_;
+
+    if (check_var('BACKEND', 'qemu') || check_var('BACKEND', 'ipmi')) {
+        $self->add_console('install-shell', 'tty-console', {tty => 2});
+        $self->add_console('installation',  'tty-console', {tty => check_var('VIDEOMODE', 'text') ? 1 : 7});
+        $self->add_console('root-console',  'tty-console', {tty => 2});
+        $self->add_console('user-console',  'tty-console', {tty => 4});
+    }
+    if (check_var('BACKEND', 's390')) {
+        $self->add_console(
+            'install-shell',
+            'ssh-xterm',
+            {
+                host     => 's390foobar',
+                password => $testapi::password,
+                user     => 'root'
+            });
+        $self->add_console(
+            'installation',
+            'vnc-base',
+            {
+                host     => 's390foobar',
+                password => $testapi::password
+            });
+        $self->add_console(
+            'root-console',
+            'ssh-xterm',
+            {
+                host     => 's390foobar',
+                password => $testapi::password,
+                user     => 'root'
+            });
+        $self->add_console(
+            'user-console',
+            'ssh-xterm',
+            {
+                host     => 's390foobar',
+                password => $testapi::password,
+                user     => $testapi::username
+            });
+    }
+
+    return;
+}
+
+# callback whenever a console is selected for the first time
+sub activate_console {
+    my ($self, $console) = @_;
+
+    if ($console eq 'install-shell' && get_var('BACKEND', 'qemu')) {
+        assert_screen "inst-console";
+    }
+
+    if ($console =~ m/^(.*)-console/) {
+        my $user = $1;
+        $user = $testapi::username if $user eq 'user';
+        if (!check_var('BACKEND', 's390x')) {
+            my $nr = 4;
+            $nr = 2 if ($user eq 'root');
+            # we need to wait more than five seconds here to pass the idle timeout in
+            # case the system is still booting (https://bugzilla.novell.com/show_bug.cgi?id=895602)
+            assert_screen "tty$nr-selected";
+
+            assert_screen "text-login";
+            type_string "$user\n";
+            if (!get_var("LIVETEST")) {
+                assert_screen "password-prompt";
+                type_password;
+                type_string "\n";
+            }
+        }
+        else {
+            # different console-behaviour for s390x
+            $self->script_run("su - $user") unless ($user eq 'root');
+        }
+        assert_screen "text-logged-in", 10;
+    }
 }
 
 1;
