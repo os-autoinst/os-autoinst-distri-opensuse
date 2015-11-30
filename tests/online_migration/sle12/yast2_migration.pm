@@ -22,11 +22,10 @@ sub run {
     assert_screen 'yast2-migration-proposal', 200;
 
     # disable installation repo
-    if (check_screen("recommend-to-disable", 5)) {
-        send_key "tab";
-        send_key_until_needlematch 'disable-repo', 'down', 3;   
-        send_key "ret", 1;
-    }
+    assert_screen 'recommend-to-disable', 5;
+    send_key "tab";
+    send_key_until_needlematch 'disable-repo', 'down', 3;
+    send_key "ret", 1;
 
     send_key "alt-n";
     assert_screen 'yast2-migration-startupgrade', 10;
