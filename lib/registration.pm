@@ -96,20 +96,35 @@ sub fill_in_registration_data {
             send_key "alt-a";              # accept license
             send_key "alt-n";              # next
         }
-        for $a (split(/,/, get_var('SCC_ADDONS'))) {
-            $a = uc $a;                    # change to uppercase to match variable
-            if (my $regcode = get_var("SCC_REGCODE_$a")) {
-                assert_screen("scc-addon-regcode-$a");
-                send_key 'tab';            # jump to code field
-                type_string $regcode;
-                send_key "alt-n";          # next
+        if (check_screen("scc-addon-regcodes", 5)) {    # no step of input regcodes and skip it if register via smt
+            for $a (split(/,/, get_var('SCC_ADDONS'))) {
+                next if ($a !~ /ha|geo|we/);            # skip addons that no need regcode
+                $a = uc $a;                             # change to uppercase to match variable
+                if (my $regcode = get_var("SCC_REGCODE_$a")) {
+                    assert_screen("scc-addon-regcode-$a");
+                    send_key 'tab';                     # jump to code field
+                    type_string $regcode;
+                }
             }
+            send_key "alt-n";                           # next
         }
     }
     else {
-        send_key "alt-n";                  # next
+        send_key "alt-n";                               # next
     }
-    sleep 10;                              # scc registration need some time
+    # scc registration need some time
+    # and meanwhile would ask importing untrusted gpg keys if select specific addons such like WE
+    while (check_screen("import-untrusted-gpg-key", 20)) {
+        if (match_has_tag('import-untrusted-gpg-key')) {
+            if (check_var("IMPORT_UNTRUSTED_KEY", 1)) {
+                send_key "alt-t", 1;    # import
+            }
+            else {
+                send_key "alt-c", 1;    # cancel
+            }
+            next;
+        }
+    }
 }
 
 sub registration_bootloader_params {
@@ -153,9 +168,22 @@ sub yast_scc_registration {
             $timeout = 900;    # installation of an addon may take long
         }
         else {
-            assert_screen 'yast_scc-installation-summary', 900;
-            send_key "alt-f";
+            # yast may pop up a reboot prompt window after installation
+            while (check_screen([qw/yast_scc-prompt-reboot yast_scc-installation-summary/], 900)) {
+                if (match_has_tag('yast_scc-prompt-reboot')) {
+                    send_key "alt-o", 1;
+                    next;
+                }
+                elsif (match_has_tag('yast_scc-installation-summary')) {
+                    send_key "alt-f";
+                    last;
+                }
+            }
         }
+    }
+    # empty pkg install screen would appear if not select addons in sle12
+    if (check_screen("yast-scc-emptypkg", 5)) {
+        send_key "alt-a";
     }
 
     my $ret = wait_serial "yast-scc-done-\\d+-", $timeout;
