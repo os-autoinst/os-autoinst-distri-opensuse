@@ -12,7 +12,7 @@ sub run() {
     sleep 1;
     send_key "ret";
 
-    assert_screen "desktop-at-first-boot", 300;
+    assert_screen "generic-desktop", 300;
 
 }
 

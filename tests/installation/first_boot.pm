@@ -10,10 +10,9 @@ sub run() {
         return;
     }
 
-    mouse_hide();
-
     if (get_var("NOAUTOLOGIN")) {
         my $ret = assert_screen 'displaymanager', 200;
+        mouse_hide();
         if (get_var('DM_NEEDS_USERNAME')) {
             type_string $username;
         }
@@ -32,47 +31,39 @@ sub run() {
     }
 
     # Check for errors during first boot
-    my $err  = 0;
-    my @tags = qw/desktop-at-first-boot install-failed/;
     while (1) {
-        my $ret = assert_screen \@tags, 400;
-        if ($ret->{needle}->has_tag("desktop-at-first-boot") && !check_var("DESKTOP", "kde")) {
+        my $ret = check_screen "generic-desktop", 400;
+        if ($ret) {
+            mouse_hide();
             last;
         }
-        elsif ($ret->{needle}->has_tag("desktop-at-first-boot") && check_var("DESKTOP", "kde")) {
-            # a special case for KDE greeter
-            wait_idle 5;
-            send_key "esc";    # close the KDE greeter
-            sleep 3;
-            push(@tags, "generic-desktop");
-            push(@tags, "drkonqi-crash");
-            @tags = grep { $_ ne 'desktop-at-first-boot' } @tags;
-            next;
-        }
-        elsif ($ret->{needle}->has_tag("generic-desktop")) {
+        else {
+            # special case for KDE
+            if (check_var("DESKTOP", "kde")) {
+                # KDE Greeter was removed from Leap 42.1 though
+                if (check_screen "kde-greeter", 60) {
+                    send_key "esc";
+                    next;
+                }
+                if (check_screen "drkonqi-crash") {
+                    # handle for KDE greeter crashed and drkonqi popup
+                    send_key "alt-d";
+
+                    # maximize
+                    send_key "alt-shift-f3";
+                    sleep 8;
+                    save_screenshot;
+                    send_key "alt-c";
+                    next;
+
+                }
+            }
+            # leave the loop as somthing wrong happened
             last;
         }
-        elsif ($ret->{needle}->has_tag("drkonqi-crash")) {
-            # handle for KDE greeter crashed and drkonqi popup
-            send_key "alt-d";
-
-            # maximize
-            send_key "alt-shift-f3";
-            sleep 8;
-            save_screenshot;
-            send_key "alt-c";
-            @tags = grep { $_ ne 'drkonqi-crash' } @tags;
-            next;
-        }
-
-        save_screenshot;
-        sleep 2;
-        send_key "ret";
-        $err = 1;
-        last if $err;
     }
-
-    die 'failed' if $err;
+    # get the last screenshot
+    assert_screen "generic-desktop", 5;
 }
 
 sub test_flags() {
