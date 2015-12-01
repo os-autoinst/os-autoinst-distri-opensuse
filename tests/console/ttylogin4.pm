@@ -19,8 +19,7 @@ use testapi;
 
 
 sub run() {
-    select_console('user-console');
-    set_standard_prompt();
+    select_user_console();
 }
 
 sub test_flags() {

@@ -165,6 +165,7 @@ sub become_root() {
     type_string "whoami > /dev/$testapi::serialdev\n";
     wait_serial("root", 6) || die "Root prompt not there";
     type_string "cd /tmp\n";
+    set_root_prompt();
     send_key('ctrl-l');
 }
 
@@ -176,6 +177,11 @@ sub set_standard_prompt() {
 # Same as 'set_standard_prompt' but for root
 sub set_root_prompt() {
     type_string "PS1=\#\ \n";
+}
+
+sub select_user_console() {
+    select_console('user-console');
+    set_standard_prompt();
 }
 
 # initialize the consoles needed during our tests

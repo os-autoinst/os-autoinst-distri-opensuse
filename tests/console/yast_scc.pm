@@ -21,7 +21,6 @@ use registration;
 
 sub run() {
     become_root;
-    set_root_prompt();
     if (my $u = get_var('SCC_URL')) {
         type_string "echo 'url: $u' > /etc/SUSEConnect\n";
     }

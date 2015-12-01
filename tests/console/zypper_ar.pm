@@ -5,7 +5,6 @@ sub run() {
     my $self = shift;
 
     become_root;
-    set_root_prompt();
     # non-NET installs have only milestone repo, which might be incompatible.
     my $repourl = 'http://' . get_var("SUSEMIRROR");
     unless (get_var("FULLURL")) {

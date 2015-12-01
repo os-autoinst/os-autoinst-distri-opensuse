@@ -5,7 +5,6 @@ sub run() {
     my $self = shift;
 
     become_root;
-    set_root_prompt();
     script_run("zypper ref; echo zypper-ref-\$? > /dev/$serialdev");
     # don't trust graphic driver repo
     if (check_screen("new-repo-need-key", 20)) {

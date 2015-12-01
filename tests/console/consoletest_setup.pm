@@ -16,8 +16,7 @@ sub run() {
     }
 
     # init
-    select_console('user-console');
-    set_standard_prompt();
+    select_user_console();
 
     script_sudo "chown $username /dev/$serialdev";
 

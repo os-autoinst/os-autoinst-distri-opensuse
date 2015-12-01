@@ -7,8 +7,7 @@ sub run() {
     type_string "reboot\n";
     reset_consoles;
     wait_boot;
-    select_console('user-console');
-    set_standard_prompt();
+    select_user_console();
     assert_script_sudo "chown $username /dev/$serialdev";
 }
 
