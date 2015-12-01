@@ -11,7 +11,7 @@ sub run() {
     type_string "$password\n";
     sleep 2;
     for (1 .. 13) { send_key "ret" }
-    type_string "PS1=\"# \"\n";
+    ensure_valid_prompt();
     type_string "echo If you can see this text, ssh-X-forwarding  is working.\n";
     sleep 2;
     assert_screen 'test-sshxterm-1', 3;

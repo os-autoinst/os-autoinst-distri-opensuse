@@ -168,6 +168,16 @@ sub become_root() {
     send_key('ctrl-l');
 }
 
+sub ensure_valid_prompt() {
+    my ($self) = @_;
+    type_string "PS1=\$\n";
+}
+
+sub ensure_valid_root_prompt() {
+    my ($self) = @_;
+    type_string "PS1=\"# \"\n";
+}
+
 # initialize the consoles needed during our tests
 sub init_consoles {
     my ($self) = @_;

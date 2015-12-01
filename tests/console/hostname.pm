@@ -5,7 +5,7 @@ sub run() {
     my $self = shift;
 
     become_root;
-    type_string "PS1=\"# \"\n";
+    ensure_valid_root_prompt();
 
     my $hostname = get_var("HOSTNAME", 'susetest');
     script_run "hostnamectl set-hostname $hostname && echo 'hostname_sets' > /dev/$serialdev";
