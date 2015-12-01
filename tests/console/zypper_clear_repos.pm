@@ -5,8 +5,6 @@ sub run() {
     my $self = shift;
 
     become_root;
-
-    type_string "PS1=\"# \"\n";
     # remove Factory repos
     my $repos_folder = '/etc/zypp/repos.d';
     script_run("find $repos_folder/*.repo -type f -exec grep -q 'baseurl=http://download.opensuse.org/' {} \\; -delete && echo 'unneed_repos_removed' > /dev/$serialdev", 5);

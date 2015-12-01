@@ -21,8 +21,6 @@ use registration;
 
 sub run() {
     become_root;
-
-    type_string "PS1=\"# \"\n";
     if (my $u = get_var('SCC_URL')) {
         type_string "echo 'url: $u' > /etc/SUSEConnect\n";
     }

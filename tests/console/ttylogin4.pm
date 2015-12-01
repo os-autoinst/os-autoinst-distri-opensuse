@@ -19,8 +19,7 @@ use testapi;
 
 
 sub run() {
-    select_console('user-console');
-    type_string "PS1=\$\n";    # set constant shell promt
+    select_user_console();
 }
 
 sub test_flags() {

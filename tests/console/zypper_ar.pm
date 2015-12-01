@@ -5,8 +5,6 @@ sub run() {
     my $self = shift;
 
     become_root;
-
-    type_string "PS1=\"# \"\n";
     # non-NET installs have only milestone repo, which might be incompatible.
     my $repourl = 'http://' . get_var("SUSEMIRROR");
     unless (get_var("FULLURL")) {

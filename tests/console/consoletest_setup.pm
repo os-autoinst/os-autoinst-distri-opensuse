@@ -16,8 +16,7 @@ sub run() {
     }
 
     # init
-    select_console('user-console');
-    type_string "PS1=\$\n";    # set constant shell promt
+    select_user_console();
 
     script_sudo "chown $username /dev/$serialdev";
 
