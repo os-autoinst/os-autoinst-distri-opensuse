@@ -170,12 +170,12 @@ sub become_root() {
 
 # Set a simple reproducible prompt for easier needle matching without hostname
 sub set_standard_prompt() {
-    type_string "PS1=\$\n";
+    type_string "PS1=\$\ \n";
 }
 
 # Same as 'set_standard_prompt' but for root
 sub set_root_prompt() {
-    type_string "PS1=\"# \"\n";
+    type_string "PS1=\#\ \n";
 }
 
 # initialize the consoles needed during our tests
