@@ -5,7 +5,7 @@ sub run() {
     my $self = shift;
 
     become_root();
-    type_string "PS1=\"# \"\n";
+    set_root_prompt();
 
     type_string("rm -f /root/autoinst.xml ; zypper -n in autoyast2 ; yast2 clone_system ; echo FINISHED >/dev/$serialdev\n");
     my $n_error = 0;
