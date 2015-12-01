@@ -11,7 +11,12 @@ sub run {
     if (!$size || !$max || $size > $max) {
         $result = 'fail';
     }
-    bmwqemu::diag("check if actual iso size $size fits $max: $result");
+    if (!defined $size) {
+        bmwqemu::diag("iso path invalid: $iso");
+    }
+    else {
+        bmwqemu::diag("check if actual iso size $size fits $max: $result");
+    }
     $self->result($result);
 }
 
