@@ -35,7 +35,7 @@ sub run() {
         select_console('root-console');
     }
 
-    script_run "PS1=\$";    # set constant shell promt
+    $self->set_standard_prompt();
 
     # Disable console screensaver
     assert_script_run("setterm -blank 0");
