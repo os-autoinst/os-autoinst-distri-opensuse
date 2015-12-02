@@ -5,7 +5,7 @@ use strict;
 # Base class for all openSUSE tests
 
 # don't import script_run - it will overwrite script_run from distribution and create a recursion
-use testapi qw(send_key %cmd assert_screen check_screen check_var get_var type_password type_string wait_idle wait_serial mouse_hide select_console);
+use testapi qw(send_key %cmd assert_screen check_screen check_var get_var type_password type_string wait_idle wait_serial mouse_hide);
 
 sub init() {
     my ($self) = @_;
@@ -165,23 +165,9 @@ sub become_root() {
     type_string "whoami > /dev/$testapi::serialdev\n";
     wait_serial("root", 6) || die "Root prompt not there";
     type_string "cd /tmp\n";
-    set_root_prompt();
-    send_key('ctrl-l');
-}
-
-# Set a simple reproducible prompt for easier needle matching without hostname
-sub set_standard_prompt() {
-    type_string "PS1=\$\ \n";
-}
-
-# Same as 'set_standard_prompt' but for root
-sub set_root_prompt() {
+    # set standard root prompt
     type_string "PS1=\#\ \n";
-}
-
-sub select_user_console() {
-    select_console('user-console');
-    set_standard_prompt();
+    send_key('ctrl-l');
 }
 
 # initialize the consoles needed during our tests
@@ -262,6 +248,8 @@ sub activate_console {
             $self->script_run("su - $user") unless ($user eq 'root');
         }
         assert_screen "text-logged-in", 10;
+        # same prompt as in opensusebasetest - but we can't import it
+        type_string "PS1=\$\ \n";
     }
 }
 
