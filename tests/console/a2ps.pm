@@ -4,22 +4,14 @@ use testapi;
 use ttylogin;
 
 sub run() {
-    my $self = shift;
     become_root;
-    my $script = <<EOS;
-
-# comment
-systemctl stop packagekit.service || :
-echo -e "\n\n\n"
-zypper -n in a2ps
-curl https://www.suse.com > /tmp/suse.html
-a2ps -o /tmp/suse.ps /tmp/suse.html
-EOS
-
-    validate_script_output $script, sub { m/saved into the file/ || m/Total:./ }, 20;
-    $self->clear_and_verify_console;
+    assert_script_run("systemctl stop packagekit.service");
+    assert_script_run("zypper -n in a2ps");
+    assert_script_run("curl https://www.suse.com > /tmp/suse.html");
+    validate_script_output "a2ps -o /tmp/suse.ps /tmp/suse.html 2>&1", sub { m/saved into the file/ }, 3;
     script_run('exit');
 }
 
 1;
 #vim: set sw=4 et:
+
