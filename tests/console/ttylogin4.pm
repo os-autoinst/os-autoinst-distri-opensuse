@@ -19,7 +19,7 @@ use testapi;
 
 
 sub run() {
-    select('user-console');
+    select_console 'user-console';
 }
 
 sub test_flags() {

@@ -16,7 +16,7 @@ sub run() {
     }
 
     # init
-    select('user-console');
+    select_console 'user-console';
 
 
     become_root;
