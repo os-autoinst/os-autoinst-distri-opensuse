@@ -196,16 +196,10 @@ sub init_consoles {
     }
     if (check_var('BACKEND', 'svirt')) {
         $self->add_console(
-            'svirt',
-            'ssh-xterm',
-            {
-                host     => get_var('ZKVM_HOST'),
-                password => get_var('ZKVM_PASSWORD')});
-        $self->add_console(
             'installation',
             'vnc-base',
             {
-                hostname => get_var('ZKVM_GUEST'),
+                hostname => get_var('VIRSH_GUEST'),
                 port     => 5901,
                 password => $testapi::password
             });
@@ -213,7 +207,7 @@ sub init_consoles {
             'install-shell',
             'ssh-xterm',
             {
-                host     => get_var('ZKVM_GUEST'),
+                host     => get_var('VIRSH_GUEST'),
                 password => $testapi::password,
                 user     => 'root'
             });
@@ -221,7 +215,7 @@ sub init_consoles {
             'root-console',
             'ssh-xterm',
             {
-                host     => get_var('ZKVM_GUEST'),
+                host     => get_var('VIRSH_GUEST'),
                 password => $testapi::password,
                 user     => 'root'
             });
@@ -229,7 +223,7 @@ sub init_consoles {
             'user-console',
             'ssh-xterm',
             {
-                host     => get_var('ZKVM_GUEST'),
+                host     => get_var('VIRSH_GUEST'),
                 password => $testapi::password,
                 user     => $testapi::username
             });
