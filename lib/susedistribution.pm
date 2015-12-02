@@ -180,7 +180,42 @@ sub init_consoles {
         $self->add_console('root-console',  'tty-console', {tty => 2});
         $self->add_console('user-console',  'tty-console', {tty => 4});
     }
-    if (check_var('BACKEND', 's390')) {
+    if (check_var('BACKEND', 'svirt')) {
+        $self->add_console(
+            'installation',
+            'vnc-base',
+            {
+                hostname => get_var('VIRSH_GUEST'),
+                port     => 5901,
+                password => $testapi::password
+            });
+        $self->add_console(
+            'install-shell',
+            'ssh-xterm',
+            {
+                host     => get_var('VIRSH_GUEST'),
+                password => $testapi::password,
+                user     => 'root'
+            });
+        $self->add_console(
+            'root-console',
+            'ssh-xterm',
+            {
+                host     => get_var('VIRSH_GUEST'),
+                password => $testapi::password,
+                user     => 'root'
+            });
+        $self->add_console(
+            'user-console',
+            'ssh-xterm',
+            {
+                host     => get_var('VIRSH_GUEST'),
+                password => $testapi::password,
+                user     => $testapi::username
+            });
+    }
+
+    if (check_var('BACKEND', 's390x')) {
         $self->add_console(
             'install-shell',
             'ssh-xterm',
