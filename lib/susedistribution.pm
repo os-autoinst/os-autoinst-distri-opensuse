@@ -222,7 +222,16 @@ sub activate_console {
     my ($self, $console) = @_;
 
     if ($console eq 'install-shell' && get_var('BACKEND', 'qemu')) {
-        assert_screen "inst-console";
+        if (get_var("LIVECD")) {
+            # LIVE CDa do not run inst-consoles as started by inst-linux (it's regular live run, auto-starting yast live installer)
+            assert_screen "text-login", 10;
+            # login as root, who does not have a password on Live-CDs
+            type_string "root\n";
+            sleep 1;
+        }
+        else {
+            assert_screen "inst-console";
+        }
     }
 
     if ($console =~ m/^(.*)-console/) {
