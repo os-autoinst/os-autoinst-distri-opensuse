@@ -19,7 +19,7 @@ sub run() {
     mouse_hide;
 
     # license+lang
-    if (get_var("HASLICENSE")) {
+    if (get_var("HASLICENSE") || check_screen("license-checkbox", 5)) {
         send_key $cmd{"accept"};    # accept license
     }
     assert_screen "languagepicked", 2;
