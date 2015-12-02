@@ -3,14 +3,23 @@ use base "consoletest";
 use testapi;
 use ttylogin;
 
-# a2ps is available by default only in openSUSE*
-
 sub run() {
+    my $self = shift;
     become_root;
-    assert_script_run("zypper -n in a2ps");
-    assert_script_run("curl https://www.suse.com -o /tmp/suse.html");
-    assert_script_run("a2ps -o /tmp/suse.ps /tmp/suse.html");
-    assert_screen "a2ps_saved";
+    my $script = <<EOS;
+
+# comment
+systemctl stop packagekit.service || :
+echo -e "\n\n\n"
+zypper -n in a2ps
+curl https://www.suse.com > /tmp/suse.html
+a2ps -o /tmp/suse.ps /tmp/suse.html
+EOS
+
+    validate_script_output $script, sub { m/saved into the file/ || m/Total:./ }, 20;
+    $self->clear_and_verify_console;
+    script_run('exit');
 }
 
 1;
+#vim: set sw=4 et:
