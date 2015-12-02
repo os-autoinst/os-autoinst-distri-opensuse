@@ -9,7 +9,7 @@ my $template_control = pp(
 
     {key => "DESKTOP", value => "textmode"},
 
-    {key => "HDD_1", value => "supporserver.qcow2"},
+    {key => "HDD_1", value => "openqa_support_server_sles12sp1.x86_64.qcow2"},
 
     {key => "NICTYPE", value => "tap"},
 
