@@ -293,7 +293,7 @@ sub activate_console {
         }
         assert_screen "text-logged-in", 10;
         # same prompt as in opensusebasetest - but we can't import it
-        type_string "PS1=\$\ \n";
+        type_string "PS1='\$ '\n";
     }
 }
 
