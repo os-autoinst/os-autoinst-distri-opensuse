@@ -18,27 +18,9 @@ use base 'basetest';
 use testapi;
 
 sub run {
-    # the supportserver image can be different version than the currently tested system
-    # so try to login without use of needles
-    #
-    if (get_var("SUPPORTSERVER_NEEDLE_LOGIN")) {
-        #fallback to needle based detection, if serial console not set or not supported
-        assert_screen("autoyast-system-login-console", 200);
-    }
-    else {
-        wait_serial("login:", 200);
-    }
+    my $self = shift;
 
-    type_string "root\n";
-    sleep 1;
-    wait_idle(10);
-    type_password;
-    type_string "\n";
-
-    type_string "echo LOK >/dev/$serialdev";
-    send_key "ret";
-    wait_serial("LOK", 100);
-
+    select_console('root-console');
 }
 
 sub test_flags {
@@ -46,7 +28,7 @@ sub test_flags {
     # 'fatal' - whole test suite is in danger if this fails
     # 'milestone' - after this test succeeds, update 'lastgood'
     # 'important' - if this fails, set the overall state to 'fail'
-    return {fatal => 1};
+    return {fatal => 1, milestone => 1};
 }
 
 1;
