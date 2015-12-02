@@ -166,7 +166,7 @@ sub become_root() {
     wait_serial("root", 6) || die "Root prompt not there";
     type_string "cd /tmp\n";
     # set standard root prompt
-    type_string "PS1=\#\ \n";
+    type_string "PS1='# '\n";
     send_key('ctrl-l');
 }
 
