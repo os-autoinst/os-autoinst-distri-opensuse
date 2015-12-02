@@ -55,5 +55,12 @@ sub export_captured_audio {
     upload_logs ref($self) . "-captured.wav";
 }
 
+
+# Set a simple reproducible prompt for easier needle matching without hostname
+# keep in sync with susedistribution
+sub set_standard_prompt {
+    type_string "PS1=\$\ \n";
+}
+
 1;
 # vim: set sw=4 et:

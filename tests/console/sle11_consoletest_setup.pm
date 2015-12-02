@@ -26,7 +26,7 @@ sub run() {
         type_string "\n";
     }
     sleep 3;
-    set_standard_prompt();
+    $self->set_standard_prompt();
     sleep 1;
 
     script_sudo "chown $username /dev/$serialdev";
