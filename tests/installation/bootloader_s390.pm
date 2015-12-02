@@ -174,18 +174,6 @@ sub run() {
         # Xvnc running on the system under test...
         activate_console("installation", "remote-vnc");
     }
-    elsif (get_var("DISPLAY")->{TYPE} eq "X11") {
-        # connect via an ssh console, the start yast with the
-        # appropriate parameters.
-        # The ssh parameters are taken from vars.json
-        activate_console("start-yast", "ssh");
-        my $ssh = console("start-yast");
-        $ssh->send_3270("String(\"Y2FULLSCREEN=1 yast\")");
-        $ssh->send_3270("ENTER");
-        #local $Devel::Trace::TRACE;
-        #$Devel::Trace::TRACE = 1;
-        activate_console("installation", "remote-window", 'YaST2@');
-    }
     elsif (get_var("DISPLAY")->{TYPE} eq "SSH") {
         # The ssh parameters are taken from vars.json
         activate_console("installation", "ssh-xterm_vt");
