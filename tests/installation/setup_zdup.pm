@@ -29,6 +29,7 @@ sub run() {
         # The CD was ejected in the bootloader test
         script_run("/sbin/reboot");
 
+        reset_consoles;
         wait_boot textmode => 1;
 
         select_console('root-console');
