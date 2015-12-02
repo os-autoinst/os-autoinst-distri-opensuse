@@ -18,9 +18,9 @@ sub run() {
     # init
     select('user-console');
 
-    script_sudo "chown $username /dev/$serialdev";
 
     become_root;
+    script_run "chown $username /dev/$serialdev";
     # Export the existing status of running tasks for future reference (fail would export it again)
     type_string "ps axf > /tmp/psaxf_consoletest_setup.log\n";
     upload_logs "/tmp/psaxf_consoletest_setup.log";
