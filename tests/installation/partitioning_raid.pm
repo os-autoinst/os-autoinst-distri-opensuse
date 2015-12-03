@@ -94,8 +94,9 @@ sub set_lvm() {
     # set volume name
     send_key "alt-v";
     type_string "root";
+    assert_screen 'volumegroup-name-root', 5;
 
-    send_key $cmd{"finish"};
+    send_key $cmd{"finish"}, 1;
 
     # create logical volume
     send_key "alt-d";
@@ -105,6 +106,7 @@ sub set_lvm() {
 
     # create normal volume with name root
     type_string "root";
+    assert_screen 'volume-name-root', 5;
     send_key $cmd{"next"};
 
     # keep default

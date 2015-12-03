@@ -4,6 +4,7 @@ use testapi;
 use utils;
 
 sub run() {
+    my $self = shift;
 
     wait_boot;
 
