@@ -63,9 +63,6 @@ sub get_to_yast() {
     # create a too long parameter ;(
     $params .= " install=ftp://openqa/" . get_var('REPO_8') . " ";
 
-    my $s390_host = get_var('S390_HOST');
-    $params =~ s,\@S390_HOST\@,$s390_host,g;
-
     my $parmfile_with_Newline_s = split_lines($params);
     print "P $parmfile_with_Newline_s \n";
 
