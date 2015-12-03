@@ -72,11 +72,11 @@ sub configure_default_gateway {
 sub configure_static_dns {
     my ($conf) = @_;
     my $servers = join(" ", @{$conf->{nameserver}});
-    script_output("
-    sed -i -e 's|^NETCONFIG_DNS_STATIC_SERVERS=.*|NETCONFIG_DNS_STATIC_SERVERS=\"$servers\"|' /etc/sysconfig/network/config
-    rcnetwork restart
-    cat /etc/resolv.conf
-    ", 100);
+    type_string("sed -i -e 's|^NETCONFIG_DNS_STATIC_SERVERS=.*|NETCONFIG_DNS_STATIC_SERVERS=\"$servers\"|' /etc/sysconfig/network/config\n");
+    type_string("rcnetwork restart\n");
+    type_string("cat /etc/resolv.conf\n");
+    type_string("echo DONE > /dev/$serialdev\n");
+    wait_serial("DONE", 100);
 }
 
 sub parse_network_configuration {
