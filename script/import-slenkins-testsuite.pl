@@ -13,6 +13,8 @@ my $template_control = pp(
 
     {key => "NICTYPE", value => "tap"},
 
+    {key => "WORKER_CLASS", value => "tap"},
+
     {key => "START_AFTER_TEST", value => "sles12_minimal_base_create_hdd"},
 
     {key => "SUPPORT_SERVER", value => 1},
@@ -32,6 +34,8 @@ my $template_node = pp(
     {key => "HDD_1", value => "SLES_12SP1-%ARCH%-minimal_with_sdk_installed.qcow2"},
 
     {key => "NICTYPE", value => "tap"},
+
+    {key => "WORKER_CLASS", value => "tap"},
 
     {key => "START_AFTER_TEST", value => "sles12_minimal_base_create_hdd"},
 
