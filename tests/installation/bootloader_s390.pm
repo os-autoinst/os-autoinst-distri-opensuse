@@ -52,7 +52,7 @@ use backend::console_proxy;
 
 sub get_to_yast() {
     my $self  = shift;
-    my $s3270 = $self->{s3270};
+    my $s3270 = console('x3270');
 
     my $params = '';
     $params .= get_var('S390_NETWORK_PARAMS');
@@ -70,7 +70,7 @@ sub get_to_yast() {
 
     ###################################################################
     # qboot
-    my $ftp_server = get_var('OPENQA_HOSTNAME');
+    my $ftp_server = get_var('OPENQA_HOSTNAME') or die;
     # TODO: find the proper repo for 'ISO'
     my $dir_with_suse_ins = get_var('REPO_8');
     $s3270->sequence_3270("String(\"qaboot $ftp_server $dir_with_suse_ins\")", "ENTER", "Wait(InputField)",);
@@ -114,7 +114,7 @@ EO_frickin_boot_parms
 
     ###################################################################
     # linuxrc
-    $r = $self->{s3270}->expect_3270(
+    $r = $s3270->expect_3270(
         output_delim => qr/Loading Installation System/,
         timeout      => 60
     );
@@ -141,16 +141,11 @@ sub run() {
     # The backend magically sets up the s3270 zVM console from
     # vars.json in the backend, so a later connect_and_login 'knows'
     # what to do, again in the backend.
-    activate_console("bootloader", "s3270");
-    my $s3270 = console("bootloader");
-
-    # remember for the other methods in this test
-    $self->{s3270} = $s3270;
+    select_console 'x3270';
 
     eval {
         ###################################################################
         # connect to zVM, login to the guest
-        $r = $s3270->connect_and_login();
         $self->get_to_yast();
     };
 
@@ -158,9 +153,7 @@ sub run() {
 
     die join("\n", '#' x 67, $exception, '#' x 67) if $exception;
 
-    # create a "ctrl-alt-f2" ssh console which can be the target of
-    # any send_key("ctrl-alt-fX") commands.  used in backend::s390x.
-    activate_console("ctrl-alt-f2", "ssh-xterm_vt");
+    select_console("installation");
 
     ###################################################################
     # now connect to the running VNC server
@@ -169,20 +162,17 @@ sub run() {
     if (get_var("DISPLAY")->{TYPE} eq "VNC") {
         # The vnc parameters are taken from vars.json; connect to the
         # Xvnc running on the system under test...
-        activate_console("installation", "remote-vnc");
+        select_console 'vnc-base';
     }
     elsif (get_var("DISPLAY")->{TYPE} eq "SSH") {
         # The ssh parameters are taken from vars.json
-        activate_console("installation", "ssh-xterm_vt");
+        select_console 'ssh';
         type_string("yast\n");
     }
     elsif (get_var("DISPLAY")->{TYPE} eq "SSH-X") {
         # The ssh parameters are taken from vars.json
-        activate_console("start-yast", "ssh-X");
-        my $ssh = console("start-yast");
-        $ssh->send_3270("String(\"Y2FULLSCREEN=1 yast\")");
-        $ssh->send_3270("ENTER");
-        activate_console("installation", "remote-window", 'YaST2@');
+        select_console 'ssh-xterm';
+        type_string("yast\n");
     }
     else {
         die "unknown display type to access the host: " . get_var("DISPLAY")->{TYPE};
