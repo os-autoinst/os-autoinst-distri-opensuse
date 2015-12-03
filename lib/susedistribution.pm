@@ -180,12 +180,28 @@ sub init_consoles {
         $self->add_console('root-console',  'tty-console', {tty => 2});
         $self->add_console('user-console',  'tty-console', {tty => 4});
     }
-    if (check_var('BACKEND', 'svirt')) {
+    if (check_var('BACKEND', 'svirt') || check_var('BACKEND', 's390x')) {
+        my $hostname = get_var('VIRSH_GUEST');
+
+        if (check_var('BACKEND', 's390x')) {
+
+            # expand the S390 params
+            my $s390_params = get_var("S390_NETWORK_PARAMS");
+            my $s390_host = get_var('S390_HOST') or die;
+            $s390_params =~ s,\@S390_HOST\@,$s390_host,g;
+            set_var("S390_NETWORK_PARAMS", $s390_params);
+
+            my @s390_params = split / /, $s390_params;
+            my %s390_params = map { split "=" } @s390_params;
+
+            $hostname = $s390_params{Hostname};
+        }
+
         $self->add_console(
             'installation',
             'vnc-base',
             {
-                hostname => get_var('VIRSH_GUEST'),
+                hostname => $hostname,
                 port     => 5901,
                 password => $testapi::password
             });
@@ -193,7 +209,7 @@ sub init_consoles {
             'install-shell',
             'ssh-xterm',
             {
-                host     => get_var('VIRSH_GUEST'),
+                hostname => $hostname,
                 password => $testapi::password,
                 user     => 'root'
             });
@@ -201,7 +217,7 @@ sub init_consoles {
             'root-console',
             'ssh-xterm',
             {
-                host     => get_var('VIRSH_GUEST'),
+                hostname => $hostname,
                 password => $testapi::password,
                 user     => 'root'
             });
@@ -209,50 +225,7 @@ sub init_consoles {
             'user-console',
             'ssh-xterm',
             {
-                host     => get_var('VIRSH_GUEST'),
-                password => $testapi::password,
-                user     => $testapi::username
-            });
-    }
-
-    if (check_var('BACKEND', 's390x')) {
-        my $s390_params = get_var("S390_NETWORK_PARAMS");
-        my $s390_host = get_var('S390_HOST') or die;
-        $s390_params =~ s,\@S390_HOST\@,$s390_host,g;
-        set_var("S390_NETWORK_PARAMS", $s390_params);
-
-        my @s390_params = split / /, $s390_params;
-        my %s390_params = map { split "=" } @s390_params;
-
-        $self->add_console(
-            'install-shell',
-            'ssh-xterm',
-            {
-                host     => $s390_params{Hostname},
-                password => $testapi::password,
-                user     => 'root'
-            });
-        $self->add_console(
-            'installation',
-            'vnc-base',
-            {
-                hostname => $s390_params{Hostname},
-                port     => 5901,
-                password => $testapi::password
-            });
-        $self->add_console(
-            'root-console',
-            'ssh-xterm',
-            {
-                host     => $s390_params{Hostname},
-                password => $testapi::password,
-                user     => 'root'
-            });
-        $self->add_console(
-            'user-console',
-            'ssh-xterm',
-            {
-                host     => $s390_params{Hostname},
+                hostname => $hostname,
                 password => $testapi::password,
                 user     => $testapi::username
             });
