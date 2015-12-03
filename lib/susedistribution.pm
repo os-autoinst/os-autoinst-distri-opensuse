@@ -5,7 +5,7 @@ use strict;
 # Base class for all openSUSE tests
 
 # don't import script_run - it will overwrite script_run from distribution and create a recursion
-use testapi qw(send_key %cmd assert_screen check_screen check_var get_var type_password type_string wait_idle wait_serial mouse_hide);
+use testapi qw(send_key %cmd assert_screen check_screen check_var get_var set_var type_password type_string wait_idle wait_serial mouse_hide);
 
 sub init() {
     my ($self) = @_;
@@ -216,11 +216,19 @@ sub init_consoles {
     }
 
     if (check_var('BACKEND', 's390x')) {
+        my $s390_params = get_var("S390_NETWORK_PARAMS");
+        my $s390_host = get_var('S390_HOST') or die;
+        $s390_params =~ s,\@S390_HOST\@,$s390_host,g;
+        set_var("S390_NETWORK_PARAMS", $s390_params);
+
+        my @s390_params = split / /, $s390_params;
+        my %s390_params = map { split "=" } @s390_params;
+
         $self->add_console(
             'install-shell',
             'ssh-xterm',
             {
-                host     => 's390foobar',
+                host     => $s390_params{Hostname},
                 password => $testapi::password,
                 user     => 'root'
             });
@@ -228,14 +236,15 @@ sub init_consoles {
             'installation',
             'vnc-base',
             {
-                host     => 's390foobar',
+                hostname => $s390_params{Hostname},
+                port     => 5901,
                 password => $testapi::password
             });
         $self->add_console(
             'root-console',
             'ssh-xterm',
             {
-                host     => 's390foobar',
+                host     => $s390_params{Hostname},
                 password => $testapi::password,
                 user     => 'root'
             });
@@ -243,7 +252,7 @@ sub init_consoles {
             'user-console',
             'ssh-xterm',
             {
-                host     => 's390foobar',
+                host     => $s390_params{Hostname},
                 password => $testapi::password,
                 user     => $testapi::username
             });
