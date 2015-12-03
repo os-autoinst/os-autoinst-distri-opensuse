@@ -57,7 +57,7 @@ sub get_to_yast() {
     my $params = '';
     $params .= get_var('S390_NETWORK_PARAMS');
     $params .= " ssh=1 sshpassword=$testapi::password sshd=1 ";
-    $params .= " VNC=1 VNCSize=1024x768 VNCPassword=FOOBARBAZ ";
+    $params .= " VNC=1 VNCSize=1024x768 VNCPassword=$testapi::password ";
 
     # we have to hardcode the hostname here - the true hostname would
     # create a too long parameter ;(
