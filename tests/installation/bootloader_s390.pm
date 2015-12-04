@@ -136,11 +136,6 @@ sub run() {
 
     my $self = shift;
 
-    my $r;
-
-    # The backend magically sets up the s3270 zVM console from
-    # vars.json in the backend, so a later connect_and_login 'knows'
-    # what to do, again in the backend.
     select_console 'x3270';
 
     eval {
@@ -153,30 +148,8 @@ sub run() {
 
     die join("\n", '#' x 67, $exception, '#' x 67) if $exception;
 
+    # TODO: "hardcoded" vnc (default) right now - other installation methods have to be added
     select_console("installation");
-
-    ###################################################################
-    # now connect to the running VNC server
-    # FIXME: this should connect to the terminal, ssh or vnc or X11...
-    # and for SSH it then needs to start yast.
-    if (get_var("DISPLAY")->{TYPE} eq "VNC") {
-        # The vnc parameters are taken from vars.json; connect to the
-        # Xvnc running on the system under test...
-        select_console 'vnc-base';
-    }
-    elsif (get_var("DISPLAY")->{TYPE} eq "SSH") {
-        # The ssh parameters are taken from vars.json
-        select_console 'ssh';
-        type_string("yast\n");
-    }
-    elsif (get_var("DISPLAY")->{TYPE} eq "SSH-X") {
-        # The ssh parameters are taken from vars.json
-        select_console 'ssh-xterm';
-        type_string("yast\n");
-    }
-    else {
-        die "unknown display type to access the host: " . get_var("DISPLAY")->{TYPE};
-    }
 
     $self->result('ok');
 }
