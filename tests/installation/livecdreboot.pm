@@ -53,44 +53,8 @@ sub run() {
         send_key $cmd{"rebootnow"};
     }
     else {
-        if (check_var('BACKEND', 's390x')) {
-            deactivate_console('ctrl-alt-f2');
-        }
         send_key 'alt-o';
-        if (check_var('BACKEND', 's390x')) {
-            deactivate_console("installation");    #Not sure if this is the right place, but this is the last time s390x needs the UI
-            select_console('bootloader');
-        }
     }
-
-    # XXX old stuff
-    #          if(get_var("XDEBUG") && assert_screen "the-system-will-reboot-now", 3000) {
-    #                  send_key "alt-s";
-    #                  send_key "ctrl-alt-f2";
-    #                  if(!get_var("NET")) {
-    #                          script_run "dhcpcd eth0";
-    #                          #ifconfig eth0 10.0.2.15
-    #                          #route add default gw 10.0.2.2
-    #                          sleep 20;
-    #                  }
-    #                  script_run "mount /dev/vda2 /mnt";
-    #                  script_run "chroot /mnt";
-    #                  script_run "echo nameserver 213.133.99.99 > /etc/resolv.conf";
-    #                  script_run "wget www3.zq1.de/bernhard/linux/xdebug";
-    #                  script_run "sh -x xdebug";
-    #                  sleep 99;
-    #                  send_key "ctrl-d";
-    #                  script_run "umount /mnt";
-    #                  wait_idle;
-    #                  sleep 20;
-    #                  send_key "ctrl-alt-f7";
-    #                  sleep 5;
-    #                  send_key "alt-o";
-    #          }
-    #          if(get_var("UPGRADE")) {
-    #                  send_key "alt-n"; # ignore repos dialog
-    #                  wait_still_screen(6,60);
-    #          }
 
     # Await a grub screen for 30s, if seen hit ENTER (in case we did not wait long enough, the 'grub timeout' would
     # pass and still perform the boot; so we want a value short enough to not wait forever if grub does not appear,
