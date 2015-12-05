@@ -64,7 +64,6 @@ sub get_to_yast() {
     $params .= " install=ftp://openqa/" . get_var('REPO_0') . " ";
 
     my $parmfile_with_Newline_s = split_lines($params);
-    print "P $parmfile_with_Newline_s \n";
 
     my $r;
 
@@ -116,7 +115,7 @@ EO_frickin_boot_parms
     # linuxrc
     $r = $s3270->expect_3270(
         output_delim => qr/Loading Installation System/,
-        timeout      => 60
+        timeout      => 300
     );
     my $display_type = "VNC";
     my $output_delim
