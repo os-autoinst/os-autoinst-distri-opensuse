@@ -179,6 +179,7 @@ sub init_consoles {
         $self->add_console('installation',  'tty-console', {tty => check_var('VIDEOMODE', 'text') ? 1 : 7});
         $self->add_console('root-console',  'tty-console', {tty => 2});
         $self->add_console('user-console',  'tty-console', {tty => 4});
+        $self->add_console('x11',           'tty-console', {tty => 7});
     }
     if (check_var('BACKEND', 'svirt') || check_var('BACKEND', 's390x')) {
         my $hostname = get_var('VIRSH_GUEST');
@@ -205,6 +206,15 @@ sub init_consoles {
                 port     => 5901,
                 password => $testapi::password
             });
+        $self->add_console(
+            'x11',
+            'vnc-base',
+            {
+                hostname => $hostname,
+                port     => 5901,
+                password => $testapi::password
+            });
+
         $self->add_console(
             'install-shell',
             'ssh-xterm',

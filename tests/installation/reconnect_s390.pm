@@ -11,6 +11,9 @@ sub run() {
     sleep 30;    #FIXME Slight delay to make sure the machine has really started and is ready for connection via SSH
 
     reset_consoles;
+    if (!check_var('DESKTOP', 'textmode')) {
+        select_console('x11');
+    }
 }
 
 1;
