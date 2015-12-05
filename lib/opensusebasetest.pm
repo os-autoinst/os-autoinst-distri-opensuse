@@ -57,9 +57,8 @@ sub export_captured_audio {
 
 
 # Set a simple reproducible prompt for easier needle matching without hostname
-# keep in sync with susedistribution
 sub set_standard_prompt {
-    type_string "PS1='\$ '\n";
+    $testapi::distri->set_standard_prompt;
 }
 
 1;

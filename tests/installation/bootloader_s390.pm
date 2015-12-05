@@ -61,10 +61,9 @@ sub get_to_yast() {
 
     # we have to hardcode the hostname here - the true hostname would
     # create a too long parameter ;(
-    $params .= " install=ftp://openqa/" . get_var('REPO_8') . " ";
+    $params .= " install=ftp://openqa/" . get_var('REPO_0') . " ";
 
     my $parmfile_with_Newline_s = split_lines($params);
-    print "P $parmfile_with_Newline_s \n";
 
     my $r;
 
@@ -72,7 +71,7 @@ sub get_to_yast() {
     # qboot
     my $ftp_server = get_var('OPENQA_HOSTNAME') or die;
     # TODO: find the proper repo for 'ISO'
-    my $dir_with_suse_ins = get_var('REPO_8');
+    my $dir_with_suse_ins = get_var('REPO_0');
     $s3270->sequence_3270("String(\"qaboot $ftp_server $dir_with_suse_ins\")", "ENTER", "Wait(InputField)",);
 
     ##############################
@@ -116,7 +115,7 @@ EO_frickin_boot_parms
     # linuxrc
     $r = $s3270->expect_3270(
         output_delim => qr/Loading Installation System/,
-        timeout      => 60
+        timeout      => 300
     );
     my $display_type = "VNC";
     my $output_delim

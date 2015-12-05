@@ -158,15 +158,26 @@ sub script_sudo($$) {
     wait_idle $wait;
 }
 
-sub become_root() {
+sub set_standard_prompt {
+    my ($self, $user) = @_;
+    $user ||= $testapi::username;
+    if ($user eq 'root') {
+        # set standard root prompt
+        type_string "PS1='# '\n";
+    }
+    else {
+        type_string "PS1='\$ '\n";
+    }
+}
+
+sub become_root {
     my ($self) = @_;
 
     $self->script_sudo('bash', 1);
     type_string "whoami > /dev/$testapi::serialdev\n";
     wait_serial("root", 6) || die "Root prompt not there";
     type_string "cd /tmp\n";
-    # set standard root prompt
-    type_string "PS1='# '\n";
+    $self->set_standard_prompt('root');
     send_key('ctrl-l');
 }
 
@@ -179,6 +190,7 @@ sub init_consoles {
         $self->add_console('installation',  'tty-console', {tty => check_var('VIDEOMODE', 'text') ? 1 : 7});
         $self->add_console('root-console',  'tty-console', {tty => 2});
         $self->add_console('user-console',  'tty-console', {tty => 4});
+        $self->add_console('x11',           'tty-console', {tty => 7});
     }
     if (check_var('BACKEND', 'svirt') || check_var('BACKEND', 's390x')) {
         my $hostname = get_var('VIRSH_GUEST');
@@ -205,6 +217,15 @@ sub init_consoles {
                 port     => 5901,
                 password => $testapi::password
             });
+        $self->add_console(
+            'x11',
+            'vnc-base',
+            {
+                hostname => $hostname,
+                port     => 5901,
+                password => $testapi::password
+            });
+
         $self->add_console(
             'install-shell',
             'ssh-xterm',
@@ -273,9 +294,8 @@ sub activate_console {
             # different console-behaviour for s390x
             $self->script_run("su - $user") unless ($user eq 'root');
         }
-        assert_screen "text-logged-in", 10;
-        # same prompt as in opensusebasetest - but we can't import it
-        type_string "PS1='\$ '\n";
+        assert_screen "text-logged-in-$user", 10;
+        $self->set_standard_prompt($user);
     }
 }
 
