@@ -88,8 +88,6 @@ sub run() {
     assert_script_run "cd /var/log/qaset/log; for i in *.bz2; do curl --form upload=\@\$i " . autoinst_url() . "/uploadlog/`basename \$i`; done";
 
     # QA DB upload happens for each module
-    # output the failed tests to serial console
-    assert_script_run "export PS1=#";
     # qa_testset_automation remove the oldlogs, we create it back here for junit collecting information
     assert_script_run "mkdir /var/log/qa/oldlogs; cd /var/log/qa/oldlogs; for i in /var/log/qaset/log/*.bz2; do tar -xjvf \$i; done";
 

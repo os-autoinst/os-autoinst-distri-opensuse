@@ -158,15 +158,26 @@ sub script_sudo($$) {
     wait_idle $wait;
 }
 
-sub become_root() {
+sub set_standard_prompt {
+    my ($self, $user) = @_;
+    $user ||= $testapi::username;
+    if ($user eq 'root') {
+        # set standard root prompt
+        type_string "PS1='# '\n";
+    }
+    else {
+        type_string "PS1='\$ '\n";
+    }
+}
+
+sub become_root {
     my ($self) = @_;
 
     $self->script_sudo('bash', 1);
     type_string "whoami > /dev/$testapi::serialdev\n";
     wait_serial("root", 6) || die "Root prompt not there";
     type_string "cd /tmp\n";
-    # set standard root prompt
-    type_string "PS1='# '\n";
+    $self->set_standard_prompt('root');
     send_key('ctrl-l');
 }
 
@@ -283,9 +294,8 @@ sub activate_console {
             # different console-behaviour for s390x
             $self->script_run("su - $user") unless ($user eq 'root');
         }
-        assert_screen "text-logged-in", 10;
-        # same prompt as in opensusebasetest - but we can't import it
-        type_string "PS1='\$ '\n";
+        assert_screen "text-logged-in-$user", 10;
+        $self->set_standard_prompt($user);
     }
 }
 
