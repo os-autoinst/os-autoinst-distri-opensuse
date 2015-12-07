@@ -49,13 +49,6 @@ sub export_logs {
     save_screenshot;
 }
 
-sub export_captured_audio {
-    my $self = shift;
-
-    upload_logs ref($self) . "-captured.wav";
-}
-
-
 # Set a simple reproducible prompt for easier needle matching without hostname
 sub set_standard_prompt {
     $testapi::distri->set_standard_prompt;
