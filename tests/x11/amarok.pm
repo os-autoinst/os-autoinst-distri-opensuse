@@ -17,10 +17,10 @@ sub run() {
     assert_screen 'test-amarok-2', 3;
     # do not playing audio file as we have not testdata if NICEVIDEO
     if (!get_var("NICEVIDEO")) {
-        $self->start_audiocapture;
+        start_audiocapture;
         x11_start_program("amarok -l ~/data/1d5d9dD.oga");
         assert_screen 'test-amarok-3', 10;
-        $self->assert_DTMF('159D');
+        assert_recorded_sound('DTMF-159D');
     }
     send_key "ctrl-q";       # really quit (alt-f4 just backgrounds)
 }
