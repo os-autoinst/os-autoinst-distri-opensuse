@@ -5,16 +5,8 @@ use testapi;
 sub run {
     my $self = shift;
 
-    assert_screen "inst-bootmenu", 15;
+    $self->select_bootmenu_option('inst-onmediacheck', 1);
 
-    if (get_var('OFW')) {
-        send_key_until_needlematch 'inst-onmediacheck', 'up';
-    }
-    else {
-        send_key_until_needlematch('inst-onmediacheck', 'down', 10, 5);
-    }
-
-    send_key "ret";
     # the timeout is insane - but SLE11 DVDs take almost forever
     assert_screen "mediacheck-ok", 3600;
     send_key "ret";

@@ -5,10 +5,7 @@ use testapi;
 sub run {
     my $self = shift;
 
-    assert_screen "inst-bootmenu", 15;
-
-    send_key_until_needlematch('inst-onmemtest', 'down', 10, 5);
-    send_key "ret";
+    $self->select_bootmenu_option('inst-onmemtest', 1);
     assert_screen "pass-complete", 700;
     send_key "esc";
 }
