@@ -54,5 +54,29 @@ sub set_standard_prompt {
     $testapi::distri->set_standard_prompt;
 }
 
+sub select_bootmenu_option {
+    my ($self, $tag, $more) = @_;
+
+    assert_screen "inst-bootmenu", 15;
+
+    # after installation-images 14.210 added a submenu
+    if ($more && check_screen "inst-submenu-more", 1) {
+        if (get_var('OFW')) {
+            send_key_until_needlematch 'inst-onmore', 'up';
+        }
+        else {
+            send_key_until_needlematch('inst-onmore', 'down', 10, 5);
+        }
+        send_key "ret";
+    }
+    if (get_var('OFW')) {
+        send_key_until_needlematch $tag, 'up';
+    }
+    else {
+        send_key_until_needlematch($tag, 'down', 10, 5);
+    }
+    send_key "ret";
+}
+
 1;
 # vim: set sw=4 et:
