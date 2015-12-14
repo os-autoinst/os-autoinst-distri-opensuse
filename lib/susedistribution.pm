@@ -203,10 +203,8 @@ sub init_consoles {
             $s390_params =~ s,\@S390_HOST\@,$s390_host,g;
             set_var("S390_NETWORK_PARAMS", $s390_params);
 
-            my @s390_params = split / /, $s390_params;
-            my %s390_params = map { split "=" } @s390_params;
-
-            $hostname = $s390_params{Hostname};
+            $hostname = $s390_params;
+            $hostname =~ s/.*Hostname=(\S*)\s.*/$1/;
         }
 
         $self->add_console(
