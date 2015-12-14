@@ -1,4 +1,4 @@
-use base "opensusebasetest";    # use opensusebasetest to avoid fatal flag
+use base "y2logsstep";
 use strict;
 use testapi;
 
@@ -45,13 +45,6 @@ sub run() {
     }
     if (!get_var("UPGRADE")) {
         send_key 'alt-e';                                                # select timezone region as previously selected
-    }
-}
-
-sub post_fail_hook() {
-    send_key 'alt-c';                                                    # close release notes
-    if (!get_var("UPGRADE")) {
-        send_key 'alt-e', 4;                                             # select timezone region as previously selected
     }
 }
 
