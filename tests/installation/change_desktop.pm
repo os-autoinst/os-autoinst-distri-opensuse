@@ -6,7 +6,7 @@ use testapi;
 sub accept3rdparty {
     my ($self) = @_;
     #Third party licenses sometimes appear
-    while (my $ret = check_screen([qw/3rdpartylicense automatic-changes inst-overview/]), 15) {
+    while (my $ret = check_screen([qw/3rdpartylicense automatic-changes inst-overview/], 15)) {
         last if $ret->{needle}->has_tag("automatic-changes");
         last if $ret->{needle}->has_tag("inst-overview");
         send_key $cmd{acceptlicense}, 1;
