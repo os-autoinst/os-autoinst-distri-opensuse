@@ -326,10 +326,11 @@ sub load_boot_tests() {
         loadtest "installation/qa_net.pm";
     }
     elsif (check_var("ARCH", "s390x")) {
-        if ( check_var('BACKEND', 's390x'))  {
-	    loadtest "installation/bootloader_s390.pm";
-        }  else {
-	    loadtest "installation/bootloader_zkvm.pm";
+        if (check_var('BACKEND', 's390x')) {
+            loadtest "installation/bootloader_s390.pm";
+        }
+        else {
+            loadtest "installation/bootloader_zkvm.pm";
         }
     }
     elsif (get_var("PXEBOOT")) {
@@ -351,11 +352,12 @@ sub is_reboot_after_installation_necessary() {
 sub load_inst_tests() {
     loadtest "installation/welcome.pm";
     if (check_var('ARCH', 's390x')) {
-	if (check_var('BACKEND', 's390x')) {
-	    loadtest "installation/disk_activation.pm";
-	} else {
-	    loadtest "installation/skip_disk_activation.pm";
-	}
+        if (check_var('BACKEND', 's390x')) {
+            loadtest "installation/disk_activation.pm";
+        }
+        else {
+            loadtest "installation/skip_disk_activation.pm";
+        }
     }
     if (get_var('MULTIPATH')) {
         loadtest "installation/multipath.pm";
