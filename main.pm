@@ -73,7 +73,9 @@ sub cleanup_needles() {
     else {    # english default
         unregister_needle_tags("ENV-INSTLANG-de_DE");
     }
-
+    if (!check_var('VERSION', '12-SP1')) {
+        unregister_needle_tags("ENV-VERSION-12-SP1");
+    }
 }
 
 sub is_server() {
@@ -141,7 +143,7 @@ if (!is_desktop) {
 if (check_var('DESKTOP', 'minimalx')) {
     set_var("XDMUSED", 1);
 }
-if (get_var('HDD_1') =~ /\D*-11-\S*/) {
+if (get_var('HDD_1', '') =~ /\D*-11-\S*/) {
     set_var('FILESYSTEM', 'ext4');
 }
 
@@ -326,10 +328,11 @@ sub load_boot_tests() {
         loadtest "installation/qa_net.pm";
     }
     elsif (check_var("ARCH", "s390x")) {
-        if ( check_var('BACKEND', 's390x'))  {
-	    loadtest "installation/bootloader_s390.pm";
-        }  else {
-	    loadtest "installation/bootloader_zkvm.pm";
+        if (check_var('BACKEND', 's390x')) {
+            loadtest "installation/bootloader_s390.pm";
+        }
+        else {
+            loadtest "installation/bootloader_zkvm.pm";
         }
     }
     elsif (get_var("PXEBOOT")) {
@@ -351,11 +354,12 @@ sub is_reboot_after_installation_necessary() {
 sub load_inst_tests() {
     loadtest "installation/welcome.pm";
     if (check_var('ARCH', 's390x')) {
-	if (check_var('BACKEND', 's390x')) {
-	    loadtest "installation/disk_activation.pm";
-	} else {
-	    loadtest "installation/skip_disk_activation.pm";
-	}
+        if (check_var('BACKEND', 's390x')) {
+            loadtest "installation/disk_activation.pm";
+        }
+        else {
+            loadtest "installation/skip_disk_activation.pm";
+        }
     }
     if (get_var('MULTIPATH')) {
         loadtest "installation/multipath.pm";
