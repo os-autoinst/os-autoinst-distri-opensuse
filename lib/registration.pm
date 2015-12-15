@@ -69,42 +69,47 @@ sub fill_in_registration_data {
     }
 
     if (check_var('SCC_REGISTER', 'installation')) {
-        for $addon (split(/,/, get_var('ADDONS', ''))) {
-            if (check_var('DESKTOP', 'textmode')) {
-                send_key_until_needlematch "scc-module-$addon", 'tab';
-                send_key "spc";
-            }
-            else {
-                assert_and_click "scc-module-$addon";
-            }
-        }
-        send_key 'alt-n';    # next, all addons selected
-        for $addon (split(/,/, get_var('ADDONS', ''))) {
-            assert_screen("scc-addon-license-$addon");
-            send_key "alt-a", 1;    # accept license
-            send_key "alt-n", 1;    # next
-        }
-        for $addon (split(/,/, get_var('ADDONS', ''))) {
-            $uc_addon = uc $addon;    # change to uppercase to match variable
-            if (my $regcode = get_var("SCC_REGCODE_$uc_addon")) {
-                next if ($addon =~ /sdk|rt/);    # bsc#956726
+        if (get_var('ADDONS')) {
+            for $addon (split(/,/, get_var('ADDONS', ''))) {
                 if (check_var('DESKTOP', 'textmode')) {
-                    send_key_until_needlematch "scc-code-field-$addon", 'tab';
+                    send_key_until_needlematch "scc-module-$addon", 'tab';
+                    send_key "spc";
                 }
                 else {
-                    assert_and_click "scc-code-field-$addon";
+                    assert_and_click "scc-module-$addon";
                 }
-                type_string $regcode;
-                sleep 1;
-                save_screenshot;
             }
+            send_key 'alt-n';    # next, all addons selected
+            for $addon (split(/,/, get_var('ADDONS', ''))) {
+                assert_screen("scc-addon-license-$addon");
+                send_key "alt-a", 1;    # accept license
+                send_key "alt-n", 1;    # next
+            }
+            for $addon (split(/,/, get_var('ADDONS', ''))) {
+                $uc_addon = uc $addon;    # change to uppercase to match variable
+                if (my $regcode = get_var("SCC_REGCODE_$uc_addon")) {
+                    next if ($addon =~ /sdk|rt/);    # bsc#956726
+                    if (check_var('DESKTOP', 'textmode')) {
+                        send_key_until_needlematch "scc-code-field-$addon", 'tab';
+                    }
+                    else {
+                        assert_and_click "scc-code-field-$addon";
+                    }
+                    type_string $regcode;
+                    sleep 1;
+                    save_screenshot;
+                }
+            }
+            send_key 'alt-n', 2;
+            if (check_screen('import-untrusted-gpg-key', 10)) {
+                record_soft_failure;
+                send_key 'alt-t', 2;
+            }
+            sleep 20;    # scc registration need some time
         }
-        send_key 'alt-n', 2;
-        if (check_screen('import-untrusted-gpg-key')) {
-            record_soft_failure;
-            send_key 'alt-t', 2;
+        else {
+            send_key 'alt-n';    # next
         }
-        sleep 20;    # scc registration need some time
     }
     else {
         if (!get_var('SCC_REGISTER', '') =~ /addon|network/) {
