@@ -73,7 +73,9 @@ sub cleanup_needles() {
     else {    # english default
         unregister_needle_tags("ENV-INSTLANG-de_DE");
     }
-
+    if (!check_var('VERSION', '12-SP1')) {
+        unregister_needle_tags("ENV-VERSION-12-SP1");
+    }
 }
 
 sub is_server() {
