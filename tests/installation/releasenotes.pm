@@ -4,6 +4,10 @@ use testapi;
 
 sub run() {
 
+    if (check_var('ARCH', 's390x')) {    # workaround s390x is missing release notes
+        record_soft_failure;
+        return;
+    }
     my @addons = split(/,/, get_var('ADDONS', ''));
     if (check_var('SCC_REGISTER', 'installation')) {
         push @addons, split(/,/, get_var('SCC_ADDONS', ''));
