@@ -14,18 +14,19 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-# sle12 GA has problems with setting up the console font, we need to call
-# systemd-vconsole-setup to workaround that
+# 13.2, Leap 42.1, SLE12 GA&SP1 have problems with setting up the
+# console font, we need to call systemd-vconsole-setup to workaround
+# that
 
 use base "consoletest";
 use testapi;
 
 sub run() {
-    become_root();
 
-    assert_script_run("/usr/lib/systemd/systemd-vconsole-setup");
-
-    script_run('exit');
+    type_string "echo Jeder wackere Bayer vertilgt bequem zwo Pfund Kalbshaxen. 0123456789\n";
+    if (check_screen "broken-console-font", 5) {
+        assert_script_sudo("/usr/lib/systemd/systemd-vconsole-setup");
+    }
 }
 
 sub test_flags() {

@@ -404,6 +404,7 @@ sub load_zdup_tests() {
 sub load_consoletests() {
     if (consolestep_is_applicable) {
         loadtest "console/consoletest_setup.pm";
+        loadtest "console/check_console_font.pm";
         loadtest "console/textinfo.pm";
         loadtest "console/hostname.pm";
         if (snapper_is_applicable) {
