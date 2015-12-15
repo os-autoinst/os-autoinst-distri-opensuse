@@ -141,7 +141,7 @@ if (!is_desktop) {
 if (check_var('DESKTOP', 'minimalx')) {
     set_var("XDMUSED", 1);
 }
-if (get_var('HDD_1') =~ /\D*-11-\S*/) {
+if (get_var('HDD_1', '') =~ /\D*-11-\S*/) {
     set_var('FILESYSTEM', 'ext4');
 }
 
