@@ -168,9 +168,8 @@
     -->
     <interfaces config:type="list">
       <interface>
-	<bootproto>static</bootproto>
-        <ipaddr>10.0.2.1/24</ipaddr>        
-        <device>eth0</device>        
+        <bootproto>dhcp</bootproto>
+        <device>eth0</device>
         <startmode>onboot</startmode>
       </interface>
     </interfaces>
