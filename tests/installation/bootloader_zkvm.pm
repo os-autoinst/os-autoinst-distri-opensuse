@@ -45,9 +45,8 @@ sub run() {
 
     $svirt->define_and_start;
 
-    type_string "virsh console $name\n";
     # now wait
-    assert_screen('starting_yast', 300);
+    wait_serial(' Starting YaST2 ', 300);
 
     select_console('installation');
 
