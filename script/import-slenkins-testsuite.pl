@@ -21,9 +21,10 @@ my $template_control = pp(
 
     {key => "SUPPORT_SERVER_ROLES", value => "dhcp"},
 
-    {key => "SLENKINS_TESTSUITES_REPO", value => "http://download.suse.de/ibs/Devel:/SLEnkins:/testsuites/SLE_12_SP1/"},
-
-    {key => "SLENKINS_REPO", value => "http://download.suse.de/ibs/Devel:/SLEnkins/SLE_12_SP1/"},
+    #   this is a part of support server configuration
+    #    {key => "SLENKINS_TESTSUITES_REPO", value => "http://download.suse.de/ibs/Devel:/SLEnkins:/testsuites/SLE_12_SP1/"},
+    #
+    #    {key => "SLENKINS_REPO", value => "http://download.suse.de/ibs/Devel:/SLEnkins/SLE_12_SP1/"},
 );
 
 my $template_node = pp(
@@ -31,7 +32,7 @@ my $template_node = pp(
 
     {key => "DESKTOP", value => "textmode"},
 
-    {key => "HDD_1", value => "SLES_12SP1-%ARCH%-minimal_with_sdk_installed.qcow2"},
+    {key => "HDD_1", value => "SLES-%VERSION%-%ARCH%-minimal_with_sdk_installed.qcow2"},
 
     {key => "NICTYPE", value => "tap"},
 
@@ -39,7 +40,8 @@ my $template_node = pp(
 
     {key => "START_AFTER_TEST", value => "sles12_minimal_base_create_hdd"},
 
-    {key => "SLENKINS_TESTSUITES_REPO", value => "http://download.suse.de/ibs/Devel:/SLEnkins:/testsuites/SLE_12_SP1/"},
+    #   this should be a part of media configuration
+    #    {key => "SLENKINS_TESTSUITES_REPO", value => "http://download.suse.de/ibs/Devel:/SLEnkins:/testsuites/SLE_12_SP1/"},
 );
 
 

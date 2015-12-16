@@ -16,24 +16,34 @@
 use strict;
 use base 'basetest';
 use testapi;
-use lockapi;
-use mmapi;
-use mm_network;
 
 sub run {
-    my $self = shift;
+    # this is supposed to run during SUPPORTSERVER_GENERATOR
+    #
+    # remove the installation media
+    my $script = "
+    zypper lr
+    zypper rr 1
+    ";
 
-    # this is an alternative setup for running independent slenkins control node without support server
-    # normally, this is done as part of support server setup
+    # optionally add network repos
+    if (get_var("POOL_REPO")) {
+        $script .= "zypper -n --no-gpg-checks ar --refresh '" . get_var("POOL_REPO") . "' pool\n";
+    }
 
-    configure_default_gateway;
-    configure_static_ip('10.0.2.1/24');
-    configure_static_dns(get_host_resolv_conf());
+    if (get_var("UPDATES_REPO")) {
+        $script .= "zypper -n --no-gpg-checks ar --refresh '" . get_var("UPDATES_REPO") . "' updates\n";
+    }
 
-    script_output("
-        zypper -n --no-gpg-checks ar '" . get_var('SLENKINS_TESTSUITES_REPO') . "' slenkins_testsuites
-        zypper -n --no-gpg-checks ar '" . get_var('SLENKINS_REPO') . "' slenkins
-    ", 100);
+    if (get_var("SLENKINS_TESTSUITES_REPO")) {
+        $script .= "zypper -n --no-gpg-checks ar --refresh '" . get_var("SLENKINS_TESTSUITES_REPO") . "' slenkins_testsuites\n";
+    }
+
+    if (get_var("SLENKINS_REPO")) {
+        $script .= "zypper -n --no-gpg-checks ar --refresh '" . get_var("SLENKINS_REPO") . "' slenkins\n";
+    }
+
+    script_output($script);
 }
 
 sub test_flags {
