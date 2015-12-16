@@ -4,7 +4,7 @@ use testapi;
 
 sub run() {
 
-    if (check_var('ARCH', 's390x')) {    # workaround s390x is missing release notes
+    if (!check_screen('release-notes-button', 5)) {    # workaround missing release notes
         record_soft_failure;
         return;
     }
@@ -14,9 +14,9 @@ sub run() {
     }
     if (@addons) {
         if (check_var('VIDEOMODE', 'text')) {
-            send_key "alt-l";                     # open release notes window
-            send_key 'alt-s';                     # select SLES SP1 release notes
-            assert_screen 'release-notes-sle';    # SLE release notes
+            send_key "alt-l";                          # open release notes window
+            send_key 'alt-s';                          # select SLES SP1 release notes
+            assert_screen 'release-notes-sle';         # SLE release notes
         }
         else {
             assert_and_click 'release-notes-button';    # open release notes window
