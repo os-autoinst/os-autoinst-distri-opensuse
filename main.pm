@@ -76,6 +76,10 @@ sub cleanup_needles() {
     if (!check_var('VERSION', '12-SP1')) {
         unregister_needle_tags("ENV-VERSION-12-SP1");
     }
+
+    if (get_var('FLAVOR', 'bogey') !~ /JeOS/) {
+        unregister_needle_tags('ENV-FLAVOR-JeOS-for-kvm');
+    }
 }
 
 sub is_server() {
