@@ -1,9 +1,8 @@
 use base "opensusebasetest";
 use testapi;
+use utils;
 
 sub run() {
-    my $self = shift;
-
     wait_idle;
     send_key "ctrl-alt-delete";    # reboot
     assert_screen 'logoutdialog', 15;
@@ -30,10 +29,11 @@ sub run() {
         type_password;
         send_key "ret";
     }
+    wait_boot;
 }
 
 sub test_flags() {
-    return {important => 1};
+    return {important => 1, milestone => 1};
 }
 1;
 

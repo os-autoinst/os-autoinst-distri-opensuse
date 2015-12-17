@@ -1,9 +1,8 @@
 use base "opensusebasetest";
 use testapi;
+use utils;
 
 sub run() {
-    my $self = shift;
-
     wait_idle;
     send_key "alt-f1";    # applicationsmenu
     my $selected = check_screen 'shutdown_button', 0;
@@ -37,10 +36,11 @@ sub run() {
     }
 
     power('reset');
+    wait_boot;
 }
 
 sub test_flags() {
-    return {important => 1};
+    return {important => 1, milestone => 1};
 }
 1;
 
