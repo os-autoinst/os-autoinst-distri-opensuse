@@ -152,7 +152,15 @@ sub setup_nfs_mount {
 }
 
 
+sub setup_aytests {
+    # install the aytests-tests package and export the tests over http
+    $setup_script .= "
+    zypper -n --no-gpg-checks ar http://download.opensuse.org/repositories/YaST:/Head/SLE_12/ aytests
+    zypper -n --no-gpg-checks in aytests-tests
 
+    ln -s /var/lib/autoinstall/aytests /srv/www/htdocs/aytests
+    ";
+}
 
 
 sub run {
@@ -185,6 +193,10 @@ sub run {
         $setup_script .= "curl -f -v " . autoinst_url . "/data/supportserver/proxy.conf | sed -e 's|#AUTOINST_URL#|" . autoinst_url . "|g' >/etc/apache2/vhosts.d/proxy.conf\n";
         $setup_script .= "rcapache2 restart\n";
         push @mutexes, 'qemuproxy';
+    }
+    if (exists $server_roles{'aytests'}) {
+        setup_aytests();
+        push @mutexes, 'aytests';
     }
 
     die "no services configured, SUPPORT_SERVER_ROLES variable missing?" unless $setup_script;
