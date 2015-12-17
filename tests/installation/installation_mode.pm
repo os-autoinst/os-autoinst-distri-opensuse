@@ -15,6 +15,10 @@ sub run() {
         assert_screen "upgrade-selected", 2;
     }
 
+    if (get_var("HAVE_ADDON_REPOS")) {
+        send_key "alt-a";    # Add online repos
+    }
+
     if (get_var("ADDONURL") || get_var("ADDONS")) {
         # Don't include add-on from separate media for SMT upgrade bnc928895
         unless (get_var("UPGRADE") && check_var('ADDONS', 'smt')) {
