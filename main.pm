@@ -481,7 +481,7 @@ sub load_consoletests() {
             }
             loadtest "console/snapper_undochange.pm";
         }
-        if (get_var("DESKTOP") !~ /textmode/ && !check_var("BACKEND", "s390x")) {
+        if (get_var("DESKTOP") !~ /textmode/ && !check_var("ARCH", "s390x")) {
             loadtest "console/xorg_vt.pm";
         }
         loadtest "console/zypper_lr.pm";
@@ -498,7 +498,7 @@ sub load_consoletests() {
         loadtest "console/zypper_ref.pm";
         loadtest "console/yast2_lan.pm";
         loadtest "console/curl_https.pm";
-        if (!get_var("OFW") && !check_var("BACKEND", "s390x")) {
+        if (!get_var("OFW") && check_var("ARCH", "x86_64")) {
             loadtest "console/glibc_i686.pm";
         }
         loadtest "console/zypper_up.pm";
