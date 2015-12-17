@@ -46,7 +46,7 @@ sub run() {
     $svirt->define_and_start;
 
     # now wait
-    wait_serial(' Starting YaST2 ', 300);
+    wait_serial(' Starting YaST2 ', 300) || die "yast didn't start";
 
     select_console('installation');
 
