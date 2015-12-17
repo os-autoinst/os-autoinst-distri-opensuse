@@ -158,6 +158,15 @@ if (get_var('ZDUP_IN_X')) {
     set_var('ZDUP', 1);
 }
 
+if (   get_var("WITH_UPDATE_REPO")
+    || get_var("WITH_MAIN_REPO")
+    || get_var("WITH_DEBUG_REPO")
+    || get_var("WITH_SOURCE_REPO")
+    || get_var("WITH_UNTESTED_REPO"))
+{
+    set_var('HAVE_ADDON_REPOS', 1);
+}
+
 $needle::cleanuphandler = \&cleanup_needles;
 
 bmwqemu::save_vars();    # update variables
@@ -188,6 +197,10 @@ sub installzdupstep_is_applicable() {
 
 sub noupdatestep_is_applicable() {
     return !get_var("UPGRADE");
+}
+
+sub installwithaddonrepos_is_applicable() {
+    return get_var("HAVE_ADDON_REPOS") && !get_var("UPGRADE") && !get_var("NET");
 }
 
 sub bigx11step_is_applicable() {
@@ -342,6 +355,9 @@ sub load_inst_tests() {
     }
     if (noupdatestep_is_applicable && !get_var("LIVECD")) {
         loadtest "installation/installer_timezone.pm";
+    }
+    if (installwithaddonrepos_is_applicable && !get_var("LIVECD")) {
+        loadtest "installation/setup_online_repos.pm";
     }
     if (noupdatestep_is_applicable && !get_var("LIVECD") && !get_var("NICEVIDEO")) {
         loadtest "installation/logpackages.pm";

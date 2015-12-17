@@ -3262,5 +3262,21 @@
                         { key => "XEN", value => 1 },
                       ],
                     },
+                    {
+                      name => "install_with_updates_gnome",
+                      settings => [
+                        { key => "DESKTOP", value => "gnome" },
+                        { key => "INSTALL_SOURCE", value => "http" },
+                        { key => "WITH_UPDATE_REPO", value => 1 },
+                      ],
+                    },
+                    {
+                      name => "install_with_updates_kde",
+                      settings => [
+                        { key => "DESKTOP", value => "kde" },
+                        { key => "INSTALL_SOURCE", value => "http" },
+                        { key => "WITH_UPDATE_REPO", value => 1 },
+                      ],
+                    },
                   ],
 }
