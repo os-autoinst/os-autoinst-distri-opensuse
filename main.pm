@@ -80,6 +80,13 @@ sub cleanup_needles() {
     if (get_var('FLAVOR', 'bogey') !~ /JeOS/) {
         unregister_needle_tags('ENV-FLAVOR-JeOS-for-kvm');
     }
+
+    if (get_var('OFW')) {
+        unregister_needle_tags('ENV-OFW-0');
+    }
+    else {
+        unregister_needle_tags('ENV-OFW-1');
+    }
 }
 
 sub is_server() {
