@@ -88,7 +88,7 @@ sub fill_in_registration_data {
             for $addon (split(/,/, get_var('SCC_ADDONS', ''))) {
                 $uc_addon = uc $addon;    # change to uppercase to match variable
                 if (my $regcode = get_var("SCC_REGCODE_$uc_addon")) {
-                    next if ($addon =~ /sdk|rt/);    # bsc#956726
+                    next if ($addon =~ /sdk/);
                     if (check_var('DESKTOP', 'textmode')) {
                         send_key_until_needlematch "scc-code-field-$addon", 'tab';
                     }
