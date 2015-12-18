@@ -22,6 +22,8 @@ our %valueranges = (
 
 our @can_randomize = qw/NOIMAGES REBOOTAFTERINSTALL DESKTOP VIDEOMODE/;
 
+sub is_jeos();
+
 sub logcurrentenv(@) {
     foreach my $k (@_) {
         my $e = get_var("$k");
@@ -90,7 +92,9 @@ sub cleanup_needles() {
     else {    # english default
         unregister_needle_tags("ENV-INSTLANG-de_DE");
     }
-
+    if (!is_jeos) {
+        unregister_needle_tags('ENV-FLAVOR-JeOS-for-kvm');
+    }
 }
 
 #assert_screen "inst-bootmenu",12; # wait for welcome animation to finish
@@ -240,6 +244,10 @@ sub is_server() {
     return (get_var("OFW") || check_var("FLAVOR", "Server-DVD"));
 }
 
+sub is_jeos() {
+    return get_var('FLAVOR', '') =~ /^JeOS/;
+}
+
 sub is_staging () {
     return get_var('STAGING');
 }
@@ -294,7 +302,8 @@ sub load_boot_tests() {
     if (get_var("OFW")) {
         loadtest "installation/bootloader_ofw.pm";
     }
-    elsif (get_var("UEFI")) {
+    elsif (get_var("UEFI") || is_jeos) {
+        # TODO: rename to bootloader_grub2
         loadtest "installation/bootloader_uefi.pm";
     }
     elsif (get_var("IPMI_HOSTNAME")) {    # abuse of variable for now
@@ -522,7 +531,7 @@ sub load_extra_test () {
     loadtest "console/zypper_ref.pm";
 
     # start extra console tests from here
-    if (!get_var("OFW")) {
+    if (!get_var("OFW") && !is_jeos) {
         loadtest "console/aplay.pm";
     }
     loadtest "console/a2ps.pm";    # a2ps is not a ring package and thus not available in staging
@@ -774,6 +783,21 @@ else {
     }
     elsif (get_var("BOOT_HDD_IMAGE")) {
         loadtest "boot/boot_to_desktop.pm";
+    }
+    elsif (is_jeos) {
+        load_boot_tests();
+        loadtest "jeos/firstrun.pm";
+        loadtest "jeos/diskusage.pm";
+        loadtest "jeos/root_fs_size.pm";
+        loadtest "jeos/gpt_ptable.pm";
+        loadtest "jeos/mount_by_label.pm";
+        loadtest "jeos/kdump_disabled.pm";
+        loadtest "jeos/firewall_enabled.pm";
+        loadtest "jeos/ssh_running.pm";
+        loadtest "jeos/vim_installed.pm";
+        if (get_var("SCC_EMAIL") && get_var("SCC_REGCODE")) {
+            loadtest "jeos/sccreg.pm";
+        }
     }
     else {
         load_boot_tests();

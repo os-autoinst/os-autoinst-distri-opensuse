@@ -11,19 +11,24 @@ sub select_locale {
 sub run() {
     my $self = shift;
 
-    select_locale if check_var('VERSION', '12-SP1');
+    if (check_var('DISTRI', 'sle')) {
+        assert_screen 'jeos-license', 60;    # License time
+        send_key 'ret';
+        assert_screen 'jeos-doyouaccept';
+        send_key 'ret';
 
-    assert_screen 'jeos-license', 60;    # License time
-    send_key 'ret';
-    assert_screen 'jeos-doyouaccept';
-    send_key 'ret';
+        select_locale if check_var('VERSION', '12-SP1');
+    }
+    else {
+        select_locale;
+    }
 
     assert_screen 'jeos-keylayout', 200;
     send_key 'ret';
 
     select_locale if check_var('VERSION', '12');
 
-    assert_screen 'jeos-timezone';       # timzezone window, continue with selected timezone
+    assert_screen 'jeos-timezone';    # timzezone window, continue with selected timezone
     send_key "ret";
 
     assert_screen 'jeos-root-password';    # set root password
@@ -34,14 +39,16 @@ sub run() {
     type_password;
     send_key 'ret';
 
-    assert_screen 'jeos-please-register';
-    send_key 'ret';
+    if (check_var('DISTRI', 'sle')) {
+        assert_screen 'jeos-please-register';
+        send_key 'ret';
+    }
 
     assert_screen 'linux-login';
 
     select_console 'root-console';
 
-    assert_script_run "useradd -m $username";      # create bernhard account
+    assert_script_run "useradd -m $username";    # create bernhard account
     my $str = time;
     script_run "passwd $username; echo $str-\$?- > /dev/$serialdev";    # set bernhards password
     type_password;
