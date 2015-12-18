@@ -73,7 +73,7 @@ sub cleanup_needles() {
     else {    # english default
         unregister_needle_tags("ENV-INSTLANG-de_DE");
     }
-    if (!check_var('VERSION', '12-SP1')) {
+    if (get_var('VERSION', '') !~ /12-SP1|12-SP1-\w+/) {
         unregister_needle_tags("ENV-VERSION-12-SP1");
     }
 
