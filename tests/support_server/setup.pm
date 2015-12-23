@@ -171,11 +171,17 @@ sub setup_nfs_mount {
 
 sub setup_aytests {
     # install the aytests-tests package and export the tests over http
+    my $aytests_repo = get_var("AYTESTS_REPO");
     $setup_script .= "
-    zypper -n --no-gpg-checks ar http://download.opensuse.org/repositories/YaST:/Head/SLE_12/ aytests
+    zypper -n --no-gpg-checks ar '$aytests_repo' aytests
     zypper -n --no-gpg-checks in aytests-tests
 
-    ln -s /var/lib/autoinstall/aytests /srv/www/htdocs/aytests
+    curl -f -v " . autoinst_url . "/data/supportserver/aytests/aytests.conf >/etc/apache2/vhosts.d/aytests.conf
+    curl -f -v " . autoinst_url . "/data/supportserver/aytests/aytests.cgi >/srv/www/cgi-bin/aytests
+    chmod 755 /srv/www/cgi-bin/aytests
+
+    cp -pr /var/lib/autoinstall/aytests /srv/www/htdocs/aytests
+    rcapache2 restart
     ";
 }
 
