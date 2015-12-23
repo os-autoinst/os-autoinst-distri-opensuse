@@ -31,9 +31,15 @@ sub run() {
                 send_key "esc";
                 unless (get_var("LIVETEST")) {
                     send_key "ctrl";    # show gnome screen lock in sle 11
-                    assert_screen "gnome-screenlock-password";
-                    type_password;
-                    send_key "ret";
+
+                    # it is possible for GNOME not yet to ask for a password
+                    # switching to tty1 then back to 7, where GNOME runs, withing five minutes
+                    # does not lock with a password - in most cases we take long enough, but some
+                    # console tests are just too quick
+                    if (check_screen "gnome-screenlock-password") {
+                        type_password;
+                        send_key "ret";
+                    }
                 }
             }
             elsif (check_var("DESKTOP", "minimalx")) {
