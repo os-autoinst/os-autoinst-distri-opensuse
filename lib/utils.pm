@@ -33,12 +33,17 @@ sub wait_boot {
     }
     else {
         my @tags = ('grub2');
-        push @tags, 'bootloader-shim-import-prompt' if get_var('UEFI');
+        push @tags, 'bootloader-shim-import-prompt'   if get_var('UEFI');
+        push @tags, 'inst-live-' . get_var('DESKTOP') if get_var('LIVETEST');    # LIVETEST won't to do installation and no grub2 menu show up
         check_screen(\@tags, $bootloader_time);
         if (match_has_tag("bootloader-shim-import-prompt")) {
             send_key "down";
             send_key "ret";
             assert_screen "grub2", 15;
+        }
+        elsif (match_has_tag("inst-live-" . get_var("DESKTOP"))) {
+            send_key_until_needlematch("inst-live-" . get_var("DESKTOP"), 'down', 10, 5);
+            send_key "ret";
         }
         elsif (!match_has_tag("grub2")) {
             # check_screen timeout
