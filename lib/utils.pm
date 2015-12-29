@@ -41,8 +41,11 @@ sub wait_boot {
             send_key "ret";
             assert_screen "grub2", 15;
         }
-        elsif (match_has_tag("inst-live-" . get_var("DESKTOP"))) {
-            send_key_until_needlematch("inst-live-" . get_var("DESKTOP"), 'down', 10, 5);
+        elsif (get_var("LIVETEST")) {
+            # prevent if one day booting livesystem is not the first entry of the boot list
+            if (!match_has_tag("inst-live-" . get_var("DESKTOP"))) {
+                send_key_until_needlematch("inst-live-" . get_var("DESKTOP"), 'down', 10, 5);
+            }
             send_key "ret";
         }
         elsif (!match_has_tag("grub2")) {
