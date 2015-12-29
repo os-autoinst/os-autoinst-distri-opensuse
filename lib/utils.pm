@@ -34,7 +34,7 @@ sub wait_boot {
     else {
         my @tags = ('grub2');
         push @tags, 'bootloader-shim-import-prompt'   if get_var('UEFI');
-        push @tags, 'inst-live-' . get_var('DESKTOP') if get_var('LIVETEST');    # LIVETEST won't to do installation and no grub2 menu show up
+        push @tags, 'boot-live-' . get_var('DESKTOP') if get_var('LIVETEST');    # LIVETEST won't to do installation and no grub2 menu show up
         check_screen(\@tags, $bootloader_time);
         if (match_has_tag("bootloader-shim-import-prompt")) {
             send_key "down";
@@ -43,8 +43,8 @@ sub wait_boot {
         }
         elsif (get_var("LIVETEST")) {
             # prevent if one day booting livesystem is not the first entry of the boot list
-            if (!match_has_tag("inst-live-" . get_var("DESKTOP"))) {
-                send_key_until_needlematch("inst-live-" . get_var("DESKTOP"), 'down', 10, 5);
+            if (!match_has_tag("boot-live-" . get_var("DESKTOP"))) {
+                send_key_until_needlematch("boot-live-" . get_var("DESKTOP"), 'down', 10, 5);
             }
             send_key "ret";
         }
