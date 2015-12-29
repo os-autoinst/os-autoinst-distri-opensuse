@@ -616,10 +616,14 @@ sub load_x11tests() {
     }
     if (xfcestep_is_applicable) {
         loadtest "x11/thunar.pm";
-        loadtest "x11/reboot_xfce.pm";
+        if (!get_var("USBBOOT")) {
+            loadtest "x11/reboot_xfce.pm";
+        }
     }
     if (lxdestep_is_applicable) {
-        loadtest "x11/reboot_lxde.pm";
+        if (!get_var("USBBOOT")) {
+            loadtest "x11/reboot_lxde.pm";
+        }
     }
     if (bigx11step_is_applicable && !get_var("NICEVIDEO")) {
         loadtest "x11/glxgears.pm";
@@ -627,18 +631,22 @@ sub load_x11tests() {
     if (kdestep_is_applicable) {
         loadtest "x11/amarok.pm";
         loadtest "x11/kontact.pm";
-        if (get_var("PLASMA5")) {
-            loadtest "x11/reboot_plasma5.pm";
-        }
-        else {
-            loadtest "x11/reboot_kde.pm";
+        if (!get_var("USBBOOT")) {
+            if (get_var("PLASMA5")) {
+                loadtest "x11/reboot_plasma5.pm";
+            }
+            else {
+                loadtest "x11/reboot_kde.pm";
+            }
         }
     }
     if (gnomestep_is_applicable) {
         loadtest "x11/nautilus.pm" unless get_var("LIVECD");
         loadtest "x11/gnome_music.pm";
         loadtest "x11/evolution.pm" unless is_server;
-        loadtest "x11/reboot_gnome.pm";
+        if (!get_var("USBBOOT")) {
+            loadtest "x11/reboot_gnome.pm";
+        }
     }
     loadtest "x11/desktop_mainmenu.pm";
 
