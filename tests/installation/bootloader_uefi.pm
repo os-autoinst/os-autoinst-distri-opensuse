@@ -38,7 +38,7 @@ sub run() {
     }
     else {
         if (get_var("PROMO") || get_var('LIVETEST')) {
-            send_key_until_needlematch("inst-live-" . get_var("DESKTOP"), 'down', 10, 5);
+            send_key_until_needlematch("boot-live-" . get_var("DESKTOP"), 'down', 10, 5);
         }
         elsif (!get_var("JEOS")) {
             send_key_until_needlematch('inst-oninstallation', 'down', 10, 5);
