@@ -30,9 +30,15 @@ sub run() {
         send_key "ret";
     }
 
+    # 2 is not magic number here, we're using 400 seconds in the past,
+    # decrease the timeout to 300 seconds now thus doing two times.
+    my $retry = 2;
     # Check for errors during first boot
-    while (1) {
-        my $ret = check_screen "generic-desktop", 400;
+    while ($retry) {
+        # GNOME and KDE get into screenlock after 5 minutes without activities.
+        # using 300 seconds here then we can get the wrong desktop screenshot at least
+        # in case desktop screenshot changed, otherwise we get the screenlock screenshot.
+        my $ret = check_screen "generic-desktop", 300;
         if ($ret) {
             mouse_hide();
             last;
@@ -58,9 +64,8 @@ sub run() {
 
                 }
             }
-            # leave the loop as somthing wrong happened
-            last;
         }
+        $retry--;
     }
     # get the last screenshot
     assert_screen "generic-desktop", 5;
