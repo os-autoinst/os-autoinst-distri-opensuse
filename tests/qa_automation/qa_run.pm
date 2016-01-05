@@ -93,7 +93,7 @@ sub run() {
 
     # test junit
     my $junit_type = $self->junit_type();
-    assert_script_run "/usr/share/qa/qaset/bin/junitxml_generator.py -t $junit_type -l /var/log/qaset/runs/ -s /var/log/qaset/submission/ -o /tmp/junit.xml";
+    assert_script_run "/usr/share/qa/qaset/bin/junit_xml_gen.py /var/log/qaset/log -s /var/log/qaset/submission -o /tmp/junit.xml -n '$junit_type'";
     assert_script_run "ls -l /tmp/";
     parse_junit_log("/tmp/junit.xml");
 }
