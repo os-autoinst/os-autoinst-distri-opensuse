@@ -21,8 +21,19 @@ sub run {
 
     # https://en.opensuse.org/openSUSE:Bugreport_wicked
     type_string "systemctl status wickedd.service\n";
-    type_string "wicked show eth0|head -n1|awk '{print\$2}'| tee /dev/$serialdev\n";
-    if (!wait_serial("up", 10)) {
+    type_string "echo `wicked show all |cut -d ' ' -f 1` END | tee /dev/$serialdev\n";
+    my $iflist = wait_serial("END", 10);
+    $iflist =~ s/\bEND\b//g;
+    $iflist =~ s/\blo\b//g;
+    $iflist =~ s/^\s*//g;
+    $iflist =~ s/\s*$//g;
+
+    my $up = 1;
+    for my $if (split(/\s+/, $iflist)) {
+        type_string "wicked show '$if' |head -n1|awk '{print\$2}'| tee /dev/$serialdev\n";
+        $up = 0 if !wait_serial("up", 10);
+    }
+    if (!$up) {
         type_string "mkdir /tmp/wicked\n";
         # enable debugging
         type_string "perl -i -lpe 's{^(WICKED_DEBUG)=.*}{\$1=\"all\"};s{^(WICKED_LOG_LEVEL)=.*}{\$1=\"debug\"}' /etc/sysconfig/network/config\n";
