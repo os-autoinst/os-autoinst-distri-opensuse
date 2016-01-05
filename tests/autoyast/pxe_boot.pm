@@ -28,7 +28,9 @@ sub run {
 
     type_string "  ";    #need to separate default params
     type_string "vga=791 ";
-    type_string "Y2DEBUG=1 ";
+    if (get_var("Y2DEBUG")) {
+        type_string "Y2DEBUG=" . get_var("Y2DEBUG") . " ";
+    }
     type_string "video=1024x768-16 ", 13;
 
     if (get_var("AUTOYAST")) {
