@@ -7,26 +7,32 @@ sub select_locale {
     send_key_until_needlematch "jeos-system-locale-$lang", 'e', 50;
     send_key 'ret';
 }
+sub accept_license {
+    assert_screen 'jeos-license', 60;
+    send_key 'ret';
+    assert_screen 'jeos-doyouaccept';
+    send_key 'ret';
+}
+sub select_keyboard {
+    assert_screen 'jeos-keylayout', 200;
+    send_key 'ret';
+}
 
 sub run() {
     my $self = shift;
 
-    if (check_var('DISTRI', 'sle')) {
-        assert_screen 'jeos-license', 60;    # License time
-        send_key 'ret';
-        assert_screen 'jeos-doyouaccept';
-        send_key 'ret';
-
-        select_locale if check_var('VERSION', '12-SP1');
-    }
-    else {
+    if (check_var('VERSION', '12')) {
+        # JeOS-SLE
+        accept_license;
+        select_keyboard;
         select_locale;
     }
-
-    assert_screen 'jeos-keylayout', 200;
-    send_key 'ret';
-
-    select_locale if check_var('VERSION', '12');
+    else {
+        # JeOS-SLE-SP1, Leap 42.1
+        select_locale;
+        accept_license if check_var('DISTRI', 'sle');
+        select_keyboard;
+    }
 
     assert_screen 'jeos-timezone';    # timzezone window, continue with selected timezone
     send_key "ret";
