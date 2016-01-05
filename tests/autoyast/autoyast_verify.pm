@@ -21,6 +21,7 @@ use lockapi;
 sub run {
     my $self = shift;
     $self->result('fail');    # default result
+    my $success = 0;
 
     #wait for supportserver if not yet ready
     my $roles_r = get_var_array('SUPPORT_SERVER_ROLES');
@@ -30,21 +31,59 @@ sub run {
         mutex_unlock($role);
     }
 
-    #todo: get the ip addresses by some function (or ENV)
-    my $verify_url = autoinst_url();
-    my $server_ip  = '10.0.2.1';
-    type_string "curl '" . $verify_url . "/data/" . get_var("AUTOYAST_VERIFY") . "' | sed -e 's|#SERVER_URL#|" . $server_ip . "|g' > verify.sh\n";
-    wait_idle(90);
-    type_string "chmod 755 verify.sh\n";
-    type_string "./verify.sh | tee /dev/$serialdev\n";
-    my $success = 0;
-    $success = 1 if wait_serial("AUTOYAST OK", 100);
-    wait_idle(10);
+    my $verify_url = get_var('AUTOYAST_VERIFY');
+    if ($verify_url =~ /^aytests\//) {
+        die "aytests-tests package require PXEBOOT" unless get_var("PXEBOOT");
+    }
+    else {
+        $verify_url = 'data/' . $verify_url;
+    }
+    if (get_var("PXEBOOT")) {
+        my $proto = get_var("PROTO") || 'http';
+        $verify_url = "$proto://10.0.2.1/" . $verify_url;
+    }
+    else {
+        $verify_url = autoinst_url() . '/' . $verify_url;
+    }
+
+    if ($verify_url =~ /\.list$/) {
+        # list of tests
+        my $verify_url_base = $verify_url;
+        $verify_url_base =~ s/\/[^\/]*$//;
+
+        my $res = script_output('
+        set -x -e
+
+        curl "' . $verify_url . '" > verify.list
+        while read testname || [ -n "$testname" ] ; do
+            testname=`echo ${testname%%#*}`
+            curl "' . $verify_url_base . '/$testname" > $testname
+            chmod 755 $testname
+            ./$testname |tee ./$testname.output.txt
+            grep -q "AUTOYAST OK" $testname.output.txt
+        done < verify.list
+        echo ALL_TESTS_OK
+        ');
+        $success = 1 if $res =~ /ALL_TESTS_OK/;
+        print $res;
+    }
+    elsif ($verify_url =~ /\.sh$/) {
+        # single sh script
+        my $res = script_output('
+        set -x -e
+
+        curl "' . $verify_url . '" > verify.sh
+        chmod 755 verify.sh
+        ./verify.sh"
+        ');
+        $success = 1 if $res =~ /AUTOYAST OK/;
+    }
+
     type_string "tar cjf /tmp/logs.tar.bz2 --exclude=/etc/{brltty,udev/hwdb.bin} --exclude=/var/log/{YaST2,zypp,{pbl,zypper}.log} /var/{log,adm/autoinstall} /run/systemd/system/ /usr/lib/systemd/system/ /boot/grub2/{device.map,grub{.cfg,env}} /etc/\n";
     upload_logs "/tmp/logs.tar.bz2";
     wait_idle(30);
     save_screenshot;
-    die unless $success;
+    die 'verification script failed' unless $success;
     $self->result('ok');
 }
 

@@ -24,6 +24,7 @@ my $quemu_proxy_set = 0;
 my $http_server_set = 0;
 my $ftp_server_set  = 0;
 my $tftp_server_set = 0;
+my $dns_server_set  = 0;
 my $dhcp_server_set = 0;
 my $nfs_mount_set   = 0;
 
@@ -95,7 +96,21 @@ sub setup_networks {
     $setup_script .= "iptables -v -L\n";
 }
 
+sub setup_dns_server {
+    return if $dns_server_set;
+    $setup_script .= "
+        sed -i -e 's|^NETCONFIG_DNS_FORWARDER=.*|NETCONFIG_DNS_FORWARDER=\"bind\"|' /etc/sysconfig/network/config
+        sed -i -e 's|#forwarders.*;|include \"/etc/named.d/forwarders.conf\";|' /etc/named.conf
+        netconfig update -f
+        rcnamed start
+        rcnamed status
+    ";
+    $dns_server_set = 1;
+}
+
+
 sub setup_dhcp_server {
+    my ($dns) = @_;
     return if $dhcp_server_set;
     my $net_conf = parse_network_configuration();
 
@@ -113,7 +128,9 @@ sub setup_dhcp_server {
         $setup_script .= "  default-lease-time 14400;\n";
         $setup_script .= "  max-lease-time 172800;\n";
         $setup_script .= "  option domain-name \"test\";\n";
-        #        $setup_script .= "  option domain-name-servers  $server_ip,  $server_ip;\n";
+        if ($dns) {
+            $setup_script .= "  option domain-name-servers  $server_ip,  $server_ip;\n";
+        }
         if ($net_conf->{$network}->{gateway}) {
             if ($network eq 'fixed') {
                 $setup_script .= "  option routers 10.0.2.2;\n";
@@ -152,7 +169,21 @@ sub setup_nfs_mount {
 }
 
 
+sub setup_aytests {
+    # install the aytests-tests package and export the tests over http
+    my $aytests_repo = get_var("AYTESTS_REPO");
+    $setup_script .= "
+    zypper -n --no-gpg-checks ar '$aytests_repo' aytests
+    zypper -n --no-gpg-checks in aytests-tests
 
+    curl -f -v " . autoinst_url . "/data/supportserver/aytests/aytests.conf >/etc/apache2/vhosts.d/aytests.conf
+    curl -f -v " . autoinst_url . "/data/supportserver/aytests/aytests.cgi >/srv/www/cgi-bin/aytests
+    chmod 755 /srv/www/cgi-bin/aytests
+
+    cp -pr /var/lib/autoinstall/aytests /srv/www/htdocs/aytests
+    rcapache2 restart
+    ";
+}
 
 
 sub run {
@@ -167,7 +198,7 @@ sub run {
     setup_networks();
 
     if (exists $server_roles{'pxe'}) {
-        setup_dhcp_server();
+        setup_dhcp_server((exists $server_roles{'dns'}));
         setup_pxe_server();
         setup_tftp_server();
         push @mutexes, 'pxe';
@@ -176,8 +207,9 @@ sub run {
         setup_tftp_server();
         push @mutexes, 'tftp';
     }
+
     if (exists $server_roles{'dhcp'}) {
-        setup_dhcp_server();
+        setup_dhcp_server((exists $server_roles{'dns'}));
         push @mutexes, 'dhcp';
     }
     if (exists $server_roles{'qemuproxy'}) {
@@ -185,6 +217,15 @@ sub run {
         $setup_script .= "curl -f -v " . autoinst_url . "/data/supportserver/proxy.conf | sed -e 's|#AUTOINST_URL#|" . autoinst_url . "|g' >/etc/apache2/vhosts.d/proxy.conf\n";
         $setup_script .= "rcapache2 restart\n";
         push @mutexes, 'qemuproxy';
+    }
+    if (exists $server_roles{'dns'}) {
+        setup_dns_server();
+        push @mutexes, 'dns';
+    }
+
+    if (exists $server_roles{'aytests'}) {
+        setup_aytests();
+        push @mutexes, 'aytests';
     }
 
     die "no services configured, SUPPORT_SERVER_ROLES variable missing?" unless $setup_script;
@@ -197,7 +238,6 @@ sub run {
     foreach my $mutex (@mutexes) {
         mutex_create($mutex);
     }
-
 }
 
 sub test_flags {

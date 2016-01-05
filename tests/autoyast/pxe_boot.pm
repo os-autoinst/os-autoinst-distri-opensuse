@@ -38,8 +38,14 @@ sub run {
         if (get_var("UPGRADE_FROM_AUTOYAST") || get_var("UPGRADE")) {
             type_string " autoupgrade=1";
         }
-        type_string " autoyast=$proto://10.0.2.1/data/" . get_var("AUTOYAST");
-
+        if (get_var("AUTOYAST") =~ /^aytests\//) {
+            # test from aytests package
+            type_string " autoyast=$proto://10.0.2.1/" . get_var("AUTOYAST");
+        }
+        else {
+            # test from re-exported data directory
+            type_string " autoyast=$proto://10.0.2.1/data/" . get_var("AUTOYAST");
+        }
     }
 
     sleep 3;
