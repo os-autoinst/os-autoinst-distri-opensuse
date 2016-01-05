@@ -49,6 +49,9 @@ sub run {
             type_string " autoyast=$proto://10.0.2.1/data/" . get_var("AUTOYAST");
         }
     }
+    if (get_var("EXTRA_BOOT_ARG")) {
+        type_string(' ' . get_var("EXTRA_BOOT_ARG"));
+    }
 
     sleep 3;
     save_screenshot;
