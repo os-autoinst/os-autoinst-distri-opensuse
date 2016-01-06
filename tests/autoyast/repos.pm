@@ -20,7 +20,8 @@ use testapi;
 sub run {
     my $self = shift;
     $self->result('ok');    # default result
-                            #this checks also network connectivity
+                            # verify that all repos are available
+                            # this checks also network connectivity
     type_string "ip addr\n";
     type_string "zypper ref | tee /dev/$serialdev";
     send_key "ret";
@@ -46,43 +47,16 @@ sub run {
         type_string "ip addr\n";
         wait_idle(30);
         upload_logs "/tmp/y2logs.tar.bz2";
-        save_screenshot;
         $self->result('fail');
     }
     else {
+        # make sure that save_y2logs from yast2 package and tar is installed
+        # even on minimal system
+        type_string "zypper -n --no-gpg-checks in yast2 tar\n";
+
         type_string "save_y2logs /tmp/y2logs.tar.bz2\n";
         upload_logs "/tmp/y2logs.tar.bz2";
     }
-
-    type_string "rm -f /root/autoinst.xml\n";
-
-    wait_idle(30);
-    type_string "yast2 --ncurses clone_system ; echo CLONED >/dev/$serialdev\n";
-    while (!wait_serial("CLONED", 200)) {
-        $self->result('fail');
-        save_screenshot;
-        send_key "ret";
-    }
-
-    upload_logs "/root/autoinst.xml";
-
-    # original autoyast on kernel cmdline
-    upload_logs "/var/adm/autoinstall/cache/installedSystem.xml";
-    wait_idle(30);
-
-    type_string "save_y2logs /tmp/y2logs_clone.tar.bz2\n";
-    upload_logs "/tmp/y2logs_clone.tar.bz2";
-    wait_idle(30);
-
-    type_string "systemctl status > /var/log/systemctl_status\n";
-    type_string "tar cjf /tmp/logs.tar.bz2 --exclude=/etc/{brltty,udev/hwdb.bin} --exclude=/var/log/{YaST2,zypp,{pbl,zypper}.log} /var/{log,adm/autoinstall} /run/systemd/system/ /usr/lib/systemd/system/ /boot/grub2/{device.map,grub{.cfg,env}} /etc/\n";
-    upload_logs "/tmp/logs.tar.bz2";
-
-    #on high load, wait_idle is not enough
-    type_string "echo UPLOADFINISH >/dev/$serialdev\n";
-    wait_serial("UPLOADFINISH", 200);
-
-    wait_idle(30);
     save_screenshot;
 }
 

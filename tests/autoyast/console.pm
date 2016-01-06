@@ -19,6 +19,8 @@ use testapi;
 
 sub run {
     my $self = shift;
+    # the main motivation for doing this test was bsc#889757 and related
+
     #switch to second console
     send_key "alt-f2";
     send_key "ctrl-alt-f2";

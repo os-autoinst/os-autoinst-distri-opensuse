@@ -703,9 +703,16 @@ sub load_autoyast_tests() {
     loadtest("autoyast/installation.pm");
     loadtest("autoyast/console.pm");
     loadtest("autoyast/login.pm");
-    loadtest("autoyast/repos.pm") unless get_var("SUPPORT_SERVER_GENERATOR");
+    loadtest("autoyast/wicked.pm");
     loadtest("autoyast/autoyast_verify.pm") if get_var("AUTOYAST_VERIFY");
-    loadtest("support_server/configure.pm") if get_var("SUPPORT_SERVER_GENERATOR");
+    if (get_var("SUPPORT_SERVER_GENERATOR")) {
+        loadtest("support_server/configure.pm");
+    }
+    else {
+        loadtest("autoyast/repos.pm");
+        loadtest("autoyast/clone.pm");
+        loadtest("autoyast/logs.pm");
+    }
     loadtest("autoyast/autoyast_reboot.pm");
     #    next boot in load_reboot_tests
 }
