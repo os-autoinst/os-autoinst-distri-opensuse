@@ -700,7 +700,7 @@ sub load_skenkins_tests {
 
 sub load_autoyast_tests() {
     #    init boot in load_boot_tests
-    loadtest("autoyast/system.pm");
+    loadtest("autoyast/installation.pm");
     loadtest("autoyast/console.pm");
     loadtest("autoyast/login.pm");
     loadtest("autoyast/repos.pm") unless get_var("SUPPORT_SERVER_GENERATOR");

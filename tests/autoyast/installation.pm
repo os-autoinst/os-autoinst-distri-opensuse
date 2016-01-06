@@ -14,12 +14,12 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
 use strict;
-use base 'y2logsstep';
+use base 'basetest';
 use testapi;
 
 sub save_logs_and_continue {
     my $name = shift;
-    # seve logs and continue
+    # save logs and continue
     send_key "ctrl-alt-f2";
     send_key "alt-f2";
     sleep 5;
@@ -160,6 +160,16 @@ sub run {
 
 
 }
+
+
+sub test_flags {
+    # without anything - rollback to 'lastgood' snapshot if failed
+    # 'fatal' - whole test suite is in danger if this fails
+    # 'milestone' - after this test succeeds, update 'lastgood'
+    # 'important' - if this fails, set the overall state to 'fail'
+    return {important => 1};
+}
+
 
 1;
 
