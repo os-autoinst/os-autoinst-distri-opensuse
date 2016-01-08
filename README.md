@@ -15,5 +15,5 @@ ask on our mailing list opensuse-factory@opensuse.org
 
 ## License
 
-Copyright reserved by SUSE. Any contributions made will take on the same
-license.
+Most files are minimal copyleft, but some more complex tests are GPL. So please
+check the license within the files.
