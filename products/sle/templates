@@ -1,0 +1,241 @@
+#!/usr/share/openqa/script/load_templates
+#
+## SLE12 Machines, Products, TestSuites and JobTemplates
+#
+## use load_templates to load the file into the database
+#
+{
+  JobTemplates => [
+                    {
+                      group_name => "SLES 12",
+                      machine => { name => "64bit" },
+                      prio => 50,
+                      product => {
+                        arch    => "x86_64",
+                        distri  => "sle",
+                        flavor  => "Server-DVD",
+                        group   => "sle-12-Server-DVD",
+                        version => 12,
+                      },
+                      test_suite => { name => "gnome" },
+                    },
+                    {
+                      group_name => "SLES 12",
+                      machine => { name => "64bit" },
+                      prio => 50,
+                      product => {
+                        arch    => "x86_64",
+                        distri  => "sle",
+                        flavor  => "Server-DVD",
+                        group   => "sle-12-Server-DVD",
+                        version => 12,
+                      },
+                      test_suite => { name => "cryptlvm" },
+                    },
+                    {
+                      group_name => "SLES 12",
+                      machine => { name => "64bit" },
+                      prio => 50,
+                      product => {
+                        arch    => "x86_64",
+                        distri  => "sle",
+                        flavor  => "Server-DVD",
+                        group   => "sle-12-Server-DVD",
+                        version => 12,
+                      },
+                      test_suite => { name => "fips" },
+                    },
+                    {
+                      group_name => "SLES 12",
+                      machine => { name => "uefi" },
+                      prio => 50,
+                      product => {
+                        arch    => "x86_64",
+                        distri  => "sle",
+                        flavor  => "Server-DVD",
+                        group   => "sle-12-Server-DVD",
+                        version => 12,
+                      },
+                      test_suite => { name => "fips" },
+                    },
+                    {
+                      group_name => "SLES 12",
+                      machine => { name => "uefi" },
+                      prio => 50,
+                      product => {
+                        arch    => "x86_64",
+                        distri  => "sle",
+                        flavor  => "Server-DVD",
+                        group   => "sle-12-Server-DVD",
+                        version => 12,
+                      },
+                      test_suite => { name => "cryptlvm" },
+                    },
+                    {
+                      group_name => "SLES 12",
+                      machine => { name => "uefi" },
+                      prio => 50,
+                      product => {
+                        arch    => "x86_64",
+                        distri  => "sle",
+                        flavor  => "Server-DVD",
+                        group   => "sle-12-Server-DVD",
+                        version => 12,
+                      },
+                      test_suite => { name => "gnome" },
+                    },
+                    {
+                      group_name => "SLES 12",
+                      machine => { name => "uefi-suse" },
+                      prio => 50,
+                      product => {
+                        arch    => "x86_64",
+                        distri  => "sle",
+                        flavor  => "Server-DVD",
+                        group   => "sle-12-Server-DVD",
+                        version => 12,
+                      },
+                      test_suite => { name => "gnome" },
+                    },
+                    {
+                      group_name => "SLED 12",
+                      machine => { name => "64bit" },
+                      prio => 50,
+                      product => {
+                        arch    => "x86_64",
+                        distri  => "sle",
+                        flavor  => "Desktop-DVD",
+                        group   => "sle-12-Desktop-DVD",
+                        version => 12,
+                      },
+                      test_suite => { name => "cryptlvm" },
+                    },
+                    {
+                      group_name => "SLED 12",
+                      machine => { name => "64bit" },
+                      prio => 50,
+                      product => {
+                        arch    => "x86_64",
+                        distri  => "sle",
+                        flavor  => "Desktop-DVD",
+                        group   => "sle-12-Desktop-DVD",
+                        version => 12,
+                      },
+                      test_suite => { name => "gnome" },
+                    },
+                    {
+                      group_name => "SLED 12",
+                      machine => { name => "uefi" },
+                      prio => 50,
+                      product => {
+                        arch    => "x86_64",
+                        distri  => "sle",
+                        flavor  => "Desktop-DVD",
+                        group   => "sle-12-Desktop-DVD",
+                        version => 12,
+                      },
+                      test_suite => { name => "gnome" },
+                    },
+                    {
+                      group_name => "SLED 12",
+                      machine => { name => "uefi-suse" },
+                      prio => 50,
+                      product => {
+                        arch    => "x86_64",
+                        distri  => "sle",
+                        flavor  => "Desktop-DVD",
+                        group   => "sle-12-Desktop-DVD",
+                        version => 12,
+                      },
+                      test_suite => { name => "gnome" },
+                    },
+                    {
+                      group_name => "SLED 12",
+                      machine => { name => "uefi" },
+                      prio => 50,
+                      product => {
+                        arch    => "x86_64",
+                        distri  => "sle",
+                        flavor  => "Desktop-DVD",
+                        group   => "sle-12-Desktop-DVD",
+                        version => 12,
+                      },
+                      test_suite => { name => "cryptlvm" },
+                    },
+                  ],
+  Machines     => [
+                    {
+                      backend => "qemu",
+                      name => "64bit",
+                      settings => [
+                        { key => "HDDSIZEGB", value => 20 },
+                        { key => "QEMUCPU", value => "qemu64" },
+                        { key => "WORKER_CLASS", value => "qemu_x86_64" },
+                      ],
+                    },
+                    {
+                      backend => "qemu",
+                      name => "uefi",
+                      settings => [
+                        { key => "GFXPAYLOAD", value => "1024x768" },
+                        { key => "HDDSIZEGB", value => 20 },
+                        { key => "QEMUCPU", value => "qemu64" },
+                        { key => "UEFI", value => 1 },
+                      ],
+                    },
+                    {
+                      backend => "qemu",
+                      name => "uefi-suse",
+                      settings => [
+                        { key => "GFXPAYLOAD", value => "1024x768" },
+                        { key => "HDDSIZEGB", value => 20 },
+                        { key => "QEMUCPU", value => "qemu64" },
+                        { key => "UEFI", value => 1 },
+                        { key => "UEFI_BIOS", value => "ovmf-x86_64-suse.bin" },
+                      ],
+                    },
+                  ],
+  Products     => [
+                    {
+                      arch     => "x86_64",
+                      distri   => "sle",
+                      flavor   => "Desktop-DVD",
+                      settings => [
+                                    { key => "ISO_MAXSIZE", value => 4700372992 },
+                                    { key => "SHUTDOWN_NEEDS_AUTH", value => 0 },
+                                  ],
+                      version  => 12,
+                    },
+                    {
+                      arch     => "x86_64",
+                      distri   => "sle",
+                      flavor   => "Server-DVD",
+                      settings => [
+                                    { key => "ISO_MAXSIZE", value => 4700372992 },
+                                    { key => "SHUTDOWN_NEEDS_AUTH", value => 1 },
+                                  ],
+                      version  => 12,
+                    },
+                  ],
+  TestSuites   => [
+                    {
+                      name => "gnome",
+                      settings => [{ key => "DESKTOP", value => "gnome" }],
+                    },
+                    {
+                      name => "cryptlvm",
+                      settings => [
+                        { key => "DESKTOP", value => "gnome" },
+                        { key => "ENCRYPT", value => 1 },
+                        { key => "LVM", value => 1 },
+                      ],
+                    },
+                    {
+                      name => "fips",
+                      settings => [
+                        { key => "DESKTOP", value => "gnome" },
+                        { key => "FIPS", value => 1 },
+                      ],
+                    },
+                  ],
+}
