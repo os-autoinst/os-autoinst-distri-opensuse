@@ -17,6 +17,10 @@ sub run() {
     my $zypper_installing        = qr/Installing: \S+/;
     my $zypper_dup_fileconflict  = qr/^File conflicts .*^Continue\? \[y/ms;
 
+    # This is just for reference to know how the network was configured prior to the update
+    script_run "ip addr show";
+    save_screenshot;
+
     # before disable we need to have cdrkit installed to get proper iso appid
     script_run "zypper -n in cdrkit-cdrtools-compat";
     # Disable all repos, so we do not need to remove one by one
