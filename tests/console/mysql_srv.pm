@@ -1,4 +1,3 @@
-#!/usr/bin/perl -w
 use strict;
 use base "consoletest";
 use testapi;

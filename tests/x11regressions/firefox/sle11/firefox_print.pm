@@ -1,4 +1,3 @@
-#!/usr/bin/perl -w
 
 ##################################################
 # Written by:    Xudong Zhang <xdzhang@suse.com>
