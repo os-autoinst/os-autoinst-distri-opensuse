@@ -14,7 +14,7 @@ our %valueranges = (
     DOCRUN             => [0, 1],
 
     #   BTRFS=>[0,1],
-    DESKTOP => [qw(kde gnome xfce lxde minimalx textmode)],
+    DESKTOP => [qw(kde gnome xfce lxde minimalx textmode awesome)],
 
     #   ROOTFS=>[qw(ext3 xfs jfs btrfs reiserfs)],
     VIDEOMODE => ["", "text"],
@@ -74,6 +74,7 @@ sub cleanup_needles() {
     remove_desktop_needles("kde");
     remove_desktop_needles("gnome");
     remove_desktop_needles("xfce");
+    remove_desktop_needles("awesome");
     remove_desktop_needles("minimalx");
     remove_desktop_needles("textmode");
 
@@ -132,7 +133,7 @@ unless (get_var("DESKTOP")) {
         set_var("DESKTOP", "kde");
     }
 }
-if (check_var('DESKTOP', 'minimalx')) {
+if (check_var('DESKTOP', 'minimalx') || check_var('DESKTOP', 'awesome')) {
     set_var("NOAUTOLOGIN", 1);
     set_var("XDMUSED",     1);
 }
@@ -492,6 +493,9 @@ sub load_consoletests() {
         if (check_var("DESKTOP", "xfce")) {
             loadtest "console/xfce_gnome_deps.pm";
         }
+        if (check_var("DESKTOP", "awesome")) {
+            loadtest "console/install_awesome.pm";
+        }
         if (get_var("CLONE_SYSTEM")) {
             loadtest "console/yast2_clone_system.pm";
         }
@@ -549,6 +553,12 @@ sub load_x11tests() {
     if (get_var("NOAUTOLOGIN") || get_var("XDMUSED")) {
         loadtest "x11/x11_login.pm";
     }
+    if (check_var("DESKTOP", "awesome")) {
+        loadtest "x11/awesome_menu.pm";
+        loadtest "x11/awesome_xterm.pm";
+        return;
+    }
+
     if (xfcestep_is_applicable) {
         loadtest "x11/xfce_close_hint_popup.pm";
         loadtest "x11/xfce4_terminal.pm";

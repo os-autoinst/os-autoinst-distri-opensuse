@@ -64,7 +64,12 @@ sub run() {
         }
         wait_idle;
         mouse_hide(1);
-        assert_screen 'generic-desktop';
+        if (check_var("DESKTOP", "awesome")) {
+            assert_screen 'displaymanager', 200;
+        }
+        else {
+            assert_screen 'generic-desktop';
+        }
     }
 }
 
