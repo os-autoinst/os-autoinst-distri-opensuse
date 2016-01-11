@@ -133,7 +133,8 @@ sub run() {
     }
 
     # wait for zypper dup finish, accept failures in meantime
-    $out = wait_serial([$zypper_dup_finish, $zypper_installing, $zypper_dup_notifications, $zypper_dup_error, $zypper_dup_fileconflict, $zypper_check_conflicts, $zypper_retrieving], 240);
+    my $post_checks = [$zypper_dup_finish, $zypper_installing, $zypper_dup_notifications, $zypper_dup_error, $zypper_dup_fileconflict, $zypper_check_conflicts, $zypper_retrieving];
+    $out = wait_serial($post_checks, 240);
     while ($out) {
         if ($out =~ $zypper_dup_notifications) {
             send_key 'n',   1;    # do not show notifications
@@ -150,7 +151,8 @@ sub run() {
         elsif ($out =~ $zypper_retrieving or $out =~ $zypper_check_conflicts) {
             # probably to avoid hitting black screen on video
             send_key 'shift', 1;
-            # continue but do not drop zypper_dup_fileconflict check
+            # continue but do a check again
+            $out = wait_serial($post_checks, 240);
             next;
         }
         elsif ($out =~ $zypper_dup_fileconflict) {
