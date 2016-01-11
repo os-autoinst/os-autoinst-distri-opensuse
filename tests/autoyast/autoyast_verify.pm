@@ -79,9 +79,6 @@ sub run {
         $success = 1 if $res =~ /AUTOYAST OK/;
     }
 
-    type_string "tar cjf /tmp/logs.tar.bz2 --exclude=/etc/{brltty,udev/hwdb.bin} --exclude=/var/log/{YaST2,zypp,{pbl,zypper}.log} /var/{log,adm/autoinstall} /run/systemd/system/ /usr/lib/systemd/system/ /boot/grub2/{device.map,grub{.cfg,env}} /etc/\n";
-    upload_logs "/tmp/logs.tar.bz2";
-    wait_idle(30);
     save_screenshot;
     die 'verification script failed' unless $success;
     $self->result('ok');
@@ -92,7 +89,7 @@ sub test_flags {
     # 'fatal' - whole test suite is in danger if this fails
     # 'milestone' - after this test succeeds, update 'lastgood'
     # 'important' - if this fails, set the overall state to 'fail'
-    return {fatal => 1};
+    return {important => 1};
 }
 
 1;
