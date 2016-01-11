@@ -26,6 +26,8 @@ sub run() {
     my $zypper_repo_disabled     = qr/^Repository '[^']+' has been successfully disabled./m;
     my $zypper_installing        = qr/Installing: \S+/;
     my $zypper_dup_fileconflict  = qr/^File conflicts .*^Continue\? \[y/ms;
+    my $zypper_retrieving        = qr/Retrieving: \S+/;
+    my $zypper_check_conflicts   = qr/Checking for file conflicts: \S+/;
 
     # before disable we need to have cdrkit installed to get proper iso appid
     script_run "zypper -n in cdrkit-cdrtools-compat";
@@ -127,7 +129,7 @@ sub run() {
     }
 
     # wait for zypper dup finish, accept failures in meantime
-    $out = wait_serial([$zypper_dup_finish, $zypper_installing, $zypper_dup_notifications, $zypper_dup_error, $zypper_dup_fileconflict], 240);
+    $out = wait_serial([$zypper_dup_finish, $zypper_installing, $zypper_dup_notifications, $zypper_dup_error, $zypper_dup_fileconflict, $zypper_check_conflicts, $zypper_retrieving], 240);
     while ($out) {
         if ($out =~ $zypper_dup_notifications) {
             send_key 'n',   1;    # do not show notifications
@@ -140,6 +142,12 @@ sub run() {
         }
         elsif ($out =~ $zypper_dup_finish) {
             last;
+        }
+        elsif ($out =~ $zypper_retrieving or $out =~ $zypper_check_conflicts) {
+            # probably to avoid hitting black screen on video
+            send_key 'shift', 1;
+            # continue but do not drop zypper_dup_fileconflict check
+            next;
         }
         elsif ($out =~ $zypper_dup_fileconflict) {
             #             record_soft_failure;
