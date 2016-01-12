@@ -69,6 +69,15 @@ sub run() {
             assert_screen 'ssh-open';
         }
     }
+
+    # Save configuration as an autoyast profile
+    # SLE's default is 'enabled' - so no action needed there.
+    if (!check_var('DISTRI', 'sle')) {
+        if (!check_screen('ay-save-profile', 5)) {
+            send_key_until_needlematch 'ay-writeit-selected', 'tab';
+            send_key 'ret';
+        }
+    }
 }
 
 1;
