@@ -74,7 +74,14 @@ sub run() {
         }
         wait_idle;
         mouse_hide(1);
-        assert_screen 'generic-desktop';
+        # in case of awesome test we use xdm and need to log in at the display
+        # manager
+        if (check_var("DESKTOP", "awesome")) {
+            assert_screen 'displaymanager', 200;
+        }
+        else {
+            assert_screen 'generic-desktop';
+        }
     }
 }
 
