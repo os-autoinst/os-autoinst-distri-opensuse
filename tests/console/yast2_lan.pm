@@ -62,7 +62,7 @@ sub run() {
     send_key "ctrl-l";                                  # clear screen
     script_run('echo $?');
     script_run('hostname');
-    assert_screen 'test-yast2_lan-2', 3;
+    assert_screen 'test-yast2_lan-2';
 
     send_key "ctrl-l";                                  # clear screen
     script_run('ip -o a s');
