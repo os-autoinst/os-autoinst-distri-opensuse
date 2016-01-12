@@ -147,6 +147,11 @@ if (check_var('DESKTOP', 'minimalx')) {
     set_var("XDMUSED",     1);
 }
 
+# Tests currently rely on INSTLANG=en_US, so set it by default
+unless (get_var('INSTLANG')) {
+    set_var('INSTLANG', 'en_US');
+}
+
 # openSUSE specific variables
 set_var("PACKAGETOINSTALL", "xdelta");
 set_var("WALLPAPER",        '/usr/share/wallpapers/openSUSEdefault/contents/images/1280x1024.jpg');
