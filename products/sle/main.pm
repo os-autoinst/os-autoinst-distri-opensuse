@@ -639,7 +639,7 @@ sub load_extra_test () {
 }
 
 sub load_x11tests() {
-    return unless (!get_var("INSTALLONLY") && get_var("DESKTOP") !~ /textmode|minimalx/ && !get_var("DUALBOOT") && !get_var("RESCUECD"));
+    return unless (!get_var("INSTALLONLY") && get_var("DESKTOP") !~ /textmode|minimalx/ && !get_var("DUALBOOT") && !get_var("RESCUECD") && !get_var("HACLUSTER"));
 
     if (get_var("XDMUSED")) {
         loadtest "x11/x11_login.pm";
@@ -777,6 +777,35 @@ sub load_skenkins_tests {
     return 0;
 }
 
+sub load_hacluster_tests() {
+    return unless (get_var("HACLUSTER"));
+    loadtest("ha/barrier_init.pm");
+    loadtest "installation/first_boot.pm";
+    loadtest "console/consoletest_setup.pm";
+    loadtest "console/hostname.pm";
+    #    loadtest("ha/hostname.pm");
+    loadtest("ha/firewall_disable.pm");
+    loadtest("ha/ntp_client.pm");
+    loadtest("ha/iscsi_client.pm");
+    loadtest("ha/watchdog.pm");
+    if (get_var("HOSTNAME") eq 'host1') {
+        mutex_lock("MUTEX_HA_" . get_var("CLUSTERNAME") . "_FINISHED");    # mutex to unlock after all tests
+        loadtest("ha/ha_cluster_init.pm");                                 #node1 creates a cluster
+    }
+    else {
+        loadtest("ha/ha_cluster_join.pm");                                 #node2 joins the cluster
+    }
+    loadtest("ha/ocfs2.pm");
+    loadtest("ha/crm_mon.pm");
+    loadtest("ha/fencing.pm");
+    if (!get_var("HACLUSTERJOIN")) {                                       #node1 will be fenced
+        loadtest "ha/fencing_boot.pm";
+        loadtest "ha/fencing_consoletest_setup.pm";
+    }
+    loadtest("ha/check_logs.pm");                                          #check_logs must be after ha/fencing.pm
+    return 1;
+}
+
 sub load_feature_tests() {
     loadtest "feature/console/zypper_releasever.pm";
     loadtest "feature/console/suseconnect.pm";
@@ -821,6 +850,19 @@ elsif (get_var("SUPPORT_SERVER")) {
     unless (load_skenkins_tests()) {
         loadtest "support_server/wait.pm";
     }
+}
+elsif (get_var("HACLUSTER_SUPPORT_SERVER")) {
+    for my $clustername (split(/,/, get_var('CLUSTERNAME'))) {
+        mutex_create("MUTEX_HA_" . $clustername . "_FINISHED");    #support server can lock _FINISHED mutex when node1 finishes
+    }
+    for my $mutexname (qw(CLUSTER_INITIALIZED NODE2_JOINED OCFS2_INIT OCFS2_GROUPS_CREATED OCFS2_MKFS_DONE OCFS2_GROUP_ALTERED OCFS2_DATA_COPIED OCFS2_MD5_CHECKED BEFORE_FENCING FENCING_DONE LOGS_CHECKED)) {
+        mutex_create("MUTEX_${mutexname}_M1");                     #barrier_create mutexes
+        mutex_create("MUTEX_${mutexname}_M2");
+    }
+    loadtest "ha/ha_support_server.pm";
+}
+elsif (get_var("HACLUSTER")) {
+    load_hacluster_tests();
 }
 elsif (get_var("QA_TESTSET")) {
     loadtest "qa_automation/" . get_var("QA_TESTSET") . ".pm";
