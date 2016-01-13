@@ -140,6 +140,11 @@ unless (get_var("DESKTOP")) {
     }
 }
 
+# Tests currently rely on INSTLANG=en_US, so set it by default
+unless (get_var('INSTLANG')) {
+    set_var('INSTLANG', 'en_US');
+}
+
 # SLE specific variables
 set_var('NOAUTOLOGIN', 1);
 set_var('HASLICENSE',  1);
