@@ -446,7 +446,6 @@ sub load_consoletests() {
         loadtest "console/consoletest_setup.pm";
         loadtest "console/check_console_font.pm";
         loadtest "console/textinfo.pm";
-        loadtest "console/ay_profilecheck.pm";
         loadtest "console/hostname.pm";
         if (snapper_is_applicable) {
             if (get_var("UPGRADE")) {
