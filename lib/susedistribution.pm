@@ -148,7 +148,7 @@ sub ensure_installed {
 sub script_sudo($$) {
     my ($self, $prog, $wait) = @_;
 
-    send_key 'ctrl-l';
+    type_string "clear\n";
     type_string "su -c \'$prog\'\n";
     if (!get_var("LIVETEST")) {
         assert_screen 'password-prompt';
@@ -178,7 +178,7 @@ sub become_root {
     wait_serial("root", 6) || die "Root prompt not there";
     type_string "cd /tmp\n";
     $self->set_standard_prompt('root');
-    send_key('ctrl-l');
+    type_string "clear\n";
 }
 
 # initialize the consoles needed during our tests

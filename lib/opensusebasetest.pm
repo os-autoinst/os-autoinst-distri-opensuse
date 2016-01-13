@@ -2,13 +2,17 @@ package opensusebasetest;
 use base 'basetest';
 
 use testapi;
+use utils;
 
 # Base class for all openSUSE tests
 
+
+# Additional to backend testapi 'clear-console' we do a needle match to ensure
+# continuation only after verification
 sub clear_and_verify_console {
     my ($self) = @_;
 
-    send_key "ctrl-l";
+    clear_console;
     assert_screen('cleared-console');
 
 }

@@ -10,6 +10,7 @@
 
 use base "installbasetest";
 use testapi;
+use utils;
 use autotest;
 
 sub run() {
@@ -20,20 +21,20 @@ sub run() {
     type_string "crm status\n";
     assert_screen 'cluster-node-down';
     sleep 240;
-    send_key 'ctrl-l';
+    clear_console;
     type_string "crm status\n";
     assert_screen 'cluster-node-returned';
-    send_key 'ctrl-l';
+    clear_console;
     send_key 'ctrl-pgdn';
     send_key 'ret';
     type_string "ssh 10.0.2.17 -l root\n";
     sleep 10;
     type_string "nots3cr3t\n";
     sleep 10;
-    send_key 'ctrl-l';
+    clear_console;
     type_string "crm status\n";
     assert_screen 'cluster-status';
-    send_key 'ctrl-l';
+    clear_console;
     send_key 'ctrl-pgup';
 }
 

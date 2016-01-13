@@ -7,7 +7,7 @@ use strict;
 
 use testapi;
 
-our @EXPORT = qw/wait_boot unlock_if_encrypted/;
+our @EXPORT = qw/unlock_if_encrypted wait_boot clear_console/;
 
 sub unlock_if_encrypted {
 
@@ -86,6 +86,12 @@ sub wait_boot {
 
     assert_screen 'generic-desktop', 300;
     mouse_hide(1);
+}
+
+# 'ctrl-l' does not get queued up in buffer. If this happens to fast, the
+# screen would not be cleared
+sub clear_console {
+    type_string "clear\n";
 }
 
 1;

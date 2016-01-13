@@ -21,9 +21,9 @@ sub run() {
     x11_start_program("chromium");
 
     assert_screen 'chromium-main-window', 50;
-    send_key "esc";    # get rid of popup
+    send_key "esc";       # get rid of popup
     sleep 1;
-    send_key "ctrl-l";
+    send_key "ctrl-l";    # select text in address bar
     sleep 1;
     type_string "about:\n";
     assert_screen 'chromium-about', 15;

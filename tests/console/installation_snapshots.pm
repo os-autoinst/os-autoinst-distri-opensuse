@@ -10,6 +10,7 @@
 
 use base 'consoletest';
 use testapi;
+use utils;
 
 # fate#317973: Create initial snapshot at the end of installation/update
 # bnc#935923: Cleanup and consistent naming for snapshots made during installation
@@ -25,7 +26,7 @@ sub run() {
     $pattern = 'single\s*(\|[^|]*){4}\s*\|\s*number\s*\|\s*Initial Status\s*\|\s*important=yes' if get_var('JEOS');
     wait_serial($pattern, 5) || die 'installation snapshot test failed';
     script_run('exit');
-    send_key 'ctrl-l';
+    clear_console;
 }
 
 sub test_flags() {

@@ -10,6 +10,7 @@
 
 use base "installbasetest";
 use testapi;
+use utils;
 use autotest;
 
 sub run() {
@@ -18,7 +19,7 @@ sub run() {
     assert_screen 'cluster-init', 60;
     type_string "crm status\n";
     assert_screen 'cluster-status';
-    send_key 'ctrl-l';
+    clear_console;
 }
 
 1;

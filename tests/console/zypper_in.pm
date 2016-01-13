@@ -10,6 +10,7 @@
 
 use base "consoletest";
 use testapi;
+use utils;
 
 sub run() {
     my $self = shift;
@@ -19,7 +20,7 @@ sub run() {
 
     my $pkgname = get_var("PACKAGETOINSTALL");
     assert_script_run("zypper -n in screen $pkgname");
-    send_key "ctrl-l";    # clear screen to see that second update does not do any more
+    clear_console;    # clear screen to see that second update does not do any more
     assert_script_run("rpm -e $pkgname");
     script_run("rpm -q $pkgname");
     script_run('exit');

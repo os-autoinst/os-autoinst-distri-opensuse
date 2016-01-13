@@ -11,6 +11,7 @@
 use base "installbasetest";
 use strict;
 use testapi;
+use utils;
 
 sub createvm($) {
     my ($self, $nodenum) = @_;
@@ -32,7 +33,7 @@ sub createvm($) {
     send_key 'f8',                    1;
     send_key 'down',                  1;
     send_key 'ret',                   1;
-    send_key 'ctrl-l',                1;
+    clear_console;
 }
 
 sub run() {

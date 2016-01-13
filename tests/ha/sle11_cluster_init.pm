@@ -10,6 +10,7 @@
 
 use base "installbasetest";
 use testapi;
+use utils;
 use autotest;
 use lockapi;
 
@@ -19,7 +20,7 @@ sub run() {
         assert_screen 'cluster-init', 60;
         type_string "crm status\n";
         assert_screen 'cluster-status';
-        send_key 'ctrl-l';
+        clear_console;
         mutex_create('cluster-init');
     }
     else {
@@ -40,7 +41,7 @@ sub run() {
             type_string "tailf /var/log/messages\n";    # Probably redundant, remove if not needed
             save_screenshot();
         }
-        send_key 'ctrl-l';
+        clear_console;
     }
 }
 

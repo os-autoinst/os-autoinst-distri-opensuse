@@ -10,6 +10,7 @@
 
 use base "console_yasttest";
 use testapi;
+use utils;
 
 # test yast2 lan functionality
 # https://bugzilla.novell.com/show_bug.cgi?id=600576
@@ -59,12 +60,12 @@ sub run() {
     send_key "alt-o";                                   # OK=>Save&Exit
     assert_screen 'yast2-lan-exited', 90;
 
-    send_key "ctrl-l";                                  # clear screen
+    clear_console;
     script_run('echo $?');
     script_run('hostname');
     assert_screen 'test-yast2_lan-2';
 
-    send_key "ctrl-l";                                  # clear screen
+    clear_console;
     script_run('ip -o a s');
     script_run('ip r s');
     script_run('getent ahosts ' . get_var("OPENQA_HOSTNAME"));

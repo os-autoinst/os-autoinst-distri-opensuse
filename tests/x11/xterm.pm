@@ -10,6 +10,7 @@
 
 use base "x11test";
 use testapi;
+use utils;
 
 sub run() {
     my $self = shift;
@@ -17,8 +18,8 @@ sub run() {
     x11_start_program("xterm");
     sleep 2;
     type_string "cd\n";
-    sleep 1;              # go to $HOME (for KDE)
-    send_key "ctrl-l";    # clear
+    sleep 1;    # go to $HOME (for KDE)
+    clear_console;
     for (1 .. 13) { send_key "ret" }
     type_string "echo If you can see this text xterm is working.\n";
     sleep 2;

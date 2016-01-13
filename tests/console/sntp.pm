@@ -10,6 +10,7 @@
 
 use base "consoletest";
 use testapi;
+use utils;
 
 # for https://bugzilla.novell.com/show_bug.cgi?id=657626
 sub run() {
@@ -18,7 +19,7 @@ sub run() {
     script_sudo("perl qa_ntp.pl");
     wait_idle 90;
     assert_screen 'test-sntp-1', 3;
-    send_key "ctrl-l";    # clear screen
+    clear_console;
     script_run('echo sntp returned $?');
     assert_screen 'test-sntp-2', 3;
 }
