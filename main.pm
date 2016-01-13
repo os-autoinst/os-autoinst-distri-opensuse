@@ -181,6 +181,8 @@ if (   get_var("WITH_UPDATE_REPO")
     set_var('HAVE_ADDON_REPOS', 1);
 }
 
+set_var('HAVE_AY_PROFILE', 1);
+
 $needle::cleanuphandler = \&cleanup_needles;
 
 bmwqemu::save_vars();    # update variables
@@ -244,6 +246,15 @@ sub need_clear_repos() {
 
 sub have_addn_repos() {
     return !get_var("NET") && !get_var("EVERGREEN") && get_var("SUSEMIRROR") && !get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/;
+}
+
+sub have_ay_profile() {
+    if (get_var("NET") || get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/ || get_var("UPGRADE") || get_var("BOOT_HDD_IMAGE") || get_var("LIVECD") || get_var("INSTALLONLY")) {
+        # imposibble to create autoyast profile
+        set_var("HAVE_AY_PROFILE", 0);
+        bmwqemu::save_vars();    # update variables
+    }
+    return get_var("HAVE_AY_PROFILE");
 }
 
 sub system_is_livesystem() {
@@ -441,7 +452,9 @@ sub load_consoletests() {
         loadtest "console/consoletest_setup.pm";
         loadtest "console/check_console_font.pm";
         loadtest "console/textinfo.pm";
-        loadtest "console/ay_profilecheck.pm";
+        if (have_ay_profile) {
+            loadtest "console/ay_profilecheck.pm";
+        }
         loadtest "console/hostname.pm";
         if (snapper_is_applicable) {
             if (get_var("UPGRADE")) {
