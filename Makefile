@@ -1,3 +1,5 @@
+PERL5LIB:="../..:os-autoinst:lib:tests/installation:tests/x11:tests/qa_automation:tests/virt_autotest:$$PERL5LIB"
+
 .PHONY: all
 all:
 
@@ -24,13 +26,17 @@ tools/: os-autoinst/
 .PHONY: check-links
 check-links: tools/ os-autoinst/
 
-.PHONY: test-compile
-test-compile: check-links
-	export PERL5LIB="../..:os-autoinst:lib:tests/installation:tests/x11:tests/qa_automation:tests/virt_autotest:$$PERL5LIB" ; for f in `git ls-files "*.pm" || find . -name \*.pm|grep -v /os-autoinst/` ; do perl -c $$f 2>&1 | grep -v " OK$$" && exit 2; done ; true
-
 .PHONY: check-links
 tidy: check-links
 	tools/tidy --check
+
+.PHONY: test-compile
+test-compile: check-links
+	export PERL5LIB=${PERL5LIB} ; for f in `git ls-files "*.pm" || find . -name \*.pm|grep -v /os-autoinst/` ; do perl -c $$f 2>&1 | grep -v " OK$$" && exit 2; done ; true
+
+.PHONY: test-compile-changed
+test-compile-changed: tools/
+	export PERL5LIB=${PERL5LIB} ; for f in `git diff --name-only | grep '.pm'` ; do perl -c $$f 2>&1 | grep -v " OK$$" && exit 2; done ; true
 
 .PHONY: test
 test: tidy test-compile
