@@ -8,7 +8,7 @@ use testapi;
 sub clear_and_verify_console {
     my ($self) = @_;
 
-    send_key "ctrl-l";
+    script_run 'clear';
     assert_screen('cleared-console');
 
 }
