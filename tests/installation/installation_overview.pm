@@ -72,10 +72,15 @@ sub run() {
 
     # Save configuration as an autoyast profile
     # SLE's default is 'enabled' - so no action needed there.
-    if (!check_var('DISTRI', 'sle')) {
+    if (!check_var('DISTRI', 'sle') && get_var("HAVE_AY_PROFILE")) {
         if (!check_screen('ay-save-profile', 5)) {
             send_key_until_needlematch 'ay-writeit-selected', 'tab';
             send_key 'ret';
+        }
+        # must check intallation overview again since it will re-evaluating pacakges selection
+        assert_screen "inst-overview", 20;
+        if (get_var("XEN")) {
+            assert_screen "inst-xen-pattern", 5;
         }
     }
 }
