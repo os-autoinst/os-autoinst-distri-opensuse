@@ -193,6 +193,17 @@ bmwqemu::save_vars();    # update variables
 # dump other important ENV:
 logcurrentenv(qw"ADDONURL BIGTEST BTRFS DESKTOP HW HWSLOT LIVETEST LVM MOZILLATEST NOINSTALL REBOOTAFTERINSTALL UPGRADE USBBOOT ZDUP ZDUPREPOS TEXTMODE DISTRI NOAUTOLOGIN QEMUCPU QEMUCPUS RAIDLEVEL ENCRYPT INSTLANG QEMUVGA DOCRUN UEFI DVD GNOME KDE ISO ISO_MAXSIZE LIVECD NETBOOT NICEVIDEO NOIMAGES PROMO QEMUVGA SPLITUSR VIDEOMODE");
 
+sub is_server() {
+    return (get_var("OFW") || check_var("FLAVOR", "Server-DVD"));
+}
+
+sub is_jeos() {
+    return get_var('FLAVOR', '') =~ /^JeOS/;
+}
+
+sub is_staging () {
+    return get_var('STAGING');
+}
 
 sub xfcestep_is_applicable() {
     return check_var("DESKTOP", "xfce");
@@ -244,27 +255,15 @@ sub snapper_is_applicable() {
 }
 
 sub need_clear_repos() {
-    return get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/;
+    return is_staging;
 }
 
 sub have_addn_repos() {
-    return !get_var("NET") && !get_var("EVERGREEN") && get_var("SUSEMIRROR") && !get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/;
+    return !get_var("NET") && !get_var("EVERGREEN") && get_var("SUSEMIRROR") && !is_staging;
 }
 
 sub system_is_livesystem() {
     return (check_var("FLAVOR", 'Rescue-CD') || get_var("LIVETEST"));
-}
-
-sub is_server() {
-    return (get_var("OFW") || check_var("FLAVOR", "Server-DVD"));
-}
-
-sub is_jeos() {
-    return get_var('FLAVOR', '') =~ /^JeOS/;
-}
-
-sub is_staging () {
-    return get_var('STAGING');
 }
 
 sub loadtest($) {
@@ -481,7 +480,7 @@ sub load_consoletests() {
             loadtest "console/yast2_bootloader.pm";
         }
         loadtest "console/sshd.pm";
-        if (!get_var("LIVETEST") && !(get_var("FLAVOR", '') =~ /^Staging2?[\-]DVD$/)) {
+        if (!get_var("LIVETEST") && !is_staging) {
             # in live we don't have a password for root so ssh doesn't
             # work anyways, and except staging_core image, the rest of
             # staging_* images don't need run this test case
@@ -593,7 +592,7 @@ sub load_x11tests() {
     if (get_var("MOZILLATEST")) {
         loadtest "x11/mozmill_run.pm";
     }
-    if (!(get_var("FLAVOR", '') =~ /^Staging2?[\-]DVD$/ || system_is_livesystem)) {
+    if (!(is_staging || system_is_livesystem)) {
         loadtest "x11/chromium.pm";
         if (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64')) {
             # GOOGLE Chrome only exists for i586 and x86_64 arch
@@ -678,7 +677,7 @@ sub load_x11tests() {
             loadtest "x11/gimp.pm";
         }
     }
-    if (   !(get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/)
+    if (   !is_staging
         && !system_is_livesystem)
     {
         loadtest "x11/gnucash.pm";
