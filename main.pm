@@ -480,6 +480,9 @@ sub load_zdup_tests() {
 
 sub load_consoletests() {
     if (consolestep_is_applicable) {
+        if (get_var("ADDONS", "") =~ /rt/) {
+            loadtest "rt/kmp_modules.pm";
+        }
         loadtest "console/consoletest_setup.pm";
         loadtest "console/check_console_font.pm";
         loadtest "console/textinfo.pm";
@@ -796,9 +799,15 @@ else {
         load_zdup_tests();
     }
     elsif (get_var("BOOT_HDD_IMAGE")) {
-        loadtest "boot/boot_to_desktop.pm";
-        if (get_var("ADDONS")) {
-            loadtest "installation/addon_products_yast2.pm";
+        if (get_var("RT_TESTS")) {
+            set_var('INSTALLONLY', 1);
+            loadtest "rt/boot_rt_kernel.pm";
+        }
+        else {
+            loadtest "boot/boot_to_desktop.pm";
+            if (get_var("ADDONS")) {
+                loadtest "installation/addon_products_yast2.pm";
+            }
         }
     }
     elsif (is_jeos) {
