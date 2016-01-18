@@ -14,7 +14,7 @@ use testapi;
 use utils;
 
 sub run() {
-    send_key "ctrl-l", 1;
+    clear_console;
 
     # Print zypper repos
     script_run("zypper lr -d");

@@ -16,6 +16,7 @@
 use strict;
 use base 'basetest';
 use testapi;
+use utils;
 
 sub save_logs_and_continue {
     my $name = shift;
@@ -28,7 +29,7 @@ sub save_logs_and_continue {
     type_string "save_y2logs /tmp/y2logs-$name.tar.bz2\n";
     upload_logs "/tmp/y2logs-$name.tar.bz2";
     save_screenshot;
-    send_key "ctrl-l";
+    clear_console;
     send_key "alt-f7";
     wait_idle(5);
 }

@@ -10,6 +10,7 @@
 
 use base "installbasetest";
 use testapi;
+use utils;
 use autotest;
 
 sub connectssh($) {
@@ -22,7 +23,7 @@ sub connectssh($) {
     type_string "nots3cr3t\n";
     sleep 10;
     check_screen 'ha-ssh-login', 40;    #should be assert
-    send_key 'ctrl-l';
+    clear_console;
 }
 
 sub startvm($) {
@@ -32,7 +33,7 @@ sub startvm($) {
     sleep 5;
     type_string "nots3cr3t\n";
     sleep 5;
-    send_key 'ctrl-l';
+    clear_console;
 }
 
 sub fixvmnetwork($) {
@@ -52,7 +53,7 @@ sub fixvmnetwork($) {
     send_key 'down';
     send_key 'ret';
     sleep 5;
-    send_key 'ctrl-l';
+    clear_console;
 }
 
 sub rebootvm($) {
@@ -68,7 +69,7 @@ sub rebootvm($) {
     send_key 'down';
     send_key 'ret';
     sleep 5;
-    send_key 'ctrl-l';
+    clear_console;
 }
 
 sub checkboot($) {
@@ -79,7 +80,7 @@ sub checkboot($) {
     send_key 'down';
     send_key 'ret';
     sleep 5;
-    send_key 'ctrl-l';
+    clear_console;
 }
 
 sub run() {

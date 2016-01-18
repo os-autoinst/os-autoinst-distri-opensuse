@@ -10,6 +10,7 @@
 
 use base "installbasetest";
 use testapi;
+use utils;
 use autotest;
 
 sub joincluster() {
@@ -28,7 +29,7 @@ sub joincluster() {
         upload_logs "/root/hbreport.tar.bz2";
         save_screenshot();
     }
-    send_key 'ctrl-l';
+    clear_console;
 }
 
 sub run() {

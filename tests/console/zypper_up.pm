@@ -10,6 +10,7 @@
 
 use base "consoletest";
 use testapi;
+use utils;
 
 sub run() {
     my $self = shift;
@@ -30,7 +31,7 @@ sub run() {
 
     # XXX: does this below make any sense? what if updates got
     # published meanwhile?
-    send_key "ctrl-l";    # clear screen to see that second update does not do any more
+    clear_console;    # clear screen to see that second update does not do any more
     assert_script_run("zypper -n -q patch");
 
     script_run('exit');

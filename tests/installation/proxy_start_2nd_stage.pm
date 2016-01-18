@@ -11,6 +11,7 @@
 use base "installbasetest";
 use strict;
 use testapi;
+use utils;
 
 sub reconnectsshinstall($) {
     my ($nodenum) = @_;
@@ -31,7 +32,7 @@ sub waitfor2ndstage($) {
     send_key 'down',                1;
     send_key 'ret',                 1;
     sleep 5;
-    send_key 'ctrl-l', 1;
+    clear_console;
 }
 
 sub run() {

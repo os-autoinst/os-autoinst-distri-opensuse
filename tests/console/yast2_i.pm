@@ -10,6 +10,7 @@
 
 use base "console_yasttest";
 use testapi;
+use utils;
 
 sub run() {
     my $self        = shift;
@@ -73,7 +74,7 @@ sub run() {
     # yast might take a while on sle11 due to suseconfig
     wait_serial("yast2-i-status-0", 60) || die "yast didn't finish";
 
-    send_key "ctrl-l";                       # clear screen to see that second update does not do any more
+    clear_console;                           # clear screen to see that second update does not do any more
     assert_script_run("rpm -e $pkgname");    # erase $pkgname
     script_run("echo mark yast test");       # avoid zpper needle
     script_run("rpm -q $pkgname");

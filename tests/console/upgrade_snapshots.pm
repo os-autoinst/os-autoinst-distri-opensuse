@@ -10,6 +10,7 @@
 
 use base 'consoletest';
 use testapi;
+use utils;
 
 # fate#317900: Create snapshot before starting Upgrade
 
@@ -25,7 +26,7 @@ sub run() {
     wait_serial('post\s*(\|[^|]*){4}\s*\|\s*number\s*\|\s*after update\s*\|\s*important=yes', 5) || die 'upgrade snapshots test failed';
 
     script_run('exit');
-    send_key 'ctrl-l';
+    clear_console;
 }
 
 sub test_flags() {

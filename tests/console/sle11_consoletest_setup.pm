@@ -10,6 +10,7 @@
 
 use base "consoletest";
 use testapi;
+use utils;
 
 sub run() {
     my $self = shift;
@@ -46,7 +47,7 @@ sub run() {
     script_run "exit";
 
     save_screenshot;
-    send_key "ctrl-l";
+    clear_console;
 
     script_run("curl -L -v " . autoinst_url . "/data > test.data; echo \"curl-\$?\" > /dev/$serialdev");
     wait_serial("curl-0", 10) || die 'curl failed';
