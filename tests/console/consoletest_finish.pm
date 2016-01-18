@@ -73,8 +73,14 @@ sub run() {
             sleep 30;
         }
         wait_idle;
-        mouse_hide(1);
-        assert_screen 'generic-desktop';
+        if (get_var("DESKTOP_MINIMALX_INSTONLY")) {
+            # Desired wm was just installed and needs x11_login
+            assert_screen 'displaymanager', 200;
+        }
+        else {
+            mouse_hide(1);
+            assert_screen 'generic-desktop';
+        }
     }
 }
 

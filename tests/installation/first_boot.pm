@@ -22,6 +22,10 @@ sub run() {
 
     if (get_var("NOAUTOLOGIN")) {
         my $ret = assert_screen 'displaymanager', 200;
+        if (get_var('DESKTOP_MINIMALX_INSTONLY')) {
+            # return at the DM and log in later into desired wm
+            return;
+        }
         mouse_hide();
         if (get_var('DM_NEEDS_USERNAME')) {
             type_string $username;
