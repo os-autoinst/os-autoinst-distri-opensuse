@@ -20,6 +20,12 @@ sub run() {
         return;
     }
 
+    # return at the DM and log in later into awesome
+    if (check_var('DESKTOP', 'awesome')) {
+        assert_screen 'displaymanager', 200;
+        return;
+    }
+
     if (get_var("NOAUTOLOGIN")) {
         my $ret = assert_screen 'displaymanager', 200;
         mouse_hide();
