@@ -1,0 +1,26 @@
+# According to gfortran man page:
+#
+# -fsign-zero
+#    When enabled, floating point numbers of value zero with the sign bit set are
+#    written as negative number in formatted output and treated as negative in the
+#    "SIGN" intrinsic.
+#    -fno-sign-zero does not print the negative sign of zero values (or values
+#    rounded to zero for I/O) and regards zero as positive number in the "SIGN"
+#    intrinsic for compatibility with Fortran 77. The default is -fsign-zero.
+#
+# mnowak: So we can either choose to add -fno-sign-zero to emulate Fortran 77
+#         behavior, or patch the code to accept -0.0 and -.0 as variants.
+
+--- FM406.f 2002-04-30 11:46:51.000000000 +0200
++++ FM406.f 2016-01-07 16:19:29.830264520 +0100
+@@ -174,7 +174,9 @@ CT003*  TEST 3
+            AVCORR(2) = '  .0      '                                     01720406
+            AVCORR(3) = '+0.0      '                                     01730406
+            AVCORR(4) = ' +.0      '                                     01740406
+-           DO 40031 I = 1, 4                                            01750406
++           AVCORR(5) = '-0.0      '                                     01740406
++           AVCORR(6) = ' -.0      '                                     01740406
++           DO 40031 I = 1, 6                                            01750406
+            IF (A10VK.EQ.AVCORR(I)) IVCOMP = 1                           01760406
+            IF (IVCOMP - 1) 40031, 10030, 40031                          01770406
+ 40031      CONTINUE                                                     01780406
