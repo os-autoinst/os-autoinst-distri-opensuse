@@ -20,9 +20,6 @@ sub run() {
     # disable packagekitd
     script_run 'systemctl mask packagekit.service';
     script_run 'systemctl stop packagekit.service';
-    # scc registration is mandatory
-    script_run 'zypper lr -d';
-    assert_screen 'pool-and-update-channel';
     # toolchain channels
     if (!check_var('ADDONS', 'tcm')) {
         my $arch = get_var('ARCH');
