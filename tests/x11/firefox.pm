@@ -14,6 +14,10 @@ use testapi;
 
 sub start_firefox() {
     x11_start_program("firefox https://html5test.com/index.html", 6, {valid => 1});
+    # makes firefox as default browser
+    if (check_screen('firefox_default_browser')) {
+        assert_and_click 'firefox_default_browser_yes';
+    }
     # workaround for reader view , it grabed the focus than mainwindow
     if (check_screen('firefox_readerview_window', 30)) {
         assert_and_click 'firefox_readerview_window';
