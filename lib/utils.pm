@@ -7,7 +7,7 @@ use strict;
 
 use testapi;
 
-our @EXPORT = qw/unlock_if_encrypted wait_boot clear_console/;
+our @EXPORT = qw/unlock_if_encrypted wait_boot clear_console select_kernel/;
 
 sub unlock_if_encrypted {
 
@@ -92,6 +92,34 @@ sub wait_boot {
 # screen would not be cleared
 sub clear_console {
     type_string "clear\n";
+}
+
+sub select_kernel {
+    my $kernel = shift;
+
+    assert_screen 'grub2', 100;
+    if (check_screen "grub2-$kernel-selected", 2) {
+        send_key 'ret';
+    }
+    else {
+        send_key_until_needlematch 'grub2-advanced-options', 'down';
+        send_key 'ret';
+        send_key_until_needlematch "grub2-$kernel-selected", 'down';
+        send_key 'ret';
+    }
+    if (get_var('NOAUTOLOGIN')) {
+        my $ret = assert_screen 'displaymanager', 200;
+        mouse_hide();
+        if (get_var('DM_NEEDS_USERNAME')) {
+            type_string $username;
+        }
+        else {
+            send_key 'ret';
+            wait_idle;
+        }
+        type_string "$password";
+        send_key 'ret';
+    }
 }
 
 1;
