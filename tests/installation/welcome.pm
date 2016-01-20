@@ -32,7 +32,7 @@ sub run() {
     if (get_var("HASLICENSE")) {
         send_key $cmd{"accept"};    # accept license
     }
-    assert_screen "languagepicked", 2;
+    assert_screen "languagepicked";
     send_key $cmd{"next"};
     if (!check_var('INSTLANG', 'en_US') && check_screen "langincomplete", 1) {
         send_key "alt-f";

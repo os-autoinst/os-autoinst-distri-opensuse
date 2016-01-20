@@ -25,13 +25,13 @@ sub run {
     }
 
     # Login as root (no password)
-    assert_screen "rescuesystem-login", 20;
+    assert_screen "rescuesystem-login";
     type_string "root\n";
 
     # Clean the screen
     sleep 1;
     type_string "reset\n";
-    assert_screen "rescuesystem-prompt", 4;
+    assert_screen "rescuesystem-prompt";
 }
 
 sub test_flags() {

@@ -84,7 +84,7 @@ sub run() {
         $out = wait_serial([$zypper_dup_finish, $zypper_installing, $zypper_dup_notifications, $zypper_dup_error, $zypper_dup_fileconflict], 240);
     }
 
-    assert_screen "zypper-dup-finish", 2;
+    assert_screen "zypper-dup-finish";
     script_run("exit");
 }
 

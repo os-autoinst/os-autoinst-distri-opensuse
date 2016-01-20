@@ -40,15 +40,15 @@ sub run() {
     }
     type_string "5.0G";
     send_key $cmd{"next"};
-    assert_screen 'partition-role', 6;
+    assert_screen 'partition-role';
     send_key "alt-o";    # Operating System
     send_key $cmd{"next"};
     wait_idle 5;
     send_key "alt-m";        # Mount Point
     type_string "/usr\b";    # Backspace to break bad completion to /usr/local
-    assert_screen "partition-splitusr-submitted-usr", 3;
+    assert_screen "partition-splitusr-submitted-usr";
     send_key $cmd{"finish"};
-    assert_screen "partition-splitusr-finished", 3;
+    assert_screen "partition-splitusr-finished";
     send_key $cmd{"accept"}, 1;
     send_key "alt-y";        # Quit the warning window
 }

@@ -28,7 +28,7 @@ sub change_desktop() {
     # ncurses offers a faster way
     if (check_var('VIDEOMODE', 'text')) {
         send_key 'alt-c';
-        assert_screen 'inst-overview-options', 3;
+        assert_screen 'inst-overview-options';
         send_key 'alt-s';
     }
     else {
@@ -73,19 +73,19 @@ sub change_desktop() {
         wait_screen_change { send_key ' '; };
     }
 
-    assert_screen "desktop-selected", 5;
+    assert_screen "desktop-selected";
 
     if (check_var('VIDEOMODE', 'text')) {
         send_key 'alt-a';    # accept
         accept3rdparty;
-        assert_screen 'automatic-changes', 4;
+        assert_screen 'automatic-changes';
         send_key 'alt-o';    # OK
     }
     else {
         send_key 'alt-o';    # OK
         accept3rdparty;
     }
-    assert_screen 'inst-overview', 15;
+    assert_screen 'inst-overview';
 
 }
 

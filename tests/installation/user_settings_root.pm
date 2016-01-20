@@ -16,12 +16,12 @@ use testapi;
 sub run() {
     my $self = shift;
 
-    assert_screen "inst-rootpassword", 6;
+    assert_screen "inst-rootpassword";
     for (1 .. 2) {
         type_string "$password\t";
         sleep 1;
     }
-    assert_screen "rootpassword-typed", 3;
+    assert_screen "rootpassword-typed";
     send_key $cmd{"next"};
 
     # PW too easy (cracklib)

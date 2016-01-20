@@ -60,7 +60,7 @@ sub run() {
         for (1 .. 2) {
             send_key "up";
         }
-        assert_screen "inst-textselected", 5;
+        assert_screen "inst-textselected";
         send_key "ret";
     }
 
@@ -86,11 +86,11 @@ sub run() {
     # set HTTP-source to not use factory-snapshot
     if (get_var("NETBOOT")) {
         send_key "f4";
-        assert_screen "inst-instsourcemenu", 4;
+        assert_screen "inst-instsourcemenu";
         # select a net installation source (http, ftp, nfs, smb) by using send_key_until_needlematch
         send_key_until_needlematch 'inst-instsourcemenu-' . get_var('INSTALL_SOURCE', 'http'), 'down';
         send_key "ret";
-        assert_screen "inst-instsourcedialog-" . get_var('INSTALL_SOURCE', 'http'), 4;
+        assert_screen "inst-instsourcedialog-" . get_var('INSTALL_SOURCE', 'http');
 
         my $mirroraddr = "";
         my $mirrorpath = "/factory";
@@ -129,7 +129,7 @@ sub run() {
         # add a interval to prevent typo
         type_string $mirrorpath, 4;
 
-        assert_screen "inst-mirror_is_setup", 2;
+        assert_screen "inst-mirror_is_setup";
         send_key "ret";
 
         # HTTP-proxy
@@ -141,7 +141,7 @@ sub run() {
             }
             send_key "ret";
             type_string "$proxyhost\t$proxyport\n";
-            assert_screen "inst-proxy_is_setup", 2;
+            assert_screen "inst-proxy_is_setup";
 
             # add boot parameters
             # ZYPP... enables proxy caching
@@ -228,7 +228,7 @@ sub run() {
         if ($n && $n != $en_us) {
             $n -= $en_us;
             send_key "f2";
-            assert_screen "inst-languagemenu", 6;
+            assert_screen "inst-languagemenu";
             for (1 .. abs($n)) {
                 send_key($n < 0 ? "up" : "down");
             }

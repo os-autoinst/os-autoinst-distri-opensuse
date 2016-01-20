@@ -26,11 +26,11 @@ sub run() {
         type_password;
         send_key "tab";
         type_password;
-        send_key "ret",                             1;
-        assert_screen "partition-cryptlvm-summary", 3;
+        send_key "ret", 1;
+        assert_screen "partition-cryptlvm-summary";
     }
     else {
-        assert_screen "partition-lvm-summary", 3;
+        assert_screen "partition-lvm-summary";
     }
     wait_idle 5;
     send_key "alt-o";

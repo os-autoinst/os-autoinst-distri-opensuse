@@ -22,7 +22,7 @@ sub run() {
 
     if (get_var("UPGRADE")) {
         send_key "alt-u";    # Include Add-On Products
-        assert_screen "upgrade-selected", 2;
+        assert_screen "upgrade-selected";
     }
 
     if (get_var("HAVE_ADDON_REPOS")) {

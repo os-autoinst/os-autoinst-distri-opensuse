@@ -14,7 +14,7 @@ use testapi;
 
 sub run() {
     my %desktopkeys = (kde => "k", gnome => "g", xfce => "x", lxde => "l", minimalx => "m", textmode => "i");
-    assert_screen "desktop-selection", 30;
+    assert_screen "desktop-selection";
     my $d   = get_var("DESKTOP");
     my $key = "alt-$desktopkeys{$d}";
     if ($d eq "kde") {
@@ -23,7 +23,7 @@ sub run() {
     }
     elsif ($d eq "gnome") {
         send_key $key;
-        assert_screen "gnome-selected", 3;
+        assert_screen "gnome-selected";
     }
     else {    # lower selection level
         send_key "alt-o";    #TODO translate

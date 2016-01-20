@@ -29,7 +29,7 @@ sub run() {
         for (1 .. 10) { send_key 'backspace'; }
         type_string "zq1.de";
 
-        assert_screen 'hostname-typed', 4;
+        assert_screen 'hostname-typed';
         send_key $cmd{next};
 
         # network conf

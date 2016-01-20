@@ -17,7 +17,7 @@ sub run() {
     my $self = shift;
 
     # user setup
-    assert_screen "inst-usersetup", 10;
+    assert_screen "inst-usersetup";
     type_string $realname;
     send_key "tab";
 
@@ -26,14 +26,14 @@ sub run() {
     for (1 .. 2) {
         type_string "$password\t";
     }
-    assert_screen "inst-userinfostyped", 10;
+    assert_screen "inst-userinfostyped";
     if (get_var("NOAUTOLOGIN") && !check_screen('autologindisabled')) {
         send_key $cmd{"noautologin"};
-        assert_screen "autologindisabled", 5;
+        assert_screen "autologindisabled";
     }
     if (get_var("DOCRUN")) {
         send_key $cmd{"otherrootpw"};
-        assert_screen "rootpwdisabled", 5;
+        assert_screen "rootpwdisabled";
     }
 
     # done user setup
