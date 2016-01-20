@@ -25,6 +25,10 @@ sub run() {
             send_key_until_needlematch 'addon-dvd-list', 'tab', 10;     # jump into addon list
             send_key_until_needlematch "addon-dvd-$a",   'down', 10;    # select addon in list
             send_key 'alt-o';                                           # continue
+            if (check_screen('import-untrusted-gpg-key', 5)) {          # untrusted key pop-up, record soft fail and trust it
+                record_soft_failure;
+                send_key 'alt-t';
+            }
             my $b = uc $a;                                              # variable name is upper case
             if (get_var("BETA_$b")) {
                 assert_screen "addon-betawarning-$a", 10;
