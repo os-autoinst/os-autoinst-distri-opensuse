@@ -18,49 +18,60 @@ sub run() {
     assert_screen 'inst-addon';
     if (get_var("ADDONS")) {
         send_key 'alt-k', 3;    # install with addons
-        foreach $a (split(/,/, get_var('ADDONS'))) {
+        foreach my $addon (split(/,/, get_var('ADDONS'))) {
             send_key 'alt-d', 3;    # DVD
             send_key 'alt-n', 3;
             assert_screen 'dvd-selector';
-            send_key_until_needlematch 'addon-dvd-list', 'tab',  10;    # jump into addon list
-            send_key_until_needlematch "addon-dvd-$a",   'down', 10;    # select addon in list
-            send_key 'alt-o';                                           # continue
-            my $b = uc $a;                                              # variable name is upper case
-            if (get_var("BETA_$b")) {
-                assert_screen "addon-betawarning-$a";
+            send_key_until_needlematch 'addon-dvd-list',   'tab',  10;    # jump into addon list
+            send_key_until_needlematch "addon-dvd-$addon", 'down', 10;    # select addon in list
+            send_key 'alt-o';                                             # continue
+            my $uc_addon = uc $addon;                                     # variable name is upper case
+            if (get_var("BETA_$uc_addon")) {
+                assert_screen "addon-betawarning-$addon";
                 send_key "ret";
                 assert_screen "addon-license-beta";
             }
             else {
-                assert_screen "addon-license-$a";
+                assert_screen "addon-license-$addon";
             }
             sleep 2;
-            send_key 'alt-a';                                           # yes, agree
+            send_key 'alt-a';                                             # yes, agree
             sleep 2;
-            send_key 'alt-n';                                           # next
+            send_key 'alt-n';                                             # next
             assert_screen 'addon-list';
-            if ((split(/,/, get_var('ADDONS')))[-1] ne $a) {
+            if ((split(/,/, get_var('ADDONS')))[-1] ne $addon) {
                 send_key 'alt-a';
                 assert_screen 'addon-selection';
             }
         }
         assert_screen 'addon-list';
-        send_key 'alt-n', 3;                                            # done
+        send_key 'alt-n', 3;                                              # done
     }
     elsif (get_var("ADDONURL")) {
-        send_key 'alt-k';                                               # install with addons
-        send_key 'alt-u';                                               # specify url
-        send_key 'alt-n';
-        assert_screen 'addonurl-entry';
-        type_string get_var("ADDONURL");
-        send_key 'alt-e';                                               # name
-        type_string "incident0";
-        send_key 'alt-n';
-        assert_screen 'addonproduct-selection';
-        send_key 'alt-n';
+        send_key 'alt-k';                                                 # install with addons
+        foreach my $addon (split(/,/, get_var('ADDONURL'))) {
+            my $uc_addon = uc $addon;                                     # varibale name is upper case
+            send_key 'alt-u';                                             # specify url
+            send_key 'alt-n';
+            assert_screen 'addonurl-entry';
+            type_string get_var("ADDONURL_$uc_addon");                    # repo URL
+            send_key 'alt-e';                                             # repo name
+            type_string "$addon" . "_repo";
+            send_key 'alt-n', 2;
+            assert_screen 'addon-products';
+            send_key "tab",                                     1;        # select addon-products-$addon
+            send_key "pgup",                                    1;
+            send_key_until_needlematch "addon-products-$addon", 'down';
+            if ((split(/,/, get_var('ADDONURL')))[-1] ne $addon) {        # if $addon is not first from all ADDONS
+                send_key 'alt-a', 2;                                      # add another add-on
+            }
+            else {
+                send_key 'alt-n', 2;                                      # next
+            }
+        }
     }
     else {
-        send_key 'alt-n', 3;                                            # done
+        send_key 'alt-n', 3;                                              # done
     }
 
     if (check_screen("local-registration-servers", 10)) {
