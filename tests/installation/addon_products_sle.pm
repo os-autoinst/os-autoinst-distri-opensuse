@@ -38,14 +38,20 @@ sub run() {
             send_key 'alt-a';                                             # yes, agree
             sleep 2;
             send_key 'alt-n';                                             # next
-            assert_screen 'addon-list';
-            if ((split(/,/, get_var('ADDONS')))[-1] ne $addon) {
-                send_key 'alt-a';
-                assert_screen 'addon-selection';
+            assert_screen 'addon-products';
+            send_key "tab", 1;                                            # select addon-products-$addon
+            if (check_var('VIDEOMODE', 'text')) {                         # textmode need more tabs, depends on add-on count
+                send_key_until_needlematch "addon-list-selected", 'tab';
+            }
+            send_key "pgup",                                    1;
+            send_key_until_needlematch "addon-products-$addon", 'down';
+            if ((split(/,/, get_var('ADDONS')))[-1] ne $addon) {          # if $addon is not first from all ADDONS
+                send_key 'alt-a', 2;                                      # add another add-on
+            }
+            else {
+                send_key 'alt-n', 2;                                      # next
             }
         }
-        assert_screen 'addon-list';
-        send_key 'alt-n', 3;                                              # done
     }
     elsif (get_var("ADDONURL")) {
         send_key 'alt-k';                                                 # install with addons
@@ -59,7 +65,10 @@ sub run() {
             type_string "$addon" . "_repo";
             send_key 'alt-n', 2;
             assert_screen 'addon-products';
-            send_key "tab",                                     1;        # select addon-products-$addon
+            send_key "tab", 1;                                            # select addon-products-$addon
+            if (check_var('VIDEOMODE', 'text')) {                         # textmode need more tabs, depends on add-on count
+                send_key_until_needlematch "addon-list-selected", 'tab';
+            }
             send_key "pgup",                                    1;
             send_key_until_needlematch "addon-products-$addon", 'down';
             if ((split(/,/, get_var('ADDONURL')))[-1] ne $addon) {        # if $addon is not first from all ADDONS
