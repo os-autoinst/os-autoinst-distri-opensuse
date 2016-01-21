@@ -23,11 +23,6 @@ sub run() {
     x11_start_program("echo \"[General]\" >> ~/.kde4/share/config/kmail2rc");
     x11_start_program("echo \"first-start=false\" >> ~/.kde4/share/config/kmail2rc");
 
-    # this is the workaround as same as above but against kontact5
-    # once we got all KF5-based kdepim merged, we can drop the KDE4 workaround
-    x11_start_program("echo \"[General]\" >> ~/.config/kmail2rc");
-    x11_start_program("echo \"first-start=false\" >> ~/.config/kmail2rc");
-
     x11_start_program("kontact", 6, {valid => 1});
 
     # kontact has asking import data from another mailer
@@ -35,9 +30,8 @@ sub run() {
         send_key "alt-n";    # Don't
     }
 
-    # assert_screen "kontact-assistant", 20;
     assert_screen "test-kontact-1", 20;    # tips window or assistant
-    send_key "alt-f4";
+    send_key "alt-c";                      # KF5-based account assistant ignores alt-f4
     assert_screen "kontact-window", 3;
     send_key "alt-f4";
 }
