@@ -33,7 +33,7 @@ sub run() {
     # TODO: why not just script_run 'root' ?
     # switch to tty3 (in case we are in X)
     send_key "ctrl-alt-f3";
-    assert_screen "text-login", 5;
+    assert_screen "text-login";
     # Reboot after dup
     send_key "ctrl-alt-delete";
 

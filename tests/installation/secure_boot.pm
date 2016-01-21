@@ -25,7 +25,7 @@ sub run() {
     sleep 4;
 
     # Is secure boot enabled?
-    assert_screen "bootloader-secureboot-enabled", 5;
+    assert_screen "bootloader-secureboot-enabled";
     send_key $cmd{accept};        # Accept
     sleep 2;
     send_key "alt-o";             # cOntinue

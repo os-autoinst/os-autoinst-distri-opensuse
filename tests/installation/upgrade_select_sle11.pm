@@ -27,7 +27,7 @@ sub run() {
     # hardware detection can take a while
     assert_screen "select-for-update", 100;
     send_key $cmd{"next"}, 1;
-    assert_screen 'previously-used-repositories', 5;
+    assert_screen 'previously-used-repositories';
     if (!check_var('ADDONS', 'smt')) {
         send_key $cmd{"next"}, 1;
     }
@@ -53,17 +53,17 @@ sub run() {
             else {
                 send_key 'alt-d';                                              # DVD
                 send_key $cmd{"xnext"}, 1;
-                assert_screen 'dvd-selector',                3;
-                send_key_until_needlematch 'addon-dvd-list', 'tab', 10;
+                assert_screen 'dvd-selector';
+                send_key_until_needlematch 'addon-dvd-list', 'tab',  10;
                 send_key_until_needlematch "addon-dvd-$a",   'down', 10;
                 send_key 'alt-o';
                 if (get_var("BETA")) {
-                    assert_screen "addon-betawarning-$a", 10;
+                    assert_screen "addon-betawarning-$a";
                     send_key "ret";
-                    assert_screen "addon-license-beta", 10;
+                    assert_screen "addon-license-beta";
                 }
                 else {
-                    assert_screen "addon-license-$a", 10;
+                    assert_screen "addon-license-$a";
                 }
                 sleep 2;
                 send_key 'alt-y';    # yes, agree
@@ -77,7 +77,7 @@ sub run() {
             }
         }
         if (!check_var('ADDONS', 'smt')) {    # no add-on list for SMT
-            assert_screen 'addon-list', 5;
+            assert_screen 'addon-list';
             send_key $cmd{"next"}, 1;
         }
     }
@@ -85,7 +85,7 @@ sub run() {
         send_key $cmd{"next"}, 1;
     }
 
-    assert_screen "update-installation-overview", 15;
+    assert_screen "update-installation-overview";
 }
 
 1;

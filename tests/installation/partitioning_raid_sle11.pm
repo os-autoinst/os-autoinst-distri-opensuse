@@ -44,7 +44,7 @@ sub addraid($) {
     }
 
     send_key $cmd{"next"};
-    assert_screen 'partition-role', 6;
+    assert_screen 'partition-role';
     send_key "alt-o";    # Operating System
     send_key $cmd{"next"};
     wait_idle 3;
@@ -60,25 +60,25 @@ sub setraidlevel($) {
 sub run() {
     my ($self) = @_;
 
-    assert_screen 'inst-overview', 10;
+    assert_screen 'inst-overview';
     send_key $cmd{change};
     send_key 'p';    # partitioning
 
-    assert_screen 'preparing-disk', 5;
+    assert_screen 'preparing-disk';
     send_key 'alt-c';
     send_key $cmd{"next"};
-    assert_screen 'expert-partitioning', 5;
+    assert_screen 'expert-partitioning';
     send_key 'down';
     send_key 'down';
     if (get_var("OFW")) {    ## no RAID /boot partition for ppc
         send_key 'alt-p';
-        assert_screen 'add-partition', 5;
+        assert_screen 'add-partition';
         send_key 'alt-n';
-        assert_screen 'add-partition-size', 5;
+        assert_screen 'add-partition-size';
         send_key 'ctrl-a';
         type_string "200 MB";
         send_key 'alt-n';
-        assert_screen 'add-partition-type', 5;
+        assert_screen 'add-partition-type';
         send_key 'alt-d';
         send_key 'alt-i';
         my $prep_counter = 20;
@@ -90,7 +90,7 @@ sub run() {
             die "looping for too long/PReP not found" if (!$ret || $prep_counter-- == 0);
             if (check_screen("filesystem-prep", 1)) {
                 send_key 'ret';
-                assert_screen('expert-partitioning', 5);
+                assert_screen('expert-partitioning');
                 last;
             }
         }
@@ -107,50 +107,50 @@ sub run() {
 
     for (1 .. 4) {
         send_key 'alt-d';
-        assert_screen 'add-partition', 5;
+        assert_screen 'add-partition';
         send_key 'alt-n';
-        assert_screen 'add-partition-size', 5;
+        assert_screen 'add-partition-size';
         send_key 'ctrl-a';
         type_string "1 GB";
         send_key 'alt-n';
-        assert_screen 'add-partition-type', 5;
+        assert_screen 'add-partition-type';
         send_key 'alt-d';    #Do not format partition
         send_key 'alt-i';    #Filesystem ID
         send_key 'down';
         send_key 'down';
         send_key 'down';     #Linux RAID System Type
         send_key 'alt-f';
-        assert_screen('expert-partitioning', 5);
+        assert_screen('expert-partitioning');
 
         send_key 'alt-d';
-        assert_screen 'add-partition', 5;
+        assert_screen 'add-partition';
         send_key 'alt-n';
-        assert_screen 'add-partition-size', 5;
+        assert_screen 'add-partition-size';
         send_key 'ctrl-a';
         type_string "300 MB";
         send_key 'alt-n';
-        assert_screen 'add-partition-type', 5;
+        assert_screen 'add-partition-type';
         send_key 'alt-d';    #Do not format partition
         send_key 'alt-i';    #Filesystem ID
         send_key 'down';
         send_key 'down';
         send_key 'down';     #Linux RAID System Type
         send_key 'alt-f';
-        assert_screen('expert-partitioning', 5);
+        assert_screen('expert-partitioning');
 
         send_key 'alt-d';
-        assert_screen 'add-partition', 5;
+        assert_screen 'add-partition';
         send_key 'alt-n';
-        assert_screen 'add-partition-size', 5;
+        assert_screen 'add-partition-size';
         send_key 'alt-n';
-        assert_screen 'add-partition-type', 5;
+        assert_screen 'add-partition-type';
         send_key 'alt-d';    #Do not format partition
         send_key 'alt-i';    #Filesystem ID
         send_key 'down';
         send_key 'down';
         send_key 'down';     #Linux RAID System Type
         send_key 'alt-f';
-        assert_screen('expert-partitioning', 5);
+        assert_screen('expert-partitioning');
 
         # select next disk
         send_key "shift-tab";
@@ -161,7 +161,7 @@ sub run() {
 
     # select RAID add for /
     send_key 'alt-i';
-    assert_screen('add-raid', 5);
+    assert_screen('add-raid');
     setraidlevel(get_var("RAIDLEVEL"));
     send_key_until_needlematch 'raid-devices-selected', 'tab';
     send_key "down";
@@ -179,7 +179,7 @@ sub run() {
     wait_idle 3;
 
     send_key $cmd{"next"};
-    assert_screen 'add-partition-type', 6;
+    assert_screen 'add-partition-type';
     if (get_var("FILESYSTEM")) {
         send_key 'alt-s';    #goto filesystem list
         send_key ' ';        #open filesystem list
@@ -210,7 +210,7 @@ sub run() {
 
     # select RAID add for /boot
     send_key 'alt-i';
-    assert_screen('add-raid', 5);
+    assert_screen('add-raid');
     setraidlevel(1);    # RAID 1 for /boot
     send_key_until_needlematch 'raid-devices-selected', 'tab';
     send_key "down";    # start at the 300MB partition
@@ -227,7 +227,7 @@ sub run() {
     wait_idle 3;
 
     send_key $cmd{"next"};
-    assert_screen 'add-partition-type', 6;
+    assert_screen 'add-partition-type';
     send_key 'alt-m';    #goto mount point
     type_string "/boot";
     send_key 'alt-f';
@@ -235,7 +235,7 @@ sub run() {
 
     # select RAID add for swap
     send_key 'alt-i';
-    assert_screen('add-raid', 5);
+    assert_screen('add-raid');
     setraidlevel(0);     # RAID 0 for swap
     send_key_until_needlematch 'raid-devices-selected', 'tab';
     send_key "spc";      # only 4 partitions left
@@ -250,7 +250,7 @@ sub run() {
     wait_idle 3;
 
     send_key $cmd{"next"};
-    assert_screen 'add-partition-type', 6;
+    assert_screen 'add-partition-type';
     send_key 'alt-s';    #goto filesystem list
     send_key ' ';        #open filesystem list
     send_key 'home';     #go to top of the list
@@ -266,7 +266,7 @@ sub run() {
         if (check_screen("filesystem-swap", 1)) {
             send_key 'ret';
             send_key 'alt-f';
-            assert_screen('expert-partitioning', 5);
+            assert_screen('expert-partitioning');
             last;
         }
     }
@@ -277,19 +277,19 @@ sub run() {
     if (check_screen 'subvolumes-shadowed', 5) {
         send_key 'alt-y';
     }
-    assert_screen 'acceptedpartitioning', 6;
+    assert_screen 'acceptedpartitioning';
 
     if (!get_var("OFW")) {
         #Bootloader needs to be installed to MBR
         send_key 'alt-c';
         send_key 'b';
-        assert_screen 'bootloader-settings', 6;
+        assert_screen 'bootloader-settings';
         send_key 'alt-l';
-        assert_screen 'bootloader-installation-settings', 6;
+        assert_screen 'bootloader-installation-settings';
         send_key 'alt-m';
         send_key 'alt-o';
     }
-    assert_screen "inst-overview", 15;
+    assert_screen "inst-overview";
 }
 
 

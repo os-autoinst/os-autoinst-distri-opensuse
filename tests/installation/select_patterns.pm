@@ -34,7 +34,7 @@ sub run {
 
     if (check_var('VIDEOMODE', 'text')) {
         send_key 'alt-c';
-        assert_screen 'inst-overview-options', 3;
+        assert_screen 'inst-overview-options';
         send_key 'alt-s';
     }
     else {
@@ -60,12 +60,12 @@ sub run {
         send_key 'alt-f';
         for (1 .. 4) { send_key 'up'; }
         send_key 'ret';
-        assert_screen 'patterns-list-selected', 5;
+        assert_screen 'patterns-list-selected';
     }
     else {
         send_key 'tab';
-        send_key ' ',                           2;
-        assert_screen 'patterns-list-selected', 5;
+        send_key ' ', 2;
+        assert_screen 'patterns-list-selected';
     }
 
     my %wanted_patterns;
@@ -97,11 +97,11 @@ sub run {
             wait_screen_change {
                 send_key ' ';
             };
-            assert_screen 'current-pattern-selected', 2;
+            assert_screen 'current-pattern-selected', 5;
         }
         elsif (!$needs_to_be_selected && $selected) {
             send_key ' ';
-            assert_screen [qw(current-pattern-unselected current-pattern-autoselected)], 3;
+            assert_screen [qw(current-pattern-unselected current-pattern-autoselected)], 8;
         }
         movedownelseend;
     }
@@ -109,14 +109,14 @@ sub run {
     if (check_var('VIDEOMODE', 'text')) {
         send_key 'alt-a';    # accept
         accept3rdparty;
-        assert_screen 'automatic-changes', 4;
+        assert_screen 'automatic-changes';
         send_key 'alt-o';    # OK
     }
     else {
         send_key 'alt-o';
         accept3rdparty;
     }
-    assert_screen 'inst-overview', 15;
+    assert_screen 'inst-overview';
 }
 
 1;

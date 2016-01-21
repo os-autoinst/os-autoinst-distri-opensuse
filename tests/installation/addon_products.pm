@@ -38,7 +38,7 @@ sub run() {
                 send_key "alt-t", 1;                     # confirm import (trust) key
             }
         }
-        assert_screen 'test-addon_product-1', 3;
+        assert_screen 'test-addon_product-1';
         send_key $cmd{"next"}, 1;                        # done
     }
 
@@ -47,17 +47,17 @@ sub run() {
         foreach $a (split(/,/, get_var('ADDONS'))) {
             send_key 'alt-d';                            # DVD
             send_key $cmd{"xnext"}, 1;
-            assert_screen 'dvd-selector',                3;
+            assert_screen 'dvd-selector';
             send_key_until_needlematch 'addon-dvd-list', 'tab';
             send_key_until_needlematch "addon-dvd-$a",   'down';
             send_key 'alt-o';
             if (get_var("BETA")) {
-                assert_screen "addon-betawarning-$a", 10;
+                assert_screen "addon-betawarning-$a";
                 send_key "ret";
-                assert_screen "addon-license-beta", 10;
+                assert_screen "addon-license-beta";
             }
             else {
-                assert_screen "addon-license-$a", 10;
+                assert_screen "addon-license-$a";
             }
             sleep 2;
             send_key 'alt-y';    # yes, agree
@@ -66,7 +66,7 @@ sub run() {
             assert_screen 'addon-list';
             if ((split(/,/, get_var('ADDONS')))[-1] ne $a) {
                 send_key 'alt-a';
-                assert_screen 'addon-selection', 15;
+                assert_screen 'addon-selection';
             }
 
         }

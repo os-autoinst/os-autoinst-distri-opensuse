@@ -17,23 +17,23 @@ use testapi;
 #   $type == 3 => 0xFD Linux RAID
 sub addpart($) {
     my ($size) = @_;
-    assert_screen "expert-partitioner", 10;
+    assert_screen "expert-partitioner";
     send_key $cmd{addpart};
-    assert_screen "partitioning-type", 5;
+    assert_screen "partitioning-type";
     send_key $cmd{"next"};
 
-    assert_screen "partition-size", 5;
+    assert_screen "partition-size";
 
     for (1 .. 10) {
         send_key "backspace";
     }
     type_string $size . "mb";
-    assert_screen "partition-size", 3;
+    assert_screen "partition-size";
     send_key $cmd{"next"};
-    assert_screen 'partition-role', 6;
+    assert_screen 'partition-role';
     send_key "alt-a";    # Raw Volume
     send_key $cmd{"next"};
-    assert_screen 'partition-format', 8;
+    assert_screen 'partition-format';
     send_key $cmd{"donotformat"};
     send_key "tab";
 
@@ -66,7 +66,7 @@ sub addraid($;$) {
         type_string "\t$chunksize";
     }
     send_key $cmd{"next"};
-    assert_screen 'partition-role', 6;
+    assert_screen 'partition-role';
     if ($step == 3 and get_var("LVM")) {
         send_key "alt-a";    # Raw Volume
     }
@@ -97,14 +97,14 @@ sub set_lvm() {
     send_key "down";
     send_key "ret";
 
-    assert_screen 'lvmsetupraid', 6;
+    assert_screen 'lvmsetupraid';
     # add all unformated lvm devices
     send_key "alt-d";
 
     # set volume name
     send_key "alt-v";
     type_string "root";
-    assert_screen 'volumegroup-name-root', 5;
+    assert_screen 'volumegroup-name-root';
 
     send_key $cmd{"finish"}, 1;
 
@@ -116,7 +116,7 @@ sub set_lvm() {
 
     # create normal volume with name root
     type_string "root";
-    assert_screen 'volume-name-root', 5;
+    assert_screen 'volume-name-root';
     send_key $cmd{"next"};
 
     # keep default
@@ -134,33 +134,33 @@ sub run() {
 
     # create partitioning
     send_key $cmd{createpartsetup};
-    assert_screen 'createpartsetup', 3;
+    assert_screen 'createpartsetup';
 
     # user defined
     send_key $cmd{custompart};
     send_key $cmd{"next"}, 1;
-    assert_screen 'custompart', 9;
+    assert_screen 'custompart';
 
     send_key "tab";
     send_key "down";    # select disks
     if (get_var("OFW")) {    ## no RAID /boot partition for ppc
         send_key 'alt-p';
-        assert_screen 'partitioning-type', 5;
+        assert_screen 'partitioning-type';
         send_key 'alt-n';
-        assert_screen 'partitioning-size', 5;
+        assert_screen 'partitioning-size';
         send_key 'ctrl-a';
         type_string "200 MB";
         send_key 'alt-n';
-        assert_screen 'partition-role', 6;
+        assert_screen 'partition-role';
         send_key "alt-a";    # Raw Volume
         send_key 'alt-n';
-        assert_screen 'partition-format', 5;
+        assert_screen 'partition-format';
         send_key 'alt-d';
         send_key 'alt-i';
         send_key_until_needlematch 'filesystem-prep', 'down';
         send_key 'ret';
         send_key 'alt-f';
-        assert_screen 'custompart', 9;
+        assert_screen 'custompart';
         send_key 'alt-s';
         send_key 'right';
         send_key 'down';     #should select first disk'
@@ -176,7 +176,7 @@ sub run() {
         addpart(300);        # boot
         addpart(8000);       # root
         addpart(100);        # swap
-        assert_screen 'raid-partition', 15;
+        assert_screen 'raid-partition';
 
         # select next disk
         send_key "shift-tab";
@@ -243,10 +243,10 @@ sub run() {
     }
 
     if (get_var("LVM")) {
-        assert_screen 'acceptedpartitioningraidlvm', 6;
+        assert_screen 'acceptedpartitioningraidlvm';
     }
     else {
-        assert_screen 'acceptedpartitioning', 6;
+        assert_screen 'acceptedpartitioning';
     }
 }
 

@@ -17,7 +17,7 @@ sub run() {
     send_key 'alt-d';
     $closedialog = 1;
     $homekey     = 'alt-p';
-    assert_screen "partition-proposals-window", 5;
+    assert_screen "partition-proposals-window";
     send_key $homekey;
     for (1 .. 3) {
         if (!check_screen "disabledhome", 8) {
@@ -27,7 +27,7 @@ sub run() {
             last;
         }
     }
-    assert_screen "disabledhome", 5;
+    assert_screen "disabledhome";
     if ($closedialog) {
         send_key 'alt-o';
         $closedialog = 0;

@@ -18,7 +18,7 @@ sub run() {
 
     # overview-generation
     # this is almost impossible to check for real
-    assert_screen "inst-overview", 15;
+    assert_screen "inst-overview";
 
     # preserve it for the video
     wait_idle 10;
@@ -28,7 +28,7 @@ sub run() {
         record_soft_failure;
         if (check_var('VIDEOMODE', 'text')) {
             send_key 'alt-c';
-            assert_screen 'inst-overview-options', 3;
+            assert_screen 'inst-overview-options';
             send_key 'alt-s';
         }
         else {
@@ -49,9 +49,9 @@ sub run() {
                 send_key 'spc',   3;
                 send_key 'alt-o', 3;
             }
-            send_key 'alt-a',                           3;
-            send_key 'alt-o',                           3;
-            assert_screen "inst-overview-after-depfix", 15;    # Make sure you're back on the inst-overview before doing anything else
+            send_key 'alt-a', 3;
+            send_key 'alt-o', 3;
+            assert_screen "inst-overview-after-depfix";    # Make sure you're back on the inst-overview before doing anything else
         }
         else {
             save_screenshot;

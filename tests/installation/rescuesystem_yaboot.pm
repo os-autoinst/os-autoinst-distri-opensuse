@@ -34,7 +34,7 @@ sub run {
     # Clean the screen
     sleep 1;
     type_string "reset\n";
-    assert_screen "rescuesystem-prompt", 4;
+    assert_screen "rescuesystem-prompt";
 }
 
 sub test_flags() {

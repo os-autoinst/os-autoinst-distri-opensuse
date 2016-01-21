@@ -31,7 +31,7 @@ sub run() {
                 }
 
                 assert_and_click 'packages-section-selected';
-                assert_screen "package-conflict", 20;
+                assert_screen "package-conflict";
 
                 while (!check_screen('all-conflicts-resolved-packages', 4)) {
                     assert_and_click 'package-conflict-choice';
@@ -42,7 +42,7 @@ sub run() {
                 while (check_screen('license-popup', 2)) {
                     send_key $cmd{"accept"}, 1;
                 }
-                assert_screen "automatic-changes", 5;
+                assert_screen "automatic-changes";
                 send_key $cmd{"continue"}, 1;
 
                 send_key $cmd{update};
@@ -95,7 +95,7 @@ sub run() {
                 last if $ret->{needle}->has_tag("installation-details-view");
 
                 # intention to let this test fail
-                assert_screen 'installation-details-view', 1
+                assert_screen 'installation-details-view'
                   if $ret->{needle}->has_tag("grub2");
             }
             send_key $cmd{instdetails};
