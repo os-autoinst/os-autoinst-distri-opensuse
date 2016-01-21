@@ -13,7 +13,7 @@ sub use_ifconfig() {
 }
 
 sub get_ip_address() {
-    if (!get_var('NET') && !check_var('BACKEND', 's390x')) {
+    if (!get_var('NET') && !check_var('ARCH', 's390x')) {
         if (get_var('OLD_IFCONFIG')) {
             use_ifconfig;
         }
