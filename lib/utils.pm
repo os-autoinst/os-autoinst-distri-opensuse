@@ -98,10 +98,11 @@ sub select_kernel {
     my $kernel = shift;
 
     assert_screen 'grub2', 100;
-    if (check_screen "grub2-$kernel-selected", 2) {
+    send_key 'up';    # stop grub2 countdown
+    if (check_screen "grub2-$kernel-selected", 2) {    # if requested kernel is selected continue
         send_key 'ret';
     }
-    else {
+    else {                                             # else go to that kernel thru grub2 advanced options
         send_key_until_needlematch 'grub2-advanced-options', 'down';
         send_key 'ret';
         send_key_until_needlematch "grub2-$kernel-selected", 'down';
