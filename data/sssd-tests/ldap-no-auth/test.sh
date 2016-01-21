@@ -6,8 +6,8 @@ set -e
 trap sssd_test_common_cleanup EXIT SIGINT SIGTERM
 sssd_test_common_setup
 
-export SPECNAME=sssd.ldap
-test_suite_start 'Use SSSD with LDAP backend'
+export SPECNAME=sssd.ldap_no_auth
+test_suite_start 'Use SSSD with LDAP backend but without providing authentication'
 
 # Prepare LDAP certificates and database
 mkdir -p /tmp/ldap-sssdtest &&
@@ -71,9 +71,7 @@ test_ok
 
 ldappasswd -x -D 'cn=root,dc=ldapdom,dc=net' -wpass -sgoodpass 'uid=testuser1,ou=UnixUser,dc=ldapdom,dc=net'
 test_case 'Login via PAM'
-../pamtest.py login testuser1 goodpass || test_fatal 'Failed to login as testuser1'
-! ../pamtest.py login testuser2 badpass &> /dev/null || test_fatal 'Failed to deny login of incorrect password'
-! ../pamtest.py login doesnotexist badpass &> /dev/null || test_fatal 'Failed to deny login of false username'
+! ../pamtest.py login testuser1 goodpass || test_fatal 'Disabled authentication provider did not reject login'
 test_ok
 
 test_suite_end
