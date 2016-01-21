@@ -74,7 +74,7 @@ sub run {
 
         curl "' . $verify_url . '" > verify.sh
         chmod 755 verify.sh
-        ./verify.sh"
+        ./verify.sh
         ');
         $success = 1 if $res =~ /AUTOYAST OK/;
     }
