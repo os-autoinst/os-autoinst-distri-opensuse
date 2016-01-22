@@ -7,7 +7,7 @@ use strict;
 
 use testapi;
 
-our @EXPORT = qw/unlock_if_encrypted wait_boot clear_console select_kernel/;
+our @EXPORT = qw/unlock_if_encrypted wait_boot clear_console select_kernel check_console_font/;
 
 sub unlock_if_encrypted {
 
@@ -120,6 +120,17 @@ sub select_kernel {
         }
         type_string "$password";
         send_key 'ret';
+    }
+}
+
+# 13.2, Leap 42.1, SLE12 GA&SP1 have problems with setting up the
+# console font, we need to call systemd-vconsole-setup to workaround
+# that
+sub check_console_font {
+    # Ensure the echo of input actually happened by using assert_script_run
+    assert_script_run "echo Jeder wackere Bayer vertilgt bequem zwo Pfund Kalbshaxen. 0123456789";
+    if (check_screen "broken-console-font", 5) {
+        assert_script_sudo("/usr/lib/systemd/systemd-vconsole-setup");
     }
 }
 
