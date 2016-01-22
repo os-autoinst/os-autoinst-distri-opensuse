@@ -168,7 +168,8 @@ if (check_var('DESKTOP', 'minimalx')) {
 }
 
 # now Plasma 5 is default KDE desktop
-if (check_var('DESKTOP', 'kde')) {
+# openSUSE version less than or equal to 13.2 have to set KDE4 variable as 1
+if (check_var('DESKTOP', 'kde') && !get_var('KDE4')) {
     set_var("PLASMA5", 1);
 }
 
@@ -619,7 +620,12 @@ sub load_x11tests() {
     }
     if (kdestep_is_applicable) {
         loadtest "x11/khelpcenter.pm";
-        loadtest "x11/systemsettings.pm";
+        if (get_var("PLASMA5")) {
+            loadtest "x11/systemsettings5.pm";
+        }
+        else {
+            loadtest "x11/systemsettings.pm";
+        }
         loadtest "x11/dolphin.pm";
     }
     if (snapper_is_applicable) {
