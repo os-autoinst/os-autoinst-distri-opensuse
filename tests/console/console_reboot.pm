@@ -19,6 +19,7 @@ sub run() {
     wait_boot;
     select_console 'user-console';
     assert_script_sudo "chown $username /dev/$serialdev";
+    check_console_font;
 }
 
 sub test_flags() {
