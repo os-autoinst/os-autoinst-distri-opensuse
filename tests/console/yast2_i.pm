@@ -66,9 +66,16 @@ sub run() {
 
     # Whether summary is shown depends on PKGMGR_ACTION_AT_EXIT in /etc/sysconfig/yast2
     # We actually can never be sure how this is set, so let's just check:
-    if (check_screen('yast2-sw_shows_summary', 10)) {
-        send_key 'alt-f';
-        record_soft_failure if get_var("YAST_SW_NO_SUMMARY");
+    while (check_screen(['yast2-sw_shows_summary', 'yast2-sw_automatic-changes'], 10)) {
+        if (match_has_tag('yast2-sw_automatic-changes')) {
+            send_key 'alt-o';
+            next;
+        }
+        if (match_has_tag('yast2-sw_shows_summary')) {
+            send_key 'alt-f';
+            record_soft_failure if get_var("YAST_SW_NO_SUMMARY");
+        }
+        last;
     }
 
     # yast might take a while on sle11 due to suseconfig
