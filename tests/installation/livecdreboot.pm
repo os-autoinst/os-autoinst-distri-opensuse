@@ -71,6 +71,7 @@ sub run() {
     # yet long enough to make sense to even have the test.
     my $ret = check_screen "grub2", 30;
     if (defined($ret)) {
+        send_key 'up';    # prevent grub2 timeout
         if (get_var("BOOT_TO_SNAPSHOT")) {
             send_key_until_needlematch("boot-menu-snapshot", 'down', 10, 5);
             send_key 'ret';
