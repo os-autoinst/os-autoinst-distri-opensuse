@@ -32,7 +32,7 @@ sub run() {
     script_run("umount /var/tmp/mnt");
 
     # become user again
-    script_run('exit');
+    type_string "exit\n";
     assert_screen 'test-sshfs-1', 3;
 }
 

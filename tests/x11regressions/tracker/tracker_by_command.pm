@@ -17,12 +17,9 @@ use testapi;
 sub run() {
     my $self = shift;
     x11_start_program("xterm");
-    sleep 2;
-    wait_idle;
     script_run "tracker-search newfile";
-    sleep 5;
     assert_screen 'tracker-cmdsearch-newfile';
-    script_run "exit";
+    send_key 'alt-f4';
 }
 
 1;

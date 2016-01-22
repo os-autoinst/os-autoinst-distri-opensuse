@@ -61,7 +61,7 @@ sub run() {
     wait_serial('It worked', 100) || die "Reading from nfs failed.";
 
     # Exit from root
-    script_run 'exit';
+    type_string "exit\n";
 }
 
 1;

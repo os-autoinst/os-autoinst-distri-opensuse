@@ -26,7 +26,7 @@ sub run() {
     script_run "hostname";
     assert_screen("hostname-$hostname");
 
-    script_run "exit";
+    type_string "exit\n";
 }
 
 sub test_flags() {

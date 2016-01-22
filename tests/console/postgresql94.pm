@@ -24,7 +24,7 @@ sub run() {
     script_run "/usr/bin/psql --help && echo 'postgresql94_client_started' > /dev/$serialdev";
     die "postgresql94 client failed" unless wait_serial "postgresql94_client_started", 200;
 
-    script_run "exit";
+    type_string "exit\n";
 }
 
 1;

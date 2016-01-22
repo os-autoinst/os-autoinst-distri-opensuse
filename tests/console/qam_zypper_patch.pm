@@ -27,7 +27,7 @@ sub run() {
     $ret =~ /zypper-patch-(\d+)/;
     die "zypper failed with code $1" unless $1 == 0 || $1 == 102 || $1 == 103;
 
-    script_run('exit');
+    type_string "exit\n";
 }
 
 sub test_flags() {

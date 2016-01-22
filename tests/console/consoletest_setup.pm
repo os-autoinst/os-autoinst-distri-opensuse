@@ -16,11 +16,10 @@ use utils;
 sub run() {
     my $self = shift;
 
-    wait_idle;
     # let's see how it looks at the beginning
     save_screenshot;
 
-    if (!check_var('BACKEND', 's390x')) {
+    if (!check_var('ARCH', 's390x')) {
         # verify there is a text console on tty1
         send_key "ctrl-alt-f1";
         assert_screen "tty1-selected", 15;
@@ -28,7 +27,6 @@ sub run() {
 
     # init
     select_console 'user-console';
-
 
     become_root;
     script_run "chown $username /dev/$serialdev";
@@ -45,7 +43,7 @@ sub run() {
     script_run "zypper -n rm patterns-openSUSE-minimal_base-conflicts";
     # Install curl and tar in order to get the test data
     assert_script_run "zypper -n install curl tar";
-    script_run "exit";
+    type_string "exit\n";
 
     save_screenshot;
     clear_console;

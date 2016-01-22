@@ -36,7 +36,7 @@ sub run() {
     script_run "docker run --rm alpine wget http://google.com && echo 'container_network_works' > /dev/$serialdev";
     die "network does not work inside of the container" unless wait_serial "container_network_works", 200;
 
-    script_run "exit";
+    type_string "exit\n";
 }
 
 1;

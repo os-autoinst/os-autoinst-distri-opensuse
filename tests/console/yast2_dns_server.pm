@@ -120,7 +120,7 @@ sub run() {
     $self->assert_enabled(0);
 
     # Exit from root
-    script_run 'exit';
+    type_string "exit\n";
 }
 
 1;

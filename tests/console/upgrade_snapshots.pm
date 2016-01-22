@@ -17,15 +17,15 @@ use utils;
 sub run() {
     become_root();
 
-    script_run("snapper list | tee /dev/$serialdev");
+    script_run("snapper list | tee /dev/$serialdev", 0);
     # Check if the snapshot called 'before update' is there
     wait_serial('pre\s*(\|[^|]*){4}\s*\|\s*number\s*\|\s*before update\s*\|\s*important=yes', 5) || die 'upgrade snapshots test failed';
 
-    script_run("snapper list | tee /dev/$serialdev");
+    script_run("snapper list | tee /dev/$serialdev", 0);
     # Check if the snapshot called 'after update' is there
     wait_serial('post\s*(\|[^|]*){4}\s*\|\s*number\s*\|\s*after update\s*\|\s*important=yes', 5) || die 'upgrade snapshots test failed';
 
-    script_run('exit');
+    type_string "exit\n";
     clear_console;
 }
 

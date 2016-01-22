@@ -26,11 +26,11 @@ EOS
     validate_script_output $script, sub { m/Installing:.*alsa/ || m/'alsa' is already installed/ }, 120;
 
     $self->clear_and_verify_console;
-    script_run('exit');
+    type_string "exit\n";
 
     assert_script_run('set_default_volume -f');
 
-    script_run('alsamixer');
+    script_run('alsamixer', 0);
     assert_screen 'test-aplay-2', 3;
     send_key "esc";
     $self->clear_and_verify_console;

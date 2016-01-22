@@ -23,11 +23,11 @@ sub run() {
 
     assert_script_run "echo 'download.use_deltarpm = false' >> /etc/zypp/zypp.conf";
 
-    script_run('exit');
+    type_string "exit\n";
 }
 
 sub test_flags() {
-    return {fatal => 1,};
+    return {fatal => 1};
 }
 
 1;

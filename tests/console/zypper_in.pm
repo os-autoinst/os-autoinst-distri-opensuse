@@ -23,8 +23,8 @@ sub run() {
     clear_console;    # clear screen to see that second update does not do any more
     assert_script_run("rpm -e $pkgname");
     script_run("rpm -q $pkgname");
-    script_run('exit');
     assert_screen "package-$pkgname-not-installed", 5;
+    type_string "exit\n";
 }
 
 1;

@@ -35,7 +35,8 @@ sub run() {
     type_string "$ssh_testman_passwd\n";
     assert_screen "retry-new-password", 5;
     type_string "$ssh_testman_passwd\n";
-    script_run('exit');
+    type_string "exit\n";
+
     # login use new user account
     script_run('ssh ' . $ssh_testman . '@localhost -t echo LOGIN_SUCCESSFUL');
     my $ret = assert_screen "ssh-login", 60;

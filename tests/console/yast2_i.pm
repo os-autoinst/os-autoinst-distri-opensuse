@@ -78,9 +78,8 @@ sub run() {
     assert_script_run("rpm -e $pkgname");    # erase $pkgname
     script_run("echo mark yast test");       # avoid zpper needle
     script_run("rpm -q $pkgname");
-    sleep 2;
-    script_run('exit');
     assert_screen("yast-package-$pkgname-not-installed", 1);
+    type_string "exit\n";
 }
 
 1;

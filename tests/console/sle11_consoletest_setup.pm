@@ -15,7 +15,6 @@ use utils;
 sub run() {
     my $self = shift;
 
-    wait_idle;
     # let's see how it looks at the beginning
     save_screenshot;
 
@@ -44,7 +43,7 @@ sub run() {
 
     become_root;
     script_run "chmod 444 /usr/sbin/packagekitd";    # packagekitd will be not executable
-    script_run "exit";
+    type_string "exit\n";
 
     save_screenshot;
     clear_console;

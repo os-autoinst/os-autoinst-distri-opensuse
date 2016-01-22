@@ -85,7 +85,7 @@ sub run() {
     }
 
     assert_screen "zypper-dup-finish";
-    script_run("exit");
+    type_string "exit\n";
 }
 
 sub test_flags() {

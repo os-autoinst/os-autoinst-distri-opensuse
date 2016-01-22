@@ -33,7 +33,7 @@ sub run() {
 
     assert_screen 'snapper_undochange', 3;
 
-    script_run('exit');
+    type_string "exit\n";
 }
 
 sub test_flags() {
