@@ -26,7 +26,6 @@ sub run() {
     wait_serial('post\s*(\|[^|]*){4}\s*\|\s*number\s*\|\s*after update\s*\|\s*important=yes', 5) || die 'upgrade snapshots test failed';
 
     type_string "exit\n";
-    clear_console;
 }
 
 sub test_flags() {

@@ -23,13 +23,12 @@ sub run() {
 
     # Delete snapfile
     script_run "snapper undochange $snapbf..$snapaf $snapfile";
-    script_run "test -f $snapfile || echo \"snap-ba-ok\" > /dev/$serialdev";
+    script_run("test -f $snapfile || echo \"snap-ba-ok\" > /dev/$serialdev", 0);
     wait_serial("snap-ba-ok", 10) || die "Snapper undochange $snapbf..$snapaf failed";
 
     # Restore snapfile
     script_run "snapper undochange $snapaf..$snapbf $snapfile";
-    script_run "test -f $snapfile && echo \"snap-ab-ok\" > /dev/$serialdev";
-    wait_serial("snap-ab-ok", 10) || die "Snapper undochange $snapaf..$snapbf failed";
+    assert_script_run "test -f $snapfile", 10;
 
     assert_screen 'snapper_undochange', 3;
 

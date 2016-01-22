@@ -105,7 +105,7 @@ sub run() {
     assert_script_run "tar -xzf /home/$username/data/yast2_snapper.tgz";
 
     # Start the yast2 snapper module and wait until it is started
-    script_run "yast2 snapper", 0;
+    script_run "yast2 snapper",              0;
     assert_screen 'yast2_snapper-snapshots', 100;
     # Select the new snapshot
     unless ($self->y2snapper_select_snapshot) {

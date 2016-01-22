@@ -26,7 +26,6 @@ sub run() {
     $pattern = 'single\s*(\|[^|]*){4}\s*\|\s*number\s*\|\s*Initial Status\s*\|\s*important=yes' if get_var('JEOS');
     wait_serial($pattern, 5) || die 'installation snapshot test failed';
     type_string "exit\n";
-    clear_console;
 }
 
 sub test_flags() {

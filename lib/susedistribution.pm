@@ -148,14 +148,20 @@ sub ensure_installed {
 sub script_sudo($$) {
     my ($self, $prog, $wait) = @_;
 
-    type_string "clear\n";
-    type_string "su -c \'$prog\'\n";
+    my $str = time;
+    if ($wait > 0) {
+        $prog = "$prog; echo $str-\$?- > /dev/$testapi::serialdev";
+    }
+    type_string "clear; su -c \'$prog\'\n";
     if (!get_var("LIVETEST")) {
         assert_screen 'password-prompt';
         type_password;
         send_key "ret";
     }
-    wait_idle $wait;
+    if ($wait > 0) {
+        return wait_serial("$str-\\d+-");
+    }
+    return;
 }
 
 sub set_standard_prompt {
@@ -173,7 +179,7 @@ sub set_standard_prompt {
 sub become_root {
     my ($self) = @_;
 
-    $self->script_sudo('bash', 1);
+    $self->script_sudo('bash', 0);
     type_string "whoami > /dev/$testapi::serialdev\n";
     wait_serial("root", 6) || die "Root prompt not there";
     type_string "cd /tmp\n";
