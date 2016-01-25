@@ -22,13 +22,11 @@ sub run() {
 
     if (!check_var('BACKEND', 's390x')) {
         # verify there is a text console on tty1
-        send_key "ctrl-alt-f1";
-        assert_screen "tty1-selected", 15;
+        send_key_until_needlematch "tty1-selected", "ctrl-alt-f1", 6, 5;
     }
 
     # init
     select_console 'user-console';
-
 
     become_root;
     script_run "chown $username /dev/$serialdev";
