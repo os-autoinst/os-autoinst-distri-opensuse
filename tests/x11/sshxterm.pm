@@ -8,6 +8,12 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+## this script test ssh -X-forwarding.
+## first open xterm, check ssh socket opening port with ssh with ss
+## and type the password with security/no race condition (1).
+## after send a command through ssh -X and check with wait_serial (2)
+
+
 use base "x11test";
 use testapi;
 
@@ -15,20 +21,16 @@ sub run() {
     my $self = shift;
     mouse_hide(1);
     x11_start_program("xterm");
-    script_run("ssh -XC root\@localhost xterm");
-    type_string "yes\n";
-    wait_idle 6;
+    # (1) ss for wait until the socket is opened from localhost.
+    # "ESTAB", AND ::1:ssh, AND dport(destination-port) for control with exactitude, that a inc. port from ssh only from localhost is open.
+    script_run("for i in {1..100}; do /usr/sbin/ss -at dport = :ssh | tail -n1 >/dev/$serialdev; sleep 3; done & ");
+    script_run("ssh  -o  \"StrictHostKeyChecking no\" -XC root\@localhost \" echo \"TEST SSH-X-forwarding OK \" >/dev/$serialdev; \" ");
+    # (2)
+    wait_serial('ESTAB.*::1:ssh') || die 'SSH -X forwarding port could not be opened. Network Problem ? ';
     type_string "$password\n";
-    sleep 2;
-    for (1 .. 13) { send_key "ret" }
-    $self->set_standard_prompt();
-    type_string "echo If you can see this text, ssh-X-forwarding  is working.\n";
-    sleep 2;
-    assert_screen 'test-sshxterm-1', 3;
-    send_key "alt-f4";
-    sleep 1;
-    send_key "alt-f4";
-    sleep 2;
+    wait_serial('TEST SSH-X-forwarding OK') || die "SSH -X ERROR. Port/Socket Opened but something went wrong with xterm";
+    # close xterm
+    type_string("exit\n");
 }
 
 1;
