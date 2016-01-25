@@ -61,9 +61,9 @@ sub run {
 
         #repeat until timeout or login screen
         if (defined $ret) {
-            last if $ret->{needle}->has_tag("bios-boot") || $ret->{needle}->has_tag("reboot-after-installation");
+            last if match_has_tag("bios-boot") || match_has_tag("reboot-after-installation");
 
-            if ($ret->{needle}->has_tag('autoyast-error')) {
+            if (match_has_tag('autoyast-error')) {
                 send_key "alt-s";    #stop
                 save_logs_and_continue("stage1_error$i");
                 $i++;
@@ -72,7 +72,7 @@ sub run {
                 wait_idle(5);
                 $num_errors++;
             }
-            elsif ($ret->{needle}->has_tag('autoyast-confirm')) {
+            elsif (match_has_tag('autoyast-confirm')) {
                 # select network (second entry)
                 send_key "ret";
 
@@ -84,7 +84,7 @@ sub run {
                 @needles = grep { $_ ne 'autoyast-confirm' } @needles;
                 $confirmed = 1;
             }
-            elsif ($ret->{needle}->has_tag('autoyast-postpartscript')) {
+            elsif (match_has_tag('autoyast-postpartscript')) {
                 @needles = grep { $_ ne 'autoyast-postpartscript' } @needles;
                 $postpartscript = 1;
             }
@@ -124,7 +124,7 @@ sub run {
 
         #repeat until timeout or login screen
         if (defined $ret) {
-            if ($ret->{needle}->has_tag('autoyast-error')) {
+            if (match_has_tag('autoyast-error')) {
                 send_key "alt-s";    #stop
                 save_logs_and_continue("stage2_error$i");
                 $i++;
@@ -155,7 +155,7 @@ sub run {
     }
 
     #go to text console if graphical login detected
-    send_key "ctrl-alt-f1" if $ret->{needle}->has_tag('displaymanager');
+    send_key "ctrl-alt-f1" if match_has_tag('displaymanager');
 
 
 

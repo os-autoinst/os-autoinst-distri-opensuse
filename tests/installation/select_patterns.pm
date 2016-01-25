@@ -14,9 +14,9 @@ use testapi;
 
 sub accept3rdparty {
     #Third party licenses sometimes appear
-    while (my $ret = check_screen([qw/3rdpartylicense automatic-changes inst-overview/], 15)) {
-        last if $ret->{needle}->has_tag("automatic-changes");
-        last if $ret->{needle}->has_tag("inst-overview");
+    while (check_screen([qw/3rdpartylicense automatic-changes inst-overview/], 15)) {
+        last if match_has_tag("automatic-changes");
+        last if match_has_tag("inst-overview");
         send_key $cmd{acceptlicense}, 1;
     }
 }
@@ -81,7 +81,7 @@ sub run {
 
         if ($ret) {    # unneedled pattern
             for my $wp (keys %wanted_patterns) {
-                if ($ret->{needle}->has_tag("pattern-$wp")) {
+                if (match_has_tag("pattern-$wp")) {
                     $needs_to_be_selected = 1;
                 }
             }

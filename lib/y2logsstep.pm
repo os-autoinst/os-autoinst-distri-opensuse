@@ -28,7 +28,7 @@ sub get_ip_address() {
 sub get_to_console() {
     my @tags = qw/yast-still-running linuxrc-install-fail linuxrc-repo-not-found/;
     my $ret = check_screen(\@tags, 5);
-    if ($ret && $ret->{needle}->has_tag("linuxrc-repo-not-found")) {    # KVM only
+    if ($ret && match_has_tag("linuxrc-repo-not-found")) {    # KVM only
         send_key "ctrl-alt-f9";
         wait_idle;
         assert_screen "inst-console";

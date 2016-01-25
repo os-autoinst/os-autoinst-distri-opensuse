@@ -14,8 +14,8 @@ use testapi;
 
 sub packagekitd() {
     #packagekitd locked sometimes appear
-    while (my $ret = check_screen([qw/packagekitd refresh-repos/], 15)) {
-        last if $ret->{needle}->has_tag("refresh-repos");
+    while (check_screen([qw/packagekitd refresh-repos/], 15)) {
+        last if match_has_tag("refresh-repos");
         send_key "alt-y";
     }
 }
@@ -35,14 +35,14 @@ sub run() {
     # restart online update may appear
     my @tags    = qw/online-update-restart online-update-finish/;
     my $timeout = 1000;
-    while (my $ret = check_screen(\@tags, $timeout)) {
-        if ($ret->{needle}->has_tag("online-update-restart")) {
+    while (check_screen(\@tags, $timeout)) {
+        if (match_has_tag("online-update-restart")) {
             send_key "alt-o";
             assert_screen 'online-update-overview', 50;
             send_key "alt-a";
             next;
         }
-        last if $ret->{needle}->has_tag("online-update-finish");
+        last if match_has_tag("online-update-finish");
     }
 }
 

@@ -20,10 +20,10 @@ sub run() {
     if (get_var("UPGRADE")) {
         send_key $cmd{update};
         sleep 1;
-        my $ret = assert_screen [qw/startupdate startupdate-conflict license-popup/], 5;
+        assert_screen [qw/startupdate startupdate-conflict license-popup/], 5;
 
-        while ($ret->{needle}->has_tag("startupdate-conflict") || $ret->{needle}->has_tag("license-popup")) {
-            if ($ret->{needle}->has_tag("startupdate-conflict")) {
+        while (match_has_tag("startupdate-conflict") || match_has_tag("license-popup")) {
+            if (match_has_tag("startupdate-conflict")) {
                 send_key $cmd{ok}, 1;
 
                 while (!check_screen('packages-section-selected', 2)) {
@@ -48,10 +48,10 @@ sub run() {
                 send_key $cmd{update};
                 sleep 1;
             }
-            if ($ret->{needle}->has_tag("license-popup")) {
+            if (match_has_tag("license-popup")) {
                 send_key $cmd{"accept"}, 1;
             }
-            $ret = assert_screen [qw/startupdate startupdate-conflict license-popup/], 5;
+            assert_screen [qw/startupdate startupdate-conflict license-popup/], 5;
         }
 
         # confirm
@@ -73,8 +73,8 @@ sub run() {
     else {
         sleep 2;    # textmode is sometimes pressing alt-i too early
         send_key $cmd{install};
-        while (my $ret = check_screen([qw/confirmlicense startinstall/], 5)) {
-            last if $ret->{needle}->has_tag("startinstall");
+        while (check_screen([qw/confirmlicense startinstall/], 5)) {
+            last if match_has_tag("startinstall");
             send_key $cmd{acceptlicense}, 1;
         }
         assert_screen "startinstall";
@@ -92,11 +92,11 @@ sub run() {
         while (1) {
             my $ret = check_screen ['installation-details-view', 'grub2'], 3;
             if (defined($ret)) {
-                last if $ret->{needle}->has_tag("installation-details-view");
+                last if match_has_tag("installation-details-view");
 
                 # intention to let this test fail
                 assert_screen 'installation-details-view'
-                  if $ret->{needle}->has_tag("grub2");
+                  if match_has_tag("grub2");
             }
             send_key $cmd{instdetails};
         }
