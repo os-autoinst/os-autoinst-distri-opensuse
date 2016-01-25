@@ -38,12 +38,9 @@ sub run() {
     type_string "exit\n";
 
     # login use new user account
-    script_run('ssh ' . $ssh_testman . '@localhost -t echo LOGIN_SUCCESSFUL');
-    my $ret = assert_screen "ssh-login", 60;
-
-    if ($ret->{needle}->has_tag("ssh-login")) {
-        type_string "yes\n";
-    }
+    script_run('ssh ' . $ssh_testman . '@localhost -t echo LOGIN_SUCCESSFUL', 0);
+    assert_screen "ssh-login", 60;
+    type_string "yes\n";
     sleep 3;
     type_string "$ssh_testman_passwd\n";
     assert_screen "ssh-login-ok", 10;
