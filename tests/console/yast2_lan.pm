@@ -25,7 +25,7 @@ sub run() {
     script_run('ls -alF /etc/sysconfig/network/');
     save_screenshot;
 
-    script_sudo("/sbin/yast2 lan");
+    script_sudo("/sbin/yast2 lan", 0);
 
     my $ret = assert_screen [qw/Networkmanager_controlled yast2_lan install-susefirewall2/], 60;
     if ($ret->{needle}->has_tag('Networkmanager_controlled')) {

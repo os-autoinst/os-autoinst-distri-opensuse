@@ -30,7 +30,7 @@ sub run() {
     my $zypper_dup_fileconflict  = qr/^File conflicts .*^Continue\? \[y/ms;
 
     wait_idle;
-    script_run("zypper --gpg-auto-import-keys dup --from YaST:Head | tee /dev/$serialdev");
+    script_run("zypper --gpg-auto-import-keys dup --from YaST:Head | tee /dev/$serialdev", 0);
 
     $out = wait_serial([$zypper_dup_continue, $zypper_dup_conflict, $zypper_dup_error, $zypper_dup_fileconflict], 240);
     while ($out) {

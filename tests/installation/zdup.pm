@@ -37,7 +37,7 @@ sub run() {
     script_run "zypper -n in cdrkit-cdrtools-compat";
     # Disable all repos, so we do not need to remove one by one
     # beware PackageKit!
-    script_run("zypper modifyrepo --all --disable | tee /dev/$serialdev");
+    script_run("zypper modifyrepo --all --disable | tee /dev/$serialdev", 0);
     my $out = wait_serial([$zypper_packagekit, $zypper_repo_disabled], 120);
     while ($out) {
         if ($out =~ $zypper_packagekit || $out =~ $zypper_packagekit_again) {
@@ -96,7 +96,7 @@ sub run() {
     }
     assert_script_run("zypper -n refresh");
 
-    script_run("(zypper dup -l;echo ZYPPER-DONE) | tee /dev/$serialdev");
+    script_run("(zypper dup -l;echo ZYPPER-DONE) | tee /dev/$serialdev", 0);
 
     $out = wait_serial([$zypper_dup_continue, $zypper_dup_conflict, $zypper_dup_error], 240);
     while ($out) {

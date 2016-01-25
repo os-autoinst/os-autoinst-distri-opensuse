@@ -16,13 +16,13 @@ sub run() {
     become_root();
     script_run("zypper -n in sshfs");
     wait_still_screen(12, 90);
-    script_run('cd /var/tmp ; mkdir mnt ; sshfs localhost:/ mnt');
-    assert_screen "accept-ssh-host-key", 3;
+    script_run('cd /var/tmp ; mkdir mnt ; sshfs localhost:/ mnt', 0);
+    assert_screen "accept-ssh-host-key";
     type_string "yes\n";    # trust ssh host key
     assert_screen 'password-prompt';
     type_password;
     send_key "ret";
-    assert_screen 'sshfs-accepted', 3;
+    assert_screen 'sshfs-accepted';
     script_run('cd mnt/tmp');
     script_run("zypper -n in xdelta");
     script_run("rpm -e xdelta");
@@ -33,7 +33,7 @@ sub run() {
 
     # become user again
     type_string "exit\n";
-    assert_screen 'test-sshfs-1', 3;
+    assert_screen 'test-sshfs-1';
 }
 
 1;

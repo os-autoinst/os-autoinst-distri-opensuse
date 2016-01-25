@@ -36,7 +36,7 @@ sub run_yast_cli_test {
     script_run "pushd $PACKDIR/BUILD/$packname-*";
 
     # Run 'prove' only if there is a directory called t
-    script_run("if [ -d t ]; then echo -n 'run'; else echo -n 'skip'; fi > /dev/$serialdev");
+    script_run("if [ -d t ]; then echo -n 'run'; else echo -n 'skip'; fi > /dev/$serialdev", 0);
     my $action = wait_serial(['run', 'skip'], 10);
     if ($action eq 'run') {
         assert_script_run 'prove';

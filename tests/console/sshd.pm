@@ -21,20 +21,20 @@ sub run() {
     become_root();
     script_run('SuSEfirewall2 off');
     script_run('chkconfig sshd on');
-    script_run("chkconfig sshd on && echo 'sshd_on' > /dev/$serialdev");
-    wait_serial("sshd_on", 60) || die "enable sshd failed";
-    script_run("rcsshd restart && echo 'sshd_restart' > /dev/$serialdev");    # will do nothing if it is already running
-    wait_serial("sshd_restart", 60) || die "restart sshd failed";
-    script_run('echo $?');
-    script_run('rcsshd status');
-    assert_screen 'test-sshd-1', 3;
-    wait_idle 5;
+    assert_script_run("chkconfig sshd on", 60);
+    assert_script_run("rcsshd restart",    60);    # will do nothing if it is already running
+
+    script_run('rcsshd status', 0);
+    assert_screen 'test-sshd-1';
+
     # create a new user to test sshd
     script_run("useradd -m $ssh_testman");
-    script_run("passwd $ssh_testman");
+    script_run("passwd $ssh_testman; echo password-done > /dev/$serialdev", 0);
     type_string "$ssh_testman_passwd\n";
     assert_screen "retry-new-password", 5;
     type_string "$ssh_testman_passwd\n";
+    wait_serial('password-done') || die "password not set";
+
     type_string "exit\n";
 
     # login use new user account

@@ -23,7 +23,7 @@ sub run() {
     $repo_url = "http://download.opensuse.org/repositories/YaST:/Head/openSUSE_$repo_url/";
 
     become_root;
-    script_run "zypper ar $repo_url YaST:Head | tee /dev/$serialdev";
+    script_run "zypper ar $repo_url YaST:Head | tee /dev/$serialdev", 0;
     wait_serial("successfully added", 20);
 }
 
