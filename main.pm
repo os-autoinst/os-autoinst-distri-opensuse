@@ -845,6 +845,7 @@ if (get_var("STORE_HDD_1") || get_var("PUBLISH_HDD_1")) {
 
 if (get_var("TCM") || check_var("ADDONS", "tcm")) {
     loadtest "toolchain/install.pm";
+    loadtest "toolchain/gcc5_fortran_compilation.pm";
     loadtest "toolchain/gcc5_C_compilation.pm";
     loadtest "toolchain/gcc5_Cpp_compilation.pm";
 }
