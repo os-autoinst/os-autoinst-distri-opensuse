@@ -20,9 +20,8 @@ sub run() {
     unless (get_var("FULLURL")) {
         $repourl = $repourl . "/repo/oss";
     }
-    type_string "zypper ar -c $repourl Factory; echo zypper-ar-done-\$? > /dev/$serialdev\n";
-    wait_serial("zypper-ar-done-0") || die "zypper ar failed";
-    type_string "zypper lr\n";
+    assert_script_run "zypper ar -c $repourl Factory";
+    script_run "zypper lr", 0;
     assert_screen "addn-repos-listed";
 
     type_string "exit\n";

@@ -19,9 +19,7 @@ sub launch_yast2_module_x11 {
 }
 
 sub save_upload_y2logs() {
-    type_string "save_y2logs /tmp/y2logs.tar.bz2; echo y2logs-saved-\$? > /dev/$serialdev\n";
-    my $ret = wait_serial 'y2logs-saved-\d+';
-    die "failed to save y2logs" unless (defined $ret && $ret =~ /y2logs-saved-0/);
+    assert_script_run "save_y2logs /tmp/y2logs.tar.bz2";
     upload_logs "/tmp/y2logs.tar.bz2";
 }
 

@@ -114,9 +114,8 @@ sub ensure_installed {
 
     testapi::x11_start_program("xterm");
     assert_screen('xterm-started');
-    $self->script_sudo("chown $testapi::username /dev/$testapi::serialdev && echo 'chown-SUCCEEDED' > /dev/$testapi::serialdev");
-    wait_serial('chown-SUCCEEDED');
-    type_string("pkcon install @pkglist; RET=\$?; echo \"\n  pkcon finished\n\"; echo \"pkcon-\${RET}-\" > /dev/$testapi::serialdev\n");
+    testapi::assert_script_sudo("chown $testapi::username /dev/$testapi::serialdev");
+    $self->script_run("pkcon install @pkglist; RET=\$?; echo \"\n  pkcon finished\n\"; echo \"pkcon-\${RET}-\" > /dev/$testapi::serialdev", 0);
     my @tags = qw/Policykit Policykit-behind-window pkcon-proceed-prompt/;
     while (1) {
         my $ret = check_screen(\@tags, $timeout);
