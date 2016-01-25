@@ -14,7 +14,7 @@ mkdir -p /tmp/ldap-sssdtest &&
 cp ldap.crt /tmp/ldap-sssdtest.cacrt &&
 cp ldap.crt /tmp/ldap-sssdtest.crt &&
 cp ldap.key /tmp/ldap-sssdtest.key &&
-/usr/lib/openldap/slapd -h 'ldap:///' -f slapd.conf &&
+/usr/sbin/slapd -h 'ldap:///' -f slapd.conf &&
 sleep 2 &&
 ldapadd -x -D 'cn=root,dc=ldapdom,dc=net' -wpass -f db.ldif &> /dev/null || test_abort 'Failed to prepare LDAP server'
 
