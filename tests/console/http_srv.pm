@@ -15,22 +15,24 @@ use testapi;
 sub run() {
     my $self = shift;
 
+    become_root;
+
     # Install apache2
-    script_sudo("zypper -n -q in apache2");
-    wait_idle 10;
-    assert_screen 'test-http_srv-1', 3;
+    script_run "zypper -n -q in apache2";
+    assert_screen 'test-http_srv-1';
 
     # After installation, apache2 is disabled
-    script_sudo("systemctl status apache2.service | tee /dev/$serialdev -");
-    wait_idle 5;
-    wait_serial ".*disable.*", 2;
+    script_run "systemctl status apache2.service | tee /dev/$serialdev -", 0;
+    wait_serial(".*disable.*") || die "apache should be disabled by default";
 
     # Now must be enabled
-    script_sudo("systemctl start apache2.service");
-    script_sudo("systemctl status apache2.service | tee /dev/$serialdev -");
-    wait_idle 5;
-    wait_serial(".*Syntax error.*", 2, 1) || die "have error while starting apache2";
+    script_run "systemctl start apache2.service";
+    script_run "systemctl status apache2.service | tee /dev/$serialdev -", 0;
+    # do *not* expect syntax errors
+    wait_serial(".*Syntax error.*", 12, 1) || die "have error while starting apache2";
     save_screenshot;
+
+    type_string "exit\n";
 }
 
 1;
