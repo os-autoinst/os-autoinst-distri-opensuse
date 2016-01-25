@@ -15,7 +15,7 @@ use testapi;
 sub run() {
     my %desktopkeys = (kde => "k", gnome => "g", xfce => "x", lxde => "l", minimalx => "m", textmode => "i");
     assert_screen "desktop-selection";
-    my $d   = get_var("DESKTOP");
+    my $d = get_var('DESKTOP_MINIMALX_INSTONLY') ? "minimalx" : get_var('DESKTOP');
     my $key = "alt-$desktopkeys{$d}";
     if ($d eq "kde") {
 
