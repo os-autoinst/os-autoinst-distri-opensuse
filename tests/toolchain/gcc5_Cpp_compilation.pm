@@ -16,9 +16,9 @@ sub run() {
     my $self = shift;
 
     my $package = data_url('toolchain/llvm-3.6.2.src.tar.xz');
-    script_run "wget $package";
+    assert_script_run "wget $package", 60;
     $package = data_url('toolchain/cfe-3.6.2.src.tar.xz');
-    script_run "wget $package";
+    assert_script_run "wget $package", 60;
     script_run 'tar xf llvm-3.6.2.src.tar.xz';
     script_run 'tar xf cfe-3.6.2.src.tar.xz';
     script_run 'mkdir llvm-3.6.2.src/tools/clang';

@@ -28,8 +28,8 @@ sub run() {
     wait_idle 50;
     assert_screen 'test-mozmill_setup-2', 3;
     clear_console;
-    script_run("cd /tmp");    # dont use home to not confuse dolphin test
-    script_run("wget -q openqa.opensuse.org/opensuse/qatests/qa_mozmill_setup.sh");
+    script_run("cd /tmp");    # don't use home to not confuse dolphin test
+    assert_script_run "wget -q openqa.opensuse.org/opensuse/qatests/qa_mozmill_setup.sh", 60;
     local $bmwqemu::timesidleneeded = 3;
     script_run("sh -x qa_mozmill_setup.sh");
     sleep 9;

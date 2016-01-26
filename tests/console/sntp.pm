@@ -15,7 +15,7 @@ use utils;
 # for https://bugzilla.novell.com/show_bug.cgi?id=657626
 sub run() {
     my $self = shift;
-    script_run("cd /tmp ; wget -q openqa.opensuse.org/opensuse/qatests/qa_ntp.pl");
+    assert_script_run "cd /tmp ; wget -q openqa.opensuse.org/opensuse/qatests/qa_ntp.pl", 60;
     script_sudo("perl qa_ntp.pl");
     wait_idle 90;
     assert_screen 'test-sntp-1', 3;
