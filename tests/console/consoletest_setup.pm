@@ -26,14 +26,11 @@ sub run() {
     }
 
     # init
-    select_console 'user-console';
+    select_console 'root-console';
 
-    become_root;
     type_string "chown $username /dev/$serialdev\n";
     # Export the existing status of running tasks for future reference (fail would export it again)
     script_run "ps axf > /tmp/psaxf_consoletest_setup.log";
-    upload_logs "/tmp/psaxf_consoletest_setup.log";
-    save_screenshot;
 
     # Stop packagekit
     script_run "systemctl mask packagekit.service";
@@ -43,10 +40,14 @@ sub run() {
     script_run "zypper -n rm patterns-openSUSE-minimal_base-conflicts";
     # Install curl and tar in order to get the test data
     assert_script_run "zypper -n install curl tar";
-    type_string "exit\n";
 
+    # upload_logs requires curl, but we wanted the initial state of the system
+    upload_logs "/tmp/psaxf_consoletest_setup.log";
     save_screenshot;
+
     clear_console;
+
+    select_console 'user-console';
 
     assert_script_run "curl -L -v " . autoinst_url('/data') . " > test.data";
     assert_script_run " cpio -id < test.data";
