@@ -16,14 +16,12 @@ use utils;
 # https://bugzilla.novell.com/show_bug.cgi?id=610454
 
 sub run() {
-    my $self = shift;
-
     become_root;
 
     assert_script_run "zypper -n in yast2-bootloader";    # make sure yast2 bootloader module installed
 
     script_run("/sbin/yast2 bootloader; echo YBL-$? > /dev/$serialdev", 0);
-    my $ret = assert_screen "test-yast2_bootloader-1", 300;
+    assert_screen "test-yast2_bootloader-1", 300;
     send_key "alt-o";                                     # OK => Close
     die "yastootloader failed" unless wait_serial "YBL-0";
 
