@@ -17,8 +17,16 @@ sub run() {
 
     become_root;
 
-    assert_script_run "zypper -n patch --with-interactive -l", 700;
-    assert_script_run "zypper -n patch --with-interactive -l", 1500;
+    script_run("zypper -n patch --with-interactive -l; echo 'worked-patch-\$?' > /dev/$serialdev", 0);
+    $ret = wait_serial "worked-patch-\?-", 700;
+    $ret =~ /worked-patch-(\d+)/;
+    die "zypper failed with code $1" unless $1 == 0 || $1 == 102 || $1 == 103;
+
+    script_run("zypper -n patch --with-interactive -l; echo 'worked-2-patch-\$?-' > /dev/$serialdev", 0);    # first one might only have installed "update-test-affects-package-manager"
+    $ret = wait_serial "worked-2-patch-\?-", 1500;
+    $ret =~ /worked-2-patch-(\d+)/;
+    die "zypper failed with code $1" unless $1 == 0 || $1 == 102;
+
     assert_script_run("rpm -q libzypp zypper");
 
     # XXX: does this below make any sense? what if updates got
