@@ -47,7 +47,7 @@ sub run() {
     save_screenshot;
     clear_console;
 
-    assert_script_run "curl -L -v " . autoinst_url('/data') . " > test.data";
+    assert_script_run "curl -L -v -f " . autoinst_url('/data') . " > test.data";
     assert_script_run " cpio -id < test.data";
     script_run "ls -al data";
 
