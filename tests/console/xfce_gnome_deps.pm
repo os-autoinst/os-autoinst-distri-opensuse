@@ -19,6 +19,7 @@ use testapi;
 sub run() {
     my $self = shift;
 
+    select_console 'user-console';
     script_run('rpm -qa "*nautilus*|*gnome*" | sort | tee /tmp/xfce-gnome-deps');
     upload_logs "/tmp/xfce-gnome-deps";
     # no further checks

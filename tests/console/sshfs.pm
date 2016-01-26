@@ -12,8 +12,8 @@ use base "consoletest";
 use testapi;
 
 sub run() {
-    my $self = shift;
-    become_root;
+    select_console 'root-console';
+
     assert_script_run("zypper -n in sshfs");
     script_run('cd /var/tmp ; mkdir mnt ; sshfs localhost:/ mnt', 0);
     assert_screen "accept-ssh-host-key";
@@ -29,9 +29,6 @@ sub run() {
 
     # we need to umount that otherwise root is considered logged in!
     assert_script_run("umount /var/tmp/mnt");
-
-    # become user again
-    type_string "exit\n";
 }
 
 1;

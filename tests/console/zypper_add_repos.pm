@@ -15,8 +15,7 @@ sub run() {
     my $val = get_var("ZYPPER_ADD_REPOS");
     return unless $val;
 
-    become_root;
-
+    select_console 'root-console';
     my $prefix = get_var("ZYPPER_ADD_REPO_PREFIX") || 'openqa';
 
     my $i = 0;
@@ -24,8 +23,6 @@ sub run() {
         assert_script_run("zypper -n ar -c -f $url $prefix$i");
         ++$i;
     }
-
-    type_string "exit\n";
 }
 
 sub test_flags() {

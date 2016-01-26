@@ -14,7 +14,8 @@ use testapi;
 sub run() {
     my $self = shift;
 
-    become_root;
+    select_console 'root-console';
+
     script_run("zypper ref; echo zypper-ref-\$? > /dev/$serialdev", 0);
     # don't trust graphic driver repo
     if (check_screen("new-repo-need-key", 20)) {
@@ -22,8 +23,6 @@ sub run() {
     }
     wait_serial("zypper-ref-0") || die "zypper ref failed";
     assert_screen("zypper_ref");
-
-    type_string "exit\n";
 }
 
 sub test_flags() {

@@ -14,7 +14,7 @@ use testapi;
 sub run() {
     my $self = shift;
 
-    become_root();
+    select_console 'root-console';
 
     type_string("rm -f /root/autoinst.xml ; zypper -n in autoyast2 ; yast2 clone_system ; echo FINISHED >/dev/$serialdev\n");
     my $n_error = 0;
@@ -28,8 +28,6 @@ sub run() {
 
     assert_script_run "test -f /root/autoinst.xml", 20;
     upload_asset "/root/autoinst.xml";
-
-    type_string "exit\n";
 }
 
 1;

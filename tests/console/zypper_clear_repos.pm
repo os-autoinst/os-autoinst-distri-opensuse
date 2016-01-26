@@ -13,15 +13,13 @@ use testapi;
 
 sub run() {
     my $self = shift;
+    select_console 'root-console';
 
-    become_root;
     # remove Factory repos
     my $repos_folder = '/etc/zypp/repos.d';
     assert_script_run("find $repos_folder/*.repo -type f -exec grep -q 'baseurl=http://download.opensuse.org/' {} \\; -delete && echo 'unneed_repos_removed' > /dev/$serialdev", 15);
     script_run("zypper lr -d");
     save_screenshot;    # take a screenshot after repos removed
-
-    type_string "exit\n";
 }
 
 sub test_flags() {

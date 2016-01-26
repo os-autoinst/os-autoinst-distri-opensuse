@@ -12,9 +12,8 @@ use base "consoletest";
 use testapi;
 
 sub run() {
-    my $self = shift;
+    select_console 'root-console';
 
-    become_root;
     # non-NET installs have only milestone repo, which might be incompatible.
     my $repourl = 'http://' . get_var("SUSEMIRROR");
     unless (get_var("FULLURL")) {
@@ -23,8 +22,6 @@ sub run() {
     assert_script_run "zypper ar -c $repourl Factory";
     script_run "zypper lr", 0;
     assert_screen "addn-repos-listed";
-
-    type_string "exit\n";
 }
 
 sub test_flags() {

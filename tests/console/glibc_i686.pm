@@ -13,7 +13,12 @@ use testapi;
 
 # this part contains the steps to run this test
 sub run() {
-    assert_script_sudo("zypper -n in -C libc.so.6", 100);
+    select_console 'root-console';
+
+    assert_script_run("zypper -n in -C libc.so.6", 100);
+    
+    # select user console for our needles to match
+    select_console 'user-console';
     script_run("/lib/libc.so.*", 0);
     assert_screen 'test-glibc_i686-1';
 }

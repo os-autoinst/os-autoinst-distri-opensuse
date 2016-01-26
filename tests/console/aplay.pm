@@ -13,7 +13,7 @@ use testapi;
 
 sub run() {
     my $self = shift;
-    become_root;
+    select_console 'root-console';
 
     my $script = <<EOS;
 
@@ -26,7 +26,7 @@ EOS
     validate_script_output $script, sub { m/Installing:.*alsa/ || m/'alsa' is already installed/ }, 120;
 
     $self->clear_and_verify_console;
-    type_string "exit\n";
+    select_console 'user-console';
 
     assert_script_run('set_default_volume -f');
 

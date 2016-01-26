@@ -127,10 +127,11 @@ sub select_kernel {
 # console font, we need to call systemd-vconsole-setup to workaround
 # that
 sub check_console_font {
+    select_console('root-console');
     # Ensure the echo of input actually happened by using assert_script_run
     assert_script_run "echo Jeder wackere Bayer vertilgt bequem zwo Pfund Kalbshaxen. 0123456789";
     if (check_screen "broken-console-font", 5) {
-        assert_script_sudo("/usr/lib/systemd/systemd-vconsole-setup");
+        assert_script_run("/usr/lib/systemd/systemd-vconsole-setup");
     }
 }
 

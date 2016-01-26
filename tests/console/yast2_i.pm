@@ -17,7 +17,7 @@ sub run() {
     my $pkgname     = get_var("PACKAGETOINSTALL_RECOMMENDER", "yast2-nfs-client");
     my $recommended = get_var("PACKAGETOINSTALL_RECOMMENDED", "nfs-client");
 
-    become_root();
+    select_console 'root-console';
 
     assert_script_run "zypper -n rm $pkgname $recommended", 90;
 
@@ -86,7 +86,6 @@ sub run() {
     script_run("echo mark yast test", 0);    # avoid zpper needle
     script_run("rpm -q $pkgname",     0);
     assert_screen("yast-package-$pkgname-not-installed", 1);
-    type_string "exit\n";
 }
 
 1;

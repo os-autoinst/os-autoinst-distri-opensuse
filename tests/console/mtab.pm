@@ -11,9 +11,8 @@
 use base "consoletest";
 use testapi;
 
-# test for equivalent of bug https://bugzilla.novell.com/show_bug.cgi?id=
 sub run() {
-    my $self = shift;
+    select_console 'user-console';
     script_run('test -L /etc/mtab && echo OK || echo fail');
     assert_screen "test-mtab-1", 3;
     script_run('cat /etc/mtab');

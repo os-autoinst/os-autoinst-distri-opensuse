@@ -14,7 +14,7 @@ use utils;
 
 sub run() {
     my $self = shift;
-    become_root();
+    select_console 'root-console';
 
     script_run("zypper lr -d | tee /dev/$serialdev");
 
@@ -24,7 +24,6 @@ sub run() {
     assert_script_run("rpm -e $pkgname");
     script_run("rpm -q $pkgname", 0);
     assert_screen "package-$pkgname-not-installed", 5;
-    type_string "exit\n";
 }
 
 1;

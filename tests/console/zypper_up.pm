@@ -15,7 +15,7 @@ use utils;
 sub run() {
     my $self = shift;
 
-    become_root;
+    select_console 'root-console';
 
     script_run("zypper -n patch --with-interactive -l; echo 'worked-patch-\$?' > /dev/$serialdev", 0);
     $ret = wait_serial "worked-patch-\?-", 700;
@@ -33,8 +33,6 @@ sub run() {
     # published meanwhile?
     clear_console;    # clear screen to see that second update does not do any more
     assert_script_run("zypper -n -q patch");
-
-    type_string "exit\n";
 }
 
 sub test_flags() {

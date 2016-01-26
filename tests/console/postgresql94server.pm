@@ -14,7 +14,7 @@ use testapi;
 sub run() {
     my $self = shift;
 
-    become_root;
+    select_console 'root-console';
 
     # install the postgresql94 server package
     assert_script_run "zypper -n in postgresql94-server", 200;
@@ -24,8 +24,6 @@ sub run() {
 
     # check the status
     assert_script_run "/etc/init.d/postgresql status > /dev/$serialdev", 200;
-
-    type_string "exit\n";
 }
 
 1;

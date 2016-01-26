@@ -15,7 +15,7 @@ use utils;
 # fate#317900: Create snapshot before starting Upgrade
 
 sub run() {
-    become_root();
+    select_console 'root-console';
 
     script_run("snapper list | tee /dev/$serialdev", 0);
     # Check if the snapshot called 'before update' is there
@@ -24,8 +24,6 @@ sub run() {
     script_run("snapper list | tee /dev/$serialdev", 0);
     # Check if the snapshot called 'after update' is there
     wait_serial('post\s*(\|[^|]*){4}\s*\|\s*number\s*\|\s*after update\s*\|\s*important=yes', 5) || die 'upgrade snapshots test failed';
-
-    type_string "exit\n";
 }
 
 sub test_flags() {

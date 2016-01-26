@@ -18,8 +18,10 @@ use base "consoletest";
 use testapi;
 
 sub run() {
+    select_console 'root-console';
+
     my $keys = get_var("IMPORT_GPG_KEYS");
-    script_sudo("rpm --import $keys");
+    assert_script_run("rpm --import $keys");
 }
 
 sub test_flags() {

@@ -22,7 +22,7 @@ sub run() {
     $repo_url = "Factory"     if ($repo_url eq "Tumbleweed");
     $repo_url = "http://download.opensuse.org/repositories/YaST:/Head/openSUSE_$repo_url/";
 
-    become_root;
+    select_console 'root-console';
     script_run "zypper ar $repo_url YaST:Head | tee /dev/$serialdev", 0;
     wait_serial("successfully added", 20);
 }

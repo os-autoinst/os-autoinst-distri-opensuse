@@ -12,14 +12,12 @@ use base "consoletest";
 use testapi;
 
 sub run() {
-    become_root;
+    select_console 'root-console';
 
     my $packages = get_var("INSTALL_PACKAGES");
 
     assert_script_run("zypper -n in -l $packages");
     assert_script_run("rpm -q $packages | tee /dev/$serialdev");
-
-    type_string "exit\n";
 }
 
 sub test_flags() {

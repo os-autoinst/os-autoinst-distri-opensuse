@@ -14,9 +14,9 @@ use testapi;
 
 # have various useful general info included in videos
 sub run() {
-    my $self = shift;
-    assert_script_sudo("/home/$username/data/textinfo 2>&1 | tee /home/$username/info.txt");
-    upload_logs("info.txt");
+    select_console 'root-console';
+    assert_script_run("/home/$username/data/textinfo 2>&1 | tee /tmp/info.txt");
+    upload_logs("/tmp/info.txt");
     upload_logs("/tmp/logs.tar.bz2");
     assert_screen "texinfo-logs-uploaded";
 }

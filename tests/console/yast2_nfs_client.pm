@@ -21,7 +21,7 @@ sub run() {
     #
     # Preparation
     #
-    become_root;
+    select_console 'root-console';
     # Make sure packages are installed
     assert_script_run 'zypper -n in yast2-nfs-client nfs-client nfs-kernel-server';
     # Prepare the test file structure
@@ -59,9 +59,6 @@ sub run() {
 
     # Wait for more than 90 seconds due to NFSD's 90 second grace period.
     wait_serial('It worked', 100) || die "Reading from nfs failed.";
-
-    # Exit from root
-    type_string "exit\n";
 }
 
 1;
