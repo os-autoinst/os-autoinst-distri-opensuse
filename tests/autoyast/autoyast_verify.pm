@@ -52,15 +52,24 @@ sub run {
         $verify_url_base =~ s/\/[^\/]*$//;
 
         my $res = script_output('
-        set -x -e
+        set +x -e
 
         curl "' . $verify_url . '" > verify.list
         while read testname || [ -n "$testname" ] ; do
+            echo
+            echo
+            echo "Test script: $testname "
             testname=`echo ${testname%%#*}`
             curl "' . $verify_url_base . '/$testname" > $testname
             chmod 755 $testname
-            ./$testname |tee ./$testname.output.txt
-            grep -q "AUTOYAST OK" $testname.output.txt
+            echo "==========================================================="
+            cat $testname
+            echo "==========================================================="
+            ./$testname 2>&1 |tee ./$testname.output.txt
+            if ! grep -q "^AUTOYAST OK" $testname.output.txt ; then
+              echo "Test $testname failed."
+              exit 1
+            fi
         done < verify.list
         echo ALL_TESTS_OK
         ');
