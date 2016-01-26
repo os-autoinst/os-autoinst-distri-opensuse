@@ -86,6 +86,9 @@ sub wait_boot {
 
     assert_screen 'generic-desktop', 300;
     mouse_hide(1);
+
+    # Reset the consoles after the reboot: there is no user logged in anywhere
+    reset_consoles;
 }
 
 # 'ctrl-l' does not get queued up in buffer. If this happens to fast, the

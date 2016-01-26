@@ -15,7 +15,6 @@ use utils;
 sub run() {
     become_root;
     type_string "reboot\n";
-    reset_consoles;
     wait_boot;
     select_console 'user-console';
     assert_script_sudo "chown $username /dev/$serialdev";
