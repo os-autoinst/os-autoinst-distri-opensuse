@@ -38,7 +38,7 @@ sub run() {
             script_run("systemctl set-default --force multi-user.target");
         }
         # The CD was ejected in the bootloader test
-        script_run("/sbin/reboot");
+        type_string("/sbin/reboot\n");
 
         reset_consoles;
         wait_boot textmode => 1;
