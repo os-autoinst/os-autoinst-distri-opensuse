@@ -25,7 +25,6 @@ sub run() {
     script_run("/sbin/yast2 bootloader; echo YBL-$? > /dev/$serialdev", 0);
     my $ret = assert_screen "test-yast2_bootloader-1", 300;
     send_key "alt-o";                                     # OK => Close
-    assert_screen 'exited-bootloader', 150;
     die "yastootloader failed" unless wait_serial "YBL-0";
 
     type_string "exit\n";
