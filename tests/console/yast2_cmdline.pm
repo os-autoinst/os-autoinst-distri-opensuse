@@ -14,7 +14,7 @@ use testapi;
 sub run() {
     my $self = shift;
 
-    become_root();
+    become_root;
     # Install test requirement
     assert_script_run 'zypper -n in rpm-build';
 
@@ -26,7 +26,7 @@ sub run() {
     $self->run_yast_cli_test('yast2-dns-server');
 
     # Exit from root
-    script_run 'exit';
+    type_string "exit\n";
 }
 
 1;

@@ -25,7 +25,7 @@ sub run() {
     script_run('ls -alF /etc/sysconfig/network/');
     save_screenshot;
 
-    script_sudo("/sbin/yast2 lan");
+    script_sudo("/sbin/yast2 lan", 0);
 
     my $ret = assert_screen [qw/Networkmanager_controlled yast2_lan install-susefirewall2/], 60;
     if ($ret->{needle}->has_tag('Networkmanager_controlled')) {
@@ -55,7 +55,7 @@ sub run() {
     send_key "tab";
     for (1 .. 15) { send_key "backspace" }
     type_string $domain;
-    assert_screen 'test-yast2_lan-1', 8;
+    assert_screen 'test-yast2_lan-1';
 
     send_key "alt-o";                                   # OK=>Save&Exit
     assert_screen 'yast2-lan-exited', 90;
@@ -68,10 +68,7 @@ sub run() {
     clear_console;
     script_run('ip -o a s');
     script_run('ip r s');
-    script_run('getent ahosts ' . get_var("OPENQA_HOSTNAME"));
-    #
-    script_run("echo \"EXIT-\$?\" > /dev/$serialdev");
-    die unless wait_serial "EXIT-0", 2;
+    assert_script_run('getent ahosts ' . get_var("OPENQA_HOSTNAME"));
 }
 
 1;

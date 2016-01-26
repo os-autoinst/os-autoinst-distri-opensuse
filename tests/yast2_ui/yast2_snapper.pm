@@ -67,12 +67,13 @@ sub clean_and_quit() {
     # C'l'ose  the snapper module
     send_key "alt-l";
     # Wait until xterm is focussed, delete the directory and close xterm
-    wait_idle;
+    wait_idle 3;
     script_run "rm -rf testdata";
     script_run "ls";
-    script_run "exit";
+    type_string "exit\n";
+    wait_idle 1;
     save_screenshot;
-    script_run "exit";
+    type_string "exit\n";
 }
 
 sub run() {
@@ -101,12 +102,10 @@ sub run() {
     send_key "alt-l";
 
     # Download & untar test files
-    wait_idle;
-    script_run "tar -xzf /home/$username/data/yast2_snapper.tgz && echo tar_complete > /dev/$serialdev";
-    wait_serial('tar_complete') || die 'tar -xzf failed';
+    assert_script_run "tar -xzf /home/$username/data/yast2_snapper.tgz";
 
     # Start the yast2 snapper module and wait until it is started
-    script_run "yast2 snapper";
+    script_run "yast2 snapper",              0;
     assert_screen 'yast2_snapper-snapshots', 100;
     # Select the new snapshot
     unless ($self->y2snapper_select_snapshot) {

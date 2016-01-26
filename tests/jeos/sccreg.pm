@@ -18,7 +18,6 @@ sub run() {
     my $url     = get_var('SCC_URL', 'https://scc.suse.com');
 
     assert_script_run "SUSEConnect --url=$url -e $sccmail -r $scccode";
-    script_run 'exit';    # leave root
 }
 
 sub test_flags() {

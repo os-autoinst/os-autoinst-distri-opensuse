@@ -23,7 +23,7 @@ sub run() {
 
     assert_script_run "zypper -n in yast2-packager", 90;    # make sure yast2 sw_single module installed
 
-    script_run("/sbin/yast2 sw_single; echo yast2-i-status-\$? > /dev/$serialdev");
+    script_run("/sbin/yast2 sw_single; echo yast2-i-status-\$? > /dev/$serialdev", 0);
     if (check_screen('workaround-bsc924042', 10)) {
         send_key 'alt-o';
         record_soft_failure;
@@ -83,11 +83,10 @@ sub run() {
 
     clear_console;                           # clear screen to see that second update does not do any more
     assert_script_run("rpm -e $pkgname");    # erase $pkgname
-    script_run("echo mark yast test");       # avoid zpper needle
-    script_run("rpm -q $pkgname");
-    sleep 2;
-    script_run('exit');
+    script_run("echo mark yast test", 0);    # avoid zpper needle
+    script_run("rpm -q $pkgname",     0);
     assert_screen("yast-package-$pkgname-not-installed", 1);
+    type_string "exit\n";
 }
 
 1;

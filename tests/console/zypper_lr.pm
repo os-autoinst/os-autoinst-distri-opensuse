@@ -15,8 +15,7 @@ sub run() {
     my $self = shift;
 
     become_root;
-    script_run("zypper lr -d; echo zypper-lr-\$? > /dev/$serialdev");
-    wait_serial("zypper-lr-0") || die "zypper lr failed";
+    assert_script_run("zypper lr -d");
     save_screenshot;
 
     type_string "exit\n";

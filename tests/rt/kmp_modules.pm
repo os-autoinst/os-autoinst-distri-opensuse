@@ -26,8 +26,7 @@ sub kmp_module {
     type_password;
     send_key 'ret';
     # check if kernel is proper $kernel
-    script_run "uname -r|grep $kernel;echo \"$kernel-kernel-\$?\" > /dev/$serialdev";
-    wait_serial("$kernel-kernel-0", 10) || die "no $kernel kernel";
+    assert_script_run "uname -r|grep $kernel";
     # get bash script
     my $package = data_url('modprobe_kmp_modules.sh');
     script_run "wget $package";
@@ -60,7 +59,7 @@ sub run() {
     kmp_module('compute');
     script_run 'reboot';
     kmp_module('rt');
-    script_run 'exit';
+    type_string "exit\n";
 }
 
 sub test_flags() {

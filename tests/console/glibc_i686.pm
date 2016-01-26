@@ -13,9 +13,9 @@ use testapi;
 
 # this part contains the steps to run this test
 sub run() {
-    assert_script_sudo("zypper -n in -C libc.so.6");
-    script_run("/lib/libc.so.*");
-    assert_screen 'test-glibc_i686-1', 100;
+    assert_script_sudo("zypper -n in -C libc.so.6", 100);
+    script_run("/lib/libc.so.*", 0);
+    assert_screen 'test-glibc_i686-1';
 }
 
 1;

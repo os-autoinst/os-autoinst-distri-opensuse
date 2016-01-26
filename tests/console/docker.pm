@@ -17,26 +17,24 @@ sub run() {
     become_root;
 
     # install the docker package
-    script_run "zypper -n in docker && echo 'docker_installed' > /dev/$serialdev";
-    die "docker install failed" unless wait_serial "docker_installed", 200;
+    assert_script_run "zypper -n in docker", 200;
 
     # start the docker daemon
-    script_run "systemctl start docker && echo 'docker_started' > /dev/$serialdev";
-    die "docker service start failed" unless wait_serial "docker_started", 200;
+    assert_script_run "systemctl start docker", 200;
 
     # pull the alpine image
-    script_run "docker pull alpine && echo 'docker_pull' > /dev/$serialdev";
-    die "docker pull alpine image failed" unless wait_serial "docker_pull", 300;    # increase timeout, on systems using devicemapper as storage backend docker's initialization can take some time
+    # increase timeout, on systems using devicemapper as storage backend docker's initialization can take some time
+    assert_script_run "docker pull alpine", 300;
 
     # make sure we can actually start a container
-    script_run "docker run --rm alpine echo 'hello_from_container' > /dev/$serialdev";
+    script_run "docker run --rm alpine echo 'hello_from_container' > /dev/$serialdev", 0;
     die "cannot start container" unless wait_serial "hello_from_container", 200;
 
     # make sure we can actually start a container
-    script_run "docker run --rm alpine wget http://google.com && echo 'container_network_works' > /dev/$serialdev";
+    script_run "docker run --rm alpine wget http://google.com && echo 'container_network_works' > /dev/$serialdev", 0;
     die "network does not work inside of the container" unless wait_serial "container_network_works", 200;
 
-    script_run "exit";
+    type_string "exit\n";
 }
 
 1;

@@ -15,7 +15,6 @@ use utils;
 sub run() {
     my $self = shift;
 
-    wait_idle;
     # let's see how it looks at the beginning
     save_screenshot;
 
@@ -44,15 +43,13 @@ sub run() {
 
     become_root;
     script_run "chmod 444 /usr/sbin/packagekitd";    # packagekitd will be not executable
-    script_run "exit";
+    type_string "exit\n";
 
     save_screenshot;
     clear_console;
 
-    script_run("curl -L -v " . autoinst_url . "/data > test.data; echo \"curl-\$?\" > /dev/$serialdev");
-    wait_serial("curl-0", 10) || die 'curl failed';
-    script_run " cpio -id < test.data; echo \"cpio-\$?\"> /dev/$serialdev";
-    wait_serial("cpio-0", 10) || die 'cpio failed';
+    assert_script_run("curl -L -v " . autoinst_url . "/data > test.data");
+    assert_script_run " cpio -id < test.data";
     script_run "ls -al data";
 
     save_screenshot;

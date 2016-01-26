@@ -26,9 +26,7 @@ sub run() {
         $n_error++;
     }
 
-    type_string("test -f /root/autoinst.xml && echo CLONED >/dev/$serialdev\n");
-    die "autoinst.xml was not created" if !wait_serial("CLONED", 20);
-
+    assert_script_run "test -f /root/autoinst.xml", 20;
     upload_asset "/root/autoinst.xml";
 
     type_string "exit\n";

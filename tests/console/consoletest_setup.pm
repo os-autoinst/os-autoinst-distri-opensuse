@@ -16,11 +16,10 @@ use utils;
 sub run() {
     my $self = shift;
 
-    wait_idle;
     # let's see how it looks at the beginning
     save_screenshot;
 
-    if (!check_var('BACKEND', 's390x')) {
+    if (!check_var('ARCH', 's390x')) {
         # verify there is a text console on tty1
         send_key "ctrl-alt-f1";
         assert_screen "tty1-selected", 15;
@@ -29,11 +28,10 @@ sub run() {
     # init
     select_console 'user-console';
 
-
     become_root;
-    script_run "chown $username /dev/$serialdev";
+    type_string "chown $username /dev/$serialdev\n";
     # Export the existing status of running tasks for future reference (fail would export it again)
-    type_string "ps axf > /tmp/psaxf_consoletest_setup.log\n";
+    script_run "ps axf > /tmp/psaxf_consoletest_setup.log";
     upload_logs "/tmp/psaxf_consoletest_setup.log";
     save_screenshot;
 
@@ -45,15 +43,13 @@ sub run() {
     script_run "zypper -n rm patterns-openSUSE-minimal_base-conflicts";
     # Install curl and tar in order to get the test data
     assert_script_run "zypper -n install curl tar";
-    script_run "exit";
+    type_string "exit\n";
 
     save_screenshot;
     clear_console;
 
-    script_run("curl -L -v " . autoinst_url('/data') . " > test.data; echo \"curl-\$?\" > /dev/$serialdev");
-    wait_serial("curl-0", 10) || die 'curl failed';
-    script_run " cpio -id < test.data; echo \"cpio-\$?\"> /dev/$serialdev";
-    wait_serial("cpio-0", 10) || die 'cpio failed';
+    assert_script_run "curl -L -v " . autoinst_url('/data') . " > test.data";
+    assert_script_run " cpio -id < test.data";
     script_run "ls -al data";
 
     save_screenshot;

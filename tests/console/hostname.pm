@@ -17,8 +17,7 @@ sub run() {
     become_root;
 
     my $hostname = get_var("HOSTNAME", 'susetest');
-    script_run "hostnamectl set-hostname $hostname && echo 'hostname_sets' > /dev/$serialdev";
-    die "hostnamectl set failed" unless wait_serial "hostname_sets", 20;
+    assert_script_run "hostnamectl set-hostname $hostname", 20;
 
     script_run "hostnamectl status";
     assert_screen("hostnamectl_status_$hostname");
@@ -26,7 +25,7 @@ sub run() {
     script_run "hostname";
     assert_screen("hostname-$hostname");
 
-    script_run "exit";
+    type_string "exit\n";
 }
 
 sub test_flags() {

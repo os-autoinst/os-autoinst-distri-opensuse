@@ -64,9 +64,9 @@ sub run() {
 
     select_console 'root-console';
 
-    assert_script_run "useradd -m $username";    # create bernhard account
+    assert_script_run "useradd -m $username";    # create user account
     my $str = time;
-    script_run "passwd $username; echo $str-\$?- > /dev/$serialdev";    # set bernhards password
+    script_run "passwd $username; echo $str-\$?- > /dev/$serialdev", 0;    # set user's password
     type_password;
     send_key 'ret';
     type_password;

@@ -18,17 +18,17 @@ use utils;
 sub run() {
     my $self = shift;
 
-    assert_script_sudo "zypper -n in yast2-bootloader";    # make sure yast2 bootloader module installed
+    become_root;
 
-    script_sudo("/sbin/yast2 bootloader");
+    assert_script_run "zypper -n in yast2-bootloader";    # make sure yast2 bootloader module installed
+
+    script_run("/sbin/yast2 bootloader; echo YBL-$? > /dev/$serialdev", 0);
     my $ret = assert_screen "test-yast2_bootloader-1", 300;
-    send_key "alt-o";                                      # OK => Close
+    send_key "alt-o";                                     # OK => Close
     assert_screen 'exited-bootloader', 150;
-    clear_console;
-    script_run("echo \"EXIT-\$?\" > /dev/$serialdev");
-    die unless wait_serial "EXIT-0", 2;
-    script_run('rpm -q hwinfo');
-    save_screenshot;
+    die "yastootloader failed" unless wait_serial "YBL-0";
+
+    type_string "exit\n";
 }
 
 1;

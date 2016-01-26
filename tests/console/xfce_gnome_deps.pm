@@ -18,10 +18,11 @@ use testapi;
 # this part contains the steps to run this test
 sub run() {
     my $self = shift;
+
     script_run('rpm -qa "*nautilus*|*gnome*" | sort | tee /tmp/xfce-gnome-deps');
-    script_sudo('mv /tmp/xfce-gnome-deps /var/log');
-    script_run("echo 'gnome_deps_ok' >  /dev/$serialdev");
-    wait_serial('gnome_deps_ok', 5);
+    upload_logs "/tmp/xfce-gnome-deps";
+    # no further checks
+    $self->result('ok');
 
 }
 

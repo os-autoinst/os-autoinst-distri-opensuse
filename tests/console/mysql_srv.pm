@@ -15,19 +15,22 @@ use testapi;
 sub run() {
     my $self = shift;
 
+    become_root;
+
     # Install apache2
-    script_sudo("zypper -n -q in mysql", 10);
+    script_run "zypper -n -q in mysql", 10;
 
     # After installation, mysql is disabled
-    script_sudo("systemctl status mysql.service | tee /dev/$serialdev -", 5);
-    wait_serial ".*inactive.*", 2;
+    script_run "systemctl status mysql.service | tee /dev/$serialdev -", 0;
+    wait_serial(".*inactive.*", 4) || die "mysql should be disabled by default";
 
     # Now must be enabled
-    script_sudo("systemctl start mysql.service",                          10);
-    script_sudo("systemctl status mysql.service | tee /dev/$serialdev -", 5);
+    script_run "systemctl start mysql.service",                          10;
+    script_run "systemctl status mysql.service | tee /dev/$serialdev -", 0;
     wait_serial(".*Syntax error.*", 2, 1) || die "have error while starting mysql";
 
     assert_screen 'test-mysql_srv-1', 3;
+    type_string "exit\n";
 }
 
 1;

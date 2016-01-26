@@ -22,12 +22,12 @@ sub run() {
 
     # can't use assert_script_run as zypper patch returns different return
     # values
-    script_run("zypper -n patch --with-interactive -l -r incident0; echo zypper-patch-\$?- > /dev/$serialdev");
+    script_run("zypper -n patch --with-interactive -l -r incident0; echo zypper-patch-\$?- > /dev/$serialdev", 0);
     $ret = wait_serial "zypper-patch-\?-", 300;
     $ret =~ /zypper-patch-(\d+)/;
     die "zypper failed with code $1" unless $1 == 0 || $1 == 102 || $1 == 103;
 
-    script_run('exit');
+    type_string "exit\n";
 }
 
 sub test_flags() {

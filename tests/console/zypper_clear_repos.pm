@@ -17,8 +17,7 @@ sub run() {
     become_root;
     # remove Factory repos
     my $repos_folder = '/etc/zypp/repos.d';
-    script_run("find $repos_folder/*.repo -type f -exec grep -q 'baseurl=http://download.opensuse.org/' {} \\; -delete && echo 'unneed_repos_removed' > /dev/$serialdev", 5);
-    wait_serial("unneed_repos_removed", 10) || die "remove unneed repos failed";
+    assert_script_run("find $repos_folder/*.repo -type f -exec grep -q 'baseurl=http://download.opensuse.org/' {} \\; -delete && echo 'unneed_repos_removed' > /dev/$serialdev", 15);
     script_run("zypper lr -d");
     save_screenshot;    # take a screenshot after repos removed
 
@@ -26,7 +25,7 @@ sub run() {
 }
 
 sub test_flags() {
-    return {important => 1,};
+    return {important => 1};
 }
 
 1;

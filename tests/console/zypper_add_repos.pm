@@ -15,7 +15,7 @@ sub run() {
     my $val = get_var("ZYPPER_ADD_REPOS");
     return unless $val;
 
-    become_root();
+    become_root;
 
     my $prefix = get_var("ZYPPER_ADD_REPO_PREFIX") || 'openqa';
 
@@ -25,11 +25,11 @@ sub run() {
         ++$i;
     }
 
-    script_run('exit');
+    type_string "exit\n";
 }
 
 sub test_flags() {
-    return {fatal => 1,};
+    return {fatal => 1};
 }
 
 1;
