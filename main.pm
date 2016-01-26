@@ -423,9 +423,21 @@ sub load_reboot_tests() {
     if (get_var("ENCRYPT")) {
         loadtest "installation/boot_encrypt.pm";
     }
-    if (installyaststep_is_applicable) {
-        loadtest "installation/first_boot.pm";
+    if ((snapper_is_applicable) && get_var("BOOT_TO_SNAPSHOT")) {
+        loadtest "installation/grub_test_snapshot.pm";
+        loadtest "installation/boot_into_snapshot.pm";
+        if (get_var("UPGRADE")) {
+            loadtest "installation/snapper_rollback_test.pm";
+        }
     }
+    else {
+        loadtest "installation/grub_test.pm";
+    }
+
+    if (installyaststep_is_applicable) {
+        loadtest "installation/first_normal_boot.pm";
+    }
+
     if (is_reboot_after_installation_necessary()) {
         loadtest "installation/reboot_eject_cd.pm";
         loadtest "installation/reboot_after_install.pm";
