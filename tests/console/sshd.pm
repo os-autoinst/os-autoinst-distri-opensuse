@@ -18,7 +18,8 @@ sub run() {
     my $ssh_testman        = "sshboy";
     my $ssh_testman_passwd = "let3me2in1";
 
-    become_root();
+    select_console 'root-console';
+
     script_run('SuSEfirewall2 off');
     script_run('chkconfig sshd on');
     assert_script_run("chkconfig sshd on", 60);
@@ -35,7 +36,8 @@ sub run() {
     type_string "$ssh_testman_passwd\n";
     wait_serial('password-done') || die "password not set";
 
-    type_string "exit\n";
+    clear_console;
+    select_console 'user-console';
 
     # login use new user account
     script_run('ssh ' . $ssh_testman . '@localhost -t echo LOGIN_SUCCESSFUL', 0);

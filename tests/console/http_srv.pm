@@ -15,7 +15,7 @@ use testapi;
 sub run() {
     my $self = shift;
 
-    become_root;
+    select_console 'root-console';
 
     # Install apache2
     script_run "zypper -n -q in apache2";
@@ -31,8 +31,6 @@ sub run() {
     # do *not* expect syntax errors
     wait_serial(".*Syntax error.*", 12, 1) || die "have error while starting apache2";
     save_screenshot;
-
-    type_string "exit\n";
 }
 
 1;

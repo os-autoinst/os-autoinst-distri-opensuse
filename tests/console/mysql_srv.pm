@@ -15,7 +15,7 @@ use testapi;
 sub run() {
     my $self = shift;
 
-    become_root;
+    select_console 'root-console';
 
     # Install apache2
     script_run "zypper -n -q in mysql", 10;
@@ -30,7 +30,6 @@ sub run() {
     wait_serial(".*Syntax error.*", 2, 1) || die "have error while starting mysql";
 
     assert_screen 'test-mysql_srv-1', 3;
-    type_string "exit\n";
 }
 
 1;

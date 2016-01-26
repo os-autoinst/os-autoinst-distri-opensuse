@@ -12,7 +12,7 @@ use base "consoletest";
 use testapi;
 
 sub run() {
-    my $self = shift;
+    select_console 'user-console';
 
     my $script = 'zypper lr | tee zypper_lr.txt';
     validate_script_output $script, sub { m/nu_novell_com/ };    # need a better output validation here

@@ -17,6 +17,8 @@ use testapi;
 sub run() {
     my $self = shift;
 
+    select 'root-console';
+
     # precompile regexes
     my $zypper_dup_continue      = qr/^Continue\? \[y/m;
     my $zypper_dup_conflict      = qr/^Choose from above solutions by number or cancel \[1/m;
@@ -29,7 +31,6 @@ sub run() {
     my $zypper_installing        = qr/Installing: \S+/;
     my $zypper_dup_fileconflict  = qr/^File conflicts .*^Continue\? \[y/ms;
 
-    wait_idle;
     script_run("zypper --gpg-auto-import-keys dup --from YaST:Head | tee /dev/$serialdev", 0);
 
     $out = wait_serial([$zypper_dup_continue, $zypper_dup_conflict, $zypper_dup_error, $zypper_dup_fileconflict], 240);

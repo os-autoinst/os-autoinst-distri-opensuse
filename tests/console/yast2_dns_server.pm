@@ -47,7 +47,8 @@ sub run() {
     #
     # Preparation
     #
-    become_root;
+    select_console 'root-console';
+
     # Make sure packages are installed
     assert_script_run 'zypper -n in yast2-dns-server bind SuSEfirewall2';
     # Let's pretend this is the first execution (could not be the case if
@@ -118,9 +119,6 @@ sub run() {
     wait_idle;
     $self->assert_running(0);
     $self->assert_enabled(0);
-
-    # Exit from root
-    type_string "exit\n";
 }
 
 1;

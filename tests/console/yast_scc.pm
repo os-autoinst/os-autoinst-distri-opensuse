@@ -20,13 +20,12 @@ use testapi;
 use registration;
 
 sub run() {
-    become_root;
+    select_console 'root-console';
+
     if (my $u = get_var('SCC_URL')) {
         type_string "echo 'url: $u' > /etc/SUSEConnect\n";
     }
     yast_scc_registration;
-
-    type_string "exit\n";
 }
 
 sub test_flags() {

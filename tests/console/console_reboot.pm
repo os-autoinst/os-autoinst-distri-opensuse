@@ -13,11 +13,11 @@ use testapi;
 use utils;
 
 sub run() {
-    become_root;
+    select_console 'root-console';
     type_string "reboot\n";
     wait_boot;
-    select_console 'user-console';
-    assert_script_sudo "chown $username /dev/$serialdev";
+    select_console 'root-console';
+    assert_script_run "chown $username /dev/$serialdev";
     check_console_font;
 }
 

@@ -19,11 +19,8 @@ use testapi;
 use utils;
 
 sub run() {
-    become_root();
-
+    select_console 'root-console';
     assert_script_run "echo 'download.use_deltarpm = false' >> /etc/zypp/zypp.conf";
-
-    type_string "exit\n";
 }
 
 sub test_flags() {

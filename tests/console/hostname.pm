@@ -12,9 +12,7 @@ use base "consoletest";
 use testapi;
 
 sub run() {
-    my $self = shift;
-
-    become_root;
+    select_console 'root-console';
 
     my $hostname = get_var("HOSTNAME", 'susetest');
     assert_script_run "hostnamectl set-hostname $hostname", 20;
@@ -24,8 +22,6 @@ sub run() {
 
     script_run "hostname";
     assert_screen("hostname-$hostname");
-
-    type_string "exit\n";
 }
 
 sub test_flags() {

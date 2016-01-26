@@ -13,7 +13,7 @@ use testapi;
 use utils;
 
 sub run() {
-    my $self = shift;
+    # permissions don't matter
 
     script_run('ps -ef | grep bin/X');
     assert_screen("xorg-tty7");    # suppose used terminal is tty7

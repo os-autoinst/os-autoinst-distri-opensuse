@@ -13,7 +13,7 @@ use strict;
 use testapi;
 
 sub run() {
-    become_root;
+    select_console 'root-console';
 
     my $snapfile = '/root/snapfile';
 
@@ -31,8 +31,6 @@ sub run() {
     assert_script_run "test -f $snapfile", 10;
 
     assert_screen 'snapper_undochange', 3;
-
-    type_string "exit\n";
 }
 
 sub test_flags() {

@@ -19,7 +19,7 @@ use base 'basetest';    # don' use consoletest to avoid post run hook
 use testapi;
 
 sub run {
-    become_root;
+    select_console 'root-console';
     type_string "poweroff\n";
     assert_shutdown;
 }

@@ -14,16 +14,20 @@ use testapi;
 sub run() {
     my $self = shift;
 
+    select_console 'root-console';
     # cleanup
     type_string "loginctl --no-pager\n";
     sleep 2;
     save_screenshot();
 
-    script_sudo "systemctl unmask packagekit.service";
+    script_run "systemctl unmask packagekit.service";
+
+    my $console = select_console 'user-console';
 
     send_key "ctrl-c";
     sleep 1;
-    send_key "ctrl-d";    # logout
+    type_string "exit\n";    # logout
+    $console->reset;
     sleep 2;
 
     save_screenshot();

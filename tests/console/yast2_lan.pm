@@ -18,6 +18,7 @@ use utils;
 sub run() {
     my $self = shift;
 
+    select_console 'user-console';
     assert_script_sudo "zypper -n in yast2-network";    # make sure yast2 lan module installed
 
     # those two are for debugging purposes only

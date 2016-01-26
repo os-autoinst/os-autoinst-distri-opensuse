@@ -18,6 +18,7 @@ use base "consoletest";
 use testapi;
 
 sub run() {
+    # reuse console
     my $packages = get_var("VERIFY_PACKAGE_VERSIONS");
     assert_script_run("rpm -q $packages");
 }

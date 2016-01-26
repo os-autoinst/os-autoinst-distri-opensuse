@@ -18,7 +18,7 @@ use base "consoletest";
 use testapi;
 
 sub run() {
-    become_root();
+    select_console 'root-console';
 
     # can't use assert_script_run as zypper patch returns different return
     # values
@@ -26,8 +26,6 @@ sub run() {
     $ret = wait_serial "zypper-patch-\?-", 300;
     $ret =~ /zypper-patch-(\d+)/;
     die "zypper failed with code $1" unless $1 == 0 || $1 == 102 || $1 == 103;
-
-    type_string "exit\n";
 }
 
 sub test_flags() {

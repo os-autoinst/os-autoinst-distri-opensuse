@@ -12,9 +12,7 @@ use base "consoletest";
 use testapi;
 
 sub run() {
-    my $self = shift;
-
-    become_root;
+    select_console 'root-console';
 
     # install the docker package
     assert_script_run "zypper -n in docker", 200;
@@ -33,8 +31,6 @@ sub run() {
     # make sure we can actually start a container
     script_run "docker run --rm alpine wget http://google.com && echo 'container_network_works' > /dev/$serialdev", 0;
     die "network does not work inside of the container" unless wait_serial "container_network_works", 200;
-
-    type_string "exit\n";
 }
 
 1;

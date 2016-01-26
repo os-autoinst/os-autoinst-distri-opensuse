@@ -12,13 +12,10 @@ use base "consoletest";
 use testapi;
 
 sub run() {
-    my $self = shift;
+    select_console 'root-console';
 
-    become_root;
     assert_script_run("zypper lr -d");
     save_screenshot;
-
-    type_string "exit\n";
 }
 
 1;

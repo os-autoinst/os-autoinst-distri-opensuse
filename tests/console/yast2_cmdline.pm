@@ -12,9 +12,8 @@ use base "console_yasttest";
 use testapi;
 
 sub run() {
-    my $self = shift;
+    select_console 'root-console';
 
-    become_root;
     # Install test requirement
     assert_script_run 'zypper -n in rpm-build';
 
@@ -24,9 +23,6 @@ sub run() {
     # Run YaST CLI tests
     $self->run_yast_cli_test('yast2-network');
     $self->run_yast_cli_test('yast2-dns-server');
-
-    # Exit from root
-    type_string "exit\n";
 }
 
 1;
