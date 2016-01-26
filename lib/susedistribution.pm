@@ -5,7 +5,7 @@ use strict;
 # Base class for all openSUSE tests
 
 # don't import script_run - it will overwrite script_run from distribution and create a recursion
-use testapi qw(send_key %cmd assert_screen check_screen check_var get_var set_var type_password type_string wait_idle wait_serial mouse_hide);
+use testapi qw(send_key %cmd assert_screen check_screen check_var get_var set_var type_password type_string wait_idle wait_serial mouse_hide send_key_until_needlematch);
 
 sub init() {
     my ($self) = @_;
@@ -282,21 +282,24 @@ sub activate_console {
             $nr = 2 if ($user eq 'root');
             # we need to wait more than five seconds here to pass the idle timeout in
             # case the system is still booting (https://bugzilla.novell.com/show_bug.cgi?id=895602)
-            assert_screen "tty$nr-selected";
+            assert_screen "tty$nr-selected", 60;
 
             assert_screen "text-login";
             type_string "$user\n";
             if (!get_var("LIVETEST")) {
                 assert_screen "password-prompt";
                 type_password;
-                type_string "\n";
+                send_key "ret";
             }
         }
         else {
             # different console-behaviour for s390x
             $self->script_run("su - $user") unless ($user eq 'root');
         }
-        assert_screen "text-logged-in-$user", 10;
+        # check if $user is not logged in try to login two times
+        if (!check_screen("text-logged-in-$user")) {
+            send_key_until_needlematch "text-logged-in-$user", "ret", 2, 5;
+        }
         $self->set_standard_prompt($user);
     }
 }
