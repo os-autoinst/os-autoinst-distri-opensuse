@@ -88,7 +88,7 @@ sub run() {
     script_run "cd";
 
     # Start the yast2 snapper module and wait until it is started
-    script_run "yast2 snapper";
+    type_string "yast2 snapper\n";
     assert_screen 'yast2_snapper-snapshots', 100;
     # Make sure the test snapshot is not there
     die("Unexpected snapshot found") if (check_screen('yast2_snapper-new_snapshot', 5));
@@ -105,7 +105,7 @@ sub run() {
     assert_script_run "tar -xzf /home/$username/data/yast2_snapper.tgz";
 
     # Start the yast2 snapper module and wait until it is started
-    script_run "yast2 snapper";
+    type_string "yast2 snapper\n";
     assert_screen 'yast2_snapper-snapshots', 100;
     # Select the new snapshot
     unless ($self->y2snapper_select_snapshot) {
