@@ -44,7 +44,7 @@ sub run() {
     upload_logs "/tmp/psaxf_consoletest_setup.log";
     save_screenshot;
 
-    clear_console;
+    $self->clear_and_verify_console;
 
     select_console 'user-console';
 
