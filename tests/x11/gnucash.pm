@@ -28,6 +28,10 @@ sub run() {
     if (check_var("DESKTOP", "gnome") || get_var("DESKTOP") eq "xfce") { sleep 3; send_key "alt-c"; }
     wait_idle;
     send_key "ctrl-q";    # Exit
+
+    if (check_screen("gnucash-save-changes", 10)) {
+        send_key "alt-w";    # Close _Without Saving
+    }
 }
 
 1;
