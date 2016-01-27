@@ -16,8 +16,11 @@ sub run() {
     wait_idle;
 
     #send_key "ctrl-alt-delete"; # does open task manager instead of reboot
-    x11_start_program("xterm");
-    script_sudo "/sbin/reboot";
+    x11_start_program "lxsession-logout";
+    assert_screen "logoutdialog", 20;
+    send_key "tab";    # reboot
+    save_screenshot;
+    send_key "ret";    # confirm
     wait_boot;
 }
 
