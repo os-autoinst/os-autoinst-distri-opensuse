@@ -12,6 +12,7 @@ use base "console_yasttest";
 use testapi;
 
 sub run() {
+    my $self = shift;
     select_console 'root-console';
 
     # Install test requirement
