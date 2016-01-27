@@ -85,52 +85,36 @@ sub run() {
 
     # set HTTP-source to not use factory-snapshot
     if (get_var("NETBOOT")) {
+        my $m_protocol = get_var('INSTALL_SOURCE', 'http');
+        my ($m_server, $m_share, $m_directory);
+
+        # Parse SUSEMIRROR into variables
+        if (get_var("SUSEMIRROR", '') =~ m{^([a-zA-Z0-9.-]*)(/.*)$}) {
+            ($m_server, $m_directory) = ($1, $2);
+            if ($m_protocol eq "smb") {
+                ($m_share, $m_directory) = $m_directory =~ /\/(.+?)(\/.*)/;
+            }
+        }
+
+        # select installation source (http, ftp, nfs, smb)
         send_key "f4";
         assert_screen "inst-instsourcemenu";
-        # select a net installation source (http, ftp, nfs, smb) by using send_key_until_needlematch
-        send_key_until_needlematch 'inst-instsourcemenu-' . get_var('INSTALL_SOURCE', 'http'), 'down';
+        send_key_until_needlematch "inst-instsourcemenu-$m_protocol", 'down';
         send_key "ret";
-        assert_screen "inst-instsourcedialog-" . get_var('INSTALL_SOURCE', 'http');
+        assert_screen "inst-instsourcedialog-$m_protocol";
 
-        my $mirroraddr = "";
-        my $mirrorpath = "/factory";
-        if (get_var("SUSEMIRROR", '') =~ m{^([a-zA-Z0-9.-]*)(/.*)$}) {
-            ($mirroraddr, $mirrorpath) = ($1, $2);
+        # Clean Tumbleweed default values
+        if ($m_protocol eq "http") {
+            for (1 .. 2) {
+                for (1 .. 22) { send_key "backspace" }
+                send_key "tab";
+            }
         }
 
-        #download.opensuse.org
-        if ($mirroraddr) {
-            for (1 .. 22) { send_key "backspace" }
-            type_string $mirroraddr, 4;
-        }
-        send_key "tab";
-
-        # smb share dir
-        if (check_var('INSTALL_SOURCE', "smb")) {
-            for (1 .. 10) { send_key "backspace" }
-            type_string get_var("SHARE_NAME");
-            send_key "tab";
-        }
-
-        # change dir
-        # leave /repo/oss/ (10 chars)
-        if (get_var("FULLURL")) {
-            for (1 .. 10) { send_key "backspace" }
-        }
-        else {
-            for (1 .. 10) { send_key "left"; }
-        }
-        for (1 .. 22) { send_key "backspace"; }
-
-        # nfs directory prefix
-        if (check_var('INSTALL_SOURCE', "nfs") && get_var("DIR_PREFIX")) {
-            $mirrorpath = get_var("DIR_PREFIX") . $mirrorpath;
-        }
-        # add a interval to prevent typo
-        type_string $mirrorpath, 4;
-
-        assert_screen "inst-mirror_is_setup";
-        send_key "ret";
+        # Type variables into fields
+        type_string "$m_server\t";
+        type_string "$m_share\t" if $m_protocol eq "smb";
+        type_string "$m_directory\n";
 
         # HTTP-proxy
         if (get_var("HTTPPROXY", '') =~ m/([0-9.]+):(\d+)/) {
