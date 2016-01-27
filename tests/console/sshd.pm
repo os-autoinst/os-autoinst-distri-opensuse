@@ -36,7 +36,7 @@ sub run() {
     type_string "$ssh_testman_passwd\n";
     wait_serial('password-done') || die "password not set";
 
-    clear_console;
+    $self->clear_and_verify_console;
     select_console 'user-console';
 
     # login use new user account
