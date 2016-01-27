@@ -14,7 +14,7 @@ use testapi;
 sub run() {
     my $self = shift;
 
-    select_console 'root-console';
+    my $console = select_console 'root-console';
     # cleanup
     type_string "loginctl --no-pager\n";
     sleep 2;
@@ -22,7 +22,12 @@ sub run() {
 
     script_run "systemctl unmask packagekit.service";
 
-    my $console = select_console 'user-console';
+    # logout root (and later user) so they don't block logout
+    # in KDE
+    type_string "exit\n";
+    $console->reset;
+
+    $console = select_console 'user-console';
 
     send_key "ctrl-c";
     sleep 1;
