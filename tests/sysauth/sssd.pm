@@ -14,7 +14,7 @@ use testapi;
 # Test the integration between SSSD and its various backends - file database, LDAP, and Kerberos.
 sub run() {
     # Assume consoletest_setup is completed
-    become_root;
+    select_console 'root-console';
 
     # Install test subjects and test scripts
     my @test_subjects = qw/
