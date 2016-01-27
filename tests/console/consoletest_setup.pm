@@ -31,6 +31,10 @@ sub run() {
     # Export the existing status of running tasks for future reference (fail would export it again)
     script_run "ps axf > /tmp/psaxf_consoletest_setup.log";
 
+    # Just after the setup: let's see the network configuration
+    script_run "ip addr show";
+    save_screenshot;
+
     # Stop packagekit
     script_run "systemctl mask packagekit.service";
     script_run "systemctl stop packagekit.service";
