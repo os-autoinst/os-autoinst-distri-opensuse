@@ -15,8 +15,8 @@ use bmwqemu ();
 
 sub run() {
     my $self = shift;
-    # NET isos are slow to install
-    my $timeout = 2000;
+    # NET isos are slow to install, slow machines will take long to install
+    my $timeout = 4000;
 
     # workaround for yast popups
     my @tags = qw/rebootnow/;
