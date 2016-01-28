@@ -81,7 +81,7 @@ sub run() {
     # When finished, the screen will terminate
     for (1 .. 60) {
         my $ret = check_screen [qw/qa_screen_done qa_error/], 120;
-        if ($ret && $ret->{needle}->has_tag('qa_error')) {
+        if ($ret && match_has_tag('qa_error')) {
             die "run failed";
         }
         elsif ($ret) {

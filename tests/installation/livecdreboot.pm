@@ -25,9 +25,9 @@ sub run() {
         $timeout = 5500;    # upgrades are slower
     }
     while (1) {
-        my $ret = assert_screen \@tags, $timeout;
+        assert_screen \@tags, $timeout;
 
-        if ($ret->{needle}->has_tag("popup-warning")) {
+        if (match_has_tag("popup-warning")) {
             record_soft_failure;
             bmwqemu::diag "warning popup caused dent";
             send_key "ret";
@@ -35,7 +35,7 @@ sub run() {
             next;
         }
         # can happen multiple times
-        if ($ret->{needle}->has_tag("ERROR-removing-package")) {
+        if (match_has_tag("ERROR-removing-package")) {
             record_soft_failure;
             send_key 'alt-d';
             assert_screen 'ERROR-removing-package-details';

@@ -120,19 +120,19 @@ sub ensure_installed {
     while (1) {
         my $ret = check_screen(\@tags, $timeout);
         last unless $ret;
-        if ($ret->{needle}->has_tag('Policykit')) {
+        if (match_has_tag('Policykit')) {
             type_password;
             send_key("ret", 1);
             @tags = grep { $_ ne 'Policykit' } @tags;
             @tags = grep { $_ ne 'Policykit-behind-window' } @tags;
             next;
         }
-        if ($ret->{needle}->has_tag('Policykit-behind-window')) {
+        if (match_has_tag('Policykit-behind-window')) {
             send_key("alt-tab");
             sleep 3;
             next;
         }
-        if ($ret->{needle}->has_tag('pkcon-proceed-prompt')) {
+        if (match_has_tag('pkcon-proceed-prompt')) {
             send_key("y");
             send_key("ret");
             @tags = grep { $_ ne 'pkcon-proceed-prompt' } @tags;

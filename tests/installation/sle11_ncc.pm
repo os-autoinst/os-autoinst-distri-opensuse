@@ -14,8 +14,8 @@ use testapi;
 
 sub ncc_continue_actions() {
     # untrusted gnupg keys may appear
-    while (my $ret = check_screen([qw/ncc-import-key ncc-configuration-done/], 120)) {
-        last if $ret->{needle}->has_tag('ncc-configuration-done');
+    while (check_screen([qw/ncc-import-key ncc-configuration-done/], 120)) {
+        last if match_has_tag('ncc-configuration-done');
         send_key "alt-i";
     }
 }
