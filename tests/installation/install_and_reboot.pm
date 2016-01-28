@@ -66,26 +66,6 @@ sub run() {
         send_key 'alt-o';
     }
 
-    # Await a grub screen for 30s, if seen hit ENTER (in case we did not wait long enough, the 'grub timeout' would
-    # pass and still perform the boot; so we want a value short enough to not wait forever if grub does not appear,
-    # yet long enough to make sense to even have the test.
-    my $ret = check_screen "grub2", 30;
-    if (defined($ret)) {
-        send_key 'up';    # prevent grub2 timeout
-        if (get_var("BOOT_TO_SNAPSHOT")) {
-            send_key_until_needlematch("boot-menu-snapshot", 'down', 10, 5);
-            send_key 'ret';
-            assert_screen("boot-menu-snapshot-list");
-            send_key 'ret';
-            assert_screen("boot-menu-snapshot-bootmenu");
-            send_key 'down', 1;
-            save_screenshot;
-        }
-        if (get_var("XEN")) {
-            send_key_until_needlematch("bootmenu-xen-kernel", 'down', 10, 5);
-        }
-        send_key "ret";    # avoid timeout for booting to HDD
-    }
 }
 
 1;
