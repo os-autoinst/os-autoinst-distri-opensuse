@@ -52,15 +52,18 @@ sub get_to_console() {
 }
 
 sub save_upload_y2logs() {
-    assert_script_run "save_y2logs /tmp/y2logs.tar.bz2";
-    upload_logs "/tmp/y2logs.tar.bz2";
+    my $self = shift;
+
+    my $fn = sprintf '/tmp/y2logs-%s.tar.bz2', ref $self;
+    assert_script_run "save_y2logs $fn";
+    upload_logs $fn;
     save_screenshot();
 }
 
 sub post_fail_hook() {
     my $self = shift;
     get_to_console;
-    save_upload_y2logs;
+    $self->save_upload_y2logs;
 }
 
 1;
