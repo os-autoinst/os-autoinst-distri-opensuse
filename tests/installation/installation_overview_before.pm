@@ -18,7 +18,8 @@ sub run() {
 
     # overview-generation
     # this is almost impossible to check for real
-    assert_screen "inst-overview";
+    # it can take a long time until everything is computed
+    assert_screen "inst-overview", 120;
 
     # preserve it for the video
     wait_idle 10;
