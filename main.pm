@@ -817,6 +817,7 @@ else {
     elsif (is_jeos) {
         load_boot_tests();
         loadtest "jeos/firstrun.pm";
+        loadtest "jeos/grub2_gfxmode.pm";
         loadtest "jeos/diskusage.pm";
         loadtest "jeos/root_fs_size.pm";
         loadtest "jeos/gpt_ptable.pm";
