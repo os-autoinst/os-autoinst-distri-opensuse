@@ -55,9 +55,9 @@ sub run() {
     script_run 'sed -i s\'/^allow_unsupported_modules 0/allow_unsupported_modules 1/\' /etc/modprobe.d/10-unsupported-modules.conf';
     # install kmp packages
     assert_script_run 'zypper -n in *-kmp-rt *-kmp-compute', 500;
-    script_run 'reboot';
+    type_string "reboot\n";
     kmp_module('compute');
-    script_run 'reboot';
+    type_string "reboot\n";
     kmp_module('rt');
     type_string "exit\n";
 }
