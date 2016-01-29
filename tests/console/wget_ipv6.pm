@@ -16,8 +16,8 @@ sub run() {
 
     select_console 'user-console';
     script_run('rpm -q wget');
-    script_run('wget -O- -q www3.zq1.de/test.txt');
-    assert_screen 'test-wget_ipv6-1', 3;
+    assert_script_run 'wget -O- -q www3.zq1.de/test.txt', 60;
+    assert_screen 'test-wget_ipv6-1',                     3;
 }
 
 1;

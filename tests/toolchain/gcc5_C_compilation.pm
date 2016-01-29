@@ -18,7 +18,7 @@ sub run() {
     script_run 'export CC=/usr/bin/gcc-5';
     script_run 'export CXX=/usr/bin/g++-5';
     my $package = data_url('toolchain/ltp-full-20150420.tar.bz2');
-    script_run "wget $package";
+    assert_script_run "wget $package", 60;
     script_run 'tar jxf ltp-full-20150420.tar.bz2';
     script_run 'cd ltp-full-20150420';
     script_run 'setterm -blank 0';    # disable screensaver

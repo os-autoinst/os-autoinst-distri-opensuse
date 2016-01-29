@@ -17,7 +17,7 @@ sub run() {
     my $self = shift;
     x11_start_program("xterm");
     script_run("cd /tmp");
-    script_run("wget -q openqa.opensuse.org/opensuse/qatests/qa_mozmill_run.sh");
+    assert_script_run "wget -q openqa.opensuse.org/opensuse/qatests/qa_mozmill_run.sh", 60;
     script_run("sh -x qa_mozmill_run.sh");
     sleep 30;
     local $bmwqemu::timesidleneeded = 4;
