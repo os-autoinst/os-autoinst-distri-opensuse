@@ -19,36 +19,23 @@ sub launch_yast2_module_x11 {
 }
 
 sub save_upload_y2logs() {
-    assert_script_run "save_y2logs /tmp/y2logs.tar.bz2";
-    upload_logs "/tmp/y2logs.tar.bz2";
+    my $self = shift;
+
+    my $fn = sprintf '/tmp/y2logs-%s.tar.bz2', ref $self;
+    assert_script_run "save_y2logs $fn";
+    upload_logs $fn;
 }
 
 sub post_fail_hook() {
     my $self = shift;
 
     select_console 'root-console';
-    save_screenshot;
 
-    if (check_var("DESKTOP", "kde")) {
-        if (get_var('PLASMA5')) {
-            my $fn = '/tmp/plasma5_configs.tar.bz2';
-            my $cmd = sprintf 'tar cjf %s /home/%s/.config/*rc', $fn, $username;
-            type_string "$cmd\n";
-            upload_logs $fn;
-        }
-        else {
-            my $fn = '/tmp/kde4_configs.tar.bz2';
-            my $cmd = sprintf 'tar cjf %s /home/%s/.kde4/share/config/*rc', $fn, $username;
-            type_string "$cmd\n";
-            upload_logs $fn;
-        }
-        save_screenshot;
-    }
+    my $fn = sprintf '/tmp/XSE-%s', ref $self;
+    type_string "cat /home/*/.xsession-errors* > $fn\n";
+    upload_logs $fn;
 
-    type_string "cat /home/*/.xsession-errors* > /tmp/XSE\n";
-    upload_logs "/tmp/XSE";
-
-    save_upload_y2logs;
+    $self->save_upload_y2logs;
 
     save_screenshot;
 }
