@@ -562,6 +562,8 @@ sub load_extra_test () {
     }
     loadtest "console/a2ps.pm";    # a2ps is not a ring package and thus not available in staging
 
+    loadtest "console/command_not_found.pm";
+
     # finished console test and back to desktop
     loadtest "console/consoletest_finish.pm";
 
