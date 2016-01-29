@@ -5,7 +5,7 @@ use strict;
 # Base class for all openSUSE tests
 
 # don't import script_run - it will overwrite script_run from distribution and create a recursion
-use testapi qw(send_key %cmd assert_screen check_screen check_var get_var set_var type_password type_string wait_idle wait_serial mouse_hide send_key_until_needlematch);
+use testapi qw(send_key %cmd assert_screen check_screen check_var get_var match_has_tag set_var type_password type_string wait_idle wait_serial mouse_hide send_key_until_needlematch);
 
 sub init() {
     my ($self) = @_;
