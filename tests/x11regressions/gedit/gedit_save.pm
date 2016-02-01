@@ -20,7 +20,7 @@ sub run() {
 
     # open test text file locally
     x11_start_program("gedit " . "test.txt");
-    assert_screen 'gedit-file-opened', 3;
+    assert_screen 'gedit-file-opened';
 
     # delete one line
     send_key "ctrl-d";
@@ -43,13 +43,17 @@ sub run() {
     sleep 1;
 
     # save and quit
-    send_key "ctrl-s", 1;
+    wait_screen_change {
+        send_key "ctrl-s";
+    };
     send_key "ctrl-q";
 
     # open saved file to validate
     x11_start_program("gedit " . "test.txt");
     assert_screen 'gedit-saved-file', 3;
-    send_key "ctrl-q",                1;
+    wait_screen_change {
+        send_key "ctrl-q";
+    }
 
     # clean up saved file
     x11_start_program("rm " . "test.txt");

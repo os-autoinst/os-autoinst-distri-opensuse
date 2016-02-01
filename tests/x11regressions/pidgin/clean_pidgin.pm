@@ -23,7 +23,7 @@ sub remove_pkg() {
     sleep 3;
     if ($password) {
         type_password;
-        send_key "ret", 1;
+        send_key "ret";
     }
     sleep 30;    # give time to uninstall
     type_string "clear\n";

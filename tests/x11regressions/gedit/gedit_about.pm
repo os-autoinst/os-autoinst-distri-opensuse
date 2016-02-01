@@ -18,7 +18,9 @@ sub run() {
     x11_start_program("gedit");
 
     # check about window
-    send_key "alt-h", 1;
+    wait_screen_change {
+        send_key "alt-h";
+    }
     send_key "a";
     assert_screen 'gedit-help-about', 3;
 
@@ -29,14 +31,18 @@ sub run() {
     assert_and_click 'gedit-about-link';
     # give a little time to open and load website
     assert_screen 'gedit-open-firefox', 60;
-    send_key "ctrl-q",                  1;
+    wait_screen_change {
+        send_key "ctrl-q";
+    }
 
     # check credits
     send_key "alt-r";
     assert_screen 'gedit-about-credits', 3;
     send_key "alt-r";    # close credit
 
-    send_key "alt-c", 1; # close about
+    wait_screen_change {
+        send_key "alt-c";    # close about
+    };
     send_key "ctrl-q";
 }
 

@@ -55,7 +55,7 @@ sub run() {
         }
         else {
             save_screenshot;
-            die 'Dependancy Problems';
+            die 'Dependency Problems';
         }
     }
 }

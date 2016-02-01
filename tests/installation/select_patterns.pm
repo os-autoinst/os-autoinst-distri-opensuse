@@ -17,7 +17,9 @@ sub accept3rdparty {
     while (check_screen([qw/3rdpartylicense automatic-changes inst-overview/], 15)) {
         last if match_has_tag("automatic-changes");
         last if match_has_tag("inst-overview");
-        send_key $cmd{acceptlicense}, 1;
+        wait_screen_change {
+            send_key $cmd{acceptlicense};
+        };
     }
 }
 
@@ -44,14 +46,18 @@ sub run {
 
     if (check_screen('dependancy-issue', 10) && get_var("WORKAROUND_DEPS")) {
         while (check_screen 'dependancy-issue', 5) {
-            if (check_var('VIDEOMODE', 'text')) {
-                send_key 'alt-s', 3;
-            }
-            else {
-                send_key 'alt-1', 3;
-            }
-            send_key 'spc',   3;
-            send_key 'alt-o', 3;
+            wait_screen_change {
+                if (check_var('VIDEOMODE', 'text')) {
+                    send_key 'alt-s';
+                }
+                else {
+                    send_key 'alt-1';
+                }
+            };
+            wait_screen_change {
+                send_key 'spc';
+            };
+            send_key 'alt-o';
         }
     }
 
@@ -64,7 +70,7 @@ sub run {
     }
     else {
         send_key 'tab';
-        send_key ' ', 2;
+        send_key ' ';
         assert_screen 'patterns-list-selected';
     }
 
