@@ -30,6 +30,15 @@ sub run() {
     }
     assert_screen 'empty-yast2-sw_single';
 
+    # Check disk usage widget for not showing subvolumes (bsc#949945)
+    send_key "alt-e";
+    wait_still_screen;
+    send_key "alt-s";
+    assert_screen 'yast2-sw_single-disk_usage';
+    send_key "alt-o";
+    wait_still_screen;
+    send_key "alt-p";    # go back to search box
+
     # Testcase according to https://fate.suse.com/318099
     # UC1:
     # Select a certain package, check that another gets selected/installed
