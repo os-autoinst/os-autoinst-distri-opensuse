@@ -29,10 +29,10 @@ sub addpart($) {
     }
     type_string $size . "mb";
     assert_screen "partition-size";
-    send_key $cmd{"next"};
+    send_key $cmd{next};
     assert_screen 'partition-role';
     send_key "alt-a";    # Raw Volume
-    send_key $cmd{"next"};
+    send_key $cmd{next};
     assert_screen 'partition-format';
     send_key $cmd{"donotformat"};
     send_key "tab";
@@ -56,16 +56,17 @@ sub addraid($;$) {
     }
 
     # add
-    send_key $cmd{"add"};
-    wait_idle 3;
-    send_key $cmd{"next"};
-    wait_idle 3;
+    send_key $cmd{add};
+    wait_still_screen;
+    wait_screen_change {
+        send_key $cmd{next};
+    };
 
     # chunk size selection
     if ($chunksize) {
         type_string "\t$chunksize";
     }
-    send_key $cmd{"next"};
+    send_key $cmd{next};
     assert_screen 'partition-role';
     if ($step == 3 and get_var("LVM")) {
         send_key "alt-a";    # Raw Volume
@@ -106,7 +107,8 @@ sub set_lvm() {
     type_string "root";
     assert_screen 'volumegroup-name-root';
 
-    send_key $cmd{"finish"}, 1;
+    send_key $cmd{"finish"};
+    wait_still_screen;
 
     # create logical volume
     send_key "alt-d";
@@ -138,7 +140,7 @@ sub run() {
 
     # user defined
     send_key $cmd{custompart};
-    send_key $cmd{"next"}, 1;
+    send_key $cmd{"next"};
     assert_screen 'custompart';
 
     send_key "tab";

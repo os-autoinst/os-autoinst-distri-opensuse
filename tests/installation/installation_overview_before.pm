@@ -43,9 +43,7 @@ sub run() {
             wait_screen_change {
                 send_key 'alt-a';
             };
-            wait_screen_change {
-                send_key 'alt-o';
-            };
+            send_key 'alt-o';
             assert_screen "inst-overview-after-depfix";    # Make sure you're back on the inst-overview before doing anything else
         }
         else {

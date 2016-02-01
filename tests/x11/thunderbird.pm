@@ -18,7 +18,7 @@ sub run() {
     assert_screen 'test-thunderbird-1', 3;
     wait_screen_change {
         send_key "alt-f4";    # close wizzard
-    }
+    };
     send_key "alt-f4";        # close prog
 }
 

@@ -43,17 +43,13 @@ sub run() {
     sleep 1;
 
     # save and quit
-    wait_screen_change {
-        send_key "ctrl-s";
-    };
+    wait_screen_change { send_key "ctrl-s"; };
     send_key "ctrl-q";
 
     # open saved file to validate
     x11_start_program("gedit " . "test.txt");
     assert_screen 'gedit-saved-file', 3;
-    wait_screen_change {
-        send_key "ctrl-q";
-    }
+    wait_screen_change { send_key "ctrl-q"; };
 
     # clean up saved file
     x11_start_program("rm " . "test.txt");

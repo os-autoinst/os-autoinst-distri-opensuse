@@ -40,7 +40,7 @@ sub run() {
         send_key "alt-s";        # toggle automatic configuration
         assert_screen "autoconf-deselected", 10;
     }
-    send_key $cmd{"next"}, 1;
+    send_key $cmd{"next"};
 }
 
 1;
