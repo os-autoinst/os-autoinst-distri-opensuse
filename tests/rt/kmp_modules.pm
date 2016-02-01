@@ -18,13 +18,7 @@ sub kmp_module {
 
     select_kernel("$kernel");
     assert_screen 'generic-desktop';
-    send_key 'ctrl-alt-f4';
-    assert_screen 'tty4-selected';
-    assert_screen 'text-login';
-    type_string "root\n";
-    assert_screen 'password-prompt', 10;
-    type_password;
-    send_key 'ret';
+    select_console 'root-console';
     # check if kernel is proper $kernel
     assert_script_run "uname -r|grep $kernel";
     # get bash script
@@ -43,6 +37,7 @@ sub kmp_module {
     script_run 'chmod +x modprobe_kmp_modules.sh';
     # run script printed above, modprobe kmp-compute and kmp-rt modules
     assert_script_run "./modprobe_kmp_modules.sh $kernel";
+    reset_consoles;
 }
 
 sub run() {
@@ -56,6 +51,7 @@ sub run() {
     # install kmp packages
     assert_script_run 'zypper -n in *-kmp-rt *-kmp-compute', 500;
     type_string "reboot\n";
+    reset_consoles;
     kmp_module('compute');
     type_string "reboot\n";
     kmp_module('rt');
