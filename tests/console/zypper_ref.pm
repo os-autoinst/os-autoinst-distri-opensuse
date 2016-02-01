@@ -18,11 +18,11 @@ sub run() {
 
     script_run("zypper ref; echo zypper-ref-\$? > /dev/$serialdev", 0);
     # don't trust graphic driver repo
-    if (check_screen("new-repo-need-key", 20)) {
+    assert_screen([qw/new-repo-need-key zypper_ref/]);
+    if (match_has_tag('new-repo-need-key')) {
         type_string "r\n";
     }
     wait_serial("zypper-ref-0") || die "zypper ref failed";
-    assert_screen("zypper_ref");
 }
 
 sub test_flags() {
