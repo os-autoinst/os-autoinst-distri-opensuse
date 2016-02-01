@@ -56,6 +56,7 @@ sub wait_boot {
 
     if ($textmode || check_var('DESKTOP', 'textmode')) {
         assert_screen 'linux-login', 200;
+        reset_consoles;
         return;
     }
 
