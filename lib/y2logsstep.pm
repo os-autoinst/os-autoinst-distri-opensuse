@@ -51,6 +51,24 @@ sub get_to_console() {
     }
 }
 
+# to workaround dep issues
+sub record_dependency_issues {
+    while (check_screen 'dependancy-issue', 5) {
+        wait_screen_change {
+            if (check_var('VIDEOMODE', 'text')) {
+                send_key 'alt-s';
+            }
+            else {
+                send_key 'alt-1';
+            }
+        };
+        wait_screen_change {
+            send_key 'spc';
+        };
+        send_key 'alt-o';
+    }
+}
+
 sub save_upload_y2logs() {
     assert_script_run "save_y2logs /tmp/y2logs.tar.bz2";
     upload_logs "/tmp/y2logs.tar.bz2";

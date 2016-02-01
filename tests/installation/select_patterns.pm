@@ -45,20 +45,7 @@ sub run {
     }
 
     if (check_screen('dependancy-issue', 10) && get_var("WORKAROUND_DEPS")) {
-        while (check_screen 'dependancy-issue', 5) {
-            wait_screen_change {
-                if (check_var('VIDEOMODE', 'text')) {
-                    send_key 'alt-s';
-                }
-                else {
-                    send_key 'alt-1';
-                }
-            };
-            wait_screen_change {
-                send_key 'spc';
-            };
-            send_key 'alt-o';
-        }
+        $self->record_dependency_issues;
     }
 
     assert_screen 'pattern_selector';
