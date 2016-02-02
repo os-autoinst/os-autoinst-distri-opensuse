@@ -11,13 +11,13 @@
 use base "opensusebasetest";
 use strict;
 use testapi;
+use utils;
 
 sub run() {
-    my $check_state    = "systemctl show --no-pager sshd | grep ActiveState | cut -d'=' -f2";
-    my $check_substate = "systemctl show --no-pager sshd | grep SubState | cut -d'=' -f2";
-
-    validate_script_output $check_state,    sub { m/^active$/ };
-    validate_script_output $check_substate, sub { m/^running$/ };
+    assert_script_run("SuSEfirewall2 status");
+    if (is_jeos) {
+        assert_script_run("grep '^FW_CONFIGURATIONS_EXT=\"sshd\"\\|^FW_SERVICES_EXT_TCP=\"ssh\"' /etc/sysconfig/SuSEfirewall2");
+    }
 }
 
 sub test_flags() {

@@ -8,12 +8,12 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-use base "opensusebasetest";
+use base "consoletest";
 use strict;
 use testapi;
 
 sub run() {
-    validate_script_output "cat /sys/kernel/kexec_crash_loaded", sub { /^0$/ }
+    assert_script_run("grep ^0 /sys/kernel/kexec_crash_loaded");
 }
 
 1;
