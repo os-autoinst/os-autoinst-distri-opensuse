@@ -18,19 +18,19 @@ sub run() {
     select_console 'root-console';
 
     # Install apache2
-    script_run "zypper -n -q in apache2";
-    assert_screen 'test-http_srv-1';
+    assert_script_run "zypper -n -q in apache2";
 
     # After installation, apache2 is disabled
-    script_run "systemctl status apache2.service | tee /dev/$serialdev -", 0;
-    wait_serial(".*disable.*") || die "apache should be disabled by default";
+    assert_script_run "systemctl show -p UnitFileState apache2.service|grep UnitFileState=disabled";
 
-    # Now must be enabled
-    script_run "systemctl start apache2.service";
-    script_run "systemctl status apache2.service | tee /dev/$serialdev -", 0;
-    # do *not* expect syntax errors
-    wait_serial(".*Syntax error.*", 12, 1) || die "have error while starting apache2";
-    save_screenshot;
+    # let's try to run it
+    assert_script_run "systemctl start apache2.service";
+    assert_script_run "systemctl show -p ActiveState apache2.service|grep ActiveState=active";
+    assert_script_run "systemctl show -p SubState apache2.service|grep SubState=running";
+
+    # verify httpd serves index.html
+    type_string "echo Lorem ipsum dolor sit amet > /srv/www/htdocs/index.html\n";
+    assert_script_run "curl -f http://localhost/ | grep 'Lorem ipsum dolor sit amet'";
 }
 
 1;
