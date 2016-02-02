@@ -18,7 +18,7 @@ sub run() {
     my $self = shift;
 
     x11_start_program("nautilus");
-    send_key "ctrl-l", 1;
+    send_key "ctrl-l";
     type_string "ftp://ftp.suse.com\n";
     assert_screen "nautilus-ftp-login", 5;
     send_key "ret";

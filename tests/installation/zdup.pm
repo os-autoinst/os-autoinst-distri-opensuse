@@ -103,8 +103,8 @@ sub run() {
         if ($out =~ $zypper_dup_conflict) {
             if (get_var("WORKAROUND_DEPS")) {
                 record_soft_failure;
-                send_key '1',   1;
-                send_key 'ret', 1;
+                send_key '1';
+                send_key 'ret';
             }
             else {
                 $self->result('fail');
@@ -114,8 +114,8 @@ sub run() {
         }
         elsif ($out =~ $zypper_dup_continue) {
             # confirm zypper dup continue
-            send_key 'y',   1;
-            send_key 'ret', 1;
+            send_key 'y';
+            send_key 'ret';
             last;
         }
         elsif ($out =~ $zypper_dup_error) {
@@ -137,8 +137,8 @@ sub run() {
     $out = wait_serial($post_checks, 240);
     while ($out) {
         if ($out =~ $zypper_dup_notifications) {
-            send_key 'n',   1;    # do not show notifications
-            send_key 'ret', 1;
+            send_key 'n';    # do not show notifications
+            send_key 'ret';
         }
         elsif ($out =~ $zypper_dup_error) {
             $self->result('fail');
@@ -150,22 +150,22 @@ sub run() {
         }
         elsif ($out =~ $zypper_retrieving or $out =~ $zypper_check_conflicts) {
             # probably to avoid hitting black screen on video
-            send_key 'shift', 1;
+            send_key 'shift';
             # continue but do a check again
             $out = wait_serial($post_checks, 240);
             next;
         }
         elsif ($out =~ $zypper_dup_fileconflict) {
             #             record_soft_failure;
-            #             send_key 'y', 1;
-            #             send_key 'ret', 1;
+            #             send_key 'y';
+            #             send_key 'ret';
             $self->result('fail');
             save_screenshot;
             return;
         }
         else {
             # probably to avoid hitting black screen on video
-            send_key 'shift', 1;
+            send_key 'shift';
         }
         save_screenshot;
         $out = wait_serial([$zypper_dup_finish, $zypper_installing, $zypper_dup_notifications, $zypper_dup_error], 240);

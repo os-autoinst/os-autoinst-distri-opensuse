@@ -39,23 +39,16 @@ sub run() {
         assert_screen 'dependancy-issue';    #make sure the dependancy issue is actually showing
 
         if (get_var("WORKAROUND_DEPS")) {
-            while (check_screen 'dependancy-issue', 5) {
-                if (check_var('VIDEOMODE', 'text')) {
-                    send_key 'alt-s', 3;
-                }
-                else {
-                    send_key 'alt-1', 3;
-                }
-                send_key 'spc',   3;
-                send_key 'alt-o', 3;
-            }
-            send_key 'alt-a', 3;
-            send_key 'alt-o', 3;
+            $self->record_dependency_issues;
+            wait_screen_change {
+                send_key 'alt-a';
+            };
+            send_key 'alt-o';
             assert_screen "inst-overview-after-depfix";    # Make sure you're back on the inst-overview before doing anything else
         }
         else {
             save_screenshot;
-            die 'Dependancy Problems';
+            die 'Dependency Problems';
         }
     }
 }

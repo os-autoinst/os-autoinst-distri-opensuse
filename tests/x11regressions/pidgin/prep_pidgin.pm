@@ -24,7 +24,7 @@ sub pidgin_preparation() {
     sleep 3;
     if ($password) {
         type_password;
-        send_key "ret", 1;
+        send_key "ret";
     }
     sleep 60;            # give time to install
     type_string "\n";    # prevent the screensaver...

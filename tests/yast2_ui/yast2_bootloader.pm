@@ -17,7 +17,7 @@ sub run() {
 
     $self->launch_yast2_module_x11($module);
     assert_screen "yast2-$module-ui", 120;
-    send_key "alt-o",                 1;     # OK => Exit
+    send_key "alt-o";    # OK => Exit
 }
 
 1;

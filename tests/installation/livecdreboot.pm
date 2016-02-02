@@ -78,7 +78,8 @@ sub run() {
             assert_screen("boot-menu-snapshot-list");
             send_key 'ret';
             assert_screen("boot-menu-snapshot-bootmenu");
-            send_key 'down', 1;
+            send_key 'down';
+            wait_still_screen;
             save_screenshot;
         }
         if (get_var("XEN")) {

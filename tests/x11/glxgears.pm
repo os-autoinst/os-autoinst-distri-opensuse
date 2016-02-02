@@ -16,9 +16,7 @@ sub run() {
     ensure_installed("Mesa-demo-x");
     x11_start_program("glxgears");
     assert_screen 'test-glxgears-1', 3;
-    send_key "alt-f4",               1;
-    send_key "ret",                  1;
-    sleep 5;    # time to close
+    send_key "alt-f4";
 }
 
 1;
