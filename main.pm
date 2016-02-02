@@ -529,6 +529,13 @@ sub load_consoletests() {
         if (!get_var("LIVETEST")) {
             loadtest "console/yast2_bootloader.pm";
         }
+        loadtest "console/vim.pm";
+        loadtest "console/firewall_enabled.pm";
+        if (is_jeos) {
+            loadtest "console/gpt_ptable.pm";
+            loadtest "console/kdump_disabled.pm";
+            loadtest "console/sshd_running.pm";
+        }
         loadtest "console/sshd.pm";
         if (get_var("BIGTEST")) {
             loadtest "console/sntp.pm";
@@ -820,12 +827,7 @@ else {
         loadtest "jeos/grub2_gfxmode.pm";
         loadtest "jeos/diskusage.pm";
         loadtest "jeos/root_fs_size.pm";
-        loadtest "jeos/gpt_ptable.pm";
         loadtest "jeos/mount_by_label.pm";
-        loadtest "jeos/kdump_disabled.pm";
-        loadtest "jeos/firewall_enabled.pm";
-        loadtest "jeos/ssh_running.pm";
-        loadtest "jeos/vim_installed.pm";
         if (get_var("SCC_EMAIL") && get_var("SCC_REGCODE")) {
             loadtest "jeos/sccreg.pm";
         }
