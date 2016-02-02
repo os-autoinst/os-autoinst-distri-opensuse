@@ -6,8 +6,8 @@ set -e
 trap sssd_test_common_cleanup EXIT SIGINT SIGTERM
 sssd_test_common_setup
 
-export SPECNAME=sssd.ldap_nested_groups
-test_suite_start 'Use SSSD with LDAP backend and nested/multiple group membership'
+export SPECNAME=sssd.ldap_no_auth
+test_suite_start 'Use SSSD with LDAP backend but without providing authentication'
 
 # Prepare LDAP certificates and database
 mkdir -p /tmp/ldap-sssdtest &&
@@ -49,8 +49,6 @@ group2=`getent group group2`
 [ "$group2" = "group2:*:8001:testuser1" ] || test_fatal 'group2 user list is incomplete'
 group3=`getent group group3`
 [ "$group3" = "group3:*:8002:testuser2" ] || test_fatal 'group3 user list is incomplete'
-supergroup=`getent group supergroup`
-[ "$supergroup" = "supergroup:*:8003:testuser1,testuser2" ] || test_fatal 'supergroup user list is incomplete'
 test_ok
 
 test_case 'Switch user'
@@ -61,8 +59,8 @@ test_ok
 test_case 'User group membership'
 user1_groups=`su testuser1 -c 'id -G'`
 user2_groups=`su testuser2 -c 'id -G'`
-[ "$user1_groups" = "8000 8001 8003" ] || test_fatal 'testuser1 group membership is incomplete'
-[ "$user2_groups" = "8000 8002 8003" ] || test_fatal 'testuser2 group membership is incomplete'
+[ "$user1_groups" = "8000 8001" ] || test_fatal 'testuser1 group membership is incomplete'
+[ "$user2_groups" = "8000 8002" ] || test_fatal 'testuser2 group membership is incomplete'
 test_ok
 
 test_case 'Check password status'
@@ -73,9 +71,7 @@ test_ok
 
 ldappasswd -x -D 'cn=root,dc=ldapdom,dc=net' -wpass -sgoodpass 'uid=testuser1,ou=UnixUser,dc=ldapdom,dc=net'
 test_case 'Login via PAM'
-../pamtest.py login testuser1 goodpass || test_fatal 'Failed to login as testuser1'
-! ../pamtest.py login testuser2 badpass &> /dev/null || test_fatal 'Failed to deny login of incorrect password'
-! ../pamtest.py login doesnotexist badpass &> /dev/null || test_fatal 'Failed to deny login of false username'
+! ../pamtest.py login testuser1 goodpass || test_fatal 'Disabled authentication provider did not reject login'
 test_ok
 
 test_suite_end

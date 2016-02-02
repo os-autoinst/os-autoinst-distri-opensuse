@@ -32,7 +32,7 @@ sub run() {
     # The test scenarios are now ready to run
     my @scenario_failures;
 
-    foreach my $scenario (qw/local ldap ldap-inherited-groups ldap-nested-groups krb/) {
+    foreach my $scenario (qw/local ldap ldap-no-auth ldap-nested-groups krb/) {
         # Download the source code of test scenario
         script_run "cd ~/sssd && mkdir $scenario && curl -L -v " . autoinst_url . "/data/sssd-tests/$scenario > $scenario/cdata";
         script_run "cd $scenario && cpio -idv < cdata && mv data/* ./; ls";
