@@ -18,7 +18,6 @@ sub run() {
     assert_script_run("/home/$username/data/textinfo 2>&1 | tee /tmp/info.txt");
     upload_logs("/tmp/info.txt");
     upload_logs("/tmp/logs.tar.bz2");
-    assert_screen "texinfo-logs-uploaded";
 }
 
 1;
