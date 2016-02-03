@@ -28,6 +28,7 @@ sub run() {
     }
     if (@addons) {
         for $a (@addons) {
+            next if ($a =~ /we/i);                     # https://bugzilla.suse.com/show_bug.cgi?id=931003#c17
             send_key_until_needlematch("release-notes-$a", 'right');
             send_key 'left';                           # move back to first tab
             send_key 'left';
