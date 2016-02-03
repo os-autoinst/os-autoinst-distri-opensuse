@@ -29,13 +29,9 @@ sub run() {
     assert_screen 'test-sshd-1';
 
     # create a new user to test sshd
+    my $changepwd = $ssh_testman . ":" . $ssh_testman_passwd;
     script_run("useradd -m $ssh_testman");
-    script_run("passwd $ssh_testman; echo password-done > /dev/$serialdev", 0);
-    type_string "$ssh_testman_passwd\n";
-    assert_screen "retry-new-password", 5;
-    type_string "$ssh_testman_passwd\n";
-    wait_serial('password-done') || die "password not set";
-
+    script_run("echo $changepwd | chpasswd");
     $self->clear_and_verify_console;
     select_console 'user-console';
 
