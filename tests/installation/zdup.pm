@@ -73,7 +73,6 @@ sub run() {
             my $build  = get_var("BUILD");
             my $flavor = get_var("FLAVOR");
             script_run "ls -al /dev/disk/by-label";
-            script_run "";
             my $isoinfo = "isoinfo -d -i /dev/\$dev | grep \"Application id\" | awk -F \" \" '{print \$3}'";
 
             script_run "for dev in sr0 sr1 sr2 sr3 sr4 sr5; do
