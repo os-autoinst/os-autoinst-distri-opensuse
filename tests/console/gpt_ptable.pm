@@ -8,12 +8,13 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-use base "opensusebasetest";
+use base "consoletest";
 use strict;
 use testapi;
 
+# verify that the disks have a gpt partition label
 sub run() {
-    validate_script_output "parted -ml | grep dev | head -1 | cut -d':' -f6", sub { /^gpt$/ }
+    assert_script_run "parted -ml | grep '^/dev/.*:gpt:'";
 }
 
 1;

@@ -7,7 +7,7 @@ use strict;
 
 use testapi;
 
-our @EXPORT = qw/unlock_if_encrypted wait_boot clear_console select_kernel check_console_font/;
+our @EXPORT = qw/unlock_if_encrypted wait_boot clear_console select_kernel check_console_font is_jeos/;
 
 sub unlock_if_encrypted {
 
@@ -137,6 +137,10 @@ sub check_console_font {
     if (check_screen "broken-console-font", 5) {
         assert_script_run("/usr/lib/systemd/systemd-vconsole-setup");
     }
+}
+
+sub is_jeos() {
+    return get_var('FLAVOR', '') =~ /^JeOS/;
 }
 
 1;
