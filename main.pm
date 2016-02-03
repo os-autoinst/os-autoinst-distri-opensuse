@@ -253,6 +253,10 @@ sub have_addn_repos() {
     return !get_var("NET") && !get_var("EVERGREEN") && get_var("SUSEMIRROR") && !get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/;
 }
 
+sub we_is_applicable() {
+    return is_server && get_var("ADDONS") =~ /we/;
+}
+
 sub loadtest($) {
     my ($test) = @_;
     autotest::loadtest("tests/$test");
@@ -629,7 +633,7 @@ sub load_x11tests() {
     if (xfcestep_is_applicable) {
         loadtest "x11/ristretto.pm";
     }
-    if (!is_server) {
+    if (!is_server || we_is_applicable) {
         if (gnomestep_is_applicable) {
             loadtest "x11/eog.pm";
             loadtest "x11/rhythmbox.pm";
@@ -665,7 +669,7 @@ sub load_x11tests() {
     }
     if (gnomestep_is_applicable) {
         loadtest "x11/nautilus.pm"  unless get_var("LIVECD");
-        loadtest "x11/evolution.pm" unless (is_server);
+        loadtest "x11/evolution.pm" if (!is_server || we_is_applicable);
         loadtest "x11/reboot_gnome.pm";
     }
     if (check_var("BACKEND", "s390x")) {
