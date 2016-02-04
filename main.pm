@@ -489,7 +489,10 @@ sub load_consoletests() {
             loadtest "console/yast2_bootloader.pm";
         }
         loadtest "console/vim.pm";
-        loadtest "console/firewall_enabled.pm";
+        # textmode install comes without firewall by default atm
+        if (!check_var("DESKTOP", "textmode")) {
+            loadtest "console/firewall_enabled.pm";
+        }
         if (is_jeos) {
             loadtest "console/gpt_ptable.pm";
             loadtest "console/kdump_disabled.pm";
