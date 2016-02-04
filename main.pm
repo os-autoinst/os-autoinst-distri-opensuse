@@ -373,6 +373,9 @@ sub is_reboot_after_installation_necessary() {
 
 sub load_inst_tests() {
     loadtest "installation/welcome.pm";
+    if (get_var('IBFT')) {
+        loadtest "installation/iscsi_configuration.pm";
+    }
     if (check_var('ARCH', 's390x')) {
         if (check_var('BACKEND', 's390x')) {
             loadtest "installation/disk_activation.pm";
@@ -415,6 +418,9 @@ sub load_inst_tests() {
         }
         if (get_var("SPLITUSR")) {
             loadtest "installation/partitioning_splitusr.pm";
+        }
+        if (get_var("IBFT")) {
+            loadtest "installation/partitioning_iscsi.pm";
         }
         loadtest "installation/partitioning_finish.pm";
     }
