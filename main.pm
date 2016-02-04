@@ -588,6 +588,8 @@ sub load_extra_test () {
         loadtest "console/aplay.pm";
     }
 
+    loadtest "console/command_not_found.pm";
+
     # finished console test and back to desktop
     loadtest "console/consoletest_finish.pm";
 
