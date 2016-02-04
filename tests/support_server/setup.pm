@@ -19,14 +19,15 @@ use lockapi;
 use testapi;
 use mm_network;
 
-my $pxe_server_set  = 0;
-my $quemu_proxy_set = 0;
-my $http_server_set = 0;
-my $ftp_server_set  = 0;
-my $tftp_server_set = 0;
-my $dns_server_set  = 0;
-my $dhcp_server_set = 0;
-my $nfs_mount_set   = 0;
+my $pxe_server_set   = 0;
+my $quemu_proxy_set  = 0;
+my $http_server_set  = 0;
+my $ftp_server_set   = 0;
+my $tftp_server_set  = 0;
+my $dns_server_set   = 0;
+my $dhcp_server_set  = 0;
+my $nfs_mount_set    = 0;
+my $iscsi_server_set = 0;
 
 my $setup_script;
 
@@ -185,6 +186,21 @@ sub setup_aytests {
     ";
 }
 
+sub setup_iscsi {
+    return if $iscsi_server_set;
+
+    $setup_script .= "
+        zypper -n --no-gpg-checks in tgt
+        dd if=/dev/zero of=/root/iscsi-disk1 bs=1M count=8000
+        systemctl enable tgtd
+        systemctl start tgtd
+        tgtadm --lld iscsi --mode target --op new --tid=1 --targetname iqn.2016-01.openqa.de:for.all
+        tgtadm --lld iscsi --mode logicalunit --op new --tid 1 --lun 1 -b /root/iscsi-disk1
+        tgtadm --lld iscsi --mode target --op bind --tid 1 -I ALL
+        tgt-admin --dump|grep -v default-driver >/etc/tgt/conf.d/scsi-target.conf
+    ";
+    $iscsi_server_set = 1;
+}
 
 sub run {
 
@@ -226,6 +242,11 @@ sub run {
     if (exists $server_roles{'aytests'}) {
         setup_aytests();
         push @mutexes, 'aytests';
+    }
+
+    if (exists $server_roles{'iscsi'}) {
+        setup_iscsi();
+        push @mutexes, 'iscsi';
     }
 
     die "no services configured, SUPPORT_SERVER_ROLES variable missing?" unless $setup_script;
