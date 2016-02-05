@@ -490,7 +490,7 @@ sub load_consoletests() {
         }
         loadtest "console/vim.pm";
         # textmode install comes without firewall by default atm
-        if (!check_var("DESKTOP", "textmode")) {
+        if (!check_var("DESKTOP", "textmode") && !is_staging) {
             loadtest "console/firewall_enabled.pm";
         }
         if (is_jeos) {
