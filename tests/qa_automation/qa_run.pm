@@ -48,16 +48,6 @@ sub run() {
     type_string "\n";
     sleep 1;
 
-    # remove SLES
-    assert_script_run "zypper rr 1";
-    # remove SDK
-    assert_script_run "zypper rr 1";
-
-    my $repo = get_var('HOST') . "/assets/repo/" . get_var('REPO_0');
-    assert_script_run "zypper -n ar -f $repo sles";
-    $repo = get_var('HOST') . "/assets/repo/" . get_var('REPO_1');
-    assert_script_run "zypper -n ar -f $repo sdk";
-
     # Add Repo - http://dist.nue.suse.com/ibs/QA:/Head/SLE-12-SP1/
     assert_script_run "zypper --no-gpg-check -n ar -f " . get_var('QA_HEAD_REPO') . " qa_ibs";
 
@@ -80,16 +70,17 @@ sub run() {
 
     # When finished, the screen will terminate
     for (1 .. 60) {
-        my $ret = check_screen [qw/qa_screen_done qa_error/], 120;
-        if ($ret && match_has_tag('qa_error')) {
-            die "run failed";
-        }
-        elsif ($ret) {
+        if (check_screen [qw/qa_screen_done qa_error/], 120) {
+            if (match_has_tag('qa_error')) {
+                die "run failed";
+            }
             last;
         }
-        # change the screen periodically to avoid standstill detection for long running tests
-        my $time = time;
-        type_string "$time\n";
+        else {
+            # change the screen periodically to avoid standstill detection for long running tests
+            my $time = time;
+            type_string "$time\n";
+        }
     }
     # output the QADB link
     type_string "grep -E \"http://.*/submission.php.*submission_id=[0-9]+\"  /var/log/qaset/submission/submission-*.log " . "| awk -F\": \"  '{print \$2}' | tee -a /dev/$serialdev\n";
