@@ -530,7 +530,9 @@ sub load_consoletests() {
             loadtest "console/yast2_bootloader.pm";
         }
         loadtest "console/vim.pm";
-        loadtest "console/firewall_enabled.pm";
+        if (!is_staging) {
+            loadtest "console/firewall_enabled.pm";
+        }
         if (is_jeos) {
             loadtest "console/gpt_ptable.pm";
             loadtest "console/kdump_disabled.pm";
