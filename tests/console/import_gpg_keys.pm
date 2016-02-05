@@ -21,11 +21,11 @@ sub run() {
     select_console 'root-console';
 
     my $keys = get_var("IMPORT_GPG_KEYS");
-    assert_script_run("rpm --import $keys");
+    assert_script_run("rpm --import ~$username/data/$keys");
 }
 
 sub test_flags() {
-    return {important => 1};
+    return {fatal => 1};
 }
 
 1;
