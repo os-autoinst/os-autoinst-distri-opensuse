@@ -55,11 +55,19 @@ sub run() {
         }
     }
 
-    if (check_var('BACKEND', 's390x')) {                   # s390x always needs SSH
+    if (check_var('ARCH', 's390x')) {                   # s390x always needs SSH
         if (!check_screen('ssh-open', 5)) {
             send_key_until_needlematch 'ssh-blocked-selected', 'tab';
             send_key 'ret';
             assert_screen 'ssh-open';
+        }
+    
+        # Workaround for bsc#963008
+        record_soft_failure;
+        if (!check_screen('firewall-disabled', 5)) {
+            send_key_until_needlematch 'firewall-enabled-selected', 'tab';
+            send_key 'ret';
+            assert_screen 'firewall-disabled';
         }
     }
 }
