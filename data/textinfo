@@ -6,6 +6,8 @@ lsmod
 
 free
 
+cat /etc/fstab
+
 mount
 
 /usr/sbin/btrfs filesystem df /
