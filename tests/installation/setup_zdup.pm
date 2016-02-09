@@ -37,6 +37,14 @@ sub run() {
         else {
             script_run("systemctl set-default --force multi-user.target");
         }
+
+        # openSUSE 13.2's systemd has broken rules for virtio-net, not applying predictable names (despite being configured)
+        # A maintenance update breaking networking names sounds worse than just accepting that 13.2 -> TW breaks
+        # After dup'ing, the naming starts working, but our network interface changes name (thus we lose network connection)
+        if (check_var('HDDVERSION', "openSUSE-13.2")) {    # copy eth0 network config to ens4
+            script_run("cp /etc/sysconfig/network/ifcfg-eth0 /etc/sysconfig/network/ifcfg-ens4");
+        }
+
         # The CD was ejected in the bootloader test
         type_string("/sbin/reboot\n");
 
