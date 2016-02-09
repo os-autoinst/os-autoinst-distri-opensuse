@@ -19,7 +19,7 @@ sub run() {
     my $self = shift;
     mouse_hide(1);
     x11_start_program("gnome-control-center");
-    assert_screen "gnome-control-center-started", 40;
+    assert_screen "gnome-control-center-started", 60;    # for timeout selection see bsc#965857
     type_string "details";
     assert_screen "gnome-control-center-details-typed", 5;
     assert_and_click "gnome-control-center-details";
