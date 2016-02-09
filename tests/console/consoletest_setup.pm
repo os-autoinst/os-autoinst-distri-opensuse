@@ -31,6 +31,14 @@ sub run() {
     # Export the existing status of running tasks for future reference (fail would export it again)
     script_run "ps axf > /tmp/psaxf_consoletest_setup.log";
 
+    # openSUSE 13.2's systemd has broken rules for virtio-net, not applying predictable names (despite being configured)
+    # A maintenance update breaking networking names sounds worse than just accepting that 13.2 -> TW breaks
+    # At this point, the system has been upadted, but our network interface changes name (thus we lost network connection)
+    if (check_var('HDDVERSION', "openSUSE-13.2")) {    # copy eth0 network config to ens4
+        script_run("cp /etc/sysconfig/network/ifcfg-eth0 /etc/sysconfig/network/ifcfg-ens4");
+        script_run("/sbin/ifup ens4");
+    }
+
     # Just after the setup: let's see the network configuration
     script_run "ip addr show";
     save_screenshot;
