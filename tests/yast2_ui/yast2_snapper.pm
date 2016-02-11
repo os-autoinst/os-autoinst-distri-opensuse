@@ -89,7 +89,7 @@ sub run() {
     script_run "cd";
 
     # Start the yast2 snapper module and wait until it is started
-    script_run "yast2 snapper";
+    script_run "yast2 snapper",              0;
     assert_screen 'yast2_snapper-snapshots', 100;
     # Make sure the test snapshot is not there
     die("Unexpected snapshot found") if (check_screen('yast2_snapper-new_snapshot', 5));

@@ -34,7 +34,7 @@ sub run() {
     #
     # YaST nfs-client execution
     #
-    script_run '/sbin/yast2 nfs-client';
+    script_run '/sbin/yast2 nfs-client', 0;
     assert_screen 'yast2-nfs-client-shares';
     # Open the dialog to add a connection to the share
     send_key 'alt-a';
