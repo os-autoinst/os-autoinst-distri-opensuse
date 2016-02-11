@@ -19,7 +19,7 @@ sub run() {
 
     select_console 'root-console';
 
-    assert_script_run "zypper -n rm $pkgname $recommended", 90;
+    assert_script_run "zypper -n -i rm $pkgname $recommended", 90;
 
     assert_script_run "zypper -n in yast2-packager", 90;    # make sure yast2 sw_single module installed
 
