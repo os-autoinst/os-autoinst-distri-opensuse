@@ -30,13 +30,13 @@ sub run() {
     $cmdline .= "vnc=1 VNCPassword=$testapi::password ";     # trigger VNC installation
     $cmdline .= "sshpassword=$testapi::password sshd=1 ";    # we need ssh access to gather logs
 
-    $svirt->define_domain(
-        {
-            initrd    => "/var/lib/libvirt/images/$name.initrd",
-            kernel    => "/var/lib/libvirt/images/$name.kernel",
-            cmdline   => $cmdline,
-            on_reboot => 'destroy',
-        });
+    $svirt->change_domain_element(os => initrd  => "/var/lib/libvirt/images/$name.initrd");
+    $svirt->change_domain_element(os => kernel  => "/var/lib/libvirt/images/$name.kernel");
+    $svirt->change_domain_element(os => cmdline => $cmdline);
+
+    # after installation we need to redefine the domain, so just shutdown
+    $svirt->change_domain_element(on_reboot => 'destroy');
+
     $svirt->add_disk({size => '4G', create => 1});
     # need that for s390
     $svirt->add_pty({type => 'sclp', port => '0'});
