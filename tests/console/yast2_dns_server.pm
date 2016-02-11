@@ -58,7 +58,7 @@ sub run() {
     #
     # First execution (wizard-like interface)
     #
-    script_run '/sbin/yast2 dns-server';
+    script_run '/sbin/yast2 dns-server', 0;
     # Just do next-next until the last step
     assert_screen 'yast2-dns-server-step1';
     send_key 'alt-n';
@@ -77,7 +77,7 @@ sub run() {
     #
     # Second execution (tree-based interface)
     #
-    script_run '/sbin/yast2 dns-server';
+    script_run '/sbin/yast2 dns-server', 0;
     assert_screen 'yast2-service-running-enabled';
     # Stop the service
     send_key 'alt-s';
@@ -94,7 +94,7 @@ sub run() {
     #
     # Third execution (tree-based interface)
     #
-    script_run '/sbin/yast2 dns-server';
+    script_run '/sbin/yast2 dns-server', 0;
     assert_screen 'yast2-service-stopped-enabled';
     # Start the service
     send_key 'alt-s';
@@ -109,7 +109,7 @@ sub run() {
     #
     # Fourth execution (tree-based interface)
     #
-    script_run '/sbin/yast2 dns-server';
+    script_run '/sbin/yast2 dns-server', 0;
     assert_screen 'yast2-service-running-disabled';
     # Stop the service
     send_key 'alt-s';
