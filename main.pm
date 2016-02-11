@@ -719,6 +719,8 @@ sub load_x11tests() {
         && !system_is_livesystem)
     {
         loadtest "x11/gnucash.pm";
+        loadtest "x11/xchat.pm";
+        loadtest "x11/hexchat.pm";
     }
     loadtest "x11/shutdown.pm";
 }
