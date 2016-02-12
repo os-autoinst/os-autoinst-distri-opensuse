@@ -71,7 +71,7 @@ sub configure_static_dns {
     my ($conf) = @_;
     my $servers = join(" ", @{$conf->{nameserver}});
     script_run("sed -i -e 's|^NETCONFIG_DNS_STATIC_SERVERS=.*|NETCONFIG_DNS_STATIC_SERVERS=\"$servers\"|' /etc/sysconfig/network/config");
-    script_run("rcnetwork restart");
+    script_run("netconfig -f update");
     script_run("cat /etc/resolv.conf");
 }
 
