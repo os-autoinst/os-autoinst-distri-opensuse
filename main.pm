@@ -444,13 +444,18 @@ sub load_inst_tests() {
         loadtest "installation/start_install.pm";
     }
     loadtest "installation/install_and_reboot.pm";
+    if (check_var('BACKEND', 'svirt')) {
+        # on svirt we need to redefine the xml-file to boot the installed kernel
+        loadtest "installation/redefine_svirt_domain.pm";
+    }
+
 }
 
 sub load_reboot_tests() {
     if (get_var("ENCRYPT")) {
         loadtest "installation/boot_encrypt.pm";
     }
-    if (check_var("BACKEND", "s390x")) {
+    if (check_var("ARCH", "s390x")) {
         loadtest "installation/reconnect_s390.pm";
     }
     if (installyaststep_is_applicable) {
@@ -677,11 +682,11 @@ sub load_x11tests() {
         loadtest "x11/reboot_kde.pm";
     }
     if (gnomestep_is_applicable) {
-        loadtest "x11/nautilus.pm"  unless get_var("LIVECD");
+        loadtest "x11/nautilus.pm" unless get_var("LIVECD");
         loadtest "x11/evolution.pm" if (!is_server || we_is_applicable);
         loadtest "x11/reboot_gnome.pm";
     }
-    if (check_var("BACKEND", "s390x")) {
+    if (check_var("ARCH", "s390x")) {
         loadtest "installation/reconnect_s390.pm";
     }
     loadtest "x11/desktop_mainmenu.pm";
