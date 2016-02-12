@@ -37,11 +37,7 @@ sub addpart($) {
     send_key $cmd{"donotformat"};
     send_key "tab";
 
-    while (!check_screen("partition-selected-raid-type", 1)) {
-        wait_screen_change {
-            send_key "down";
-        } || die "last item";
-    }
+    send_key_until_needlematch 'partition-selected-raid-type', 'down';
     send_key $cmd{finish};
 }
 
