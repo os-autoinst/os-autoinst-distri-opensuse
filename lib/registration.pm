@@ -120,12 +120,14 @@ sub fill_in_registration_data {
 }
 
 sub registration_bootloader_params {
+    my ($max_interval) = @_;     # see 'type_string'
+    $max_interval //= 13;
     # https://www.suse.com/documentation/smt11/book_yep/data/smt_client_parameters.html
     # SCC_URL=https://smt.example.com
     if (my $url = get_var("SCC_URL")) {
-        type_string " regurl=$url/connect", 13;
+        type_string " regurl=$url/connect", $max_interval;
         if ($url = get_var("SCC_CERT")) {
-            type_string " regcert=$url", 13;
+            type_string " regcert=$url", $max_interval;
         }
         save_screenshot;
     }

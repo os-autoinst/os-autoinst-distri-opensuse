@@ -19,6 +19,12 @@ use registration;
 # hint: press shift-f10 trice for highest debug level
 sub run() {
     my ($self) = @_;
+    # arbitrary slow typing speed, also see bootloader_uefi
+    my $slow_typing_speed = 13;
+    # type even slower towards the end to ensure no keybuffer overflow even
+    # when scrolling within the boot command line to prevent character
+    # mangling
+    my $slower_typing_speed = 4;
 
     if (get_var("IPXE")) {
         sleep 60;
@@ -67,18 +73,18 @@ sub run() {
     # https://wiki.archlinux.org/index.php/Kernel_Mode_Setting#Forcing_modes_and_EDID
     type_string "vga=791 ";
     type_string "Y2DEBUG=1 ";
-    type_string "video=1024x768-16 ", 13;
+    type_string "video=1024x768-16 ", $slow_typing_speed;
 
-    assert_screen "inst-video-typed", 13;
+    assert_screen "inst-video-typed", $slow_typing_speed;
     if (!get_var("NICEVIDEO")) {
-        type_string "plymouth.ignore-serial-consoles ", 4;    # make plymouth go graphical
-        type_string "linuxrc.log=$serialdev ",          4;    #to get linuxrc logs in serial
-        type_string "console=$serialdev ",              4;    # to get crash dumps as text
-        type_string "console=tty ",                     4;    # to get crash dumps as text
+        type_string "plymouth.ignore-serial-consoles ", $slower_typing_speed;    # make plymouth go graphical
+        type_string "linuxrc.log=$serialdev ",          $slower_typing_speed;    #to get linuxrc logs in serial
+        type_string "console=$serialdev ",              $slower_typing_speed;    # to get crash dumps as text
+        type_string "console=tty ",                     $slower_typing_speed;    # to get crash dumps as text
         assert_screen "inst-consolesettingstyped",      30;
         my $e = get_var("EXTRABOOTPARAMS");
         if ($e) {
-            type_string "$e ", 4;
+            type_string "$e ", $slower_typing_speed;
             save_screenshot;
         }
     }
@@ -236,15 +242,15 @@ sub run() {
         $args .= " autoupgrade=1";
     }
 
-    type_string $args, 13;
+    type_string $args, $slower_typing_speed;
     save_screenshot;
 
     if (get_var("FIPS")) {
-        type_string " fips=1", 13;
+        type_string " fips=1", $slower_typing_speed;
         save_screenshot;
     }
 
-    registration_bootloader_params;
+    registration_bootloader_params($slower_typing_speed);
 
     # boot
     send_key "ret";
