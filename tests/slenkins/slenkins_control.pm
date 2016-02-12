@@ -102,9 +102,6 @@ sub run {
     print "$conf\n";
 
     script_output('
-        #FIXME: can we move the following line to script_output function?
-        trap "echo SCRIPT_FINISHED" EXIT
-
         # the logger apparently has some hardcoded colors
         setterm -background white --foreground black
 
@@ -178,9 +175,6 @@ sub run {
         finish-logs
         echo
 
-        # Check for failures
-        echo "Checking for failed tests"
-        check-failures
     ', 2000);
 
     type_string("ls -l /tmp/slenkins/\n");
