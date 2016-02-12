@@ -65,22 +65,6 @@ sub run() {
     else {
         send_key 'alt-o';
     }
-
-    #FIXME this block will go into a seperate reconnect_zkvm test after the refactoring of this test
-    # on svirt we need to redefine the xml-file to boot the installed kernel
-    if (check_var('BACKEND', 'svirt') && check_var('ARCH', 's390x')) {
-        my $svirt = console('svirt');
-
-        $svirt->change_domain_element(os => initrd  => undef);
-        $svirt->change_domain_element(os => kernel  => undef);
-        $svirt->change_domain_element(os => cmdline => undef);
-
-        $svirt->change_domain_element(on_reboot => undef);
-
-        $svirt->define_and_start;
-
-        wait_serial("Welcome to SUSE Linux Enterprise Server", 300);
-    }
 }
 
 1;
