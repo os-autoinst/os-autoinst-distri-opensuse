@@ -96,11 +96,11 @@ sub fill_in_registration_data {
                         assert_and_click "scc-code-field-$addon";
                     }
                     type_string $regcode;
+                    send_key 'alt-n';
                     sleep 1;
                     save_screenshot;
                 }
             }
-            send_key 'alt-n', 2;
             if (check_screen('import-untrusted-gpg-key', 10)) {
                 record_soft_failure;
                 send_key 'alt-t', 2;
