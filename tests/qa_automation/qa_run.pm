@@ -35,7 +35,7 @@ sub test_suite() {
 
 sub wait_testrun {
     my ($interval) = @_;
-    $interval = 120 unless defined $interval;
+    $interval = 300 unless defined $interval;
 
     my $done_file = '/var/log/qaset/control/DONE';
     while (1) {
@@ -51,7 +51,7 @@ sub wait_testrun {
 
 sub qa_upload_logs {
     my ($dir, $pattern) = @_;
-    my $output = script_output("find '$dir' -type f -name '$pattern'", 120);
+    my $output = script_output("find '$dir' -type f -name '$pattern'", 300);
     my @log_files = split("\n", $output);
     # upload logs
     foreach my $log_file (@log_files) {
@@ -85,7 +85,7 @@ sub run() {
     my $testsuite = $self->test_suite();
     assert_script_run "/usr/share/qa/qaset/run/$testsuite-run";
     # Wait for testrun to finish
-    my $interval = 120;
+    my $interval = 300;
     unless (wait_testrun($interval)) {
         die "Test run didn't finish";
     }
