@@ -2,15 +2,15 @@ use base "qa_run";
 use testapi;
 
 sub test_run_list() {
-        return qw(_reboot_off memeat);
+    return qw(_reboot_off memeat);
 }
 
 sub test_suite() {
-        return 'kernel';
+    return 'kernel';
 }
 
 sub junit_type() {
-        return 'kernel_regression';
+    return 'kernel_regression';
 }
 
 1;
