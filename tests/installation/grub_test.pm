@@ -15,8 +15,8 @@ use testapi;
 sub run() {
     my $self = shift;
     assert_screen "grub2";
-    # prevent grub2 timeout
-    send_key 'esc';
+    # prevent grub2 timeout; 'esc' would be cleaner, but grub2-efi falls to the menu then
+    send_key 'up';
     if (get_var("BOOT_TO_SNAPSHOT")) {
         send_key_until_needlematch("boot-menu-snapshot", 'down', 10, 5);
         send_key 'ret';
