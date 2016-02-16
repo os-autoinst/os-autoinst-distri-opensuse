@@ -98,29 +98,29 @@ sub fill_in_registration_data {
                     type_string $regcode;
                     sleep 1;
                     save_screenshot;
-                    send_key 'alt-n'; # next
+                    send_key 'alt-n';     # next
                 }
             }
             if (check_screen('import-untrusted-gpg-key', 10)) {
                 record_soft_failure;
                 send_key 'alt-t', 2;
             }
-            sleep 20;    # scc registration need some time
+            sleep 20;                     # scc registration need some time
         }
         else {
-            send_key 'alt-n';    # next
+            send_key 'alt-n';             # next
         }
     }
     else {
         if (!get_var('SCC_REGISTER', '') =~ /addon|network/) {
             assert_screen("module-selection");
-            send_key "alt-n";    # next
+            send_key "alt-n";             # next
         }
     }
 }
 
 sub registration_bootloader_params {
-    my ($max_interval) = @_;     # see 'type_string'
+    my ($max_interval) = @_;              # see 'type_string'
     $max_interval //= 13;
     # https://www.suse.com/documentation/smt11/book_yep/data/smt_client_parameters.html
     # SCC_URL=https://smt.example.com
