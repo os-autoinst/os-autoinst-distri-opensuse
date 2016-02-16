@@ -43,6 +43,10 @@ sub run() {
                 send_key_until_needlematch "addon-dvd-$addon", 'down', 10;    # select addon in list
                 send_key 'alt-o';                                             # continue
             }
+            if (check_screen('import-untrusted-gpg-key', 10)) {               # workaround untrusted key pop-up, record soft fail and trust it
+                record_soft_failure;
+                send_key 'alt-t';
+            }
             if (get_var("BETA_$uc_addon")) {
                 assert_screen "addon-betawarning-$addon";
                 send_key "ret";
@@ -50,10 +54,6 @@ sub run() {
             }
             else {
                 assert_screen "addon-license-$addon";
-            }
-            if (check_screen('import-untrusted-gpg-key', 10)) {               # workaround untrusted key pop-up, record soft fail and trust it
-                record_soft_failure;
-                send_key 'alt-t';
             }
             send_key 'alt-a',                                       2;             # yes, agree
             send_key 'alt-n',                                       2;             # next
