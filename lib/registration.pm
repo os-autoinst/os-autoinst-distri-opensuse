@@ -98,7 +98,7 @@ sub fill_in_registration_data {
                     type_string $regcode;
                     sleep 1;
                     save_screenshot;
-                    send_key 'alt-n';
+                    send_key 'alt-n'; # next
                 }
             }
             if (check_screen('import-untrusted-gpg-key', 10)) {
