@@ -51,6 +51,10 @@ sub run() {
             else {
                 assert_screen "addon-license-$addon";
             }
+            if (check_screen('import-untrusted-gpg-key', 10)) {               # workaround untrusted key pop-up, record soft fail and trust it
+                record_soft_failure;
+                send_key 'alt-t';
+            }
             send_key 'alt-a',                                       2;             # yes, agree
             send_key 'alt-n',                                       2;             # next
             send_key_until_needlematch 'addon-yast2-view-selected', 'alt-v', 10;
