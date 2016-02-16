@@ -306,6 +306,7 @@ sub load_x11regresion_tests() {
         loadtest "x11regressions/gedit/gedit_launch.pm";
         loadtest "x11regressions/gedit/gedit_save.pm";
         loadtest "x11regressions/gedit/gedit_about.pm";
+        loadtest "x11regressions/empathy/empathy_irc.pm";
     }
     if (get_var("DESKTOP") =~ /kde|gnome/) {
         loadtest "x11regressions/pidgin/prep_pidgin.pm";
