@@ -1,0 +1,447 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+<!--
+  tests booting from btrfs snapshot,
+  kdupm set up,
+  post-scripts testing,
+  init-scripts testing
+  two disk devices
+  gpt partitioning with btrfs filesystem on small size partitions
+  mount by device name  
+    
+-->
+  <add-on>
+    <add_on_products config:type="list">
+      <listentry>
+        <media_url>http://download.suse.de/ibs/SUSE:/SLE-12-SP2:/Update/standard</media_url>
+        <product>SuSE-Linux-Updates</product>
+        <product_dir>/</product_dir>
+        <name>Updates</name> 
+      </listentry>
+    </add_on_products>
+  </add-on>
+
+  <bootloader>
+    <device_map config:type="list">
+      <device_map_entry>
+        <firmware>hd0</firmware>
+        <linux>/dev/sda</linux>
+      </device_map_entry>
+    </device_map>
+    <global>
+      <boot_boot>false</boot_boot>
+      <boot_custom/>
+      <boot_extended>false</boot_extended>
+      <boot_mbr>true</boot_mbr>
+      <boot_root>false</boot_root>
+      <append> net.ifnames=0 splash=verbose showopts </append>
+      <suse_btrfs>true</suse_btrfs>
+    </global>
+    <loader_type>grub2</loader_type>
+    <sections config:type="list"/>
+    <location>mbr</location>
+    <repl_mbr config:type="boolean">true</repl_mbr>
+  </bootloader>
+  <firewall>
+    <FW_DEV_DMZ/>
+    <FW_DEV_EXT/>
+    <FW_DEV_INT/>
+    <enable_firewall config:type="boolean">false</enable_firewall>
+    <start_firewall config:type="boolean">false</start_firewall>
+  </firewall>
+  <general>
+    <clock>
+      <hwclock>localtime</hwclock>
+      <timezone>Europe/Prague</timezone>
+    </clock>
+    <keyboard>
+      <keymap>english-us</keymap>
+    </keyboard>
+    <language>en_US</language>
+    <mode>
+      <confirm config:type="boolean">true</confirm>
+      <forceboot config:type="boolean">false</forceboot>
+      <halt config:type="boolean">false</halt>
+      <second_stage config:type="boolean">true</second_stage>
+    </mode>
+    <mouse>
+      <id>00_ps2</id>
+    </mouse>
+    <signature-handling>
+      <accept_unsigned_file         config:type="boolean">true</accept_unsigned_file>
+      <accept_file_without_checksum config:type="boolean">true</accept_file_without_checksum>
+      <accept_verification_failed   config:type="boolean">true</accept_verification_failed>
+      <accept_unknown_gpg_key       config:type="boolean">true</accept_unknown_gpg_key>
+      <import_gpg_key               config:type="boolean">true</import_gpg_key>
+      <accept_non_trusted_gpg_key   config:type="boolean">true</accept_non_trusted_gpg_key>
+    </signature-handling>
+    <storage>
+      <partition_alignment config:type="symbol">align_optimal</partition_alignment>
+      <start_multipath config:type="boolean">false</start_multipath>
+    </storage>
+  </general>
+  <host>
+    <hosts config:type="list">
+      <hosts_entry>
+        <host_address>192.168.10.100</host_address>
+        <names config:type="list">
+          <name>h1.de h1</name>
+        </names>
+      </hosts_entry>
+      <hosts_entry>
+        <host_address>127.0.0.1</host_address>
+        <names config:type="list">
+          <name>localhost</name>
+        </names>
+      </hosts_entry>
+    </hosts>
+  </host>
+  <kdump>
+    <add_crash_kernel config:type="boolean">true</add_crash_kernel>
+    <crash_kernel>256M-:128M</crash_kernel>
+    <general>
+      <KDUMP_COMMANDLINE/>
+      <KDUMP_COMMANDLINE_APPEND/>
+      <KDUMP_COPY_KERNEL>yes</KDUMP_COPY_KERNEL>
+      <KDUMP_DUMPFORMAT>compressed</KDUMP_DUMPFORMAT>
+      <KDUMP_DUMPLEVEL>16</KDUMP_DUMPLEVEL>
+      <KDUMP_IMMEDIATE_REBOOT>yes</KDUMP_IMMEDIATE_REBOOT>
+      <KDUMP_KEEP_OLD_DUMPS>1</KDUMP_KEEP_OLD_DUMPS>
+      <KDUMP_KERNELVER/>
+      <KDUMP_SAVEDIR>file:///var/crash</KDUMP_SAVEDIR>
+    </general>
+  </kdump>
+  <networking>
+    <dns>
+      <dhcp_hostname config:type="boolean">false</dhcp_hostname>
+      <dhcp_resolv config:type="boolean">false</dhcp_resolv>
+      <nameservers config:type="list">
+        <nameserver>192.168.10.11</nameserver>
+        <nameserver>192.168.10.11</nameserver>
+      </nameservers>
+      <searchlist config:type="list"> 
+        <search>openqa.de</search>
+        <search>openqa.de</search>
+      </searchlist>
+    </dns>
+    <interfaces config:type="list">
+      <interface>
+        <bootproto>dhcp</bootproto>
+        <device>eth0</device>        
+        <startmode>onboot</startmode>
+      </interface>
+    </interfaces>
+    <routing>
+      <ip_forward config:type="boolean">false</ip_forward> 
+      <routes config:type="list"> 
+        <route>
+          <destination>default</destination>
+          <device>-</device>
+          <gateway>192.168.10.254</gateway>
+          <netmask>-</netmask>
+        </route>
+      </routes>
+    </routing>
+  </networking>
+  <ntp-client>
+    <peers config:type="list">
+      <peer>
+        <address>ntp.test.openqa.de</address>
+        <initial_sync config:type="boolean">true</initial_sync>
+        <options>version 3 iburst maxpoll 9</options>
+        <type>server</type>
+      </peer>
+      <peer>
+        <address>ntp.test2.openqa.de</address>
+        <initial_sync config:type="boolean">true</initial_sync>
+        <options>version 3 iburst maxpoll 9</options>
+        <type>server</type>
+      </peer>
+      <peer>
+        <address>ntp.test3.openqa.de</address>
+        <initial_sync config:type="boolean">true</initial_sync>
+        <options>version 3 iburst maxpoll 9</options>
+        <type>server</type>
+      </peer>
+      <peer>
+        <address>ntp.test4.openqa.de</address>
+        <initial_sync config:type="boolean">true</initial_sync>
+        <options>version 3 iburst maxpoll 9</options>
+        <type>server</type>
+      </peer>
+    </peers>
+    <start_at_boot config:type="boolean">true</start_at_boot>
+    <start_in_chroot config:type="boolean">true</start_in_chroot>
+  </ntp-client>
+  <scripts>
+    <post-scripts config:type="list">
+      <script>
+        <filename>post-script.sh</filename>
+        <interpreter>shell</interpreter>
+        <location/>
+        <feedback config:type="boolean">false</feedback>
+        <source><![CDATA[#!/bin/sh
+logdir=/var/adm/autoinstall/logs
+logf=$logdir/post-script.sh.log
+#
+#
+cat /etc/hosts
+sed -i "s/splash=silent/splash=verbose/g" /etc/default/grub
+sed -i "s/quiet//" /etc/default/grub
+/usr/sbin/grub2-mkconfig  --output=/boot/grub2/grub.cfg
+sed -i "s/#Port/Port/" /etc/ssh/sshd_config
+sed -i "s/#PermitRoot/PermitRoot/" /etc/ssh/sshd_config
+sed -i "s/PasswordAuthentication no/PasswordAuthentication yes/" /etc/ssh/sshd_config
+#
+#cat /etc/fstab | sort > /etc/fstab_new
+#mv -v /etc/fstab_new /etc/fstab
+#
+        ]]></source>
+      </script>
+    </post-scripts>
+    <init-scripts config:type="list">
+      <script>
+        <filename>init-script.sh</filename>
+        <interpreter>shell</interpreter>
+        <location/>
+        <source><![CDATA[#!/bin/sh
+logdir=/var/adm/autoinstall/logs
+logf=${logdir}/init-script.sh.log
+#
+# initialize snapper here
+echo "configuring snapper for the first time"
+cat /etc/sysconfig/snapper
+ls -lsa /etc/snapper/configs/
+ls -lsa /
+snapper -c root create-config /
+snapper list
+cat /etc/sysconfig/snapper
+ls -lsa /etc/snapper/configs/
+cat /etc/snapper/configs/root
+df -h
+ls -lsa /
+#
+]]></source>
+      </script>
+    </init-scripts>
+  </scripts>
+  <partitioning config:type="list">
+    <drive>
+      <device>/dev/sda</device>
+      <disklabel>gpt</disklabel>
+      <initialize config:type="boolean">true</initialize>
+      <partitions config:type="list">
+        <partition>
+          <create config:type="boolean">true</create>
+          <partition_id config:type="integer">263</partition_id>
+          <partition_nr config:type="integer">1</partition_nr>
+          <resize config:type="boolean">false</resize>
+          <size>10MB</size>
+        </partition>
+        <partition>
+          <create config:type="boolean">true</create>
+          <crypt_fs config:type="boolean">false</crypt_fs>
+          <filesystem config:type="symbol">btrfs</filesystem>
+          <format config:type="boolean">true</format>
+          <fstopt>defaults</fstopt>
+          <loop_fs config:type="boolean">false</loop_fs>
+          <mount>/</mount>
+          <mountby config:type="symbol">device</mountby>
+          <partition_id config:type="integer">131</partition_id>
+          <partition_nr config:type="integer">2</partition_nr>
+          <resize config:type="boolean">false</resize>
+          <size>5GB</size>
+          <subvolumes config:type="list">
+            <listentry>@</listentry>
+            <listentry>boot/grub2/x86_64-efi</listentry>
+            <listentry>boot/grub2/i386-pc</listentry>
+            <listentry>opt</listentry>
+            <listentry>srv</listentry>
+            <listentry>usr/local</listentry>
+            <listentry>var/crash</listentry>
+            <listentry>var/lib/mailman</listentry>
+            <listentry>var/lib/named</listentry>
+            <listentry>var/lib/pgqsl</listentry>
+            <listentry>var/log</listentry>
+            <listentry>var/opt</listentry>
+            <listentry>var/spool</listentry>
+            <listentry>var/tmp</listentry>
+          </subvolumes>
+        </partition>
+        <partition>
+          <filesystem config:type="symbol">xfs</filesystem>
+          <format config:type="boolean">true</format>
+          <mountby config:type="symbol">device</mountby>
+          <mount>/home</mount>
+          <size>1GB</size>
+          <partition_nr config:type="integer">3</partition_nr>
+          <partition_id config:type="integer">131</partition_id>
+        </partition>
+        <partition>
+          <filesystem config:type="symbol">xfs</filesystem>
+          <format config:type="boolean">true</format>
+          <mountby config:type="symbol">device</mountby>
+          <mount>/tmp</mount>
+          <size>1GB</size>
+          <partition_nr config:type="integer">4</partition_nr>
+          <partition_id config:type="integer">131</partition_id>
+        </partition>
+        <partition>
+          <filesystem config:type="symbol">xfs</filesystem>
+          <format config:type="boolean">true</format>
+          <mountby config:type="symbol">device</mountby>
+          <mount>/appl</mount>
+          <size>max</size>
+          <partition_nr config:type="integer">5</partition_nr>
+          <partition_id config:type="integer">131</partition_id>
+        </partition>
+        <partition>
+          <filesystem config:type="symbol">swap</filesystem>
+          <format config:type="boolean">true</format>
+          <mountby config:type="symbol">device</mountby>
+          <mount>swap</mount>
+          <size>1GB</size>
+          <partition_nr config:type="integer">6</partition_nr>
+          <partition_id config:type="integer">130</partition_id>
+        </partition>
+      </partitions>
+      <use>all</use>
+    </drive>
+    <drive>
+      <device>/dev/sdb</device>
+      <disklabel>gpt</disklabel>
+      <initialize config:type="boolean">true</initialize>
+      <partitions config:type="list">
+        <partition>
+          <filesystem config:type="symbol">swap</filesystem>
+          <format config:type="boolean">true</format>
+          <mountby config:type="symbol">device</mountby>
+          <mount>swap</mount>
+          <size>max</size>
+          <partition_nr config:type="integer">1</partition_nr>
+          <partition_id config:type="integer">130</partition_id>
+        </partition>
+      </partitions>
+      <use>all</use>
+    </drive>
+
+  </partitioning>
+  <software>
+    <patterns config:type="list">
+      <pattern>Minimal</pattern>
+      <pattern>base</pattern>
+    </patterns>
+    <packages config:type="list">
+      <package>at</package>
+      <package>sudo</package>
+      <package>sysstat</package>
+      <package>unzip</package>
+      <package>wget</package>
+      <package>ntp</package>
+      <package>zip</package>
+      <package>grub2-snapper-plugin</package>
+      <package>libbtrfs0</package>
+      <package>snapper</package>
+      <package>snapper-zypp-plugin</package>
+      <package>yast2-snapper</package>
+    </packages>
+    <remove-packages config:type="list">
+      <package>SuSEfirewall2</package>
+    </remove-packages>
+  </software>
+  <users config:type="list">
+                <user>
+                   <fullname>Bernhard M. Wiedemann</fullname>  
+                   <encrypted config:type="boolean">false</encrypted>
+                   <user_password>nots3cr3t</user_password>
+                   <username>bernhard</username>
+                </user>
+                
+    <user>
+      <encrypted config:type="boolean">false</encrypted>
+      <fullname>root</fullname>
+      <gid>0</gid>
+      <home>/root</home>
+      <password_settings>
+        <inact>1</inact>
+        <max>99999</max>
+        <warn>7</warn>
+      </password_settings>
+      <shell>/bin/bash</shell>
+      <uid>0</uid>
+      <user_password>nots3cr3t</user_password>
+      <username>root</username>
+    </user> 
+  </users>
+  <sysconfig config:type="list">
+    <sysconfig_entry>
+      <sysconfig_key>POSTFIX_RELAYHOST</sysconfig_key>
+      <sysconfig_path>/etc/sysconfig/postfix</sysconfig_path>
+      <sysconfig_value>smtp.test.openqa.de</sysconfig_value>
+    </sysconfig_entry>
+    <sysconfig_entry>
+      <sysconfig_key>RC_LANG</sysconfig_key>
+      <sysconfig_path>/etc/sysconfig/language</sysconfig_path>
+      <sysconfig_value>en_US.UTF-8</sysconfig_value>
+    </sysconfig_entry>
+    <sysconfig_entry>
+      <sysconfig_key>PERMISSION_SECURITY</sysconfig_key>
+      <sysconfig_path>/etc/sysconfig/security</sysconfig_path>
+      <sysconfig_value>secure local</sysconfig_value>
+    </sysconfig_entry>
+  </sysconfig>
+  <security>
+    <console_shutdown>ignore</console_shutdown>
+    <cracklib_dict_path>/usr/lib/cracklib_dict</cracklib_dict_path>
+    <cwd_in_root_path>yes</cwd_in_root_path>
+    <cwd_in_user_path>yes</cwd_in_user_path>
+    <displaymanager_remote_access>no</displaymanager_remote_access>
+    <enable_sysrq>no</enable_sysrq>
+    <fail_delay>3</fail_delay>
+    <faillog_enab>yes</faillog_enab>
+    <gid_max>60000</gid_max>
+    <gid_min>1000</gid_min>
+    <kdm_shutdown>root</kdm_shutdown>
+    <lastlog_enab>yes</lastlog_enab>
+    <obscure_checks_enab>yes</obscure_checks_enab>
+    <pass_max_days>99999</pass_max_days>
+    <pass_max_len>7</pass_max_len>
+    <pass_min_days>0</pass_min_days>
+    <pass_min_len>7</pass_min_len>
+    <pass_warn_age>7</pass_warn_age>
+    <passwd_encryption>md5</passwd_encryption>
+    <passwd_use_cracklib>yes</passwd_use_cracklib>
+    <permission_security>secure</permission_security>
+    <run_updatedb_as>nobody</run_updatedb_as>
+    <system_gid_max>499</system_gid_max>
+    <system_gid_min>100</system_gid_min>
+    <system_uid_max>499</system_uid_max>
+    <system_uid_min>100</system_uid_min>
+    <uid_max>60000</uid_max>
+    <uid_min>500</uid_min>
+    <useradd_cmd>/usr/sbin/useradd.local</useradd_cmd>
+    <userdel_postcmd>/usr/sbin/userdel-post.local</userdel_postcmd>
+    <userdel_precmd>/usr/sbin/userdel-pre.local</userdel_precmd>
+  </security>
+  <services-manager>
+    <default_target>multi-user</default_target>
+    <services config:type="list">
+      <service>at</service>
+      <service>cron</service>
+      <service>nscd</service>
+      <service>openct</service>
+      <service>postfix</service>
+      <service>rsyslog</service>
+      <service>sshd</service>
+      <service>systemd-readahead-collect</service>
+      <service>systemd-readahead-replay</service>
+      <service>wicked</service>
+      <service>wickedd-auto4</service>
+      <service>wickedd-dhcp4</service>
+      <service>wickedd-dhcp6</service>
+      <service>wickedd-nanny</service>
+      <service>wickedd</service>
+    </services>
+  </services-manager>
+</profile>
