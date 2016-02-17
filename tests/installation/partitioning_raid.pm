@@ -262,16 +262,8 @@ sub run() {
     send_key $cmd{accept};
 
     # skip subvolumes shadowed warning
-    if (check_screen 'subvolumes-shadowed', 5) {
-        send_key 'alt-y';
-    }
-
-    if (get_var("LVM")) {
-        assert_screen 'acceptedpartitioningraidlvm';
-    }
-    else {
-        assert_screen 'acceptedpartitioning';
-    }
+    check_act_and_assert_screen(get_var('LVM') ? 'acceptedpartitioningraidlvm' : 'acceptedpartitioning',
+        subvolumes-shadowed => send_key('alt-y'));
 }
 
 

@@ -20,10 +20,7 @@ sub start_firefox() {
         assert_and_click 'firefox_default_browser_yes';
     }
     # workaround for reader view , it grabed the focus than mainwindow
-    if (check_screen('firefox_readerview_window', 30)) {
-        assert_and_click 'firefox_readerview_window';
-    }
-    assert_screen 'test-firefox-1', 35;
+    check_act_and_assert_screen('test-firefox-1', firefox_readerview_window => assert_and_click('firefox_readerview_window'));
 }
 
 sub run() {

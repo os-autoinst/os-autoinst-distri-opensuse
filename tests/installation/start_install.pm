@@ -64,11 +64,10 @@ sub run() {
         assert_screen 'startupdate';
         send_key $cmd{update};
 
-        if (check_screen('ERROR-bootloader_preupdate', 3)) {
+        check_act_and_assert_screen('inst-packageinstallationstarted', ERROR-bootloader_preupdate => sub {
             send_key 'alt-n';
             record_soft_failure 'error bootloader preupdate';
-        }
-        assert_screen "inst-packageinstallationstarted";
+        });
 
         # view installation details
         send_key $cmd{instdetails};
