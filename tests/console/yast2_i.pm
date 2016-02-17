@@ -26,7 +26,7 @@ sub run() {
     script_run("/sbin/yast2 sw_single; echo yast2-i-status-\$? > /dev/$serialdev", 0);
     if (check_screen('workaround-bsc924042', 10)) {
         send_key 'alt-o';
-        record_soft_failure;
+        record_soft_failure 'bsc#924042';
     }
     assert_screen 'empty-yast2-sw_single';
 

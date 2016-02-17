@@ -15,8 +15,7 @@ use testapi;
 sub run {
     my $self = shift;
 
-    # we should not have it
-    record_soft_failure;
+    record_soft_failure 'we should not have it';
     sleep 3;
     send_key 'alt-n';    # next
     sleep 5;

@@ -28,7 +28,7 @@ sub run() {
 
     # check for dependency issues, if found, drill down to software selection, take a screenshot, then die
     if (check_screen("inst-overview-dep-warning", 1)) {
-        record_soft_failure;
+        record_soft_failure 'dependency warning';
         if (check_var('VIDEOMODE', 'text')) {
             send_key 'alt-c';
             assert_screen 'inst-overview-options';
@@ -62,8 +62,7 @@ sub run() {
             assert_screen 'ssh-open';
         }
 
-        # Workaround for bsc#963008
-        record_soft_failure;
+        record_soft_failure 'bsc#963008';
         if (!check_screen('firewall-disabled', 5)) {
             send_key_until_needlematch 'firewall-enabled-selected', 'tab';
             send_key 'ret';

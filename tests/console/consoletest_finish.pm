@@ -77,7 +77,7 @@ sub run() {
         # workaround for bug 834165. Apper should not try to
         # refresh repos when the console is not active:
         if (get_var("DESKTOP", '') eq 'kde' && check_screen "apper-refresh-popup-bnc834165") {
-            record_soft_failure;
+            record_soft_failure 'bsc#834165';
             send_key 'alt-c';
             sleep 30;
         }

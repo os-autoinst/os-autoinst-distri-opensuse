@@ -58,8 +58,7 @@ sub fill_in_registration_data {
                 next;
             }
             elsif (get_var('SCC_URL') && match_has_tag("untrusted-ca-cert")) {
-                # bsc#943966
-                record_soft_failure if get_var('SCC_CERT');
+                record_soft_failure 'bsc#943966' if get_var('SCC_CERT');
                 send_key "alt-t", 1;        # trust
                 @tags = grep { $_ ne 'untrusted-ca-cert' } @tags;
                 next;
@@ -102,7 +101,7 @@ sub fill_in_registration_data {
             }
             send_key 'alt-n', 2;
             if (check_screen('import-untrusted-gpg-key', 10)) {
-                record_soft_failure;
+                record_soft_failure 'untrusted gpg key';
                 send_key 'alt-t', 2;
             }
             sleep 20;    # scc registration need some time
