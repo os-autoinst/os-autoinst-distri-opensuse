@@ -51,13 +51,11 @@ sub create_qaset_config {
     assert_script_run("echo 'SQ_TEST_RUN_LIST=($testsuites)' > /root/qaset/config");
 }
 
-# Add qa head repo for kernel testing
-# 
-# If QA_SERVER_REPO is set, remove all existing zypper repos
-# and 
+# Add qa head repo for kernel testing. If QA_SERVER_REPO is set,
+# remove all existing zypper repos first
 sub prepare_repos {
-    my $self            = shift;
-    my $qa_server_repo  = get_var('QA_SERVER_REPO', '');
+    my $self = shift;
+    my $qa_server_repo = get_var('QA_SERVER_REPO', '');
     if ($qa_server_repo) {
         # Remove all existing repos and add QA_SERVER_REPO
         my $rm_repos = "declare -i n=`zypper repos | wc -l`-2; for ((i=0; i<\$n; i++)); do zypper rr 1; done; unset n; unset i";
@@ -82,12 +80,12 @@ sub start_testrun {
 sub wait_testrun {
     my ($self, $interval) = @_;
     $interval = 30 unless defined $interval;
-    my $done_file   = '/var/log/qaset/control/DONE';
-    my $pattern     = "TESTRUN_FINISHED-" . int(rand(999999));
-    my $cmd         = "while [[ ! -f $done_file ]]; do sleep $interval; done; echo $pattern >> /dev/$serialdev";
+    my $done_file = '/var/log/qaset/control/DONE';
+    my $pattern   = "TESTRUN_FINISHED-" . int(rand(999999));
+    my $cmd       = "while [[ ! -f $done_file ]]; do sleep $interval; done; echo $pattern >> /dev/$serialdev";
     type_string "bash -c '$cmd' &\n";
     # Set a extremely high timeout value for wait_serial
-    # so that it will wait until test run finished or 
+    # so that it will wait until test run finished or
     # MAX_JOB_TIME(can be set on openQA webui) reached
     my $ret = wait_serial($pattern, 3600 * 240);
     if ($ret) {
