@@ -19,6 +19,7 @@ use testapi;
 
 sub run() {
     my $name = ref(@_[0]);
+    ensure_installed($name);
     if (my $url = get_var("XCHAT_URL")) {
         x11_start_program("$name --url=$url");
     }
