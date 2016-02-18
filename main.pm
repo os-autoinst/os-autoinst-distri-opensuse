@@ -307,6 +307,9 @@ sub load_x11regresion_tests() {
         loadtest "x11regressions/gedit/gedit_save.pm";
         loadtest "x11regressions/gedit/gedit_about.pm";
         loadtest "x11regressions/empathy/empathy_irc.pm";
+        loadtest "x11regressions/evolution/evolution_smoke.pm";
+        loadtest "x11regressions/evolution/evolution_mail_imap.pm";
+        loadtest "x11regressions/evolution/evolution_mail_ews.pm";
     }
     if (get_var("DESKTOP") =~ /kde|gnome/) {
         loadtest "x11regressions/pidgin/prep_pidgin.pm";
