@@ -345,7 +345,7 @@ sub load_boot_tests() {
         # TODO: rename to bootloader_grub2
         loadtest "installation/bootloader_uefi.pm";
     }
-    elsif (check_var("BACKEND", "ipmi")) {
+    elsif (check_var("BACKEND", "ipmi") || check_var("BACKEND", "gadget") ) {
         loadtest "installation/qa_net.pm";
     }
     elsif (check_var("ARCH", "s390x")) {
