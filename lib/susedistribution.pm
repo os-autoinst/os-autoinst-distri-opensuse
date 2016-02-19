@@ -190,7 +190,7 @@ sub become_root {
 sub init_consoles {
     my ($self) = @_;
 
-    if (check_var('BACKEND', 'qemu') || check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'gadget') ) {
+    if (check_var('BACKEND', 'qemu') || check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'gadget')) {
         $self->add_console('install-shell', 'tty-console', {tty => 2});
         $self->add_console('installation',  'tty-console', {tty => check_var('VIDEOMODE', 'text') ? 1 : 7});
         $self->add_console('root-console',  'tty-console', {tty => 2});
