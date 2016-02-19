@@ -1,4 +1,4 @@
-# Copyright (C) 2015 SUSE Linux GmbH
+# Copyright (C) 2016 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,18 +14,25 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-use base "consoletest";
+use base "x11test";
 use testapi;
 
 sub run() {
-    select_console 'root-console';
-
-    my $keys = get_var("IMPORT_GPG_KEYS");
-    assert_script_run("rpm --import ~$username/data/$keys");
-}
-
-sub test_flags() {
-    return {fatal => 1};
+    ensure_installed('vlc');
+    x11_start_program("vlc --no-autoscale");
+    assert_screen "vlc-first-time-wizard";
+    send_key "ret";
+    assert_screen "vlc-main-window";
+    send_key "ctrl-l";
+    assert_and_click "vlc-playlist-empty";
+    send_key "ctrl-n";
+    assert_screen "vlc-network-window";
+    send_key "backspace";
+    type_string autoinst_url . "/data/Big_Buck_Bunny_8_seconds_bird_clip.ogv";
+    send_key "alt-p";
+    send_key "ret";
+    assert_screen "vlc-done-playing";
+    send_key "ctrl-q";
 }
 
 1;

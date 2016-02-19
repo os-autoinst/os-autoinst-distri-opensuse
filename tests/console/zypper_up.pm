@@ -17,7 +17,10 @@ sub run() {
 
     select_console 'root-console';
 
+    script_run("while pgrep packagekitd; do pkcon quit; sleep 1; done");
+
     script_run("zypper -n patch --with-interactive -l; echo 'worked-patch-\$?' > /dev/$serialdev", 0);
+
     $ret = wait_serial "worked-patch-\?-", 700;
     $ret =~ /worked-patch-(\d+)/;
     die "zypper failed with code $1" unless $1 == 0 || $1 == 102 || $1 == 103;

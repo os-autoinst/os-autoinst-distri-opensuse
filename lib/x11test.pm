@@ -28,8 +28,7 @@ sub post_fail_hook() {
         save_screenshot;
     }
 
-    type_string "cat /home/*/.xsession-errors* > /tmp/XSE\n";
-    upload_logs "/tmp/XSE";
+    $self->export_logs;
 
     save_screenshot;
 }

@@ -18,24 +18,26 @@ use base "x11test";
 use testapi;
 
 sub run() {
+    my $name = ref(@_[0]);
+    ensure_installed($name);
     if (my $url = get_var("XCHAT_URL")) {
-        x11_start_program("xchat --url=$url");
+        x11_start_program("$name --url=$url");
     }
     else {
-        x11_start_program("xchat");
-        assert_screen 'xchat-network-select';
+        x11_start_program("$name");
+        assert_screen "$name-network-select";
         type_string "freenode\n";
-        assert_and_click "xchat-connect-button";
-        assert_screen 'xchat-connection-complete-dialog';
-        assert_and_click "xchat-join-channel";
+        assert_and_click "$name-connect-button";
+        assert_screen "$name-connection-complete-dialog";
+        assert_and_click "$name-join-channel";
         type_string "openqa\n";
         send_key "ret";
     }
-    assert_screen 'xchat-main-window';
-    type_string "hello, this is openQA running xchat!\n";
-    assert_screen 'xchat-message-sent-to-channel';
+    assert_screen "$name-main-window";
+    type_string "hello, this is openQA running $name!\n";
+    assert_screen "$name-message-sent-to-channel";
     type_string "/quit I'll be back\n";
-    assert_screen 'xchat-quit';
+    assert_screen "$name-quit";
     send_key "alt-f4";
 }
 
