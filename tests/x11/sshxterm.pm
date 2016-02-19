@@ -28,12 +28,8 @@ sub run() {
     $self->set_standard_prompt();
     type_string "echo If you can see this text, ssh-X-forwarding  is working.\n";
     assert_screen 'test-sshxterm-1';
-    # close both windows
-    # make sure the previous window closed
-    wait_screen_change {
-        send_key "alt-f4";
-    }
-    send_key "alt-f4";
+    # close both windows, executed in remote session, because we can
+    type_string "killall xterm\n";
 }
 
 1;
