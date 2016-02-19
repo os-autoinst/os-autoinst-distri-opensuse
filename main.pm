@@ -466,7 +466,10 @@ sub load_reboot_tests() {
         loadtest "installation/reconnect_s390.pm";
     }
     if (installyaststep_is_applicable) {
-        loadtest "installation/grub_test.pm";
+        # test makes no sense on s390 because grub2 can't be captured
+        if (!check_var("ARCH", "s390x")) {
+            loadtest "installation/grub_test.pm";
+        }
         if (get_var("ENCRYPT")) {
             loadtest "installation/boot_encrypt.pm";
         }
