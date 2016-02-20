@@ -35,11 +35,14 @@ sub run() {
     $self->clear_and_verify_console;
     select_console 'user-console';
 
+    # we output the exit status, but we don't care - we want to see the echo on screen
+    # but for debugging, it's easier to check the serial file later
+    my $str = "SSH-" . time;
     # login use new user account
-    script_run('ssh ' . $ssh_testman . '@localhost -t echo LOGIN_SUCCESSFUL', 0);
+    script_run("ssh $ssh_testman\@localhost -t echo LOGIN_SUCCESSFUL; echo $str-$?- > /dev/$serialdev", 0);
     assert_screen "ssh-login", 60;
     type_string "yes\n";
-    sleep 3;
+    assert_screen 'password-prompt';
     type_string "$ssh_testman_passwd\n";
     assert_screen "ssh-login-ok", 10;
 }
