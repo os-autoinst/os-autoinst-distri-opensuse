@@ -45,7 +45,7 @@ sub run() {
         send_key "ret";
     }
     else {
-        record_soft_failure;
+        record_soft_failure 'bsc#937012';
     }
 }
 

@@ -46,8 +46,8 @@ sub run() {
                     send_key 'alt-d';                                          # DHCP
                     send_key "alt-o", 2;                                       # OK
                 }
-                record_soft_failure                                            # https://bugzilla.suse.com/show_bug.cgi?id=928895
-                  assert_screen 'correct-media';                               # Correct media request
+                record_soft_failure 'bsc#928895';
+                assert_screen 'correct-media';                                 # Correct media request
                 send_key "alt-o", 2;                                           # OK
             }
             else {

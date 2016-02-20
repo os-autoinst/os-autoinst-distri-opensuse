@@ -25,12 +25,11 @@ sub run() {
     send_key $cmd{"next"};
 
     # PW too easy (cracklib)
-    # If check_screen added to workaround bsc#937012
     if (check_screen('inst-userpasswdtoosimple', 13)) {
         send_key "ret";
     }
     else {
-        record_soft_failure;
+        record_soft_failure 'bsc#937012';
     }
 }
 

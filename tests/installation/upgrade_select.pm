@@ -33,7 +33,7 @@ sub run() {
             send_key 'alt-n';
             if (check_screen('ERROR-cannot-download-repositories')) {
                 send_key 'alt-o';
-                record_soft_failure;
+                record_soft_failure 'error can not download repositories';
             }
         }
         if (check_screen('list-of-online-repositories', 10)) {
@@ -45,14 +45,14 @@ sub run() {
         # (remove after the bug is closed)
         if (check_screen('upgrade-li-cense-agreement', 10)) {
             send_key 'alt-n';
-            record_soft_failure;
+            record_soft_failure 'boo#881107';
         }
         if (check_screen('beta-warning', 10)) {
             send_key 'alt-o';
         }
         if (check_screen('installed-product-incompatible', 10)) {
             send_key 'alt-o';    # C&ontinue
-            record_soft_failure;
+            record_soft_failure 'installed product incompatible';
         }
 
         assert_screen "update-installation-overview", 15;

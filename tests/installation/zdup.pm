@@ -101,7 +101,7 @@ sub run() {
     while ($out) {
         if ($out =~ $zypper_dup_conflict) {
             if (get_var("WORKAROUND_DEPS")) {
-                record_soft_failure;
+                record_soft_failure 'workaround dependencies';
                 send_key '1';
                 send_key 'ret';
             }

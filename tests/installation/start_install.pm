@@ -60,7 +60,7 @@ sub run() {
 
         if (check_screen('ERROR-bootloader_preupdate', 3)) {
             send_key 'alt-n';
-            record_soft_failure;
+            record_soft_failure 'error bootloader preupdate';
         }
         assert_screen "inst-packageinstallationstarted";
 

@@ -67,7 +67,7 @@ sub run() {
             assert_screen 'automatic-changes';
             send_key 'alt-o';                                                      # OK
             if (check_screen 'unsupported-packages', 5) {
-                record_soft_failure;
+                record_soft_failure 'unsupported packages';
                 send_key 'alt-o';
             }
             if (check_screen 'addon-installation-pop-up', 100) {                   # e.g. RT reboot to activate new kernel
