@@ -13,7 +13,7 @@ use strict;
 use testapi;
 
 sub run() {
-    assert_script_run("grep ^0 /sys/kernel/kexec_crash_loaded");
+    assert_script_run("grep ^0 /sys/kernel/kexec_crash_loaded", fail_msg => 'kdump should be disabled');
 }
 
 1;

@@ -28,7 +28,7 @@ sub run() {
 
     # Restore snapfile
     script_run "snapper undochange $snapaf..$snapbf $snapfile";
-    assert_script_run "test -f $snapfile", 10;
+    assert_script_run("test -f $snapfile", timeout => 10, fail_msg => "File $snapfile could not be found");
 
     assert_screen 'snapper_undochange', 3;
 }
