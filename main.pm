@@ -254,7 +254,7 @@ sub have_addn_repos() {
 }
 
 sub we_is_applicable() {
-    return is_server && get_var("ADDONS") =~ /we/;
+    return is_server && get_var("ADDONS", "") =~ /we/;
 }
 
 sub loadtest($) {
