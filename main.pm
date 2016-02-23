@@ -843,6 +843,15 @@ else {
             if (get_var("ADDONS")) {
                 loadtest "installation/addon_products_yast2.pm";
             }
+            if (get_var("ISCSI_SERVER")) {
+                set_var('INSTALLONLY', 1);
+                loadtest "iscsi/iscsi_server.pm";
+                loadtest "iscsi/wait.pm";
+            }
+            if (get_var("ISCSI_CLIENT")) {
+                set_var('INSTALLONLY', 1);
+                loadtest "iscsi/iscsi_client.pm";
+            }
         }
     }
     elsif (is_jeos) {
