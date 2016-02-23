@@ -425,8 +425,12 @@ sub load_reboot_tests() {
         if (get_var("ENCRYPT")) {
             loadtest "installation/boot_encrypt.pm";
         }
+        if ((snapper_is_applicable) && get_var("BOOT_TO_SNAPSHOT")) {
+            loadtest "installation/boot_into_snapshot.pm";
+        }
         loadtest "installation/first_boot.pm";
     }
+
     if (is_reboot_after_installation_necessary()) {
         loadtest "installation/reboot_eject_cd.pm";
         loadtest "installation/reboot_after_install.pm";
