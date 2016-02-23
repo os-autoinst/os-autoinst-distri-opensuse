@@ -37,7 +37,10 @@ sub run() {
     # after installation we need to redefine the domain, so just shutdown
     $svirt->change_domain_element(on_reboot => 'destroy');
 
-    $svirt->add_disk({size => '4G', create => 1});
+    # For some tests we need more than the default 4GB
+    my $size = get_var('HDDSIZEGB') || '4G';
+
+    $svirt->add_disk({size => $size, create => 1});
     # need that for s390
     $svirt->add_pty({type => 'sclp', port => '0'});
 
