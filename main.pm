@@ -324,6 +324,7 @@ sub load_x11regresion_tests() {
         loadtest "x11regressions/tracker/tracker_by_command.pm";
         loadtest "x11regressions/tracker/tracker_info.pm";
         loadtest "x11regressions/tracker/tracker_search_in_nautilus.pm";
+        loadtest "x11regressions/tracker/tracker_mainmenu.pm";
         loadtest "x11regressions/tracker/clean_tracker.pm";
     }
 }
