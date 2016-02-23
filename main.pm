@@ -857,6 +857,14 @@ else {
     }
     elsif (get_var("BOOT_HDD_IMAGE")) {
         loadtest "boot/boot_to_desktop.pm";
+        if (get_var("ISCSI_SERVER")) {
+            set_var('INSTALLONLY', 1);
+            loadtest "iscsi/iscsi_server.pm";
+        }
+        if (get_var("ISCSI_CLIENT")) {
+            set_var('INSTALLONLY', 1);
+            loadtest "iscsi/iscsi_client.pm";
+        }
     }
     elsif (is_jeos) {
         load_boot_tests();
