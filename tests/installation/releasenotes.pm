@@ -18,7 +18,8 @@ sub run() {
         record_soft_failure 'workaround missing release notes';
         return;
     }
-    my @addons = split(/,/, get_var('ADDONS', ''));
+    my $addons = get_var('ADDONS', get_var('ADDONURL', ''));
+    my @addons = split(/,/, $addons);
     if (check_var('SCC_REGISTER', 'installation')) {
         push @addons, split(/,/, get_var('SCC_ADDONS', ''));
     }
