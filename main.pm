@@ -346,7 +346,7 @@ sub load_boot_tests() {
         # TODO: rename to bootloader_grub2
         loadtest "installation/bootloader_uefi.pm";
     }
-    elsif (check_var("BACKEND", "ipmi") || check_var("BACKEND", "gadget") ) {
+    elsif (check_var("BACKEND", "ipmi") || check_var("BACKEND", "gadget")) {
         loadtest "installation/qa_net.pm";
     }
     elsif (check_var("ARCH", "s390x")) {
@@ -470,6 +470,9 @@ sub load_reboot_tests() {
         # test makes no sense on s390 because grub2 can't be captured
         if (!check_var("ARCH", "s390x")) {
             loadtest "installation/grub_test.pm";
+            if ((snapper_is_applicable) && get_var("BOOT_TO_SNAPSHOT")) {
+                loadtest "installation/boot_into_snapshot.pm";
+            }
         }
         if (get_var("ENCRYPT")) {
             loadtest "installation/boot_encrypt.pm";
