@@ -91,13 +91,9 @@ sub run() {
     for (1 .. 4) { send_key "down"; }
     send_key "end";
 
-    # USB kbd in raw mode is rather slow and QEMU only buffers 16 bytes, so
-    # we need to type very slowly to not lose keypresses.
-    my $slow_typing_speed = 13;
-
     if (get_var("NETBOOT") && get_var("SUSEMIRROR")) {
         assert_screen('no_install_url');
-        type_string " install=http://" . get_var("SUSEMIRROR"), $slow_typing_speed;
+        type_string_slow " install=http://" . get_var("SUSEMIRROR");
         save_screenshot();
     }
     send_key "spc";
@@ -107,52 +103,52 @@ sub run() {
     # }
 
     if (check_var('VIDEOMODE', "text")) {
-        type_string "textmode=1 ", $slow_typing_speed;
+        type_string_slow "textmode=1 ";
     }
 
     type_string " \\\n";    # changed the line before typing video params
                             # https://wiki.archlinux.org/index.php/Kernel_Mode_Setting#Forcing_modes_and_EDID
-    type_string "Y2DEBUG=1 ", $slow_typing_speed;
+    type_string_slow 'Y2DEBUG=1 ';
     if (!is_jeos && (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64'))) {
-        type_string "vga=791 ";
-        type_string "video=1024x768-16 ", $slow_typing_speed;
+        type_string_slow 'vga=791 ';
+        type_string_slow 'video=1024x768-16 ';
 
         # not needed anymore atm as cirrus has 1024 as default now:
         # https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=121a6a17439b000b9699c3fa876636db20fa4107
         #type_string "drm_kms_helper.edid_firmware=edid/1024x768.bin ";
-        assert_screen "inst-video-typed-grub2", $slow_typing_speed;
+        assert_screen "inst-video-typed-grub2";
     }
 
     if (!get_var("NICEVIDEO") && !is_jeos) {
-        type_string "plymouth.ignore-serial-consoles ", $slow_typing_speed;    # make plymouth go graphical
-        type_string "linuxrc.log=$serialdev ",          $slow_typing_speed;    # to get linuxrc logs in serial
-        type_string " \\\n";                                                   # changed the line before typing video params
-        type_string "console=$serialdev ",         $slow_typing_speed;         # to get crash dumps as text
-        type_string "console=tty ",                $slow_typing_speed;         # to get crash dumps as text
+        type_string_slow "plymouth.ignore-serial-consoles ";    # make plymouth go graphical
+        type_string_slow "linuxrc.log=$serialdev ";             # to get linuxrc logs in serial
+        type_string " \\\n";                                    # changed the line before typing video params
+        type_string_slow "console=$serialdev ";                 # to get crash dumps as text
+        type_string_slow "console=tty ";                        # to get crash dumps as text
         assert_screen "inst-consolesettingstyped", 10;
         my $e = get_var("EXTRABOOTPARAMS");
         if ($e) {
-            type_string "$e ", 4;
+            type_string_very_slow "$e ";
             save_screenshot;
         }
     }
 
-    #type_string "kiwidebug=1 ", $slow_typing_speed;
+    #type_string_slow 'kiwidebug=1 ';
 
     my $args = "";
     if (get_var("AUTOYAST")) {
         $args .= " ifcfg=*=dhcp ";
         $args .= "autoyast=" . autoinst_url . "/data/" . get_var("AUTOYAST") . " ";
     }
-    type_string $args, $slow_typing_speed;
+    type_string_slow $args;
     save_screenshot;
 
     if (get_var("FIPS")) {
-        type_string " fips=1", $slow_typing_speed;
+        type_string_slow ' fips=1';
         save_screenshot;
     }
 
-    registration_bootloader_params;
+    registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED);
 
     # boot
     send_key "f10";

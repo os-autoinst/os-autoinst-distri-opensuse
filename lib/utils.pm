@@ -7,7 +7,19 @@ use strict;
 
 use testapi;
 
-our @EXPORT = qw/unlock_if_encrypted wait_boot clear_console select_kernel check_console_font is_jeos/;
+our @EXPORT = qw/unlock_if_encrypted wait_boot clear_console select_kernel check_console_font is_jeos type_string_slow type_string_very_slow/;
+
+
+# USB kbd in raw mode is rather slow and QEMU only buffers 16 bytes, so
+# we need to type very slowly to not lose keypresses.
+
+# arbitrary slow typing speed for bootloader prompt when not yet scrolling
+use constant SLOW_TYPING_SPEED => 13;
+
+# type even slower towards the end to ensure no keybuffer overflow even
+# when scrolling within the boot command line to prevent character
+# mangling
+use constant VERY_SLOW_TYPING_SPEED => 4;
 
 sub unlock_if_encrypted {
 
@@ -141,6 +153,24 @@ sub check_console_font {
 
 sub is_jeos() {
     return get_var('FLAVOR', '') =~ /^JeOS/;
+}
+
+sub type_string_slow {
+    my ($string) = @_;
+
+    type_string $string, SLOW_TYPING_SPEED;
+}
+
+sub type_string_very_slow {
+    my ($string) = @_;
+
+    type_string $string, VERY_SLOW_TYPING_SPEED;
+
+    # the bootloader prompt line is very delicate with typing especially when
+    # scrolling. We are typing very slow but this could still pose problems
+    # when the worker host is utilized so better wait until the string is
+    # displayed before continuing
+    wait_still_screen 1;
 }
 
 1;
