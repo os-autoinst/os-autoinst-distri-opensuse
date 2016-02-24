@@ -12,8 +12,22 @@ use base "opensusebasetest";
 use strict;
 use testapi;
 
+# Test that volumes are mounted by label
 sub run() {
-    validate_script_output "btrfs filesystem show / | grep -o \"Label: '.*'\"", sub { /^Label: '.*'$/ }
+    # Valid mounts are by text(proc,mem), LABEL, PARTLABEL
+    # Invalid mounts are by path, UUID, PARTUUID
+    my $invalid = script_output "grep -e '^/' -e '^UUID' -e '^PARTUUID' /etc/fstab";
+
+    if ($invalid) {
+        # Kiwi limitations - some volumes are mounted from /dev/disk/by-(part)label/ = soft fail
+        my @error = grep(!/^\/dev\/disk\/by-(part)?label\/.+$/, split(/\n/, $invalid));
+        if (@error) {
+            die "Not all partitions are mounted by label";
+        }
+        else {
+            record_soft_failure;
+        }
+    }
 }
 
 1;
