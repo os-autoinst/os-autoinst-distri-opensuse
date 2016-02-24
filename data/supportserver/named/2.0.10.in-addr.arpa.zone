@@ -1,0 +1,11 @@
+$TTL 3600
+@          IN   SOA     ns.openqa.test.  ns.openqa.test. (
+                                2016020901   ; serial number
+                                1200          ; refresh
+                                600          ; retry
+                                7D        ; expire
+                                3600       ) ; minimum TTL
+@          NS      ns.openqa.test.
+
+$ORIGIN 2.0.10.in-addr.arpa.
+1          PTR     ns.openqa.test.

@@ -99,11 +99,20 @@ sub setup_networks {
 sub setup_dns_server {
     return if $dns_server_set;
     $setup_script .= "
-        sed -i -e 's|^NETCONFIG_DNS_FORWARDER=.*|NETCONFIG_DNS_FORWARDER=\"bind\"|' /etc/sysconfig/network/config
+        sed -i -e 's|^NETCONFIG_DNS_FORWARDER=.*|NETCONFIG_DNS_FORWARDER=\"bind\"|' \\
+               -e 's|^NETCONFIG_DNS_FORWARDER_FALLBACK=.*|NETCONFIG_DNS_FORWARDER_FALLBACK=\"no\"|' /etc/sysconfig/network/config
         sed -i -e 's|#forwarders.*;|include \"/etc/named.d/forwarders.conf\";|' /etc/named.conf
+        sed -i -e 's|^NAMED_CONF_INCLUDE_FILES=.*|NAMED_CONF_INCLUDE_FILES=\"openqa.zones\"|' /etc/sysconfig/named
+
+        curl -f -v " . autoinst_url . "/data/supportserver/named/openqa.zones > /etc/named.d/openqa.zones
+        curl -f -v " . autoinst_url . "/data/supportserver/named/openqa.test.zone > /var/lib/named/master/openqa.test.zone
+        curl -f -v " . autoinst_url . "/data/supportserver/named/2.0.10.in-addr.arpa.zone > /var/lib/named/master/2.0.10.in-addr.arpa.zone
+        chown named:named /var/lib/named/master
+
         netconfig update -f
         rcnamed start
         rcnamed status
+        rcdhcpd restart
     ";
     $dns_server_set = 1;
 }
@@ -117,7 +126,21 @@ sub setup_dhcp_server {
     $setup_script .= "rcdhcpd stop\n";
     $setup_script .= "cat  >/etc/dhcpd.conf <<EOT\n";
     $setup_script .= "default-lease-time 14400;\n";
-    $setup_script .= "ddns-update-style none;\n";
+    if ($dns) {
+        $setup_script .= "ddns-update-style standard;\n";
+        $setup_script .= "ddns-updates on;\n";
+        $setup_script .= "
+        zone openqa.test. {
+            primary 127.0.0.1;
+        }
+        zone 2.0.10.in-addr.arpa. {
+            primary 127.0.0.1;
+        }
+        ";
+    }
+    else {
+        $setup_script .= "ddns-update-style none;\n";
+    }
     $setup_script .= "dhcp-cache-threshold 0;\n";
     $setup_script .= "\n";
     for my $network (keys %$net_conf) {
@@ -127,7 +150,7 @@ sub setup_dhcp_server {
         $setup_script .= "  range  " . ip_in_subnet($net_conf->{$network}, 15) . "  " . ip_in_subnet($net_conf->{$network}, 100) . ";\n";
         $setup_script .= "  default-lease-time 14400;\n";
         $setup_script .= "  max-lease-time 172800;\n";
-        $setup_script .= "  option domain-name \"test\";\n";
+        $setup_script .= "  option domain-name \"openqa.test\";\n";
         if ($dns) {
             $setup_script .= "  option domain-name-servers  $server_ip,  $server_ip;\n";
         }
