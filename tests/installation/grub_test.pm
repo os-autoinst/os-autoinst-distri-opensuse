@@ -21,10 +21,18 @@ sub run() {
         send_key_until_needlematch("boot-menu-snapshot", 'down', 10, 5);
         send_key 'ret';
         assert_screen("boot-menu-snapshot-list");
+        # in upgrade/migration scenario, we want to boot from snapshot 1 before migration.
+        if (get_var("UPGRADE")) {
+            send_key 'down';
+            save_screenshot;
+        }
         send_key 'ret';
-        assert_screen("boot-menu-snapshot-bootmenu");
-        send_key 'down', 1;
-        save_screenshot;
+        # bsc#956046  check if we are in first menu-entry, or not
+        if (check_screen("boot-menu-snapshot-bootmenu")) {
+            send_key 'down', 1;
+            save_screenshot;
+        }
+        send_key 'ret';
     }
     if (get_var("XEN")) {
         send_key_until_needlematch("bootmenu-xen-kernel", 'down', 10, 5);
