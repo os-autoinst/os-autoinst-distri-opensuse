@@ -1,0 +1,11 @@
+zone "openqa.test" IN {
+  type master;
+  file "master/openqa.test.zone";
+  allow-update { 127.0.0.1; };
+};
+
+zone "2.0.10.in-addr.arpa" IN {
+  type master;
+  file "master/2.0.10.in-addr.arpa.zone";
+  allow-update { 127.0.0.1; };
+};
