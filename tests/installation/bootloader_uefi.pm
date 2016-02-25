@@ -15,6 +15,7 @@ use Time::HiRes qw(sleep);
 
 use testapi;
 use registration;
+use utils;
 
 # hint: press shift-f10 trice for highest debug level
 sub run() {
@@ -33,6 +34,13 @@ sub run() {
     if (get_var("QEMUVGA") && get_var("QEMUVGA") ne "cirrus") {
         sleep 5;
     }
+    if (is_jeos) {
+        # tell grub to use the correct gfx mode (bnc#963952)
+        send_key 'c';
+        type_string "gfxmode=1024x768; terminal_output console; terminal_output gfxterm\n";
+        sleep 2;
+        send_key 'esc';
+    }
     if (get_var("ZDUP")) {
         # uefi bootloader has no "boot from harddisk" option. So we
         # have to just reboot here
@@ -50,7 +58,7 @@ sub run() {
         if (get_var("PROMO") || get_var('LIVETEST')) {
             send_key_until_needlematch("boot-live-" . get_var("DESKTOP"), 'down', 10, 5);
         }
-        elsif (!get_var("JEOS")) {
+        elsif (!is_jeos) {
             send_key_until_needlematch('inst-oninstallation', 'down', 10, 5);
         }
     }
@@ -58,7 +66,7 @@ sub run() {
     # assume bios+grub+anim already waited in start.sh
     # in grub2 it's tricky to set the screen resolution
     send_key "e";
-    if (get_var("JEOS")) {
+    if (is_jeos) {
         for (1 .. 3) { send_key "down"; }
         send_key "end";
         # delete "800x600"
@@ -76,7 +84,7 @@ sub run() {
     # back to the entry position
     send_key "home";
     for (1 .. 2) { send_key "up"; }
-    if (get_var("JEOS")) {
+    if (is_jeos) {
         send_key "up";
     }
     sleep 5;
@@ -105,7 +113,7 @@ sub run() {
     type_string " \\\n";    # changed the line before typing video params
                             # https://wiki.archlinux.org/index.php/Kernel_Mode_Setting#Forcing_modes_and_EDID
     type_string "Y2DEBUG=1 ", $slow_typing_speed;
-    if (!get_var('JEOS') && (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64'))) {
+    if (!is_jeos && (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64'))) {
         type_string "vga=791 ";
         type_string "video=1024x768-16 ", $slow_typing_speed;
 
@@ -115,7 +123,7 @@ sub run() {
         assert_screen "inst-video-typed-grub2", $slow_typing_speed;
     }
 
-    if (!get_var("NICEVIDEO") && !get_var('JEOS')) {
+    if (!get_var("NICEVIDEO") && !is_jeos) {
         type_string "plymouth.ignore-serial-consoles ", $slow_typing_speed;    # make plymouth go graphical
         type_string "linuxrc.log=$serialdev ",          $slow_typing_speed;    # to get linuxrc logs in serial
         type_string " \\\n";                                                   # changed the line before typing video params
