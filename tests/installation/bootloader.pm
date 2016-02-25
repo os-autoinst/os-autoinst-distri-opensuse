@@ -15,32 +15,7 @@ use Time::HiRes qw(sleep);
 
 use testapi;
 use registration;
-
-# arbitrary slow typing speed, also see bootloader_uefi
-use constant SLOW_TYPING_SPEED => 13;
-
-# type even slower towards the end to ensure no keybuffer overflow even
-# when scrolling within the boot command line to prevent character
-# mangling
-use constant SLOWER_TYPING_SPEED => 4;
-
-sub type_string_slow {
-    my ($string) = @_;
-
-    type_string $string, SLOW_TYPING_SPEED;
-}
-
-sub type_string_slower {
-    my ($string) = @_;
-
-    type_string $string, SLOWER_TYPING_SPEED;
-
-    # the bootloader prompt line is very delicate with typing especially when
-    # scrolling. We are typing very slow but this could still pose problems
-    # when the worker host is utilized so better wait until the string is
-    # displayed before continuing
-    wait_still_screen 1;
-}
+use utils;
 
 # hint: press shift-f10 trice for highest debug level
 sub run() {
@@ -97,14 +72,14 @@ sub run() {
 
     assert_screen "inst-video-typed", 4;
     if (!get_var("NICEVIDEO")) {
-        type_string_slower "plymouth.ignore-serial-consoles ";    # make plymouth go graphical
-        type_string_slower "linuxrc.log=$serialdev ";             #to get linuxrc logs in serial
-        type_string_slower "console=$serialdev ";                 # to get crash dumps as text
-        type_string_slower "console=tty ";                        # to get crash dumps as text
+        type_string_very_slow "plymouth.ignore-serial-consoles ";    # make plymouth go graphical
+        type_string_very_slow "linuxrc.log=$serialdev ";             #to get linuxrc logs in serial
+        type_string_very_slow "console=$serialdev ";                 # to get crash dumps as text
+        type_string_very_slow "console=tty ";                        # to get crash dumps as text
         assert_screen "inst-consolesettingstyped", 30;
         my $e = get_var("EXTRABOOTPARAMS");
         if ($e) {
-            type_string_slower "$e ";
+            type_string_very_slow "$e ";
             save_screenshot;
         }
     }
@@ -262,15 +237,15 @@ sub run() {
         $args .= " autoupgrade=1";
     }
 
-    type_string_slower $args;
+    type_string_very_slow $args;
     save_screenshot;
 
     if (get_var("FIPS")) {
-        type_string_slower " fips=1";
+        type_string_very_slow " fips=1";
         save_screenshot;
     }
 
-    registration_bootloader_params(SLOWER_TYPING_SPEED);
+    registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED);
 
     # boot
     send_key "ret";
