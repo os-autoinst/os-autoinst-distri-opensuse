@@ -460,6 +460,10 @@ sub load_consoletests() {
         loadtest "console/check_console_font.pm";
         loadtest "console/textinfo.pm";
         loadtest "console/hostname.pm";
+        if (check_var('ARCH', 'x86_64'))
+        {
+            loadtest "console/machinery.pm";
+        }
         if (snapper_is_applicable) {
             if (get_var("UPGRADE")) {
                 loadtest "console/upgrade_snapshots.pm";
