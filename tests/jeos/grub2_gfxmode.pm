@@ -16,7 +16,13 @@ use strict;
 use testapi;
 
 sub run {
-    assert_script_run("sed -ie '/GFXPAYLOAD_LINUX=/s/=.*/=1024x768/' /etc/default/grub && grub2-mkconfig -o /boot/grub2/grub.cfg");
+    if (check_var('UEFI', '1')) {
+        assert_script_run("sed -ie '/GRUB_GFXMODE=/s/=.*/=1024x768/' /etc/default/grub && grub2-mkconfig -o /boot/grub2/grub.cfg");
+        # workaround kiwi quirk bnc#968270, bnc#968264
+        assert_script_run("rm -rf /boot/efi/EFI; sed -ie 's/which/echo/' /usr/sbin/shim-install && shim-install");
+    } else {
+        assert_script_run("sed -ie '/GFXPAYLOAD_LINUX=/s/=.*/=1024x768/' /etc/default/grub && grub2-mkconfig -o /boot/grub2/grub.cfg");
+    }
 }
 
 sub test_flags() {
