@@ -23,9 +23,10 @@ sub run() {
     if (check_var('SCC_REGISTER', 'installation')) {
         push @addons, split(/,/, get_var('SCC_ADDONS', ''));
     }
-    send_key "alt-l", 2;    # open release notes window
+    send_key "alt-e";    # open release notes window
+    wait_still_screen(2);
     if (check_var('VIDEOMODE', 'text')) {
-        send_key 'tab';     # select tab area
+        send_key 'tab';    # select tab area
     }
     if (@addons) {
         for $a (@addons) {
