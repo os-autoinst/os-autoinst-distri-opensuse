@@ -118,6 +118,7 @@ sub ensure_installed {
     $self->script_run("pkcon install @pkglist; RET=\$?; echo \"\n  pkcon finished\n\"; echo \"pkcon-\${RET}-\" > /dev/$testapi::serialdev", 0);
     my @tags = qw/Policykit Policykit-behind-window pkcon-proceed-prompt/;
     while (1) {
+        last unless @tags;
         my $ret = check_screen(\@tags, $timeout);
         last unless $ret;
         if (match_has_tag('Policykit')) {
