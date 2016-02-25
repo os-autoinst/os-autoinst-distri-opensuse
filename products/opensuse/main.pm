@@ -360,9 +360,6 @@ sub load_inst_tests() {
     if (!get_var("LIVECD") && get_var("UPGRADE")) {
         loadtest "installation/upgrade_select.pm";
     }
-    if (!get_var("LIVECD") && get_var("ADDONURL")) {
-        loadtest "installation/addon_products.pm";
-    }
     if (noupdatestep_is_applicable && get_var("LIVECD")) {
         loadtest "installation/livecd_installer_timezone.pm";
     }
@@ -390,6 +387,9 @@ sub load_inst_tests() {
     }
     if (installwithaddonrepos_is_applicable && !get_var("LIVECD")) {
         loadtest "installation/setup_online_repos.pm";
+    }
+    if (!get_var("LIVECD") && get_var("ADDONURL")) {
+        loadtest "installation/addon_products.pm";
     }
     if (noupdatestep_is_applicable && !get_var("LIVECD") && !get_var("NICEVIDEO")) {
         loadtest "installation/logpackages.pm";

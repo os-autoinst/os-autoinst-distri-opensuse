@@ -21,16 +21,15 @@ sub run() {
         send_key 'alt-d', 2;                    # DHCP
         send_key 'alt-o', 2;                    # OK
     }
-    my $repo = 0;
-    $repo++ if get_var("DUD");
 
-    assert_screen 'addon-selection', 15;
+    assert_screen 'addon-selection';
 
     if (get_var("ADDONURL")) {
 
+        # FIXME: do the same as sle here
         foreach my $url (split(/\+/, get_var("ADDONURL"))) {
-            if ($repo++) { send_key "alt-a", 1; }    # Add another
-            send_key $cmd{"xnext"}, 1;               # Specify URL (default)
+            send_key "alt-a";                   # Add another
+            send_key $cmd{"xnext"}, 1;          # Specify URL (default)
             type_string $url;
             send_key $cmd{"next"}, 1;
             if (get_var("ADDONURL") !~ m{/update/}) {    # update is already trusted, so would trigger "delete"
@@ -38,7 +37,7 @@ sub run() {
                 send_key "alt-t", 1;                     # confirm import (trust) key
             }
         }
-        assert_screen 'test-addon_product-1';
+        assert_screen 'addon-selection';
         send_key $cmd{"next"}, 1;                        # done
     }
 
