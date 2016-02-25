@@ -115,8 +115,8 @@ sub qa_upload_logs {
 sub qa_upload_dir {
     my ($self, $dir) = @_;
     my $basename = basename($dir);
-    my $dirname = dirname($dir);
-    my $tarball = "/tmp/qaset-$basename.tar.bz2";
+    my $dirname  = dirname($dir);
+    my $tarball  = "/tmp/qaset-$basename.tar.bz2";
     assert_script_run "tar cjf '$tarball' -C '$dirname' '$basename'";
     upload_logs($tarball);
 }
