@@ -31,7 +31,7 @@ du /var/log/messages
 ps ax 
 
 systemctl --no-pager --full
-rpm -qa
+rpm -qa | sort
 
 journalctl -a --no-full -m > /var/log/journal.dump
 
