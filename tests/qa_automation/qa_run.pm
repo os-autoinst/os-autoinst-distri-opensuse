@@ -11,6 +11,7 @@
 package qa_run;
 use strict;
 use warnings;
+use File::Basename;
 use base "opensusebasetest";
 use testapi;
 
@@ -62,9 +63,13 @@ sub prepare_repos {
         assert_script_run($rm_repos, 300);
         assert_script_run("zypper --no-gpg-check -n ar -f '$qa_server_repo' server-repo");
     }
-    assert_script_run "zypper --no-gpg-check -n ar -f '" . get_var('QA_HEAD_REPO') . "' qa-ibs";
+    my $qa_head_repo = get_var('QA_HEAD_REPO', '');
+    unless ($qa_head_repo) {
+        die "No QA_HEAD_REPO specified!";
+    }
+    assert_script_run "zypper --no-gpg-check -n ar -f '$qa_head_repo' qa-ibs";
     assert_script_run "zypper --gpg-auto-import-keys ref";
-    assert_script_run "zypper -n in qa_testset_automation";
+    assert_script_run("zypper -n in qa_testset_automation qa_tools", 300);
 }
 
 # Create qaset/config file, reset qaset, and start testrun
@@ -102,8 +107,26 @@ sub qa_upload_logs {
     # upload logs
     foreach my $log_file (@log_files) {
         $log_file =~ s/^\s+|\s+$//g;
-        upload_logs $log_file;
+        upload_logs($log_file);
     }
+}
+
+# Compress and upload a directory
+sub qa_upload_dir {
+    my ($self, $dir) = @_;
+    my $basename = basename($dir);
+    my $dirname  = dirname($dir);
+    my $tarball  = "/tmp/qaset-$basename.tar.bz2";
+    assert_script_run "tar cjf '$tarball' -C '$dirname' '$basename'";
+    upload_logs($tarball);
+}
+
+# Save the output of $cmd into $file and upload it
+sub qa_log_cmd {
+    my ($self, $file, $cmd, $timeout) = @_;
+    $timeout = 90 unless defined $timeout;
+    script_run("$cmd | tee '$file'", $timeout);
+    upload_logs($file);
 }
 
 # qa_testset_automation validation test
@@ -111,15 +134,28 @@ sub run() {
     my $self = shift;
     $self->system_login();
     $self->prepare_repos();
-    assert_script_run "zypper repos -u";    # Show all repos for debugging
+
+    # Log zypper repo info
+    $self->qa_log_cmd("/tmp/repos.log", "zypper repos -u 2>&1");
+
     $self->start_testrun();
     unless ($self->wait_testrun()) {
         die "Test run didn't finish";
     }
 
-    type_string "grep -E \"http://.*/submission.php.*submission_id=[0-9]+\"  /var/log/qaset/submission/submission-*.log " . "| awk -F\": \"  '{print \$2}' | tee -a /dev/$serialdev\n";
-    $self->qa_upload_logs('/var/log/qaset/log', '*.tar.*');
+    # Log all submission links
+    my $cmd = "grep -E \"http://.*/submission.php.*submission_id=[0-9]+\"  /var/log/qaset/submission/submission-*.log " . "| awk -F\": \"  '{print \$2}'";
+    $self->qa_log_cmd("/tmp/submission-links.log", $cmd);
 
+    # Upload logs
+    $self->qa_upload_logs('/var/log/qaset/log', '*.tar.*');
+    my @dirs = ("calls", "control", "runs", "set", "submission");
+    foreach my $item (@dirs) {
+        my $dir = "/var/log/qaset/$item";
+        $self->qa_upload_dir($dir);
+    }
+
+    # JUnit xml report
     my $junit_type = $self->junit_type();
     assert_script_run "/usr/share/qa/qaset/bin/junit_xml_gen.py /var/log/qaset/log -s /var/log/qaset/submission -o /tmp/junit.xml -n '$junit_type'";
     parse_junit_log("/tmp/junit.xml");
