@@ -20,7 +20,7 @@ use testapi;
 sub run() {
     # reuse console
     my $packages = get_var("VERIFY_PACKAGE_VERSIONS");
-    assert_script_run("rpm -q $packages");
+    assert_script_run("~$username/data/lsmfip --verbose --verify ~/install_packages.txt $packages | tee /dev/$serialdev");
 }
 
 sub test_flags() {
