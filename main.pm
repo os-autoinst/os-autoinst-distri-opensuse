@@ -856,6 +856,9 @@ else {
         load_zdup_tests();
     }
     elsif (get_var("BOOT_HDD_IMAGE")) {
+        if (get_var('UEFI') && get_var('BOOTFROM')) {
+            loadtest "boot/uefi_bootmenu.pm";
+        }
         loadtest "boot/boot_to_desktop.pm";
         if (get_var("ISCSI_SERVER")) {
             set_var('INSTALLONLY', 1);
