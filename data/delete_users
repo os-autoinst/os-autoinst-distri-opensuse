@@ -1,0 +1,8 @@
+#!/bin/bash
+
+n_users="$1"
+
+for i in `seq 1 $n_users` ; do
+	num=`printf "%02d" $i`
+	userdel -rf "user${i}"
+done
