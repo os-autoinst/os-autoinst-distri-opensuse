@@ -97,6 +97,10 @@ sub is_desktop() {
     return check_var('FLAVOR', 'Desktop-DVD') || check_var('FLAVOR', 'Desktop-MINI');
 }
 
+sub is_rt() {
+    return get_var('ADDONS', '') =~ /rt/;
+}
+
 sub is_jeos() {
     return get_var('FLAVOR', '') =~ /^JeOS/;
 }
@@ -557,6 +561,12 @@ sub load_consoletests() {
             loadtest "console/gpt_ptable.pm";
             loadtest "console/kdump_disabled.pm";
             loadtest "console/sshd_running.pm";
+        }
+        if (is_rt) {
+            loadtest "console/rt_is_realtime.pm";
+            loadtest "console/rt_devel_packages.pm";
+            loadtest "console/rt_peak_pci.pm";
+            loadtest "console/rt_preempt_test.pm";
         }
         loadtest "console/sshd.pm";
         if (get_var("BIGTEST")) {
