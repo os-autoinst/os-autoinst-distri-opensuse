@@ -608,7 +608,6 @@ sub load_x11tests() {
     }
 
     if (xfcestep_is_applicable) {
-        loadtest "x11/xfce_close_hint_popup.pm";
         loadtest "x11/xfce4_terminal.pm";
     }
     if (!get_var("NICEVIDEO")) {
