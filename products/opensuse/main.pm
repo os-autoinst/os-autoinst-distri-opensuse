@@ -427,6 +427,9 @@ sub load_reboot_tests() {
         }
         if ((snapper_is_applicable) && get_var("BOOT_TO_SNAPSHOT")) {
             loadtest "installation/boot_into_snapshot.pm";
+            if (get_var("UPGRADE")) {
+                loadtest "installation/snapper_rollback.pm";
+            }
         }
         loadtest "installation/first_boot.pm";
     }
