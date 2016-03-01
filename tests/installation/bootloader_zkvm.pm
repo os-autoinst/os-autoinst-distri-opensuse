@@ -38,9 +38,9 @@ sub run() {
     $svirt->change_domain_element(on_reboot => 'destroy');
 
     # For some tests we need more than the default 4GB
-    my $size = get_var('HDDSIZEGB') || '4G';
+    my $size_i = get_var('HDDSIZEGB') || '4';
 
-    $svirt->add_disk({size => $size, create => 1});
+    $svirt->add_disk({size => $size_i . "G", create => 1});
     # need that for s390
     $svirt->add_pty({type => 'sclp', port => '0'});
 
