@@ -28,12 +28,17 @@ sub run() {
     assert_screen('firefox-flashplayer-verify_loaded', 45);
 
     send_key "pgdn";
-    assert_screen('firefox-flashplayer-verify', 25);
-
-    send_key "esc";
-    send_key "alt-d";
-    type_string "https://www.youtube.com/watch?v=Z4j5rJQMdOU\n";
-    assert_screen('firefox-flashplayer-video_loaded', 45);
+    # flashplayer dropped since sled12 sp2
+    while (assert_screen([qw/firefox-flashplayer-dropped firefox-flashplayer-verify/])) {
+        last if (match_has_tag('firefox-flashplayer-dropped'));
+        if (match_has_tag('firefox-flashplayer-verify')) {
+            send_key "esc";
+            send_key "alt-d";
+            type_string "https://www.youtube.com/watch?v=Z4j5rJQMdOU\n";
+            assert_screen('firefox-flashplayer-video_loaded', 45);
+        }
+        last;
+    }
 
     # Exit
     send_key "alt-f4";

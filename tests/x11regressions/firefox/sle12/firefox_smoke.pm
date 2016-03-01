@@ -30,7 +30,7 @@ sub run() {
     assert_screen('firefox-links_nav-suse_blogs', 50);
 
     # Topsites
-    my @topsite = ('www.gnu.org', 'www.opensuse.org', 'www.twitter.com');
+    my @topsite = ('www.gnu.org', 'www.opensuse.org');
     for my $site (@topsite) {
         send_key "esc";
         send_key "alt-d";
