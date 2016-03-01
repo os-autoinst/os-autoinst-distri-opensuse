@@ -105,6 +105,10 @@ sub is_staging () {
     return get_var('STAGING');
 }
 
+sub is_sles4sap() {
+    return get_var('VERSION', '') =~ /SAP/;
+}
+
 #assert_screen "inst-bootmenu",12; # wait for welcome animation to finish
 
 # defaults for username and password
@@ -399,6 +403,9 @@ sub load_inst_tests() {
         else {
             loadtest "installation/skip_registration.pm";
         }
+        if (is_sles4sap) {
+            loadtest "installation/sles4sap_product_installation_mode.pm";
+        }
         loadtest "installation/addon_products_sle.pm";
     }
     if (noupdatestep_is_applicable && get_var("LIVECD")) {
@@ -434,7 +441,9 @@ sub load_inst_tests() {
         loadtest "installation/logpackages.pm";
     }
     if (noupdatestep_is_applicable) {
-        loadtest "installation/user_settings.pm";
+        if (!get_var("SLES4SAP_STANDARD_INSTALLATION")) {
+            loadtest "installation/user_settings.pm";
+        }
         loadtest "installation/user_settings_root.pm";
     }
     if (noupdatestep_is_applicable) {
@@ -459,7 +468,18 @@ sub load_inst_tests() {
         # on svirt we need to redefine the xml-file to boot the installed kernel
         loadtest "installation/redefine_svirt_domain.pm";
     }
-
+    if (is_sles4sap) {
+        if (get_var("SLES4SAP_WIZARD_INSTALLATION")) {
+            loadtest "installation/sles4sap_wizard.pm";
+            if (get_var("TREX")) {
+                loadtest "installation/sles4sap_wizard_trex.pm";
+            }
+            if (get_var("NW")) {
+                loadtest "installation/sles4sap_wizard_nw.pm";
+            }
+            loadtest "installation/sles4sap_wizard_swpm.pm";
+        }
+    }
 }
 
 sub load_reboot_tests() {
