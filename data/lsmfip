@@ -1,0 +1,215 @@
+#!/usr/bin/perl -w
+# Copyright (c) 2015,2016 SUSE LLC
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+=head1 lsmfip
+
+lsmfip - libsolv magic for installing packages
+
+=head1 SYNOPSIS
+
+lsmfip [OPTIONS] NAME... > FILE
+
+lsmfip [OPTIONS] --verify=FILE NAME VERSION...
+
+=head1 OPTIONS
+
+=over 4
+
+=item B<--verify=FILE>
+
+verify according to FILE
+
+=over 4
+
+=item B<--help, -h>
+
+print help
+
+=back
+
+=head1 DESCRIPTION
+
+output a list of packages to install or unsinstall given a list of packages.
+The output is suitable to be passed to zypper in.
+When using --verify=FILE the output can be used as reference
+
+=cut
+
+use strict;
+use solv;
+use Data::Dump;
+use Getopt::Long;
+use File::Basename;
+Getopt::Long::Configure("no_ignore_case");
+
+my %options;
+
+sub usage($) {
+    my $r = shift;
+    eval "use Pod::Usage; pod2usage($r);";
+    if ($@) {
+        die "cannot display help, install perl(Pod::Usage)\n";
+    }
+}
+
+GetOptions(
+    \%options,
+    "verbose|v",
+    "verify=s",
+    "help|h",
+) or usage(1);
+
+usage(1) unless @ARGV;
+usage(0) if ($options{'help'});
+
+my @packages;
+my %requested;
+
+while (my $name = shift @ARGV) {
+    push @packages, $name;
+    if ($options{verify}) {
+        $requested{$name} = shift @ARGV || die "missing version for $name\n";
+    } else {
+        $requested{$name} = 1;
+    }
+}
+
+my $pool = solv::Pool->new();
+$pool->setarch();
+
+my $cachedir = '/var/cache/zypp/solv';
+for my $repo (<$cachedir/*>) {
+    $repo = basename($repo);
+    print STDERR "adding repo $repo\n" if $options{verbose};
+    my $r = $pool->add_repo($repo);
+    $r->add_solv("$cachedir/$repo/solv");
+    $pool->{installed} = $r if $repo eq '@System';
+}
+
+$pool->addfileprovides();
+$pool->createwhatprovides();
+
+my $solver;
+
+my $exit_status = 0;
+
+if (!$options{verify}) {
+    REPEAT: while(1)
+    {
+        $solver = $pool->Solver();
+        $solver->set_flag($solv::Solver::SOLVER_FLAG_ALLOW_UNINSTALL, 1);
+        my @jobs;
+
+        for my $n (sort @packages) {
+            next unless $requested{$n};
+            print STDERR "selecting $n\n" if $options{verbose};
+            my $sel = $pool->select($n, $solv::Selection::SELECTION_NAME);
+            for my $s ($sel->solvables()) {
+                print STDERR "-> $s->{name}-$s->{evr}.$s->{arch}\n" if $options{verbose};
+            }
+            push @jobs, $sel->jobs($solv::Job::SOLVER_INSTALL);
+        }
+
+        my @problems = $solver->solve(\@jobs);
+
+        if (@problems) {
+            print STDERR "+++ PROBLEMS: +++\n" if $options{verbose};
+            for my $p (@problems) {
+                print STDERR $p->str, "\n" if $options{verbose};
+                for my $sol ($p->solutions) {
+                    print STDERR "  + solution\n" if $options{verbose};
+                    for my $elem ($sol->elements) {
+                        print STDERR "    - ", $elem->str, "\n" if $options{verbose};
+                        if ($elem->str =~ /do not ask to install (.+)/) {
+                            my $pkg = $1;
+                            # check if the package conflicts with one of
+                            # the packages we asked to install. If so
+                            # remove the other one and repeat.
+                            if ($requested{$pkg} && $pkg =~ /branding/) {
+                                print STDERR "++ skipping $pkg and retry\n";
+                                delete $requested{$pkg};
+                                next REPEAT;
+                            }
+                        }
+                    }
+                }
+            }
+            $exit_status = 1;
+        }
+        last;
+    }
+
+    my $trans = $solver->transaction();
+
+    my %insttypes = map { $_ => 1 } (
+        $solv::Transaction::SOLVER_TRANSACTION_INSTALL,
+        $solv::Transaction::SOLVER_TRANSACTION_REINSTALLED,
+        $solv::Transaction::SOLVER_TRANSACTION_DOWNGRADED,
+        $solv::Transaction::SOLVER_TRANSACTION_CHANGED,
+        $solv::Transaction::SOLVER_TRANSACTION_UPGRADED,
+    );
+    for my $c ($trans->classify()) {
+        for my $solvable ($c->solvables()) {
+            next if $solvable->{name} =~ /^application:/; # FIXME: how to query non rpms properly?
+            my $name = $solvable->{name};
+            if ($c->{type} == $solv::Transaction::SOLVER_TRANSACTION_ERASE) {
+                printf "-%s\n", $name;
+            } elsif ($insttypes{$c->{type}}) {
+                printf "%s\n", $name if $requested{$name};
+            } else {
+                printf STDERR "unknown type %d for %s\n", $c->{type}, $name;
+            }
+        }
+    }
+
+    for my $n (sort @packages) {
+        printf STDERR "not installing %s\n", $n unless defined $requested{$n};
+    }
+} else {
+    open (my $fh, '<', $options{verify}) || die "failed to open $options{verify}: $!\n";
+    while(my $n = <$fh>) {
+        if ($n =~ /^-/) {
+            next;
+        }
+        chomp $n;
+        if (!$requested{$n}) {
+            warn "no version specified for $n, can't verify\n";
+            $exit_status = 1;
+            next;
+        }
+        my $v = $requested{$n};
+        print STDERR "checking $n-$v\n" if $options{verbose};
+        my $sel = $pool->select("$n-$v", $solv::Selection::SELECTION_CANON|$solv::Selection::SELECTION_INSTALLED_ONLY);
+        #$sel->filter($pool->{installed}->Selection()) if $sel;
+        my @solvables = $sel->solvables();
+        if (!@solvables) {
+            print STDERR "$n-$v was not installed!\n";
+            $exit_status = 1;
+        }
+        for my $s (@solvables) {
+            print STDERR "i $s->{name}-$s->{evr}.$s->{arch}\n" if $options{verbose};
+        }
+    }
+}
+
+exit $exit_status;
+
+# vim: sw=4 et
