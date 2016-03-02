@@ -765,9 +765,11 @@ sub load_skenkins_tests {
     return 0;
 }
 
-# load the tests in the right order
-if (get_var("REGRESSION")) {
-    # FIXME: only load_x11regresion_tests is special here => integrate below
+sub load_feature_tests() {
+    loadtest "feature/console/zypper_releasever.pm";
+}
+
+sub prepare_target() {
     if (get_var("BOOT_HDD_IMAGE")) {
         loadtest "boot/boot_to_desktop.pm";
     }
@@ -776,8 +778,16 @@ if (get_var("REGRESSION")) {
         load_inst_tests();
         load_reboot_tests();
     }
+}
 
+# load the tests in the right order
+if (get_var("REGRESSION")) {
+    prepare_target();
     load_x11regresion_tests();
+}
+elsif (get_var("FEATURE")) {
+    prepare_target();
+    load_feature_tests();
 }
 elsif (get_var("MEDIACHECK")) {
     loadtest "installation/mediacheck.pm";
