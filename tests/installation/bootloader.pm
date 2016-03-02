@@ -238,6 +238,10 @@ sub run() {
         $args .= " autoupgrade=1";
     }
 
+    if (get_var("IBFT")) {
+        $args .= " withiscsi=1";
+    }
+
     type_string_very_slow $args;
     save_screenshot;
 
