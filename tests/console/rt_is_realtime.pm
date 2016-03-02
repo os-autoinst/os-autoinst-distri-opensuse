@@ -1,24 +1,24 @@
 # SUSE's openQA tests
 #
-# Copyright Â© 2009-2013 Bernhard M. Wiedemann
-# Copyright Â© 2012-2016 SUSE LLC
+# Copyright © 2016 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+use base "opensusebasetest";
 use strict;
-use base "y2logsstep";
 use testapi;
-use utils;
 
+# Check that realtime kernel is running
 sub run() {
-    my $kernel = get_var('KERNEL_TO_BOOT');
+    assert_script_run "uname -v | grep -qo 'PREEMPT RT'";
+    assert_script_run "grep -q 1 /sys/kernel/realtime";
+}
 
-    select_kernel("$kernel");
+sub test_flags() {
+    return {important => 1};
 }
 
 1;
-
-# vim: set sw=4 et:
