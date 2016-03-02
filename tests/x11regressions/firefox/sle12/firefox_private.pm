@@ -26,8 +26,8 @@ sub run() {
     sleep 5;
 
     send_key "alt-d";
-    type_string "twitter.com\n";
-    assert_screen('firefox-private-twitter', 45);
+    type_string "gnu.org\n";
+    assert_screen('firefox-private-gnu', 45);
     send_key "alt-d";
     type_string "facebook.com\n";
     assert_screen('firefox-private-facebook', 45);
