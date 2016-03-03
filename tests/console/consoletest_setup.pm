@@ -34,7 +34,7 @@ sub run() {
     # openSUSE 13.2's (and earlier) systemd has broken rules for virtio-net, not applying predictable names (despite being configured)
     # A maintenance update breaking networking names sounds worse than just accepting that 13.2 -> TW breaks
     # At this point, the system has been upadted, but our network interface changes name (thus we lost network connection)
-    my @old_hdds = qw/openSUSE_12.1 openSUSE_12.2 openSUSE_12.3 openSUSE_13.1 openSUSE_13.2/;
+    my @old_hdds = qw/openSUSE-12.1 openSUSE-12.2 openSUSE-12.3 openSUSE-13.1-gnome openSUSE-13.2/;
     if (grep { check_var('HDDVERSION', $_) } @old_hdds) {    # copy eth0 network config to ens4
         script_run("cp /etc/sysconfig/network/ifcfg-eth0 /etc/sysconfig/network/ifcfg-ens4");
         script_run("/sbin/ifup ens4");
