@@ -92,7 +92,7 @@ sub wait_testrun {
     # Set a extremely high timeout value for wait_serial
     # so that it will wait until test run finished or
     # MAX_JOB_TIME(can be set on openQA webui) reached
-    my $ret = wait_serial($pattern, 3600 * 240);
+    my $ret = wait_serial($pattern, 32400);
     if ($ret) {
         return 1;
     }
@@ -102,7 +102,18 @@ sub wait_testrun {
 # Upload all log tarballs in /var/log/qaset/log
 sub qa_upload_logs {
     my ($self, $dir, $pattern) = @_;
-    my $output = script_output("find '$dir' -type f -name '$pattern'", 120);
+    my $cmd = "sleep 0.1; echo LOG_FILES_BEGIN >> /dev/$serialdev";
+    $cmd .= "; find '$dir' -type f -name '$pattern' >> /dev/$serialdev";
+    $cmd .= "; echo LOG_FILES_END >> /dev/$serialdev\n";
+    type_string $cmd;
+    my $output = wait_serial("LOG_FILES_END", 30);
+    $output =~ s/.*?LOG_FILES_BEGIN//sg;
+    $output =~ s/LOG_FILES_END.*//sg;
+    $output =~ s/^\s+|\s+$//g;
+    unless ($output) {
+        print "WARNING: No log tarballs found in /var/log/qaset/log\n";
+        return;
+    }
     my @log_files = split("\n", $output);
     # upload logs
     foreach my $log_file (@log_files) {
