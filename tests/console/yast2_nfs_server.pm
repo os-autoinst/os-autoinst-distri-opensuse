@@ -35,12 +35,13 @@ sub run() {
 
     type_string "/sbin/yast2 nfs-server; echo YAST-DONE-\$?- > /dev/$serialdev\n";
 
-    assert_screen([qw/nfs-firewall nfs-config/]);
-    if (match_has_tag('nfs-firewall')) {
-        send_key 'alt-i';
-    }
-
-    assert_screen 'nfs-config';
+    do {
+        assert_screen([qw/nfs-server-not-installed nfs-firewall nfs-config/]);
+        # install missing packages as proposed
+        if (match_has_tag('nfs-server-not-installed') or match_has_tag('nfs-firewall')) {
+            send_key 'alt-i';
+        }
+    } while (not match_has_tag('nfs-config'));
 
     # Start server
     send_key 'alt-s';
