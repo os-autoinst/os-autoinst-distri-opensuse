@@ -22,10 +22,10 @@ sub run() {
         send_key "alt-h";
     };
     send_key "a";
-    assert_screen 'gedit-help-about', 3;
+    assert_screen 'gedit-help-about';
 
     # check license
-    assert_screen 'gedit-about-license', 3;
+    assert_screen 'gedit-about-license';
 
     # check website link
     assert_and_click 'gedit-about-link';
@@ -37,12 +37,12 @@ sub run() {
 
     # check credits
     send_key "alt-r";
-    assert_screen 'gedit-about-credits', 3;
+    assert_screen 'gedit-about-credits';
     send_key "alt-r";    # close credit
 
-    wait_screen_change {
-        send_key "alt-c";    # close about
-    };
+    assert_screen 'gedit-about-license';
+    send_key "alt-c";    # close about
+    assert_screen 'gedit-launched';
     send_key "ctrl-q";
 }
 
