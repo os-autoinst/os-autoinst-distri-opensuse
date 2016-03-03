@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2016 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -61,9 +61,8 @@ sub run() {
     assert_and_click 'empathy-disable-account';
     assert_and_click 'empathy-delete-account';
     assert_screen 'empathy-confirm-deletion';
-    wait_screen_change {
-        send_key "alt-r";
-    };
+    send_key "alt-r";
+    assert_screen 'empathy-account-deleted';
     wait_screen_change {
         send_key "alt-c";
     };
