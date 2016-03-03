@@ -570,7 +570,7 @@ sub load_consoletests() {
         }
         loadtest "console/mtab.pm";
         if (!get_var("NOINSTALL") && !get_var("LIVETEST") && !is_desktop && (check_var("DESKTOP", "textmode"))) {
-            if (check_var('BACKEND', 'qemu')) {
+            if (!is_staging && check_var('BACKEND', 'qemu')) {
                 # The NFS test expects the IP to be 10.0.2.15
                 loadtest "console/yast2_nfs_server.pm";
             }
