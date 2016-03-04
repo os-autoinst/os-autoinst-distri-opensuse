@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+
+  <add-on>
+    <add_on_products config:type="list">
+      <listentry>
+        <media_url>http://download.suse.de/ibs/SUSE:/SLE-12-SP2:/Update/standard</media_url>
+        <product>SuSE-Linux-Updates</product>
+        <product_dir>/</product_dir>
+        <name>Updates</name> 
+      </listentry>
+    </add_on_products>
+  </add-on>
+
+  <firewall>
+    <enable_firewall config:type="boolean">false</enable_firewall>
+    <start_firewall config:type="boolean">false</start_firewall>
+  </firewall>
+  <general>
+    <ask-list config:type="list"/>
+    <mode>
+      <confirm config:type="boolean">false</confirm>
+    </mode>
+    <mouse>
+      <id>none</id>
+    </mouse>
+    <signature-handling>
+      <accept_file_without_checksum config:type="boolean">true</accept_file_without_checksum>
+      <accept_non_trusted_gpg_key config:type="boolean">true</accept_non_trusted_gpg_key>
+      <accept_unknown_gpg_key config:type="boolean">true</accept_unknown_gpg_key>
+      <accept_unsigned_file config:type="boolean">true</accept_unsigned_file>
+      <accept_verification_failed config:type="boolean">false</accept_verification_failed>
+      <import_gpg_key config:type="boolean">true</import_gpg_key>
+    </signature-handling>
+  </general>
+  <keyboard>
+    <keymap>english-us</keymap>
+  </keyboard>
+  <language>
+    <language>en_US</language>
+    <languages>en_US</languages>
+  </language>
+  <networking>
+    <dns>
+      <dhcp_hostname config:type="boolean">false</dhcp_hostname>
+      <domain>(none)</domain>
+      <hostname>jerry-snapshot</hostname>
+      <resolv_conf_policy>auto</resolv_conf_policy>
+    </dns>
+    <interfaces config:type="list">
+      <interface>
+        <bootproto>dhcp</bootproto>
+        <device>eth0</device>
+        <startmode>auto</startmode>
+      </interface>
+    </interfaces>
+  </networking>
+  <ntp-client>
+    <configure_dhcp config:type="boolean">false</configure_dhcp>
+    <peers config:type="list">
+      <peer>
+        <address>pool.ntp.org</address>
+        <initial_sync config:type="boolean">true</initial_sync>
+        <options/>
+        <type>server</type>
+      </peer>
+    </peers>
+    <start_at_boot config:type="boolean">true</start_at_boot>
+    <start_in_chroot config:type="boolean">true</start_in_chroot>
+  </ntp-client>
+  <partitioning config:type="list">
+    <drive>
+      <device>/dev/sda</device>
+      <partitions config:type="list">
+        <partition>
+          <create config:type="boolean">true</create>
+          <partition_id config:type="integer">263</partition_id>
+          <partition_nr config:type="integer">1</partition_nr>
+          <resize config:type="boolean">false</resize>
+          <size>10MB</size>
+        </partition>
+        <partition>
+          <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">swap</filesystem>
+          <format config:type="boolean">true</format>
+          <mount>swap</mount>
+          <size>auto</size>
+        </partition>
+        <partition>
+          <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">btrfs</filesystem>
+          <format config:type="boolean">true</format>
+          <mount>/</mount>
+        </partition>
+      </partitions>
+    </drive>
+  </partitioning>
+  <report>
+    <errors>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">120</timeout>
+    </errors>
+    <messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">30</timeout>
+    </messages>
+    <warnings>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">30</timeout>
+    </warnings>
+    <yesno_messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">120</timeout>
+    </yesno_messages>
+  </report>
+  <runlevel>
+    <default>3</default>
+    <services config:type="list">
+      <service>
+        <service_name>nfs</service_name>
+        <service_status>enable</service_status>
+      </service>
+      <service>
+        <service_name>hamsta</service_name>
+        <service_status>enable</service_status>
+      </service>
+      <service>
+        <service_name>sshd</service_name>
+        <service_status>enable</service_status>
+      </service>
+    </services>
+  </runlevel>
+  <scripts>
+    <init-scripts config:type="list">
+      <script>
+        <filename>yya_for_xorg</filename>
+        <interpreter>shell</interpreter>
+        <source>
+		  rm -f /etc/X11/xorg.conf*;
+		</source>
+      </script>
+      <script>
+        <filename>yyb_install_product</filename>
+        <interpreter>shell</interpreter>
+        <source>		  prod=`zypper se -t product -r http://dist.ext.suse.de/ibs/QA:/Head:/Devel/SLE-12 | grep '^  |' | cut -d '|' -f2`;
+		  zypper --non-interactive in --auto-agree-with-licenses -t product $prod;		</source>
+      </script>
+      <script>
+        <filename>zzz_preserve_install_config</filename>
+        <interpreter>shell</interpreter>
+        <source>
+		    source /usr/share/qa/lib/config '' ;
+		    different=0 ;
+		    file=/etc/qa/66-current_installation ;
+		    [ 'susetesting' == "`get_qa_config install_root_password`" ]     || different=1 ;
+		    [ 'testusr'  == "`get_qa_config install_testuser_login`" ]    || different=1 ;
+		    [ 'susetesting' == "`get_qa_config install_testuser_password`" ] || different=1 ;
+		    [ 'Test User' == "`get_qa_config install_testuser_fullname`" ] || different=1 ;
+		    [ '/home/testusr' == "`get_qa_config install_testuser_home`" ]     || different=1 ;
+		    [ 'http://dist.ext.suse.de/ibs/QA:/Head:/Devel'   == "`get_qa_config install_qa_repository`" ]     || different=1 ;
+		    [ ''  == "`get_qa_config install_additional_rpms`" ]   || different=1 ;
+		    [ '239.192.10.10'  == "`get_qa_config hamsta_multicast_address`" ]   || different=1 ;
+		    [ '2000'  == "`get_qa_config hamsta_multicast_port`" ]   || different=1 ;
+		    [ ''  == "`get_qa_config hamsta_multicast_dev`" ]   || different=1 ;
+		    [ '2222'  == "`get_qa_config hamsta_client_port`" ]   || different=1 ;
+	
+		    if [ $different -eq 1 ] ; then
+		      echo '# This file contains custom configuration, that has beed used to install'  &gt; $file;
+		      echo '# this host. If you want to use default values for next installation, '   &gt;&gt; $file;
+		      echo '# please delete this file. If you want to customize next installation, '   &gt;&gt; $file;
+		      echo '# please write your configutation to higher priority config file  '        &gt;&gt; $file;
+		      echo '# please (see man qa_lib_config for details).'                             &gt;&gt; $file;
+		      echo                                                                            &gt;&gt; $file;
+		      [ 'susetesting' == "`get_qa_config install_root_password`" ]     || echo "install_root_password='susetesting'" &gt;&gt; $file;
+		      [ 'testusr'  == "`get_qa_config install_testuser_login`" ] || echo "install_testuser_login='testusr'" &gt;&gt; $file;
+		      [ 'susetesting' == "`get_qa_config install_testuser_password`" ]    || echo "install_testuser_password='susetesting'" &gt;&gt; $file;
+		      [ 'Test User' == "`get_qa_config install_testuser_fullname`" ] || echo "install_testuser_fullname='Test User'" &gt;&gt; $file;
+		      [ '/home/testusr' == "`get_qa_config install_testuser_home`" ]     || echo "install_testuser_home='/home/testusr'" &gt;&gt; $file;
+		      [ 'http://dist.ext.suse.de/ibs/QA:/Head:/Devel'   == "`get_qa_config install_qa_repository`" ]     || echo "install_qa_repository='http://dist.ext.suse.de/ibs/QA:/Head:/Devel'" &gt;&gt; $file;
+		      [ ''  == "`get_qa_config install_additional_rpms`" ]   || echo "install_additional_rpms=''" &gt;&gt; $file;
+		      [ '239.192.10.10'  == "`get_qa_config hamsta_multicast_address`" ]   || echo "hamsta_multicast_address='239.192.10.10'" &gt;&gt; $file;
+		      [ '2000'  == "`get_qa_config hamsta_multicast_port`" ]   || echo "hamsta_multicast_port='2000'" &gt;&gt; $file;
+		      [ ''  == "`get_qa_config hamsta_multicast_dev`" ]   || echo "hamsta_multicast_dev=''" &gt;&gt; $file;
+		      [ '2222'  == "`get_qa_config hamsta_client_port`" ]   || echo "hamsta_client_port='2222'" &gt;&gt; $file;
+		    fi
+	          </source>
+      </script>
+    </init-scripts>
+    <post-scripts config:type="list">
+      <script>
+        <filename>zzz_write_passwords</filename>
+        <interpreter>shell</interpreter>
+        <source>
+		    mkdir -p /usr/share/qa/data/passwords ;
+		    echo 'susetesting' &gt; /usr/share/qa/data/passwords/root ;
+		    echo 'susetesting' &gt; /usr/share/qa/data/passwords/testusr
+		  </source>
+      </script>
+    </post-scripts>
+  </scripts>
+  <software>
+    <packages config:type="list">
+      <package>autoyast2</package>
+      <package>vim</package>
+      <package>mc</package>
+      <package>iputils</package>
+      <package>less</package>
+      <package>screen</package>
+      <package>lsof</package>
+      <package>pciutils</package>
+      <package>tcpdump</package>
+      <package>telnet</package>
+      <package>zip</package>
+      <package>SuSEfirewall2</package>
+      <package>curl</package>
+      <package>wget</package>
+      <package>perl</package>
+      <package>openssh</package>
+      <package>nfs-client</package>
+      <package>grub2</package>
+    </packages>
+    <patterns config:type="list">
+      <pattern>base</pattern>
+    </patterns>
+  </software>
+  <timezone>
+    <hwclock>UTC</hwclock>
+    <timezone>Asia/Beijing</timezone>
+  </timezone>
+  <users config:type="list">
+                <user>
+                   <fullname>Bernhard M. Wiedemann</fullname>  
+                   <encrypted config:type="boolean">false</encrypted>
+                   <user_password>nots3cr3t</user_password>
+                   <username>bernhard</username>
+                </user>
+                
+    <user>
+      <encrypted config:type="boolean">false</encrypted>
+      <fullname>root</fullname>
+      <gid>0</gid>
+      <home>/root</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/bin/bash</shell>
+      <uid>0</uid>
+      <user_password>nots3cr3t</user_password>
+      <username>root</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">false</encrypted>
+      <fullname>Test User</fullname>
+      <home>/home/testusr</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/bin/bash</shell>
+      <user_password>nots3cr3t</user_password>
+      <username>testusr</username>
+    </user>
+  </users>
+</profile>
