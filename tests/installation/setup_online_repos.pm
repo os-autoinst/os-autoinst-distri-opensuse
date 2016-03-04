@@ -65,6 +65,15 @@ sub run() {
         assert_screen 'license-dialog-oss-repo';
         send_key $cmd{next};    # Next
     }
+
+    if (get_var("WITH_UNTESTED_REPO")) {
+        assert_screen 'import-untrusted-gpg-key-598D0E63B3FD7E48';
+        while (1) {
+            send_key 'alt-t';    # Trust
+                                 # for some reason the key is prompted twice, bug?
+            last unless check_screen 'import-untrusted-gpg-key-598D0E63B3FD7E48';
+        }
+    }
 }
 
 1;
