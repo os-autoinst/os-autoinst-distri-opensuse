@@ -402,6 +402,9 @@ sub load_inst_tests() {
         else {
             loadtest "installation/skip_registration.pm";
         }
+        if (get_var('MAINT_TEST_REPO')) {
+            loadtest 'installation/add_update_test_repo.pm';
+        }
         loadtest "installation/addon_products_sle.pm";
     }
     if (noupdatestep_is_applicable && get_var("LIVECD")) {
