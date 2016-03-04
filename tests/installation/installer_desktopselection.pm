@@ -37,8 +37,6 @@ sub run() {
         sleep 3;             # needles for else cases missing
     }
     send_key $cmd{"next"};
-
-    # ending at partition layout screen
 }
 
 1;

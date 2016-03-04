@@ -18,7 +18,13 @@ sub run() {
 
     assert_screen 'online-repos', 200;                                                                                         # maybe slow due to network connectivity
 
-    send_key 'alt-i', 1;                                                                                                       # move the cursor to repos lists
+    # move the cursor to repos lists
+    if (check_var("VIDEOMODE", "text")) {
+        send_key 'alt-l';
+    }
+    else {
+        send_key 'alt-i';
+    }
 
     foreach my $repotag (@default_repos) {
         my $needs_to_be_selected = 0;
@@ -55,7 +61,10 @@ sub run() {
 
     send_key $cmd{next};    # Next
 
-    assert_screen "desktop-selection", 200;    # Make sure repos setup is finished and went to next step already
+    if (get_var("WITH_MAIN_REPO")) {
+        assert_screen 'license-dialog-oss-repo';
+        send_key $cmd{next};    # Next
+    }
 }
 
 1;
