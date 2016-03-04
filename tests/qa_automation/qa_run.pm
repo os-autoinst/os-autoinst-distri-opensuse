@@ -78,7 +78,7 @@ sub start_testrun {
     $self->create_qaset_config();
     assert_script_run "/usr/share/qa/qaset/qaset reset";
     my $testsuite = $self->test_suite();
-    assert_script_run "/usr/share/qa/qaset/run/$testsuite-run";
+    assert_script_run "/usr/share/qa/qaset/run/$testsuite-run.openqa";
 }
 
 # Check whether DONE file exists every $interval secs in the background
