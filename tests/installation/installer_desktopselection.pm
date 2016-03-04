@@ -28,7 +28,7 @@ sub run() {
     else {    # lower selection level
         send_key "alt-o";    #TODO translate
                              # The keyboard shortcuts changed with libyu-qt >= 2.46.16; let's see which ones we need
-        check_screen([qw/other-desktop other-desktop-remapped/], 3);
+        assert_screen([qw/other-desktop other-desktop-remapped/], 3);
         if (match_has_tag("other-desktop-remapped")) {
             my %desktopkeys = (xfce => "f", lxde => "x", minimalx => "m", textmode => "i");
             $key = "alt-$desktopkeys{$d}";
