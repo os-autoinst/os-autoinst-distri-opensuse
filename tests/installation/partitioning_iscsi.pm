@@ -13,14 +13,15 @@ use testapi;
 
 sub run() {
     send_key "alt-c";    # create partition setup
-    sleep 2;
+    wait_still_screen(2);
     assert_screen "preparing-disk-select-iscsi-disk";
     send_key "alt-1";    # select ISCSI disk
     send_key "alt-n";    # next
-    assert_screen "preparing-disk-install-on";
-    send_key "alt-e";    # use entire iscsi disk
-    send_key "alt-n";    # next
-    assert_screen "edit-proposal-settings";
+    if (check_screen "preparing-disk-use-entire-disk-button", 10) {
+        send_key "alt-e";    # use entire iscsi disk
+    }
+    assert_screen "preparing-disk-overview";
+    send_key "alt-n";        # next
 }
 
 1;

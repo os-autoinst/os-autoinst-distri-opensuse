@@ -40,5 +40,9 @@ sub run() {
     # avoid timeout for booting to HDD
     send_key 'ret';
 }
+sub test_flags() {
+    return {fatal => 1};
+}
+
 1;
 # vim: set sw=4 et:

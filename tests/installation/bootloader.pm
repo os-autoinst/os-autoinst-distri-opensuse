@@ -32,14 +32,15 @@ sub run() {
         send_key(2 + get_var("NUMDISKS"));
     }
 
-    assert_screen "inst-bootmenu", 15;
-    if (get_var('ZDUP')) {
-        send_key 'ret';    # boot from hard disk
+    if (get_var('BOOT_HDD_IMAGE')) {
+        assert_screen 'grub2', 15;    # Use the same bootloader needle as in grub-test
+        send_key 'ret';               # boot from hd
         return;
     }
 
-    if (get_var("BOOT_HDD_IMAGE")) {
-        send_key "ret";    # boot from hd
+    assert_screen 'inst-bootmenu', 15;
+    if (get_var('ZDUP')) {
+        send_key 'ret';               # boot from hard disk
         return;
     }
 
@@ -235,6 +236,10 @@ sub run() {
 
     if (get_var("AUTOUPGRADE")) {
         $args .= " autoupgrade=1";
+    }
+
+    if (get_var("IBFT")) {
+        $args .= " withiscsi=1";
     }
 
     type_string_very_slow $args;

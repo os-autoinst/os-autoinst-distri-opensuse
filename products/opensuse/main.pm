@@ -427,6 +427,9 @@ sub load_reboot_tests() {
         }
         if ((snapper_is_applicable) && get_var("BOOT_TO_SNAPSHOT")) {
             loadtest "installation/boot_into_snapshot.pm";
+            if (get_var("UPGRADE")) {
+                loadtest "installation/snapper_rollback.pm";
+            }
         }
         loadtest "installation/first_boot.pm";
     }
@@ -518,6 +521,10 @@ sub load_consoletests() {
         }
         loadtest "console/mtab.pm";
         if (!get_var("NOINSTALL") && !get_var("LIVETEST") && (check_var("DESKTOP", "textmode"))) {
+            if (check_var('BACKEND', 'qemu')) {
+                # The NFS test expects the IP to be 10.0.2.15
+                loadtest "console/yast2_nfs_server.pm";
+            }
             loadtest "console/http_srv.pm";
             loadtest "console/mysql_srv.pm";
             if (check_var('ARCH', 'x86_64')) {
