@@ -637,10 +637,6 @@ sub load_x11tests() {
     }
     if (!(is_staging || system_is_livesystem)) {
         loadtest "x11/chromium.pm";
-        if (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64')) {
-            # GOOGLE Chrome only exists for i586 and x86_64 arch
-            loadtest "x11/chrome.pm";
-        }
     }
     if (bigx11step_is_applicable) {
         loadtest "x11/imagemagick.pm";
@@ -732,7 +728,17 @@ sub load_x11tests() {
         loadtest "x11/xchat.pm";
         loadtest "x11/hexchat.pm";
         loadtest "x11/vlc.pm";
+        # chrome pulls in lsb which creates /media (bug#915562),
+        # which in turn breaks the thunar test as then suddenly the
+        # content of / looks different depending on whether the
+        # chrome test succeeded or not. So let's put that kind of
+        # tests at the end.
+        if (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64')) {
+            # GOOGLE Chrome only exists for i586 and x86_64 arch
+            loadtest "x11/chrome.pm";
+        }
     }
+
     loadtest "x11/shutdown.pm";
 }
 
