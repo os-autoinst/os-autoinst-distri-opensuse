@@ -15,12 +15,18 @@ use testapi;
 sub run() {
     my $self = shift;
 
-    assert_screen 'inst-addon';
+    assert_screen [qw/inst-addon addon-products/];
     if (get_var("ADDONS")) {
-        send_key 'alt-k', 3;    # install with addons
+        if (match_has_tag('inst-addon')) {
+            send_key 'alt-k';    # install with addons
+        }
+        else {
+            send_key 'alt-a';
+        }
         foreach my $addon (split(/,/, get_var('ADDONS'))) {
+            assert_screen 'addon-menu-active';
             send_key 'alt-d', 3;    # DVD
-            send_key 'alt-n', 3;
+            send_key 'alt-n';
             assert_screen 'dvd-selector';
             send_key_until_needlematch 'addon-dvd-list',   'tab',  10;    # jump into addon list
             send_key_until_needlematch "addon-dvd-$addon", 'down', 10;    # select addon in list
@@ -50,16 +56,22 @@ sub run() {
             send_key "pgup",                                    1;
             send_key_until_needlematch "addon-products-$addon", 'down';
             if ((split(/,/, get_var('ADDONS')))[-1] ne $addon) {          # if $addon is not first from all ADDONS
-                send_key 'alt-a', 2;                                      # add another add-on
+                send_key 'alt-a';                                         # add another add-on
             }
             else {
-                send_key 'alt-n', 2;                                      # next
+                send_key 'alt-n';                                         # next
             }
         }
     }
     elsif (get_var("ADDONURL")) {
-        send_key 'alt-k';                                                 # install with addons
+        if (match_has_tag('inst-addon')) {
+            send_key 'alt-k';                                             # install with addons
+        }
+        else {
+            send_key 'alt-a';
+        }
         foreach my $addon (split(/,/, get_var('ADDONURL'))) {
+            assert_screen 'addon-menu-active';
             my $uc_addon = uc $addon;                                     # varibale name is upper case
             send_key 'alt-u';                                             # specify url
             send_key 'alt-n';
@@ -67,7 +79,7 @@ sub run() {
             type_string get_var("ADDONURL_$uc_addon");                    # repo URL
             send_key 'alt-e';                                             # repo name
             type_string "$addon" . "_repo";
-            send_key 'alt-n', 2;
+            send_key 'alt-n';
             assert_screen 'addon-products';
             send_key "tab", 1;                                            # select addon-products-$addon
             if (check_var('VIDEOMODE', 'text')) {                         # textmode need more tabs, depends on add-on count
@@ -76,10 +88,10 @@ sub run() {
             send_key "pgup",                                    1;
             send_key_until_needlematch "addon-products-$addon", 'down';
             if ((split(/,/, get_var('ADDONURL')))[-1] ne $addon) {        # if $addon is not first from all ADDONS
-                send_key 'alt-a', 2;                                      # add another add-on
+                send_key 'alt-a';                                         # add another add-on
             }
             else {
-                send_key 'alt-n', 2;                                      # next
+                send_key 'alt-n';                                         # next
             }
         }
     }
