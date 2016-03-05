@@ -8,6 +8,14 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+
+## TEST BEHAVIOUR-DESCRIPTION:
+# testing the undochange snapper function.
+# we create a snapshot, without a testfile.
+# we create a file with some text,  then undochange function with snapper-undochange.
+# and assert that file exist or not, in both situation
+
+
 use base "consoletest";
 use strict;
 use testapi;
@@ -15,22 +23,24 @@ use testapi;
 sub run() {
     select_console 'root-console';
 
-    my $snapfile = '/root/snapfile';
+    # snapper undochange [options] number1..number2 [files] return -> numb snapshot created
 
-    my $snapbf = script_output "snapper create -p -d 'before undochange test'";
-    script_run "date > $snapfile";
-    my $snapaf = script_output "snapper create -p -d 'after undochange test'";
+    # create the 2 snapshots, inbetweeen create the file. then go back when file doesn't exist
+    type_string('before_snap=$(snapper create -p -d \'before undochange test\');');
+    type_string('snapfile="/root/test_snapfile";date > $snapfile; after_snap=$(($before_snap + 1));');
+    assert_script_run('test -f $snapfile');
+    type_string('snapper create -p -d \'after undochange test\';');
+    type_string('snapper undochange $before_snap..$after_snap $snapfile;');
+    type_string('snapper list; ls /root;');
 
-    # Delete snapfile
-    script_run "snapper undochange $snapbf..$snapaf $snapfile";
-    script_run("test -f $snapfile || echo \"snap-ba-ok\" > /dev/$serialdev", 0);
-    wait_serial("snap-ba-ok", 10) || die "Snapper undochange $snapbf..$snapaf failed";
+    # file shouldn't exist, after undochange. test it.
+    assert_script_run('test ! -f $snapfile');
 
-    # Restore snapfile
-    script_run "snapper undochange $snapaf..$snapbf $snapfile";
-    assert_script_run "test -f $snapfile", 10;
+    # go back when file exist and test it.
+    type_string('snapper undochange $after_snap..$before_snap $snapfile;');
+    assert_script_run('test -f $snapfile');
 
-    assert_screen 'snapper_undochange', 3;
+    assert_screen('snapper_undochange');
 }
 
 sub test_flags() {
