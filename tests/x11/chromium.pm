@@ -10,6 +10,7 @@
 
 use base "x11test";
 use testapi;
+use utils;
 
 sub run() {
     my $self = shift;
@@ -37,7 +38,7 @@ sub run() {
 
     # check kwallet and cancel it
     # 1 => enable, 0 => cancel
-    $self->check_kwallet(0);
+    handle_kwallet(0);
 }
 
 1;
