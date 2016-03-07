@@ -10,6 +10,7 @@
 
 use base "x11test";
 use testapi;
+use utils;
 
 sub run() {
     my $self = shift;
@@ -51,6 +52,10 @@ sub run() {
     assert_screen 'google-chrome-about', 15;
 
     send_key "alt-f4";
+
+    # check kwallet and cancel it
+    # 1 => enable, 0 => cancel
+    handle_kwallet(0);
 }
 
 1;

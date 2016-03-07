@@ -7,7 +7,17 @@ use strict;
 
 use testapi;
 
-our @EXPORT = qw/unlock_if_encrypted wait_boot clear_console select_kernel check_console_font is_jeos type_string_slow type_string_very_slow/;
+our @EXPORT = qw/
+  check_console_font
+  clear_console
+  handle_kwallet
+  is_jeos
+  select_kernel
+  type_string_slow
+  type_string_very_slow
+  unlock_if_encrypted
+  wait_boot
+  /;
 
 
 # USB kbd in raw mode is rather slow and QEMU only buffers 16 bytes, so
@@ -171,6 +181,37 @@ sub type_string_very_slow {
     # when the worker host is utilized so better wait until the string is
     # displayed before continuing
     wait_still_screen 1;
+}
+
+sub handle_kwallet {
+    my ($enable) = @_;
+    # enable = 1 as enable kwallet, archive kwallet enabling process
+    # enable = 0 as disable kwallet, just close the popup dialog
+    $enable //= 0;    # default is disable kwallet
+
+    return unless (check_var('DESKTOP', 'kde'));
+
+    if (check_screen("kwallet-wizard", 5)) {
+        if ($enable) {
+            send_key "alt-n";
+            sleep 2;
+            send_key "spc";
+            sleep 2;
+            send_key "down";    # use traditional way
+            type_password;
+            send_key "tab";
+            sleep 1;
+            type_password;
+            send_key "alt-f";
+
+            assert_screen "kwallet-opening", 5;
+            type_password;
+            send_key "ret", 1;
+        }
+        else {
+            send_key "alt-f4", 1;
+        }
+    }
 }
 
 1;
