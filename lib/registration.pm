@@ -68,6 +68,9 @@ sub fill_in_registration_data {
     }
 
     if (check_var('SCC_REGISTER', 'installation')) {
+        if (check_screen("local-registration-servers", 10)) {
+            send_key $cmd{ok};
+        }
         if (get_var('SCC_ADDONS')) {
             for $addon (split(/,/, get_var('SCC_ADDONS', ''))) {
                 if (check_var('DESKTOP', 'textmode')) {

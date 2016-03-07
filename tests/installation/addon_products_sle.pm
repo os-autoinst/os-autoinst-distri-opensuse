@@ -98,10 +98,6 @@ sub run() {
     else {
         send_key 'alt-n', 3;                                              # done
     }
-
-    if (check_screen("local-registration-servers", 10)) {
-        send_key $cmd{ok};
-    }
 }
 
 1;
