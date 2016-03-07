@@ -15,7 +15,7 @@ use testapi;
 sub run() {
     wait_still_screen();
     send_key $cmd{"next"};
-    assert_screen "after-paritioning";
+    assert_screen "after-partitioning";
 }
 
 1;
