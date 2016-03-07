@@ -736,14 +736,93 @@ sub load_x11tests() {
     loadtest "x11/shutdown.pm";
 }
 
-sub load_applicationstests {
-    if (my $val = get_var("APPTESTS")) {
-        for my $test (split(/,/, $val)) {
-            loadtest "$test.pm";
-        }
-        return 1;
+sub install_online_updates {
+    return 0 unless get_var('INSTALL_ONLINE_UPDATES');
+
+    my @tests = qw(
+      console/ttylogin4
+      console/zypper_disable_deltarpm
+      console/zypper_add_repos
+      console/zypper_up
+      console/console_reboot
+      console/console_shutdown
+    );
+
+    for my $test (@tests) {
+        loadtest "$test.pm";
     }
-    return 0;
+
+    return 1;
+}
+
+sub load_applicationstests {
+    return 0 unless get_var("APPTESTS");
+
+    my @tests;
+
+    my %testsuites = (
+        chromium           => ['x11/chromium'],
+        evolution          => ['x11/evolution'],
+        gimp               => ['x11/gimp'],
+        hexchat            => ['x11/hexchat'],
+        libzypp            => ['console/zypper_in', 'console/yast2_i'],
+        MozillaFirefox     => [qw'x11/firefox x11/firefox_audio'],
+        MozillaThunderbird => ['x11/thunderbird'],
+        vlc                => ['x11/vlc'],
+        xchat              => ['x11/xchat'],
+        xterm              => ['x11/xterm'],
+    );
+
+    # adjust $pos below if you modify the position of
+    # consoletest_finish!
+    if (get_var('BOOT_HDD_IMAGE')) {
+        @tests = (
+            'console/consoletest_setup',
+            'console/check_console_font',
+            'console/import_gpg_keys',
+            'console/zypper_up',
+            'console/install_packages',
+            'console/zypper_add_repos',
+            'console/qam_zypper_patch',
+            'console/qam_verify_package_install',
+            'console/console_reboot',
+            # position -2
+            'console/consoletest_finish',
+            # position -1
+            'x11/shutdown'
+        );
+    }
+    else {
+        @tests = (
+            'console/consoletest_setup',
+            'console/zypper_up',
+            'console/qam_verify_package_install',
+            # position -2
+            'console/consoletest_finish',
+            # position -1
+            'x11/shutdown'
+        );
+    }
+
+    if (my $val = get_var("INSTALL_PACKAGES", '')) {
+        for my $pkg (split(/ /, $val)) {
+            next unless exists $testsuites{$pkg};
+            # yeah, pretty crappy method. insert
+            # consoletests before consoletest_finish and x11
+            # tests before shutdown
+            for my $t (@{$testsuites{$pkg}}) {
+                my $pos = -1;
+                $pos = -2 if ($t =~ /^console\//);
+                splice @tests, $pos, 0, $t;
+            }
+        }
+    }
+
+    for my $test (@tests) {
+        loadtest "$test.pm";
+    }
+
+    return 1;
 }
 
 sub load_skenkins_tests {
@@ -891,7 +970,10 @@ else {
         load_reboot_tests();
     }
 
-    unless (load_applicationstests() || load_skenkins_tests()) {
+    unless (install_online_updates()
+        || load_applicationstests()
+        || load_skenkins_tests())
+    {
         load_rescuecd_tests();
         load_consoletests();
         load_x11tests();
