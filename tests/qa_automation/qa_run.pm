@@ -64,10 +64,17 @@ sub prepare_repos {
         assert_script_run("zypper --no-gpg-check -n ar -f '$qa_server_repo' server-repo");
     }
     my $qa_head_repo = get_var('QA_HEAD_REPO', '');
+    my $qa_web_repo  = get_var('QA_WEB_REPO',  '');
     unless ($qa_head_repo) {
         die "No QA_HEAD_REPO specified!";
     }
     assert_script_run "zypper --no-gpg-check -n ar -f '$qa_head_repo' qa-ibs";
+    if ($qa_web_repo) {
+        assert_script_run "zypper --no-gpg-check -n ar -f '$qa_web_repo' qa-web";
+    }
+    else {
+        assert_script_run("echo 'info: No QA_WEB_REPO configured in this testsuit.'");
+    }
     assert_script_run "zypper --gpg-auto-import-keys ref";
     assert_script_run("zypper -n in qa_testset_automation qa_tools", 300);
 }
@@ -78,7 +85,7 @@ sub start_testrun {
     $self->create_qaset_config();
     assert_script_run "/usr/share/qa/qaset/qaset reset";
     my $testsuite = $self->test_suite();
-    assert_script_run "/usr/share/qa/qaset/run/$testsuite-run";
+    assert_script_run "/usr/share/qa/qaset/run/$testsuite-run.openqa";
 }
 
 # Check whether DONE file exists every $interval secs in the background
