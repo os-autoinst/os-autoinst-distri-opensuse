@@ -590,6 +590,9 @@ sub load_extra_test () {
     loadtest "console/consoletest_finish.pm";
 
     # start extra x11 tests from here
+    if (!get_var("NOAUTOLOGIN")) {
+        loadtest "x11/multi_users_dm.pm";
+    }
 
 }
 

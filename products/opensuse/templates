@@ -3220,6 +3220,22 @@
                       ],
                     },
                     {
+                      name => "install-xfce-image",
+                      settings => [
+                        { key => "DESKTOP", value => "xfce" },
+                        { key => "INSTALLONLY", value => 1 },
+                        { key => "STORE_HDD_1", value => "xfce_image.qcow2" },
+                      ],
+                    },
+                    {
+                      name => "install-lxde-image",
+                      settings => [
+                        { key => "DESKTOP", value => "lxde" },
+                        { key => "INSTALLONLY", value => 1 },
+                        { key => "STORE_HDD_1", value => "lxde_image.qcow2" },
+                      ],
+                    },
+                    {
                       name => "sysauth",
                       settings => [
                         { key => "DESKTOP", value => "kde" },
@@ -3256,6 +3272,36 @@
                         { key => "DESKTOP", value => "gnome" },
                         { key => "HDD_1", value => "gnome_image.qcow2" },
                         { key => "START_AFTER_TEST", value => "install-gnome-image" },
+                        { key => "EXTRATEST", value => 1 },
+                      ],
+                    },
+                    {
+                      name => "extra_tests_on_kde",
+                      settings => [
+                        { key => "BOOT_HDD_IMAGE", value => 1 },
+                        { key => "DESKTOP", value => "kde" },
+                        { key => "HDD_1", value => "kde_image.qcow2" },
+                        { key => "START_AFTER_TEST", value => "install-kde-image" },
+                        { key => "EXTRATEST", value => 1 },
+                      ],
+                    },
+                    {
+                      name => "extra_tests_on_xfce",
+                      settings => [
+                        { key => "BOOT_HDD_IMAGE", value => 1 },
+                        { key => "DESKTOP", value => "xfce" },
+                        { key => "HDD_1", value => "xfce_image.qcow2" },
+                        { key => "START_AFTER_TEST", value => "install-xfce-image" },
+                        { key => "EXTRATEST", value => 1 },
+                      ],
+                    },
+                    {
+                      name => "extra_tests_on_lxde",
+                      settings => [
+                        { key => "BOOT_HDD_IMAGE", value => 1 },
+                        { key => "DESKTOP", value => "lxde" },
+                        { key => "HDD_1", value => "lxde_image.qcow2" },
+                        { key => "START_AFTER_TEST", value => "install-lxde-image" },
                         { key => "EXTRATEST", value => 1 },
                       ],
                     },

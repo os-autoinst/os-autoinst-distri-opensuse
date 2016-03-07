@@ -1,0 +1,9 @@
+#!/bin/bash
+
+n_users="$1"
+encrypted_password="$2"
+
+for i in `seq 1 $n_users` ; do
+	num=`printf "%02d" $i`
+	useradd -m -c "User #${num}" -p "$encrypted_password" "user${i}"
+done
