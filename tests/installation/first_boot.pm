@@ -16,7 +16,9 @@ sub run() {
     my $self = shift;
 
     if (check_var('DESKTOP', 'textmode') || get_var('BOOT_TO_SNAPSHOT')) {
-        assert_screen 'linux-login', 200;
+        if (!check_var('ARCH', 's390x')) {
+            assert_screen 'linux-login', 200;
+        }
         return;
     }
 
