@@ -27,8 +27,17 @@ sub run() {
     my $repo = "ftp://openqa.suse.de/" . get_var('REPO_0');
     $cmdline .= "install=$repo ";
 
-    $cmdline .= "vnc=1 VNCPassword=$testapi::password ";     # trigger VNC installation
-    $cmdline .= "sshpassword=$testapi::password sshd=1 ";    # we need ssh access to gather logs
+    if (check_var("VIDEOMODE", "text")) {
+        $cmdline .= "ssh=1 ";    # trigger ssh-text installation
+    }
+    else {
+        $cmdline .= "sshd=1 vnc=1 VNCPassword=$testapi::password ";    # trigger default VNC installation
+    }
+
+    # we need ssh access to gather logs
+    # 'ssh=1' and 'sshd=1' are equal, both together don't work
+    # so let's just set the password here
+    $cmdline .= "sshpassword=$testapi::password ";    
 
     $svirt->change_domain_element(os => initrd  => "/var/lib/libvirt/images/$name.initrd");
     $svirt->change_domain_element(os => kernel  => "/var/lib/libvirt/images/$name.kernel");
@@ -58,11 +67,15 @@ sub run() {
 
     $svirt->define_and_start;
 
-    # now wait
-    wait_serial(' Starting YaST2 ', 300) || die "yast didn't start";
-
-    select_console('installation');
-
+    if (check_var("VIDEOMODE", "text")) {
+        wait_serial("run 'yast.ssh'", 300) || die "linuxrc didn't finish";
+        select_console("installation");
+        type_string("yast.ssh\n");
+    }
+    else {
+        wait_serial(' Starting YaST2 ', 300) || die "yast didn't start";
+        select_console('installation');
+    }
 }
 
 1;
