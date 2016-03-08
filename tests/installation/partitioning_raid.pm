@@ -19,8 +19,10 @@ sub addpart($) {
     my ($size) = @_;
     assert_screen "expert-partitioner";
     send_key $cmd{addpart};
-    assert_screen "partitioning-type";
-    send_key $cmd{"next"};
+    if (!get_var('UEFI')) {    # partitioning type does not appear when GPT disk used, GPT is default for UEFI
+        assert_screen "partitioning-type";
+        send_key $cmd{"next"};
+    }
 
     assert_screen "partition-size";
 
@@ -143,14 +145,17 @@ sub run() {
     send_key "down";    # select disks
     if (get_var("OFW")) {    ## no RAID /boot partition for ppc
         send_key 'alt-p';
-        assert_screen 'partitioning-type';
-        send_key 'alt-n';
+        if (!get_var('UEFI')) {    # partitioning type does not appear when GPT disk used, GPT is default for UEFI
+                                   # No UEFI for Power 'yet', but might happen some day
+            assert_screen 'partitioning-type';
+            send_key 'alt-n';
+        }
         assert_screen 'partitioning-size';
         send_key 'ctrl-a';
         type_string "200 MB";
         send_key 'alt-n';
         assert_screen 'partition-role';
-        send_key "alt-a";    # Raw Volume
+        send_key "alt-a";          # Raw Volume
         send_key 'alt-n';
         assert_screen 'partition-format';
         send_key 'alt-d';
@@ -161,19 +166,19 @@ sub run() {
         assert_screen 'custompart';
         send_key 'alt-s';
         send_key 'right';
-        send_key 'down';     #should select first disk'
+        send_key 'down';           #should select first disk'
         wait_idle 5;
     }
     else {
-        send_key "right";    # unfold disks
-        send_key "down";     # select first disk
+        send_key "right";          # unfold disks
+        send_key "down";           # select first disk
         wait_idle 5;
     }
 
     for (1 .. 4) {
-        addpart(300);        # boot
-        addpart(8000);       # root
-        addpart(100);        # swap
+        addpart(300);              # boot
+        addpart(8000);             # root
+        addpart(100);              # swap
         assert_screen 'raid-partition';
 
         # select next disk
