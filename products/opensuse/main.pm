@@ -564,36 +564,65 @@ sub load_yast2ui_tests() {
     loadtest "yast2_ui/yast2_users.pm";
 }
 
-sub load_extra_test () {
-    # Put tests that filled the conditions below
-    # 1) you don't want to run in stagings below here
-    # 2) the application is not rely on desktop environment
-    # 3) running based on preinstalled image
-    return unless get_var("EXTRATEST");
+sub load_extra_tests () {
+    if (get_var("EXTRATEST")) {
+        # Put tests that filled the conditions below
+        # 1) you don't want to run in stagings below here
+        # 2) the application is not rely on desktop environment
+        # 3) running based on preinstalled image
 
-    load_boot_tests();
-    loadtest "installation/finish_desktop.pm";
-    # setup $serialdev permission and so on
-    loadtest "console/consoletest_setup.pm";
-    loadtest "console/zypper_lr.pm";
-    loadtest "console/zypper_ref.pm";
+        # setup $serialdev permission and so on
+        loadtest "console/consoletest_setup.pm";
+        loadtest "console/zypper_lr.pm";
+        loadtest "console/zypper_ref.pm";
 
-    # start extra console tests from here
-    if (!get_var("OFW") && !is_jeos) {
-        loadtest "console/aplay.pm";
+        # start extra console tests from here
+        if (!get_var("OFW") && !is_jeos) {
+            loadtest "console/aplay.pm";
+        }
+        loadtest "console/a2ps.pm";    # a2ps is not a ring package and thus not available in staging
+
+        loadtest "console/command_not_found.pm";
+
+        # finished console test and back to desktop
+        loadtest "console/consoletest_finish.pm";
+
+        # start extra x11 tests from here
+        if (!get_var("NOAUTOLOGIN")) {
+            loadtest "x11/multi_users_dm.pm";
+        }
+
+        return 1;
     }
-    loadtest "console/a2ps.pm";    # a2ps is not a ring package and thus not available in staging
+    elsif (get_var("SYSAUTHTEST")) {
+        # sysauth test scenarios run in the console
+        loadtest "console/consoletest_setup.pm";
+        loadtest "console/zypper_ar.pm";
+        loadtest "sysauth/sssd.pm";
 
-    loadtest "console/command_not_found.pm";
+        return 1;
+    }
+    elsif (get_var("Y2UITEST")) {
+        # setup $serialdev permission and so on
+        loadtest "console/consoletest_setup.pm";
+        # start extra yast console test from here
+        loadtest "console/zypper_lr.pm";
+        loadtest "console/zypper_ref.pm";
+        # yast-lan related tests do not work when using networkmanager.
+        # (Livesystem and laptops do use networkmanager)
+        if (!get_var("LIVETEST") && !get_var("LAPTOP")) {
+            loadtest "console/yast2_cmdline.pm";
+            loadtest "console/yast2_dns_server.pm";
+            loadtest "console/yast2_nfs_client.pm";
+        }
+        # back to desktop
+        loadtest "console/consoletest_finish.pm";
+        load_yast2ui_tests();
 
-    # finished console test and back to desktop
-    loadtest "console/consoletest_finish.pm";
-
-    # start extra x11 tests from here
-    if (!get_var("NOAUTOLOGIN")) {
-        loadtest "x11/multi_users_dm.pm";
+        return 1;
     }
 
+    return 0;
 }
 
 sub load_x11tests() {
@@ -895,14 +924,6 @@ elsif (get_var("RESCUESYSTEM")) {
 elsif (get_var("LINUXRC")) {
     loadtest "linuxrc/system_boot.pm";
 }
-elsif (get_var("SYSAUTHTEST")) {
-    load_boot_tests();
-    loadtest "installation/finish_desktop.pm";
-    # sysauth test scenarios run in the console
-    loadtest "console/consoletest_setup.pm";
-    loadtest "console/zypper_ar.pm";
-    loadtest "sysauth/sssd.pm";
-}
 elsif (get_var("SUPPORT_SERVER")) {
     loadtest "support_server/boot.pm";
     loadtest "support_server/login.pm";
@@ -910,30 +931,6 @@ elsif (get_var("SUPPORT_SERVER")) {
     unless (load_skenkins_tests()) {    # either run the slenkins control node or just wait for connections
         loadtest "support_server/wait.pm";
     }
-}
-elsif (get_var("EXTRATEST")) {
-    load_boot_tests();
-    loadtest "installation/finish_desktop.pm";
-    load_extra_test();
-}
-elsif (get_var("Y2UITEST")) {
-    load_boot_tests();
-    loadtest "installation/finish_desktop.pm";
-    # setup $serialdev permission and so on
-    loadtest "console/consoletest_setup.pm";
-    # start extra yast console test from here
-    loadtest "console/zypper_lr.pm";
-    loadtest "console/zypper_ref.pm";
-    # yast-lan related tests do not work when using networkmanager.
-    # (Livesystem and laptops do use networkmanager)
-    if (!get_var("LIVETEST") && !get_var("LAPTOP")) {
-        loadtest "console/yast2_cmdline.pm";
-        loadtest "console/yast2_dns_server.pm";
-        loadtest "console/yast2_nfs_client.pm";
-    }
-    # back to desktop
-    loadtest "console/consoletest_finish.pm";
-    load_yast2ui_tests();
 }
 else {
     if (get_var("LIVETEST")) {
@@ -981,6 +978,7 @@ else {
 
     unless (install_online_updates()
         || load_applicationstests()
+        || load_extra_tests()
         || load_skenkins_tests())
     {
         load_rescuecd_tests();
