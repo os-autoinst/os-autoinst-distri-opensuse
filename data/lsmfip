@@ -125,7 +125,7 @@ if (!$options{verify}) {
             for my $s ($sel->solvables()) {
                 print STDERR "-> $s->{name}-$s->{evr}.$s->{arch}\n" if $options{verbose};
             }
-            push @jobs, $sel->jobs($solv::Job::SOLVER_INSTALL);
+            push @jobs, $sel->jobs($solv::Job::SOLVER_INSTALL|$solv::Job::SOLVER_UPDATE);
         }
 
         my @problems = $solver->solve(\@jobs);
