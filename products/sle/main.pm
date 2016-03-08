@@ -407,10 +407,9 @@ sub load_inst_tests() {
         }
         loadtest "installation/addon_products_sle.pm";
     }
-    if (noupdatestep_is_applicable && get_var("LIVECD")) {
-        loadtest "installation/livecd_installer_timezone.pm";
-    }
     if (noupdatestep_is_applicable) {
+        loadtest "installation/system_role.pm";
+        loadtest "installation/livecd_installer_timezone.pm";
         loadtest "installation/partitioning.pm";
         if (defined(get_var("RAIDLEVEL"))) {
             loadtest "installation/partitioning_raid.pm";
