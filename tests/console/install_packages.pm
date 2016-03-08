@@ -18,7 +18,7 @@ sub run() {
 
     assert_script_run("zypper -n in -l perl-solv");
     assert_script_run("~$username/data/lsmfip --verbose $packages > \$XDG_RUNTIME_DIR/install_packages.txt");
-    assert_script_run("xargs zypper -n in -l < \$XDG_RUNTIME_DIR/install_packages.txt");
+    assert_script_run("xargs --no-run-if-empty zypper -n in -l < \$XDG_RUNTIME_DIR/install_packages.txt");
     assert_script_run("rpm -q $packages | tee /dev/$serialdev");
 }
 
