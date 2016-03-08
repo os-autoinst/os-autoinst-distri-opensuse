@@ -17,23 +17,38 @@ sub run() {
     my $self = shift;
 
     send_key "alt-d";
-    sleep 2;
 
-    send_key "alt-l", 1;    # enable LVM-based proposal
-    if (get_var("ENCRYPT")) {
-        send_key "alt-y", 1;
-        assert_screen "inst-encrypt-password-prompt";
-        type_password;
-        send_key "tab";
-        type_password;
-        send_key "ret", 1;
-        assert_screen "partition-cryptlvm-summary";
+    if (check_screen('inst-partition-radio-buttons', 10)) {    # detect whether new (Radio Buttons) YaST behaviour
+        if (get_var("ENCRYPT")) {
+            send_key 'alt-e';
+            assert_screen 'inst-encrypt-password-prompt';
+            type_password;
+            send_key 'tab';
+            type_password;
+            send_key 'ret';
+        }
+        else {
+            send_key 'alt-l';
+        }
+        send_key 'alt-o';
+        assert_screen 'partition-lvm-new-summary';
     }
-    else {
-        assert_screen "partition-lvm-summary";
+    else {    # old behaviour still needed
+        send_key "alt-l", 1;    # enable LVM-based proposal
+        if (get_var("ENCRYPT")) {
+            send_key "alt-y";
+            assert_screen "inst-encrypt-password-prompt";
+            type_password;
+            send_key "tab";
+            type_password;
+            send_key "ret";
+            assert_screen "partition-cryptlvm-summary";
+        }
+        else {
+            assert_screen "partition-lvm-summary";
+        }
+        send_key "alt-o";
     }
-    wait_idle 5;
-    send_key "alt-o";
 }
 
 1;
