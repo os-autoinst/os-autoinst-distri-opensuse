@@ -409,7 +409,6 @@ sub load_inst_tests() {
     }
     if (noupdatestep_is_applicable) {
         loadtest "installation/system_role.pm";
-        loadtest "installation/livecd_installer_timezone.pm";
         loadtest "installation/partitioning.pm";
         if (defined(get_var("RAIDLEVEL"))) {
             loadtest "installation/partitioning_raid.pm";
