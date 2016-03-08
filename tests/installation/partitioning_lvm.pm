@@ -21,7 +21,7 @@ sub run() {
 
     send_key "alt-l", 1;    # enable LVM-based proposal
     if (get_var("ENCRYPT")) {
-        send_key "alt-y", 1;
+        send_key "alt-e", 1;
         assert_screen "inst-encrypt-password-prompt";
         type_password;
         send_key "tab";
