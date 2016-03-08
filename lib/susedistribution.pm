@@ -212,14 +212,26 @@ sub init_consoles {
             ($hostname) = $s390_params =~ /Hostname=(\S+)/;
         }
 
-        $self->add_console(
-            'installation',
-            'vnc-base',
-            {
-                hostname => $hostname,
-                port     => 5901,
-                password => $testapi::password
-            });
+        if (check_var("VIDEOMODE", "text")) {    # adds console for text-based installation on s390x
+            $self->add_console(
+                'installation',
+                'ssh-xterm',
+                {
+                    hostname => $hostname,
+                    password => $testapi::password,
+                    user     => 'root'
+                });
+        }
+        else {
+            $self->add_console(
+                'installation',
+                'vnc-base',
+                {
+                    hostname => $hostname,
+                    port     => 5901,
+                    password => $testapi::password
+                });
+        }
         $self->add_console(
             'x11',
             'vnc-base',
