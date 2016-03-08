@@ -16,23 +16,26 @@ use testapi;
 sub run() {
     my $self = shift;
 
-    send_key "alt-d";
+    send_key "alt-d";    # edit proposal settings
     sleep 2;
-
-    send_key "alt-l", 1;    # enable LVM-based proposal
     if (get_var("ENCRYPT")) {
-        send_key "alt-e", 1;
-        assert_screen "inst-encrypt-password-prompt";
-        type_password;
-        send_key "tab";
-        type_password;
-        send_key "ret", 1;
+        send_key "alt-e";    # enable encrypted LVN-based proposal
+    }
+    else {
+        send_key "alt-l";    # enable LVM-based proposal
+    }
+    assert_screen "inst-encrypt-password-prompt";
+    type_password;
+    send_key "tab";
+    type_password;
+    send_key "ret";
+    if (get_var("ENCRYPT")) {
         assert_screen "partition-cryptlvm-summary";
     }
     else {
         assert_screen "partition-lvm-summary";
     }
-    wait_idle 5;
+    wait_still_screen(3, 7);
     send_key "alt-o";
 }
 
