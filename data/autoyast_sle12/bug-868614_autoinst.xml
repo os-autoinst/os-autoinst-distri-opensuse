@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+
+  <add-on>
+    <add_on_products config:type="list">
+      <listentry>
+        <media_url>http://download.suse.de/ibs/SUSE:/SLE-12-SP2:/Update/standard</media_url>
+        <product>SuSE-Linux-Updates</product>
+        <product_dir>/</product_dir>
+        <name>Updates</name> 
+      </listentry>
+    </add_on_products>
+  </add-on>
+
+  <partitioning config:type="list">
+    <drive>
+      <device>/dev/sda</device>
+      <initialize config:type="boolean">false</initialize>
+      <use>all</use>
+    </drive>
+  </partitioning>
+  <bootloader>
+    <device_map config:type="list">
+      <device_map_entry>
+        <firmware>hd0</firmware>
+        <linux>/dev/sda</linux>
+      </device_map_entry>
+    </device_map>
+    <global>
+      <activate>true</activate>
+      <append>resume=/dev/sda1 splash=silent quiet showopts</append>
+      <append_failsafe>showopts apm=off noresume edd=off powersaved=off nohz=off highres=off processor.max_cstate=1 nomodeset x11failsafe</append_failsafe>
+      <boot_boot>false</boot_boot>
+      <boot_extended>false</boot_extended>
+      <boot_mbr>false</boot_mbr>
+      <boot_root>true</boot_root>
+      <default>0</default>
+      <distributor>SUSE Linux Enterprise Server 12</distributor>
+      <generic_mbr>true</generic_mbr>
+      <gfxmode>auto</gfxmode>
+      <os_prober>true</os_prober>
+      <terminal>gfxterm</terminal>
+      <timeout config:type="integer">8</timeout>
+      <vgamode/>
+    </global>
+    <loader_type>grub2</loader_type>
+    <sections config:type="list"/>
+  </bootloader>
+  <deploy_image>
+    <image_installation config:type="boolean">false</image_installation>
+  </deploy_image>
+  <keyboard>
+    <keyboard_values>
+      <delay/>
+      <discaps config:type="boolean">false</discaps>
+      <numlock>bios</numlock>
+      <rate/>
+    </keyboard_values>
+    <keymap>english-us</keymap>
+  </keyboard>
+  <networking>
+    <dns>
+      <dhcp_hostname config:type="boolean">false</dhcp_hostname>
+      <resolv_conf_policy/>
+      <write_hostname config:type="boolean">false</write_hostname>
+    </dns>
+    <interfaces config:type="list">
+      <interface>
+        <bootproto>dhcp4</bootproto>
+        <device>eth0</device>
+        <name>eth0</name>
+        <startmode>auto</startmode>
+      </interface>
+      <interface>
+        <bootproto>static</bootproto>
+        <broadcast>127.255.255.255</broadcast>
+        <device>lo</device>
+        <firewall>no</firewall>
+        <ipaddr>127.0.0.1</ipaddr>
+        <netmask>255.0.0.0</netmask>
+        <network>127.0.0.0</network>
+        <prefixlen>8</prefixlen>
+        <startmode>nfsroot</startmode>
+        <usercontrol>no</usercontrol>
+      </interface>
+    </interfaces>
+    <ipv6 config:type="boolean">true</ipv6>
+    <keep_install_network config:type="boolean">false</keep_install_network>
+    <managed config:type="boolean">false</managed>
+    <routing>
+      <ipv4_forward config:type="boolean">false</ipv4_forward>
+      <ipv6_forward config:type="boolean">false</ipv6_forward>
+    </routing>
+  </networking>
+  <services-manager>
+    <default_target>graphical</default_target>
+    <services config:type="list"/>
+  </services-manager>
+  <timezone>
+    <hwclock>UTC</hwclock>
+    <timezone>Asia/Shanghai</timezone>
+  </timezone>
+  <users config:type="list">
+                <user>
+                   <fullname>Bernhard M. Wiedemann</fullname>  
+                   <encrypted config:type="boolean">false</encrypted>
+                   <user_password>nots3cr3t</user_password>
+                   <username>bernhard</username>
+                </user>
+                
+    <user>
+      <encrypted config:type="boolean">false</encrypted>
+      <fullname>root</fullname>
+      <gid>0</gid>
+      <uid>0</uid>
+      <user_password>nots3cr3t</user_password>
+      <username>root</username>
+    </user>
+  </users>
+</profile>
