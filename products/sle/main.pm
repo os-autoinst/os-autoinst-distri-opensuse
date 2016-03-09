@@ -90,11 +90,11 @@ sub cleanup_needles() {
 }
 
 sub is_server() {
-    return check_var('FLAVOR', 'Server-DVD') || check_var('FLAVOR', 'Server-MINI');
+    return check_var('FLAVOR', '') =~ /^Server/;
 }
 
 sub is_desktop() {
-    return check_var('FLAVOR', 'Desktop-DVD') || check_var('FLAVOR', 'Desktop-MINI');
+    return check_var('FLAVOR', '') =~ /^Desktop/;
 }
 
 sub is_jeos() {
