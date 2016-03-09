@@ -22,6 +22,9 @@ sub run() {
     my $svirt = select_console('svirt');
     my $name  = $svirt->name;
 
+    # temporary use of hardcoded '+4' to workaround messed up network setup on z/KVM
+    my $vtap = $svirt->instance + 4;
+
     my $cmdline = get_var('VIRSH_CMDLINE') . " ";
 
     my $repo = "ftp://openqa.suse.de/" . get_var('REPO_0');
@@ -54,7 +57,8 @@ sub run() {
     $svirt->add_pty({type => 'sclp', port => '0'});
 
     # direct access to the tap device
-    $svirt->add_interface({type => 'direct', source => {dev => "enccw0.0.0600", mode => 'bridge'}, target => {dev => 'macvtap1'}});
+    # use of $vtap temporarily
+    $svirt->add_interface({type => 'direct', source => {dev => "enccw0.0.0600", mode => 'bridge'}, target => {dev => 'macvtap' . $vtap}});
 
     # use proper virtio
     # $svirt->add_interface({ type => 'network', source => { network => 'default' }, model => { type => 'virtio' } });
