@@ -290,7 +290,9 @@ sub activate_console {
     if ($console =~ m/^(.*)-console/) {
         my $user = $1;
         $user = $testapi::username if $user eq 'user';
-        if (!check_var('BACKEND', 's390x')) {
+
+        # different handling for svirt and s390 backend
+        if (!check_var('BACKEND', 's390x') && !check_var('BACKEND', 'svirt')) {
             my $nr = 4;
             $nr = 2 if ($user eq 'root');
             # we need to wait more than five seconds here to pass the idle timeout in
