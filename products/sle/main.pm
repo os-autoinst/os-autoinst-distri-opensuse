@@ -811,7 +811,7 @@ elsif (get_var("MEMTEST")) {
 }
 elsif (get_var("RESCUESYSTEM")) {
     loadtest "installation/rescuesystem.pm";
-    loadtest "installation/rescuesystem_validate_sle11sp3.pm";
+    loadtest "installation/rescuesystem_validate_sle.pm";
 }
 elsif (get_var("SUPPORT_SERVER")) {
     loadtest "support_server/boot.pm";
