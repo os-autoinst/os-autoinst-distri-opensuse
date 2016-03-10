@@ -50,6 +50,22 @@ sub remove_desktop_needles($) {
     }
 }
 
+sub is_server() {
+    return get_var('FLAVOR', '') =~ /^Server/;
+}
+
+sub is_desktop() {
+    return get_var('FLAVOR', '') =~ /^Desktop/;
+}
+
+sub is_jeos() {
+    return get_var('FLAVOR', '') =~ /^JeOS/;
+}
+
+sub is_staging () {
+    return get_var('STAGING');
+}
+
 sub cleanup_needles() {
     remove_desktop_needles("lxde");
     remove_desktop_needles("kde");
@@ -58,12 +74,6 @@ sub cleanup_needles() {
     remove_desktop_needles("minimalx");
     remove_desktop_needles("textmode");
 
-    if (!get_var("LIVECD")) {
-        unregister_needle_tags("ENV-LIVECD-1");
-    }
-    else {
-        unregister_needle_tags("ENV-LIVECD-0");
-    }
     if (!check_var("VIDEOMODE", "text")) {
         unregister_needle_tags("ENV-VIDEOMODE-text");
     }
@@ -73,11 +83,28 @@ sub cleanup_needles() {
     else {    # english default
         unregister_needle_tags("ENV-INSTLANG-de_DE");
     }
-    if (get_var('VERSION', '') !~ /12-SP1|12-SP1-\w+/) {
+
+    if (get_var('VERSION', '') ne '12') {
+        unregister_needle_tags("ENV-VERSION-12");
+    }
+
+    if (get_var('VERSION', '') ne '12-SP1') {
         unregister_needle_tags("ENV-VERSION-12-SP1");
     }
 
-    if (get_var('FLAVOR', 'bogey') !~ /JeOS/) {
+    if (get_var('VERSION', '') ne '12-SP2') {
+        unregister_needle_tags("ENV-VERSION-12-SP2");
+    }
+
+    if (!is_server) {
+        unregister_needle_tags("ENV-FLAVOR-Server-DVD");
+    }
+
+    if (!is_desktop) {
+        unregister_needle_tags("ENV-FLAVOR-Desktop-DVD");
+    }
+
+    if (!is_jeos) {
         unregister_needle_tags('ENV-FLAVOR-JeOS-for-kvm');
     }
 
@@ -89,21 +116,6 @@ sub cleanup_needles() {
     }
 }
 
-sub is_server() {
-    return check_var('FLAVOR', '') =~ /^Server/;
-}
-
-sub is_desktop() {
-    return check_var('FLAVOR', '') =~ /^Desktop/;
-}
-
-sub is_jeos() {
-    return get_var('FLAVOR', '') =~ /^JeOS/;
-}
-
-sub is_staging () {
-    return get_var('STAGING');
-}
 
 #assert_screen "inst-bootmenu",12; # wait for welcome animation to finish
 
