@@ -779,6 +779,7 @@ sub load_skenkins_tests {
 
 sub load_feature_tests() {
     loadtest "feature/console/zypper_releasever.pm";
+    loadtest "feature/console/suseconnect.pm";
 }
 
 sub prepare_target() {
