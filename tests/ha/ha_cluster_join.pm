@@ -14,14 +14,16 @@ use lockapi;
 
 sub run() {
     my $self = shift;
-    $self->barrier_wait("BEFORE_FENCING");
-    if ($self->is_node1) {
-        reset_consoles;
-    }
-    else {
-        type_string "crm -F node fence " . get_var("HACLUSTERJOIN") . "; echo node_fence=\$? > /dev/$serialdev\n";
-        die "fencing node failed" unless wait_serial "node_fence=0", 60;
-    }
+    $self->barrier_wait("CLUSTER_INITIALIZED");
+    script_run "ping -c1 " . get_var("HACLUSTERJOIN");
+    type_string "ha-cluster-join -yc " . get_var("HACLUSTERJOIN") . "\n";
+    assert_screen "ha-cluster-join-password";
+    type_password;
+    send_key("ret", 1);
+    wait_still_screen;
+    script_run "crm_mon -1";
+    save_screenshot;
+    $self->barrier_wait("NODE2_JOINED");
 }
 
 sub test_flags {

@@ -9,19 +9,13 @@
 
 use base "hacluster";
 use testapi;
-use autotest;
 use lockapi;
 
 sub run() {
-    my $self = shift;
-    $self->barrier_wait("BEFORE_FENCING");
-    if ($self->is_node1) {
-        reset_consoles;
-    }
-    else {
-        type_string "crm -F node fence " . get_var("HACLUSTERJOIN") . "; echo node_fence=\$? > /dev/$serialdev\n";
-        die "fencing node failed" unless wait_serial "node_fence=0", 60;
-    }
+    script_run "echo softdog > /etc/modules-load.d/softdog.conf";
+    script_run "systemctl restart systemd-modules-load.service";
+    type_string "echo \"softdog=`lsmod | grep softdog | wc -l`\" > /dev/$serialdev\n";
+    die "softdog module not loaded" unless wait_serial "softdog=1";
 }
 
 sub test_flags {

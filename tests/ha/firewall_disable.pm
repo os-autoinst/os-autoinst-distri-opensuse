@@ -9,19 +9,9 @@
 
 use base "hacluster";
 use testapi;
-use autotest;
-use lockapi;
 
 sub run() {
-    my $self = shift;
-    $self->barrier_wait("BEFORE_FENCING");
-    if ($self->is_node1) {
-        reset_consoles;
-    }
-    else {
-        type_string "crm -F node fence " . get_var("HACLUSTERJOIN") . "; echo node_fence=\$? > /dev/$serialdev\n";
-        die "fencing node failed" unless wait_serial "node_fence=0", 60;
-    }
+    assert_script_run "systemctl -q is-active SuSEfirewall2 && systemctl disable SuSEfirewall2; systemctl stop SuSEfirewall2";
 }
 
 sub test_flags {

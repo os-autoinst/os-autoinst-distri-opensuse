@@ -1,36 +1,73 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright (c) 2016 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-use base "installbasetest";
+use base "hacluster";
 use testapi;
 use autotest;
+use lockapi;
 
 sub run() {
-    assert_and_click 'hawk-wizard-icon';
-    assert_and_click 'hawk-ocfs2-wizard';
-    assert_and_click 'hawk-wizard-next';
-    assert_and_click 'hawk-block-device';
-    type_string '/dev/path/to/storage/device';
-    assert_and_click 'hawk-wizard-next';
-    assert_screen 'hawk-wizard-confirm';
-    assert_and_click 'hawk-wizard-next';
-    assert_screen 'hawk-dashboard';
-    send_key 'alt-f4';
-    type_string "ssh 10.0.2.16 -l root\n";
-    sleep 1;
-    type_string "openqaha\n";
-    sleep 1;
-    type_string "mkfs.ocfs2 /dev/path/to/storage/device\n";
-    type_string "crm resource online clusterfs\n";
-    type_string "crm status\n";
-    assert_screen 'crm-ocfs-running';
+    my $self            = shift;
+    my $ocfs2_partition = "/dev/disk/by-path/ip-*-lun-2";
+    $self->barrier_wait("OCFS2_INIT");
+    if ($self->is_node1) {    #node1
+        type_string "echo wait until DLM resource is created\n";
+    }
+    else {
+        type_string qq(EDITOR="sed -ie '\$ a primitive dlm ocf:pacemaker:controld op monitor interval=60 timeout=60'" crm configure edit; echo dlm_add=\$? > /dev/$serialdev\n);
+        die "create DLM resource failed" unless wait_serial "dlm_add=0", 60;
+        type_string qq(EDITOR="sed -ie '\$ a group base-group dlm'" crm configure edit; echo base_group_add=\$? > /dev/$serialdev\n);
+        die "create base-group failed" unless wait_serial "base_group_add=0", 60;
+        type_string qq(EDITOR="sed -ie '\$ a clone base-clone base-group'" crm configure edit; echo base_clone_add=\$? > /dev/$serialdev\n);
+        die "create base-clone failed" unless wait_serial "base_clone_add=0", 60;
+    }
+    $self->barrier_wait("OCFS2_GROUPS_CREATED");
+    type_string "ps -A | grep -q dlm_controld; echo dlm_running=\$? > /dev/$serialdev\n";
+    die "dlm_controld is not running" unless wait_serial "dlm_running=0", 60;
+    if ($self->is_node1) {
+        type_string "mkfs.ocfs2 $ocfs2_partition; echo mkfs_ocfs2=\$? > /dev/$serialdev\n";
+        die "mkfs.ocfs2 failed" unless wait_serial "mkfs_ocfs2=0", 60;
+    }
+    else {
+        type_string "echo wait until OCFS2 is formatted\n";
+    }
+    $self->barrier_wait("OCFS2_MKFS_DONE");
+    if ($self->is_node1) {
+        type_string "echo wait until OCFS2 resource is created\n";
+    }
+    else {
+        type_string qq(EDITOR="sed -ie '\$ a primitive ocfs2-1 ocf:heartbeat:Filesystem params device='`ls -1 $ocfs2_partition`' directory="/srv/ocfs2" fstype="ocfs2" options="acl" op monitor interval=20 timeout=40'" crm configure edit; echo ocfs2_add=\$? > /dev/$serialdev\n);
+        die "create OCFS2 resource failed" unless wait_serial "ocfs2_add=0", 60;
+        type_string qq(EDITOR="sed -ie 's/group base-group dlm/group base-group dlm ocfs2-1/'" crm configure edit; echo base_group_alter=\$? > /dev/$serialdev\n);
+        die "adding ocfs2-1 to base-group failed" unless wait_serial "base_group_alter=0", 60;
+    }
+    $self->barrier_wait("OCFS2_GROUP_ALTERED");
+    if ($self->is_node1) {
+        type_string "cp -r /usr/bin/ /srv/ocfs2; echo copy_success=\$? > /dev/$serialdev\n";
+        die "copying files to /srv/ocfs2 failed" unless wait_serial "copy_success=0", 60;
+        type_string "cd /srv/ocfs2; find bin/ -exec md5sum {} \\; > out; echo md5sums=\$? > /dev/$serialdev\n";
+        die "calculating md5sums failed" unless wait_serial "md5sums=0", 60;
+    }
+    else {
+        type_string "echo wait until OCFS2 is filled with data\n";
+    }
+    $self->barrier_wait("OCFS2_DATA_COPIED");
+    if ($self->is_node1) {
+        type_string "echo wait until OCFS2 content is checked\n";
+    }
+    else {
+        type_string "cd /srv/ocfs2; find bin/ -exec md5sum {} \\; > out_node2; echo md5sums=\$? > /dev/$serialdev\n";
+        die "calculating md5sums failed" unless wait_serial "md5sums=0", 60;
+        type_string "diff out out_node2; echo md5sums_diff=\$? > /dev/$serialdev\n";
+        die "md5sums are different on different nodes" unless wait_serial "md5sums_diff=0", 60;
+    }
+    $self->barrier_wait("OCFS2_MD5_CHECKED");
 }
 
 1;
