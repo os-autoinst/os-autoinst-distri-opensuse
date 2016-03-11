@@ -27,11 +27,16 @@ sub run() {
         send_key "alt-e";    # open release notes window
     }
     else {
-        send_key "alt-l";    # open release notes window
+        if (check_var('VIDEOMODE', 'text')) {
+            send_key "alt-l";    # open release notes window
+        }
+        else {
+            assert_and_click('release-notes-button');
+        }
     }
     wait_still_screen(2);
     if (check_var('VIDEOMODE', 'text')) {
-        send_key 'tab';      # select tab area
+        send_key 'tab';          # select tab area
     }
     if (@addons) {
         for $a (@addons) {
@@ -48,7 +53,7 @@ sub run() {
         assert_screen 'release-notes-sle';    # SLE release notes
     }
     # exit release notes window
-    if (check_var('VIDEOMODE', 'text')) {
+    if (check_var('VIDEOMODE', 'text') || check_screen('release-notes-sle-ok-button')) {
         send_key 'alt-o';
     }
     else {
