@@ -8,31 +8,22 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+use strict;
 use base "y2logsstep";
 use testapi;
 
-# the test won't work atm
 sub run() {
-    my $homekey = check_var('VIDEOMODE', "text") ? "alt-p" : "alt-h";
-    send_key 'alt-d';
-    $closedialog = 1;
-    $homekey     = 'alt-p';
-    assert_screen "partition-proposals-window";
-    send_key $homekey;
-    for (1 .. 3) {
-        if (!check_screen "disabledhome", 8) {
-            send_key $homekey;
+    send_key 'alt-d';    # open proposal settings
+    if (!check_screen 'disabledhome', 5) {
+        if (check_screen('inst-partition-radio-buttons', 5)) {    # detect whether new (Radio Buttons) YaST behaviour
+            send_key 'alt-r';                                     # unselect separate home partition
         }
         else {
-            last;
+            send_key 'alt-p';                                     # unselect separate home partition
         }
     }
-    assert_screen "disabledhome";
-    if ($closedialog) {
-        send_key 'alt-o';
-        $closedialog = 0;
-    }
-    wait_idle 5;
+    assert_screen 'disabledhome';
+    send_key 'alt-o';                                             # close proposal settings
 }
 
 1;
