@@ -268,6 +268,10 @@ sub have_addn_repos() {
     return !get_var("NET") && !get_var("EVERGREEN") && get_var("SUSEMIRROR") && !get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/;
 }
 
+sub rt_is_applicable() {
+    return is_server && get_var("ADDONS", "") =~ /rt/;
+}
+
 sub we_is_applicable() {
     return is_server && get_var("ADDONS", "") =~ /we/;
 }
@@ -584,6 +588,12 @@ sub load_consoletests() {
             loadtest "console/gpt_ptable.pm";
             loadtest "console/kdump_disabled.pm";
             loadtest "console/sshd_running.pm";
+        }
+        if (rt_is_applicable) {
+            loadtest "console/rt_is_realtime.pm";
+            loadtest "console/rt_devel_packages.pm";
+            loadtest "console/rt_peak_pci.pm";
+            loadtest "console/rt_preempt_test.pm";
         }
         loadtest "console/sshd.pm";
         if (get_var("BIGTEST")) {
