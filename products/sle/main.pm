@@ -66,10 +66,6 @@ sub is_staging () {
     return get_var('STAGING');
 }
 
-sub is_released_product() {
-    return check_var('VERSION', '12') || check_var('VERSION', '12-SP1');
-}
-
 sub cleanup_needles() {
     remove_desktop_needles("lxde");
     remove_desktop_needles("kde");
@@ -119,6 +115,7 @@ sub cleanup_needles() {
         unregister_needle_tags('ENV-OFW-1');
     }
 }
+
 
 #assert_screen "inst-bootmenu",12; # wait for welcome animation to finish
 
@@ -446,11 +443,7 @@ sub load_inst_tests() {
         }
         loadtest "installation/partitioning_finish.pm";
     }
-    if (!is_released_product) {
-        # the releasenotes for released products are not so interesting to verify
-        # and SP0 has no way to trigger the dialog without tabbing like mad (fixed in SP1)
-        loadtest "installation/releasenotes.pm";
-    }
+    loadtest "installation/releasenotes.pm";
     if (noupdatestep_is_applicable && !get_var("LIVECD")) {
         loadtest "installation/installer_timezone.pm";
     }
