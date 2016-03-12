@@ -18,7 +18,12 @@ sub run() {
     foreach my $maintrepo (split(/,/, get_var('MAINT_TEST_REPO'))) {
         assert_screen 'addon-menu-active';
         send_key 'alt-u';    # specify url
-        send_key 'alt-n';
+        if (check_var('VERSION', '12') and check_var('VIDEOMODE', 'text')) {
+            send_key 'alt-x';
+        }
+        else {
+            send_key 'alt-n';
+        }
         assert_screen 'addonurl-entry';
         send_key 'alt-u';    # select URL field
         type_string "$maintrepo";
