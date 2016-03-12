@@ -273,6 +273,10 @@ sub we_is_applicable() {
     return is_server && get_var("ADDONS", "") =~ /we/;
 }
 
+sub uses_qa_net_hardware() {
+    return check_var("BACKEND", "ipmi") || check_var("BACKEND", "generalhw");
+}
+
 sub loadtest($) {
     my ($test) = @_;
     autotest::loadtest("tests/$test");
@@ -366,7 +370,7 @@ sub load_boot_tests() {
         # TODO: rename to bootloader_grub2
         loadtest "installation/bootloader_uefi.pm";
     }
-    elsif (check_var("BACKEND", "ipmi") || check_var("BACKEND", "gadget")) {
+    elsif (uses_qa_net_hardware) {
         loadtest "installation/qa_net.pm";
     }
     elsif (check_var("ARCH", "s390x")) {
@@ -486,6 +490,9 @@ sub load_inst_tests() {
 sub load_reboot_tests() {
     if (check_var("ARCH", "s390x")) {
         loadtest "installation/reconnect_s390.pm";
+    }
+    if (uses_qa_net_hardware) {
+        loadtest "boot/qa_net_boot_from_hdd.pm";
     }
     if (installyaststep_is_applicable) {
         # test makes no sense on s390 because grub2 can't be captured
