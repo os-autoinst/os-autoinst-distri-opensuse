@@ -28,16 +28,16 @@ sub export_logs {
     select_console 'root-console';
     save_screenshot;
 
-    script_run "cat /home/*/.xsession-errors* > /tmp/XSE";
-    upload_logs "/tmp/XSE";
+    script_run "cat /home/*/.xsession-errors* > /tmp/XSE.log";
+    upload_logs "/tmp/XSE.log";
     save_screenshot;
 
-    script_run "journalctl -b > /tmp/journal";
-    upload_logs "/tmp/journal";
+    script_run "journalctl -b > /tmp/journal.log";
+    upload_logs "/tmp/journal.log";
     save_screenshot;
 
-    script_run "cat /var/log/X* > /tmp/Xlogs";
-    upload_logs "/tmp/Xlogs";
+    script_run "cat /var/log/X* > /tmp/Xlogs.log";
+    upload_logs "/tmp/Xlogs.log";
     save_screenshot;
 
     script_run "ps axf > /tmp/psaxf.log";
