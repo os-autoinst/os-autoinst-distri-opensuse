@@ -103,7 +103,7 @@ sub fill_in_registration_data {
                     send_key 'alt-n';     # next
                 }
             }
-            if (check_screen('import-untrusted-gpg-key', 10)) {
+            while (check_screen('import-untrusted-gpg-key', 20)) {
                 record_soft_failure 'untrusted gpg key';
                 send_key 'alt-t', 2;
             }
