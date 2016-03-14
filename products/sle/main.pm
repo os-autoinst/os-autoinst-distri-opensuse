@@ -546,7 +546,7 @@ sub load_consoletests() {
             if (get_var("UPGRADE")) {
                 loadtest "console/upgrade_snapshots.pm";
             }
-            elsif (!get_var("ZDUP")) {    # zypper doesn't do upgrade or installation snapshots
+            elsif (!get_var("ZDUP") and !check_var('VERSION', '12')) {    # zypper and sle12 doesn't do upgrade or installation snapshots
                 loadtest "console/installation_snapshots.pm";
             }
             loadtest "console/snapper_undochange.pm";
