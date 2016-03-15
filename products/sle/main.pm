@@ -446,7 +446,12 @@ sub load_inst_tests() {
         }
         loadtest "installation/partitioning_finish.pm";
     }
-    loadtest "installation/releasenotes.pm";
+    # the VNC gadget is too unreliable to click, but we
+    # need to be able to do installations on it. The release notes
+    # functionality needs to be covered by other backends
+    if (!check_var('BACKEND', 'generalhw')) {
+        loadtest "installation/releasenotes.pm";
+    }
     if (noupdatestep_is_applicable) {
         loadtest "installation/installer_timezone.pm";
         loadtest "installation/logpackages.pm";
