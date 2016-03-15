@@ -120,22 +120,11 @@ sub cleanup_needles() {
 #assert_screen "inst-bootmenu",12; # wait for welcome animation to finish
 
 # defaults for username and password
-if (get_var("LIVETEST")) {
-    $testapi::username = "root";
-    $testapi::password = '';
-}
-else {
-    $testapi::username = "bernhard";
-    $testapi::password = "nots3cr3t";
-}
+$testapi::username = "bernhard";
+$testapi::password = "nots3cr3t";
 
 $testapi::username = get_var("USERNAME") if get_var("USERNAME");
 $testapi::password = get_var("PASSWORD") if defined get_var("PASSWORD");
-
-if (get_var("LIVETEST") && (get_var("LIVECD") || get_var("PROMO"))) {
-    $testapi::username = "linux";    # LiveCD account
-    $testapi::password = "";
-}
 
 my $distri = testapi::get_var("CASEDIR") . '/lib/susedistribution.pm';
 require $distri;
@@ -209,7 +198,7 @@ $needle::cleanuphandler = \&cleanup_needles;
 bmwqemu::save_vars();    # update variables
 
 # dump other important ENV:
-logcurrentenv(qw"ADDONURL BIGTEST BTRFS DESKTOP HW HWSLOT LIVETEST LVM MOZILLATEST NOINSTALL REBOOTAFTERINSTALL UPGRADE USBBOOT ZDUP ZDUPREPOS TEXTMODE DISTRI NOAUTOLOGIN QEMUCPU QEMUCPUS RAIDLEVEL ENCRYPT INSTLANG QEMUVGA DOCRUN UEFI DVD GNOME KDE ISO ISO_MAXSIZE LIVECD NETBOOT NICEVIDEO NOIMAGES PROMO QEMUVGA SPLITUSR VIDEOMODE");
+logcurrentenv(qw"ADDONURL BIGTEST BTRFS DESKTOP HW HWSLOT LVM MOZILLATEST NOINSTALL REBOOTAFTERINSTALL UPGRADE USBBOOT ZDUP ZDUPREPOS TEXTMODE DISTRI NOAUTOLOGIN QEMUCPU QEMUCPUS RAIDLEVEL ENCRYPT INSTLANG QEMUVGA DOCRUN UEFI DVD GNOME KDE ISO ISO_MAXSIZE NETBOOT NICEVIDEO NOIMAGES PROMO QEMUVGA SPLITUSR VIDEOMODE");
 
 
 sub xfcestep_is_applicable() {
@@ -413,21 +402,19 @@ sub load_inst_tests() {
     if (get_var('MULTIPATH')) {
         loadtest "installation/multipath.pm";
     }
-    if (!get_var('LIVECD') && get_var('UPGRADE')) {
+    if (get_var('UPGRADE')) {
         loadtest "installation/upgrade_select.pm";
     }
-    if (!get_var('LIVECD')) {
-        if (get_var('SCC_REGISTER', '') eq 'installation') {
-            loadtest "installation/scc_registration.pm";
-        }
-        else {
-            loadtest "installation/skip_registration.pm";
-        }
-        if (get_var('MAINT_TEST_REPO')) {
-            loadtest 'installation/add_update_test_repo.pm';
-        }
-        loadtest "installation/addon_products_sle.pm";
+    if (get_var('SCC_REGISTER', '') eq 'installation') {
+        loadtest "installation/scc_registration.pm";
     }
+    else {
+        loadtest "installation/skip_registration.pm";
+    }
+    if (get_var('MAINT_TEST_REPO')) {
+        loadtest 'installation/add_update_test_repo.pm';
+    }
+    loadtest "installation/addon_products_sle.pm";
     if (noupdatestep_is_applicable) {
         loadtest "installation/system_role.pm";
         loadtest "installation/partitioning.pm";
@@ -457,17 +444,11 @@ sub load_inst_tests() {
         loadtest "installation/partitioning_finish.pm";
     }
     loadtest "installation/releasenotes.pm";
-    if (noupdatestep_is_applicable && !get_var("LIVECD")) {
-        loadtest "installation/installer_timezone.pm";
-    }
-    if (noupdatestep_is_applicable && !get_var("LIVECD")) {
-        loadtest "installation/logpackages.pm";
-    }
     if (noupdatestep_is_applicable) {
+        loadtest "installation/installer_timezone.pm";
+        loadtest "installation/logpackages.pm";
         loadtest "installation/user_settings.pm";
         loadtest "installation/user_settings_root.pm";
-    }
-    if (noupdatestep_is_applicable) {
         if (get_var('PATTERNS')) {
             loadtest "installation/installation_overview_before.pm";
             loadtest "installation/select_patterns.pm";
@@ -582,9 +563,7 @@ sub load_consoletests() {
         }
         loadtest "console/zypper_in.pm";
         loadtest "console/yast2_i.pm";
-        if (!get_var("LIVETEST")) {
-            loadtest "console/yast2_bootloader.pm";
-        }
+        loadtest "console/yast2_bootloader.pm";
         loadtest "console/vim.pm";
         if (!is_staging) {
             loadtest "console/firewall_enabled.pm";
@@ -608,7 +587,7 @@ sub load_consoletests() {
             loadtest "console/syslinux.pm";
         }
         loadtest "console/mtab.pm";
-        if (!get_var("NOINSTALL") && !get_var("LIVETEST") && !is_desktop && (check_var("DESKTOP", "textmode"))) {
+        if (!get_var("NOINSTALL") && !is_desktop && (check_var("DESKTOP", "textmode"))) {
             if (!is_staging && check_var('BACKEND', 'qemu')) {
                 # The NFS test expects the IP to be 10.0.2.15
                 loadtest "console/yast2_nfs_server.pm";
@@ -684,7 +663,7 @@ sub load_x11tests() {
     }
     if (!get_var("NICEVIDEO")) {
         loadtest "x11/xterm.pm";
-        loadtest "x11/sshxterm.pm" unless get_var("LIVETEST");
+        loadtest "x11/sshxterm.pm";
     }
     if (gnomestep_is_applicable) {
         loadtest "x11/gnome_control_center.pm";
@@ -745,7 +724,7 @@ sub load_x11tests() {
         loadtest "x11/reboot_kde.pm";
     }
     if (gnomestep_is_applicable) {
-        loadtest "x11/nautilus.pm" unless get_var("LIVECD");
+        loadtest "x11/nautilus.pm";
         loadtest "x11/evolution.pm" if (!is_server || we_is_applicable);
         loadtest "x11/reboot_gnome.pm";
     }
@@ -919,11 +898,7 @@ elsif (get_var("Y2UITEST")) {
     load_yast2ui_tests();
 }
 else {
-    if (get_var("LIVETEST")) {
-        load_boot_tests();
-        loadtest "installation/finish_desktop.pm";
-    }
-    elsif (get_var("AUTOYAST")) {
+    if (get_var("AUTOYAST")) {
         load_boot_tests();
         load_autoyast_tests();
         load_reboot_tests();
