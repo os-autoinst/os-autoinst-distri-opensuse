@@ -443,6 +443,11 @@ sub load_inst_tests() {
         if (get_var("TOGGLEHOME")) {
             loadtest "installation/partitioning_togglehome.pm";
         }
+
+        if (get_var("ENLARGESWAP") && get_var("QEMURAM", 1024) > 4098) {
+            loadtest "installation/installation_enlargeswap.pm";
+        }
+
         if (get_var("SPLITUSR")) {
             loadtest "installation/partitioning_splitusr.pm";
         }
