@@ -441,6 +441,9 @@ sub load_inst_tests() {
         if (get_var("IBFT")) {
             loadtest "installation/partitioning_iscsi.pm";
         }
+        if (uses_qa_net_hardware) {
+            loadtest "installation/partitioning_firstdisk.pm";
+        }
         loadtest "installation/partitioning_finish.pm";
     }
     loadtest "installation/releasenotes.pm";
