@@ -301,6 +301,9 @@ sub load_x11regresion_tests() {
         loadtest "x11regressions/gnomecase/nautilus_cut_file.pm";
         loadtest "x11regressions/gnomecase/nautilus_permission.pm";
         loadtest "x11regressions/gnomecase/nautilus_open_ftp.pm";
+        loadtest "x11regressions/gnomecase/application_starts_on_login.pm";
+        loadtest "x11regressions/gnomecase/change_password.pm";
+        loadtest "x11regressions/gnomecase/login_test.pm";
         loadtest "x11regressions/gnote/gnote_first_run.pm";
         loadtest "x11regressions/gnote/gnote_link_note.pm";
         loadtest "x11regressions/gnote/gnote_rename_title.pm";
