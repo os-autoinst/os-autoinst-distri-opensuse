@@ -100,29 +100,29 @@ sub fill_in_registration_data {
                     type_string $regcode;
                     sleep 1;
                     save_screenshot;
-                    send_key 'alt-n';     # next
                 }
             }
+            send_key 'alt-n';    # next
             while (check_screen('import-untrusted-gpg-key', 20)) {
                 record_soft_failure 'untrusted gpg key';
                 send_key 'alt-t', 2;
             }
-            sleep 20;                     # scc registration need some time
+            sleep 20;            # scc registration need some time
         }
         else {
-            send_key 'alt-n';             # next
+            send_key 'alt-n';    # next
         }
     }
     else {
         if (!get_var('SCC_REGISTER', '') =~ /addon|network/) {
             assert_screen("module-selection");
-            send_key "alt-n";             # next
+            send_key "alt-n";    # next
         }
     }
 }
 
 sub registration_bootloader_params {
-    my ($max_interval) = @_;              # see 'type_string'
+    my ($max_interval) = @_;     # see 'type_string'
     $max_interval //= 13;
     # https://www.suse.com/documentation/smt11/book_yep/data/smt_client_parameters.html
     # SCC_URL=https://smt.example.com
@@ -164,8 +164,24 @@ sub yast_scc_registration {
             $timeout = 900;    # installation of an addon may take long
         }
         else {
-            assert_screen 'yast_scc-installation-summary', 900;
-            send_key "alt-f";
+            # yast may pop up a reboot prompt window after addons installation such like ha on sle12 sp0
+            while (assert_screen([qw/yast_scc-prompt-reboot yast_scc-installation-summary/], 900)) {
+                if (match_has_tag('yast_scc-prompt-reboot')) {
+                    send_key "alt-o", 1;
+                    next;
+                }
+                elsif (match_has_tag('yast_scc-installation-summary')) {
+                    send_key "alt-f";
+                    last;
+                }
+            }
+        }
+    }
+    else {
+        # yast would display empty pkg install screen if no addon selected on sle12 sp0
+        # set check_screen timeout 5 to reduce check time on sle12 sp1 or higher
+        if (check_screen("yast-scc-emptypkg", 5)) {
+            send_key "alt-a";
         }
     }
 
