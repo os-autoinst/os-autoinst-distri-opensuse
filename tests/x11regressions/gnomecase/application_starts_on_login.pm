@@ -20,6 +20,7 @@ sub tweak_startupapp_menu {
     send_key "ret";
     assert_screen "gnome-settings";
     type_string "tweak";
+    assert_screen "settings-tweak-selected";
     send_key "ret";
     assert_screen "tweak-tool";
     send_key_until_needlematch "tweak-startapp", "down";
@@ -28,10 +29,11 @@ sub tweak_startupapp_menu {
 sub logout_and_login {
     assert_and_click "system-indicator";
     assert_and_click "user-logout-sector";
-    assert_and_click "logout";
+    assert_and_click "logout-system";
     send_key "ret";
     assert_screen "displaymanager";
     send_key "ret";
+    assert_screen "originUser-login-dm";
     type_string "$password";
     send_key "ret";
 }
@@ -42,6 +44,7 @@ sub alter_status_auto_save_session {
     send_key "ret";
     assert_screen "gnome-settings";
     type_string "dconf";
+    assert_screen "settings-dconf";
     send_key "ret";
     send_key_until_needlematch "dconf-org", "down";
     assert_and_click "unfold";
@@ -60,11 +63,12 @@ sub run() {
     my $self = shift;
 
     #add firefox to startup application
+    assert_screen "generic-desktop";
     tweak_startupapp_menu;
     assert_and_click "tweak-startapp-add";
     assert_screen "tweak-startapp-applist";
     send_key_until_needlematch "applicationstart-firefox", "down";
-    assert_and_click "tweak-addapp-button";
+    assert_and_click "tweak-addapp-2startup";
     assert_screen "startapp-firefox-added";
     send_key "alt-f4";
     wait_still_screen;
@@ -87,17 +91,18 @@ sub run() {
     assert_screen "generic-desktop";
 
     #set auto-save-session;
-    ##For got information: start from gnome 3,
+    ##reference information: start from gnome 3,
     ##for lacking maintainence,
     ##auto-save-session functionality has been abandoned;
     ##current status: just firefox works
     ##so in the future will consider remove openqa code for this session
     alter_status_auto_save_session;
 
-    assert_and_click "application-menu";
+    send_key "alt-f1";
+    assert_screen "test-desktop_mainmenu-1";
     assert_and_click "application-menu-firefox";
     wait_still_screen;
-    assert_screen "firefox-loaded";
+    assert_screen "firefox-loaded", 60;
     logout_and_login;
     assert_screen "session-running-firefox";
     send_key "alt-f4";

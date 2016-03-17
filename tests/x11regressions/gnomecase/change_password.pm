@@ -21,7 +21,7 @@ my $pwd4newUser = "helloWORLD-0";
 
 sub lock_screen {
     assert_and_click "system-indicator";
-    assert_and_click "lock-button";
+    assert_and_click "lock-system";
     type_string "$password";
     send_key "ret";
     assert_screen "generic-desktop";
@@ -30,7 +30,7 @@ sub lock_screen {
 sub logout_and_login {
     assert_and_click "system-indicator";
     assert_and_click "user-logout-sector";
-    assert_and_click "logout";
+    assert_and_click "logout-system";
     send_key "ret";
     assert_screen "displaymanager";
     send_key "ret";
@@ -61,16 +61,22 @@ sub switch_user {
     assert_and_click "switch-user";
 }
 
-sub change_pwd_and_add_user {
-    #change current pwd
+sub unlock_user_settings {
     send_key "super";
-    type_string "users", 1;    #use 1 to give gnome-shell enough time searching the user-settings module.
+    type_string "settings", 1;    #use 1 to give gnome-shell enough time searching the user-settings module.
     send_key "ret";
-    assert_screen "users-settings", 60;
-    assert_and_click "Unlock";
-    assert_screen "authentication-required";
+    assert_screen "gnome-settings";
+    type_string "users";
+    assert_screen "settings-users-selected";
+    send_key "ret";
+    assert_screen "users-settings";
+    assert_and_click "Unlock-user-settings";
+    assert_screen "authentication-required-user-settings";
     type_string "$rootpwd";
     assert_and_click "authenticate";
+}
+
+sub change_pwd {
     send_key "alt-p";
     send_key "ret";
     send_key "alt-p";
@@ -79,31 +85,50 @@ sub change_pwd_and_add_user {
     type_string "$newpwd";
     send_key "alt-v";
     type_string "$newpwd";
-    assert_screen "actived-change-button";
+    assert_screen "actived-change-password";
     send_key "alt-a";
     assert_screen "users-settings", 60;
     $password = $newpwd;
+}
 
-    #add a new user
-    assert_and_click "plus-button";
+sub add_user {
+    assert_and_click "add-user";
     send_key "alt-f";
     type_string "$newUser";
-    assert_and_click "set-password";
+    assert_and_click "set-password-option";
     send_key "alt-p";
     type_string "$pwd4newUser";
     send_key "alt-v";
     type_string "$pwd4newUser";
-    assert_screen "actived-add-button";
+    assert_screen "actived-add-user";
     send_key "alt-a";
     assert_screen "users-settings", 60;
     send_key "alt-f4";
+}
+
+sub delete_user {
+    x11_start_program("gnome-terminal");
+    type_string "su";
+    send_key "ret";
+    assert_screen "pwd4root-terminal";
+    type_string "$rootpwd";
+    send_key "ret";
+    assert_screen "root-gnome-terminal";
+    type_string "userdel -f test";
+    send_key "ret";
+    assert_screen "user-test-deleted";
+    send_key "alt-f4";
+    send_key "ret";
 }
 
 sub run () {
     my $self = shift;
 
     #change pwd for current user and add new user for switch scenario
-    change_pwd_and_add_user;
+    assert_screen "generic-desktop";
+    unlock_user_settings;
+    change_pwd;
+    add_user;
 
     #verify changed password work well in the following scenario:
     lock_screen;
@@ -114,17 +139,20 @@ sub run () {
     assert_screen "displaymanager";
     send_key "down";
     send_key "ret";
-    assert_screen "test-login";
+    assert_screen "testUser-login-dm";
     type_string "$pwd4newUser";
     send_key "ret";
-    assert_screen "generic-desktop";
+    assert_screen "generic-desktop", 60;
     switch_user;
     assert_screen "displaymanager";
     send_key "ret";
-    assert_screen "origin-login";
+    assert_screen "originUser-login-dm";
     type_string "$password";
     send_key "ret";
-    assert_screen "generic-desktop";
+    assert_screen "generic-desktop", 60;
+
+    #delete the added user: test
+    delete_user;
 
     #restore password to original value
     x11_start_program("gnome-terminal");
@@ -133,7 +161,7 @@ sub run () {
     assert_screen "pwd4root-terminal";
     type_string "$rootpwd";
     send_key "ret";
-    assert_screen "root-terminal";
+    assert_screen "root-gnome-terminal";
     type_string "passwd $username";
     send_key "ret";
     assert_screen "pwd4user-terminal";
@@ -142,7 +170,7 @@ sub run () {
     assert_screen "pwd4user-confirm-terminal";
     type_string "$rootpwd";
     send_key "ret";
-    assert_screen "password-changed";
+    assert_screen "password-changed-terminal";
     send_key "alt-f4";
     send_key "ret";
 }
