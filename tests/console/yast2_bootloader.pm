@@ -20,10 +20,10 @@ sub run() {
 
     assert_script_run "zypper -n in yast2-bootloader";    # make sure yast2 bootloader module installed
 
-    script_run("/sbin/yast2 bootloader; echo YBL-$? > /dev/$serialdev", 0);
+    script_run("/sbin/yast2 bootloader; echo yast2-bootloader-status-$? > /dev/$serialdev", 0);
     assert_screen "test-yast2_bootloader-1", 300;
     send_key "alt-o";                                     # OK => Close
-    die "yastootloader failed" unless wait_serial "YBL-0";
+    wait_serial("yast2-bootloader-status-0") || die "'yast2 bootloader' didn't finish";
 }
 
 1;

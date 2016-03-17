@@ -88,7 +88,7 @@ sub run() {
     }
 
     # yast might take a while on sle11 due to suseconfig
-    wait_serial("yast2-i-status-0", 60) || die "yast didn't finish";
+    wait_serial("yast2-i-status-0", 60) || die "'yast2 sw_single' didn't finish";
 
     clear_console;                           # clear screen to see that second update does not do any more
     assert_script_run("rpm -e $pkgname");    # erase $pkgname
