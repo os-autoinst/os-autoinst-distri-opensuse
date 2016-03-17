@@ -31,6 +31,14 @@ sub movedownelseend {
     last if (!$ret);
 }
 
+sub check12qtbug {
+    if (check_var('VERSION', '12')) {
+        if (check_screen('pattern-too-low', 5)) {
+            assert_and_click('pattern-too-low', 'left', 1);
+        }
+    }
+}
+
 sub run {
     my $self = shift;
 
@@ -84,6 +92,7 @@ sub run {
         my $selected = check_screen([qw(current-pattern-selected on-category)], 0);
         if ($selected && $selected->{needle}->has_tag('on-category')) {
             movedownelseend;
+            check12qtbug;
             next;
         }
         if ($needs_to_be_selected && !$selected) {
@@ -97,6 +106,7 @@ sub run {
             assert_screen [qw(current-pattern-unselected current-pattern-autoselected)], 8;
         }
         movedownelseend;
+        check12qtbug;
     }
 
     if (check_var('VIDEOMODE', 'text')) {
