@@ -11,16 +11,21 @@ use base "x11test";
 use testapi;
 use utils;
 
-#testcase 5255-1503803: Gnome:Change Password
+#testcase 5255-1503905: Gnome:gnome-login test
 #other login scenario has been coverred by the change_password script, here
 #only cover the auto_login
 
 sub auto_login_alter {
     send_key "super";
-    type_string "users", 1;    #use 1 to give gnome-shell enough time searching the user-settings module.
+    type_string "settings", 1;    #use 1 to give gnome-shell enough time searching the user-settings module.
+    send_key "ret";
+    assert_screen "gnome-settings";
+    type_string "users";
+    assert_screen "settings-users-selected";
     send_key "ret";
     assert_screen "users-settings";
-    assert_and_click "Unlock";
+    assert_and_click "Unlock-user-settings";
+    assert_screen "authentication-required-user-settings";
     type_string "$password";
     assert_and_click "authenticate";
     send_key "alt-u";
@@ -42,6 +47,7 @@ sub reboot_system {
 sub run () {
     my $self = shift;
 
+    assert_screen "generic-desktop";
     auto_login_alter;
     reboot_system;
     auto_login_alter;
