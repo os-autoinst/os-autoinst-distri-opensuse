@@ -77,6 +77,7 @@ sub cleanup_needles() {
     if (!check_var("VIDEOMODE", "text")) {
         unregister_needle_tags("ENV-VIDEOMODE-text");
     }
+
     if (get_var("INSTLANG") && get_var("INSTLANG") ne "en_US") {
         unregister_needle_tags("ENV-INSTLANG-en_US");
     }
@@ -106,6 +107,9 @@ sub cleanup_needles() {
 
     if (!is_jeos) {
         unregister_needle_tags('ENV-FLAVOR-JeOS-for-kvm');
+    }
+    if (!check_var("ARCH", "s390x")) {
+        unregister_needle_tags('ENV-ARCH-s390x');
     }
 
     if (get_var('OFW')) {
