@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+
 use base "console_yasttest";
 use testapi;
 use utils;
@@ -26,7 +27,7 @@ sub run() {
     script_run('ls -alF /etc/sysconfig/network/');
     save_screenshot;
 
-    script_sudo("/sbin/yast2 lan", 0);
+    script_sudo("/sbin/yast2 lan; echo yast2-lan-status-\$? > /dev/$serialdev", 0);
 
     assert_screen [qw/Networkmanager_controlled yast2_lan install-susefirewall2/], 60;
     if (match_has_tag('Networkmanager_controlled')) {
@@ -37,7 +38,7 @@ sub run() {
             # SLED11...
             send_key 'alt-y';
         }
-        assert_screen 'yast2-lan-exited', 30;
+        wait_serial("yast2-lan-status-0", 60) || die "'yast2 lan' didn't finish";
         return;                                         # don't change any settings
     }
     if (match_has_tag('install-susefirewall2')) {
@@ -59,7 +60,7 @@ sub run() {
     assert_screen 'test-yast2_lan-1';
 
     send_key "alt-o";                                   # OK=>Save&Exit
-    assert_screen 'yast2-lan-exited', 90;
+    wait_serial("yast2-lan-status-0", 90) || die "'yast2 lan' didn't finish";
 
     clear_console;
     script_run('echo $?');
