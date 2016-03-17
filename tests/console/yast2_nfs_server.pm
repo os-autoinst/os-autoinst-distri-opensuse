@@ -82,7 +82,8 @@ sub run() {
         assert_script_run 'mount 10.0.2.15:/ /mnt';
     }
 
-    validate_script_output "cat /mnt/file", sub { m,mounted, };
+    # Timeout of 95 seconds to account for the NFS server grace period
+    validate_script_output "cat /mnt/file", sub { m,mounted, }, 95;
     assert_script_run 'umount /mnt';
 
     if (get_var('NFSSERVER')) {
