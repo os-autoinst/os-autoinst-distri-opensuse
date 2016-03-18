@@ -276,6 +276,7 @@ sub loadtest($) {
 }
 
 sub load_x11regresion_tests() {
+    loadtest "x11regressions/x11regressions_setup.pm";
     loadtest "x11regressions/firefox/sle12/firefox_smoke.pm";
     loadtest "x11regressions/firefox/sle12/firefox_localfiles.pm";
     loadtest "x11regressions/firefox/sle12/firefox_emaillink.pm";
