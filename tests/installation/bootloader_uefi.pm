@@ -63,47 +63,35 @@ sub run() {
         }
     }
 
-    # assume bios+grub+anim already waited in start.sh
-    # in grub2 it's tricky to set the screen resolution
+    # Assume bios+grub+anim already waited in start.sh
     send_key "e";
-    if (is_jeos) {
-        for (1 .. 3) { send_key "down"; }
-        send_key "end";
-        # delete "800x600"
-        for (1 .. 7) { send_key "backspace"; }
-    }
-    else {
-        for (1 .. 2) { send_key "down"; }
-        send_key "end";
-        # delete "keep" word
-        for (1 .. 4) { send_key "backspace"; }
-    }
+    my ($x, $y) = is_jeos ? (3, 7) : (2, 4);
+
+    # Move to gfxpayload line
+    for (1 .. $x) { send_key "down"; }
+    send_key "end";
+    # Delete "800x600 | keep"
+    for (1 .. $y) { send_key "backspace"; }
     # hardcoded the value of gfxpayload to 1024x768
     type_string "1024x768";
     assert_screen "gfxpayload_changed", 10;
-    # back to the entry position
-    send_key "home";
-    for (1 .. 2) { send_key "up"; }
-    if (is_jeos) {
-        send_key "up";
-    }
-    sleep 5;
-    for (1 .. 4) { send_key "down"; }
+
+    # Move to linux line
+    for (1 .. 4 - $x) { send_key "down"; }
     send_key "end";
 
-    if (get_var("NETBOOT") && get_var("SUSEMIRROR")) {
-        assert_screen('no_install_url');
-        type_string_slow " install=http://" . get_var("SUSEMIRROR");
+    if (get_var("NETBOOT")) {
+        $self->set_netboot_mirror;
+        $self->set_netboot_proxy if get_var("HTTPPROXY");
         save_screenshot();
     }
-    send_key "spc";
 
     # if(get_var("PROMO")) {
     #     for(1..2) {send_key "down";} # select KDE Live
     # }
 
     if (check_var('VIDEOMODE', "text")) {
-        type_string_slow "textmode=1 ";
+        $self->set_textmode;
     }
 
     type_string " \\\n";    # changed the line before typing video params
@@ -126,33 +114,27 @@ sub run() {
         type_string_slow "console=$serialdev ";                 # to get crash dumps as text
         type_string_slow "console=tty ";                        # to get crash dumps as text
         assert_screen "inst-consolesettingstyped", 10;
-        my $e = get_var("EXTRABOOTPARAMS");
-        if ($e) {
-            type_string_very_slow "$e ";
-            save_screenshot;
-        }
+    }
+    if (get_var("EXTRABOOTPARAMS")) {
+        $self->set_extra_params;
     }
 
     #type_string_slow 'kiwidebug=1 ';
 
-    my $args = "";
     if (get_var("AUTOYAST")) {
-        $args .= " ifcfg=*=dhcp ";
-        $args .= "autoyast=" . autoinst_url . "/data/" . get_var("AUTOYAST") . " ";
+        $self->set_network;
+        $self->set_autoyast;
     }
-    type_string_slow $args;
-    save_screenshot;
 
     if (get_var("FIPS")) {
-        type_string_slow ' fips=1';
-        save_screenshot;
+        $self->set_fips;
     }
+    save_screenshot;
 
     registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED);
 
     # boot
     send_key "f10";
-
 }
 
 1;

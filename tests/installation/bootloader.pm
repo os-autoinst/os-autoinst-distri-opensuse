@@ -17,6 +17,65 @@ use testapi;
 use registration;
 use utils;
 
+# Select installation mirror using F4 menu
+sub set_netboot_mirror {
+    my $m_protocol = get_var('INSTALL_SOURCE', 'http');
+    my $m_mirror = get_netboot_mirror;
+    my ($m_server, $m_share, $m_directory);
+
+    # Parse MIRROR into variables
+    if ($m_mirror =~ m{^[a-z]+://([a-zA-Z0-9.-]*)(/.*)$}) {
+        ($m_server, $m_directory) = ($1, $2);
+        if ($m_protocol eq "smb") {
+            ($m_share, $m_directory) = $m_directory =~ /\/(.+?)(\/.*)/;
+        }
+    }
+
+    # select installation source (http, ftp, nfs, smb)
+    send_key "f4";
+    assert_screen "inst-instsourcemenu";
+    send_key_until_needlematch "inst-instsourcemenu-$m_protocol", 'down';
+    send_key "ret";
+    assert_screen "inst-instsourcedialog-$m_protocol";
+
+    # Clean Tumbleweed default values
+    if ($m_protocol eq "http") {
+        for (1 .. 2) {
+            for (1 .. 22) { send_key "backspace" }
+            send_key "tab";
+        }
+    }
+
+    # Type variables into fields
+    type_string "$m_server\t";
+    type_string "$m_share\t" if $m_protocol eq "smb";
+    type_string "$m_directory\n";
+}
+
+# Select network proxy using F4 menu
+sub set_netboot_proxy {
+    if (get_var("HTTPPROXY", '') =~ m/([0-9.]+):(\d+)/) {
+        my ($proxyhost, $proxyport) = ($1, $2);
+        send_key "f4";
+        for (1 .. 4) {
+            send_key "down";
+        }
+        send_key "ret";
+        type_string "$proxyhost\t$proxyport\n";
+        assert_screen "inst-proxy_is_setup";
+    }
+}
+
+# Select text mode using F3 menu
+sub set_textmode {
+    send_key "f3";
+    for (1 .. 2) {
+        send_key "up";
+    }
+    assert_screen "inst-textselected";
+    send_key "ret";
+}
+
 # hint: press shift-f10 trice for highest debug level
 sub run() {
     my ($self) = @_;
@@ -52,18 +111,13 @@ sub run() {
         if (get_var("PROMO") || get_var('LIVETEST')) {
             send_key_until_needlematch("boot-live-" . get_var("DESKTOP"), 'down', 10, 5);
         }
-        elsif (!get_var("JEOS")) {
+        elsif (!is_jeos) {
             send_key_until_needlematch('inst-oninstallation', 'down', 10, 5);
         }
     }
 
     if (check_var('VIDEOMODE', "text")) {
-        send_key "f3";
-        for (1 .. 2) {
-            send_key "up";
-        }
-        assert_screen "inst-textselected";
-        send_key "ret";
+        $self->set_textmode;
     }
 
     # https://wiki.archlinux.org/index.php/Kernel_Mode_Setting#Forcing_modes_and_EDID
@@ -78,60 +132,16 @@ sub run() {
         type_string_very_slow "console=$serialdev ";                 # to get crash dumps as text
         type_string_very_slow "console=tty ";                        # to get crash dumps as text
         assert_screen "inst-consolesettingstyped", 30;
-        my $e = get_var("EXTRABOOTPARAMS");
-        if ($e) {
-            type_string_very_slow "$e ";
-            save_screenshot;
-        }
+    }
+    if (get_var("EXTRABOOTPARAMS")) {
+        $self->set_extra_params;
     }
 
-    # set HTTP-source to not use factory-snapshot
+    # Setup netboot options using F4 menu
     if (get_var("NETBOOT")) {
-        my $m_protocol = get_var('INSTALL_SOURCE', 'http');
-        my ($m_server, $m_share, $m_directory);
-
-        # Parse SUSEMIRROR into variables
-        if (get_var("SUSEMIRROR", '') =~ m{^([a-zA-Z0-9.-]*)(/.*)$}) {
-            ($m_server, $m_directory) = ($1, $2);
-            if ($m_protocol eq "smb") {
-                ($m_share, $m_directory) = $m_directory =~ /\/(.+?)(\/.*)/;
-            }
-        }
-
-        # select installation source (http, ftp, nfs, smb)
-        send_key "f4";
-        assert_screen "inst-instsourcemenu";
-        send_key_until_needlematch "inst-instsourcemenu-$m_protocol", 'down';
-        send_key "ret";
-        assert_screen "inst-instsourcedialog-$m_protocol";
-
-        # Clean Tumbleweed default values
-        if ($m_protocol eq "http") {
-            for (1 .. 2) {
-                for (1 .. 22) { send_key "backspace" }
-                send_key "tab";
-            }
-        }
-
-        # Type variables into fields
-        type_string "$m_server\t";
-        type_string "$m_share\t" if $m_protocol eq "smb";
-        type_string "$m_directory\n";
-
-        # HTTP-proxy
-        if (get_var("HTTPPROXY", '') =~ m/([0-9.]+):(\d+)/) {
-            my ($proxyhost, $proxyport) = ($1, $2);
-            send_key "f4";
-            for (1 .. 4) {
-                send_key "down";
-            }
-            send_key "ret";
-            type_string "$proxyhost\t$proxyport\n";
-            assert_screen "inst-proxy_is_setup";
-
-            # add boot parameters
-            # ZYPP... enables proxy caching
-        }
+        $self->set_netboot_mirror;
+        $self->set_netboot_proxy if get_var("HTTPPROXY");
+        save_screenshot();
 
         #type_string "ZYPP_ARIA2C=0 "; sleep 9;
         #type_string "ZYPP_MULTICURL=0 "; sleep 2;
@@ -225,30 +235,23 @@ sub run() {
         }
     }
 
-    my $args = "";
     if (get_var("AUTOYAST") || get_var("AUTOUPGRADE")) {
-        my $netsetup = " ifcfg=*=dhcp";    #need this instead of netsetup as default, see bsc#932692
-        $netsetup = " " . get_var("NETWORK_INIT_PARAM") if defined get_var("NETWORK_INIT_PARAM");    #e.g netsetup=dhcp,all
-        $netsetup = " netsetup=dhcp,all" if defined get_var("USE_NETSETUP");                         #netsetup override for sle11
-        $args .= $netsetup;
-        $args .= " autoyast=" . data_url(get_var("AUTOYAST")) . " ";
+        $self->set_network;
+        $self->set_autoyast;
     }
 
     if (get_var("AUTOUPGRADE")) {
-        $args .= " autoupgrade=1";
+        $self->set_autoupgrade;
     }
 
     if (get_var("IBFT")) {
-        $args .= " withiscsi=1";
+        type_string_slow " withiscsi=1";
     }
-
-    type_string_very_slow $args;
-    save_screenshot;
 
     if (get_var("FIPS")) {
-        type_string_very_slow " fips=1";
-        save_screenshot;
+        $self->set_fips;
     }
+    save_screenshot;
 
     registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED);
 

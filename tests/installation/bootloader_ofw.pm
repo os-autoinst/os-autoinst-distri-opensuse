@@ -41,39 +41,31 @@ sub run() {
             #wait until we get to grub edit
             wait_idle(5);
             #go down to kernel entry
-            send_key "down";
-            send_key "down";
-            send_key "down";
+            for (1 .. 3) { send_key "down"; }
             send_key "end";
             wait_idle(5);
-            my $args = "";
+
             # load kernel manually with append
             if (check_var('VIDEOMODE', 'text')) {
-                type_string_slow ' textmode=1';
+                $self->set_textmode;
             }
-            if (get_var("NETBOOT") && get_var("SUSEMIRROR")) {
-                type_string_slow ' install=http://' . get_var("SUSEMIRROR");
+            if (get_var("NETBOOT")) {
+                $self->set_netboot_mirror;
             }
             if (get_var("AUTOYAST") || get_var("AUTOUPGRADE")) {
-                my $netsetup = " ifcfg=*=dhcp";    #need this instead of netsetup as default, see bsc#932692
-                $netsetup = " " . get_var("NETWORK_INIT_PARAM") if defined get_var("NETWORK_INIT_PARAM");    #e.g netsetup=dhcp,all
-                $netsetup = " netsetup=dhcp,all" if defined get_var("USE_NETSETUP");                         #netsetup override for sle11
-                $args .= $netsetup;
-                $args .= " autoyast=" . data_url(get_var("AUTOYAST")) . " ";
+                $self->set_network;
+                $self->set_autoyast;
             }
 
             if (get_var("AUTOUPGRADE")) {
-                $args .= " autoupgrade=1";
+                $self->set_autoupgrade;
             }
-
-            type_string_slow $args;
 
             if (get_var("FIPS")) {
-                type_string_slow ' fips=1';
-                save_screenshot;
+                $self->set_fips;
             }
-
             save_screenshot;
+
             registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED);
             send_key "ctrl-x";
         }
