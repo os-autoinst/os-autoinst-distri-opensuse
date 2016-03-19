@@ -15,7 +15,7 @@ my $template_control = pp(
 
     {key => "WORKER_CLASS", value => "tap"},
 
-    {key => "START_AFTER_TEST", value => "sles12_minimal_base_create_hdd"},
+    {key => "START_AFTER_TEST", value => "sles12_minimal_base+sdk_create_hdd"},
 
     {key => "SUPPORT_SERVER", value => 1},
 
@@ -32,13 +32,15 @@ my $template_node = pp(
 
     {key => "DESKTOP", value => "textmode"},
 
+    {key => "ISO_1", value => "SLE-%VERSION%-SDK-DVD-%ARCH%-Build%BUILD_SDK%-Media1.iso"},
+
     {key => "HDD_1", value => "SLES-%VERSION%-%ARCH%-minimal_with_sdk_installed.qcow2"},
 
     {key => "NICTYPE", value => "tap"},
 
     {key => "WORKER_CLASS", value => "tap"},
 
-    {key => "START_AFTER_TEST", value => "sles12_minimal_base_create_hdd"},
+    {key => "START_AFTER_TEST", value => "sles12_minimal_base+sdk_create_hdd"},
 
     #   this should be a part of media configuration
     #    {key => "SLENKINS_TESTSUITES_REPO", value => "http://download.suse.de/ibs/Devel:/SLEnkins:/testsuites/SLE_12_SP1/"},
