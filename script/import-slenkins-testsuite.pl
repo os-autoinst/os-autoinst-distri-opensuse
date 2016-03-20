@@ -133,10 +133,10 @@ sub gen_testsuites {
 }
 
 sub import_node_file {
-    my ($fn, $project_name, $control_pkg) = @_;
+    my ($json, $fn, $project_name, $control_pkg) = @_;
 
     unless ($project_name) {
-        my $abs_path = abs_path($fn);
+        my $abs_path = abs_path($fn) || $fn;
         if ($abs_path =~ /\/var\/lib\/slenkins\/([^\/]+)\/([^\/]+)\/nodes/) {
             $project_name = $1;
             $control_pkg  = "$1-$2";
@@ -147,21 +147,42 @@ sub import_node_file {
         }
     }
     my ($nodes, $networks) = parse_node_file($fn, $project_name);
-    return gen_testsuites($nodes, $networks, $project_name, $control_pkg);
+    for my $ts (gen_testsuites($nodes, $networks, $project_name, $control_pkg)) {
+        push(@{$json->{TestSuites}}, $ts);
+        push(
+            @{$json->{JobTemplates}},
+            {
+                group_name => "Slenkins: SLE 12 SP2",
+                machine    => {name => "64bit"},
+                prio       => 60,
+                product    => {
+                    arch    => "x86_64",
+                    distri  => "sle",
+                    flavor  => "Server-DVD",
+                    group   => "sle-12-SP2-Server-DVD",
+                    version => "12-SP2",
+                },
+                test_suite => {name => $ts->{name}},
+            });
+    }
+    return;
 }
 
 my @suites;
 
 if (@ARGV == 0) {
-    print STDERR "Usage:\n\n";
-    print STDERR "import-slenkins-testsuite.pl /var/lib/slenkins/*/*/nodes >slenkins_templates\n";
-    print STDERR "load_templates --update slenkins_templates\n";
+    print STDERR "Example usage:\n\n";
+    print STDERR "sudo zypper download twopence-krb5-control\n";
+    print STDERR "unrpm /var/cache/zypp/packages/*/*/twopence-krb5-control-*\n";
+    print STDERR "import-slenkins-testsuite.pl $PWD/var/lib/slenkins/twopence-krb5/*/nodes > twopence-krb5\n";
+    print STDERR "load_templates twopence-krb5\n";
     exit(1);
 }
 
+my %json = (JobTemplates => [], TestSuites => []);
 for my $file (@ARGV) {
-    push @suites, import_node_file($file);
+    import_node_file(\%json, $file);
 }
 
-dd {TestSuites => \@suites};
+dd \%json;
 
