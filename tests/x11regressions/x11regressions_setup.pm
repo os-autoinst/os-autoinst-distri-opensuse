@@ -16,17 +16,11 @@ sub run() {
 
     x11_start_program("xterm");
 
-    # grant permission for default user to access serial port
-    type_string "xdg-su -c 'chown $username /dev/$serialdev'\n";
-    wait_still_screen;
+    # grant user permission to access serial port until next reboot
+    script_sudo "chown $username /dev/$serialdev";
 
-    if ($password) {
-        type_password;
-        send_key "ret";
-    }
-
-    wait_still_screen;
-    save_screenshot;
+    # get permanent user permission to access serial port even if reboot
+    script_sudo "gpasswd -a $username dialout";
 
     # quit xterm
     type_string "exit\n";
