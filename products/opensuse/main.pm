@@ -574,6 +574,7 @@ sub load_extra_tests () {
         # setup $serialdev permission and so on
         loadtest "console/consoletest_setup.pm";
         loadtest "console/zypper_lr.pm";
+        loadtest "console/zypper_ar.pm";
         loadtest "console/zypper_ref.pm";
 
         # start extra console tests from here
@@ -582,6 +583,10 @@ sub load_extra_tests () {
         }
         loadtest "console/a2ps.pm";    # a2ps is not a ring package and thus not available in staging
 
+        if (get_var("SYSAUTHTEST")) {
+            # sysauth test scenarios run in the console
+            loadtest "sysauth/sssd.pm";
+        }
         loadtest "console/command_not_found.pm";
 
         # finished console test and back to desktop
@@ -591,14 +596,6 @@ sub load_extra_tests () {
         if (!get_var("NOAUTOLOGIN")) {
             loadtest "x11/multi_users_dm.pm";
         }
-
-        return 1;
-    }
-    elsif (get_var("SYSAUTHTEST")) {
-        # sysauth test scenarios run in the console
-        loadtest "console/consoletest_setup.pm";
-        loadtest "console/zypper_ar.pm";
-        loadtest "sysauth/sssd.pm";
 
         return 1;
     }
