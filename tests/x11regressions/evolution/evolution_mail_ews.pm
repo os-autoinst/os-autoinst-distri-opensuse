@@ -65,7 +65,12 @@ sub run() {
     assert_screen "evolution_wizard-receiving-opts";
     assert_and_click "evolution_wizard-ews-enable-gal";
     assert_and_click "evolution_wizard-ews-fetch-abl";
-    assert_screen "evolution_wizard-ews-view-gal", 120;
+    assert_screen [qw/evolution_wizard-ews-view-gal evolution_mail-auth/], 120;
+    if (match_has_tag('evolution_mail-auth')) {
+        type_string "$mail_passwd";
+        send_key "ret";
+        assert_screen "evolution_wizard-ews-view-gal", 120;
+    }
     send_key "alt-o";
     assert_screen "evolution_wizard-account-summary";
     send_key "alt-o";
