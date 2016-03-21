@@ -2477,19 +2477,6 @@
                       test_suite => { name => "install-kde-image" },
                     },
                     {
-                      group_name => "openSUSE Tumbleweed",
-                      machine => { name => "64bit" },
-                      prio => 50,
-                      product => {
-                        arch    => "x86_64",
-                        distri  => "opensuse",
-                        flavor  => "DVD",
-                        group   => "opensuse-DVD",
-                        version => "*",
-                      },
-                      test_suite => { name => "sysauth" },
-                    },
-                    {
                       group_name => "Staging Projects",
                       machine => { name => "ppc64le" },
                       prio => 45,
@@ -3236,16 +3223,6 @@
                       ],
                     },
                     {
-                      name => "sysauth",
-                      settings => [
-                        { key => "DESKTOP", value => "kde" },
-                        { key => "SYSAUTHTEST", value => 1 },
-                        { key => "BOOT_HDD_IMAGE", value => 1 },
-                        { key => "START_AFTER_TEST", value => "install-kde-image" },
-                        { key => "HDD_1", value => "kde_image.qcow2" },
-                      ],
-                    },
-                    {
                       name => "install-gnome-image",
                       settings => [
                         { key => "DESKTOP", value => "gnome" },
@@ -3273,6 +3250,7 @@
                         { key => "HDD_1", value => "gnome_image.qcow2" },
                         { key => "START_AFTER_TEST", value => "install-gnome-image" },
                         { key => "EXTRATEST", value => 1 },
+                        { key => "SYSAUTHTEST", value => 1 },
                       ],
                     },
                     {
@@ -3283,6 +3261,7 @@
                         { key => "HDD_1", value => "kde_image.qcow2" },
                         { key => "START_AFTER_TEST", value => "install-kde-image" },
                         { key => "EXTRATEST", value => 1 },
+                        { key => "SYSAUTHTEST", value => 1 },
                       ],
                     },
                     {
@@ -3293,6 +3272,7 @@
                         { key => "HDD_1", value => "xfce_image.qcow2" },
                         { key => "START_AFTER_TEST", value => "install-xfce-image" },
                         { key => "EXTRATEST", value => 1 },
+                        { key => "SYSAUTHTEST", value => 1 },
                       ],
                     },
                     {
@@ -3303,6 +3283,7 @@
                         { key => "HDD_1", value => "lxde_image.qcow2" },
                         { key => "START_AFTER_TEST", value => "install-lxde-image" },
                         { key => "EXTRATEST", value => 1 },
+                        { key => "SYSAUTHTEST", value => 1 },
                       ],
                     },
                     {

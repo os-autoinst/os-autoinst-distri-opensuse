@@ -263,6 +263,11 @@ sub snapper_is_applicable() {
     return ($fs eq "btrfs" && get_var("HDDSIZEGB", 10) > 10);
 }
 
+sub extratest_is_applicable() {
+    # pre-conditions for extra tests ie. the tests are running based on preinstalled image
+    return !get_var("INSTALLONLY") && get_var("DESKTOP") !~ /textmode/ && !get_var("DUALBOOT") && !get_var("RESCUECD");
+}
+
 sub need_clear_repos() {
     return is_staging;
 }
@@ -548,8 +553,6 @@ sub load_consoletests() {
 }
 
 sub load_yast2ui_tests() {
-    return unless (!get_var("INSTALLONLY") && get_var("DESKTOP") !~ /textmode|minimalx/ && !get_var("DUALBOOT") && !get_var("RESCUECD") && get_var("Y2UITEST"));
-
     loadtest "yast2_ui/yast2_control_center.pm";
     loadtest "yast2_ui/yast2_bootloader.pm";
     loadtest "yast2_ui/yast2_datetime.pm";
@@ -565,7 +568,7 @@ sub load_yast2ui_tests() {
 }
 
 sub load_extra_tests () {
-    if (get_var("EXTRATEST")) {
+    if (extratest_is_applicable && get_var("EXTRATEST")) {
         # Put tests that filled the conditions below
         # 1) you don't want to run in stagings below here
         # 2) the application is not rely on desktop environment
@@ -574,6 +577,7 @@ sub load_extra_tests () {
         # setup $serialdev permission and so on
         loadtest "console/consoletest_setup.pm";
         loadtest "console/zypper_lr.pm";
+        loadtest "console/zypper_ar.pm";
         loadtest "console/zypper_ref.pm";
 
         # start extra console tests from here
@@ -582,6 +586,10 @@ sub load_extra_tests () {
         }
         loadtest "console/a2ps.pm";    # a2ps is not a ring package and thus not available in staging
 
+        if (get_var("SYSAUTHTEST")) {
+            # sysauth test scenarios run in the console
+            loadtest "sysauth/sssd.pm";
+        }
         loadtest "console/command_not_found.pm";
 
         # finished console test and back to desktop
@@ -594,15 +602,7 @@ sub load_extra_tests () {
 
         return 1;
     }
-    elsif (get_var("SYSAUTHTEST")) {
-        # sysauth test scenarios run in the console
-        loadtest "console/consoletest_setup.pm";
-        loadtest "console/zypper_ar.pm";
-        loadtest "sysauth/sssd.pm";
-
-        return 1;
-    }
-    elsif (get_var("Y2UITEST")) {
+    elsif (extratest_is_applicable && get_var("Y2UITEST")) {
         # setup $serialdev permission and so on
         loadtest "console/consoletest_setup.pm";
         # start extra yast console test from here
