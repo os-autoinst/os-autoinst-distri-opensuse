@@ -309,6 +309,7 @@ sub load_x11regresion_tests() {
         loadtest "x11regressions/gnomecase/application_starts_on_login.pm";
         loadtest "x11regressions/gnomecase/change_password.pm";
         loadtest "x11regressions/gnomecase/login_test.pm";
+        loadtest "x11regressions/gnomecase/gnome_default_applications.pm";
         loadtest "x11regressions/gnote/gnote_first_run.pm";
         loadtest "x11regressions/gnote/gnote_link_note.pm";
         loadtest "x11regressions/gnote/gnote_rename_title.pm";
@@ -316,6 +317,7 @@ sub load_x11regresion_tests() {
         loadtest "x11regressions/gnote/gnote_edit_format.pm";
         loadtest "x11regressions/gnote/gnote_search_all.pm";
         loadtest "x11regressions/gnote/gnote_search_body.pm";
+        loadtest "x11regressions/gnote/gnote_search_title.pm";
         loadtest "x11regressions/evince/evince_open.pm";
         loadtest "x11regressions/evince/evince_view.pm";
         loadtest "x11regressions/evince/evince_rotate_zoom.pm";
