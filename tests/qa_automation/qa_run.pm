@@ -30,8 +30,11 @@ sub test_suite {
 # system boot & login
 sub system_login {
     my $self = shift;
-    assert_screen "inst-bootmenu", 30;
-    send_key "ret";
+    # if we have to patch the system, we won't see the CD
+    if (!get_var('SYSTEM_IS_PATCHED')) {
+        assert_screen "inst-bootmenu", 30;
+        send_key "ret";
+    }
     assert_screen "grub2", 15;
     send_key "ret";
     assert_screen "text-login", 50;

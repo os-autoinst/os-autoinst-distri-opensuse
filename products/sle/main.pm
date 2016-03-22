@@ -897,6 +897,9 @@ elsif (get_var("HACLUSTER")) {
     load_hacluster_tests();
 }
 elsif (get_var("QA_TESTSET")) {
+    if (get_var('OS_TEST_REPO')) {
+        loadtest "qa_automation/patch_and_reboot.pm";
+    }
     loadtest "qa_automation/" . get_var("QA_TESTSET") . ".pm";
 }
 elsif (get_var("EXTRATEST")) {
