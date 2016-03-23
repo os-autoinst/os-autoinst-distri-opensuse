@@ -137,7 +137,7 @@ sub registration_bootloader_params {
 
 sub yast_scc_registration {
 
-    assert_script_run "yast2 scc";
+    type_string "yast2 scc; echo yast-scc-done-\$?- > /dev/$serialdev\n";
     assert_screen 'scc-registration', 30;
 
     fill_in_registration_data;
