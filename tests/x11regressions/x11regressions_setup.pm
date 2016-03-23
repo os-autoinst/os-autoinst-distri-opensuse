@@ -20,7 +20,7 @@ sub run() {
     script_sudo "chown $username /dev/$serialdev";
 
     # get permanent user permission to access serial port even if reboot
-    script_sudo "gpasswd -a $username dialout";
+    script_sudo "gpasswd -a $username tty";
 
     # quit xterm
     type_string "exit\n";
