@@ -838,6 +838,24 @@ sub load_hacluster_tests() {
     return 1;
 }
 
+sub load_virtualization_tests() {
+    # standalone suite to fit needed installation
+    if (get_var("STANDALONEVT")) {
+        loadtest "virtualization/boot.pm";
+        loadtest "virtualization/installation.pm";
+        loadtest "virtualization/prepare_sle12.pm";
+    }
+    loadtest "virtualization/yast_virtualization.pm";
+    loadtest "virtualization/virt_install.pm";
+    loadtest "virtualization/virt_top.pm";
+    loadtest "virtualization/virtman_install.pm";
+    loadtest "virtualization/virtman_view.pm";
+    loadtest "virtualization/virtman_storage.pm";
+    loadtest "virtualization/virtman_virtualnet.pm";
+    loadtest "virtualization/virtman_networkinterface.pm";
+    loadtest "virtualization/virtman_create_guest.pm";
+}
+
 sub load_feature_tests() {
     loadtest "feature/feature_console/zypper_releasever.pm";
     loadtest "feature/feature_console/suseconnect.pm";
