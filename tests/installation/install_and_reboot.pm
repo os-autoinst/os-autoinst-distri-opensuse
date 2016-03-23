@@ -22,32 +22,28 @@ sub run() {
     my @tags = qw/rebootnow/;
     if (get_var("UPGRADE")) {
         push(@tags, "ERROR-removing-package");
+        push(@tags, "DIALOG-packages-notifications");
         $timeout = 5500;    # upgrades are slower
     }
     while (1) {
         assert_screen \@tags, $timeout;
 
-        if (match_has_tag("popup-warning")) {
-            record_soft_failure;
-            bmwqemu::diag "warning popup caused dent";
-            send_key "ret";
-            pop @tags;
+        if (match_has_tag("DIALOG-packages-notifications")) {
+            send_key 'alt-o';    # ok
             next;
         }
         # can happen multiple times
         if (match_has_tag("ERROR-removing-package")) {
             record_soft_failure;
-            send_key 'alt-d';
+            send_key 'alt-d';    # details
             assert_screen 'ERROR-removing-package-details';
-            send_key 'alt-i';
-            assert_screen 'ERROR-removing-package-warning';
-            send_key 'alt-o';
+            send_key 'alt-i';    # ignore
             next;
         }
         last;
     }
 
-    send_key 'alt-s';    # Stop the reboot countdown
+    send_key 'alt-s';            # Stop the reboot countdown
 
     select_console 'install-shell';
 
