@@ -12,9 +12,9 @@ sub run() {
     x11_start_program("vncviewer :0");
     wait_idle;
     assert_screen "virtman-sle12sp1-gnome_virt-install", 100;
-    for (0 .. 2) { 
-	send_key "alt-f4";
-    } # closing all windows
+    for (0 .. 2) {
+        send_key "alt-f4";
+    }    # closing all windows
 }
 
 1;

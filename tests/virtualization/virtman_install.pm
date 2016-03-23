@@ -7,8 +7,8 @@ sub run() {
     my $self = shift;
 
     #ensure_installed("virt-manager");
-    # workaround for bug: 
-    # Bug 948366 - "pkcon install virt-manager" report it will remove 
+    # workaround for bug:
+    # Bug 948366 - "pkcon install virt-manager" report it will remove
     # the package if this command is run twice
     x11_start_program("xterm");
     become_root();

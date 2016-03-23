@@ -12,11 +12,11 @@ sub run() {
     wait_idle;
     assert_screen "virt-sle12sp1-gnome_yast_virtualization", 50;
     # select everything
-    send_key "alt-x", 10; # XEN Server
-    send_key "alt-e", 10; # Xen tools
-    send_key "alt-k", 10; # KVM Server
-    send_key "alt-v", 10; # KVM tools
-    send_key "alt-l", 10; # libvirt-lxc
+    send_key "alt-x", 10;    # XEN Server
+    send_key "alt-e", 10;    # Xen tools
+    send_key "alt-k", 10;    # KVM Server
+    send_key "alt-v", 10;    # KVM tools
+    send_key "alt-l", 10;    # libvirt-lxc
 
     # launch the installation
     send_key "alt-a";
@@ -26,11 +26,12 @@ sub run() {
     # select yes
     #send_key "alt-y";
     if (get_var("STANDALONEVT")) {
-	assert_screen "virt-sle12sp1-gnome_yast_virtualization_OK", 200;
-    } else {
-	assert_screen "virt-sle12sp1-gnome_yast_virtualization_bridge", 200;
-	# select yes
-	send_key "alt-y";
+        assert_screen "virt-sle12sp1-gnome_yast_virtualization_OK", 200;
+    }
+    else {
+        assert_screen "virt-sle12sp1-gnome_yast_virtualization_bridge", 200;
+        # select yes
+        send_key "alt-y";
     }
     send_key "alt-o";
     # close the xterm

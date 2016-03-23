@@ -24,24 +24,26 @@ sub run {
 
     # login and preparation of the system
     if (get_var("DESKTOP") =~ /icewm/) {
-	send_key "ret";
-	assert_screen "SLE12_login", 520;
-	type_string "linux";
-	send_key "ret", 1;
-	type_string $password;
-	send_key "ret", 1;
-	save_screenshot;
-	# install and launch polkit	
-	x11_start_program("xterm");		
-	become_root();	
-	script_run "zypper -n in polkit-gnome";
-	# exit root, and be the default user
-	type_string "exit\n"; sleep 1;
-	type_string "nohup /usr/lib/polkit-gnome-authentication-agent-1 &";
-	send_key "ret";
-    } else {
-    # auto-login has been selected for gnome
-	assert_screen "virt-manager_SLE12_desktop", 520;
+        send_key "ret";
+        assert_screen "SLE12_login", 520;
+        type_string "linux";
+        send_key "ret", 1;
+        type_string $password;
+        send_key "ret", 1;
+        save_screenshot;
+        # install and launch polkit
+        x11_start_program("xterm");
+        become_root();
+        script_run "zypper -n in polkit-gnome";
+        # exit root, and be the default user
+        type_string "exit\n";
+        sleep 1;
+        type_string "nohup /usr/lib/polkit-gnome-authentication-agent-1 &";
+        send_key "ret";
+    }
+    else {
+        # auto-login has been selected for gnome
+        assert_screen "virt-manager_SLE12_desktop", 520;
     }
     x11_start_program("xterm");
     wait_idle;
@@ -52,17 +54,17 @@ sub run {
 
     send_key "alt-f4";
     # do the update
-#    type_string ("mkdir /mnt/install && mount 10.0.1.99:/volume1/install /mnt/install\n");
-#    wait_idle;
-#    type_string ("zypper addrepo /mnt/install/suse/sle12sp1/suse/ sle12sp1\n");
-#    wait_idle;
-#    type_string ("zypper refresh\n");
-#    wait_idle;
-#    type_string ("zypper -n up --replacefiles\n");
-#    wait_idle;
-#   type_string ("reboot\n");
-#    save_screenshot;
-#    assert_screen "virt-manager_SLE12_desktop", 520;
+    #    type_string ("mkdir /mnt/install && mount 10.0.1.99:/volume1/install /mnt/install\n");
+    #    wait_idle;
+    #    type_string ("zypper addrepo /mnt/install/suse/sle12sp1/suse/ sle12sp1\n");
+    #    wait_idle;
+    #    type_string ("zypper refresh\n");
+    #    wait_idle;
+    #    type_string ("zypper -n up --replacefiles\n");
+    #    wait_idle;
+    #   type_string ("reboot\n");
+    #    save_screenshot;
+    #    assert_screen "virt-manager_SLE12_desktop", 520;
 }
 
 sub test_flags {
@@ -70,7 +72,7 @@ sub test_flags {
     # 'fatal' - whole test suite is in danger if this fails
     # 'milestone' - after this test succeeds, update 'lastgood'
     # 'important' - if this fails, set the overall state to 'fail'
-    return { fatal => 0, important => 0, milestone => 1 };
+    return {fatal => 0, important => 0, milestone => 1};
 }
 
 1;
