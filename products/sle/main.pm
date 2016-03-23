@@ -839,8 +839,8 @@ sub load_hacluster_tests() {
 }
 
 sub load_feature_tests() {
-    loadtest "feature/console/zypper_releasever.pm";
-    loadtest "feature/console/suseconnect.pm";
+    loadtest "feature/feature_console/zypper_releasever.pm";
+    loadtest "feature/feature_console/suseconnect.pm";
 }
 
 sub prepare_target() {
