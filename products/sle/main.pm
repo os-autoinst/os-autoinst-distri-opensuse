@@ -999,6 +999,7 @@ else {
 if (get_var("STORE_HDD_1") || get_var("PUBLISH_HDD_1")) {
     if (get_var("INSTALLONLY")) {
         loadtest "console/hostname.pm";
+        loadtest "shutdown/grub_set_bootargs.pm";
         loadtest "shutdown/shutdown.pm";
     }
 }
