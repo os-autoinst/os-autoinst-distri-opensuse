@@ -75,7 +75,7 @@ sub run() {
     send_key "alt-f4";
 
     logout_and_login;
-    assert_screen "application-running-firefox";
+    assert_screen "firefox-gnome", 90;
     send_key "alt-f4";
 
     #remove firefox from startup application
@@ -102,9 +102,9 @@ sub run() {
     assert_screen "test-desktop_mainmenu-1";
     assert_and_click "application-menu-firefox";
     wait_still_screen;
-    assert_screen "firefox-loaded", 60;
+    assert_screen "firefox-gnome", 90;
     logout_and_login;
-    assert_screen "session-running-firefox";
+    assert_screen "firefox-gnome", 90;
     send_key "alt-f4";
 
     alter_status_auto_save_session;
