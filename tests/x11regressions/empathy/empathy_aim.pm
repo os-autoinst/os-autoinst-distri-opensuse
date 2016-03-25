@@ -40,7 +40,12 @@ sub run() {
     send_key "alt-d";
 
     # check status
-    assert_screen('empathy-aim-aim1-success', 30);
+    assert_screen [qw/popup-unlock-keyring empathy-aim-aim1-success/], 60;
+    if (match_has_tag("popup-unlock-keyring")) {
+        type_string "$password";
+        assert_and_click "empathy_aim-unclock-keyring";
+        assert_screen('empathy-aim-aim1-success', 30);
+    }
 
     # add another aim account- aim2
 
