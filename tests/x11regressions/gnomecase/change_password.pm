@@ -50,6 +50,7 @@ sub reboot_system {
     }
     assert_screen "displaymanager", 200;
     send_key "ret";
+    wait_still_screen;
     type_string "$password";
     send_key "ret";
     assert_screen "generic-desktop";
@@ -93,8 +94,11 @@ sub change_pwd {
 
 sub add_user {
     assert_and_click "add-user";
-    send_key "alt-f";
     type_string "$newUser";
+    unless (assert_screen("input-username-test")) {
+        send_key "alt-f";
+        type_string "$newUser";
+    }
     assert_and_click "set-password-option";
     send_key "alt-p";
     type_string "$pwd4newUser";
