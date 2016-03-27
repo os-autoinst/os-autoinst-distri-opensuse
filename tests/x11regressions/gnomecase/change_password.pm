@@ -106,21 +106,6 @@ sub add_user {
     send_key "alt-f4";
 }
 
-sub delete_user {
-    x11_start_program("gnome-terminal");
-    type_string "su";
-    send_key "ret";
-    assert_screen "pwd4root-terminal";
-    type_string "$rootpwd";
-    send_key "ret";
-    assert_screen "root-gnome-terminal";
-    type_string "userdel -f test";
-    send_key "ret";
-    assert_screen "user-test-deleted";
-    send_key "alt-f4";
-    send_key "ret";
-}
-
 sub run () {
     my $self = shift;
 
@@ -151,9 +136,6 @@ sub run () {
     send_key "ret";
     assert_screen "generic-desktop", 60;
 
-    #delete the added user: test
-    delete_user;
-
     #restore password to original value
     x11_start_program("gnome-terminal");
     type_string "su";
@@ -171,6 +153,11 @@ sub run () {
     type_string "$rootpwd";
     send_key "ret";
     assert_screen "password-changed-terminal";
+
+    #delete the added user: test
+    type_string "userdel -f test";
+    send_key "ret";
+    assert_screen "user-test-deleted";
     send_key "alt-f4";
     send_key "ret";
 }
