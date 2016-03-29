@@ -26,5 +26,10 @@ sub run() {
     type_string "exit\n";
 }
 
+# add milestone flag to save setup in lastgood vm snapshot
+sub test_flags() {
+    return {milestone => 1};
+}
+
 1;
 # vim: set sw=4 et:
