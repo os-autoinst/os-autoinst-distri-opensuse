@@ -18,6 +18,7 @@ use utils;
 # Checks that the initial snapshot is created, its strategy is set to "number"
 # and user data is set to "important=yes"
 
+
 sub run() {
     select_console 'root-console';
 
@@ -25,6 +26,7 @@ sub run() {
     # Check if the snapshot called 'after installation' is there
     my $pattern = 'single\s*(\|[^|]*){4}\s*\|\s*number\s*\|\s*after installation\s*\|\s*important=yes';
     $pattern = 'single\s*(\|[^|]*){4}\s*\|\s*number\s*\|\s*Factory status\s*\|\s*important=yes' if is_jeos;
+    $pattern = 'pre\s*(\|[^|]*){4}\s*\|\s*number\s*\|\s*before update\s*\|\s*important=yes' if get_var('AUTOUPGRADE');
     wait_serial($pattern, 5) || die 'installation snapshot test failed';
 }
 
