@@ -19,7 +19,7 @@ sub run() {
     my $timeout = 2000;
 
     # workaround for yast popups
-    my @tags = qw/rebootnow/;
+    my @tags = qw/rebootnow yast2-package-notification/;
     if (get_var("UPGRADE")) {
         push(@tags, "ERROR-removing-package");
         $timeout = 5500;    # upgrades are slower
@@ -30,6 +30,12 @@ sub run() {
         if (match_has_tag("popup-warning")) {
             record_soft_failure;
             bmwqemu::diag "warning popup caused dent";
+            send_key "ret";
+            pop @tags;
+            next;
+        }
+        # YaST can give a notice about package notifications
+        if (match_has_tag("yast2-package-notification")) {
             send_key "ret";
             pop @tags;
             next;
