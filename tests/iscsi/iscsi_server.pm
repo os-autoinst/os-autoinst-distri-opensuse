@@ -51,9 +51,7 @@ sub run() {
     send_key 'alt-u';                                                                   # un-check use authentication
     wait_still_screen(2, 10);
     send_key 'alt-a';                                                                   # add LUN
-    wait_still_screen(2, 10);
-    send_key 'alt-p';                                                                   # go to path field
-    wait_still_screen(2, 10);
+    send_key_until_needlematch 'iscsi-target-LUN-path-selected', 'alt-p', 5, 5;         # send alt-p until LUN path is selected
     type_string '/root/iscsi-disk';
     assert_screen 'iscsi-target-LUN';
     send_key 'alt-o';                                                                   # OK
