@@ -18,6 +18,7 @@ use utils;
 # Checks that the initial snapshot is created, its strategy is set to "number"
 # and user data is set to "important=yes"
 
+
 sub run() {
     select_console 'root-console';
 
