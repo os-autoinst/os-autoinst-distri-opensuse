@@ -563,7 +563,7 @@ sub load_consoletests() {
         if (need_clear_repos) {
             loadtest "console/zypper_clear_repos.pm";
         }
-        # have SCC repo for SLE product
+        #have SCC repo for SLE product
         if (have_scc_repos) {
             loadtest "console/yast_scc.pm";
         }
@@ -572,6 +572,7 @@ sub load_consoletests() {
         }
         loadtest "console/zypper_ref.pm";
         loadtest "console/yast2_lan.pm";
+        loadtest "console/yast2_nis.pm";
         loadtest "console/curl_https.pm";
         if (check_var("ARCH", "x86_64")) {
             loadtest "console/glibc_i686.pm";
