@@ -57,7 +57,6 @@ sub run {
         useradd -m testuser
         mkdir /root/.ssh
         mkdir /home/testuser/.ssh
-        curl -f -v " . autoinst_url . "/data/slenkins/ssh/id_rsa > /root/.ssh/id_rsa
         curl -f -v " . autoinst_url . "/data/slenkins/ssh/authorized_keys > /root/.ssh/authorized_keys
         cp /root/.ssh/authorized_keys /home/testuser/.ssh/authorized_keys
         chown -R testuser /home/testuser/.ssh
