@@ -145,17 +145,12 @@ sub run() {
     send_key "down";    # select disks
     if (get_var("OFW")) {    ## no RAID /boot partition for ppc
         send_key 'alt-p';
-        if (!get_var('UEFI')) {    # partitioning type does not appear when GPT disk used, GPT is default for UEFI
-                                   # No UEFI for Power 'yet', but might happen some day
-            assert_screen 'partitioning-type';
-            send_key 'alt-n';
-        }
         assert_screen 'partitioning-size';
         send_key 'ctrl-a';
         type_string "200 MB";
         send_key 'alt-n';
         assert_screen 'partition-role';
-        send_key "alt-a";          # Raw Volume
+        send_key "alt-a";    # Raw Volume
         send_key 'alt-n';
         assert_screen 'partition-format';
         send_key 'alt-d';
@@ -166,19 +161,42 @@ sub run() {
         assert_screen 'custompart';
         send_key 'alt-s';
         send_key 'right';
-        send_key 'down';           #should select first disk'
+        send_key 'down';     #should select first disk'
         wait_idle 5;
     }
+    if (get_var('UEFI')) {
+        send_key 'alt-p';
+        assert_screen 'partitioning-size';
+        send_key 'ctrl-a';
+        type_string "200 MB";
+        send_key 'alt-n';
+        assert_screen 'partition-role';
+        send_key "alt-e";    # EFI boot Part match
+        assert_screen 'partitoion-role-EFI';
+        send_key 'alt-n';
+        assert_screen 'partition-format';
+        send_key 'alt-a';    # Formatting options
+        send_key_until_needlematch 'filesystem-fat', 'down';
+        send_key 'alt-m';    #  Mounting options
+        type_string "/boot/efi";
+        send_key 'alt-f';
+        assert_screen 'custompart-efi-boot';
+        send_key 'alt-s';
+        send_key 'right';
+        send_key 'down';     # should select first disk'
+        wait_idle 5;
+    }
+
     else {
-        send_key "right";          # unfold disks
-        send_key "down";           # select first disk
+        send_key "right";    # unfold disks
+        send_key "down";     # select first disk
         wait_idle 5;
     }
 
     for (1 .. 4) {
-        addpart(300);              # boot
-        addpart(8000);             # root
-        addpart(100);              # swap
+        addpart(300);        # boot
+        addpart(8000);       # root
+        addpart(100);        # swap
         assert_screen 'raid-partition';
 
         # select next disk
