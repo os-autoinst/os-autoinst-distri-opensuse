@@ -91,9 +91,8 @@ sub run() {
     for (1 .. 4) { send_key "down"; }
     send_key "end";
 
-    if (get_var("NETBOOT") && get_var("SUSEMIRROR")) {
-        assert_screen('no_install_url');
-        type_string_slow " install=http://" . get_var("SUSEMIRROR");
+    if (get_var("NETBOOT")) {
+        type_string_slow " install=" . get_netboot_mirror;
         save_screenshot();
     }
     send_key "spc";

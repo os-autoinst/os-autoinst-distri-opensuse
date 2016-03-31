@@ -88,10 +88,11 @@ sub run() {
     # set HTTP-source to not use factory-snapshot
     if (get_var("NETBOOT")) {
         my $m_protocol = get_var('INSTALL_SOURCE', 'http');
+        my $m_mirror = get_netboot_mirror;
         my ($m_server, $m_share, $m_directory);
 
         # Parse SUSEMIRROR into variables
-        if (get_var("SUSEMIRROR", '') =~ m{^([a-zA-Z0-9.-]*)(/.*)$}) {
+        if ($m_mirror =~ m{^[a-z]+://([a-zA-Z0-9.-]*)(/.*)$}) {
             ($m_server, $m_directory) = ($1, $2);
             if ($m_protocol eq "smb") {
                 ($m_share, $m_directory) = $m_directory =~ /\/(.+?)(\/.*)/;
