@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 use strict;
-use Cwd 'abs_path';
+use Cwd;
 use Data::Dump qw/dd pp/;
 
 my $template_control = pp(
@@ -169,6 +169,8 @@ sub import_node_file {
 }
 
 my @suites;
+
+my $PWD = cwd();
 
 if (@ARGV == 0) {
     print STDERR "Example usage:\n\n";
