@@ -23,6 +23,9 @@ sub run() {
         sleep 2;
         send_key "alt-d";
         type_string "http://www.java.com/en/download/installed.jsp?detect=jre\n";
+        if (check_screen("oracle-cookies-handling", 30)) {
+            assert_and_click "firefox-java-agree-and-proceed";
+        }
     }
 
     # Clean and Start Firefox
