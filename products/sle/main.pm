@@ -793,7 +793,7 @@ sub load_autoyast_tests() {
     #    next boot in load_reboot_tests
 }
 
-sub load_skenkins_tests {
+sub load_slenkins_tests {
     if (get_var("SLENKINS_CONTROL")) {
         unless (get_var("SUPPORT_SERVER")) {
             loadtest "slenkins/login.pm";
@@ -898,7 +898,7 @@ elsif (get_var("SUPPORT_SERVER")) {
     loadtest "support_server/boot.pm";
     loadtest "support_server/login.pm";
     loadtest "support_server/setup.pm";
-    unless (load_skenkins_tests()) {
+    unless (load_slenkins_tests()) {
         loadtest "support_server/wait.pm";
     }
 }
@@ -984,7 +984,7 @@ else {
         load_inst_tests();
         load_reboot_tests();
     }
-    unless (load_applicationstests() || load_skenkins_tests()) {
+    unless (load_applicationstests() || load_slenkins_tests()) {
         load_rescuecd_tests();
         load_consoletests();
         load_x11tests();
