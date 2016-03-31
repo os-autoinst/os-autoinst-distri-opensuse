@@ -80,8 +80,8 @@ sub run() {
             send_key 'alt-n';
             assert_screen 'addonurl-entry';
             send_key 'alt-u';                                                   # select URL field
-            type_string "$addon";                                               # repo URL
-            send_key 'alt-n', 2;
+            type_string get_var("ADDONURL_$uc_addon");                          # repo URL
+            send_key 'alt-n';
             assert_screen 'addon-products';
             send_key "tab", 1;                                                  # select addon-products-$addon
             if (check_var('VIDEOMODE', 'text')) {                               # textmode need more tabs, depends on add-on count
