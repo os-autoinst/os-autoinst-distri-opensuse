@@ -94,9 +94,26 @@ sub run {
             push @nic, "eth$eth";
             $eth++;
         }
-        $conf .= "EXTERNAL_IP_" . uc($node) . "='" . join(' ', @external_ip) . "'\n";
-        $conf .= "INTERNAL_IP_" . uc($node) . "='" . join(' ', @internal_ip) . "'\n";
-        $conf .= "NIC_" . uc($node) . "='" . join(' ', @nic) . "'\n";
+        $conf .= "export EXTERNAL_IP_" . uc($node) . "='" . join(' ', @external_ip) . "'\n";
+        $conf .= "export INTERNAL_IP_" . uc($node) . "='" . join(' ', @internal_ip) . "'\n";
+        $conf .= "export NIC_" . uc($node) . "='" . join(' ', @nic) . "'\n";
+        my $family = uc(join('_', $settings{$p}->{DISTRI}, $settings{$p}->{VERSION}));
+        $family =~ s/-/_/g;
+        my $system = join('_', $family, $settings{$p}->{FLAVOR}, 'Build' . $settings{$p}->{BUILD});
+        $conf .= "export SYSTEM_" . uc($node) . "='$system'\n";
+        $conf .= "export FAMILY_" . uc($node) . "='$family'\n";
+        $conf .= "export ARCH_" . uc($node) . "='" . $settings{$p}->{ARCH} . "'\n";
+        $conf .= "export VARIANT_" . uc($node) . "='default'\n";
+
+        my $disk_name = 'vd';
+        $disk_name = 'sd' if ($settings{$p}->{HDDMODEL} || '') eq "virtio-scsi-pci";
+        my $disk_size = $settings{$p}->{HDDSIZEGB} || 10;
+        my $num_disks = $settings{$p}->{NUMDISKS}  || 1;
+
+        for (my $d = 0; $d < $num_disks; $d++) {
+            $conf .= "export DISK_NAME_" . uc($node) . "_DISK$d='/dev/$disk_name" . chr(ord('a') + $d) . "'\n";
+            $conf .= "export DISK_SIZE_" . uc($node) . "_DISK$d='${disk_size}G'\n";
+        }
         $i++;
     }
     print "$conf\n";
