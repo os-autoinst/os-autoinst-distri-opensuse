@@ -170,6 +170,8 @@ sub import_node_file {
 
 my @suites;
 
+my $PWD = abs_path();
+
 if (@ARGV == 0) {
     print STDERR "Example usage:\n\n";
     print STDERR "sudo zypper download twopence-krb5-control\n";
