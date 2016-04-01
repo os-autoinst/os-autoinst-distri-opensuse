@@ -19,7 +19,7 @@ my $template_control = pp(
 
     {key => "SUPPORT_SERVER", value => 1},
 
-    {key => "SUPPORT_SERVER_ROLES", value => "dhcp"},
+    {key => "SUPPORT_SERVER_ROLES", value => "dhcp,dns"},
 
     #   this is a part of support server configuration
     #    {key => "SLENKINS_TESTSUITES_REPO", value => "http://download.suse.de/ibs/Devel:/SLEnkins:/testsuites/SLE_12_SP1/"},
