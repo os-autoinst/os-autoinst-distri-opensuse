@@ -8,7 +8,7 @@
 # without any warranty.
 
 use strict;
-use base "y2logsstep";
+use base "console_yasttest";
 use testapi;
 
 
