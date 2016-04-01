@@ -574,7 +574,6 @@ sub load_consoletests() {
         }
         loadtest "console/zypper_ref.pm";
         loadtest "console/yast2_lan.pm";
-        loadtest "console/yast2_nis.pm";
         loadtest "console/curl_https.pm";
         if (check_var("ARCH", "x86_64")) {
             loadtest "console/glibc_i686.pm";
