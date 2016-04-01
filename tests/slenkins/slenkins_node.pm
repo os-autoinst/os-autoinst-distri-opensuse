@@ -46,7 +46,13 @@ sub run {
     mutex_unlock('dhcp');
     configure_dhcp();
 
-    configure_static_dns(get_host_resolv_conf());
+    if ($control_settings->{"SUPPORT_SERVER_ROLES"} !~ /\bdns\b/) {
+        # dns on control node (supportserver) is not configured
+        # -> use external dns
+        configure_static_dns(get_host_resolv_conf());
+    }
+    # else use the supportserver dns configured via dhcp
+
     my $conf_script = "zypper -n --no-gpg-checks ar '" . get_var('SLENKINS_TESTSUITES_REPO') . "' slenkins_testsuites\n";
 
     if (get_var('SLENKINS_INSTALL')) {
