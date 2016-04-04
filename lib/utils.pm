@@ -17,6 +17,7 @@ our @EXPORT = qw/
   type_string_very_slow
   unlock_if_encrypted
   wait_boot
+  get_netboot_mirror
   /;
 
 
@@ -212,6 +213,11 @@ sub handle_kwallet {
             send_key "alt-f4", 1;
         }
     }
+}
+
+sub get_netboot_mirror {
+    my $m_protocol = get_var('INSTALL_SOURCE', 'http');
+    return get_var('MIRROR_' . uc($m_protocol));
 }
 
 1;
