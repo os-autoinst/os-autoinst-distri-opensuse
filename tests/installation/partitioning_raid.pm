@@ -145,8 +145,7 @@ sub run() {
     send_key "down";    # select disks
     if (get_var("OFW")) {    ## no RAID /boot partition for ppc
         send_key 'alt-p';
-        if (!get_var('UEFI')) {    # partitioning type does not appear when GPT disk used, GPT is default for
-                                   # No UEFI for Power 'yet', but might happen some day
+        if (!get_var('UEFI')) {    # partitioning type does not appear when GPT disk used, GPT is default for UEFI
             assert_screen 'partitioning-type';
             send_key 'alt-n';
         }
