@@ -85,7 +85,10 @@ sub x11_start_program($$$) {
     $options->{valid} //= 1;
     send_key "alt-f2";
     mouse_hide(1);
-    assert_screen("desktop-runner", $timeout);
+    if (!check_screen("desktop-runner", $timeout)) {
+        # if "desktop-runner" not found send alt-f2 three times with 10 seconds timeout
+        send_key_until_needlematch 'desktop-runner', 'alt-f2', 3, 10;
+    }
     type_string $program;
     wait_idle 5;
     if ($options->{terminal}) { send_key "alt-t"; sleep 3; }
