@@ -164,7 +164,7 @@ sub run() {
         send_key 'down';     #should select first disk'
         wait_idle 5;
     }
-    if (get_var('UEFI')) {
+    elsif (get_var('UEFI')) {
         send_key 'alt-p';
         assert_screen 'partitioning-size';
         send_key 'ctrl-a';
@@ -186,7 +186,6 @@ sub run() {
         send_key 'down';     # should select first disk'
         wait_idle 5;
     }
-
     else {
         send_key "right";    # unfold disks
         send_key "down";     # select first disk
