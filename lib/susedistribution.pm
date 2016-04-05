@@ -243,13 +243,6 @@ sub init_consoles {
                 port     => 5901,
                 password => $testapi::password
             });
-        $self->add_console(
-            'iucvconn',
-            'ssh-iucvconn',
-            {
-                hostname => $hostname,
-                password => $testapi::password
-            });
 
         $self->add_console(
             'install-shell',
