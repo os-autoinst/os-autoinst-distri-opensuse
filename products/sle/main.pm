@@ -617,7 +617,10 @@ sub load_consoletests() {
             }
             loadtest "console/http_srv.pm";
             loadtest "console/mysql_srv.pm";
-            loadtest "console/dns_srv.pm";
+            if (!is_staging) {
+                # Very temporary removal of this test from staging - rbrown 6 Apr 2016
+                loadtest "console/dns_srv.pm";
+            }
         }
         if (get_var("MOZILLATEST")) {
             loadtest "console/mozmill_setup.pm";
