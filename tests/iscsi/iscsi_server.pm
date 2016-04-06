@@ -18,6 +18,7 @@ sub run() {
     my $self = shift;
 
     x11_start_program("xterm -geometry 160x45+5+5");
+    type_string "gsettings set org.gnome.desktop.session idle-delay 0\n";    # disable blank screen
     become_root;
     configure_default_gateway;
     configure_static_ip('10.0.2.1/24');

@@ -17,34 +17,35 @@ sub run() {
     my $self = shift;
 
     x11_start_program("xterm -geometry 160x45+5+5");
+    type_string "gsettings set org.gnome.desktop.session idle-delay 0\n";    # disable blank scree
     become_root;
     configure_default_gateway;
     configure_static_ip('10.0.2.3/24');
     configure_static_dns(get_host_resolv_conf());
     type_string "yast2 iscsi-client\n";
     assert_screen 'iscsi-client';
-    mutex_lock('iscsi_ready');    # wait for server setup
-    send_key "alt-i";             # go to initiator name field
+    mutex_lock('iscsi_ready');                                               # wait for server setup
+    send_key "alt-i";                                                        # go to initiator name field
     wait_still_screen(2, 10);
     type_string "iqn.2016-02.de.openqa";
     wait_still_screen(2, 10);
     assert_screen 'iscsi-initiator-service';
-    send_key "alt-v";             # go to discovered targets tab
+    send_key "alt-v";                                                        # go to discovered targets tab
     wait_still_screen(2, 10);
-    send_key "alt-d";             # press discovery button
+    send_key "alt-d";                                                        # press discovery button
     wait_still_screen(2, 10);
-    send_key "alt-i";             # go to IP address field
+    send_key "alt-i";                                                        # go to IP address field
     wait_still_screen(2, 10);
     type_string "10.0.2.1";
     assert_screen 'iscsi-initiator-discovered-IP-adress';
-    send_key "alt-n";                                     # next
-    assert_and_click 'iscsi-initiator-connect-button';    # press connect button
+    send_key "alt-n";                                                        # next
+    assert_and_click 'iscsi-initiator-connect-button';                       # press connect button
     assert_screen 'iscsi-initiator-connect-manual';
-    send_key "alt-n";                                     # go to connected targets tab
+    send_key "alt-n";                                                        # go to connected targets tab
     assert_screen 'iscsi-initiator-discovered-targets';
-    send_key "alt-n";                                     # next
+    send_key "alt-n";                                                        # next
     assert_screen 'iscsi-initiator-connected-targets';
-    send_key "alt-o";                                     # OK
+    send_key "alt-o";                                                        # OK
     wait_still_screen(2, 10);
     assert_script_run 'lsscsi';
     assert_script_run "echo -e \"n\\np\\n1\\n\\n\\nw\\n\" \| fdisk /dev/sda";    # create one partition
