@@ -14,13 +14,33 @@ use testapi;
 
 use strict;
 use warnings;
+use backend::console_proxy;
+use English;
+use feature qw/say/;
+
 
 sub run() {
+    my $self = shift;
 
-    wait_serial("Welcome to SUSE Linux Enterprise Server", 300);
-    sleep 30;    #FIXME Slight delay to make sure the machine has really started and is ready for connection via SSH
+    # FIXME: iucvconn is not known there
+    select_console('iucvconn');
+    console('iucvconn')->kill_ssh;
+
+    my $s3270 = console('x3270');
+
+    # FIXME: Debug output just for now
+    use Data::Dumper;
+    print "==== DUMPER ====\n";
+    say Dumper($s3270);
+    say Dumper($s3270->expect_3270);
+    my $r;
+    $r = $s3270->expect_3270(
+        output_delim => qr/.*login.*/,
+        timeout      => 300
+    );
 
     reset_consoles;
+
     if (!check_var('DESKTOP', 'textmode')) {
         select_console('x11');
     }

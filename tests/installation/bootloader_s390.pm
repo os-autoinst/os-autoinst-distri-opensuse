@@ -69,6 +69,7 @@ sub get_to_yast() {
     $params .= " ssh=1 sshpassword=$testapi::password sshd=1 ";
     $params .= " VNC=1 VNCSize=1024x768 VNCPassword=$testapi::password ";
 
+
     # we have to hardcode the hostname here - the true hostname would
     # create a too long parameter ;(
     $params .= " install=ftp://openqa/" . get_var('REPO_0') . " ";
@@ -81,8 +82,9 @@ sub get_to_yast() {
     # qboot
     my $ftp_server = get_var('OPENQA_HOSTNAME') or die;
     # TODO: find the proper repo for 'ISO'
+    # FIXME: hardcoded 'openqa.suse.de' for local tests
     my $dir_with_suse_ins = get_var('REPO_0');
-    $s3270->sequence_3270("String(\"qaboot $ftp_server $dir_with_suse_ins\")", "ENTER", "Wait(InputField)",);
+    $s3270->sequence_3270("String(\"qaboot openqa.suse.de $dir_with_suse_ins\")", "ENTER", "Wait(InputField)",);
 
     ##############################
     # edit parmfile
@@ -156,6 +158,12 @@ sub run() {
     my $exception = $@;
 
     die join("\n", '#' x 67, $exception, '#' x 67) if $exception;
+
+    # 'dummy' wait_serial to activate the serial console
+    # give the system a few seconds to have routes definetly up
+    wait_idle;
+    wait_serial("");
+
 
     # TODO: "hardcoded" vnc (default) right now - other installation methods have to be added
     select_console("installation");

@@ -48,7 +48,7 @@ sub run() {
     select_console 'install-shell';
 
     $self->get_ip_address();
-    $self->save_upload_y2logs();
+    #FIXME local workaround    $self->save_upload_y2logs();
 
     select_console 'installation';
     assert_screen 'rebootnow';
@@ -61,6 +61,7 @@ sub run() {
     else {
         send_key 'alt-o';
     }
+
 }
 
 1;
