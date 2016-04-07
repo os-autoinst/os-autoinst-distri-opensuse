@@ -16,11 +16,19 @@ use strict;
 use warnings;
 
 sub run() {
+    my $self = shift;
 
-    wait_serial("Welcome to SUSE Linux Enterprise Server", 300);
-    sleep 30;    #FIXME Slight delay to make sure the machine has really started and is ready for connection via SSH
+    console('iucvconn')->kill_ssh;
+
+    console('x3270')->expect_3270(
+        output_delim => qr/Welcome to SUSE Linux Enterprise Server/,
+        timeout      => 300
+    );
 
     reset_consoles;
+    # reconnect the ssh for grab
+    select_console('iucvconn');
+
     if (!check_var('DESKTOP', 'textmode')) {
         select_console('x11');
     }
