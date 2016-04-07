@@ -18,16 +18,26 @@ use warnings;
 sub run() {
     my $self = shift;
 
-    console('iucvconn')->kill_ssh;
+    # different behaviour for z/VM and z/KVM
+    if (check_var('BACKEND', 's390x')) {
 
-    console('x3270')->expect_3270(
-        output_delim => qr/Welcome to SUSE Linux Enterprise Server/,
-        timeout      => 300
-    );
+        # kill serial ssh connection
+        console('iucvconn')->kill_ssh;
 
-    reset_consoles;
-    # reconnect the ssh for grab
-    select_console('iucvconn');
+        # 'wait_serial' implementation for x3270
+        console('x3270')->expect_3270(
+            output_delim => qr/Welcome to SUSE Linux Enterprise Server/,
+            timeout      => 300
+        );
+
+        reset_consoles;
+
+        # reconnect the ssh for serial grab
+        select_console('iucvconn');
+    }
+    else {
+        wait_serial("Welcome to SUSE Linux Enterprise Server");
+    }
 
     if (!check_var('DESKTOP', 'textmode')) {
         select_console('x11');
