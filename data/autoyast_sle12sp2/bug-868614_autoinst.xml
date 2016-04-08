@@ -36,7 +36,6 @@
       <boot_mbr>false</boot_mbr>
       <boot_root>true</boot_root>
       <default>0</default>
-      <distributor>SUSE Linux Enterprise Server 12</distributor>
       <generic_mbr>true</generic_mbr>
       <gfxmode>auto</gfxmode>
       <os_prober>true</os_prober>

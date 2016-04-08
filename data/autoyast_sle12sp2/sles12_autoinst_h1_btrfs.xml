@@ -116,10 +116,6 @@
     <dns>
       <dhcp_hostname config:type="boolean">false</dhcp_hostname>
       <dhcp_resolv config:type="boolean">false</dhcp_resolv>
-      <nameservers config:type="list">
-        <nameserver>192.168.10.11</nameserver>
-        <nameserver>192.168.10.11</nameserver>
-      </nameservers>
       <searchlist config:type="list"> 
         <search>openqa.de</search>
         <search>openqa.de</search>

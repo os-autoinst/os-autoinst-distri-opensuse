@@ -76,10 +76,6 @@
       <dhcp_resolv config:type="boolean">false</dhcp_resolv>
       <domain>pnt.de</domain>
       <hostname>h4</hostname>
-      <nameservers config:type="list">
-        <nameserver>10.1.121.11</nameserver>
-        <nameserver>10.2.121.11</nameserver>
-      </nameservers>
       <searchlist config:type="list">
         <search>pnt.de</search>
         <search>psn.de</search>
