@@ -66,8 +66,15 @@ sub get_to_yast() {
 
     my $params = '';
     $params .= get_var('S390_NETWORK_PARAMS');
-    $params .= " ssh=1 sshpassword=$testapi::password sshd=1 ";
-    $params .= " VNC=1 VNCSize=1024x768 VNCPassword=$testapi::password ";
+
+    if (check_var("VIDEOMODE", "text")) {
+        $params .= " ssh=1 ";    # trigger ssh-text installation
+    }
+    else {
+        $params .= " sshd=1 VNC=1 VNCSize=1024x768 VNCPassword=$testapi::password ";
+    }
+
+    $params .= "sshpassword=$testapi::password ";
 
     # we have to hardcode the hostname here - the true hostname would
     # create a too long parameter ;(
@@ -81,7 +88,7 @@ sub get_to_yast() {
     # qboot
     my $ftp_server = get_var('OPENQA_HOSTNAME') or die;
     my $dir_with_suse_ins = get_var('REPO_0');
-    $s3270->sequence_3270("String(\"qaboot $ftp_server $dir_with_suse_ins\")", "ENTER", "Wait(InputField)",);
+    $s3270->sequence_3270("String(\"qaboot openqa.suse.de $dir_with_suse_ins\")", "ENTER", "Wait(InputField)",);
 
     ##############################
     # edit parmfile
@@ -126,9 +133,19 @@ EO_frickin_boot_parms
         output_delim => qr/Loading Installation System/,
         timeout      => 300
     );
-    my $display_type = "VNC";
+    my $display_type;
+
+    # set up display_mode for textinstall
+    if (check_var("VIDEOMODE", "text")) {
+        $display_type = "SSH";
+    }
+    # default install is VNC
+    else {
+        $display_type = "VNC";
+    }
+
     my $output_delim
-      = $display_type eq "SSH" || $display_type eq "SSH-X" ? qr/\Q***  run 'yast' to start the installation  ***\E/
+      = $display_type eq "SSH" || $display_type eq "SSH-X" ? qr/\Q***  run 'yast.ssh' to start the installation  ***\E/
       : $display_type eq "X11" ? qr/\Q***  run 'yast' to start the installation  ***\E/
       : $display_type eq "VNC" ? qr/\Q*** Starting YaST2 ***\E/
       :                          die "unknown vars.json:DISPLAY->TYPE <$display_type>";
@@ -157,13 +174,19 @@ sub run() {
     die join("\n", '#' x 67, $exception, '#' x 67) if $exception;
 
     # give the system a few seconds to have routes definetly up
-    sleep 15;
+    sleep 30;
 
     # activate console so we can call wait_idle later
     my $c = select_console('iucvconn');
 
-    # TODO: "hardcoded" vnc (default) right now - other installation methods have to be added
-    select_console("installation");
+    # We have textmode installation via ssh and the default vnc installation so far
+    if (check_var('VIDEOMODE', 'text')) {
+        select_console("installation");
+        type_string("yast.ssh\n");
+    }
+    else {
+        select_console("installation");
+    }
 
     $self->result('ok');
 }
