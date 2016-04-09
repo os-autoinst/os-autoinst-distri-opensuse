@@ -61,13 +61,6 @@ sub run() {
             send_key 'ret';
             assert_screen 'ssh-open';
         }
-
-        record_soft_failure 'bsc#963008';
-        if (!check_screen('firewall-disabled', 5)) {
-            send_key_until_needlematch 'firewall-enabled-selected', 'tab';
-            send_key 'ret';
-            assert_screen 'firewall-disabled';
-        }
     }
 }
 
