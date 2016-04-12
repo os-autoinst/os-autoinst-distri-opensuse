@@ -40,16 +40,16 @@ sub run() {
                 send_key $cmd{"accept"}, 1;
 
                 while (check_screen('license-popup', 2)) {
-                    send_key $cmd{"accept"}, 1;
+                    send_key $cmd{accept}, 1;
                 }
                 assert_screen "automatic-changes";
-                send_key $cmd{"continue"}, 1;
+                send_key $cmd{continue}, 1;
 
                 send_key $cmd{update};
                 sleep 1;
             }
             if (match_has_tag("license-popup")) {
-                send_key $cmd{"accept"}, 1;
+                send_key $cmd{accept}, 1;
             }
             assert_screen [qw/startupdate startupdate-conflict license-popup/], 5;
         }
@@ -89,17 +89,12 @@ sub run() {
         && !get_var("UPGRADE")
         && !check_var('VIDEOMODE', 'text'))
     {
-        while (1) {
-            my $ret = check_screen ['installation-details-view', 'grub2'], 3;
-            if (defined($ret)) {
-                last if match_has_tag("installation-details-view");
-
-                # intention to let this test fail
-                assert_screen 'installation-details-view'
-                  if match_has_tag("grub2");
-            }
+        my $counter = 10;
+        while ($counter--) {
             send_key $cmd{instdetails};
+            last if check_screen 'installation-details-view', 5;
         }
+        assert_screen 'installation-details-view';
         if (get_var("DVD") && !get_var("NOIMAGES")) {
             if (check_var('DESKTOP', 'kde')) {
                 assert_screen 'kde-imagesused', 500;
