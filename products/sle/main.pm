@@ -657,8 +657,6 @@ sub load_extra_test () {
     # 3) running based on preinstalled image
     return unless get_var("EXTRATEST");
 
-    load_boot_tests();
-    loadtest "installation/finish_desktop.pm";
     # setup $serialdev permission and so on
     loadtest "console/consoletest_setup.pm";
     loadtest "console/zypper_lr.pm";
@@ -671,7 +669,7 @@ sub load_extra_test () {
     }
 
     loadtest "console/command_not_found.pm";
-
+    loadtest "console/yast2_http.pm";
     # finished console test and back to desktop
     loadtest "console/consoletest_finish.pm";
 
@@ -930,8 +928,7 @@ elsif (get_var("QA_TESTSET")) {
     loadtest "qa_automation/" . get_var("QA_TESTSET") . ".pm";
 }
 elsif (get_var("EXTRATEST")) {
-    load_boot_tests();
-    loadtest "installation/finish_desktop.pm";
+    prepare_target();
     load_extra_test();
 }
 elsif (get_var("Y2UITEST")) {
