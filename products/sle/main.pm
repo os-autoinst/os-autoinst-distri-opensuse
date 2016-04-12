@@ -663,6 +663,7 @@ sub load_extra_test () {
     loadtest "console/consoletest_setup.pm";
     loadtest "console/zypper_lr.pm";
     loadtest "console/zypper_ref.pm";
+    loadtest "console/update_alternatives.pm";
 
     # start extra console tests from here
     if (!get_var("OFW") && !is_jeos) {
