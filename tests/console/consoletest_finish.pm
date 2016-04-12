@@ -37,14 +37,10 @@ sub run() {
 
     save_screenshot();
 
-    if (check_var("DESKTOP", "textmode")) {
-        send_key "ctrl-alt-f1";    # go back to first console
-        assert_screen 'linux-login', 10;
-    }
-    else {
-        send_key "ctrl-alt-f7";    # go back to X11
+    if (!check_var("DESKTOP", "textmode")) {
+        select_console('x11');
         sleep 2;
-        send_key "backspace";      # deactivate blanking
+        send_key "backspace";    # deactivate blanking
         if (check_screen("screenlock")) {
             if (check_var("DESKTOP", "gnome")) {
                 send_key "esc";
