@@ -410,7 +410,7 @@ sub load_inst_tests() {
         if (check_var('BACKEND', 's390x')) {
             loadtest "installation/disk_activation.pm";
         }
-        else {
+        elsif (!check_var('VERSION', '12-SP2')) {
             loadtest "installation/skip_disk_activation.pm";
         }
     }
