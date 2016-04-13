@@ -272,7 +272,10 @@ sub uses_qa_net_hardware() {
 
 sub loadtest($) {
     my ($test) = @_;
-    autotest::loadtest("tests/$test");
+    unless ($test =~ m,^tests/,) {
+        $test = "tests/$test";
+    }
+    autotest::loadtest($test);
 }
 
 sub load_x11regresion_tests() {
