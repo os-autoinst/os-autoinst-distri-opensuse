@@ -202,7 +202,7 @@ $needle::cleanuphandler = \&cleanup_needles;
 bmwqemu::save_vars();    # update variables
 
 # dump other important ENV:
-logcurrentenv(qw"ADDONURL BIGTEST BTRFS DESKTOP HW HWSLOT LVM MOZILLATEST NOINSTALL REBOOTAFTERINSTALL UPGRADE USBBOOT ZDUP ZDUPREPOS TEXTMODE DISTRI NOAUTOLOGIN QEMUCPU QEMUCPUS RAIDLEVEL ENCRYPT INSTLANG QEMUVGA DOCRUN UEFI DVD GNOME KDE ISO ISO_MAXSIZE NETBOOT NICEVIDEO NOIMAGES PROMO QEMUVGA SPLITUSR VIDEOMODE");
+logcurrentenv(qw"ADDONURL BIGTEST BTRFS DESKTOP HW HWSLOT LVM MOZILLATEST NOINSTALL REBOOTAFTERINSTALL UPGRADE USBBOOT ZDUP ZDUPREPOS TEXTMODE DISTRI NOAUTOLOGIN QEMUCPU QEMUCPUS RAIDLEVEL ENCRYPT INSTLANG QEMUVGA DOCRUN UEFI DVD GNOME KDE ISO ISO_MAXSIZE NETBOOT NOIMAGES PROMO QEMUVGA SPLITUSR VIDEOMODE");
 
 
 sub xfcestep_is_applicable() {
@@ -214,7 +214,7 @@ sub rescuecdstep_is_applicable() {
 }
 
 sub consolestep_is_applicable() {
-    return !get_var("INSTALLONLY") && !get_var("NICEVIDEO") && !get_var("DUALBOOT") && !get_var("RESCUECD");
+    return !get_var("INSTALLONLY") && !get_var("DUALBOOT") && !get_var("RESCUECD");
 }
 
 sub kdestep_is_applicable() {
@@ -396,7 +396,7 @@ sub load_boot_tests() {
 }
 
 sub is_reboot_after_installation_necessary() {
-    return 0 if get_var("NICEVIDEO") || get_var("DUALBOOT") || get_var("RESCUECD") || get_var("ZDUP");
+    return 0 if get_var("DUALBOOT") || get_var("RESCUECD") || get_var("ZDUP");
 
     return get_var("REBOOTAFTERINSTALL") && !get_var("UPGRADE");
 }
@@ -687,10 +687,8 @@ sub load_x11tests() {
         loadtest "x11/xfce_close_hint_popup.pm";
         loadtest "x11/xfce4_terminal.pm";
     }
-    if (!get_var("NICEVIDEO")) {
-        loadtest "x11/xterm.pm";
-        loadtest "x11/sshxterm.pm";
-    }
+    loadtest "x11/xterm.pm";
+    loadtest "x11/sshxterm.pm";
     if (gnomestep_is_applicable) {
         loadtest "x11/gnome_control_center.pm";
         loadtest "x11/gnome_terminal.pm";
@@ -700,10 +698,10 @@ sub load_x11tests() {
         loadtest "x11/kate.pm";
     }
     loadtest "x11/firefox.pm";
-    if (!get_var("NICEVIDEO") && !get_var("OFW")) {
+    if (!get_var("OFW") && check_var('BACKEND', 'qemu')) {
         loadtest "x11/firefox_audio.pm";
     }
-    if (bigx11step_is_applicable && !get_var("NICEVIDEO")) {
+    if (bigx11step_is_applicable) {
         loadtest "x11/firefox_stress.pm";
     }
     if (get_var("MOZILLATEST")) {
@@ -741,7 +739,7 @@ sub load_x11tests() {
         loadtest "x11/thunar.pm";
         loadtest "x11/reboot_xfce.pm";
     }
-    if (bigx11step_is_applicable && !get_var("NICEVIDEO")) {
+    if (bigx11step_is_applicable) {
         loadtest "x11/glxgears.pm";
     }
     if (kdestep_is_applicable) {

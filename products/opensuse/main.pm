@@ -200,7 +200,7 @@ $needle::cleanuphandler = \&cleanup_needles;
 bmwqemu::save_vars();    # update variables
 
 # dump other important ENV:
-logcurrentenv(qw"ADDONURL BIGTEST BTRFS DESKTOP HW HWSLOT LIVETEST LVM MOZILLATEST NOINSTALL REBOOTAFTERINSTALL UPGRADE USBBOOT ZDUP ZDUPREPOS TEXTMODE DISTRI NOAUTOLOGIN QEMUCPU QEMUCPUS RAIDLEVEL ENCRYPT INSTLANG QEMUVGA DOCRUN UEFI DVD GNOME KDE ISO ISO_MAXSIZE LIVECD NETBOOT NICEVIDEO NOIMAGES PROMO QEMUVGA SPLITUSR VIDEOMODE");
+logcurrentenv(qw"ADDONURL BIGTEST BTRFS DESKTOP HW HWSLOT LIVETEST LVM MOZILLATEST NOINSTALL REBOOTAFTERINSTALL UPGRADE USBBOOT ZDUP ZDUPREPOS TEXTMODE DISTRI NOAUTOLOGIN QEMUCPU QEMUCPUS RAIDLEVEL ENCRYPT INSTLANG QEMUVGA DOCRUN UEFI DVD GNOME KDE ISO ISO_MAXSIZE LIVECD NETBOOT NOIMAGES PROMO QEMUVGA SPLITUSR VIDEOMODE");
 
 sub is_server() {
     return (get_var("OFW") || check_var("FLAVOR", "Server-DVD"));
@@ -223,7 +223,7 @@ sub rescuecdstep_is_applicable() {
 }
 
 sub consolestep_is_applicable() {
-    return !get_var("INSTALLONLY") && !get_var("NICEVIDEO") && !get_var("DUALBOOT") && !get_var("RESCUECD");
+    return !get_var("INSTALLONLY") && !get_var("DUALBOOT") && !get_var("RESCUECD");
 }
 
 sub kdestep_is_applicable() {
@@ -348,7 +348,7 @@ sub load_boot_tests() {
 }
 
 sub is_reboot_after_installation_necessary() {
-    return 0 if get_var("NICEVIDEO") || get_var("DUALBOOT") || get_var("RESCUECD") || get_var("ZDUP");
+    return 0 if get_var("DUALBOOT") || get_var("RESCUECD") || get_var("ZDUP");
 
     return get_var("REBOOTAFTERINSTALL") && !get_var("UPGRADE");
 }
@@ -396,7 +396,7 @@ sub load_inst_tests() {
     if (!get_var("LIVECD") && get_var("ADDONURL")) {
         loadtest "installation/addon_products.pm";
     }
-    if (noupdatestep_is_applicable && !get_var("LIVECD") && !get_var("NICEVIDEO")) {
+    if (noupdatestep_is_applicable && !get_var("LIVECD")) {
         loadtest "installation/logpackages.pm";
     }
     if (noupdatestep_is_applicable && !get_var("LIVECD")) {
@@ -644,10 +644,8 @@ sub load_x11tests() {
     if (xfcestep_is_applicable) {
         loadtest "x11/xfce4_terminal.pm";
     }
-    if (!get_var("NICEVIDEO")) {
-        loadtest "x11/xterm.pm";
-        loadtest "x11/sshxterm.pm" unless get_var("LIVETEST");
-    }
+    loadtest "x11/xterm.pm";
+    loadtest "x11/sshxterm.pm" unless get_var("LIVETEST");
     if (gnomestep_is_applicable) {
         loadtest "x11/gnome_control_center.pm";
         loadtest "x11/gnome_terminal.pm";
@@ -657,10 +655,10 @@ sub load_x11tests() {
         loadtest "x11/kate.pm";
     }
     loadtest "x11/firefox.pm";
-    if (!get_var("NICEVIDEO")) {
-        loadtest "x11/firefox_audio.pm" unless get_var("OFW");
+    if (!get_var("OFW") && check_var('BACKEND', 'qemu')) {
+        loadtest "x11/firefox_audio.pm";
     }
-    if (bigx11step_is_applicable && !get_var("NICEVIDEO")) {
+    if (bigx11step_is_applicable) {
         loadtest "x11/firefox_stress.pm";
     }
     if (gnomestep_is_applicable && !get_var("LIVECD") || !is_server) {
@@ -681,10 +679,10 @@ sub load_x11tests() {
     if (gnomestep_is_applicable) {
         loadtest "x11/eog.pm";
     }
-    if (!get_var("NICEVIDEO") && get_var("DESKTOP") =~ /kde|gnome/ && !is_server) {
+    if (get_var("DESKTOP") =~ /kde|gnome/ && !is_server) {
         loadtest "x11/oomath.pm";
     }
-    if (!get_var("NICEVIDEO") && get_var("DESKTOP") =~ /kde|gnome/ && !get_var("LIVECD") && !is_server) {
+    if (get_var("DESKTOP") =~ /kde|gnome/ && !get_var("LIVECD") && !is_server) {
         loadtest "x11/oocalc.pm";
     }
     if (get_var("DESKTOP") =~ /kde|gnome/ && !is_server) {
@@ -717,7 +715,7 @@ sub load_x11tests() {
             loadtest "x11/reboot_lxde.pm";
         }
     }
-    if (bigx11step_is_applicable && !get_var("NICEVIDEO")) {
+    if (bigx11step_is_applicable) {
         loadtest "x11/glxgears.pm";
     }
     if (kdestep_is_applicable) {
@@ -751,9 +749,7 @@ sub load_x11tests() {
 
     unless (get_var("LIVECD")) {
         loadtest "x11/inkscape.pm";
-        if (!get_var("NICEVIDEO")) {
-            loadtest "x11/gimp.pm";
-        }
+        loadtest "x11/gimp.pm";
     }
     if (   !is_staging
         && !system_is_livesystem)
