@@ -503,7 +503,7 @@ sub load_reboot_tests() {
     if (uses_qa_net_hardware) {
         loadtest "boot/qa_net_boot_from_hdd.pm";
     }
-    if (installyaststep_is_applicable) {
+    if (installyaststep_is_applicable and !get_var("QAM_MINIMAL")) {
         # test makes no sense on s390 because grub2 can't be captured
         if (!check_var("ARCH", "s390x")) {
             loadtest "installation/grub_test.pm";
@@ -926,6 +926,17 @@ elsif (get_var("QA_TESTSET")) {
         loadtest "qa_automation/patch_and_reboot.pm";
     }
     loadtest "qa_automation/" . get_var("QA_TESTSET") . ".pm";
+}
+elsif (get_var("QAM_MINIMAL")) {
+    prepare_target();
+    loadtest "qam-minimal/install_update.pm";
+    loadtest "qam-minimal/update_minimal.pm";
+    loadtest "qam-minimal/check_logs.pm";
+    if (check_var("QAM_MINIMAL", 'full')) {
+        loadtest "qam-minimal/install_patterns.pm";
+        load_consoletests();
+        load_x11tests();
+    }
 }
 elsif (get_var("EXTRATEST")) {
     prepare_target();
