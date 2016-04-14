@@ -25,6 +25,8 @@ sub run() {
     assert_script_run("chkconfig sshd on", 60);
     assert_script_run("rcsshd restart",    60);    # will do nothing if it is already running
 
+    sleep 3;                                       # give the daemon some time to start
+
     script_run('rcsshd status', 0);
     assert_screen 'test-sshd-1';
 
@@ -39,7 +41,7 @@ sub run() {
     # but for debugging, it's easier to check the serial file later
     my $str = "SSH-" . time;
     # login use new user account
-    script_run("ssh $ssh_testman\@localhost -t echo LOGIN_SUCCESSFUL; echo $str-$?- > /dev/$serialdev", 0);
+    script_run("ssh -v $ssh_testman\@localhost -t echo LOGIN_SUCCESSFUL; echo $str-$?- > /dev/$serialdev", 0);
     assert_screen "ssh-login", 60;
     type_string "yes\n";
     assert_screen 'password-prompt';
