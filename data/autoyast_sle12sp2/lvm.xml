@@ -1,0 +1,141 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+<!--
+  sets up a lvm partitioning to be tested
+  via script run by autoyast_verify.pm
+  - test of root_lv on /
+-->
+  <add-on>
+    <add_on_products config:type="list">
+      <listentry>
+        <media_url>http://download.suse.de/ibs/SUSE:/SLE-12-SP2:/Update/standard</media_url>
+        <product>SuSE-Linux-Updates</product>
+        <product_dir>/</product_dir>
+        <name>Updates</name> 
+      </listentry>
+    </add_on_products>
+  </add-on>
+
+  <deploy_image>
+    <image_installation config:type="boolean">false</image_installation>
+  </deploy_image>
+  <general>
+    <ask-list config:type="list"/>
+    <mode>
+      <confirm config:type="boolean">false</confirm>
+      <final_halt config:type="boolean">false</final_halt>
+      <final_reboot config:type="boolean">false</final_reboot>
+      <halt config:type="boolean">false</halt>
+      <second_stage config:type="boolean">true</second_stage>
+    </mode>
+    <proposals config:type="list"/>
+    <signature-handling>
+      <accept_file_without_checksum config:type="boolean">false</accept_file_without_checksum>
+      <accept_non_trusted_gpg_key config:type="boolean">false</accept_non_trusted_gpg_key>
+      <accept_unknown_gpg_key config:type="boolean">false</accept_unknown_gpg_key>
+      <accept_unsigned_file config:type="boolean">false</accept_unsigned_file>
+      <accept_verification_failed config:type="boolean">false</accept_verification_failed>
+      <import_gpg_key config:type="boolean">false</import_gpg_key>
+    </signature-handling>
+    <storage/>
+  </general>
+
+    <partitioning config:type="list">
+      <drive>
+        <partitions config:type="list">
+          <partition>
+            <partition_nr config:type="integer">1</partition_nr>
+            <lvm_group>system</lvm_group>
+            <partition_type>primary</partition_type>
+            <size>5G</size>
+          </partition>
+          <partition>
+            <partition_nr config:type="integer">2</partition_nr>
+            <lvm_group>system</lvm_group>
+            <partition_type>primary</partition_type>
+            <size>max</size>
+          </partition>
+        </partitions>
+        <use>all</use>
+      </drive>
+      <drive>
+        <device>/dev/system</device>
+        <initialize config:type="boolean">true</initialize>
+        <is_lvm_vg config:type="boolean">true</is_lvm_vg>
+        <partitions config:type="list">
+          <partition>
+            <lv_name>root_lv</lv_name>
+            <mount>/</mount>
+            <size>3G</size>
+          </partition>
+          <partition>
+            <lv_name>opt_lv</lv_name>
+            <mount>/opt</mount>
+            <size>max</size>
+          </partition>
+          <partition>
+            <filesystem config:type="symbol">swap</filesystem>
+            <lv_name>swap_lv</lv_name>
+            <mount>swap</mount>
+            <size>auto</size>
+          </partition>
+        </partitions>
+        <pesize>4M</pesize>
+        <use>all</use>
+      </drive>
+    </partitioning>
+
+  <networking>
+    <interfaces config:type="list">
+      <interface>
+        <bootproto>dhcp</bootproto>
+        <device>eth0</device>        
+        <startmode>onboot</startmode>
+      </interface>
+    </interfaces>
+    <dhcp_options>
+      <dhclient_client_id/>
+      <dhclient_hostname_option/>
+    </dhcp_options>
+    <dns>
+      <dhcp_hostname config:type="boolean">false</dhcp_hostname>
+      <resolv_conf_policy/>
+      <write_hostname config:type="boolean">false</write_hostname>
+    </dns>
+    <ipv6 config:type="boolean">true</ipv6>
+    <keep_install_network config:type="boolean">false</keep_install_network>
+    <managed config:type="boolean">false</managed>
+    <routing>
+      <ipv4_forward config:type="boolean">false</ipv4_forward>
+      <ipv6_forward config:type="boolean">false</ipv6_forward>
+    </routing>
+  </networking>
+  <software>
+    <patterns config:type="list">
+      <pattern>Minimal</pattern>
+      <pattern>base</pattern>
+    </patterns>
+    <packages config:type="list">
+      <package>mc</package>
+    </packages>
+    <remove-packages config:type="list">
+      <package>zsh</package>
+    </remove-packages>
+
+  </software>
+  <users config:type="list">
+                <user>
+                   <fullname>Bernhard M. Wiedemann</fullname>  
+                   <encrypted config:type="boolean">false</encrypted>
+                   <user_password>nots3cr3t</user_password>
+                   <username>bernhard</username>
+                </user>
+                
+          <user>
+                      <encrypted config:type="boolean">false</encrypted>
+                      <user_password>nots3cr3t</user_password>
+                      <username>root</username>
+          </user>
+  </users>
+</profile>
