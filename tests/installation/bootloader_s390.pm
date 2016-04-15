@@ -16,8 +16,6 @@ use strict;
 use warnings;
 use English;
 
-###################################################################
-
 # try to find the 2 longest lines that are below beyond the limit
 # collapsing the lines - we have a limit of 10 lines
 sub try_merge_lines {
@@ -146,10 +144,10 @@ EO_frickin_boot_parms
 
     my $output_delim
       = $display_type eq "SSH" || $display_type eq "SSH-X" ? qr/\Q***  run 'yast.ssh' to start the installation  ***\E/
-      : $display_type eq "X11" ? qr/\Q***  run 'yast' to start the installation  ***\E/
       : $display_type eq "VNC" ? qr/\Q*** Starting YaST2 ***\E/
       :                          die "unknown vars.json:DISPLAY->TYPE <$display_type>";
 
+    # wait 20 seconds to load Installation System
     $r = $s3270->expect_3270(
         output_delim => $output_delim,
         timeout      => 20
@@ -172,9 +170,6 @@ sub run() {
     my $exception = $@;
 
     die join("\n", '#' x 67, $exception, '#' x 67) if $exception;
-
-    # give the system a few seconds to have routes definetly up
-    sleep 30;
 
     # activate console so we can call wait_idle later
     my $c = select_console('iucvconn');
