@@ -310,6 +310,7 @@ sub load_x11regresion_tests() {
         loadtest "x11regressions/gnomecase/change_password.pm";
         loadtest "x11regressions/gnomecase/login_test.pm";
         loadtest "x11regressions/gnomecase/gnome_default_applications.pm";
+        loadtest "x11regressions/gnomecase/gnome_window_switcher.pm";
         loadtest "x11regressions/gnote/gnote_first_run.pm";
         loadtest "x11regressions/gnote/gnote_link_note.pm";
         loadtest "x11regressions/gnote/gnote_rename_title.pm";
