@@ -862,6 +862,7 @@ sub load_virtualization_tests() {
 }
 
 sub load_feature_tests() {
+    loadtest "console/consoletest_setup.pm";
     loadtest "feature/feature_console/zypper_releasever.pm";
     loadtest "feature/feature_console/suseconnect.pm";
 }
