@@ -670,6 +670,7 @@ sub load_extra_test () {
 
     loadtest "console/command_not_found.pm";
     loadtest "console/yast2_http.pm";
+    loadtest "console/yast2_ftp.pm";
     # finished console test and back to desktop
     loadtest "console/consoletest_finish.pm";
 
