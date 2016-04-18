@@ -837,6 +837,7 @@ sub load_hacluster_tests() {
     else {
         loadtest("ha/ha_cluster_join.pm");                                 #node2 joins the cluster
     }
+    loadtest("ha/dlm.pm");
     loadtest("ha/ocfs2.pm");
     loadtest("ha/crm_mon.pm");
     loadtest("ha/fencing.pm");
@@ -921,7 +922,7 @@ elsif (get_var("HACLUSTER_SUPPORT_SERVER")) {
     for my $clustername (split(/,/, get_var('CLUSTERNAME'))) {
         mutex_create("MUTEX_HA_" . $clustername . "_FINISHED");    #support server can lock _FINISHED mutex when node1 finishes
     }
-    for my $mutexname (qw(CLUSTER_INITIALIZED NODE2_JOINED OCFS2_INIT OCFS2_GROUPS_CREATED OCFS2_MKFS_DONE OCFS2_GROUP_ALTERED OCFS2_DATA_COPIED OCFS2_MD5_CHECKED BEFORE_FENCING FENCING_DONE LOGS_CHECKED)) {
+    for my $mutexname (qw(CLUSTER_INITIALIZED NODE2_JOINED OCFS2_INIT DLM_GROUPS_CREATED DLM_INIT DLM_CHECKED OCFS2_MKFS_DONE OCFS2_GROUP_ALTERED OCFS2_DATA_COPIED OCFS2_MD5_CHECKED BEFORE_FENCING FENCING_DONE LOGS_CHECKED)) {
         mutex_create("MUTEX_${mutexname}_M1");                     #barrier_create mutexes
         mutex_create("MUTEX_${mutexname}_M2");
     }

@@ -16,18 +16,6 @@ sub run() {
     my $self            = shift;
     my $ocfs2_partition = "/dev/disk/by-path/ip-*-lun-2";
     $self->barrier_wait("OCFS2_INIT");
-    if ($self->is_node1) {    #node1
-        type_string "echo wait until DLM resource is created\n";
-    }
-    else {
-        type_string qq(EDITOR="sed -ie '\$ a primitive dlm ocf:pacemaker:controld op monitor interval=60 timeout=60'" crm configure edit; echo dlm_add=\$? > /dev/$serialdev\n);
-        die "create DLM resource failed" unless wait_serial "dlm_add=0", 60;
-        type_string qq(EDITOR="sed -ie '\$ a group base-group dlm'" crm configure edit; echo base_group_add=\$? > /dev/$serialdev\n);
-        die "create base-group failed" unless wait_serial "base_group_add=0", 60;
-        type_string qq(EDITOR="sed -ie '\$ a clone base-clone base-group'" crm configure edit; echo base_clone_add=\$? > /dev/$serialdev\n);
-        die "create base-clone failed" unless wait_serial "base_clone_add=0", 60;
-    }
-    $self->barrier_wait("OCFS2_GROUPS_CREATED");
     type_string "ps -A | grep -q dlm_controld; echo dlm_running=\$? > /dev/$serialdev\n";
     die "dlm_controld is not running" unless wait_serial "dlm_running=0", 60;
     if ($self->is_node1) {
