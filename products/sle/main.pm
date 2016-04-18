@@ -375,8 +375,15 @@ sub load_boot_tests() {
         loadtest "installation/bootloader_ofw.pm";
     }
     elsif (get_var("UEFI") || is_jeos) {
+        if (check_var("BACKEND", "svirt")) {
+            loadtest "installation/bootloader_svirt.pm";
+        }
         # TODO: rename to bootloader_grub2
-        loadtest "installation/bootloader_uefi.pm";
+        # Unless GRUB2 supports framebuffer on Xen PV (bsc#961638), grub2 tests
+        # has to be skipped there.
+        if (!(check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux'))) {
+            loadtest "installation/bootloader_uefi.pm";
+        }
     }
     elsif (uses_qa_net_hardware) {
         loadtest "installation/qa_net.pm";
