@@ -27,6 +27,7 @@ sub run() {
     type_string "srv1";
     send_key 'alt-n';    #Next
     assert_screen "yast2-iscsi-client-target-list";
+    send_key_until_needlematch "iscsi-client-srv1-selected", 'down';
     #select target with internal IP first?
     send_key 'alt-e';    #connEct
     assert_screen "yast2-iscsi-client-target-startup";
@@ -36,12 +37,11 @@ sub run() {
     assert_screen "yast2-iscsi-client-target-startup-automatic-selected";
     send_key 'ret';
     send_key 'alt-n';    #Next
-    assert_screen "yast2-iscsi-client-target-connected";
+    assert_screen "yast2-iscsi-client-target-connected", 120;
     send_key 'alt-o';    #Ok
     wait_still_screen;
     $self->clear_and_verify_console;
-    type_string "echo \"iscsi_luns=`ls -1 /dev/disk/by-path/ip-*-lun-* | wc -l`\" > /dev/$serialdev\n";
-    die "iscsi_client failed" unless wait_serial "iscsi_luns=3";
+    assert_script_run "ls -1 /dev/disk/by-path/ip-*-lun-*";
 }
 
 sub test_flags {
