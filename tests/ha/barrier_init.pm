@@ -16,7 +16,8 @@ sub run() {
     $self->barrier_create("CLUSTER_INITIALIZED");
     $self->barrier_create("NODE2_JOINED");
     $self->barrier_create("OCFS2_INIT");
-    $self->barrier_create("OCFS2_GROUPS_CREATED");
+    $self->barrier_create("DLM_GROUPS_CREATED");
+    $self->barrier_create("DLM_CHECKED");
     $self->barrier_create("OCFS2_MKFS_DONE");
     $self->barrier_create("OCFS2_GROUP_ALTERED");
     $self->barrier_create("OCFS2_DATA_COPIED");
