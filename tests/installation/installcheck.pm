@@ -17,12 +17,14 @@ sub run {
     assert_script_run "mount /dev/sr0 /mnt";
     assert_script_run "repo2solv.sh /mnt > /tmp/solv";
     script_run 'installcheck ' . get_var("ARCH") . ' /tmp/solv > /tmp/installcheck.log 2>&1 && touch /tmp/WORKED';
-    upload_logs '/tmp/installcheck.log';
+    script_run 'cat /tmp/installcheck.log';
+    save_screenshot;
+    script_run "cat /tmp/installcheck.log > /dev/$serialdev";
     assert_script_run 'test -f /tmp/WORKED';
 }
 
 sub test_flags() {
-    return {import => 1};
+    return {important => 1};
 }
 
 1;
