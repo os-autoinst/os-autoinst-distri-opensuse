@@ -15,12 +15,13 @@ sub run {
     my $self = shift;
 
     assert_script_run "mount /dev/sr0 /mnt";
-    assert_script_run "repo2solv.sh /mnt > /tmp/solv";
+    assert_script_run 'cd /tmp; rpm2cpio /mnt/suse/*/libsolv-tools*.rpm | cpio -dium';
+    assert_script_run 'export PATH=/tmp/usr/bin:$PATH; usr/bin/repo2solv.sh /mnt > /tmp/solv';
     script_run 'installcheck ' . get_var("ARCH") . ' /tmp/solv > /tmp/installcheck.log 2>&1 && touch /tmp/WORKED';
     script_run 'cat /tmp/installcheck.log';
     save_screenshot;
     script_run "cat /tmp/installcheck.log > /dev/$serialdev";
-    #    assert_script_run 'test -f /tmp/WORKED';
+    assert_script_run 'test -f /tmp/WORKED';
 }
 
 sub test_flags() {
