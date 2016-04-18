@@ -11,6 +11,7 @@
 use strict;
 use base "y2logsstep";
 use testapi;
+use lockapi;
 use bmwqemu ();
 
 sub run() {
@@ -43,18 +44,19 @@ sub run() {
         last;
     }
 
-    send_key 'alt-s';            # Stop the reboot countdown
-
-    select_console 'install-shell';
-
-    $self->get_ip_address();
-    $self->save_upload_y2logs();
-
-    select_console 'installation';
-    assert_screen 'rebootnow';
+    if (get_var("REMOTE_MASTER")) {
+        mutex_create("installation_finished");
+    }
+    else {
+        send_key 'alt-s';        # Stop the reboot countdown
+        select_console 'install-shell';
+        $self->get_ip_address();
+        $self->save_upload_y2logs();
+        select_console 'installation';
+        assert_screen 'rebootnow';
+    }
 
     if (get_var("LIVECD")) {
-
         # LiveCD needs confirmation for reboot
         send_key $cmd{"rebootnow"};
     }
