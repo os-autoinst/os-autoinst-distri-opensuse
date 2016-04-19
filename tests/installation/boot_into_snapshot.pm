@@ -22,6 +22,7 @@ sub run() {
     my $self = shift;
     assert_screen 'linux-login', 200;
     select_console 'root-console';
+    my $update_snap = script_output("snapper list | grep 'after update' | cut -d'|' -f 2 | xargs");
     # 1)
     assert_script_run('touch NOWRITE;test ! -f NOWRITE');
     # 1b) just debugging infos
@@ -31,11 +32,14 @@ sub run() {
         # if we made a migration, the version should be for example opensuse before migr. 42.1 > 42.2
         # extract number of version id: example SlES 12.2 -> 12.2. for opensuse also ok
         my $OS_VERSION     = script_output("grep VERSION_ID /etc/os-release | cut -c13- | head -c -2");
-        my $OLD_OS_VERSION = script_output("grep VERSION_ID /.snapshots/2/snapshot/etc/os-release | cut -c13- | head -c -2");
+        my $OLD_OS_VERSION = script_output("grep VERSION_ID /.snapshots/$update_snap/snapshot/etc/os-release | cut -c13- | head -c -2");
         # grub_bug bug:956046. menu entry not stable. we could boot in wrong menu-entry.
+        assert_script_run("grep VERSION_ID /etc/os-release | cut -c13- | head -c -2");
+        assert_script_run("grep VERSION_ID /.snapshots/$update_snap/snapshot/etc/os-release | cut -c13- | head -c -2");
         if ($OS_VERSION eq $OLD_OS_VERSION) {
             die "OS_VERSION after Rollback matches OS_VERSION before Rollback";
         }
+        return;
     }
     script_run("systemctl reboot", 0);
 }
