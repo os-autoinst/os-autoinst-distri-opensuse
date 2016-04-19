@@ -51,9 +51,6 @@ sub run() {
         if (get_var("SHUTDOWN_NEEDS_AUTH")) {
             assert_screen 'shutdown-auth', 15;
             type_password;
-
-            # we need to kill all open ssh connections before the system shuts down
-            prepare_system_reboot;
             send_key "ret";
         }
     }
@@ -79,15 +76,6 @@ sub run() {
 
     if (get_var("DESKTOP") =~ m/minimalx|textmode/) {
         power('off');
-    }
-
-    if (check_var('BACKEND', 's390x')) {
-        # make sure SUT shut down correctly
-        console('x3270')->expect_3270(
-            output_delim => qr/.*SIGP stop.*/,
-            timeout      => 30
-        );
-
     }
 
     assert_shutdown;

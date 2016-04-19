@@ -17,7 +17,6 @@ our @EXPORT = qw/
   type_string_very_slow
   unlock_if_encrypted
   wait_boot
-  prepare_system_reboot
   get_netboot_mirror
   /;
 
@@ -52,33 +51,6 @@ sub wait_boot {
 
     if (get_var("OFW")) {
         assert_screen "bootloader-ofw", $bootloader_time;
-    }
-    # reconnect s390
-    elsif (check_var('ARCH', 's390x')) {
-        if (check_var('BACKEND', 's390x')) {
-
-            console('x3270')->expect_3270(
-                output_delim => qr/Welcome to SUSE Linux Enterprise Server/,
-                timeout      => 300
-            );
-
-            # give the system time to have routes up
-            # and start serial grab again
-            # TODO implement a Retry in the backend
-            sleep 30;
-            select_console('iucvconn');
-        }
-        else {
-            wait_serial("Welcome to SUSE Linux Enterprise Server");
-        }
-
-        # on z/(K)VM we need to re-select a console
-        if (!check_var('DESKTOP', 'textmode')) {
-            select_console('x11');
-        }
-        else {
-            select_console('root-console');
-        }
     }
     else {
         my @tags = ('grub2');
@@ -147,13 +119,6 @@ sub wait_boot {
 # screen would not be cleared
 sub clear_console {
     type_string "clear\n";
-}
-
-# in some backends we need to prepare the reboot/shutdown
-sub prepare_system_reboot {
-    if (check_var('BACKEND', 's390x')) {
-        console('iucvconn')->kill_ssh;
-    }
 }
 
 sub select_kernel {
