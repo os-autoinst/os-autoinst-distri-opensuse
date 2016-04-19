@@ -29,7 +29,8 @@ sub run() {
         send_key "ret";
 
     }
-    wait_boot;
+    # the shutdown sometimes hangs longer, so give it time
+    wait_boot bootloader_time => 300;
 }
 
 sub test_flags() {
