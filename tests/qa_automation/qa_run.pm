@@ -32,14 +32,18 @@ sub system_login {
     my $self = shift;
     # if we have to patch the system, we won't see the CD
     if (!get_var('SYSTEM_IS_PATCHED')) {
-        assert_screen "inst-bootmenu", 30;
+        assert_screen "inst-bootmenu";
         send_key "ret";
     }
-    assert_screen "grub2", 15;
+    if (get_var('OFW')) {
+        assert_screen 'ofw-boot-prompt';
+        type_string "boot disk\n";
+    }
+    assert_screen "grub2";
     send_key "ret";
     assert_screen "text-login", 50;
     type_string "root\n";
-    assert_screen "password-prompt", 10;
+    assert_screen "password-prompt";
     type_password;
     type_string "\n";
     sleep 2;
