@@ -23,7 +23,7 @@ sub run {
     assert_script_run("cmp -s /tmp/ip_r_before.log /tmp/ip_r_after.log");
 }
 
-sub flags {
+sub test_flags {
     return {fatal => 1};
 }
 

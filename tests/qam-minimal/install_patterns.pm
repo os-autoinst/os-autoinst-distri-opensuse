@@ -40,7 +40,7 @@ sub run {
     wait_boot;
 }
 
-sub flags {
+sub test_flags {
     return {fatal => 1};
 }
 

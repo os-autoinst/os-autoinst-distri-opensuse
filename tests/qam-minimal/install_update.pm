@@ -39,7 +39,7 @@ sub run {
     type_string "reboot\n";
 }
 
-sub flags {
+sub test_flags {
     return {fatal => 1};
 }
 
