@@ -41,10 +41,13 @@ sub run() {
         type_password;
         send_key 'ret';
     }
+    script_run 'setterm -blank 0';    # disable screensaver
+    script_run 'export CC=/usr/bin/gcc-5';
+    script_run 'export CXX=/usr/bin/g++-5';
 }
 
 sub test_flags() {
-    return {fatal => 1};
+    return {fatal => 1, milestone => 1};
 }
 
 1;

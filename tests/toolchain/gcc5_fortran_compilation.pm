@@ -24,16 +24,15 @@ sub run() {
     script_run 'tar jxf fcvs21_f95.tar.bz2';
     script_run 'cp FM923.DAT fcvs21_f95/';
     script_run 'cd fcvs21_f95';
-    script_run 'setterm -blank 0';    # disable screensaver
     script_run "sed -i 's/g77/gfortran-5/g' driver_*";
     script_run 'echo "exit \${failed}" >> driver_parse';
 
     script_run "patch -p0 < ../adapt-FM406-to-fortran-95.patch";
 
     # Build
-    assert_script_run './driver_parse', 120;
+    assert_script_run './driver_parse|tee /tmp/build.log', 120;
     # Test
-    assert_script_run './driver_run', 300;
+    assert_script_run './driver_run|tee /tmp/test.log', 300;
 
     assert_script_run '! grep " [1-9][0-9]* TESTS FAILED" *.res';
 
@@ -42,6 +41,14 @@ sub run() {
 
 sub test_flags() {
     return {important => 1};
+}
+
+sub post_fail_hook() {
+    my $self = shift;
+
+    $self->export_logs();
+    upload_logs '/tmp/build.log';
+    upload_logs '/tmp/test.log';
 }
 
 1;
