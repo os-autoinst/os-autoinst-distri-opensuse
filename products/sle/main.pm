@@ -432,6 +432,7 @@ sub load_inst_tests() {
     if (get_var('UPGRADE')) {
         loadtest "installation/upgrade_select.pm";
     }
+    loadtest "installation/network_configuration.pm";
     if (get_var('SCC_REGISTER', '') eq 'installation') {
         loadtest "installation/scc_registration.pm";
     }
@@ -562,7 +563,6 @@ sub load_consoletests() {
         loadtest "console/consoletest_setup.pm";
         loadtest "console/check_console_font.pm";
         loadtest "console/textinfo.pm";
-        loadtest "console/hostname.pm";
         if (snapper_is_applicable) {
             if (get_var("UPGRADE")) {
                 loadtest "console/upgrade_snapshots.pm";
@@ -1026,7 +1026,6 @@ else {
 
 if (get_var("STORE_HDD_1") || get_var("PUBLISH_HDD_1")) {
     if (get_var("INSTALLONLY")) {
-        loadtest "console/hostname.pm";
         loadtest "shutdown/grub_set_bootargs.pm";
         loadtest "shutdown/shutdown.pm";
     }
