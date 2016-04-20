@@ -54,10 +54,10 @@ sub run() {
     }
     # exit release notes window
     if (check_var('VIDEOMODE', 'text') || check_screen('release-notes-sle-ok-button')) {
-        send_key 'alt-o';
+        wait_screen_change { send_key 'alt-o'; };
     }
     else {
-        send_key 'alt-c';
+        wait_screen_change { send_key 'alt-c'; };
     }
     if (!get_var("UPGRADE")) {
         send_key 'alt-e';                     # select timezone region as previously selected
