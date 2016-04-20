@@ -17,14 +17,12 @@ use qam;
 use testapi;
 
 sub run {
-    system_login;
-
-    assert_script_run("cmp -s /tmp/ip_a_before.log /tmp/ip_a_after.log");
-    assert_script_run("cmp -s /tmp/ip_r_before.log /tmp/ip_r_after.log");
+    assert_script_run("diff -u /tmp/ip_a_before.log /tmp/ip_a_after.log");
+    assert_script_run("diff -u /tmp/ip_r_before.log /tmp/ip_r_after.log");
 }
 
 sub test_flags {
-    return {fatal => 1};
+    return {important => 1};
 }
 
 1;
