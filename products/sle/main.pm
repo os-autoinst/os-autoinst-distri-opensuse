@@ -829,31 +829,37 @@ sub load_slenkins_tests {
 
 sub load_hacluster_tests() {
     return unless (get_var("HACLUSTER"));
+    sleep 10;    # wait to make sure that support server created locks
+    if (get_var("HOSTNAME") eq 'host1') {
+        mutex_lock("MUTEX_HA_" . get_var("CLUSTERNAME") . "_NODE1_WAIT");    #stop here until all nodes are running
+    }
+    else {
+        mutex_lock("MUTEX_HA_" . get_var("CLUSTERNAME") . "_NODE2_WAIT");    #stop here until all nodes are running
+    }
     loadtest("ha/barrier_init.pm");
     loadtest "installation/first_boot.pm";
     loadtest "console/consoletest_setup.pm";
     loadtest "console/hostname.pm";
-    #    loadtest("ha/hostname.pm");
     loadtest("ha/firewall_disable.pm");
     loadtest("ha/ntp_client.pm");
     loadtest("ha/iscsi_client.pm");
     loadtest("ha/watchdog.pm");
     if (get_var("HOSTNAME") eq 'host1') {
-        mutex_lock("MUTEX_HA_" . get_var("CLUSTERNAME") . "_FINISHED");    # mutex to unlock after all tests
-        loadtest("ha/ha_cluster_init.pm");                                 #node1 creates a cluster
+        loadtest("ha/ha_cluster_init.pm");                                   #node1 creates a cluster
     }
     else {
-        loadtest("ha/ha_cluster_join.pm");                                 #node2 joins the cluster
+        loadtest("ha/ha_cluster_join.pm");                                   #node2 joins the cluster
     }
     loadtest("ha/dlm.pm");
+    loadtest("ha/clvm.pm");
     loadtest("ha/ocfs2.pm");
     loadtest("ha/crm_mon.pm");
     loadtest("ha/fencing.pm");
-    if (!get_var("HACLUSTERJOIN")) {                                       #node1 will be fenced
+    if (!get_var("HACLUSTERJOIN")) {                                         #node1 will be fenced
         loadtest "ha/fencing_boot.pm";
         loadtest "ha/fencing_consoletest_setup.pm";
     }
-    loadtest("ha/check_logs.pm");                                          #check_logs must be after ha/fencing.pm
+    loadtest("ha/check_logs.pm");                                            #check_logs must be after ha/fencing.pm
     return 1;
 }
 
@@ -927,9 +933,13 @@ elsif (get_var("SUPPORT_SERVER")) {
 }
 elsif (get_var("HACLUSTER_SUPPORT_SERVER")) {
     for my $clustername (split(/,/, get_var('CLUSTERNAME'))) {
+        mutex_create("MUTEX_HA_" . $clustername . "_NODE1_WAIT");
+        mutex_lock("MUTEX_HA_" . $clustername . "_NODE1_WAIT");    #mutex will be released after wait_for_children_to_start
+        mutex_create("MUTEX_HA_" . $clustername . "_NODE2_WAIT");
+        mutex_lock("MUTEX_HA_" . $clustername . "_NODE2_WAIT");    #mutex will be released after wait_for_children_to_start
         mutex_create("MUTEX_HA_" . $clustername . "_FINISHED");    #support server can lock _FINISHED mutex when node1 finishes
     }
-    for my $mutexname (qw(CLUSTER_INITIALIZED NODE2_JOINED OCFS2_INIT DLM_GROUPS_CREATED DLM_INIT DLM_CHECKED OCFS2_MKFS_DONE OCFS2_GROUP_ALTERED OCFS2_DATA_COPIED OCFS2_MD5_CHECKED BEFORE_FENCING FENCING_DONE LOGS_CHECKED)) {
+    for my $mutexname (qw(CLUSTER_INITIALIZED NODE2_JOINED OCFS2_INIT DLM_GROUPS_CREATED DLM_INIT DLM_CHECKED OCFS2_MKFS_DONE OCFS2_GROUP_ALTERED OCFS2_DATA_COPIED OCFS2_MD5_CHECKED BEFORE_FENCING FENCING_DONE LOGS_CHECKED CLVM_INIT CLVM_RESOURCE_CREATED CLVM_PV_VG_LV_CREATED CLVM_VG_RESOURCE_CREATED CLVM_RW_CHECKED CLVM_MD5SUM)) {
         mutex_create("MUTEX_${mutexname}_M1");                     #barrier_create mutexes
         mutex_create("MUTEX_${mutexname}_M2");
     }
