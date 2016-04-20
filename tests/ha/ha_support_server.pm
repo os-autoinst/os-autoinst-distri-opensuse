@@ -26,6 +26,7 @@ sub run() {
     type_string "if `dig \@localhost srv1.bravo.ha-test.qa.suse.de +short | grep -q 172.16.0.17`; then echo dns2_okay > /dev/$serialdev; fi\n";
     wait_serial("dns2_okay") || die "support server cannot resolve DNS2";
     type_string "exit\n";
+    sleep 300;    #sometimes node jobs started with several minutes delay, support server shouldn't finish until jobs are started
     for my $clustername (split(/,/, get_var('CLUSTERNAME'))) {    #wait until all jobs are done
         mutex_lock("MUTEX_HA_" . $clustername . "_FINISHED");
     }
