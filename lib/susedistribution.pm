@@ -201,7 +201,27 @@ sub init_consoles {
         $self->add_console('user-console',  'tty-console', {tty => 4});
         $self->add_console('x11',           'tty-console', {tty => 7});
     }
-    if (check_var('BACKEND', 'svirt') || check_var('BACKEND', 's390x')) {
+
+    # JeOS via svirt backend
+    if (get_var('JEOS') && check_var('BACKEND', 'svirt')) {
+        my $hostname = get_var('VIRSH_GUEST');
+
+        $self->add_console(
+            'sut',
+            'vnc-base',
+            {
+                hostname => $hostname,
+                port     => 5901,
+                password => $testapi::password
+            });
+        $self->add_console('install-shell', 'tty-console', {tty => 2});
+        $self->add_console('root-console',  'tty-console', {tty => 2});
+        $self->add_console('user-console',  'tty-console', {tty => 4});
+        $self->add_console('x11',           'tty-console', {tty => 7});
+    }
+
+    # non-JeOS tests via svirt and s390x backends
+    if (!get_var('JEOS') && (check_var('BACKEND', 'svirt') || check_var('BACKEND', 's390x'))) {
         my $hostname = get_var('VIRSH_GUEST');
 
         if (check_var('BACKEND', 's390x')) {
@@ -302,7 +322,7 @@ sub activate_console {
         $user = $testapi::username if $user eq 'user';
 
         # different handling for svirt and s390 backend
-        if (!check_var('BACKEND', 's390x') && !check_var('BACKEND', 'svirt')) {
+        if (!check_var('BACKEND', 's390x') && (check_var('BACKEND', 'svirt') && get_var('JEOS'))) {
             my $nr = 4;
             $nr = 2 if ($user eq 'root');
             # we need to wait more than five seconds here to pass the idle timeout in
