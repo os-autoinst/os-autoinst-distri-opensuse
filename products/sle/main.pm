@@ -892,6 +892,16 @@ sub prepare_target() {
     }
 }
 
+
+sub load_virtauto_tests() {
+        loadtest "qa_virtauto/common/init_pxe_install.pm";
+        load_inst_tests();
+        #loadtest "qa_virtauto/common/login_console.pm";
+        #loadtest "qa_virtauto/common/install_package.pm";
+        #loadtest "qa_virtauto/Prj1_Guest_Installation/guest_installation_run.pm";
+
+}
+
 # load the tests in the right order
 if (get_var("REGRESSION")) {
     prepare_target();
@@ -943,6 +953,10 @@ elsif (get_var("QA_TESTSET")) {
         loadtest "qa_automation/patch_and_reboot.pm";
     }
     loadtest "qa_automation/" . get_var("QA_TESTSET") . ".pm";
+}
+elsif (get_var("QA_VIRTTEST_GI")) {
+        load_virtauto_tests();
+
 }
 elsif (get_var("QAM_MINIMAL")) {
     prepare_target();
