@@ -894,11 +894,11 @@ sub prepare_target() {
 
 
 sub load_virtauto_tests() {
-        loadtest "qa_virtauto/common/init_pxe_install.pm";
+        loadtest "virt_autotest/common/init_pxe_install.pm";
         load_inst_tests();
-        #loadtest "qa_virtauto/common/login_console.pm";
-        #loadtest "qa_virtauto/common/install_package.pm";
-        #loadtest "qa_virtauto/Prj1_Guest_Installation/guest_installation_run.pm";
+        #loadtest "virt_autotest/common/login_console.pm";
+        #loadtest "virt_autotest/common/install_package.pm";
+        #loadtest "virt_autotest/Prj1_Guest_Installation/guest_installation_run.pm";
 
 }
 
