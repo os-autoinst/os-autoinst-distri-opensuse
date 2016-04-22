@@ -48,5 +48,87 @@ sub clean_shotwell() {
     x11_start_program("rm /home/$username/Documents/shotwell_test.*");
 }
 
+# upload libreoffice specified file into /home/$username/Documents
+sub upload_libreoffice_specified_file() {
+
+    x11_start_program("xterm");
+    assert_script_run("wget " . autoinst_url . "/data/x11regressions/ooo-test-doc-types.tar.bz2 -O /home/$username/Documents/ooo-test-doc-types.tar.bz2");
+    wait_still_screen;
+    type_string("cd /home/$username/Documents && ls -l");
+    send_key "ret";
+    wait_screen_change {
+        assert_screen("libreoffice-find-tar-file");
+        type_string("tar -xjvf ooo-test-doc-types.tar.bz2");
+        send_key "ret";
+    };
+    wait_still_screen;
+    send_key "alt-f4";
+
+}
+
+# cleanup libreoffcie specified file from test vm
+sub cleanup_libreoffice_specified_file() {
+
+    x11_start_program("xterm");
+    assert_script_run("rm -rf /home/$username/Documents/ooo-test-doc-types*");
+    wait_still_screen;
+    type_string("ls -l /home/$username/Documents");
+    send_key "ret";
+    wait_screen_change {
+        assert_screen("libreoffice-find-no-tar-file");
+    };
+    wait_still_screen;
+    send_key "alt-f4";
+
+}
+
+# cleanup libreoffice recent open file to make sure libreoffice clean
+sub cleanup_libreoffice_recent_file() {
+
+    x11_start_program("libreoffice");
+    send_key "alt-f";
+    send_key "alt-u";
+    assert_screen("libreoffice-recent-documents");
+    send_key_until_needlematch("libreoffice-clear-list", "down");
+    send_key "ret";
+    assert_screen("welcome-to-libreoffice");
+    send_key "ctrl-q";
+
+}
+
+# check libreoffice dialog windows setting- "gnome dialog" or "libreoffice dialog"
+sub check_libreoffice_dialogs() {
+
+    # make sure libreoffice dialog option is disabled status
+    send_key "alt-t";
+    send_key "alt-o";
+    assert_screen("ooffice-tools-options");
+    send_key_until_needlematch('libreoffice-options-general', 'down');
+    assert_screen("libreoffice-general-dialogs-disabled");
+    send_key "alt-o";
+    send_key "alt-o";
+    assert_screen("libreoffice-gnome-dialogs");
+    send_key "alt-c";
+
+    # enable libreoffice dialog
+    send_key "alt-t";
+    send_key "alt-o";
+    assert_screen("libreoffice-options-general");
+    send_key "alt-u";
+    assert_screen("libreoffice-general-dialogs-enabled");
+    send_key "alt-o";
+    send_key "alt-o";
+    assert_screen("libreoffice-specific-dialogs");
+    send_key "alt-c";
+
+    # restore the default setting
+    send_key "alt-t";
+    send_key "alt-o";
+    assert_screen("libreoffice-options-general");
+    send_key "alt-u";
+    send_key "alt-o";
+
+}
+
 1;
 # vim: set sw=4 et:
