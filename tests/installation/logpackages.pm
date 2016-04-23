@@ -20,8 +20,8 @@ sub run() {
     #send_key "ctrl-alt-shift-x"; sleep 3;
     select_console('install-shell');
 
-    script_run "(cat .timestamp ; echo .packages.initrd: ; cat .packages.initrd)";
-    script_run "(echo .packages.root: ; cat .packages.root)";
+    script_run "(cat .timestamp ; echo .packages.initrd: ; cat .packages.initrd) > /dev/$serialdev";
+    script_run "(echo .packages.root: ; cat .packages.root) > /dev/$serialdev";
     script_run "ls -lR /update";
     save_screenshot;
 
