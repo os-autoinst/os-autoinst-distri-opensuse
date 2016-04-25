@@ -12,8 +12,8 @@ use testapi;
 use lockapi;
 
 sub run() {
-    my $self = shift;
-    #   my $sbd_device = "/dev/disk/by-path/ip-*-lun-0";
+    my $self         = shift;
+    my $sbd_device   = "/dev/disk/by-path/ip-*-lun-0";
     my $cluster_init = script_output "ha-cluster-init -y -s $sbd_device; echo ha_cluster_init=\$?", 120;
     if ($cluster_init =~ /ha_cluster_init=1/) {    #failed to initialize the cluster, trying again
         upload_logs "/var/log/ha-cluster-bootstrap.log";
