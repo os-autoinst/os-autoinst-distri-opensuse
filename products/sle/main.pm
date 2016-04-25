@@ -66,6 +66,10 @@ sub is_staging () {
     return get_var('STAGING');
 }
 
+sub is_sles4sap () {
+    return get_var('VERSION', '') =~ /SAP/;
+}
+
 sub cleanup_needles() {
     remove_desktop_needles("lxde");
     remove_desktop_needles("kde");
@@ -438,6 +442,9 @@ sub load_inst_tests() {
     else {
         loadtest "installation/skip_registration.pm";
     }
+    if (is_sles4sap) {
+        loadtest "installation/sles4sap_product_installation_mode.pm";
+    }
     if (get_var('MAINT_TEST_REPO')) {
         loadtest 'installation/add_update_test_repo.pm';
     }
@@ -482,7 +489,14 @@ sub load_inst_tests() {
     if (noupdatestep_is_applicable) {
         loadtest "installation/installer_timezone.pm";
         loadtest "installation/logpackages.pm";
-        loadtest "installation/user_settings.pm";
+        if (is_sles4sap) {
+            if (get_var("SLES4SAP_MODE") eq 'sles') {
+                loadtest "installation/user_settings.pm";
+            }    # sles4sap wizard installation doesn't have user_settings step
+        }
+        else {
+            loadtest "installation/user_settings.pm";
+        }
         loadtest "installation/user_settings_root.pm";
         if (get_var('PATTERNS')) {
             loadtest "installation/installation_overview_before.pm";
@@ -504,6 +518,18 @@ sub load_inst_tests() {
     if (check_var('BACKEND', 'svirt')) {
         # on svirt we need to redefine the xml-file to boot the installed kernel
         loadtest "installation/redefine_svirt_domain.pm";
+    }
+    if (is_sles4sap) {
+        if (get_var("SLES4SAP_MODE") eq 'sles4sap_wizard') {
+            loadtest "installation/sles4sap_wizard.pm";
+            if (get_var("TREX")) {
+                loadtest "installation/sles4sap_wizard_trex.pm";
+            }
+            if (get_var("NW")) {
+                loadtest "installation/sles4sap_wizard_nw.pm";
+            }
+            loadtest "installation/sles4sap_wizard_swpm.pm";
+        }
     }
 
 }
