@@ -31,8 +31,8 @@ sub run {
         chmod 600 /root/.ssh/*
         chmod 700 /root/.ssh
 
-        # slenkins-engine-tests is required for /usr/lib/slenkins/lib/slenkins-functions.sh below
-        zypper -n --no-gpg-checks in " . get_var('SLENKINS_CONTROL') . " slenkins-engine-tests slenkins
+        # slenkins-engine is required for /usr/lib/slenkins/lib/slenkins-functions.sh below
+        zypper -n --no-gpg-checks in " . get_var('SLENKINS_CONTROL') . " slenkins-engine slenkins
     ", 100);
 
     my $parents = get_parents();
