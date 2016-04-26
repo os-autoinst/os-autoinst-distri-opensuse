@@ -490,7 +490,7 @@ sub load_inst_tests() {
         loadtest "installation/installer_timezone.pm";
         loadtest "installation/logpackages.pm";
         if (is_sles4sap) {
-            if (get_var("SLES4SAP_MODE") eq 'sles') {
+            if (check_var("SLES4SAP_MODE", 'sles')) {
                 loadtest "installation/user_settings.pm";
             }    # sles4sap wizard installation doesn't have user_settings step
         }
@@ -520,7 +520,7 @@ sub load_inst_tests() {
         loadtest "installation/redefine_svirt_domain.pm";
     }
     if (is_sles4sap) {
-        if (get_var("SLES4SAP_MODE") eq 'sles4sap_wizard') {
+        if (check_var('SLES4SAP_MODE', 'sles4sap_wizard')) {
             loadtest "installation/sles4sap_wizard.pm";
             if (get_var("TREX")) {
                 loadtest "installation/sles4sap_wizard_trex.pm";
