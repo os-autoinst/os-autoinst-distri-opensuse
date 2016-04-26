@@ -20,7 +20,7 @@ sub get_ip_address() {
         else {
             use_wicked;
         }
-        type_string "ifconfig -a\n";
+        type_string "ip a\n";
         type_string "cat /etc/resolv.conf\n";
     }
 }
