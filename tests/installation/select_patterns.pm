@@ -91,11 +91,6 @@ sub run {
 
         my $selected = check_screen([qw(current-pattern-selected on-category)], 0);
 
-        # stick to the default patterns
-        if (get_var('PATTERNS', '') =~ /default/) {
-            $needs_to_be_selected = $selected;
-        }
-
         if ($selected && $selected->{needle}->has_tag('on-category')) {
             movedownelseend;
             check12qtbug;
@@ -107,7 +102,12 @@ sub run {
             };
             assert_screen 'current-pattern-selected', 5;
         }
-        elsif (!$needs_to_be_selected && $selected) {
+
+        # stick to the default patterns
+        if (get_var('PATTERNS', '') =~ /default/) {
+            $needs_to_be_selected = $selected;
+        }
+        if (!$needs_to_be_selected && $selected) {
             send_key ' ';
             assert_screen [qw(current-pattern-unselected current-pattern-autoselected)], 8;
         }
