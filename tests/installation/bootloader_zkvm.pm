@@ -54,7 +54,7 @@ sub run() {
 
     $svirt->add_disk({size => $size_i . "G", create => 1});
     # need that for s390
-    $svirt->add_pty({type => 'sclp', port => '0'});
+    $svirt->add_pty({pty_dev => 'console', pty_dev_type => 'pty', target_type => 'sclp', target_port => '0'});
 
     # direct access to the tap device
     # use of $vtap temporarily
