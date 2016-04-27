@@ -15,19 +15,15 @@ use testapi;
 sub run() {
     my $self = shift;
 
-    script_run 'export CC=/usr/bin/gcc-5';
-    script_run 'export CXX=/usr/bin/g++-5';
     my $package = data_url('toolchain/ltp-full-20150420.tar.bz2');
     script_run "wget $package";
     script_run 'tar jxf ltp-full-20150420.tar.bz2';
     script_run 'cd ltp-full-20150420';
-    script_run 'setterm -blank 0';    # disable screensaver
-    assert_script_run './configure --with-open-posix-testsuite', 100;
-    assert_script_run 'make all',                                800;
-    assert_script_run 'make install',                            400;
+    assert_script_run './configure --with-open-posix-testsuite|tee /tmp/configure.log', 100;
+    assert_script_run 'make all|tee /tmp/make_all.log',                                 800;
+    assert_script_run 'make install|tee /tmp/make_install.log',                         400;
     script_run 'cd /opt/ltp/';
-    script_run "./runltp -f syscalls;echo runltp syscalls PASSED-\$?|tee /dev/$serialdev";
-    wait_serial('runltp syscalls PASSED-[01]', 1200) || die 'runltp syscalls FAILED';
+    assert_script_run './runltp -f syscalls|tee /tmp/runltp.log', 2000;
     script_run 'cat output/*.failed';    # print what tests failed
     sleep 5;
     save_screenshot;
@@ -35,6 +31,16 @@ sub run() {
 
 sub test_flags() {
     return {important => 1};
+}
+
+sub post_fail_hook() {
+    my $self = shift;
+
+    $self->export_logs();
+    upload_logs '/tmp/configure.log';
+    upload_logs '/tmp/make_all.log';
+    upload_logs '/tmp/make_install.log';
+    upload_logs '/tmp/runltp.log';
 }
 
 1;
