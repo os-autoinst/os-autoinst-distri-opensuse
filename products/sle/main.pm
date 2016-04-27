@@ -682,7 +682,9 @@ sub load_consoletests() {
         if (check_var("ARCH", "x86_64")) {
             loadtest "console/glibc_i686.pm";
         }
-        loadtest "console/zypper_up.pm";
+        if (!gnomestep_is_applicable) {
+            loadtest "console/zypper_up.pm";
+        }
         if (is_jeos) {
             loadtest "console/console_reboot.pm";
         }
@@ -802,6 +804,7 @@ sub load_x11tests() {
     loadtest "x11/xterm.pm";
     loadtest "x11/sshxterm.pm";
     if (gnomestep_is_applicable) {
+        loadtest "x11/updates_gnome.pm";
         loadtest "x11/gnome_control_center.pm";
         loadtest "x11/gnome_terminal.pm";
         loadtest "x11/gedit.pm";
