@@ -337,6 +337,8 @@ sub load_x11regresion_tests() {
         loadtest "x11regressions/empathy/empathy_aim.pm";
         loadtest "x11regressions/empathy/empathy_irc.pm";
         loadtest "x11regressions/libreoffice/libreoffice_mainmenu_favorites.pm";
+        loadtest "x11regressions/libreoffice/libreoffice_open_specified_file.pm";
+        loadtest "x11regressions/libreoffice/libreoffice_double_click_file.pm";
         loadtest "x11regressions/libreoffice/libreoffice_mainmenu_components.pm";
         loadtest "x11regressions/libreoffice/libreoffice_recent_documents.pm";
         loadtest "x11regressions/libreoffice/libreoffice_default_theme.pm";
