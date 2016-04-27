@@ -194,6 +194,16 @@ sub become_root {
 sub init_consoles {
     my ($self) = @_;
 
+    # avoid complex boolean logic by setting interim variables
+    if (check_var('BACKEND', 'svirt')) {
+        if (get_var('JEOS')) {
+            set_var('JEOS_SVIRT', 1);
+        }
+        if (check_var('ARCH', 's390x')) {
+            set_var('S390_ZKVM', 1);
+        }
+    }
+
     if (check_var('BACKEND', 'qemu') || check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'generalhw')) {
         $self->add_console('install-shell', 'tty-console', {tty => 2});
         $self->add_console('installation',  'tty-console', {tty => check_var('VIDEOMODE', 'text') ? 1 : 7});
@@ -203,7 +213,7 @@ sub init_consoles {
     }
 
     # JeOS via svirt backend
-    if (get_var('JEOS') && check_var('BACKEND', 'svirt')) {
+    if (get_var('JEOS_SVIRT')) {
         my $hostname = get_var('VIRSH_GUEST');
 
         $self->add_console(
@@ -220,8 +230,7 @@ sub init_consoles {
         $self->add_console('x11',           'tty-console', {tty => 7});
     }
 
-    # non-JeOS tests via svirt and s390x backends
-    if (!get_var('JEOS') && (check_var('BACKEND', 'svirt') || check_var('BACKEND', 's390x'))) {
+    if (check_var('BACKEND', 's390x') || get_var('S390_ZKVM')) {
         my $hostname = get_var('VIRSH_GUEST');
 
         if (check_var('BACKEND', 's390x')) {
@@ -321,8 +330,12 @@ sub activate_console {
         my $user = $1;
         $user = $testapi::username if $user eq 'user';
 
-        # different handling for svirt and s390 backend
-        if (!check_var('BACKEND', 's390x') && (check_var('BACKEND', 'svirt') && get_var('JEOS'))) {
+        # different handling for ssh consoles
+        if (check_var('BACKEND', 's390x') || get_var('S390_ZKVM')) {
+            # different console-behaviour for s390x
+            $self->script_run("su - $user") unless ($user eq 'root');
+        }
+        else {
             my $nr = 4;
             $nr = 2 if ($user eq 'root');
             # we need to wait more than five seconds here to pass the idle timeout in
@@ -336,10 +349,6 @@ sub activate_console {
                 type_password;
                 send_key "ret";
             }
-        }
-        else {
-            # different console-behaviour for s390x
-            $self->script_run("su - $user") unless ($user eq 'root');
         }
         # check if $user is not logged in try to login two times
         if (!check_screen("text-logged-in-$user")) {
