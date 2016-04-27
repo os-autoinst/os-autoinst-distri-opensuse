@@ -90,6 +90,12 @@ sub run {
         $needs_to_be_selected = 1 if ($wanted_patterns{'all'});
 
         my $selected = check_screen([qw(current-pattern-selected on-category)], 0);
+
+        # stick to the default patterns
+        if (get_var('PATTERNS', '') =~ /default/) {
+            $needs_to_be_selected = $selected;
+        }
+
         if ($selected && $selected->{needle}->has_tag('on-category')) {
             movedownelseend;
             check12qtbug;
