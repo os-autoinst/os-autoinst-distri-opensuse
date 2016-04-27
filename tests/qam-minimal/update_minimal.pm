@@ -39,6 +39,11 @@ sub run {
 
     set_var('SYSTEM_IS_UPDATED', 1);
     type_string "reboot\n";
+
+    reset_consoles;
+
+    # wait for the reboot
+    system_login;
 }
 
 sub test_flags {
