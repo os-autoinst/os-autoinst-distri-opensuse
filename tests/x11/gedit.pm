@@ -19,6 +19,7 @@ sub run() {
     my $self = shift;
     x11_start_program("gedit");
     assert_screen 'gedit-launched';
+    sleep 2;
     type_string "If you can see this text gedit is working.\n";
     sleep 2;
     assert_screen 'test-gedit-1', 3;
