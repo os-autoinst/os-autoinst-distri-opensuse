@@ -26,11 +26,7 @@ sub run {
     script_run("zypper pt");
     save_screenshot;
 
-    script_run("zypper -n in -t pattern base x11 gnome-basic apparmor; echo 'installed-patterns-\$?' > /dev/$serialdev", 0);
-
-    my $ret = wait_serial "installed-patterns-\?-", 1500;
-    $ret =~ /installed-patterns-(\d+)/;
-    die "zypper failed with code $1" unless $1 == 0 || $1 == 102;
+    assert_script_run("zypper -n in -t pattern base x11 gnome-basic apparmor", 2000);
 
     assert_script_run("systemctl set-default graphical.target");
     assert_script_run('sed -i -r "s/^DISPLAYMANAGER=\"\"/DISPLAYMANAGER=\"gdm\"/" /etc/sysconfig/displaymanager');
