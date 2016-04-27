@@ -499,7 +499,9 @@ sub load_consoletests() {
         {
             loadtest "console/glibc_i686.pm";
         }
-        loadtest "console/zypper_up.pm";
+        if (!gnomestep_is_applicable) {
+            loadtest "console/zypper_up.pm";
+        }
         loadtest "console/zypper_in.pm";
         loadtest "console/yast2_i.pm";
         if (!get_var("LIVETEST")) {
@@ -670,6 +672,7 @@ sub load_x11tests() {
     loadtest "x11/xterm.pm";
     loadtest "x11/sshxterm.pm" unless get_var("LIVETEST");
     if (gnomestep_is_applicable) {
+        loadtest "x11/updates_gnome.pm";
         loadtest "x11/gnome_control_center.pm";
         loadtest "x11/gnome_terminal.pm";
         loadtest "x11/gedit.pm";
