@@ -338,6 +338,7 @@ sub load_x11regresion_tests() {
         loadtest "x11regressions/libreoffice/libreoffice_default_theme.pm";
         loadtest "x11regressions/evolution/evolution_smoke.pm";
         loadtest "x11regressions/evolution/evolution_mail_imap.pm";
+        loadtest "x11regressions/evolution/evolution_mail_pop.pm";
         loadtest "x11regressions/evolution/evolution_mail_ews.pm";
         loadtest "x11regressions/evolution/evolution_timezone_setup.pm";
         loadtest "x11regressions/shotwell/shotwell_import.pm";
