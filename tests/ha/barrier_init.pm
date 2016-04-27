@@ -13,6 +13,7 @@ use lockapi;
 
 sub run() {
     my $self = shift;
+
     $self->barrier_create("CLUSTER_INITIALIZED");
     $self->barrier_create("NODE2_JOINED");
     $self->barrier_create("OCFS2_INIT");
@@ -25,6 +26,12 @@ sub run() {
     $self->barrier_create("BEFORE_FENCING");
     $self->barrier_create("FENCING_DONE");
     $self->barrier_create("LOGS_CHECKED");
+    $self->barrier_create("CLVM_INIT");
+    $self->barrier_create("CLVM_RESOURCE_CREATED");
+    $self->barrier_create("CLVM_PV_VG_LV_CREATED");
+    $self->barrier_create("CLVM_VG_RESOURCE_CREATED");
+    $self->barrier_create("CLVM_RW_CHECKED");
+    $self->barrier_create("CLVM_MD5SUM");
 }
 
 sub test_flags {
