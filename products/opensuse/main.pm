@@ -584,6 +584,7 @@ sub load_extra_tests () {
         loadtest "console/zypper_ar.pm";
         loadtest "console/zypper_ref.pm";
         loadtest "console/update_alternatives.pm";
+        loadtest "console/yast2_proxy.pm";
 
         # start extra console tests from here
         if (!get_var("OFW") && !is_jeos) {
