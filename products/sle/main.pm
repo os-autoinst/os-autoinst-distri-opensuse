@@ -538,7 +538,7 @@ sub load_inst_tests() {
 }
 
 sub load_reboot_tests() {
-    if (check_var("ARCH", "s390x")) {
+    if (check_var("ARCH", "s390x") and !get_var("QAM_MINIMAL")) {
         loadtest "installation/reconnect_s390.pm";
     }
     if (uses_qa_net_hardware) {

@@ -10,6 +10,7 @@
 use strict;
 use base "basetest";
 
+use utils;
 use qam;
 use testapi;
 
@@ -38,6 +39,7 @@ sub run {
     capture_state('after', 1);
 
     set_var('SYSTEM_IS_UPDATED', 1);
+    prepare_system_reboot;
     type_string "reboot\n";
 
     reset_consoles;

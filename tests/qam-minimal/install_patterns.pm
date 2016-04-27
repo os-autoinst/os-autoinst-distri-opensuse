@@ -13,9 +13,9 @@ use base "basetest";
 
 use strict;
 
+use utils;
 use qam;
 use testapi;
-use utils;
 
 sub run {
 
@@ -32,6 +32,7 @@ sub run {
     assert_script_run('sed -i -r "s/^DISPLAYMANAGER=\"\"/DISPLAYMANAGER=\"gdm\"/" /etc/sysconfig/displaymanager');
     assert_script_run('sed -i -r "s/^DISPLAYMANAGER_AUTOLOGIN/#DISPLAYMANAGER_AUTOLOGIN/" /etc/sysconfig/displaymanager');
 
+    prepare_system_reboot;
     type_string "reboot\n";
     wait_boot;
 }

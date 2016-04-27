@@ -12,10 +12,12 @@ use base "basetest";
 
 use strict;
 
+use utils;
 use qam;
 use testapi;
 
 sub run {
+    prepare_system_reboot;
     system_login;
 
     script_run("while pgrep packagekitd; do pkcon quit; sleep 1; done");
@@ -36,6 +38,7 @@ sub run {
     die "zypper failed with code $1" unless $1 == 0 || $1 == 102 || $1 == 103;
 
     capture_state('between', 1);
+    prepare_system_reboot;
     type_string "reboot\n";
 }
 
