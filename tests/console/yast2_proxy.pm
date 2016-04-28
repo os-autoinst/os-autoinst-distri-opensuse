@@ -17,8 +17,8 @@ sub run() {
 
     select_console 'root-console';
 
-    # install squid package at first
-    assert_script_run("/usr/bin/zypper -n -q in squid");
+    # install yast2-squid, yast2-proxy, squid package at first
+    assert_script_run("/usr/bin/zypper -n -q in squid yast2-squid yast2-proxy");
 
     # start yast2 squid configuration
     script_run("/sbin/yast2 squid; echo yast2-squid-status-\$? > /dev/$serialdev", 0);
