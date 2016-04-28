@@ -22,13 +22,13 @@ sub run() {
     my $self = shift;
     assert_screen "bootloader-ofw", 15;
     if (get_var("UPGRADE")) {
-        send_key_until_needlematch 'inst-onupgrade', 'up';
+        send_key_until_needlematch 'inst-onupgrade', 'down';
     }
     elsif (get_var("ZDUP")) {
         assert_screen 'inst-onlocal';
     }
     else {
-        send_key_until_needlematch 'inst-oninstallation', 'up';
+        send_key_until_needlematch 'inst-oninstallation', 'down';
     }
     if (check_var('VIDEOMODE', 'text') || get_var('NETBOOT') || get_var('AUTOYAST') || get_var('SCC_URL')) {
         if (get_var("ZDUP")) {
