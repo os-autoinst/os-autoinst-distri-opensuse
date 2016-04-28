@@ -16,6 +16,8 @@ use testapi;
 sub run() {
 
     select_console 'root-console';
+    # install http server
+    assert_script_run("/usr/bin/zypper -n -q in yast2-http-server");
     script_run("/sbin/yast2 http-server; echo yast2-http-server-status-\$? > /dev/$serialdev", 0);
     assert_screen 'http-server';              # check page "Initializing HTTP Server Configuration"
     send_key 'alt-i';                         # make sure that apache2, apache2-prefork packages needs to be installed

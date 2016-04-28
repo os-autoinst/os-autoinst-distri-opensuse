@@ -18,7 +18,7 @@ sub run() {
     select_console 'root-console';
 
     # install vsftps
-    assert_script_run("/usr/bin/zypper -n -q in vsftpd");
+    assert_script_run("/usr/bin/zypper -n -q in vsftpd yast2-ftp-server");
 
     # create DSA certificate for ftp server at first which canbe used for SSL configuration
     type_string("openssl req -x509 -nodes -days 365 -newkey rsa:1024 -keyout /etc/vsftpd.pem -out /etc/vsftpd.pem\n");
