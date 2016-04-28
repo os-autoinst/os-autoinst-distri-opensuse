@@ -125,7 +125,6 @@ EO_frickin_boot_parms
 
     }
 
-    ###################################################################
     # linuxrc
     $r = $s3270->expect_3270(
         output_delim => qr/Loading Installation System/,
@@ -155,6 +154,26 @@ EO_frickin_boot_parms
 
 }
 
+sub format_dasd() {
+    my $self = shift;
+
+    # activate install-shell to do pre-install dasd-format
+    select_console('install-shell');
+
+    # bring dasd online
+    script_run("dasd_configure 0.0.0150 1");
+
+    # make sure that there is a dasda device
+    assert_script_run("(lsdasd | tee /dev/$serialdev)");
+    assert_screen("ensure-dasd-exists");
+
+    # format dasda (this can take up to 15 minutes depending on disk size)
+    type_string("dasdfmt -b 4096 -p /dev/dasda; echo dasdfmt-status-$?- > /dev/$serialdev\n");
+    sleep 2;
+    type_string("yes\n");
+    wait_serial("dasdfmt-status-0-", 900);
+}
+
 sub run() {
 
     my $self = shift;
@@ -162,7 +181,6 @@ sub run() {
     select_console 'x3270';
 
     eval {
-        ###################################################################
         # connect to zVM, login to the guest
         $self->get_to_yast();
     };
@@ -171,8 +189,13 @@ sub run() {
 
     die join("\n", '#' x 67, $exception, '#' x 67) if $exception;
 
-    # activate console so we can call wait_idle later
+    # activate console so we can call wait_serial later
     my $c = select_console('iucvconn');
+
+    # we also want to test the formatting during the installation if the variable is set
+    if (!get_var("FORMAT_DASD_YAST")) {
+        format_dasd;
+    }
 
     # We have textmode installation via ssh and the default vnc installation so far
     if (check_var('VIDEOMODE', 'text')) {
