@@ -35,15 +35,11 @@ sub run() {
         }
         send_key 'ret';
     }
-    if (get_var("XEN")) {
-        send_key_until_needlematch("bootmenu-xen-kernel", 'down', 10, 5);
-    }
     # avoid timeout for booting to HDD
     send_key 'ret';
 }
 sub test_flags() {
     return {fatal => 1};
 }
-
 1;
 # vim: set sw=4 et:

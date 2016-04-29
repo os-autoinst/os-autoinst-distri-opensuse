@@ -551,9 +551,6 @@ sub load_reboot_tests() {
             loadtest "installation/grub_test.pm";
             if ((snapper_is_applicable) && get_var("BOOT_TO_SNAPSHOT")) {
                 loadtest "installation/boot_into_snapshot.pm";
-                if (get_var("UPGRADE")) {
-                    loadtest "installation/snapper_rollback.pm";
-                }
             }
         }
         if (get_var("ENCRYPT")) {
@@ -1029,7 +1026,13 @@ else {
             loadtest "rt/boot_rt_kernel.pm";
         }
         else {
-            loadtest "boot/boot_to_desktop.pm";
+            if (get_var("BOOT_TO_SNAPSHOT") && (snapper_is_applicable) && get_var("UPGRADE")) {
+                loadtest "boot/grub_test_snapshot.pm";
+                loadtest "boot/snapper_rollback.pm";
+            }
+            else {
+                loadtest "boot/boot_to_desktop.pm";
+            }
             if (get_var("ADDONS")) {
                 loadtest "installation/addon_products_yast2.pm";
             }
