@@ -3,12 +3,11 @@ perl:
   - "5.18-extras"
 before_install:
   - eval $(curl https://travis-perl.github.io/init) --perl
+  - sudo apt-get update
 install:
   - perlbrew list
-  - sudo apt-get install libdbus-1-dev
-  - cpanm -nq JSON Data::Dump
-  - git clone git://github.com/os-autoinst/os-autoinst
-  - cpanm -nq `cat os-autoinst/DEPENDENCIES.txt`
+  - sudo apt-get install libdbus-1-dev libssh2-1-dev
+  - make prepare
 script:
   - make test
 sudo: required
