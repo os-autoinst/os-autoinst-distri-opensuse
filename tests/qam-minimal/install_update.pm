@@ -29,13 +29,14 @@ sub run {
     capture_state('before');
 
     my $repo = get_var('MINIMAL_TEST_REPO');
-    assert_script_run("zypper -n ar -f '$repo' test-minimal");
+    my $ret  = zypper_call("ar -f $repo test-minimal");
+    die "zypper failed with code $ret" unless $ret == 0;
 
-    assert_script_run("zypper ref");
-    script_run("zypper -n patch -r test-minimal ; echo 'worked-patch-\$?-' > /dev/$serialdev", 0);
-    my $ret = wait_serial "worked-patch-\?-", 700;
-    $ret =~ /worked-patch-(\d+)/;
-    die "zypper failed with code $1" unless $1 == 0 || $1 == 102 || $1 == 103;
+    $ret = zypper_call("ref");
+    die "zypper failed with code $ret" unless $ret == 0;
+
+    $ret = zypper_call("patch -r test-minimal");
+    die "zypper failed with code $ret" unless grep { $_ == $ret } (0, 102);
 
     capture_state('between', 1);
     prepare_system_reboot;
