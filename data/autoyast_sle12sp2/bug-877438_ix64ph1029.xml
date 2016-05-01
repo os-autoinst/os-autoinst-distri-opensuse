@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+
+  <add-on>
+    <add_on_products config:type="list">
+      <listentry>
+        <media_url>http://download.suse.de/ibs/SUSE:/SLE-12-SP2:/Update/standard</media_url>
+        <product>SuSE-Linux-Updates</product>
+        <product_dir>/</product_dir>
+        <name>Updates</name> 
+      </listentry>
+    </add_on_products>
+  </add-on>
+
+  <bootloader>
+    <device_map config:type="list">
+      <device_map_entry>
+        <firmware>hd0</firmware>
+        <linux>/dev/sda</linux>
+      </device_map_entry>
+    </device_map>
+    <global>
+      <activate>true</activate>
+      <append> splash=silent quiet showopts</append>
+      <append_failsafe>showopts apm=off noresume edd=off powersaved=off nohz=off highres=off processor.max_cstate=1 nomodeset x11failsafe</append_failsafe>
+      <boot_boot>false</boot_boot>
+      <boot_extended>false</boot_extended>
+      <boot_mbr>true</boot_mbr>
+      <boot_root>true</boot_root>
+      <default>0</default>
+      <generic_mbr>true</generic_mbr>
+      <gfxmode>auto</gfxmode>
+      <gfxtheme/>
+      <os_prober>true</os_prober>
+      <timeout config:type="integer">8</timeout>
+      <vgamode/>
+    </global>
+    <initrd_modules config:type="list">
+      <initrd_module>
+        <module>xen-vbd</module>
+      </initrd_module>
+      <initrd_module>
+        <module>xen-vnif</module>
+      </initrd_module>
+    </initrd_modules>
+    <loader_type>grub2</loader_type>
+    <sections config:type="list"/>
+  </bootloader>
+  <deploy_image>
+    <image_installation config:type="boolean">false</image_installation>
+  </deploy_image>
+  <general>
+    <ask-list config:type="list"/>
+    <mode>
+      <confirm config:type="boolean">false</confirm>
+    </mode>
+    <proposals config:type="list"/>
+    <signature-handling>
+      <accept_file_without_checksum config:type="boolean">true</accept_file_without_checksum>
+      <accept_non_trusted_gpg_key config:type="boolean">true</accept_non_trusted_gpg_key>
+      <accept_unknown_gpg_key config:type="boolean">true</accept_unknown_gpg_key>
+      <accept_unsigned_file config:type="boolean">true</accept_unsigned_file>
+      <accept_verification_failed config:type="boolean">false</accept_verification_failed>
+      <import_gpg_key config:type="boolean">true</import_gpg_key>
+    </signature-handling>
+    <storage>
+      <partition_alignment config:type="symbol">align_optimal</partition_alignment>
+      <start_multipath config:type="boolean">false</start_multipath>
+    </storage>
+  </general>
+  <keyboard>
+    <keyboard_values>
+      <delay/>
+      <discaps config:type="boolean">false</discaps>
+      <numlock>bios</numlock>
+      <rate/>
+    </keyboard_values>
+    <keymap>english-us</keymap>
+  </keyboard>
+  <report>
+    <errors>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </errors>
+    <messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </messages>
+    <warnings>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </warnings>
+    <yesno_messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </yesno_messages>
+  </report>
+  <runlevel>
+    <default_target>multi-user</default_target>
+    <services config:type="list"/>
+  </runlevel>
+  <services-manager>
+    <default_target>multi-user</default_target>
+    <services config:type="list"/>
+  </services-manager>
+  <suse_register>
+    <do_registration config:type="boolean">false</do_registration>
+  </suse_register>
+  <timezone>
+    <hwclock>UTC</hwclock>
+    <timezone>Europe/Berlin</timezone>
+  </timezone>
+  <users config:type="list">
+                <user>
+                   <fullname>Bernhard M. Wiedemann</fullname>  
+                   <encrypted config:type="boolean">false</encrypted>
+                   <user_password>nots3cr3t</user_password>
+                   <username>bernhard</username>
+                </user>
+                
+    <user>
+      <encrypted config:type="boolean">false</encrypted>
+      <fullname>root</fullname>
+      <gid>0</gid>
+      <uid>0</uid>
+      <user_password>nots3cr3t</user_password>
+      <username>root</username>
+    </user>
+  </users>
+  <networking>
+    <keep_install_network config:type="boolean">true</keep_install_network>
+  </networking>
+</profile>
