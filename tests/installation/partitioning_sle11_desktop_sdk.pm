@@ -21,7 +21,7 @@ sub run() {
 
     assert_screen 'preparing-disk';
     send_key 'alt-c';
-    send_key $cmd{"next"};
+    send_key $cmd{next};
     assert_screen 'expert-partitioning';
     send_key 'down';
     send_key 'down';

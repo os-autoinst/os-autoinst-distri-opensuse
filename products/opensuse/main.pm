@@ -34,7 +34,7 @@ our @can_randomize = qw/NOIMAGES REBOOTAFTERINSTALL DESKTOP VIDEOMODE/;
 
 sub is_jeos();
 
-sub logcurrentenv(@) {
+sub logcurrentenv {
     foreach my $k (@_) {
         my $e = get_var("$k");
         next unless defined $e;
@@ -66,13 +66,13 @@ sub check_env() {
     }
 }
 
-sub unregister_needle_tags($) {
+sub unregister_needle_tags {
     my $tag = shift;
     my @a   = @{needle::tags($tag)};
     for my $n (@a) { $n->unregister(); }
 }
 
-sub remove_desktop_needles($) {
+sub remove_desktop_needles {
     my $desktop = shift;
     if (!check_var("DESKTOP", $desktop)) {
         unregister_needle_tags("ENV-DESKTOP-$desktop");
@@ -280,7 +280,7 @@ sub system_is_livesystem() {
     return (check_var("FLAVOR", 'Rescue-CD') || get_var("LIVETEST"));
 }
 
-sub loadtest($) {
+sub loadtest {
     my ($test) = @_;
     unless ($test =~ m,^tests/,) {
         $test = "tests/$test";

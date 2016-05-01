@@ -1,5 +1,6 @@
 package consoletest;
 use base "opensusebasetest";
+use strict;
 
 # Base class for all openSUSE tests
 

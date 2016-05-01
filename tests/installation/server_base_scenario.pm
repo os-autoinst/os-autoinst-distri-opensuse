@@ -16,7 +16,7 @@ sub run {
     my $self = shift;
 
     assert_screen "server-base-scenario", 8;
-    send_key $cmd{"next"}, 1;
+    send_key $cmd{next}, 1;
 }
 
 1;

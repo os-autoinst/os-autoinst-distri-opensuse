@@ -12,7 +12,7 @@ use base "installbasetest";
 use strict;
 use testapi;
 
-sub startsshinstall($) {
+sub startsshinstall {
     my ($nodenum) = @_;
     my $nodeip = 5 + $nodenum;
     type_string "ssh 10.0.2.1$nodeip -l root\n";

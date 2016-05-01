@@ -9,6 +9,7 @@
 # without any warranty.
 
 use base "x11test";
+use strict;
 use testapi;
 
 # for https://bugzilla.novell.com/show_bug.cgi?id=657626

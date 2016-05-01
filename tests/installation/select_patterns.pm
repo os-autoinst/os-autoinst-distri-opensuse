@@ -87,7 +87,7 @@ sub run {
                 }
             }
         }
-        $needs_to_be_selected = 1 if ($wanted_patterns{'all'});
+        $needs_to_be_selected = 1 if ($wanted_patterns{all});
 
         my $selected = check_screen([qw(current-pattern-selected on-category)], 0);
 

@@ -9,6 +9,7 @@
 # without any warranty.
 
 use base "y2x11test";
+use strict;
 use testapi;
 
 # Test for basic yast2-snapper functionality. It assumes the data of the

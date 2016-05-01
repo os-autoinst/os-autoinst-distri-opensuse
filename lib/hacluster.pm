@@ -14,6 +14,7 @@ use base "opensusebasetest";
 use testapi;
 use autotest;
 use lockapi;
+use strict;
 
 sub is_node1 {
     return (get_var("HOSTNAME") eq "host1");

@@ -78,7 +78,7 @@ sub fill_in_registration_data {
             send_key $cmd{ok};
         }
         if (get_var('SCC_ADDONS')) {
-            for $addon (split(/,/, get_var('SCC_ADDONS', ''))) {
+            for my $addon (split(/,/, get_var('SCC_ADDONS', ''))) {
                 if (check_var('DESKTOP', 'textmode')) {
                     send_key_until_needlematch "scc-module-$addon", 'tab';
                     send_key "spc";
@@ -88,12 +88,12 @@ sub fill_in_registration_data {
                 }
             }
             send_key 'alt-n';    # next, all addons selected
-            for $addon (split(/,/, get_var('SCC_ADDONS', ''))) {
+            for my $addon (split(/,/, get_var('SCC_ADDONS', ''))) {
                 assert_screen("scc-addon-license-$addon");
                 send_key "alt-a", 1;    # accept license
                 send_key "alt-n", 1;    # next
             }
-            for $addon (split(/,/, get_var('SCC_ADDONS', ''))) {
+            for my $addon (split(/,/, get_var('SCC_ADDONS', ''))) {
                 $uc_addon = uc $addon;    # change to uppercase to match variable
                 if (my $regcode = get_var("SCC_REGCODE_$uc_addon")) {
                     next if ($addon =~ /sdk/);

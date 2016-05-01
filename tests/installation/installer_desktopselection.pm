@@ -36,7 +36,7 @@ sub run() {
         send_key $key;
         sleep 3;             # needles for else cases missing
     }
-    send_key $cmd{"next"};
+    send_key $cmd{next};
 }
 
 1;

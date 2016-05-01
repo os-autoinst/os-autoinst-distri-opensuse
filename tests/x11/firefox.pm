@@ -10,6 +10,7 @@
 
 package firefox;
 use base "x11test";
+use strict;
 use testapi;
 
 sub start_firefox() {

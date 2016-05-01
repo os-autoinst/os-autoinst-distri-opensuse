@@ -10,6 +10,7 @@
 # Case #1480023 : [316585] Drop suseRegister
 
 use base "consoletest";
+use strict;
 use testapi;
 
 sub run() {

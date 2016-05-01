@@ -1,4 +1,5 @@
 use base "consoletest";
+use strict;
 use testapi;
 
 sub run() {

@@ -20,8 +20,8 @@ our %valueranges = (
     VIDEOMODE => ["", "text"],
 );
 
-sub logcurrentenv(@) {
-    foreach my $k (@_) {
+sub logcurrentenv {
+    for my $k (@_) {
         my $e = get_var("$k");
         next unless defined $e;
         bmwqemu::diag("usingenv $k=$e");
@@ -37,13 +37,13 @@ sub check_env() {
     }
 }
 
-sub unregister_needle_tags($) {
+sub unregister_needle_tags {
     my $tag = shift;
     my @a   = @{needle::tags($tag)};
     for my $n (@a) { $n->unregister(); }
 }
 
-sub remove_desktop_needles($) {
+sub remove_desktop_needles {
     my $desktop = shift;
     if (!check_var("DESKTOP", $desktop)) {
         unregister_needle_tags("ENV-DESKTOP-$desktop");
@@ -274,7 +274,7 @@ sub uses_qa_net_hardware() {
     return check_var("BACKEND", "ipmi") || check_var("BACKEND", "generalhw");
 }
 
-sub loadtest($) {
+sub loadtest {
     my ($test) = @_;
     unless ($test =~ m,^tests/,) {
         $test = "tests/$test";

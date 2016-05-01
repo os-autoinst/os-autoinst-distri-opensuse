@@ -14,19 +14,19 @@ use strict;
 use base "x11test";
 use testapi;
 
+sub java_testing {
+    sleep 1;
+    send_key "ctrl-t";
+    sleep 2;
+    send_key "alt-d";
+    type_string "http://www.java.com/en/download/installed.jsp?detect=jre\n";
+    if (check_screen("oracle-cookies-handling", 30)) {
+        assert_and_click "firefox-java-agree-and-proceed";
+    }
+}
+
 sub run() {
     mouse_hide(1);
-
-    sub java_testing {
-        sleep 1;
-        send_key "ctrl-t";
-        sleep 2;
-        send_key "alt-d";
-        type_string "http://www.java.com/en/download/installed.jsp?detect=jre\n";
-        if (check_screen("oracle-cookies-handling", 30)) {
-            assert_and_click "firefox-java-agree-and-proceed";
-        }
-    }
 
     # Clean and Start Firefox
     x11_start_program("xterm -e \"killall -9 firefox;rm -rf .moz* .config/iced* .cache/iced*\"");

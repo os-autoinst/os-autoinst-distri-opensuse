@@ -10,6 +10,7 @@
 
 use base "consoletest";
 use testapi;
+use strict;
 
 # this part contains the steps to run this test
 sub run() {

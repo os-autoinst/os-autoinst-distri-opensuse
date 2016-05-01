@@ -40,12 +40,12 @@ sub go_for_volume {
     }
     # define a basic volume
     my $newvolume = {
-        "pool"         => "openQA_dir",    # not yet used... FIXME
-        "name"         => "VOL",
-        "format"       => "cow",
-        "maxcapacity"  => "0.2",           # low capacity to avoid not enough space
-        "allocation"   => "0.1",
-        "backingstore" => "",              # only qcow2
+        pool         => "openQA_dir",    # not yet used... FIXME
+        name         => "VOL",
+        format       => "cow",
+        maxcapacity  => "0.2",           # low capacity to avoid not enough space
+        allocation   => "0.1",
+        backingstore => "",              # only qcow2
     };
     launch_virtmanager();
     connection_details("storage");
@@ -108,10 +108,10 @@ sub run {
     # ! pool type gluster is not supported !
     # 1 pool type DIR: target path
     my $newpool = {
-        "name" => "openQA_dir",
-        "data" => {
-            "type"        => "dir",
-            "target_path" => "/var/lib/libvirt/images/openQA_dir",
+        name => "openQA_dir",
+        data => {
+            type        => "dir",
+            target_path => "/var/lib/libvirt/images/openQA_dir",
         },
     };
     go_for_pool($newpool);
@@ -119,22 +119,22 @@ sub run {
 
     # 2 mpath: target path (/dev/mapper)
     $newpool = {
-        "name" => "openQA_mpath",
-        "data" => {
-            "type"        => "mpath",
-            "target_path" => "/dev/mapper",
+        name => "openQA_mpath",
+        data => {
+            type        => "mpath",
+            target_path => "/dev/mapper",
         },
     };
     go_for_pool($newpool);
 
     # 3 netfs:  target path; hostname; source path
     $newpool = {
-        "name" => "openQA_netfs",
-        "data" => {
-            "type"        => "netfs",
-            "target_path" => "/var/lib/libvirt/images/netfs",
-            "hostname"    => "localhost",
-            "source_path" => "/data",
+        name => "openQA_netfs",
+        data => {
+            type        => "netfs",
+            target_path => "/var/lib/libvirt/images/netfs",
+            hostname    => "localhost",
+            source_path => "/data",
         },
     };
     create_nfs_share($newpool->{data}{source_path});
@@ -143,23 +143,23 @@ sub run {
 
     # 4 pool type DISK: target path; source path ; build pool 1/0
     $newpool = {
-        "name" => "openQA_disk",
-        "data" => {
-            "type"        => "disk",
-            "target_path" => "/dev/vda2",
-            "source_path" => "/dev/vdb1",
-            "buildpool"   => "false",
+        name => "openQA_disk",
+        data => {
+            type        => "disk",
+            target_path => "/dev/vda2",
+            source_path => "/dev/vdb1",
+            buildpool   => "false",
         },
     };
     go_for_pool($newpool);
 
     # pool type fs: target path; source path
     $newpool = {
-        "name" => "openQA_fs",
-        "data" => {
-            "type"        => "fs",
-            "target_path" => "/var/lib/libvirt/images/openQA_fs",
-            "source_path" => "/dev/vda2",
+        name => "openQA_fs",
+        data => {
+            type        => "fs",
+            target_path => "/var/lib/libvirt/images/openQA_fs",
+            source_path => "/dev/vda2",
         },
     };
     go_for_pool($newpool);
@@ -183,37 +183,29 @@ sub run {
 
     # pool logical: target path; source path ;  build pool 1/0
     $newpool = {
-        "name" => "openQA_logical",
-        "data" => {
-            "type"        => "logical",
-            "target_path" => "/dev/lvm0",
-            "source_path" => "/data/testing",
-            "buildpool"   => "false",
+        name => "openQA_logical",
+        data => {
+            type        => "logical",
+            target_path => "/dev/lvm0",
+            source_path => "/data/testing",
+            buildpool   => "false",
         },
     };
     go_for_pool($newpool);
 
     # scsi: target path (dev/disk/by-path); source path (host0)
     $newpool = {
-        "name" => "openQA_scsi",
-        "data" => {
-            "type"        => "scsi",
-            "target_path" => "/dev/disk/by-path",
-            "source_path" => "host0",
+        name => "openQA_scsi",
+        data => {
+            type        => "scsi",
+            target_path => "/dev/disk/by-path",
+            source_path => "host0",
         },
     };
     go_for_pool($newpool);
 
     my @tocheck = ("default", "openQA_dir");
     checking_storage_result(\@tocheck);
-}
-
-sub test_flags {
-    # without anything - rollback to 'lastgood' snapshot if failed
-    # 'fatal' - whole test suite is in danger if this fails
-    # 'milestone' - after this test succeeds, update 'lastgood'
-    # 'important' - if this fails, set the overall state to 'fail'
-    return {'important' => 0, 'fatal' => 0,};
 }
 
 1;

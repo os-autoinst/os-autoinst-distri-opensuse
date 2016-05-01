@@ -9,6 +9,7 @@
 # without any warranty.
 
 use base "x11test";
+use strict;
 use testapi;
 
 # XXX TODO - is using KDE variable here

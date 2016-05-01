@@ -10,6 +10,7 @@
 
 use base "installbasetest";
 use testapi;
+use strict;
 
 # using this as base class means only run when an install is needed
 sub run() {

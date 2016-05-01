@@ -15,6 +15,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 use base "x11test";
+use strict;
 use testapi;
 
 sub run() {

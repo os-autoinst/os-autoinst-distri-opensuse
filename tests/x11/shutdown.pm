@@ -12,7 +12,9 @@
 package shutdown;
 # don't use x11test, the end of this is not a desktop
 use base "opensusebasetest";
+use strict;
 use testapi;
+use utils;
 
 # overloaded in sle11_shutdown
 sub trigger_shutdown_gnome_button() {
@@ -94,7 +96,7 @@ sub run() {
 }
 
 sub test_flags() {
-    return {'norollback' => 1};
+    return {norollback => 1};
 }
 
 1;

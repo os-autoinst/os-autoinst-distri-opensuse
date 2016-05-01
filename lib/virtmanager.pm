@@ -1,5 +1,6 @@
 package virtmanager;
 use testapi;
+use strict;
 
 our @ISA    = qw(Exporter);
 our @EXPORT = qw(launch_virtmanager connection_details create_vnet create_new_pool create_new_volume clean_up_desktop create_netinterface delete_netinterface create_guest);
@@ -638,10 +639,10 @@ sub create_guest {
     send_key "alt-w", 10;
 
     my $newvolume = {
-        "name"        => "guest",
-        "format"      => "qcow2",
-        "maxcapacity" => "2.2",
-        "allocation"  => "2.0",
+        name        => "guest",
+        format      => "qcow2",
+        maxcapacity => "2.2",
+        allocation  => "2.0",
     };
     create_new_volume($newvolume);
     save_screenshot;
@@ -703,10 +704,6 @@ sub create_guest {
     assert_and_click "virtman_guest_begin_install";
 }
 
-
-sub test_flags() {
-    return {'important' => 0, 'fatal' => 0};
-}
 
 1;
 # vim: set sw=4 et:

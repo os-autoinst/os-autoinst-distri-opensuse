@@ -31,7 +31,7 @@ sub run {
     my %server_roles = map { $_ => 1 } @server_roles;
 
     my $log_cmd = "tar cjf /tmp/logs.tar.bz2 /var/log/messages ";
-    if (exists $server_roles{'qemuproxy'} || exists $server_roles{'aytest'}) {
+    if (exists $server_roles{qemuproxy} || exists $server_roles{aytest}) {
         $log_cmd .= "/var/log/apache2 ";
     }
     assert_script_run $log_cmd;

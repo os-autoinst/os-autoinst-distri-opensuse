@@ -3,6 +3,7 @@ use base 'basetest';
 
 use testapi;
 use utils;
+use strict;
 
 # Base class for all openSUSE tests
 

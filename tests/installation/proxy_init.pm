@@ -13,7 +13,7 @@ use strict;
 use testapi;
 use utils;
 
-sub createvm($) {
+sub createvm {
     my ($self, $nodenum) = @_;
     script_run "qemu-img create -f qcow2 node$nodenum.img 10G";
     my $nodemac = 6 + $nodenum;

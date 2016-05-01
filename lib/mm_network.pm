@@ -18,8 +18,8 @@ sub configure_hostname {
 
 sub get_host_resolv_conf {
     my %conf;
-    open(FH, '<', "/etc/resolv.conf");
-    while (<FH>) {
+    open(my $fh, '<', "/etc/resolv.conf");
+    while (<$fh>) {
         if (/^nameserver\s+([0-9.]+)\s*$/) {
             $conf{nameserver} //= [];
             push @{$conf{nameserver}}, $1;
@@ -28,6 +28,7 @@ sub get_host_resolv_conf {
             $conf{search} = $1;
         }
     }
+    close($fh);
     return \%conf;
 }
 
