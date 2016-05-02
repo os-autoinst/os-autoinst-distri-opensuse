@@ -586,6 +586,7 @@ sub load_extra_tests () {
         loadtest "console/update_alternatives.pm";
         loadtest "console/yast2_proxy.pm";
         loadtest "console/yast2_ntpclient.pm";
+        loadtest "console/yast2_tftp.pm";
 
         # start extra console tests from here
         if (!get_var("OFW") && !is_jeos) {
