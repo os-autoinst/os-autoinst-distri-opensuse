@@ -15,7 +15,12 @@ use lockapi;
 sub run() {
     my $self = shift;
     $self->barrier_wait("DLM_INIT");
-    if ($self->is_node1) {    #node1
+    type_string "rpm -q dlm-kmp-default; echo dlm_kmp_default_installed=$?\n";
+    if (!wait_serial "dlm_kmp_default_installed=0") {    #workaround for bsc#976634
+        record_soft_failure "dlm-kmp-default is not installed";
+        assert_script_run "zypper in -y dlm-kmp-default";
+    }
+    if ($self->is_node1) {                               #node1
         type_string "echo wait until DLM resource is created\n";
     }
     else {
