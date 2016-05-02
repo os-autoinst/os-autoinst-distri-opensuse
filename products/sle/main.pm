@@ -712,6 +712,7 @@ sub load_extra_test () {
     loadtest "console/yast2_ftp.pm";
     loadtest "console/yast2_proxy.pm";
     loadtest "console/yast2_ntpclient.pm";
+    loadtest "console/yast2_tftp.pm";
     # finished console test and back to desktop
     loadtest "console/consoletest_finish.pm";
 
