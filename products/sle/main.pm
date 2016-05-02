@@ -309,6 +309,9 @@ sub load_x11regresion_tests() {
     loadtest "x11regressions/firefox/sle12/firefox_developertool.pm";
     loadtest "x11regressions/firefox/sle12/firefox_gnomeshell.pm";
     loadtest "x11regressions/firefox/sle12/firefox_rss.pm";
+    if (!get_var("OFW") && check_var('BACKEND', 'qemu')) {
+        loadtest "x11/firefox_audio.pm";
+    }
     if ((check_var("DESKTOP", "gnome"))) {
         loadtest "x11regressions/gnomecase/nautilus_cut_file.pm";
         loadtest "x11regressions/gnomecase/nautilus_permission.pm";
@@ -740,9 +743,6 @@ sub load_x11tests() {
         loadtest "x11/kate.pm";
     }
     loadtest "x11/firefox.pm";
-    if (!get_var("OFW") && check_var('BACKEND', 'qemu')) {
-        loadtest "x11/firefox_audio.pm";
-    }
     if (bigx11step_is_applicable) {
         loadtest "x11/firefox_stress.pm";
     }
