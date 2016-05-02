@@ -48,7 +48,9 @@ sub run {
     my $postpartscript = 0;
     my $confirmed      = 0;
 
-    my $maxtime    = 2000;
+    my $maxtime     = 2000;
+    my $confirmtime = 200;
+
     my $checktime  = 30;
     my $looptime   = 0;
     my $i          = 1;
@@ -91,8 +93,8 @@ sub run {
         }
 
         $looptime = $looptime + $checktime;
-        $timeout = 1 if $looptime > $maxtime;
-
+        $timeout  = 1 if $looptime > $maxtime;
+        $timeout  = 1 if get_var("AUTOYAST_CONFIRM") && $looptime > $confirmtime && !$confirmed;
     }
 
 
