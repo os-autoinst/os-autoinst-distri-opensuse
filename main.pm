@@ -634,6 +634,39 @@ sub load_online_migration_tests() {
     loadtest("online_migration/sle11/check_upload_repos.pm");
 }
 
+sub load_slepos_tests() {
+    if (get_var("SLEPOS") =~ /^adminserver/) {
+        loadtest("boot/boot_to_desktop.pm");
+        loadtest "slepos/prepare.pm";
+        loadtest "slepos/zypper_add_repo.pm";
+        loadtest "slepos/zypper_install_adminserver.pm";
+        loadtest "slepos/run_posInitAdminserver.pm";
+        loadtest "slepos/zypper_install_imageserver.pm";
+        loadtest "slepos/use_smt_for_kiwi.pm";
+        loadtest "slepos/build_images_kiwi.pm";
+        loadtest "slepos/register_images.pm";
+        loadtest "slepos/build_offline_image_kiwi.pm";
+        loadtest "slepos/wait.pm";
+    }
+    elsif (get_var("SLEPOS") =~ /^branchserver/) {
+        loadtest("boot/boot_to_desktop.pm");
+        loadtest "slepos/prepare.pm";
+        loadtest "slepos/zypper_add_repo.pm";
+        loadtest "slepos/zypper_install_branchserver.pm";
+        loadtest "slepos/run_posInitBranchserver.pm";
+        loadtest "slepos/run_possyncimages.pm";
+        loadtest "slepos/wait.pm";
+    }
+    elsif (get_var("SLEPOS") =~ /^terminal-online/)  {
+        mutex_lock("bs1_images_synced");
+        mutex_unlock("bs1_images_synced");
+        loadtest "slepos/boot_image.pm";
+    }
+    elsif (get_var("SLEPOS") =~ /^terminal-offline/)  {
+        loadtest "slepos/boot_image.pm";
+    }
+}
+
 # load the tests in the right order
 if ( get_var("REGRESSION") ) {
     if ( get_var("KEEPHDDS") ) {
@@ -671,6 +704,9 @@ elsif (get_var("SUPPORT_SERVER")) {
     loadtest "support_server/login.pm";
     loadtest "support_server/setup.pm";
     loadtest "support_server/wait.pm";
+}
+elsif (get_var("SLEPOS")) {
+    load_slepos_tests();
 }
 elsif (get_var("ONLINE_MIGRATION")) {
     load_online_migration_tests();
