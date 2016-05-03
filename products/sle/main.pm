@@ -698,6 +698,7 @@ sub load_extra_test () {
 
     # setup $serialdev permission and so on
     loadtest "console/consoletest_setup.pm";
+    loadtest "console/check_console_font.pm";
     loadtest "console/zypper_lr.pm";
     loadtest "console/zypper_ref.pm";
     loadtest "console/update_alternatives.pm";
