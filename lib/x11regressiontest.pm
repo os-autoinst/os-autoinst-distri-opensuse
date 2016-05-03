@@ -10,8 +10,6 @@
 package x11regressiontest;
 use base "x11test";
 use strict;
-use LWP::Simple;
-use Config::Tiny;
 use testapi;
 
 # import_pictures helps shotwell to import test pictures into shotwell's library.
@@ -131,24 +129,6 @@ sub check_libreoffice_dialogs() {
     send_key "alt-o";
 
 }
-
-# get email account information for Evolution test cases
-sub getconfig_emailaccount {
-    my ($self) = @_;
-    my $url = "http://jupiter.bej.suse.com/openqa/password.conf";
-
-
-    my $file = get($url);
-
-    my $config = Config::Tiny->new;
-    $config = Config::Tiny->read_string($file);
-
-    return $config;
-
-}
-
-
-
 
 1;
 # vim: set sw=4 et:
