@@ -11,6 +11,7 @@
 # Test case #1480297: zypper: more advanced $releasever handling
 
 use base "consoletest";
+use strict;
 use testapi;
 
 sub remove_repo {

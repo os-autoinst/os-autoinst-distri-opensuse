@@ -9,6 +9,7 @@
 # without any warranty.
 
 use base "qa_run";
+use strict;
 use testapi;
 
 sub test_run_list() {

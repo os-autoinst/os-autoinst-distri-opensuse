@@ -10,6 +10,7 @@
 
 use base "consoletest";
 use testapi;
+use strict;
 
 # Used only in the yast branch of the distri.
 # See also console/install_yast_head

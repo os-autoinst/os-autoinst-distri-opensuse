@@ -14,6 +14,7 @@
 use base "consoletest";
 use testapi;
 use utils;
+use strict;
 
 sub run() {
 

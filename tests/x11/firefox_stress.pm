@@ -9,11 +9,12 @@
 # without any warranty.
 
 use base "x11test";
+use strict;
 use testapi;
 
 my @sites = qw(en.opensuse.org www.slashdot.com www.freshmeat.net www.microsoft.com www.yahoo.com www.ibm.com www.hp.com www.intel.com www.amd.com www.asus.com www.gigabyte.com fractal.webhop.net openqa.opensuse.org http://openqa.opensuse.org/images/openqaqr.png http://openqa.opensuse.org/opensuse/permanent/video/openSUSE-DVD-x86_64-Build0039-nice3.ogv http://openqa.opensuse.org/opensuse/qatests/ER3_020_cut.webm software.opensuse.org about:memory);
 
-sub open_tab($) {
+sub open_tab {
     my $addr = shift;
     send_key "ctrl-t";    # new tab
     sleep 2;

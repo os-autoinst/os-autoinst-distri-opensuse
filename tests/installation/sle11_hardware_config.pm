@@ -16,7 +16,7 @@ sub run() {
     my $self = shift;
 
     assert_screen 'hardware-config', 80;
-    send_key $cmd{'next'};
+    send_key $cmd{next};
 }
 
 1;

@@ -53,8 +53,8 @@ sub run {
 
     # define the Virtual network
     my $vnet = {
-        "name" => "vnettest",
-        "ipv4" => {
+        name => "vnettest",
+        ipv4 => {
             active  => "true",
             network => "192.168.100.0/24",
             dhcpv4  => {
@@ -68,7 +68,7 @@ sub run {
                 viagw  => "",
             },
         },
-        "ipv6" => {
+        ipv6 => {
             active  => "false",
             network => "fd00:dead:beef:55::/64",
             dhcpv6  => {
@@ -82,7 +82,7 @@ sub run {
                 viagw  => "",
             },
         },
-        "vnet" => {
+        vnet => {
             isolatedvnet => {
                 active => "true",
             },
@@ -135,14 +135,6 @@ sub run {
 
     my @tocheck = ("vnettest", "ipv4test", "ipv6test");
     checking_vnet_result(\@tocheck);
-}
-
-sub test_flags {
-    # without anything - rollback to 'lastgood' snapshot if failed
-    # 'fatal' - whole test suite is in danger if this fails
-    # 'milestone' - after this test succeeds, update 'lastgood'
-    # 'important' - if this fails, set the overall state to 'fail'
-    return {'important' => 0, 'fatal' => 0, milestone => 0};
 }
 
 1;

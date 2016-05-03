@@ -23,7 +23,7 @@ sub run() {
     assert_screen 'addon-products';
     send_key 'alt-a', 2;     # add add-on
     if (get_var("ADDONS")) {
-        foreach $addon (split(/,/, get_var('ADDONS'))) {
+        for my $addon (split(/,/, get_var('ADDONS'))) {
             $uc_addon = uc $addon;    # varibale name is upper case
             assert_screen 'inst-addon';
             if (check_var('SCC_REGISTER', 'network')) {

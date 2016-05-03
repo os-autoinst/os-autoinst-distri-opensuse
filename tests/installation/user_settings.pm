@@ -28,16 +28,16 @@ sub run() {
     }
     assert_screen "inst-userinfostyped";
     if (get_var("NOAUTOLOGIN") && !check_screen('autologindisabled')) {
-        send_key $cmd{"noautologin"};
+        send_key $cmd{noautologin};
         assert_screen "autologindisabled";
     }
     if (get_var("DOCRUN")) {
-        send_key $cmd{"otherrootpw"};
+        send_key $cmd{otherrootpw};
         assert_screen "rootpwdisabled";
     }
 
     # done user setup
-    send_key $cmd{"next"};
+    send_key $cmd{next};
 
     # loading cracklib
     # If check_screen added to workaround bsc#937012

@@ -8,12 +8,13 @@
 # without any warranty.
 
 use base "x11test";
+use strict;
 use testapi;
 use utils;
 
 #testcase 5255-1503803: Gnome:Change Password
 
-my $rootpwd = "$password";
+my $rootpwd = $password;
 my $password;
 my $newpwd      = "suseTEST-987";
 my $newUser     = "test";
@@ -22,7 +23,7 @@ my $pwd4newUser = "helloWORLD-0";
 sub lock_screen {
     assert_and_click "system-indicator";
     assert_and_click "lock-system";
-    type_string "$password";
+    type_string $password;
     send_key "ret";
     assert_screen "generic-desktop";
 }
@@ -34,7 +35,7 @@ sub logout_and_login {
     send_key "ret";
     assert_screen "displaymanager";
     send_key "ret";
-    type_string "$password";
+    type_string $password;
     send_key "ret";
     assert_screen "generic-desktop";
 }
@@ -45,13 +46,13 @@ sub reboot_system {
     assert_screen 'logoutdialog', 15;
     assert_and_click 'logoutdialog-reboot-highlighted';
     if (check_screen("reboot-auth", 5)) {
-        type_string "$rootpwd";
+        type_string $rootpwd;
         assert_and_click "authenticate";
     }
     assert_screen "displaymanager", 200;
     send_key "ret";
     wait_still_screen;
-    type_string "$password";
+    type_string $password;
     send_key "ret";
     assert_screen "generic-desktop";
 }
@@ -73,7 +74,7 @@ sub unlock_user_settings {
     assert_screen "users-settings";
     assert_and_click "Unlock-user-settings";
     assert_screen "authentication-required-user-settings";
-    type_string "$rootpwd";
+    type_string $rootpwd;
     assert_and_click "authenticate";
 }
 

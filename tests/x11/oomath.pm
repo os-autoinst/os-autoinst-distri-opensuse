@@ -9,6 +9,7 @@
 # without any warranty.
 
 use base "x11test";
+use strict;
 use testapi;
 
 # test for bug https://bugs.freedesktop.org/show_bug.cgi?id=42301

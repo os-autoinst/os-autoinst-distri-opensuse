@@ -56,7 +56,7 @@ sub run() {
     if (get_var("LIVECD")) {
 
         # LiveCD needs confirmation for reboot
-        send_key $cmd{"rebootnow"};
+        send_key $cmd{rebootnow};
     }
     else {
         send_key 'alt-o';

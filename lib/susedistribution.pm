@@ -53,28 +53,28 @@ sub init_cmd() {
     );
 
     if (check_var('INSTLANG', "de_DE")) {
-        $testapi::cmd{"next"}            = "alt-w";
-        $testapi::cmd{"createpartsetup"} = "alt-e";
-        $testapi::cmd{"custompart"}      = "alt-b";
-        $testapi::cmd{"addpart"}         = "alt-h";
-        $testapi::cmd{"finish"}          = "alt-b";
-        $testapi::cmd{"accept"}          = "alt-r";
-        $testapi::cmd{"donotformat"}     = "alt-n";
-        $testapi::cmd{"add"}             = "alt-h";
+        $testapi::cmd{next}            = "alt-w";
+        $testapi::cmd{createpartsetup} = "alt-e";
+        $testapi::cmd{custompart}      = "alt-b";
+        $testapi::cmd{addpart}         = "alt-h";
+        $testapi::cmd{finish}          = "alt-b";
+        $testapi::cmd{accept}          = "alt-r";
+        $testapi::cmd{donotformat}     = "alt-n";
+        $testapi::cmd{add}             = "alt-h";
 
-        #	$testapi::cmd{"raid6"}="alt-d"; 11.2 only
-        $testapi::cmd{"raid10"}      = "alt-r";
-        $testapi::cmd{"mountpoint"}  = "alt-e";
-        $testapi::cmd{"rebootnow"}   = "alt-j";
-        $testapi::cmd{"otherrootpw"} = "alt-e";
-        $testapi::cmd{"change"}      = "alt-n";
-        $testapi::cmd{"software"}    = "w";
+        #	$testapi::cmd{raid6}="alt-d"; 11.2 only
+        $testapi::cmd{raid10}      = "alt-r";
+        $testapi::cmd{mountpoint}  = "alt-e";
+        $testapi::cmd{rebootnow}   = "alt-j";
+        $testapi::cmd{otherrootpw} = "alt-e";
+        $testapi::cmd{change}      = "alt-n";
+        $testapi::cmd{software}    = "w";
     }
     if (check_var('INSTLANG', "es_ES")) {
-        $testapi::cmd{"next"} = "alt-i";
+        $testapi::cmd{next} = "alt-i";
     }
     if (check_var('INSTLANG', "fr_FR")) {
-        $testapi::cmd{"next"} = "alt-s";
+        $testapi::cmd{next} = "alt-s";
     }
     ## keyboard cmd vars end
 }
@@ -91,8 +91,11 @@ sub x11_start_program($$$) {
     }
     type_string $program;
     wait_idle 5;
-    if ($options->{terminal}) { send_key "alt-t"; sleep 3; }
-    send_key "ret", 1;
+    if ($options->{terminal}) {
+        send_key('alt-t');
+        sleep 3;
+    }
+    send_key('ret', 1);
     # make sure desktop runner executed and closed when have had valid value
     # exec x11_start_program( $program, $timeout, { valid => 1 } );
     if ($options->{valid}) {
@@ -159,7 +162,7 @@ sub script_sudo($$) {
     if (!get_var("LIVETEST")) {
         assert_screen 'password-prompt';
         type_password;
-        send_key "ret";
+        send_key('ret');
     }
     if ($wait > 0) {
         return wait_serial("$str-\\d+-");
@@ -347,7 +350,7 @@ sub activate_console {
             if (!get_var("LIVETEST")) {
                 assert_screen "password-prompt";
                 type_password;
-                send_key "ret";
+                send_key('ret');
             }
         }
         # check if $user is not logged in try to login two times

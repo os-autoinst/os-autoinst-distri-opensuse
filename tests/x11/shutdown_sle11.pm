@@ -8,10 +8,16 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# use base qw(shutdown);
+use strict;
+
 # work around for broken base in perl < 5.20
+## no critic (RequireBarewordIncludes)
+# use base qw(shutdown);
 require 'shutdown.pm';
+our @ISA;
 push @ISA, 'shutdown';
+## use critic
+
 use testapi;
 
 sub trigger_shutdown_gnome_button() {

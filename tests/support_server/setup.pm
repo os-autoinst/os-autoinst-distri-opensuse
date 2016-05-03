@@ -220,33 +220,33 @@ sub run {
 
     setup_networks();
 
-    if (exists $server_roles{'pxe'}) {
-        setup_dhcp_server((exists $server_roles{'dns'}));
+    if (exists $server_roles{pxe}) {
+        setup_dhcp_server((exists $server_roles{dns}));
         setup_pxe_server();
         setup_tftp_server();
         push @mutexes, 'pxe';
     }
-    if (exists $server_roles{'tftp'}) {
+    if (exists $server_roles{tftp}) {
         setup_tftp_server();
         push @mutexes, 'tftp';
     }
 
-    if (exists $server_roles{'dhcp'}) {
-        setup_dhcp_server((exists $server_roles{'dns'}));
+    if (exists $server_roles{dhcp}) {
+        setup_dhcp_server((exists $server_roles{dns}));
         push @mutexes, 'dhcp';
     }
-    if (exists $server_roles{'qemuproxy'}) {
+    if (exists $server_roles{qemuproxy}) {
         setup_http_server();
         $setup_script .= "curl -f -v " . autoinst_url . "/data/supportserver/proxy.conf | sed -e 's|#AUTOINST_URL#|" . autoinst_url . "|g' >/etc/apache2/vhosts.d/proxy.conf\n";
         $setup_script .= "rcapache2 restart\n";
         push @mutexes, 'qemuproxy';
     }
-    if (exists $server_roles{'dns'}) {
+    if (exists $server_roles{dns}) {
         setup_dns_server();
         push @mutexes, 'dns';
     }
 
-    if (exists $server_roles{'aytests'}) {
+    if (exists $server_roles{aytests}) {
         setup_aytests();
         push @mutexes, 'aytests';
     }

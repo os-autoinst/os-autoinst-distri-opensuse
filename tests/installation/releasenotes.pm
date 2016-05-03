@@ -39,7 +39,7 @@ sub run() {
         send_key 'tab';          # select tab area
     }
     if (@addons) {
-        for $a (@addons) {
+        for my $a (@addons) {
             next if ($a eq 'we');    # https://bugzilla.suse.com/show_bug.cgi?id=931003#c17
             send_key_until_needlematch("release-notes-$a", 'right', 4, 60);
             send_key 'left';         # move back to first tab

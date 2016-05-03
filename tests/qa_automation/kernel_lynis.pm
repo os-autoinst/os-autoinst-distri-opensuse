@@ -14,6 +14,7 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
 use base "qa_run";
+use strict;
 use testapi;
 
 sub test_run_list() {

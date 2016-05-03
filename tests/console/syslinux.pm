@@ -9,6 +9,7 @@
 # without any warranty.
 
 use base "consoletest";
+use strict;
 use testapi;
 
 # for https://bugzilla.novell.com/show_bug.cgi?id=679459

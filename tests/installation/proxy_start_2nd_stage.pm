@@ -13,7 +13,7 @@ use strict;
 use testapi;
 use utils;
 
-sub reconnectsshinstall($) {
+sub reconnectsshinstall {
     my ($nodenum) = @_;
     my $nodeip = 5 + $nodenum;
     type_string "ssh 10.0.2.1$nodeip -l root\n";
@@ -24,7 +24,7 @@ sub reconnectsshinstall($) {
     assert_screen 'second-stage', 40;
 }
 
-sub waitfor2ndstage($) {
+sub waitfor2ndstage {
     my ($nodenum) = @_;
     type_string "vncviewer localhost:9$nodenum -shared -fullscreen\n";
     assert_screen "inst-ssh-ready", 500;

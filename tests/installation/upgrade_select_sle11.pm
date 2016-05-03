@@ -17,7 +17,7 @@ sub run() {
 
     if (get_var("UPGRADE") && get_var("ADDONS")) {    # Netwrok setup
         if (check_screen('network-setup', 10)) {      # won't appear for NET installs
-            send_key $cmd{"next"};                    # use network
+            send_key $cmd{next};                      # use network
             assert_screen 'dhcp-network';
             send_key 'alt-d';                         # DHCP
             send_key "alt-o", 2;                      # OK
@@ -26,22 +26,22 @@ sub run() {
 
     # hardware detection can take a while
     assert_screen "select-for-update", 100;
-    send_key $cmd{"next"}, 1;
+    send_key $cmd{next}, 1;
     assert_screen 'previously-used-repositories';
     if (!check_var('ADDONS', 'smt')) {
-        send_key $cmd{"next"}, 1;
+        send_key $cmd{next}, 1;
     }
 
     if (get_var("UPGRADE") && get_var("ADDONS")) {
-        foreach $a (split(/,/, get_var('ADDONS'))) {
+        for my $a (split(/,/, get_var('ADDONS'))) {
             if ($a eq 'smt') {
                 send_key_until_needlematch 'used-repo-list',    'tab',   5;    # enable SMT repository
                 send_key_until_needlematch 'smt-repo-selected', 'down',  5;
                 send_key_until_needlematch 'used-smt-enabled',  'alt-t', 5;
-                send_key $cmd{"next"}, 1;
+                send_key $cmd{next}, 1;
                 if (check_screen('network-not-configured', 5)) {
                     send_key 'ret', 1;                                         # Yes
-                    send_key $cmd{"next"};                                     # use network
+                    send_key $cmd{next};                                       # use network
                     assert_screen 'dhcp-network';
                     send_key 'alt-d';                                          # DHCP
                     send_key "alt-o", 2;                                       # OK
@@ -52,7 +52,7 @@ sub run() {
             }
             else {
                 send_key 'alt-d';                                              # DVD
-                send_key $cmd{"xnext"}, 1;
+                send_key $cmd{xnext}, 1;
                 assert_screen 'dvd-selector';
                 send_key_until_needlematch 'addon-dvd-list', 'tab',  10;
                 send_key_until_needlematch "addon-dvd-$a",   'down', 10;
@@ -78,11 +78,11 @@ sub run() {
         }
         if (!check_var('ADDONS', 'smt')) {    # no add-on list for SMT
             assert_screen 'addon-list';
-            send_key $cmd{"next"}, 1;
+            send_key $cmd{next}, 1;
         }
     }
     else {
-        send_key $cmd{"next"}, 1;
+        send_key $cmd{next}, 1;
     }
 
     assert_screen "update-installation-overview";

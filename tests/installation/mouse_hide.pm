@@ -10,6 +10,7 @@
 
 use base "opensusebasetest";
 use testapi;
+use strict;
 
 sub run() {
     my $self = shift;

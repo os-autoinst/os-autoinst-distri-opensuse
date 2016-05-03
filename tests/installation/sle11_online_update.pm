@@ -20,7 +20,7 @@ sub run() {
     # Skip update
     send_key "alt-s";
     sleep 1;
-    send_key $cmd{'next'};
+    send_key $cmd{next};
 }
 
 1;

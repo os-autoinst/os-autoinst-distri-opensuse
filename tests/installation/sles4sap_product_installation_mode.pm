@@ -13,7 +13,7 @@ sub run() {
         }
     }
     save_screenshot;
-    send_key $cmd{"next"};
+    send_key $cmd{next};
 }
 
 1;

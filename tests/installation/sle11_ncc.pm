@@ -25,7 +25,7 @@ sub run() {
 
     assert_screen 'novell-customer-center', 30;
 
-    send_key $cmd{'next'};
+    send_key $cmd{next};
     assert_screen 'ncc-manual-interaction', 60;    # contacting server take time
     send_key 'alt-o';
     assert_screen 'ncc-security-warning', 30;
@@ -42,7 +42,7 @@ sub run() {
     type_string $ncc_code;
 
     if (get_var("ADDONS")) {
-        foreach $a (split(/,/, get_var("ADDONS"))) {
+        for my $a (split(/,/, get_var("ADDONS"))) {
             next if ($a =~ /sdk/);
             if ($a eq 'ha') {
                 my $hacode = get_var("NCC_HA_CODE");

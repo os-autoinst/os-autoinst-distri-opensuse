@@ -22,7 +22,7 @@ sub run() {
     if (get_var('LVM')) {
         assert_screen 'preparing-disk';
         send_key 'alt-1';
-        send_key $cmd{"next"};
+        send_key $cmd{next};
         assert_screen 'preparing-disk-installing';
         send_key 'alt-l', 1;    #to use lvm
         if (get_var('ENCRYPT')) {
@@ -33,17 +33,17 @@ sub run() {
             type_password;
             send_key "ret", 1;
         }
-        send_key $cmd{"next"};
+        send_key $cmd{next};
         assert_screen 'inst-overview';
     }
 
     if (check_var("FILESYSTEM", "btrfs") || get_var("BOO910346")) {
         assert_screen 'preparing-disk';
         send_key 'alt-1';
-        send_key $cmd{"next"};
+        send_key $cmd{next};
         assert_screen 'preparing-disk-installing';
         send_key 'alt-u';    #to use btrfs
-        send_key $cmd{"next"};
+        send_key $cmd{next};
         assert_screen 'inst-overview';
     }
 
@@ -53,7 +53,7 @@ sub run() {
         send_key 'p';        # partitioning
         assert_screen 'preparing-disk';
         send_key 'alt-c';
-        send_key $cmd{"next"};
+        send_key $cmd{next};
         assert_screen 'expert-partitioning';
         send_key 'down';
         send_key 'down';
@@ -94,7 +94,7 @@ sub run() {
 
         assert_screen 'preparing-disk';
         send_key 'alt-c';
-        send_key $cmd{"next"};
+        send_key $cmd{next};
         assert_screen 'expert-partitioning';
         send_key 'down';
         send_key 'down';

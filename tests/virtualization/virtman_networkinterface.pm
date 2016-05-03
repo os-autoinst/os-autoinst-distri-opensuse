@@ -50,33 +50,33 @@ sub checking_netif_result {
 
 sub run {
     my $netif = {
-        "type"      => "bridge",    # type: bridge, bond, ethernet, vlan
-        "name"      => "br1",
-        "startmode" => "onboot",    # none, onboot, hotplug
-        "activenow" => "true",      # true / false
-        "ipsetting" => {            # only support manual mode
-            "manually" => {
-                #"ipv6" => "", # no support
-                "active" => "true",
-                "ipv4"   => {
-                    "mode"    => "static",       # dhcp, static, noconf
-                    "address" => "10.0.2.99",
-                    "gateway" => "10.0.2.254",
+        type      => "bridge",    # type: bridge, bond, ethernet, vlan
+        name      => "br1",
+        startmode => "onboot",    # none, onboot, hotplug
+        activenow => "true",      # true / false
+        ipsetting => {            # only support manual mode
+            manually => {
+                #ipv6 => "", # no support
+                active => "true",
+                ipv4   => {
+                    mode    => "static",       # dhcp, static, noconf
+                    address => "10.0.2.99",
+                    gateway => "10.0.2.254",
                 },
             },
-            "copy" => {                          # FIXME
-                "active"         => "false",
-                "childinterface" => "",
+            copy => {                          # FIXME
+                active         => "false",
+                childinterface => "",
             },
         },
         # only in bridge setting
-        "bridgesettings" => {
-            "fwddelay" => "0.5",                 # in seconds
-            "stp"      => "true",                # true / false
+        bridgesettings => {
+            fwddelay => "0.5",                 # in seconds
+            stp      => "true",                # true / false
         },
-        "interface" => "other",                  # lo or other
-                                                 # vlantag only exist with VLAN
-        "vlantag"   => "3",
+        interface => "other",                  # lo or other
+                                               # vlantag only exist with VLAN
+        vlantag   => "3",
     };
     go_for_netif($netif);
 
@@ -110,14 +110,6 @@ sub run {
     go_for_netif($netif);
 
     checking_netif_result();
-}
-
-sub test_flags {
-    # without anything - rollback to 'lastgood' snapshot if failed
-    # 'fatal' - whole test suite is in danger if this fails
-    # 'milestone' - after this test succeeds, update 'lastgood'
-    # 'important' - if this fails, set the overall state to 'fail'
-    return {important => 0, fatal => 0};
 }
 
 1;

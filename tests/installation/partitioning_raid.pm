@@ -15,13 +15,13 @@ use testapi;
 
 # add a new primary partition
 #   $type == 3 => 0xFD Linux RAID
-sub addpart($) {
+sub addpart {
     my ($size) = @_;
     assert_screen "expert-partitioner";
     send_key $cmd{addpart};
     if (!get_var('UEFI')) {    # partitioning type does not appear when GPT disk used, GPT is default for UEFI
         assert_screen "partitioning-type";
-        send_key $cmd{"next"};
+        send_key $cmd{next};
     }
 
     assert_screen "partition-size";
@@ -36,14 +36,14 @@ sub addpart($) {
     send_key "alt-a";    # Raw Volume
     send_key $cmd{next};
     assert_screen 'partition-format';
-    send_key $cmd{"donotformat"};
+    send_key $cmd{donotformat};
     send_key "tab";
 
     send_key_until_needlematch 'partition-selected-raid-type', 'down';
     send_key $cmd{finish};
 }
 
-sub addraid($;$) {
+sub addraid {
     my ($step, $chunksize) = @_;
     send_key "spc";
     for (1 .. 3) {
@@ -72,13 +72,13 @@ sub addraid($;$) {
     else {
         send_key "alt-o";    # Operating System
     }
-    send_key $cmd{"next"};
+    send_key $cmd{next};
 
     wait_idle 3;
 }
 
-sub setraidlevel($) {
-    my $level = shift;
+sub setraidlevel {
+    my ($level) = @_;
     my %entry = (0 => 0, 1 => 1, 5 => 5, 6 => 6, 10 => 'g');
     send_key "alt-$entry{$level}";
 
@@ -105,7 +105,7 @@ sub set_lvm() {
     type_string "root";
     assert_screen 'volumegroup-name-root';
 
-    send_key $cmd{"finish"};
+    send_key $cmd{finish};
     wait_still_screen;
 
     # create logical volume
@@ -117,13 +117,13 @@ sub set_lvm() {
     # create normal volume with name root
     type_string "root";
     assert_screen 'volume-name-root';
-    send_key $cmd{"next"};
+    send_key $cmd{next};
 
     # keep default
-    send_key $cmd{"next"};
+    send_key $cmd{next};
 
     send_key "alt-o";    # Operating System
-    send_key $cmd{"next"};
+    send_key $cmd{next};
 
     # keep deafult to mount as root and btrfs
     send_key $cmd{finish};
@@ -138,7 +138,7 @@ sub run() {
 
     # user defined
     send_key $cmd{custompart};
-    send_key $cmd{"next"};
+    send_key $cmd{next};
     assert_screen 'custompart';
 
     send_key "tab";
@@ -219,7 +219,7 @@ sub run() {
                         # in this case, press down key doesn't move to next one but itself
     addraid(3, 6);
 
-    send_key $cmd{"finish"};
+    send_key $cmd{finish};
     wait_idle 3;
 
     # select RAID add
@@ -233,11 +233,11 @@ sub run() {
         send_key "down";    # select Ext4
     }
 
-    send_key $cmd{"mountpoint"};
+    send_key $cmd{mountpoint};
     for (1 .. 3) {
         send_key "down";
     }
-    send_key $cmd{"finish"};
+    send_key $cmd{finish};
 
     wait_idle 3;
 
@@ -250,7 +250,7 @@ sub run() {
     # select file-system
     send_key $cmd{filesystem};
     send_key "end";     # swap at end of list
-    send_key $cmd{"finish"};
+    send_key $cmd{finish};
     wait_idle 3;
 
     # LVM on top of raid if needed
@@ -259,7 +259,7 @@ sub run() {
     }
 
     # done
-    send_key $cmd{"accept"};
+    send_key $cmd{accept};
 
     # skip subvolumes shadowed warning
     if (check_screen 'subvolumes-shadowed', 5) {

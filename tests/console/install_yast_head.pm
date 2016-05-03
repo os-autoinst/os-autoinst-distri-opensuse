@@ -9,6 +9,7 @@
 # without any warranty.
 
 use base "consoletest";
+use strict;
 use testapi;
 
 # Used only in the yast branch of the distri.
@@ -33,7 +34,7 @@ sub run() {
 
     script_run("zypper --gpg-auto-import-keys dup --from YaST:Head | tee /dev/$serialdev", 0);
 
-    $out = wait_serial([$zypper_dup_continue, $zypper_dup_conflict, $zypper_dup_error, $zypper_dup_fileconflict], 240);
+    my $out = wait_serial([$zypper_dup_continue, $zypper_dup_conflict, $zypper_dup_error, $zypper_dup_fileconflict], 240);
     while ($out) {
         if ($out =~ $zypper_dup_conflict) {
             send_key '1',   1;

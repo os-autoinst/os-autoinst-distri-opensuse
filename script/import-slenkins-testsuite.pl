@@ -99,7 +99,8 @@ sub gen_testsuites {
     my @suites;
 
     for my $node (keys %$nodes) {
-        my @node_net = @{$nodes->{$node}->{networks}} if $nodes->{$node}->{networks};
+        my @node_net;
+        @node_net = @{$nodes->{$node}->{networks}} if $nodes->{$node}->{networks};
         push @node_net, 'fixed' unless grep { $_ eq 'fixed' } @node_net;
         push @suites,
           {
