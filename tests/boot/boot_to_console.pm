@@ -14,8 +14,7 @@ use testapi;
 use Time::HiRes qw(sleep);
 
 sub run() {
-    assert_screen "inst-bootmenu", 30;
-    sleep 2;
+    assert_screen "inst-bootmenu";
     send_key "ret";    # boot
 
     assert_screen "grub2", 15;
