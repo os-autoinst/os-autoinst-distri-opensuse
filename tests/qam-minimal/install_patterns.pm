@@ -7,7 +7,6 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-#package install_update;
 
 use base "basetest";
 
@@ -21,12 +20,16 @@ sub run {
 
     script_run("while pgrep packagekitd; do pkcon quit; sleep 1; done");
 
-    assert_script_run("zypper ref");
+    my $ret = zypper_call("ref");
+    die "zypper failed with code $ret" unless $ret == 0;
 
-    script_run("zypper pt");
+    $ret = zypper_call("pt");
+    die "zypper failed with code $ret" unless $ret == 0;
     save_screenshot;
 
-    assert_script_run("zypper -n in -t pattern base x11 gnome-basic apparmor", 2000);
+    $ret = zypper_call("in -t pattern base x11 gnome-basic apparmor", 2000);
+    die "zypper failed with code $ret" unless grep { $_ == $ret } (0, 102);
+
 
     assert_script_run("systemctl set-default graphical.target");
     assert_script_run('sed -i -r "s/^DISPLAYMANAGER=\"\"/DISPLAYMANAGER=\"gdm\"/" /etc/sysconfig/displaymanager');

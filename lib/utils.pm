@@ -19,6 +19,7 @@ our @EXPORT = qw/
   wait_boot
   prepare_system_reboot
   get_netboot_mirror
+  zypper_call
   /;
 
 
@@ -256,6 +257,21 @@ sub handle_kwallet {
 sub get_netboot_mirror {
     my $m_protocol = get_var('INSTALL_SOURCE', 'http');
     return get_var('MIRROR_' . uc($m_protocol));
+}
+
+sub zypper_call {
+    my $command = shift;
+    my $timeout = shift || 700;
+    my $str     = bmwqemu::hashed_string("ZN$command");
+
+    script_run("zypper -n $command; echo $str-\$?- > /dev/$serialdev", 0);
+
+    my $ret = wait_serial(qr/$str-\d+-/, $timeout);
+    if ($ret) {
+        my ($ret_code) = $ret =~ /$str-(\d+)/;
+        return $ret_code;
+    }
+    die "zypper doesn't return exitcode";
 }
 
 1;

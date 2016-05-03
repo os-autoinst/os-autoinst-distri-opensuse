@@ -12,6 +12,7 @@
 use base "qa_run";
 use strict;
 use warnings;
+use utils;
 use testapi;
 
 sub run {
@@ -26,16 +27,11 @@ sub run {
         assert_script_run("zypper --no-gpg-check -n ar -f '$repo' test-repo-$var");
     }
 
-    script_run("zypper -n patch --with-interactive -l; echo 'worked-patch-\$?' > /dev/$serialdev", 0);
+    my $ret = zypper_call("patch --with-interactive -l");
+    die "zypper failed with code $ret" unless grep { $_ == $ret } (0, 102, 103);
 
-    my $ret = wait_serial "worked-patch-\?-", 700;
-    $ret =~ /worked-patch-(\d+)/;
-    die "zypper failed with code $1" unless $1 == 0 || $1 == 102 || $1 == 103;
-
-    script_run("zypper -n patch --with-interactive -l; echo 'worked-2-patch-\$?-' > /dev/$serialdev", 0);    # first one might only have installed "update-test-affects-package-manager"
-    $ret = wait_serial "worked-2-patch-\?-", 1500;
-    $ret =~ /worked-2-patch-(\d+)/;
-    die "zypper failed with code $1" unless $1 == 0 || $1 == 102;
+    $ret = zypper_call("patch --with-interactive -l", 2000);    # first one might only have installed "update-test-affects-package-manager"
+    die "zypper failed with code $ret" unless grep { $_ == $ret } (0, 102);
 
     set_var('SYSTEM_IS_PATCHED', 1);
     type_string "reboot\n";
