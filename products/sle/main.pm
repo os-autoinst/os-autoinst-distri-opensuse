@@ -496,7 +496,9 @@ sub load_inst_tests() {
     }
     if (noupdatestep_is_applicable) {
         loadtest "installation/installer_timezone.pm";
-        loadtest "installation/logpackages.pm";
+        if (!get_var("REMOTE_MASTER")) {
+            loadtest "installation/logpackages.pm";
+        }
         if (is_sles4sap) {
             if (check_var("SLES4SAP_MODE", 'sles')) {
                 loadtest "installation/user_settings.pm";
@@ -1048,7 +1050,16 @@ else {
                 set_var('INSTALLONLY', 1);
                 loadtest "iscsi/iscsi_client.pm";
             }
+            if (get_var("REMOTE_MASTER")) {
+                loadtest "remote/remote_master.pm";
+                load_inst_tests();
+            }
         }
+    }
+    elsif (get_var("REMOTE_SLAVE")) {
+        load_boot_tests();
+        loadtest "remote/remote_slave.pm";
+        load_reboot_tests();
     }
     elsif (is_jeos) {
         load_boot_tests();
