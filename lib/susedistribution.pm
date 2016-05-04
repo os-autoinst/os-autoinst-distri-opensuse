@@ -359,7 +359,7 @@ sub activate_console {
         }
         $self->set_standard_prompt($user);
         # Disable console screensaver
-        script_run("setterm -blank 0");
+        $self->script_run("setterm -blank 0");
     }
 }
 
