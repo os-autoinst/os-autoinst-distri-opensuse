@@ -1,0 +1,383 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+
+<slepos:slepos xmlversion="0.1" xmlns:slepos="http://www.suse.com/SLEPOS" xmlns:xi="http://www.w3.org/2001/XInclude">
+    <organization dn="o=myorg,c=us">
+        <attributes></attributes>
+        <scRefObjectContainer dn="cn=global">
+            <attributes></attributes>
+            <scCashRegister dn="cn=default_CR">
+                <attributes>
+                    <scCashRegisterName>default</scCashRegisterName>
+                    <scPosImageDn>cn=minimal,cn=default,cn=global,o=myorg,c=us</scPosImageDn>
+                </attributes>
+                <scHarddisk dn="cn=sda">
+                    <attributes>
+                        <scDevice>/dev/sda</scDevice>
+                        <scPartitionsTable>1000 82 swap swap;3000 83 / ext3</scPartitionsTable>
+                        <scHdSize>9000</scHdSize>
+                    </attributes>
+                </scHarddisk>
+            </scCashRegister>
+            <scRole dn="cn=default_role">
+                <attributes>
+                    <scRoleName>default</scRoleName>
+                    <scRoleDescription>The same as default</scRoleDescription>
+                </attributes>
+                <scCashRegister dn="cn=default_CR">
+                    <attributes>
+                        <scCashRegisterName>default</scCashRegisterName>
+                        <scPosImageDn>cn=minimal,cn=default,cn=global,o=myorg,c=us</scPosImageDn>
+                    </attributes>
+                    <scHarddisk dn="cn=sda">
+                        <attributes>
+                            <scDevice>/dev/sda</scDevice>
+                            <scPartitionsTable>3000 83 /srv/SLEPOS ext3;1000 82 swap swap;3000 83 / ext3</scPartitionsTable>
+                            <scHdSize>9000</scHdSize>
+                        </attributes>
+                    </scHarddisk>
+                </scCashRegister>
+                <scCashRegister dn="cn=flat_cr">
+                    <attributes>
+                        <scCashRegisterName>XenHVM TEST</scCashRegisterName>
+                        <scPosImageDn>cn=graphical,cn=default,cn=global,o=myorg,c=us</scPosImageDn>
+                        <scRaidScheme>1 /dev/sda /dev/sdb</scRaidScheme>
+                    </attributes>
+                    <scHarddisk dn="cn=sda">
+                        <attributes>
+                            <scDevice>/dev/sda</scDevice>
+                            <scPartitionsTable>3000 83 /srv/SLEPOS ext3;1000 82 swap swap;3000 83 / ext3</scPartitionsTable>
+                            <scHdSize>9000</scHdSize>
+                        </attributes>
+                    </scHarddisk>
+                </scCashRegister>
+            </scRole>
+            <scCashRegister dn="cn=flat_cr">
+                <attributes>
+                    <scCashRegisterName>XenHVM TEST</scCashRegisterName>
+                    <scPosImageDn>cn=graphical,cn=default,cn=global,o=myorg,c=us</scPosImageDn>
+                    <scRaidScheme>1 /dev/sda /dev/sdb</scRaidScheme>
+                </attributes>
+                <scHarddisk dn="cn=sda">
+                    <attributes>
+                        <scDevice>/dev/sda</scDevice>
+                        <scPartitionsTable>3000 83 /srv/SLEPOS ext3;1000 82 swap swap;3000 83 / ext3</scPartitionsTable>
+                        <scHdSize>9000</scHdSize>
+                    </attributes>
+                </scHarddisk>
+            </scCashRegister>
+            <scRole dn="cn=role4">
+                <attributes>
+                    <scRoleName>ramdisk role</scRoleName>
+                    <scRoleDescription>use ramdisk</scRoleDescription>
+                </attributes>
+                <scCashRegister dn="cn=ramdisk_cr">
+                    <attributes>
+                        <scCashRegisterName>default</scCashRegisterName>
+                        <scPosImageDn>cn=minimal,cn=default,cn=global,o=myorg,c=us</scPosImageDn>
+                    </attributes>
+                    <scRamDisk dn="cn=ram">
+                        <attributes>
+                            <scDevice>/dev/ram1</scDevice>
+                        </attributes>
+                    </scRamDisk>
+                </scCashRegister>
+            </scRole>
+        </scRefObjectContainer>
+        <scHardware dn="cn=standards">
+            <attributes>
+                <scDhcpOptionsRemote>/boot/pxelinux.0</scDhcpOptionsRemote>
+            </attributes>
+        </scHardware>
+        <organizationalUnit dn="ou=myorgunit2">
+            <attributes>
+                <description>external organizational unit</description>
+            </attributes>
+            <organizationalUnit dn="ou=mysuborgunit2">
+                <attributes>
+                    <description>nested external organizational unit</description>
+                </attributes>
+                <scLocation dn="cn=mybranch2">
+                    <attributes>
+                        <ipNetworkNumber>192.168.125.0</ipNetworkNumber>
+                        <ipNetmaskNumber>255.255.255.0</ipNetmaskNumber>
+                        <scDhcpRange>192.168.125.10,192.168.125.50</scDhcpRange>
+                        <scDhcpFixedRange>192.168.125.51,192.168.125.151</scDhcpFixedRange>
+                        <scDefaultGw>192.168.125.253</scDefaultGw>
+                        <scDynamicIp>TRUE</scDynamicIp>
+                        <scWorkstationBaseName>CR</scWorkstationBaseName>
+                        <scEnumerationMask>00</scEnumerationMask>
+                        <scDhcpExtern>FALSE</scDhcpExtern>
+                        <userPassword>branchpass</userPassword>
+                        <scDnsMapFunc>direct</scDnsMapFunc>
+                        <scIpMapFunc>transform:([0-9.]+)</scIpMapFunc>
+                    </attributes>
+                    <scServerContainer dn="cn=mycontainer">
+                        <attributes></attributes>
+                        <scBranchServer dn="cn=myadminserver">
+                            <attributes></attributes>
+                            <scService dn="cn=dhcp">
+                                <attributes>
+                                    <scDnsName>dhcp</scDnsName>
+                                    <scServiceName>dhcp</scServiceName>
+                                    <scServiceStatus>TRUE</scServiceStatus>
+                                    <scServiceStartScript>dhcpd</scServiceStartScript>
+                                    <ipHostNumber>192.168.125.253</ipHostNumber>
+                                    <scDhcpDynLeaseTime>300</scDhcpDynLeaseTime>
+                                    <scDhcpFixedLeaseTime>14400</scDhcpFixedLeaseTime>
+                                </attributes>
+                            </scService>
+                            <scService dn="cn=dns">
+                                <attributes>
+                                    <scDnsName>dns</scDnsName>
+                                    <scServiceName>dns</scServiceName>
+                                    <scServiceStatus>TRUE</scServiceStatus>
+                                    <scServiceStartScript>named</scServiceStartScript>
+                                    <ipHostNumber>192.168.125.253</ipHostNumber>
+                                </attributes>
+                            </scService>
+                            <scService dn="cn=ftp">
+                                <attributes>
+                                    <scDnsName>tftp</scDnsName>
+                                    <scServiceName>ftp</scServiceName>
+                                    <scServiceStatus>TRUE</scServiceStatus>
+                                    <scServiceStartScript>pure-ftpd</scServiceStartScript>
+                                    <ipHostNumber>192.168.125.253</ipHostNumber>
+                                </attributes>
+                            </scService>
+                            <scService dn="cn=tftp">
+                                <attributes>
+                                    <scDnsName>tftp</scDnsName>
+                                    <scServiceName>tftp</scServiceName>
+                                    <scServiceStatus>TRUE</scServiceStatus>
+                                    <scServiceStartScript>atftpd</scServiceStartScript>
+                                    <ipHostNumber>192.168.125.253</ipHostNumber>
+                                </attributes>
+                            </scService>
+                            <scNetworkcard dn="scDevice=eth1">
+                                <attributes>
+                                    <ipHostNumber>192.168.125.253</ipHostNumber>
+                                </attributes>
+                            </scNetworkcard>
+                        </scBranchServer>
+                    </scServerContainer>
+                </scLocation>
+            </organizationalUnit>
+        </organizationalUnit>
+        <organizationalUnit dn="ou=myorgunit3">
+            <attributes>
+                <description>strasnicka organizational unit</description>
+            </attributes>
+        </organizationalUnit>
+        <organizationalUnit dn="ou=myorgunit1">
+            <attributes>
+                <description>vinohradska organizational unit</description>
+            </attributes>
+            <scRefObjectContainer dn="cn=regional">
+                <attributes />
+                <scRole dn="cn=role2">
+                    <attributes>
+                        <scRoleName>role under organizationalUnit</scRoleName>
+                        <scRoleDescription>Graphical is the default</scRoleDescription>
+                    </attributes>
+                    <scCashRegister dn="cn=flat_cr">
+                        <attributes>
+                            <scCashRegisterName>default</scCashRegisterName>
+                            <scPosImageDn>cn=graphical,cn=default,cn=global,o=myorg,c=us</scPosImageDn>
+                        </attributes>
+                        <scHarddisk dn="cn=sda">
+                            <attributes>
+                                <scDevice>/dev/sda</scDevice>
+                                <scPartitionsTable>1000 82 swap swap;3000 83 / ext3</scPartitionsTable>
+                                <scHdSize>9000</scHdSize>
+                            </attributes>
+                        </scHarddisk>
+                    </scCashRegister>
+                </scRole>
+            </scRefObjectContainer>
+            <scLocation dn="cn=mybranch1">
+                <attributes>
+                    <ipNetworkNumber>192.168.128.0</ipNetworkNumber>
+                    <ipNetmaskNumber>255.255.128.0</ipNetmaskNumber>
+                    <scDhcpRange>192.168.240.10,192.168.241.50</scDhcpRange>
+                    <scDhcpFixedRange>192.168.242.51,192.168.243.151</scDhcpFixedRange>
+                    <scDefaultGw>192.168.255.254</scDefaultGw>
+                    <scDynamicIp>TRUE</scDynamicIp>
+                    <scWorkstationBaseName>CR</scWorkstationBaseName>
+                    <scEnumerationMask>00</scEnumerationMask>
+                    <scDhcpExtern>FALSE</scDhcpExtern>
+                    <userPassword>branchpass</userPassword>
+                    <scAllowRoles>TRUE</scAllowRoles>
+                    <scAllowGlobalRoles>TRUE</scAllowGlobalRoles>
+                    <scIdPool>id1;id2;id3;name1;name2;name3</scIdPool>
+                    <scDnsMapFunc>direct</scDnsMapFunc>
+                    <scIpMapFunc>transform:([0-9]+)</scIpMapFunc>
+                </attributes>
+                <scServerContainer dn="cn=mycontainer">
+                    <attributes></attributes>
+                    <scBranchServer dn="cn=mybranchserver1">
+                        <attributes></attributes>
+                        <scService dn="cn=dhcp">
+                            <attributes>
+                                <scDnsName>dhcp</scDnsName>
+                                <scServiceName>dhcp</scServiceName>
+                                <scServiceStatus>TRUE</scServiceStatus>
+                                <scServiceStartScript>dhcpd</scServiceStartScript>
+                                <ipHostNumber>192.168.255.254</ipHostNumber>
+                                <scDhcpDynLeaseTime>300</scDhcpDynLeaseTime>
+                                <scDhcpFixedLeaseTime>14400</scDhcpFixedLeaseTime>
+                            </attributes>
+                        </scService>
+                        <scService dn="cn=dns">
+                            <attributes>
+                                <scDnsName>dns</scDnsName>
+                                <scServiceName>dns</scServiceName>
+                                <scServiceStatus>TRUE</scServiceStatus>
+                                <scServiceStartScript>named</scServiceStartScript>
+                                <ipHostNumber>192.168.255.254</ipHostNumber>
+                            </attributes>
+                        </scService>
+                        <scService dn="cn=ftp">
+                            <attributes>
+                                <scDnsName>tftp</scDnsName>
+                                <scServiceName>ftp</scServiceName>
+                                <scServiceStatus>TRUE</scServiceStatus>
+                                <scServiceStartScript>pure-ftpd</scServiceStartScript>
+                                <ipHostNumber>192.168.255.254</ipHostNumber>
+                            </attributes>
+                        </scService>
+                        <scService dn="cn=tftp">
+                            <attributes>
+                                <scDnsName>tftp</scDnsName>
+                                <scServiceName>tftp</scServiceName>
+                                <scServiceStatus>TRUE</scServiceStatus>
+                                <scServiceStartScript>atftpd</scServiceStartScript>
+                                <ipHostNumber>192.168.255.254</ipHostNumber>
+                            </attributes>
+                        </scService>
+                        <scService dn="cn=posleases">
+                            <attributes>
+                                <scDnsName>posleases</scDnsName>
+                                <scServiceName>posleases</scServiceName>
+                                <scServiceStatus>TRUE</scServiceStatus>
+                                <scServiceStartScript>posleases2ldap</scServiceStartScript>
+                                <ipHostNumber>192.168.255.254</ipHostNumber>
+                                <scPosleasesTimeout>60</scPosleasesTimeout>
+                                <scPosleasesChecktime>5</scPosleasesChecktime>
+                                <scPosleasesMaxNotify>6</scPosleasesMaxNotify>
+                            </attributes>
+                        </scService>
+                        <scService dn="cn=posaswatch">
+                            <attributes>
+                                <scDnsName>posaswatch</scDnsName>
+                                <scServiceName>posASWatch</scServiceName>
+                                <scServiceStatus>TRUE</scServiceStatus>
+                                <scServiceStartScript>posASWatch</scServiceStartScript>
+                                <ipHostNumber>192.168.255.254</ipHostNumber>
+                            </attributes>
+                        </scService>
+                        <!-- non-existent IP addresses of other NICs must not matter for SLEPOS -->
+                        <scNetworkcard dn="scDevice=eth0">
+                            <attributes>
+                                <ipHostNumber>10.10.255.254</ipHostNumber>
+                            </attributes>
+                        </scNetworkcard>
+                        <scNetworkcard dn="scDevice=eth1">
+                            <attributes>
+                                <ipHostNumber>192.168.255.254</ipHostNumber>
+                            </attributes>
+                        </scNetworkcard>
+                    </scBranchServer>
+                </scServerContainer>
+            </scLocation>
+            <scLocation dn="cn=mycombobranch">
+                <attributes>
+                    <ipNetworkNumber>192.168.124.0</ipNetworkNumber>
+                    <ipNetmaskNumber>255.255.255.128</ipNetmaskNumber>
+                    <scDhcpRange>192.168.124.10,192.168.124.50</scDhcpRange>
+                    <scDhcpFixedRange>192.168.124.51,192.168.124.121</scDhcpFixedRange>
+                    <scDefaultGw>192.168.124.122</scDefaultGw>
+                    <scDynamicIp>TRUE</scDynamicIp>
+                    <scWorkstationBaseName>CR</scWorkstationBaseName>
+                    <scEnumerationMask>00</scEnumerationMask>
+                    <scDhcpExtern>FALSE</scDhcpExtern>
+                    <userPassword>branchpass</userPassword>
+                    <scAllowRoles>TRUE</scAllowRoles>
+                    <scAllowGlobalRoles>TRUE</scAllowGlobalRoles>
+                </attributes>
+                <scServerContainer dn="cn=mycontainer">
+                    <attributes></attributes>
+                    <scBranchServer dn="cn=mybranchserver2">
+                        <attributes></attributes>
+                        <scService dn="cn=dhcp">
+                            <attributes>
+                                <scDnsName>dhcp</scDnsName>
+                                <scServiceName>dhcp</scServiceName>
+                                <scServiceStatus>TRUE</scServiceStatus>
+                                <scServiceStartScript>dhcpd</scServiceStartScript>
+                                <ipHostNumber>192.168.124.122</ipHostNumber>
+                                <scDhcpDynLeaseTime>300</scDhcpDynLeaseTime>
+                                <scDhcpFixedLeaseTime>14400</scDhcpFixedLeaseTime>
+                            </attributes>
+                        </scService>
+                        <scService dn="cn=dns">
+                            <attributes>
+                                <scDnsName>dns</scDnsName>
+                                <scServiceName>dns</scServiceName>
+                                <scServiceStatus>TRUE</scServiceStatus>
+                                <scServiceStartScript>named</scServiceStartScript>
+                                <ipHostNumber>192.168.124.122</ipHostNumber>
+                            </attributes>
+                        </scService>
+                        <scService dn="cn=ftp">
+                            <attributes>
+                                <scDnsName>tftp</scDnsName>
+                                <scServiceName>ftp</scServiceName>
+                                <scServiceStatus>TRUE</scServiceStatus>
+                                <scServiceStartScript>pure-ftpd</scServiceStartScript>
+                                <ipHostNumber>192.168.124.122</ipHostNumber>
+                            </attributes>
+                        </scService>
+                        <scService dn="cn=tftp">
+                            <attributes>
+                                <scDnsName>tftp</scDnsName>
+                                <scServiceName>tftp</scServiceName>
+                                <scServiceStatus>TRUE</scServiceStatus>
+                                <scServiceStartScript>atftpd</scServiceStartScript>
+                                <ipHostNumber>192.168.124.122</ipHostNumber>
+                            </attributes>
+                        </scService>
+                        <scNetworkcard dn="scDevice=eth1">
+                            <attributes>
+                                <ipHostNumber>192.168.124.122</ipHostNumber>
+                            </attributes>
+                        </scNetworkcard>
+                    </scBranchServer>
+                </scServerContainer>
+                <scRefObjectContainer dn="cn=local_roles">
+                    <attributes>
+                        <description>This contain local roles</description>
+                    </attributes>
+                    <scRole dn="cn=role3">
+                        <attributes>
+                            <scRoleName>local role 3</scRoleName>
+                            <scRoleDescription>Graphical is the default, this role is local to mycombobranch location </scRoleDescription>
+                        </attributes>
+                        <scCashRegister dn="cn=flat_cr">
+                            <attributes>
+                                <scCashRegisterName>default</scCashRegisterName>
+                                <scPosImageDn>cn=graphical,cn=default,cn=global,o=myorg,c=us</scPosImageDn>
+                            </attributes>
+                            <scHarddisk dn="cn=sda">
+                                <attributes>
+                                    <scDevice>/dev/sda</scDevice>
+                                    <scPartitionsTable>1000 82 swap swap;3000 83 / ext3</scPartitionsTable>
+                                    <scHdSize>9000</scHdSize>
+                                </attributes>
+                            </scHarddisk>
+                        </scCashRegister>
+                    </scRole>
+                </scRefObjectContainer>
+            </scLocation>
+        </organizationalUnit>
+    </organization>
+</slepos:slepos>
