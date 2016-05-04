@@ -67,7 +67,7 @@ sub is_staging () {
 }
 
 sub is_sles4sap () {
-    return get_var('VERSION', '') =~ /SAP/;
+    return get_var('FLAVOR', '') =~ /SAP/;
 }
 
 sub cleanup_needles() {
