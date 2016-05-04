@@ -35,7 +35,7 @@ sub fill_in_registration_data {
     save_screenshot;
     send_key "alt-n", 1;
     unless (get_var('SCC_REGISTER', '') =~ /addon|network/) {
-        my @tags = qw/local-registration-servers registration-online-repos import-untrusted-gpg-key module-selection/;
+        my @tags = qw/local-registration-servers registration-online-repos import-untrusted-gpg-key module-selection contacting-registration-server/;
         push @tags, 'untrusted-ca-cert' if get_var('SCC_URL');
         while (check_screen(\@tags, 60)) {
             if (match_has_tag("local-registration-servers")) {
@@ -63,9 +63,14 @@ sub fill_in_registration_data {
                 @tags = grep { $_ ne 'registration-online-repos' } @tags;
                 next;
             }
+            elsif (match_has_tag('contacting-registration-server')) {
+                # sometimes SCC just takes its time - just continue looking after a while
+                sleep 5;
+                next;
+            }
             elsif (get_var('SCC_URL') && match_has_tag("untrusted-ca-cert")) {
                 record_soft_failure 'bsc#943966' if get_var('SCC_CERT');
-                send_key "alt-t", 1;        # trust
+                send_key "alt-t", 1;    # trust
                 @tags = grep { $_ ne 'untrusted-ca-cert' } @tags;
                 next;
             }
