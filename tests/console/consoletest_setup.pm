@@ -21,7 +21,39 @@ sub run() {
 
     if (!check_var('ARCH', 's390x')) {
         # verify there is a text console on tty1
-        send_key_until_needlematch "tty1-selected", "ctrl-alt-f1", 6, 5;
+        for (1 .. 6) {
+            send_key 'ctrl-alt-f1';
+            if (check_screen("tty1-selected", 5)) {
+                last;
+            }
+        }
+        if (!check_screen "tty1-selected", 5) {    #workaround for bsc#977007
+            record_soft_failure "unable to switch to the text mode";
+            send_key 'ctrl-alt-backspace';         #kill X and log in again
+            send_key 'ctrl-alt-backspace';
+            assert_screen 'displaymanager', 200;    #copy from installation/first_boot.pm
+            if (get_var('DESKTOP_MINIMALX_INSTONLY')) {
+                # return at the DM and log in later into desired wm
+                return;
+            }
+            mouse_hide();
+            if (get_var('DM_NEEDS_USERNAME')) {
+                type_string $username;
+            }
+            if (match_has_tag("sddm")) {
+                # make sure choose plasma5 session
+                assert_and_click "sddm-sessions-list";
+                assert_and_click "sddm-sessions-plasma5";
+                assert_and_click "sddm-password-input";
+            }
+            else {
+                send_key "ret";
+                wait_idle;
+            }
+            type_string "$password";
+            send_key "ret";
+            send_key_until_needlematch "tty1-selected", "ctrl-alt-f1", 6, 5;
+        }
     }
 
     # init
