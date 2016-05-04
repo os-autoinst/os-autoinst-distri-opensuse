@@ -27,10 +27,6 @@ sub run() {
     # do not login to desktop to reduce possibility of blocking zypper by packagekitd
     # and directly switch to text console
     select_console 'user-console';
-    sleep 1;
-
-    # Disable console screensaver
-    script_run("setterm -blank 0");
 }
 
 sub test_flags() {

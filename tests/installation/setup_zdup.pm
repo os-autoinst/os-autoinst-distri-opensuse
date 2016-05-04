@@ -46,11 +46,6 @@ sub run() {
         select_console('root-console');
     }
 
-    $self->set_standard_prompt();
-
-    # Disable console screensaver
-    assert_script_run("setterm -blank 0");
-
     if (get_var('HDD_1', '') =~ /opensuse-13\.2/) {
         record_soft_failure 'bsc#949188, kernel panic on 13.2';
         assert_script_run("zypper -n rm apparmor-abstractions");
