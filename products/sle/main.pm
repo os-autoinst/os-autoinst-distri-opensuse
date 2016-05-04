@@ -17,7 +17,7 @@ our %valueranges = (
     DESKTOP => [qw(kde gnome xfce lxde minimalx textmode)],
 
     #   ROOTFS=>[qw(ext3 xfs jfs btrfs reiserfs)],
-    VIDEOMODE => ["", "text"],
+    VIDEOMODE => ["", "text", "ssh-x"],
 );
 
 sub logcurrentenv {

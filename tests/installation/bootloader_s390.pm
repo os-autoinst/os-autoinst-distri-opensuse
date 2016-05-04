@@ -65,7 +65,7 @@ sub get_to_yast() {
     my $params = '';
     $params .= get_var('S390_NETWORK_PARAMS');
 
-    if (check_var("VIDEOMODE", "text")) {
+    if (check_var("VIDEOMODE", "text") || check_var("VIDEOMODE", "ssh-x")) {
         $params .= " ssh=1 ";    # trigger ssh-text installation
     }
     else {
@@ -136,6 +136,9 @@ EO_frickin_boot_parms
     if (check_var("VIDEOMODE", "text")) {
         $display_type = "SSH";
     }
+    elsif (check_var('VIDEOMODE', 'ssh-x')) {
+        $display_type = "SSH-X";
+    }
     # default install is VNC
     else {
         $display_type = "VNC";
@@ -149,7 +152,7 @@ EO_frickin_boot_parms
     # wait 20 seconds to load Installation System
     $r = $s3270->expect_3270(
         output_delim => $output_delim,
-        timeout      => 20
+        timeout      => 30
     );
 
 }
@@ -201,6 +204,12 @@ sub run() {
     if (check_var('VIDEOMODE', 'text')) {
         select_console("installation");
         type_string("yast.ssh\n");
+    }
+    elsif (check_var('VIDEOMODE', 'ssh-x')) {
+        my $console = select_console("installation");
+        type_string("yast.ssh\n");
+        assert_screen('yast2-windowborder');
+        $console->fullscreen({window_name => 'YaST2*'});
     }
     else {
         select_console("installation");

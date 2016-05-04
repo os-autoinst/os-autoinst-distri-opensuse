@@ -257,6 +257,17 @@ sub init_consoles {
                     user     => 'root'
                 });
         }
+        elsif (check_var("VIDEOMODE", "ssh-x")) {
+            $self->add_console(
+                'installation',
+                'ssh-xterm',
+                {
+                    hostname => $hostname,
+                    password => $testapi::password,
+                    user     => 'root',
+                    gui      => 1
+                });
+        }
         else {
             $self->add_console(
                 'installation',
