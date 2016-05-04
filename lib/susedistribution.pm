@@ -358,6 +358,8 @@ sub activate_console {
             send_key_until_needlematch "text-logged-in-$user", "ret", 2, 5;
         }
         $self->set_standard_prompt($user);
+        # Disable console screensaver
+        script_run("setterm -blank 0");
     }
 }
 
