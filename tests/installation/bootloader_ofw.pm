@@ -24,14 +24,14 @@ sub run() {
     if (get_var("UPGRADE")) {
         send_key_until_needlematch 'inst-onupgrade', 'up';
     }
-    elsif (get_var("ZDUP")) {
+    elsif (get_var("ZDUP") || get_var("ONLINE_MIGRATION")) {
         assert_screen 'inst-onlocal';
     }
     else {
         send_key_until_needlematch 'inst-oninstallation', 'up';
     }
     if (check_var('VIDEOMODE', 'text') || get_var('NETBOOT') || get_var('AUTOYAST') || get_var('SCC_URL')) {
-        if (get_var("ZDUP")) {
+        if (get_var("ZDUP") || get_var("ONLINE_MIGRATION")) {
             send_key "down";
             send_key "ret";
         }
