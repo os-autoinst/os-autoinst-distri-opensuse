@@ -282,8 +282,7 @@ sub loadtest($) {
     autotest::loadtest($test);
 }
 
-sub load_x11regresion_tests() {
-    loadtest "x11regressions/x11regressions_setup.pm";
+sub load_x11regression_firefox() {
     loadtest "x11regressions/firefox/sle12/firefox_smoke.pm";
     loadtest "x11regressions/firefox/sle12/firefox_localfiles.pm";
     loadtest "x11regressions/firefox/sle12/firefox_emaillink.pm";
@@ -309,7 +308,10 @@ sub load_x11regresion_tests() {
     loadtest "x11regressions/firefox/sle12/firefox_developertool.pm";
     loadtest "x11regressions/firefox/sle12/firefox_gnomeshell.pm";
     loadtest "x11regressions/firefox/sle12/firefox_rss.pm";
-    if ((check_var("DESKTOP", "gnome"))) {
+}
+
+sub load_x11regression_gnome() {
+    if (check_var("DESKTOP", "gnome")) {
         loadtest "x11regressions/gnomecase/nautilus_cut_file.pm";
         loadtest "x11regressions/gnomecase/nautilus_permission.pm";
         loadtest "x11regressions/gnomecase/nautilus_open_ftp.pm";
@@ -319,6 +321,11 @@ sub load_x11regresion_tests() {
         loadtest "x11regressions/gnomecase/gnome_classic_switch.pm";
         loadtest "x11regressions/gnomecase/gnome_default_applications.pm";
         loadtest "x11regressions/gnomecase/gnome_window_switcher.pm";
+    }
+}
+
+sub load_x11regression_documentation() {
+    if (check_var("DESKTOP", "gnome")) {
         loadtest "x11regressions/gnote/gnote_first_run.pm";
         loadtest "x11regressions/gnote/gnote_link_note.pm";
         loadtest "x11regressions/gnote/gnote_rename_title.pm";
@@ -334,29 +341,41 @@ sub load_x11regresion_tests() {
         loadtest "x11regressions/gedit/gedit_launch.pm";
         loadtest "x11regressions/gedit/gedit_save.pm";
         loadtest "x11regressions/gedit/gedit_about.pm";
-        loadtest "x11regressions/empathy/empathy_aim.pm";
-        loadtest "x11regressions/empathy/empathy_irc.pm";
         loadtest "x11regressions/libreoffice/libreoffice_mainmenu_favorites.pm";
         loadtest "x11regressions/libreoffice/libreoffice_open_specified_file.pm";
         loadtest "x11regressions/libreoffice/libreoffice_double_click_file.pm";
         loadtest "x11regressions/libreoffice/libreoffice_mainmenu_components.pm";
         loadtest "x11regressions/libreoffice/libreoffice_recent_documents.pm";
         loadtest "x11regressions/libreoffice/libreoffice_default_theme.pm";
+    }
+}
+
+sub load_x11regression_message() {
+    if (check_var("DESKTOP", "gnome")) {
+        loadtest "x11regressions/empathy/empathy_aim.pm";
+        loadtest "x11regressions/empathy/empathy_irc.pm";
         loadtest "x11regressions/evolution/evolution_smoke.pm";
         loadtest "x11regressions/evolution/evolution_mail_imap.pm";
         loadtest "x11regressions/evolution/evolution_mail_pop.pm";
         loadtest "x11regressions/evolution/evolution_mail_ews.pm";
         loadtest "x11regressions/evolution/evolution_timezone_setup.pm";
         loadtest "x11regressions/evolution/evolution_task_ews.pm";
-        loadtest "x11regressions/shotwell/shotwell_import.pm";
-        loadtest "x11regressions/shotwell/shotwell_edit.pm";
-        loadtest "x11regressions/shotwell/shotwell_export.pm";
     }
     if (get_var("DESKTOP") =~ /kde|gnome/) {
         loadtest "x11regressions/pidgin/prep_pidgin.pm";
         loadtest "x11regressions/pidgin/pidgin_IRC.pm";
         loadtest "x11regressions/pidgin/pidgin_aim.pm";
         loadtest "x11regressions/pidgin/clean_pidgin.pm";
+    }
+}
+
+sub load_x11regression_other() {
+    if (check_var("DESKTOP", "gnome")) {
+        loadtest "x11regressions/shotwell/shotwell_import.pm";
+        loadtest "x11regressions/shotwell/shotwell_edit.pm";
+        loadtest "x11regressions/shotwell/shotwell_export.pm";
+    }
+    if (get_var("DESKTOP") =~ /kde|gnome/) {
         loadtest "x11regressions/tracker/prep_tracker.pm";
         loadtest "x11regressions/tracker/tracker_starts.pm";
         loadtest "x11regressions/tracker/tracker_searchall.pm";
@@ -931,8 +950,42 @@ sub prepare_target() {
 
 # load the tests in the right order
 if (get_var("REGRESSION")) {
-    prepare_target();
-    load_x11regresion_tests();
+    if (check_var("REGRESSION", "installation")) {
+        load_boot_tests();
+        load_inst_tests();
+        load_reboot_tests();
+        loadtest "x11regressions/x11regressions_setup.pm";
+        loadtest "console/hostname.pm";
+        loadtest "shutdown/grub_set_bootargs.pm";
+        loadtest "shutdown/shutdown.pm";
+    }
+    elsif (check_var("REGRESSION", "firefox")) {
+        loadtest "boot/boot_to_desktop.pm";
+        load_x11regression_firefox();
+    }
+    elsif (check_var("REGRESSION", "gnome")) {
+        loadtest "boot/boot_to_desktop.pm";
+        load_x11regression_gnome();
+    }
+    elsif (check_var("REGRESSION", "documentation")) {
+        loadtest "boot/boot_to_desktop.pm";
+        load_x11regression_documentation();
+    }
+    elsif (check_var("REGRESSION", "message")) {
+        loadtest "boot/boot_to_desktop.pm";
+        load_x11regression_message();
+    }
+    elsif (check_var("REGRESSION", "other")) {
+        loadtest "boot/boot_to_desktop.pm";
+        load_x11regression_other();
+    }
+    elsif (check_var("REGRESSION", "test")) {
+        loadtest "boot/boot_to_desktop.pm";
+        loadtest "x11regressions/x11regressions_setup.pm";
+        loadtest "console/hostname.pm";
+        loadtest "shutdown/grub_set_bootargs.pm";
+        loadtest "shutdown/shutdown.pm";
+    }
 }
 elsif (get_var("FEATURE")) {
     prepare_target();
