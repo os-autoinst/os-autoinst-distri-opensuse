@@ -23,13 +23,9 @@ sub run() {
     if (get_var("BOOT_TO_SNAPSHOT")) {
         send_key_until_needlematch("boot-menu-snapshot", 'down', 10, 5);
         send_key 'ret';
-        assert_screen("boot-menu-snapshot-list");
-        # in upgrade/migration scenario, we want to boot from snapshot 1 before migration.
-        if (get_var("UPGRADE")) {
-            send_key 'down';
-            save_screenshot;
-        }
-        send_key 'ret';
+        # find out the before migration snapshot
+        send_key_until_needlematch("snap-before-update", 'down', 40, 5);
+        send_key "ret";
         # bsc#956046  check if we are in first menu-entry, or not
         if (check_screen("boot-menu-snapshot-bootmenu")) {
             record_soft_failure 'bsc#956046';
