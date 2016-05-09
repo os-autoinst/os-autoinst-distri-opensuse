@@ -20,7 +20,7 @@ sub run() {
 }
 
 sub test_flags() {
-    return {fatal => 1};
+    return {fatal => 1, milestone => 1};    # add milestone flag to save setup in lastgood vm snapshot
 }
 
 1;

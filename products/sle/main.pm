@@ -983,13 +983,6 @@ if (get_var("REGRESSION")) {
         loadtest "boot/boot_to_desktop.pm";
         load_x11regression_other();
     }
-    elsif (check_var("REGRESSION", "test")) {
-        loadtest "boot/boot_to_desktop.pm";
-        loadtest "x11regressions/x11regressions_setup.pm";
-        loadtest "console/hostname.pm";
-        loadtest "shutdown/grub_set_bootargs.pm";
-        loadtest "shutdown/shutdown.pm";
-    }
 }
 elsif (get_var("FEATURE")) {
     prepare_target();
