@@ -1,4 +1,4 @@
-# Copyright (C) 2015 SUSE Linux GmbH
+# Copyright (C) 2015-2016 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -94,6 +94,10 @@ sub fill_in_registration_data {
             }
             send_key 'alt-n';    # next, all addons selected
             for my $addon (split(/,/, get_var('SCC_ADDONS', ''))) {
+                while (check_screen('scc-downloading-license', 5)) {
+                    # wait for SCC to give us the license
+                    sleep 5;
+                }
                 assert_screen("scc-addon-license-$addon");
                 send_key "alt-a", 1;    # accept license
                 send_key "alt-n", 1;    # next
