@@ -87,6 +87,7 @@ sub run() {
     if (   !get_var("LIVECD")
         && !get_var("NICEVIDEO")
         && !get_var("UPGRADE")
+        && !get_var("SLES4SAP_MODE")
         && !check_var('VIDEOMODE', 'text'))
     {
         my $counter = 10;

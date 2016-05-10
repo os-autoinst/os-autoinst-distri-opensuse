@@ -30,6 +30,7 @@ sub run() {
 
     # license+lang
     if (get_var("HASLICENSE")) {
+        mouse_click 'left';    # if there was no beta warning, focus is not in yast and send_key doesn't work
         send_key $cmd{next};
         assert_screen "license-not-accepted";
         send_key $cmd{ok};
