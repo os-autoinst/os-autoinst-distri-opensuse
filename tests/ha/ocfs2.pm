@@ -17,7 +17,7 @@ sub run() {
     my $self            = shift;
     my $ocfs2_partition = "/dev/disk/by-path/ip-*-lun-2";
     $self->barrier_wait("OCFS2_INIT");
-    type_string "rpm -q ocfs2-kmp-default; echo ocfs2_kmp_default_installed=$?\n";
+    type_string "rpm -q ocfs2-kmp-default; echo ocfs2_kmp_default_installed=\$? > /dev/$serialdev\n";
     if (!wait_serial "ocfs2_kmp_default_installed=0") {    #workaround for bsc#976634
         record_soft_failure "ocfs2-kmp-default is not installed";
         assert_script_run "zypper in -y ocfs2-kmp-default";
