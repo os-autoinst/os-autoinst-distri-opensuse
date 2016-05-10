@@ -267,7 +267,7 @@ sub rt_is_applicable() {
 }
 
 sub we_is_applicable() {
-    return is_server && (get_var("ADDONS", "") =~ /we/ or get_var("SCC_ADDONS", "") =~ /we/);
+    return is_server && (get_var("ADDONS", "") =~ /we/ or get_var("SCC_ADDONS", "") =~ /we/ or get_var("ADDONURL", "") =~ /we/);
 }
 
 sub uses_qa_net_hardware() {
