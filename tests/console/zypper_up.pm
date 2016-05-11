@@ -20,18 +20,14 @@ sub run() {
 
     script_run("while pgrep packagekitd; do pkcon quit; sleep 1; done");
 
-    my $ret = zypper_call("patch --with-interactive -l",);
-    die "zypper failed with code $ret" unless grep { $_ == $ret } (0, 102, 103);
-
-    $ret = zypper_call("patch --with-interactive -l", 2000);    # first one might only have installed "update-test-affects-package-manager"
-    die "zypper failed with code $ret" unless grep { $_ == $ret } (0, 102);
+    fully_patch_system;
 
     assert_script_run("rpm -q libzypp zypper");
 
     # XXX: does this below make any sense? what if updates got
     # published meanwhile?
     clear_console;    # clear screen to see that second update does not do any more
-    $ret = zypper_call("-q patch");
+    my $ret = zypper_call("-q patch");
     die "zypper failed with code $ret" unless $ret == 0;
 }
 

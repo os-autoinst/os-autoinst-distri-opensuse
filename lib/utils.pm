@@ -20,6 +20,7 @@ our @EXPORT = qw/
   prepare_system_reboot
   get_netboot_mirror
   zypper_call
+  fully_patch_system
   /;
 
 
@@ -274,6 +275,14 @@ sub zypper_call {
     die "zypper doesn't return exitcode";
 }
 
+sub fully_patch_system {
+    # first run, possible update of packager -- exit code 103
+    my $ret = zypper_call('patch --with-interactive -l');
+    die "zypper failed with code $ret" unless grep { $_ == $ret } (0, 102, 103);
+    # second run, full system update
+    $ret = zypper_call('patch --with-interactive -l', 2500);
+    die "zypper failed with code $ret" unless grep { $_ == $ret } (0, 102);
+}
 1;
 
 # vim: sw=4 et

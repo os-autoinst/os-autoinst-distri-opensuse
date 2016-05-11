@@ -26,10 +26,7 @@ sub run {
     my $ret = zypper_call("ref");
     die "zypper failed with code $ret" unless $ret == 0;
 
-    $ret = zypper_call("patch --with-interactive -l",);
-    die "zypper failed with code $ret" unless grep { $_ == $ret } (0, 102, 103);
-    $ret = zypper_call("patch --with-interactive -l", 2000);    # first one might only have installed "update-test-affects-package-manager"
-    die "zypper failed with code $ret" unless grep { $_ == $ret } (0, 102);
+    fully_patch_system;
     capture_state('after', 1);
 
     prepare_system_reboot;
