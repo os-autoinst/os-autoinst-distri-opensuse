@@ -477,7 +477,9 @@ sub load_inst_tests() {
     }
     loadtest "installation/addon_products_sle.pm";
     if (noupdatestep_is_applicable) {
-        loadtest "installation/system_role.pm";
+        if (check_var('ARCH', 'x86_64') && !check_var('VERSION', '12') && !check_var('VERSION', '12-SP1')) {
+            loadtest "installation/system_role.pm";
+        }
         loadtest "installation/partitioning.pm";
         if (defined(get_var("RAIDLEVEL"))) {
             loadtest "installation/partitioning_raid.pm";
