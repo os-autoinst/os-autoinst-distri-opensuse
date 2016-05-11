@@ -12,9 +12,8 @@ use base "y2logsstep";
 use testapi;
 
 sub run() {
-    if (check_screen 'system-role-default-system') {
-        send_key 'alt-n';    # next
-    }
+    assert_screen 'system-role-default-system';
+    send_key 'alt-n';    # next
 }
 
 1;
