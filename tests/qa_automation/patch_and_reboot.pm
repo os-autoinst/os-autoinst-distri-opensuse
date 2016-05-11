@@ -27,11 +27,7 @@ sub run {
         assert_script_run("zypper --no-gpg-check -n ar -f '$repo' test-repo-$var");
     }
 
-    my $ret = zypper_call("patch --with-interactive -l");
-    die "zypper failed with code $ret" unless grep { $_ == $ret } (0, 102, 103);
-
-    $ret = zypper_call("patch --with-interactive -l", 2000);    # first one might only have installed "update-test-affects-package-manager"
-    die "zypper failed with code $ret" unless grep { $_ == $ret } (0, 102);
+    fully_patch_system;
 
     set_var('SYSTEM_IS_PATCHED', 1);
     type_string "reboot\n";
