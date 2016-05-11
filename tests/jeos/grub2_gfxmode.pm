@@ -17,12 +17,21 @@ use testapi;
 
 sub run {
     if (check_var('UEFI', '1')) {
-        assert_script_run("sed -ie '/GRUB_GFXMODE=/s/=.*/=1024x768/' /etc/default/grub && grub2-mkconfig -o /boot/grub2/grub.cfg");
-        # workaround kiwi quirk bnc#968270, bnc#968264
-        assert_script_run("rm -rf /boot/efi/EFI; sed -ie 's/which/echo/' /usr/sbin/shim-install && shim-install");
+        assert_script_run("sed -ie '/GRUB_GFXMODE=/s/=.*/=1024x768/' /etc/default/grub");
     }
     else {
-        assert_script_run("sed -ie '/GFXPAYLOAD_LINUX=/s/=.*/=1024x768/' /etc/default/grub && grub2-mkconfig -o /boot/grub2/grub.cfg");
+        assert_script_run("sed -ie '/GFXPAYLOAD_LINUX=/s/=.*/=1024x768/' /etc/default/grub");
+    }
+
+    if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
+        assert_script_run("sed -ie '/GRUB_CMDLINE_LINUX_DEFAULT=/s/\"\$/ video=hyperv_fb:1024x768\"/' /etc/default/grub");
+    }
+
+    assert_script_run("grub2-mkconfig -o /boot/grub2/grub.cfg");
+
+    if (check_var('UEFI', '1')) {
+        # workaround kiwi quirk bnc#968270, bnc#968264
+        assert_script_run("rm -rf /boot/efi/EFI; sed -ie 's/which/echo/' /usr/sbin/shim-install && shim-install");
     }
 }
 

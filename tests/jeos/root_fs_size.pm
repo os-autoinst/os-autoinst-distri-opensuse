@@ -13,7 +13,11 @@ use strict;
 use testapi;
 
 sub run() {
-    validate_script_output "df --output=size -BG / | sed 1d | tr -d ' '", sub { /^24G$/ }
+    my $expected_size = "24G";
+    if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
+        $expected_size = "30G";
+    }
+    validate_script_output "df --output=size -BG / | sed 1d | tr -d ' '", sub { /^$expected_size$/ }
 }
 
 1;
