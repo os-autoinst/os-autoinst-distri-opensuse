@@ -108,6 +108,9 @@ sub run() {
     type_string " \\\n";    # changed the line before typing video params
                             # https://wiki.archlinux.org/index.php/Kernel_Mode_Setting#Forcing_modes_and_EDID
     type_string_slow 'Y2DEBUG=1 ';
+    if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
+        type_string " video=hyperv_fb:1024x768";
+    }
     if (!is_jeos && (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64'))) {
         type_string_slow 'vga=791 ';
         type_string_slow 'video=1024x768-16 ';
@@ -152,6 +155,14 @@ sub run() {
     # boot
     send_key "f10";
 
+    # This is a workaround for xfreerdp connected to Windows Server 2008 R2.
+    # See issue https://github.com/FreeRDP/FreeRDP/issues/3362.
+    # xfreerdp is started in window-mode (i.e. non-fullscreen), now when
+    # all resolution changes (by Hyper-V BIOS, Grub) were done we should
+    # switch to fullscreen so needles match.
+    if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
+        send_key("ctrl-alt-ret");
+    }
 }
 
 1;

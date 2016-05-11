@@ -19,10 +19,16 @@ sub run() {
     # let's see how it looks at the beginning
     save_screenshot;
 
+    # Special keys like Ctrl-Alt-Fx does not work on Hyper-V atm. Alt-Fx however do.
+    my $tty1_key = 'ctrl-alt-f1';
+    if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
+        $tty1_key = 'alt-f1';
+    }
+
     if (!check_var('ARCH', 's390x')) {
         # verify there is a text console on tty1
         for (1 .. 6) {
-            send_key 'ctrl-alt-f1';
+            send_key $tty1_key;
             if (check_screen("tty1-selected", 5)) {
                 last;
             }
@@ -52,7 +58,7 @@ sub run() {
             }
             type_string "$password";
             send_key "ret";
-            send_key_until_needlematch "tty1-selected", "ctrl-alt-f1", 6, 5;
+            send_key_until_needlematch "tty1-selected", $tty1_key, 6, 5;
         }
     }
 
