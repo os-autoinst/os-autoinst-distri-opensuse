@@ -10,6 +10,7 @@
 use base "opensusebasetest";
 use strict;
 use testapi;
+use utils;
 use mm_network;
 use lockapi;
 
@@ -39,12 +40,14 @@ sub run() {
     elsif (check_var("REMOTE_MASTER", "ssh")) {
         $slave_ip = "10.0.2.11";
         select_console 'user-console';
+        clear_console;
+
         type_string "ssh root\@$slave_ip\n";
-        sleep 2;
+        assert_screen "ssh-login";
         type_string "yes\n";
-        sleep 2;
+        assert_screen 'password-prompt';
         type_string "$password\n";
-        sleep 2;
+        assert_screen "ssh-login-ok";
         type_string "yast.ssh\n";
     }
     else {
