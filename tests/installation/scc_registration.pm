@@ -20,6 +20,16 @@ use testapi;
 use registration;
 
 sub run() {
+    if (get_var("SCC_EXPECT_ERROR")) {
+        while (1) {
+            if (check_screen 'registration-error') {
+                send_key 'alt-o';
+                wait_still_screen;
+                next;
+            }
+            last;
+        }
+    }
     assert_screen("scc-registration", 100);
     fill_in_registration_data;
 }
