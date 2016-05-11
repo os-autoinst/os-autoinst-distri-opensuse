@@ -440,7 +440,6 @@ sub load_inst_tests() {
 sub load_reboot_tests() {
 
     if (installyaststep_is_applicable) {
-        loadtest "installation/grub_test.pm";
         loadtest "installation/first_boot.pm";
     }
     if (is_reboot_after_installation_necessary()) {
