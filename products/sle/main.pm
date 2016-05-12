@@ -70,6 +70,10 @@ sub is_sles4sap () {
     return get_var('FLAVOR', '') =~ /SAP/;
 }
 
+sub is_smt () {
+    return (get_var("PATTERNS", '') || get_var('HDD_1', '')) =~ /smt/;
+}
+
 sub version_at_least;
 
 sub version_at_least {
@@ -775,6 +779,9 @@ sub load_extra_test () {
 sub load_x11tests() {
     return unless (!get_var("INSTALLONLY") && get_var("DESKTOP") !~ /textmode|minimalx/ && !get_var("DUALBOOT") && !get_var("RESCUECD") && !get_var("HACLUSTER"));
 
+    if (is_smt) {
+        loadtest "x11/smt.pm";
+    }
     if (get_var("XDMUSED")) {
         loadtest "x11/x11_login.pm";
     }
