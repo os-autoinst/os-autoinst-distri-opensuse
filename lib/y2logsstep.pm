@@ -70,7 +70,7 @@ sub record_dependency_issues {
 }
 
 sub save_upload_y2logs() {
-    assert_script_run "save_y2logs /tmp/y2logs.tar.bz2";
+    assert_script_run "save_y2logs /tmp/y2logs.tar.bz2",540;
     upload_logs "/tmp/y2logs.tar.bz2";
     save_screenshot();
 }

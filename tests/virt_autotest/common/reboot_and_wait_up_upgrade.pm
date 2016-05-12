@@ -17,17 +17,15 @@ use testapi;
 
 sub run() { 
 
-	# Wait for bootload for the first time.
-        
-        #for (my $i=1; $i<60; $i++) {
-        #	save_screenshot;
-	#	sleep(1);
-	#}
-	assert_screen(["generic-destop", "generic-destop-virt"], 300);
+	select_console('root-console');
+	type_string("/sbin/reboot\n");
+	reset_consoles;
+	#wait_boot textmode => 1;
+	sleep 5;
+	my $timeout=3600;
+	assert_screen(["generic-destop", "generic-destop-virt"], $timeout);
 	select_console('root-console');
 
-
-	sleep 3;
 }
 
 sub test_flags {

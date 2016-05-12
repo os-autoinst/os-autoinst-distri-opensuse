@@ -28,7 +28,7 @@ sub install_package() {
     }
 
     assert_script_run("zypper --gpg-auto-import-keys ref", 90);
-    assert_script_run("zypper -n in qa_lib_virtauto", 300);
+    assert_script_run("zypper -n in qa_lib_virtauto", 1800);
 }
 
 sub update_package() {
@@ -41,7 +41,7 @@ sub update_package() {
 		$update_pkg_cmd = $update_pkg_cmd . " off off on";
 	}
 
-	assert_script_run($update_pkg_cmd, 3600);
+	assert_script_run($update_pkg_cmd, 5400);
 }
 
 
@@ -50,7 +50,7 @@ sub generate_grub() {
 
 	assert_script_run("cp /etc/default/grub /etc/default/grub.bak");
 
-	assert_script_run("if grep -v \"GRUB_CMDLINE_.*_DEFAULT=.* console=ttyS1,115200\" grub.bak >> /dev/null;then sed 's/\(GRUB_CMDLINE_.*_DEFAULT=.*\)\"/\1 console=ttyS1,115200\"/' grub.bak ; fi");
+	assert_script_run("if grep -v \"GRUB_CMDLINE_.*_DEFAULT=.* console=ttyS1,115200\" grub.bak >> /dev/null;then sed 's/\(GRUB_CMDLINE_.*_DEFAULT=.*\)\"/\\1 console=ttyS1,115200\"/' grub.bak ; fi");
 
 	my $gen_grub_cmd = "grub2-mkconfig -o /boot/grub2/grub.cfg";
 
