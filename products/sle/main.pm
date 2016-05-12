@@ -181,6 +181,10 @@ unless (get_var('INSTLANG')) {
 set_var('NOAUTOLOGIN', 1);
 set_var('HASLICENSE',  1);
 
+if (version_at_least('12-SP2')) {
+    set_var('SP2ORLATER', 1);
+}
+
 if (!get_var('NETBOOT')) {
     set_var('DVD', 1);
 }
