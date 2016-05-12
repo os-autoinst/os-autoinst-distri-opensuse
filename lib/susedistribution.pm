@@ -53,28 +53,28 @@ sub init_cmd() {
     );
 
     if (check_var('INSTLANG', "de_DE")) {
-        $testapi::cmd{"next"}            = "alt-w";
-        $testapi::cmd{"createpartsetup"} = "alt-e";
-        $testapi::cmd{"custompart"}      = "alt-b";
-        $testapi::cmd{"addpart"}         = "alt-h";
-        $testapi::cmd{"finish"}          = "alt-b";
-        $testapi::cmd{"accept"}          = "alt-r";
-        $testapi::cmd{"donotformat"}     = "alt-n";
-        $testapi::cmd{"add"}             = "alt-h";
+        $testapi::cmd{next}            = "alt-w";
+        $testapi::cmd{createpartsetup} = "alt-e";
+        $testapi::cmd{custompart}      = "alt-b";
+        $testapi::cmd{addpart}         = "alt-h";
+        $testapi::cmd{finish}          = "alt-b";
+        $testapi::cmd{accept}          = "alt-r";
+        $testapi::cmd{donotformat}     = "alt-n";
+        $testapi::cmd{add}             = "alt-h";
 
-        #	$testapi::cmd{"raid6"}="alt-d"; 11.2 only
-        $testapi::cmd{"raid10"}      = "alt-r";
-        $testapi::cmd{"mountpoint"}  = "alt-e";
-        $testapi::cmd{"rebootnow"}   = "alt-j";
-        $testapi::cmd{"otherrootpw"} = "alt-e";
-        $testapi::cmd{"change"}      = "alt-n";
-        $testapi::cmd{"software"}    = "w";
+        #	$testapi::cmd{raid6}="alt-d"; 11.2 only
+        $testapi::cmd{raid10}      = "alt-r";
+        $testapi::cmd{mountpoint}  = "alt-e";
+        $testapi::cmd{rebootnow}   = "alt-j";
+        $testapi::cmd{otherrootpw} = "alt-e";
+        $testapi::cmd{change}      = "alt-n";
+        $testapi::cmd{software}    = "w";
     }
     if (check_var('INSTLANG', "es_ES")) {
-        $testapi::cmd{"next"} = "alt-i";
+        $testapi::cmd{next} = "alt-i";
     }
     if (check_var('INSTLANG', "fr_FR")) {
-        $testapi::cmd{"next"} = "alt-s";
+        $testapi::cmd{next} = "alt-s";
     }
     ## keyboard cmd vars end
 }
@@ -91,8 +91,11 @@ sub x11_start_program($$$) {
     }
     type_string $program;
     wait_idle 5;
-    if ($options->{terminal}) { send_key "alt-t"; sleep 3; }
-    send_key "ret", 1;
+    if ($options->{terminal}) {
+        send_key('alt-t');
+        sleep 3;
+    }
+    send_key('ret', 1);
     # make sure desktop runner executed and closed when have had valid value
     # exec x11_start_program( $program, $timeout, { valid => 1 } );
     if ($options->{valid}) {
@@ -159,7 +162,7 @@ sub script_sudo($$) {
     if (!get_var("LIVETEST")) {
         assert_screen 'password-prompt';
         type_password;
-        send_key "ret";
+        send_key('ret');
     }
     if ($wait > 0) {
         return wait_serial("$str-\\d+-");
@@ -194,6 +197,16 @@ sub become_root {
 sub init_consoles {
     my ($self) = @_;
 
+    # avoid complex boolean logic by setting interim variables
+    if (check_var('BACKEND', 'svirt')) {
+        if (get_var('JEOS')) {
+            set_var('JEOS_SVIRT', 1);
+        }
+        if (check_var('ARCH', 's390x')) {
+            set_var('S390_ZKVM', 1);
+        }
+    }
+
     if (check_var('BACKEND', 'qemu') || check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'generalhw')) {
         $self->add_console('install-shell', 'tty-console', {tty => 2});
         $self->add_console('installation',  'tty-console', {tty => check_var('VIDEOMODE', 'text') ? 1 : 7});
@@ -201,7 +214,26 @@ sub init_consoles {
         $self->add_console('user-console',  'tty-console', {tty => 4});
         $self->add_console('x11',           'tty-console', {tty => 7});
     }
-    if (check_var('BACKEND', 'svirt') || check_var('BACKEND', 's390x')) {
+
+    # JeOS via svirt backend
+    if (get_var('JEOS_SVIRT')) {
+        my $hostname = get_var('VIRSH_GUEST');
+
+        $self->add_console(
+            'sut',
+            'vnc-base',
+            {
+                hostname => $hostname,
+                port     => 5901,
+                password => $testapi::password
+            });
+        $self->add_console('install-shell', 'tty-console', {tty => 2});
+        $self->add_console('root-console',  'tty-console', {tty => 2});
+        $self->add_console('user-console',  'tty-console', {tty => 4});
+        $self->add_console('x11',           'tty-console', {tty => 7});
+    }
+
+    if (check_var('BACKEND', 's390x') || get_var('S390_ZKVM')) {
         my $hostname = get_var('VIRSH_GUEST');
 
         if (check_var('BACKEND', 's390x')) {
@@ -223,6 +255,17 @@ sub init_consoles {
                     hostname => $hostname,
                     password => $testapi::password,
                     user     => 'root'
+                });
+        }
+        elsif (check_var("VIDEOMODE", "ssh-x")) {
+            $self->add_console(
+                'installation',
+                'ssh-xterm',
+                {
+                    hostname => $hostname,
+                    password => $testapi::password,
+                    user     => 'root',
+                    gui      => 1
                 });
         }
         else {
@@ -301,8 +344,12 @@ sub activate_console {
         my $user = $1;
         $user = $testapi::username if $user eq 'user';
 
-        # different handling for svirt and s390 backend
-        if (!check_var('BACKEND', 's390x') && !check_var('BACKEND', 'svirt')) {
+        # different handling for ssh consoles
+        if (check_var('BACKEND', 's390x') || get_var('S390_ZKVM')) {
+            # different console-behaviour for s390x
+            $self->script_run("su - $user") unless ($user eq 'root');
+        }
+        else {
             my $nr = 4;
             $nr = 2 if ($user eq 'root');
             # we need to wait more than five seconds here to pass the idle timeout in
@@ -314,18 +361,16 @@ sub activate_console {
             if (!get_var("LIVETEST")) {
                 assert_screen "password-prompt";
                 type_password;
-                send_key "ret";
+                send_key('ret');
             }
-        }
-        else {
-            # different console-behaviour for s390x
-            $self->script_run("su - $user") unless ($user eq 'root');
         }
         # check if $user is not logged in try to login two times
         if (!check_screen("text-logged-in-$user")) {
             send_key_until_needlematch "text-logged-in-$user", "ret", 2, 5;
         }
         $self->set_standard_prompt($user);
+        # Disable console screensaver
+        $self->script_run("setterm -blank 0");
     }
 }
 

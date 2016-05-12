@@ -21,6 +21,10 @@ use testapi;
 sub run {
 
     select_console('root-console');
+    if (get_var('DROP_PERSISTENT_NET_RULES')) {
+        type_string "rm -f /etc/udev/rules.d/70-persistent-net.rules /etc/sysconfig/network/ifcfg-eth*\n";
+    }
+
     type_string "poweroff\n";
     assert_shutdown;
 }

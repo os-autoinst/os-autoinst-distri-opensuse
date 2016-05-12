@@ -12,13 +12,13 @@ use base "y2logsstep";
 use testapi;
 
 sub run() {
-    assert_screen 'disk-activation';
+    assert_screen 'disk-activation-iscsi';
     send_key 'alt-i';    # configure iscsi disk
     assert_screen 'iscsi-overview', 100;
     send_key 'alt-i';    # iBFT tab
     assert_screen 'iscsi-ibft';
     send_key 'alt-o';    # OK
-    assert_screen 'disk-activation';
+    assert_screen 'disk-activation-iscsi';
     send_key 'alt-n';    # next
 }
 

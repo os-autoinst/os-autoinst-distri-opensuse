@@ -9,6 +9,7 @@
 # without any warranty.
 
 use base "basetest";
+use strict;
 use testapi;
 
 sub run() {

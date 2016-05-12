@@ -11,8 +11,14 @@ use base "basetest";
 use strict;
 use testapi;
 use lockapi;
+use mmapi;
 
 sub run() {
+    wait_for_children_to_start;
+    for my $clustername (split(/,/, get_var('CLUSTERNAME'))) {
+        mutex_unlock("MUTEX_HA_" . $clustername . "_NODE1_WAIT");    #start node1 and node2 jobs
+        mutex_unlock("MUTEX_HA_" . $clustername . "_NODE2_WAIT");
+    }
     assert_screen "tty1-selected";
     type_string "root\n";
     assert_screen "password-prompt";
@@ -26,13 +32,11 @@ sub run() {
     type_string "if `dig \@localhost srv1.bravo.ha-test.qa.suse.de +short | grep -q 172.16.0.17`; then echo dns2_okay > /dev/$serialdev; fi\n";
     wait_serial("dns2_okay") || die "support server cannot resolve DNS2";
     type_string "exit\n";
-    for my $clustername (split(/,/, get_var('CLUSTERNAME'))) {    #wait until all jobs are done
-        mutex_lock("MUTEX_HA_" . $clustername . "_FINISHED");
-    }
+    wait_for_children;    #don't destroy support server while children are running
 }
 
 sub test_flags() {
-    return {'fatal' => 1};
+    return {fatal => 1};
 }
 
 1;

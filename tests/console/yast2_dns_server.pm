@@ -9,6 +9,7 @@
 # without any warranty.
 
 use base "console_yasttest";
+use strict;
 use testapi;
 
 # Test "yast2 dhcp-server" functionality

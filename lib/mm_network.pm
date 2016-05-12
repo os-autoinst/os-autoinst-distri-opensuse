@@ -11,15 +11,20 @@ our @EXPORT = qw/configure_hostname get_host_resolv_conf configure_static_ip con
 
 sub configure_hostname {
     my ($hostname) = @_;
-    type_string "echo '$hostname' > /etc/hostname\n";
-    type_string "hostname '$hostname'\n";
-    type_string "hostnamectl set-hostname '$hostname'\n";
+    if (get_var('VERSION') =~ /^11/) {
+        type_string "echo '$hostname' > /etc/HOSTNAME\n";
+        type_string "echo '$hostname' > /etc/hostname\n";
+        type_string "hostname '$hostname'\n";
+    }
+    else {
+        type_string "hostnamectl set-hostname '$hostname'\n";
+    }
 }
 
 sub get_host_resolv_conf {
     my %conf;
-    open(FH, '<', "/etc/resolv.conf");
-    while (<FH>) {
+    open(my $fh, '<', "/etc/resolv.conf");
+    while (<$fh>) {
         if (/^nameserver\s+([0-9.]+)\s*$/) {
             $conf{nameserver} //= [];
             push @{$conf{nameserver}}, $1;
@@ -28,6 +33,7 @@ sub get_host_resolv_conf {
             $conf{search} = $1;
         }
     }
+    close($fh);
     return \%conf;
 }
 

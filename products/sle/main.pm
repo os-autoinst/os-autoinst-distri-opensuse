@@ -17,11 +17,11 @@ our %valueranges = (
     DESKTOP => [qw(kde gnome xfce lxde minimalx textmode)],
 
     #   ROOTFS=>[qw(ext3 xfs jfs btrfs reiserfs)],
-    VIDEOMODE => ["", "text"],
+    VIDEOMODE => ["", "text", "ssh-x"],
 );
 
-sub logcurrentenv(@) {
-    foreach my $k (@_) {
+sub logcurrentenv {
+    for my $k (@_) {
         my $e = get_var("$k");
         next unless defined $e;
         bmwqemu::diag("usingenv $k=$e");
@@ -37,13 +37,13 @@ sub check_env() {
     }
 }
 
-sub unregister_needle_tags($) {
+sub unregister_needle_tags {
     my $tag = shift;
     my @a   = @{needle::tags($tag)};
     for my $n (@a) { $n->unregister(); }
 }
 
-sub remove_desktop_needles($) {
+sub remove_desktop_needles {
     my $desktop = shift;
     if (!check_var("DESKTOP", $desktop)) {
         unregister_needle_tags("ENV-DESKTOP-$desktop");
@@ -64,6 +64,30 @@ sub is_jeos() {
 
 sub is_staging () {
     return get_var('STAGING');
+}
+
+sub is_sles4sap () {
+    return get_var('FLAVOR', '') =~ /SAP/;
+}
+
+sub version_at_least;
+
+sub version_at_least {
+    my ($version) = @_;
+
+    if ($version eq '12-SP1') {
+        return !check_var('VERSION', '12');
+    }
+
+    if ($version eq '12-SP2') {
+        return version_at_least('12-SP1') && !check_var('VERSION', '12-SP1');
+    }
+
+    if ($version eq '12-SP3') {
+        return version_at_least('12-SP2') && !check_var('VERSION', '12-SP2');
+    }
+
+    die "unsupport VERSION $version in check";
 }
 
 sub cleanup_needles() {
@@ -96,6 +120,9 @@ sub cleanup_needles() {
     if (get_var('VERSION', '') ne '12-SP2') {
         unregister_needle_tags("ENV-VERSION-12-SP2");
     }
+
+    my $tounregister = version_at_least('12-SP2') ? '0' : '1';
+    unregister_needle_tags("ENV-SP2ORLATER-$tounregister");
 
     if (!is_server) {
         unregister_needle_tags("ENV-FLAVOR-Server-DVD");
@@ -263,14 +290,14 @@ sub rt_is_applicable() {
 }
 
 sub we_is_applicable() {
-    return is_server && (get_var("ADDONS", "") =~ /we/ or get_var("SCC_ADDONS", "") =~ /we/);
+    return is_server && (get_var("ADDONS", "") =~ /we/ or get_var("SCC_ADDONS", "") =~ /we/ or get_var("ADDONURL", "") =~ /we/);
 }
 
 sub uses_qa_net_hardware() {
     return check_var("BACKEND", "ipmi") || check_var("BACKEND", "generalhw");
 }
 
-sub loadtest($) {
+sub loadtest {
     my ($test) = @_;
     unless ($test =~ m,^tests/,) {
         $test = "tests/$test";
@@ -278,8 +305,7 @@ sub loadtest($) {
     autotest::loadtest($test);
 }
 
-sub load_x11regresion_tests() {
-    loadtest "x11regressions/x11regressions_setup.pm";
+sub load_x11regression_firefox() {
     loadtest "x11regressions/firefox/sle12/firefox_smoke.pm";
     loadtest "x11regressions/firefox/sle12/firefox_localfiles.pm";
     loadtest "x11regressions/firefox/sle12/firefox_emaillink.pm";
@@ -305,7 +331,13 @@ sub load_x11regresion_tests() {
     loadtest "x11regressions/firefox/sle12/firefox_developertool.pm";
     loadtest "x11regressions/firefox/sle12/firefox_gnomeshell.pm";
     loadtest "x11regressions/firefox/sle12/firefox_rss.pm";
-    if ((check_var("DESKTOP", "gnome"))) {
+    if (!get_var("OFW") && check_var('BACKEND', 'qemu')) {
+        loadtest "x11/firefox_audio.pm";
+    }
+}
+
+sub load_x11regression_gnome() {
+    if (check_var("DESKTOP", "gnome")) {
         loadtest "x11regressions/gnomecase/nautilus_cut_file.pm";
         loadtest "x11regressions/gnomecase/nautilus_permission.pm";
         loadtest "x11regressions/gnomecase/nautilus_open_ftp.pm";
@@ -315,6 +347,11 @@ sub load_x11regresion_tests() {
         loadtest "x11regressions/gnomecase/gnome_classic_switch.pm";
         loadtest "x11regressions/gnomecase/gnome_default_applications.pm";
         loadtest "x11regressions/gnomecase/gnome_window_switcher.pm";
+    }
+}
+
+sub load_x11regression_documentation() {
+    if (check_var("DESKTOP", "gnome")) {
         loadtest "x11regressions/gnote/gnote_first_run.pm";
         loadtest "x11regressions/gnote/gnote_link_note.pm";
         loadtest "x11regressions/gnote/gnote_rename_title.pm";
@@ -330,25 +367,42 @@ sub load_x11regresion_tests() {
         loadtest "x11regressions/gedit/gedit_launch.pm";
         loadtest "x11regressions/gedit/gedit_save.pm";
         loadtest "x11regressions/gedit/gedit_about.pm";
-        loadtest "x11regressions/empathy/empathy_aim.pm";
-        loadtest "x11regressions/empathy/empathy_irc.pm";
         loadtest "x11regressions/libreoffice/libreoffice_mainmenu_favorites.pm";
+        loadtest "x11regressions/libreoffice/libreoffice_open_specified_file.pm";
+        loadtest "x11regressions/libreoffice/libreoffice_double_click_file.pm";
         loadtest "x11regressions/libreoffice/libreoffice_mainmenu_components.pm";
         loadtest "x11regressions/libreoffice/libreoffice_recent_documents.pm";
         loadtest "x11regressions/libreoffice/libreoffice_default_theme.pm";
+        loadtest "x11regressions/libreoffice/libreoffice_pyuno_bridge.pm";
+    }
+}
+
+sub load_x11regression_message() {
+    if (check_var("DESKTOP", "gnome")) {
+        loadtest "x11regressions/empathy/empathy_aim.pm";
+        loadtest "x11regressions/empathy/empathy_irc.pm";
         loadtest "x11regressions/evolution/evolution_smoke.pm";
         loadtest "x11regressions/evolution/evolution_mail_imap.pm";
+        loadtest "x11regressions/evolution/evolution_mail_pop.pm";
         loadtest "x11regressions/evolution/evolution_mail_ews.pm";
         loadtest "x11regressions/evolution/evolution_timezone_setup.pm";
-        loadtest "x11regressions/shotwell/shotwell_import.pm";
-        loadtest "x11regressions/shotwell/shotwell_edit.pm";
-        loadtest "x11regressions/shotwell/shotwell_export.pm";
+        loadtest "x11regressions/evolution/evolution_task_ews.pm";
     }
     if (get_var("DESKTOP") =~ /kde|gnome/) {
         loadtest "x11regressions/pidgin/prep_pidgin.pm";
         loadtest "x11regressions/pidgin/pidgin_IRC.pm";
         loadtest "x11regressions/pidgin/pidgin_aim.pm";
         loadtest "x11regressions/pidgin/clean_pidgin.pm";
+    }
+}
+
+sub load_x11regression_other() {
+    if (check_var("DESKTOP", "gnome")) {
+        loadtest "x11regressions/shotwell/shotwell_import.pm";
+        loadtest "x11regressions/shotwell/shotwell_edit.pm";
+        loadtest "x11regressions/shotwell/shotwell_export.pm";
+    }
+    if (get_var("DESKTOP") =~ /kde|gnome/) {
         loadtest "x11regressions/tracker/prep_tracker.pm";
         loadtest "x11regressions/tracker/tracker_starts.pm";
         loadtest "x11regressions/tracker/tracker_searchall.pm";
@@ -422,7 +476,7 @@ sub load_inst_tests() {
         if (check_var('BACKEND', 's390x')) {
             loadtest "installation/disk_activation.pm";
         }
-        elsif (!check_var('VERSION', '12-SP2')) {
+        elsif (!version_at_least('12-SP2')) {
             loadtest "installation/skip_disk_activation.pm";
         }
     }
@@ -438,12 +492,17 @@ sub load_inst_tests() {
     else {
         loadtest "installation/skip_registration.pm";
     }
+    if (is_sles4sap) {
+        loadtest "installation/sles4sap_product_installation_mode.pm";
+    }
     if (get_var('MAINT_TEST_REPO')) {
         loadtest 'installation/add_update_test_repo.pm';
     }
     loadtest "installation/addon_products_sle.pm";
     if (noupdatestep_is_applicable) {
-        loadtest "installation/system_role.pm";
+        if (check_var('ARCH', 'x86_64') && version_at_least('12-SP2') && is_server) {
+            loadtest "installation/system_role.pm";
+        }
         loadtest "installation/partitioning.pm";
         if (defined(get_var("RAIDLEVEL"))) {
             loadtest "installation/partitioning_raid.pm";
@@ -481,8 +540,17 @@ sub load_inst_tests() {
     }
     if (noupdatestep_is_applicable) {
         loadtest "installation/installer_timezone.pm";
-        loadtest "installation/logpackages.pm";
-        loadtest "installation/user_settings.pm";
+        if (!get_var("REMOTE_MASTER")) {
+            loadtest "installation/logpackages.pm";
+        }
+        if (is_sles4sap) {
+            if (check_var("SLES4SAP_MODE", 'sles')) {
+                loadtest "installation/user_settings.pm";
+            }    # sles4sap wizard installation doesn't have user_settings step
+        }
+        else {
+            loadtest "installation/user_settings.pm";
+        }
         loadtest "installation/user_settings_root.pm";
         if (get_var('PATTERNS')) {
             loadtest "installation/installation_overview_before.pm";
@@ -505,11 +573,23 @@ sub load_inst_tests() {
         # on svirt we need to redefine the xml-file to boot the installed kernel
         loadtest "installation/redefine_svirt_domain.pm";
     }
+    if (is_sles4sap) {
+        if (check_var('SLES4SAP_MODE', 'sles4sap_wizard')) {
+            loadtest "installation/sles4sap_wizard.pm";
+            if (get_var("TREX")) {
+                loadtest "installation/sles4sap_wizard_trex.pm";
+            }
+            if (get_var("NW")) {
+                loadtest "installation/sles4sap_wizard_nw.pm";
+            }
+            loadtest "installation/sles4sap_wizard_swpm.pm";
+        }
+    }
 
 }
 
 sub load_reboot_tests() {
-    if (check_var("ARCH", "s390x")) {
+    if (check_var("ARCH", "s390x") and !get_var("QAM_MINIMAL")) {
         loadtest "installation/reconnect_s390.pm";
     }
     if (uses_qa_net_hardware) {
@@ -521,9 +601,6 @@ sub load_reboot_tests() {
             loadtest "installation/grub_test.pm";
             if ((snapper_is_applicable) && get_var("BOOT_TO_SNAPSHOT")) {
                 loadtest "installation/boot_into_snapshot.pm";
-                if (get_var("UPGRADE")) {
-                    loadtest "installation/snapper_rollback.pm";
-                }
             }
         }
         if (get_var("ENCRYPT")) {
@@ -671,6 +748,7 @@ sub load_extra_test () {
 
     # setup $serialdev permission and so on
     loadtest "console/consoletest_setup.pm";
+    loadtest "console/check_console_font.pm";
     loadtest "console/zypper_lr.pm";
     loadtest "console/zypper_ref.pm";
     loadtest "console/update_alternatives.pm";
@@ -683,6 +761,10 @@ sub load_extra_test () {
     loadtest "console/command_not_found.pm";
     loadtest "console/yast2_http.pm";
     loadtest "console/yast2_ftp.pm";
+    loadtest "console/yast2_proxy.pm";
+    loadtest "console/yast2_ntpclient.pm";
+    loadtest "console/yast2_tftp.pm";
+    loadtest "console/yast2_vnc.pm";
     # finished console test and back to desktop
     loadtest "console/consoletest_finish.pm";
 
@@ -711,9 +793,6 @@ sub load_x11tests() {
         loadtest "x11/kate.pm";
     }
     loadtest "x11/firefox.pm";
-    if (!get_var("OFW") && check_var('BACKEND', 'qemu')) {
-        loadtest "x11/firefox_audio.pm";
-    }
     if (bigx11step_is_applicable) {
         loadtest "x11/firefox_stress.pm";
     }
@@ -829,31 +908,37 @@ sub load_slenkins_tests {
 
 sub load_hacluster_tests() {
     return unless (get_var("HACLUSTER"));
+    sleep 10;    # wait to make sure that support server created locks
+    if (get_var("HOSTNAME") eq 'host1') {
+        mutex_lock("MUTEX_HA_" . get_var("CLUSTERNAME") . "_NODE1_WAIT");    #stop here until all nodes are running
+    }
+    else {
+        mutex_lock("MUTEX_HA_" . get_var("CLUSTERNAME") . "_NODE2_WAIT");    #stop here until all nodes are running
+    }
     loadtest("ha/barrier_init.pm");
     loadtest "installation/first_boot.pm";
     loadtest "console/consoletest_setup.pm";
     loadtest "console/hostname.pm";
-    #    loadtest("ha/hostname.pm");
     loadtest("ha/firewall_disable.pm");
     loadtest("ha/ntp_client.pm");
     loadtest("ha/iscsi_client.pm");
     loadtest("ha/watchdog.pm");
     if (get_var("HOSTNAME") eq 'host1') {
-        mutex_lock("MUTEX_HA_" . get_var("CLUSTERNAME") . "_FINISHED");    # mutex to unlock after all tests
-        loadtest("ha/ha_cluster_init.pm");                                 #node1 creates a cluster
+        loadtest("ha/ha_cluster_init.pm");                                   #node1 creates a cluster
     }
     else {
-        loadtest("ha/ha_cluster_join.pm");                                 #node2 joins the cluster
+        loadtest("ha/ha_cluster_join.pm");                                   #node2 joins the cluster
     }
     loadtest("ha/dlm.pm");
+    loadtest("ha/clvm.pm");
     loadtest("ha/ocfs2.pm");
     loadtest("ha/crm_mon.pm");
     loadtest("ha/fencing.pm");
-    if (!get_var("HACLUSTERJOIN")) {                                       #node1 will be fenced
+    if (!get_var("HACLUSTERJOIN")) {                                         #node1 will be fenced
         loadtest "ha/fencing_boot.pm";
         loadtest "ha/fencing_consoletest_setup.pm";
     }
-    loadtest("ha/check_logs.pm");                                          #check_logs must be after ha/fencing.pm
+    loadtest("ha/check_logs.pm");                                            #check_logs must be after ha/fencing.pm
     return 1;
 }
 
@@ -904,8 +989,35 @@ sub load_virtauto_tests() {
 
 # load the tests in the right order
 if (get_var("REGRESSION")) {
-    prepare_target();
-    load_x11regresion_tests();
+    if (check_var("REGRESSION", "installation")) {
+        load_boot_tests();
+        load_inst_tests();
+        load_reboot_tests();
+        loadtest "x11regressions/x11regressions_setup.pm";
+        loadtest "console/hostname.pm";
+        loadtest "shutdown/grub_set_bootargs.pm";
+        loadtest "shutdown/shutdown.pm";
+    }
+    elsif (check_var("REGRESSION", "firefox")) {
+        loadtest "boot/boot_to_desktop.pm";
+        load_x11regression_firefox();
+    }
+    elsif (check_var("REGRESSION", "gnome")) {
+        loadtest "boot/boot_to_desktop.pm";
+        load_x11regression_gnome();
+    }
+    elsif (check_var("REGRESSION", "documentation")) {
+        loadtest "boot/boot_to_desktop.pm";
+        load_x11regression_documentation();
+    }
+    elsif (check_var("REGRESSION", "message")) {
+        loadtest "boot/boot_to_desktop.pm";
+        load_x11regression_message();
+    }
+    elsif (check_var("REGRESSION", "other")) {
+        loadtest "boot/boot_to_desktop.pm";
+        load_x11regression_other();
+    }
 }
 elsif (get_var("FEATURE")) {
     prepare_target();
@@ -937,9 +1049,13 @@ elsif (get_var("SUPPORT_SERVER")) {
 }
 elsif (get_var("HACLUSTER_SUPPORT_SERVER")) {
     for my $clustername (split(/,/, get_var('CLUSTERNAME'))) {
+        mutex_create("MUTEX_HA_" . $clustername . "_NODE1_WAIT");
+        mutex_lock("MUTEX_HA_" . $clustername . "_NODE1_WAIT");    #mutex will be released after wait_for_children_to_start
+        mutex_create("MUTEX_HA_" . $clustername . "_NODE2_WAIT");
+        mutex_lock("MUTEX_HA_" . $clustername . "_NODE2_WAIT");    #mutex will be released after wait_for_children_to_start
         mutex_create("MUTEX_HA_" . $clustername . "_FINISHED");    #support server can lock _FINISHED mutex when node1 finishes
     }
-    for my $mutexname (qw(CLUSTER_INITIALIZED NODE2_JOINED OCFS2_INIT DLM_GROUPS_CREATED DLM_INIT DLM_CHECKED OCFS2_MKFS_DONE OCFS2_GROUP_ALTERED OCFS2_DATA_COPIED OCFS2_MD5_CHECKED BEFORE_FENCING FENCING_DONE LOGS_CHECKED)) {
+    for my $mutexname (qw(CLUSTER_INITIALIZED NODE2_JOINED OCFS2_INIT DLM_GROUPS_CREATED DLM_INIT DLM_CHECKED OCFS2_MKFS_DONE OCFS2_GROUP_ALTERED OCFS2_DATA_COPIED OCFS2_MD5_CHECKED BEFORE_FENCING FENCING_DONE LOGS_CHECKED CLVM_INIT CLVM_RESOURCE_CREATED CLVM_PV_VG_LV_CREATED CLVM_VG_RESOURCE_CREATED CLVM_RW_CHECKED CLVM_MD5SUM)) {
         mutex_create("MUTEX_${mutexname}_M1");                     #barrier_create mutexes
         mutex_create("MUTEX_${mutexname}_M2");
     }
@@ -1001,7 +1117,13 @@ else {
             loadtest "rt/boot_rt_kernel.pm";
         }
         else {
-            loadtest "boot/boot_to_desktop.pm";
+            if (get_var("BOOT_TO_SNAPSHOT") && (snapper_is_applicable) && get_var("UPGRADE")) {
+                loadtest "boot/grub_test_snapshot.pm";
+                loadtest "boot/snapper_rollback.pm";
+            }
+            else {
+                loadtest "boot/boot_to_desktop.pm";
+            }
             if (get_var("ADDONS")) {
                 loadtest "installation/addon_products_yast2.pm";
             }
@@ -1013,7 +1135,16 @@ else {
                 set_var('INSTALLONLY', 1);
                 loadtest "iscsi/iscsi_client.pm";
             }
+            if (get_var("REMOTE_MASTER")) {
+                loadtest "remote/remote_master.pm";
+                load_inst_tests();
+            }
         }
+    }
+    elsif (get_var("REMOTE_SLAVE")) {
+        load_boot_tests();
+        loadtest "remote/remote_slave.pm";
+        load_reboot_tests();
     }
     elsif (is_jeos) {
         load_boot_tests();

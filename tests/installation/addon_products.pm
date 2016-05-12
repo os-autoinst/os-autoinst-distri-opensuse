@@ -16,7 +16,7 @@ sub run() {
     my ($self) = @_;
 
     if (check_screen('network-setup', 10)) {    # won't appear for NET installs
-        send_key $cmd{"next"};                  # use network
+        send_key $cmd{next};                    # use network
         assert_screen 'dhcp-network';
         send_key 'alt-d', 2;                    # DHCP
         send_key 'alt-o', 2;                    # OK
@@ -29,23 +29,23 @@ sub run() {
         # FIXME: do the same as sle here
         foreach my $url (split(/\+/, get_var("ADDONURL"))) {
             send_key "alt-a";                   # Add another
-            send_key $cmd{"xnext"}, 1;          # Specify URL (default)
+            send_key $cmd{xnext}, 1;            # Specify URL (default)
             type_string $url;
-            send_key $cmd{"next"}, 1;
+            send_key $cmd{next}, 1;
             if (get_var("ADDONURL") !~ m{/update/}) {    # update is already trusted, so would trigger "delete"
                 send_key "alt-i";
                 send_key "alt-t", 1;                     # confirm import (trust) key
             }
         }
         assert_screen 'addon-selection';
-        send_key $cmd{"next"}, 1;                        # done
+        send_key $cmd{next}, 1;                          # done
     }
 
     if (get_var("ADDONS")) {
 
-        foreach $a (split(/,/, get_var('ADDONS'))) {
+        for my $a (split(/,/, get_var('ADDONS'))) {
             send_key 'alt-d';                            # DVD
-            send_key $cmd{"xnext"}, 1;
+            send_key $cmd{xnext}, 1;
             assert_screen 'dvd-selector';
             send_key_until_needlematch 'addon-dvd-list', 'tab';
             send_key_until_needlematch "addon-dvd-$a",   'down';

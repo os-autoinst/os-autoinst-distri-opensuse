@@ -8,6 +8,7 @@
 # without any warranty.
 
 use base "hacluster";
+use strict;
 use testapi;
 use autotest;
 use lockapi;

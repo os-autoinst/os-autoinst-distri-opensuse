@@ -9,6 +9,7 @@
 # without any warranty.
 
 use base "y2logsstep";
+use strict;
 use testapi;
 
 sub run() {

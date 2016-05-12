@@ -9,6 +9,7 @@
 # without any warranty.
 
 use base "consoletest";
+use strict;
 use testapi;
 
 # check if sshd works

@@ -11,6 +11,7 @@
 use base "consoletest";
 use testapi;
 use utils;
+use strict;
 
 sub run() {
     select_console 'root-console';

@@ -10,6 +10,7 @@
 
 
 use base "console_yasttest";
+use strict;
 use testapi;
 use utils;
 

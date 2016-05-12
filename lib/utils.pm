@@ -17,7 +17,10 @@ our @EXPORT = qw/
   type_string_very_slow
   unlock_if_encrypted
   wait_boot
+  prepare_system_reboot
   get_netboot_mirror
+  zypper_call
+  fully_patch_system
   /;
 
 
@@ -51,6 +54,36 @@ sub wait_boot {
 
     if (get_var("OFW")) {
         assert_screen "bootloader-ofw", $bootloader_time;
+    }
+    # reconnect s390
+    elsif (check_var('ARCH', 's390x')) {
+        if (check_var('BACKEND', 's390x')) {
+
+            console('x3270')->expect_3270(
+                output_delim => qr/Welcome to SUSE Linux Enterprise Server/,
+                timeout      => 300
+            );
+
+            # give the system time to have routes up
+            # and start serial grab again
+            sleep 30;
+            reset_consoles;
+            select_console('iucvconn');
+        }
+        else {
+            wait_serial("Welcome to SUSE Linux Enterprise Server");
+        }
+
+        # on z/(K)VM we need to re-select a console
+        if ($textmode || check_var('DESKTOP', 'textmode')) {
+            select_console('root-console');
+            reset_consoles;
+        }
+        else {
+            select_console('x11');
+            reset_consoles;
+        }
+        return;
     }
     else {
         my @tags = ('grub2');
@@ -119,6 +152,13 @@ sub wait_boot {
 # screen would not be cleared
 sub clear_console {
     type_string "clear\n";
+}
+
+# in some backends we need to prepare the reboot/shutdown
+sub prepare_system_reboot {
+    if (check_var('BACKEND', 's390x')) {
+        console('iucvconn')->kill_ssh;
+    }
 }
 
 sub select_kernel {
@@ -220,6 +260,29 @@ sub get_netboot_mirror {
     return get_var('MIRROR_' . uc($m_protocol));
 }
 
+sub zypper_call {
+    my $command = shift;
+    my $timeout = shift || 700;
+    my $str     = bmwqemu::hashed_string("ZN$command");
+
+    script_run("zypper -n $command; echo $str-\$?- > /dev/$serialdev", 0);
+
+    my $ret = wait_serial(qr/$str-\d+-/, $timeout);
+    if ($ret) {
+        my ($ret_code) = $ret =~ /$str-(\d+)/;
+        return $ret_code;
+    }
+    die "zypper doesn't return exitcode";
+}
+
+sub fully_patch_system {
+    # first run, possible update of packager -- exit code 103
+    my $ret = zypper_call('patch --with-interactive -l');
+    die "zypper failed with code $ret" unless grep { $_ == $ret } (0, 102, 103);
+    # second run, full system update
+    $ret = zypper_call('patch --with-interactive -l', 2500);
+    die "zypper failed with code $ret" unless grep { $_ == $ret } (0, 102);
+}
 1;
 
 # vim: sw=4 et

@@ -11,6 +11,7 @@
 # i.e. if it takes more than one click to access the username text field
 
 use base "x11test";
+use strict;
 use testapi;
 
 sub ensure_multi_user_target {

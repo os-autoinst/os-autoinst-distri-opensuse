@@ -9,6 +9,7 @@
 # without any warranty.
 
 use base "firefox";
+use strict;
 use testapi;
 
 sub start_firefox() {

@@ -1,4 +1,4 @@
-# Copyright (C) 2015 SUSE Linux GmbH
+# Copyright (C) 2015-2016 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@ sub fill_in_registration_data {
     save_screenshot;
     send_key "alt-n", 1;
     unless (get_var('SCC_REGISTER', '') =~ /addon|network/) {
-        my @tags = qw/local-registration-servers registration-online-repos import-untrusted-gpg-key module-selection/;
+        my @tags = qw/local-registration-servers registration-online-repos import-untrusted-gpg-key module-selection contacting-registration-server/;
         push @tags, 'untrusted-ca-cert' if get_var('SCC_URL');
         while (check_screen(\@tags, 60)) {
             if (match_has_tag("local-registration-servers")) {
@@ -63,9 +63,14 @@ sub fill_in_registration_data {
                 @tags = grep { $_ ne 'registration-online-repos' } @tags;
                 next;
             }
+            elsif (match_has_tag('contacting-registration-server')) {
+                # sometimes SCC just takes its time - just continue looking after a while
+                sleep 5;
+                next;
+            }
             elsif (get_var('SCC_URL') && match_has_tag("untrusted-ca-cert")) {
                 record_soft_failure 'bsc#943966' if get_var('SCC_CERT');
-                send_key "alt-t", 1;        # trust
+                send_key "alt-t", 1;    # trust
                 @tags = grep { $_ ne 'untrusted-ca-cert' } @tags;
                 next;
             }
@@ -78,7 +83,7 @@ sub fill_in_registration_data {
             send_key $cmd{ok};
         }
         if (get_var('SCC_ADDONS')) {
-            for $addon (split(/,/, get_var('SCC_ADDONS', ''))) {
+            for my $addon (split(/,/, get_var('SCC_ADDONS', ''))) {
                 if (check_var('DESKTOP', 'textmode')) {
                     send_key_until_needlematch "scc-module-$addon", 'tab';
                     send_key "spc";
@@ -88,12 +93,16 @@ sub fill_in_registration_data {
                 }
             }
             send_key 'alt-n';    # next, all addons selected
-            for $addon (split(/,/, get_var('SCC_ADDONS', ''))) {
+            for my $addon (split(/,/, get_var('SCC_ADDONS', ''))) {
+                while (check_screen('scc-downloading-license', 5)) {
+                    # wait for SCC to give us the license
+                    sleep 5;
+                }
                 assert_screen("scc-addon-license-$addon");
                 send_key "alt-a", 1;    # accept license
                 send_key "alt-n", 1;    # next
             }
-            for $addon (split(/,/, get_var('SCC_ADDONS', ''))) {
+            for my $addon (split(/,/, get_var('SCC_ADDONS', ''))) {
                 $uc_addon = uc $addon;    # change to uppercase to match variable
                 if (my $regcode = get_var("SCC_REGCODE_$uc_addon")) {
                     next if ($addon =~ /sdk/);

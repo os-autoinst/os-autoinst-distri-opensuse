@@ -12,7 +12,9 @@
 package shutdown;
 # don't use x11test, the end of this is not a desktop
 use base "opensusebasetest";
+use strict;
 use testapi;
+use utils;
 
 # overloaded in sle11_shutdown
 sub trigger_shutdown_gnome_button() {
@@ -51,6 +53,9 @@ sub run() {
         if (get_var("SHUTDOWN_NEEDS_AUTH")) {
             assert_screen 'shutdown-auth', 15;
             type_password;
+
+            # we need to kill all open ssh connections before the system shuts down
+            prepare_system_reboot;
             send_key "ret";
         }
     }
@@ -78,11 +83,20 @@ sub run() {
         power('off');
     }
 
+    if (check_var('BACKEND', 's390x')) {
+        # make sure SUT shut down correctly
+        console('x3270')->expect_3270(
+            output_delim => qr/.*SIGP stop.*/,
+            timeout      => 30
+        );
+
+    }
+
     assert_shutdown;
 }
 
 sub test_flags() {
-    return {'norollback' => 1};
+    return {norollback => 1};
 }
 
 1;

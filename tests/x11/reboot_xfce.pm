@@ -9,6 +9,7 @@
 # without any warranty.
 
 use base "opensusebasetest";
+use strict;
 use testapi;
 use utils;
 

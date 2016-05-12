@@ -9,6 +9,7 @@
 # without any warranty.
 
 use base "opensusebasetest";
+use strict;
 use testapi;
 
 # Test the integration between SSSD and its various backends - file database, LDAP, and Kerberos.

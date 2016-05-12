@@ -9,6 +9,7 @@
 # without any warranty.
 
 use base "opensusebasetest";
+use strict;
 use testapi;
 use utils;
 
@@ -26,6 +27,11 @@ sub run() {
         assert_and_click 'reboot-auth-typed', 'right';    # Extra assert_and_click (with right click) to check the correct number of characters is typed and open up the 'show text' option
         assert_and_click 'reboot-auth-showtext';          # Click the 'Show Text' Option to enable the display of the typed text
         assert_screen 'reboot-auth-correct-password';     # Check the password is correct
+
+        # we need to kill ssh for iucvconn here,
+        # because after pressing return, the system is down
+        prepare_system_reboot;
+
         send_key "ret";
 
     }

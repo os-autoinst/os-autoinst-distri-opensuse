@@ -21,11 +21,13 @@ our @EXPORT = qw/capture_state system_login/;
 
 sub system_login {
     wait_boot(textmode => 1);
-    assert_screen "text-login", 50;
-    type_string "root\n";
-    assert_screen "password-prompt", 10;
-    type_password;
-    type_string "\n";
+    if (!check_var('ARCH', 's390x')) {
+        assert_screen "text-login", 50;
+        type_string "root\n";
+        assert_screen "password-prompt", 10;
+        type_password;
+        type_string "\n";
+    }
     sleep 2;
 
     $testapi::distri->set_standard_prompt;
@@ -38,12 +40,19 @@ sub capture_state {
         upload_logs "/tmp/y2logs_$state.tar.bz2";
         save_screenshot();
     }
+    #upload ip status
     script_run("ip a | tee /tmp/ip_a_$state.log");
     upload_logs("/tmp/ip_a_$state.log");
     save_screenshot();
     script_run("ip r | tee /tmp/ip_r_$state.log");
     upload_logs("/tmp/ip_r_$state.log");
     save_screenshot();
+    #upload dmesg
+    script_run("dmesg > /tmp/dmesg_$state.log");
+    upload_logs("/tmp/dmesg_$state.log");
+    #upload journal
+    script_run("journalctl -b > /tmp/journal_$state.log");
+    upload_logs("/tmp/journal_$state.log");
 }
 
 1;

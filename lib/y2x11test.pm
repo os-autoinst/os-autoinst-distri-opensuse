@@ -1,5 +1,6 @@
 package y2x11test;
 use base "opensusebasetest";
+use strict;
 
 # Base class for all openSUSE tests
 

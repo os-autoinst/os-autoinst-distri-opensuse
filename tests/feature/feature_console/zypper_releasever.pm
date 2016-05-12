@@ -11,6 +11,7 @@
 # Test case #1480297: zypper: more advanced $releasever handling
 
 use base "consoletest";
+use strict;
 use testapi;
 
 sub remove_repo {
@@ -27,7 +28,7 @@ sub run() {
     my $zypper_pk_block = qr/^Tell PackageKit to quit\?/m;
 
     # Add a test repo with $releasever var being used in its name
-    script_run "zypper ar -n '${dist}\${releasever_major}\${releasever_minor:+SP\$releasever_minor}' -d dir:/tmp $test_repo 2>&1 | tee /dev/$serialdev";
+    script_run "zypper ar -n '${dist}\${releasever_major}\${releasever_minor:+SP\$releasever_minor}' -d dir:/tmp $test_repo 2>&1 | tee /dev/$serialdev", 0;
 
     my $out = wait_serial [$zypper_ar_ok, $zypper_pk_block];
     if ($out =~ $zypper_pk_block) {
@@ -41,7 +42,7 @@ sub run() {
         $repo_alias =~ s/\./SP/;
         my $str = qr/^Name *: *${repo_alias} */m;
 
-        script_run "zypper --releasever=$ver lr $test_repo | tee /dev/$serialdev";
+        script_run "zypper --releasever=$ver lr $test_repo | tee /dev/$serialdev", 0;
         if (!wait_serial $str) {
             remove_repo $test_repo;
             die "zypper returns incorrect repo name";

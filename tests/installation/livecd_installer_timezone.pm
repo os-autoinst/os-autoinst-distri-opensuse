@@ -17,7 +17,7 @@ use testapi;
 # LiveCD installer excuses before then partition setup
 sub run() {
     assert_screen "inst-timezone", 125 || die 'no timezone';
-    send_key $cmd{"next"};
+    send_key $cmd{next};
 }
 
 1;

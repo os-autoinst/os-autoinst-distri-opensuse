@@ -10,6 +10,7 @@
 
 use base "consoletest";
 use testapi;
+use strict;
 
 # test for regression of bug http://bugzilla.suse.com/show_bug.cgi?id=952496
 sub run() {

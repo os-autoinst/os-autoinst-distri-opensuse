@@ -74,41 +74,45 @@ sub run {
             send_key 'a';        # activate
         }
 
-        if (check_screen 'dasd-format-device') {    # format device pop-up
-            send_key 'alt-o';                          # continue
-            while (check_screen 'process-format') {    # format progress
-                printf "formating ...\n";
+        # sometimes it happens, that the DASD is in a unstable state, so
+        # if the systems wants to format the DASD by itself, do it.
+        if (check_screen 'dasd-format-device', 10) {    # format device pop-up
+            send_key 'alt-o';                               # continue
+            while (check_screen 'process-dasd-format') {    # format progress
+                bmwqemu::diag("formatting DASD ...");
                 sleep 20;
             }
         }
-        ### Commented out below becuase of bsc#937340
-        #elsif (!get_var('UPGRADE') && !get_var('ZDUP')) {
-        #    send_key 'alt-s';   # select all
-        #    assert_screen 'dasd-selected';
-        #    send_key 'alt-a';   # perform action button
-        #    if (check_screen 'dasd-device-formatted'){
-        #        assert_screen 'action-list';
-        #        send_key 'f';
-        #        send_key 'f';   # Pressing f twice because of bsc#940817
-        #        send_key 'ret';
-        #        assert_screen 'confirm-format';
-        #        send_key 'alt-y';
-        #        while (check_screen 'process-format') {
-        #            printf "formating ...\n";
-        #            sleep 20;
-        #       }
-        #   }
-        #}
+
+        # format DASD if the variable is that, because we format it usually pre-installation
+        elsif (get_var('FORMAT_DASD_YAST')) {
+            send_key 'alt-s';                               # select all
+            assert_screen 'dasd-selected';
+            send_key 'alt-a';                               # perform action button
+            if (check_screen 'dasd-device-formatted') {
+                assert_screen 'action-list';
+                send_key 'f';
+                send_key 'f';                               # Pressing f twice because of bsc#940817
+                send_key 'ret';
+                assert_screen 'confirm-dasd-format';        # confirmation popup
+                send_key 'alt-y';
+                while (check_screen 'process-dasd-format') {
+                    bmwqemu::diag("formatting DASD ...");
+                    sleep 20;
+                }
+            }
+        }
         sleep 5;
         assert_screen 'dasd-active';
-        send_key 'alt-n';    # next
+        send_key 'alt-n';                                   # next
         sleep 5;
     }
     assert_screen 'disk-activation', 15;
-    send_key 'alt-n';        # next
+    send_key 'alt-n';                                       # next
     sleep 5;
 
-    if (check_screen('detected-multipath')) {
+    # check for multipath popup
+    if (check_screen('detected-multipath', 5)) {
         send_key 'alt-y';
         sleep 4;
         send_key 'alt-n';

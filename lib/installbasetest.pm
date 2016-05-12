@@ -1,5 +1,6 @@
 package installbasetest;
 use base "opensusebasetest";
+use strict;
 
 # All steps in the installation are 'fatal'.
 

@@ -34,7 +34,7 @@ our @can_randomize = qw/NOIMAGES REBOOTAFTERINSTALL DESKTOP VIDEOMODE/;
 
 sub is_jeos();
 
-sub logcurrentenv(@) {
+sub logcurrentenv {
     foreach my $k (@_) {
         my $e = get_var("$k");
         next unless defined $e;
@@ -66,13 +66,13 @@ sub check_env() {
     }
 }
 
-sub unregister_needle_tags($) {
+sub unregister_needle_tags {
     my $tag = shift;
     my @a   = @{needle::tags($tag)};
     for my $n (@a) { $n->unregister(); }
 }
 
-sub remove_desktop_needles($) {
+sub remove_desktop_needles {
     my $desktop = shift;
     if (!check_var("DESKTOP", $desktop)) {
         unregister_needle_tags("ENV-DESKTOP-$desktop");
@@ -280,7 +280,7 @@ sub system_is_livesystem() {
     return (check_var("FLAVOR", 'Rescue-CD') || get_var("LIVETEST"));
 }
 
-sub loadtest($) {
+sub loadtest {
     my ($test) = @_;
     unless ($test =~ m,^tests/,) {
         $test = "tests/$test";
@@ -554,6 +554,18 @@ sub load_consoletests() {
         }
         loadtest "console/consoletest_finish.pm";
     }
+    elsif (is_staging && get_var('UEFI')) {
+        # Stagings should test yast2-bootloader in miniuefi at least but not all
+        loadtest "console/consoletest_setup.pm";
+        loadtest "console/check_console_font.pm";
+        loadtest "console/textinfo.pm";
+        loadtest "console/hostname.pm";
+        if (!get_var("LIVETEST")) {
+            loadtest "console/yast2_bootloader.pm";
+        }
+        loadtest "console/consoletest_finish.pm";
+    }
+
 }
 
 sub load_yast2ui_tests() {
@@ -580,11 +592,15 @@ sub load_extra_tests () {
 
         # setup $serialdev permission and so on
         loadtest "console/consoletest_setup.pm";
+        loadtest "console/check_console_font.pm";
         loadtest "console/zypper_lr.pm";
         loadtest "console/zypper_ar.pm";
         loadtest "console/zypper_ref.pm";
         loadtest "console/update_alternatives.pm";
-
+        loadtest "console/yast2_proxy.pm";
+        loadtest "console/yast2_ntpclient.pm";
+        loadtest "console/yast2_tftp.pm";
+        loadtest "console/yast2_vnc.pm";
         # start extra console tests from here
         if (!get_var("OFW") && !is_jeos) {
             loadtest "console/aplay.pm";
@@ -596,6 +612,8 @@ sub load_extra_tests () {
             loadtest "sysauth/sssd.pm";
         }
         loadtest "console/command_not_found.pm";
+        loadtest "console/yast2_http.pm";
+        loadtest "console/yast2_ftp.pm";
 
         # finished console test and back to desktop
         loadtest "console/consoletest_finish.pm";

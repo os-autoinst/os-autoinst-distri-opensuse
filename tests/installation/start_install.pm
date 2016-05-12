@@ -37,7 +37,7 @@ sub run() {
                     assert_and_click 'package-conflict-choice';
                     send_key $cmd{ok}, 1;
                 }
-                send_key $cmd{"accept"}, 1;
+                send_key $cmd{accept}, 1;
 
                 while (check_screen('license-popup', 2)) {
                     send_key $cmd{accept}, 1;

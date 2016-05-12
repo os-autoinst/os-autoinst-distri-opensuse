@@ -8,6 +8,7 @@
 # without any warranty.
 
 use base "x11test";
+use strict;
 use testapi;
 use utils;
 
@@ -26,7 +27,7 @@ sub auto_login_alter {
     assert_screen "users-settings";
     assert_and_click "Unlock-user-settings";
     assert_screen "authentication-required-user-settings";
-    type_string "$password";
+    type_string $password;
     assert_and_click "authenticate";
     send_key "alt-u";
     send_key "alt-f4";
@@ -38,7 +39,7 @@ sub reboot_system {
     assert_screen 'logoutdialog', 15;
     assert_and_click 'logoutdialog-reboot-highlighted';
     if (check_screen("reboot-auth", 5)) {
-        type_string "$rootpwd", 1;
+        type_string $password, 1;
         assert_and_click "authenticate";
     }
     assert_screen "generic-desktop", 200;

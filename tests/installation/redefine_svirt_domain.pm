@@ -8,6 +8,7 @@
 # without any warranty.
 
 use base "installbasetest";
+use strict;
 use testapi;
 
 sub run() {

@@ -55,7 +55,9 @@ sub run() {
     send_key "ctrl-q";                          #close base
 
     # clean the test database file
-    x11_start_program("rm /home/$username/Documents/testdatabase.odb");
+    x11_start_program("xterm");
+    assert_script_run "find /home/$username -name testdatabase.odb | xargs rm";
+    send_key 'alt-f4';
 
     $self->open_mainmenu();
     assert_and_click 'mainmenu-office-calc';    #open calc
@@ -93,7 +95,9 @@ sub run() {
     send_key "ctrl-q";                             #close base
 
     # clean the test database file
-    x11_start_program("rm /home/$username/Documents/testdatabase.odb");
+    x11_start_program("xterm");
+    assert_script_run "find /home/$username -name testdatabase.odb | xargs rm";
+    send_key 'alt-f4';
 
     $self->open_overview();
     type_string "calc";                            #open calc
@@ -121,6 +125,7 @@ sub run() {
     assert_screen 'overview-office-writer';
     send_key "ret";
     assert_screen 'test-ooffice-1';
+    assert_and_click 'ooffice-writing-area', 'left', 10;
     send_key "ctrl-q";                             #close writer
 }
 

@@ -13,7 +13,7 @@ use warnings;
 use base "y2logsstep";
 use testapi;
 
-sub addraid($) {
+sub addraid {
     my ($step) = @_;
     send_key "spc";
     for (1 .. 3) {
@@ -31,9 +31,9 @@ sub addraid($) {
     }
 
     # add
-    send_key $cmd{"add"};
+    send_key $cmd{add};
     wait_idle 3;
-    send_key $cmd{"next"};
+    send_key $cmd{next};
     wait_idle 3;
 
     # chunk size selection
@@ -43,14 +43,14 @@ sub addraid($) {
         send_key "down";
     }
 
-    send_key $cmd{"next"};
+    send_key $cmd{next};
     assert_screen 'partition-role';
     send_key "alt-o";    # Operating System
-    send_key $cmd{"next"};
+    send_key $cmd{next};
     wait_idle 3;
 }
 
-sub setraidlevel($) {
+sub setraidlevel {
     my ($level) = @_;
 
     my %entry = (0 => 0, 1 => 1, 5 => 5, 6 => 6, 10 => 'i');
@@ -66,7 +66,7 @@ sub run() {
 
     assert_screen 'preparing-disk';
     send_key 'alt-c';
-    send_key $cmd{"next"};
+    send_key $cmd{next};
     assert_screen 'expert-partitioning';
     send_key 'down';
     send_key 'down';
@@ -173,12 +173,12 @@ sub run() {
         send_key "spc";
     }
     # add
-    send_key $cmd{"add"};
+    send_key $cmd{add};
     wait_idle 3;
-    send_key $cmd{"next"};
+    send_key $cmd{next};
     wait_idle 3;
 
-    send_key $cmd{"next"};
+    send_key $cmd{next};
     assert_screen 'add-partition-type';
     if (get_var("FILESYSTEM")) {
         send_key 'alt-s';    #goto filesystem list
@@ -221,12 +221,12 @@ sub run() {
         send_key "spc";
     }
     # add
-    send_key $cmd{"add"};
+    send_key $cmd{add};
     wait_idle 3;
-    send_key $cmd{"next"};
+    send_key $cmd{next};
     wait_idle 3;
 
-    send_key $cmd{"next"};
+    send_key $cmd{next};
     assert_screen 'add-partition-type';
     send_key 'alt-m';    #goto mount point
     type_string "/boot";
@@ -244,12 +244,12 @@ sub run() {
         send_key "spc";
     }
     # add
-    send_key $cmd{"add"};
+    send_key $cmd{add};
     wait_idle 3;
-    send_key $cmd{"next"};
+    send_key $cmd{next};
     wait_idle 3;
 
-    send_key $cmd{"next"};
+    send_key $cmd{next};
     assert_screen 'add-partition-type';
     send_key 'alt-s';    #goto filesystem list
     send_key ' ';        #open filesystem list
@@ -271,7 +271,7 @@ sub run() {
         }
     }
 
-    send_key $cmd{"accept"};
+    send_key $cmd{accept};
 
     # skip subvolumes shadowed warning
     if (check_screen 'subvolumes-shadowed', 5) {

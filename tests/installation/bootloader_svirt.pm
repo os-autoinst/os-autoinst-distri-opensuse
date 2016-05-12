@@ -30,6 +30,11 @@ sub run() {
     my $name  = $svirt->name;
     my $repo;
 
+    my $xenconsole = "xvc0";
+    if (check_var("VERSION", "12-SP2")) {
+        $xenconsole = "hvc0";    # on 12-SP2 we use pvops, thus /dev/hvc0
+    }
+
     if (!is_jeos) {
         my $cmdline = get_var('VIRSH_CMDLINE') . " ";
 
@@ -49,7 +54,7 @@ sub run() {
         $cmdline .= "sshpassword=$testapi::password ";
 
         if ($vmm_family eq 'xen' && $vmm_type eq 'linux') {
-            $cmdline .= "xenfb.video=4,1024,768 console=hvc0 ";
+            $cmdline .= "xenfb.video=4,1024,768 console=$xenconsole console=tty0 ";
         }
         else {
             $cmdline .= "console=ttyS0 ";
@@ -146,7 +151,7 @@ sub run() {
     # select_console does not select TTY in traditional sense, but
     # connects to a guest VNC session
     if (is_jeos) {
-        select_console('installation');
+        select_console('sut');
     }
     else {
         if (check_var("VIDEOMODE", "text")) {

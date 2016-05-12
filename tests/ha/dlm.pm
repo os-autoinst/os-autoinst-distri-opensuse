@@ -8,6 +8,7 @@
 # without any warranty.
 
 use base "hacluster";
+use strict;
 use testapi;
 use autotest;
 use lockapi;
@@ -15,6 +16,7 @@ use lockapi;
 sub run() {
     my $self = shift;
     $self->barrier_wait("DLM_INIT");
+    type_string "rpm -q dlm-kmp-default; echo dlm_kmp_default_installed=\$? > /dev/$serialdev\n";
     if ($self->is_node1) {    #node1
         type_string "echo wait until DLM resource is created\n";
     }

@@ -21,7 +21,7 @@ sub run() {
     send_key "alt-c";
 
     sleep 1;
-    send_key $cmd{'next'};
+    send_key $cmd{next};
 }
 
 1;

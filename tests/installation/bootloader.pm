@@ -16,6 +16,7 @@ use Time::HiRes qw(sleep);
 use testapi;
 use registration;
 use utils;
+use mm_network;
 
 # hint: press shift-f10 trice for highest debug level
 sub run() {
@@ -134,6 +135,13 @@ sub run() {
             # ZYPP... enables proxy caching
         }
 
+        my $remote = get_var("REMOTE_SLAVE");
+        if ($remote) {
+            my $dns = get_host_resolv_conf()->{nameserver};
+            type_string_slow " " . get_var("NETSETUP") if get_var("NETSETUP");
+            type_string_slow " nameserver=" . join(",", @$dns);
+            type_string_slow " $remote=1 ${remote}password=$password";
+        }
         #type_string "ZYPP_ARIA2C=0 "; sleep 9;
         #type_string "ZYPP_MULTICURL=0 "; sleep 2;
     }

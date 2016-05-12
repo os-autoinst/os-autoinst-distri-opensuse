@@ -7,35 +7,35 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-#package install_update;
 
 use base "basetest";
 
 use strict;
 
+use utils;
 use qam;
 use testapi;
-use utils;
 
 sub run {
 
     script_run("while pgrep packagekitd; do pkcon quit; sleep 1; done");
 
-    assert_script_run("zypper ref");
+    my $ret = zypper_call("ref");
+    die "zypper failed with code $ret" unless $ret == 0;
 
-    script_run("zypper pt");
+    $ret = zypper_call("pt");
+    die "zypper failed with code $ret" unless $ret == 0;
     save_screenshot;
 
-    script_run("zypper -n in -t pattern base x11 gnome-basic apparmor; echo 'installed-patterns-\$?' > /dev/$serialdev", 0);
+    $ret = zypper_call("in -t pattern base x11 gnome-basic apparmor", 2000);
+    die "zypper failed with code $ret" unless grep { $_ == $ret } (0, 102);
 
-    my $ret = wait_serial "installed-patterns-\?-", 1500;
-    $ret =~ /installed-patterns-(\d+)/;
-    die "zypper failed with code $1" unless $1 == 0 || $1 == 102;
 
     assert_script_run("systemctl set-default graphical.target");
     assert_script_run('sed -i -r "s/^DISPLAYMANAGER=\"\"/DISPLAYMANAGER=\"gdm\"/" /etc/sysconfig/displaymanager');
     assert_script_run('sed -i -r "s/^DISPLAYMANAGER_AUTOLOGIN/#DISPLAYMANAGER_AUTOLOGIN/" /etc/sysconfig/displaymanager');
 
+    prepare_system_reboot;
     type_string "reboot\n";
     wait_boot;
 }

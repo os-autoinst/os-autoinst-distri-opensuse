@@ -22,7 +22,7 @@ sub run() {
         sleep 1;
     }
     assert_screen "rootpassword-typed";
-    send_key $cmd{"next"};
+    send_key $cmd{next};
 
     # PW too easy (cracklib)
     if (check_screen('inst-userpasswdtoosimple', 13)) {

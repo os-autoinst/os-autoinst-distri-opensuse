@@ -10,6 +10,7 @@
 use base "x11test";
 use testapi;
 use utils;
+use strict;
 
 # Case 1503789 - LibreOffice: Default icon theme verification
 

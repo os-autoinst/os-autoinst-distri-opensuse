@@ -10,6 +10,7 @@
 use strict;
 use base "basetest";
 
+use utils;
 use qam;
 use testapi;
 
@@ -20,25 +21,21 @@ sub run {
 
     capture_state('between-after');
 
-    assert_script_run("zypper -n lr | grep test-minimal");
+    assert_script_run("zypper lr | grep test-minimal");
 
-    assert_script_run("zypper ref");
+    my $ret = zypper_call("ref");
+    die "zypper failed with code $ret" unless $ret == 0;
 
-    script_run("zypper -n patch --with-interactive -l; echo 'worked-patch-\$?' > /dev/$serialdev", 0);
-
-    my $ret = wait_serial "worked-patch-\?-", 700;
-    $ret =~ /worked-patch-(\d+)/;
-    die "zypper failed with code $1" unless $1 == 0 || $1 == 102 || $1 == 103;
-
-    script_run("zypper -n patch --with-interactive -l; echo 'worked-2-patch-\$?-' > /dev/$serialdev", 0);    # first one might only have installed "update-test-affects-package-manager"
-    $ret = wait_serial "worked-2-patch-\?-", 1500;
-    $ret =~ /worked-2-patch-(\d+)/;
-    die "zypper failed with code $1" unless $1 == 0 || $1 == 102;
-
+    fully_patch_system;
     capture_state('after', 1);
 
-    set_var('SYSTEM_IS_UPDATED', 1);
+    prepare_system_reboot;
     type_string "reboot\n";
+
+    reset_consoles;
+
+    # wait for the reboot
+    system_login;
 }
 
 sub test_flags {

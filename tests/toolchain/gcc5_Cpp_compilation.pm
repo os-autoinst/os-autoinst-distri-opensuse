@@ -24,14 +24,23 @@ sub run() {
     script_run 'mkdir llvm-3.6.2.src/tools/clang';
     script_run 'mv cfe-3.6.2.src/* llvm-3.6.2.src/tools/clang/';
     script_run 'cd llvm-3.6.2.src';
-    assert_script_run './configure --disable-bindings',      100;
-    assert_script_run 'make -j$(getconf _NPROCESSORS_ONLN)', 4000;
+    assert_script_run './configure --disable-bindings|tee /tmp/configure.log', 100;
+    assert_script_run 'make -j$(getconf _NPROCESSORS_ONLN)|tee /tmp/make.log', 4000;
     script_run 'cd tools/clang';
-    assert_script_run 'make test', 500;
+    assert_script_run 'make test|tee /tmp/make_test.log', 500;
 }
 
 sub test_flags() {
     return {important => 1};
+}
+
+sub post_fail_hook() {
+    my $self = shift;
+
+    $self->export_logs();
+    upload_logs '/tmp/configure.log';
+    upload_logs '/tmp/make.log';
+    upload_logs '/tmp/make_test.log';
 }
 
 1;
