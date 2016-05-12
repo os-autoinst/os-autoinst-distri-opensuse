@@ -56,7 +56,9 @@ sub run() {
     }
 
     if (check_var('ARCH', 's390x')) {                      # s390x always needs SSH
-        if (!check_screen('ssh-open', 5)) {
+
+        send_key_until_needlematch [qw/ssh-blocked ssh-open/], 'tab';
+        if (match_has_tag 'ssh-blocked') {
             if (check_var('VIDEOMODE', 'text')) {
                 send_key 'alt-c';
                 assert_screen 'inst-overview-options';
@@ -68,7 +70,7 @@ sub run() {
             else {
                 send_key_until_needlematch 'ssh-blocked-selected', 'tab';
                 send_key 'ret';
-                assert_screen 'ssh-open';
+                send_key_until_needlematch 'ssh-open', 'tab';
             }
         }
     }
