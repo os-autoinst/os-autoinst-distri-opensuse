@@ -554,6 +554,18 @@ sub load_consoletests() {
         }
         loadtest "console/consoletest_finish.pm";
     }
+    elsif (is_staging && get_var('UEFI')) {
+        # Stagings should test yast2-bootloader in miniuefi at least but not all
+        loadtest "console/consoletest_setup.pm";
+        loadtest "console/check_console_font.pm";
+        loadtest "console/textinfo.pm";
+        loadtest "console/hostname.pm";
+        if (!get_var("LIVETEST")) {
+            loadtest "console/yast2_bootloader.pm";
+        }
+        loadtest "console/consoletest_finish.pm";
+    }
+
 }
 
 sub load_yast2ui_tests() {
