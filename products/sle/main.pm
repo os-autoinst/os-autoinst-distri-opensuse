@@ -70,6 +70,26 @@ sub is_sles4sap () {
     return get_var('FLAVOR', '') =~ /SAP/;
 }
 
+sub version_at_least;
+
+sub version_at_least {
+    my ($version) = @_;
+
+    if ($version eq '12-SP1') {
+        return !check_var('VERSION', '12');
+    }
+
+    if ($version eq '12-SP2') {
+        return version_at_least('12-SP1') && !check_var('VERSION', '12-SP1');
+    }
+
+    if ($version eq '12-SP3') {
+        return version_at_least('12-SP2') && !check_var('VERSION', '12-SP2');
+    }
+
+    die "unsupport VERSION $version in check";
+}
+
 sub cleanup_needles() {
     remove_desktop_needles("lxde");
     remove_desktop_needles("kde");
@@ -100,6 +120,9 @@ sub cleanup_needles() {
     if (get_var('VERSION', '') ne '12-SP2') {
         unregister_needle_tags("ENV-VERSION-12-SP2");
     }
+
+    my $tounregister = version_at_least('12-SP2') ? '0' : '1';
+    unregister_needle_tags("ENV-SP2ORLATER-$tounregister");
 
     if (!is_server) {
         unregister_needle_tags("ENV-FLAVOR-Server-DVD");
@@ -453,7 +476,7 @@ sub load_inst_tests() {
         if (check_var('BACKEND', 's390x')) {
             loadtest "installation/disk_activation.pm";
         }
-        elsif (!check_var('VERSION', '12-SP2')) {
+        elsif (!version_at_least('12-SP2')) {
             loadtest "installation/skip_disk_activation.pm";
         }
     }
@@ -477,7 +500,7 @@ sub load_inst_tests() {
     }
     loadtest "installation/addon_products_sle.pm";
     if (noupdatestep_is_applicable) {
-        if (check_var('ARCH', 'x86_64') && !check_var('VERSION', '12') && !check_var('VERSION', '12-SP1')) {
+        if (check_var('ARCH', 'x86_64') && version_at_least('12-SP2') && is_server) {
             loadtest "installation/system_role.pm";
         }
         loadtest "installation/partitioning.pm";
