@@ -5,7 +5,7 @@ use strict;
 # Base class for all openSUSE tests
 
 # don't import script_run - it will overwrite script_run from distribution and create a recursion
-use testapi qw(send_key %cmd assert_screen check_screen check_var get_var match_has_tag set_var type_password type_string wait_idle wait_serial mouse_hide send_key_until_needlematch);
+use testapi qw(send_key %cmd assert_screen check_screen check_var get_var match_has_tag set_var type_password type_string wait_idle wait_serial mouse_hide send_key_until_needlematch record_soft_failure);
 
 sub init() {
     my ($self) = @_;
@@ -87,6 +87,7 @@ sub x11_start_program($$$) {
     mouse_hide(1);
     if (!check_screen("desktop-runner", $timeout)) {
         # if "desktop-runner" not found send alt-f2 three times with 10 seconds timeout
+        record_soft_failure 'bsc#978027';
         send_key_until_needlematch 'desktop-runner', 'alt-f2', 3, 10;
     }
     type_string $program;
