@@ -27,9 +27,11 @@ sub run() {
 
     # check Remote Administration VNC got started
     assert_screen 'yast2_vnc_remote_administration';
+    wait_still_screen;
 
     # enable remote administration
     send_key 'alt-a';
+    wait_still_screen;
 
     # open port in firewall if it is eanbaled and check network interfaces, check long text by send key right.
     if (check_screen 'yast2_vnc_open_port_firewall') {
@@ -44,6 +46,7 @@ sub run() {
 
     # finish configuration with OK
     send_key 'alt-o';
+    wait_still_screen;
 
     # confirm with OK for Warning dialogue
     assert_screen 'yast2_vnc_warning_text';
