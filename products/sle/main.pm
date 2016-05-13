@@ -996,6 +996,10 @@ sub load_online_migration_tests() {
     loadtest "online_migration/sle12_online_migration/post_migration.pm";
 }
 
+sub load_fips_tests_web() {
+    loadtest "console/curl_https.pm";
+}
+
 sub prepare_target() {
     if (get_var("BOOT_HDD_IMAGE")) {
         loadtest "boot/boot_to_desktop.pm";
@@ -1065,6 +1069,15 @@ elsif (get_var("SUPPORT_SERVER")) {
     loadtest "support_server/setup.pm";
     unless (load_slenkins_tests()) {
         loadtest "support_server/wait.pm";
+    }
+}
+elsif (get_var("FIPS_TS")) {
+    if (check_var("FIPS_TS", "setup")) {
+        prepare_target();
+    }
+    elsif (check_var("FIPS_TS", "web")) {
+        loadtest "boot/boot_to_desktop.pm";
+        load_fips_tests_web;
     }
 }
 elsif (get_var("HACLUSTER_SUPPORT_SERVER")) {
