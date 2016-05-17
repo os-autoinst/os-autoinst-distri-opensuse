@@ -12,22 +12,17 @@ use base "x11test";
 use strict;
 use testapi;
 
-# test gnome-terminal
-
-# this part contains the steps to run this test
 sub run() {
     my $self = shift;
     mouse_hide(1);
     x11_start_program("gnome-terminal");
-    sleep 10;
+    assert_screen "gnome-terminal";
     send_key "ctrl-shift-t";
+    assert_screen "gnome-terminal-second-tab";
     for (1 .. 13) { send_key "ret" }
     type_string "echo If you can see this text gnome-terminal is working.\n";
-    sleep 2;
-    assert_screen 'test-gnome_terminal-1', 3;
-    sleep 2;
+    assert_screen 'test-gnome_terminal-1';
     send_key "alt-f4";
-    sleep 2;
 }
 
 1;
