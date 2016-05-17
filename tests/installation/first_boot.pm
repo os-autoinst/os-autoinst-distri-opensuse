@@ -39,8 +39,12 @@ sub run() {
             assert_and_click "sddm-password-input";
         }
         else {
+            wait_still_screen;
             send_key "ret";
-            wait_idle;
+            if (!check_screen "displaymanager-password-prompt") {
+                record_soft_failure;
+                assert_screen "displaymanager-password-prompt";
+            }
         }
         type_string "$password";
         send_key "ret";
