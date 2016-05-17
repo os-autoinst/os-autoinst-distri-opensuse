@@ -43,11 +43,11 @@ sub run() {
         clear_console;
 
         type_string "ssh root\@$slave_ip\n";
-        assert_screen "ssh-login";
+        assert_screen "remote-ssh-login";
         type_string "yes\n";
         assert_screen 'password-prompt';
         type_string "$password\n";
-        assert_screen "ssh-login-ok";
+        assert_screen "remote-ssh-login-ok";
         type_string "yast.ssh\n";
     }
     else {
