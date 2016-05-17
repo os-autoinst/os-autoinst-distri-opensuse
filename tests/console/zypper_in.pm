@@ -23,8 +23,7 @@ sub run() {
     assert_script_run("zypper -n in screen $pkgname");
     clear_console;    # clear screen to see that second update does not do any more
     assert_script_run("rpm -e $pkgname");
-    script_run("rpm -q $pkgname", 0);
-    assert_screen "package-$pkgname-not-installed", 5;
+    assert_script_run("! rpm -q $pkgname");
 }
 
 1;

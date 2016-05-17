@@ -98,8 +98,7 @@ sub run() {
     clear_console;                           # clear screen to see that second update does not do any more
     assert_script_run("rpm -e $pkgname");    # erase $pkgname
     script_run("echo mark yast test", 0);    # avoid zpper needle
-    script_run("rpm -q $pkgname",     0);
-    assert_screen("yast-package-$pkgname-not-installed", 1);
+    assert_script_run("! rpm -q $pkgname");
 }
 
 1;
