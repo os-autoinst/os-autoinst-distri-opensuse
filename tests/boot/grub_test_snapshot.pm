@@ -15,8 +15,6 @@ use testapi;
 sub run() {
     my $self = shift;
 
-    assert_screen "inst-bootmenu";
-    send_key "ret";    # boot
     assert_screen "grub2";
     # prevent grub2 timeout; 'esc' would be cleaner, but grub2-efi falls to the menu then
     send_key 'up';
