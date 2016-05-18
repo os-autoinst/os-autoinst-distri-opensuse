@@ -44,4 +44,9 @@ sub test_flags {
     return {fatal => 1};
 }
 
+sub post_fail_hook {
+    assert_script_run "save_y2logs /tmp/y2logs-fail.tar.bz2";
+    upload_logs "/tmp/y2logs-fail.tar.bz2";
+}
+
 1;
