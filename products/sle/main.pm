@@ -51,7 +51,7 @@ sub remove_desktop_needles {
 }
 
 sub is_server() {
-    return get_var('FLAVOR', '') =~ /^Server/;
+    return is_sles4sap() || get_var('FLAVOR', '') =~ /^Server/;
 }
 
 sub is_desktop() {
