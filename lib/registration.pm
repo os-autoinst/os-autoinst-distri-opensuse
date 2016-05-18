@@ -26,14 +26,16 @@ our @EXPORT = qw/fill_in_registration_data registration_bootloader_params yast_s
 
 sub fill_in_registration_data {
     my ($addon, $uc_addon);
-    send_key "alt-m";        # select email field if yast2 add-on
-    send_key "alt-e";        # select email field if installation
-    send_key "backspace";    # delete m or e
-    type_string get_var("SCC_EMAIL");
-    send_key "alt-c";        # select registration code field
-    type_string get_var("SCC_REGCODE");
-    save_screenshot;
-    send_key "alt-n", 1;
+    if (!get_var("HDD_SCC_REGISTERED")) {
+        send_key "alt-m";        # select email field if yast2 add-on
+        send_key "alt-e";        # select email field if installation
+        send_key "backspace";    # delete m or e
+        type_string get_var("SCC_EMAIL");
+        send_key "alt-c";        # select registration code field
+        type_string get_var("SCC_REGCODE");
+        save_screenshot;
+        send_key "alt-n", 1;
+    }
     unless (get_var('SCC_REGISTER', '') =~ /addon|network/) {
         my @tags = qw/local-registration-servers registration-online-repos import-untrusted-gpg-key module-selection contacting-registration-server/;
         push @tags, 'untrusted-ca-cert' if get_var('SCC_URL');
