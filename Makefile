@@ -9,7 +9,7 @@ help:
 prepare:
 	git clone git://github.com/os-autoinst/os-autoinst
 	ln -s os-autoinst/tools .
-	ln -s os-autoinst/cpanfile .
+	cd os-autoinst && cpanm -nq --installdeps .
 	cpanm -nq --installdeps .
 
 .PHONY: check-links
