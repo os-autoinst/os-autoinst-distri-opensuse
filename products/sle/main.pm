@@ -973,6 +973,19 @@ sub load_feature_tests() {
     loadtest "feature/feature_console/suseconnect.pm";
 }
 
+sub load_online_migration_tests() {
+    # stop packagekit service and more
+    loadtest "online_migration/sle12_online_migration/online_migration_setup.pm";
+    loadtest "online_migration/sle12_online_migration/register_system.pm";
+    # do full update before migration
+    # otherwise yast2/zypper migration will patch a minimal update
+    loadtest "online_migration/sle12_online_migration/zypper_patch.pm" if (get_var("FULL_UPDATE"));
+    loadtest "online_migration/sle12_online_migration/pre_migration.pm";
+    loadtest "online_migration/sle12_online_migration/yast2_migration.pm"  if (check_var("MIGRATION_METHOD", 'yast'));
+    loadtest "online_migration/sle12_online_migration/zypper_migration.pm" if (check_var("MIGRATION_METHOD", 'zypper'));
+    loadtest "online_migration/sle12_online_migration/post_migration.pm";
+}
+
 sub prepare_target() {
     if (get_var("BOOT_HDD_IMAGE")) {
         loadtest "boot/boot_to_desktop.pm";
@@ -1104,15 +1117,24 @@ else {
         load_boot_tests();
         load_zdup_tests();
     }
+    elsif (get_var("ONLINE_MIGRATION")) {
+        load_boot_tests();
+        load_online_migration_tests();
+    }
     elsif (get_var("BOOT_HDD_IMAGE")) {
         if (get_var("RT_TESTS")) {
             set_var('INSTALLONLY', 1);
             loadtest "rt/boot_rt_kernel.pm";
         }
         else {
-            if (get_var("BOOT_TO_SNAPSHOT") && (snapper_is_applicable) && get_var("UPGRADE")) {
+            if (get_var("BOOT_TO_SNAPSHOT") && (snapper_is_applicable)) {
                 loadtest "boot/grub_test_snapshot.pm";
-                loadtest "boot/snapper_rollback.pm";
+                if (get_var("UPGRADE")) {
+                    loadtest "boot/snapper_rollback.pm";
+                }
+                if (get_var("MIGRATION_ROLLBACK")) {
+                    loadtest "online_migration/sle12_online_migration/snapper_rollback.pm";
+                }
             }
             else {
                 loadtest "boot/boot_to_desktop.pm";

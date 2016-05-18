@@ -40,7 +40,7 @@ sub run() {
     }
 
     assert_screen 'inst-bootmenu', 15;
-    if (get_var('ZDUP')) {
+    if (get_var('ZDUP') || get_var("ONLINE_MIGRATION")) {
         send_key 'ret';               # boot from hard disk
         return;
     }
