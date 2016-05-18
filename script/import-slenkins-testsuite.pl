@@ -105,13 +105,13 @@ sub gen_testsuites {
         push @suites,
           {
             name     => "slenkins-${project_name}-${node}",
-            settings => [eval $template_node, {key => "SLENKINS_NODE", value => "$node"}, {key => "SLENKINS_INSTALL", value => join(',', @{$nodes->{$node}{install}})}, {key => "NETWORKS", value => join(',', @node_net)},],
+            settings => [eval $template_node, {key => "SLENKINS_NODE", value => "$node"}, {key => "SLENKINS_INSTALL", value => join(',', sort @{$nodes->{$node}{install}})}, {key => "NETWORKS", value => join(',', @node_net)},],
           };
     }
 
     my $control = {
         name     => "slenkins-${project_name}-control",
-        settings => [eval $template_control, {key => "SLENKINS_NODE", value => "control"}, {key => "SLENKINS_CONTROL", value => $control_pkg}, {key => "PARALLEL_WITH", value => join(',', map { "slenkins-${project_name}-" . $_ } keys %$nodes)},],
+        settings => [eval $template_control, {key => "SLENKINS_NODE", value => "control"}, {key => "SLENKINS_CONTROL", value => $control_pkg}, {key => "PARALLEL_WITH", value => join(',', sort map { "slenkins-${project_name}-" . $_ } keys %$nodes)},],
     };
 
     my @control_net = keys %$networks;
