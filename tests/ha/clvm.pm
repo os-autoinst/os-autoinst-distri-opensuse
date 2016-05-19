@@ -25,19 +25,24 @@ sub run() {
     assert_script_run q(sed -ie '/^ *filter/d' /etc/lvm/lvm.conf);                           #by default /dev/disk/by-path/ is filtered in lvm.conf
     assert_script_run q(sed -ie 's/^\\( *use_lvmetad *=\\) *1/\1 0/' /etc/lvm/lvm.conf);     #set use_lvmetad = 0, lvmetad doesn't support cLVM
     assert_script_run q(sed -ie 's/^\\( *locking_type *=\\) *1/\1 3/' /etc/lvm/lvm.conf);    #use locking_type=3 for cLVM
-    if ($self->is_node1) {                                                                   #node1
+    if ($self->is_node1) {
         type_string "echo wait until clvmd resource is created\n";
     }
     else {
-        assert_script_run q(EDITOR="sed -ie '$ a primitive clvmd ocf:lvm2:clvmd op monitor interval=60 timeout=60'" crm configure edit);    #create clvmd primitive
-        assert_script_run q(EDITOR="sed -ie 's/^\\(group base-group.*\\)/\1 clvmd/'" crm configure edit);                                   #add clvmd to base-group
-        sleep 10;                                                                                                                           #wait to get clvmd running on all nodes
+        if (get_var("SP2ORLATER")) {
+            assert_script_run q(EDITOR="sed -ie '$ a primitive clvmd ocf:heartbeat:clvm op monitor interval=60 timeout=60'" crm configure edit);    #sp2 recommends to use ocf:heartbeat:clvm RA
+        }
+        else {
+            assert_script_run q(EDITOR="sed -ie '$ a primitive clvmd ocf:lvm2:clvmd op monitor interval=60 timeout=60'" crm configure edit);        #create clvmd primitive
+        }
+        assert_script_run q(EDITOR="sed -ie 's/^\\(group base-group.*\\)/\1 clvmd/'" crm configure edit);                                           #add clvmd to base-group
+        sleep 10;                                                                                                                                   #wait to get clvmd running on all nodes
     }
     $self->barrier_wait("CLVM_RESOURCE_CREATED");
 
     type_string "ps -A | grep -q clvmd; echo clvmd_running=\$? > /dev/$serialdev\n";
     die "clvm daemon is not running" unless wait_serial "clvmd_running=0", 60;
-    if ($self->is_node1) {                                                                                                                  #node1
+    if ($self->is_node1) {
         type_string "echo wait until PV-VG-LV is created\n";
     }
     else {
@@ -48,7 +53,7 @@ sub run() {
     }
     $self->barrier_wait("CLVM_PV_VG_LV_CREATED");
 
-    if ($self->is_node1) {                                                                                                                  #node1
+    if ($self->is_node1) {
         type_string "echo wait until LVM resource is created\n";
     }
     else {
