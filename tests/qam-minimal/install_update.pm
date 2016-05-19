@@ -17,8 +17,7 @@ use qam;
 use testapi;
 
 sub run {
-    prepare_system_reboot;
-    system_login;
+    select_console 'root-console';
 
     script_run("while pgrep packagekitd; do pkcon quit; sleep 1; done");
 
@@ -36,8 +35,10 @@ sub run {
     zypper_call(qq{in -l -y -t patch \$(zypper patches | awk -F "|" '/test-minimal/ { print \$2;}')}, [0, 102, 103]);
 
     capture_state('between', 1);
+
     prepare_system_reboot;
     type_string "reboot\n";
+    wait_boot;
 }
 
 sub test_flags {

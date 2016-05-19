@@ -15,7 +15,7 @@ use qam;
 use testapi;
 
 sub run {
-    system_login;
+    select_console 'root-console';
 
     script_run("while pgrep packagekitd; do pkcon quit; sleep 1; done");
 
@@ -30,11 +30,7 @@ sub run {
 
     prepare_system_reboot;
     type_string "reboot\n";
-
-    reset_consoles;
-
-    # wait for the reboot
-    system_login;
+    wait_boot;
 }
 
 sub test_flags {

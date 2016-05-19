@@ -17,6 +17,7 @@ use qam;
 use testapi;
 
 sub run {
+    select_console 'root-console';
 
     script_run("while pgrep packagekitd; do pkcon quit; sleep 1; done");
 
@@ -30,6 +31,9 @@ sub run {
     assert_script_run("systemctl set-default graphical.target");
     assert_script_run('sed -i -r "s/^DISPLAYMANAGER=\"\"/DISPLAYMANAGER=\"gdm\"/" /etc/sysconfig/displaymanager');
     assert_script_run('sed -i -r "s/^DISPLAYMANAGER_AUTOLOGIN/#DISPLAYMANAGER_AUTOLOGIN/" /etc/sysconfig/displaymanager');
+
+    # now we have gnome installed - restore DESKTOP variable
+    set_var('DESKTOP', get_var('FULL_DESKTOP'));
 
     prepare_system_reboot;
     type_string "reboot\n";
