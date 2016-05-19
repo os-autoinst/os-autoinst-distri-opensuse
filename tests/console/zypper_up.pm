@@ -27,8 +27,7 @@ sub run() {
     # XXX: does this below make any sense? what if updates got
     # published meanwhile?
     clear_console;    # clear screen to see that second update does not do any more
-    my $ret = zypper_call("-q patch");
-    die "zypper failed with code $ret" unless $ret == 0;
+    zypper_call("-q patch");
 }
 
 sub test_flags() {

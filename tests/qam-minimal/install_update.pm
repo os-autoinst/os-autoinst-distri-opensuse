@@ -29,14 +29,11 @@ sub run {
     capture_state('before');
 
     my $repo = get_var('MINIMAL_TEST_REPO');
-    my $ret  = zypper_call("ar -f $repo test-minimal");
-    die "zypper failed with code $ret" unless $ret == 0;
+    zypper_call("ar -f $repo test-minimal");
 
-    $ret = zypper_call("ref");
-    die "zypper failed with code $ret" unless $ret == 0;
+    zypper_call("ref");
 
-    $ret = zypper_call(qq{in -l -y -t patch \$(zypper patches | awk -F "|" '/test-minimal/ { print \$2;}')});
-    die "zypper failed with code $ret" unless grep { $_ == $ret } (0, 102, 103);
+    zypper_call(qq{in -l -y -t patch \$(zypper patches | awk -F "|" '/test-minimal/ { print \$2;}')}, [0, 102, 103]);
 
     capture_state('between', 1);
     prepare_system_reboot;
