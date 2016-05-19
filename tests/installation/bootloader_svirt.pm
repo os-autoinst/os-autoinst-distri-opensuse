@@ -14,6 +14,8 @@ use testapi;
 use strict;
 use warnings;
 
+use File::Basename;
+
 sub is_jeos() {
     return get_var('FLAVOR', '') =~ /^JeOS/;
 }
@@ -22,16 +24,17 @@ sub run() {
 
     my $self = shift;
 
-    my $arch       = get_var('ARCH',             'x86_64');
-    my $vmm_family = get_var('VIRSH_VMM_FAMILY', 'kvm');
-    my $vmm_type   = get_var('VIRSH_VMM_TYPE',   'hvm');
+    my $arch             = get_var('ARCH',             'x86_64');
+    my $vmm_family       = get_var('VIRSH_VMM_FAMILY', 'kvm');
+    my $vmm_type         = get_var('VIRSH_VMM_TYPE',   'hvm');
+    my $vmware_datastore = get_var('VMWARE_DATASTORE', '');
 
     my $svirt = select_console('svirt');
     my $name  = $svirt->name;
     my $repo;
 
     my $xenconsole = "xvc0";
-    if (check_var("VERSION", "12-SP2")) {
+    if (get_var('VERSION', '') =~ /12-SP2/) {
         $xenconsole = "hvc0";    # on 12-SP2 we use pvops, thus /dev/hvc0
     }
 
@@ -76,7 +79,10 @@ sub run() {
     # TODO: JeOS defaults to 24 GB (or 30 on HyperV)
     my $size_i = get_var('HDDSIZEGB', '24');
 
-    my $file = get_var('HDD_1');
+    my $file = basename(get_var('HDD_1'));
+    if ($vmm_family eq 'vmware') {
+        $file = "[$vmware_datastore] openQA/" . $file;
+    }
     # in JeOS we have the disk, we just need to deploy it
     if (is_jeos) {
         $svirt->add_disk({size => $size_i . 'G', file => $file});
@@ -85,16 +91,30 @@ sub run() {
         $svirt->add_disk({size => $size_i . 'G', file => $file, create => 1});
     }
 
-    my $pty_type;
+    my $console_target_type;
     if ($vmm_family eq 'xen' && $vmm_type eq 'linux') {
-        $pty_type = 'xen';
+        $console_target_type = 'xen';
     }
     else {
-        $pty_type = 'serial';
+        $console_target_type = 'serial';
     }
-    $svirt->add_pty({pty_dev => 'console', type => $pty_type, port => '0'});
+    # esx driver in libvirt does not support `virsh console' command
+    my $pty_dev_type;
+    if ($vmm_family eq 'vmware') {
+        $pty_dev_type = 'tcp';
+    }
+    else {
+        $pty_dev_type = 'pty';
+    }
+    my $protocol_type;
+    my $source = 0;
+    if ($vmm_family eq 'vmware') {
+        $protocol_type = 'raw';
+        $source        = 1;
+    }
+    $svirt->add_pty({pty_dev => 'console', pty_dev_type => $pty_dev_type, target_type => $console_target_type, target_port => '0', protocol_type => $protocol_type, source => $source});
     if (!($vmm_family eq 'xen' && $vmm_type eq 'linux')) {
-        $svirt->add_pty({pty_dev => 'serial', type => 'isa-serial', port => '0'});
+        $svirt->add_pty({pty_dev => 'serial', pty_dev_type => $pty_dev_type, target_port => '0', protocol_type => $protocol_type, source => $source});
     }
 
     $svirt->add_vnc({port => '5901'});
@@ -111,6 +131,9 @@ sub run() {
         elsif ($vmm_type eq 'linux') {
             $svirt->add_interface({type => 'network', source => {network => 'default'}});
         }
+    }
+    elsif ($vmm_family eq 'vmware') {
+        $svirt->add_interface({type => 'bridge', source => {bridge => 'VM Network'}, model => {type => 'e1000'}});
     }
 
     if (!is_jeos) {
@@ -133,6 +156,7 @@ sub run() {
     }
 
     $svirt->define_and_start;
+
 
     # This sets kernel argument so needle-matching works on Xen PV. It's being
     # done via host's PTY device because we don't see anything unless kernel
