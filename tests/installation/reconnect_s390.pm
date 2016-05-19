@@ -36,7 +36,7 @@ sub run() {
         select_console('iucvconn');
     }
     else {
-        wait_serial("Welcome to SUSE Linux Enterprise Server");
+        wait_serial("Welcome to SUSE Linux Enterprise Server") || die "System couldn't boot";
     }
 
     if (!check_var('DESKTOP', 'textmode')) {
