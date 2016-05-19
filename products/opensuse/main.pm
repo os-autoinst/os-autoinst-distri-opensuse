@@ -601,6 +601,7 @@ sub load_extra_tests () {
         loadtest "console/yast2_ntpclient.pm";
         loadtest "console/yast2_tftp.pm";
         loadtest "console/yast2_vnc.pm";
+        loadtest "console/yast2_samba.pm";
         # start extra console tests from here
         if (!get_var("OFW") && !is_jeos) {
             loadtest "console/aplay.pm";
