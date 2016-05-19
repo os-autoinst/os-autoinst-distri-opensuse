@@ -23,8 +23,7 @@ sub run {
 
     assert_script_run("zypper lr | grep test-minimal");
 
-    my $ret = zypper_call("ref");
-    die "zypper failed with code $ret" unless $ret == 0;
+    zypper_call("ref");
 
     fully_patch_system;
     capture_state('after', 1);

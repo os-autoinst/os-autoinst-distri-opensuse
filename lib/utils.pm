@@ -261,15 +261,17 @@ sub get_netboot_mirror {
 }
 
 sub zypper_call {
-    my $command = shift;
-    my $timeout = shift || 700;
-    my $str     = bmwqemu::hashed_string("ZN$command");
+    my $command          = shift;
+    my $allow_exit_codes = shift || [0];
+    my $timeout          = shift || 700;
+    my $str              = bmwqemu::hashed_string("ZN$command");
 
     script_run("zypper -n $command; echo $str-\$?- > /dev/$serialdev", 0);
 
     my $ret = wait_serial(qr/$str-\d+-/, $timeout);
     if ($ret) {
         my ($ret_code) = $ret =~ /$str-(\d+)/;
+        die "'zypper -n $command' failed with code $ret_code" unless grep { $_ == $ret_code } @$allow_exit_codes;
         return $ret_code;
     }
     die "zypper doesn't return exitcode";
@@ -277,11 +279,9 @@ sub zypper_call {
 
 sub fully_patch_system {
     # first run, possible update of packager -- exit code 103
-    my $ret = zypper_call('patch --with-interactive -l');
-    die "zypper failed with code $ret" unless grep { $_ == $ret } (0, 102, 103);
+    zypper_call('patch --with-interactive -l', [0, 102, 103]);
     # second run, full system update
-    $ret = zypper_call('patch --with-interactive -l', 2500);
-    die "zypper failed with code $ret" unless grep { $_ == $ret } (0, 102);
+    zypper_call('patch --with-interactive -l', [0, 102], 2500);
 }
 1;
 

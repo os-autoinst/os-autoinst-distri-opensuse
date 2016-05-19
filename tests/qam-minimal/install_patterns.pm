@@ -20,16 +20,12 @@ sub run {
 
     script_run("while pgrep packagekitd; do pkcon quit; sleep 1; done");
 
-    my $ret = zypper_call("ref");
-    die "zypper failed with code $ret" unless $ret == 0;
+    zypper_call("ref");
 
-    $ret = zypper_call("pt");
-    die "zypper failed with code $ret" unless $ret == 0;
+    zypper_call("pt");
     save_screenshot;
 
-    $ret = zypper_call("in -t pattern base x11 gnome-basic apparmor", 2000);
-    die "zypper failed with code $ret" unless grep { $_ == $ret } (0, 102);
-
+    zypper_call("in -t pattern base x11 gnome-basic apparmor", [0, 102], 2000);
 
     assert_script_run("systemctl set-default graphical.target");
     assert_script_run('sed -i -r "s/^DISPLAYMANAGER=\"\"/DISPLAYMANAGER=\"gdm\"/" /etc/sysconfig/displaymanager');
