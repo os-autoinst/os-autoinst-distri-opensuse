@@ -174,7 +174,7 @@ sub format_dasd() {
     type_string("dasdfmt -b 4096 -p /dev/dasda; echo dasdfmt-status-$?- > /dev/$serialdev\n");
     sleep 2;
     type_string("yes\n");
-    wait_serial("dasdfmt-status-0-", 900);
+    wait_serial("dasdfmt-status-0-", 900) || die "dasdfmt could not finish";
 }
 
 sub run() {
