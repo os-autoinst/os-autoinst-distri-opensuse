@@ -41,6 +41,8 @@ sub test_flags {
 }
 
 sub post_fail_hook {
+    select_console('root-console');
+
     assert_script_run "save_y2logs /tmp/y2logs-fail.tar.bz2";
     upload_logs "/tmp/y2logs-fail.tar.bz2";
 }
