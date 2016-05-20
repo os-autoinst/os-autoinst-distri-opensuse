@@ -22,7 +22,8 @@ sub get_guest_pattern() {
     my $guest_pattern = get_var("GUEST_PATTERN", "");
     if ( $guest_pattern eq "") {
         #$guest_pattern = "sles-11-sp[34]|sles-12";
-        $guest_pattern = "sles-12-sp1";
+        #$guest_pattern = "sles-12-sp2-64-[fp]v-def-net";
+        $guest_pattern = "sles-11-sp3-64-pv-def-net";
     }
     return $guest_pattern
 }
@@ -44,7 +45,7 @@ sub run() {
 	my $pre_test_cmd = $self->get_scrip_run();
 
 	# Execute script run
-	my $ret = $self->execute_script_run($pre_test_cmd, 3600);
+	my $ret = $self->execute_script_run($pre_test_cmd, 7600);
 
 	# Parse test result and generate junit file
 	my $tc_result = $self->analyzeResult($ret);

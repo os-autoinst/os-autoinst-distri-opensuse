@@ -141,7 +141,8 @@ sub get_scrip_run() {
 	my $prd_version = script_output("cat /etc/issue");
 	my $pre_test_cmd;
 	if ($prd_version =~ m/SUSE Linux Enterprise Server 12/) {
-		$pre_test_cmd = "/usr/share/qa/tools/test_virtualization-virt_install_withopt-run";        } else {
+		$pre_test_cmd = "/usr/share/qa/tools/test_virtualization-virt_install_withopt-run";
+	} else {
                 $pre_test_cmd = "/usr/share/qa/tools/test_virtualization-standalone-run";
         }
 

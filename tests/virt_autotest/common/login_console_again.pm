@@ -13,7 +13,7 @@
 use strict;
 use warnings;
 use File::Basename;
-use base "opensusebasetest";
+use base "installbasetest";
 use testapi;
 
 sub run() { 
@@ -30,8 +30,13 @@ sub run() {
     	}
 	
 	assert_screen(["generic-destop", "generic-destop-virt"], 100);
-	select_console('root-console');
-	
+	#select_console('root-console');
+	send_key("ctrl-alt-f2");
+	assert_screen('tty2-selected', 60);
+	assert_screen('text-login', 30);
+	type_string("root\n");
+	assert_screen('password-prompt', 30);
+	type_string("nots3cr3t\n");
 	sleep 3;
 }
 

@@ -48,9 +48,10 @@ sub update_package() {
 sub generate_grub() {
 
 
-	assert_script_run("cp /etc/default/grub /etc/default/grub.bak");
+	assert_script_run("cp /etc/default/grub /etc/default/grub.BAK");
+	#assert_script_run("cp /etc/default/grub.1 /etc/default/grub");
 
-	assert_script_run("if grep -v \"GRUB_CMDLINE_.*_DEFAULT=.* console=ttyS1,115200\" grub.bak >> /dev/null;then sed 's/\(GRUB_CMDLINE_.*_DEFAULT=.*\)\"/\1 console=ttyS1,115200\"/' grub.bak ; fi");
+	assert_script_run("if grep \"GRUB_CMDLINE_.*_DEFAULT=.* console=ttyS1,115200.*console=tty\" /etc/default/grub >> /dev/null;then :;else sed -ri 's/\(GRUB_CMDLINE_.*_DEFAULT=.*\)\"/\\1 console=ttyS1,115200 console=tty\"/' /etc/default/grub ; fi");
 
 	my $gen_grub_cmd = "grub2-mkconfig -o /boot/grub2/grub.cfg";
 
@@ -64,6 +65,8 @@ sub run() {
 	update_package();
 
 	generate_grub();
+	
+	type_string "reboot\n";
 }
 
 
