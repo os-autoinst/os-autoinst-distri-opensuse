@@ -51,7 +51,7 @@ sub remove_desktop_needles {
 }
 
 sub is_server() {
-    return get_var('FLAVOR', '') =~ /^Server/;
+    return is_sles4sap() || get_var('FLAVOR', '') =~ /^Server/;
 }
 
 sub is_desktop() {
@@ -68,6 +68,10 @@ sub is_staging () {
 
 sub is_sles4sap () {
     return get_var('FLAVOR', '') =~ /SAP/;
+}
+
+sub is_sles4sap_standard () {
+    return is_sles4sap && check_var('SLES4SAP_MODE', 'sles');
 }
 
 sub is_smt () {
@@ -508,7 +512,7 @@ sub load_inst_tests() {
     }
     loadtest "installation/addon_products_sle.pm";
     if (noupdatestep_is_applicable) {
-        if (check_var('ARCH', 'x86_64') && version_at_least('12-SP2') && is_server) {
+        if (check_var('ARCH', 'x86_64') && version_at_least('12-SP2') && is_server && (!is_sles4sap || is_sles4sap_standard)) {
             loadtest "installation/system_role.pm";
         }
         loadtest "installation/partitioning.pm";
