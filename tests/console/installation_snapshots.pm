@@ -23,11 +23,29 @@ sub run() {
     select_console 'root-console';
 
     script_run("snapper list | tee /dev/$serialdev", 0);
-    # Check if the snapshot called 'after installation' is there
-    my $pattern = 'single\s*(\|[^|]*){4}\s*\|\s*number\s*\|\s*after installation\s*\|\s*important=yes';
-    $pattern = 'single\s*(\|[^|]*){4}\s*\|\s*number\s*\|\s*Factory status\s*\|\s*important=yes' if is_jeos;
-    $pattern = 'pre\s*(\|[^|]*){4}\s*\|\s*number\s*\|\s*before update\s*\|\s*important=yes'     if get_var('AUTOUPGRADE');
-    wait_serial($pattern, 5) || die 'installation snapshot test failed';
+    # Check if the corresponding snapshot is there
+    my ($snapshot_name, $snapshot_type);
+
+    if (is_jeos) {
+        $snapshot_name = 'Factory status';
+        $snapshot_type = 'single';
+    }
+    elsif (get_var('AUTOUPGRADE')) {
+        $snapshot_name = 'before update';
+        $snapshot_type = 'pre';
+    }
+    elsif (get_var('ONLINE_MIGRATION')) {
+        $snapshot_name = 'before online migration';
+        $snapshot_type = 'pre';
+    }
+    else {
+        $snapshot_name = 'after installation';
+        $snapshot_type = 'single';
+    }
+
+    my $pattern = $snapshot_type . '\s*(\|[^|]*){4}\s*\|\s*number\s*\|\s*' . $snapshot_name . '\s*\|\s*important=yes';
+
+    wait_serial($pattern, 5) || die "$snapshot_name snapshot test failed";
 }
 
 sub test_flags() {
