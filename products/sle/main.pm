@@ -45,7 +45,7 @@ sub unregister_needle_tags {
 
 sub remove_desktop_needles {
     my $desktop = shift;
-    if (!check_var("DESKTOP", $desktop)) {
+    if (!check_var("DESKTOP", $desktop) && !check_var("FULL_DESKTOP", $desktop)) {
         unregister_needle_tags("ENV-DESKTOP-$desktop");
     }
 }
