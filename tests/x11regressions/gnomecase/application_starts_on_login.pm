@@ -17,7 +17,7 @@ sub tweak_startupapp_menu {
     send_key "super";
     wait_still_screen;
     type_string "settings", 1;    #Use '1' to give gnome-shell enough time to search settings module; Otherwise slow worker will cause failed result.
-    send_key "ret";
+    assert_and_click "settings";
     assert_screen "gnome-settings";
     type_string "tweak";
     assert_screen "settings-tweak-selected";
@@ -30,6 +30,7 @@ sub logout_and_login {
     assert_and_click "system-indicator";
     assert_and_click "user-logout-sector";
     assert_and_click "logout-system";
+    wait_still_screen;
     send_key "ret";
     assert_screen "displaymanager";
     send_key "ret";
@@ -40,12 +41,16 @@ sub logout_and_login {
 
 sub alter_status_auto_save_session {
     send_key "super";
+    wait_still_screen;
     type_string "settings", 1;    #Use '1' to give gnome-shell enough time to search settings module; Otherwise slow worker will cause failed result.
-    send_key "ret";
+    assert_and_click "settings";
     assert_screen "gnome-settings";
     type_string "dconf";
     assert_screen "settings-dconf";
     send_key "ret";
+    if (check_screen("dconf-caution")) {
+        assert_and_click "will-be-careful";
+    }
     send_key_until_needlematch "dconf-org", "down";
     assert_and_click "unfold";
     send_key_until_needlematch "dconf-org-gnome", "down";
@@ -54,6 +59,31 @@ sub alter_status_auto_save_session {
     assert_and_click "scroll-down";    #this step aim to work around screen not scroll down automate issue
     send_key_until_needlematch "gnome-session", "down";
     assert_and_click "auto-save-session";
+    if (check_screen("changing-scheme-popup")) {
+        assert_and_click "auto-save-session-alter-use-default";
+        assert_and_click "auto-save-session-true";
+        assert_and_click "auto-save-session-apply";
+    }
+    send_key "alt-f4";
+    wait_still_screen;
+    send_key "alt-f4";
+}
+
+sub restore_status_auto_save_session {
+    send_key "super";
+    wait_still_screen;
+    type_string "settings", 1;    #Use '1' to give gnome-shell enough time to search settings module; Otherwise slow worker will cause failed result.
+    assert_and_click "settings";
+    assert_screen "gnome-settings";
+    type_string "dconf", 1;
+    assert_screen "settings-dconf";
+    send_key "ret";
+    if (check_screen("dconf-caution")) {
+        assert_and_click "will-be-careful";
+    }
+    assert_and_click "auto-save-session";
+    assert_and_click "auto-save-session-alter-use-default";
+    assert_and_click "auto-save-session-apply";
     send_key "alt-f4";
     wait_still_screen;
     send_key "alt-f4";
@@ -67,7 +97,16 @@ sub run() {
     tweak_startupapp_menu;
     assert_and_click "tweak-startapp-add";
     assert_screen "tweak-startapp-applist";
-    send_key_until_needlematch "applicationstart-firefox", "down";
+    if (get_var("SP2ORLATER")) {
+        assert_and_click "startupApp-searching";
+        wait_still_screen;
+        assert_screen "focused-on-search";
+        type_string "firefox";
+        assert_and_click "firefox-searched";
+    }
+    else {
+        send_key_until_needlematch "applicationstart-firefox", "down";
+    }
     assert_and_click "tweak-addapp-2startup";
     assert_screen "startapp-firefox-added";
     send_key "alt-f4";
@@ -98,16 +137,19 @@ sub run() {
     ##so in the future will consider remove openqa code for this session
     alter_status_auto_save_session;
 
-    send_key "alt-f1";
-    assert_screen "test-desktop_mainmenu-1";
-    assert_and_click "application-menu-firefox";
+    x11_start_program("firefox");
     wait_still_screen;
     assert_screen "firefox-gnome", 90;
     logout_and_login;
     assert_screen "firefox-gnome", 90;
     send_key "alt-f4";
 
-    alter_status_auto_save_session;
+    if (get_var("SP2ORLATER")) {
+        restore_status_auto_save_session;
+    }
+    else {
+        alter_status_auto_save_session;
+    }
 }
 
 1;

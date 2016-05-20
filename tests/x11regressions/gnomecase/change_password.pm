@@ -65,8 +65,9 @@ sub switch_user {
 
 sub unlock_user_settings {
     send_key "super";
-    type_string "settings", 1;    #use 1 to give gnome-shell enough time searching the user-settings module.
-    send_key "ret";
+    wait_still_screen;
+    type_string "settings", 1;    #Use '1' to give gnome-shell enough time to search settings module; Otherwise slow worker will cause failed result.
+    assert_and_click "settings";
     assert_screen "gnome-settings";
     type_string "users";
     assert_screen "settings-users-selected";
