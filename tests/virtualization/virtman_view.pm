@@ -24,6 +24,7 @@ sub run {
     launch_virtmanager();
     # go to preferences
     send_key "alt-e";
+    wait_still_screen;
     send_key "p", 1;
     # go to polling
     send_key "right";

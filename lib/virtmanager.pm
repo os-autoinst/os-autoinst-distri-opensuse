@@ -15,9 +15,11 @@ sub launch_virtmanager() {
     type_string "virt-manager", 50;
     send_key "ret";
     wait_idle;
-    type_password;
-    send_key "ret";
-    wait_idle;
+    if (check_screen("virt-manager-auth")) {
+        type_password;
+        send_key "ret";
+        wait_idle;
+    }
     save_screenshot;
 }
 
