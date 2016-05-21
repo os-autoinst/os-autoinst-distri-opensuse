@@ -107,10 +107,11 @@ sub run() {
         send_key "ret";
         assert_screen "inst-instsourcedialog-$m_protocol";
 
-        # Clean Tumbleweed default values
+        # Clean server name and path
         if ($m_protocol eq "http") {
             for (1 .. 2) {
-                for (1 .. 22) { send_key "backspace" }
+                # just type enough backspaces
+                for (1 .. 32) { send_key "backspace" }
                 send_key "tab";
             }
         }
