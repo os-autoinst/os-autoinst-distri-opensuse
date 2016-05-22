@@ -45,7 +45,7 @@ sub unregister_needle_tags {
 
 sub remove_desktop_needles {
     my $desktop = shift;
-    if (!check_var("DESKTOP", $desktop)) {
+    if (!check_var("DESKTOP", $desktop) && !check_var("FULL_DESKTOP", $desktop)) {
         unregister_needle_tags("ENV-DESKTOP-$desktop");
     }
 }
@@ -601,13 +601,13 @@ sub load_inst_tests() {
 }
 
 sub load_reboot_tests() {
-    if (check_var("ARCH", "s390x") and !get_var("QAM_MINIMAL")) {
+    if (check_var("ARCH", "s390x")) {
         loadtest "installation/reconnect_s390.pm";
     }
     if (uses_qa_net_hardware) {
         loadtest "boot/qa_net_boot_from_hdd.pm";
     }
-    if (installyaststep_is_applicable and !get_var("QAM_MINIMAL")) {
+    if (installyaststep_is_applicable) {
         # test makes no sense on s390 because grub2 can't be captured
         if (!check_var("ARCH", "s390x")) {
             loadtest "installation/grub_test.pm";
@@ -1098,6 +1098,12 @@ elsif (get_var("QAM_MINIMAL")) {
         loadtest "qam-minimal/install_patterns.pm";
         load_consoletests();
         load_x11tests();
+
+        # actually we are using textmode until install_patterns.pm installs the gnome pattern
+        # save DESKTOP variable here and restore it in install_patterns.pm
+        # we do this after scheduling all tests for the original DESKTOP
+        set_var('FULL_DESKTOP', get_var('DESKTOP'));
+        set_var('DESKTOP',      'textmode');
     }
 }
 elsif (get_var("EXTRATEST")) {

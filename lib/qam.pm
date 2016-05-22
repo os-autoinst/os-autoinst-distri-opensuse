@@ -17,21 +17,7 @@ use Exporter;
 use testapi;
 use utils;
 
-our @EXPORT = qw/capture_state system_login/;
-
-sub system_login {
-    wait_boot(textmode => 1);
-    if (!check_var('ARCH', 's390x')) {
-        assert_screen "text-login", 50;
-        type_string "root\n";
-        assert_screen "password-prompt", 10;
-        type_password;
-        type_string "\n";
-    }
-    sleep 2;
-
-    $testapi::distri->set_standard_prompt;
-}
+our @EXPORT = qw/capture_state/;
 
 sub capture_state {
     my ($state, $y2logs) = @_;
