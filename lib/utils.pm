@@ -26,6 +26,7 @@ our @EXPORT = qw/
   sle_version_at_least
   ensure_fullscreen
   ensure_shim_import
+  is_desktop_installed
   /;
 
 
@@ -376,6 +377,10 @@ sub ensure_shim_import {
         send_key "down";
         send_key "ret";
     }
+}
+
+sub is_desktop_installed {
+    return get_var("DESKTOP") !~ /textmode|minimalx/;
 }
 
 1;

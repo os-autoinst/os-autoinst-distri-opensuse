@@ -31,12 +31,7 @@ sub run() {
     }
     save_screenshot;
 
-    if (get_var("DESKTOP") =~ /textmode|minimalx/) {
-        wait_boot textmode => 1;
-    }
-    else {
-        wait_boot;
-    }
+    wait_boot textmode => !is_desktop_installed;
 }
 
 sub test_flags {
