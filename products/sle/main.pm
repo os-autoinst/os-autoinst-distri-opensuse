@@ -637,6 +637,7 @@ sub load_zdup_tests() {
     loadtest "installation/setup_zdup.pm";
     loadtest "installation/zdup.pm";
     loadtest "installation/post_zdup.pm";
+    loadtest 'boot/boot_to_desktop.pm';
 }
 
 sub load_consoletests() {

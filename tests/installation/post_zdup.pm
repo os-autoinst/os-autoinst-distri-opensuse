@@ -36,8 +36,6 @@ sub run() {
     assert_screen "text-login";
     # Reboot after dup
     send_key "ctrl-alt-delete";
-
-    wait_boot;
 }
 
 1;
