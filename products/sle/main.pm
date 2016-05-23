@@ -955,25 +955,11 @@ elsif (get_var("QA_TESTSET")) {
     loadtest "qa_automation/" . get_var("QA_TESTSET") . ".pm";
 }
 #elsif (get_var("A")) {
-#	#loadtest "virt_autotest/ParallelIPMITest/P_A.pm";
-#	#loadtest "virt_autotest/ParallelIPMITest/C_C.pm";
-#	loadtest "virt_autotest/Parallel/A.pm";
+#	loadtest "virt_autotest/ParallelIPMITest/P_A.pm";
+#	loadtest "virt_autotest/ParallelIPMITest/C_C.pm";
 #}
 #elsif (get_var("B")) {
-#	#loadtest "virt_autotest/ParallelIPMITest/P_B.pm";
-#	loadtest "virt_autotest/Parallel/B.pm";
-#}
-elsif (get_var("A")) {
-	loadtest "virt_autotest/ParallelIPMITest/P_A.pm";
-	loadtest "virt_autotest/ParallelIPMITest/C_C.pm";
-	#loadtest "virt_autotest/Parallel/A.pm";
-}
-elsif (get_var("B")) {
-	loadtest "virt_autotest/ParallelIPMITest/P_B.pm";
-	#loadtest "virt_autotest/Parallel/B.pm";
-}
-#elsif (get_var("C")) {
-#	loadtest "virt_autotest/ParallelIPMITest/C.pm";
+#	loadtest "virt_autotest/ParallelIPMITest/P_B.pm";
 #}
 elsif (get_var("QA_VIRTTEST_GI")) {
         load_virtauto_tests();
