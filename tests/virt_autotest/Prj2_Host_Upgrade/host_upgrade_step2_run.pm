@@ -31,7 +31,7 @@ sub run() {
 	my $ret = $self->execute_script_run($pre_test_cmd, 36000);
 	save_screenshot;
 
-    assert_script_run("tar cvf /tmp/host-upgrade-prepAndUpgrade-logs.tar /var/log/qa/ctcs2/;rm  /var/log/qa/ctcs2/* -r;", 60);
+    script_run("tar cvf /tmp/host-upgrade-prepAndUpgrade-logs.tar /var/log/qa/ctcs2/;rm  /var/log/qa/ctcs2/* -r", 60);
 
     upload_logs "/tmp/host-upgrade-prepAndUpgrade-logs.tar";
 

@@ -12,20 +12,14 @@
 use strict;
 use warnings;
 use File::Basename;
-use base "opensusebasetest";
 use testapi;
+use lib "/var/lib/openqa/share/tests/sle-12-SP2/tests/virt_autotest/common";
+use base "reboot_and_wait_up";
 
-sub run() { 
-
-	select_console('root-console');
-	type_string("/sbin/reboot\n");
-	reset_consoles;
-	#wait_boot textmode => 1;
-	sleep 5;
+sub run() {
+	my $self=shift;
 	my $timeout=3600;
-	assert_screen(["generic-destop", "generic-destop-virt"], $timeout);
-	select_console('root-console');
-
+	$self->reboot_and_wait_up($timeout);
 }
 
 sub test_flags {

@@ -124,11 +124,8 @@ sub cleanup_needles() {
 #assert_screen "inst-bootmenu",12; # wait for welcome animation to finish
 
 # defaults for username and password
-#$testapi::username = "bernhard";
-#$testapi::password = "nots3cr3t";
-
-$testapi::username = "root";
-$testapi::password = "susetesing";
+$testapi::username = "bernhard";
+$testapi::password = "nots3cr3t";
 
 $testapi::username = get_var("USERNAME") if get_var("USERNAME");
 $testapi::password = get_var("PASSWORD") if defined get_var("PASSWORD");
@@ -957,21 +954,42 @@ elsif (get_var("QA_TESTSET")) {
     }
     loadtest "qa_automation/" . get_var("QA_TESTSET") . ".pm";
 }
+#elsif (get_var("A")) {
+#	#loadtest "virt_autotest/ParallelIPMITest/P_A.pm";
+#	#loadtest "virt_autotest/ParallelIPMITest/C_C.pm";
+#	loadtest "virt_autotest/Parallel/A.pm";
+#}
+#elsif (get_var("B")) {
+#	#loadtest "virt_autotest/ParallelIPMITest/P_B.pm";
+#	loadtest "virt_autotest/Parallel/B.pm";
+#}
+elsif (get_var("A")) {
+	loadtest "virt_autotest/ParallelIPMITest/P_A.pm";
+	loadtest "virt_autotest/ParallelIPMITest/C_C.pm";
+	#loadtest "virt_autotest/Parallel/A.pm";
+}
+elsif (get_var("B")) {
+	loadtest "virt_autotest/ParallelIPMITest/P_B.pm";
+	#loadtest "virt_autotest/Parallel/B.pm";
+}
+#elsif (get_var("C")) {
+#	loadtest "virt_autotest/ParallelIPMITest/C.pm";
+#}
 elsif (get_var("QA_VIRTTEST_GI")) {
         load_virtauto_tests();
 
 }
 elsif (get_var("VIRT_AUTOTEST")) {
-	#loadtest "virt_autotest/common/init_pxe_install.pm";
-	#load_inst_tests();
+	loadtest "virt_autotest/common/init_pxe_install.pm";
+	load_inst_tests();
 	loadtest "virt_autotest/common/login_console.pm";
 	loadtest "virt_autotest/common/install_package.pm";
 	loadtest "virt_autotest/common/reboot_and_wait_up_normal1.pm";
 
 	if (get_var("VIRT_PRJ2_HOST_UPGRADE")) {
 		loadtest "virt_autotest/Prj2_Host_Upgrade/host_upgrade_generate_run_file.pm";
-		loadtest "virt_autotest/Prj2_Host_Upgrade/host_upgrade_step1_run.pm";
-		loadtest "virt_autotest/common/reboot_and_wait_up_normal2.pm";
+		#loadtest "virt_autotest/Prj2_Host_Upgrade/host_upgrade_step1_run.pm";
+		#loadtest "virt_autotest/common/reboot_and_wait_up_normal2.pm";
 		loadtest "virt_autotest/Prj2_Host_Upgrade/host_upgrade_step2_run.pm";
 		loadtest "virt_autotest/common/reboot_and_wait_up_upgrade.pm";
 		loadtest "virt_autotest/Prj2_Host_Upgrade/host_upgrade_step3_run.pm";

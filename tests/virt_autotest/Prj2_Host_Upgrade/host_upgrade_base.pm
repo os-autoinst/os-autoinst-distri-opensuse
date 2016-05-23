@@ -26,7 +26,7 @@ sub execute_script_run($$) {
     if ($ret == 1 ) {
         die "Timeout due to cmd run :[" . $cmd . "]\n";
     }
-    return $ret
+    return $ret;
 
 }
 

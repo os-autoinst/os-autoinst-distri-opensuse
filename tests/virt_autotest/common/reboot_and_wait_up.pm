@@ -8,28 +8,25 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
-#package qa_run;
+package reboot_and_wait_up;
 use strict;
 use warnings;
 use File::Basename;
 use base "opensusebasetest";
 use testapi;
 
-sub run() { 
+sub reboot_and_wait_up() {
+	my $self=shift;
+	my $reboot_timeout=shift;
 
 	select_console('root-console');
 	type_string("/sbin/reboot\n");
 	reset_consoles;
 	#wait_boot textmode => 1;
 	sleep 5;
-	my $timeout=300;
-	assert_screen(["generic-destop", "generic-destop-virt"], $timeout);
+	assert_screen(["generic-destop", "generic-destop-virt"], $reboot_timeout);
 	select_console('root-console');
 
-}
-
-sub test_flags {
-    return {important => 1};
 }
 
 1;

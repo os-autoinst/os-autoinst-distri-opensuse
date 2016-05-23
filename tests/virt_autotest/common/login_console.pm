@@ -23,7 +23,7 @@ sub run() {
         #	save_screenshot;
 	#	sleep(1);
 	#}
-	assert_screen(["generic-destop", "generic-destop-virt"], 300);
+	assert_screen(["generic-destop", "generic-destop-virt","displaymanager"], 300);
 	select_console('root-console');
 
 

@@ -14,18 +14,6 @@ use base "host_upgrade_base";
 
 use testapi;
 
-#sub execute_script_run($$) {
-#    my ($self, $cmd, $timeout) = @_;
-#
-#    my $ret = $self->local_string_output($cmd, $timeout);
-#
-#    if ($ret == 1 ) {
-#        die "Timeout due to cmd run :[" . $cmd . "]\n";
-#    }
-#    return $ret
-#
-#}
-
 sub get_scrip_run() {
 	my $self = shift;
 	my $pre_test_cmd;
