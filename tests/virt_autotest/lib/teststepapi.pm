@@ -144,7 +144,7 @@ sub get_scrip_run() {
 		$pre_test_cmd = "/usr/share/qa/tools/test_virtualization-virt_install_withopt-run";
 	} else {
                 $pre_test_cmd = "/usr/share/qa/tools/test_virtualization-standalone-run";
-        }
+	}
 
 	return $pre_test_cmd;
 }

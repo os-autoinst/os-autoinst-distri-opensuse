@@ -8,7 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
-use lib "/var/lib/openqa/share/tests/sle-12-SP2/tests/qa_virtauto/lib";
+use lib "/var/lib/openqa/share/tests/sle-12-SP2/tests/virt_autotest/lib";
 use base "teststepapi";
 
 use testapi;
