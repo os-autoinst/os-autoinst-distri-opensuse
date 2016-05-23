@@ -16,12 +16,7 @@ sub run() {
     my $self = shift;
 
     # if source system is minimal installation then boot to textmode
-    if (get_var("DESKTOP") =~ /textmode|minimalx/) {
-        wait_boot textmode => 1;
-    }
-    else {
-        wait_boot;
-    }
+    wait_boot textmode => !is_desktop_installed;
     select_console 'root-console';
 
     # stop packagekit service

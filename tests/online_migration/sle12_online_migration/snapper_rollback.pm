@@ -42,12 +42,7 @@ sub run() {
 
     # reboot into the system before online migration
     script_run("systemctl reboot", 0);
-    if (get_var("DESKTOP") =~ /textmode|minimalx/) {
-        wait_boot textmode => 1;
-    }
-    else {
-        wait_boot;
-    }
+    wait_boot textmode => !is_desktop_installed;
     select_console 'root-console';
 
     check_rollback_system;
