@@ -11,6 +11,7 @@
 use base "consoletest";
 use strict;
 use testapi;
+use utils;
 
 sub run() {
     my $self = shift;
@@ -21,6 +22,15 @@ sub run() {
     assert_script_run("find $repos_folder/*.repo -type f -exec grep -q 'baseurl=http://download.opensuse.org/' {} \\; -delete && echo 'unneed_repos_removed' > /dev/$serialdev", 15);
     script_run("zypper lr -d");
     save_screenshot;    # take a screenshot after repos removed
+
+    if (get_var("STAGING")) {
+        # With FATE#320494 the local repository would be disabled after installation
+        # in Staging, enable it here.
+        clear_console;
+        assert_script_run("grep -rl 'baseurl=cd:///?devices' $repos_folder | xargs sed -i 's/^enabled=0/enabled=1/g'");
+        script_run("zypper lr -d");
+        save_screenshot;    # take a screenshot after repo enabled
+    }
 }
 
 sub test_flags() {
