@@ -19,9 +19,9 @@ sub run() {
     select_console 'root-console';
 
     if (get_var("UPGRADE") || get_var("AUTOUPGRADE")) {
-    script_run("snapper setup-quota");
-    script_run("snapper set-config NUMBER_LIMIT=2-10 NUMBER_LIMIT_IMPORTANT=4-10 | tee /dev/$serialdev");
-    };
+        script_run("snapper setup-quota");
+        script_run("snapper set-config NUMBER_LIMIT=2-10 NUMBER_LIMIT_IMPORTANT=4-10 | tee /dev/$serialdev");
+    }
     script_run("snapper set-config NUMBER_MIN_AGE=0 | tee /dev/$serialdev");
     assert_script_run("btrfs qgroup show -p /");
 
@@ -35,42 +35,42 @@ sub run() {
     snapper create --cleanup number -u important=yes --command 'dd if=/dev/urandom of=data bs=1M count=1024'
     snapper create --cleanup number -u important=yes --command 'dd if=/dev/urandom of=data bs=1M count=1024'
     snapper create --cleanup number -u important=yes --command 'dd if=/dev/urandom of=data bs=1M count=1024'";
-#1
+    #1
     assert_script_run("$snapper_create", 800);
-    clear_console; 
+    clear_console;
 
     script_run("btrfs qgroup show -p / ", 3);
-    script_run("snapper cleanup number"); # cleanup created snapshots
+    script_run("snapper cleanup number");    # cleanup created snapshots
     assert_script_run("btrfs qgroup show -p / ", 3);
     script_run("snapper ls");
     clear_console;
 
     script_run("df -h /");
     script_run("btrfs filesystem df -h /");
-#2
+    #2
     assert_script_run("$snapper_create", 800);
     script_run("btrfs qgroup show -p / ", 3);
-    script_run("snapper cleanup number"); # cleanup created snapshots
+    script_run("snapper cleanup number");    # cleanup created snapshots
     assert_script_run("btrfs qgroup show -p / ", 3);
     script_run("snapper ls");
     clear_console;
 
     script_run("df -h /");
     script_run("btrfs filesystem df -h /");
-#3    
+    #3
     assert_script_run("$snapper_create", 800);
     script_run("btrfs qgroup show -p / ", 3);
-    script_run("snapper cleanup number"); # cleanup created snapshots
+    script_run("snapper cleanup number");    # cleanup created snapshots
     assert_script_run("btrfs qgroup show -p / ", 3);
     script_run("snapper ls");
     clear_console;
 
     script_run("df -h /");
     script_run("btrfs filesystem df -h /");
-#4    
+    #4
     assert_script_run("$snapper_create", 800);
     script_run("btrfs qgroup show -p / ", 3);
-    script_run("snapper cleanup number"); # cleanup created snapshots
+    script_run("snapper cleanup number");    # cleanup created snapshots
     assert_script_run("btrfs qgroup show -p / ", 3);
     script_run("snapper ls");
     clear_console;
