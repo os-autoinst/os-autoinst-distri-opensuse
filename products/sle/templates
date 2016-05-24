@@ -202,6 +202,15 @@
                         { key => "WORKER_CLASS", value => "s390x-zVM-vswitch-l2" },
                       ],
                     },
+                    {
+                      backend => "svirt",
+                      name => "zKVM",
+                      settings => [
+                        { key => "HDDSIZEGB", value => "10" },
+                        { key => "SERIALDEV", value => "ttysclp0" },
+                        { key => "WORKER_CLASS", value => "svirt" },
+                      ],
+                    },
                   ],
   Products     => [
                     {
