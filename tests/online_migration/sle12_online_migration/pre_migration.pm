@@ -22,8 +22,8 @@ sub check_or_install_packages() {
     if (get_var("FULL_UPDATE")) {
         # if system is fully updated, all necessary packages for online migration should be installed
         # check if the packages was installed along with update
-        my $output = script_output "rpm -qa yast2-migration zypper-migration-plugin rollback-helper";
-        if ($output !~ /yast2-migration.*?zypper-migration-plugin.*?rollback-helper/s) {
+        my $output = script_output "rpm -qa yast2-migration zypper-migration-plugin rollback-helper | sort";
+        if ($output !~ /rollback-helper.*?yast2-migration.*?zypper-migration-plugin/s) {
             die "migration packages was not installed along with system update";
         }
     }
