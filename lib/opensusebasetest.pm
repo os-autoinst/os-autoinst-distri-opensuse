@@ -36,6 +36,7 @@ sub export_logs {
     select_console 'root-console';
     save_screenshot;
 
+    save_and_upload_log('cat /proc/loadavg',             '/tmp/loadavg',     {screenshot => 1});
     save_and_upload_log('cat /home/*/.xsession-errors*', '/tmp/XSE.log',     {screenshot => 1});
     save_and_upload_log('journalctl -b',                 '/tmp/journal.log', {screenshot => 1});
     save_and_upload_log('cat /var/log/X*',               '/tmp/Xlogs.log',   {screenshot => 1});
