@@ -60,8 +60,9 @@ sub run() {
     select_console 'root-console';
 
     type_string "chown $username /dev/$serialdev\n";
-    # Export the existing status of running tasks for future reference (fail would export it again)
+    # Export the existing status of running tasks and system load for future reference (fail would export it again)
     script_run "ps axf > /tmp/psaxf.log";
+    script_run "cat /proc/loadavg > /tmp/loadavg_consoletest_setup";
 
     # openSUSE 13.2's (and earlier) systemd has broken rules for virtio-net, not applying predictable names (despite being configured)
     # A maintenance update breaking networking names sounds worse than just accepting that 13.2 -> TW breaks
@@ -87,6 +88,7 @@ sub run() {
 
     # upload_logs requires curl, but we wanted the initial state of the system
     upload_logs "/tmp/psaxf.log";
+    upload_logs "/tmp/loadavg_consoletest_setup";
     save_screenshot;
 
     $self->clear_and_verify_console;
