@@ -91,7 +91,7 @@ sub get_to_yast() {
     ##############################
     # edit parmfile
     {
-        $r = $s3270->expect_3270(buffer_ready => qr/X E D I T/, timeout => 240);
+        $r = $s3270->expect_3270(buffer_ready => qr/X E D I T/, timeout => 240) || die "Download of Kernel or Initrd took too long";
 
         $s3270->sequence_3270(qw{ String(INPUT) ENTER });
 
@@ -129,7 +129,7 @@ EO_frickin_boot_parms
     $r = $s3270->expect_3270(
         output_delim => qr/Loading Installation System/,
         timeout      => 300
-    );
+    ) || die "Installation system was not found";
     my $display_type;
 
     # set up display_mode for textinstall
@@ -149,11 +149,10 @@ EO_frickin_boot_parms
       : $display_type eq "VNC" ? qr/\Q*** Starting YaST2 ***\E/
       :                          die "unknown vars.json:DISPLAY->TYPE <$display_type>";
 
-    # wait 20 seconds to load Installation System
     $r = $s3270->expect_3270(
         output_delim => $output_delim,
         timeout      => 30
-    );
+    ) || die "Loading Installation system tooks too long";
 
 }
 
