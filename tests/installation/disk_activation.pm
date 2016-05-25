@@ -21,23 +21,16 @@ sub run {
         assert_screen 'zfcp-disk-management';
         send_key 'alt-a';
         assert_screen 'zfcp-add-device';
-        send_key 'alt-g';                    # get wwpn's
-        assert_screen 'zfcp-wwpn';
-
-        # it's very hard to guess how long this takes...
-        while (check_screen('zfcp-lun-not-found', '2')) {
-            send_key 'alt-t';                # get lun
-        }
-        assert_screen 'zfcp-lun';
         send_key 'alt-n';
 
-        if (check_screen 'zfcp-popup-scan') {
-            send_key 'alt-o';
-        }
+        # use allow_lun_scan
+        assert_screen 'zfcp-popup-scan';
+        send_key 'alt-o';
+
         assert_screen 'zfcp-disk-management';
         assert_screen 'zfcp-activated';
         send_key 'alt-n';
-        sleep 5;
+        wait_still_screen 5;
     }
     else {    # use default DASD as install disk
         assert_screen 'disk-activation', 15;
