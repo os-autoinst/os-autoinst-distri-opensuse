@@ -23,35 +23,28 @@ sub post_run_hook {
     # overloaded in x11 and console
 }
 
+sub save_and_upload_log {
+    my ($cmd, $file, $args) = @_;
+    script_run "$cmd > $file";
+    upload_logs $file;
+    save_screenshot if $args->{screenshot};
+}
+
 sub export_logs {
     my $self = shift;
 
     select_console 'root-console';
     save_screenshot;
 
-    script_run "cat /home/*/.xsession-errors* > /tmp/XSE.log";
-    upload_logs "/tmp/XSE.log";
-    save_screenshot;
+    save_and_upload_log('cat /proc/loadavg',             '/tmp/loadavg',     {screenshot => 1});
+    save_and_upload_log('cat /home/*/.xsession-errors*', '/tmp/XSE.log',     {screenshot => 1});
+    save_and_upload_log('journalctl -b',                 '/tmp/journal.log', {screenshot => 1});
+    save_and_upload_log('cat /var/log/X*',               '/tmp/Xlogs.log',   {screenshot => 1});
+    save_and_upload_log('ps axf',                        '/tmp/psaxf.log',   {screenshot => 1});
 
-    script_run "journalctl -b > /tmp/journal.log";
-    upload_logs "/tmp/journal.log";
-    save_screenshot;
-
-    script_run "cat /var/log/X* > /tmp/Xlogs.log";
-    upload_logs "/tmp/Xlogs.log";
-    save_screenshot;
-
-    script_run "ps axf > /tmp/psaxf.log";
-    upload_logs "/tmp/psaxf.log";
-    save_screenshot;
-
-    script_run "systemctl list-unit-files > /tmp/systemctl_unit-files.log";
-    upload_logs "/tmp/systemctl_unit-files.log";
-    script_run "systemctl status > /tmp/systemctl_status.log";
-    upload_logs "/tmp/systemctl_status.log";
-    script_run "systemctl > /tmp/systemctl.log";
-    upload_logs "/tmp/systemctl.log";
-    save_screenshot;
+    save_and_upload_log('systemctl list-unit-files', '/tmp/systemctl_unit-files.log');
+    save_and_upload_log('systemctl status',          '/tmp/systemctl_status.log');
+    save_and_upload_log('systemctl',                 '/tmp/systemctl.log', {screenshot => 1});
 }
 
 # Set a simple reproducible prompt for easier needle matching without hostname
