@@ -36,10 +36,9 @@ sub export_logs {
     select_console 'root-console';
     save_screenshot;
 
-    save_and_upload_log('cat /proc/loadavg',             '/tmp/loadavg',     {screenshot => 1});
-    save_and_upload_log('cat /home/*/.xsession-errors*', '/tmp/XSE.log',     {screenshot => 1});
-    save_and_upload_log('journalctl -b',                 '/tmp/journal.log', {screenshot => 1});
-    save_and_upload_log('ps axf',                        '/tmp/psaxf.log',   {screenshot => 1});
+    save_and_upload_log('cat /proc/loadavg', '/tmp/loadavg',     {screenshot => 1});
+    save_and_upload_log('journalctl -b',     '/tmp/journal.log', {screenshot => 1});
+    save_and_upload_log('ps axf',            '/tmp/psaxf.log',   {screenshot => 1});
 
     # check whether xorg logs is exists in user's home, if yes, upload xorg logs from user's
     # home instead of /var/log
@@ -49,6 +48,12 @@ sub export_logs {
     }
     else {
         save_and_upload_log('cat /var/log/X*', '/tmp/Xlogs.log', {screenshot => 1});
+    }
+
+    # do not upload empty .xsession-errors
+    script_run "xsefiles=(/home/*/.xsession-errors*); for file in \${xsefiles[@]}; do if [ -s \$file ]; then echo xsefile-valid > /dev/$serialdev; fi; done", 0;
+    if (wait_serial("xsefile-valid", 10)) {
+        save_and_upload_log('cat /home/*/.xsession-errors*', '/tmp/XSE.log', {screenshot => 1});
     }
 
     save_and_upload_log('systemctl list-unit-files', '/tmp/systemctl_unit-files.log');
