@@ -39,8 +39,17 @@ sub export_logs {
     save_and_upload_log('cat /proc/loadavg',             '/tmp/loadavg',     {screenshot => 1});
     save_and_upload_log('cat /home/*/.xsession-errors*', '/tmp/XSE.log',     {screenshot => 1});
     save_and_upload_log('journalctl -b',                 '/tmp/journal.log', {screenshot => 1});
-    save_and_upload_log('cat /var/log/X*',               '/tmp/Xlogs.log',   {screenshot => 1});
     save_and_upload_log('ps axf',                        '/tmp/psaxf.log',   {screenshot => 1});
+
+    # check whether xorg logs is exists in user's home, if yes, upload xorg logs from user's
+    # home instead of /var/log
+    script_run "test -d /home/*/.local/share/xorg ; echo user-xlog-path-\$? > /dev/$serialdev", 0;
+    if (wait_serial("user-xlog-path-0", 10)) {
+        save_and_upload_log('cat /home/*/.local/share/xorg/X*', '/tmp/Xlogs.log', {screenshot => 1});
+    }
+    else {
+        save_and_upload_log('cat /var/log/X*', '/tmp/Xlogs.log', {screenshot => 1});
+    }
 
     save_and_upload_log('systemctl list-unit-files', '/tmp/systemctl_unit-files.log');
     save_and_upload_log('systemctl status',          '/tmp/systemctl_status.log');
