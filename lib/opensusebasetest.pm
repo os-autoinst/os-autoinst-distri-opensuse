@@ -36,11 +36,18 @@ sub export_logs {
     select_console 'root-console';
     save_screenshot;
 
-    save_and_upload_log('cat /proc/loadavg',             '/tmp/loadavg',     {screenshot => 1});
-    save_and_upload_log('cat /home/*/.xsession-errors*', '/tmp/XSE.log',     {screenshot => 1});
-    save_and_upload_log('journalctl -b',                 '/tmp/journal.log', {screenshot => 1});
-    save_and_upload_log('cat /var/log/X*',               '/tmp/Xlogs.log',   {screenshot => 1});
-    save_and_upload_log('ps axf',                        '/tmp/psaxf.log',   {screenshot => 1});
+    save_and_upload_log('cat /proc/loadavg', '/tmp/loadavg',     {screenshot => 1});
+    save_and_upload_log('journalctl -b',     '/tmp/journal.log', {screenshot => 1});
+    save_and_upload_log('cat /var/log/X*',   '/tmp/Xlogs.log',   {screenshot => 1});
+    save_and_upload_log('ps axf',            '/tmp/psaxf.log',   {screenshot => 1});
+
+    my @xse_files = glob('/home/*/.xsession-errors*');
+    for my $file (@xse_files) {
+        next if -z $file;
+        #if does not have .xsession-errors existence probably it was combined in jounalctl
+        save_and_upload_log('cat /home/*/.xsession-errors*', '/tmp/XSE.log', {screenshot => 1});
+        last;
+    }
 
     save_and_upload_log('systemctl list-unit-files', '/tmp/systemctl_unit-files.log');
     save_and_upload_log('systemctl status',          '/tmp/systemctl_status.log');
