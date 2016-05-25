@@ -33,6 +33,8 @@ sub run() {
     $self->barrier_create("CLVM_VG_RESOURCE_CREATED");
     $self->barrier_create("CLVM_RW_CHECKED");
     $self->barrier_create("CLVM_MD5SUM");
+    $self->barrier_create("PACEMAKER_CTS_INSTALLED");
+    $self->barrier_create("PACEMAKER_CTS_FINISHED");
 }
 
 sub test_flags {
