@@ -23,8 +23,15 @@ sub run() {
     assert_screen("scc-registration", 100);
     send_key "alt-s", 1;    # skip SCC registration
     if (check_screen("scc-skip-reg-warning", 10)) {
-        send_key "alt-y", 1;    # confirmed skip SCC registration
+        if (check_screen("ok-button", 10)) {
+            send_key "alt-o";    # confirmed skip SCC registration
+        }
+        else {
+            send_key "alt-y";    # confirmed skip SCC registration
+        }
     }
+    wait_still_screen;
+    send_key "alt-n";            # next
 }
 
 1;
