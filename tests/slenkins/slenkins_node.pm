@@ -39,7 +39,8 @@ sub run {
         set_var("NETWORK$i", $control_settings->{"NETWORK$i"}) if $control_settings->{"NETWORK$i"};
     }
 
-    type_string("rcnetwork stop\n");
+    # we have to completely stop wicked - bsc#981651
+    type_string("rcwickedd stop\n");
     configure_hostname(get_var('SLENKINS_NODE'));
 
     mutex_lock('dhcp', $control_id);
