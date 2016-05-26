@@ -33,6 +33,9 @@ sub run() {
     sleep 2;
     send_key "ret";
     send_key "down";
+    if (get_var("SP2ORLATER")) {
+        send_key "ret";
+    }
     assert_screen 'gnote-what-link-here', 5;
     send_key "esc";
     send_key "ctrl-w";      #close the note "Start Here"
