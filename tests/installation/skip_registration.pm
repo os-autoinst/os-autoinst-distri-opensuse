@@ -25,13 +25,13 @@ sub run() {
     if (check_screen("scc-skip-reg-warning", 10)) {
         if (check_screen("ok-button", 10)) {
             send_key "alt-o";    # confirmed skip SCC registration
+            wait_still_screen;
+            send_key "alt-n";    # next
         }
         else {
             send_key "alt-y";    # confirmed skip SCC registration
         }
     }
-    wait_still_screen;
-    send_key "alt-n";            # next
 }
 
 1;
