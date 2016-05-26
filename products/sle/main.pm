@@ -343,7 +343,9 @@ sub load_x11regression_documentation() {
         loadtest "x11regressions/evince/evince_find.pm";
         loadtest "x11regressions/gedit/gedit_launch.pm";
         loadtest "x11regressions/gedit/gedit_save.pm";
-        loadtest "x11regressions/gedit/gedit_about.pm";
+        if (not get_var("SP2ORLATER")) {
+            loadtest "x11regressions/gedit/gedit_about.pm";
+        }
         loadtest "x11regressions/libreoffice/libreoffice_mainmenu_favorites.pm";
         loadtest "x11regressions/libreoffice/libreoffice_open_specified_file.pm";
         loadtest "x11regressions/libreoffice/libreoffice_double_click_file.pm";
