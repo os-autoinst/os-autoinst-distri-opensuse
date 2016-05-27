@@ -138,7 +138,7 @@ sub import_node_file {
 
     unless ($project_name) {
         my $abs_path = abs_path($fn) || $fn;
-        if ($abs_path =~ /\/var\/lib\/slenkins\/([^\/]+)\/([^\/]+)\/nodes/) {
+        if ($abs_path =~ /var\/lib\/slenkins\/([^\/]+)\/([^\/]+)\/nodes/) {
             $project_name = $1;
             $control_pkg  = "$1-$2";
         }
