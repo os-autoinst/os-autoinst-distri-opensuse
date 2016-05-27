@@ -27,21 +27,21 @@ sub snapper() {
     assert_script_run("$snapper_create", 800);
     clear_console;
     assert_script_run("btrfs qgroup show -p / | tail -20", 3);
-    script_run("snapper cleanup number"); # cleanup created snapshots
+    script_run("snapper cleanup number");    # cleanup created snapshots
     assert_script_run("btrfs qgroup show -p / ", 3);
     script_run("snapper ls");
-    script_run("btrfs filesystem df -h /"); 
+    script_run("btrfs filesystem df -h /");
     clear_console;
-    }
+}
 
 sub run() {
     select_console 'root-console';
 
     if (get_var("UPGRADE") || get_var("AUTOUPGRADE")) {
-    script_run("snapper setup-quota");
-    script_run("snapper set-config NUMBER_LIMIT=2-10 NUMBER_LIMIT_IMPORTANT=4-10 | tee /dev/$serialdev");
-    };
-    
+        script_run("snapper setup-quota");
+        script_run("snapper set-config NUMBER_LIMIT=2-10 NUMBER_LIMIT_IMPORTANT=4-10 | tee /dev/$serialdev");
+    }
+
     script_run("snapper set-config NUMBER_MIN_AGE=0 | tee /dev/$serialdev");
     assert_script_run("btrfs qgroup show -p /");
 
