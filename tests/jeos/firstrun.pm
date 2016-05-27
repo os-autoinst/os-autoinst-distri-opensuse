@@ -13,7 +13,7 @@ use strict;
 use testapi;
 
 sub select_locale {
-    assert_screen 'jeos-locale', 60;
+    assert_screen 'jeos-locale', 120;
     my $lang = get_var("INSTLANG", 'us');
     send_key_until_needlematch "jeos-system-locale-$lang", 'e', 50;
     send_key 'ret';

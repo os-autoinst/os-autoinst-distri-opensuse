@@ -443,7 +443,12 @@ sub load_boot_tests() {
     }
     elsif (get_var("UEFI") || is_jeos) {
         if (check_var("BACKEND", "svirt")) {
-            loadtest "installation/bootloader_svirt.pm";
+            if (check_var("VIRSH_VMM_FAMILY", "hyperv")) {
+                loadtest "installation/bootloader_hyperv.pm";
+            }
+            else {
+                loadtest "installation/bootloader_svirt.pm";
+            }
         }
         # TODO: rename to bootloader_grub2
         # Unless GRUB2 supports framebuffer on Xen PV (bsc#961638), grub2 tests
