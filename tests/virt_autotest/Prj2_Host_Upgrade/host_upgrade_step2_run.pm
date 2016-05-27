@@ -36,9 +36,10 @@ sub run() {
     upload_logs "/tmp/host-upgrade-prepAndUpgrade-logs.tar";
 
 
-	if ( $ret !~ /Test run completed successfully/m) {
-		die " Host upgrade fail, going to terminate following test!";
-	}
+#	if ( $ret !~ /Test run completed successfully/m) {
+#		die " Host upgrade fail, going to terminate following test!";
+#	}
+	assert_script_run("grep \"Host upgrade to .* is done. Need to reboot system\" /tmp/host-upgrade-prepAndUpgrade-logs.tar");
 #	# Parse test result and generate junit file
 #	my $tc_result = $self->analyzeResult($ret);
 #	my $xml_result = $self->generateXML($tc_result);
