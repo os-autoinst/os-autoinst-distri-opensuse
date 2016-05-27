@@ -16,23 +16,28 @@ use strict;
 use testapi;
 
 sub run {
+    my $video;
     if (check_var('UEFI', '1')) {
         assert_script_run("sed -ie '/GRUB_GFXMODE=/s/=.*/=1024x768/' /etc/default/grub");
+        # workaround kiwi quirk bnc#968270, bnc#968264
+        assert_script_run("rm -rf /boot/efi/EFI; sed -ie 's/which/echo/' /usr/sbin/shim-install && shim-install");
     }
     else {
         assert_script_run("sed -ie '/GFXPAYLOAD_LINUX=/s/=.*/=1024x768/' /etc/default/grub");
     }
 
+    # For Hyper-V and Xen PV we need to add special framebuffer provisions
     if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
-        assert_script_run("sed -ie '/GRUB_CMDLINE_LINUX_DEFAULT=/s/\"\$/ video=hyperv_fb:1024x768\"/' /etc/default/grub");
+        $video = "video=hyperv_fb:1024x768";
+    }
+    elsif (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux')) {
+        $video = "xenfb.video=4,1024,768";
     }
 
+    if ($video) {
+        assert_script_run("sed -ie '/GRUB_CMDLINE_LINUX_DEFAULT=/s/\"\$/ $video \"/' /etc/default/grub");
+    }
     assert_script_run("grub2-mkconfig -o /boot/grub2/grub.cfg");
-
-    if (check_var('UEFI', '1')) {
-        # workaround kiwi quirk bnc#968270, bnc#968264
-        assert_script_run("rm -rf /boot/efi/EFI; sed -ie 's/which/echo/' /usr/sbin/shim-install && shim-install");
-    }
 }
 
 sub test_flags() {

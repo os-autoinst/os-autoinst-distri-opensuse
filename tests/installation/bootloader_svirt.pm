@@ -9,16 +9,13 @@
 
 use base "installbasetest";
 
-use testapi;
-
 use strict;
 use warnings;
 
 use File::Basename;
 
-sub is_jeos() {
-    return get_var('FLAVOR', '') =~ /^JeOS/;
-}
+use testapi;
+use utils;
 
 sub run() {
 
@@ -76,13 +73,12 @@ sub run() {
         $svirt->change_domain_element(on_reboot => 'destroy');
     }
 
-    # TODO: JeOS defaults to 24 GB (or 30 on HyperV)
-    my $size_i = get_var('HDDSIZEGB', '24');
-
-    my $file = basename(get_var('HDD_1'));
+    my $file = get_var('HDD_1');
     if ($vmm_family eq 'vmware') {
-        $file = "[$vmware_datastore] openQA/" . $file;
+        $file = "[$vmware_datastore] openQA/" . basename($file);
     }
+
+    my $size_i = get_var('HDDSIZEGB', '24');
     # in JeOS we have the disk, we just need to deploy it
     if (is_jeos) {
         $svirt->add_disk({size => $size_i . 'G', file => $file});
@@ -98,7 +94,8 @@ sub run() {
     else {
         $console_target_type = 'serial';
     }
-    # esx driver in libvirt does not support `virsh console' command
+    # esx driver in libvirt does not support `virsh console' command. We need
+    # to export it on our own via TCP.
     my $pty_dev_type;
     if ($vmm_family eq 'vmware') {
         $pty_dev_type = 'tcp';
@@ -117,24 +114,49 @@ sub run() {
         $svirt->add_pty({pty_dev => 'serial', pty_dev_type => $pty_dev_type, target_port => '0', protocol_type => $protocol_type, source => $source});
     }
 
-    $svirt->add_vnc({port => '5901'});
+    $svirt->add_vnc({port => get_var('VIRSH_INSTANCE', 1) + 5900});
 
+    my %ifacecfg = ();
+
+    # All but Xen PV VMs should be specified with known-to-work
+    # network interface. Xen PV and Hyper-V use streams.
+    my $iface_model;
     if ($vmm_family eq 'kvm') {
-        $svirt->add_interface({type => 'network', source => {network => 'default'}, model => {type => 'virtio'}});
+        $iface_model = 'virtio';
     }
-    elsif ($vmm_family eq 'xen') {
-        if ($vmm_type eq 'hvm') {
-            $svirt->add_interface({type => 'network', source => {network => 'default'}, model => {type => 'netfront'}});
-            # emulator is not being set for Xen HVM automatically
-            $svirt->add_emulator({emulator => '/usr/lib/xen/bin/qemu-system-i386'});
-        }
-        elsif ($vmm_type eq 'linux') {
-            $svirt->add_interface({type => 'network', source => {network => 'default'}});
-        }
+    elsif ($vmm_family eq 'xen' && $vmm_type eq 'hvm') {
+        $iface_model = 'netfront';
     }
     elsif ($vmm_family eq 'vmware') {
-        $svirt->add_interface({type => 'bridge', source => {bridge => 'VM Network'}, model => {type => 'e1000'}});
+        $iface_model = 'e1000';
     }
+
+    if ($iface_model) {
+        $ifacecfg{'model'} = {type => $iface_model};
+    }
+
+    if ($vmm_family eq 'vmware') {
+        # `virsh iface-list' won't produce correct bridge name for VMware.
+        # It should be provided by the worker or relied upon the default.
+        $ifacecfg{'type'} = 'bridge';
+        $ifacecfg{'source'} = {bridge => get_var('VMWARE_BRIDGE', 'VM Network')};
+    }
+    else {
+        # We can use bridge or network as a base for network interface. Network named 'default'
+        # happens to be omnipresent on workstations, bridges (br0, ...) on servers. If both 'default'
+        # network and bridge are defined and active, bridge should be prefered as 'default' network
+        # does not work.
+        if (my $bridges = $svirt->get_cmd_output("virsh iface-list | grep -w active | awk '{ print \$1 }' | tail -n1 | tr -d '\\n'")) {
+            $ifacecfg{'type'} = 'bridge';
+            $ifacecfg{'source'} = {bridge => $bridges};
+        }
+        elsif (my $networks = $svirt->get_cmd_output("virsh net-list | grep -w active | awk '{ print \$1 }' | tail -n1 | tr -d '\\n'")) {
+            $ifacecfg{'type'} = 'network';
+            $ifacecfg{'source'} = {network => $networks};
+        }
+    }
+
+    $svirt->add_interface(\%ifacecfg);
 
     if (!is_jeos) {
         my $loader = "loader";
@@ -156,7 +178,6 @@ sub run() {
     }
 
     $svirt->define_and_start;
-
 
     # This sets kernel argument so needle-matching works on Xen PV. It's being
     # done via host's PTY device because we don't see anything unless kernel
