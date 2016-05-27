@@ -22,6 +22,7 @@ sub run() {
     my @updates_tags           = qw/updates_none updates_available/;
     my @updates_installed_tags = qw/updates_none updates_installed-logout updates_installed-restart/;
 
+    # First update package manager, then packages
     for (1 .. 2) {
         x11_start_program("gpk-update-viewer");
 
