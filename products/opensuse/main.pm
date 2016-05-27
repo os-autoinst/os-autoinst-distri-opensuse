@@ -254,6 +254,10 @@ sub gnomestep_is_applicable() {
     return check_var("DESKTOP", "gnome");
 }
 
+sub guiupdates_is_applicable() {
+    return get_var("DESKTOP") =~ /gnome|kde/;
+}
+
 sub lxdestep_is_applicable() {
     return check_var("DESKTOP", "lxde");
 }
@@ -499,7 +503,7 @@ sub load_consoletests() {
         {
             loadtest "console/glibc_i686.pm";
         }
-        if (!gnomestep_is_applicable) {
+        if (!guiupdates_is_applicable) {
             loadtest "console/zypper_up.pm";
         }
         loadtest "console/zypper_in.pm";
@@ -678,6 +682,7 @@ sub load_x11tests() {
         loadtest "x11/gedit.pm";
     }
     if (kdestep_is_applicable) {
+        loadtest "x11/updates_kde.pm";
         loadtest "x11/kate.pm";
     }
     loadtest "x11/firefox.pm";
