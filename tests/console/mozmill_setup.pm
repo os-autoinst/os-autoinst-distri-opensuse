@@ -31,7 +31,6 @@ sub run() {
     clear_console;
     script_run("cd /tmp");    # dont use home to not confuse dolphin test
     script_run("wget -q openqa.opensuse.org/opensuse/qatests/qa_mozmill_setup.sh");
-    local $bmwqemu::timesidleneeded = 3;
     script_run("sh -x qa_mozmill_setup.sh");
     sleep 9;
     wait_idle 90;
