@@ -24,7 +24,7 @@ sub wait_for_bootmenu() {
         my $tag = "boot-menu-boot-device-" . $try . "-dvd";
 
         if (check_screen($tag, 0)) {
-            bmwqemu::diag "DVD found at position " . $try . ", tag: " . $tag;
+            diag "DVD found at position " . $try . ", tag: " . $tag;
             $dvd_found = $try;
             type_string $try;
             last;

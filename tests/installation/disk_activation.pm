@@ -72,7 +72,7 @@ sub run {
         if (check_screen 'dasd-format-device', 10) {    # format device pop-up
             send_key 'alt-o';                               # continue
             while (check_screen 'process-dasd-format') {    # format progress
-                bmwqemu::diag("formatting DASD ...");
+                diag("formatting DASD ...");
                 sleep 20;
             }
         }
@@ -90,7 +90,7 @@ sub run {
                 assert_screen 'confirm-dasd-format';        # confirmation popup
                 send_key 'alt-y';
                 while (check_screen 'process-dasd-format') {
-                    bmwqemu::diag("formatting DASD ...");
+                    diag("formatting DASD ...");
                     sleep 20;
                 }
             }
