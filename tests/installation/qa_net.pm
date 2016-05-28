@@ -13,8 +13,6 @@ use strict;
 use testapi;
 use Time::HiRes qw(sleep);
 
-use bmwqemu ();
-
 sub run() {
     my ($self) = @_;
 
