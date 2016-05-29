@@ -26,9 +26,20 @@ sub run() {
         push(@tags, "DIALOG-packages-notifications");
         $timeout = 5500;    # upgrades are slower
     }
-    while (1) {
-        assert_screen \@tags, $timeout;
-
+    my $keep_trying = 1;
+    while ($keep_trying) {
+        # try gracefully on aarch64 because of boo#982136
+        if (check_var('ARCH', 'aarch64')) {
+            my $ret = check_screen \@tags, $timeout;
+            if (!$ret) {
+                die 'timed out installation even after retrying' unless $keep_trying;
+                record_soft_failure 'boo#982136: timed out after ' . $timeout . 'seconds, trying once more';
+                $keep_trying = 0;
+            }
+        }
+        else {
+            assert_screen \@tags, $timeout;
+        }
         if (match_has_tag("DIALOG-packages-notifications")) {
             send_key 'alt-o';    # ok
             next;
