@@ -979,12 +979,12 @@ sub prepare_target() {
 
 
 sub load_virtauto_tests() {
-        #loadtest "virt_autotest/common/init_pxe_install.pm";
-        #load_inst_tests();
+        loadtest "virt_autotest/common/init_pxe_install.pm";
+        load_inst_tests();
         loadtest "virt_autotest/common/login_console.pm";
-        #loadtest "virt_autotest/common/install_package.pm";
+        loadtest "virt_autotest/common/install_package.pm";
+        loadtest "virt_autotest/common/login_console_again.pm";
         loadtest "virt_autotest/Prj1_Guest_Installation/guest_installation_run.pm";
-
 }
 
 # load the tests in the right order
