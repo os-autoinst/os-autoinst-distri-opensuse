@@ -14,10 +14,16 @@ use testapi;
 sub pre_run_hook() {
     # Turn off screensaver
     x11_start_program("xterm");
-    script_run("gsettings set org.gnome.desktop.session idle-delay 0");
+    if (check_var("DESKTOP", "gnome")) {
+        script_run("gsettings set org.gnome.desktop.session idle-delay 0");
+    }
+    else {
+        script_run("xscreensaver-command -exit");
+    }
     send_key("ctrl-d");
 }
 
+# Update with GNOME PackageKit Update Viewer
 sub run() {
     my @updates_tags           = qw/updates_none updates_available/;
     my @updates_installed_tags = qw/updates_none updates_installed-logout updates_installed-restart/;
@@ -32,7 +38,7 @@ sub run() {
             last;
         }
         elsif (match_has_tag("updates_available")) {
-            assert_and_click("updates_click-install");
+            send_key "alt-i";    # install
 
             # Authenticate on SLES
             if (check_screen("updates_authenticate")) {
@@ -40,16 +46,17 @@ sub run() {
             }
 
             # Wait until installation is done
-            assert_screen \@updates_installed_tags, 2000;
+            assert_screen \@updates_installed_tags, 3600;
             if (match_has_tag("updates_none")) {
                 send_key "ret";
                 last;
             }
             elsif (match_has_tag("updates_installed-logout")) {
-                assert_and_click("updates_click-cancel");
+                send_key "alt-c";    # close
             }
             elsif (match_has_tag("updates_installed-restart")) {
-                assert_and_click("updates_click-cancel");
+                send_key "alt-c";    # close
+
                 # Workaround - packagekit stays open leap 42.1, fixed after update
                 if (check_screen("updates_available", 5)) {
                     send_key("alt-f4");

@@ -253,7 +253,7 @@ sub gnomestep_is_applicable() {
 }
 
 sub guiupdates_is_applicable() {
-    return get_var("DESKTOP") =~ /gnome|kde/;
+    return get_var("DESKTOP") =~ /gnome|kde|xfce|lxde/;
 }
 
 sub lxdestep_is_applicable() {
@@ -667,20 +667,25 @@ sub load_x11tests() {
         loadtest "x11/awesome_xterm.pm";
         return;
     }
-
+    if (guiupdates_is_applicable) {
+        if (check_var("DESKTOP", "kde")) {
+            loadtest "x11/updates_packagekit_kde.pm";
+        }
+        else {
+            loadtest "x11/updates_packagekit_gpk.pm";
+        }
+    }
     if (xfcestep_is_applicable) {
         loadtest "x11/xfce4_terminal.pm";
     }
     loadtest "x11/xterm.pm";
     loadtest "x11/sshxterm.pm" unless get_var("LIVETEST");
     if (gnomestep_is_applicable) {
-        loadtest "x11/updates_gnome.pm";
         loadtest "x11/gnome_control_center.pm";
         loadtest "x11/gnome_terminal.pm";
         loadtest "x11/gedit.pm";
     }
     if (kdestep_is_applicable) {
-        loadtest "x11/updates_kde.pm";
         loadtest "x11/kate.pm";
     }
     loadtest "x11/firefox.pm";
