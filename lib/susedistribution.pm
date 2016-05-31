@@ -5,7 +5,7 @@ use strict;
 # Base class for all openSUSE tests
 
 # don't import script_run - it will overwrite script_run from distribution and create a recursion
-use testapi qw(send_key %cmd assert_screen check_screen check_var get_var match_has_tag set_var type_password type_string wait_idle wait_serial mouse_hide send_key_until_needlematch record_soft_failure);
+use testapi qw(send_key %cmd assert_screen check_screen check_var get_var match_has_tag set_var type_password type_string wait_idle wait_serial mouse_hide send_key_until_needlematch record_soft_failure wait_still_screen wait_screen_change);
 
 sub init() {
     my ($self) = @_;
@@ -96,14 +96,18 @@ sub x11_start_program($$$) {
         send_key('alt-t');
         sleep 3;
     }
-    send_key('ret', 1);
+    send_key "ret";
+    wait_still_screen;
+    # lrunner has auto-completion feature, sometimes it causes high load while
+    # typing and the following 'ret' fails to work
     # make sure desktop runner executed and closed when have had valid value
     # exec x11_start_program( $program, $timeout, { valid => 1 } );
     if ($options->{valid}) {
-        # check 3 times
-        foreach my $i (1 .. 3) {
+        for (1 .. 3) {
             last unless check_screen "desktop-runner-border", 2;
-            send_key "ret", 1;
+            wait_screen_change {
+                send_key "ret";
+            };
         }
     }
 }
