@@ -17,7 +17,12 @@ use testapi;
 sub run() {
     my $self = shift;
     x11_start_program("xterm");
-    script_run "tracker-info newpl.pl";
+    if (main::version_at_least('12-SP2')) {
+        script_run "tracker info newpl.pl";
+    }
+    else {
+        script_run "tracker-info newpl.pl";
+    }
     sleep 5;
     assert_screen 'tracker-info-newpl';
     send_key "alt-f4";
