@@ -197,20 +197,12 @@ sub run() {
         format_dasd;
     }
 
+    select_console("installation");
     # We have textmode installation via ssh and the default vnc installation so far
-    if (check_var('VIDEOMODE', 'text')) {
-        select_console("installation");
+    if (check_var('VIDEOMODE', 'text') || check_var('VIDEOMODE', 'ssh-x')) {
         type_string("yast.ssh\n");
     }
-    elsif (check_var('VIDEOMODE', 'ssh-x')) {
-        my $console = select_console("installation");
-        type_string("yast.ssh\n");
-        assert_screen('yast2-windowborder');
-        $console->fullscreen({window_name => 'YaST2*'});
-    }
-    else {
-        select_console("installation");
-    }
+    wait_still_screen;
 
     $self->result('ok');
 }
