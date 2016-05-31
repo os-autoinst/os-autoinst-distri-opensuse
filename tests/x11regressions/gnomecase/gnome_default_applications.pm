@@ -38,18 +38,18 @@ sub run() {
     assert_screen 'gnomecase-defaultapps-nautilus';
 
     # Open test files with default applications
-    assert_and_dclick "gnomecase-defaultapps-jpgfile";    #open jpg
+    assert_and_dclick "gnomecase-defaultapps-jpgfile";     #open jpg
     assert_screen 'gnomecase-defaultapps-jpgopen';
-    send_key "ctrl-w";                                    #close eog
+    send_key "ctrl-w";                                     #close eog
     wait_still_screen;
-    assert_and_dclick "gnomecase-defaultapps-pngfile";    #open png
+    assert_and_dclick "gnomecase-defaultapps-pngfile";     #open png
     assert_screen 'gnomecase-defaultapps-pngopen';
-    send_key "ctrl-w";                                    #close eog
+    send_key "ctrl-w";                                     #close eog
     wait_still_screen;
-    assert_and_dclick "gnomecase-defaultapps-pdffile";    #open pdf
+    assert_and_dclick "gnomecase-defaultapps-pdffile";     #open pdf
     wait_still_screen;
     send_key "super-up";
-    assert_screen 'evince-open-pdf', 5;
+    assert_screen 'evince-open-pdf';
     send_key "ctrl-w";                                     #close evince
     wait_still_screen;
     assert_and_dclick "gnomecase-defaultapps-bz2file";     #open bzip
