@@ -17,7 +17,12 @@ use testapi;
 sub run() {
     my $self = shift;
     x11_start_program("xterm");
-    script_run "tracker-search newfile";
+    if (main::version_at_least('12-SP2')) {
+        script_run "tracker search newfile";
+    }
+    else {
+        script_run "tracker-search newfile";
+    }
     assert_screen 'tracker-cmdsearch-newfile';
     send_key 'alt-f4';
 }
