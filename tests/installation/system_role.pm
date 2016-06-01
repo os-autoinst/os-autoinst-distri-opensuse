@@ -13,7 +13,13 @@ use testapi;
 
 sub run() {
     assert_screen 'system-role-default-system';
-    send_key 'alt-n';    # next
+
+    if (get_var("SYSTEM_ROLE")) {
+        send_key 'alt-k';
+        assert_screen 'system-role-kvm-virthost';
+    }
+
+    send_key 'alt-n';	#next
 }
 
 1;
