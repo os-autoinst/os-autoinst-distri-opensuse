@@ -58,10 +58,7 @@ sub split_lines {
 
 use backend::console_proxy;
 
-sub get_to_yast() {
-    my $self  = shift;
-    my $s3270 = console('x3270');
-
+sub prepare_parmfile() {
     my $params = '';
     $params .= get_var('S390_NETWORK_PARAMS');
 
@@ -78,18 +75,29 @@ sub get_to_yast() {
     # create a too long parameter ;(
     $params .= " install=ftp://openqa/" . get_var('REPO_0') . " ";
 
-    my $parmfile_with_Newline_s = split_lines($params);
+    return split_lines($params);
+}
+
+sub get_to_yast() {
+    my $self  = shift;
+    my $s3270 = console('x3270');
 
     my $r;
 
-    ###################################################################
-    # qboot
-    my $ftp_server = get_var('OPENQA_HOSTNAME') or die;
+    # qaboot
     my $dir_with_suse_ins = get_var('REPO_0');
+
+    # ensure that we are in cms mode before executing qaboot
+    $s3270->sequence_3270("String(\"#cp i cms\")", "ENTER", "ENTER", "ENTER", "ENTER",);
+    $r = $s3270->expect_3270(
+        output_delim => qr/CMS/,
+        timeout      => 20
+    ) || die "Could not initialize CMS";
+
     $s3270->sequence_3270("String(\"qaboot openqa.suse.de $dir_with_suse_ins\")", "ENTER", "Wait(InputField)",);
 
-    ##############################
     # edit parmfile
+    my $parmfile_with_Newline_s = prepare_parmfile;
     {
         $r = $s3270->expect_3270(buffer_ready => qr/X E D I T/, timeout => 240) || die "Download of Kernel or Initrd took too long";
 
@@ -166,7 +174,7 @@ sub format_dasd() {
     assert_script_run("dasd_configure 0.0.0150 1");
 
     # make sure that there is a dasda device
-    assert_script_run("lsdasd | tee /dev/$serialdev");
+    assert_script_run("lsdasd");
     assert_screen("ensure-dasd-exists");
 
     # format dasda (this can take up to 20 minutes depending on disk size)
@@ -198,6 +206,7 @@ sub run() {
     }
 
     select_console("installation");
+
     # We have textmode installation via ssh and the default vnc installation so far
     if (check_var('VIDEOMODE', 'text') || check_var('VIDEOMODE', 'ssh-x')) {
         type_string("yast.ssh\n");
