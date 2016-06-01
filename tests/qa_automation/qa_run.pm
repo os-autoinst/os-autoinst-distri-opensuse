@@ -95,6 +95,30 @@ sub start_testrun {
     assert_script_run "/usr/share/qa/qaset/run/$testsuite-run.openqa";
 }
 
+# Safely run shell commands and get output
+sub qa_script_output {
+    my ($self, $cmd, $timeout) = @_;
+    my $random      = int(rand(999999));
+    my $output_file = "/tmp/SCRIPT_OUTPUT_$random";
+    $timeout = 90 unless defined $timeout;
+    # Run cmd and save output to file
+    $cmd = "bash -c \"$cmd\" 2>&1 | tee $output_file";
+    script_run($cmd, $timeout);
+    # Write output to serial console
+    my $output_cmd = "sleep 0.1; echo SCRIPT_BEGIN_$random >> /dev/$serialdev; ";
+    $output_cmd .= "cat $output_file >> /dev/$serialdev; ";
+    $output_cmd .= "echo SCRIPT_END_$random >> /dev/$serialdev\n";
+    type_string $output_cmd;
+    # Get output from serial console
+    my $output = wait_serial("SCRIPT_END_$random", 30);
+    $output =~ s/.*?SCRIPT_BEGIN_$random//sg;
+    $output =~ s/SCRIPT_END_$random.*//sg;
+    $output =~ s/^\s+|\s+$//g;
+    # Remove output file
+    script_run("rm -f $output_file", 10);
+    return $output;
+}
+
 # Check whether DONE file exists every $interval secs in the background
 sub wait_testrun {
     my ($self, $interval) = @_;
@@ -116,14 +140,8 @@ sub wait_testrun {
 # Upload all log tarballs in /var/log/qaset/log
 sub qa_upload_logs {
     my ($self, $dir, $pattern) = @_;
-    my $cmd = "sleep 0.1; echo LOG_FILES_BEGIN >> /dev/$serialdev";
-    $cmd .= "; find '$dir' -type f -name '$pattern' >> /dev/$serialdev";
-    $cmd .= "; echo LOG_FILES_END >> /dev/$serialdev\n";
-    type_string $cmd;
-    my $output = wait_serial("LOG_FILES_END", 30);
-    $output =~ s/.*?LOG_FILES_BEGIN//sg;
-    $output =~ s/LOG_FILES_END.*//sg;
-    $output =~ s/^\s+|\s+$//g;
+    my $cmd = "find '$dir' -type f -name '$pattern'";
+    my $output = $self->qa_script_output($cmd, 30);
     unless ($output) {
         print "WARNING: No log tarballs found in /var/log/qaset/log\n";
         return;
