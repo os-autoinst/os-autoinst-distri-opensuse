@@ -16,7 +16,10 @@ sub run() {
     my $self = shift;
     select_console 'root-console';
 
-    if (my $u = get_var('SCC_URL')) {
+    # SCC_URL was placed to medium types
+    # so set SMT_URL here if register system via smt server
+    # otherwise must register system via real SCC before online migration
+    if (my $u = get_var('SMT_URL')) {
         type_string "echo 'url: $u' > /etc/SUSEConnect\n";
     }
 
