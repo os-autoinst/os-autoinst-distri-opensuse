@@ -1011,6 +1011,12 @@ sub load_online_migration_tests() {
     loadtest "online_migration/sle12_online_migration/post_migration.pm";
 }
 
+sub load_fips_tests_core() {
+    loadtest "fips/openssl/openssl_fips_alglist.pm";
+    loadtest "fips/openssl/openssl_fips_hash.pm";
+    loadtest "fips/openssl/openssl_fips_cipher.pm";
+}
+
 sub load_fips_tests_web() {
     loadtest "console/curl_https.pm";
 }
@@ -1089,6 +1095,10 @@ elsif (get_var("SUPPORT_SERVER")) {
 elsif (get_var("FIPS_TS")) {
     if (check_var("FIPS_TS", "setup")) {
         prepare_target();
+    }
+    elsif (check_var("FIPS_TS", "core")) {
+        loadtest "boot/boot_to_desktop.pm";
+        load_fips_tests_core;
     }
     elsif (check_var("FIPS_TS", "web")) {
         loadtest "boot/boot_to_desktop.pm";
