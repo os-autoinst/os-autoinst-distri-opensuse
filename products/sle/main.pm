@@ -500,7 +500,7 @@ sub load_inst_tests() {
     }
     loadtest "installation/addon_products_sle.pm";
     if (noupdatestep_is_applicable) {
-        if (check_var('ARCH', 'x86_64') && version_at_least('12-SP2') && is_server) {
+        if (check_var('ARCH', 'x86_64') && version_at_least('12-SP2') && is_server && !check_var('NOT_INSTALL_TO',1)) {
             loadtest "installation/system_role.pm";
         }
         loadtest "installation/partitioning.pm";

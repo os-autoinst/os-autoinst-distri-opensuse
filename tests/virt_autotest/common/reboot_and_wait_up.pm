@@ -27,7 +27,7 @@ sub reboot_and_wait_up() {
 	#add switch xen kernel
 	assert_screen "grub2", 120;
 	if (!get_var("reboot_for_upgrade_step")) {
-	    if (get_var("XEN")) {
+	    if (get_var("XEN") || check_var("HOST_HYPERVISOR","xen")) {
 	        send_key_until_needlematch("bootmenu-xen-kernel", 'down', 10, 1);
 	        send_key 'ret';
 	    }

@@ -47,7 +47,7 @@ sub update_package() {
     #$update_pkg_cmd = $update_pkg_cmd . " > /tmp/update_virt_rpms.log 2>&1 ";
     $update_pkg_cmd = $update_pkg_cmd . " 2>&1 | tee /tmp/update_virt_rpms.log ";
 
-    my $ret = $self->local_string_output($update_pkg_cmd, 5400);
+    my $ret = $self->local_string_output($update_pkg_cmd, 7200);
     save_screenshot;
 
     upload_logs("/tmp/update_virt_rpms.log");
