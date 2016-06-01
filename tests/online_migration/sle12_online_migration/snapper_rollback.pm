@@ -26,8 +26,16 @@ sub check_rollback_system() {
 sub run() {
     my $self = shift;
 
-    # login to snapshot and perform snapper rollback
-    assert_screen 'linux-login', 200;
+    # login to before online migration snapshot
+    # tty would not appear quite often after booting snapshot
+    # it is a known bug bsc#980337
+    # in this case select tty1 first then select root console
+    if (!check_screen('linux-login', 200)) {
+        record_soft_failure 'bsc#980337';
+        send_key "ctrl-alt-f1";
+        assert_screen 'tty1-selected';
+    }
+
     select_console 'root-console';
     wait_still_screen;
     script_run "snapper rollback";

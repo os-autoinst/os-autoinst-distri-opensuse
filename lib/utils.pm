@@ -22,6 +22,7 @@ our @EXPORT = qw/
   zypper_call
   fully_patch_system
   workaround_type_encrypted_passphrase
+  check_screenlock
   /;
 
 
@@ -292,6 +293,39 @@ sub workaround_type_encrypted_passphrase {
     }
 }
 
+# if stay under tty console for long time, then check
+# screen lock is necessary when switch back to x11
+sub check_screenlock {
+    send_key "backspace";    # deactivate blanking
+    if (check_screen("screenlock")) {
+        if (check_var("DESKTOP", "gnome")) {
+            send_key "esc";
+            unless (get_var("LIVETEST")) {
+                send_key "ctrl";    # show gnome screen lock in sle 11
+
+                # it is possible for GNOME not yet to ask for a password
+                # switching to tty1 then back to 7, where GNOME runs, withing five minutes
+                # does not lock with a password - in most cases we take long enough, but some
+                # console tests are just too quick
+                if (check_screen "gnome-screenlock-password") {
+                    type_password;
+                    send_key "ret";
+                }
+            }
+        }
+        elsif (check_var("DESKTOP", "minimalx")) {
+            type_string "$username";
+            save_screenshot();
+            send_key "ret";
+            type_password;
+            send_key "ret";
+        }
+        else {
+            type_password;
+            send_key "ret";
+        }
+    }
+}
 1;
 
 # vim: sw=4 et
