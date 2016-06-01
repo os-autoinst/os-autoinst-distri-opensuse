@@ -1012,6 +1012,7 @@ sub load_online_migration_tests() {
 
 sub load_fips_tests_web() {
     loadtest "console/curl_https.pm";
+    loadtest "console/wget_https.pm";
 }
 
 sub prepare_target() {
