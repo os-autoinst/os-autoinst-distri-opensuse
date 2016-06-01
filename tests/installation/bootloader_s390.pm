@@ -174,7 +174,7 @@ sub format_dasd() {
     assert_script_run("dasd_configure 0.0.0150 1");
 
     # make sure that there is a dasda device
-    assert_script_run("lsdasd | tee /dev/$serialdev");
+    assert_script_run("lsdasd");
     assert_screen("ensure-dasd-exists");
 
     # format dasda (this can take up to 20 minutes depending on disk size)
