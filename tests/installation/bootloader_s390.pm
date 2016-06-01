@@ -86,6 +86,14 @@ sub get_to_yast() {
     # qboot
     my $ftp_server = get_var('OPENQA_HOSTNAME') or die;
     my $dir_with_suse_ins = get_var('REPO_0');
+
+    # ensure that we are in cms mode before executing qaboot
+    $s3270->sequence_3270("String(\"#cp i cms\")", "ENTER", "ENTER", "ENTER", "ENTER",);
+    $r = $s3270->expect_3270(
+        output_delim => qr/CMS/,
+        timeout      => 20
+    ) || die "Could not initialize CMS";
+
     $s3270->sequence_3270("String(\"qaboot openqa.suse.de $dir_with_suse_ins\")", "ENTER", "Wait(InputField)",);
 
     ##############################
