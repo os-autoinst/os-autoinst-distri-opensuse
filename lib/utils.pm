@@ -21,6 +21,7 @@ our @EXPORT = qw/
   get_netboot_mirror
   zypper_call
   fully_patch_system
+  workaround_type_encrypted_passphrase
   /;
 
 
@@ -283,6 +284,14 @@ sub fully_patch_system {
     # second run, full system update
     zypper_call('patch --with-interactive -l', [0, 102], 2500);
 }
+
+sub workaround_type_encrypted_passphrase {
+    if (get_var('ENCRYPT') && check_var('ARCH', 'ppc64le')) {
+        record_soft_failure 'workaround https://fate.suse.com/320901';
+        unlock_if_encrypted;
+    }
+}
+
 1;
 
 # vim: sw=4 et
