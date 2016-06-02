@@ -35,6 +35,7 @@ sub run() {
         send_key "ret";
 
     }
+    workaround_type_encrypted_passphrase;
     # the shutdown sometimes hangs longer, so give it time
     wait_boot bootloader_time => 300;
 }

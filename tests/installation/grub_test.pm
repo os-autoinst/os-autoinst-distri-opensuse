@@ -15,10 +15,7 @@ use utils;
 
 sub run() {
     my $self = shift;
-    if (get_var('ENCRYPT') && check_var('ARCH', 'ppc64le')) {
-        record_soft_failure 'workaround https://fate.suse.com/320901';
-        unlock_if_encrypted;
-    }
+    workaround_type_encrypted_passphrase;
     assert_screen "grub2";
     # prevent grub2 timeout; 'esc' would be cleaner, but grub2-efi falls to the menu then
     send_key 'up';
