@@ -27,7 +27,7 @@ sub run() {
         return;
     }
     if (get_var("USBBOOT")) {
-        assert_screen "boot-menu", 1;
+        assert_screen "boot-menu";
         # support multiple versions of seabios, does not harm to press
         # multiple keys here: seabios<1.9: f12, seabios=>1.9: esc
         send_key((match_has_tag 'boot-menu-esc') ? 'esc' : 'f12');
