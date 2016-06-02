@@ -19,8 +19,8 @@ sub run() {
     # check network at first
     assert_script_run("if ! systemctl -q is-active network; then systemctl -q start network; fi");
 
-    # install xorg-x11 at first
-    assert_script_run("/usr/bin/zypper -n -q in xorg-x11 ");
+    # install xorg-x11 and vncmanager at first
+    assert_script_run("/usr/bin/zypper -n -q in vncmanager xorg-x11 ");
 
     # start Remote Administration configuration
     script_run("/sbin/yast2 remote; echo yast2-remote-status-\$? > /dev/$serialdev", 0);
