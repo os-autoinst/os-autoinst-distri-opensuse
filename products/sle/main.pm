@@ -618,8 +618,7 @@ sub load_reboot_tests() {
                 loadtest "installation/boot_into_snapshot.pm";
             }
         }
-        # don't run for ppc64le until https://fate.suse.com/320901 is implemented
-        if (get_var("ENCRYPT") && !check_var('ARCH', 'ppc64le')) {
+        if (get_var("ENCRYPT")) {
             loadtest "installation/boot_encrypt.pm";
         }
         loadtest "installation/first_boot.pm";
