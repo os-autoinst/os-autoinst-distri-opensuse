@@ -39,6 +39,7 @@ sub run() {
     type_string "/new_dir";
     assert_screen 'http_new_dir_created';     # check new dir got created successfully
     send_key 'alt-o';
+    wait_still_screen;
     send_key 'alt-n';                         # now go to http server wizard (4/5)--virtual hosts
     assert_screen 'http_add_host';            # check the page (4/5) is open and ready for adding a new virtual host
     send_key 'alt-a';
