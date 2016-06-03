@@ -18,6 +18,7 @@ sub pre_run_hook() {
     send_key("alt-o");
 }
 
+# Update with Plasma applet for software updates using PackageKit
 sub run() {
     my @updates_installed_tags = qw/updates_none updates_available/;
 
