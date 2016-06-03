@@ -1028,6 +1028,10 @@ sub load_fips_tests_web() {
     loadtest "console/wget_https.pm";
 }
 
+sub load_fips_tests_misc() {
+    loadtest "console/aide_check.pm";
+}
+
 sub prepare_target() {
     if (get_var("BOOT_HDD_IMAGE")) {
         loadtest "boot/boot_to_desktop.pm";
@@ -1110,6 +1114,10 @@ elsif (get_var("FIPS_TS")) {
     elsif (check_var("FIPS_TS", "web")) {
         loadtest "boot/boot_to_desktop.pm";
         load_fips_tests_web;
+    }
+    elsif (check_var("FIPS_TS", "misc")) {
+        loadtest "boot/boot_to_desktop.pm";
+        load_fips_tests_misc;
     }
 }
 elsif (get_var("HACLUSTER_SUPPORT_SERVER")) {
