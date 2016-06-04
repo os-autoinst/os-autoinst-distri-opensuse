@@ -35,6 +35,7 @@ sub run() {
                 die 'timed out installation even after retrying' unless $keep_trying;
                 record_soft_failure 'boo#982136: timed out after ' . $timeout . 'seconds, trying once more';
                 $keep_trying = 0;
+                next;
             }
         }
         else {
