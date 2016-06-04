@@ -1026,6 +1026,7 @@ sub load_fips_tests_core() {
 sub load_fips_tests_web() {
     loadtest "console/curl_https.pm";
     loadtest "console/wget_https.pm";
+    loadtest "console/w3m_https.pm";
 }
 
 sub load_fips_tests_misc() {
