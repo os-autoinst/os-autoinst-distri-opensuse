@@ -11,6 +11,7 @@
 use base "x11test";
 use strict;
 use testapi;
+use utils;
 
 # test for bug https://bugs.freedesktop.org/show_bug.cgi?id=42301
 
@@ -25,9 +26,9 @@ sub run() {
     send_key "2";
     send_key "ctrl-z";    # undo produces "12" instead of "1"
     sleep 3;
-    assert_screen 'test-oomath-1', 3;
+    assert_screen_with_soft_timeout('test-oomath-1', soft_timeout => 3);
     send_key "alt-f4";
-    assert_screen 'oomath-prompt', 5;
+    assert_screen_with_soft_timeout('oomath-prompt', soft_timeout => 5);
     assert_and_click 'dont-save-libreoffice-btn';    # _Don't save
 }
 

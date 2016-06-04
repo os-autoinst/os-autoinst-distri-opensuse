@@ -18,7 +18,7 @@ use utils;
 sub run() {
     my $self = shift;
     script_sudo("zypper -n in gcc python-devel python-pip mercurial curlftpfs");
-    assert_screen 'test-mozmill_setup-1', 3;
+    assert_screen_with_soft_timeout('test-mozmill_setup-1', soft_timeout => 3);
     clear_console;
 
     #script_sudo("pip install mozmill mercurial");
@@ -27,7 +27,7 @@ sub run() {
     #script_sudo("pip install mozmill==1.5.3 mercurial");
     sleep 5;
     wait_idle 50;
-    assert_screen 'test-mozmill_setup-2', 3;
+    assert_screen_with_soft_timeout('test-mozmill_setup-2', soft_timeout => 3);
     clear_console;
     script_run("cd /tmp");    # dont use home to not confuse dolphin test
     script_run("wget -q openqa.opensuse.org/opensuse/qatests/qa_mozmill_setup.sh");

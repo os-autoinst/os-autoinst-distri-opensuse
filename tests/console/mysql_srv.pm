@@ -11,6 +11,7 @@
 use strict;
 use base "consoletest";
 use testapi;
+use utils;
 
 sub run() {
     my $self = shift;
@@ -29,7 +30,7 @@ sub run() {
     script_run "systemctl status mysql.service | tee /dev/$serialdev -", 0;
     wait_serial(".*Syntax error.*", 2, 1) || die "have error while starting mysql";
 
-    assert_screen 'test-mysql_srv-1', 3;
+    assert_screen_with_soft_timeout('test-mysql_srv-1', soft_timeout => 3);
 }
 
 1;

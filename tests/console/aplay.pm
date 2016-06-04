@@ -32,7 +32,7 @@ EOS
     assert_script_run('set_default_volume -f');
 
     script_run('alsamixer', 0);
-    assert_screen 'test-aplay-2', 3;
+    assert_screen_with_soft_timeout('test-aplay-2', soft_timeout => 3);
     send_key "esc";
     $self->clear_and_verify_console;
 

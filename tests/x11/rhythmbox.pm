@@ -11,11 +11,12 @@
 use base "x11test";
 use strict;
 use testapi;
+use utils;
 
 sub run() {
     my $self = shift;
     x11_start_program("rhythmbox");
-    assert_screen 'test-rhythmbox-1', 15;
+    assert_screen_with_soft_timeout('test-rhythmbox-1', soft_timeout => 15);
     send_key "alt-f4";
     wait_idle;
 }

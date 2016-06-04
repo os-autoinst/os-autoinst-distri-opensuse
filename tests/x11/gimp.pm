@@ -11,13 +11,14 @@
 use base "x11test";
 use strict;
 use testapi;
+use utils;
 
 # XXX TODO - is using KDE variable here
 sub run() {
     my $self = shift;
     ensure_installed("gimp");
     x11_start_program("gimp");
-    assert_screen "test-gimp-1", 20;
+    assert_screen_with_soft_timeout("test-gimp-1", soft_timeout => 20);
     send_key "alt-f4";    # Exit
 }
 

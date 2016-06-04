@@ -11,6 +11,7 @@
 use base "x11test";
 use strict;
 use testapi;
+use utils;
 
 # for https://bugzilla.novell.com/show_bug.cgi?id=717871
 
@@ -23,7 +24,7 @@ sub run() {
     for (1 .. 3) {
         send_key "spc";
         sleep 3;
-        assert_screen 'test-imagemagick-1', 3;
+        assert_screen_with_soft_timeout('test-imagemagick-1', soft_timeout => 3);
     }
     send_key "alt-f4";    # close display
     send_key "alt-f4";    # close xterm

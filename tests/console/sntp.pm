@@ -19,10 +19,10 @@ sub run() {
     script_run("cd /tmp ; wget -q openqa.opensuse.org/opensuse/qatests/qa_ntp.pl");
     script_sudo("perl qa_ntp.pl");
     wait_idle 90;
-    assert_screen 'test-sntp-1', 3;
+    assert_screen_with_soft_timeout('test-sntp-1', soft_timeout => 3);
     clear_console;
     script_run('echo sntp returned $?');
-    assert_screen 'test-sntp-2', 3;
+    assert_screen_with_soft_timeout('test-sntp-2', soft_timeout => 3);
 }
 
 1;

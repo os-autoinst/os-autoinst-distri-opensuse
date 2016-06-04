@@ -11,6 +11,7 @@
 use base "x11test";
 use strict;
 use testapi;
+use utils;
 
 # for https://bugzilla.novell.com/show_bug.cgi?id=657626
 
@@ -27,7 +28,7 @@ sub run() {
         send_key "shift";    # avoid blank/screensaver
         last if wait_serial "mozmill testrun finished", 120;
     }
-    assert_screen 'test-mozmill_run-1', 3;
+    assert_screen_with_soft_timeout('test-mozmill_run-1', soft_timeout => 3);
     send_key "alt-f4";
 }
 

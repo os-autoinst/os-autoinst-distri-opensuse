@@ -11,6 +11,7 @@
 use base "x11test";
 use strict;
 use testapi;
+use utils;
 
 # log out, check lightdm-gtk-greeter and log in again
 
@@ -19,7 +20,7 @@ sub run() {
     my $self = shift;
     x11_start_program("xfce4-session-logout");
     send_key "alt-l";
-    assert_screen 'test-xfce_lightdm_logout_login-1', 13;
+    assert_screen_with_soft_timeout('test-xfce_lightdm_logout_login-1', soft_timeout => 13);
     mouse_hide();
     type_password;
     send_key "ret";

@@ -16,7 +16,7 @@ use utils;
 sub run() {
     wait_idle;
     send_key "ctrl-alt-delete";    # reboot
-    assert_screen 'logoutdialog', 15;
+    assert_screen_with_soft_timeout('logoutdialog', soft_timeout => 15);
     send_key "tab";
     send_key "tab";
     my $ret;
@@ -31,12 +31,12 @@ sub run() {
     }
     # report the failure or green
     unless (defined($ret)) {
-        assert_screen "logoutdialog-reboot-highlighted", 1;
+        assert_screen_with_soft_timeout("logoutdialog-reboot-highlighted", soft_timeout => 1);
     }
     send_key "ret";    # confirm
 
     if (get_var("SHUTDOWN_NEEDS_AUTH")) {
-        assert_screen 'reboot-auth', 15;
+        assert_screen_with_soft_timeout('reboot-auth', soft_timeout => 15);
         type_password;
         send_key "ret";
     }

@@ -24,7 +24,7 @@ sub run() {
     for (1 .. 13) { send_key "ret" }
     type_string "echo If you can see this text xterm is working.\n";
     sleep 2;
-    assert_screen 'test-xterm-1', 3;
+    assert_screen_with_soft_timeout('test-xterm-1', soft_timeout => 3);
     send_key "alt-f4";
 }
 

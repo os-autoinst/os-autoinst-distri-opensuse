@@ -11,6 +11,7 @@
 use base "consoletest";
 use strict;
 use testapi;
+use utils;
 
 # check if sshd works
 sub run() {
@@ -47,7 +48,7 @@ sub run() {
     type_string "yes\n";
     assert_screen 'password-prompt';
     type_string "$ssh_testman_passwd\n";
-    assert_screen "ssh-login-ok", 10;
+    assert_screen_with_soft_timeout("ssh-login-ok", soft_timeout => 10);
 }
 
 sub test_flags() {

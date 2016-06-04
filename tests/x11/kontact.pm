@@ -11,6 +11,7 @@
 use base "x11test";
 use strict;
 use testapi;
+use utils;
 
 sub run() {
     my $self = shift;
@@ -31,9 +32,9 @@ sub run() {
         send_key "alt-n";    # Don't
     }
 
-    assert_screen "test-kontact-1", 20;    # tips window or assistant
-    send_key "alt-c";                      # KF5-based account assistant ignores alt-f4
-    assert_screen "kontact-window", 3;
+    assert_screen_with_soft_timeout("test-kontact-1", soft_timeout => 20);    # tips window or assistant
+    send_key "alt-c";                                                         # KF5-based account assistant ignores alt-f4
+    assert_screen_with_soft_timeout("kontact-window", soft_timeout => 3);
     send_key "alt-f4";
 }
 

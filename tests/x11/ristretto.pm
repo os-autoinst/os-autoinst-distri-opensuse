@@ -11,6 +11,7 @@
 use base "x11test";
 use strict;
 use testapi;
+use utils;
 
 # test ristretto and open the default wallpaper
 
@@ -20,7 +21,7 @@ sub run() {
     x11_start_program("ristretto /usr/share/wallpapers/xfce/default.wallpaper");
     send_key "ctrl-m";
     sleep 2;
-    assert_screen 'test-ristretto-1', 3;
+    assert_screen_with_soft_timeout('test-ristretto-1', soft_timeout => 3);
     send_key "alt-f4";
     sleep 2;
 }

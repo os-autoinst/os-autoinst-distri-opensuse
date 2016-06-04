@@ -28,7 +28,7 @@ sub run() {
     send_key "ctrl-l";    # select text in address bar
     sleep 1;
     type_string "about:\n";
-    assert_screen 'chromium-about', 15;
+    assert_screen_with_soft_timeout('chromium-about', soft_timeout => 15);
 
     send_key "ctrl-l";
     sleep 1;

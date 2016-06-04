@@ -11,6 +11,7 @@
 use base "x11test";
 use strict;
 use testapi;
+use utils;
 
 # test gnome-control-center, with panel (boo#897687)
 
@@ -21,9 +22,9 @@ sub run() {
     x11_start_program("gnome-control-center");
     assert_screen "gnome-control-center-started", 60;    # for timeout selection see bsc#965857
     type_string "details";
-    assert_screen "gnome-control-center-details-typed", 5;
+    assert_screen_with_soft_timeout("gnome-control-center-details-typed", soft_timeout => 5);
     assert_and_click "gnome-control-center-details";
-    assert_screen 'test-gnome_control_center-1', 3;
+    assert_screen_with_soft_timeout('test-gnome_control_center-1', soft_timeout => 3);
     send_key "alt-f4";
 }
 

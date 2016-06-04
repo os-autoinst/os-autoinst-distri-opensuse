@@ -49,13 +49,13 @@ sub run() {
     type_string("$pkgname\n");
     sleep 3;
     send_key "+";    # select for install
-    assert_screen "$pkgname-selected-for-install", 5;
+    assert_screen_with_soft_timeout("$pkgname-selected-for-install", soft_timeout => 5);
 
     if (!check_var('VERSION', '12')) {    #this functionality isn't avivable in SLE12SP0
         send_key "alt-p";                 # go to search box again
         for (1 .. length($pkgname)) { send_key "backspace" }
         type_string("$recommended\n");
-        assert_screen "$recommended-selected-for-install", 10;
+        assert_screen_with_soft_timeout("$recommended-selected-for-install", soft_timeout => 10);
 
         # UC2b:
         # Given that package is not installed,
@@ -65,11 +65,11 @@ sub run() {
         assert_screen 'yast2-sw_install_recommended_packages_enabled', 60;
         send_key "alt-r";    # Submenu Install Recommended Packages
 
-        assert_screen "$recommended-not-selected-for-install", 5;
+        assert_screen_with_soft_timeout("$recommended-not-selected-for-install", soft_timeout => 5);
         send_key "alt-p";    # go to search box again
         for (1 .. length($recommended)) { send_key "backspace" }
         type_string("$pkgname\n");
-        assert_screen "$pkgname-selected-for-install", 10;
+        assert_screen_with_soft_timeout("$pkgname-selected-for-install", soft_timeout => 10);
     }
     send_key "alt-a", 1;     # accept
 

@@ -11,6 +11,7 @@
 use base "consoletest";
 use strict;
 use testapi;
+use utils;
 
 sub run() {
     select_console 'root-console';
@@ -30,7 +31,7 @@ sub run() {
     script_run "snapper undochange $snapaf..$snapbf $snapfile";
     assert_script_run "test -f $snapfile", 10;
 
-    assert_screen 'snapper_undochange', 3;
+    assert_screen_with_soft_timeout('snapper_undochange', soft_timeout => 3);
 }
 
 sub test_flags() {

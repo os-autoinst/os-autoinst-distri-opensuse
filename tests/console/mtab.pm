@@ -11,11 +11,12 @@
 use base "consoletest";
 use strict;
 use testapi;
+use utils;
 
 sub run() {
     select_console 'user-console';
     script_run('test -L /etc/mtab && echo OK || echo fail');
-    assert_screen "test-mtab-1", 3;
+    assert_screen_with_soft_timeout("test-mtab-1", soft_timeout => 3);
     script_run('cat /etc/mtab');
     save_screenshot;
 }
