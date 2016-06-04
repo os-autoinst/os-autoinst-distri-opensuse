@@ -1031,6 +1031,7 @@ sub load_fips_tests_web() {
 
 sub load_fips_tests_misc() {
     loadtest "console/aide_check.pm";
+    loadtest "x11/hexchat_ssl.pm";
 }
 
 sub prepare_target() {
