@@ -1026,10 +1026,12 @@ sub load_fips_tests_core() {
 sub load_fips_tests_web() {
     loadtest "console/curl_https.pm";
     loadtest "console/wget_https.pm";
+    loadtest "console/w3m.pm";
 }
 
 sub load_fips_tests_misc() {
     loadtest "console/aide_check.pm";
+    loadtest "x11/hexchat_ssl.pm";
 }
 
 sub prepare_target() {
