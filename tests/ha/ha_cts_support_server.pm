@@ -28,6 +28,7 @@ sub run() {
     #cts support server
     assert_script_run qq(sed -ie "s/^search/search $domainname/" /etc/resolv.conf);
     assert_script_run "zypper ar dvd:///?devices=/dev/sr1 sleha";
+    assert_script_run "ip a";
     type_string "cat /etc/resolv.conf\n";
     assert_script_run "zypper ref";
     assert_script_run "zypper -n in pacemaker-cts";
