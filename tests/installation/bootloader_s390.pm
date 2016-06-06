@@ -87,51 +87,53 @@ sub get_to_yast() {
     # qaboot
     my $dir_with_suse_ins = get_var('REPO_0');
 
-    # ensure that we are in cms mode before executing qaboot
-    $s3270->sequence_3270("String(\"#cp i cms\")", "ENTER", "ENTER", "ENTER", "ENTER",);
-    $r = $s3270->expect_3270(
-        output_delim => qr/CMS/,
-        timeout      => 20
-    ) || die "Could not initialize CMS";
-
-    $s3270->sequence_3270("String(\"qaboot openqa.suse.de $dir_with_suse_ins\")", "ENTER", "Wait(InputField)",);
-
-    # edit parmfile
     my $parmfile_with_Newline_s = prepare_parmfile;
-    {
-        $r = $s3270->expect_3270(buffer_ready => qr/X E D I T/, timeout => 240) || die "Download of Kernel or Initrd took too long";
-
-        $s3270->sequence_3270(qw{ String(INPUT) ENTER });
-
-        $r = $s3270->expect_3270(buffer_ready => qr/Input-mode/);
-
-        my $sequence = <<"EO_frickin_boot_parms";
+    my $sequence                = <<"EO_frickin_boot_parms";
 ${parmfile_with_Newline_s}
 ENTER
 ENTER
 EO_frickin_boot_parms
 
-        # can't use qw{} because of space in commands...
-        $s3270->sequence_3270(split /\n/, $sequence);
-
-        $r = $s3270->expect_3270(buffer_ready => qr/X E D I T/);
-
-        ## Remove the "manual=1" and the empty line at the end
-        ## of the parmfile.
-
-        ## HACK HACK HACK HACK this code just 'knows' there is
-        ## an empty line and a single "manual=1" at the bottom
-        ## of the ftpboot parmfile.  This may fail in obscure
-        ## ways when that changes.
-        $s3270->sequence_3270(qw{String(BOTTOM) ENTER String(DELETE) ENTER});
-        $s3270->sequence_3270(qw{String(BOTTOM) ENTER String(DELETE) ENTER});
-
-        $r = $s3270->expect_3270(buffer_ready => qr/X E D I T/);
-
-        # save the parmfile.  ftpboot then starts the installation.
-        $s3270->sequence_3270(qw{ String(FILE) ENTER });
-
+    # arbitrary number of retries
+    my $max_retries = 7;
+    for (1 .. $max_retries) {
+        # ensure that we are in cms mode before executing qaboot
+        $s3270->sequence_3270("String(\"#cp i cms\")", "ENTER", "ENTER", "ENTER", "ENTER",);
+        $r = $s3270->expect_3270(
+            output_delim => qr/CMS/,
+            timeout      => 20
+        ) || die "Could not initialize CMS";
+        $s3270->sequence_3270("String(\"qaboot openqa.suse.de $dir_with_suse_ins\")", "ENTER", "Wait(InputField)",);
+        # wait for qaboot dumping us into xedit. If this fails, probably the
+        # download of kernel or initrd timed out and we retry
+        $r = $s3270->expect_3270(buffer_ready => qr/X E D I T/, timeout => 60) && last;
+        diag "Maybe the network is busy. Retry: $_ of $max_retries";
     }
+    die "Download of Kernel or Initrd took too long (with retries)" unless $r;
+
+    $s3270->sequence_3270(qw{ String(INPUT) ENTER });
+
+    $r = $s3270->expect_3270(buffer_ready => qr/Input-mode/);
+
+    # can't use qw{} because of space in commands...
+    $s3270->sequence_3270(split /\n/, $sequence);
+
+    $r = $s3270->expect_3270(buffer_ready => qr/X E D I T/);
+
+    ## Remove the "manual=1" and the empty line at the end
+    ## of the parmfile.
+
+    ## HACK HACK HACK HACK this code just 'knows' there is
+    ## an empty line and a single "manual=1" at the bottom
+    ## of the ftpboot parmfile.  This may fail in obscure
+    ## ways when that changes.
+    $s3270->sequence_3270(qw{String(BOTTOM) ENTER String(DELETE) ENTER});
+    $s3270->sequence_3270(qw{String(BOTTOM) ENTER String(DELETE) ENTER});
+
+    $r = $s3270->expect_3270(buffer_ready => qr/X E D I T/);
+
+    # save the parmfile.  ftpboot then starts the installation.
+    $s3270->sequence_3270(qw{ String(FILE) ENTER });
 
     # linuxrc
     $r = $s3270->expect_3270(
