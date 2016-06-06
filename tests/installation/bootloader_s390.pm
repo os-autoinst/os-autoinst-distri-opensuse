@@ -174,12 +174,11 @@ sub format_dasd() {
     assert_script_run("dasd_configure 0.0.0150 1");
 
     # make sure that there is a dasda device
-    assert_script_run("lsdasd");
+    script_run("lsdasd", 0);
     assert_screen("ensure-dasd-exists");
 
     # format dasda (this can take up to 20 minutes depending on disk size)
-    type_string("echo yes | dasdfmt -b 4096 -p /dev/dasda; echo dasdfmt-status-$?- > /dev/$serialdev\n");
-    wait_serial("dasdfmt-status-0-", 1200) || die "dasdfmt could not finish";
+    assert_script_run("echo yes | dasdfmt -b 4096 -p /dev/dasda", 1200, 'dasdfmt could not finish');
 }
 
 sub run() {
