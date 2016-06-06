@@ -26,7 +26,7 @@ sub run() {
     );
 
     for my $p (keys %https_url) {
-        type_string 'clear\n';
+        type_string "clear\n";
         script_run "w3m $https_url{$p}", 0;
         assert_screen "w3m-connect-$p-webpage";
         send_key "q";
