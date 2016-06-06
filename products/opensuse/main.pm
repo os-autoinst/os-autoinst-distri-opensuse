@@ -253,7 +253,7 @@ sub gnomestep_is_applicable() {
 }
 
 sub guiupdates_is_applicable() {
-    return get_var("DESKTOP") =~ /gnome|kde|xfce|lxde/;
+    return get_var("DESKTOP") =~ /gnome|kde|xfce|lxde/ && !check_var("FLAVOR", "Rescue-CD");
 }
 
 sub lxdestep_is_applicable() {
