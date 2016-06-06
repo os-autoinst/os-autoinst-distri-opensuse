@@ -10,6 +10,7 @@
 use base "installbasetest";
 use strict;
 use testapi;
+use utils;
 
 sub run {
     my $self = shift;
@@ -19,6 +20,11 @@ sub run {
     }
     else {
         select_console 'x11';
+        wait_still_screen;
+        check_screenlock;
+        mouse_hide(1);
+        assert_screen 'generic-desktop';
+
         x11_start_program("xterm");
         # set blank screen to be never for current session
         script_run("gsettings set org.gnome.desktop.session idle-delay 0");
