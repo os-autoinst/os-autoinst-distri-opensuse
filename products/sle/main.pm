@@ -5,6 +5,13 @@ use lockapi;
 use autotest;
 use needle;
 use File::Find;
+use File::Basename;
+
+BEGIN {
+    # add search path for lib/utils.pm
+    unshift @INC, dirname(__FILE__) . '/../../lib';
+}
+use utils;
 
 our %valueranges = (
 
@@ -58,10 +65,6 @@ sub is_desktop() {
     return get_var('FLAVOR', '') =~ /^Desktop/;
 }
 
-sub is_jeos() {
-    return get_var('FLAVOR', '') =~ /^JeOS/;
-}
-
 sub is_staging () {
     return get_var('STAGING');
 }
@@ -76,26 +79,6 @@ sub is_sles4sap_standard () {
 
 sub is_smt () {
     return (get_var("PATTERNS", '') || get_var('HDD_1', '')) =~ /smt/;
-}
-
-sub version_at_least;
-
-sub version_at_least {
-    my ($version) = @_;
-
-    if ($version eq '12-SP1') {
-        return !check_var('VERSION', '12');
-    }
-
-    if ($version eq '12-SP2') {
-        return version_at_least('12-SP1') && !check_var('VERSION', '12-SP1');
-    }
-
-    if ($version eq '12-SP3') {
-        return version_at_least('12-SP2') && !check_var('VERSION', '12-SP2');
-    }
-
-    die "unsupport VERSION $version in check";
 }
 
 sub cleanup_needles() {
@@ -129,7 +112,7 @@ sub cleanup_needles() {
         unregister_needle_tags("ENV-VERSION-12-SP2");
     }
 
-    my $tounregister = version_at_least('12-SP2') ? '0' : '1';
+    my $tounregister = sle_version_at_least('12-SP2') ? '0' : '1';
     unregister_needle_tags("ENV-SP2ORLATER-$tounregister");
 
     if (!is_server) {
@@ -189,7 +172,7 @@ unless (get_var('INSTLANG')) {
 set_var('NOAUTOLOGIN', 1);
 set_var('HASLICENSE',  1);
 
-if (version_at_least('12-SP2')) {
+if (sle_version_at_least('12-SP2')) {
     set_var('SP2ORLATER', 1);
 }
 
@@ -495,7 +478,7 @@ sub load_inst_tests() {
         if (check_var('BACKEND', 's390x')) {
             loadtest "installation/disk_activation.pm";
         }
-        elsif (!version_at_least('12-SP2')) {
+        elsif (!sle_version_at_least('12-SP2')) {
             loadtest "installation/skip_disk_activation.pm";
         }
     }
@@ -519,7 +502,7 @@ sub load_inst_tests() {
     }
     loadtest "installation/addon_products_sle.pm";
     if (noupdatestep_is_applicable) {
-        if (check_var('ARCH', 'x86_64') && version_at_least('12-SP2') && is_server && (!is_sles4sap || is_sles4sap_standard)) {
+        if (check_var('ARCH', 'x86_64') && sle_version_at_least('12-SP2') && is_server && (!is_sles4sap || is_sles4sap_standard)) {
             loadtest "installation/system_role.pm";
         }
         loadtest "installation/partitioning.pm";

@@ -11,6 +11,7 @@
 use base "x11test";
 use strict;
 use testapi;
+use utils;
 
 sub run() {
     my $self = shift;
@@ -18,7 +19,7 @@ sub run() {
     sleep 2;
     wait_idle;
     assert_screen 'tracker-needle-launched';
-    if (!main::version_at_least('12-SP2')) {
+    if (!sle_version_at_least('12-SP2')) {
         send_key "tab";
         wait_idle;
         send_key "tab";
