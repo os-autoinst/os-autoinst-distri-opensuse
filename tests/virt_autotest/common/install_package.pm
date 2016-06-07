@@ -64,11 +64,11 @@ sub generate_grub() {
 
     assert_script_run("cp /etc/default/grub /etc/default/grub.bak");
 
-    assert_script_run("if grep -v \"GRUB_CMDLINE_.*_DEFAULT=.*console=ttyS1,115200.*console=tty\" /etc/default/grub > /dev/null;then sed 's/\\(GRUB_CMDLINE_.*_DEFAULT=.*\\)\"/\\1 console=ttyS1,115200 console=tty\"/' /etc/default/grub; fi");
+    assert_script_run("if ! grep \"GRUB_CMDLINE_.*_DEFAULT=.*console=ttyS1,115200.*console=tty\" /etc/default/grub > /dev/null;then sed -i 's/\\(GRUB_CMDLINE_.*_DEFAULT=.*\\)\"/\\1 console=ttyS1,115200 console=tty\"/' /etc/default/grub; fi");
 
     upload_logs("/etc/default/grub");
 
-my $gen_grub_cmd = "grub2-mkconfig -o /boot/grub2/grub.cfg";
+    my $gen_grub_cmd = "grub2-mkconfig -o /boot/grub2/grub.cfg";
 
     assert_script_run($gen_grub_cmd, 40);
 }

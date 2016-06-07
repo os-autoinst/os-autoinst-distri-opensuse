@@ -1070,17 +1070,6 @@ elsif (get_var("QA_TESTSET")) {
     }
     loadtest "qa_automation/" . get_var("QA_TESTSET") . ".pm";
 }
-#elsif (get_var("A")) {
-#	loadtest "virt_autotest/ParallelIPMITest/P_A.pm";
-#	loadtest "virt_autotest/ParallelIPMITest/C_C.pm";
-#}
-#elsif (get_var("B")) {
-#	loadtest "virt_autotest/ParallelIPMITest/P_B.pm";
-#}
-elsif (get_var("QA_VIRTTEST_GI")) {
-        load_virtauto_tests();
-
-}
 elsif (get_var("VIRT_AUTOTEST")) {
 	loadtest "virt_autotest/common/init_pxe_install.pm";
 	load_inst_tests();
@@ -1088,10 +1077,11 @@ elsif (get_var("VIRT_AUTOTEST")) {
 	loadtest "virt_autotest/common/install_package.pm";
 	loadtest "virt_autotest/common/reboot_and_wait_up_normal1.pm";
 
-	if (get_var("VIRT_PRJ2_HOST_UPGRADE")) {
+	if (get_var("VIRT_PRJ1_GUEST_INSTALL")) {
+		loadtest "virt_autotest/Prj1_Guest_Installation/guest_installation_run.pm";
+	}
+	elsif (get_var("VIRT_PRJ2_HOST_UPGRADE")) {
 		loadtest "virt_autotest/Prj2_Host_Upgrade/host_upgrade_generate_run_file.pm";
-		#loadtest "virt_autotest/Prj2_Host_Upgrade/host_upgrade_step1_run.pm";
-		#loadtest "virt_autotest/common/reboot_and_wait_up_normal2.pm";
 		loadtest "virt_autotest/Prj2_Host_Upgrade/host_upgrade_step2_run.pm";
 		loadtest "virt_autotest/common/reboot_and_wait_up_upgrade.pm";
 		loadtest "virt_autotest/Prj2_Host_Upgrade/host_upgrade_step3_run.pm";

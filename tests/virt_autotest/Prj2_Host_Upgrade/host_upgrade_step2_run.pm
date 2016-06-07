@@ -11,6 +11,7 @@
 use lib "/var/lib/openqa/share/tests/sle-12-SP2/tests/virt_autotest/lib";
 use lib "/var/lib/openqa/share/tests/sle-12-SP2/tests/virt_autotest/Prj2_Host_Upgrade/";
 use base "host_upgrade_base";
+#use virt_utils qw(set_serialdev);
 use testapi;
 use strict;
 
@@ -24,6 +25,10 @@ sub get_scrip_run() {
 
 sub run() { 
 	my $self = shift;
+
+#	#set the correct serial dev for ipmi xen and non-xen host according to the installed product release
+#	&virt_utils::set_serialdev();
+
 	# Got script run according to different kind of system
 	my $pre_test_cmd = $self->get_scrip_run();
 
@@ -35,17 +40,7 @@ sub run() {
 
 	upload_logs "/tmp/host-upgrade-prepAndUpgrade-logs.tar";
 
-
-#	if ( $ret !~ /Test run completed successfully/m) {
-#		die " Host upgrade fail, going to terminate following test!";
-#	}
 	assert_script_run("grep \"Host upgrade to .* is done. Need to reboot system\" /tmp/host-upgrade-prepAndUpgrade-logs.tar");
-#	# Parse test result and generate junit file
-#	my $tc_result = $self->analyzeResult($ret);
-#	my $xml_result = $self->generateXML($tc_result);
-#
-#	# Upload and parse junit file.
-#	$self->push_junit_log($xml_result);
 
 }
 

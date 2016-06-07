@@ -13,6 +13,7 @@ use lib "/var/lib/openqa/share/tests/sle-12-SP2/tests/virt_autotest/Prj2_Host_Up
 use base "host_upgrade_base";
 use testapi;
 use strict;
+#use virt_utils qw(set_serialdev);
 
 sub get_scrip_run() {
 	my $self = shift;
@@ -24,6 +25,10 @@ sub get_scrip_run() {
 
 sub run() { 
 	my $self = shift;
+
+#	#set the correct serial dev for ipmi xen and non-xen host according to the installed product release
+#	&virt_utils::set_serialdev();
+
 	# Got script run according to different kind of system
 	my $pre_test_cmd = $self->get_scrip_run();
 
@@ -38,6 +43,8 @@ sub run() {
 	if ($ret !~ /Test run completed successfully/) {
 		die "Host upgrade verifacation failed!";
 	}
+
+#	TODO: parse the logs into junit format
 #	# Parse test result and generate junit file
 #	my $tc_result = $self->analyzeResult($ret);
 #	my $xml_result = $self->generateXML($tc_result);
