@@ -63,11 +63,11 @@ sub run() {
     # use proper virtio
     # $svirt->add_interface({ type => 'network', source => { network => 'default' }, model => { type => 'virtio' } });
 
-    # show this on screen
+    # show this on screen and make sure that kernel and initrd are actually saved
     type_string "wget $repo/boot/s390x/initrd -O /var/lib/libvirt/images/$name.initrd\n";
-    sleep 2;    # TODO: assert_screen
+    assert_screen "initrd-saved";
     type_string "wget $repo/boot/s390x/linux -O /var/lib/libvirt/images/$name.kernel\n";
-    sleep 2;    # TODO: assert_screen
+    assert_screen "kernel-saved";
 
     $svirt->define_and_start;
 
