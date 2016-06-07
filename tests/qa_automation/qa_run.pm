@@ -127,10 +127,10 @@ sub wait_testrun {
     my $pattern   = "TESTRUN_FINISHED-" . int(rand(999999));
     my $cmd       = "while [[ ! -f $done_file ]]; do sleep $interval; done; echo $pattern >> /dev/$serialdev";
     type_string "bash -c '$cmd' &\n";
-    # Set a extremely high timeout value for wait_serial
+    # Set a high timeout value for wait_serial
     # so that it will wait until test run finished or
     # MAX_JOB_TIME(can be set on openQA webui) reached
-    my $ret = wait_serial($pattern, 32400);
+    my $ret = wait_serial($pattern, 90 * 60);
     if ($ret) {
         return 1;
     }
