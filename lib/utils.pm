@@ -23,7 +23,6 @@ our @EXPORT = qw/
   fully_patch_system
   workaround_type_encrypted_passphrase
   check_screenlock
-  sle_version_at_least
   /;
 
 
@@ -328,27 +327,6 @@ sub check_screenlock {
         }
     }
 }
-
-sub sle_version_at_least;
-
-sub sle_version_at_least {
-    my ($version) = @_;
-
-    if ($version eq '12-SP1') {
-        return !check_var('VERSION', '12');
-    }
-
-    if ($version eq '12-SP2') {
-        return sle_version_at_least('12-SP1') && !check_var('VERSION', '12-SP1');
-    }
-
-    if ($version eq '12-SP3') {
-        return sle_version_at_least('12-SP2') && !check_var('VERSION', '12-SP2');
-    }
-
-    die "unsupported SLE VERSION $version in check";
-}
-
 1;
 
 # vim: sw=4 et
