@@ -137,6 +137,10 @@ sub run {
         create-workspace
         echo
 
+        # Setting new TARGET_TYPE variable (due commit 4128f126f4 in SLEnkins-engine)
+        export TARGET_TYPE="ssh"
+        echo
+
         # Parse nodes file
         NETWORKS=""
         NODES=""
