@@ -11,13 +11,14 @@
 use base "x11test";
 use strict;
 use testapi;
+use utils;
 
 # Case 1436343 - Tracker: search from command line
 
 sub run() {
     my $self = shift;
     x11_start_program("xterm");
-    if (main::version_at_least('12-SP2')) {
+    if (sle_version_at_least('12-SP2')) {
         script_run "tracker search newfile";
     }
     else {
