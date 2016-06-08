@@ -19,7 +19,7 @@ sub run() {
     my $console = select_console 'root-console';
     # cleanup
     type_string "loginctl --no-pager\n";
-    sleep 2;
+    wait_still_screen(2);
     save_screenshot();
 
     script_run "systemctl unmask packagekit.service";
@@ -32,16 +32,16 @@ sub run() {
     $console = select_console 'user-console';
 
     send_key "ctrl-c";
-    sleep 1;
+    wait_still_screen(1);
     type_string "exit\n";    # logout
     $console->reset;
-    sleep 2;
+    wait_still_screen(2);
 
     save_screenshot();
 
     if (!check_var("DESKTOP", "textmode")) {
         select_console('x11');
-        sleep 2;
+        wait_still_screen(2);
         check_screenlock;
 
         # workaround for bug 834165. Apper should not try to
