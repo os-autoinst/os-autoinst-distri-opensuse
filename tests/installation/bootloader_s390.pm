@@ -173,7 +173,10 @@ sub format_dasd() {
     select_console('install-shell');
 
     # bring dasd online
-    assert_script_run("dasd_configure 0.0.0150 1");
+    # exit status 0 -> everything ok
+    # exit status 8 -> unformatted but still usable (e.g. from previous testrun)
+    script_run("dasd_configure 0.0.0150 1; echo dasd_configure-status-\$? > /dev/$serialdev", 0);
+    wait_serial(qr/dasd_configure-status-[08]/) || die "DASD in undefined state";
 
     # make sure that there is a dasda device
     script_run("lsdasd", 0);
