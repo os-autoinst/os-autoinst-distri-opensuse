@@ -1016,6 +1016,7 @@ sub load_fips_tests_misc() {
     loadtest "console/aide_check.pm";
     loadtest "console/journald_fss.pm";
     loadtest "x11/hexchat_ssl.pm";
+    loadtest "fips/curl_fips_rc4_seed.pm";
 }
 
 sub prepare_target() {
