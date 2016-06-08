@@ -161,6 +161,8 @@ sub run {
           eval "EXTERNAL_IP=( \$EXTERNAL_IP_${node} )"
           eval "INTERNAL_IP=( \$INTERNAL_IP_${node} )"
           eval "NIC=\$NIC_${node}"
+          # Another needed variable TARGET added (due commit 4128f126f4 in SLEnkins-engine)
+          export TARGET="ssh:$EXTERNAL_IP"
           # Define node-related environment file/variables
           echo "Setting environment variables for the node $node_name"
           set-node-environment $node_name "$NIC"
