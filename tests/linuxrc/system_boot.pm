@@ -30,7 +30,7 @@ sub run() {
     send_key_until_needlematch "linuxrc-system-boot-kernel-options", "ret", 8;
 
     # Confirm booting
-    bmwqemu::diag "Booting the installed system now...";
+    diag "Booting the installed system now...";
     send_key "ret", 0;
 
     # Wait for the system to boot

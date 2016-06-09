@@ -21,7 +21,6 @@ sub run() {
     script_run("wget -q openqa.opensuse.org/opensuse/qatests/qa_mozmill_run.sh");
     script_run("sh -x qa_mozmill_run.sh");
     sleep 30;
-    local $bmwqemu::timesidleneeded = 4;
 
     for (1 .. 12) {    # one test takes ~7 mins
         send_key "shift";    # avoid blank/screensaver

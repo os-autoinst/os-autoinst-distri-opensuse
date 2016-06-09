@@ -22,10 +22,10 @@ sub run {
         $result = 'fail';
     }
     if (!defined $size) {
-        bmwqemu::diag("iso path invalid: $iso");
+        diag("iso path invalid: $iso");
     }
     else {
-        bmwqemu::diag("check if actual iso size $size fits $max: $result");
+        diag("check if actual iso size $size fits $max: $result");
     }
     $self->result($result);
 }
