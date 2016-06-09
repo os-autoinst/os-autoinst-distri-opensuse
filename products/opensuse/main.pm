@@ -99,6 +99,9 @@ sub cleanup_needles() {
     if (!check_var("VIDEOMODE", "text")) {
         unregister_needle_tags("ENV-VIDEOMODE-text");
     }
+    if (!check_var("DE_PATTERN", "mate")) {
+        remove_desktop_needles("mate");
+    }
     if (!check_var("DE_PATTERN", "enlightenment")) {
         remove_desktop_needles("enlightenment");
     }
@@ -669,6 +672,7 @@ sub load_otherDE_tests() {
         loadtest "x11/reboot_icewm.pm";
         # here comes the actual desktop specific test
         if ($de =~ /^enlightenment$/) { load_enlightenment_tests(); }
+        if ($de =~ /^mate$/)          { load_mate_tests(); }
         loadtest "x11/shutdown.pm";
         return 1;
     }
@@ -678,6 +682,10 @@ sub load_otherDE_tests() {
 sub load_enlightenment_tests() {
     loadtest "x11/enlightenment_first_start.pm";
     loadtest "x11/terminology.pm";
+}
+
+sub load_mate_tests() {
+    loadtest "x11/mate_terminal.pm";
 }
 
 sub load_x11tests() {
