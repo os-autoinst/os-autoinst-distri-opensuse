@@ -27,7 +27,6 @@ our @EXPORT = qw/fill_in_registration_data registration_bootloader_params yast_s
 sub fill_in_registration_data {
     my ($addon, $uc_addon);
     if (!get_var("HDD_SCC_REGISTERED")) {
-        send_key "alt-g";        # activate register system credentials (needed when custom URL is used)
         send_key "alt-m";        # select email field if yast2 add-on
         send_key "alt-e";        # select email field if installation
         send_key "backspace";    # delete m or e
