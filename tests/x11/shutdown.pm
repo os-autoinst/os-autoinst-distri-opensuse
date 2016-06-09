@@ -79,6 +79,12 @@ sub run() {
         send_key "ret";
     }
 
+    if (check_var("DESKTOP", "enlightenment")) {
+        send_key "ctrl-alt-delete";               # shutdown
+        assert_screen 'logoutdialog', 15;
+        assert_and_click 'enlightenment_shutdown_btn';
+    }
+
     if (get_var("DESKTOP") =~ m/minimalx|textmode/) {
         power('off');
     }
