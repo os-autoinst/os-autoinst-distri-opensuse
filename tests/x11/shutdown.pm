@@ -79,6 +79,11 @@ sub run() {
         send_key "ret";
     }
 
+    if (check_var("DESKTOP", "lxqt")) {
+        x11_start_program("shutdown");            # opens logout dialog
+        assert_screen "lxqt_logoutdialog", 20;
+        send_key "ret";
+    }
     if (check_var("DESKTOP", "enlightenment")) {
         send_key "ctrl-alt-delete";               # shutdown
         assert_screen 'logoutdialog', 15;

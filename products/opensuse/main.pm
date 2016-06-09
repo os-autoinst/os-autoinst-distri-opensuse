@@ -102,6 +102,9 @@ sub cleanup_needles() {
     if (!check_var("DE_PATTERN", "mate")) {
         remove_desktop_needles("mate");
     }
+    if (!check_var("DE_PATTERN", "lxqt")) {
+        remove_desktop_needles("lxqt");
+    }
     if (!check_var("DE_PATTERN", "enlightenment")) {
         remove_desktop_needles("enlightenment");
     }
@@ -673,6 +676,7 @@ sub load_otherDE_tests() {
         # here comes the actual desktop specific test
         if ($de =~ /^enlightenment$/) { load_enlightenment_tests(); }
         if ($de =~ /^mate$/)          { load_mate_tests(); }
+        if ($de =~ /^lxqt$/)          { load_lxqt_tests(); }
         loadtest "x11/shutdown.pm";
         return 1;
     }
@@ -682,6 +686,9 @@ sub load_otherDE_tests() {
 sub load_enlightenment_tests() {
     loadtest "x11/enlightenment_first_start.pm";
     loadtest "x11/terminology.pm";
+}
+
+sub load_lxqt_tests() {
 }
 
 sub load_mate_tests() {
