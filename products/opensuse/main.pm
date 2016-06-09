@@ -654,6 +654,23 @@ sub load_extra_tests () {
     return 0;
 }
 
+sub load_otherDE_tests() {
+    if (get_var("DE_PATTERN")) {
+        my $de = get_var("DE_PATTERN");
+        loadtest "console/consoletest_setup.pm";
+        loadtest "console/hostname.pm";
+        loadtest "console/zypper_clear_repos.pm";
+        loadtest "console/install_otherDE_pattern.pm";
+        loadtest "console/consoletest_finish.pm";
+        loadtest "x11/${de}_reconfigure_openqa.pm";
+        loadtest "x11/reboot_icewm.pm";
+        # here comes the actual desktop specific test
+        loadtest "x11/shutdown.pm";
+        return 1;
+    }
+    return 0;
+}
+
 sub load_x11tests() {
     return unless (!get_var("INSTALLONLY") && get_var("DESKTOP") !~ /textmode|minimalx/ && !get_var("DUALBOOT") && !get_var("RESCUECD"));
 
@@ -1010,6 +1027,7 @@ else {
     unless (install_online_updates()
         || load_applicationstests()
         || load_extra_tests()
+        || load_otherDE_tests()
         || load_skenkins_tests())
     {
         load_rescuecd_tests();
