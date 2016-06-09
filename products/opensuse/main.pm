@@ -624,6 +624,8 @@ sub load_extra_tests () {
         # finished console test and back to desktop
         loadtest "console/consoletest_finish.pm";
 
+        loadtest "toolchain/crash.pm";
+
         # start extra x11 tests from here
         if (!get_var("NOAUTOLOGIN")) {
             loadtest "x11/multi_users_dm.pm";
