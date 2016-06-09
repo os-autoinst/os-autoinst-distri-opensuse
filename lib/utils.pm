@@ -268,7 +268,7 @@ sub zypper_call {
     my $command          = shift;
     my $allow_exit_codes = shift || [0];
     my $timeout          = shift || 700;
-    my $str              = bmwqemu::hashed_string("ZN$command");
+    my $str              = hashed_string("ZN$command");
 
     script_run("zypper -n $command; echo $str-\$?- > /dev/$serialdev", 0);
 
