@@ -97,7 +97,7 @@ sub run() {
         assert_and_click 'mate_shutdown_btn';
     }
 
-    if (get_var("DESKTOP") =~ m/minimalx|textmode/) {
+    if (get_var("DESKTOP") =~ m/minimalx|textmode|awesome/) {
         power('off');
     }
 
