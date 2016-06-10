@@ -97,16 +97,17 @@ EO_frickin_boot_parms
     # arbitrary number of retries
     my $max_retries = 7;
     for (1 .. $max_retries) {
-        # ensure that we are in cms mode before executing qaboot
-        $s3270->sequence_3270("String(\"#cp i cms\")", "ENTER", "ENTER", "ENTER", "ENTER",);
-        $r = $s3270->expect_3270(
-            output_delim => qr/CMS/,
-            timeout      => 20
-        ) || die "Could not initialize CMS";
-        $s3270->sequence_3270("String(\"qaboot openqa.suse.de $dir_with_suse_ins\")", "ENTER", "Wait(InputField)",);
-        # wait for qaboot dumping us into xedit. If this fails, probably the
-        # download of kernel or initrd timed out and we retry
-        $r = $s3270->expect_3270(buffer_ready => qr/X E D I T/, timeout => 60) && last;
+        eval {
+            # ensure that we are in cms mode before executing qaboot
+            $s3270->sequence_3270("String(\"#cp i cms\")", "ENTER", "ENTER", "ENTER", "ENTER",);
+            $r = $s3270->expect_3270(output_delim => qr/CMS/, timeout => 20);
+            $s3270->sequence_3270("String(\"qaboot openqa.suse.de $dir_with_suse_ins\")", "ENTER", "Wait(InputField)",);
+            # wait for qaboot dumping us into xedit. If this fails, probably the
+            # download of kernel or initrd timed out and we retry
+            $r = $s3270->expect_3270(buffer_ready => qr/X E D I T/, timeout => 60);
+        };
+        last unless ($@);
+        diag "s3270 sequence failed: $@";
         diag "Maybe the network is busy. Retry: $_ of $max_retries";
     }
     die "Download of Kernel or Initrd took too long (with retries)" unless $r;
