@@ -58,9 +58,12 @@ sub update_package() {
 sub generate_grub() {
     my $self=shift;
 
-    assert_script_run("cp /etc/default/grub /etc/default/grub.bak");
+    if (get_var("XEN")) {
+	   assert_script_run("if grep \"GRUB_CMDLINE_XEN_DEFAULT=.*console=com1 com1=115200\" /etc/default/grub >> /dev/null;then :;else sed -ri 's/\(GRUB_CMDLINE_XEN_DEFAULT=.*\)\"/\\1 console=com1 com1=115200\"/' /etc/default/grub ; fi");
 
-    assert_script_run("if ! grep \"GRUB_CMDLINE_.*_DEFAULT=.*console=ttyS1,115200.*console=tty\" /etc/default/grub > /dev/null;then sed -i 's/\\(GRUB_CMDLINE_.*_DEFAULT=.*\\)\"/\\1 console=ttyS1,115200 console=tty\"/' /etc/default/grub; fi");
+    } else {
+           assert_script_run("if grep \"GRUB_CMDLINE_LINUX_DEFAULT=.*console=ttyS1,115200.*console=tty\" /etc/default/grub >> /dev/null;then :;else sed -ri 's/\(GRUB_CMDLINE_LINUX_DEFAULT=.*\)\"/\\1 console=ttyS1,115200 console=tty\"/' /etc/default/grub ; fi");
+    }
 
     upload_logs("/etc/default/grub");
 
