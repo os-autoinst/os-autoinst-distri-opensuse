@@ -32,7 +32,7 @@ sub run() {
         type_string "libreoffice --writer";
         send_key "ret";
     };
-    assert_screen('libreoffice-write-launch', 30);
+    assert_screen 'test-ooffice-1';
     #Open the mail Merge Email dialog
     send_key "alt-t";
     assert_screen('libreoffice-tool-droplist', 30);
@@ -68,6 +68,7 @@ sub run() {
     #};
     assert_screen('liberoffice-mail-Merge', 30);
     send_key "alt-e";
+    wait_still_screen;
     send_key "ret";
     assert_screen('liberoffice-mailmerge-testAccount', 30);
     #exit libreoffice

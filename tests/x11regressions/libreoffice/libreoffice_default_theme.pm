@@ -46,6 +46,7 @@ sub run() {
     assert_screen 'ooffice-tools-options';
     send_key_until_needlematch 'ooffice-tools-options-view', 'down';
     send_key "esc";
+    wait_still_screen;
     send_key "ctrl-q";    # Quit LO
 
     # Unset LO GUI toolkit var

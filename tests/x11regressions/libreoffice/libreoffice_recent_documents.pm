@@ -39,7 +39,8 @@ sub run() {
     assert_screen 'oowriter-menus-file';
     send_key "ctrl-u";
     assert_screen 'oowriter-menus-file-recentDucuments';
-    send_key "ctrl-c";    # Clear history
+    send_key_until_needlematch("libreoffice-clear-list", "down");
+    send_key "ret";
     wait_still_screen;
     send_key "ctrl-q";    # Quit oowriter
 
