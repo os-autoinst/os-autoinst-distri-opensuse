@@ -20,9 +20,6 @@ sub install_package() {
     my $self=shift;
     my $qa_server_repo = get_var('QA_SERVER_REPO', '');
     if ($qa_server_repo) {
-        # Remove all existing repos and add QA_SERVER_REPO
-        #my $rm_repos = "declare -i n=`zypper repos | wc -l`-2; for ((i=0; i<\$n; i++)); do zypper rr 1; done; unset n; unset i";
-        #assert_script_run($rm_repos, 300);
         type_string "zypper --non-interactive rr server-repo\n";
         assert_script_run("zypper --non-interactive --no-gpg-check -n ar -f '$qa_server_repo' server-repo");
     } else {
@@ -44,7 +41,6 @@ sub update_package() {
     	$update_pkg_cmd = $update_pkg_cmd . " off off on";
     }
 
-    #$update_pkg_cmd = $update_pkg_cmd . " > /tmp/update_virt_rpms.log 2>&1 ";
     $update_pkg_cmd = $update_pkg_cmd . " 2>&1 | tee /tmp/update_virt_rpms.log ";
 
     my $ret = $self->local_string_output($update_pkg_cmd, 7200);

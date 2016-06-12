@@ -18,11 +18,6 @@ use testapi;
 
 sub run() { 
 	# Wait for bootload for the first time.
-        
-        #for (my $i=1; $i<60; $i++) {
-        #	save_screenshot;
-	#	sleep(1);
-	#}
 	assert_screen "grub2", 120;
 	if (get_var("XEN")) {
 		send_key_until_needlematch("bootmenu-xen-kernel", 'down', 10, 1);

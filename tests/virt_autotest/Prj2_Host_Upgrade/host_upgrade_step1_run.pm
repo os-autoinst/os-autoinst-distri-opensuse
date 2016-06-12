@@ -38,17 +38,6 @@ sub run() {
 	if ($ret !~ /Test run completed successfully/) {
 		die "Update virt rpms failed!";
 	}
-#    # Debug 
-#    print "command to execute is: $ret.";
-#    return 999;
-#
-#	# Parse test result and generate junit file
-#	my $tc_result = $self->analyzeResult($ret);
-#	my $xml_result = $self->generateXML($tc_result);
-#
-#	# Upload and parse junit file.
-#	$self->push_junit_log($xml_result);
-
 }
 
 1;
