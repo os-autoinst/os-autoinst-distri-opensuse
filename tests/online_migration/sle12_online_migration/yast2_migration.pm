@@ -57,17 +57,14 @@ sub run {
     }
     assert_screen 'yast2-migration-proposal', 60;
 
-    # disable installation repo
-    assert_screen 'recommend-to-disable';
-    if (get_var("DESKTOP") =~ /textmode|minimalx/) {
-        send_key "tab";
-        send_key_until_needlematch 'disable-repo', 'down', 3;
+    # giva a little time to check package conflicts
+    if (check_screen("yast2-migration-conflicts", 15)) {
+        send_key_until_needlematch 'migration-proposal-packages', 'tab', 3;
         send_key "ret";
+        save_screenshot;
+        $self->result('fail');
+        return;
     }
-    else {
-        assert_and_click 'disable-repo';
-    }
-    wait_still_screen;
     send_key "alt-n";
     assert_screen 'yast2-migration-startupgrade';
     send_key "alt-u";
