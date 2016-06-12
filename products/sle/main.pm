@@ -363,12 +363,12 @@ sub load_x11regression_documentation() {
             loadtest "x11regressions/gedit/gedit_about.pm";
         }
         loadtest "x11regressions/libreoffice/libreoffice_mainmenu_favorites.pm";
-        loadtest "x11regressions/libreoffice/libreoffice_open_specified_file.pm";
-        loadtest "x11regressions/libreoffice/libreoffice_double_click_file.pm";
         loadtest "x11regressions/libreoffice/libreoffice_mainmenu_components.pm";
         loadtest "x11regressions/libreoffice/libreoffice_recent_documents.pm";
         loadtest "x11regressions/libreoffice/libreoffice_default_theme.pm";
         loadtest "x11regressions/libreoffice/libreoffice_pyuno_bridge.pm";
+        loadtest "x11regressions/libreoffice/libreoffice_open_specified_file.pm";
+        loadtest "x11regressions/libreoffice/libreoffice_double_click_file.pm";
     }
 }
 

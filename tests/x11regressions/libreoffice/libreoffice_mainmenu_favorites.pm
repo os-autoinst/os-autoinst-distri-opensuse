@@ -19,18 +19,15 @@ sub run() {
     # start destop application memu
     wait_still_screen;
     send_key "alt-f1";
-    assert_screen('test-desktop_mainmenu-1', 30);
-    assert_and_click 'application-menu-list';
+    assert_screen('test-desktop_mainmenu-1');
 
     # find the favorites button
-    send_key_until_needlematch 'application-menu-favorites', 'down';
-    assert_screen('menu-favorites-libreoffice', 30);
+    assert_and_click('application-menu-favorites');
+    assert_screen('menu-favorites-libreoffice');
 
     # find the LibreOffice
-    send_key "right";
-    send_key_until_needlematch 'favorites-list-libreoffice', 'up';
-    send_key "ret";
-    assert_screen('welcome-to-libreoffice', 30);
+    assert_and_click('favorites-list-libreoffice');
+    assert_screen('welcome-to-libreoffice');
 
     # exit LibreOffice
     send_key "ctrl-q";
