@@ -24,7 +24,8 @@ sub check_or_install_packages() {
         # check if the packages was installed along with update
         my $output = script_output "rpm -qa yast2-migration zypper-migration-plugin rollback-helper | sort";
         if ($output !~ /rollback-helper.*?yast2-migration.*?zypper-migration-plugin/s) {
-            die "migration packages was not installed along with system update";
+            record_soft_failure 'bsc#982150: migration packages were not installed along with system update. Installing missed package to continue the test';
+            assert_script_run "zypper -n in yast2-migration zypper-migration-plugin rollback-helper snapper", 190;
         }
     }
     else {
@@ -42,6 +43,9 @@ sub run() {
 
     # set scc proxy url here to perform online migration via scc proxy
     set_scc_proxy_url;
+
+    # disable installation repos before online migration
+    assert_script_run "zypper mr -d -l";
 }
 
 sub test_flags {
