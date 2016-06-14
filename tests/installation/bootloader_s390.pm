@@ -98,6 +98,10 @@ EO_frickin_boot_parms
     my $max_retries = 7;
     for (1 .. $max_retries) {
         eval {
+            # Define memory to behave the same way as other archs
+            # and to have the same configuration through all s390 guests
+            $s3270->sequence_3270("String(\"DEFINE STORAGE 1G\")", "ENTER",);
+
             # ensure that we are in cms mode before executing qaboot
             $s3270->sequence_3270("String(\"#cp i cms\")", "ENTER", "ENTER", "ENTER", "ENTER",);
             $r = $s3270->expect_3270(output_delim => qr/CMS/, timeout => 20);
