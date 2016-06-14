@@ -19,8 +19,12 @@ use strict;
 sub run() {
 
     # assert the we are on a ro snapshot.
-    assert_screen 'linux-login', 200;
+    assert_screen 'linux-login', 600;
     select_console 'root-console';
+    # debug a little.
+    script_run("ip a s",                   0);
+    script_run("cat /var/log/snapper.log", 0);
+    script_run("dmesg",                    0);
     # 1)
     script_run('touch NOWRITE;test ! -f NOWRITE', 0);
     # 1b) just debugging infos
