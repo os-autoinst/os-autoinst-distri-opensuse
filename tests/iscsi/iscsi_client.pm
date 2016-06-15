@@ -23,7 +23,7 @@ sub run() {
     configure_static_ip('10.0.2.3/24');
     configure_static_dns(get_host_resolv_conf());
     type_string "yast2 iscsi-client\n";
-    assert_screen_with_soft_timeout('iscsi-client', soft_timeout => 25);
+    assert_screen 'iscsi-client', 60;
     mutex_lock('iscsi_ready');                                               # wait for server setup
     send_key "alt-i";                                                        # go to initiator name field
     wait_still_screen(2, 10);
