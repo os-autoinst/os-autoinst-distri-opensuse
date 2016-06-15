@@ -29,14 +29,11 @@ sub run() {
             return;
         }
         mouse_hide();
-        if (match_has_tag("dm-nousers")) {
-            #no users created during installation, logging in as root
-            send_key 'tab';    #set focus to "Not listed?"
-            send_key 'ret';
-            type_string "root";
-        }
         if (get_var('DM_NEEDS_USERNAME')) {
             type_string $username;
+        }
+        if (get_var('FLAVOR', '') =~ /SAP/) {
+            type_string "root";    #in sles4sap only root user created
         }
         if (match_has_tag("sddm")) {
             # make sure choose plasma5 session
