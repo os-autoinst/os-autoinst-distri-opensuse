@@ -120,8 +120,13 @@ sub run() {
 
     wait_serial('yast2-ntp-client-status-0', 60);
 
+
+    # add NTPD_FORCE_SYNC_ON_STARTUP=yes into /etc/ntp.conf, ntpd should start up at once
+    script_run("echo NTPD_FORCE_SYNC_ON_STARTUP=yes >> /etc/ntp.conf");
+    script_run("systemctl restart ntpd.service");
+
     # check NTP synchronization
-    assert_script_run('/usr/bin/timedatectl | grep "NTP synchronized: yes"');
+    assert_script_run("systemctl show -p ActiveState ntpd.service | grep ActiveState=active");
 
 }
 1;
