@@ -93,11 +93,17 @@ sub wait_boot {
         my @tags = ('grub2');
         push @tags, 'bootloader-shim-import-prompt'   if get_var('UEFI');
         push @tags, 'boot-live-' . get_var('DESKTOP') if get_var('LIVETEST');    # LIVETEST won't to do installation and no grub2 menu show up
+        if (get_var('ONLINE_MIGRATION')) {
+            push @tags, 'migration-source-system-grub2';
+        }
         check_screen(\@tags, $bootloader_time);
         if (match_has_tag("bootloader-shim-import-prompt")) {
             send_key "down";
             send_key "ret";
             assert_screen "grub2", 15;
+        }
+        elsif (match_has_tag("migration-source-system-grub2")) {
+            send_key "ret";                                                      # boot to source system
         }
         elsif (get_var("LIVETEST")) {
             # prevent if one day booting livesystem is not the first entry of the boot list
