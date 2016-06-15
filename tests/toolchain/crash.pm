@@ -19,14 +19,16 @@ sub run() {
 
     script_run 'yast2 kdump', 0;
 
-    assert_screen 'yast2-kdump-disabled';
-    send_key 'alt-u';    # enable kdump
+    if (check_screen 'yast2-kdump-disabled') {
+        send_key 'alt-u';    # enable kdump
+    }
 
     assert_screen 'yast2-kdump-enabled';
-    send_key 'alt-o';    # OK
+    send_key 'alt-o';        # OK
 
-    assert_screen 'yast2-kdump-restart-info';
-    send_key 'alt-o';    # OK
+    if (check_screen 'yast2-kdump-restart-info') {
+        send_key 'alt-o';    # OK
+    }
 
     # activate kdump
     script_run 'reboot', 0;
