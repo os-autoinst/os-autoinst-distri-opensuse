@@ -41,8 +41,12 @@ sub run() {
             send_key "alt-i";    # install
 
             # Authenticate on SLES
-            if (check_screen("updates_authenticate")) {
+            # FIXME: actually only do that on SLE
+            push @updates_installed_tags, 'updates_authenticate';
+            check_screen \@updates_installed_tags;
+            if (match_has_tag("updates_authenticate")) {
                 type_string "$password\n";
+                pop @updates_installed_tags;
             }
 
             # Wait until installation is done
