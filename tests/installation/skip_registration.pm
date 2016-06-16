@@ -18,9 +18,14 @@ use base "y2logsstep";
 
 use testapi;
 use registration;
+use utils qw/ensure_fullscreen/;
 
 sub run() {
-    assert_screen("scc-registration", 100);
+    assert_screen([qw/scc-registration yast2-windowborder-corner/], 100);
+    if (match_has_tag('yast2-windowborder-corner')) {
+        ensure_fullscreen(tag => 'yast2-windowborder-corner');
+        assert_screen('scc-registration', 100);
+    }
     send_key "alt-s", 1;    # skip SCC registration
     if (check_screen("scc-skip-reg-warning", 10)) {
         if (check_screen("ok-button", 10)) {
