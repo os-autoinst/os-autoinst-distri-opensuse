@@ -11,15 +11,16 @@
 use base "x11test";
 use strict;
 use testapi;
+use utils;
 
 sub run() {
     my $self = shift;
     x11_start_program("systemsettings", 6, {valid => 1});
     if (get_var("LIVETEST")) {
-        assert_screen 'test-systemsettings-1', 15;
+        assert_screen_with_soft_timeout('test-systemsettings-1', soft_timeout => 15);
     }
     else {
-        assert_screen 'test-systemsettings-1', 3;
+        assert_screen_with_soft_timeout('test-systemsettings-1', soft_timeout => 3);
     }
     send_key "alt-f4";
     sleep 2;

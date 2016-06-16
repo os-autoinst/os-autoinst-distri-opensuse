@@ -11,6 +11,7 @@
 use base "x11test";
 use strict;
 use testapi;
+use utils;
 
 # test xfce4-terminal
 
@@ -24,7 +25,7 @@ sub run() {
     for (1 .. 13) { send_key "ret" }
     type_string "echo If you can see this text xfce4-terminal is working.\n";
     sleep 2;
-    assert_screen 'test-xfce4_terminal-1', 3;
+    assert_screen_with_soft_timeout('test-xfce4_terminal-1', soft_timeout => 3);
     send_key "alt-f4";
     sleep 2;
     send_key "alt-w";

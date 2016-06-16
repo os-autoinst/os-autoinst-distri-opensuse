@@ -16,11 +16,11 @@ use utils;
 sub run() {
     wait_idle;
     send_key "ctrl-alt-delete";    # reboot
-    assert_screen 'logoutdialog', 15;
+    assert_screen_with_soft_timeout('logoutdialog', soft_timeout => 15);
     assert_and_click 'logoutdialog-reboot-highlighted';
 
     if (get_var("SHUTDOWN_NEEDS_AUTH")) {
-        assert_screen 'reboot-auth', 15;
+        assert_screen_with_soft_timeout('reboot-auth', soft_timeout => 15);
         sleep 3;
         type_password;
         sleep 3;

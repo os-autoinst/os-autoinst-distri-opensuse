@@ -18,7 +18,7 @@ sub run() {
 
     #send_key "ctrl-alt-delete"; # does open task manager instead of reboot
     x11_start_program "lxsession-logout";
-    assert_screen "logoutdialog", 20;
+    assert_screen_with_soft_timeout("logoutdialog", soft_timeout => 20);
     send_key "tab";    # reboot
     save_screenshot;
     send_key "ret";    # confirm

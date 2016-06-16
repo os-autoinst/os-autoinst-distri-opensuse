@@ -11,12 +11,13 @@
 use base "x11test";
 use strict;
 use testapi;
+use utils;
 
 sub run() {
     my $self = shift;
     ensure_installed("MozillaThunderbird");
     x11_start_program("thunderbird");
-    assert_screen 'test-thunderbird-1', 3;
+    assert_screen_with_soft_timeout('test-thunderbird-1', soft_timeout => 3);
     wait_screen_change {
         send_key "alt-f4";    # close wizzard
     };

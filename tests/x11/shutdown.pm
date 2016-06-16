@@ -27,7 +27,7 @@ sub run() {
 
     if (check_var("DESKTOP", "kde")) {
         send_key "ctrl-alt-delete";    # shutdown
-        assert_screen 'logoutdialog', 15;
+        assert_screen_with_soft_timeout('logoutdialog', soft_timeout => 15);
 
         if (get_var("PLASMA5")) {
             assert_and_click 'sddm_shutdown_option_btn';
@@ -40,18 +40,18 @@ sub run() {
         }
         else {
             type_string "\t";
-            assert_screen "kde-turn-off-selected", 2;
+            assert_screen_with_soft_timeout("kde-turn-off-selected", soft_timeout => 2);
             type_string "\n";
         }
     }
 
     if (check_var("DESKTOP", "gnome")) {
         $self->trigger_shutdown_gnome_button();
-        assert_screen 'logoutdialog', 15;
+        assert_screen_with_soft_timeout('logoutdialog', soft_timeout => 15);
         send_key "ret";    # confirm shutdown
 
         if (get_var("SHUTDOWN_NEEDS_AUTH")) {
-            assert_screen 'shutdown-auth', 15;
+            assert_screen_with_soft_timeout('shutdown-auth', soft_timeout => 15);
             type_password;
 
             # we need to kill all open ssh connections before the system shuts down
@@ -65,17 +65,17 @@ sub run() {
             send_key "alt-f4";    # opens log out popup after all windows closed
         }
         wait_idle;
-        assert_screen 'logoutdialog', 15;
+        assert_screen_with_soft_timeout('logoutdialog', soft_timeout => 15);
         type_string "\t\t";       # select shutdown
         sleep 1;
 
-        # assert_screen 'test-shutdown-1', 3;
+        # assert_screen_with_soft_timeout('test-shutdown-1', soft_timeout => 3);
         type_string "\n";
     }
 
     if (check_var("DESKTOP", "lxde")) {
         x11_start_program("lxsession-logout");    # opens logout dialog
-        assert_screen "logoutdialog", 20;
+        assert_screen_with_soft_timeout("logoutdialog", soft_timeout => 20);
         send_key "ret";
     }
 

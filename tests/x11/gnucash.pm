@@ -11,6 +11,7 @@
 use base "x11test";
 use strict;
 use testapi;
+use utils;
 
 sub run() {
     my $self = shift;
@@ -20,10 +21,10 @@ sub run() {
     # needed for viewing
     ensure_installed("yelp");
     x11_start_program("gnucash");
-    assert_screen 'test-gnucash-1', 3;
+    assert_screen_with_soft_timeout('test-gnucash-1', soft_timeout => 3);
     send_key "ctrl-h";    # open user tutorial
     wait_idle 5;
-    assert_screen 'test-gnucash-2', 3;
+    assert_screen_with_soft_timeout('test-gnucash-2', soft_timeout => 3);
     send_key "alt-f4";    # Leave tutorial window
                           # Leave tips windows for GNOME case
     if (check_var("DESKTOP", "gnome") || get_var("DESKTOP") eq "xfce") { sleep 3; send_key "alt-c"; }

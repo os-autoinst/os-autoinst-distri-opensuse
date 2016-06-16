@@ -11,11 +11,12 @@
 use base "basetest";
 use strict;
 use testapi;
+use utils;
 
 sub run() {
     my $self = shift;
     x11_start_program("banshee");
-    assert_screen 'test-banshee-1', 3;
+    assert_screen_with_soft_timeout('test-banshee-1', soft_timeout => 3);
     send_key "ctrl-q";    # really quit (alt-f4 just backgrounds)
     send_key "alt-f4";
     wait_idle;

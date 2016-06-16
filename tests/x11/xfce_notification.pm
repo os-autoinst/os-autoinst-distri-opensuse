@@ -11,6 +11,7 @@
 use base "x11test";
 use strict;
 use testapi;
+use utils;
 
 # test xfce4-notifyd with a notification
 
@@ -18,7 +19,7 @@ use testapi;
 sub run() {
     my $self = shift;
     x11_start_program('notify-send --expire-time=30 Test');
-    assert_screen 'test-xfce_notification-1', 5;
+    assert_screen_with_soft_timeout('test-xfce_notification-1', soft_timeout => 5);
 }
 
 1;

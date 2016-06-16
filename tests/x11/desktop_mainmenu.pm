@@ -11,6 +11,7 @@
 use base "x11test";
 use strict;
 use testapi;
+use utils;
 
 
 sub run() {
@@ -30,7 +31,7 @@ sub run() {
     else {
         send_key "alt-f1";                       # open main menu
     }
-    assert_screen 'test-desktop_mainmenu-1', 20;
+    assert_screen_with_soft_timeout('test-desktop_mainmenu-1', soft_timeout => 20);
 
     send_key "esc";
 }

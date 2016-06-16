@@ -11,6 +11,7 @@
 use base "consoletest";
 use strict;
 use testapi;
+use utils;
 
 # test for equivalent of bug https://bugzilla.novell.com/show_bug.cgi?id=598574
 sub run() {
@@ -18,7 +19,7 @@ sub run() {
     select_console 'user-console';
     script_run('rpm -q wget');
     script_run('wget -O- -q www3.zq1.de/test.txt');
-    assert_screen 'test-wget_ipv6-1', 3;
+    assert_screen_with_soft_timeout('test-wget_ipv6-1', soft_timeout => 3);
 }
 
 1;

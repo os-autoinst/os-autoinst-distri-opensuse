@@ -11,6 +11,7 @@
 use base "x11test";
 use strict;
 use testapi;
+use utils;
 
 # test kde text editor
 
@@ -19,7 +20,7 @@ sub run() {
     my $self = shift;
     ensure_installed("kate");
     x11_start_program("kate", 6, {valid => 1});
-    assert_screen 'test-kate-1', 10;
+    assert_screen_with_soft_timeout('test-kate-1', soft_timeout => 10);
 
     if (!get_var("PLASMA5")) {
         # close welcome screen
@@ -27,9 +28,9 @@ sub run() {
         sleep 2;
     }
     type_string "If you can see this text kate is working.\n";
-    assert_screen 'test-kate-2', 5;
+    assert_screen_with_soft_timeout('test-kate-2', soft_timeout => 5);
     send_key "ctrl-q";
-    assert_screen 'test-kate-3', 5;
+    assert_screen_with_soft_timeout('test-kate-3', soft_timeout => 5);
     send_key "alt-d";    # discard
 }
 

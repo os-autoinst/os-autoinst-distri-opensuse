@@ -11,6 +11,7 @@
 use base "x11test";
 use strict;
 use testapi;
+use utils;
 
 # test thunar and open the root directory
 
@@ -22,7 +23,7 @@ sub run() {
     send_key "shift-tab";
     send_key "home";
     send_key "down";
-    assert_screen 'test-thunar-1', 3;
+    assert_screen_with_soft_timeout('test-thunar-1', soft_timeout => 3);
     send_key "alt-f4";
     sleep 2;
 }

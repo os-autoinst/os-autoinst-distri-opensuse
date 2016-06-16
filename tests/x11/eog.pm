@@ -11,6 +11,7 @@
 use base "x11test";
 use strict;
 use testapi;
+use utils;
 
 # test eye of gnome image viewer
 
@@ -20,7 +21,7 @@ sub run() {
     my $self = shift;
     x11_start_program("eog " . get_var("WALLPAPER"));
     sleep 2;
-    assert_screen 'test-eog-1', 3;
+    assert_screen_with_soft_timeout('test-eog-1', soft_timeout => 3);
     sleep 2;
     send_key "alt-f4";
     sleep 2;
