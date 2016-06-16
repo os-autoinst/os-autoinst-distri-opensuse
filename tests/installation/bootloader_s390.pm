@@ -100,7 +100,7 @@ EO_frickin_boot_parms
         eval {
             # Define memory to behave the same way as other archs
             # and to have the same configuration through all s390 guests
-            $s3270->sequence_3270("String(\"DEFINE STORAGE 1G\")", "ENTER",);
+            $s3270->sequence_3270('String("DEFINE STORAGE ' . get_var('QEMURAM', 1024) . 'M") ', "ENTER",);
 
             # ensure that we are in cms mode before executing qaboot
             $s3270->sequence_3270("String(\"#cp i cms\")", "ENTER", "ENTER", "ENTER", "ENTER",);
