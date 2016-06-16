@@ -13,6 +13,12 @@ use warnings;
 use base "y2logsstep";
 use testapi;
 
+sub check_bsc982138() {
+    if (check_screen('installation-details-view-remaining-time-gt2h', 5)) {
+        record_soft_failure 'bsc#982138: Remaining time estimation during installation shows >2h most of the time';
+    }
+}
+
 sub run() {
     my $self = shift;
 
@@ -66,6 +72,7 @@ sub run() {
 
         # view installation details
         send_key $cmd{instdetails};
+        check_bsc982138;
     }
     elsif (get_var("AUTOYAST")) {
         assert_screen("inst-packageinstallationstarted", 120);
@@ -95,9 +102,8 @@ sub run() {
             last if check_screen 'installation-details-view', 5;
         }
         assert_screen 'installation-details-view';
-        if (check_screen('installation-details-view-remaining-time-gt2h', 5)) {
-            record_soft_failure 'bsc#982138: Remaining time estimation during installation shows >2h most of the time';
-        }
+        check_bsc982138;
+
         if (get_var("DVD") && !get_var("NOIMAGES")) {
             if (check_var('DESKTOP', 'kde')) {
                 assert_screen 'kde-imagesused', 500;
