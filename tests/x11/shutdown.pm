@@ -79,7 +79,25 @@ sub run() {
         send_key "ret";
     }
 
-    if (get_var("DESKTOP") =~ m/minimalx|textmode/) {
+    if (check_var("DESKTOP", "lxqt")) {
+        x11_start_program("shutdown");            # opens logout dialog
+        assert_screen "lxqt_logoutdialog", 20;
+        send_key "ret";
+    }
+    if (check_var("DESKTOP", "enlightenment")) {
+        send_key "ctrl-alt-delete";               # shutdown
+        assert_screen 'logoutdialog', 15;
+        assert_and_click 'enlightenment_shutdown_btn';
+    }
+
+    if (check_var("DESKTOP", "mate")) {
+        x11_start_program("mate-session-save --shutdown-dialog");
+        send_key "ctrl-alt-delete";               # shutdown
+        assert_screen 'mate_logoutdialog', 15;
+        assert_and_click 'mate_shutdown_btn';
+    }
+
+    if (get_var("DESKTOP") =~ m/minimalx|textmode|awesome/) {
         power('off');
     }
 

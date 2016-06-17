@@ -24,7 +24,7 @@ our %valueranges = (
     DOCRUN             => [0, 1],
 
     #   BTRFS=>[0,1],
-    DESKTOP => [qw(kde gnome xfce lxde minimalx textmode awesome)],
+    DESKTOP => [qw(kde gnome xfce lxde minimalx textmode)],
 
     #   ROOTFS=>[qw(ext3 xfs jfs btrfs reiserfs)],
     VIDEOMODE => ["", "text"],
@@ -84,7 +84,6 @@ sub cleanup_needles() {
     remove_desktop_needles("kde");
     remove_desktop_needles("gnome");
     remove_desktop_needles("xfce");
-    remove_desktop_needles("awesome");
     if (!get_var("DESKTOP_MINIMALX_INSTONLY")) {
         remove_desktop_needles("minimalx");
     }
@@ -98,6 +97,18 @@ sub cleanup_needles() {
     }
     if (!check_var("VIDEOMODE", "text")) {
         unregister_needle_tags("ENV-VIDEOMODE-text");
+    }
+    if (!check_var("DE_PATTERN", "mate")) {
+        remove_desktop_needles("mate");
+    }
+    if (!check_var("DE_PATTERN", "lxqt")) {
+        remove_desktop_needles("lxqt");
+    }
+    if (!check_var("DE_PATTERN", "enlightenment")) {
+        remove_desktop_needles("enlightenment");
+    }
+    if (!check_var("DE_PATTERN", "awesome")) {
+        remove_desktop_needles("awesome");
     }
     if (get_var("INSTLANG") && get_var("INSTLANG") ne "en_US") {
         unregister_needle_tags("ENV-INSTLANG-en_US");
@@ -656,18 +667,49 @@ sub load_extra_tests () {
     return 0;
 }
 
+sub load_otherDE_tests() {
+    if (get_var("DE_PATTERN")) {
+        my $de = get_var("DE_PATTERN");
+        loadtest "console/consoletest_setup.pm";
+        loadtest "console/hostname.pm";
+        loadtest "console/zypper_clear_repos.pm";
+        loadtest "console/install_otherDE_pattern.pm";
+        loadtest "console/consoletest_finish.pm";
+        loadtest "x11/${de}_reconfigure_openqa.pm";
+        loadtest "x11/reboot_icewm.pm";
+        # here comes the actual desktop specific test
+        if ($de =~ /^awesome$/)       { load_awesome_tests(); }
+        if ($de =~ /^enlightenment$/) { load_enlightenment_tests(); }
+        if ($de =~ /^mate$/)          { load_mate_tests(); }
+        if ($de =~ /^lxqt$/)          { load_lxqt_tests(); }
+        loadtest "x11/shutdown.pm";
+        return 1;
+    }
+    return 0;
+}
+
+sub load_awesome_tests() {
+    loadtest "x11/awesome_menu.pm";
+    loadtest "x11/awesome_xterm.pm";
+}
+
+sub load_enlightenment_tests() {
+    loadtest "x11/enlightenment_first_start.pm";
+    loadtest "x11/terminology.pm";
+}
+
+sub load_lxqt_tests() {
+}
+
+sub load_mate_tests() {
+    loadtest "x11/mate_terminal.pm";
+}
+
 sub load_x11tests() {
     return unless (!get_var("INSTALLONLY") && get_var("DESKTOP") !~ /textmode|minimalx/ && !get_var("DUALBOOT") && !get_var("RESCUECD"));
 
     if (get_var("NOAUTOLOGIN") || get_var("XDMUSED")) {
         loadtest "x11/x11_login.pm";
-    }
-    # testing awesome should be considered special, not execute other tests
-    # afterwards, just make sure the basics work
-    if (check_var("DESKTOP", "awesome")) {
-        loadtest "x11/awesome_menu.pm";
-        loadtest "x11/awesome_xterm.pm";
-        return;
     }
     if (guiupdates_is_applicable) {
         if (check_var("DESKTOP", "kde")) {
@@ -1016,6 +1058,7 @@ else {
     unless (install_online_updates()
         || load_applicationstests()
         || load_extra_tests()
+        || load_otherDE_tests()
         || load_skenkins_tests())
     {
         load_rescuecd_tests();
