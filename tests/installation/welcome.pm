@@ -12,15 +12,7 @@ use strict;
 use warnings;
 use base "y2logsstep";
 use testapi;
-
-sub ensure_fullscreen {
-    # for ssh-X using our window manager we need to handle windows explicitly
-    if (check_var('VIDEOMODE', 'ssh-x')) {
-        assert_screen('yast2-windowborder');
-        my $console = select_console("installation");
-        $console->fullscreen({window_name => 'YaST2*'});
-    }
-}
+use utils qw/ensure_fullscreen/;
 
 sub run() {
     my $self = shift;

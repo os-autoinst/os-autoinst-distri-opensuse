@@ -24,6 +24,7 @@ our @EXPORT = qw/
   workaround_type_encrypted_passphrase
   check_screenlock
   sle_version_at_least
+  ensure_fullscreen
   /;
 
 
@@ -347,6 +348,17 @@ sub sle_version_at_least {
     }
 
     die "unsupported SLE VERSION $version in check";
+}
+
+sub ensure_fullscreen {
+    my (%args) = @_;
+    $args{tag} //= 'yast2-windowborder';
+    # for ssh-X using our window manager we need to handle windows explicitly
+    if (check_var('VIDEOMODE', 'ssh-x')) {
+        assert_screen($args{tag});
+        my $console = select_console("installation");
+        $console->fullscreen({window_name => 'YaST2*'});
+    }
 }
 
 1;
