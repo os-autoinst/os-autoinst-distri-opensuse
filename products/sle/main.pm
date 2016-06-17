@@ -646,6 +646,9 @@ sub load_consoletests() {
         if (get_var("SYSTEM_ROLE")) {
             loadtest "console/patterns.pm";
         }
+        if (get_var("FILESYSTEM", "btrfs") eq "btrfs") {
+            loadtest "console/btrfs_autocompletion.pm";
+        }
         if (snapper_is_applicable) {
             if (get_var("UPGRADE")) {
                 loadtest "console/upgrade_snapshots.pm";
