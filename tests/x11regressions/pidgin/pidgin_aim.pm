@@ -44,7 +44,7 @@ sub run() {
     send_key "alt-a";
 
     # Should create AIM account 1
-    assert_screen 'pidgin-aim-account1', 3;
+    assert_screen 'pidgin-aim-account1';
 
     # Create another account
     send_key "ctrl-a";
@@ -63,7 +63,7 @@ sub run() {
     sleep 15;    # wait until account2 online
 
     # Should have AIM accounts 1 and 2
-    assert_screen 'pidgin-aim-account2', 3;
+    assert_screen 'pidgin-aim-account2';
 
     # Close account manager
     send_key "ctrl-a";
@@ -81,9 +81,9 @@ sub run() {
     type_string "hello world!\n";
 
     # Should see "hello world!" in screen.
-    assert_screen 'pidgin-aim-sentmsg', 3;
+    assert_screen 'pidgin-aim-sentmsg';
     send_key "ctrl-tab";
-    assert_screen 'pidgin-aim-receivedmsg', 3;
+    assert_screen 'pidgin-aim-receivedmsg';
     sleep 2;
 
     # Cleaning
@@ -117,7 +117,7 @@ sub run() {
     send_key "alt-d";
 
     # Should not have any account
-    assert_screen 'pidgin-welcome', 3;
+    assert_screen 'pidgin-welcome';
 
     # Exit
     send_key "alt-c";

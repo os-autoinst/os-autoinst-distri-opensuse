@@ -11,59 +11,58 @@
 use base "x11test";
 use strict;
 use testapi;
+use utils;
 
 # Preparation for testing pidgin
 sub pidgin_preparation() {
     my $self = shift;
     mouse_hide(1);
-    my @packages = qw/pidgin pidgin-otr/;
+    my @packages = qw/pidgin/;
 
     # Install packages
-    x11_start_program("xterm");
-    type_string "xdg-su -c 'zypper -n in @packages'\n";
-    sleep 3;
-    if ($password) {
-        type_password;
-        send_key "ret";
-    }
-    sleep 60;            # give time to install
-    type_string "\n";    # prevent the screensaver...
-                         # make sure pkgs installed
-    type_string "clear;rpm -qa @packages\n";
-    assert_screen "pidgin-pkg-installed", 10;
+    ensure_installed(@packages);
 
     # Enable the showoffline
-    type_string "pidgin\n";
-    assert_screen "pidgin-welcome", 10;
+    x11_start_program("pidgin");
+    assert_screen "pidgin-welcome";
     send_key "alt-c";
-    sleep 1;
 
     # pidgin main winodow is hidden in tray at first run
     # need to show up the main window
-    send_key "super-m";
-    sleep 1;
-    send_key "ret";
-    sleep 1;
+    if (sle_version_at_least('12-SP2')) {
+        hold_key "ctrl-alt";
+        send_key "tab";
+        wait_still_screen;
+        send_key "tab";
+        wait_still_screen;
+        send_key "tab";
+        assert_screen "status-icons";
+        release_key "ctrl-alt";
+        assert_and_click "status-icons-pidgin";
+    }
+    else {
+        send_key "super-m";
+        wait_still_screen;
+        send_key "ret";
+        wait_still_screen;
+    }
 
     # check showoffline status is off
     send_key "alt-b";
-    sleep 1;
+    wait_still_screen;
     send_key "o";
-    sleep 1;
-    assert_screen "pidgin-showoffline-off", 10;
+    assert_screen "pidgin-showoffline-off";
     # enable showoffline
     send_key "o";
+    wait_still_screen;
     # check showoffline status is on
     send_key "alt-b";
-    sleep 1;
+    wait_still_screen;
     send_key "o";
-    assert_screen "pidgin-showoffline-on", 10;
+    assert_screen "pidgin-showoffline-on";
     send_key "esc";
 
-    send_key "ctrl-q";       # quit pidgin
-    sleep 1;
-    type_string "exit\n";    # close xterm
-    sleep 2;
+    send_key "ctrl-q";    # quit pidgin
 }
 
 sub run() {
