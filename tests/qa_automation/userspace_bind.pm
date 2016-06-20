@@ -13,7 +13,7 @@ use strict;
 use testapi;
 
 sub test_run_list() {
-    return qw(_reboot_off apache apparmor apparmor_profiles bind bzip2);
+    return qw(_reboot_off bind);
 }
 
 sub test_suite() {

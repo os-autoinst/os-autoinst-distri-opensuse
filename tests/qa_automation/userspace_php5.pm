@@ -13,7 +13,7 @@ use strict;
 use testapi;
 
 sub test_run_list() {
-    return qw(_reboot_off nfs nfs_v4 openssh openssl);
+    return qw(_reboot_off php5);
 }
 
 sub test_suite() {

@@ -13,7 +13,7 @@ use strict;
 use testapi;
 
 sub test_run_list() {
-    return qw(_reboot_off postfix sharutils coreutils cpio cracklib findutils gzip indent net_snmp);
+    return qw(_reboot_off openssh);
 }
 
 sub test_suite() {

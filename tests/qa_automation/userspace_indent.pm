@@ -13,7 +13,7 @@ use strict;
 use testapi;
 
 sub test_run_list() {
-    return qw(_reboot_off php5 systemd);
+    return qw(_reboot_off indent);
 }
 
 sub test_suite() {
