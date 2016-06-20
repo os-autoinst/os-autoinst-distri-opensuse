@@ -130,7 +130,7 @@ sub wait_testrun {
     # Set a high timeout value for wait_serial
     # so that it will wait until test run finished or
     # MAX_JOB_TIME(can be set on openQA webui) reached
-    my $ret = wait_serial($pattern, 90 * 60);
+    my $ret = wait_serial($pattern, 180 * 60);
     if ($ret) {
         return 1;
     }
