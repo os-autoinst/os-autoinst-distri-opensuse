@@ -35,7 +35,7 @@ sub run() {
     send_key "alt-a";
 
     # Should create IRC account
-    assert_screen 'pidgin-irc-account', 3;
+    assert_screen 'pidgin-irc-account';
 
     # Close account manager
     send_key "ctrl-a";
@@ -62,12 +62,12 @@ sub run() {
     send_key "alt-j";
 
     # Should open sledtesting channel
-    assert_screen 'pidgin-irc-sledtesting', 3;
+    assert_screen 'pidgin-irc-sledtesting';
 
     # Send a message
     send_key "alt-tab";
     type_string "Hello from openQA\n";
-    assert_screen 'pidgin-irc-msgsent', 3;
+    assert_screen 'pidgin-irc-msgsent';
     send_key "ctrl-w";
     sleep 2;
 
@@ -83,7 +83,7 @@ sub run() {
     send_key "alt-d";
 
     # Should not have any account and show welcome window
-    assert_screen 'pidgin-welcome', 3;
+    assert_screen 'pidgin-welcome';
 
     # Exit
     send_key "alt-c";

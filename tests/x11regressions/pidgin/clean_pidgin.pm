@@ -15,7 +15,7 @@ use testapi;
 # Cleaning for testing pidgin
 sub remove_pkg() {
     my $self     = shift;
-    my @packages = qw/pidgin pidgin-otr/;
+    my @packages = qw/pidgin/;
     x11_start_program("xterm");
 
     # Remove packages
@@ -29,7 +29,7 @@ sub remove_pkg() {
     type_string "clear\n";
     sleep 2;
     type_string "rpm -qa @packages\n";
-    assert_screen "pidgin-pkg-removed", 10;    #make sure pkgs removed.
+    assert_screen "pidgin-pkg-removed";    #make sure pkgs removed.
 
     type_string "exit\n";
     sleep 2;
