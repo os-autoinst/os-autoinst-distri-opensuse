@@ -16,15 +16,14 @@ use testapi;
 sub run() {
     my $self = shift;
     assert_screen "before-package-selection";
-
-    #send_key "ctrl-alt-shift-x"; sleep 3;
+    
     select_console('install-shell');
     
     if (get_var('HOSTNAME')) {
-        assert_script_run 'test $(hostname) == "myhost"'
+        assert_script_run 'test $(hostname) == "myhost"';
     }
     else {
-        assert_script_run 'test $(hostname) == "install"'
+        assert_script_run 'test $(hostname) == "install"';
     }
 
     save_screenshot;
