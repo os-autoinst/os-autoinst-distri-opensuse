@@ -41,15 +41,12 @@ sub run() {
 
     # add debuginfo channels
     if (check_var('DISTRI', 'sle')) {
-        my $arch    = get_var('ARCH');
-        my $version = get_var('VERSION');
-
-        assert_script_run "zypper ar -f http://download.suse.de/ibs/SUSE/Products/SLE-SERVER/$version/$arch/product_debug/ SLES-Server-Debug-Pool";
-        assert_script_run "zypper ar -f http://download.suse.de/ibs/SUSE/Updates/SLE-SERVER/$version/$arch/update_debug/ SLES-Server-Debug-Updates";
+        my $url = "ftp://openqa.suse.de/" . get_var('REPO_SLES_DEBUG');
+        assert_script_run "zypper ar -f $url SLES-Server-Debug";
 
         assert_script_run 'zypper ref; zypper -n -v in kernel-default-base-debuginfo kernel-default-debuginfo', 300;
 
-        script_run 'zypper -n rr SLES-Server-Debug-Pool SLES-Server-Debug-Updates';
+        script_run 'zypper -n rr SLES-Server-Debug';
     }
     else {
         my $opensuse_debug_repos = 'repo-debug ';
