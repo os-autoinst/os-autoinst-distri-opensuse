@@ -15,9 +15,9 @@ use testapi;
 sub run() {
     my $self = shift;
     assert_screen "before-package-selection";
-    
+
     select_console('install-shell');
-    
+
     if (get_var('HOSTNAME')) {
         assert_script_run 'test $(hostname) == "myhost"';
     }
