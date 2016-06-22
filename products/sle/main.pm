@@ -542,6 +542,9 @@ sub load_inst_tests() {
     }
     if (noupdatestep_is_applicable) {
         loadtest "installation/installer_timezone.pm";
+	if (!consolestep_is_applicable) {
+	    loadtest "installation/hostname_inst.pm";
+	}
         if (!get_var("REMOTE_MASTER")) {
             loadtest "installation/logpackages.pm";
         }
