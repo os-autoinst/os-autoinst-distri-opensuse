@@ -485,6 +485,9 @@ sub load_consoletests() {
         loadtest "console/check_console_font.pm";
         loadtest "console/textinfo.pm";
         loadtest "console/hostname.pm";
+        if (get_var("FILESYSTEM", "btrfs") eq "btrfs") {
+            loadtest "console/btrfs_autocompletion.pm";
+        }
         if (snapper_is_applicable) {
             if (get_var("UPGRADE")) {
                 loadtest "console/upgrade_snapshots.pm";
