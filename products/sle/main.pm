@@ -225,10 +225,6 @@ $needle::cleanuphandler = \&cleanup_needles;
 logcurrentenv(qw"ADDONURL BIGTEST BTRFS DESKTOP HW HWSLOT LVM MOZILLATEST NOINSTALL REBOOTAFTERINSTALL UPGRADE USBBOOT ZDUP ZDUPREPOS TEXTMODE DISTRI NOAUTOLOGIN QEMUCPU QEMUCPUS RAIDLEVEL ENCRYPT INSTLANG QEMUVGA DOCRUN UEFI DVD GNOME KDE ISO ISO_MAXSIZE NETBOOT NOIMAGES PROMO QEMUVGA SPLITUSR VIDEOMODE");
 
 
-sub xfcestep_is_applicable() {
-    return check_var("DESKTOP", "xfce");
-}
-
 sub rescuecdstep_is_applicable() {
     return get_var("RESCUECD");
 }
@@ -794,10 +790,6 @@ sub load_x11tests() {
     if (get_var("XDMUSED")) {
         loadtest "x11/x11_login.pm";
     }
-    if (xfcestep_is_applicable) {
-        loadtest "x11/xfce_close_hint_popup.pm";
-        loadtest "x11/xfce4_terminal.pm";
-    }
     loadtest "x11/xterm.pm";
     loadtest "x11/sshxterm.pm";
     if (gnomestep_is_applicable) {
@@ -818,9 +810,6 @@ sub load_x11tests() {
     }
     if (bigx11step_is_applicable) {
         loadtest "x11/imagemagick.pm";
-    }
-    if (xfcestep_is_applicable) {
-        loadtest "x11/ristretto.pm";
     }
     if (!is_server || we_is_applicable) {
         if (gnomestep_is_applicable) {
@@ -844,10 +833,6 @@ sub load_x11tests() {
     if (gnomestep_is_applicable && get_var("GNOME2")) {
         loadtest "x11/application_browser.pm";
     }
-    if (xfcestep_is_applicable) {
-        loadtest "x11/thunar.pm";
-        loadtest "x11/reboot_xfce.pm";
-    }
     if (bigx11step_is_applicable) {
         loadtest "x11/glxgears.pm";
     }
@@ -865,15 +850,6 @@ sub load_x11tests() {
         loadtest "installation/reconnect_s390.pm";
     }
     loadtest "x11/desktop_mainmenu.pm";
-
-    if (xfcestep_is_applicable) {
-        loadtest "x11/xfce4_appfinder.pm";
-        loadtest "x11/xfce_notification.pm";
-        if (!(get_var("FLAVOR") eq 'Rescue-CD')) {
-            loadtest "x11/xfce_lightdm_logout_login.pm";
-        }
-    }
-
     loadtest "x11/shutdown.pm";
 }
 
