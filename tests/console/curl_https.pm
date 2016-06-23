@@ -15,7 +15,18 @@ use strict;
 # test for bug https://bugzilla.novell.com/show_bug.cgi?id=598574
 sub run() {
     select_console 'user-console';
-    validate_script_output('curl -v https://eu.httpbin.org/get 2>&1', sub { m,subjectAltName:[\w\s]+["]?eu.httpbin.org["]? matched, }, 60);
+
+    # arbitrary number of retries
+    my $max_retries = 7;
+    for (1 .. $max_retries) {
+        eval {
+            validate_script_output('curl -f -v https://eu.httpbin.org/get 2>&1', sub { m,subjectAltName:[\w\s]+["]?eu.httpbin.org["]? matched, });
+        };
+        last unless ($@);
+        diag "curl -f -v https://eu.httpbin.org/get failed: $@";
+        diag "Maybe the network is busy. Retry: $_ of $max_retries";
+    }
+    die "curl failed (with retries)" if $@;
 }
 
 1;
