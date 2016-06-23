@@ -12,18 +12,28 @@ prepare:
 	cd os-autoinst && cpanm -nq --installdeps .
 	cpanm -nq --installdeps .
 
-.PHONY: check-links
-check-links:
+os-autoinst/:
 	@test -d os-autoinst || (echo "Missing test requirements, \
 link a local working copy of 'os-autoinst' into this \
 folder or call 'make prepare' to install download a copy necessary for \
 testing" && exit 2)
+
+tools/: os-autoinst/
 	@test -e tools || ln -s os-autoinst/tools .
 
-.PHONY: test
-test: check-links
-	tools/tidy --check
+.PHONY: check-links
+check-links: tools/ os-autoinst/
+
+.PHONY: test-compile
+test-compile: check-links
 	export PERL5LIB="../..:os-autoinst:lib:tests/installation:tests/x11:tests/qa_automation:$$PERL5LIB" ; for f in `git ls-files "*.pm" || find . -name \*.pm|grep -v /os-autoinst/` ; do perl -c $$f 2>&1 | grep -v " OK$$" && exit 2; done ; true
+
+.PHONY: check-links
+tidy: check-links
+	tools/tidy --check
+
+.PHONY: test
+test: tidy test-compile
 
 .PHONY: perlcritic
 perlcritic: check-links
