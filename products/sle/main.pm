@@ -1,87 +1,40 @@
-#!/usr/bin/perl -w
 use strict;
-use testapi;
+use warnings;
+use testapi qw/check_var get_var set_var/;
 use lockapi;
-use autotest;
 use needle;
 use File::Find;
 use File::Basename;
 
 BEGIN {
-    # add search path for lib/utils.pm
     unshift @INC, dirname(__FILE__) . '/../../lib';
 }
 use utils;
+use main_common;
 
-our %valueranges = (
+init_main();
 
-    #   LVM=>[0,1],
-    NOIMAGES           => [0, 1],
-    REBOOTAFTERINSTALL => [0, 1],
-    DOCRUN             => [0, 1],
-
-    #   BTRFS=>[0,1],
-    DESKTOP => [qw(kde gnome xfce lxde minimalx textmode)],
-
-    #   ROOTFS=>[qw(ext3 xfs jfs btrfs reiserfs)],
-    VIDEOMODE => ["", "text", "ssh-x"],
-);
-
-sub logcurrentenv {
-    for my $k (@_) {
-        my $e = get_var("$k");
-        next unless defined $e;
-        diag("usingenv $k=$e");
-    }
-}
-
-sub check_env() {
-    for my $k (keys %valueranges) {
-        next unless get_var($k);
-        unless (grep { get_var($k) eq $_ } @{$valueranges{$k}}) {
-            die sprintf("%s must be one of %s\n", $k, join(',', @{$valueranges{$k}}));
-        }
-    }
-}
-
-sub unregister_needle_tags {
-    my $tag = shift;
-    my @a   = @{needle::tags($tag)};
-    for my $n (@a) { $n->unregister(); }
-}
-
-sub remove_desktop_needles {
-    my $desktop = shift;
-    if (!check_var("DESKTOP", $desktop) && !check_var("FULL_DESKTOP", $desktop)) {
-        unregister_needle_tags("ENV-DESKTOP-$desktop");
-    }
-}
-
-sub is_server() {
+sub is_server {
     return is_sles4sap() || get_var('FLAVOR', '') =~ /^Server/;
 }
 
-sub is_desktop() {
+sub is_desktop {
     return get_var('FLAVOR', '') =~ /^Desktop/;
 }
 
-sub is_staging () {
-    return get_var('STAGING');
-}
-
-sub is_sles4sap () {
+sub is_sles4sap {
     return get_var('FLAVOR', '') =~ /SAP/;
 }
 
-sub is_sles4sap_standard () {
+sub is_sles4sap_standard {
     return is_sles4sap && check_var('SLES4SAP_MODE', 'sles');
 }
 
-sub is_smt () {
+sub is_smt {
     return (get_var("PATTERNS", '') || get_var('HDD_1', '')) =~ /smt/;
 }
 
-sub cleanup_needles() {
+sub cleanup_needles {
     remove_desktop_needles("lxde");
     remove_desktop_needles("kde");
     remove_desktop_needles("gnome");
@@ -138,21 +91,9 @@ sub cleanup_needles() {
     }
 }
 
-
-#assert_screen "inst-bootmenu",12; # wait for welcome animation to finish
-
-# defaults for username and password
-$testapi::username = "bernhard";
-$testapi::password = "nots3cr3t";
-
-$testapi::username = get_var("USERNAME") if get_var("USERNAME");
-$testapi::password = get_var("PASSWORD") if defined get_var("PASSWORD");
-
 my $distri = testapi::get_var("CASEDIR") . '/lib/susedistribution.pm';
 require $distri;
 testapi::set_distribution(susedistribution->new());
-
-check_env();
 
 unless (get_var("DESKTOP")) {
     if (check_var("VIDEOMODE", "text")) {
@@ -161,11 +102,6 @@ unless (get_var("DESKTOP")) {
     else {
         set_var("DESKTOP", "gnome");
     }
-}
-
-# Tests currently rely on INSTLANG=en_US, so set it by default
-unless (get_var('INSTLANG')) {
-    set_var('INSTLANG', 'en_US');
 }
 
 # SLE specific variables
@@ -225,43 +161,6 @@ $needle::cleanuphandler = \&cleanup_needles;
 logcurrentenv(qw"ADDONURL BIGTEST BTRFS DESKTOP HW HWSLOT LVM MOZILLATEST NOINSTALL REBOOTAFTERINSTALL UPGRADE USBBOOT ZDUP ZDUPREPOS TEXTMODE DISTRI NOAUTOLOGIN QEMUCPU QEMUCPUS RAIDLEVEL ENCRYPT INSTLANG QEMUVGA DOCRUN UEFI DVD GNOME KDE ISO ISO_MAXSIZE NETBOOT NOIMAGES PROMO QEMUVGA SPLITUSR VIDEOMODE");
 
 
-sub rescuecdstep_is_applicable() {
-    return get_var("RESCUECD");
-}
-
-sub consolestep_is_applicable() {
-    return !get_var("INSTALLONLY") && !get_var("DUALBOOT") && !get_var("RESCUECD");
-}
-
-sub kdestep_is_applicable() {
-    return check_var("DESKTOP", "kde");
-}
-
-sub installzdupstep_is_applicable() {
-    return !get_var("NOINSTALL") && !get_var("RESCUECD") && get_var("ZDUP");
-}
-
-sub noupdatestep_is_applicable() {
-    return !get_var("UPGRADE");
-}
-
-sub bigx11step_is_applicable() {
-    return get_var("BIGTEST");
-}
-
-sub installyaststep_is_applicable() {
-    return !get_var("NOINSTALL") && !get_var("RESCUECD") && !get_var("ZDUP");
-}
-
-sub gnomestep_is_applicable() {
-    return check_var("DESKTOP", "gnome");
-}
-
-sub snapper_is_applicable() {
-    my $fs = get_var("FILESYSTEM", 'btrfs');
-    return ($fs eq "btrfs" && get_var("HDDSIZEGB", 10) > 10);
-}
-
 sub need_clear_repos() {
     return get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/ && get_var("SUSEMIRROR");
 }
@@ -275,23 +174,15 @@ sub have_addn_repos() {
 }
 
 sub rt_is_applicable() {
-    return is_server && get_var("ADDONS", "") =~ /rt/;
+    return is_server() && get_var("ADDONS", "") =~ /rt/;
 }
 
 sub we_is_applicable() {
-    return is_server && (get_var("ADDONS", "") =~ /we/ or get_var("SCC_ADDONS", "") =~ /we/ or get_var("ADDONURL", "") =~ /we/);
+    return is_server() && (get_var("ADDONS", "") =~ /we/ or get_var("SCC_ADDONS", "") =~ /we/ or get_var("ADDONURL", "") =~ /we/);
 }
 
 sub uses_qa_net_hardware() {
     return check_var("BACKEND", "ipmi") || check_var("BACKEND", "generalhw");
-}
-
-sub loadtest {
-    my ($test) = @_;
-    unless ($test =~ m,^tests/,) {
-        $test = "tests/$test";
-    }
-    autotest::loadtest($test);
 }
 
 sub load_x11regression_firefox() {
@@ -409,12 +300,6 @@ sub load_x11regression_other() {
     }
 }
 
-sub load_login_tests() {
-    if (!get_var("UEFI")) {
-        loadtest "login/boot.pm";
-    }
-}
-
 sub load_boot_tests() {
     if (get_var("ISO_MAXSIZE")) {
         loadtest "installation/isosize.pm";
@@ -438,7 +323,7 @@ sub load_boot_tests() {
             loadtest "installation/bootloader_uefi.pm";
         }
     }
-    elsif (uses_qa_net_hardware) {
+    elsif (uses_qa_net_hardware()) {
         loadtest "installation/qa_net.pm";
     }
     elsif (check_var("ARCH", "s390x")) {
@@ -457,12 +342,6 @@ sub load_boot_tests() {
     else {
         loadtest "installation/bootloader.pm";
     }
-}
-
-sub is_reboot_after_installation_necessary() {
-    return 0 if get_var("DUALBOOT") || get_var("RESCUECD") || get_var("ZDUP");
-
-    return get_var("REBOOTAFTERINSTALL") && !get_var("UPGRADE");
 }
 
 sub load_inst_tests() {
@@ -497,8 +376,8 @@ sub load_inst_tests() {
         loadtest 'installation/add_update_test_repo.pm';
     }
     loadtest "installation/addon_products_sle.pm";
-    if (noupdatestep_is_applicable) {
-        if (check_var('ARCH', 'x86_64') && sle_version_at_least('12-SP2') && is_server && (!is_sles4sap || is_sles4sap_standard)) {
+    if (noupdatestep_is_applicable()) {
+        if (check_var('ARCH', 'x86_64') && sle_version_at_least('12-SP2') && is_server() && (!is_sles4sap() || is_sles4sap_standard())) {
             loadtest "installation/system_role.pm";
         }
         loadtest "installation/partitioning.pm";
@@ -525,7 +404,7 @@ sub load_inst_tests() {
         if (get_var("IBFT")) {
             loadtest "installation/partitioning_iscsi.pm";
         }
-        if (uses_qa_net_hardware) {
+        if (uses_qa_net_hardware()) {
             loadtest "installation/partitioning_firstdisk.pm";
         }
         loadtest "installation/partitioning_finish.pm";
@@ -536,12 +415,12 @@ sub load_inst_tests() {
     if (!check_var('BACKEND', 'generalhw')) {
         loadtest "installation/releasenotes.pm";
     }
-    if (noupdatestep_is_applicable) {
+    if (noupdatestep_is_applicable()) {
         loadtest "installation/installer_timezone.pm";
         if (!get_var("REMOTE_MASTER")) {
             loadtest "installation/logpackages.pm";
         }
-        if (is_sles4sap) {
+        if (is_sles4sap()) {
             if (check_var("SLES4SAP_MODE", 'sles')) {
                 loadtest "installation/user_settings.pm";
             }    # sles4sap wizard installation doesn't have user_settings step
@@ -562,7 +441,7 @@ sub load_inst_tests() {
     if (get_var("UEFI") && get_var("SECUREBOOT")) {
         loadtest "installation/secure_boot.pm";
     }
-    if (installyaststep_is_applicable) {
+    if (installyaststep_is_applicable()) {
         loadtest "installation/installation_overview.pm";
         loadtest "installation/start_install.pm";
     }
@@ -571,7 +450,7 @@ sub load_inst_tests() {
         # on svirt we need to redefine the xml-file to boot the installed kernel
         loadtest "installation/redefine_svirt_domain.pm";
     }
-    if (is_sles4sap) {
+    if (is_sles4sap()) {
         if (check_var('SLES4SAP_MODE', 'sles4sap_wizard')) {
             loadtest "installation/sles4sap_wizard.pm";
             if (get_var("TREX")) {
@@ -590,14 +469,14 @@ sub load_reboot_tests() {
     if (check_var("ARCH", "s390x")) {
         loadtest "installation/reconnect_s390.pm";
     }
-    if (uses_qa_net_hardware) {
+    if (uses_qa_net_hardware()) {
         loadtest "boot/qa_net_boot_from_hdd.pm";
     }
-    if (installyaststep_is_applicable) {
+    if (installyaststep_is_applicable()) {
         # test makes no sense on s390 because grub2 can't be captured
         if (!check_var("ARCH", "s390x")) {
             loadtest "installation/grub_test.pm";
-            if ((snapper_is_applicable) && get_var("BOOT_TO_SNAPSHOT")) {
+            if ((snapper_is_applicable()) && get_var("BOOT_TO_SNAPSHOT")) {
                 loadtest "installation/boot_into_snapshot.pm";
             }
         }
@@ -617,21 +496,8 @@ sub load_reboot_tests() {
     }
 }
 
-sub load_rescuecd_tests() {
-    if (rescuecdstep_is_applicable) {
-        loadtest "rescuecd/rescuecd.pm";
-    }
-}
-
-sub load_zdup_tests() {
-    loadtest "installation/setup_zdup.pm";
-    loadtest "installation/zdup.pm";
-    loadtest "installation/post_zdup.pm";
-    loadtest 'boot/boot_to_desktop.pm';
-}
-
 sub load_consoletests() {
-    if (consolestep_is_applicable) {
+    if (consolestep_is_applicable()) {
         if (get_var("ADDONS", "") =~ /rt/) {
             loadtest "rt/kmp_modules.pm";
         }
@@ -642,7 +508,7 @@ sub load_consoletests() {
         if (get_var("SYSTEM_ROLE")) {
             loadtest "console/patterns.pm";
         }
-        if (snapper_is_applicable) {
+        if (snapper_is_applicable()) {
             if (get_var("UPGRADE")) {
                 loadtest "console/upgrade_snapshots.pm";
             }
@@ -655,14 +521,14 @@ sub load_consoletests() {
             loadtest "console/xorg_vt.pm";
         }
         loadtest "console/zypper_lr.pm";
-        if (need_clear_repos) {
+        if (need_clear_repos()) {
             loadtest "console/zypper_clear_repos.pm";
         }
         #have SCC repo for SLE product
-        if (have_scc_repos) {
+        if (have_scc_repos()) {
             loadtest "console/yast_scc.pm";
         }
-        elsif (have_addn_repos) {
+        elsif (have_addn_repos()) {
             loadtest "console/zypper_ar.pm";
         }
         loadtest "console/zypper_ref.pm";
@@ -671,25 +537,25 @@ sub load_consoletests() {
         if (check_var("ARCH", "x86_64")) {
             loadtest "console/glibc_i686.pm";
         }
-        if (!gnomestep_is_applicable) {
+        if (!gnomestep_is_applicable()) {
             loadtest "console/zypper_up.pm";
         }
-        if (is_jeos) {
+        if (is_jeos()) {
             loadtest "console/console_reboot.pm";
         }
         loadtest "console/zypper_in.pm";
         loadtest "console/yast2_i.pm";
         loadtest "console/yast2_bootloader.pm";
         loadtest "console/vim.pm";
-        if (!is_staging) {
+        if (!is_staging()) {
             loadtest "console/firewall_enabled.pm";
         }
-        if (is_jeos) {
+        if (is_jeos()) {
             loadtest "console/gpt_ptable.pm";
             loadtest "console/kdump_disabled.pm";
             loadtest "console/sshd_running.pm";
         }
-        if (rt_is_applicable) {
+        if (rt_is_applicable()) {
             loadtest "console/rt_is_realtime.pm";
             loadtest "console/rt_devel_packages.pm";
             loadtest "console/rt_peak_pci.pm";
@@ -704,13 +570,13 @@ sub load_consoletests() {
         }
         loadtest "console/mtab.pm";
         if (!get_var("NOINSTALL") && !is_desktop && (check_var("DESKTOP", "textmode"))) {
-            if (!is_staging && check_var('BACKEND', 'qemu')) {
+            if (!is_staging() && check_var('BACKEND', 'qemu')) {
                 # The NFS test expects the IP to be 10.0.2.15
                 loadtest "console/yast2_nfs_server.pm";
             }
             loadtest "console/http_srv.pm";
             loadtest "console/mysql_srv.pm";
-            if (!is_staging) {
+            if (!is_staging()) {
                 # Very temporary removal of this test from staging - rbrown 6 Apr 2016
                 loadtest "console/dns_srv.pm";
             }
@@ -758,7 +624,7 @@ sub load_extra_test () {
     loadtest "console/update_alternatives.pm";
 
     # start extra console tests from here
-    if (!get_var("OFW") && !is_jeos) {
+    if (!get_var("OFW") && !is_jeos()) {
         loadtest "console/aplay.pm";
     }
     if (get_var("FILESYSTEM", "btrfs") eq "btrfs") {
@@ -784,7 +650,7 @@ sub load_extra_test () {
 sub load_x11tests() {
     return unless (!get_var("INSTALLONLY") && get_var("DESKTOP") !~ /textmode|minimalx/ && !get_var("DUALBOOT") && !get_var("RESCUECD") && !get_var("HACLUSTER"));
 
-    if (is_smt) {
+    if (is_smt()) {
         loadtest "x11/smt.pm";
     }
     if (get_var("XDMUSED")) {
@@ -792,27 +658,27 @@ sub load_x11tests() {
     }
     loadtest "x11/xterm.pm";
     loadtest "x11/sshxterm.pm";
-    if (gnomestep_is_applicable) {
+    if (gnomestep_is_applicable()) {
         loadtest "x11/updates_packagekit_gpk.pm";
         loadtest "x11/gnome_control_center.pm";
         loadtest "x11/gnome_terminal.pm";
         loadtest "x11/gedit.pm";
     }
-    if (kdestep_is_applicable) {
+    if (kdestep_is_applicable()) {
         loadtest "x11/kate.pm";
     }
     loadtest "x11/firefox.pm";
-    if (bigx11step_is_applicable) {
+    if (bigx11step_is_applicable()) {
         loadtest "x11/firefox_stress.pm";
     }
     if (get_var("MOZILLATEST")) {
         loadtest "x11/mozmill_run.pm";
     }
-    if (bigx11step_is_applicable) {
+    if (bigx11step_is_applicable()) {
         loadtest "x11/imagemagick.pm";
     }
-    if (!is_server || we_is_applicable) {
-        if (gnomestep_is_applicable) {
+    if (!is_server() || we_is_applicable()) {
+        if (gnomestep_is_applicable()) {
             loadtest "x11/eog.pm";
             loadtest "x11/rhythmbox.pm";
         }
@@ -822,28 +688,28 @@ sub load_x11tests() {
             loadtest "x11/oocalc.pm";
         }
     }
-    if (kdestep_is_applicable) {
+    if (kdestep_is_applicable()) {
         loadtest "x11/khelpcenter.pm";
         loadtest "x11/systemsettings.pm";
         loadtest "x11/dolphin.pm";
     }
-    if (snapper_is_applicable) {
+    if (snapper_is_applicable()) {
         loadtest "x11/yast2_snapper.pm";
     }
-    if (gnomestep_is_applicable && get_var("GNOME2")) {
+    if (gnomestep_is_applicable() && get_var("GNOME2")) {
         loadtest "x11/application_browser.pm";
     }
-    if (bigx11step_is_applicable) {
+    if (bigx11step_is_applicable()) {
         loadtest "x11/glxgears.pm";
     }
-    if (kdestep_is_applicable) {
+    if (kdestep_is_applicable()) {
         loadtest "x11/amarok.pm";
         loadtest "x11/kontact.pm";
         loadtest "x11/reboot_kde.pm";
     }
-    if (gnomestep_is_applicable) {
+    if (gnomestep_is_applicable()) {
         loadtest "x11/nautilus.pm";
-        loadtest "x11/evolution.pm" if (!is_server || we_is_applicable);
+        loadtest "x11/evolution.pm" if (!is_server() || we_is_applicable());
         loadtest "x11/reboot_gnome.pm";
     }
     if (check_var("ARCH", "s390x")) {
@@ -861,25 +727,6 @@ sub load_applicationstests {
         return 1;
     }
     return 0;
-}
-
-sub load_autoyast_tests() {
-    #    init boot in load_boot_tests
-    loadtest("autoyast/installation.pm");
-    loadtest("autoyast/console.pm");
-    loadtest("autoyast/login.pm");
-    loadtest("autoyast/wicked.pm");
-    loadtest("autoyast/autoyast_verify.pm") if get_var("AUTOYAST_VERIFY");
-    if (get_var("SUPPORT_SERVER_GENERATOR")) {
-        loadtest("support_server/configure.pm");
-    }
-    else {
-        loadtest("autoyast/repos.pm");
-        loadtest("autoyast/clone.pm");
-        loadtest("autoyast/logs.pm");
-    }
-    loadtest("autoyast/autoyast_reboot.pm");
-    #    next boot in load_reboot_tests
 }
 
 sub load_slenkins_tests {
@@ -1159,7 +1006,7 @@ else {
         load_autoyast_tests();
         load_reboot_tests();
     }
-    elsif (installzdupstep_is_applicable) {
+    elsif (installzdupstep_is_applicable()) {
         load_boot_tests();
         load_zdup_tests();
     }
@@ -1173,7 +1020,7 @@ else {
             loadtest "rt/boot_rt_kernel.pm";
         }
         else {
-            if (get_var("BOOT_TO_SNAPSHOT") && (snapper_is_applicable)) {
+            if (get_var("BOOT_TO_SNAPSHOT") && (snapper_is_applicable())) {
                 loadtest "boot/grub_test_snapshot.pm";
                 if (get_var("UPGRADE")) {
                     loadtest "boot/snapper_rollback.pm";
