@@ -474,7 +474,6 @@
       <package>crash-kmp-default</package>
       <package>dbus-1-python</package>
       <package>dconf</package>
-      <package>dconf-lang</package>
       <package>desktop-translations</package>
       <package>ft2demos</package>
       <package>gnome-icon-theme-symbolic</package>
