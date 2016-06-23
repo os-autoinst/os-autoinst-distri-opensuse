@@ -14,11 +14,11 @@ prepare:
 
 .PHONY: check-links
 check-links:
-	test -d os-autoinst || (echo "Missing test requirements, \
+	@test -d os-autoinst || (echo "Missing test requirements, \
 link a local working copy of 'os-autoinst' into this \
 folder or call 'make prepare' to install download a copy necessary for \
 testing" && exit 2)
-	test -e tools || ln -s os-autoinst/tools .
+	@test -e tools || ln -s os-autoinst/tools .
 
 .PHONY: test
 test: check-links
