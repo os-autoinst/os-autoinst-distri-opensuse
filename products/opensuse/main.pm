@@ -485,7 +485,7 @@ sub load_consoletests() {
         loadtest "console/check_console_font.pm";
         loadtest "console/textinfo.pm";
         loadtest "console/hostname.pm";
-        if (get_var("FILESYSTEM", "btrfs") eq "btrfs") {
+        if (get_var("FILESYSTEM", "btrfs") eq "btrfs" && !is_staging) {
             loadtest "console/btrfs_autocompletion.pm";
         }
         if (snapper_is_applicable) {
