@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-use base "installbasetest";
+use base "y2logsstep";
 use strict;
 use testapi;
 use utils;
@@ -117,6 +117,14 @@ sub run {
 
 sub test_flags() {
     return {fatal => 1};
+}
+
+sub post_fail_hook() {
+    my $self = shift;
+
+    select_console 'log-console';
+    wait_still_screen(2);
+    $self->save_upload_y2logs;
 }
 
 1;
