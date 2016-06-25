@@ -24,6 +24,8 @@ sub compare_commands {
 }
 
 sub run() {
+    select_console 'root-console';
+
     compare_commands("btrfs device stats ",                  "btrfs d\tst\t");
     compare_commands("btrfs subvolume get-default ",         "btrfs su\tg\t");
     compare_commands("btrfs filesystem usage ",              "btrfs fi\tu\t");
@@ -31,6 +33,9 @@ sub run() {
 
     # Check loading of complete function
     assert_script_run "complete | grep '_btrfs btrfs'";
+
+    # Getting minimum device size is working and returning at least 1MB
+    assert_script_run "btrfs inspect-internal min-dev-size / | grep -E '^[0-9]{6,} bytes'";
 }
 
 1;
