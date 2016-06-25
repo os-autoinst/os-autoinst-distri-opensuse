@@ -646,9 +646,6 @@ sub load_consoletests() {
         if (get_var("SYSTEM_ROLE")) {
             loadtest "console/patterns.pm";
         }
-        if (get_var("FILESYSTEM", "btrfs") eq "btrfs") {
-            loadtest "console/btrfs_autocompletion.pm";
-        }
         if (snapper_is_applicable) {
             if (get_var("UPGRADE")) {
                 loadtest "console/upgrade_snapshots.pm";
@@ -767,6 +764,9 @@ sub load_extra_test () {
     # start extra console tests from here
     if (!get_var("OFW") && !is_jeos) {
         loadtest "console/aplay.pm";
+    }
+    if (get_var("FILESYSTEM", "btrfs") eq "btrfs") {
+        loadtest "console/btrfs_autocompletion.pm";
     }
 
     loadtest "console/command_not_found.pm";
