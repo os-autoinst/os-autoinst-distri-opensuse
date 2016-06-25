@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-use base "installbasetest";
+use base "y2logsstep";
 use strict;
 use testapi;
 use utils;
@@ -59,12 +59,19 @@ sub run {
 
     # giva a little time to check package conflicts
     if (check_screen("yast2-migration-conflicts", 15)) {
-        send_key_until_needlematch 'migration-proposal-packages', 'tab', 3;
-        send_key "ret";
+        if (get_var("DESKTOP") =~ /textmode|minimalx/) {
+            send_key "alt-c";
+            send_key "alt-p";    # show package dependencies
+        }
+        else {
+            assert_and_click 'migration-proposal-packages';
+        }
+        wait_still_screen(5);    # package dependencies need a few second to open in x11
         save_screenshot;
         $self->result('fail');
         return;
     }
+
     send_key "alt-n";
     assert_screen 'yast2-migration-startupgrade';
     send_key "alt-u";
@@ -110,6 +117,14 @@ sub run {
 
 sub test_flags() {
     return {fatal => 1};
+}
+
+sub post_fail_hook() {
+    my $self = shift;
+
+    select_console 'log-console';
+    wait_still_screen(2);
+    $self->save_upload_y2logs;
 }
 
 1;

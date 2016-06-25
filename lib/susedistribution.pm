@@ -214,6 +214,7 @@ sub init_consoles {
         $self->add_console('installation',  'tty-console', {tty => check_var('VIDEOMODE', 'text') ? 1 : 7});
         $self->add_console('root-console',  'tty-console', {tty => 2});
         $self->add_console('user-console',  'tty-console', {tty => 4});
+        $self->add_console('log-console',   'tty-console', {tty => 5});
         $self->add_console('x11',           'tty-console', {tty => 7});
     }
 
@@ -233,6 +234,7 @@ sub init_consoles {
         $self->add_console('install-shell', 'tty-console', {tty => 2});
         $self->add_console('root-console',  'tty-console', {tty => 2});
         $self->add_console('user-console',  'tty-console', {tty => 4});
+        $self->add_console('log-console',   'tty-console', {tty => 5});
         $self->add_console('x11',           'tty-console', {tty => 7});
     }
 
@@ -321,6 +323,14 @@ sub init_consoles {
                 password => $testapi::password,
                 user     => $testapi::username
             });
+        $self->add_console(
+            'log-console',
+            'ssh-xterm',
+            {
+                hostname => $hostname,
+                password => $testapi::password,
+                user     => 'root'
+            });
     }
 
     return;
@@ -344,8 +354,13 @@ sub activate_console {
     }
 
     if ($console =~ m/^(.*)-console/) {
-        my $user = $1;
-        $user = $testapi::username if $user eq 'user';
+        my ($name, $user) = ($1, $1);
+        if ($name eq 'user') {
+            $user = $testapi::username;
+        }
+        elsif ($name eq 'log') {
+            $user = 'root';
+        }
 
         # different handling for ssh consoles
         if (check_var('BACKEND', 's390x') || get_var('S390_ZKVM')) {
@@ -354,7 +369,8 @@ sub activate_console {
         }
         else {
             my $nr = 4;
-            $nr = 2 if ($user eq 'root');
+            $nr = 2 if ($name eq 'root');
+            $nr = 5 if ($name eq 'log');
             # we need to wait more than five seconds here to pass the idle timeout in
             # case the system is still booting (https://bugzilla.novell.com/show_bug.cgi?id=895602)
             assert_screen "tty$nr-selected", 60;
