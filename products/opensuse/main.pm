@@ -485,9 +485,6 @@ sub load_consoletests() {
         loadtest "console/check_console_font.pm";
         loadtest "console/textinfo.pm";
         loadtest "console/hostname.pm";
-        if (get_var("FILESYSTEM", "btrfs") eq "btrfs") {
-            loadtest "console/btrfs_autocompletion.pm";
-        }
         if (snapper_is_applicable) {
             if (get_var("UPGRADE")) {
                 loadtest "console/upgrade_snapshots.pm";
@@ -625,6 +622,9 @@ sub load_extra_tests () {
         # start extra console tests from here
         if (!get_var("OFW") && !is_jeos) {
             loadtest "console/aplay.pm";
+        }
+        if (get_var("FILESYSTEM", "btrfs") eq "btrfs") {
+            loadtest "console/btrfs_autocompletion.pm";
         }
         loadtest "console/a2ps.pm";    # a2ps is not a ring package and thus not available in staging
 
