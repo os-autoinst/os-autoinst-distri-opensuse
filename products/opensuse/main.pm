@@ -70,8 +70,6 @@ my $distri = testapi::get_var("CASEDIR") . '/lib/susedistribution.pm';
 require $distri;
 testapi::set_distribution(susedistribution->new());
 
-setrandomenv() if (get_var("RANDOMENV"));
-
 unless (get_var("DESKTOP")) {
     if (check_var("VIDEOMODE", "text")) {
         set_var("DESKTOP", "textmode");

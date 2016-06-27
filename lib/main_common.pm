@@ -195,21 +195,6 @@ sub check_env {
 
 our @can_randomize = qw/NOIMAGES REBOOTAFTERINSTALL DESKTOP VIDEOMODE/;
 
-sub setrandomenv {
-    for my $k (@can_randomize) {
-        next if defined get_var("$k");
-        next if $k eq "DESKTOP" && get_var("LIVECD");
-        if (get_var("DOCRUN")) {
-            next if $k eq "VIDEOMODE";
-            next if $k eq "NOIMAGES";
-        }
-        my @range = @{$valueranges{$k}};
-        my $rand  = int(rand(scalar @range));
-        set_var($k, $range[$rand]);
-        logcurrentenv($k);
-    }
-}
-
 sub unregister_needle_tags {
     my ($tag) = @_;
     my @a = @{needle::tags($tag)};
