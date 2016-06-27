@@ -26,7 +26,17 @@ sub save_logs_and_continue {
     sleep 5;
     wait_idle(5);
     assert_screen ["inst-console"];
-    type_string "save_y2logs /tmp/y2logs-$name.tar.bz2\n";
+
+    # the network may be down with keep_install_network=false
+    # use static ip in that case
+    type_string "
+      save_y2logs /tmp/y2logs-$name.tar.bz2
+      if ! ping -c 1 10.0.2.2 ; then
+        ip addr add 10.0.2.200/24 dev eth0
+        ip link set eth0 up
+        route add default gw 10.0.2.2
+      fi
+    ";
     upload_logs "/tmp/y2logs-$name.tar.bz2";
     save_screenshot;
     clear_console;
