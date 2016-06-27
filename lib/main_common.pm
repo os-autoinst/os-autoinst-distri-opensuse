@@ -1,7 +1,7 @@
 package main_common;
 use base Exporter;
 use Exporter;
-use testapi qw/check_var get_var diag/;
+use testapi qw/check_var get_var set_var diag/;
 use autotest;
 use strict;
 use warnings;
