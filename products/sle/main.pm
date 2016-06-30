@@ -34,6 +34,10 @@ sub is_smt {
     return (get_var("PATTERNS", '') || get_var('HDD_1', '')) =~ /smt/;
 }
 
+sub is_kgraft() {
+    return get_var('FLAVOR', '') =~ /^KGraft/;
+}
+
 sub cleanup_needles {
     remove_desktop_needles("lxde");
     remove_desktop_needles("kde");
@@ -983,6 +987,11 @@ elsif (get_var("QAM_MINIMAL")) {
         set_var('FULL_DESKTOP', get_var('DESKTOP'));
         set_var('DESKTOP',      'textmode');
     }
+}
+elsif (is_kgraft) {
+    loadtest "qam-kgraft/update_kgraft.pm";
+    loadtest "qam-kgraft/regressions_tests.pm";
+    loadtest "qam-kgraft/reboot_restore.pm";
 }
 elsif (get_var("EXTRATEST")) {
     prepare_target();

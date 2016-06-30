@@ -17,7 +17,7 @@ use Exporter;
 use testapi;
 use utils;
 
-our @EXPORT = qw/capture_state/;
+our @EXPORT = qw/capture_state check_automounter/;
 
 sub capture_state {
     my ($state, $y2logs) = @_;
@@ -39,6 +39,20 @@ sub capture_state {
     #upload journal
     script_run("journalctl -b > /tmp/journal_$state.log");
     upload_logs("/tmp/journal_$state.log");
+}
+
+sub check_automounter {
+    my $ret = 1;
+    while ($ret) {
+        script_run(qq{[ \$(ls -ld /mounts | cut -d" " -f2) -gt 20 ]; echo automount-$?- > /dev/$serialdev}, 0);
+        $ret = wait_serial(qr/automount-\d-/);
+        ($ret) = $ret =~ /automount-(\d)/;
+        if ($ret) {
+            script_run("rcypbind restart");
+            script_run("rcautofs restart");
+            sleep 5;
+        }
+    }
 }
 
 1;
