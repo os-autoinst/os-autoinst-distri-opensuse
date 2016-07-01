@@ -13,29 +13,13 @@ use base "y2logsstep";
 use testapi;
 
 sub run() {
-    my %desktopkeys = (kde => "k", gnome => "g", xfce => "x", lxde => "l", minimalx => "m", textmode => "i");
     assert_screen "desktop-selection";
     my $d = get_var('DESKTOP_MINIMALX_INSTONLY') ? "minimalx" : get_var('DESKTOP');
-    my $key = "alt-$desktopkeys{$d}";
-    if ($d eq "kde") {
-
-        # KDE is default
+    if ($d ne "kde" && $d ne "gnome") {
+        assert_and_click "select_desktop_other";    # open other desktop selection - followed by the real desktop selection
     }
-    elsif ($d eq "gnome") {
-        send_key $key;
-        assert_screen "gnome-selected";
-    }
-    else {    # lower selection level
-        send_key "alt-o";    #TODO translate
-                             # The keyboard shortcuts changed with libyu-qt >= 2.46.16; let's see which ones we need
-        assert_screen([qw/other-desktop other-desktop-remapped/], 3);
-        if (match_has_tag("other-desktop-remapped")) {
-            my %desktopkeys = (xfce => "f", lxde => "x", minimalx => "m", textmode => "i");
-            $key = "alt-$desktopkeys{$d}";
-        }
-        send_key $key;
-        sleep 3;             # needles for else cases missing
-    }
+    assert_and_click "select_desktop_$d";
+    assert_screen "$d-selected";
     send_key $cmd{next};
 }
 
