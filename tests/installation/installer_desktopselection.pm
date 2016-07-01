@@ -13,12 +13,14 @@ use base "y2logsstep";
 use testapi;
 
 sub run() {
-    assert_screen "desktop-selection";
-    my $d = get_var('DESKTOP_MINIMALX_INSTONLY') ? "minimalx" : get_var('DESKTOP');
-    if ($d ne "kde" && $d ne "gnome") {
-        assert_and_click "select_desktop_other";    # open other desktop selection - followed by the real desktop selection
+    assert_screen 'desktop-selection';
+    my $d = get_var('DESKTOP_MINIMALX_INSTONLY') ? 'minimalx' : get_var('DESKTOP');
+    if ($d ne 'kde' && $d ne 'gnome') {
+        send_key_until_needlematch 'selection_on_desktop_other', 'tab';    # Move the selection to 'Other'
+        send_key 'space';                                                  # open 'Other' selection'
     }
-    assert_and_click "select_desktop_$d";
+    send_key_until_needlematch "selection_on_desktop_$d", 'tab';           # Move selection to the specific desktop
+    send_key 'space';                                                      # Select the desktop
     assert_screen "$d-selected";
     send_key $cmd{next};
 }
