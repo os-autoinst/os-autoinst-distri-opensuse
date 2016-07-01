@@ -17,10 +17,10 @@ sub run() {
     my $d = get_var('DESKTOP_MINIMALX_INSTONLY') ? 'minimalx' : get_var('DESKTOP');
     if ($d ne 'kde' && $d ne 'gnome') {
         send_key_until_needlematch 'selection_on_desktop_other', 'tab';    # Move the selection to 'Other'
-        send_key 'space';                                                  # open 'Other' selection'
+        send_key 'spc';                                                    # open 'Other' selection'
     }
     send_key_until_needlematch "selection_on_desktop_$d", 'tab';           # Move selection to the specific desktop
-    send_key 'space';                                                      # Select the desktop
+    send_key 'spc';                                                        # Select the desktop
     assert_screen "$d-selected";
     send_key $cmd{next};
 }
