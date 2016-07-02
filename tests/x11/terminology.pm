@@ -19,7 +19,7 @@ sub run() {
     for (1 .. 13) { send_key "ret" }
     type_string "echo If you can see this text terminology is working.\n";
     assert_screen 'test-terminology-1';
-    send_key "ctrl-alt-x";    # This will need to be fixed - even Enlightenment should use alt-f4, boo#983953
+    send_key "alt-f4";
 }
 
 1;
