@@ -84,6 +84,19 @@ sub fill_in_registration_data {
         if (check_screen("local-registration-servers", 10)) {
             send_key $cmd{ok};
         }
+        # The value of SCC_ADDONS is a list of abbreviation of addons/modules
+        # Following are abbreviations defined for modules and some addons
+        #
+        # live - Live Patching
+        # asmm - Advanced System Management Module
+        # certm - Certifications Module
+        # contm - Containers Module
+        # lgm - Legacy Module
+        # pcm - Public Cloud Module
+        # tcm - Toolchain Module
+        # wsm - Web and Scripting Module
+        # idu - IBM DLPAR Utils (ppc64le only)
+        # ids - IBM DLPAR sdk (ppc64le only)
         if (get_var('SCC_ADDONS')) {
             for my $addon (split(/,/, get_var('SCC_ADDONS', ''))) {
                 if (check_var('DESKTOP', 'textmode')) {
@@ -96,6 +109,8 @@ sub fill_in_registration_data {
             }
             send_key 'alt-n';    # next, all addons selected
             for my $addon (split(/,/, get_var('SCC_ADDONS', ''))) {
+                # most modules don't have license, skip them
+                next unless grep { $addon eq $_ } qw(ha geo sdk we live rt ids lgm wsm);
                 while (check_screen('scc-downloading-license', 5)) {
                     # wait for SCC to give us the license
                     sleep 5;
@@ -107,7 +122,8 @@ sub fill_in_registration_data {
             for my $addon (split(/,/, get_var('SCC_ADDONS', ''))) {
                 $uc_addon = uc $addon;    # change to uppercase to match variable
                 if (my $regcode = get_var("SCC_REGCODE_$uc_addon")) {
-                    next if ($addon =~ /sdk/);
+                    # skip addons which doesn't need to input scc code
+                    next unless grep { $addon eq $_ } qw(ha geo we live rt);
                     if (check_var('DESKTOP', 'textmode')) {
                         send_key_until_needlematch "scc-code-field-$addon", 'tab';
                     }
@@ -119,12 +135,20 @@ sub fill_in_registration_data {
                     save_screenshot;
                 }
             }
-            send_key 'alt-n';    # next
-            while (check_screen('import-untrusted-gpg-key', 20)) {
-                record_soft_failure 'untrusted gpg key';
-                send_key 'alt-t', 2;
+            send_key 'alt-n';
+            # start addons/modules registration, it needs longer time if select multiple or all addons/modules
+            while (assert_screen(['import-untrusted-gpg-key', 'yast_scc-pkgtoinstall', 'inst-addon'], 120)) {
+                if (match_has_tag('import-untrusted-gpg-key')) {
+                    record_soft_failure 'untrusted gpg key';
+                    send_key 'alt-t';
+                    next;
+                }
+                elsif (match_has_tag('inst-addon') || match_has_tag('yast_scc-pkgtoinstall')) {
+                    # it would show Add On Product screen if scc registration correctly during installation
+                    # it would show software install dialog if scc registration correctly by yast2 scc
+                    last;
+                }
             }
-            sleep 20;            # scc registration need some time
         }
         else {
             send_key 'alt-n';    # next
