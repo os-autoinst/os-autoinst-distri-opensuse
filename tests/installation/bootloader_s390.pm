@@ -171,8 +171,16 @@ EO_frickin_boot_parms
 
 }
 
+sub show_debug() {
+    script_run "ps auxf";
+    save_screenshot;
+    script_run "dmesg";
+    save_screenshot;
+}
+
 sub format_dasd() {
     my $self = shift;
+    my $r;
 
     # activate install-shell to do pre-install dasd-format
     select_console('install-shell');
@@ -184,11 +192,14 @@ sub format_dasd() {
     wait_serial(qr/dasd_configure-status-[08]/) || die "DASD in undefined state";
 
     # make sure that there is a dasda device
-    script_run("lsdasd", 0);
+    $r = script_run("lsdasd");
+    show_debug() and die "dasd_configure died with exit code $r" unless ($r == 0);
+
     assert_screen("ensure-dasd-exists");
 
     # format dasda (this can take up to 20 minutes depending on disk size)
-    assert_script_run("echo yes | dasdfmt -b 4096 -p /dev/dasda", 1200, 'dasdfmt could not finish');
+    $r = script_run("echo yes | dasdfmt -b 4096 -p /dev/dasda", 1200);
+    show_debug() and die "dasdfmt died with exit code $r" unless ($r == 0);
 }
 
 sub run() {
