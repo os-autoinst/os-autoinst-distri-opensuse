@@ -166,7 +166,7 @@ EO_frickin_boot_parms
 
     $r = $s3270->expect_3270(
         output_delim => $output_delim,
-        timeout      => 30
+        timeout      => 120
     ) || die "Loading Installation system tooks too long";
 
 }
