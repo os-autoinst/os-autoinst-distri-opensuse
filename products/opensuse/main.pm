@@ -570,6 +570,7 @@ sub load_x11tests() {
     loadtest "x11/sshxterm.pm" unless get_var("LIVETEST");
     if (gnomestep_is_applicable()) {
         loadtest "x11/gnome_control_center.pm";
+        loadtest "x11/gnome_tweak_tool.pm";
         loadtest "x11/gnome_terminal.pm";
         loadtest "x11/gedit.pm";
     }
