@@ -29,7 +29,7 @@ sub run() {
             $sr_number++;
             assert_screen 'addon-menu-active';
             send_key 'alt-d';    # DVD
-            wait_still_screen, 3;
+            wait_still_screen 3;
             send_key 'alt-n';
             assert_screen 'dvd-selector';
             send_key_until_needlematch 'addon-dvd-list',         'tab',  10;    # jump into addon list
@@ -48,18 +48,18 @@ sub run() {
             else {
                 assert_screen "addon-license-$addon";
             }
-            wait_still_screen, 2;
+            wait_still_screen 2;
             send_key 'alt-a';                                                   # yes, agree
-            wait_still_screen, 2;
+            wait_still_screen 2;
             send_key 'alt-n';                                                   # next
             assert_screen 'addon-products';
             send_key "tab";                                                     # select addon-products-$addon
-            wait_still_screen, 2;
+            wait_still_screen 2;
             if (check_var('VIDEOMODE', 'text')) {                               # textmode need more tabs, depends on add-on count
                 send_key_until_needlematch "addon-list-selected", 'tab';
             }
             send_key "pgup";
-            wait_still_screen, 2;
+            wait_still_screen 2;
             send_key_until_needlematch "addon-products-$addon", 'down';
             if ((split(/,/, get_var('ADDONS')))[-1] ne $addon) {                # if $addon is not first from all ADDONS
                 send_key 'alt-a';                                               # add another add-on
@@ -91,9 +91,9 @@ sub run() {
                 else {
                     assert_screen "addon-license-$addon";
                 }
-                wait_still_screen, 2;
+                wait_still_screen 2;
                 send_key 'alt-a';                                               # yes, agree
-                wait_still_screen, 2;
+                wait_still_screen 2;
                 send_key 'alt-n';                                               # next
             }
             assert_screen 'addon-products', 90;
@@ -102,7 +102,7 @@ sub run() {
                 send_key_until_needlematch "addon-list-selected", 'tab';
             }
             send_key "pgup";
-            wait_still_screen, 2;
+            wait_still_screen 2;
             send_key_until_needlematch "addon-products-$addon", 'down';
             if ((split(/,/, get_var('ADDONURL')))[-1] ne $addon) {              # if $addon is not first from all ADDONS
                 send_key 'alt-a';                                               # add another add-on
@@ -110,7 +110,7 @@ sub run() {
         }
     }
     send_key 'alt-n';                                                           # next
-    wait_still_screen, 5;
+    wait_still_screen 5;
 }
 
 1;
