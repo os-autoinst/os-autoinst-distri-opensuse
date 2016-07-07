@@ -924,18 +924,22 @@ elsif (get_var("SUPPORT_SERVER")) {
 elsif (get_var("FIPS_TS")) {
     if (check_var("FIPS_TS", "setup")) {
         prepare_target();
+        # Setup system into fips mode
+        loadtest "fips/fips_setup.pm";
+        # Turn off packagekit and etc
+        loadtest "console/consoletest_setup.pm";
     }
-    elsif (check_var("FIPS_TS", "core")) {
+    else {
         loadtest "boot/boot_to_desktop.pm";
-        load_fips_tests_core;
-    }
-    elsif (check_var("FIPS_TS", "web")) {
-        loadtest "boot/boot_to_desktop.pm";
-        load_fips_tests_web;
-    }
-    elsif (check_var("FIPS_TS", "misc")) {
-        loadtest "boot/boot_to_desktop.pm";
-        load_fips_tests_misc;
+        if (check_var("FIPS_TS", "core")) {
+            load_fips_tests_core;
+        }
+        elsif (check_var("FIPS_TS", "web")) {
+            load_fips_tests_web;
+        }
+        elsif (check_var("FIPS_TS", "misc")) {
+            load_fips_tests_misc;
+        }
     }
 }
 elsif (get_var("HACLUSTER_SUPPORT_SERVER")) {
