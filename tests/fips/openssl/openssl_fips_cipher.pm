@@ -48,5 +48,9 @@ sub run() {
     script_run 'cd - && rm -rf fips-test';
 }
 
+sub test_flags() {
+    return {important => 1};
+}
+
 1;
 # vim: set sw=4 et:

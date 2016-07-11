@@ -31,5 +31,9 @@ sub run() {
     validate_script_output 'echo -n "Invalid Pubkey: "; openssl list-public-key-algorithms | grep ^Name | grep -vE "RSA|rsa|DSA|dsa|EC|DH|HMAC|CMAC" | wc -l', sub { m/^Invalid Pubkey: 0$/ };
 }
 
+sub test_flags() {
+    return {important => 1};
+}
+
 1;
 # vim: set sw=4 et:

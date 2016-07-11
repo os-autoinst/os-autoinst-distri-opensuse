@@ -37,5 +37,9 @@ sub run() {
     script_run 'rm -f $tmp_file';
 }
 
+sub test_flags() {
+    return {important => 1};
+}
+
 1;
 # vim: set sw=4 et:
