@@ -42,7 +42,7 @@ sub run() {
     # but for debugging, it's easier to check the serial file later
     my $str = "SSH-" . time;
     # login use new user account
-    script_run("ssh -v $ssh_testman\@localhost -t echo LOGIN_SUCCESSFUL; echo $str-$?- > /dev/$serialdev", 0);
+    script_run("ssh -v $ssh_testman\@localhost -t echo LOGIN_SUCCESSFUL; echo $str-\$?- > /dev/$serialdev", 0);
     assert_screen "ssh-login", 60;
     type_string "yes\n";
     assert_screen 'password-prompt';
