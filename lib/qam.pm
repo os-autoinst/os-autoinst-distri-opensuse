@@ -44,7 +44,7 @@ sub capture_state {
 sub check_automounter {
     my $ret = 1;
     while ($ret) {
-        script_run(qq{[ \$(ls -ld /mounts | cut -d" " -f2) -gt 20 ]; echo automount-$?- > /dev/$serialdev}, 0);
+        script_run(qq{[ \$(ls -ld /mounts | cut -d" " -f2) -gt 20 ]; echo automount-\$?- > /dev/$serialdev}, 0);
         $ret = wait_serial(qr/automount-\d-/);
         ($ret) = $ret =~ /automount-(\d)/;
         if ($ret) {
