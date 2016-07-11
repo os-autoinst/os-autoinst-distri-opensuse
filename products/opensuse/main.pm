@@ -148,9 +148,14 @@ sub lxdestep_is_applicable() {
     return check_var("DESKTOP", "lxde");
 }
 
+sub any_desktop_is_applicable() {
+    return get_var("DESKTOP") !~ /textmode/;
+}
+
 sub extratest_is_applicable() {
     # pre-conditions for extra tests ie. the tests are running based on preinstalled image
-    return !get_var("INSTALLONLY") && get_var("DESKTOP") !~ /textmode/ && !get_var("DUALBOOT") && !get_var("RESCUECD");
+    # Do we need a desktop?
+    return !get_var("INSTALLONLY") && !get_var("DUALBOOT") && !get_var("RESCUECD");
 }
 
 sub need_clear_repos() {
@@ -483,8 +488,7 @@ sub load_extra_tests () {
 
         loadtest "toolchain/crash.pm";
 
-        # start extra x11 tests from here
-        if (!get_var("NOAUTOLOGIN")) {
+        if (any_desktop_is_applicable() && !get_var("NOAUTOLOGIN")) {
             loadtest "x11/multi_users_dm.pm";
         }
 
