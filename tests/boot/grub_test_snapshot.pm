@@ -37,11 +37,11 @@ sub run() {
 
         send_key 'e';
         save_screenshot;
-        for my $i (1 .. 14) { sleep 1; send_key "down"; }
+        send_key_until_needlematch 'grub-linux-line', 'down', 15;
         send_key 'end';
         send_key 'spc';
         type_string '3';
-        wait_idle;
+        wait_still_screen(2);
         send_key 'ctrl-x';
     }
     save_screenshot;
