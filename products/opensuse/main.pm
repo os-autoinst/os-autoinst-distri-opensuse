@@ -152,9 +152,12 @@ sub any_desktop_is_applicable() {
     return get_var("DESKTOP") !~ /textmode/;
 }
 
+sub console_is_applicable() {
+    return !any_desktop_is_applicable();
+}
+
 sub extratest_is_applicable() {
     # pre-conditions for extra tests ie. the tests are running based on preinstalled image
-    # Do we need a desktop?
     return !get_var("INSTALLONLY") && !get_var("DUALBOOT") && !get_var("RESCUECD");
 }
 
@@ -443,8 +446,11 @@ sub load_yast2ui_tests() {
     loadtest "yast2_ui/yast2_users.pm";
 }
 
-sub load_extra_tests () {
-    if (extratest_is_applicable() && get_var("EXTRATEST")) {
+sub load_extra_tests() {
+
+    return unless extratest_is_applicable();
+
+    if (console_is_applicable() && get_var("EXTRATEST")) {
         # Put tests that filled the conditions below
         # 1) you don't want to run in stagings below here
         # 2) the application is not rely on desktop environment
@@ -488,13 +494,9 @@ sub load_extra_tests () {
 
         loadtest "toolchain/crash.pm";
 
-        if (any_desktop_is_applicable() && !get_var("NOAUTOLOGIN")) {
-            loadtest "x11/multi_users_dm.pm";
-        }
-
         return 1;
     }
-    elsif (extratest_is_applicable() && get_var("Y2UITEST")) {
+    elsif (console_is_applicable() && get_var("Y2UITEST")) {
         # setup $serialdev permission and so on
         loadtest "console/consoletest_setup.pm";
         # start extra yast console test from here
@@ -513,6 +515,13 @@ sub load_extra_tests () {
 
         return 1;
     }
+    elsif (any_desktop_is_applicable() && get_var("EXTRATEST")) {
+        if (!get_var("NOAUTOLOGIN")) {
+            loadtest "x11/multi_users_dm.pm";
+        }
+        return 1;
+    }
+
 
     return 0;
 }
