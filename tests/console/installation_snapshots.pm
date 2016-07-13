@@ -27,7 +27,7 @@ sub run() {
     my ($snapshot_name, $snapshot_type);
 
     if (is_jeos) {
-        $snapshot_name = 'Factory status';
+        $snapshot_name = 'Initial Status';
         $snapshot_type = 'single';
     }
     elsif (get_var('AUTOUPGRADE')) {
