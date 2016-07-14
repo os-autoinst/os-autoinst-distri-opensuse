@@ -60,20 +60,24 @@ sub change_desktop() {
         send_key_until_needlematch 'patterns-list-selected', 'tab', 10;
     }
 
-    if (!check_var('DESKTOP', 'gnome')) {
-        send_key_until_needlematch 'gnome-selected', 'down', 10;
-        wait_screen_change { send_key ' '; };
+    if (get_var('SYSTEM_ROLE')) {
+        assert_screen "desktop-unselected";
     }
-    if (check_var('DESKTOP', 'kde')) {
-        send_key_until_needlematch 'kde-unselected', 'down', 10;
-        wait_screen_change { send_key ' '; };
+    else {
+        if (!check_var('DESKTOP', 'gnome')) {
+            send_key_until_needlematch 'gnome-selected', 'down', 10;
+            wait_screen_change { send_key ' '; };
+        }
+        if (check_var('DESKTOP', 'kde')) {
+            send_key_until_needlematch 'kde-unselected', 'down', 10;
+            wait_screen_change { send_key ' '; };
+        }
+        if (check_var('DESKTOP', 'textmode')) {
+            send_key_until_needlematch 'x11-selected', 'down', 10;
+            wait_screen_change { send_key ' '; };
+        }
+        assert_screen "desktop-selected";
     }
-    if (check_var('DESKTOP', 'textmode')) {
-        send_key_until_needlematch 'x11-selected', 'down', 10;
-        wait_screen_change { send_key ' '; };
-    }
-
-    assert_screen "desktop-selected";
 
     if (check_var('VIDEOMODE', 'text')) {
         send_key 'alt-a';    # accept
