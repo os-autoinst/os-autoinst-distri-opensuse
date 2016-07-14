@@ -939,11 +939,11 @@ elsif (get_var("FIPS_TS")) {
         prepare_target();
         # Setup system into fips mode
         loadtest "fips/fips_setup.pm";
-        # Turn off packagekit and etc
-        loadtest "console/consoletest_setup.pm";
     }
     else {
         loadtest "boot/boot_to_desktop.pm";
+        # Turn off packagekit, setup $serialdev permission and etc
+        loadtest "console/consoletest_setup.pm";
         if (check_var("FIPS_TS", "core")) {
             load_fips_tests_core;
         }

@@ -20,5 +20,9 @@ sub run() {
     validate_script_output "rpm -q curl libcurl4",                                             sub { m/curl-.*/ };
 }
 
+sub test_flags() {
+    return {important => 1};
+}
+
 1;
 # vim: set sw=4 et:
