@@ -99,7 +99,6 @@ sub run() {
     script_run("zypper patches | awk '/test-kgraft/ { print \$3; }' | tee > /dev/$serialdev", 0);
 
     my $out = wait_serial(qr/SUSE-*/);
-    diag($out);
     set_var('KGRAFT_PATCH_NAME', $out);
 
     #patch system
@@ -151,8 +150,7 @@ sub post_fail_hook() {
 
     # revert to snapshot before update if it exists
     if ($snapshot_before) {
-        my $ret = $svirt->run_cmd("virsh snapshot-revert $name $snapshot_before --running");
-        die "Snapshot $snapshot_before failed" if $ret;
+        snap_revert($svirt, $name, $snapshot_before);
     }
 
 }

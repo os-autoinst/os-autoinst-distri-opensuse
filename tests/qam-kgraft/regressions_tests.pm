@@ -47,8 +47,7 @@ sub post_fail_hook() {
     # reattach to svirt console and revert to snapshot before update
     my $svirt = select_console('svirt');
     $svirt->attach_to_running($name);
-    my $ret = $svirt->run_cmd("virsh snapshot-revert $name $snapshot_before --running");
-    die "Snapshot $snapshot_before failed" if $ret;
+    snap_revert($svirt, $name, $snapshot_before);
 }
 
 sub test_flags() {

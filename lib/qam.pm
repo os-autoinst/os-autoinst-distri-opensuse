@@ -17,7 +17,7 @@ use Exporter;
 use testapi;
 use utils;
 
-our @EXPORT = qw/capture_state check_automounter/;
+our @EXPORT = qw/capture_state check_automounter snap_revert/;
 
 sub capture_state {
     my ($state, $y2logs) = @_;
@@ -54,5 +54,13 @@ sub check_automounter {
         }
     }
 }
+
+sub snap_revert {
+    my ($svirt, $vm_name, $snapshot) = @_;
+    my $ret = $svirt->run_cmd("virsh snapshot-revert $vm_name $snapshot --running");
+    die "Snapshot revert $snapshot failed" if $ret;
+
+}
+
 
 1;
