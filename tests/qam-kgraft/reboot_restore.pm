@@ -29,7 +29,6 @@ sub run() {
     my $name           = get_var('VIRSH_GUESTNAME');
     my $snapshot_after = get_var('KGRAFT_SNAPSHOT_AFTER');
     my $rrid           = get_var('MAINT_UPDATE_RRID');
-    my $ret            = 1;
     $svirt->attach_to_running($name);
 
     reset_consoles;
@@ -39,15 +38,9 @@ sub run() {
 
     check_automounter;
 
-    while ($ret) {
-        script_run("clear");
-        script_run(qq{/usr/share/qa/tools/remote_qa_db_report.pl -b -T openqa -c "`uname -r -v`" -t patch:"$rrid"; echo submission-\$?- > /dev/$serialdev}, 0);
-        if (check_screen('submission-failed')) {
-            script_run("ssh-keygen -R qadb2.suse.de -f /root/.ssh/known_hosts");
-            next;
-        }
-        ($ret) = wait_serial(qr/submission-(\d+)-/, 1800) =~ qr/-(\d+)/;
-    }
+    script_run("ssh-keygen -R qadb2.suse.de");
+    assert_script_run(qq{/usr/share/qa/tools/remote_qa_db_report.pl -b -T openqa -c "`uname -r -v`" -t patch:"$rrid"}, 1800);
+
     save_screenshot;
 
     script_run("journalctl --boot=-1 > /tmp/journal_before", 0);
@@ -77,8 +70,7 @@ sub run() {
 
     mod_rpm_info($module);
 
-    my $ret_snap = $svirt->run_cmd("virsh snapshot-revert $name $snapshot_after --running");
-    die "Snapshot $snapshot_after failed" if $ret_snap;
+    snap_revert($svirt, $name, $snapshot_after);
 
     script_run("uname -a");
     save_screenshot;
@@ -97,9 +89,7 @@ sub post_fail_hook() {
     #reconnect to svirt backend and revert to snapshot before update
     my $svirt = select_console('svirt');
     $svirt->attach_to_running($name);
-    my $ret = $svirt->run_cmd("virsh snapshot-revert $name $snapshot_before --running");
-    die "Snapshot $snapshot_before failed" if $ret;
-
+    snap_revert($svirt, $name, $snapshot_before);
 }
 
 sub test_flags() {
