@@ -36,7 +36,7 @@ sub export_logs {
     select_console 'root-console';
     save_screenshot;
 
-    save_and_upload_log('cat /proc/loadavg', '/tmp/loadavg',     {screenshot => 1});
+    save_and_upload_log('cat /proc/loadavg', '/tmp/loadavg.txt', {screenshot => 1});
     save_and_upload_log('journalctl -b',     '/tmp/journal.log', {screenshot => 1});
     save_and_upload_log('ps axf',            '/tmp/psaxf.log',   {screenshot => 1});
 
