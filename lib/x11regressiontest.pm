@@ -10,9 +10,12 @@
 package x11regressiontest;
 use base "x11test";
 use strict;
+use warnings;
 use LWP::Simple;
 use Config::Tiny;
 use testapi;
+use utils;
+use POSIX qw(strftime);
 
 sub test_flags() {
     return {important => 1};
@@ -150,5 +153,107 @@ sub getconfig_emailaccount {
     return $config;
 
 }
+
+# check and new mail or meeting for Evolution test cases
+# It need define seraching key words to serach mail box.
+
+sub check_new_mail_evolution {
+    my ($self, $mail_search, $i, $protocol) = @_;
+    my $config      = $self->getconfig_emailaccount;
+    my $mail_passwd = $config->{$i}->{passwd};
+    assert_screen "evolution_mail-online", 240;
+    if (check_screen "evolution_mail-auth") {
+        if (sle_version_at_least('12-SP2')) {
+            send_key "alt-p";
+        }
+        type_string "$mail_passwd";
+        send_key "ret";
+    }
+    send_key "alt-w";
+    send_key "ret";
+    send_key_until_needlematch "evolution_mail_show-all", "down", 5, 3;
+    send_key "ret";
+    send_key "alt-n";
+    send_key "ret";
+    send_key_until_needlematch "evolution_mail_show-allcount", "down", 5, 3;
+    send_key "ret";
+    send_key "alt-c";
+    type_string "$mail_search";
+    send_key "ret";
+    assert_and_click "evolution_meeting-view-new";
+    send_key "ret";
+    assert_screen "evolution_mail_open_mail";
+    send_key "ctrl-w";    # close the mail
+    save_screenshot();
+
+    # Delete the message and expunge the deleted item if not used POP3
+    if ($protocol != "POP") {
+        send_key "ctrl-e";
+        if (check_screen "evolution_mail-expunge") {
+            send_key "alt-e";
+        }
+        assert_screen "evolution_mail-ready";
+    }
+}
+
+# get a random string with followed by date, it used in evolution case to get a unique email title.
+sub my_random_str {
+    my ($self, $length) = @_;
+    my @char_source = ('A' .. 'Z');
+    my $ret_string = (strftime "%F", localtime) . "-";
+    for (my $i = 1; $i <= $length; $i++) {
+        $ret_string .= $char_source[int(rand($#char_source + 1))];
+    }
+    return $ret_string;
+}
+
+#send meeting request by Evolution test cases
+sub send_meeting_request {
+
+    my ($self, $sender, $receiver, $mail_subject) = @_;
+    my $config      = $self->getconfig_emailaccount;
+    my $mail_box    = $config->{$receiver}->{mailbox};
+    my $mail_passwd = $config->{$sender}->{passwd};
+
+    #create new meeting
+    send_key "shift-ctrl-e";
+    assert_screen "evolution_mail-compse_meeting", 30;
+    send_key "alt-a";
+    sleep 2;
+    type_string "$mail_box";
+    send_key "alt-s";
+    if (sle_version_at_least('12-SP2')) {
+        send_key "alt-s";    #only need in sp2
+    }
+    type_string "$mail_subject this is a evolution test meeting";
+    send_key "alt-l";
+    type_string "the location of this meetinng is conference room";
+    assert_screen "evolution_mail-compse_meeting", 60;
+    send_key "ctrl-s";
+    assert_screen "evolution_mail-sendinvite_meeting", 60;
+    send_key "ret";
+    if (check_screen "evolution_mail-auth") {
+        if (sle_version_at_least('12-SP2')) {
+            send_key "alt-a";    #disable keyring option, only need in SP2 or later
+            send_key "alt-p";
+        }
+        type_string "$mail_passwd";
+        send_key "ret";
+    }
+    assert_screen "evolution_mail-compse_meeting", 60;
+    send_key "ctrl-w";
+    assert_screen [qw/evolution_mail-save_meeting_dialog evolution_mail-send_meeting_dialog evolution_mail-meeting_error_handle evolution_mail-max-window/];
+    if (match_has_tag "evolution_mail-save_meeting_dialog") {
+        send_key "ret";
+    }
+    if (match_has_tag "evolution_mail-send_meeting_dialog") {
+        send_key "ret";
+    }
+    if (match_has_tag "evolution_mail-meeting_error_handle") {
+        send_key "alt-t";
+    }
+}
+
+
 1;
 # vim: set sw=4 et:

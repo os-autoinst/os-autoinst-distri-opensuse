@@ -7,14 +7,17 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Test Case tc#1503817 evolution imap meeting test
+# Test Case #1503976 Pop Meeting
+
 use base "x11regressiontest";
 use strict;
+use warnings;
 use testapi;
 use utils;
+use POSIX qw(strftime);
 
 
-sub setup {
+sub setup_pop {
 
     my ($self, $i) = @_;
     my $config          = $self->getconfig_emailaccount;
@@ -24,9 +27,8 @@ sub setup {
     my $mail_user       = $config->{$i}->{user};
     my $mail_passwd     = $config->{$i}->{passwd};
     my $mail_sendport   = $config->{$i}->{sendport};
-    my $mail_recvport   = $config->{$i}->{imapport};
+    my $mail_recvport   = $config->{$i}->{recvport};
     my $next            = "alt-o";
-    print $next;
     mouse_hide(1);
     if (sle_version_at_least('12-SP2')) {
         $next = "alt-n";
@@ -36,7 +38,7 @@ sub setup {
     x11_start_program("evolution");
     # Follow the wizard to setup mail account
     assert_screen [qw/evolution-default-client-ask test-evolution-1/];
-    if (match_has_tag 'evolution-default-client-ask') {
+    if (check_screen 'evolution-default-client-ask') {
         assert_and_click "evolution-default-client-agree";
         assert_screen "test-evolution-1";
     }
@@ -59,13 +61,13 @@ sub setup {
         send_key "alt-s";
     }
 
-    # setup reciving protocol as imap.
+    # setup reciving protocol as pop
     assert_screen "evolution_wizard-receiving";
     wait_screen_change {
         send_key "alt-t";
     };
     send_key "ret";
-    send_key_until_needlematch "evolution_wizard-receiving-imap", "down", 10, 3;
+    send_key_until_needlematch "evolution_wizard-receiving-pop", "down", 10, 3;
     wait_screen_change {
         send_key "ret";
     };
@@ -74,10 +76,11 @@ sub setup {
         send_key "alt-s";
     };
     type_string "$mail_recvServer";
-    wait_screen_change {
-        send_key "alt-p";
-    };
-    type_string "$mail_recvport";
+    #No need set receive port with POP
+    #    wait_screen_change {
+    #        send_key "alt-p";
+    #    };
+    #    type_string "$mail_recvport";
     wait_screen_change {
         send_key "alt-n";
     };
@@ -106,8 +109,8 @@ sub setup {
     if (sle_version_at_least('12-SP2')) {
         send_key "ret";    #only need in SP2 or later
     }
+    save_screenshot;
     assert_screen "evolution_wizard-receiving-opts";
-
     send_key "$next";
     if (sle_version_at_least('12-SP2')) {
         send_key "ret";    #only need in SP2 or later
@@ -182,6 +185,7 @@ sub setup {
     }
     assert_screen "evolution_wizard-done";
     send_key "alt-a";
+
     if (check_screen "evolution_mail-auth") {
         if (sle_version_at_least('12-SP2')) {
             send_key "alt-a";    #disable keyring option, only in SP2
@@ -203,79 +207,12 @@ sub setup {
     assert_screen "evolution_mail-max-window";
 }
 
-#Setup mail account by auto lookup
-sub auto_setup {
-    my ($self, $i) = @_;
-    my $config        = $self->getconfig_emailaccount;
-    my $mail_box      = $config->{$i}->{mailbox};
-    my $mail_server   = $config->{$i}->{sendServer};
-    my $mail_user     = $config->{$i}->{user};
-    my $mail_passwd   = $config->{$i}->{passwd};
-    my $mail_sendport = $config->{$i}->{sendport};
-    my $mail_recvport = $config->{$i}->{recvport};
-    my $next          = "alt-o";
-    print $next;
-    if (sle_version_at_least('12-SP2')) {
-        $next = "alt-n";
-    }
-
-    # Clean and Start Evolution
-    x11_start_program("xterm -e \"killall -9 evolution; find ~ -name evolution | xargs rm -rf;\"");
-    x11_start_program("evolution");
-    # Follow the wizard to setup mail account
-    assert_screen [qw/evolution-default-client-ask test-evolution-1/];
-    if (match_has_tag 'evolution-default-client-ask') {
-        assert_and_click "evolution-default-client-agree";
-        assert_screen "test-evolution-1";
-    }
-    send_key "$next";
-    assert_screen "evolution_wizard-restore-backup";
-    send_key "$next";
-    assert_screen "evolution_wizard-identity";
-    wait_screen_change {
-        send_key "alt-e";
-    };
-    type_string "SUSE Test";
-    wait_screen_change {
-        send_key "alt-a";
-    };
-    type_string "$mail_box";
-    send_key "$next";
-    assert_screen "evolution_wizard-skip-lookup";
-    assert_screen "evolution_wizard-account-summary";
-
-    #if used Yahoo account, need disabled Yahoo calendar and tasks
-    if ($i eq "Yahoo") {
-        send_key "alt-l";
-    }
-    send_key "$next";
-    if (sle_version_at_least('12-SP2')) {
-        send_key "$next";    #only in 12-SP2 or later
-        send_key "ret";
-    }
-    assert_screen "evolution_wizard-done";
-    send_key "alt-a";
-    if (check_screen "evolution_mail-auth") {
-        if (sle_version_at_least('12-SP2')) {
-            send_key "alt-a";    #disable keyring option, only in SP2 or later
-            send_key "alt-p";
-        }
-        type_string "$mail_passwd";
-        send_key "ret";
-    }
-    if (check_screen "evolution_mail-init-window") {
-        send_key "super-up";
-    }
-    assert_screen "evolution_mail-max-window";
-}
-
 sub run() {
-
     my $self         = shift;
     my $mail_subject = $self->my_random_str(4);
     #Setup account account A, and use it to send a meeting
     #send meet request by account A
-    $self->setup("internal_account_A");
+    $self->setup_pop("internal_account_A");
     $self->send_meeting_request("internal_account_A", "internal_account_B", $mail_subject);
     assert_screen "evolution_mail-ready", 60;
     # Exit
@@ -284,12 +221,11 @@ sub run() {
     wait_idle;
 
     #login with account B and check meeting request.
-    $self->setup("internal_account_B");
-    $self->check_new_mail_evolution($mail_subject, "internal_account_B", "imap");
+    $self->setup_pop("internal_account_B");
+    $self->check_new_mail_evolution($mail_subject, "internal_account_B", "POP");
     wait_idle;
     # Exit
     send_key "ctrl-q";
-
 }
 
 1;
