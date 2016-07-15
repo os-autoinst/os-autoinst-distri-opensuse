@@ -365,7 +365,7 @@ sub activate_console {
         # different handling for ssh consoles
         if (check_var('BACKEND', 's390x') || get_var('S390_ZKVM')) {
             # different console-behaviour for s390x
-            $self->script_run("su - $user") unless ($user eq 'root');
+            type_string("su - $user\n") unless ($user eq 'root');
         }
         else {
             my $nr = 4;
