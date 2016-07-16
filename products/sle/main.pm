@@ -1043,6 +1043,9 @@ elsif (get_var("Y2UITEST")) {
     loadtest "console/consoletest_finish.pm";
     load_yast2ui_tests();
 }
+elsif (get_var("WINDOWS")) {
+    loadtest "installation/win10_installation.pm";
+}
 else {
     if (get_var("AUTOYAST")) {
         load_boot_tests();

@@ -852,6 +852,9 @@ elsif (get_var("SUPPORT_SERVER")) {
         loadtest "support_server/wait.pm";
     }
 }
+elsif (get_var("WINDOWS")) {
+    loadtest "installation/win10_installation.pm";
+}
 else {
     if (get_var("LIVETEST")) {
         load_boot_tests();
