@@ -172,9 +172,9 @@ EO_frickin_boot_parms
 }
 
 sub show_debug() {
-    script_run "ps auxf";
+    type_string "ps auxf\n";
     save_screenshot;
-    script_run "dmesg";
+    type_string "dmesg\n";
     save_screenshot;
 }
 
@@ -193,13 +193,15 @@ sub format_dasd() {
 
     # make sure that there is a dasda device
     $r = script_run("lsdasd");
-    show_debug() and die "dasd_configure died with exit code $r" unless ($r && $r == 1);
-
     assert_screen("ensure-dasd-exists");
+    # always calling debug output, trying to help with poo#12596
+    show_debug();
+    die "dasd_configure died with exit code $r" unless (defined($r) && $r == 0);
 
     # format dasda (this can take up to 20 minutes depending on disk size)
     $r = script_run("echo yes | dasdfmt -b 4096 -p /dev/dasda", 1200);
-    show_debug() and die "dasdfmt died with exit code $r" unless ($r && $r == 1);
+    show_debug();
+    die "dasdfmt died with exit code $r" unless (defined($r) && $r == 0);
 }
 
 sub run() {
