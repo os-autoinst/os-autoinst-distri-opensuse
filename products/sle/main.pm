@@ -641,6 +641,9 @@ sub load_extra_test () {
     if (!get_var("OFW") && !is_jeos()) {
         loadtest "console/aplay.pm";
     }
+    if (get_var("SP2ORLATER")) {
+        loadtest "console/autoyast_removed.pm";
+    }
     if (get_var("FILESYSTEM", "btrfs") eq "btrfs") {
         loadtest "console/btrfs_autocompletion.pm";
     }

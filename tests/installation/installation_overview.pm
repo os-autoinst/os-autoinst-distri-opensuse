@@ -26,6 +26,20 @@ sub run() {
     # preserve it for the video
     wait_idle 10;
 
+    # Check autoyast has been removed in SP2 (fate#317970)
+    if (get_var("SP2ORLATER")) {
+        if (check_var('VIDEOMODE', 'text')) {
+            send_key 'alt-l';
+            send_key 'ret';
+            send_key 'tab';
+        }
+        else {
+            send_key_until_needlematch 'packages-section-selected', 'tab';
+        }
+        send_key 'end';
+        assert_screen 'autoyast_removed';
+    }
+
     # check for dependency issues, if found, drill down to software selection, take a screenshot, then die
     if (check_screen("inst-overview-dep-warning", 1)) {
         record_soft_failure 'dependency warning';
