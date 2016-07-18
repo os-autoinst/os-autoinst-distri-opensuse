@@ -11,6 +11,7 @@
 use base "opensusebasetest";
 use strict;
 use testapi;
+use utils qw/wait_boot/;
 
 sub run() {
     my $self = shift;
@@ -32,14 +33,8 @@ sub run() {
     type_string "zypper ps|grep 'PPID' || echo OK | tee /dev/$serialdev\n";
     if (!wait_serial("OK", 100)) {
         type_string "shutdown -r now\n";
-        assert_screen 'displaymanager', 150;
-        send_key 'ctrl-alt-f4';
-        assert_screen 'tty4-selected';
-        assert_screen 'text-login';
-        type_string "root\n";
-        assert_screen 'password-prompt', 10;
-        type_password;
-        send_key 'ret';
+        wait_boot;
+        select_console('root-console');
     }
     script_run 'export CC=/usr/bin/gcc-5';
     script_run 'export CXX=/usr/bin/g++-5';
