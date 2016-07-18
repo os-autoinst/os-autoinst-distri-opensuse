@@ -193,13 +193,13 @@ sub format_dasd() {
 
     # make sure that there is a dasda device
     $r = script_run("lsdasd");
-    show_debug() and die "dasd_configure died with exit code $r" unless ($r == 0);
+    show_debug() and die "dasd_configure died with exit code $r" unless ($r && $r == 1);
 
     assert_screen("ensure-dasd-exists");
 
     # format dasda (this can take up to 20 minutes depending on disk size)
     $r = script_run("echo yes | dasdfmt -b 4096 -p /dev/dasda", 1200);
-    show_debug() and die "dasdfmt died with exit code $r" unless ($r == 0);
+    show_debug() and die "dasdfmt died with exit code $r" unless ($r && $r == 1);
 }
 
 sub run() {
