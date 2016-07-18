@@ -13,15 +13,14 @@ use testapi;
 use lockapi;
 use mmapi;
 
+# poo#9576
 sub run() {
-    # there is only one child
-    my $children = get_children();
-    my $child_id = (keys %$children)[0];
-
+    # Notice MASTER system is ready for installation
     assert_screen "remote_slave_ready", 200;
-
     mutex_create "installation_ready";
-    mutex_lock('installation_finished', $child_id);
+
+    # Wait until MASTER finishes installing the system
+    wait_for_children;
 }
 
 sub test_flags {
