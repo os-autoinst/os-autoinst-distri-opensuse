@@ -55,10 +55,7 @@ sub run() {
         last;
     }
 
-    if (get_var("REMOTE_MASTER")) {
-        mutex_create("installation_finished");
-    }
-    else {
+    if (!get_var("REMOTE_MASTER")) {
         send_key 'alt-s';        # Stop the reboot countdown
         select_console 'install-shell';
         $self->get_ip_address();

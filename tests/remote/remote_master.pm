@@ -14,6 +14,7 @@ use utils;
 use mm_network;
 use lockapi;
 
+# poo#9576
 sub run() {
     my $slave_ip;
 
