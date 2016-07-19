@@ -32,8 +32,11 @@ sub run() {
             send_key 'alt-l';
             send_key 'ret';
             send_key 'tab';
-            send_key 'end';
         }
+        else {
+            send_key_until_needlematch 'packages-section-selected', 'tab';
+        }
+        send_key 'end';
         assert_screen 'autoyast_removed';
     }
 
