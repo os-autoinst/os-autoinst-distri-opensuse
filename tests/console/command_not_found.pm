@@ -16,6 +16,10 @@ use strict;
 sub run() {
     # permissions don't matter
 
+    if (check_var('DESKTOP', 'textmode')) {    # command-not-found is part of the enhanced_base pattern, missing in textmode
+        assert_script_sudo "zypper -n in command-not-found";
+    }
+
     my $not_installed_pkg = "xosview";
     assert_script_run("cnf $not_installed_pkg 2>&1 | tee /dev/stderr | grep -q \"zypper install $not_installed_pkg\"");
     save_screenshot;
