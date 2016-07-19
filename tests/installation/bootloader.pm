@@ -254,6 +254,11 @@ sub run() {
         $args .= " withiscsi=1";
     }
 
+    if (check_var("INSTALLER_NO_SELF_UPDATE", 1)) {
+        diag "Disabling installer self update as requested by INSTALLER_NO_SELF_UPDATE=1";
+        $args .= "self_update=0";
+    }
+
     type_string_very_slow $args;
     save_screenshot;
 

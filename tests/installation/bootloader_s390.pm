@@ -75,6 +75,11 @@ sub prepare_parmfile() {
     # create a too long parameter ;(
     $params .= " install=ftp://openqa/" . get_var('REPO_0') . " ";
 
+    if (check_var("INSTALLER_NO_SELF_UPDATE", 1)) {
+        diag "Disabling installer self update as requested by INSTALLER_NO_SELF_UPDATE=1";
+        $params .= "self_update=0";
+    }
+
     return split_lines($params);
 }
 
