@@ -20,12 +20,6 @@ sub run() {
         script_run 'sed -i \'/^GRUB_CMDLINE_LINUX_DEFAULT/s/\("\)$/ fips=1\1/\' /etc/default/grub';
         script_run 'grub2-mkconfig -o /boot/grub2/grub.cfg';
     }
-
-    # Workaround bsc#982268
-    if (!script_output "find /etc -type f -name system-fips") {
-        script_run 'touch /etc/system-fips';
-        record_soft_failure 'bsc#982268';
-    }
 }
 
 sub test_flags() {
