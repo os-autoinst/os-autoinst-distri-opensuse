@@ -25,6 +25,9 @@ sub run() {
       krb5 krb5-client krb5-server krb5-plugin-kdb-ldap
       /;
     script_run "systemctl stop packagekit.service; systemctl mask packagekit.service";
+    if (check_var('DESKTOP', 'textmode')) {    # sssd test suite depends on killall, which is part of psmisc (enhanced_base pattern)
+        assert_script_run "zypper -n in psmisc";
+    }
     script_run "zypper -n refresh && zypper -n in @test_subjects";
     wait_idle;
 
