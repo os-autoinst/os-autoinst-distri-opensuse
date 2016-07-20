@@ -15,6 +15,11 @@ use testapi;
 sub run {
     my $self = shift;
 
+    assert_screen([qw/inst-bootmenu bootloader-shim-import-prompt/], 15);
+    if (match_has_tag("bootloader-shim-import-prompt")) {
+        send_key "down";
+        send_key "ret";
+    }
     $self->select_bootmenu_option('inst-onmemtest', 1);
     assert_screen "pass-complete", 700;
     send_key "esc";
