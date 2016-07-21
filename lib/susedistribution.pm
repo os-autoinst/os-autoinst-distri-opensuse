@@ -126,29 +126,32 @@ sub ensure_installed {
     testapi::x11_start_program("xterm");
     assert_screen('xterm-started');
     testapi::assert_script_sudo("chown $testapi::username /dev/$testapi::serialdev");
-    $self->script_run("pkcon install @pkglist; RET=\$?; echo \"\n  pkcon finished\n\"; echo \"pkcon-\${RET}-\" > /dev/$testapi::serialdev", 0);
-    my @tags = qw/Policykit Policykit-behind-window pkcon-proceed-prompt/;
-    while (1) {
-        last unless @tags;
-        my $ret = check_screen(\@tags, $timeout);
-        last unless $ret;
-        if (match_has_tag('Policykit')) {
-            type_password;
-            send_key("ret", 1);
-            @tags = grep { $_ ne 'Policykit' } @tags;
-            @tags = grep { $_ ne 'Policykit-behind-window' } @tags;
-            next;
-        }
-        if (match_has_tag('Policykit-behind-window')) {
-            send_key("alt-tab");
-            sleep 3;
-            next;
-        }
-        if (match_has_tag('pkcon-proceed-prompt')) {
-            send_key("y");
-            send_key("ret");
-            @tags = grep { $_ ne 'pkcon-proceed-prompt' } @tags;
-            next;
+    my $retries = 5;    # arbitrary
+  RETRY: for (1 .. $retries) {
+        $self->script_run("pkcon install @pkglist; RET=\$?; echo \"\n  pkcon finished\n\"; echo \"pkcon-\${RET}-\" > /dev/$testapi::serialdev", 0);
+        my @tags = qw/Policykit Policykit-behind-window pkcon-proceed-prompt/;
+        while (1) {
+            last unless @tags;
+            my $ret = check_screen(\@tags, $timeout);
+            last RETRY unless $ret;
+            if (match_has_tag('Policykit')) {
+                type_password;
+                send_key("ret", 1);
+                @tags = grep { $_ ne 'Policykit' } @tags;
+                @tags = grep { $_ ne 'Policykit-behind-window' } @tags;
+                next;
+            }
+            if (match_has_tag('Policykit-behind-window')) {
+                send_key("alt-tab");
+                sleep 3;
+                next;
+            }
+            if (match_has_tag('pkcon-proceed-prompt')) {
+                send_key("y");
+                send_key("ret");
+                @tags = grep { $_ ne 'pkcon-proceed-prompt' } @tags;
+                next;
+            }
         }
     }
 
