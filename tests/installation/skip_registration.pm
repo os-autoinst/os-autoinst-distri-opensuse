@@ -23,6 +23,9 @@ use utils qw/ensure_fullscreen/;
 sub run() {
     assert_screen([qw/scc-registration yast2-windowborder-corner/], 100);
     if (match_has_tag('yast2-windowborder-corner')) {
+        if (check_var("INSTALLER_NO_SELF_UPDATE", 1)) {
+            die "installer should not self-update, therefore window should not have respawned, file bug and replace this line by record_soft_failure";
+        }
         ensure_fullscreen(tag => 'yast2-windowborder-corner');
         assert_screen('scc-registration', 100);
     }
