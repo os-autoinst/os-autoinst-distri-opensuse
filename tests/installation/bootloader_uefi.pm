@@ -25,12 +25,12 @@ sub run() {
         sleep 60;
         return;
     }
-    check_screen([qw/bootloader-shim-import-prompt bootloader-grub2/], 15);
+    assert_screen([qw/bootloader-shim-import-prompt bootloader-grub2/], 15);
     if (match_has_tag("bootloader-shim-import-prompt")) {
         send_key "down";
         send_key "ret";
+        assert_screen "bootloader-grub2", 15;
     }
-    assert_screen "bootloader-grub2", 15;
     if (get_var("QEMUVGA") && get_var("QEMUVGA") ne "cirrus") {
         sleep 5;
     }
