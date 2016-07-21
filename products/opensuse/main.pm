@@ -488,6 +488,7 @@ sub load_extra_tests() {
         loadtest "console/yast2_ftp.pm";
 
         loadtest "console/openvswitch.pm";
+        loadtest "console/rabbitmq.pm";
 
         # finished console test and back to desktop
         loadtest "console/consoletest_finish.pm";
