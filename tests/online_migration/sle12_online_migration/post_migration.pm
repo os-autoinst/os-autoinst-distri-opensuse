@@ -22,7 +22,15 @@ sub run() {
     save_screenshot;
 
     # reboot into upgraded system after online migration
-    script_run("systemctl reboot", 0);
+    if (check_var("FLAVOR", "Desktop-DVD")) {
+        record_soft_failure 'bsc#989696: [online migration] systemctl reboot hangs after migration from sled12 to sled12sp2';
+        script_run("reboot", 0);
+    }
+    else {
+        script_run("systemctl reboot", 0);
+    }
+    save_screenshot;
+
     if (get_var("DESKTOP") =~ /textmode|minimalx/) {
         wait_boot textmode => 1;
     }
