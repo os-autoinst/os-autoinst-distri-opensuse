@@ -45,7 +45,7 @@ sub run() {
 
     my $pattern = $snapshot_type . '\s*(\|[^|]*){4}\s*\|\s*number\s*\|\s*' . $snapshot_name . '\s*\|\s*important=yes';
 
-    wait_serial($pattern, 5) || die "$snapshot_name snapshot test failed";
+    wait_serial($pattern, 20) || die "$snapshot_name snapshot test failed";
 }
 
 sub test_flags() {
