@@ -373,20 +373,17 @@ sub activate_console {
             $nr = 5 if ($name eq 'log');
             # we need to wait more than five seconds here to pass the idle timeout in
             # case the system is still booting (https://bugzilla.novell.com/show_bug.cgi?id=895602)
-            assert_screen "tty$nr-selected", 60;
-
-            assert_screen "text-login";
-            type_string "$user\n";
-            if (!get_var("LIVETEST")) {
-                assert_screen "password-prompt";
-                type_password;
-                send_key('ret');
+            assert_screen(["tty$nr-selected", "text-logged-in-$user", "text-login"], 60);
+            if (match_has_tag("tty$nr-selected") or match_has_tag("text-login")) {
+                type_string "$user\n";
+                if (!get_var("LIVETEST")) {
+                    assert_screen "password-prompt";
+                    type_password;
+                    send_key('ret');
+                }
             }
         }
-        # check if $user is not logged in try to login two times
-        if (!check_screen("text-logged-in-$user")) {
-            send_key_until_needlematch "text-logged-in-$user", "ret", 2, 5;
-        }
+        assert_screen "text-logged-in-$user";
         $self->set_standard_prompt($user);
         # Disable console screensaver
         $self->script_run("setterm -blank 0");
