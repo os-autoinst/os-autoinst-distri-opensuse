@@ -710,6 +710,11 @@ elsif (get_var("SLEPOS")) {
 elsif (get_var("ONLINE_MIGRATION")) {
     load_online_migration_tests();
 }
+elsif (get_var("UPGRADE_PANGO")) {
+    loadtest "boot/boot_to_desktop.pm";
+    loadtest "offline_migration/upgrade_glib2_pango32bit.pm";
+    loadtest "shutdown/shutdown.pm";
+}
 else {
     load_boot_tests();
     if (get_var("PROXY")) {
