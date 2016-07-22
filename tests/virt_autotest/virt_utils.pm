@@ -8,12 +8,12 @@
 # without any warranty.
 #
 package virt_utils;
+use base Exporter;
+use Exporter;
 use strict;
 use warnings;
 use File::Basename;
-use base "opensusebasetest";
 use testapi;
-use Exporter;
 use Data::Dumper;
 use XML::Writer;
 use IO::File;
@@ -33,6 +33,7 @@ sub set_serialdev() {
     else {
         $serialdev = "ttyS1";
     }
+    script_run("echo \"Debug info: serial dev is set to $serialdev.\"", 0);
 }
 
 1;

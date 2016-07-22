@@ -13,6 +13,7 @@ use warnings;
 use File::Basename;
 use base "opensusebasetest";
 use testapi;
+use login_console;
 
 sub reboot_and_wait_up() {
     my $self           = shift;
@@ -22,16 +23,7 @@ sub reboot_and_wait_up() {
     type_string("/sbin/reboot\n");
     reset_consoles;
     sleep 2;
-    #add switch xen kernel
-    assert_screen "grub2", 120;
-    if (!get_var("reboot_for_upgrade_step")) {
-        if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
-            send_key_until_needlematch("bootmenu-xen-kernel", 'down', 10, 1);
-            send_key 'ret';
-        }
-    }
-    assert_screen(["displaymanager", "virttest-displaymanager"], $reboot_timeout);
-    select_console('root-console');
+    &login_console::login_to_console($reboot_timeout);
 
 }
 

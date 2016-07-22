@@ -7,24 +7,30 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
-
+package login_console;
 use strict;
 use warnings;
 use File::Basename;
 use base "opensusebasetest";
 use testapi;
 
-sub run() {
+sub login_to_console() {
+    my $timeout = shift;
+    $timeout //= 300;
     # Wait for bootload for the first time.
     assert_screen "grub2", 120;
-    if (get_var("XEN")) {
-        send_key_until_needlematch("bootmenu-xen-kernel", 'down', 10, 1);
-        send_key 'ret';
+    if (!get_var("reboot_for_upgrade_step")) {
+        if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
+            send_key_until_needlematch("virttest-bootmenu-xen-kernel", 'down', 10, 1);
+            send_key 'ret';
+        }
     }
-
-    assert_screen(["generic-destop", "generic-destop-virt", "displaymanager"], 300);
+    assert_screen(["displaymanager", "virttest-displaymanager"], $timeout);
     select_console('root-console');
-    sleep 3;
+}
+
+sub run() {
+    login_to_console;
 }
 
 sub test_flags {
