@@ -662,9 +662,8 @@ sub load_extra_test () {
     loadtest "console/yast2_vnc.pm";
     loadtest "console/yast2_samba.pm";
     loadtest "console/yast2_xinetd.pm";
-
+    loadtest "console/yast2_apparmor.pm";
     loadtest "console/openvswitch.pm";
-
     # finished console test and back to desktop
     loadtest "console/consoletest_finish.pm";
 
