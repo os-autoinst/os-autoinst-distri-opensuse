@@ -64,7 +64,7 @@ sub run() {
     type_string 'security';
     wait_still_screen;
     send_key 'alt-n';                                                              # next
-    assert_screen 'desktop-at-first-boot', 400;
+    assert_screen 'desktop-at-first-boot', 600;
     send_key 'super';                                                              # windows menu
     wait_still_screen;
     send_key 'up';
