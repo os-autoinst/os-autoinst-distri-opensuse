@@ -329,12 +329,7 @@ sub load_boot_tests() {
         }
     }
     elsif (uses_qa_net_hardware()) {
-        if (get_var("BEIJING")) {
-            loadtest "virt_autotest/init_pxe_install.pm";
-        }
-        else {
-            loadtest "installation/qa_net.pm";
-        }
+        loadtest "boot/boot_from_pxe.pm";
     }
     elsif (check_var("ARCH", "s390x")) {
         if (check_var('BACKEND', 's390x')) {

@@ -13,7 +13,6 @@ use warnings;
 use File::Basename;
 use base "opensusebasetest";
 use testapi;
-
 use Data::Dumper;
 use XML::Writer;
 use IO::File;
