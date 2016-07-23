@@ -25,6 +25,7 @@ our @EXPORT = qw/
   check_screenlock
   sle_version_at_least
   ensure_fullscreen
+  ensure_shim_import
   /;
 
 
@@ -364,6 +365,16 @@ sub ensure_fullscreen {
         assert_screen($args{tag});
         my $console = select_console("installation");
         $console->fullscreen({window_name => 'YaST2*'});
+    }
+}
+
+sub ensure_shim_import {
+    my (%args) = @_;
+    $args{tags} //= [qw/inst-bootmenu bootloader-shim-import-prompt/];
+    assert_screen($args{tags}, 15);
+    if (match_has_tag("bootloader-shim-import-prompt")) {
+        send_key "down";
+        send_key "ret";
     }
 }
 

@@ -11,10 +11,12 @@
 use base "opensusebasetest";
 use strict;
 use testapi;
+use utils qw/ensure_shim_import/;
 
 sub run {
     my $self = shift;
 
+    ensure_shim_import;
     $self->select_bootmenu_option('inst-onmediacheck', 1);
 
     # the timeout is insane - but SLE11 DVDs take almost forever
