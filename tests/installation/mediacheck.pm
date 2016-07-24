@@ -11,15 +11,20 @@
 use base "opensusebasetest";
 use strict;
 use testapi;
+use utils qw/ensure_shim_import/;
 
 sub run {
     my $self = shift;
 
+    ensure_shim_import;
     $self->select_bootmenu_option('inst-onmediacheck', 1);
 
     # the timeout is insane - but SLE11 DVDs take almost forever
-    assert_screen "mediacheck-ok", 3600;
+    assert_screen [qw/mediacheck-ok mediacheck-checksum-wrong/], 3600;
     send_key "ret";
+    if (match_has_tag('mediacheck-checksum-wrong')) {
+        die "Checksum reported as wrong";
+    }
 }
 
 sub test_flags() {

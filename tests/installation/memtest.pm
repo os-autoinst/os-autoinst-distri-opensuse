@@ -11,15 +11,12 @@
 use base "opensusebasetest";
 use strict;
 use testapi;
+use utils qw/ensure_shim_import/;
 
 sub run {
     my $self = shift;
 
-    assert_screen([qw/inst-bootmenu bootloader-shim-import-prompt/], 15);
-    if (match_has_tag("bootloader-shim-import-prompt")) {
-        send_key "down";
-        send_key "ret";
-    }
+    ensure_shim_import;
     $self->select_bootmenu_option('inst-onmemtest', 1);
     assert_screen "pass-complete", 700;
     send_key "esc";
