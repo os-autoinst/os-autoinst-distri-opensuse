@@ -440,19 +440,19 @@ sub load_consoletests() {
 
 }
 
-sub load_yast2ui_tests() {
-    loadtest "yast2_ui/yast2_control_center.pm";
-    loadtest "yast2_ui/yast2_bootloader.pm";
-    loadtest "yast2_ui/yast2_datetime.pm";
-    loadtest "yast2_ui/yast2_firewall.pm";
-    loadtest "yast2_ui/yast2_hostnames.pm";
-    loadtest "yast2_ui/yast2_lang.pm";
-    loadtest "yast2_ui/yast2_network_settings.pm";
+sub load_yast2_gui_tests() {
+    loadtest "yast2_gui/yast2_control_center.pm";
+    loadtest "yast2_gui/yast2_bootloader.pm";
+    loadtest "yast2_gui/yast2_datetime.pm";
+    loadtest "yast2_gui/yast2_firewall.pm";
+    loadtest "yast2_gui/yast2_hostnames.pm";
+    loadtest "yast2_gui/yast2_lang.pm";
+    loadtest "yast2_gui/yast2_network_settings.pm";
     if (snapper_is_applicable()) {
-        loadtest "yast2_ui/yast2_snapper.pm";
+        loadtest "yast2_gui/yast2_snapper.pm";
     }
-    loadtest "yast2_ui/yast2_software_management.pm";
-    loadtest "yast2_ui/yast2_users.pm";
+    loadtest "yast2_gui/yast2_software_management.pm";
+    loadtest "yast2_gui/yast2_users.pm";
 }
 
 sub load_extra_tests() {
@@ -527,7 +527,7 @@ sub load_extra_tests() {
         }
         # back to desktop
         loadtest "console/consoletest_finish.pm";
-        load_yast2ui_tests();
+        load_yast2_gui_tests();
 
         return 1;
     }
