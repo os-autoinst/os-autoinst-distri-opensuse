@@ -463,12 +463,6 @@ sub load_extra_tests() {
         loadtest "console/zypper_ar.pm";
         loadtest "console/zypper_ref.pm";
         loadtest "console/update_alternatives.pm";
-        loadtest "console/yast2_proxy.pm";
-        loadtest "console/yast2_ntpclient.pm";
-        loadtest "console/yast2_tftp.pm";
-        loadtest "console/yast2_vnc.pm";
-        loadtest "console/yast2_samba.pm";
-        loadtest "console/yast2_xinetd.pm";
         loadtest "console/zbar.pm";
         # start extra console tests from here
         if (!get_var("OFW") && !is_jeos) {
@@ -484,9 +478,6 @@ sub load_extra_tests() {
             loadtest "sysauth/sssd.pm";
         }
         loadtest "console/command_not_found.pm";
-        loadtest "console/yast2_http.pm";
-        loadtest "console/yast2_ftp.pm";
-
         loadtest "console/openvswitch.pm";
         loadtest "console/rabbitmq.pm";
         loadtest "console/salt.pm";
@@ -499,12 +490,20 @@ sub load_extra_tests() {
 
         return 1;
     }
-    elsif (console_is_applicable() && get_var("Y2UITEST")) {
+    elsif (any_desktop_is_applicable() && get_var("Y2UITEST")) {
         # setup $serialdev permission and so on
         loadtest "console/consoletest_setup.pm";
-        # start extra yast console test from here
         loadtest "console/zypper_lr.pm";
         loadtest "console/zypper_ref.pm";
+        # start extra yast console test from here
+        loadtest "console/yast2_proxy.pm";
+        loadtest "console/yast2_ntpclient.pm";
+        loadtest "console/yast2_tftp.pm";
+        loadtest "console/yast2_vnc.pm";
+        loadtest "console/yast2_samba.pm";
+        loadtest "console/yast2_xinetd.pm";
+        loadtest "console/yast2_http.pm";
+        loadtest "console/yast2_ftp.pm";
         # yast-lan related tests do not work when using networkmanager.
         # (Livesystem and laptops do use networkmanager)
         if (!get_var("LIVETEST") && !get_var("LAPTOP")) {
