@@ -149,6 +149,11 @@ sub run() {
         #type_string "ZYPP_MULTICURL=0 "; sleep 2;
     }
 
+    if (check_var("FLAVOR", "NET")) {
+        type_string_slow " kexec=1";
+        record_soft_failure "boo#990374 - pass kexec to installer to use initrd from FTP";
+    }
+
     # set language last so that above typing will not depend on keyboard layout
     if (get_var("INSTLANG")) {
 
