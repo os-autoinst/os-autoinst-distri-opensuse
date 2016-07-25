@@ -64,6 +64,12 @@ sub cleanup_needles() {
     if (!is_jeos) {
         unregister_needle_tags('ENV-FLAVOR-JeOS-for-kvm');
     }
+    if (!get_var('LEAP')) {
+        unregister_needle_tags('ENV-LEAP-1');
+    }
+    if (!check_var('VERSION', 'Tumbleweed')) {
+        unregister_needle_tags('ENV-VERSION-Tumbleweed');
+    }
 }
 
 my $distri = testapi::get_var("CASEDIR") . '/lib/susedistribution.pm';
@@ -89,6 +95,9 @@ if (check_var('DESKTOP', 'minimalx') || get_var('DESKTOP_MINIMALX_INSTONLY')) {
 }
 
 # openSUSE specific variables
+# set a variable 'LEAP' for any Leap version. For Tumbleweed we can just rely
+# on VERSION being 'Tumbleweed'
+set_var('LEAP', get_var('VERSION', '') =~ /(?:[4-9][0-9]|[0-9]{3,})\.[0-9]/);
 set_var("PACKAGETOINSTALL", "xdelta");
 set_var("WALLPAPER",        '/usr/share/wallpapers/openSUSEdefault/contents/images/1280x1024.jpg');
 if (!defined get_var("YAST_SW_NO_SUMMARY")) {
