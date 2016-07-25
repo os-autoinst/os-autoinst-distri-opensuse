@@ -26,6 +26,7 @@ our @EXPORT = qw/
   sle_version_at_least
   ensure_fullscreen
   ensure_shim_import
+  reboot_gnome
   /;
 
 
@@ -376,6 +377,30 @@ sub ensure_shim_import {
         send_key "down";
         send_key "ret";
     }
+}
+
+sub reboot_gnome {
+    wait_idle;
+    send_key "ctrl-alt-delete";    # reboot
+    assert_screen 'logoutdialog', 15;
+    assert_and_click 'logoutdialog-reboot-highlighted';
+
+    if (get_var("SHUTDOWN_NEEDS_AUTH")) {
+        assert_screen 'reboot-auth', 15;
+        sleep 3;
+        type_password;
+        sleep 3;
+        assert_and_click 'reboot-auth-typed', 'right';    # Extra assert_and_click (with right click) to check the correct number of characters is typed and open up the 'show text' option
+        assert_and_click 'reboot-auth-showtext';          # Click the 'Show Text' Option to enable the display of the typed text
+        assert_screen 'reboot-auth-correct-password';     # Check the password is correct
+
+        # we need to kill ssh for iucvconn here,
+        # because after pressing return, the system is down
+        prepare_system_reboot;
+
+        send_key "ret";
+    }
+    workaround_type_encrypted_passphrase;
 }
 
 1;
