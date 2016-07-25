@@ -67,7 +67,8 @@ sub run() {
     wait_boot;
     select_console 'root-console';
 
-    my $crash_cmd = 'echo exit | crash `ls -1t /var/crash/*/vmcore | head -n1` /boot/vmlinux-`uname -r`.gz';
+    my $suffix = check_var('ARCH', 'ppc64le') ? '' : '.gz';
+    my $crash_cmd = 'echo exit | crash `ls -1t /var/crash/*/vmcore | head -n1` /boot/vmlinux-`uname -r`' . $suffix;
     assert_script_run "$crash_cmd";
     validate_script_output "$crash_cmd", sub { m/PANIC/ };
 }
