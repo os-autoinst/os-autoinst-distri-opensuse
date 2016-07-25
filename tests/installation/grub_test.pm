@@ -15,6 +15,12 @@ use utils;
 
 sub run() {
     my $self = shift;
+
+    # due to pre-installation setup, qemu boot order is always booting from CD-ROM
+    if (check_var("BOOTFROM", "d")) {
+        assert_screen 'inst-bootmenu';
+        send_key 'ret';
+    }
     workaround_type_encrypted_passphrase;
     assert_screen "grub2";
     # prevent grub2 timeout; 'esc' would be cleaner, but grub2-efi falls to the menu then
@@ -43,6 +49,7 @@ sub run() {
     # avoid timeout for booting to HDD
     send_key 'ret';
 }
+
 sub test_flags() {
     return {fatal => 1};
 }
