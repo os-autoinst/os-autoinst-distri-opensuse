@@ -3232,7 +3232,7 @@
                       ],
                     },
                     {
-                      name => "yast2_ui_gnome",
+                      name => "extra_tests_y2ui",
                       settings => [
                         { key => "BOOT_HDD_IMAGE", value => 1 },
                         { key => "DESKTOP", value => "gnome" },
