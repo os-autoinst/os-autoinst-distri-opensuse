@@ -480,6 +480,9 @@ sub load_extra_tests() {
         }
         if (get_var("FILESYSTEM", "btrfs") eq "btrfs") {
             loadtest "console/btrfs_autocompletion.pm";
+            if (get_var("NUMDISKS", 0) > 1) {
+                loadtest "console/btrfs_send_receive.pm";
+            }
         }
         loadtest "console/a2ps.pm";    # a2ps is not a ring package and thus not available in staging
 
