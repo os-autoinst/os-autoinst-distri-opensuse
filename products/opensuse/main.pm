@@ -450,14 +450,15 @@ sub load_extra_tests() {
 
     return unless extratest_is_applicable();
 
+    # setup $serialdev permission and so on
+    loadtest "console/consoletest_setup.pm";
+
     if (console_is_applicable() && get_var("EXTRATEST")) {
         # Put tests that filled the conditions below
         # 1) you don't want to run in stagings below here
         # 2) the application is not rely on desktop environment
         # 3) running based on preinstalled image
 
-        # setup $serialdev permission and so on
-        loadtest "console/consoletest_setup.pm";
         loadtest "console/check_console_font.pm";
         loadtest "console/zypper_lr.pm";
         loadtest "console/zypper_ar.pm";
@@ -491,8 +492,6 @@ sub load_extra_tests() {
         return 1;
     }
     elsif (any_desktop_is_applicable() && get_var("Y2UITEST")) {
-        # setup $serialdev permission and so on
-        loadtest "console/consoletest_setup.pm";
         loadtest "console/zypper_lr.pm";
         loadtest "console/zypper_ref.pm";
         # start extra yast console test from here
