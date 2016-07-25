@@ -44,7 +44,13 @@ sub run() {
         my $url = "ftp://openqa.suse.de/" . get_var('REPO_SLES_DEBUG');
         assert_script_run "zypper ar -f $url SLES-Server-Debug";
 
-        assert_script_run 'zypper ref; zypper -n -v in kernel-default-base-debuginfo kernel-default-debuginfo', 300;
+        # zypper has a feature which rewrites last digit in repo's URI to '1'
+        # unless it's '1' already. We need to alter name for that repository
+        # when rsyncing it.
+        #assert_script_run 'zypper ref; zypper -n -v in kernel-default-debuginfo', 300;
+        assert_script_run "wget $url/" . get_required_var('ARCH') . "/`rpmquery kernel-default | sed 's/kernel-default/kernel-default-debuginfo/' | sort -nr | head -n1`.rpm", 300;
+        assert_script_run "rpm -ivh kernel-default-debuginfo*", 300;
+        script_run "rm kernel-default-debuginfo*";
 
         script_run 'zypper -n rr SLES-Server-Debug';
     }
@@ -70,6 +76,8 @@ sub run() {
     my $crash_cmd = 'echo exit | crash `ls -1t /var/crash/*/vmcore | head -n1` /boot/vmlinux-`uname -r`.gz';
     assert_script_run "$crash_cmd";
     validate_script_output "$crash_cmd", sub { m/PANIC/ };
+
+    script_run "zypper -nv rm kernel-default-debuginfo";
 }
 
 1;
