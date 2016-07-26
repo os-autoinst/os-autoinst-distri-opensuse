@@ -25,42 +25,14 @@ sub y2snapper_create_snapshot() {
     assert_screen 'yast2_snapper-createsnapshotdialog', 100;
     # Fill the form and finish by pressing the 'O'k-button
     type_string $name;
-    sleep 2;
-    send_key "tab";
-    sleep 2;
-    send_key "tab";
-    sleep 2;
-    send_key "tab";
-    sleep 2;
-    send_key "tab";
-    sleep 2;
-    send_key "tab";
-    sleep 2;
+    wait_screen_change { send_key "tab" };
+    wait_screen_change { send_key "tab" };
+    wait_screen_change { send_key "tab" };
+    wait_screen_change { send_key "tab" };
+    wait_screen_change { send_key "tab" };
     type_string "a=1,b=2";
-    sleep 2;
+    save_screenshot;
     send_key "alt-o";
-}
-
-# Helper for selecting the new snapshot in y2-snapper
-#
-# Called when the list has been just loaded, so the top most item is selected
-sub y2snapper_select_snapshot() {
-    my $limit = 0;    # Just in case the needles don't match at all (sh*t happens)
-
-    return 1 if (check_screen('yast2_snapper-new_snapshot_selected', 3));
-    # Return false if there is no snapshot to select
-    return 0 unless (check_screen('yast2_snapper-new_snapshot', 3));
-
-    until (check_screen('yast2_snapper-new_snapshot_selected', 5) || $limit > 20) {
-        $limit++;
-        send_key "down";
-    }
-    if (check_screen('yast2_snapper-new_snapshot_selected', 5)) {
-        return 1;
-    }
-    else {
-        return 0;
-    }
 }
 
 # Quit yast2-snapper and cleanup the mess
@@ -91,57 +63,48 @@ sub run() {
     # Start the yast2 snapper module and wait until it is started
     type_string "yast2 snapper\n";
     assert_screen 'yast2_snapper-snapshots', 100;
+    # ensure the last screenshots are visible
+    send_key 'pgdn';
     # Make sure the test snapshot is not there
-    die("Unexpected snapshot found") if (check_screen('yast2_snapper-new_snapshot', 5));
+    die("Unexpected snapshot found") if (check_screen([qw/yast2_snapper-new_snapshot yast2_snapper-new_snapshot_selected/], 1));
 
     # Create a new snapshot
     $self->y2snapper_create_snapshot();
     # Make sure the snapshot is listed in the main window
-    assert_screen 'yast2_snapper-new_snapshot', 100;
+    send_key_until_needlematch([qw/yast2_snapper-new_snapshot yast2_snapper-new_snapshot_selected/], 'pgdn');
     # C'l'ose  the snapper module
     send_key "alt-l";
 
+    wait_still_screen;
     # Download & untar test files
-    wait_idle;
     assert_script_run "tar -xzf /home/$username/data/yast2_snapper.tgz";
 
     # Start the yast2 snapper module and wait until it is started
     type_string "yast2 snapper\n";
     assert_screen 'yast2_snapper-snapshots', 100;
-    # Select the new snapshot
-    unless ($self->y2snapper_select_snapshot) {
-        $self->clean_and_quit;
-        die("Failed to select the snapshot in order to show differences");
-    }
+    send_key_until_needlematch([qw/yast2_snapper-new_snapshot yast2_snapper-new_snapshot_selected/], 'pgdn');
+    send_key_until_needlematch('yast2_snapper-new_snapshot_selected',                                'down');
     # Press 'S'how changes button and select both directories that have been
     # extracted from the tarball
     send_key "alt-s";
     assert_screen 'yast2_snapper-collapsed_testdata', 200;
-    send_key "tab";
-    sleep 2;
-    send_key "spc";
-    sleep 2;
+    wait_screen_change { send_key "tab" };
+    wait_screen_change { send_key "spc" };
     send_key "down";
-    sleep 2;
-    send_key "spc";
+    wait_screen_change { send_key "spc" };
     # Make sure it shows the new files from the unpacked tarball
     assert_screen 'yast2_snapper-show_testdata', 100;
     # Close the dialog and make sure it is closed
     send_key "alt-c";
-    assert_screen 'yast2_snapper-new_snapshot', 100;
-
-    # Select the new snapshot
-    unless ($self->y2snapper_select_snapshot) {
-        $self->clean_and_quit;
-        die("Failed to select the snapshot in order to delete it");
-    }
+    send_key_until_needlematch([qw/yast2_snapper-new_snapshot yast2_snapper-new_snapshot_selected/], 'pgdn');
+    send_key_until_needlematch('yast2_snapper-new_snapshot_selected',                                'down');
     # Dele't'e the snapshot
     send_key "alt-t";
     assert_screen 'yast2_snapper-confirm_delete', 100;
     send_key "alt-y";
     # Make sure the snapshot is not longer there
-    assert_screen 'yast2_snapper-snapshots', 100;
-    if (check_screen('yast2_snapper-new_snapshot', 5)) {
+    assert_screen [qw/yast2_snapper-snapshots yast2_snapper-new_snapshot yast2_snapper-new_snapshot_selected/], 100;
+    if (match_has_tag('yast2_snapper-new_snapshot')) {
         $self->clean_and_quit;
         die("The snapshot is still visible after trying to delete it");
     }
