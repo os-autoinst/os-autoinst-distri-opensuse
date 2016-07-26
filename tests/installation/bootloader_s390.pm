@@ -103,10 +103,6 @@ EO_frickin_boot_parms
     my $max_retries = 7;
     for (1 .. $max_retries) {
         eval {
-            # Define memory to behave the same way as other archs
-            # and to have the same configuration through all s390 guests
-            $s3270->sequence_3270('String("DEFINE STORAGE ' . get_var('QEMURAM', 1024) . 'M") ', "ENTER",);
-
             # ensure that we are in cms mode before executing qaboot
             $s3270->sequence_3270("String(\"#cp i cms\")", "ENTER", "ENTER", "ENTER", "ENTER",);
             $r = $s3270->expect_3270(output_delim => qr/CMS/, timeout => 20);
@@ -214,11 +210,25 @@ sub run() {
     my $self = shift;
 
     select_console 'x3270';
+    my $s3270 = console('x3270');
 
-    eval {
-        # connect to zVM, login to the guest
-        $self->get_to_yast();
-    };
+    # Define memory to behave the same way as other archs
+    # and to have the same configuration through all s390 guests
+    $s3270->sequence_3270('String("DEFINE STORAGE ' . get_var('QEMURAM', 1024) . 'M") ', "ENTER",);
+    # arbitrary number of retries for CTC only as it fails often to retrieve
+    # media
+    my $max_retries = get_required_var('S390_NETWORK_PARAMS') =~ /ctc/ ? 7 : 1;
+    my $success = 0;
+    for (1 .. $max_retries) {
+        eval {
+            # connect to zVM, login to the guest
+            $self->get_to_yast();
+            $success = 1;
+        };
+        last unless ($@);
+        diag "It looks like CTC network connection is unstable. Retry: $_ of $max_retries";
+    }
+    die "CTC network connection could not be established in $max_retries tries" unless $success;
 
     my $exception = $@;
 
