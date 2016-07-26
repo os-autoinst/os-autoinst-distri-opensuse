@@ -18,8 +18,8 @@ use registration;
 # hint: press shift-f10 trice for highest debug level
 sub run() {
     pre_bootmenu_setup;
-    select_bootmenu_option;
-    bootmenu_default_params;
+    return if select_bootmenu_option == 3;
+    return if bootmenu_default_params == 3;
     bootmenu_network_source;
     specific_bootmenu_params;
     registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED);

@@ -33,7 +33,7 @@ our @EXPORT = qw/
 sub pre_bootmenu_setup {
     if (get_var("IPXE")) {
         sleep 60;
-        return;
+        return 3;
     }
     if (get_var("USBBOOT")) {
         assert_screen "boot-menu", 5;
@@ -47,7 +47,7 @@ sub pre_bootmenu_setup {
     if (get_var("BOOT_HDD_IMAGE")) {
         assert_screen "grub2", 15;    # Use the same bootloader needle as in grub-test
         send_key "ret";               # boot from hd
-        return;
+        return 3;
     }
 }
 
@@ -55,7 +55,7 @@ sub select_bootmenu_option {
     assert_screen 'inst-bootmenu';
     if (get_var('ZDUP') || get_var("ONLINE_MIGRATION")) {
         send_key 'ret';               # boot from hard disk
-        return;
+        return 3;
     }
 
     if (get_var("UPGRADE")) {
