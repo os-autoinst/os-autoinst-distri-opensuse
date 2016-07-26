@@ -610,19 +610,19 @@ sub load_consoletests() {
     }
 }
 
-sub load_yast2ui_tests() {
+sub load_yast2_gui_tests() {
     return unless (!get_var("INSTALLONLY") && get_var("DESKTOP") !~ /textmode|minimalx/ && !get_var("DUALBOOT") && !get_var("RESCUECD") && get_var("Y2UITEST"));
 
-    loadtest "yast2_ui/yast2_control_center.pm";
-    loadtest "yast2_ui/yast2_bootloader.pm";
-    loadtest "yast2_ui/yast2_datetime.pm";
-    loadtest "yast2_ui/yast2_firewall.pm";
-    loadtest "yast2_ui/yast2_hostnames.pm";
-    loadtest "yast2_ui/yast2_lang.pm";
-    loadtest "yast2_ui/yast2_network_settings.pm";
-    loadtest "yast2_ui/yast2_snapper.pm";
-    loadtest "yast2_ui/yast2_software_management.pm";
-    loadtest "yast2_ui/yast2_users.pm";
+    loadtest "yast2_gui/yast2_control_center.pm";
+    loadtest "yast2_gui/yast2_bootloader.pm";
+    loadtest "yast2_gui/yast2_datetime.pm";
+    loadtest "yast2_gui/yast2_firewall.pm";
+    loadtest "yast2_gui/yast2_hostnames.pm";
+    loadtest "yast2_gui/yast2_lang.pm";
+    loadtest "yast2_gui/yast2_network_settings.pm";
+    loadtest "yast2_gui/yast2_snapper.pm";
+    loadtest "yast2_gui/yast2_software_management.pm";
+    loadtest "yast2_gui/yast2_users.pm";
 }
 
 sub load_extra_test () {
@@ -1049,7 +1049,7 @@ elsif (get_var("Y2UITEST")) {
     loadtest "console/zypper_ref.pm";
     # back to desktop
     loadtest "console/consoletest_finish.pm";
-    load_yast2ui_tests();
+    load_yast2_gui_tests();
 }
 elsif (get_var("WINDOWS")) {
     loadtest "installation/win10_installation.pm";
