@@ -12,9 +12,12 @@ sub post_fail_hook() {
     select_console 'root-console';
     save_screenshot;
 
+    script_run "dmesg > /dev/$serialdev";
     my $fn = '/tmp/y2logs.tar.bz2';
-    type_string "save_y2logs $fn\n";
-    upload_logs $fn;
+    # only upload if save_y2log succeeded
+    if (!script_run "save_y2logs $fn") {
+        upload_logs $fn;
+    }
     save_screenshot;
 }
 
