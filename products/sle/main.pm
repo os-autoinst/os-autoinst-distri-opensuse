@@ -606,6 +606,9 @@ sub load_consoletests() {
         if (get_var("CLONE_SYSTEM")) {
             loadtest "console/yast2_clone_system.pm";
         }
+        if (check_var('ARCH', 'aarch64') and check_var('VERSION', '12-SP2')) {
+            loadtest "console/check_gcc48_on_sdk_in_aarch64.pm";
+        }
         loadtest "console/consoletest_finish.pm";
     }
 }
