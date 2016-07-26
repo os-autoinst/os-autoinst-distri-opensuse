@@ -585,6 +585,10 @@ sub load_consoletests() {
             loadtest "console/syslinux.pm";
         }
         loadtest "console/mtab.pm";
+
+        if (sle_version_at_least('12-SP2')) {
+            loadtest "console/no_perl_bootloader.pm";
+        }
         if (!get_var("NOINSTALL") && !is_desktop && (check_var("DESKTOP", "textmode"))) {
             if (!is_staging() && check_var('BACKEND', 'qemu')) {
                 # The NFS test expects the IP to be 10.0.2.15
