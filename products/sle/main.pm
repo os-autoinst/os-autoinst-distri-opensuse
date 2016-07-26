@@ -1146,9 +1146,16 @@ else {
         }
     }
     else {
-        load_boot_tests();
-        load_inst_tests();
-        load_reboot_tests();
+        if (get_var('BOOT_EXISTING_S390')) {
+            loadtest 'installation/boot_s390.pm';
+            loadtest 'installation/reconnect_s390.pm';
+            loadtest 'installation/first_boot.pm';
+        }
+        else {
+            load_boot_tests();
+            load_inst_tests();
+            load_reboot_tests();
+        }
     }
     unless (load_applicationstests() || load_slenkins_tests()) {
         load_rescuecd_tests();
