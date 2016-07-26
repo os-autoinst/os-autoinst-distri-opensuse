@@ -21,9 +21,9 @@ sub run() {
     x11_start_program("gnome-control-center");
     assert_screen "gnome-control-center-started", 60;    # for timeout selection see bsc#965857
     type_string "details";
-    assert_screen "gnome-control-center-details-typed", 5;
+    assert_screen "gnome-control-center-details-typed";
     assert_and_click "gnome-control-center-details";
-    assert_screen 'test-gnome_control_center-1', 3;
+    assert_screen 'test-gnome_control_center-1';
     send_key "alt-f4";
 }
 
