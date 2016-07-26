@@ -625,6 +625,9 @@ sub load_consoletests() {
         if (check_var('ARCH', 'aarch64') and check_var('VERSION', '12-SP2')) {
             loadtest "console/check_gcc48_on_sdk_in_aarch64.pm";
         }
+        if (sle_version_at_least('12-SP2')) {
+            loadtest "console/zypper_lifecycle.pm";
+        }
         loadtest "console/consoletest_finish.pm";
     }
 }
