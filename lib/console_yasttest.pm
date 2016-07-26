@@ -18,6 +18,16 @@ sub post_fail_hook() {
     if (!script_run "save_y2logs $fn") {
         upload_logs $fn;
     }
+    else {
+        # there is a severe problem, e.g. could be bsc#985850 or bsc#990384 so
+        # save more, let's hope there is enough memory for intermediate
+        # storage
+        # TODO just assuming that '/dev/root' is the root device here, does
+        # not work for LVM setup and others but we want to debug non-LVM first
+        $fn = '/dev/shm/root_brfs_debug_tree';
+        assert_script_run "btrfs-debug-tree /dev/root &> $fn";
+        upload_logs $fn;
+    }
     save_screenshot;
 }
 
