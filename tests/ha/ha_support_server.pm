@@ -19,7 +19,8 @@ sub run() {
         mutex_unlock("MUTEX_HA_" . $clustername . "_NODE1_WAIT");    #start node1 and node2 jobs
         mutex_unlock("MUTEX_HA_" . $clustername . "_NODE2_WAIT");
     }
-    assert_screen "tty1-selected";
+    # wait for bootup
+    assert_screen "tty1-selected", 600;
     type_string "root\n";
     assert_screen "password-prompt";
     type_string "susetesting\n";
