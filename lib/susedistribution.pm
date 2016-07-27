@@ -128,11 +128,12 @@ sub ensure_installed {
     testapi::assert_script_sudo("chown $testapi::username /dev/$testapi::serialdev");
     my $retries = 5;    # arbitrary
     $self->script_run("for i in {1..$retries} ; do pkcon install @pkglist && break ; done ; RET=\$?; echo \"\n  pkcon finished\n\"; echo \"pkcon-\${RET}-\" > /dev/$testapi::serialdev", 0);
-    my @tags = qw/Policykit Policykit-behind-window pkcon-proceed-prompt/;
+    my @tags = qw/Policykit Policykit-behind-window pkcon-proceed-prompt pkcon-finished/;
     while (1) {
         last unless @tags;
         my $ret = check_screen(\@tags, $timeout);
         last unless $ret;
+        last if (match_has_tag('pkcon-finished'));
         if (match_has_tag('Policykit')) {
             type_password;
             send_key("ret", 1);
