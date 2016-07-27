@@ -13,6 +13,7 @@ use warnings;
 use File::Basename;
 use base "opensusebasetest";
 use testapi;
+use virt_utils;
 
 sub login_to_console() {
     my $timeout = shift;
@@ -25,12 +26,18 @@ sub login_to_console() {
             send_key 'ret';
         }
     }
+    else {
+        set_var("reboot_for_upgrade_step", undef);
+    }
+
     assert_screen(["displaymanager", "virttest-displaymanager"], $timeout);
+
     select_console('root-console');
 }
 
 sub run() {
     login_to_console;
+    set_serialdev;
 }
 
 sub test_flags {

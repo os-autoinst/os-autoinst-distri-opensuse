@@ -12,6 +12,7 @@ use warnings;
 use File::Basename;
 use base "virt_autotest_base";
 use testapi;
+use virt_utils;
 
 sub install_package() {
     my $qa_server_repo = get_var('QA_HEAD_REPO', '');
@@ -52,23 +53,6 @@ sub update_package() {
 }
 
 
-sub generate_grub() {
-    if (get_var("XEN")) {
-        assert_script_run("if ! grep -q \"GRUB_CMDLINE_XEN_DEFAULT=.*console=com1 com1=115200\" /etc/default/grub;then sed -ri 's/\(GRUB_CMDLINE_XEN_DEFAULT=.*\)\"/\\1 console=com1 com1=115200\"/' /etc/default/grub ; fi");
-
-    }
-    else {
-        assert_script_run("if ! grep -q \"GRUB_CMDLINE_LINUX_DEFAULT=.*console=ttyS1,115200.*console=tty\" /etc/default/grub;then sed -ri 's/\(GRUB_CMDLINE_LINUX_DEFAULT=.*\)\"/\\1 console=ttyS1,115200 console=tty\"/' /etc/default/grub ; fi");
-    }
-
-    upload_logs("/etc/default/grub");
-
-    my $gen_grub_cmd = "grub2-mkconfig -o /boot/grub2/grub.cfg";
-
-    assert_script_run($gen_grub_cmd, 40);
-}
-
-
 sub run() {
     my $self = shift;
 
@@ -76,7 +60,7 @@ sub run() {
 
     $self->update_package();
 
-    generate_grub;
+    setup_console_in_grub;
 }
 
 
