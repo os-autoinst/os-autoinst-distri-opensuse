@@ -1007,8 +1007,12 @@ elsif (get_var("VIRT_AUTOTEST")) {
     load_boot_tests();
     load_inst_tests();
     loadtest "virt_autotest/login_console.pm";
+    if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
+        loadtest "virt_autotest/setup_console_on_host.pm";
+        loadtest "virt_autotest/reboot_and_wait_up_normal1.pm";
+    }
     loadtest "virt_autotest/install_package.pm";
-    loadtest "virt_autotest/reboot_and_wait_up_normal1.pm";
+    loadtest "virt_autotest/reboot_and_wait_up_normal2.pm";
 
     if (get_var("VIRT_PRJ1_GUEST_INSTALL")) {
         loadtest "virt_autotest/guest_installation_run.pm";
@@ -1017,6 +1021,10 @@ elsif (get_var("VIRT_AUTOTEST")) {
         loadtest "virt_autotest/host_upgrade_generate_run_file.pm";
         loadtest "virt_autotest/host_upgrade_step2_run.pm";
         loadtest "virt_autotest/reboot_and_wait_up_upgrade.pm";
+        if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
+            loadtest "virt_autotest/setup_console_on_host.pm";
+            loadtest "virt_autotest/reboot_and_wait_up_normal3.pm";
+        }
         loadtest "virt_autotest/host_upgrade_step3_run.pm";
     }
 }
