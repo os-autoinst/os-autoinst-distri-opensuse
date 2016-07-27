@@ -38,6 +38,9 @@ sub run() {
     }
     script_run 'export CC=/usr/bin/gcc-5';
     script_run 'export CXX=/usr/bin/g++-5';
+    script_run 'lscpu';
+    script_run 'free -m';
+    save_screenshot;
 }
 
 sub test_flags() {
