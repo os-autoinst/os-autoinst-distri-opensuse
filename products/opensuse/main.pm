@@ -495,6 +495,7 @@ sub load_extra_tests() {
         loadtest "console/rabbitmq.pm";
         loadtest "console/salt.pm";
         loadtest "console/rails.pm";
+        loadtest "console/machinery.pm";
 
         # finished console test and back to desktop
         loadtest "console/consoletest_finish.pm";
