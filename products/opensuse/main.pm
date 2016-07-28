@@ -616,7 +616,7 @@ sub load_x11tests() {
     if (bigx11step_is_applicable()) {
         loadtest "x11/firefox_stress.pm";
     }
-    if (gnomestep_is_applicable() && !get_var("LIVECD") || !is_server) {
+    if (gnomestep_is_applicable() && !(get_var("LIVECD") || is_server)) {
         loadtest "x11/thunderbird.pm";
     }
     if (get_var("MOZILLATEST")) {
