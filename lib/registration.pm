@@ -84,6 +84,9 @@ sub fill_in_registration_data {
         if (check_screen("local-registration-servers", 10)) {
             send_key $cmd{ok};
         }
+        if (check_screen('scc-beta-filter-checkbox', 5)) {
+            send_key 'alt-f';    # uncheck 'Filter Out Beta Version'
+        }
         # The value of SCC_ADDONS is a list of abbreviation of addons/modules
         # Following are abbreviations defined for modules and some addons
         #
