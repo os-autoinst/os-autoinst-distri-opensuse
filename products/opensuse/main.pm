@@ -734,7 +734,6 @@ sub install_online_updates {
     return 0 unless get_var('INSTALL_ONLINE_UPDATES');
 
     my @tests = qw(
-      console/ttylogin4
       console/zypper_disable_deltarpm
       console/zypper_add_repos
       console/zypper_up
