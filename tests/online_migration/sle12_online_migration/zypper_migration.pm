@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-use base "consoletest";
+use base "installbasetest";
 use strict;
 use testapi;
 
@@ -23,12 +23,14 @@ sub run() {
     my $zypper_migration_error        = qr/^Abort, retry, ignore\? \[a/m;
     my $zypper_migration_fileconflict = qr/^File conflicts .*^Continue\? \[y/ms;
     my $zypper_migration_done         = qr/^Executing.*after online migration|^ZYPPER-DONE/m;
+    my $zypper_migration_notification = qr/^View the notifications now\? \[y/m;
+    my $zypper_migration_failed       = qr/^Migration failed/m;
 
     # start migration
     script_run("(zypper migration;echo ZYPPER-DONE) | tee /dev/$serialdev", 0);
     # migration process take long time
     my $timeout          = 3000;
-    my $migration_checks = [$zypper_migration_target, $zypper_disable_repos, $zypper_continue, $zypper_migration_done, $zypper_migration_error, $zypper_migration_conflict, $zypper_migration_fileconflict];
+    my $migration_checks = [$zypper_migration_target, $zypper_disable_repos, $zypper_continue, $zypper_migration_done, $zypper_migration_error, $zypper_migration_conflict, $zypper_migration_fileconflict, $zypper_migration_notification, $zypper_migration_failed];
     my $out              = wait_serial($migration_checks, $timeout);
     while ($out) {
         if ($out =~ $zypper_migration_target) {
@@ -39,13 +41,17 @@ sub run() {
             send_key "y";
             send_key "ret";
         }
-        elsif ($out =~ $zypper_migration_error || $out =~ $zypper_migration_conflict || $out =~ $zypper_migration_fileconflict) {
+        elsif ($out =~ $zypper_migration_error || $out =~ $zypper_migration_conflict || $out =~ $zypper_migration_fileconflict || $out =~ $zypper_migration_failed) {
             $self->result('fail');
             save_screenshot;
             return;
         }
         elsif ($out =~ $zypper_continue) {
             send_key "y";
+            send_key "ret";
+        }
+        elsif ($out =~ $zypper_migration_notification) {
+            send_key "n";    #do not view package update notification by default
             send_key "ret";
         }
         elsif ($out =~ $zypper_migration_done) {
