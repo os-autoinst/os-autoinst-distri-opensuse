@@ -586,7 +586,8 @@ sub load_consoletests() {
         }
         loadtest "console/mtab.pm";
 
-        if (sle_version_at_least('12-SP2')) {
+        # on new installations 12-SP2 or later
+        if (!get_var('UPGRADE') && sle_version_at_least('12-SP2')) {
             loadtest "console/no_perl_bootloader.pm";
         }
         if (!get_var("NOINSTALL") && !is_desktop && (check_var("DESKTOP", "textmode"))) {
