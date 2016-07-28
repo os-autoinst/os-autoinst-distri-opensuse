@@ -430,7 +430,7 @@ sub load_inst_tests() {
     }
     if (noupdatestep_is_applicable()) {
         loadtest "installation/installer_timezone.pm";
-        if (!get_var("REMOTE_MASTER")) {
+        if (!get_var("REMOTE_CONTROLLER")) {
             loadtest "installation/logpackages.pm";
         }
         if (is_sles4sap()) {
@@ -1123,15 +1123,15 @@ else {
                 set_var('INSTALLONLY', 1);
                 loadtest "iscsi/iscsi_client.pm";
             }
-            if (get_var("REMOTE_MASTER")) {
-                loadtest "remote/remote_master.pm";
+            if (get_var("REMOTE_CONTROLLER")) {
+                loadtest "remote/remote_controller.pm";
                 load_inst_tests();
             }
         }
     }
-    elsif (get_var("REMOTE_SLAVE")) {
+    elsif (get_var("REMOTE_TARGET")) {
         load_boot_tests();
-        loadtest "remote/remote_slave.pm";
+        loadtest "remote/remote_target.pm";
         load_reboot_tests();
     }
     elsif (is_jeos) {

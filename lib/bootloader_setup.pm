@@ -145,7 +145,7 @@ sub bootmenu_network_source {
             # ZYPP... enables proxy caching
         }
 
-        my $remote = get_var("REMOTE_SLAVE");
+        my $remote = get_var("REMOTE_TARGET");
         if ($remote) {
             my $dns = get_host_resolv_conf()->{nameserver};
             type_string_slow " " . get_var("NETSETUP") if get_var("NETSETUP");
