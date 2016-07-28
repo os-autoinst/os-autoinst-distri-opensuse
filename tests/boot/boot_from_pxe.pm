@@ -14,7 +14,7 @@ use base "opensusebasetest";
 use testapi;
 
 sub run() {
-    check_screen("virttest-bootloader", 60);
+    assert_screen([qw/virttest-bootloader qa-net-selection/], 300);
     my $image_path = "";
 
     #detect pxe location
@@ -31,12 +31,8 @@ sub run() {
 
         $image_path = get_var("HOST_IMG_URL");
     }
-    else {
+    elsif (match_has_tag("qa-net-selection")) {
         #Numburg
-        if (!match_has_tag("qa-net-selection")) {
-            assert_screen "qa-net-selection", 240;
-        }
-
         #send_key_until_needlematch "qa-net-selection-" . get_var('DISTRI') . "-" . get_var("VERSION"), 'down', 30, 3;
         #Don't use send_key_until_needlematch to pick first menu tier as dist network sources might not be ready when openQA is running tests
         send_key 'esc';

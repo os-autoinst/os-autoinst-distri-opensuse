@@ -27,7 +27,7 @@ sub run() {
     wait_idle 10;
 
     # Check autoyast has been removed in SP2 (fate#317970)
-    if (get_var("SP2ORLATER")) {
+    if (get_var("SP2ORLATER") && !check_var("INSTALL_TO_OTHERS", 1)) {
         if (check_var('VIDEOMODE', 'text')) {
             send_key 'alt-l';
             send_key 'ret';
