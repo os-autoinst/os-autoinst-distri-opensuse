@@ -8,7 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-use base "consoletest";
+use base "console_yasttest";
 use strict;
 use testapi;
 use utils;
