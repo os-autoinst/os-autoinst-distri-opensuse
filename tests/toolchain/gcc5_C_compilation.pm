@@ -19,9 +19,9 @@ sub run() {
     script_run "wget $package";
     script_run 'tar jxf ltp-full-20150420.tar.bz2';
     script_run 'cd ltp-full-20150420';
-    assert_script_run './configure --with-open-posix-testsuite|tee /tmp/configure.log', 100;
-    assert_script_run 'make all|tee /tmp/make_all.log',                                 800;
-    assert_script_run 'make install|tee /tmp/make_install.log',                         400;
+    assert_script_run './configure --with-open-posix-testsuite|tee /tmp/configure.log', 600;
+    assert_script_run 'make all|tee /tmp/make_all.log',                                 3600;
+    assert_script_run 'make install|tee /tmp/make_install.log',                         600;
     script_run 'cd /opt/ltp/';
     assert_script_run './runltp -f syscalls|tee /tmp/runltp.log', 2000;
     script_run 'cat output/*.failed';    # print what tests failed
