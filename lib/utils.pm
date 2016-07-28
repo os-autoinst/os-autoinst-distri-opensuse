@@ -27,6 +27,7 @@ our @EXPORT = qw/
   ensure_fullscreen
   ensure_shim_import
   reboot_gnome
+  assert_screen_with_soft_timeout
   /;
 
 
@@ -401,6 +402,37 @@ sub reboot_gnome {
         send_key "ret";
     }
     workaround_type_encrypted_passphrase;
+}
+
+=head2 assert_screen_with_soft_timeout
+
+  assert_screen_with_soft_timeout($mustmatch [,timeout => $timeout] [, bugref => $bugref] [,soft_timeout => $soft_timeout] [,soft_failure_reason => $soft_failure_reason]);
+
+Extending assert_screen with a soft timeout. When C<$soft_timeout> is hit, a
+soft failure is recorded with the message C<$soft_failure_reason> but
+assert_screen continues until the (hard) timeout C<$timeout> is hit. This
+makes sense when an assert screen should find a screen within a lower time but
+still should not fail and continue until the hard timeout, e.g. to discover
+performance issues.
+
+Example:
+
+  assert_screen_with_soft_timeout('registration-found', timeout => 300, soft_timeout => 60, bugref => bsc#123456);
+
+=cut
+sub assert_screen_with_soft_timeout {
+    my ($mustmatch, %args) = @_;
+    # as in assert_screen
+    $args{timeout}             //= 30;
+    $args{soft_timeout}        //= 0;
+    $args{soft_failure_reason} //= "$args{bugref}: needle(s) $mustmatch not found within $args{soft_timeout}";
+    if ($args{soft_timeout}) {
+        die "soft timeout has to be smaller than timeout" unless ($args{soft_timeout} < $args{timeout});
+        my $ret = check_screen $mustmatch, $args{soft_timeout};
+        return $ret if $ret;
+        record_soft_failure "needle(s) $mustmatch not found within $args{soft_timeout}";
+    }
+    return assert_screen $mustmatch, $args{timeout} - $args{soft_timeout};
 }
 
 1;
