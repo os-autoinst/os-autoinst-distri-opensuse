@@ -30,15 +30,17 @@ sub run() {
         assert_screen_with_soft_timeout('scc-registration', timeout => 300, soft_timeout => 100, bugref => 'bsc#990254');
     }
     send_key "alt-s", 1;    # skip SCC registration
-    if (check_screen("scc-skip-reg-warning", 10)) {
-        if (check_screen("ok-button", 10)) {
-            send_key "alt-o";    # confirmed skip SCC registration
-            wait_still_screen;
-            send_key "alt-n";    # next
-        }
-        else {
-            send_key "alt-y";    # confirmed skip SCC registration
-        }
+    assert_screen([qw/scc-skip-reg-warning-yes scc-skip-reg-warning-ok scc-skip-reg-no-warning/]);
+    if (match_has_tag('scc-skip-reg-warning-ok')) {
+        send_key "alt-o";    # confirmed skip SCC registration
+        wait_still_screen;
+        send_key "alt-n";    # next
+    }
+    elsif (match_has_tag('scc-skip-reg-warning-yes')) {
+        send_key "alt-y";    # confirmed skip SCC registration
+    }
+    else {
+        # no warning showed up
     }
 }
 
