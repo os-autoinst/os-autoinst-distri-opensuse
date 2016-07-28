@@ -218,17 +218,14 @@ sub run() {
     # arbitrary number of retries for CTC only as it fails often to retrieve
     # media
     my $max_retries = get_required_var('S390_NETWORK_PARAMS') =~ /ctc/ ? 7 : 1;
-    my $success = 0;
     for (1 .. $max_retries) {
         eval {
             # connect to zVM, login to the guest
             $self->get_to_yast();
-            $success = 1;
         };
         last unless ($@);
         diag "It looks like CTC network connection is unstable. Retry: $_ of $max_retries";
     }
-    die "CTC network connection could not be established in $max_retries tries" unless $success;
 
     my $exception = $@;
 
