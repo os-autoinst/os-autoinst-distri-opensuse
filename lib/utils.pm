@@ -28,6 +28,7 @@ our @EXPORT = qw/
   ensure_shim_import
   reboot_gnome
   assert_screen_with_soft_timeout
+  is_desktop_installed
   /;
 
 
@@ -433,6 +434,10 @@ sub assert_screen_with_soft_timeout {
         record_soft_failure "$args{soft_failure_reason}";
     }
     return assert_screen $mustmatch, $args{timeout} - $args{soft_timeout};
+}
+
+sub is_desktop_installed {
+    return get_var("DESKTOP") !~ /textmode|minimalx/;
 }
 
 1;
