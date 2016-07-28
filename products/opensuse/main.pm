@@ -516,6 +516,7 @@ sub load_extra_tests() {
         loadtest "console/yast2_vnc.pm";
         loadtest "console/yast2_samba.pm";
         loadtest "console/yast2_xinetd.pm";
+        loadtest "console/yast2_apparmor.pm";
         loadtest "console/yast2_http.pm";
         loadtest "console/yast2_ftp.pm";
         # yast-lan related tests do not work when using networkmanager.
