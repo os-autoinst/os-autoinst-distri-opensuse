@@ -215,6 +215,8 @@ sub run {
     configure_static_ip('10.0.2.1/24');
     configure_static_dns(get_host_resolv_conf());
 
+    assert_script_run "ping -c 1 10.0.2.2 || journalctl -b --no-pager >/dev/$serialdev";
+
     my @server_roles = split(',|;', lc(get_var("SUPPORT_SERVER_ROLES")));
     my %server_roles = map { $_ => 1 } @server_roles;
 
