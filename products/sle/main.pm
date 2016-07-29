@@ -38,6 +38,10 @@ sub is_kgraft() {
     return get_var('FLAVOR', '') =~ /^KGraft/;
 }
 
+sub is_new_installation {
+    return !get_var('UPGRADE') && !get_var('ONLINE_MIGRATION') && !get_var('ZDUP');
+}
+
 sub cleanup_needles {
     remove_desktop_needles("lxde");
     remove_desktop_needles("kde");
@@ -586,8 +590,7 @@ sub load_consoletests() {
         }
         loadtest "console/mtab.pm";
 
-        # on new installations 12-SP2 or later
-        if (!get_var('UPGRADE') && sle_version_at_least('12-SP2')) {
+        if (is_new_installation && sle_version_at_least('12-SP2')) {
             loadtest "console/no_perl_bootloader.pm";
         }
         if (!get_var("NOINSTALL") && !is_desktop && (check_var("DESKTOP", "textmode"))) {
