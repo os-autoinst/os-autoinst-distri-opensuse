@@ -26,8 +26,8 @@ sub run() {
     type_string "chown $username /dev/$serialdev\n";
 
     # enable Y2DEBUG all time
-    type_string "echo 'export Y2DEBUG=1' >> /etc/profile\n";
-    script_run "source /etc/profile";
+    type_string "echo 'export Y2DEBUG=1' >> /etc/bash.bashrc.local\n";
+    script_run "source /etc/bash.bashrc.local";
 
     save_screenshot;
 }
