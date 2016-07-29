@@ -88,7 +88,6 @@ sub run() {
     #
     sleep 15;
 
-
     #INSTALL UPDATE ... #TODO it needs some coop with IBS ( update repo , patch name)
     my $repo = get_var('KGRAFT_TEST_REPO');
     zypper_call("ar -f $repo test-kgraft");
@@ -102,7 +101,7 @@ sub run() {
     set_var('KGRAFT_PATCH_NAME', $out);
 
     #patch system
-    zypper_call(qq{in -l -y -t patch \$(zypper patches | awk -F "|" '/test-kgraft/ { print \$2;}')}, [0, 102, 103]);
+    zypper_call(qq{in -l -y -t patch \$(zypper patches | awk -F "|" '/test-kgraft/ { print \$2;}')}, exitcode => [0, 102, 103], log => 1);
 
     zypper_call("rr test-kgraft");
     # check if kgraft patch is applied to all functions..

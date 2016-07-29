@@ -19,7 +19,7 @@ use testapi;
 sub run {
     select_console 'root-console';
 
-    script_run("while pgrep packagekitd; do pkcon quit; sleep 1; done");
+    pkcon_quit;
 
     if (!get_var('MINIMAL_TEST_REPO')) {
         die "no repository with update";
@@ -32,7 +32,7 @@ sub run {
 
     zypper_call("ref");
 
-    zypper_call(qq{in -l -y -t patch \$(zypper patches | awk -F "|" '/test-minimal/ { print \$2;}')}, [0, 102, 103]);
+    zypper_call(qq{in -l -y -t patch \$(zypper patches | awk -F "|" '/test-minimal/ { print \$2;}')}, exitcode => [0, 102, 103]);
 
     capture_state('between', 1);
 

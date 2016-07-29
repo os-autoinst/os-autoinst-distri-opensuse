@@ -17,7 +17,7 @@ use testapi;
 sub run {
     select_console 'root-console';
 
-    script_run("while pgrep packagekitd; do pkcon quit; sleep 1; done");
+    pkcon_quit;
 
     capture_state('between-after');
 

@@ -19,7 +19,7 @@ sub run {
     my $self = shift;
     $self->system_login();
 
-    script_run("while pgrep packagekitd; do pkcon quit; sleep 1; done");
+    pkcon_quit;
 
     for my $var (qw(OS_TEST_REPO SDK_TEST_REPO)) {
         my $repo = get_var($var);
