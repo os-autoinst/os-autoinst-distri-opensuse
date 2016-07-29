@@ -31,7 +31,7 @@ sub run() {
     # Clean and Start Firefox
     x11_start_program("xterm -e \"killall -9 firefox;rm -rf .moz* .config/iced* .cache/iced*\"");
     x11_start_program("firefox");
-    assert_screen('firefox-launch', 45);
+    assert_screen('firefox-launch', 90);
 
     send_key "ctrl-shift-a";
 

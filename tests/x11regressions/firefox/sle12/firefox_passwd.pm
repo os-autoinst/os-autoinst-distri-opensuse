@@ -23,7 +23,7 @@ sub run() {
     # Clean and Start Firefox
     x11_start_program("xterm -e \"killall -9 firefox;rm -rf .moz*\"\n");
     x11_start_program("firefox");
-    assert_screen('firefox-gnome', 45);
+    assert_screen('firefox-gnome', 90);
 
     sleep 2;
     send_key "alt-e";

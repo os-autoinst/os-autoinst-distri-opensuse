@@ -20,14 +20,7 @@ sub run() {
     # Clean and Start Firefox
     x11_start_program("xterm -e \"killall -9 firefox;rm -rf .moz*\"");
     x11_start_program("firefox");
-    assert_screen('firefox-gnome', 45);
-
-    # Links navigation
-    send_key "/";
-    sleep 1;
-    type_string "blogs\n";
-    sleep 1;
-    assert_screen('firefox-links_nav-suse_blogs', 50);
+    assert_screen('firefox-gnome', 90);
 
     # Topsites
     my @topsite = ('www.gnu.org', 'www.opensuse.org');
