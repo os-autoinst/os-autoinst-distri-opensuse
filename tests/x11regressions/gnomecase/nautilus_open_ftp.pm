@@ -11,6 +11,7 @@
 use base "x11test";
 use strict;
 use testapi;
+use utils qw/sle_version_at_least/;
 
 # case 1436143-test nautilus open ftp
 
