@@ -20,7 +20,7 @@ sub run() {
     # Clean and Start Firefox
     x11_start_program("xterm -e \"killall -9 firefox;rm -rf .config/evolution;rm -rf .moz*\"");
     x11_start_program("firefox");
-    assert_screen('firefox-gnome', 45);
+    assert_screen('firefox-gnome', 90);
 
     # Email link
     send_key "alt-f";

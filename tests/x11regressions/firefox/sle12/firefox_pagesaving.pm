@@ -22,7 +22,7 @@ sub run() {
     type_string "killall -9 firefox;rm -rf .moz* Downloads/*\n";
     sleep 1;
     x11_start_program("firefox");
-    assert_screen('firefox-launch', 45);
+    assert_screen('firefox-launch', 90);
 
     send_key "esc";
     sleep 1;

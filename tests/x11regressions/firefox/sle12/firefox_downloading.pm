@@ -62,7 +62,7 @@ sub run() {
     # Clean & Start Firefox
     x11_start_program("xterm -e \"killall -9 firefox;rm -rf Downloads/*;rm -rf .moz*\"");
     x11_start_program("firefox");
-    assert_screen('firefox-launch', 45);
+    assert_screen('firefox-launch', 90);
 
     dl_location_switch("ask");
 

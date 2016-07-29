@@ -22,7 +22,7 @@ sub run() {
     # Clean and Start Firefox
     x11_start_program("xterm");
     type_string "killall -9 firefox;rm -rf .moz*;firefox &>/dev/null &\n";
-    assert_screen('firefox-launch', 35);
+    assert_screen('firefox-launch', 90);
 
     send_key "alt-tab", 1;    #Switch to xterm
     type_string "$changesaving_checktimestamp > dfa\n";
