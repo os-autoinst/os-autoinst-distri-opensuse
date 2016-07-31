@@ -12,6 +12,11 @@ use strict;
 use testapi;
 use utils;
 
+sub install_kernel_debuginfo {
+    # kernel debug symbols are huge, this can take a while
+    assert_script_run 'zypper ref; zypper -n -v in kernel-default-base-debuginfo kernel-default-debuginfo', 1200;
+}
+
 sub run() {
     select_console('root-console');
 
@@ -43,9 +48,7 @@ sub run() {
     if (check_var('DISTRI', 'sle')) {
         my $url = "ftp://openqa.suse.de/" . get_var('REPO_SLES_DEBUG');
         assert_script_run "zypper ar -f $url SLES-Server-Debug";
-
-        assert_script_run 'zypper ref; zypper -n -v in kernel-default-base-debuginfo kernel-default-debuginfo', 300;
-
+        install_kernel_debuginfo;
         script_run 'zypper -n rr SLES-Server-Debug';
     }
     else {
@@ -54,7 +57,7 @@ sub run() {
             $opensuse_debug_repos .= 'repo-debug-update ';
         }
         assert_script_run "zypper -n mr -e $opensuse_debug_repos";
-        assert_script_run 'zypper ref; zypper -n -v in kernel-default-base-debuginfo kernel-default-debuginfo', 300;
+        install_kernel_debuginfo;
         assert_script_run "zypper -n mr -d $opensuse_debug_repos";
     }
 
