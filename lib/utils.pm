@@ -107,7 +107,7 @@ sub wait_boot {
             send_key "ret";
             assert_screen "grub2", 15;
         }
-        elsif (match_has_tag("migration-source-system-grub2")) {
+        elsif (match_has_tag("migration-source-system-grub2") or match_has_tag('grub2')) {
             send_key "ret";                                                      # boot to source system
         }
         elsif (get_var("LIVETEST")) {
