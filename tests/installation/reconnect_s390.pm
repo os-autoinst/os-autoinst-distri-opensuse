@@ -22,7 +22,7 @@ sub run() {
     if (check_var('BACKEND', 's390x')) {
 
         # kill serial ssh connection
-        console('iucvconn')->kill_ssh;
+        console('iucvconn')->kill_ssh unless get_var('BOOT_EXISTING_S390', '');
 
         # 'wait_serial' implementation for x3270
         console('x3270')->expect_3270(
