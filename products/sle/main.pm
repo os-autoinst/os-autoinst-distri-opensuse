@@ -374,6 +374,9 @@ sub load_inst_tests() {
             loadtest "installation/skip_disk_activation.pm";
         }
     }
+    if (get_var('ENCRYPT_CANCEL_EXISTING') || get_var('ENCRYPT_ACTIVATE_EXISTING')) {
+	loadtest "installation/encrypted_volume_activation.pm";
+    }
     if (get_var('MULTIPATH')) {
         loadtest "installation/multipath.pm";
     }
