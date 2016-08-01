@@ -9,7 +9,7 @@
 # without any warranty.
 
 # auther xjin
-use base "basetest";
+use base "x11regressiontest";
 use testapi;
 use strict;
 

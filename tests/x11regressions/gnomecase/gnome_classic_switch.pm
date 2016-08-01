@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-use base "x11test";
+use base "x11regressiontest";
 use strict;
 use testapi;
 use utils;

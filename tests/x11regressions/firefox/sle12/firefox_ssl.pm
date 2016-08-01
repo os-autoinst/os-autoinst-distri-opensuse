@@ -11,7 +11,7 @@
 # Case#1436067: Firefox: SSL Certificate
 
 use strict;
-use base "x11test";
+use base "x11regressiontest";
 use testapi;
 
 sub run() {

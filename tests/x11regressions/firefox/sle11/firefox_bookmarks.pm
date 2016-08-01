@@ -23,7 +23,7 @@
 # test-firefox_bookmarks-edit01, test-firefox_bookmarks-edit02, test-firefox_bookmarks-edit03
 
 use strict;
-use base "basetest";
+use base "x11regressiontest";
 use testapi;
 
 sub run() {

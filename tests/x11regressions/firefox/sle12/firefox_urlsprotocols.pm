@@ -11,7 +11,7 @@
 # Case#1436118 Firefox: URLs with various protocols
 
 use strict;
-use base "x11test";
+use base "x11regressiontest";
 use testapi;
 
 sub run() {

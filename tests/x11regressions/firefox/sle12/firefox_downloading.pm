@@ -11,7 +11,7 @@
 # Case#1436106: Firefox: Downloading
 
 use strict;
-use base "x11test";
+use base "x11regressiontest";
 use testapi;
 
 my $dl_link_01 = "http://download.opensuse.org/distribution/13.2/iso/openSUSE-13.2-DVD-x86_64.iso\n";

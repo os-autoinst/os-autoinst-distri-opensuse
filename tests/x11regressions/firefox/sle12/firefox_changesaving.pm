@@ -11,7 +11,7 @@
 # Case#1436111: Firefox: Preferences Change Saving
 
 use strict;
-use base "x11test";
+use base "x11regressiontest";
 use testapi;
 
 sub run() {

@@ -11,7 +11,7 @@
 # Case#1436066: Firefox: HTTP Headers
 
 use strict;
-use base "x11test";
+use base "x11regressiontest";
 use testapi;
 
 sub run() {

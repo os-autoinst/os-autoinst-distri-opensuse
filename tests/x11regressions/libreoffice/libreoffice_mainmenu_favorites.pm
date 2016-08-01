@@ -9,7 +9,7 @@
 
 # Case 1503906 - LibreOffice: Favorite Documents link in Computer menu.
 
-use base "x11test";
+use base "x11regressiontest";
 use strict;
 use testapi;
 

@@ -10,7 +10,7 @@
 # Test Case #1503965: Evolution: Setup MS Exchange account
 
 use strict;
-use base "x11test";
+use base "x11regressiontest";
 use testapi;
 
 sub run() {

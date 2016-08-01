@@ -11,7 +11,7 @@
 # Case#1436081: Firefox: Build-in PDF Viewer
 
 use strict;
-use base "x11test";
+use base "x11regressiontest";
 use testapi;
 
 sub run() {

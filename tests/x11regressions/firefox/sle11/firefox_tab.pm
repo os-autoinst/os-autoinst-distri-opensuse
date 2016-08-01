@@ -25,7 +25,7 @@
 # For example, click and drag. So they are not included.
 
 use strict;
-use base "basetest";
+use base "x11regressiontest";
 use testapi;
 
 sub run() {

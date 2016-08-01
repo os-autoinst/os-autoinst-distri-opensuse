@@ -11,7 +11,7 @@
 # Case#1479412: Firefox: Private Browsing
 
 use strict;
-use base "x11test";
+use base "x11regressiontest";
 use testapi;
 
 sub run() {

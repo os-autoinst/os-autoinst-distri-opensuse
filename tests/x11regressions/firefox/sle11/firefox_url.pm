@@ -22,7 +22,7 @@
 # test-firefox_url-googlemaps-1, test-firefox_url-googlemaps-2
 
 use strict;
-use base "basetest";
+use base "x11regressiontest";
 use testapi;
 
 sub run() {

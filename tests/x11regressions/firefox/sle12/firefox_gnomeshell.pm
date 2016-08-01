@@ -11,7 +11,7 @@
 # Case#1479556: Firefox: Gnome Shell Integration
 
 use strict;
-use base "x11test";
+use base "x11regressiontest";
 use testapi;
 
 sub run() {

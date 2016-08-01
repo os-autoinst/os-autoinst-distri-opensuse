@@ -11,7 +11,7 @@
 # Case#1436075 Firefox: Open local file with various types
 
 use strict;
-use base "x11test";
+use base "x11regressiontest";
 use testapi;
 
 sub run() {

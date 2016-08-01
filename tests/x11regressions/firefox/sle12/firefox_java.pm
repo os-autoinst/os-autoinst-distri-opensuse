@@ -11,7 +11,7 @@
 # Case#1436069: Firefox: Java Plugin (IcedTea-Web)
 
 use strict;
-use base "x11test";
+use base "x11regressiontest";
 use testapi;
 
 sub java_testing {

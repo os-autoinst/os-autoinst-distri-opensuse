@@ -10,7 +10,7 @@
 # Test Case #1503857 - Evolution: First time launch and setup assistant
 
 use strict;
-use base "x11test";
+use base "x11regressiontest";
 use testapi;
 
 sub run() {

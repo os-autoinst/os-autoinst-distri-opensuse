@@ -20,7 +20,7 @@
 ##################################################
 
 use strict;
-use base "basetest";
+use base "x11regressiontest";
 use testapi;
 
 sub run() {

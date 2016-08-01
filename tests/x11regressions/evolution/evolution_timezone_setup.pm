@@ -10,7 +10,7 @@
 #testcase 5255-1503908:Evolution: setup timezone
 
 use strict;
-use base "x11test";
+use base "x11regressiontest";
 use testapi;
 
 sub run() {

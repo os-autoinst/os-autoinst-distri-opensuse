@@ -10,7 +10,7 @@
 # Test Case #1503757: Evolution:Send MS task
 
 use strict;
-use base "x11test";
+use base "x11regressiontest";
 use testapi;
 
 sub run() {
