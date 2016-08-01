@@ -39,7 +39,7 @@ sub is_kgraft() {
 }
 
 sub is_new_installation {
-    return !get_var('UPGRADE') && !get_var('ONLINE_MIGRATION') && !get_var('ZDUP');
+    return !get_var('UPGRADE') && !get_var('ONLINE_MIGRATION') && !get_var('ZDUP') && !get_var('AUTOUPGRADE');
 }
 
 sub cleanup_needles {
