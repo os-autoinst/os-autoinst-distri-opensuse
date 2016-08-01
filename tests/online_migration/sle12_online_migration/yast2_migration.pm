@@ -49,6 +49,8 @@ sub run {
 
     # wait for migration target after needed updates installed
     assert_screen 'yast2-migration-target', 300;
+    send_key "alt-p";    # focus on the item of possible migration targets
+    send_key_until_needlematch 'migration-target-' . get_var("VERSION"), 'down', 5;
     send_key "alt-n";
     # currently scc proxy update channel doesn't have content
     if (!get_var("SCC_PROXY_URL")) {

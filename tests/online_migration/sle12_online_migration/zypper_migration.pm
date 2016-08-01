@@ -34,8 +34,13 @@ sub run() {
     my $out              = wait_serial($migration_checks, $timeout);
     while ($out) {
         if ($out =~ $zypper_migration_target) {
-            send_key "1";
+            my $version = get_var("VERSION");
+            $version =~ s/-/ /;
+            if ($out =~ /(\d+)\s+\|\s+SUSE Linux Enterprise.*?$version/m) {
+                send_key "$1";
+            }
             send_key "ret";
+            save_screenshot;
         }
         elsif ($out =~ $zypper_disable_repos) {
             send_key "y";
