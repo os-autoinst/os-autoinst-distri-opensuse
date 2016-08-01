@@ -55,7 +55,7 @@ sub run() {
         last;
     }
 
-    if (!get_var("REMOTE_MASTER")) {
+    if (!get_var("REMOTE_CONTROLLER")) {
         send_key 'alt-s';        # Stop the reboot countdown
         select_console 'install-shell';
         $self->get_ip_address();

@@ -281,7 +281,7 @@ sub load_inst_tests() {
     if (!get_var("LIVECD") && get_var("ADDONURL")) {
         loadtest "installation/addon_products.pm";
     }
-    if (noupdatestep_is_applicable() && !get_var("LIVECD")) {
+    if (noupdatestep_is_applicable() && !get_var("LIVECD") && !get_var("REMOTE_CONTROLLER")) {
         loadtest "installation/logpackages.pm";
     }
     if (noupdatestep_is_applicable() && !get_var("LIVECD")) {
@@ -899,6 +899,15 @@ else {
             set_var('INSTALLONLY', 1);
             loadtest "iscsi/iscsi_client.pm";
         }
+        if (get_var("REMOTE_CONTROLLER")) {
+            loadtest "remote/remote_controller.pm";
+            load_inst_tests();
+        }
+    }
+    elsif (get_var("REMOTE_TARGET")) {
+        load_boot_tests();
+        loadtest "remote/remote_target.pm";
+        load_reboot_tests();
     }
     elsif (is_jeos) {
         load_boot_tests();
