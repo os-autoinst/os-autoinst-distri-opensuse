@@ -557,6 +557,9 @@ sub load_consoletests() {
         if (check_var("ARCH", "x86_64")) {
             loadtest "console/glibc_i686.pm";
         }
+        if (check_var('ARCH', 'aarch64')) {
+            loadtest "console/acpi.pm";
+        }
         if (!gnomestep_is_applicable()) {
             loadtest "console/zypper_up.pm";
         }
