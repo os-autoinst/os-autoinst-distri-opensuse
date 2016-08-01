@@ -375,7 +375,7 @@ sub load_inst_tests() {
         }
     }
     if (get_var('ENCRYPT_CANCEL_EXISTING') || get_var('ENCRYPT_ACTIVATE_EXISTING')) {
-	loadtest "installation/encrypted_volume_activation.pm";
+        loadtest "installation/encrypted_volume_activation.pm";
     }
     if (get_var('MULTIPATH')) {
         loadtest "installation/multipath.pm";
@@ -444,6 +444,9 @@ sub load_inst_tests() {
             if (check_var("SLES4SAP_MODE", 'sles')) {
                 loadtest "installation/user_settings.pm";
             }    # sles4sap wizard installation doesn't have user_settings step
+        }
+        elsif (get_var('IMPORT_USER_DATA')) {
+            loadtest 'installation/user_import.pm';
         }
         else {
             loadtest "installation/user_settings.pm";

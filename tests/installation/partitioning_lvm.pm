@@ -16,25 +16,37 @@ use testapi;
 sub run() {
     my $self = shift;
 
+    if (get_var('ENCRYPT_ACTIVATE_EXISTING')) {
+        assert_screen [qw/partitioning-no-root-filesystem partitioning-encrypt-activated-existing/];
+        if (match_has_tag('partitioning-no-root-filesystem')) {
+            record_soft_failure 'bsc#989750';
+        }
+        else {
+            return;
+        }
+    }
+
     send_key "alt-d";
 
     if (check_screen('inst-partition-radio-buttons', 10)) {    # detect whether new (Radio Buttons) YaST behaviour
         if (get_var("ENCRYPT")) {
             send_key 'alt-e';
-            assert_screen 'inst-encrypt-password-prompt';
-            type_password;
-            send_key 'tab';
-            type_password;
-            send_key 'ret';
+            if (!get_var('ENCRYPT_ACTIVATE_EXISTING')) {
+                assert_screen 'inst-encrypt-password-prompt';
+                type_password;
+                send_key 'tab';
+                type_password;
+                send_key 'ret';
+            }
         }
         else {
             send_key 'alt-l';
         }
         send_key 'alt-o';
-        assert_screen 'partition-lvm-new-summary';
+        assert_screen [qw/partition-lvm-new-summary partitioning-encrypt-activated-existing/];
     }
-    else {    # old behaviour still needed
-        send_key "alt-l", 1;    # enable LVM-based proposal
+    elsif (!get_var('ENCRYPT_ACTIVATE_EXISTING')) {    # old behaviour still needed
+        send_key "alt-l", 1;                           # enable LVM-based proposal
         if (get_var("ENCRYPT")) {
             send_key "alt-y";
             assert_screen "inst-encrypt-password-prompt";
