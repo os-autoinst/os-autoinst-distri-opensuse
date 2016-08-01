@@ -19,6 +19,7 @@ sub post_fail_hook() {
         upload_logs $fn;
     }
     else {
+        select_console 'log-console';
         # there is a severe problem, e.g. could be bsc#985850 or bsc#990384 so
         # save more, let's hope there is enough memory for intermediate
         # storage
