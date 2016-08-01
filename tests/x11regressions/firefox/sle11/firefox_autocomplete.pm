@@ -21,7 +21,7 @@
 # firefox_autocomplete-testpage, firefox_autocomplete-testpage_filled
 
 use strict;
-use base "basetest";
+use base "x11regressiontest";
 use testapi;
 
 sub run() {

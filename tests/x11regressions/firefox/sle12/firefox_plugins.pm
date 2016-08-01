@@ -11,7 +11,7 @@
 # Case#1479188: Firefox: Add-ons - Plugins
 
 use strict;
-use base "x11test";
+use base "x11regressiontest";
 use testapi;
 
 sub run() {

@@ -11,7 +11,7 @@
 # Case#1479413: Firefox: Full Screen Browsing
 
 use strict;
-use base "x11test";
+use base "x11regressiontest";
 use testapi;
 
 sub run() {

@@ -9,7 +9,7 @@
 
 # Case 1503881 - LibreOffice: Verify LibreOffice opens specified file types correctly.
 
-use base "x11test";
+use base "x11regressiontest";
 use base "x11regressiontest";
 use strict;
 use testapi;

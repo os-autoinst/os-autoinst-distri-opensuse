@@ -21,7 +21,7 @@
 # test-firefox_lcoalpage-1
 
 use strict;
-use base "basetest";
+use base "x11regressiontest";
 use testapi;
 
 sub run() {

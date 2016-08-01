@@ -10,7 +10,7 @@
 # Test Case #1503768: Evolution: send and receive email via IMAP
 
 use strict;
-use base "x11test";
+use base "x11regressiontest";
 use testapi;
 
 sub run() {

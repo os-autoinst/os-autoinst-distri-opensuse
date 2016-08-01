@@ -11,7 +11,7 @@
 # Case#1436084: Firefox: Open IE MHTML Files
 
 use strict;
-use base "x11test";
+use base "x11regressiontest";
 use testapi;
 
 sub run() {

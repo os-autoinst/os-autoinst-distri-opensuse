@@ -11,7 +11,7 @@
 # Case#1479221: Firefox: HTML5 Video
 
 use strict;
-use base "x11test";
+use base "x11regressiontest";
 use testapi;
 
 sub run() {

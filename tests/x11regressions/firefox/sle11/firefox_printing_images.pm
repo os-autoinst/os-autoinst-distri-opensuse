@@ -26,7 +26,7 @@
 #       http://www-archive.mozilla.org/quality/browser/front-end/testcases/printing/
 
 use strict;
-use base "basetest";
+use base "x11regressiontest";
 use testapi;
 
 sub run() {

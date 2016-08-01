@@ -10,7 +10,7 @@
 # Test Case #1503919 - Evolution: send and receive email via POP
 
 use strict;
-use base "x11test";
+use base "x11regressiontest";
 use testapi;
 
 sub run() {

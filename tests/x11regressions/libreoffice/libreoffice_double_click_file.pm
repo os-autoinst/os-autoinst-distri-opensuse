@@ -9,7 +9,7 @@
 
 # Case 1503778  - LibreOffice: Open supported file types by double click.
 
-use base "x11test";
+use base "x11regressiontest";
 use base "x11regressiontest";
 use strict;
 use testapi;

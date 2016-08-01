@@ -15,7 +15,7 @@
 ##################################################
 
 use strict;
-use base "basetest";
+use base "x11regressiontest";
 use testapi;
 
 my $addon  = "https://addons.mozilla.org/firefox/downloads/latest/8051";
