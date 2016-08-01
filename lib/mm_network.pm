@@ -41,12 +41,15 @@ sub configure_static_ip {
     my ($ip)     = @_;
     my $net_conf = parse_network_configuration();
     my $mac      = $net_conf->{fixed}->{mac};
-    type_string "NIC=`grep $mac /sys/class/net/*/address |cut -d / -f 5`\n";
-    type_string("echo \"STARTMODE='auto'\nBOOTPROTO='static'\nIPADDR='$ip'\" > /etc/sysconfig/network/ifcfg-\$NIC\n");
-    wait_idle(20);
+    script_run "NIC=`grep $mac /sys/class/net/*/address |cut -d / -f 5`";
+    assert_script_run "echo \$NIC";
+    my ($ip_no_mask, $mask) = split('/', $ip);
+    script_run "arping -w 1 -I \$NIC $ip_no_mask";    # check for duplicate IP
+
+    assert_script_run "echo \"STARTMODE='auto'\nBOOTPROTO='static'\nIPADDR='$ip'\" > /etc/sysconfig/network/ifcfg-\$NIC";
     save_screenshot;
-    type_string("rcnetwork restart\n");
-    type_string("ip addr\n");
+    assert_script_run "rcnetwork restart";
+    assert_script_run "ip addr";
     wait_idle(20);
     save_screenshot;
 }
