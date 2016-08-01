@@ -59,8 +59,6 @@ sub snap_revert {
     my ($svirt, $vm_name, $snapshot) = @_;
     my $ret = $svirt->run_cmd("virsh snapshot-revert $vm_name $snapshot --running");
     die "Snapshot revert $snapshot failed" if $ret;
-
 }
-
 
 1;

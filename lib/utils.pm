@@ -29,6 +29,7 @@ our @EXPORT = qw/
   reboot_gnome
   assert_screen_with_soft_timeout
   is_desktop_installed
+  pkcon_quit
   /;
 
 
@@ -277,13 +278,24 @@ sub get_netboot_mirror {
 
 sub zypper_call {
     my $command          = shift;
-    my $allow_exit_codes = shift || [0];
-    my $timeout          = shift || 700;
-    my $str              = hashed_string("ZN$command");
+    my %args             = @_;
+    my $allow_exit_codes = $args{exitcode} || [0];
+    my $timeout          = $args{timeout} || 700;
+    my $log              = $args{log};
 
-    script_run("zypper -n $command; echo $str-\$?- > /dev/$serialdev", 0);
+    my $str = hashed_string("ZN$command");
+
+    if ($log) {
+        script_run("zypper -n $command | tee /tmp/zypper.log ; echo $str-\${PIPESTATUS}- > /dev/$serialdev", 0);
+    }
+    else {
+        script_run("zypper -n $command; echo $str-\$?- > /dev/$serialdev", 0);
+    }
 
     my $ret = wait_serial(qr/$str-\d+-/, $timeout);
+
+    upload_logs('/tmp/zypper.log') if $log;
+
     if ($ret) {
         my ($ret_code) = $ret =~ /$str-(\d+)/;
         die "'zypper -n $command' failed with code $ret_code" unless grep { $_ == $ret_code } @$allow_exit_codes;
@@ -294,9 +306,9 @@ sub zypper_call {
 
 sub fully_patch_system {
     # first run, possible update of packager -- exit code 103
-    zypper_call('patch --with-interactive -l', [0, 102, 103]);
+    zypper_call('patch --with-interactive -l', exitcode => [0, 102, 103]);
     # second run, full system update
-    zypper_call('patch --with-interactive -l', [0, 102], 2500);
+    zypper_call('patch --with-interactive -l', exitcode => [0, 102], timeout => 2500);
 }
 
 sub workaround_type_encrypted_passphrase {
@@ -438,6 +450,10 @@ sub assert_screen_with_soft_timeout {
 
 sub is_desktop_installed {
     return get_var("DESKTOP") !~ /textmode|minimalx/;
+}
+
+sub pkcon_quit {
+    script_run("pkcon quit; while pgrep packagekitd; do sleep 1; done");
 }
 
 1;

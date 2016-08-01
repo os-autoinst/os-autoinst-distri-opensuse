@@ -19,14 +19,14 @@ use testapi;
 sub run {
     select_console 'root-console';
 
-    script_run("while pgrep packagekitd; do pkcon quit; sleep 1; done");
+    pkcon_quit;
 
     zypper_call("ref");
 
     zypper_call("pt");
     save_screenshot;
 
-    zypper_call("in -t pattern base x11 gnome-basic apparmor", [0, 102], 2000);
+    zypper_call("in -t pattern base x11 gnome-basic apparmor", exitcode => [0, 102], timeout => 2000);
 
     assert_script_run("systemctl set-default graphical.target");
     assert_script_run('sed -i -r "s/^DISPLAYMANAGER=\"\"/DISPLAYMANAGER=\"gdm\"/" /etc/sysconfig/displaymanager');
