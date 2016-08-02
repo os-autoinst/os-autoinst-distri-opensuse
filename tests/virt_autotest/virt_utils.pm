@@ -44,7 +44,7 @@ sub setup_console_in_grub() {
     my $grub_default_file = "/etc/default/grub";
     my $grub_cfg_file     = "/boot/grub2/grub.cfg";
 
-    my $cmd = "if [ -d /boot/grub2 ]; then cp $grub_default_file ${grub_default_file}.org; sed -ri '/GRUB_CMDLINE_(LINUX|XEN_DEFAULT)=/ {s/(console|com\\d+)=[^\\s\"]*//g; /LINUX=/s/\"\$/ console=$serialdev console=tty\"/;/XEN_DEFAULT=/ s/\"\$/ console=com2,115200\"/;}' $grub_default_file ; fi";
+    my $cmd = "if [ -d /boot/grub2 ]; then cp $grub_default_file ${grub_default_file}.org; sed -ri '/GRUB_CMDLINE_(LINUX|LINUX_DEFAULT|XEN_DEFAULT)=/ {s/(console|com\\d+)=[^ \"]*//g; /LINUX=/s/\"\$/ console=$serialdev,115200 console=tty\"/;/XEN_DEFAULT=/ s/\"\$/ console=com2,115200\"/;}' $grub_default_file ; fi";
     type_string("$cmd \n");
     wait_idle 3;
     save_screenshot;
