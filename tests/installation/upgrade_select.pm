@@ -11,6 +11,7 @@
 use strict;
 use base "y2logsstep";
 use testapi;
+use utils qw/assert_screen_with_soft_timeout/;
 
 sub run() {
     my $self = shift;
@@ -23,8 +24,8 @@ sub run() {
         send_key $cmd{ok};
     }
 
-    # hardware detection can take a while
-    assert_screen "select-for-update", 100;
+    # hardware detection and waiting for updates from suse.com can take a while
+    assert_screen_with_soft_timeout('select-for-update', timeout => 500, soft_timeout => 100, bugref => 'bsc#990254');
     send_key $cmd{next}, 1;
     assert_screen "remove-repository", 100;
     send_key $cmd{next}, 1;

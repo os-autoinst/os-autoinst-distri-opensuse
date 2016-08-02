@@ -53,14 +53,20 @@ sub run() {
         assert_screen 'release-notes-sle';    # SLE release notes
     }
     # exit release notes window
-    if (check_var('VIDEOMODE', 'text') || check_screen('release-notes-sle-ok-button')) {
+    if (check_var('VIDEOMODE', 'text')) {
         wait_screen_change { send_key 'alt-o'; };
     }
     else {
-        wait_screen_change { send_key 'alt-c'; };
+        assert_screen([qw/release-notes-sle-ok-button release-notes-sle-close-button/]);
+        if (match_has_tag('release-notes-sle-ok-button')) {
+            wait_screen_change { send_key 'alt-o' };
+        }
+        else {
+            wait_screen_change { send_key 'alt-c'; };
+        }
     }
     if (!get_var("UPGRADE")) {
-        send_key 'alt-e';                     # select timezone region as previously selected
+        send_key 'alt-e';    # select timezone region as previously selected
     }
 }
 
