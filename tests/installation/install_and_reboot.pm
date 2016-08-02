@@ -25,6 +25,10 @@ sub run() {
         push(@tags, "DIALOG-packages-notifications");
         $timeout = 5500;    # upgrades are slower
     }
+    # SCC might mean we install everything from the slow internet
+    if (check_var('SCC_REGISTER', 'installation')) {
+        $timeout = 5500;
+    }
     my $keep_trying = 1;
     while ($keep_trying) {
         # try gracefully on aarch64 because of boo#982136
