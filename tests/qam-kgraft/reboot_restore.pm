@@ -41,8 +41,11 @@ sub run() {
     #TODO: move to openQA data folder
     script_run("/suse/rd-qa/rd-qa-kernel/process/kernelrefhosts/local-workdir/all/fake_consistent_snapshotfiles.sh -il -P /var/log/qa/ctcs2 -r openposix", 60);
 
+    assert_script_run("tar -cpf /tmp/var_log_qa_ctcs2.tar.gz -C / /var/log/qa/ctcs2", 120);
+    upload_logs("/tmp/var_log_qa_ctcs2.tar.gz");
+
     script_run("ssh-keygen -R qadb2.suse.de");
-    assert_script_run(qq{/usr/share/qa/tools/remote_qa_db_report.pl -b -T openqa -c "`uname -r -v`" -t patch:"$rrid"}, 1800);
+    assert_script_run(qq{/usr/share/qa/tools/remote_qa_db_report.pl -L -b -T openqa -c "`uname -r -v`" -t patch:"$rrid"}, 1800);
 
     save_screenshot;
 
