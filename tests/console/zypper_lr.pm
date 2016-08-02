@@ -160,11 +160,21 @@ __END' . "\n";
             # This is where we verify base product repos for openSUSE, SLES, SLED,
             # and HA
             if (check_var('FLAVOR', 'Server-DVD')) {
+                my $uri = "cd:///";
+                if (check_var("BACKEND", "ipmi") || check_var("BACKEND", "generalhw")) {
+                    $uri = "http[s]*://.*suse";
+                }
+                elsif (get_var('USBBOOT')) {
+                    $uri = "hd:///.*usbstick";
+                }
+                elsif (check_var('ARCH', 's390x') and check_var('BACKEND', 'svirt')) {
+                    $uri = "ftp://";
+                }
                 validatelr(
                     {
                         product      => "SLES",
                         enabled_repo => get_var('ZDUP') ? "No" : undef,
-                        uri          => get_var('USBBOOT') ? "hd:///.*usbstick" : "cd:///"
+                        uri          => $uri
                     });
             }
             elsif (check_var('FLAVOR', 'SAP-DVD')) {
@@ -240,7 +250,7 @@ __END' . "\n";
                             product         => $scc_product,
                             product_channel => $product_channel,
                             enabled_repo    => ($product_channel =~ m{(Debuginfo|Source)}) ? "No" : "Yes",
-                            uri             => "https://.*suse"
+                            uri             => "http[s]*://.*suse"
                         });
                 }
             }
