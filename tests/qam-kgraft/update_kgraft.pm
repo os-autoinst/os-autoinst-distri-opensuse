@@ -101,7 +101,7 @@ sub run() {
     set_var('KGRAFT_PATCH_NAME', $out);
 
     #patch system
-    zypper_call(qq{in -l -y -t patch \$(zypper patches | awk -F "|" '/test-kgraft/ { print \$2;}')}, exitcode => [0, 102, 103], log => 1);
+    zypper_call(qq{in -l -y -t patch \$(zypper patches | awk -F "|" '/test-kgraft/ { print \$2;}')}, exitcode => [0, 102, 103], log => 'zypper.log');
 
     zypper_call("rr test-kgraft");
     # check if kgraft patch is applied to all functions..
