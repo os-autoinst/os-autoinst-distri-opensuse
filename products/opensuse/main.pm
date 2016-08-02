@@ -165,11 +165,6 @@ sub console_is_applicable() {
     return !any_desktop_is_applicable();
 }
 
-sub extratest_is_applicable() {
-    # pre-conditions for extra tests ie. the tests are running based on preinstalled image
-    return !get_var("INSTALLONLY") && !get_var("DUALBOOT") && !get_var("RESCUECD");
-}
-
 sub need_clear_repos() {
     return is_staging();
 }
@@ -457,7 +452,9 @@ sub load_yast2_gui_tests() {
 
 sub load_extra_tests() {
 
-    return unless extratest_is_applicable();
+    return unless get_var('EXTRATEST') || get_var('Y2UITEST');
+    # pre-conditions for extra tests ie. the tests are running based on preinstalled image
+    return if get_var("INSTALLONLY") || get_var("DUALBOOT") || get_var("RESCUECD");
 
     # setup $serialdev permission and so on
     loadtest "console/consoletest_setup.pm";
