@@ -40,15 +40,14 @@ sub run() {
             send_key 'alt-n';
             record_soft_failure;
         }
+        if (get_var("BETA")) {
+            assert_screen "inst-betawarning";
+            send_key 'alt-o';
+        }
         # Bug 881107 - there is 2nd license agreement screen in openSUSE upgrade
         # http://bugzilla.opensuse.org/show_bug.cgi?id=881107
-        # (remove after the bug is closed)
-        if (check_screen('upgrade-li-cense-agreement', 10)) {
+        if (check_screen('upgrade-license-agreement', 10)) {
             send_key 'alt-n';
-            record_soft_failure 'boo#881107';
-        }
-        if (check_screen('beta-warning', 10)) {
-            send_key 'alt-o';
         }
         if (check_screen('installed-product-incompatible', 10)) {
             send_key 'alt-o';    # C&ontinue
