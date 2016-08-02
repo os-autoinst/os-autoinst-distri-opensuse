@@ -58,7 +58,8 @@ sub split_lines {
 
 use backend::console_proxy;
 
-sub prepare_parmfile() {
+sub prepare_parmfile {
+    my ($repo) = @_;
     my $params = '';
     $params .= get_var('S390_NETWORK_PARAMS');
 
@@ -73,7 +74,8 @@ sub prepare_parmfile() {
 
     # we have to hardcode the hostname here - the true hostname would
     # create a too long parameter ;(
-    $params .= " install=ftp://openqa/" . get_var('REPO_0') . " ";
+    my $instsrc = get_var('REPO_TYPE', 'ftp') . '://' . get_var('REPO_HOST', 'openqa') . '/';
+    $params .= " install=" . $instsrc . $repo . " ";
 
     if (check_var("INSTALLER_NO_SELF_UPDATE", 1)) {
         diag "Disabling installer self update as requested by INSTALLER_NO_SELF_UPDATE=1";
@@ -91,8 +93,9 @@ sub get_to_yast() {
 
     # qaboot
     my $dir_with_suse_ins = get_var('REPO_0');
+    my $repo_host = get_var('REPO_HOST', 'openqa.suse.de');
 
-    my $parmfile_with_Newline_s = prepare_parmfile;
+    my $parmfile_with_Newline_s = prepare_parmfile($dir_with_suse_ins);
     my $sequence                = <<"EO_frickin_boot_parms";
 ${parmfile_with_Newline_s}
 ENTER
@@ -106,7 +109,7 @@ EO_frickin_boot_parms
             # ensure that we are in cms mode before executing qaboot
             $s3270->sequence_3270("String(\"#cp i cms\")", "ENTER", "ENTER", "ENTER", "ENTER",);
             $r = $s3270->expect_3270(output_delim => qr/CMS/, timeout => 20);
-            $s3270->sequence_3270("String(\"qaboot openqa.suse.de $dir_with_suse_ins\")", "ENTER", "Wait(InputField)",);
+            $s3270->sequence_3270("String(\"qaboot $repo_host $dir_with_suse_ins\")", "ENTER", "Wait(InputField)",);
             # wait for qaboot dumping us into xedit. If this fails, probably the
             # download of kernel or initrd timed out and we retry
             $r = $s3270->expect_3270(buffer_ready => qr/X E D I T/, timeout => 60);
