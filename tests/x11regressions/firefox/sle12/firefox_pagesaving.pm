@@ -30,10 +30,10 @@ sub run() {
     sleep 1;
     type_string "http://www.mozilla.org/en-US\n";
 
-    assert_screen('firefox-pagesaving-load', 45);
+    assert_screen('firefox-pagesaving-load', 90);
 
     send_key "ctrl-s";
-    assert_screen('firefox-pagesaving-saveas', 10);
+    assert_screen('firefox-pagesaving-saveas', 30);
 
     send_key "alt-s";
     sleep 5;
@@ -41,7 +41,7 @@ sub run() {
     # Exit
     send_key "alt-f4";
 
-    if (check_screen('firefox-save-and-quit', 4)) {
+    if (check_screen('firefox-save-and-quit', 30)) {
         # confirm "save&quit"
         send_key "ret";
     }

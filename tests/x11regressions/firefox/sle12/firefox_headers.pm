@@ -26,22 +26,22 @@ sub run() {
     send_key "ctrl-shift-q", 1;
     send_key "alt-d",        1;
     type_string "www.gnu.org\n";
-    assert_screen('firefox-headers-website', 45);
+    assert_screen('firefox-headers-website', 90);
 
     sleep 10;
     send_key "down";
-    assert_screen('firefox-headers-first_item', 5);
+    assert_screen('firefox-headers-first_item', 50);
 
     send_key "shift-f10";
     #"Edit and Resend"
     send_key "r";
 
-    assert_screen('firefox-headers-user_agent', 5);
+    assert_screen('firefox-headers-user_agent', 50);
 
     # Exit
     send_key "alt-f4";
 
-    if (check_screen('firefox-save-and-quit', 4)) {
+    if (check_screen('firefox-save-and-quit', 30)) {
         # confirm "save&quit"
         send_key "ret";
     }

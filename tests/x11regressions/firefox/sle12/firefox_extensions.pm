@@ -22,19 +22,19 @@ sub run() {
     x11_start_program("firefox");
     assert_screen('firefox-launch', 90);
 
-    assert_screen('firefox-extensions-no_flag', 45);
+    assert_screen('firefox-extensions-no_flag', 90);
     send_key "ctrl-shift-a";
-    assert_screen('firefox-addons_manager', 45);
+    assert_screen('firefox-addons_manager', 90);
 
     for my $i (1 .. 2) { send_key "tab"; }
     type_string "flagfox\n";
     assert_and_click('firefox-extensions-flagfox');
     for my $i (1 .. 2) { send_key "tab"; }
     send_key "spc";
-    assert_screen('firefox-extensions-flagfox_installed', 45);
+    assert_screen('firefox-extensions-flagfox_installed', 90);
 
     send_key "alt-1";
-    assert_screen('firefox-extensions-show_flag', 25);
+    assert_screen('firefox-extensions-show_flag', 60);
 
     sleep 1;
     send_key "alt-2";
@@ -42,12 +42,12 @@ sub run() {
 
     sleep 2;
     send_key "alt-1";
-    assert_screen('firefox-extensions-no_flag', 45);
+    assert_screen('firefox-extensions-no_flag', 90);
 
     # Exit
     for my $i (1 .. 2) { sleep 1; send_key "ctrl-w"; }
 
-    if (check_screen('firefox-save-and-quit', 4)) {
+    if (check_screen('firefox-save-and-quit', 30)) {
         # confirm "save&quit"
         send_key "ret";
     }

@@ -27,10 +27,10 @@ sub run() {
 
     send_key "alt-d";
     type_string "gnu.org\n";
-    assert_screen('firefox-private-gnu', 45);
+    assert_screen('firefox-private-gnu', 90);
     send_key "alt-d";
     type_string "facebook.com\n";
-    assert_screen('firefox-private-facebook', 45);
+    assert_screen('firefox-private-facebook', 90);
 
     sleep 1;
     send_key "alt-f4";
@@ -39,11 +39,11 @@ sub run() {
 
     sleep 2;
     x11_start_program("firefox");
-    assert_screen('firefox-launch', 30);
+    assert_screen('firefox-launch', 90);
 
     send_key "ctrl-h";
     assert_and_click('firefox-private-checktoday');
-    assert_screen('firefox-private-checkhistory', 10);
+    assert_screen('firefox-private-checkhistory', 60);
 
     sleep 1;
     send_key "alt-f4";
@@ -51,7 +51,7 @@ sub run() {
     # Exit
     send_key "alt-f4";
 
-    if (check_screen('firefox-save-and-quit', 4)) {
+    if (check_screen('firefox-save-and-quit', 30)) {
         # confirm "save&quit"
         send_key "ret";
     }

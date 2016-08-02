@@ -26,7 +26,7 @@ sub run() {
     send_key "alt-d";
     type_string "https://build.suse.de\n";
 
-    check_screen('firefox-ssl-untrusted', 15);
+    check_screen('firefox-ssl-untrusted', 60);
 
     send_key "tab";
     send_key "tab";
@@ -35,10 +35,10 @@ sub run() {
     send_key "tab";
     send_key "ret";
 
-    assert_screen('firefox-ssl-addexception', 15);
+    assert_screen('firefox-ssl-addexception', 60);
     send_key "alt-c";
 
-    assert_screen('firefox-ssl-loadpage', 35);
+    assert_screen('firefox-ssl-loadpage', 60);
 
     send_key "alt-e";
     send_key "n", 1;
@@ -57,7 +57,7 @@ sub run() {
 
     sleep 1;
     send_key "spc";
-    assert_screen('firefox-ssl-edit_ca_trust', 5);
+    assert_screen('firefox-ssl-edit_ca_trust', 30);
     send_key "ret";
 
 
@@ -68,19 +68,19 @@ sub run() {
     send_key "pgdn";
 
     sleep 1;
-    assert_screen('firefox-ssl-servers_cert', 5);
+    assert_screen('firefox-ssl-servers_cert', 30);
 
     send_key "alt-f4", 1;
     send_key "ctrl-w";
 
     send_key "alt-d";
     type_string "https://www.cnnic.cn/\n";
-    assert_screen('firefox-ssl-connection_untrusted', 65);
+    assert_screen('firefox-ssl-connection_untrusted', 90);
 
     # Exit
     send_key "alt-f4";
 
-    if (check_screen('firefox-save-and-quit', 4)) {
+    if (check_screen('firefox-save-and-quit', 30)) {
         # confirm "save&quit"
         send_key "ret";
     }

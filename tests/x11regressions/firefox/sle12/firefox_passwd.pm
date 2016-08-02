@@ -33,7 +33,7 @@ sub run() {
     sleep 1;
     send_key "alt-shift-u";
 
-    assert_screen('firefox-passwd-master_setting', 10);
+    assert_screen('firefox-passwd-master_setting', 30);
 
     type_string $masterpw;
     send_key "tab";
@@ -45,7 +45,7 @@ sub run() {
     send_key "ctrl-q";
     sleep 3;
     x11_start_program("firefox");
-    assert_screen('firefox-gnome', 30);
+    assert_screen('firefox-gnome', 60);
 
     send_key "esc";
     send_key "alt-d";
@@ -59,14 +59,14 @@ sub run() {
     send_key "ret";
     sleep 2;
     assert_and_click('firefox-passwd-confirm_remember');
-    assert_screen('firefox-passwd-confirm_master_pw', 10);
+    assert_screen('firefox-passwd-confirm_master_pw', 30);
     type_string $masterpw. "\n";
 
     sleep 1;
     send_key "esc";
     send_key "alt-d";
     type_string $mozlogin. "\n";
-    assert_screen('firefox-passwd-auto_filled', 45);
+    assert_screen('firefox-passwd-auto_filled', 90);
 
     sleep 1;
     send_key "alt-e";
@@ -79,7 +79,7 @@ sub run() {
     sleep 1;
     type_string $masterpw. "\n";
     sleep 1;
-    assert_screen('firefox-passwd-saved', 10);
+    assert_screen('firefox-passwd-saved', 30);
 
     sleep 1;
     send_key "alt-shift-r";    #"Remove"
@@ -89,12 +89,12 @@ sub run() {
     send_key "ctrl-w";
     sleep 1;
     send_key "f5";
-    assert_screen('firefox-passwd-input_username', 45);
+    assert_screen('firefox-passwd-input_username', 90);
 
     # Exit
     send_key "alt-f4";
 
-    if (check_screen('firefox-save-and-quit', 4)) {
+    if (check_screen('firefox-save-and-quit', 30)) {
         # confirm "save&quit"
         send_key "ret";
     }

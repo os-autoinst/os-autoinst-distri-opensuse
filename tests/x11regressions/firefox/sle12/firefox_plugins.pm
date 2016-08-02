@@ -24,19 +24,19 @@ sub run() {
 
     send_key "ctrl-shift-a";
     assert_and_click('firefox-addons-plugins');
-    assert_screen('firefox-plugins-overview_01', 10);
+    assert_screen('firefox-plugins-overview_01', 60);
 
     for my $i (1 .. 2) { send_key "tab"; }
     send_key "pgdn";
-    assert_screen('firefox-plugins-overview_02', 10);
+    assert_screen('firefox-plugins-overview_02', 60);
 
     assert_and_click('firefox-plugins-check_update');
-    assert_screen('firefox-plugins-update_page', 35);
+    assert_screen('firefox-plugins-update_page', 60);
 
     # Exit
     send_key "alt-f4";
 
-    if (check_screen('firefox-save-and-quit', 4)) {
+    if (check_screen('firefox-save-and-quit', 30)) {
         # confirm "save&quit"
         send_key "ret";
     }

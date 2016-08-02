@@ -27,19 +27,19 @@ sub run() {
     send_key "alt-d";
     sleep 1;
     type_string "file:///usr/share/w3m/w3mhelp.html\n";
-    assert_screen('firefox-fullscreen-page', 15);
+    assert_screen('firefox-fullscreen-page', 90);
 
     send_key "f11";
-    assert_screen('firefox-fullscreen-enter', 15);
+    assert_screen('firefox-fullscreen-enter', 90);
 
     sleep 1;
     send_key "f11";
-    assert_screen('firefox-fullscreen-page', 15);
+    assert_screen('firefox-fullscreen-page', 90);
 
     # Exit
     send_key "alt-f4";
 
-    if (check_screen('firefox-save-and-quit', 4)) {
+    if (check_screen('firefox-save-and-quit', 30)) {
         # confirm "save&quit"
         send_key "ret";
     }

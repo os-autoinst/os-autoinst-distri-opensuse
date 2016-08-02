@@ -29,19 +29,19 @@ sub run() {
         send_key "alt-d";
         sleep 1;
         type_string $site. "\n";
-        assert_screen('firefox-topsite_' . $site, 65);
+        assert_screen('firefox-topsite_' . $site, 120);
     }
 
     # Help
     send_key "alt-h";
     sleep 1;
     send_key "a";
-    assert_screen('firefox-help', 5);
+    assert_screen('firefox-help', 30);
     send_key "esc";
 
     # Exit
     send_key "alt-f4";
-    if (check_screen('firefox-save-and-quit', 4)) {
+    if (check_screen('firefox-save-and-quit', 30)) {
         # confirm "save&quit"
         send_key "ret";
     }
