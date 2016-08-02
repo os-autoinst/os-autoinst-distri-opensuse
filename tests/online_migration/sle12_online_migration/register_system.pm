@@ -11,6 +11,7 @@ use base "consoletest";
 use strict;
 use testapi;
 use registration;
+use utils;
 
 sub run() {
     my $self = shift;
@@ -24,7 +25,7 @@ sub run() {
     }
 
     # register system and addons in textmode for all archs
-    if (get_var("DESKTOP") =~ /textmode|minimalx/) {
+    if (!is_desktop_installed()) {
         yast_scc_registration;
     }
     else {

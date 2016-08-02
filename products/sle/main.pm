@@ -625,7 +625,7 @@ sub load_consoletests() {
 }
 
 sub load_yast2_gui_tests() {
-    return unless (!get_var("INSTALLONLY") && get_var("DESKTOP") !~ /textmode|minimalx/ && !get_var("DUALBOOT") && !get_var("RESCUECD") && get_var("Y2UITEST"));
+    return unless (!get_var("INSTALLONLY") && is_desktop_installed() && !get_var("DUALBOOT") && !get_var("RESCUECD") && get_var("Y2UITEST"));
 
     loadtest "yast2_gui/yast2_control_center.pm";
     loadtest "yast2_gui/yast2_bootloader.pm";
@@ -686,7 +686,7 @@ sub load_extra_test () {
 }
 
 sub load_x11tests() {
-    return unless (!get_var("INSTALLONLY") && get_var("DESKTOP") !~ /textmode|minimalx/ && !get_var("DUALBOOT") && !get_var("RESCUECD") && !get_var("HACLUSTER"));
+    return unless (!get_var("INSTALLONLY") && is_desktop_installed() && !get_var("DUALBOOT") && !get_var("RESCUECD") && !get_var("HACLUSTER"));
 
     if (is_smt()) {
         loadtest "x11/smt.pm";

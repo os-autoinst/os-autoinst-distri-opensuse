@@ -580,7 +580,7 @@ sub load_mate_tests() {
 }
 
 sub load_x11tests() {
-    return unless (!get_var("INSTALLONLY") && get_var("DESKTOP") !~ /textmode|minimalx/ && !get_var("DUALBOOT") && !get_var("RESCUECD"));
+    return unless (!get_var("INSTALLONLY") && is_desktop_installed() && !get_var("DUALBOOT") && !get_var("RESCUECD"));
 
     if (get_var("NOAUTOLOGIN") || get_var("XDMUSED")) {
         loadtest "x11/x11_login.pm";
