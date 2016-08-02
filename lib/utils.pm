@@ -276,6 +276,13 @@ sub get_netboot_mirror {
     return get_var('MIRROR_' . uc($m_protocol));
 }
 
+# function wrapping 'zypper -n' with allowed return code, timeout and logging facility
+# first parammeter is required command , all others are named and provided as hash
+# for example : zypper_call("up", exitcode => [0,102,103], log => "zypper.log");
+# up -- zypper -n up -- update system
+# exitcode -- allowed return code values
+# log -- capture log and store it in zypper.log
+
 sub zypper_call {
     my $command          = shift;
     my %args             = @_;
@@ -286,7 +293,7 @@ sub zypper_call {
     my $str = hashed_string("ZN$command");
 
     if ($log) {
-        script_run("zypper -n $command | tee /tmp/zypper.log ; echo $str-\${PIPESTATUS}- > /dev/$serialdev", 0);
+        script_run("zypper -n $command | tee /tmp/$log ; echo $str-\${PIPESTATUS}- > /dev/$serialdev", 0);
     }
     else {
         script_run("zypper -n $command; echo $str-\$?- > /dev/$serialdev", 0);
@@ -294,7 +301,7 @@ sub zypper_call {
 
     my $ret = wait_serial(qr/$str-\d+-/, $timeout);
 
-    upload_logs('/tmp/zypper.log') if $log;
+    upload_logs("/tmp/$log") if $log;
 
     if ($ret) {
         my ($ret_code) = $ret =~ /$str-(\d+)/;

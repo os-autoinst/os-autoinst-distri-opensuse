@@ -32,7 +32,7 @@ sub run {
 
     zypper_call("ref");
 
-    zypper_call(qq{in -l -y -t patch \$(zypper patches | awk -F "|" '/test-minimal/ { print \$2;}')}, exitcode => [0, 102, 103]);
+    zypper_call(qq{in -l -y -t patch \$(zypper patches | awk -F "|" '/test-minimal/ { print \$2;}')}, exitcode => [0, 102, 103], log => 'zypper.log');
 
     capture_state('between', 1);
 
