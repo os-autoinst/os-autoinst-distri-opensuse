@@ -33,19 +33,19 @@ sub run() {
     send_key "a";
     send_key "ctrl-w";
     send_key "alt-f10";
-    assert_screen("firefox-rss-button_disabled", 15);
+    assert_screen("firefox-rss-button_disabled", 60);
 
     send_key "esc";
     send_key "alt-d";
     type_string "www.gnu.org\n";
 
-    assert_and_click "firefox-rss-button_enabled", "left", 10;
-    assert_screen("firefox-rss-page", 35);
+    assert_and_click "firefox-rss-button_enabled", "left", 30;
+    assert_screen("firefox-rss-page", 90);
 
     # Exit
     send_key "alt-f4";
 
-    if (check_screen('firefox-save-and-quit', 4)) {
+    if (check_screen('firefox-save-and-quit', 30)) {
         # confirm "save&quit"
         send_key "ret";
     }

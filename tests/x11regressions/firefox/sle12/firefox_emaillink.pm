@@ -25,7 +25,7 @@ sub run() {
     # Email link
     send_key "alt-f";
     send_key "e";
-    assert_screen('firefox-email_link-welcome', 30);
+    assert_screen('firefox-email_link-welcome', 90);
 
     send_key "alt-o";
 
@@ -40,7 +40,7 @@ sub run() {
     sleep 1;
     send_key "alt-s";    #Skip
 
-    assert_screen('firefox-email_link-settings_receiving', 30);
+    assert_screen('firefox-email_link-settings_receiving', 90);
     send_key "alt-s";    #Server
     type_string "imap.suse.com";
     send_key "alt-n";    #Username
@@ -50,7 +50,7 @@ sub run() {
     sleep 1;
     send_key "alt-o";
 
-    assert_screen('firefox-email_link-settings_sending', 10);
+    assert_screen('firefox-email_link-settings_sending', 30);
     send_key "alt-s";    #Server
     type_string "smtp.suse.com";
     send_key "alt-o";
@@ -61,14 +61,14 @@ sub run() {
     sleep 1;
     send_key "alt-a";
 
-    assert_screen('firefox-email_link-send', 10);
+    assert_screen('firefox-email_link-send', 30);
 
     send_key "esc";
     sleep 2;
 
     # Exit
     send_key "alt-f4";
-    if (check_screen('firefox-save-and-quit', 4)) {
+    if (check_screen('firefox-save-and-quit', 30)) {
         # confirm "save&quit"
         send_key "ret";
     }

@@ -37,7 +37,7 @@ sub run() {
         send_key "alt-d";
         sleep 1;
         type_string $sites_url{$proto} . "\n";
-        assert_screen('firefox-urls_protocols-' . $proto, 30);
+        assert_screen('firefox-urls_protocols-' . $proto, 60);
     }
 
     # Exit
@@ -50,7 +50,7 @@ sub run() {
     sleep 1;
     send_key "u";
 
-    if (check_screen('firefox-save-and-quit', 4)) {
+    if (check_screen('firefox-save-and-quit', 30)) {
         # confirm "save&quit"
         send_key "ret";
     }

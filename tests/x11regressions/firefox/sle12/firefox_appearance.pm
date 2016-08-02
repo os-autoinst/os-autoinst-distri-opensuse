@@ -24,23 +24,23 @@ sub run() {
 
     send_key "ctrl-shift-a";
     assert_and_click('firefox-appearance-tabicon');
-    assert_screen('firefox-appearance-default', 10);
+    assert_screen('firefox-appearance-default', 30);
 
     sleep 1;
     send_key "alt-d";
     sleep 1;
     type_string "addons.mozilla.org/en-US/firefox/addon/opensuse\n";
-    assert_screen('firefox-appearance-mozilla_addons', 35);
+    assert_screen('firefox-appearance-mozilla_addons', 90);
     send_key "alt-f10";
     assert_and_click "firefox-appearance-addto";
     sleep 1;
     send_key "alt-a";
-    assert_screen('firefox-appearance-installed', 35);
+    assert_screen('firefox-appearance-installed', 90);
 
     # Exit
     for my $i (1 .. 2) { sleep 1; send_key "ctrl-w"; }
 
-    if (check_screen('firefox-save-and-quit', 4)) {
+    if (check_screen('firefox-save-and-quit', 30)) {
         # confirm "save&quit"
         send_key "ret";
     }

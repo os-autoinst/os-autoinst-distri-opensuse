@@ -30,25 +30,25 @@ sub run() {
     sleep 1;
     type_string $ext_link. "\n";
 
-    assert_screen('firefox-extcontent-pageloaded', 35);
+    assert_screen('firefox-extcontent-pageloaded', 90);
     send_key "/";
     sleep 1;
     type_string "license.tar.gz\n";
 
-    assert_screen('firefox-extcontent-opening', 15);
+    assert_screen('firefox-extcontent-opening', 60);
 
     send_key "alt-o";
     sleep 1;
     send_key "ret";
 
-    assert_screen('firefox-extcontent-archive_manager', 10);
+    assert_screen('firefox-extcontent-archive_manager', 30);
 
     send_key "ctrl-q";
 
     # Exit
     send_key "alt-f4";
 
-    if (check_screen('firefox-save-and-quit', 4)) {
+    if (check_screen('firefox-save-and-quit', 30)) {
         # confirm "save&quit"
         send_key "ret";
     }

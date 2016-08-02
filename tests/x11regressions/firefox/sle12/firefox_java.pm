@@ -35,7 +35,7 @@ sub run() {
 
     send_key "ctrl-shift-a";
 
-    assert_screen("firefox-java-addonsmanager", 10);
+    assert_screen("firefox-java-addonsmanager", 30);
 
     send_key "/";
     sleep 1;
@@ -54,15 +54,15 @@ sub run() {
     sleep 1;
     send_key "ret";
 
-    assert_screen("firefox-java-neveractive", 10);
+    assert_screen("firefox-java-neveractive", 30);
 
     java_testing();
-    assert_screen("firefox-java-verifyfailed", 45);
+    assert_screen("firefox-java-verifyfailed", 90);
 
     send_key "ctrl-w";
 
     for my $i (1 .. 2) { sleep 1; send_key "down"; }
-    assert_screen("firefox-java-active", 10);
+    assert_screen("firefox-java-active", 60);
 
     java_testing();
 
@@ -71,13 +71,13 @@ sub run() {
     # assert_and_click "firefox-java-securityrun";
     # assert_screen("firefox-java-run_confirm",10);
     # send_key "ret";
-    assert_screen("firefox-java-verifypassed", 45);
+    assert_screen("firefox-java-verifypassed", 90);
 
     # Exit
     send_key "alt-f4", 1;
     send_key "spc";
 
-    if (check_screen('firefox-save-and-quit', 4)) {
+    if (check_screen('firefox-save-and-quit', 30)) {
         # confirm "save&quit"
         send_key "ret";
     }

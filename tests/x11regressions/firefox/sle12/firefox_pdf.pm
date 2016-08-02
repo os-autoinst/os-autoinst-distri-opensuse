@@ -26,20 +26,20 @@ sub run() {
     send_key "alt-d";
     type_string "http://www.gnupg.org/gph/en/manual.pdf\n";
 
-    assert_screen('firefox-pdf-load', 45);
+    assert_screen('firefox-pdf-load', 90);
 
     sleep 1;
     for my $i (1 .. 2) { assert_and_click 'firefox-pdf-zoom_out_button'; }
-    assert_screen('firefox-pdf-zoom_out', 5);
+    assert_screen('firefox-pdf-zoom_out', 30);
 
     send_key "tab";
     for my $i (1 .. 4) { assert_and_click 'firefox-pdf-zoom_in_button'; }
-    assert_screen('firefox-pdf-zoom_in', 5);
+    assert_screen('firefox-pdf-zoom_in', 30);
 
     assert_and_click 'firefox-pdf-zoom_menu';
     sleep 1;
     assert_and_click 'firefox-pdf-zoom_menu_actual_size';    #"Actual Size"
-    assert_screen('firefox-pdf-actual_size', 5);
+    assert_screen('firefox-pdf-actual_size', 30);
 
     sleep 1;
     assert_and_click 'firefox-pdf-icon_fullscreen';          #Full Screen
@@ -53,12 +53,12 @@ sub run() {
     send_key "3";
     send_key "ret";
     sleep 1;
-    assert_screen('firefox-pdf-pagedown', 5);
+    assert_screen('firefox-pdf-pagedown', 30);
 
     # Exit
     send_key "alt-f4";
 
-    if (check_screen('firefox-save-and-quit', 4)) {
+    if (check_screen('firefox-save-and-quit', 30)) {
         # confirm "save&quit"
         send_key "ret";
     }

@@ -25,7 +25,7 @@ sub run() {
     send_key "esc";
     send_key "alt-d";
     type_string "http://www.adobe.com/software/flash/about/\n";
-    assert_screen('firefox-flashplayer-verify_loaded', 45);
+    assert_screen('firefox-flashplayer-verify_loaded', 90);
 
     send_key "pgdn";
     # flashplayer dropped since sled12 sp2
@@ -35,7 +35,7 @@ sub run() {
             send_key "esc";
             send_key "alt-d";
             type_string "https://www.youtube.com/watch?v=Z4j5rJQMdOU\n";
-            assert_screen('firefox-flashplayer-video_loaded', 45);
+            assert_screen('firefox-flashplayer-video_loaded', 90);
         }
         last;
     }
@@ -43,7 +43,7 @@ sub run() {
     # Exit
     send_key "alt-f4";
 
-    if (check_screen('firefox-save-and-quit', 4)) {
+    if (check_screen('firefox-save-and-quit', 30)) {
         # confirm "save&quit"
         send_key "ret";
     }

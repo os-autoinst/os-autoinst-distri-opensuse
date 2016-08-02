@@ -31,11 +31,11 @@ sub run() {
 
     send_key "alt-e", 1;
     send_key "n";
-    assert_screen('firefox-changesaving-preferences', 10);
+    assert_screen('firefox-changesaving-preferences', 30);
 
     send_key "alt-shift-s";
     send_key "down";          #Show a blank page
-    assert_screen('firefox-changesaving-showblankpage', 10);
+    assert_screen('firefox-changesaving-showblankpage', 30);
 
     send_key "ctrl-w",  1;
     send_key "alt-tab", 1;    #Switch to xterm
@@ -43,14 +43,14 @@ sub run() {
     send_key "ctrl-l", 1;
     type_string "diff dfa dfb\n";
 
-    assert_screen('firefox-changesaving-diffresult', 5);
+    assert_screen('firefox-changesaving-diffresult', 30);
     type_string "rm df*\n", 1;    #Clear
     send_key "ctrl-d",      1;
 
     # Exit
     send_key "alt-f4";
 
-    if (check_screen('firefox-save-and-quit', 4)) {
+    if (check_screen('firefox-save-and-quit', 30)) {
         # confirm "save&quit"
         send_key "ret";
     }

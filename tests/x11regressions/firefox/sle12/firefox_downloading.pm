@@ -21,7 +21,7 @@ sub dl_location_switch {
     my ($tg) = @_;
     send_key "alt-e", 1;
     send_key "n";
-    assert_screen('firefox-downloading-preferences', 15);
+    assert_screen('firefox-downloading-preferences', 30);
 
     if ($tg ne "ask") {
         send_key "alt-shift-v";    #"Save files to Downloads"
@@ -38,10 +38,10 @@ sub dl_save {
     type_string $link;
 
     # check if downloading content open with default application
-    if (check_screen 'firefox-downloading-openwith', 20) {
+    if (check_screen 'firefox-downloading-openwith', 30) {
         send_key "alt-s";
     }
-    assert_and_click("firefox-downloading-save_enabled", "left", 60);
+    assert_and_click("firefox-downloading-save_enabled", "left", 90);
 }
 
 sub dl_pause {
@@ -68,16 +68,16 @@ sub run() {
 
     dl_save($dl_link_01);
 
-    assert_screen('firefox-downloading-saving_box', 25);
+    assert_screen('firefox-downloading-saving_box', 90);
     send_key "alt-s";
 
-    assert_and_click('firefox-downloading-saving_dialog', 'left', 20);
+    assert_and_click('firefox-downloading-saving_dialog', 'left', 90);
 
-    assert_screen('firefox-downloading-library', 25);
+    assert_screen('firefox-downloading-library', 90);
 
     # Pause
     dl_pause();
-    assert_screen('firefox-downloading-paused', 15);
+    assert_screen('firefox-downloading-paused', 30);
 
     # Resume
     send_key "shift-f10", 1;
@@ -86,24 +86,24 @@ sub run() {
     # It have to use context menu to identify if downloading resumed, (gray "pause")
     # because there is no obvious specific elements when download is in on going.
     send_key "shift-f10";
-    assert_screen('firefox-downloading-resumed', 15);
+    assert_screen('firefox-downloading-resumed', 35);
     send_key "esc";
 
     # Cancel
     dl_cancel();
-    assert_screen('firefox-downloading-canceled', 15);
+    assert_screen('firefox-downloading-canceled', 35);
 
     # Retry
     send_key "ret", 1;
     send_key "shift-f10";
-    assert_screen('firefox-downloading-resumed', 15);
+    assert_screen('firefox-downloading-resumed', 35);
     send_key "esc";
 
     # Remove from history
     dl_cancel();
     send_key "shift-f10", 1;
     send_key "e";    #"Remove From History"
-    assert_screen('firefox-downloading-blank_list', 15);
+    assert_screen('firefox-downloading-blank_list', 35);
 
     # Multiple files downloading
     send_key "alt-f4", 1;
@@ -114,7 +114,7 @@ sub run() {
     dl_save($dl_link_02);
 
     send_key "ctrl-shift-y";
-    check_screen('firefox-downloading-multi', 5);
+    check_screen('firefox-downloading-multi', 35);
 
     # Clear downloads
     dl_cancel();
@@ -123,7 +123,7 @@ sub run() {
 
     send_key "shift-f10", 1;
     send_key "d";    #"Clear Downloads"
-    assert_screen('firefox-downloading-blank_list', 5);
+    assert_screen('firefox-downloading-blank_list', 35);
 
 
     send_key "alt-f4", 1;
@@ -131,7 +131,7 @@ sub run() {
 
     # Exit
     send_key "alt-f4";
-    if (check_screen('firefox-save-and-quit', 4)) {
+    if (check_screen('firefox-save-and-quit', 30)) {
         # confirm "save&quit"
         send_key "ret";
     }

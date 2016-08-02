@@ -24,27 +24,27 @@ sub run() {
 
     send_key "ctrl-shift-a";
     assert_and_click('firefox-plugins-tabicon');
-    assert_screen('firefox-gnomeshell-default', 10);
+    assert_screen('firefox-gnomeshell-default', 30);
 
     send_key "alt-d";
     sleep 1;
     type_string "extensions.gnome.org\n";
-    assert_screen('firefox-gnomeshell-frontpage', 85);
+    assert_screen('firefox-gnomeshell-frontpage', 120);
     send_key "alt-a";
     assert_and_click "firefox-gnomeshell-allowremember";
     assert_and_click "firefox-gnomeshell-check_installed";
-    assert_screen("firefox-gnomeshell-installed", 35);
+    assert_screen("firefox-gnomeshell-installed", 90);
     send_key "pgdn";
-    assert_screen("firefox-gnomeshell-installed_02", 35);
+    assert_screen("firefox-gnomeshell-installed_02", 90);
 
     send_key "alt-d";
     type_string "extensions.gnome.org/extension/512/wikipedia-search-provider/\n";
-    assert_screen("firefox-gnomeshell-extension", 35);
+    assert_screen("firefox-gnomeshell-extension", 90);
     sleep 5;
     assert_and_click "firefox-gnomeshell-extension_install";
     assert_and_click "firefox-gnomeshell-extension_confirm";
     sleep 10;
-    assert_screen("firefox-gnomeshell-extension_on", 15);
+    assert_screen("firefox-gnomeshell-extension_on", 60);
 
     # Exit
     send_key "ctrl-w";
@@ -54,10 +54,10 @@ sub run() {
     x11_start_program("xterm");
     type_string "ls .local/share/gnome-shell/extensions/\n";
     sleep 2;
-    assert_screen('firefox-gnomeshell-checkdir', 10);
+    assert_screen('firefox-gnomeshell-checkdir', 30);
     type_string "rm -rf .local/share/gnome-shell/extensions/*;exit\n";
 
-    if (check_screen('firefox-save-and-quit', 4)) {
+    if (check_screen('firefox-save-and-quit', 30)) {
         # confirm "save&quit"
         send_key "ret";
     }
