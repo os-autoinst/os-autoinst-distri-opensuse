@@ -22,10 +22,9 @@ sub run() {
                          # and don't put this after opening oga file, per video
                          # the window pop-up meanwhile x11_start_progran typeing,
                          # and 40 sec to wait that window pop-up should enough
-    if (check_screen "librivox-authentication", 40) {
+    check_act_and_assert_screen('test-amarok-2', librivox-authentication => sub {
         send_key "alt-c";    # cancel librivox certificate
-    }
-    assert_screen 'test-amarok-2', 3;
+    });
     # do not playing audio file as we have not testdata if NICEVIDEO
     if (!get_var("NICEVIDEO")) {
         start_audiocapture;

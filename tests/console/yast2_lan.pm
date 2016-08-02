@@ -35,10 +35,8 @@ sub run() {
         send_key "ret";                                 # confirm networkmanager popup
         assert_screen "Networkmanager_controlled-approved";
         send_key "alt-c";
-        if (check_screen('yast2-lan-really', 3)) {
-            # SLED11...
-            send_key 'alt-y';
-        }
+        # SLED11...
+        check_act_and_assert_screen('yast2-lan-exited', yast2-lan-really => send_key('alt-y'));
         wait_serial("yast2-lan-status-0", 60) || die "'yast2 lan' didn't finish";
         return;                                         # don't change any settings
     }

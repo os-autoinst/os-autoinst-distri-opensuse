@@ -27,11 +27,8 @@ sub run() {
     x11_start_program("kontact", 6, {valid => 1});
 
     # kontact has asking import data from another mailer
-    if (check_screen('kontact-import-data-dialog')) {
-        send_key "alt-n";    # Don't
-    }
-
-    assert_screen "test-kontact-1", 20;    # tips window or assistant
+    # test-kontact-1: tips window or assistant
+    check_act_and_assert_screen('test-kontact-1', kontact-import-data-dialog => send_key("alt-n"));    # Don't
     send_key "alt-c";                      # KF5-based account assistant ignores alt-f4
     assert_screen "kontact-window", 3;
     send_key "alt-f4";

@@ -274,10 +274,7 @@ sub run() {
     send_key $cmd{accept};
 
     # skip subvolumes shadowed warning
-    if (check_screen 'subvolumes-shadowed', 5) {
-        send_key 'alt-y';
-    }
-    assert_screen 'acceptedpartitioning';
+    check_act_and_assert_screen('acceptedpartitioning', subvolumes-shadowed => send_key('alt-y'));
 
     if (!get_var("OFW")) {
         #Bootloader needs to be installed to MBR

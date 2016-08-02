@@ -17,10 +17,7 @@ sub run() {
     my ($addon, $uc_addon);
     x11_start_program("xdg-su -c '/sbin/yast2 add-on'");
     if ($password) { type_password; send_key "ret", 1; }
-    if (check_screen 'packagekit-warning') {
-        send_key 'alt-y';    # yes
-    }
-    assert_screen 'addon-products';
+    check_act_and_assert('addon-products', packagekit-warning => send_key 'alt-y'); # yes
     send_key 'alt-a', 2;     # add add-on
     if (get_var("ADDONS")) {
         for my $addon (split(/,/, get_var('ADDONS'))) {
