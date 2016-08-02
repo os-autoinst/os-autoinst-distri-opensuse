@@ -15,7 +15,7 @@ use utils;
 sub run {
     my $self = shift;
 
-    if (get_var("DESKTOP") =~ /textmode|minimalx/) {
+    if (!is_desktop_installed()) {
         select_console 'root-console';
     }
     else {
@@ -38,7 +38,7 @@ sub run {
         assert_screen 'yast2-migration-onlineupdates';
         send_key "alt-y";
         assert_screen 'yast2-migration-updatesoverview';
-        if (get_var("DESKTOP") =~ /textmode|minimalx/) {
+        if (!is_desktop_installed()) {
             send_key "alt-a";
         }
         else {
@@ -61,7 +61,7 @@ sub run {
 
     # giva a little time to check package conflicts
     if (check_screen("yast2-migration-conflicts", 15)) {
-        if (get_var("DESKTOP") =~ /textmode|minimalx/) {
+        if (!is_desktop_installed()) {
             send_key "alt-c";
             send_key "alt-p";    # show package dependencies
         }
@@ -114,7 +114,7 @@ sub run {
     }
 
     wait_serial("yast2-migration-done-0", $timeout) || die "yast2 migration failed";
-    type_string "exit\n" if (get_var("DESKTOP") !~ /textmode|minimalx/);
+    type_string "exit\n" if (is_desktop_installed());
 }
 
 sub test_flags() {
