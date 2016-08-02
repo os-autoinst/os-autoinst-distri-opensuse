@@ -16,7 +16,7 @@ use strict;
 sub run() {
     select_console 'root-console';
 
-    assert_script_run("zypper -n in -C libc.so.6", 100);
+    assert_script_run("zypper -n in -C libc.so.6", 500);
 
     # select user console for our needles to match
     select_console 'user-console';
