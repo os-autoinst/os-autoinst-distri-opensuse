@@ -29,7 +29,10 @@ sub run() {
 
     script_run(qq{/usr/lib/ctcs2/tools/test_ltp-run; echo "ltp-done" > /dev/$serialdev}, 0);
     wait_serial(qr/ltp-done/, 36000);
+
     save_screenshot;
+
+    script_run('btrfs fi sync /', 60);
 
     $svirt->run_cmd("virsh reset $name");
 
