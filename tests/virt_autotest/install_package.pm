@@ -61,6 +61,8 @@ sub run() {
     $self->update_package();
 
     setup_console_in_grub;
+
+    repl_repo_in_sourcefile();
 }
 
 

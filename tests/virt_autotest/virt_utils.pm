@@ -18,7 +18,9 @@ use Data::Dumper;
 use XML::Writer;
 use IO::File;
 
-our @EXPORT = qw(set_serialdev setup_console_in_grub);
+use virt_autotest_base;
+
+our @EXPORT = qw(set_serialdev setup_console_in_grub repl_repo_in_sourcefile);
 
 sub set_serialdev() {
     if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
@@ -59,6 +61,22 @@ sub setup_console_in_grub() {
     type_string("clear; cat $grub_cfg_file \n");
     wait_idle 3;
     save_screenshot;
+}
+
+sub repl_repo_in_sourcefile() {
+    # Replace the daily build repo as guest installation resource in source file (like source.cn; source.de ..)
+    my $veritem = "source.http.sles-" . lc(get_var("VERSION")) . "-64";
+    if (get_var("REPO_0")) {
+        my $location = &virt_autotest_base::execute_script_run("", "perl /usr/share/qa/tools/location_detect_impl.pl", 10);
+        $location =~ s/[\r\n]+$//;
+        my $soucefile = "/usr/share/qa/virtautolib/data/" . "sources." . "$location";
+        my $newrepo   = "https://openqa.suse.de/assets/repo/" . get_var("REPO_0");
+        script_run("sed -i \"s#$veritem=.*#$veritem=$newrepo#\" $soucefile");
+        script_run("cat $soucefile");
+    }
+    else {
+        print "Do not need to change resource for $veritem item\n";
+    }
 }
 
 1;
