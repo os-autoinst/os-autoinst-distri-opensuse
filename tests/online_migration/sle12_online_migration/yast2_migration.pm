@@ -80,7 +80,7 @@ sub run {
     assert_screen "yast2-migration-upgrading";
 
     # start migration
-    my $timeout = 3000;
+    my $timeout = 7200;
     my @tags    = qw/yast2-migration-wrongdigest yast2-migration-packagebroken yast2-migration-internal-error yast2-migration-finish/;
     while (1) {
         my $ret = assert_screen \@tags, $timeout;
