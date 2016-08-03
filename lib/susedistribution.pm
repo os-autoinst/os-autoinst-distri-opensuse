@@ -251,6 +251,10 @@ sub init_consoles {
             set_var("S390_NETWORK_PARAMS", $s390_params);
 
             ($hostname) = $s390_params =~ /Hostname=(\S+)/;
+
+            # extract hostname from a FQDN and export it as a variable
+            my ($expected_install_hostname) = $hostname =~ /(.+?)(?=\.)/;
+            set_var("EXPECTED_INSTALL_HOSTNAME", $expected_install_hostname);
         }
 
         if (check_var("VIDEOMODE", "text")) {    # adds console for text-based installation on s390x
