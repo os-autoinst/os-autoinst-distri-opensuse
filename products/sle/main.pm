@@ -687,7 +687,7 @@ sub load_extra_test () {
     loadtest "console/consoletest_finish.pm";
 
     # start extra x11 tests from here
-
+    loadtest "x11/vnc_two_passwords.pm";
 }
 
 sub load_x11tests() {
