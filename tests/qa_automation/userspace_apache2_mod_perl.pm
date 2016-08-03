@@ -13,7 +13,7 @@ use strict;
 use testapi;
 
 sub test_run_list() {
-    return qw(_reboot_off apache2-mod_perl);
+    return qw(_reboot_off apache2_mod_perl);
 }
 
 sub test_suite() {
