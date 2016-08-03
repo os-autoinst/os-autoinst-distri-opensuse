@@ -28,5 +28,9 @@ sub run() {
     assert_script_run "mv /etc/aide.conf.bak /etc/aide.conf && rm /var/log/testlog";
 }
 
+sub test_flags() {
+    return {important => 1};
+}
+
 1;
 # vim: set sw=4 et:

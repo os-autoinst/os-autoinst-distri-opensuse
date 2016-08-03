@@ -25,5 +25,10 @@ sub run() {
     assert_script_run("journalctl --verify --verify-key=`cat /tmp/key`");
     assert_script_run("rm -f /tmp/key");
 }
+
+sub test_flags() {
+    return {important => 1};
+}
+
 1;
 # vim: set sw=4 et:
