@@ -30,26 +30,28 @@ sub run() {
     assert_screen "remove-repository", 100;
     send_key $cmd{next}, 1;
     if (check_var('DISTRI', 'opensuse')) {
-        if (check_screen('network-not-configured', 5)) {
+        if (check_var("FLAVOR", "NET")) {
+            assert_screen('list-of-online-repositories', 10);
             send_key 'alt-n';
-            if (check_screen('ERROR-cannot-download-repositories')) {
+
+            if (get_var("BETA")) {
+                assert_screen "inst-betawarning";
                 send_key 'alt-o';
-                record_soft_failure 'error can not download repositories';
+            }
+            # Bug 881107 - there is 2nd license agreement screen in openSUSE upgrade
+            # http://bugzilla.opensuse.org/show_bug.cgi?id=881107
+            if (check_screen('upgrade-license-agreement', 10)) {
+                send_key 'alt-n';
             }
         }
-        if (check_screen('list-of-online-repositories', 10)) {
+        else {
+            # offline DVD upgrade. We expect to not have network
+            assert_screen('network-not-configured');
             send_key 'alt-n';
-            record_soft_failure;
-        }
-        if (get_var("BETA")) {
-            assert_screen "inst-betawarning";
+            assert_screen('ERROR-cannot-download-repositories');
             send_key 'alt-o';
         }
-        # Bug 881107 - there is 2nd license agreement screen in openSUSE upgrade
-        # http://bugzilla.opensuse.org/show_bug.cgi?id=881107
-        if (check_screen('upgrade-license-agreement', 10)) {
-            send_key 'alt-n';
-        }
+
         if (check_screen('installed-product-incompatible', 10)) {
             send_key 'alt-o';    # C&ontinue
             record_soft_failure 'installed product incompatible';
