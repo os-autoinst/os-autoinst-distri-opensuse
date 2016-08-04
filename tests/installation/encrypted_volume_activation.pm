@@ -7,8 +7,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-use base "basetest";
 use strict;
+use warnings;
+use base "y2logsstep";
 use testapi;
 
 my $after_cancel_tags = [
