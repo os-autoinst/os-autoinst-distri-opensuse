@@ -19,7 +19,10 @@ use utils;
 
 # hint: press shift-f10 trice for highest debug level
 sub run() {
-    my ($self) = @_;
+    if (get_var('DUALBOOT')) {
+        # send ESC to prevent tianocore from booting from hard disk...
+        send_key_until_needlematch('bootloader-shim-import-prompt', 'esc', 10, 5);
+    }
 
     if (get_var("IPXE")) {
         sleep 60;
