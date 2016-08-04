@@ -40,16 +40,6 @@ sub validatelr {
             assert_script_run "zypper lr --uri | awk -F '|' -v OFS=' ' '{ print \$2,\$3,\$4,\$NF }' | tr -s ' ' | grep \"$product$version\[\[:alnum:\]\[:punct:\]\]*-*$product_channel $product$version\[\[:alnum:\]\[:punct:\]\[:space:\]\]*-*$product_channel $enabled_repo $uri\"";
         }
     }
-    elsif (check_var('DISTRI', 'opensuse')) {
-        # boo#988736: control.xml on the Leap media contains two repos of the name 'repo-source'
-        # This should be removed once Leap 42.1 is not being supported.
-        if ($product eq "openSUSE-Leap-42.1-Source-Non-Oss") {
-            script_run "zypper lr --uri | awk -F '|' -v OFS=' ' '{ print \$2,\$3,\$4,\$NF }' | tr -s ' ' | grep \"$alias\[\[:alnum:\]\[:punct:\]\]* $product\[\[:alnum:\]\[:punct:\]\]* $enabled_repo $uri\"";
-        }
-        else {
-            assert_script_run "zypper lr --uri | awk -F '|' -v OFS=' ' '{ print \$2,\$3,\$4,\$NF }' | tr -s ' ' | grep \"$alias\[\[:alnum:\]\[:punct:\]\]* $product\[\[:alnum:\]\[:punct:\]\]* $enabled_repo $uri\"";
-        }
-    }
 }
 
 sub run() {
@@ -60,73 +50,9 @@ sub run() {
     script_run "clear";
     assert_script_run "zypper lr -d";
     save_screenshot;
-    script_run "clear";
 
-    # Repositories are being validated for (whole) SLE and openSUSE staging
-    if (check_var('DISTRI', 'sle') or (check_var('DISTRI', 'opensuse') and get_var('STAGING'))) {
-        # SLE & openSUSE: Check repositories from installation medium's 'control.xml' file
-        script_run '
-        for i in $(find /dev/disk/by-label/*); do
-            mkdir dir_$(basename $i);
-            mount -v $i dir_$(basename $i) -o ro;
-            ls -l dir_$(basename $i);
-            cp -v dir_$(basename $i)/control.xml control.xml_$(basename $i);
-            umount dir_$(basename $i);
-        done;
-        ls -l';
-        if (my $control_files = script_output("find . -name 'control.xml_*' | tr -s '\\n' ' '")) {
-            assert_script_run 'zypper -nv install perl-XML-LibXML';
-            type_string 'cat > xml.pl <<__END
-use strict;
-use XML::LibXML;
-use XML::LibXML::XPathContext;
-
-my \$filename = \$ARGV[0];
-my \$dom = XML::LibXML->load_xml(location => \$filename);
-my \$xpc = XML::LibXML::XPathContext->new(\$dom);
-\$xpc->registerNs("yast2ns", "http://www.suse.com/1.0/yast2ns");
-my (\$meta) = \$xpc->findnodes("//yast2ns:extra_urls") or die "<extra_urls> is not present";
-
-for my \$el (\$xpc->findnodes(".//yast2ns:extra_url", \$meta)) {
-    my (\$p_alias) = \$xpc->findnodes(".//yast2ns:alias", \$el);
-    my \$t_alias = \$p_alias->textContent();
-
-    my (\$p_name) = \$xpc->findnodes(".//yast2ns:name", \$el);
-    my \$t_name = \$p_name->textContent();
-
-    my (\$p_enabled) = \$xpc->findnodes(".//yast2ns:enabled", \$el);
-    my \$t_enabled = \$p_enabled->textContent();
-
-    my (\$p_baseurl) = \$xpc->findnodes(".//yast2ns:baseurl", \$el);
-    my \$t_baseurl = \$p_baseurl->textContent();
-
-    print "\$t_alias \$t_name \$t_enabled \$t_baseurl ";
-}
-__END' . "\n";
-            for my $xml_file (split(/ /, $control_files)) {
-                # 'control.xml' files does not necessarily need to contain repository
-                # definition (i.e. <extra_urls> tag)
-                my $xml_data_str = script_output "perl xml.pl $xml_file || true";
-                my @xml_data = split(/ /, $xml_data_str);
-                while (@xml_data) {
-                    validatelr(
-                        {
-                            alias        => shift @xml_data,
-                            product      => shift @xml_data,
-                            enabled_repo => (shift @xml_data eq "true") ? "Yes" : "No",
-                            uri          => shift @xml_data
-                        });
-                }
-            }
-        }
-        else {
-            # At this point no repository definition was found in control.xml
-            # files of installation media. It's fine if it's a network installation.
-            # On SLE we rely on "Channels Checking Table" anyway.
-            if (check_var('DISTRI', 'opensuse') and (get_var('FLAVOR') =~ m{DVD})) {
-                assert_script_run 'false', 0, "Can't find repository definitions in 'control.xml' files (if any).";
-            }
-        }
+    if (check_var('DISTRI', 'sle') and !get_var('STAGING')) {
+        script_run "clear";
 
         # On SLE we follow "SLE Channels Checking Table"
         # (https://wiki.microfocus.net/index.php?title=SLE12_SP2_Channels_Checking_Table)
@@ -157,8 +83,7 @@ __END' . "\n";
         # repository. For the sake of sanity, the base product repo is not being
         # verified in such a scenario.
         if (!get_var("ONLINE_MIGRATION")) {
-            # This is where we verify base product repos for openSUSE, SLES, SLED,
-            # and HA
+            # This is where we verify base product repos for SLES, SLED, and HA
             if (check_var('FLAVOR', 'Server-DVD')) {
                 my $uri = "cd:///";
                 if (check_var("BACKEND", "ipmi") || check_var("BACKEND", "generalhw")) {
@@ -192,27 +117,6 @@ __END' . "\n";
             elsif (check_var('FLAVOR', 'Desktop-DVD')) {
                 # Note: verification of AMD (SLED12) and NVIDIA (SLED12, SP1, and SP2) repos is missing
                 validatelr({product => "SLED", uri => "cd:///"});
-            }
-            elsif (check_var('DISTRI', 'opensuse')) {
-                if (get_var('FLAVOR') =~ m{DVD}) {
-                    # On Leap 42.1 is installation media repo enabled (FATE#320494 is not implemented there)
-                    validatelr(
-                        {
-                            alias        => "openSUSE",
-                            product      => "openSUSE",
-                            enabled_repo => (check_var('VERSION', '42.2') or get_var('ZDUP')) ? "No" : "Yes",
-                            uri => get_var('USBBOOT') ? "hd:///.*usbstick" : "cd:///"
-                        });
-                }
-                elsif (get_var('FLAVOR') =~ m{NET}) {
-                    validatelr(
-                        {
-                            alias        => "openSUSE",
-                            product      => "openSUSE",
-                            enabled_repo => "Yes",
-                            uri          => "http://.*opensuse"
-                        });
-                }
             }
         }
 
@@ -263,12 +167,7 @@ __END' . "\n";
                 $uri = "dvd:///";
             }
             else {
-                if (my $susemirror = get_var('SUSEMIRROR')) {
-                    $uri = $susemirror;
-                }
-                else {
-                    $uri = "ftp://openqa.suse.de/SLE-";
-                }
+                $uri = "ftp://openqa.suse.de/SLE-";
             }
             validatelr(
                 {
