@@ -22,7 +22,7 @@ sub get_script_run() {
 
 sub run() {
     my $self = shift;
-    $self->run_test(5400, "Test run completed successfully", "no", "yes", "/var/log/qa/ctcs2/", "host-upgrade-postVerify-logs");
+    $self->run_test(5400, "Test run completed successfully", "no", "yes", "/var/log/qa/", "host-upgrade-postVerify-logs");
 }
 
 1;
