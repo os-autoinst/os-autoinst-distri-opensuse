@@ -19,6 +19,8 @@ sub run() {
     my $target_ip;
 
     select_console 'root-console';
+    assert_script_run "chown $username /dev/$serialdev";
+
     # Setup static NETWORK
     configure_default_gateway;
     configure_static_ip('10.0.2.12/15');
