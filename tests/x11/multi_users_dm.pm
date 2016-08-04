@@ -42,17 +42,17 @@ sub run() {
     select_console 'root-console';
 
     # disable autologin
-    script_run "cp /etc/sysconfig/displaymanager /etc/sysconfig/displaymanager.back";
-    script_run "sed -i 's/^DISPLAYMANAGER_AUTOLOGIN.*\$/DISPLAYMANAGER_AUTOLOGIN=\"\"/' /etc/sysconfig/displaymanager";
-    assert_script_run "/home/$username/data/create_users $users_to_create \"$encrypted_password\"";
+    script_run "sed -i.bak '/^DISPLAYMANAGER_AUTOLOGIN=/s/=.*/=\"\"/' /etc/sysconfig/displaymanager";
+    assert_script_run "~$username/data/create_users $users_to_create \"$encrypted_password\"";
     restart_x11;
 
     assert_screen "multi_users_dm";
 
     # restore previous config
     select_console 'root-console';
-    script_run "cp /etc/sysconfig/displaymanager.back /etc/sysconfig/displaymanager";
-    assert_script_run "/home/$username/data/delete_users $users_to_create";
+    script_run "mv /etc/sysconfig/displaymanager.bak /etc/sysconfig/displaymanager";
+    assert_script_run "~$username/data/delete_users $users_to_create";
+    script_run "clear";
     restart_x11;
 }
 
