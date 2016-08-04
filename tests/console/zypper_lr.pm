@@ -60,6 +60,9 @@ sub run() {
     script_run "clear";
     assert_script_run "zypper lr -d";
     save_screenshot;
+    # don't do the following check if staging, staging test only test stuff inside of the staging media
+    # we can remove this reutn after the following check works with staging
+    return if get_var("STAGING") && check_var('DISTRI', 'opensuse');
     script_run "clear";
 
     # Repositories are being validated for (whole) SLE and openSUSE staging
