@@ -116,6 +116,11 @@ sub run() {
     logout_and_login;
     assert_screen "firefox-gnome", 90;
     send_key "alt-f4";
+    wait_still_screen;
+    if (check_screen("firefox-gnome")) {
+        send_key "alt-f4";
+    }
+    assert_screen "generic-desktop";
 
     #remove firefox from startup application
     tweak_startupapp_menu;
@@ -143,6 +148,10 @@ sub run() {
     logout_and_login;
     assert_screen "firefox-gnome", 90;
     send_key "alt-f4";
+    wait_still_screen;
+    if (check_screen("firefox-gnome")) {
+        send_key "alt-f4";
+    }
 
     if (get_var("SP2ORLATER")) {
         restore_status_auto_save_session;
