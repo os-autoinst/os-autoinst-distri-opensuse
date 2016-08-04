@@ -244,6 +244,7 @@ sub load_inst_tests() {
     }
     if (!get_var("LIVECD") && get_var("UPGRADE")) {
         loadtest "installation/upgrade_select.pm";
+        loadtest "installation/upgrade_select_opensuse.pm";
     }
     if (noupdatestep_is_applicable() && get_var("LIVECD")) {
         loadtest "installation/livecd_installer_timezone.pm";
