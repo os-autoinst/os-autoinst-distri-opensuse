@@ -37,7 +37,6 @@
   </ntp-client>
   <software>
     <packages config:type="list">
-      <package>perl-Bootloader-YAML</package>
       <package>glibc</package>
       <package>grub2</package>
       <package>snapper</package>

@@ -70,7 +70,6 @@
       <package>kdump</package>
       <package>sles-release</package>
       <package>kexec-tools</package>
-      <package>perl-Bootloader-YAML</package>
     </packages>
     <patterns config:type="list">
       <pattern>32bit</pattern>
