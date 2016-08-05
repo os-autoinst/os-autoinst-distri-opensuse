@@ -14,6 +14,7 @@ use testapi;
 my $after_cancel_tags = [
     qw/
       encrypted_volume_activation_prompt enable-multipath scc-registration
+      inst-instmode
       /
 ];
 
