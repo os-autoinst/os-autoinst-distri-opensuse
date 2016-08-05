@@ -22,7 +22,12 @@ sub run() {
     type_password;
     send_key "ret";
     assert_screen 'generic-desktop';
-    mouse_hide;
+    for (1 .. 4) {
+        mouse_hide;
+        check_screen('mouse-cursor', 5) || return;
+    }
+    die "mouse cursor still visible";
+
 }
 
 sub test_flags() {
