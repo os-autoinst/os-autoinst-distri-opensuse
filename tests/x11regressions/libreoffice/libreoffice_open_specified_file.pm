@@ -28,10 +28,8 @@ sub run() {
 
     # open below qw/doc docx fodg fodp fods fodt odf odg odp ods odt pdf pptx xlsx/ to check whether can be work
     send_key "alt-o";
-    assert_screen("libreoffice-open-Document");
-    send_key "tab";
-    send_key "tab";
-    wait_still_screen;
+    send_key "ctrl-l";
+    type_string "/home/$username/Documents\n";
     send_key "ret";
     assert_screen("specified-file-list");
     assert_and_click 'libreoffice-click-file-list';
