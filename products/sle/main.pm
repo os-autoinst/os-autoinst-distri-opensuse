@@ -897,6 +897,10 @@ sub load_fips_tests_misc() {
     loadtest "x11/hexchat_ssl.pm";
 }
 
+sub load_fips_tests_crypt() {
+    loadtest "console/yast2_dm_crypt.pm";
+}
+
 sub prepare_target() {
     if (get_var("BOOT_HDD_IMAGE")) {
         loadtest "boot/boot_to_desktop.pm";
@@ -986,6 +990,9 @@ elsif (get_var("FIPS_TS")) {
         }
         elsif (check_var("FIPS_TS", "misc")) {
             load_fips_tests_misc;
+        }
+        elsif (check_var("FIPS_TS", "crypt")) {
+            load_fips_tests_crypt;
         }
     }
 }
