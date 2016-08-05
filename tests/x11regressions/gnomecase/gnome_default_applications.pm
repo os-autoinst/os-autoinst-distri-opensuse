@@ -64,6 +64,8 @@ sub run() {
     assert_screen 'gnomecase-defaultapps-firefoxopen';
     send_key "alt-f4";                                     #close firefox
     wait_still_screen;
+    send_key "ret";
+    wait_still_screen;
     send_key "ctrl-w";                                     #close nautilus
 
     # Clean the test directory
