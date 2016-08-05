@@ -545,6 +545,7 @@ sub load_consoletests() {
             }
             elsif (!get_var("ZDUP") and !check_var('VERSION', '12')) {    # zypper and sle12 doesn't do upgrade or installation snapshots
                 loadtest "console/installation_snapshots.pm";
+                loadtest "console/snapper_cleanup.pm";
             }
             loadtest "console/snapper_undochange.pm";
         }
