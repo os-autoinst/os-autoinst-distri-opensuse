@@ -44,7 +44,7 @@ sub run() {
     }
     if (match_has_tag('install-susefirewall2')) {
         send_key "alt-i";                               # install SuSEfirewall2
-        assert_screen "yast2_lan", 30;                  # check yast2_lan again after SuSEfirewall2 installed
+        assert_screen "yast2_lan", 90;                  # check yast2_lan again after SuSEfirewall2 installed
     }
 
     my $hostname = "susetest";
