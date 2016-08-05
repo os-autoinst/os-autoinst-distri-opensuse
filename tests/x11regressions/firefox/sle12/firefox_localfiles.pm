@@ -31,6 +31,7 @@ sub run() {
     send_key "alt-d";
     type_string "/usr/share/sounds/alsa/test.wav\n";
     assert_screen('firefox-local_files-wav', 60);
+    send_key "esc";
 
     # so
     send_key "alt-d";
