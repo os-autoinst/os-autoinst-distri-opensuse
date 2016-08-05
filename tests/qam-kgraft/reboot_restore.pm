@@ -59,8 +59,8 @@ sub run() {
     script_run("cat /tmp/lsboot");
     save_screenshot;
 
-    script_run("basename /boot/initrd-\$(uname -r) | sed s_initrd-__g | sed s_-default__g | tee > /dev/$serialdev", 0);
-    my ($kver) = wait_serial(qr/^\d\.\d+\.\d+-\d+\.\d+/) =~ /(^\d\.\d+\.\d+-\d+\.\d+)\s/;
+    script_run("basename /boot/initrd-\$(uname -r) | sed s_initrd-__g | sed s_-default__g > /dev/$serialdev", 0);
+    my ($kver) = wait_serial(qr/^\d\.\d+\.\d+-\d+(?:\.\d+|)/) =~ /(^\d\.\d+\.\d+-\d+(?:\.\d+|))\s/;
 
     script_run("lsinitrd /boot/initrd-$kver-xen | grep patch");
     save_screenshot;
@@ -76,11 +76,10 @@ sub run() {
 
     mod_rpm_info($module);
 
-    snap_revert($svirt, $name, $snapshot_after);
-
     script_run("uname -a");
     save_screenshot;
-    type_string("logout\n");
+
+    snap_revert($svirt, $name, $snapshot_after);
 }
 
 sub post_fail_hook() {
