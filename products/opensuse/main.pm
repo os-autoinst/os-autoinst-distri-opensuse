@@ -239,6 +239,9 @@ sub load_inst_tests() {
         loadtest "installation/multipath.pm";
     }
     loadtest "installation/good_buttons.pm";
+    if (get_var('ENCRYPT_CANCEL_EXISTING') || get_var('ENCRYPT_ACTIVATE_EXISTING')) {
+        loadtest "installation/encrypted_volume_activation.pm";
+    }
     if (noupdatestep_is_applicable() && !get_var("LIVECD")) {
         loadtest "installation/installation_mode.pm";
     }
@@ -284,7 +287,12 @@ sub load_inst_tests() {
         loadtest "installation/installer_desktopselection.pm";
     }
     if (noupdatestep_is_applicable()) {
-        loadtest "installation/user_settings.pm";
+        if (get_var('IMPORT_USER_DATA')) {
+            loadtest 'installation/user_import.pm';
+        }
+        else {
+            loadtest "installation/user_settings.pm";
+        }
         if (get_var("DOCRUN")) {    # root user
             loadtest "installation/user_settings_root.pm";
         }
