@@ -102,7 +102,7 @@ sub fill_in_registration_data {
         # ids - IBM DLPAR sdk (ppc64le only)
         if (get_var('SCC_ADDONS')) {
             for my $addon (split(/,/, get_var('SCC_ADDONS', ''))) {
-                if (check_var('DESKTOP', 'textmode')) {
+                if (check_var('VIDEOMODE', 'text')) {
                     send_key_until_needlematch "scc-module-$addon", 'tab';
                     send_key "spc";
                 }
