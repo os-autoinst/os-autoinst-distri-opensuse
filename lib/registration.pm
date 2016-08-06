@@ -107,8 +107,13 @@ sub fill_in_registration_data {
                     send_key "spc";
                 }
                 else {
-                    assert_and_click "scc-module-$addon";
+                    wait_still_screen(1);
+                    wait_screen_change { assert_and_click "scc-module-$addon" };
+                    # don't confuse later upcoming dialogs with mouse cursor
+                    # near the middle of screen
+                    mouse_hide(1);
                 }
+                save_screenshot;
             }
             send_key 'alt-n';    # next, all addons selected
             for my $addon (split(/,/, get_var('SCC_ADDONS', ''))) {
