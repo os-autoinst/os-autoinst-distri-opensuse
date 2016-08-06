@@ -157,9 +157,9 @@ sub fill_in_registration_data {
                     type_string $regcode;
                     sleep 1;
                     save_screenshot;
+                    send_key $cmd{next} if check_var('VIDEOMODE', 'text');
                 }
             }
-            send_key $cmd{next};
             # start addons/modules registration, it needs longer time if select multiple or all addons/modules
             while (assert_screen(['import-untrusted-gpg-key', 'yast_scc-pkgtoinstall', 'inst-addon'], 120)) {
                 if (match_has_tag('import-untrusted-gpg-key')) {
