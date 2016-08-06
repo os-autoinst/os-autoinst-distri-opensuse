@@ -69,7 +69,7 @@ sub run() {
         }
     }
 
-    if (check_var('ARCH', 's390x')) {                      # s390x always needs SSH
+    if (check_var('ARCH', 's390x') && !get_var('UPGRADE')) {    # s390x always needs SSH
 
         send_key_until_needlematch [qw/ssh-blocked ssh-open/], 'tab';
         if (match_has_tag 'ssh-blocked') {
