@@ -261,6 +261,13 @@
                         { key => "RESIZE_ROOT_VOLUME", value => 1 },
                         { key => "HDDSIZEGB", value => "50" },
                       ],
+                    },
+                    {
+                      name => "salt",
+                      settings => [
+                        { key => "SCC_ADDONS", value => "asmm" },
+                        { key => "SALT", value => 1 },
+                      ],
                     }
                   ],
 }
