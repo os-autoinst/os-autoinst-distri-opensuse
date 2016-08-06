@@ -43,7 +43,7 @@ sub kgr_block {
 
     while (1) {
         script_run("kgr poke");
-        script_run(qq{BLOCK="kgr-\$(kgr blocking)"; echo \$BLOCK |tee > /dev/$serialdev}, 0);
+        script_run(qq{BLOCK="kgr-\$(kgr blocking)"; echo \$BLOCK > /dev/$serialdev}, 0);
         $out = wait_serial([$kgr_block_hwrandom, $kgr_block_other, $kgr_block_free], 30);
 
         if ($out =~ $kgr_block_hwrandom) {
@@ -61,6 +61,7 @@ sub run() {
     my $self  = shift;
     my $svirt = select_console('svirt');
     my $name  = get_var('VIRSH_GUESTNAME');
+    my $build = get_var('BUILD');
     $svirt->attach_to_running($name);
     select_console('sut');
     select_console("root-console");
@@ -74,7 +75,7 @@ sub run() {
 
     # create reference snapshot
     my $snapshot_before = "snap_before-" . timemark;
-    my $ret             = $svirt->run_cmd("virsh snapshot-create-as $name $snapshot_before");
+    my $ret             = $svirt->run_cmd("virsh snapshot-create-as $name $snapshot_before $build");
     die "snapshot $snapshot_before failed" if $ret;
     set_var('KGRAFT_SNAPSHOT_BEFORE', $snapshot_before);
 
@@ -94,12 +95,6 @@ sub run() {
     zypper_call("ref");
 
     # TODO . it needs patchinfo and definition of patch
-    #save patch name to VAR
-    script_run("zypper patches | awk '/test-kgraft/ { print \$3; }' | tee > /dev/$serialdev", 0);
-
-    my $out = wait_serial(qr/SUSE-*/);
-    set_var('KGRAFT_PATCH_NAME', $out);
-
     #patch system
     zypper_call(qq{in -l -y -t patch \$(zypper patches | awk -F "|" '/test-kgraft/ { print \$2;}')}, exitcode => [0, 102, 103], log => 'zypper.log');
 
@@ -120,13 +115,15 @@ sub run() {
     # wait for cooldown:)
     sleep 45;
 
+    capture_state("after");
+    script_run("clear");
+    type_string("logout\n");
+
     # create snapshot after update
     my $snapshot_after = "snap_after-" . timemark;
-    $ret = $svirt->run_cmd("virsh snapshot-create-as $name $snapshot_after");
+    $ret = $svirt->run_cmd("virsh snapshot-create-as $name $snapshot_after $build");
     die "snapshot $snapshot_after failed" if $ret;
     set_var('KGRAFT_SNAPSHOT_AFTER', $snapshot_after);
-    capture_state("after");
-    type_string("logout\n");
 
 }
 
