@@ -28,7 +28,7 @@ sub run() {
     }
 
     wait_idle;
-    mouse_hide;
+    mouse_hide(1);
 
     # license+lang
     if (get_var("HASLICENSE")) {

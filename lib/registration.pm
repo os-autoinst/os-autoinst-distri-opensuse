@@ -123,8 +123,10 @@ sub fill_in_registration_data {
                     send_key "spc";
                 }
                 else {
-                    assert_and_click "scc-module-$addon";
+                    wait_still_screen(1);
+                    wait_screen_change { assert_and_click "scc-module-$addon" };
                 }
+                save_screenshot;
             }
             send_key $cmd{next};    # all addons selected
             for my $addon (split(/,/, get_var('SCC_ADDONS', ''))) {
