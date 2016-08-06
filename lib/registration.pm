@@ -143,7 +143,11 @@ sub fill_in_registration_data {
                     save_screenshot;
                 }
             }
-            send_key 'alt-n';
+            # this alt-n looks rather unmotivated. At least when we want
+            # to add addons during installation this presses alt-n the
+            # second time and skip the next addon selection screen which
+            # would break tests
+            send_key 'alt-n' if check_var('VIDEOMODE', 'text'));
             # start addons/modules registration, it needs longer time if select multiple or all addons/modules
             while (assert_screen(['import-untrusted-gpg-key', 'yast_scc-pkgtoinstall', 'inst-addon'], 120)) {
                 if (match_has_tag('import-untrusted-gpg-key')) {
