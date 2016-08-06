@@ -95,7 +95,8 @@ sub get_to_yast() {
     my $r;
 
     # qaboot
-    my $dir_with_suse_ins = get_var('REPO_0');
+    diag("get_to_yast: INSTALL_PREVIOUS_AND_UPGRADE: " . get_var('INSTALL_PREVIOUS_AND_UPGRADE') . ", UPGRADE: " . get_var('UPGRADE'));
+    my $dir_with_suse_ins = (get_var('INSTALL_PREVIOUS_AND_UPGRADE') and !get_var('UPGRADE')) ? get_var('REPO_UPGRADE_BASE_0', 'SLE-12-SP1-Server-DVD-s390x-GM-DVD1') : get_var('REPO_0');
     my $repo_host = get_var('REPO_HOST', 'openqa.suse.de');
 
     my $parmfile_with_Newline_s = prepare_parmfile($dir_with_suse_ins);
@@ -248,7 +249,7 @@ sub run() {
     my $c = select_console('iucvconn');
 
     # we also want to test the formatting during the installation if the variable is set
-    if (!get_var("FORMAT_DASD_YAST") && !get_var('S390_DISK')) {
+    if (!get_var("FORMAT_DASD_YAST") && !get_var('S390_DISK') && !get_var('UPGRADE')) {
         format_dasd;
     }
 

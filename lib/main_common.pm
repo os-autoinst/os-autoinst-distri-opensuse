@@ -29,7 +29,6 @@ our @EXPORT = qw/
   rescuecdstep_is_applicable
   remove_desktop_needles
   check_env
-  unregister_needle_tags
   /;
 
 sub init_main {
@@ -163,13 +162,6 @@ sub rescuecdstep_is_applicable {
     return get_var("RESCUECD");
 }
 
-sub remove_desktop_needles {
-    my $desktop = shift;
-    if (!check_var("DESKTOP", $desktop) && !check_var("FULL_DESKTOP", $desktop)) {
-        unregister_needle_tags("ENV-DESKTOP-$desktop");
-    }
-}
-
 our %valueranges = (
 
     #   LVM=>[0,1],
@@ -194,11 +186,5 @@ sub check_env {
 }
 
 our @can_randomize = qw/NOIMAGES REBOOTAFTERINSTALL DESKTOP VIDEOMODE/;
-
-sub unregister_needle_tags {
-    my ($tag) = @_;
-    my @a = @{needle::tags($tag)};
-    for my $n (@a) { $n->unregister(); }
-}
 
 1;

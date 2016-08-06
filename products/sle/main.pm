@@ -15,15 +15,15 @@ use main_common;
 init_main();
 
 sub is_server {
-    return is_sles4sap() || get_var('FLAVOR', '') =~ /^Server/;
+    return utils::is_sle_server;
 }
 
 sub is_desktop {
-    return get_var('FLAVOR', '') =~ /^Desktop/;
+    return utils::is_sle_desktop;
 }
 
 sub is_sles4sap {
-    return get_var('FLAVOR', '') =~ /SAP/;
+    return utils::is_sles4sap;
 }
 
 sub is_sles4sap_standard {
@@ -43,60 +43,7 @@ sub is_new_installation {
 }
 
 sub cleanup_needles {
-    remove_desktop_needles("lxde");
-    remove_desktop_needles("kde");
-    remove_desktop_needles("gnome");
-    remove_desktop_needles("xfce");
-    remove_desktop_needles("minimalx");
-    remove_desktop_needles("textmode");
-
-    if (!check_var("VIDEOMODE", "text")) {
-        unregister_needle_tags("ENV-VIDEOMODE-text");
-    }
-
-    if (get_var("INSTLANG") && get_var("INSTLANG") ne "en_US") {
-        unregister_needle_tags("ENV-INSTLANG-en_US");
-    }
-    else {    # english default
-        unregister_needle_tags("ENV-INSTLANG-de_DE");
-    }
-
-    if (get_var('VERSION', '') ne '12') {
-        unregister_needle_tags("ENV-VERSION-12");
-    }
-
-    if (get_var('VERSION', '') ne '12-SP1') {
-        unregister_needle_tags("ENV-VERSION-12-SP1");
-    }
-
-    if (get_var('VERSION', '') ne '12-SP2') {
-        unregister_needle_tags("ENV-VERSION-12-SP2");
-    }
-
-    my $tounregister = sle_version_at_least('12-SP2') ? '0' : '1';
-    unregister_needle_tags("ENV-SP2ORLATER-$tounregister");
-
-    if (!is_server) {
-        unregister_needle_tags("ENV-FLAVOR-Server-DVD");
-    }
-
-    if (!is_desktop) {
-        unregister_needle_tags("ENV-FLAVOR-Desktop-DVD");
-    }
-
-    if (!is_jeos) {
-        unregister_needle_tags('ENV-FLAVOR-JeOS-for-kvm');
-    }
-    if (!check_var("ARCH", "s390x")) {
-        unregister_needle_tags('ENV-ARCH-s390x');
-    }
-
-    if (get_var('OFW')) {
-        unregister_needle_tags('ENV-OFW-0');
-    }
-    else {
-        unregister_needle_tags('ENV-OFW-1');
-    }
+    return utils::cleanup_sle_needles;
 }
 
 my $distri = testapi::get_var("CASEDIR") . '/lib/susedistribution.pm';
@@ -436,7 +383,7 @@ sub load_inst_tests() {
         loadtest "installation/installer_timezone.pm";
         # the test should run only in scenarios, where installed
         # system is not being tested (e.g. INSTALLONLY etc.)
-        if (!consolestep_is_applicable()) {
+        if (!consolestep_is_applicable() && !check_var('BACKEND', 's390x')) {
             loadtest "installation/hostname_inst.pm";
         }
         if (!get_var("REMOTE_CONTROLLER")) {
@@ -528,102 +475,105 @@ sub load_consoletests() {
         }
         loadtest "console/consoletest_setup.pm";
         loadtest "console/check_console_font.pm";
-        loadtest "console/textinfo.pm";
-        loadtest "console/hostname.pm";
-        if (get_var("SYSTEM_ROLE")) {
-            loadtest "console/patterns.pm";
-        }
-        if (snapper_is_applicable()) {
-            if (get_var("UPGRADE")) {
-                loadtest "console/upgrade_snapshots.pm";
-            }
-            elsif (!get_var("ZDUP") and !check_var('VERSION', '12')) {    # zypper and sle12 doesn't do upgrade or installation snapshots
-                loadtest "console/installation_snapshots.pm";
-            }
-            loadtest "console/snapper_undochange.pm";
-        }
-        if (get_var("DESKTOP") !~ /textmode/ && !check_var("ARCH", "s390x")) {
-            loadtest "console/xorg_vt.pm";
-        }
-        loadtest "console/zypper_lr.pm";
-        if (need_clear_repos()) {
-            loadtest "console/zypper_clear_repos.pm";
-        }
-        #have SCC repo for SLE product
-        if (have_scc_repos()) {
-            loadtest "console/yast_scc.pm";
-        }
-        elsif (have_addn_repos()) {
-            loadtest "console/zypper_ar.pm";
-        }
-        loadtest "console/zypper_ref.pm";
-        loadtest "console/yast2_lan.pm";
-        loadtest "console/curl_https.pm";
-        if (check_var("ARCH", "x86_64")) {
-            loadtest "console/glibc_i686.pm";
-        }
-        if (check_var('ARCH', 'aarch64')) {
-            loadtest "console/acpi.pm";
-        }
-        if (!gnomestep_is_applicable()) {
-            loadtest "console/zypper_up.pm";
-        }
-        if (is_jeos()) {
-            loadtest "console/console_reboot.pm";
-        }
-        loadtest "console/zypper_in.pm";
-        loadtest "console/yast2_i.pm";
-        loadtest "console/yast2_bootloader.pm";
-        loadtest "console/vim.pm";
-        if (!is_staging()) {
-            loadtest "console/firewall_enabled.pm";
-        }
-        if (is_jeos()) {
-            loadtest "console/gpt_ptable.pm";
-            loadtest "console/kdump_disabled.pm";
-            loadtest "console/sshd_running.pm";
-        }
-        if (rt_is_applicable()) {
-            loadtest "console/rt_is_realtime.pm";
-            loadtest "console/rt_devel_packages.pm";
-            loadtest "console/rt_peak_pci.pm";
-            loadtest "console/rt_preempt_test.pm";
-        }
-        loadtest "console/sshd.pm";
-        if (get_var("BIGTEST")) {
-            loadtest "console/sntp.pm";
-            loadtest "console/curl_ipv6.pm";
-            loadtest "console/wget_ipv6.pm";
-            loadtest "console/syslinux.pm";
-        }
-        loadtest "console/mtab.pm";
+        #loadtest "console/textinfo.pm";
+        #loadtest "console/hostname.pm";
+        #if (get_var("SYSTEM_ROLE")) {
+        #    loadtest "console/patterns.pm";
+        #}
+        #if (snapper_is_applicable()) {
+        #    if (get_var("UPGRADE")) {
+        #        loadtest "console/upgrade_snapshots.pm";
+        #    }
+        #    elsif (!get_var("ZDUP") and !check_var('VERSION', '12')) {    # zypper and sle12 doesn't do upgrade or installation snapshots
+        #        loadtest "console/installation_snapshots.pm";
+        #    }
+        #    loadtest "console/snapper_undochange.pm";
+        #}
+        #if (get_var("DESKTOP") !~ /textmode/ && !check_var("ARCH", "s390x")) {
+        #    loadtest "console/xorg_vt.pm";
+        #}
+        #loadtest "console/zypper_lr.pm";
+        #if (need_clear_repos()) {
+        #    loadtest "console/zypper_clear_repos.pm";
+        #}
+        ##have SCC repo for SLE product
+        #if (have_scc_repos()) {
+        #    loadtest "console/yast_scc.pm";
+        #}
+        #elsif (have_addn_repos()) {
+        #    loadtest "console/zypper_ar.pm";
+        #}
+        #loadtest "console/zypper_ref.pm";
+        #loadtest "console/yast2_lan.pm";
+        #loadtest "console/curl_https.pm";
+        #if (check_var("ARCH", "x86_64")) {
+        #    loadtest "console/glibc_i686.pm";
+        #}
+        #if (check_var('ARCH', 'aarch64')) {
+        #    loadtest "console/acpi.pm";
+        #}
+        #if (!gnomestep_is_applicable()) {
+        #    loadtest "console/zypper_up.pm";
+        #}
+        #if (is_jeos()) {
+        #    loadtest "console/console_reboot.pm";
+        #}
+        #loadtest "console/zypper_in.pm";
+        #loadtest "console/yast2_i.pm";
+        #loadtest "console/yast2_bootloader.pm";
+        #loadtest "console/vim.pm";
+        #if (!is_staging()) {
+        #    loadtest "console/firewall_enabled.pm";
+        #}
+        #if (is_jeos()) {
+        #    loadtest "console/gpt_ptable.pm";
+        #    loadtest "console/kdump_disabled.pm";
+        #    loadtest "console/sshd_running.pm";
+        #}
+        #if (rt_is_applicable()) {
+        #    loadtest "console/rt_is_realtime.pm";
+        #    loadtest "console/rt_devel_packages.pm";
+        #    loadtest "console/rt_peak_pci.pm";
+        #    loadtest "console/rt_preempt_test.pm";
+        #}
+        #loadtest "console/sshd.pm";
+        #if (get_var("BIGTEST")) {
+        #    loadtest "console/sntp.pm";
+        #    loadtest "console/curl_ipv6.pm";
+        #    loadtest "console/wget_ipv6.pm";
+        #    loadtest "console/syslinux.pm";
+        #}
+        #loadtest "console/mtab.pm";
 
-        if (is_new_installation && sle_version_at_least('12-SP2')) {
-            loadtest "console/no_perl_bootloader.pm";
-        }
-        if (!get_var("NOINSTALL") && !is_desktop && (check_var("DESKTOP", "textmode"))) {
-            if (!is_staging() && check_var('BACKEND', 'qemu')) {
-                # The NFS test expects the IP to be 10.0.2.15
-                loadtest "console/yast2_nfs_server.pm";
-            }
-            loadtest "console/http_srv.pm";
-            loadtest "console/mysql_srv.pm";
-            if (!is_staging()) {
-                # Very temporary removal of this test from staging - rbrown 6 Apr 2016
-                loadtest "console/dns_srv.pm";
-            }
-        }
-        if (get_var("MOZILLATEST")) {
-            loadtest "console/mozmill_setup.pm";
-        }
-        if (check_var("DESKTOP", "xfce")) {
-            loadtest "console/xfce_gnome_deps.pm";
-        }
-        if (get_var("CLONE_SYSTEM")) {
-            loadtest "console/yast2_clone_system.pm";
-        }
-        if (check_var('ARCH', 'aarch64') and check_var('VERSION', '12-SP2')) {
-            loadtest "console/check_gcc48_on_sdk_in_aarch64.pm";
+        #if (is_new_installation && sle_version_at_least('12-SP2')) {
+        #    loadtest "console/no_perl_bootloader.pm";
+        #}
+        #if (!get_var("NOINSTALL") && !is_desktop && (check_var("DESKTOP", "textmode"))) {
+        #    if (!is_staging() && check_var('BACKEND', 'qemu')) {
+        #        # The NFS test expects the IP to be 10.0.2.15
+        #        loadtest "console/yast2_nfs_server.pm";
+        #    }
+        #    loadtest "console/http_srv.pm";
+        #    loadtest "console/mysql_srv.pm";
+        #    if (!is_staging()) {
+        #        # Very temporary removal of this test from staging - rbrown 6 Apr 2016
+        #        loadtest "console/dns_srv.pm";
+        #    }
+        #}
+        #if (get_var("MOZILLATEST")) {
+        #    loadtest "console/mozmill_setup.pm";
+        #}
+        #if (check_var("DESKTOP", "xfce")) {
+        #    loadtest "console/xfce_gnome_deps.pm";
+        #}
+        #if (get_var("CLONE_SYSTEM")) {
+        #    loadtest "console/yast2_clone_system.pm";
+        #}
+        #if (check_var('ARCH', 'aarch64') and check_var('VERSION', '12-SP2')) {
+        #    loadtest "console/check_gcc48_on_sdk_in_aarch64.pm";
+        #}
+        if (get_var('SALT')) {
+            loadtest "console/salt.pm";
         }
         loadtest "console/consoletest_finish.pm";
     }
@@ -1157,17 +1107,42 @@ else {
             loadtest "jeos/sccreg.pm";
         }
     }
+    if (get_var('BOOT_EXISTING_S390')) {
+        loadtest 'installation/boot_s390.pm';
+        loadtest 'installation/reconnect_s390.pm';
+        loadtest 'installation/first_boot.pm';
+    }
     else {
-        if (get_var('BOOT_EXISTING_S390')) {
-            loadtest 'installation/boot_s390.pm';
-            loadtest 'installation/reconnect_s390.pm';
-            loadtest 'installation/first_boot.pm';
-        }
-        else {
+        if (get_var('INSTALL_PREVIOUS_AND_UPGRADE')) {
+            loadtest "installation/setup_install_previous_and_upgrade.pm";
+            set_var('VERSION', '12-SP1');
+            set_var('SP2ORLATER', 0);
+            print("before loadtest of install_previous: ");
+            logcurrentenv(qw"VERSION SP2ORLATER UPGRADE");
             load_boot_tests();
             load_inst_tests();
             load_reboot_tests();
+            #loadtest 'installation/boot_s390.pm';
+            #loadtest 'installation/reconnect_s390.pm';
+            #loadtest 'installation/first_boot.pm';
+
+            loadtest "shutdown/shutdown.pm";
+            loadtest "installation/switch_to_upgrade.pm";
+            # TODO which is the right approach? Do we need to set UPGRADE in
+            # the test module (i.e. executed during test execution time) or
+            # here (i.e. during test scheduling time)
+            set_var('UPGRADE', 1);
+            set_var('VERSION', '12-SP2');
+            set_var('SP2ORLATER', 1);
+            print("before loadtest of upgrade: ");
+            logcurrentenv(qw"VERSION SP2ORLATER UPGRADE");
+            # as we didn't want to cleanup needles in before because the
+            # variables were still wrong, we do it now
+            cleanup_needles();
         }
+        load_boot_tests();
+        load_inst_tests();
+        load_reboot_tests();
     }
     unless (load_applicationstests() || load_slenkins_tests()) {
         load_rescuecd_tests();
