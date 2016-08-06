@@ -1,4 +1,4 @@
-use base "basetest";
+use base "x11test";
 use strict;
 use testapi;
 
@@ -58,6 +58,10 @@ sub run() {
     assert_screen "virt-sle12sp1-gnome_libvirtd_status", 20;
     # close the xterm
     send_key "alt-f4";
+}
+
+sub test_flags() {
+    return {important => 1, milestone => 1};
 }
 
 1;
