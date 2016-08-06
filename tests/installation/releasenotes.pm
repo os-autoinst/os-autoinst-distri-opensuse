@@ -41,6 +41,7 @@ sub run() {
     if (@addons) {
         for my $a (@addons) {
             next if ($a eq 'we');    # https://bugzilla.suse.com/show_bug.cgi?id=931003#c17
+            next if ($a eq 'asmm'); # seems like we have no release notes for asmm, maybe others, too
             send_key_until_needlematch("release-notes-$a", 'right', 4, 60);
             send_key 'left';         # move back to first tab
             send_key 'left';
