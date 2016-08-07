@@ -34,6 +34,7 @@ sub run() {
             send_key $cmd{next}, 1;
             if (get_var("ADDONURL") !~ m{/update/}) {    # update is already trusted, so would trigger "delete"
                 send_key "alt-i";
+                assert_screen 'import-untrusted-gpg-key-598D0E63B3FD7E48';
                 send_key "alt-t", 1;                     # confirm import (trust) key
             }
         }
