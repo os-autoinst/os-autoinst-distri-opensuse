@@ -73,6 +73,11 @@ sub run() {
                 save_screenshot;
             }
 
+            if (my $e = get_var("EXTRABOOTPARAMS")) {
+                type_string_very_slow " $e";
+                save_screenshot;
+            }
+
             save_screenshot;
             registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED);
             send_key "ctrl-x";
