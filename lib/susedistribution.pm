@@ -251,8 +251,6 @@ sub init_consoles {
             set_var("S390_NETWORK_PARAMS", $s390_params);
 
             ($hostname) = $s390_params =~ /Hostname=(\S+)/;
-
-            set_var("EXPECTED_INSTALL_HOSTNAME", $hostname);
         }
 
         if (check_var("VIDEOMODE", "text")) {    # adds console for text-based installation on s390x
