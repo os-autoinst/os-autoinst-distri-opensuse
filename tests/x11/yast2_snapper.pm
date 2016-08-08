@@ -110,21 +110,16 @@ sub run() {
     # Make sure the snapshot is not longer there
     assert_screen [qw/yast2_snapper-snapshots yast2_snapper-new_snapshot yast2_snapper-new_snapshot_selected/], 100;
     if (match_has_tag('yast2_snapper-new_snapshot') or match_has_tag('yast2_snapper-new_snapshot_selected')) {
-        diag 'new snapshot found despite requested for deletion';
-        if (check_var('DISTRI', 'sle') && !sle_version_at_least('12-SP2')) {
-            diag 'Waiting a bit more on SP1 because of a known issue';
-            # In old versions the test was so slow that the issue has never
-            # been seen: Deleting a snapshot on at least SP1 does not happen
-            # immediately but takes 1-2 seconds. That's why after deletion
-            # it's still there which is detected now in the new faster version
-            # of the test. On a second look it should really be gone
-            wait_still_screen;
-            if (check_screen([qw/yast2_snapper-new_snapshot yast2_snapper-new_snapshot_selected/])) {
-                die("The snapshot is still visible after trying to delete it and waiting a bit");
-            }
-        }
-        else {
-            die("The snapshot is still visible after trying to delete it");
+        diag 'new snapshot found despite requested for deletion, waiting a bit more';
+        # In old versions the test was so slow that the issue has never
+        # been seen: Deleting a snapshot on at least SP1 does not happen
+        # immediately but takes 1-2 seconds. That's why after deletion
+        # it's still there which is detected now in the new faster version
+        # of the test. On a second look it should really be gone
+        record_soft_failure 'bsc#992192' if sle_version_at_least('12-SP2');
+        wait_still_screen;
+        if (check_screen([qw/yast2_snapper-new_snapshot yast2_snapper-new_snapshot_selected/])) {
+            die("The snapshot is still visible after trying to delete it and waiting a bit");
         }
     }
     $self->clean_and_quit;
