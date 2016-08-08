@@ -18,6 +18,14 @@ use base 'basetest';
 use testapi;
 use utils;
 
+my $confirmed_licenses = 0;
+
+sub accept_license {
+    send_key $cmd{accept};
+    send_key $cmd{next};
+    $confirmed_licenses++;
+}
+
 sub save_logs_and_continue {
     my $name = shift;
     # save logs and continue
@@ -44,7 +52,6 @@ sub save_logs_and_continue {
     wait_idle(5);
 }
 
-
 sub run {
     my $self = shift;
     $self->result('ok');
@@ -55,6 +62,15 @@ sub run {
 
     push @needles, "autoyast-confirm"        if get_var("AUTOYAST_CONFIRM");
     push @needles, "autoyast-postpartscript" if get_var("USRSCR_DIALOG");
+    if (get_var("AUTOYAST_LICENSE")) {
+        if (get_var("BETA")) {
+            push @needles, "inst-betawarning";
+        }
+        else {
+            push @needles, "autoyast-license";
+        }
+    }
+
     my $postpartscript = 0;
     my $confirmed      = 0;
 
@@ -96,6 +112,14 @@ sub run {
                 @needles = grep { $_ ne 'autoyast-confirm' } @needles;
                 $confirmed = 1;
             }
+            elsif (match_has_tag('autoyast-license')) {
+                accept_license;
+            }
+            elsif (match_has_tag('inst-betawarning')) {
+                send_key $cmd{ok};
+                assert_screen 'autoyast-license';
+                accept_license;
+            }
             elsif (match_has_tag('autoyast-postpartscript')) {
                 @needles = grep { $_ ne 'autoyast-postpartscript' } @needles;
                 $postpartscript = 1;
@@ -122,7 +146,11 @@ sub run {
         $self->result('fail') if !$confirmed;
     }
 
-
+    if (get_var("AUTOYAST_LICENSE")) {
+        if ($confirmed_licenses == 0 || $confirmed_licenses != get_var("AUTOYAST_LICENSE", 0)) {
+            $self->result('fail');
+        }
+    }
 
     $maxtime   = 1000;
     $checktime = 30;
@@ -132,7 +160,6 @@ sub run {
 
         mouse_hide(1);
         $ret = check_screen(["reboot-after-installation", "autoyast-error"], $checktime);
-
 
         #repeat until timeout or login screen
         if (defined $ret) {
@@ -151,7 +178,6 @@ sub run {
         }
         $looptime = $looptime + $checktime;
         $timeout = 1 if $looptime > $maxtime;
-
     }
 
     if ($timeout) {                  #timeout - save log
@@ -168,21 +194,15 @@ sub run {
 
     #go to text console if graphical login detected
     send_key "ctrl-alt-f1" if match_has_tag('displaymanager');
-
-
-
-
 }
-
 
 sub test_flags {
     # without anything - rollback to 'lastgood' snapshot if failed
     # 'fatal' - whole test suite is in danger if this fails
     # 'milestone' - after this test succeeds, update 'lastgood'
     # 'important' - if this fails, set the overall state to 'fail'
-    return {important => 1};
+    return {fatal => 1};
 }
-
 
 1;
 
