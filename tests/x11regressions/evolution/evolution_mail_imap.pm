@@ -27,7 +27,7 @@ sub run() {
     my $mail_sendport   = $config->{$account}->{sendport};
     my $mail_recvport   = $config->{$account}->{imapport};
     my $next            = "alt-o";
-    my $mail_subject    = $self->my_random_str(4);
+    my $mail_subject    = $self->get_dated_random_string(4);
     mouse_hide(1);
     if (sle_version_at_least('12-SP2')) {
         $next = "alt-n";

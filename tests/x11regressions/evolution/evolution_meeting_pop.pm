@@ -209,7 +209,7 @@ sub setup_pop {
 
 sub run() {
     my $self         = shift;
-    my $mail_subject = $self->my_random_str(4);
+    my $mail_subject = $self->get_dated_random_string(4);
     #Setup account account A, and use it to send a meeting
     #send meet request by account A
     $self->setup_pop("internal_account_A");

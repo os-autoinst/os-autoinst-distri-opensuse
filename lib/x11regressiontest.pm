@@ -196,15 +196,18 @@ sub check_new_mail_evolution {
     }
 }
 
-# get a random string with followed by date, it used in evolution case to get a unique email title.
-sub my_random_str {
+# get a random string
+sub random_string {
     my ($self, $length) = @_;
-    my @char_source = ('A' .. 'Z');
+    my @chars = ('A' .. 'Z', 'a' .. 'z', 0 .. 9);
+    return join '', map { @chars[rand @chars] } 1 .. $length;
+}
+
+# get a random string with followed by date, it used in evolution case to get a unique email title.
+sub get_dated_random_string {
+    my ($self, $length) = @_;
     my $ret_string = (strftime "%F", localtime) . "-";
-    for (my $i = 1; $i <= $length; $i++) {
-        $ret_string .= $char_source[int(rand($#char_source + 1))];
-    }
-    return $ret_string;
+    return $ret_string .= random_string($self, $length);
 }
 
 #send meeting request by Evolution test cases
