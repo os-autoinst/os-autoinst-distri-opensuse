@@ -46,9 +46,7 @@ sub run() {
     assert_script_run 'zypper lifecycle --help';
     assert_script_run('zypper lifecycle --days 1', timeout => 30, fail_message => 'All packages supported tomorrow');
     $output = script_output 'zypper lifecycle --days 0';
-    my $today = qx{date --iso-8601};
-    chomp($today);
-    die "'end of support' line not found" unless $output =~ /No (products|packages).*before $today/;
+    die "'end of support' line not found" unless $output =~ /No (products|packages).*before/;
     assert_script_run('zypper lifecycle --days 9999', timeout => 30, fail_message => 'No package should be supported for more than 20 years');
     $output = script_output 'zypper lifecycle --days 9999';
     die "Product 'end of support' line not found" unless $output =~ /^Product end of support before/;
