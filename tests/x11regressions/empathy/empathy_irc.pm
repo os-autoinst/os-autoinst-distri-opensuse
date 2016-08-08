@@ -34,8 +34,9 @@ sub run() {
         send_key "ret";
     };
     send_key "tab";
-    # add a test irc account
-    type_string "openqa-test";
+    # add a random irc account
+    my $rstr = $self->random_string(4);
+    type_string "openqa-$rstr";
     send_key "alt-d";
     assert_screen 'empathy-irc-account-added';
     wait_screen_change {
