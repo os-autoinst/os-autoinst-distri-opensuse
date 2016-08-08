@@ -19,7 +19,7 @@ use strict;
 use testapi;
 
 sub run() {
-    my $name = ref(@_[0]);
+    my $name = ref($_[0]);
     ensure_installed($name);
     # we need to move the mouse in the top left corner as xchat
     # opens it's window where the mouse is. mouse_hide() would move
