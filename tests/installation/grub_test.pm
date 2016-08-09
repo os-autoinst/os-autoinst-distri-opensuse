@@ -22,7 +22,8 @@ sub run() {
         send_key 'ret';
     }
     workaround_type_encrypted_passphrase;
-    assert_screen "grub2";
+    # 60 due to rare slowness e.g. multipath poo#11908
+    assert_screen "grub2", 60;
     # prevent grub2 timeout; 'esc' would be cleaner, but grub2-efi falls to the menu then
     send_key 'up';
     if (get_var("BOOT_TO_SNAPSHOT")) {
