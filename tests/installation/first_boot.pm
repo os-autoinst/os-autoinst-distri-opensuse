@@ -22,7 +22,7 @@ sub run() {
         return;
     }
 
-    if (get_var("NOAUTOLOGIN")) {
+    if (get_var("NOAUTOLOGIN") || get_var("IMPORT_USER_DATA")) {
         assert_screen 'displaymanager', 200;
         if (get_var('DESKTOP_MINIMALX_INSTONLY')) {
             # return at the DM and log in later into desired wm

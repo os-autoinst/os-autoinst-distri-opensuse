@@ -293,7 +293,7 @@ sub load_inst_tests() {
         else {
             loadtest "installation/user_settings.pm";
         }
-        if (get_var("DOCRUN")) {    # root user
+        if (get_var("DOCRUN") || get_var("IMPORT_USER_DATA")) {    # root user
             loadtest "installation/user_settings_root.pm";
         }
     }
