@@ -12,6 +12,7 @@ use strict;
 use testapi;
 
 my @options = ({pw => "full_access_pw", change => 1}, {pw => "view_only_pw", change => 0});
+my $theme = "/usr/share/gnome-shell/theme/gnome-classic.css";
 
 sub type_and_wait {
     type_string shift;
@@ -41,10 +42,15 @@ sub start_vnc_server {
 # poo#11794
 sub run() {
     select_console "root-console";
+    # Hide panel buttons so wait_screen_change ignores clock change
+    assert_script_run "echo \"#panel .panel-button { color: transparent; }\" >> $theme";
     start_vnc_server;
 
-    # Start xev event watcher
     select_console "x11";
+    # Reload theme to hide panel text
+    x11_start_program "rt";
+
+    # Start xev event watcher
     x11_start_program "xterm";
     send_key "super-right";
     type_string "DISPLAY=:1 xev\n";
@@ -70,7 +76,9 @@ sub run() {
     send_key "alt-f4";
     select_console "root-console";
     send_key "ctrl-c";
+    assert_script_run "sed -i '\$d' $theme";
     select_console "x11";
+    x11_start_program "rt";
 }
 
 sub test_flags {
