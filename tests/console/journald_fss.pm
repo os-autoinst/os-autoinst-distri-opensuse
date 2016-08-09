@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Case 1463314  - FIPS: systemd
+# Case 1560070  - FIPS: systemd journald FSS
 
 use base "consoletest";
 use strict;
@@ -16,13 +16,22 @@ use testapi;
 sub run() {
 
     select_console "root-console";
-    assert_script_run("echo 'Seal=yes' >> /etc/systemd/journald.conf");
+
+    # Enable FSS (Forward Secure Sealing)
+    assert_script_run("sed -i -e 's/^Storage/#Storage/g' -e 's/^Seal/#Seal/g' /etc/systemd/journald.conf");
+    assert_script_run('echo -e "Storage=persistence\nSeal=yes" >> /etc/systemd/journald.conf');
     assert_script_run("mkdir -p /var/log/journal");
     assert_script_run("systemctl restart systemd-journald.service");
-    assert_script_run("journalctl --setup-keys");
-    assert_screen("journalctl-qr");
-    assert_script_run("journalctl --setup-keys --force | tee /tmp/key");
-    assert_script_run("journalctl --verify --verify-key=`cat /tmp/key`");
+
+    # Setup keys
+    assert_script_run("journalctl --interval=30s --setup-keys | tee /tmp/key");
+
+    # Verify the journal with valid verification key
+    assert_script_run('key=$(cat /tmp/key); echo "Verify with key: $key"; journalctl --verify --verify-key=$key');
+
+    # Wait some time for the secret key being changed, and verify again
+    assert_script_run('sleep 40; key=$(cat /tmp/key); echo "Verify with key: $key"; journalctl --verify --verify-key=$key', 60);
+
     assert_script_run("rm -f /tmp/key");
 }
 
