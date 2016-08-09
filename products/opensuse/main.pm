@@ -884,6 +884,8 @@ elsif (get_var("SUPPORT_SERVER")) {
 }
 elsif (get_var("WINDOWS")) {
     loadtest "installation/win10_installation.pm";
+    loadtest "installation/win10_firstboot.pm";
+    loadtest "installation/win10_shutdown.pm";
 }
 else {
     if (get_var("LIVETEST")) {
