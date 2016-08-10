@@ -746,7 +746,7 @@ sub install_online_updates {
 }
 
 sub load_system_update_tests {
-    return if get_var("INSTALLONLY");
+    return if get_var("INSTALLONLY") || get_var("DUALBOOT");
 
     if (guiupdates_is_applicable()) {
         loadtest "update/prepare_system_for_update_tests.pm";
