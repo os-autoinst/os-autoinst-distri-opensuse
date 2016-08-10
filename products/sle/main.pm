@@ -440,7 +440,7 @@ sub load_inst_tests() {
         loadtest "installation/installer_timezone.pm";
         # the test should run only in scenarios, where installed
         # system is not being tested (e.g. INSTALLONLY etc.)
-        if (!consolestep_is_applicable() and !get_var("REMOTE_CONTROLLER") and !check_var('BACKEND', 's390x')) {
+        if (!consolestep_is_applicable() and !get_var("REMOTE_CONTROLLER") and !check_var('BACKEND', 's390x') and sle_version_at_least('12-SP2')) {
             loadtest "installation/hostname_inst.pm";
         }
         if (!get_var("REMOTE_CONTROLLER")) {
