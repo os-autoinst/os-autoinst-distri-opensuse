@@ -83,9 +83,8 @@ sub run() {
     check_automounter;
 
     # RUN HEAVY LOAD script
-    # TODO: place script somewhere in git and deploy from here
-    #       ie /var/tmp/scripty.sh ; applies for all used scripts
-    script_run("/root/bin/heavy_load.sh");
+    assert_script_run("curl -f " . autoinst_url . "/data/qam/heavy_load.sh -o /tmp/heavy_load.sh");
+    script_run("bash /tmp/heavy_load.sh");
     #
     sleep 15;
 
@@ -99,6 +98,9 @@ sub run() {
     zypper_call(qq{in -l -y -t patch \$(zypper patches | awk -F "|" '/test-kgraft/ { print \$2;}')}, exitcode => [0, 102, 103], log => 'zypper.log');
 
     zypper_call("rr test-kgraft");
+
+    script_run("rm /tmp/heavy_load.sh");
+
     # check if kgraft patch is applied to all functions..
     until (kgr_status) {
         kgr_block;
@@ -110,7 +112,7 @@ sub run() {
     #kill HEAVY-LOAD scripts
     script_run("screen -S LTP_syscalls -X quit");
     script_run("screen -S newburn_KCOMPILE -X quit");
-    script_run("/root/bin/heavy_load--tidyup.sh");
+    script_run("rm -Rf /var/log/qa");
 
     # wait for cooldown:)
     sleep 45;
@@ -136,7 +138,7 @@ sub post_fail_hook() {
     sleep 2;
     script_run("screen -S LTP_syscalls -X quit");
     script_run("screen -S newburn_KCOMPILE -X quit");
-    script_run("/root/bin/heavy_load--tidyup.sh");
+    script_run("rm -Rf /var/log/qa", 120);
     capture_state("fail");
     type_string("logout\n");
 

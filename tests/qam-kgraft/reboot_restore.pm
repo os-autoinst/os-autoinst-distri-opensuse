@@ -39,7 +39,9 @@ sub run() {
     check_automounter;
 
     #TODO: move to openQA data folder
-    script_run("/suse/rd-qa/rd-qa-kernel/process/kernelrefhosts/local-workdir/all/fake_consistent_snapshotfiles.sh -il -P /var/log/qa/ctcs2 -r openposix", 60);
+    assert_script_run("curl -f " . autoinst_url . "/data/qam/fcsf.sh -o /tmp/fcsf.sh");
+    assert_script_run("chmod a+x /tmp/fcsf.sh");
+    script_run("/tmp/fcsf.sh -il -P /var/log/qa/ctcs2 -r openposix", 60);
 
     assert_script_run("tar -cpf /tmp/var_log_qa_ctcs2.tar.gz -C / /var/log/qa/ctcs2", 120);
     upload_logs("/tmp/var_log_qa_ctcs2.tar.gz");

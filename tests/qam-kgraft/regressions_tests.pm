@@ -24,8 +24,6 @@ sub run() {
     select_console('root-console');
 
     # full LTP, #TODO --> look at qa_automation , rework  qa_run.pm to library
-    script_run("rm -Rf /var/log/qa", 120);
-
 
     script_run(qq{/usr/lib/ctcs2/tools/test_ltp-run; echo "ltp-done" > /dev/$serialdev}, 0);
     wait_serial(qr/ltp-done/, 36000);
