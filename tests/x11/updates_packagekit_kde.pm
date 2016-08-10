@@ -11,8 +11,7 @@ use base "x11test";
 use strict;
 use testapi;
 
-sub pre_run_hook() {
-    # Turn off screensaver
+sub turn_off_screensaver() {
     x11_start_program("kcmshell5 screenlocker");
     send_key("alt-l");
     send_key("alt-o");
@@ -20,28 +19,41 @@ sub pre_run_hook() {
 
 # Update with Plasma applet for software updates using PackageKit
 sub run() {
-    my @updates_installed_tags = qw/updates_none updates_available/;
+    turn_off_screensaver;
 
+    my @updates_installed_tags = qw/updates_none updates_available/;
     if (check_screen("updates_available-tray")) {
         assert_and_click("updates_available-tray");
 
-        # First update package manager, then packages
-        for (1 .. 2) {
+        # First update package manager, then packages, then bsc#992773 (2x)
+        while (1) {
             assert_and_click("updates_click-install");
 
             # Wait until installation is done
             assert_screen \@updates_installed_tags, 3600;
             if (match_has_tag("updates_none")) {
-                last;
+                wait_still_screen;
+                if (check_screen "updates_none") {
+                    last;
+                }
+                else {
+                    record_soft_failure 'bsc#992773';
+                }
             }
         }
         # Close tray updater
         send_key("alt-f4");
     }
+
+    # Check no more updates are available after gui updater
+    select_console "root-console";
+    assert_script_run "pkcon refresh";
+    assert_script_run "pkcon get-updates | grep \"There are no updates\"";
+    select_console "x11";
 }
 
 sub test_flags() {
-    return {milestone => 1};
+    return {milestone => 1, fatal => 1};
 }
 
 1;
