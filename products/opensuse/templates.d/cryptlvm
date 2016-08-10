@@ -1,0 +1,69 @@
+#!/usr/share/openqa/script/load_templates
+# Test suit template for the cryptlvm group
+{
+  TestSuites => [
+        {
+            name     => "cryptlvm",
+            settings => [
+                {key => "DESKTOP",            value => "gnome"},
+                {key => "ENCRYPT",            value => 1},
+                {key => "LVM",                value => 1},
+                {key => "REBOOTAFTERINSTALL", value => 0},
+                {
+                    key => "PUBLISH_HDD_1",
+                    value =>
+                      "%DISTRI%-%VERSION%-%ARCH%-%DESKTOP%-encrypted.qcow2"
+                },
+            ],
+        },
+        {
+            name     => "cryptlvm+cancel_existing",
+            settings => [
+                {key => "DESKTOP",                 value => "gnome"},
+                {key => "ENCRYPT",                 value => 1},
+                {key => "LVM",                     value => 1},
+                {key => "ENCRYPT_CANCEL_EXISTING", value => 1},
+                {key => "INSTALLONLY",             value => 1},
+                {
+                    key => "HDD_1",
+                    value =>
+                      "%DISTRI%-%VERSION%-%ARCH%-%DESKTOP%-encrypted.qcow2"
+                },
+                {key => "START_AFTER_TEST", value => "cryptlvm"},
+            ],
+        },
+        {
+            name     => "cryptlvm+activate_existing",
+            settings => [
+                {key => "DESKTOP",                   value => "gnome"},
+                {key => "ENCRYPT",                   value => 1},
+                {key => "LVM",                       value => 1},
+                {key => "ENCRYPT_ACTIVATE_EXISTING", value => 1},
+                {key => "INSTALLONLY",               value => 1},
+                {
+                    key => "HDD_1",
+                    value =>
+                      "%DISTRI%-%VERSION%-%ARCH%-%DESKTOP%-encrypted.qcow2"
+                },
+                {key => "START_AFTER_TEST", value => "cryptlvm"},
+            ],
+        },
+        {
+            name     => "cryptlvm+activate_existing+import_users",
+            settings => [
+                {key => "DESKTOP",                   value => "gnome"},
+                {key => "ENCRYPT",                   value => 1},
+                {key => "LVM",                       value => 1},
+                {key => "ENCRYPT_ACTIVATE_EXISTING", value => 1},
+                {key => "IMPORT_USER_DATA",          value => 1},
+                {key => "INSTALLONLY",               value => 1},
+                {
+                    key => "HDD_1",
+                    value =>
+                      "%DISTRI%-%VERSION%-%ARCH%-%DESKTOP%-encrypted.qcow2"
+                },
+                {key => "START_AFTER_TEST", value => "cryptlvm"},
+            ],
+        },
+      ]
+}
