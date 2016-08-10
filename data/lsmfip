@@ -94,6 +94,7 @@ while (my $name = shift @ARGV) {
 
 my $pool = solv::Pool->new();
 $pool->setarch();
+$pool->set_debuglevel(0);
 
 my $cachedir = '/var/cache/zypp/solv';
 for my $repo (glob("$cachedir/*")) {
@@ -125,7 +126,8 @@ if (!$options{verify}) {
             for my $s ($sel->solvables()) {
                 print STDERR "-> $s->{name}-$s->{evr}.$s->{arch}\n" if $options{verbose};
             }
-            push @jobs, $sel->jobs($solv::Job::SOLVER_INSTALL|$solv::Job::SOLVER_UPDATE);
+            push @jobs, $sel->jobs($solv::Job::SOLVER_INSTALL);
+            push @jobs, $sel->jobs($solv::Job::SOLVER_UPDATE);
         }
 
         my @problems = $solver->solve(\@jobs);
