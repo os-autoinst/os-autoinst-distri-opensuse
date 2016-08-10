@@ -25,7 +25,7 @@ sub run() {
     script_run 'mv cfe-3.6.2.src/* llvm-3.6.2.src/tools/clang/';
     script_run 'cd llvm-3.6.2.src';
     assert_script_run './configure --disable-bindings|tee /tmp/configure.log', 600;
-    assert_script_run 'make -j$(getconf _NPROCESSORS_ONLN)|tee /tmp/make.log', 4000;
+    assert_script_run 'make -j$(getconf _NPROCESSORS_ONLN)|tee /tmp/make.log', 6000;
     script_run 'cd tools/clang';
     assert_script_run 'make test|tee /tmp/make_test.log', 500;
 }
