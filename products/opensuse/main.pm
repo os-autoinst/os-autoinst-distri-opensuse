@@ -364,9 +364,6 @@ sub load_consoletests() {
         {
             loadtest "console/glibc_i686.pm";
         }
-        if (!guiupdates_is_applicable()) {
-            loadtest "console/zypper_up.pm";
-        }
         loadtest "console/zypper_in.pm";
         loadtest "console/yast2_i.pm";
         if (!get_var("LIVETEST")) {
@@ -587,14 +584,6 @@ sub load_x11tests() {
     if (get_var("XDMUSED")) {
         loadtest "x11/x11_login.pm";
     }
-    if (guiupdates_is_applicable()) {
-        if (check_var("DESKTOP", "kde")) {
-            loadtest "x11/updates_packagekit_kde.pm";
-        }
-        else {
-            loadtest "x11/updates_packagekit_gpk.pm";
-        }
-    }
     if (xfcestep_is_applicable()) {
         loadtest "x11/xfce4_terminal.pm";
     }
@@ -736,7 +725,7 @@ sub install_online_updates {
     my @tests = qw(
       console/zypper_disable_deltarpm
       console/zypper_add_repos
-      console/zypper_up
+      update/zypper_up
       console/console_reboot
       console/console_shutdown
     );
@@ -746,6 +735,23 @@ sub install_online_updates {
     }
 
     return 1;
+}
+
+sub load_system_update_tests {
+    return if get_var("INSTALLONLY");
+
+    if (guiupdates_is_applicable()) {
+        loadtest "update/prepare_system_for_update_tests.pm";
+        if (check_var("DESKTOP", "kde")) {
+            loadtest "update/updates_packagekit_kde.pm";
+        }
+        else {
+            loadtest "update/updates_packagekit_gpk.pm";
+        }
+    }
+    else {
+        loadtest "update/zypper_up.pm";
+    }
 }
 
 sub load_applicationstests {
@@ -773,7 +779,7 @@ sub load_applicationstests {
             'console/consoletest_setup',
             'console/check_console_font',
             'console/import_gpg_keys',
-            'console/zypper_up',
+            'update/zypper_up',
             'console/install_packages',
             'console/zypper_add_repos',
             'console/qam_zypper_patch',
@@ -788,7 +794,7 @@ sub load_applicationstests {
     else {
         @tests = (
             'console/consoletest_setup',
-            'console/zypper_up',
+            'update/zypper_up',
             'console/qam_verify_package_install',
             # position -2
             'console/consoletest_finish',
@@ -930,6 +936,7 @@ else {
         || load_otherDE_tests()
         || load_slenkins_tests())
     {
+        load_system_update_tests();
         load_rescuecd_tests();
         load_consoletests();
         load_x11tests();

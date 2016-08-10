@@ -10,10 +10,16 @@
 use base "x11test";
 use strict;
 use testapi;
+use utils;
 
-sub pre_run_hook() {
+sub turn_off_screensaver() {
     # Turn off screensaver
     x11_start_program("xterm");
+    assert_screen('xterm-started');
+
+    # in case we rebooted
+    assert_script_sudo "chown $testapi::username /dev/$testapi::serialdev";
+
     if (check_var("DESKTOP", "gnome")) {
         script_run("gsettings set org.gnome.desktop.session idle-delay 0");
     }
@@ -28,14 +34,15 @@ sub run() {
     my @updates_tags           = qw/updates_none updates_available/;
     my @updates_installed_tags = qw/updates_none updates_installed-logout updates_installed-restart/;
 
-    # First update package manager, then packages
-    for (1 .. 2) {
+    turn_off_screensaver;
+
+    while (1) {
         x11_start_program("gpk-update-viewer");
 
         assert_screen \@updates_tags, 100;
         if (match_has_tag("updates_none")) {
             send_key "ret";
-            last;
+            return;
         }
         elsif (match_has_tag("updates_available")) {
             send_key "alt-i";    # install
@@ -59,19 +66,17 @@ sub run() {
                 send_key "alt-c";    # close
             }
             elsif (match_has_tag("updates_installed-restart")) {
-                send_key "alt-c";    # close
-
-                # Workaround - packagekit stays open leap 42.1, fixed after update
-                if (check_screen("updates_available", 5)) {
-                    send_key("alt-f4");
-                }
+                select_console 'root-console';
+                type_string "reboot\n";
+                wait_boot;
+                turn_off_screensaver;
             }
         }
     }
 }
 
 sub test_flags() {
-    return {milestone => 1};
+    return {milestone => 1, fatal => 1};
 }
 
 1;
