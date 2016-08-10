@@ -22,16 +22,20 @@ sub run() {
     type_password;
     send_key "ret";
     assert_screen 'generic-desktop';
+    mouse_set(100, 100);
+    sleep 1;
     for (1 .. 4) {
         mouse_hide;
-        check_screen('mouse-cursor', 5) || return;
+        sleep 3;
+        check_screen('mouse-cursor', 1) || return;
     }
     die "mouse cursor still visible";
-
 }
 
 sub test_flags() {
-    return {important => 1, milestone => 1};
+    # as long as we don't understand the failure in mouse_hide we should rather not
+    # rely on this test. The problem can't be reproduced outside of openqa
+    return {important => 0, milestone => 1};
 }
 
 1;
