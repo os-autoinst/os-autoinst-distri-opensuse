@@ -22,7 +22,7 @@ sub run() {
     if (my $expected_install_hostname = get_var('EXPECTED_INSTALL_HOSTNAME')) {
         # EXPECTED_INSTALL_HOSTNAME contains expected hostname YaST installer
         # got from environment (DHCP, 'hostname=' as a kernel cmd line argument
-        assert_script_run "test \"\$(hostname)\" == $expected_install_hostname";
+        assert_script_run "test \"\$(hostname)\" == \"$expected_install_hostname\"";
     }
     else {
         # 'install' is the default hostname if no hostname is get from environment
