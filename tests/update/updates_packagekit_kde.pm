@@ -48,7 +48,7 @@ sub run() {
     # Check no more updates are available after gui updater
     select_console "root-console";
     assert_script_run "pkcon refresh";
-    assert_script_run "pkcon get-updates | grep \"There are no updates\"";
+    assert_script_run "pkcon get-updates | tee /dev/$serialdev | grep \"There are no updates\"";
     select_console "x11";
 }
 
