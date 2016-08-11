@@ -108,7 +108,7 @@ sub wait_boot {
             send_key "ret";
             assert_screen "grub2", 15;
         }
-        elsif (match_has_tag("migration-source-system-grub2")) {
+        elsif (match_has_tag("migration-source-system-grub2") or match_has_tag('grub2')) {
             send_key "ret";                                                      # boot to source system
         }
         elsif (get_var("LIVETEST")) {
@@ -328,8 +328,12 @@ sub workaround_type_encrypted_passphrase {
 # if stay under tty console for long time, then check
 # screen lock is necessary when switch back to x11
 sub check_screenlock {
+    my ($tags) = @_;
+    $tags //= [qw/generic-desktop/];
     send_key "backspace";    # deactivate blanking
-    if (check_screen("screenlock")) {
+    push $tags, 'screenlock';
+    if (check_screen($tags)) {
+        return unless match_has_tag 'screenlock';
         if (check_var("DESKTOP", "gnome")) {
             send_key "esc";
             unless (get_var("LIVETEST")) {

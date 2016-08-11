@@ -42,16 +42,7 @@ sub run() {
     if (!check_var("DESKTOP", "textmode")) {
         select_console('x11');
         wait_still_screen(2);
-        check_screenlock;
-
-        # workaround for bug 834165. Apper should not try to
-        # refresh repos when the console is not active:
-        if (get_var("DESKTOP", '') eq 'kde' && check_screen "apper-refresh-popup-bnc834165") {
-            record_soft_failure 'bsc#834165';
-            send_key 'alt-c';
-            sleep 30;
-        }
-        wait_idle;
+        check_screenlock [qw/displaymanager generic-desktop/];
         if (get_var("DESKTOP_MINIMALX_INSTONLY")) {
             # Desired wm was just installed and needs x11_login
             assert_screen 'displaymanager', 200;
