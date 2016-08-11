@@ -329,9 +329,8 @@ sub workaround_type_encrypted_passphrase {
 # screen lock is necessary when switch back to x11
 sub check_screenlock {
     my ($tags) = @_;
-    $tags //= [qw/generic-desktop/];
+    $tags //= [qw/generic-desktop screenlock/];
     send_key "backspace";    # deactivate blanking
-    push $tags, 'screenlock';
     if (check_screen($tags)) {
         return unless match_has_tag 'screenlock';
         if (check_var("DESKTOP", "gnome")) {
