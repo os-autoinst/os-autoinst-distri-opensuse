@@ -70,6 +70,11 @@ sub cleanup_needles() {
     if (!check_var('VERSION', 'Tumbleweed')) {
         unregister_needle_tags('ENV-VERSION-Tumbleweed');
     }
+    for my $flavor (qw/Krypton Krypton-Live/) {
+        if (!check_var('FLAVOR', $flavor)) {
+            unregister_needle_tags("ENV-FLAVOR-$flavor");
+        }
+    }
 }
 
 my $distri = testapi::get_var("CASEDIR") . '/lib/susedistribution.pm';
