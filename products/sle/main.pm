@@ -556,7 +556,10 @@ sub load_consoletests() {
         if (need_clear_repos()) {
             loadtest "console/zypper_clear_repos.pm";
         }
-        loadtest "console/openssl_alpn.pm";
+        # openssl alpn is supported from sle12sp2
+        if (sle_version_at_least('12-SP2')) {
+            loadtest "console/openssl_alpn.pm";
+        }
         #have SCC repo for SLE product
         if (have_scc_repos()) {
             loadtest "console/yast_scc.pm";
