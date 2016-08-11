@@ -14,16 +14,24 @@ use base "y2logsstep";
 use testapi;
 
 sub run() {
-    my $self = shift;
+    my $self             = shift;
+    my $file_system_tags = [
+        qw/
+          partitioning-no-root-filesystem partitioning-encrypt-activated-existing
+          partitioning-encrypt-ignored-existing
+          /
+    ];
 
     if (get_var('ENCRYPT_ACTIVATE_EXISTING')) {
-        assert_screen [qw/partitioning-no-root-filesystem partitioning-encrypt-activated-existing/];
+        assert_screen $file_system_tags;
         if (match_has_tag('partitioning-no-root-filesystem')) {
             record_soft_failure 'bsc#989750';
         }
-        else {
-            return;
+        elsif (match_has_tag('partitioning-encrypt-ignored-existing')) {
+            record_soft_failure 'bsc#993247';
         }
+
+        return unless get_var 'ENCRYPT_FORCE_RECOMPUTE';
     }
 
     send_key "alt-d";
@@ -37,13 +45,18 @@ sub run() {
                 send_key 'tab';
                 type_password;
                 send_key 'ret';
+            } else {
+                save_screenshot;
             }
         }
         else {
             send_key 'alt-l';
         }
         send_key 'alt-o';
-        assert_screen [qw/partition-lvm-new-summary partitioning-encrypt-activated-existing/];
+        assert_screen [qw/partition-lvm-new-summary partitioning-encrypt-activated-existing partitioning-encrypt-broke-existing/];
+        if (match_has_tag('partitioning-encrypt-broke-existing')) {
+            record_soft_failure 'bsc#993249';
+        }
     }
     elsif (!get_var('ENCRYPT_ACTIVATE_EXISTING')) {    # old behaviour still needed
         send_key "alt-l", 1;                           # enable LVM-based proposal
