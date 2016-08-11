@@ -14,18 +14,13 @@ use testapi;
 
 sub run() {
     send_key 'super';    # windows menu
-    wait_still_screen;
+    assert_screen 'windows-menu';
     send_key 'up';
-    wait_still_screen;
     send_key 'up';
-    wait_still_screen;
-    send_key 'spc';      # press power button
-    wait_still_screen;
+    send_key 'spc';          # press power button
     send_key 'up';
-    wait_still_screen;
     send_key 'up';
-    wait_still_screen;
-    send_key 'spc';      # press shutdown button
+    send_key 'shift-ret';    # press shutdown button, use shift to avoid hybrid-shutdown
     assert_shutdown;
 }
 
