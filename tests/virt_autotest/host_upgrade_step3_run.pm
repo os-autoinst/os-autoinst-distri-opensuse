@@ -9,6 +9,7 @@
 #
 use base "host_upgrade_base";
 use testapi;
+use virt_utils;
 use strict;
 
 sub get_script_run() {
@@ -22,7 +23,8 @@ sub get_script_run() {
 
 sub run() {
     my $self = shift;
-    $self->run_test(5400, "Test run completed successfully", "no", "yes", "/var/log/qa/", "host-upgrade-postVerify-logs");
+    repl_repo_in_sourcefile();
+    $self->run_test(5400, "Test run completed successfully", "no", "yes", "/var/log/qa/ctcs2/", "host-upgrade-postVerify-logs");
 }
 
 1;

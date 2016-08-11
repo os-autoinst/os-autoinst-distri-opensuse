@@ -70,7 +70,7 @@ sub repl_repo_in_sourcefile() {
         my $location = &virt_autotest_base::execute_script_run("", "perl /usr/share/qa/tools/location_detect_impl.pl", 10);
         $location =~ s/[\r\n]+$//;
         my $soucefile = "/usr/share/qa/virtautolib/data/" . "sources." . "$location";
-        my $newrepo   = "https://openqa.suse.de/assets/repo/" . get_var("REPO_0");
+        my $newrepo   = "ftp://openqa.suse.de/" . get_var("REPO_0");
         script_run("sed -i \"s#$veritem=.*#$veritem=$newrepo#\" $soucefile");
         script_run("cat $soucefile");
     }

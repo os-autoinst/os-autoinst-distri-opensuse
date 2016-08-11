@@ -28,10 +28,6 @@ sub get_script_run() {
 sub generateXML($) {
     my ($self, $data) = @_;
 
-    $self->{"product_tested_on"} = "Product";
-    $self->{"product_name"}      = "Project Name";
-    $self->{"package_name"}      = "Package Name";
-
     print Dumper($data);
     my %my_hash = %$data;
 
