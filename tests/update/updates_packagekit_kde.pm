@@ -9,7 +9,15 @@
 
 use base "x11test";
 use strict;
+use utils;
 use testapi;
+
+# Check if running kernel is the last installed
+sub kernel_updated {
+    select_console "root-console";
+    my $current = script_output "uname -r | cut -d'-' -f1,2";
+    return script_run "rpm -q --last kernel-default | head -1 | grep $current";
+}
 
 sub turn_off_screensaver() {
     x11_start_program("kcmshell5 screenlocker");
@@ -45,11 +53,13 @@ sub run() {
         send_key("alt-f4");
     }
 
-    # Check no more updates are available after gui updater
-    select_console "root-console";
-    assert_script_run "pkcon refresh";
-    assert_script_run "pkcon get-updates | tee /dev/$serialdev | grep \"There are no updates\"";
-    select_console "x11";
+    if (kernel_updated) {
+        type_string "reboot\n";
+        wait_boot;
+    }
+    else {
+        select_console "x11";
+    }
 }
 
 sub test_flags() {
