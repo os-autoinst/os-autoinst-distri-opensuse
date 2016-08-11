@@ -42,13 +42,12 @@ sub check_network {
     send_key 'alt-o';                  # OK
     assert_screen 'yast2_closed_xterm_visible', 120;
     script_run 'ip a';
-    assert_script_run 'dig suse.com|grep status';    # test if conection and DNS is working
     if ("$status" eq 'restart') {
-        assert_script_run '[ -s strace.log ]';       # strace.log size is greater than zero (network restarted)
+        assert_script_run '[ -s strace.log ]';    # strace.log size is greater than zero (network restarted)
     }
     else {
-        script_run 'cat strace.log';                 # print strace.log
-        assert_script_run '[ ! -s strace.log ]';     # strace.log size is not greater than zero (network not restarted)
+        script_run 'cat strace.log';                # print strace.log
+        assert_script_run '[ ! -s strace.log ]';    # strace.log size is not greater than zero (network not restarted)
     }
     script_run "cat strace.log > /dev/$serialdev";    # print strace.log
     script_run '> strace.log';                        # clear strace.log
@@ -182,6 +181,10 @@ sub test_6 {
 sub test_7 {
     my $dev_name = shift;
     diag '__________(7) Start yast2 lan -> Edit (a NIC) -> switch to Hardware tab, change nic name, [Next] -> [OK] -> device name is changed__________';
+    # workaround bsc#991694
+    record_soft_failure 'bsc#991694';
+    assert_script_run "wicked ifdown --delete eth0 sta0 dyn0";
+    # workaround bsc#991694
     run_yast2_lan_edit;
     send_key 'alt-w';                                 # Hardware tab
     assert_screen 'yast2_lan_hardware_tab';
