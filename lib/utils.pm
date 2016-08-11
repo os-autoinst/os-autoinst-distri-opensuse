@@ -331,7 +331,7 @@ sub check_screenlock {
     my ($tags) = @_;
     $tags //= [qw/generic-desktop/];
     send_key "backspace";    # deactivate blanking
-    push $tags, 'screenlock';
+    push @$tags, 'screenlock';
     if (check_screen($tags)) {
         return unless match_has_tag 'screenlock';
         if (check_var("DESKTOP", "gnome")) {
