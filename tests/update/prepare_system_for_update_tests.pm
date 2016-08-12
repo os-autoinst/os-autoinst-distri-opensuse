@@ -20,6 +20,8 @@ use testapi;
 use utils;
 
 sub run() {
+    select_console 'x11';
+
     x11_start_program("xterm");
     assert_screen('xterm-started');
     assert_script_sudo "chown $testapi::username /dev/$testapi::serialdev";

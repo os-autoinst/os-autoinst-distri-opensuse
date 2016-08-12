@@ -362,9 +362,6 @@ sub load_consoletests() {
             loadtest "console/xorg_vt.pm";
         }
         loadtest "console/zypper_lr.pm";
-        if (need_clear_repos) {
-            loadtest "console/zypper_clear_repos.pm";
-        }
         if (have_addn_repos) {
             loadtest "console/zypper_ar.pm";
         }
@@ -558,7 +555,7 @@ sub load_otherDE_tests() {
         my $de = get_var("DE_PATTERN");
         loadtest "console/consoletest_setup.pm";
         loadtest "console/hostname.pm";
-        loadtest "console/zypper_clear_repos.pm";
+        loadtest "update/zypper_clear_repos.pm";
         loadtest "console/install_otherDE_pattern.pm";
         loadtest "console/consoletest_finish.pm";
         loadtest "x11/${de}_reconfigure_openqa.pm";
@@ -752,6 +749,10 @@ sub install_online_updates {
 
 sub load_system_update_tests {
     return if get_var("INSTALLONLY") || get_var("DUALBOOT");
+
+    if (need_clear_repos) {
+        loadtest "update/zypper_clear_repos.pm";
+    }
 
     if (guiupdates_is_applicable()) {
         loadtest "update/prepare_system_for_update_tests.pm";
