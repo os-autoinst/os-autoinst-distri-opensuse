@@ -101,6 +101,10 @@ sub test_flags() {
 sub post_fail_hook() {
     my $self = shift;
 
+    # Reveal what is behind Plymouth splash screen
+    send_key 'esc';
+    save_screenshot;
+
     $self->export_logs();
 }
 
