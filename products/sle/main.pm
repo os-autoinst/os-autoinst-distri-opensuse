@@ -543,7 +543,7 @@ sub load_consoletests() {
         }
         loadtest "console/zypper_lr.pm";
         if (need_clear_repos()) {
-            loadtest "console/zypper_clear_repos.pm";
+            loadtest "update/zypper_clear_repos.pm";
         }
         loadtest "console/openssl_alpn.pm";
         #have SCC repo for SLE product

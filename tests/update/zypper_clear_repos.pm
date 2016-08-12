@@ -14,7 +14,6 @@ use testapi;
 use utils;
 
 sub run() {
-    my $self = shift;
     select_console 'root-console';
 
     # remove Factory repos
