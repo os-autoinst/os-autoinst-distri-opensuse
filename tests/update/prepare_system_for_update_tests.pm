@@ -24,6 +24,8 @@ sub run() {
     assert_screen('xterm-started');
     assert_script_sudo "chown $testapi::username /dev/$testapi::serialdev";
     assert_script_sudo "echo \"download.use_deltarpm = false\" >> /etc/zypp/zypp.conf";
+    # Force the repo metedata to refresh - the panel applet(s) might refresh with a delay after bootup
+    assert_script_run "pkcon refresh";
     send_key "alt-f4";
 }
 
