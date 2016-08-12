@@ -79,7 +79,10 @@ sub prepare_parmfile {
 
     if (check_var("INSTALLER_NO_SELF_UPDATE", 1)) {
         diag "Disabling installer self update as requested by INSTALLER_NO_SELF_UPDATE=1";
-        $params .= "self_update=0";
+        $params .= 'self_update=0 ';
+    }
+    if (get_var('UPGRADE')) {
+        $params .= 'upgrade=1 ';
     }
 
     return split_lines($params);
@@ -209,7 +212,6 @@ sub format_dasd() {
 }
 
 sub run() {
-
     my $self = shift;
 
     select_console 'x3270';
@@ -220,14 +222,22 @@ sub run() {
     $s3270->sequence_3270('String("DEFINE STORAGE ' . get_var('QEMURAM', 1024) . 'M") ', "ENTER",);
     # arbitrary number of retries for CTC only as it fails often to retrieve
     # media
-    my $max_retries = get_required_var('S390_NETWORK_PARAMS') =~ /ctc/ ? 7 : 1;
-    for (1 .. $max_retries) {
+    if (get_required_var('S390_NETWORK_PARAMS') =~ /ctc/) {
+        my $max_retries = 7;
+        for (1 .. $max_retries) {
+            eval {
+                # connect to zVM, login to the guest
+                $self->get_to_yast();
+            };
+            last unless ($@);
+            diag "It looks like CTC network connection is unstable. Retry: $_ of $max_retries";
+        }
+    }
+    else {
         eval {
             # connect to zVM, login to the guest
             $self->get_to_yast();
         };
-        last unless ($@);
-        diag "It looks like CTC network connection is unstable. Retry: $_ of $max_retries";
     }
 
     my $exception = $@;
