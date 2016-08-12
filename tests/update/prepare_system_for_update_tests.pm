@@ -24,6 +24,7 @@ sub run() {
     assert_screen('xterm-started');
     assert_script_sudo "chown $testapi::username /dev/$testapi::serialdev";
     assert_script_sudo "echo \"download.use_deltarpm = false\" >> /etc/zypp/zypp.conf";
+    assert_script_run "pkcon refresh";
     send_key "alt-f4";
 }
 

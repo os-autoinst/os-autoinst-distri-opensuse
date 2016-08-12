@@ -761,6 +761,7 @@ sub load_system_update_tests {
         else {
             loadtest "update/updates_packagekit_gpk.pm";
         }
+        loadtest "update/check_system_is_updated.pm";
     }
     else {
         loadtest "update/zypper_up.pm";
