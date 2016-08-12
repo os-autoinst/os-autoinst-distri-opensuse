@@ -689,6 +689,7 @@ sub load_extra_test () {
 
     # start extra x11 tests from here
     loadtest "x11/vnc_two_passwords.pm";
+    loadtest "x11/yast2_lan_restart.pm";
 }
 
 sub load_x11tests() {
