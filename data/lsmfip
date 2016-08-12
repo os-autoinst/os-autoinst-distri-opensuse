@@ -146,7 +146,7 @@ if (!$options{verify}) {
                             # the packages we asked to install. If so
                             # remove the other one and repeat.
                             if ($requested{$pkg} &&
-                                ($pkg =~ /branding/ || $p->str =~ /nothing provides this-is-only-for-build-envs/)) {
+                                ($pkg =~ /branding/ || $p->str =~ /nothing provides this-is-only-for-build-envs/ || $pkg =~ /-bootstrap/ || $pkg =~ /-mini/)) {
                                 print STDERR "++ skipping $pkg and retry\n";
                                 delete $requested{$pkg};
                                 next REPEAT;
