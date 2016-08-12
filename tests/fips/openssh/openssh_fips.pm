@@ -1,0 +1,31 @@
+# SUSE's openssh fips tests
+#
+# Copyright © 2016 SUSE LLC
+#
+# Copying and distribution of this file, with or without modification,
+# are permitted in any medium without royalty provided the copyright
+# notice and this notice are preserved.  This file is offered as-is,
+# without any warranty.
+
+use base "consoletest";
+use strict;
+use testapi;
+
+sub run() {
+    select_console 'root-console';
+
+    # Verify MD5 is disabled in fips mode, no need to login
+    validate_script_output 'expect -c "spawn ssh -v -o StrictHostKeyChecking=no localhost; expect -re \[Pp\]assword; send badpass\n; exit 0"', sub { m/MD5 not allowed in FIPS 140-2 mode, using SHA/ };
+
+    # Verify ssh doesn't work with non-approved cipher in fips mode
+    validate_script_output 'expect -c "spawn ssh -v -c blowfish localhost; expect EOF; exit 0"', sub { m/Unknown cipher type|no matching cipher found/ };
+
+    # Verify ssh doesn't work with non-approved hash in fips mode
+    validate_script_output 'expect -c "spawn ssh -v -m hmac-md5 localhost; expect EOF; exit 0"', sub { m/Unknown mac type|no matching mac found/ };
+
+    # Verify ssh doesn't support DSA public key in fips mode
+    validate_script_output 'ssh-keygen -t dsa -f ~/.ssh/id_dsa -P "" 2>&1 | tee', sub { m/Key type dsa not alowed in FIPS mode/ };
+}
+
+1;
+# vim: set sw=4 et:
