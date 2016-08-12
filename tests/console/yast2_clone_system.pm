@@ -27,7 +27,7 @@ sub run() {
         $n_error++;
     }
 
-    assert_script_run "test -f /root/autoinst.xml", 20;
+    assert_script_run("test -f /root/autoinst.xml", timeout => 20, fail_msg => 'File /root/autoinst.xml could not be found');
     upload_asset "/root/autoinst.xml";
 }
 

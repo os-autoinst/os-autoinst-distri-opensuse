@@ -20,7 +20,7 @@ sub kmp_module {
     assert_screen 'generic-desktop';
     select_console 'root-console';
     # check if kernel is proper $kernel
-    assert_script_run "uname -r|grep $kernel";
+    assert_script_run("uname -r|grep $kernel", 90, "Expected kernel $kernel not found");
     # get bash script
     my $package = data_url('modprobe_kmp_modules.sh');
     script_run "wget $package";
@@ -36,7 +36,7 @@ sub kmp_module {
 =cut
     script_run 'chmod +x modprobe_kmp_modules.sh';
     # run script printed above, modprobe kmp-compute and kmp-rt modules
-    assert_script_run "./modprobe_kmp_modules.sh $kernel";
+    assert_script_run("./modprobe_kmp_modules.sh $kernel", 90, 'Failed to load modules');
     reset_consoles;
 }
 

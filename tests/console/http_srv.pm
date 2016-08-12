@@ -30,7 +30,7 @@ sub run() {
 
     # verify httpd serves index.html
     type_string "echo Lorem ipsum dolor sit amet > /srv/www/htdocs/index.html\n";
-    assert_script_run "curl -f http://localhost/ | grep 'Lorem ipsum dolor sit amet'";
+    assert_script_run("curl -f http://localhost/ | grep 'Lorem ipsum dolor sit amet'", fail_msg => 'Could not access local apache2 instance');
 }
 
 1;
