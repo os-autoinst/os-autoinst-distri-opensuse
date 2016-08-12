@@ -17,16 +17,12 @@
 use base "consoletest";
 use strict;
 use testapi;
+use utils;
 
 sub run() {
     select_console 'root-console';
 
-    # can't use assert_script_run as zypper patch returns different return
-    # values
-    script_run("zypper -n patch --with-interactive -l -r incident0; echo zypper-patch-\$?- > /dev/$serialdev", 0);
-    my $ret = wait_serial "zypper-patch-\?-", 300;
-    $ret =~ /zypper-patch-(\d+)/;
-    die "zypper failed with code $1" unless $1 == 0 || $1 == 102 || $1 == 103;
+    zypper_call('in -l -t patch ' . get_var('INCIDENT_PATCH'), exitcode => [0, 102, 103]);
 }
 
 sub test_flags() {
