@@ -22,7 +22,7 @@ sub run() {
     select_console 'root-console';
 
     if (my $keys = get_var("IMPORT_GPG_KEYS")) {
-        assert_script_run("rpm --import ~$username/data/$keys", fail_msg => 'Failed to import GPG keys');
+        assert_script_run("rpm --import ~$username/data/$keys", fail_message => 'Failed to import GPG keys');
     }
 }
 

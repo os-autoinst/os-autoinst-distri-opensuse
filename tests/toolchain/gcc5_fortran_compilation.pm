@@ -34,7 +34,7 @@ sub run() {
     # Test
     assert_script_run './driver_run|tee /tmp/test.log', 300;
 
-    assert_script_run('! grep " [1-9][0-9]* TESTS FAILED" *.res', fail_msg => 'fortran tests failed');
+    assert_script_run('! grep " [1-9][0-9]* TESTS FAILED" *.res', fail_message => 'fortran tests failed');
 
     save_screenshot;
 }
