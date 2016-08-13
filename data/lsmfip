@@ -83,12 +83,15 @@ usage(0) if ($options{help});
 my @packages;
 my %requested;
 
+my $REQUEST_INSTALL = 1;
+my $REQUEST_UPDATE = 2;
+
 while (my $name = shift @ARGV) {
     push @packages, $name;
     if ($options{verify}) {
         $requested{$name} = shift @ARGV || die "missing version for $name\n";
     } else {
-        $requested{$name} = 1;
+        $requested{$name} = $REQUEST_INSTALL;
     }
 }
 
@@ -123,11 +126,18 @@ if (!$options{verify}) {
             next unless $requested{$n};
             print STDERR "selecting $n\n" if $options{verbose};
             my $sel = $pool->select($n, $solv::Selection::SELECTION_NAME);
+            my $isinstalled;
             for my $s ($sel->solvables()) {
+                $isinstalled ||= $s->isinstalled;
                 print STDERR "-> $s->{name}-$s->{evr}.$s->{arch}\n" if $options{verbose};
             }
-            push @jobs, $sel->jobs($solv::Job::SOLVER_INSTALL);
-            push @jobs, $sel->jobs($solv::Job::SOLVER_UPDATE);
+            if ($isinstalled) {
+	      # upgrade
+              $requested{$n} = $REQUEST_UPDATE;
+              push @jobs, $sel->jobs($solv::Job::SOLVER_UPDATE);
+            } else {
+              push @jobs, $sel->jobs($solv::Job::SOLVER_INSTALL);
+            }
         }
 
         my @problems = $solver->solve(\@jobs);
@@ -181,6 +191,16 @@ if (!$options{verify}) {
                 printf STDERR "unknown type %d for %s\n", $c->{type}, $name;
             }
         }
+    }
+    # if there is nothing to install, we verify all requested were installed
+    if ($trans->isempty()) {
+	for my $n (keys %requested) {
+	    if ($requested{$n} == $REQUEST_UPDATE) {
+                print "$n\n";
+            } else {
+	        die "$n was requested but nothing was installed";
+            }
+	}
     }
 
     for my $n (sort @packages) {
