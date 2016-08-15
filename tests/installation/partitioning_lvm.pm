@@ -45,9 +45,8 @@ sub run() {
                 send_key 'tab';
                 type_password;
                 send_key 'ret';
-            } else {
-                save_screenshot;
             }
+            assert_screen 'partitioning-encrypt-selected-cryptlvm';
         }
         else {
             send_key 'alt-l';
