@@ -49,6 +49,7 @@ sub pre_bootmenu_setup {
         send_key "ret";               # boot from hd
         return 3;
     }
+    return 0;
 }
 
 sub select_bootmenu_option {
@@ -70,6 +71,7 @@ sub select_bootmenu_option {
             send_key_until_needlematch('inst-oninstallation', 'down', 10, 5);
         }
     }
+    return 0;
 }
 
 sub bootmenu_default_params {
