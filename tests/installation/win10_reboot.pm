@@ -11,6 +11,7 @@ use base "installbasetest";
 use strict;
 
 use testapi;
+use windows_utils;
 
 sub run() {
     send_key 'super';    # windows menu
@@ -23,17 +24,7 @@ sub run() {
     send_key 'up';
     send_key 'spc';      # press shutdown button
 
-    assert_screen 'windows-bootsplash', 600;
-
-    assert_screen 'windows-screensaver', 600;
-
-    send_key 'esc';      # press shutdown button
-
-    assert_screen 'windows-login';
-    type_password;
-    send_key 'ret';      # press shutdown button
-
-    assert_screen 'windows-desktop';
+    wait_boot_windows;
 }
 
 1;

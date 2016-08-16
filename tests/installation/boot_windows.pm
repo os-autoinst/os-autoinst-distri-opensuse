@@ -11,6 +11,7 @@
 use base "y2logsstep";
 use strict;
 use testapi;
+use windows_utils;
 
 sub run() {
     my $self = shift;
@@ -20,7 +21,8 @@ sub run() {
     send_key "down";
     send_key "down";
     send_key "ret";
-    assert_screen "windows8", 80;
+
+    wait_boot_windows;
 }
 
 1;
