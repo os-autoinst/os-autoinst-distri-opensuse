@@ -14,6 +14,7 @@ use strict;
 use Time::HiRes qw(sleep);
 
 use testapi;
+use bootloader_setup;
 use registration;
 use utils;
 
@@ -147,18 +148,7 @@ sub run() {
 
     #type_string_slow 'kiwidebug=1 ';
 
-    my $args = "";
-    if (get_var("AUTOYAST")) {
-        $args .= " ifcfg=*=dhcp ";
-        $args .= "autoyast=" . autoinst_url . "/data/" . get_var("AUTOYAST") . " ";
-    }
-    type_string_slow $args;
-    save_screenshot;
-
-    if (get_var("FIPS")) {
-        type_string_slow ' fips=1';
-        save_screenshot;
-    }
+    specific_bootmenu_params;
 
     registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED);
 
