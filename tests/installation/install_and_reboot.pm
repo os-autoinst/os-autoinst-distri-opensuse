@@ -13,6 +13,24 @@ use base "y2logsstep";
 use testapi;
 use lockapi;
 
+
+sub handle_livecd_screenlock {
+    record_soft_failure 'boo#994044: Kde-Live net installer is interrupted by screenlock';
+    diag('unlocking screenlock with no password in LIVECD mode');
+    do {
+        # password and unlock button seem to be not in focus so switch to
+        # the only 'window' shown, tab over the empty password field and
+        # confirm unlocking
+        send_key 'alt-tab';
+        send_key 'tab';
+        send_key 'ret';
+    } while (check_screen('screenlock', 20));
+    save_screenshot;
+    # can take a long time until the screen unlock happens as the
+    # system is busy installing.
+    assert_screen('yast-still-running', 120);
+}
+
 sub run() {
     my $self = shift;
     # NET isos are slow to install
@@ -25,11 +43,16 @@ sub run() {
         push(@tags, "DIALOG-packages-notifications");
         $timeout = 5500;    # upgrades are slower
     }
+    if (get_var('LIVECD')) {
+        push(@tags, 'screenlock');
+    }
     # SCC might mean we install everything from the slow internet
     if (check_var('SCC_REGISTER', 'installation')) {
         $timeout = 5500;
     }
-    my $keep_trying = 1;
+    my $keep_trying                    = 1;
+    my $screenlock_previously_detected = 0;
+    my $mouse_x                        = 1;
     while ($keep_trying) {
         # try gracefully on aarch64 because of boo#982136
         if (check_var('ARCH', 'aarch64')) {
@@ -39,6 +62,20 @@ sub run() {
                 record_soft_failure 'boo#982136: timed out after ' . $timeout . 'seconds, trying once more';
                 $keep_trying = 0;
                 next;
+            }
+        }
+        elsif (get_var('LIVECD') && $screenlock_previously_detected) {
+            my $ret = check_screen \@tags, 30;
+            if (!$ret) {
+                diag('installation not finished, move mouse around a bit to keep screen unlocked');
+                $mouse_x = ($mouse_x + 10) % 1024;
+                mouse_set($mouse_x, 1);
+                next;
+            }
+            $timeout -= 30;
+            diag("left total install_and_reboot timeout: $timeout");
+            if ($timeout <= 0) {
+                assert_screen \@tags;
             }
         }
         else {
@@ -56,6 +93,11 @@ sub run() {
             send_key 'alt-i';    # ignore
             next;
         }
+        if (get_var('LIVECD') and match_has_tag('screenlock')) {
+            handle_livecd_screenlock;
+            $screenlock_previously_detected = 1;
+            next;
+        }
         last;
     }
 
@@ -67,14 +109,7 @@ sub run() {
         select_console 'installation';
         assert_screen 'rebootnow';
     }
-
-    if (get_var("LIVECD")) {
-        # LiveCD needs confirmation for reboot
-        send_key $cmd{rebootnow};
-    }
-    else {
-        send_key 'alt-o';
-    }
+    send_key 'alt-o';
 }
 
 1;

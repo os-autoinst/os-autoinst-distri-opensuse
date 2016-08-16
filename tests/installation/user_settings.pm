@@ -21,7 +21,6 @@ sub run() {
     type_string $realname;
     send_key "tab";
 
-    #sleep 1;
     send_key "tab";
     for (1 .. 2) {
         type_string "$password\t";

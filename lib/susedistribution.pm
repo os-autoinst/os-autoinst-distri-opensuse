@@ -7,6 +7,15 @@ use strict;
 # don't import script_run - it will overwrite script_run from distribution and create a recursion
 use testapi qw(send_key %cmd assert_screen check_screen check_var get_var match_has_tag set_var type_password type_string wait_idle wait_serial mouse_hide send_key_until_needlematch record_soft_failure wait_still_screen wait_screen_change);
 
+
+sub handle_password_prompt {
+    if (!get_var("LIVETEST") && !get_var('LIVECD')) {
+        assert_screen "password-prompt";
+        type_password;
+        send_key('ret');
+    }
+}
+
 sub init() {
     my ($self) = @_;
 
@@ -165,11 +174,7 @@ sub script_sudo($$) {
         $prog = "$prog; echo $str-\$?- > /dev/$testapi::serialdev";
     }
     type_string "clear; su -c \'$prog\'\n";
-    if (!get_var("LIVETEST")) {
-        assert_screen 'password-prompt';
-        type_password;
-        send_key('ret');
-    }
+    handle_password_prompt;
     if ($wait > 0) {
         return wait_serial("$str-\\d+-");
     }
@@ -377,11 +382,7 @@ sub activate_console {
             assert_screen(["tty$nr-selected", "text-logged-in-$user", "text-login"], 60);
             if (match_has_tag("tty$nr-selected") or match_has_tag("text-login")) {
                 type_string "$user\n";
-                if (!get_var("LIVETEST")) {
-                    assert_screen "password-prompt";
-                    type_password;
-                    send_key('ret');
-                }
+                handle_password_prompt;
             }
         }
         assert_screen "text-logged-in-$user";

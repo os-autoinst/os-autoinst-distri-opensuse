@@ -255,7 +255,7 @@ sub load_inst_tests() {
         loadtest "installation/upgrade_select_opensuse.pm";
     }
     if (noupdatestep_is_applicable() && get_var("LIVECD")) {
-        loadtest "installation/livecd_installer_timezone.pm";
+        loadtest "installation/livecd_network_settings.pm";
     }
     if (noupdatestep_is_applicable()) {
         loadtest "installation/partitioning.pm";
@@ -275,8 +275,6 @@ sub load_inst_tests() {
             loadtest "installation/partitioning_splitusr.pm";
         }
         loadtest "installation/partitioning_finish.pm";
-    }
-    if (noupdatestep_is_applicable() && !get_var("LIVECD")) {
         loadtest "installation/installer_timezone.pm";
     }
     if (installwithaddonrepos_is_applicable() && !get_var("LIVECD")) {
@@ -288,10 +286,8 @@ sub load_inst_tests() {
     if (noupdatestep_is_applicable() && !get_var("LIVECD") && !get_var("REMOTE_CONTROLLER")) {
         loadtest "installation/logpackages.pm";
     }
-    if (noupdatestep_is_applicable() && !get_var("LIVECD")) {
-        loadtest "installation/installer_desktopselection.pm";
-    }
     if (noupdatestep_is_applicable()) {
+        loadtest "installation/installer_desktopselection.pm";
         if (get_var('IMPORT_USER_DATA')) {
             loadtest 'installation/user_import.pm';
         }
@@ -905,9 +901,15 @@ elsif (get_var("WINDOWS")) {
     loadtest "installation/win10_shutdown.pm";
 }
 else {
-    if (get_var("LIVETEST")) {
+    if (get_var("LIVETEST") || get_var('LIVE_INSTALLATION')) {
         load_boot_tests();
         loadtest "installation/finish_desktop.pm";
+        if (get_var('LIVE_INSTALLATION')) {
+            loadtest "installation/live_installation.pm";
+            load_inst_tests();
+            load_reboot_tests();
+            return 1;
+        }
     }
     elsif (get_var("AUTOYAST")) {
         load_boot_tests();
