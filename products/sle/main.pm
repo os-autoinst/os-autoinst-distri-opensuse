@@ -545,7 +545,6 @@ sub load_consoletests() {
         if (need_clear_repos()) {
             loadtest "update/zypper_clear_repos.pm";
         }
-        loadtest "console/openssl_alpn.pm";
         #have SCC repo for SLE product
         if (have_scc_repos()) {
             loadtest "console/yast_scc.pm";
@@ -654,6 +653,9 @@ sub load_extra_test () {
     # setup $serialdev permission and so on
     loadtest "console/consoletest_setup.pm";
     loadtest "console/check_console_font.pm";
+    if (sle_version_at_least('12-SP2')) {
+        loadtest "console/openssl_alpn.pm";
+    }
     loadtest "console/zypper_lr.pm";
     loadtest "console/zypper_ref.pm";
     loadtest "console/update_alternatives.pm";
@@ -878,6 +880,9 @@ sub load_fips_tests_core() {
     loadtest "fips/openssl/openssl_fips_cipher.pm";
     loadtest "fips/openssl/openssl_pubkey_rsa.pm";
     loadtest "fips/openssl/openssl_pubkey_dsa.pm";
+    if (sle_version_at_least('12-SP2')) {
+        loadtest "console/openssl_alpn.pm";
+    }
     loadtest "console/sshd.pm";
     loadtest "console/ssh_pubkey.pm";
     loadtest "fips/openssh/openssh_fips.pm";
