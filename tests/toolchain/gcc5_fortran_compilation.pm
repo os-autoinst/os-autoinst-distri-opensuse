@@ -28,13 +28,14 @@ sub run() {
     script_run 'echo "exit \${failed}" >> driver_parse';
 
     script_run "patch -p0 < ../adapt-FM406-to-fortran-95.patch";
+    script_run "rm FM001.f FM005.f FM109.f FM257.f";
 
     # Build
-    assert_script_run './driver_parse|tee /tmp/build.log', 120;
+    assert_script_run './driver_parse 2>&1 | tee /tmp/build.log', 120;
     # Test
-    assert_script_run './driver_run|tee /tmp/test.log', 300;
-
-    assert_script_run('! grep " [1-9][0-9]* TESTS FAILED" *.res', fail_message => 'fortran tests failed');
+    assert_script_run './driver_run 2>&1 | tee /tmp/test.log', 300;
+    # Verify
+    assert_script_run('! grep -P -L "(0 TESTS FAILED|0 ERRORS ENCOUNTERED)" *.res | grep FM');
 
     save_screenshot;
 }
@@ -49,6 +50,8 @@ sub post_fail_hook() {
     $self->export_logs();
     upload_logs '/tmp/build.log';
     upload_logs '/tmp/test.log';
+    script_run 'tar cfJ fcvs21_f95_results.tar.xz *.res';
+    upload_logs 'fcvs21_f95_results.tar.xz';
 }
 
 1;
