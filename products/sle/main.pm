@@ -876,6 +876,8 @@ sub load_fips_tests_core() {
     loadtest "fips/openssl/openssl_fips_alglist.pm";
     loadtest "fips/openssl/openssl_fips_hash.pm";
     loadtest "fips/openssl/openssl_fips_cipher.pm";
+    loadtest "fips/openssl/openssl_pubkey_rsa.pm";
+    loadtest "fips/openssl/openssl_pubkey_dsa.pm";
     loadtest "console/sshd.pm";
     loadtest "console/ssh_pubkey.pm";
     loadtest "fips/openssh/openssh_fips.pm";
