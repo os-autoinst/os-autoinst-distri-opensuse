@@ -10,15 +10,18 @@
 use base "consoletest";
 use strict;
 use testapi;
+use utils;
 
 sub run() {
     # FATE#320292 - Application-Layer Protocol Negotiation (ALPN) support for openssl
+
     select_console 'root-console';
 
     assert_script_run 'openssl req -newkey rsa:2048 -nodes -keyout domain.key -x509 -days 365 -out domain.crt -subj "/C=CZ/L=Prague/O=SUSE/CN=alpn.suse.cz"';
 
+    clear_console;
     type_string "openssl s_server -key domain.key -cert domain.crt -alpn http\n";
-    save_screenshot;
+    assert_screen "openssl-s_server-alpn-accept-connections";
 
     select_console 'user-console';
     validate_script_output 'openssl s_client -alpn http < /dev/null', sub { m/ALPN protocol: http/ };
