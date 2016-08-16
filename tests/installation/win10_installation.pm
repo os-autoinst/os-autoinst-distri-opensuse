@@ -13,8 +13,6 @@ use strict;
 use testapi;
 
 sub run() {
-    my ($self) = @_;
-
     # This test works onlywith CDMODEL=ide-cd due to windows missing scsi drivers which are installed via scsi iso
     if (get_var('UEFI')) {
         assert_screen 'windows-boot';
@@ -47,38 +45,6 @@ sub run() {
     send_key 'alt-n';                                                              # next ->Installing windows!
     assert_screen 'windows-restart', 600;
     send_key 'alt-r';                                                              # restart
-    assert_screen 'windows-first-boot', 1000;
-    send_key 'alt-e';                                                              # use express settings button
-    assert_screen 'windows-owner', 200;
-    assert_and_click 'windows-next';                                               # no alt-n shortcut
-    assert_and_click 'windows-local-active-directory';
-    assert_and_click 'windows-next';                                               # no alt-n shortcut
-    assert_screen 'windows-user', 60;
-    send_key 'tab';                                                                # select user name
-    type_string $realname;
-    send_key 'tab';                                                                # go to password
-    type_password;
-    send_key 'tab';                                                                # go to password
-    type_password;
-    send_key 'tab';                                                                # go to hint (hint is important for windows)
-    type_string 'security';
-    wait_still_screen;
-    send_key 'alt-n';                                                              # next
-    assert_screen 'desktop-at-first-boot', 600;
-    send_key 'super';                                                              # windows menu
-    wait_still_screen;
-    send_key 'up';
-    wait_still_screen;
-    send_key 'up';
-    wait_still_screen;
-    send_key 'spc';                                                                # press power button
-    wait_still_screen;
-    send_key 'up';
-    wait_still_screen;
-    send_key 'up';
-    wait_still_screen;
-    send_key 'spc';                                                                # press shutdown button
-    assert_shutdown;
 }
 
 1;
