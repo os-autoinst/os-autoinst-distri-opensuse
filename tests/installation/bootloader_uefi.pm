@@ -19,12 +19,22 @@ use utils;
 
 # hint: press shift-f10 trice for highest debug level
 sub run() {
-    my ($self) = @_;
-
     if (get_var("IPXE")) {
         sleep 60;
         return;
     }
+
+    if (get_var('DUALBOOT')) {
+        # send ESC to prevent tianocore from booting from hard disk...
+        send_key_until_needlematch('tianocore-mainmenu', 'esc', 10, 5);
+        send_key "down";    # language
+        send_key "down";    # device manager
+        send_key "down";    # bootmanager
+        send_key "ret";
+        send_key "down";    # DVD
+        send_key "ret";
+    }
+
     assert_screen([qw/bootloader-shim-import-prompt bootloader-grub2/], 15);
     if (match_has_tag("bootloader-shim-import-prompt")) {
         send_key "down";
