@@ -885,6 +885,8 @@ sub load_fips_tests_web() {
     loadtest "console/curl_https.pm";
     loadtest "console/wget_https.pm";
     loadtest "console/w3m_https.pm";
+    loadtest "console/consoletest_finish.pm";
+    loadtest "x11/firefox_nss.pm";
 }
 
 sub load_fips_tests_misc() {
