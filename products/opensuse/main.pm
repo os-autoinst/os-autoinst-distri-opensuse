@@ -182,10 +182,6 @@ sub system_is_livesystem() {
     return (check_var("FLAVOR", 'Rescue-CD') || get_var("LIVETEST"));
 }
 
-sub ssh_key_import() {
-    return get_var("SSH_KEY_IMPORT") || get_var("SSH_KEY_DO_NOT_IMPORT");
-}
-
 sub load_x11regresion_tests() {
     if ((check_var("DESKTOP", "gnome"))) {
         loadtest "x11regressions/tomboy/tomboy_Hotkeys.pm";

@@ -182,10 +182,6 @@ sub uses_qa_net_hardware() {
     return check_var("BACKEND", "ipmi") || check_var("BACKEND", "generalhw");
 }
 
-sub ssh_key_import() {
-    return get_var("SSH_KEY_IMPORT") || get_var("SSH_KEY_DO_NOT_IMPORT");
-}
-
 sub load_x11regression_firefox() {
     loadtest "x11regressions/firefox/sle12/firefox_smoke.pm";
     loadtest "x11regressions/firefox/sle12/firefox_localfiles.pm";
