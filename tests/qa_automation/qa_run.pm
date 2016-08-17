@@ -13,7 +13,6 @@ use strict;
 use warnings;
 use File::Basename;
 use base "opensusebasetest";
-use utils;
 use testapi;
 
 sub test_run_list {
@@ -28,10 +27,26 @@ sub test_suite {
     die "you need to overload test_suite in your class";
 }
 
+# system boot & login
 sub system_login {
     my $self = shift;
-    wait_boot;
-    select_console('root-console');
+    # if we have to patch the system, we won't see the CD
+    if (!get_var('SYSTEM_IS_PATCHED')) {
+        assert_screen "inst-bootmenu";
+        send_key "ret";
+    }
+    if (get_var('OFW')) {
+        assert_screen 'ofw-boot-prompt';
+        type_string "boot disk\n";
+    }
+    assert_screen "grub2";
+    send_key "ret";
+    assert_screen "text-login", 50;
+    type_string "root\n";
+    assert_screen "password-prompt";
+    type_password;
+    type_string "\n";
+    sleep 2;
 }
 
 # Call test_run_list and write the result into /root/qaset/config

@@ -19,7 +19,7 @@ sub run {
     my $self = shift;
     $self->system_login();
 
-    pkcon_quit unless check_var('DESKTOP', 'textmode');
+    pkcon_quit;
 
     for my $var (qw(OS_TEST_REPO SDK_TEST_REPO)) {
         my $repo = get_var($var);
@@ -29,6 +29,7 @@ sub run {
 
     fully_patch_system;
 
+    set_var('SYSTEM_IS_PATCHED', 1);
     type_string "reboot\n";
 }
 
