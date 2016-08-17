@@ -313,6 +313,9 @@ sub load_inst_tests() {
     }
     if (installyaststep_is_applicable()) {
         loadtest "installation/installation_overview.pm";
+        if (ssh_key_import) {
+            loadtest "installation/ssh_key_setup.pm";
+        }
         loadtest "installation/start_install.pm";
     }
     loadtest "installation/install_and_reboot.pm";
@@ -903,6 +906,17 @@ elsif (get_var("WINDOWS")) {
     loadtest "installation/win10_firstboot.pm";
     loadtest "installation/win10_reboot.pm";
     loadtest "installation/win10_shutdown.pm";
+}
+elsif (ssh_key_import) {
+    loadtest "boot/boot_to_desktop.pm";
+    # setup ssh key, we know what ssh keys we have and can verify if they are imported or not
+    loadtest "x11/ssh_key_check.pm";
+    # reboot after test specific setup and start installation/update
+    loadtest "x11/reboot_and_install.pm";
+    load_inst_tests();
+    load_reboot_tests();
+    # verify previous defined ssh keys
+    loadtest "x11/ssh_key_verify.pm";
 }
 else {
     if (get_var("LIVETEST")) {
