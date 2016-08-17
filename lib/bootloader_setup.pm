@@ -158,7 +158,7 @@ sub bootmenu_network_source {
         #type_string "ZYPP_MULTICURL=0 "; sleep 2;
     }
 
-    if (check_var("FLAVOR", "NET")) {
+    if (check_var("LINUXRC_KEXEC", "1")) {
         type_string_slow " kexec=1";
         record_soft_failure "boo#990374 - pass kexec to installer to use initrd from FTP";
     }
@@ -189,6 +189,11 @@ sub specific_bootmenu_params {
 
     if (get_var("FIPS")) {
         $args .= " fips=1";
+    }
+
+    if (check_var("LINUXRC_KEXEC", "1")) {
+        $args .= " kexec=1";
+        record_soft_failure "boo#990374 - pass kexec to installer to use initrd from FTP";
     }
 
     type_string_very_slow $args;
