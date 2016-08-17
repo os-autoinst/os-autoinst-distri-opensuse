@@ -30,7 +30,7 @@ sub run() {
         send_key_until_needlematch('tianocore-mainmenu',    'esc',  10, 5);
         send_key_until_needlematch('tianocore-bootmanager', 'down', 5,  5);
         send_key "ret";
-        send_key "down";    # DVD
+        send_key_until_needlematch('tianocore-bootmanager-dvd', 'down', 5, 5);
         send_key "ret";
     }
 
