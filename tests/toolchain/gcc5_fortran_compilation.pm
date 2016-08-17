@@ -23,7 +23,7 @@ sub run() {
     assert_script_run "wget $package_patch", 60;
     script_run 'tar jxf fcvs21_f95.tar.bz2';
     script_run 'cp FM923.DAT fcvs21_f95/';
-    script_run 'cd fcvs21_f95';
+    script_run 'pushd fcvs21_f95';
     script_run "sed -i 's/g77/gfortran-5/g' driver_*";
     script_run 'echo "exit \${failed}" >> driver_parse';
 
@@ -38,6 +38,7 @@ sub run() {
     assert_script_run('! grep -P -L "(0 TESTS FAILED|0 ERRORS ENCOUNTERED)" *.res | grep FM');
 
     save_screenshot;
+    script_run 'popd';
 }
 
 sub test_flags() {
@@ -52,6 +53,7 @@ sub post_fail_hook() {
     upload_logs '/tmp/test.log';
     script_run 'tar cfJ fcvs21_f95_results.tar.xz *.res';
     upload_logs 'fcvs21_f95_results.tar.xz';
+    script_run 'popd';
 }
 
 1;
