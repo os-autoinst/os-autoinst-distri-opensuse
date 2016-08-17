@@ -855,6 +855,7 @@ sub load_feature_tests() {
     loadtest "console/consoletest_setup.pm";
     loadtest "feature/feature_console/zypper_releasever.pm";
     loadtest "feature/feature_console/suseconnect.pm";
+    loadtest "feature/feature_console/zypper_crit_sec_fix_only.pm";
 }
 
 sub load_online_migration_tests() {
