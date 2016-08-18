@@ -14,7 +14,14 @@ use testapi;
 
 sub run() {
     assert_screen "inst-timezone", 125 || die 'no timezone';
-    send_key get_var('LIVECD') ? 'alt-x' : $cmd{next};
+    if (get_var('LIVECD')) {
+        # on live cd we might get weird combinations assigned, even if the ISO
+        # does not change, it behaves different
+        send_key "alt-$_" foreach (('x', 't'));
+    }
+    else {
+        send_key $cmd{next};
+    }
 }
 
 1;
