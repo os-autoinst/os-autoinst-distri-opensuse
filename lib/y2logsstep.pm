@@ -4,12 +4,12 @@ use testapi;
 use strict;
 
 sub use_wicked() {
-    type_string "cd /proc/sys/net/ipv4/conf\n";
-    type_string "for i in *[0-9]; do echo BOOTPROTO=dhcp > /etc/sysconfig/network/ifcfg-\$i; wicked --debug all ifup \$i; done\n";
+    assert_script_run 'cd /proc/sys/net/ipv4/conf';
+    assert_script_run 'for i in *[0-9]; do echo BOOTPROTO=dhcp > /etc/sysconfig/network/ifcfg-$i; wicked --debug all ifup $i; done';
 }
 
 sub use_ifconfig() {
-    type_string "dhcpcd eth0\n";
+    assert_script_run 'dhcpcd eth0';
 }
 
 sub get_ip_address() {
@@ -20,8 +20,8 @@ sub get_ip_address() {
         else {
             use_wicked;
         }
-        type_string "ip a\n";
-        type_string "cat /etc/resolv.conf\n";
+        assert_script_run 'ip a';
+        assert_script_run 'cat /etc/resolv.conf';
     }
 }
 
