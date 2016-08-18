@@ -1203,14 +1203,14 @@ if (get_var("STORE_HDD_1") || get_var("PUBLISH_HDD_1")) {
 }
 
 if (get_var("TCM") || check_var("ADDONS", "tcm")) {
-    # kdump is not supported on aarch64, see BSC#990418
-    if (!check_var('ARCH', 'aarch64')) {
-        loadtest "toolchain/crash.pm";
-    }
     loadtest "toolchain/install.pm";
     loadtest "toolchain/gcc5_fortran_compilation.pm";
     loadtest "toolchain/gcc5_C_compilation.pm";
     loadtest "toolchain/gcc5_Cpp_compilation.pm";
+    # kdump is not supported on aarch64, see BSC#990418
+    if (!check_var('ARCH', 'aarch64')) {
+        loadtest "toolchain/crash.pm";
+    }
 }
 
 1;
