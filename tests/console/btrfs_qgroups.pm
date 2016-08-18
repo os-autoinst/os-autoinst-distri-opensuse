@@ -43,15 +43,15 @@ sub run() {
     assert_script_run "btrfs qgroup limit 500m 2/1 .";
 
     # Fill with data
-    assert_script_run "for c in {1..40};  do dd if=/dev/zero bs=1M count=1 of=a/file\$c; done";
-    assert_script_run "for c in {1..40};  do dd if=/dev/zero bs=1M count=1 of=b/file\$c; done";
-    assert_script_run "for c in {1..200}; do dd if=/dev/zero bs=1M count=1 of=c/file\$c; done";
-    assert_script_run "for c in {1..150}; do dd if=/dev/zero bs=1M count=1 of=d/file\$c; done";
+    assert_script_run "for c in {1..4};  do dd if=/dev/zero bs=1M count=10 of=a/file\$c; done";
+    assert_script_run "for c in {1..4};  do dd if=/dev/zero bs=1M count=10 of=b/file\$c; done";
+    assert_script_run "for c in {1..20}; do dd if=/dev/zero bs=1M count=10 of=c/file\$c; done";
+    assert_script_run "for c in {1..15}; do dd if=/dev/zero bs=1M count=10 of=d/file\$c; done";
 
     assert_script_run "btrfs subvolume snapshot d k";
     assert_script_run "btrfs quota rescan -w .";
-    assert_script_run "rm d/file\[1-75\]";
-    assert_script_run "for c in {51..100}; do dd if=/dev/zero bs=1M count=1 of=k/file\$c; done";
+    assert_script_run "rm d/file\[1-7\]";
+    assert_script_run "for c in {5..10}; do dd if=/dev/zero bs=1M count=10 of=k/file\$c; done";
 
     # Show structure
     type_string "sync\n";
@@ -64,6 +64,13 @@ sub run() {
         assert_script_run "sync && rm $c/nofile";
     }
     assert_script_run "cp nofile c/nofile";
+
+    # Check for bsc#993841
+    assert_script_run "btrfs subvolume create e";
+    assert_script_run "btrfs qgroup limit 50m e .";
+    assert_script_run "! for c in {1..40}; do dd if=/dev/zero bs=1M count=40 of=e/file; done";
+    script_run "sync";
+    assert_script_run("rm e/file", fail_message => 'bsc#993841');
 
     assert_script_run "cd; umount $dest";
     assert_script_run "btrfsck /dev/vdb";
