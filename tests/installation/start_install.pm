@@ -88,8 +88,10 @@ sub run() {
 
         # confirm
         send_key $cmd{install};
-        # we need to wait a bit for the disks to be formatted
-        assert_screen "inst-packageinstallationstarted", 120;
+        # we need to wait a bit for the disks to be formatted, live cd
+        # installation seems to be exceptionally slow
+        my $started_timeout = get_var('LIVECD') ? 600 : 120;
+        assert_screen "inst-packageinstallationstarted", $started_timeout;
     }
     if (   !get_var("LIVECD")
         && !get_var("NICEVIDEO")

@@ -16,6 +16,20 @@ use utils;
 sub run() {
     my $self = shift;
 
+    if (get_var('LIVECD')) {
+        mouse_hide;
+        wait_still_screen;
+        assert_screen([qw/generic-desktop-after_installation grub2/]);
+        if (match_has_tag('generic-desktop-after_installation')) {
+            record_soft_failure 'boo#993885 Kde-Live net installer does not reboot after installation';
+            select_console 'install-shell';
+            wait_still_screen;
+            type_string "reboot\n";
+            save_screenshot;
+            assert_screen 'grub2', 300;
+        }
+    }
+
     # due to pre-installation setup, qemu boot order is always booting from CD-ROM
     if (check_var("BOOTFROM", "d")) {
         assert_screen 'inst-bootmenu';
