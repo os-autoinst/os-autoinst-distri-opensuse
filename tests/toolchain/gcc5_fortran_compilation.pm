@@ -31,9 +31,9 @@ sub run() {
     script_run "rm FM001.f FM005.f FM109.f FM257.f";
 
     # Build
-    assert_script_run './driver_parse 2>&1 | tee /tmp/build.log', 120;
+    assert_script_run './driver_parse 2>&1 | tee /tmp/build.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi', 120;
     # Test
-    assert_script_run './driver_run 2>&1 | tee /tmp/test.log', 300;
+    assert_script_run './driver_run 2>&1 | tee /tmp/test.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi', 300;
     # Verify
     assert_script_run('! grep -P -L "(0 TESTS FAILED|0 ERRORS ENCOUNTERED)" *.res | grep FM');
 

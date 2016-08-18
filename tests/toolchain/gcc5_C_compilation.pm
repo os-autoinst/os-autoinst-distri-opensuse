@@ -15,18 +15,18 @@ use testapi;
 sub run() {
     my $self = shift;
 
-    my $package = data_url('toolchain/ltp-full-20150420.tar.bz2');
+    my $package = data_url('toolchain/ltp-full-20160510.tar.xz');
     script_run "wget $package";
-    script_run 'tar jxf ltp-full-20150420.tar.bz2';
-    script_run 'cd ltp-full-20150420';
-    assert_script_run './configure --with-open-posix-testsuite|tee /tmp/configure.log', 600;
-    assert_script_run 'make all|tee /tmp/make_all.log',                                 3600;
-    assert_script_run 'make install|tee /tmp/make_install.log',                         600;
-    script_run 'cd /opt/ltp/';
-    assert_script_run './runltp -f syscalls|tee /tmp/runltp.log', 2000;
-    script_run 'cat output/*.failed';    # print what tests failed
-    sleep 5;
+    script_run 'tar xJf ltp-full-20160510.tar.xz';
+    script_run 'pushd ltp-full-20160510';
+    assert_script_run './configure 2>&1 | tee /tmp/configure.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi',                            600;
+    assert_script_run 'make -j$(getconf _NPROCESSORS_ONLN) all 2>&1 | tee /tmp/make_all.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi', 3600;
+    assert_script_run 'make install 2>&1 | tee /tmp/make_install.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi',                        600;
+    script_run 'pushd /opt/ltp/';
+    assert_script_run './runltp -f syscalls 2>&1 | tee /tmp/runltp.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi', 2000;
     save_screenshot;
+    script_run 'popd';
+    script_run 'popd';
 }
 
 sub test_flags() {
@@ -36,11 +36,16 @@ sub test_flags() {
 sub post_fail_hook() {
     my $self = shift;
 
-    $self->export_logs();
+    script_run 'cat output/*.failed';    # print which tests failed
+    script_run 'mv /opt/ltp/output/*.failed /opt/ltp/output/ltp_tests_failed.list';
+    upload_logs '/opt/ltp/output/ltp_tests_failed.list';
+    upload_logs '/opt/ltp/output/*.failed';
     upload_logs '/tmp/configure.log';
     upload_logs '/tmp/make_all.log';
     upload_logs '/tmp/make_install.log';
     upload_logs '/tmp/runltp.log';
+    $self->export_logs();
+    script_run 'cd';
 }
 
 1;

@@ -15,19 +15,22 @@ use testapi;
 sub run() {
     my $self = shift;
 
-    my $package = data_url('toolchain/llvm-3.6.2.src.tar.xz');
+    script_run 'zypper -v -n in cmake';
+    my $package = data_url('toolchain/llvm-3.8.1.src.tar.xz');
     script_run "wget $package";
-    $package = data_url('toolchain/cfe-3.6.2.src.tar.xz');
+    $package = data_url('toolchain/cfe-3.8.1.src.tar.xz');
     script_run "wget $package";
-    script_run 'tar xf llvm-3.6.2.src.tar.xz';
-    script_run 'tar xf cfe-3.6.2.src.tar.xz';
-    script_run 'mkdir llvm-3.6.2.src/tools/clang';
-    script_run 'mv cfe-3.6.2.src/* llvm-3.6.2.src/tools/clang/';
-    script_run 'cd llvm-3.6.2.src';
-    assert_script_run './configure --disable-bindings|tee /tmp/configure.log', 600;
-    assert_script_run 'make -j$(getconf _NPROCESSORS_ONLN)|tee /tmp/make.log', 6000;
-    script_run 'cd tools/clang';
-    assert_script_run 'make test|tee /tmp/make_test.log', 500;
+    script_run 'tar xf llvm-3.8.1.src.tar.xz';
+    script_run 'tar xf cfe-3.8.1.src.tar.xz';
+    script_run 'mv cfe-3.8.1.src llvm-3.8.1.src/tools/clang/';
+    script_run 'mkdir mybuilddir; pushd mybuilddir';
+    assert_script_run 'cmake ../llvm-3.8.1.src 2>&1 | tee /tmp/configure.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi',        100;
+    assert_script_run 'make -j$(getconf _NPROCESSORS_ONLN) 2>&1 | tee /tmp/make.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi', 6000;
+    script_run 'pushd tools/clang/test';
+    assert_script_run 'make -j$(getconf _NPROCESSORS_ONLN) 2>&1 | tee /tmp/make-clang.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi', 6000;
+    script_run 'popd';
+    assert_script_run 'make check-all -j$(getconf _NPROCESSORS_ONLN) 2>&1 | tee /tmp/make_test.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi', 1800;
+    script_run 'popd';
 }
 
 sub test_flags() {
@@ -40,7 +43,9 @@ sub post_fail_hook() {
     $self->export_logs();
     upload_logs '/tmp/configure.log';
     upload_logs '/tmp/make.log';
+    upload_logs '/tmp/make-clang.log';
     upload_logs '/tmp/make_test.log';
+    script_run 'cd';
 }
 
 1;
