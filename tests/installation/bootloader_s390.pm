@@ -223,7 +223,9 @@ sub run() {
     # arbitrary number of retries for CTC only as it fails often to retrieve
     # media
     if (get_required_var('S390_NETWORK_PARAMS') =~ /ctc/) {
-        my $max_retries = 7;
+        # CTC still can fail with even 7 retries, see https://progress.opensuse.org/issues/10466
+        # so an even higher number is selected which might fix this
+        my $max_retries = 20;
         for (1 .. $max_retries) {
             eval {
                 # connect to zVM, login to the guest
