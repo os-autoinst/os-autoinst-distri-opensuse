@@ -27,7 +27,7 @@ sub run() {
 
     # find the LibreOffice
     assert_and_click('favorites-list-libreoffice');
-    assert_screen('welcome-to-libreoffice');
+    assert_screen('welcome-to-libreoffice', 90);
 
     # exit LibreOffice
     send_key "ctrl-q";
