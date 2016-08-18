@@ -16,7 +16,7 @@ our $date_re = qr/[0-9]{4}-[0-9]{2}-[0-9]{2}/;
 
 sub check_package_lifecycle {
     my ($package) = @_;
-    my $output = script_output 'zypper lifecycle ' . $package;
+    my $output = script_output 'zypper lifecycle ' . $package, 300;
     # https://github.com/nadvornik/zypper-lifecycle/blob/master/test-data/SLES.lifecycle
     # says it should be
     #  /$package\s*[0-9.*-]\+\s[0-9]{4}-[0-9]{2}-[0-9]{2}/;
@@ -44,15 +44,15 @@ sub run() {
     # 4. verify that "zypper lifecycle --days N" and "zypper lifecycle --date
     # D" shows correct results
     assert_script_run 'zypper lifecycle --help';
-    assert_script_run('zypper lifecycle --days 1', timeout => 30, fail_message => 'All packages supported tomorrow');
-    $output = script_output 'zypper lifecycle --days 0';
+    assert_script_run('zypper lifecycle --days 1', timeout => 300, fail_message => 'All packages supported tomorrow');
+    $output = script_output 'zypper lifecycle --days 0', 300;
     die "'end of support' line not found" unless $output =~ /No (products|packages).*before/;
-    assert_script_run('zypper lifecycle --days 9999', timeout => 30, fail_message => 'No package should be supported for more than 20 years');
-    $output = script_output 'zypper lifecycle --days 9999';
+    assert_script_run('zypper lifecycle --days 9999', timeout => 300, fail_message => 'No package should be supported for more than 20 years');
+    $output = script_output 'zypper lifecycle --days 9999', 300;
     die "Product 'end of support' line not found" unless $output =~ /^Product end of support before/;
     my $product_version = get_required_var('VERSION') =~ s/-/ /r;
     die "Current product should not be supported anymore" unless $output =~ /SUSE Linux Enterprise.*$product_version.*$date_re/;
-    assert_script_run('zypper lifecycle --date $(date --iso-8601)', timeout => 30, fail_message => 'All packages should be supported as of today');
+    assert_script_run('zypper lifecycle --date $(date --iso-8601)', timeout => 300, fail_message => 'All packages should be supported as of today');
 }
 
 sub test_flags() {
