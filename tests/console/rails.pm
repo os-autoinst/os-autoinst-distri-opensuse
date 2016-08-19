@@ -19,7 +19,7 @@ rails new -B mycoolapp
 cd mycoolapp
 (rails server &)
 for i in {1..100} ; do sleep 0.1; curl -s http://localhost:3000 | grep "Welcome" && break ; done
-kill %1'
+pkill -f "rails server"
 EOF
     assert_script_run($_) foreach (split /\n/, $cmd);
 }
