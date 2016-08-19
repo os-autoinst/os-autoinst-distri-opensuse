@@ -682,11 +682,7 @@ sub load_x11tests() {
     }
     if (kdestep_is_applicable()) {
         loadtest "x11/amarok.pm";
-        # kontact is broken currently. needs to be re-enable when we
-        # move to plasma5
-        if (!(check_var('VERSION', '42.2') || get_var('VERSION', '') =~ /^42:/)) {
-            loadtest "x11/kontact.pm";
-        }
+        loadtest "x11/kontact.pm";
         if (!get_var("USBBOOT")) {
             if (get_var("PLASMA5")) {
                 loadtest "x11/reboot_plasma5.pm";
