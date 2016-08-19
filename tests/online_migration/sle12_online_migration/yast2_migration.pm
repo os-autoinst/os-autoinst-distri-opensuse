@@ -21,7 +21,7 @@ sub run {
     else {
         select_console 'x11';
         wait_still_screen;
-        check_screenlock;
+        ensure_unlocked_desktop;
         mouse_hide(1);
         assert_screen 'generic-desktop';
 
