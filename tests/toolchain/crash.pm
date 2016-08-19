@@ -22,6 +22,10 @@ sub run() {
 
     script_run 'zypper -n in yast2-kdump kdump crash';
 
+    # It seems that `toolchain/gcc5_Cpp_compilation.pm` spits some visual artifacts
+    # (https://openqa.suse.de/tests/522356/file/video.ogv) which prevent needle match.
+    # They seem to occur after some 20 seconds, lets give it three rounds.
+    wait_still_screen(20, 60);
     script_run 'yast2 kdump', 0;
 
     if (check_screen 'yast2-kdump-disabled') {
