@@ -60,8 +60,9 @@ sub run() {
         my @addons_keys   = split(/,/, get_var('ADDONS',   ''));
         my @addonurl_keys = split(/,/, get_var('ADDONURL', ''));
         my $scc_addon_str = '';
-        foreach (split(/,/, get_var('SCC_ADDONS', ''))) {
-            $scc_addon_str .= "SLE-" . uc($_) . ',';
+        for my $scc_addon (split(/,/, get_var('SCC_ADDONS', ''))) {
+            $scc_addon =~ s/geo/ha-geo/ if ($scc_addon eq 'geo');
+            $scc_addon_str .= "SLE-" . uc($scc_addon) . ',';
         }
         my @scc_addons_keys = split(/,/, $scc_addon_str);
         @h_addons{@addons_keys}         = ();
