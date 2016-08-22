@@ -22,7 +22,7 @@ our @EXPORT = qw/
   zypper_call
   fully_patch_system
   workaround_type_encrypted_passphrase
-  check_screenlock
+  ensure_unlocked_desktop
   sle_version_at_least
   ensure_fullscreen
   ensure_shim_import
@@ -327,39 +327,42 @@ sub workaround_type_encrypted_passphrase {
 
 # if stay under tty console for long time, then check
 # screen lock is necessary when switch back to x11
-sub check_screenlock {
+sub ensure_unlocked_desktop {
     my ($tags) = @_;
     $tags //= [qw/generic-desktop/];
     send_key "backspace";    # deactivate blanking
     push @$tags, 'screenlock';
-    if (check_screen($tags)) {
-        return unless match_has_tag 'screenlock';
-        if (check_var("DESKTOP", "gnome")) {
-            send_key "esc";
-            unless (get_var("LIVETEST")) {
-                send_key "ctrl";    # show gnome screen lock in sle 11
+    assert_screen($tags);
+    if (!match_has_tag 'screenlock') {
+        # ensure screen is not immediately locked after checking
+        send_key 'esc';
+        return;
+    }
+    if (check_var("DESKTOP", "gnome")) {
+        send_key "esc";
+        unless (get_var("LIVETEST")) {
+            send_key "ctrl";    # show gnome screen lock in sle 11
 
-                # it is possible for GNOME not yet to ask for a password
-                # switching to tty1 then back to 7, where GNOME runs, withing five minutes
-                # does not lock with a password - in most cases we take long enough, but some
-                # console tests are just too quick
-                if (check_screen "gnome-screenlock-password") {
-                    type_password;
-                    send_key "ret";
-                }
+            # it is possible for GNOME not yet to ask for a password
+            # switching to tty1 then back to 7, where GNOME runs, withing five minutes
+            # does not lock with a password - in most cases we take long enough, but some
+            # console tests are just too quick
+            if (check_screen "gnome-screenlock-password") {
+                type_password;
+                send_key "ret";
             }
         }
-        elsif (check_var("DESKTOP", "minimalx")) {
-            type_string "$username";
-            save_screenshot();
-            send_key "ret";
-            type_password;
-            send_key "ret";
-        }
-        else {
-            type_password;
-            send_key "ret";
-        }
+    }
+    elsif (check_var("DESKTOP", "minimalx")) {
+        type_string "$username";
+        save_screenshot();
+        send_key "ret";
+        type_password;
+        send_key "ret";
+    }
+    else {
+        type_password;
+        send_key "ret";
     }
 }
 
