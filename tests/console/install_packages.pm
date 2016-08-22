@@ -22,7 +22,8 @@ sub run() {
     # make sure we install at least one package - otherwise this test is pointless
     # better have it fail and let a reviewer check the reason
     assert_script_run("test -s \$XDG_RUNTIME_DIR/install_packages.txt");
-    assert_script_run("xargs --no-run-if-empty zypper -n in -l < \$XDG_RUNTIME_DIR/install_packages.txt");
+    # might take longer than 90 seconds (e.g. libqt4)
+    assert_script_run("xargs --no-run-if-empty zypper -n in -l < \$XDG_RUNTIME_DIR/install_packages.txt", 120);
     assert_script_run("rpm -q $packages | tee /dev/$serialdev");
 }
 
