@@ -57,7 +57,7 @@ sub run {
         assert_screen 'yast2-migration-installupdate', 200;
         send_key "alt-y";
     }
-    assert_screen 'yast2-migration-proposal', 60;
+    assert_screen 'yast2-migration-proposal', 200;
 
     # giva a little time to check package conflicts
     if (check_screen("yast2-migration-conflicts", 15)) {
