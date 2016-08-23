@@ -315,7 +315,7 @@ sub fully_patch_system {
     # first run, possible update of packager -- exit code 103
     zypper_call('patch --with-interactive -l', exitcode => [0, 102, 103]);
     # second run, full system update
-    zypper_call('patch --with-interactive -l', exitcode => [0, 102], timeout => 2500);
+    zypper_call('patch --with-interactive -l', exitcode => [0, 102], timeout => 3500);
 }
 
 sub workaround_type_encrypted_passphrase {
