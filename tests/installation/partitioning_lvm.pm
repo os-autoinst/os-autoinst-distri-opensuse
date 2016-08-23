@@ -13,6 +13,13 @@ use warnings;
 use base "y2logsstep";
 use testapi;
 
+sub save_logs_and_resume {
+    my $self = shift;
+    $self->get_to_console;
+    $self->save_upload_y2logs();
+    select_console 'installation';
+}
+
 sub run() {
     my $self             = shift;
     my $file_system_tags = [
@@ -21,17 +28,23 @@ sub run() {
           partitioning-encrypt-ignored-existing
           /
     ];
+    my $collect_logs = 0;
 
     if (get_var('ENCRYPT_ACTIVATE_EXISTING')) {
         assert_screen $file_system_tags;
         if (match_has_tag('partitioning-no-root-filesystem')) {
             record_soft_failure 'bsc#989750';
+            $collect_logs = 1;
         }
         elsif (match_has_tag('partitioning-encrypt-ignored-existing')) {
             record_soft_failure 'bsc#993247';
+            $collect_logs = 1;
         }
 
-        return unless get_var 'ENCRYPT_FORCE_RECOMPUTE';
+        unless (get_var('ENCRYPT_FORCE_RECOMPUTE')) {
+            $self->save_logs_and_resume() if $collect_logs;
+            return;
+        }
     }
 
     send_key "alt-d";
@@ -55,6 +68,7 @@ sub run() {
         assert_screen [qw/partition-lvm-new-summary partitioning-encrypt-activated-existing partitioning-encrypt-broke-existing/];
         if (match_has_tag('partitioning-encrypt-broke-existing')) {
             record_soft_failure 'bsc#993249';
+            $collect_logs = 1;
         }
     }
     elsif (!get_var('ENCRYPT_ACTIVATE_EXISTING')) {    # old behaviour still needed
@@ -73,6 +87,8 @@ sub run() {
         }
         send_key "alt-o";
     }
+
+    $self->save_logs_and_resume() if $collect_logs;
 }
 
 1;
