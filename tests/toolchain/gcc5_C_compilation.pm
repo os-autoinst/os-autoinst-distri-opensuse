@@ -39,7 +39,6 @@ sub post_fail_hook() {
     script_run 'cat output/*.failed';    # print which tests failed
     script_run 'mv /opt/ltp/output/*.failed /opt/ltp/output/ltp_tests_failed.list';
     upload_logs '/opt/ltp/output/ltp_tests_failed.list';
-    upload_logs '/opt/ltp/output/*.failed';
     upload_logs '/tmp/configure.log';
     upload_logs '/tmp/make_all.log';
     upload_logs '/tmp/make_install.log';
