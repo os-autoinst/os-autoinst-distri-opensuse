@@ -146,6 +146,10 @@ sub is_server() {
     return (get_var("OFW") || check_var("FLAVOR", "Server-DVD"));
 }
 
+sub is_livesystem() {
+    return (check_var("FLAVOR", 'Rescue-CD') || get_var("LIVETEST"));
+}
+
 sub xfcestep_is_applicable() {
     return check_var("DESKTOP", "xfce");
 }
@@ -176,10 +180,6 @@ sub need_clear_repos() {
 
 sub have_addn_repos() {
     return !get_var("NET") && !get_var("EVERGREEN") && get_var("SUSEMIRROR") && !is_staging();
-}
-
-sub system_is_livesystem() {
-    return (check_var("FLAVOR", 'Rescue-CD') || get_var("LIVETEST"));
 }
 
 sub load_x11regresion_tests() {
@@ -631,7 +631,7 @@ sub load_x11tests() {
     if (get_var("MOZILLATEST")) {
         loadtest "x11/mozmill_run.pm";
     }
-    if (!(is_staging() || system_is_livesystem)) {
+    if (!(is_staging() || is_livesystem)) {
         loadtest "x11/chromium.pm";
     }
     if (bigx11step_is_applicable()) {
@@ -714,7 +714,7 @@ sub load_x11tests() {
         loadtest "x11/gimp.pm";
     }
     if (   !is_staging()
-        && !system_is_livesystem)
+        && !is_livesystem)
     {
         loadtest "x11/gnucash.pm";
         loadtest "x11/hexchat.pm";
@@ -752,7 +752,9 @@ sub install_online_updates {
 }
 
 sub load_system_update_tests {
-    return if get_var("INSTALLONLY") || get_var("DUALBOOT");
+    # we don't want live systems to run out of memory or virtual disk space.
+    # Applying updates on a live system would not be persistent anyway
+    return if get_var("INSTALLONLY") || get_var("DUALBOOT") || is_livesystem;
 
     if (need_clear_repos) {
         loadtest "update/zypper_clear_repos.pm";
