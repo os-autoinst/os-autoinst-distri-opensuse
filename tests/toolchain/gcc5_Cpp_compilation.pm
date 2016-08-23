@@ -24,8 +24,24 @@ sub run() {
     script_run 'tar xf cfe-3.8.1.src.tar.xz';
     script_run 'mv cfe-3.8.1.src llvm-3.8.1.src/tools/clang/';
     script_run 'mkdir mybuilddir; pushd mybuilddir';
-    assert_script_run 'cmake ../llvm-3.8.1.src 2>&1 | tee /tmp/configure.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi',        100;
-    assert_script_run 'make -j$(getconf _NPROCESSORS_ONLN) 2>&1 | tee /tmp/make.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi', 6000;
+    # Documentation (http://llvm.org/docs/HowToBuildOnARM.html) suggest to use "Release"
+    # build type and limit itself to build ARM targets only (plus Intel target for
+    # Compiler-RT tests). Otherwise OOM killer kicks in.
+    my $configure_options = '-DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD="X86';
+    if (check_var('ARCH', 'aarch64')) {
+        $configure_options .= ';AArch64"';
+    }
+    elsif (check_var('ARCH', 'ppc64le')) {
+        $configure_options .= ';PowerPC"';
+    }
+    elsif (check_var('ARCH', 's390x')) {
+        $configure_options .= ';SystemZ"';
+    }
+    elsif (check_var('ARCH', 'x86_64')) {
+        $configure_options .= '"';
+    }
+    assert_script_run "cmake ../llvm-3.8.1.src $configure_options 2>&1 | tee /tmp/configure.log; if [ \${PIPESTATUS[0]} -ne 0 ]; then false; fi", 100;
+    assert_script_run 'make -j$(getconf _NPROCESSORS_ONLN) 2>&1 | tee /tmp/make.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi',              6000;
     script_run 'pushd tools/clang/test';
     assert_script_run 'make -j$(getconf _NPROCESSORS_ONLN) 2>&1 | tee /tmp/make-clang.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi', 6000;
     script_run 'popd';
