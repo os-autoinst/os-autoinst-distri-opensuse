@@ -38,7 +38,12 @@ sub fill_in_registration_data {
     }
     unless (get_var('SCC_REGISTER', '') =~ /addon|network/) {
         my @tags = qw/local-registration-servers registration-online-repos import-untrusted-gpg-key module-selection contacting-registration-server/;
-        push @tags, 'untrusted-ca-cert' if get_var('SCC_URL');
+        if (get_var('SCC_URL') || get_var('SMT_URL')) {
+            push @tags, 'untrusted-ca-cert';
+            if (get_var('SMT_URL')) {
+                push @tags, 'registration-12sp1-check';
+            }
+        }
         while (check_screen(\@tags, 60)) {
             if (match_has_tag("local-registration-servers")) {
                 send_key "alt-o";
@@ -72,7 +77,17 @@ sub fill_in_registration_data {
             }
             elsif (get_var('SCC_URL') && match_has_tag("untrusted-ca-cert")) {
                 record_soft_failure 'bsc#943966' if get_var('SCC_CERT');
-                send_key "alt-t", 1;    # trust
+                send_key "alt-t", 1;
+                # the behavior here of smt registration on 12sp1 is a little different with
+                # 12sp0 and 12sp2, normally registration would start automatically after
+                # untrusted certification imported, but it would not on 12sp1, and we have to
+                # send next manually to start registration.
+                if (get_var('SMT_URL')) {
+                    if (check_screen('registration-12sp1-check', 5)) {
+                        send_key "alt-n";
+                    }
+                    @tags = grep { $_ ne 'registration-12sp1-check' } @tags;
+                }
                 @tags = grep { $_ ne 'untrusted-ca-cert' } @tags;
                 next;
             }
@@ -123,6 +138,8 @@ sub fill_in_registration_data {
                 send_key "alt-n", 1;    # next
             }
             for my $addon (split(/,/, get_var('SCC_ADDONS', ''))) {
+                # no need to input registration code if register via SMT
+                last if (get_var('SMT_URL'));
                 $uc_addon = uc $addon;    # change to uppercase to match variable
                 if (my $regcode = get_var("SCC_REGCODE_$uc_addon")) {
                     # skip addons which doesn't need to input scc code
