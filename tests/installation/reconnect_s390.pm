@@ -18,7 +18,7 @@ use warnings;
 sub run() {
     my $self = shift;
 
-    my $login_ready = qr/Welcome to SUSE Linux Enterprise Server.*\(tty/;
+    my $login_ready = qr/Welcome to SUSE Linux Enterprise Server.*\(s390x\)/;
 
     # different behaviour for z/VM and z/KVM
     if (check_var('BACKEND', 's390x')) {
