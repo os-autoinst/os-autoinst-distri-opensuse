@@ -18,6 +18,8 @@ use warnings;
 sub run() {
     my $self = shift;
 
+    my $login_ready = qr/Welcome to SUSE Linux Enterprise Server.*\(tty/;
+
     # different behaviour for z/VM and z/KVM
     if (check_var('BACKEND', 's390x')) {
 
@@ -27,7 +29,7 @@ sub run() {
 
         # 'wait_serial' implementation for x3270
         console('x3270')->expect_3270(
-            output_delim => qr/Welcome to SUSE Linux Enterprise Server/,
+            output_delim => $login_ready,
             timeout      => 300
         );
 
@@ -37,7 +39,7 @@ sub run() {
         select_console('iucvconn');
     }
     else {
-        wait_serial("Welcome to SUSE Linux Enterprise Server", 300) || die "System couldn't boot";
+        wait_serial($login_ready, 300) || die "System couldn't boot";
     }
 
     if (!check_var('DESKTOP', 'textmode')) {
