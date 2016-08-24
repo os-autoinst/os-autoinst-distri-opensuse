@@ -23,7 +23,15 @@ sub run() {
     }
 
     if (get_var("NOAUTOLOGIN") || get_var("IMPORT_USER_DATA")) {
-        assert_screen 'displaymanager', 200;
+        assert_screen [qw/displaymanager emergency-shell emergency-mode/], 200;
+        if (match_has_tag('emergency-shell')) {
+            # get emergency shell logs for bug, scp doesn't work
+            script_run "cat /run/initramfs/rdsosreport.txt > /dev/$serialdev";
+        }
+        elsif (match_has_tag('emergency-mode')) {
+            type_password;
+            send_key 'ret';
+        }
         if (get_var('DESKTOP_MINIMALX_INSTONLY')) {
             # return at the DM and log in later into desired wm
             return;
