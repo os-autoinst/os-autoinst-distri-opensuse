@@ -5,13 +5,14 @@ use testapi;
 
 sub run() {
     assert_screen "sles4sap-product-installation-mode";
-    send_key "alt-p";    # Proceed with standard SLES installation
+    send_key "alt-s";    # SUSE Linux Enterprise Server
+    save_screenshot;
     assert_screen "sles4sap-standard-sles-selected";
     if (get_var("SLES4SAP_MODE") =~ /sles4sap/) {
-        send_key "alt-o";    # prOceed with standard SLES for SAP Application installation
+        send_key "alt-u";    # SLES for SAP
         assert_screen "sles4sap-product-selected";
         if (check_var('SLES4SAP_MODE', 'sles4sap_wizard')) {
-            send_key "alt-s";    # Start the SAP Installation Wizard right after the OS installation
+            send_key "alt-a";    # lAunch SAP product installation wizard
             assert_screen "sles4sap-wizard-selected";
         }
     }
