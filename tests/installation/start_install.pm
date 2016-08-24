@@ -106,7 +106,7 @@ sub run() {
         assert_screen 'installation-details-view';
         check_bsc982138;
 
-        if (get_var("DVD") && !get_var("NOIMAGES")) {
+        if (get_var("USEIMAGES")) {
             if (check_var('DESKTOP', 'kde')) {
                 assert_screen 'kde-imagesused', 500;
             }

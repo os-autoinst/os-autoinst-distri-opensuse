@@ -179,6 +179,7 @@ our %valueranges = (
 
     #   LVM=>[0,1],
     NOIMAGES           => [0, 1],
+    USEIMAGES          => [0, 1],
     REBOOTAFTERINSTALL => [0, 1],
     DOCRUN             => [0, 1],
 
@@ -197,8 +198,6 @@ sub check_env {
         }
     }
 }
-
-our @can_randomize = qw/NOIMAGES REBOOTAFTERINSTALL DESKTOP VIDEOMODE/;
 
 sub unregister_needle_tags {
     my ($tag) = @_;
