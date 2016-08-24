@@ -40,7 +40,7 @@ sub run() {
     elsif (check_var('ARCH', 'x86_64')) {
         $configure_options .= '"';
     }
-    assert_script_run "cmake ../llvm-3.8.1.src $configure_options 2>&1 | tee /tmp/configure.log; if [ \${PIPESTATUS[0]} -ne 0 ]; then false; fi", 100;
+    assert_script_run "cmake ../llvm-3.8.1.src $configure_options 2>&1 | tee /tmp/configure.log; if [ \${PIPESTATUS[0]} -ne 0 ]; then false; fi", 200;
     assert_script_run 'make -j$(getconf _NPROCESSORS_ONLN) 2>&1 | tee /tmp/make.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi',              6000;
     script_run 'pushd tools/clang/test';
     assert_script_run 'make -j$(getconf _NPROCESSORS_ONLN) 2>&1 | tee /tmp/make-clang.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi', 6000;
