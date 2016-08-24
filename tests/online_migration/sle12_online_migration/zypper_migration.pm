@@ -29,7 +29,7 @@ sub run() {
     # start migration
     script_run("(zypper migration;echo ZYPPER-DONE) | tee /dev/$serialdev", 0);
     # migration process take long time
-    my $timeout          = 3000;
+    my $timeout          = 7200;
     my $migration_checks = [$zypper_migration_target, $zypper_disable_repos, $zypper_continue, $zypper_migration_done, $zypper_migration_error, $zypper_migration_conflict, $zypper_migration_fileconflict, $zypper_migration_notification, $zypper_migration_failed];
     my $out              = wait_serial($migration_checks, $timeout);
     while ($out) {
