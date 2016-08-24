@@ -19,7 +19,7 @@ sub run() {
         assert_screen 'system-role-kvm-virthost';
     }
 
-    send_key 'alt-n';    # next
+    send_key $cmd{next};
 }
 
 1;

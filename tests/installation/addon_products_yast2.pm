@@ -28,16 +28,16 @@ sub run() {
             assert_screen 'inst-addon';
             if (check_var('SCC_REGISTER', 'network')) {
                 send_key 'alt-u';     # specify url
-                send_key 'alt-n';
+                send_key $cmd{next};
                 assert_screen 'addonurl-entry', 3;
                 type_string get_var("ADDONURL_$uc_addon");
                 send_key 'alt-p';     # name
                 type_string "SLE$uc_addon" . "12-SP1_repo";
-                send_key 'alt-n';
+                send_key $cmd{next};
             }
             else {
-                send_key 'alt-v',                              3;             # DVD
-                send_key 'alt-n',                              3;
+                send_key 'alt-v', 3;    # DVD
+                send_key $cmd{next}, 3;
                 assert_screen 'dvd-selector',                  3;
                 send_key_until_needlematch 'addon-dvd-list',   'tab', 10;     # jump into addon list
                 send_key_until_needlematch "addon-dvd-$addon", 'down', 10;    # select addon in list
@@ -55,63 +55,63 @@ sub run() {
             else {
                 assert_screen "addon-license-$addon";
             }
-            send_key 'alt-a',                                       2;             # yes, agree
-            send_key 'alt-n',                                       2;             # next
+            send_key 'alt-a', 2;                                              # yes, agree
+            send_key $cmd{next}, 2;
             send_key_until_needlematch 'addon-yast2-view-selected', 'alt-v', 10;
-            send_key 'spc';                                                        # open view menu
+            send_key 'spc';                                                   # open view menu
             send_key 'alt-r', 1;
-            send_key 'alt-r', 1;                                                   # go to repositories
-            send_key 'ret';                                                        # open repositories tab
+            send_key 'alt-r', 1;                                              # go to repositories
+            send_key 'ret';                                                   # open repositories tab
             assert_screen "addon-yast2-repo-$addon";
-            send_key 'alt-a';                                                      # accept
+            send_key 'alt-a';                                                 # accept
             assert_screen 'automatic-changes';
-            send_key 'alt-o';                                                      # OK
+            send_key 'alt-o';                                                 # OK
             if (check_screen 'unsupported-packages', 5) {
                 record_soft_failure 'unsupported packages';
                 send_key 'alt-o';
             }
-            if (check_screen 'addon-installation-pop-up', 100) {                   # e.g. RT reboot to activate new kernel
-                send_key 'alt-o';                                                  # OK
+            if (check_screen 'addon-installation-pop-up', 100) {              # e.g. RT reboot to activate new kernel
+                send_key 'alt-o';                                             # OK
             }
             assert_screen "addon-installation-report";
-            send_key 'alt-f', 2;                                                   # finish
+            send_key 'alt-f', 2;                                              # finish
             if (get_var('SCC_REGISTER')) {
                 if (check_screen('scc-registration', 5)) {
                     fill_in_registration_data;
                 }
-                if ($addon ne 'sdk') {                                             # sdk doesn't ask for code
+                if ($addon ne 'sdk') {                                        # sdk doesn't ask for code
                     my $regcode = get_var("SCC_REGCODE_$uc_addon");
                     assert_screen "addon-reg-code";
-                    send_key 'tab';                                                # jump to code field
+                    send_key 'tab';                                           # jump to code field
                     type_string $regcode;
                     sleep 1;
                     save_screenshot;
-                    send_key "alt-n";                                              # next
+                    send_key $cmd{next};
                 }
                 assert_screen 'addon-products',                     60;
-                send_key "tab",                                     1;             # select addon-products-$addon
+                send_key "tab",                                     1;        # select addon-products-$addon
                 send_key "pgup",                                    1;
                 send_key_until_needlematch "addon-products-$addon", 'down';
             }
             else {
-                send_key "alt-s", 1;                                               # skip SCC registration
+                send_key "alt-s", 1;                                          # skip SCC registration
                 if (check_screen("scc-skip-reg-warning")) {
-                    send_key "alt-y", 1;                                           # confirmed skip SCC registration
+                    send_key "alt-y", 1;                                      # confirmed skip SCC registration
                 }
                 if (check_screen("scc-skip-base-system-reg-warning")) {
-                    send_key "alt-y", 1;                                           # confirmed skip SCC registration
+                    send_key "alt-y", 1;                                      # confirmed skip SCC registration
                 }
             }
-            if ((split(/,/, get_var('ADDONS')))[-1] ne $addon) {                   # if $addon is not first from all ADDONS
-                send_key 'alt-a', 2;                                               # add another add-on
+            if ((split(/,/, get_var('ADDONS')))[-1] ne $addon) {              # if $addon is not first from all ADDONS
+                send_key 'alt-a', 2;                                          # add another add-on
             }
             else {
-                send_key 'alt-o', 2;                                               # ok continue
+                send_key 'alt-o', 2;                                          # ok continue
             }
         }
     }
     else {
-        send_key 'alt-n', 2;                                                       # done
+        send_key 'alt-n', 2;                                                  # done
     }
 }
 

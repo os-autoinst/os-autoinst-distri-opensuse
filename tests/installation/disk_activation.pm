@@ -21,7 +21,7 @@ sub run {
         assert_screen 'zfcp-disk-management';
         send_key 'alt-a';
         assert_screen 'zfcp-add-device';
-        send_key 'alt-n';
+        send_key $cmd{next};
 
         # use allow_lun_scan
         assert_screen 'zfcp-popup-scan';
@@ -29,7 +29,7 @@ sub run {
 
         assert_screen 'zfcp-disk-management';
         assert_screen 'zfcp-activated';
-        send_key 'alt-n';
+        send_key $cmd{next};
         wait_still_screen 5;
     }
     else {    # use default DASD as install disk
@@ -97,11 +97,11 @@ sub run {
         }
         sleep 5;
         assert_screen 'dasd-active';
-        send_key 'alt-n';                                   # next
+        send_key $cmd{next};
         sleep 5;
     }
     assert_screen 'disk-activation', 15;
-    send_key 'alt-n';                                       # next
+    send_key $cmd{next};
     sleep 5;
 
     # check for multipath popup

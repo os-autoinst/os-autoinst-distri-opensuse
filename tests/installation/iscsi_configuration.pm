@@ -19,7 +19,7 @@ sub run() {
     assert_screen 'iscsi-ibft';
     send_key 'alt-o';    # OK
     assert_screen 'disk-activation-iscsi';
-    send_key 'alt-n';    # next
+    send_key $cmd{next};
 }
 
 1;

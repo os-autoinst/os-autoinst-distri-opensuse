@@ -15,7 +15,7 @@ use testapi;
 sub run() {
     if (check_var("FLAVOR", "NET")) {
         assert_screen('list-of-online-repositories', 10);
-        send_key 'alt-n';
+        send_key $cmd{next};
 
         if (get_var("BETA")) {
             assert_screen "inst-betawarning";
@@ -30,7 +30,7 @@ sub run() {
     else {
         # offline DVD upgrade. We expect to not have network
         assert_screen('network-not-configured');
-        send_key 'alt-n';
+        send_key $cmd{next};
         assert_screen('ERROR-cannot-download-repositories');
         send_key 'alt-o';
     }

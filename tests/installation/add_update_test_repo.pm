@@ -22,12 +22,12 @@ sub run() {
             send_key 'alt-x';
         }
         else {
-            send_key 'alt-n';
+            send_key $cmd{next};
         }
         assert_screen 'addonurl-entry';
         send_key 'alt-u';    # select URL field
         type_string "$maintrepo";
-        send_key 'alt-n';
+        send_key $cmd{next};
         assert_screen 'addon-products';
         if ((split(/,/, get_var('MAINT_TEST_REPO')))[-1] ne $maintrepo) {    # if $maintrepo is not first from all maint test repos
             send_key 'alt-a';                                                # add another repo
