@@ -238,6 +238,7 @@ sub init_consoles {
                 password => $testapi::password
             });
         $self->add_console('install-shell', 'tty-console', {tty => 2});
+        $self->add_console('installation',  'tty-console', {tty => check_var('VIDEOMODE', 'text') ? 1 : 7});
         $self->add_console('root-console',  'tty-console', {tty => 2});
         $self->add_console('user-console',  'tty-console', {tty => 4});
         $self->add_console('log-console',   'tty-console', {tty => 5});
