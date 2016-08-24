@@ -903,6 +903,7 @@ sub load_fips_tests_misc() {
 sub load_fips_tests_crypt() {
     loadtest "console/yast2_dm_crypt.pm";
     loadtest "console/cryptsetup.pm";
+    loadtest "console/ecryptfs_fips.pm";
 }
 
 sub prepare_target() {
