@@ -20,6 +20,17 @@ sub ensure_multi_user_target {
     wait_still_screen 10;
     # isolating multi-user.target logs us out
     select_console 'root-console';
+    if (check_var('DESKTOP', 'gnome')) {
+        # if all is well, there is no gdm-x-session process remaining
+        my $gdmpid = script_output "pidof /usr/lib/gdm/gdm-x-session || true";
+        if ($gdmpid ne "") {
+            # gdm did not bring down its children
+            record_soft_failure 'boo#976764 - GDM does not restart';
+            script_run "killall gdm-x-session";
+            # display jumps to gdm's vt, move back to root-console
+            select_console 'root-console';
+        }
+    }
 }
 
 sub ensure_graphical_target {
