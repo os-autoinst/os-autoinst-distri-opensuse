@@ -74,9 +74,6 @@ sub run() {
             last unless check_screen 'import-untrusted-gpg-key-598D0E63B3FD7E48';
         }
     }
-    # make sure we are done with the setup and arrived at the next screen
-    # which can take some time as this involves network traffic
-    assert_screen 'before-package-selection', 300;
 }
 
 1;
