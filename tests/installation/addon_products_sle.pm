@@ -48,39 +48,50 @@ sub run() {
             else {
                 assert_screen "addon-license-$addon";
             }
-            wait_still_screen 2;
-            send_key 'alt-a';                                                   # yes, agree
+            if (get_var("HASLICENSE")) {
+                if (check_screen 'next-button-is-active', 5) {
+                    send_key $cmd{next};
+                    assert_screen "license-refuse";
+                    send_key 'alt-n';    # no, don't refuse agreement
+                    wait_still_screen 2;
+                    send_key $cmd{accept};    # accept license
+                }
+                else {
+                    wait_still_screen 2;
+                    send_key $cmd{accept};    # accept license
+                }
+            }
             wait_still_screen 2;
             send_key $cmd{next};
             assert_screen 'addon-products';
-            send_key "tab";                                                     # select addon-products-$addon
+            send_key "tab";                   # select addon-products-$addon
             wait_still_screen 2;
-            if (check_var('VIDEOMODE', 'text')) {                               # textmode need more tabs, depends on add-on count
+            if (check_var('VIDEOMODE', 'text')) {    # textmode need more tabs, depends on add-on count
                 send_key_until_needlematch "addon-list-selected", 'tab';
             }
             send_key "pgup";
             wait_still_screen 2;
             send_key_until_needlematch "addon-products-$addon", 'down';
-            if ((split(/,/, get_var('ADDONS')))[-1] ne $addon) {                # if $addon is not first from all ADDONS
-                send_key 'alt-a';                                               # add another add-on
+            if ((split(/,/, get_var('ADDONS')))[-1] ne $addon) {    # if $addon is not first from all ADDONS
+                send_key 'alt-a';                                   # add another add-on
             }
         }
     }
     if (get_var("ADDONURL")) {
         if (match_has_tag('inst-addon')) {
-            send_key 'alt-k';                                                   # install with addons
+            send_key 'alt-k';                                       # install with addons
         }
         else {
             send_key 'alt-a';
         }
         for my $addon (split(/,/, get_var('ADDONURL'))) {
             assert_screen 'addon-menu-active';
-            my $uc_addon = uc $addon;                                           # varibale name is upper case
-            send_key 'alt-u';                                                   # specify url
+            my $uc_addon = uc $addon;                               # varibale name is upper case
+            send_key 'alt-u';                                       # specify url
             send_key $cmd{next};
             assert_screen 'addonurl-entry';
-            send_key 'alt-u';                                                   # select URL field
-            type_string get_var("ADDONURL_$uc_addon");                          # repo URL
+            send_key 'alt-u';                                       # select URL field
+            type_string get_var("ADDONURL_$uc_addon");              # repo URL
             send_key $cmd{next};
             if (get_var("ADDONS")) {
                 if (get_var("BETA_$uc_addon")) {
@@ -92,20 +103,20 @@ sub run() {
                     assert_screen "addon-license-$addon";
                 }
                 wait_still_screen 2;
-                send_key 'alt-a';                                               # yes, agree
+                send_key 'alt-a';                                   # yes, agree
                 wait_still_screen 2;
                 send_key $cmd{next};
             }
             assert_screen 'addon-products', 90;
-            send_key "tab";                                                     # select addon-products-$addon
-            if (check_var('VIDEOMODE', 'text')) {                               # textmode need more tabs, depends on add-on count
+            send_key "tab";                                         # select addon-products-$addon
+            if (check_var('VIDEOMODE', 'text')) {                   # textmode need more tabs, depends on add-on count
                 send_key_until_needlematch "addon-list-selected", 'tab';
             }
             send_key "pgup";
             wait_still_screen 2;
             send_key_until_needlematch "addon-products-$addon", 'down';
-            if ((split(/,/, get_var('ADDONURL')))[-1] ne $addon) {              # if $addon is not first from all ADDONS
-                send_key 'alt-a';                                               # add another add-on
+            if ((split(/,/, get_var('ADDONURL')))[-1] ne $addon) {    # if $addon is not first from all ADDONS
+                send_key 'alt-a';                                     # add another add-on
             }
         }
     }

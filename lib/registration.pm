@@ -134,13 +134,26 @@ sub fill_in_registration_data {
                     sleep 5;
                 }
                 assert_screen("scc-addon-license-$addon");
-                send_key "alt-a", 1;    # accept license
-                send_key $cmd{next}, 1;
+                if (get_var("HASLICENSE")) {
+                    if (check_screen 'next-button-is-active', 5) {
+                        send_key $cmd{next};
+                        assert_screen "license-refuse";
+                        send_key 'alt-n';    # no, don't refuse agreement
+                        wait_still_screen 2;
+                        send_key $cmd{accept};    # accept license
+                    }
+                    else {
+                        wait_still_screen 2;
+                        send_key $cmd{accept};    # accept license
+                    }
+                }
+                wait_still_screen 2;
+                send_key $cmd{next};
             }
             for my $addon (split(/,/, get_var('SCC_ADDONS', ''))) {
                 # no need to input registration code if register via SMT
                 last if (get_var('SMT_URL'));
-                $uc_addon = uc $addon;    # change to uppercase to match variable
+                $uc_addon = uc $addon;            # change to uppercase to match variable
                 if (my $regcode = get_var("SCC_REGCODE_$uc_addon")) {
                     # skip addons which doesn't need to input scc code
                     next unless grep { $addon eq $_ } qw(ha geo we live rt);
