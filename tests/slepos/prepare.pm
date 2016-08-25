@@ -61,11 +61,13 @@ sub run() {
         configure_static_dns(get_host_resolv_conf());
     }
     else {
-        mutex_lock('dhcp');
-        mutex_unlock('dhcp');
+        # on standalone image server with qemu network we don't have to wait
+        if (get_var('NICTYPE') eq 'tap') {
+            mutex_lock('dhcp');
+            mutex_unlock('dhcp');
+        }
         configure_dhcp();
     }
-
     save_screenshot;
 }
 

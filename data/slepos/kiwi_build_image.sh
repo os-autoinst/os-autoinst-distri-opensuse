@@ -44,7 +44,7 @@ fi
 cp -R "$SLEPOS_TEMPLATE_PATH/$TEMPLATE"/* "$IMAGE_PATH/$THIS_IMAGE"
 
 sed -i -e "s|<version>[0-9.]*</version>|<version>$IMAGE_VERSION</version>|" "$IMAGE_PATH/$THIS_IMAGE/config.xml"
-sed -i -e "s|<image name=['\"][^'\"]*['\"]|<image name='$IMAGE_NAME'|" "$IMAGE_PATH/$THIS_IMAGE/config.xml"
+sed -i -e "s|<image \(.*\)name=['\"][^'\"]*['\"]|<image \1name='$IMAGE_NAME'|" "$IMAGE_PATH/$THIS_IMAGE/config.xml"
 sed -i -e "s|displayname=['\"][^'\"]*['\"]|displayname='$IMAGE_NAME'|" "$IMAGE_PATH/$THIS_IMAGE/config.xml"
 
 for s in "$@" ; do

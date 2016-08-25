@@ -974,6 +974,9 @@ elsif (get_var("SUPPORT_SERVER")) {
         loadtest "support_server/wait.pm";
     }
 }
+elsif (get_var("SLEPOS")) {
+    load_slepos_tests();
+}
 elsif (get_var("FIPS_TS")) {
     if (check_var("FIPS_TS", "setup")) {
         prepare_target();
