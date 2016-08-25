@@ -11,6 +11,19 @@ use base "basetest";
 use testapi;
 use utils;
 
+sub build_image {
+    my ($target, $template, $linux32, $mod) = @_;
+
+    $linux32 = $linux32 ? 'linux32' : '';
+    $mod //= '';
+
+    script_output "./kiwi_build_image.sh '$target' '$template' '$linux32' '$mod'", 1000;
+    script_output "ls -l /var/lib/SLEPOS/system/images/$target/";
+    upload_logs "/var/log/image_prepare-$target";
+    upload_logs "/var/log/image_create-$target";
+    script_output "tar -cjf $target.tar.bz2 /var/lib/SLEPOS/system/images/$target/", 300;
+    upload_asset "$target.tar.bz2",                                                  'public';
+}
 
 sub run() {
     my $self = shift;
@@ -20,21 +33,14 @@ sub run() {
       curl " . autoinst_url . "/data/slepos/kiwi_build_image.sh > kiwi_build_image.sh
       chmod 755 kiwi_build_image.sh
     ";
-
-    script_output "./kiwi_build_image.sh minimal-3.4.0 jeos-4.0.0  linux32 ", 1000;
-    script_output "ls -l /var/lib/SLEPOS/system/images/minimal-3.4.0/";
-    upload_logs "/var/log/image_prepare-minimal-3.4.0";
-    upload_logs "/var/log/image_create-minimal-3.4.0";
-    upload_asset '/var/lib/SLEPOS/system/images/minimal-3.4.0/minimal.i686-3.4.0.md5';
-    upload_asset '/var/lib/SLEPOS/system/images/minimal-3.4.0/minimal.i686-3.4.0.gz';
-    script_output "./kiwi_build_image.sh graphical-3.4.0 graphical-4.0.0 linux32 's|</packages>|<package name=\"cryptsetup\"/><package name=\"liberation-fonts\"/></packages>|' ", 1000;
-    script_output "ls -l /var/lib/SLEPOS/system/images/graphical-3.4.0/";
-    upload_logs "/var/log/image_prepare-graphical-3.4.0";
-    upload_logs "/var/log/image_create-graphical-3.4.0";
-    upload_asset '/var/lib/SLEPOS/system/images/graphical-3.4.0/graphical.i686-3.4.0.md5';
-    upload_asset '/var/lib/SLEPOS/system/images/graphical-3.4.0/graphical.i686-3.4.0.gz';
-    #script_output "./kiwi_build_image.sh minimal-3.4.1 minimal-3.4.0 linux32 's|<locale>en_US<locale>|<locale>cs_CZ</locale>|' ", 1000;
-    #script_output "./kiwi_build_image.sh minimal-3.4.2 minimal-3.4.0 linux32 's|>pxe<| luks=\"luks-c291cmNlcyA5MjIgMCBSIAovTWVkaWFCb3ggWy0yOC4zNDYgLTI4LjM0NiA1MzIuMzQ2IDY0MC4z\">pxe<|' ", 1000;
+    if (get_var('VERSION') =~ /^11/) {
+        build_image('minimal-3.4.0', 'jeos-4.0.0', 'linux32');
+        build_image('graphical-3.4.0', 'graphical-4.0.0', 'linux32', 's|</packages>|<package name=\"cryptsetup\"/><package name=\"liberation-fonts\"/></packages>|');
+    }
+    elsif (get_var('VERSION') =~ /^12/) {
+        build_image('minimal-3.4.0', 'jeos-5.0.0');
+        build_image('graphical-3.4.0', 'graphical-5.0.0', '', 's|</packages>|<package name=\"cryptsetup\"/><package name=\"liberation-fonts\"/></packages>|');
+    }
 }
 
 sub test_flags() {

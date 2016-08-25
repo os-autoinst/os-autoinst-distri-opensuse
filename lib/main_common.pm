@@ -18,6 +18,7 @@ our @EXPORT = qw/
   load_rescuecd_tests
   load_zdup_tests
   load_autoyast_tests
+  load_slepos_tests
   installzdupstep_is_applicable
   snapper_is_applicable
   gnomestep_is_applicable
@@ -126,6 +127,48 @@ sub load_autoyast_tests {
     loadtest("autoyast/autoyast_reboot.pm");
     #    next boot in load_reboot_tests
 }
+
+sub load_slepos_tests() {
+    if (get_var("SLEPOS") =~ /^adminserver/) {
+        loadtest("boot/boot_to_desktop.pm");
+        loadtest "slepos/prepare.pm";
+        loadtest "slepos/zypper_add_repo.pm";
+        loadtest "slepos/zypper_install_adminserver.pm";
+        loadtest "slepos/run_posInitAdminserver.pm";
+        loadtest "slepos/zypper_install_imageserver.pm";
+        loadtest "slepos/use_smt_for_kiwi.pm";
+        loadtest "slepos/build_images_kiwi.pm";
+        loadtest "slepos/register_images.pm";
+        loadtest "slepos/build_offline_image_kiwi.pm";
+        loadtest "slepos/wait.pm";
+    }
+    elsif (get_var("SLEPOS") =~ /^branchserver/) {
+        loadtest("boot/boot_to_desktop.pm");
+        loadtest "slepos/prepare.pm";
+        loadtest "slepos/zypper_add_repo.pm";
+        loadtest "slepos/zypper_install_branchserver.pm";
+        loadtest "slepos/run_posInitBranchserver.pm";
+        loadtest "slepos/run_possyncimages.pm";
+        loadtest "slepos/wait.pm";
+    }
+    elsif (get_var("SLEPOS") =~ /^imageserver/) {
+        loadtest("boot/boot_to_desktop.pm");
+        loadtest "slepos/prepare.pm";
+        loadtest "slepos/zypper_add_repo.pm";
+        loadtest "slepos/zypper_install_imageserver.pm";
+        loadtest "slepos/use_smt_for_kiwi.pm";
+        loadtest "slepos/build_images_kiwi.pm";
+    }
+    elsif (get_var("SLEPOS") =~ /^terminal-online/) {
+        mutex_lock("bs1_images_synced");
+        mutex_unlock("bs1_images_synced");
+        loadtest "slepos/boot_image.pm";
+    }
+    elsif (get_var("SLEPOS") =~ /^terminal-offline/) {
+        loadtest "slepos/boot_image.pm";
+    }
+}
+
 
 sub installzdupstep_is_applicable {
     return !get_var("NOINSTALL") && !get_var("RESCUECD") && get_var("ZDUP");
