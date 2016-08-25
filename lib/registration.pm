@@ -34,7 +34,7 @@ sub fill_in_registration_data {
         send_key "alt-c";        # select registration code field
         type_string get_var("SCC_REGCODE");
         save_screenshot;
-        send_key "alt-n", 1;
+        send_key $cmd{next}, 1;
     }
     unless (get_var('SCC_REGISTER', '') =~ /addon|network/) {
         my @tags = qw/local-registration-servers registration-online-repos import-untrusted-gpg-key module-selection contacting-registration-server/;
@@ -64,7 +64,7 @@ sub fill_in_registration_data {
                     send_key "alt-y", 1;    # want updates
                 }
                 else {
-                    send_key "alt-n", 1;    # minimal dont want updates
+                    send_key $cmd{next}, 1;    # minimal dont want updates
                 }
 
                 @tags = grep { $_ ne 'registration-online-repos' } @tags;
@@ -84,7 +84,7 @@ sub fill_in_registration_data {
                 # send next manually to start registration.
                 if (get_var('SMT_URL')) {
                     if (check_screen('registration-12sp1-check', 5)) {
-                        send_key "alt-n";
+                        send_key $cmd{next};
                     }
                     @tags = grep { $_ ne 'registration-12sp1-check' } @tags;
                 }
@@ -125,7 +125,7 @@ sub fill_in_registration_data {
                     assert_and_click "scc-module-$addon";
                 }
             }
-            send_key 'alt-n';    # next, all addons selected
+            send_key $cmd{next};    # all addons selected
             for my $addon (split(/,/, get_var('SCC_ADDONS', ''))) {
                 # most modules don't have license, skip them
                 next unless grep { $addon eq $_ } qw(ha geo sdk we live rt ids lgm wsm);
@@ -135,7 +135,7 @@ sub fill_in_registration_data {
                 }
                 assert_screen("scc-addon-license-$addon");
                 send_key "alt-a", 1;    # accept license
-                send_key "alt-n", 1;    # next
+                send_key $cmd{next}, 1;
             }
             for my $addon (split(/,/, get_var('SCC_ADDONS', ''))) {
                 # no need to input registration code if register via SMT
@@ -155,7 +155,7 @@ sub fill_in_registration_data {
                     save_screenshot;
                 }
             }
-            send_key 'alt-n';
+            send_key $cmd{next};
             # start addons/modules registration, it needs longer time if select multiple or all addons/modules
             while (assert_screen(['import-untrusted-gpg-key', 'yast_scc-pkgtoinstall', 'inst-addon'], 120)) {
                 if (match_has_tag('import-untrusted-gpg-key')) {
@@ -171,19 +171,19 @@ sub fill_in_registration_data {
             }
         }
         else {
-            send_key 'alt-n';    # next
+            send_key $cmd{next};
         }
     }
     else {
         if (!get_var('SCC_REGISTER', '') =~ /addon|network/) {
             assert_screen("module-selection");
-            send_key "alt-n";    # next
+            send_key $cmd{next};
         }
     }
 }
 
 sub registration_bootloader_params {
-    my ($max_interval) = @_;     # see 'type_string'
+    my ($max_interval) = @_;    # see 'type_string'
     $max_interval //= 13;
     # https://www.suse.com/documentation/smt11/book_yep/data/smt_client_parameters.html
     # SCC_URL=https://smt.example.com

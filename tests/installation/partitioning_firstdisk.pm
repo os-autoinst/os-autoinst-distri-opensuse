@@ -27,7 +27,7 @@ sub run() {
     wait_screen_change {
         send_key 'alt-e';
     };
-    send_key 'alt-n';
+    send_key $cmd{next};
 }
 
 1;

@@ -30,7 +30,7 @@ sub run() {
             assert_screen 'addon-menu-active';
             send_key 'alt-d';    # DVD
             wait_still_screen 3;
-            send_key 'alt-n';
+            send_key $cmd{next};
             assert_screen 'dvd-selector';
             send_key_until_needlematch 'addon-dvd-list',         'tab',  10;    # jump into addon list
             send_key_until_needlematch "addon-dvd-sr$sr_number", 'down', 10;    # select addon in list
@@ -51,7 +51,7 @@ sub run() {
             wait_still_screen 2;
             send_key 'alt-a';                                                   # yes, agree
             wait_still_screen 2;
-            send_key 'alt-n';                                                   # next
+            send_key $cmd{next};
             assert_screen 'addon-products';
             send_key "tab";                                                     # select addon-products-$addon
             wait_still_screen 2;
@@ -77,11 +77,11 @@ sub run() {
             assert_screen 'addon-menu-active';
             my $uc_addon = uc $addon;                                           # varibale name is upper case
             send_key 'alt-u';                                                   # specify url
-            send_key 'alt-n';
+            send_key $cmd{next};
             assert_screen 'addonurl-entry';
             send_key 'alt-u';                                                   # select URL field
             type_string get_var("ADDONURL_$uc_addon");                          # repo URL
-            send_key 'alt-n';
+            send_key $cmd{next};
             if (get_var("ADDONS")) {
                 if (get_var("BETA_$uc_addon")) {
                     assert_screen "addon-betawarning-$addon";
@@ -94,7 +94,7 @@ sub run() {
                 wait_still_screen 2;
                 send_key 'alt-a';                                               # yes, agree
                 wait_still_screen 2;
-                send_key 'alt-n';                                               # next
+                send_key $cmd{next};
             }
             assert_screen 'addon-products', 90;
             send_key "tab";                                                     # select addon-products-$addon
@@ -109,7 +109,7 @@ sub run() {
             }
         }
     }
-    send_key 'alt-n';                                                           # next
+    send_key $cmd{next};
     wait_still_screen 5;
 }
 

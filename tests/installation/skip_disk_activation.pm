@@ -17,7 +17,7 @@ sub run {
 
     record_soft_failure 'we should not have it';
     sleep 3;
-    send_key 'alt-n';    # next
+    send_key $cmd{next};
     sleep 5;
 }
 

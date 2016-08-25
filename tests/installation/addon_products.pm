@@ -62,7 +62,7 @@ sub run() {
             sleep 2;
             send_key 'alt-y';    # yes, agree
             sleep 2;
-            send_key 'alt-n';
+            send_key $cmd{next};
             assert_screen 'addon-list';
             if ((split(/,/, get_var('ADDONS')))[-1] ne $a) {
                 send_key 'alt-a';
@@ -71,7 +71,7 @@ sub run() {
 
         }
 
-        send_key 'alt-n';
+        send_key $cmd{next};
 
     }
 }

@@ -34,7 +34,7 @@ sub run() {
     if (match_has_tag('scc-skip-reg-warning-ok')) {
         send_key "alt-o";    # confirmed skip SCC registration
         wait_still_screen;
-        send_key "alt-n";    # next
+        send_key $cmd{next};
     }
     elsif (match_has_tag('scc-skip-reg-warning-yes')) {
         send_key "alt-y";    # confirmed skip SCC registration
