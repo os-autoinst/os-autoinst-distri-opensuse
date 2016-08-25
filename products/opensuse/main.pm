@@ -354,6 +354,14 @@ sub load_fixup_network() {
 
 }
 
+sub load_fixup_firewall() {
+    # The openSUSE 13.1 GNOME disk image has the firewall disabled
+    # Upon upgrading to a new system the service state is supposed to remain as pre-configured
+    # If the service is disabled here, we enable it here
+    return unless check_var('HDDVERSION', 'openSUSE-13.1-gnome');
+    loadtest 'fixup/enable_firewall.pm';
+}
+
 sub load_consoletests() {
     if (consolestep_is_applicable()) {
         loadtest "console/consoletest_setup.pm";
@@ -978,6 +986,7 @@ else {
         || load_slenkins_tests())
     {
         load_fixup_network();
+        load_fixup_firewall();
         load_system_update_tests();
         load_rescuecd_tests();
         load_consoletests();
