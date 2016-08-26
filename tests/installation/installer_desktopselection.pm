@@ -16,8 +16,11 @@ sub run() {
     assert_screen 'desktop-selection';
     my $d = get_var('DESKTOP_MINIMALX_INSTONLY') ? 'minimalx' : get_var('DESKTOP');
     if ($d ne 'kde' && $d ne 'gnome') {
-        send_key_until_needlematch 'selection_on_desktop_other', 'tab';    # Move the selection to 'Other'
-        send_key 'spc';                                                    # open 'Other' selection'
+        # up to 42.1 textmode was below 'other'
+        if (!($d eq 'textmode' && check_screen 'has-server-selection', 2)) {
+            send_key_until_needlematch 'selection_on_desktop_other', 'tab';    # Move the selection to 'Other'
+            send_key 'spc';                                                    # open 'Other' selection'
+        }
     }
     # somehow 'tabbing' through selections does not work in the live
     # installer but we know we are in graphical environment so we can get
