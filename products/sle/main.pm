@@ -303,20 +303,23 @@ sub load_boot_tests() {
     if (get_var("OFW")) {
         loadtest "installation/bootloader_ofw.pm";
     }
-    elsif (get_var("UEFI") || is_jeos) {
-        if (check_var("BACKEND", "svirt")) {
-            if (check_var("VIRSH_VMM_FAMILY", "hyperv")) {
-                loadtest "installation/bootloader_hyperv.pm";
-            }
-            else {
-                loadtest "installation/bootloader_svirt.pm";
-            }
+    elsif (check_var("BACKEND", "svirt")) {
+        if (check_var("VIRSH_VMM_FAMILY", "hyperv")) {
+            loadtest "installation/bootloader_hyperv.pm";
+        }
+        else {
+            loadtest "installation/bootloader_svirt.pm";
         }
         # TODO: rename to bootloader_grub2
         # Unless GRUB2 supports framebuffer on Xen PV (bsc#961638), grub2 tests
         # has to be skipped there.
-        if (!(check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux'))) {
-            loadtest "installation/bootloader_uefi.pm";
+        if (get_var("UEFI") || is_jeos) {
+            if (!(check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux'))) {
+                loadtest "installation/bootloader_uefi.pm";
+            }
+        }
+        else {
+            loadtest "installation/bootloader.pm";
         }
     }
     elsif (uses_qa_net_hardware()) {
@@ -460,7 +463,7 @@ sub load_inst_tests() {
         loadtest "installation/start_install.pm";
     }
     loadtest "installation/install_and_reboot.pm";
-    if (check_var('BACKEND', 'svirt')) {
+    if (check_var('BACKEND', 'svirt') and check_var('ARCH', 's390x')) {
         # on svirt we need to redefine the xml-file to boot the installed kernel
         loadtest "installation/redefine_svirt_domain.pm";
     }

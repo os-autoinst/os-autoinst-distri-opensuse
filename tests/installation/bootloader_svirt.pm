@@ -8,14 +8,20 @@
 # without any warranty.
 
 use base "installbasetest";
-
 use strict;
 use warnings;
-
-use File::Basename;
-
 use testapi;
 use utils;
+use File::Basename;
+
+sub is_netinstall() {
+    if (!is_jeos && !get_var('ISO')) {
+        return 1;
+    }
+    else {
+        return 0;
+    }
+}
 
 sub run() {
 
@@ -35,7 +41,7 @@ sub run() {
         $xenconsole = "hvc0";    # on 12-SP2 we use pvops, thus /dev/hvc0
     }
 
-    if (!is_jeos) {
+    if (is_netinstall()) {
         my $cmdline = get_var('VIRSH_CMDLINE') . " ";
 
         $repo = "ftp://openqa.suse.de/" . get_var('REPO_0');
@@ -73,18 +79,27 @@ sub run() {
         $svirt->change_domain_element(on_reboot => 'destroy');
     }
 
-    my $file = get_var('HDD_1');
+    my $hddfile = get_var('HDD_1');
     if ($vmm_family eq 'vmware') {
-        $file = "[$vmware_datastore] openQA/" . basename($file);
+        $hddfile = "[$vmware_datastore] openQA/" . basename($hddfile);
     }
-
     my $size_i = get_var('HDDSIZEGB', '24');
-    # in JeOS we have the disk, we just need to deploy it
+    # In JeOS we have the disk, we just need to deploy it, for the rest
+    # - installs from network and ISO media - we have to create it.
     if (is_jeos) {
-        $svirt->add_disk({size => $size_i . 'G', file => $file});
+        $svirt->add_disk({size => $size_i . 'G', file => $hddfile});
     }
     else {
-        $svirt->add_disk({size => $size_i . 'G', file => $file, create => 1});
+        $svirt->add_disk({size => $size_i . 'G', file => $hddfile, create => 1});
+    }
+
+    my $isofile = get_var('ISO');
+    if ($vmm_family eq 'vmware') {
+        $isofile = "[$vmware_datastore] openQA/" . basename($isofile);
+    }
+    # In JeOS and netinstall we don't have ISO media, for the rest we have to attach it.
+    if (get_var('ISO')) {
+        $svirt->add_disk({cdrom => 1, file => $isofile});
     }
 
     my $console_target_type;
@@ -158,7 +173,7 @@ sub run() {
 
     $svirt->add_interface(\%ifacecfg);
 
-    if (!is_jeos) {
+    if (is_netinstall) {
         my $loader = "loader";
         my $xen    = "";
         my $linux  = "linux";
@@ -195,10 +210,7 @@ sub run() {
     }
     # select_console does not select TTY in traditional sense, but
     # connects to a guest VNC session
-    if (is_jeos) {
-        select_console('sut');
-    }
-    else {
+    if (is_netinstall) {
         if (check_var("VIDEOMODE", "text")) {
             wait_serial("run 'yast.ssh'", 500) || die "linuxrc didn't finish";
             select_console("installation");
@@ -208,6 +220,9 @@ sub run() {
             wait_serial(' Starting YaST2 ', 500) || die "yast didn't start";
             select_console('installation');
         }
+    }
+    else {
+        select_console('sut');
     }
 }
 
