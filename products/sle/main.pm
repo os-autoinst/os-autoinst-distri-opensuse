@@ -303,6 +303,9 @@ sub load_boot_tests() {
     if (get_var("OFW")) {
         loadtest "installation/bootloader_ofw.pm";
     }
+    elsif (get_var("UEFI") || is_jeos) {
+        loadtest "installation/bootloader_uefi.pm";
+    }
     elsif (check_var("BACKEND", "svirt")) {
         if (check_var("VIRSH_VMM_FAMILY", "hyperv")) {
             loadtest "installation/bootloader_hyperv.pm";
