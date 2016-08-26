@@ -1,0 +1,44 @@
+# SUSE's openQA tests
+#
+# Copyright © 2016 SUSE LLC
+#
+# Copying and distribution of this file, with or without modification,
+# are permitted in any medium without royalty provided the copyright
+# notice and this notice are preserved.  This file is offered as-is,
+# without any warranty.
+
+use strict;
+use warnings;
+use base "y2logsstep";
+use testapi;
+
+# poo#11438
+sub run() {
+    # Release disk space according to warning message + some extra
+    assert_screen "low-space-warning";
+    select_console('install-shell');
+    my $required = script_output 'grep -Eo "needs [0-9]+\.?[0-9]* [MG]iB more disk space." /var/log/YaST2/y2log | tail -1';
+    if ($required =~ /([0-9]+\.?[0-9]*) ([MG])iB/) {
+        my ($req_size, $req_unit) = ($1, $2);
+        if    ($req_unit eq 'M') { }
+        elsif ($req_unit eq 'G') { $req_size *= 1024 }
+        else                     { die "Unexpected value of req_unit: $req_unit" }
+
+        assert_script_run "rm /mnt/FILL_DISK_SPACE";
+        assert_script_run "btrfs fi sync /mnt";
+
+        my $avail = script_output "btrfs fi usage -m /mnt | awk '/Free/ {print \$3}' | cut -d'.' -f 1";
+        assert_script_run "fallocate -l " . int($avail - $req_size - 300) . "m /mnt/FILL_DISK_SPACE";
+        assert_script_run "btrfs fi sync /mnt";
+    }
+    else {
+        die "Unable to parse requiered values from y2log.";
+    }
+    select_console('installation');
+    send_key "alt-b";
+    send_key "alt-n";
+    assert_screen "no-packages-warning";
+}
+
+1;
+# vim: set sw=4 et:
