@@ -281,6 +281,9 @@ sub load_x11regression_other() {
         loadtest "x11regressions/shotwell/shotwell_export.pm";
         loadtest "virtualization/yast_virtualization.pm";
         loadtest "virtualization/virtman_view.pm";
+        if (get_var("ADDONS") =~ /sdk/ && check_var("VERSION", "12-SP1")) {
+            loadtest "x11regressions/ImageMagick.pm";
+        }
     }
     if (get_var("DESKTOP") =~ /kde|gnome/) {
         loadtest "x11regressions/tracker/prep_tracker.pm";
