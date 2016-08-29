@@ -306,7 +306,7 @@ sub load_boot_tests() {
     elsif (get_var("UEFI") || is_jeos) {
         loadtest "installation/bootloader_uefi.pm";
     }
-    elsif (check_var("BACKEND", "svirt")) {
+    elsif (check_var("BACKEND", "svirt") && !check_var("ARCH", "s390x")) {
         if (check_var("VIRSH_VMM_FAMILY", "hyperv")) {
             loadtest "installation/bootloader_hyperv.pm";
         }
