@@ -18,11 +18,11 @@ sub run() {
     my $mail_ssl = '1';     #Set it as 1, if you want enable SSL
 
     my $config        = $self->getconfig_emailaccount;
-    my $mailbox       = $config->{suseTest19}->{mailbox};
-    my $mail_server   = $config->{suseTest19}->{sendServer};
-    my $mail_user     = $config->{suseTest19}->{user};
-    my $mail_passwd   = $config->{suseTest19}->{passwd};
-    my $mail_sendport = $config->{suseTest19}->{sendport};
+    my $mailbox       = $config->{internal_account_A}->{mailbox};
+    my $mail_server   = $config->{internal_account_A}->{sendServer};
+    my $mail_user     = $config->{internal_account_A}->{user};
+    my $mail_passwd   = $config->{internal_account_A}->{passwd};
+    my $mail_sendport = $config->{internal_account_A}->{sendport};
 
 
 
