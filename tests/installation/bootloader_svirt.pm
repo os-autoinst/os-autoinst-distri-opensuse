@@ -14,56 +14,48 @@ use testapi;
 use utils;
 use File::Basename;
 
-sub is_netinstall() {
-    if (!is_jeos && !get_var('ISO')) {
-        return 1;
-    }
-    else {
-        return 0;
-    }
-}
-
 sub run() {
 
     my $self = shift;
 
-    my $arch             = get_var('ARCH',             'x86_64');
-    my $vmm_family       = get_var('VIRSH_VMM_FAMILY', 'kvm');
-    my $vmm_type         = get_var('VIRSH_VMM_TYPE',   'hvm');
-    my $vmware_datastore = get_var('VMWARE_DATASTORE', '');
+    my $arch       = get_var('ARCH');
+    my $vmm_family = get_required_var('VIRSH_VMM_FAMILY');
+    my $vmm_type   = get_required_var('VIRSH_VMM_TYPE');
 
     my $svirt = select_console('svirt');
     my $name  = $svirt->name;
     my $repo;
 
-    my $xenconsole = "xvc0";
-    if (get_var('VERSION', '') =~ /12-SP2/) {
-        $xenconsole = "hvc0";    # on 12-SP2 we use pvops, thus /dev/hvc0
+    my $xenconsole = "hvc0";
+    if (!get_var('SP2ORLATER')) {
+        $xenconsole = "xvc0";
     }
 
-    if (is_netinstall()) {
-        my $cmdline = get_var('VIRSH_CMDLINE') . " ";
+    if (get_var('NETBOOT')) {
+        my $cmdline = get_var('VIRSH_CMDLINE', '') . " ";
 
         $repo = "ftp://openqa.suse.de/" . get_var('REPO_0');
         $cmdline .= "install=$repo ";
 
-        if (check_var("VIDEOMODE", "text")) {
-            $cmdline .= "ssh=1 ";    # trigger ssh-text installation
-        }
-        else {
-            $cmdline .= "sshd=1 vnc=1 VNCPassword=$testapi::password ";    # trigger default VNC installation
-        }
-
-        # we need ssh access to gather logs
-        # 'ssh=1' and 'sshd=1' are equal, both together don't work
-        # so let's just set the password here
-        $cmdline .= "sshpassword=$testapi::password ";
-
         if ($vmm_family eq 'xen' && $vmm_type eq 'linux') {
-            $cmdline .= "xenfb.video=4,1024,768 console=$xenconsole console=tty0 ";
+            if (is_jeos) {
+                $cmdline .= "xenfb.video=4,1024,768 ";
+            }
+            else {
+                $cmdline .= "xen-fbfront.video=32,1024,768 ";
+            }
+            $cmdline .= "console=$xenconsole console=tty ";
         }
         else {
-            $cmdline .= "console=ttyS0 ";
+            $cmdline .= "console=ttyS0 console=tty ";
+        }
+
+        if (check_var('VIDEOMODE', 'text')) {
+            $cmdline .= "textmode=1 ";
+        }
+
+        if (get_var('EXTRABOOTPARAMS')) {
+            $cmdline .= get_var('EXTRABOOTPARAMS') . " ";
         }
 
         $svirt->change_domain_element(os => initrd => "/var/lib/libvirt/images/$name.initrd");
@@ -74,32 +66,42 @@ sub run() {
         }
         $svirt->change_domain_element(os => kernel  => "/var/lib/libvirt/images/$name.kernel");
         $svirt->change_domain_element(os => cmdline => $cmdline);
-
-        # after installation we need to redefine the domain, so just shutdown
-        $svirt->change_domain_element(on_reboot => 'destroy');
     }
+
+    # After installation we need to redefine the domain, so the next
+    # boot loads installed kernel and initrd.
+    $svirt->change_domain_element(on_reboot => 'destroy');
 
     my $hddfile = get_var('HDD_1');
-    if ($vmm_family eq 'vmware') {
-        $hddfile = "[$vmware_datastore] openQA/" . basename($hddfile);
-    }
     my $size_i = get_var('HDDSIZEGB', '24');
     # In JeOS we have the disk, we just need to deploy it, for the rest
     # - installs from network and ISO media - we have to create it.
     if (is_jeos) {
+        if ($vmm_family eq 'vmware') {
+            $hddfile = basename($hddfile);
+        }
         $svirt->add_disk({size => $size_i . 'G', file => $hddfile});
     }
     else {
+        if ($vmm_family eq 'vmware') {
+            $hddfile = basename($hddfile) if $hddfile;
+        }
         $svirt->add_disk({size => $size_i . 'G', file => $hddfile, create => 1});
     }
 
-    my $isofile = get_var('ISO');
-    if ($vmm_family eq 'vmware') {
-        $isofile = "[$vmware_datastore] openQA/" . basename($isofile);
-    }
     # In JeOS and netinstall we don't have ISO media, for the rest we have to attach it.
-    if (get_var('ISO')) {
+    if (!get_var('NETBOOT') and !is_jeos()) {
+        my $isofile = get_required_var('ISO');
+        if ($vmm_family eq 'vmware') {
+            $isofile = basename($isofile);
+        }
         $svirt->add_disk({cdrom => 1, file => $isofile});
+    }
+
+    # using 'virtio' devices may prevent loosing key strokes
+    if ($vmm_family eq 'kvm') {
+        $svirt->add_input({type => 'mouse',    bus => "virtio"});
+        $svirt->add_input({type => 'keyboard', bus => "virtio"});
     }
 
     my $console_target_type;
@@ -133,8 +135,8 @@ sub run() {
 
     my %ifacecfg = ();
 
-    # All but Xen PV VMs should be specified with known-to-work
-    # network interface. Xen PV and Hyper-V use streams.
+    # VMs should be specified with known-to-work network interface.
+    # Xen PV and Hyper-V use streams.
     my $iface_model;
     if ($vmm_family eq 'kvm') {
         $iface_model = 'virtio';
@@ -161,11 +163,11 @@ sub run() {
         # happens to be omnipresent on workstations, bridges (br0, ...) on servers. If both 'default'
         # network and bridge are defined and active, bridge should be prefered as 'default' network
         # does not work.
-        if (my $bridges = $svirt->get_cmd_output("virsh iface-list | grep -w active | awk '{ print \$1 }' | tail -n1 | tr -d '\\n'")) {
+        if (my $bridges = $svirt->get_cmd_output("virsh iface-list --all | grep -w active | awk '{ print \$1 }' | tail -n1 | tr -d '\\n'")) {
             $ifacecfg{'type'} = 'bridge';
             $ifacecfg{'source'} = {bridge => $bridges};
         }
-        elsif (my $networks = $svirt->get_cmd_output("virsh net-list | grep -w active | awk '{ print \$1 }' | tail -n1 | tr -d '\\n'")) {
+        elsif (my $networks = $svirt->get_cmd_output("virsh net-list --all | grep -w active | awk '{ print \$1 }' | tail -n1 | tr -d '\\n'")) {
             $ifacecfg{'type'} = 'network';
             $ifacecfg{'source'} = {network => $networks};
         }
@@ -173,7 +175,7 @@ sub run() {
 
     $svirt->add_interface(\%ifacecfg);
 
-    if (is_netinstall) {
+    if (get_var('NETBOOT')) {
         my $loader = "loader";
         my $xen    = "";
         my $linux  = "linux";
@@ -187,9 +189,9 @@ sub run() {
         # start the VM with uncomplete kernel/initrd, and thus fail. The time
         # to wait is pure guesswork.
         type_string "wget $repo/boot/$arch/$loader/$linux$xen -O /var/lib/libvirt/images/$name.kernel\n";
-        sleep 10;    # TODO: assert_screen
+        assert_screen "kernel-saved";
         type_string "wget $repo/boot/$arch/$loader/initrd$xen -O /var/lib/libvirt/images/$name.initrd\n";
-        sleep 10;    # TODO: assert_screen
+        assert_screen "initrd-saved";
     }
 
     $svirt->define_and_start;
@@ -197,33 +199,42 @@ sub run() {
     # This sets kernel argument so needle-matching works on Xen PV. It's being
     # done via host's PTY device because we don't see anything unless kernel
     # sets framebuffer (this is a GRUB2's limitation bsc#961638).
-    if ($vmm_family eq 'xen') {
-        if ($vmm_type eq 'linux') {
-            type_string "export pty=`virsh dumpxml $name | grep \"console type=\" | sed \"s/'/ /g\" | awk '{ print \$5 }'`\n";
-            type_string "echo \$pty\n";
-            type_string "echo e > \$pty\n";    # edit
+    if ($vmm_family eq 'xen' and $vmm_type eq 'linux' and !get_var('NETBOOT')) {
+        $svirt->suspend;
+        my $cmdline = "";
+        if (check_var('VIDEOMODE', 'text')) {
+            $cmdline .= "textmode=1 ";
+        }
+        if (get_var('EXTRABOOTPARAMS')) {
+            $cmdline .= get_var('EXTRABOOTPARAMS') . " ";
+        }
+        type_string "export pty=`virsh dumpxml $name | grep \"console type=\" | sed \"s/'/ /g\" | awk '{ print \$5 }'`\n";
+        type_string "echo \$pty\n";
+        $svirt->resume;
+        wait_serial("Press enter to boot the selected OS", 10) || die "Can't get to Grub";
+        type_string "echo e > \$pty\n";    # edit
+        if (is_jeos) {
             for (1 .. 4) { type_string "echo -en '\\033[B' > \$pty\n"; }    # four-times key down
             type_string "echo -en '\\033[K' > \$pty\n";                     # end of line
+            type_string "echo -en ' $cmdline' > \$pty\n";
             type_string "echo -en ' xenfb.video=4,1024,768' > \$pty\n";     # set kernel framebuffer
-            type_string "echo -en '\\x18' > \$pty\n";                       # send Ctrl-x to boot guest kernel
-        }
-    }
-    # select_console does not select TTY in traditional sense, but
-    # connects to a guest VNC session
-    if (is_netinstall) {
-        if (check_var("VIDEOMODE", "text")) {
-            wait_serial("run 'yast.ssh'", 500) || die "linuxrc didn't finish";
-            select_console("installation");
-            type_string("yast.ssh\n");
         }
         else {
-            wait_serial(' Starting YaST2 ', 500) || die "yast didn't start";
-            select_console('installation');
+            for (1 .. 2) { type_string "echo -en '\\033[B' > \$pty\n"; }    # four-times key down
+            type_string "echo -en '\\033[K' > \$pty\n";                     # end of line
+            type_string "echo -en ' $cmdline' > \$pty\n";
+            type_string "echo -en ' xen-fbfront.video=32,1024,768' > \$pty\n";    # set kernel framebuffer
         }
+        type_string "echo -en '\\x18' > \$pty\n";                                 # send Ctrl-x to boot guest kernel
     }
-    else {
-        select_console('sut');
+
+    # If we connect to 'sut' VNC display "too early" the VNC server won't be
+    # ready we will be left with a blank screen.
+    if ($vmm_family eq 'vmware') {
+        sleep 2;
     }
+    # connects to a guest VNC session
+    select_console('sut');
 }
 
 1;

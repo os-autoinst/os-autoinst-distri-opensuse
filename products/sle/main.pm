@@ -306,7 +306,7 @@ sub load_boot_tests() {
     if (get_var("OFW")) {
         loadtest "installation/bootloader_ofw.pm";
     }
-    elsif (get_var("UEFI") || is_jeos) {
+    elsif ((get_var("UEFI") || is_jeos()) && !check_var("BACKEND", "svirt")) {
         loadtest "installation/bootloader_uefi.pm";
     }
     elsif (check_var("BACKEND", "svirt") && !check_var("ARCH", "s390x")) {
@@ -319,13 +319,13 @@ sub load_boot_tests() {
         # TODO: rename to bootloader_grub2
         # Unless GRUB2 supports framebuffer on Xen PV (bsc#961638), grub2 tests
         # has to be skipped there.
-        if (get_var("UEFI") || is_jeos) {
-            if (!(check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux'))) {
+        if (!(check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux'))) {
+            if (get_var("UEFI") || is_jeos) {
                 loadtest "installation/bootloader_uefi.pm";
             }
-        }
-        else {
-            loadtest "installation/bootloader.pm";
+            elsif (!get_var('NETBOOT')) {
+                loadtest "installation/bootloader.pm";
+            }
         }
     }
     elsif (uses_qa_net_hardware()) {
@@ -478,7 +478,7 @@ sub load_inst_tests() {
         loadtest "installation/start_install.pm";
     }
     loadtest "installation/install_and_reboot.pm";
-    if (check_var('BACKEND', 'svirt') and check_var('ARCH', 's390x')) {
+    if (check_var('BACKEND', 'svirt')) {
         # on svirt we need to redefine the xml-file to boot the installed kernel
         loadtest "installation/redefine_svirt_domain.pm";
     }
@@ -506,7 +506,7 @@ sub load_reboot_tests() {
     }
     if (installyaststep_is_applicable()) {
         # test makes no sense on s390 because grub2 can't be captured
-        if (!check_var("ARCH", "s390x")) {
+        if (!(check_var("ARCH", "s390x") or (check_var('VIRSH_VMM_FAMILY', 'xen') and check_var('VIRSH_VMM_TYPE', 'linux')))) {
             loadtest "installation/grub_test.pm";
             if ((snapper_is_applicable()) && get_var("BOOT_TO_SNAPSHOT")) {
                 loadtest "installation/boot_into_snapshot.pm";
