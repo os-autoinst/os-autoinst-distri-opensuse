@@ -13,7 +13,13 @@ use base "y2logsstep";
 use testapi;
 
 sub run() {
-    if (check_var("FLAVOR", "NET")) {
+    # offline DVD upgrade may not have network (boo#995771)
+    if (!check_var("FLAVOR", "NET") && check_screen('network-not-configured')) {
+        send_key $cmd{next};
+        assert_screen('ERROR-cannot-download-repositories');
+        send_key 'alt-o';
+    }
+    else {
         assert_screen('list-of-online-repositories', 10);
         send_key $cmd{next};
 
@@ -26,13 +32,6 @@ sub run() {
         if (check_screen('upgrade-license-agreement', 10)) {
             send_key 'alt-n';
         }
-    }
-    else {
-        # offline DVD upgrade. We expect to not have network
-        assert_screen('network-not-configured');
-        send_key $cmd{next};
-        assert_screen('ERROR-cannot-download-repositories');
-        send_key 'alt-o';
     }
 
     if (check_screen('installed-product-incompatible', 10)) {
