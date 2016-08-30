@@ -31,7 +31,9 @@ sub run() {
     }
     save_screenshot;
 
-    wait_boot textmode => !is_desktop_installed;
+    # sometimes reboot takes longer time after online migration
+    # give more time to reboot
+    wait_boot(bootloader_time => 300, textmode => !is_desktop_installed);
 }
 
 sub test_flags {
