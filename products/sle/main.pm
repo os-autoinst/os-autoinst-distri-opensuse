@@ -354,6 +354,7 @@ sub install_this_version {
 }
 
 sub load_inst_tests() {
+    loadtest "installation/self_update.pm";
     loadtest "installation/welcome.pm";
     if (get_var('IBFT')) {
         loadtest "installation/iscsi_configuration.pm";
