@@ -15,6 +15,7 @@ sub run() {
     x11_start_program("xterm -geometry 150x45+5+5");
     become_root;
     script_run 'cd /etc/ssh';
+    script_run 'touch ssh_host_key ssh_host_key.pub';    # this file must exist to trigger ssh key import
     script_run 'echo "SSHHOSTKEYFILE" | tee /etc/ssh/*key*';
     script_run 'echo "SSHHOSTPUBKEYFILE" | tee /etc/ssh/*key.pub*';
     script_run "cat /etc/ssh/*key* | tee /dev/$serialdev";
