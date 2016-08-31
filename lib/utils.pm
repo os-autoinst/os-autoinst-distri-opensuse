@@ -330,7 +330,11 @@ sub workaround_type_encrypted_passphrase {
 sub ensure_unlocked_desktop {
     my ($tags) = @_;
     $tags //= [qw/generic-desktop/];
-    send_key "backspace";    # deactivate blanking
+    # deactivate blanking
+    send_key "backspace";
+    # the screenlock can take some time to show up when it is already
+    # triggered
+    wait_still_screen(10);
     push @$tags, 'screenlock';
     assert_screen($tags);
     if (!match_has_tag 'screenlock') {

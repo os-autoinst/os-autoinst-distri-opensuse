@@ -41,7 +41,6 @@ sub run() {
 
     if (!check_var("DESKTOP", "textmode")) {
         select_console('x11');
-        wait_still_screen(2);
         ensure_unlocked_desktop [qw/displaymanager generic-desktop/];
         if (get_var("DESKTOP_MINIMALX_INSTONLY")) {
             # Desired wm was just installed and needs x11_login
