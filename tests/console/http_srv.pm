@@ -11,6 +11,7 @@
 use strict;
 use base "consoletest";
 use testapi;
+use utils;
 
 sub run() {
     my $self = shift;
@@ -18,7 +19,7 @@ sub run() {
     select_console 'root-console';
 
     # Install apache2
-    assert_script_run "zypper -n -q in apache2";
+    zypper_call("in apache2");
 
     # After installation, apache2 is disabled
     assert_script_run "systemctl show -p UnitFileState apache2.service|grep UnitFileState=disabled";
