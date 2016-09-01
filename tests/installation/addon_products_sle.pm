@@ -120,6 +120,13 @@ sub run() {
             }
         }
     }
+    if (get_var('DUD_ADDONS')) {
+        for my $addon (split(/,/, get_var('DUD_ADDONS'))) {
+            send_key "pgup";
+            wait_still_screen 2;
+            send_key_until_needlematch "addon-products-$addon", 'down';
+        }
+    }
     send_key $cmd{next};
     wait_still_screen 5;
 }
