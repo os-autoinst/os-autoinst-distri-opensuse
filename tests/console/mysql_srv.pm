@@ -11,14 +11,15 @@
 use strict;
 use base "consoletest";
 use testapi;
+use utils;
 
 sub run() {
     my $self = shift;
 
     select_console 'root-console';
 
-    # Install apache2
-    script_run "zypper -n -q in mysql", 10;
+    # Install mysql
+    zypper_call("in mysql");
 
     # After installation, mysql is disabled
     script_run "systemctl status mysql.service | tee /dev/$serialdev -", 0;
