@@ -22,7 +22,7 @@ sub get_ip_address() {
         }
         script_run "ip a";
         save_screenshot;
-        script_run "cat /etc/resolv.conf\n";
+        script_run "cat /etc/resolv.conf";
         save_screenshot;
     }
 }
