@@ -385,7 +385,10 @@ sub load_consoletests() {
         }
         loadtest "console/zypper_ref.pm";
         loadtest "console/yast2_lan.pm";
-        loadtest "console/curl_https.pm";
+        # Krypton-Live does not have local certificate store
+        if (!check_var('FLAVOR', 'Krypton-Live')) {
+            loadtest "console/curl_https.pm";
+        }
         if (   check_var('ARCH', 'x86_64')
             || check_var('ARCH', 'i686')
             || check_var('ARCH', 'i586'))
@@ -399,7 +402,7 @@ sub load_consoletests() {
         }
         loadtest "console/vim.pm";
         # textmode install comes without firewall by default atm
-        if (!check_var("DESKTOP", "textmode") && !is_staging()) {
+        if (!check_var("DESKTOP", "textmode") && !is_staging() && !check_var('FLAVOR', 'Krypton-Live')) {
             loadtest "console/firewall_enabled.pm";
         }
         if (is_jeos) {
