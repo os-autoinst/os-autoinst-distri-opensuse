@@ -28,6 +28,7 @@ our @EXPORT = qw/
   kdestep_is_applicable
   consolestep_is_applicable
   rescuecdstep_is_applicable
+  bootencryptstep_is_applicable
   remove_desktop_needles
   check_env
   ssh_key_import
@@ -210,6 +211,12 @@ sub consolestep_is_applicable {
 
 sub rescuecdstep_is_applicable {
     return get_var("RESCUECD");
+}
+
+sub bootencryptstep_is_applicable {
+    # activating an existing encrypted volume but not forcing recompute does
+    # *not* yield an encrypted system, see bsc#993247 fate#321208
+    return get_var('ENCRYPT') && !(get_var('ENCRYPT_ACTIVATE_EXISTING') && !get_var('ENCRYPT_FORCE_RECOMPUTE'));
 }
 
 sub ssh_key_import {
