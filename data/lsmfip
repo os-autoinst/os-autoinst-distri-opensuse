@@ -70,12 +70,14 @@ sub usage {
     }
 }
 
+#<<< don't tidy
 GetOptions(
     \%options,
     "verbose|v",
     "verify=s",
     "help|h",
 ) or usage(1);
+#>>>
 
 usage(1) unless @ARGV;
 usage(0) if ($options{help});
@@ -84,13 +86,14 @@ my @packages;
 my %requested;
 
 my $REQUEST_INSTALL = 1;
-my $REQUEST_UPDATE = 2;
+my $REQUEST_UPDATE  = 2;
 
 while (my $name = shift @ARGV) {
     push @packages, $name;
     if ($options{verify}) {
         $requested{$name} = shift @ARGV || die "missing version for $name\n";
-    } else {
+    }
+    else {
         $requested{$name} = $REQUEST_INSTALL;
     }
 }
@@ -115,9 +118,20 @@ my $solver;
 
 my $exit_status = 0;
 
+sub problem_can_be_skipped {
+    my ($pkg, $problem) = @_;
+    print STDERR "PCBS '$pkg': '$problem'\n" if $options{verbose};
+
+    # check for various known conflicts
+    return 1 if $pkg =~ /branding/;
+    return 1 if $problem =~ /nothing provides this-is-only-for-build-envs/;
+    return 1 if $pkg =~ /-bootstrap/ || $pkg =~ /-mini/;
+    return 1 if $pkg =~ /^kernel-.*-base/;
+    return;
+}
+
 if (!$options{verify}) {
-    REPEAT: while(1)
-    {
+  REPEAT: while (1) {
         $solver = $pool->Solver();
         $solver->set_flag($solv::Solver::SOLVER_FLAG_ALLOW_UNINSTALL, 1);
         my @jobs;
@@ -126,17 +140,29 @@ if (!$options{verify}) {
             next unless $requested{$n};
             print STDERR "selecting $n\n" if $options{verbose};
             my $sel = $pool->select($n, $solv::Selection::SELECTION_NAME);
-            my $isinstalled;
+            my $latest_solvable;
             for my $s ($sel->solvables()) {
-                $isinstalled ||= $s->isinstalled;
+                next unless $s->installable;
+                $latest_solvable = $s;
                 print STDERR "-> $s->{name}-$s->{evr}.$s->{arch}\n" if $options{verbose};
             }
-            if ($isinstalled) {
-	      # upgrade
-              $requested{$n} = $REQUEST_UPDATE;
-              push @jobs, $sel->jobs($solv::Job::SOLVER_UPDATE);
-            } else {
-              push @jobs, $sel->jobs($solv::Job::SOLVER_INSTALL);
+            if ($latest_solvable && $latest_solvable->isinstalled) {
+                # upgrade
+                $requested{$n} = $REQUEST_UPDATE;
+                push @jobs, $sel->jobs($solv::Job::SOLVER_UPDATE);
+                print STDERR "UPDATE $latest_solvable->{name}-$latest_solvable->{evr}.$latest_solvable->{arch}\n";
+            }
+            else {
+                if ($latest_solvable) {
+                    print STDERR "INSTALL $latest_solvable->{name}-$latest_solvable->{evr}.$latest_solvable->{arch}\n";
+                    my $newname = "$latest_solvable->{name}-$latest_solvable->{evr}.$latest_solvable->{arch}";
+                    $requested{$newname} = $n;
+                    push @jobs, $latest_solvable->Selection->jobs($solv::Job::SOLVER_INSTALL);
+                }
+                else {
+                    push @jobs, $sel->jobs($solv::Job::SOLVER_INSTALL);
+                    print STDERR "INSTALL $n\n";
+                }
             }
         }
 
@@ -155,10 +181,12 @@ if (!$options{verify}) {
                             # check if the package conflicts with one of
                             # the packages we asked to install. If so
                             # remove the other one and repeat.
-                            if ($requested{$pkg} &&
-                                ($pkg =~ /branding/ || $p->str =~ /nothing provides this-is-only-for-build-envs/ || $pkg =~ /-bootstrap/ || $pkg =~ /-mini/)) {
+                            if ($requested{$pkg} && problem_can_be_skipped($pkg, $p->str)) {
                                 print STDERR "++ skipping $pkg and retry\n";
+                                my $realname = $requested{$pkg};
                                 delete $requested{$pkg};
+                                # possibly not existant - if it's a REQUEST flag
+                                delete $requested{$realname};
                                 next REPEAT;
                             }
                         }
@@ -172,6 +200,7 @@ if (!$options{verify}) {
 
     my $trans = $solver->transaction();
 
+    #<<< don't tidy
     my %insttypes = map { $_ => 1 } (
         $solv::Transaction::SOLVER_TRANSACTION_INSTALL,
         $solv::Transaction::SOLVER_TRANSACTION_REINSTALLED,
@@ -179,36 +208,41 @@ if (!$options{verify}) {
         $solv::Transaction::SOLVER_TRANSACTION_CHANGED,
         $solv::Transaction::SOLVER_TRANSACTION_UPGRADED,
     );
+    #>>>
     for my $c ($trans->classify()) {
         for my $solvable ($c->solvables()) {
-            next if $solvable->{name} =~ /^application:/; # FIXME: how to query non rpms properly?
+            next if $solvable->{name} =~ /^application:/;    # FIXME: how to query non rpms properly?
             my $name = $solvable->{name};
             if ($c->{type} == $solv::Transaction::SOLVER_TRANSACTION_ERASE) {
                 printf "-%s\n", $name;
-            } elsif ($insttypes{$c->{type}}) {
+            }
+            elsif ($insttypes{$c->{type}}) {
                 printf "%s\n", $name if $requested{$name};
-            } else {
+            }
+            else {
                 printf STDERR "unknown type %d for %s\n", $c->{type}, $name;
             }
         }
     }
     # if there is nothing to install, we verify all requested were installed
     if ($trans->isempty()) {
-	for my $n (keys %requested) {
-	    if ($requested{$n} == $REQUEST_UPDATE) {
+        for my $n (keys %requested) {
+            if ($requested{$n} == $REQUEST_UPDATE) {
                 print "$n\n";
-            } else {
-	        die "$n was requested but nothing was installed";
             }
-	}
+            else {
+                die "$n was requested but nothing was installed";
+            }
+        }
     }
 
     for my $n (sort @packages) {
         printf STDERR "not installing %s\n", $n unless defined $requested{$n};
     }
-} else {
-    open (my $fh, '<', $options{verify}) || die "failed to open $options{verify}: $!\n";
-    while(my $n = <$fh>) {
+}
+else {
+    open(my $fh, '<', $options{verify}) || die "failed to open $options{verify}: $!\n";
+    while (my $n = <$fh>) {
         if ($n =~ /^-/) {
             next;
         }
@@ -220,7 +254,7 @@ if (!$options{verify}) {
         }
         my $v = $requested{$n};
         print STDERR "checking $n-$v\n" if $options{verbose};
-        my $sel = $pool->select("$n-$v", $solv::Selection::SELECTION_CANON|$solv::Selection::SELECTION_INSTALLED_ONLY);
+        my $sel = $pool->select("$n-$v", $solv::Selection::SELECTION_CANON | $solv::Selection::SELECTION_INSTALLED_ONLY);
         #$sel->filter($pool->{installed}->Selection()) if $sel;
         my @solvables = $sel->solvables();
         if (!@solvables) {
