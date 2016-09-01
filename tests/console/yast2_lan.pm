@@ -17,6 +17,17 @@ use utils;
 # test yast2 lan functionality
 # https://bugzilla.novell.com/show_bug.cgi?id=600576
 
+sub handle_Networkmanager_controlled {
+    send_key "ret";    # confirm networkmanager popup
+    assert_screen "Networkmanager_controlled-approved";
+    send_key "alt-c";
+    if (check_screen('yast2-lan-really', 3)) {
+        # SLED11...
+        send_key 'alt-y';
+    }
+    wait_serial("yast2-lan-status-0", 60) || die "'yast2 lan' didn't finish";
+}
+
 sub run() {
     my $self = shift;
 
@@ -32,25 +43,24 @@ sub run() {
 
     assert_screen [qw/Networkmanager_controlled yast2_lan install-susefirewall2/], 60;
     if (match_has_tag('Networkmanager_controlled')) {
-        send_key "ret";                                 # confirm networkmanager popup
-        assert_screen "Networkmanager_controlled-approved";
-        send_key "alt-c";
-        if (check_screen('yast2-lan-really', 3)) {
-            # SLED11...
-            send_key 'alt-y';
-        }
-        wait_serial("yast2-lan-status-0", 60) || die "'yast2 lan' didn't finish";
+        handle_Networkmanager_controlled;
         return;                                         # don't change any settings
     }
     if (match_has_tag('install-susefirewall2')) {
-        send_key "alt-i";                               # install SuSEfirewall2
-        assert_screen "yast2_lan", 90;                  # check yast2_lan again after SuSEfirewall2 installed
+        # install SuSEfirewall2
+        send_key "alt-i";
+        # check yast2_lan again after SuSEfirewall2 installed
+        assert_screen [qw/Networkmanager_controlled yast2_lan/], 90;
+        if (match_has_tag('Networkmanager_controlled')) {
+            handle_Networkmanager_controlled;
+            return;
+        }
     }
 
     my $hostname = "susetest";
     my $domain   = "zq1.de";
 
-    send_key "alt-s";                                   # open hostname tab
+    send_key "alt-s";    # open hostname tab
     assert_screen "yast2_lan-hostname-tab";
     send_key "tab";
     for (1 .. 15) { send_key "backspace" }
@@ -60,7 +70,7 @@ sub run() {
     type_string $domain;
     assert_screen 'test-yast2_lan-1';
 
-    send_key "alt-o";                                   # OK=>Save&Exit
+    send_key "alt-o";    # OK=>Save&Exit
     wait_serial("yast2-lan-status-0", 90) || die "'yast2 lan' didn't finish";
 
     clear_console;
