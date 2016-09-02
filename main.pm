@@ -509,7 +509,7 @@ sub load_consoletests() {
         }
         loadtest "console/postgresql94.pm";
         if (is_server) {
-            loadtest "console/postgresql94server.pm";
+            loadtest "console/postgresql94server_sle11.pm";
         }
         loadtest "console/consoletest_finish.pm";
     }
