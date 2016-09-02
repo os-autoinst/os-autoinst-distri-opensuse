@@ -196,6 +196,16 @@ sub specific_bootmenu_params {
         record_soft_failure "boo#990374 - pass kexec to installer to use initrd from FTP";
     }
 
+    if (get_var("DUD")) {
+        my $dud = get_var("DUD");
+        if ($dud =~ /http:\/\/|ftp:\/\//) {
+            $args .= " dud=$dud insecure=1";
+        }
+        else {
+            $args .= " dud=" . data_url($dud) . " insecure=1";
+        }
+    }
+
     type_string_very_slow $args;
     save_screenshot;
 }
