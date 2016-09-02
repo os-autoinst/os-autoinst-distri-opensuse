@@ -11,6 +11,7 @@
 use base "consoletest";
 use strict;
 use testapi;
+use utils;
 
 sub run() {
     my $self = shift;
@@ -18,14 +19,20 @@ sub run() {
     select_console 'root-console';
 
     # install the postgresql94 server package
-    assert_script_run "zypper -n in postgresql94-server", 200;
+    zypper_call "in postgresql94-server";
 
     # start the postgresql94 service
-    assert_script_run "/etc/init.d/postgresql start", 200;
+    assert_script_run "systemctl start postgresql.service", 200;
 
     # check the status
-    assert_script_run "/etc/init.d/postgresql status > /dev/$serialdev", 200;
+    assert_script_run "systemctl show -p ActiveState postgresql.service | grep ActiveState=active";
+    assert_script_run "systemctl show -p SubState postgresql.service | grep SubState=running";
+
+    # test basic functionality - require postgresql94
+    assert_script_run "sudo -u postgres createdb openQAdb";
+    assert_script_run "sudo -u postgres psql -d openQAdb -c \"CREATE TABLE test (id SERIAL PRIMARY KEY, entry VARCHAR)\"";
+    assert_script_run "sudo -u postgres psql -d openQAdb -c \"INSERT INTO test (entry) VALUES ('openQA_test'), ('can you read this?');\"";
+    assert_script_run "sudo -u postgres psql -d openQAdb -c \"SELECT * FROM test\" | grep \"can you read this\"";
 }
 
 1;
-# vim: set sw=4 et:
