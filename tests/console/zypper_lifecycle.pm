@@ -27,7 +27,7 @@ sub check_package_lifecycle {
 sub run() {
     diag('fate#320597: Introduce \'zypper lifecycle\' to provide information about life cycle of individual products and packages');
     select_console 'user-console';
-    my $output = script_output 'zypper lifecycle';
+    my $output = script_output 'zypper lifecycle', 300;
     die "Missing header line"                                        unless $output =~ /Product end of support/;
     die "All packages within base distribution should have same EOL" unless $output =~ /No packages with end of support different from product./;
     die "Missing link to lifecycle page"                             unless $output =~ qr{\*\) See https://www.suse.com/lifecycle for latest information};
