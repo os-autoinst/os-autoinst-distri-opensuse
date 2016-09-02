@@ -48,7 +48,7 @@ sub run() {
         send_key 'alt-n';
         wait_serial("yast2-smt-wizard-0", 200) || die 'smt wizard failed';
     }
-    assert_script_run 'smt-sync', 200;
+    assert_script_run 'smt-sync', 600;
     assert_script_run 'smt-repos';
     type_string "killall xterm\n";
 }
