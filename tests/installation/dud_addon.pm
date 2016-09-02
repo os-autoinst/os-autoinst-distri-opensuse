@@ -10,35 +10,13 @@
 use base "y2logsstep";
 use strict;
 use testapi;
+use utils qw/addon_license/;
 
 sub run() {
     assert_screen 'additional-products';
     send_key 'alt-p';
     for my $addon (split(/,/, get_var('DUD_ADDONS'))) {
-        my $uc_addon = uc $addon;                                           # variable name is upper case
-        if (get_var("BETA_$uc_addon")) {
-            assert_screen "addon-betawarning-$addon";
-            send_key "ret";
-            assert_screen "addon-license-beta";
-        }
-        else {
-            assert_screen "addon-license-$addon";
-        }
-        if (get_var("HASLICENSE")) {
-            if (check_screen 'next-button-is-active', 5) {
-                send_key $cmd{next};
-                assert_screen "license-refuse";
-                send_key 'alt-n';    # no, don't refuse agreement
-                wait_still_screen 2;
-                send_key $cmd{accept};    # accept license
-            }
-            else {
-                wait_still_screen 2;
-                send_key $cmd{accept};    # accept license
-            }
-        }
-        wait_still_screen 2;
-        send_key $cmd{next};
+        addon_license($addon);
     }
 }
 
