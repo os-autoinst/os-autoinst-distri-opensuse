@@ -11,18 +11,20 @@
 use base "consoletest";
 use strict;
 use testapi;
-use utils;
 
 sub run() {
     my $self = shift;
 
     select_console 'root-console';
 
-    # install the postgresql94 client package
-    zypper_call "in postgresql94";
+    # install the postgresql94 server package
+    assert_script_run "zypper -n in postgresql94-server", 200;
 
-    # check the postgresql94 client
-    assert_script_run "/usr/bin/psql --help", 200;
+    # start the postgresql94 service
+    assert_script_run "/etc/init.d/postgresql start", 200;
+
+    # check the status
+    assert_script_run "/etc/init.d/postgresql status > /dev/$serialdev", 200;
 }
 
 1;
