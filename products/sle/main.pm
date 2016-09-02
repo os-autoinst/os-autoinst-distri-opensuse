@@ -355,6 +355,9 @@ sub install_this_version {
 
 sub load_inst_tests() {
     loadtest "installation/welcome.pm";
+    if (get_var('DUD_ADDONS')) {
+        loadtest "installation/dud_addon.pm";
+    }
     if (get_var('IBFT')) {
         loadtest "installation/iscsi_configuration.pm";
     }

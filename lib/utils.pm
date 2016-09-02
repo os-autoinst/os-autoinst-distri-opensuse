@@ -30,6 +30,8 @@ our @EXPORT = qw/
   assert_screen_with_soft_timeout
   is_desktop_installed
   pkcon_quit
+  addon_decline_license
+  addon_license
   /;
 
 
@@ -472,6 +474,38 @@ sub is_desktop_installed {
 
 sub pkcon_quit {
     script_run("pkcon quit; while pgrep packagekitd; do sleep 1; done");
+}
+
+sub addon_decline_license {
+    if (get_var("HASLICENSE")) {
+        if (check_screen 'next-button-is-active', 5) {
+            send_key $cmd{next};
+            assert_screen "license-refuse";
+            send_key 'alt-n';    # no, don't refuse agreement
+            wait_still_screen 2;
+            send_key $cmd{accept};    # accept license
+        }
+        else {
+            wait_still_screen 2;
+            send_key $cmd{accept};    # accept license
+        }
+    }
+}
+
+sub addon_license {
+    my ($addon)  = @_;
+    my $uc_addon = uc $addon;         # variable name is upper case
+    if (get_var("BETA_$uc_addon")) {
+        assert_screen "addon-betawarning-$addon";
+        send_key "ret";
+        assert_screen "addon-license-beta";
+    }
+    else {
+        assert_screen "addon-license-$addon";
+    }
+    addon_decline_license;
+    wait_still_screen 2;
+    send_key $cmd{next};
 }
 
 1;
