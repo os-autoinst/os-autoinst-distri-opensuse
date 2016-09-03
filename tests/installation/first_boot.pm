@@ -37,6 +37,7 @@ sub run() {
             return;
         }
         mouse_hide();
+        wait_still_screen;
         if (get_var('DM_NEEDS_USERNAME')) {
             type_string $username;
         }
@@ -50,7 +51,6 @@ sub run() {
             assert_and_click "sddm-password-input";
         }
         else {
-            wait_still_screen;
             send_key "ret";
             if (!check_screen "displaymanager-password-prompt") {
                 record_soft_failure;
