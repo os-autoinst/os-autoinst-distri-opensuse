@@ -377,6 +377,9 @@ sub load_inst_tests() {
     }
     if (get_var('UPGRADE')) {
         loadtest "installation/upgrade_select.pm";
+        if (check_var("UPGRADE", "LOW_SPACE")) {
+            loadtest "installation/disk_space_fill.pm";
+        }
     }
     if (get_var('SCC_REGISTER', '') eq 'installation') {
         loadtest "installation/scc_registration.pm";
@@ -466,6 +469,9 @@ sub load_inst_tests() {
     }
     if (installyaststep_is_applicable()) {
         loadtest "installation/installation_overview.pm";
+        if (check_var("UPGRADE", "LOW_SPACE")) {
+            loadtest "installation/disk_space_release.pm";
+        }
         if (ssh_key_import) {
             loadtest "installation/ssh_key_setup.pm";
         }
