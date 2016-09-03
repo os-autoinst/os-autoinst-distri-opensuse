@@ -62,33 +62,27 @@ sub run() {
         }
     }
 
-    # 2 is not magic number here, we're using 400 seconds in the past,
-    # decrease the timeout to 300 seconds now thus doing two times.
-    my $retry = 2;
-    # Check for errors during first boot
-    while ($retry) {
-        # GNOME and KDE get into screenlock after 5 minutes without activities.
-        # using 300 seconds here then we can get the wrong desktop screenshot at least
-        # in case desktop screenshot changed, otherwise we get the screenlock screenshot.
-        my $ret = check_screen "generic-desktop", 300;
-        if ($ret) {
-            mouse_hide();
-            last;
-        }
-        else {
-            # special case for KDE
-            if (check_var("DESKTOP", "kde")) {
-                # KDE Greeter was removed from Leap 42.1 though
-                if (check_screen "kde-greeter", 60) {
-                    send_key "esc";
-                    next;
-                }
-            }
-        }
-        $retry--;
+    my @tags = qw/generic-desktop/;
+    if (check_var('DESKTOP', 'kde') && get_var('VERSION', '') =~ /^1[23]/) {
+        push(@tags, 'kde-greeter');
     }
-    # get the last screenshot
-    assert_screen "generic-desktop", 5;
+    # GNOME and KDE get into screenlock after 5 minutes without activities.
+    # using multiple check intervals here then we can get the wrong desktop
+    # screenshot at least in case desktop screenshot changed, otherwise we get
+    # the screenlock screenshot.
+    my $timeout        = 600;
+    my $check_interval = 30;
+    while ($timeout > $check_interval) {
+        my $ret = check_screen \@tags, $check_interval;
+        last if $ret;
+        $timeout -= $check_interval;
+    }
+    # the last check after previous intervals must be fatal
+    assert_screen \@tags, $check_interval;
+    if (match_has_tag('kde-greeter')) {
+        send_key "esc";
+        assert_screen 'generic-desktop';
+    }
 }
 
 sub test_flags() {
