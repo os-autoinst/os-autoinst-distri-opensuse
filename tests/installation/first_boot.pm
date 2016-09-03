@@ -83,18 +83,6 @@ sub run() {
                     send_key "esc";
                     next;
                 }
-                if (check_screen "drkonqi-crash") {
-                    # handle for KDE greeter crashed and drkonqi popup
-                    send_key "alt-d";
-
-                    # maximize
-                    send_key "alt-shift-f3";
-                    sleep 8;
-                    save_screenshot;
-                    send_key "alt-c";
-                    next;
-
-                }
             }
         }
         $retry--;
