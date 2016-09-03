@@ -12,6 +12,33 @@ use strict;
 use base "y2logsstep";
 use testapi;
 
+sub handle_login {
+    if (get_var('DESKTOP_MINIMALX_INSTONLY')) {
+        # return at the DM and log in later into desired wm
+        return;
+    }
+    mouse_hide();
+    wait_still_screen;
+    if (get_var('DM_NEEDS_USERNAME')) {
+        type_string $username;
+    }
+    if (match_has_tag("sddm")) {
+        # make sure choose plasma5 session
+        assert_and_click "sddm-sessions-list";
+        assert_and_click "sddm-sessions-plasma5";
+        assert_and_click "sddm-password-input";
+    }
+    else {
+        send_key "ret";
+        if (!check_screen "displaymanager-password-prompt") {
+            record_soft_failure;
+            assert_screen "displaymanager-password-prompt";
+        }
+    }
+    type_string "$password";
+    send_key "ret";
+}
+
 sub run() {
     my $self = shift;
 
@@ -24,6 +51,7 @@ sub run() {
 
     if (get_var("NOAUTOLOGIN") || get_var("IMPORT_USER_DATA")) {
         assert_screen [qw/displaymanager emergency-shell emergency-mode/], 200;
+        handle_login;
         if (match_has_tag('emergency-shell')) {
             # get emergency shell logs for bug, scp doesn't work
             script_run "cat /run/initramfs/rdsosreport.txt > /dev/$serialdev";
@@ -32,30 +60,6 @@ sub run() {
             type_password;
             send_key 'ret';
         }
-        if (get_var('DESKTOP_MINIMALX_INSTONLY')) {
-            # return at the DM and log in later into desired wm
-            return;
-        }
-        mouse_hide();
-        wait_still_screen;
-        if (get_var('DM_NEEDS_USERNAME')) {
-            type_string $username;
-        }
-        if (match_has_tag("sddm")) {
-            # make sure choose plasma5 session
-            assert_and_click "sddm-sessions-list";
-            assert_and_click "sddm-sessions-plasma5";
-            assert_and_click "sddm-password-input";
-        }
-        else {
-            send_key "ret";
-            if (!check_screen "displaymanager-password-prompt") {
-                record_soft_failure;
-                assert_screen "displaymanager-password-prompt";
-            }
-        }
-        type_string "$password";
-        send_key "ret";
     }
 
     # 2 is not magic number here, we're using 400 seconds in the past,
