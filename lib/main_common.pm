@@ -51,7 +51,12 @@ sub set_defaults_for_username_and_password {
         $testapi::password = '';
     }
     else {
-        $testapi::username = "bernhard";
+        if (get_var('FLAVOR', '') =~ /SAP/) {
+            $testapi::username = "root";    #in sles4sap only root user created
+        }
+        else {
+            $testapi::username = "bernhard";
+        }
         $testapi::password = "nots3cr3t";
     }
 
@@ -59,7 +64,7 @@ sub set_defaults_for_username_and_password {
     $testapi::password = get_var("PASSWORD") if defined get_var("PASSWORD");
 
     if (get_var("LIVETEST") && (get_var("LIVECD") || get_var("PROMO"))) {
-        $testapi::username = "linux";    # LiveCD account
+        $testapi::username = "linux";       # LiveCD account
         $testapi::password = "";
     }
 }
