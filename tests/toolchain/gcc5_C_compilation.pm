@@ -15,26 +15,41 @@ use testapi;
 sub run() {
     my $self = shift;
 
-    my $package = data_url('toolchain/ltp-full-20160510.tar.xz');
-    script_run "wget $package";
+    # Fixes https://github.com/linux-test-project/ltp/issues/91
+    script_run 'wget ' . data_url('toolchain/794b46d9.patch');
+    script_run 'wget ' . data_url('toolchain/ltp-full-20160510.tar.xz');
     script_run 'tar xJf ltp-full-20160510.tar.xz';
 
     # Some test cases do not play nicely with Btrfs. As we are testing
     # syscalls and not filesystem, workaroung involving Ext4 should be OK.
-    assert_script_run 'dd if=/dev/zero of=/tmp/tmpdir.loop bs=1M count=128';
+    assert_script_run 'dd if=/dev/zero of=/tmp/tmpdir.loop bs=1M count=512';
     assert_script_run 'mkfs.ext4 -F /tmp/tmpdir.loop';
     assert_script_run 'mkdir /tmp/tmpdir';
     assert_script_run 'mount /tmp/tmpdir.loop /tmp/tmpdir -o loop';
 
     script_run 'pushd ltp-full-20160510';
+    script_run 'patch -p1 < ../794b46d9.patch';
+    if (check_var('ARCH', 's390x')) {
+        # workaround for missing patch https://patchwork.kernel.org/patch/8953231/ in SLES 12 SP2
+        script_run "sed -i '/inotify06/d' runtest/syscalls";
+        # workaround for https://github.com/linux-test-project/ltp/issues/89
+        script_run "cp /proc/sys/fs/inotify/max_user_instances ~; echo 512 > /proc/sys/fs/inotify/max_user_instances";
+    }
     assert_script_run './configure 2>&1 | tee /tmp/configure.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi',                            600;
     assert_script_run 'make -j$(getconf _NPROCESSORS_ONLN) all 2>&1 | tee /tmp/make_all.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi', 3600;
     assert_script_run 'make install 2>&1 | tee /tmp/make_install.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi',                        600;
     script_run 'pushd /opt/ltp/';
+
+    # gvfsd-trash running is probably causing https://github.com/linux-test-project/ltp/issues/92
+    script_run "killall gvfsd-trash; sleep 5; pgrep gvfsd-trash && killall -9 gvfsd-trash";
+
     assert_script_run './runltp -f syscalls -d /tmp/tmpdir 2>&1 | tee /tmp/runltp.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi', 2000;
     save_screenshot;
     script_run 'popd';
     script_run 'popd';
+    if (check_var('ARCH', 's390x')) {
+        script_run 'cat ~/max_user_instances > /proc/sys/fs/inotify/max_user_instances';
+    }
 }
 
 sub test_flags() {
