@@ -25,7 +25,7 @@ sub run() {
             die "Not all partitions are mounted by label";
         }
         else {
-            record_soft_failure;
+            die "Mount is by path, UUID or PARTUUID and hence invalid";
         }
     }
 }
