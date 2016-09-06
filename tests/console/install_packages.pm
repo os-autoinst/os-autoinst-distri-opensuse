@@ -18,12 +18,14 @@ sub run() {
     my $packages = get_var("INSTALL_PACKAGES");
 
     assert_script_run("zypper -n in -l perl-solv");
-    assert_script_run("~$username/data/lsmfip --verbose $packages > \$XDG_RUNTIME_DIR/install_packages.txt");
+    my $ex = script_run("~$username/data/lsmfip --verbose $packages > \$XDG_RUNTIME_DIR/install_packages.txt 2> /tmp/lsmfip.log");
+    upload_logs '/tmp/lsmfip.log';
+    die "lsmfip failed" if $ex;
     # make sure we install at least one package - otherwise this test is pointless
     # better have it fail and let a reviewer check the reason
     assert_script_run("test -s \$XDG_RUNTIME_DIR/install_packages.txt");
-    # might take longer than 90 seconds (e.g. libqt4)
-    assert_script_run("xargs --no-run-if-empty zypper -n in -l < \$XDG_RUNTIME_DIR/install_packages.txt", 120);
+    # might take longer for large patches (i.e. 12 kernel flavors)
+    assert_script_run("xargs --no-run-if-empty zypper -n in -l < \$XDG_RUNTIME_DIR/install_packages.txt", 800);
     assert_script_run("rpm -q $packages | tee /dev/$serialdev");
 }
 
