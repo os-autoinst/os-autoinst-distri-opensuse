@@ -30,8 +30,7 @@ sub run() {
     assert_screen "vlc-network-window";
     send_key "backspace";
     type_string autoinst_url . "/data/Big_Buck_Bunny_8_seconds_bird_clip.ogv";
-    send_key "alt-p";
-    send_key "ret";
+    assert_and_click "vlc-play_button";
     assert_screen "vlc-done-playing";
     send_key "ctrl-q";
 }
