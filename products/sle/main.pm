@@ -1130,7 +1130,7 @@ elsif (ssh_key_import) {
     loadtest "x11/ssh_key_verify.pm";
 }
 else {
-    if (get_var("AUTOYAST")) {
+    if (get_var("AUTOYAST") || get_var("AUTOUPGRADE")) {
         load_boot_tests();
         load_autoyast_tests();
         load_reboot_tests();
