@@ -59,8 +59,9 @@ sub run() {
             type_password;
             send_key 'ret';
         }
+        handle_login;
     }
-    handle_login;
+
     my @tags = qw/generic-desktop/;
     if (check_var('DESKTOP', 'kde') && get_var('VERSION', '') =~ /^1[23]/) {
         push(@tags, 'kde-greeter');
