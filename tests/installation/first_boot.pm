@@ -51,7 +51,6 @@ sub run() {
 
     if (get_var("NOAUTOLOGIN") || get_var("IMPORT_USER_DATA")) {
         assert_screen [qw/displaymanager emergency-shell emergency-mode/], 200;
-        handle_login;
         if (match_has_tag('emergency-shell')) {
             # get emergency shell logs for bug, scp doesn't work
             script_run "cat /run/initramfs/rdsosreport.txt > /dev/$serialdev";
@@ -61,7 +60,7 @@ sub run() {
             send_key 'ret';
         }
     }
-
+    handle_login;
     my @tags = qw/generic-desktop/;
     if (check_var('DESKTOP', 'kde') && get_var('VERSION', '') =~ /^1[23]/) {
         push(@tags, 'kde-greeter');
