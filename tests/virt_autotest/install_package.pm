@@ -17,7 +17,7 @@ use virt_utils;
 sub install_package() {
     my $qa_server_repo = get_var('QA_HEAD_REPO', '');
     if ($qa_server_repo) {
-        type_string "zypper --non-interactive rr server-repo\n";
+        script_run "zypper --non-interactive rr server-repo";
         assert_script_run("zypper --non-interactive --no-gpg-check -n ar -f '$qa_server_repo' server-repo");
     }
     else {

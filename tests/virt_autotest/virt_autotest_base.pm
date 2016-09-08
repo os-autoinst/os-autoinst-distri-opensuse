@@ -103,7 +103,7 @@ sub execute_script_run($$) {
 sub push_junit_log($) {
     my ($self, $junit_content) = @_;
 
-    type_string "echo \'$junit_content\' > /tmp/output.xml\n";
+    script_run "echo \'$junit_content\' > /tmp/output.xml";
     parse_junit_log("/tmp/output.xml");
 }
 
