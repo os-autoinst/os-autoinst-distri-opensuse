@@ -19,10 +19,13 @@ sub reboot_and_wait_up() {
     my $self           = shift;
     my $reboot_timeout = shift;
 
+    wait_idle 1;
     select_console('root-console');
+    wait_idle 1;
     type_string("/sbin/reboot\n");
+    wait_idle 1;
     reset_consoles;
-    sleep 2;
+    wait_idle 1;
     &login_console::login_to_console($reboot_timeout);
 
 }
