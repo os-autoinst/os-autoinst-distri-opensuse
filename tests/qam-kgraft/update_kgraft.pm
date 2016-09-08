@@ -82,6 +82,9 @@ sub run() {
     # check if automounter works
     check_automounter;
 
+    script_run(qq{rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE} (%{INSTALLTIME:date})\n" | sort -t '-' > /tmp/rpmlist.before});
+    upload_logs('/tmp/rpmlist.before');
+
     # RUN HEAVY LOAD script
     assert_script_run("curl -f " . autoinst_url . "/data/qam/heavy_load.sh -o /tmp/heavy_load.sh");
     script_run("bash /tmp/heavy_load.sh");
@@ -116,6 +119,9 @@ sub run() {
 
     # wait for cooldown:)
     sleep 45;
+
+    script_run(qq{rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE} (%{INSTALLTIME:date})\n" | sort -t '-' > /tmp/rpmlist.after});
+    upload_logs('/tmp/rpmlist.after');
 
     capture_state("after");
     script_run("clear");
