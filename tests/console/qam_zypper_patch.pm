@@ -22,7 +22,7 @@ use utils;
 sub run() {
     select_console 'root-console';
 
-    zypper_call('in -l -t patch ' . get_var('INCIDENT_PATCH'), exitcode => [0, 102, 103]);
+    zypper_call('in -l -t patch ' . get_var('INCIDENT_PATCH'), exitcode => [0, 102, 103], timeout => 1400);
 }
 
 sub test_flags() {
