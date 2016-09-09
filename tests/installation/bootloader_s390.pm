@@ -195,8 +195,8 @@ sub format_dasd() {
     # bring dasd online
     # exit status 0 -> everything ok
     # exit status 8 -> unformatted but still usable (e.g. from previous testrun)
-    script_run("dasd_configure 0.0.0150 1; echo dasd_configure-status-\$? > /dev/$serialdev", 0);
-    wait_serial(qr/dasd_configure-status-[08]/) || die "DASD in undefined state";
+    $r = script_run("dasd_configure 0.0.0150 1");
+    die "DASD in undefined state" unless (defined($r) && ($r == 0 || $r == 8));
 
     # make sure that there is a dasda device
     $r = script_run("lsdasd");
