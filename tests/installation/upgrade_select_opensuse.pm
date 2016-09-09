@@ -39,7 +39,7 @@ sub run() {
         record_soft_failure 'installed product incompatible';
     }
 
-    assert_screen "update-installation-overview", 15;
+    assert_screen "update-installation-overview", 60;
 }
 
 1;
