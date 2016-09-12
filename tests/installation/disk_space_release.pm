@@ -36,7 +36,8 @@ sub run() {
     }
     select_console('installation');
     send_key "alt-b";
-    send_key "alt-n";
+    wait_still_screen;
+    send_key_until_needlematch "inst-overview", "alt-n", 3, 30;
     assert_screen "no-packages-warning";
 }
 
