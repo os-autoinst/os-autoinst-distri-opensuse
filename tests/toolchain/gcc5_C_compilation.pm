@@ -29,12 +29,9 @@ sub run() {
 
     script_run 'pushd ltp-full-20160510';
     script_run 'patch -p1 < ../794b46d9.patch';
-    if (check_var('ARCH', 's390x')) {
-        # workaround for missing patch https://patchwork.kernel.org/patch/8953231/ in SLES 12 SP2
-        script_run "sed -i '/inotify06/d' runtest/syscalls";
-        # workaround for https://github.com/linux-test-project/ltp/issues/89
-        script_run "cp /proc/sys/fs/inotify/max_user_instances ~; echo 512 > /proc/sys/fs/inotify/max_user_instances";
-    }
+    # workaround for missing patch https://patchwork.kernel.org/patch/8953231/ in SLES 12 SP2
+    # (https://github.com/linux-test-project/ltp/issues/89)
+    script_run "cp /proc/sys/fs/inotify/max_user_instances ~; echo 512 > /proc/sys/fs/inotify/max_user_instances";
     assert_script_run './configure 2>&1 | tee /tmp/configure.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi',                            600;
     assert_script_run 'make -j$(getconf _NPROCESSORS_ONLN) all 2>&1 | tee /tmp/make_all.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi', 3600;
     assert_script_run 'make install 2>&1 | tee /tmp/make_install.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi',                        600;
@@ -47,9 +44,7 @@ sub run() {
     save_screenshot;
     script_run 'popd';
     script_run 'popd';
-    if (check_var('ARCH', 's390x')) {
-        script_run 'cat ~/max_user_instances > /proc/sys/fs/inotify/max_user_instances';
-    }
+    script_run 'cat ~/max_user_instances > /proc/sys/fs/inotify/max_user_instances';
 }
 
 sub test_flags() {
