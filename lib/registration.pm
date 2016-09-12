@@ -251,13 +251,7 @@ sub yast_scc_registration {
     my $ret = wait_serial "yast-scc-done-\\d+-", $timeout;
     die "yast scc failed" unless (defined $ret && $ret =~ /yast-scc-done-0-/);
 
-    if (get_var('ONLINE_MIGRATION')) {
-        script_run("zypper lr -u | tee /dev/$serialdev");
-    }
-    else {
-        script_run 'zypper lr';
-        assert_screen 'scc-repos-listed';
-    }
+    # To check repos validity after registration, call 'validate_repos' as needed
 }
 
 1;

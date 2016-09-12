@@ -1,4 +1,4 @@
-# SUSE's openQA tests
+# SLE12 online migration tests
 #
 # Copyright © 2016 SUSE LLC
 #
@@ -14,7 +14,11 @@ use utils;
 
 sub run() {
     select_console 'root-console';
-    validate_repos;
+    validate_repos(get_var('HDDVERSION'));
+}
+
+sub test_flags {
+    return {important => 1};
 }
 
 1;
