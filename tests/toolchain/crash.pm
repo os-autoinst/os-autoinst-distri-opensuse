@@ -22,24 +22,30 @@ sub run() {
 
     script_run 'zypper -n in yast2-kdump kdump crash';
 
+    script_run 'yast2 kdump', 0;
+
     # It seems that `toolchain/gcc5_Cpp_compilation.pm` spits some visual artifacts
     # (https://openqa.suse.de/tests/522356/file/video.ogv) which prevent needle match.
-    # They seem to occur after some 20 seconds, lets give it three rounds.
+    # It's not enough to wait, we have to refresh the screen before check_screen or
+    # assert_screen.
     wait_still_screen(20, 60);
-    script_run 'yast2 kdump', 0;
+    send_key 'ctrl-l';    # refresh the screen
 
     if (check_screen 'yast2-kdump-disabled') {
         send_key 'alt-u';    # enable kdump
     }
 
+    send_key 'ctrl-l';       # refresh the screen
     assert_screen 'yast2-kdump-enabled';
     send_key 'alt-o';        # OK
 
+    send_key 'ctrl-l';       # refresh the screen
     if (check_screen 'yast2-kdump-restart-info') {
         send_key 'alt-o';    # OK
     }
 
     # activate kdump
+    wait_still_screen(10, 30);
     script_run 'reboot', 0;
     wait_boot;
     select_console 'root-console';
