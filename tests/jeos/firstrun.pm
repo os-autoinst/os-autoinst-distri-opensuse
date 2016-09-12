@@ -63,6 +63,12 @@ sub run() {
 
     assert_screen 'linux-login';
 
+    # Without this login name and password won't get to the system. The
+    # get lost somewhere. Applies for all systems installed via svirt.
+    if (check_var('BACKEND', 'svirt') and !check_var('ARCH', 's390x')) {
+        wait_idle;
+    }
+
     select_console 'root-console';
 
     assert_script_run "useradd -m $username -c '$realname'";    # create user account

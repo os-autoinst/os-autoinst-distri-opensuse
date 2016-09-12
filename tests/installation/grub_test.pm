@@ -40,6 +40,18 @@ sub run() {
     assert_screen "grub2", 60;
     # prevent grub2 timeout; 'esc' would be cleaner, but grub2-efi falls to the menu then
     send_key 'up';
+
+    # BSC#997263 - VMware screen resolution defaults to 800x600
+    # By default VMware starts with Grub2 in 640x480 mode and then boots the system to
+    # 800x600. To avoid that we need to reconfigure Grub's gfxmode and gfxpayload.
+    # Permanent - system-wise - solution is in console/consoletest_setup.pm.
+    if (check_var('VIRSH_VMM_FAMILY', 'vmware')) {
+        send_key 'c';
+        type_string "gfxmode=1024x768x32; gfxpayload=1024x768x32; terminal_output console; terminal_output gfxterm\n";
+        wait_still_screen;
+        send_key 'esc';
+    }
+
     if (get_var("BOOT_TO_SNAPSHOT")) {
         send_key_until_needlematch("boot-menu-snapshot", 'down', 10, 5);
         send_key 'ret';

@@ -16,6 +16,12 @@ use strict;
 sub run() {
     my $self = shift;
 
+    # Without this login name and password won't get to the system. The
+    # get lost somewhere. Applies for all systems installed via svirt.
+    if (check_var('BACKEND', 'svirt') and !check_var('ARCH', 's390x')) {
+        wait_idle;
+    }
+
     # let's see how it looks at the beginning
     save_screenshot;
 
@@ -86,6 +92,14 @@ sub run() {
     # upload_logs requires curl, but we wanted the initial state of the system
     upload_logs "/tmp/psaxf.log";
     upload_logs "/tmp/loadavg_consoletest_setup.txt";
+
+    # BSC#997263 - VMware screen resolution defaults to 800x600
+    if (check_var('VIRSH_VMM_FAMILY', 'vmware')) {
+        assert_script_run("sed -ie '/GFXMODE=/s/=.*/=1024x768x32/' /etc/default/grub");
+        assert_script_run("sed -ie '/GFXPAYLOAD_LINUX=/s/=.*/=1024x768x32/' /etc/default/grub");
+        assert_script_run("grub2-mkconfig -o /boot/grub2/grub.cfg");
+    }
+
     save_screenshot;
 
     $self->clear_and_verify_console;
