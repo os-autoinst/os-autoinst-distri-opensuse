@@ -69,10 +69,11 @@ sub wait_boot {
     }
     # reconnect s390
     elsif (check_var('ARCH', 's390x')) {
+        my $login_ready = qr/Welcome to SUSE Linux Enterprise Server.*\(s390x\)/;
         if (check_var('BACKEND', 's390x')) {
 
             console('x3270')->expect_3270(
-                output_delim => qr/Welcome to SUSE Linux Enterprise Server/,
+                output_delim => $login_ready,
                 timeout      => 300
             );
 
@@ -83,7 +84,7 @@ sub wait_boot {
             select_console('iucvconn');
         }
         else {
-            wait_serial("Welcome to SUSE Linux Enterprise Server");
+            wait_serial($login_ready, 300);
         }
 
         # on z/(K)VM we need to re-select a console
