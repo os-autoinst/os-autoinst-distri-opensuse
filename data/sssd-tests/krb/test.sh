@@ -17,7 +17,9 @@ mkdir -p /tmp/ldap-sssdtest &&
 cp ldap.crt /tmp/ldap-sssdtest.cacrt &&
 cp ldap.crt /tmp/ldap-sssdtest.crt &&
 cp ldap.key /tmp/ldap-sssdtest.key &&
-/usr/sbin/slapd -h 'ldap:///' -f slapd.conf &&
+SLAPD="/usr/sbin/slapd"
+[ ! -e "$SLAPD" ] && SLAPD=/usr/lib/openldap/slapd
+$SLAPD -h 'ldap:///' -f slapd.conf &&
 ldapadd -x -D 'cn=root,dc=ldapdom,dc=net' -wpass -f db.ldif &> /dev/null &&
 ldappasswd -x -D 'cn=root,dc=ldapdom,dc=net' -wpass -spass 'cn=krbkdc,dc=ldapdom,dc=net' &&
 ldappasswd -x -D 'cn=root,dc=ldapdom,dc=net' -wpass -spass 'cn=krbadm,dc=ldapdom,dc=net' || test_abort 'Failed to prepare LDAP server'
@@ -38,6 +40,10 @@ systemctl unmask krb5kdc kadmind &&
 systemctl start krb5kdc kadmind &&
 kadmin.local -r LDAPDOM.NET -q 'addprinc -x dn="uid=testuser1,ou=UnixUser,dc=ldapdom,dc=net" -pw goodpass testuser1' &> /dev/null &&
 kadmin.local -r LDAPDOM.NET -q 'addprinc -x dn="uid=testuser2,ou=UnixUser,dc=ldapdom,dc=net" -pw goodpass testuser2' &> /dev/null || test_abort 'Failed to create Kerberos principles'
+# SSSD's PAM responder now has trouble reading user password in version 1.14
+# Workaround is discussed in https://lists.fedorahosted.org/archives/list/sssd-users@lists.fedorahosted.org/thread/D3C2DDA7EDIEPZLSWXE53TFY4GGAICRN/
+kadmin.local -r LDAPDOM.NET -q 'modprinc +requires_preauth testuser1' &> /dev/null &&
+kadmin.local -r LDAPDOM.NET -q 'modprinc +requires_preauth testuser2' &> /dev/null &&
 
 test_case 'Start SSSD'
 sssd -f -c sssd.conf || test_fatal 'Failed to start SSSD'
