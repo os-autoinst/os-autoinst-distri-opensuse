@@ -129,7 +129,7 @@ sub fill_in_registration_data {
             send_key $cmd{next};    # all addons selected
             for my $addon (split(/,/, get_var('SCC_ADDONS', ''))) {
                 # most modules don't have license, skip them
-                next unless grep { $addon eq $_ } qw(ha geo sdk we live rt ids lgm wsm);
+                next unless grep { $addon eq $_ } qw(ha geo sdk we live rt idu ids lgm wsm);
                 while (check_screen('scc-downloading-license', 5)) {
                     # wait for SCC to give us the license
                     sleep 5;
@@ -242,8 +242,8 @@ sub yast_scc_registration {
     }
     else {
         # yast would display empty pkg install screen if no addon selected on sle12 sp0
-        # set check_screen timeout 5 to reduce check time on sle12 sp1 or higher
-        if (check_screen("yast-scc-emptypkg", 5)) {
+        # set check_screen timeout longer to ensure the screen checked in this case
+        if (check_screen("yast-scc-emptypkg", 15)) {
             send_key "alt-a";
         }
     }
