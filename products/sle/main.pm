@@ -683,6 +683,7 @@ sub load_extra_test () {
         if (get_var("NUMDISKS", 0) > 1) {
             loadtest "console/btrfs_qgroups.pm";
             loadtest "console/btrfs_send_receive.pm";
+            loadtest "console/snapper_cleanup.pm";
         }
     }
 
