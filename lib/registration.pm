@@ -242,8 +242,8 @@ sub yast_scc_registration {
     }
     else {
         # yast would display empty pkg install screen if no addon selected on sle12 sp0
-        # set check_screen timeout 5 to reduce check time on sle12 sp1 or higher
-        if (check_screen("yast-scc-emptypkg", 5)) {
+        # set check_screen timeout longer to ensure the screen checked in this case
+        if (check_screen("yast-scc-emptypkg", 15)) {
             send_key "alt-a";
         }
     }
