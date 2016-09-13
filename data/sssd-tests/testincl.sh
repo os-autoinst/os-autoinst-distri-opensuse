@@ -1,6 +1,9 @@
 # Common features for SSSD testing scenarios
 # Please only use these functions in test case sub-directory
 
+SLAPD="/usr/sbin/slapd"
+[ ! -e "$SLAPD" ] && SLAPD=/usr/lib/openldap/slapd
+
 SSS_RELATED_UNITS='nscd.service nscd.socket krb5kdc.service kadmind.service sssd.service slapd.service'
 
 # Comprehensive list of system-wide configuration files touched by test cases
