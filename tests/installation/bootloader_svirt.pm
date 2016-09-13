@@ -72,21 +72,14 @@ sub run() {
     # boot loads installed kernel and initrd.
     $svirt->change_domain_element(on_reboot => 'destroy');
 
-    my $hddfile = get_var('HDD_1');
     my $size_i = get_var('HDDSIZEGB', '24');
     # In JeOS we have the disk, we just need to deploy it, for the rest
     # - installs from network and ISO media - we have to create it.
-    if (is_jeos) {
-        if ($vmm_family eq 'vmware') {
-            $hddfile = basename($hddfile);
-        }
-        $svirt->add_disk({size => $size_i . 'G', file => $hddfile});
+    if (my $hddfile = get_var('HDD_1')) {
+        $svirt->add_disk({size => $size_i . 'G', file => ($vmm_family eq 'vmware') ? basename($hddfile) : $hddfile});
     }
     else {
-        if ($vmm_family eq 'vmware') {
-            $hddfile = basename($hddfile) if $hddfile;
-        }
-        $svirt->add_disk({size => $size_i . 'G', file => $hddfile, create => 1});
+        $svirt->add_disk({size => $size_i . 'G', create => 1});
     }
 
     # In JeOS and netinstall we don't have ISO media, for the rest we have to attach it.
