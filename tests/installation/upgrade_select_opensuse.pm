@@ -12,6 +12,14 @@ use strict;
 use base "y2logsstep";
 use testapi;
 
+# Check that installer does not freeze when pressing next
+sub check_bsc997635 {
+    if (!wait_screen_change { send_key $cmd{next} }, 10) {
+        record_soft_failure 'bsc#997635';
+        sleep 30;
+    }
+}
+
 sub run() {
     # offline DVD upgrade may not have network (boo#995771)
     if (!check_var("FLAVOR", "NET") && check_screen('network-not-configured')) {
@@ -29,8 +37,8 @@ sub run() {
         }
         # Bug 881107 - there is 2nd license agreement screen in openSUSE upgrade
         # http://bugzilla.opensuse.org/show_bug.cgi?id=881107
-        if (check_screen('upgrade-license-agreement', 10)) {
-            send_key 'alt-n';
+        if (check_screen('upgrade-license-agreement')) {
+            check_bsc997635;
         }
     }
 

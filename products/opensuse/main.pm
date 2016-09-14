@@ -252,6 +252,9 @@ sub load_inst_tests() {
     }
     if (!get_var("LIVECD") && get_var("UPGRADE")) {
         loadtest "installation/upgrade_select.pm";
+        if (check_var("UPGRADE", "LOW_SPACE")) {
+            loadtest "installation/disk_space_fill.pm";
+        }
         loadtest "installation/upgrade_select_opensuse.pm";
     }
     if (noupdatestep_is_applicable() && get_var("LIVECD")) {
@@ -309,6 +312,9 @@ sub load_inst_tests() {
     }
     if (installyaststep_is_applicable()) {
         loadtest "installation/installation_overview.pm";
+        if (check_var("UPGRADE", "LOW_SPACE")) {
+            loadtest "installation/disk_space_release.pm";
+        }
         if (ssh_key_import) {
             loadtest "installation/ssh_key_setup.pm";
         }
