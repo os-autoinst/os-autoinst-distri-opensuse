@@ -388,8 +388,12 @@ sub activate_console {
         }
         assert_screen "text-logged-in-$user";
         $self->set_standard_prompt($user);
-        # Disable console screensaver
-        $self->script_run("setterm -blank 0");
+
+        # On s390x 'setterm' binary is not present as there's no linux console
+        if (!check_var('ARCH', 's390x')) {
+            # Disable console screensaver
+            $self->script_run("setterm -blank 0");
+        }
     }
 }
 
