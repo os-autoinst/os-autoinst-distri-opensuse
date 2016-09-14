@@ -626,7 +626,7 @@ sub load_x11tests() {
         loadtest "x11/gnome_tweak_tool.pm";
         loadtest "x11/gnome_terminal.pm";
         loadtest "x11/gedit.pm";
-        if (check_var('VERSION', 'Tumbleweed') || check_var('VERSION', '42.2')) {
+        if (check_var('VERSION', '42.2')) {
             loadtest "x11/gdm_session_switch.pm";
         }
     }
