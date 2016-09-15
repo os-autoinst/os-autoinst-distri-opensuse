@@ -26,7 +26,7 @@ sub run() {
     wait_serial(".*inactive.*", 4) || die "mysql should be disabled by default";
 
     # Now must be enabled
-    script_run "systemctl start mysql.service";
+    script_run "systemctl start mysql.service",                          60;
     script_run "systemctl status mysql.service | tee /dev/$serialdev -", 0;
     wait_serial(".*Syntax error.*", 2, 1) || die "have error while starting mysql";
 
