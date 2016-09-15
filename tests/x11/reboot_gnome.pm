@@ -29,6 +29,8 @@ sub run() {
         wait_screen_change {
             assert_and_click 'reboot-auth-showtext';                        # Click the 'Show Text' Option to enable the display of the typed text
         };
+        # Check the password is correct
+        assert_screen 'reboot-auth-correct-password';
         # we need to kill ssh for iucvconn here,
         # because after pressing return, the system is down
         prepare_system_reboot;
