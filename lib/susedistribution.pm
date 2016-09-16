@@ -173,7 +173,8 @@ sub script_sudo($$) {
     if ($wait > 0) {
         $prog = "$prog; echo $str-\$?- > /dev/$testapi::serialdev";
     }
-    type_string "clear; su -c \'$prog\'\n";
+    $self->script_run("clear");    # poo#13710
+    type_string "su -c \'$prog\'\n";
     handle_password_prompt;
     if ($wait > 0) {
         return wait_serial("$str-\\d+-");
