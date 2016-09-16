@@ -13,11 +13,9 @@ use strict;
 use testapi;
 
 sub run() {
-    my $self = shift;
     x11_start_program("nautilus");
-    assert_screen 'test-nautilus-1', 3;
+    assert_screen 'test-nautilus-1';
     send_key "alt-f4";
-    sleep 2;
 }
 
 1;
