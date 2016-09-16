@@ -18,7 +18,9 @@ sub run() {
     x11_start_program("gnome-terminal");
     assert_screen "gnome-terminal";
     send_key "ctrl-shift-t";
-    assert_screen "gnome-terminal-second-tab";
+    if (!check_screen "gnome-terminal-second-tab") {
+        record_soft_failure 'bsc#999243';
+    }
     for (1 .. 13) { send_key "ret" }
     type_string "echo If you can see this text gnome-terminal is working.\n";
     assert_screen 'test-gnome_terminal-1';
