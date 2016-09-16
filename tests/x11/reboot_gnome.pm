@@ -43,9 +43,15 @@ sub run() {
     wait_boot bootloader_time => 300;
 }
 
+sub post_fail_hook {
+    my $self = shift;
+    $self->export_logs;
+}
+
 sub test_flags() {
     return {important => 1, milestone => 1};
 }
+
 1;
 
 # vim: set sw=4 et:
