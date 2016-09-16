@@ -71,7 +71,7 @@ sub run() {
         assert_script_run "zypper -n mr -d $opensuse_debug_repos";
     }
 
-    validate_script_output "yast2 kdump show 2>&1", sub { m/Kdump is enabled/ };
+    validate_script_output "yast2 kdump show 2>&1", sub { m/Kdump is enabled/ }, 90;
 
     # get dump
     script_run "echo c > /proc/sysrq-trigger", 0;
