@@ -17,20 +17,20 @@ sub run() {
 
     my $snapfile = '/root/snapfile';
 
-    my $snapbf = script_output "snapper create -p -d 'before undochange test'";
+    my $snapbf = script_output "snapper create -p -d 'before undochange test'", 90;
     script_run "date > $snapfile";
-    my $snapaf = script_output "snapper create -p -d 'after undochange test'";
+    my $snapaf = script_output "snapper create -p -d 'after undochange test'", 90;
 
     # Delete snapfile
-    script_run "snapper undochange $snapbf..$snapaf $snapfile";
+    script_run "snapper undochange $snapbf..$snapaf $snapfile", 90;
     script_run("test -f $snapfile || echo \"snap-ba-ok\" > /dev/$serialdev", 0);
-    wait_serial("snap-ba-ok", 10) || die "Snapper undochange $snapbf..$snapaf failed";
+    wait_serial("snap-ba-ok", 30) || die "Snapper undochange $snapbf..$snapaf failed";
 
     # Restore snapfile
-    script_run "snapper undochange $snapaf..$snapbf $snapfile";
+    script_run "snapper undochange $snapaf..$snapbf $snapfile", 90;
     assert_script_run("test -f $snapfile", timeout => 10, fail_message => "File $snapfile could not be found");
 
-    assert_screen 'snapper_undochange', 3;
+    assert_screen 'snapper_undochange';
 }
 
 sub test_flags() {
