@@ -355,7 +355,8 @@ sub ensure_unlocked_desktop {
             # switching to tty1 then back to 7, where GNOME runs, withing five minutes
             # does not lock with a password - in most cases we take long enough, but some
             # console tests are just too quick
-            if (check_screen "gnome-screenlock-password") {
+            assert_screen([qw/gnome-screenlock-password generic-desktop/]);
+            if (match_has_tag('gnome-screenlock-password')) {
                 type_password;
                 send_key "ret";
             }
