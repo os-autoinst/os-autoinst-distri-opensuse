@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-use base "x11regressiontest";
+use base "x11test";
 use strict;
 use testapi;
 use utils;
@@ -38,8 +38,6 @@ sub application_test {
 }
 
 sub run () {
-    my $self = shift;
-
     # Log out and switch to GNOME Classic
     assert_screen "generic-desktop";
     switch_wm;
