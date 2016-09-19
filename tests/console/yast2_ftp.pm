@@ -11,17 +11,20 @@ use strict;
 use base "consoletest";
 use testapi;
 
-
-
 sub run() {
-
     select_console 'root-console';
 
     # install vsftps
     assert_script_run("/usr/bin/zypper -n -q in vsftpd yast2-ftp-server");
 
-    # create DSA certificate for ftp server at first which canbe used for SSL configuration
-    type_string("openssl req -x509 -nodes -days 365 -newkey rsa:1024 -keyout /etc/vsftpd.pem -out /etc/vsftpd.pem\n");
+    # bsc#694167
+    # create RSA certificate for ftp server at first which can be used for SSL configuration
+    # type_string("openssl req -x509 -nodes -days 365 -newkey rsa:1024 -keyout /etc/vsftpd.pem -out /etc/vsftpd.pem\n");
+
+    # create DSA certificate for ftp server at first which can be used for SSL configuration
+    script_run("openssl dsaparam -out dsaparam.pem 1024");
+    type_string("openssl req -x509 -nodes -days 365 -newkey dsa:dsaparam.pem -keyout /etc/vsftpd.pem -out /etc/vsftpd.pem\n");
+
     sleep 2;
     type_string "DE\n";
     type_string "bayern\n";
@@ -30,7 +33,6 @@ sub run() {
     type_string "QA\n";
     type_string "localhost\n";
     type_string "admin\@localhost\n";
-
 
     assert_script_run("ls -l /etc/vsftpd.pem");    # check vsftpd.pem is created
 
@@ -102,9 +104,7 @@ sub run() {
 
     # let's try to run it
     assert_script_run "systemctl start vsftpd.service";
-    assert_script_run "systemctl show -p ActiveState vsftpd.service|grep ActiveState=active";
-    assert_script_run "systemctl show -p SubState vsftpd.service|grep SubState=running";
-
+    assert_script_run("systemctl is-active vsftpd", fail_message => 'bsc#975538');
 }
 1;
 
