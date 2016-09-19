@@ -40,9 +40,10 @@ sub run() {
     }
     if (@addons) {
         for my $a (@addons) {
-            next if ($a eq 'we');    # https://bugzilla.suse.com/show_bug.cgi?id=931003#c17
+            # no release-notes for WE and all modules
+            next if grep { $a eq $_ } qw(we lgm asmm certm contm pcm tcm wsm);
             send_key_until_needlematch("release-notes-$a", 'right', 4, 60);
-            send_key 'left';         # move back to first tab
+            send_key 'left';     # move back to first tab
             send_key 'left';
             send_key 'left';
             send_key 'left';
