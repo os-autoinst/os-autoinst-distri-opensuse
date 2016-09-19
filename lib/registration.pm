@@ -102,6 +102,7 @@ sub fill_in_registration_data {
         }
         if (check_screen('scc-beta-filter-checkbox', 5)) {
             send_key 'alt-f';    # uncheck 'Filter Out Beta Version'
+            send_key 'tab';      # go to module selection screen
         }
         # The value of SCC_ADDONS is a list of abbreviation of addons/modules
         # Following are abbreviations defined for modules and some addons
@@ -119,7 +120,7 @@ sub fill_in_registration_data {
         if (get_var('SCC_ADDONS')) {
             for my $addon (split(/,/, get_var('SCC_ADDONS', ''))) {
                 if (check_var('VIDEOMODE', 'text')) {
-                    send_key_until_needlematch "scc-module-$addon", 'tab';
+                    send_key_until_needlematch "scc-module-$addon", 'down';
                     send_key "spc";
                 }
                 else {
