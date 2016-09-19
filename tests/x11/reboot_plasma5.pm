@@ -18,12 +18,18 @@ sub run() {
     send_key "ctrl-alt-delete";    # reboot
     assert_screen 'logoutdialog', 15;
     assert_and_click 'sddm_reboot_option_btn';
-    # sometimes not reliable, since if clicked the background
-    # color of button should changed, thus check and click again
-    if (check_screen("sddm_reboot_option_btn", 1)) {
-        assert_and_click 'sddm_reboot_option_btn';
+    if (check_screen([qw/sddm_reboot_option_btn sddm_reboot_btn/], 3)) {
+        # sometimes not reliable, since if clicked the background
+        # color of button should changed, thus check and click again
+        if (match_has_tag('sddm_reboot_option_btn')) {
+            assert_and_click 'sddm_reboot_option_btn';
+        }
+        # plasma < 5.8
+        elsif (match_has_tag('sddm_reboot_btn')) {
+            assert_and_click 'sddm_reboot_btn';
+        }
     }
-    assert_and_click 'sddm_reboot_btn';
+    # else: plasma 5.8 directly reboots after pressing the reboot button
 
     if (get_var("SHUTDOWN_NEEDS_AUTH")) {
         assert_screen 'reboot-auth', 15;
