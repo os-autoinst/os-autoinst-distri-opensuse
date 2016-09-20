@@ -38,7 +38,7 @@ sub snapper_cleanup() {
     script_run("snapper ls");
     clear_console;
     script_output("$btrfs_fs_usage | sed -n '7p' | awk -F ' ' '{print\$3}'");
-    die "Exclusive space is below user-defined limit" unless $free_space > $excl_free_space;
+    die "Exclusive space is below user-defined limit - bsc#998360" unless $free_space > $excl_free_space;
 }
 
 sub run() {
