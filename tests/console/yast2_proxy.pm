@@ -14,11 +14,13 @@ use testapi;
 
 
 sub run() {
-
     select_console 'root-console';
 
     # install yast2-squid, yast2-proxy, squid package at first
     assert_script_run("/usr/bin/zypper -n -q in squid yast2-squid yast2-proxy");
+
+    # set up visible_hostname or squid spends 30s trying to determine public hostname
+    script_run 'echo "visible_hostname $HOSTNAME" >> /etc/squid/squid.conf';
 
     # start yast2 squid configuration
     script_run("/sbin/yast2 squid; echo yast2-squid-status-\$? > /dev/$serialdev", 0);
