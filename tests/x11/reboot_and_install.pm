@@ -22,6 +22,11 @@ sub run() {
     send_key "ret";
 }
 
+sub post_fail_hook {
+    my $self = shift;
+    $self->export_logs;
+}
+
 sub test_flags() {
     return {important => 1, milestone => 1};
 }
