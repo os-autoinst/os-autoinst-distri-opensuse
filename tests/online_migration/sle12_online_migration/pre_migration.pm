@@ -10,6 +10,7 @@
 use base "consoletest";
 use strict;
 use testapi;
+use utils;
 
 sub set_scc_proxy_url() {
     if (my $u = get_var('SCC_PROXY_URL')) {
@@ -35,6 +36,17 @@ sub check_or_install_packages() {
     }
 }
 
+sub remove_kgraft_patch {
+    if (get_var('SCC_ADDONS')) {
+        for my $addon (split(/,/, get_var('SCC_ADDONS', ''))) {
+            if ($addon eq 'live') {
+                zypper_call('rm $(rpm -qa kgraft-patch-*)');
+                record_soft_failure 'bsc#985647: [online migration] Conflict on kgraft-patch-3_12_57 when doing SCC online migration with Live Patching addon';
+            }
+        }
+    }
+}
+
 sub run() {
     my $self = shift;
     select_console 'root-console';
@@ -46,6 +58,10 @@ sub run() {
 
     # disable installation repos before online migration
     assert_script_run "zypper mr -d -l";
+
+    # according to comment 19 of bsc#985647, uninstall all kgraft-patch* packages prior to migration as a workaround to
+    # solve conflict during online migration with live patching addon
+    remove_kgraft_patch;
 }
 
 sub test_flags {
