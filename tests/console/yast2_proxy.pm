@@ -11,19 +11,17 @@ use strict;
 use base "consoletest";
 use testapi;
 
-
-
 sub run() {
     select_console 'root-console';
 
     # install yast2-squid, yast2-proxy, squid package at first
-    assert_script_run("/usr/bin/zypper -n -q in squid yast2-squid yast2-proxy");
+    assert_script_run("zypper -n -q in squid yast2-squid yast2-proxy");
 
     # set up visible_hostname or squid spends 30s trying to determine public hostname
     script_run 'echo "visible_hostname $HOSTNAME" >> /etc/squid/squid.conf';
 
     # start yast2 squid configuration
-    script_run("/sbin/yast2 squid; echo yast2-squid-status-\$? > /dev/$serialdev", 0);
+    script_run("yast2 squid; echo yast2-squid-status-\$? > /dev/$serialdev", 0);
 
     # check that squid configuration page shows up
     assert_screen 'yast2_proxy_squid';
@@ -190,6 +188,7 @@ sub run() {
     for (1 .. 7) { send_key 'up'; }
     send_key 'ret';
 
+    assert_screen 'yast2_proxy_squid';
     # now save settings and start squid server
     send_key 'alt-s';
     #	check again before to close configuration
