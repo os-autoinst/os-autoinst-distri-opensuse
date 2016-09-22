@@ -56,11 +56,6 @@ sub run() {
     send_key 'down';
     assert_screen 'yast2_apparmor_configuration_manage_existing_profiles';
     send_key 'ret';
-    assert_screen 'yast2_apparmor_configuration_manage_existing_profiles_edit';
-    send_key 'alt-p';
-    send_key 'down';
-
-    # add a profile
     assert_screen 'yast2_apparmor_configuration_manage_existing_profiles_edit_add';
     send_key 'alt-i';
     wait_still_screen(1);
