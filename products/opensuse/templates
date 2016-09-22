@@ -2574,6 +2574,7 @@
                       name => "ppc64le",
                       settings => [
                         { key => "OFW", value => 1 },
+                        { key => "QEMU", value => "ppc64" },
                         { key => "QEMUCPU", value => "host" },
                         { key => "WORKER_CLASS", value => "qemu_ppc64le" },
                       ],
@@ -2583,6 +2584,7 @@
                       name => "ppc64",
                       settings => [
                         { key => "OFW", value => 1 },
+                        { key => "QEMU", value => "ppc64" },
                         { key => "QEMUCPU", value => "host" },
                         { key => "WORKER_CLASS", value => "qemu_ppc64" },
                       ],
