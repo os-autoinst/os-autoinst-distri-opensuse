@@ -254,5 +254,13 @@
                         { key => "FIPS", value => 1 },
                       ],
                     },
+                    {
+                      name => "lvm+resize_root",
+                      settings => [
+                        { key => "TOGGLEHOME", value => 1 },
+                        { key => "RESIZE_ROOT_VOLUME", value => 1 },
+                        { key => "HDDSIZEGB", value => "50" },
+                      ],
+                    }
                   ],
 }
