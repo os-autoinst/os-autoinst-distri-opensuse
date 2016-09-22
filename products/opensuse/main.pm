@@ -273,6 +273,9 @@ sub load_inst_tests() {
         }
         if (get_var("TOGGLEHOME")) {
             loadtest "installation/partitioning_togglehome.pm";
+            if (get_var('LVM') && get_var('RESIZE_ROOT_VOLUME')) {
+                loadtest "installation/partitioning_resize_root.pm";
+            }
         }
         if (get_var("SPLITUSR")) {
             loadtest "installation/partitioning_splitusr.pm";

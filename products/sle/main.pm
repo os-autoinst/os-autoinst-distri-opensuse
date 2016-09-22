@@ -410,8 +410,10 @@ sub load_inst_tests() {
         }
         if (get_var("TOGGLEHOME")) {
             loadtest "installation/partitioning_togglehome.pm";
+            if (get_var('LVM') && get_var('RESIZE_ROOT_VOLUME')) {
+                loadtest "installation/partitioning_resize_root.pm";
+            }
         }
-
         if (get_var("ENLARGESWAP") && get_var("QEMURAM", 1024) > 4098) {
             loadtest "installation/installation_enlargeswap.pm";
         }
