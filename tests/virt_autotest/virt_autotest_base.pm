@@ -91,10 +91,12 @@ sub execute_script_run($$) {
     save_screenshot;
 
     if ($ret) {
+        save_screenshot;
         $ret =~ s/$pattern//g;
         return $ret;
     }
     else {
+        save_screenshot;
         die "Timeout due to cmd run :[" . $cmd . "]\n";
     }
 
