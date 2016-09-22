@@ -1175,6 +1175,14 @@ else {
                 set_var('INSTALLONLY', 1);
                 loadtest "iscsi/iscsi_client.pm";
             }
+            if (get_var("NIS_SERVER")) {
+                set_var('INSTALLONLY', 1);
+                loadtest "x11/nis_server.pm";
+            }
+            if (get_var("NIS_CLIENT")) {
+                set_var('INSTALLONLY', 1);
+                loadtest "x11/nis_client.pm";
+            }
             if (get_var("REMOTE_CONTROLLER")) {
                 loadtest "remote/remote_controller.pm";
                 load_inst_tests();
