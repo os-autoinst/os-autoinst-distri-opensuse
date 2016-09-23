@@ -11,20 +11,17 @@ use strict;
 use base "consoletest";
 use testapi;
 
-
-
 sub run() {
-
     select_console 'root-console';
 
     # check network at first
     assert_script_run("if ! systemctl -q is-active network; then systemctl -q start network; fi");
 
     # install squid package at first
-    assert_script_run("/usr/bin/zypper -n -q in yast2-ntp-client");
+    assert_script_run("zypper -n -q in yast2-ntp-client");
 
     # start NTP configuration
-    script_run("/sbin/yast2 ntp-client; echo yast2-ntp-client-status-\$? > /dev/$serialdev", 0);
+    script_run("yast2 ntp-client; echo yast2-ntp-client-status-\$? > /dev/$serialdev", 0);
 
     # check Advanced NTP Configuration is opened
     assert_screen 'yast2_ntp-client_configuration';
@@ -70,10 +67,7 @@ sub run() {
     assert_screen 'yast2_ntp-client_public_ntp_server_opened';
     send_key 'alt-u';
     assert_screen 'yast2_ntp-client_public_ntp_country';
-    # save screenshots at first
-    #	for (1..80) {send_key 'up'; save_screenshot;}
     send_key_until_needlematch 'yast2_ntp-client_country_uk', 'up';
-    assert_screen 'yast2_ntp-client_country_uk';
     send_key 'ret';
     send_key 'alt-s';
     assert_screen 'yast2_ntp-client_public_ntp_server_uk';
@@ -82,13 +76,9 @@ sub run() {
     # run test
     send_key 'alt-t';
     assert_screen 'yast2_ntp-client_public_ntp_test';
-    send_key 'alt-o';
 
     # close it with OK
-    send_key 'alt-o';
-    wait_still_screen;
-    send_key 'alt-o';
-
+    send_key_until_needlematch "yast2_ntp-client_public_ntp_server_added", "alt-o", 3, 5;
 
     # now check display log and save log
     send_key 'alt-l';
@@ -100,9 +90,8 @@ sub run() {
     send_key 'ret';
 
     # give a new file name
-    send_key 'alt-f';
     assert_screen 'yast2_ntp-client_save_log_as';
-    for (1 .. 20) { send_key 'backspace'; }
+    send_key 'alt-f';
     type_string 'ntpclient.log';
     assert_screen 'yast2_ntp-client_new_file_name';
     send_key 'alt-o';
@@ -110,16 +99,12 @@ sub run() {
 
     # finish ntp client configuration after help page got opened
     send_key 'alt-h';
-
-    # check Help is displayed
     assert_screen 'yast2_ntp-client_help';
-    send_key 'tab';
-    send_key 'down';
+
     send_key 'alt-o';
     send_key 'alt-o';
 
     wait_serial('yast2-ntp-client-status-0', 60);
-
 
     # add NTPD_FORCE_SYNC_ON_STARTUP=yes into /etc/ntp.conf, ntpd should start up at once
     script_run("echo NTPD_FORCE_SYNC_ON_STARTUP=yes >> /etc/ntp.conf");
@@ -127,7 +112,6 @@ sub run() {
 
     # check NTP synchronization
     assert_script_run("systemctl show -p ActiveState ntpd.service | grep ActiveState=active");
-
 }
 1;
 
