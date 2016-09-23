@@ -10,6 +10,7 @@
 use base "x11regressiontest";
 use strict;
 use testapi;
+use utils;
 
 # Case 1478813 - Empathy: IRC
 
@@ -44,7 +45,15 @@ sub run() {
     };
 
     # join openqa channel
-    send_key "ctrl-j";
+    if (sle_version_at_least('12-SP2')) {
+        assert_and_click 'empathy-menu';
+        send_key_until_needlematch "empathy-menu-rooms", "down";
+        assert_and_click 'empathy-menu-joinrooms';
+        record_soft_failure 'bsc#999832: keyboard shortcut of empathy not working on SLED12SP2';
+    }
+    else {
+        send_key "ctrl-j";
+    }
     assert_screen 'empathy-join-room';
     type_string "openqa";
     send_key "ret";
@@ -58,7 +67,13 @@ sub run() {
     send_key "ret";
 
     # cleaning
-    send_key "f4";
+    if (sle_version_at_least('12-SP2')) {
+        assert_and_click 'empathy-menu';
+        assert_and_click 'empathy-menu-accounts';
+    }
+    else {
+        send_key "f4";
+    }
     assert_and_click 'empathy-disable-account';
     assert_and_click 'empathy-delete-account';
     assert_screen 'empathy-confirm-deletion';
@@ -69,7 +84,13 @@ sub run() {
     };
 
     # quit
-    send_key "ctrl-q";
+    if (sle_version_at_least('12-SP2')) {
+        assert_and_click 'empathy-menu';
+        assert_and_click 'empathy-menu-quit';
+    }
+    else {
+        send_key "ctrl-q";
+    }
 }
 
 1;
