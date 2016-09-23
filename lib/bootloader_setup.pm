@@ -165,13 +165,15 @@ sub bootmenu_network_source {
 }
 
 sub specific_bootmenu_params {
-    my $args = "";
+    my $args     = "";
+    my $netsetup = "";
     if (get_var("AUTOYAST") || get_var("AUTOUPGRADE") && get_var("AUTOUPGRADE") ne 'local') {
-        my $netsetup = " ifcfg=*=dhcp";    #need this instead of netsetup as default, see bsc#932692
+        $netsetup = get_var("NETWORK_INIT_PARAM", "ifcfg=*=dhcp");    #need this instead of netsetup as default, see bsc#932692
+        $args .= " $netsetup autoyast=" . data_url(get_var("AUTOYAST")) . " ";
+    }
+    else {
         $netsetup = " " . get_var("NETWORK_INIT_PARAM") if defined get_var("NETWORK_INIT_PARAM");    #e.g netsetup=dhcp,all
-        $netsetup = " netsetup=dhcp,all" if defined get_var("USE_NETSETUP");                         #netsetup override for sle11
         $args .= $netsetup;
-        $args .= " autoyast=" . data_url(get_var("AUTOYAST")) . " ";
     }
 
     if (get_var("AUTOUPGRADE")) {
