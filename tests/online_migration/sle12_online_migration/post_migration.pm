@@ -21,19 +21,10 @@ sub run() {
     script_run("zypper lr -u | tee /dev/$serialdev");
     save_screenshot;
 
-    # reboot into upgraded system after online migration
-    if (check_var("FLAVOR", "Desktop-DVD")) {
-        record_soft_failure 'bsc#989696: [online migration] systemctl reboot hangs after migration from sled12 to sled12sp2';
-        script_run("reboot", 0);
-    }
-    else {
-        script_run("systemctl reboot", 0);
-    }
-    save_screenshot;
-
-    # sometimes reboot takes longer time after online migration
-    # give more time to reboot
-    wait_boot(bootloader_time => 300, textmode => !is_desktop_installed);
+    select_console 'x11';
+    ensure_unlocked_desktop;
+    mouse_hide(1);
+    assert_screen 'generic-desktop';
 }
 
 sub test_flags {
