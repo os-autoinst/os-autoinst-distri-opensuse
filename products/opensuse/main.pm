@@ -329,7 +329,7 @@ sub load_inst_tests() {
 sub load_reboot_tests() {
     if (installyaststep_is_applicable()) {
         loadtest "installation/grub_test.pm";
-        if (get_var("ENCRYPT")) {
+        if (bootencryptstep_is_applicable) {
             loadtest "installation/boot_encrypt.pm";
         }
         if ((snapper_is_applicable()) && get_var("BOOT_TO_SNAPSHOT")) {
