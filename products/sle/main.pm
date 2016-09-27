@@ -773,9 +773,6 @@ sub load_x11tests() {
         loadtest "x11/evolution.pm" if (!is_server() || we_is_applicable());
         loadtest "x11/reboot_gnome.pm";
     }
-    if (check_var("ARCH", "s390x")) {
-        loadtest "installation/reconnect_s390.pm";
-    }
     loadtest "x11/desktop_mainmenu.pm";
     loadtest "x11/shutdown.pm";
 }
