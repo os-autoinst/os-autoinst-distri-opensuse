@@ -109,11 +109,16 @@ sub run {
 
     # after migration yast may ask to reboot system
     if (check_screen("yast2-ask-reboot", 5)) {
-        send_key "alt-c";    # cancel it and reboot in post migration step
+        # reboot
+        send_key "alt-r";
+        # sometimes reboot takes longer time after online migration
+        # give more time to reboot
+        wait_boot(bootloader_time => 300, textmode => !is_desktop_installed);
     }
-
-    wait_serial("yast2-migration-done-0", $timeout) || die "yast2 migration failed";
-    type_string "exit\n" if (is_desktop_installed());
+    else {
+        wait_serial("yast2-migration-done-0", $timeout) || die "yast2 migration failed";
+        type_string "exit\n" if (is_desktop_installed());
+    }
 }
 
 sub test_flags() {
