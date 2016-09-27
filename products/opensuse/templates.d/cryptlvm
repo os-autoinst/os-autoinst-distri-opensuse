@@ -5,7 +5,7 @@
         {
             name     => "cryptlvm",
             settings => [
-                {key => "DESKTOP",            value => "gnome"},
+                {key => "DESKTOP",            value => "minimalx"},
                 {key => "ENCRYPT",            value => 1},
                 {key => "LVM",                value => 1},
                 {key => "REBOOTAFTERINSTALL", value => 0},
@@ -19,7 +19,7 @@
         {
             name     => "cryptlvm+cancel_existing",
             settings => [
-                {key => "DESKTOP",                 value => "gnome"},
+                {key => "DESKTOP",                 value => "minimalx"},
                 {key => "ENCRYPT",                 value => 1},
                 {key => "LVM",                     value => 1},
                 {key => "ENCRYPT_CANCEL_EXISTING", value => 1},
@@ -35,7 +35,7 @@
         {
             name     => "cryptlvm+activate_existing",
             settings => [
-                {key => "DESKTOP",                   value => "gnome"},
+                {key => "DESKTOP",                   value => "minimalx"},
                 {key => "ENCRYPT",                   value => 1},
                 {key => "LVM",                       value => 1},
                 {key => "ENCRYPT_ACTIVATE_EXISTING", value => 1},
@@ -51,7 +51,7 @@
         {
             name     => "cryptlvm+activate_existing+import_users",
             settings => [
-                {key => "DESKTOP",                   value => "gnome"},
+                {key => "DESKTOP",                   value => "minimalx"},
                 {key => "ENCRYPT",                   value => 1},
                 {key => "LVM",                       value => 1},
                 {key => "ENCRYPT_ACTIVATE_EXISTING", value => 1},
