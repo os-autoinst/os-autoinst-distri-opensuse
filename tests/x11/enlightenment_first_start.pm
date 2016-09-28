@@ -21,6 +21,8 @@ sub run() {
     assert_and_click "enlightenment_assistant_next";
     assert_screen "enlightenment_windowfocus";
     assert_and_click "enlightenment_assistant_next";
+    assert_screen "enlightenment_keybindings";
+    assert_and_click "enlightenment_assistant_next";
     assert_screen "enlightenment_compositing";
     assert_and_click "enlightenment_assistant_next";
     assert_screen "enlightenment_generic_desktop";
