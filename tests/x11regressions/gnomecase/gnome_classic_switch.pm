@@ -39,6 +39,7 @@ sub application_test {
     x11_start_program "firefox";
     assert_screen "firefox-gnome", 150;
     send_key "alt-f4";
+    wait_still_screen;
     send_key "ret";
     wait_still_screen;
 }

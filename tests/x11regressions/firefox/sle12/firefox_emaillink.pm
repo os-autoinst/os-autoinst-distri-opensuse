@@ -13,8 +13,16 @@
 use strict;
 use base "x11regressiontest";
 use testapi;
+use utils;
 
 sub run() {
+    my $self     = shift;
+    my $next_key = "alt-o";
+
+    if (sle_version_at_least('12-SP2')) {
+        $next_key = "alt-n";
+    }
+
     mouse_hide(1);
 
     # Clean and Start Firefox
@@ -27,15 +35,15 @@ sub run() {
     send_key "e";
     assert_screen('firefox-email_link-welcome', 90);
 
-    send_key "alt-o";
+    send_key $next_key;
 
     sleep 1;
-    send_key "alt-o";
+    send_key $next_key;
 
     sleep 1;
     send_key "alt-a";
     type_string 'test@suse.com';
-    send_key "alt-o";
+    send_key $next_key;
 
     sleep 1;
     send_key "alt-s";    #Skip
@@ -45,18 +53,28 @@ sub run() {
     type_string "imap.suse.com";
     send_key "alt-n";    #Username
     type_string "test";
-    send_key "alt-o";
-
-    sleep 1;
-    send_key "alt-o";
+    if (sle_version_at_least('12-SP2')) {
+        assert_and_click "evolution-option-next";
+        wait_still_screen;
+        assert_and_click "evolution-option-next";
+    }
+    else {
+        send_key $next_key;
+        wait_still_screen;
+        send_key $next_key;
+    }
 
     assert_screen('firefox-email_link-settings_sending', 30);
     send_key "alt-s";    #Server
     type_string "smtp.suse.com";
-    send_key "alt-o";
+    send_key $next_key;
 
-    sleep 1;
-    send_key "alt-o";
+    if (sle_version_at_least('12-SP2')) {
+        assert_and_click "evolution-option-next";
+    }
+    else {
+        send_key $next_key;
+    }
 
     sleep 1;
     send_key "alt-a";
