@@ -11,8 +11,13 @@
 use strict;
 use base "installbasetest";
 use utils;
+use testapi qw/get_var record_soft_failure/;
 
 sub run() {
+    if (get_var('ENCRYPT_ACTIVATE_EXISTING') && !get_var('ENCRYPT_FORCE_RECOMPUTE')) {
+        record_soft_failure('bsc#993247 fate#321208: activating existing encrypted volume does *not* yield an encrypted system if not forcing');
+        return;
+    }
     unlock_if_encrypted;
 }
 
