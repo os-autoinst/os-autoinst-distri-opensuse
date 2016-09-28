@@ -102,6 +102,7 @@ sub fill_in_registration_data {
         }
         if (check_screen('scc-beta-filter-checkbox', 5)) {
             send_key 'alt-f';    # uncheck 'Filter Out Beta Version'
+            send_key 'tab';      # go to module selection screen
         }
         # The value of SCC_ADDONS is a list of abbreviation of addons/modules
         # Following are abbreviations defined for modules and some addons
@@ -118,13 +119,15 @@ sub fill_in_registration_data {
         # ids - IBM DLPAR sdk (ppc64le only)
         if (get_var('SCC_ADDONS')) {
             for my $addon (split(/,/, get_var('SCC_ADDONS', ''))) {
-                if (check_var('DESKTOP', 'textmode')) {
-                    send_key_until_needlematch "scc-module-$addon", 'tab';
+                if (check_var('VIDEOMODE', 'text')) {
+                    send_key_until_needlematch "scc-module-$addon", 'down';
                     send_key "spc";
                 }
                 else {
-                    assert_and_click "scc-module-$addon";
+                    wait_still_screen(1);
+                    wait_screen_change { assert_and_click "scc-module-$addon" };
                 }
+                save_screenshot;
             }
             send_key $cmd{next};    # all addons selected
             for my $addon (split(/,/, get_var('SCC_ADDONS', ''))) {
@@ -155,9 +158,9 @@ sub fill_in_registration_data {
                     type_string $regcode;
                     sleep 1;
                     save_screenshot;
+                    send_key $cmd{next} if check_var('VIDEOMODE', 'text');
                 }
             }
-            send_key $cmd{next};
             # start addons/modules registration, it needs longer time if select multiple or all addons/modules
             while (assert_screen(['import-untrusted-gpg-key', 'yast_scc-pkgtoinstall', 'inst-addon'], 120)) {
                 if (match_has_tag('import-untrusted-gpg-key')) {
