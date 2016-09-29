@@ -7,8 +7,6 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# temporary implementation of barrier_create and barrier_wait functions, they work only for two nodes (with HOSTNAME set to "host1" and "host2")
-
 package hacluster;
 use base "opensusebasetest";
 use testapi;
@@ -24,29 +22,8 @@ sub is_node2 {
     return (get_var("HOSTNAME") eq "host2");
 }
 
-sub barrier_wait {
-    my $self         = shift;
-    my $barrier_name = shift;
-    if (is_node1) {
-        mutex_unlock("MUTEX_${barrier_name}_M1");
-        mutex_lock("MUTEX_${barrier_name}_M2");
-    }
-    if (is_node2) {
-        mutex_unlock("MUTEX_${barrier_name}_M2");
-        mutex_lock("MUTEX_${barrier_name}_M1");
-    }
-}
-
-sub barrier_create {
-    my $self         = shift;
-    my $barrier_name = shift;
-    if (is_node1) {    #mutex_create now moved to main.pm as workaround
-        mutex_lock("MUTEX_${barrier_name}_M1");
-    }
-    if (is_node2) {
-        #        mutex_create("MUTEX_${barrier_name}_M2");
-        mutex_lock("MUTEX_${barrier_name}_M2");
-    }
+sub cluster_name {
+    return get_var("CLUSTERNAME");
 }
 
 sub post_run_hook {

@@ -40,8 +40,8 @@ sub run() {
         }
     }
     assert_screen("ha-crm-mon-" . get_var("CLUSTERNAME") . "-host1-online");
-    $self->barrier_wait("CLUSTER_INITIALIZED");
-    $self->barrier_wait("NODE2_JOINED");
+    barrier_wait("CLUSTER_INITIALIZED_" . $self->cluster_name);
+    barrier_wait("NODE2_JOINED_" . $self->cluster_name);
     type_string "crm_mon -1\n";
     save_screenshot;
 }

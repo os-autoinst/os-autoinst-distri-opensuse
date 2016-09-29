@@ -15,7 +15,7 @@ use lockapi;
 
 sub run() {
     my $self = shift;
-    $self->barrier_wait("CLUSTER_INITIALIZED");
+    barrier_wait("CLUSTER_INITIALIZED_" . $self->cluster_name);
     script_run "ping -c1 " . get_var("HACLUSTERJOIN");
     type_string "ha-cluster-join -yc " . get_var("HACLUSTERJOIN") . "\n";
     assert_screen "ha-cluster-join-password";
@@ -24,7 +24,7 @@ sub run() {
     wait_still_screen;
     script_run "crm_mon -1";
     save_screenshot;
-    $self->barrier_wait("NODE2_JOINED");
+    barrier_wait("NODE2_JOINED_" . $self->cluster_name);
 }
 
 sub test_flags {

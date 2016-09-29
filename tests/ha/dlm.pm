@@ -15,7 +15,7 @@ use lockapi;
 
 sub run() {
     my $self = shift;
-    $self->barrier_wait("DLM_INIT");
+    barrier_wait("DLM_INIT_" . $self->cluster_name);
     type_string "rpm -q dlm-kmp-default; echo dlm_kmp_default_installed=\$? > /dev/$serialdev\n";
     if ($self->is_node1) {    #node1
         type_string "echo wait until DLM resource is created\n";
@@ -28,10 +28,10 @@ sub run() {
         type_string qq(EDITOR="sed -ie '\$ a clone base-clone base-group'" crm configure edit; echo base_clone_add=\$? > /dev/$serialdev\n);
         die "create base-clone failed" unless wait_serial "base_clone_add=0", 60;
     }
-    $self->barrier_wait("DLM_GROUPS_CREATED");
+    barrier_wait("DLM_GROUPS_CREATED_" . $self->cluster_name);
     type_string "ps -A | grep -q dlm_controld; echo dlm_running=\$? > /dev/$serialdev\n";
     die "dlm_controld is not running" unless wait_serial "dlm_running=0", 60;
-    $self->barrier_wait("DLM_CHECKED");
+    barrier_wait("DLM_CHECKED_" . $self->cluster_name);
 }
 
 1;

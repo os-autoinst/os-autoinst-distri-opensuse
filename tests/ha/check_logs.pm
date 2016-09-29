@@ -15,17 +15,14 @@ use lockapi;
 
 sub run() {
     my $self = shift;
-    $self->barrier_wait("FENCING_DONE");
+    barrier_wait("FENCING_DONE_" . $self->cluster_name);
     select_console 'root-console';
 
     script_run "hb_report -f 2014 hb_report", 120;
     upload_logs "hb_report.tar.bz2";
     type_string "echo segfaults=`grep -sR segfault /var/log | wc -l` > /dev/$serialdev\n";
     die "segfault occured" unless wait_serial "segfaults=0", 60;
-    $self->barrier_wait("LOGS_CHECKED");
-    if ($self->is_node1) {    #node1
-        mutex_unlock("MUTEX_HA_" . get_var("CLUSTERNAME") . "_FINISHED");    # release support_server
-    }
+    barrier_wait("LOGS_CHECKED_" . $self->cluster_name);
 }
 
 sub test_flags {

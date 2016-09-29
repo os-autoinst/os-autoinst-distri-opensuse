@@ -15,7 +15,7 @@ use lockapi;
 
 sub run() {
     my $self = shift;
-    $self->barrier_wait("BEFORE_FENCING");
+    barrier_wait("BEFORE_FENCING_" . $self->cluster_name);
     if ($self->is_node1) {
         reset_consoles;
     }

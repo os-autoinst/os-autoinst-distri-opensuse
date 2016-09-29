@@ -807,17 +807,8 @@ sub load_slenkins_tests {
 
 sub load_hacluster_tests() {
     return unless (get_var("HACLUSTER"));
-    sleep 10;    # wait to make sure that support server created locks
-    if (get_var("HOSTNAME") eq 'host1') {
-        mutex_lock("MUTEX_HA_" . get_var("CLUSTERNAME") . "_NODE1_WAIT");    #stop here until all nodes are running
-        if (get_var("CTS")) {
-            mutex_lock("MUTEX_CTS_INSTALLED");                               #mutex will be unlocked after cts is installed on all nodes
-        }
-    }
-    else {
-        mutex_lock("MUTEX_HA_" . get_var("CLUSTERNAME") . "_NODE2_WAIT");    #stop here until all nodes are running
-    }
-    loadtest("ha/barrier_init.pm");
+    sleep 10;                                                # wait to make sure that support server created locks
+    barrier_wait("BARRIER_HA_" . get_var("CLUSTERNAME"));    #nodes wait here
     loadtest "installation/first_boot.pm";
     loadtest "console/consoletest_setup.pm";
     loadtest "console/hostname.pm";
@@ -826,10 +817,10 @@ sub load_hacluster_tests() {
     loadtest("ha/iscsi_client.pm");
     loadtest("ha/watchdog.pm");
     if (get_var("HOSTNAME") eq 'host1') {
-        loadtest("ha/ha_cluster_init.pm");                                   #node1 creates a cluster
+        loadtest("ha/ha_cluster_init.pm");                   #node1 creates a cluster
     }
     else {
-        loadtest("ha/ha_cluster_join.pm");                                   #node2 joins the cluster
+        loadtest("ha/ha_cluster_join.pm");                   #node2 joins the cluster
     }
     if (get_var("CTS")) {
         loadtest("ha/cts.pm");
@@ -840,12 +831,12 @@ sub load_hacluster_tests() {
         loadtest("ha/ocfs2.pm");
         loadtest("ha/crm_mon.pm");
         loadtest("ha/fencing.pm");
-        if (!get_var("HACLUSTERJOIN")) {                                     #node1 will be fenced
+        if (!get_var("HACLUSTERJOIN")) {                     #node1 will be fenced
             loadtest "ha/fencing_boot.pm";
             loadtest "ha/fencing_consoletest_setup.pm";
         }
     }
-    loadtest("ha/check_logs.pm");                                            #check_logs must be after ha/fencing.pm
+    loadtest("ha/check_logs.pm");                            #check_logs must be after ha/fencing.pm
     return 1;
 }
 
@@ -1024,26 +1015,11 @@ elsif (get_var("FIPS_TS")) {
     }
 }
 elsif (get_var("HACLUSTER_SUPPORT_SERVER")) {
-    for my $clustername (split(/,/, get_var('CLUSTERNAME'))) {    #TODO: replace this ugly stuff with normal barriers
-        mutex_create("MUTEX_HA_" . $clustername . "_NODE1_WAIT");
-        mutex_lock("MUTEX_HA_" . $clustername . "_NODE1_WAIT");    #mutex will be released after wait_for_children_to_start
-        mutex_create("MUTEX_HA_" . $clustername . "_NODE2_WAIT");
-        mutex_lock("MUTEX_HA_" . $clustername . "_NODE2_WAIT");    #mutex will be released after wait_for_children_to_start
-        mutex_create("MUTEX_HA_" . $clustername . "_FINISHED");    #support server can lock _FINISHED mutex when node1 finishes
-        if (get_var("CTS")) {
-            mutex_create("MUTEX_CTS_INSTALLED");                   #to be locked by node1 until CTS is installed on all nodes
-            mutex_create("MUTEX_CTS_FINISHED");
-            mutex_lock("MUTEX_CTS_FINISHED");                      #to be unlocked by support server after CTSLab.py is finished and to be locked by the node1
-        }
-    }
-    for my $mutexname (qw(CLUSTER_INITIALIZED NODE2_JOINED OCFS2_INIT DLM_GROUPS_CREATED DLM_INIT DLM_CHECKED OCFS2_MKFS_DONE OCFS2_GROUP_ALTERED OCFS2_DATA_COPIED OCFS2_MD5_CHECKED BEFORE_FENCING FENCING_DONE LOGS_CHECKED CLVM_INIT CLVM_RESOURCE_CREATED CLVM_PV_VG_LV_CREATED CLVM_VG_RESOURCE_CREATED CLVM_RW_CHECKED CLVM_MD5SUM PACEMAKER_CTS_INSTALLED PACEMAKER_CTS_FINISHED)) {
-        mutex_create("MUTEX_${mutexname}_M1");                     #barrier_create mutexes
-        mutex_create("MUTEX_${mutexname}_M2");
-    }
     if (get_var("CTS")) {
         loadtest "ha/ha_cts_support_server.pm";
     }
     else {
+        loadtest("ha/barrier_init.pm");
         loadtest "ha/ha_support_server.pm";
     }
 }
