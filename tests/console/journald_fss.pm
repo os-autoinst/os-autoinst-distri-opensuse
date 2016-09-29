@@ -25,6 +25,7 @@ sub run() {
 
     # Setup keys
     assert_script_run("journalctl --interval=30s --setup-keys | tee /tmp/key");
+    assert_script_run("journalctl --rotate");
 
     # Verify the journal with valid verification key
     assert_script_run('key=$(cat /tmp/key); echo "Verify with key: $key"; journalctl --verify --verify-key=$key');
