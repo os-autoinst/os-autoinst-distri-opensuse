@@ -20,7 +20,7 @@ sub run() {
     my $clvm_partition_1 = "/dev/disk/by-path/ip-*-lun-4";
     my $clvm_partition_2 = "/dev/disk/by-path/ip-*-lun-5";
 
-    $self->barrier_wait("CLVM_INIT");
+    barrier_wait("CLVM_INIT_" . $self->cluster_name);
     #    assert_script_run "zypper -n install dlm-kmp-default lvm2-clvm lvm2-cmirrord";
     assert_script_run q(sed -ie '/^ *filter/d' /etc/lvm/lvm.conf);                           #by default /dev/disk/by-path/ is filtered in lvm.conf
     assert_script_run q(sed -ie 's/^\\( *use_lvmetad *=\\) *1/\1 0/' /etc/lvm/lvm.conf);     #set use_lvmetad = 0, lvmetad doesn't support cLVM
@@ -38,7 +38,7 @@ sub run() {
         assert_script_run q(EDITOR="sed -ie 's/^\\(group base-group.*\\)/\1 clvmd/'" crm configure edit);                                           #add clvmd to base-group
         sleep 10;                                                                                                                                   #wait to get clvmd running on all nodes
     }
-    $self->barrier_wait("CLVM_RESOURCE_CREATED");
+    barrier_wait("CLVM_RESOURCE_CREATED_" . $self->cluster_name);
 
     type_string "ps -A | grep -q clvmd; echo clvmd_running=\$? > /dev/$serialdev\n";
     die "clvm daemon is not running" unless wait_serial "clvmd_running=0", 60;
@@ -51,7 +51,7 @@ sub run() {
         assert_script_run "vgcreate -cy $vg_name $clvm_partition_1 $clvm_partition_2";
         assert_script_run "lvcreate -n$lv_name -L100M $vg_name";
     }
-    $self->barrier_wait("CLVM_PV_VG_LV_CREATED");
+    barrier_wait("CLVM_PV_VG_LV_CREATED_" . $self->cluster_name);
 
     if ($self->is_node1) {
         type_string "echo wait until LVM resource is created\n";
@@ -61,7 +61,7 @@ sub run() {
         assert_script_run q(EDITOR="sed -ie 's/^\\(group base-group.*\\)/\1 vg/'" crm configure edit);
         sleep 10;                                                                                                                                                       #wait to get VG active on all nodes
     }
-    $self->barrier_wait("CLVM_VG_RESOURCE_CREATED");
+    barrier_wait("CLVM_VG_RESOURCE_CREATED_" . $self->cluster_name);
 
     assert_script_run "ls -la /dev/$vg_name 2>&1";
     #dd if=/dev/urandom of=/dev/vg_openqa/lv_openqa bs=5M count=1 skip=30
@@ -74,9 +74,9 @@ sub run() {
         assert_script_run "dd if=/dev/urandom of=/dev/$vg_name/$lv_name bs=5M count=1 skip=31";
         assert_script_run "dd if=/dev/$vg_name/$lv_name of=test_file bs=5M count=1 seek=30";
     }
-    $self->barrier_wait("CLVM_RW_CHECKED");
+    barrier_wait("CLVM_RW_CHECKED_" . $self->cluster_name);
     assert_script_run "md5sum /dev/$vg_name/$lv_name";
-    $self->barrier_wait("CLVM_MD5SUM");
+    barrier_wait("CLVM_MD5SUM_" . $self->cluster_name);
 }
 
 1;

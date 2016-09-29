@@ -16,7 +16,7 @@ use lockapi;
 sub run() {
     my $self            = shift;
     my $ocfs2_partition = "/dev/disk/by-path/ip-*-lun-2";
-    $self->barrier_wait("OCFS2_INIT");
+    barrier_wait("OCFS2_INIT_" . $self->cluster_name);
     type_string "ps -A | grep -q dlm_controld; echo dlm_running=\$? > /dev/$serialdev\n";
     die "dlm_controld is not running" unless wait_serial "dlm_running=0", 60;
     if ($self->is_node1) {
@@ -26,7 +26,7 @@ sub run() {
     else {
         type_string "echo wait until OCFS2 is formatted\n";
     }
-    $self->barrier_wait("OCFS2_MKFS_DONE");
+    barrier_wait("OCFS2_MKFS_DONE_" . $self->cluster_name);
     if ($self->is_node1) {
         type_string "echo wait until OCFS2 resource is created\n";
     }
@@ -36,7 +36,7 @@ sub run() {
         type_string qq(EDITOR="sed -ie 's/group base-group dlm/group base-group dlm ocfs2-1/'" crm configure edit; echo base_group_alter=\$? > /dev/$serialdev\n);
         die "adding ocfs2-1 to base-group failed" unless wait_serial "base_group_alter=0", 60;
     }
-    $self->barrier_wait("OCFS2_GROUP_ALTERED");
+    barrier_wait("OCFS2_GROUP_ALTERED_" . $self->cluster_name);
     if ($self->is_node1) {
         type_string "cp -r /usr/bin/ /srv/ocfs2; echo copy_success=\$? > /dev/$serialdev\n";
         die "copying files to /srv/ocfs2 failed" unless wait_serial "copy_success=0", 60;
@@ -46,7 +46,7 @@ sub run() {
     else {
         type_string "echo wait until OCFS2 is filled with data\n";
     }
-    $self->barrier_wait("OCFS2_DATA_COPIED");
+    barrier_wait("OCFS2_DATA_COPIED_" . $self->cluster_name);
     if ($self->is_node1) {
         type_string "echo wait until OCFS2 content is checked\n";
     }
@@ -56,7 +56,7 @@ sub run() {
         type_string "diff out out_node2; echo md5sums_diff=\$? > /dev/$serialdev\n";
         die "md5sums are different on different nodes" unless wait_serial "md5sums_diff=0", 60;
     }
-    $self->barrier_wait("OCFS2_MD5_CHECKED");
+    barrier_wait("OCFS2_MD5_CHECKED_" . $self->cluster_name);
 }
 
 1;

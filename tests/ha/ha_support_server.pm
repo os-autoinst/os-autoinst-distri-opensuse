@@ -14,16 +14,17 @@ use lockapi;
 use mmapi;
 
 sub run() {
-    wait_for_children_to_start;
-    for my $clustername (split(/,/, get_var('CLUSTERNAME'))) {
-        mutex_unlock("MUTEX_HA_" . $clustername . "_NODE1_WAIT");    #start node1 and node2 jobs
-        mutex_unlock("MUTEX_HA_" . $clustername . "_NODE2_WAIT");
-    }
+    #    for my $clustername (split(/,/, get_var('CLUSTERNAME'))) {
+    #        mutex_unlock("MUTEX_HA_" . $clustername . "_NODE1_WAIT");    #start node1 and node2 jobs
+    #        mutex_unlock("MUTEX_HA_" . $clustername . "_NODE2_WAIT");
+    #    }
     # wait for bootup
     assert_screen "tty1-selected", 600;
     type_string "root\n";
     assert_screen "password-prompt";
     type_string "susetesting\n";
+    type_string "ip a\n";
+    type_string "ip route\n";
     type_string "if `ip a | grep -q '172.16.0.1/28'`; then echo ip1_okay > /dev/$serialdev; fi\n";
     wait_serial("ip1_okay") || die "support server doesn't have IP1";
     type_string "if `ip a | grep -q '172.16.0.17/28'`; then echo ip2_okay > /dev/$serialdev; fi\n";
