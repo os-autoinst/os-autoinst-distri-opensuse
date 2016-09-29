@@ -599,6 +599,7 @@ sub load_consoletests() {
             loadtest "console/rt_preempt_test.pm";
         }
         loadtest "console/sshd.pm";
+        loadtest "console/ssh_cleanup.pm";
         if (get_var("BIGTEST")) {
             loadtest "console/sntp.pm";
             loadtest "console/curl_ipv6.pm";
@@ -898,6 +899,7 @@ sub load_fips_tests_core() {
     }
     loadtest "console/sshd.pm";
     loadtest "console/ssh_pubkey.pm";
+    loadtest "console/ssh_cleanup.pm";
     loadtest "fips/openssh/openssh_fips.pm";
 }
 
