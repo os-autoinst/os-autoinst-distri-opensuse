@@ -420,6 +420,7 @@ sub load_consoletests() {
             loadtest "console/sshd_running.pm";
         }
         loadtest "console/sshd.pm";
+        loadtest "console/ssh_cleanup.pm";
         if (!get_var("LIVETEST") && !is_staging()) {
             # in live we don't have a password for root so ssh doesn't
             # work anyways, and except staging_core image, the rest of
