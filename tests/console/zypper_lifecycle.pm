@@ -29,9 +29,11 @@ sub run() {
     #
     # 3. verify that "zypper lifecycle" shows correct package eol based on the
     # data from step 2
-    my $prod     = script_output "basename `readlink /etc/products.d/baseproduct ` .prod";
-    my $package  = 'aaa_base';
-    my $testdate = '2020-02-03';
+    my $prod            = script_output "basename `readlink /etc/products.d/baseproduct ` .prod";
+    my $package         = 'aaa_base';
+    my $testdate        = '2020-02-03';
+    my $testdate_after  = '2020-02-04';
+    my $testdate_before = '2020-02-02';
     # backup and create our lifecycle data with known content
     select_console 'root-console';
     assert_script_run "
@@ -44,6 +46,14 @@ sub run() {
     select_console 'user-console';
     my $output = script_output "zypper lifecycle $package", 300;
     die "$package lifecycle entry incorrect:$output" unless $output =~ /$package-\S+\s+$testdate/;
+
+    # test that the package is reported if we query the date after
+    $output = script_output "zypper lifecycle --date $testdate_after", 300;
+    die "$package not reported for date $testdate_after:$output" unless $output =~ /$package-\S+\s+$testdate/;
+
+    # test that the package is not reported if we query the date before
+    $output = script_output "zypper lifecycle --date $testdate_before", 300;
+    die "$package reported for date $testdate_before:$output" if $output =~ /$package-\S+\s+$testdate/;
 
     # delete lifecycle data - package eol should default to product eol
     select_console 'root-console';
@@ -71,7 +81,7 @@ sub run() {
     select_console 'root-console';
     assert_script_run "
     if [ -f /var/lib/lifecycle/data/$prod.lifecycle.orig ] ; then
-        mv /var/lib/lifecycle/data/$prod.lifecycle.orig mv /var/lib/lifecycle/data/$prod.lifecycle
+        mv /var/lib/lifecycle/data/$prod.lifecycle.orig /var/lib/lifecycle/data/$prod.lifecycle
     fi";
     #
     select_console 'user-console';
@@ -83,10 +93,8 @@ sub run() {
     die "'end of support' line not found" unless $output =~ /No (products|packages).*before/;
     assert_script_run('zypper lifecycle --days 9999', timeout => 300, fail_message => 'No package should be supported for more than 20 years');
     $output = script_output 'zypper lifecycle --days 9999', 300;
-    # bsc#999537 c8
-    # die "Product 'end of support' line not found" unless $output =~ /^Product end of support before/;
-    # my $product_version = get_required_var('VERSION') =~ s/-/ /r;
-    # die "Current product should not be supported anymore" unless $output =~ /SUSE Linux Enterprise.*$product_version.*$date_re/;
+    die "Product 'end of support' line not found"         unless $output =~ /^Product end of support before/;
+    die "Current product should not be supported anymore" unless $output =~ /$product_name\s+$product_eol/;
     assert_script_run('zypper lifecycle --date $(date --iso-8601)', timeout => 300, fail_message => 'All packages should be supported as of today');
 }
 
