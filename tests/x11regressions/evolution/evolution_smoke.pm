@@ -12,10 +12,16 @@
 use strict;
 use base "x11regressiontest";
 use testapi;
+use utils;
 
 sub run() {
     my $mailbox     = 'nooops_test3@aim.com';
     my $mail_passwd = 'opensuse';
+    my $next_key    = "alt-o";
+
+    if (sle_version_at_least('12-SP2')) {
+        $next_key = "alt-n";
+    }
 
     mouse_hide(1);
 
@@ -28,9 +34,9 @@ sub run() {
 
     # Follow the wizard to setup mail account
     assert_screen "test-evolution-1";
-    send_key "alt-o";
+    send_key $next_key;
     assert_screen "evolution_wizard-restore-backup";
-    send_key "alt-o";
+    send_key $next_key;
     assert_screen "evolution_wizard-identity";
     wait_screen_change {
         send_key "alt-e";
@@ -43,9 +49,14 @@ sub run() {
     sleep 1;
     save_screenshot();
 
-    send_key "alt-o";
+    send_key $next_key;
     assert_screen "evolution_wizard-account-summary", 60;
-    send_key "alt-o";
+    if (sle_version_at_least('12-SP2')) {
+        assert_and_click "evolution-option-next";
+    }
+    else {
+        send_key $next_key;
+    }
     assert_screen "evolution_wizard-done";
     send_key "alt-a";
     assert_screen "evolution_mail-auth";

@@ -81,12 +81,19 @@ sub unlock_user_settings {
 
 sub change_pwd {
     send_key "alt-p";
+    wait_still_screen;
     send_key "ret";
+    wait_still_screen;
     send_key "alt-p";
+    wait_still_screen;
     type_string "$rootpwd";
+    wait_still_screen;
     send_key "alt-n";
+    wait_still_screen;
     type_string "$newpwd";
+    wait_still_screen;
     send_key "alt-v";
+    wait_still_screen;
     type_string "$newpwd";
     assert_screen "actived-change-password";
     send_key "alt-a";
