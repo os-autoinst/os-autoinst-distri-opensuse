@@ -20,6 +20,9 @@
 # test-firefox_sendlink-1, test-firefox_sendlink-2, test-firefox_sendlink-3
 # test-firefox_sendlink-unstable_warning
 
+# G-Summary: Restore SLE11 cases to sub-directory, remove main.pm lines because no openSUSE cases.
+# G-Maintainer: wnereiz <wnereiz@gmail.com>
+
 use strict;
 use base "x11regressiontest";
 use testapi;

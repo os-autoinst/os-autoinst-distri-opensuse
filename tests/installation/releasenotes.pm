@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: SLE12 release notes
+# G-Maintainer: Jozef Pupava <jpupava@suse.com>
+
 use base "y2logsstep";
 use strict;
 use testapi;

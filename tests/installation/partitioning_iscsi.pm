@@ -7,6 +7,11 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Configuration of iSCSI installation
+#    check if iBFT is present
+#    select iSCSI disk to install system on
+# G-Maintainer: Jozef Pupava <jpupava@suse.com>
+
 use strict;
 use base "y2logsstep";
 use testapi;

@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: x11regressions: add nautilus scripts
+# G-Maintainer: Xudong Zhang <xdzhang@suse.com>
+
 use base "x11regressiontest";
 use strict;
 use testapi;

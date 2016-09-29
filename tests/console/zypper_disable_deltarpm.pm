@@ -14,6 +14,11 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+# G-Summary: test to disable deltarpm
+#    installing all online updates takes too long if deltarpm is on and our
+#    line is powerful enough to download full rpms.
+# G-Maintainer: Ludwig Nussel <ludwig.nussel@suse.de>
+
 use base "consoletest";
 use strict;
 use testapi;

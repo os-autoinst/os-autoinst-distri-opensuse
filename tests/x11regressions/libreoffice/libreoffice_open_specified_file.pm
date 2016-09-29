@@ -9,6 +9,9 @@
 
 # Case 1503881 - LibreOffice: Verify LibreOffice opens specified file types correctly.
 
+# G-Summary: add libreoffice tc#1503778 and tc#1503881 script and attachment
+# G-Maintainer: dehai <dhkong@suse.com>
+
 use base "x11regressiontest";
 use base "x11regressiontest";
 use strict;

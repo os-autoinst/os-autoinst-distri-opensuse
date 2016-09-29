@@ -7,6 +7,15 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Setup system work into fips mode
+#    Install fips pattern and update grub.cfg with fips=1
+#
+#    Also include workaround of bsc#982268:
+#    Due to bsc#982268, openssl couldn't enter fips mode even the
+#    system is booted with fips=1. Workaround is create the file
+#    /etc/system-fips manually.
+# G-Maintainer: Qingming Su <qingming.su@suse.com>
+
 use base "consoletest";
 use testapi;
 use strict;

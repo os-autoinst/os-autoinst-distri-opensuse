@@ -7,6 +7,11 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: New test to run installcheck on ISO
+#    I'm reusing the support server image to get an install check log - to be
+#    added to big staging projects with many changes
+# G-Maintainer: Stephan Kulow <coolo@suse.de>
+
 use base "opensusebasetest";
 use strict;
 use testapi;

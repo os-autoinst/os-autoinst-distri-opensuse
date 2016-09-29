@@ -3,6 +3,13 @@
 # without any warranty.
 # Test case tc#1525215 FIPS:ecryptfs
 
+# G-Summary: Test case tc#1525215 FIPS:ecryptfs
+#    Check the ecryptfs-utils with fips enabled
+#    Install the ecryptfs-utils and encrypt the directory.
+#    Create a new encrypt file and try to write it.
+#    Check the file after unmont the encrypt directory
+# G-Maintainer: Jiawei Sun <JiaWei.Sun@suse.com>
+
 use base "consoletest";
 use strict;
 use testapi;

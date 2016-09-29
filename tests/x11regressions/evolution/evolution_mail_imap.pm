@@ -9,6 +9,12 @@
 
 # Test Case #1503768: Evolution: send and receive email via IMAP
 
+# G-Summary: Add three test cases for Evolution
+#    evolution_smoke: Case #1503857: Evolution setup assistant
+#    evolution_mail_imap: Case #1503768: send and receive email via IMAP
+#    evolution_mail_ews: Case #1503965: Setup MS Exchange account
+# G-Maintainer: Qingming Su <qingming.su@suse.com>
+
 use strict;
 #use base "x11test";
 use base "x11regressiontest";

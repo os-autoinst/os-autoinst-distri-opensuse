@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: fix upgrade for sle11 and tidy
+# G-Maintainer: Stephan Kulow <coolo@suse.de>
+
 use strict;
 use base "y2logsstep";
 use testapi;

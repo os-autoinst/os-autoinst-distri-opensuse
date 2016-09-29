@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: SLE11 firefox with KDE has to accept "default browser check"
+# G-Maintainer: Jozef Pupava <jpupava@suse.com>
+
 use base "firefox";
 use strict;
 use testapi;

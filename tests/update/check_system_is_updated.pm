@@ -7,6 +7,11 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Fix packagekit updatespoo#13056
+#    Check no more updates are available
+#    Reboot after kde kernel updates
+# G-Maintainer: mkravec <mkravec@suse.com>
+
 use base "x11test";
 use strict;
 use testapi;

@@ -20,6 +20,9 @@
 # test-firefox_autocomplete-1
 # firefox_autocomplete-testpage, firefox_autocomplete-testpage_filled
 
+# G-Summary: Restore SLE11 cases to sub-directory, remove main.pm lines because no openSUSE cases.
+# G-Maintainer: wnereiz <wnereiz@gmail.com>
+
 use strict;
 use base "x11regressiontest";
 use testapi;

@@ -13,6 +13,9 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
+# G-Summary: work on improving the delta between openSUSE and sle
+# G-Maintainer: Stephan Kulow <coolo@suse.de>
+
 use strict;
 use base "y2logsstep";
 

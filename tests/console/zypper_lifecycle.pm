@@ -7,6 +7,10 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Add test for fate#320597 'zypper lifecycle'
+#    Verification run: http://lord.arch/tests/2449
+# G-Maintainer: Oliver Kurz <okurz@suse.de>
+
 use base "consoletest";
 use strict;
 use testapi;

@@ -8,6 +8,11 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Added Linuxrc test for booting the installed system
+#    - bsc#906990
+#    - Requires linuxrc-5.0.44 and higher to be used for install media
+# G-Maintainer: Lukas Ocilka <lukas.ocilka@gmail.com>
+
 use strict;
 use base "y2logsstep";
 use testapi;

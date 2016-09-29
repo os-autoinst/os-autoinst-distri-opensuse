@@ -7,6 +7,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Very simple, needle free, bind server test
+# G-Maintainer: sysrich <RBrownCCB@opensuse.org>
+
 use strict;
 use base "consoletest";
 use testapi;

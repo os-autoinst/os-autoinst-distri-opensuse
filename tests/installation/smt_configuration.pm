@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: installation + SMT addon
+# G-Maintainer: Jozef Pupava <jpupava@suse.com>
+
 use strict;
 use base "y2logsstep";
 use testapi;

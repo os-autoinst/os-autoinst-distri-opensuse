@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: First commit for tracker cases. Still need to modify main.pm to make it work.
+# G-Maintainer: nick wang <nwang@suse.com>
+
 use base "x11regressiontest";
 use strict;
 use testapi;

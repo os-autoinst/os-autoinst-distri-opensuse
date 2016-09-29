@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: split & unify opensuse install scripts part1
+# G-Maintainer: Bernhard M. Wiedemann <bernhard+osautoinst lsmod de>
+
 use strict;
 use warnings;
 use base "y2logsstep";

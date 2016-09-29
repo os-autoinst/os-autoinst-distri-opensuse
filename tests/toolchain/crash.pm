@@ -7,6 +7,32 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Run 'crash' utility on a kernel memory dump
+#    Upstream kernel commit 8244062ef1 (v4.5), which got ingerited by SLE
+#    from 11-SP4 to 12-SP2 fixed handling of /proc/kallsyms. This change
+#    affected 'crash' utility, among other utilities.
+#
+#    Without
+#    https://github.com/crash-utility/crash/commit/098cdab16dfa6a85e9dad2cad604dee14ee15f66
+#    commit (v7.1.5) 'crash' crashed with:
+#
+#      crash: invalid structure member offset: module_num_symtab
+#             FILE: kernel.c  LINE: 3421  FUNCTION: module_init()
+#
+#      [./crash] error trace: 472bde => 4e09e7 => 52a6ea => 52a679
+#
+#        52a679: OFFSET_verify.part.24+73
+#        52a6ea: OFFSET_verify+42
+#        4e09e7: module_init+1255
+#        472bde: main_loop+238
+#
+#    https://bugzilla.suse.com/show_bug.cgi?id=977306
+#    https://fate.suse.com/320844
+#
+#    This test enables kdump, dumps kernel memory and runs 'crash' on the
+#    dump.
+# G-Maintainer: Michal Nowak <mnowak@suse.com>
+
 use base "opensusebasetest";
 use strict;
 use testapi;

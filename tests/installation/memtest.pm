@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Refactor mediacheck and memtest tests.
+# G-Maintainer: Alberto Planas <aplanas@suse.com>
+
 use base "opensusebasetest";
 use strict;
 use testapi;

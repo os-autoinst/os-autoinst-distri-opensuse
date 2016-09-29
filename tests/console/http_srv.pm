@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Add two server tests.
+# G-Maintainer: Alberto Planas <aplanas@suse.com>
+
 use strict;
 use base "consoletest";
 use testapi;

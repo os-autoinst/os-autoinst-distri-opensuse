@@ -7,6 +7,12 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Add Framework to test other Desktop Environments
+#    Non-Primary desktop environments are generally installed by means
+#    of a pattern. For those tests, we assume a minimal-X based installation
+#    where the pattern is being installed on top.
+# G-Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
+
 use base "consoletest";
 use strict;
 use testapi;

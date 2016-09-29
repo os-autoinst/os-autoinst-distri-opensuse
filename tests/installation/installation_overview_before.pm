@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Check installation overview befoer and after any pattern change
+# G-Maintainer: sysrich <sysrich@linux.com>
+
 use strict;
 use warnings;
 use base "y2logsstep";

@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: renamed 091_second_stage to 091_first_boot
+# G-Maintainer: Max Lin <mlin@suse.com>
+
 use strict;
 use base "y2logsstep";
 use testapi;

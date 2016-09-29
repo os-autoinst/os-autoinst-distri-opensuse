@@ -9,6 +9,11 @@
 
 # Case 1461937 - FIPS: wget
 
+# G-Summary: Add Case 1461937-FIPS: wget and modify main.pm
+#    Need enable FIPS environment before test this script.
+#    Impact the openssl module
+# G-Maintainer: dehai <dhkong@suse.com>
+
 use base "consoletest";
 use strict;
 use testapi;

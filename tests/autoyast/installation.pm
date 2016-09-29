@@ -13,6 +13,9 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
+# G-Summary: renamed autoyast/system.pm to installation.pm
+# G-Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
+
 use strict;
 use base 'basetest';
 use testapi;

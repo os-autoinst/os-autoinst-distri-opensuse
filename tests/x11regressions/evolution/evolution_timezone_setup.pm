@@ -9,6 +9,9 @@
 
 #testcase 5255-1503908:Evolution: setup timezone
 
+# G-Summary: updated openqa script and entry for tc#1503908: evolution_timezone_setup
+# G-Maintainer: xiaojun <xjin@suse.com>
+
 use strict;
 use base "x11regressiontest";
 use testapi;

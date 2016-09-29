@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: add get_to_yast.pm, rename to bootloader_s390.pm
+# G-Maintainer: Susanne Oberhauser <froh@suse.com>
+
 use base "installbasetest";
 
 use testapi;

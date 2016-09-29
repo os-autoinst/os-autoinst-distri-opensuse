@@ -8,6 +8,14 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: add evince regression testsuite
+#    add x11regressions test data
+#
+#    add gedit regression testsuite
+#
+#    remove unnecessary sleeps
+# G-Maintainer: mitiao <mitiao@gmail.com>
+
 use base "x11regressiontest";
 use strict;
 use testapi;

@@ -7,6 +7,11 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Update the system before testing
+#    For this attach an update category between first_boot and console tests and
+#    reboot in case the update applet requested so
+# G-Maintainer: Stephan Kulow <coolo@suse.de>
+
 use base "x11test";
 use strict;
 use testapi;

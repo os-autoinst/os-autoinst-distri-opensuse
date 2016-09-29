@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Run tests in the console of a live Gnome CD system, against SSSD and its LDAP, Kerberos backends.
+# G-Maintainer: HouzuoGuo <guohouzuo@gmail.com>
+
 use base "opensusebasetest";
 use strict;
 use testapi;

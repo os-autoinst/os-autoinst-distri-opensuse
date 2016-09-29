@@ -14,6 +14,9 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+# G-Summary: shutdown console test
+# G-Maintainer: Ludwig Nussel <ludwig.nussel@suse.de>
+
 use strict;
 use base 'basetest';    # don' use consoletest to avoid post run hook
 use testapi;

@@ -10,6 +10,11 @@
 # Feature #318760: Update critical security fixes only
 # Test Case #1480288: Test Feature: Update critical security fixes only
 
+# G-Summary: Test zypper can update critical security fixes only
+#    Add test case for feature #1480288: Update critical
+#    security fixes only.
+# G-Maintainer: Qingming Su <qingming.su@suse.com>
+
 use base "consoletest";
 use testapi;
 use registration;

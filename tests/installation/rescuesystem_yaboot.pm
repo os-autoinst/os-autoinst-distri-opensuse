@@ -8,6 +8,10 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Add bootting rescue from yaboot
+#    Signed-off-by: Dinar Valeev <dvaleev@suse.com>
+# G-Maintainer: Dinar Valeev <dvaleev@suse.com>
+
 use base "opensusebasetest";
 use strict;
 use testapi;

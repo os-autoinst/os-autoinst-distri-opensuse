@@ -13,6 +13,11 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
+# G-Summary: split scc registration
+#    makes it more obvious if a test doesn't actually register during
+#    installation
+# G-Maintainer: Ludwig Nussel <ludwig.nussel@suse.de>
+
 use strict;
 use base "y2logsstep";
 

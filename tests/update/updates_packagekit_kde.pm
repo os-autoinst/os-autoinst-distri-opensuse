@@ -7,6 +7,15 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Packagekit updates
+#    Used Updaters:
+#    gpk-update-viewer - gnome & xfce & lxde
+#    plasma-pk-updates - kde
+#
+#    Change:
+#    assert_and_click replaced with keyboard shortcuts for ipmi test
+# G-Maintainer: mkravec <mkravec@suse.com>
+
 use base "x11test";
 use strict;
 use utils;

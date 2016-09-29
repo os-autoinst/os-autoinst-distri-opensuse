@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: an experimental bootloader using virsh over ssh
+# G-Maintainer: Stephan Kulow <coolo@suse.de>
+
 use base "y2logsstep";
 use strict;
 use testapi;

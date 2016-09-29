@@ -7,6 +7,17 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Warning for migrations with low disk spacefate#11438
+#
+#    If variable UPGRADE=LOW_SPACE is present allocate most of the disk
+#    space before installation. Warning should be visible in installation
+#    overview.
+#
+#    Then parse required size from warning message and free disk space
+#    accordingly. Refresh overview screen and if warning message disappear
+#    start installation.
+# G-Maintainer: mkravec <mkravec@suse.com>
+
 use strict;
 use warnings;
 use base "y2logsstep";

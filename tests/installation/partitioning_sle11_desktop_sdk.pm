@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Urgent partioning fix for SLED 11 SP4 GMC
+# G-Maintainer: Richard Brown <rbrownccb@opensuse.org>
+
 use base "y2logsstep";
 use strict;
 use testapi;

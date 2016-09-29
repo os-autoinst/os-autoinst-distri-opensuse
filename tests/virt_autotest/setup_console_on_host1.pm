@@ -1,3 +1,6 @@
+# G-Summary: virtualization: modification for adding prj2 host upgrade xen case
+# G-Maintainer: alice <xlai@suse.com>
+
 use strict;
 use warnings;
 use base "opensusebasetest";

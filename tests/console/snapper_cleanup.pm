@@ -7,6 +7,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Snapper cleanup test based on FATE#312751
+# G-Maintainer: Dumitru Gutu <dgutu@suse.com>
+
 use base "consoletest";
 use strict;
 use utils;

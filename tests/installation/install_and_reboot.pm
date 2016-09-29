@@ -8,6 +8,16 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Rename livecdreboot, moved grub code in grub_test.pm
+#    Livecdreboot test name was unclear, renamed it in to install_and_reboot.
+#    The code concerning grub test has moved to new test grub_test.pm
+#    Main pm adapted for the new grub_test.pm
+#    In first_boot.pm added get_var(boot_into_snapshot) for assert linux-terminal,
+#    since after booting on snapshot, only a terminal interface is given, not GUI.
+#
+#    Issues on progress: 9716,10286,10164
+# G-Maintainer: dmaiocchi <dmaiocchi@suse.com>
+
 use strict;
 use base "y2logsstep";
 use testapi;

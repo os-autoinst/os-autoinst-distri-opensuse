@@ -8,6 +8,10 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Add yaboot test
+#    Signed-off-by: Dinar Valeev <dvaleev@suse.com>
+# G-Maintainer: Dinar Valeev <dvaleev@suse.com>
+
 use base "installbasetest";
 use strict;
 use testapi;

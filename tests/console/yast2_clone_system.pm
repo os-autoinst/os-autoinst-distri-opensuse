@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: clone system and use the autoyast file in chained tests
+# G-Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
+
 use base "console_yasttest";
 use strict;
 use testapi;

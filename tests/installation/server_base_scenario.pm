@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: add some SLE11 tests for consistency in the branches
+# G-Maintainer: Stephan Kulow <coolo@suse.de>
+
 use base "opensusebasetest";
 use strict;
 use testapi;

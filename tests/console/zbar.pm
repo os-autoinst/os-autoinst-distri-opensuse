@@ -7,6 +7,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Test zbar to be able to decode a qr code
+# G-Maintainer: Oliver Kurz <okurz@suse.de>
+
 use base "consoletest";
 use strict;
 use testapi;

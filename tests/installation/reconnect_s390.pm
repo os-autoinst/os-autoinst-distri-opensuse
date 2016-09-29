@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: added functionality for reconnecting s390-consoles after reboot
+# G-Maintainer: Matthias Grießmeier <mgriessmeier@suse.de>
+
 use base "installbasetest";
 
 use testapi;

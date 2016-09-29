@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Test for the snapshot created after installation (fate#317973)
+# G-Maintainer: Ancor Gonzalez Sosa <ancor@suse.de>
+
 use base 'consoletest';
 use strict;
 use testapi;

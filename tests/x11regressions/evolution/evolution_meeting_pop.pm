@@ -9,6 +9,13 @@
 
 # Test Case #1503976 Pop Meeting
 
+# G-Summary: Test Case #1503976 Pop Meeting
+#    This case is used for tc#1503976, send the meeting request by evolution and the
+#    receiver will get the meeting request with POP3 protocol.
+#    Add send_meeting_request to x11regression lib
+#    Reduce costing time of imap meeting and pop meeting
+# G-Maintainer: Jiawei Sun <JiaWei.Sun@suse.com>
+
 use base "x11regressiontest";
 use strict;
 use warnings;

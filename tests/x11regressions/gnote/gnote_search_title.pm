@@ -7,6 +7,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: add script for tc#1503753 tc#1503894
+# G-Maintainer: Chingkai <qkzhu@suse.com>
+
 use base "x11regressiontest";
 use strict;
 use testapi;

@@ -9,6 +9,9 @@
 
 # Test Case #1503757: Evolution:Send MS task
 
+# G-Summary: openqa script for tc#1503757: evolution_task_ews
+# G-Maintainer: xiaojun <xjin@suse.com>
+
 use strict;
 use base "x11regressiontest";
 use testapi;

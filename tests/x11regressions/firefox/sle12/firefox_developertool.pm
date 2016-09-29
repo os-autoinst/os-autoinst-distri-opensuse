@@ -10,6 +10,9 @@
 
 # Case#1479522: Firefox: Web Developer Tools
 
+# G-Summary: Added 13 new scripts. Minor changes for some old scripts to run better together.
+# G-Maintainer: wnereiz <wnereiz@gmail.com>
+
 use strict;
 use base "x11regressiontest";
 use testapi;

@@ -8,6 +8,12 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: write instsys and initrd package lists to log
+#    this allows to better check and compare versions
+#    to find what might have introduced a bug
+#    or if the new version with a proposed fix is already included.
+# G-Maintainer: Bernhard M. Wiedemann <bernhard+osautoinst lsmod de>
+
 use strict;
 use warnings;
 use base "y2logsstep";

@@ -9,6 +9,9 @@
 # without any warranty.
 
 
+# G-Summary: Rework the tests layout.
+# G-Maintainer: Alberto Planas <aplanas@suse.com>
+
 use base "console_yasttest";
 use strict;
 use testapi;

@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: boot from existing image to desktop
+# G-Maintainer: mitiao <mitiao@gmail.com>
+
 use base "basetest";
 use strict;
 use testapi;

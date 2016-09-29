@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Other Desktop Environments: Mate
+# G-Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
+
 use base "x11test";
 use strict;
 use testapi;

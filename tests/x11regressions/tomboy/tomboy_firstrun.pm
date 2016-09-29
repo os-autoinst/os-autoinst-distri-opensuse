@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: add tomboy.d
+# G-Maintainer: SeroSun <sunyong0511@gmail.com>
+
 use base "x11regressiontest";
 use strict;
 use testapi;

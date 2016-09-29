@@ -8,6 +8,16 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Separate systemsettings test for KDE4-based and KF5-based
+#    In update test, there might have old KDE4 systemsettings as another
+#    candidate in krunner via auto-completion, therefore, separate
+#    systemsettings test to systemsettings(KDE4-based) and
+#    systemsettings5(KF5-based) test.
+#
+#    openSUSE version less than or equal to 13.2 have to set KDE4 variable as
+#    1, thus PLASMA5 variable won't be sets.
+# G-Maintainer: Max Lin <mlin@suse.com>
+
 use base "x11test";
 use strict;
 use testapi;

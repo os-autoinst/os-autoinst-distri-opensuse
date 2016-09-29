@@ -11,6 +11,10 @@
 # test a rollback (as a backup) situation after system has migrated. (e.g from Sles12 to sp2)
 # we make snapper rollback and  go back to downgraded system,
 
+# G-Summary: Enable Snapper-Rollback on HDD special Image.
+#    Enable test-workflow on Main
+# G-Maintainer: dmaiocchi <dmaiocchi@suse.com>
+
 use base "consoletest";
 use testapi;
 use utils;

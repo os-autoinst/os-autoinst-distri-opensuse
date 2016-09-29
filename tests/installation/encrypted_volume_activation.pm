@@ -7,6 +7,17 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Create new test module encrypted volume activation
+#    When the variable ENCRYPTED_CANCEL_EXISTING is set, it will cancel the
+#    activate encrypted volume prompt which appears during installation to a
+#    storage device with existing encrypted lvm volume. A workaround is
+#    implemented for bsc#989770 which causes the activation prompt to be
+#    displayed twice.
+#
+#    When the variable ENCRYPTED_ACTIVATE_EXISTING is set it will enter the
+#    password for the existing volume to activate it.
+# G-Maintainer: Richard Palethorpe <rpalethorpe@suse.com>
+
 use strict;
 use warnings;
 use base "y2logsstep";

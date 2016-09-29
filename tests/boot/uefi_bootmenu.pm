@@ -7,6 +7,10 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Select UEFI boot device in BIOS
+#    OVMF doesn't honor the -boot XX setting of qemu so we have to manually enter the boot manager in the BIOS
+# G-Maintainer: Ludwig Nussel <ludwig.nussel@suse.de>
+
 use base "basetest";
 use strict;
 use testapi;

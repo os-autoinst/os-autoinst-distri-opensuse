@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: yast2_nfs_client module
+# G-Maintainer: Ancor Gonzalez Sosa <ancor@suse.de>
+
 use base "console_yasttest";
 use strict;
 use testapi;

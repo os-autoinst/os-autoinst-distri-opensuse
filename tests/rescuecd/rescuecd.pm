@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Add RESCUECD test.
+# G-Maintainer: Alberto Planas <aplanas@suse.com>
+
 use base "rescuecdstep";
 use strict;
 use testapi;

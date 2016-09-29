@@ -10,6 +10,9 @@
 
 # Case#1436069: Firefox: Java Plugin (IcedTea-Web)
 
+# G-Summary: Added new cases, change firefox_emaillink.pm
+# G-Maintainer: wnereiz <wnereiz@gmail.com>
+
 use strict;
 use base "x11regressiontest";
 use testapi;

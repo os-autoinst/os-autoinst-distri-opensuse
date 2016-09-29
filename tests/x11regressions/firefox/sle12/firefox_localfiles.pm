@@ -10,6 +10,9 @@
 
 # Case#1436075 Firefox: Open local file with various types
 
+# G-Summary: Add some modified/merged test cases
+# G-Maintainer: wnereiz <wnereiz@github>
+
 use strict;
 use base "x11regressiontest";
 use testapi;

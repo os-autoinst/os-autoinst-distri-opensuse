@@ -11,6 +11,11 @@
 # 1024x768 of the cirrus kms driver doesn't help us. We need to
 # manually configure grub to tell the kernel what mode to use.
 
+# G-Summary: set gfxplayload for grub
+#    JeOS doesn't inherit the gfx settings from the first boot so we need
+#    to adjust the grub config manually to survive reboots.
+# G-Maintainer: Ludwig Nussel <ludwig.nussel@suse.de>
+
 use base "opensusebasetest";
 use strict;
 use testapi;

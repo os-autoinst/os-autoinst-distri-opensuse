@@ -7,6 +7,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: harmorize zypper_ref between SLE and openSUSE
+# G-Maintainer: Max Lin <mlin@suse.com>
+
 use base "consoletest";
 use strict;
 use testapi;

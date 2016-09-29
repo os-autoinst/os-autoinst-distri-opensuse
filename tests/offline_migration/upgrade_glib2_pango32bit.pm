@@ -7,6 +7,15 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Add case upgrade_glib2_pango32bit to fix bsc#978972
+#    Migration from SLED11SP4 to SLED12SP2 is failed since libpango
+#    dependency problem, the fix of this bug has been released to MU.
+#    This script will update the package and create a new SLED11 image
+#    for openQA's offline_migration test.
+#
+#    See also: bsc#978972
+# G-Maintainer: Chingkai <qkzhu@suse.com>
+
 use strict;
 use base "y2logsstep";
 use testapi;

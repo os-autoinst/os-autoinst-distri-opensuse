@@ -7,6 +7,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# G-Summary: virt_autotest: the initial version of virtualization automation test in openqa, with kvm support fully, xen support not done yet
+# G-Maintainer: alice <xlai@suse.com>
+
 use base "virt_autotest_base";
 use testapi;
 

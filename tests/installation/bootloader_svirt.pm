@@ -7,6 +7,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Add svirt bootloader (JeOS, and FTP install)
+# G-Maintainer: Michal Nowak <mnowak@suse.com>
+
 use base "installbasetest";
 use strict;
 use warnings;

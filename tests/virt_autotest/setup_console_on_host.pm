@@ -1,3 +1,6 @@
+# G-Summary: virtualization initial xen support (#1575)
+# G-Maintainer: xiao li ai <xlai@suse.com>
+
 use strict;
 use warnings;
 use base "opensusebasetest";

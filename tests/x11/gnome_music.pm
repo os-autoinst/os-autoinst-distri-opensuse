@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: add gnome_music test; move rhythmbox test to obsoleted
+# G-Maintainer: Max Lin <mlin@suse.com>
+
 use base "x11test";
 use strict;
 use testapi;

@@ -9,6 +9,10 @@
 #
 
 # inherit qa_run, but overwrite run
+# G-Summary: QA Automation: patch the system before running the test
+#    This is to test Test Updates for SP1 and GA
+# G-Maintainer: Stephan Kulow <coolo@suse.de>
+
 use base "qa_run";
 use strict;
 use warnings;

@@ -14,6 +14,11 @@
 #  before_upgrade and after upgrade are not identical. test is made
 #  by checking the /etc/os-release, this is compatible also for openSUSE-TW (2)
 
+# G-Summary: Add new test boot_into_snapshot
+#    Main for opensuse changed. boot_into_snapshot test ronly snapshot
+#    Test needed for testing the snapper rollback functionality.
+# G-Maintainer: dmaiocchi <dmaiocchi@suse.com>
+
 use strict;
 use testapi;
 use base "y2logsstep";

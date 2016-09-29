@@ -7,6 +7,44 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Add Hyper-V libvirt tests
+#    This bootloader setups Hyper-V VM:
+#
+#    1. Connects to VIRSH_HOST via SSH,
+#    2. starts a VNC server there,
+#    3. RDP connection to a VM on HYPERV_SERVER via xfreerdp is created,
+#    4. openQA connects to the VNC server.
+#
+#    Server requirements:
+#
+#    * Windows Server 2008 R2, 2012 R2, or 2016 (TP5) - a Datacenter edition,
+#    * Hyper-V and RDP roles are installed,
+#    * telnet server (WS 2008 R2 and 2012 R2 contain telnet service, WS 2016
+#      does not and e.g. telnetd from Cygwin has to be installed),
+#    * program which enables VM's serial port for connection from outside
+#      (Hyper-V enables serial port as a Windows named pipe \\.\pipe\NAME),
+#      e.g. "Named Pipe TCP Proxy Utility" (which is not a scriptable, it's
+#      an GUI app...),
+#    * open ports in firewall, perhaps add above program as an exception to
+#      the firewall,
+#    * WS 2008 R2 requires Powershell and "PowerShell management Library for
+#      Hyper-V" (http://pshyperv.codeplex.com).
+#
+#    Intermediary VIRSH_HOST requirements:
+#
+#    * sshd, VNC server,
+#    * FreeRDP where https://github.com/FreeRDP/FreeRDP/issues/2421 is
+#      fixed.
+#
+#    Caveats:
+#
+#    * FreeRDP does not work for Windows Server 2016 (TP5), see
+#      https://github.com/FreeRDP/FreeRDP/issues/3325,
+#    * so far VM in RDP connection which is displayed by a VNC server on
+#      VIRSH_HOST is not getting "System Keys" (e.g. Ctrl- Alt-F2 for console
+#      change).
+# G-Maintainer: Michal Nowak <mnowak@suse.com>
+
 use base "installbasetest";
 
 use testapi;

@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: add a button bar test
+# G-Maintainer: Max Lin <mlin@suse.com>
+
 use strict;
 use warnings;
 use base "y2logsstep";

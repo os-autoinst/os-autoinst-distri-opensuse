@@ -9,6 +9,10 @@
 
 # Case #1480023 : [316585] Drop suseRegister
 
+# G-Summary: Add load feature tests entry and Feature #1480023
+#    Feature Test : #1480023 : [316585] Drop suseRegister
+# G-Maintainer: Ben Chou <bchou@suse.com>
+
 use base "consoletest";
 use strict;
 use testapi;

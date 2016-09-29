@@ -9,6 +9,9 @@
 
 # Case 1503906 - LibreOffice: Favorite Documents link in Computer menu.
 
+# G-Summary: add libreoffice tc#1503906 script
+# G-Maintainer: dehai <dhkong@suse.com>
+
 use base "x11regressiontest";
 use strict;
 use testapi;

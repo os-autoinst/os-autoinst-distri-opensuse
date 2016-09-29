@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: sle 11 without systemd consoletest setup
+# G-Maintainer: Jozef Pupava <jpupava@suse.com>
+
 use base "consoletest";
 use strict;
 use testapi;

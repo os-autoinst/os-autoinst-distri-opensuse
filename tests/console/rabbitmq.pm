@@ -7,6 +7,14 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Add rabbitmq test suite
+#    Based on https://www.rabbitmq.com/tutorials/tutorial-one-python.html
+#
+#    Solely added because someone added "rabbitmq" to the Leap42.2 test plan :-)
+#
+#    Local verification done.
+# G-Maintainer: Oliver Kurz <okurz@suse.de>
+
 use base "consoletest";
 use strict;
 use testapi;

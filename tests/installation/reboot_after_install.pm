@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: add random reboot after install
+# G-Maintainer: Bernhard M. Wiedemann <bernhard+osautoinst lsmod de>
+
 use base "installbasetest";
 use strict;
 use testapi;

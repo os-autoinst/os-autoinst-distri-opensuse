@@ -8,6 +8,9 @@
 # without any warranty.
 #
 package reboot_and_wait_up;
+# G-Summary: virt_autotest: the initial version of virtualization automation test in openqa, with kvm support fully, xen support not done yet
+# G-Maintainer: alice <xlai@suse.com>
+
 use strict;
 use warnings;
 use File::Basename;

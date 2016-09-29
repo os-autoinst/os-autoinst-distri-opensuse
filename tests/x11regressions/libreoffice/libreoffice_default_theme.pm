@@ -7,6 +7,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: add scripts for libreoffice tc#1503783 tc#1503789 in x11regression
+# G-Maintainer: Chingkai <qkzhu@suse.com>
+
 use base "x11regressiontest";
 use testapi;
 use utils;

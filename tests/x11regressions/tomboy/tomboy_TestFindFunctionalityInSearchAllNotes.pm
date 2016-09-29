@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Modify some by Weihua's comments, and add two news
+# G-Maintainer: Sero Sun <yosun@suse.com>
+
 use base "x11regressiontest";
 use strict;
 use testapi;

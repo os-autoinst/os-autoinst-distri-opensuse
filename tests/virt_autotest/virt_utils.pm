@@ -8,6 +8,9 @@
 # without any warranty.
 #
 package virt_utils;
+# G-Summary: virt_autotest: the initial version of virtualization automation test in openqa, with kvm support fully, xen support not done yet
+# G-Maintainer: alice <xlai@suse.com>
+
 use base Exporter;
 use Exporter;
 use strict;
