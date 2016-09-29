@@ -185,6 +185,14 @@ sub snapper_is_applicable {
     return ($fs eq "btrfs" && get_var("HDDSIZEGB", 10) > 10);
 }
 
+sub chromestep_is_applicable {
+    return check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64');
+}
+
+sub chromiumstep_is_applicable {
+    return chromestep_is_applicable();
+}
+
 sub gnomestep_is_applicable {
     return check_var("DESKTOP", "gnome");
 }

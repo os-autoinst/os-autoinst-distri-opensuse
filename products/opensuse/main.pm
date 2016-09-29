@@ -656,7 +656,7 @@ sub load_x11tests() {
     if (get_var("MOZILLATEST")) {
         loadtest "x11/mozmill_run.pm";
     }
-    if (!(is_staging() || is_livesystem)) {
+    if (chromiumstep_is_applicable() && !(is_staging() || is_livesystem)) {
         loadtest "x11/chromium.pm";
     }
     if (bigx11step_is_applicable()) {
@@ -749,8 +749,7 @@ sub load_x11tests() {
         # content of / looks different depending on whether the
         # chrome test succeeded or not. So let's put that kind of
         # tests at the end.
-        if (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64')) {
-            # GOOGLE Chrome only exists for i586 and x86_64 arch
+        if (chromestep_is_applicable()) {
             loadtest "x11/chrome.pm";
         }
     }
