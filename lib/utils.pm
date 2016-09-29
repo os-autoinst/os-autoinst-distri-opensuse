@@ -33,6 +33,7 @@ our @EXPORT = qw/
   addon_decline_license
   addon_license
   validate_repos
+  setup_online_migration
   /;
 
 
@@ -721,6 +722,24 @@ sub validate_repos {
                 });
         }
     }
+}
+
+sub setup_online_migration {
+    # if source system is minimal installation then boot to textmode
+    wait_boot textmode => !is_desktop_installed;
+    select_console 'root-console';
+
+    # stop packagekit service
+    script_run "systemctl mask packagekit.service";
+    script_run "systemctl stop packagekit.service";
+
+    type_string "chown $username /dev/$serialdev\n";
+
+    # enable Y2DEBUG all time
+    type_string "echo 'export Y2DEBUG=1' >> /etc/bash.bashrc.local\n";
+    script_run "source /etc/bash.bashrc.local";
+
+    save_screenshot;
 }
 
 1;
