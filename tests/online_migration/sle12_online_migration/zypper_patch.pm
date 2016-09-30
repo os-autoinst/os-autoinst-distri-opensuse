@@ -27,6 +27,8 @@ sub run() {
     select_console 'root-console';
 
     fully_patch_system;
+    type_string "reboot\n";
+    setup_online_migration;
 }
 
 sub test_flags() {
