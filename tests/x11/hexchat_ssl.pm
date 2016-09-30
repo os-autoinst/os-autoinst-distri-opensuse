@@ -37,7 +37,10 @@ sub run() {
 
         # use ssl for all servers on this network
         assert_and_click "$name-edit-button";
-        assert_and_click "$name-use-ssl-button";
+        assert_screen ["$name-use-ssl-button", "$name-ssl-on"];
+        if (!match_has_tag("$name-ssl-on")) {
+            assert_and_click "$name-use-ssl-button";
+        }
         assert_and_click "$name-close-button";
 
         assert_and_click "$name-connect-button";
