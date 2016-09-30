@@ -9,6 +9,13 @@
 
 # Case 1528909  - FIPS: cryptsetup
 
+# G-Summary: Test cryptsetup in FIPS mode
+#    Related test case:Case 1528909  - FIPS: cryptsetup
+#    https://bugzilla.suse.com/tr_show_case.cgi?case_id=1528909
+#    This case is verify the command of cryptsetup whether can be work in FIPS mode
+#    Local openQA validation running: http://147.2.212.179/tests/330
+# G-Maintainer: dehai <dhkong@suse.com>
+
 use base "consoletest";
 use strict;
 use testapi;

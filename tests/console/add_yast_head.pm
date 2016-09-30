@@ -8,6 +8,15 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Add two tests useful only in the yast branch
+#     * The plan is to create a yast branch of main.pm (like it's already
+#       done for sle2)
+#     * The goal of that branch is to make fast and easy to run single
+#       jobs to test a specific feature (probably still under development)
+#     * This two tests can be used to ensure that the last code generated
+#       by the YaST team is being used during the execution of the job.
+# G-Maintainer: Ancor Gonzalez Sosa <ancor@suse.de>
+
 use base "consoletest";
 use testapi;
 use strict;

@@ -8,6 +8,15 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Test docker installation and basic usage
+#    Cover the following aspects of docker:
+#      * package can be installed
+#      * daemon can be started
+#      * images can be pulled from the Docker Hub
+#      * containers can be spawned
+#      * network is working inside of the containers
+# G-Maintainer: Flavio Castelli <fcastelli@suse.com>
+
 use base "consoletest";
 use testapi;
 use strict;

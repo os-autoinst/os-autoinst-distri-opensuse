@@ -7,6 +7,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: openqa script for regression tc#1503973
+# G-Maintainer: xiaojun <xjin@suse.com>
+
 use base "x11regressiontest";
 use strict;
 use testapi;

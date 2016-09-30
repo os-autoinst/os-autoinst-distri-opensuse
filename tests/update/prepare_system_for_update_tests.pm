@@ -14,6 +14,11 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+# G-Summary: Update the system before testing
+#    For this attach an update category between first_boot and console tests and
+#    reboot in case the update applet requested so
+# G-Maintainer: Stephan Kulow <coolo@suse.de>
+
 use base "x11test";
 use strict;
 use testapi;

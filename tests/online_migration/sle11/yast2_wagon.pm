@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: sle11 online migration testsuite
+# G-Maintainer: mitiao <mitiao@gmail.com>
+
 use base "consoletest";
 use strict;
 use testapi;

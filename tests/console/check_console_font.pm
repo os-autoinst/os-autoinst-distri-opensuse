@@ -18,6 +18,11 @@
 # console font, we need to call systemd-vconsole-setup to workaround
 # that
 
+# G-Summary: check for broken console font
+#    cause soft fail if console font is broken, then fix it by calling
+#    systemd-vconsole-setup.
+# G-Maintainer: Ludwig Nussel <ludwig.nussel@suse.de>
+
 use base "consoletest";
 use testapi;
 use utils;

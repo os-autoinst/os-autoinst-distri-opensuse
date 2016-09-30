@@ -8,6 +8,11 @@
 # without any warranty.
 
 # Test Case tc#1503817 evolution imap meeting test
+# G-Summary: tc# 1503817: Evolution: Imap Meeting
+#    This is used for tc# 1503817, Send the meeting request by evolution and the
+#    receiver will get the meeting request with imap protocol.
+# G-Maintainer: Jiawei Sun <JiaWei.Sun@suse.com>
+
 use base "x11regressiontest";
 use strict;
 use testapi;

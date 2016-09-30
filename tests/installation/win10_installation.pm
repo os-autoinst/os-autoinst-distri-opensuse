@@ -7,6 +7,11 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Windows 10 installation test module
+#    modiffied (only win10 drivers) iso from https://fedoraproject.org/wiki/Windows_Virtio_Drivers is needed
+#    Works only with CDMODEL=ide-cd and QEMUCPU=host or core2duo (maybe other but not qemu64)
+# G-Maintainer: Jozef Pupava <jpupava@suse.com>
+
 use base "installbasetest";
 use strict;
 

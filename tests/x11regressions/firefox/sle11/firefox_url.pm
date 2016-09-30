@@ -21,6 +21,9 @@
 # test-firefox_url-wikipedia-1, test-firefox_url-wikipedia-2
 # test-firefox_url-googlemaps-1, test-firefox_url-googlemaps-2
 
+# G-Summary: Restore SLE11 cases to sub-directory, remove main.pm lines because no openSUSE cases.
+# G-Maintainer: wnereiz <wnereiz@gmail.com>
+
 use strict;
 use base "x11regressiontest";
 use testapi;

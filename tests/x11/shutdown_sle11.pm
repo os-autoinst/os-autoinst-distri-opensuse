@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Create sle 11 shutdown script
+# G-Maintainer: Jozef Pupava <jpupava@suse.com>
+
 use strict;
 
 # work around for broken base in perl < 5.20

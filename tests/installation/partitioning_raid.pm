@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: split the paritioning monster into smaller pieces
+# G-Maintainer: Stephan Kulow <coolo@suse.de>
+
 use strict;
 use warnings;
 use base "y2logsstep";

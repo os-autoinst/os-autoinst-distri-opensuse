@@ -7,6 +7,10 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Feature 318787
+#    YaST logic on Network Restart while no config changes were made https://progress.opensuse.org/issues/11450
+# G-Maintainer: Jozef Pupava <jpupava@suse.com>
+
 use base "x11test";
 use strict;
 use testapi;

@@ -13,6 +13,12 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
+# G-Summary: improved slenkins
+#    - do not parse node files, everything is configured via variables
+#    - import-slenkins-testsuite.pl script for importing the variables
+#    - run control node on support server
+# G-Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
+
 use strict;
 use base 'basetest';
 use testapi;

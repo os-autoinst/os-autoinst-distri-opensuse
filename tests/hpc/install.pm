@@ -8,6 +8,13 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: HPC_Module: standard installation
+#    This test is as simple as it can be at the moment, since we are at the very
+#    beginning of HPC testing
+#    It only adds the repo and installs the four important packages to check if there are any
+#    dependency issues
+# G-Maintainer: soulofdestiny <mgriessmeier@suse.com>
+
 use base "opensusebasetest";
 use strict;
 use testapi;

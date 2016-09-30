@@ -1,3 +1,6 @@
+# G-Summary: - add the virtualization test suite- add a load_virtualization_tests call
+# G-Maintainer: aginies <aginies@suse.com>
+
 use base "x11test";
 use strict;
 use testapi;

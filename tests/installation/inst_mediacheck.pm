@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: work on improving the delta between openSUSE and sle
+# G-Maintainer: Stephan Kulow <coolo@suse.de>
+
 use base "y2logsstep";
 use strict;
 use testapi;

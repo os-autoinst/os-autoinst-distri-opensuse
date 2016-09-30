@@ -7,6 +7,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Remove quiet kernel option
+# G-Maintainer: Dominik Heidler <dheidler@suse.de>
+
 use strict;
 use base "y2logsstep";
 use testapi;

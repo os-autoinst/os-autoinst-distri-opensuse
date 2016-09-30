@@ -7,6 +7,16 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: FIPS case for aide check test
+#    This is a new test case added for FIPS, it test the basic function of aide tools.
+#    This case will been used with SLE 12 SP2 with FIPS, and it has added to misc part of FIPS test.
+#    The case will do operation as followed
+#    1. Install aide if it has not been installed.
+#    2. Initialized the aide database and check
+#    3. Check the difference between datebase and file system.
+#    4. Modified the file system and run aide check again.
+# G-Maintainer: Jiawei Sun <Jiawei.sun@suse.com>
+
 use base "consoletest";
 use testapi;
 use strict;

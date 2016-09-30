@@ -13,6 +13,9 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
+# G-Summary: supportserver and supportserver generator implementation
+# G-Maintainer: Pavel Sladek <psladek@suse.com>
+
 use strict;
 use base 'basetest';
 use testapi;

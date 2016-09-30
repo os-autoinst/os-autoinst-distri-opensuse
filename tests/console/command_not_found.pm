@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Add test for command-not-found tool
+# G-Maintainer: Dominik Heidler <dheidler@suse.de>
+
 use base "consoletest";
 use testapi;
 use strict;

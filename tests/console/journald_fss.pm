@@ -9,6 +9,13 @@
 
 # Case 1560070  - FIPS: systemd journald FSS
 
+# G-Summary: Add Case 1463314-FIPS:systemd-journald test
+#    Systemd depend on libgcrypt for journald's FSS(Forward Secure Sealing) function
+#    It is only needed to test journald's key generation and verification function
+#    Verify key should be generated,as well as a QR code
+#    No failed messages output
+# G-Maintainer: dehai <dhkong@suse.com>
+
 use base "consoletest";
 use strict;
 use testapi;

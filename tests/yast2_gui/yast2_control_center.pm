@@ -8,6 +8,12 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Add YaST2 UI tests
+#    Make sure those yast2 modules can opened properly. We can add more
+#    feature test against each module later, it is ensure it will not crashed
+#    while launching atm.
+# G-Maintainer: Max Lin <mlin@suse.com>
+
 use base "y2x11test";
 use strict;
 use testapi;

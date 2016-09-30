@@ -7,6 +7,10 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: NIS server-client test
+#    https://progress.opensuse.org/issues/9900
+# G-Maintainer: Jozef Pupava <jpupava@suse.com>
+
 use base "x11test";
 use strict;
 use testapi;

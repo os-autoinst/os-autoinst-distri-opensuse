@@ -13,6 +13,12 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
+# G-Summary: autoyast cleanup
+#    - split repos.pm into separater tests
+#    - changed order of tests, run the specific tests in autoyast_verify
+#      earlier
+# G-Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
+
 use strict;
 use base 'basetest';
 use testapi;

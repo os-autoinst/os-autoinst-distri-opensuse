@@ -13,6 +13,9 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
+# G-Summary: harmorize zypper_ref between SLE and openSUSE
+# G-Maintainer: Max Lin <mlin@suse.com>
+
 use strict;
 use base "consoletest";
 

@@ -7,6 +7,10 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Add common setup for x11regression tests
+#     - grant user permission to access serial port
+# G-Maintainer: mitiao <mitiao@gmail.com>
+
 use base "x11regressiontest";
 use strict;
 use testapi;

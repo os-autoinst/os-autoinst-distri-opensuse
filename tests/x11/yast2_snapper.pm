@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Test for yast2-snapper
+# G-Maintainer: Ancor Gonzalez Sosa <ancor@suse.de>
+
 use base "x11test";
 use strict;
 use testapi;

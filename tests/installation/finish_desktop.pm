@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: move all inst/$DESKTOP.pm into one global 999_finish_desktop and runthe tests from start.pl
+# G-Maintainer: Stephan Kulow <coolo@suse.de>
+
 use base "installbasetest";
 use testapi;
 use strict;

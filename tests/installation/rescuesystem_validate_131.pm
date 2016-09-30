@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: split the rescuesystem test to allow overwriting the validation
+# G-Maintainer: Stephan Kulow <coolo@suse.de>
+
 use base "opensusebasetest";
 use strict;
 use testapi;

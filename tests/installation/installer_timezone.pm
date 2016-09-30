@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: change to nicer directory structure
+# G-Maintainer: Bernhard M. Wiedemann <bernhard+osautoinst lsmod de>
+
 use strict;
 use base "y2logsstep";
 use testapi;

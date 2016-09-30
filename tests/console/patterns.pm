@@ -7,6 +7,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Test pattern selection for system role 'kvm host' (fate#317481)
+# G-Maintainer: Christopher Hofmann <cwh@suse.de>
+
 use base "consoletest";
 use strict;
 use testapi;

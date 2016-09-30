@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: add new testsuite apache-mod_perl
+# G-Maintainer: Yong Sun <yosun@suse.com>
+
 use base "qa_run";
 use strict;
 use testapi;

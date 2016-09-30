@@ -7,6 +7,15 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Add new yast2_nfs_server test
+#    This tests "yast2 nfs-server" by creating an NFS share,
+#    writing a file to it and validating that the file is accessible
+#    after mounting.
+#    It can also be used as a server in an "/ on NFS" test scenario.
+#    In this case, NFSSERVER has to be 1, the server is accessible as
+#    10.0.2.1 and it provides a mutex "nfs_ready".
+# G-Maintainer: Fabian Vogt <fvogt@suse.com>
+
 use strict;
 use base "console_yasttest";
 use utils;

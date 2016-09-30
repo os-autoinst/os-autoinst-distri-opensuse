@@ -10,6 +10,9 @@
 
 # Case#1436117 Firefox: Email Link
 
+# G-Summary: Add some modified/merged test cases
+# G-Maintainer: wnereiz <wnereiz@github>
+
 use strict;
 use base "x11regressiontest";
 use testapi;

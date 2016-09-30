@@ -9,6 +9,9 @@
 
 # Case #1560076 - FIPS: Firefox Mozilla NSS
 
+# G-Summary: Add fips firefox nss test
+# G-Maintainer: mitiao <mitiao@gmail.com>
+
 use base "x11test";
 use strict;
 use testapi;

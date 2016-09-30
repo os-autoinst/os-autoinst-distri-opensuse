@@ -8,6 +8,10 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: New test: test installation with update repos
+#    Basically for Leap only. https://progress.opensuse.org/issues/9620
+# G-Maintainer: Max Lin <mlin@suse.com>
+
 use base "y2logsstep";
 use strict;
 use testapi;

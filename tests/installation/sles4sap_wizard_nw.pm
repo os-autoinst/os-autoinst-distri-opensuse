@@ -1,4 +1,7 @@
 #!/usr/bin/perl -w
+# G-Summary: Add SLES4SAP tests
+# G-Maintainer: Denis Zyuzin <dzyuzin@suse.com>
+
 use strict;
 use base "y2logsstep";
 use testapi;

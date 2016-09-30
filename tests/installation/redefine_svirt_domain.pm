@@ -7,6 +7,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Split the svirt redefine to another test
+# G-Maintainer: Stephan Kulow <coolo@suse.de>
+
 use base "installbasetest";
 use strict;
 use testapi;

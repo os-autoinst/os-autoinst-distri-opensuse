@@ -11,6 +11,9 @@
 # we need the package here for shutdown_sle11 to inherit it
 package shutdown;
 # don't use x11test, the end of this is not a desktop
+# G-Summary: Rework the tests layout.
+# G-Maintainer: Alberto Planas <aplanas@suse.com>
+
 use base "opensusebasetest";
 use strict;
 use testapi;

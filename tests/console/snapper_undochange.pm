@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: snapper_undochange console test
+# G-Maintainer: mkravec <mkravec@suse.com>
+
 use base "consoletest";
 use strict;
 use testapi;

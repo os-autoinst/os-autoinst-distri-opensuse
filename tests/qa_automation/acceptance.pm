@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Second upload of qa_automation/acceptance.pm
+# G-Maintainer: Stephan Kulow <coolo@suse.de>
+
 use base "qa_run";
 use strict;
 use testapi;

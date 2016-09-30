@@ -14,6 +14,10 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+# G-Summary: test that logs in on the console without running consoletest_setup
+#    useful to prepare patched disk images that will consoletest_setup later
+# G-Maintainer: Ludwig Nussel <ludwig.nussel@suse.de>
+
 use base "consoletest";
 use strict;
 use testapi;

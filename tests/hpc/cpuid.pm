@@ -8,6 +8,15 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: HPC_Module: Add test for cpuid
+#    https://fate.suse.com/319512
+#
+#    At the moment this test is in a pretty undefined state, since it's not clarified yet,
+#    what needs to be tested exactly
+#
+#    For now, it only shows the output of 'cpuid' and prints it to the serialdev
+# G-Maintainer: soulofdestiny <mgriessmeier@suse.com>
+
 use base "opensusebasetest";
 use strict;
 use testapi;

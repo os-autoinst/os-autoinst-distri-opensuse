@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Add Rescue System test.
+# G-Maintainer: Alberto Planas <aplanas@suse.com>
+
 use base "opensusebasetest";
 use strict;
 use testapi;

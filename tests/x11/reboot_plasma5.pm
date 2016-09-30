@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: rename reboot_*_pre to reboot_* - the reboot.pm just contained one line
+# G-Maintainer: Stephan Kulow <coolo@suse.de>
+
 use base "opensusebasetest";
 use strict;
 use testapi;

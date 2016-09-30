@@ -10,6 +10,9 @@
 
 # Case#1436118 Firefox: URLs with various protocols
 
+# G-Summary: Add some modified/merged test cases
+# G-Maintainer: wnereiz <wnereiz@github>
+
 use strict;
 use base "x11regressiontest";
 use testapi;

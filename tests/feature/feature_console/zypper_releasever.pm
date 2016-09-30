@@ -10,6 +10,10 @@
 # Feature #318354: [ECO] zypper: more advanced $releasever handling
 # Test case #1480297: zypper: more advanced $releasever handling
 
+# G-Summary: Add feature test case #1480297
+#    Test Feature 318354: zypper: more advanced $releasever handling
+# G-Maintainer: Qingming Su <qingming.su@suse.com>
+
 use base "consoletest";
 use strict;
 use testapi;

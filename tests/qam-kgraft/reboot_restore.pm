@@ -8,6 +8,9 @@
 # without any warranty.#
 
 
+# G-Summary: Live Patching regression testsuite
+# G-Maintainer: Ondřej Súkup <osukup@suse.cz>
+
 use base 'opensusebasetest';
 use testapi;
 use qam;

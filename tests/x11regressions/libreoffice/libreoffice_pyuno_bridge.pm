@@ -9,6 +9,10 @@
 
 # Case 1503978  - LibreOffice: pyuno bridge.
 
+# G-Summary: Add test case for TC#150378
+#    Update use base of libreoffice_pyuno_bridge.pm
+# G-Maintainer: Jiawei Sun <JiaWei.Sun@suse.com>
+
 use base "x11regressiontest";
 use strict;
 use testapi;

@@ -13,6 +13,9 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
+# G-Summary: wicked script for more logs if eth0 is not up
+# G-Maintainer: Jozef Pupava <jpupava@suse.com>
+
 use strict;
 use base 'basetest';
 use testapi;

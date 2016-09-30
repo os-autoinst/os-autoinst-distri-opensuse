@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: First commit for pidgin cases. These cases should be test under good network condition.Otherwise,will be failed by timeout.
+# G-Maintainer: nick wang <nwang@suse.com>
+
 use base "x11regressiontest";
 use strict;
 use testapi;

@@ -14,6 +14,11 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+# G-Summary: test to import gpg keys
+#    openSUSE maintenance updates in testing are signed by a different key,
+#    so that key needs to be imported manually
+# G-Maintainer: Ludwig Nussel <ludwig.nussel@suse.de>
+
 use base "consoletest";
 use strict;
 use testapi;

@@ -7,6 +7,19 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: tests: console: Add openvswitch openQA test
+#    Add a basic openvswitch test. This test does the following
+#
+#    - Installs openvswitch
+#    - Starts the systemd service unit
+#    - Executes a few basic openvswitch commands
+#    - Makes use of network namespaces and OpenFlow rules to test basic
+#    connectivity between veth pairs and OvS switches connected via
+#    patch ports.
+#
+#    Signed-off-by: Markos Chandras <mchandras@suse.de>
+# G-Maintainer: Markos Chandras <mchandras@suse.de>
+
 use base "consoletest";
 use testapi;
 use strict;

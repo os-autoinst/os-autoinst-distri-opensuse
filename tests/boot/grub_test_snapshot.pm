@@ -8,6 +8,10 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Enable Snapper-Rollback on HDD special Image.
+#    Enable test-workflow on Main
+# G-Maintainer: dmaiocchi <dmaiocchi@suse.com>
+
 use strict;
 use base "basetest";
 use testapi;

@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Postgres tests for 11SP4
+# G-Maintainer: Richard Brown <rbrownccb@opensuse.org>
+
 use base "consoletest";
 use strict;
 use testapi;

@@ -7,6 +7,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: add scripts and entry for gnomecases tc#1503968 in x11regression
+# G-Maintainer: Chingkai <qkzhu@suse.com>
+
 use base "x11regressiontest";
 use strict;
 use testapi;

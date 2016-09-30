@@ -7,6 +7,13 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Test ALPN support in openssl
+#    FATE#320292 - Application-Layer Protocol Negotiation (ALPN) support for
+#    openssl. Also PR#11800.
+#
+#    Verification run: http://assam.suse.cz/tests/2514#step/openssl_alpn/1.
+# G-Maintainer: Michal Nowak <mnowak@suse.com>
+
 use base "consoletest";
 use strict;
 use testapi;

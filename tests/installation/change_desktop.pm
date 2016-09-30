@@ -9,6 +9,9 @@
 # without any warranty.
 
 package change_desktop;
+# G-Summary: [OOP]Change desktop for sle12 & sle11
+# G-Maintainer: Jozef Pupava <jpupava@suse.com>
+
 use base "y2logsstep";
 use strict;
 use testapi;

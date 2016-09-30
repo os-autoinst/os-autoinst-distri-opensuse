@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Modification for main.pm and login without install script. Need to set REGRESSION and KEEPHDDS to enable it
+# G-Maintainer: nick wang <nwang@suse.com>
+
 use base "basetest";
 use strict;
 use testapi;

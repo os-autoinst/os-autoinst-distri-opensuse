@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: add some new script
+# G-Maintainer: root <root@linux-t9vu.site>
+
 use base "x11regressiontest";
 use strict;
 use testapi;

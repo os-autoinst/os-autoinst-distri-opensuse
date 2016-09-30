@@ -16,6 +16,9 @@
 # This case is available only when you run firefox the first time
 ##################################################
 
+# G-Summary: Restore SLE11 cases to sub-directory, remove main.pm lines because no openSUSE cases.
+# G-Maintainer: wnereiz <wnereiz@gmail.com>
+
 use strict;
 use base "x11regressiontest";
 use testapi;

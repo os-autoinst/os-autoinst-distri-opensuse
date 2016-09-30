@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: New test for yast2-dns-server (service management)
+# G-Maintainer: Ancor Gonzalez Sosa <ancor@suse.de>
+
 use base "console_yasttest";
 use strict;
 use testapi;

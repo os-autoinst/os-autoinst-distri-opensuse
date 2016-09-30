@@ -7,6 +7,10 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Test acpi loading with acpi=force parameterpoo#11798
+#    In acpi mode devicetree directory exists, but is empty..
+# G-Maintainer: mkravec <mkravec@suse.com>
+
 use base "consoletest";
 use strict;
 use testapi;

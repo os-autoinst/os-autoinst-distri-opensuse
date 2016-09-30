@@ -7,6 +7,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Add cLVM test
+# G-Maintainer: Denis Zyuzin <dzyuzin@suse.com>
+
 use base "hacluster";
 use strict;
 use testapi;

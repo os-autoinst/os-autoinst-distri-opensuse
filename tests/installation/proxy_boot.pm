@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Initial HA Validation Tests
+# G-Maintainer: Richard Brown <rbrownccb@opensuse.org>
+
 use base "installbasetest";
 use strict;
 use testapi;

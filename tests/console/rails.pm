@@ -7,6 +7,11 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Add rails test
+#    As coolo wrote, 'nough said. Had it make it work though, his IRC notes
+#    had syntax errors ;-)
+# G-Maintainer: Oliver Kurz <okurz@suse.de>
+
 use strict;
 use base "consoletest";
 use testapi;

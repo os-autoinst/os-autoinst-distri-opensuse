@@ -10,6 +10,12 @@
 # Test description: In fips mode, openssl only works with the FIPS
 # approved HASH algorithms: SHA1 and SHA2 (224, 256, 384, 512)
 
+# G-Summary: Add Hash and Cipher test cases for openssl-fips
+#    A new test suite is created for FIPS_TS, named "core", which will
+#    contain all the basic test cases for fips verificaton. Just like
+#    the cases to verify opessl hash, cipher, or public key algorithms
+# G-Maintainer: Qingming Su <qingming.su@suse.com>
+
 use base "consoletest";
 use testapi;
 use strict;

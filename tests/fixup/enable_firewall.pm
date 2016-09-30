@@ -7,6 +7,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Enable firewall after updating openSUSE 13.1 image (boo#977659)
+# G-Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
+
 use base "x11test";
 use strict;
 use testapi;

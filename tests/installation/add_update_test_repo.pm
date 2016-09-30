@@ -7,6 +7,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Support installation testing of SLE 12 with untested maint updates
+# G-Maintainer: sysrich <sysrich@linux.com>
+
 use strict;
 use base "y2logsstep";
 use testapi;

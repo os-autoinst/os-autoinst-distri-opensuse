@@ -9,6 +9,9 @@
 
 # Case 1525213 - FIPS: dm-crypt
 
+# G-Summary: Add dm crypt test for fips
+# G-Maintainer: mitiao <mitiao@gmail.com>
+
 use base "console_yasttest";
 use strict;
 use testapi;

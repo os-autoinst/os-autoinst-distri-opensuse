@@ -7,6 +7,19 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Add openssh test cases for FIPS testing
+#    Test Case 1525228: FIPS: openssh
+#
+#    Involve the existing openssh test case: sshd.pm
+#
+#    Create new case ssh_pubkey.pm to test public key
+#
+#    Create new case openssh_fips.pm to verify that
+#    openssh will refuse to work with any non-approved
+#    algorithm in fips mode, just like blowfish cipher
+#    or MD5 hash.
+# G-Maintainer: Qingming Su <qingming.su@suse.com>
+
 use base "consoletest";
 use strict;
 use testapi;

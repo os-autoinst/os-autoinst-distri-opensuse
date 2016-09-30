@@ -7,6 +7,20 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Add test for live installer based on Kde-Live
+#    The live installer was missing for some time from the media and the left overs
+#    in tests showed to be out of date. Changing all necessary references to ensure
+#    the live medium can be booted, the net installer can be run from the plasma
+#    session and the installed Tumbleweed system boots correctly. In the process an
+#    issue with the live installer has been found and is worked around while
+#    recording a reference to the bug.
+#
+#    Adds new variable 'LIVE_INSTALLATION'. 'LIVETEST' must not be set but only
+#    'LIVECD'.
+#
+#    Verification run: http://lord.arch/tests/3043
+# G-Maintainer: Oliver Kurz <okurz@suse.de>
+
 use base "installbasetest";
 use testapi;
 use strict;

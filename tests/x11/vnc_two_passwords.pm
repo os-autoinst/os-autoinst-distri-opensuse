@@ -7,6 +7,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: VNC Secondary viewonly passwordpoo#11794
+# G-Maintainer: mkravec <mkravec@suse.com>
+
 use base "x11test";
 use strict;
 use testapi;

@@ -7,6 +7,10 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Add ssh key dialog test
+#    https://progress.opensuse.org/issues/11454 https://github.com/yast/skelcd-control-SLES/blob/d2f9a79c0681806bf02eb38c4b7c287b9d9434eb/control/control.SLES.xml#L53-L71
+# G-Maintainer: Jozef Pupava <jpupava@suse.com>
+
 use strict;
 use warnings;
 use base "y2logsstep";

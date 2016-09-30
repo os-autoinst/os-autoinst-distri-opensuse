@@ -7,6 +7,18 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Fixup network configuration when upgrading from openSUSE 13.2 (and lower)
+#    openSUSE 13.2's (and earlier) systemd has broken rules for virtio-net,
+#    not applying predictable names (despite being configured). A maintenance
+#    update breaking networking names sounds worse than just accepting
+#    that 13.2 -> TW breaks with virtio-net.
+#
+#    Since consoletest_setup is no longer the first thing running after the
+#    system has been updated (it is now the check for applicable updates) this
+#    fixup needed to be moved out of consoletest_setup in order to be started
+#    earlier (again, asap, before nything wants to access the network)
+# G-Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
+
 use base "x11test";
 use strict;
 use testapi;

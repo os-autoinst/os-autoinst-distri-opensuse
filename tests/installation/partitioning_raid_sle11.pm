@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Half finished sle11 partitioning software raidtest
+# G-Maintainer: Richard Brown <rbrownccb@opensuse.org>
+
 use strict;
 use warnings;
 use base "y2logsstep";

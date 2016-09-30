@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Toolchain module tests
+# G-Maintainer: Jozef Pupava <jpupava@suse.com>
+
 use base "opensusebasetest";
 use strict;
 use testapi;

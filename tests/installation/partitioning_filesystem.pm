@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Refactor partitioning test to handle all supported filesystems - needles present already
+# G-Maintainer: Richard Brown <rbrownccb@opensuse.org>
+
 use strict;
 use base "y2logsstep";
 use testapi;

@@ -23,6 +23,22 @@
 # time-consuming (more than two hours in a specific case, while this
 # test can finish in less than 20 minutes).
 
+# G-Summary: Add ImageMagick test
+#    This test creates, displays, and evaluates 200+ images utilizing
+#    various convertion options of ImageMagick.
+#
+#    The examined examples were taken from:
+#    https://www.imagemagick.org/Usage/canvas/ (Aug 2016)
+#
+#    A set of preloaded images and a script are required as input. This
+#    test generates multiple new images and evaluates the output. Some
+#    of the new images are converted from the preloaded images, while
+#    others are drawn from scratch. The preloaded script contains all
+#    the executed commands because typing them appeared to be extremely
+#    time-consuming (more than two hours in a specific case, while this
+#    test can finish in less than 20 minutes).
+# G-Maintainer: Romanos Dodopoulos <rdodopoulos@novell.com>
+
 use base "x11test";
 use strict;
 use warnings;

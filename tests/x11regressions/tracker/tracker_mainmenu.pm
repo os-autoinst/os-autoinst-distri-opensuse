@@ -7,6 +7,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: add tracker main menu test case to x11regression
+# G-Maintainer: Chingkai Chu <qkzhu@suse.com>
+
 use base "x11regressiontest";
 use strict;
 use testapi;

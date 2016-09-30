@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: a2ps test based on: https://progress.opensuse.org/issues/9472
+# G-Maintainer: Dumitru Gutu <dgutu@suse.com>
+
 use strict;
 use base "consoletest";
 use testapi;

@@ -7,6 +7,15 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: QAM Minimal test in openQA
+#    it prepares minimal instalation, boot it, install tested incident , try
+#    reboot and update system with all released updates.
+#
+#    with QAM_MINIMAL=full it also installs gnome-basic, base, apparmor and
+#    x11 patterns and reboot system to graphical login + start console and
+#    x11 tests
+# G-Maintainer: Ondřej Súkup <osukup@suse.cz>
+
 use strict;
 use base "basetest";
 

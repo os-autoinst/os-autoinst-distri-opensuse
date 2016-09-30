@@ -8,6 +8,15 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: adding a test that selects given PATTERNS
+#    You can pass
+#    PATTERNS=minimal,base or
+#    PATTERNS=all to select all of them
+#
+#    For this you need to have needles that provide pattern-base,pattern-minimal...
+#    additional to the on-pattern tag
+# G-Maintainer: Stephan Kulow <coolo@suse.de>
+
 use base "y2logsstep";
 use strict;
 use testapi;

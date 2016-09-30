@@ -9,6 +9,9 @@
 # without any warranty.
 
 package firefox;
+# G-Summary: Rework the tests layout.
+# G-Maintainer: Alberto Planas <aplanas@suse.com>
+
 use base "x11test";
 use strict;
 use testapi;

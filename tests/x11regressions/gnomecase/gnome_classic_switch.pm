@@ -7,6 +7,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: openqa script and entry for tc#1503849:gnome:gnome-classic switch
+# G-Maintainer: xiaojun <xjin@suse.com>
+
 use base "x11regressiontest";
 use strict;
 use testapi;

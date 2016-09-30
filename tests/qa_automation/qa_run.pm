@@ -9,6 +9,9 @@
 # without any warranty.
 #
 package qa_run;
+# G-Summary: remove code duplication by sharing the code in a base class
+# G-Maintainer: Stephan Kulow <coolo@suse.de>
+
 use strict;
 use warnings;
 use File::Basename;

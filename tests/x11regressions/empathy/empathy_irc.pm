@@ -7,6 +7,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: add empathy irc regression test
+# G-Maintainer: mitiao <mitiao@gmail.com>
+
 use base "x11regressiontest";
 use strict;
 use testapi;

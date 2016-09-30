@@ -8,6 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: Add secure boot test. Add SECUREBOOT variable.
+# G-Maintainer: Alberto Planas <aplanas@suse.com>
+
 use strict;
 use warnings;
 use base "y2logsstep";

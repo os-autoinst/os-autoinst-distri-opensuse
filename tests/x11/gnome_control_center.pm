@@ -8,6 +8,11 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# G-Summary: test: add test for gnome-control-center
+#    Identify bugs like https://bugzilla.suse.com/show_bug.cgi?id=897687
+#    earlier.
+# G-Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
+
 use base "x11test";
 use strict;
 use testapi;
