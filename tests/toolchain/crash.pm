@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Run 'crash' utility on a kernel memory dump
+# Summary: Run 'crash' utility on a kernel memory dump
 #    Upstream kernel commit 8244062ef1 (v4.5), which got ingerited by SLE
 #    from 11-SP4 to 12-SP2 fixed handling of /proc/kallsyms. This change
 #    affected 'crash' utility, among other utilities.
@@ -31,7 +31,7 @@
 #
 #    This test enables kdump, dumps kernel memory and runs 'crash' on the
 #    dump.
-# G-Maintainer: Michal Nowak <mnowak@suse.com>
+# Maintainer: Michal Nowak <mnowak@suse.com>
 
 use base "opensusebasetest";
 use strict;
@@ -82,7 +82,7 @@ sub run() {
 
     # add debuginfo channels
     if (check_var('DISTRI', 'sle')) {
-        my $url = "ftp://openqa.suse.de/" . get_var('REPO_SLES_DEBUG');
+        my $url = "ftp://openqa.suse.de/" . get_required_var('REPO_SLES_DEBUG');
         assert_script_run "zypper ar -f $url SLES-Server-Debug";
         install_kernel_debuginfo;
         script_run 'zypper -n rr SLES-Server-Debug';
