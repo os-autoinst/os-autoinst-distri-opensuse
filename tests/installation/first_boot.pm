@@ -25,19 +25,8 @@ sub handle_login {
     if (get_var('DM_NEEDS_USERNAME')) {
         type_string $username;
     }
-    if (match_has_tag("sddm")) {
-        # make sure choose plasma5 session
-        assert_and_click "sddm-sessions-list";
-        assert_and_click "sddm-sessions-plasma5";
-        assert_and_click "sddm-password-input";
-    }
-    else {
-        send_key "ret";
-        if (!check_screen "displaymanager-password-prompt") {
-            record_soft_failure;
-            assert_screen "displaymanager-password-prompt";
-        }
-    }
+    send_key "ret";
+    assert_screen "displaymanager-password-prompt";
     type_string "$password";
     send_key "ret";
 }
