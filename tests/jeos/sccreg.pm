@@ -8,12 +8,13 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: First commit of JeOS firstrun, diskusage, sccreg, and imgsize tests
-# G-Maintainer: Richard Brown <rbrownccb@opensuse.org>
+# Summary: Register JeOS using SUSEConnect
+# Maintainer: Richard Brown <rbrownccb@opensuse.org>
 
 use base "opensusebasetest";
 use strict;
 use testapi;
+use registration;
 
 sub run() {
     my $sccmail = get_var("SCC_EMAIL");
@@ -21,6 +22,7 @@ sub run() {
     my $url     = get_var('SCC_URL', 'https://scc.suse.com');
 
     assert_script_run "SUSEConnect --url=$url -e $sccmail -r $scccode";
+    setup_unregister_hook;
 }
 
 sub test_flags() {

@@ -19,11 +19,33 @@ use base Exporter;
 use Exporter;
 
 use strict;
-
 use testapi;
 use utils qw /addon_decline_license/;
 
-our @EXPORT = qw/fill_in_registration_data registration_bootloader_params yast_scc_registration/;
+our @EXPORT = qw/fill_in_registration_data registration_bootloader_params yast_scc_registration setup_unregister_hook/;
+
+sub setup_unregister_hook {
+    # Run from multiple places to setup variables ASAP
+    return if get_var("SCC_DEREGISTER");
+
+    # Defaults - switch to log-console if root-console is in use
+    my ($pre, $post) = ("log-console", "root-console");
+    if (check_var('SCC_REGISTER', 'installation')) {
+        # Register during installation
+        ($pre, $post) = ("install-shell", "installation");
+    }
+    elsif (get_var('SCC_REGISTER', '') =~ /addon|network/) {
+        # SLERT - register in X11
+        ($pre, $post) = ("root-console", "x11");
+    }
+
+    # Save SCCcredentials information into variable
+    select_console $pre;
+    my $credentials = script_output("cut -d= -f2 /etc/zypp/credentials.d/SCCcredentials");
+    set_var("SCC_DEREGISTER", $credentials);
+    bmwqemu::save_vars();
+    select_console $post;
+}
 
 sub fill_in_registration_data {
     my ($addon, $uc_addon);
@@ -52,6 +74,7 @@ sub fill_in_registration_data {
                 next;
             }
             elsif (match_has_tag("import-untrusted-gpg-key")) {
+                setup_unregister_hook;
                 if (check_var("IMPORT_UNTRUSTED_KEY", 1)) {
                     send_key "alt-t", 1;    # import
                 }
@@ -61,6 +84,7 @@ sub fill_in_registration_data {
                 next;
             }
             elsif (match_has_tag("registration-online-repos")) {
+                setup_unregister_hook;
                 if (!get_var('QAM_MINIMAL')) {
                     send_key "alt-y", 1;    # want updates
                 }
@@ -95,6 +119,7 @@ sub fill_in_registration_data {
             last;
         }
     }
+    setup_unregister_hook;
 
     if (check_var('SCC_REGISTER', 'installation')) {
         if (check_screen("local-registration-servers", 10)) {
