@@ -13,6 +13,9 @@ use testapi;
 use utils;
 use strict;
 
+# Summary: console test pre setup, stoping and disabling packagekit, install curl and tar to get logs and so on
+# Maintainer: Oliver Kurz <okurz@suse.de>
+
 sub run() {
     my $self = shift;
 
@@ -98,6 +101,12 @@ sub run() {
         assert_script_run("sed -ie '/GFXMODE=/s/=.*/=1024x768x32/' /etc/default/grub");
         assert_script_run("sed -ie '/GFXPAYLOAD_LINUX=/s/=.*/=1024x768x32/' /etc/default/grub");
         assert_script_run("grub2-mkconfig -o /boot/grub2/grub.cfg");
+    }
+
+    # https://fate.suse.com/320347 https://bugzilla.suse.com/show_bug.cgi?id=988157
+    if (check_var('NETWORK_INIT_PARAM', 'ifcfg=eth0=dhcp')) {
+        # grep all also compressed files e.g. y2log-1.gz
+        assert_script_run 'less /var/log/YaST2/y2log*|grep "Automatic DHCP configuration not started - an interface is already configured"';
     }
 
     save_screenshot;
