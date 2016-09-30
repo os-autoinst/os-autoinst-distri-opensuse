@@ -50,8 +50,13 @@ test-metadata:
 test-metadata-changed:
 	tools/check_metadata $$(git diff --name-only | grep 'tests.*pm')
 
+.PHONY: test-metadata-merge
+test-metadata-merge:
+	@FILES=$$(git diff --name-only FETCH_HEAD `git merge-base FETCH_HEAD master` | grep 'tests.*pm') ;\
+	if test -n "$$FILES"; then tools/check_metadata $$FILES ; fi
+
 .PHONY: test
-test: tidy test-compile
+test: tidy test-compile test-metadata-merge
 
 .PHONY: perlcritic
 perlcritic: tools/lib/
