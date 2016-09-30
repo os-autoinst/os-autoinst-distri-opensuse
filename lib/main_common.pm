@@ -21,6 +21,8 @@ our @EXPORT = qw/
   load_slepos_tests
   installzdupstep_is_applicable
   snapper_is_applicable
+  chromestep_is_applicable
+  chromiumstep_is_applicable
   gnomestep_is_applicable
   installyaststep_is_applicable
   bigx11step_is_applicable
