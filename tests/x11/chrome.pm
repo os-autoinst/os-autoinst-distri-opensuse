@@ -8,8 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: GOOGLE Chrome: attempt to install and run google chrome
-# G-Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
+
+# Summary: GOOGLE Chrome: attempt to install and run google chrome
+# Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
 
 use base "x11test";
 use strict;
@@ -49,7 +50,8 @@ sub run() {
 
     assert_and_click 'chrome-default-browser-query';
 
-    assert_screen 'google-chrome-main-window', 50;
+    handle_keyring 'google-chrome-main-window', 50;
+
     send_key "ctrl-l";
     sleep 1;
     type_string "about:\n";
