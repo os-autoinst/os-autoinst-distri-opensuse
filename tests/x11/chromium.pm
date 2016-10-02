@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: add chromium test
-# G-Maintainer: Ludwig Nussel <ludwig.nussel@suse.de>
+# Summary: Basic test of chromium visiting html5test.com
+# Maintainer: Stephan Kulow <coolo@suse.de>
 
 use base "x11test";
 use strict;
@@ -25,7 +25,8 @@ sub run() {
 
     x11_start_program("chromium");
 
-    assert_screen 'chromium-main-window', 50;
+    handle_keyring 'chromium-main-window', 50;
+
     send_key "esc";       # get rid of popup
     sleep 1;
     send_key "ctrl-l";    # select text in address bar

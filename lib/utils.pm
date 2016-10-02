@@ -11,6 +11,7 @@ our @EXPORT = qw/
   check_console_font
   clear_console
   handle_kwallet
+  handle_keyring
   is_jeos
   select_kernel
   type_string_slow
@@ -245,13 +246,29 @@ sub type_string_very_slow {
     wait_still_screen 1;
 }
 
+sub handle_keyring {
+    my ($main_tag, $timeout) = @_;
+    my @tags;
+    push(@tags, $main_tag);
+    if (!check_var('DESKTOP', 'kde')) {
+        push(@tags, 'gnome-keyring');
+    }
+    assert_screen \@tags, $timeout;
+    if (match_has_tag('gnome-keyring', 5)) {
+        assert_and_click 'gnome-keyring-cancel';
+        assert_screen $main_tag, $timeout;
+    }
+
+
+}
+
 sub handle_kwallet {
     my ($enable) = @_;
     # enable = 1 as enable kwallet, archive kwallet enabling process
     # enable = 0 as disable kwallet, just close the popup dialog
     $enable //= 0;    # default is disable kwallet
 
-    return unless (check_var('DESKTOP', 'kde'));
+    return unless check_var('DESKTOP', 'kde');
 
     if (check_screen("kwallet-wizard", 5)) {
         if ($enable) {
@@ -268,12 +285,15 @@ sub handle_kwallet {
 
             assert_screen "kwallet-opening", 5;
             type_password;
-            send_key "ret", 1;
+            wait_screen_change {
+                send_key "ret";
+            };
         }
         else {
             send_key "alt-f4", 1;
         }
     }
+
 }
 
 sub get_netboot_mirror {
