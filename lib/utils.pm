@@ -254,23 +254,29 @@ sub handle_keyring {
         push(@tags, 'gnome-keyring');
     }
     assert_screen \@tags, $timeout;
-    if (match_has_tag('gnome-keyring', 5)) {
+    if (match_has_tag('gnome-keyring')) {
         assert_and_click 'gnome-keyring-cancel';
         assert_screen $main_tag, $timeout;
     }
-
-
 }
 
+# check at the end of chrome/chromium test if kwallet or gnome-keyring appeared
 sub handle_kwallet {
     my ($enable) = @_;
     # enable = 1 as enable kwallet, archive kwallet enabling process
     # enable = 0 as disable kwallet, just close the popup dialog
     $enable //= 0;    # default is disable kwallet
 
-    return unless check_var('DESKTOP', 'kde');
+    my @tags = qw/generic-desktop/;
+    if (check_var('DESKTOP', 'kde')) {
+        push(@tags, 'kwallet-wizard');
+    }
+    else {
+        push(@tags, 'gnome-keyring');
+    }
 
-    if (check_screen("kwallet-wizard", 5)) {
+    assert_screen \@tags, 5;
+    if (match_has_tag('kwallet-wizard')) {
         if ($enable) {
             send_key "alt-n";
             sleep 2;
@@ -292,6 +298,9 @@ sub handle_kwallet {
         else {
             send_key "alt-f4", 1;
         }
+    }
+    if (match_has_tag('gnome-keyring')) {
+        assert_and_click 'gnome-keyring-cancel';
     }
 
 }
