@@ -23,9 +23,12 @@ sub handle_login {
     mouse_hide();
     wait_still_screen;
     if (get_var('DM_NEEDS_USERNAME')) {
-        type_string $username;
+        type_string "$username\n";
     }
-    send_key "ret";
+    if (check_var('DESKTOP', 'gnome')) {
+        # In GNOME/gdm, we do not have to enter a username, but we have to select it
+        send_key 'ret';
+    }
     assert_screen "displaymanager-password-prompt";
     type_string "$password";
     send_key "ret";
