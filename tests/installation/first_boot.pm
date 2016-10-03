@@ -8,8 +8,10 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: renamed 091_second_stage to 091_first_boot
-# G-Maintainer: Max Lin <mlin@suse.com>
+# Summary: Special handling to get to the desktop the first time after
+#          the installation has been completed (either find the desktop after
+#          auto-login or handle the login screen to reach the desktop)
+# Maintainer: Max Lin <mlin@suse.com>
 
 use strict;
 use base "y2logsstep";
