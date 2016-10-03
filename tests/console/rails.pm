@@ -7,10 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add rails test
-#    As coolo wrote, 'nough said. Had it make it work though, his IRC notes
-#    had syntax errors ;-)
-# G-Maintainer: Oliver Kurz <okurz@suse.de>
+# Summary: Rails 5.0 test - just installing and starting server
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use strict;
 use base "consoletest";
@@ -23,8 +21,10 @@ zypper -n in -C "rubygem(rails)"
 rails new -B mycoolapp
 cd mycoolapp
 (rails server &)
-for i in {1..100} ; do sleep 0.1; curl -s http://localhost:3000 | grep "Welcome" && break ; done
-pkill -f "rails server"
+for i in {1..100} ; do sleep 0.1; curl -s http://localhost:3000 | grep "<title>Ruby on Rails</title>" && break ; done
+test -f tmp/pids/server.pid
+pumactl -P tmp/pids/server.pid stop
+!test -f tmp/pids/server.pid
 EOF
     assert_script_run($_) foreach (split /\n/, $cmd);
 }
