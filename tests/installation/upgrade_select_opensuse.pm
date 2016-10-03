@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Split openSUSE specific part from upgrade_select
-# G-Maintainer: Ludwig Nussel <ludwig.nussel@suse.de>
+# Summary: openSUSE specific part of upgrade_select
+# Maintainer: Ludwig Nussel <ludwig.nussel@suse.de>
 
 use strict;
 use base "y2logsstep";
@@ -17,7 +17,10 @@ use testapi;
 
 # Check that installer does not freeze when pressing next
 sub check_bsc997635 {
-    if (!wait_screen_change { send_key $cmd{next} }, 10) {
+    my $ret = wait_screen_change {
+        send_key $cmd{next};
+    }, 10;
+    if (!$ret) {
         record_soft_failure 'bsc#997635';
         sleep 30;
     }
