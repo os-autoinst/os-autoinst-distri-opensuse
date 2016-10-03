@@ -32,12 +32,12 @@ sub run() {
     send_key "ctrl-l";    # select text in address bar
     sleep 1;
     type_string "about:\n";
-    assert_screen 'chromium-about', 15;
+    handle_keyring 'chromium-about', 15;
 
     send_key "ctrl-l";
     sleep 1;
     type_string "https://html5test.com/index.html\n";
-    assert_screen 'chromium-html5test', 30;
+    handle_keyring 'chromium-html5test', 30;
 
     send_key "alt-f4";
 
