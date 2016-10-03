@@ -8,8 +8,10 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: renamed 091_second_stage to 091_first_boot
-# G-Maintainer: Max Lin <mlin@suse.com>
+# Summary: Special handling to get to the desktop the first time after
+#          the installation has been completed (either find the desktop after
+#          auto-login or handle the login screen to reach the desktop)
+# Maintainer: Max Lin <mlin@suse.com>
 
 use strict;
 use base "y2logsstep";
@@ -23,9 +25,12 @@ sub handle_login {
     mouse_hide();
     wait_still_screen;
     if (get_var('DM_NEEDS_USERNAME')) {
-        type_string $username;
+        type_string "$username\n";
     }
-    send_key "ret";
+    if (check_var('DESKTOP', 'gnome')) {
+        # In GNOME/gdm, we do not have to enter a username, but we have to select it
+        send_key 'ret';
+    }
     assert_screen "displaymanager-password-prompt";
     type_string "$password";
     send_key "ret";
