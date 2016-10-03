@@ -98,14 +98,20 @@ sub run() {
         assert_and_click 'enlightenment_shutdown_btn';
     }
 
+    if (check_var('DESKTOP', 'awesome')) {
+        assert_and_click 'awesome-menu-main';
+        assert_and_click 'awesome-menu-system';
+        assert_and_click 'awesome-menu-shutdown';
+    }
+
     if (check_var("DESKTOP", "mate")) {
         x11_start_program("mate-session-save --shutdown-dialog");
-        send_key "ctrl-alt-delete";               # shutdown
+        send_key "ctrl-alt-delete";    # shutdown
         assert_screen 'mate_logoutdialog', 15;
         assert_and_click 'mate_shutdown_btn';
     }
 
-    if (get_var("DESKTOP") =~ m/minimalx|textmode|awesome/) {
+    if (get_var("DESKTOP") =~ m/minimalx|textmode/) {
         power('off');
     }
 
