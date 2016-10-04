@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Fortran test for SLE Toolchain Module's GCC5
-# G-Maintainer: Michal Nowak <mnowak@suse.com>
+# Summary: Fortran test for SLE Toolchain Module's GCC5
+# Maintainer: Michal Nowak <mnowak@suse.com>
 
 use base "opensusebasetest";
 use strict;

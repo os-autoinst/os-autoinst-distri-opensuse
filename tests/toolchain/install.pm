@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Toolchain module tests
-# G-Maintainer: Jozef Pupava <jpupava@suse.com>
+# Summary: Toolchain module test environment installation
+# Maintainer: Michal Nowak <mnowak@suse.com>
 
 use base "opensusebasetest";
 use strict;
