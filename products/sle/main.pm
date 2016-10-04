@@ -1185,6 +1185,9 @@ else {
         load_boot_tests();
         loadtest "jeos/firstrun.pm";
         loadtest "jeos/grub2_gfxmode.pm";
+        if (check_var('BACKEND', 'svirt')) {
+            loadtest "installation/redefine_svirt_domain.pm";
+        }
         loadtest "jeos/diskusage.pm";
         loadtest "jeos/root_fs_size.pm";
         loadtest "jeos/mount_by_label.pm";

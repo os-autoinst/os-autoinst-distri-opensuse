@@ -7,14 +7,21 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Split the svirt redefine to another test
-# G-Maintainer: Stephan Kulow <coolo@suse.de>
+# Summary: libvirt domains need to be redefined after installation
+# to restart properly
+# Maintainer: Michal Nowak <mnowak@suse.com>
 
 use base "installbasetest";
 use strict;
 use testapi;
+use utils;
 
 sub run() {
+    # Now we need to redefine libvirt domain; installation/redefine_svirt_domain
+    # test should follow.
+    if (is_jeos) {
+        script_run 'poweroff', 0;
+    }
 
     my $svirt = console('svirt');
 
@@ -47,6 +54,20 @@ sub run() {
         }
         select_console 'sut';
     }
+
+    if (is_jeos) {
+        wait_boot;
+        if (check_var('BACKEND', 'svirt') and !check_var('ARCH', 's390x')) {
+            wait_idle;
+        }
+        select_console 'root-console';
+    }
+}
+
+sub test_flags() {
+    # on JeOS this is the time for first snapshot as system is deployed
+    # and it's libvirt XML domain set to restart properly
+    return {fatal => 1, milestone => is_jeos ? 1 : 0};
 }
 
 1;

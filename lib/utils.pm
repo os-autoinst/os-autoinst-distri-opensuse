@@ -143,6 +143,14 @@ sub wait_boot {
 
     if ($textmode || check_var('DESKTOP', 'textmode')) {
         assert_screen 'linux-login', 200;
+        reset_consoles;
+
+        # Without this login name and password won't get to the system. They get
+        # lost somewhere. Applies for all systems installed via svirt, but zKVM.
+        if (check_var('BACKEND', 'svirt') and !check_var('ARCH', 's390x')) {
+            wait_idle;
+        }
+
         return;
     }
 
