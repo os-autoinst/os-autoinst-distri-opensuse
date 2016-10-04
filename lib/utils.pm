@@ -353,7 +353,7 @@ sub fully_patch_system {
 }
 
 sub workaround_type_encrypted_passphrase {
-    if (check_var('ARCH', 'ppc64le') && (get_var('ENCRYPT') || get_var('ENCRYPT_FORCE_RECOMPUTE') || !(get_var('ENCRYPT_ACTIVATE_EXISTING') && get_var('ENCRYPT_CANCEL_EXISTING')))) {
+    if (check_var('ARCH', 'ppc64le') && (get_var('ENCRYPT') && !get_var('ENCRYPT_ACTIVATE_EXISTING') || get_var('ENCRYPT_FORCE_RECOMPUTE'))) {
         record_soft_failure 'workaround https://fate.suse.com/320901';
         unlock_if_encrypted;
     }
