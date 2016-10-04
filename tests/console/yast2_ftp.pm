@@ -7,8 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add yast2_ftp
-# G-Maintainer: Zaoliang Luo <zluo@suse.de>
+# Summary: Check yast ftp-server options and ability to start vsftpd with ssl support
+# Maintainer: Zaoliang Luo <zluo@suse.de>
 
 use strict;
 use base "consoletest";
@@ -18,7 +18,7 @@ sub run() {
     select_console 'root-console';
 
     # install vsftps
-    assert_script_run("/usr/bin/zypper -n -q in vsftpd yast2-ftp-server");
+    assert_script_run("zypper -n -q in vsftpd yast2-ftp-server");
 
     # bsc#694167
     # create RSA certificate for ftp server at first which can be used for SSL configuration
@@ -44,7 +44,9 @@ sub run() {
     assert_screen 'ftp-server';                    # check ftp server configuration page
     send_key 'alt-w';                              # make sure ftp start-up when booting
     check_screen 'ftp_server_when_booting';        # check service start when booting
-    send_key 'shift-tab';                          # move to page General
+
+    # General
+    send_key 'shift-tab';
     send_key 'down';
     send_key 'ret';                                # enter page General
     assert_screen 'ftp_welcome_mesage';            # check welcome message for add strings
@@ -63,9 +65,12 @@ sub run() {
     send_key 'alt-t';                              # give a new directory for authenticated users
     type_string '/srv/ftp/authenticated';
     assert_screen 'ftp_directories';               # check new directories for ftp users
-    for (1 .. 8) { send_key 'shift-tab'; }         # move to Performance page
+
+    # Performance
+    for (1 .. 8) { send_key 'shift-tab'; }
     send_key 'down';
-    send_key 'ret';                                # change max idle time to 10 minutes
+    send_key 'ret';
+    assert_screen 'ftp_performance-tab';
     send_key 'alt-m';
     for (1 .. 5) { send_key 'down'; }
     send_key 'alt-e';                              # change max client for one IP
@@ -77,15 +82,20 @@ sub run() {
     send_key 'alt-r';                              # change anonymous max rate to 50 kb/s
     for (1 .. 10) { send_key 'up'; }
     assert_screen 'ftp_performance-settings';      # check performance settings
-    for (1 .. 5) { send_key 'shift-tab'; }         # move to page Authentication
+
+    # Authentication
+    for (1 .. 5) { send_key 'shift-tab'; }
     send_key 'down';
     send_key 'ret';
+    assert_screen 'ftp_authentication-tab';
     send_key 'alt-e';                              # enable upload
     send_key 'alt-y';
     send_key 'alt-s';
     send_key 'alt-s';                              # disable creating directories
     assert_screen 'ftp_anonymous_setting';         # check upload settings
-    for (1 .. 6) { send_key 'shift-tab'; }         # move to page Expert Settings
+
+    # Expert Settings
+    for (1 .. 6) { send_key 'shift-tab'; }
     send_key 'down';
     send_key 'ret';
     assert_screen 'ftp_create_upload_dir';         # confirm to create upload directory
