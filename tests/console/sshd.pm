@@ -8,8 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Rework the tests layout.
-# G-Maintainer: Alberto Planas <aplanas@suse.com>
+# Summary: Very old test to verify sshd starts up.
+#  We need this test to succeed for followup tests using ssh localhost
+# Maintainer: Stephan Kulow <coolo@suse.de>
 
 use base "consoletest";
 use strict;
@@ -36,8 +37,8 @@ sub run() {
 
     # create a new user to test sshd
     my $changepwd = $ssh_testman . ":" . $ssh_testman_passwd;
-    script_run("useradd -m $ssh_testman");
-    script_run("echo $changepwd | chpasswd");
+    assert_script_run("useradd -m $ssh_testman",    60);
+    assert_script_run("echo $changepwd | chpasswd", 60);
     $self->clear_and_verify_console;
     select_console 'user-console';
 
