@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Rework the tests layout.
-# G-Maintainer: Alberto Planas <aplanas@suse.com>
+# Summary: Very basic Thunderbird test
+# Maintainer: Stephan Kulow <coolo@suse.com>
 
 use base "x11test";
 use strict;
@@ -19,9 +19,9 @@ sub run() {
     my $self = shift;
     ensure_installed("MozillaThunderbird");
     x11_start_program("thunderbird");
-    assert_screen 'test-thunderbird-1', 3;
+    assert_screen 'test-thunderbird-1';
     wait_screen_change {
-        send_key "alt-f4";    # close wizzard
+        send_key "alt-f4";    # close wizard
     };
     send_key "alt-f4";        # close prog
 }
