@@ -9,8 +9,8 @@
 # without any warranty.
 #
 package qa_run;
-# G-Summary: remove code duplication by sharing the code in a base class
-# G-Maintainer: Stephan Kulow <coolo@suse.de>
+# Summary:  base class for qa_automation tests in openQA
+# Maintainer: Nathan Zhao <jtzhao@suse.com>
 
 use strict;
 use warnings;
@@ -50,12 +50,12 @@ sub create_qaset_config {
 # Add qa head repo for kernel testing. If QA_SERVER_REPO is set,
 # remove all existing zypper repos first
 sub prepare_repos {
-    my $self = shift;
-    my $qa_server_repo = get_var('QA_SERVER_REPO', '');
+    my $self           = shift;
+    my $qa_server_repo = get_var('QA_SERVER_REPO');
+    pkcon_quit;
     if ($qa_server_repo) {
         # Remove all existing repos and add QA_SERVER_REPO
-        my $rm_repos = "declare -i n=`zypper repos | wc -l`-2; for ((i=0; i<\$n; i++)); do zypper rr 1; done; unset n; unset i";
-        assert_script_run($rm_repos, 300);
+        script_run('for i in {1..$(zypper lr| tail -n+3 |wc -l)}; do zypper -n rr $i; done; unset i', 300);
         assert_script_run("zypper --no-gpg-check -n ar -f '$qa_server_repo' server-repo");
     }
     my $qa_head_repo = get_var('QA_HEAD_REPO', '');
@@ -68,35 +68,34 @@ sub prepare_repos {
         assert_script_run "zypper --no-gpg-check -n ar -f '$qa_web_repo' qa-web";
     }
     else {
-        assert_script_run("echo 'info: No QA_WEB_REPO configured in this testsuit.'");
+        script_run("echo 'info: No QA_WEB_REPO configured in this testsuit.'");
     }
     assert_script_run "zypper --gpg-auto-import-keys ref";
-    assert_script_run("zypper -n in qa_testset_automation qa_tools", 300);
+    zypper_call("in qa_testset_automation qa_tools");
 }
 
 # Create qaset/config file, reset qaset, and start testrun
 sub start_testrun {
     my $self = shift;
     $self->create_qaset_config();
-    assert_script_run "/usr/share/qa/qaset/qaset reset";
+    assert_script_run("/usr/share/qa/qaset/qaset reset");
     my $testsuite = $self->test_suite();
-    assert_script_run "/usr/share/qa/qaset/run/$testsuite-run.openqa";
+    assert_script_run("/usr/share/qa/qaset/run/$testsuite-run.openqa");
 }
 
 # Safely run shell commands and get output
 sub qa_script_output {
     my ($self, $cmd, $timeout) = @_;
+    $timeout //= 90;
     my $random      = int(rand(999999));
     my $output_file = "/tmp/SCRIPT_OUTPUT_$random";
-    $timeout = 90 unless defined $timeout;
     # Run cmd and save output to file
-    $cmd = "bash -c \"$cmd\" 2>&1 | tee $output_file";
-    script_run($cmd, $timeout);
+    script_run(qq{$cmd 2>&1 | tee $output_file}, $timeout);
     # Write output to serial console
     my $output_cmd = "sleep 0.1; echo SCRIPT_BEGIN_$random >> /dev/$serialdev; ";
     $output_cmd .= "cat $output_file >> /dev/$serialdev; ";
-    $output_cmd .= "echo SCRIPT_END_$random >> /dev/$serialdev\n";
-    type_string $output_cmd;
+    $output_cmd .= "echo SCRIPT_END_$random >> /dev/$serialdev";
+    script_run($output_cmd, 0);
     # Get output from serial console
     my $output = wait_serial("SCRIPT_END_$random", 30);
     $output =~ s/.*?SCRIPT_BEGIN_$random//sg;
@@ -110,19 +109,15 @@ sub qa_script_output {
 # Check whether DONE file exists every $interval secs in the background
 sub wait_testrun {
     my ($self, $interval) = @_;
-    $interval = 30 unless defined $interval;
+    $interval //= 30;
     my $done_file = '/var/log/qaset/control/DONE';
     my $pattern   = "TESTRUN_FINISHED-" . int(rand(999999));
-    my $cmd       = "while [[ ! -f $done_file ]]; do sleep $interval; done; echo $pattern >> /dev/$serialdev";
-    type_string "bash -c '$cmd' &\n";
+    script_run("while [[ ! -f $done_file ]]; do sleep $interval; done; echo $pattern >> /dev/$serialdev", 0);
     # Set a high timeout value for wait_serial
     # so that it will wait until test run finished or
     # MAX_JOB_TIME(can be set on openQA webui) reached
     my $ret = wait_serial($pattern, 180 * 60);
-    if ($ret) {
-        return 1;
-    }
-    return 0;
+    return $ret ? 1 : 0;
 }
 
 # Upload all log tarballs in /var/log/qaset/log
@@ -148,15 +143,15 @@ sub qa_upload_dir {
     my $basename = basename($dir);
     my $dirname  = dirname($dir);
     my $tarball  = "/tmp/qaset-$basename.tar.bz2";
-    assert_script_run "tar cjf '$tarball' -C '$dirname' '$basename'";
+    assert_script_run("tar cjf '$tarball' -C '$dirname' '$basename'");
     upload_logs($tarball);
 }
 
 # Save the output of $cmd into $file and upload it
 sub qa_log_cmd {
     my ($self, $file, $cmd, $timeout) = @_;
-    $timeout = 90 unless defined $timeout;
-    script_run("$cmd | tee '$file'", $timeout);
+    $timeout //= 90;
+    script_run(qq{$cmd | tee '$file'}, $timeout);
     upload_logs($file);
 }
 
@@ -170,12 +165,10 @@ sub run() {
     $self->qa_log_cmd("/tmp/repos.log", "zypper repos -u 2>&1");
 
     $self->start_testrun();
-    unless ($self->wait_testrun()) {
-        die "Test run didn't finish";
-    }
+    die "Test run didn't finish" unless ($self->wait_testrun());
 
-    # Log all submission links
-    my $cmd = "grep -E \"http://.*/submission.php.*submission_id=[0-9]+\"  /var/log/qaset/submission/submission-*.log " . "| awk -F\": \"  '{print \$2}'";
+    # Log submission link ( all testsuites are splitted )
+    my $cmd = q{grep -o -E "http:\/{2}.*\/submission\.php\?submission_id=[0-9]+" /var/log/qaset/submission/submission-*.log};
     $self->qa_log_cmd("/tmp/submission-links.log", $cmd);
 
     # Upload logs
@@ -188,7 +181,7 @@ sub run() {
 
     # JUnit xml report
     my $junit_type = $self->junit_type();
-    assert_script_run "/usr/share/qa/qaset/bin/junit_xml_gen.py -n '$junit_type' -d -o /tmp/junit.xml /var/log/qaset";
+    assert_script_run("/usr/share/qa/qaset/bin/junit_xml_gen.py -n '$junit_type' -d -o /tmp/junit.xml /var/log/qaset");
     parse_junit_log("/tmp/junit.xml");
 }
 

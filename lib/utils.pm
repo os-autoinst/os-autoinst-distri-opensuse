@@ -506,7 +506,7 @@ sub is_desktop_installed {
 }
 
 sub pkcon_quit {
-    script_run("pkcon quit; while pgrep packagekitd; do sleep 1; done");
+    script_run("systemctl mask packagekit; systemctl stop packagekit; while pgrep packagekitd; do sleep 1; done");
 }
 
 sub addon_decline_license {
