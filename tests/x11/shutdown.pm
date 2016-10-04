@@ -11,8 +11,8 @@
 # we need the package here for shutdown_sle11 to inherit it
 package shutdown;
 # don't use x11test, the end of this is not a desktop
-# G-Summary: Rework the tests layout.
-# G-Maintainer: Alberto Planas <aplanas@suse.com>
+# Summary: Initiate a system shutdown, taking care of differences between the desktops
+# Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
 
 use base "opensusebasetest";
 use strict;
@@ -98,14 +98,20 @@ sub run() {
         assert_and_click 'enlightenment_shutdown_btn';
     }
 
+    if (check_var('DESKTOP', 'awesome')) {
+        assert_and_click 'awesome-menu-main';
+        assert_and_click 'awesome-menu-system';
+        assert_and_click 'awesome-menu-shutdown';
+    }
+
     if (check_var("DESKTOP", "mate")) {
         x11_start_program("mate-session-save --shutdown-dialog");
-        send_key "ctrl-alt-delete";               # shutdown
+        send_key "ctrl-alt-delete";    # shutdown
         assert_screen 'mate_logoutdialog', 15;
         assert_and_click 'mate_shutdown_btn';
     }
 
-    if (get_var("DESKTOP") =~ m/minimalx|textmode|awesome/) {
+    if (get_var("DESKTOP") =~ m/minimalx|textmode/) {
         power('off');
     }
 
