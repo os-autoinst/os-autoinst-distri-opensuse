@@ -8,10 +8,10 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: test: add test for gnome-control-center
+# Summary: Test for gnome-control-center
 #    Identify bugs like https://bugzilla.suse.com/show_bug.cgi?id=897687
 #    earlier.
-# G-Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
+# Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
 
 use base "x11test";
 use strict;
@@ -24,7 +24,7 @@ sub run() {
     my $self = shift;
     mouse_hide(1);
     x11_start_program("gnome-control-center");
-    assert_screen "gnome-control-center-started", 60;    # for timeout selection see bsc#965857
+    assert_screen "gnome-control-center-started", 120;    # for timeout selection see bsc#965857
     type_string "details";
     assert_screen "gnome-control-center-details-typed";
     assert_and_click "gnome-control-center-details";
