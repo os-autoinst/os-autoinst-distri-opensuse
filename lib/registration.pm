@@ -145,7 +145,7 @@ sub fill_in_registration_data {
                 $uc_addon = uc $addon;    # change to uppercase to match variable
                 if (my $regcode = get_var("SCC_REGCODE_$uc_addon")) {
                     # skip addons which doesn't need to input scc code
-                    next unless grep { $addon eq $_ } qw(ha geo we live rt);
+                    next unless grep { $addon eq $_ } qw(ha geo we live rt ltss);
                     if (check_var('DESKTOP', 'textmode')) {
                         send_key_until_needlematch "scc-code-field-$addon", 'tab';
                     }
