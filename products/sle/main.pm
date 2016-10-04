@@ -514,7 +514,7 @@ sub load_reboot_tests() {
                 loadtest "installation/boot_into_snapshot.pm";
             }
         }
-        if (bootencryptstep_is_applicable) {
+        if (get_var('ENCRYPT')) {
             loadtest "installation/boot_encrypt.pm";
         }
         loadtest "installation/first_boot.pm";
