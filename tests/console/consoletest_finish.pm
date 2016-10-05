@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Cleanup and switch (back) to X11
-# Maintainer: Alberto Planas <aplanas@suse.com>
+# G-Summary: Rework the tests layout.
+# G-Maintainer: Alberto Planas <aplanas@suse.com>
 
 use base "opensusebasetest";
 use testapi;
@@ -44,7 +44,7 @@ sub run() {
 
     if (!check_var("DESKTOP", "textmode")) {
         select_console('x11');
-        ensure_unlocked_desktop [qw/displaymanager/];
+        ensure_unlocked_desktop [qw/displaymanager generic-desktop/];
         if (get_var("DESKTOP_MINIMALX_INSTONLY")) {
             # Desired wm was just installed and needs x11_login
             assert_screen 'displaymanager', 200;
