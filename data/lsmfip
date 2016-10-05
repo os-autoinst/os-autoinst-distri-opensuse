@@ -64,7 +64,7 @@ my %options;
 
 sub usage {
     my ($r) = @_;
-    eval "use Pod::Usage; pod2usage($r);";
+    eval { use Pod::Usage; pod2usage($r); };
     if ($@) {
         die "cannot display help, install perl(Pod::Usage)\n";
     }

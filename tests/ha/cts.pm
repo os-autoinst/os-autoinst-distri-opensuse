@@ -7,10 +7,11 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add pacemaker-cts test
-# G-Maintainer: Denis Zyuzin <dzyuzin@suse.com>
+# Summary: pacemaker-cts test
+# Maintainer: Denis Zyuzin <dzyuzin@suse.com>
 
 use base "hacluster";
+use strict;
 use testapi;
 use autotest;
 use lockapi;
