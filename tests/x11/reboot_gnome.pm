@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: rename reboot_*_pre to reboot_* - the reboot.pm just contained one line
-# G-Maintainer: Stephan Kulow <coolo@suse.de>
+# Summary: reboot gnome with or without authentication and ensure proper boot
+# Maintainer: Jozef Pupava <jpupava@suse.com>
 
 use base "opensusebasetest";
 use strict;
@@ -40,6 +40,12 @@ sub run() {
 
         send_key "ret";
 
+        if (check_screen 'reboot-auth', 5) {
+            record_soft_failure 'bsc#981299';
+            send_key_until_needlematch 'generic-desktop', 'esc',             7, 10;    # close timed out authentication window
+            send_key_until_needlematch 'logoutdialog',    'ctrl-alt-delete', 7, 10;    # reboot
+            assert_and_click 'logoutdialog-reboot-highlighted';
+        }
     }
     workaround_type_encrypted_passphrase;
     # the shutdown sometimes hangs longer, so give it time
