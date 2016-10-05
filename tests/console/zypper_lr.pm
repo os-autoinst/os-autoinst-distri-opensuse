@@ -7,8 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: harmorize zypper_ref between SLE and openSUSE
-# G-Maintainer: Max Lin <mlin@suse.com>
+# Summary: Validate SLE zypper repositories
+# Maintainer: Michal Nowak <mnowak@suse.com>
 
 use base "consoletest";
 use strict;
