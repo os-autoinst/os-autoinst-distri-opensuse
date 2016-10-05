@@ -8,12 +8,12 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: HPC_Module: standard installation
+# Summary: HPC_Module: standard installation
 #    This test is as simple as it can be at the moment, since we are at the very
 #    beginning of HPC testing
 #    It only adds the repo and installs the four important packages to check if there are any
 #    dependency issues
-# G-Maintainer: soulofdestiny <mgriessmeier@suse.com>
+# Maintainer: soulofdestiny <mgriessmeier@suse.com>
 
 use base "opensusebasetest";
 use strict;
@@ -30,9 +30,9 @@ sub run() {
     script_run 'systemctl stop packagekit.service';
     # hpc channels
     my $arch     = get_var('ARCH');
-    my $build    = get_var('BUILD_HPC');
+    my $repo     = get_required_var('REPO_1');
     my $reponame = "SLE-Module-HPC12";
-    assert_script_run "zypper ar -f http://download.suse.de/ibs/SUSE:/SLE-12-SP2:/GA/images/repo/SLE-12-Module-HPC-POOL-$arch-Build$build-Media1/ $reponame";
+    assert_script_run "zypper ar -f $repo $reponame";
     assert_script_run "zypper -n in cpuid rasdaemon memkind hwloc";
     assert_script_run 'zypper -n up';
     # reboot when running processes use deleted files after packages update
