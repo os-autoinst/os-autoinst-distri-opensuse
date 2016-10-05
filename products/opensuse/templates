@@ -69,7 +69,20 @@
                         group   => "opensuse-DVD",
                         version => "*",
                       },
-                      test_suite => { name => "install_only" },
+                      test_suite => { name => "boot_to_snapshot" },
+                    },
+                    {
+                      group_name => "openSUSE Tumbleweed PowerPC",
+                      machine => { name => "ppc64le-multipath" },
+                      prio => 50,
+                      product => {
+                        arch    => "ppc64le",
+                        distri  => "opensuse",
+                        flavor  => "DVD",
+                        group   => "opensuse-DVD",
+                        version => "*",
+                      },
+                      test_suite => { name => "install_minimalx" },
                     },
                     {
                       group_name => "openSUSE Tumbleweed PowerPC",
@@ -147,7 +160,20 @@
                         group   => "opensuse-DVD",
                         version => "*",
                       },
-                      test_suite => { name => "install_only" },
+                      test_suite => { name => "boot_to_snapshot" },
+                    },
+                    {
+                      group_name => "openSUSE Tumbleweed PowerPC",
+                      machine => { name => "ppc64-multipath" },
+                      prio => 50,
+                      product => {
+                        arch    => "ppc64",
+                        distri  => "opensuse",
+                        flavor  => "DVD",
+                        group   => "opensuse-DVD",
+                        version => "*",
+                      },
+                      test_suite => { name => "install_minimalx" },
                     },
                     {
                       group_name => "openSUSE Tumbleweed PowerPC",
@@ -2682,6 +2708,36 @@
                     },
                     {
                       backend => "qemu",
+                      name => "ppc64le-multipath",
+                      settings => [
+                        { key => "MULTIPATH", value => 1 },
+                        { key => "NOVIDEO", value => 1 },
+                        { key => "OFW", value => 1 },
+                        { key => "QEMU", value => "ppc64" },
+                        { key => "QEMUCPU", value => "host" },
+                        { key => "QEMUCPUS", value => 8 },
+                        { key => "QEMUTHREADS", value => 8 },
+                        { key => "QEMURAM", value => 4096 },
+                        { key => "WORKER_CLASS", value => "qemu_ppc64le" },
+                      ],
+                    },
+                    {
+                      backend => "qemu",
+                      name => "ppc64-multipath",
+                      settings => [
+                        { key => "MULTIPATH", value => 1 },
+                        { key => "NOVIDEO", value => 1 },
+                        { key => "OFW", value => 1 },
+                        { key => "QEMU", value => "ppc64" },
+                        { key => "QEMUCPU", value => "host" },
+                        { key => "QEMUCPUS", value => 8 },
+                        { key => "QEMUTHREADS", value => 8 },
+                        { key => "QEMURAM", value => 4096 },
+                        { key => "WORKER_CLASS", value => "qemu_ppc64" },
+                      ],
+                    },
+                    {
+                      backend => "qemu",
                       name => "aarch64",
                       settings => [
                         { key => "BIOS", value => "qemu-uefi-aarch64.bin" },
@@ -3158,6 +3214,21 @@
                       name => "install_only",
                       settings => [
                         { key => "DESKTOP", value => "kde" },
+                        { key => "INSTALLONLY", value => 1 },
+                      ],
+                    },
+                    {
+                      name => "install_minimalx",
+                      settings => [
+                        { key => "DESKTOP", value => "minimalx" },
+                        { key => "INSTALLONLY", value => 1 },
+                      ],
+                    },
+                    {
+                      name => "boot_to_snapshot",
+                      settings => [
+                        { key => "BOOT_TO_SNAPSHOT", value => 1 },
+                        { key => "DESKTOP", value => "textmode" },
                         { key => "INSTALLONLY", value => 1 },
                       ],
                     },
