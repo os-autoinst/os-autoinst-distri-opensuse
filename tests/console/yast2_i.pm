@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Rework the tests layout.
-# G-Maintainer: Alberto Planas <aplanas@suse.com>
+# Summary: Install packages using yast2.
+# Maintainer: Martin Kravec <mkravec@suse.com>
 
 use base "console_yasttest";
 use strict;
@@ -27,7 +27,7 @@ sub run() {
 
     assert_script_run "zypper -n in yast2-packager", 90;    # make sure yast2 sw_single module installed
 
-    script_run("/sbin/yast2 sw_single; echo yast2-i-status-\$? > /dev/$serialdev", 0);
+    script_run("yast2 sw_single; echo yast2-i-status-\$? > /dev/$serialdev", 0);
     if (check_screen('workaround-bsc924042', 10)) {
         send_key 'alt-o';
         record_soft_failure 'bsc#924042';
@@ -81,18 +81,14 @@ sub run() {
         send_key 'alt-o';
     }
 
+    if (check_screen('yast2-sw_automatic-changes', 10)) {
+        send_key 'alt-o';
+    }
+
     # Whether summary is shown depends on PKGMGR_ACTION_AT_EXIT in /etc/sysconfig/yast2
-    # We actually can never be sure how this is set, so let's just check:
-    while (check_screen(['yast2-sw_shows_summary', 'yast2-sw_automatic-changes'], 10)) {
-        if (match_has_tag('yast2-sw_automatic-changes')) {
-            send_key 'alt-o';
-            next;
-        }
-        if (match_has_tag('yast2-sw_shows_summary')) {
-            send_key 'alt-f';
-            record_soft_failure if get_var("YAST_SW_NO_SUMMARY");
-        }
-        last;
+    unless (get_var("YAST_SW_NO_SUMMARY")) {
+        assert_screen 'yast2-sw_shows_summary';
+        send_key 'alt-f';
     }
 
     # yast might take a while on sle11 due to suseconfig
