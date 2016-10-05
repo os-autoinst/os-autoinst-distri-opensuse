@@ -161,7 +161,6 @@ sub fill_in_registration_data {
             # start addons/modules registration, it needs longer time if select multiple or all addons/modules
             while (assert_screen(['import-untrusted-gpg-key', 'yast_scc-pkgtoinstall', 'inst-addon'], 120)) {
                 if (match_has_tag('import-untrusted-gpg-key')) {
-                    record_soft_failure 'untrusted gpg key';
                     send_key 'alt-t';
                     next;
                 }
