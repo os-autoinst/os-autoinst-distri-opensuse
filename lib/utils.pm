@@ -361,49 +361,35 @@ sub workaround_type_encrypted_passphrase {
 
 # if stay under tty console for long time, then check
 # screen lock is necessary when switch back to x11
-# returns without login if any of the tags in param matches
 sub ensure_unlocked_desktop {
-    my ($extra_tags) = @_;
-    $extra_tags //= [];
-
-    # try to stop screenlocker / blanking
-    send_key "esc";
-
-    # prevent the still running screen lock from consuming next key press
-    wait_still_screen(1);
-
-    # open run command prompt (if screen isn't locked)
-    send_key "alt-f2";
-
-    # wait for run prompt or screen locker
-    my $tags = [];
-    push @$tags, @$extra_tags;
-    push @$tags, 'desktop-runner';
+    my ($tags) = @_;
+    $tags //= [qw/generic-desktop/];
+    # deactivate blanking
+    send_key "backspace";
+    # the screenlock can take some time to show up when it is already
+    # triggered
+    wait_still_screen(10);
     push @$tags, 'screenlock';
-    push @$tags, 'gnome-screenlock-password';
     assert_screen($tags);
-
-    if (match_has_tag 'desktop-runner') {
+    if (!match_has_tag 'screenlock') {
         # ensure screen is not immediately locked after checking
-        # also close command run prompt
         send_key 'esc';
-        assert_screen([qw/generic-desktop/]);
         return;
-    }
-    for my $tag (@$extra_tags) {
-        if (match_has_tag $tag) {
-            # caller provided tag matched
-            # caller needs to deal with it
-            return;
-        }
     }
     if (check_var("DESKTOP", "gnome")) {
         send_key "esc";
         unless (get_var("LIVETEST")) {
             send_key "ctrl";    # show gnome screen lock in sle 11
-            assert_screen([qw/gnome-screenlock-password screenlock/]);
-            type_password;
-            send_key "ret";
+
+            # it is possible for GNOME not yet to ask for a password
+            # switching to tty1 then back to 7, where GNOME runs, withing five minutes
+            # does not lock with a password - in most cases we take long enough, but some
+            # console tests are just too quick
+            assert_screen([qw/gnome-screenlock-password generic-desktop/]);
+            if (match_has_tag('gnome-screenlock-password')) {
+                type_password;
+                send_key "ret";
+            }
         }
     }
     elsif (check_var("DESKTOP", "minimalx")) {
