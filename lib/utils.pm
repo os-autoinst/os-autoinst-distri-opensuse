@@ -10,8 +10,6 @@ use testapi;
 our @EXPORT = qw/
   check_console_font
   clear_console
-  handle_kwallet
-  handle_keyring
   is_jeos
   select_kernel
   type_string_slow
@@ -244,65 +242,6 @@ sub type_string_very_slow {
     # when the worker host is utilized so better wait until the string is
     # displayed before continuing
     wait_still_screen 1;
-}
-
-sub handle_keyring {
-    my ($main_tag, $timeout) = @_;
-    my @tags;
-    push(@tags, $main_tag);
-    if (!check_var('DESKTOP', 'kde')) {
-        push(@tags, 'gnome-keyring');
-    }
-    assert_screen \@tags, $timeout;
-    if (match_has_tag('gnome-keyring')) {
-        assert_and_click 'gnome-keyring-cancel';
-        assert_screen $main_tag, $timeout;
-    }
-}
-
-# check at the end of chrome/chromium test if kwallet or gnome-keyring appeared
-sub handle_kwallet {
-    my ($enable) = @_;
-    # enable = 1 as enable kwallet, archive kwallet enabling process
-    # enable = 0 as disable kwallet, just close the popup dialog
-    $enable //= 0;    # default is disable kwallet
-
-    my @tags = qw/generic-desktop/;
-    if (check_var('DESKTOP', 'kde')) {
-        push(@tags, 'kwallet-wizard');
-    }
-    else {
-        push(@tags, 'gnome-keyring');
-    }
-
-    assert_screen \@tags, 5;
-    if (match_has_tag('kwallet-wizard')) {
-        if ($enable) {
-            send_key "alt-n";
-            sleep 2;
-            send_key "spc";
-            sleep 2;
-            send_key "down";    # use traditional way
-            type_password;
-            send_key "tab";
-            sleep 1;
-            type_password;
-            send_key "alt-f";
-
-            assert_screen "kwallet-opening", 5;
-            type_password;
-            wait_screen_change {
-                send_key "ret";
-            };
-        }
-        else {
-            send_key "alt-f4", 1;
-        }
-    }
-    if (match_has_tag('gnome-keyring')) {
-        assert_and_click 'gnome-keyring-cancel';
-    }
-
 }
 
 sub get_netboot_mirror {
@@ -674,8 +613,8 @@ sub validate_repos {
                 if (exists $h_addonurl{geo} || exists $h_addons{geo}) {
                     validatelr({product => 'SLE-*HAGEO', uri => get_var('ADDONURL_GEO') || "dvd:///", version => $version});
                 }
-                delete @h_addonurl{"ha", "geo"};
-                delete @h_addons{"ha",   "geo"};
+                delete @h_addonurl{qw/ha geo/};
+                delete @h_addons{qw/ha geo/};
             }
             elsif (check_var('FLAVOR', 'Desktop-DVD')) {
                 # Note: verification of AMD (SLED12) and NVIDIA (SLED12, SP1, and SP2) repos is missing
