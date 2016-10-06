@@ -134,6 +134,7 @@ sub problem_can_be_skipped {
     return 1 if $problem =~ /nothing provides this-is-only-for-build-envs/;
     return 1 if $pkg =~ /-bootstrap/ || $pkg =~ /-mini/;
     return 1 if $pkg =~ /^kernel-.*-base/;
+    return 1 if $pkg =~ /^xen-tools-domU/;
     if ($pkg =~ /chromium-desktop-kde/) {
        # can not be skipped if plasma5 not installed
        return !package_installed('plasma5-session');
