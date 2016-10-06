@@ -79,19 +79,55 @@ sub run() {
     # In JeOS we have the disk, we just need to deploy it, for the rest
     # - installs from network and ISO media - we have to create it.
     if (my $hddfile = get_var('HDD_1')) {
-        $svirt->add_disk({size => $size_i . 'G', file => ($vmm_family eq 'vmware') ? basename($hddfile) : $hddfile});
+        $svirt->add_disk(
+            {
+                size      => $size_i . 'G',
+                file      => ($vmm_family eq 'vmware') ? basename($hddfile) : $hddfile,
+                dev_id    => 'a',
+                bootorder => 1
+            });
     }
     else {
-        $svirt->add_disk({size => $size_i . 'G', create => 1});
+        $svirt->add_disk(
+            {
+                size      => $size_i . 'G',
+                create    => 1,
+                dev_id    => 'a',
+                bootorder => 1
+            });
     }
 
     # In JeOS and netinstall we don't have ISO media, for the rest we have to attach it.
     if (!get_var('NETBOOT') and !is_jeos()) {
+        # Add installation media
         my $isofile = get_required_var('ISO');
         if ($vmm_family eq 'vmware') {
             $isofile = basename($isofile);
         }
-        $svirt->add_disk({cdrom => 1, file => $isofile});
+        $svirt->add_disk(
+            {
+                cdrom     => 1,
+                file      => $isofile,
+                dev_id    => 'b',
+                bootorder => 2
+            });
+
+        # Add addon media (if present at all)
+        my $dev_id = 'c';
+        foreach my $n (1 .. 9) {
+            if (my $addon_isofile = get_var("ISO_" . $n)) {
+                if ($vmm_family eq 'vmware') {
+                    $addon_isofile = basename($addon_isofile);
+                }
+                $svirt->add_disk(
+                    {
+                        cdrom  => 1,
+                        file   => $addon_isofile,
+                        dev_id => $dev_id
+                    });
+                $dev_id = chr((ord $dev_id) + 1);    # return next letter in alphabet
+            }
+        }
     }
 
     # using 'virtio' devices may prevent loosing key strokes
