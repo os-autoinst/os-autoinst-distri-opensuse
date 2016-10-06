@@ -46,22 +46,19 @@ sub run() {
     # closing xterm
     send_key "alt-f4";
 
-    x11_start_program("google-chrome");
+    # avoid async keyring popups
+    x11_start_program("google-chrome --password-store=basic");
 
     assert_and_click 'chrome-default-browser-query';
 
-    handle_keyring 'google-chrome-main-window', 50;
+    assert_screen 'google-chrome-main-window', 50;
 
     send_key "ctrl-l";
     sleep 1;
     type_string "about:\n";
-    handle_keyring 'google-chrome-about', 15;
+    assert_screen 'google-chrome-about', 15;
 
     send_key "alt-f4";
-
-    # check kwallet and cancel it
-    # 1 => enable, 0 => cancel
-    handle_kwallet(0);
 }
 
 1;
