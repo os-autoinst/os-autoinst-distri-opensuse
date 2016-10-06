@@ -221,22 +221,16 @@ sub yast_scc_registration {
             last;
         }
         send_key "alt-o";
-        # Upgrade tests and the old distributions eg. SLE11 don't
-        # show the summary
-        if (get_var("YAST_SW_NO_SUMMARY")) {
-            $timeout = 900;    # installation of an addon may take long
-        }
-        else {
-            # yast may pop up a reboot prompt window after addons installation such like ha on sle12 sp0
-            while (assert_screen([qw/yast_scc-prompt-reboot yast_scc-installation-summary/], 900)) {
-                if (match_has_tag('yast_scc-prompt-reboot')) {
-                    send_key "alt-o", 1;
-                    next;
-                }
-                elsif (match_has_tag('yast_scc-installation-summary')) {
-                    send_key "alt-f";
-                    last;
-                }
+
+        # yast may pop up a reboot prompt window after addons installation such like ha on sle12 sp0
+        while (assert_screen([qw/yast_scc-prompt-reboot yast_scc-installation-summary/], 900)) {
+            if (match_has_tag('yast_scc-prompt-reboot')) {
+                send_key "alt-o", 1;
+                next;
+            }
+            elsif (match_has_tag('yast_scc-installation-summary')) {
+                send_key "alt-f";
+                last;
             }
         }
     }
