@@ -118,7 +118,7 @@ sub fill_in_registration_data {
         # ids - IBM DLPAR sdk (ppc64le only)
         if (get_var('SCC_ADDONS')) {
             for my $addon (split(/,/, get_var('SCC_ADDONS', ''))) {
-                if (check_var('DESKTOP', 'textmode')) {
+                if (check_var('VIDEOMODE', 'text')) {
                     send_key_until_needlematch "scc-module-$addon", 'tab';
                     send_key "spc";
                 }
@@ -146,7 +146,7 @@ sub fill_in_registration_data {
                 if (my $regcode = get_var("SCC_REGCODE_$uc_addon")) {
                     # skip addons which doesn't need to input scc code
                     next unless grep { $addon eq $_ } qw(ha geo we live rt ltss);
-                    if (check_var('DESKTOP', 'textmode')) {
+                    if (check_var('VIDEOMODE', 'text')) {
                         send_key_until_needlematch "scc-code-field-$addon", 'tab';
                     }
                     else {
