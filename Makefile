@@ -56,8 +56,13 @@ test-metadata-merge:
 	if test -n "$$FILES"; then tools/check_metadata $$FILES ; fi
 
 .PHONY: test
-test: tidy test-compile test-metadata-merge
+test: tidy test-compile test-metadata-merge perlcritic-merge
 
 .PHONY: perlcritic
 perlcritic: tools/lib/
 	PERL5LIB=tools/lib/perlcritic:$$PERL5LIB perlcritic --quiet --gentle --include Perl::Critic::Policy::HashKeyQuote .
+
+.PHONY: perlcritic-merge
+perlcritic-merge:
+	@FILES=$$(git diff --name-only FETCH_HEAD `git merge-base FETCH_HEAD master` | grep '.*pm') ;\
+	if test -n "$$FILES"; then PERL5LIB=tools/lib/perlcritic:$$PERL5LIB perlcritic --quiet --gentle --include Perl::Critic::Policy::HashKeyQuote $$FILES ; fi

@@ -20,15 +20,15 @@ use Data::Dumper;
 use XML::Writer;
 use IO::File;
 
-sub analyzeResult() {
+sub analyzeResult {
     die "You need to overload analyzeResult in your class";
 }
 
-sub get_script_run() {
+sub get_script_run {
     die "You need to overload this func in your class";
 }
 
-sub generateXML($) {
+sub generateXML {
     my ($self, $data) = @_;
 
     print Dumper($data);
@@ -42,7 +42,7 @@ sub generateXML($) {
     my $writer    = new XML::Writer(DATA_MODE => 'true', DATA_INDENT => 2, OUTPUT => 'self');
 
     foreach my $item (keys(%my_hash)) {
-        if ($my_hash{$item}->{"status"} =~ m/PASSED/) {
+        if ($my_hash{$item}->{status} =~ m/PASSED/) {
             $pass_nums += 1;
         }
         else {
@@ -50,24 +50,24 @@ sub generateXML($) {
         }
     }
     my $count = $pass_nums + $fail_nums;
-    $writer->startTag('testsuites', "error" => "0", "failures" => "$fail_nums", "name" => $self->{"product_name"}, "skipped" => "0", "tests" => "$count", "time" => "");
-    $writer->startTag('testsuite', "error" => "0", "failures" => "$fail_nums", "hostname" => "`hostname`", "id" => "0", "name" => $self->{"product_tested_on"}, "package" => $self->{"package_name"}, "skipped" => "0", "tests" => $case_num, "time" => "", "timestamp" => "2016-02-16T02:50:00");
+    $writer->startTag('testsuites', error => "0", failures => "$fail_nums", name => $self->{product_name}, skipped => "0", tests => "$count", time => "");
+    $writer->startTag('testsuite', error => "0", failures => "$fail_nums", hostname => "`hostname`", id => "0", name => $self->{product_tested_on}, package => $self->{package_name}, skipped => "0", tests => $case_num, time => "", timestamp => "2016-02-16T02:50:00");
 
     foreach my $item (keys(%my_hash)) {
-        if ($my_hash{$item}->{"status"} =~ m/PASSED/) {
+        if ($my_hash{$item}->{status} =~ m/PASSED/) {
             $case_status = "success";
         }
         else {
             $case_status = "failure";
         }
 
-        $writer->startTag('testcase', 'classname' => $item, 'name' => $item, "status" => $case_status, 'time' => $my_hash{$item}->{"time"});
+        $writer->startTag('testcase', classname => $item, name => $item, status => $case_status, time => $my_hash{$item}->{time});
         $writer->startTag('system-err');
         $writer->characters("None");
         $writer->endTag('system-err');
 
         $writer->startTag('system-out');
-        $writer->characters($my_hash{$item}->{"time"});
+        $writer->characters($my_hash{$item}->{time});
         $writer->endTag('system-out');
 
         $writer->endTag('testcase');
@@ -80,7 +80,7 @@ sub generateXML($) {
     $writer->to_string();
 }
 
-sub execute_script_run($$) {
+sub execute_script_run {
     my ($self, $cmd, $timeout) = @_;
     my $pattern = "CMD_FINISHED-" . int(rand(999999));
 
@@ -105,14 +105,14 @@ sub execute_script_run($$) {
 
 }
 
-sub push_junit_log($) {
+sub push_junit_log {
     my ($self, $junit_content) = @_;
 
     script_run "echo \'$junit_content\' > /tmp/output.xml";
     parse_junit_log("/tmp/output.xml");
 }
 
-sub run_test() {
+sub run_test {
     my ($self, $timeout, $assert_pattern, $add_junit_log_flag, $upload_virt_log_flag, $log_dir, $compressed_log_name) = @_;
     if (!$timeout) {
         $timeout = 300;
@@ -137,7 +137,7 @@ sub run_test() {
 
 }
 
-sub add_junit_log() {
+sub add_junit_log {
     my ($self, $job_output) = @_;
 
     # Parse test result and generate junit file
@@ -148,7 +148,7 @@ sub add_junit_log() {
 
 }
 
-sub upload_virt_logs() {
+sub upload_virt_logs {
     my ($log_dir, $compressed_log_name) = @_;
 
     my $full_compressed_log_name = "/tmp/$compressed_log_name.tar";

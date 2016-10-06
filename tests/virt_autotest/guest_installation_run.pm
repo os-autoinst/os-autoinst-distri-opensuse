@@ -11,6 +11,8 @@
 # G-Maintainer: alice <xlai@suse.com>
 
 use base "virt_autotest_base";
+use strict;
+use warnings;
 use testapi;
 
 sub get_script_run() {
@@ -23,22 +25,22 @@ sub get_script_run() {
         $pre_test_cmd = "/usr/share/qa/tools/test_virtualization-standalone-run";
     }
 
-    $guest_pattern = get_var('GUEST_PATTERN', 'sles-12-sp2-64-[p|f]v-def-net');
-    $parallel_num  = get_var("PARALLEL_NUM",  "2");
-    $pre_test_cmd  = $pre_test_cmd . " -f " . $guest_pattern . " -n " . $parallel_num . " -r ";
+    my $guest_pattern = get_var('GUEST_PATTERN', 'sles-12-sp2-64-[p|f]v-def-net');
+    my $parallel_num  = get_var("PARALLEL_NUM",  "2");
+    $pre_test_cmd = $pre_test_cmd . " -f " . $guest_pattern . " -n " . $parallel_num . " -r ";
 
     return $pre_test_cmd;
 }
 
-sub analyzeResult($) {
+sub analyzeResult {
     my ($self, $text) = @_;
     my $result;
     $text =~ /Test in progress(.*)Test run complete/s;
     my $rough_result = $1;
     foreach (split("\n", $rough_result)) {
         if ($_ =~ /(\S+)\s+\.{3}\s+\.{3}\s+(PASSED|FAILED)\s+\((\S+)\)/g) {
-            $result->{$1}{"status"} = $2;
-            $result->{$1}{"time"}   = $3;
+            $result->{$1}{status} = $2;
+            $result->{$1}{time}   = $3;
         }
     }
     return $result;

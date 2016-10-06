@@ -16,6 +16,8 @@
 # G-Maintainer: Qingming Su <qingming.su@suse.com>
 
 use base "consoletest";
+use strict;
+use warnings;
 use testapi;
 use registration;
 

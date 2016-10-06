@@ -145,14 +145,14 @@ sub run() {
     }
 
     if ($iface_model) {
-        $ifacecfg{'model'} = {type => $iface_model};
+        $ifacecfg{model} = {type => $iface_model};
     }
 
     if ($vmm_family eq 'vmware') {
         # `virsh iface-list' won't produce correct bridge name for VMware.
         # It should be provided by the worker or relied upon the default.
-        $ifacecfg{'type'} = 'bridge';
-        $ifacecfg{'source'} = {bridge => get_var('VMWARE_BRIDGE', 'VM Network')};
+        $ifacecfg{type} = 'bridge';
+        $ifacecfg{source} = {bridge => get_var('VMWARE_BRIDGE', 'VM Network')};
     }
     else {
         # We can use bridge or network as a base for network interface. Network named 'default'
@@ -160,12 +160,12 @@ sub run() {
         # network and bridge are defined and active, bridge should be prefered as 'default' network
         # does not work.
         if (my $bridges = $svirt->get_cmd_output("virsh iface-list --all | grep -w active | awk '{ print \$1 }' | tail -n1 | tr -d '\\n'")) {
-            $ifacecfg{'type'} = 'bridge';
-            $ifacecfg{'source'} = {bridge => $bridges};
+            $ifacecfg{type} = 'bridge';
+            $ifacecfg{source} = {bridge => $bridges};
         }
         elsif (my $networks = $svirt->get_cmd_output("virsh net-list --all | grep -w active | awk '{ print \$1 }' | tail -n1 | tr -d '\\n'")) {
-            $ifacecfg{'type'} = 'network';
-            $ifacecfg{'source'} = {network => $networks};
+            $ifacecfg{type} = 'network';
+            $ifacecfg{source} = {network => $networks};
         }
     }
 
