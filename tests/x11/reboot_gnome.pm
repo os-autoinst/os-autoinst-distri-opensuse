@@ -40,8 +40,8 @@ sub run() {
 
         send_key "ret";
 
-        wait_still_screen 4, 7;    # wait max. 7 seconds to make authentication window disappear after successful authentication
-        if (check_screen 'reboot-auth', 3) {
+        wait_still_screen 8, 8;    # wait 8 seconds to make authentication window disappear after successful authentication
+        if (check_screen 'reboot-auth', 2) {
             record_soft_failure 'bsc#981299';
             send_key_until_needlematch 'generic-desktop', 'esc',             7, 10;    # close timed out authentication window
             send_key_until_needlematch 'logoutdialog',    'ctrl-alt-delete', 7, 10;    # reboot
