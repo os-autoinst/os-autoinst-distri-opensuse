@@ -105,9 +105,6 @@ if (check_var('DESKTOP', 'minimalx') || get_var('DESKTOP_MINIMALX_INSTONLY')) {
 set_var('LEAP', get_var('VERSION', '') =~ /(?:[4-9][0-9]|[0-9]{3,})\.[0-9]/);
 set_var("PACKAGETOINSTALL", "xdelta");
 set_var("WALLPAPER",        '/usr/share/wallpapers/openSUSEdefault/contents/images/1280x1024.jpg');
-if (!defined get_var("YAST_SW_NO_SUMMARY")) {
-    set_var("YAST_SW_NO_SUMMARY", 1) if get_var('UPGRADE') || get_var("ZDUP");
-}
 
 # set KDE and GNOME, ...
 set_var(uc(get_var('DESKTOP')), 1);
