@@ -79,8 +79,7 @@ sub run {
         }
         wait_still_screen(5);    # package dependencies need a few second to open in x11
         save_screenshot;
-        $self->result('fail');
-        return;
+        die "package conflicts";
     }
 
     send_key "alt-n";
