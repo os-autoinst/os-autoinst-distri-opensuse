@@ -64,5 +64,9 @@ perlcritic: tools/lib/
 
 .PHONY: perlcritic-merge
 perlcritic-merge:
-	@FILES=$$(git diff --name-only FETCH_HEAD `git merge-base FETCH_HEAD master` | grep '.*pm') ;\
+	@FH=$$(git merge-base FETCH_HEAD master 2>/dev/null) ;\
+	if test -n "$FH"; then \
+	FILES=$$(git diff --name-only FETCH_HEAD $$FH 2>/dev/null| grep '.*pm') ;\
+	else FILES= ;\
+	fi ;\
 	if test -n "$$FILES"; then PERL5LIB=tools/lib/perlcritic:$$PERL5LIB perlcritic --quiet --gentle --include Perl::Critic::Policy::HashKeyQuote $$FILES ; fi
