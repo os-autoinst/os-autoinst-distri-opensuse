@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: SLE12 release notes
-# G-Maintainer: Jozef Pupava <jpupava@suse.com>
+# Summary: SLE12 release notes
+# Maintainer: Jozef Pupava <jpupava@suse.com>
 
 use base "y2logsstep";
 use strict;
@@ -41,10 +41,14 @@ sub run() {
     if (check_var('VIDEOMODE', 'text')) {
         send_key 'tab';          # select tab area
     }
+
+    # no release-notes for WE and all modules
+    my @no_relnotes = qw(we lgm asmm certm contm pcm tcm wsm);
+    # no relnotes for ltss in QAM_MINIMAL
+    push @no_relnotes, qw(ltss) if get_var('QAM_MINIMAL');
     if (@addons) {
         for my $a (@addons) {
-            # no release-notes for WE and all modules
-            next if grep { $a eq $_ } qw(we lgm asmm certm contm pcm tcm wsm);
+            next if grep { $a eq $_ } @no_relnotes;
             send_key_until_needlematch("release-notes-$a", 'right', 4, 60);
             send_key 'left';     # move back to first tab
             send_key 'left';
