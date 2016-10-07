@@ -14,25 +14,20 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-# G-Summary: Update the system before testing
-#    For this attach an update category between first_boot and console tests and
-#    reboot in case the update applet requested so
-# G-Maintainer: Stephan Kulow <coolo@suse.de>
+# Summary: Prepare system for actual desktop specific updates
+# Maintainer: Stephan Kulow <coolo@suse.de>
 
-use base "x11test";
+use base "consoletest";
 use strict;
 use testapi;
 use utils;
 
 sub run() {
-    select_console 'x11';
+    select_console 'root-console';
 
-    x11_start_program("xterm");
-    assert_screen('xterm-started');
-    assert_script_sudo "chown $testapi::username /dev/$testapi::serialdev";
-    assert_script_sudo "echo \"download.use_deltarpm = false\" >> /etc/zypp/zypp.conf";
+    assert_script_run "chown $testapi::username /dev/$testapi::serialdev";
+    assert_script_run "echo \"download.use_deltarpm = false\" >> /etc/zypp/zypp.conf";
     assert_script_run "pkcon refresh";
-    send_key "alt-f4";
 }
 
 sub test_flags() {

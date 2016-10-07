@@ -7,10 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Update the system before testing
-#    For this attach an update category between first_boot and console tests and
-#    reboot in case the update applet requested so
-# G-Maintainer: Stephan Kulow <coolo@suse.de>
+# Summary: PackageKit update using gpk
+# Maintainer: Stephan Kulow <coolo@suse.de>
 
 use base "x11test";
 use strict;
@@ -36,6 +34,8 @@ sub turn_off_screensaver() {
 
 # Update with GNOME PackageKit Update Viewer
 sub run() {
+    select_console 'x11';
+
     my @updates_tags           = qw/updates_none updates_available/;
     my @updates_installed_tags = qw/updates_none updates_installed-logout updates_installed-restart/;
 
