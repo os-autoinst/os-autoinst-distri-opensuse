@@ -7,14 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Packagekit updates
-#    Used Updaters:
-#    gpk-update-viewer - gnome & xfce & lxde
-#    plasma-pk-updates - kde
-#
-#    Change:
-#    assert_and_click replaced with keyboard shortcuts for ipmi test
-# G-Maintainer: mkravec <mkravec@suse.com>
+# Summary: Packagekit updates using kde applet
+# Maintainer: mkravec <mkravec@suse.com>
 
 use base "x11test";
 use strict;
@@ -31,15 +25,19 @@ sub kernel_updated {
 sub turn_off_screensaver() {
     x11_start_program("kcmshell5 screenlocker");
     send_key("alt-l");
+    assert_screen 'screenlock-disabled';
     send_key("alt-o");
 }
 
 # Update with Plasma applet for software updates using PackageKit
 sub run() {
+    select_console 'x11';
     turn_off_screensaver;
 
     my @updates_installed_tags = qw/updates_none updates_available/;
-    if (check_screen("updates_available-tray")) {
+    assert_screen 'updates_available-tray';
+    assert_screen [qw/updates_available-tray updates_none/];
+    if (match_has_tag 'updates_available-tray') {
         assert_and_click("updates_available-tray");
 
         # First update package manager, then packages, then bsc#992773 (2x)

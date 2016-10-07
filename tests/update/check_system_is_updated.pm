@@ -7,22 +7,18 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Fix packagekit updatespoo#13056
-#    Check no more updates are available
-#    Reboot after kde kernel updates
-# G-Maintainer: mkravec <mkravec@suse.com>
+# Summary: Check no more updates are available
+# Maintainer: mkravec <mkravec@suse.com>
 
-use base "x11test";
+use base "consoletest";
 use strict;
 use testapi;
 
 sub run() {
-    x11_start_program("xterm");
-    assert_screen('xterm-started');
-    assert_script_sudo "chown $testapi::username /dev/$testapi::serialdev";
+    select_console 'root-console';
+    assert_script_run "chown $testapi::username /dev/$testapi::serialdev";
     assert_script_run "pkcon refresh";
     assert_script_run "pkcon get-updates | tee /dev/$serialdev | grep 'There are no updates'";
-    send_key "alt-f4";
 }
 
 sub test_flags() {
