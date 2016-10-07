@@ -67,7 +67,7 @@ sub cleanup_needles() {
     if (!get_var('LEAP')) {
         unregister_needle_tags('ENV-LEAP-1');
     }
-    if (!check_var('VERSION', 'Tumbleweed')) {
+    if (!get_var('VERSION') =~ /Tumbleweed|Staging:[A-Z]/) {
         unregister_needle_tags('ENV-VERSION-Tumbleweed');
     }
     for my $flavor (qw/Krypton Krypton-Live/) {
