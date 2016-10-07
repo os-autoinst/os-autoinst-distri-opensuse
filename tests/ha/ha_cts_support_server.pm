@@ -7,8 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add pacemaker-cts test
-# G-Maintainer: Denis Zyuzin <dzyuzin@suse.com>
+# Summary: Start HA CTS support server, and use it as pacemaker-cts control node
+# Maintainer: Denis Zyuzin <dzyuzin@suse.com>
 
 use base "basetest";
 use strict;

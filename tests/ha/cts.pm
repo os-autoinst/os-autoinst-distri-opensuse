@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: pacemaker-cts test
+# Summary: Install pacemaker-cts on cluster nodes and wait until tests are done
 # Maintainer: Denis Zyuzin <dzyuzin@suse.com>
 
 use base "hacluster";
