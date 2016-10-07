@@ -7,8 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add yast2_proxy
-# G-Maintainer: Zaoliang Luo <zluo@suse.de>
+# Summary: Test thast squid proxy can be started after setup with YaST
+# Maintainer: Zaoliang Luo <zluo@suse.de>
 
 use strict;
 use base "consoletest";
@@ -122,9 +122,10 @@ sub run() {
     # move to page Access Control to edit ACL Groups
     send_key_until_needlematch 'yast2_proxy_http_cache_directory_selected', 'shift-tab';
     send_key 'down';
-    #	confirm to create new directory
     send_key 'ret';
-    send_key 'alt-y';
+    send_key 'alt-y';    # confirm to create new directory
+
+    assert_screen 'yast2_proxy_http_access_control_selected';
     send_key 'tab';
     send_key 'down';
     send_key 'down';
