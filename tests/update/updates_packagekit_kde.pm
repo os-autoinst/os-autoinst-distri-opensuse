@@ -36,7 +36,7 @@ sub run() {
 
     my @updates_installed_tags = qw/updates_none updates_available/;
     assert_screen 'updates_available-tray';
-    assert_screen [qw/updates_available-tray updates_none/];
+    assert_screen [qw/updates_available-tray tray-without-updates-available/];
     if (match_has_tag 'updates_available-tray') {
         assert_and_click("updates_available-tray");
 
