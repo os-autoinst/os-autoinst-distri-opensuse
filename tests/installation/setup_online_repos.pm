@@ -8,19 +8,20 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: New test: test installation with update repos
+# Summary: New test: Test installation with update repos
 #    Basically for Leap only. https://progress.opensuse.org/issues/9620
-# G-Maintainer: Max Lin <mlin@suse.com>
+# Maintainer: Max Lin <mlin@suse.com>
 
 use base "y2logsstep";
 use strict;
 use testapi;
 
 sub run() {
-    my $self          = shift;
-    my @default_repos = qw/update-non-oss update-oss main-non-oss main-oss debug-main untested-update debug-update source/;    # ordered according to repos lists in real
+    # ordered according to real repos lists
+    my @default_repos = qw(update-non-oss update-oss main-non-oss main-oss debug-main untested-update debug-update source);
 
-    assert_screen 'online-repos', 200;                                                                                         # maybe slow due to network connectivity
+    # maybe slow due to network connectivity
+    assert_screen 'online-repos', 200;
 
     # move the cursor to repos lists
     if (check_var("VIDEOMODE", "text")) {
@@ -66,6 +67,10 @@ sub run() {
     send_key $cmd{next};    # Next
 
     if (get_var("WITH_MAIN_REPO")) {
+        if (get_var('BETA')) {
+            assert_screen "inst-betawarning", 500;
+            send_key 'alt-o';
+        }
         assert_screen 'license-dialog-oss-repo';
         send_key $cmd{next};    # Next
     }
