@@ -22,20 +22,10 @@ sub kernel_updated {
     return script_run "rpm -q --last kernel-default | head -1 | grep $current";
 }
 
-sub turn_off_screensaver() {
-    x11_start_program("kcmshell5 screenlocker");
-    assert_screen([qw/kde-screenlock-enabled screenlock-disabled/]);
-    if (match_has_tag('kde-screenlock-enabled')) {
-        assert_and_click('kde-disable-screenlock');
-    }
-    assert_screen 'screenlock-disabled';
-    send_key("alt-o");
-}
-
 # Update with Plasma applet for software updates using PackageKit
 sub run() {
     select_console 'x11';
-    turn_off_screensaver;
+    turn_off_kde_screensaver;
 
     my @updates_installed_tags = qw/updates_none updates_available/;
     assert_screen [qw/updates_available-tray tray-without-updates-available/];
