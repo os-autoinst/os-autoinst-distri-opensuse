@@ -25,7 +25,7 @@ sub run() {
 
     # move the cursor to repos lists
     if (check_var("VIDEOMODE", "text")) {
-        send_key 'alt-l';
+        send_key_until_needlematch 'setup_online_repos-repos-list', 'tab';
     }
     else {
         send_key 'alt-i';
