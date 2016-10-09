@@ -24,7 +24,10 @@ sub kernel_updated {
 
 sub turn_off_screensaver() {
     x11_start_program("kcmshell5 screenlocker");
-    send_key("alt-l");
+    assert_screen([qw/kde-screenlock-enabled screenlock-disabled/]);
+    if (match_has_tag('kde-screenlock-enabled')) {
+        assert_and_click('kde-disable-screenlock');
+    }
     assert_screen 'screenlock-disabled';
     send_key("alt-o");
 }
