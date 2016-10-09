@@ -23,6 +23,7 @@
 
 use base "installbasetest";
 use testapi;
+use utils;
 use strict;
 
 sub send_key_and_wait {
@@ -33,6 +34,7 @@ sub send_key_and_wait {
 }
 
 sub run() {
+    turn_off_kde_screensaver;
     assert_and_click 'live-installation';
     assert_and_click 'maximize';
     mouse_hide;
