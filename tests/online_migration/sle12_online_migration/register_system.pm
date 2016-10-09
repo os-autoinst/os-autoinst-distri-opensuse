@@ -7,15 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add sle12 online migration testsuite
-#    Fixes follow up by the comments
-#
-#    Apply fully patch system function
-#
-#    Fix typo and remove redundant comment
-#
-#    Remove a unnecessary line
-# G-Maintainer: mitiao <mitiao@gmail.com>
+# Summary: sle12 online migration testsuite
+# Maintainer: mitiao <mitiao@gmail.com>
 
 use base "consoletest";
 use strict;
@@ -35,16 +28,8 @@ sub run() {
     }
 
     # register system and addons in textmode for all archs
-    if (!is_desktop_installed()) {
-        yast_scc_registration;
-    }
-    else {
-        set_var("DESKTOP", 'textmode');
-        yast_scc_registration;
-        # set back to gnome mode for checking
-        # if system boot into desktop correctly after migration
-        set_var("DESKTOP", 'gnome');
-    }
+    set_var("VIDEOMODE", 'text');
+    yast_scc_registration;
 }
 
 sub test_flags {
