@@ -7,19 +7,14 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add test for fate#320678 - GCC 4.8 on SDK in aarch64
-#    Locally verified with Tumbleweed which fails because the package does not
-#    exist as expected.
-#
-#    Related progress issue: https://progress.opensuse.org/issues/11804
-# G-Maintainer: Oliver Kurz <okurz@suse.de>
+# Summary: check GCC 4.8 package is in SDK for AArch64
+# Maintainer: Oliver Kurz <okurz@suse.de>
+# Tags: fate#320678 poo#11804
 
 use base "consoletest";
 use strict;
 use testapi;
 
-# Maintainer: okurz@suse.de
-# Summary: fate#320678 GCC 4.8 on SDK for AArch64
 sub run() {
     select_console 'user-console';
     my $not_repo = 'SLE';

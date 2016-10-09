@@ -7,10 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add simple machinery test thanks to greygoo (#1592)
-#    Obsoletes https://github.com/os-autoinst/os-autoinst-distri-opensuse/pull/1059
-#    brought up to current state of tests.
-# G-Maintainer: Oliver Kurz <okurz@suse.de>
+# Summary: Add simple machinery test thanks to greygoo (#1592)
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "consoletest";
 use strict;
