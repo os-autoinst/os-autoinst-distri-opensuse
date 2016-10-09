@@ -8,8 +8,9 @@
 # without any warranty.
 #
 package virt_utils;
-# G-Summary: virt_autotest: the initial version of virtualization automation test in openqa, with kvm support fully, xen support not done yet
-# G-Maintainer: alice <xlai@suse.com>
+# Summary: virt_autotest: the initial version of virtualization automation test in openqa.
+#          This file provides fundamental utilities.
+# Maintainer: alice <xlai@suse.com>
 
 use base Exporter;
 use Exporter;
@@ -41,7 +42,7 @@ sub set_serialdev() {
     else {
         $serialdev = "ttyS1";
     }
-    script_run("echo \"Debug info: serial dev is set to $serialdev.\"");
+    assert_script_run("echo \"Debug info: serial dev is set to $serialdev.\"");
 }
 
 sub setup_console_in_grub() {
@@ -50,18 +51,18 @@ sub setup_console_in_grub() {
     my $grub_cfg_file     = "/boot/grub2/grub.cfg";
 
     my $cmd = "if [ -d /boot/grub2 ]; then cp $grub_default_file ${grub_default_file}.org; sed -ri '/GRUB_CMDLINE_(LINUX|LINUX_DEFAULT|XEN_DEFAULT)=/ {s/(console|com\\d+)=[^ \"]*//g; /LINUX=/s/\"\$/ console=$serialdev,115200 console=tty\"/;/XEN_DEFAULT=/ s/\"\$/ console=com2,115200\"/;}' $grub_default_file ; fi";
-    script_run("$cmd");
+    assert_script_run("$cmd");
     wait_idle 3;
     save_screenshot;
-    script_run("clear; cat $grub_default_file");
+    assert_script_run("clear; cat $grub_default_file");
     wait_idle 3;
     save_screenshot;
 
     $cmd = "if [ -d /boot/grub2 ]; then grub2-mkconfig -o $grub_cfg_file; fi";
-    script_run("$cmd", 40);
+    assert_script_run("$cmd", 40);
     wait_idle 3;
     save_screenshot;
-    script_run("clear; cat $grub_cfg_file");
+    assert_script_run("clear; cat $grub_cfg_file");
     wait_idle 3;
     save_screenshot;
 }
@@ -74,8 +75,8 @@ sub repl_repo_in_sourcefile() {
         $location =~ s/[\r\n]+$//;
         my $soucefile = "/usr/share/qa/virtautolib/data/" . "sources." . "$location";
         my $newrepo   = "ftp://openqa.suse.de/" . get_var("REPO_0");
-        script_run("sed -i \"s#$veritem=.*#$veritem=$newrepo#\" $soucefile");
-        script_run("cat $soucefile");
+        assert_script_run("sed -i \"s#$veritem=.*#$veritem=$newrepo#\" $soucefile");
+        assert_script_run("cat $soucefile");
     }
     else {
         print "Do not need to change resource for $veritem item\n";
