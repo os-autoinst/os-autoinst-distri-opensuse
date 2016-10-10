@@ -103,6 +103,8 @@ if (check_var('DESKTOP', 'minimalx') || get_var('DESKTOP_MINIMALX_INSTONLY')) {
 # set a variable 'LEAP' for any Leap version. For Tumbleweed we can just rely
 # on VERSION being 'Tumbleweed'
 set_var('LEAP', get_var('VERSION', '') =~ /(?:[4-9][0-9]|[0-9]{3,})\.[0-9]/);
+# FIXME: for leap staging, do this properly
+set_var('LEAP', '42.2') if get_var('VERSION', '') =~ /^42:S:/;
 set_var("PACKAGETOINSTALL", "xdelta");
 set_var("WALLPAPER",        '/usr/share/wallpapers/openSUSEdefault/contents/images/1280x1024.jpg');
 
