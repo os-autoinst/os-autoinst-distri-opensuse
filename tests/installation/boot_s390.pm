@@ -7,9 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add feature to boot into existing s390x zvm guest
-#    Verification run: http://lord.arch/tests/2064
-# G-Maintainer: Oliver Kurz <okurz@suse.de>
+# Summary: Helper to boot into existing s390x zvm guest
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "installbasetest";
 

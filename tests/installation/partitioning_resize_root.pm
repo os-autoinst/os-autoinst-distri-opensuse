@@ -9,26 +9,8 @@
 #
 #
 # Summary: Ensure the root logical volume can be resized on bigger harddisks.
-# Maintainer: okurz@suse.de
-# Tags: bsc#989976, bsc#1000165
-
-# G-Summary: Add test to resize the root volume of a LVM
-#    Verification test for bsc#989976, bsc#1000165.
-#
-#    The installer by default selects a root volume of maximum 40GB regardless of
-#    the available space. If the user resizes the volume, the btrfs subvolumes are
-#    not shown (although they are still created). This test verifies the subvolumes
-#    are present after resizing the root volume. The home volume is disabled
-#    (TOGGLEHOME=1) to actually provide the space for the root volume. Otherwise the
-#    available space would all be consumed by the home volume.
-#
-#    Triggered with variables:
-#    * TOGGLEHOME=1
-#    * RESIZE_ROOT_VOLUME=1
-#    * HDDSIZEGB=50
-#
-#    Local verification run: http://lord.arch/tests/4961
-# G-Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: Oliver Kurz <okurz@suse.de>
+# Tags: bsc#989976 bsc#1000165
 
 use strict;
 use warnings;
