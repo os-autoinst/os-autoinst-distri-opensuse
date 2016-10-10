@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+## no critic (RequireFilenameMatchesPackage);
 package x11regressiontest;
 use base "x11test";
 use strict;
