@@ -34,6 +34,7 @@ our @EXPORT = qw/
   validate_repos
   setup_online_migration
   turn_off_kde_screensaver
+  random_string
   /;
 
 
@@ -728,6 +729,13 @@ sub setup_online_migration {
     script_run "source /etc/bash.bashrc.local";
 
     save_screenshot;
+}
+
+sub random_string {
+    my ($self, $length) = @_;
+    $length //= 4;
+    my @chars = ('A' .. 'Z', 'a' .. 'z', 0 .. 9);
+    return join '', map { @chars[rand @chars] } 1 .. $length;
 }
 
 1;

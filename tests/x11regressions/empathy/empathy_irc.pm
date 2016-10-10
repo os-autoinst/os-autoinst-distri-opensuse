@@ -7,8 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: add empathy irc regression test
-# G-Maintainer: mitiao <mitiao@gmail.com>
+# Summary: Empathy irc regression test
+# Maintainer: Chingkai <qkzhu@suse.com>
 
 use base "x11regressiontest";
 use strict;
@@ -39,7 +39,7 @@ sub run() {
     };
     send_key "tab";
     # add a random irc account
-    my $rstr = $self->random_string(4);
+    my $rstr = random_string(4);
     type_string "openqa-$rstr";
     send_key "alt-d";
     assert_screen 'empathy-irc-account-added';
