@@ -24,6 +24,20 @@ use main_common;
 
 init_main();
 
+sub is_tumbleweed {
+    # Tumbleweed and its stagings
+    return 0 unless check_var('DISTRI', 'opensuse');
+    return 1 if check_var('VERSION', 'Tumbleweed');
+    return get_var('VERSION') =~ /^Staging:/;
+}
+
+sub is_leap {
+    # Leap and its stagings
+    return 0 unless check_var('DISTRI', 'opensuse');
+    return 1 if get_var('VERSION', '') =~ /(?:[4-9][0-9]|[0-9]{3,})\.[0-9]/;
+    return get_var('VERSION') =~ /^42:S/;
+}
+
 sub cleanup_needles() {
     remove_desktop_needles("lxde");
     remove_desktop_needles("kde");
@@ -64,10 +78,10 @@ sub cleanup_needles() {
     if (!is_jeos) {
         unregister_needle_tags('ENV-FLAVOR-JeOS-for-kvm');
     }
-    if (!get_var('LEAP')) {
+    if (!is_leap) {
         unregister_needle_tags('ENV-LEAP-1');
     }
-    if (!check_var('VERSION', 'Tumbleweed')) {
+    if (!is_tumbleweed) {
         unregister_needle_tags('ENV-VERSION-Tumbleweed');
     }
     for my $flavor (qw/Krypton Krypton-Live/) {
@@ -100,10 +114,8 @@ if (check_var('DESKTOP', 'minimalx') || get_var('DESKTOP_MINIMALX_INSTONLY')) {
 }
 
 # openSUSE specific variables
-# set a variable 'LEAP' for any Leap version. For Tumbleweed we can just rely
-# on VERSION being 'Tumbleweed'
-set_var('LEAP', get_var('VERSION', '') =~ /(?:[4-9][0-9]|[0-9]{3,})\.[0-9]/);
-set_var("PACKAGETOINSTALL", "xdelta");
+set_var('LEAP', '1') if is_leap;
+set_var("PACKAGETOINSTALL", 'xdelta');
 set_var("WALLPAPER",        '/usr/share/wallpapers/openSUSEdefault/contents/images/1280x1024.jpg');
 
 # set KDE and GNOME, ...
