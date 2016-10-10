@@ -107,7 +107,7 @@ sub x11_start_program($$$) {
         send_key('alt-t');
         sleep 3;
     }
-    send_key 'ret';
+    send_key('ret');
     wait_still_screen;
     # lrunner has auto-completion feature, sometimes it causes high load while
     # typing and the following 'ret' fails to work
