@@ -158,7 +158,7 @@ sub wait_boot {
         # log in
         #assert_screen "dm-password-input", 10;
         send_key "ret";
-        wait_idle;
+        assert_screen 'displaymanager-password-prompt';
         type_string $password. "\n";
     }
 
