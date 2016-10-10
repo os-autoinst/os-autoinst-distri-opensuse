@@ -583,6 +583,10 @@ sub load_extra_tests() {
         if (!get_var("NOAUTOLOGIN")) {
             loadtest "x11/multi_users_dm.pm";
         }
+        if (gnomestep_is_applicable() && check_var('VERSION', '42.2')) {
+            # 42.2 feature - not even on Tumbleweed
+            loadtest "x11/gdm_session_switch.pm";
+        }
         return 1;
     }
 
@@ -645,9 +649,6 @@ sub load_x11tests() {
         loadtest "x11/gnome_tweak_tool.pm";
         loadtest "x11/gnome_terminal.pm";
         loadtest "x11/gedit.pm";
-        if (check_var('VERSION', '42.2')) {
-            loadtest "x11/gdm_session_switch.pm";
-        }
     }
     if (kdestep_is_applicable()) {
         loadtest "x11/kate.pm";
