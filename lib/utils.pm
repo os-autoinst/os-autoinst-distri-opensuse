@@ -33,6 +33,7 @@ our @EXPORT = qw/
   addon_license
   validate_repos
   setup_online_migration
+  turn_off_kde_screensaver
   /;
 
 
@@ -54,6 +55,16 @@ sub unlock_if_encrypted {
     assert_screen("encrypted-disk-password-prompt", 200);
     type_password;    # enter PW at boot
     send_key "ret";
+}
+
+sub turn_off_kde_screensaver() {
+    x11_start_program("kcmshell5 screenlocker");
+    assert_screen([qw/kde-screenlock-enabled screenlock-disabled/]);
+    if (match_has_tag('kde-screenlock-enabled')) {
+        assert_and_click('kde-disable-screenlock');
+    }
+    assert_screen 'screenlock-disabled';
+    send_key("alt-o");
 }
 
 # makes sure bootloader appears and then boots to desktop resp text
