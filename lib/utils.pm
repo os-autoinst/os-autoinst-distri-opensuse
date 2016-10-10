@@ -153,8 +153,12 @@ sub wait_boot {
         assert_screen 'displaymanager', 200;
         wait_idle;
         if (get_var('DM_NEEDS_USERNAME')) {
-            type_string "$username\n";
+            type_string $username;
         }
+        # log in
+        #assert_screen "dm-password-input", 10;
+        send_key "ret";
+        wait_idle;
         type_string $password. "\n";
     }
 
