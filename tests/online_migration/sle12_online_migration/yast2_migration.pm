@@ -33,6 +33,9 @@ sub run {
         become_root;
     }
 
+    # to debug in case of failed migration
+    assert_script_run('export ZYPP_FULLLOG=1');
+
     script_run("/sbin/yast2 migration; echo yast2-migration-done-\$? > /dev/$serialdev", 0);
 
     # install minimal update before migration if not perform full update
@@ -133,6 +136,7 @@ sub post_fail_hook() {
     select_console 'log-console';
     wait_still_screen(2);
     $self->save_upload_y2logs;
+    $self->save_satsolver_logs;
 }
 
 1;
