@@ -27,7 +27,7 @@ sub run() {
     script_run("/sbin/yast2 bootloader; echo yast2-bootloader-status-\$? > /dev/$serialdev", 0);
     assert_screen "test-yast2_bootloader-1", 300;
     send_key "alt-o";                                     # OK => Close
-    wait_serial("yast2-bootloader-status-0") || die "'yast2 bootloader' didn't finish";
+    wait_serial("yast2-bootloader-status-0", 150) || die "'yast2 bootloader' didn't finish";
 }
 
 1;
