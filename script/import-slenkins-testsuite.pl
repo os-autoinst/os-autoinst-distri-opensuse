@@ -98,6 +98,7 @@ sub gen_testsuites {
     my ($nodes, $networks, $project_name, $control_pkg) = @_;
     my @suites;
 
+    ## no critic (ProhibitStringyEval)
     for my $node (keys %$nodes) {
         my @node_net;
         @node_net = @{$nodes->{$node}->{networks}} if $nodes->{$node}->{networks};
@@ -113,6 +114,7 @@ sub gen_testsuites {
         name     => "slenkins-${project_name}-control",
         settings => [eval $template_control, {key => "SLENKINS_NODE", value => "control"}, {key => "SLENKINS_CONTROL", value => $control_pkg}, {key => "PARALLEL_WITH", value => join(',', sort map { "slenkins-${project_name}-" . $_ } keys %$nodes)},],
     };
+    ## use critic (ProhibitStringyEval)
 
     my @control_net = keys %$networks;
     push @control_net, 'fixed' unless $networks->{fixed};
