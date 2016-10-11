@@ -7,8 +7,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: openqa script and entry for tc#1503803 tc#1503905; entry for tc#1503973
-# G-Maintainer: xiaojun <xjin@suse.com>
+# Summary: Change password in GNOME and check if it's accepted everywhere
+#  Testtopia: tc#1503803 tc#1503905; entry for tc#1503973
+# Maintainer: chuchingkai <chuchingkai@gmail.com>
 
 use base "x11regressiontest";
 use strict;
@@ -26,8 +27,8 @@ my $pwd4newUser = "helloWORLD-0";
 sub lock_screen {
     assert_and_click "system-indicator";
     assert_and_click "lock-system";
-    type_string $password;
-    send_key "ret";
+    assert_screen 'gnome-screenlock-password';
+    type_string "$password\n";
     assert_screen "generic-desktop";
 }
 
