@@ -190,6 +190,11 @@ sub run() {
         $ifacecfg{type} = 'bridge';
         $ifacecfg{source} = {bridge => get_var('VMWARE_BRIDGE', 'VM Network')};
     }
+    elsif ($vmm_family eq 'kvm') {
+        $ifacecfg{type} = 'user';
+        # This is the default MAC address for user mode networking; same in qemu backend
+        $ifacecfg{mac} = {address => '52:54:00:12:34:56'};
+    }
     else {
         # We can use bridge or network as a base for network interface. Network named 'default'
         # happens to be omnipresent on workstations, bridges (br0, ...) on servers. If both 'default'
