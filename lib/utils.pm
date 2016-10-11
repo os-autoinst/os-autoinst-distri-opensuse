@@ -108,7 +108,6 @@ sub wait_boot {
             select_console('x11');
             reset_consoles;
         }
-        return;
     }
     # On Xen PV we don't see a Grub menu
     elsif (!(check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux'))) {
