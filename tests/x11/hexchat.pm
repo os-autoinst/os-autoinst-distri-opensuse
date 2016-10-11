@@ -14,13 +14,13 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-# G-Summary: support both hexchat and xchat in one test
-#    xchat and hexchat are similar enough to not duplicate code
-# G-Maintainer: Ludwig Nussel <ludwig.nussel@suse.de>
+# Summary: Test both hexchat and xchat in one test
+# Maintainer: Ludwig Nussel <ludwig.nussel@suse.de>
 
 use base "x11test";
 use strict;
 use testapi;
+use utils;
 
 sub run() {
     my $name = ref($_[0]);
@@ -30,25 +30,32 @@ sub run() {
     # it to the lower right where the pk-update-icon's passive popup
     # may suddenly cover parts of the dialog ... o_O
     mouse_set(0, 0);
-    if (my $url = get_var("XCHAT_URL")) {
+    if (my $url = get_var('XCHAT_URL')) {
         x11_start_program("$name --url=$url");
     }
     else {
-        x11_start_program("$name");
+        x11_start_program($name);
         assert_screen "$name-network-select";
         type_string "freenode\n";
+        assert_and_click "hexchat-nick-$username";
+        send_key 'ctrl-a';
+        send_key 'delete';
+        assert_screen "hexchat-nick-empty";
+        type_string "openqa" . random_string(5);
         assert_and_click "$name-connect-button";
         assert_screen "$name-connection-complete-dialog";
         assert_and_click "$name-join-channel";
         type_string "openqa\n";
-        send_key "ret";
+        send_key 'ret';
     }
     assert_screen "$name-main-window";
     type_string "hello, this is openQA running $name!\n";
     assert_screen "$name-message-sent-to-channel";
     type_string "/quit I'll be back\n";
     assert_screen "$name-quit";
-    send_key "alt-f4";
+    send_key 'alt-f4';
+    # now hide the mouse again
+    mouse_hide;
 }
 
 1;

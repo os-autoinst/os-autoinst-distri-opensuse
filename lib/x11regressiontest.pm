@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+## no critic (RequireFilenameMatchesPackage);
 package x11regressiontest;
 use base "x11test";
 use strict;
@@ -196,18 +197,11 @@ sub check_new_mail_evolution {
     }
 }
 
-# get a random string
-sub random_string {
-    my ($self, $length) = @_;
-    my @chars = ('A' .. 'Z', 'a' .. 'z', 0 .. 9);
-    return join '', map { @chars[rand @chars] } 1 .. $length;
-}
-
 # get a random string with followed by date, it used in evolution case to get a unique email title.
 sub get_dated_random_string {
     my ($self, $length) = @_;
     my $ret_string = (strftime "%F", localtime) . "-";
-    return $ret_string .= random_string($self, $length);
+    return $ret_string .= random_string($length);
 }
 
 #send meeting request by Evolution test cases

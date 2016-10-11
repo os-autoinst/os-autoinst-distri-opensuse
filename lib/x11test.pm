@@ -1,3 +1,4 @@
+## no critic (RequireFilenameMatchesPackage);
 package x11test;
 use base "opensusebasetest";
 

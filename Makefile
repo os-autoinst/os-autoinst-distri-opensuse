@@ -58,9 +58,11 @@ test-metadata-merge:
 .PHONY: test
 test: tidy test-compile test-metadata-merge perlcritic-merge
 
+PERLCRITIC=PERL5LIB=tools/lib/perlcritic:$$PERL5LIB perlcritic --quiet --gentle --include Perl::Critic::Policy::HashKeyQuote
+
 .PHONY: perlcritic
 perlcritic: tools/lib/
-	PERL5LIB=tools/lib/perlcritic:$$PERL5LIB perlcritic --quiet --gentle --include Perl::Critic::Policy::HashKeyQuote .
+	${PERLCRITIC} .
 
 .PHONY: perlcritic-merge
 perlcritic-merge:
@@ -69,4 +71,4 @@ perlcritic-merge:
 	FILES=$$(git diff --name-only FETCH_HEAD $$FH 2>/dev/null| grep '.*pm') ;\
 	else FILES= ;\
 	fi ;\
-	if test -n "$$FILES"; then PERL5LIB=tools/lib/perlcritic:$$PERL5LIB perlcritic --quiet --gentle --include Perl::Critic::Policy::HashKeyQuote $$FILES ; fi
+	if test -n "$$FILES"; then ${PERLCRITIC} $$FILES ; fi
