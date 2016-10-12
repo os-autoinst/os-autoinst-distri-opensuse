@@ -7,8 +7,10 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Btrfs quota group improvements poo#11446
-# G-Maintainer: mkravec <mkravec@suse.com>
+# Summary: Btrfs quota group limit tests improvements
+#	 Creating qgroups in a hierarchy for multiple subvolumes,
+#	 putting data into them and then running btrfsck on the hard disk
+# Maintainer: mkravec <mkravec@suse.com>
 
 use base "consoletest";
 use strict;
@@ -17,8 +19,6 @@ use testapi;
 my $dest = "/mnt/qg";
 
 # poo#11446
-# Creating qgroups in a hierarchy for multiple subvolumes,
-# putting data into them and then running btrfsck on the hard disk
 sub run() {
     select_console 'root-console';
 

@@ -7,14 +7,13 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: RT tests
-# G-Maintainer: mkravec <mkravec@suse.com>
+# Summary: Can add SocketCAN kernel driver without problems
+# Maintainer: mkravec <mkravec@suse.com>
 
 use base "opensusebasetest";
 use strict;
 use testapi;
 
-# Add SocketCAN kernel driver without problems
 # https://fate.suse.com/317131
 sub run() {
     assert_script_run "modprobe peak_pci";

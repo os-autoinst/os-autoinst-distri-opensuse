@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: jeos tests
-# G-Maintainer: mkravec <mkravec@suse.com>
+# Summary: Check root filesystem size
+# Maintainer: mkravec <mkravec@suse.com>
 
 use base "opensusebasetest";
 use strict;

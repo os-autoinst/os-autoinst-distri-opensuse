@@ -8,14 +8,13 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: jeos tests
-# G-Maintainer: mkravec <mkravec@suse.com>
+# Summary: Test that volumes are mounted by label
+# Maintainer: mkravec <mkravec@suse.com>
 
 use base "opensusebasetest";
 use strict;
 use testapi;
 
-# Test that volumes are mounted by label
 sub run() {
     # Valid mounts are by text(proc,mem), LABEL, PARTLABEL
     # Invalid mounts are by path, UUID, PARTUUID
