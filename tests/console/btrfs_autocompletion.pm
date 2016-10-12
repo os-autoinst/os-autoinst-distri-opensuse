@@ -7,8 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Bash autocompletion for btrfs
-# G-Maintainer: mkravec <mkravec@suse.com>
+# Summary: Bash autocompletion for btrfs
+# Maintainer: mkravec <mkravec@suse.com>
 
 use base "consoletest";
 use strict;

@@ -7,14 +7,13 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: RT tests
-# G-Maintainer: mkravec <mkravec@suse.com>
+# Summary: RT installation media should contain devel packages
+# Maintainer: mkravec <mkravec@suse.com>
 
 use base "opensusebasetest";
 use strict;
 use testapi;
 
-# Installation media contain devel packages
 # https://fate.suse.com/316652
 sub run() {
     my $repo  = "SLERT12-SP1_12.1-0";

@@ -7,8 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Btrfs send & receive snapshots
-# G-Maintainer: mkravec <mkravec@suse.com>
+# Summary: Btrfs send & receive snapshots
+# Maintainer: mkravec <mkravec@suse.com>
 
 use base "consoletest";
 use strict;

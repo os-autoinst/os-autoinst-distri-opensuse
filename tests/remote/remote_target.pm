@@ -7,8 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Remote ssh & vnc installation
-# G-Maintainer: mkravec <mkravec@suse.com>
+# Summary: Remote ssh & vnc installation
+# Maintainer: mkravec <mkravec@suse.com>
 
 use base "opensusebasetest";
 use strict;

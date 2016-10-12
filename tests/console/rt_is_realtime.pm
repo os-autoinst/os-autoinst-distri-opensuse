@@ -7,14 +7,13 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: RT tests
-# G-Maintainer: mkravec <mkravec@suse.com>
+# Summary: Check that realtime kernel is running
+# Maintainer: mkravec <mkravec@suse.com>
 
 use base "opensusebasetest";
 use strict;
 use testapi;
 
-# Check that realtime kernel is running
 sub run() {
     assert_script_run "uname -v | grep -qo 'PREEMPT RT'";
     assert_script_run "grep -q 1 /sys/kernel/realtime";
