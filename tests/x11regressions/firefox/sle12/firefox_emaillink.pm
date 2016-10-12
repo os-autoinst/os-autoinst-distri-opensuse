@@ -10,8 +10,8 @@
 
 # Case#1436117 Firefox: Email Link
 
-# G-Summary: Add some modified/merged test cases
-# G-Maintainer: wnereiz <wnereiz@github>
+# Summary: Firefox emaillink test
+# Maintainer: wnereiz <wnereiz@github>
 
 use strict;
 use base "x11regressiontest";
@@ -29,7 +29,7 @@ sub run() {
     mouse_hide(1);
 
     # Clean and Start Firefox
-    x11_start_program("xterm -e \"killall -9 firefox;rm -rf .config/evolution;rm -rf .moz*\"");
+    x11_start_program(q{xterm -e i"killall -9 firefox;rm -rf .config/evolution;rm -rf .moz*"});
     x11_start_program("firefox");
     assert_screen('firefox-gnome', 90);
 
@@ -40,10 +40,10 @@ sub run() {
 
     send_key $next_key;
 
-    sleep 1;
+    wait_still_screen;
     send_key $next_key;
 
-    sleep 1;
+    wait_still_screen;
     send_key "alt-a";
     type_string 'test@suse.com';
     send_key $next_key;
@@ -67,11 +67,12 @@ sub run() {
         send_key $next_key;
     }
 
-    assert_screen('firefox-email_link-settings_sending', 30);
+    assert_screen('firefox-email_link-settings_sending');
     send_key "alt-s";    #Server
     type_string "smtp.suse.com";
     send_key $next_key;
 
+    wait_still_screen;
     if (sle_version_at_least('12-SP2')) {
         assert_and_click "evolution-option-next";
     }
@@ -79,17 +80,17 @@ sub run() {
         send_key $next_key;
     }
 
-    sleep 1;
+    wait_still_screen;
     send_key "alt-a";
 
-    assert_screen('firefox-email_link-send', 30);
+    assert_screen('firefox-email_link-send');
 
     send_key "esc";
-    sleep 2;
+    wait_still_screen;
 
     # Exit
     send_key "alt-f4";
-    if (check_screen('firefox-save-and-quit', 30)) {
+    if (check_screen('firefox-save-and-quit')) {
         # confirm "save&quit"
         send_key "ret";
     }

@@ -10,8 +10,8 @@
 
 # Case#1436081: Firefox: Build-in PDF Viewer
 
-# G-Summary: Added new cases, change firefox_emaillink.pm
-# G-Maintainer: wnereiz <wnereiz@gmail.com>
+# Summary: Firefox PDF reader test
+# Maintainer: wnereiz <wnereiz@gmail.com>
 
 use strict;
 use base "x11regressiontest";
@@ -33,20 +33,19 @@ sub run() {
 
     sleep 1;
     for my $i (1 .. 2) { assert_and_click 'firefox-pdf-zoom_out_button'; }
-    assert_screen('firefox-pdf-zoom_out', 30);
+    assert_screen('firefox-pdf-zoom_out');
 
     send_key "tab";
     for my $i (1 .. 4) { assert_and_click 'firefox-pdf-zoom_in_button'; }
-    assert_screen('firefox-pdf-zoom_in', 30);
+    assert_screen('firefox-pdf-zoom_in');
 
     assert_and_click 'firefox-pdf-zoom_menu';
     sleep 1;
     assert_and_click 'firefox-pdf-zoom_menu_actual_size';    #"Actual Size"
-    assert_screen('firefox-pdf-actual_size', 30);
+    assert_screen('firefox-pdf-actual_size');
 
     sleep 1;
     assert_and_click 'firefox-pdf-icon_fullscreen';          #Full Screen
-    assert_and_click('firefox-pdf-allow_fullscreen');
 
     send_key "esc";
     sleep 1;
@@ -56,12 +55,12 @@ sub run() {
     send_key "3";
     send_key "ret";
     sleep 1;
-    assert_screen('firefox-pdf-pagedown', 30);
+    assert_screen('firefox-pdf-pagedown');
 
     # Exit
     send_key "alt-f4";
 
-    if (check_screen('firefox-save-and-quit', 30)) {
+    if (check_screen('firefox-save-and-quit')) {
         # confirm "save&quit"
         send_key "ret";
     }

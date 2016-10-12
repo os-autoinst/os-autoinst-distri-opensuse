@@ -10,8 +10,8 @@
 
 # Case#1436069: Firefox: Java Plugin (IcedTea-Web)
 
-# G-Summary: Added new cases, change firefox_emaillink.pm
-# G-Maintainer: wnereiz <wnereiz@gmail.com>
+# Summary: Test java plugin integration in firefox
+# Maintainer: wnereiz <wnereiz@gmail.com>
 
 use strict;
 use base "x11regressiontest";
@@ -23,9 +23,14 @@ sub java_testing {
     sleep 2;
     send_key "alt-d";
     type_string "http://www.java.com/en/download/installed.jsp?detect=jre\n";
-    if (check_screen("oracle-cookies-handling", 30)) {
-        assert_and_click "firefox-java-agree-and-proceed";
+
+    if (check_screen('firefox-java-security', 10)) {
+        assert_and_click('firefox-java-securityrun');
+        assert_and_click('firefox-java-run_confirm');
+        assert_screen("firefox-java-verifypassed", 90);
     }
+
+    assert_and_click "firefox-java-agree-and-proceed" if (check_screen("oracle-cookies-handling"));
 }
 
 sub run() {
@@ -36,9 +41,11 @@ sub run() {
     x11_start_program("firefox");
     assert_screen('firefox-launch', 90);
 
+    assert_and_click('firefox-logo');
+    sleep 1;
     send_key "ctrl-shift-a";
 
-    assert_screen("firefox-java-addonsmanager", 30);
+    assert_screen("firefox-java-addonsmanager");
 
     send_key "/";
     sleep 1;
@@ -57,7 +64,7 @@ sub run() {
     sleep 1;
     send_key "ret";
 
-    assert_screen("firefox-java-neveractive", 30);
+    assert_screen("firefox-java-neveractive");
 
     java_testing();
     assert_screen("firefox-java-verifyfailed", 90);
@@ -69,18 +76,11 @@ sub run() {
 
     java_testing();
 
-    # following steps were not needful in newer firefox
-    # assert_screen("firefox-java-security",50);
-    # assert_and_click "firefox-java-securityrun";
-    # assert_screen("firefox-java-run_confirm",10);
-    # send_key "ret";
     assert_screen("firefox-java-verifypassed", 90);
 
     # Exit
-    send_key "alt-f4", 1;
-    send_key "spc";
-
-    if (check_screen('firefox-save-and-quit', 30)) {
+    send_key "alt-f4";
+    if (check_screen('firefox-save-and-quit')) {
         # confirm "save&quit"
         send_key "ret";
     }

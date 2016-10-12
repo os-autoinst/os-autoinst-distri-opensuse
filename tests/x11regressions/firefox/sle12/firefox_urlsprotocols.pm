@@ -10,8 +10,8 @@
 
 # Case#1436118 Firefox: URLs with various protocols
 
-# G-Summary: Add some modified/merged test cases
-# G-Maintainer: wnereiz <wnereiz@github>
+# Summary: Firefox: URLs with various protocols
+# Maintainer: wnereiz <wnereiz@github>
 
 use strict;
 use base "x11regressiontest";
@@ -45,6 +45,10 @@ sub run() {
 
     # Exit
     send_key "alt-f4";
+    if (check_screen('firefox-save-and-quit', 30)) {
+        # confirm "save&quit"
+        send_key "ret";
+    }
 
     # Umount smb directory from desktop
     assert_and_click('firefox-urls_protocols-umnt_smb');
@@ -53,10 +57,6 @@ sub run() {
     sleep 1;
     send_key "u";
 
-    if (check_screen('firefox-save-and-quit', 30)) {
-        # confirm "save&quit"
-        send_key "ret";
-    }
 }
 1;
 # vim: set sw=4 et:

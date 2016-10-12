@@ -10,8 +10,8 @@
 
 # Case#1436066: Firefox: HTTP Headers
 
-# G-Summary: Added new cases, change firefox_emaillink.pm
-# G-Maintainer: wnereiz <wnereiz@gmail.com>
+# Summary: Test firefox HTTP headers
+# Maintainer: wnereiz <wnereiz@gmail.com>
 
 use strict;
 use base "x11regressiontest";
@@ -37,14 +37,14 @@ sub run() {
 
     send_key "shift-f10";
     #"Edit and Resend"
-    send_key "r";
+    send_key "e";
 
     assert_screen('firefox-headers-user_agent', 50);
 
     # Exit
     send_key "alt-f4";
 
-    if (check_screen('firefox-save-and-quit', 30)) {
+    if (check_screen('firefox-save-and-quit')) {
         # confirm "save&quit"
         send_key "ret";
     }
