@@ -58,13 +58,26 @@ sub save_logs_and_continue {
     wait_idle(5);
 }
 
+sub save_logs_in_linuxrc {
+    my $name = shift;
+    # tty9 is available in linuxrc
+    send_key "ctrl-alt-f9";
+    send_key "alt-f9";
+    sleep 5;
+    assert_screen ["inst-console"];
+
+    # save_y2logs is not present
+    assert_script_run "tar czf /tmp/logs-$name.tar.bz2 /var/log";
+    upload_logs "/tmp/logs-$name.tar.bz2";
+}
+
 sub run {
     my $self = shift;
     $self->result('ok');
     # wait for bootloader to appear
     my $ret;
 
-    my @needles = ("bios-boot", "autoyast-error", "reboot-after-installation");
+    my @needles = ("bios-boot", "autoyast-error", "reboot-after-installation", "linuxrc-install-fail");
 
     push @needles, "autoyast-confirm"        if get_var("AUTOYAST_CONFIRM");
     push @needles, "autoyast-postpartscript" if get_var("USRSCR_DIALOG");
@@ -105,6 +118,10 @@ sub run {
                 send_key "ret";
                 wait_idle(5);
                 $num_errors++;
+            }
+            if (match_has_tag('linuxrc-install-fail')) {
+                save_logs_in_linuxrc("stage1_error$i");
+                die "installation ends in linuxrc";
             }
             elsif (match_has_tag('autoyast-confirm')) {
                 # select network (second entry)
