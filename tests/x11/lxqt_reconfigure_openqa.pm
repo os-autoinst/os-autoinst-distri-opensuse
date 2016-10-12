@@ -7,8 +7,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Other Desktop Environments: LXQt
-# G-Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
+# Summary: Other Desktop Environments: LXQt
+#          Update the openQA internal configuration after the DE has been installed
+# Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
 
 use base "x11test";
 use strict;
@@ -19,6 +20,11 @@ sub run() {
     my $self = shift;
 
     set_var("DESKTOP", "lxqt");
+
+    # LXQt uses lightdm as window manager, which has the user preselected
+    set_var('DISPLAYMANAGER', 'lightdm');
+    # LightDM has the user in a drop-down preselected; there is no need to type the username
+    set_var('DM_NEEDS_USERNAME', 0);
 
     $self->result('ok');
 }
