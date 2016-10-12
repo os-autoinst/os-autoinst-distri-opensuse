@@ -10,8 +10,8 @@
 
 # Case#1436064: Firefox: Externally handled content
 
-# G-Summary: Added new cases, change firefox_emaillink.pm
-# G-Maintainer: wnereiz <wnereiz@gmail.com>
+# Summary: Firefox: Externally handled content
+# Maintainer: wnereiz <wnereiz@gmail.com>
 
 use strict;
 use base "x11regressiontest";
@@ -32,6 +32,8 @@ sub run() {
     send_key "alt-d";
     sleep 1;
     type_string $ext_link. "\n";
+
+    assert_and_click('firefox-extcontent-reader', 'left', 5, 0.2) if (check_screen('firefox-extcontent-reader'));
 
     assert_screen('firefox-extcontent-pageloaded', 90);
     send_key "/";
