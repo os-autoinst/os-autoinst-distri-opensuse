@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Rails 5.0 test - just installing and starting server
+# Summary: Rails test - just installing and starting server
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use strict;
@@ -16,15 +16,16 @@ use testapi;
 
 sub run() {
     select_console 'root-console';
+    # something like `test -f tmp/pids/server.pid; pumactl -P tmp/pids/server.pid stop; !test -f tmp/pids/server.pid`
+    # is the correct test procedure on rails >= 5, for earlier versions we
+    # need to handle this on our own
     my $cmd = <<'EOF';
 zypper -n in -C "rubygem(rails)"
 rails new -B mycoolapp
 cd mycoolapp
 (rails server &)
-for i in {1..100} ; do sleep 0.1; curl -s http://localhost:3000 | grep "<title>Ruby on Rails</title>" && break ; done
-test -f tmp/pids/server.pid
-pumactl -P tmp/pids/server.pid stop
-!test -f tmp/pids/server.pid
+for i in {1..100} ; do sleep 0.1; curl -s http://localhost:3000 | grep "<title>Ruby on Rails" && break ; done
+pkill -f "rails server" || pumactl -P tmp/pids/server.pid stop
 EOF
     assert_script_run($_) foreach (split /\n/, $cmd);
 }
