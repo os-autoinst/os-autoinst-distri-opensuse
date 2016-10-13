@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Rework the tests layout.
-# G-Maintainer: Alberto Planas <aplanas@suse.com>
+# Summary: Basic amarok test with sound check
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "x11test";
 use strict;
@@ -25,10 +25,11 @@ sub run() {
                          # and don't put this after opening oga file, per video
                          # the window pop-up meanwhile x11_start_progran typeing,
                          # and 40 sec to wait that window pop-up should enough
-    if (check_screen "librivox-authentication", 40) {
+    assert_screen([qw/librivox-authentication test-amarok-2/]);
+    if (match_has_tag('librivox-authentication')) {
         send_key "alt-c";    # cancel librivox certificate
+        assert_screen 'test-amarok-2';
     }
-    assert_screen 'test-amarok-2', 3;
     # do not playing audio file as we have not testdata if NICEVIDEO
     if (!get_var("NICEVIDEO")) {
         start_audiocapture;
