@@ -42,7 +42,7 @@ sub set_serialdev() {
     else {
         $serialdev = "ttyS1";
     }
-    assert_script_run("echo \"Debug info: serial dev is set to $serialdev.\"");
+    script_run("echo \"Debug info: serial dev is set to $serialdev.\"");
 }
 
 sub setup_console_in_grub() {
@@ -51,18 +51,18 @@ sub setup_console_in_grub() {
     my $grub_cfg_file     = "/boot/grub2/grub.cfg";
 
     my $cmd = "if [ -d /boot/grub2 ]; then cp $grub_default_file ${grub_default_file}.org; sed -ri '/GRUB_CMDLINE_(LINUX|LINUX_DEFAULT|XEN_DEFAULT)=/ {s/(console|com\\d+)=[^ \"]*//g; /LINUX=/s/\"\$/ console=$serialdev,115200 console=tty\"/;/XEN_DEFAULT=/ s/\"\$/ console=com2,115200\"/;}' $grub_default_file ; fi";
-    assert_script_run("$cmd");
+    script_run("$cmd");
     wait_idle 3;
     save_screenshot;
-    assert_script_run("clear; cat $grub_default_file");
+    script_run("clear; cat $grub_default_file");
     wait_idle 3;
     save_screenshot;
 
     $cmd = "if [ -d /boot/grub2 ]; then grub2-mkconfig -o $grub_cfg_file; fi";
-    assert_script_run("$cmd", 40);
+    script_run("$cmd", 40);
     wait_idle 3;
     save_screenshot;
-    assert_script_run("clear; cat $grub_cfg_file");
+    script_run("clear; cat $grub_cfg_file");
     wait_idle 3;
     save_screenshot;
 }
