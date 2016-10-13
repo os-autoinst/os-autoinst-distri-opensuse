@@ -23,7 +23,8 @@ sub post_fail_hook() {
         # there is a severe problem, e.g. could be bsc#985850 or bsc#990384 so
         # save more, let's hope there is enough memory for intermediate
         # storage
-        # TODO just assuming that '/dev/vda2' is the root device here, does
+        record_soft_failure 'bsc#990384';
+        # CAUTION just assuming that '/dev/vda2' is the root device here, does
         # not work for LVM setup and others but we want to debug non-LVM first
         # /dev/root is not recognized as btrfs device
         $fn = '/dev/shm/vda2_brfs_debug_tree';
