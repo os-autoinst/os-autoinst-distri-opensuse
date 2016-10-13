@@ -189,7 +189,7 @@ sub registration_bootloader_params {
     $max_interval //= 13;
     # https://www.suse.com/documentation/smt11/book_yep/data/smt_client_parameters.html
     # SCC_URL=https://smt.example.com
-    if (my $url = get_var("SCC_URL")) {
+    if (my $url = get_var("SCC_URL") || get_var("SMT_URL")) {
         type_string " regurl=$url/connect", $max_interval;
         if ($url = get_var("SCC_CERT")) {
             type_string " regcert=$url", $max_interval;
