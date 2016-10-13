@@ -76,7 +76,7 @@ sub fill_in_registration_data {
                 sleep 5;
                 next;
             }
-            elsif (get_var('SCC_URL') && match_has_tag("untrusted-ca-cert")) {
+            elsif ((get_var('SCC_URL') || get_var('SMT_URL')) && match_has_tag("untrusted-ca-cert")) {
                 record_soft_failure 'bsc#943966' if get_var('SCC_CERT');
                 send_key "alt-t", 1;
                 # the behavior here of smt registration on 12sp1 is a little different with
