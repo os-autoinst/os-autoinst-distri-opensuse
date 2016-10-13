@@ -24,7 +24,7 @@ sub run() {
     my $zypper_continue               = qr/^Continue\? \[y/m;
     my $zypper_migration_target       = qr/\[num\/q\]/m;
     my $zypper_disable_repos          = qr/^Disable obsolete repository/m;
-    my $zypper_migration_conflict     = qr/^Choose from above solutions by number/m;
+    my $zypper_migration_conflict     = qr/^Choose from above solutions by number.*/m;
     my $zypper_migration_error        = qr/^Abort, retry, ignore\? \[a/m;
     my $zypper_migration_fileconflict = qr/^File conflicts .*^Continue\? \[y/ms;
     my $zypper_migration_done         = qr/^Executing.*after online migration|^zypper-migration-0/m;
@@ -34,9 +34,12 @@ sub run() {
     # start migration
     script_run("(zypper migration; echo zypper-migration-\$?) | tee /dev/$serialdev", 0);
     # migration process take long time
-    my $timeout          = 7200;
+    # TODO
+    #my $timeout          = 7200;
+    my $timeout          = 120;
     my $migration_checks = [$zypper_migration_target, $zypper_disable_repos, $zypper_continue, $zypper_migration_done, $zypper_migration_error, $zypper_migration_conflict, $zypper_migration_fileconflict, $zypper_migration_notification, $zypper_migration_failed];
-    while (my $out = wait_serial($migration_checks, $timeout)) {
+    my $out = wait_serial($migration_checks, $timeout);
+    while ($out) {
         if ($out =~ $zypper_migration_target) {
             my $version = get_var("VERSION");
             $version =~ s/-/ /;
@@ -50,9 +53,19 @@ sub run() {
             send_key "y";
             send_key "ret";
         }
-        elsif ($out =~ $zypper_migration_error || $out =~ $zypper_migration_conflict || $out =~ $zypper_migration_fileconflict) {
-            # try to debug conflicts
-            assert_script_run('zypper migration --debug-solver');
+        elsif ($out =~ $zypper_migration_conflict) {
+            if (get_var("WORKAROUND_DEPS")) {
+                record_soft_failure 'workaround dependencies';
+                send_key '1';
+                send_key 'ret';
+            }
+            else {
+                save_screenshot;
+                die 'migration failed with conflict';
+            }
+        }
+        elsif ($out =~ $zypper_migration_error || $out =~ $zypper_migration_fileconflict) {
+            #assert_script_run('zypper migration --debug-solver');
             save_screenshot;
             die "migration failed with error or conflict";
             return;
@@ -72,7 +85,8 @@ sub run() {
         elsif ($out =~ $zypper_migration_done) {
             last;
         }
-        $out = wait_serial($migration_checks, $timeout) || die "timeout during migration";
+        $out = wait_serial($migration_checks, $timeout);
+        die "timeout during migration" unless $out;
     }
     script_run("systemctl reboot", 0);
 
