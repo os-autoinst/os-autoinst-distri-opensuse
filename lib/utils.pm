@@ -76,6 +76,9 @@ sub wait_boot {
     my $bootloader_time = $args{bootloader_time} // 100;
     my $textmode        = $args{textmode};
 
+    # Reset the consoles after the reboot: there is no user logged in anywhere
+    reset_consoles;
+
     if (get_var("OFW")) {
         assert_screen "bootloader-ofw", $bootloader_time;
     }
@@ -92,7 +95,6 @@ sub wait_boot {
             # give the system time to have routes up
             # and start serial grab again
             sleep 30;
-            reset_consoles;
             select_console('iucvconn');
         }
         else {
@@ -102,11 +104,9 @@ sub wait_boot {
         # on z/(K)VM we need to re-select a console
         if ($textmode || check_var('DESKTOP', 'textmode')) {
             select_console('root-console');
-            reset_consoles;
         }
         else {
             select_console('x11');
-            reset_consoles;
         }
     }
     # On Xen PV and svirt we don't see a Grub menu
@@ -143,7 +143,6 @@ sub wait_boot {
 
     if ($textmode || check_var('DESKTOP', 'textmode')) {
         assert_screen 'linux-login', 200;
-        reset_consoles;
         return;
     }
 
@@ -167,9 +166,6 @@ sub wait_boot {
 
     assert_screen 'generic-desktop', 300;
     mouse_hide(1);
-
-    # Reset the consoles after the reboot: there is no user logged in anywhere
-    reset_consoles;
 }
 
 # 'ctrl-l' does not get queued up in buffer. If this happens to fast, the
