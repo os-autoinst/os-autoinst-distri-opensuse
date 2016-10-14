@@ -349,23 +349,26 @@ sub ensure_unlocked_desktop {
             return;
         }
     }
+    # start to unlocking the screenlock
     if (check_var("DESKTOP", "gnome")) {
         send_key "esc";
         unless (get_var("LIVETEST")) {
             send_key "ctrl";    # show gnome screen lock in sle 11
             assert_screen([qw/gnome-screenlock-password screenlock/]);
+            assert_and_click "displaymanager-password-prompt";
             type_password;
             send_key "ret";
         }
     }
-    elsif (check_var("DESKTOP", "minimalx")) {
-        type_string "$username";
-        save_screenshot();
-        send_key "ret";
-        type_password;
-        send_key "ret";
-    }
     else {
+        if (check_var("DESKTOP", "minimalx")) {
+            type_string "$username";
+            save_screenshot();
+            send_key "ret";
+        }
+        # clicked the password input field on all DMs
+        # make sure the input cursor is in the input field
+        assert_and_click "displaymanager-password-prompt";
         type_password;
         send_key "ret";
     }
