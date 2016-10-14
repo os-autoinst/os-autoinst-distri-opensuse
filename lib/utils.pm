@@ -109,8 +109,8 @@ sub wait_boot {
             reset_consoles;
         }
     }
-    # On Xen PV we don't see a Grub menu
-    elsif (!(check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux'))) {
+    # On Xen PV and svirt we don't see a Grub menu
+    elsif (!(check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux') && check_var('BACKEND', 'svirt'))) {
         my @tags = ('grub2');
         push @tags, 'bootloader-shim-import-prompt'   if get_var('UEFI');
         push @tags, 'boot-live-' . get_var('DESKTOP') if get_var('LIVETEST');    # LIVETEST won't to do installation and no grub2 menu show up
