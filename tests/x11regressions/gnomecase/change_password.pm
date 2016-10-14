@@ -18,8 +18,6 @@ use utils;
 
 #testcase 5255-1503803: Gnome:Change Password
 
-my $rootpwd = $password;
-my $password;
 my $newpwd      = "suseTEST-987";
 my $newUser     = "test";
 my $pwd4newUser = "helloWORLD-0";
@@ -27,8 +25,9 @@ my $pwd4newUser = "helloWORLD-0";
 sub lock_screen {
     assert_and_click "system-indicator";
     assert_and_click "lock-system";
+    send_key "esc";
     assert_screen 'gnome-screenlock-password';
-    type_string "$password\n";
+    type_string "$newpwd\n";
     assert_screen "generic-desktop";
 }
 
@@ -39,8 +38,7 @@ sub logout_and_login {
     send_key "ret";
     assert_screen "displaymanager";
     send_key "ret";
-    type_string $password;
-    send_key "ret";
+    type_string "$newpwd\n";
     assert_screen "generic-desktop";
 }
 
@@ -50,14 +48,13 @@ sub reboot_system {
     assert_screen 'logoutdialog', 15;
     assert_and_click 'logoutdialog-reboot-highlighted';
     if (check_screen("reboot-auth", 5)) {
-        type_string $rootpwd;
+        type_string $password;
         assert_and_click "authenticate";
     }
     assert_screen "displaymanager", 200;
     send_key "ret";
     wait_still_screen;
-    type_string $password;
-    send_key "ret";
+    type_string "$newpwd\n";
     assert_screen "generic-desktop";
 }
 
@@ -79,7 +76,7 @@ sub unlock_user_settings {
     assert_screen "users-settings";
     assert_and_click "Unlock-user-settings";
     assert_screen "authentication-required-user-settings";
-    type_string $rootpwd;
+    type_string $password;
     assert_and_click "authenticate";
 }
 
@@ -90,7 +87,7 @@ sub change_pwd {
     wait_still_screen;
     send_key "alt-p";
     wait_still_screen;
-    type_string "$rootpwd";
+    type_string "$password";
     wait_still_screen;
     send_key "alt-n";
     wait_still_screen;
@@ -102,7 +99,6 @@ sub change_pwd {
     assert_screen "actived-change-password";
     send_key "alt-a";
     assert_screen "users-settings", 60;
-    $password = $newpwd;
 }
 
 sub add_user {
@@ -138,42 +134,36 @@ sub run () {
     reboot_system;
     #swtich to new added user then switch back
     switch_user;
+    send_key "esc";
     assert_screen "displaymanager";
     send_key "down";
     send_key "ret";
     assert_screen "testUser-login-dm";
-    type_string "$pwd4newUser";
-    send_key "ret";
+    type_string "$pwd4newUser\n";
     assert_screen "generic-desktop", 60;
     switch_user;
+    send_key "esc";
     assert_screen "displaymanager";
     send_key "ret";
     assert_screen "originUser-login-dm";
-    type_string "$password";
-    send_key "ret";
+    type_string "$newpwd\n";
     assert_screen "generic-desktop", 60;
 
     #restore password to original value
     x11_start_program("gnome-terminal");
-    type_string "su";
-    send_key "ret";
+    type_string "su\n";
     assert_screen "pwd4root-terminal";
-    type_string "$rootpwd";
-    send_key "ret";
+    type_string "$password\n";
     assert_screen "root-gnome-terminal";
-    type_string "passwd $username";
-    send_key "ret";
+    type_string "passwd $username\n";
     assert_screen "pwd4user-terminal";
-    type_string "$rootpwd";
-    send_key "ret";
+    type_string "$password\n";
     assert_screen "pwd4user-confirm-terminal";
-    type_string "$rootpwd";
-    send_key "ret";
+    type_string "$password\n";
     assert_screen "password-changed-terminal";
 
     #delete the added user: test
-    type_string "userdel -f test";
-    send_key "ret";
+    type_string "userdel -f test\n";
     assert_screen "user-test-deleted";
     send_key "alt-f4";
     send_key "ret";
