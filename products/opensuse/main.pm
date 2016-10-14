@@ -506,6 +506,7 @@ sub load_extra_tests() {
 
     # setup $serialdev permission and so on
     loadtest "console/consoletest_setup.pm";
+    loadtest "console/hostname.pm";
 
     if (console_is_applicable() && get_var("EXTRATEST")) {
         # Put tests that filled the conditions below
