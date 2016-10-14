@@ -10,14 +10,14 @@
     <add-on>
         <add_on_products config:type="list">
             <listentry>
-                <media_url><![CDATA[dvd:///?devices=/dev/sr0]]></media_url>
+                <media_url><![CDATA[dvd:///?devices=/dev/sr1]]></media_url>
                 <product_dir>/</product_dir>
                 <product>SDK</product>
                 <alias>Software Development Kit</alias>
                 <confirm_license config:type="boolean">true</confirm_license>
             </listentry>
             <listentry>
-                <media_url><![CDATA[dvd:///?devices=/dev/sr1]]></media_url>
+                <media_url><![CDATA[dvd:///?devices=/dev/sr2]]></media_url>
                 <product_dir>/</product_dir>
                 <product>WE</product>
                 <alias>Workstation Extension</alias>
