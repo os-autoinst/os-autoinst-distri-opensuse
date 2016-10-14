@@ -618,9 +618,16 @@ sub load_consoletests() {
             }
             loadtest "console/http_srv.pm";
             loadtest "console/mysql_srv.pm";
+            loadtest "console/postgresql94server.pm";
+            loadtest "console/shibboleth.pm";
             if (!is_staging()) {
                 # Very temporary removal of this test from staging - rbrown 6 Apr 2016
                 loadtest "console/dns_srv.pm";
+            }
+            if (get_var('ADDONS', '') =~ /wsm/ || get_var('SCC_ADDONS', '') =~ /wsm/) {
+                loadtest "console/php5.pm";
+                loadtest "console/php5_mysql.pm";
+                loadtest "console/php5_postgresql94.pm";
             }
         }
         if (get_var("MOZILLATEST")) {
