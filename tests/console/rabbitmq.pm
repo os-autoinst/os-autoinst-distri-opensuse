@@ -31,7 +31,8 @@ python send.py
 wget https://raw.githubusercontent.com/rabbitmq/rabbitmq-tutorials/master/python/receive.py
 EOF
     assert_script_run($_) foreach (split /\n/, $cmd);
-    validate_script_output 'timeout 1 python receive.py', sub { m/[x] Received 'Hello World!'/ };
+    type_string("timeout 1 python receive.py > /dev/$serialdev\n");
+    wait_serial(".*Received.*Hello World.*");
     assert_script_sudo('systemctl stop rabbitmq-server');
 }
 
