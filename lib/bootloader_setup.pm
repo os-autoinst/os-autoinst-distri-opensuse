@@ -200,7 +200,7 @@ sub specific_bootmenu_params {
 
     if (get_var("DUD")) {
         my $dud = get_var("DUD");
-        if ($dud =~ /http:\/\/|ftp:\/\//) {
+        if ($dud =~ /http:\/\/|https:\/\/|ftp:\/\//) {
             $args .= " dud=$dud insecure=1";
         }
         else {
