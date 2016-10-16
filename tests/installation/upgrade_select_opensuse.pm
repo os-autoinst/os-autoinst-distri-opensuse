@@ -37,9 +37,14 @@ sub run() {
         assert_screen('list-of-online-repositories', 10);
         send_key $cmd{next};
 
-        if (get_var("BETA")) {
-            assert_screen "inst-betawarning";
+        if (check_screen('inst-betawarning')) {
             send_key 'alt-o';
+            if (!get_var("BETA")) {
+                record_soft_failure('betawarning seen in non-beta product');
+            }
+        }
+        elsif (get_var("BETA")) {
+            record_soft_failure('missing beta warning even though BETA is set');
         }
         # Bug 881107 - there is 2nd license agreement screen in openSUSE upgrade
         # http://bugzilla.opensuse.org/show_bug.cgi?id=881107
