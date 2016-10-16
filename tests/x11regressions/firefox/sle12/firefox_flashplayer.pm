@@ -8,22 +8,16 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Case#1436061: Firefox: Flash Player
-
-# G-Summary: Added new cases, change firefox_emaillink.pm
-# G-Maintainer: wnereiz <wnereiz@gmail.com>
+# Summary: Case#1436061: Firefox: Flash Player
+# Maintainer: wnereiz <wnereiz@gmail.com>
 
 use strict;
 use base "x11regressiontest";
 use testapi;
 
 sub run() {
-    mouse_hide(1);
-
-    # Clean and Start Firefox
-    x11_start_program("xterm -e \"killall -9 firefox;rm -rf .moz*\"");
-    x11_start_program("firefox");
-    assert_screen('firefox-launch', 90);
+    my ($self) = @_;
+    $self->start_firefox;
 
     send_key "esc";
     send_key "alt-d";
@@ -43,13 +37,7 @@ sub run() {
         last;
     }
 
-    # Exit
-    send_key "alt-f4";
-
-    if (check_screen('firefox-save-and-quit', 30)) {
-        # confirm "save&quit"
-        send_key "ret";
-    }
+    $self->exit_firefox;
 }
 1;
 # vim: set sw=4 et:

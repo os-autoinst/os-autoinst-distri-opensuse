@@ -8,10 +8,10 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-package firefox;
-# G-Summary: Rework the tests layout.
-# G-Maintainer: Alberto Planas <aplanas@suse.com>
+# Summary: Very basic firefox test opening html5test
+# Maintainer: Stephan Kulow <coolo@suse.com>
 
+package firefox;
 use base "x11test";
 use strict;
 use testapi;
@@ -19,11 +19,13 @@ use testapi;
 sub start_firefox() {
     x11_start_program("firefox https://html5test.com/index.html", 6, {valid => 1});
     # makes firefox as default browser
-    if (check_screen('firefox_default_browser')) {
+    assert_screen [qw/firefox_default_browser firefox_readerview_window test-firefox-1/], 120;
+    if (match_has_tag 'firefox_default_browser') {
         assert_and_click 'firefox_default_browser_yes';
     }
+    assert_screen [qw/firefox_readerview_window test-firefox-1/], 120;
     # workaround for reader view , it grabed the focus than mainwindow
-    if (check_screen('firefox_readerview_window', 30)) {
+    if (match_has_tag 'firefox_readerview_window') {
         assert_and_click 'firefox_readerview_window';
     }
     assert_screen 'test-firefox-1', 35;

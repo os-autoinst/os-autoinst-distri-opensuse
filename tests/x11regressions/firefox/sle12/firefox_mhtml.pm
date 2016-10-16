@@ -8,25 +8,20 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Case#1436084: Firefox: Open IE MHTML Files
-
-# G-Summary: Added 13 new scripts. Minor changes for some old scripts to run better together.
-# G-Maintainer: wnereiz <wnereiz@gmail.com>
+# Summary: Case#1436084: Firefox: Open IE MHTML Files
+# Maintainer: wnereiz <wnereiz@gmail.com>
 
 use strict;
 use base "x11regressiontest";
 use testapi;
 
 sub run() {
-    mouse_hide(1);
+    my ($self) = @_;
+    $self->start_firefox;
+
 
     # Fetch mht file to shm
     x11_start_program("wget " . autoinst_url . "/data/x11regressions/ie10.mht -O /dev/shm/ie10.mht");
-
-    # Clean and Start Firefox
-    x11_start_program("xterm -e \"killall -9 firefox;rm -rf .moz*\"");
-    x11_start_program("firefox");
-    assert_screen('firefox-launch', 90);
 
     send_key "ctrl-shift-a";
     assert_screen('firefox-addons_manager', 90);

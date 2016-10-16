@@ -8,22 +8,17 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Case#1479557: Firefox: RSS Button
-
-# G-Summary: Added 13 new scripts. Minor changes for some old scripts to run better together.
-# G-Maintainer: wnereiz <wnereiz@gmail.com>
+# Summary: Case#1479557: Firefox: RSS Button
+# Maintainer: wnereiz <wnereiz@gmail.com>
 
 use strict;
 use base "x11regressiontest";
 use testapi;
 
 sub run() {
-    mouse_hide(1);
+    my ($self) = @_;
+    $self->start_firefox;
 
-    # Clean and Start Firefox
-    x11_start_program("xterm -e \"killall -9 firefox;rm -rf .moz*\"");
-    x11_start_program("firefox");
-    assert_screen('firefox-launch', 90);
 
     send_key "alt-v", 1;
     send_key "t";

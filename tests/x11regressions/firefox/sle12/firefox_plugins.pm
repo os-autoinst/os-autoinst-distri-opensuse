@@ -10,20 +10,16 @@
 
 # Case#1479188: Firefox: Add-ons - Plugins
 
-# G-Summary: Added 13 new scripts. Minor changes for some old scripts to run better together.
-# G-Maintainer: wnereiz <wnereiz@gmail.com>
+# Summary: Case#1479188: Firefox: Add-ons - Plugins
+# Maintainer: wnereiz <wnereiz@gmail.com>
 
 use strict;
 use base "x11regressiontest";
 use testapi;
 
 sub run() {
-    mouse_hide(1);
-
-    # Clean and Start Firefox
-    x11_start_program("xterm -e \"killall -9 firefox;rm -rf .moz*\"");
-    x11_start_program("firefox");
-    assert_screen('firefox-launch', 90);
+    my ($self) = @_;
+    $self->start_firefox;
 
     send_key "ctrl-shift-a";
     assert_and_click('firefox-addons-plugins');
@@ -36,13 +32,7 @@ sub run() {
     assert_and_click('firefox-plugins-check_update');
     assert_screen('firefox-plugins-update_page', 60);
 
-    # Exit
-    send_key "alt-f4";
-
-    if (check_screen('firefox-save-and-quit', 30)) {
-        # confirm "save&quit"
-        send_key "ret";
-    }
+    $self->exit_firefox;
 }
 1;
 # vim: set sw=4 et:

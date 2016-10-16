@@ -8,9 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Case#1436118 Firefox: URLs with various protocols
-
-# Summary: Firefox: URLs with various protocols
+# Summary: Firefox: URLs with various protocols (Case#1436118)
 # Maintainer: wnereiz <wnereiz@github>
 
 use strict;
@@ -18,23 +16,24 @@ use base "x11regressiontest";
 use testapi;
 
 sub run() {
-    mouse_hide(1);
-
-    # Clean and Start Firefox
-    x11_start_program("xterm -e \"killall -9 firefox;rm -rf .moz*\"");
-    x11_start_program("firefox");
-    assert_screen('firefox-launch', 90);
+    my ($self) = @_;
+    $self->start_firefox;
 
     # sites_url
     my %sites_url = (
         http  => "http://jekyllrb.com/",
         https => "https://www.google.com/",
         ftp   => "ftp://mirror.bej.suse.com/",
-        smb   => "smb://mirror.bej.suse.com/dist",
         local => "file:///usr/share/w3m/w3mhelp.html"
     );
 
-    for my $proto (keys %sites_url) {
+    if (check_var('VERSION', '12-SP2')) {
+        record_soft_failure 'bnc#1004573';
+    }
+    else {
+        $sites_url{smb} = "smb://mirror.bej.suse.com/dist/";
+    }
+    for my $proto (sort keys %sites_url) {
         send_key "esc";
         sleep 1;
         send_key "alt-d";
@@ -43,19 +42,15 @@ sub run() {
         assert_screen('firefox-urls_protocols-' . $proto, 60);
     }
 
-    # Exit
-    send_key "alt-f4";
-    if (check_screen('firefox-save-and-quit', 30)) {
-        # confirm "save&quit"
-        send_key "ret";
+    $self->exit_firefox;
+    if ($sites_url{smb}) {
+        # Umount smb directory from desktop
+        assert_and_click('firefox-urls_protocols-umnt_smb');
+        sleep 1;
+        send_key "shift-f10";
+        sleep 1;
+        send_key "u";
     }
-
-    # Umount smb directory from desktop
-    assert_and_click('firefox-urls_protocols-umnt_smb');
-    sleep 1;
-    send_key "shift-f10";
-    sleep 1;
-    send_key "u";
 
 }
 1;

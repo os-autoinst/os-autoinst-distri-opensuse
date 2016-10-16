@@ -8,9 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Case#1436066: Firefox: HTTP Headers
-
-# Summary: Test firefox HTTP headers
+# Summary: Test firefox HTTP headers (Case#1436066)
 # Maintainer: wnereiz <wnereiz@gmail.com>
 
 use strict;
@@ -18,6 +16,7 @@ use base "x11regressiontest";
 use testapi;
 
 sub run() {
+    my ($self) = @_;
     mouse_hide(1);
 
     # Clean and Start Firefox

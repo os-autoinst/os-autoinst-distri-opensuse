@@ -444,5 +444,33 @@ sub setup_pop {
 sub post_fail_hook() {
 }
 
+sub start_firefox() {
+    mouse_hide(1);
+
+    x11_start_program 'xterm';
+    # Clean and Start Firefox
+    type_string "killall -9 firefox;rm -rf .moz* .config/iced* .cache/iced* .local/share/gnome-shell/extensions/*; firefox > firefox.log 2>&1 &\n";
+    assert_screen 'firefox-launch', 90;
+}
+
+sub exit_firefox() {
+    # Exit
+    send_key "alt-f4";
+    assert_screen [qw(firefox-save-and-quit xterm-left-open xterm-without-focus)], 30;
+    if (match_has_tag 'firefox-save-and-quit') {
+        # confirm "save&quit"
+        send_key "ret";
+    }
+    assert_screen [qw(xterm-left-open xterm-without-focus)];
+    if (match_has_tag 'xterm-without-focus') {
+        # focus it
+        assert_and_click 'xterm-without-focus';
+        assert_screen 'xterm-left-open';
+    }
+    script_run "cat firefox.log";
+    save_screenshot;
+    type_string "exit\n";
+}
+
 1;
 # vim: set sw=4 et:
