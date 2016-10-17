@@ -7,9 +7,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: NIS server-client test
+# Summary: NIS server-client test
 #    https://progress.opensuse.org/issues/9900
-# G-Maintainer: Jozef Pupava <jpupava@suse.com>
+# Maintainer: Jozef Pupava <jpupava@suse.com>
 
 use base "x11test";
 use strict;
@@ -31,7 +31,7 @@ sub run() {
     send_key 'alt-m';                                                        # NIS master server
     wait_still_screen 4;
     send_key $cmd{next};
-    assert_screen 'nis-server-master-server-setup';
+    assert_screen 'nis-server-master-server-setup', 90;
     send_key 'tab';                                                          # jump to NIS domain name
     type_string 'nis.openqa.suse.de';
     send_key 'alt-a';                                                        # unselect active slave NIS server exists checkbox
@@ -54,6 +54,7 @@ sub run() {
     save_screenshot;
     send_key $cmd{next};
     send_key 'alt-a';                                                        # add
+    wait_still_screen 4, 4;                                                  # blinking cursor
     type_string '255.255.255.0';
     send_key 'tab';
     type_string '10.0.2.0';

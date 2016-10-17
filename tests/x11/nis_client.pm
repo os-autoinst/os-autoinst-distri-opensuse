@@ -7,9 +7,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: NIS server-client test
+# Summary: NIS server-client test
 #    https://progress.opensuse.org/issues/9900
-# G-Maintainer: Jozef Pupava <jpupava@suse.com>
+# Maintainer: Jozef Pupava <jpupava@suse.com>
 
 use base "x11test";
 use strict;
@@ -67,7 +67,7 @@ sub run() {
     send_key 'alt-o';                                                        # OK
     assert_screen 'nis-client-configuration';
     send_key 'alt-f';                                                        # finish
-    assert_screen 'yast2_closed_xterm_visible';
+    assert_screen 'yast2_closed_xterm_visible', 90;
     script_run 'mount|grep nfs';                                             # print nfs mounts
     script_run 'echo "nfs is working" > /home/nis_user/test';                # create file with text, will be checked by server
     type_string "killall xterm\n";                                           # game over -> xterm
