@@ -56,6 +56,12 @@ sub run() {
     }
 }
 
+sub post_fail_hook() {
+    my $self = shift;
+
+    $self->export_logs();
+}
+
 sub test_flags() {
     return {milestone => 1, fatal => 1};
 }
