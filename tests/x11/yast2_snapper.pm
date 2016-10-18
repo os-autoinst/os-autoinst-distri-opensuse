@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Test for yast2-snapper
-# G-Maintainer: Ancor Gonzalez Sosa <ancor@suse.de>
+# Summary: Test for yast2-snapper
+# Maintainer: Richard Brown <rbrown@suse.de>
 
 use base "x11test";
 use strict;
@@ -119,9 +119,8 @@ sub run() {
         # immediately but takes 1-2 seconds. That's why after deletion
         # it's still there which is detected now in the new faster version
         # of the test. On a second look it should really be gone
-        record_soft_failure 'bsc#992192' if sle_version_at_least('12-SP2');
         wait_still_screen;
-        if (check_screen([qw/yast2_snapper-new_snapshot yast2_snapper-new_snapshot_selected/])) {
+        if (check_screen([qw/yast2_snapper-new_snapshot yast2_snapper-new_snapshot_selected/], 240)) {
             die("The snapshot is still visible after trying to delete it and waiting a bit");
         }
     }
