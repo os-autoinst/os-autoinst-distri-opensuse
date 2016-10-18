@@ -7,10 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Case 1503778  - LibreOffice: Open supported file types by double click.
-
-# G-Summary: add libreoffice tc#1503778 and tc#1503881 script and attachment
-# G-Maintainer: dehai <dhkong@suse.com>
+# Summary: LibreOffice: Open supported file types by double click (tc#1503778)
+# Maintainer: dehai <dhkong@suse.com>
 
 use base "x11regressiontest";
 use base "x11regressiontest";
@@ -21,7 +19,6 @@ sub run() {
     my $self = shift;
 
     # upload libreoffice specified files for testing
-    wait_still_screen;
     $self->upload_libreoffice_specified_file();
 
     # open gnome file manager- nautilus for testing
@@ -46,20 +43,21 @@ sub run() {
             release_key "alt";
         }
     }
-    send_key "ctrl-q";
+    wait_screen_change {
+        # close libreoffice
+        send_key "ctrl-q";
+    };
+    wait_still_screen;
     hold_key "alt";
     send_key "tab";
     assert_screen("libreoffice-nautilus-window");
     release_key "alt";
-    send_key "alt-f4";
-    if (!assert_screen("generic-desktop")) {
-        send_key "ctrl-q";
-        hold_key "alt";
-        send_key "tab";
-        assert_screen("libreoffice-nautilus-window");
-        release_key "alt";
+    wait_still_screen;
+    wait_screen_change {
+        # close nautilus
         send_key "alt-f4";
-    }
+    };
+    assert_screen("generic-desktop");
 
     #clean up
     $self->cleanup_libreoffice_recent_file();
