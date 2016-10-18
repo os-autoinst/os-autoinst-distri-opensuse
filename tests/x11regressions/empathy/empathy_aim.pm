@@ -7,8 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: openqa script for tc#1503972
-# G-Maintainer: dehai <dhkong@suse.com>
+# Summary: Adding AIM accounts, sending & receiving messages in Empathy
+# Maintainer: dehai <dhkong@suse.com>
 
 use base "x11regressiontest";
 use strict;
@@ -41,10 +41,6 @@ sub run() {
     type_string $USERNAME0. "@" . $DOMAIN . ".com";
     send_key "tab";
     type_string $PASSWD;
-    if (sle_version_at_least('12-SP2')) {
-        assert_and_click 'remember-password-uncheck';
-        record_soft_failure 'bsc#994988 Empathy adding account org.freedesktop.Secret.Error.IsLocked: Cannot create an item in a locked collection';
-    }
     send_key "alt-d";
 
     # check status
@@ -61,9 +57,6 @@ sub run() {
     type_string $USERNAME1. "@" . $DOMAIN . ".com";
     send_key "tab";
     type_string $PASSWD;
-    if (sle_version_at_least('12-SP2')) {
-        assert_and_click 'remember-password-uncheck';
-    }
     send_key "alt-d";
 
     # check status
