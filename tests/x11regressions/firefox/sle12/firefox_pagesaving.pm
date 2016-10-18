@@ -8,21 +8,17 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Case#1436102: Firefox: Page Saving
-
-# G-Summary: Added new cases, change firefox_emaillink.pm
-# G-Maintainer: wnereiz <wnereiz@gmail.com>
+# Summary: Case#1436102: Firefox: Page Saving
+# Maintainer: wnereiz <wnereiz@gmail.com>
 
 use strict;
 use base "x11regressiontest";
 use testapi;
 
 sub run() {
-    mouse_hide(1);
+    my ($self) = @_;
+    $self->start_firefox;
 
-    # Clean and Start Firefox
-    x11_start_program("xterm");
-    type_string "killall -9 firefox;rm -rf .moz* Downloads/*\n";
     sleep 1;
     x11_start_program("firefox");
     assert_screen('firefox-launch', 90);

@@ -8,9 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Case#1436117 Firefox: Email Link
-
-# Summary: Firefox emaillink test
+# Summary: Firefox emaillink test (Case#1436117)
 # Maintainer: wnereiz <wnereiz@github>
 
 use strict;
@@ -19,19 +17,14 @@ use testapi;
 use utils;
 
 sub run() {
-    my $self     = shift;
+    my ($self) = @_;
     my $next_key = "alt-o";
 
     if (sle_version_at_least('12-SP2')) {
         $next_key = "alt-n";
     }
 
-    mouse_hide(1);
-
-    # Clean and Start Firefox
-    x11_start_program(q{xterm -e i"killall -9 firefox;rm -rf .config/evolution;rm -rf .moz*"});
-    x11_start_program("firefox");
-    assert_screen('firefox-gnome', 90);
+    $self->start_firefox;
 
     # Email link
     send_key "alt-f";
@@ -70,7 +63,9 @@ sub run() {
     assert_screen('firefox-email_link-settings_sending');
     send_key "alt-s";    #Server
     type_string "smtp.suse.com";
-    send_key $next_key;
+    wait_screen_change {
+        send_key $next_key;
+    };
 
     wait_still_screen;
     if (sle_version_at_least('12-SP2')) {
@@ -84,16 +79,11 @@ sub run() {
     send_key "alt-a";
 
     assert_screen('firefox-email_link-send');
+    wait_screen_change {
+        send_key "esc";
+    };
 
-    send_key "esc";
-    wait_still_screen;
-
-    # Exit
-    send_key "alt-f4";
-    if (check_screen('firefox-save-and-quit')) {
-        # confirm "save&quit"
-        send_key "ret";
-    }
+    $self->exit_firefox;
 }
 1;
 # vim: set sw=4 et:

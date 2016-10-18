@@ -10,39 +10,28 @@
 
 # Case#1479504: Firefox: Health Report
 
-# G-Summary: Added 13 new scripts. Minor changes for some old scripts to run better together.
-# G-Maintainer: wnereiz <wnereiz@gmail.com>
+# Summary: Case#1479504: Firefox: Health Report
+# Maintainer: wnereiz <wnereiz@gmail.com>
 
 use strict;
 use base "x11regressiontest";
 use testapi;
 
 sub run() {
-    mouse_hide(1);
-
-    # Clean and Start Firefox
-    x11_start_program("xterm -e \"killall -9 firefox;rm -rf .moz*\"");
-    x11_start_program("firefox");
-    assert_screen('firefox-launch', 90);
+    my ($self) = @_;
+    $self->start_firefox;
 
     send_key "alt-h";
     sleep 1;
     send_key "e";
     check_screen('firefox-health-report', 60);
 
-
     send_key "/";
     sleep 1;
     type_string "raw data\n";
     check_screen('firefox-health-report-rawdata', 60);
 
-    # Exit
-    send_key "alt-f4";
-
-    if (check_screen('firefox-save-and-quit', 30)) {
-        # confirm "save&quit"
-        send_key "ret";
-    }
+    $self->exit_firefox;
 }
 1;
 # vim: set sw=4 et:

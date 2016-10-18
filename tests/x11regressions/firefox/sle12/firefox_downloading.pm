@@ -8,10 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Case#1436106: Firefox: Downloading
-
-# G-Summary: Add some modified/merged test cases
-# G-Maintainer: wnereiz <wnereiz@github>
+# Summary: Case#1436106: Firefox: Downloading
+# Maintainer: wnereiz <wnereiz@github>
 
 use strict;
 use base "x11regressiontest";
@@ -22,7 +20,9 @@ my $dl_link_02 = "http://download.opensuse.org/distribution/13.2/iso/openSUSE-13
 
 sub dl_location_switch {
     my ($tg) = @_;
-    send_key "alt-e", 1;
+    wait_screen_change {
+        send_key "alt-e";
+    };
     send_key "n";
     assert_screen('firefox-downloading-preferences', 30);
 
@@ -41,31 +41,37 @@ sub dl_save {
     type_string $link;
 
     # check if downloading content open with default application
-    if (check_screen 'firefox-downloading-openwith', 30) {
+    assert_screen ['firefox-downloading-openwith', 'firefox-downloading-save_enabled'], 30;
+    if (match_has_tag 'firefox-downloading-openwith') {
         send_key "alt-s";
     }
     assert_and_click("firefox-downloading-save_enabled", "left", 90);
 }
 
 sub dl_pause {
-    send_key "shift-f10";
-    send_key "p";
+    wait_screen_change {
+        send_key "shift-f10";
+    };
+    wait_screen_change {
+        send_key "p";
+    };
 }
 
 sub dl_cancel {
     dl_pause();
-    send_key "shift-f10";
-    send_key "c";
+    wait_screen_change {
+
+        send_key "shift-f10";
+    };
+    wait_screen_change {
+        send_key "c";
+    };
 }
 
 sub run() {
+    my ($self) = @_;
 
-    mouse_hide(1);
-
-    # Clean & Start Firefox
-    x11_start_program("xterm -e \"killall -9 firefox;rm -rf Downloads/*;rm -rf .moz*\"");
-    x11_start_program("firefox");
-    assert_screen('firefox-launch', 90);
+    $self->start_firefox;
 
     dl_location_switch("ask");
 
@@ -80,36 +86,36 @@ sub run() {
 
     # Pause
     dl_pause();
-    assert_screen('firefox-downloading-paused', 30);
+    assert_screen 'firefox-downloading-paused';
 
     # Resume
-    send_key "shift-f10", 1;
-    send_key "r",         1;    #"Resume"
+    send_key "shift-f10";
+    send_key "r";    #"Resume"
 
     # It have to use context menu to identify if downloading resumed, (gray "pause")
     # because there is no obvious specific elements when download is in on going.
     send_key "shift-f10";
-    assert_screen('firefox-downloading-resumed', 35);
+    assert_screen 'firefox-downloading-resumed';
     send_key "esc";
 
     # Cancel
     dl_cancel();
-    assert_screen('firefox-downloading-canceled', 35);
+    assert_screen 'firefox-downloading-canceled';
 
     # Retry
-    send_key "ret", 1;
+    send_key "ret";
     send_key "shift-f10";
-    assert_screen('firefox-downloading-resumed', 35);
+    assert_screen 'firefox-downloading-resumed';
     send_key "esc";
 
     # Remove from history
     dl_cancel();
     send_key "shift-f10", 1;
     send_key "e";    #"Remove From History"
-    assert_screen('firefox-downloading-blank_list', 35);
+    assert_screen 'firefox-downloading-blank_list';
 
     # Multiple files downloading
-    send_key "alt-f4", 1;
+    send_key "alt-f4";
 
     dl_location_switch("save");
 
@@ -117,27 +123,21 @@ sub run() {
     dl_save($dl_link_02);
 
     send_key "ctrl-shift-y";
-    check_screen('firefox-downloading-multi', 35);
+    assert_screen 'firefox-downloading-multi';
 
     # Clear downloads
     dl_cancel();
     send_key "down";
     dl_cancel();
 
-    send_key "shift-f10", 1;
+    send_key "shift-f10";
     send_key "d";    #"Clear Downloads"
-    assert_screen('firefox-downloading-blank_list', 35);
+    assert_screen 'firefox-downloading-blank_list';
 
-
-    send_key "alt-f4", 1;
+    send_key "alt-f4";
     send_key "spc";
 
-    # Exit
-    send_key "alt-f4";
-    if (check_screen('firefox-save-and-quit', 30)) {
-        # confirm "save&quit"
-        send_key "ret";
-    }
+    $self->exit_firefox;
 }
 1;
 # vim: set sw=4 et:

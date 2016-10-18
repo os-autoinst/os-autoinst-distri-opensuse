@@ -8,16 +8,16 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Case#1479153 Firefox: Smoke Test
-
-# G-Summary: Add some modified/merged test cases
-# G-Maintainer: wnereiz <wnereiz@github>
+# Summary: Case#1479153 Firefox: Smoke Test
+# Maintainer: wnereiz <wnereiz@github>
 
 use strict;
 use base "x11regressiontest";
 use testapi;
 
 sub run() {
+    my ($self) = @_;
+
     mouse_hide(1);
 
     # Clean and Start Firefox

@@ -8,22 +8,16 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Case#1436075 Firefox: Open local file with various types
-
-# G-Summary: Add some modified/merged test cases
-# G-Maintainer: wnereiz <wnereiz@github>
+# Summary: Case#1436075 Firefox: Open local file with various types
+# Maintainer: wnereiz <wnereiz@github>
 
 use strict;
 use base "x11regressiontest";
 use testapi;
 
 sub run() {
-    mouse_hide(1);
-
-    # Clean and Start Firefox
-    x11_start_program("xterm -e \"killall -9 firefox;rm -rf .moz*\"");
-    x11_start_program("firefox");
-    assert_screen('firefox-launch', 90);
+    my ($self) = @_;
+    $self->start_firefox;
 
     # html
     send_key "alt-d";
@@ -42,12 +36,7 @@ sub run() {
     assert_screen('firefox-local_files-so', 60);
     send_key "esc";
 
-    # Exit
-    send_key "alt-f4";
-    if (check_screen('firefox-save-and-quit', 30)) {
-        # confirm "save&quit"
-        send_key "ret";
-    }
+    $self->exit_firefox;
 }
 1;
 # vim: set sw=4 et:

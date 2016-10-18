@@ -8,9 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Case#1436069: Firefox: Java Plugin (IcedTea-Web)
-
-# Summary: Test java plugin integration in firefox
+# Summary: Test java plugin integration in firefox (Case#1436069)
 # Maintainer: wnereiz <wnereiz@gmail.com>
 
 use strict;
@@ -24,22 +22,25 @@ sub java_testing {
     send_key "alt-d";
     type_string "http://www.java.com/en/download/installed.jsp?detect=jre\n";
 
-    if (check_screen('firefox-java-security', 10)) {
+    assert_screen [qw(firefox-extcontent-reader firefox-java-security oracle-cookies-handling)];
+    if (match_has_tag 'firefox-extcontent-reader') {
+        assert_and_click('firefox-extcontent-reader');
+        assert_screen [qw(firefox-java-security oracle-cookies-handling)];
+    }
+    assert_screen [qw(firefox-java-security oracle-cookies-handling)];
+    if (match_has_tag 'firefox-java-security') {
         assert_and_click('firefox-java-securityrun');
         assert_and_click('firefox-java-run_confirm');
-        assert_screen("firefox-java-verifypassed", 90);
+        assert_screen([qw(oracle-cookies-handling firefox-java-verifypassed)], 90);
     }
-
-    assert_and_click "firefox-java-agree-and-proceed" if (check_screen("oracle-cookies-handling"));
+    if (match_has_tag "oracle-cookies-handling") {
+        assert_and_click "firefox-java-agree-and-proceed";
+    }
 }
 
 sub run() {
-    mouse_hide(1);
-
-    # Clean and Start Firefox
-    x11_start_program("xterm -e \"killall -9 firefox;rm -rf .moz* .config/iced* .cache/iced*\"");
-    x11_start_program("firefox");
-    assert_screen('firefox-launch', 90);
+    my ($self) = @_;
+    $self->start_firefox;
 
     assert_and_click('firefox-logo');
     sleep 1;
@@ -78,12 +79,7 @@ sub run() {
 
     assert_screen("firefox-java-verifypassed", 90);
 
-    # Exit
-    send_key "alt-f4";
-    if (check_screen('firefox-save-and-quit')) {
-        # confirm "save&quit"
-        send_key "ret";
-    }
+    $self->exit_firefox;
 }
 1;
 # vim: set sw=4 et:

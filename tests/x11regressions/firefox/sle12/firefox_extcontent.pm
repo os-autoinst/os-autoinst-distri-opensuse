@@ -8,9 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Case#1436064: Firefox: Externally handled content
-
-# Summary: Firefox: Externally handled content
+# Summary: Firefox: Externally handled content (Case#1436064)
 # Maintainer: wnereiz <wnereiz@gmail.com>
 
 use strict;
@@ -18,14 +16,10 @@ use base "x11regressiontest";
 use testapi;
 
 sub run() {
-    mouse_hide(1);
+    my ($self) = @_;
+    $self->start_firefox;
 
     my $ext_link = "http://mirror.bej.suse.com/dist/install/SLP/SLE-12-Server-GM/x86_64/dvd1/";
-
-    # Clean and Start Firefox
-    x11_start_program("xterm -e \"killall -9 firefox;rm -rf .moz*\"");
-    x11_start_program("firefox");
-    assert_screen('firefox-launch', 90);
 
     send_key "esc";
     sleep 1;
@@ -33,7 +27,10 @@ sub run() {
     sleep 1;
     type_string $ext_link. "\n";
 
-    assert_and_click('firefox-extcontent-reader', 'left', 5, 0.2) if (check_screen('firefox-extcontent-reader'));
+    assert_screen ['firefox-extcontent-reader', 'firefox-extcontent-pageloaded'], 90;
+    if (match_has_tag 'firefox-extcontent-reader') {
+        assert_and_click('firefox-extcontent-reader', 'left', 5, 0.2);
+    }
 
     assert_screen('firefox-extcontent-pageloaded', 90);
     send_key "/";
@@ -46,17 +43,11 @@ sub run() {
     sleep 1;
     send_key "ret";
 
-    assert_screen('firefox-extcontent-archive_manager', 30);
+    assert_screen 'firefox-extcontent-archive_manager';
 
     send_key "ctrl-q";
 
-    # Exit
-    send_key "alt-f4";
-
-    if (check_screen('firefox-save-and-quit', 30)) {
-        # confirm "save&quit"
-        send_key "ret";
-    }
+    $self->exit_firefox;
 }
 1;
 # vim: set sw=4 et:

@@ -10,20 +10,16 @@
 
 # Case#1479556: Firefox: Gnome Shell Integration
 
-# G-Summary: Added 13 new scripts. Minor changes for some old scripts to run better together.
-# G-Maintainer: wnereiz <wnereiz@gmail.com>
+# Summary: Case#1479556: Firefox: Gnome Shell Integration
+# Maintainer: wnereiz <wnereiz@gmail.com>
 
 use strict;
 use base "x11regressiontest";
 use testapi;
 
 sub run() {
-    mouse_hide(1);
-
-    # Clean and Start Firefox
-    x11_start_program("xterm -e \"killall -9 firefox;rm -rf .moz* .local/share/gnome-shell/extensions/*\"");
-    x11_start_program("firefox");
-    assert_screen('firefox-launch', 90);
+    my ($self) = @_;
+    $self->start_firefox;
 
     send_key "ctrl-shift-a";
     assert_and_click('firefox-plugins-tabicon');
