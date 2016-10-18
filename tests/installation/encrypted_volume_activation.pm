@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Create new test module encrypted volume activation
+# Summary: Create new test module encrypted volume activation
 #    When the variable ENCRYPTED_CANCEL_EXISTING is set, it will cancel the
 #    activate encrypted volume prompt which appears during installation to a
 #    storage device with existing encrypted lvm volume. A workaround is
@@ -16,7 +16,7 @@
 #
 #    When the variable ENCRYPTED_ACTIVATE_EXISTING is set it will enter the
 #    password for the existing volume to activate it.
-# G-Maintainer: Richard Palethorpe <rpalethorpe@suse.com>
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use strict;
 use warnings;
@@ -33,7 +33,7 @@ my $after_cancel_tags = [
 sub run {
     assert_screen 'encrypted_volume_activation_prompt';
     if (get_var('ENCRYPT_CANCEL_EXISTING')) {
-        send_key 'alt-c';
+        wait_screen_change { send_key 'alt-c'; };
         assert_screen($after_cancel_tags);
         if (match_has_tag('encrypted_volume_activation_prompt')) {
             record_soft_failure 'bsc#989770';
