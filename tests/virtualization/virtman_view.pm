@@ -14,8 +14,8 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-# G-Summary: - add the virtualization test suite- add a load_virtualization_tests call
-# G-Maintainer: aginies <aginies@suse.com>
+# Summary: Basic test of virtman features
+# Maintainer: Antoine <aginies@suse.com>
 
 use base "x11test";
 use strict;
@@ -34,8 +34,9 @@ sub run {
     for (1 .. 3) { send_key "tab"; }
     save_screenshot;
     # activate disk I/O
-    send_key "spc";
-    sleep 1;
+    wait_screen_change {
+        send_key "spc";
+    };
     send_key "tab";
     # acrtivate net I/O
     send_key "spc";
@@ -66,10 +67,17 @@ sub run {
         # this should be icewm desktop, with a very basic gnome theme
         assert_screen "virtman-viewcheck", 30;
     }
-    # close every opne windows
-    send_key "esc";
-    send_key "alt-f", 1;
-    send_key "q";
+    # close every open windows
+    wait_screen_change {
+        send_key "esc";
+    };
+    wait_screen_change {
+        send_key "alt-f";
+    };
+    wait_still_screen;
+    wait_screen_change {
+        send_key "q";
+    };
     # close the xterm
     send_key "alt-f4";
 }
