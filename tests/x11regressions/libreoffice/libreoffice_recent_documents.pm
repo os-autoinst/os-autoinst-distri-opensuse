@@ -7,14 +7,13 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: add scripts for libreoffice tc#1503783 tc#1503789 in x11regression
-# G-Maintainer: Chingkai <qkzhu@suse.com>
+# Summary: LibreOffice: Verify Main Menu Recent Documents get populated
+#   with files accessed and modified using LibreOffice (Case 1503783)
+# Maintainer: Chingkai <qkzhu@suse.com>
 
 use base "x11regressiontest";
 use strict;
 use testapi;
-
-# Case 1503783 - LibreOffice: Verify Main Menu Recent Documents get populated with files accessed and modified using LibreOffice
 
 sub run() {
     my $self = shift;
@@ -44,8 +43,11 @@ sub run() {
     assert_screen 'oowriter-menus-file-recentDucuments';
     send_key_until_needlematch("libreoffice-clear-list", "down");
     send_key "ret";
-    wait_still_screen;
+    assert_screen 'test-ooffice-1';
+
     send_key "ctrl-q";    # Quit oowriter
+
+    assert_screen 'generic-desktop';
 
     # Clean test file
     x11_start_program("rm /home/$username/Documents/hello.odt");
