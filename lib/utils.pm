@@ -351,7 +351,6 @@ sub ensure_unlocked_desktop {
         unless (get_var("LIVETEST")) {
             send_key "ctrl";    # show gnome screen lock in sle 11
             assert_screen([qw/gnome-screenlock-password screenlock/]);
-            assert_and_click "displaymanager-password-prompt";
             type_password;
             send_key "ret";
         }
