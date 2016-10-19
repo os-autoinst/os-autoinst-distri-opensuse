@@ -312,32 +312,13 @@ sub ensure_unlocked_desktop {
     wait_still_screen(1);
 
     my $tags = [];
-    if (check_var('DESKTOP', 'gnome')) {
-        # gnome might show the old 'generic desktop' screen although that is
-        # just a left over in the framebuffer but actually the screen is
-        # already locked so we have to try something else to check
-        # responsiveness.
-        # open run command prompt (if screen isn't locked)
-        send_key "alt-f2";
-        push @$tags, 'desktop-runner';
-    }
-    else {
-        push @$tags, 'generic-desktop';
-    }
-
     # wait for run prompt or screen locker
     push @$tags, @$extra_tags;
+    push @$tags, 'generic-desktop';
     push @$tags, 'screenlock';
     push @$tags, 'gnome-screenlock-password';
     assert_screen($tags);
 
-    if (match_has_tag 'desktop-runner' or match_has_tag 'generic-desktop') {
-        # ensure screen is not immediately locked after checking
-        # also close command run prompt
-        send_key 'esc';
-        assert_screen([qw/generic-desktop/]);
-        return;
-    }
     for my $tag (@$extra_tags) {
         if (match_has_tag $tag) {
             # caller provided tag matched
@@ -345,12 +326,41 @@ sub ensure_unlocked_desktop {
             return;
         }
     }
+
+    # no screenlocker detected
+    if (match_has_tag 'generic-desktop') {
+        if (check_var('DESKTOP', 'gnome')) {
+            # gnome might show the old 'generic desktop' screen although that is
+            # just a left over in the framebuffer but actually the screen is
+            # already locked so we have to try something else to check
+            # responsiveness.
+            # open run command prompt (if screen isn't locked)
+            send_key "alt-f2";
+            if (check_screen([qw/desktop-runner/])) {
+                send_key "esc";
+                assert_screen([qw/generic-desktop/]);
+                return;
+            }
+            else {
+                assert_screen([qw/gnome-screenlock-password screenlock/]);
+            }
+        }
+        else {
+            return;
+        }
+
+    }
+
     # start to unlocking the screenlock
     if (check_var("DESKTOP", "gnome")) {
-        send_key "esc";
+        if (match_has_tag "screenlock") {
+            wait_screen_change {
+                send_key "esc";
+            };
+        }
         unless (get_var("LIVETEST")) {
             send_key "ctrl";    # show gnome screen lock in sle 11
-            assert_screen([qw/gnome-screenlock-password screenlock/]);
+            assert_screen([qw/gnome-screenlock-password/]);
             type_password;
             send_key "ret";
         }
