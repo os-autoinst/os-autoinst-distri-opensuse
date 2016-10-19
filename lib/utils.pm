@@ -595,7 +595,7 @@ sub validate_repos {
                 elsif (get_var('USBBOOT')) {
                     $uri = "hd:///.*usbstick";
                 }
-                elsif (check_var('ARCH', 's390x') and check_var('BACKEND', 'svirt')) {
+                elsif (check_var('ARCH', 's390x')) {
                     $uri = "ftp://";
                 }
                 validatelr(
