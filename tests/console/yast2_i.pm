@@ -28,7 +28,7 @@ sub run() {
     assert_script_run "zypper -n in yast2-packager", 90;    # make sure yast2 sw_single module installed
 
     script_run("yast2 sw_single; echo yast2-i-status-\$? > /dev/$serialdev", 0);
-    assert_screen 'empty-yast2-sw_single';
+    assert_screen 'empty-yast2-sw_single', 90;
 
     # Check disk usage widget for not showing subvolumes (bsc#949945)
     # on SLE12SP0 hidden subvolume isn't supported
