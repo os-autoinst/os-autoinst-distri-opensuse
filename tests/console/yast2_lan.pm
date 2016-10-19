@@ -9,16 +9,13 @@
 # without any warranty.
 
 
-# G-Summary: Rework the tests layout.
-# G-Maintainer: Alberto Planas <aplanas@suse.com>
+# Summary: yast2 lan functionality test https://bugzilla.novell.com/show_bug.cgi?id=600576
+# Maintainer: Jozef Pupava <jpupava@suse.com>
 
 use base "console_yasttest";
 use strict;
 use testapi;
 use utils;
-
-# test yast2 lan functionality
-# https://bugzilla.novell.com/show_bug.cgi?id=600576
 
 sub handle_Networkmanager_controlled {
     send_key "ret";    # confirm networkmanager popup
@@ -76,6 +73,7 @@ sub run() {
     send_key "alt-o";    # OK=>Save&Exit
     wait_serial("yast2-lan-status-0", 90) || die "'yast2 lan' didn't finish";
 
+    wait_still_screen;
     clear_console;
     script_run('echo $?');
     script_run('hostname');
