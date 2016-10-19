@@ -19,16 +19,20 @@ use testapi;
 sub start_firefox() {
     x11_start_program("firefox https://html5test.com/index.html", 6, {valid => 1});
     # makes firefox as default browser
-    assert_screen [qw/firefox_default_browser firefox_readerview_window test-firefox-1/], 120;
-    if (match_has_tag 'firefox_default_browser') {
-        assert_and_click 'firefox_default_browser_yes';
+    assert_screen [qw/firefox_default_browser firefox_readerview_window firefox-html5test/], 120;
+    if (check_screen('firefox_default_browser', 0)) {
+        wait_screen_change {
+            assert_and_click 'firefox_default_browser_yes';
+        };
     }
-    assert_screen [qw/firefox_readerview_window test-firefox-1/], 120;
+    assert_screen [qw/firefox_readerview_window firefox-html5test/];
     # workaround for reader view , it grabed the focus than mainwindow
-    if (match_has_tag 'firefox_readerview_window') {
-        assert_and_click 'firefox_readerview_window';
+    if (check_screen('firefox_readerview_window', 0)) {
+        wait_screen_change {
+            assert_and_click 'firefox_readerview_window';
+        };
     }
-    assert_screen 'test-firefox-1', 35;
+    assert_screen 'firefox-html5test';
 }
 
 sub run() {
@@ -36,16 +40,17 @@ sub run() {
     mouse_hide(1);
     $self->start_firefox();
     send_key "alt-h";
-    assert_screen 'firefox-help-menu', 10;
+    assert_screen 'firefox-help-menu';
     send_key "a";
-    assert_screen 'test-firefox-3', 10;
+    assert_screen 'test-firefox-3';
 
     # close About
     send_key "alt-f4";
-    assert_screen 'test-firefox-1', 3;
+    assert_screen 'firefox-html5test';
 
     send_key "alt-f4";
-    if (check_screen('firefox-save-and-quit', 4)) {
+    assert_screen [qw(firefox-save-and-quit generic-desktop)];
+    if (match_has_tag 'firefox-save-and-quit') {
         # confirm "save&quit"
         send_key "ret";
     }
