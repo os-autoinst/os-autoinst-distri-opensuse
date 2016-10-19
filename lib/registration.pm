@@ -164,7 +164,9 @@ sub fill_in_registration_data {
                     if (!check_screen([qw(import-trusted-gpg-key-nvidia-F5113243C66B6EAE)], 1)) {
                         record_soft_failure 'untrusted gpg key';
                     }
-                    send_key 'alt-t';
+                    wait_screen_change {
+                        send_key 'alt-t';
+                    };
                     next;
                 }
                 elsif (match_has_tag('inst-addon') || match_has_tag('yast_scc-pkgtoinstall')) {
