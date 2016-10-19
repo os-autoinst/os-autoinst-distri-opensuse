@@ -129,10 +129,19 @@ sub run() {
         }
     }
 
-    # using 'virtio' devices may prevent loosing key strokes
-    if ($vmm_family eq 'kvm') {
-        $svirt->add_input({type => 'mouse',    bus => "virtio"});
-        $svirt->add_input({type => 'keyboard', bus => "virtio"});
+    # We need to use 'tablet' as a pointer device, i.e. a device
+    # with absolute axis. That needs to be explicitely configured
+    # on KVM and Xen HVM only. VMware and Xen PV add pointer
+    # device with absolute axis by default.
+    if (($vmm_family eq 'kvm') or ($vmm_family eq 'xen' and $vmm_type eq 'hvm')) {
+        if ($vmm_family eq 'kvm') {
+            $svirt->add_input({type => 'tablet',   bus => 'virtio'});
+            $svirt->add_input({type => 'keyboard', bus => 'virtio'});
+        }
+        elsif ($vmm_family eq 'xen' and $vmm_type eq 'hvm') {
+            $svirt->add_input({type => 'tablet',   bus => 'usb'});
+            $svirt->add_input({type => 'keyboard', bus => 'ps2'});
+        }
     }
 
     my $console_target_type;

@@ -31,7 +31,7 @@ sub run() {
         if (($format ne 'raw') and ($format ne 'qcow2')) {
             next;
         }
-        push @toextract, {name => $name, format => $format};
+        push @toextract, {name => $name, format => $format, svirt_name => $svirt->name};
     }
     for my $asset (@toextract) {
         extract_assets($asset);
@@ -45,7 +45,7 @@ sub extract_assets {
     my $format = $args->{format};
 
     type_string("clear\n");
-    my $svirt_img_name = "/var/lib/libvirt/images/openQA-SUT-" . get_var('VIRSH_INSTANCE', 1) . ".img";
+    my $svirt_img_name = "/var/lib/libvirt/images/" . $args->{svirt_name} . ".img";
     type_string("test -e $svirt_img_name && echo 'OK'\n");
     assert_screen('svirt-asset-upload-hdd-image-exists');
 
