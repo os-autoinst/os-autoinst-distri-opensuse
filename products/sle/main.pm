@@ -1230,6 +1230,9 @@ if (get_var("STORE_HDD_1") || get_var("PUBLISH_HDD_1")) {
         loadtest "console/hostname.pm";
         loadtest "shutdown/grub_set_bootargs.pm";
         loadtest "shutdown/shutdown.pm";
+        if (check_var("BACKEND", "svirt")) {
+            loadtest "shutdown/svirt_upload_assets.pm";
+        }
     }
 }
 
