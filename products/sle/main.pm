@@ -930,6 +930,9 @@ sub load_fips_tests_crypt() {
 
 sub prepare_target() {
     if (get_var("BOOT_HDD_IMAGE")) {
+        if (check_var("BACKEND", "svirt")) {
+            loadtest "installation/bootloader_svirt.pm";
+        }
         loadtest "boot/boot_to_desktop.pm";
     }
     else {
