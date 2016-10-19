@@ -32,7 +32,7 @@ sub run() {
         send_key 'alt-o';
         record_soft_failure 'bsc#924042';
     }
-    assert_screen 'empty-yast2-sw_single';
+    assert_screen 'empty-yast2-sw_single', 90;
 
     # Check disk usage widget for not showing subvolumes (bsc#949945)
     # on SLE12SP0 hidden subvolume isn't supported
