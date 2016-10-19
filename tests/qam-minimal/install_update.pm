@@ -8,14 +8,14 @@
 # without any warranty.
 
 
-# G-Summary: QAM Minimal test in openQA
+# Summary: QAM Minimal test in openQA
 #    it prepares minimal instalation, boot it, install tested incident , try
 #    reboot and update system with all released updates.
 #
 #    with QAM_MINIMAL=full it also installs gnome-basic, base, apparmor and
 #    x11 patterns and reboot system to graphical login + start console and
 #    x11 tests
-# G-Maintainer: Ondřej Súkup <osukup@suse.cz>
+# Maintainer: Ondřej Súkup <osukup@suse.cz>
 
 use base "basetest";
 
@@ -28,13 +28,13 @@ use testapi;
 sub run {
     select_console 'root-console';
 
-    if (!get_var('MINIMAL_TEST_REPO')) {
+    if (!get_var('INCIDENT_REPO')) {
         die "no repository with update";
     }
 
     capture_state('before');
 
-    my $repo = get_var('MINIMAL_TEST_REPO');
+    my $repo = get_var('INCIDENT_REPO');
     zypper_call("ar -f $repo test-minimal");
 
     zypper_call("ref");
