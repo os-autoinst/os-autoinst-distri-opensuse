@@ -13,8 +13,8 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# G-Summary: renamed autoyast/system.pm to installation.pm
-# G-Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
+# Summary: Autoyast installation
+# Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
 
 use strict;
 use base 'basetest';
@@ -25,8 +25,11 @@ my $confirmed_licenses = 0;
 
 sub accept_license {
     send_key $cmd{accept};
-    send_key $cmd{next};
     $confirmed_licenses++;
+    # Prevent from matching previous license
+    wait_screen_change {
+        send_key $cmd{next};
+    };
 }
 
 sub save_logs_and_continue {
