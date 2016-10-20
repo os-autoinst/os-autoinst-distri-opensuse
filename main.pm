@@ -639,6 +639,8 @@ sub load_slepos_tests() {
         loadtest "slepos/zypper_add_repo.pm";
         loadtest "slepos/zypper_install_adminserver.pm";
         loadtest "slepos/run_posInitAdminserver.pm";
+        loadtest "slepos/check_services.pm";
+        loadtest "slepos/adminserver_configured.pm";
         loadtest "slepos/zypper_install_imageserver.pm";
         loadtest "slepos/use_smt_for_kiwi.pm";
         loadtest "slepos/build_images_kiwi.pm";
@@ -652,6 +654,7 @@ sub load_slepos_tests() {
         loadtest "slepos/zypper_add_repo.pm";
         loadtest "slepos/zypper_install_branchserver.pm";
         loadtest "slepos/run_posInitBranchserver.pm";
+        loadtest "slepos/check_services.pm";
         loadtest "slepos/run_possyncimages.pm";
         loadtest "slepos/wait.pm";
     }
