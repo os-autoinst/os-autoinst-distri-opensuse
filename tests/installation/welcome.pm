@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: split & unify opensuse install scripts part1
-# G-Maintainer: Bernhard M. Wiedemann <bernhard+osautoinst lsmod de>
+# Summary: Wait for installer welcome screen. Covers loading linuxrc
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use strict;
 use warnings;
@@ -20,14 +20,19 @@ use utils qw/ensure_fullscreen/;
 sub run() {
     my $self = shift;
 
+    my @welcome_tags = [qw(inst-welcome inst-welcome-confirm-self-update-server)];
     ensure_fullscreen;
     if (get_var("BETA")) {
         assert_screen "inst-betawarning", 500;
         send_key "ret";
-        assert_screen "inst-welcome", 10;
+        assert_screen @welcome_tags, 10;
     }
     else {
-        assert_screen "inst-welcome", 500;
+        assert_screen @welcome_tags, 500;
+    }
+    if (match_has_tag('inst-welcome-confirm-self-update-server')) {
+        wait_screen_change { send_key $cmd{ok} };
+        assert_screen 'inst-welcome';
     }
 
     wait_idle;
