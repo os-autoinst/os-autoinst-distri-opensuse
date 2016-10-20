@@ -52,7 +52,9 @@ sub create_qaset_config {
 sub prepare_repos {
     my $self           = shift;
     my $qa_server_repo = get_var('QA_SERVER_REPO');
-    pkcon_quit;
+    unless (sle_version_at_least('12-SP2')) {
+        pkcon_quit;
+    }
     if ($qa_server_repo) {
         # Remove all existing repos and add QA_SERVER_REPO
         script_run('for i in {1..$(zypper lr| tail -n+3 |wc -l)}; do zypper -n rr $i; done; unset i', 300);
