@@ -76,6 +76,11 @@ sub wait_boot {
     my $bootloader_time = $args{bootloader_time} // 100;
     my $textmode        = $args{textmode};
 
+
+    # TODO how to register a post fail hook action here in general? E.g. in
+    # case the system is stuck in shutting down as in
+    # https://openqa.suse.de/tests/621517 or previous
+
     # Reset the consoles after the reboot: there is no user logged in anywhere
     reset_consoles;
 

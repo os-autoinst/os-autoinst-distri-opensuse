@@ -8,15 +8,10 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Rename livecdreboot, moved grub code in grub_test.pm
-#    Livecdreboot test name was unclear, renamed it in to install_and_reboot.
-#    The code concerning grub test has moved to new test grub_test.pm
-#    Main pm adapted for the new grub_test.pm
-#    In first_boot.pm added get_var(boot_into_snapshot) for assert linux-terminal,
-#    since after booting on snapshot, only a terminal interface is given, not GUI.
-#
-#    Issues on progress: 9716,10286,10164
-# G-Maintainer: dmaiocchi <dmaiocchi@suse.com>
+# Summary: Monitor installation progress and wait for "reboot now" dialog,
+#   collecting logs from the installation system just before we try to reboot
+#   into the installed system
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use strict;
 use base "y2logsstep";
@@ -114,6 +109,7 @@ sub run() {
     if (!get_var("REMOTE_CONTROLLER")) {
         send_key 'alt-s';        # Stop the reboot countdown
         select_console 'install-shell';
+        assert_screen 'inst-console';
         $self->get_ip_address();
         $self->save_upload_y2logs();
         select_console 'installation';
