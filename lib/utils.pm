@@ -549,7 +549,7 @@ sub validate_repos {
     script_run "clear";
     assert_script_run "zypper lr -d | tee /dev/$serialdev";
 
-    if (check_var('DISTRI', 'sle') and !get_var('STAGING')) {
+    if (check_var('DISTRI', 'sle') and !get_var('STAGING') and sle_version_at_least('12-SP1')) {
         script_run "clear";
 
         # On SLE we follow "SLE Channels Checking Table"
