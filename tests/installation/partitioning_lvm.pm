@@ -8,8 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Rework the tests layout.
-# G-Maintainer: Alberto Planas <aplanas@suse.com>
+# Summary: Partition selection and configuration based on LVM proposal, also
+#   cryptlvm
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use strict;
 use warnings;
@@ -40,7 +41,7 @@ sub run() {
             $collect_logs = 1;
         }
         elsif (match_has_tag('partitioning-encrypt-ignored-existing')) {
-            record_soft_failure 'bsc#993247';
+            record_soft_failure 'bsc#993247 https://fate.suse.com/321208';
             $collect_logs = 1;
         }
 
