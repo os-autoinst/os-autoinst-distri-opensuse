@@ -708,6 +708,7 @@ sub load_extra_test () {
     loadtest "console/yast2_xinetd.pm";
     loadtest "console/yast2_apparmor.pm";
     loadtest "console/openvswitch.pm";
+    loadtest "console/git.pm";
     # finished console test and back to desktop
     loadtest "console/consoletest_finish.pm";
 
@@ -913,6 +914,7 @@ sub load_fips_tests_misc() {
     loadtest "console/aide_check.pm";
     loadtest "console/journald_fss.pm";
     loadtest "fips/curl_fips_rc4_seed.pm";
+    loadtest "console/git.pm";
     loadtest "console/consoletest_finish.pm";
     loadtest "x11/hexchat_ssl.pm";
 }

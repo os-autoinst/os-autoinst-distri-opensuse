@@ -544,6 +544,7 @@ sub load_extra_tests() {
         loadtest "console/rails.pm";
         loadtest "console/machinery.pm";
         loadtest "console/pcre.pm";
+        loadtest "console/git.pm";
 
         # finished console test and back to desktop
         loadtest "console/consoletest_finish.pm";
