@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Postgres tests for 11SP4
-# G-Maintainer: Richard Brown <rbrownccb@opensuse.org>
+# Summary: Postgres tests for SLE12
+# Maintainer: Romanos Dodopoulos <romanos.dodopoulos@suse.cz>
 
 use base "consoletest";
 use strict;
@@ -29,7 +29,13 @@ sub run() {
 
     # check the status
     assert_script_run "systemctl show -p ActiveState postgresql.service | grep ActiveState=active";
-    assert_script_run "systemctl show -p SubState postgresql.service | grep SubState=running";
+
+    if (check_var('VERSION', '12')) {    # loaded via init.d on SLES 12 GA
+        assert_script_run "systemctl show -p SubState postgresql.service | grep SubState=exited";
+    }
+    else {
+        assert_script_run "systemctl show -p SubState postgresql.service | grep SubState=running";
+    }
 
     # test basic functionality - require postgresql94
     assert_script_run "sudo -u postgres createdb openQAdb";
