@@ -619,7 +619,9 @@ sub load_consoletests() {
             loadtest "console/http_srv.pm";
             loadtest "console/mysql_srv.pm";
             loadtest "console/postgresql94server.pm";
-            loadtest "console/shibboleth.pm";
+            if (sle_version_at_least('12-SP1')) {    # shibboleth-sp not available on SLES 12 GA
+                loadtest "console/shibboleth.pm";
+            }
             if (!is_staging()) {
                 # Very temporary removal of this test from staging - rbrown 6 Apr 2016
                 loadtest "console/dns_srv.pm";
