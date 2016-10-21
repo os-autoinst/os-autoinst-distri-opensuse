@@ -57,8 +57,8 @@ sub run() {
         }
     }
 
-    my $hostname = "susetest";
-    my $domain   = "zq1.de";
+    my $hostname = get_var('HOSTNAME', 'susetest');
+    my $domain = "zq1.de";
 
     send_key "alt-s";    # open hostname tab
     assert_screen "yast2_lan-hostname-tab";
@@ -75,9 +75,7 @@ sub run() {
 
     wait_still_screen;
     clear_console;
-    script_run('echo $?');
-    script_run('hostname');
-    assert_screen 'test-yast2_lan-2';
+    assert_script_run "hostname|grep $hostname";
 
     clear_console;
     script_run('ip -o a s');
