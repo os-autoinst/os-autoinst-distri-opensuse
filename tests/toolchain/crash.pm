@@ -33,7 +33,13 @@ sub run() {
 
     # add debuginfo channels
     if (check_var('DISTRI', 'sle')) {
-        my $url = "ftp://openqa.suse.de/" . get_required_var('REPO_SLES_DEBUG');
+        # debuginfos for kernel has to be installed from build-specific directory on FTP.
+        # To get the right directory we modify content of REPO_0 variable, e.g.:
+        #   SLE-12-SP2-Server-DVD-x86_64-Build2188-Media1 -> SLE-12-SP2-SERVER-POOL-x86_64-Build2188-Media3
+        my $sles_debug_repo = get_var('REPO_0') =~ s/(Server|Desktop)/\U$1\E/r;
+        $sles_debug_repo =~ s/DVD/POOL/;
+        $sles_debug_repo =~ s/Media1/Media3/;
+        my $url = "ftp://openqa.suse.de/$sles_debug_repo";
         assert_script_run "zypper ar -f $url SLES-Server-Debug";
         install_kernel_debuginfo;
         script_run 'zypper -n rr SLES-Server-Debug';
