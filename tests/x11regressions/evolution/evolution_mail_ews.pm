@@ -9,11 +9,8 @@
 
 # Test Case #1503965: Evolution: Setup MS Exchange account
 
-# G-Summary: Add three test cases for Evolution
-#    evolution_smoke: Case #1503857: Evolution setup assistant
-#    evolution_mail_imap: Case #1503768: send and receive email via IMAP
-#    evolution_mail_ews: Case #1503965: Setup MS Exchange account
-# G-Maintainer: Qingming Su <qingming.su@suse.com>
+# Summary: Case #1503965: Setup MS Exchange account
+# Maintainer: Qingming Su <qingming.su@suse.com>
 
 use strict;
 use base "x11regressiontest";
@@ -28,8 +25,10 @@ sub run() {
     # Clean and Start Evolution
     x11_start_program("xterm -e \"killall -9 evolution; find ~ -name evolution | xargs rm -rf;\"");
     x11_start_program("evolution");
-    if (check_screen "evolution-default-client-ask") {
+    assert_screen [qw(evolution-default-client-ask test-evolution-1)];
+    if (match_has_tag "evolution-default-client-ask") {
         assert_and_click "evolution-default-client-agree";
+        assert_screen 'test-evolution-1';
     }
 
     # Follow the wizard to setup mail account
@@ -50,10 +49,11 @@ sub run() {
     save_screenshot();
 
     send_key "alt-o";
-    if (check_screen "evolution_wizard-skip-lookup") {
+    assert_screen [qw(evolution_wizard-skip-lookup evolution_wizard-receiving)];
+    if (match_has_tag "evolution_wizard-skip-lookup") {
         send_key "alt-s";
+        assert_screen 'evolution_wizard-receiving';
     }
-    assert_screen "evolution_wizard-receiving";
 
     wait_screen_change {
         send_key "alt-t";
@@ -66,7 +66,7 @@ sub run() {
     assert_screen "evolution_mail-auth";
     type_string "$mail_passwd";
     send_key "ret";
-    assert_screen "evolution_wizard-ews-oba";
+    assert_screen "evolution_wizard-ews-oba", 300;
     send_key "alt-o";
     assert_screen "evolution_wizard-receiving-opts";
     assert_and_click "evolution_wizard-ews-enable-gal";
