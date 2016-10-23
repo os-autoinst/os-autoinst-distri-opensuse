@@ -514,31 +514,31 @@ sub load_extra_tests() {
         # 2) the application is not rely on desktop environment
         # 3) running based on preinstalled image
 
-        loadtest "console/check_console_font.pm";
-        loadtest "console/zypper_lr.pm";
-        loadtest "console/zypper_ar.pm";
-        loadtest "console/zypper_ref.pm";
-        loadtest "console/update_alternatives.pm";
-        loadtest "console/zbar.pm";
-        # start extra console tests from here
-        if (!get_var("OFW") && !is_jeos) {
-            loadtest "console/aplay.pm";
-        }
-        if (get_var("FILESYSTEM", "btrfs") eq "btrfs") {
-            loadtest "console/btrfs_autocompletion.pm";
-            if (get_var("NUMDISKS", 0) > 1) {
-                loadtest "console/btrfs_qgroups.pm";
-                loadtest "console/btrfs_send_receive.pm";
-            }
-        }
-        loadtest "console/a2ps.pm";    # a2ps is not a ring package and thus not available in staging
+        #loadtest "console/check_console_font.pm";
+        #loadtest "console/zypper_lr.pm";
+        #loadtest "console/zypper_ar.pm";
+        #loadtest "console/zypper_ref.pm";
+        #loadtest "console/update_alternatives.pm";
+        #loadtest "console/zbar.pm";
+        ## start extra console tests from here
+        #if (!get_var("OFW") && !is_jeos) {
+        #    loadtest "console/aplay.pm";
+        #}
+        #if (get_var("FILESYSTEM", "btrfs") eq "btrfs") {
+        #    loadtest "console/btrfs_autocompletion.pm";
+        #    if (get_var("NUMDISKS", 0) > 1) {
+        #        loadtest "console/btrfs_qgroups.pm";
+        #        loadtest "console/btrfs_send_receive.pm";
+        #    }
+        #}
+        #loadtest "console/a2ps.pm";    # a2ps is not a ring package and thus not available in staging
 
-        if (get_var("SYSAUTHTEST")) {
-            # sysauth test scenarios run in the console
-            loadtest "sysauth/sssd.pm";
-        }
-        loadtest "console/command_not_found.pm";
-        loadtest "console/openvswitch.pm";
+        #if (get_var("SYSAUTHTEST")) {
+        #    # sysauth test scenarios run in the console
+        #    loadtest "sysauth/sssd.pm";
+        #}
+        #loadtest "console/command_not_found.pm";
+        #loadtest "console/openvswitch.pm";
         loadtest "console/rabbitmq.pm";
         loadtest "console/salt.pm";
         loadtest "console/rails.pm";
@@ -551,10 +551,10 @@ sub load_extra_tests() {
         # finished console test and back to desktop
         loadtest "console/consoletest_finish.pm";
 
-        # kdump is not supported on aarch64, see BSC#990418
-        if (!check_var('ARCH', 'aarch64')) {
-            loadtest "toolchain/crash.pm";
-        }
+        ## kdump is not supported on aarch64, see BSC#990418
+        #if (!check_var('ARCH', 'aarch64')) {
+        #    loadtest "toolchain/crash.pm";
+        #}
 
         return 1;
     }

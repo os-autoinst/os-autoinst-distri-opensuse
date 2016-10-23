@@ -879,7 +879,7 @@ sub load_online_migration_tests() {
     # stop packagekit service and more
     loadtest "online_migration/sle12_online_migration/online_migration_setup.pm";
     loadtest "online_migration/sle12_online_migration/register_system.pm";
-    loadtest "online_migration/sle12_online_migration/repos_check.pm";
+    #loadtest "online_migration/sle12_online_migration/repos_check.pm";
     # do full update before migration
     # otherwise yast2/zypper migration will patch a minimal update
     loadtest "online_migration/sle12_online_migration/zypper_patch.pm" if (get_var("FULL_UPDATE"));
