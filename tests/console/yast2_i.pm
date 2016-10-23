@@ -34,11 +34,11 @@ sub run() {
     # on SLE12SP0 hidden subvolume isn't supported
     if (!check_var('VERSION', '12')) {
         send_key "alt-e";
-        wait_still_screen;
+        wait_still_screen(1);
         send_key "alt-s";
         assert_screen 'yast2-sw_single-disk_usage';
         send_key "alt-o";
-        wait_still_screen;
+        wait_still_screen(1);
         send_key "alt-p";    # go back to search box
     }
 
