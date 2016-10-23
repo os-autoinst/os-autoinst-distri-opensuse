@@ -47,9 +47,7 @@ sub cleanup_needles() {
     remove_desktop_needles("kde");
     remove_desktop_needles("gnome");
     remove_desktop_needles("xfce");
-    if (!get_var("DESKTOP_MINIMALX_INSTONLY")) {
-        remove_desktop_needles("minimalx");
-    }
+    remove_desktop_needles("minimalx");
     remove_desktop_needles("textmode");
 
     if (!get_var("LIVECD")) {
@@ -108,11 +106,7 @@ unless (get_var("DESKTOP")) {
     }
 }
 
-if (check_var('DESKTOP', 'awesome')) {
-    set_var('DESKTOP_MINIMALX_INSTONLY', 1);
-}
-
-if (check_var('DESKTOP', 'minimalx') || get_var('DESKTOP_MINIMALX_INSTONLY')) {
+if (check_var('DESKTOP', 'minimalx')) {
     set_var("NOAUTOLOGIN", 1);
     set_var("XDMUSED",     1);
 }
@@ -464,9 +458,6 @@ sub load_consoletests() {
         }
         if (check_var("DESKTOP", "xfce")) {
             loadtest "console/xfce_gnome_deps.pm";
-        }
-        if (get_var("DESKTOP_MINIMALX_INSTONLY")) {
-            loadtest "console/install_windowmanager.pm";
         }
         if (get_var("CLONE_SYSTEM")) {
             loadtest "console/yast2_clone_system.pm";
