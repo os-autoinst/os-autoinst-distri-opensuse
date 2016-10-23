@@ -215,10 +215,7 @@ sub specific_bootmenu_params {
 sub select_bootmenu_video_mode {
     if (check_var("VIDEOMODE", "text")) {
         send_key "f3";
-        for (1 .. 2) {
-            send_key "up";
-        }
-        assert_screen "inst-textselected";
+        send_key_until_needlematch("inst-textselected", "up", 5);
         send_key "ret";
     }
 }
