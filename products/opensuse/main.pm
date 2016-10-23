@@ -38,6 +38,10 @@ sub is_leap {
     return get_var('VERSION') =~ /^42:S/;
 }
 
+sub is_krypton_argon {
+    return get_var('FLAVOR') =~ /(Krypton|Argon)/;
+}
+
 sub cleanup_needles() {
     remove_desktop_needles("lxde");
     remove_desktop_needles("kde");
@@ -84,7 +88,7 @@ sub cleanup_needles() {
     if (!is_tumbleweed) {
         unregister_needle_tags('ENV-VERSION-Tumbleweed');
     }
-    for my $flavor (qw/Krypton Krypton-Live/) {
+    for my $flavor (qw/Krypton-Live Argon-Live/) {
         if (!check_var('FLAVOR', $flavor)) {
             unregister_needle_tags("ENV-FLAVOR-$flavor");
         }
@@ -403,8 +407,8 @@ sub load_consoletests() {
         }
         loadtest "console/zypper_ref.pm";
         loadtest "console/yast2_lan.pm";
-        # Krypton-Live does not have local certificate store
-        if (!check_var('FLAVOR', 'Krypton-Live')) {
+        # no local certificate store
+        if (!is_krypton_argon) {
             loadtest "console/curl_https.pm";
         }
         if (   check_var('ARCH', 'x86_64')
@@ -420,7 +424,7 @@ sub load_consoletests() {
         }
         loadtest "console/vim.pm";
         # textmode install comes without firewall by default atm
-        if (!check_var("DESKTOP", "textmode") && !is_staging() && !check_var('FLAVOR', 'Krypton-Live')) {
+        if (!check_var("DESKTOP", "textmode") && !is_staging() && !is_krypton_argon) {
             loadtest "console/firewall_enabled.pm";
         }
         if (is_jeos) {
