@@ -17,7 +17,7 @@ use testapi;
 
 sub run() {
     assert_screen 'desktop-selection';
-    my $d = get_var('DESKTOP_MINIMALX_INSTONLY') ? 'minimalx' : get_var('DESKTOP');
+    my $d = get_var('DESKTOP');
     if ($d ne 'kde' && $d ne 'gnome') {
         # up to 42.1 textmode was below 'other'
         if (!($d eq 'textmode' && check_screen 'has-server-selection', 2)) {

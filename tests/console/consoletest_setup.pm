@@ -50,10 +50,6 @@ sub run() {
             send_key 'ctrl-alt-backspace';         #kill X and log in again
             send_key 'ctrl-alt-backspace';
             assert_screen 'displaymanager', 200;    #copy from installation/first_boot.pm
-            if (get_var('DESKTOP_MINIMALX_INSTONLY')) {
-                # return at the DM and log in later into desired wm
-                return;
-            }
             mouse_hide();
             if (get_var('DM_NEEDS_USERNAME')) {
                 type_string $username;
