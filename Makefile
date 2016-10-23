@@ -56,7 +56,7 @@ test-metadata-merge:
 	if test -n "$$FILES"; then tools/check_metadata $$FILES ; fi
 
 .PHONY: test
-test: tidy test-compile test-metadata-merge perlcritic-merge
+test: tidy test-compile perlcritic test-metadata-merge perlcritic-merge
 
 PERLCRITIC=PERL5LIB=tools/lib/perlcritic:$$PERL5LIB perlcritic --quiet --gentle --include Perl::Critic::Policy::HashKeyQuote
 
