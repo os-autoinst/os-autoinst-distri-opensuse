@@ -54,6 +54,11 @@ sub run() {
         assert_script_run "zypper -n mr -d $opensuse_debug_repos";
     }
 
+    # restart to get rid of potential screen disruptions from previous test
+    script_run 'reboot', 0;
+    wait_boot;
+    select_console 'root-console';
+
     # activate kdump
     script_run 'yast2 kdump', 0;
     if (check_screen 'yast2-kdump-disabled') {
