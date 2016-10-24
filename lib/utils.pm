@@ -525,9 +525,16 @@ sub validatelr {
     }
     # Live patching and other modules are not per-service pack channel model,
     # so use major version to validate their repos
-    if ($product eq 'SLE-Live-Patching') {
-        ($version) = $version =~ /^(\d+)/;
+    if ($product eq 'SLE-Live') {
+        $product = 'SLE-Live-Patching';
+        $version = '12';
     }
+    if ($product eq 'SLE-WSM') {
+        $product = 'SLE-Module-Web-Scripting';
+        $version = '12';
+    }
+    diag "validatelr alias:$alias product:$product cha:$product_channel version:$version";
+
     # Repo is checked for enabled/disabled state. If the information about the
     # expected state is not delivered to validatelr(), we use some heuristics to
     # determine the expected state: If the installation medium is a physical
@@ -564,10 +571,6 @@ sub validate_repos {
         my @addonurl_keys = split(/,/, get_var('ADDONURL', ''));
         my $scc_addon_str = '';
         for my $scc_addon (split(/,/, get_var('SCC_ADDONS', ''))) {
-            if ($scc_addon eq 'live') {
-                $scc_addon_str .= "SLE-Live-Patching";
-                next;
-            }
             $scc_addon =~ s/geo/ha-geo/ if ($scc_addon eq 'geo');
             $scc_addon_str .= "SLE-" . uc($scc_addon) . ',';
         }

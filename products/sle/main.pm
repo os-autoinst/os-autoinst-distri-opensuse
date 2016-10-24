@@ -627,6 +627,7 @@ sub load_consoletests() {
                 loadtest "console/dns_srv.pm";
             }
             if (get_var('ADDONS', '') =~ /wsm/ || get_var('SCC_ADDONS', '') =~ /wsm/) {
+                loadtest "console/pcre.pm";
                 loadtest "console/php5.pm";
                 loadtest "console/php5_mysql.pm";
                 loadtest "console/php5_postgresql94.pm";
