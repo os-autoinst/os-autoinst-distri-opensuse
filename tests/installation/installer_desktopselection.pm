@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: change to nicer directory structure
-# G-Maintainer: Bernhard M. Wiedemann <bernhard+osautoinst lsmod de>
+# Summary: Select desktop in installer based on test settings
+# Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
 
 use strict;
 use base "y2logsstep";

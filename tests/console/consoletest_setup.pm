@@ -8,16 +8,13 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Prepare console for console tests
-# Maintainer: Oliver Kurz <okurz@suse.com>
+# Summary: console test pre setup, stoping and disabling packagekit, install curl and tar to get logs and so on
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "consoletest";
 use testapi;
 use utils;
 use strict;
-
-# Summary: console test pre setup, stoping and disabling packagekit, install curl and tar to get logs and so on
-# Maintainer: Oliver Kurz <okurz@suse.de>
 
 sub run() {
     my $self = shift;
