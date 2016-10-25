@@ -11,6 +11,8 @@ function cme {
     eog "$2"
 }
 
+convert --version
+
 wget --quiet "${1/bg_script.sh/test.png}"            -O test.png
 cme test.png 1.png
 
