@@ -1,8 +1,6 @@
-# G-Summary: Add test for awesome window manager
-#    Based on "minimalx" installation.
-#
-#    Related issue: https://progress.opensuse.org/issues/9522
-# G-Maintainer: Dominik Heidler <dheidler@suse.de>
+# Summary: Install windowmanager awesome
+# Maintainer: Dominik Heidler <dheidler@suse.de>
+# Tags: poo#9522
 
 use base "consoletest";
 use strict;
