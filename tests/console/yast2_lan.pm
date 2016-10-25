@@ -74,7 +74,7 @@ sub run() {
     wait_serial("yast2-lan-status-0", 90) || die "'yast2 lan' didn't finish";
 
     wait_still_screen;
-    clear_console;
+    $self->clear_and_verify_console;
     assert_script_run "hostname|grep $hostname";
 
     clear_console;
