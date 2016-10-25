@@ -8,8 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: add get_to_yast.pm, rename to bootloader_s390.pm
-# G-Maintainer: Susanne Oberhauser <froh@suse.com>
+# Summary: Start the installation process on s390x zVM using the z3270
+#   terminal and an ssh connection
+# Maintainer: Matthias Griessmeier <mgriessmeier@suse.de>
 
 use base "installbasetest";
 
@@ -186,6 +187,11 @@ sub show_debug() {
     save_screenshot;
     type_string "dmesg\n";
     save_screenshot;
+    # make the install-shell look like the ones on other systems where we
+    # don't use a ssh session
+    type_string "cd /\n";
+    # there is no "clear" in remote system (or was not at time of writing)
+    type_string "reset\n";
 }
 
 sub format_dasd() {
