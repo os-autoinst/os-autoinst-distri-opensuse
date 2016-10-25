@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Rework the tests layout.
-# G-Maintainer: Alberto Planas <aplanas@suse.com>
+# Summary: Prepare console for console tests
+# Maintainer: Oliver Kurz <okurz@suse.com>
 
 use base "consoletest";
 use testapi;
@@ -22,8 +22,8 @@ use strict;
 sub run() {
     my $self = shift;
 
-    # Without this login name and password won't get to the system. The
-    # get lost somewhere. Applies for all systems installed via svirt.
+    # Without this login name and password won't get to the system. They get
+    # lost somewhere. Applies for all systems installed via svirt, but zKVM.
     if (check_var('BACKEND', 'svirt') and !check_var('ARCH', 's390x')) {
         wait_idle;
     }
