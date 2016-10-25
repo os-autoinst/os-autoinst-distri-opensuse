@@ -24,7 +24,7 @@ FIN.
 
 sub run {
     my $self = shift;
-    wait_boot;
+    $self->wait_boot;
 
     select_console('root-virtio-terminal');
     my $output = script_output($multiline_script);

@@ -122,7 +122,7 @@ sub run {
         send_key "alt-r";
         # sometimes reboot takes longer time after online migration
         # give more time to reboot
-        wait_boot(bootloader_time => 300, textmode => !is_desktop_installed);
+        $self->wait_boot(bootloader_time => 300, textmode => !is_desktop_installed);
     }
     else {
         wait_serial("yast2-migration-done-0", $timeout) || die "yast2 migration failed";
@@ -135,8 +135,9 @@ sub test_flags() {
 }
 
 sub post_fail_hook() {
-    my $self = shift;
+    my ($self) = @_;
 
+    $self->SUPER::post_fail_hook;
     select_console 'log-console';
     wait_still_screen(2);
     $self->save_upload_y2logs;

@@ -17,6 +17,7 @@ use testapi;
 use utils;
 
 sub run() {
+    my ($self) = @_;
     # Now we need to redefine libvirt domain; installation/redefine_svirt_domain
     # test should follow.
     if (is_jeos) {
@@ -57,7 +58,7 @@ sub run() {
     }
 
     if (is_jeos) {
-        wait_boot;
+        $self->wait_boot;
         if (check_var('BACKEND', 'svirt') and !check_var('ARCH', 's390x')) {
             wait_idle;
         }

@@ -27,6 +27,7 @@ sub trigger_shutdown_gnome_button() {
 
 sub run() {
     my $self = shift;
+    $self->{await_shutdown} = 0;
 
     if (check_var("DESKTOP", "kde")) {
         send_key "ctrl-alt-delete";    # shutdown
@@ -124,11 +125,19 @@ sub run() {
 
     }
 
+    $self->{await_shutdown} = 1;
     assert_shutdown;
 }
 
 sub test_flags() {
     return {norollback => 1};
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    # In case plymouth splash shows up and the shutdown is blocked, show
+    # console logs
+    send_key 'esc' if $self->{await_shutdown};
 }
 
 1;

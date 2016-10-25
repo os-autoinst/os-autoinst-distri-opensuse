@@ -65,7 +65,7 @@ sub run() {
     send_key 'ret';
     if (!check_screen([qw(tty-selected displaymanager, 60)])) { record_soft_failure 'bsc#980337'; }
     send_key 'ctrl-alt-delete';
-    wait_boot;
+    $self->wait_boot;
 }
 
 1;

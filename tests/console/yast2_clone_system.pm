@@ -14,7 +14,7 @@
 use base "console_yasttest";
 use strict;
 use testapi;
-use utils qw(zypper_call);
+use utils 'zypper_call';
 
 sub run() {
     select_console 'root-console';

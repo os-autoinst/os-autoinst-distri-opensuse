@@ -7,15 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add sle12 online migration testsuite
-#    Fixes follow up by the comments
-#
-#    Apply fully patch system function
-#
-#    Fix typo and remove redundant comment
-#
-#    Remove a unnecessary line
-# G-Maintainer: mitiao <mitiao@gmail.com>
+# Summary: Conduct a rollback after migration back to previous system
+# Maintainer: mitiao <mitiao@gmail.com>
 
 use base "consoletest";
 use strict;
@@ -34,7 +27,7 @@ sub check_rollback_system() {
 }
 
 sub run() {
-    my $self = shift;
+    my ($self) = @_;
 
     # login to before online migration snapshot
     # tty would not appear quite often after booting snapshot
@@ -52,7 +45,7 @@ sub run() {
 
     # reboot into the system before online migration
     script_run("systemctl reboot", 0);
-    wait_boot textmode => !is_desktop_installed;
+    $self->wait_boot(textmode => !is_desktop_installed);
     select_console 'root-console';
 
     check_rollback_system;

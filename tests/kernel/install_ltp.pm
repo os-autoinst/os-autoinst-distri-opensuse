@@ -52,8 +52,7 @@ sub install_from_repo {
 sub run {
     my $self     = shift;
     my $inst_ltp = get_var 'INSTALL_LTP';
-    wait_boot;
-
+    $self->wait_boot;
     select_console(get_var('VIRTIO_CONSOLE') ? 'root-virtio-terminal' : 'root-console');
 
     if ($inst_ltp =~ /git/i) {

@@ -8,9 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: console reboot test
+# Summary: Simple reboot test on console
 #    refactor common reboot and encrypt unlock functions to utils.pm
-# G-Maintainer: Ludwig Nussel <ludwig.nussel@suse.de>
+# Maintainer: Ludwig Nussel <ludwig.nussel@suse.de>
 
 use base "consoletest";
 use testapi;
@@ -18,9 +18,10 @@ use utils;
 use strict;
 
 sub run() {
+    my ($self) = @_;
     select_console 'root-console';
     type_string "reboot\n";
-    wait_boot;
+    $self->wait_boot;
     select_console 'root-console';
     assert_script_run "chown $username /dev/$serialdev";
     check_console_font;
@@ -29,6 +30,7 @@ sub run() {
 sub test_flags() {
     return {milestone => 1, important => 1};
 }
+
 1;
 
 # vim: set sw=4 et:

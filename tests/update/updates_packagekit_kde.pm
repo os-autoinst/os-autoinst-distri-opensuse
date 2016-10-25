@@ -24,6 +24,7 @@ sub kernel_updated {
 
 # Update with Plasma applet for software updates using PackageKit
 sub run() {
+    my ($self) = @_;
     select_console 'x11';
     turn_off_kde_screensaver;
 
@@ -54,7 +55,7 @@ sub run() {
 
     if (kernel_updated) {
         type_string "reboot\n";
-        wait_boot;
+        $self->wait_boot;
     }
     else {
         select_console "x11";

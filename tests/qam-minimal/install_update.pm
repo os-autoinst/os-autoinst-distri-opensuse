@@ -17,7 +17,7 @@
 #    x11 tests
 # Maintainer: Ondřej Súkup <osukup@suse.cz>
 
-use base "basetest";
+use base "opensusebasetest";
 
 use strict;
 
@@ -26,6 +26,7 @@ use qam;
 use testapi;
 
 sub run {
+    my ($self) = @_;
     select_console 'root-console';
 
     if (!get_var('INCIDENT_REPO')) {
@@ -45,7 +46,7 @@ sub run {
 
     prepare_system_reboot;
     type_string "reboot\n";
-    wait_boot;
+    $self->wait_boot;
 }
 
 sub test_flags {

@@ -8,11 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add Framework to test other Desktop Environments
-#    Non-Primary desktop environments are generally installed by means
-#    of a pattern. For those tests, we assume a minimal-X based installation
-#    where the pattern is being installed on top.
-# G-Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
+# Summary: Reboot from icewm environment
+# Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
 
 use base "opensusebasetest";
 use strict;
@@ -20,6 +17,7 @@ use testapi;
 use utils;
 
 sub run() {
+    my ($self) = @_;
     wait_idle;
     send_key "ctrl-alt-delete";    # reboot
     assert_screen 'logoutdialog', 15;
@@ -27,7 +25,7 @@ sub run() {
     assert_screen 'icewm_confirm_logout';    # Confirm logout, Logout will close all active applications. Proceed?
     send_key 'alt-o';
 
-    wait_boot;
+    $self->wait_boot;
 }
 
 sub test_flags() {

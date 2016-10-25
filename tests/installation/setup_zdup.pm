@@ -17,9 +17,9 @@ use testapi;
 use utils;
 
 sub run() {
-    my $self = shift;
+    my ($self) = @_;
 
-    wait_boot(ready_time => 600);
+    $self->wait_boot(ready_time => 600);
 
     if (get_var('ZDUP_IN_X')) {
         x11_start_program('xterm');
@@ -44,7 +44,7 @@ sub run() {
         type_string("/sbin/reboot\n");
 
         reset_consoles;
-        wait_boot textmode => 1;
+        $self->wait_boot(textmode => 1);
 
         select_console('root-console');
     }

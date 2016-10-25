@@ -79,11 +79,7 @@ sub run() {
     script_run("systemctl reboot", 0);
 
     # sometimes reboot takes longer time after online migration, give more time
-    wait_boot(bootloader_time => 300);
-}
-
-sub test_flags() {
-    return {fatal => 1};
+    $self->wait_boot(bootloader_time => 300);
 }
 
 1;

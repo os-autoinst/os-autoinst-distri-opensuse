@@ -20,11 +20,8 @@
 use base "opensusebasetest";
 use strict;
 use testapi;
-use utils 'wait_boot';
 
 sub run() {
-    my $self = shift;
-
     # run rasdaemon
     assert_script_run "rasdaemon --record";
 
