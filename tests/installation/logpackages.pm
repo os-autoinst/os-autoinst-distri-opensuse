@@ -21,7 +21,9 @@ use testapi;
 
 sub run() {
     my $self = shift;
-    assert_screen "before-package-selection";
+    # the waiting might take long in case of online update repos being
+    # initialized before that screen
+    assert_screen 'before-package-selection', 300;
 
     #send_key "ctrl-alt-shift-x"; sleep 3;
     select_console('install-shell');
