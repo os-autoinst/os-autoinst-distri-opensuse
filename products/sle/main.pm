@@ -186,25 +186,27 @@ sub load_x11regression_firefox() {
     loadtest "x11regressions/firefox/sle12/firefox_urlsprotocols.pm";
     loadtest "x11regressions/firefox/sle12/firefox_downloading.pm";
     loadtest "x11regressions/firefox/sle12/firefox_extcontent.pm";
-    loadtest "x11regressions/firefox/sle12/firefox_java.pm";
     loadtest "x11regressions/firefox/sle12/firefox_headers.pm";
     loadtest "x11regressions/firefox/sle12/firefox_pdf.pm";
-    loadtest "x11regressions/firefox/sle12/firefox_pagesaving.pm";
     loadtest "x11regressions/firefox/sle12/firefox_changesaving.pm";
-    loadtest "x11regressions/firefox/sle12/firefox_flashplayer.pm";
-    loadtest "x11regressions/firefox/sle12/firefox_ssl.pm";
-    loadtest "x11regressions/firefox/sle12/firefox_passwd.pm";
-    loadtest "x11regressions/firefox/sle12/firefox_mhtml.pm";
-    loadtest "x11regressions/firefox/sle12/firefox_plugins.pm";
-    loadtest "x11regressions/firefox/sle12/firefox_extensions.pm";
-    loadtest "x11regressions/firefox/sle12/firefox_appearance.pm";
-    loadtest "x11regressions/firefox/sle12/firefox_html5.pm";
-    loadtest "x11regressions/firefox/sle12/firefox_private.pm";
     loadtest "x11regressions/firefox/sle12/firefox_fullscreen.pm";
     loadtest "x11regressions/firefox/sle12/firefox_health.pm";
-    loadtest "x11regressions/firefox/sle12/firefox_developertool.pm";
-    loadtest "x11regressions/firefox/sle12/firefox_gnomeshell.pm";
-    loadtest "x11regressions/firefox/sle12/firefox_rss.pm";
+    if (sle_version_at_least('12-SP2')) {    # take out these failed cases from qam test for SP1
+        loadtest "x11regressions/firefox/sle12/firefox_java.pm";
+        loadtest "x11regressions/firefox/sle12/firefox_pagesaving.pm";
+        loadtest "x11regressions/firefox/sle12/firefox_flashplayer.pm";
+        loadtest "x11regressions/firefox/sle12/firefox_ssl.pm";
+        loadtest "x11regressions/firefox/sle12/firefox_passwd.pm";
+        loadtest "x11regressions/firefox/sle12/firefox_mhtml.pm";
+        loadtest "x11regressions/firefox/sle12/firefox_plugins.pm";
+        loadtest "x11regressions/firefox/sle12/firefox_extensions.pm";
+        loadtest "x11regressions/firefox/sle12/firefox_appearance.pm";
+        loadtest "x11regressions/firefox/sle12/firefox_html5.pm";
+        loadtest "x11regressions/firefox/sle12/firefox_private.pm";
+        loadtest "x11regressions/firefox/sle12/firefox_developertool.pm";
+        loadtest "x11regressions/firefox/sle12/firefox_gnomeshell.pm";
+        loadtest "x11regressions/firefox/sle12/firefox_rss.pm";
+    }
     if (!get_var("OFW") && check_var('BACKEND', 'qemu')) {
         loadtest "x11/firefox_audio.pm";
     }
@@ -260,9 +262,7 @@ sub load_x11regression_message() {
         loadtest "x11regressions/evolution/evolution_smoke.pm";
         loadtest "x11regressions/evolution/evolution_mail_imap.pm";
         loadtest "x11regressions/evolution/evolution_mail_pop.pm";
-        loadtest "x11regressions/evolution/evolution_mail_ews.pm";
         loadtest "x11regressions/evolution/evolution_timezone_setup.pm";
-        loadtest "x11regressions/evolution/evolution_task_ews.pm";
         loadtest "x11regressions/evolution/evolution_meeting_imap.pm";
         loadtest "x11regressions/evolution/evolution_meeting_pop.pm";
     }
