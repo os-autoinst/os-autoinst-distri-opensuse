@@ -32,7 +32,7 @@ sub run() {
     mouse_hide(1);
 
     # Clean and Start Evolution
-    x11_start_program("xterm -e \"killall -9 evolution; find ~ -name evolution | xargs -rm -rf;\"");
+    x11_start_program("xterm -e \"killall -9 evolution; find ~ -name evolution | xargs rm -rf;\"");
     x11_start_program("evolution");
     if (check_screen "evolution-default-client-ask") {
         assert_and_click "evolution-default-client-agree";

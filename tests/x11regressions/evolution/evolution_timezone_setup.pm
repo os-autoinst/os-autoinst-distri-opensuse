@@ -29,7 +29,7 @@ sub run() {
     mouse_hide(1);
 
     # Clean and Start Evolution
-    x11_start_program("xterm -e \"killall -9 evolution; find ~ -name evolution | xargs -rm -rf;\"");
+    x11_start_program("xterm -e \"killall -9 evolution; find ~ -name evolution | xargs rm -rf;\"");
     x11_start_program("evolution");
     assert_screen [qw(evolution-default-client-ask test-evolution-1)];
     if (match_has_tag "evolution-default-client-ask") {
