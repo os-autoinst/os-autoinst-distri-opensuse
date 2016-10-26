@@ -7,8 +7,10 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Basic salt test suite
+# Summary: Test installation of salt-master as well as salt-minion on same
+#  machine. Test simple operation with loopback.
 # Maintainer: Oliver Kurz <okurz@suse.de>
+# Tags: fate#318875, fate#320919
 
 use base "consoletest";
 use strict;
