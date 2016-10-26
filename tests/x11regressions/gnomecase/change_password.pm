@@ -64,22 +64,6 @@ sub switch_user {
     assert_and_click "switch-user";
 }
 
-sub unlock_user_settings {
-    send_key "super";
-    wait_still_screen;
-    type_string "settings", 1;    #Use '1' to give gnome-shell enough time to search settings module; Otherwise slow worker will cause failed result.
-    assert_and_click "settings";
-    assert_screen "gnome-settings";
-    type_string "users";
-    assert_screen "settings-users-selected";
-    send_key "ret";
-    assert_screen "users-settings";
-    assert_and_click "Unlock-user-settings";
-    assert_screen "authentication-required-user-settings";
-    type_string $password;
-    assert_and_click "authenticate";
-}
-
 sub change_pwd {
     send_key "alt-p";
     wait_still_screen;
@@ -87,15 +71,15 @@ sub change_pwd {
     wait_still_screen;
     send_key "alt-p";
     wait_still_screen;
-    type_string "$password";
+    type_password;
     wait_still_screen;
     send_key "alt-n";
     wait_still_screen;
-    type_string "$newpwd";
+    type_string $newpwd;
     wait_still_screen;
     send_key "alt-v";
     wait_still_screen;
-    type_string "$newpwd";
+    type_string $newpwd;
     assert_screen "actived-change-password";
     send_key "alt-a";
     assert_screen "users-settings", 60;
@@ -103,16 +87,13 @@ sub change_pwd {
 
 sub add_user {
     assert_and_click "add-user";
-    type_string "$newUser";
-    unless (assert_screen("input-username-test")) {
-        send_key "alt-f";
-        type_string "$newUser";
-    }
+    type_string $newUser;
+    assert_screen("input-username-test");
     assert_and_click "set-password-option";
     send_key "alt-p";
-    type_string "$pwd4newUser";
+    type_string $pwd4newUser;
     send_key "alt-v";
-    type_string "$pwd4newUser";
+    type_string $pwd4newUser;
     assert_screen "actived-add-user";
     send_key "alt-a";
     assert_screen "users-settings", 60;
@@ -120,11 +101,11 @@ sub add_user {
 }
 
 sub run () {
-    my $self = shift;
+    my ($self) = @_;
 
     #change pwd for current user and add new user for switch scenario
     assert_screen "generic-desktop";
-    unlock_user_settings;
+    $self->unlock_user_settings;
     change_pwd;
     add_user;
 

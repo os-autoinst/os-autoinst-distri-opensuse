@@ -24,7 +24,7 @@ sub run() {
     if (get_var("SHUTDOWN_NEEDS_AUTH")) {
         assert_screen 'reboot-auth';
         wait_still_screen;
-        type_password;
+        type_string $testapi::password, max_interval => 5;
         wait_still_screen;
         wait_screen_change {
             assert_and_click 'reboot-auth-typed', 'right';                  # Extra assert_and_click (with right click) to check the correct number of characters is typed and open up the 'show text' option

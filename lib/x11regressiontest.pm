@@ -486,5 +486,27 @@ sub exit_firefox() {
     type_string "exit\n";
 }
 
+sub start_gnome_settings {
+    send_key "super";
+    wait_still_screen;
+    type_string "settings";
+    # give gnome-shell time to digest the input
+    wait_still_screen 2;
+    assert_and_click "settings";
+    assert_screen "gnome-settings";
+}
+
+sub unlock_user_settings {
+    start_gnome_settings;
+    type_string "users";
+    assert_screen "settings-users-selected";
+    send_key "ret";
+    assert_screen "users-settings";
+    assert_and_click "Unlock-user-settings";
+    assert_screen "authentication-required-user-settings";
+    type_string $password;
+    assert_and_click "authenticate";
+}
+
 1;
 # vim: set sw=4 et:
