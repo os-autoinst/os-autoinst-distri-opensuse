@@ -1,4 +1,7 @@
 PERL5LIB_:=../..:os-autoinst:lib:tests/installation:tests/x11:tests/qa_automation:tests/virt_autotest:$$PERL5LIB
+COPY_PASTE_THRESHOLD ?= 84
+COPY_PASTE_DETECT ?= PERL5LIB=${PERL5LIB_} CP_reporter
+COPY_PASTE_DETECT_OPTS ?= --dir . --ignore '^1;' --minimum ${COPY_PASTE_THRESHOLD} --terse
 
 .PHONY: all
 all:
@@ -11,7 +14,7 @@ help:
 prepare:
 	git clone git://github.com/os-autoinst/os-autoinst
 	$(MAKE) check-links
-	cd os-autoinst && cpanm -nq --installdeps .
+	cd os-autoinst && cpanm -nq --installdeps --with-feature=coverage .
 	cpanm -nq --installdeps .
 
 os-autoinst/:
@@ -56,7 +59,7 @@ test-metadata-merge:
 	if test -n "$$FILES"; then tools/check_metadata $$FILES ; fi
 
 .PHONY: test
-test: tidy test-compile test-metadata-merge perlcritic-merge
+test: tidy test-compile test-metadata-merge perlcritic-merge test-copy-paste
 
 PERLCRITIC=PERL5LIB=tools/lib/perlcritic:$$PERL5LIB perlcritic --quiet --gentle --include Perl::Critic::Policy::HashKeyQuote
 
@@ -72,3 +75,9 @@ perlcritic-merge:
 	else FILES= ;\
 	fi ;\
 	if test -n "$$FILES"; then ${PERLCRITIC} $$FILES ; fi
+
+CP_CMD=${COPY_PASTE_DETECT} ${COPY_PASTE_DETECT_OPTS}
+.PHONY: test-copy-paste
+test-copy-paste:
+	@dup=$$(${CP_CMD} 2>/dev/null) ;\
+	test -z "$$dup" || (echo "$$dup" && false)
