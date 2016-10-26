@@ -252,8 +252,18 @@ sub send_meeting_request {
 }
 
 sub setup_pop {
-
     my ($self, $i) = @_;
+    $self->setup_mail_account('pop', $i);
+}
+
+sub setup_imap {
+    my ($self, $i) = @_;
+    $self->setup_mail_account('imap', $i);
+}
+
+sub setup_mail_account {
+    my ($self, $proto, $i) = @_;
+
     my $config          = $self->getconfig_emailaccount;
     my $mail_box        = $config->{$i}->{mailbox};
     my $mail_sendServer = $config->{$i}->{sendServer};
@@ -261,7 +271,7 @@ sub setup_pop {
     my $mail_user       = $config->{$i}->{user};
     my $mail_passwd     = $config->{$i}->{passwd};
     my $mail_sendport   = $config->{$i}->{sendport};
-    my $mail_recvport   = $config->{$i}->{recvport};
+    my $mail_recvport   = $proto eq 'pop' ? $config->{$i}->{recvport} : $config->{$i}->{imapport};
     my $next            = "alt-o";
     mouse_hide(1);
     if (sle_version_at_least('12-SP2')) {
@@ -272,7 +282,7 @@ sub setup_pop {
     x11_start_program("evolution");
     # Follow the wizard to setup mail account
     assert_screen [qw/evolution-default-client-ask test-evolution-1/];
-    if (check_screen 'evolution-default-client-ask') {
+    if (match_has_tag 'evolution-default-client-ask') {
         assert_and_click "evolution-default-client-agree";
         assert_screen "test-evolution-1";
     }
@@ -295,26 +305,31 @@ sub setup_pop {
         send_key "alt-s";
     }
 
-    # setup reciving protocol as pop
     assert_screen "evolution_wizard-receiving";
     wait_screen_change {
         send_key "alt-t";
     };
     send_key "ret";
-    send_key_until_needlematch "evolution_wizard-receiving-pop", "down", 10, 3;
+    send_key_until_needlematch "evolution_wizard-receiving-$proto", "down", 10, 3;
     wait_screen_change {
         send_key "ret";
     };
-
     wait_screen_change {
         send_key "alt-s";
     };
     type_string "$mail_recvServer";
-    #No need set receive port with POP
-    #    wait_screen_change {
-    #        send_key "alt-p";
-    #    };
-    #    type_string "$mail_recvport";
+    if ($proto eq 'pop') {
+        #No need set receive port with POP
+    }
+    elsif ($proto eq 'imap') {
+        wait_screen_change {
+            send_key "alt-p";
+        };
+        type_string "$mail_recvport";
+    }
+    else {
+        die "Unsupported protocol: $proto";
+    }
     wait_screen_change {
         send_key "alt-n";
     };
@@ -419,7 +434,6 @@ sub setup_pop {
     }
     assert_screen "evolution_wizard-done";
     send_key "alt-a";
-
     if (check_screen "evolution_mail-auth") {
         if (sle_version_at_least('12-SP2')) {
             send_key "alt-a";    #disable keyring option, only in SP2

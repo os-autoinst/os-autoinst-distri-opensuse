@@ -1,5 +1,5 @@
 PERL5LIB_:=../..:os-autoinst:lib:tests/installation:tests/x11:tests/qa_automation:tests/virt_autotest:$$PERL5LIB
-COPY_PASTE_THRESHOLD ?= 84
+COPY_PASTE_THRESHOLD ?= 34
 COPY_PASTE_DETECT ?= PERL5LIB=${PERL5LIB_} CP_reporter
 COPY_PASTE_DETECT_OPTS ?= --dir . --ignore '^1;' --minimum ${COPY_PASTE_THRESHOLD} --terse
 
