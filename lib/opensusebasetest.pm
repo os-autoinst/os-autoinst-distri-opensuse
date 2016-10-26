@@ -20,6 +20,11 @@ sub clear_and_verify_console {
 
 sub post_run_hook {
     my ($self) = @_;
+
+    # In case the system is stuck in shutting down or during boot up, press
+    # 'esc' just in case the plymouth splash screen is shown and we can not
+    # see any interesting console logs.
+    send_key 'esc';
     # overloaded in x11 and console
 }
 

@@ -45,14 +45,8 @@ sub run() {
     if (!check_var("DESKTOP", "textmode")) {
         select_console('x11');
         ensure_unlocked_desktop [qw/displaymanager/];
-        if (get_var("DESKTOP_MINIMALX_INSTONLY")) {
-            # Desired wm was just installed and needs x11_login
-            assert_screen 'displaymanager', 200;
-        }
-        else {
-            mouse_hide(1);
-            assert_screen 'generic-desktop';
-        }
+        mouse_hide(1);
+        assert_screen 'generic-desktop';
     }
 }
 

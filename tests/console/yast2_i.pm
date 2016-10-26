@@ -34,11 +34,11 @@ sub run() {
     # on SLE12SP0 hidden subvolume isn't supported
     if (!check_var('VERSION', '12')) {
         send_key "alt-e";
-        wait_still_screen;
+        wait_still_screen(1);
         send_key "alt-s";
         assert_screen 'yast2-sw_single-disk_usage';
         send_key "alt-o";
-        wait_still_screen;
+        wait_still_screen(1);
         send_key "alt-p";    # go back to search box
     }
 
@@ -72,20 +72,19 @@ sub run() {
     }
     send_key "alt-a", 1;     # accept
 
-    # automatic changes for manual selections
-    if (check_screen('yast2-sw-packages-autoselected', 10)) {
-        send_key 'alt-o';
-    }
-
-    if (check_screen('yast2-sw_automatic-changes', 10)) {
-        send_key 'alt-o';
-    }
-
+    my @tags = qw(yast2-sw-packages-autoselected yast2-sw_automatic-changes yast2_console-finished);
     # Whether summary is shown depends on PKGMGR_ACTION_AT_EXIT in /etc/sysconfig/yast2
-    unless (get_var("YAST_SW_NO_SUMMARY")) {
-        assert_screen 'yast2-sw_shows_summary';
-        send_key 'alt-f';
-    }
+    push @tags, 'yast2-sw_shows_summary' unless get_var('YAST_SW_NO_SUMMARY');
+    do {
+        assert_screen(\@tags);
+        # automatic changes for manual selections
+        if (match_has_tag('yast2-sw-packages-autoselected') or match_has_tag('yast2-sw_automatic-changes')) {
+            wait_screen_change { send_key 'alt-o' };
+        }
+        elsif (match_has_tag('yast2-sw_shows_summary')) {
+            wait_screen_change { send_key 'alt-f' };
+        }
+    } until (match_has_tag('yast2_console-finished'));
 
     # yast might take a while on sle11 due to suseconfig
     wait_serial("yast2-i-status-0", 60) || die "'yast2 sw_single' didn't finish";

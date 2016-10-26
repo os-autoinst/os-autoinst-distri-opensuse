@@ -18,10 +18,6 @@ use base "y2logsstep";
 use testapi;
 
 sub handle_login {
-    if (get_var('DESKTOP_MINIMALX_INSTONLY')) {
-        # return at the DM and log in later into desired wm
-        return;
-    }
     mouse_hide();
     wait_still_screen;
     if (get_var('DM_NEEDS_USERNAME')) {
@@ -67,7 +63,9 @@ sub run() {
     # using multiple check intervals here then we can get the wrong desktop
     # screenshot at least in case desktop screenshot changed, otherwise we get
     # the screenlock screenshot.
-    my $timeout        = 600;
+    # When login was handled over display manager there should be no need to
+    # wait that long
+    my $timeout = get_var('NOAUTOLOGIN') ? 60 : 600;
     my $check_interval = 30;
     while ($timeout > $check_interval) {
         my $ret = check_screen \@tags, $check_interval;
