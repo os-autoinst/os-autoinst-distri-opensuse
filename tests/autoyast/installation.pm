@@ -140,21 +140,20 @@ sub run {
 
     if ($timeout) {    #timeout - save log
         save_logs_and_continue("stage1_timeout");
-        $self->result('fail');
-        return;
+        die "timeout hit";
     }
 
     if (get_var("USRSCR_DIALOG")) {
-        $self->result('fail') if !$postpartscript;
+        die "usrscr dialog" if !$postpartscript;
     }
 
     if (get_var("AUTOYAST_CONFIRM")) {
-        $self->result('fail') if !$confirmed;
+        die "autoyast_confirm" if !$confirmed;
     }
 
     if (get_var("AUTOYAST_LICENSE")) {
         if ($confirmed_licenses == 0 || $confirmed_licenses != get_var("AUTOYAST_LICENSE", 0)) {
-            $self->result('fail');
+            die "autoyast_license";
         }
     }
 
@@ -188,14 +187,13 @@ sub run {
 
     if ($timeout) {                  #timeout - save log
         save_logs_and_continue("stage2_timeout");
-        $self->result('fail');
+        die "stage2_timeout";
         return;
     }
 
     my $expect_errors = get_var("AUTOYAST_EXPECT_ERRORS") // 0;
     if ($num_errors != $expect_errors) {
-        #mark as failed
-        $self->result('fail');
+        die "exceeded expected autoyast errors";
     }
 
     #go to text console if graphical login detected
