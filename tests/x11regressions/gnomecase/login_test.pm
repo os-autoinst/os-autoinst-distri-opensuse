@@ -7,8 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: openqa script and entry for tc#1503803 tc#1503905; entry for tc#1503973
-# G-Maintainer: xiaojun <xjin@suse.com>
+# Summary: openqa script and entry for tc#1503803 tc#1503905; entry for tc#1503973
+# Maintainer: xiaojun <xjin@suse.com>
 
 use base "x11regressiontest";
 use strict;
@@ -23,6 +23,7 @@ sub auto_login_alter {
     send_key "super";
     wait_still_screen;
     type_string "settings", 1;    #Use '1' to give gnome-shell enough time to search settings module; Otherwise slow worker will cause failed result.
+    wait_still_screen;
     assert_and_click "settings";
     assert_screen "gnome-settings";
     type_string "users";
