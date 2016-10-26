@@ -1068,6 +1068,9 @@ elsif (get_var("VIRT_AUTOTEST")) {
         }
         loadtest "virt_autotest/host_upgrade_step3_run.pm";
     }
+    elsif (get_var("VIRT_PRJ4_GUEST_UPGRADE")) {
+        loadtest "virt_autotest/guest_upgrade_run.pm";
+    }
     elsif (get_var("VIRT_PRJ5_PVUSB")) {
         loadtest "virt_autotest/pvusb_run.pm";
     }
