@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: an experimental bootloader using virsh over ssh
-# G-Maintainer: Stephan Kulow <coolo@suse.de>
+# Summary: zKVM bootloader
+# Maintainer: Matthias Grießmeier <mgriessmeier@suse.de>
 
 use base "installbasetest";
 
@@ -55,7 +55,7 @@ sub run() {
     # For some tests we need more than the default 4GB
     my $size_i = get_var('HDDSIZEGB') || '4';
 
-    $svirt->add_disk({size => $size_i . "G", create => 1});
+    $svirt->add_disk({size => $size_i . "G", create => 1, dev_id => 'a'});
     # need that for s390
     $svirt->add_pty({pty_dev => 'console', pty_dev_type => 'pty', target_type => 'sclp', target_port => '0'});
 
