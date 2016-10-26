@@ -7,23 +7,25 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
-# G-Summary: virt_autotest: the initial version of virtualization automation test in openqa, with kvm support fully, xen support not done yet
-# G-Maintainer: alice <xlai@suse.com>
 
 use strict;
 use warnings;
 use File::Basename;
+use base "opensusebasetest";
 use testapi;
-use base "reboot_and_wait_up";
 
 sub run() {
-    my $self    = shift;
-    my $timeout = 300;
-    $self->reboot_and_wait_up($timeout);
+    assert_screen "bootloader";
+    send_key "ret";
+    assert_screen "grub2", 10;
+    send_key "ret";
+    assert_screen "displaymanager", 300;
+    select_console('root-console');
+    sleep 2;
 }
 
 sub test_flags {
-    return {fatal => 1};
+    return {important => 1};
 }
 
 1;

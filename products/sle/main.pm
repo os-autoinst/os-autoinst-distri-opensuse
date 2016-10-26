@@ -38,10 +38,6 @@ sub is_kgraft() {
     return get_var('FLAVOR', '') =~ /^KGraft/;
 }
 
-sub is_new_installation {
-    return !get_var('UPGRADE') && !get_var('ONLINE_MIGRATION') && !get_var('ZDUP') && !get_var('AUTOUPGRADE');
-}
-
 sub cleanup_needles {
     remove_desktop_needles("lxde");
     remove_desktop_needles("kde");
@@ -123,6 +119,9 @@ if (sle_version_at_least('12-SP2')) {
 if (!get_var('NETBOOT')) {
     set_var('DVD', 1);
 }
+if (!is_desktop) {
+    set_var('NOIMAGES', 1);
+}
 
 if (check_var('DESKTOP', 'minimalx')) {
     set_var("XDMUSED", 1);
@@ -149,10 +148,21 @@ if (check_var('DESKTOP', 'minimalx')) {
     set_var('DM_NEEDS_USERNAME', 1);
 }
 
+# use Fake SCC regcodes if none provided
+if (!get_var('SCC_REGCODE') && get_var('FAKE_SCC_REGCODE')) {
+    my @copy_vars = qw/REGCODE EMAIL URL CERT/;
+    for my $i (map { uc } split(/,/, get_var('SCC_ADDONS', ''))) {
+        push @copy_vars, "REGCODE_$i" if get_var("FAKE_SCC_REGCODE_$i");
+    }
+    for my $i (@copy_vars) {
+        set_var("SCC_$i", get_var("FAKE_SCC_$i")) unless get_var("SCC_$i");
+    }
+}
+
 $needle::cleanuphandler = \&cleanup_needles;
 
 # dump other important ENV:
-logcurrentenv(qw"ADDONURL BIGTEST BTRFS DESKTOP HW HWSLOT LVM MOZILLATEST NOINSTALL REBOOTAFTERINSTALL UPGRADE USBBOOT ZDUP ZDUPREPOS TEXTMODE DISTRI NOAUTOLOGIN QEMUCPU QEMUCPUS RAIDLEVEL ENCRYPT INSTLANG QEMUVGA DOCRUN UEFI DVD GNOME KDE ISO ISO_MAXSIZE NETBOOT USEIMAGES PROMO QEMUVGA SPLITUSR VIDEOMODE");
+logcurrentenv(qw"ADDONURL BIGTEST BTRFS DESKTOP HW HWSLOT LVM MOZILLATEST NOINSTALL REBOOTAFTERINSTALL UPGRADE USBBOOT ZDUP ZDUPREPOS TEXTMODE DISTRI NOAUTOLOGIN QEMUCPU QEMUCPUS RAIDLEVEL ENCRYPT INSTLANG QEMUVGA DOCRUN UEFI DVD GNOME KDE ISO ISO_MAXSIZE NETBOOT NOIMAGES PROMO QEMUVGA SPLITUSR VIDEOMODE");
 
 
 sub need_clear_repos() {
@@ -186,27 +196,25 @@ sub load_x11regression_firefox() {
     loadtest "x11regressions/firefox/sle12/firefox_urlsprotocols.pm";
     loadtest "x11regressions/firefox/sle12/firefox_downloading.pm";
     loadtest "x11regressions/firefox/sle12/firefox_extcontent.pm";
+    loadtest "x11regressions/firefox/sle12/firefox_java.pm";
     loadtest "x11regressions/firefox/sle12/firefox_headers.pm";
     loadtest "x11regressions/firefox/sle12/firefox_pdf.pm";
+    loadtest "x11regressions/firefox/sle12/firefox_pagesaving.pm";
     loadtest "x11regressions/firefox/sle12/firefox_changesaving.pm";
+    loadtest "x11regressions/firefox/sle12/firefox_flashplayer.pm";
+    loadtest "x11regressions/firefox/sle12/firefox_ssl.pm";
+    loadtest "x11regressions/firefox/sle12/firefox_passwd.pm";
+    loadtest "x11regressions/firefox/sle12/firefox_mhtml.pm";
+    loadtest "x11regressions/firefox/sle12/firefox_plugins.pm";
+    loadtest "x11regressions/firefox/sle12/firefox_extensions.pm";
+    loadtest "x11regressions/firefox/sle12/firefox_appearance.pm";
+    loadtest "x11regressions/firefox/sle12/firefox_html5.pm";
+    loadtest "x11regressions/firefox/sle12/firefox_private.pm";
     loadtest "x11regressions/firefox/sle12/firefox_fullscreen.pm";
     loadtest "x11regressions/firefox/sle12/firefox_health.pm";
-    if (sle_version_at_least('12-SP2')) {    # take out these failed cases from qam test for SP1
-        loadtest "x11regressions/firefox/sle12/firefox_java.pm";
-        loadtest "x11regressions/firefox/sle12/firefox_pagesaving.pm";
-        loadtest "x11regressions/firefox/sle12/firefox_flashplayer.pm";
-        loadtest "x11regressions/firefox/sle12/firefox_ssl.pm";
-        loadtest "x11regressions/firefox/sle12/firefox_passwd.pm";
-        loadtest "x11regressions/firefox/sle12/firefox_mhtml.pm";
-        loadtest "x11regressions/firefox/sle12/firefox_plugins.pm";
-        loadtest "x11regressions/firefox/sle12/firefox_extensions.pm";
-        loadtest "x11regressions/firefox/sle12/firefox_appearance.pm";
-        loadtest "x11regressions/firefox/sle12/firefox_html5.pm";
-        loadtest "x11regressions/firefox/sle12/firefox_private.pm";
-        loadtest "x11regressions/firefox/sle12/firefox_developertool.pm";
-        loadtest "x11regressions/firefox/sle12/firefox_gnomeshell.pm";
-        loadtest "x11regressions/firefox/sle12/firefox_rss.pm";
-    }
+    loadtest "x11regressions/firefox/sle12/firefox_developertool.pm";
+    loadtest "x11regressions/firefox/sle12/firefox_gnomeshell.pm";
+    loadtest "x11regressions/firefox/sle12/firefox_rss.pm";
     if (!get_var("OFW") && check_var('BACKEND', 'qemu')) {
         loadtest "x11/firefox_audio.pm";
     }
@@ -262,9 +270,10 @@ sub load_x11regression_message() {
         loadtest "x11regressions/evolution/evolution_smoke.pm";
         loadtest "x11regressions/evolution/evolution_mail_imap.pm";
         loadtest "x11regressions/evolution/evolution_mail_pop.pm";
+        loadtest "x11regressions/evolution/evolution_mail_ews.pm";
         loadtest "x11regressions/evolution/evolution_timezone_setup.pm";
+        loadtest "x11regressions/evolution/evolution_task_ews.pm";
         loadtest "x11regressions/evolution/evolution_meeting_imap.pm";
-        loadtest "x11regressions/evolution/evolution_meeting_pop.pm";
     }
     if (get_var("DESKTOP") =~ /kde|gnome/) {
         loadtest "x11regressions/pidgin/prep_pidgin.pm";
@@ -303,26 +312,20 @@ sub load_boot_tests() {
     if (get_var("OFW")) {
         loadtest "installation/bootloader_ofw.pm";
     }
-    elsif ((get_var("UEFI") || is_jeos()) && !check_var("BACKEND", "svirt")) {
-        loadtest "installation/bootloader_uefi.pm";
-    }
-    elsif (check_var("BACKEND", "svirt") && !check_var("ARCH", "s390x")) {
-        if (check_var("VIRSH_VMM_FAMILY", "hyperv")) {
-            loadtest "installation/bootloader_hyperv.pm";
-        }
-        else {
-            loadtest "installation/bootloader_svirt.pm";
+    elsif (get_var("UEFI") || is_jeos) {
+        if (check_var("BACKEND", "svirt")) {
+            if (check_var("VIRSH_VMM_FAMILY", "hyperv")) {
+                loadtest "installation/bootloader_hyperv.pm";
+            }
+            else {
+                loadtest "installation/bootloader_svirt.pm";
+            }
         }
         # TODO: rename to bootloader_grub2
         # Unless GRUB2 supports framebuffer on Xen PV (bsc#961638), grub2 tests
         # has to be skipped there.
         if (!(check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux'))) {
-            if (get_var("UEFI") || is_jeos) {
-                loadtest "installation/bootloader_uefi.pm";
-            }
-            elsif (!get_var('NETBOOT')) {
-                loadtest "installation/bootloader.pm";
-            }
+            loadtest "installation/bootloader_uefi.pm";
         }
     }
     elsif (uses_qa_net_hardware()) {
@@ -352,9 +355,6 @@ sub install_this_version {
 
 sub load_inst_tests() {
     loadtest "installation/welcome.pm";
-    if (get_var('DUD_ADDONS')) {
-        loadtest "installation/dud_addon.pm";
-    }
     if (get_var('IBFT')) {
         loadtest "installation/iscsi_configuration.pm";
     }
@@ -366,17 +366,11 @@ sub load_inst_tests() {
             loadtest "installation/skip_disk_activation.pm";
         }
     }
-    if (get_var('ENCRYPT_CANCEL_EXISTING') || get_var('ENCRYPT_ACTIVATE_EXISTING')) {
-        loadtest "installation/encrypted_volume_activation.pm";
-    }
     if (get_var('MULTIPATH')) {
         loadtest "installation/multipath.pm";
     }
     if (get_var('UPGRADE')) {
         loadtest "installation/upgrade_select.pm";
-        if (check_var("UPGRADE", "LOW_SPACE")) {
-            loadtest "installation/disk_space_fill.pm";
-        }
     }
     if (get_var('SCC_REGISTER', '') eq 'installation') {
         loadtest "installation/scc_registration.pm";
@@ -407,10 +401,8 @@ sub load_inst_tests() {
         }
         if (get_var("TOGGLEHOME")) {
             loadtest "installation/partitioning_togglehome.pm";
-            if (get_var('LVM') && get_var('RESIZE_ROOT_VOLUME')) {
-                loadtest "installation/partitioning_resize_root.pm";
-            }
         }
+
         if (get_var("ENLARGESWAP") && get_var("QEMURAM", 1024) > 4098) {
             loadtest "installation/installation_enlargeswap.pm";
         }
@@ -434,21 +426,13 @@ sub load_inst_tests() {
     }
     if (noupdatestep_is_applicable()) {
         loadtest "installation/installer_timezone.pm";
-        # the test should run only in scenarios, where installed
-        # system is not being tested (e.g. INSTALLONLY etc.)
-        if (!consolestep_is_applicable() and !get_var("REMOTE_CONTROLLER") and !check_var('BACKEND', 's390x') and sle_version_at_least('12-SP2')) {
-            loadtest "installation/hostname_inst.pm";
-        }
-        if (!get_var("REMOTE_CONTROLLER")) {
+        if (!get_var("REMOTE_MASTER")) {
             loadtest "installation/logpackages.pm";
         }
         if (is_sles4sap()) {
             if (check_var("SLES4SAP_MODE", 'sles')) {
                 loadtest "installation/user_settings.pm";
             }    # sles4sap wizard installation doesn't have user_settings step
-        }
-        elsif (get_var('IMPORT_USER_DATA')) {
-            loadtest 'installation/user_import.pm';
         }
         else {
             loadtest "installation/user_settings.pm";
@@ -468,12 +452,6 @@ sub load_inst_tests() {
     }
     if (installyaststep_is_applicable()) {
         loadtest "installation/installation_overview.pm";
-        if (check_var("UPGRADE", "LOW_SPACE")) {
-            loadtest "installation/disk_space_release.pm";
-        }
-        if (ssh_key_import) {
-            loadtest "installation/ssh_key_setup.pm";
-        }
         loadtest "installation/start_install.pm";
     }
     loadtest "installation/install_and_reboot.pm";
@@ -505,13 +483,13 @@ sub load_reboot_tests() {
     }
     if (installyaststep_is_applicable()) {
         # test makes no sense on s390 because grub2 can't be captured
-        if (!(check_var("ARCH", "s390x") or (check_var('VIRSH_VMM_FAMILY', 'xen') and check_var('VIRSH_VMM_TYPE', 'linux')))) {
+        if (!check_var("ARCH", "s390x")) {
             loadtest "installation/grub_test.pm";
             if ((snapper_is_applicable()) && get_var("BOOT_TO_SNAPSHOT")) {
                 loadtest "installation/boot_into_snapshot.pm";
             }
         }
-        if (get_var('ENCRYPT')) {
+        if (get_var("ENCRYPT")) {
             loadtest "installation/boot_encrypt.pm";
         }
         loadtest "installation/first_boot.pm";
@@ -553,7 +531,7 @@ sub load_consoletests() {
         }
         loadtest "console/zypper_lr.pm";
         if (need_clear_repos()) {
-            loadtest "update/zypper_clear_repos.pm";
+            loadtest "console/zypper_clear_repos.pm";
         }
         #have SCC repo for SLE product
         if (have_scc_repos()) {
@@ -568,11 +546,8 @@ sub load_consoletests() {
         if (check_var("ARCH", "x86_64")) {
             loadtest "console/glibc_i686.pm";
         }
-        if (check_var('ARCH', 'aarch64')) {
-            loadtest "console/acpi.pm";
-        }
         if (!gnomestep_is_applicable()) {
-            loadtest "update/zypper_up.pm";
+            loadtest "console/zypper_up.pm";
         }
         if (is_jeos()) {
             loadtest "console/console_reboot.pm";
@@ -596,7 +571,6 @@ sub load_consoletests() {
             loadtest "console/rt_preempt_test.pm";
         }
         loadtest "console/sshd.pm";
-        loadtest "console/ssh_cleanup.pm";
         if (get_var("BIGTEST")) {
             loadtest "console/sntp.pm";
             loadtest "console/curl_ipv6.pm";
@@ -604,10 +578,6 @@ sub load_consoletests() {
             loadtest "console/syslinux.pm";
         }
         loadtest "console/mtab.pm";
-
-        if (is_new_installation && sle_version_at_least('12-SP2')) {
-            loadtest "console/no_perl_bootloader.pm";
-        }
         if (!get_var("NOINSTALL") && !is_desktop && (check_var("DESKTOP", "textmode"))) {
             if (!is_staging() && check_var('BACKEND', 'qemu')) {
                 # The NFS test expects the IP to be 10.0.2.15
@@ -615,19 +585,9 @@ sub load_consoletests() {
             }
             loadtest "console/http_srv.pm";
             loadtest "console/mysql_srv.pm";
-            loadtest "console/postgresql94server.pm";
-            if (sle_version_at_least('12-SP1')) {    # shibboleth-sp not available on SLES 12 GA
-                loadtest "console/shibboleth.pm";
-            }
             if (!is_staging()) {
                 # Very temporary removal of this test from staging - rbrown 6 Apr 2016
                 loadtest "console/dns_srv.pm";
-            }
-            if (get_var('ADDONS', '') =~ /wsm/ || get_var('SCC_ADDONS', '') =~ /wsm/) {
-                loadtest "console/pcre.pm";
-                loadtest "console/php5.pm";
-                loadtest "console/php5_mysql.pm";
-                loadtest "console/php5_postgresql94.pm";
             }
         }
         if (get_var("MOZILLATEST")) {
@@ -639,29 +599,23 @@ sub load_consoletests() {
         if (get_var("CLONE_SYSTEM")) {
             loadtest "console/yast2_clone_system.pm";
         }
-        if (check_var('ARCH', 'aarch64') and sle_version_at_least('12-SP2')) {
-            loadtest "console/check_gcc48_on_sdk_in_aarch64.pm";
-        }
-        if (!is_staging() && sle_version_at_least('12-SP2')) {
-            loadtest "console/zypper_lifecycle.pm";
-        }
         loadtest "console/consoletest_finish.pm";
     }
 }
 
-sub load_yast2_gui_tests() {
-    return unless (!get_var("INSTALLONLY") && is_desktop_installed() && !get_var("DUALBOOT") && !get_var("RESCUECD") && get_var("Y2UITEST"));
+sub load_yast2ui_tests() {
+    return unless (!get_var("INSTALLONLY") && get_var("DESKTOP") !~ /textmode|minimalx/ && !get_var("DUALBOOT") && !get_var("RESCUECD") && get_var("Y2UITEST"));
 
-    loadtest "yast2_gui/yast2_control_center.pm";
-    loadtest "yast2_gui/yast2_bootloader.pm";
-    loadtest "yast2_gui/yast2_datetime.pm";
-    loadtest "yast2_gui/yast2_firewall.pm";
-    loadtest "yast2_gui/yast2_hostnames.pm";
-    loadtest "yast2_gui/yast2_lang.pm";
-    loadtest "yast2_gui/yast2_network_settings.pm";
-    loadtest "yast2_gui/yast2_snapper.pm";
-    loadtest "yast2_gui/yast2_software_management.pm";
-    loadtest "yast2_gui/yast2_users.pm";
+    loadtest "yast2_ui/yast2_control_center.pm";
+    loadtest "yast2_ui/yast2_bootloader.pm";
+    loadtest "yast2_ui/yast2_datetime.pm";
+    loadtest "yast2_ui/yast2_firewall.pm";
+    loadtest "yast2_ui/yast2_hostnames.pm";
+    loadtest "yast2_ui/yast2_lang.pm";
+    loadtest "yast2_ui/yast2_network_settings.pm";
+    loadtest "yast2_ui/yast2_snapper.pm";
+    loadtest "yast2_ui/yast2_software_management.pm";
+    loadtest "yast2_ui/yast2_users.pm";
 }
 
 sub load_extra_test () {
@@ -674,9 +628,6 @@ sub load_extra_test () {
     # setup $serialdev permission and so on
     loadtest "console/consoletest_setup.pm";
     loadtest "console/check_console_font.pm";
-    if (sle_version_at_least('12-SP2')) {
-        loadtest "console/openssl_alpn.pm";
-    }
     loadtest "console/zypper_lr.pm";
     loadtest "console/zypper_ref.pm";
     loadtest "console/update_alternatives.pm";
@@ -690,11 +641,6 @@ sub load_extra_test () {
     }
     if (get_var("FILESYSTEM", "btrfs") eq "btrfs") {
         loadtest "console/btrfs_autocompletion.pm";
-        if (get_var("NUMDISKS", 0) > 1) {
-            loadtest "console/snapper_cleanup.pm";
-            loadtest "console/btrfs_qgroups.pm";
-            loadtest "console/btrfs_send_receive.pm";
-        }
     }
 
     loadtest "console/command_not_found.pm";
@@ -706,20 +652,18 @@ sub load_extra_test () {
     loadtest "console/yast2_vnc.pm";
     loadtest "console/yast2_samba.pm";
     loadtest "console/yast2_xinetd.pm";
-    loadtest "console/yast2_apparmor.pm";
+
     loadtest "console/openvswitch.pm";
-    loadtest "console/git.pm";
+
     # finished console test and back to desktop
     loadtest "console/consoletest_finish.pm";
 
     # start extra x11 tests from here
-    loadtest "x11/vnc_two_passwords.pm";
-    loadtest "x11/yast2_lan_restart.pm";
-    loadtest "x11/user_defined_snapshot.pm";
+
 }
 
 sub load_x11tests() {
-    return unless (!get_var("INSTALLONLY") && is_desktop_installed() && !get_var("DUALBOOT") && !get_var("RESCUECD") && !get_var("HACLUSTER"));
+    return unless (!get_var("INSTALLONLY") && get_var("DESKTOP") !~ /textmode|minimalx/ && !get_var("DUALBOOT") && !get_var("RESCUECD") && !get_var("HACLUSTER"));
 
     if (is_smt()) {
         loadtest "x11/smt.pm";
@@ -730,7 +674,7 @@ sub load_x11tests() {
     loadtest "x11/xterm.pm";
     loadtest "x11/sshxterm.pm";
     if (gnomestep_is_applicable()) {
-        loadtest "update/updates_packagekit_gpk.pm";
+        loadtest "x11/updates_packagekit_gpk.pm";
         loadtest "x11/gnome_control_center.pm";
         loadtest "x11/gnome_terminal.pm";
         loadtest "x11/gedit.pm";
@@ -752,7 +696,6 @@ sub load_x11tests() {
         if (gnomestep_is_applicable()) {
             loadtest "x11/eog.pm";
             loadtest "x11/rhythmbox.pm";
-            loadtest "x11/ImageMagick.pm";
         }
         if (get_var('DESKTOP') =~ /kde|gnome/) {
             loadtest "x11/ooffice.pm";
@@ -783,6 +726,9 @@ sub load_x11tests() {
         loadtest "x11/nautilus.pm";
         loadtest "x11/evolution.pm" if (!is_server() || we_is_applicable());
         loadtest "x11/reboot_gnome.pm";
+    }
+    if (check_var("ARCH", "s390x")) {
+        loadtest "installation/reconnect_s390.pm";
     }
     loadtest "x11/desktop_mainmenu.pm";
     loadtest "x11/shutdown.pm";
@@ -817,8 +763,17 @@ sub load_slenkins_tests {
 
 sub load_hacluster_tests() {
     return unless (get_var("HACLUSTER"));
-    sleep 10;                                                # wait to make sure that support server created locks
-    barrier_wait("BARRIER_HA_" . get_var("CLUSTERNAME"));    #nodes wait here
+    sleep 10;    # wait to make sure that support server created locks
+    if (get_var("HOSTNAME") eq 'host1') {
+        mutex_lock("MUTEX_HA_" . get_var("CLUSTERNAME") . "_NODE1_WAIT");    #stop here until all nodes are running
+        if (get_var("CTS")) {
+            mutex_lock("MUTEX_CTS_INSTALLED");                               #mutex will be unlocked after cts is installed on all nodes
+        }
+    }
+    else {
+        mutex_lock("MUTEX_HA_" . get_var("CLUSTERNAME") . "_NODE2_WAIT");    #stop here until all nodes are running
+    }
+    loadtest("ha/barrier_init.pm");
     loadtest "installation/first_boot.pm";
     loadtest "console/consoletest_setup.pm";
     loadtest "console/hostname.pm";
@@ -827,10 +782,10 @@ sub load_hacluster_tests() {
     loadtest("ha/iscsi_client.pm");
     loadtest("ha/watchdog.pm");
     if (get_var("HOSTNAME") eq 'host1') {
-        loadtest("ha/ha_cluster_init.pm");                   #node1 creates a cluster
+        loadtest("ha/ha_cluster_init.pm");                                   #node1 creates a cluster
     }
     else {
-        loadtest("ha/ha_cluster_join.pm");                   #node2 joins the cluster
+        loadtest("ha/ha_cluster_join.pm");                                   #node2 joins the cluster
     }
     if (get_var("CTS")) {
         loadtest("ha/cts.pm");
@@ -841,12 +796,12 @@ sub load_hacluster_tests() {
         loadtest("ha/ocfs2.pm");
         loadtest("ha/crm_mon.pm");
         loadtest("ha/fencing.pm");
-        if (!get_var("HACLUSTERJOIN")) {                     #node1 will be fenced
+        if (!get_var("HACLUSTERJOIN")) {                                     #node1 will be fenced
             loadtest "ha/fencing_boot.pm";
             loadtest "ha/fencing_consoletest_setup.pm";
         }
     }
-    loadtest("ha/check_logs.pm");                            #check_logs must be after ha/fencing.pm
+    loadtest("ha/check_logs.pm");                                            #check_logs must be after ha/fencing.pm
     return 1;
 }
 
@@ -872,14 +827,12 @@ sub load_feature_tests() {
     loadtest "console/consoletest_setup.pm";
     loadtest "feature/feature_console/zypper_releasever.pm";
     loadtest "feature/feature_console/suseconnect.pm";
-    loadtest "feature/feature_console/zypper_crit_sec_fix_only.pm";
 }
 
 sub load_online_migration_tests() {
     # stop packagekit service and more
     loadtest "online_migration/sle12_online_migration/online_migration_setup.pm";
     loadtest "online_migration/sle12_online_migration/register_system.pm";
-    loadtest "online_migration/sle12_online_migration/repos_check.pm";
     # do full update before migration
     # otherwise yast2/zypper migration will patch a minimal update
     loadtest "online_migration/sle12_online_migration/zypper_patch.pm" if (get_var("FULL_UPDATE"));
@@ -893,39 +846,19 @@ sub load_fips_tests_core() {
     loadtest "fips/openssl/openssl_fips_alglist.pm";
     loadtest "fips/openssl/openssl_fips_hash.pm";
     loadtest "fips/openssl/openssl_fips_cipher.pm";
-    loadtest "fips/openssl/openssl_pubkey_rsa.pm";
-    loadtest "fips/openssl/openssl_pubkey_dsa.pm";
-    if (sle_version_at_least('12-SP2')) {
-        loadtest "console/openssl_alpn.pm";
-    }
-    loadtest "console/sshd.pm";
-    loadtest "console/ssh_pubkey.pm";
-    loadtest "console/ssh_cleanup.pm";
-    loadtest "fips/openssh/openssh_fips.pm";
 }
 
 sub load_fips_tests_web() {
     loadtest "console/curl_https.pm";
     loadtest "console/wget_https.pm";
     loadtest "console/w3m_https.pm";
-    loadtest "console/apache_ssl.pm";
-    loadtest "console/consoletest_finish.pm";
-    loadtest "x11/firefox_nss.pm";
 }
 
 sub load_fips_tests_misc() {
     loadtest "console/aide_check.pm";
     loadtest "console/journald_fss.pm";
-    loadtest "fips/curl_fips_rc4_seed.pm";
-    loadtest "console/git.pm";
-    loadtest "console/consoletest_finish.pm";
     loadtest "x11/hexchat_ssl.pm";
-}
-
-sub load_fips_tests_crypt() {
-    loadtest "console/yast2_dm_crypt.pm";
-    loadtest "console/cryptsetup.pm";
-    loadtest "console/ecryptfs_fips.pm";
+    loadtest "fips/curl_fips_rc4_seed.pm";
 }
 
 sub prepare_target() {
@@ -938,6 +871,13 @@ sub prepare_target() {
         load_reboot_tests();
     }
 }
+
+#sub setup_serial_console_on_xen_and_reboot() {
+#    if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
+#        loadtest "virt_autotest/setup_console_on_host.pm";
+#        loadtest "virt_autotest/reboot_and_wait_up_normal1.pm";
+#    }
+#}
 
 # load the tests in the right order
 if (get_var("REGRESSION")) {
@@ -999,9 +939,6 @@ elsif (get_var("SUPPORT_SERVER")) {
         loadtest "support_server/wait.pm";
     }
 }
-elsif (get_var("SLEPOS")) {
-    load_slepos_tests();
-}
 elsif (get_var("FIPS_TS")) {
     if (check_var("FIPS_TS", "setup")) {
         prepare_target();
@@ -1021,17 +958,29 @@ elsif (get_var("FIPS_TS")) {
         elsif (check_var("FIPS_TS", "misc")) {
             load_fips_tests_misc;
         }
-        elsif (check_var("FIPS_TS", "crypt")) {
-            load_fips_tests_crypt;
-        }
     }
 }
 elsif (get_var("HACLUSTER_SUPPORT_SERVER")) {
+    for my $clustername (split(/,/, get_var('CLUSTERNAME'))) {    #TODO: replace this ugly stuff with normal barriers
+        mutex_create("MUTEX_HA_" . $clustername . "_NODE1_WAIT");
+        mutex_lock("MUTEX_HA_" . $clustername . "_NODE1_WAIT");    #mutex will be released after wait_for_children_to_start
+        mutex_create("MUTEX_HA_" . $clustername . "_NODE2_WAIT");
+        mutex_lock("MUTEX_HA_" . $clustername . "_NODE2_WAIT");    #mutex will be released after wait_for_children_to_start
+        mutex_create("MUTEX_HA_" . $clustername . "_FINISHED");    #support server can lock _FINISHED mutex when node1 finishes
+        if (get_var("CTS")) {
+            mutex_create("MUTEX_CTS_INSTALLED");                   #to be locked by node1 until CTS is installed on all nodes
+            mutex_create("MUTEX_CTS_FINISHED");
+            mutex_lock("MUTEX_CTS_FINISHED");                      #to be unlocked by support server after CTSLab.py is finished and to be locked by the node1
+        }
+    }
+    for my $mutexname (qw(CLUSTER_INITIALIZED NODE2_JOINED OCFS2_INIT DLM_GROUPS_CREATED DLM_INIT DLM_CHECKED OCFS2_MKFS_DONE OCFS2_GROUP_ALTERED OCFS2_DATA_COPIED OCFS2_MD5_CHECKED BEFORE_FENCING FENCING_DONE LOGS_CHECKED CLVM_INIT CLVM_RESOURCE_CREATED CLVM_PV_VG_LV_CREATED CLVM_VG_RESOURCE_CREATED CLVM_RW_CHECKED CLVM_MD5SUM PACEMAKER_CTS_INSTALLED PACEMAKER_CTS_FINISHED)) {
+        mutex_create("MUTEX_${mutexname}_M1");                     #barrier_create mutexes
+        mutex_create("MUTEX_${mutexname}_M2");
+    }
     if (get_var("CTS")) {
         loadtest "ha/ha_cts_support_server.pm";
     }
     else {
-        loadtest("ha/barrier_init.pm");
         loadtest "ha/ha_support_server.pm";
     }
 }
@@ -1044,9 +993,24 @@ elsif (get_var("QA_TESTSET")) {
     }
     loadtest "qa_automation/" . get_var("QA_TESTSET") . ".pm";
 }
+elsif (get_var("PROXY_VIRT_AUTOTEST")) {
+    if (get_var("VIRT_PRJ1_GUEST_INSTALL")) {
+        loadtest "virt_autotest/proxy_method/proxymode_login_proxy.pm";
+        loadtest "virt_autotest/proxy_method/proxymode_conn_slave.pm";
+        #loadtest "virt_autotest/proxy_method/proxymode_init_pxe_install.pm";
+        loadtest "virt_autotest/proxy_method/proxymode_redirect_serial1.pm";
+        loadtest "virt_autotest/proxy_method/install_package.pm";
+        loadtest "virt_autotest/proxy_method/reboot_and_wait_up_normal1.pm";
+        loadtest "virt_autotest/proxy_method/proxymode_redirect_serial2.pm";
+        loadtest "virt_autotest/proxy_method/update_package.pm";
+        loadtest "virt_autotest/proxy_method/reboot_and_wait_up_normal2.pm";
+        loadtest "virt_autotest/proxy_method/proxymode_redirect_serial3.pm";
+        loadtest "virt_autotest/proxy_method/guest_installation_run.pm";
+	}
+}
 elsif (get_var("VIRT_AUTOTEST")) {
-    load_boot_tests();
-    load_inst_tests();
+    #load_boot_tests();
+    #load_inst_tests();
     loadtest "virt_autotest/login_console.pm";
     if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
         loadtest "virt_autotest/setup_console_on_host1.pm";
@@ -1074,6 +1038,10 @@ elsif (get_var("VIRT_AUTOTEST")) {
     elsif (get_var("VIRT_PRJ5_PVUSB")) {
         loadtest "virt_autotest/pvusb_run.pm";
     }
+}
+elsif (get_var("long_still_screen_run")) {
+	loadtest "virt_autotest/login_console.pm";
+    loadtest "virt_autotest/long_still_screen_run.pm";
 }
 elsif (get_var("QAM_MINIMAL")) {
     prepare_target();
@@ -1111,24 +1079,13 @@ elsif (get_var("Y2UITEST")) {
     loadtest "console/zypper_ref.pm";
     # back to desktop
     loadtest "console/consoletest_finish.pm";
-    load_yast2_gui_tests();
+    load_yast2ui_tests();
 }
 elsif (get_var("WINDOWS")) {
     loadtest "installation/win10_installation.pm";
 }
-elsif (ssh_key_import) {
-    loadtest "boot/boot_to_desktop.pm";
-    # setup ssh key, we know what ssh keys we have and can verify if they are imported or not
-    loadtest "x11/ssh_key_check.pm";
-    # reboot after test specific setup and start installation/update
-    loadtest "x11/reboot_and_install.pm";
-    load_inst_tests();
-    load_reboot_tests();
-    # verify previous defined ssh keys
-    loadtest "x11/ssh_key_verify.pm";
-}
 else {
-    if (get_var("AUTOYAST") || get_var("AUTOUPGRADE")) {
+    if (get_var("AUTOYAST")) {
         load_boot_tests();
         load_autoyast_tests();
         load_reboot_tests();
@@ -1170,32 +1127,21 @@ else {
                 set_var('INSTALLONLY', 1);
                 loadtest "iscsi/iscsi_client.pm";
             }
-            if (get_var("NIS_SERVER")) {
-                set_var('INSTALLONLY', 1);
-                loadtest "x11/nis_server.pm";
-            }
-            if (get_var("NIS_CLIENT")) {
-                set_var('INSTALLONLY', 1);
-                loadtest "x11/nis_client.pm";
-            }
-            if (get_var("REMOTE_CONTROLLER")) {
-                loadtest "remote/remote_controller.pm";
+            if (get_var("REMOTE_MASTER")) {
+                loadtest "remote/remote_master.pm";
                 load_inst_tests();
             }
         }
     }
-    elsif (get_var("REMOTE_TARGET")) {
+    elsif (get_var("REMOTE_SLAVE")) {
         load_boot_tests();
-        loadtest "remote/remote_target.pm";
+        loadtest "remote/remote_slave.pm";
         load_reboot_tests();
     }
     elsif (is_jeos) {
         load_boot_tests();
         loadtest "jeos/firstrun.pm";
         loadtest "jeos/grub2_gfxmode.pm";
-        if (check_var('BACKEND', 'svirt')) {
-            loadtest "installation/redefine_svirt_domain.pm";
-        }
         loadtest "jeos/diskusage.pm";
         loadtest "jeos/root_fs_size.pm";
         loadtest "jeos/mount_by_label.pm";
@@ -1204,16 +1150,9 @@ else {
         }
     }
     else {
-        if (get_var('BOOT_EXISTING_S390')) {
-            loadtest 'installation/boot_s390.pm';
-            loadtest 'installation/reconnect_s390.pm';
-            loadtest 'installation/first_boot.pm';
-        }
-        else {
-            load_boot_tests();
-            load_inst_tests();
-            load_reboot_tests();
-        }
+        load_boot_tests();
+        load_inst_tests();
+        load_reboot_tests();
     }
     unless (load_applicationstests() || load_slenkins_tests()) {
         load_rescuecd_tests();
@@ -1231,20 +1170,12 @@ if (get_var("STORE_HDD_1") || get_var("PUBLISH_HDD_1")) {
 }
 
 if (get_var("TCM") || check_var("ADDONS", "tcm")) {
+    loadtest "toolchain/crash.pm";
     loadtest "toolchain/install.pm";
     loadtest "toolchain/gcc5_fortran_compilation.pm";
     loadtest "toolchain/gcc5_C_compilation.pm";
     loadtest "toolchain/gcc5_Cpp_compilation.pm";
-    # kdump is not supported on aarch64, see BSC#990418
-    if (!check_var('ARCH', 'aarch64')) {
-        loadtest "toolchain/crash.pm";
-    }
 }
 
-if (get_var("HPC")) {
-    loadtest "hpc/install.pm";
-    loadtest "hpc/cpuid.pm";
-    loadtest "hpc/rasdaemon.pm";
-}
 1;
 # vim: set sw=4 et:
