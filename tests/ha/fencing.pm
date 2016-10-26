@@ -7,8 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Initial HA Validation Tests
-# G-Maintainer: Richard Brown <rbrownccb@opensuse.org>
+# Summary: Execute fence command on one of the cluster nodes
+# Maintainer: Denis Zyuzin <dzyuzin@suse.com>
 
 use base "hacluster";
 use strict;
