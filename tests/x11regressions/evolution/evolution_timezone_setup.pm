@@ -18,75 +18,12 @@ use testapi;
 use utils;
 
 sub run() {
-    my $mailbox     = 'nooops_test3@aim.com';
-    my $mail_passwd = 'opensuse';
-    my $next_key    = 'alt-o';
-
-    if (sle_version_at_least('12-SP2')) {
-        $next_key = "alt-n";
-    }
-
-    mouse_hide(1);
-
-    # Clean and Start Evolution
-    x11_start_program("xterm -e \"killall -9 evolution; find ~ -name evolution | xargs rm -rf;\"");
-    x11_start_program("evolution");
-    assert_screen [qw(evolution-default-client-ask test-evolution-1)];
-    if (match_has_tag "evolution-default-client-ask") {
-        assert_and_click "evolution-default-client-agree";
-        assert_screen 'test-evolution-1';
-    }
-
-    # Follow the wizard to complete the first launch steps
-    send_key $next_key;
-    assert_screen "evolution_wizard-restore-backup";
-    send_key $next_key;
-    assert_screen "evolution_wizard-identity";
-    send_key "alt-e";
-    type_string "SUSE Test";
-    send_key "alt-a";
-    wait_still_screen;
-    type_string "$mailbox";
-    sleep 1;
-    save_screenshot();
-
-    send_key $next_key;
-    assert_screen [qw(evolution_wizard-skip-lookup evolution_wizard-receiving)];
-    if (match_has_tag "evolution_wizard-skip-lookup") {
-        send_key "alt-s";
-        assert_screen 'evolution_wizard-receiving';
-    }
-
-    send_key "alt-t";
-    send_key "ret";
-    send_key_until_needlematch "evolution_wizard-receiving-none", "up";
-    send_key "ret";
-    wait_still_screen;
-
-    send_key $next_key;
-    wait_still_screen;
-    assert_screen "evolution_wizard-sending";
-    send_key "alt-t";
-    send_key "ret";
-    send_key_until_needlematch "evolution_wizard-sending-sendmail", "down";
-    send_key "ret";
-    wait_still_screen;
-    send_key $next_key;
-    wait_still_screen;
-
-    assert_screen "evolution_wizard-account-summary";
-    if (sle_version_at_least('12-SP2')) {
-        assert_and_click "evolution-option-next";
-    }
-    else {
-        send_key $next_key;
-    }
-    assert_screen "evolution_wizard-done";
-    send_key "alt-a";
-    if (check_screen "evolution_mail-init-window") {
-        send_key "super-up";
-    }
-    assert_screen "evolution_mail-max-window";
+    my $self        = shift;
+    my $account     = "internal_account_A";
+    my $config      = $self->getconfig_emailaccount;
+    my $mailbox     = $config->{$account}->{mailbox};
+    my $mail_passwd = $config->{$account}->{passwd};
+    $self->setup_pop("internal_account_A");
 
     # Set up timezone via: Edit->Preference->calendor and task->uncheck "use
     # sYstem timezone", then select
