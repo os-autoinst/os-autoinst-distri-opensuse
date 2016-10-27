@@ -71,4 +71,4 @@ perlcritic-merge:
 	FILES=$$(git diff --name-only FETCH_HEAD $$FH 2>/dev/null| grep '.*pm') ;\
 	else FILES= ;\
 	fi ;\
-	if test -n "$$FILES"; then ${PERLCRITIC} $$FILES ; fi
+	for file in $$FILES; do if test -f $$file; then ${PERLCRITIC} $file; fi; done
