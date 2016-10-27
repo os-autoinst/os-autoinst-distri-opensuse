@@ -29,967 +29,971 @@ use testapi;
 use utils;
 
 sub run() {
-    select_console('x11');
-    x11_start_program("xterm");
+    select_console "x11";
+
+    x11_start_program "xterm";
+
     become_root;
-    type_string "while pgrep packagekitd; do pkcon quit; sleep 1; done \n";
-    zypper_call("in ImageMagick");
+    zypper_call "in ImageMagick";
     type_string "exit\n";
 
-    type_string "wget --quiet " . data_url('imagemagick/bg_script.sh') . " -O bg_script.sh \n";
+    assert_script_run "wget --quiet " . data_url('imagemagick/bg_script.sh') . " -O bg_script.sh";
     type_string "chmod +x bg_script.sh; ./bg_script.sh " . data_url('imagemagick/bg_script.sh') . " \n";
 
-    assert_screen("imagemagick_test", 10);
+    assert_screen "imagemagick_test";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_shape", 10);
+    assert_screen "imagemagick_shape";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_plasma_fractal2", 10);
+    assert_screen "imagemagick_plasma_fractal2";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_random", 10);
+    assert_screen "imagemagick_random";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_tile_weave", 10);
+    assert_screen "imagemagick_tile_weave";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_bg", 10);
+    assert_screen "imagemagick_bg";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_tile_aqua", 10);
+    assert_screen "imagemagick_tile_aqua";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_tile_water", 10);
+    assert_screen "imagemagick_tile_water";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_tile_rings", 10);
+    assert_screen "imagemagick_tile_rings";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_tile_disks", 10);
+    assert_screen "imagemagick_tile_disks";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_tree", 10);
+    assert_screen "imagemagick_tree";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_canvas_khaki", 10);
+    assert_screen "imagemagick_canvas_khaki";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_canvas_wheat", 10);
+    assert_screen "imagemagick_canvas_wheat";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_canvas_salmon", 10);
+    assert_screen "imagemagick_canvas_salmon";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_canvas_tomato", 10);
+    assert_screen "imagemagick_canvas_tomato";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_canvas_rose_red", 10);
+    assert_screen "imagemagick_canvas_rose_red";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_color_levelc", 10);
+    assert_screen "imagemagick_color_levelc";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_color_colorize", 10);
+    assert_screen "imagemagick_color_colorize";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_color_sparse", 10);
+    assert_screen "imagemagick_color_sparse";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_color_reset", 10);
+    assert_screen "imagemagick_color_reset";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_color_flatten", 10);
+    assert_screen "imagemagick_color_flatten";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_color_extent", 10);
+    assert_screen "imagemagick_color_extent";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_color_border", 10);
+    assert_screen "imagemagick_color_border";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_color_fx_constant", 10);
+    assert_screen "imagemagick_color_fx_constant";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_color_fx_math", 10);
+    assert_screen "imagemagick_color_fx_math";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_color_semitrans", 10);
+    assert_screen "imagemagick_color_semitrans";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_color_pick_fx", 10);
+    assert_screen "imagemagick_color_pick_fx";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_color_pick_sparse", 10);
+    assert_screen "imagemagick_color_pick_sparse";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_color_pick_draw", 10);
+    assert_screen "imagemagick_color_pick_draw";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_color_pick_distort", 10);
+    assert_screen "imagemagick_color_pick_distort";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_black_threshold", 10);
+    assert_screen "imagemagick_black_threshold";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_black_level", 10);
+    assert_screen "imagemagick_black_level";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_black_fx", 10);
+    assert_screen "imagemagick_black_fx";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_black_evaluate", 10);
+    assert_screen "imagemagick_black_evaluate";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_black_gamma", 10);
+    assert_screen "imagemagick_black_gamma";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_black_posterize", 10);
+    assert_screen "imagemagick_black_posterize";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_black_alpha", 10);
+    assert_screen "imagemagick_black_alpha";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_white_threshold", 10);
+    assert_screen "imagemagick_white_threshold";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_white_level", 10);
+    assert_screen "imagemagick_white_level";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_white_fx", 10);
+    assert_screen "imagemagick_white_fx";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_white_evaluate", 10);
+    assert_screen "imagemagick_white_evaluate";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_white_posterize", 10);
+    assert_screen "imagemagick_white_posterize";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_white_alpha", 10);
+    assert_screen "imagemagick_white_alpha";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_trans_alpha", 10);
+    assert_screen "imagemagick_trans_alpha";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_trans_compose", 10);
+    assert_screen "imagemagick_trans_compose";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_color_matte", 10);
+    assert_screen "imagemagick_color_matte";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_trans_fx", 10);
+    assert_screen "imagemagick_trans_fx";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_trans_evaluate", 10);
+    assert_screen "imagemagick_trans_evaluate";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_trans_threshold", 10);
+    assert_screen "imagemagick_trans_threshold";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_trans_fx_alpha_off", 10);
+    assert_screen "imagemagick_trans_fx_alpha_off";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_yellow_gamma", 10);
+    assert_screen "imagemagick_yellow_gamma";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_grey_level", 10);
+    assert_screen "imagemagick_grey_level";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient", 10);
+    assert_screen "imagemagick_gradient";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_range1", 10);
+    assert_screen "imagemagick_gradient_range1";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_range2", 10);
+    assert_screen "imagemagick_gradient_range2";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_range3", 10);
+    assert_screen "imagemagick_gradient_range3";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_range4", 10);
+    assert_screen "imagemagick_gradient_range4";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_range5", 10);
+    assert_screen "imagemagick_gradient_range5";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_ice-sea", 10);
+    assert_screen "imagemagick_gradient_ice-sea";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_burnished", 10);
+    assert_screen "imagemagick_gradient_burnished";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_grassland", 10);
+    assert_screen "imagemagick_gradient_grassland";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_sunset", 10);
+    assert_screen "imagemagick_gradient_sunset";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_snow_scape", 10);
+    assert_screen "imagemagick_gradient_snow_scape";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_rgradient", 10);
+    assert_screen "imagemagick_rgradient";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_rgradient_clip", 10);
+    assert_screen "imagemagick_rgradient_clip";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_rgradient_crop", 10);
+    assert_screen "imagemagick_rgradient_crop";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_rgradient_range1", 10);
+    assert_screen "imagemagick_rgradient_range1";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_rgradient_range2", 10);
+    assert_screen "imagemagick_rgradient_range2";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_rgradient_range3", 10);
+    assert_screen "imagemagick_rgradient_range3";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_rgradient_range4", 10);
+    assert_screen "imagemagick_rgradient_range4";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_rgradient_range5", 10);
+    assert_screen "imagemagick_rgradient_range5";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_transparent", 10);
+    assert_screen "imagemagick_gradient_transparent";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_trans_colorize", 10);
+    assert_screen "imagemagick_gradient_trans_colorize";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_sigmoidal", 10);
+    assert_screen "imagemagick_gradient_sigmoidal";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_cosine", 10);
+    assert_screen "imagemagick_gradient_cosine";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_peak", 10);
+    assert_screen "imagemagick_gradient_peak";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_bands", 10);
+    assert_screen "imagemagick_gradient_bands";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_diagonal", 10);
+    assert_screen "imagemagick_gradient_diagonal";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_srt", 10);
+    assert_screen "imagemagick_gradient_srt";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_swirl", 10);
+    assert_screen "imagemagick_gradient_swirl";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_trapezoid", 10);
+    assert_screen "imagemagick_gradient_trapezoid";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_arc", 10);
+    assert_screen "imagemagick_gradient_arc";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_circle", 10);
+    assert_screen "imagemagick_gradient_circle";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_angle_even", 10);
+    assert_screen "imagemagick_gradient_angle_even";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_angle_odd", 10);
+    assert_screen "imagemagick_gradient_angle_odd";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_angle_masked", 10);
+    assert_screen "imagemagick_gradient_angle_masked";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_triangle", 10);
+    assert_screen "imagemagick_gradient_triangle";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_bird", 10);
+    assert_screen "imagemagick_gradient_bird";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_venetian", 10);
+    assert_screen "imagemagick_gradient_venetian";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_vent_diag", 10);
+    assert_screen "imagemagick_gradient_vent_diag";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_colormap", 10);
+    assert_screen "imagemagick_gradient_colormap";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_rainbow", 10);
+    assert_screen "imagemagick_gradient_rainbow";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_rainbow_2", 10);
+    assert_screen "imagemagick_gradient_rainbow_2";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_hue_polar", 10);
+    assert_screen "imagemagick_gradient_hue_polar";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_resize", 10);
+    assert_screen "imagemagick_gradient_resize";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_resize2", 10);
+    assert_screen "imagemagick_gradient_resize2";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_resize3", 10);
+    assert_screen "imagemagick_gradient_resize3";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_resize4", 10);
+    assert_screen "imagemagick_gradient_resize4";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_resize5", 10);
+    assert_screen "imagemagick_gradient_resize5";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_rs_rainbow", 10);
+    assert_screen "imagemagick_gradient_rs_rainbow";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_interpolated", 10);
+    assert_screen "imagemagick_gradient_interpolated";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_clut_recolored", 10);
+    assert_screen "imagemagick_gradient_clut_recolored";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_clut", 10);
+    assert_screen "imagemagick_gradient_clut";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_bilinear", 10);
+    assert_screen "imagemagick_gradient_bilinear";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_catrom", 10);
+    assert_screen "imagemagick_gradient_catrom";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_mesh", 10);
+    assert_screen "imagemagick_gradient_mesh";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_fx_linear", 10);
+    assert_screen "imagemagick_gradient_fx_linear";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_fx_x4", 10);
+    assert_screen "imagemagick_gradient_fx_x4";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_fx_cos", 10);
+    assert_screen "imagemagick_gradient_fx_cos";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_fx_radial", 10);
+    assert_screen "imagemagick_gradient_fx_radial";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_fx_spherical", 10);
+    assert_screen "imagemagick_gradient_fx_spherical";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_fx_quad2", 10);
+    assert_screen "imagemagick_gradient_fx_quad2";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_fx_angular", 10);
+    assert_screen "imagemagick_gradient_fx_angular";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_inverse_alt", 10);
+    assert_screen "imagemagick_gradient_inverse_alt";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_shepards_alt", 10);
+    assert_screen "imagemagick_gradient_shepards_alt";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_inverse_RGB", 10);
+    assert_screen "imagemagick_gradient_inverse_RGB";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_inverse_RGB_Hue", 10);
+    assert_screen "imagemagick_gradient_inverse_RGB_Hue";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_sparse_barycentric", 10);
+    assert_screen "imagemagick_sparse_barycentric";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_sparse_bary_triangle", 10);
+    assert_screen "imagemagick_sparse_bary_triangle";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_sparse_bary_triangle_2", 10);
+    assert_screen "imagemagick_sparse_bary_triangle_2";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_sparse_bary_0", 10);
+    assert_screen "imagemagick_sparse_bary_0";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_sparse_bary_gradient", 10);
+    assert_screen "imagemagick_sparse_bary_gradient";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_sparse_bary_gradient_2", 10);
+    assert_screen "imagemagick_sparse_bary_gradient_2";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_diagonal_gradient", 10);
+    assert_screen "imagemagick_diagonal_gradient";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_diagonal_gradient_2", 10);
+    assert_screen "imagemagick_diagonal_gradient_2";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_sparse_bary_two_point", 10);
+    assert_screen "imagemagick_sparse_bary_two_point";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_scale", 10);
+    assert_screen "imagemagick_gradient_scale";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_equiv", 10);
+    assert_screen "imagemagick_gradient_equiv";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_math", 10);
+    assert_screen "imagemagick_gradient_math";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_shifted", 10);
+    assert_screen "imagemagick_gradient_shifted";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_gradient_chopped", 10);
+    assert_screen "imagemagick_gradient_chopped";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_sparse_bilinear", 10);
+    assert_screen "imagemagick_sparse_bilinear";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_sparse_bilin_0", 10);
+    assert_screen "imagemagick_sparse_bilin_0";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_sparse_voronoi", 10);
+    assert_screen "imagemagick_sparse_voronoi";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_sparse_voronoi_ssampled", 10);
+    assert_screen "imagemagick_sparse_voronoi_ssampled";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_sparse_voronoi_smoothed", 10);
+    assert_screen "imagemagick_sparse_voronoi_smoothed";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_sparse_voronoi_blur", 10);
+    assert_screen "imagemagick_sparse_voronoi_blur";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_sparse_voronoi_gradient", 10);
+    assert_screen "imagemagick_sparse_voronoi_gradient";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_sparse_shepards", 10);
+    assert_screen "imagemagick_sparse_shepards";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_sparse_inverse", 10);
+    assert_screen "imagemagick_sparse_inverse";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_sparse_inverse_near", 10);
+    assert_screen "imagemagick_sparse_inverse_near";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_sparse_inverse_far", 10);
+    assert_screen "imagemagick_sparse_inverse_far";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_sparse_inverse_stronger", 10);
+    assert_screen "imagemagick_sparse_inverse_stronger";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_sparse_shepards_0.5", 10);
+    assert_screen "imagemagick_sparse_shepards_0.5";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_sparse_shepards_1", 10);
+    assert_screen "imagemagick_sparse_shepards_1";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_sparse_shepards_2", 10);
+    assert_screen "imagemagick_sparse_shepards_2";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_sparse_shepards_3", 10);
+    assert_screen "imagemagick_sparse_shepards_3";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_sparse_shepards_8", 10);
+    assert_screen "imagemagick_sparse_shepards_8";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_sparse_shepards_gray", 10);
+    assert_screen "imagemagick_sparse_shepards_gray";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_rose_alpha_gradient", 10);
+    assert_screen "imagemagick_rose_alpha_gradient";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_sparse_source", 10);
+    assert_screen "imagemagick_sparse_source";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_sparse_fill", 10);
+    assert_screen "imagemagick_sparse_fill";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_shape_edge_pixels", 10);
+    assert_screen "imagemagick_shape_edge_pixels";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_shape_edge_in_lights", 10);
+    assert_screen "imagemagick_shape_edge_in_lights";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_shape_in_lights", 10);
+    assert_screen "imagemagick_shape_in_lights";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_sparse_blur_simple", 10);
+    assert_screen "imagemagick_sparse_blur_simple";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_sparse_blur_pyramid", 10);
+    assert_screen "imagemagick_sparse_blur_pyramid";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_sparse_lines_near_source", 10);
+    assert_screen "imagemagick_sparse_lines_near_source";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_sparse_lines_near", 10);
+    assert_screen "imagemagick_sparse_lines_near";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_plasma_smooth", 10);
+    assert_screen "imagemagick_plasma_smooth";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_plasma_paint", 10);
+    assert_screen "imagemagick_plasma_paint";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_plasma_emboss", 10);
+    assert_screen "imagemagick_plasma_emboss";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_plasma_sharp", 10);
+    assert_screen "imagemagick_plasma_sharp";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_plasma_seeded", 10);
+    assert_screen "imagemagick_plasma_seeded";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_plasma_rnd1", 10);
+    assert_screen "imagemagick_plasma_rnd1";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_plasma_rnd2", 10);
+    assert_screen "imagemagick_plasma_rnd2";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_plasma_rnd3", 10);
+    assert_screen "imagemagick_plasma_rnd3";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_plasma_rnd4", 10);
+    assert_screen "imagemagick_plasma_rnd4";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_plasma_rnd5", 10);
+    assert_screen "imagemagick_plasma_rnd5";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_random_mask", 10);
+    assert_screen "imagemagick_random_mask";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_random_black", 10);
+    assert_screen "imagemagick_random_black";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_random_white", 10);
+    assert_screen "imagemagick_random_white";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_random_trans", 10);
+    assert_screen "imagemagick_random_trans";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_random_1", 10);
+    assert_screen "imagemagick_random_1";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_random_3", 10);
+    assert_screen "imagemagick_random_3";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_random_5", 10);
+    assert_screen "imagemagick_random_5";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_random_10", 10);
+    assert_screen "imagemagick_random_10";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_random_20", 10);
+    assert_screen "imagemagick_random_20";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_random_0_gray", 10);
+    assert_screen "imagemagick_random_0_gray";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_random_1_gray", 10);
+    assert_screen "imagemagick_random_1_gray";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_random_3_gray", 10);
+    assert_screen "imagemagick_random_3_gray";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_random_5_gray", 10);
+    assert_screen "imagemagick_random_5_gray";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_random_10_gray", 10);
+    assert_screen "imagemagick_random_10_gray";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_random_20_gray", 10);
+    assert_screen "imagemagick_random_20_gray";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_random_0_thres", 10);
+    assert_screen "imagemagick_random_0_thres";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_random_1_thres", 10);
+    assert_screen "imagemagick_random_1_thres";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_random_3_thres", 10);
+    assert_screen "imagemagick_random_3_thres";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_random_5_thres", 10);
+    assert_screen "imagemagick_random_5_thres";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_random_10_thres", 10);
+    assert_screen "imagemagick_random_10_thres";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_random_20_thres", 10);
+    assert_screen "imagemagick_random_20_thres";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_random_5_blobs", 10);
+    assert_screen "imagemagick_random_5_blobs";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_ripples_1", 10);
+    assert_screen "imagemagick_ripples_1";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_ripples_2", 10);
+    assert_screen "imagemagick_ripples_2";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_ripples_3", 10);
+    assert_screen "imagemagick_ripples_3";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_ripples_4", 10);
+    assert_screen "imagemagick_ripples_4";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_random_enhanced", 10);
+    assert_screen "imagemagick_random_enhanced";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_ripples_4e", 10);
+    assert_screen "imagemagick_ripples_4e";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_random_sigmoidal", 10);
+    assert_screen "imagemagick_random_sigmoidal";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_ripples_4s", 10);
+    assert_screen "imagemagick_ripples_4s";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_ripples_3e000", 10);
+    assert_screen "imagemagick_ripples_3e000";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_ripples_3e090", 10);
+    assert_screen "imagemagick_ripples_3e090";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_ripples_3e180", 10);
+    assert_screen "imagemagick_ripples_3e180";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_ripples_3e270", 10);
+    assert_screen "imagemagick_ripples_3e270";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_ripples_3.5e", 10);
+    assert_screen "imagemagick_ripples_3.5e";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_tile_size", 10);
+    assert_screen "imagemagick_tile_size";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_tile_over", 10);
+    assert_screen "imagemagick_tile_over";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_tile_draw", 10);
+    assert_screen "imagemagick_tile_draw";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_tile_reset", 10);
+    assert_screen "imagemagick_tile_reset";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_tile_distort_sized", 10);
+    assert_screen "imagemagick_tile_distort_sized";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_offset_tile", 10);
+    assert_screen "imagemagick_offset_tile";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_offset_pattern", 10);
+    assert_screen "imagemagick_offset_pattern";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_offset_tile_fill", 10);
+    assert_screen "imagemagick_offset_tile_fill";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_offset_pattern_fail", 10);
+    assert_screen "imagemagick_offset_pattern_fail";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_offset_pattern_good", 10);
+    assert_screen "imagemagick_offset_pattern_good";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_tile_clone", 10);
+    assert_screen "imagemagick_tile_clone";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_tile_clone_flip", 10);
+    assert_screen "imagemagick_tile_clone_flip";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_tile_mpr", 10);
+    assert_screen "imagemagick_tile_mpr";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_tile_mpr_reset", 10);
+    assert_screen "imagemagick_tile_mpr_reset";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_tile_mpr_fill", 10);
+    assert_screen "imagemagick_tile_mpr_fill";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_tile_distort", 10);
+    assert_screen "imagemagick_tile_distort";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_tile_distort_checks", 10);
+    assert_screen "imagemagick_tile_distort_checks";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_tile_distort_polar", 10);
+    assert_screen "imagemagick_tile_distort_polar";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_pattern_default", 10);
+    assert_screen "imagemagick_pattern_default";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_pattern_hexagons", 10);
+    assert_screen "imagemagick_pattern_hexagons";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_pattern_colored", 10);
+    assert_screen "imagemagick_pattern_colored";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_pattern_color_checks", 10);
+    assert_screen "imagemagick_pattern_color_checks";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_pattern_color_hexagons", 10);
+    assert_screen "imagemagick_pattern_color_hexagons";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_pattern_distorted", 10);
+    assert_screen "imagemagick_pattern_distorted";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_tile_mod_failure", 10);
+    assert_screen "imagemagick_tile_mod_failure";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_tile_mod_vpixels", 10);
+    assert_screen "imagemagick_tile_mod_vpixels";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_tile_slanted_bricks", 10);
+    assert_screen "imagemagick_tile_slanted_bricks";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_tile_mod_success", 10);
+    assert_screen "imagemagick_tile_mod_success";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_tile_circles", 10);
+    assert_screen "imagemagick_tile_circles";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_tile_hexagons", 10);
+    assert_screen "imagemagick_tile_hexagons";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_tiled_hexagons", 10);
+    assert_screen "imagemagick_tiled_hexagons";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_tile_line", 10);
+    assert_screen "imagemagick_tile_line";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_tile_hex_lines", 10);
+    assert_screen "imagemagick_tile_hex_lines";
     send_key "alt-f4";
     wait_idle;
 
-    assert_screen("imagemagick_tiled_hex_lines", 10);
+    assert_screen "imagemagick_tiled_hex_lines";
     send_key "alt-f4";
     wait_idle;
+
+    # clean-up
+    assert_script_run "rm bg_script.sh";
 
     type_string "exit\n";
 }
