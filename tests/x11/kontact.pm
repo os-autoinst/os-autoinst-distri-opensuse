@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Rework the tests layout.
-# G-Maintainer: Alberto Planas <aplanas@suse.com>
+# Summary: Plasma kontact startup test
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "x11test";
 use strict;
@@ -29,15 +29,15 @@ sub run() {
 
     x11_start_program("kontact", 6, {valid => 1});
 
-    # kontact has asking import data from another mailer
-    if (check_screen('kontact-import-data-dialog')) {
-        send_key "alt-n";    # Don't
-    }
-
-    assert_screen "test-kontact-1", 20;    # tips window or assistant
-    send_key "alt-c";                      # KF5-based account assistant ignores alt-f4
-    assert_screen "kontact-window", 3;
-    send_key "alt-f4";
+    my @tags = qw(test-kontact-1 kontact-import-data-dialog);
+    do {
+        assert_screen \@tags;
+        # kontact might ask to import data from another mailer, don't
+        wait_screen_change { send_key 'alt-n' } if match_has_tag('kontact-import-data-dialog');
+    } until (match_has_tag('test-kontact-1'));
+    send_key 'alt-c';    # KF5-based account assistant ignores alt-f4
+    assert_screen 'kontact-window';
+    send_key 'alt-f4';
 }
 
 1;

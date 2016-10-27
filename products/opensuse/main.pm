@@ -691,7 +691,7 @@ sub load_x11tests() {
         loadtest "x11/oomath.pm";
         loadtest "x11/oocalc.pm";
     }
-    if (get_var("DESKTOP") =~ /kde|gnome/ && !is_server) {
+    if (get_var("DESKTOP") =~ /kde|gnome/ && !is_server && !is_krypton_argon) {
         loadtest "x11/ooffice.pm";
     }
     if (kdestep_is_applicable()) {
@@ -725,7 +725,9 @@ sub load_x11tests() {
         loadtest "x11/glxgears.pm";
     }
     if (kdestep_is_applicable()) {
-        loadtest "x11/amarok.pm";
+        if (!is_krypton_argon) {
+            loadtest "x11/amarok.pm";
+        }
         loadtest "x11/kontact.pm";
         if (!get_var("USBBOOT")) {
             if (get_var("PLASMA5")) {
