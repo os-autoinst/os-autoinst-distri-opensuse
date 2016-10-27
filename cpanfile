@@ -3,3 +3,4 @@ requires 'File::Basename';
 requires 'Data::Dumper';
 requires 'XML::Writer';
 requires 'IO::File';
+requires 'Code::DRY';
