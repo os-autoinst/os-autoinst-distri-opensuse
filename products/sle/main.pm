@@ -745,9 +745,6 @@ sub load_x11tests() {
     if (get_var("MOZILLATEST")) {
         loadtest "x11/mozmill_run.pm";
     }
-    if (bigx11step_is_applicable()) {
-        loadtest "x11/imagemagick.pm";
-    }
     if (!is_server() || we_is_applicable()) {
         if (gnomestep_is_applicable()) {
             loadtest "x11/eog.pm";
