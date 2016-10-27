@@ -907,7 +907,7 @@ sub load_fips_tests_web() {
     loadtest "console/w3m_https.pm";
     loadtest "console/apache_ssl.pm";
     loadtest "console/consoletest_finish.pm";
-    loadtest "x11/firefox_nss.pm";
+    loadtest "fips/mozilla_nss/firefox_nss.pm";
 }
 
 sub load_fips_tests_misc() {

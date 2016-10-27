@@ -9,8 +9,8 @@
 
 # Case #1560076 - FIPS: Firefox Mozilla NSS
 
-# G-Summary: Add fips firefox nss test
-# G-Maintainer: mitiao <mitiao@gmail.com>
+# Summary: Add fips firefox nss test
+# Maintainer: mitiao <mitiao@gmail.com>
 
 use base "x11test";
 use strict;
@@ -29,58 +29,52 @@ sub run() {
     # - at least one upper case
     # - at least one non-alphabet-non-number character (like: @-.=%)
     my $fips_password = 'openqa@SUSE';
-    ensure_installed('mozilla-nss-tools');
 
-    # launch firefox first to generate its default profile
+    # launch firefox first and enable FIPS mode
     x11_start_program("firefox");
-    assert_screen("firefox-launch", 90);    # launch firefox need time
-    quit_firefox;
-
-    # enable fips mode for mozilla firefox
-    x11_start_program("xterm");
-    validate_script_output 'echo | modutil -dbdir ~/.mozilla/firefox/*.default -fips true', sub { m/FIPS mode enabled/ };
-    type_string "killall xterm\n";
-
-    # default fips password is empty and MUST required to input when firefox launch
-    x11_start_program("firefox");
-    assert_screen("firefox-fips-password-inputfiled", 90);
-    send_key "ret";
-    assert_screen("firefox-homepage", 60);
-
-    # change default password to defined one
+    assert_screen "firefox-launch", 90;
     send_key "alt-d";
     type_string "about:preferences#security\n";
     assert_screen "firefox-preferences-security";
-    send_key "alt-shift-m";
+    send_key "alt-shift-u";
     assert_screen "firefox-passwd-master_setting";
-    send_key "tab";
     type_string $fips_password;
     send_key "tab";
     type_string $fips_password;
     send_key "ret";
     assert_screen "firefox-password-change-succeeded";
     send_key "ret";
-    quit_firefox;
-
-    # launch firefox with new password
-    x11_start_program("firefox");
-    assert_screen("firefox-fips-password-inputfiled", 90);
+    send_key "alt-d";
+    type_string "about:preferences#advanced\n";
+    assert_and_click "firefox-ssl-advanced_certificate";
+    wait_still_screen;
+    send_key "alt-shift-d";
+    assert_screen "firefox-device-manager";
+    send_key "alt-f";
+    assert_screen "firefox-fips-password-inputfiled", 300;
     type_string $fips_password;
     send_key "ret";
-    assert_screen("firefox-homepage", 60);
+    send_key "tab";
+    send_key "ret";
+    quit_firefox;
+    assert_screen "generic-desktop";
 
-    # confirm fips has been enabled in firefox
+    # launch firefox again and check FIPS mode is enabled
+    x11_start_program("firefox");
+    assert_screen "firefox-fips-password-inputfiled", 90;
+    type_string $fips_password;
+    send_key "ret";
+    assert_screen "firefox-homepage", 90;
     send_key "alt-d";
     type_string "about:preferences#advanced\n";
     assert_screen "firefox-preferences-advanced";
-    assert_and_click "firefox-ssl-advanced_certificate";
-    wait_still_screen(5);
     send_key "alt-shift-d";
     assert_screen "firefox-device-manager";
     send_key "down";
     assert_screen "firefox-confirm-fips_enabled";
     send_key "ret";
     quit_firefox;
+    assert_screen "generic-desktop";
 }
 
 sub test_flags() {
