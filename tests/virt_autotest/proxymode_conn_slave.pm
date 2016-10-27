@@ -7,23 +7,25 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
-# G-Summary: virt_autotest: the initial version of virtualization automation test in openqa, with kvm support fully, xen support not done yet
-# G-Maintainer: alice <xlai@suse.com>
-
 use strict;
 use warnings;
 use File::Basename;
+use base "opensusebasetest";
 use testapi;
-use base "reboot_and_wait_up";
+
+use base "proxymodeapi";
 
 sub run() {
-    my $self    = shift;
-    my $timeout = 300;
-    $self->reboot_and_wait_up($timeout);
+    my $self         = shift;
+    my $ipmi_machine = get_var("IPMI_HOSTNAME");
+
+    $self->restart_host();
+    $self->connect_slave();
+    $self->check_prompt_for_boot();
 }
 
 sub test_flags {
-    return {fatal => 1};
+    return {important => 1};
 }
 
 1;
