@@ -678,9 +678,6 @@ sub load_x11tests() {
     if (chromiumstep_is_applicable() && !(is_staging() || is_livesystem)) {
         loadtest "x11/chromium.pm";
     }
-    if (bigx11step_is_applicable()) {
-        loadtest "x11/imagemagick.pm";
-    }
     if (xfcestep_is_applicable()) {
         loadtest "x11/ristretto.pm";
     }
