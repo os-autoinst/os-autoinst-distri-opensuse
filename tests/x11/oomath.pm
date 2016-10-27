@@ -8,28 +8,29 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Rework the tests layout.
-# G-Maintainer: Alberto Planas <aplanas@suse.com>
+# Summary: Test formula rendering in oomath
+# Maintainer: Oliver Kurz <okurz@suse.de>
+# Tags: https://bugs.freedesktop.org/show_bug.cgi?id=42301
 
 use base "x11test";
 use strict;
 use testapi;
 
-# test for bug https://bugs.freedesktop.org/show_bug.cgi?id=42301
-
 sub run() {
     my $self = shift;
     x11_start_program("oomath");
+    # give oomath some time to be reactive on key input
+    wait_still_screen(3);
     type_string "E %PHI = H %PHI\nnewline\n1 = 1";
-    sleep 3;
+    wait_still_screen(1);
 
     # test broken undo
     send_key "shift-left";
     send_key "2";
-    send_key "ctrl-z";    # undo produces "12" instead of "1"
-    sleep 3;
+    # undo produces "12" instead of "1"
+    wait_screen_change { send_key "ctrl-z" };
     assert_screen 'test-oomath-1', 3;
-    send_key "alt-f4";
+    wait_screen_change { send_key "alt-f4" };
     assert_screen 'oomath-prompt', 5;
     assert_and_click 'dont-save-libreoffice-btn';    # _Don't save
 }
