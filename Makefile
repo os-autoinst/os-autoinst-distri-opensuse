@@ -50,13 +50,17 @@ test-metadata:
 test-metadata-changed:
 	tools/check_metadata $$(git diff --name-only | grep 'tests.*pm')
 
-.PHONY: test-metadata-merge
-test-metadata-merge:
+.PHONY: test-merge
+test-merge:
 	@FILES=$$(git diff --name-only FETCH_HEAD `git merge-base FETCH_HEAD master 2>/dev/null` | grep 'tests.*pm') ;\
-	for file in $$FILES; do if test -f $$file; then tools/check_metadata $$file; fi ; done
+	for file in $$FILES; do if test -f $$file; then \
+	   tools/check_metadata $$file || touch failed; \
+	   ${PERLCRITIC} $$file || touch failed ;\
+	fi ; done
+	test ! -f failed
 
 .PHONY: test
-test: tidy test-compile test-metadata-merge perlcritic-merge
+test: tidy test-compile test-merge
 
 PERLCRITIC=PERL5LIB=tools/lib/perlcritic:$$PERL5LIB perlcritic --quiet --gentle --include Perl::Critic::Policy::HashKeyQuote
 
@@ -64,11 +68,3 @@ PERLCRITIC=PERL5LIB=tools/lib/perlcritic:$$PERL5LIB perlcritic --quiet --gentle 
 perlcritic: tools/lib/
 	${PERLCRITIC} .
 
-.PHONY: perlcritic-merge
-perlcritic-merge:
-	@FH=$$(git merge-base FETCH_HEAD master 2>/dev/null) ;\
-	if test -n "$FH"; then \
-	FILES=$$(git diff --name-only FETCH_HEAD $$FH 2>/dev/null| grep '.*pm') ;\
-	else FILES= ;\
-	fi ;\
-	for file in $$FILES; do if test -f $$file; then ${PERLCRITIC} $$file; fi; done
