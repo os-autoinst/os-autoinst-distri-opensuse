@@ -27,7 +27,7 @@ sub get_script_run() {
 
 sub run() {
     my $self = shift;
-    $self->run_test(5000, "Congratulations! All test is successful!", "no", "yes", "/var/log/qa/ctcs2/", "pvusb-test-logs");
+    $self->run_test(5000, "Congratulations! All test is successful!", "no", "yes", "/var/log/qa/", "pvusb-test-logs");
 }
 
 sub test_flags {
