@@ -18,8 +18,6 @@ use base "y2logsstep";
 use testapi;
 use linuxrc;
 
-# Just testing
-
 #
 # bsc#906990 [linuxrc] add "Boot Linux" to installation media
 # Added in linuxrc-5.0.44
