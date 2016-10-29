@@ -21,5 +21,19 @@ sub post_run_hook {
     assert_screen('generic-desktop');
 }
 
+# logout and switch window-manager
+sub switch_wm {
+    mouse_set(1000, 30);
+    assert_and_click "system-indicator";
+    assert_and_click "user-logout-sector";
+    assert_and_click "logout-system";
+    assert_screen "logout-dialogue";
+    send_key "ret";
+    assert_screen "displaymanager";
+    send_key "ret";
+    assert_screen "originUser-login-dm";
+    type_string "$password";
+}
+
 1;
 # vim: set sw=4 et:
