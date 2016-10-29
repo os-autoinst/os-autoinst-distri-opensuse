@@ -17,20 +17,6 @@ use strict;
 use testapi;
 use utils;
 
-# logout and switch window-manager
-sub switch_wm {
-    mouse_set(1000, 30);
-    assert_and_click "system-indicator";
-    assert_and_click "user-logout-sector";
-    assert_and_click "logout-system";
-    assert_screen "logout-dialogue";
-    send_key "ret";
-    assert_screen "displaymanager";
-    send_key "ret";
-    assert_screen "originUser-login-dm";
-    type_string "$password";
-}
-
 # Smoke test: launch some applications
 sub application_test {
     x11_start_program "gnome-terminal";

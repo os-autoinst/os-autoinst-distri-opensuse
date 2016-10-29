@@ -7,29 +7,14 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: openqa script and entry for tc#1503849:gnome:gnome-classic switch
-# G-Maintainer: xiaojun <xjin@suse.com>
+# Summary: Gnome: switch between gnome(now default is sle-classic) and gnome-classic
+# Maintainer: xiaojun <xjin@suse.com>
+# Tags: tc#5255-1503849
 
 use base "x11regressiontest";
 use strict;
 use testapi;
 use utils;
-
-#testcase 5255-1503849: Gnome: switch between gnome(now default is sle-classic) and gnome-classic
-
-# logout and switch window-manager
-sub switch_wm {
-    mouse_set(1000, 30);
-    assert_and_click "system-indicator";
-    assert_and_click "user-logout-sector";
-    assert_and_click "logout-system";
-    assert_screen "logout-dialogue";
-    send_key "ret";
-    assert_screen "displaymanager";
-    send_key "ret";
-    assert_screen "originUser-login-dm";
-    type_string "$password";
-}
 
 # try some application could be launched successfully
 sub application_test {
