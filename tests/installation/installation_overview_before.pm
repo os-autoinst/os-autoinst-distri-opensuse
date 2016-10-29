@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Check installation overview befoer and after any pattern change
-# G-Maintainer: sysrich <sysrich@linux.com>
+# Summary: Check installation overview before and after any pattern change
+# Maintainer: Richard Brown <RBrownCCB@opensuse.org>
 
 use strict;
 use warnings;
