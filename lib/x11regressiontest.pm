@@ -252,31 +252,23 @@ sub send_meeting_request {
 }
 
 sub setup_pop {
-    my ($self, $i) = @_;
-    $self->setup_mail_account('pop', $i);
+    my ($self, $account) = @_;
+    $self->setup_mail_account('pop', $account);
 }
 
 sub setup_imap {
-    my ($self, $i) = @_;
-    $self->setup_mail_account('imap', $i);
+    my ($self, $account) = @_;
+    $self->setup_mail_account('imap', $account);
 }
 
-sub setup_mail_account {
-    my ($self, $proto, $i) = @_;
+sub start_evolution {
+    my ($self) = $_;
 
-    my $config          = $self->getconfig_emailaccount;
-    my $mail_box        = $config->{$i}->{mailbox};
-    my $mail_sendServer = $config->{$i}->{sendServer};
-    my $mail_recvServer = $config->{$i}->{recvServer};
-    my $mail_user       = $config->{$i}->{user};
-    my $mail_passwd     = $config->{$i}->{passwd};
-    my $mail_sendport   = $config->{$i}->{sendport};
-    my $mail_recvport   = $proto eq 'pop' ? $config->{$i}->{recvport} : $config->{$i}->{imapport};
-    my $next            = "alt-o";
-    mouse_hide(1);
+    $self->{next} = "alt-o";
     if (sle_version_at_least('12-SP2')) {
-        $next = "alt-n";
+        $self->{next} = "alt-n";
     }
+    mouse_hide(1);
     # Clean and Start Evolution
     x11_start_program("xterm -e \"killall -9 evolution; find ~ -name evolution | xargs rm -rf;\"");
     x11_start_program("evolution");
@@ -286,9 +278,9 @@ sub setup_mail_account {
         assert_and_click "evolution-default-client-agree";
         assert_screen "test-evolution-1";
     }
-    send_key "$next";
+    send_key $self->{next};
     assert_screen "evolution_wizard-restore-backup";
-    send_key "$next";
+    send_key $self->{next};
     assert_screen "evolution_wizard-identity";
     wait_screen_change {
         send_key "alt-e";
@@ -300,7 +292,22 @@ sub setup_mail_account {
     type_string "$mail_box";
     sleep 1;
     save_screenshot();
-    send_key "$next";
+    send_key $self->{next};
+}
+
+sub setup_mail_account {
+    my ($self, $proto, $account) = @_;
+
+    my $config          = $self->getconfig_emailaccount;
+    my $mail_box        = $config->{$account}->{mailbox};
+    my $mail_sendServer = $config->{$account}->{sendServer};
+    my $mail_recvServer = $config->{$account}->{recvServer};
+    my $mail_user       = $config->{$account}->{user};
+    my $mail_passwd     = $config->{$account}->{passwd};
+    my $mail_sendport   = $config->{$account}->{sendport};
+    my $mail_recvport   = $config->{$account}->{$proto eq 'pop' ? 'recvport' : 'imapport'};
+
+    $self->start_evolution($mail_box);
     if (check_screen "evolution_wizard-skip-lookup") {
         send_key "alt-s";
     }
@@ -343,24 +350,24 @@ sub setup_mail_account {
         send_key "ret";
     };
     # add self-signed CA with internal account
-    if ($i =~ m/internal/) {
+    if ($account =~ m/internal/) {
         assert_and_click "evolution_wizard-receiving-checkauthtype";
         assert_screen "evolution_mail_meeting_trust_ca";
         send_key "alt-a";
         wait_screen_change {
-            send_key "$next";
+            send_key $self->{next};
             send_key "ret";
         }
     }
     else {
-        send_key "$next";
+        send_key $self->{next};
     }
     if (sle_version_at_least('12-SP2')) {
         send_key "ret";    #only need in SP2 or later
     }
     save_screenshot;
     assert_screen "evolution_wizard-receiving-opts";
-    send_key "$next";
+    send_key $self->{next};
     if (sle_version_at_least('12-SP2')) {
         send_key "ret";    #only need in SP2 or later
     }
@@ -411,23 +418,23 @@ sub setup_mail_account {
     sleep 1;
     type_string "$mail_user";
     # add self-signed CA with internal account
-    if ($i =~ m/internal/) {
+    if ($account =~ m/internal/) {
         assert_and_click "evolution_wizard-sending-checkauthtype";
         assert_screen "evolution_mail_meeting_trust_ca";
         send_key "alt-a";
         wait_screen_change {
-            send_key "$next";
+            send_key $self->{next};
             send_key "ret";
         }
     }
     else {
-        send_key "$next";
+        send_key $self->{next};
     }
     if (sle_version_at_least('12-SP2')) {
         send_key "ret";    #only in sp2, send ret to next page
     }
     assert_screen "evolution_wizard-account-summary";
-    send_key "$next";
+    send_key $self->{next};
     if (sle_version_at_least('12-SP2')) {
         send_key "alt-n";    #only in sp2
         send_key "ret";

@@ -25,47 +25,21 @@ sub setup {
 
 #Setup mail account by auto lookup
 sub auto_setup {
-    my ($self, $i) = @_;
+    my ($self, $account) = @_;
     my $config        = $self->getconfig_emailaccount;
-    my $mail_box      = $config->{$i}->{mailbox};
-    my $mail_server   = $config->{$i}->{sendServer};
-    my $mail_user     = $config->{$i}->{user};
-    my $mail_passwd   = $config->{$i}->{passwd};
-    my $mail_sendport = $config->{$i}->{sendport};
-    my $mail_recvport = $config->{$i}->{recvport};
-    my $next          = "alt-o";
-    print $next;
-    if (sle_version_at_least('12-SP2')) {
-        $next = "alt-n";
-    }
+    my $mail_box      = $config->{$account}->{mailbox};
+    my $mail_server   = $config->{$account}->{sendServer};
+    my $mail_user     = $config->{$account}->{user};
+    my $mail_passwd   = $config->{$account}->{passwd};
+    my $mail_sendport = $config->{$account}->{sendport};
+    my $mail_recvport = $config->{$account}->{recvport};
 
-    # Clean and Start Evolution
-    x11_start_program("xterm -e \"killall -9 evolution; find ~ -name evolution | xargs rm -rf;\"");
-    x11_start_program("evolution");
-    # Follow the wizard to setup mail account
-    assert_screen [qw/evolution-default-client-ask test-evolution-1/];
-    if (match_has_tag 'evolution-default-client-ask') {
-        assert_and_click "evolution-default-client-agree";
-        assert_screen "test-evolution-1";
-    }
-    send_key "$next";
-    assert_screen "evolution_wizard-restore-backup";
-    send_key "$next";
-    assert_screen "evolution_wizard-identity";
-    wait_screen_change {
-        send_key "alt-e";
-    };
-    type_string "SUSE Test";
-    wait_screen_change {
-        send_key "alt-a";
-    };
-    type_string "$mail_box";
-    send_key "$next";
+    $self->start_evolution($mail_box);
     assert_screen "evolution_wizard-skip-lookup";
     assert_screen "evolution_wizard-account-summary";
 
     #if used Yahoo account, need disabled Yahoo calendar and tasks
-    if ($i eq "Yahoo") {
+    if ($account eq "Yahoo") {
         send_key "alt-l";
     }
     send_key "$next";
