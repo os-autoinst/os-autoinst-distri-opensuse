@@ -7,10 +7,10 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Live Patching regression testsuite
-# G-Maintainer: Ondřej Súkup <osukup@suse.cz>
+# Summary: Live Patching regression testsuite
+# Maintainer: Ondřej Súkup <osukup@suse.cz>
 
-use base 'opensusebasetest';
+use base 'kgrafttest';
 use testapi;
 use qam;
 
@@ -37,25 +37,6 @@ sub run() {
 
     $svirt->run_cmd("virsh reset $name");
 
-}
-
-sub post_fail_hook() {
-    my $self            = shift;
-    my $snapshot_before = get_var('KGRAFT_SNAPSHOT_BEFORE');
-    my $name            = get_var('VIRSH_GUESTNAME');
-    save_screenshot;
-    send_key('ctrl-c');
-    sleep 2;
-    capture_state("fail");
-
-    # reattach to svirt console and revert to snapshot before update
-    my $svirt = select_console('svirt');
-    $svirt->attach_to_running($name);
-    snap_revert($svirt, $name, $snapshot_before);
-}
-
-sub test_flags() {
-    return {fatal => 1};
 }
 
 1;
