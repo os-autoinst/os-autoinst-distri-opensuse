@@ -165,8 +165,16 @@ sub run() {
     $self->qa_log_cmd("/tmp/repos.log", "zypper repos -u 2>&1");
 
     $self->start_testrun();
-    die "Test run didn't finish" unless ($self->wait_testrun());
-
+    unless ($self->wait_testrun()) {
+        # Upload logs and die when timeout happens
+        $self->qa_upload_logs('/var/log/qaset/log', '*.tar.*');
+        my @dirs = ("calls", "control", "runs", "set", "submission");
+        foreach my $item (@dirs) {
+            my $dir = "/var/log/qaset/$item";
+            $self->qa_upload_dir($dir);
+        }
+        die "Test run didn't finish";
+    }
     # Log submission link ( all testsuites are splitted )
     my $cmd = q{grep -o -E "http:\/{2}.*\/submission\.php\?submission_id=[0-9]+" /var/log/qaset/submission/submission-*.log};
     $self->qa_log_cmd("/tmp/submission-links.log", $cmd);
