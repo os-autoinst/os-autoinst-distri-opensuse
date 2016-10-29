@@ -7,10 +7,10 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add a case for gdm session switch
+# Summary: Add a case for gdm session switch
 #    openSUSE has shipped SLE-Classic since Leap 42.2, this case will test
 #    gdm session switch among sle-classic, gnome-classic, icewm and gnome.
-# G-Maintainer: Chingkai Chu <chuchingkai@gmail.com>
+# Maintainer: Chingkai Chu <chuchingkai@gmail.com>
 
 use base "x11test";
 use strict;
@@ -29,25 +29,13 @@ sub application_test {
 }
 
 sub run () {
-    # Log out and switch to GNOME Classic
-    assert_screen "generic-desktop";
-    switch_wm;
-    assert_and_click "displaymanager-settings";
-    assert_and_click "dm-gnome-classic";
-    send_key "ret";
-    assert_screen "desktop-gnome-classic", 120;
-    application_test;
+    my ($self) = @_;
 
-    # Log out and switch to SLE Classic
-    switch_wm;
-    assert_and_click "displaymanager-settings";
-    assert_and_click "dm-sle-classic";
-    send_key "ret";
-    assert_screen "desktop-sle-classic", 120;
-    application_test;
+    $self->prepare_sle_classic;
+    $self->application_test;
 
     # Log out and switch to icewm
-    switch_wm;
+    $self->switch_wm;
     assert_and_click "displaymanager-settings";
     assert_and_click "dm-icewm";
     send_key "ret";

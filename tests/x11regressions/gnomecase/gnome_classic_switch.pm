@@ -16,7 +16,7 @@ use strict;
 use testapi;
 use utils;
 
-# try some application could be launched successfully
+# applications are called twiced
 sub application_test {
     x11_start_program "gnome-terminal";
     assert_screen "gnome-terminal-launched";
@@ -30,27 +30,13 @@ sub application_test {
     wait_still_screen;
     send_key "ret";
     wait_still_screen;
+
 }
 
 sub run () {
-    my $self = shift;
-
-    # swith to gnome-classic and try some applications
-    assert_screen "generic-desktop";
-    switch_wm;
-    assert_and_click "displaymanager-settings";
-    assert_and_click "dm-gnome-classic";
-    send_key "ret";
-    assert_screen "desktop-gnome-classic", 120;
-    application_test;
-
-    # swith back to default -'sle-classic' and try some applications
-    switch_wm;
-    assert_and_click "displaymanager-settings";
-    assert_and_click "dm-sle-classic";
-    send_key "ret";
-    assert_screen "generic-desktop", 120;
-    application_test;
+    my ($self) = @_;
+    $self->prepare_sle_classic;
+    $self->application_test;
 }
 
 1;
