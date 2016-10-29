@@ -8,27 +8,8 @@ use strict;
 use testapi;
 
 sub post_fail_hook() {
-    my $self = shift;
-
-    select_console 'root-console';
-    save_screenshot;
-
-    if (check_var("DESKTOP", "kde")) {
-        if (get_var('PLASMA5')) {
-            my $fn = '/tmp/plasma5_configs.tar.bz2';
-            my $cmd = sprintf 'tar cjf %s /home/%s/.config/*rc', $fn, $username;
-            type_string "$cmd\n";
-            upload_logs $fn;
-        }
-        else {
-            my $fn = '/tmp/kde4_configs.tar.bz2';
-            my $cmd = sprintf 'tar cjf %s /home/%s/.kde4/share/config/*rc', $fn, $username;
-            type_string "$cmd\n";
-            upload_logs $fn;
-        }
-        save_screenshot;
-    }
-
+    my ($self) = shift;
+    $self->export_kde_logs;
     $self->export_logs;
 
     save_screenshot;
