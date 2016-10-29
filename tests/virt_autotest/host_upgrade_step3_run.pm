@@ -7,8 +7,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
-# G-Summary: virt_autotest: the initial version of virtualization automation test in openqa, with kvm support fully, xen support not done yet
-# G-Maintainer: alice <xlai@suse.com>
+# Summary: virt_autotest: the initial version of virtualization automation test in openqa, with kvm and xen support fully
+#          This test verifies virtualization host upgrade test result.
+# Maintainer: alice <xlai@suse.com>
 
 use base "host_upgrade_base";
 use testapi;
@@ -27,7 +28,7 @@ sub get_script_run() {
 sub run() {
     my $self = shift;
     repl_repo_in_sourcefile();
-    $self->run_test(5400, "Test run completed successfully", "no", "yes", "/var/log/qa/ctcs2/", "host-upgrade-postVerify-logs");
+    $self->run_test(5400, "Test run completed successfully", "no", "yes", "/var/log/qa/", "host-upgrade-postVerify-logs");
 }
 
 1;
