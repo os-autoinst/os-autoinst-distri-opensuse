@@ -42,16 +42,16 @@ sub auto_setup {
     if ($account eq "Yahoo") {
         send_key "alt-l";
     }
-    send_key "$next";
+    send_key $self->{next};
     if (sle_version_at_least('12-SP2')) {
-        send_key "$next";    #only in 12-SP2 or later
+        send_key $self->{next};    #only in 12-SP2 or later
         send_key "ret";
     }
     assert_screen "evolution_wizard-done";
     send_key "alt-a";
     if (check_screen "evolution_mail-auth") {
         if (sle_version_at_least('12-SP2')) {
-            send_key "alt-a";    #disable keyring option, only in SP2 or later
+            send_key "alt-a";      #disable keyring option, only in SP2 or later
             send_key "alt-p";
         }
         type_string "$mail_passwd";

@@ -262,7 +262,7 @@ sub setup_imap {
 }
 
 sub start_evolution {
-    my ($self) = $_;
+    my ($self, $mail_box) = $_;
 
     $self->{next} = "alt-o";
     if (sle_version_at_least('12-SP2')) {
@@ -597,6 +597,43 @@ sub setup_evolution_for_ews {
         send_key "alt-y";
     }
     assert_screen "evolution_mail-ready", 60;
+}
+
+sub evolution_send_message {
+    my ($self, $account) = @_;
+
+    my $config       = $self->getconfig_emailaccount;
+    my $mailbox      = $config->{$account}->{mailbox};
+    my $mail_passwd  = $config->{$account}->{passwd};
+    my $mail_subject = $self->get_dated_random_string(4);
+
+    send_key "shift-ctrl-m";
+    assert_screen "evolution_mail-compose-message";
+    assert_and_click "evolution_mail-message-to";
+    type_string "$mailbox";
+    wait_screen_change {
+        send_key "alt-u";
+    };
+    wait_still_screen;
+    type_string "$mail_subject this is a test mail";
+    assert_and_click "evolution_mail-message-body";
+    type_string "Test email send and receive.";
+    send_key "ctrl-ret";
+    if (sle_version_at_least('12-SP2')) {
+        if (check_screen "evolution_mail_send_mail_dialog") {
+            send_key "ret";
+        }
+    }
+    if (check_screen "evolution_mail-auth") {
+        if (sle_version_at_least('12-SP2')) {
+            send_key "alt-a";    #disable keyring option, only in SP2
+            send_key "alt-p";
+        }
+        type_string "$mail_passwd";
+        send_key "ret";
+    }
+
+    return $mail_subject;
 }
 
 1;
