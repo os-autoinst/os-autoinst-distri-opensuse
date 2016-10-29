@@ -17,7 +17,7 @@ use base "y2logsstep";
 use testapi;
 
 sub run() {
-    my ($self) = shift;
+    my ($self) = @_;
 
     # overview-generation
     # this is almost impossible to check for real
@@ -26,34 +26,7 @@ sub run() {
     # preserve it for the video
     wait_idle 10;
 
-    # check for dependency issues, if found, drill down to software selection, take a screenshot, then die
-    if (check_screen("inst-overview-dep-warning", 1)) {
-        record_soft_failure;
-        if (check_var('VIDEOMODE', 'text')) {
-            send_key 'alt-c';
-            assert_screen 'inst-overview-options';
-            send_key 'alt-s';
-        }
-        else {
-            send_key_until_needlematch 'packages-section-selected', 'tab';
-            send_key 'ret';
-        }
-
-        assert_screen 'dependancy-issue';    #make sure the dependancy issue is actually showing
-
-        if (get_var("WORKAROUND_DEPS")) {
-            $self->record_dependency_issues;
-            wait_screen_change {
-                send_key 'alt-a';
-            };
-            send_key 'alt-o';
-            assert_screen "inst-overview-after-depfix";    # Make sure you're back on the inst-overview before doing anything else
-        }
-        else {
-            save_screenshot;
-            die 'Dependency Problems';
-        }
-    }
+    $self->check_and_record_dependency_problems;
 }
 
 1;

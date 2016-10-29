@@ -71,6 +71,38 @@ sub record_dependency_issues {
     }
 }
 
+# check for dependency issues, if found, drill down to software selection, take a screenshot, then die
+sub check_and_record_dependency_problems {
+    my ($self) = @_;
+
+    return unless check_screen("inst-overview-dep-warning", 1);
+    record_soft_failure 'dependency warning';
+    if (check_var('VIDEOMODE', 'text')) {
+        send_key 'alt-c';
+        assert_screen 'inst-overview-options';
+        send_key 'alt-s';
+    }
+    else {
+        send_key_until_needlematch 'packages-section-selected', 'tab';
+        send_key 'ret';
+    }
+
+    assert_screen 'dependancy-issue';    #make sure the dependancy issue is actually showing
+
+    if (get_var("WORKAROUND_DEPS")) {
+        $self->record_dependency_issues;
+        wait_screen_change {
+            send_key 'alt-a';
+        };
+        send_key 'alt-o';
+        assert_screen "inst-overview-after-depfix";    # Make sure you're back on the inst-overview before doing anything else
+    }
+    else {
+        save_screenshot;
+        die 'Dependency Problems';
+    }
+}
+
 sub save_upload_y2logs() {
     assert_script_run "save_y2logs /tmp/y2logs.tar.bz2";
     upload_logs "/tmp/y2logs.tar.bz2";
