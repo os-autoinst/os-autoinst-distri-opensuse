@@ -362,7 +362,6 @@ sub activate_console {
         }
     }
 
-    # TODO: We should not be extracting this information from the console name,
     $console =~ m/^(\w+)-(console|virtio-terminal)/;
     my ($name, $user, $type) = ($1, $1, $2);
     if ($name eq 'user') {

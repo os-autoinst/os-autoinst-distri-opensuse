@@ -1065,6 +1065,18 @@ elsif (get_var("QA_TESTSET")) {
     }
     loadtest "qa_automation/" . get_var("QA_TESTSET");
 }
+elsif (get_var('INSTALL_LTP')) {
+    loadtest 'kernel/install_ltp';
+    loadtest 'kernel/boot_ltp';
+    loadtest 'kernel/shutdown_ltp';
+}
+elsif (get_var('LTP_COMMAND_FILE')) {
+    loadtest 'kernel/boot_ltp';
+    loadtest 'kernel/run_ltp';
+}
+elsif (get_var('VIRTIO_CONSOLE_TEST')) {
+    loadtest 'kernel/virtio_console';
+}
 elsif (get_var("VIRT_AUTOTEST")) {
     load_boot_tests();
     load_inst_tests();

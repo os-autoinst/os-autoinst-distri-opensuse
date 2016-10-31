@@ -930,6 +930,18 @@ elsif (ssh_key_import) {
     # verify previous defined ssh keys
     loadtest "x11/ssh_key_verify";
 }
+elsif (get_var('INSTALL_LTP')) {
+    loadtest 'kernel/install_ltp';
+    loadtest 'kernel/boot_ltp';
+    loadtest 'kernel/shutdown_ltp';
+}
+elsif (get_var('LTP_COMMAND_FILE')) {
+    loadtest 'kernel/boot_ltp';
+    loadtest 'kernel/run_ltp';
+}
+elsif (get_var('VIRTIO_CONSOLE_TEST')) {
+    loadtest 'kernel/virtio_console';
+}
 else {
     if (get_var("LIVETEST") || get_var('LIVE_INSTALLATION')) {
         load_boot_tests();

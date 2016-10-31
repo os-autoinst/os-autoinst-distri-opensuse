@@ -1,0 +1,49 @@
+#!/usr/share/openqa/script/load_templates
+# Test suit template for a subset of the Linux Test Project
+{
+    TestSuites =>
+      [{
+        name     => 'textmode-image',
+        settings =>
+        [{key => 'DESKTOP',       value => 'textmode'},
+         {key => 'INSTALLONLY',   value => 1},
+         {key => 'ISO',           value => 'openSUSE-%VERSION%-DVD-%ARCH%-Snapshot%BUILD%-Media.iso'},
+         {key => 'PUBLISH_HDD_1', value => 'openSUSE-%VERSION%-%ARCH%-textmode.qcow2'},
+         {key => 'VIDEOMODE',     value => 1}],
+       },
+       {
+        name     => 'install_ltp',
+        settings =>
+        [{key => 'DESKTOP',          value => 'textmode'},
+         {key => 'PUBLISH_HDD_1',
+          value => 'openSUSE-%VERSION%-%ARCH%-textmode_with_ltp_installed.qcow2'},
+         {key => 'INSTALL_LTP',      value => 'from_git'},
+         {key => 'BOOT_HDD_IMAGE',   value => 1},
+         {key => 'HDD_1',            value => 'openSUSE-%VERSION%-%ARCH%-textmode.qcow2'},
+         {key => 'START_AFTER_TEST', value => 'textmode-image'},
+         {key => 'QEMUCPUS',         value => 4},
+         {key => 'QEMURAM',          value => 4096}]
+       },
+       {
+        name => 'ltp_math',
+        settings =>
+        [{key => 'DESKTOP',          value => 'textmode'},
+         {key => 'BOOT_HDD_IMAGE',   value => 1},
+         {key => 'HDD_1',
+          value => 'openSUSE-%VERSION%-%ARCH%-textmode_with_ltp_installed.qcow2'},
+         {key => 'LTP_COMMAND_FILE', value => 'math'},
+         {key => 'START_AFTER_TEST', value => 'install_ltp'}]
+       },
+       {
+        name => 'ltp_controllers_memcg',
+        settings =>
+        [{key => 'DESKTOP',             value => 'textmode'},
+         {key => 'BOOT_HDD_IMAGE',      value => 1},
+         {key => 'HDD_1',
+          value => 'openSUSE-%VERSION%-%ARCH%-textmode_with_ltp_installed.qcow2'},
+         {key => 'LTP_COMMAND_FILE',    value => 'controllers'},
+         {key => 'LTP_COMMAND_PATTERN', value => 'memcg(?!_stress)'},
+         {key => 'LTP_TIMEOUT',         value => 1200},
+         {key => 'START_AFTER_TEST',    value => 'install_ltp'}]
+       }]
+}
