@@ -1,5 +1,6 @@
 package susedistribution;
 use base 'distribution';
+use serial_terminal ();
 use strict;
 
 # Base class for all openSUSE tests
@@ -224,6 +225,10 @@ sub init_consoles {
         }
     }
 
+    if (check_var('BACKEND', 'qemu')) {
+        $self->add_console('root-virtio-terminal', 'virtio-terminal', {});
+    }
+
     if (check_var('BACKEND', 'qemu') || check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'generalhw')) {
         $self->add_console('install-shell', 'tty-console', {tty => 2});
         $self->add_console('installation',  'tty-console', {tty => check_var('VIDEOMODE', 'text') ? 1 : 7});
@@ -369,15 +374,17 @@ sub activate_console {
         }
     }
 
-    if ($console =~ m/^(.*)-console/) {
-        my ($name, $user) = ($1, $1);
-        if ($name eq 'user') {
-            $user = $testapi::username;
-        }
-        elsif ($name eq 'log') {
-            $user = 'root';
-        }
+    # TODO: We should not be extracting this information from the console name,
+    $console =~ m/^(\w+)-(console|virtio-terminal)/;
+    my ($name, $user, $type) = ($1, $1, $2);
+    if ($name eq 'user') {
+        $user = $testapi::username;
+    }
+    elsif ($name eq 'log') {
+        $user = 'root';
+    }
 
+    if ($type eq 'console') {
         # different handling for ssh consoles
         if (check_var('BACKEND', 's390x') || get_var('S390_ZKVM')) {
             # different console-behaviour for s390x
@@ -403,6 +410,9 @@ sub activate_console {
             # Disable console screensaver
             $self->script_run("setterm -blank 0");
         }
+    }
+    elsif ($type eq 'virtio-terminal') {
+        serial_terminal::login($user);
     }
     elsif ($console eq 'svirt') {
         $self->set_standard_prompt('root');
