@@ -37,7 +37,7 @@ sub run() {
         assert_screen("libreoffice-test-$tag");
     }
     send_key "ctrl-q";
-    if (!assert_screen("generic-desktop")) {
+    if (!check_screen("generic-desktop")) {
         send_key "ctrl-q";
     }
 

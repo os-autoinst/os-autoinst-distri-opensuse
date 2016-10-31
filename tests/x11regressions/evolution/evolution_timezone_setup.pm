@@ -37,14 +37,10 @@ sub run() {
     assert_screen "evolution-selectA-timezone";
     assert_and_click "mercator-projection";
     assert_screen "mercator-zoomed-in";
-    if (sle_version_at_least('12-SP2')) {
-        send_key "alt-s";
-        wait_still_screen 3;
-        send_key "ret";
-    }
-    else {
-        assert_and_click "time-zone-selection";
-    }
+    # Change timezone to Shanghai
+    send_key "alt-s";
+    wait_still_screen 3;
+    send_key "ret";
     send_key_until_needlematch("timezone-asia-shanghai", "up") || send_key_until_needlematch("timezone-asia-shanghai", "down");
     send_key "ret";
     assert_screen "asia-shanghai-timezone-setup";
