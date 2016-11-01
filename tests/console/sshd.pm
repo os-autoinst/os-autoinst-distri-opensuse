@@ -51,7 +51,7 @@ sub run() {
     type_string "yes\n";
     assert_screen 'password-prompt', 60;
     type_string "$ssh_testman_passwd\n";
-    assert_screen "ssh-login-ok", 10;
+    assert_screen "ssh-login-ok";
 }
 
 sub test_flags() {
