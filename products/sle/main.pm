@@ -22,6 +22,10 @@ sub is_desktop {
     return get_var('FLAVOR', '') =~ /^Desktop/;
 }
 
+sub is_casp() {
+    return check_var('DISTRI', 'casp');
+}
+
 sub is_sles4sap {
     return get_var('FLAVOR', '') =~ /SAP/;
 }
@@ -87,6 +91,11 @@ sub cleanup_needles {
     if (!is_jeos) {
         unregister_needle_tags('ENV-FLAVOR-JeOS-for-kvm');
     }
+
+    if (!is_casp) {
+        unregister_needle_tags('ENV-DISTRI-CASP');
+    }
+
     if (!check_var("ARCH", "s390x")) {
         unregister_needle_tags('ENV-ARCH-s390x');
     }
