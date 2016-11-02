@@ -8,27 +8,21 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Test that volumes are mounted by label
-# Maintainer: mkravec <mkravec@suse.com>
+# Summary: Verify that volumes are mounted by label
+# Maintainer: Michal Nowak <mnowak@suse.com>
 
 use base "opensusebasetest";
 use strict;
 use testapi;
 
 sub run() {
-    # Valid mounts are by text(proc,mem), LABEL, PARTLABEL
-    # Invalid mounts are by path, UUID, PARTUUID
-    my $invalid = script_output "grep -e '^/' -e '^UUID' -e '^PARTUUID' /etc/fstab";
+    # Valid mounts are by text(proc,mem), label, partlabel. Invalid mounts are by UUID, PARTUUID,
+    # and path (note that /dev/disk/by-(part)label/ is considered 'as a (part)label mount', just
+    # in different format).
+    my $invalid = script_output "! grep -e '^/dev/disk/by-[^\\(label,partlabel\\)]' -e '^UUID' -e '^PARTUUID' /etc/fstab";
 
     if ($invalid) {
-        # Kiwi limitations - some volumes are mounted from /dev/disk/by-(part)label/ = soft fail
-        my @error = grep(!/^\/dev\/disk\/by-(part)?label\/.+$/, split(/\n/, $invalid));
-        if (@error) {
-            die "Not all partitions are mounted by label";
-        }
-        else {
-            die "Mount is by path, UUID or PARTUUID and hence invalid";
-        }
+        die "Mount is by non-label path, non-partlabel path, UUID, or PARTUUID and hence invalid";
     }
 }
 
