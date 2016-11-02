@@ -113,8 +113,10 @@ sub run {
         my $disk_size = $settings{$p}->{HDDSIZEGB} || 10;
         my $num_disks = $settings{$p}->{NUMDISKS}  || 1;
 
-        for (my $d = 0; $d < $num_disks; $d++) {
-            $conf .= "export DISK_NAME_" . uc($node) . "_DISK$d='/dev/$disk_name" . chr(ord('a') + $d) . "'\n";
+        # In SLEnkins DISK_NAME_NODE_DISK0 is used for first additional disk /dev/vdb and so on
+        # Drive /dev/vda is always in use as bootdrive and has no dedicated variable
+        for (my $d = 0; $d < ($num_disks - 1); $d++) {
+            $conf .= "export DISK_NAME_" . uc($node) . "_DISK$d='/dev/$disk_name" . chr(ord('b') + $d) . "'\n";
             $conf .= "export DISK_SIZE_" . uc($node) . "_DISK$d='${disk_size}G'\n";
         }
         $i++;
