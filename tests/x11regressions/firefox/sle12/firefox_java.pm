@@ -22,9 +22,10 @@ sub java_testing {
     send_key "alt-d";
     type_string "http://www.java.com/en/download/installed.jsp?detect=jre\n";
 
-    assert_screen [qw(firefox-extcontent-reader firefox-java-security oracle-cookies-handling)];
-    if (match_has_tag 'firefox-extcontent-reader') {
-        assert_and_click('firefox-extcontent-reader');
+    wait_still_screen;
+    assert_screen [qw(firefox-reader-view firefox-java-security oracle-cookies-handling)];
+    if (match_has_tag 'firefox-reader-view') {
+        assert_and_click('firefox-reader-close');
         assert_screen [qw(firefox-java-security oracle-cookies-handling)];
     }
     assert_screen [qw(firefox-java-security oracle-cookies-handling)];

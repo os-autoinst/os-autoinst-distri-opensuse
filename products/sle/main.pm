@@ -191,10 +191,10 @@ sub load_x11regression_firefox() {
     loadtest "x11regressions/firefox/sle12/firefox_changesaving.pm";
     loadtest "x11regressions/firefox/sle12/firefox_fullscreen.pm";
     loadtest "x11regressions/firefox/sle12/firefox_health.pm";
+    loadtest "x11regressions/firefox/sle12/firefox_flashplayer.pm";
+    loadtest "x11regressions/firefox/sle12/firefox_java.pm";
     if (sle_version_at_least('12-SP2')) {    # take out these failed cases from qam test for SP1
-        loadtest "x11regressions/firefox/sle12/firefox_java.pm";
         loadtest "x11regressions/firefox/sle12/firefox_pagesaving.pm";
-        loadtest "x11regressions/firefox/sle12/firefox_flashplayer.pm";
         loadtest "x11regressions/firefox/sle12/firefox_ssl.pm";
         loadtest "x11regressions/firefox/sle12/firefox_passwd.pm";
         loadtest "x11regressions/firefox/sle12/firefox_mhtml.pm";
