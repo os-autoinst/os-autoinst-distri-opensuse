@@ -59,6 +59,10 @@ sub run {
 
     my $conf_script = "zypper -n --no-gpg-checks ar '" . get_var('SLENKINS_TESTSUITES_REPO') . "' slenkins_testsuites\n";
 
+    # Uses full URI with .repo extension, right now multiple FOREIGN_REPO is not supported
+    if (get_var("FOREIGN_REPO")) {
+        $conf_script .= "zypper -n --no-gpg-checks ar '" . get_var('FOREIGN_REPO') . "'\n";
+    }
     if (get_var('SLENKINS_INSTALL')) {
         $conf_script .= "zypper -n --no-gpg-checks in " . join(' ', split(/[\s,]+/, get_var('SLENKINS_INSTALL'))) . "\n";
     }
@@ -74,7 +78,7 @@ sub run {
         chmod 700 /root/.ssh
         chmod 600 /home/testuser/.ssh/*
         chmod 700 /home/testuser/.ssh
-        rcSuSEfirewall2 stop
+        SuSEfirewall2 off
         rcsshd restart
     ";
     script_output($conf_script, 100);
