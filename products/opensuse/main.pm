@@ -906,14 +906,8 @@ sub load_slenkins_tests {
 
 # load the tests in the right order
 if (get_var("REGRESSION")) {
-    if (get_var("KEEPHDDS")) {
-        load_login_tests();
-    }
-    else {
-        load_inst_tests();
-        load_reboot_tests();
-    }
-
+    load_inst_tests();
+    load_reboot_tests();
     load_x11regresion_tests();
 }
 elsif (get_var("MEDIACHECK")) {
