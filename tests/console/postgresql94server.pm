@@ -22,7 +22,7 @@ sub run() {
     select_console 'root-console';
 
     # install the postgresql94 server package
-    zypper_call "in postgresql94-server";
+    zypper_call "in postgresql94-server sudo";
 
     # start the postgresql94 service
     assert_script_run "systemctl start postgresql.service", 200;
