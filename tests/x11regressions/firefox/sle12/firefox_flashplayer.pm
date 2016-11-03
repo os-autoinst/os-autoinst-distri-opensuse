@@ -22,7 +22,12 @@ sub run() {
     send_key "esc";
     send_key "alt-d";
     type_string "http://www.adobe.com/software/flash/about/\n";
-    assert_screen('firefox-flashplayer-verify_loaded', 90);
+    wait_still_screen;
+    assert_screen ['firefox-reader-view', 'firefox-flashplayer-verify_loaded'], 90;
+    if (match_has_tag 'firefox-reader-view') {
+        assert_and_click('firefox-reader-close');
+        assert_screen('firefox-flashplayer-verify_loaded');
+    }
 
     send_key "pgdn";
     # flashplayer dropped since sled12 sp2

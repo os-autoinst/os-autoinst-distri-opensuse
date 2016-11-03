@@ -27,12 +27,13 @@ sub run() {
     sleep 1;
     type_string $ext_link. "\n";
 
-    assert_screen ['firefox-extcontent-reader', 'firefox-extcontent-pageloaded'], 90;
-    if (match_has_tag 'firefox-extcontent-reader') {
-        assert_and_click('firefox-extcontent-reader', 'left', 5, 0.2);
+    wait_still_screen;
+    assert_screen ['firefox-reader-view', 'firefox-extcontent-pageloaded'], 90;
+    if (match_has_tag 'firefox-reader-view') {
+        assert_and_click('firefox-reader-close');
+        assert_screen('firefox-extcontent-pageloaded');
     }
 
-    assert_screen('firefox-extcontent-pageloaded', 90);
     send_key "/";
     sleep 1;
     type_string "license.tar.gz\n";
