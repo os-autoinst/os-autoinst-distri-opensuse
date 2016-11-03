@@ -8,8 +8,8 @@
 # without any warranty.#
 
 
-# G-Summary: Live Patching regression testsuite
-# G-Maintainer: Ondřej Súkup <osukup@suse.cz>
+# Summary: Live Patching regression testsuite
+# Maintainer: Ondřej Súkup <osukup@suse.cz>
 
 use base 'opensusebasetest';
 use testapi;
@@ -46,7 +46,7 @@ sub run() {
     assert_script_run("chmod a+x /tmp/fcsf.sh");
     script_run("/tmp/fcsf.sh -il -P /var/log/qa/ctcs2 -r openposix", 60);
 
-    assert_script_run("tar -cpf /tmp/var_log_qa_ctcs2.tar.gz -C / /var/log/qa/ctcs2", 120);
+    assert_script_run("tar -cpzf /tmp/var_log_qa_ctcs2.tar.gz -C / /var/log/qa/ctcs2", 120);
     upload_logs("/tmp/var_log_qa_ctcs2.tar.gz");
 
     script_run("ssh-keygen -R qadb2.suse.de");
