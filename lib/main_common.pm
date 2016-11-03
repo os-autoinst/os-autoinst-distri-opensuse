@@ -14,7 +14,6 @@ our @EXPORT = qw/
   logcurrentenv
   is_staging
   is_reboot_after_installation_necessary
-  load_login_tests
   load_rescuecd_tests
   load_zdup_tests
   load_autoyast_tests
@@ -96,12 +95,6 @@ sub is_reboot_after_installation_necessary {
     return 0 if get_var("DUALBOOT") || get_var("RESCUECD") || get_var("ZDUP");
 
     return get_var("REBOOTAFTERINSTALL") && !get_var("UPGRADE");
-}
-
-sub load_login_tests {
-    if (!get_var("UEFI")) {
-        loadtest "login/boot.pm";
-    }
 }
 
 sub load_rescuecd_tests {
