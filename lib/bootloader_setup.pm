@@ -186,7 +186,11 @@ sub specific_bootmenu_params {
 
     if (check_var("INSTALLER_NO_SELF_UPDATE", 1)) {
         diag "Disabling installer self update as requested by INSTALLER_NO_SELF_UPDATE=1";
-        $args .= "self_update=0";
+        $args .= " self_update=0";
+    }
+    elsif (check_var("INSTALLER_SELF_UPDATE", 1)) {
+        diag "Explicitly enabling installer self update as requested by INSTALLER_SELF_UPDATE=1";
+        $args .= " self_update=1";
     }
 
     if (get_var("FIPS")) {
