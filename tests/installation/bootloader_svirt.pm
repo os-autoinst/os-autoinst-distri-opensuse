@@ -98,8 +98,7 @@ sub run() {
     }
 
     # In JeOS and netinstall we don't have ISO media, for the rest we have to attach it.
-    if (!get_var('NETBOOT') and !is_jeos()) {
-        # Add installation media
+    if (!get_var('NETBOOT') and !is_jeos() and !get_var('HDD_1')) {
         my $isofile = get_required_var('ISO');
         if ($vmm_family eq 'vmware') {
             $isofile = basename($isofile);
@@ -130,10 +129,19 @@ sub run() {
         }
     }
 
-    # using 'virtio' devices may prevent loosing key strokes
-    if ($vmm_family eq 'kvm') {
-        $svirt->add_input({type => 'mouse',    bus => "virtio"});
-        $svirt->add_input({type => 'keyboard', bus => "virtio"});
+    # We need to use 'tablet' as a pointer device, i.e. a device
+    # with absolute axis. That needs to be explicitely configured
+    # on KVM and Xen HVM only. VMware and Xen PV add pointer
+    # device with absolute axis by default.
+    if (($vmm_family eq 'kvm') or ($vmm_family eq 'xen' and $vmm_type eq 'hvm')) {
+        if ($vmm_family eq 'kvm') {
+            $svirt->add_input({type => 'tablet',   bus => 'virtio'});
+            $svirt->add_input({type => 'keyboard', bus => 'virtio'});
+        }
+        elsif ($vmm_family eq 'xen' and $vmm_type eq 'hvm') {
+            $svirt->add_input({type => 'tablet',   bus => 'usb'});
+            $svirt->add_input({type => 'keyboard', bus => 'ps2'});
+        }
     }
 
     my $console_target_type;
@@ -189,6 +197,11 @@ sub run() {
         # It should be provided by the worker or relied upon the default.
         $ifacecfg{type} = 'bridge';
         $ifacecfg{source} = {bridge => get_var('VMWARE_BRIDGE', 'VM Network')};
+    }
+    elsif ($vmm_family eq 'kvm') {
+        $ifacecfg{type} = 'user';
+        # This is the default MAC address for user mode networking; same in qemu backend
+        $ifacecfg{mac} = {address => '52:54:00:12:34:56'};
     }
     else {
         # We can use bridge or network as a base for network interface. Network named 'default'

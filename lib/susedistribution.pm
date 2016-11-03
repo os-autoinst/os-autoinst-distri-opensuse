@@ -398,6 +398,9 @@ sub activate_console {
             $self->script_run("setterm -blank 0");
         }
     }
+    elsif ($console eq 'svirt') {
+        $self->set_standard_prompt('root');
+    }
 }
 
 1;

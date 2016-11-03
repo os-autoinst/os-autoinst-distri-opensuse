@@ -30,7 +30,11 @@ sub run() {
         send_key "alt-e";    # open release notes window
     }
     else {
-        if (check_var('VIDEOMODE', 'text')) {
+        # In text mode we can't click anything. On Xen PV we don't have
+        # correct exis coordinates, so we miss the button: POO#13536.
+        if (check_var('VIDEOMODE', 'text')
+            or (check_var('VIRSH_VMM_FAMILY', 'xen') and check_var('VIRSH_VMM_TYPE', 'linux')))
+        {
             send_key "alt-l";    # open release notes window
         }
         else {
