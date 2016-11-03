@@ -51,21 +51,21 @@ echo "canvas_khaki.gif"
 convert -size 100x100 canvas:khaki  canvas_khaki.gif
 cme canvas_khaki.gif 12.gif
 
-echo "canvas_wheat.gif"
-convert -size 100x100 xc:wheat  canvas_wheat.gif
-cme canvas_wheat.gif 13.gif
-
 echo "canvas_salmon.gif"
 convert 'xc:Salmon[100x100!]'  canvas_salmon.gif
-cme canvas_salmon.gif 14.gif
+cme canvas_salmon.gif 13.gif
 
 echo "canvas_tomato.gif"
 convert canvas_khaki.gif -fill tomato -opaque khaki canvas_tomato.gif
-cme canvas_tomato.gif 15.gif
+cme canvas_tomato.gif 14.gif
 
 echo "canvas_rose_red.gif"
 convert rose:  -crop 1x1+40+30 +repage -scale 100x100\! canvas_rose_red.gif
-cme canvas_rose_red.gif 16.gif
+cme canvas_rose_red.gif 15.gif
+
+echo "canvas_wheat.gif"
+convert -size 100x100 xc:wheat  canvas_wheat.gif
+cme canvas_wheat.gif 16.gif
 
 echo "color_levelc.gif"
 convert test.png  -alpha Opaque +level-colors Sienna  color_levelc.gif
@@ -127,97 +127,97 @@ echo "black_threshold.png"
 convert  test.png -threshold 100% -alpha off  black_threshold.png
 cme black_threshold.png 31.png
 
-echo "black_level.png"
-convert  test.png -level 100%,100% -alpha off  black_level.png
-cme black_level.png 32.png
-
-echo "black_fx.png"
-convert test.png  -fx 0 -alpha off   black_fx.png
-cme black_fx.png 33.png
-
-echo "black_evaluate.png"
-convert  test.png  -evaluate set 0  -alpha off  black_evaluate.png
-cme black_evaluate.png 34.png
-
-echo "black_gamma.png"
-convert  test.png  -gamma 0  -alpha off  black_gamma.png
-cme black_gamma.png 35.png
-
-echo "black_posterize.png"
-convert  test.png  -posterize 1 -alpha off black_posterize.png
-cme black_posterize.png 36.png
-
-echo "black_alpha.png"
-convert test.png  -alpha transparent -alpha extract  black_alpha.png
-cme black_alpha.png 37.png
-
 echo "white_threshold.png"
 convert  test.png  -threshold -1 -alpha off   white_threshold.png
-cme white_threshold.png 38.png
+cme white_threshold.png 32.png
+
+echo "black_level.png"
+convert  test.png -level 100%,100% -alpha off  black_level.png
+cme black_level.png 33.png
 
 echo "white_level.png"
 convert  test.png -level -1,-1 -alpha off  white_level.png
-cme white_level.png 39.png
+cme white_level.png 34.png
+
+echo "black_fx.png"
+convert test.png  -fx 0 -alpha off   black_fx.png
+cme black_fx.png 35.png
 
 echo "white_fx.png"
 convert test.png -fx 1.0 -alpha off  white_fx.png
-cme white_fx.png 40.png
+cme white_fx.png 36.png
+
+echo "black_evaluate.png"
+convert  test.png  -evaluate set 0  -alpha off  black_evaluate.png
+cme black_evaluate.png 37.png
 
 echo "white_evaluate.png"
 convert  test.png  -evaluate set 100%  -alpha off  white_evaluate.png
-cme white_evaluate.png 41.png
+cme white_evaluate.png 38.png
+
+echo "black_gamma.png"
+convert  test.png  -gamma 0  -alpha off  black_gamma.png
+cme black_gamma.png 39.png
 
 echo "white_posterize.png"
 convert  test.png -posterize 1 -alpha off -negate  white_posterize.png
-cme white_posterize.png 42.png
+cme white_posterize.png 40.png
+
+echo "black_posterize.png"
+convert  test.png  -posterize 1 -alpha off black_posterize.png
+cme black_posterize.png 41.png
 
 echo "white_alpha.png"
 convert test.png  -alpha opaque -alpha extract  white_alpha.png
-cme white_alpha.png 43.png
+cme white_alpha.png 42.png
 
-echo "trans_alpha.png"
-convert test.png  -alpha transparent trans_alpha.png
-cme trans_alpha.png 44.png
-
-echo "trans_compose.png"
-convert test.png  null: -alpha set -compose Clear -composite -compose Over  trans_compose.png
-cme trans_compose.png 45.png
-
-echo "color_matte.png"
-convert test.png -alpha set -fill none  -draw 'matte 0,0 reset' color_matte.png
-cme color_matte.png 46.png
+echo "black_alpha.png"
+convert test.png  -alpha transparent -alpha extract  black_alpha.png
+cme black_alpha.png 43.png
 
 echo "trans_fx.png"
 convert test.png -alpha set -channel A -fx 0 +channel  trans_fx.png
-cme trans_fx.png 47.png
-
-echo "trans_evaluate.png"
-convert test.png  -alpha set -channel A -evaluate set 0 +channel  trans_evaluate.png
-cme trans_evaluate.png 48.png
-
-echo "trans_threshold.png"
-convert test.png -channel A -threshold -1 +channel trans_threshold.png
-cme trans_threshold.png 49.png
+cme trans_fx.png 44.png
 
 echo "trans_fx_alpha_off.jpg"
 convert  trans_fx.png -alpha off  trans_fx_alpha_off.jpg
-cme trans_fx_alpha_off.jpg 50.jpg
+cme trans_fx_alpha_off.jpg 45.jpg
+
+echo "trans_compose.png"
+convert test.png  null: -alpha set -compose Clear -composite -compose Over  trans_compose.png
+cme trans_compose.png 46.png
 
 echo "yellow_gamma.png"
 convert  test.png  -gamma -1,-1,0  -alpha off  yellow_gamma.png
-cme yellow_gamma.png 51.png
+cme yellow_gamma.png 47.png
+
+echo "color_matte.png"
+convert test.png -alpha set -fill none  -draw 'matte 0,0 reset' color_matte.png
+cme color_matte.png 48.png
 
 echo "grey_level.png"
 convert  test.png  +level 40%,40%  -alpha off  grey_level.png
-cme grey_level.png 52.png
+cme grey_level.png 49.png
+
+echo "trans_alpha.png"
+convert test.png  -alpha transparent trans_alpha.png
+cme trans_alpha.png 50.png
 
 echo "gradient.jpg"
 convert  -size 100x100 gradient:  gradient.jpg
-cme gradient.jpg 53.jpg
+cme gradient.jpg 51.jpg
+
+echo "trans_evaluate.png"
+convert test.png  -alpha set -channel A -evaluate set 0 +channel  trans_evaluate.png
+cme trans_evaluate.png 52.png
 
 echo "gradient_range1.jpg"
 convert -size 100x100  gradient:blue              gradient_range1.jpg
-cme gradient_range1.jpg 54.jpg
+cme gradient_range1.jpg 53.jpg
+
+echo "trans_threshold.png"
+convert test.png -channel A -threshold -1 +channel trans_threshold.png
+cme trans_threshold.png 54.png
 
 echo "gradient_range2.jpg"
 convert -size 100x100  gradient:yellow            gradient_range2.jpg
@@ -247,17 +247,17 @@ echo "gradient_grassland.jpg"
 convert -size 10x120  gradient:yellow-limegreen   gradient_grassland.jpg
 cme gradient_grassland.jpg 61.jpg
 
-echo "gradient_sunset.jpg"
-convert -size 10x120  gradient:khaki-tomato       gradient_sunset.jpg
-cme gradient_sunset.jpg 62.jpg
-
 echo "gradient_snow_scape.jpg"
 convert -size 10x120  gradient:darkcyan-snow      gradient_snow_scape.jpg
-cme gradient_snow_scape.jpg 63.jpg
+cme gradient_snow_scape.jpg 62.jpg
 
 echo "rgradient.jpg"
 convert -size 100x100 radial-gradient:  rgradient.jpg
-cme rgradient.jpg 64.jpg
+cme rgradient.jpg 63.jpg
+
+echo "gradient_sunset.jpg"
+convert -size 10x120  gradient:khaki-tomato       gradient_sunset.jpg
+cme gradient_sunset.jpg 64.jpg
 
 echo "rgradient_clip.jpg"
 convert -size 100x60 radial-gradient:  rgradient_clip.jpg
@@ -291,13 +291,13 @@ echo "gradient_transparent.png"
 convert -size 100x100 gradient:none-firebrick gradient_transparent.png
 cme gradient_transparent.png 72.png
 
-echo "gradient_trans_colorize.png"
-convert -size 100x100 gradient:none-black  -fill firebrick -colorize 100% gradient_trans_colorize.png
-cme gradient_trans_colorize.png 73.png
-
 echo "gradient_sigmoidal.jpg"
 convert -size 100x100 gradient: -sigmoidal-contrast 6,50%  gradient_sigmoidal.jpg
-cme gradient_sigmoidal.jpg 74.jpg
+cme gradient_sigmoidal.jpg 73.jpg
+
+echo "gradient_trans_colorize.png"
+convert -size 100x100 gradient:none-black  -fill firebrick -colorize 100% gradient_trans_colorize.png
+cme gradient_trans_colorize.png 74.png
 
 echo "gradient_cosine.jpg"
 convert -size 100x100 gradient: -evaluate cos 0.5 -negate  gradient_cosine.jpg
@@ -339,13 +339,13 @@ echo "gradient_angle_even.png"
 convert -size 1x1000 gradient: -rotate 90  -distort Arc '360 -90 50 0' +repage  -gravity center -crop 76x76+0+0 +repage  gradient_angle_even.png
 cme gradient_angle_even.png 84.png
 
-echo "gradient_angle_odd.png"
-convert -size 1x1000 gradient: -rotate 90  +distort Polar '36.5,0,.5,.5' +repage  -transverse  gradient_angle_odd.png
-cme gradient_angle_odd.png 85.png
-
 echo "gradient_angle_masked.png"
 convert -size 50x1000 gradient: -rotate 90 -alpha set  -virtual-pixel Transparent +distort Polar 49 +repage  -transverse  gradient_angle_masked.png
-cme gradient_angle_masked.png 86.png
+cme gradient_angle_masked.png 85.png
+
+echo "gradient_angle_odd.png"
+convert -size 1x1000 gradient: -rotate 90  +distort Polar '36.5,0,.5,.5' +repage  -transverse  gradient_angle_odd.png
+cme gradient_angle_odd.png 86.png
 
 echo "gradient_triangle.jpg"
 convert -size 100x100 radial-gradient:  -background black -wave -28x200 -crop 100x100+0+0 +repage  gradient_triangle.jpg
@@ -371,13 +371,13 @@ echo "gradient_rainbow.jpg"
 convert -size 30x600 xc:red -colorspace HSB  gradient: -compose CopyRed -composite  -colorspace RGB -rotate 90  gradient_rainbow.jpg
 cme gradient_rainbow.jpg 92.jpg
 
-echo "gradient_rainbow_2.jpg"
-convert -size 30x600 gradient:'#FFF-#0FF' -rotate 90  -set colorspace HSB -colorspace RGB  gradient_rainbow_2.jpg
-cme gradient_rainbow_2.jpg 93.jpg
-
 echo "gradient_hue_polar.png"
 convert -size 100x300 gradient:'#FFF-#0FF' -rotate 90  -alpha set -virtual-pixel Transparent +distort Polar 49 +repage  -rotate 90 -set colorspace HSB -colorspace RGB  gradient_hue_polar.png
-cme gradient_hue_polar.png 94.png
+cme gradient_hue_polar.png 93.png
+
+echo "gradient_rainbow_2.jpg"
+convert -size 30x600 gradient:'#FFF-#0FF' -rotate 90  -set colorspace HSB -colorspace RGB  gradient_rainbow_2.jpg
+cme gradient_rainbow_2.jpg 94.jpg
 
 echo "gradient_resize.jpg"
 echo "P1 1 2   0  1 " |  convert - -resize 100x100\!   gradient_resize.jpg
@@ -407,25 +407,25 @@ echo "gradient_interpolated.jpg"
 convert -size 600x30 xc:   \( +size xc:gold xc:firebrick +append \)   -fx 'v.p{i/(w-1),0}'    gradient_interpolated.jpg
 cme gradient_interpolated.jpg 101.jpg
 
-echo "gradient_clut_recolored.jpg"
-convert -size 30x600 gradient: -rotate 90  \( +size xc:gold xc:firebrick +append \) -clut  gradient_clut_recolored.jpg
-cme gradient_clut_recolored.jpg 102.jpg
-
 echo "gradient_clut.jpg"
 convert -size 30x600 gradient: -rotate 90  -interpolate Bicubic  \( +size xc:black xc:tomato xc:wheat +append \) -clut  gradient_clut.jpg
-cme gradient_clut.jpg 103.jpg
+cme gradient_clut.jpg 102.jpg
+
+echo "gradient_clut_recolored.jpg"
+convert -size 30x600 gradient: -rotate 90  \( +size xc:gold xc:firebrick +append \) -clut  gradient_clut_recolored.jpg
+cme gradient_clut_recolored.jpg 103.jpg
 
 echo "gradient_bilinear.jpg"
 convert \( xc:red xc:blue +append \)  \( xc:yellow xc:cyan +append \) -append  -size 100x100 xc: +swap  -fx 'v.p{i/(w-1),j/(h-1)}'  gradient_bilinear.jpg
 cme gradient_bilinear.jpg 104.jpg
 
-echo "gradient_catrom.jpg"
-convert \( xc:red xc:blue +append \)  \( xc:yellow xc:cyan +append \) -append  -filter point -interpolate catrom  -define distort:viewport=100x100  -distort Affine '.5,.5 .5,.5   1.5,1.5 99.5,99.5'  gradient_catrom.jpg
-cme gradient_catrom.jpg 105.jpg
-
 echo "gradient_mesh.jpg"
 convert \( xc:red xc:gold +append \)  \( xc:gold xc:green +append \) -append  -filter point -interpolate mesh  -define distort:viewport=100x100  -distort Affine '.5,.5 .5,.5   1.5,1.5 99.5,99.5'  gradient_mesh.jpg
-cme gradient_mesh.jpg 106.jpg
+cme gradient_mesh.jpg 105.jpg
+
+echo "gradient_catrom.jpg"
+convert \( xc:red xc:blue +append \)  \( xc:yellow xc:cyan +append \) -append  -filter point -interpolate catrom  -define distort:viewport=100x100  -distort Affine '.5,.5 .5,.5   1.5,1.5 99.5,99.5'  gradient_catrom.jpg
+cme gradient_catrom.jpg 106.jpg
 
 echo "gradient_fx_linear.gif"
 convert  rose:  -channel G -fx 'i/w' -separate   gradient_fx_linear.gif
@@ -511,13 +511,13 @@ echo "gradient_scale.png"
 convert  -size 1x5 gradient:  -scale 2000% gradient_scale.png
 cme gradient_scale.png 127.png
 
-echo "gradient_equiv.png"
-convert -size 1x5 xc:  -sparse-color Barycentric '0,0 white  0,%[fx:h-1] black'  -scale 2000%  gradient_equiv.png
-cme gradient_equiv.png 128.png
-
 echo "gradient_math.png"
 convert -size 1x5 xc:  -sparse-color Barycentric '0,-0.5 white  0,%[fx:h-.5] black'  -scale 2000%  gradient_math.png
-cme gradient_math.png 129.png
+cme gradient_math.png 128.png
+
+echo "gradient_equiv.png"
+convert -size 1x5 xc:  -sparse-color Barycentric '0,0 white  0,%[fx:h-1] black'  -scale 2000%  gradient_equiv.png
+cme gradient_equiv.png 129.png
 
 echo "gradient_shifted.png"
 convert -size 1x5 xc:  -sparse-color Barycentric '0,0 white  0,%h black'  -scale 2000%  gradient_shifted.png
@@ -691,13 +691,13 @@ echo "random_white.png"
 convert random.png   -channel G -threshold 5%  -channel RG -separate +channel  -compose Screen      -composite   random_white.png
 cme random_white.png 172.png
 
-echo "random_trans.png"
-convert random.png   -channel G -threshold 5% -negate  -channel RG -separate +channel  -compose CopyOpacity -composite   random_trans.png
-cme random_trans.png 173.png
-
 echo "random_1.png"
 convert random.png -virtual-pixel tile  -blur 0x1  -auto-level  random_1.png
-cme random_1.png 174.png
+cme random_1.png 173.png
+
+echo "random_trans.png"
+convert random.png   -channel G -threshold 5% -negate  -channel RG -separate +channel  -compose CopyOpacity -composite   random_trans.png
+cme random_trans.png 174.png
 
 echo "random_3.png"
 convert random.png -virtual-pixel tile  -blur 0x3  -auto-level  random_3.png
