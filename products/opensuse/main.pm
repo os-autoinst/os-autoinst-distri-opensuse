@@ -920,9 +920,6 @@ elsif (get_var("RESCUESYSTEM")) {
     loadtest "installation/rescuesystem.pm";
     loadtest "installation/rescuesystem_validate_131.pm";
 }
-elsif (get_var("LINUXRC")) {
-    loadtest "linuxrc/system_boot.pm";
-}
 elsif (get_var("SUPPORT_SERVER")) {
     loadtest "support_server/boot.pm";
     loadtest "support_server/login.pm";
