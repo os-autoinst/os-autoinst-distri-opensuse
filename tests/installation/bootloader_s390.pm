@@ -81,10 +81,6 @@ sub prepare_parmfile {
     my $instsrc = get_var('REPO_TYPE', 'ftp') . '://' . get_var('REPO_HOST', 'openqa') . '/';
     $params .= " install=" . $instsrc . $repo . " ";
 
-    if (check_var("INSTALLER_NO_SELF_UPDATE", 1)) {
-        diag "Disabling installer self update as requested by INSTALLER_NO_SELF_UPDATE=1";
-        $params .= 'self_update=0 ';
-    }
     if (get_var('UPGRADE')) {
         $params .= 'upgrade=1 ';
     }
