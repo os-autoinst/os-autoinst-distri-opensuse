@@ -120,6 +120,11 @@ if (sle_version_at_least('12-SP2')) {
     set_var('SP2ORLATER', 1);
 }
 
+# temporary work around to test SP2 maintenance while its not released
+if (get_var('FLAVOR') =~ m/-Updates$/ && check_var('VERSION', '12-SP2')) {
+    set_var('SCC_REGISTER', 'never');
+}
+
 if (!get_var('NETBOOT')) {
     set_var('DVD', 1);
 }
