@@ -22,7 +22,7 @@ sub java_testing {
     send_key "alt-d";
     type_string "http://www.java.com/en/download/installed.jsp?detect=jre\n";
 
-    wait_still_screen;
+    wait_still_screen 3;
     assert_screen [qw(firefox-reader-view firefox-java-security oracle-cookies-handling)];
     if (match_has_tag 'firefox-reader-view') {
         assert_and_click('firefox-reader-close');

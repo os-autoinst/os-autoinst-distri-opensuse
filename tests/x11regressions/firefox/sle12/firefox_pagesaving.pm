@@ -19,10 +19,6 @@ sub run() {
     my ($self) = @_;
     $self->start_firefox;
 
-    sleep 1;
-    x11_start_program("firefox");
-    assert_screen('firefox-launch', 90);
-
     send_key "esc";
     sleep 1;
     send_key "alt-d";

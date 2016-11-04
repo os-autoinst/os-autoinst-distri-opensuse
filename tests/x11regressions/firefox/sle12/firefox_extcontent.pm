@@ -27,7 +27,7 @@ sub run() {
     sleep 1;
     type_string $ext_link. "\n";
 
-    wait_still_screen;
+    wait_still_screen 3;
     assert_screen ['firefox-reader-view', 'firefox-extcontent-pageloaded'], 90;
     if (match_has_tag 'firefox-reader-view') {
         assert_and_click('firefox-reader-close');
