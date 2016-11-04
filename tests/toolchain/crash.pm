@@ -61,18 +61,15 @@ sub run() {
 
     # activate kdump
     script_run 'yast2 kdump', 0;
-    if (check_screen 'yast2-kdump-disabled') {
-        send_key 'alt-u';    # enable kdump
-    }
-
-    assert_screen 'yast2-kdump-enabled';
-    send_key 'alt-o';        # OK
-
-    if (check_screen 'yast2-kdump-restart-info') {
-        send_key 'alt-o';    # OK
-    }
-
-    wait_still_screen(10, 30);
+    my @tags = qw(yast2-kdump-disabled yast2-kdump-enabled yast2-kdump-restart-info yast2-missing_package yast2_console-finished);
+    do {
+        assert_screen \@tags, 300;
+        # enable kdump if it is not already
+        wait_screen_change { send_key 'alt-u' } if match_has_tag('yast2-kdump-disabled');
+        wait_screen_change { send_key 'alt-o' } if match_has_tag('yast2-kdump-enabled');
+        wait_screen_change { send_key 'alt-o' } if match_has_tag('yast2-kdump-restart-info');
+        wait_screen_change { send_key 'alt-i' } if match_has_tag('yast2-missing_package');
+    } until (match_has_tag('yast2_console-finished'));
     script_run 'reboot', 0;
     wait_boot;
     select_console 'root-console';
