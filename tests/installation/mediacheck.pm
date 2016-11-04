@@ -20,8 +20,10 @@ use bootloader_setup qw/pre_bootmenu_setup/;
 sub run {
     my $self = shift;
 
-    # handle mediacheck for usb boot
-    return if pre_bootmenu_setup == 3;
+    # handle mediacheck for usb boot if non-uefi
+    if (!get_var("UEFI")) {
+        return if pre_bootmenu_setup == 3;
+    }
 
     ensure_shim_import;
     $self->select_bootmenu_option('inst-onmediacheck', 1);
