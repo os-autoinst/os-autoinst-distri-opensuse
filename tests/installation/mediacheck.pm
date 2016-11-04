@@ -8,16 +8,20 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Rework the tests layout.
-# G-Maintainer: Alberto Planas <aplanas@suse.com>
+# Summary: Verify mediacheck function on the DVD
+# Maintainer: Max Lin <mlin@suse.com>
 
 use base "opensusebasetest";
 use strict;
 use testapi;
 use utils qw/ensure_shim_import/;
+use bootloader_setup qw/pre_bootmenu_setup/;
 
 sub run {
     my $self = shift;
+
+    # handle mediacheck for usb boot
+    return if pre_bootmenu_setup == 3;
 
     ensure_shim_import;
     $self->select_bootmenu_option('inst-onmediacheck', 1);
