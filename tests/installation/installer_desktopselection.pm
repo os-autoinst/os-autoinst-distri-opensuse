@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: change to nicer directory structure
-# G-Maintainer: Bernhard M. Wiedemann <bernhard+osautoinst lsmod de>
+# Summary: Select desktop in installer based on test settings
+# Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
 
 use strict;
 use base "y2logsstep";
@@ -17,7 +17,7 @@ use testapi;
 
 sub run() {
     assert_screen 'desktop-selection';
-    my $d = get_var('DESKTOP_MINIMALX_INSTONLY') ? 'minimalx' : get_var('DESKTOP');
+    my $d = get_var('DESKTOP');
     if ($d ne 'kde' && $d ne 'gnome') {
         # up to 42.1 textmode was below 'other'
         if (!($d eq 'textmode' && check_screen 'has-server-selection', 2)) {

@@ -18,10 +18,6 @@ use base "y2logsstep";
 use testapi;
 
 sub handle_login {
-    if (get_var('DESKTOP_MINIMALX_INSTONLY')) {
-        # return at the DM and log in later into desired wm
-        return;
-    }
     mouse_hide();
     wait_still_screen;
     if (get_var('DM_NEEDS_USERNAME')) {

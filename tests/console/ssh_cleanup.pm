@@ -11,7 +11,7 @@ use testapi;
 
 # Summary: Cleanup ssh test user to prevent the user showing up in
 #  displaymanager and confusing other tests
-# Maintainer: okurz@suse.de
+# Maintainer: Oliver Kurz <okurz@suse.de>
 sub run() {
     select_console 'root-console';
     assert_script_run('getent passwd sshboy > /dev/null && userdel -fr sshboy');
