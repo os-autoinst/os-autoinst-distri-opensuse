@@ -29,10 +29,9 @@ sub run() {
     type_string "facebook.com\n";
     assert_screen('firefox-private-facebook', 90);
 
-    sleep 1;
     send_key "alt-f4";
-    sleep 1;
-    send_key "alt-f4";
+    wait_still_screen 3;
+    $self->exit_firefox;
 
     sleep 2;
     x11_start_program("firefox");
@@ -47,7 +46,6 @@ sub run() {
 
     # Exit
     send_key "alt-f4";
-
     if (check_screen('firefox-save-and-quit', 30)) {
         # confirm "save&quit"
         send_key "ret";
