@@ -1,13 +1,17 @@
-language: perl # prevent it from using perlbrew which does not support threads
+language: perl
 perl:
-  - "5.18-extras"
+  - "5.18"
+addons:
+  apt:
+    packages:
+      - libdbus-1-dev
+      - libssh2-1-dev
 before_install:
   - eval $(curl https://travis-perl.github.io/init) --perl
-  - sudo apt-get update
+  - echo "requires 'Code::DRY';" >> cpanfile
 install:
-  - perlbrew list
-  - sudo apt-get install libdbus-1-dev libssh2-1-dev
   - make prepare
 script:
   - make test
-sudo: required
+  # just for information
+  - perl tools/detect_code_dups
