@@ -45,8 +45,13 @@ sub run() {
             sleep 10;    # wait 10 seconds to make authentication window disappear after successful authentication
             if (check_screen 'reboot-auth', 2) {
                 record_soft_failure 'bsc#981299';
-                send_key_until_needlematch 'generic-desktop', 'esc',             7, 10;    # close timed out authentication window
-                send_key_until_needlematch 'logoutdialog',    'ctrl-alt-delete', 7, 10;    # reboot
+                send_key_until_needlematch 'generic-desktop', 'esc', 7, 10;    # close timed out authentication window
+                if (check_var('DISTRI', 'sle') && !sle_version_at_least('12-SP2')) {
+                    # retrying does not help on SP1 - once it fails, it will always fail
+                    # so just keep it as soft failure
+                    return;
+                }
+                send_key_until_needlematch 'logoutdialog', 'ctrl-alt-delete', 7, 10;    # reboot
                 assert_and_click 'logoutdialog-reboot-highlighted';
             }
         }
