@@ -21,6 +21,8 @@ sub run() {
     my ($self) = @_;
     $self->start_firefox;
 
+    send_key "ctrl-w";
+    wait_still_screen 3;
     send_key "ctrl-shift-a";
     assert_and_click('firefox-plugins-tabicon');
     assert_screen('firefox-gnomeshell-default', 30);
@@ -38,7 +40,11 @@ sub run() {
 
     send_key "alt-d";
     type_string "extensions.gnome.org/extension/512/wikipedia-search-provider/\n";
-    assert_screen("firefox-gnomeshell-extension", 90);
+    assert_screen([qw(firefox-reader-view firefox-gnomeshell-extension)], 90);
+    if (match_has_tag 'firefox-reader-view') {
+        assert_and_click('firefox-reader-close');
+        assert_screen("firefox-gnomeshell-extension");
+    }
     sleep 5;
     assert_and_click "firefox-gnomeshell-extension_install";
     assert_and_click "firefox-gnomeshell-extension_confirm";
@@ -46,8 +52,7 @@ sub run() {
     assert_screen("firefox-gnomeshell-extension_on", 60);
 
     # Exit
-    send_key "ctrl-w";
-    send_key "alt-f4";
+    $self->exit_firefox;
 
     sleep 2;
     x11_start_program("xterm");
@@ -55,11 +60,6 @@ sub run() {
     sleep 2;
     assert_screen('firefox-gnomeshell-checkdir', 30);
     type_string "rm -rf .local/share/gnome-shell/extensions/*;exit\n";
-
-    if (check_screen('firefox-save-and-quit', 30)) {
-        # confirm "save&quit"
-        send_key "ret";
-    }
 }
 1;
 # vim: set sw=4 et:

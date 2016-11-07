@@ -20,21 +20,22 @@ sub run() {
     $self->start_firefox;
 
     assert_screen('firefox-extensions-no_flag', 90);
+    send_key "ctrl-w";
+    wait_still_screen 3;
     send_key "ctrl-shift-a";
     assert_screen('firefox-addons_manager', 90);
 
-    for my $i (1 .. 2) { send_key "tab"; }
+    assert_and_click "firefox-searchall-addon";
     type_string "flagfox\n";
-    assert_and_click('firefox-extensions-flagfox');
-    for my $i (1 .. 2) { send_key "tab"; }
-    send_key "spc";
+    assert_and_click('firefox-extensions-flagfox', 'right');
+    assert_and_click('firefox-extensions-flagfox_install');
     assert_screen('firefox-extensions-flagfox_installed', 90);
 
     send_key "alt-1";
     assert_screen('firefox-extensions-show_flag', 60);
 
     sleep 1;
-    send_key "alt-2";
+    send_key "alt-3";
     assert_and_click('firefox-extensions-flagfox_installed');
 
     sleep 2;

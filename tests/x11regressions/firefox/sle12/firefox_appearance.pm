@@ -19,6 +19,8 @@ sub run() {
     my ($self) = @_;
     $self->start_firefox;
 
+    send_key "ctrl-w";
+    wait_still_screen 3;
     send_key "ctrl-shift-a";
     assert_and_click('firefox-appearance-tabicon');
     assert_screen('firefox-appearance-default', 30);
@@ -29,10 +31,11 @@ sub run() {
     type_string "addons.mozilla.org/en-US/firefox/addon/opensuse\n";
     assert_screen('firefox-appearance-mozilla_addons', 90);
     send_key "alt-f10";
+    wait_still_screen 3;
     assert_and_click "firefox-appearance-addto";
-    sleep 1;
-    send_key "alt-a";
     assert_screen('firefox-appearance-installed', 90);
+    # Undo the theme installation
+    send_key "alt-u";
 
     # Exit
     for my $i (1 .. 2) { sleep 1; send_key "ctrl-w"; }

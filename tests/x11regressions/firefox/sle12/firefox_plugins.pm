@@ -21,6 +21,8 @@ sub run() {
     my ($self) = @_;
     $self->start_firefox;
 
+    send_key "ctrl-w";
+    wait_still_screen 3;
     send_key "ctrl-shift-a";
     assert_and_click('firefox-addons-plugins');
     assert_screen('firefox-plugins-overview_01', 60);
