@@ -7,8 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add test case yast2_xinetd
-# G-Maintainer: Zaoliang Luo <zluo@suse.de>
+# Summary: yast2_xinetd checks start and stop of verious server components and add or delete server components
+# Maintainer: Zaoliang Luo <zluo@suse.de>
 
 use strict;
 use base "consoletest";
@@ -31,48 +31,51 @@ sub run() {
 
     # enable xinetd
     send_key 'alt-l';
-    wait_still_screen;
+    wait_still_screen 1;
 
     # toggle status on at first and then off
     send_key 'alt-s';
-    wait_still_screen;
+    wait_still_screen 1;
     send_key 'alt-d';
-    wait_still_screen;
+    wait_still_screen 1;
 
     # deactivate all services
     assert_screen 'yast2_xinetd_all_deactivated';
     send_key 'alt-s';
-    wait_still_screen;
+    wait_still_screen 1;
 
     # activate all services
     send_key 'alt-a';
-    wait_still_screen;
+    wait_still_screen 1;
 
     # try to delete an item which is not installed at all
     send_key 'alt-d';
-    wait_still_screen;
+    assert_screen 'yast2_xinetd_cannot_delete';
     send_key 'alt-o';
+    wait_still_screen 1;
 
     # delete ftp configuration from the list
     send_key_until_needlematch 'yast2_xinetd_ftp_deleted', 'down';
     send_key 'alt-d';
-    wait_still_screen;
+    wait_still_screen 1;
+    assert_screen 'yast2_xinetd_cannot_delete_again';
+    send_key 'alt-o';
 
     # add a service
     send_key 'alt-a';
-    wait_still_screen;
+    wait_still_screen 1;
     type_string 'super_ping';
-    wait_still_screen;
+    wait_still_screen 1;
     send_key 'alt-e';
-    wait_still_screen;
+    wait_still_screen 1;
     type_string 'localhost';
-    wait_still_screen;
+    wait_still_screen 1;
     send_key 'alt-m';
-    wait_still_screen;
+    wait_still_screen 1;
     type_string 'fake, useless, nobody should use it, use ping instead of it ;)';
-    wait_still_screen;
+    wait_still_screen 1;
     send_key 'alt-a';
-    wait_still_screen;
+    wait_still_screen 1;
 
     # close xinetd with finish
     send_key 'alt-f';
