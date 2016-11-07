@@ -23,10 +23,12 @@ sub run() {
     # Fetch mht file to shm
     x11_start_program("wget " . autoinst_url . "/data/x11regressions/ie10.mht -O /dev/shm/ie10.mht");
 
+    send_key "ctrl-w";
+    wait_still_screen 3;
     send_key "ctrl-shift-a";
     assert_screen('firefox-addons_manager', 90);
 
-    for my $i (1 .. 2) { send_key "tab"; }
+    assert_and_click "firefox-searchall-addon";
     type_string "unmht\n";
     assert_and_click('firefox-mhtml-unmht');
     for my $i (1 .. 2) { send_key "tab"; }
@@ -40,13 +42,9 @@ sub run() {
     assert_screen('firefox-mhtml-loadpage', 60);
 
     # Exit and Clear
-    send_key "alt-f4";
+    $self->exit_firefox;
+    wait_still_screen 3;
     x11_start_program("rm /dev/shm/ie10.mht");
-
-    if (check_screen('firefox-save-and-quit', 30)) {
-        # confirm "save&quit"
-        send_key "ret";
-    }
 }
 1;
 # vim: set sw=4 et:
