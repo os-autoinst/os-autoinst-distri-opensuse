@@ -13,8 +13,8 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# G-Summary: slenkins support
-# G-Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
+# Summary: slenkins support
+# Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
 
 use strict;
 use base 'basetest';
@@ -59,6 +59,13 @@ sub run {
 
     my $conf_script = "zypper -n --no-gpg-checks ar '" . get_var('SLENKINS_TESTSUITES_REPO') . "' slenkins_testsuites\n";
 
+    # Uses full URI with .repo extension, multiple repos separated by colon is supported
+    if (get_var('FOREIGN_REPOS')) {
+        foreach (split(/[\s,]+/, get_var('FOREIGN_REPOS'))) {
+            $conf_script .= "zypper -n --no-gpg-checks ar '" . $_ . "'\n";
+        }
+    }
+
     if (get_var('SLENKINS_INSTALL')) {
         $conf_script .= "zypper -n --no-gpg-checks in " . join(' ', split(/[\s,]+/, get_var('SLENKINS_INSTALL'))) . "\n";
     }
@@ -74,7 +81,8 @@ sub run {
         chmod 700 /root/.ssh
         chmod 600 /home/testuser/.ssh/*
         chmod 700 /home/testuser/.ssh
-        rcSuSEfirewall2 stop
+        systemctl disable SuSEfirewall2
+        systemctl stop SuSEfirewall2
         rcsshd restart
     ";
     script_output($conf_script, 100);
