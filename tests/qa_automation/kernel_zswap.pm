@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# Summary:  [qa_automation] Add ltp tests
+# Summary:  [qa_automation] zswap testsuite
 # Maintainer: Nathan Zhao <jtzhao@suse.com>
 
 use base "qa_run";
