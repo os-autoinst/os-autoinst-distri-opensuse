@@ -897,8 +897,14 @@ sub load_slenkins_tests {
 
 # load the tests in the right order
 if (get_var("REGRESSION")) {
-    load_inst_tests();
-    load_reboot_tests();
+    if (get_var("KEEPHDDS")) {
+        load_login_tests();
+    }
+    else {
+        load_inst_tests();
+        load_reboot_tests();
+    }
+
     load_x11regresion_tests();
 }
 elsif (get_var("MEDIACHECK")) {
@@ -910,6 +916,9 @@ elsif (get_var("MEMTEST")) {
 elsif (get_var("RESCUESYSTEM")) {
     loadtest "installation/rescuesystem.pm";
     loadtest "installation/rescuesystem_validate_131.pm";
+}
+elsif (get_var("LINUXRC")) {
+    loadtest "linuxrc/system_boot.pm";
 }
 elsif (get_var("SUPPORT_SERVER")) {
     loadtest "support_server/boot.pm";
