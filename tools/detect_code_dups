@@ -1,0 +1,267 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+use Getopt::Long;
+use Term::ANSIColor ':constants';
+use Code::DRY;
+
+local $Term::ANSIColor::AUTORESET = 1;
+
+sub get_concatenated_text {
+    my ($start, $length) = @_;
+    return substr($Code::DRY::codetotal, $start, $length);
+}
+
+sub callback {
+    my ($minlength, $units, $rDups) = @_;
+
+    # show dupes
+    my $copies               = scalar @{$rDups} - 1;
+    my $myamountlines        = $rDups->[0]->[3] - $rDups->[0]->[2] + 1;
+    my $myamountbytesclipped = $rDups->[0]->[5] - $rDups->[0]->[4] + 1;
+    my $myamountbytes        = $rDups->[0]->[7] - $rDups->[0]->[6] + 1;
+    my $lengthstring
+      = $units eq 'bytes' ?
+      "$myamountbytes (>= $minlength $units) and $myamountlines complete lines"
+      : "$myamountlines (>= $minlength $units) and $myamountbytesclipped bytes reduced to complete lines";
+    print BOLD RED "$copies duplicate(s) found with a length of $lengthstring:\n";
+
+    my $cnt = 1;
+    for my $dup (@{$rDups}) {
+        print
+          "$cnt.  File: $dup->[0] in lines $dup->[2]..$dup->[3] (bytes ",
+          $dup->[4] - $dup->[1], "..", $dup->[5] - $dup->[1], ")\n";
+        ++$cnt;
+    }
+
+    $cnt = 1;
+    for my $dup (@{$rDups}) {
+        print "$cnt. =================\n";
+
+        my $offsetLineEnd;
+        if ($units eq 'bytes') {
+
+            # begin at start of line
+            my $linenumber      = Code::DRY::offset2line($dup->[6]);
+            my $fileindex       = Code::DRY::offset2fileindex($dup->[6]);
+            my $file_lineoffset = $Code::DRY::file_lineoffsets[$fileindex];
+            my $offsetLineBegin
+              = $linenumber <= 1 ?
+              $dup->[1]
+              : $dup->[1] + $file_lineoffset->[$linenumber - 2] + 1;
+            $offsetLineEnd = $dup->[1] + $file_lineoffset->[$dup->[3] + ($dup->[5] == $dup->[7] ? 0 : 1)];
+            print RED get_concatenated_text($offsetLineBegin, $dup->[6] - $offsetLineBegin);
+        }
+        print YELLOW get_concatenated_text($dup->[4], $dup->[5] - $dup->[4] + 1);
+        if ($units eq 'bytes') {
+            print RED get_concatenated_text($dup->[7] + 1, $offsetLineEnd - $dup->[7]);
+        }
+
+        # end at end of line
+        ++$cnt;
+        # avoids duplicates of output also :-)
+        last;
+    }
+    print RESET "\n=================\n";
+}
+
+use File::Find ();
+
+my @files;
+sub match_file {
+    if (-f $_ && ! -l $_ && -s $_ && $_ =~ /.pm$/) {
+        if ($File::Find::name !~ m/sle11/) {
+            push @files, $File::Find::name;
+        }
+    }
+}
+
+my $verbose             = 1;
+my $minlength           = 8;
+my $ignoreContentFilter = qr(\A(?:^\s*(?:\#.*)?$)*\z);
+
+Code::DRY::clearData;
+File::Find::find(\&match_file, qw/lib tests/);
+
+use PPI;
+use PPI::Dumper;
+
+sub __get_text {
+    my $file     = shift;
+    my $contents = '';
+    my @lineoffsets;
+
+    my $Document = PPI::Document->new($file);
+    # Remove all that nasty documentation
+    $Document->prune('PPI::Token::Pod');
+    $Document->prune('PPI::Token::Comment');
+    $Document->prune('PPI::Statement::Include');
+
+    # delete end statement
+    for my $statement (@{$Document->find('PPI::Statement')}) {
+	if ($statement->content eq '1;') {
+	    $statement->delete;
+	}
+    }
+    # test_flags are duplicates
+    for my $sub (@{$Document->find('PPI::Statement::Sub')}) {
+	if ($sub->name eq 'test_flags') {
+	    $sub->delete;
+	}
+    }
+
+    #my $lines = _dump($Document, []);
+    my $string = $Document->serialize;
+    $string =~ s,\s*\n\s*,\n,g;
+    $string =~ s,[\ \t]+, ,g;
+    $string =~ s,",',g;
+    my @lines = split(/\n/, $string);
+    for my $line (@lines) {
+        $contents .= "$line\n";
+        push @lineoffsets, length($contents) - 1;
+    }
+
+    return ($contents, @lineoffsets);
+}
+
+# preprocess files content
+my $here = 0;
+for my $file (@files) {
+    my ($code, @lineoffsets) = __get_text($file);
+
+    # we need the length of $code
+    $Code::DRY::codetotal .= $code;
+    push @Code::DRY::fileoffsets, (length $Code::DRY::codetotal) - 1;
+
+    # save line offsets per file
+    push @Code::DRY::file_lineoffsets, [@lineoffsets];
+    ++$here;
+}
+
+#print $Code::DRY::codetotal;
+
+use Data::Dumper;
+#print Dumper(\@files);
+#print $codetotal;
+
+# enter codestring
+Code::DRY::build_suffixarray_and_lcp($Code::DRY::codetotal) == 0
+  or die "Error building suffix array:$!\n";
+warn "analysing content of ", length $Code::DRY::codetotal, " bytes out of ", scalar @files, " files...\n" if ($verbose);
+
+Code::DRY::clip_lcp_to_fileboundaries(\@Code::DRY::fileoffsets);
+Code::DRY::reduce_lcp_to_nonoverlapping_lengths();
+Code::DRY::set_lcp_to_zero_for_shadowed_substrings();
+
+my $n   = Code::DRY::get_size();
+my $cnt = 0;
+
+my @ranks;
+
+my $last_lcp = 0;
+@ranks = sort { Code::DRY::get_len_at($b) <=> Code::DRY::get_len_at($a) } grep {
+
+    # filter out when the lcp for this index is smaller than our requested minimal length
+    my $lcp;    # length of match
+    my $res = ($lcp = Code::DRY::get_len_at($_)) >= $minlength; 
+
+    $res = $res && $lcp != $last_lcp;
+
+    # ignore filter
+    my $off;
+    if ($res && defined $ignoreContentFilter) {
+        $res = substr($Code::DRY::codetotal, $off = Code::DRY::get_offset_at($_), $lcp) !~ m{$ignoreContentFilter}xms;
+    }
+
+    if ($res && 0 <= $minlength) {                                    # minimal length is specified in line units
+        my $off = Code::DRY::get_offset_at($_);
+
+        # include complete lines
+        my ($upLine, $downLine);
+        my $startLine = Code::DRY::offset2line($off, \$upLine);
+        my $endLine = Code::DRY::offset2line($off + $lcp - 1, undef, \$downLine);
+        my $includesCompleteLines = $downLine - $upLine + 1;
+
+        # positive minlength is interpreted as lines
+        $res = $includesCompleteLines >= $minlength;
+    }
+
+    if (1) {
+        $last_lcp = $lcp;
+    }
+
+    #print "index $_ with lcp ", get_len_at($_), " and offset ", get_offset_at($_), " is ", $res ? "accepted\n" : "filtered out\n";
+    #print "index $_ with lcp ", get_len_at($_), " and offset ", get_offset_at($_), " is accepted\n" if $res;
+    #print "index $_ with lcp ", get_len_at($_), " and offset ", get_offset_at($_), " is filtered out\n" if !$res;
+    $res;
+} (1 .. $n - 1);
+
+# position to file and line number mapping
+sub offset2filename {
+    my $offset = shift;
+    my $fi     = Code::DRY::offset2fileindex($offset);
+    if (!defined $fi) {
+        return;
+    }
+
+    return $files[$fi];
+}
+
+warn "ranking array created with ", scalar @ranks, " entries\n" if ($verbose);
+
+# now report the remaining duplicates
+for my $matchentry_p (@ranks) {
+
+    # how many duplicates?
+    my $count_dups = 2;
+    my $lcp        = Code::DRY::get_len_at($matchentry_p);    # length of match
+    while ($lcp == Code::DRY::get_len_at($matchentry_p + $count_dups - 1)) {
+        ++$count_dups;
+    }
+
+    my $matchentry = $matchentry_p - 1;
+    my $units = 'lines';
+    my $length = $lcp;
+
+    # get position info
+    # and report via callback
+    my @dups;
+    for my $entry ($matchentry .. $matchentry + $count_dups - 1) {
+        my $offset_start = Code::DRY::get_offset_at($entry);
+        my $offset_end   = $offset_start + $length - 1;
+        my $file_index   = Code::DRY::offset2fileindex($offset_start);
+        my $file_start   = $file_index == 0 ? 0 : $Code::DRY::fileoffsets[$file_index - 1] + 1;
+
+        #print "$offset_start -> $offset_end => length ", $offset_end - $offset_start + 1, "\n";
+        my ($upLine, $downLine);
+        Code::DRY::offsetAndFileindex2line($offset_start, $file_index, \$upLine);
+        Code::DRY::offsetAndFileindex2line($offset_end, $file_index, undef, \$downLine);
+
+        # in line mode clip to line start and line end
+        my ($offset_start_clipped, $offset_end_clipped);
+        if ($units eq 'lines') {
+            $offset_start_clipped = $file_start + (
+                $upLine < 2 ?
+                  0
+                : $Code::DRY::file_lineoffsets[$file_index]->[$upLine - 2] + 1
+            );
+            $offset_end_clipped = $file_start + $Code::DRY::file_lineoffsets[$file_index]->[$downLine - 1];
+        }
+        else {
+            $offset_start_clipped = $offset_start;
+            $offset_end_clipped   = $offset_end;
+        }
+        push @dups, [offset2filename($offset_start), $file_start, $upLine, $downLine, $offset_start_clipped, $offset_end_clipped, $offset_start, $offset_end];
+    }
+
+    # sort by offset
+    @dups = map { $_->[1] }
+      sort { $a->[0] <=> $b->[0] } map { [$_->[2], $_] } @dups;
+
+    #print "\n";
+
+    callback($minlength, $units, \@dups);
+
+}
+

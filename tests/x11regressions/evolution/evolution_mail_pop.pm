@@ -7,10 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Test Case #1503919 - Evolution: send and receive email via POP
-
-# G-Summary: add scripts and entry for evolution tc#1503919 in x11regression
-# G-Maintainer: Chingkai <qkzhu@suse.com>
+# Summary: Test Case #1503919 - Evolution: send and receive email via POP
+# Maintainer: Chingkai <qkzhu@suse.com>
 
 use strict;
 use base "x11regressiontest";

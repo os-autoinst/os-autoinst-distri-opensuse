@@ -7,14 +7,12 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: add a libreoffice tc#1503827 for x11regression
-# G-Maintainer: Chingkai <qkzhu@suse.com>
+# Summary: Case 1503827 - LibreOffice: Launch application components from system menu
+# Maintainer: Chingkai <qkzhu@suse.com>
 
 use base "x11regressiontest";
 use strict;
 use testapi;
-
-# Case 1503827 - LibreOffice: Launch application components from system menu
 
 # open desktop mainmenu and click office
 sub open_mainmenu() {
