@@ -7,8 +7,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add yast2-nis.pm
-# G-Maintainer: Zaoliang Luo <zluo@suse.de>
+# Summary: Add yast2-nis.pm
+#   poo#9900
+# Maintainer: Zaoliang Luo <zluo@suse.de>
 
 use strict;
 use base "console_yasttest";

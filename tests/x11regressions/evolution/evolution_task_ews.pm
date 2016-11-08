@@ -7,10 +7,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Test Case #1503757: Evolution:Send MS task
-
-# G-Summary: openqa script for tc#1503757: evolution_task_ews
-# G-Maintainer: xiaojun <xjin@suse.com>
+# Summary: Test Case #1503757: Evolution:Send MS task
+#   poo#13118
+# Maintainer: xiaojun <xjin@suse.com>
 
 use strict;
 use base "x11regressiontest";

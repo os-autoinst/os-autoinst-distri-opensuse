@@ -7,9 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Test Case #1503965: Evolution: Setup MS Exchange account
-
 # Summary: Case #1503965: Setup MS Exchange account
+#   poo#13118
 # Maintainer: Qingming Su <qingming.su@suse.com>
 
 use strict;
