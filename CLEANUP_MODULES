@@ -1,6 +1,4 @@
-tests/console/install_yast_head.pm
 tests/console/ttylogin4.pm
-tests/console/add_yast_head.pm
 tests/console/yast2_nis.pm
 tests/installation/inst_mediacheck.pm
 tests/x11/mate_reconfigure_openqa.pm
