@@ -62,7 +62,7 @@ sub parse_node_file {
         if ($line =~ /^node\s+([^\s]+)$/) {
             $node    = $1;
             $network = undef;
-            $nodes{$node} = {install => []};
+            $nodes{$node} = {install => [], repos => [], disks => []};
         }
         elsif ($line =~ /^network\s+([^\s]+)$/) {
             $network            = $1;
@@ -83,6 +83,15 @@ sub parse_node_file {
             my ($param, $value) = split(/\s+/, $line);
             $value = 0 if $value eq 'no';
             $networks{$network}->{$param} = $value if defined $network;
+        }
+        elsif ($line =~ /(^repository|^repo)\s+(http.*\.repo)$/) {
+            my @repo = split(/\s+/, $line);
+            shift @repo;
+            push @{$nodes{$node}->{repos}}, @repo if defined $node;
+        }
+        elsif ($line =~ /^disk\s+([^\s]+)$/) {
+            # Stores size info about each additional drive but it's not used yet
+            push @{$nodes{$node}->{disks}}, $1 if defined $node;
         }
         elsif ($line =~ /^\s*#/) {
             #nothing to do
@@ -106,7 +115,7 @@ sub gen_testsuites {
         push @suites,
           {
             name     => "slenkins-${project_name}-${node}",
-            settings => [eval $template_node, {key => "SLENKINS_NODE", value => "$node"}, {key => "SLENKINS_INSTALL", value => join(',', sort @{$nodes->{$node}{install}})}, {key => "NETWORKS", value => join(',', @node_net)},],
+            settings => [eval $template_node, {key => "SLENKINS_NODE", value => "$node"}, {key => "SLENKINS_INSTALL", value => join(',', sort @{$nodes->{$node}{install}})}, {key => "NETWORKS", value => join(',', @node_net)}, {key => "FOREIGN_REPOS", value => join(',', sort @{$nodes->{$node}{repos}})}, {key => "NUMDISKS", value => 1 + scalar(@{$nodes->{$node}{disks}})},],
           };
     }
 
