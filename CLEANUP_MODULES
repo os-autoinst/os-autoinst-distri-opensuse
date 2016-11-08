@@ -5,7 +5,8 @@ tests/x11/lxqt_reconfigure_openqa.pm
 tests/x11/awesome_reconfigure_openqa.pm
 
 tests/installation/inst_mediacheck.pm
- - found only mediacheck.pm / mediacheck_yaboot.pm
+tests/installation/mediacheck_yaboot.pm
+ - seems like they are obsoleted by mediacheck.pm
 
 tests/x11/reboot_gnome_sle11.pm
  - not renamed to *pre in SLE11 main.pm - f515a8173bbe11b9a24b3d663fc869c3bb7bd61b
