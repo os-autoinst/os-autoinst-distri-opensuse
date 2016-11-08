@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: rename sle's version of addon_products step
-# G-Maintainer: Stephan Kulow <coolo@suse.de>
+# Summary: Add add-on via DVD, network or DUD during installation
+# Maintainer: Stephan Kulow <coolo@suse.de>
 
 use strict;
 use base "y2logsstep";
@@ -36,7 +36,6 @@ sub run() {
             wait_still_screen 3;
             send_key $cmd{next};
             assert_screen 'dvd-selector';
-            send_key_until_needlematch 'addon-dvd-list',         'tab',  10;    # jump into addon list
             send_key_until_needlematch "addon-dvd-sr$sr_number", 'down', 10;    # select addon in list
             send_key 'alt-o';                                                   # continue
             if (check_screen('import-untrusted-gpg-key', 10)) {                 # workaround untrusted key pop-up, record soft fail and trust it
