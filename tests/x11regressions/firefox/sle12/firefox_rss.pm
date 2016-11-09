@@ -19,34 +19,30 @@ sub run() {
     my ($self) = @_;
     $self->start_firefox;
 
-
     send_key "alt-v", 1;
+    wait_still_screen 3;
     send_key "t";
+    wait_still_screen 3;
     send_key "c";
 
     assert_and_click "firefox-rss-close_hint";
-    assert_and_click "firefox-click-scrollbar";
+    send_key "alt-f10";
+    wait_still_screen 3;
     assert_and_click("firefox-rss-button", "right");
 
     send_key "a";
     send_key "ctrl-w";
-    send_key "alt-f10";
     assert_screen("firefox-rss-button_disabled", 60);
 
     send_key "esc";
     send_key "alt-d";
-    type_string "www.gnu.org\n";
+    type_string "https://linux.slashdot.org/\n";
 
     assert_and_click "firefox-rss-button_enabled", "left", 30;
-    assert_screen("firefox-rss-page", 90);
+    assert_screen("firefox-rss-page", 60);
 
     # Exit
-    send_key "alt-f4";
-
-    if (check_screen('firefox-save-and-quit', 30)) {
-        # confirm "save&quit"
-        send_key "ret";
-    }
+    $self->exit_firefox;
 }
 1;
 # vim: set sw=4 et:

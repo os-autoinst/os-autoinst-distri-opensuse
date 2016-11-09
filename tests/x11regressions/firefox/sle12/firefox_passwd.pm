@@ -24,12 +24,11 @@ sub run() {
     my $mozlogin = "http://www-archive.mozilla.org/quality/browser/front-end/testcases/wallet/login.html";
 
     # Clean and Start Firefox
-    x11_start_program("xterm -e \"killall -9 firefox;rm -rf .moz*\"\n");
-    x11_start_program("firefox");
-    assert_screen('firefox-gnome', 90);
+    $self->start_firefox;
 
     sleep 2;
     send_key "alt-e";
+    wait_still_screen 3;
     send_key "n";
     assert_and_click('firefox-passwd-security');
 
@@ -82,25 +81,23 @@ sub run() {
     sleep 1;
     type_string $masterpw. "\n";
     sleep 1;
+    send_key "alt-shift-l";
     assert_screen('firefox-passwd-saved', 30);
 
     sleep 1;
-    send_key "alt-shift-r";    #"Remove"
+    send_key "alt-shift-a";    #"Remove"
+    wait_still_screen 3;
+    send_key "alt-y";
     sleep 1;
     send_key "alt-shift-c";
     sleep 1;
     send_key "ctrl-w";
     sleep 1;
     send_key "f5";
-    assert_screen('firefox-passwd-input_username', 90);
+    assert_screen('firefox-passwd-removed', 60);
 
     # Exit
-    send_key "alt-f4";
-
-    if (check_screen('firefox-save-and-quit', 30)) {
-        # confirm "save&quit"
-        send_key "ret";
-    }
+    $self->exit_firefox;
 }
 1;
 # vim: set sw=4 et:
