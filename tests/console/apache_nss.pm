@@ -1,4 +1,4 @@
-# SUSE's Apache+SSL tests
+# SUSE's Apache+NSS tests
 #
 # Copyright © 2016 SUSE LLC
 #
@@ -7,17 +7,17 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Enable SSL module on Apache2 server
+# Summary: Enable NSS module for Apache2 server
 # Maintainer: Qingming Su <qingming.su@suse.com>
 
+use strict;
 use base "consoletest";
 use testapi;
-use strict;
 use apachetest;
 
 sub run() {
     select_console 'root-console';
-    setup_apache2(mode => 'SSL');
+    setup_apache2(mode => 'NSS');
 }
 
 sub test_flags {
