@@ -123,6 +123,11 @@ sub fill_in_registration_data {
                     send_key "spc";
                 }
                 else {
+                    # move the later modules into screen. for this the variable
+                    # needs to be sorted
+                    if (!check_screen("scc-module-$addon", 0)) {
+                        send_key 'down';
+                    }
                     assert_and_click "scc-module-$addon";
                 }
             }
