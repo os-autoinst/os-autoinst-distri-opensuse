@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: yast2_nfs_client module
-# G-Maintainer: Ancor Gonzalez Sosa <ancor@suse.de>
+# Summary: yast2_nfs_client module
+# Maintainer: Ancor Gonzalez Sosa <ancor@suse.de>
 
 use base "console_yasttest";
 use strict;
@@ -26,6 +26,9 @@ sub run() {
     # Preparation
     #
     select_console 'root-console';
+    # add comments into fstab and save current fstab bsc#429326
+    assert_script_run 'sed -i \'5i# test comment\' /etc/fstab';
+    assert_script_run 'cat /etc/fstab > fstab_before';
     # Make sure packages are installed
     assert_script_run 'zypper -n in yast2-nfs-client nfs-client nfs-kernel-server';
     # Prepare the test file structure
@@ -63,6 +66,10 @@ sub run() {
 
     # Wait for more than 90 seconds due to NFSD's 90 second grace period.
     wait_serial('It worked', 100) || die "Reading from nfs failed.";
+    # remove added nfs from /etc/fstab
+    assert_script_run 'sed -i \'/nfs/d\' /etc/fstab';
+    # compare saved and current fstab, should be same
+    assert_script_run 'diff -b /etc/fstab fstab_before';
 }
 
 1;
