@@ -209,12 +209,12 @@ sub load_x11regression_firefox() {
     loadtest "x11regressions/firefox/sle12/firefox_extensions.pm";
     loadtest "x11regressions/firefox/sle12/firefox_appearance.pm";
     loadtest "x11regressions/firefox/sle12/firefox_gnomeshell.pm";
+    loadtest "x11regressions/firefox/sle12/firefox_passwd.pm";
+    loadtest "x11regressions/firefox/sle12/firefox_html5.pm";
+    loadtest "x11regressions/firefox/sle12/firefox_developertool.pm";
+    loadtest "x11regressions/firefox/sle12/firefox_rss.pm";
     if (sle_version_at_least('12-SP2')) {    # take out these failed cases from qam test for SP1
         loadtest "x11regressions/firefox/sle12/firefox_ssl.pm";
-        loadtest "x11regressions/firefox/sle12/firefox_passwd.pm";
-        loadtest "x11regressions/firefox/sle12/firefox_html5.pm";
-        loadtest "x11regressions/firefox/sle12/firefox_developertool.pm";
-        loadtest "x11regressions/firefox/sle12/firefox_rss.pm";
     }
     if (!get_var("OFW") && check_var('BACKEND', 'qemu')) {
         loadtest "x11/firefox_audio.pm";

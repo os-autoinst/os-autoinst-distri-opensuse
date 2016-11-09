@@ -28,12 +28,6 @@ sub run() {
     send_key "up";
     sleep 1;
     assert_screen('firefox-html5-support', 60);
-    assert_and_click('firefox-html5-request');
-
-    assert_screen('firefox-html5-youtube', 60);
-    send_key "pgdn";
-    send_key "up";
-    assert_screen('firefox-html5-enabled', 30);
 
     sleep 1;
     send_key "esc";
@@ -42,12 +36,7 @@ sub run() {
     assert_screen('firefox-flashplayer-video_loaded', 90);
 
     # Exit
-    send_key "alt-f4";
-
-    if (check_screen('firefox-save-and-quit', 30)) {
-        # confirm "save&quit"
-        send_key "ret";
-    }
+    $self->exit_firefox;
 }
 1;
 # vim: set sw=4 et:
