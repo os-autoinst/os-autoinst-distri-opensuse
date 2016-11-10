@@ -15,4 +15,3 @@ script:
   - make test
   # just for information
   - perl tools/detect_code_dups
-  - tools/detect_unused_modules || true
