@@ -24,7 +24,7 @@ sub run() {
     mutex_unlock("images_registered");
 
 
-    assert_script_run "possyncimages";
+    assert_script_run "possyncimages", 300;
 
     mutex_create("bs1_images_synced");
 }
