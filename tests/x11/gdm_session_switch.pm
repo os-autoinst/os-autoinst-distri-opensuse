@@ -62,7 +62,7 @@ sub run () {
     assert_screen "displaymanager";
     send_key "ret";
     assert_screen "originUser-login-dm";
-    type_string "$password";
+    type_password;
     assert_and_click "displaymanager-settings";
     assert_and_click "dm-gnome";
     send_key "ret";

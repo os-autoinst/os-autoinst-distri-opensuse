@@ -27,7 +27,7 @@ sub lock_screen {
     assert_and_click "lock-system";
     send_key "esc";
     assert_screen 'gnome-screenlock-password';
-    type_string "$newpwd\n";
+    type_password "$newpwd\n";
     assert_screen "generic-desktop";
 }
 
@@ -48,7 +48,7 @@ sub reboot_system {
     assert_screen 'logoutdialog', 15;
     assert_and_click 'logoutdialog-reboot-highlighted';
     if (check_screen("reboot-auth", 5)) {
-        type_string $password;
+        type_password;
         assert_and_click "authenticate";
     }
     assert_screen "displaymanager", 200;
@@ -134,13 +134,13 @@ sub run () {
     x11_start_program("gnome-terminal");
     type_string "su\n";
     assert_screen "pwd4root-terminal";
-    type_string "$password\n";
+    type_password "$password\n";
     assert_screen "root-gnome-terminal";
     type_string "passwd $username\n";
     assert_screen "pwd4user-terminal";
-    type_string "$password\n";
+    type_password "$password\n";
     assert_screen "pwd4user-confirm-terminal";
-    type_string "$password\n";
+    type_password "$password\n";
     assert_screen "password-changed-terminal";
 
     #delete the added user: test

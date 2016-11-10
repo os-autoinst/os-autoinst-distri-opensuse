@@ -32,7 +32,7 @@ sub switch_wm {
     assert_screen "displaymanager";
     send_key "ret";
     assert_screen "originUser-login-dm";
-    type_string "$password";
+    type_password;
 }
 
 # shared between gnome_class_switch and gdm_session_switch
