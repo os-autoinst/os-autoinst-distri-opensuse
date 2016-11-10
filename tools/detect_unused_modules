@@ -1,0 +1,12 @@
+#!/bin/sh -e
+
+# checkout sle11 test plan to also check for modules used in there. sle11
+# should be the only other older testplan which might use test modules from
+# master
+git co origin/sle11_only_testplan -- main.pm
+
+for test in $(git ls-files "*tests/*.pm") ; do
+    t=$(echo $test | sed -e 's@tests/.*/@@' -e 's@.pm@@')
+    git grep -q $t || echo $test
+done | grep -v 'qa_automation'
+git rm -f main.pm >/dev/null 2>&1
