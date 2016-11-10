@@ -167,7 +167,7 @@ sub check_new_mail_evolution {
         if (sle_version_at_least('12-SP2')) {
             send_key "alt-p";
         }
-        type_string "$mail_passwd";
+        type_password $mail_passwd;
         send_key "ret";
     }
     send_key "alt-w";
@@ -234,7 +234,7 @@ sub send_meeting_request {
             send_key "alt-a";    #disable keyring option, only need in SP2 or later
             send_key "alt-p";
         }
-        type_string "$mail_passwd";
+        type_password $mail_passwd;
         send_key "ret";
     }
     assert_screen "evolution_mail-compse_meeting", 60;
@@ -439,7 +439,7 @@ sub setup_mail_account {
             send_key "alt-a";    #disable keyring option, only in SP2
             send_key "alt-p";
         }
-        type_string "$mail_passwd";
+        type_password $mail_passwd;
         send_key "ret";
     }
     if (check_screen "evolution_mail-init-window") {
@@ -449,7 +449,7 @@ sub setup_mail_account {
         if (sle_version_at_least('12-SP2')) {
             send_key "alt-p";
         }
-        type_string "$mail_passwd";
+        type_password $mail_passwd;
         send_key "ret";
     }
     assert_screen "evolution_mail-max-window";
@@ -484,6 +484,28 @@ sub exit_firefox() {
     script_run "cat firefox.log";
     save_screenshot;
     type_string "exit\n";
+}
+
+sub start_gnome_settings {
+    send_key "super";
+    wait_still_screen;
+    type_string "settings";
+    # give gnome-shell time to digest the input
+    wait_still_screen 2;
+    assert_and_click "settings";
+    assert_screen "gnome-settings";
+}
+
+sub unlock_user_settings {
+    start_gnome_settings;
+    type_string "users";
+    assert_screen "settings-users-selected";
+    send_key "ret";
+    assert_screen "users-settings";
+    assert_and_click "Unlock-user-settings";
+    assert_screen "authentication-required-user-settings";
+    type_password;
+    assert_and_click "authenticate";
 }
 
 1;

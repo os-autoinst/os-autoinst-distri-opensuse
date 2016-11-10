@@ -27,11 +27,26 @@ sub open_mainmenu() {
 
 # enter 'Activities overview'
 sub open_overview() {
-    my $self = shift;
-
     wait_still_screen;
     send_key "super";
     assert_screen 'tracker-mainmenu-launched';
+}
+
+sub select_base_and_cleanup {
+    assert_screen 'oobase-select-database', 45;
+    send_key "ret";
+    assert_screen 'oobase-save-database';
+    send_key "ret";
+    assert_screen 'oobase-save-database-prompt';
+    type_string "testdatabase";
+    send_key "ret";
+    assert_screen 'oobase-launched';
+    send_key "ctrl-q";    #close base
+
+    # clean the test database file
+    x11_start_program("xterm");
+    assert_script_run "find /home/$username -name testdatabase.odb | xargs rm";
+    send_key 'alt-f4';
 }
 
 sub run() {
@@ -45,20 +60,7 @@ sub run() {
 
     $self->open_mainmenu();
     assert_and_click 'mainmenu-office-base';    #open base
-    assert_screen 'oobase-select-database', 45;
-    send_key "ret";
-    assert_screen 'oobase-save-database';
-    send_key "ret";
-    assert_screen 'oobase-save-database-prompt';
-    type_string "testdatabase";
-    send_key "ret";
-    assert_screen 'oobase-launched';
-    send_key "ctrl-q";                          #close base
-
-    # clean the test database file
-    x11_start_program("xterm");
-    assert_script_run "find /home/$username -name testdatabase.odb | xargs rm";
-    send_key 'alt-f4';
+    select_base_and_cleanup;
 
     $self->open_mainmenu();
     assert_and_click 'mainmenu-office-calc';    #open calc
@@ -85,20 +87,7 @@ sub run() {
     type_string "base";                            #open base
     assert_screen 'overview-office-base';
     send_key "ret";
-    assert_screen 'oobase-select-database', 45;
-    send_key "ret";
-    assert_screen 'oobase-save-database';
-    send_key "ret";
-    assert_screen 'oobase-save-database-prompt';
-    type_string "testdatabase";
-    send_key "ret";
-    assert_screen 'oobase-launched';
-    send_key "ctrl-q";                             #close base
-
-    # clean the test database file
-    x11_start_program("xterm");
-    assert_script_run "find /home/$username -name testdatabase.odb | xargs rm";
-    send_key 'alt-f4';
+    select_base_and_cleanup;
 
     $self->open_overview();
     type_string "calc";                            #open calc

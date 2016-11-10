@@ -28,7 +28,7 @@ sub handle_login {
         send_key 'ret';
     }
     assert_screen "displaymanager-password-prompt";
-    type_string "$password";
+    type_password;
     send_key "ret";
 }
 
