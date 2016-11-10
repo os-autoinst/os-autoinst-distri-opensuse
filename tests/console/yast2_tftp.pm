@@ -7,8 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add yast2_tftp.pm
-# G-Maintainer: Zaoliang Luo <zluo@suse.de>
+# Summary: configure and test tftp server
+# Maintainer: Zaoliang Luo <zluo@suse.de>
 
 use strict;
 use base "consoletest";
@@ -33,16 +33,33 @@ sub run() {
 
     # give a new file path for boot image directory
     send_key 'alt-t';
-    for (1 .. 20) { send_key 'backspace'; }
+    for (1 .. 20) {
+        send_key 'backspace';
+    }
+
     type_string '/srv/tftpboot/new_dir';
-    sleep 1;
+
     # open port in firewall, if firewall is disabled, then continue with next test view log
-    if (check_screen 'yast2_tftp_open_port') { send_key 'alt-f'; send_key 'alt-i'; assert_screen 'yast2_tftp_firewall_details'; send_key 'alt-o'; }
+
+    assert_screen([qw(yast2_tftp_open_port yast2_tftp_closed_port)]);
+    if (match_has_tag('yast2_tftp_open_port')) {
+        send_key 'alt-f';
+        send_key 'alt-i';
+        assert_screen 'yast2_tftp_firewall_details';
+        send_key 'alt-o';
+        assert_screen 'yast2_tftp_closed_port';
+    }
 
     # view log
     send_key 'alt-v';
-    assert_screen 'yast2_tftp_view_log';
-    send_key 'alt-c';
+    assert_screen([qw(yast2_tftp_view_log_error yast2_tftp_view_log_show)]);
+    record_soft_failure "bsc#1008493";
+    if (match_has_tag('yast2_tftp_view_log_error')) {
+        send_key 'alt-o';
+        assert_screen 'yast2_tftp_view_log_show';
+        send_key 'alt-c';
+        wait_still_screen 1;
+    }
 
     # check help text
     send_key 'alt-h';
