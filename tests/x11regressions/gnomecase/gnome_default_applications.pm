@@ -7,21 +7,19 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: add script for tc#1503753 tc#1503894
-# G-Maintainer: Chingkai <qkzhu@suse.com>
+# Summary: Case 1503753: Gnome - Some types of files should
+#  be opened by corresponding applications
+# Maintainer: Chingkai <qkzhu@suse.com>
 
 use base "x11regressiontest";
 use strict;
 use testapi;
 
-# Case 1503753: Gnome - Some types of files should be opened by corresponding applications
-
 sub run() {
-    my $self = shift;
-
     # Prepare test files
     x11_start_program("xterm");
-    wait_idle;
+    assert_screen 'xterm-started';
+
     assert_script_run "mkdir gnometest";
     assert_script_run "wget -P /home/$username/gnometest " . autoinst_url . "/data/x11regressions/test.pdf";
     assert_script_run "wget -P /home/$username/gnometest " . autoinst_url . "/data/x11regressions/shotwell_test.jpg";

@@ -8,21 +8,16 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: x11regressions: add nautilus scripts
-# G-Maintainer: Xudong Zhang <xdzhang@suse.com>
+# Summary: testcase 4158-1249067 move a file with nautilus
+# Maintainer: Xudong Zhang <xdzhang@suse.com>
 
 use base "x11regressiontest";
 use strict;
 use testapi;
 
-#testcase 4158-1249067 move a file with nautilus
-
 sub run() {
-
-    my $self = shift;
-
     x11_start_program("nautilus");
-    assert_screen 'nautilus-launched', 3;
+    assert_screen 'nautilus-launched';
     x11_start_program("touch newfile");
 
     send_key_until_needlematch 'nautilus-newfile-matched', 'right', 15;
@@ -32,11 +27,11 @@ sub run() {
     send_key "ret";
     sleep 2;
     send_key "ctrl-v";    #paste to dir ~/Downloads
-    assert_screen "nautilus-newfile-moved", 5;
+    assert_screen "nautilus-newfile-moved";
     sleep 2;
-    send_key "alt-up";    #back to home dir from ~/Downloads
-    assert_screen 'nautilus-no-newfile', 5;    #assure newfile moved
-    send_key "ctrl-w";                         #close nautilus
+    send_key "alt-up";                      #back to home dir from ~/Downloads
+    assert_screen 'nautilus-no-newfile';    #assure newfile moved
+    send_key "ctrl-w";                      #close nautilus
 
     #remove the newfile, rm via cmd to avoid file moving to trash
     x11_start_program("rm Downloads/newfile");

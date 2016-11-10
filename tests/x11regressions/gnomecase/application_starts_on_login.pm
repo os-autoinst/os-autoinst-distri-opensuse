@@ -15,11 +15,8 @@ use strict;
 use testapi;
 
 sub tweak_startupapp_menu {
-    send_key "super";
-    wait_still_screen;
-    type_string "settings", 1;    #Use '1' to give gnome-shell enough time to search settings module; Otherwise slow worker will cause failed result.
-    assert_and_click "settings";
-    assert_screen "gnome-settings";
+    my ($self) = @_;
+    $self->start_gnome_settings;
     type_string "tweak";
     assert_screen "settings-tweak-selected";
     send_key "ret";
@@ -36,22 +33,24 @@ sub logout_and_login {
     assert_screen "displaymanager";
     send_key "ret";
     assert_screen "originUser-login-dm";
-    type_string "$password";
+    type_password;
     send_key "ret";
 }
 
-sub alter_status_auto_save_session {
-    send_key "super";
-    wait_still_screen;
-    type_string "settings", 1;    #Use '1' to give gnome-shell enough time to search settings module; Otherwise slow worker will cause failed result.
-    assert_and_click "settings";
-    assert_screen "gnome-settings";
+sub start_dconf {
+    my ($self) = @_;
+    $self->start_gnome_settings;
     type_string "dconf";
     assert_screen "settings-dconf";
     send_key "ret";
     if (check_screen("dconf-caution")) {
         assert_and_click "will-be-careful";
     }
+}
+
+sub alter_status_auto_save_session {
+    my ($self) = @_;
+    $self->start_dconf;
     send_key_until_needlematch "dconf-org", "down";
     assert_and_click "unfold";
     send_key_until_needlematch "dconf-org-gnome", "down";
@@ -71,17 +70,8 @@ sub alter_status_auto_save_session {
 }
 
 sub restore_status_auto_save_session {
-    send_key "super";
-    wait_still_screen;
-    type_string "settings", 1;    #Use '1' to give gnome-shell enough time to search settings module; Otherwise slow worker will cause failed result.
-    assert_and_click "settings";
-    assert_screen "gnome-settings";
-    type_string "dconf", 1;
-    assert_screen "settings-dconf";
-    send_key "ret";
-    if (check_screen("dconf-caution")) {
-        assert_and_click "will-be-careful";
-    }
+    my ($self) = @_;
+    $self->start_dconf;
     assert_and_click "auto-save-session";
     assert_and_click "auto-save-session-alter-use-default";
     assert_and_click "auto-save-session-apply";
@@ -91,11 +81,10 @@ sub restore_status_auto_save_session {
 }
 
 sub run() {
-    my $self = shift;
-
+    my ($self) = @_;
     #add firefox to startup application
     assert_screen "generic-desktop";
-    tweak_startupapp_menu;
+    $self->tweak_startupapp_menu;
     assert_and_click "tweak-startapp-add";
     assert_screen "tweak-startapp-applist";
     if (get_var("SP2ORLATER")) {

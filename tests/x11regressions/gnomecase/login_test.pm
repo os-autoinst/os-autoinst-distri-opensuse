@@ -7,54 +7,29 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: openqa script and entry for tc#1503803 tc#1503905; entry for tc#1503973
-# G-Maintainer: xiaojun <xjin@suse.com>
+# Summary: testcase 5255-1503905: Gnome:gnome-login test
+#   other login scenario has been coverred by the change_password
+#   script, here only cover the auto_login
+# Maintainer: xiaojun <xjin@suse.com>
 
 use base "x11regressiontest";
 use strict;
 use testapi;
 use utils;
 
-#testcase 5255-1503905: Gnome:gnome-login test
-#other login scenario has been coverred by the change_password script, here
-#only cover the auto_login
-
 sub auto_login_alter {
-    send_key "super";
-    wait_still_screen;
-    type_string "settings", 1;    #Use '1' to give gnome-shell enough time to search settings module; Otherwise slow worker will cause failed result.
-    assert_and_click "settings";
-    assert_screen "gnome-settings";
-    type_string "users";
-    assert_screen "settings-users-selected";
-    send_key "ret";
-    assert_screen "users-settings";
-    assert_and_click "Unlock-user-settings";
-    assert_screen "authentication-required-user-settings";
-    type_string $password;
-    assert_and_click "authenticate";
+    my ($self) = @_;
+    $self->unlock_user_settings;
     send_key "alt-u";
     send_key "alt-f4";
 }
 
-sub reboot_system {
-    wait_idle;
-    send_key "ctrl-alt-delete";    #reboot
-    assert_screen 'logoutdialog', 15;
-    assert_and_click 'logoutdialog-reboot-highlighted';
-    if (check_screen("reboot-auth", 5)) {
-        type_string $password, 1;
-        assert_and_click "authenticate";
-    }
-    assert_screen "generic-desktop", 200;
-}
-
 sub run () {
-    my $self = shift;
+    my ($self) = @_;
 
     assert_screen "generic-desktop";
-    auto_login_alter;
-    reboot_system;
+    $self->auto_login_alter;
+    reboot_gnome;
     auto_login_alter;
 }
 
