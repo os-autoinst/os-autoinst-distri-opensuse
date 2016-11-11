@@ -21,7 +21,8 @@ sub tweak_startupapp_menu {
     assert_screen "settings-tweak-selected";
     send_key "ret";
     assert_screen "tweak-tool";
-    send_key_until_needlematch "tweak-startapp", "down";
+    # increase the default timeout - the switching can be slow
+    send_key_until_needlematch "tweak-startapp", "down", 10, 2;
 }
 
 sub logout_and_login {
