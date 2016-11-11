@@ -112,7 +112,7 @@ sub run() {
     assert_screen "generic-desktop";
 
     #remove firefox from startup application
-    tweak_startupapp_menu;
+    $self->tweak_startupapp_menu;
     assert_screen "startapp-firefox-added";
     assert_and_click "startapp-delete";
     send_key "alt-f4";
@@ -129,7 +129,7 @@ sub run() {
     ##auto-save-session functionality has been abandoned;
     ##current status: just firefox works
     ##so in the future will consider remove openqa code for this session
-    alter_status_auto_save_session;
+    $self->alter_status_auto_save_session;
 
     x11_start_program("firefox");
     wait_still_screen;
@@ -142,10 +142,10 @@ sub run() {
     wait_still_screen;
 
     if (get_var("SP2ORLATER")) {
-        restore_status_auto_save_session;
+        $self->restore_status_auto_save_session;
     }
     else {
-        alter_status_auto_save_session;
+        $self->alter_status_auto_save_session;
     }
 }
 

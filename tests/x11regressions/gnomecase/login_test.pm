@@ -30,7 +30,7 @@ sub run () {
     assert_screen "generic-desktop";
     $self->auto_login_alter;
     reboot_gnome;
-    auto_login_alter;
+    $self->auto_login_alter;
 }
 
 1;
