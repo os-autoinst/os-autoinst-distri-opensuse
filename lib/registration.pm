@@ -37,6 +37,7 @@ sub fill_in_registration_data {
         save_screenshot;
         send_key $cmd{next}, 1;
     }
+    my @known_untrusted_keys = qw(import-trusted-gpg-key-nvidia-F5113243C66B6EAE);
     unless (get_var('SCC_REGISTER', '') =~ /addon|network/) {
         my @tags = qw/local-registration-servers registration-online-repos import-untrusted-gpg-key module-selection contacting-registration-server/;
         if (get_var('SCC_URL') || get_var('SMT_URL')) {
@@ -52,11 +53,12 @@ sub fill_in_registration_data {
                 next;
             }
             elsif (match_has_tag("import-untrusted-gpg-key")) {
-                if (check_var("IMPORT_UNTRUSTED_KEY", 1)) {
-                    send_key "alt-t", 1;    # import
+                if (check_var("IMPORT_UNTRUSTED_KEY", 1) || check_screen(\@known_untrusted_keys, 0)) {
+                    send_key "alt-t";    # import
                 }
                 else {
-                    send_key "alt-c", 1;    # cancel
+                    send_key "alt-c";
+                    ;                    # cancel
                 }
                 next;
             }
@@ -166,7 +168,7 @@ sub fill_in_registration_data {
             # start addons/modules registration, it needs longer time if select multiple or all addons/modules
             while (assert_screen(['import-untrusted-gpg-key', 'yast_scc-pkgtoinstall', 'inst-addon'], 120)) {
                 if (match_has_tag('import-untrusted-gpg-key')) {
-                    if (!check_screen([qw(import-trusted-gpg-key-nvidia-F5113243C66B6EAE)], 1)) {
+                    if (!check_screen(\@known_untrusted_keys, 0)) {
                         record_soft_failure 'untrusted gpg key';
                     }
                     wait_screen_change {

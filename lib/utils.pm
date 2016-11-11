@@ -710,8 +710,7 @@ sub validate_repos {
             # For the name of product channel, sle12 uses NVIDIA, sle12sp1 and sp2 use nVidia
             # Consider migration, use regex to match nvidia whether in upper, lower or mixed
             # Skip check AMD/ATI repo since it would be removed from sled12 and sle-we-12, see bsc#984866
-            # Skip nvidia on sp1 due to bsc#999538 - at least for now
-            if (!check_var('VERSION', '12-SP1') && ($base_product eq "SLED" || $we)) {
+            if ($base_product eq "SLED" || $we) {
                 validatelr(
                     {
                         product         => "SLE-",
