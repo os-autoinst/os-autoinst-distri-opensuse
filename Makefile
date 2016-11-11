@@ -63,7 +63,7 @@ test-merge:
 	test ! -f failed
 
 .PHONY: test
-test: tidy test-compile test-merge
+test: tidy test-compile test-merge test-unused-modules
 
 PERLCRITIC=PERL5LIB=tools/lib/perlcritic:$$PERL5LIB perlcritic --quiet --gentle --include Perl::Critic::Policy::HashKeyQuote
 
@@ -71,3 +71,6 @@ PERLCRITIC=PERL5LIB=tools/lib/perlcritic:$$PERL5LIB perlcritic --quiet --gentle 
 perlcritic: tools/lib/
 	${PERLCRITIC} .
 
+.PHONY: test-unused-modules
+test-unused-modules:
+	tools/detect_unused_modules
