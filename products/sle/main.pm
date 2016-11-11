@@ -1082,16 +1082,33 @@ elsif (get_var("QA_TESTSET")) {
     loadtest "qa_automation/" . get_var("QA_TESTSET");
 }
 elsif (get_var("VIRT_AUTOTEST")) {
-    load_boot_tests();
-    load_inst_tests();
-    loadtest "virt_autotest/login_console";
-    if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
+    if (get_var("PROXY_MODE")) {
+        loadtest "virt_autotest/proxymode_login_proxy";
+        loadtest "virt_autotest/proxymode_init_pxe_install";
+        loadtest "virt_autotest/proxymode_redirect_serial1";
+        loadtest "virt_autotest/install_package";
+        if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
+            loadtest "virt_autotest/setup_console_on_host";
+            loadtest "virt_autotest/reboot_and_wait_up_normal1";
+            loadtest "virt_autotest/proxymode_redirect_serial2";
+        }
+        loadtest "virt_autotest/update_package";
         loadtest "virt_autotest/setup_console_on_host1";
-        loadtest "virt_autotest/reboot_and_wait_up_normal1";
+        loadtest "virt_autotest/reboot_and_wait_up_normal2";
+        loadtest "virt_autotest/proxymode_redirect_serial3";
     }
-    loadtest "virt_autotest/install_package";
-    loadtest "virt_autotest/reboot_and_wait_up_normal2";
-
+    else {
+        load_boot_tests();
+        load_inst_tests();
+        loadtest "virt_autotest/login_console";
+        if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
+            loadtest "virt_autotest/setup_console_on_host1";
+            loadtest "virt_autotest/reboot_and_wait_up_normal1";
+        }
+        loadtest "virt_autotest/install_package";
+        loadtest "virt_autotest/update_package";
+        loadtest "virt_autotest/reboot_and_wait_up_normal2";
+    }
     if (get_var("VIRT_PRJ1_GUEST_INSTALL")) {
         loadtest "virt_autotest/guest_installation_run";
     }

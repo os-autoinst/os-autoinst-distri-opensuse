@@ -8,7 +8,7 @@
 # without any warranty.
 #
 package virt_utils;
-# Summary: virt_autotest: the initial version of virtualization automation test in openqa.
+# Summary: virt_utils: The initial version of virtualization automation test in openqa.
 #          This file provides fundamental utilities.
 # Maintainer: alice <xlai@suse.com>
 
@@ -21,10 +21,10 @@ use testapi;
 use Data::Dumper;
 use XML::Writer;
 use IO::File;
-
+use proxymode;
 use virt_autotest_base;
 
-our @EXPORT = qw(set_serialdev setup_console_in_grub repl_repo_in_sourcefile);
+our @EXPORT = qw(set_serialdev setup_console_in_grub repl_repo_in_sourcefile resetup_console);
 
 sub set_serialdev() {
     if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
@@ -42,15 +42,19 @@ sub set_serialdev() {
     else {
         $serialdev = "ttyS1";
     }
-    script_run("echo \"Debug info: serial dev is set to $serialdev.\"");
+    type_string("echo \"Debug info: serial dev is set to $serialdev.\"\n");
+    return $serialdev;
 }
 
-sub setup_console_in_grub() {
+sub setup_console_in_grub {
+    my $ipmi_console = shift;
+    $ipmi_console //= $serialdev;
+
     #only support grub2
     my $grub_default_file = "/etc/default/grub";
     my $grub_cfg_file     = "/boot/grub2/grub.cfg";
 
-    my $cmd = "if [ -d /boot/grub2 ]; then cp $grub_default_file ${grub_default_file}.org; sed -ri '/GRUB_CMDLINE_(LINUX|LINUX_DEFAULT|XEN_DEFAULT)=/ {s/(console|com\\d+)=[^ \"]*//g; /LINUX=/s/\"\$/ console=$serialdev,115200 console=tty\"/;/XEN_DEFAULT=/ s/\"\$/ console=com2,115200\"/;}' $grub_default_file ; fi";
+    my $cmd = "if [ -d /boot/grub2 ]; then cp $grub_default_file ${grub_default_file}.org; sed -ri '/GRUB_CMDLINE_(LINUX|LINUX_DEFAULT|XEN_DEFAULT)=/ {s/(console|com\\d+)=[^ \"]*//g; /LINUX=/s/\"\$/ console=$ipmi_console,115200 console=tty\"/;/XEN_DEFAULT=/ s/\"\$/ console=com2,115200\"/;}' $grub_default_file ; fi";
     script_run("$cmd");
     wait_idle 3;
     save_screenshot;
@@ -82,6 +86,15 @@ sub repl_repo_in_sourcefile() {
     else {
         print "Do not need to change resource for $veritem item\n";
     }
+}
+
+sub resetup_console() {
+    my $ipmi_console = set_serialdev();
+    if (get_var("PROXY_MODE")) {
+        &proxymode::set_serialdev();
+    }
+    setup_console_in_grub($ipmi_console);
+
 }
 
 1;

@@ -12,18 +12,17 @@
 
 use strict;
 use warnings;
-use File::Basename;
 use testapi;
 use base "reboot_and_wait_up";
 
 sub run() {
     my $self    = shift;
-    my $timeout = 300;
+    my $timeout = 600;
     $self->reboot_and_wait_up($timeout);
 }
 
 sub test_flags {
-    return {important => 1};
+    return {fatal => 1};
 }
 
 1;

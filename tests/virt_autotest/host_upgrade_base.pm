@@ -8,7 +8,7 @@
 # without any warranty.
 #
 package host_upgrade_base;
-# Summary: virt_autotest: the initial version of virtualization automation test in openqa, with kvm support fully, xen support not done yet
+# Summary: host_upgrade_base: Geting prefix part of command line for running case host upgrade project.
 # Maintainer: alice <xlai@suse.com>
 
 use strict;
