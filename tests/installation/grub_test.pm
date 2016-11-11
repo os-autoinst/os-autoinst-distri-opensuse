@@ -8,8 +8,15 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Handle grub menu after installer reboots
-# Maintainer: mkravec <mkravec@suse.com>
+# G-Summary: Rename livecdreboot, moved grub code in grub_test.pm
+#    Livecdreboot test name was unclear, renamed it in to install_and_reboot.
+#    The code concerning grub test has moved to new test grub_test.pm
+#    Main pm adapted for the new grub_test.pm
+#    In first_boot.pm added get_var(boot_into_snapshot) for assert linux-terminal,
+#    since after booting on snapshot, only a terminal interface is given, not GUI.
+#
+#    Issues on progress: 9716,10286,10164
+# G-Maintainer: dmaiocchi <dmaiocchi@suse.com>
 
 use strict;
 use base "basetest";
@@ -73,20 +80,8 @@ sub run() {
         }
         send_key 'ret';
     }
-    elsif (get_var("XEN")) {
+    if (get_var("XEN")) {
         send_key_until_needlematch("bootmenu-xen-kernel", 'down', 10, 5);
-    }
-    elsif (check_var('ARCH', 'x86_64') && check_var('DISTRI', 'sle')) {
-        record_soft_failure "bsc#995310 - Gnome fails to start";
-        send_key 'e';
-        # Move to end of kernel boot parameters line
-        for (1 .. 14) { send_key "down" }
-        send_key "end";
-        # remove "splash=silent quiet showopts"
-        for (1 .. 28) { send_key "backspace" }
-        type_string 'plymouth:debug';
-        save_screenshot;
-        send_key 'ctrl-x';
     }
     # avoid timeout for booting to HDD
     send_key 'ret';
