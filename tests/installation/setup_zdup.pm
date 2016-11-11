@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Rework the tests layout.
-# G-Maintainer: Alberto Planas <aplanas@suse.com>
+# Summary: Preparation step for zypper dup. Making sure that a console is available and selected.
+# Maintainer: Ludwig Nussel <lnussel@suse.com>
 
 use base "installbasetest";
 use strict;
@@ -49,10 +49,6 @@ sub run() {
         select_console('root-console');
     }
 
-    if (get_var('HDD_1', '') =~ /opensuse-13\.2/) {
-        record_soft_failure 'bsc#949188, kernel panic on 13.2';
-        assert_script_run("zypper -n rm apparmor-abstractions");
-    }
 }
 
 1;
