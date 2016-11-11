@@ -29,7 +29,11 @@ sub run () {
 
     assert_screen "generic-desktop";
     $self->auto_login_alter;
+    my $ov = get_var('NOAUTOLOGIN');
+    set_var('NOAUTOLOGIN', '');
     reboot_gnome;
+    wait_boot;
+    set_var('NOAUTOLOGIN', $ov);
     $self->auto_login_alter;
 }
 
