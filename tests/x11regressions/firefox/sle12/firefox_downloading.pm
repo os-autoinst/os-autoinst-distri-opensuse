@@ -60,7 +60,6 @@ sub dl_pause {
 sub dl_cancel {
     dl_pause();
     wait_screen_change {
-
         send_key "shift-f10";
     };
     wait_screen_change {
@@ -104,19 +103,23 @@ sub run() {
 
     # Retry
     send_key "ret";
+    wait_still_screen 2;    # extra wait for subsequent command execution, wait_screen_change sometimes works not well
     send_key "shift-f10";
     assert_screen 'firefox-downloading-resumed';
     send_key "esc";
 
     # Remove from history
     dl_cancel();
-    send_key "shift-f10", 1;
-    send_key "e";    #"Remove From History"
+    send_key "shift-f10";
+    wait_still_screen 2;
+    send_key "e";           #"Remove From History"
     assert_screen 'firefox-downloading-blank_list';
 
-    # Multiple files downloading
+    # Close download library and wait a little time
     send_key "alt-f4";
+    wait_still_screen 2;
 
+    # Multiple files downloading
     dl_location_switch("save");
 
     dl_save($dl_link_01);
@@ -131,6 +134,7 @@ sub run() {
     dl_cancel();
 
     send_key "shift-f10";
+    wait_still_screen 2;
     send_key "d";    #"Clear Downloads"
     assert_screen 'firefox-downloading-blank_list';
 
