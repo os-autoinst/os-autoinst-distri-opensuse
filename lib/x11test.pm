@@ -56,5 +56,22 @@ sub prepare_sle_classic {
     assert_screen "desktop-sle-classic", 120;
 }
 
+sub enter_test_text {
+    my ($self, $name) = @_;
+    $name //= 'your program';
+    for (1 .. 13) { send_key "ret" }
+    type_string "echo If you can see this text $name is working.\n";
+}
+
+sub test_terminal {
+    my ($self, $name) = @_;
+    mouse_hide(1);
+    x11_start_program($name);
+    assert_screen $name;
+    $self->enter_test_text($name);
+    assert_screen "test-$name-1";
+    send_key 'alt-f4';
+}
+
 1;
 # vim: set sw=4 et:

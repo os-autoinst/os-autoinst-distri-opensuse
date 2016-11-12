@@ -24,8 +24,7 @@ sub run() {
     else {
         assert_screen 'test-khelpcenter-1', 3;
     }
-    send_key "alt-f4";
-    sleep 2;
+    send_key 'alt-f4';
 }
 
 1;

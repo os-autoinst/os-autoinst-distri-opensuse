@@ -8,15 +8,15 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Rework the tests layout.
-# G-Maintainer: Alberto Planas <aplanas@suse.com>
+# Summary: Basic functionality of gnome terminal
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "x11test";
 use strict;
 use testapi;
 
 sub run() {
-    my $self = shift;
+    my ($self) = @_;
     mouse_hide(1);
     x11_start_program("gnome-terminal");
     assert_screen "gnome-terminal";
@@ -24,10 +24,9 @@ sub run() {
     if (!check_screen "gnome-terminal-second-tab") {
         record_soft_failure 'bsc#999243';
     }
-    for (1 .. 13) { send_key "ret" }
-    type_string "echo If you can see this text gnome-terminal is working.\n";
+    $self->enter_test_text('gnome-terminal');
     assert_screen 'test-gnome_terminal-1';
-    send_key "alt-f4";
+    send_key 'alt-f4';
 }
 
 1;
