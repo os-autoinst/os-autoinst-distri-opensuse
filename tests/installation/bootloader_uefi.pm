@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Rework the tests layout.
-# G-Maintainer: Alberto Planas <aplanas@suse.com>
+# Summary: Boot on UEFI systems with configuration of boot parameters
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "installbasetest";
 use strict;
@@ -49,7 +49,7 @@ sub run() {
         sleep 5;
     }
     if (is_jeos) {
-        # tell grub to use the correct gfx mode (bnc#963952)
+        # tell grub to use the correct gfx mode (bsc#963952)
         send_key 'c';
         type_string "gfxmode=1024x768; terminal_output console; terminal_output gfxterm\n";
         sleep 2;
