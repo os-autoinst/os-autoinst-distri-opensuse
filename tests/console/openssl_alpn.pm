@@ -7,12 +7,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Test ALPN support in openssl
-#    FATE#320292 - Application-Layer Protocol Negotiation (ALPN) support for
-#    openssl. Also PR#11800.
-#
-#    Verification run: http://assam.suse.cz/tests/2514#step/openssl_alpn/1.
-# G-Maintainer: Michal Nowak <mnowak@suse.com>
+# Summary: Test ALPN support in openssl
+# Maintainer: Michal Nowak <mnowak@suse.com>
+# Tags: fate#320292
 
 use base "consoletest";
 use strict;
@@ -20,8 +17,6 @@ use testapi;
 use utils;
 
 sub run() {
-    # FATE#320292 - Application-Layer Protocol Negotiation (ALPN) support for openssl
-
     select_console 'root-console';
 
     assert_script_run 'openssl req -newkey rsa:2048 -nodes -keyout domain.key -x509 -days 365 -out domain.crt -subj "/C=CZ/L=Prague/O=SUSE/CN=alpn.suse.cz"';

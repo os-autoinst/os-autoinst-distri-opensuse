@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Postgres tests for 11SP4
-# G-Maintainer: Richard Brown <rbrownccb@opensuse.org>
+# Summary: Postgres install and startup
+# Maintainer: Richard Brown <rbrownccb@opensuse.org>
 
 use base "consoletest";
 use strict;
@@ -17,8 +17,6 @@ use testapi;
 use utils;
 
 sub run() {
-    my $self = shift;
-
     select_console 'root-console';
 
     # install the postgresql94 client package

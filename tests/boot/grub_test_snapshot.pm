@@ -8,17 +8,14 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Enable Snapper-Rollback on HDD special Image.
-#    Enable test-workflow on Main
-# G-Maintainer: dmaiocchi <dmaiocchi@suse.com>
+# Summary: Select 'snapshot' boot option from grub menu
+# Maintainer: dmaiocchi <dmaiocchi@suse.com>
 
 use strict;
 use base "basetest";
 use testapi;
 
 sub run() {
-    my $self = shift;
-
     assert_screen "grub2";
     # prevent grub2 timeout; 'esc' would be cleaner, but grub2-efi falls to the menu then
     send_key 'up';
