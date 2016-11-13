@@ -124,25 +124,19 @@ sub x11_start_program($$$) {
 }
 
 sub ensure_installed {
-    my ($self, @pkglist) = @_;
-    my $timeout;
-    if ($pkglist[-1] =~ /^[0-9]+$/) {
-        $timeout = $pkglist[-1];
-        pop @pkglist;
-    }
-    else {
-        $timeout = 80;
-    }
+    my ($self, $pkgs, %args) = @_;
+    my $pkglist = ref $pkgs eq 'ARRAY' ? join ' ', @$pkgs : $pkgs;
+    $args{timeout} //= 90;
 
     testapi::x11_start_program("xterm");
     assert_screen('xterm-started');
     testapi::assert_script_sudo("chown $testapi::username /dev/$testapi::serialdev");
     my $retries = 5;    # arbitrary
-    $self->script_run("for i in {1..$retries} ; do pkcon install @pkglist && break ; done ; RET=\$?; echo \"\n  pkcon finished\n\"; echo \"pkcon-\${RET}-\" > /dev/$testapi::serialdev", 0);
+    $self->script_run("for i in {1..$retries} ; do pkcon install $pkglist && break ; done ; RET=\$?; echo \"\n  pkcon finished\n\"; echo \"pkcon-\${RET}-\" > /dev/$testapi::serialdev", 0);
     my @tags = qw/Policykit Policykit-behind-window pkcon-proceed-prompt pkcon-finished/;
     while (1) {
         last unless @tags;
-        my $ret = check_screen(\@tags, $timeout);
+        my $ret = check_screen(\@tags, $args{timeout});
         last unless $ret;
         last if (match_has_tag('pkcon-finished'));
         if (match_has_tag('Policykit')) {
