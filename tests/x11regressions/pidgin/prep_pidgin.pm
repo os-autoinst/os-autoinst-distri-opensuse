@@ -17,14 +17,10 @@ use strict;
 use testapi;
 use utils;
 
-# Preparation for testing pidgin
 sub pidgin_preparation() {
     my $self = shift;
     mouse_hide(1);
-    my @packages = qw/pidgin/;
-
-    # Install packages
-    ensure_installed(\@packages);
+    ensure_installed('pidgin');
 
     # Enable the showoffline
     x11_start_program("pidgin");
