@@ -59,17 +59,7 @@ sub run() {
     my $screenlock_previously_detected = 0;
     my $mouse_x                        = 1;
     while ($keep_trying) {
-        # try gracefully on aarch64 because of boo#982136
-        if (check_var('ARCH', 'aarch64')) {
-            my $ret = check_screen \@tags, $timeout;
-            if (!$ret) {
-                die 'timed out installation even after retrying' unless $keep_trying;
-                record_soft_failure 'boo#982136: timed out after ' . $timeout . 'seconds, trying once more';
-                $keep_trying = 0;
-                next;
-            }
-        }
-        elsif (get_var('LIVECD') && $screenlock_previously_detected) {
+        if (get_var('LIVECD') && $screenlock_previously_detected) {
             my $ret = check_screen \@tags, 30;
             if (!$ret) {
                 diag('installation not finished, move mouse around a bit to keep screen unlocked');
