@@ -72,6 +72,7 @@ else {
     load_inst_tests();
 }
 loadtest "installation/first_boot.pm";
+loadtest "casp/login.pm";
 
 1;
 # vim: set sw=4 et:
