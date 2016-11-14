@@ -46,8 +46,10 @@ sub run() {
     check_screen 'ftp_server_when_booting';        # check service start when booting
 
     # General
-    send_key 'shift-tab';
+    send_key_until_needlematch 'yast2_ftp_start-up_selected', 'shift-tab';
+    wait_still_screen 1;
     send_key 'down';
+    wait_still_screen 1;
     send_key 'ret';                                # enter page General
     assert_screen 'ftp_welcome_mesage';            # check welcome message for add strings
     send_key 'alt-w';                              # select welcome message to edit
@@ -63,54 +65,66 @@ sub run() {
     for (1 .. 20) { send_key 'backspace'; }
     type_string '/srv/ftp/anonymous';
     send_key 'alt-t';                              # give a new directory for authenticated users
+    wait_still_screen 1;
     type_string '/srv/ftp/authenticated';
-    assert_screen 'ftp_directories';               # check new directories for ftp users
+    assert_screen 'yast2_ftp_general_directories';    # check new directories for ftp users
+    send_key 'alt-o';
+    assert_screen 'yast2_ftp_directory_browse';
+    send_key 'alt-c';
 
     # Performance
-    for (1 .. 8) { send_key 'shift-tab'; }
+    send_key_until_needlematch 'yast2_tftp_general_selected', 'shift-tab';
     send_key 'down';
+    wait_still_screen 1;
     send_key 'ret';
-    assert_screen 'ftp_performance-tab';
+    wait_still_screen 1;
     send_key 'alt-m';
     for (1 .. 5) { send_key 'down'; }
-    send_key 'alt-e';                              # change max client for one IP
+    send_key 'alt-e';    # change max client for one IP
     for (1 .. 4) { send_key 'up'; }
-    send_key 'alt-x';                              # change max clients to 20
+    send_key 'alt-x';    # change max clients to 20
     for (1 .. 11) { send_key 'up'; }
-    send_key 'alt-l';                              # change local max rate to 100 kb/s
+    send_key 'alt-l';    # change local max rate to 100 kb/s
     for (1 .. 20) { send_key 'up'; }
-    send_key 'alt-r';                              # change anonymous max rate to 50 kb/s
+    send_key 'alt-r';    # change anonymous max rate to 50 kb/s
     for (1 .. 10) { send_key 'up'; }
-    assert_screen 'ftp_performance-settings';      # check performance settings
+    assert_screen 'yast2_ftp_performance-settings';    # check performance settings
 
     # Authentication
-    for (1 .. 5) { send_key 'shift-tab'; }
+    send_key_until_needlematch 'yast2_tftp_performance_selected', 'shift-tab';
     send_key 'down';
+    wait_still_screen 1;
     send_key 'ret';
-    assert_screen 'ftp_authentication-tab';
-    send_key 'alt-e';                              # enable upload
+    wait_still_screen 1;
+    send_key 'alt-e';
+    assert_screen 'yast2_ftp_authentication_enabled';
     send_key 'alt-y';
+    wait_still_screen 1;
     send_key 'alt-s';
     send_key 'alt-s';                              # disable creating directories
-    assert_screen 'ftp_anonymous_setting';         # check upload settings
+    assert_screen 'yast2_ftp_anonymous_upload';    # check upload settings
 
     # Expert Settings
-    for (1 .. 6) { send_key 'shift-tab'; }
+    send_key_until_needlematch 'yast2_tftp_authentication_selected', 'shift-tab';
     send_key 'down';
+    wait_still_screen 1;
     send_key 'ret';
-    assert_screen 'ftp_create_upload_dir';         # confirm to create upload directory
+    wait_still_screen 1;
+    assert_screen 'yast2_ftp_create_upload_dir_confirm';    # confirm to create upload directory
     send_key 'alt-y';
-    assert_screen 'ftp_expert_settings';           # change passive mode value and enable SSL
+    wait_still_screen 1;
     send_key 'alt-m';
     for (1 .. 4) { send_key 'down'; }
     send_key 'alt-a';
     for (1 .. 4) { send_key 'up'; }
-    send_key 'alt-l';                              # enable SSL
-    send_key 'alt-s';                              #  give path for DSA certificate
+    send_key 'alt-l';                                       # enable SSL
+    assert_screen 'yast2_ftp_expert_settings';              # check passive mode value and enable SSL
+    send_key 'alt-s';                                       # give path for DSA certificate
     type_string '/etc/vsftpd.pem';
-    send_key 'alt-p';                              # open port in firewall
-    assert_screen 'ftp_expert_settings_done';      # check expert settings to finish
-    send_key 'alt-f';
+    send_key 'alt-p';                                       # open port in firewall
+    wait_still_screen 1;
+    send_key 'alt-f';                                       # done and close the configuration page now
+
 
     # yast might take a while on sle12 due to suseconfig
     wait_serial("yast2-ftp-server-status-0", 60) || die "'yast2 ftp-server' didn't finish";
