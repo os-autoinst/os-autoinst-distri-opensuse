@@ -46,25 +46,34 @@ sub dl_save {
         send_key "alt-s";
     }
     assert_and_click("firefox-downloading-save_enabled", "left", 90);
+    # wait a little time at the beginning of the download to avoid busy disk writing
+    wait_still_screen 3;
 }
 
+# the changes of shift-f10 context menu and its shortcut keys certainly rely on the
+# actual downloading status, slow down the operations for pause, cancel and resume
 sub dl_pause {
-    wait_screen_change {
-        send_key "shift-f10";
-    };
-    wait_screen_change {
-        send_key "p";
-    };
+    wait_still_screen 2;
+    send_key "shift-f10";
+    wait_still_screen 2;
+    send_key "p";
+    wait_still_screen 2;
 }
 
 sub dl_cancel {
     dl_pause();
-    wait_screen_change {
-        send_key "shift-f10";
-    };
-    wait_screen_change {
-        send_key "c";
-    };
+    send_key "shift-f10";
+    wait_still_screen 2;
+    send_key "c";
+    wait_still_screen 2;
+}
+
+sub dl_resume {
+    wait_still_screen 2;
+    send_key "shift-f10";
+    wait_still_screen 2;
+    send_key "r";
+    wait_still_screen 2;
 }
 
 sub run() {
@@ -88,8 +97,7 @@ sub run() {
     assert_screen 'firefox-downloading-paused';
 
     # Resume
-    send_key "shift-f10";
-    send_key "r";    #"Resume"
+    dl_resume();
 
     # It have to use context menu to identify if downloading resumed, (gray "pause")
     # because there is no obvious specific elements when download is in on going.
