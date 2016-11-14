@@ -8,8 +8,8 @@
 # without any warranty.
 #
 package virt_autotest_base;
-# G-Summary: virt_autotest: the initial version of virtualization automation test in openqa, with kvm support fully, xen support not done yet
-# G-Maintainer: alice <xlai@suse.com>
+# Summary: virt_autotest: the initial version of virtualization automation test in openqa, with kvm support fully, xen support not done yet
+# Maintainer: alice <xlai@suse.com>
 
 use strict;
 use warnings;

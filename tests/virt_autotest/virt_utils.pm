@@ -75,7 +75,8 @@ sub repl_repo_in_sourcefile() {
         $location =~ s/[\r\n]+$//;
         my $soucefile = "/usr/share/qa/virtautolib/data/" . "sources." . "$location";
         my $newrepo   = "ftp://openqa.suse.de/" . get_var("REPO_0");
-        assert_script_run("sed -i \"s#$veritem=.*#$veritem=$newrepo#\" $soucefile");
+        my $shell_cmd = "if grep $veritem $soucefile >> /dev/null;then sed -i \"s#$veritem=.*#$veritem=$newrepo#\" $soucefile;else echo \"$veritem=$newrepo\" >> $soucefile;fi";
+        assert_script_run($shell_cmd);
         assert_script_run("cat $soucefile");
     }
     else {

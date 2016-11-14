@@ -7,8 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
-# G-Summary: virt_autotest: the initial version of virtualization automation test in openqa, with kvm support fully, xen support not done yet
-# G-Maintainer: alice <xlai@suse.com>
+# Summary: virt_autotest: the initial version of virtualization automation test in openqa, with kvm support fully, xen support not done yet
+# Maintainer: alice <xlai@suse.com>
 
 use base "host_upgrade_base";
 #use virt_utils qw(set_serialdev);
