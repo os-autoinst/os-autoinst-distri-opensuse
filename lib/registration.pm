@@ -119,8 +119,13 @@ sub fill_in_registration_data {
         if (get_var('SCC_ADDONS')) {
             for my $addon (split(/,/, get_var('SCC_ADDONS', ''))) {
                 if (check_var('VIDEOMODE', 'text')) {
-                    send_key_until_needlematch "scc-module-$addon", 'tab';
-                    send_key "spc";
+                    send_key_until_needlematch 'scc-module-area-selected', 'tab';
+                    send_key_until_needlematch "scc-module-$addon",        'down';
+                    send_key 'spc';
+                    # go at beginning of list by pressing up often enough
+                    for (1 .. 15) {
+                        send_key 'up';
+                    }
                 }
                 else {
                     # move the later modules into screen. for this the variable
