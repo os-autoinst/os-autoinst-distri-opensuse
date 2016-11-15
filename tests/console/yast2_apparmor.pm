@@ -7,11 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add yast2_apparmor.pm
-#    common yast module was missing in openqa tests
-#
-#    Verification run: http://e13.suse.de/tests/1086
-# G-Maintainer: Zaoliang Luo <zluo@suse.de>
+# Summary: check configuration of apparmor, add and delete apparmor profiles
+# Maintainer: Zaoliang Luo <zluo@suse.de>
 
 use strict;
 use base "consoletest";
@@ -122,7 +119,6 @@ sub run() {
     wait_still_screen(2);
 
     # part 3: manually add profile
-
     # prepare a new profile at first
     script_run("cp /etc/apparmor.d/sbin.syslogd /new_profile");
 
@@ -145,8 +141,9 @@ sub run() {
     send_key 'alt-r';
     send_key 'alt-s';
     send_key 'alt-d';
+
     # confirm to save changes to profile
-    assert_screen 'yast2_apparmor_configuration_manage_existing_profiles_edit_file_changed';
+    assert_screen 'yast2_apparmor_configuration_manage_existing_profiles_edit_file_changed_again';
     send_key 'alt-y';
 
     # finish test
