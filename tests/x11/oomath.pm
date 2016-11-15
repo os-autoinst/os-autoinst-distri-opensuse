@@ -19,8 +19,7 @@ use testapi;
 sub run() {
     my $self = shift;
     x11_start_program("oomath");
-    # give oomath some time to be reactive on key input
-    wait_still_screen(3);
+    assert_screen 'oomath-textfield-ready';
     type_string "E %PHI = H %PHI\nnewline\n1 = 1";
     wait_still_screen(1);
 
