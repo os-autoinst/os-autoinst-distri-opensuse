@@ -7,8 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add test yast2_http
-# G-Maintainer: Zaoliang Luo <zluo@suse.de>
+# Summary: Add test for yast2_http
+# Maintainer: Zaoliang Luo <zluo@suse.de>
 
 use strict;
 use base "consoletest";
@@ -21,7 +21,7 @@ sub run() {
     select_console 'root-console';
     # install http server
     assert_script_run("/usr/bin/zypper -n -q in yast2-http-server");
-    script_run("/sbin/yast2 http-server; echo yast2-http-server-status-\$? > /dev/$serialdev", 0);
+    script_run("yast2 http-server; echo yast2-http-server-status-\$? > /dev/$serialdev", 0);
     assert_screen 'http-server';              # check page "Initializing HTTP Server Configuration"
     send_key 'alt-i';                         # make sure that apache2, apache2-prefork packages needs to be installed
     assert_screen 'http_server_wizard';       # check http server wizard (1/5) -- Network Device Selection

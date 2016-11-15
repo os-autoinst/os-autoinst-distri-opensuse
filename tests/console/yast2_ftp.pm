@@ -40,7 +40,7 @@ sub run() {
     assert_script_run("ls -l /etc/vsftpd.pem");    # check vsftpd.pem is created
 
     # start yast2 apache2 configuration
-    script_run("/sbin/yast2 ftp-server; echo yast2-ftp-server-status-\$? > /dev/$serialdev", 0);
+    script_run("yast2 ftp-server; echo yast2-ftp-server-status-\$? > /dev/$serialdev", 0);
     assert_screen 'ftp-server';                    # check ftp server configuration page
     send_key 'alt-w';                              # make sure ftp start-up when booting
     check_screen 'ftp_server_when_booting';        # check service start when booting

@@ -39,7 +39,7 @@ sub run() {
     script_run('ls -alF /etc/sysconfig/network/');
     save_screenshot;
 
-    script_sudo("/sbin/yast2 lan; echo yast2-lan-status-\$? > /dev/$serialdev", 0);
+    script_sudo("yast2 lan; echo yast2-lan-status-\$? > /dev/$serialdev", 0);
 
     assert_screen [qw/Networkmanager_controlled yast2_lan install-susefirewall2/], 60;
     if (match_has_tag('Networkmanager_controlled')) {
