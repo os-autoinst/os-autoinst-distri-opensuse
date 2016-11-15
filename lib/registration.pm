@@ -119,12 +119,18 @@ sub fill_in_registration_data {
         if (get_var('SCC_ADDONS')) {
             for my $addon (split(/,/, get_var('SCC_ADDONS', ''))) {
                 if (check_var('VIDEOMODE', 'text')) {
-                    send_key_until_needlematch 'scc-module-area-selected', 'tab';
-                    send_key_until_needlematch "scc-module-$addon",        'down';
-                    send_key 'spc';
-                    # go at beginning of list by pressing up often enough
-                    for (1 .. 15) {
-                        send_key 'up';
+                    if (get_var('SP2ORLATER')) {
+                        send_key_until_needlematch 'scc-module-area-selected', 'tab';
+                        send_key_until_needlematch "scc-module-$addon",        'down';
+                        send_key 'spc';
+                        # go at beginning of list by pressing up often enough
+                        for (1 .. 15) {
+                            send_key 'up';
+                        }
+                    }
+                    else {
+                        send_key_until_needlematch "scc-module-$addon", 'tab';
+                        send_key "spc";
                     }
                 }
                 else {
