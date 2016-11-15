@@ -7,8 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
-# G-Summary: virt_autotest: the initial version of virtualization automation test in openqa, with kvm support fully, xen support not done yet
-# G-Maintainer: alice <xlai@suse.com>
+# Summary: guest_installation_run: This test is used to verify if different products can be installed successfully as guest on specify host.
+# Maintainer: alice <xlai@suse.com>
 
 use base "virt_autotest_base";
 use strict;
@@ -53,7 +53,7 @@ sub run() {
     $self->{"product_name"}      = "GuestIn_stallation";
     $self->{"package_name"}      = "Guest Installation Test";
 
-    $self->run_test(7600, "", "yes");
+    $self->run_test(7600, "", "yes", "yes", "/var/log/qa/", "guest-installation-logs");
 }
 
 sub test_flags {

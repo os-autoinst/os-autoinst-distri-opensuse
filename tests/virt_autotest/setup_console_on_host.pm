@@ -1,5 +1,5 @@
-# G-Summary: virtualization initial xen support (#1575)
-# G-Maintainer: xiao li ai <xlai@suse.com>
+# Summary: virtualization initial xen support (#1575)
+# Maintainer: xiao li ai <xlai@suse.com>
 
 use strict;
 use warnings;
