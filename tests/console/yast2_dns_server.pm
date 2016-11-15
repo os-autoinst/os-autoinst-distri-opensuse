@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: New test for yast2-dns-server (service management)
-# G-Maintainer: Ancor Gonzalez Sosa <ancor@suse.de>
+# Summary: New test for yast2-dns-server (service management)
+# Maintainer: mgriessmeier <mgriessmeier@suse.de>
 
 use base "console_yasttest";
 use strict;
@@ -62,7 +62,7 @@ sub run() {
     #
     # First execution (wizard-like interface)
     #
-    script_run '/sbin/yast2 dns-server', 0;
+    script_run 'yast2 dns-server', 0;
     # Just do next-next until the last step
     assert_screen 'yast2-dns-server-step1';
     send_key 'alt-n';
@@ -81,7 +81,7 @@ sub run() {
     #
     # Second execution (tree-based interface)
     #
-    script_run '/sbin/yast2 dns-server', 0;
+    script_run 'yast2 dns-server', 0;
     assert_screen 'yast2-service-running-enabled';
     # Stop the service
     send_key 'alt-s';
@@ -98,7 +98,7 @@ sub run() {
     #
     # Third execution (tree-based interface)
     #
-    script_run '/sbin/yast2 dns-server', 0;
+    script_run 'yast2 dns-server', 0;
     assert_screen 'yast2-service-stopped-enabled';
     # Start the service
     send_key 'alt-s';
@@ -113,7 +113,7 @@ sub run() {
     #
     # Fourth execution (tree-based interface)
     #
-    script_run '/sbin/yast2 dns-server', 0;
+    script_run 'yast2 dns-server', 0;
     assert_screen 'yast2-service-running-disabled';
     # Stop the service
     send_key 'alt-s';

@@ -7,8 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add yast2_vnc.pm
-# G-Maintainer: Zaoliang Luo <zluo@suse.de>
+# Summary: Add test for yast2 vnc
+# Maintainer: Zaoliang Luo <zluo@suse.de>
 
 use strict;
 use base "consoletest";
@@ -26,7 +26,7 @@ sub run() {
     assert_script_run("/usr/bin/zypper -n -q in vncmanager xorg-x11 ");
 
     # start Remote Administration configuration
-    script_run("/sbin/yast2 remote; echo yast2-remote-status-\$? > /dev/$serialdev", 0);
+    script_run("yast2 remote; echo yast2-remote-status-\$? > /dev/$serialdev", 0);
 
     # check Remote Administration VNC got started
     assert_screen 'yast2_vnc_remote_administration';

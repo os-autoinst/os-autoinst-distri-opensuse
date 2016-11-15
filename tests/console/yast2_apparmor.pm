@@ -24,7 +24,7 @@ sub run() {
     assert_script_run("/usr/bin/zypper -n -q in yast2-apparmor");
 
     # start apparmor configuration
-    script_run("/sbin/yast2 apparmor; echo yast2-apparmor-status-\$? > /dev/$serialdev", 0);
+    script_run("yast2 apparmor; echo yast2-apparmor-status-\$? > /dev/$serialdev", 0);
 
     # check Apparmor Configuration is opened
     assert_screen 'yast2_apparmor';
@@ -54,7 +54,7 @@ sub run() {
     assert_script_run("systemctl show -p ActiveState apparmor.service | grep ActiveState=active");
 
     # part 2: start apparmor configuration again
-    script_run("/sbin/yast2 apparmor; echo yast2-apparmor-status-\$? > /dev/$serialdev", 0);
+    script_run("yast2 apparmor; echo yast2-apparmor-status-\$? > /dev/$serialdev", 0);
     assert_screen 'yast2_apparmor';
     send_key 'down';
     assert_screen 'yast2_apparmor_configuration_manage_existing_profiles';
@@ -123,7 +123,7 @@ sub run() {
     script_run("cp /etc/apparmor.d/sbin.syslogd /new_profile");
 
     #start apparmor configuration again
-    script_run("/sbin/yast2 apparmor; echo yast2-apparmor-status-\$? > /dev/$serialdev", 0);
+    script_run("yast2 apparmor; echo yast2-apparmor-status-\$? > /dev/$serialdev", 0);
     assert_screen 'yast2_apparmor';
     send_key 'down';
     send_key 'down';

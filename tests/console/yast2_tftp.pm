@@ -23,7 +23,7 @@ sub run() {
     assert_script_run("/usr/bin/zypper -n -q in tftp yast2-tftp-server");
 
     # start tftp-server configuration
-    script_run("/sbin/yast2 tftp-server; echo yast2-tftp-server-status-\$? > /dev/$serialdev", 0);
+    script_run("yast2 tftp-server; echo yast2-tftp-server-status-\$? > /dev/$serialdev", 0);
 
     # check yast2 tftp-server configuration is opened
     assert_screen 'yast2_tftp-server_configuration';

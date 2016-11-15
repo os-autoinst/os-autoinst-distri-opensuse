@@ -9,8 +9,8 @@
 
 # Case 1525213 - FIPS: dm-crypt
 
-# G-Summary: Add dm crypt test for fips
-# G-Maintainer: mitiao <mitiao@gmail.com>
+# Summary: Add dm crypt test for fips
+# Maintainer: mgriessmeier <mgriessmeier@suse.de>
 
 use base "console_yasttest";
 use strict;
@@ -23,7 +23,7 @@ sub run() {
     my $test_filename = 'file_in_crypted_volume';
 
     select_console 'root-console';
-    script_run("/sbin/yast2 disk; echo yast2-disk-status-\$? > /dev/$serialdev", 0);
+    script_run("yast2 disk; echo yast2-disk-status-\$? > /dev/$serialdev", 0);
 
     assert_screen "yast2-disk-warning";
     send_key "alt-y";    # continue despite the warning
