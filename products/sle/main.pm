@@ -77,8 +77,15 @@ sub cleanup_needles {
         unregister_needle_tags("ENV-VERSION-12-SP2");
     }
 
+    if (get_var('VERSION', '') ne '12-SP3') {
+        unregister_needle_tags("ENV-VERSION-12-SP3");
+    }
+
     my $tounregister = sle_version_at_least('12-SP2') ? '0' : '1';
     unregister_needle_tags("ENV-SP2ORLATER-$tounregister");
+
+    $tounregister = sle_version_at_least('12-SP3') ? '0' : '1';
+    unregister_needle_tags("ENV-SP3ORLATER-$tounregister");
 
     if (!is_server) {
         unregister_needle_tags("ENV-FLAVOR-Server-DVD");
@@ -127,6 +134,10 @@ set_var('HASLICENSE',  1);
 
 if (sle_version_at_least('12-SP2')) {
     set_var('SP2ORLATER', 1);
+}
+
+if (sle_version_at_least('12-SP3')) {
+    set_var('SP3ORLATER', 1);
 }
 
 if (!get_var('NETBOOT')) {
