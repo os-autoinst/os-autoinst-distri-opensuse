@@ -36,6 +36,7 @@ sub run() {
             wait_still_screen 3;
             send_key $cmd{next};
             assert_screen 'dvd-selector';
+            send_key_until_needlematch 'addon-dvd-list',         'tab',  5;     # jump into addon list
             send_key_until_needlematch "addon-dvd-sr$sr_number", 'down', 10;    # select addon in list
             send_key 'alt-o';                                                   # continue
             if (check_screen('import-untrusted-gpg-key', 10)) {                 # workaround untrusted key pop-up, record soft fail and trust it
