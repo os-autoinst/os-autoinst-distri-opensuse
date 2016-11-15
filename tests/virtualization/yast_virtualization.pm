@@ -11,7 +11,7 @@ sub run() {
     wait_idle;
     send_key "alt-f10";
     become_root;
-    script_run("/sbin/yast2 virtualization; echo yast2-virtualization-done-\$? > /dev/$serialdev", 0);
+    script_run("yast2 virtualization; echo yast2-virtualization-done-\$? > /dev/$serialdev", 0);
     assert_screen "virt-sle-gnome_yast_virtualization";
     if (check_var("FLAVOR", "Desktop-DVD")) {
         # select everything
