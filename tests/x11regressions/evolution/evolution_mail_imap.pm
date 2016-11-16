@@ -16,15 +16,15 @@ use testapi;
 use utils;
 
 sub run() {
-    my ($self) = @_;
-    $self->setup_mail_account('imap', "internal_account_A");
-    my $account      = 'internal_account_A';
+    my $self    = shift;
+    my $account = "internal_account_A";
+    $self->setup_imap($account);
+
     my $mail_subject = $self->evolution_send_message($account);
     $self->check_new_mail_evolution($mail_subject, $account, "imap");
 
     # Exit
     send_key "ctrl-q";
-    wait_idle;
 }
 
 1;

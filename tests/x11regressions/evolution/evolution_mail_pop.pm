@@ -18,7 +18,6 @@ use utils;
 sub run() {
     my $self    = shift;
     my $account = "internal_account_A";
-    my $config  = $self->getconfig_emailaccount;
     $self->setup_pop($account);
 
     my $mail_subject = $self->evolution_send_message($account);

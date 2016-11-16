@@ -172,6 +172,7 @@ sub check_new_mail_evolution {
     }
     send_key "alt-w";
     send_key "ret";
+    wait_still_screen 3;
     send_key_until_needlematch "evolution_mail_show-all", "down", 5, 3;
     send_key "ret";
     send_key "alt-n";
@@ -262,7 +263,7 @@ sub setup_imap {
 }
 
 sub start_evolution {
-    my ($self, $mail_box) = $_;
+    my ($self, $mail_box) = @_;
 
     $self->{next} = "alt-o";
     if (sle_version_at_least('12-SP2')) {
