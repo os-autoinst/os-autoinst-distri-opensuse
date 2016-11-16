@@ -770,6 +770,7 @@ sub load_x11tests() {
             loadtest "x11/eog.pm";
             loadtest "x11/rhythmbox.pm";
             loadtest "x11/ImageMagick.pm";
+            loadtest "x11/ghostscript.pm";
         }
         if (get_var('DESKTOP') =~ /kde|gnome/) {
             loadtest "x11/ooffice.pm";
