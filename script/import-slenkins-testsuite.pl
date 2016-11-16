@@ -3,6 +3,7 @@
 use strict;
 use Cwd 'abs_path';
 use Data::Dump qw/dd pp/;
+use XML::Simple;
 
 my $template_control = pp(
     {key => "BOOT_HDD_IMAGE", value => 1},
@@ -46,6 +47,46 @@ my $template_node = pp(
     #    {key => "SLENKINS_TESTSUITES_REPO", value => "http://download.suse.de/ibs/Devel:/SLEnkins:/testsuites/SLE_12_SP1/"},
 );
 
+sub parse_channels {
+    my ($repo_var) = @_;
+    my $repo;
+    my $family        = "SLE_12_SP3";
+    my $channels_file = "/etc/slenkins/channels.conf";
+
+    my $xml  = XML::Simple->new;
+    my $data = $xml->XMLin($channels_file);
+
+    my %repo_table = (
+        UPDATES          => "Updates",
+        DEBUG            => "Debug",
+        QA               => "QA",
+        QAHEAD           => "QAHead",
+        HA               => "HA",
+        HAUPDATES        => "HAUpdates",
+        HAFACTORY        => "HAFactory",
+        GALAXY           => "Galaxy",
+        RUBYEXTENSIONS   => "RubyExtensions",
+        NETWORKUTILITIES => "NetworkUtilities",
+    );
+
+    my $channel_name  = $repo_table{$repo_var};
+    my $channel_array = $data->{channel}{$channel_name}{repo};
+
+    foreach (@$channel_array) {
+        $repo = $_->{url} if $_->{family} eq $family;
+        $repo =~ s/\@\@ARCH\@\@/x86_64/g;
+    }
+
+    if (!length $repo) {
+        if (grep { $repo_var eq $_ } qw{SLENKINS SDK}) {
+            print STDERR "Repository \"$repo_var\" already present in the image.\n";
+        }
+        else {
+            print STDERR "Repository \"$repo_var\" for \"$family\" not found in $channels_file.\n";
+        }
+    }
+    return $repo;
+}
 
 sub parse_node_file {
     my ($fn, $project_name) = @_;
@@ -83,6 +124,12 @@ sub parse_node_file {
             my ($param, $value) = split(/\s+/, $line);
             $value = 0 if $value eq 'no';
             $networks{$network}->{$param} = $value if defined $network;
+        }
+        elsif ($line =~ /(^repository|^repo)\s+\$\{CHANNEL_(.*)_.*\}$/) {
+            my $repo = parse_channels($2);
+            if (length $repo) {
+                push @{$nodes{$node}->{repos}}, $repo if defined $node;
+            }
         }
         elsif ($line =~ /(^repository|^repo)\s+(http.*\.repo)$/) {
             my @repo = split(/\s+/, $line);
@@ -164,15 +211,15 @@ sub import_node_file {
         push(
             @{$json->{JobTemplates}},
             {
-                group_name => "Slenkins: SLE 12 SP2",
+                group_name => "Slenkins",
                 machine    => {name => "64bit"},
                 prio       => 60,
                 product    => {
                     arch    => "x86_64",
                     distri  => "sle",
                     flavor  => "Server-DVD",
-                    group   => "sle-12-SP2-Server-DVD",
-                    version => "12-SP2",
+                    group   => "sle-12-SP3-Server-DVD",
+                    version => "12-SP3",
                 },
                 test_suite => {name => $ts->{name}},
             });
