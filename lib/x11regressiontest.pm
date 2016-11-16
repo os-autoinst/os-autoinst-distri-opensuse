@@ -172,6 +172,7 @@ sub check_new_mail_evolution {
     }
     send_key "alt-w";
     send_key "ret";
+    wait_still_screen 3;
     send_key_until_needlematch "evolution_mail_show-all", "down", 5, 3;
     send_key "ret";
     send_key "alt-n";
@@ -252,31 +253,23 @@ sub send_meeting_request {
 }
 
 sub setup_pop {
-    my ($self, $i) = @_;
-    $self->setup_mail_account('pop', $i);
+    my ($self, $account) = @_;
+    $self->setup_mail_account('pop', $account);
 }
 
 sub setup_imap {
-    my ($self, $i) = @_;
-    $self->setup_mail_account('imap', $i);
+    my ($self, $account) = @_;
+    $self->setup_mail_account('imap', $account);
 }
 
-sub setup_mail_account {
-    my ($self, $proto, $i) = @_;
+sub start_evolution {
+    my ($self, $mail_box) = @_;
 
-    my $config          = $self->getconfig_emailaccount;
-    my $mail_box        = $config->{$i}->{mailbox};
-    my $mail_sendServer = $config->{$i}->{sendServer};
-    my $mail_recvServer = $config->{$i}->{recvServer};
-    my $mail_user       = $config->{$i}->{user};
-    my $mail_passwd     = $config->{$i}->{passwd};
-    my $mail_sendport   = $config->{$i}->{sendport};
-    my $mail_recvport   = $proto eq 'pop' ? $config->{$i}->{recvport} : $config->{$i}->{imapport};
-    my $next            = "alt-o";
-    mouse_hide(1);
+    $self->{next} = "alt-o";
     if (sle_version_at_least('12-SP2')) {
-        $next = "alt-n";
+        $self->{next} = "alt-n";
     }
+    mouse_hide(1);
     # Clean and Start Evolution
     x11_start_program("xterm -e \"killall -9 evolution; find ~ -name evolution | xargs rm -rf;\"");
     x11_start_program("evolution");
@@ -286,9 +279,9 @@ sub setup_mail_account {
         assert_and_click "evolution-default-client-agree";
         assert_screen "test-evolution-1";
     }
-    send_key "$next";
+    send_key $self->{next};
     assert_screen "evolution_wizard-restore-backup";
-    send_key "$next";
+    send_key $self->{next};
     assert_screen "evolution_wizard-identity";
     wait_screen_change {
         send_key "alt-e";
@@ -300,7 +293,22 @@ sub setup_mail_account {
     type_string "$mail_box";
     sleep 1;
     save_screenshot();
-    send_key "$next";
+    send_key $self->{next};
+}
+
+sub setup_mail_account {
+    my ($self, $proto, $account) = @_;
+
+    my $config          = $self->getconfig_emailaccount;
+    my $mail_box        = $config->{$account}->{mailbox};
+    my $mail_sendServer = $config->{$account}->{sendServer};
+    my $mail_recvServer = $config->{$account}->{recvServer};
+    my $mail_user       = $config->{$account}->{user};
+    my $mail_passwd     = $config->{$account}->{passwd};
+    my $mail_sendport   = $config->{$account}->{sendport};
+    my $mail_recvport   = $config->{$account}->{$proto eq 'pop' ? 'recvport' : 'imapport'};
+
+    $self->start_evolution($mail_box);
     if (check_screen "evolution_wizard-skip-lookup") {
         send_key "alt-s";
     }
@@ -343,24 +351,24 @@ sub setup_mail_account {
         send_key "ret";
     };
     # add self-signed CA with internal account
-    if ($i =~ m/internal/) {
+    if ($account =~ m/internal/) {
         assert_and_click "evolution_wizard-receiving-checkauthtype";
         assert_screen "evolution_mail_meeting_trust_ca";
         send_key "alt-a";
         wait_screen_change {
-            send_key "$next";
+            send_key $self->{next};
             send_key "ret";
         }
     }
     else {
-        send_key "$next";
+        send_key $self->{next};
     }
     if (sle_version_at_least('12-SP2')) {
         send_key "ret";    #only need in SP2 or later
     }
     save_screenshot;
     assert_screen "evolution_wizard-receiving-opts";
-    send_key "$next";
+    send_key $self->{next};
     if (sle_version_at_least('12-SP2')) {
         send_key "ret";    #only need in SP2 or later
     }
@@ -411,23 +419,23 @@ sub setup_mail_account {
     sleep 1;
     type_string "$mail_user";
     # add self-signed CA with internal account
-    if ($i =~ m/internal/) {
+    if ($account =~ m/internal/) {
         assert_and_click "evolution_wizard-sending-checkauthtype";
         assert_screen "evolution_mail_meeting_trust_ca";
         send_key "alt-a";
         wait_screen_change {
-            send_key "$next";
+            send_key $self->{next};
             send_key "ret";
         }
     }
     else {
-        send_key "$next";
+        send_key $self->{next};
     }
     if (sle_version_at_least('12-SP2')) {
         send_key "ret";    #only in sp2, send ret to next page
     }
     assert_screen "evolution_wizard-account-summary";
-    send_key "$next";
+    send_key $self->{next};
     if (sle_version_at_least('12-SP2')) {
         send_key "alt-n";    #only in sp2
         send_key "ret";
@@ -506,6 +514,127 @@ sub unlock_user_settings {
     assert_screen "authentication-required-user-settings";
     type_password;
     assert_and_click "authenticate";
+}
+
+sub setup_evolution_for_ews {
+    my ($self, $mailbox, $mail_passwd) = @_;
+
+    mouse_hide(1);
+
+    # Clean and Start Evolution
+    x11_start_program("xterm -e \"killall -9 evolution; find ~ -name evolution | xargs rm -rf;\"");
+    x11_start_program("evolution");
+    assert_screen [qw(evolution-default-client-ask test-evolution-1)];
+    if (match_has_tag "evolution-default-client-ask") {
+        assert_and_click "evolution-default-client-agree";
+        assert_screen 'test-evolution-1';
+    }
+
+    # Follow the wizard to setup mail account
+    assert_screen "test-evolution-1";
+    send_key "alt-o";
+    assert_screen "evolution_wizard-restore-backup";
+    send_key "alt-o";
+    assert_screen "evolution_wizard-identity";
+    wait_screen_change {
+        send_key "alt-e";
+    };
+    type_string "SUSE Test";
+    wait_screen_change {
+        send_key "alt-a";
+    };
+    type_string "$mailbox";
+    sleep 1;
+    save_screenshot();
+
+    send_key "alt-o";
+    assert_screen [qw(evolution_wizard-skip-lookup evolution_wizard-receiving)];
+    if (match_has_tag "evolution_wizard-skip-lookup") {
+        send_key "alt-s";
+        assert_screen 'evolution_wizard-receiving';
+    }
+
+    wait_screen_change {
+        send_key "alt-t";
+    };
+    send_key "ret";
+    send_key_until_needlematch "evolution_wizard-receiving-ews", "up", 10, 3;
+    send_key "ret";
+    assert_screen "evolution_wizard-ews-prefill";
+    send_key "alt-u";
+    assert_screen "evolution_mail-auth";
+    type_string "$mail_passwd";
+    send_key "ret";
+    assert_screen "evolution_wizard-ews-oba", 300;
+    send_key "alt-o";
+    assert_screen "evolution_wizard-receiving-opts";
+    assert_and_click "evolution_wizard-ews-enable-gal";
+    assert_and_click "evolution_wizard-ews-fetch-abl";
+    assert_screen [qw/evolution_wizard-ews-view-gal evolution_mail-auth/], 120;
+    if (match_has_tag('evolution_mail-auth')) {
+        type_string "$mail_passwd";
+        send_key "ret";
+        assert_screen "evolution_wizard-ews-view-gal", 120;
+    }
+    send_key "alt-o";
+    assert_screen "evolution_wizard-account-summary";
+    send_key "alt-o";
+    assert_screen "evolution_wizard-done";
+    send_key "alt-a";
+    assert_screen "evolution_mail-auth";
+    type_string "$mail_passwd";
+    send_key "ret";
+    if (check_screen "evolution_mail-init-window") {
+        send_key "super-up";
+    }
+    assert_screen "evolution_mail-max-window";
+
+    # Make all existing mails as read
+    assert_screen "evolution_mail-online", 60;
+    assert_and_click "evolution_mail-inbox";
+    assert_screen "evolution_mail-ready", 60;
+    send_key "ctrl-/";
+    if (check_screen "evolution_mail-confirm-read") {
+        send_key "alt-y";
+    }
+    assert_screen "evolution_mail-ready", 60;
+}
+
+sub evolution_send_message {
+    my ($self, $account) = @_;
+
+    my $config       = $self->getconfig_emailaccount;
+    my $mailbox      = $config->{$account}->{mailbox};
+    my $mail_passwd  = $config->{$account}->{passwd};
+    my $mail_subject = $self->get_dated_random_string(4);
+
+    send_key "shift-ctrl-m";
+    assert_screen "evolution_mail-compose-message";
+    assert_and_click "evolution_mail-message-to";
+    type_string "$mailbox";
+    wait_screen_change {
+        send_key "alt-u";
+    };
+    wait_still_screen;
+    type_string "$mail_subject this is a test mail";
+    assert_and_click "evolution_mail-message-body";
+    type_string "Test email send and receive.";
+    send_key "ctrl-ret";
+    if (sle_version_at_least('12-SP2')) {
+        if (check_screen "evolution_mail_send_mail_dialog") {
+            send_key "ret";
+        }
+    }
+    if (check_screen "evolution_mail-auth") {
+        if (sle_version_at_least('12-SP2')) {
+            send_key "alt-a";    #disable keyring option, only in SP2
+            send_key "alt-p";
+        }
+        type_string "$mail_passwd";
+        send_key "ret";
+    }
+
+    return $mail_subject;
 }
 
 1;

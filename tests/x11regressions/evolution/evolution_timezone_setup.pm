@@ -18,12 +18,9 @@ use testapi;
 use utils;
 
 sub run() {
-    my $self        = shift;
-    my $account     = "internal_account_A";
-    my $config      = $self->getconfig_emailaccount;
-    my $mailbox     = $config->{$account}->{mailbox};
-    my $mail_passwd = $config->{$account}->{passwd};
-    $self->setup_pop("internal_account_A");
+    my $self    = shift;
+    my $account = "internal_account_A";
+    $self->setup_pop($account);
 
     # Set up timezone via: Edit->Preference->calendor and task->uncheck "use
     # sYstem timezone", then select
