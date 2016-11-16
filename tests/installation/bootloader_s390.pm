@@ -85,8 +85,10 @@ sub prepare_parmfile {
         $params .= 'upgrade=1 ';
     }
     if (check_var('SCC_REGISTER', 'installation')) {
-        my $regurl = get_var('SCC_URL');
-        $params .= " regurl=$regurl ";
+        if (get_var('SCC_URL')) {
+            my $regurl = get_var('SCC_URL');
+            $params .= " regurl=$regurl ";
+        }
     }
 
     return split_lines($params);
