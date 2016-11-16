@@ -82,7 +82,7 @@ sub run() {
 
         send_key 'e';
         # Move to end of kernel boot parameters line
-        send_key_until_needlematch "linux-line", "down";
+        send_key_until_needlematch "linux-line-selected", "down";
         send_key "end";
 
         # remove "splash=silent quiet showopts"
