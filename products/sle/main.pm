@@ -649,6 +649,8 @@ sub load_consoletests() {
                 loadtest "console/php5_mysql.pm";
                 loadtest "console/php5_postgresql94.pm";
             }
+            loadtest "console/apache_ssl.pm";
+            loadtest "console/apache_nss.pm";
         }
         if (get_var("MOZILLATEST")) {
             loadtest "console/mozmill_setup.pm";
@@ -926,6 +928,7 @@ sub load_fips_tests_web() {
     loadtest "console/wget_https.pm";
     loadtest "console/w3m_https.pm";
     loadtest "console/apache_ssl.pm";
+    loadtest "fips/mozilla_nss/apache_nssfips.pm";
     loadtest "console/libmicrohttpd.pm";
     loadtest "console/consoletest_finish.pm";
     loadtest "fips/mozilla_nss/firefox_nss.pm";
