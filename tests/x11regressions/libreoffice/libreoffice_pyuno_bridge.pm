@@ -7,11 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Case 1503978  - LibreOffice: pyuno bridge.
-
-# G-Summary: Add test case for TC#150378
-#    Update use base of libreoffice_pyuno_bridge.pm
-# G-Maintainer: Jiawei Sun <JiaWei.Sun@suse.com>
+# Summary: Case 1503978 - LibreOffice: pyuno bridge
+# Maintainer: Jiawei Sun <JiaWei.Sun@suse.com>
 
 use base "x11regressiontest";
 use strict;
@@ -27,8 +24,6 @@ sub run() {
     my $mail_user     = $config->{internal_account_A}->{user};
     my $mail_passwd   = $config->{internal_account_A}->{passwd};
     my $mail_sendport = $config->{internal_account_A}->{sendport};
-
-
 
     #Open LibreOffice
     send_key "alt-f2";
@@ -58,7 +53,7 @@ sub run() {
         send_key "alt-u";
     }
     #Open Serer Authentication and input User$Password
-    send_key "alt-t";
+    assert_and_click('libreoffice-server-authentication');
     assert_screen('Server-setting', 30);
     send_key "alt-t";
     send_key "alt-u";
@@ -71,9 +66,7 @@ sub run() {
     #	send_key "alt-e";
     #};
     assert_screen('liberoffice-mail-Merge', 30);
-    send_key "alt-e";
-    wait_still_screen;
-    send_key "ret";
+    assert_and_click('libreoffice-mail-testsettings');
     assert_screen('liberoffice-mailmerge-testAccount', 30);
     #exit libreoffice
     send_key "alt-c";
