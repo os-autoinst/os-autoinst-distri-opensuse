@@ -136,11 +136,13 @@ sub fill_in_registration_data {
                     }
                 }
                 else {
-                    # move the later modules into screen. for this the variable
-                    # needs to be sorted
-                    if (!check_screen("scc-module-$addon", 0)) {
-                        send_key 'down';
-                    }
+                    # go to the top of the list before looking for the addon
+                    send_key "home";
+
+                    # move the list of addons down until the current addon is found
+                    send_key_until_needlematch "scc-module-$addon", "down";
+
+                    # checkmark the requested addon
                     assert_and_click "scc-module-$addon";
                 }
             }
