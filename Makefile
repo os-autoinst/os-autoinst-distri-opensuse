@@ -60,7 +60,7 @@ test-merge:
 	    ${PERLCRITIC} $$file || touch failed ;\
 	  fi ; done; \
 	fi
-	test ! -f failed
+	@test ! -f failed
 
 .PHONY: test
 test: tidy test-compile test-merge
