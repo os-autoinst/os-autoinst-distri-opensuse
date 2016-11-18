@@ -54,7 +54,7 @@ sub setup_apache2 {
 
     # Create x509 certificate for this apache server
     if ($mode eq "SSL") {
-        assert_script_run 'gensslcert -n $(hostname) -C $(hostname) -e webmaster@$(hostname)', 300;
+        assert_script_run 'gensslcert -n $(hostname) -C $(hostname) -e webmaster@$(hostname)', 600;
         assert_script_run 'ls /etc/apache2/ssl.crt/$(hostname)-server.crt /etc/apache2/ssl.key/$(hostname)-server.key';
     }
 
