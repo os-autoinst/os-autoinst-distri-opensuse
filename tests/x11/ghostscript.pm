@@ -28,7 +28,12 @@ sub run() {
     # become root, disable packagekit and install all needed packages
     become_root;
     pkcon_quit;
-    zypper_call "in ghostscript ghostscript-x11 gv";
+    zypper_call "in ghostscript ghostscript-x11";
+
+    # special case for gv which is not installed on all flavors
+    my $gv_missing = zypper_call("in gv", exitcode => [0, 104]);
+
+    # exit root shell
     type_string "exit\n";
 
     my $gs_script = "ghostscript_ps2pdf.sh";
@@ -52,15 +57,18 @@ sub run() {
     assert_script_run "test ! -f $gs_failed";
 
     # display one reference pdf on screen and check if it looks correct
-    script_run "gv $reference", 0;
-    assert_screen "ghostview_alphabet";
+    # skip this when there is no gv installed
+    if (!$gv_missing) {
+        script_run "gv $reference", 0;
+        assert_screen "ghostview_alphabet";
 
-    # close gv
-    send_key "alt-f4";
-    wait_still_screen;
+        # close gv
+        send_key "alt-f4";
+        wait_still_screen;
+    }
 
     # cleanup temporary files
-    script_run "rm -f $gs_log $reference";
+    script_run "rm -f $gs_log $reference $gs_script";
 
     # close xterm
     send_key "alt-f4";
