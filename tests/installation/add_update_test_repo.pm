@@ -7,8 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Support installation testing of SLE 12 with untested maint updates
-# G-Maintainer: sysrich <sysrich@linux.com>
+# Summary: Support installation testing of SLE 12 with unreleased maint updates
+# Maintainer: Stephan Kulow <coolo@suse.de>
 
 use strict;
 use base "y2logsstep";
@@ -18,7 +18,8 @@ sub run() {
     my $self = shift;
     assert_screen 'inst-addon';
     send_key 'alt-k';    # install with a maint update repo
-    foreach my $maintrepo (split(/,/, get_var('MAINT_TEST_REPO'))) {
+    my @repos = split(/,/, get_var('MAINT_TEST_REPO'));
+    while (my $maintrepo = shift @repos) {
         assert_screen 'addon-menu-active';
         send_key 'alt-u';    # specify url
         if (check_var('VERSION', '12') and check_var('VIDEOMODE', 'text')) {
@@ -29,12 +30,11 @@ sub run() {
         }
         assert_screen 'addonurl-entry';
         send_key 'alt-u';    # select URL field
-        type_string "$maintrepo";
+        type_string $maintrepo;
         send_key $cmd{next};
         assert_screen 'addon-products';
-        if ((split(/,/, get_var('MAINT_TEST_REPO')))[-1] ne $maintrepo) {    # if $maintrepo is not first from all maint test repos
-            send_key 'alt-a';                                                # add another repo
-        }
+        # if more repos to come, add more
+        send_key 'alt-a' if @repos;
     }
 }
 
