@@ -44,7 +44,7 @@ sub init_main {
 
 sub loadtest {
     my ($test) = @_;
-    autotest::loadtest("tests/$test");
+    autotest::loadtest("tests/$test.pm");
 }
 
 sub set_defaults_for_username_and_password {
@@ -99,74 +99,74 @@ sub is_reboot_after_installation_necessary {
 
 sub load_rescuecd_tests {
     if (rescuecdstep_is_applicable()) {
-        loadtest "rescuecd/rescuecd.pm";
+        loadtest "rescuecd/rescuecd";
     }
 }
 
 sub load_zdup_tests {
-    loadtest 'installation/setup_zdup.pm';
-    loadtest 'installation/zdup.pm';
-    loadtest 'installation/post_zdup.pm';
-    loadtest 'boot/boot_to_desktop.pm';
+    loadtest 'installation/setup_zdup';
+    loadtest 'installation/zdup';
+    loadtest 'installation/post_zdup';
+    loadtest 'boot/boot_to_desktop';
 }
 
 sub load_autoyast_tests {
     #    init boot in load_boot_tests
-    loadtest("autoyast/installation.pm");
-    loadtest("autoyast/console.pm");
-    loadtest("autoyast/login.pm");
-    loadtest("autoyast/wicked.pm");
-    loadtest("autoyast/autoyast_verify.pm") if get_var("AUTOYAST_VERIFY");
+    loadtest("autoyast/installation");
+    loadtest("autoyast/console");
+    loadtest("autoyast/login");
+    loadtest("autoyast/wicked");
+    loadtest("autoyast/autoyast_verify") if get_var("AUTOYAST_VERIFY");
     if (get_var("SUPPORT_SERVER_GENERATOR")) {
-        loadtest("support_server/configure.pm");
+        loadtest("support_server/configure");
     }
     else {
-        loadtest("autoyast/repos.pm");
-        loadtest("autoyast/clone.pm");
-        loadtest("autoyast/logs.pm");
+        loadtest("autoyast/repos");
+        loadtest("autoyast/clone");
+        loadtest("autoyast/logs");
     }
-    loadtest("autoyast/autoyast_reboot.pm");
+    loadtest("autoyast/autoyast_reboot");
     #    next boot in load_reboot_tests
 }
 
 sub load_slepos_tests() {
     if (get_var("SLEPOS") =~ /^adminserver/) {
-        loadtest("boot/boot_to_desktop.pm");
-        loadtest "slepos/prepare.pm";
-        loadtest "slepos/zypper_add_repo.pm";
-        loadtest "slepos/zypper_install_adminserver.pm";
-        loadtest "slepos/run_posInitAdminserver.pm";
-        loadtest "slepos/zypper_install_imageserver.pm";
-        loadtest "slepos/use_smt_for_kiwi.pm";
-        loadtest "slepos/build_images_kiwi.pm";
-        loadtest "slepos/register_images.pm";
-        loadtest "slepos/build_offline_image_kiwi.pm";
-        loadtest "slepos/wait.pm";
+        loadtest("boot/boot_to_desktop");
+        loadtest "slepos/prepare";
+        loadtest "slepos/zypper_add_repo";
+        loadtest "slepos/zypper_install_adminserver";
+        loadtest "slepos/run_posInitAdminserver";
+        loadtest "slepos/zypper_install_imageserver";
+        loadtest "slepos/use_smt_for_kiwi";
+        loadtest "slepos/build_images_kiwi";
+        loadtest "slepos/register_images";
+        loadtest "slepos/build_offline_image_kiwi";
+        loadtest "slepos/wait";
     }
     elsif (get_var("SLEPOS") =~ /^branchserver/) {
-        loadtest("boot/boot_to_desktop.pm");
-        loadtest "slepos/prepare.pm";
-        loadtest "slepos/zypper_add_repo.pm";
-        loadtest "slepos/zypper_install_branchserver.pm";
-        loadtest "slepos/run_posInitBranchserver.pm";
-        loadtest "slepos/run_possyncimages.pm";
-        loadtest "slepos/wait.pm";
+        loadtest("boot/boot_to_desktop");
+        loadtest "slepos/prepare";
+        loadtest "slepos/zypper_add_repo";
+        loadtest "slepos/zypper_install_branchserver";
+        loadtest "slepos/run_posInitBranchserver";
+        loadtest "slepos/run_possyncimages";
+        loadtest "slepos/wait";
     }
     elsif (get_var("SLEPOS") =~ /^imageserver/) {
-        loadtest("boot/boot_to_desktop.pm");
-        loadtest "slepos/prepare.pm";
-        loadtest "slepos/zypper_add_repo.pm";
-        loadtest "slepos/zypper_install_imageserver.pm";
-        loadtest "slepos/use_smt_for_kiwi.pm";
-        loadtest "slepos/build_images_kiwi.pm";
+        loadtest("boot/boot_to_desktop");
+        loadtest "slepos/prepare";
+        loadtest "slepos/zypper_add_repo";
+        loadtest "slepos/zypper_install_imageserver";
+        loadtest "slepos/use_smt_for_kiwi";
+        loadtest "slepos/build_images_kiwi";
     }
     elsif (get_var("SLEPOS") =~ /^terminal-online/) {
         mutex_lock("bs1_images_synced");
         mutex_unlock("bs1_images_synced");
-        loadtest "slepos/boot_image.pm";
+        loadtest "slepos/boot_image";
     }
     elsif (get_var("SLEPOS") =~ /^terminal-offline/) {
-        loadtest "slepos/boot_image.pm";
+        loadtest "slepos/boot_image";
     }
 }
 

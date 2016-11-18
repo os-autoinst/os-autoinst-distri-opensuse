@@ -44,35 +44,35 @@ testapi::set_distribution(susedistribution->new());
 
 # Installer workflow is defined in fate#321754
 sub load_inst_tests() {
-    loadtest "installation/welcome.pm";
+    loadtest "installation/welcome";
     if (get_var('SCC_REGISTER', '') eq 'installation') {
-        loadtest "installation/scc_registration.pm";
+        loadtest "installation/scc_registration";
     }
     else {
-        loadtest "installation/skip_registration.pm";
+        loadtest "installation/skip_registration";
     }
-    loadtest "installation/addon_products_sle.pm";
-    loadtest "installation/system_role.pm";
-    loadtest "installation/partitioning.pm";
-    loadtest "installation/partitioning_finish.pm";
-    loadtest "installation/releasenotes.pm";
-    loadtest "installation/installer_timezone.pm";
-    loadtest "installation/user_settings.pm";
-    loadtest "installation/user_settings_root.pm";
-    loadtest "installation/installation_overview.pm";
-    loadtest "installation/start_install.pm";
-    loadtest "installation/install_and_reboot.pm";
+    loadtest "installation/addon_products_sle";
+    loadtest "installation/system_role";
+    loadtest "installation/partitioning";
+    loadtest "installation/partitioning_finish";
+    loadtest "installation/releasenotes";
+    loadtest "installation/installer_timezone";
+    loadtest "installation/user_settings";
+    loadtest "installation/user_settings_root";
+    loadtest "installation/installation_overview";
+    loadtest "installation/start_install";
+    loadtest "installation/install_and_reboot";
 }
 
 if (check_var("FLAVOR", "VMX")) {
-    loadtest "boot/boot_to_desktop.pm";
+    loadtest "boot/boot_to_desktop";
 }
 else {
-    loadtest "installation/bootloader.pm";
+    loadtest "installation/bootloader";
     load_inst_tests();
 }
-loadtest "installation/first_boot.pm";
-loadtest "casp/login.pm";
+loadtest "installation/first_boot";
+loadtest "casp/login";
 
 1;
 # vim: set sw=4 et:

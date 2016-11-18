@@ -191,171 +191,171 @@ sub have_addn_repos() {
 
 sub load_x11regresion_tests() {
     if ((check_var("DESKTOP", "gnome"))) {
-        loadtest "x11regressions/tomboy/tomboy_Hotkeys.pm";
-        loadtest "x11regressions/tomboy/tomboy_AlreadyRunning.pm";
-        loadtest "x11regressions/tomboy/tomboy_TestFindFunctionalityInSearchAllNotes.pm";
-        loadtest "x11regressions/tomboy/tomboy_TestUndoRedoFeature.pm";
-        loadtest "x11regressions/tomboy/tomboy_firstrun.pm";
-        loadtest "x11regressions/tomboy/tomboy_StartNoteCannotBeDeleted.pm";
-        loadtest "x11regressions/tomboy/tomboy_Open.pm";
-        loadtest "x11regressions/tomboy/tomboy_Print.pm";
-        loadtest "x11regressions/tomboy/tomboy_checkinstall.pm";
-        loadtest "x11regressions/gnomecase/Gnomecutfile.pm";
+        loadtest "x11regressions/tomboy/tomboy_Hotkeys";
+        loadtest "x11regressions/tomboy/tomboy_AlreadyRunning";
+        loadtest "x11regressions/tomboy/tomboy_TestFindFunctionalityInSearchAllNotes";
+        loadtest "x11regressions/tomboy/tomboy_TestUndoRedoFeature";
+        loadtest "x11regressions/tomboy/tomboy_firstrun";
+        loadtest "x11regressions/tomboy/tomboy_StartNoteCannotBeDeleted";
+        loadtest "x11regressions/tomboy/tomboy_Open";
+        loadtest "x11regressions/tomboy/tomboy_Print";
+        loadtest "x11regressions/tomboy/tomboy_checkinstall";
+        loadtest "x11regressions/gnomecase/Gnomecutfile";
     }
     if (get_var("DESKTOP") =~ /kde|gnome/) {
-        loadtest "x11regressions/pidgin/pidgin_IRC.pm";
-        loadtest "x11regressions/pidgin/pidgin_googletalk.pm";
-        loadtest "x11regressions/pidgin/pidgin_aim.pm";
-        loadtest "x11regressions/pidgin/prep_pidgin.pm";
-        loadtest "x11regressions/pidgin/pidgin_msn.pm";
-        loadtest "x11regressions/pidgin/clean_pidgin.pm";
-        loadtest "x11regressions/tracker/prep_tracker.pm";
-        loadtest "x11regressions/tracker/tracker_starts.pm";
-        loadtest "x11regressions/tracker/tracker_searchall.pm";
-        loadtest "x11regressions/tracker/tracker_pref_starts.pm";
-        loadtest "x11regressions/tracker/tracker_open_apps.pm";
-        loadtest "x11regressions/tracker/tracker_by_command.pm";
-        loadtest "x11regressions/tracker/tracker_search_in_nautilus.pm";
-        loadtest "x11regressions/tracker/clean_tracker.pm";
-        loadtest "x11regressions/tracker/tracker_info.pm";
+        loadtest "x11regressions/pidgin/pidgin_IRC";
+        loadtest "x11regressions/pidgin/pidgin_googletalk";
+        loadtest "x11regressions/pidgin/pidgin_aim";
+        loadtest "x11regressions/pidgin/prep_pidgin";
+        loadtest "x11regressions/pidgin/pidgin_msn";
+        loadtest "x11regressions/pidgin/clean_pidgin";
+        loadtest "x11regressions/tracker/prep_tracker";
+        loadtest "x11regressions/tracker/tracker_starts";
+        loadtest "x11regressions/tracker/tracker_searchall";
+        loadtest "x11regressions/tracker/tracker_pref_starts";
+        loadtest "x11regressions/tracker/tracker_open_apps";
+        loadtest "x11regressions/tracker/tracker_by_command";
+        loadtest "x11regressions/tracker/tracker_search_in_nautilus";
+        loadtest "x11regressions/tracker/clean_tracker";
+        loadtest "x11regressions/tracker/tracker_info";
     }
 }
 
 sub load_boot_tests() {
     if (get_var("ISO_MAXSIZE")) {
-        loadtest "installation/isosize.pm";
+        loadtest "installation/isosize";
     }
     if (get_var("OFW")) {
-        loadtest "installation/bootloader_ofw.pm";
+        loadtest "installation/bootloader_ofw";
     }
     elsif (get_var("UEFI") || is_jeos) {
         # TODO: rename to bootloader_grub2
-        loadtest "installation/bootloader_uefi.pm";
+        loadtest "installation/bootloader_uefi";
     }
     elsif (get_var("IPMI_HOSTNAME")) {    # abuse of variable for now
-        loadtest "installation/qa_net.pm";
+        loadtest "installation/qa_net";
     }
     elsif (get_var("PXEBOOT")) {
         mutex_lock('pxe');
         mutex_unlock('pxe');
-        loadtest "autoyast/pxe_boot.pm";
+        loadtest "autoyast/pxe_boot";
     }
     else {
-        loadtest "installation/bootloader.pm";
+        loadtest "installation/bootloader";
     }
 }
 
 sub load_inst_tests() {
-    loadtest "installation/welcome.pm";
+    loadtest "installation/welcome";
     if (get_var("MULTIPATH")) {
-        loadtest "installation/multipath.pm";
+        loadtest "installation/multipath";
     }
-    loadtest "installation/good_buttons.pm";
+    loadtest "installation/good_buttons";
     if (get_var('ENCRYPT_CANCEL_EXISTING') || get_var('ENCRYPT_ACTIVATE_EXISTING')) {
-        loadtest "installation/encrypted_volume_activation.pm";
+        loadtest "installation/encrypted_volume_activation";
     }
     if (noupdatestep_is_applicable() && !get_var("LIVECD")) {
-        loadtest "installation/installation_mode.pm";
+        loadtest "installation/installation_mode";
     }
     if (!get_var("LIVECD") && get_var("UPGRADE")) {
-        loadtest "installation/upgrade_select.pm";
+        loadtest "installation/upgrade_select";
         if (check_var("UPGRADE", "LOW_SPACE")) {
-            loadtest "installation/disk_space_fill.pm";
+            loadtest "installation/disk_space_fill";
         }
-        loadtest "installation/upgrade_select_opensuse.pm";
+        loadtest "installation/upgrade_select_opensuse";
     }
     if (noupdatestep_is_applicable() && get_var("LIVECD")) {
-        loadtest "installation/livecd_network_settings.pm";
+        loadtest "installation/livecd_network_settings";
     }
     if (noupdatestep_is_applicable()) {
-        loadtest "installation/partitioning.pm";
+        loadtest "installation/partitioning";
         if (defined(get_var("RAIDLEVEL"))) {
-            loadtest "installation/partitioning_raid.pm";
+            loadtest "installation/partitioning_raid";
         }
         elsif (get_var("LVM")) {
-            loadtest "installation/partitioning_lvm.pm";
+            loadtest "installation/partitioning_lvm";
         }
         if (get_var("FILESYSTEM")) {
-            loadtest "installation/partitioning_filesystem.pm";
+            loadtest "installation/partitioning_filesystem";
         }
         if (get_var("TOGGLEHOME")) {
-            loadtest "installation/partitioning_togglehome.pm";
+            loadtest "installation/partitioning_togglehome";
             if (get_var('LVM') && get_var('RESIZE_ROOT_VOLUME')) {
-                loadtest "installation/partitioning_resize_root.pm";
+                loadtest "installation/partitioning_resize_root";
             }
         }
         if (get_var("SPLITUSR")) {
-            loadtest "installation/partitioning_splitusr.pm";
+            loadtest "installation/partitioning_splitusr";
         }
-        loadtest "installation/partitioning_finish.pm";
-        loadtest "installation/installer_timezone.pm";
+        loadtest "installation/partitioning_finish";
+        loadtest "installation/installer_timezone";
     }
     if (installwithaddonrepos_is_applicable() && !get_var("LIVECD")) {
-        loadtest "installation/setup_online_repos.pm";
+        loadtest "installation/setup_online_repos";
     }
     if (!get_var("LIVECD") && get_var("ADDONURL")) {
-        loadtest "installation/addon_products.pm";
+        loadtest "installation/addon_products";
     }
     if (noupdatestep_is_applicable() && !get_var("LIVECD") && !get_var("REMOTE_CONTROLLER")) {
-        loadtest "installation/logpackages.pm";
+        loadtest "installation/logpackages";
     }
     if (noupdatestep_is_applicable()) {
-        loadtest "installation/installer_desktopselection.pm";
+        loadtest "installation/installer_desktopselection";
         if (get_var('IMPORT_USER_DATA')) {
-            loadtest 'installation/user_import.pm';
+            loadtest 'installation/user_import';
         }
         else {
-            loadtest "installation/user_settings.pm";
+            loadtest "installation/user_settings";
         }
         if (get_var("DOCRUN") || get_var("IMPORT_USER_DATA")) {    # root user
-            loadtest "installation/user_settings_root.pm";
+            loadtest "installation/user_settings_root";
         }
     }
     if (noupdatestep_is_applicable()) {
         if (get_var('PATTERNS')) {
-            loadtest "installation/installation_overview_before.pm";
-            loadtest "installation/select_patterns.pm";
+            loadtest "installation/installation_overview_before";
+            loadtest "installation/select_patterns";
         }
     }
     if (get_var("UEFI") && get_var("SECUREBOOT")) {
-        loadtest "installation/secure_boot.pm";
+        loadtest "installation/secure_boot";
     }
     if (installyaststep_is_applicable()) {
-        loadtest "installation/installation_overview.pm";
+        loadtest "installation/installation_overview";
         if (check_var("UPGRADE", "LOW_SPACE")) {
-            loadtest "installation/disk_space_release.pm";
+            loadtest "installation/disk_space_release";
         }
         if (ssh_key_import) {
-            loadtest "installation/ssh_key_setup.pm";
+            loadtest "installation/ssh_key_setup";
         }
-        loadtest "installation/start_install.pm";
+        loadtest "installation/start_install";
     }
-    loadtest "installation/install_and_reboot.pm";
+    loadtest "installation/install_and_reboot";
 }
 
 sub load_reboot_tests() {
     if (installyaststep_is_applicable()) {
-        loadtest "installation/grub_test.pm";
+        loadtest "installation/grub_test";
         if (get_var('ENCRYPT')) {
-            loadtest "installation/boot_encrypt.pm";
+            loadtest "installation/boot_encrypt";
         }
         if ((snapper_is_applicable()) && get_var("BOOT_TO_SNAPSHOT")) {
-            loadtest "installation/boot_into_snapshot.pm";
+            loadtest "installation/boot_into_snapshot";
             if (get_var("UPGRADE")) {
-                loadtest "installation/snapper_rollback.pm";
+                loadtest "installation/snapper_rollback";
             }
         }
-        loadtest "installation/first_boot.pm";
+        loadtest "installation/first_boot";
     }
 
     if (is_reboot_after_installation_necessary()) {
-        loadtest "installation/reboot_eject_cd.pm";
-        loadtest "installation/reboot_after_install.pm";
+        loadtest "installation/reboot_eject_cd";
+        loadtest "installation/reboot_after_install";
     }
 
     if (get_var("DUALBOOT")) {
-        loadtest "installation/reboot_eject_cd.pm";
-        loadtest "installation/boot_windows.pm";
+        loadtest "installation/reboot_eject_cd";
+        loadtest "installation/boot_windows";
     }
 }
 
@@ -366,7 +366,7 @@ sub load_fixup_network() {
     my @old_hdds = qw/openSUSE-12.1 openSUSE-12.2 openSUSE-12.3 openSUSE-13.1-gnome openSUSE-13.2/;
     return unless grep { check_var('HDDVERSION', $_) } @old_hdds;
 
-    loadtest "fixup/network_configuration.pm";
+    loadtest "fixup/network_configuration";
 
 }
 
@@ -375,122 +375,122 @@ sub load_fixup_firewall() {
     # Upon upgrading to a new system the service state is supposed to remain as pre-configured
     # If the service is disabled here, we enable it here
     return unless check_var('HDDVERSION', 'openSUSE-13.1-gnome');
-    loadtest 'fixup/enable_firewall.pm';
+    loadtest 'fixup/enable_firewall';
 }
 
 sub load_consoletests() {
     if (consolestep_is_applicable()) {
-        loadtest "console/consoletest_setup.pm";
-        loadtest "console/check_console_font.pm";
-        loadtest "console/textinfo.pm";
-        loadtest "console/hostname.pm";
+        loadtest "console/consoletest_setup";
+        loadtest "console/check_console_font";
+        loadtest "console/textinfo";
+        loadtest "console/hostname";
         if (snapper_is_applicable()) {
             if (get_var("UPGRADE")) {
-                loadtest "console/upgrade_snapshots.pm";
+                loadtest "console/upgrade_snapshots";
             }
             else {
-                loadtest "console/installation_snapshots.pm";
+                loadtest "console/installation_snapshots";
             }
         }
         if (get_var("DESKTOP") !~ /textmode/) {
-            loadtest "console/xorg_vt.pm";
+            loadtest "console/xorg_vt";
         }
-        loadtest "console/zypper_lr.pm";
+        loadtest "console/zypper_lr";
         if (have_addn_repos) {
-            loadtest "console/zypper_ar.pm";
+            loadtest "console/zypper_ar";
         }
-        loadtest "console/zypper_ref.pm";
-        loadtest "console/yast2_lan.pm";
+        loadtest "console/zypper_ref";
+        loadtest "console/yast2_lan";
         # no local certificate store
         if (!is_krypton_argon) {
-            loadtest "console/curl_https.pm";
+            loadtest "console/curl_https";
         }
         if (   check_var('ARCH', 'x86_64')
             || check_var('ARCH', 'i686')
             || check_var('ARCH', 'i586'))
         {
-            loadtest "console/glibc_i686.pm";
+            loadtest "console/glibc_i686";
         }
-        loadtest "console/zypper_in.pm";
-        loadtest "console/yast2_i.pm";
+        loadtest "console/zypper_in";
+        loadtest "console/yast2_i";
         if (!get_var("LIVETEST")) {
-            loadtest "console/yast2_bootloader.pm";
+            loadtest "console/yast2_bootloader";
         }
-        loadtest "console/vim.pm";
+        loadtest "console/vim";
         # textmode install comes without firewall by default atm
         if (!check_var("DESKTOP", "textmode") && !is_staging() && !is_krypton_argon) {
-            loadtest "console/firewall_enabled.pm";
+            loadtest "console/firewall_enabled";
         }
         if (is_jeos) {
-            loadtest "console/gpt_ptable.pm";
-            loadtest "console/kdump_disabled.pm";
-            loadtest "console/sshd_running.pm";
+            loadtest "console/gpt_ptable";
+            loadtest "console/kdump_disabled";
+            loadtest "console/sshd_running";
         }
-        loadtest "console/sshd.pm";
-        loadtest "console/ssh_cleanup.pm";
+        loadtest "console/sshd";
+        loadtest "console/ssh_cleanup";
         if (!get_var("LIVETEST") && !is_staging()) {
             # in live we don't have a password for root so ssh doesn't
             # work anyways, and except staging_core image, the rest of
             # staging_* images don't need run this test case
-            loadtest "console/sshfs.pm";
+            loadtest "console/sshfs";
         }
         if (get_var("BIGTEST")) {
-            loadtest "console/sntp.pm";
-            loadtest "console/curl_ipv6.pm";
-            loadtest "console/wget_ipv6.pm";
-            loadtest "console/syslinux.pm";
+            loadtest "console/sntp";
+            loadtest "console/curl_ipv6";
+            loadtest "console/wget_ipv6";
+            loadtest "console/syslinux";
         }
-        loadtest "console/mtab.pm";
+        loadtest "console/mtab";
         if (!get_var("NOINSTALL") && !get_var("LIVETEST") && (check_var("DESKTOP", "textmode"))) {
             if (check_var('BACKEND', 'qemu')) {
                 # The NFS test expects the IP to be 10.0.2.15
-                loadtest "console/yast2_nfs_server.pm";
+                loadtest "console/yast2_nfs_server";
             }
-            loadtest "console/http_srv.pm";
-            loadtest "console/mysql_srv.pm";
-            loadtest "console/dns_srv.pm";
+            loadtest "console/http_srv";
+            loadtest "console/mysql_srv";
+            loadtest "console/dns_srv";
             if (check_var('ARCH', 'x86_64')) {
-                loadtest "console/docker.pm";
+                loadtest "console/docker";
             }
         }
         if (get_var("MOZILLATEST")) {
-            loadtest "console/mozmill_setup.pm";
+            loadtest "console/mozmill_setup";
         }
         if (check_var("DESKTOP", "xfce")) {
-            loadtest "console/xfce_gnome_deps.pm";
+            loadtest "console/xfce_gnome_deps";
         }
         if (get_var("CLONE_SYSTEM")) {
-            loadtest "console/yast2_clone_system.pm";
+            loadtest "console/yast2_clone_system";
         }
-        loadtest "console/consoletest_finish.pm";
+        loadtest "console/consoletest_finish";
     }
     elsif (is_staging() && get_var('UEFI')) {
         # Stagings should test yast2-bootloader in miniuefi at least but not all
-        loadtest "console/consoletest_setup.pm";
-        loadtest "console/check_console_font.pm";
-        loadtest "console/textinfo.pm";
-        loadtest "console/hostname.pm";
+        loadtest "console/consoletest_setup";
+        loadtest "console/check_console_font";
+        loadtest "console/textinfo";
+        loadtest "console/hostname";
         if (!get_var("LIVETEST")) {
-            loadtest "console/yast2_bootloader.pm";
+            loadtest "console/yast2_bootloader";
         }
-        loadtest "console/consoletest_finish.pm";
+        loadtest "console/consoletest_finish";
     }
 
 }
 
 sub load_yast2_gui_tests() {
-    loadtest "yast2_gui/yast2_control_center.pm";
-    loadtest "yast2_gui/yast2_bootloader.pm";
-    loadtest "yast2_gui/yast2_datetime.pm";
-    loadtest "yast2_gui/yast2_firewall.pm";
-    loadtest "yast2_gui/yast2_hostnames.pm";
-    loadtest "yast2_gui/yast2_lang.pm";
-    loadtest "yast2_gui/yast2_network_settings.pm";
+    loadtest "yast2_gui/yast2_control_center";
+    loadtest "yast2_gui/yast2_bootloader";
+    loadtest "yast2_gui/yast2_datetime";
+    loadtest "yast2_gui/yast2_firewall";
+    loadtest "yast2_gui/yast2_hostnames";
+    loadtest "yast2_gui/yast2_lang";
+    loadtest "yast2_gui/yast2_network_settings";
     if (snapper_is_applicable()) {
-        loadtest "yast2_gui/yast2_snapper.pm";
+        loadtest "yast2_gui/yast2_snapper";
     }
-    loadtest "yast2_gui/yast2_software_management.pm";
-    loadtest "yast2_gui/yast2_users.pm";
+    loadtest "yast2_gui/yast2_software_management";
+    loadtest "yast2_gui/yast2_users";
 }
 
 sub load_extra_tests() {
@@ -500,8 +500,8 @@ sub load_extra_tests() {
     return if get_var("INSTALLONLY") || get_var("DUALBOOT") || get_var("RESCUECD");
 
     # setup $serialdev permission and so on
-    loadtest "console/consoletest_setup.pm";
-    loadtest "console/hostname.pm";
+    loadtest "console/consoletest_setup";
+    loadtest "console/hostname";
 
     if (console_is_applicable() && get_var("EXTRATEST")) {
         # Put tests that filled the conditions below
@@ -509,83 +509,83 @@ sub load_extra_tests() {
         # 2) the application is not rely on desktop environment
         # 3) running based on preinstalled image
 
-        loadtest "console/check_console_font.pm";
-        loadtest "console/zypper_lr.pm";
-        loadtest "console/zypper_ar.pm";
-        loadtest "console/zypper_ref.pm";
-        loadtest "console/update_alternatives.pm";
-        loadtest "console/zbar.pm";
+        loadtest "console/check_console_font";
+        loadtest "console/zypper_lr";
+        loadtest "console/zypper_ar";
+        loadtest "console/zypper_ref";
+        loadtest "console/update_alternatives";
+        loadtest "console/zbar";
         # start extra console tests from here
         if (!get_var("OFW") && !is_jeos) {
-            loadtest "console/aplay.pm";
+            loadtest "console/aplay";
         }
         if (get_var("FILESYSTEM", "btrfs") eq "btrfs") {
-            loadtest "console/btrfs_autocompletion.pm";
+            loadtest "console/btrfs_autocompletion";
             if (get_var("NUMDISKS", 0) > 1) {
-                loadtest "console/btrfs_qgroups.pm";
-                loadtest "console/btrfs_send_receive.pm";
+                loadtest "console/btrfs_qgroups";
+                loadtest "console/btrfs_send_receive";
             }
         }
-        loadtest "console/a2ps.pm";    # a2ps is not a ring package and thus not available in staging
+        loadtest "console/a2ps";    # a2ps is not a ring package and thus not available in staging
 
         if (get_var("SYSAUTHTEST")) {
             # sysauth test scenarios run in the console
-            loadtest "sysauth/sssd.pm";
+            loadtest "sysauth/sssd";
         }
-        loadtest "console/command_not_found.pm";
-        loadtest "console/openvswitch.pm";
-        loadtest "console/rabbitmq.pm";
-        loadtest "console/salt.pm";
-        loadtest "console/rails.pm";
-        loadtest "console/machinery.pm";
-        loadtest "console/pcre.pm";
+        loadtest "console/command_not_found";
+        loadtest "console/openvswitch";
+        loadtest "console/rabbitmq";
+        loadtest "console/salt";
+        loadtest "console/rails";
+        loadtest "console/machinery";
+        loadtest "console/pcre";
         # dependency of git test
-        loadtest "console/sshd.pm";
-        loadtest "console/git.pm";
+        loadtest "console/sshd";
+        loadtest "console/git";
 
         # finished console test and back to desktop
-        loadtest "console/consoletest_finish.pm";
+        loadtest "console/consoletest_finish";
 
         # kdump is not supported on aarch64, see BSC#990418
         if (!check_var('ARCH', 'aarch64')) {
-            loadtest "toolchain/crash.pm";
+            loadtest "toolchain/crash";
         }
 
         return 1;
     }
     elsif (any_desktop_is_applicable() && get_var("Y2UITEST")) {
-        loadtest "console/zypper_lr.pm";
-        loadtest "console/zypper_ref.pm";
+        loadtest "console/zypper_lr";
+        loadtest "console/zypper_ref";
         # start extra yast console test from here
-        loadtest "console/yast2_proxy.pm";
-        loadtest "console/yast2_ntpclient.pm";
-        loadtest "console/yast2_tftp.pm";
-        loadtest "console/yast2_vnc.pm";
-        loadtest "console/yast2_samba.pm";
-        loadtest "console/yast2_xinetd.pm";
-        loadtest "console/yast2_apparmor.pm";
-        loadtest "console/yast2_http.pm";
-        loadtest "console/yast2_ftp.pm";
+        loadtest "console/yast2_proxy";
+        loadtest "console/yast2_ntpclient";
+        loadtest "console/yast2_tftp";
+        loadtest "console/yast2_vnc";
+        loadtest "console/yast2_samba";
+        loadtest "console/yast2_xinetd";
+        loadtest "console/yast2_apparmor";
+        loadtest "console/yast2_http";
+        loadtest "console/yast2_ftp";
         # yast-lan related tests do not work when using networkmanager.
         # (Livesystem and laptops do use networkmanager)
         if (!get_var("LIVETEST") && !get_var("LAPTOP")) {
-            loadtest "console/yast2_cmdline.pm";
-            loadtest "console/yast2_dns_server.pm";
-            loadtest "console/yast2_nfs_client.pm";
+            loadtest "console/yast2_cmdline";
+            loadtest "console/yast2_dns_server";
+            loadtest "console/yast2_nfs_client";
         }
         # back to desktop
-        loadtest "console/consoletest_finish.pm";
+        loadtest "console/consoletest_finish";
         load_yast2_gui_tests();
 
         return 1;
     }
     elsif (any_desktop_is_applicable() && get_var("EXTRATEST")) {
         if (!get_var("NOAUTOLOGIN")) {
-            loadtest "x11/multi_users_dm.pm";
+            loadtest "x11/multi_users_dm";
         }
         if (gnomestep_is_applicable() && check_var('VERSION', '42.2')) {
             # 42.2 feature - not even on Tumbleweed
-            loadtest "x11/gdm_session_switch.pm";
+            loadtest "x11/gdm_session_switch";
         }
         return 1;
     }
@@ -597,173 +597,173 @@ sub load_extra_tests() {
 sub load_otherDE_tests() {
     if (get_var("DE_PATTERN")) {
         my $de = get_var("DE_PATTERN");
-        loadtest "console/consoletest_setup.pm";
-        loadtest "console/hostname.pm";
-        loadtest "update/zypper_clear_repos.pm";
-        loadtest "console/install_otherDE_pattern.pm";
-        loadtest "console/consoletest_finish.pm";
-        loadtest "x11/${de}_reconfigure_openqa.pm";
-        loadtest "x11/reboot_icewm.pm";
+        loadtest "console/consoletest_setup";
+        loadtest "console/hostname";
+        loadtest "update/zypper_clear_repos";
+        loadtest "console/install_otherDE_pattern";
+        loadtest "console/consoletest_finish";
+        loadtest "x11/${de}_reconfigure_openqa";
+        loadtest "x11/reboot_icewm";
         # here comes the actual desktop specific test
         if ($de =~ /^awesome$/)       { load_awesome_tests(); }
         if ($de =~ /^enlightenment$/) { load_enlightenment_tests(); }
         if ($de =~ /^mate$/)          { load_mate_tests(); }
         if ($de =~ /^lxqt$/)          { load_lxqt_tests(); }
-        loadtest "x11/shutdown.pm";
+        loadtest "x11/shutdown";
         return 1;
     }
     return 0;
 }
 
 sub load_awesome_tests() {
-    loadtest "x11/awesome_menu.pm";
-    loadtest "x11/awesome_xterm.pm";
+    loadtest "x11/awesome_menu";
+    loadtest "x11/awesome_xterm";
 }
 
 sub load_enlightenment_tests() {
-    loadtest "x11/enlightenment_first_start.pm";
-    loadtest "x11/terminology.pm";
+    loadtest "x11/enlightenment_first_start";
+    loadtest "x11/terminology";
 }
 
 sub load_lxqt_tests() {
 }
 
 sub load_mate_tests() {
-    loadtest "x11/mate_terminal.pm";
+    loadtest "x11/mate_terminal";
 }
 
 sub load_x11tests() {
     return unless (!get_var("INSTALLONLY") && is_desktop_installed() && !get_var("DUALBOOT") && !get_var("RESCUECD"));
 
     if (get_var("XDMUSED")) {
-        loadtest "x11/x11_login.pm";
+        loadtest "x11/x11_login";
     }
     if (xfcestep_is_applicable()) {
-        loadtest "x11/xfce4_terminal.pm";
+        loadtest "x11/xfce4_terminal";
     }
-    loadtest "x11/xterm.pm";
-    loadtest "x11/sshxterm.pm" unless get_var("LIVETEST");
+    loadtest "x11/xterm";
+    loadtest "x11/sshxterm" unless get_var("LIVETEST");
     if (gnomestep_is_applicable()) {
-        loadtest "x11/seahorse.pm";
-        loadtest "x11/gnome_control_center.pm";
-        loadtest "x11/gnome_tweak_tool.pm";
-        loadtest "x11/gnome_terminal.pm";
-        loadtest "x11/gedit.pm";
+        loadtest "x11/seahorse";
+        loadtest "x11/gnome_control_center";
+        loadtest "x11/gnome_tweak_tool";
+        loadtest "x11/gnome_terminal";
+        loadtest "x11/gedit";
     }
     if (kdestep_is_applicable()) {
-        loadtest "x11/kate.pm";
+        loadtest "x11/kate";
     }
-    loadtest "x11/firefox.pm";
+    loadtest "x11/firefox";
     if (!get_var("OFW") && check_var('BACKEND', 'qemu')) {
-        loadtest "x11/firefox_audio.pm";
+        loadtest "x11/firefox_audio";
     }
     if (bigx11step_is_applicable()) {
-        loadtest "x11/firefox_stress.pm";
+        loadtest "x11/firefox_stress";
     }
     if (gnomestep_is_applicable() && !(get_var("LIVECD") || is_server)) {
-        loadtest "x11/thunderbird.pm";
+        loadtest "x11/thunderbird";
     }
     if (get_var("MOZILLATEST")) {
-        loadtest "x11/mozmill_run.pm";
+        loadtest "x11/mozmill_run";
     }
     if (chromiumstep_is_applicable() && !(is_staging() || is_livesystem)) {
-        loadtest "x11/chromium.pm";
+        loadtest "x11/chromium";
     }
     if (xfcestep_is_applicable()) {
-        loadtest "x11/ristretto.pm";
+        loadtest "x11/ristretto";
     }
     if (gnomestep_is_applicable()) {
-        loadtest "x11/eog.pm";
+        loadtest "x11/eog";
     }
     if (get_var("DESKTOP") =~ /kde|gnome/ && !get_var("LIVECD") && !is_server) {
-        loadtest "x11/oomath.pm";
-        loadtest "x11/oocalc.pm";
+        loadtest "x11/oomath";
+        loadtest "x11/oocalc";
     }
     if (get_var("DESKTOP") =~ /kde|gnome/ && !is_server && !is_krypton_argon) {
-        loadtest "x11/ooffice.pm";
+        loadtest "x11/ooffice";
     }
     if (kdestep_is_applicable()) {
-        loadtest "x11/khelpcenter.pm";
+        loadtest "x11/khelpcenter";
         if (get_var("PLASMA5")) {
-            loadtest "x11/systemsettings5.pm";
+            loadtest "x11/systemsettings5";
         }
         else {
-            loadtest "x11/systemsettings.pm";
+            loadtest "x11/systemsettings";
         }
-        loadtest "x11/dolphin.pm";
+        loadtest "x11/dolphin";
     }
     if (snapper_is_applicable()) {
-        loadtest "x11/yast2_snapper.pm";
+        loadtest "x11/yast2_snapper";
     }
     if (gnomestep_is_applicable() && get_var("GNOME2")) {
-        loadtest "x11/application_browser.pm";
+        loadtest "x11/application_browser";
     }
     if (xfcestep_is_applicable()) {
-        loadtest "x11/thunar.pm";
+        loadtest "x11/thunar";
         if (!get_var("USBBOOT")) {
-            loadtest "x11/reboot_xfce.pm";
+            loadtest "x11/reboot_xfce";
         }
     }
     if (lxdestep_is_applicable()) {
         if (!get_var("USBBOOT")) {
-            loadtest "x11/reboot_lxde.pm";
+            loadtest "x11/reboot_lxde";
         }
     }
     if (bigx11step_is_applicable()) {
-        loadtest "x11/glxgears.pm";
+        loadtest "x11/glxgears";
     }
     if (kdestep_is_applicable()) {
         if (!is_krypton_argon) {
-            loadtest "x11/amarok.pm";
+            loadtest "x11/amarok";
         }
-        loadtest "x11/kontact.pm";
+        loadtest "x11/kontact";
         if (!get_var("USBBOOT")) {
             if (get_var("PLASMA5")) {
-                loadtest "x11/reboot_plasma5.pm";
+                loadtest "x11/reboot_plasma5";
             }
             else {
-                loadtest "x11/reboot_kde.pm";
+                loadtest "x11/reboot_kde";
             }
         }
     }
     if (gnomestep_is_applicable()) {
-        loadtest "x11/nautilus.pm" unless get_var("LIVECD");
-        loadtest "x11/gnome_music.pm";
-        loadtest "x11/evolution.pm" unless is_server;
+        loadtest "x11/nautilus" unless get_var("LIVECD");
+        loadtest "x11/gnome_music";
+        loadtest "x11/evolution" unless is_server;
         if (!get_var("USBBOOT")) {
-            loadtest "x11/reboot_gnome.pm";
+            loadtest "x11/reboot_gnome";
         }
     }
-    loadtest "x11/desktop_mainmenu.pm";
+    loadtest "x11/desktop_mainmenu";
 
     if (xfcestep_is_applicable()) {
-        loadtest "x11/xfce4_appfinder.pm";
+        loadtest "x11/xfce4_appfinder";
         if (!(get_var("FLAVOR") eq 'Rescue-CD')) {
-            loadtest "x11/xfce_lightdm_logout_login.pm";
+            loadtest "x11/xfce_lightdm_logout_login";
         }
     }
 
     unless (get_var("LIVECD")) {
-        loadtest "x11/inkscape.pm";
-        loadtest "x11/gimp.pm";
+        loadtest "x11/inkscape";
+        loadtest "x11/gimp";
     }
     if (   !is_staging()
         && !is_livesystem)
     {
-        loadtest "x11/gnucash.pm";
-        loadtest "x11/hexchat.pm";
-        loadtest "x11/vlc.pm";
+        loadtest "x11/gnucash";
+        loadtest "x11/hexchat";
+        loadtest "x11/vlc";
         # chrome pulls in lsb which creates /media (bug#915562),
         # which in turn breaks the thunar test as then suddenly the
         # content of / looks different depending on whether the
         # chrome test succeeded or not. So let's put that kind of
         # tests at the end.
         if (chromestep_is_applicable()) {
-            loadtest "x11/chrome.pm";
+            loadtest "x11/chrome";
         }
     }
 
-    loadtest "x11/shutdown.pm";
+    loadtest "x11/shutdown";
 }
 
 sub install_online_updates {
@@ -778,7 +778,7 @@ sub install_online_updates {
     );
 
     for my $test (@tests) {
-        loadtest "$test.pm";
+        loadtest "$test";
     }
 
     return 1;
@@ -790,21 +790,21 @@ sub load_system_update_tests {
     return if get_var("INSTALLONLY") || get_var("DUALBOOT") || get_var("UPGRADE") || is_livesystem;
 
     if (need_clear_repos) {
-        loadtest "update/zypper_clear_repos.pm";
+        loadtest "update/zypper_clear_repos";
     }
 
     if (guiupdates_is_applicable()) {
-        loadtest "update/prepare_system_for_update_tests.pm";
+        loadtest "update/prepare_system_for_update_tests";
         if (check_var("DESKTOP", "kde")) {
-            loadtest "update/updates_packagekit_kde.pm";
+            loadtest "update/updates_packagekit_kde";
         }
         else {
-            loadtest "update/updates_packagekit_gpk.pm";
+            loadtest "update/updates_packagekit_gpk";
         }
-        loadtest "update/check_system_is_updated.pm";
+        loadtest "update/check_system_is_updated";
     }
     else {
-        loadtest "update/zypper_up.pm";
+        loadtest "update/zypper_up";
     }
 }
 
@@ -872,7 +872,7 @@ sub load_applicationstests {
     }
 
     for my $test (@tests) {
-        loadtest "$test.pm";
+        loadtest "$test";
     }
 
     return 1;
@@ -881,15 +881,15 @@ sub load_applicationstests {
 sub load_slenkins_tests {
     if (get_var("SLENKINS_CONTROL")) {
         unless (get_var("SUPPORT_SERVER")) {
-            loadtest "slenkins/login.pm";
-            loadtest "slenkins/slenkins_control_network.pm";
+            loadtest "slenkins/login";
+            loadtest "slenkins/slenkins_control_network";
         }
-        loadtest "slenkins/slenkins_control.pm";
+        loadtest "slenkins/slenkins_control";
         return 1;
     }
     elsif (get_var("SLENKINS_NODE")) {
-        loadtest "slenkins/login.pm";
-        loadtest "slenkins/slenkins_node.pm";
+        loadtest "slenkins/login";
+        loadtest "slenkins/slenkins_node";
         return 1;
     }
     return 0;
@@ -908,49 +908,49 @@ if (get_var("REGRESSION")) {
     load_x11regresion_tests();
 }
 elsif (get_var("MEDIACHECK")) {
-    loadtest "installation/mediacheck.pm";
+    loadtest "installation/mediacheck";
 }
 elsif (get_var("MEMTEST")) {
-    loadtest "installation/memtest.pm";
+    loadtest "installation/memtest";
 }
 elsif (get_var("RESCUESYSTEM")) {
-    loadtest "installation/rescuesystem.pm";
-    loadtest "installation/rescuesystem_validate_131.pm";
+    loadtest "installation/rescuesystem";
+    loadtest "installation/rescuesystem_validate_131";
 }
 elsif (get_var("LINUXRC")) {
-    loadtest "linuxrc/system_boot.pm";
+    loadtest "linuxrc/system_boot";
 }
 elsif (get_var("SUPPORT_SERVER")) {
-    loadtest "support_server/boot.pm";
-    loadtest "support_server/login.pm";
-    loadtest "support_server/setup.pm";
+    loadtest "support_server/boot";
+    loadtest "support_server/login";
+    loadtest "support_server/setup";
     unless (load_slenkins_tests()) {    # either run the slenkins control node or just wait for connections
-        loadtest "support_server/wait.pm";
+        loadtest "support_server/wait";
     }
 }
 elsif (get_var("WINDOWS")) {
-    loadtest "installation/win10_installation.pm";
-    loadtest "installation/win10_firstboot.pm";
-    loadtest "installation/win10_reboot.pm";
-    loadtest "installation/win10_shutdown.pm";
+    loadtest "installation/win10_installation";
+    loadtest "installation/win10_firstboot";
+    loadtest "installation/win10_reboot";
+    loadtest "installation/win10_shutdown";
 }
 elsif (ssh_key_import) {
-    loadtest "boot/boot_to_desktop.pm";
+    loadtest "boot/boot_to_desktop";
     # setup ssh key, we know what ssh keys we have and can verify if they are imported or not
-    loadtest "x11/ssh_key_check.pm";
+    loadtest "x11/ssh_key_check";
     # reboot after test specific setup and start installation/update
-    loadtest "x11/reboot_and_install.pm";
+    loadtest "x11/reboot_and_install";
     load_inst_tests();
     load_reboot_tests();
     # verify previous defined ssh keys
-    loadtest "x11/ssh_key_verify.pm";
+    loadtest "x11/ssh_key_verify";
 }
 else {
     if (get_var("LIVETEST") || get_var('LIVE_INSTALLATION')) {
         load_boot_tests();
-        loadtest "installation/finish_desktop.pm";
+        loadtest "installation/finish_desktop";
         if (get_var('LIVE_INSTALLATION')) {
-            loadtest "installation/live_installation.pm";
+            loadtest "installation/live_installation";
             load_inst_tests();
             load_reboot_tests();
             return 1;
@@ -967,35 +967,35 @@ else {
     }
     elsif (get_var("BOOT_HDD_IMAGE")) {
         if (get_var('UEFI') && get_var('BOOTFROM')) {
-            loadtest "boot/uefi_bootmenu.pm";
+            loadtest "boot/uefi_bootmenu";
         }
-        loadtest "boot/boot_to_desktop.pm";
+        loadtest "boot/boot_to_desktop";
         if (get_var("ISCSI_SERVER")) {
             set_var('INSTALLONLY', 1);
-            loadtest "iscsi/iscsi_server.pm";
+            loadtest "iscsi/iscsi_server";
         }
         if (get_var("ISCSI_CLIENT")) {
             set_var('INSTALLONLY', 1);
-            loadtest "iscsi/iscsi_client.pm";
+            loadtest "iscsi/iscsi_client";
         }
         if (get_var("REMOTE_CONTROLLER")) {
-            loadtest "remote/remote_controller.pm";
+            loadtest "remote/remote_controller";
             load_inst_tests();
         }
     }
     elsif (get_var("REMOTE_TARGET")) {
         load_boot_tests();
-        loadtest "remote/remote_target.pm";
+        loadtest "remote/remote_target";
         load_reboot_tests();
     }
     elsif (is_jeos) {
         load_boot_tests();
-        loadtest "jeos/firstrun.pm";
-        loadtest "jeos/diskusage.pm";
-        loadtest "jeos/root_fs_size.pm";
-        loadtest "jeos/mount_by_label.pm";
+        loadtest "jeos/firstrun";
+        loadtest "jeos/diskusage";
+        loadtest "jeos/root_fs_size";
+        loadtest "jeos/mount_by_label";
         if (get_var("SCC_EMAIL") && get_var("SCC_REGCODE")) {
-            loadtest "jeos/sccreg.pm";
+            loadtest "jeos/sccreg";
         }
     }
     else {
@@ -1021,8 +1021,8 @@ else {
 
 if (get_var("STORE_HDD_1") || get_var("PUBLISH_HDD_1")) {
     if (get_var("INSTALLONLY")) {
-        loadtest "shutdown/grub_set_bootargs.pm";
-        loadtest "shutdown/shutdown.pm";
+        loadtest "shutdown/grub_set_bootargs";
+        loadtest "shutdown/shutdown";
     }
 }
 
