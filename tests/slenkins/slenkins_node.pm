@@ -59,10 +59,16 @@ sub run {
 
     my $conf_script = "zypper -n --no-gpg-checks ar '" . get_var('SLENKINS_TESTSUITES_REPO') . "' slenkins_testsuites\n";
 
-    # Uses full URI with .repo extension, multiple repos separated by colon is supported
+    my $i = 0;
     if (get_var('FOREIGN_REPOS')) {
         foreach (split(/[\s,]+/, get_var('FOREIGN_REPOS'))) {
-            $conf_script .= "zypper -n --no-gpg-checks ar '" . $_ . "'\n";
+            if ($_ =~ /^http.*\.repo$/) {
+                $conf_script .= "zypper -n --no-gpg-checks ar '" . $_ . "'\n";
+            }
+            else {
+                $conf_script .= "zypper -n --no-gpg-checks ar '" . $_ . "' REPO_$i" . "\n";
+                $i++;
+            }
         }
     }
 
