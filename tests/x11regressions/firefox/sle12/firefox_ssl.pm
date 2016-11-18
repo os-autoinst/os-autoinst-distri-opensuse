@@ -27,8 +27,6 @@ sub run() {
     check_screen('firefox-ssl-untrusted', 60);
 
     send_key "tab";
-    send_key "tab";
-    send_key "tab";
     send_key "ret";
     send_key "tab";
     send_key "ret";
@@ -47,7 +45,7 @@ sub run() {
     send_key "alt-shift-c";
 
     sleep 1;
-    type_string "CNNIC";
+    type_string "hong";
     send_key "down";
 
     sleep 1;
@@ -72,16 +70,13 @@ sub run() {
     send_key "ctrl-w";
 
     send_key "alt-d";
-    type_string "https://www.cnnic.cn/\n";
+    type_string "https://www.hongkongpost.gov.hk\n";
     assert_screen('firefox-ssl-connection_untrusted', 90);
 
     # Exit
-    send_key "alt-f4";
-
-    if (check_screen('firefox-save-and-quit', 30)) {
-        # confirm "save&quit"
-        send_key "ret";
-    }
+    $self->exit_firefox;
 }
 1;
 # vim: set sw=4 et:
+
+
