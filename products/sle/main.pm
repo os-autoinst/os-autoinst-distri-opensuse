@@ -169,6 +169,18 @@ if (check_var('DESKTOP', 'minimalx')) {
     set_var('DM_NEEDS_USERNAME', 1);
 }
 
+# Maintenance specific variables
+if (get_var('TEST') =~ /^mau-/ && !get_var('MAINT_TEST_REPO')) {
+    my $repos = get_var('OS_TEST_REPO');
+    my $addons = get_var('ADDONS', '') . "," . get_var('SCC_ADDONS', '');
+    for my $a (split(/,/, $addons)) {
+        if ($a) {
+            $repos .= "," . get_var(uc($a) . '_TEST_REPO');
+        }
+    }
+    set_var('MAINT_TEST_REPO', $repos);
+}
+
 $needle::cleanuphandler = \&cleanup_needles;
 
 # dump other important ENV:
