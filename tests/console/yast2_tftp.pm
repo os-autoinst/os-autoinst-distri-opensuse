@@ -51,15 +51,16 @@ sub run() {
     }
 
     # view log
+    # softfail for opensuse when error for view log throws out
     send_key 'alt-v';
     assert_screen([qw(yast2_tftp_view_log_error yast2_tftp_view_log_show)]);
-    record_soft_failure "bsc#1008493";
     if (match_has_tag('yast2_tftp_view_log_error')) {
+        record_soft_failure "bsc#1008493";
         send_key 'alt-o';
-        assert_screen 'yast2_tftp_view_log_show';
-        send_key 'alt-c';
-        wait_still_screen 1;
     }
+    send_key 'alt-c';
+    wait_still_screen 1;
+
 
     # check help text
     send_key 'alt-h';
