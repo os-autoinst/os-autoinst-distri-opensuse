@@ -32,7 +32,7 @@ sub run () {
     my $ov = get_var('NOAUTOLOGIN');
     set_var('NOAUTOLOGIN', '');
     reboot_gnome;
-    wait_boot;
+    wait_boot bootloader_time => 300;
     set_var('NOAUTOLOGIN', $ov);
     $self->auto_login_alter;
 }
