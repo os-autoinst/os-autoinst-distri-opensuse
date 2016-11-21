@@ -960,8 +960,9 @@ FILES=("test.png" "shape.gif" "plasma_fractal2.jpg" "random.png" "tile_weave.gif
 FILES+=("sparse_bary_1.gif" "sparse_bary_2.gif" "sparse_bilin_1.gif" "sparse_bilin_2.gif")
 echo "clean-up"
 for file in "${FILES[@]}"; do
-    rm "$file"
+    rm "$file" || exit 1
     echo -n "."
 done
 echo
 echo "done"
+exit 0

@@ -39,7 +39,11 @@ sub run() {
     type_string "exit\n";
 
     assert_script_run "wget --quiet " . data_url('imagemagick/bg_script.sh') . " -O bg_script.sh";
-    type_string "chmod +x bg_script.sh; ./bg_script.sh " . data_url('imagemagick/bg_script.sh') . " \n";
+
+    assert_script_run "chmod +x bg_script.sh";
+
+    # execute the script and direct its exit code to the serial console
+    type_string "./bg_script.sh " . data_url('imagemagick/bg_script.sh') . "; echo bg_script-\$? > /dev/$testapi::serialdev\n";
 
     assert_screen "imagemagick_test";
     send_key "alt-f4";
@@ -754,6 +758,9 @@ sub run() {
 
     assert_screen "imagemagick_tiled_hex_lines";
     send_key "alt-f4";
+
+    # waiting for the exit code of the script
+    wait_serial "bg_script-0";
 
     # clean-up
     assert_script_run "rm bg_script.sh";
