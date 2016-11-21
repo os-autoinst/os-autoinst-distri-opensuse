@@ -20,7 +20,7 @@ sub run() {
     send_key 'alt-k';    # install with a maint update repo
     my @repos = split(/,/, get_var('MAINT_TEST_REPO'));
     while (my $maintrepo = shift @repos) {
-        assert_screen 'addon-menu-active';
+        assert_screen('addon-menu-active', 60);
         send_key 'alt-u';    # specify url
         if (check_var('VERSION', '12') and check_var('VIDEOMODE', 'text')) {
             send_key 'alt-x';
