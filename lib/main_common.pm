@@ -30,6 +30,7 @@ our @EXPORT = qw/
   consolestep_is_applicable
   rescuecdstep_is_applicable
   bootencryptstep_is_applicable
+  remove_common_needles
   remove_desktop_needles
   check_env
   ssh_key_import
@@ -218,6 +219,26 @@ sub rescuecdstep_is_applicable {
 
 sub ssh_key_import {
     return get_var("SSH_KEY_IMPORT") || get_var("SSH_KEY_DO_NOT_IMPORT");
+}
+
+sub remove_common_needles {
+    remove_desktop_needles("lxde");
+    remove_desktop_needles("kde");
+    remove_desktop_needles("gnome");
+    remove_desktop_needles("xfce");
+    remove_desktop_needles("minimalx");
+    remove_desktop_needles("textmode");
+
+    if (!check_var("VIDEOMODE", "text")) {
+        unregister_needle_tags("ENV-VIDEOMODE-text");
+    }
+
+    if (get_var("INSTLANG") && get_var("INSTLANG") ne "en_US") {
+        unregister_needle_tags("ENV-INSTLANG-en_US");
+    }
+    else {    # english default
+        unregister_needle_tags("ENV-INSTLANG-de_DE");
+    }
 }
 
 sub remove_desktop_needles {

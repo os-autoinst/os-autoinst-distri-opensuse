@@ -47,24 +47,7 @@ sub is_new_installation {
 }
 
 sub cleanup_needles {
-    remove_desktop_needles("lxde");
-    remove_desktop_needles("kde");
-    remove_desktop_needles("gnome");
-    remove_desktop_needles("xfce");
-    remove_desktop_needles("minimalx");
-    remove_desktop_needles("textmode");
-
-    if (!check_var("VIDEOMODE", "text")) {
-        unregister_needle_tags("ENV-VIDEOMODE-text");
-    }
-
-    if (get_var("INSTLANG") && get_var("INSTLANG") ne "en_US") {
-        unregister_needle_tags("ENV-INSTLANG-en_US");
-    }
-    else {    # english default
-        unregister_needle_tags("ENV-INSTLANG-de_DE");
-    }
-
+    remove_common_needles;
     if (get_var('VERSION', '') ne '12') {
         unregister_needle_tags("ENV-VERSION-12");
     }

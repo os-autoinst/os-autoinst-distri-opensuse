@@ -14,13 +14,7 @@ init_main();
 
 # Reuse SP2 needles for YaST installer
 sub cleanup_needles {
-    remove_desktop_needles("lxde");
-    remove_desktop_needles("kde");
-    remove_desktop_needles("gnome");
-    remove_desktop_needles("xfce");
-    remove_desktop_needles("minimalx");
-    remove_desktop_needles("textmode");
-
+    remove_common_needles;
     unregister_needle_tags("ENV-INSTLANG-de_DE");
     unregister_needle_tags("ENV-VERSION-12");
     unregister_needle_tags("ENV-VERSION-12-SP1");
@@ -31,10 +25,6 @@ sub cleanup_needles {
     unregister_needle_tags('ENV-ARCH-s390x');
     unregister_needle_tags('ENV-OFW-0');
     unregister_needle_tags('ENV-OFW-1');
-
-    #    unregister_needle_tags("ENV-VIDEOMODE-text");
-    #    unregister_needle_tags("ENV-VERSION-12-SP2");
-    #    unregister_needle_tags("ENV-FLAVOR-Server-DVD");
 }
 $needle::cleanuphandler = \&cleanup_needles;
 
