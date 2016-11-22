@@ -222,6 +222,8 @@ sub ssh_key_import {
 }
 
 sub remove_common_needles {
+    my $no_skipto = get_var('SKIPTO') ? 0 : 1;
+    unregister_needle_tags("ENV-SKIPTO-$no_skipto");
     remove_desktop_needles("lxde");
     remove_desktop_needles("kde");
     remove_desktop_needles("gnome");
