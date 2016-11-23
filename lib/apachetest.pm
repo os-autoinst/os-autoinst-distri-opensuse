@@ -67,9 +67,11 @@ sub setup_apache2 {
     script_run 'for x in /etc/apache2/vhosts.d/*.conf; do mv $x ${x}.save; done';
     if ($mode eq "SSL") {
         assert_script_run 'cp /etc/apache2/vhosts.d/vhost-ssl.template /etc/apache2/vhosts.d/vhost-ssl.conf';
-        assert_script_run 'sed -i "s/vhost-example/$(hostname)-server/g" /etc/apache2/vhosts.d/vhost-ssl.conf';
+        assert_script_run 'sed -i "s|\(^[[:space:]]*SSLCertificateFile\).*|\1 /etc/apache2/ssl.crt/$(hostname)-server.crt|g" /etc/apache2/vhosts.d/vhost-ssl.conf';
+        assert_script_run 'sed -i "s|\(^[[:space:]]*SSLCertificateKeyFile\).*|\1 /etc/apache2/ssl.key/$(hostname)-server.key|g" /etc/apache2/vhosts.d/vhost-ssl.conf';
     }
     elsif ($mode =~ m/NSS/) {
+        script_run 'grep "^Include .*mod_nss.d" /etc/apache2/conf.d/mod_nss.conf && touch /etc/apache2/mod_nss.d/test.conf';
         assert_script_run 'cp /etc/apache2/vhosts.d/vhost-nss.template /etc/apache2/vhosts.d/vhost-nss.conf';
         if ($mode eq "NSSFIPS") {
             assert_script_run "sed -i '/NSSEngine/a NSSFips on' /etc/apache2/vhosts.d/vhost-nss.conf";
