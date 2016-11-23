@@ -28,7 +28,7 @@ sub run() {
     s/-default$/-kexec/;
     my $kernel_file = "vmlinuz-$_";
     my $initrd_file = "initrd-$_";
-    assert_script_run("cp /boot/vmlinuz-`uname -r` /boot/$kernel_file");
+    assert_script_run("cp /boot/vmlinu*-`uname -r` /boot/$kernel_file");
     assert_script_run("cp /boot/initrd-`uname -r` /boot/$initrd_file");
     # kernel cmdline parameter
     $_ = $self->qa_script_output("cat /proc/cmdline");
