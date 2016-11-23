@@ -2,7 +2,7 @@
 #
 #       Concerns ctcs2-generated "rpmlist" and "hwinfo" files
 #       Fakes consistency throughout the first-level subdirs of $PWD
-#	Cf. bnc#560428
+#	Cf. bsc#560428
 #
 #  $Id: fake_consistent_snapshotfiles.sh,v 1.9 2015/10/07 12:48:07 rd-qa Exp $
 #  $Log: fake_consistent_snapshotfiles.sh,v $
@@ -26,7 +26,7 @@
 #                  need to fake
 #
 #  Revision 1.4  2010/08/30 09:19:25  kgw
-#  ADDED:          reference to bnc#560428 in the "usage" message.
+#  ADDED:          reference to bsc#560428 in the "usage" message.
 #
 #  Revision 1.3  2010/05/03 10:36:50  kgw
 #  FIXED:          a bash syntax error
@@ -61,7 +61,7 @@ Usage:   $myname [-diklv] [-P working_parentdir] [-y year] -r refdir_pattern
             file in the reference subdirectory.
             The original files are renamed  to *-HIDDEN-\$something.
 
-            Purpose of this script: workaround for bnc#560428.
+            Purpose of this script: workaround for bsc#560428.
             Return values:
 		1 in case of errors
 		2 if a dry run (without -R) detects needed faking

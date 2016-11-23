@@ -1,4 +1,4 @@
-# Copyright (C) 2015 SUSE Linux GmbH
+# Copyright (C) 2015-2016 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,8 +14,8 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-# G-Summary: test to verify installed packages
-# G-Maintainer: Ludwig Nussel <ludwig.nussel@suse.de>
+# Summary: Verify installed packages
+# Maintainer: Ludwig Nussel <ludwig.nussel@suse.de>
 
 use base "consoletest";
 use strict;

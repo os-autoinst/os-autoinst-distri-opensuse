@@ -8,24 +8,17 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Rework the tests layout.
-# G-Maintainer: Alberto Planas <aplanas@suse.com>
+# Summary: Ensure KDE help center starts up properly
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "x11test";
 use strict;
 use testapi;
 
 sub run() {
-    my $self = shift;
     x11_start_program("khelpcenter", 6, {valid => 1});
-    if (get_var("LIVETEST")) {
-        assert_screen 'test-khelpcenter-1', 15;
-    }
-    else {
-        assert_screen 'test-khelpcenter-1', 3;
-    }
-    send_key "alt-f4";
-    sleep 2;
+    assert_screen 'test-khelpcenter-1';
+    send_key 'alt-f4';
 }
 
 1;

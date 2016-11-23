@@ -8,22 +8,21 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Other Desktop Environments: Mate
-# G-Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
+# Summary: Check basic functionality of mate terminal
+# Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
 
 use base "x11test";
 use strict;
 use testapi;
 
 sub run() {
-    my $self = shift;
+    my ($self) = @_;
     mouse_hide(1);
     x11_start_program("mate-terminal");
     assert_screen "mate-terminal";
     send_key "ctrl-shift-t";
     assert_screen "mate-terminal-second-tab";
-    for (1 .. 13) { send_key "ret" }
-    type_string "echo If you can see this text mate-terminal is working.\n";
+    $self->enter_test_text('mate-terminal');
     assert_screen 'test-mate_terminal-1';
     send_key "alt-f4";
 }

@@ -28,7 +28,7 @@ sub run() {
     );
 
     if (check_var('VERSION', '12-SP2')) {
-        record_soft_failure 'bnc#1004573';
+        record_soft_failure 'bsc#1004573';
     }
     else {
         $sites_url{smb} = "smb://mirror.bej.suse.com/dist/";

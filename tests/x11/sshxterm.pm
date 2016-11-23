@@ -8,15 +8,15 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Rework the tests layout.
-# G-Maintainer: Alberto Planas <aplanas@suse.com>
+# Summary: Ensure ssh X-forwarding is working
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "x11test";
 use strict;
 use testapi;
 
 sub run() {
-    my $self = shift;
+    my ($self) = @_;
     mouse_hide(1);
     x11_start_program("xterm");
     type_string("ssh -XC root\@localhost xterm\n");
@@ -28,9 +28,8 @@ sub run() {
     }
     type_string "$password\n";
     assert_screen "ssh-second-xterm";
-    for (1 .. 13) { send_key "ret" }
     $self->set_standard_prompt();
-    type_string "echo If you can see this text, ssh-X-forwarding  is working.\n";
+    $self->enter_test_text('ssh-X-forwarding');
     assert_screen 'test-sshxterm-1';
     # close both windows, executed in remote session, because we can
     type_string "killall xterm\n";

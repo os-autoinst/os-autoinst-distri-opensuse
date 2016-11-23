@@ -19,7 +19,7 @@
     </signature-handling>
   </general>
   <networking>
-<!-- bnc#897129
+<!-- bsc#897129
       <keep_install_network config:type="boolean">true</keep_install_network>
 -->
       <interfaces config:type="list">
@@ -404,7 +404,7 @@ Tmr9shvqBQKa2NyWfUBcct9hvmlrZD6fnc9a4+3nTxv3TJRwxBUc9Q==
         <name>authz_core</name>
         <userdefined config:type="boolean">true</userdefined>
       </module_entry>
-      <!-- bnc#896011 -->
+      <!-- bsc#896011 -->
       <module_entry>
         <change>enable</change>
         <name>access_compat</name>

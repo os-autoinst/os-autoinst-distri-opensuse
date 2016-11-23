@@ -7,8 +7,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Test pattern selection for system role 'kvm host' (fate#317481)
-# G-Maintainer: Christopher Hofmann <cwh@suse.de>
+# Summary: Test pattern selection for system role 'kvm host'
+# Maintainer: Christopher Hofmann <cwh@suse.de>
+# Tags: fate#317481
 
 use base "consoletest";
 use strict;
@@ -16,7 +17,6 @@ use testapi;
 use utils;
 
 sub run() {
-    my $self = shift;
     select_console 'root-console';
 
     # System roles are defined in config.xml.

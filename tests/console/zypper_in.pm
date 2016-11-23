@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Rework the tests layout.
-# G-Maintainer: Alberto Planas <aplanas@suse.com>
+# Summary: Postgres tests for SLE11SP4
+# Maintainer: Richard Brown <rbrownccb@opensuse.org>
 
 use base "consoletest";
 use strict;
@@ -17,7 +17,6 @@ use testapi;
 use utils;
 
 sub run() {
-    my $self = shift;
     select_console 'root-console';
 
     script_run("zypper lr -d | tee /dev/$serialdev");

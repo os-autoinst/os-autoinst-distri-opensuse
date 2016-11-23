@@ -24,7 +24,7 @@ sub run {
     my $video;
     if (check_var('UEFI', '1')) {
         assert_script_run("sed -ie '/GRUB_GFXMODE=/s/=.*/=1024x768/' /etc/default/grub");
-        # workaround kiwi quirk bnc#968270, bnc#968264
+        # workaround kiwi quirk bsc#968270, bsc#968264
         assert_script_run("rm -rf /boot/efi/EFI; sed -ie 's/which/echo/' /usr/sbin/shim-install && shim-install");
     }
     else {

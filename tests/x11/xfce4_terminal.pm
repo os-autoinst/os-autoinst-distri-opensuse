@@ -8,30 +8,24 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Rework the tests layout.
-# G-Maintainer: Alberto Planas <aplanas@suse.com>
+# Summary: Basic functionality of xfce4 terminal
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "x11test";
 use strict;
 use testapi;
 
-# test xfce4-terminal
-
-# this part contains the steps to run this test
 sub run() {
-    my $self = shift;
+    my ($self) = @_;
     mouse_hide(1);
     x11_start_program("xfce4-terminal");
-    sleep 2;
+    wait_still_screen 1;
     send_key "ctrl-shift-t";
-    for (1 .. 13) { send_key "ret" }
-    type_string "echo If you can see this text xfce4-terminal is working.\n";
-    sleep 2;
-    assert_screen 'test-xfce4_terminal-1', 3;
-    send_key "alt-f4";
-    sleep 2;
-    send_key "alt-w";
-    sleep 2;    # confirm close of multi-tab window
+    $self->enter_test_text('xfce4-terminal');
+    assert_screen 'test-xfce4_terminal-1';
+    wait_screen_change { send_key 'alt-f4' };
+    # confirm close of multi-tab window
+    send_key 'alt-w';
 }
 
 1;

@@ -8,21 +8,16 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Rework the tests layout.
-# G-Maintainer: Alberto Planas <aplanas@suse.com>
+# Summary: Basic functionality of xterm terminal emulator
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "x11test";
 use strict;
 use testapi;
 
 sub run() {
-    mouse_hide(1);
-    x11_start_program("xterm");
-    assert_screen('xterm-started');
-    for (1 .. 13) { send_key "ret" }
-    type_string "echo If you can see this text xterm is working.\n";
-    assert_screen 'test-xterm-1';
-    send_key "alt-f4";
+    my ($self) = @_;
+    $self->test_terminal('xterm');
 }
 
 1;

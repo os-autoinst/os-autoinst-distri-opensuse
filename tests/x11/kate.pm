@@ -8,18 +8,15 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Rework the tests layout.
-# G-Maintainer: Alberto Planas <aplanas@suse.com>
+# Summary: Test the KDE text editor can be installed, started, typing works
+#   and closed
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "x11test";
 use strict;
 use testapi;
 
-# test kde text editor
-
-# this part contains the steps to run this test
 sub run() {
-    my $self = shift;
     ensure_installed("kate");
     x11_start_program("kate", 6, {valid => 1});
     assert_screen 'test-kate-1', 10;

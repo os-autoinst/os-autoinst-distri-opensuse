@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add two server tests.
-# G-Maintainer: Alberto Planas <aplanas@suse.com>
+# Summary: simple mysql server startup test
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use strict;
 use base "consoletest";
@@ -17,8 +17,6 @@ use testapi;
 use utils;
 
 sub run() {
-    my $self = shift;
-
     select_console 'root-console';
 
     # Install mysql
@@ -28,12 +26,12 @@ sub run() {
     script_run "systemctl status mysql.service | tee /dev/$serialdev -", 0;
     wait_serial(".*inactive.*", 4) || die "mysql should be disabled by default";
 
-    # Now must be enabled
+    # Now the service must be enabled
     script_run "systemctl start mysql.service",                          60;
     script_run "systemctl status mysql.service | tee /dev/$serialdev -", 0;
     wait_serial(".*Syntax error.*", 2, 1) || die "have error while starting mysql";
 
-    assert_screen 'test-mysql_srv-1', 3;
+    assert_screen 'test-mysql_srv-1';
 }
 
 1;

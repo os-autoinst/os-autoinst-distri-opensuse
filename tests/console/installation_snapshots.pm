@@ -8,19 +8,14 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Test for the snapshot created after installation (fate#317973)
-# G-Maintainer: Ancor Gonzalez Sosa <ancor@suse.de>
+# Summary: Check initial snapper snapshots after installation
+# Maintainer: Oliver Kurz <okurz@suse.de>
+# Tags: fate#317973, bsc#935923
 
 use base 'consoletest';
 use strict;
 use testapi;
 use utils;
-
-# fate#317973: Create initial snapshot at the end of installation/update
-# bnc#935923: Cleanup and consistent naming for snapshots made during installation
-#
-# Checks that the initial snapshot is created, its strategy is set to "number"
-# and user data is set to "important=yes"
 
 sub run() {
     select_console 'root-console';

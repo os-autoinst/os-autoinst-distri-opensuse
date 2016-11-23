@@ -7,8 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
-# G-Summary: virtualization: merge pxe boot process of Nuremberg and Beijing; simplify and reuse code for reboot_and_login process; rebase the virt_utils package
-# G-Maintainer: alice <xlai@suse.com>
+# Summary: Boot systems from PXE
+# Maintainer: alice <xlai@suse.com>
 
 use strict;
 use warnings;
