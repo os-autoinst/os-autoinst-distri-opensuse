@@ -715,6 +715,7 @@ sub load_extra_test () {
     }
 
     loadtest "console/command_not_found";
+    loadtest "console/yast2_nis";
     loadtest "console/yast2_http";
     loadtest "console/yast2_ftp";
     loadtest "console/yast2_proxy";
