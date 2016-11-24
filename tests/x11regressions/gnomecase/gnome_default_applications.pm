@@ -18,7 +18,7 @@ use testapi;
 sub run() {
     # Prepare test files
     x11_start_program("xterm");
-    assert_screen 'xterm-started';
+    assert_screen 'xterm';
 
     assert_script_run "mkdir gnometest";
     assert_script_run "wget -P /home/$username/gnometest " . autoinst_url . "/data/x11regressions/test.pdf";

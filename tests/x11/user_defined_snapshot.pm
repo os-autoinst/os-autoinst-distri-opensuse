@@ -35,7 +35,7 @@ sub run() {
     my $self = shift;
     # Start an xterm as root
     x11_start_program("xterm");
-    assert_screen('xterm-started');
+    assert_screen('xterm');
     become_root;
     script_run "cd";
 
