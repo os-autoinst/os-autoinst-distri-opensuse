@@ -16,11 +16,10 @@ use testapi;
 
 # https://fate.suse.com/316652
 sub run() {
-    my $repo  = "SLERT12-SP1_12.1-0";
     my $pkgs  = "babeltrace-devel lttng-tools-devel kernel-compute-devel kernel-compute_debug-devel kernel-rt-devel kernel-rt_debug-devel kernel-devel-rt libcpuset-devel";
     my $count = () = $pkgs =~ /\S+/g;
 
-    validate_script_output "zypper -q search -r $repo $pkgs | grep -c package\$", sub { /^$count$/ };
+    validate_script_output "zypper -q search -r `zypper lr|grep SLERT|awk '{print \$3}'` $pkgs | grep -c package\$", sub { /^$count$/ };
 }
 
 1;
