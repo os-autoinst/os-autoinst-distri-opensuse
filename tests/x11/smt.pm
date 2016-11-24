@@ -19,7 +19,7 @@ use testapi;
 
 sub run() {
     x11_start_program("xterm -geometry 150x35+5+5");
-    assert_screen('xterm-started');
+    assert_screen('xterm');
     become_root;
     if (!get_var("UPGRADE")) {
         type_string "yast2 smt-wizard;echo yast2-smt-wizard-\$? > /dev/$serialdev\n";

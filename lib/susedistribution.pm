@@ -129,7 +129,7 @@ sub ensure_installed {
     $args{timeout} //= 90;
 
     testapi::x11_start_program("xterm");
-    assert_screen('xterm-started');
+    assert_screen('xterm');
     testapi::assert_script_sudo("chown $testapi::username /dev/$testapi::serialdev");
     my $retries = 5;    # arbitrary
     $self->script_run("for i in {1..$retries} ; do pkcon install $pkglist && break ; done ; RET=\$?; echo \"\n  pkcon finished\n\"; echo \"pkcon-\${RET}-\" > /dev/$testapi::serialdev", 0);
