@@ -46,6 +46,10 @@ sub is_new_installation {
     return !get_var('UPGRADE') && !get_var('ONLINE_MIGRATION') && !get_var('ZDUP') && !get_var('AUTOUPGRADE');
 }
 
+sub is_update_test_repo_test {
+    return get_var('TEST') !~ /^mru-/ && (get_var('FLAVOR', '') =~ /-Updates$/);
+}
+
 sub cleanup_needles {
     remove_common_needles;
     if (get_var('VERSION', '') ne '12') {
@@ -152,8 +156,10 @@ if (check_var('DESKTOP', 'minimalx')) {
     set_var('DM_NEEDS_USERNAME', 1);
 }
 
-# Maintenance specific variables
-if (get_var('TEST') =~ /^mau-/ && !get_var('MAINT_TEST_REPO')) {
+# Always register at scc and use the test updates if the Flavor is -Updates.
+# This way we can reuse existant test suites without having to patch their
+# settings
+if (is_update_test_repo_test && !get_var('MAINT_TEST_REPO')) {
     my $repos = get_var('OS_TEST_REPO');
     my $addons = get_var('ADDONS', '') . "," . get_var('SCC_ADDONS', '');
     for my $a (split(/,/, $addons)) {
@@ -162,6 +168,7 @@ if (get_var('TEST') =~ /^mau-/ && !get_var('MAINT_TEST_REPO')) {
         }
     }
     set_var('MAINT_TEST_REPO', $repos);
+    set_var('SCC_REGISTER',    'installation');
 }
 
 $needle::cleanuphandler = \&cleanup_needles;
