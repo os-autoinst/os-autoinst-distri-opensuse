@@ -862,6 +862,7 @@ sub load_hacluster_tests() {
         loadtest("ha/dlm");
         loadtest("ha/clvm");
         loadtest("ha/ocfs2");
+        loadtest("ha/drbd");
         loadtest("ha/crm_mon");
         loadtest("ha/fencing");
         if (!get_var("HACLUSTERJOIN")) {                     #node1 will be fenced

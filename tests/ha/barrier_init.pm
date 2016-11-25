@@ -26,6 +26,12 @@ sub run() {
         barrier_create("DLM_INIT_" . $clustername,                 2);
         barrier_create("DLM_GROUPS_CREATED_" . $clustername,       2);
         barrier_create("DLM_CHECKED_" . $clustername,              2);
+        barrier_create("DRBD_INIT_" . $clustername,                2);
+        barrier_create("DRBD_CHECKED_" . $clustername,             2);
+        barrier_create("DRBD_CHECK_DEVICE_HOST2_" . $clustername,  2);
+        barrier_create("DRBD_CREATE_DEVICE_HOST1_" . $clustername, 2);
+        barrier_create("DRBD_SETUP_DONE_" . $clustername,          2);
+        barrier_create("DRBD_MIGRATIONDONE_" . $clustername,       2);
         barrier_create("OCFS2_INIT_" . $clustername,               2);
         barrier_create("OCFS2_MKFS_DONE_" . $clustername,          2);
         barrier_create("OCFS2_GROUP_ALTERED_" . $clustername,      2);
