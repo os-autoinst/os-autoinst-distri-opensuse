@@ -84,19 +84,7 @@ sub run() {
     assert_screen "imagemagick_canvas_salmon";
     send_key "alt-f4";
 
-    assert_screen "imagemagick_canvas_tomato";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_canvas_rose_red";
-    send_key "alt-f4";
-
     assert_screen "imagemagick_canvas_wheat";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_color_levelc";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_color_colorize";
     send_key "alt-f4";
 
     assert_screen "imagemagick_color_sparse";
@@ -115,9 +103,6 @@ sub run() {
     send_key "alt-f4";
 
     assert_screen "imagemagick_color_fx_constant";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_color_fx_math";
     send_key "alt-f4";
 
     assert_screen "imagemagick_color_semitrans";
@@ -213,16 +198,16 @@ sub run() {
     assert_screen "imagemagick_gradient_range3";
     send_key "alt-f4";
 
-    assert_screen "imagemagick_gradient_range4";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_range5";
-    send_key "alt-f4";
-
     assert_screen "imagemagick_gradient_ice-sea";
     send_key "alt-f4";
 
+    assert_screen "imagemagick_gradient_range4";
+    send_key "alt-f4";
+
     assert_screen "imagemagick_gradient_burnished";
+    send_key "alt-f4";
+
+    assert_screen "imagemagick_gradient_range5";
     send_key "alt-f4";
 
     assert_screen "imagemagick_gradient_grassland";
@@ -253,9 +238,6 @@ sub run() {
     send_key "alt-f4";
 
     assert_screen "imagemagick_rgradient_range4";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_rgradient_range5";
     send_key "alt-f4";
 
     assert_screen "imagemagick_gradient_transparent";
@@ -396,10 +378,10 @@ sub run() {
     assert_screen "imagemagick_gradient_inverse_RGB_Hue";
     send_key "alt-f4";
 
-    assert_screen "imagemagick_sparse_barycentric";
+    assert_screen "imagemagick_sparse_bary_triangle";
     send_key "alt-f4";
 
-    assert_screen "imagemagick_sparse_bary_triangle";
+    assert_screen "imagemagick_sparse_barycentric";
     send_key "alt-f4";
 
     assert_screen "imagemagick_sparse_bary_triangle_2";
@@ -417,25 +399,10 @@ sub run() {
     assert_screen "imagemagick_diagonal_gradient";
     send_key "alt-f4";
 
-    assert_screen "imagemagick_diagonal_gradient_2";
-    send_key "alt-f4";
-
     assert_screen "imagemagick_sparse_bary_two_point";
     send_key "alt-f4";
 
-    assert_screen "imagemagick_gradient_scale";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_math";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_equiv";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_shifted";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_chopped";
+    assert_screen "imagemagick_diagonal_gradient_2";
     send_key "alt-f4";
 
     assert_screen "imagemagick_sparse_bilinear";
@@ -447,31 +414,37 @@ sub run() {
     assert_screen "imagemagick_sparse_voronoi";
     send_key "alt-f4";
 
+    assert_screen "imagemagick_gradient_scale";
+    send_key "alt-f4";
+
     assert_screen "imagemagick_sparse_voronoi_ssampled";
+    send_key "alt-f4";
+
+    assert_screen "imagemagick_gradient_math";
     send_key "alt-f4";
 
     assert_screen "imagemagick_sparse_voronoi_smoothed";
     send_key "alt-f4";
 
+    assert_screen "imagemagick_gradient_equiv";
+    send_key "alt-f4";
+
     assert_screen "imagemagick_sparse_voronoi_blur";
     send_key "alt-f4";
 
+    assert_screen "imagemagick_gradient_shifted";
+    send_key "alt-f4";
+
     assert_screen "imagemagick_sparse_voronoi_gradient";
+    send_key "alt-f4";
+
+    assert_screen "imagemagick_gradient_chopped";
     send_key "alt-f4";
 
     assert_screen "imagemagick_sparse_shepards";
     send_key "alt-f4";
 
     assert_screen "imagemagick_sparse_inverse";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_sparse_inverse_near";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_sparse_inverse_far";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_sparse_inverse_stronger";
     send_key "alt-f4";
 
     assert_screen "imagemagick_sparse_shepards_0.5";
@@ -481,6 +454,9 @@ sub run() {
     send_key "alt-f4";
 
     assert_screen "imagemagick_sparse_shepards_2";
+    send_key "alt-f4";
+
+    assert_screen "imagemagick_plasma_smooth";
     send_key "alt-f4";
 
     assert_screen "imagemagick_sparse_shepards_3";
@@ -520,9 +496,6 @@ sub run() {
     send_key "alt-f4";
 
     assert_screen "imagemagick_sparse_lines_near";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_plasma_smooth";
     send_key "alt-f4";
 
     assert_screen "imagemagick_plasma_paint";

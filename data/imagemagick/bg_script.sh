@@ -55,25 +55,9 @@ echo "canvas_salmon.gif"
 convert 'xc:Salmon[100x100!]'  canvas_salmon.gif
 cme canvas_salmon.gif 13.gif
 
-echo "canvas_tomato.gif"
-convert canvas_khaki.gif -fill tomato -opaque khaki canvas_tomato.gif
-cme canvas_tomato.gif 14.gif
-
-echo "canvas_rose_red.gif"
-convert rose:  -crop 1x1+40+30 +repage -scale 100x100\! canvas_rose_red.gif
-cme canvas_rose_red.gif 15.gif
-
 echo "canvas_wheat.gif"
 convert -size 100x100 xc:wheat  canvas_wheat.gif
 cme canvas_wheat.gif 16.gif
-
-echo "color_levelc.gif"
-convert test.png  -alpha Opaque +level-colors Sienna  color_levelc.gif
-cme color_levelc.gif 17.gif
-
-echo "color_colorize.gif"
-convert test.png -alpha off -fill Chocolate -colorize 100%  color_colorize.gif
-cme color_colorize.gif 18.gif
 
 echo "color_sparse.gif"
 convert test.png  -alpha Off  -sparse-color Voronoi '0,0 Peru' color_sparse.gif
@@ -98,10 +82,6 @@ cme color_border.gif 23.gif
 echo "color_fx_constant.gif"
 convert test.png -alpha off -fx Gold  color_fx_constant.gif
 cme color_fx_constant.gif 24.gif
-
-echo "color_fx_math.gif"
-convert test.png -alpha off -fx "Gold*.7"  color_fx_math.gif
-cme color_fx_math.gif 25.gif
 
 echo "color_semitrans.png"
 convert test.png -alpha set -fill '#FF000040' -draw 'color 0,0 reset'  color_semitrans.png
@@ -227,21 +207,21 @@ echo "gradient_range3.jpg"
 convert -size 100x100  gradient:green-yellow      gradient_range3.jpg
 cme gradient_range3.jpg 56.jpg
 
-echo "gradient_range4.jpg"
-convert -size 100x100  gradient:red-blue          gradient_range4.jpg
-cme gradient_range4.jpg 57.jpg
-
-echo "gradient_range5.jpg"
-convert -size 100x100  gradient:tomato-steelblue  gradient_range5.jpg
-cme gradient_range5.jpg 58.jpg
-
 echo "gradient_ice-sea.jpg"
 convert -size 10x120  gradient:snow-navy          gradient_ice-sea.jpg
 cme gradient_ice-sea.jpg 59.jpg
 
+echo "gradient_range4.jpg"
+convert -size 100x100  gradient:red-blue          gradient_range4.jpg
+cme gradient_range4.jpg 57.jpg
+
 echo "gradient_burnished.jpg"
 convert -size 10x120  gradient:gold-firebrick     gradient_burnished.jpg
 cme gradient_burnished.jpg 60.jpg
+
+echo "gradient_range5.jpg"
+convert -size 100x100  gradient:tomato-steelblue  gradient_range5.jpg
+cme gradient_range5.jpg 58.jpg
 
 echo "gradient_grassland.jpg"
 convert -size 10x120  gradient:yellow-limegreen   gradient_grassland.jpg
@@ -282,10 +262,6 @@ cme rgradient_range3.jpg 69.jpg
 echo "rgradient_range4.jpg"
 convert -size 100x100  radial-gradient:red-blue          rgradient_range4.jpg
 cme rgradient_range4.jpg 70.jpg
-
-echo "rgradient_range5.jpg"
-convert -size 100x100  radial-gradient:tomato-steelblue  rgradient_range5.jpg
-cme rgradient_range5.jpg 71.jpg
 
 echo "gradient_transparent.png"
 convert -size 100x100 gradient:none-firebrick gradient_transparent.png
@@ -471,13 +447,13 @@ echo "gradient_inverse_RGB_Hue.gif"
 convert gradient_inverse_RGB.png -colorspace HSB  -channel GB -evaluate set 100% +channel  -colorspace RGB gradient_inverse_RGB_Hue.gif
 cme gradient_inverse_RGB_Hue.gif 117.gif
 
-echo "sparse_barycentric.png"
-convert -size 100x100 xc: -sparse-color  Barycentric  '30,10 red   10,80 blue   90,90 lime'  -fill white -stroke black  -draw 'circle 30,10 30,12  circle 10,80 10,82  circle 90,90 90,92'  sparse_barycentric.png
-cme sparse_barycentric.png 118.png
-
 echo "sparse_bary_triangle.png"
 convert -size 100x100 xc:  -sparse-color Barycentric '30,10 red   10,80 blue   90,90 lime'  \( -size 100x100 xc:black -fill white  -draw 'polygon 30,10  10,80  90,90' \)  +matte -compose CopyOpacity -composite  -fill white -stroke black  -draw 'circle 30,10 30,12  circle 10,80 10,82  circle 90,90 90,92'  sparse_bary_triangle.png
 cme sparse_bary_triangle.png 119.png
+
+echo "sparse_barycentric.png"
+convert -size 100x100 xc: -sparse-color  Barycentric  '30,10 red   10,80 blue   90,90 lime'  -fill white -stroke black  -draw 'circle 30,10 30,12  circle 10,80 10,82  circle 90,90 90,92'  sparse_barycentric.png
+cme sparse_barycentric.png 118.png
 
 echo "sparse_bary_triangle_2.png"
 convert -size 100x100 xc:none -draw "polygon 30,10  10,80  90,90"  -sparse-color Barycentric '30,10 red   10,80 blue   90,90 lime'  sparse_bary_triangle_2.png
@@ -499,33 +475,13 @@ echo "diagonal_gradient.jpg"
 convert -size 600x60 xc: -sparse-color barycentric  '0,0 skyblue  -%w,%h skyblue  %w,%h black' diagonal_gradient.jpg
 cme diagonal_gradient.jpg 124.jpg
 
-echo "diagonal_gradient_2.jpg"
-convert -size 600x60 xc: -sparse-color barycentric  '0,%h black  -%w,0 black  %w,0 skyblue' diagonal_gradient_2.jpg
-cme diagonal_gradient_2.jpg 125.jpg
-
 echo "sparse_bary_two_point.png"
 convert -size 100x100 xc: -sparse-color  Barycentric  '30,10 red     90,90 lime'  -fill white -stroke black  -draw 'circle 30,10 30,12  circle 90,90 90,92'  sparse_bary_two_point.png
 cme sparse_bary_two_point.png 126.png
 
-echo "gradient_scale.png"
-convert  -size 1x5 gradient:  -scale 2000% gradient_scale.png
-cme gradient_scale.png 127.png
-
-echo "gradient_math.png"
-convert -size 1x5 xc:  -sparse-color Barycentric '0,-0.5 white  0,%[fx:h-.5] black'  -scale 2000%  gradient_math.png
-cme gradient_math.png 128.png
-
-echo "gradient_equiv.png"
-convert -size 1x5 xc:  -sparse-color Barycentric '0,0 white  0,%[fx:h-1] black'  -scale 2000%  gradient_equiv.png
-cme gradient_equiv.png 129.png
-
-echo "gradient_shifted.png"
-convert -size 1x5 xc:  -sparse-color Barycentric '0,0 white  0,%h black'  -scale 2000%  gradient_shifted.png
-cme gradient_shifted.png 130.png
-
-echo "gradient_chopped.png"
-convert -size 1x6 gradient: -chop 0x1 -scale 2000%  gradient_chopped.png
-cme gradient_chopped.png 131.png
+echo "diagonal_gradient_2.jpg"
+convert -size 600x60 xc: -sparse-color barycentric  '0,%h black  -%w,0 black  %w,0 skyblue' diagonal_gradient_2.jpg
+cme diagonal_gradient_2.jpg 125.jpg
 
 echo "sparse_bilinear.png"
 convert -size 100x100 xc: -sparse-color  Bilinear  '30,10 red  10,80 blue  70,60 lime  80,20 yellow'  -fill white -stroke black  -draw 'circle 30,10 30,12  circle 10,80 10,82'  -draw 'circle 70,60 70,62  circle 80,20 80,22'  sparse_bilinear.png
@@ -539,21 +495,41 @@ echo "sparse_voronoi.gif"
 convert -size 100x100 xc: -sparse-color  Voronoi  '30,10 red  10,80 blue  70,60 lime  80,20 yellow'  -fill white -stroke black  -draw 'circle 30,10 30,12  circle 10,80 10,82'  -draw 'circle 70,60 70,62  circle 80,20 80,22'  sparse_voronoi.gif
 cme sparse_voronoi.gif 134.gif
 
+echo "gradient_scale.png"
+convert  -size 1x5 gradient:  -scale 2000% gradient_scale.png
+cme gradient_scale.png 127.png
+
 echo "sparse_voronoi_ssampled.png"
 convert -size 400x400 xc: -sparse-color  Voronoi  '120,40 red  40,320 blue  270,240 lime  320,80 yellow'  -scale 25%        -fill white -stroke black  -draw 'circle 30,10 30,12  circle 10,80 10,82'  -draw 'circle 70,60 70,62  circle 80,20 80,22'  sparse_voronoi_ssampled.png
 cme sparse_voronoi_ssampled.png 135.png
+
+echo "gradient_math.png"
+convert -size 1x5 xc:  -sparse-color Barycentric '0,-0.5 white  0,%[fx:h-.5] black'  -scale 2000%  gradient_math.png
+cme gradient_math.png 128.png
 
 echo "sparse_voronoi_smoothed.png"
 convert -size 100x100 xc: -sparse-color  Voronoi  '30,10 red  10,80 blue  70,60 lime  80,20 yellow'  -blur 1x0.7    -fill white -stroke black  -draw 'circle 30,10 30,12  circle 10,80 10,82'  -draw 'circle 70,60 70,62  circle 80,20 80,22'  sparse_voronoi_smoothed.png
 cme sparse_voronoi_smoothed.png 136.png
 
+echo "gradient_equiv.png"
+convert -size 1x5 xc:  -sparse-color Barycentric '0,0 white  0,%[fx:h-1] black'  -scale 2000%  gradient_equiv.png
+cme gradient_equiv.png 129.png
+
 echo "sparse_voronoi_blur.png"
 convert -size 100x100 xc: -sparse-color  Voronoi  '30,10 red  10,80 blue  70,60 lime  80,20 yellow'  -blur 0x15    -fill white -stroke black  -draw 'circle 30,10 30,12  circle 10,80 10,82'  -draw 'circle 70,60 70,62  circle 80,20 80,22'  sparse_voronoi_blur.png
 cme sparse_voronoi_blur.png 137.png
 
+echo "gradient_shifted.png"
+convert -size 1x5 xc:  -sparse-color Barycentric '0,0 white  0,%h black'  -scale 2000%  gradient_shifted.png
+cme gradient_shifted.png 130.png
+
 echo "sparse_voronoi_gradient.png"
 convert -size 100x100 xc: -sparse-color  Voronoi  '30,10 red  10,80 blue  70,60 lime  80,20 yellow'  -blur 10x65535      -fill white -stroke black  -draw 'circle 30,10 30,12  circle 10,80 10,82'  -draw 'circle 70,60 70,62  circle 80,20 80,22'  sparse_voronoi_gradient.png
 cme sparse_voronoi_gradient.png 138.png
+
+echo "gradient_chopped.png"
+convert -size 1x6 gradient: -chop 0x1 -scale 2000%  gradient_chopped.png
+cme gradient_chopped.png 131.png
 
 echo "sparse_shepards.png"
 convert -size 100x100 xc: -sparse-color  Shepards  '30,10 red  10,80 blue  70,60 lime  80,20 yellow'  -fill white -stroke black  -draw 'circle 30,10 30,12  circle 10,80 10,82'  -draw 'circle 70,60 70,62  circle 80,20 80,22'  sparse_shepards.png
@@ -562,18 +538,6 @@ cme sparse_shepards.png 139.png
 echo "sparse_inverse.png"
 convert -size 100x100 xc: -sparse-color  Inverse  '30,10 red  10,80 blue  70,60 lime  80,20 yellow'  -fill white -stroke black  -draw 'circle 30,10 30,12  circle 10,80 10,82'  -draw 'circle 70,60 70,62  circle 80,20 80,22'  sparse_inverse.png
 cme sparse_inverse.png 140.png
-
-echo "sparse_inverse_near.png"
-convert -size 100x100 xc: -sparse-color Inverse '45,45 red  55,55 lime'  -fill white -stroke black  -draw 'circle 45,45 45,47  circle 55,55 55,57'  sparse_inverse_near.png
-cme sparse_inverse_near.png 141.png
-
-echo "sparse_inverse_far.png"
-convert -size 100x100 xc: -sparse-color Inverse '30,30 red  70,70 lime'  -fill white -stroke black  -draw 'circle 30,30 30,32  circle 70,70 70,72'  sparse_inverse_far.png
-cme sparse_inverse_far.png 142.png
-
-echo "sparse_inverse_stronger.png"
-convert -size 100x100 xc: -sparse-color Inverse  '30,30 red  75,65 lime  65,75 lime'  -fill white -stroke black  -draw 'circle 30,30 30,32  circle 75,65 75,67  circle 65,75 65,77 '  sparse_inverse_stronger.png
-cme sparse_inverse_stronger.png 143.png
 
 echo "sparse_shepards_0.5.png"
 convert -size 100x100 xc: -define shepards:power=0.5  -sparse-color Shepards '30,10 red  10,80 blue  70,60 lime  80,20 yellow'  -fill white -stroke black  -draw 'circle 30,10 30,12  circle 10,80 10,82'  -draw 'circle 70,60 70,62  circle 80,20 80,22'  sparse_shepards_0.5.png
@@ -586,6 +550,10 @@ cme sparse_shepards_1.png 145.png
 echo "sparse_shepards_2.png"
 convert -size 100x100 xc: -define shepards:power=2  -sparse-color Shepards '30,10 red  10,80 blue  70,60 lime  80,20 yellow'  -fill white -stroke black  -draw 'circle 30,10 30,12  circle 10,80 10,82'  -draw 'circle 70,60 70,62  circle 80,20 80,22'  sparse_shepards_2.png
 cme sparse_shepards_2.png 146.png
+
+echo "plasma_smooth.jpg"
+convert plasma_fractal2.jpg  -blur 0x2  plasma_smooth.jpg
+cme plasma_smooth.jpg 160.jpg
 
 echo "sparse_shepards_3.png"
 convert -size 100x100 xc: -define shepards:power=3  -sparse-color Shepards '30,10 red  10,80 blue  70,60 lime  80,20 yellow'  -fill white -stroke black  -draw 'circle 30,10 30,12  circle 10,80 10,82'  -draw 'circle 70,60 70,62  circle 80,20 80,22'  sparse_shepards_3.png
@@ -638,10 +606,6 @@ cme sparse_lines_near_source.gif 158.gif
 echo "sparse_lines_near.png"
 convert sparse_lines_near_source.gif txt:- | sed '1d; / 0) /d; s/:.* /,/;' | convert -size 100x100 xc: -sparse-color shepards ''  sparse_lines_near.png
 cme sparse_lines_near.png 159.png
-
-echo "plasma_smooth.jpg"
-convert plasma_fractal2.jpg  -blur 0x2  plasma_smooth.jpg
-cme plasma_smooth.jpg 160.jpg
 
 echo "plasma_paint.jpg"
 convert plasma_fractal2.jpg  -blur 0x1 -paint 8  plasma_paint.jpg
@@ -956,7 +920,7 @@ convert -size 120x120  tile:tile_hex_lines.jpg  tiled_hex_lines.jpg
 cme tiled_hex_lines.jpg 240.jpg
 
 # clean-up
-FILES=("test.png" "shape.gif" "plasma_fractal2.jpg" "random.png" "tile_weave.gif" "bg.gif" "tile_aqua.jpg" "tile_water.jpg" "tile_rings.jpg" "tile_disks.jpg" "tree.gif" "canvas_khaki.gif" "canvas_wheat.gif" "canvas_salmon.gif" "canvas_tomato.gif" "canvas_rose_red.gif" "color_levelc.gif" "color_colorize.gif" "color_sparse.gif" "color_reset.gif" "color_flatten.gif" "color_extent.gif" "color_border.gif" "color_fx_constant.gif" "color_fx_math.gif" "color_semitrans.png" "color_pick_fx.png" "color_pick_sparse.png" "color_pick_draw.png" "color_pick_distort.png" "black_threshold.png" "black_level.png" "black_fx.png" "black_evaluate.png" "black_gamma.png" "black_posterize.png" "black_alpha.png" "white_threshold.png" "white_level.png" "white_fx.png" "white_evaluate.png" "white_posterize.png" "white_alpha.png" "trans_alpha.png" "trans_compose.png" "color_matte.png" "trans_fx.png" "trans_evaluate.png" "trans_threshold.png" "trans_fx_alpha_off.jpg" "yellow_gamma.png" "grey_level.png" "gradient.jpg" "gradient_range1.jpg" "gradient_range2.jpg" "gradient_range3.jpg" "gradient_range4.jpg" "gradient_range5.jpg" "gradient_ice-sea.jpg" "gradient_burnished.jpg" "gradient_grassland.jpg" "gradient_sunset.jpg" "gradient_snow_scape.jpg" "rgradient.jpg" "rgradient_clip.jpg" "rgradient_crop.jpg" "rgradient_range1.jpg" "rgradient_range2.jpg" "rgradient_range3.jpg" "rgradient_range4.jpg" "rgradient_range5.jpg" "gradient_transparent.png" "gradient_trans_colorize.png" "gradient_sigmoidal.jpg" "gradient_cosine.jpg" "gradient_peak.jpg" "gradient_bands.jpg" "gradient_diagonal.jpg" "gradient_srt.jpg" "gradient_swirl.jpg" "gradient_trapezoid.jpg" "gradient_arc.jpg" "gradient_circle.jpg" "gradient_angle_even.png" "gradient_angle_odd.png" "gradient_angle_masked.png" "gradient_triangle.jpg" "gradient_bird.jpg" "gradient_venetian.jpg" "gradient_vent_diag.jpg" "gradient_colormap.jpg" "gradient_rainbow.jpg" "gradient_rainbow_2.jpg" "gradient_hue_polar.png" "gradient_resize.jpg" "gradient_resize2.jpg" "gradient_resize3.jpg" "gradient_resize4.jpg" "gradient_resize5.jpg" "gradient_rs_rainbow.jpg" "gradient_interpolated.jpg" "gradient_clut_recolored.jpg" "gradient_clut.jpg" "gradient_bilinear.jpg" "gradient_catrom.jpg" "gradient_mesh.jpg" "gradient_fx_linear.gif" "gradient_fx_x4.gif" "gradient_fx_cos.gif" "gradient_fx_radial.gif" "gradient_fx_spherical.gif" "gradient_fx_quad2.gif" "gradient_fx_angular.gif" "gradient_inverse_alt.gif" "gradient_shepards_alt.gif" "gradient_inverse_RGB.png" "gradient_inverse_RGB_Hue.gif" "sparse_barycentric.png" "sparse_bary_triangle.png" "sparse_bary_triangle_2.png" "sparse_bary_0.gif" "sparse_bary_gradient.png" "sparse_bary_gradient_2.png" "diagonal_gradient.jpg" "diagonal_gradient_2.jpg" "sparse_bary_two_point.png" "gradient_scale.png" "gradient_equiv.png" "gradient_math.png" "gradient_shifted.png" "gradient_chopped.png" "sparse_bilinear.png" "sparse_bilin_0.gif" "sparse_voronoi.gif" "sparse_voronoi_ssampled.png" "sparse_voronoi_smoothed.png" "sparse_voronoi_blur.png" "sparse_voronoi_gradient.png" "sparse_shepards.png" "sparse_inverse.png" "sparse_inverse_near.png" "sparse_inverse_far.png" "sparse_inverse_stronger.png" "sparse_shepards_0.5.png" "sparse_shepards_1.png" "sparse_shepards_2.png" "sparse_shepards_3.png" "sparse_shepards_8.png" "sparse_shepards_gray.gif" "rose_alpha_gradient.png" "sparse_source.gif" "sparse_fill.png" "shape_edge_pixels.gif" "shape_edge_in_lights.png" "shape_in_lights.png" "sparse_blur_simple.png" "sparse_blur_pyramid.png" "sparse_lines_near_source.gif" "sparse_lines_near.png" "plasma_smooth.jpg" "plasma_paint.jpg" "plasma_emboss.jpg" "plasma_sharp.jpg" "plasma_seeded.jpg" "plasma_rnd1.jpg" "plasma_rnd2.jpg" "plasma_rnd3.jpg" "plasma_rnd4.jpg" "plasma_rnd5.jpg" "random_mask.png" "random_black.png" "random_white.png" "random_trans.png" "random_1.png" "random_3.png" "random_5.png" "random_10.png" "random_20.png" "random_0_gray.png" "random_1_gray.png" "random_3_gray.png" "random_5_gray.png" "random_10_gray.png" "random_20_gray.png" "random_0_thres.png" "random_1_thres.png" "random_3_thres.png" "random_5_thres.png" "random_10_thres.png" "random_20_thres.png" "random_5_blobs.png" "ripples_1.png" "ripples_2.png" "ripples_3.png" "ripples_4.png" "random_enhanced.png" "ripples_4e.png" "random_sigmoidal.png" "ripples_4s.png" "ripples_3e000.png" "ripples_3e090.png" "ripples_3e180.png" "ripples_3e270.png" "ripples_3.5e.png" "tile_size.gif" "tile_over.gif" "tile_draw.gif" "tile_reset.gif" "tile_distort_sized.gif" "offset_tile.gif" "offset_pattern.gif" "offset_tile_fill.gif" "offset_pattern_fail.gif" "offset_pattern_good.gif" "tile_clone.gif" "tile_clone_flip.gif" "tile_mpr.gif" "tile_mpr_reset.gif" "tile_mpr_fill.gif" "tile_distort.gif" "tile_distort_checks.gif" "tile_distort_polar.gif" "pattern_default.gif" "pattern_hexagons.gif" "pattern_colored.gif" "pattern_color_checks.gif" "pattern_color_hexagons.gif" "pattern_distorted.gif" "tile_mod_failure.jpg" "tile_mod_vpixels.jpg" "tile_slanted_bricks.jpg" "tile_mod_success.jpg" "tile_circles.jpg" "tile_hexagons.gif" "tiled_hexagons.gif" "tile_line.gif" "tile_hex_lines.jpg" "tiled_hex_lines.jpg")
+FILES=("test.png" "shape.gif" "plasma_fractal2.jpg" "random.png" "tile_weave.gif" "bg.gif" "tile_aqua.jpg" "tile_water.jpg" "tile_rings.jpg" "tile_disks.jpg" "tree.gif" "canvas_khaki.gif" "canvas_wheat.gif" "canvas_salmon.gif" "color_sparse.gif" "color_reset.gif" "color_flatten.gif" "color_extent.gif" "color_border.gif" "color_fx_constant.gif" "color_semitrans.png" "color_pick_fx.png" "color_pick_sparse.png" "color_pick_draw.png" "color_pick_distort.png" "black_threshold.png" "black_level.png" "black_fx.png" "black_evaluate.png" "black_gamma.png" "black_posterize.png" "black_alpha.png" "white_threshold.png" "white_level.png" "white_fx.png" "white_evaluate.png" "white_posterize.png" "white_alpha.png" "trans_alpha.png" "trans_compose.png" "color_matte.png" "trans_fx.png" "trans_evaluate.png" "trans_threshold.png" "trans_fx_alpha_off.jpg" "yellow_gamma.png" "grey_level.png" "gradient.jpg" "gradient_range1.jpg" "gradient_range2.jpg" "gradient_range3.jpg" "gradient_range4.jpg" "gradient_range5.jpg" "gradient_ice-sea.jpg" "gradient_burnished.jpg" "gradient_grassland.jpg" "gradient_sunset.jpg" "gradient_snow_scape.jpg" "rgradient.jpg" "rgradient_clip.jpg" "rgradient_crop.jpg" "rgradient_range1.jpg" "rgradient_range2.jpg" "rgradient_range3.jpg" "rgradient_range4.jpg" "gradient_transparent.png" "gradient_trans_colorize.png" "gradient_sigmoidal.jpg" "gradient_cosine.jpg" "gradient_peak.jpg" "gradient_bands.jpg" "gradient_diagonal.jpg" "gradient_srt.jpg" "gradient_swirl.jpg" "gradient_trapezoid.jpg" "gradient_arc.jpg" "gradient_circle.jpg" "gradient_angle_even.png" "gradient_angle_odd.png" "gradient_angle_masked.png" "gradient_triangle.jpg" "gradient_bird.jpg" "gradient_venetian.jpg" "gradient_vent_diag.jpg" "gradient_colormap.jpg" "gradient_rainbow.jpg" "gradient_rainbow_2.jpg" "gradient_hue_polar.png" "gradient_resize.jpg" "gradient_resize2.jpg" "gradient_resize3.jpg" "gradient_resize4.jpg" "gradient_resize5.jpg" "gradient_rs_rainbow.jpg" "gradient_interpolated.jpg" "gradient_clut_recolored.jpg" "gradient_clut.jpg" "gradient_bilinear.jpg" "gradient_catrom.jpg" "gradient_mesh.jpg" "gradient_fx_linear.gif" "gradient_fx_x4.gif" "gradient_fx_cos.gif" "gradient_fx_radial.gif" "gradient_fx_spherical.gif" "gradient_fx_quad2.gif" "gradient_fx_angular.gif" "gradient_inverse_alt.gif" "gradient_shepards_alt.gif" "gradient_inverse_RGB.png" "gradient_inverse_RGB_Hue.gif" "sparse_barycentric.png" "sparse_bary_triangle.png" "sparse_bary_triangle_2.png" "sparse_bary_0.gif" "sparse_bary_gradient.png" "sparse_bary_gradient_2.png" "diagonal_gradient.jpg" "diagonal_gradient_2.jpg" "sparse_bary_two_point.png" "gradient_scale.png" "gradient_equiv.png" "gradient_math.png" "gradient_shifted.png" "gradient_chopped.png" "sparse_bilinear.png" "sparse_bilin_0.gif" "sparse_voronoi.gif" "sparse_voronoi_ssampled.png" "sparse_voronoi_smoothed.png" "sparse_voronoi_blur.png" "sparse_voronoi_gradient.png" "sparse_shepards.png" "sparse_inverse.png" "sparse_shepards_0.5.png" "sparse_shepards_1.png" "sparse_shepards_2.png" "sparse_shepards_3.png" "sparse_shepards_8.png" "sparse_shepards_gray.gif" "rose_alpha_gradient.png" "sparse_source.gif" "sparse_fill.png" "shape_edge_pixels.gif" "shape_edge_in_lights.png" "shape_in_lights.png" "sparse_blur_simple.png" "sparse_blur_pyramid.png" "sparse_lines_near_source.gif" "sparse_lines_near.png" "plasma_smooth.jpg" "plasma_paint.jpg" "plasma_emboss.jpg" "plasma_sharp.jpg" "plasma_seeded.jpg" "plasma_rnd1.jpg" "plasma_rnd2.jpg" "plasma_rnd3.jpg" "plasma_rnd4.jpg" "plasma_rnd5.jpg" "random_mask.png" "random_black.png" "random_white.png" "random_trans.png" "random_1.png" "random_3.png" "random_5.png" "random_10.png" "random_20.png" "random_0_gray.png" "random_1_gray.png" "random_3_gray.png" "random_5_gray.png" "random_10_gray.png" "random_20_gray.png" "random_0_thres.png" "random_1_thres.png" "random_3_thres.png" "random_5_thres.png" "random_10_thres.png" "random_20_thres.png" "random_5_blobs.png" "ripples_1.png" "ripples_2.png" "ripples_3.png" "ripples_4.png" "random_enhanced.png" "ripples_4e.png" "random_sigmoidal.png" "ripples_4s.png" "ripples_3e000.png" "ripples_3e090.png" "ripples_3e180.png" "ripples_3e270.png" "ripples_3.5e.png" "tile_size.gif" "tile_over.gif" "tile_draw.gif" "tile_reset.gif" "tile_distort_sized.gif" "offset_tile.gif" "offset_pattern.gif" "offset_tile_fill.gif" "offset_pattern_fail.gif" "offset_pattern_good.gif" "tile_clone.gif" "tile_clone_flip.gif" "tile_mpr.gif" "tile_mpr_reset.gif" "tile_mpr_fill.gif" "tile_distort.gif" "tile_distort_checks.gif" "tile_distort_polar.gif" "pattern_default.gif" "pattern_hexagons.gif" "pattern_colored.gif" "pattern_color_checks.gif" "pattern_color_hexagons.gif" "pattern_distorted.gif" "tile_mod_failure.jpg" "tile_mod_vpixels.jpg" "tile_slanted_bricks.jpg" "tile_mod_success.jpg" "tile_circles.jpg" "tile_hexagons.gif" "tiled_hexagons.gif" "tile_line.gif" "tile_hex_lines.jpg" "tiled_hex_lines.jpg")
 FILES+=("sparse_bary_1.gif" "sparse_bary_2.gif" "sparse_bilin_1.gif" "sparse_bilin_2.gif")
 echo "clean-up"
 for file in "${FILES[@]}"; do
