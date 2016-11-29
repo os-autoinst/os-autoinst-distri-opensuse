@@ -22,6 +22,17 @@ use testapi;
 use lockapi;
 use mmapi;
 use mm_network;
+use Data::Dumper;
+
+sub mac2slaac {
+    my ($mac) = @_;
+    $mac = lc($mac);
+    $mac =~ s/://g;
+    $mac =~ /^(..)(..)(..)(..)(....)$/;
+    my $ip6 = sprintf("fe80::%02x%s:%sff:fe%s:%s", (hex $1 ^ 0x02), $2, $3, $4, $5);
+    $ip6 =~ s/:0+/:/g;
+    return $ip6;
+}
 
 sub run {
     my $net_conf = parse_network_configuration();
@@ -54,16 +65,23 @@ sub run {
     my $dhcp_leases_file = script_output("cat /var/lib/dhcp/db/dhcpd.leases\n");
 
     my $lease_ip;
+    my $mac;
     for my $l (split /\n/, $dhcp_leases_file) {
         if ($l =~ /^lease\s+([0-9.]+)/) {
             $lease_ip = $1;
         }
+        elsif ($l =~ /hardware\s+ethernet\s+(.*);/) {
+            $mac = $1;
+        }
         elsif ($l =~ /client-hostname\s+"(.*)"/) {
             my $hostname = lc($1);
             $dhcp_leases{$hostname} //= [];
+            $dhcp_leases{$hostname."_ipv6"} //= [];
             push @{$dhcp_leases{$hostname}}, $lease_ip;
+            push @{$dhcp_leases{$hostname."_ipv6"}}, mac2slaac($mac) if defined $mac;
         }
     }
+print STDERR Dumper(\%dhcp_leases);
 
     # generate configuration
     my $conf = "";
@@ -74,6 +92,8 @@ sub run {
         my $networks = $settings{$p}->{NETWORKS} // 'fixed';
         my @external_ip;
         my @internal_ip;
+        my @external_ipv6;
+
         my @nic;
 
         my $eth = 0;
@@ -86,6 +106,10 @@ sub run {
                         last;
                     }
                 }
+                for my $ipv6 (@{$dhcp_leases{lc($node."_ipv6")}}) {
+                        push @external_ipv6, $ipv6;
+                        last;
+                }
             }
             else {
                 push @external_ip, "N/A";
@@ -95,8 +119,16 @@ sub run {
             push @nic, "eth$eth";
             $eth++;
         }
+print STDERR Dumper(\$net_conf);
+print STDERR Dumper(\@nic);
+print STDERR Dumper(\@internal_ip);
+print STDERR Dumper(\@external_ip);
+print STDERR Dumper(\@external_ipv6);
+
+
         $conf .= "export EXTERNAL_IP_" . uc($node) . "='" . join(' ', @external_ip) . "'\n";
         $conf .= "export INTERNAL_IP_" . uc($node) . "='" . join(' ', @internal_ip) . "'\n";
+        $conf .= "export IP6_" . uc($node) . "='" . join(' ', @external_ipv6) . "'\n";
         $conf .= "export NIC_" . uc($node) . "='" . join(' ', @nic) . "'\n";
         my $family = uc(join('_', $settings{$p}->{DISTRI}, $settings{$p}->{VERSION}));
         $family =~ s/-/_/g;
@@ -166,6 +198,7 @@ sub run {
           eval "NIC=\$NIC_${node}"
           # Another needed variable TARGET added (due commit 4128f126f4 in SLEnkins-engine)
           export TARGET="ssh:$EXTERNAL_IP"
+          eval "IP6=\$IP6_${node}"
           # Define node-related environment file/variables
           echo "Setting environment variables for the node $node_name"
           define-node-variables "$node_name" "$NIC" ""
