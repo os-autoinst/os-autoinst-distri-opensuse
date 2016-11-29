@@ -77,6 +77,13 @@ sub setup_env {
     unless (get_var('INSTLANG')) {
         set_var('INSTLANG', 'en_US');
     }
+
+    if (get_var('UEFI')) {
+        # avoid having to update all job templates, but newer qemu
+        # BIOS wants to have the bios passed differently
+        # https://github.com/os-autoinst/os-autoinst/pull/377
+        set_var('UEFI_PFLASH', 1);
+    }
 }
 
 
