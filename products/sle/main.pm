@@ -675,9 +675,6 @@ sub load_consoletests() {
         if (check_var("DESKTOP", "xfce")) {
             loadtest "console/xfce_gnome_deps";
         }
-        if (get_var("CLONE_SYSTEM")) {
-            loadtest "console/yast2_clone_system";
-        }
         if (check_var('ARCH', 'aarch64') and sle_version_at_least('12-SP2')) {
             loadtest "console/check_gcc48_on_sdk_in_aarch64";
         }
@@ -1309,6 +1306,10 @@ else {
         load_consoletests();
         load_x11tests();
     }
+}
+
+if (get_var("CLONE_SYSTEM")) {
+    load_autoyast_clone_tests;
 }
 
 if (get_var("STORE_HDD_1") || get_var("PUBLISH_HDD_1")) {
