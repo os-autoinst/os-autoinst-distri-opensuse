@@ -20,7 +20,7 @@ use testapi;
 use utils;
 use mm_network;
 
-our @EXPORT = qw/
+our @EXPORT = qw(
   pre_bootmenu_setup
   select_bootmenu_option
   bootmenu_default_params
@@ -28,7 +28,8 @@ our @EXPORT = qw/
   specific_bootmenu_params
   select_bootmenu_video_mode
   select_bootmenu_language
-  /;
+  tianocore_select_bootloader
+);
 
 sub pre_bootmenu_setup {
     if (get_var("IPXE")) {
@@ -324,6 +325,13 @@ sub select_bootmenu_language {
             send_key "ret";
         }
     }
+}
+
+sub tianocore_select_bootloader {
+    # press F2 and be quick about it
+    send_key_until_needlematch('tianocore-mainmenu',    'f2',   15, 1);
+    send_key_until_needlematch('tianocore-bootmanager', 'down', 5,  5);
+    send_key 'ret';
 }
 
 1;
