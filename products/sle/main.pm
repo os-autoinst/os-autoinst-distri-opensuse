@@ -1285,10 +1285,14 @@ if (get_var("TCM") || check_var("ADDONS", "tcm")) {
     }
 }
 
-if (get_var("HPC")) {
+if (check_var("HPC", "basic")) {
     loadtest "hpc/install";
     loadtest "hpc/cpuid";
     loadtest "hpc/rasdaemon";
+}
+
+if (check_var("HPC", "master")) {
+    loadtest "hpc/masterinstall";
 }
 1;
 # vim: set sw=4 et:
