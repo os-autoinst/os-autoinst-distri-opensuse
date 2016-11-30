@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
-# Summary: virt_autotest: the initial version of virtualization automation test in openqa, with kvm and xen support fully
+# Summary: host_upgrade_step3_run : Get the second stage script name for host upgrade test.
 #          This test verifies virtualization host upgrade test result.
 # Maintainer: alice <xlai@suse.com>
 
