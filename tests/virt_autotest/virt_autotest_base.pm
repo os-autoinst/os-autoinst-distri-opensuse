@@ -95,7 +95,7 @@ sub execute_script_run {
 
     if ($ret) {
         save_screenshot;
-        $ret =~ s/$pattern//g;
+        $ret =~ s/[\r\n]+$pattern[\r\n]+//g;
         return $ret;
     }
     else {

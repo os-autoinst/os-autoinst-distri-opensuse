@@ -1135,6 +1135,16 @@ elsif (get_var("VIRT_AUTOTEST")) {
         }
         loadtest "virt_autotest/host_upgrade_step3_run";
     }
+    elsif (get_var("VIRT_PRJ3_GUEST_MIGRATION_SOURCE")) {
+        loadtest "virt_autotest/guest_migration_config_virtualization_env";
+        loadtest "virt_autotest/guest_migration_source_nfs_setup";
+        loadtest "virt_autotest/guest_migration_source_install_guest";
+        loadtest "virt_autotest/guest_migration_source_migrate";
+    }
+    elsif (get_var("VIRT_PRJ3_GUEST_MIGRATION_TARGET")) {
+        loadtest "virt_autotest/guest_migration_config_virtualization_env";
+        loadtest "virt_autotest/guest_migration_target_nfs_setup";
+    }
     elsif (get_var("VIRT_PRJ4_GUEST_UPGRADE")) {
         loadtest "virt_autotest/guest_upgrade_run";
     }
