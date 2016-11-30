@@ -8,9 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add first PowerPC test
-#    Signed-off-by: Dinar Valeev <dvaleev@suse.com>
-# G-Maintainer: Dinar Valeev <dvaleev@suse.com>
+# Summary: Add first PowerPC test
+# Maintainer: Dinar Valeev <k0da@opensuse.org>
 
 use base "installbasetest";
 use strict;
