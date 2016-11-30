@@ -572,6 +572,9 @@ sub load_extra_tests() {
             # 42.2 feature - not even on Tumbleweed
             loadtest "x11/gdm_session_switch";
         }
+        if (gnomestep_is_applicable()) {
+            loadtest "x11/seahorse";
+        }
         return 1;
     }
 
@@ -629,7 +632,6 @@ sub load_x11tests() {
     loadtest "x11/xterm";
     loadtest "x11/sshxterm" unless get_var("LIVETEST");
     if (gnomestep_is_applicable()) {
-        loadtest "x11/seahorse";
         loadtest "x11/gnome_control_center";
         loadtest "x11/gnome_tweak_tool";
         loadtest "x11/gnome_terminal";
