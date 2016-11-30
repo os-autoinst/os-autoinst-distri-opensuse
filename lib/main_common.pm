@@ -78,10 +78,11 @@ sub setup_env {
         set_var('INSTLANG', 'en_US');
     }
 
-    if (get_var('UEFI')) {
+    if (get_var('UEFI') && !check_var('ARCH', 'aarch64')) {
         # avoid having to update all job templates, but newer qemu
         # BIOS wants to have the bios passed differently
         # https://github.com/os-autoinst/os-autoinst/pull/377
+        # Does _not_ work on aarch64
         set_var('UEFI_PFLASH', 1);
     }
 }
