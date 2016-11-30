@@ -121,18 +121,14 @@ sub fill_in_registration_data {
         if (get_var('SCC_ADDONS')) {
             for my $addon (split(/,/, get_var('SCC_ADDONS', ''))) {
                 if (check_var('VIDEOMODE', 'text')) {
-                    if (get_var('SP2ORLATER')) {
-                        send_key_until_needlematch 'scc-module-area-selected', 'tab';
-                        send_key_until_needlematch "scc-module-$addon",        'down';
-                        send_key 'spc';
-                        # go at beginning of list by pressing up often enough
-                        for (1 .. 15) {
-                            send_key 'up';
-                        }
+                    # The actions of selecting scc addons have been changed on SP2 or later in textmode
+                    # For online migration, we have to do registration on pre-created HDD, set a flag
+                    # to distinguish the sle version of HDD and perform addons selection based on it
+                    if (get_var('ONLINE_MIGRATION')) {
+                        select_addons_in_textmode($addon, get_var('HDD_SP2ORLATER'));
                     }
                     else {
-                        send_key_until_needlematch "scc-module-$addon", 'tab';
-                        send_key "spc";
+                        select_addons_in_textmode($addon, get_var('SP2ORLATER'));
                     }
                 }
                 else {
@@ -205,6 +201,23 @@ sub fill_in_registration_data {
             assert_screen("module-selection");
             send_key $cmd{next};
         }
+    }
+}
+
+sub select_addons_in_textmode {
+    my ($addon, $flag) = @_;
+    if ($flag) {
+        send_key_until_needlematch 'scc-module-area-selected', 'tab';
+        send_key_until_needlematch "scc-module-$addon",        'down';
+        send_key 'spc';
+        # After selected/deselected an addon, yast scc would automatically bounce the focus
+        # back to the top of list on SP2 or later in textmode, remove sendkey up
+        # And give a tiny time to wait it back completely to the top of list
+        wait_still_screen 1;
+    }
+    else {
+        send_key_until_needlematch "scc-module-$addon", 'tab';
+        send_key "spc";
     }
 }
 

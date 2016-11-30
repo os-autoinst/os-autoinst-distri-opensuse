@@ -392,24 +392,23 @@ sub ensure_unlocked_desktop {
     }
 }
 
-sub sle_version_at_least;
-
 sub sle_version_at_least {
-    my ($version) = @_;
+    my ($version, %args) = @_;
+    my $version_variable = $args{version_variable} // 'VERSION';
 
     if ($version eq '12-SP1') {
-        return !check_var('VERSION', '12');
+        return !check_var($version_variable, '12');
     }
 
     if ($version eq '12-SP2') {
-        return sle_version_at_least('12-SP1') && !check_var('VERSION', '12-SP1');
+        return sle_version_at_least('12-SP1', version_variable => $version_variable) && !check_var($version_variable, '12-SP1');
     }
 
     if ($version eq '12-SP3') {
-        return sle_version_at_least('12-SP2') && !check_var('VERSION', '12-SP2');
+        return sle_version_at_least('12-SP2', version_variable => $version_variable) && !check_var($version_variable, '12-SP2');
     }
 
-    die "unsupported SLE VERSION $version in check";
+    die "unsupported SLE $version_variable $version in check";
 }
 
 sub ensure_fullscreen {

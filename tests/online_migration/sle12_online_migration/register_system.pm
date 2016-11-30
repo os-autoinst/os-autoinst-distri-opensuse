@@ -29,6 +29,9 @@ sub run() {
 
     # register system and addons in textmode for all archs
     set_var("VIDEOMODE", 'text');
+    if (sle_version_at_least('12-SP2', version_variable => 'HDDVERSION')) {
+        set_var('HDD_SP2ORLATER', 1);
+    }
     yast_scc_registration;
 }
 
