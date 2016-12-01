@@ -14,7 +14,7 @@
 use base "y2logsstep";
 use strict;
 use testapi;
-use registration;
+use registration qw/fill_in_registration_data skip_registration/;
 
 sub run() {
     my ($addon, $uc_addon);
@@ -81,10 +81,9 @@ sub run() {
             }
             assert_screen "addon-installation-report";
             send_key 'alt-f', 2;                                                    # finish
+            assert_screen 'scc-registration';
             if (get_var('SCC_REGISTER')) {
-                if (check_screen('scc-registration', 5)) {
-                    fill_in_registration_data;
-                }
+                fill_in_registration_data;
                 if ($addon ne 'sdk') {                                              # sdk doesn't ask for code
                     my $regcode = get_var("SCC_REGCODE_$uc_addon");
                     assert_screen "addon-reg-code";
@@ -100,10 +99,7 @@ sub run() {
                 send_key_until_needlematch "addon-products-$addon", 'down';
             }
             else {
-                send_key "alt-s", 1;                                                # skip SCC registration
-                if (check_screen("scc-skip-reg-warning")) {
-                    send_key "alt-y", 1;                                            # confirmed skip SCC registration
-                }
+                skip_registration;
                 if (check_screen("scc-skip-base-system-reg-warning")) {
                     send_key "alt-y", 1;                                            # confirmed skip SCC registration
                 }
