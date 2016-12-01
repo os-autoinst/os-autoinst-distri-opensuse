@@ -76,6 +76,10 @@ sub cleanup_needles() {
             unregister_needle_tags("ENV-FLAVOR-$flavor");
         }
     }
+    # unregister christmas needles unless it is December where they should
+    # appear. Unused needles should be disregarded by admin delete then
+    my @time = localtime();
+    unregister_needle_tags('CHRISTMAS') unless $time[4] == 11;
 }
 
 my $distri = testapi::get_var("CASEDIR") . '/lib/susedistribution.pm';
