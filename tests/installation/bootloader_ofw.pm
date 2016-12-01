@@ -8,9 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add first PowerPC test
-#    Signed-off-by: Dinar Valeev <dvaleev@suse.com>
-# G-Maintainer: Dinar Valeev <dvaleev@suse.com>
+# Summary: Add first PowerPC test
+# Maintainer: Dinar Valeev <k0da@opensuse.org>
 
 use base "installbasetest";
 use strict;
@@ -34,7 +33,7 @@ sub run() {
     else {
         send_key_until_needlematch 'inst-oninstallation', 'up';
     }
-    if (check_var('VIDEOMODE', 'text') || get_var('NETBOOT') || get_var('AUTOYAST') || get_var('SCC_URL')) {
+    if (check_var('VIDEOMODE', 'text') || get_var('NETBOOT') || get_var('AUTOYAST') || get_var('SCC_URL') || get_var('DUD')) {
         if (get_var("ZDUP") || get_var("ONLINE_MIGRATION")) {
             send_key "down";
             send_key "ret";
@@ -53,10 +52,24 @@ sub run() {
             my $args = "";
             # load kernel manually with append
             if (check_var('VIDEOMODE', 'text')) {
-                type_string_slow ' textmode=1';
+                $args .= " textmode=1";
             }
-            if (get_var("NETBOOT") && get_var("SUSEMIRROR")) {
-                type_string_slow ' install=http://' . get_var("SUSEMIRROR");
+            if (get_var("NETBOOT")) {
+                if (get_var("SUSEMIRROR")) {
+                    $args .= ' install=http://' . get_var("SUSEMIRROR");
+                }
+                else {
+                    $args .= ' kernel=1 insecure=1';
+                }
+            }
+            if (get_var("DUD")) {
+                my $dud = get_var("DUD");
+                if ($dud =~ /http:\/\/|https:\/\/|ftp:\/\//) {
+                    $args .= " dud=$dud insecure=1";
+                }
+                else {
+                    $args .= " dud=" . data_url($dud) . " insecure=1";
+                }
             }
             if (get_var("AUTOYAST") || get_var("AUTOUPGRADE")) {
                 my $netsetup = " ifcfg=*=dhcp";    #need this instead of netsetup as default, see bsc#932692
