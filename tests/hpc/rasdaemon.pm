@@ -8,14 +8,14 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: HPC_Module: Add test for rasdaemon package
+# Summary: HPC_Module: Add test for rasdaemon package
 #    https://fate.suse.com/318824
 #
 #    This tests the rasdaemon package from the HPC module
 #
 #    At the moment, it follows a very small testcase described in fate, which injects
 #    memory errors and see if rasdaemon is able to detect it
-# G-Maintainer: soulofdestiny <mgriessmeier@suse.com>
+# Maintainer: soulofdestiny <mgriessmeier@suse.com>
 
 use base "opensusebasetest";
 use strict;
