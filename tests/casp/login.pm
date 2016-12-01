@@ -18,5 +18,9 @@ sub run() {
     select_console 'root-console';
 }
 
+sub test_flags() {
+    return {fatal => 1};
+}
+
 1;
 # vim: set sw=4 et:
