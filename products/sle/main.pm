@@ -235,9 +235,7 @@ sub load_x11regression_firefox() {
     loadtest "x11regressions/firefox/sle12/firefox_html5";
     loadtest "x11regressions/firefox/sle12/firefox_developertool";
     loadtest "x11regressions/firefox/sle12/firefox_rss";
-    if (sle_version_at_least('12-SP2')) {    # take out these failed cases from qam test for SP1
-        loadtest "x11regressions/firefox/sle12/firefox_ssl";
-    }
+    loadtest "x11regressions/firefox/sle12/firefox_ssl";
     if (!get_var("OFW") && check_var('BACKEND', 'qemu')) {
         loadtest "x11/firefox_audio";
     }

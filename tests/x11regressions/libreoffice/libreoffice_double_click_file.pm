@@ -35,8 +35,7 @@ sub run() {
     for my $tag (qw/doc docx fodg fodp fods fodt odf odg odp ods odt pptx xlsx/) {
         send_key_until_needlematch("libreoffice-specified-list-$tag", "right", 50, 1);
         assert_and_dclick("libreoffice-specified-list-$tag");
-        wait_still_screen;
-        assert_screen("libreoffice-test-$tag");
+        assert_screen("libreoffice-test-$tag", 60);
         if ($tag ne 'xlsx') {
             hold_key "alt";
             send_key_until_needlematch("libreoffice-nautilus-window", "tab");
