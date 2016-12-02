@@ -21,6 +21,7 @@ sub run() {
     # test should follow.
     if (is_jeos) {
         script_run 'poweroff', 0;
+        assert_shutdown;
     }
 
     my $svirt = console('svirt');
