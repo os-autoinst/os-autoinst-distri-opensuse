@@ -31,4 +31,3 @@ sub test_flags {
 }
 
 1;
-

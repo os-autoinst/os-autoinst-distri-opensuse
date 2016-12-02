@@ -128,4 +128,3 @@ sub redirect_serial {
     $self->reset_curr_serialdev();
 }
 1;
-
