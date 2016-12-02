@@ -14,7 +14,7 @@
 use base "x11test";
 use strict;
 use testapi;
-use utils qw/sle_version_at_least/;
+use utils 'sle_version_at_least';
 
 # Test for basic yast2-snapper functionality. It assumes the data of the
 # opensuse distri to be available at /home/$username/data (as granted by
@@ -72,12 +72,12 @@ sub run() {
     # ensure the last screenshots are visible
     send_key 'pgdn';
     # Make sure the test snapshot is not there
-    die("Unexpected snapshot found") if (check_screen([qw/yast2_snapper-new_snapshot yast2_snapper-new_snapshot_selected/], 1));
+    die("Unexpected snapshot found") if (check_screen([qw(yast2_snapper-new_snapshot yast2_snapper-new_snapshot_selected)], 1));
 
     # Create a new snapshot
     $self->y2snapper_create_snapshot();
     # Make sure the snapshot is listed in the main window
-    send_key_until_needlematch([qw/yast2_snapper-new_snapshot yast2_snapper-new_snapshot_selected/], 'pgdn');
+    send_key_until_needlematch([qw(yast2_snapper-new_snapshot yast2_snapper-new_snapshot_selected)], 'pgdn');
     # C'l'ose  the snapper module
     send_key "alt-l";
 
@@ -88,7 +88,7 @@ sub run() {
     # Start the yast2 snapper module and wait until it is started
     type_string "yast2 snapper\n";
     assert_screen 'yast2_snapper-snapshots', 100;
-    send_key_until_needlematch([qw/yast2_snapper-new_snapshot yast2_snapper-new_snapshot_selected/], 'pgdn');
+    send_key_until_needlematch([qw(yast2_snapper-new_snapshot yast2_snapper-new_snapshot_selected)], 'pgdn');
     wait_screen_change { send_key 'end' };
     send_key_until_needlematch('yast2_snapper-new_snapshot_selected', 'up');
     # Press 'S'how changes button and select both directories that have been
@@ -103,7 +103,7 @@ sub run() {
     assert_screen 'yast2_snapper-show_testdata', 100;
     # Close the dialog and make sure it is closed
     send_key "alt-c";
-    send_key_until_needlematch([qw/yast2_snapper-new_snapshot yast2_snapper-new_snapshot_selected/], 'pgdn');
+    send_key_until_needlematch([qw(yast2_snapper-new_snapshot yast2_snapper-new_snapshot_selected)], 'pgdn');
     wait_screen_change { send_key 'end' };
     send_key_until_needlematch('yast2_snapper-new_snapshot_selected', 'up');
     # Dele't'e the snapshot
@@ -111,7 +111,7 @@ sub run() {
     assert_screen 'yast2_snapper-confirm_delete', 100;
     send_key "alt-y";
     # Make sure the snapshot is not longer there
-    assert_screen [qw/yast2_snapper-snapshots yast2_snapper-new_snapshot yast2_snapper-new_snapshot_selected/], 100;
+    assert_screen [qw(yast2_snapper-snapshots yast2_snapper-new_snapshot yast2_snapper-new_snapshot_selected)], 100;
     if (match_has_tag('yast2_snapper-new_snapshot') or match_has_tag('yast2_snapper-new_snapshot_selected')) {
         diag 'new snapshot found despite requested for deletion, waiting a bit more';
         # In old versions the test was so slow that the issue has never
@@ -120,7 +120,7 @@ sub run() {
         # it's still there which is detected now in the new faster version
         # of the test. On a second look it should really be gone
         wait_still_screen;
-        if (check_screen([qw/yast2_snapper-new_snapshot yast2_snapper-new_snapshot_selected/], 240)) {
+        if (check_screen([qw(yast2_snapper-new_snapshot yast2_snapper-new_snapshot_selected)], 240)) {
             die("The snapshot is still visible after trying to delete it and waiting a bit");
         }
     }

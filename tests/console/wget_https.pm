@@ -25,7 +25,7 @@ sub run() {
     assert_script_run("wget -c https://build.opensuse.org -O opensuse.html");
     assert_script_run("wget -c https://www.google.com -O google.html");
     assert_script_run("wget -c https://github.com -O github.html");
-    for my $var (qw/opensuse.html google.html github.html/) {
+    for my $var (qw(opensuse.html google.html github.html)) {
         assert_script_run("test -f $var");
         assert_script_run("rm -f $var");
     }

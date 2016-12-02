@@ -10,7 +10,7 @@
 
 use strict;
 use warnings;
-use testapi qw/check_var get_var set_var/;
+use testapi qw(check_var get_var set_var);
 use lockapi;
 use needle;
 use File::Find;
@@ -71,7 +71,7 @@ sub cleanup_needles() {
     if (!is_tumbleweed) {
         unregister_needle_tags('ENV-VERSION-Tumbleweed');
     }
-    for my $flavor (qw/Krypton-Live Argon-Live/) {
+    for my $flavor (qw(Krypton-Live Argon-Live)) {
         if (!check_var('FLAVOR', $flavor)) {
             unregister_needle_tags("ENV-FLAVOR-$flavor");
         }
@@ -139,7 +139,7 @@ if (   get_var("WITH_UPDATE_REPO")
 $needle::cleanuphandler = \&cleanup_needles;
 
 # dump other important ENV:
-logcurrentenv(qw"ADDONURL BIGTEST BTRFS DESKTOP HW HWSLOT LIVETEST LVM MOZILLATEST NOINSTALL REBOOTAFTERINSTALL UPGRADE USBBOOT ZDUP ZDUPREPOS TEXTMODE DISTRI NOAUTOLOGIN QEMUCPU QEMUCPUS RAIDLEVEL ENCRYPT INSTLANG QEMUVGA DOCRUN UEFI DVD GNOME KDE ISO ISO_MAXSIZE LIVECD NETBOOT NOIMAGES PROMO QEMUVGA SPLITUSR VIDEOMODE");
+logcurrentenv(qw(ADDONURL BIGTEST BTRFS DESKTOP HW HWSLOT LIVETEST LVM MOZILLATEST NOINSTALL REBOOTAFTERINSTALL UPGRADE USBBOOT ZDUP ZDUPREPOS TEXTMODE DISTRI NOAUTOLOGIN QEMUCPU QEMUCPUS RAIDLEVEL ENCRYPT INSTLANG QEMUVGA DOCRUN UEFI DVD GNOME KDE ISO ISO_MAXSIZE LIVECD NETBOOT NOIMAGES PROMO QEMUVGA SPLITUSR VIDEOMODE));
 
 sub is_server() {
     return (check_var('ARCH', 'aarch64') || get_var("OFW") || check_var("FLAVOR", "Server-DVD"));
@@ -355,7 +355,7 @@ sub load_fixup_network() {
     # openSUSE 13.2's (and earlier) systemd has broken rules for virtio-net, not applying predictable names (despite being configured)
     # A maintenance update breaking networking names sounds worse than just accepting that 13.2 -> TW breaks with virtio-net
     # At this point, the system has been updated, but our network interface changed name (thus we lost network connection)
-    my @old_hdds = qw/openSUSE-12.1 openSUSE-12.2 openSUSE-12.3 openSUSE-13.1-gnome openSUSE-13.2/;
+    my @old_hdds = qw(openSUSE-12.1 openSUSE-12.2 openSUSE-12.3 openSUSE-13.1-gnome openSUSE-13.2);
     return unless grep { check_var('HDDVERSION', $_) } @old_hdds;
 
     loadtest "fixup/network_configuration";
@@ -811,7 +811,7 @@ sub load_applicationstests {
         gimp               => ['x11/gimp'],
         hexchat            => ['x11/hexchat'],
         libzypp            => ['console/zypper_in', 'console/yast2_i'],
-        MozillaFirefox     => [qw'x11/firefox x11/firefox_audio'],
+        MozillaFirefox     => [qw(x11/firefox x11/firefox_audio)],
         MozillaThunderbird => ['x11/thunderbird'],
         vlc                => ['x11/vlc'],
         xchat              => ['x11/xchat'],

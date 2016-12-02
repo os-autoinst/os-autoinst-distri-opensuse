@@ -17,7 +17,7 @@ use testapi;
 
 # Clean for testing tracker.
 
-my @filenames = qw/newfile newpl.pl/;
+my @filenames = qw(newfile newpl.pl);
 
 sub run() {
     my $self = shift;

@@ -82,7 +82,7 @@ my $minlength           = 8;
 my $ignoreContentFilter = qr(\A(?:^\s*(?:\#.*)?$)*\z);
 
 Code::DRY::clearData;
-File::Find::find(\&match_file, qw/lib tests/);
+File::Find::find(\&match_file, qw(lib tests));
 
 use PPI;
 use PPI::Dumper;

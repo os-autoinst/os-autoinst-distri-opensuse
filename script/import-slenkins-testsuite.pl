@@ -2,7 +2,7 @@
 
 use strict;
 use Cwd 'abs_path';
-use Data::Dump qw/dd pp/;
+use Data::Dump qw(dd pp);
 use XML::Simple;
 
 my $template_control = pp(
@@ -79,7 +79,7 @@ sub parse_channels {
     }
 
     if (!length $repo) {
-        if (grep { $repo_var eq $_ } qw{SLENKINS SDK}) {
+        if (grep { $repo_var eq $_ } qw(SLENKINS SDK)) {
             print STDERR "Repository \"$repo_var\" already present in the image.\n";
         }
         else {

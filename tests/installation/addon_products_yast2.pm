@@ -14,7 +14,7 @@
 use base "y2logsstep";
 use strict;
 use testapi;
-use registration qw/fill_in_registration_data skip_registration/;
+use registration qw(fill_in_registration_data skip_registration);
 
 sub run() {
     my ($addon, $uc_addon);

@@ -41,7 +41,7 @@ sub run() {
     }
 
     # Check the repo name is set according to the value of $releasever var
-    foreach my $ver (qw/12 12.1/) {
+    foreach my $ver (qw(12 12.1)) {
         my $repo_alias = $dist . $ver;
         $repo_alias =~ s/\./SP/;
         my $str = qr/^Name *: *${repo_alias} */m;

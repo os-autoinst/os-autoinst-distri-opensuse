@@ -21,7 +21,7 @@ sub run() {
     send_key "ctrl-alt-delete";    # reboot
     assert_screen 'logoutdialog', 15;
     assert_and_click 'sddm_reboot_option_btn';
-    if (check_screen([qw/sddm_reboot_option_btn sddm_reboot_btn/], 3)) {
+    if (check_screen([qw(sddm_reboot_option_btn sddm_reboot_btn)], 3)) {
         # sometimes not reliable, since if clicked the background
         # color of button should changed, thus check and click again
         if (match_has_tag('sddm_reboot_option_btn')) {

@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use testapi qw/check_var get_var set_var/;
+use testapi qw(check_var get_var set_var);
 use needle;
 use File::Basename;
 

@@ -21,7 +21,7 @@ use base "y2logsstep";
 
 use testapi;
 use registration;
-use utils qw/assert_screen_with_soft_timeout/;
+use utils 'assert_screen_with_soft_timeout';
 
 sub run() {
     if (!get_var("HDD_SCC_REGISTERED")) {

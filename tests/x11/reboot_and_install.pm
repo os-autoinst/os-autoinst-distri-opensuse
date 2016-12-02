@@ -15,8 +15,8 @@ use base "opensusebasetest";
 use strict;
 
 use testapi;
-use utils qw/reboot_gnome/;
-use bootloader_setup qw/select_bootmenu_option bootmenu_default_params/;
+use utils 'reboot_gnome';
+use bootloader_setup qw(select_bootmenu_option bootmenu_default_params);
 
 sub run() {
     reboot_gnome;    # reboot from previously booted hdd to do pre check or change e.g. before upgrade

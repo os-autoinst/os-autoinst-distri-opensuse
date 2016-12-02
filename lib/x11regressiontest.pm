@@ -16,7 +16,7 @@ use LWP::Simple;
 use Config::Tiny;
 use testapi;
 use utils;
-use POSIX qw(strftime);
+use POSIX 'strftime';
 
 sub test_flags() {
     return {important => 1};
@@ -240,7 +240,7 @@ sub send_meeting_request {
     }
     assert_screen "evolution_mail-compse_meeting", 60;
     send_key "ctrl-w";
-    assert_screen [qw/evolution_mail-save_meeting_dialog evolution_mail-send_meeting_dialog evolution_mail-meeting_error_handle evolution_mail-max-window/];
+    assert_screen [qw(evolution_mail-save_meeting_dialog evolution_mail-send_meeting_dialog evolution_mail-meeting_error_handle evolution_mail-max-window)];
     if (match_has_tag "evolution_mail-save_meeting_dialog") {
         send_key "ret";
     }
@@ -274,7 +274,7 @@ sub start_evolution {
     x11_start_program("xterm -e \"killall -9 evolution; find ~ -name evolution | xargs rm -rf;\"");
     x11_start_program("evolution");
     # Follow the wizard to setup mail account
-    assert_screen [qw/evolution-default-client-ask test-evolution-1/];
+    assert_screen [qw(evolution-default-client-ask test-evolution-1)];
     if (match_has_tag 'evolution-default-client-ask') {
         assert_and_click "evolution-default-client-agree";
         assert_screen "test-evolution-1";
@@ -306,7 +306,8 @@ sub setup_mail_account {
     my $mail_user       = $config->{$account}->{user};
     my $mail_passwd     = $config->{$account}->{passwd};
     my $mail_sendport   = $config->{$account}->{sendport};
-    my $mail_recvport   = $config->{$account}->{$proto eq 'pop' ? 'recvport' : 'imapport'};
+    my $port_key        = $proto eq 'pop' ? 'recvport' : 'imapport';
+    my $mail_recvport   = $config->{$account}->{$port_key};
 
     $self->start_evolution($mail_box);
     if (check_screen "evolution_wizard-skip-lookup") {
@@ -570,7 +571,7 @@ sub setup_evolution_for_ews {
     assert_screen "evolution_wizard-receiving-opts";
     assert_and_click "evolution_wizard-ews-enable-gal";
     assert_and_click "evolution_wizard-ews-fetch-abl";
-    assert_screen [qw/evolution_wizard-ews-view-gal evolution_mail-auth/], 120;
+    assert_screen [qw(evolution_wizard-ews-view-gal evolution_mail-auth)], 120;
     if (match_has_tag('evolution_mail-auth')) {
         type_string "$mail_passwd";
         send_key "ret";

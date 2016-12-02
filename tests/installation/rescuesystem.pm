@@ -14,7 +14,7 @@
 use base "opensusebasetest";
 use strict;
 use testapi;
-use utils qw/ensure_shim_import/;
+use utils 'ensure_shim_import';
 
 sub run {
     my $self = shift;

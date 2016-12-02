@@ -21,9 +21,9 @@ use Exporter;
 use strict;
 
 use testapi;
-use utils qw /addon_decline_license/;
+use utils 'addon_decline_license';
 
-our @EXPORT = qw/fill_in_registration_data registration_bootloader_params yast_scc_registration skip_registration/;
+our @EXPORT = qw(fill_in_registration_data registration_bootloader_params yast_scc_registration skip_registration);
 
 sub fill_in_registration_data {
     my ($addon, $uc_addon);
@@ -39,7 +39,7 @@ sub fill_in_registration_data {
     }
     my @known_untrusted_keys = qw(import-trusted-gpg-key-nvidia-F5113243C66B6EAE);
     unless (get_var('SCC_REGISTER', '') =~ /addon|network/) {
-        my @tags = qw/local-registration-servers registration-online-repos import-untrusted-gpg-key module-selection contacting-registration-server/;
+        my @tags = qw(local-registration-servers registration-online-repos import-untrusted-gpg-key module-selection contacting-registration-server);
         if (get_var('SCC_URL') || get_var('SMT_URL')) {
             push @tags, 'untrusted-ca-cert';
             if (get_var('SMT_URL')) {
@@ -250,7 +250,7 @@ sub yast_scc_registration {
         assert_screen("yast_scc-pkgtoinstall");
         send_key "alt-a";
 
-        while (check_screen([qw/yast_scc-license-dialog yast_scc-automatic-changes/])) {
+        while (check_screen([qw(yast_scc-license-dialog yast_scc-automatic-changes)])) {
             if (match_has_tag('yast_scc-license-dialog')) {
                 send_key "alt-a";
                 next;
@@ -260,7 +260,7 @@ sub yast_scc_registration {
         send_key "alt-o";
 
         # yast may pop up a reboot prompt window after addons installation such like ha on sle12 sp0
-        while (assert_screen([qw/yast_scc-prompt-reboot yast_scc-installation-summary/], 900)) {
+        while (assert_screen([qw(yast_scc-prompt-reboot yast_scc-installation-summary)], 900)) {
             if (match_has_tag('yast_scc-prompt-reboot')) {
                 send_key "alt-o", 1;
                 next;
@@ -287,7 +287,7 @@ sub yast_scc_registration {
 
 sub skip_registration {
     send_key "alt-s", 1;    # skip SCC registration
-    assert_screen([qw/scc-skip-reg-warning-yes scc-skip-reg-warning-ok scc-skip-reg-no-warning/]);
+    assert_screen([qw(scc-skip-reg-warning-yes scc-skip-reg-warning-ok scc-skip-reg-no-warning)]);
     if (match_has_tag('scc-skip-reg-warning-ok')) {
         send_key "alt-o";    # confirmed skip SCC registration
         wait_still_screen;

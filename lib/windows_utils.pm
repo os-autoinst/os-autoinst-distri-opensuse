@@ -16,9 +16,7 @@ use strict;
 
 use testapi;
 
-our @EXPORT = qw/
-  wait_boot_windows
-  /;
+our @EXPORT = qw(wait_boot_windows);
 
 # makes sure splash screen appears and then boots to desktop
 # arguments: bootloader_time => seconds # now long to wait for splash to appear

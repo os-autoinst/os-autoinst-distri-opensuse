@@ -22,7 +22,7 @@ sub run() {
 
     script_run("zypper ref; echo zypper-ref-\$? > /dev/$serialdev", 0);
     # don't trust graphic driver repo
-    assert_screen([qw/new-repo-need-key zypper_ref/]);
+    assert_screen([qw(new-repo-need-key zypper_ref)]);
     if (match_has_tag('new-repo-need-key')) {
         type_string "r\n";
     }

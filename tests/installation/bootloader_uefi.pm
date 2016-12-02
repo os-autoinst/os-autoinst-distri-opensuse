@@ -14,7 +14,7 @@
 use base "installbasetest";
 use strict;
 
-use Time::HiRes qw(sleep);
+use Time::HiRes 'sleep';
 
 use testapi;
 use bootloader_setup;
@@ -36,7 +36,7 @@ sub run() {
 
     # aarch64 firmware 'tianocore' can take longer to load
     my $bootloader_timeout = check_var('ARCH', 'aarch64') ? 25 : 15;
-    assert_screen([qw/bootloader-shim-import-prompt bootloader-grub2/], $bootloader_timeout);
+    assert_screen([qw(bootloader-shim-import-prompt bootloader-grub2)], $bootloader_timeout);
     if (match_has_tag("bootloader-shim-import-prompt")) {
         send_key "down";
         send_key "ret";

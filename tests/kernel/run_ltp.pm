@@ -17,7 +17,7 @@ use base 'opensusebasetest';
 use testapi qw(is_serial_terminal :DEFAULT);
 use utils;
 use Time::HiRes qw(clock_gettime CLOCK_MONOTONIC);
-use File::Basename qw(basename);
+use File::Basename 'basename';
 require bmwqemu;
 
 sub start_result {

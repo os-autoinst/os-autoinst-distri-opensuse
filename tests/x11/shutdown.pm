@@ -34,7 +34,7 @@ sub run() {
 
         if (get_var("PLASMA5")) {
             assert_and_click 'sddm_shutdown_option_btn';
-            if (check_screen([qw/sddm_shutdown_option_btn sddm_shutdown_btn/], 3)) {
+            if (check_screen([qw(sddm_shutdown_option_btn sddm_shutdown_btn)], 3)) {
                 # sometimes not reliable, since if clicked the background
                 # color of button should changed, thus check and click again
                 if (match_has_tag('sddm_shutdown_option_btn')) {

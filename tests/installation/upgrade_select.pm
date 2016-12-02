@@ -14,7 +14,7 @@
 use strict;
 use base "y2logsstep";
 use testapi;
-use utils qw/assert_screen_with_soft_timeout/;
+use utils 'assert_screen_with_soft_timeout';
 
 sub run() {
     if (get_var('ENCRYPT')) {

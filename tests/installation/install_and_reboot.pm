@@ -42,7 +42,7 @@ sub run() {
     my $timeout = 2000;
 
     # workaround for yast popups
-    my @tags = qw/rebootnow/;
+    my @tags = qw(rebootnow);
     if (get_var("UPGRADE")) {
         push(@tags, "ERROR-removing-package");
         push(@tags, "DIALOG-packages-notifications");

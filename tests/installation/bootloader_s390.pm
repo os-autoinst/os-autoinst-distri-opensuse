@@ -129,11 +129,11 @@ EO_frickin_boot_parms
     }
     die "Download of Kernel or Initrd took too long (with retries)" unless $r;
 
-    $s3270->sequence_3270(qw{ String(INPUT) ENTER });
+    $s3270->sequence_3270(qw( String(INPUT) ENTER ));
 
     $r = $s3270->expect_3270(buffer_ready => qr/Input-mode/);
 
-    # can't use qw{} because of space in commands...
+    # can't use qw() because of space in commands...
     $s3270->sequence_3270(split /\n/, $sequence);
 
     $r = $s3270->expect_3270(buffer_ready => qr/X E D I T/);
@@ -145,13 +145,13 @@ EO_frickin_boot_parms
     ## an empty line and a single "manual=1" at the bottom
     ## of the ftpboot parmfile.  This may fail in obscure
     ## ways when that changes.
-    $s3270->sequence_3270(qw{String(BOTTOM) ENTER String(DELETE) ENTER});
-    $s3270->sequence_3270(qw{String(BOTTOM) ENTER String(DELETE) ENTER});
+    $s3270->sequence_3270(qw(String(BOTTOM) ENTER String(DELETE) ENTER));
+    $s3270->sequence_3270(qw(String(BOTTOM) ENTER String(DELETE) ENTER));
 
     $r = $s3270->expect_3270(buffer_ready => qr/X E D I T/);
 
     # save the parmfile.  ftpboot then starts the installation.
-    $s3270->sequence_3270(qw{ String(FILE) ENTER });
+    $s3270->sequence_3270(qw( String(FILE) ENTER ));
 
     # linuxrc
     $r = $s3270->expect_3270(

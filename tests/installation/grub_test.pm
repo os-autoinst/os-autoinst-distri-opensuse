@@ -23,7 +23,7 @@ sub run() {
     if (get_var('LIVECD')) {
         mouse_hide;
         wait_still_screen;
-        assert_screen([qw/generic-desktop-after_installation grub2/]);
+        assert_screen([qw(generic-desktop-after_installation grub2)]);
         if (match_has_tag('generic-desktop-after_installation')) {
             record_soft_failure 'boo#993885 Kde-Live net installer does not reboot after installation';
             select_console 'install-shell';

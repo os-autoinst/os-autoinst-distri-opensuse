@@ -31,7 +31,7 @@ sub set_serialdev() {
         script_run("clear");
         script_run("cat /etc/SuSE-release");
         save_screenshot;
-        assert_screen([qw/on_host_sles_12_sp2_or_above on_host_lower_than_sles_12_sp2/], 5);
+        assert_screen([qw(on_host_sles_12_sp2_or_above on_host_lower_than_sles_12_sp2)], 5);
         if (match_has_tag("on_host_sles_12_sp2_or_above")) {
             $serialdev = "hvc0";
         }

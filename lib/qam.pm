@@ -17,7 +17,7 @@ use Exporter;
 use testapi;
 use utils;
 
-our @EXPORT = qw/capture_state check_automounter snap_revert/;
+our @EXPORT = qw(capture_state check_automounter snap_revert);
 
 sub capture_state {
     my ($state, $y2logs) = @_;

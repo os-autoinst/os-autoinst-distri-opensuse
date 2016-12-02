@@ -18,7 +18,7 @@ use testapi;
 # Cleaning for testing pidgin
 sub remove_pkg() {
     my $self     = shift;
-    my @packages = qw/pidgin/;
+    my @packages = qw(pidgin);
     x11_start_program("xterm");
 
     # Remove packages

@@ -31,7 +31,7 @@ sub run() {
     if (get_var("UPGRADE")) {
         send_key $cmd{update};
         sleep 1;
-        assert_screen [qw/startupdate startupdate-conflict license-popup/], 5;
+        assert_screen [qw(startupdate startupdate-conflict license-popup)], 5;
 
         while (match_has_tag("startupdate-conflict") || match_has_tag("license-popup")) {
             if (match_has_tag("startupdate-conflict")) {
@@ -62,7 +62,7 @@ sub run() {
             if (match_has_tag("license-popup")) {
                 send_key $cmd{accept}, 1;
             }
-            assert_screen [qw/startupdate startupdate-conflict license-popup/], 5;
+            assert_screen [qw(startupdate startupdate-conflict license-popup)], 5;
         }
 
         # confirm
@@ -85,7 +85,7 @@ sub run() {
     else {
         sleep 2;    # textmode is sometimes pressing alt-i too early
         send_key $cmd{install};
-        while (check_screen([qw/confirmlicense startinstall/], 5)) {
+        while (check_screen([qw(confirmlicense startinstall)], 5)) {
             last if match_has_tag("startinstall");
             send_key $cmd{acceptlicense}, 1;
         }

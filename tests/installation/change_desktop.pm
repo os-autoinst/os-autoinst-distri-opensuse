@@ -19,7 +19,7 @@ use testapi;
 sub accept3rdparty {
     my ($self) = @_;
     #Third party licenses sometimes appear
-    while (check_screen([qw/3rdpartylicense automatic-changes inst-overview/], 15)) {
+    while (check_screen([qw(3rdpartylicense automatic-changes inst-overview)], 15)) {
         last if match_has_tag("automatic-changes");
         last if match_has_tag("inst-overview");
         send_key $cmd{acceptlicense}, 1;

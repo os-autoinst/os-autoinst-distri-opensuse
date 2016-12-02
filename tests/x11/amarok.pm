@@ -25,7 +25,7 @@ sub run() {
                          # and don't put this after opening oga file, per video
                          # the window pop-up meanwhile x11_start_progran typeing,
                          # and 40 sec to wait that window pop-up should enough
-    assert_screen([qw/librivox-authentication test-amarok-2/]);
+    assert_screen([qw(librivox-authentication test-amarok-2)]);
     if (match_has_tag('librivox-authentication')) {
         send_key "alt-c";    # cancel librivox certificate
         assert_screen 'test-amarok-2';

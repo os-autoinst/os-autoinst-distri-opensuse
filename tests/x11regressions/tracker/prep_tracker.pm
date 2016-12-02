@@ -18,7 +18,7 @@ use testapi;
 # Preparation for testing tracker.
 
 # Used for 106_tracker_info
-my @filenames = qw/newfile newpl.pl/;
+my @filenames = qw(newfile newpl.pl);
 
 sub run() {
     my $self = shift;

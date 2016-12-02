@@ -14,7 +14,7 @@
 use base "y2logsstep";
 use strict;
 use testapi;
-use utils qw/addon_license/;
+use utils 'addon_license';
 
 sub run() {
     assert_screen 'additional-products';

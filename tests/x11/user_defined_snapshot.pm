@@ -45,12 +45,12 @@ sub run() {
     # ensure the last screenshots are visible
     send_key 'pgdn';
     # Make sure the test snapshot is not there
-    die("Unexpected snapshot found") if (check_screen([qw/grub_comment/], 1));
+    die("Unexpected snapshot found") if (check_screen([qw(grub_comment)], 1));
 
     # Create a new snapshot
     $self->y2snapper_create_snapshot();
     # Make sure the snapshot is listed in the main window
-    send_key_until_needlematch([qw/grub_comment/], 'pgdn');
+    send_key_until_needlematch([qw(grub_comment)], 'pgdn');
     # C'l'ose  the snapper module
     send_key "alt-l";
     type_string "reboot\n";

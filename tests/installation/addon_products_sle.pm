@@ -14,12 +14,12 @@
 use strict;
 use base "y2logsstep";
 use testapi;
-use utils qw/addon_license/;
+use utils 'addon_license';
 
 sub run() {
     my $self = shift;
 
-    assert_screen [qw/inst-addon addon-products/];
+    assert_screen [qw(inst-addon addon-products)];
     if (get_var("ADDONS")) {
         if (match_has_tag('inst-addon')) {
             send_key 'alt-k';    # install with addons

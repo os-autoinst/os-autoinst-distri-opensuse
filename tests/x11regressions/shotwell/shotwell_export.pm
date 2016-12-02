@@ -19,7 +19,7 @@ use testapi;
 
 sub run() {
     my $self     = shift;
-    my @pictures = qw/shotwell_test.jpg shotwell_test.png/;
+    my @pictures = qw(shotwell_test.jpg shotwell_test.png);
 
     x11_start_program("shotwell");
     assert_screen 'shotwell-launched';

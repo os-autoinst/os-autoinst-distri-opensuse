@@ -14,7 +14,7 @@
 use base "opensusebasetest";
 use strict;
 use testapi;
-use utils qw/wait_boot/;
+use utils 'wait_boot';
 
 sub run() {
     my $self = shift;
