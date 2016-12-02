@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: split the root user setup in a 2nd test
-# G-Maintainer: Stephan Kulow <coolo@suse.de>
+# Summary: Handle root user password entry
+# Maintainer: Stephan Kulow <coolo@suse.de>
 
 use strict;
 use warnings;
@@ -17,12 +17,9 @@ use base "y2logsstep";
 use testapi;
 
 sub run() {
-    my $self = shift;
-
     assert_screen "inst-rootpassword";
     for (1 .. 2) {
-        type_string "$password\t";
-        sleep 1;
+        wait_screen_change { type_string "$password\t" };
     }
     assert_screen "rootpassword-typed";
     send_key $cmd{next};

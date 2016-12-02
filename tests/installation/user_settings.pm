@@ -17,16 +17,13 @@ use base "y2logsstep";
 use testapi;
 
 sub run() {
-    my $self = shift;
-
-    # user setup
     assert_screen "inst-usersetup";
     type_string $realname;
     send_key "tab";
 
     send_key "tab";
     for (1 .. 2) {
-        type_string "$password\t";
+        wait_screen_change { type_string "$password\t" };
     }
     assert_screen "inst-userinfostyped";
     if (get_var("NOAUTOLOGIN") && !check_screen('autologindisabled')) {
