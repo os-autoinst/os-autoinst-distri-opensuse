@@ -39,16 +39,14 @@ sub run() {
     send_key $cmd{next};
 
     # PW too easy (cracklib)
-    if (check_screen('inst-userpasswdtoosimple', 13)) {
-        send_key "ret";
+    if (check_var('LIVECD', 1)) {
+        record_soft_failure 'boo#1013206' unless check_screen 'inst-userpasswdtoosimple';
     }
     else {
-        if (check_var('LIVECD', 1)) {
-            record_soft_failure 'boo#1013206';
-        } else {
-            record_soft_failure 'bsc#937012';
-        }
+        # bsc#937012 is resolved in > SLE 12
+        assert_screen 'inst-userpasswdtoosimple' unless (check_var('VERSION', '12') && check_var('ARCH', 's390x'));
     }
+    send_key 'ret' if match_has_tag 'inst-userpasswdtoosimple';
 }
 
 1;
