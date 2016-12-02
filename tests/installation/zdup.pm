@@ -8,8 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Rework the tests layout.
-# G-Maintainer: Alberto Planas <aplanas@suse.com>
+# Summary: Offline migration using the DVD medium as repository with
+#   `zypper dup`
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "installbasetest";
 use strict;
@@ -78,14 +79,15 @@ sub run() {
             script_run "ls -al /dev/disk/by-label";
             my $isoinfo = "isoinfo -d -i /dev/\$dev | grep \"Application id\" | awk -F \" \" '{print \$3}'";
 
-            script_run "for dev in sr0 sr1 sr2 sr3 sr4 sr5; do
+            script_run "dev=;
+                       for i in sr0 sr1 sr2 sr3 sr4 sr5; do
                        label=`$isoinfo`
                        case \$label in
-                           *$flavor-*$build*) echo \"\$dev match\"; export dev=\"/dev/\$dev\"; break;;
+                           *$flavor-*$build*) echo \"\$i match\"; dev=\"/dev/\$i\"; break;;
                            *) continue;;
                        esac
                        done
-                       echo \"found dev \$dev with label \$label\"";
+                       [ -z \$dev ] || echo \"found dev \$dev with label \$label\"";
             # if that fails, e.g. if volume descriptor too long, just try /dev/sr0
             $defaultrepo = "dvd:/?devices=\${dev:-/dev/sr0}";
         }
