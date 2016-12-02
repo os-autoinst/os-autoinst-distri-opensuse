@@ -13,24 +13,16 @@
 
 use strict;
 use warnings;
-use base "y2logsstep";
+use parent qw(installation_user_settings y2logsstep);
 use testapi;
 
 sub run() {
+    my ($self) = @_;
     assert_screen "inst-rootpassword";
-    for (1 .. 2) {
-        wait_screen_change { type_string "$password\t" };
-    }
+    $self->type_password_and_verification;
     assert_screen "rootpassword-typed";
     send_key $cmd{next};
-
-    # PW too easy (cracklib)
-    if (check_screen('inst-userpasswdtoosimple', 13)) {
-        send_key "ret";
-    }
-    else {
-        record_soft_failure 'bsc#937012';
-    }
+    $self->await_password_check;
 }
 
 1;

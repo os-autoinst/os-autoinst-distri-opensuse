@@ -13,18 +13,17 @@
 
 use strict;
 use warnings;
-use base "y2logsstep";
+use parent qw(installation_user_settings y2logsstep);
 use testapi;
 
 sub run() {
+    my ($self) = @_;
     assert_screen "inst-usersetup";
     type_string $realname;
     send_key "tab";
 
     send_key "tab";
-    for (1 .. 2) {
-        wait_screen_change { type_string "$password\t" };
-    }
+    $self->type_password_and_verification;
     assert_screen "inst-userinfostyped";
     if (get_var("NOAUTOLOGIN") && !check_screen('autologindisabled')) {
         send_key $cmd{noautologin};
@@ -37,16 +36,7 @@ sub run() {
 
     # done user setup
     send_key $cmd{next};
-
-    # PW too easy (cracklib)
-    if (check_var('LIVECD', 1)) {
-        record_soft_failure 'boo#1013206' unless check_screen 'inst-userpasswdtoosimple';
-    }
-    else {
-        # bsc#937012 is resolved in > SLE 12
-        assert_screen 'inst-userpasswdtoosimple' unless (check_var('VERSION', '12') && check_var('ARCH', 's390x'));
-    }
-    send_key 'ret' if match_has_tag 'inst-userpasswdtoosimple';
+    $self->await_password_check;
 }
 
 1;
