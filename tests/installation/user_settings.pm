@@ -8,10 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: restructure opensuse install test code
-#    this splits monolitic yast1b and yast2 modules
-#    into finer grained single-task modules
-# G-Maintainer: Bernhard M. Wiedemann <bernhard+osautoinst lsmod de>
+# Summary: Handle user name and password entry; check for password security
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use strict;
 use warnings;
@@ -43,13 +41,16 @@ sub run() {
     # done user setup
     send_key $cmd{next};
 
-    # loading cracklib
-    # If check_screen added to workaround bsc#937012
+    # PW too easy (cracklib)
     if (check_screen('inst-userpasswdtoosimple', 13)) {
         send_key "ret";
     }
     else {
-        record_soft_failure 'bsc#937012';
+        if (check_var('LIVECD', 1)) {
+            record_soft_failure 'boo#1013206';
+        } else {
+            record_soft_failure 'bsc#937012';
+        }
     }
 }
 
