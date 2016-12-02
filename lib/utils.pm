@@ -616,7 +616,10 @@ sub validate_repos {
                 if (check_var("BACKEND", "ipmi") || check_var("BACKEND", "generalhw")) {
                     $uri = "http[s]*://.*suse";
                 }
-                elsif (get_var('USBBOOT')) {
+                elsif (get_var('USBBOOT') && sle_version_at_least('12-SP3')) {
+                    $uri = "hd:///.*usb-";
+                }
+                elsif (get_var('USBBOOT') && sle_version_at_least('12-SP2')) {
                     $uri = "hd:///.*usbstick";
                 }
                 elsif (check_var('ARCH', 's390x')) {
