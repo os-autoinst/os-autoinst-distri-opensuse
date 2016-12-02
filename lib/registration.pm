@@ -23,7 +23,7 @@ use strict;
 use testapi;
 use utils qw /addon_decline_license/;
 
-our @EXPORT = qw/fill_in_registration_data registration_bootloader_params yast_scc_registration/;
+our @EXPORT = qw/fill_in_registration_data registration_bootloader_params yast_scc_registration skip_registration/;
 
 sub fill_in_registration_data {
     my ($addon, $uc_addon);
@@ -283,6 +283,19 @@ sub yast_scc_registration {
     die "yast scc failed" unless (defined $ret && $ret =~ /yast-scc-done-0-/);
 
     # To check repos validity after registration, call 'validate_repos' as needed
+}
+
+sub skip_registration {
+    send_key "alt-s", 1;    # skip SCC registration
+    assert_screen([qw/scc-skip-reg-warning-yes scc-skip-reg-warning-ok scc-skip-reg-no-warning/]);
+    if (match_has_tag('scc-skip-reg-warning-ok')) {
+        send_key "alt-o";    # confirmed skip SCC registration
+        wait_still_screen;
+        send_key $cmd{next};
+    }
+    elsif (match_has_tag('scc-skip-reg-warning-yes')) {
+        send_key "alt-y";    # confirmed skip SCC registration
+    }
 }
 
 1;
