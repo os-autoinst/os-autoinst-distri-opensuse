@@ -8,32 +8,21 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: split the root user setup in a 2nd test
-# G-Maintainer: Stephan Kulow <coolo@suse.de>
+# Summary: Handle root user password entry
+# Maintainer: Stephan Kulow <coolo@suse.de>
 
 use strict;
 use warnings;
-use base "y2logsstep";
+use parent qw(installation_user_settings y2logsstep);
 use testapi;
 
 sub run() {
-    my $self = shift;
-
+    my ($self) = @_;
     assert_screen "inst-rootpassword";
-    for (1 .. 2) {
-        type_string "$password\t";
-        sleep 1;
-    }
+    $self->type_password_and_verification;
     assert_screen "rootpassword-typed";
     send_key $cmd{next};
-
-    # PW too easy (cracklib)
-    if (check_screen('inst-userpasswdtoosimple', 13)) {
-        send_key "ret";
-    }
-    else {
-        record_soft_failure 'bsc#937012';
-    }
+    $self->await_password_check;
 }
 
 1;

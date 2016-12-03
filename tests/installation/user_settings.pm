@@ -8,28 +8,22 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: restructure opensuse install test code
-#    this splits monolitic yast1b and yast2 modules
-#    into finer grained single-task modules
-# G-Maintainer: Bernhard M. Wiedemann <bernhard+osautoinst lsmod de>
+# Summary: Handle user name and password entry; check for password security
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use strict;
 use warnings;
-use base "y2logsstep";
+use parent qw(installation_user_settings y2logsstep);
 use testapi;
 
 sub run() {
-    my $self = shift;
-
-    # user setup
+    my ($self) = @_;
     assert_screen "inst-usersetup";
     type_string $realname;
     send_key "tab";
 
     send_key "tab";
-    for (1 .. 2) {
-        type_string "$password\t";
-    }
+    $self->type_password_and_verification;
     assert_screen "inst-userinfostyped";
     if (get_var("NOAUTOLOGIN") && !check_screen('autologindisabled')) {
         send_key $cmd{noautologin};
@@ -42,15 +36,7 @@ sub run() {
 
     # done user setup
     send_key $cmd{next};
-
-    # loading cracklib
-    # If check_screen added to workaround bsc#937012
-    if (check_screen('inst-userpasswdtoosimple', 13)) {
-        send_key "ret";
-    }
-    else {
-        record_soft_failure 'bsc#937012';
-    }
+    $self->await_password_check;
 }
 
 1;
