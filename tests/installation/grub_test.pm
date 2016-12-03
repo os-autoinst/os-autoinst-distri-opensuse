@@ -39,6 +39,13 @@ sub run() {
         assert_screen 'inst-bootmenu';
         send_key 'ret';
     }
+    elsif (get_var('UEFI', '')) {
+        assert_screen 'inst-bootmenu';
+        # assuming the cursor is on 'installation' by default and 'boot from
+        # harddisk' is above
+        send_key_until_needlematch 'inst-bootmenu-boot-harddisk', 'up';
+        send_key 'ret';
+    }
     workaround_type_encrypted_passphrase;
     # 60 due to rare slowness e.g. multipath poo#11908
     assert_screen "grub2", 60;
