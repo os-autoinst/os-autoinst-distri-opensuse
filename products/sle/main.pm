@@ -1182,6 +1182,12 @@ elsif (get_var("VIRT_AUTOTEST")) {
     elsif (get_var("VIRT_PRJ5_PVUSB")) {
         loadtest "virt_autotest/pvusb_run";
     }
+    elsif (get_var("VIRT_PRJ6_VIRT_V2V_SRC")) {
+        loadtest "virt_autotest/virt_v2v_src";
+    }
+    elsif (get_var("VIRT_PRJ6_VIRT_V2V_DST")) {
+        loadtest "virt_autotest/virt_v2v_dst";
+    }
 }
 elsif (get_var("QAM_MINIMAL")) {
     prepare_target();

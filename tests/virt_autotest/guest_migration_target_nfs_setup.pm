@@ -10,7 +10,7 @@
 # Summary: virt_autotest: Virtualization multi-machine job : Guest Migration
 # Maintainer: jerry <jtang@suse.com>
 
-use base virt_autotest_base;
+use base multi_machine_job_base;
 use strict;
 use testapi;
 use lockapi;
@@ -24,18 +24,12 @@ sub run() {
     mutex_create('ip_set_done');
 
     #Manually sync the setting for child nfs address
-    my $try_times = 0;
-    while (not(my $nfs_done = get_var_from_child('NFS_DONE'))) {
+    $self->workaround_for_reverse_lock('NFS_DONE', 1800);
 
-        sleep 60;
-        die if ($try_times == 10);
-        $try_times++;
-    }
-
-    my $nfs_server = get_var_from_child('MY_IP');
+    my $nfs_server = $self->get_var_from_child('MY_IP');
 
     #Setup /etc/hosts
-    set_hosts($self);
+    $self->set_hosts('parent');
 
     #Mount the share storage
     my $cmd_mount_disk_dir = "mount -t nfs -o vers=4,nfsvers=4 $nfs_server:$nfs_local_dir $vm_disk_dir";

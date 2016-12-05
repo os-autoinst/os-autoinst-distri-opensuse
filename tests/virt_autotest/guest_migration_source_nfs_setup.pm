@@ -10,7 +10,7 @@
 # Summary: virt_autotest: Virtualization multi-machine job : Guest Migration
 # Maintainer: jerry <jtang@suse.com>
 
-use base virt_autotest_base;
+use base multi_machine_job_base;
 use strict;
 use testapi;
 use lockapi;
@@ -25,7 +25,7 @@ sub run() {
     mutex_unlock('ip_set_done');
 
     #set hosts
-    set_hosts($self);
+    $self->set_hosts('child');
 
     #Change the nfs config
     my $cmd_modify_nfs_config = q(sed -i 's/^NFSV4LEASETIME=.*$/NFSV4LEASETIME="10"/' /etc/sysconfig/nfs);
