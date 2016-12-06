@@ -170,7 +170,8 @@ sub run {
           export TARGET="ssh:$EXTERNAL_IP"
           # Define node-related environment file/variables
           echo "Setting environment variables for the node $node_name"
-          set-node-environment $node_name "$NIC"
+          define-node-variables "$node_name" "$NIC" ""
+          set-node-environment "node_name"
           echo
         done
 
