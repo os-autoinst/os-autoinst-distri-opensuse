@@ -50,7 +50,8 @@ sub run {
     my $self     = shift;
     my $inst_ltp = get_var 'INSTALL_LTP';
     wait_boot;
-    select_console('root-console');
+
+    select_console(get_var('VIRTIO_CONSOLE') ? 'root-virtio-terminal' : 'root-console');
 
     if ($inst_ltp =~ /git/i) {
         install_from_git;
@@ -64,6 +65,7 @@ sub run {
     }
     upload_logs '/root/openposix_test_list.txt';
 
+    select_console('root-console');
     type_string "reboot\n";
 }
 
