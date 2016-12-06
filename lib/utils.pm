@@ -254,7 +254,18 @@ sub type_string_very_slow {
     # scrolling. We are typing very slow but this could still pose problems
     # when the worker host is utilized so better wait until the string is
     # displayed before continuing
-    wait_still_screen 1;
+    # For the special winter grub screen with moving penguins
+    # `wait_still_screen` does not work so we just revert to sleeping a bit
+    # instead of waiting for a still screen which is never happening. Sleeping
+    # for 3 seconds is less waste of time than waiting for the
+    # wait_still_screen to timeout, especially because wait_still_screen is
+    # also scaled by TIMEOUT_SCALE which we do not need here.
+    if (get_var('WINTER_IS_COMING', '')) {
+        sleep 3;
+    }
+    else {
+        wait_still_screen 1;
+    }
 }
 
 sub get_netboot_mirror {
