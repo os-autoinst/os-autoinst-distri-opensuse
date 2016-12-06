@@ -260,7 +260,7 @@ sub type_string_very_slow {
     # for 3 seconds is less waste of time than waiting for the
     # wait_still_screen to timeout, especially because wait_still_screen is
     # also scaled by TIMEOUT_SCALE which we do not need here.
-    if (get_var('WINTER_IS_COMING', '')) {
+    if (get_var('WINTER_IS_THERE')) {
         sleep 3;
     }
     else {
