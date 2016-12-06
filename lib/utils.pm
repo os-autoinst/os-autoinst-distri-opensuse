@@ -5,7 +5,7 @@ use Exporter;
 
 use strict;
 
-use testapi;
+use testapi qw(is_serial_terminal :DEFAULT);
 
 our @EXPORT = qw/
   check_console_font
@@ -277,12 +277,13 @@ sub zypper_call {
     my $log              = $args{log};
 
     my $str = hashed_string("ZN$command");
+    my $redirect = is_serial_terminal() ? '' : " > /dev/$serialdev";
 
     if ($log) {
-        script_run("zypper -n $command | tee /tmp/$log ; echo $str-\${PIPESTATUS}- > /dev/$serialdev", 0);
+        script_run("zypper -n $command | tee /tmp/$log ; echo $str-\${PIPESTATUS}-$redirect", 0);
     }
     else {
-        script_run("zypper -n $command; echo $str-\$?- > /dev/$serialdev", 0);
+        script_run("zypper -n $command; echo $str-\$?-$redirect", 0);
     }
 
     my $ret = wait_serial(qr/$str-\d+-/, $timeout);
@@ -294,7 +295,7 @@ sub zypper_call {
         die "'zypper -n $command' failed with code $ret_code" unless grep { $_ == $ret_code } @$allow_exit_codes;
         return $ret_code;
     }
-    die "zypper doesn't return exitcode";
+    die "zypper did not return an exitcode";
 }
 
 sub fully_patch_system {
