@@ -171,7 +171,7 @@ sub run {
           # Define node-related environment file/variables
           echo "Setting environment variables for the node $node_name"
           define-node-variables "$node_name" "$NIC" ""
-          set-node-environment "node_name"
+          set-node-environment "$node_name"
           echo
         done
 
