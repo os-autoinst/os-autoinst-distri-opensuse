@@ -63,6 +63,7 @@ sub run() {
             }
             send_key 'alt-a', 2;                                                    # yes, agree
             send_key $cmd{next}, 2;
+            assert_screen 'addon-yast2-patterns';
             send_key_until_needlematch 'addon-yast2-view-selected', 'alt-v', 10;
             send_key 'spc';                                                         # open view menu
             send_key 'alt-r', 1;
