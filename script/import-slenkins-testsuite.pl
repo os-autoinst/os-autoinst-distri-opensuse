@@ -35,7 +35,7 @@ my $template_node = pp(
 
     {key => "ISO_1", value => "SLE-%VERSION%-SDK-DVD-%ARCH%-Build%BUILD_SDK%-Media1.iso"},
 
-    {key => "HDD_1", value => "SLES-%VERSION%-%ARCH%-minimal_with_sdk_installed.qcow2"},
+    {key => "HDD_1", value => "SLES-%VERSION%-%ARCH%-%BUILD%-minimal_with_sdk%BUILD_SDK%_installed.qcow2"},
 
     {key => "NICTYPE", value => "tap"},
 
