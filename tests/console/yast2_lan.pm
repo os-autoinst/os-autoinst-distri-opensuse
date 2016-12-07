@@ -28,6 +28,32 @@ sub handle_Networkmanager_controlled {
     wait_serial("yast2-lan-status-0", 60) || die "'yast2 lan' didn't finish";
 }
 
+sub hostname_via_dhcp {    # bsc#984890
+    my $dhcp = shift;
+    script_sudo 'yast2 lan', 0;
+    assert_screen 'yast2_lan';
+    send_key "alt-s";      # open hostname tab
+    assert_screen "yast2_lan-hostname-tab";
+    for (1 .. 4) { send_key 'tab' }    # go to roll-down list
+    send_key 'down';                   # open roll-down list
+    for (1 .. 3) { send_key 'up' }     # go on top of list
+    send_key_until_needlematch "yast2_lan-hostname-DHCP-$dhcp", 'down';
+    send_key 'spc';                     # pick selected option
+    send_key 'alt-o';                   # OK=>Save&Exit
+    assert_screen 'console-visible';    # yast module exited
+    if ($dhcp eq 'no') {
+        assert_script_run 'grep DHCLIENT_SET_HOSTNAME /etc/sysconfig/network/dhcp|grep no';
+    }
+    elsif ($dhcp eq 'yes-eth0') {
+        assert_script_run 'iface=`ip -o addr show scope global | head -n1 | cut -d" " -f2`';
+        assert_script_run 'grep DHCLIENT_SET_HOSTNAME /etc/sysconfig/network/ifcfg-$iface|grep yes';
+        assert_script_run 'grep DHCLIENT_SET_HOSTNAME /etc/sysconfig/network/dhcp|grep no';
+    }
+    elsif ($dhcp eq 'yes-any') {
+        assert_script_run 'grep DHCLIENT_SET_HOSTNAME /etc/sysconfig/network/dhcp|grep yes';
+    }
+}
+
 sub run() {
     my $self = shift;
 
@@ -75,6 +101,9 @@ sub run() {
 
     wait_still_screen;
     $self->clear_and_verify_console;
+    hostname_via_dhcp('no');
+    hostname_via_dhcp('yes-eth0');
+    hostname_via_dhcp('yes-any');
     assert_script_run "hostname|grep $hostname";
 
     clear_console;
