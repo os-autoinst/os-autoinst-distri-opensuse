@@ -18,36 +18,50 @@ use testapi;
 use strict;
 use warnings;
 
+
 sub run() {
 
     my $self = shift;
 
-    my $svirt = select_console('svirt');
-    my $name  = $svirt->name;
+    my $svirt    = select_console('svirt');
+    my $name     = $svirt->name;
+    my $img_path = "/var/lib/libvirt/images";
 
     # temporary use of hardcoded '+4' to workaround messed up network setup on z/KVM
     my $vtap = $svirt->instance + 4;
-
-    my $cmdline = get_var('VIRSH_CMDLINE') . " ";
-
     my $repo = "ftp://openqa.suse.de/" . get_var('REPO_0');
-    $cmdline .= "install=$repo ";
 
-    if (check_var("VIDEOMODE", "text")) {
-        $cmdline .= "ssh=1 ";    # trigger ssh-text installation
+    if (!get_var('BOOT_HDD_IMAGE')) {
+        my $cmdline = get_var('VIRSH_CMDLINE') . " ";
+
+        $cmdline .= "install=$repo ";
+
+        if (check_var("VIDEOMODE", "text")) {
+            $cmdline .= "ssh=1 ";    # trigger ssh-text installation
+        }
+        else {
+            $cmdline .= "sshd=1 vnc=1 VNCPassword=$testapi::password ";    # trigger default VNC installation
+        }
+
+        # we need ssh access to gather logs
+        # 'ssh=1' and 'sshd=1' are equal, both together don't work
+        # so let's just set the password here
+        $cmdline .= "sshpassword=$testapi::password ";
+
+        if (get_var('UPGRADE')) {
+            $cmdline .= "upgrade=1 ";
+        }
+
+        $svirt->change_domain_element(os => initrd  => "$img_path/$name.initrd");
+        $svirt->change_domain_element(os => kernel  => "$img_path/$name.kernel");
+        $svirt->change_domain_element(os => cmdline => $cmdline);
+
+        # show this on screen and make sure that kernel and initrd are actually saved
+        type_string "wget $repo/boot/s390x/initrd -O $img_path/$name.initrd\n";
+        assert_screen "initrd-saved";
+        type_string "wget $repo/boot/s390x/linux -O $img_path/$name.kernel\n";
+        assert_screen "kernel-saved";
     }
-    else {
-        $cmdline .= "sshd=1 vnc=1 VNCPassword=$testapi::password ";    # trigger default VNC installation
-    }
-
-    # we need ssh access to gather logs
-    # 'ssh=1' and 'sshd=1' are equal, both together don't work
-    # so let's just set the password here
-    $cmdline .= "sshpassword=$testapi::password ";
-
-    $svirt->change_domain_element(os => initrd  => "/var/lib/libvirt/images/$name.initrd");
-    $svirt->change_domain_element(os => kernel  => "/var/lib/libvirt/images/$name.kernel");
-    $svirt->change_domain_element(os => cmdline => $cmdline);
 
     # after installation we need to redefine the domain, so just shutdown
     $svirt->change_domain_element(on_reboot => 'destroy');
@@ -55,7 +69,13 @@ sub run() {
     # For some tests we need more than the default 4GB
     my $size_i = get_var('HDDSIZEGB') || '4';
 
-    $svirt->add_disk({size => $size_i . "G", create => 1, dev_id => 'a'});
+    if (my $hdd = get_var('HDD_1')) {
+        type_string("# copying image...\n");
+        $svirt->add_disk({copy => 1, file => $hdd, dev_id => 'a'});
+    }
+    else {
+        $svirt->add_disk({size => $size_i . "G", create => 1, dev_id => 'a'});
+    }
     # need that for s390
     $svirt->add_pty({pty_dev => 'console', pty_dev_type => 'pty', target_type => 'sclp', target_port => '0'});
 
@@ -66,22 +86,19 @@ sub run() {
     # use proper virtio
     # $svirt->add_interface({ type => 'network', source => { network => 'default' }, model => { type => 'virtio' } });
 
-    # show this on screen and make sure that kernel and initrd are actually saved
-    type_string "wget $repo/boot/s390x/initrd -O /var/lib/libvirt/images/$name.initrd\n";
-    assert_screen "initrd-saved";
-    type_string "wget $repo/boot/s390x/linux -O /var/lib/libvirt/images/$name.kernel\n";
-    assert_screen "kernel-saved";
 
     $svirt->define_and_start;
 
-    if (check_var("VIDEOMODE", "text")) {
-        wait_serial("run 'yast.ssh'", 300) || die "linuxrc didn't finish";
-        select_console("installation");
-        type_string("yast.ssh\n");
-    }
-    else {
-        wait_serial(' Starting YaST2 ', 300) || die "yast didn't start";
-        select_console('installation');
+    if (!get_var("BOOT_HDD_IMAGE")) {
+        if (check_var("VIDEOMODE", "text")) {
+            wait_serial("run 'yast.ssh'", 300) || die "linuxrc didn't finish";
+            select_console("installation");
+            type_string("yast.ssh\n");
+        }
+        else {
+            wait_serial(' Starting YaST2 ', 300) || die "yast didn't start";
+            select_console('installation');
+        }
     }
 }
 
