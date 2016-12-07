@@ -170,12 +170,18 @@ if (check_var('DESKTOP', 'minimalx')) {
 # settings
 if (is_update_test_repo_test && !get_var('MAINT_TEST_REPO')) {
     my $repos = get_var('OS_TEST_REPO');
-    my $addons = get_var('ADDONS', '') . "," . get_var('SCC_ADDONS', '');
-    for my $a (split(/,/, $addons)) {
+    my @addons = split(/,/, get_var('SCC_ADDONS', ''));
+    for my $a (split(/,/, get_var('ADDONS', ''))) {
+        push(@addons, $a);
+    }
+    # move ADDONS to SCC_ADDONS for maintenance
+    set_var('ADDONS', '');
+    for my $a (@addons) {
         if ($a) {
             $repos .= "," . get_var(uc($a) . '_TEST_REPO');
         }
     }
+    set_var('SCC_ADDONS', join(',', @addons));
     set_var('MAINT_TEST_REPO', $repos);
     set_var('SCC_REGISTER',    'installation');
 }
