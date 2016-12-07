@@ -1,1 +1,5 @@
 needles
+os-autoinst
+tools/absolutize
+tools/lib
+tools/tidy
