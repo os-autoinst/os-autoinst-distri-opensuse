@@ -78,9 +78,12 @@ sub cleanup_needles() {
     }
     # unregister christmas needles unless it is December where they should
     # appear. Unused needles should be disregarded by admin delete then
-    my @time = localtime();
-    unregister_needle_tags('CHRISTMAS') unless $time[4] == 11;
+    unregister_needle_tags('CHRISTMAS') unless get_var('WINTER_IS_THERE');
 }
+
+# we need some special handling for the openSUSE winter needles
+my @time = localtime();
+set_var('WINTER_IS_THERE', 1) if ($time[4] == 11 || $time[4] == 0);
 
 my $distri = testapi::get_var("CASEDIR") . '/lib/susedistribution.pm';
 require $distri;
