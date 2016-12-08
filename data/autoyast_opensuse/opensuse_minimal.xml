@@ -8,6 +8,9 @@
   </general>
   <networking>
     <keep_install_network config:type="boolean">true</keep_install_network>
+    <dns>
+      <dhcp_hostname config:type="boolean">false</dhcp_hostname>
+    </dns>
   </networking>
   <software>
     <packages config:type="list">

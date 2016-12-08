@@ -27,6 +27,9 @@
     </add-on>
     <networking>
         <keep_install_network config:type="boolean">true</keep_install_network>
+        <dns>
+            <dhcp_hostname config:type="boolean">false</dhcp_hostname>
+        </dns>
     </networking>
     <users config:type="list">
         <user>
