@@ -534,6 +534,7 @@ sub load_extra_tests() {
         # dependency of git test
         loadtest "console/sshd";
         loadtest "console/git";
+        loadtest "console/java";
 
         # finished console test and back to desktop
         loadtest "console/consoletest_finish";
