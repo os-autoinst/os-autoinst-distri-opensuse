@@ -45,7 +45,9 @@ sub run() {
     send_key "ret";
     assert_screen 'test-ooffice-1';
 
-    send_key "ctrl-q";    # Quit oowriter
+    # Quit oowriter
+    assert_and_click 'ooffice-writing-area', 'left', 10;
+    send_key "ctrl-q";
 
     assert_screen 'generic-desktop';
 

@@ -34,7 +34,7 @@ sub run() {
         save_screenshot;
         type_string "/home/$username/Documents/ooo-test-doc-types/test.$tag\n";
         wait_still_screen 3;
-        assert_screen("libreoffice-test-$tag", 60);
+        assert_screen("libreoffice-test-$tag", 90);
     }
     send_key "ctrl-q";
     if (!check_screen("generic-desktop")) {
