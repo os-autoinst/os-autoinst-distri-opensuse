@@ -7,15 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add sle12 online migration testsuite
-#    Fixes follow up by the comments
-#
-#    Apply fully patch system function
-#
-#    Fix typo and remove redundant comment
-#
-#    Remove a unnecessary line
-# G-Maintainer: mitiao <mitiao@gmail.com>
+# Summary: sle12 online migration testsuite
+# Maintainer: mitiao <mitiao@gmail.com>
 
 use base "installbasetest";
 use strict;
@@ -30,6 +23,13 @@ sub run() {
     wait_still_screen;
     script_run("zypper lr -u | tee /dev/$serialdev");
     save_screenshot;
+
+    # nvidia repo is always updated by scc during migration
+    # we have to disable it after migration if find workaround
+    if (check_var('SOFTFAIL', 'bsc#1013208')) {
+        assert_script_run "zypper mr -d \$(zypper lr | grep -i nvidia | cut -d \' \' -f 1)";
+        record_soft_failure 'workaround for bsc#1013208, disable nvidia repo after migration';
+    }
 
     select_console 'x11';
     ensure_unlocked_desktop;
