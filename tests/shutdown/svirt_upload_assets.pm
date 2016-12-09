@@ -58,6 +58,10 @@ sub extract_assets {
 
     upload_asset("/var/lib/libvirt/images/$name", 1, 1);
     assert_screen('svirt-asset-upload-hdd-image-uploaded', 1000);
+
+    # clean up on s390pb
+    type_string("rm -f /var/lib/libvirt/images/$name && echo 'OK'\n");
+    assert_screen('svirt-image-cleaned-up');
 }
 
 1;
