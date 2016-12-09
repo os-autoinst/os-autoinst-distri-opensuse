@@ -67,6 +67,7 @@ sub parse_channels {
         GALAXY           => "Galaxy",
         RUBYEXTENSIONS   => "RubyExtensions",
         NETWORKUTILITIES => "NetworkUtilities",
+        SALT             => "Salt",
     );
 
     my $channel_name  = $repo_table{$repo_var};
