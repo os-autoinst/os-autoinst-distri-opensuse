@@ -35,28 +35,17 @@ sub run() {
     for my $tag (qw/doc docx fodg fodp fods fodt odf odg odp ods odt pptx xlsx/) {
         send_key_until_needlematch("libreoffice-specified-list-$tag", "right", 50, 1);
         assert_and_dclick("libreoffice-specified-list-$tag");
-        assert_screen("libreoffice-test-$tag", 60);
+        assert_screen("libreoffice-test-$tag", 90);
         if ($tag ne 'xlsx') {
             hold_key "alt";
             send_key_until_needlematch("libreoffice-nautilus-window", "tab");
             release_key "alt";
         }
     }
-    wait_screen_change {
-        # close libreoffice
+    send_key "ctrl-q";
+    if (!check_screen("generic-desktop")) {
         send_key "ctrl-q";
-    };
-    wait_still_screen;
-    hold_key "alt";
-    send_key "tab";
-    assert_screen("libreoffice-nautilus-window");
-    release_key "alt";
-    wait_still_screen;
-    wait_screen_change {
-        # close nautilus
-        send_key "alt-f4";
-    };
-    assert_screen("generic-desktop");
+    }
 
     #clean up
     $self->cleanup_libreoffice_recent_file();
