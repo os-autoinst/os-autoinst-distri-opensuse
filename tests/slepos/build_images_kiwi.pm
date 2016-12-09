@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: image download and build SLEPOS test
+# Summary: SLEPOS test - download images using KIWI
 # Maintainer: Pavel Sladek <psladek@suse.cz>
 
 use base "basetest";
@@ -17,30 +17,7 @@ use testapi;
 use utils;
 
 
-my $imsuffix = 'tar.bz2';
-
-sub get_image {
-    my ($im_hr, $target, $template, $linux32, $mod) = @_;
-    if (defined $im_hr->{$target}) {
-        download_image($im_hr, $target);
-    }
-    else {
-        build_image($target, $template, $linux32, $mod);
-    }
-}
-
-
-
-sub download_image {
-    my ($im_hr, $target) = @_;
-    my $asset = 'ASSET_' . $im_hr->{$target};
-    bmwqemu::diag("image '$target' will be downloaded from $asset:");
-    my $iurl = data_url($asset);
-    script_output "wget $iurl -O - |tar -xj -C /", 1300;
-    script_output "ls -l /var/lib/SLEPOS/system/images/$target/";
-}
-
-
+my $img_suffix = 'tar.bz2';
 
 sub build_image {
     my ($target, $template, $linux32, $mod) = @_;
@@ -51,8 +28,8 @@ sub build_image {
     script_output "ls -l /var/lib/SLEPOS/system/images/$target/";
     upload_logs "/var/log/image_prepare-$target";
     upload_logs "/var/log/image_create-$target";
-    script_output "tar -cjf $target.$imsuffix /var/lib/SLEPOS/system/images/$target/", 2000;
-    upload_asset "$target.$imsuffix",                                                  'public';
+    script_output "tar -cjf $target.$img_suffix /var/lib/SLEPOS/system/images/$target/", 2000;
+    upload_asset "$target.$img_suffix",                                                  'public';
 }
 
 
@@ -65,30 +42,22 @@ sub run() {
       chmod 755 kiwi_build_image.sh
     ";
 
-    my %img_h;    #asset number hashed by standard image name
-    for my $n (0 .. 9) {    #process all assets for assumed image name
-        next unless my $imgfile = get_var("ASSET_$n");
-        my $imgname = $imgfile;
-        $imgname =~ s/\Q.$imsuffix\E$//;
-        $imgname =~ s/^\d+-//;
-        $img_h{$imgname} = $n;
+    my $images_ref = get_var_array('IMAGE_KIWI');
+    foreach my $image (@{$images_ref}) {
+        #todo:split versions code into specific subdirectories
+        if (get_var('VERSION') =~ /^11/) {
+            build_image('minimal-3.4.0',   'minimal-3.4.0',   'linux32') if ($image eq 'minimal-3.4.0');
+            build_image('jeos-4.0.0',      'jeos-4.0.0',      'linux32') if ($image eq 'jeos-4.0.0');
+            build_image('graphical-3.4.0', 'graphical-4.0.0', 'linux32') if ($image eq 'graphical-3.4.0');
+            build_image('graphical-4.0.0', 'graphical-4.0.0', 'linux32', 's|</packages>|<package name=\"cryptsetup\"/><package name=\"liberation-fonts\"/></packages>|') if ($image eq 'graphical-4.0.0');
+        }
+        elsif (get_var('VERSION') =~ /^12/) {
+            build_image('minimal-sles12-3.4.0',   'minimal-3.4.0')   if ($image eq 'minimal-3.4.0');
+            build_image('jeos-sles12-4.0.0',      'jeos-4.0.0')      if ($image eq 'jeos-4.0.0');
+            build_image('graphical-sles12-3.4.0', 'graphical-4.0.0') if ($image eq 'graphical-3.4.0');
+            build_image('graphical-sles12-4.0.0', 'graphical-4.0.0', '', 's|</packages>|<package name=\"cryptsetup\"/><package name=\"liberation-fonts\"/></packages>|') if ($image eq 'graphical-4.0.0');
+        }
     }
-
-
-    if (get_var('VERSION') =~ /^11/) {
-        get_image(\%img_h, 'minimal-3.4.0',   'minimal-3.4.0',   'linux32');
-        get_image(\%img_h, 'jeos-4.0.0',      'jeos-4.0.0',      'linux32');
-        get_image(\%img_h, 'graphical-3.4.0', 'graphical-4.0.0', 'linux32');
-        get_image(\%img_h, 'graphical-4.0.0', 'graphical-4.0.0', 'linux32', 's|</packages>|<package name=\"cryptsetup\"/><package name=\"liberation-fonts\"/></packages>|');
-    }
-    elsif (get_var('VERSION') =~ /^12/) {
-        get_image(\%img_h, 'minimal-sles12-3.4.0',   'minimal-3.4.0');
-        get_image(\%img_h, 'jeos-sles12-4.0.0',      'jeos-4.0.0');
-        get_image(\%img_h, 'graphical-sles12-3.4.0', 'graphical-4.0.0');
-        get_image(\%img_h, 'graphical-sles12-4.0.0', 'graphical-4.0.0', '', 's|</packages>|<package name=\"cryptsetup\"/><package name=\"liberation-fonts\"/></packages>|');
-    }
-
-
 }
 
 
