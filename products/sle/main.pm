@@ -31,10 +31,6 @@ sub is_desktop {
     return get_var('FLAVOR', '') =~ /^Desktop/;
 }
 
-sub is_casp() {
-    return check_var('DISTRI', 'casp');
-}
-
 sub is_sles4sap {
     return get_var('FLAVOR', '') =~ /SAP/;
 }
@@ -397,9 +393,7 @@ sub install_this_version {
 }
 
 sub load_inst_tests() {
-    if (!is_casp) {
-        loadtest "installation/welcome";
-    }
+    loadtest "installation/welcome";
     if (get_var('DUD_ADDONS')) {
         loadtest "installation/dud_addon";
     }
