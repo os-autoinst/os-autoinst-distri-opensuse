@@ -34,7 +34,6 @@ testapi::set_distribution(susedistribution->new());
 
 # Installer workflow is defined in fate#321754
 sub load_inst_tests() {
-    loadtest "installation/welcome";
     if (get_var('SCC_REGISTER', '') eq 'installation') {
         loadtest "installation/scc_registration";
     }
