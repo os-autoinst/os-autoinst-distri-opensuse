@@ -53,7 +53,7 @@ sub parse_runfile {
         }
 
         #Command format is "<name> <command> [<args>...] [#<comment>]"
-        if ($line =~ /^\s* (\w+) \s+ (\S.+) #?/gx) {
+        if ($line =~ /^\s* ([\w-]+) \s+ (\S.+) #?/gx) {
             my $test = {name => $1, command => $2};
             if ($test->{name} =~ m/$cmd_pattern/ && !($test->{name} =~ m/$cmd_exclude/)) {
                 push @tests, $test;
