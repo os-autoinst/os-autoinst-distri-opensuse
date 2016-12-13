@@ -109,7 +109,7 @@ sub x11_start_program($$$) {
         sleep 3;
     }
     send_key('ret');
-    wait_still_screen;
+    wait_still_screen unless $options->{no_wait};
     # lrunner has auto-completion feature, sometimes it causes high load while
     # typing and the following 'ret' fails to work
     # make sure desktop runner executed and closed when have had valid value

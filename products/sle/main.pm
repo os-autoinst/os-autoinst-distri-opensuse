@@ -777,9 +777,6 @@ sub load_x11tests() {
         loadtest "x11/kate";
     }
     loadtest "x11/firefox";
-    if (bigx11step_is_applicable()) {
-        loadtest "x11/firefox_stress";
-    }
     if (get_var("MOZILLATEST")) {
         loadtest "x11/mozmill_run";
     }
@@ -807,9 +804,7 @@ sub load_x11tests() {
     if (gnomestep_is_applicable() && get_var("GNOME2")) {
         loadtest "x11/application_browser";
     }
-    if (bigx11step_is_applicable()) {
-        loadtest "x11/glxgears";
-    }
+    loadtest "x11/glxgears";
     if (kdestep_is_applicable()) {
         loadtest "x11/amarok";
         loadtest "x11/kontact";
