@@ -764,6 +764,7 @@ sub load_extra_test () {
     loadtest "console/java";
     loadtest "console/curl_ipv6";
     loadtest "console/wget_ipv6";
+    loadtest "console/unzip";
     # finished console test and back to desktop
     loadtest "console/consoletest_finish";
 
