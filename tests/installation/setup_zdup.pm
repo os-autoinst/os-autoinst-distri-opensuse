@@ -19,7 +19,7 @@ use utils;
 sub run() {
     my $self = shift;
 
-    wait_boot;
+    wait_boot(ready_time => 600);
 
     if (get_var('ZDUP_IN_X')) {
         x11_start_program('xterm');

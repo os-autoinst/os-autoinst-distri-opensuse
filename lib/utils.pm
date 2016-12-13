@@ -75,6 +75,7 @@ sub wait_boot {
     my %args            = @_;
     my $bootloader_time = $args{bootloader_time} // 100;
     my $textmode        = $args{textmode};
+    my $ready_time      = $args{ready_time} // 200;
 
 
     # TODO how to register a post fail hook action here in general? E.g. in
@@ -147,7 +148,7 @@ sub wait_boot {
     unlock_if_encrypted;
 
     if ($textmode || check_var('DESKTOP', 'textmode')) {
-        assert_screen 'linux-login', 200;
+        assert_screen 'linux-login', $ready_time;
         reset_consoles;
 
         # Without this login name and password won't get to the system. They get
@@ -162,7 +163,7 @@ sub wait_boot {
     mouse_hide();
 
     if (get_var("NOAUTOLOGIN") || get_var("XDMUSED")) {
-        assert_screen 'displaymanager', 200;
+        assert_screen 'displaymanager', $ready_time;
         wait_idle;
         if (get_var('DM_NEEDS_USERNAME')) {
             type_string "$username\n";
@@ -177,7 +178,7 @@ sub wait_boot {
         type_password $password. "\n";
     }
 
-    assert_screen 'generic-desktop', 300;
+    assert_screen 'generic-desktop', $ready_time + 100;
     mouse_hide(1);
 }
 
