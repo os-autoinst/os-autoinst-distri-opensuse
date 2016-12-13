@@ -13,6 +13,7 @@
 use base "consoletest";
 use strict;
 use testapi;
+use utils;
 
 my $src  = "/root/sr";
 my $dest = "/mnt/sr";
@@ -50,6 +51,8 @@ sub run() {
     assert_script_run "btrfs subvolume create $src/sv";
     assert_script_run "mkdir $dest";
     assert_script_run "mkfs.btrfs -f /dev/vdb && mount /dev/vdb $dest";
+    #make sure that pax is installed
+    zypper_call('in -C pax');
 
     # Create full snapshot
     generate_data;
