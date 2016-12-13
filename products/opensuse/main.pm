@@ -139,7 +139,7 @@ if (   get_var("WITH_UPDATE_REPO")
 $needle::cleanuphandler = \&cleanup_needles;
 
 # dump other important ENV:
-logcurrentenv(qw"ADDONURL BIGTEST BTRFS DESKTOP HW HWSLOT LIVETEST LVM MOZILLATEST NOINSTALL REBOOTAFTERINSTALL UPGRADE USBBOOT ZDUP ZDUPREPOS TEXTMODE DISTRI NOAUTOLOGIN QEMUCPU QEMUCPUS RAIDLEVEL ENCRYPT INSTLANG QEMUVGA DOCRUN UEFI DVD GNOME KDE ISO ISO_MAXSIZE LIVECD NETBOOT NOIMAGES PROMO QEMUVGA SPLITUSR VIDEOMODE");
+logcurrentenv(qw"ADDONURL BTRFS DESKTOP HW HWSLOT LIVETEST LVM MOZILLATEST NOINSTALL REBOOTAFTERINSTALL UPGRADE USBBOOT ZDUP ZDUPREPOS TEXTMODE DISTRI NOAUTOLOGIN QEMUCPU QEMUCPUS RAIDLEVEL ENCRYPT INSTLANG QEMUVGA DOCRUN UEFI DVD GNOME KDE ISO ISO_MAXSIZE LIVECD NETBOOT NOIMAGES PROMO QEMUVGA SPLITUSR VIDEOMODE");
 
 sub is_server() {
     return (check_var('ARCH', 'aarch64') || get_var("OFW") || check_var("FLAVOR", "Server-DVD"));
@@ -426,12 +426,6 @@ sub load_consoletests() {
             # staging_* images don't need run this test case
             loadtest "console/sshfs";
         }
-        if (get_var("BIGTEST")) {
-            loadtest "console/sntp";
-            loadtest "console/curl_ipv6";
-            loadtest "console/wget_ipv6";
-            loadtest "console/syslinux";
-        }
         loadtest "console/mtab";
         if (!get_var("NOINSTALL") && !get_var("LIVETEST") && (check_var("DESKTOP", "textmode"))) {
             if (check_var('BACKEND', 'qemu')) {
@@ -535,6 +529,8 @@ sub load_extra_tests() {
         loadtest "console/sshd";
         loadtest "console/git";
         loadtest "console/java";
+        loadtest "console/curl_ipv6";
+        loadtest "console/wget_ipv6";
 
         # finished console test and back to desktop
         loadtest "console/consoletest_finish";
