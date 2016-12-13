@@ -25,7 +25,6 @@ our @EXPORT = qw(
   chromiumstep_is_applicable
   gnomestep_is_applicable
   installyaststep_is_applicable
-  bigx11step_is_applicable
   noupdatestep_is_applicable
   kdestep_is_applicable
   consolestep_is_applicable

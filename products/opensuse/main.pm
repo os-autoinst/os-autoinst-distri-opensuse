@@ -645,9 +645,6 @@ sub load_x11tests() {
     if (!get_var("OFW") && check_var('BACKEND', 'qemu')) {
         loadtest "x11/firefox_audio";
     }
-    if (bigx11step_is_applicable()) {
-        loadtest "x11/firefox_stress";
-    }
     if (gnomestep_is_applicable() && !(get_var("LIVECD") || is_server)) {
         loadtest "x11/thunderbird";
     }
@@ -697,9 +694,7 @@ sub load_x11tests() {
             loadtest "x11/reboot_lxde";
         }
     }
-    if (bigx11step_is_applicable()) {
-        loadtest "x11/glxgears";
-    }
+    loadtest "x11/glxgears";
     if (kdestep_is_applicable()) {
         if (!is_krypton_argon) {
             loadtest "x11/amarok";
