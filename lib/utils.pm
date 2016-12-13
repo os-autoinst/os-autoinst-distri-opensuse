@@ -20,6 +20,7 @@ our @EXPORT = qw/
   get_netboot_mirror
   zypper_call
   fully_patch_system
+  minimal_patch_system
   workaround_type_encrypted_passphrase
   ensure_unlocked_desktop
   sle_version_at_least
@@ -314,6 +315,18 @@ sub fully_patch_system {
     zypper_call('patch --with-interactive -l', exitcode => [0, 102, 103], timeout => 1500);
     # second run, full system update
     zypper_call('patch --with-interactive -l', exitcode => [0, 102], timeout => 6000);
+}
+
+# zypper doesn't offer --updatestack-only option before 12-SP1, use patch for sp0 to update packager
+sub minimal_patch_system {
+    my (%args) = @_;
+    $args{version_variable} //= 'VERSION';
+    if (sle_version_at_least('12-SP1', version_variable => $args{version_variable})) {
+        zypper_call('patch --with-interactive -l --updatestack-only', exitcode => [0, 102, 103], timeout => 1500, log => 'minimal_patch.log');
+    }
+    else {
+        zypper_call('patch --with-interactive -l', exitcode => [0, 102, 103], timeout => 1500, log => 'minimal_patch.log');
+    }
 }
 
 sub workaround_type_encrypted_passphrase {

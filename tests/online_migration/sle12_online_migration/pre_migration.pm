@@ -7,15 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add sle12 online migration testsuite
-#    Fixes follow up by the comments
-#
-#    Apply fully patch system function
-#
-#    Fix typo and remove redundant comment
-#
-#    Remove a unnecessary line
-# G-Maintainer: mitiao <mitiao@gmail.com>
+# Summary: sle12 online migration testsuite
+# Maintainer: mitiao <mitiao@gmail.com>
 
 use base "consoletest";
 use strict;
@@ -30,8 +23,8 @@ sub set_scc_proxy_url() {
 }
 
 sub check_or_install_packages() {
-    if (get_var("FULL_UPDATE")) {
-        # if system is fully updated, all necessary packages for online migration should be installed
+    if (get_var("FULL_UPDATE") || get_var("MINIMAL_UPDATE")) {
+        # if system is fully updated or even minimal patch applied, all necessary packages for online migration should be installed
         # check if the packages was installed along with update
         my $output = script_output "rpm -qa yast2-migration zypper-migration-plugin rollback-helper | sort";
         if ($output !~ /rollback-helper.*?yast2-migration.*?zypper-migration-plugin/s) {
