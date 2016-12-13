@@ -212,10 +212,6 @@ sub installyaststep_is_applicable {
     return !get_var("NOINSTALL") && !get_var("RESCUECD") && !get_var("ZDUP");
 }
 
-sub bigx11step_is_applicable {
-    return get_var("BIGTEST");
-}
-
 sub noupdatestep_is_applicable {
     return !get_var("UPGRADE");
 }
