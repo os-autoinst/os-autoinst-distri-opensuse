@@ -203,7 +203,7 @@ sub record_ltp_result {
     my ($tconf, $tfail) = (0, 0);
 
     unless (defined $test_log) {
-        print $fh 'This test took too long to complete!';
+        print $fh "This test took too long to complete! It was running for $duration seconds.";
         $details->{result} = 'fail';
         close $fh;
         push @{$self->{details}}, $details;
