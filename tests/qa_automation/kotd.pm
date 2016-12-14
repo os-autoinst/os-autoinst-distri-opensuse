@@ -25,15 +25,16 @@ use testapi;
 sub kotd_addrepo {
     my ($self, $url) = @_;
     assert_script_run("zypper --no-gpg-check -n ar -f '$url' kotd", 600);
-    assert_script_run("zypper --gpg-auto-import-keys ref", 600);
+    assert_script_run("zypper --gpg-auto-import-keys ref",          600);
 }
 
 sub kotd_install {
-    my $self = shift;
+    my $self   = shift;
     my $output = script_output("zypper -n up kernel-default");
     if ($output =~ /(?<='zypper install )([^']+)/) {
         assert_script_run("zypper -n install $1", 1200);
-    } else {
+    }
+    else {
         die "Failed to install kernel of the day";
     }
 }
