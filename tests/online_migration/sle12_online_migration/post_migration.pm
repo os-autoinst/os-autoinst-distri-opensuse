@@ -27,7 +27,7 @@ sub run() {
     # nvidia repo is always updated by scc during migration
     # we have to disable it after migration if find workaround
     if (check_var('SOFTFAIL', 'bsc#1013208')) {
-        assert_script_run "zypper mr -d \$(zypper lr | grep -i nvidia | cut -d \' \' -f 1)";
+        assert_script_run "zypper mr -d \$(zypper lr | grep -i nvidia | awk \'{print \$1}\')";
         record_soft_failure 'workaround for bsc#1013208, disable nvidia repo after migration';
     }
 
