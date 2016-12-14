@@ -134,7 +134,8 @@ sub ensure_installed {
     testapi::assert_script_sudo("chown $testapi::username /dev/$testapi::serialdev");
     my $retries = 5;    # arbitrary
     $self->script_run("for i in {1..$retries} ; do pkcon install $pkglist && break ; done ; RET=\$?; echo \"\n  pkcon finished\n\"; echo \"pkcon-\${RET}-\" > /dev/$testapi::serialdev", 0);
-    my @tags = qw/Policykit Policykit-behind-window pkcon-proceed-prompt pkcon-finished/;
+    my @tags        = qw(Policykit Policykit-behind-window pkcon-proceed-prompt pkcon-finished);
+    my $proceed_hit = 0;
     while (1) {
         last unless @tags;
         my $ret = check_screen(\@tags, $args{timeout});
@@ -153,14 +154,16 @@ sub ensure_installed {
             next;
         }
         if (match_has_tag('pkcon-proceed-prompt')) {
+            die "pkcon asked again for proceed, there is something wrong" if $proceed_hit;
             send_key("y");
             send_key("ret");
-            @tags = grep { $_ ne 'pkcon-proceed-prompt' } @tags;
+            $proceed_hit = 1;
             next;
         }
     }
     wait_serial('pkcon-0-', 27) || die "pkcon install did not succeed";
     send_key("alt-f4");    # close xterm
+    $proceed_hit = 0;
 }
 
 sub script_sudo($$) {
