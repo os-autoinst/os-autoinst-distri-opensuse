@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: splited wait_encrypt_prompt being a single step; harmonized once wait_encrypt_prompt obsoleted
-# G-Maintainer: Max Lin <mlin@suse.com>
+# Summary: Unlock encrypted partitions during bootup
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use strict;
 use base "installbasetest";
@@ -17,7 +17,7 @@ use utils;
 use testapi qw/get_var record_soft_failure/;
 
 sub run() {
-    if (get_var('ENCRYPT_ACTIVATE_EXISTING') && !get_var('ENCRYPT_FORCE_RECOMPUTE')) {
+    if (get_var('ENCRYPT_ACTIVATE_EXISTING') and !get_var('ENCRYPT_FORCE_RECOMPUTE') and (sle_version_at_least('12-SP4') or sle_version_at_least('13'))) {
         record_soft_failure('bsc#993247 fate#321208: activating existing encrypted volume does *not* yield an encrypted system if not forcing');
         return;
     }
