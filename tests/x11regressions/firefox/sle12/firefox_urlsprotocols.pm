@@ -14,6 +14,7 @@
 use strict;
 use base "x11regressiontest";
 use testapi;
+use utils;
 
 sub run() {
     my ($self) = @_;
@@ -27,7 +28,7 @@ sub run() {
         local => "file:///usr/share/w3m/w3mhelp.html"
     );
 
-    if (check_var('VERSION', '12-SP2')) {
+    if (sle_version_at_least('12-SP2')) {
         record_soft_failure 'bsc#1004573';
     }
     else {
