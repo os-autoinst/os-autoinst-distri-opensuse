@@ -71,6 +71,8 @@ sub run() {
     select_console 'root-console';
 
     type_string "chown $username /dev/$serialdev\n";
+    script_run 'echo "set -o pipefail" >> /etc/bash.bashrc.local';
+    script_run '. /etc/bash.bashrc.local';
     # Export the existing status of running tasks and system load for future reference (fail would export it again)
     script_run "ps axf > /tmp/psaxf.log";
     script_run "cat /proc/loadavg > /tmp/loadavg_consoletest_setup.txt";
