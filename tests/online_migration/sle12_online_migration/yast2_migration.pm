@@ -35,8 +35,9 @@ sub run {
 
     script_run("/sbin/yast2 migration; echo yast2-migration-done-\$? > /dev/$serialdev", 0);
 
-    # install minimal update before migration if not perform full update
-    if (!get_var("FULL_UPDATE")) {
+    # yast2 migration would check and install minimal update before migration
+    # if the system doesn't perform full update or minimal update
+    if (!(get_var("FULL_UPDATE") || get_var("MINIMAL_UPDATE"))) {
         assert_screen 'yast2-migration-onlineupdates';
         send_key "alt-y";
         assert_screen 'yast2-migration-updatesoverview';

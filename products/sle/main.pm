@@ -920,9 +920,9 @@ sub load_online_migration_tests() {
     loadtest "online_migration/sle12_online_migration/online_migration_setup";
     loadtest "online_migration/sle12_online_migration/register_system";
     loadtest "online_migration/sle12_online_migration/repos_check";
-    # do full update before migration
-    # otherwise yast2/zypper migration will patch a minimal update
-    loadtest "online_migration/sle12_online_migration/zypper_patch" if (get_var("FULL_UPDATE"));
+    # do full/minimal update before migration
+    loadtest "online_migration/sle12_online_migration/zypper_patch"  if (get_var("FULL_UPDATE"));
+    loadtest "online_migration/sle12_online_migration/minimal_patch" if (get_var("MINIMAL_UPDATE"));
     loadtest "online_migration/sle12_online_migration/pre_migration";
     loadtest "online_migration/sle12_online_migration/yast2_migration"  if (check_var("MIGRATION_METHOD", 'yast'));
     loadtest "online_migration/sle12_online_migration/zypper_migration" if (check_var("MIGRATION_METHOD", 'zypper'));
