@@ -39,8 +39,7 @@ sub commit_result {
 }
 
 sub parse_runfile {
-    my ($self, $cmd_file) = @_;
-    my $cmd_pattern   = $_[-1] || '.*';
+    my ($self, $cmd_file, $cmd_pattern, $cmd_exclude) = @_;
     my @tests         = ();
     my $tests_ignored = 0;
     my $cmd_file_text = script_output("cat /opt/ltp/runtest/$cmd_file");
@@ -54,9 +53,9 @@ sub parse_runfile {
         }
 
         #Command format is "<name> <command> [<args>...] [#<comment>]"
-        if ($line =~ /^\s* (\w+) \s+ (\S.+) #?/gx) {
+        if ($line =~ /^\s* ([\w-]+) \s+ (\S.+) #?/gx) {
             my $test = {name => $1, command => $2};
-            if ($test->{name} =~ $cmd_pattern) {
+            if ($test->{name} =~ m/$cmd_pattern/ && !($test->{name} =~ m/$cmd_exclude/)) {
                 push @tests, $test;
             }
             else {
@@ -87,7 +86,7 @@ sub parse_runfile {
 }
 
 sub parse_openposix_runfile {
-    my ($self, $cmd_pattern) = @_;
+    my ($self, $cmd_pattern, $cmd_exclude) = @_;
     my $cmd_file_text = script_output('cat ~/openposix_test_list.txt');
 
     my ($result, $rfh) = $self->start_result('runfile', 'parse openposix runfile');
@@ -96,7 +95,7 @@ sub parse_openposix_runfile {
     my @tests = ();
     my @lines = split qr/[\n\r\f]+/, $cmd_file_text;
     for my $line (@lines) {
-        if ($line =~ m/$cmd_pattern/) {
+        if ($line =~ m/$cmd_pattern/ && !($line =~ m/$cmd_exclude/)) {
             push @tests,
               {
                 name    => basename($line, '.run-test'),
@@ -204,7 +203,7 @@ sub record_ltp_result {
     my ($tconf, $tfail) = (0, 0);
 
     unless (defined $test_log) {
-        print $fh 'This test took too long to complete!';
+        print $fh "This test took too long to complete! It was running for $duration seconds.";
         $details->{result} = 'fail';
         close $fh;
         push @{$self->{details}}, $details;
@@ -243,16 +242,17 @@ sub run {
     my ($self) = @_;
     my $cmd_file = get_var 'LTP_COMMAND_FILE';
     die 'Need LTP_COMMAND_FILE to know which tests to run' unless $cmd_file;
-    my $cmd_pattern = get_var 'LTP_COMMAND_PATTERN';
-    my $timeout     = get_var 'LTP_TIMEOUT' || 900;
+    my $cmd_pattern = get_var('LTP_COMMAND_PATTERN') || '.*';
+    my $cmd_exclude = get_var('LTP_COMMAND_EXCLUDE') || '$^';
+    my $timeout     = get_var('LTP_TIMEOUT')         || 900;
     my $is_posix    = $cmd_file =~ m/^\s*openposix\s*$/i;
 
     my @tests;
     if ($is_posix) {
-        @tests = $self->parse_openposix_runfile($cmd_pattern);
+        @tests = $self->parse_openposix_runfile($cmd_pattern, $cmd_exclude);
     }
     else {
-        @tests = $self->parse_runfile($cmd_file, $cmd_pattern);
+        @tests = $self->parse_runfile($cmd_file, $cmd_pattern, $cmd_exclude);
     }
 
     for my $test (@tests) {
@@ -308,10 +308,14 @@ is created by install_ltp.pm.
 =head2 LTP_COMMAND_PATTERN
 
 A regex which filters the commands from LTP_COMMAND_FILE. If a command name
-matches this pattern then it is included. To exclude tests with names very
-similar to those you wish to include you can use negative look ahead/behind
-assertions e.g. "memcg(?!_stress)" will match all tests containing memcg except
-memcg_stress.
+matches this pattern then the corresponding test command will be included in the
+set of commands to be run.
+
+=head2 LTP_COMMAND_EXCLUDE
+
+The inverse of LTP_COMMAND_PATTERN; if a command name matches this pattern then
+the corresponding test command will be removed from the set of commands to be run.
+This overrides LTP_COMMAND_PATTERN.
 
 =head2 LTP_TIMEOUT
 

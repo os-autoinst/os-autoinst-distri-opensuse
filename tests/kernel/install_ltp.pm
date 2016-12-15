@@ -31,7 +31,7 @@ sub install_from_git {
     if ($tag) {
         $tag = ' -b ' . $tag;
     }
-    zypper_call 'in git-core make automake autoconf gcc';
+    zypper_call 'in git-core make automake autoconf gcc libnuma-devel numactl';
     assert_script_run("git clone $url --depth 1" . $tag, timeout => 360);
     assert_script_run 'cd ltp';
     assert_script_run 'make autotools';
