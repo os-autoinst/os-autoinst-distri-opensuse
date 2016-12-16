@@ -1,4 +1,4 @@
-# Copyright (C) 2014,2015 SUSE Linux GmbH
+# Copyright (C) 2014-2016 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -13,8 +13,8 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# G-Summary: work on improving the delta between openSUSE and sle
-# G-Maintainer: Stephan Kulow <coolo@suse.de>
+# Summary: Do the registration against SCC
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use strict;
 use base "y2logsstep";

@@ -8,20 +8,16 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: First commit for tracker cases. Still need to modify main.pm to make it work.
-# G-Maintainer: nick wang <nwang@suse.com>
+# Summary: Clean for testing tracker
+# Maintainer: Chingkai <qkzhu@suse.com>
 
 use base "x11regressiontest";
 use strict;
 use testapi;
 
-# Clean for testing tracker.
-
 my @filenames = qw(newfile newpl.pl);
 
 sub run() {
-    my $self = shift;
-
     # Delete a file.
     foreach (@filenames) {
         x11_start_program("rm -rf $_");

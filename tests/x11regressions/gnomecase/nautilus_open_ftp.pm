@@ -8,19 +8,17 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: x11regressions: add nautilus scripts
-# G-Maintainer: Xudong Zhang <xdzhang@suse.com>
+# Summary: Test nautilus open ftp
+# Maintainer: Oliver Kurz <okurz@suse.de>
+# Tags: tc#1436143
+
 
 use base "x11regressiontest";
 use strict;
 use testapi;
 use utils 'sle_version_at_least';
 
-# case 1436143-test nautilus open ftp
-
 sub run() {
-    my $self = shift;
-
     x11_start_program("nautilus");
     send_key "ctrl-l";
     type_string "ftp://ftp.suse.com\n";

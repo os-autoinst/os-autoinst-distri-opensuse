@@ -8,10 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: restructure opensuse install test code
-#    this splits monolitic yast1b and yast2 modules
-#    into finer grained single-task modules
-# G-Maintainer: Bernhard M. Wiedemann <bernhard+osautoinst lsmod de>
+# Summary: Verify installation starts and is in progress
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use strict;
 use warnings;
@@ -25,8 +23,6 @@ sub check_bsc982138() {
 }
 
 sub run() {
-    my $self = shift;
-
     # start install
     if (get_var("UPGRADE")) {
         send_key $cmd{update};

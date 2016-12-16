@@ -6,13 +6,10 @@
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
-#
-# Feature #318354: [ECO] zypper: more advanced $releasever handling
-# Test case #1480297: zypper: more advanced $releasever handling
 
-# G-Summary: Add feature test case #1480297
-#    Test Feature 318354: zypper: more advanced $releasever handling
-# G-Maintainer: Qingming Su <qingming.su@suse.com>
+# Summary: feature [ECO] zypper: more advanced $releasever handling
+# Maintainer: Qingming Su <qingming.su@suse.com>
+# Tags: tc#1480297, fate#318354
 
 use base "consoletest";
 use strict;
