@@ -17,12 +17,6 @@ use testapi;
 use login_console;
 use base "proxymode";
 
-sub switch_xen() {
-    my $self = shift;
-    assert_script_run("clear;/usr/share/qa/virtautolib/tools/switch2_xen.sh", 1800);
-    wait_still_screen 5;
-}
-
 sub reboot_and_wait_up() {
     my $self           = shift;
     my $reboot_timeout = shift;
@@ -30,11 +24,8 @@ sub reboot_and_wait_up() {
     wait_idle 1;
     select_console('root-console');
     if (get_var("PROXY_MODE")) {
-        if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
-            $self->switch_xen();
-        }
-        type_string("/sbin/reboot\n");
-        $self->check_prompt_for_boot($reboot_timeout);
+        my $test_machine = get_var("TEST_MACHINE");
+        $self->reboot($test_machine, $reboot_timeout);
     }
     else {
         wait_idle 1;
