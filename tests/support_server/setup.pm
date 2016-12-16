@@ -21,15 +21,17 @@ use base 'basetest';
 use lockapi;
 use testapi;
 use mm_network;
+use Data::Dumper;
 
-my $pxe_server_set  = 0;
-my $quemu_proxy_set = 0;
-my $http_server_set = 0;
-my $ftp_server_set  = 0;
-my $tftp_server_set = 0;
-my $dns_server_set  = 0;
-my $dhcp_server_set = 0;
-my $nfs_mount_set   = 0;
+my $pxe_server_set   = 0;
+my $quemu_proxy_set  = 0;
+my $http_server_set  = 0;
+my $ftp_server_set   = 0;
+my $tftp_server_set  = 0;
+my $dns_server_set   = 0;
+my $dhcp_server_set  = 0;
+my $nfs_mount_set    = 0;
+my $radvd_server_set = 0;
 
 my $setup_script;
 
@@ -122,6 +124,19 @@ sub setup_dns_server {
     $dns_server_set = 1;
 }
 
+sub setup_radvd_server {
+    # Function for configuring SLAAC IPv6 addresses over radvd
+    return if $radvd_server_set;
+    my $net_conf = parse_network_configuration();
+
+    $setup_script .= "echo 1 > /proc/sys/net/ipv6/conf/all/forwarding\n";
+    $setup_script .= "zypper --non-interactive in radvd\n";
+    $setup_script .= "rcradvd start\n";
+    $setup_script .= "rcwicked restart\n";
+    $setup_script .= "rcnetwork restart\n";
+    $setup_script .= "ip a\n";
+    $radvd_server_set = 1;
+}
 
 sub setup_dhcp_server {
     my ($dns) = @_;
@@ -255,7 +270,12 @@ sub run {
     }
     if (exists $server_roles{dns}) {
         setup_dns_server();
+        setup_radvd_server(); # REMOVE ME JUST FOR DEBUG
         push @mutexes, 'dns';
+    }
+    if (exists $server_roles{radvd}) {
+        setup_radvd_server();
+        push @mutexes, 'radvd';
     }
 
     if (exists $server_roles{aytests}) {
