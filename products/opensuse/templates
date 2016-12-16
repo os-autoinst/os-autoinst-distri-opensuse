@@ -3238,6 +3238,7 @@
                         { key => "BOOT_TO_SNAPSHOT", value => 1 },
                         { key => "DESKTOP", value => "textmode" },
                         { key => "INSTALLONLY", value => 1 },
+                        { key => "HDDSIZEGB", value => 40 },
                       ],
                     },
                     {
