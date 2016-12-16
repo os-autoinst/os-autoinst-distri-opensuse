@@ -750,6 +750,8 @@ sub load_extra_test () {
     loadtest "console/yast2_apparmor";
     loadtest "console/openvswitch";
     loadtest "console/git";
+    loadtest "console/java";
+
     # finished console test and back to desktop
     loadtest "console/consoletest_finish";
 
