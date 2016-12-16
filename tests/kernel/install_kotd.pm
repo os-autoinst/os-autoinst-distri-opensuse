@@ -16,31 +16,33 @@
 # Summary:  [qa_automation] kernel of the day testing libs
 # Maintainer: Nathan Zhao <jtzhao@suse.com>
 
-package kotd;
+package install_kotd;
 use strict;
-use base "opensusebasetest";
 use utils;
 use testapi;
 
+# Add kotd repo
+# KOTD_RELEASE is the version of operating system, such as openSUSE-42.2, SLE12-SP3
 sub kotd_addrepo {
-    my ($self, $url) = @_;
-    assert_script_run("zypper --no-gpg-check -n ar -f '$url' kotd", 600);
-    assert_script_run("zypper --gpg-auto-import-keys ref",          600);
+    my $release = get_var("KOTD_RELEASE");
+    my $url     = "http://download.suse.de/ibs/Devel:/Kernel:/$release/standard/";
+    zypper_call("--no-gpg-check ar -f '$url' kotd", timeout => 600);
+    zypper_call("--gpg-auto-import-keys ref",       timeout => 1200);
 }
 
+# Install kotd kernel
 sub kotd_install {
-    my $self   = shift;
     my $output = script_output("zypper -n up kernel-default");
     if ($output =~ /(?<='zypper install )([^']+)/) {
-        assert_script_run("zypper -n install $1", 1200);
+        zypper_call("install $1", timeout => 1200);
     }
     else {
         die "Failed to install kernel of the day";
     }
 }
 
+# Reboot system and login
 sub kotd_reboot {
-    my $self = shift;
     type_string("reboot\n");
     wait_boot;
     reset_consoles();
