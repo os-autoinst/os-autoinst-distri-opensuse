@@ -23,16 +23,14 @@ sub java_testing {
     type_string "http://www.java.com/en/download/installed.jsp?detect=jre\n";
 
     wait_still_screen 3;
-    assert_screen [qw(firefox-reader-view firefox-java-security oracle-cookies-handling)];
-    if (match_has_tag 'firefox-reader-view') {
+    if (check_screen 'firefox-reader-view') {
         assert_and_click('firefox-reader-close');
-        assert_screen [qw(firefox-java-security oracle-cookies-handling)];
     }
-    assert_screen [qw(firefox-java-security oracle-cookies-handling)];
+    check_screen([qw(firefox-java-security oracle-cookies-handling)]);
     if (match_has_tag 'firefox-java-security') {
         assert_and_click('firefox-java-securityrun');
         assert_and_click('firefox-java-run_confirm');
-        assert_screen([qw(oracle-cookies-handling firefox-java-verifypassed)], 90);
+        check_screen('oracle-cookies-handling');
     }
     if (match_has_tag "oracle-cookies-handling") {
         assert_and_click "firefox-java-agree-and-proceed";
@@ -73,11 +71,11 @@ sub run() {
 
     send_key "ctrl-w";
 
+    #Focus to "Always Activate"
     for my $i (1 .. 2) { sleep 1; send_key "down"; }
     assert_screen("firefox-java-active", 60);
 
     java_testing();
-
     assert_screen("firefox-java-verifypassed", 90);
 
     $self->exit_firefox;
