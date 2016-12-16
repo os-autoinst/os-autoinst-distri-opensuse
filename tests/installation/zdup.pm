@@ -30,7 +30,7 @@ sub run() {
     my $zypper_repo_disabled     = qr/^Repository '[^']+' has been successfully disabled./m;
     my $zypper_installing        = qr/Installing: \S+/;
     my $zypper_dup_fileconflict  = qr/^File conflicts .*^Continue\? \[y/ms;
-    my $zypper_retrieving        = qr/Retrieving: \S+/;
+    my $zypper_retrieving        = qr/Retrieving \S+/;
     my $zypper_check_conflicts   = qr/Checking for file conflicts: \S+/;
 
     # This is just for reference to know how the network was configured prior to the update
@@ -98,7 +98,7 @@ sub run() {
         assert_script_run("zypper -n addrepo \"$r\" repo$nr");
         $nr++;
     }
-    assert_script_run("zypper -n refresh");
+    assert_script_run("zypper -n refresh", 240);
 
     script_run("(zypper dup -l;echo ZYPPER-DONE) | tee /dev/$serialdev", 0);
 
