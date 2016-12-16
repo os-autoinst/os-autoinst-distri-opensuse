@@ -8,30 +8,27 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: clone system and use the autoyast file in chained tests
-# G-Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
+# Summary: Clone system and use the autoyast file in chained tests
+# Maintainer: Martin Kravec <mkravec@suse.com>
 
 use base "console_yasttest";
 use strict;
 use testapi;
+use utils qw/zypper_call/;
 
 sub run() {
-    my $self = shift;
-
     select_console 'root-console';
 
-    type_string("rm -f /root/autoinst.xml ; zypper -n in autoyast2 ; yast2 clone_system ; echo FINISHED >/dev/$serialdev\n");
-    my $n_error = 0;
-    while ($n_error < 5 && !wait_serial("FINISHED", 200)) {
-        # try to confirm error dialogs and continue
-        $self->result('fail');
-        save_screenshot;
-        send_key "ret";
-        $n_error++;
-    }
+    # Install for TW and generate profile
+    zypper_call "in autoyast2";
+    assert_script_run "yast2 clone_system", 200;
 
-    assert_script_run("test -f /root/autoinst.xml", timeout => 20, fail_message => 'File /root/autoinst.xml could not be found');
+    # Check and upload profile for chained tests
     upload_asset "/root/autoinst.xml";
+    assert_script_run "xmllint --noout --relaxng /usr/share/YaST2/schema/autoyast/rng/profile.rng /root/autoinst.xml";
+
+    # Remove for autoyast_removed test - poo#11442
+    assert_script_run "rm /root/autoinst.xml";
 }
 
 1;

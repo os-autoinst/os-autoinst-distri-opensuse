@@ -17,6 +17,7 @@ our @EXPORT = qw/
   load_rescuecd_tests
   load_zdup_tests
   load_autoyast_tests
+  load_autoyast_clone_tests
   load_slepos_tests
   installzdupstep_is_applicable
   snapper_is_applicable
@@ -110,6 +111,12 @@ sub load_rescuecd_tests {
     if (rescuecdstep_is_applicable()) {
         loadtest "rescuecd/rescuecd";
     }
+}
+
+sub load_autoyast_clone_tests {
+    loadtest "console/consoletest_setup";
+    loadtest "console/yast2_clone_system";
+    loadtest "console/consoletest_finish";
 }
 
 sub load_zdup_tests {
