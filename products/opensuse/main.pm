@@ -939,6 +939,11 @@ elsif (get_var('INSTALL_LTP')) {
     loadtest 'kernel/boot_ltp';
     loadtest 'kernel/shutdown_ltp';
 }
+elsif (get_var('LTP_SETUP_NETWORKING')) {
+    loadtest 'kernel/boot_ltp';
+    loadtest 'kernel/ltp_setup_networking';
+    loadtest 'kernel/shutdown_ltp';
+}
 elsif (get_var('LTP_COMMAND_FILE')) {
     loadtest 'kernel/boot_ltp';
     if (get_var('LTP_COMMAND_FILE') =~ m/ltp-aiodio.part[134]/) {

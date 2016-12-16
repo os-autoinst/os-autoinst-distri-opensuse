@@ -45,5 +45,177 @@
          {key => 'LTP_COMMAND_PATTERN', value => 'memcg(?!_stress)'},
          {key => 'LTP_TIMEOUT',         value => 1200},
          {key => 'START_AFTER_TEST',    value => 'install_ltp'}]
+       },
+       {
+        name     => 'setup_ltp_networking',
+        settings =>
+        [{key => 'DESKTOP',                 value => 'textmode'},
+         {key => 'PUBLISH_HDD_1',
+          value => 'openSUSE-%VERSION%-%ARCH%-textmode_with_ltp_networking_installed.qcow2'},
+         {key => 'LTP_SETUP_NETWORKING',    value => 1},
+         {key => 'BOOT_HDD_IMAGE',          value => 1},
+         {key => 'HDD_1',
+          value => 'openSUSE-%VERSION%-%ARCH%-textmode_with_ltp_installed.qcow2'},
+         {key => 'START_AFTER_TEST',        value => 'install_ltp'}]
+       },
+       {
+        name => 'ltp_net_ipv6',
+        settings =>
+        [{key => 'DESKTOP',                 value => 'textmode'},
+         {key => 'BOOT_HDD_IMAGE',          value => 1},
+         {key => 'HDD_1',
+          value => 'openSUSE-%VERSION%-%ARCH%-textmode_with_ltp_networking_installed.qcow2'},
+         {key => 'LTP_COMMAND_FILE',        value => 'net.ipv6'},
+         {key => 'START_AFTER_TEST',        value => 'setup_ltp_networking'}]
+       },
+       {
+        name => 'ltp_net_ipv6_lib',
+        settings =>
+        [{key => 'DESKTOP',                 value => 'textmode'},
+         {key => 'BOOT_HDD_IMAGE',          value => 1},
+         {key => 'HDD_1',
+          value => 'openSUSE-%VERSION%-%ARCH%-textmode_with_ltp_networking_installed.qcow2'},
+         {key => 'LTP_COMMAND_FILE',        value => 'net.ipv6_lib'},
+         {key => 'START_AFTER_TEST',        value => 'setup_ltp_networking'}]
+       },
+       {
+        name => 'ltp_net_multicast',
+        settings =>
+        [{key => 'DESKTOP',                 value => 'textmode'},
+         {key => 'BOOT_HDD_IMAGE',          value => 1},
+         {key => 'HDD_1',
+          value => 'openSUSE-%VERSION%-%ARCH%-textmode_with_ltp_networking_installed.qcow2'},
+         {key => 'LTP_COMMAND_FILE',        value => 'net.multicast'},
+         {key => 'START_AFTER_TEST',        value => 'setup_ltp_networking'}]
+       },
+       {
+        name => 'ltp_net_nfs',
+        settings =>
+        [{key => 'DESKTOP',                 value => 'textmode'},
+         {key => 'BOOT_HDD_IMAGE',          value => 1},
+         {key => 'HDD_1',
+          value => 'openSUSE-%VERSION%-%ARCH%-textmode_with_ltp_networking_installed.qcow2'},
+         {key => 'LTP_COMMAND_FILE',        value => 'net.nfs'},
+         {key => 'START_AFTER_TEST',        value => 'setup_ltp_networking'}]
+       },
+       {
+        name => 'ltp_net_rpc',
+        settings =>
+        [{key => 'DESKTOP',                 value => 'textmode'},
+         {key => 'BOOT_HDD_IMAGE',          value => 1},
+         {key => 'HDD_1',
+          value => 'openSUSE-%VERSION%-%ARCH%-textmode_with_ltp_networking_installed.qcow2'},
+         {key => 'LTP_COMMAND_FILE',        value => 'net.rpc'},
+         {key => 'START_AFTER_TEST',        value => 'setup_ltp_networking'}]
+       },
+       {
+        name => 'ltp_net_sctp',
+        settings =>
+        [{key => 'DESKTOP',                 value => 'textmode'},
+         {key => 'BOOT_HDD_IMAGE',          value => 1},
+         {key => 'HDD_1',
+          value => 'openSUSE-%VERSION%-%ARCH%-textmode_with_ltp_networking_installed.qcow2'},
+         {key => 'LTP_COMMAND_FILE',        value => 'net.sctp'},
+         {key => 'START_AFTER_TEST',        value => 'setup_ltp_networking'}]
+       },
+       {
+        name => 'ltp_net_tcp_cmds',
+        settings =>
+        [{key => 'DESKTOP',                 value => 'textmode'},
+         {key => 'BOOT_HDD_IMAGE',          value => 1},
+         {key => 'HDD_1',
+          value => 'openSUSE-%VERSION%-%ARCH%-textmode_with_ltp_networking_installed.qcow2'},
+         {key => 'LTP_COMMAND_FILE',        value => 'net.tcp_cmds'},
+         {key => 'START_AFTER_TEST',        value => 'setup_ltp_networking'}]
+       },
+       {
+        name => 'ltp_net_stress_appl',
+        settings =>
+        [{key => 'DESKTOP',                 value => 'textmode'},
+         {key => 'BOOT_HDD_IMAGE',          value => 1},
+         {key => 'HDD_1',
+          value => 'openSUSE-%VERSION%-%ARCH%-textmode_with_ltp_networking_installed.qcow2'},
+         {key => 'LTP_COMMAND_FILE',        value => 'net_stress.appl'},
+         {key => 'START_AFTER_TEST',        value => 'setup_ltp_networking'}]
+       },
+       {
+        name => 'ltp_net_stress_interface',
+        settings =>
+        [{key => 'DESKTOP',                 value => 'textmode'},
+         {key => 'BOOT_HDD_IMAGE',          value => 1},
+         {key => 'HDD_1',
+          value => 'openSUSE-%VERSION%-%ARCH%-textmode_with_ltp_networking_installed.qcow2'},
+         {key => 'LTP_COMMAND_FILE',        value => 'net_stress.interface'},
+         {key => 'START_AFTER_TEST',        value => 'setup_ltp_networking'}]
+       },
+       {
+        name => 'ltp_net_stress_broken_ip',
+        settings =>
+        [{key => 'DESKTOP',                 value => 'textmode'},
+         {key => 'BOOT_HDD_IMAGE',          value => 1},
+         {key => 'HDD_1',
+          value => 'openSUSE-%VERSION%-%ARCH%-textmode_with_ltp_networking_installed.qcow2'},
+         {key => 'LTP_COMMAND_FILE',        value => 'net_stress.broken_ip'},
+         {key => 'START_AFTER_TEST',        value => 'setup_ltp_networking'}]
+       },
+       {
+        name => 'ltp_net_stress_ipsec_icmp',
+        settings =>
+        [{key => 'DESKTOP',                 value => 'textmode'},
+         {key => 'BOOT_HDD_IMAGE',          value => 1},
+         {key => 'HDD_1',
+          value => 'openSUSE-%VERSION%-%ARCH%-textmode_with_ltp_networking_installed.qcow2'},
+         {key => 'LTP_COMMAND_FILE',        value => 'net_stress.ipsec_icmp'},
+         {key => 'START_AFTER_TEST',        value => 'setup_ltp_networking'}]
+       },
+       {
+        name => 'ltp_net_stress_ipsec_tcp',
+        settings =>
+        [{key => 'DESKTOP',                 value => 'textmode'},
+         {key => 'BOOT_HDD_IMAGE',          value => 1},
+         {key => 'HDD_1',
+          value => 'openSUSE-%VERSION%-%ARCH%-textmode_with_ltp_networking_installed.qcow2'},
+         {key => 'LTP_COMMAND_FILE',        value => 'net_stress.ipsec_tcp'},
+         {key => 'START_AFTER_TEST',        value => 'setup_ltp_networking'}]
+       },
+       {
+        name => 'ltp_net_stress_ipsec_udp',
+        settings =>
+        [{key => 'DESKTOP',                 value => 'textmode'},
+         {key => 'BOOT_HDD_IMAGE',          value => 1},
+         {key => 'HDD_1',
+          value => 'openSUSE-%VERSION%-%ARCH%-textmode_with_ltp_networking_installed.qcow2'},
+         {key => 'LTP_COMMAND_FILE',        value => 'net_stress.ipsec_udp'},
+         {key => 'START_AFTER_TEST',        value => 'setup_ltp_networking'}]
+       },
+       {
+        name => 'ltp_net_stress_route',
+        settings =>
+        [{key => 'DESKTOP',                 value => 'textmode'},
+         {key => 'BOOT_HDD_IMAGE',          value => 1},
+         {key => 'HDD_1',
+          value => 'openSUSE-%VERSION%-%ARCH%-textmode_with_ltp_networking_installed.qcow2'},
+         {key => 'LTP_COMMAND_FILE',        value => 'net_stress.route'},
+         {key => 'START_AFTER_TEST',        value => 'setup_ltp_networking'}]
+       },
+       {
+        name => 'ltp_net_stress_multicast',
+        settings =>
+        [{key => 'DESKTOP',                 value => 'textmode'},
+         {key => 'BOOT_HDD_IMAGE',          value => 1},
+         {key => 'HDD_1',
+          value => 'openSUSE-%VERSION%-%ARCH%-textmode_with_ltp_networking_installed.qcow2'},
+         {key => 'LTP_COMMAND_FILE',        value => 'net_stress.multicast'},
+         {key => 'START_AFTER_TEST',        value => 'setup_ltp_networking'}]
+       },
+       {
+        name => 'ltp_net_features',
+        settings =>
+        [{key => 'DESKTOP',                 value => 'textmode'},
+         {key => 'BOOT_HDD_IMAGE',          value => 1},
+         {key => 'HDD_1',
+          value => 'openSUSE-%VERSION%-%ARCH%-textmode_with_ltp_networking_installed.qcow2'},
+         {key => 'LTP_COMMAND_FILE',        value => 'net.features'},
+         {key => 'START_AFTER_TEST',        value => 'setup_ltp_networking'}]
        }]
 }

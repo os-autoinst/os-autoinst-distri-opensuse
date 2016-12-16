@@ -242,10 +242,15 @@ sub run {
     my ($self) = @_;
     my $cmd_file = get_var 'LTP_COMMAND_FILE';
     die 'Need LTP_COMMAND_FILE to know which tests to run' unless $cmd_file;
+    my $conf_file   = '/root/env-variables.sh';                 # TODO: remove duplicity with ltp_setup_networking.pm
     my $cmd_pattern = get_var('LTP_COMMAND_PATTERN') || '.*';
     my $cmd_exclude = get_var('LTP_COMMAND_EXCLUDE') || '$^';
-    my $timeout     = get_var('LTP_TIMEOUT')         || 900;
+    my $timeout     = get_var('LTP_TIMEOUT') || 900;
     my $is_posix    = $cmd_file =~ m/^\s*openposix\s*$/i;
+
+    if ($conf_file) {
+        assert_script_run(". '$conf_file'");
+    }
 
     my @tests;
     if ($is_posix) {
@@ -324,3 +329,5 @@ This overrides LTP_COMMAND_PATTERN.
 The time in seconds which each test command has to run.
 
 =cut
+
+# vim: set sw=4 et:
