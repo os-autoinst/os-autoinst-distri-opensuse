@@ -31,7 +31,10 @@ sub install_from_git {
     if ($tag) {
         $tag = ' -b ' . $tag;
     }
-    zypper_call 'in git-core make automake autoconf gcc libnuma-devel numactl';
+    my @deps = qw(git-core make automake autoconf gcc libnuma-devel libaio-devel numactl
+      flex bison dmapi-devel kernel-default-devel libopenssl-devel libselinux-devel
+      libacl-devel libtirpc-devel keyutils-devel libcap-devel);
+    zypper_call('in ' . join(' ', @deps), log => 1);
     assert_script_run("git clone $url --depth 1" . $tag, timeout => 360);
     assert_script_run 'cd ltp';
     assert_script_run 'make autotools';
