@@ -189,7 +189,7 @@ if (is_update_test_repo_test && !get_var('MAINT_TEST_REPO')) {
 $needle::cleanuphandler = \&cleanup_needles;
 
 # dump other important ENV:
-logcurrentenv(qw"ADDONURL BIGTEST BTRFS DESKTOP HW HWSLOT LVM MOZILLATEST NOINSTALL REBOOTAFTERINSTALL UPGRADE USBBOOT ZDUP ZDUPREPOS TEXTMODE DISTRI NOAUTOLOGIN QEMUCPU QEMUCPUS RAIDLEVEL ENCRYPT INSTLANG QEMUVGA DOCRUN UEFI DVD GNOME KDE ISO ISO_MAXSIZE NETBOOT USEIMAGES PROMO QEMUVGA SPLITUSR VIDEOMODE");
+logcurrentenv(qw"ADDONURL BTRFS DESKTOP HW HWSLOT LVM MOZILLATEST NOINSTALL REBOOTAFTERINSTALL UPGRADE USBBOOT ZDUP ZDUPREPOS TEXTMODE DISTRI NOAUTOLOGIN QEMUCPU QEMUCPUS RAIDLEVEL ENCRYPT INSTLANG QEMUVGA DOCRUN UEFI DVD GNOME KDE ISO ISO_MAXSIZE NETBOOT USEIMAGES PROMO QEMUVGA SPLITUSR VIDEOMODE");
 
 
 sub need_clear_repos() {
@@ -634,12 +634,6 @@ sub load_consoletests() {
         }
         loadtest "console/sshd";
         loadtest "console/ssh_cleanup";
-        if (get_var("BIGTEST")) {
-            loadtest "console/sntp";
-            loadtest "console/curl_ipv6";
-            loadtest "console/wget_ipv6";
-            loadtest "console/syslinux";
-        }
         loadtest "console/mtab";
 
         if (is_new_installation && sle_version_at_least('12-SP2')) {
@@ -748,7 +742,8 @@ sub load_extra_test () {
     loadtest "console/openvswitch";
     loadtest "console/git";
     loadtest "console/java";
-
+    loadtest "console/curl_ipv6";
+    loadtest "console/wget_ipv6";
     # finished console test and back to desktop
     loadtest "console/consoletest_finish";
 
@@ -779,9 +774,6 @@ sub load_x11tests() {
         loadtest "x11/kate";
     }
     loadtest "x11/firefox";
-    if (bigx11step_is_applicable()) {
-        loadtest "x11/firefox_stress";
-    }
     if (get_var("MOZILLATEST")) {
         loadtest "x11/mozmill_run";
     }
@@ -809,9 +801,7 @@ sub load_x11tests() {
     if (gnomestep_is_applicable() && get_var("GNOME2")) {
         loadtest "x11/application_browser";
     }
-    if (bigx11step_is_applicable()) {
-        loadtest "x11/glxgears";
-    }
+    loadtest "x11/glxgears";
     if (kdestep_is_applicable()) {
         loadtest "x11/amarok";
         loadtest "x11/kontact";

@@ -8,22 +8,18 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Rework the tests layout.
-# G-Maintainer: Alberto Planas <aplanas@suse.com>
+# Summary: Test curl fallback from IPv6 to IPv4
+# Maintainer: Oliver Kurz <okurz@suse.de>
+# Tags: bsc#598574
 
 use base "consoletest";
 use testapi;
 use strict;
 
-# test for bug https://bugzilla.novell.com/show_bug.cgi?id=598574
 sub run() {
-    my $self = shift;
-    script_run('curl www3.zq1.de/test.txt');
-    sleep 2;
-    assert_screen 'test-curl_ipv6-1', 3;
-    script_run('rpm -q curl libcurl4');
-    sleep 2;
-    assert_screen 'test-curl_ipv6-2', 3;
+    select_console 'user-console';
+    assert_script_run('curl www3.zq1.de/test.txt');
+    assert_script_run('rpm -q curl libcurl4');
 }
 
 1;
