@@ -24,7 +24,7 @@ use testapi;
 # Add kotd repo
 # KOTD_RELEASE is the version of operating system, such as openSUSE-42.2, SLE12-SP3
 sub kotd_addrepo {
-    my $release = get_var("KOTD_RELEASE");
+    my $release = get_required_var("KOTD_RELEASE");
     my $url     = "http://download.suse.de/ibs/Devel:/Kernel:/$release/standard/";
     zypper_call("--no-gpg-check ar -f '$url' kotd", timeout => 600);
     zypper_call("--gpg-auto-import-keys ref",       timeout => 1200);
@@ -32,13 +32,7 @@ sub kotd_addrepo {
 
 # Install kotd kernel
 sub kotd_install {
-    my $output = script_output("zypper -n up kernel-default");
-    if ($output =~ /(?<='zypper install )([^']+)/) {
-        zypper_call("install $1", timeout => 1200);
-    }
-    else {
-        die "Failed to install kernel of the day";
-    }
+    zypper_call("install --from kotd kernel-default", timeout => 1200);
 }
 
 # Reboot system and login
