@@ -34,20 +34,15 @@ sub run() {
     sleep 5;
 
     # Exit
-    send_key "alt-f4";
+    $self->exit_firefox;
 
-    if (check_screen('firefox-save-and-quit', 30)) {
-        # confirm "save&quit"
-        send_key "ret";
-    }
-
+    x11_start_program("xterm");
     send_key "ctrl-l";
+    wait_still_screen 3;
     type_string "ls Downloads/\n";
     assert_screen('firefox-pagesaving-downloads', 10);
     type_string "rm -rf Downloads/*\n";
     send_key "ctrl-d";
-
-
 }
 1;
 # vim: set sw=4 et:
