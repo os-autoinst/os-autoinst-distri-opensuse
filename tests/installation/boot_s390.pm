@@ -27,7 +27,7 @@ sub get_to_system() {
     $s3270->sequence_3270("ENTER",);
     $s3270->sequence_3270("String(\"cp i 150\")",);
     $s3270->sequence_3270("ENTER",);
-    # sometimes we need to press an additional enter which shouldn't cause problems. This is actually how mgriessmeier would also do it, just blindly hit enter key until some stuff happens.
+# sometimes we need to press an additional enter which shouldn't cause problems. This is actually how mgriessmeier would also do it, just blindly hit enter key until some stuff happens.
     $s3270->sequence_3270("ENTER",);
 
 }

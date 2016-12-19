@@ -33,7 +33,8 @@ sub run() {
             ensure_fullscreen(tag => 'yast2-windowborder-corner');
         }
         else {
-            die "so far this should only be reached on s390x which we test only on SLE which has self-update disabled since SLE 12 SP2 GM so we should not reach here unless this is a new version of SLE which has the self-update enabled by default";
+            die
+"so far this should only be reached on s390x which we test only on SLE which has self-update disabled since SLE 12 SP2 GM so we should not reach here unless this is a new version of SLE which has the self-update enabled by default";
         }
         assert_screen_with_soft_timeout('scc-registration', timeout => 300, soft_timeout => 100, bugref => 'bsc#990254');
     }

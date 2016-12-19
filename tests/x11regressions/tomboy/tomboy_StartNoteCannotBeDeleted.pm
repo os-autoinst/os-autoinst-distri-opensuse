@@ -54,8 +54,9 @@ sub run() {
     wait_still_screen;
 
     #send_key "alt-d"; #FIXME
-    send_key "alt-c";     #FIXME
-    send_key "ctrl-w";    #FIXME It's really awkward that the start note can be deleted in this test version, so I just cancel the delete process here, and close start note page manually.
+    send_key "alt-c";    #FIXME
+    send_key "ctrl-w"
+      ; #FIXME It's really awkward that the start note can be deleted in this test version, so I just cancel the delete process here, and close start note page manually.
     check_screen "tomboy_delete_1", 5;    # to see if start note still there
     send_key "tab";                       # move the cursor back to text.
     send_key "alt-f4";

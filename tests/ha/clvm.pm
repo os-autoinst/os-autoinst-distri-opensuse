@@ -33,13 +33,15 @@ sub run() {
     }
     else {
         if (get_var("SP2ORLATER")) {
-            assert_script_run q(EDITOR="sed -ie '$ a primitive clvmd ocf:heartbeat:clvm op monitor interval=60 timeout=60'" crm configure edit);    #sp2 recommends to use ocf:heartbeat:clvm RA
+            assert_script_run q(EDITOR="sed -ie '$ a primitive clvmd ocf:heartbeat:clvm op monitor interval=60 timeout=60'" crm configure edit)
+              ;                                                                              #sp2 recommends to use ocf:heartbeat:clvm RA
         }
         else {
-            assert_script_run q(EDITOR="sed -ie '$ a primitive clvmd ocf:lvm2:clvmd op monitor interval=60 timeout=60'" crm configure edit);        #create clvmd primitive
+            assert_script_run
+              q(EDITOR="sed -ie '$ a primitive clvmd ocf:lvm2:clvmd op monitor interval=60 timeout=60'" crm configure edit);    #create clvmd primitive
         }
-        assert_script_run q(EDITOR="sed -ie 's/^\\(group base-group.*\\)/\1 clvmd/'" crm configure edit);                                           #add clvmd to base-group
-        sleep 10;                                                                                                                                   #wait to get clvmd running on all nodes
+        assert_script_run q(EDITOR="sed -ie 's/^\\(group base-group.*\\)/\1 clvmd/'" crm configure edit);    #add clvmd to base-group
+        sleep 10;                                                                                            #wait to get clvmd running on all nodes
     }
     barrier_wait("CLVM_RESOURCE_CREATED_" . $self->cluster_name);
 
@@ -60,9 +62,11 @@ sub run() {
         type_string "echo wait until LVM resource is created\n";
     }
     else {
-        assert_script_run qq(EDITOR="sed -ie '\$ a primitive vg ocf:heartbeat:LVM param volgrpname=$vg_name op monitor interval=60 timeout=60'" crm configure edit);    #create vg primitive
+        assert_script_run
+          qq(EDITOR="sed -ie '\$ a primitive vg ocf:heartbeat:LVM param volgrpname=$vg_name op monitor interval=60 timeout=60'" crm configure edit)
+          ;    #create vg primitive
         assert_script_run q(EDITOR="sed -ie 's/^\\(group base-group.*\\)/\1 vg/'" crm configure edit);
-        sleep 10;                                                                                                                                                       #wait to get VG active on all nodes
+        sleep 10;    #wait to get VG active on all nodes
     }
     barrier_wait("CLVM_VG_RESOURCE_CREATED_" . $self->cluster_name);
 

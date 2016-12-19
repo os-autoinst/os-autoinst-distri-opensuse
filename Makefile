@@ -27,8 +27,11 @@ tools/tidy: os-autoinst/
 tools/lib/: os-autoinst/
 	@test -e tools/lib || ln -s ../os-autoinst/tools/lib tools/
 
+.perltidyrc: os-autoinst/
+	@test -e $@ || ln -s os-autoinst/$@ $@
+
 .PHONY: check-links
-check-links: tools/tidy tools/lib/ os-autoinst/
+check-links: tools/tidy tools/lib/ os-autoinst/ .perltidyrc
 
 .PHONY: check-links
 tidy: check-links

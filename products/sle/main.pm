@@ -189,7 +189,9 @@ if (is_update_test_repo_test && !get_var('MAINT_TEST_REPO')) {
 $needle::cleanuphandler = \&cleanup_needles;
 
 # dump other important ENV:
-logcurrentenv(qw(ADDONURL BIGTEST BTRFS DESKTOP HW HWSLOT LVM MOZILLATEST NOINSTALL REBOOTAFTERINSTALL UPGRADE USBBOOT ZDUP ZDUPREPOS TEXTMODE DISTRI NOAUTOLOGIN QEMUCPU QEMUCPUS RAIDLEVEL ENCRYPT INSTLANG QEMUVGA DOCRUN UEFI DVD GNOME KDE ISO ISO_MAXSIZE NETBOOT USEIMAGES PROMO QEMUVGA SPLITUSR VIDEOMODE));
+logcurrentenv(
+    qw(ADDONURL BIGTEST BTRFS DESKTOP HW HWSLOT LVM MOZILLATEST NOINSTALL REBOOTAFTERINSTALL UPGRADE USBBOOT ZDUP ZDUPREPOS TEXTMODE DISTRI NOAUTOLOGIN QEMUCPU QEMUCPUS RAIDLEVEL ENCRYPT INSTLANG QEMUVGA DOCRUN UEFI DVD GNOME KDE ISO ISO_MAXSIZE NETBOOT USEIMAGES PROMO QEMUVGA SPLITUSR VIDEOMODE)
+);
 
 
 sub need_clear_repos() {
@@ -429,7 +431,12 @@ sub load_inst_tests() {
     }
     loadtest "installation/addon_products_sle";
     if (noupdatestep_is_applicable()) {
-        if (check_var('ARCH', 'x86_64') && sle_version_at_least('12-SP2') && is_server() && (!is_sles4sap() || is_sles4sap_standard()) && install_this_version()) {
+        if (   check_var('ARCH', 'x86_64')
+            && sle_version_at_least('12-SP2')
+            && is_server()
+            && (!is_sles4sap() || is_sles4sap_standard())
+            && install_this_version())
+        {
             loadtest "installation/system_role";
         }
         loadtest "installation/partitioning";

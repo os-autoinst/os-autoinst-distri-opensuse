@@ -48,7 +48,8 @@ sub run() {
         push @invalid_cipher, "des-ede";
     }
     for my $cipher (@invalid_cipher) {
-        validate_script_output "openssl enc -$cipher -e -in $file_raw -out $file_enc -k $enc_passwd -md $hash_alg 2>&1 | tee", sub { m/disabled for fips|unknown option/ };
+        validate_script_output "openssl enc -$cipher -e -in $file_raw -out $file_enc -k $enc_passwd -md $hash_alg 2>&1 | tee",
+          sub { m/disabled for fips|unknown option/ };
     }
 
     script_run 'cd - && rm -rf fips-test';
