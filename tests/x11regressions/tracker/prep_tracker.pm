@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: First commit for tracker cases. Still need to modify main.pm to make it work.
-# G-Maintainer: nick wang <nwang@suse.com>
+# Summary: First commit for tracker cases. Still need to modify main.pm to make it work.
+# Maintainer: Chingkai <qkzhu@suse.com>
 
 use base "x11regressiontest";
 use strict;
@@ -18,11 +18,9 @@ use testapi;
 # Preparation for testing tracker.
 
 # Used for 106_tracker_info
-my @filenames = qw/newfile newpl.pl/;
+my @filenames = qw(newfile newpl.pl);
 
 sub run() {
-    my $self = shift;
-
     # Create a file.
     foreach (@filenames) {
         x11_start_program("touch $_");

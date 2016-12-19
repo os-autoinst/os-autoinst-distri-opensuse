@@ -17,7 +17,7 @@ use base "opensusebasetest";
 use testapi;
 
 sub run() {
-    assert_screen([qw/virttest-bootloader qa-net-selection/], 300);
+    assert_screen([qw(virttest-bootloader qa-net-selection)], 300);
     my $image_path = "";
 
     #detect pxe location

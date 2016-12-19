@@ -1,12 +1,12 @@
 package main_common;
 use base Exporter;
 use Exporter;
-use testapi qw/check_var get_var set_var diag/;
+use testapi qw(check_var get_var set_var diag);
 use autotest;
 use strict;
 use warnings;
 
-our @EXPORT = qw/
+our @EXPORT = qw(
   init_main
   loadtest
   set_defaults_for_username_and_password
@@ -36,7 +36,7 @@ our @EXPORT = qw/
   check_env
   ssh_key_import
   unregister_needle_tags
-  /;
+);
 
 sub init_main {
     set_defaults_for_username_and_password();

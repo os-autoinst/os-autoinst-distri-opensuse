@@ -7,19 +7,19 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: add 3 shotwell cases to x11regression
-# G-Maintainer: Chingkai <qkzhu@suse.com>
+# Summary: Shotwell: Delete or edit an imported image
+# Maintainer: Chingkai <qkzhu@suse.com>
+# Tags: tc#1503811
+
 
 use base "x11regressiontest";
 use base "x11regressiontest";
 use strict;
 use testapi;
 
-# Case 1503811 - Shotwell: Delete or edit an imported image
-
 sub run() {
     my $self     = shift;
-    my @pictures = qw/shotwell_test.jpg shotwell_test.png/;
+    my @pictures = qw(shotwell_test.jpg shotwell_test.png);
 
     x11_start_program("shotwell");
     assert_screen 'shotwell-launched';

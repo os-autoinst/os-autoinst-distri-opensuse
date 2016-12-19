@@ -26,8 +26,8 @@ sub run() {
     assert_screen("welcome-to-libreoffice");
     $self->check_libreoffice_dialogs();
 
-    # open below qw/doc docx fodg fodp fods fodt odf odg odp ods odt pdf pptx xlsx/ to check whether can be work
-    for my $tag (qw/doc docx fodg fodp fods fodt odf odg odp ods odt pdf pptx xlsx/) {
+    # open below qw(doc docx fodg fodp fods fodt odf odg odp ods odt pdf pptx xlsx) to check whether can be work
+    for my $tag (qw(doc docx fodg fodp fods fodt odf odg odp ods odt pdf pptx xlsx)) {
         send_key "ctrl-o";
         wait_still_screen 3;
         send_key "ctrl-l";

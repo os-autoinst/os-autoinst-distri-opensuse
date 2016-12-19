@@ -7,16 +7,15 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add ssh key dialog test
-#    https://progress.opensuse.org/issues/11454 https://github.com/yast/skelcd-control-SLES/blob/d2f9a79c0681806bf02eb38c4b7c287b9d9434eb/control/control.SLES.xml#L53-L71
-# G-Maintainer: Jozef Pupava <jpupava@suse.com>
+# Summary: Ensure the system can reboot from gnome
+# Maintainer: Jozef Pupava <jpupava@suse.com>
 
 use base "opensusebasetest";
 use strict;
 
 use testapi;
-use utils qw/reboot_gnome/;
-use bootloader_setup qw/select_bootmenu_option bootmenu_default_params/;
+use utils 'reboot_gnome';
+use bootloader_setup qw(select_bootmenu_option bootmenu_default_params);
 
 sub run() {
     reboot_gnome;    # reboot from previously booted hdd to do pre check or change e.g. before upgrade

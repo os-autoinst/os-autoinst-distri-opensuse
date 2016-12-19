@@ -27,8 +27,8 @@ sub run() {
     select_console 'x11';
     turn_off_kde_screensaver;
 
-    my @updates_installed_tags = qw/updates_none updates_available/;
-    assert_screen [qw/updates_available-tray tray-without-updates-available/];
+    my @updates_installed_tags = qw(updates_none updates_available);
+    assert_screen [qw(updates_available-tray tray-without-updates-available)];
     if (match_has_tag 'updates_available-tray') {
         assert_and_click("updates_available-tray");
 

@@ -7,14 +7,14 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Addon added via dud
+# Summary: Addon added via dud
 #    https://trello.com/c/h7DzsthA/647-3-sle-12-sp2-p1-992608-add-ons-added-via-add-on-products-xml-are-lost-after-self-update
-# G-Maintainer: Jozef Pupava <jpupava@suse.com>
+# Maintainer: Jozef Pupava <jpupava@suse.com>
 
 use base "y2logsstep";
 use strict;
 use testapi;
-use utils qw/addon_license/;
+use utils 'addon_license';
 
 sub run() {
     assert_screen 'additional-products';

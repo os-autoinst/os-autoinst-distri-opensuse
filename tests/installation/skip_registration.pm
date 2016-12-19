@@ -20,11 +20,11 @@ use strict;
 use base "y2logsstep";
 
 use testapi;
-use registration qw/skip_registration/;
-use utils qw/ensure_fullscreen assert_screen_with_soft_timeout/;
+use registration 'skip_registration';
+use utils qw(ensure_fullscreen assert_screen_with_soft_timeout);
 
 sub run() {
-    assert_screen_with_soft_timeout([qw/scc-registration yast2-windowborder-corner/], timeout => 300, soft_timeout => 100, bugref => 'bsc#990254');
+    assert_screen_with_soft_timeout([qw(scc-registration yast2-windowborder-corner)], timeout => 300, soft_timeout => 100, bugref => 'bsc#990254');
     if (match_has_tag('yast2-windowborder-corner')) {
         if (check_var("INSTALLER_NO_SELF_UPDATE", 1)) {
             die "installer should not self-update, therefore window should not have respawned, file bug and replace this line by record_soft_failure";

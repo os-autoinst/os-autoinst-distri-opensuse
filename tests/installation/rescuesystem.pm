@@ -8,13 +8,13 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add Rescue System test.
-# G-Maintainer: Alberto Planas <aplanas@suse.com>
+# Summary: Ensure rescue system can be booted into a shell prompt
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "opensusebasetest";
 use strict;
 use testapi;
-use utils qw/ensure_shim_import/;
+use utils 'ensure_shim_import';
 
 sub run {
     my $self = shift;

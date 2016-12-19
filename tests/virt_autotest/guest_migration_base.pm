@@ -15,7 +15,7 @@ use base "opensusebasetest";
 use strict;
 use testapi;
 use mmapi;
-use Exporter qw(import);
+use Exporter 'import';
 
 our @EXPORT = qw($guest_install_prepare_keep_guest $hyper_visor $vm_disk_dir $guest_os $nfs_local_dir $install_script $scenario_name get_var_from_parent get_var_from_child set_hosts);
 

@@ -47,7 +47,7 @@ sub run() {
 
     if (check_var('ARCH', 's390x') && !get_var('UPGRADE')) {    # s390x always needs SSH
 
-        send_key_until_needlematch [qw/ssh-blocked ssh-open/], 'tab';
+        send_key_until_needlematch [qw(ssh-blocked ssh-open)], 'tab';
         if (match_has_tag 'ssh-blocked') {
             if (check_var('VIDEOMODE', 'text')) {
                 send_key 'alt-c';

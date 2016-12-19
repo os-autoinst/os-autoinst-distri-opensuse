@@ -24,11 +24,10 @@ use base "y2logsstep";
 use testapi;
 
 my $after_cancel_tags = [
-    qw/
+    qw(
       encrypted_volume_activation_prompt enable-multipath scc-registration
       inst-instmode
-      /
-];
+      )];
 
 sub run {
     assert_screen 'encrypted_volume_activation_prompt';

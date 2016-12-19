@@ -41,7 +41,7 @@ sub run() {
 
     script_sudo("yast2 lan; echo yast2-lan-status-\$? > /dev/$serialdev", 0);
 
-    assert_screen [qw/Networkmanager_controlled yast2_lan install-susefirewall2/], 60;
+    assert_screen [qw(Networkmanager_controlled yast2_lan install-susefirewall2)], 60;
     if (match_has_tag('Networkmanager_controlled')) {
         handle_Networkmanager_controlled;
         return;                                         # don't change any settings
@@ -50,7 +50,7 @@ sub run() {
         # install SuSEfirewall2
         send_key "alt-i";
         # check yast2_lan again after SuSEfirewall2 installed
-        assert_screen [qw/Networkmanager_controlled yast2_lan/], 90;
+        assert_screen [qw(Networkmanager_controlled yast2_lan)], 90;
         if (match_has_tag('Networkmanager_controlled')) {
             handle_Networkmanager_controlled;
             return;

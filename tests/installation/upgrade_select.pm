@@ -8,13 +8,13 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Rework the tests layout.
-# G-Maintainer: Alberto Planas <aplanas@suse.com>
+# Summary: Select existing partition(s) for upgrade
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use strict;
 use base "y2logsstep";
 use testapi;
-use utils qw/assert_screen_with_soft_timeout/;
+use utils 'assert_screen_with_soft_timeout';
 
 sub run() {
     if (get_var('ENCRYPT')) {

@@ -7,7 +7,7 @@ use strict;
 
 use testapi qw(is_serial_terminal :DEFAULT);
 
-our @EXPORT = qw/
+our @EXPORT = qw(
   check_console_font
   clear_console
   is_jeos
@@ -36,7 +36,7 @@ our @EXPORT = qw/
   setup_online_migration
   turn_off_kde_screensaver
   random_string
-  /;
+);
 
 
 # USB kbd in raw mode is rather slow and QEMU only buffers 16 bytes, so
@@ -61,7 +61,7 @@ sub unlock_if_encrypted {
 
 sub turn_off_kde_screensaver() {
     x11_start_program("kcmshell5 screenlocker");
-    assert_screen([qw/kde-screenlock-enabled screenlock-disabled/]);
+    assert_screen([qw(kde-screenlock-enabled screenlock-disabled)]);
     if (match_has_tag('kde-screenlock-enabled')) {
         assert_and_click('kde-disable-screenlock');
     }
@@ -375,13 +375,13 @@ sub ensure_unlocked_desktop {
             # responsiveness.
             # open run command prompt (if screen isn't locked)
             send_key "alt-f2";
-            if (check_screen([qw/desktop-runner/])) {
+            if (check_screen([qw(desktop-runner)])) {
                 send_key "esc";
-                assert_screen([qw/generic-desktop/]);
+                assert_screen([qw(generic-desktop)]);
                 return;
             }
             else {
-                assert_screen([qw/gnome-screenlock-password screenlock/]);
+                assert_screen([qw(gnome-screenlock-password screenlock)]);
             }
         }
         else {
@@ -399,7 +399,7 @@ sub ensure_unlocked_desktop {
         }
         unless (get_var("LIVETEST")) {
             send_key "ctrl";    # show gnome screen lock in sle 11
-            assert_screen([qw/gnome-screenlock-password/]);
+            assert_screen([qw(gnome-screenlock-password)]);
             type_password;
             send_key "ret";
         }
@@ -450,7 +450,7 @@ sub ensure_fullscreen {
 
 sub ensure_shim_import {
     my (%args) = @_;
-    $args{tags} //= [qw/inst-bootmenu bootloader-shim-import-prompt/];
+    $args{tags} //= [qw(inst-bootmenu bootloader-shim-import-prompt)];
     assert_screen($args{tags}, 15);
     if (match_has_tag("bootloader-shim-import-prompt")) {
         send_key "down";
@@ -668,8 +668,8 @@ sub validate_repos {
                 if (exists $h_addonurl{geo} || exists $h_addons{geo}) {
                     validatelr({product => 'SLE-*HAGEO', uri => get_var('ADDONURL_GEO') || "dvd:///", version => $version});
                 }
-                delete @h_addonurl{qw/ha geo/};
-                delete @h_addons{qw/ha geo/};
+                delete @h_addonurl{qw(ha geo)};
+                delete @h_addons{qw(ha geo)};
             }
             elsif (check_var('FLAVOR', 'Desktop-DVD')) {
                 # Note: verification of AMD (SLED12) and NVIDIA (SLED12, SP1, and SP2) repos is missing

@@ -8,10 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: restructure opensuse install test code
-#    this splits monolitic yast1b and yast2 modules
-#    into finer grained single-task modules
-# G-Maintainer: Bernhard M. Wiedemann <bernhard+osautoinst lsmod de>
+# Summary: Verify installation starts and is in progress
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use strict;
 use warnings;
@@ -25,13 +23,11 @@ sub check_bsc982138() {
 }
 
 sub run() {
-    my $self = shift;
-
     # start install
     if (get_var("UPGRADE")) {
         send_key $cmd{update};
         sleep 1;
-        assert_screen [qw/startupdate startupdate-conflict license-popup/], 5;
+        assert_screen [qw(startupdate startupdate-conflict license-popup)], 5;
 
         while (match_has_tag("startupdate-conflict") || match_has_tag("license-popup")) {
             if (match_has_tag("startupdate-conflict")) {
@@ -62,7 +58,7 @@ sub run() {
             if (match_has_tag("license-popup")) {
                 send_key $cmd{accept}, 1;
             }
-            assert_screen [qw/startupdate startupdate-conflict license-popup/], 5;
+            assert_screen [qw(startupdate startupdate-conflict license-popup)], 5;
         }
 
         # confirm
@@ -85,7 +81,7 @@ sub run() {
     else {
         sleep 2;    # textmode is sometimes pressing alt-i too early
         send_key $cmd{install};
-        while (check_screen([qw/confirmlicense startinstall/], 5)) {
+        while (check_screen([qw(confirmlicense startinstall)], 5)) {
             last if match_has_tag("startinstall");
             send_key $cmd{acceptlicense}, 1;
         }

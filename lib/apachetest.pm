@@ -16,9 +16,7 @@ use strict;
 
 use testapi;
 
-our @EXPORT = qw/
-  setup_apache2
-  /;
+our @EXPORT = qw(setup_apache2);
 
 # Setup apache2 service in different mode: SSL, NSS, NSSFIPS
 # Example: setup_apache2(mode => 'SSL');
@@ -26,13 +24,13 @@ sub setup_apache2 {
     my %args      = @_;
     my $mode      = uc $args{mode} || "";
     my $nsspasswd = "httptest";
-    my @packages  = qw/apache2/;
+    my @packages  = qw(apache2);
 
     if (($mode eq "NSS") && get_var("FIPS")) {
         $mode = "NSSFIPS";
     }
     if ($mode =~ m/NSS/) {
-        push @packages, qw/apache2-mod_nss mozilla-nss-tools/;
+        push @packages, qw(apache2-mod_nss mozilla-nss-tools);
     }
 
     # Make sure the packages are installed

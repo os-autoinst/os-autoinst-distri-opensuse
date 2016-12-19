@@ -89,7 +89,7 @@ sub run {
 
     # start migration
     my $timeout = 7200;
-    my @tags    = qw/yast2-migration-wrongdigest yast2-migration-packagebroken yast2-migration-internal-error yast2-migration-finish/;
+    my @tags    = qw(yast2-migration-wrongdigest yast2-migration-packagebroken yast2-migration-internal-error yast2-migration-finish);
     while (1) {
         my $ret = assert_screen \@tags, $timeout;
         if ($ret->{needle}->has_tag("yast2-migration-internal-error")) {

@@ -15,7 +15,7 @@ use strict;
 use warnings;
 use base "y2logsstep";
 use testapi;
-use utils qw/ensure_fullscreen/;
+use utils 'ensure_fullscreen';
 
 sub run() {
     my $self = shift;

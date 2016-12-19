@@ -8,14 +8,14 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: adding a test that selects given PATTERNS
+# Summary: Select given PATTERNS
 #    You can pass
 #    PATTERNS=minimal,base or
 #    PATTERNS=all to select all of them
 #
 #    For this you need to have needles that provide pattern-base,pattern-minimal...
 #    additional to the on-pattern tag
-# G-Maintainer: Stephan Kulow <coolo@suse.de>
+# Maintainer: Stephan Kulow <coolo@suse.de>
 
 use base "y2logsstep";
 use strict;
@@ -23,7 +23,7 @@ use testapi;
 
 sub accept3rdparty {
     #Third party licenses sometimes appear
-    while (check_screen([qw/3rdpartylicense automatic-changes inst-overview/], 15)) {
+    while (check_screen([qw(3rdpartylicense automatic-changes inst-overview)], 15)) {
         last if match_has_tag("automatic-changes");
         last if match_has_tag("inst-overview");
         wait_screen_change {

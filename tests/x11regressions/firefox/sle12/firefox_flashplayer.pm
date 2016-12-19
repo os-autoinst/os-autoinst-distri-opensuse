@@ -31,7 +31,7 @@ sub run() {
 
     send_key "pgdn";
     # flashplayer dropped since sled12 sp2
-    while (assert_screen([qw/firefox-flashplayer-dropped firefox-flashplayer-verify/])) {
+    while (assert_screen([qw(firefox-flashplayer-dropped firefox-flashplayer-verify)])) {
         last if (match_has_tag('firefox-flashplayer-dropped'));
         if (match_has_tag('firefox-flashplayer-verify')) {
             send_key "esc";

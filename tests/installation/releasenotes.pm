@@ -75,7 +75,7 @@ sub run() {
         wait_screen_change { send_key 'alt-o'; };
     }
     else {
-        assert_screen([qw/release-notes-sle-ok-button release-notes-sle-close-button/]);
+        assert_screen([qw(release-notes-sle-ok-button release-notes-sle-close-button)]);
         if (match_has_tag('release-notes-sle-ok-button')) {
             wait_screen_change { send_key 'alt-o' };
         }

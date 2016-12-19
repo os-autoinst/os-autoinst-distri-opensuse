@@ -27,11 +27,10 @@ sub save_logs_and_resume {
 sub run() {
     my $self             = shift;
     my $file_system_tags = [
-        qw/
+        qw(
           partitioning-no-root-filesystem partitioning-encrypt-activated-existing
           partitioning-encrypt-ignored-existing
-          /
-    ];
+          )];
     my $collect_logs = 0;
 
     if (get_var('ENCRYPT_ACTIVATE_EXISTING')) {
@@ -69,7 +68,7 @@ sub run() {
             send_key 'alt-l';
         }
         send_key 'alt-o';
-        assert_screen [qw/partition-lvm-new-summary partitioning-encrypt-activated-existing partitioning-encrypt-broke-existing/];
+        assert_screen [qw(partition-lvm-new-summary partitioning-encrypt-activated-existing partitioning-encrypt-broke-existing)];
         if (match_has_tag('partitioning-encrypt-broke-existing')) {
             record_soft_failure 'bsc#993249';
             $collect_logs = 1;

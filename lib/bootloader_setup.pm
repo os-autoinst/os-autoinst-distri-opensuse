@@ -14,7 +14,7 @@ use Exporter;
 
 use strict;
 
-use Time::HiRes qw(sleep);
+use Time::HiRes 'sleep';
 
 use testapi;
 use utils;
