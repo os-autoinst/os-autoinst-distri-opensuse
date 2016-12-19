@@ -7,15 +7,13 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Feature 318787
-#    YaST logic on Network Restart while no config changes were made https://progress.opensuse.org/issues/11450
-# G-Maintainer: Jozef Pupava <jpupava@suse.com>
+# Summary: YaST logic on Network Restart while no config changes were made
+# Maintainer: Jozef Pupava <jpupava@suse.com>
+# Tags: fate#318787 poo#11450
 
 use base "x11test";
 use strict;
 use testapi;
-
-#https://progress.opensuse.org/issues/11450
 
 sub run_yast2_lan {
     type_string "yast2 lan\n";
@@ -228,7 +226,8 @@ sub run() {
     send_key 'alt-u';                                 # Routing tab
     assert_screen 'yast2_lan_routing_tab';
     check_network;
-    diag '__________(4) Start yast2 lan -> Select routing tab -> change value in a default gw checkbox -> select another tab -> go back an change value in the checkbox back -> [OK]__________';
+    diag
+'__________(4) Start yast2 lan -> Select routing tab -> change value in a default gw checkbox -> select another tab -> go back an change value in the checkbox back -> [OK]__________';
     type_string "# (4) NO restart\n";
     run_yast2_lan;
     send_key 'alt-u';                                 # Routing tab

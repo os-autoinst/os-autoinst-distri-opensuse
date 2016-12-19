@@ -7,15 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add sle12 online migration testsuite
-#    Fixes follow up by the comments
-#
-#    Apply fully patch system function
-#
-#    Fix typo and remove redundant comment
-#
-#    Remove a unnecessary line
-# G-Maintainer: mitiao <mitiao@gmail.com>
+# Summary: SLE 12 online migration using zypper migration
+# Maintainer: mitiao <mitiao@gmail.com>
 
 use base "installbasetest";
 use strict;
@@ -41,8 +34,12 @@ sub run() {
     script_run("(zypper migration;echo ZYPPER-DONE) | tee /dev/$serialdev", 0);
     # migration process take long time
     my $timeout          = 7200;
-    my $migration_checks = [$zypper_migration_target, $zypper_disable_repos, $zypper_continue, $zypper_migration_done, $zypper_migration_error, $zypper_migration_conflict, $zypper_migration_fileconflict, $zypper_migration_notification, $zypper_migration_failed];
-    my $out              = wait_serial($migration_checks, $timeout);
+    my $migration_checks = [
+        $zypper_migration_target,       $zypper_disable_repos,          $zypper_continue,
+        $zypper_migration_done,         $zypper_migration_error,        $zypper_migration_conflict,
+        $zypper_migration_fileconflict, $zypper_migration_notification, $zypper_migration_failed
+    ];
+    my $out = wait_serial($migration_checks, $timeout);
     while ($out) {
         if ($out =~ $zypper_migration_target) {
             my $version = get_var("VERSION");
@@ -57,7 +54,11 @@ sub run() {
             send_key "y";
             send_key "ret";
         }
-        elsif ($out =~ $zypper_migration_error || $out =~ $zypper_migration_conflict || $out =~ $zypper_migration_fileconflict || $out =~ $zypper_migration_failed) {
+        elsif ($out =~ $zypper_migration_error
+            || $out =~ $zypper_migration_conflict
+            || $out =~ $zypper_migration_fileconflict
+            || $out =~ $zypper_migration_failed)
+        {
             $self->result('fail');
             save_screenshot;
             return;

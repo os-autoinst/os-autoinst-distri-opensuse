@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add test for the snapshots created during upgrade
-# G-Maintainer: Imobach González Sosa <igonzalezsosa@suse.com>
+# Summary: Test for the snapshots created during upgrade
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base 'consoletest';
 use strict;
@@ -23,11 +23,13 @@ sub run() {
 
     script_run("snapper list | tee /dev/$serialdev", 0);
     # Check if the snapshot called 'before update' is there
-    wait_serial('pre\s*(\|[^|]*){4}\s*\|\s*number\s*\|\s*before update\s*\|\s*important=yes', 5) || die 'upgrade snapshots test failed';
+    wait_serial('pre\s*(\|[^|]*){4}\s*\|\s*number\s*\|\s*before update\s*\|\s*important=yes', 5)
+      || die 'upgrade snapshots test failed';
 
     script_run("snapper list | tee /dev/$serialdev", 0);
     # Check if the snapshot called 'after update' is there
-    wait_serial('post\s*(\|[^|]*){4}\s*\|\s*number\s*\|\s*after update\s*\|\s*important=yes', 5) || die 'upgrade snapshots test failed';
+    wait_serial('post\s*(\|[^|]*){4}\s*\|\s*number\s*\|\s*after update\s*\|\s*important=yes', 5)
+      || die 'upgrade snapshots test failed';
 }
 
 sub test_flags() {

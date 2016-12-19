@@ -7,8 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Live Patching regression testsuite
-# G-Maintainer: Ondřej Súkup <osukup@suse.cz>
+# Summary: Live Patching regression testsuite
+# Maintainer: Ondřej Súkup <osukup@suse.cz>
 
 use base 'opensusebasetest';
 use testapi;
@@ -101,7 +101,11 @@ sub run() {
 
     # TODO . it needs patchinfo and definition of patch
     #patch system
-    zypper_call(qq{in -l -y -t patch \$(zypper patches | awk -F "|" '/test-kgraft/ { print \$2;}')}, exitcode => [0, 102, 103], log => 'zypper.log');
+    zypper_call(
+        qq{in -l -y -t patch \$(zypper patches | awk -F "|" '/test-kgraft/ { print \$2;}')},
+        exitcode => [0, 102, 103],
+        log      => 'zypper.log'
+    );
 
     zypper_call("rr test-kgraft");
 

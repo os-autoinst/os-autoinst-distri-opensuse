@@ -6,15 +6,10 @@
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
-#
-# Test description: In fips mode, openssl only works with the FIPS
-# approved Cihper algorithms: AES and DES3
 
-# G-Summary: Add Hash and Cipher test cases for openssl-fips
-#    A new test suite is created for FIPS_TS, named "core", which will
-#    contain all the basic test cases for fips verificaton. Just like
-#    the cases to verify opessl hash, cipher, or public key algorithms
-# G-Maintainer: Qingming Su <qingming.su@suse.com>
+# Summary: FIPS: In fips mode, openssl only works with the FIPS
+#   approved Cihper algorithms: AES and DES3
+# Maintainer: Qingming Su <qingming.su@suse.com>
 
 use base "consoletest";
 use testapi;
@@ -48,7 +43,9 @@ sub run() {
         push @invalid_cipher, "des-ede";
     }
     for my $cipher (@invalid_cipher) {
-        validate_script_output "openssl enc -$cipher -e -in $file_raw -out $file_enc -k $enc_passwd -md $hash_alg 2>&1 | tee", sub { m/disabled for fips|unknown option/ };
+        validate_script_output
+          "openssl enc -$cipher -e -in $file_raw -out $file_enc -k $enc_passwd -md $hash_alg 2>&1 | tee",
+          sub { m/disabled for fips|unknown option/ };
     }
 
     script_run 'cd - && rm -rf fips-test';

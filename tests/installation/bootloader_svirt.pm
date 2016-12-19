@@ -166,9 +166,24 @@ sub run() {
         $protocol_type = 'raw';
         $source        = 1;
     }
-    $svirt->add_pty({pty_dev => 'console', pty_dev_type => $pty_dev_type, target_type => $console_target_type, target_port => '0', protocol_type => $protocol_type, source => $source});
+    $svirt->add_pty(
+        {
+            pty_dev       => 'console',
+            pty_dev_type  => $pty_dev_type,
+            target_type   => $console_target_type,
+            target_port   => '0',
+            protocol_type => $protocol_type,
+            source        => $source
+        });
     if (!($vmm_family eq 'xen' && $vmm_type eq 'linux')) {
-        $svirt->add_pty({pty_dev => 'serial', pty_dev_type => $pty_dev_type, target_port => '0', protocol_type => $protocol_type, source => $source});
+        $svirt->add_pty(
+            {
+                pty_dev       => 'serial',
+                pty_dev_type  => $pty_dev_type,
+                target_port   => '0',
+                protocol_type => $protocol_type,
+                source        => $source
+            });
     }
 
     $svirt->add_vnc({port => get_var('VIRSH_INSTANCE', 1) + 5900});

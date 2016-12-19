@@ -73,7 +73,8 @@ sub run {
     }
 
     if (get_var('SLENKINS_INSTALL')) {
-        $conf_script .= "zypper -n --no-gpg-checks in " . join(' ', split(/[\s,]+/, get_var('SLENKINS_INSTALL'))) . "\n";
+        $conf_script
+          .= "zypper -n --no-gpg-checks in " . join(' ', split(/[\s,]+/, get_var('SLENKINS_INSTALL'))) . "\n";
     }
 
     $conf_script .= "

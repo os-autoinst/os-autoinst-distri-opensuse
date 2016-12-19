@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Clear unneed repos before updating for Staging Project
-# G-Maintainer: Max Lin <mlin@suse.com>
+# Summary: Clear unneed repos before updating for Staging Project
+# Maintainer: Max Lin <mlin@suse.com>
 
 use base "consoletest";
 use strict;
@@ -21,7 +21,10 @@ sub run() {
 
     # remove Factory repos
     my $repos_folder = '/etc/zypp/repos.d';
-    assert_script_run("find $repos_folder/*.repo -type f -exec grep -q 'baseurl=http://download.opensuse.org/' {} \\; -delete && echo 'unneed_repos_removed' > /dev/$serialdev", 15);
+    assert_script_run(
+"find $repos_folder/*.repo -type f -exec grep -q 'baseurl=http://download.opensuse.org/' {} \\; -delete && echo 'unneed_repos_removed' > /dev/$serialdev",
+        15
+    );
     script_run("zypper lr -d");
     save_screenshot;    # take a screenshot after repos removed
 

@@ -25,7 +25,6 @@ our @EXPORT = qw(
   chromiumstep_is_applicable
   gnomestep_is_applicable
   installyaststep_is_applicable
-  bigx11step_is_applicable
   noupdatestep_is_applicable
   kdestep_is_applicable
   consolestep_is_applicable
@@ -210,10 +209,6 @@ sub gnomestep_is_applicable {
 
 sub installyaststep_is_applicable {
     return !get_var("NOINSTALL") && !get_var("RESCUECD") && !get_var("ZDUP");
-}
-
-sub bigx11step_is_applicable {
-    return get_var("BIGTEST");
 }
 
 sub noupdatestep_is_applicable {

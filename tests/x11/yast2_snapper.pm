@@ -72,7 +72,8 @@ sub run() {
     # ensure the last screenshots are visible
     send_key 'pgdn';
     # Make sure the test snapshot is not there
-    die("Unexpected snapshot found") if (check_screen([qw(yast2_snapper-new_snapshot yast2_snapper-new_snapshot_selected)], 1));
+    die("Unexpected snapshot found")
+      if (check_screen([qw(yast2_snapper-new_snapshot yast2_snapper-new_snapshot_selected)], 1));
 
     # Create a new snapshot
     $self->y2snapper_create_snapshot();

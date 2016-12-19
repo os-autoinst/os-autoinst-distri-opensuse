@@ -14,7 +14,7 @@
 use base "console_yasttest";
 use strict;
 use testapi;
-use utils qw/zypper_call/;
+use utils qw(zypper_call);
 
 sub run() {
     select_console 'root-console';
@@ -24,6 +24,11 @@ sub run() {
     assert_script_run "yast2 clone_system", 200;
 
     # Check and upload profile for chained tests
+    assert_script_run(
+        "test -f /root/autoinst.xml",
+        timeout      => 20,
+        fail_message => 'File /root/autoinst.xml could not be found'
+    );
     upload_asset "/root/autoinst.xml";
     assert_script_run "xmllint --noout --relaxng /usr/share/YaST2/schema/autoyast/rng/profile.rng /root/autoinst.xml";
 

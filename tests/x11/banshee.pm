@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: work on improving the delta between openSUSE and sle
-# G-Maintainer: Stephan Kulow <coolo@suse.de>
+# Summary: Banshee starts up
+# Maintainer: Stephan Kulow <coolo@suse.de>
 
 use base "basetest";
 use strict;
@@ -27,7 +27,15 @@ sub run() {
 sub ocr_checklist() {
     [
 
-        {screenshot => 1, x => 8, y => 150, xs => 140, ys => 380, pattern => "(?si:Vide.s.*Fav.rites.*Unwatched)", result => "OK"}];
+        {
+            screenshot => 1,
+            x          => 8,
+            y          => 150,
+            xs         => 140,
+            ys         => 380,
+            pattern    => "(?si:Vide.s.*Fav.rites.*Unwatched)",
+            result     => "OK"
+        }];
 }
 
 1;

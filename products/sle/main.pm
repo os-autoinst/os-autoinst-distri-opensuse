@@ -189,7 +189,13 @@ if (is_update_test_repo_test && !get_var('MAINT_TEST_REPO')) {
 $needle::cleanuphandler = \&cleanup_needles;
 
 # dump other important ENV:
-logcurrentenv(qw(ADDONURL BIGTEST BTRFS DESKTOP HW HWSLOT LVM MOZILLATEST NOINSTALL REBOOTAFTERINSTALL UPGRADE USBBOOT ZDUP ZDUPREPOS TEXTMODE DISTRI NOAUTOLOGIN QEMUCPU QEMUCPUS RAIDLEVEL ENCRYPT INSTLANG QEMUVGA DOCRUN UEFI DVD GNOME KDE ISO ISO_MAXSIZE NETBOOT USEIMAGES PROMO QEMUVGA SPLITUSR VIDEOMODE));
+logcurrentenv(
+    qw(ADDONURL BTRFS DESKTOP HW HWSLOT LVM MOZILLATEST
+      NOINSTALL REBOOTAFTERINSTALL UPGRADE USBBOOT ZDUP ZDUPREPOS TEXTMODE
+      DISTRI NOAUTOLOGIN QEMUCPU QEMUCPUS RAIDLEVEL ENCRYPT INSTLANG
+      QEMUVGA DOCRUN UEFI DVD GNOME KDE ISO ISO_MAXSIZE NETBOOT USEIMAGES
+      PROMO QEMUVGA SPLITUSR VIDEOMODE)
+);
 
 
 sub need_clear_repos() {
@@ -201,7 +207,11 @@ sub have_scc_repos() {
 }
 
 sub have_addn_repos() {
-    return !get_var("NET") && !get_var("EVERGREEN") && get_var("SUSEMIRROR") && !get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/;
+    return
+         !get_var("NET")
+      && !get_var("EVERGREEN")
+      && get_var("SUSEMIRROR")
+      && !get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/;
 }
 
 sub rt_is_applicable() {
@@ -209,7 +219,8 @@ sub rt_is_applicable() {
 }
 
 sub we_is_applicable() {
-    return is_server() && (get_var("ADDONS", "") =~ /we/ or get_var("SCC_ADDONS", "") =~ /we/ or get_var("ADDONURL", "") =~ /we/);
+    return is_server()
+      && (get_var("ADDONS", "") =~ /we/ or get_var("SCC_ADDONS", "") =~ /we/ or get_var("ADDONURL", "") =~ /we/);
 }
 
 sub uses_qa_net_hardware() {
@@ -429,7 +440,12 @@ sub load_inst_tests() {
     }
     loadtest "installation/addon_products_sle";
     if (noupdatestep_is_applicable()) {
-        if (check_var('ARCH', 'x86_64') && sle_version_at_least('12-SP2') && is_server() && (!is_sles4sap() || is_sles4sap_standard()) && install_this_version()) {
+        if (   check_var('ARCH', 'x86_64')
+            && sle_version_at_least('12-SP2')
+            && is_server()
+            && (!is_sles4sap() || is_sles4sap_standard())
+            && install_this_version())
+        {
             loadtest "installation/system_role";
         }
         loadtest "installation/partitioning";
@@ -473,7 +489,11 @@ sub load_inst_tests() {
         loadtest "installation/installer_timezone";
         # the test should run only in scenarios, where installed
         # system is not being tested (e.g. INSTALLONLY etc.)
-        if (!consolestep_is_applicable() and !get_var("REMOTE_CONTROLLER") and !check_var('BACKEND', 's390x') and sle_version_at_least('12-SP2')) {
+        if (    !consolestep_is_applicable()
+            and !get_var("REMOTE_CONTROLLER")
+            and !check_var('BACKEND', 's390x')
+            and sle_version_at_least('12-SP2'))
+        {
             loadtest "installation/hostname_inst";
         }
         if (!get_var("REMOTE_CONTROLLER")) {
@@ -634,12 +654,6 @@ sub load_consoletests() {
         }
         loadtest "console/sshd";
         loadtest "console/ssh_cleanup";
-        if (get_var("BIGTEST")) {
-            loadtest "console/sntp";
-            loadtest "console/curl_ipv6";
-            loadtest "console/wget_ipv6";
-            loadtest "console/syslinux";
-        }
         loadtest "console/mtab";
 
         if (is_new_installation && sle_version_at_least('12-SP2')) {
@@ -686,7 +700,12 @@ sub load_consoletests() {
 }
 
 sub load_yast2_gui_tests() {
-    return unless (!get_var("INSTALLONLY") && is_desktop_installed() && !get_var("DUALBOOT") && !get_var("RESCUECD") && get_var("Y2UITEST"));
+    return
+      unless (!get_var("INSTALLONLY")
+        && is_desktop_installed()
+        && !get_var("DUALBOOT")
+        && !get_var("RESCUECD")
+        && get_var("Y2UITEST"));
 
     loadtest "yast2_gui/yast2_control_center";
     loadtest "yast2_gui/yast2_bootloader";
@@ -748,7 +767,8 @@ sub load_extra_test () {
     loadtest "console/openvswitch";
     loadtest "console/git";
     loadtest "console/java";
-
+    loadtest "console/curl_ipv6";
+    loadtest "console/wget_ipv6";
     # finished console test and back to desktop
     loadtest "console/consoletest_finish";
 
@@ -759,7 +779,12 @@ sub load_extra_test () {
 }
 
 sub load_x11tests() {
-    return unless (!get_var("INSTALLONLY") && is_desktop_installed() && !get_var("DUALBOOT") && !get_var("RESCUECD") && !get_var("HACLUSTER"));
+    return
+      unless (!get_var("INSTALLONLY")
+        && is_desktop_installed()
+        && !get_var("DUALBOOT")
+        && !get_var("RESCUECD")
+        && !get_var("HACLUSTER"));
 
     if (is_smt()) {
         loadtest "x11/smt";
@@ -779,9 +804,6 @@ sub load_x11tests() {
         loadtest "x11/kate";
     }
     loadtest "x11/firefox";
-    if (bigx11step_is_applicable()) {
-        loadtest "x11/firefox_stress";
-    }
     if (get_var("MOZILLATEST")) {
         loadtest "x11/mozmill_run";
     }
@@ -809,9 +831,7 @@ sub load_x11tests() {
     if (gnomestep_is_applicable() && get_var("GNOME2")) {
         loadtest "x11/application_browser";
     }
-    if (bigx11step_is_applicable()) {
-        loadtest "x11/glxgears";
-    }
+    loadtest "x11/glxgears";
     if (kdestep_is_applicable()) {
         loadtest "x11/amarok";
         loadtest "x11/kontact";
