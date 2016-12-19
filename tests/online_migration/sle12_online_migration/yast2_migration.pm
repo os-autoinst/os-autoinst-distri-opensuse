@@ -33,7 +33,7 @@ sub run {
         become_root;
     }
 
-    script_run("/sbin/yast2 migration; echo yast2-migration-done-\$? > /dev/$serialdev", 0);
+    script_run("yast2 migration; echo yast2-migration-done-\$? > /dev/$serialdev", 0);
 
     # yast2 migration would check and install minimal update before migration
     # if the system doesn't perform full update or minimal update
