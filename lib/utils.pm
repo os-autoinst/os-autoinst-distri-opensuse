@@ -15,7 +15,6 @@ our @EXPORT = qw(
   type_string_slow
   type_string_very_slow
   unlock_if_encrypted
-  wait_boot
   prepare_system_reboot
   get_netboot_mirror
   zypper_call
@@ -67,121 +66,6 @@ sub turn_off_kde_screensaver() {
     }
     assert_screen 'screenlock-disabled';
     send_key("alt-o");
-}
-
-# makes sure bootloader appears and then boots to desktop resp text
-# mode. Handles unlocking encrypted disk if needed.
-# arguments: bootloader_time => seconds # now long to wait for bootloader to appear
-sub wait_boot {
-    my %args            = @_;
-    my $bootloader_time = $args{bootloader_time} // 100;
-    my $textmode        = $args{textmode};
-    my $ready_time      = $args{ready_time} // 200;
-
-
-    # TODO how to register a post fail hook action here in general? E.g. in
-    # case the system is stuck in shutting down as in
-    # https://openqa.suse.de/tests/621517 or previous
-
-    # Reset the consoles after the reboot: there is no user logged in anywhere
-    reset_consoles;
-
-    if (get_var("OFW")) {
-        assert_screen "bootloader-ofw", $bootloader_time;
-    }
-    # reconnect s390
-    elsif (check_var('ARCH', 's390x')) {
-        my $login_ready = qr/Welcome to SUSE Linux Enterprise Server.*\(s390x\)/;
-        if (check_var('BACKEND', 's390x')) {
-
-            console('x3270')->expect_3270(
-                output_delim => $login_ready,
-                timeout      => 300
-            );
-
-            # give the system time to have routes up
-            # and start serial grab again
-            sleep 30;
-            select_console('iucvconn');
-        }
-        else {
-            wait_serial($login_ready, 300);
-        }
-
-        # on z/(K)VM we need to re-select a console
-        if ($textmode || check_var('DESKTOP', 'textmode')) {
-            select_console('root-console');
-        }
-        else {
-            select_console('x11');
-        }
-    }
-    # On Xen PV and svirt we don't see a Grub menu
-    elsif (!(check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux') && check_var('BACKEND', 'svirt'))) {
-        my @tags = ('grub2');
-        push @tags, 'bootloader-shim-import-prompt' if get_var('UEFI');
-        push @tags, 'boot-live-' . get_var('DESKTOP')
-          if get_var('LIVETEST');    # LIVETEST won't to do installation and no grub2 menu show up
-        if (get_var('ONLINE_MIGRATION')) {
-            push @tags, 'migration-source-system-grub2';
-        }
-        check_screen(\@tags, $bootloader_time);
-        if (match_has_tag("bootloader-shim-import-prompt")) {
-            send_key "down";
-            send_key "ret";
-            assert_screen "grub2", 15;
-        }
-        elsif (match_has_tag("migration-source-system-grub2") or match_has_tag('grub2')) {
-            send_key "ret";          # boot to source system
-        }
-        elsif (get_var("LIVETEST")) {
-            # prevent if one day booting livesystem is not the first entry of the boot list
-            if (!match_has_tag("boot-live-" . get_var("DESKTOP"))) {
-                send_key_until_needlematch("boot-live-" . get_var("DESKTOP"), 'down', 10, 5);
-            }
-            send_key "ret";
-        }
-        elsif (!match_has_tag("grub2")) {
-            # check_screen timeout
-            die "needle 'grub2' not found";
-        }
-    }
-
-    unlock_if_encrypted;
-
-    if ($textmode || check_var('DESKTOP', 'textmode')) {
-        assert_screen 'linux-login', $ready_time;
-        reset_consoles;
-
-        # Without this login name and password won't get to the system. They get
-        # lost somewhere. Applies for all systems installed via svirt, but zKVM.
-        if (check_var('BACKEND', 'svirt') and !check_var('ARCH', 's390x')) {
-            wait_idle;
-        }
-
-        return;
-    }
-
-    mouse_hide();
-
-    if (get_var("NOAUTOLOGIN") || get_var("XDMUSED")) {
-        assert_screen 'displaymanager', $ready_time;
-        wait_idle;
-        if (get_var('DM_NEEDS_USERNAME')) {
-            type_string "$username\n";
-        }
-        # log in
-        #assert_screen "dm-password-input", 10;
-        elsif (check_var('DESKTOP', 'gnome')) {
-            # In GNOME/gdm, we do not have to enter a username, but we have to select it
-            send_key 'ret';
-        }
-        assert_screen 'displaymanager-password-prompt';
-        type_password $password. "\n";
-    }
-
-    assert_screen 'generic-desktop', $ready_time + 100;
-    mouse_hide(1);
 }
 
 # 'ctrl-l' does not get queued up in buffer. If this happens to fast, the
@@ -782,8 +666,9 @@ sub validate_repos {
 }
 
 sub setup_online_migration {
+    my ($self) = @_;
     # if source system is minimal installation then boot to textmode
-    wait_boot textmode => !is_desktop_installed;
+    $self->wait_boot(textmode => !is_desktop_installed);
     select_console 'root-console';
 
     # stop packagekit service

@@ -7,6 +7,12 @@ use strict;
 
 # Base class for all openSUSE tests
 
+sub new {
+    my ($class, $args) = @_;
+    my $self = $class->SUPER::new($args);
+    $self->{in_wait_boot} = 0;
+    return $self;
+}
 
 # Additional to backend testapi 'clear-console' we do a needle match to ensure
 # continuation only after verification
@@ -186,6 +192,135 @@ sub export_kde_logs {
         }
         save_screenshot;
     }
+}
+
+# makes sure bootloader appears and then boots to desktop resp text
+# mode. Handles unlocking encrypted disk if needed.
+# arguments: bootloader_time => seconds # now long to wait for bootloader to appear
+sub wait_boot {
+    my ($self, %args) = @_;
+    my $bootloader_time = $args{bootloader_time} // 100;
+    my $textmode        = $args{textmode};
+    my $ready_time      = $args{ready_time} // 200;
+
+    # used to register a post fail hook being active while we are waiting for
+    # boot to be finished to help investigate in case the system is stuck in
+    # shutting down or booting up
+    $self->{in_wait_boot} = 1;
+
+    # Reset the consoles after the reboot: there is no user logged in anywhere
+    reset_consoles;
+
+    if (get_var("OFW")) {
+        assert_screen "bootloader-ofw", $bootloader_time;
+    }
+    # reconnect s390
+    elsif (check_var('ARCH', 's390x')) {
+        my $login_ready = qr/Welcome to SUSE Linux Enterprise Server.*\(s390x\)/;
+        if (check_var('BACKEND', 's390x')) {
+
+            console('x3270')->expect_3270(
+                output_delim => $login_ready,
+                timeout      => $ready_time + 100
+            );
+
+            # give the system time to have routes up
+            # and start serial grab again
+            sleep 30;
+            select_console('iucvconn');
+        }
+        else {
+            wait_serial($login_ready, $ready_time + 100);
+        }
+
+        # on z/(K)VM we need to re-select a console
+        if ($textmode || check_var('DESKTOP', 'textmode')) {
+            select_console('root-console');
+        }
+        else {
+            select_console('x11');
+        }
+    }
+    # On Xen PV and svirt we don't see a Grub menu
+    elsif (!(check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux') && check_var('BACKEND', 'svirt'))) {
+        my @tags = ('grub2');
+        push @tags, 'bootloader-shim-import-prompt'   if get_var('UEFI');
+        push @tags, 'boot-live-' . get_var('DESKTOP') if get_var('LIVETEST');    # LIVETEST won't to do installation and no grub2 menu show up
+        if (get_var('ONLINE_MIGRATION')) {
+            push @tags, 'migration-source-system-grub2';
+        }
+        check_screen(\@tags, $bootloader_time);
+        if (match_has_tag("bootloader-shim-import-prompt")) {
+            send_key "down";
+            send_key "ret";
+            assert_screen "grub2", 15;
+        }
+        elsif (match_has_tag("migration-source-system-grub2") or match_has_tag('grub2')) {
+            send_key "ret";                                                      # boot to source system
+        }
+        elsif (get_var("LIVETEST")) {
+            # prevent if one day booting livesystem is not the first entry of the boot list
+            if (!match_has_tag("boot-live-" . get_var("DESKTOP"))) {
+                send_key_until_needlematch("boot-live-" . get_var("DESKTOP"), 'down', 10, 5);
+            }
+            send_key "ret";
+        }
+        elsif (!match_has_tag("grub2")) {
+            # check_screen timeout
+            die "needle 'grub2' not found";
+        }
+    }
+
+    unlock_if_encrypted;
+
+    if ($textmode || check_var('DESKTOP', 'textmode')) {
+        assert_screen 'linux-login', $ready_time;
+        reset_consoles;
+
+        # Without this login name and password won't get to the system. They get
+        # lost somewhere. Applies for all systems installed via svirt, but zKVM.
+        if (check_var('BACKEND', 'svirt') and !check_var('ARCH', 's390x')) {
+            wait_idle;
+        }
+
+        $self->{in_wait_boot} = 0;
+        return;
+    }
+
+    mouse_hide();
+
+    if (get_var("NOAUTOLOGIN") || get_var("XDMUSED")) {
+        assert_screen 'displaymanager', $ready_time;
+        wait_idle;
+        if (get_var('DM_NEEDS_USERNAME')) {
+            type_string "$username\n";
+        }
+        # log in
+        #assert_screen "dm-password-input", 10;
+        elsif (check_var('DESKTOP', 'gnome')) {
+            # In GNOME/gdm, we do not have to enter a username, but we have to select it
+            send_key 'ret';
+        }
+        assert_screen 'displaymanager-password-prompt';
+        type_password $password. "\n";
+    }
+
+    assert_screen 'generic-desktop', $ready_time + 100;
+    mouse_hide(1);
+    $self->{in_wait_boot} = 0;
+}
+
+# useful post_fail_hook for any module that calls wait_boot
+#
+# we could use the same approach in all cases of boot/reboot/shutdown in case
+# of wait_boot, e.g. see `git grep -l reboot | xargs grep -L wait_boot`
+sub post_fail_hook {
+    my ($self) = @_;
+    return unless $self->{in_wait_boot};
+    # In case the system is stuck in shutting down or during boot up, press
+    # 'esc' just in case the plymouth splash screen is shown and we can not
+    # see any interesting console logs.
+    send_key 'esc';
 }
 
 1;

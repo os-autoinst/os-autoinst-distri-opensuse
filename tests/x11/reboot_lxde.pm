@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: rename reboot_*_pre to reboot_* - the reboot.pm just contained one line
-# G-Maintainer: Stephan Kulow <coolo@suse.de>
+# Summary: Reboot from LXDE environment
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "opensusebasetest";
 use strict;
@@ -17,6 +17,7 @@ use testapi;
 use utils;
 
 sub run() {
+    my ($self) = @_;
     wait_idle;
 
     #send_key "ctrl-alt-delete"; # does open task manager instead of reboot
@@ -25,12 +26,13 @@ sub run() {
     send_key "tab";    # reboot
     save_screenshot;
     send_key "ret";    # confirm
-    wait_boot;
+    $self->wait_boot;
 }
 
 sub test_flags() {
     return {important => 1, milestone => 1};
 }
+
 1;
 
 # vim: set sw=4 et:

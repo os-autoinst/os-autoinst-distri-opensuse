@@ -33,7 +33,7 @@ sub test_suite {
 
 sub system_login {
     my $self = shift;
-    wait_boot;
+    $self->wait_boot;
     select_console('root-console');
 }
 

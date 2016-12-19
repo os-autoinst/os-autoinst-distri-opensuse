@@ -18,7 +18,6 @@
 use base "opensusebasetest";
 use strict;
 use testapi;
-use utils 'wait_boot';
 
 sub run() {
     my $self = shift;
@@ -39,7 +38,7 @@ sub run() {
     type_string "zypper ps|grep 'PPID' || echo OK | tee /dev/$serialdev\n";
     if (!wait_serial("OK", 100)) {
         type_string "shutdown -r now\n";
-        wait_boot;
+        $self->wait_boot;
         select_console('root-console');
     }
     save_screenshot;

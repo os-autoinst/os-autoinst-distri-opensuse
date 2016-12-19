@@ -7,15 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add sle12 online migration testsuite
-#    Fixes follow up by the comments
-#
-#    Apply fully patch system function
-#
-#    Fix typo and remove redundant comment
-#
-#    Remove a unnecessary line
-# G-Maintainer: mitiao <mitiao@gmail.com>
+# Summary: Fully patch the system before conducting an online migration
+# Maintainer: mitiao <mitiao@gmail.com>
 
 use base "consoletest";
 use strict;
@@ -23,12 +16,12 @@ use testapi;
 use utils;
 
 sub run() {
-    my $self = shift;
+    my ($self) = @_;
     select_console 'root-console';
 
     fully_patch_system;
     type_string "reboot\n";
-    setup_online_migration;
+    $self->setup_online_migration;
 }
 
 sub test_flags() {

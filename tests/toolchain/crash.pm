@@ -23,6 +23,7 @@ sub install_kernel_debuginfo {
 }
 
 sub run() {
+    my ($self) = @_;
     select_console('root-console');
 
     # disable packagekitd
@@ -56,7 +57,7 @@ sub run() {
 
     # restart to get rid of potential screen disruptions from previous test
     script_run 'reboot', 0;
-    wait_boot;
+    $self->wait_boot;
     select_console 'root-console';
 
     # activate kdump
@@ -71,7 +72,7 @@ sub run() {
         wait_screen_change { send_key 'alt-i' } if match_has_tag('yast2-missing_package');
     } until (match_has_tag('yast2_console-finished'));
     script_run 'reboot', 0;
-    wait_boot;
+    $self->wait_boot;
     select_console 'root-console';
 
     # make sure kdump is enabled after reboot
@@ -81,7 +82,7 @@ sub run() {
     script_run "echo c > /proc/sysrq-trigger", 0;
 
     # wait for system's reboot
-    wait_boot;
+    $self->wait_boot;
     select_console 'root-console';
 
     # all but PPC64LE arch's vmlinux images are gzipped

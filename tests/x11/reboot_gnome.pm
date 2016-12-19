@@ -17,6 +17,7 @@ use testapi;
 use utils;
 
 sub run() {
+    my ($self) = @_;
     wait_still_screen;
     send_key_until_needlematch 'logoutdialog', 'ctrl-alt-delete', 7, 10;    # reboot
     assert_and_click 'logoutdialog-reboot-highlighted';
@@ -60,11 +61,12 @@ sub run() {
     }
     workaround_type_encrypted_passphrase;
     # the shutdown sometimes hangs longer, so give it time
-    wait_boot bootloader_time => 300;
+    $self->wait_boot(bootloader_time => 300);
 }
 
 sub post_fail_hook {
-    my $self = shift;
+    my ($self) = @_;
+    $self->SUPER::post_fail_hook;
     $self->export_logs;
 }
 

@@ -18,6 +18,7 @@ use testapi;
 use utils;
 
 sub run() {
+    my ($self)        = @_;
     my $loop_filename = 'loopfile';
     my $mount_point   = '/mnt/test';
     my $test_filename = 'file_in_crypted_volume';
@@ -72,7 +73,7 @@ sub run() {
     # reboot system with crypt file volume
     set_var("ENCRYPT", 1);
     script_run("reboot", 0);
-    wait_boot textmode => !is_desktop_installed;
+    $self->wait_boot(textmode => !is_desktop_installed);
 
     # check the crypt mount volume after reboot
     select_console 'root-console';

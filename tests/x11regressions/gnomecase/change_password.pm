@@ -43,6 +43,7 @@ sub logout_and_login {
 }
 
 sub reboot_system {
+    my ($self) = @_;
     wait_idle;
     send_key "ctrl-alt-delete";    #reboot
     assert_screen 'logoutdialog', 15;
@@ -51,7 +52,9 @@ sub reboot_system {
         type_password;
         assert_and_click "authenticate";
     }
+    $self->{await_reboot} = 1;
     assert_screen "displaymanager", 200;
+    $self->{await_reboot} = 0;
     send_key "ret";
     wait_still_screen;
     type_string "$newpwd\n";
@@ -112,7 +115,7 @@ sub run () {
     #verify changed password work well in the following scenario:
     lock_screen;
     logout_and_login;
-    reboot_system;
+    $self->reboot_system;
     #swtich to new added user then switch back
     switch_user;
     send_key "esc";
@@ -148,6 +151,12 @@ sub run () {
     assert_screen "user-test-deleted";
     send_key "alt-f4";
     send_key "ret";
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    # get rid of plymouth splash during reboot
+    send_key 'esc' if $self->{await_reboot};
 }
 
 1;

@@ -17,7 +17,7 @@
 #    x11 tests
 # Maintainer: Ondřej Súkup <osukup@suse.cz>
 
-use base "basetest";
+use base "opensusebasetest";
 
 use strict;
 
@@ -26,6 +26,7 @@ use qam;
 use testapi;
 
 sub run {
+    my ($self) = @_;
     select_console 'root-console';
 
     pkcon_quit;
@@ -46,7 +47,7 @@ sub run {
 
     prepare_system_reboot;
     type_string "reboot\n";
-    wait_boot;
+    $self->wait_boot;
 }
 
 sub test_flags {
@@ -54,6 +55,8 @@ sub test_flags {
 }
 
 sub post_fail_hook {
+    my ($self) = @_;
+    $self->SUPER::post_fail_hook;
     select_console('root-console');
 
     assert_script_run "save_y2logs /tmp/y2logs-fail.tar.bz2";

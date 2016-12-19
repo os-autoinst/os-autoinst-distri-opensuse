@@ -14,11 +14,10 @@ use 5.018;
 use warnings;
 use base 'opensusebasetest';
 use testapi;
-use utils;
 
 sub run {
     my $self = shift;
-    wait_boot;
+    $self->wait_boot;
 
     if (get_var('VIRTIO_CONSOLE')) {
         select_console('root-virtio-terminal');
