@@ -28,15 +28,16 @@ sub run() {
 
     # Email link
     send_key "alt-f";
+    wait_still_screen 3;
     send_key "e";
     assert_screen('firefox-email_link-welcome', 90);
 
     send_key $next_key;
 
-    wait_still_screen;
+    wait_still_screen 3;
     send_key $next_key;
 
-    wait_still_screen;
+    wait_still_screen 3;
     send_key "alt-a";
     type_string 'test@suse.com';
     send_key $next_key;
@@ -51,12 +52,12 @@ sub run() {
     type_string "test";
     if (sle_version_at_least('12-SP2')) {
         assert_and_click "evolution-option-next";
-        wait_still_screen;
+        wait_still_screen 3;
         assert_and_click "evolution-option-next";
     }
     else {
         send_key $next_key;
-        wait_still_screen;
+        wait_still_screen 3;
         send_key $next_key;
     }
 
@@ -67,7 +68,7 @@ sub run() {
         send_key $next_key;
     };
 
-    wait_still_screen;
+    wait_still_screen 3;
     if (sle_version_at_least('12-SP2')) {
         assert_and_click "evolution-option-next";
     }
@@ -75,7 +76,7 @@ sub run() {
         send_key $next_key;
     }
 
-    wait_still_screen;
+    wait_still_screen 3;
     send_key "alt-a";
 
     assert_screen('firefox-email_link-send');
