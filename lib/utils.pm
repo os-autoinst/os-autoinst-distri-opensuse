@@ -468,9 +468,10 @@ sub reboot_gnome {
         assert_screen 'reboot-auth';
         wait_still_screen 3;
         type_password undef, max_interval => 5;
-        assert_and_click 'reboot-auth-typed', 'right';    # Extra assert_and_click (with right click) to check the correct number of characters is typed and open up the 'show text' option
-        assert_and_click 'reboot-auth-showtext';          # Click the 'Show Text' Option to enable the display of the typed text
-        assert_screen 'reboot-auth-correct-password';     # Check the password is correct
+        assert_and_click 'reboot-auth-typed',
+          'right';    # Extra assert_and_click (with right click) to check the correct number of characters is typed and open up the 'show text' option
+        assert_and_click 'reboot-auth-showtext';         # Click the 'Show Text' Option to enable the display of the typed text
+        assert_screen 'reboot-auth-correct-password';    # Check the password is correct
 
         # we need to kill ssh for iucvconn here,
         # because after pressing return, the system is down
@@ -584,13 +585,19 @@ sub validatelr {
     # if the system is SLE 12 SP2 and later; enabled otherwise, see PR#11460 and
     # FATE#320494.
     my $enabled_repo = $args->{enabled_repo}
-      || (($args->{uri} =~ m{(cd|dvd|hd):///} and check_var('SCC_REGISTER', 'installation') and !check_var('VERSION', '12') and !check_var('VERSION', '12-SP1')) ? "No" : "Yes");
+      || (
+        ($args->{uri} =~ m{(cd|dvd|hd):///} and check_var('SCC_REGISTER', 'installation') and !check_var('VERSION', '12') and !check_var('VERSION', '12-SP1'))
+        ?
+        "No"
+        : "Yes"
+      );
     my $uri = $args->{uri};
 
     if (check_var('DISTRI', 'sle')) {
         # SLES12 does not have 'SLES12-Source-Pool' SCC channel
         unless (($version eq "12") and ($product_channel eq "Source-Pool")) {
-            assert_script_run "zypper lr --uri | awk -F '|' -v OFS=' ' '{ print \$2,\$3,\$4,\$NF }' | tr -s ' ' | grep \"$product$version\[\[:alnum:\]\[:punct:\]\]*-*$product_channel $product$version\[\[:alnum:\]\[:punct:\]\[:space:\]\]*-*$product_channel $enabled_repo $uri\"";
+            assert_script_run
+"zypper lr --uri | awk -F '|' -v OFS=' ' '{ print \$2,\$3,\$4,\$NF }' | tr -s ' ' | grep \"$product$version\[\[:alnum:\]\[:punct:\]\]*-*$product_channel $product$version\[\[:alnum:\]\[:punct:\]\[:space:\]\]*-*$product_channel $enabled_repo $uri\"";
         }
     }
 }

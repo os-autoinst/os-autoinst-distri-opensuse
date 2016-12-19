@@ -65,8 +65,10 @@ sub setup_apache2 {
     script_run 'for x in /etc/apache2/vhosts.d/*.conf; do mv $x ${x}.save; done';
     if ($mode eq "SSL") {
         assert_script_run 'cp /etc/apache2/vhosts.d/vhost-ssl.template /etc/apache2/vhosts.d/vhost-ssl.conf';
-        assert_script_run 'sed -i "s|\(^[[:space:]]*SSLCertificateFile\).*|\1 /etc/apache2/ssl.crt/$(hostname)-server.crt|g" /etc/apache2/vhosts.d/vhost-ssl.conf';
-        assert_script_run 'sed -i "s|\(^[[:space:]]*SSLCertificateKeyFile\).*|\1 /etc/apache2/ssl.key/$(hostname)-server.key|g" /etc/apache2/vhosts.d/vhost-ssl.conf';
+        assert_script_run
+          'sed -i "s|\(^[[:space:]]*SSLCertificateFile\).*|\1 /etc/apache2/ssl.crt/$(hostname)-server.crt|g" /etc/apache2/vhosts.d/vhost-ssl.conf';
+        assert_script_run
+          'sed -i "s|\(^[[:space:]]*SSLCertificateKeyFile\).*|\1 /etc/apache2/ssl.key/$(hostname)-server.key|g" /etc/apache2/vhosts.d/vhost-ssl.conf';
     }
     elsif ($mode =~ m/NSS/) {
         script_run 'grep "^Include .*mod_nss.d" /etc/apache2/conf.d/mod_nss.conf && touch /etc/apache2/mod_nss.d/test.conf';
@@ -78,8 +80,10 @@ sub setup_apache2 {
     else {
         assert_script_run 'cp /etc/apache2/vhosts.d/vhost.template /etc/apache2/vhosts.d/vhost.conf';
     }
-    assert_script_run 'sed -i -e "/^[[:space:]]*ServerAdmin/s/^/#/g" -e "/^[[:space:]]*ServerName/s/^/#/g" -e "/^[[:space:]]*DocumentRoot/s/^/#/g" /etc/apache2/vhosts.d/vhost*.conf';
-    assert_script_run 'sed -i "/^<VirtualHost/a ServerAdmin webmaster@$(hostname)\nServerName $(hostname)\nDocumentRoot /srv/www/htdocs/\n" /etc/apache2/vhosts.d/vhost*.conf';
+    assert_script_run
+'sed -i -e "/^[[:space:]]*ServerAdmin/s/^/#/g" -e "/^[[:space:]]*ServerName/s/^/#/g" -e "/^[[:space:]]*DocumentRoot/s/^/#/g" /etc/apache2/vhosts.d/vhost*.conf';
+    assert_script_run
+      'sed -i "/^<VirtualHost/a ServerAdmin webmaster@$(hostname)\nServerName $(hostname)\nDocumentRoot /srv/www/htdocs/\n" /etc/apache2/vhosts.d/vhost*.conf';
 
     # Start apache service
     script_run 'systemctl stop apache2';
@@ -87,7 +91,8 @@ sub setup_apache2 {
         assert_script_run "expect -c 'spawn systemctl start apache2; expect \"Enter SSL pass phrase for internal (NSS)\"; send \"$nsspasswd\\n\"; interact'";
     }
     elsif ($mode eq "NSSFIPS") {
-        assert_script_run "expect -c 'spawn systemctl start apache2; expect \"Enter SSL pass phrase for NSS FIPS 140-2 Certificate DB (NSS)\"; send \"$nsspasswd\\n\"; interact'";
+        assert_script_run
+"expect -c 'spawn systemctl start apache2; expect \"Enter SSL pass phrase for NSS FIPS 140-2 Certificate DB (NSS)\"; send \"$nsspasswd\\n\"; interact'";
     }
     else {
         assert_script_run 'systemctl start apache2';

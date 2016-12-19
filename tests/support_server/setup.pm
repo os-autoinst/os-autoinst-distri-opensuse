@@ -242,7 +242,12 @@ sub run {
     }
     if (exists $server_roles{qemuproxy}) {
         setup_http_server();
-        $setup_script .= "curl -f -v " . autoinst_url . "/data/supportserver/proxy.conf | sed -e 's|#AUTOINST_URL#|" . autoinst_url . "|g' >/etc/apache2/vhosts.d/proxy.conf\n";
+        $setup_script
+          .= "curl -f -v "
+          . autoinst_url
+          . "/data/supportserver/proxy.conf | sed -e 's|#AUTOINST_URL#|"
+          . autoinst_url
+          . "|g' >/etc/apache2/vhosts.d/proxy.conf\n";
         $setup_script .= "rcapache2 restart\n";
         push @mutexes, 'qemuproxy';
     }

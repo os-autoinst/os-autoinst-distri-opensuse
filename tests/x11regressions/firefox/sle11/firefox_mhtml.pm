@@ -111,11 +111,11 @@ sub run() {
     # send_key "ctrl-w"; # Close "Add-ons" Manager
     #
 
-    # send_key "ctrl-w"; # Close the only tab (exit)
-    # send_key "ret"; sleep 2; # confirm "save&quit"
-    # x11_start_program("xterm"); sleep 2;
-    # type_string "rm -f ~/.mozilla/firefox/*.default/prefs.js\n"; sleep 1; # Remove prefs.js to avoid browser remember default folder used by "Open File" window
-    # send_key "ctrl-d"; # Exit xterm
+   # send_key "ctrl-w"; # Close the only tab (exit)
+   # send_key "ret"; sleep 2; # confirm "save&quit"
+   # x11_start_program("xterm"); sleep 2;
+   # type_string "rm -f ~/.mozilla/firefox/*.default/prefs.js\n"; sleep 1; # Remove prefs.js to avoid browser remember default folder used by "Open File" window
+   # send_key "ctrl-d"; # Exit xterm
 
     send_key "alt-f4";
     sleep 1;                                 # Exit firefox

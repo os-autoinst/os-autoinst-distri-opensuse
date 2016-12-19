@@ -29,7 +29,8 @@ sub run() {
     my $host2ip = script_output("host -t A host2 | cut -d' ' -f4");
 
     barrier_wait("DRBD_INIT_" . $self->cluster_name);
-    assert_script_run q(awk -e '{print;}/startup {/{print "wfc-timeout 100;\ndegr-wfc-timeout 120;"};' /etc/drbd.d/global_common.conf >/tmp/global_common.conf && mv /tmp/global_common.conf /etc/drbd.d/global_common.conf);
+    assert_script_run
+q(awk -e '{print;}/startup {/{print "wfc-timeout 100;\ndegr-wfc-timeout 120;"};' /etc/drbd.d/global_common.conf >/tmp/global_common.conf && mv /tmp/global_common.conf /etc/drbd.d/global_common.conf);
     assert_script_run "curl -f -v " . autoinst_url . "/data/ha/drbd9.r0.res.template -o /etc/drbd.d/r0.res";
     assert_script_run q(sed -i 's/ADDR1/) . $host1ip . q(/' /etc/drbd.d/r0.res);
     assert_script_run q(sed -i 's/ADDR2/) . $host2ip . q(/' /etc/drbd.d/r0.res);

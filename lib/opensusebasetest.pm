@@ -69,7 +69,10 @@ sub problem_detection {
     clear_console;
 
     # Broken links
-    save_and_upload_log("find / -type d \\( -path /proc -o -path /run -o -path /.snapshots -o -path /var \\) -prune -o -xtype l -exec ls -l --color=always {} \\; -exec rpmquery -f {} \\;", "broken-symlinks.txt", {screenshot => 1, noupload => 1});
+    save_and_upload_log(
+"find / -type d \\( -path /proc -o -path /run -o -path /.snapshots -o -path /var \\) -prune -o -xtype l -exec ls -l --color=always {} \\; -exec rpmquery -f {} \\;",
+        "broken-symlinks.txt",
+        {screenshot => 1, noupload => 1});
     clear_console;
 
     # Binaries with missing libraries

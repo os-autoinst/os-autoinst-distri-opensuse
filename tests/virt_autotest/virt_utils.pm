@@ -54,7 +54,8 @@ sub setup_console_in_grub {
     my $grub_default_file = "/etc/default/grub";
     my $grub_cfg_file     = "/boot/grub2/grub.cfg";
 
-    my $cmd = "if [ -d /boot/grub2 ]; then cp $grub_default_file ${grub_default_file}.org; sed -ri '/GRUB_CMDLINE_(LINUX|LINUX_DEFAULT|XEN_DEFAULT)=/ {s/(console|com\\d+|loglevel|log_lvl|guest_loglvl)=[^ \"]*//g; /LINUX=/s/\"\$/ loglevel=5 console=$ipmi_console,115200 console=tty\"/;/XEN_DEFAULT=/ s/\"\$/ log_lvl=all guest_loglvl=all console=com2,115200\"/;}' $grub_default_file ; fi";
+    my $cmd
+      = "if [ -d /boot/grub2 ]; then cp $grub_default_file ${grub_default_file}.org; sed -ri '/GRUB_CMDLINE_(LINUX|LINUX_DEFAULT|XEN_DEFAULT)=/ {s/(console|com\\d+|loglevel|log_lvl|guest_loglvl)=[^ \"]*//g; /LINUX=/s/\"\$/ loglevel=5 console=$ipmi_console,115200 console=tty\"/;/XEN_DEFAULT=/ s/\"\$/ log_lvl=all guest_loglvl=all console=com2,115200\"/;}' $grub_default_file ; fi";
     script_run("$cmd");
     wait_idle 3;
     save_screenshot;
@@ -79,7 +80,8 @@ sub repl_repo_in_sourcefile() {
         $location =~ s/[\r\n]+$//;
         my $soucefile = "/usr/share/qa/virtautolib/data/" . "sources." . "$location";
         my $newrepo   = "ftp://openqa.suse.de/" . get_var("REPO_0");
-        my $shell_cmd = "if grep $veritem $soucefile >> /dev/null;then sed -i \"s#$veritem=.*#$veritem=$newrepo#\" $soucefile;else echo \"$veritem=$newrepo\" >> $soucefile;fi";
+        my $shell_cmd
+          = "if grep $veritem $soucefile >> /dev/null;then sed -i \"s#$veritem=.*#$veritem=$newrepo#\" $soucefile;else echo \"$veritem=$newrepo\" >> $soucefile;fi";
         assert_script_run($shell_cmd);
         assert_script_run("cat $soucefile");
     }

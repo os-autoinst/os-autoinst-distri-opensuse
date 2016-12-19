@@ -103,7 +103,11 @@ sub run() {
         # due to bug https://github.com/FreeRDP/FreeRDP/issues/3362 on WS 2008 R2 we
         # have to start xfreerdp without the /f option and toggle to fullscreen later.
         # Typing this string takes so long that we miss grub menu at all...
-        type_string "DISPLAY=:1 xfreerdp /u:" . get_var('HYPERV_USERNAME') . " /p:'" . get_var('HYPERV_PASSWORD') . "' /v:" . get_var('HYPERV_SERVER') . " /cert-ignore /jpeg /jpeg-quality:100 /fast-path:1 /bpp:32 /vmconnect:$vmguid[0]";
+        type_string "DISPLAY=:1 xfreerdp /u:"
+          . get_var('HYPERV_USERNAME') . " /p:'"
+          . get_var('HYPERV_PASSWORD') . "' /v:"
+          . get_var('HYPERV_SERVER')
+          . " /cert-ignore /jpeg /jpeg-quality:100 /fast-path:1 /bpp:32 /vmconnect:$vmguid[0]";
 
         $t->cmd("$ps Start-VM $name $wait");
         $t->close;
