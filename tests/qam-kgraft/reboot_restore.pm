@@ -49,7 +49,15 @@ sub run() {
     upload_logs("/tmp/var_log_qa_ctcs2.tar.gz");
 
     script_run("ssh-keygen -R qadb2.suse.de");
-    assert_script_run(qq{/usr/share/qa/tools/remote_qa_db_report.pl -L -b -T openqa -c "`uname -r -v`" -t patch:"$rrid" &> /tmp/submission.log }, 1800);
+    assert_script_run(
+        qq{/usr/share/qa/tools/remote_qa_db_report.pl
+                         -L
+                         -b
+                         -T openqa
+                         -c "`uname -r -v` `kgr -v patches | grep -B2 RPM | head -n1`"
+                         -t patch:"$rrid"
+                         &> /tmp/submission.log }, 1800
+    );
     script_run("cat /tmp/submission.log");
     save_screenshot;
     script_run(q{grep -o -E 'http:\/{2}.*\/submission\.php\?submission_id=[0-9]+' /tmp/submission.log > /tmp/submission_url.log});
