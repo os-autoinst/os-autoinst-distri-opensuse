@@ -22,8 +22,9 @@ sub run() {
     diag('fate#320597: Introduce \'zypper lifecycle\' to provide information about life cycle of individual products and packages');
     select_console 'user-console';
     my $overview = script_output 'zypper lifecycle', 300;
-    die "Missing header line"            unless $overview =~ /Product end of support/;
-    die "Missing link to lifecycle page" unless $overview =~ qr{\*\) See https://www.suse.com/lifecycle for latest information};
+    die "Missing header line" unless $overview =~ /Product end of support/;
+    die "Missing link to lifecycle page"
+      unless $overview =~ qr{\*\) See https://www.suse.com/lifecycle for latest information};
     # Compare to test data from
     # https://github.com/nadvornik/zypper-lifecycle/blob/master/test-data/SLES.lifecycle
     # from https://fate.suse.com/320597
@@ -78,7 +79,8 @@ sub run() {
     select_console 'user-console';
     # verify that package eol defaults to product eol
     $output = script_output "zypper lifecycle $package", 300;
-    die "$package lifecycle entry incorrect:'$output', expected: '/$package-\\S+\\s+$product_eol'" unless $output =~ /$package-\S+\s+$product_eol/;
+    die "$package lifecycle entry incorrect:'$output', expected: '/$package-\\S+\\s+$product_eol'"
+      unless $output =~ /$package-\S+\s+$product_eol/;
 
     # restore original data, if any
     select_console 'root-console';
@@ -94,11 +96,19 @@ sub run() {
     assert_script_run('zypper lifecycle --days 1', timeout => 300, fail_message => 'All packages supported tomorrow');
     $output = script_output 'zypper lifecycle --days 0', 300;
     die "'end of support' line not found" unless $output =~ /No (products|packages).*before/;
-    assert_script_run('zypper lifecycle --days 9999', timeout => 300, fail_message => 'No package should be supported for more than 20 years');
+    assert_script_run(
+        'zypper lifecycle --days 9999',
+        timeout      => 300,
+        fail_message => 'No package should be supported for more than 20 years'
+    );
     $output = script_output 'zypper lifecycle --days 9999', 300;
     die "Product 'end of support' line not found"         unless $output =~ /^Product end of support before/;
     die "Current product should not be supported anymore" unless $output =~ /$product_name\s+$product_eol/;
-    assert_script_run('zypper lifecycle --date $(date --iso-8601)', timeout => 300, fail_message => 'All packages should be supported as of today');
+    assert_script_run(
+        'zypper lifecycle --date $(date --iso-8601)',
+        timeout      => 300,
+        fail_message => 'All packages should be supported as of today'
+    );
 }
 
 sub test_flags() {

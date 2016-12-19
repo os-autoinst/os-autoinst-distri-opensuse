@@ -79,13 +79,15 @@ sub run() {
         get_image(\%img_h, 'minimal-3.4.0',   'minimal-3.4.0',   'linux32');
         get_image(\%img_h, 'jeos-4.0.0',      'jeos-4.0.0',      'linux32');
         get_image(\%img_h, 'graphical-3.4.0', 'graphical-4.0.0', 'linux32');
-        get_image(\%img_h, 'graphical-4.0.0', 'graphical-4.0.0', 'linux32', 's|</packages>|<package name=\"cryptsetup\"/><package name=\"liberation-fonts\"/></packages>|');
+        get_image(\%img_h, 'graphical-4.0.0', 'graphical-4.0.0', 'linux32',
+            's|</packages>|<package name=\"cryptsetup\"/><package name=\"liberation-fonts\"/></packages>|');
     }
     elsif (get_var('VERSION') =~ /^12/) {
         get_image(\%img_h, 'minimal-sles12-3.4.0',   'minimal-3.4.0');
         get_image(\%img_h, 'jeos-sles12-4.0.0',      'jeos-4.0.0');
         get_image(\%img_h, 'graphical-sles12-3.4.0', 'graphical-4.0.0');
-        get_image(\%img_h, 'graphical-sles12-4.0.0', 'graphical-4.0.0', '', 's|</packages>|<package name=\"cryptsetup\"/><package name=\"liberation-fonts\"/></packages>|');
+        get_image(\%img_h, 'graphical-sles12-4.0.0', 'graphical-4.0.0', '',
+            's|</packages>|<package name=\"cryptsetup\"/><package name=\"liberation-fonts\"/></packages>|');
     }
 
 

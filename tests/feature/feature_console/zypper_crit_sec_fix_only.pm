@@ -46,7 +46,9 @@ sub run() {
 
     # Make sure all critical security fixes are installed
     script_run "$zypper_patches | grep \"security .* critical\" | grep Installed | tee installed_sec_crit_fixes", 60;
-    assert_script_run 'test $(wc -l installed_sec_crit_fixes | cut -d" " -f1) -eq $(wc -l available_sec_crit_fixes | cut -d" " -f1)', 60, "Not all critical security fixes are installed";
+    assert_script_run
+      'test $(wc -l installed_sec_crit_fixes | cut -d" " -f1) -eq $(wc -l available_sec_crit_fixes | cut -d" " -f1)',
+      60, "Not all critical security fixes are installed";
 
     # Clearn up
     script_run "rm -f *sec_crit_fixes";

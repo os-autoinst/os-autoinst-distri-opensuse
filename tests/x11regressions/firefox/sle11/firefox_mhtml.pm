@@ -84,38 +84,9 @@ sub run() {
 
     # Restore and close
 
-    ###############################################################
     # There are too many trouble to restore the original status.
     # (See the codes below, they have been commented out)
     # So we simply remove the profiles (~/.mozilla/).
-    ###############################################################
-
-    # Remove the UnMHT extension
-    # send_key "ctrl-shift-a"; sleep 5; # "Add-ons" Manager
-    # send_key "ctrl-f"; sleep 1;
-    # type_string "unmht\n"; sleep 2; # Search
-    # for (1...5){
-    #    send_key "tab";sleep 1;
-    # }
-    # send_key "left"; # Select "My Add-ons"
-    # send_key "tab"; send_key "down";
-    # for (1...4){
-    #     send_key "tab"; sleep 1;
-    # }
-    # send_key "spc"; sleep 1;# Remove
-    # send_key "ctrl-f"; sleep 1;
-    # for (1...5){
-    #     send_key "tab";sleep 1;
-    # }
-    # send_key "right";
-    # send_key "ctrl-w"; # Close "Add-ons" Manager
-    #
-
-    # send_key "ctrl-w"; # Close the only tab (exit)
-    # send_key "ret"; sleep 2; # confirm "save&quit"
-    # x11_start_program("xterm"); sleep 2;
-    # type_string "rm -f ~/.mozilla/firefox/*.default/prefs.js\n"; sleep 1; # Remove prefs.js to avoid browser remember default folder used by "Open File" window
-    # send_key "ctrl-d"; # Exit xterm
 
     send_key "alt-f4";
     sleep 1;                                 # Exit firefox

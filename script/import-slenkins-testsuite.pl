@@ -163,13 +163,25 @@ sub gen_testsuites {
         push @suites,
           {
             name     => "slenkins-${project_name}-${node}",
-            settings => [eval $template_node, {key => "SLENKINS_NODE", value => "$node"}, {key => "SLENKINS_INSTALL", value => join(',', sort @{$nodes->{$node}{install}})}, {key => "NETWORKS", value => join(',', @node_net)}, {key => "FOREIGN_REPOS", value => join(',', sort @{$nodes->{$node}{repos}})}, {key => "NUMDISKS", value => 1 + scalar(@{$nodes->{$node}{disks}})},],
+            settings => [
+                eval $template_node,
+                {key => "SLENKINS_NODE",    value => "$node"},
+                {key => "SLENKINS_INSTALL", value => join(',', sort @{$nodes->{$node}{install}})},
+                {key => "NETWORKS",         value => join(',', @node_net)},
+                {key => "FOREIGN_REPOS",    value => join(',', sort @{$nodes->{$node}{repos}})},
+                {key => "NUMDISKS",         value => 1 + scalar(@{$nodes->{$node}{disks}})},
+            ],
           };
     }
 
     my $control = {
         name     => "slenkins-${project_name}-control",
-        settings => [eval $template_control, {key => "SLENKINS_NODE", value => "control"}, {key => "SLENKINS_CONTROL", value => $control_pkg}, {key => "PARALLEL_WITH", value => join(',', sort map { "slenkins-${project_name}-" . $_ } keys %$nodes)},],
+        settings => [
+            eval $template_control,
+            {key => "SLENKINS_NODE",    value => "control"},
+            {key => "SLENKINS_CONTROL", value => $control_pkg},
+            {key => "PARALLEL_WITH",    value => join(',', sort map { "slenkins-${project_name}-" . $_ } keys %$nodes)},
+        ],
     };
     ## use critic (ProhibitStringyEval)
 

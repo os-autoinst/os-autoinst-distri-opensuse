@@ -119,8 +119,9 @@ sub wait_boot {
     # On Xen PV and svirt we don't see a Grub menu
     elsif (!(check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux') && check_var('BACKEND', 'svirt'))) {
         my @tags = ('grub2');
-        push @tags, 'bootloader-shim-import-prompt'   if get_var('UEFI');
-        push @tags, 'boot-live-' . get_var('DESKTOP') if get_var('LIVETEST');    # LIVETEST won't to do installation and no grub2 menu show up
+        push @tags, 'bootloader-shim-import-prompt' if get_var('UEFI');
+        push @tags, 'boot-live-' . get_var('DESKTOP')
+          if get_var('LIVETEST');    # LIVETEST won't to do installation and no grub2 menu show up
         if (get_var('ONLINE_MIGRATION')) {
             push @tags, 'migration-source-system-grub2';
         }
@@ -131,7 +132,7 @@ sub wait_boot {
             assert_screen "grub2", 15;
         }
         elsif (match_has_tag("migration-source-system-grub2") or match_has_tag('grub2')) {
-            send_key "ret";                                                      # boot to source system
+            send_key "ret";          # boot to source system
         }
         elsif (get_var("LIVETEST")) {
             # prevent if one day booting livesystem is not the first entry of the boot list
@@ -331,7 +332,9 @@ sub minimal_patch_system {
 }
 
 sub workaround_type_encrypted_passphrase {
-    if (check_var('ARCH', 'ppc64le') && (get_var('ENCRYPT') && !get_var('ENCRYPT_ACTIVATE_EXISTING') || get_var('ENCRYPT_FORCE_RECOMPUTE'))) {
+    if (check_var('ARCH', 'ppc64le')
+        && (get_var('ENCRYPT') && !get_var('ENCRYPT_ACTIVATE_EXISTING') || get_var('ENCRYPT_FORCE_RECOMPUTE')))
+    {
         record_soft_failure 'workaround https://fate.suse.com/320901' if sle_version_at_least('12-SP3');
         unlock_if_encrypted;
     }
@@ -427,11 +430,13 @@ sub sle_version_at_least {
     }
 
     if ($version eq '12-SP2') {
-        return sle_version_at_least('12-SP1', version_variable => $version_variable) && !check_var($version_variable, '12-SP1');
+        return sle_version_at_least('12-SP1', version_variable => $version_variable)
+          && !check_var($version_variable, '12-SP1');
     }
 
     if ($version eq '12-SP3') {
-        return sle_version_at_least('12-SP2', version_variable => $version_variable) && !check_var($version_variable, '12-SP2');
+        return sle_version_at_least('12-SP2', version_variable => $version_variable)
+          && !check_var($version_variable, '12-SP2');
     }
 
     die "unsupported SLE $version_variable $version in check";
@@ -468,9 +473,10 @@ sub reboot_gnome {
         assert_screen 'reboot-auth';
         wait_still_screen 3;
         type_password undef, max_interval => 5;
-        assert_and_click 'reboot-auth-typed', 'right';    # Extra assert_and_click (with right click) to check the correct number of characters is typed and open up the 'show text' option
-        assert_and_click 'reboot-auth-showtext';          # Click the 'Show Text' Option to enable the display of the typed text
-        assert_screen 'reboot-auth-correct-password';     # Check the password is correct
+        # Extra assert_and_click (with right click) to check the correct number of characters is typed and open up the 'show text' option
+        assert_and_click 'reboot-auth-typed', 'right';
+        assert_and_click 'reboot-auth-showtext';         # Click the 'Show Text' Option to enable the display of the typed text
+        assert_screen 'reboot-auth-correct-password';    # Check the password is correct
 
         # we need to kill ssh for iucvconn here,
         # because after pressing return, the system is down
@@ -583,14 +589,15 @@ sub validatelr {
     # medium and the system is registered to SCC the repo should be disabled
     # if the system is SLE 12 SP2 and later; enabled otherwise, see PR#11460 and
     # FATE#320494.
-    my $enabled_repo = $args->{enabled_repo}
-      || (($args->{uri} =~ m{(cd|dvd|hd):///} and check_var('SCC_REGISTER', 'installation') and !check_var('VERSION', '12') and !check_var('VERSION', '12-SP1')) ? "No" : "Yes");
+    my $scc_install_sle12sp2 = check_var('SCC_REGISTER', 'installation') and sle_version_at_least('12-SP2');
+    my $enabled_repo = $args->{enabled_repo} || (($args->{uri} =~ m{(cd|dvd|hd):///} and $scc_install_sle12sp2) ? "No" : "Yes");
     my $uri = $args->{uri};
 
     if (check_var('DISTRI', 'sle')) {
         # SLES12 does not have 'SLES12-Source-Pool' SCC channel
         unless (($version eq "12") and ($product_channel eq "Source-Pool")) {
-            assert_script_run "zypper lr --uri | awk -F '|' -v OFS=' ' '{ print \$2,\$3,\$4,\$NF }' | tr -s ' ' | grep \"$product$version\[\[:alnum:\]\[:punct:\]\]*-*$product_channel $product$version\[\[:alnum:\]\[:punct:\]\[:space:\]\]*-*$product_channel $enabled_repo $uri\"";
+            assert_script_run
+"zypper lr --uri | awk -F '|' -v OFS=' ' '{ print \$2,\$3,\$4,\$NF }' | tr -s ' ' | grep \"$product$version\[\[:alnum:\]\[:punct:\]\]*-*$product_channel $product$version\[\[:alnum:\]\[:punct:\]\[:space:\]\]*-*$product_channel $enabled_repo $uri\"";
         }
     }
 }

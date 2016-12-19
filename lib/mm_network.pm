@@ -7,7 +7,9 @@ use Exporter;
 
 use testapi;
 
-our @EXPORT = qw(configure_hostname get_host_resolv_conf configure_static_ip configure_dhcp configure_default_gateway configure_static_dns parse_network_configuration ip_in_subnet check_ip_in_subnet);
+our @EXPORT = qw(configure_hostname get_host_resolv_conf
+  configure_static_ip configure_dhcp configure_default_gateway configure_static_dns
+  parse_network_configuration ip_in_subnet check_ip_in_subnet);
 
 sub configure_hostname {
     my ($hostname) = @_;

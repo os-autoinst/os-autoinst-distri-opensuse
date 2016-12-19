@@ -23,6 +23,7 @@ testing" && exit 2)
 tools/tidy: os-autoinst/
 	@test -e tools/tidy || ln -s ../os-autoinst/tools/tidy tools/
 	@test -e tools/absolutize || ln -s ../os-autoinst/tools/absolutize tools/
+	@test -e .perltidyrc || ln -s os-autoinst/.perltidyrc ./
 
 tools/lib/: os-autoinst/
 	@test -e tools/lib || ln -s ../os-autoinst/tools/lib tools/
