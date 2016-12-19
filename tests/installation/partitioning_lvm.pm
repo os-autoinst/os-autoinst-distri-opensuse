@@ -16,6 +16,7 @@ use strict;
 use warnings;
 use base "y2logsstep";
 use testapi;
+use utils 'sle_version_at_least';
 
 sub save_logs_and_resume {
     my $self = shift;
