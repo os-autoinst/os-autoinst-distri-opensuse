@@ -23,6 +23,7 @@ sub run() {
     }
 
     # workaround for bsc#1014178
+    wait_still_screen(5);
     if (check_screen('zfcp-popup', 0)) {
         record_soft_failure 'bsc#1014178';
         send_key 'alt-o';
@@ -38,8 +39,10 @@ sub run() {
     else {
         # In text mode we can't click anything. On Xen PV we don't have
         # correct exis coordinates, so we miss the button: POO#13536.
-        if (check_var('VIDEOMODE', 'text')
-            or (check_var('VIRSH_VMM_FAMILY', 'xen') and check_var('VIRSH_VMM_TYPE', 'linux')))
+        if (
+            check_var('VIDEOMODE', 'text')
+            or (    check_var('VIRSH_VMM_FAMILY', 'xen')
+                and check_var('VIRSH_VMM_TYPE', 'linux')))
         {
             send_key "alt-l";    # open release notes window
         }
@@ -54,6 +57,7 @@ sub run() {
 
     # no release-notes for WE and all modules
     my @no_relnotes = qw(we lgm asmm certm contm pcm tcm wsm);
+
     # no relnotes for ltss in QAM_MINIMAL
     push @no_relnotes, qw(ltss) if get_var('QAM_MINIMAL');
     if (@addons) {
@@ -70,6 +74,7 @@ sub run() {
     else {
         assert_screen 'release-notes-sle';    # SLE release notes
     }
+
     # exit release notes window
     if (check_var('VIDEOMODE', 'text')) {
         wait_screen_change { send_key 'alt-o'; };
@@ -89,4 +94,5 @@ sub run() {
 }
 
 1;
+
 # vim: sw=4 et
