@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: First commit of JeOS firstrun, diskusage, sccreg, and imgsize tests
-# G-Maintainer: Richard Brown <rbrownccb@opensuse.org>
+# Summary: Check diskusage on JeOS
+# Maintainer: Richard Brown <rbrownccb@opensuse.org>
 
 use base "opensusebasetest";
 use strict;

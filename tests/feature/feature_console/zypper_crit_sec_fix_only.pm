@@ -6,14 +6,10 @@
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
-#
-# Feature #318760: Update critical security fixes only
-# Test Case #1480288: Test Feature: Update critical security fixes only
 
-# G-Summary: Test zypper can update critical security fixes only
-#    Add test case for feature #1480288: Update critical
-#    security fixes only.
-# G-Maintainer: Qingming Su <qingming.su@suse.com>
+# Summary: Test zypper can update critical security fixes only
+# Tags: fate#318760, tc#1480288
+# Maintainer: Qingming Su <qingming.su@suse.com>
 
 use base "consoletest";
 use strict;

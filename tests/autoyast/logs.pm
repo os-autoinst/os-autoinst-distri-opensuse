@@ -1,4 +1,4 @@
-# Copyright (C) 2015 SUSE Linux GmbH
+# Copyright (C) 2015-2016 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -13,11 +13,11 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# G-Summary: autoyast cleanup
+# Summary: autoyast specific log file gathering
 #    - split repos.pm into separater tests
 #    - changed order of tests, run the specific tests in autoyast_verify
 #      earlier
-# G-Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
+# Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
 
 use strict;
 use base 'basetest';

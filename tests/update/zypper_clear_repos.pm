@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Clear unneed repos before updating for Staging Project
-# G-Maintainer: Max Lin <mlin@suse.com>
+# Summary: Clear unneed repos before updating for Staging Project
+# Maintainer: Max Lin <mlin@suse.com>
 
 use base "consoletest";
 use strict;

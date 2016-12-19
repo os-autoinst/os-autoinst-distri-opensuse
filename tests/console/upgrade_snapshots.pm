@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add test for the snapshots created during upgrade
-# G-Maintainer: Imobach González Sosa <igonzalezsosa@suse.com>
+# Summary: Test for the snapshots created during upgrade
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base 'consoletest';
 use strict;
