@@ -7,15 +7,16 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add new SP2 feature (System role)
-# G-Maintainer: Jozef Pupava <jpupava@suse.com>
+# Summary: Check system role selection screen. Added in SLE 12 SP2
+# Maintainer: Jozef Pupava <jpupava@suse.com>
 
 use strict;
 use base "y2logsstep";
 use testapi;
 
 sub run() {
-    assert_screen 'system-role-default-system';
+    # Still initializing the system at this point, can take some time
+    assert_screen 'system-role-default-system', 180;
 
     if (get_var("SYSTEM_ROLE")) {
         send_key 'alt-k';
