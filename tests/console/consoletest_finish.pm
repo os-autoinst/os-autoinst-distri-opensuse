@@ -44,9 +44,7 @@ sub run() {
 
     if (!check_var("DESKTOP", "textmode")) {
         select_console('x11');
-        ensure_unlocked_desktop [qw(displaymanager)];
-        mouse_hide(1);
-        assert_screen 'generic-desktop';
+        ensure_unlocked_desktop;
     }
 }
 
