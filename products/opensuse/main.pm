@@ -700,7 +700,7 @@ sub load_x11tests() {
             loadtest "x11/reboot_lxde";
         }
     }
-    loadtest "x11/glxgears";
+    loadtest "x11/glxgears" unless is_staging();
     if (kdestep_is_applicable()) {
         if (!is_krypton_argon) {
             loadtest "x11/amarok";
