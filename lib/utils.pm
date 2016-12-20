@@ -226,82 +226,49 @@ sub workaround_type_encrypted_passphrase {
 
 # if stay under tty console for long time, then check
 # screen lock is necessary when switch back to x11
-# returns without login if any of the tags in param matches
+# all possible options should be handled within loop to get unlocked desktop
 sub ensure_unlocked_desktop {
-    my ($extra_tags) = @_;
-    $extra_tags //= [];
-
-    # try to stop screenlocker / blanking
-    send_key "esc";
-
-    # prevent the still running screen lock from consuming next key press
-    wait_still_screen(1);
-
-    my $tags = [];
-    # wait for run prompt or screen locker
-    push @$tags, @$extra_tags;
-    push @$tags, 'generic-desktop';
-    push @$tags, 'screenlock';
-    push @$tags, 'gnome-screenlock-password';
-    assert_screen($tags);
-
-    for my $tag (@$extra_tags) {
-        if (match_has_tag $tag) {
-            # caller provided tag matched
-            # caller needs to deal with it
-            return;
-        }
-    }
-
-    # no screenlocker detected
-    if (match_has_tag 'generic-desktop') {
-        if (check_var('DESKTOP', 'gnome')) {
-            # gnome might show the old 'generic desktop' screen although that is
-            # just a left over in the framebuffer but actually the screen is
-            # already locked so we have to try something else to check
-            # responsiveness.
-            # open run command prompt (if screen isn't locked)
-            send_key "alt-f2";
-            if (check_screen([qw(desktop-runner)])) {
-                send_key "esc";
-                assert_screen([qw(generic-desktop)]);
-                return;
+    my $counter = 10;
+    while ($counter--) {
+        assert_screen [qw/displaymanager displaymanager-password-prompt generic-desktop screenlock gnome-screenlock-password/];
+        if (match_has_tag 'displaymanager') {
+            if (check_var('DESKTOP', 'minimalx')) {
+                type_string "$username";
+                save_screenshot;
             }
-            else {
-                assert_screen([qw(gnome-screenlock-password screenlock)]);
+            send_key 'ret';
+        }
+        if ((match_has_tag 'displaymanager-password-prompt') || (match_has_tag 'gnome-screenlock-password')) {
+            type_password;
+            send_key 'ret';
+        }
+        if (match_has_tag 'generic-desktop') {
+            send_key 'esc';
+            if (check_var('DESKTOP', 'gnome')) {
+                # gnome might show the old 'generic desktop' screen although that is
+                # just a left over in the framebuffer but actually the screen is
+                # already locked so we have to try something else to check
+                # responsiveness.
+                # open run command prompt (if screen isn't locked)
+                send_key 'alt-f2';
+                if (check_screen 'desktop-runner') {
+                    send_key 'esc';
+                    mouse_hide(1);
+                    assert_screen 'generic-desktop';
+                }
+                else {
+                    next;    # most probably screen is locked
+                }
             }
+            last;            # desktop is uncloked, mission accomplished
         }
-        else {
-            return;
-        }
-
-    }
-
-    # start to unlocking the screenlock
-    if (check_var("DESKTOP", "gnome")) {
-        if (match_has_tag "screenlock") {
+        if (match_has_tag 'screenlock') {
             wait_screen_change {
-                send_key "esc";
+                send_key 'esc';    # end screenlock
             };
         }
-        unless (get_var("LIVETEST")) {
-            send_key "ctrl";    # show gnome screen lock in sle 11
-            assert_screen([qw(gnome-screenlock-password)]);
-            type_password;
-            send_key "ret";
-        }
-    }
-    else {
-        if (check_var("DESKTOP", "minimalx")) {
-            type_string "$username";
-            save_screenshot();
-            send_key "ret";
-        }
-        # clicked the password input field on all DMs
-        # make sure the input cursor is in the input field
-        assert_and_click "displaymanager-password-prompt";
-        type_password;
-        send_key "ret";
+        wait_still_screen 2;       # slow down loop
+        die 'ensure_unlocked_desktop repeated too much' if ($counter eq 1);    # die loop when generic-desktop not matched
     }
 }
 
