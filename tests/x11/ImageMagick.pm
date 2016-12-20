@@ -28,6 +28,7 @@ use warnings;
 use testapi;
 use utils;
 
+
 sub run() {
     select_console "x11";
 
@@ -41,703 +42,75 @@ sub run() {
     assert_script_run "wget --quiet " . data_url('imagemagick/bg_script.sh') . " -O bg_script.sh";
 
     assert_script_run "chmod +x bg_script.sh";
-
     # execute the script and direct its exit code to the serial console
     type_string "./bg_script.sh " . data_url('imagemagick/bg_script.sh') . "; echo bg_script-\$? > /dev/$testapi::serialdev\n";
 
-    assert_screen "imagemagick_test";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_shape";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_plasma_fractal2";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_random";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_tile_weave";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_bg";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_tile_aqua";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_tile_water";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_tile_rings";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_tile_disks";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_tree";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_canvas_khaki";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_canvas_salmon";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_canvas_wheat";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_color_sparse";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_color_reset";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_color_flatten";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_color_extent";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_color_border";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_color_fx_constant";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_color_semitrans";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_color_pick_fx";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_color_pick_sparse";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_color_pick_draw";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_color_pick_distort";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_black_threshold";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_white_threshold";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_black_level";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_white_level";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_black_fx";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_white_fx";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_black_evaluate";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_white_evaluate";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_black_gamma";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_white_posterize";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_black_posterize";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_white_alpha";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_black_alpha";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_trans_fx";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_trans_fx_alpha_off";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_trans_compose";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_yellow_gamma";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_color_matte";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_grey_level";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_trans_alpha";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_trans_evaluate";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_range1";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_trans_threshold";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_range2";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_range3";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_ice-sea";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_range4";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_burnished";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_range5";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_grassland";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_snow_scape";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_rgradient";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_sunset";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_rgradient_clip";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_rgradient_crop";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_rgradient_range1";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_rgradient_range2";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_rgradient_range3";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_rgradient_range4";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_transparent";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_sigmoidal";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_trans_colorize";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_cosine";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_peak";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_bands";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_diagonal";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_srt";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_swirl";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_trapezoid";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_arc";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_circle";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_angle_even";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_angle_masked";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_angle_odd";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_triangle";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_bird";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_venetian";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_vent_diag";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_colormap";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_rainbow";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_hue_polar";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_rainbow_2";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_resize";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_resize2";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_resize3";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_resize4";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_resize5";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_rs_rainbow";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_interpolated";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_clut";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_clut_recolored";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_bilinear";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_mesh";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_catrom";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_fx_linear";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_fx_x4";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_fx_cos";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_fx_radial";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_fx_spherical";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_fx_quad2";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_fx_angular";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_inverse_alt";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_shepards_alt";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_inverse_RGB";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_inverse_RGB_Hue";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_sparse_bary_triangle";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_sparse_barycentric";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_sparse_bary_triangle_2";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_sparse_bary_0";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_sparse_bary_gradient";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_sparse_bary_gradient_2";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_diagonal_gradient";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_sparse_bary_two_point";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_diagonal_gradient_2";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_sparse_bilinear";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_sparse_bilin_0";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_sparse_voronoi";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_scale";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_sparse_voronoi_ssampled";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_math";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_sparse_voronoi_smoothed";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_equiv";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_sparse_voronoi_blur";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_shifted";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_sparse_voronoi_gradient";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_gradient_chopped";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_sparse_shepards";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_sparse_inverse";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_sparse_shepards_0.5";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_sparse_shepards_1";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_sparse_shepards_2";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_plasma_smooth";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_sparse_shepards_3";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_sparse_shepards_8";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_sparse_shepards_gray";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_rose_alpha_gradient";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_sparse_source";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_sparse_fill";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_shape_edge_pixels";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_shape_edge_in_lights";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_shape_in_lights";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_sparse_blur_simple";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_sparse_blur_pyramid";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_sparse_lines_near_source";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_sparse_lines_near";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_plasma_paint";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_plasma_emboss";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_plasma_sharp";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_plasma_seeded";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_plasma_rnd1";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_plasma_rnd2";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_plasma_rnd3";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_plasma_rnd4";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_plasma_rnd5";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_random_mask";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_random_black";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_random_white";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_random_1";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_random_trans";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_random_3";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_random_5";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_random_10";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_random_20";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_random_0_gray";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_random_1_gray";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_random_3_gray";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_random_5_gray";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_random_10_gray";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_random_20_gray";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_random_0_thres";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_random_1_thres";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_random_3_thres";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_random_5_thres";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_random_10_thres";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_random_20_thres";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_random_5_blobs";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_ripples_1";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_ripples_2";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_ripples_3";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_ripples_4";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_random_enhanced";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_ripples_4e";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_random_sigmoidal";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_ripples_4s";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_ripples_3e000";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_ripples_3e090";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_ripples_3e180";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_ripples_3e270";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_ripples_3.5e";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_tile_size";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_tile_over";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_tile_draw";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_tile_reset";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_tile_distort_sized";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_offset_tile";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_offset_pattern";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_offset_tile_fill";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_offset_pattern_fail";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_offset_pattern_good";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_tile_clone";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_tile_clone_flip";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_tile_mpr";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_tile_mpr_reset";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_tile_mpr_fill";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_tile_distort";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_tile_distort_checks";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_tile_distort_polar";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_pattern_default";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_pattern_hexagons";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_pattern_colored";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_pattern_color_checks";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_pattern_color_hexagons";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_pattern_distorted";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_tile_mod_failure";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_tile_mod_vpixels";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_tile_slanted_bricks";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_tile_mod_success";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_tile_circles";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_tile_hexagons";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_tiled_hexagons";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_tile_line";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_tile_hex_lines";
-    send_key "alt-f4";
-
-    assert_screen "imagemagick_tiled_hex_lines";
-    send_key "alt-f4";
+    my @test_screens = qw(
+      test shape plasma_fractal2 random tile_weave bg tile_aqua tile_water
+      tile_rings tile_disks tree canvas_khaki canvas_salmon canvas_wheat
+      color_sparse color_reset color_flatten color_extent color_border
+      color_fx_constant color_semitrans color_pick_fx color_pick_sparse
+      color_pick_draw color_pick_distort black_threshold white_threshold
+      black_level white_level black_fx white_fx black_evaluate white_evaluate
+      black_gamma white_posterize black_posterize white_alpha black_alpha
+      trans_fx trans_fx_alpha_off trans_compose yellow_gamma color_matte
+      grey_level trans_alpha gradient trans_evaluate gradient_range1
+      trans_threshold gradient_range2 gradient_range3 gradient_ice-sea
+      gradient_range4 gradient_burnished gradient_range5 gradient_grassland
+      gradient_snow_scape rgradient gradient_sunset rgradient_clip
+      rgradient_crop rgradient_range1 rgradient_range2 rgradient_range3
+      rgradient_range4 gradient_transparent gradient_sigmoidal
+      gradient_trans_colorize gradient_cosine gradient_peak gradient_bands
+      gradient_diagonal gradient_srt gradient_swirl gradient_trapezoid
+      gradient_arc gradient_circle gradient_angle_even gradient_angle_masked
+      gradient_angle_odd gradient_triangle gradient_bird gradient_venetian
+      gradient_vent_diag gradient_colormap gradient_rainbow gradient_hue_polar
+      gradient_rainbow_2 gradient_resize gradient_resize2 gradient_resize3
+      gradient_resize4 gradient_resize5 gradient_rs_rainbow
+      gradient_interpolated gradient_clut gradient_clut_recolored
+      gradient_bilinear gradient_mesh gradient_catrom gradient_fx_linear
+      gradient_fx_x4 gradient_fx_cos gradient_fx_radial gradient_fx_spherical
+      gradient_fx_quad2 gradient_fx_angular gradient_inverse_alt
+      gradient_shepards_alt gradient_inverse_RGB gradient_inverse_RGB_Hue
+      sparse_bary_triangle sparse_barycentric sparse_bary_triangle_2
+      sparse_bary_0 sparse_bary_gradient sparse_bary_gradient_2
+      diagonal_gradient sparse_bary_two_point diagonal_gradient_2
+      sparse_bilinear sparse_bilin_0 sparse_voronoi gradient_scale
+      sparse_voronoi_ssampled gradient_math sparse_voronoi_smoothed
+      gradient_equiv sparse_voronoi_blur gradient_shifted
+      sparse_voronoi_gradient gradient_chopped sparse_shepards sparse_inverse
+      sparse_shepards_0.5 sparse_shepards_1 sparse_shepards_2 plasma_smooth
+      sparse_shepards_3 sparse_shepards_8 sparse_shepards_gray
+      rose_alpha_gradient sparse_source sparse_fill shape_edge_pixels
+      shape_edge_in_lights shape_in_lights sparse_blur_simple
+      sparse_blur_pyramid sparse_lines_near_source sparse_lines_near
+      plasma_paint plasma_emboss plasma_sharp plasma_seeded plasma_rnd1
+      plasma_rnd2 plasma_rnd3 plasma_rnd4 plasma_rnd5 random_mask random_black
+      random_white random_1 random_trans random_3 random_5 random_10 random_20
+      random_0_gray random_1_gray random_3_gray random_5_gray random_10_gray
+      random_20_gray random_0_thres random_1_thres random_3_thres random_5_thres
+      random_10_thres random_20_thres random_5_blobs ripples_1 ripples_2
+      ripples_3 ripples_4 random_enhanced ripples_4e random_sigmoidal ripples_4s
+      ripples_3e000 ripples_3e090 ripples_3e180 ripples_3e270 ripples_3.5e
+      tile_size tile_over tile_draw tile_reset tile_distort_sized offset_tile
+      offset_pattern offset_tile_fill offset_pattern_fail offset_pattern_good
+      tile_clone tile_clone_flip tile_mpr tile_mpr_reset tile_mpr_fill
+      tile_distort tile_distort_checks tile_distort_polar pattern_default
+      pattern_hexagons pattern_colored pattern_color_checks
+      pattern_color_hexagons pattern_distorted tile_mod_failure tile_mod_vpixels
+      tile_slanted_bricks tile_mod_success tile_circles tile_hexagons
+      tiled_hexagons tile_line tile_hex_lines tiled_hex_lines
+    );
+    for my $screen (@test_screens) {
+        assert_screen "imagemagick_$screen";
+        send_key 'alt-f4';
+    }
 
     # waiting for the exit code of the script
     wait_serial "bg_script-0";
-
     # clean-up
     assert_script_run "rm bg_script.sh";
-
     type_string "exit\n";
 }
+
 1;
