@@ -10,17 +10,17 @@
 # Test description: In fips mode, openssl only works with the FIPS
 # approved HASH algorithms: SHA1 and SHA2 (224, 256, 384, 512)
 
-# G-Summary: Add Hash and Cipher test cases for openssl-fips
+# Summary: Add Hash and Cipher test cases for openssl-fips
 #    A new test suite is created for FIPS_TS, named "core", which will
 #    contain all the basic test cases for fips verificaton. Just like
 #    the cases to verify opessl hash, cipher, or public key algorithms
-# G-Maintainer: Qingming Su <qingming.su@suse.com>
+# Maintainer: Qingming Su <qingming.su@suse.com>
 
 use base "consoletest";
 use testapi;
 use strict;
 
-sub run() {
+sub run {
     select_console 'root-console';
 
     my $tmp_file = "/tmp/hello.txt";
@@ -37,13 +37,13 @@ sub run() {
     # With non-approved HASH algorithms, openssl will report failure
     my @invalid_hash = ("md4", "md5", "mdc2", "ripemd160", "whirlpool", "sha");
     for my $hash (@invalid_hash) {
-        validate_script_output "openssl dgst -$hash $tmp_file 2>&1 | tee", sub { m/disabled for fips|unknown option/ };
+        validate_script_output "openssl dgst -$hash $tmp_file 2>&1 || true", sub { m/disabled for fips|unknown option/ };
     }
 
     script_run 'rm -f $tmp_file';
 }
 
-sub test_flags() {
+sub test_flags {
     return {important => 1};
 }
 

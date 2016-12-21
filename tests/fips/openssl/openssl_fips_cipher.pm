@@ -16,7 +16,7 @@ use testapi;
 use strict;
 use utils;
 
-sub run() {
+sub run {
     select_console 'root-console';
 
     my $enc_passwd = "pass1234";
@@ -44,14 +44,14 @@ sub run() {
     }
     for my $cipher (@invalid_cipher) {
         validate_script_output
-          "openssl enc -$cipher -e -in $file_raw -out $file_enc -k $enc_passwd -md $hash_alg 2>&1 | tee",
+          "openssl enc -$cipher -e -in $file_raw -out $file_enc -k $enc_passwd -md $hash_alg 2>&1 || true",
           sub { m/disabled for fips|unknown option/ };
     }
 
     script_run 'cd - && rm -rf fips-test';
 }
 
-sub test_flags() {
+sub test_flags {
     return {important => 1};
 }
 

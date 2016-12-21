@@ -7,27 +7,26 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Test curl RC4 and SEED ciphers with fips enabled
+# Summary: Test curl RC4 and SEED ciphers with fips enabled
 #    This is new curl test case for fips related.
 #    Both RC4 and SEED are not approved cipher by FIPS140-2.
 #    In a fips enabled system, it will get a failed result if run curl command
 #    with RC4 and SEED ciphers.
-# G-Maintainer: Jiawei Sun <JiaWei.Sun@suse.com>
+# Maintainer: Jiawei Sun <JiaWei.Sun@suse.com>
 
 use base "consoletest";
 use testapi;
 use strict;
 
 # test for curl RC4 and SEED ciphers with fips enabled
-sub run() {
+sub run {
     my $self = shift;
     select_console 'root-console';
-    script_output "curl --ciphers RC4,SEED -v https://eu.httpbin.org/get | tee";
-    validate_script_output "curl --ciphers RC4,SEED -v https://eu.httpbin.org/get 2>&1 | tee", sub { m/failed setting cipher/ };
-    validate_script_output "rpm -q curl libcurl4",                                             sub { m/curl-.*/ };
+    validate_script_output "curl --ciphers RC4,SEED -v https://eu.httpbin.org/get 2>&1 || true", sub { m/failed setting cipher/ };
+    validate_script_output "rpm -q curl libcurl4",                                               sub { m/curl-.*/ };
 }
 
-sub test_flags() {
+sub test_flags {
     return {important => 1};
 }
 

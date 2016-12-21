@@ -23,7 +23,7 @@ use base "consoletest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     select_console 'root-console';
 
     # Verify MD5 is disabled in fips mode, no need to login
@@ -39,10 +39,10 @@ sub run() {
       sub { m/Unknown mac type|no matching MAC found/ };
 
     # Verify ssh doesn't support DSA public key in fips mode
-    validate_script_output 'ssh-keygen -t dsa -f ~/.ssh/id_dsa -P "" 2>&1 | tee', sub { m/Key type dsa not alowed in FIPS mode/ };
+    validate_script_output 'ssh-keygen -t dsa -f ~/.ssh/id_dsa -P "" 2>&1 || true', sub { m/Key type dsa not alowed in FIPS mode/ };
 }
 
-sub test_flags() {
+sub test_flags {
     return {important => 1};
 }
 
