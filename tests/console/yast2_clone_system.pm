@@ -23,12 +23,10 @@ sub run() {
     zypper_call "in autoyast2";
     assert_script_run "yast2 clone_system", 200;
 
+    # Replace unitialized email variable - bsc#1015158
+    assert_script_run 'sed -i "/server_email/ s/postmaster@/\0suse.com/" /root/autoinst.xml';
+
     # Check and upload profile for chained tests
-    assert_script_run(
-        "test -f /root/autoinst.xml",
-        timeout      => 20,
-        fail_message => 'File /root/autoinst.xml could not be found'
-    );
     upload_asset "/root/autoinst.xml";
     assert_script_run "xmllint --noout --relaxng /usr/share/YaST2/schema/autoyast/rng/profile.rng /root/autoinst.xml";
 
