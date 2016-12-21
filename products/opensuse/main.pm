@@ -445,9 +445,6 @@ sub load_consoletests() {
                 loadtest "console/docker";
             }
         }
-        if (get_var("MOZILLATEST")) {
-            loadtest "console/mozmill_setup";
-        }
         if (check_var("DESKTOP", "xfce")) {
             loadtest "console/xfce_gnome_deps";
         }
@@ -653,9 +650,6 @@ sub load_x11tests() {
     }
     if (gnomestep_is_applicable() && !(get_var("LIVECD") || is_server)) {
         loadtest "x11/thunderbird";
-    }
-    if (get_var("MOZILLATEST")) {
-        loadtest "x11/mozmill_run";
     }
     if (chromiumstep_is_applicable() && !(is_staging() || is_livesystem)) {
         loadtest "x11/chromium";

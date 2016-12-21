@@ -677,9 +677,6 @@ sub load_consoletests() {
             loadtest "console/apache_ssl";
             loadtest "console/apache_nss";
         }
-        if (get_var("MOZILLATEST")) {
-            loadtest "console/mozmill_setup";
-        }
         if (check_var("DESKTOP", "xfce")) {
             loadtest "console/xfce_gnome_deps";
         }
@@ -798,9 +795,6 @@ sub load_x11tests() {
         loadtest "x11/kate";
     }
     loadtest "x11/firefox";
-    if (get_var("MOZILLATEST")) {
-        loadtest "x11/mozmill_run";
-    }
     if (!is_server() || we_is_applicable()) {
         if (gnomestep_is_applicable()) {
             loadtest "x11/eog";
