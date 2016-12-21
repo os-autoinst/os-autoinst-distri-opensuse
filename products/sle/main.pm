@@ -397,9 +397,7 @@ sub install_this_version {
 }
 
 sub load_inst_tests() {
-    if (!is_casp) {
-        loadtest "installation/welcome";
-    }
+    loadtest "installation/welcome";
     if (get_var('DUD_ADDONS')) {
         loadtest "installation/dud_addon";
     }
