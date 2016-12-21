@@ -941,6 +941,9 @@ elsif (get_var('INSTALL_LTP')) {
 }
 elsif (get_var('LTP_COMMAND_FILE')) {
     loadtest 'kernel/boot_ltp';
+    if (get_var('LTP_COMMAND_FILE') =~ m/ltp-aiodio.part[134]/) {
+        loadtest 'kernel/create_junkfile_ltp';
+    }
     loadtest 'kernel/run_ltp';
 }
 elsif (get_var('VIRTIO_CONSOLE_TEST')) {
