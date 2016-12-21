@@ -8,10 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# we need the package here for shutdown_sle11 to inherit it
-package shutdown;
-# don't use x11test, the end of this is not a desktop
 # Summary: Initiate a system shutdown, taking care of differences between the desktops
+#   don't use x11test, the end of this is not a desktop
 # Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
 
 use base "opensusebasetest";
@@ -19,11 +17,6 @@ use strict;
 use testapi;
 use utils;
 
-# overloaded in sle11_shutdown
-sub trigger_shutdown_gnome_button() {
-    my ($self) = @_;
-    send_key "ctrl-alt-delete";
-}
 
 sub run() {
     my $self = shift;
@@ -55,7 +48,7 @@ sub run() {
     }
 
     if (check_var("DESKTOP", "gnome")) {
-        $self->trigger_shutdown_gnome_button();
+        send_key "ctrl-alt-delete";
         assert_screen 'logoutdialog', 15;
         send_key "ret";    # confirm shutdown
 

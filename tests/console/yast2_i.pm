@@ -86,7 +86,6 @@ sub run() {
         }
     } until (match_has_tag('yast2_console-finished'));
 
-    # yast might take a while on sle11 due to suseconfig
     wait_serial("yast2-i-status-0", 60) || die "'yast2 sw_single' didn't finish";
 
     $self->clear_and_verify_console;         # clear screen to see that second update does not do any more

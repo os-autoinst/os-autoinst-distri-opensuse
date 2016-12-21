@@ -28,7 +28,8 @@ sub run {
     ensure_shim_import;
     $self->select_bootmenu_option('inst-onmediacheck', 1);
 
-    # the timeout is insane - but SLE11 DVDs take almost forever
+    # the timeout is insane - but some old DVDs took almost forever, could
+    # recheck with all current one and lower again
     assert_screen [qw(mediacheck-ok mediacheck-checksum-wrong)], 3600;
     send_key "ret";
     if (match_has_tag('mediacheck-checksum-wrong')) {
