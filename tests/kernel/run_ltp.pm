@@ -255,6 +255,8 @@ sub run {
         @tests = $self->parse_runfile($cmd_file, $cmd_pattern, $cmd_exclude);
     }
 
+    assert_script_run('cd /opt/ltp/testcases/bin');
+
     for my $test (@tests) {
         my $fin_msg    = "### TEST $test->{name} COMPLETE >>> ";
         my $cmd_text   = qq($test->{command}; echo "$fin_msg\$?");
