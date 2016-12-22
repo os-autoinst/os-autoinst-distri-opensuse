@@ -136,6 +136,9 @@ sub ensure_installed {
     assert_screen('xterm');
     testapi::assert_script_sudo("chown $testapi::username /dev/$testapi::serialdev");
     my $retries = 5;    # arbitrary
+
+    # make sure packagekit service is available
+    testapi::assert_script_sudo('systemctl is-active -q packagekit || (systemctl unmask -q packagekit ; systemctl start -q packagekit)');
     $self->script_run(
 "for i in {1..$retries} ; do pkcon install $pkglist && break ; done ; RET=\$?; echo \"\n  pkcon finished\n\"; echo \"pkcon-\${RET}-\" > /dev/$testapi::serialdev",
         0

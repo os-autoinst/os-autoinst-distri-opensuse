@@ -44,7 +44,8 @@ sub run() {
                 send_key 'alt-t';
             }
             addon_license($addon);
-            assert_screen 'addon-products';
+            # might involve some network lookup of products, licenses, etc.
+            assert_screen 'addon-products', 90;
             send_key "tab";                                                     # select addon-products-$addon
             wait_still_screen 2;
             if (check_var('VIDEOMODE', 'text')) {                               # textmode need more tabs, depends on add-on count
