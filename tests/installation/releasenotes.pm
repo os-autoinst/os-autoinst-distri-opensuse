@@ -23,7 +23,7 @@ sub run() {
     }
 
     # workaround for bsc#1014178
-    if (check_screen('zfcp-popup'), 0) {
+    if (check_screen('zfcp-popup', 0)) {
         record_soft_failure 'bsc#1014178';
         send_key 'alt-o';
     }
