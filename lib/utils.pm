@@ -11,6 +11,7 @@ our @EXPORT = qw(
   check_console_font
   clear_console
   is_jeos
+  is_casp
   select_kernel
   type_string_slow
   type_string_very_slow
@@ -124,6 +125,10 @@ sub check_console_font {
 
 sub is_jeos() {
     return get_var('FLAVOR', '') =~ /^JeOS/;
+}
+
+sub is_casp() {
+    return check_var('DISTRI', 'casp');
 }
 
 sub type_string_slow {

@@ -86,6 +86,14 @@ sub run() {
                 dev_id    => 'a',
                 bootorder => 1
             });
+        if (my $extra_hdd = get_var('HDD_2')) {
+            $svirt->add_disk(
+                {
+                    file => ($vmm_family eq 'vmware') ? basename($extra_hdd) : $extra_hdd,
+                    dev_id => 'b'
+                });
+
+        }
     }
     else {
         $svirt->add_disk(
@@ -273,19 +281,24 @@ sub run() {
         $svirt->resume;
         wait_serial("Press enter to boot the selected OS", 10) || die "Can't get to Grub";
         type_string "echo e > \$pty\n";    # edit
-        if (is_jeos) {
+
+        if (is_jeos or is_casp) {
             for (1 .. 4) { type_string "echo -en '\\033[B' > \$pty\n"; }    # four-times key down
-            type_string "echo -en '\\033[K' > \$pty\n";                     # end of line
-            type_string "echo -en ' $cmdline' > \$pty\n";
-            type_string "echo -en ' xenfb.video=4,1024,768' > \$pty\n";     # set kernel framebuffer
         }
         else {
             for (1 .. 2) { type_string "echo -en '\\033[B' > \$pty\n"; }    # four-times key down
-            type_string "echo -en '\\033[K' > \$pty\n";                     # end of line
-            type_string "echo -en ' $cmdline' > \$pty\n";
+        }
+        type_string "echo -en '\\033[K' > \$pty\n";                         # end of line
+        type_string "echo -en ' $cmdline' > \$pty\n";
+        if (sle_version_at_least('12-SP2') or is_casp) {
             type_string "echo -en ' xen-fbfront.video=32,1024,768' > \$pty\n";    # set kernel framebuffer
         }
+        else {
+            type_string "echo -en ' xenfb.video=4,1024,768' > \$pty\n";           # set kernel framebuffer
+        }
+
         type_string "echo -en '\\x18' > \$pty\n";                                 # send Ctrl-x to boot guest kernel
+        save_screenshot;
     }
 
     # If we connect to 'sut' VNC display "too early" the VNC server won't be
