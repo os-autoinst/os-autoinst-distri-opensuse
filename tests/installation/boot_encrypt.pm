@@ -17,8 +17,10 @@ use utils;
 use testapi qw(get_var record_soft_failure);
 
 sub run() {
-    if (get_var('ENCRYPT_ACTIVATE_EXISTING') and !get_var('ENCRYPT_FORCE_RECOMPUTE') and (sle_version_at_least('12-SP4') or sle_version_at_least('13'))) {
-        record_soft_failure('bsc#993247 fate#321208: activating existing encrypted volume does *not* yield an encrypted system if not forcing');
+    if (get_var('ENCRYPT_ACTIVATE_EXISTING') and !get_var('ENCRYPT_FORCE_RECOMPUTE')) {
+        if (sle_version_at_least('12-SP4') or sle_version_at_least('13')) {
+            record_soft_failure('fate#321208: activating existing encrypted volume does *not* yield an encrypted system if not forcing');
+        }
         return;
     }
     unlock_if_encrypted;
