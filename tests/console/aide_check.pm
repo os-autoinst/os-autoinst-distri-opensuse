@@ -22,7 +22,7 @@ use testapi;
 use strict;
 
 # test for basic function of aide. Check different between aide.db and file system
-sub run() {
+sub run {
     my $self = shift;
     select_console 'root-console';
     assert_script_run "zypper -n in aide", 90;
@@ -33,11 +33,11 @@ sub run() {
     assert_script_run "aide --check", 60;
     assert_script_run "touch /var/log/testlog";
     assert_script_run "clear";
-    validate_script_output "aide --check | tee", sub { m/found differences between database and filesystem/ }, 60;
+    validate_script_output "aide --check || true", sub { m/found differences between database and filesystem/ }, 60;
     assert_script_run "mv /etc/aide.conf.bak /etc/aide.conf && rm /var/log/testlog";
 }
 
-sub test_flags() {
+sub test_flags {
     return {important => 1};
 }
 
