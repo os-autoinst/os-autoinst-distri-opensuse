@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: Check that zypper configuration is customized for CASP
-# poo#321764
+# fate#321764
 # Maintainer: Martin Kravec <mkravec@suse.com>
 
 use base "opensusebasetest";

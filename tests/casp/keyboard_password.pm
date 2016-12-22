@@ -19,7 +19,6 @@ sub run() {
     my ($self) = @_;
 
     assert_screen 'keyboard-password', 120;
-
     mouse_hide;
 
     $self->type_password_and_verification;
