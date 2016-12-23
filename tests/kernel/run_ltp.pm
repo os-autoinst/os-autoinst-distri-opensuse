@@ -259,6 +259,7 @@ sub run {
     # This fixes at least some tests failing if dhcp server (started by
     # wickedd) is running.
     script_run('systemctl stop wickedd NetworkManager');
+    script_run('ps axf');
 
     assert_script_run('cd /opt/ltp/testcases/bin');
 
