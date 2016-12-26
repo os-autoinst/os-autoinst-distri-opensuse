@@ -187,7 +187,7 @@ $needle::cleanuphandler = \&cleanup_needles;
 # dump other important ENV:
 logcurrentenv(
     qw(ADDONURL BTRFS DESKTOP HW HWSLOT LVM MOZILLATEST
-      NOINSTALL REBOOTAFTERINSTALL UPGRADE USBBOOT ZDUP ZDUPREPOS TEXTMODE
+      NOINSTALL UPGRADE USBBOOT ZDUP ZDUPREPOS TEXTMODE
       DISTRI NOAUTOLOGIN QEMUCPU QEMUCPUS RAIDLEVEL ENCRYPT INSTLANG
       QEMUVGA DOCRUN UEFI DVD GNOME KDE ISO ISO_MAXSIZE NETBOOT USEIMAGES
       PROMO QEMUVGA SPLITUSR VIDEOMODE)
@@ -567,11 +567,6 @@ sub load_reboot_tests() {
         }
         loadtest "installation/first_boot";
     }
-    if (is_reboot_after_installation_necessary()) {
-        loadtest "installation/reboot_eject_cd";
-        loadtest "installation/reboot_after_install";
-    }
-
     if (get_var("DUALBOOT")) {
         loadtest "installation/reboot_eject_cd";
         loadtest "installation/boot_windows";
@@ -815,9 +810,6 @@ sub load_x11tests() {
     }
     if (snapper_is_applicable()) {
         loadtest "x11/yast2_snapper";
-    }
-    if (gnomestep_is_applicable() && get_var("GNOME2")) {
-        loadtest "x11/application_browser";
     }
     loadtest "x11/glxgears";
     if (kdestep_is_applicable()) {

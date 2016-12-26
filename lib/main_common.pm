@@ -13,7 +13,6 @@ our @EXPORT = qw(
   setup_env
   logcurrentenv
   is_staging
-  is_reboot_after_installation_necessary
   load_rescuecd_tests
   load_zdup_tests
   load_autoyast_tests
@@ -98,12 +97,6 @@ sub logcurrentenv {
 
 sub is_staging {
     return get_var('STAGING');
-}
-
-sub is_reboot_after_installation_necessary {
-    return 0 if get_var("DUALBOOT") || get_var("RESCUECD") || get_var("ZDUP");
-
-    return get_var("REBOOTAFTERINSTALL") && !get_var("UPGRADE");
 }
 
 sub load_rescuecd_tests {
@@ -265,7 +258,6 @@ our %valueranges = (
     #   LVM=>[0,1],
     NOIMAGES           => [0, 1],
     USEIMAGES          => [0, 1],
-    REBOOTAFTERINSTALL => [0, 1],
     DOCRUN             => [0, 1],
 
     #   BTRFS=>[0,1],

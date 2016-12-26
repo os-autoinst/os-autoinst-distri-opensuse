@@ -8,7 +8,6 @@
                 {key => "DESKTOP",            value => "minimalx"},
                 {key => "ENCRYPT",            value => 1},
                 {key => "LVM",                value => 1},
-                {key => "REBOOTAFTERINSTALL", value => 0},
                 {
                     key => "PUBLISH_HDD_1",
                     value =>
