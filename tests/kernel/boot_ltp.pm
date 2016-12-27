@@ -27,6 +27,9 @@ sub run {
     }
 
     assert_script_run('export LTPROOT=/opt/ltp; export TMPDIR=/tmp PATH=$LTPROOT/testcases/bin:$PATH');
+
+    # setup for LTP networking tests
+    assert_script_run("export PASSWD='$testapi::password'");
 }
 
 sub test_flags {
