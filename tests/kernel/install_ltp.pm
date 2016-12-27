@@ -33,7 +33,7 @@ sub install_from_git {
     }
     my @deps = qw(git-core make automake autoconf gcc libnuma-devel libaio-devel numactl
       flex bison dmapi-devel kernel-default-devel libopenssl-devel libselinux-devel
-      libacl-devel libtirpc-devel keyutils-devel libcap-devel);
+      libacl-devel libtirpc-devel keyutils-devel libcap-devel sysstat tpm-tools tpm2.0-tools);
     zypper_call('in ' . join(' ', @deps), log => 1);
     assert_script_run("git clone $url --depth 1" . $tag, timeout => 360);
     assert_script_run 'cd ltp';
