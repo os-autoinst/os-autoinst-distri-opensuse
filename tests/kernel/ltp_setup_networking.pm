@@ -17,7 +17,7 @@ use base 'opensusebasetest';
 use testapi;
 use utils;
 
-sub install_services {
+sub install {
     # utils
     zypper_call("in expect iputils net-tools-deprecated telnet", log => 1);
 
@@ -32,8 +32,7 @@ sub install_services {
     }
 }
 
-sub setup_env_variables {
-    my $conf_file = '/root/env-variables.sh';    # TODO: remove duplicity with run_ltp.pm
+sub setup {
     my $content;
 
     $content = <<EOF;
@@ -63,21 +62,13 @@ EOF
     # nfs
     assert_script_run 'echo \'/ *(rw,no_root_squash,sync)\' >> /etc/exports';
     assert_script_run 'exportfs';
-
-    # variables for run_ltp.pm
-    $content = <<EOF;
-export PASSWD='$testapi::password'
-export TST_USE_NETNS=1
-EOF
-    assert_script_run "echo \"$content\" > $conf_file";
-    upload_logs $conf_file;
 }
 
 # poo#14402
 sub run {
     select_console(get_var('VIRTIO_CONSOLE') ? 'root-virtio-terminal' : 'root-console');
-    install_services;
-    setup_env_variables;
+    install;
+    setup;
 }
 
 sub test_flags {
