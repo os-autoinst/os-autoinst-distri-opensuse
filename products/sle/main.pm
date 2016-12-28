@@ -1102,12 +1102,18 @@ elsif (get_var("HACLUSTER")) {
     load_hacluster_tests();
 }
 elsif (get_var("QA_TESTSET")) {
+    if (get_var('INSTALL_KOTD')) {
+        loadtest 'kernel/install_kotd';
+    }
     if (get_var('OS_TEST_REPO')) {
         loadtest "qa_automation/patch_and_reboot";
     }
     loadtest "qa_automation/" . get_var("QA_TESTSET");
 }
 elsif (get_var('INSTALL_LTP')) {
+    if (get_var('INSTALL_KOTD')) {
+        loadtest 'kernel/install_kotd';
+    }
     loadtest 'kernel/install_ltp';
     loadtest 'kernel/boot_ltp';
     loadtest 'kernel/shutdown_ltp';
