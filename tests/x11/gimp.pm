@@ -18,7 +18,7 @@ use testapi;
 sub run() {
     ensure_installed("gimp");
     x11_start_program("gimp");
-    assert_screen "test-gimp-1", 20;
+    assert_screen "test-gimp-1";
     send_key "alt-f4";    # Exit
 }
 

@@ -30,7 +30,6 @@ sub run() {
 
     # close nautilus
     send_key "alt-f4";
-    sleep 2;                              #close nautilus
 }
 
 1;

@@ -256,9 +256,9 @@ sub remove_desktop_needles {
 our %valueranges = (
 
     #   LVM=>[0,1],
-    NOIMAGES           => [0, 1],
-    USEIMAGES          => [0, 1],
-    DOCRUN             => [0, 1],
+    NOIMAGES  => [0, 1],
+    USEIMAGES => [0, 1],
+    DOCRUN    => [0, 1],
 
     #   BTRFS=>[0,1],
     DESKTOP => [qw(kde gnome xfce lxde minimalx textmode)],

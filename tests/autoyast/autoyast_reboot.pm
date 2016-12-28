@@ -26,22 +26,9 @@ sub run {
     #obsoletes installation/autoyast_reboot.pm
     assert_screen("bios-boot",     900);
     assert_screen("autoyast-boot", 20);
-
-
-
-##-> into installation/first_boot.pm
-    #     assert_screen("autoyast-boot", 200);#both for PXE and ISO boot
-    #
-    #     my $ret = assert_screen("autoyast-system-login", 1000);
-    #
-
 }
 
 sub test_flags {
-    # without anything - rollback to 'lastgood' snapshot if failed
-    # 'fatal' - whole test suite is in danger if this fails
-    # 'milestone' - after this test succeeds, update 'lastgood'
-    # 'important' - if this fails, set the overall state to 'fail'
     return {important => 1};
 }
 

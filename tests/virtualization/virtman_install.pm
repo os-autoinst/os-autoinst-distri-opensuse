@@ -26,7 +26,6 @@ sub run() {
     # exit root, and be the default user
     type_string "exit\n";
     send_key "alt-f4";
-    wait_idle;
 }
 
 1;

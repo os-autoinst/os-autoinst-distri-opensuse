@@ -17,14 +17,8 @@ use testapi;
 
 sub run() {
     x11_start_program("systemsettings", 6, {valid => 1});
-    if (get_var("LIVETEST")) {
-        assert_screen 'test-systemsettings-1', 15;
-    }
-    else {
-        assert_screen 'test-systemsettings-1', 3;
-    }
+    assert_screen 'test-systemsettings-1';
     send_key "alt-f4";
-    sleep 2;
 }
 
 1;

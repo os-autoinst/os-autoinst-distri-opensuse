@@ -36,8 +36,6 @@ sub run() {
     sleep 5;
     assert_screen 'tracker-search-result';
     send_key "alt-f4";
-    sleep 2;
-
 }
 
 1;

@@ -21,8 +21,6 @@ sub run() {
     wait_idle;
     assert_screen 'tracker-needle-launched';
     send_key "alt-f4";
-
-    # assert_screen 'test-tracker_starts-2', 3;
 }
 
 1;

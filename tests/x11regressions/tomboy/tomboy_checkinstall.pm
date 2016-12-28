@@ -26,8 +26,6 @@ sub run() {
     send_key "esc";
     sleep 5;
     wait_idle;
-
-    #save_screenshot;
 }
 
 1;

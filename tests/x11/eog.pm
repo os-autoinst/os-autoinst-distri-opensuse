@@ -18,11 +18,8 @@ use testapi;
 
 sub run() {
     x11_start_program("eog " . get_var("WALLPAPER"));
-    sleep 2;
-    assert_screen 'test-eog-1', 3;
-    sleep 2;
+    assert_screen 'test-eog-1';
     send_key "alt-f4";
-    sleep 2;
 }
 
 1;

@@ -17,14 +17,14 @@ use testapi;
 
 sub run() {
     x11_start_program("oowriter");
-    assert_screen 'test-ooffice-1', 30;
+    assert_screen 'test-ooffice-1';
     # clicking the writing area to make sure the cursor addressed there
     assert_and_click 'ooffice-writing-area', 'left', 10;
     wait_idle 10;
     type_string "Hello World!";
-    assert_screen 'test-ooffice-2', 5;
+    assert_screen 'test-ooffice-2';
     send_key "alt-f4";
-    assert_screen "ooffice-save-prompt", 8;
+    assert_screen "ooffice-save-prompt";
     assert_and_click 'dont-save-libreoffice-btn';    # _Don't save
 }
 

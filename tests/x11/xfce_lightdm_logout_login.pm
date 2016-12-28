@@ -18,7 +18,7 @@ use testapi;
 sub run() {
     x11_start_program("xfce4-session-logout");
     send_key "alt-l";
-    assert_screen 'test-xfce_lightdm_logout_login-1', 13;
+    assert_screen 'test-xfce_lightdm_logout_login-1';
     type_password;
     send_key "ret";
     assert_screen 'generic-desktop';

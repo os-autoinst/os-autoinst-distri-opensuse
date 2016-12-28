@@ -23,17 +23,6 @@ sub run() {
     wait_idle;
     assert_screen 'tracker_pref_launched';
     send_key "alt-f4";
-    sleep 2;
-
-    # assert_screen 'test-tracker_pref_starts-2', 3;
-}
-
-sub checklist() {
-
-    # return hashref:
-    return {
-        qw(
-          )};
 }
 
 1;
