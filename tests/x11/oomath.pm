@@ -17,7 +17,6 @@ use strict;
 use testapi;
 
 sub run() {
-    my $self = shift;
     x11_start_program("oomath");
     assert_screen 'oomath-textfield-ready';
     type_string "E %PHI = H %PHI\nnewline\n1 = 1";

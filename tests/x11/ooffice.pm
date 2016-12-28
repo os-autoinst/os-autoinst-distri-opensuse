@@ -8,24 +8,23 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Rework the tests layout.
-# G-Maintainer: Alberto Planas <aplanas@suse.com>
+# Summary: Startup, basic input, shutdown of oowriter
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "x11test";
 use strict;
 use testapi;
 
 sub run() {
-    my $self = shift;
     x11_start_program("oowriter");
-    assert_screen 'test-ooffice-1', 30;
+    assert_screen 'test-ooffice-1';
     # clicking the writing area to make sure the cursor addressed there
     assert_and_click 'ooffice-writing-area', 'left', 10;
     wait_idle 10;
     type_string "Hello World!";
-    assert_screen 'test-ooffice-2', 5;
+    assert_screen 'test-ooffice-2';
     send_key "alt-f4";
-    assert_screen "ooffice-save-prompt", 8;
+    assert_screen "ooffice-save-prompt";
     assert_and_click 'dont-save-libreoffice-btn';    # _Don't save
 }
 

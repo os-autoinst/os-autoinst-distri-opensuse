@@ -8,15 +8,14 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: add gnome_music test; move rhythmbox test to obsoleted
-# G-Maintainer: Max Lin <mlin@suse.com>
+# Summary: Gnome music startup
+# Maintainer: Max Lin <mlin@suse.com>
 
 use base "x11test";
 use strict;
 use testapi;
 
 sub run() {
-    my $self = shift;
     x11_start_program("gnome-music");
     assert_screen 'test-gnome-music-1', 3;
     send_key "alt-f4";

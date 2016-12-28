@@ -8,18 +8,16 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: x11regressions: add test scripts for gnote
-# G-Maintainer: Xudong Zhang <xdzhang@suse.com>
+# Summary: Test link in note
+# Maintainer: Xudong Zhang <xdzhang@suse.com>
+# Tags: tc#1436158
 
 use base "x11regressiontest";
 use strict;
 use testapi;
 
-# case 1436158-test link in note
 
 sub run() {
-    my $self = shift;
-
     x11_start_program("gnote");
     assert_screen 'gnote-first-launched', 10;
     send_key "ctrl-n";

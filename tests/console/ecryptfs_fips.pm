@@ -20,7 +20,6 @@ use strict;
 use testapi;
 
 sub run() {
-    my $self = shift;
     select_console 'root-console';
 
     # install ecryptfs-utils

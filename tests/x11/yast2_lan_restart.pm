@@ -155,7 +155,6 @@ sub del_device {
 }
 
 sub test_2 {
-    my $self = shift;
     diag '__________(2) Start yast2 lan -> Edit (a NIC) -> no change, don\'t switch to another tab, [Next] -> [OK]__________';
     run_yast2_lan_edit;
     send_key 'alt-n';                                 # Next
@@ -204,7 +203,6 @@ sub test_7 {
 }
 
 sub run() {
-    my $self = shift;
     x11_start_program("xterm -geometry 155x50+5+5");
     become_root;
     type_string "strace -e trace=socket -p `pidof wickedd` -o strace.log &\n";

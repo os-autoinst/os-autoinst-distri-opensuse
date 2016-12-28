@@ -8,19 +8,17 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Rework the tests layout.
-# G-Maintainer: Alberto Planas <aplanas@suse.com>
+# Summary: Startup of dolphin
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "x11test";
 use strict;
 use testapi;
 
 sub run() {
-    my $self = shift;
     x11_start_program("dolphin", 6, {valid => 1});
-    assert_screen 'test-dolphin-1', 3;
+    assert_screen 'test-dolphin-1';
     send_key "alt-f4";
-    sleep 2;
 }
 
 1;

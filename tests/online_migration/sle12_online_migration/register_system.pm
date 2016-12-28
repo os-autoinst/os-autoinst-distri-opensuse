@@ -17,7 +17,6 @@ use registration;
 use utils;
 
 sub run() {
-    my $self = shift;
     select_console 'root-console';
 
     # SCC_URL was placed to medium types

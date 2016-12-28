@@ -18,9 +18,6 @@ use utils;
 use File::Basename;
 
 sub run() {
-
-    my $self = shift;
-
     my $arch       = get_var('ARCH');
     my $vmm_family = get_required_var('VIRSH_VMM_FAMILY');
     my $vmm_type   = get_required_var('VIRSH_VMM_TYPE');

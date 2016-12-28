@@ -7,18 +7,16 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: New test to run installcheck on ISO
-#    I'm reusing the support server image to get an install check log - to be
+# Summary: Run installcheck on iso
+#    reusing the support server image to get an install check log - to be
 #    added to big staging projects with many changes
-# G-Maintainer: Stephan Kulow <coolo@suse.de>
+# Maintainer: Stephan Kulow <coolo@suse.de>
 
 use base "opensusebasetest";
 use strict;
 use testapi;
 
 sub run {
-    my $self = shift;
-
     assert_script_run "mount /dev/sr0 /mnt";
     assert_script_run 'cd /tmp; rpm2cpio /mnt/suse/*/libsolv-tools*.rpm | cpio -dium';
     assert_script_run 'export PATH=/tmp/usr/bin:$PATH; usr/bin/repo2solv.sh /mnt > /tmp/solv';

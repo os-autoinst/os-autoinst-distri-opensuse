@@ -18,7 +18,6 @@ use testapi;
 
 
 sub run() {
-    my $self = shift;
     wait_idle;
     if (check_var("DESKTOP", "lxde")) {
         x11_start_program("lxpanelctl menu");    # or Super_L or Windows key

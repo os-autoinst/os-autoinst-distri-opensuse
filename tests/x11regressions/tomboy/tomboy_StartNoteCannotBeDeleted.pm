@@ -17,7 +17,6 @@ use strict;
 use testapi;
 
 sub run() {
-    my $self = shift;
     x11_start_program("tomboy note");
 
     # select "start note", to see that start note cann't be deleted

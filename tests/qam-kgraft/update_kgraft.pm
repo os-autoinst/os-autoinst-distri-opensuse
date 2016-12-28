@@ -61,7 +61,6 @@ sub kgr_block {
 }
 
 sub run() {
-    my $self  = shift;
     my $svirt = select_console('svirt');
     my $name  = get_var('VIRSH_GUESTNAME');
     my $build = get_var('BUILD');
@@ -139,11 +138,9 @@ sub run() {
     $ret = $svirt->run_cmd("virsh snapshot-create-as $name $snapshot_after $build");
     die "snapshot $snapshot_after failed" if $ret;
     set_var('KGRAFT_SNAPSHOT_AFTER', $snapshot_after);
-
 }
 
 sub post_fail_hook() {
-    my $self            = shift;
     my $name            = get_var('VIRSH_GUESTNAME');
     my $snapshot_before = get_var('KGRAFT_SNAPSHOT_BEFORE');
     save_screenshot;
@@ -163,7 +160,6 @@ sub post_fail_hook() {
     if ($snapshot_before) {
         snap_revert($svirt, $name, $snapshot_before);
     }
-
 }
 
 sub test_flags() {

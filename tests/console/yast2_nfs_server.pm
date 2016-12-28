@@ -25,8 +25,6 @@ use mmapi;
 use mm_network;
 
 sub run() {
-    my $self = shift;
-
     select_console 'root-console';
 
     if (get_var('NFSSERVER')) {

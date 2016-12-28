@@ -8,18 +8,14 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Rework the tests layout.
-# G-Maintainer: Alberto Planas <aplanas@suse.com>
+# Summary: Test xfce4-notifyd with a notification
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "x11test";
 use strict;
 use testapi;
 
-# test xfce4-notifyd with a notification
-
-# this part contains the steps to run this test
 sub run() {
-    my $self = shift;
     x11_start_program('notify-send --expire-time=30 Test');
     assert_screen 'test-xfce_notification-1', 5;
 }

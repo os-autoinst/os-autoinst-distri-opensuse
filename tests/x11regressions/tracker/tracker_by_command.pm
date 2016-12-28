@@ -8,18 +8,17 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: First commit for tracker cases. Still need to modify main.pm to make it work.
-# G-Maintainer: nick wang <nwang@suse.com>
+# Summary: Tracker: search from command line
+# Maintainer: nick wang <nwang@suse.com>
+# Tags: tc#1436343
 
 use base "x11regressiontest";
 use strict;
 use testapi;
 use utils;
 
-# Case 1436343 - Tracker: search from command line
 
 sub run() {
-    my $self = shift;
     x11_start_program("xterm");
     if (sle_version_at_least('12-SP2')) {
         script_run "tracker search newfile";

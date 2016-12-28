@@ -8,10 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: restructure opensuse install test code
-#    this splits monolitic yast1b and yast2 modules
-#    into finer grained single-task modules
-# G-Maintainer: Bernhard M. Wiedemann <bernhard+osautoinst lsmod de>
+# Summary: Installation/upgrade mode selection during installation
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use strict;
 use warnings;
@@ -19,8 +17,6 @@ use base "y2logsstep";
 use testapi;
 
 sub run() {
-    my $self = shift;
-
     # autoconf phase
     # includes downloads, so wait_idle is bad.
     assert_screen "inst-instmode", 120;

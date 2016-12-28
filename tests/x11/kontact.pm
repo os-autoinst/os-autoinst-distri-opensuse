@@ -16,8 +16,6 @@ use strict;
 use testapi;
 
 sub run() {
-    my $self = shift;
-
     # start akonadi server avoid self-test running when launch kontact
     x11_start_program("akonadictl start");
     wait_idle 3;

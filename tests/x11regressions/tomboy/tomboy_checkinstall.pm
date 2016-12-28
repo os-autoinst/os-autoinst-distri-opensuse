@@ -8,18 +8,15 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: add some new script
-# G-Maintainer: root <root@linux-t9vu.site>
+# Summary: Install tomboy
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "x11regressiontest";
 use strict;
 use testapi;
 
-# install tomboy
 
-# this part contains the steps to run this test
 sub run() {
-    my $self = shift;
     mouse_hide();
     sleep 60;
     wait_idle;
@@ -29,8 +26,6 @@ sub run() {
     send_key "esc";
     sleep 5;
     wait_idle;
-
-    #save_screenshot;
 }
 
 1;

@@ -8,21 +8,15 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: add evince regression testsuite
-#    add x11regressions test data
-#
-#    add gedit regression testsuite
-#
-#    remove unnecessary sleeps
-# G-Maintainer: mitiao <mitiao@gmail.com>
+# Summary: Gedit: save file
+# Maintainer: mitiao <mitiao@gmail.com>
+# Tags: tc#1436121
 
 use base "x11regressiontest";
 use strict;
 use testapi;
 
-# Case 1436121 - Gedit: save file
 sub run() {
-    my $self = shift;
     # download test text file from x11regression data directory
     x11_start_program("wget " . autoinst_url . "/data/x11regressions/test.txt");
 

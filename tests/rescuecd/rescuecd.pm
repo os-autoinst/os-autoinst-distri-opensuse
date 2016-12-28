@@ -8,15 +8,14 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add RESCUECD test.
-# G-Maintainer: Alberto Planas <aplanas@suse.com>
+# Summary: RESCUECD test
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "rescuecdstep";
 use strict;
 use testapi;
 
 sub run() {
-    my $self = shift;
     assert_screen "rescuecd-desktop", 120;
 
     # Mount and show the local hard disk contect

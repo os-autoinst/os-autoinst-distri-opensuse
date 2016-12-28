@@ -71,9 +71,7 @@ use File::Find ();
 my @files;
 sub match_file {
     if (-f $_ && ! -l $_ && -s $_ && $_ =~ /.pm$/) {
-        if ($File::Find::name !~ m/sle11/) {
-            push @files, $File::Find::name;
-        }
+        push @files, $File::Find::name;
     }
 }
 

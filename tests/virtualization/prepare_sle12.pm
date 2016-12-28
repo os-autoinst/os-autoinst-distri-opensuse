@@ -14,8 +14,8 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-# G-Summary: - add the virtualization test suite- add a load_virtualization_tests call
-# G-Maintainer: aginies <aginies@suse.com>
+# Summary: Prepare a SLE12 system for use as a hypervisor host
+# Maintainer: aginies <aginies@suse.com>
 
 use base "basetest";
 use strict;
@@ -23,8 +23,6 @@ use testapi;
 use virtmanager;
 
 sub run {
-    my $self = shift;
-
     # login and preparation of the system
     if (get_var("DESKTOP") =~ /icewm/) {
         send_key "ret";
@@ -56,18 +54,6 @@ sub run {
     wait_idle;
 
     send_key "alt-f4";
-    # do the update
-    #    type_string ("mkdir /mnt/install && mount 10.0.1.99:/volume1/install /mnt/install\n");
-    #    wait_idle;
-    #    type_string ("zypper addrepo /mnt/install/suse/sle12sp1/suse/ sle12sp1\n");
-    #    wait_idle;
-    #    type_string ("zypper refresh\n");
-    #    wait_idle;
-    #    type_string ("zypper -n up --replacefiles\n");
-    #    wait_idle;
-    #   type_string ("reboot\n");
-    #    save_screenshot;
-    #    assert_screen "virt-manager_SLE12_desktop", 520;
 }
 
 sub test_flags {

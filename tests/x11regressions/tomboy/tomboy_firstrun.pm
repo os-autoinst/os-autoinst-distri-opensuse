@@ -8,19 +8,16 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: add tomboy.d
-# G-Maintainer: SeroSun <sunyong0511@gmail.com>
+# Summary: test tomboy first run
+# Maintainer: SeroSun <sunyong0511@gmail.com>
+# Tags: tc#1248872
 
 use base "x11regressiontest";
 use strict;
 use testapi;
 
-# test tomboy first run
-# testcase 1248872
 
-# this part contains the steps to run this test
 sub run() {
-    my $self = shift;
     mouse_hide();
     x11_start_program("tomboy note");
     while (check_screen "tomboy_command_not_found", 5) {

@@ -3117,7 +3117,6 @@
                         { key => "DESKTOP", value => "minimalx" },
                         { key => "ENCRYPT", value => 1 },
                         { key => "LVM", value => 1 },
-                        { key => "REBOOTAFTERINSTALL", value => 0 },
                       ],
                     },
                     {
@@ -3157,7 +3156,6 @@
                         { key => "DESKTOP", value => "xfce" },
                         { key => "LIVETEST", value => 1 },
                         { key => "NOAUTOLOGIN", value => 1 },
-                        { key => "REBOOTAFTERINSTALL", value => 0 },
                       ],
                     },
                     {
@@ -3166,7 +3164,6 @@
                         { key => "DESKTOP", value => "kde" },
                         { key => "DOCRUN", value => 1 },
                         { key => "NICEVIDEO", value => 1 },
-                        { key => "REBOOTAFTERINSTALL", value => 0 },
                         { key => "SCREENSHOTINTERVAL", value => 0.25 },
                       ],
                     },

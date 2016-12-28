@@ -19,8 +19,6 @@ use mm_network;
 use lockapi;
 
 sub run() {
-    my $self = shift;
-
     my $smt = get_var('SMT_SERVER');
 
     my $slepos_repo         = get_var('SLEPOS_REPO');

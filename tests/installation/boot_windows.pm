@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Rework the tests layout.
-# G-Maintainer: Alberto Planas <aplanas@suse.com>
+# Summary: Boot into MS Windows from grub
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "y2logsstep";
 use strict;
@@ -17,8 +17,6 @@ use testapi;
 use windows_utils;
 
 sub run() {
-    my $self = shift;
-
     assert_screen "grub-reboot-windows", 125;
 
     send_key "down";

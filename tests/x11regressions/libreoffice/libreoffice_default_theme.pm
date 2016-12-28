@@ -7,19 +7,17 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: add scripts for libreoffice tc#1503783 tc#1503789 in x11regression
-# G-Maintainer: Chingkai <qkzhu@suse.com>
+# Summary: LibreOffice: Default icon theme verification
+# Maintainer: Chingkai <qkzhu@suse.com>
+# Tags: tc#1503789
 
 use base "x11regressiontest";
 use testapi;
 use utils;
 use strict;
 
-# Case 1503789 - LibreOffice: Default icon theme verification
 
 sub run() {
-    my $self = shift;
-
     # Check LO default theme on standard GUI toolkit var
     x11_start_program("ooffice");
     assert_screen 'welcome-to-libreoffice';

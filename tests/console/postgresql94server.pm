@@ -17,8 +17,6 @@ use testapi;
 use utils;
 
 sub run() {
-    my $self = shift;
-
     select_console 'root-console';
 
     # install the postgresql94 server package

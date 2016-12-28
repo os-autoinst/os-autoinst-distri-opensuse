@@ -7,18 +7,16 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: add script for tc#1503753 tc#1503894
-# G-Maintainer: Chingkai <qkzhu@suse.com>
+# Summary: Gnote: Search for text in title of notes
+# Maintainer: Chingkai <qkzhu@suse.com>
+# Tags: tc#1503894
 
 use base "x11regressiontest";
 use strict;
 use testapi;
 
-# Case 1503894 - Gnote: Search for text in title of notes
 
 sub run() {
-    my $self = shift;
-
     x11_start_program("gnote");
     assert_screen "gnote-first-launched", 5;
     send_key_until_needlematch 'gnote-start-here-matched', 'down', 5;

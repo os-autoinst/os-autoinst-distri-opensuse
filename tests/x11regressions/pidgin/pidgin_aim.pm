@@ -8,17 +8,15 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: First commit for pidgin cases. These cases should be test under good network condition.Otherwise,will be failed by timeout.
-# G-Maintainer: nick wang <nwang@suse.com>
+# Summary: Pidgin: Add AIM Account; Login to AIM Account and Send/Receive Message
+# Maintainer: nick wang <nwang@suse.com>
+# Tags: tc#1248855, tc#1248856
 
 use base "x11regressiontest";
 use strict;
 use testapi;
 
-# Case 1248855 - Pidgin: Add AIM Account
-# Case 1248856 - Pidgin: Login to AIM Account and Send/Receive Message
 sub run() {
-    my $self      = shift;
     my $USERNAME  = "nooops_test3";
     my $USERNAME1 = "nooops_test4";
     my $DOMAIN    = "aim";

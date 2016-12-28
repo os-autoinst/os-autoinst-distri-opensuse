@@ -16,7 +16,6 @@ use strict;
 use testapi;
 
 sub run() {
-    my $self = shift;
     x11_start_program("banshee");
     assert_screen 'test-banshee-1', 3;
     send_key "ctrl-q";    # really quit (alt-f4 just backgrounds)

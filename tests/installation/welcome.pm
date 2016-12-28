@@ -18,8 +18,6 @@ use testapi;
 use utils 'ensure_fullscreen';
 
 sub run() {
-    my $self = shift;
-
     my @welcome_tags = [qw(inst-welcome inst-welcome-confirm-self-update-server)];
     ensure_fullscreen;
     if (get_var("BETA")) {

@@ -9,7 +9,7 @@
 # without any warranty.
 
 package change_desktop;
-# Summary: [OOP]Change desktop for sle12 & sle11
+# Summary: [OOP]Change desktop
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
 use base "y2logsstep";

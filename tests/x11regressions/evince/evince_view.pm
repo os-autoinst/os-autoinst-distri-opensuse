@@ -8,21 +8,16 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: add evince regression testsuite
-#    add x11regressions test data
-#
-#    add gedit regression testsuite
-#
-#    remove unnecessary sleeps
-# G-Maintainer: mitiao <mitiao@gmail.com>
+# Summary: Evince: View
+# Maintainer: mitiao <mitiao@gmail.com>
+# Tags: tc#1436026
 
 use base "x11regressiontest";
 use strict;
 use testapi;
 
-# Case 1436026 - Evince: View
+
 sub run() {
-    my $self = shift;
     x11_start_program("evince " . autoinst_url . "/data/x11regressions/test.pdf");
 
     send_key "f11";    # fullscreen mode

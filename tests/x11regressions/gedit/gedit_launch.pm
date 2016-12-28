@@ -8,21 +8,15 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: add evince regression testsuite
-#    add x11regressions test data
-#
-#    add gedit regression testsuite
-#
-#    remove unnecessary sleeps
-# G-Maintainer: mitiao <mitiao@gmail.com>
+# Summary: Gedit: Start and exit
+# Maintainer: mitiao <mitiao@gmail.com>
+# Tags: tc#1436122
 
 use base "x11regressiontest";
 use strict;
 use testapi;
 
-# Case 1436122 - Gedit: Start and exit
 sub run() {
-    my $self = shift;
     x11_start_program("gedit");
     assert_screen 'gedit-launched', 3;
     assert_and_click 'gedit-x-button';

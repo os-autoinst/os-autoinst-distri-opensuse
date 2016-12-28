@@ -18,8 +18,6 @@ use testapi;
 use utils;
 
 sub run() {
-    my $self = shift;
-
     if (get_var('LIVECD')) {
         mouse_hide;
         wait_still_screen;

@@ -17,7 +17,6 @@ use testapi;
 use utils;
 
 sub run() {
-    my $self = shift;
     select_console 'root-console';
 
     zypper_call "in shibboleth-sp apache2";

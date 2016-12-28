@@ -8,17 +8,14 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: split the rescuesystem test to allow overwriting the validation
-# G-Maintainer: Stephan Kulow <coolo@suse.de>
+# Summary: Check that there is access to the local hard disk from rescue system
+# Maintainer: Stephan Kulow <coolo@suse.de>
 
 use base "opensusebasetest";
 use strict;
 use testapi;
 
 sub run {
-    my $self = shift;
-
-    # Check that there is access to the local hard disk
     type_string "mount /dev/vda2 /mnt\n";
     type_string "cat /mnt/etc/SUSE-brand > /dev/$serialdev\n";
     wait_serial("VERSION = 13.1", 2) || die "Not SUSE-brand found";

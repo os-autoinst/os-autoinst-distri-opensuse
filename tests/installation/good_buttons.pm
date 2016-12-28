@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: add a button bar test
-# G-Maintainer: Max Lin <mlin@suse.com>
+# Summary: installer button bar test
+# Maintainer: Max Lin <mlin@suse.com>
 
 use strict;
 use warnings;
@@ -17,8 +17,6 @@ use base "y2logsstep";
 use testapi;
 
 sub run() {
-    my $self = shift;
-
     # support test for help and release note button
     # just did the check after the welcome test
     # 120 secs sounds long here but live installer is

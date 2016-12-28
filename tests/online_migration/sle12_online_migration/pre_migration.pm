@@ -51,7 +51,6 @@ sub remove_kgraft_patch {
 }
 
 sub run() {
-    my $self = shift;
     select_console 'root-console';
 
     check_or_install_packages;

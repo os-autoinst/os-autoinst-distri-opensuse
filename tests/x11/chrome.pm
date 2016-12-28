@@ -18,7 +18,6 @@ use testapi;
 use utils;
 
 sub run() {
-    my $self = shift;
     my $arch;
     if (check_var('ARCH', 'i586')) {
         $arch = "i386";

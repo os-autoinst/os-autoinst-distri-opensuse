@@ -16,7 +16,6 @@ use testapi;
 use utils;
 
 sub run() {
-    my $self = shift;
     select_console 'root-console';
 
     # print repos to screen and serial console after online migration

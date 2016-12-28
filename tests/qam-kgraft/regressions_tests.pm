@@ -18,7 +18,6 @@ use strict;
 use warnings;
 
 sub run() {
-    my $self  = shift;
     my $svirt = select_console('svirt');
     my $name  = get_var('VIRSH_GUESTNAME');
     $svirt->attach_to_running($name);

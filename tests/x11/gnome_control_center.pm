@@ -8,20 +8,16 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Test for gnome-control-center
-#    Identify bugs like https://bugzilla.suse.com/show_bug.cgi?id=897687
-#    earlier.
+# Summary: Test for gnome-control-center, with panel
 # Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
+# Tags: boo#897687
 
 use base "x11test";
 use strict;
 use testapi;
 
-# test gnome-control-center, with panel (boo#897687)
 
-# this part contains the steps to run this test
 sub run() {
-    my $self = shift;
     mouse_hide(1);
     x11_start_program("gnome-control-center");
     assert_screen "gnome-control-center-started", 120;    # for timeout selection see bsc#965857

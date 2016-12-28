@@ -7,12 +7,12 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# This test checks if many users make the login manager hard to use
-# i.e. if it takes more than one click to access the username text field
 
-# G-Summary: Test if login manager is usable with many users
-#    Progress Issue #9694
-# G-Maintainer: Dominik Heidler <dheidler@suse.de>
+# Summary: Test if login manager is usable with many users
+#   This test checks if many users make the login manager hard to use
+#   i.e. if it takes more than one click to access the username text field
+# Maintainer: Dominik Heidler <dheidler@suse.de>
+# Tags: poo#9694
 
 use base "x11test";
 use strict;
@@ -37,7 +37,6 @@ sub restart_x11 {
 }
 
 sub run() {
-    my $self = shift;
 
     my $users_to_create = 100;
     my $encrypted_password = crypt($password, "abcsalt");

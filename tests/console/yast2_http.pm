@@ -86,7 +86,6 @@ sub run() {
     if (check_screen('http_enable_apache2', 10)) {
         send_key 'alt-o';
     }
-    # yast might take a while on sle11 due to suseconfig
     wait_serial("yast2-http-server-status-0", 60) || die "'yast2 http-server' didn't finish";
 }
 1;

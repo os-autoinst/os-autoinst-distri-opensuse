@@ -16,7 +16,6 @@ use strict;
 use testapi;
 
 sub run() {
-    my $self = shift;
     ensure_installed("amarok");
     x11_start_program("amarok", 6, {valid => 1});
     assert_screen 'test-amarok-1', 3;

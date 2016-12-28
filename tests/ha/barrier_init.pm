@@ -17,8 +17,6 @@ use lockapi;
 use mmapi;
 
 sub run() {
-    my $self = shift;
-
     for my $clustername (split(/,/, get_var('CLUSTERNAME'))) {
         barrier_create("BARRIER_HA_" . $clustername,               3);
         barrier_create("CLUSTER_INITIALIZED_" . $clustername,      2);

@@ -8,7 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Postgres tests for SLE11SP4
+# Summary: Simple 'zypper in' test
 # Maintainer: Richard Brown <rbrownccb@opensuse.org>
 
 use base "consoletest";

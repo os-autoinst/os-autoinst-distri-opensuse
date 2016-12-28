@@ -141,7 +141,7 @@ $needle::cleanuphandler = \&cleanup_needles;
 # dump other important ENV:
 logcurrentenv(
     qw(ADDONURL BTRFS DESKTOP HW HWSLOT LIVETEST LVM
-      MOZILLATEST NOINSTALL REBOOTAFTERINSTALL UPGRADE USBBOOT ZDUP
+      MOZILLATEST NOINSTALL UPGRADE USBBOOT ZDUP
       ZDUPREPOS TEXTMODE DISTRI NOAUTOLOGIN QEMUCPU QEMUCPUS RAIDLEVEL
       ENCRYPT INSTLANG QEMUVGA DOCRUN UEFI DVD GNOME KDE ISO ISO_MAXSIZE
       LIVECD NETBOOT NOIMAGES PROMO QEMUVGA SPLITUSR VIDEOMODE)
@@ -346,11 +346,6 @@ sub load_reboot_tests() {
         loadtest "installation/first_boot";
     }
 
-    if (is_reboot_after_installation_necessary()) {
-        loadtest "installation/reboot_eject_cd";
-        loadtest "installation/reboot_after_install";
-    }
-
     if (get_var("DUALBOOT")) {
         loadtest "installation/reboot_eject_cd";
         loadtest "installation/boot_windows";
@@ -444,9 +439,6 @@ sub load_consoletests() {
             if (check_var('ARCH', 'x86_64')) {
                 loadtest "console/docker";
             }
-        }
-        if (get_var("MOZILLATEST")) {
-            loadtest "console/mozmill_setup";
         }
         if (check_var("DESKTOP", "xfce")) {
             loadtest "console/xfce_gnome_deps";
@@ -654,9 +646,6 @@ sub load_x11tests() {
     if (gnomestep_is_applicable() && !(get_var("LIVECD") || is_server)) {
         loadtest "x11/thunderbird";
     }
-    if (get_var("MOZILLATEST")) {
-        loadtest "x11/mozmill_run";
-    }
     if (chromiumstep_is_applicable() && !(is_staging() || is_livesystem)) {
         loadtest "x11/chromium";
     }
@@ -685,9 +674,6 @@ sub load_x11tests() {
     }
     if (snapper_is_applicable()) {
         loadtest "x11/yast2_snapper";
-    }
-    if (gnomestep_is_applicable() && get_var("GNOME2")) {
-        loadtest "x11/application_browser";
     }
     if (xfcestep_is_applicable()) {
         loadtest "x11/thunar";

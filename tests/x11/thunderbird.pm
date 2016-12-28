@@ -16,7 +16,6 @@ use strict;
 use testapi;
 
 sub run() {
-    my $self = shift;
     ensure_installed("MozillaThunderbird");
     x11_start_program("thunderbird");
     assert_screen 'test-thunderbird-1';

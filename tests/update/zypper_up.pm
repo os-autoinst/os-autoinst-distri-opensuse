@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Rework the tests layout.
-# G-Maintainer: Alberto Planas <aplanas@suse.com>
+# Summary: Full patch system using zypper
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "console_yasttest";
 use strict;
@@ -17,14 +17,9 @@ use testapi;
 use utils;
 
 sub run() {
-    my $self = shift;
-
     select_console 'root-console';
-
     pkcon_quit;
-
     fully_patch_system;
-
     assert_script_run("rpm -q libzypp zypper");
 
     # XXX: does this below make any sense? what if updates got

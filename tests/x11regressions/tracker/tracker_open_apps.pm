@@ -8,17 +8,16 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: First commit for tracker cases. Still need to modify main.pm to make it work.
-# G-Maintainer: nick wang <nwang@suse.com>
+# Summary: Tracker: search application in tracker and open it
+# Maintainer: nick wang <nwang@suse.com>
+# Tags: tc#1436342
 
 use base "x11regressiontest";
 use strict;
 use testapi;
 
-# Case 1436342 - Tracker: search application in tracker and open it
 
 sub run() {
-    my $self = shift;
     x11_start_program("tracker-needle");
     sleep 2;
     wait_idle;    # extra wait because oo sometimes appears to be idle during start
@@ -38,7 +37,6 @@ sub run() {
     send_key "alt-f4";
     sleep 2;    #close cheese
     send_key "alt-f4";
-
 }
 
 1;

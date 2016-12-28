@@ -8,20 +8,16 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Modify some by Weihua's comments, and add two news
-# G-Maintainer: Sero Sun <yosun@suse.com>
+# Summary: test tomboy: what links here
+# Maintainer: Sero Sun <yosun@suse.com>
+# Tags: tc#1248883
 
 use base "x11regressiontest";
 use strict;
 use testapi;
 
-# test tomboy: what links here
-# testcase 1248883
 
-# this part contains the steps to run this test
 sub run() {
-    my $self = shift;
-
     # open tomboy
     x11_start_program("tomboy note");
 

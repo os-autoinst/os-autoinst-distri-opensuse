@@ -7,8 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Basic SLEPOS test
-# G-Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
+# Summary: Basic SLEPOS test
+# Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
 
 use base "basetest";
 use strict;
@@ -18,8 +18,6 @@ use utils;
 
 
 sub run() {
-    my $self = shift;
-
     assert_script_run "zypper -n --no-gpg-checks in --auto-agree-with-licenses -t pattern SLEPOS_Image_Server > /dev/$serialdev";
 }
 

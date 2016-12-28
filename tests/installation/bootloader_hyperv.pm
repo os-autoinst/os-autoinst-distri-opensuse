@@ -22,9 +22,6 @@ use File::Basename;
 use Net::Telnet ();
 
 sub run() {
-
-    my $self = shift;
-
     my $svirt = select_console('svirt');
     my $name  = $svirt->name;
 
