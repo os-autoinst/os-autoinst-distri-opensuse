@@ -8,15 +8,14 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Rework the tests layout.
-# G-Maintainer: Alberto Planas <aplanas@suse.com>
+# Summary: Test audio playback in firefox
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "x11test";
 use strict;
 use testapi;
 
 sub run() {
-    my $self = shift;
     start_audiocapture;
     x11_start_program("firefox " . autoinst_url . "/data/1d5d9dD.oga");
     assert_screen 'test-firefox_audio-1', 35;

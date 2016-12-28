@@ -14,8 +14,8 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-# G-Summary: - add the virtualization test suite- add a load_virtualization_tests call
-# G-Maintainer: aginies <aginies@suse.com>
+# Summary: Prepare a SLE12 system for use as a hypervisor host
+# Maintainer: aginies <aginies@suse.com>
 
 use base "basetest";
 use strict;
@@ -23,8 +23,6 @@ use testapi;
 use virtmanager;
 
 sub run {
-    my $self = shift;
-
     # login and preparation of the system
     if (get_var("DESKTOP") =~ /icewm/) {
         send_key "ret";

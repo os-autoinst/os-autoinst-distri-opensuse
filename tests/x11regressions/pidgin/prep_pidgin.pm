@@ -18,7 +18,6 @@ use testapi;
 use utils;
 
 sub pidgin_preparation() {
-    my $self = shift;
     mouse_hide(1);
     ensure_installed('pidgin');
 
@@ -66,7 +65,6 @@ sub pidgin_preparation() {
 }
 
 sub run() {
-    my $self = shift;
     pidgin_preparation;
 }
 

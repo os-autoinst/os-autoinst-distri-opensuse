@@ -16,7 +16,6 @@ use strict;
 use testapi;
 
 sub run() {
-    my $self = shift;
     ensure_installed('inkscape', timeout => 300);
     x11_start_program("inkscape");
     assert_screen 'test-inkscape-1', 3;

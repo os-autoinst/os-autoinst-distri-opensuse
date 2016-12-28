@@ -16,8 +16,6 @@ use base "x11regressiontest";
 use testapi;
 
 sub run() {
-    my ($self) = @_;
-
     mouse_hide(1);
 
     # Clean and Start Firefox

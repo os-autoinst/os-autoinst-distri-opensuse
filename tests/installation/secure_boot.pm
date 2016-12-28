@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add secure boot test. Add SECUREBOOT variable.
-# G-Maintainer: Alberto Planas <aplanas@suse.com>
+# Summary: Make sure that we are in the installation overview with SB enabled
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use strict;
 use warnings;
@@ -17,9 +17,6 @@ use base "y2logsstep";
 use testapi;
 
 sub run() {
-    my $self = shift;
-
-    # Make sure that we are in the installation overview with SB enabled
     assert_screen "inst-overview-secureboot";
 
     $cmd{bootloader} = "alt-b" if check_var('VIDEOMODE', "text");

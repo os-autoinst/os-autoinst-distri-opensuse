@@ -8,15 +8,14 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Rework the tests layout.
-# G-Maintainer: Alberto Planas <aplanas@suse.com>
+# Summary: Test custom partitioning selection: Split off '/usr' partition
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "y2logsstep";
 use strict;
 use testapi;
 
 sub run() {
-    my $self = shift;
     send_key "alt-e", 1;    # Edit
                             # select vda2
     send_key "right";

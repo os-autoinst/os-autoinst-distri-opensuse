@@ -8,18 +8,14 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Rework the tests layout.
-# G-Maintainer: Alberto Planas <aplanas@suse.com>
+# Summary: test ristretto and open the default wallpaper
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "x11test";
 use strict;
 use testapi;
 
-# test ristretto and open the default wallpaper
-
-# this part contains the steps to run this test
 sub run() {
-    my $self = shift;
     x11_start_program("ristretto /usr/share/wallpapers/xfce/default.wallpaper");
     send_key "ctrl-m";
     sleep 2;

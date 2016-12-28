@@ -7,22 +7,19 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: New test: Seahorse
-#    Serves two purposes:
-#    * Tests seahorse (GNOME Keyring frontend)
+# Summary: Test seahorse (GNOME Keyring frontend)
 #    * As a side effect, it initializes the keyring so that other
 #      tests running later can access an existing keyring (e.g. chromium &
 #      chrome). This allows us not having to handle special cases there for
 #      creating new keyring databases (Which, potentially, every application
 #      could be asking for).
-# G-Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "x11test";
 use strict;
 use testapi;
 
 sub run() {
-    my $self = shift;
     x11_start_program("seahorse");
     assert_screen 'seahorse-launched', 15;    # Seahorse main window appeared
     send_key "ctrl-n";                                # New keyring

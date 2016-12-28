@@ -20,7 +20,6 @@ use base "y2logsstep";
 use testapi;
 
 sub run() {
-    my $self = shift;
     # the waiting might take long in case of online update repos being
     # initialized before that screen
     assert_screen 'before-package-selection', 300;

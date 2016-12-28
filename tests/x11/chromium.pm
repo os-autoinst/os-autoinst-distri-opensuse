@@ -17,8 +17,6 @@ use testapi;
 use utils;
 
 sub run() {
-    my $self = shift;
-
     mouse_hide;
 
     ensure_installed("chromium");

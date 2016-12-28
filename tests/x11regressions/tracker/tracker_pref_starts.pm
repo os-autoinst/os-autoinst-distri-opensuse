@@ -8,17 +8,16 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: First commit for tracker cases. Still need to modify main.pm to make it work.
-# G-Maintainer: nick wang <nwang@suse.com>
+# Summary: start preference of tracker
+# Maintainer: nick wang <nwang@suse.com>
+# Tags: tc#1436344
 
 use base "x11regressiontest";
 use strict;
 use testapi;
 
-# Case 1436344-start preference of tracker
 
 sub run() {
-    my $self = shift;
     x11_start_program("tracker-preferences");
     sleep 2;
     wait_idle;

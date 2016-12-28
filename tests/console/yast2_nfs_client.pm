@@ -9,19 +9,16 @@
 # without any warranty.
 
 # Summary: yast2_nfs_client module
-# Maintainer: Ancor Gonzalez Sosa <ancor@suse.de>
+#   Ensures that it works with the current version of nfs-client (it got broken
+#   with the conversion from init.d to systemd services)
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "console_yasttest";
 use strict;
 use testapi;
 
-# Test "yast2 nfs-client" functionality
-# Ensures that it works with the current version of nfs-client (it got broken
-# with the conversion from init.d to systemd services)
 
 sub run() {
-    my $self = shift;
-
     #
     # Preparation
     #

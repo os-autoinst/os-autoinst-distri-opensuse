@@ -1,4 +1,4 @@
-# Copyright (C) 2015 SUSE Linux GmbH
+# Copyright (C) 2015-2016 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,8 +24,6 @@ use mmapi;
 use mm_network;
 
 sub run {
-    my $self = shift;
-
     my $children = get_children();
     # there should be only one child - the control job
     my $control_id = (keys %$children)[0];

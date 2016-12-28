@@ -8,16 +8,14 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: s390 DASD Disk activation test
-# G-Maintainer: Richard Brown <rbrownccb@opensuse.org>
+# Summary: s390 DASD Disk activation test
+# Maintainer: Richard Brown <rbrownccb@opensuse.org>
 
 use base "y2logsstep";
 use strict;
 use testapi;
 
 sub run {
-    my $self = shift;
-
     if (check_var('S390_DISK', 'ZFCP')) {    # use zfcp as install disk
         assert_screen 'disk-activation-zfcp';
         send_key 'alt-z';                    # configure ZFCP disk

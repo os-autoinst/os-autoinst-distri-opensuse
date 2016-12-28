@@ -8,6 +8,8 @@
 # without any warranty.
 
 # Summary: FIPS case for aide check test
+#    test for basic function of aide. Check different between aide.db and file system
+#
 #    This is a new test case added for FIPS, it test the basic function of aide tools.
 #    This case will been used with SLE 12 SP2 with FIPS, and it has added to misc part of FIPS test.
 #    The case will do operation as followed
@@ -21,9 +23,7 @@ use base "consoletest";
 use testapi;
 use strict;
 
-# test for basic function of aide. Check different between aide.db and file system
 sub run {
-    my $self = shift;
     select_console 'root-console';
     assert_script_run "zypper -n in aide", 90;
     assert_script_run "cp /etc/aide.conf /etc/aide.conf.bak";

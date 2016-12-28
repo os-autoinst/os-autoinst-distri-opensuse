@@ -8,20 +8,16 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Modify some by Weihua's comments, and add two news
-# G-Maintainer: Sero Sun <yosun@suse.com>
+# Summary: tomboy: Test 'undo'/'Redo' feature
+# Maintainer: Sero Sun <yosun@suse.com>
+# Tags: tc#1248884
 
 use base "x11regressiontest";
 use strict;
 use testapi;
 
-# test tomboy: Test 'undo'/'Redo' feature
-# testcase 1248884
 
-# this part contains the steps to run this test
 sub run() {
-    my $self = shift;
-
     # open tomboy
     x11_start_program("tomboy note");
 

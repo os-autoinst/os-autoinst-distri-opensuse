@@ -8,10 +8,10 @@
 # without any warranty.
 
 # Summary: Simple PHP5 code hosted locally
+#   This test requires the Web and Scripting module on SLE. Also, it
+#   should preferably be executed after the 'console/http_srv' test.
 # Maintainer: Romanos Dodopoulos <romanos.dodopoulos@suse.cz>
 
-# This test requires the Web and Scripting module on SLE. Also, it
-# should preferably be executed after the 'console/http_srv' test.
 
 use base "consoletest";
 use strict;
@@ -20,7 +20,6 @@ use testapi;
 use utils;
 
 sub run() {
-    my $self = shift;
     select_console 'root-console';
 
     # install requirements

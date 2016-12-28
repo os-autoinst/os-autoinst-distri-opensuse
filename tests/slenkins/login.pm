@@ -1,4 +1,4 @@
-# Copyright (C) 2015 SUSE Linux GmbH
+# Copyright (C) 2015-2016 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -13,16 +13,14 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# G-Summary: fixed login for slenkins tests
-# G-Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
+# Summary: slenkins tests login
+# Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
 
 use strict;
 use base 'basetest';
 use testapi;
 
 sub run {
-    my $self = shift;
-
     select_console('root-console');
 }
 

@@ -7,17 +7,14 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add common setup for x11regression tests
-#     - grant user permission to access serial port
-# G-Maintainer: mitiao <mitiao@gmail.com>
+# Summary: Common setup for x11regression tests
+# Maintainer: mitiao <mitiao@gmail.com>
 
 use base "x11regressiontest";
 use strict;
 use testapi;
 
 sub run() {
-    my $self = shift;
-
     x11_start_program("xterm");
 
     # grant user permission to access serial port until next reboot

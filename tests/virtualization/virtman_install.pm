@@ -1,5 +1,14 @@
-# G-Summary: - add the virtualization test suite- add a load_virtualization_tests call
-# G-Maintainer: aginies <aginies@suse.com>
+# SUSE's openQA tests
+#
+# Copyright © 2016 SUSE LLC
+#
+# Copying and distribution of this file, with or without modification,
+# are permitted in any medium without royalty provided the copyright
+# notice and this notice are preserved.  This file is offered as-is,
+# without any warranty.
+
+# Summary: Virtualization virtman installation setup
+# Maintainer: aginies <aginies@suse.com>
 
 use base "x11test";
 use strict;
@@ -7,8 +16,6 @@ use testapi;
 
 
 sub run() {
-    my $self = shift;
-
     #ensure_installed("virt-manager");
     # workaround for bug:
     # Bug 948366 - "pkcon install virt-manager" report it will remove

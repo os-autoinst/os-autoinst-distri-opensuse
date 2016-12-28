@@ -33,8 +33,6 @@ sub select_keyboard {
 }
 
 sub run() {
-    my $self = shift;
-
     if (check_var('VERSION', '12')) {
         # JeOS-SLE
         accept_license;

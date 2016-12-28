@@ -8,20 +8,16 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: add some new script
-# G-Maintainer: root <root@linux-t9vu.site>
+# Summary: test tomboy: Hotkeys
+# Maintainer: Oliver Kurz <okurz@suse.de>
+# Tags: tc#1248875
 
 use base "x11regressiontest";
 use strict;
 use testapi;
 
-# test tomboy: Hotkeys
-# testcase 1248875
 
-# this part contains the steps to run this test
 sub run() {
-    my $self = shift;
-
     # open Hotkeys sheet
     x11_start_program("tomboy note");
     send_key "alt-e";

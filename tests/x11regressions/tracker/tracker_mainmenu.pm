@@ -7,17 +7,16 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: add tracker main menu test case to x11regression
-# G-Maintainer: Chingkai Chu <qkzhu@suse.com>
+# Summary: Tracker: Find an application with Search in the Main Menu
+# Maintainer: Chingkai Chu <qkzhu@suse.com>
+# Tags: tc#1503761
 
 use base "x11regressiontest";
 use strict;
 use testapi;
 
-# Case 1503761 - Tracker: Find an application with Search in the Main Menu
 
 sub run() {
-    my $self = shift;
     # enter 'Activities overview'
     send_key "super";
     assert_screen 'tracker-mainmenu-launched';

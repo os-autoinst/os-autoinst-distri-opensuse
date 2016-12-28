@@ -7,15 +7,14 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: GNOME Tweak Tool
-# G-Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
+# Summary: GNOME Tweak Tool
+# Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
 
 use base "x11test";
 use strict;
 use testapi;
 
 sub run() {
-    my $self = shift;
     mouse_hide(1);
     x11_start_program("gnome-tweak-tool");
     assert_screen "gnome-tweak-tool-started";

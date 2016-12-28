@@ -9,16 +9,15 @@
 
 # Summary: Adding AIM accounts, sending & receiving messages in Empathy
 # Maintainer: dehai <dhkong@suse.com>
+# Tags: tc#1503972
 
 use base "x11regressiontest";
 use strict;
 use testapi;
 use utils;
 
-# Case 1503972 - Empathy: AIM
 
 sub run() {
-    my $self      = shift;
     my $USERNAME0 = "nooops_test3";
     my $USERNAME1 = "nooops_test4";
     my $DOMAIN    = "aim";

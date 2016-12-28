@@ -16,8 +16,6 @@ use strict;
 use testapi;
 
 sub run() {
-    my $self = shift;
-
     # Edit file hello.odt using oowriter
     x11_start_program("oowriter");
     assert_screen 'test-ooffice-1';

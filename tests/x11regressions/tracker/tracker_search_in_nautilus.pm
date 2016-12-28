@@ -8,15 +8,14 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: First commit for tracker cases. Still need to modify main.pm to make it work.
-# G-Maintainer: nick wang <nwang@suse.com>
+# Summary: tracker search in nautilus
+# Maintainer: nick wang <nwang@suse.com>
 
 use base "x11regressiontest";
 use strict;
 use testapi;
 
 sub run() {
-    my $self = shift;
     x11_start_program("nautilus");
     wait_idle;
     send_key "ctrl-f";
@@ -28,6 +27,8 @@ sub run() {
     assert_screen 'gedit-launched', 3;    # should open file newfile
     send_key "alt-f4";
     sleep 2;                              #close gedit
+
+    # close nautilus
     send_key "alt-f4";
     sleep 2;                              #close nautilus
 }

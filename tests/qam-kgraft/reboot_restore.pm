@@ -26,7 +26,6 @@ sub mod_rpm_info {
 }
 
 sub run() {
-    my $self           = shift;
     my $svirt          = select_console('svirt');
     my $name           = get_var('VIRSH_GUESTNAME');
     my $snapshot_after = get_var('KGRAFT_SNAPSHOT_AFTER');

@@ -18,11 +18,8 @@ use utils;
 use lockapi;
 
 sub run() {
-    my $self = shift;
-
     # FIXME: configure fw
     assert_script_run "rcSuSEfirewall2 stop";
-
 
     script_output '
       set -x -e

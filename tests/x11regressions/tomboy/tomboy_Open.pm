@@ -8,20 +8,16 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: add some new script
-# G-Maintainer: root <root@linux-t9vu.site>
+# Summary: test tomboy: open
+# Maintainer: Oliver Kurz <okurz@suse.de>
+# Tags: tc#1248874
 
 use base "x11regressiontest";
 use strict;
 use testapi;
 
-# test tomboy: open
-# testcase 1248874
 
-# this part contains the steps to run this test
 sub run() {
-    my $self = shift;
-
     # open start note and take screenshot
     x11_start_program("tomboy note");
     send_key "alt-f11";

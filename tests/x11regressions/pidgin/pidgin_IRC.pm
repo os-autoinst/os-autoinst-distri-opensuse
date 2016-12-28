@@ -8,16 +8,16 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: First commit for pidgin cases. These cases should be test under good network condition.Otherwise,will be failed by timeout.
-# G-Maintainer: nick wang <nwang@suse.com>
+# Summary: Pidgin: IRC
+# Maintainer: nick wang <nwang@suse.com>
+# Tags: tc#1248849
 
 use base "x11regressiontest";
 use strict;
 use testapi;
 
-# Case 1248849 - Pidgin: IRC
+
 sub run() {
-    my $self        = shift;
     my $CHANNELNAME = "susetesting";
     x11_start_program("pidgin");
 

@@ -1,4 +1,4 @@
-# Copyright (C) 2015 SUSE Linux GmbH
+# Copyright (C) 2015-2016 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -13,17 +13,14 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# G-Summary: merge of sles11sp4 autoyast test, base commit
-# G-Maintainer: Pavel Sladek <psladek@suse.cz>
+# Summary: Reboot for autoyast scenarios
+# Maintainer: Pavel Sladek <psladek@suse.cz>
 
 use strict;
 use base 'basetest';
 use testapi;
 
 sub run {
-    my $self = shift;
-
-
     type_string("shutdown -r now\n");
 
     #obsoletes installation/autoyast_reboot.pm

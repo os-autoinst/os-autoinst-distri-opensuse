@@ -8,18 +8,14 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: restructure opensuse install test code
-#    this splits monolitic yast1b and yast2 modules
-#    into finer grained single-task modules
-# G-Maintainer: Bernhard M. Wiedemann <bernhard+osautoinst lsmod de>
+# Summary: Select and install product addons based on test variables
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use strict;
 use base "y2logsstep";
 use testapi;
 
 sub run() {
-    my ($self) = @_;
-
     if (check_screen('network-setup', 10)) {    # won't appear for NET installs
         send_key $cmd{next};                    # use network
         assert_screen 'dhcp-network';
@@ -73,11 +69,8 @@ sub run() {
                 send_key 'alt-a';
                 assert_screen 'addon-selection';
             }
-
         }
-
         send_key $cmd{next};
-
     }
 }
 

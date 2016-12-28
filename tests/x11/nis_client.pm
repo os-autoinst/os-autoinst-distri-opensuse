@@ -8,8 +8,8 @@
 # without any warranty.
 
 # Summary: NIS server-client test
-#    https://progress.opensuse.org/issues/9900
 # Maintainer: Jozef Pupava <jpupava@suse.com>
+# Tags: https://progress.opensuse.org/issues/9900
 
 use base "x11test";
 use strict;
@@ -18,8 +18,6 @@ use mm_network;
 use lockapi;
 
 sub run() {
-    my $self = shift;
-
     x11_start_program("xterm -geometry 155x45+5+5");
     type_string "gsettings set org.gnome.desktop.session idle-delay 0\n";    # disable blank scree
     become_root;

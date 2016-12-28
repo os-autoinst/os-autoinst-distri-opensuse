@@ -7,18 +7,15 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Case 1503906 - LibreOffice: Favorite Documents link in Computer menu.
-
-# G-Summary: add libreoffice tc#1503906 script
-# G-Maintainer: dehai <dhkong@suse.com>
+# Summary: LibreOffice: Favorite Documents link in Computer menu
+# Maintainer: dehai <dhkong@suse.com>
+# Tags: tc#1503906
 
 use base "x11regressiontest";
 use strict;
 use testapi;
 
 sub run() {
-    my $self = shift;
-
     # start destop application memu
     wait_still_screen;
     send_key "alt-f1";

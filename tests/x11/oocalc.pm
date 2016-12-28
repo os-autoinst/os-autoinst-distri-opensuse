@@ -8,15 +8,14 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Rework the tests layout.
-# G-Maintainer: Alberto Planas <aplanas@suse.com>
+# Summary: Startup, basic input and shutdown of oocalc
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "x11test";
 use strict;
 use testapi;
 
 sub run() {
-    my $self = shift;
     x11_start_program("oocalc", 6, {valid => 1});
     sleep 2;
     wait_still_screen;    # extra wait because oo sometimes appears to be idle during start

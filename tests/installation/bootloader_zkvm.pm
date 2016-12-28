@@ -20,9 +20,6 @@ use warnings;
 
 
 sub run() {
-
-    my $self = shift;
-
     my $svirt    = select_console('svirt');
     my $name     = $svirt->name;
     my $img_path = "/var/lib/libvirt/images";

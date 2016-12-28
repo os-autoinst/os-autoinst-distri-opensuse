@@ -8,17 +8,14 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Validate any SLES image not only one version
-# G-Maintainer: Jozef Pupava <jpupava@suse.com>
+# Summary: Check that there is access to the local hard disk from rescuesystem
+# Maintainer: Jozef Pupava <jpupava@suse.com>
 
 use base "opensusebasetest";
 use strict;
 use testapi;
 
 sub run {
-    my $self = shift;
-
-    # Check that there is access to the local hard disk
     type_string "mount /dev/vda2 /mnt && cat /mnt/etc/SuSE-release > /dev/$serialdev\n";
     wait_serial("SUSE Linux Enterprise Server", 10) || die "Not SLES found";
 }

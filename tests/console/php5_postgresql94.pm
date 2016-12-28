@@ -8,15 +8,15 @@
 # without any warranty.
 
 # Summary: PHP5 code that interacts locally with PostgreSQL
+#   This tests creates a PostgreSQL database and inserts an element.
+#   Then, PHP reads the elements and writes a new one in the database.
+#   If all succeed, the test passes.
+#
+#   The test requires the Web and Scripting module on SLE and should be
+#   executed after the 'console/http_srv', 'console/postgresql94', and
+#   'console/php5' tests.
 # Maintainer: Romanos Dodopoulos <romanos.dodopoulos@suse.cz>
 
-# This tests creates a PostgreSQL database and inserts an element.
-# Then, PHP reads the elements and writes a new one in the database.
-# If all succeed, the test passes.
-#
-# The test requires the Web and Scripting module on SLE and should be
-# executed after the 'console/http_srv', 'console/postgresql94', and
-# 'console/php5' tests.
 
 use base "consoletest";
 use strict;
@@ -25,7 +25,6 @@ use testapi;
 use utils;
 
 sub run() {
-    my $self = shift;
     select_console 'root-console';
 
     # install requirements

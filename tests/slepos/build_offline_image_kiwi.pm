@@ -18,8 +18,6 @@ use utils;
 
 
 sub run() {
-    my $self = shift;
-
     script_output "
         set -x -e
         cd /var/lib/SLEPOS/system/images/graphical-3.4.0 && kiwi --bootusb initrd-netboot-suse-SLES11.i686-*.splash.gz

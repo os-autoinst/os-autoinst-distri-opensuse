@@ -8,15 +8,14 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Rework the tests layout.
-# G-Maintainer: Alberto Planas <aplanas@suse.com>
+# Summary: Startup of evolution with check of first-startup dialogs
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "x11test";
 use strict;
 use testapi;
 
 sub run() {
-    my $self = shift;
     x11_start_program("evolution");
     if (check_screen "evolution-default-client-ask", 20) {
         assert_and_click "evolution-default-client-agree";

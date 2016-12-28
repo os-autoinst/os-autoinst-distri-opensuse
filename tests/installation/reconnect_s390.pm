@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: added functionality for reconnecting s390-consoles after reboot
-# G-Maintainer: Matthias Grießmeier <mgriessmeier@suse.de>
+# Summary: Reconnect s390-consoles after reboot
+# Maintainer: Matthias Grießmeier <mgriessmeier@suse.de>
 
 use base "installbasetest";
 
@@ -19,8 +19,6 @@ use strict;
 use warnings;
 
 sub run() {
-    my $self = shift;
-
     my $login_ready = qr/Welcome to SUSE Linux Enterprise Server.*\(s390x\)/;
 
     # different behaviour for z/VM and z/KVM

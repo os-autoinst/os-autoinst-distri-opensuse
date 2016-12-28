@@ -29,8 +29,6 @@ sub get_image {
     }
 }
 
-
-
 sub download_image {
     my ($im_hr, $target) = @_;
     my $asset = 'ASSET_' . $im_hr->{$target};
@@ -39,8 +37,6 @@ sub download_image {
     script_output "wget $iurl -O - |tar -xj -C /", 1300;
     script_output "ls -l /var/lib/SLEPOS/system/images/$target/";
 }
-
-
 
 sub build_image {
     my ($target, $template, $linux32, $mod) = @_;
@@ -55,10 +51,7 @@ sub build_image {
     upload_asset "$target.$imsuffix",                                                  'public';
 }
 
-
 sub run() {
-    my $self = shift;
-
     script_output "
       set -x -e
       curl " . autoinst_url . "/data/slepos/kiwi_build_image.sh > kiwi_build_image.sh
@@ -89,11 +82,7 @@ sub run() {
         get_image(\%img_h, 'graphical-sles12-4.0.0', 'graphical-4.0.0', '',
             's|</packages>|<package name=\"cryptsetup\"/><package name=\"liberation-fonts\"/></packages>|');
     }
-
-
 }
-
-
 
 sub test_flags() {
     return {fatal => 1};

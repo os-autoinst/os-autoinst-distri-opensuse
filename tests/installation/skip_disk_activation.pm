@@ -8,16 +8,14 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: an experimental bootloader using virsh over ssh
-# G-Maintainer: Stephan Kulow <coolo@suse.de>
+# Summary: Skip disk activation during installation
+# Maintainer: Stephan Kulow <coolo@suse.de>
 
 use base "y2logsstep";
 use strict;
 use testapi;
 
 sub run {
-    my $self = shift;
-
     record_soft_failure 'we should not have it';
     sleep 3;
     send_key $cmd{next};

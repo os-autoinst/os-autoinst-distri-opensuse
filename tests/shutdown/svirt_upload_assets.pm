@@ -16,8 +16,6 @@ use warnings;
 use testapi;
 
 sub run() {
-    my $self = shift;
-
     # connect to VIRSH_HOSTNAME screen and upload asset from there
     my $svirt = select_console('svirt');
 

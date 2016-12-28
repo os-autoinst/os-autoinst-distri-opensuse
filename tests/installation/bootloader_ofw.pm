@@ -22,7 +22,6 @@ use utils;
 
 # hint: press shift-f10 trice for highest debug level
 sub run() {
-    my $self = shift;
     assert_screen "bootloader-ofw", 15;
     if (get_var("UPGRADE")) {
         send_key_until_needlematch 'inst-onupgrade', 'up';

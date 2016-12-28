@@ -7,8 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Basic SLEPOS test
-# G-Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
+# Summary: Basic SLEPOS test
+# Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
 
 use base "basetest";
 use strict;
@@ -18,8 +18,6 @@ use utils;
 
 
 sub run() {
-    my $self = shift;
-
     my $select_id = get_var("SLEPOS_SELECT_ID");
     if (defined $select_id) {
         assert_screen("slepos-select-id", 200);

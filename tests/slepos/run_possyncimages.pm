@@ -18,7 +18,6 @@ use utils;
 use lockapi;
 
 sub run() {
-    my $self = shift;
     #wait for adminserver
     mutex_lock("images_registered");
     mutex_unlock("images_registered");

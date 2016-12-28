@@ -17,8 +17,6 @@ use testapi;
 use utils;
 
 sub run {
-    my $self = shift;
-
     type_string "poweroff\n";
     assert_shutdown;
 }

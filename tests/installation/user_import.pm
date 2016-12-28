@@ -7,15 +7,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Use existing encrypted volume and import users
-#    When ENCRYPT_ACTIVATE_EXISTING is set, check that the existing volumes
-#    have been detected and included in the default partitioning volume. If
-#    not, issue soft failure bsc#989750 and rerun partition proposal without asserting
-#    for new password prompts.
-#
-#    Added IMPORT_USER_DATA which when set, user_import.pm is loaded to
-#    import old users rather than configure new ones.
-# G-Maintainer: Richard Palethorpe <rpalethorpe@suse.com>
+# Summary: Use existing encrypted volume and import old users rather than
+#   configure new ones
+# Maintainer: Richard Palethorpe <rpalethorpe@suse.com>
 
 use strict;
 use warnings;
@@ -23,8 +17,6 @@ use base "y2logsstep";
 use testapi;
 
 sub run() {
-    my $self = shift;
-
     assert_screen 'import-user-data';
     send_key 'alt-i';
     send_key 'alt-e';

@@ -9,16 +9,15 @@
 
 # Summary: Empathy irc regression test
 # Maintainer: Chingkai <qkzhu@suse.com>
+# Tags: tc#1478813
 
 use base "x11regressiontest";
 use strict;
 use testapi;
 use utils;
 
-# Case 1478813 - Empathy: IRC
 
 sub run() {
-    my $self = shift;
     x11_start_program("empathy");
 
     assert_screen 'empathy-accounts-discover';

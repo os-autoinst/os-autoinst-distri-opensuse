@@ -8,16 +8,14 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: more autoyast fixes
-# G-Maintainer: Ludwig Nussel <ludwig.nussel@suse.de>
+# Summary: Reboot after autoyast installation
+# Maintainer: Ludwig Nussel <ludwig.nussel@suse.de>
 
 use strict;
 use base "y2logsstep";
 use testapi;
 
 sub run() {
-    my $self = shift;
-
     if (get_var("AUTOUPGRADE")) {
         assert_screen("grub2", 5900);
     }

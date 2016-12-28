@@ -19,9 +19,6 @@ use mm_network;
 use lockapi;
 
 sub run() {
-    my $self = shift;
-
-
     set_var('ORGANIZATION', "myorg");
     set_var('COUNTRY',      "us");
     set_var('ADMINPASS',    "adminpass");
