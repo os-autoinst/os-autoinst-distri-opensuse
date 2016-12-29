@@ -1221,6 +1221,37 @@ elsif (ssh_key_import) {
     # verify previous defined ssh keys
     loadtest "x11/ssh_key_verify";
 }
+elsif (get_var("HPC")) {
+    if (check_var("HPC", "support")) {
+        loadtest "hpc/barrier_init";
+        loadtest "hpc/hpc_support_server";
+    }
+    else {
+        loadtest "boot/boot_to_desktop";
+        loadtest "hpc/hpc_init";
+
+        if (check_var("HPC", "basic")) {
+            loadtest "hpc/rasdaemon";
+        }
+        if (check_var("HPC", "openhpc")) {
+            loadtest "hpc/openhpc_install";
+        }
+        if (check_var("HPC", "munge_master")) {
+            loadtest "hpc/munge_master";
+        }
+        if (check_var("HPC", "munge_slave")) {
+            loadtest "hpc/munge_slave";
+        }
+        if (check_var("HPC", "slurm_master")) {
+            loadtest "hpc/install_slurm";
+            loadtest "hpc/slurm_master";
+        }
+        if (check_var("HPC", "slurm_slave")) {
+            loadtest "hpc/install_slurm";
+            loadtest "hpc/slurm_slave";
+        }
+    }
+}
 else {
     if (get_var("AUTOYAST") || get_var("AUTOUPGRADE")) {
         load_boot_tests();
@@ -1342,14 +1373,5 @@ if (get_var("TCM") || check_var("ADDONS", "tcm")) {
     }
 }
 
-if (check_var("HPC", "basic")) {
-    loadtest "hpc/install";
-    loadtest "hpc/cpuid";
-    loadtest "hpc/rasdaemon";
-}
-
-if (check_var("HPC", "master")) {
-    loadtest "hpc/masterinstall";
-}
 1;
 # vim: set sw=4 et:
