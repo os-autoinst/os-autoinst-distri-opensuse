@@ -82,6 +82,12 @@ sub bootmenu_default_params {
     type_string_slow "video=1024x768-16 ";
 
     assert_screen "inst-video-typed", 4;
+    if (check_var('ARCH', 'aarch64')) {
+        #increasing log level for ARM on dev request to investigate boo#1010463
+        type_string_very_slow('loglevel=7 ');
+        #softfailure suppose to be removed with whole block after devs get desired logs
+        record_soft_failure('boo#1010463 Root device not found when rebooting before reaching gnome desktop');
+    }
     if (!get_var("NICEVIDEO")) {
         type_string_very_slow "plymouth.ignore-serial-consoles ";    # make plymouth go graphical
         type_string_very_slow "linuxrc.log=$serialdev ";             # to get linuxrc logs in serial
@@ -95,6 +101,7 @@ sub bootmenu_default_params {
         }
     }
 }
+
 
 sub bootmenu_network_source {
     # set HTTP-source to not use factory-snapshot
