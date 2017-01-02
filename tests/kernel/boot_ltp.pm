@@ -30,6 +30,13 @@ sub run {
 
     # setup for LTP networking tests
     assert_script_run("export PASSWD='$testapi::password'");
+
+    my $block_dev = get_var('LTP_BIG_DEV');
+    if ($block_dev && get_var('NUMDISKS') > 1) {
+        assert_script_run("lsblk -la; export LTP_BIG_DEV=$block_dev");
+    }
+
+    script_run('env');
 }
 
 sub test_flags {
