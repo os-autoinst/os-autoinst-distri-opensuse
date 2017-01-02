@@ -96,6 +96,7 @@ sub run() {
         last;
     }
 
+    # Upload logs before reboot
     if (!get_var("REMOTE_CONTROLLER")) {
         do {
             send_key 'alt-s';
@@ -107,7 +108,9 @@ sub run() {
         select_console 'installation';
         assert_screen 'rebootnow';
     }
-    send_key 'alt-o';
+    wait_screen_change {
+        send_key 'alt-o';    # Reboot
+    };
 }
 
 1;
