@@ -255,6 +255,11 @@ sub run {
         @tests = $self->parse_runfile($cmd_file, $cmd_pattern, $cmd_exclude);
     }
 
+    # Disable network daemons for all tests.
+    # This fixes at least some tests failing if dhcp server (started by
+    # wickedd) is running.
+    script_run('systemctl stop wickedd NetworkManager');
+
     assert_script_run('cd /opt/ltp/testcases/bin');
 
     for my $test (@tests) {
