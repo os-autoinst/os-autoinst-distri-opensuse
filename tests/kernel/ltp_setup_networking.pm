@@ -19,17 +19,16 @@ use utils;
 
 sub install {
     # utils
-    zypper_call("in expect iputils net-tools-deprecated telnet", log => 1);
+    zypper_call("in expect iputils net-tools-deprecated tcpdump telnet", log => 'utils.log');
 
     # clients
-    zypper_call("in mrsh-rsh-compat telnet", log => 1);
+    zypper_call("in dhcp-client mrsh-rsh-compat telnet", log => 'clients.log');
 
     # services
-    zypper_call("in bind dhcp-server finger-server nfs-kernel-server rdist rpcbind rsync telnet-server vsftpd xinetd", log => 1);
-    for my $i (qw(nfsserver rpcbind vsftpd xinetd)) {
-        assert_script_run "systemctl enable $i.service";
-        assert_script_run "systemctl start $i.service";
-    }
+    zypper_call("in dhcp-server dnsmasq finger-server nfs-kernel-server rdist rpcbind rsync telnet-server vsftpd xinetd", log => 'services.log');
+    my $services = "dnsmasq nfsserver rpcbind vsftpd xinetd";
+    assert_script_run "systemctl enable $services";
+    assert_script_run "systemctl start $services";
 }
 
 sub setup {
@@ -59,9 +58,14 @@ EOF
     # rlogin
     assert_script_run 'echo "+" > /root/.rhosts';
 
-    # nfs
-    assert_script_run 'echo \'/ *(rw,no_root_squash,sync)\' >> /etc/exports';
-    assert_script_run 'exportfs';
+    # ftp
+    assert_script_run 'sed -i \'s/^\s*\(root\)\s*$/# \1/\' /etc/ftpusers';
+
+    # getaddrinfo_01: missing hostname in /etc/hosts
+    assert_script_run 'h=`hostname`; grep -q $h /etc/hosts || printf "# ltp\n127.0.0.1\t$h\n::1\t$h\n" >> /etc/hosts';
+
+    # boo#1017616: missing link to ping6 in iputils >= s20150815
+    assert_script_run 'which ping6 >/dev/null 2>&1 || ln -s `which ping` /usr/local/bin/ping6';
 }
 
 # poo#14402
