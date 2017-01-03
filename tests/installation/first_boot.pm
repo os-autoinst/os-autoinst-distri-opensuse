@@ -85,6 +85,11 @@ sub test_flags() {
 sub post_fail_hook() {
     my $self = shift;
 
+    diag 'Save drives to access core dump for bsc#1005313';
+    if (check_var('ARCH', 'aarch64') && check_var('DISTRI', 'sle')) {
+        save_storage_drives;
+    }
+
     # Reveal what is behind Plymouth splash screen
     wait_screen_change {
         send_key 'esc';
