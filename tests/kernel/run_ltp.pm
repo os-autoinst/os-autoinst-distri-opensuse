@@ -246,6 +246,7 @@ sub run {
     my $cmd_exclude = get_var('LTP_COMMAND_EXCLUDE') || '$^';
     my $timeout     = get_var('LTP_TIMEOUT')         || 900;
     my $is_posix    = $cmd_file =~ m/^\s*openposix\s*$/i;
+    my $is_network  = $cmd_file =~ m/^\s*net\./;
 
     my @tests;
     if ($is_posix) {
@@ -255,13 +256,18 @@ sub run {
         @tests = $self->parse_runfile($cmd_file, $cmd_pattern, $cmd_exclude);
     }
 
-    # Disable network daemons for all tests.
-    # This fixes at least some tests failing if dhcp server (started by
-    # wickedd) is running.
-    script_run('systemctl stop wickedd NetworkManager');
-    script_run('ps axf');
-
     assert_script_run('cd /opt/ltp/testcases/bin');
+
+    if ($is_network) {
+        # Disable network daemons for all tests. This fixes at least some
+        # tests failing if dhcp server (started by wickedd) is running.
+        script_run('systemctl stop wickedd NetworkManager');
+        script_run('ps axf');
+
+        # emulate /opt/ltp/testscripts/network.sh
+        assert_script_run('TST_TOTAL=1 TCID="network_settings"; . test_net.sh; export TCID= TST_LIB_LOADED=');
+        script_run('env');
+    }
 
     for my $test (@tests) {
         my $fin_msg    = "### TEST $test->{name} COMPLETE >>> ";
