@@ -65,7 +65,7 @@ sub run() {
     script_run("cat /tmp/lsboot");
     save_screenshot;
 
-    script_run("basename /boot/initrd-\$(uname -r) | sed s_initrd-__g | sed s_-default__g > /dev/$serialdev", 0);
+    script_run("basename /boot/initrd-\$(uname -r) | sed s_initrd-__g > /dev/$serialdev", 0);
     my ($kver) = wait_serial(qr/(^[\d.-]+)-.+\s/) =~ /(^[\d.-]+)-.+\s/;
 
     script_run("lsinitrd /boot/initrd-$kver-xen | grep patch");
