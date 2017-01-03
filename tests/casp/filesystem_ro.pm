@@ -17,6 +17,9 @@ use testapi;
 sub run() {
     assert_script_run "! touch /should_fail";
 
+    # /etc is ro now but may be changed later
+    assert_script_run "! touch /etc/should_fail";
+
     assert_script_run "touch /var/log/should_succeed";
     assert_script_run "rm /var/log/should_succeed";
 
