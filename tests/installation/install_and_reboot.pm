@@ -97,7 +97,9 @@ sub run() {
     }
 
     if (!get_var("REMOTE_CONTROLLER")) {
-        send_key 'alt-s';        # Stop the reboot countdown
+        do {
+            send_key 'alt-s';
+        } until (wait_still_screen(2, 4));
         select_console 'install-shell';
         assert_screen 'inst-console';
         $self->get_ip_address();
