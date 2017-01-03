@@ -124,6 +124,16 @@ unless (get_var("DESKTOP")) {
 set_var('NOAUTOLOGIN', 1);
 set_var('HASLICENSE',  1);
 
+# Set serial console for Xen PV
+if (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux')) {
+    if (sle_version_at_least('12-SP2')) {
+        set_var('SERIALDEV', 'hvc0');
+    }
+    else {
+        set_var('SERIALDEV', 'xvc0');
+    }
+}
+
 if (sle_version_at_least('12-SP2')) {
     set_var('SP2ORLATER', 1);
 }
