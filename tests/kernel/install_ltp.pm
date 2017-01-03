@@ -25,16 +25,35 @@ sub add_repos {
     zypper_call '--gpg-auto-import-keys ref';
 }
 
+sub try_add_workstation_addon {
+    my $have_wse = get_var('BUILD_WE') && get_var('ISO_2');
+    if ($have_wse) {
+        zypper_call 'ar dvd:///?devices=/dev/sr2 WSE', log => 'add-WSE.txt';
+        zypper_call '--gpg-auto-import-keys ref',      log => 'ref-WSE.txt';
+    }
+    return $have_wse;
+}
+
+sub install_dependencies {
+    my @deps = qw(git-core make automake autoconf gcc libnuma-devel libaio-devel numactl
+      flex bison dmapi-devel kernel-default-devel libopenssl-devel libselinux-devel
+      libacl-devel libtirpc-devel keyutils-devel libcap-devel sysstat tpm-tools
+      tpm2.0-tools);
+    if (check_var('DISTRI', 'opensuse') || try_add_workstation_addon()) {
+        push @deps, 'ntfsprogs';
+    }
+    else {
+        record_soft_failure 'Need Workstation Extension for ntfsprogs; poo#15652';
+    }
+    zypper_call('in ' . join(' ', @deps), log => 'install-deps.txt');
+}
+
 sub install_from_git {
     my $url = get_var('LTP_GIT_URL') || 'https://github.com/linux-test-project/ltp';
     my $tag = get_var('LTP_RELEASE') || '';
     if ($tag) {
         $tag = ' -b ' . $tag;
     }
-    my @deps = qw(git-core make automake autoconf gcc libnuma-devel libaio-devel numactl
-      flex bison dmapi-devel kernel-default-devel libopenssl-devel libselinux-devel
-      libacl-devel libtirpc-devel keyutils-devel libcap-devel sysstat tpm-tools tpm2.0-tools);
-    zypper_call('in ' . join(' ', @deps), log => 1);
     assert_script_run("git clone $url --depth 1" . $tag, timeout => 360);
     assert_script_run 'cd ltp';
     assert_script_run 'make autotools';
@@ -56,6 +75,7 @@ sub run {
     select_console(get_var('VIRTIO_CONSOLE') ? 'root-virtio-terminal' : 'root-console');
 
     if ($inst_ltp =~ /git/i) {
+        install_dependencies;
         install_from_git;
     }
     elsif ($inst_ltp =~ /repo/i) {
@@ -79,6 +99,14 @@ sub test_flags {
 
 =head1 Configuration
 
+=head2 Required Repositories
+
+For OpenSUSE the standard OSS repositories will suffice. On SLE the SDK addon
+is essential when installing from Git. The Workstation Extension is nice to have,
+but most tests will run without it. At the time of writing their is no appropriate
+HDD image available with WE already configured so we must add its media inside this
+test.
+
 =head2 Example
 
 Example SLE test suite configuration for installation by Git:
@@ -89,6 +117,7 @@ HDD_1=SLES-%VERSION%-%ARCH%-minimal_with_sdk_installed.qcow2
 INSTALL_LTP=from_git
 ISO=SLE-%VERSION%-Server-DVD-%ARCH%-Build%BUILD%-Media1.iso
 ISO_1=SLE-%VERSION%-SDK-DVD-%ARCH%-Build%BUILD_SDK%-Media1.iso
+ISO_2=SLE-%VERSION%-WE-DVD-%ARCH%-Build%BUILD_WE%-Media1.iso
 PUBLISH_HDD_1=SLES-%VERSION%-%ARCH%-minimal_with_ltp_installed.qcow2
 QEMUCPUS=4
 QEMURAM=4096
