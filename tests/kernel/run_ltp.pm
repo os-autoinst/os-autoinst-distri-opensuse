@@ -261,11 +261,18 @@ sub run {
     if ($is_network) {
         # Disable network daemons for all tests. This fixes at least some
         # tests failing if dhcp server (started by wickedd) is running.
-        script_run('systemctl stop wickedd NetworkManager');
+        script_run('systemctl stop wicked wickedd NetworkManager');
+
+        script_run(
+            'systemctl --no-pager -p Id show network.service | grep -q Id=wicked.service &&
+{ export ENABLE_WICKED=1; systemctl disable wicked; }'
+        );
+
         script_run('ps axf');
 
         # emulate /opt/ltp/testscripts/network.sh
         assert_script_run('TST_TOTAL=1 TCID="network_settings"; . test_net.sh; export TCID= TST_LIB_LOADED=');
+
         script_run('env');
     }
 
@@ -283,6 +290,8 @@ sub run {
         my $test_log = wait_serial(qr/$fin_msg\d+/, $timeout, 0, record_output => 1);
         $self->record_ltp_result($test->{name}, $test_log, $fin_msg, thetime() - $start_time, $is_posix);
     }
+
+    script_run('[ "$ENABLE_WICKED" ] && systemctl enable wicked');
 }
 
 1;
