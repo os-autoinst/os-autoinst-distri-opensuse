@@ -259,10 +259,7 @@ sub run {
     assert_script_run('cd /opt/ltp/testcases/bin');
 
     if ($is_network) {
-        # Disable network daemons for all tests. This fixes at least some
-        # tests failing if dhcp server (started by wickedd) is running.
         script_run('systemctl stop wicked wickedd NetworkManager');
-
         script_run(
             'systemctl --no-pager -p Id show network.service | grep -q Id=wicked.service &&
 { export ENABLE_WICKED=1; systemctl disable wicked; }'
