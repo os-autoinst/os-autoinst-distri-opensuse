@@ -22,7 +22,7 @@ sub install {
     zypper_call("in expect iputils net-tools-deprecated tcpdump telnet", log => 'utils.log');
 
     # clients
-    zypper_call("in dhcp-client mrsh-rsh-compat telnet", log => 'clients.log');
+    zypper_call("in dhcp-client finger mrsh-rsh-compat telnet", log => 'clients.log');
 
     # services
     zypper_call("in dhcp-server dnsmasq finger-server nfs-kernel-server rdist rpcbind rsync telnet-server vsftpd xinetd", log => 'services.log');
@@ -66,6 +66,9 @@ EOF
 
     # boo#1017616: missing link to ping6 in iputils >= s20150815
     assert_script_run 'which ping6 >/dev/null 2>&1 || ln -s `which ping` /usr/local/bin/ping6';
+
+    # dhcpd
+    assert_script_run 'touch /var/lib/dhcp6/db/dhcpd6.leases';
 }
 
 # poo#14402
