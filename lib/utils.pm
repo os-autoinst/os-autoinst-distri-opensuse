@@ -503,6 +503,10 @@ sub validate_repos {
             }
         }
 
+        # On Xen PV there are no CDs nor DVDs being emulated, "raw" HDD is used instead
+        my $cd  = (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux')) ? 'hd' : 'cd';
+        my $dvd = (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux')) ? 'hd' : 'dvd';
+
         # On system with ONLINE_MIGRATION variable set, we don't have SLE media
         # repository of VERSION N but N-1 (i.e. on SLES12-SP2 we have SLES12-SP1
         # repository. For the sake of sanity, the base product repo is not being
@@ -510,7 +514,7 @@ sub validate_repos {
         if (!get_var("ONLINE_MIGRATION")) {
             # This is where we verify base product repos for SLES, SLED, and HA
             if (check_var('FLAVOR', 'Server-DVD')) {
-                my $uri = "cd:///";
+                my $uri = "$cd:///";
                 if (check_var("BACKEND", "ipmi") || check_var("BACKEND", "generalhw")) {
                     $uri = "http[s]*://.*suse";
                 }
@@ -532,20 +536,20 @@ sub validate_repos {
                     });
             }
             elsif (check_var('FLAVOR', 'SAP-DVD')) {
-                validatelr({product => "SLE-", uri => "cd:///", version => $version});
+                validatelr({product => "SLE-", uri => "$cd:///", version => $version});
             }
             elsif (check_var('FLAVOR', 'Server-DVD-HA')) {
-                validatelr({product => "SLES", uri => "cd:///", version => $version});
-                validatelr({product => 'SLE-*HA', uri => get_var('ADDONURL_HA') || "dvd:///", version => $version});
+                validatelr({product => "SLES", uri => "$cd:///", version => $version});
+                validatelr({product => 'SLE-*HA', uri => get_var('ADDONURL_HA') || "$dvd:///", version => $version});
                 if (exists $h_addonurl{geo} || exists $h_addons{geo}) {
-                    validatelr({product => 'SLE-*HAGEO', uri => get_var('ADDONURL_GEO') || "dvd:///", version => $version});
+                    validatelr({product => 'SLE-*HAGEO', uri => get_var('ADDONURL_GEO') || "$dvd:///", version => $version});
                 }
                 delete @h_addonurl{qw(ha geo)};
                 delete @h_addons{qw(ha geo)};
             }
             elsif (check_var('FLAVOR', 'Desktop-DVD')) {
                 # Note: verification of AMD (SLED12) and NVIDIA (SLED12, SP1, and SP2) repos is missing
-                validatelr({product => "SLED", uri => "cd:///", version => $version});
+                validatelr({product => "SLED", uri => "$cd:///", version => $version});
             }
         }
 
@@ -570,7 +574,7 @@ sub validate_repos {
                 {
                     product      => uc $addon,
                     enabled_repo => get_var('SCC_REGCODE_' . uc $addon) ? "No" : "Yes",
-                    uri          => "dvd:///",
+                    uri          => "$dvd:///",
                     version      => $version
                 });
         }
@@ -630,7 +634,7 @@ sub validate_repos {
         if (get_var('ZDUP')) {
             my $uri;
             if (get_var('TEST') =~ m{zdup_offline}) {
-                $uri = "dvd:///";
+                $uri = "$dvd:///";
             }
             else {
                 $uri = "ftp://openqa.suse.de/SLE-";
