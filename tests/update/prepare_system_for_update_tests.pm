@@ -28,7 +28,7 @@ sub run() {
     assert_script_run "chown $testapi::username /dev/$testapi::serialdev";
     assert_script_run "echo \"download.use_deltarpm = false\" >> /etc/zypp/zypp.conf";
     assert_script_run "systemctl unmask packagekit";
-    assert_script_run "pkcon refresh";
+    assert_script_run "pkcon refresh", 90;
 }
 
 sub test_flags() {
