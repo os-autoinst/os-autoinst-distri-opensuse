@@ -1,1 +1,0 @@
-libzypp_config.pm
