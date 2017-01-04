@@ -55,7 +55,7 @@ sub prepare_repos {
     pkcon_quit;
     if ($qa_server_repo) {
         # Remove all existing repos and add QA_SERVER_REPO
-        script_run('for i in {1..$(zypper lr| tail -n+3 |wc -l)}; do zypper -n rr $i; done; unset i', 300);
+        script_run('for ((i = 1; i <= $(zypper lr| tail -n+3 |wc -l); i++ )); do zypper -n rr $i; done; unset i', 300);
         assert_script_run("zypper --no-gpg-check -n ar -f '$qa_server_repo' server-repo");
     }
     my $qa_head_repo = get_var('QA_HEAD_REPO', '');
