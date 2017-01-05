@@ -290,6 +290,8 @@ sub run {
     }
 
     script_run('[ "$ENABLE_WICKED" ] && systemctl enable wicked');
+
+    script_run('journalctl --no-pager -p warning');
 }
 
 1;
