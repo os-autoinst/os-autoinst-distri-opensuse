@@ -278,6 +278,12 @@ sub run {
         my $fin_msg    = "### TEST $test->{name} COMPLETE >>> ";
         my $cmd_text   = qq($test->{command}; echo "$fin_msg\$?");
         my $start_time = thetime();
+        my $set_rhost  = $is_network && $test->{command} =~ m/^finger01|ftp01|rcp01|rdist01|rsh01/;
+
+        if ($set_rhost) {
+            assert_script_run(q(export RHOST='localhost'));
+        }
+
         if (is_serial_terminal) {
             type_string("$cmd_text\n");
             wait_serial($cmd_text, undef, 0, no_regex => 1);
@@ -287,6 +293,10 @@ sub run {
         }
         my $test_log = wait_serial(qr/$fin_msg\d+/, $timeout, 0, record_output => 1);
         $self->record_ltp_result($test->{name}, $test_log, $fin_msg, thetime() - $start_time, $is_posix);
+
+        if ($set_rhost) {
+            assert_script_run('unset RHOST');
+        }
     }
 
     script_run('[ "$ENABLE_WICKED" ] && systemctl enable wicked');
