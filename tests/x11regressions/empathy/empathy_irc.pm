@@ -31,6 +31,7 @@ sub run() {
 
     # select freenode irc network
     assert_and_click 'empathy-irc-network';
+    assert_screen 'empathy-irc-network-choose';
     type_string "freenode";
     assert_screen 'empathy-irc-freenode';
     wait_screen_change {
@@ -47,16 +48,14 @@ sub run() {
     };
 
     # join openqa channel
-    if (sle_version_at_least('12-SP2')) {
+    send_key "ctrl-j";
+    if (!check_screen 'empathy-join-room') {
+        record_soft_failure 'bsc#999832: keyboard shortcut of empathy not working on SLED12SP2';
         assert_and_click 'empathy-menu';
         send_key_until_needlematch "empathy-menu-rooms", "down";
         assert_and_click 'empathy-menu-joinrooms';
-        record_soft_failure 'bsc#999832: keyboard shortcut of empathy not working on SLED12SP2';
+        assert_screen 'empathy-join-room';
     }
-    else {
-        send_key "ctrl-j";
-    }
-    assert_screen 'empathy-join-room';
     type_string "openqa";
     send_key "ret";
 
@@ -69,12 +68,10 @@ sub run() {
     send_key "ret";
 
     # cleaning
-    if (sle_version_at_least('12-SP2')) {
+    send_key "f4";
+    if (!check_screen 'empathy-disable-account') {
         assert_and_click 'empathy-menu';
         assert_and_click 'empathy-menu-accounts';
-    }
-    else {
-        send_key "f4";
     }
     assert_and_click 'empathy-disable-account';
     assert_and_click 'empathy-delete-account';
@@ -86,12 +83,11 @@ sub run() {
     };
 
     # quit
-    if (sle_version_at_least('12-SP2')) {
+    send_key "ctrl-q";
+    wait_still_screen 3;
+    if (check_screen 'empathy-menu', 0) {
         assert_and_click 'empathy-menu';
         assert_and_click 'empathy-menu-quit';
-    }
-    else {
-        send_key "ctrl-q";
     }
 }
 
