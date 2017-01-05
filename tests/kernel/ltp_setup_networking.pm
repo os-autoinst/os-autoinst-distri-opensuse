@@ -25,8 +25,8 @@ sub install {
     zypper_call("in dhcp-client finger mrsh-rsh-compat telnet", log => 'clients.log');
 
     # services
-    zypper_call("in dhcp-server dnsmasq finger-server nfs-kernel-server rdist rpcbind rsync telnet-server vsftpd xinetd", log => 'services.log');
-    my $services = "dnsmasq nfsserver rpcbind vsftpd xinetd";
+    zypper_call("in dhcp-server dnsmasq finger-server mrsh-server munge nfs-kernel-server rdist rpcbind rsync tcpd telnet-server vsftpd xinetd", log => 'services.log');
+    my $services = "dnsmasq munge mrlogind.socket mrshd.socket nfsserver rpcbind vsftpd xinetd";
     assert_script_run "systemctl enable $services";
     assert_script_run "systemctl start $services";
 }
@@ -36,9 +36,8 @@ sub setup {
 
     $content = <<EOF;
 # ltp specific setup
-rlogin
-rsh
-rexec
+mrsh
+mrlogin
 pts/1
 pts/2
 pts/3
