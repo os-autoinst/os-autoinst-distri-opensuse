@@ -19,14 +19,15 @@ use utils;
 
 sub install {
     # utils
-    zypper_call("in expect iputils net-tools-deprecated tcpdump telnet", log => 'utils.log');
+    zypper_call("in expect iputils net-tools-deprecated psmisc tcpdump telnet", log => 'utils.log');
 
     # clients
     zypper_call("in dhcp-client finger mrsh-rsh-compat telnet", log => 'clients.log');
 
     # services
-    zypper_call("in dhcp-server dnsmasq finger-server nfs-kernel-server rdist rpcbind rsync telnet-server vsftpd xinetd", log => 'services.log');
-    my $services = "dnsmasq nfsserver rpcbind vsftpd xinetd";
+    zypper_call("in dhcp-server dnsmasq finger-server mrsh-server munge nfs-kernel-server rdist rpcbind rsync tcpd telnet-server vsftpd xinetd",
+        log => 'services.log');
+    my $services = "dnsmasq munge mrlogind.socket mrshd.socket nfsserver rpcbind vsftpd xinetd";
     assert_script_run "systemctl enable $services";
     assert_script_run "systemctl start $services";
 }
@@ -36,9 +37,8 @@ sub setup {
 
     $content = <<EOF;
 # ltp specific setup
-rlogin
-rsh
-rexec
+mrsh
+mrlogin
 pts/1
 pts/2
 pts/3
@@ -52,7 +52,9 @@ EOF
     assert_script_run "echo \"$content\" >> '/etc/securetty'";
 
     # xinetd (echo)
-    assert_script_run 'sed -i \'s/\(disable\s*=\s\)yes/\1no/\' /etc/xinetd.d/echo';
+    foreach my $xinetd_conf (qw(echo finger)) {
+        assert_script_run 'sed -i \'s/\(disable\s*=\s\)yes/\1no/\' /etc/xinetd.d/' . $xinetd_conf;
+    }
     assert_script_run 'sed -i \'s/^#\(\s*bind\s*=\)\s*$/\1 0.0.0.0/\' /etc/xinetd.conf';
 
     # rlogin
