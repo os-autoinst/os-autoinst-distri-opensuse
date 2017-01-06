@@ -24,7 +24,8 @@ sub run() {
     assert_script_run "registerImages --gzip --ldap /var/lib/SLEPOS/system/images/graphical-3.4.0";
 
     assert_script_run "curl " . autoinst_url . "/data/slepos/xorg.conf > /srv/SLEPOS/config/xorg.conf";
-    assert_script_run "posAdmin.pl --base cn=graphical,cn=default,cn=global,o=myorg,c=us --add --scConfigFileTemplate --cn xorg_conf --scConfigFile '/etc/X11/xorg.conf' --scMust TRUE --scBsize 1024 --scConfigFileData /srv/SLEPOS/config/xorg.conf";
+    assert_script_run
+"posAdmin.pl --base cn=graphical,cn=default,cn=global,o=myorg,c=us --add --scConfigFileTemplate --cn xorg_conf --scConfigFile '/etc/X11/xorg.conf' --scMust TRUE --scBsize 1024 --scConfigFileData /srv/SLEPOS/config/xorg.conf";
     mutex_create("images_registered");
 }
 

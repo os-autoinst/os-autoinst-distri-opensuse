@@ -25,7 +25,8 @@ sub run() {
 
     # mount ecryptfs
     assert_script_run("mkdir .private private");
-    validate_script_output("echo -e \"1\n1\n\n\nyes\nno\n\"  | mount -t ecryptfs -o key=passphrase:passphrase_passwd=testpass ./.private ./private", sub { m/Mounted eCryptfs/ });
+    validate_script_output("echo -e \"1\n1\n\n\nyes\nno\n\"  | mount -t ecryptfs -o key=passphrase:passphrase_passwd=testpass ./.private ./private",
+        sub { m/Mounted eCryptfs/ });
 
     # touch a new file and try to write with it
     assert_script_run("cd private && touch testfile ");

@@ -228,7 +228,8 @@ sub run() {
     send_key 'alt-u';                                 # Routing tab
     assert_screen 'yast2_lan_routing_tab';
     check_network;
-    diag '__________(4) Start yast2 lan -> Select routing tab -> change value in a default gw checkbox -> select another tab -> go back an change value in the checkbox back -> [OK]__________';
+    diag
+'__________(4) Start yast2 lan -> Select routing tab -> change value in a default gw checkbox -> select another tab -> go back an change value in the checkbox back -> [OK]__________';
     type_string "# (4) NO restart\n";
     run_yast2_lan;
     send_key 'alt-u';                                 # Routing tab

@@ -108,8 +108,10 @@ sub setup_dns_server {
         sed -i -e 's|^NAMED_CONF_INCLUDE_FILES=.*|NAMED_CONF_INCLUDE_FILES=\"openqa.zones\"|' /etc/sysconfig/named
 
         curl -f -v " . autoinst_url . "/data/supportserver/named/openqa.zones > /etc/named.d/openqa.zones
-        curl -f -v " . autoinst_url . "/data/supportserver/named/openqa.test.zone > /var/lib/named/master/openqa.test.zone
-        curl -f -v " . autoinst_url . "/data/supportserver/named/2.0.10.in-addr.arpa.zone > /var/lib/named/master/2.0.10.in-addr.arpa.zone
+        curl -f -v "
+      . autoinst_url . "/data/supportserver/named/openqa.test.zone > /var/lib/named/master/openqa.test.zone
+        curl -f -v "
+      . autoinst_url . "/data/supportserver/named/2.0.10.in-addr.arpa.zone > /var/lib/named/master/2.0.10.in-addr.arpa.zone
         chown named:named /var/lib/named/master
 
         netconfig update -f
@@ -242,7 +244,12 @@ sub run {
     }
     if (exists $server_roles{qemuproxy}) {
         setup_http_server();
-        $setup_script .= "curl -f -v " . autoinst_url . "/data/supportserver/proxy.conf | sed -e 's|#AUTOINST_URL#|" . autoinst_url . "|g' >/etc/apache2/vhosts.d/proxy.conf\n";
+        $setup_script
+          .= "curl -f -v "
+          . autoinst_url
+          . "/data/supportserver/proxy.conf | sed -e 's|#AUTOINST_URL#|"
+          . autoinst_url
+          . "|g' >/etc/apache2/vhosts.d/proxy.conf\n";
         $setup_script .= "rcapache2 restart\n";
         push @mutexes, 'qemuproxy';
     }
