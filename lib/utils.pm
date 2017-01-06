@@ -255,10 +255,10 @@ sub ensure_unlocked_desktop {
                 # already locked so we have to try something else to check
                 # responsiveness.
                 # open run command prompt (if screen isn't locked)
+                mouse_hide(1);
                 send_key 'alt-f2';
                 if (check_screen 'desktop-runner') {
                     send_key 'esc';
-                    mouse_hide(1);
                     assert_screen 'generic-desktop';
                 }
                 else {
