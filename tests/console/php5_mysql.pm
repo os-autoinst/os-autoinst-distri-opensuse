@@ -32,7 +32,8 @@ sub run() {
     zypper_call "in php5-mysql";
 
     # create the 'openQAdb' database with table 'test' and insert one element 'can php read this?'
-    assert_script_run qq{mysql -u root -e "CREATE DATABASE openQAdb; USE openQAdb; CREATE TABLE test (id int NOT NULL AUTO_INCREMENT, entry varchar(255) NOT NULL, PRIMARY KEY(id)); INSERT INTO test (entry) VALUE ('can you read this?');"};
+    assert_script_run
+qq{mysql -u root -e "CREATE DATABASE openQAdb; USE openQAdb; CREATE TABLE test (id int NOT NULL AUTO_INCREMENT, entry varchar(255) NOT NULL, PRIMARY KEY(id)); INSERT INTO test (entry) VALUE ('can you read this?');"};
 
     # configure the PHP code that:
     #  1. reads table 'test' from the 'openQAdb' database

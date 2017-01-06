@@ -52,9 +52,9 @@ sub run() {
     assert_screen "ha-ssh-copy-id-password";
     type_password;
     send_key 'ret';
-    #    type_string "/usr/share/pacemaker/tests/cts/CTSlab.py --nodes '$host1 $host2' --outputfile pacemaker.log --clobber-cib --stonith 1 --once --stack corosync --stonith-type external/sbd --stonith-args \"SBD_DEVICE=/dev/disk/by-path/ip-172.16.0.1:3260-iscsi-iqn.2015-08.suse.qa:c581b8f2-7e8a-4774-b3f1-6a00c3d65d56-lun-0\" 1; echo CTS_FINISHED>/dev/$serialdev\n";
     mutex_lock("MUTEX_CTS_INSTALLED");
-    type_string "/usr/share/pacemaker/tests/cts/CTSlab.py --nodes '$host1 $host2' --outputfile pacemaker.log " . get_var("CTS_PARAMS") . "; echo CTS_FINISHED>/dev/$serialdev\n";
+    my $cts_params = get_var('CTS_PARAMS', '');
+    type_string "/usr/share/pacemaker/tests/cts/CTSlab.py --nodes '$host1 $host2' --outputfile pacemaker.log $cts_params; echo CTS_FINISHED>/dev/$serialdev\n";
     die "CTS not finished in $cts_timeout seconds" unless wait_serial "CTS_FINISHED", $cts_timeout;
     upload_logs "pacemaker.log";
     mutex_unlock("MUTEX_CTS_FINISHED");    #to be locked by node1

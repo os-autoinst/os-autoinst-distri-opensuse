@@ -9,15 +9,15 @@ use File::Find;
 our %valueranges = (
 
     #   LVM=>[0,1],
-    NOIMAGES           => [ 0, 1 ],
-    REBOOTAFTERINSTALL => [ 0, 1 ],
-    DOCRUN             => [ 0, 1 ],
+    NOIMAGES           => [0, 1],
+    REBOOTAFTERINSTALL => [0, 1],
+    DOCRUN             => [0, 1],
 
     #   BTRFS=>[0,1],
     DESKTOP => [qw(kde gnome xfce lxde minimalx textmode)],
 
     #   ROOTFS=>[qw(ext3 xfs jfs btrfs reiserfs)],
-    VIDEOMODE => [ "", "text" ],
+    VIDEOMODE => ["", "text"],
 );
 
 our @can_randomize = qw/NOIMAGES REBOOTAFTERINSTALL DESKTOP VIDEOMODE/;
@@ -34,35 +34,35 @@ sub setrandomenv() {
     for my $k (@can_randomize) {
         next if defined get_var("$k");
         next if $k eq "DESKTOP" && get_var("LIVECD");
-        if ( get_var("DOCRUN") ) {
+        if (get_var("DOCRUN")) {
             next if $k eq "VIDEOMODE";
             next if $k eq "NOIMAGES";
         }
-        my @range = @{ $valueranges{$k} };
-        my $rand  = int( rand( scalar @range ) );
+        my @range = @{$valueranges{$k}};
+        my $rand  = int(rand(scalar @range));
         set_var($k, $range[$rand]);
         logcurrentenv($k);
     }
 }
 
 sub check_env() {
-    for my $k ( keys %valueranges ) {
+    for my $k (keys %valueranges) {
         next unless get_var($k);
-        unless ( grep { get_var($k) eq $_ } @{ $valueranges{$k} } ) {
-            die sprintf( "%s must be one of %s\n", $k, join( ',', @{ $valueranges{$k} } ) );
+        unless (grep { get_var($k) eq $_ } @{$valueranges{$k}}) {
+            die sprintf("%s must be one of %s\n", $k, join(',', @{$valueranges{$k}}));
         }
     }
 }
 
 sub unregister_needle_tags($) {
     my $tag = shift;
-    my @a   = @{ needle::tags($tag) };
+    my @a   = @{needle::tags($tag)};
     for my $n (@a) { $n->unregister(); }
 }
 
 sub remove_desktop_needles($) {
     my $desktop = shift;
-    if ( !check_var( "DESKTOP", $desktop ) ) {
+    if (!check_var("DESKTOP", $desktop)) {
         unregister_needle_tags("ENV-DESKTOP-$desktop");
     }
 }
@@ -70,7 +70,7 @@ sub remove_desktop_needles($) {
 sub remove_flavor_needles($) {
     my ($flavor) = @_;
 
-    if ( !check_var( "FLAVOR", $flavor ) ) {
+    if (!check_var("FLAVOR", $flavor)) {
         unregister_needle_tags("ENV-FLAVOR-$flavor");
     }
 }
@@ -90,16 +90,16 @@ sub cleanup_needles() {
     remove_flavor_needles('Server-MINI');
     remove_flavor_needles('Desktop-MINI');
 
-    if ( !get_var("LIVECD") ) {
+    if (!get_var("LIVECD")) {
         unregister_needle_tags("ENV-LIVECD-1");
     }
     else {
         unregister_needle_tags("ENV-LIVECD-0");
     }
-    if ( !check_var( "VIDEOMODE", "text" ) ) {
+    if (!check_var("VIDEOMODE", "text")) {
         unregister_needle_tags("ENV-VIDEOMODE-text");
     }
-    if ( get_var("INSTLANG") && get_var("INSTLANG") ne "en_US" ) {
+    if (get_var("INSTLANG") && get_var("INSTLANG") ne "en_US") {
         unregister_needle_tags("ENV-INSTLANG-en_US");
     }
     else {    # english default
@@ -131,7 +131,7 @@ else {
 $testapi::username = get_var("USERNAME") if get_var("USERNAME");
 $testapi::password = get_var("PASSWORD") if defined get_var("PASSWORD");
 
-if ( get_var("LIVETEST") && ( get_var("LIVECD") || get_var("PROMO") ) ) {
+if (get_var("LIVETEST") && (get_var("LIVECD") || get_var("PROMO"))) {
     $testapi::username = "linux";    # LiveCD account
     $testapi::password = "";
 }
@@ -141,10 +141,10 @@ require $distri;
 testapi::set_distribution(susedistribution->new());
 
 check_env();
-setrandomenv if ( get_var("RANDOMENV") );
+setrandomenv if (get_var("RANDOMENV"));
 
-unless ( get_var("DESKTOP") ) {
-    if ( check_var( "VIDEOMODE", "text" ) ) {
+unless (get_var("DESKTOP")) {
+    if (check_var("VIDEOMODE", "text")) {
         set_var("DESKTOP", "textmode");
     }
     else {
@@ -154,13 +154,13 @@ unless ( get_var("DESKTOP") ) {
 
 # SLE specific variables
 set_var('NOAUTOLOGIN', 1);
-set_var('HASLICENSE', 1);
+set_var('HASLICENSE',  1);
 
-set_var('OLD_IFCONFIG', 1);
+set_var('OLD_IFCONFIG',      1);
 set_var('DM_NEEDS_USERNAME', 1);
-set_var('NOIMAGES', 1);
+set_var('NOIMAGES',          1);
 
-if ( is_desktop ) {
+if (is_desktop) {
     # now that's fun - if AUTOCONF is set, autoconf is disabled
     set_var('AUTOCONF', 1);
 }
@@ -169,28 +169,30 @@ else {
     set_var('SHUTDOWN_NEEDS_AUTH', 1);
 }
 
-if ( check_var( 'DESKTOP', 'minimalx' ) ) {
+if (check_var('DESKTOP', 'minimalx')) {
     set_var("XDMUSED", 1);
 }
 
-set_var("PACKAGETOINSTALL", "x3270");
-set_var("WALLPAPER", '/usr/share/wallpapers/default-1600x1200.png');
+set_var("PACKAGETOINSTALL",   "x3270");
+set_var("WALLPAPER",          '/usr/share/wallpapers/default-1600x1200.png');
 set_var("YAST_SW_NO_SUMMARY", 1);
 
 # set KDE and GNOME, ...
 set_var(uc(get_var('DESKTOP')), 1);
 
 # for GNOME pressing enter is enough to login bernhard
-if ( check_var( 'DESKTOP', 'minimalx' ) ) {
+if (check_var('DESKTOP', 'minimalx')) {
     set_var('DM_NEEDS_USERNAME', 1);
 }
 
 $needle::cleanuphandler = \&cleanup_needles;
 
-bmwqemu::save_vars(); # update variables
+bmwqemu::save_vars();    # update variables
 
 # dump other important ENV:
-logcurrentenv(qw"ADDONURL BIGTEST BTRFS DESKTOP HW HWSLOT LIVETEST LVM MOZILLATEST NOINSTALL REBOOTAFTERINSTALL UPGRADE USBBOOT ZDUP ZDUPREPOS TEXTMODE DISTRI NOAUTOLOGIN QEMUCPU QEMUCPUS RAIDLEVEL ENCRYPT INSTLANG QEMUVGA DOCRUN UEFI DVD GNOME KDE ISO ISO_MAXSIZE LIVECD NETBOOT NICEVIDEO NOIMAGES PROMO QEMUVGA SPLITUSR VIDEOMODE");
+logcurrentenv(
+    qw"ADDONURL BIGTEST BTRFS DESKTOP HW HWSLOT LIVETEST LVM MOZILLATEST NOINSTALL REBOOTAFTERINSTALL UPGRADE USBBOOT ZDUP ZDUPREPOS TEXTMODE DISTRI NOAUTOLOGIN QEMUCPU QEMUCPUS RAIDLEVEL ENCRYPT INSTLANG QEMUVGA DOCRUN UEFI DVD GNOME KDE ISO ISO_MAXSIZE LIVECD NETBOOT NICEVIDEO NOIMAGES PROMO QEMUVGA SPLITUSR VIDEOMODE"
+);
 
 
 sub xfcestep_is_applicable() {
@@ -271,7 +273,7 @@ sub load_x11regresion_tests() {
     loadtest "x11regressions/firefox/sle11/firefox_printing.pm";
     loadtest "x11regressions/firefox/sle11/firefox_printing_images.pm";
     loadtest "x11regressions/firefox/sle11/firefox_bookmark.pm";
-    if (( check_var("DESKTOP", "gnome") )) {
+    if ((check_var("DESKTOP", "gnome"))) {
         loadtest "x11regressions/tomboy/tomboy_Hotkeys.pm";
         loadtest "x11regressions/tomboy/tomboy_AlreadyRunning.pm";
         loadtest "x11regressions/tomboy/tomboy_TestFindFunctionalityInSearchAllNotes.pm";
@@ -302,13 +304,13 @@ sub load_x11regresion_tests() {
     }
 }
 
-sub load_login_tests(){
+sub load_login_tests() {
     if (!get_var("UEFI")) {
         loadtest "login/boot.pm";
     }
 }
 
-sub load_boot_tests(){
+sub load_boot_tests() {
     if (get_var("ISO_MAXSIZE")) {
         loadtest "installation/isosize.pm";
     }
@@ -318,7 +320,7 @@ sub load_boot_tests(){
     elsif (get_var("UEFI")) {
         loadtest "installation/bootloader_uefi.pm";
     }
-    elsif ( check_var("BACKEND", "ipmi") ) {
+    elsif (check_var("BACKEND", "ipmi")) {
         loadtest "installation/qa_net.pm";
     }
     elsif (check_var("BACKEND", "s390x")) {
@@ -346,7 +348,8 @@ sub is_reboot_after_installation_necessary() {
 
 sub load_inst_tests() {
     loadtest "installation/welcome.pm";
-    if (!check_var('BACKEND', 'ipmi') && !check_var('BACKEND', 's390x') && !get_var('USBBOOT') && !get_var('NETBOOT')) { # network installs in general, but we have no setting for it yet
+    if (!check_var('BACKEND', 'ipmi') && !check_var('BACKEND', 's390x') && !get_var('USBBOOT') && !get_var('NETBOOT'))
+    {    # network installs in general, but we have no setting for it yet
         loadtest "installation/check_medium.pm";
     }
     if (check_var('BACKEND', 's390x')) {
@@ -357,7 +360,7 @@ sub load_inst_tests() {
     }
     loadtest "installation/mouse_hide.pm";
     loadtest "installation/installation_mode.pm";
-    if (!get_var('LIVECD') && get_var('UPGRADE') ) {
+    if (!get_var('LIVECD') && get_var('UPGRADE')) {
         loadtest "installation/upgrade_select_sle11.pm";
     }
 
@@ -419,7 +422,8 @@ sub load_inst_tests() {
     if (get_var('NCC')) {
         loadtest "installation/sle11_ncc.pm";
         loadtest "installation/sle11_online_update.pm";
-    } else {
+    }
+    else {
         loadtest "installation/sle11_skip_ncc.pm";
     }
     if (noupdatestep_is_applicable && is_server) {
@@ -515,13 +519,13 @@ sub load_consoletests() {
     }
 }
 
-sub load_x11tests(){
+sub load_x11tests() {
     return unless (get_var("DESKTOP") !~ /textmode|minimalx/ && !get_var("DUALBOOT") && !get_var("RESCUECD"));
 
     if (kdestep_is_applicable) {
         loadtest "x11/sle11_kde_setup.pm";
     }
-    if ( get_var("XDMUSED") ) {
+    if (get_var("XDMUSED")) {
         loadtest "x11/x11_login.pm";
     }
     if (xfcestep_is_applicable) {
@@ -552,12 +556,12 @@ sub load_x11tests(){
     if (xfcestep_is_applicable) {
         loadtest "x11/ristretto.pm";
     }
-    if ( !is_server ) {
+    if (!is_server) {
         if (gnomestep_is_applicable) {
             loadtest "x11/eog.pm";
             loadtest "x11/banshee.pm";
         }
-        if ( get_var('DESKTOP') =~ /kde|gnome/ ) {
+        if (get_var('DESKTOP') =~ /kde|gnome/) {
             loadtest "x11/ooffice.pm";
             loadtest "x11/oomath.pm";
             loadtest "x11/oocalc.pm";
@@ -583,7 +587,7 @@ sub load_x11tests(){
         loadtest "x11/reboot_kde_pre.pm";
     }
     if (gnomestep_is_applicable) {
-        loadtest "x11/nautilus.pm" unless get_var("LIVECD");
+        loadtest "x11/nautilus.pm"  unless get_var("LIVECD");
         loadtest "x11/evolution.pm" unless (is_server);
         loadtest "x11/reboot_gnome_pre_sle11.pm";
     }
@@ -595,7 +599,7 @@ sub load_x11tests(){
     if (xfcestep_is_applicable) {
         loadtest "x11/xfce4_appfinder.pm";
         loadtest "x11/xfce_notification.pm";
-        if (!( get_var("FLAVOR") eq 'Rescue-CD' )) {
+        if (!(get_var("FLAVOR") eq 'Rescue-CD')) {
             loadtest "x11/xfce_lightdm_logout_login.pm";
         }
     }
@@ -603,7 +607,7 @@ sub load_x11tests(){
     loadtest "x11/shutdown_sle11.pm";
 }
 
-sub load_ha_tests(){
+sub load_ha_tests() {
     loadtest "ha/sle11_ha_preparation.pm";
     loadtest "ha/iscsi_config.pm";
     loadtest "ha/sle11_cluster_init.pm";
@@ -613,8 +617,8 @@ sub load_ha_tests(){
     loadtest "ha/ocfs2.pm";
 }
 
-sub load_autoyast_tests(){
-#    init boot in load_boot_tests
+sub load_autoyast_tests() {
+    #    init boot in load_boot_tests
     loadtest("autoyast/system.pm");
     loadtest("autoyast/console.pm");
     loadtest("autoyast/login.pm");
@@ -656,19 +660,19 @@ sub load_slepos_tests() {
         loadtest "slepos/run_possyncimages.pm";
         loadtest "slepos/wait.pm";
     }
-    elsif (get_var("SLEPOS") =~ /^terminal-online/)  {
+    elsif (get_var("SLEPOS") =~ /^terminal-online/) {
         mutex_lock("bs1_images_synced");
         mutex_unlock("bs1_images_synced");
         loadtest "slepos/boot_image.pm";
     }
-    elsif (get_var("SLEPOS") =~ /^terminal-offline/)  {
+    elsif (get_var("SLEPOS") =~ /^terminal-offline/) {
         loadtest "slepos/boot_image.pm";
     }
 }
 
 # load the tests in the right order
-if ( get_var("REGRESSION") ) {
-    if ( get_var("KEEPHDDS") ) {
+if (get_var("REGRESSION")) {
+    if (get_var("KEEPHDDS")) {
         load_login_tests();
     }
     else {
@@ -727,8 +731,8 @@ else {
         loadtest "installation/finish_desktop.pm";
     }
     elsif (get_var("AUTOYAST")) {
-# TODO: merge with autoyast/system.pm?
-#        loadtest "installation/start_install.pm";
+        # TODO: merge with autoyast/system.pm?
+        #        loadtest "installation/start_install.pm";
         load_autoyast_tests();
         load_reboot_tests();
 

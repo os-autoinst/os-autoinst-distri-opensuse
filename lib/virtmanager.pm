@@ -3,7 +3,9 @@ use testapi;
 use strict;
 
 our @ISA    = qw(Exporter);
-our @EXPORT = qw(launch_virtmanager connection_details create_vnet create_new_pool create_new_volume clean_up_desktop create_netinterface delete_netinterface create_guest);
+our @EXPORT = qw(launch_virtmanager connection_details create_vnet create_new_pool
+  create_new_volume clean_up_desktop create_netinterface delete_netinterface
+  create_guest);
 
 
 sub launch_virtmanager() {

@@ -5,7 +5,10 @@ use strict;
 # Base class for all openSUSE tests
 
 # don't import script_run - it will overwrite script_run from distribution and create a recursion
-use testapi qw(send_key %cmd assert_screen check_screen check_var get_var match_has_tag set_var type_password type_string wait_idle wait_serial mouse_hide send_key_until_needlematch record_soft_failure wait_still_screen wait_screen_change);
+use testapi qw(send_key %cmd assert_screen check_screen check_var get_var
+  match_has_tag set_var type_password type_string wait_idle wait_serial
+  mouse_hide send_key_until_needlematch record_soft_failure
+  wait_still_screen wait_screen_change);
 
 
 sub handle_password_prompt {
@@ -138,7 +141,10 @@ sub ensure_installed {
     assert_screen('xterm-started');
     testapi::assert_script_sudo("chown $testapi::username /dev/$testapi::serialdev");
     my $retries = 5;    # arbitrary
-    $self->script_run("for i in {1..$retries} ; do pkcon install @pkglist && break ; done ; RET=\$?; echo \"\n  pkcon finished\n\"; echo \"pkcon-\${RET}-\" > /dev/$testapi::serialdev", 0);
+    $self->script_run(
+"for i in {1..$retries} ; do pkcon install @pkglist && break ; done ; RET=\$?; echo \"\n  pkcon finished\n\"; echo \"pkcon-\${RET}-\" > /dev/$testapi::serialdev",
+        0
+    );
     my @tags = qw/Policykit Policykit-behind-window pkcon-proceed-prompt pkcon-finished/;
     while (1) {
         last unless @tags;

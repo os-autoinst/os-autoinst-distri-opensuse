@@ -23,6 +23,7 @@ testing" && exit 2)
 tools/tidy: os-autoinst/
 	@test -e tools/tidy || ln -s ../os-autoinst/tools/tidy tools/
 	@test -e tools/absolutize || ln -s ../os-autoinst/tools/absolutize tools/
+	@test -e .perltidyrc || ln -s os-autoinst/.perltidyrc ./
 
 tools/lib/: os-autoinst/
 	@test -e tools/lib || ln -s ../os-autoinst/tools/lib tools/
@@ -52,11 +53,11 @@ test-metadata-changed:
 
 .PHONY: test-merge
 test-merge:
-	@REV=$$(git merge-base FETCH_HEAD master 2>/dev/null) ;\
+	@REV=$$(git merge-base FETCH_HEAD sle11 2>/dev/null) ;\
 	if test -n "$$REV"; then \
-	  FILES=$$(git diff --name-only FETCH_HEAD `git merge-base FETCH_HEAD master 2>/dev/null` | grep 'tests.*pm') ;\
+	  FILES=$$(git diff --name-only FETCH_HEAD `git merge-base FETCH_HEAD sle11 2>/dev/null` | grep 'tests.*pm') ;\
 	  for file in $$FILES; do if test -f $$file; then \
-	    tools/check_metadata $$file || touch failed; \
+	    tools/check_metadata $$file ; \
 	    ${PERLCRITIC} $$file || touch failed ;\
 	  fi ; done; \
 	fi

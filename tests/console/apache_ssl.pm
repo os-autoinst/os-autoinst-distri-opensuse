@@ -31,7 +31,8 @@ sub run() {
 
     # Prepare vhost file
     assert_script_run 'cp /etc/apache2/vhosts.d/vhost-ssl.template /etc/apache2/vhosts.d/vhost-ssl.conf';
-    assert_script_run "sed -i -e 's/vhost-example.crt/localhost-server.crt/g' -e 's/vhost-example.key/localhost-server.key/g' /etc/apache2/vhosts.d/vhost-ssl.conf";
+    assert_script_run
+      "sed -i -e 's/vhost-example.crt/localhost-server.crt/g' -e 's/vhost-example.key/localhost-server.key/g' /etc/apache2/vhosts.d/vhost-ssl.conf";
 
     # Start apache service
     assert_script_run 'systemctl start apache2';

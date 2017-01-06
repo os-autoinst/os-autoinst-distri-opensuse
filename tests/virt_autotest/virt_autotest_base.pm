@@ -50,8 +50,28 @@ sub generateXML {
         }
     }
     my $count = $pass_nums + $fail_nums;
-    $writer->startTag('testsuites', error => "0", failures => "$fail_nums", name => $self->{product_name}, skipped => "0", tests => "$count", time => "");
-    $writer->startTag('testsuite', error => "0", failures => "$fail_nums", hostname => "`hostname`", id => "0", name => $self->{product_tested_on}, package => $self->{package_name}, skipped => "0", tests => $case_num, time => "", timestamp => "2016-02-16T02:50:00");
+    $writer->startTag(
+        'testsuites',
+        error    => "0",
+        failures => "$fail_nums",
+        name     => $self->{product_name},
+        skipped  => "0",
+        tests    => "$count",
+        time     => ""
+    );
+    $writer->startTag(
+        'testsuite',
+        error     => "0",
+        failures  => "$fail_nums",
+        hostname  => "`hostname`",
+        id        => "0",
+        name      => $self->{product_tested_on},
+        package   => $self->{package_name},
+        skipped   => "0",
+        tests     => $case_num,
+        time      => "",
+        timestamp => "2016-02-16T02:50:00"
+    );
 
     foreach my $item (keys(%my_hash)) {
         if ($my_hash{$item}->{status} =~ m/PASSED/) {
@@ -61,7 +81,12 @@ sub generateXML {
             $case_status = "failure";
         }
 
-        $writer->startTag('testcase', classname => $item, name => $item, status => $case_status, time => $my_hash{$item}->{time});
+        $writer->startTag(
+            'testcase',
+            classname => $item,
+            name      => $item,
+            status    => $case_status,
+            time      => $my_hash{$item}->{time});
         $writer->startTag('system-err');
         $writer->characters("None");
         $writer->endTag('system-err');

@@ -69,7 +69,10 @@ sub problem_detection {
     clear_console;
 
     # Broken links
-    save_and_upload_log("find / -type d \\( -path /proc -o -path /run -o -path /.snapshots -o -path /var \\) -prune -o -xtype l -exec ls -l --color=always {} \\; -exec rpmquery -f {} \\;", "broken-symlinks.txt", {screenshot => 1, noupload => 1});
+    save_and_upload_log(
+"find / -type d \\( -path /proc -o -path /run -o -path /.snapshots -o -path /var \\) -prune -o -xtype l -exec ls -l --color=always {} \\; -exec rpmquery -f {} \\;",
+        "broken-symlinks.txt",
+        {screenshot => 1, noupload => 1});
     clear_console;
 
     # Binaries with missing libraries
@@ -123,7 +126,9 @@ sub export_logs {
     }
 
     # do not upload empty .xsession-errors
-    script_run "xsefiles=(/home/*/.xsession-errors*); for file in \${xsefiles[@]}; do if [ -s \$file ]; then echo xsefile-valid > /dev/$serialdev; fi; done", 0;
+    script_run
+      "xsefiles=(/home/*/.xsession-errors*); for file in \${xsefiles[@]}; do if [ -s \$file ]; then echo xsefile-valid > /dev/$serialdev; fi; done",
+      0;
     if (wait_serial("xsefile-valid", 10)) {
         save_and_upload_log('cat /home/*/.xsession-errors*', '/tmp/XSE.log', {screenshot => 1});
     }

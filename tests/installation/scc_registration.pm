@@ -25,7 +25,12 @@ use utils qw/assert_screen_with_soft_timeout/;
 
 sub run() {
     if (!get_var("HDD_SCC_REGISTERED")) {
-        assert_screen_with_soft_timeout('scc-registration', timeout => 300, soft_timeout => 100, bugref => 'bsc#990254');
+        assert_screen_with_soft_timeout(
+            'scc-registration',
+            timeout      => 300,
+            soft_timeout => 100,
+            bugref       => 'bsc#990254'
+        );
     }
     fill_in_registration_data;
 }

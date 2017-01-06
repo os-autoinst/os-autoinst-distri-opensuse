@@ -45,7 +45,10 @@ sub run() {
     send_key "alt-f4";
     sleep 12;
 
-    my @topsite = ('www.yahoo.com', 'www.amazon.com', 'www.ebay.com', 'slashdot.org', 'www.wikipedia.org', 'www.flickr.com', 'www.facebook.com', 'www.youtube.com', 'ftp://ftp.novell.com');
+    my @topsite = (
+        'www.yahoo.com',    'www.amazon.com',  'www.ebay.com', 'slashdot.org', 'www.wikipedia.org', 'www.flickr.com',
+        'www.facebook.com', 'www.youtube.com', 'ftp://ftp.novell.com'
+    );
 
     for my $site (@topsite) {
         send_key "ctrl-l";

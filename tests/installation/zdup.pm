@@ -135,7 +135,10 @@ sub run() {
     }
 
     # wait for zypper dup finish, accept failures in meantime
-    my $post_checks = [$zypper_dup_finish, $zypper_installing, $zypper_dup_notifications, $zypper_dup_error, $zypper_dup_fileconflict, $zypper_check_conflicts, $zypper_retrieving];
+    my $post_checks = [
+        $zypper_dup_finish,       $zypper_installing,      $zypper_dup_notifications, $zypper_dup_error,
+        $zypper_dup_fileconflict, $zypper_check_conflicts, $zypper_retrieving
+    ];
     $out = wait_serial($post_checks, 240);
     while ($out) {
         if ($out =~ $zypper_dup_notifications) {
