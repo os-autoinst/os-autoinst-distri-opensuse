@@ -103,6 +103,13 @@ sub run() {
         } until (wait_still_screen(2, 4));
         select_console 'install-shell';
         assert_screen 'inst-console';
+
+        # Keep logs on  exported disk drives after reboot for bsc#1005313
+        script_run 'mount /dev/vda3 /mnt';
+        script_run 'echo "Storage=persistent" >> /mnt/etc/systemd/journald.conf';
+        script_run 'umount /mnt';
+        record_soft_failure;
+
         $self->get_ip_address();
         $self->save_upload_y2logs();
         select_console 'installation';
