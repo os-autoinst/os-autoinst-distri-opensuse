@@ -167,6 +167,10 @@ sub guiupdates_is_applicable() {
     return get_var("DESKTOP") =~ /gnome|kde|xfce|lxde/ && !check_var("FLAVOR", "Rescue-CD");
 }
 
+sub packagekit_available {
+    return !check_var('FLAVOR', 'Rescue-CD') && !is_staging;
+}
+
 sub lxdestep_is_applicable() {
     return check_var("DESKTOP", "lxde");
 }
@@ -686,7 +690,7 @@ sub load_x11tests() {
             loadtest "x11/reboot_lxde";
         }
     }
-    loadtest "x11/glxgears" unless is_staging();
+    loadtest "x11/glxgears" if packagekit_available;
     if (kdestep_is_applicable()) {
         if (!is_krypton_argon) {
             loadtest "x11/amarok";
