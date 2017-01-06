@@ -39,7 +39,7 @@ sub restart_host {
     select_console 'log-console';
     switch_power($ipmi_machine, $ipmi_user, $ipmi_pass, 'off');
     switch_power($ipmi_machine, $ipmi_user, $ipmi_pass, 'on');
-    wait_idle 10;
+    wait_still_screen 10;
     save_screenshot;
     select_console 'root-console';
 }
@@ -127,4 +127,75 @@ sub redirect_serial {
     select_console "root-console";
     $self->reset_curr_serialdev();
 }
+
+sub get_consoledev {
+    if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
+        script_run("clear");
+        my $prd_version = script_output("cat /etc/os-release");
+        save_screenshot;
+        $prd_version =~ /.*VERSION\s*=\s*\"(\d+)-SP(\d+)\"/sm;
+        my ($main_version, $patch_level) = ($1, $2);
+        if ($main_version > 12 || ($main_version == 12 && $patch_level >= 2)) {
+            return "hvc0";
+        }
+        else {
+            return "xvc0";
+        }
+    }
+    else {
+        return "ttyS1";
+    }
+}
+
+sub generate_grub {
+    my ($self) = @_;
+    my $ipmi_console = get_consoledev();
+    #only support grub2
+    my $grub_default_file = "/etc/default/grub";
+    my $grub_cfg_file     = "/boot/grub2/grub.cfg";
+
+    my $cmd
+      = "if [ -d /boot/grub2 ]; then cp $grub_default_file ${grub_default_file}.org; sed -ri '/GRUB_CMDLINE_(LINUX|LINUX_DEFAULT|XEN_DEFAULT)=/ {s/(console|com\\d+|loglevel|log_lvl|guest_loglvl)=[^ \"]*//g; /LINUX=/s/\"\$/ loglevel=5 console=$ipmi_console,115200 console=tty\"/;/XEN_DEFAULT=/ s/\"\$/ log_lvl=all guest_loglvl=all console=com2,115200\"/;}' $grub_default_file ; fi";
+    script_run("$cmd");
+    wait_still_screen 3;
+    save_screenshot;
+    script_run("clear; cat $grub_default_file");
+    wait_still_screen 3;
+    save_screenshot;
+
+    $cmd = "if [ -d /boot/grub2 ]; then grub2-mkconfig -o $grub_cfg_file; fi";
+    script_run("$cmd", 40);
+    wait_still_screen 3;
+    save_screenshot;
+    script_run("clear; cat $grub_cfg_file");
+    wait_still_screen 3;
+    save_screenshot;
+}
+
+sub set_default_boot_sequence {
+    my ($self, $hypervisor) = @_;
+    # Set default boot order only for xen hypervisor
+    if ($hypervisor = 'xen') {
+        my $cmd
+          = "grub=`find /boot/ -name grub.cfg -o -name menu.list`;echo \$grub;index=`grep -iE '^menuentry\|^submenu\|^title' \$grub|grep -ni 'xen'|head -1|awk -F: '{print \$1-1}'`;echo \$index;if [ \$index -ge 0 ];then if [[ \$grub = *\"grub.cfg\"* ]];then echo \$index;grub2-set-default \$index; else sed -i \"s/^default .*/default \$index/;s/set default=.*/set default=\$index/\" \$grub; fi; else echo \"There is no xen boot options\"; fi";
+        script_run("$cmd");
+        wait_still_screen 3;
+        save_screenshot;
+    }
+}
+
+sub reboot {
+    my ($self, $test_machine, $timeout) = @_;
+    # Wrap multiple function as one
+    $timeout //= 300;
+    die "Variable test_machine is invalid for reboot!" unless $timeout;
+    $self->generate_grub();
+    if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
+        $self->set_default_boot_sequence("xen");
+    }
+    type_string("/sbin/reboot\n");
+    $self->check_prompt_for_boot($timeout);
+    $self->redirect_serial($test_machine);
+}
+
 1;

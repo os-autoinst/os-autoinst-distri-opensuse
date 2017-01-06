@@ -1128,14 +1128,10 @@ elsif (get_var("VIRT_AUTOTEST")) {
         loadtest "virt_autotest/proxymode_redirect_serial1";
         loadtest "virt_autotest/install_package";
         if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
-            loadtest "virt_autotest/setup_console_on_host";
             loadtest "virt_autotest/reboot_and_wait_up_normal1";
-            loadtest "virt_autotest/proxymode_redirect_serial2";
         }
         loadtest "virt_autotest/update_package";
-        loadtest "virt_autotest/setup_console_on_host1";
         loadtest "virt_autotest/reboot_and_wait_up_normal2";
-        loadtest "virt_autotest/proxymode_redirect_serial3";
     }
     else {
         load_boot_tests();
