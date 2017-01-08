@@ -15,6 +15,7 @@ use strict;
 use testapi;
 
 sub run() {
+    assert_screen 'startshell';
     send_key "ctrl-d";
 }
 
