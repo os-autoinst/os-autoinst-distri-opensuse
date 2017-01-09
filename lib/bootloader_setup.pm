@@ -77,12 +77,15 @@ sub select_bootmenu_option {
 
 sub bootmenu_default_params {
     # https://wiki.archlinux.org/index.php/Kernel_Mode_Setting#Forcing_modes_and_EDID
+    if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
+        type_string " video=hyperv_fb:1024x768";
+    }
     type_string "vga=791 ";
     type_string "Y2DEBUG=1 ";
     type_string_slow "video=1024x768-16 ";
 
-    assert_screen "inst-video-typed", 4;
-    if (!get_var("NICEVIDEO")) {
+    assert_screen check_var('UEFI', 1) ? 'inst-video-typed-grub2' : 'inst-video-typed', 4;
+    if (!get_var("NICEVIDEO") && !is_jeos) {
         type_string_very_slow "plymouth.ignore-serial-consoles ";    # make plymouth go graphical
         type_string_very_slow "linuxrc.log=$serialdev ";             # to get linuxrc logs in serial
         type_string_very_slow "console=$serialdev ";                 # to get crash dumps as text
