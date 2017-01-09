@@ -51,5 +51,16 @@ sub run() {
     }
 }
 
+sub post_fail_hook {
+    my ($self) = @_;
+    # system might be stuck on bootup showing only splash screen so we press
+    # esc to show console logs
+    send_key 'esc';
+    $self->SUPER::post_fail_hook;
+    # in case we could not even reach the installer welcome screen and logs
+    # could not be collected on the serial output:
+    upload_logs '/var/log/linuxrc.log';
+}
+
 1;
 # vim: set sw=4 et:
