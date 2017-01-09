@@ -169,8 +169,7 @@ sub load_slepos_tests() {
         loadtest "slepos/build_images_kiwi";
     }
     elsif (get_var("SLEPOS") =~ /^terminal-online/) {
-        mutex_lock("bs1_images_synced");
-        mutex_unlock("bs1_images_synced");
+        set_var("DELAYED_START", "1");
         loadtest "slepos/boot_image";
     }
     elsif (get_var("SLEPOS") =~ /^terminal-offline/) {

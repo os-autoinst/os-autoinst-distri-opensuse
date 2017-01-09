@@ -14,10 +14,15 @@ use base "basetest";
 use strict;
 use warnings;
 use testapi;
+use lockapi;
 use utils;
 
 
 sub run() {
+    mutex_lock("bs1_images_synced");
+    mutex_unlock("bs1_images_synced");
+    resume_vm();
+
     my $select_id = get_var("SLEPOS_SELECT_ID");
     if (defined $select_id) {
         assert_screen("slepos-select-id", 200);

@@ -19,8 +19,13 @@
 use strict;
 use base 'basetest';
 use testapi;
+use lockapi;
 
 sub run {
+    mutex_lock('pxe');
+    mutex_unlock('pxe');
+    resume_vm();
+
     # wait for bootloader to appear
     assert_screen("autoyast-boot", 300);
 
