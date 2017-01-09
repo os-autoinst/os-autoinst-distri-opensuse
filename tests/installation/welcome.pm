@@ -20,13 +20,14 @@ use utils 'ensure_fullscreen';
 sub run() {
     my @welcome_tags = [qw(inst-welcome inst-welcome-confirm-self-update-server)];
     ensure_fullscreen;
+    my $bootup_timeout = 500;
     if (get_var("BETA")) {
-        assert_screen "inst-betawarning", 500;
+        assert_screen "inst-betawarning", $bootup_timeout;
         send_key "ret";
         assert_screen @welcome_tags, 10;
     }
     else {
-        assert_screen @welcome_tags, 500;
+        assert_screen @welcome_tags, $bootup_timeout;
     }
     if (match_has_tag('inst-welcome-confirm-self-update-server')) {
         wait_screen_change { send_key $cmd{ok} };
