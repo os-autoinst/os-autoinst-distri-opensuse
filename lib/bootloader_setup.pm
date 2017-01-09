@@ -169,7 +169,12 @@ sub specific_bootmenu_params {
     my $args     = "";
     my $netsetup = "";
     if (get_var("AUTOYAST") || get_var("AUTOUPGRADE") && get_var("AUTOUPGRADE") ne 'local') {
-        $netsetup = get_var("NETWORK_INIT_PARAM", "ifcfg=*=dhcp");    #need this instead of netsetup as default, see bsc#932692
+        # We need to use 'ifcfg=*=dhcp' instead of 'netsetup=dhcp' as a default
+        # due to BSC#932692 (SLE-12). 'SetHostname=0' has to be set because autoyast
+        # profile has DHCLIENT_SET_HOSTNAME="yes" in /etc/sysconfig/network/dhcp,
+        # 'ifcfg=*=dhcp' sets this variable in ifcfg-eth0 as well and we can't
+        # have them both as it's not deterministic.
+        $netsetup = get_var("NETWORK_INIT_PARAM", "ifcfg=*=dhcp SetHostname=0");
         $args .= " $netsetup autoyast=" . data_url(get_var("AUTOYAST")) . " ";
     }
     else {
