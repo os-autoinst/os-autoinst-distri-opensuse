@@ -10,7 +10,7 @@
 # Summary: virt_autotest: Virtualization multi-machine job : Guest Migration
 # Maintainer: jerry <jtang@suse.com>
 
-use base virt_autotest_base;
+use base multi_machine_job_base;
 use strict;
 use testapi;
 use guest_migration_base;
@@ -42,7 +42,7 @@ sub upload_tar_log() {
 sub run() {
     my ($self) = @_;
 
-    my $target_ip = get_var_from_parent('MY_IP');
+    my $target_ip = $self->get_var_from_parent('MY_IP');
 
     my $cmd_output = $self->execute_script_run("/usr/share/qa/virtautolib/lib/guest_migrate.sh -s -d $target_ip -v $hyper_visor -u root -p novell", 3600);
 

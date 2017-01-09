@@ -10,7 +10,7 @@
 # Summary: virt_autotest: Virtualization multi-machine job : Guest Migration
 # Maintainer: jerry <jtang@suse.com>
 
-use base virt_autotest_base;
+use base multi_machine_job_base;
 use strict;
 use testapi;
 use guest_migration_base;

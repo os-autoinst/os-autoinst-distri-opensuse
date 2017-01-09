@@ -10,13 +10,16 @@
 # Summary: virt_autotest: Virtualization multi-machine job : Guest Migration
 # Maintainer: jerry <jtang@suse.com>
 
-use base virt_autotest_base;
+use base multi_machine_job_base;
 use strict;
 use testapi;
 use guest_migration_base;
 
 sub run() {
     my ($self) = @_;
+
+    #settle all common settings
+    set_common_settings;
 
     #Turn off the firewall
     $self->execute_script_run("SuSEfirewall2 off", 500);
@@ -36,8 +39,6 @@ sub run() {
     my $ip_out = $self->execute_script_run('ip route show|grep kernel|cut -d" " -f12|head -1', 3);
     my $name_out = $self->execute_script_run('hostname', 3);
 
-    set_var('MY_IP',   $ip_out);
-    set_var('MY_NAME', $name_out);
-    bmwqemu::save_vars();
+    $self->set_ip_and_hostname_to_var;
 }
 1;
