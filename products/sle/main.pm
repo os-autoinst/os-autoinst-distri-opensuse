@@ -389,8 +389,7 @@ sub load_boot_tests() {
         }
     }
     elsif (get_var("PXEBOOT")) {
-        mutex_lock('pxe');
-        mutex_unlock('pxe');
+        set_var("DELAYED_START", "1");
         loadtest "autoyast/pxe_boot";
     }
     else {
