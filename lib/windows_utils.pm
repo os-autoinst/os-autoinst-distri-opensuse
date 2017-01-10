@@ -37,7 +37,7 @@ sub wait_boot_windows {
     type_password;
     send_key 'ret';    # press shutdown button
 
-    assert_screen 'windows-desktop';
+    assert_screen 'windows-desktop', 120;
 }
 
 1;
