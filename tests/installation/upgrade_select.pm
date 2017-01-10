@@ -28,7 +28,7 @@ sub run() {
     # hardware detection and waiting for updates from suse.com can take a while
     assert_screen_with_soft_timeout('select-for-update', timeout => 500, soft_timeout => 100, bugref => 'bsc#990254');
     send_key $cmd{next}, 1;
-    assert_screen "remove-repository", 100;
+    assert_screen "remove-repository", 240;
     send_key $cmd{next}, 1;
 }
 
