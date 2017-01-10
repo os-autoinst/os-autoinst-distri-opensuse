@@ -46,7 +46,7 @@ sub run() {
 
     # close About
     send_key "alt-f4";
-    assert_screen 'firefox-html5test';
+    assert_screen [qw/firefox-html5test test-firefox-1/];
 
     send_key "alt-f4";
     assert_screen [qw(firefox-save-and-quit generic-desktop)];

@@ -23,7 +23,7 @@ sub run() {
 
     select_console 'root-console';
 
-    assert_script_run "zypper -n -i rm $pkgname $recommended", 90;
+    assert_script_run "zypper -n rm $pkgname $recommended", 90;
 
     assert_script_run "zypper -n in yast2-packager", 90;    # make sure yast2 sw_single module installed
 
@@ -32,7 +32,7 @@ sub run() {
 
     # Check disk usage widget for not showing subvolumes (bsc#949945)
     # on SLE12SP0 hidden subvolume isn't supported
-    if (!check_var('VERSION', '12')) {
+    if (get_var('VERSION') =~ /^12-SP[1-9]/) {
         send_key "alt-e";
         wait_still_screen;
         send_key "alt-s";
@@ -50,8 +50,8 @@ sub run() {
     send_key "+";    # select for install
     assert_screen "$pkgname-selected-for-install", 5;
 
-    if (!check_var('VERSION', '12')) {    #this functionality isn't avivable in SLE12SP0
-        send_key "alt-p";                 # go to search box again
+    if (get_var('VERSION') =~ /^12-SP[1-9]/) {    #this functionality isn't avivable in SLE12SP0
+        send_key "alt-p";                         # go to search box again
         for (1 .. length($pkgname)) { send_key "backspace" }
         type_string("$recommended\n");
         assert_screen "$recommended-selected-for-install", 10;
