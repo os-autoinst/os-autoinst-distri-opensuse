@@ -27,21 +27,24 @@ sub run() {
     $self->prepare_repos();
     # create test partition
     assert_script_run("parted -l -m 2>&1");
-    my $cmd = "parted -l -m 2>&1| awk -F \':\' \'{if(\$5 == \"xfs\") print \$1}\'";
+    my $cmd           = "parted -l -m 2>&1| awk -F \':\' \'{if(\$5 == \"xfs\") print \$1}\'";
     my $partition_num = $self->qa_script_output($cmd, 10);
-    my $partition = "/dev/vda" . $partition_num;
-    assert_script_run("fdisk -l " . $partition , 10);
+    my $partition     = "/dev/vda" . $partition_num;
+    assert_script_run("fdisk -l " . $partition, 10);
     # add extra repo, because original qa-head repo don't contain some packages required by xfstests
     assert_script_run("cd /root/");
     assert_script_run("zypper ar http://download.suse.de/ibs/home:/yosun:/branches:/QA:/Head:/Devel/SLE-12-SP2/ extra-repo");
     assert_script_run("zypper ref", 60);
     assert_script_run("zypper lr -U");
     # prepare/clone/make/install xfstests
-    assert_script_run("zypper -n in git e2fsprogs automake gcc libuuid1 quota attr make xfsprogs libgdbm4 gawk dbench uuid-runtime acl bc dump indent libtool lvm2 psmisc sed xfsdump libacl-devel libattr-devel libaio-devel libuuid-devel openssl-devel xfsprogs-devel", 60*10);
-    assert_script_run("git clone git://git.kernel.org/pub/scm/fs/xfs/xfstests-dev.git", 60*10);
+    assert_script_run(
+"zypper -n in git e2fsprogs automake gcc libuuid1 quota attr make xfsprogs libgdbm4 gawk dbench uuid-runtime acl bc dump indent libtool lvm2 psmisc sed xfsdump libacl-devel libattr-devel libaio-devel libuuid-devel openssl-devel xfsprogs-devel",
+        60 * 10
+    );
+    assert_script_run("git clone git://git.kernel.org/pub/scm/fs/xfs/xfstests-dev.git", 60 * 10);
     assert_script_run("cd xfstests-dev");
-    assert_script_run("make", 60*10);
-    assert_script_run("make install", 60*5);
+    assert_script_run("make",         60 * 10);
+    assert_script_run("make install", 60 * 5);
     # prepare and run xfstests (./check is the trigger script)
     #TODO# also add scratch partition to make multi-partition test
     assert_script_run("useradd fsgqa");
@@ -49,8 +52,8 @@ sub run() {
     assert_script_run("mount " . $partition . " /mnt/test");
     assert_script_run("mount");
     assert_script_run("export TEST_DIR=/mnt/test");
-    assert_script_run("export TEST_DEV=" . $partition , 10);
-    script_run("./check", 60*60);
+    assert_script_run("export TEST_DEV=" . $partition, 10);
+    script_run("./check", 60 * 60);
     # Upload all log tarballs in ./results/
     my $tarball = "/tmp/qaset-xfstests-results.tar.bz2";
     assert_script_run("tar jcvf " . $tarball . " ./results/");
