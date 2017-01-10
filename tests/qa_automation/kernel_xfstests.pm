@@ -30,11 +30,11 @@ sub run() {
     my $cmd           = "parted -l -m 2>&1| awk -F \':\' \'{if(\$5 == \"xfs\") print \$1}\'";
     my $partition_num = $self->qa_script_output($cmd, 10);
     my $partition     = "/dev/vda" . $partition_num;
-    assert_script_run("fdisk -l " . $partition, 10);
+    assert_script_run("fdisk -l " . $partition);
     # add extra repo, because original qa-head repo don't contain some packages required by xfstests
     assert_script_run("cd /root/");
     assert_script_run("zypper ar http://download.suse.de/ibs/home:/yosun:/branches:/QA:/Head:/Devel/SLE-12-SP2/ extra-repo");
-    assert_script_run("zypper ref", 60);
+    assert_script_run("zypper ref");
     assert_script_run("zypper lr -U");
     # prepare/clone/make/install xfstests
     assert_script_run(
@@ -52,7 +52,7 @@ sub run() {
     assert_script_run("mount " . $partition . " /mnt/test");
     assert_script_run("mount");
     assert_script_run("export TEST_DIR=/mnt/test");
-    assert_script_run("export TEST_DEV=" . $partition, 10);
+    assert_script_run("export TEST_DEV=" . $partition);
     script_run("./check", 60 * 60);
     # Upload all log tarballs in ./results/
     my $tarball = "/tmp/qaset-xfstests-results.tar.bz2";
