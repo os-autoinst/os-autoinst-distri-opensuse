@@ -804,6 +804,7 @@ sub load_x11tests() {
         if (gnomestep_is_applicable()) {
             loadtest "x11/eog";
             loadtest "x11/rhythmbox";
+            loadtest "x11/wireshark";
             loadtest "x11/ImageMagick";
             loadtest "x11/ghostscript";
         }
