@@ -69,7 +69,7 @@ sub run() {
             send_key 'alt-n';
             record_soft_failure 'error bootloader preupdate';
         }
-        assert_screen "inst-packageinstallationstarted";
+        assert_screen "inst-packageinstallationstarted", 120;
 
         # view installation details
         send_key $cmd{instdetails};
