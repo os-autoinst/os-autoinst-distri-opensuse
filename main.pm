@@ -1,7 +1,6 @@
 #!/usr/bin/perl -w
 use strict;
 use testapi;
-use lockapi;
 use autotest;
 use needle;
 use File::Find;
@@ -331,8 +330,7 @@ sub load_boot_tests() {
         loadtest "installation/proxy_boot.pm";
     }
     elsif (get_var("PXEBOOT")) {
-        mutex_lock('pxeboot_ready');
-        mutex_unlock('pxeboot_ready');
+        set_var("DELAYED_START", "1");
         loadtest "autoyast/pxe_boot.pm";
     }
     else {
@@ -658,8 +656,7 @@ sub load_slepos_tests() {
         loadtest "slepos/wait.pm";
     }
     elsif (get_var("SLEPOS") =~ /^terminal-online/) {
-        mutex_lock("bs1_images_synced");
-        mutex_unlock("bs1_images_synced");
+        set_var("DELAYED_START", "1");
         loadtest "slepos/boot_image.pm";
     }
     elsif (get_var("SLEPOS") =~ /^terminal-offline/) {
