@@ -52,7 +52,7 @@ EOF
     assert_script_run "echo \"$content\" >> '/etc/securetty'";
 
     # xinetd (echo)
-    foreach my $xinetd_conf (qw(echo finger)) {
+    foreach my $xinetd_conf (qw(echo finger telnet)) {
         assert_script_run 'sed -i \'s/\(disable\s*=\s\)yes/\1no/\' /etc/xinetd.d/' . $xinetd_conf;
     }
     assert_script_run 'sed -i \'s/^#\(\s*bind\s*=\)\s*$/\1 0.0.0.0/\' /etc/xinetd.conf';
