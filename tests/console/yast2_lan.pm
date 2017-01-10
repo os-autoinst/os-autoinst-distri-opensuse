@@ -61,7 +61,14 @@ sub run() {
     my $domain = "zq1.de";
 
     send_key "alt-s";    # open hostname tab
-    assert_screen "yast2_lan-hostname-tab";
+
+    # On Xen we don't have user-mode networking, just a bridged network
+    if (check_var('VIRSH_VMM_FAMILY', 'xen')) {
+        assert_screen "yast2_lan-hostname-tab_bridged-network";
+    }
+    else {
+        assert_screen "yast2_lan-hostname-tab";
+    }
     send_key "tab";
     for (1 .. 15) { send_key "backspace" }
     type_string $hostname;
