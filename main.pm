@@ -1,7 +1,6 @@
 #!/usr/bin/perl -w
 use strict;
 use testapi;
-use lockapi;
 use autotest;
 use needle;
 use File::Find;
@@ -331,8 +330,7 @@ sub load_boot_tests() {
         loadtest "installation/proxy_boot.pm";
     }
     elsif (get_var("PXEBOOT")) {
-        mutex_lock('pxeboot_ready');
-        mutex_unlock('pxeboot_ready');
+        set_var("DELAYED_START", "1");
         loadtest "autoyast/pxe_boot.pm";
     }
     else {
@@ -489,7 +487,7 @@ sub load_consoletests() {
             loadtest "console/aplay.pm";
             loadtest "console/glibc_i686.pm";
         }
-        loadtest "console/zypper_up.pm";
+        loadtest "update/zypper_up.pm";
         loadtest "console/zypper_in.pm";
         loadtest "console/yast2_i.pm";
         if (!get_var("LIVETEST")) {
@@ -578,21 +576,18 @@ sub load_x11tests() {
     }
     if (xfcestep_is_applicable) {
         loadtest "x11/thunar.pm";
-        loadtest "x11/reboot_xfce_pre.pm";
+        loadtest "x11/reboot_xfce.pm";
     }
     if (bigx11step_is_applicable && !get_var("NICEVIDEO")) {
         loadtest "x11/glxgears.pm";
     }
     if (kdestep_is_applicable) {
-        loadtest "x11/reboot_kde_pre.pm";
+        loadtest "x11/reboot_kde.pm";
     }
     if (gnomestep_is_applicable) {
         loadtest "x11/nautilus.pm"  unless get_var("LIVECD");
         loadtest "x11/evolution.pm" unless (is_server);
-        loadtest "x11/reboot_gnome_pre_sle11.pm";
-    }
-    if (!get_var("LIVETEST")) {
-        loadtest "x11/reboot.pm";
+        loadtest "x11/reboot_gnome_sle11.pm";
     }
     loadtest "x11/desktop_mainmenu.pm";
 
@@ -619,7 +614,7 @@ sub load_ha_tests() {
 
 sub load_autoyast_tests() {
     #    init boot in load_boot_tests
-    loadtest("autoyast/system.pm");
+    loadtest("autoyast/installation.pm");
     loadtest("autoyast/console.pm");
     loadtest("autoyast/login.pm");
     loadtest("autoyast/repos.pm") unless get_var("SUPPORT_SERVER_GENERATOR");
@@ -661,8 +656,7 @@ sub load_slepos_tests() {
         loadtest "slepos/wait.pm";
     }
     elsif (get_var("SLEPOS") =~ /^terminal-online/) {
-        mutex_lock("bs1_images_synced");
-        mutex_unlock("bs1_images_synced");
+        set_var("DELAYED_START", "1");
         loadtest "slepos/boot_image.pm";
     }
     elsif (get_var("SLEPOS") =~ /^terminal-offline/) {

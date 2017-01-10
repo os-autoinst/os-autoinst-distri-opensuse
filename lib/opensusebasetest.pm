@@ -35,18 +35,6 @@ sub problem_detection {
 
     type_string "pushd \$(mktemp -d)\n";
 
-    # Slowest services
-    save_and_upload_log("systemd-analyze blame", "systemd-analyze-blame.txt", {noupload => 1});
-    clear_console;
-
-    # Generate and upload SVG out of `systemd-analyze plot'
-    save_and_upload_log('systemd-analyze plot', "systemd-analyze-plot.svg", {noupload => 1});
-    clear_console;
-
-    # Failed system services
-    save_and_upload_log('systemctl --all --state=failed', "failed-system-services.txt", {screenshot => 1, noupload => 1});
-    clear_console;
-
     # Unapplied configuration files
     save_and_upload_log("find /* -name '*.rpmnew'", "unapplied-configuration-files.txt", {screenshot => 1, noupload => 1});
     clear_console;
@@ -55,17 +43,8 @@ sub problem_detection {
     save_and_upload_log("dmesg | grep -i 'error\\|warn\\|exception\\|crash'", "dmesg-errors.txt", {screenshot => 1, noupload => 1});
     clear_console;
 
-    # Errors in journal
-    save_and_upload_log("journalctl --no-pager -p 'err'", "journalctl-errors.txt", {screenshot => 1, noupload => 1});
-    clear_console;
+    save_and_upload_log("cat /var/log/messages", "messages", {screenshot => 1, noupload => 1});
 
-    # Tracebacks in journal
-    save_and_upload_log('journalctl | grep -i traceback', "journalctl-tracebacks.txt", {screenshot => 1, noupload => 1});
-    clear_console;
-
-    # Segmentation faults
-    save_and_upload_log("coredumpctl list", "segmentation-faults-list.txt", {screenshot => 1, noupload => 1});
-    save_and_upload_log("coredumpctl info", "segmentation-faults-info.txt", {screenshot => 1, noupload => 1});
     clear_console;
 
     # Broken links
@@ -89,12 +68,6 @@ done", "binaries-with-missing-libraries.txt", {timeout => 60, noupload => 1});
     save_and_upload_log("rpmverify -a | grep -v \"[S5T].* c \"", "rpmverify-problems.txt", {timeout => 300, screenshot => 1, noupload => 1});
     clear_console;
 
-    # VMware specific
-    if (check_var('VIRSH_VMM_FAMILY', 'vmware')) {
-        save_and_upload_log('systemctl status vmtoolsd vgauthd', "vmware-services.txt", {screenshot => 1, noupload => 1});
-        clear_console;
-    }
-
     script_run 'tar cvvJf problem_detection_logs.tar.xz *';
     upload_logs('problem_detection_logs.tar.xz');
     type_string "popd\n";
@@ -106,9 +79,9 @@ sub export_logs {
 
     problem_detection;
 
-    save_and_upload_log('cat /proc/loadavg', '/tmp/loadavg.txt', {screenshot => 1});
-    save_and_upload_log('journalctl -b',     '/tmp/journal.log', {screenshot => 1});
-    save_and_upload_log('ps axf',            '/tmp/psaxf.log',   {screenshot => 1});
+    save_and_upload_log('cat /proc/loadavg',     '/tmp/loadavg.txt', {screenshot => 1});
+    save_and_upload_log('ps axf',                '/tmp/psaxf.log',   {screenshot => 1});
+    save_and_upload_log('cat /var/log/messages', 'messages',         {screenshot => 1});
 
     # Just after the setup: let's see the network configuration
     save_and_upload_log("ip addr show", "/tmp/ip-addr-show.log");
@@ -133,9 +106,6 @@ sub export_logs {
         save_and_upload_log('cat /home/*/.xsession-errors*', '/tmp/XSE.log', {screenshot => 1});
     }
 
-    save_and_upload_log('systemctl list-unit-files', '/tmp/systemctl_unit-files.log');
-    save_and_upload_log('systemctl status',          '/tmp/systemctl_status.log');
-    save_and_upload_log('systemctl',                 '/tmp/systemctl.log', {screenshot => 1});
 }
 
 # Set a simple reproducible prompt for easier needle matching without hostname
