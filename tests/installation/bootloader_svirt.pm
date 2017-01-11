@@ -68,10 +68,6 @@ sub run() {
         $svirt->change_domain_element(os => cmdline => $cmdline);
     }
 
-    # After installation we need to redefine the domain, so the next
-    # boot loads installed kernel and initrd.
-    $svirt->change_domain_element(on_reboot => 'destroy');
-
     my $size_i = get_var('HDDSIZEGB', '24');
     # In JeOS we have the disk, we just need to deploy it, for the rest
     # - installs from network and ISO media - we have to create it.

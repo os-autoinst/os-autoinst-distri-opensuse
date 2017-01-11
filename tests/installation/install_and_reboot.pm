@@ -111,6 +111,16 @@ sub run() {
     wait_screen_change {
         send_key 'alt-o';    # Reboot
     };
+
+    if (check_var('VIRSH_VMM_FAMILY', 'xen')) {
+        reset_consoles;
+        # VNC connection to SUT (the 'sut' console) is terminated on Xen via svirt
+        # backend and we have to re-connect *after* the restart, otherwise we end up
+        # with stalled VNC connection. The tricky part is to know *when* the system
+        # is already booting.
+        sleep 7;
+        select_console 'sut';
+    }
 }
 
 1;
