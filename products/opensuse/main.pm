@@ -766,7 +766,7 @@ sub install_online_updates {
 sub load_system_update_tests {
     # we don't want live systems to run out of memory or virtual disk space.
     # Applying updates on a live system would not be persistent anyway
-    return if get_var("INSTALLONLY") || get_var("DUALBOOT") || get_var("UPGRADE") || is_livesystem;
+    return if get_var("DUALBOOT") || get_var("UPGRADE") || is_livesystem;
 
     if (need_clear_repos) {
         loadtest "update/zypper_clear_repos";
