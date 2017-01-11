@@ -89,30 +89,39 @@ sub run {
 
     # start migration
     my $timeout = 7200;
-    my @tags    = qw(yast2-migration-wrongdigest yast2-migration-packagebroken yast2-migration-internal-error yast2-migration-finish);
+    my @tags    = qw(
+      yast2-migration-wrongdigest yast2-migration-packagebroken yast2-migration-internal-error
+      yast2-migration-finish      yast2-migration-notifications
+    );
     while (1) {
-        my $ret = assert_screen \@tags, $timeout;
-        if ($ret->{needle}->has_tag("yast2-migration-internal-error")) {
+        assert_screen \@tags, $timeout;
+        if (match_has_tag("yast2-migration-internal-error")) {
             $self->result('fail');
             send_key "alt-o";
             save_screenshot;
             return;
         }
-        elsif ($ret->{needle}->has_tag("yast2-migration-packagebroken")) {
+        elsif (match_has_tag("yast2-migration-packagebroken")) {
             $self->result('fail');
             send_key "alt-d";
             save_screenshot;
             send_key "alt-s";
             return;
         }
-        elsif ($ret->{needle}->has_tag("yast2-migration-wrongdigest")) {
+        elsif (match_has_tag("yast2-migration-wrongdigest")) {
             $self->result('fail');
             send_key "alt-a", 1;
             save_screenshot;
             send_key "alt-n";
             return;
         }
-        last if $ret->{needle}->has_tag("yast2-migration-finish");
+        elsif (match_has_tag("yast2-migration-notifications")) {
+            # close notification window
+            send_key "alt-o";
+            # wait a second after pressing close button
+            wait_still_screen(1);
+        }
+        last if (match_has_tag("yast2-migration-finish"));
     }
     send_key "alt-f";
 
