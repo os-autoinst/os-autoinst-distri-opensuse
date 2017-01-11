@@ -98,11 +98,13 @@ test_java_alternatives () {
         echo "List all java alternatives"
         cat $LIST_ALL_JAVA_ALTERNATIVES
         for i in $(update-alternatives --list java); do rpm -qf $i; done
-        exit 2
+        exit 1
     fi
 }
 
-# Check if there is 1:1 analogy with javac alternatives and java versions
+# Check if there is 1:1 analogy with:
+# javac alternatives and java*devel pkgs installed
+# java alternatives and the java pkgs installed
 test_javac_alternatives () {
     list_all_javac_alternatives
 #    java_versions=$(cat $LIST_ALL_INSTALLED_VERSIONS | wc -l)
@@ -117,7 +119,7 @@ test_javac_alternatives () {
         echo
         echo "List all javac alternatives"
         cat $LIST_ALL_JAVAC_ALTERNATIVES
-	exit 2
+	exit 1
     fi
 }
 
@@ -125,51 +127,49 @@ test_javac_alternatives () {
 test_javaplugin_alternatives () {
     list_all_javaplugin_alternatives
     # This exists only for java-ibm so far
-    java_versions=$(cat $LIST_ALL_INSTALLED_VERSIONS | grep ibm | wc -l)
+    java_plugins=$(rpm -qa | grep java | grep plugin | wc -l)
     javaplugin_alternatives=$(cat $LIST_ALL_JAVAPLUGIN_ALTERNATIVES | wc -l)
-    if [ $java_versions -eq $javaplugin_alternatives ]; then
+    if [ $java_plugins -eq $javaplugin_alternatives ]; then
 	echo "javaplugin: PASS"
     else
 	echo "javaplugin: FAIL"
-	exit 2
+	exit 1
     fi
 }
 
 test_java_version_active () {
     # find active java version
     java_version_active=`java -version 2>&1 | awk '/version/{print $NF}' | sed 's/"//g' | awk -F "_" '{print $1}'`
-    #echo $java_version_active
 }
 
 test_javac_version_active () {
     # find active javac version
     javac_version_active=`javac -version 2>&1 | awk '/javac/{print $2}' | awk -F "-" '{print $1}' | awk -F "_" '{print $1}'`
-    #echo $javac_version_active
 }
 
-check_java_version_active_vs_dot () {
-    dot_version_short=`echo $dot_version | awk -F '-' '{print $1}'`   
-        #echo $dot_version_short $java_version_active
-    if [ $java_version_active ==  $dot_version_short ]; then
-	echo "check linked java version: PASS"
-        #echo $dot_version_short
-    else
-	echo "check linked java version: FAIL"
-        echo "linked java is: $java_version_active should be $dot_version_short"
-	exit 2
+check_version_active_vs_dot () {
+    if [ $# -ne 2 ]; then
+	echo "Please pass version and executable name";
+	return;
     fi
-}
+    version=$1
+    name=$2
 
-check_javac_version_active_vs_dot () {
     dot_version_short=`echo $dot_version | awk -F '-' '{print $1}'`   
-    if [ $javac_version_active ==  $dot_version_short ]; then
-	echo "check linked javac version: PASS"
-        #echo $dot_version_short
+    if [ $version == $dot_version_short ]; then
+	echo "check linked $name version: PASS"
     else
-	echo "check linked javac version: FAIL"
-        echo "linked java is: $java_version_active should be $dot_version_short" 
-        echo "*****************************************************************"
-	exit 2
+        if [[ "$dot_version_short" == "1.7.1" ]]; then
+            # Special Case
+            if [[ "$version" == "1.7.0" ]]; then
+                echo -n "check linked $name version: OK"
+                        "INFO: linked $name is: $version which is normal according to bnc#1014602"
+            fi
+        else
+	    echo -n "check linked $name version: FAIL"
+                    "linked $name is: $version should be $dot_version_short"
+	    exit 1
+        fi
     fi
 }
 
@@ -188,9 +188,9 @@ else
     echo "No Java versions found on the system"
     exit 1
 fi
-echo -e "\n-----------------------------------------------"
-echo "Test if there's an alternative per Java version"
-echo "-----------------------------------------------"
+echo -e "\n------------------------------------------------------"
+echo "Test if there's an alternative per Java, Devel, Plugin"
+echo "------------------------------------------------------"
 test_java_alternatives
 test_javac_alternatives
 test_javaplugin_alternatives
@@ -217,15 +217,30 @@ for java_version in $(cat $LIST_ALL_INSTALLED_VERSIONS); do
         update-alternatives --set java $java
     else
         echo "Error: java alternative not found for $java_version"
-        exit 3
+        exit 1
     fi
-    # Test if there's an alternativ for javac, and if yes, set it as the current used one
+    # Test if there's an alternative for javac, and if yes, set it as the current used one
     if grep $dot_version $LIST_ALL_JAVAC_ALTERNATIVES > /dev/null; then
         javac=$(grep $dot_version $LIST_ALL_JAVAC_ALTERNATIVES)
         update-alternatives --set javac $javac
     else
+        if echo $java_version | grep ibm > /dev/null; then
+            if ! rpm -qa | grep java | grep devel | grep $dot_version > /dev/null; then
+                echo "Warning: java compiler alternative not found for $java_version"
+                echo "Reason : devel pkg is not installed, thus it is normal there is not javac"
+                if zypper products -i | grep sle-sdk > /dev/null; then
+                    echo "Status : Error! The devel pkg should be installed. Check your repos!"
+                    exit 1
+                else
+                    echo "Status : Accepted because there is no SDK installed in the SUT"
+                fi
+                echo "SKIP Testing $java_version"
+                echo
+                continue
+            fi
+        fi
         echo "Error: java compiler alternative not found for $java_version"
-        exit 4
+        exit 1
     fi
     # Test if there's an alternativ for javaplugin, and if yes, set it as the current used one
     # So far, only java-ibm offers this
@@ -235,22 +250,22 @@ for java_version in $(cat $LIST_ALL_INSTALLED_VERSIONS); do
 		update-alternatives --set javaplugin $javaplugin
 	    else
 		echo "Error: java plugin alternative not found for $java_version"
-		exit 5
+		exit 1
 	    fi
     fi
 
     # Test version active (linked)
     test_java_version_active
     test_javac_version_active
-    check_java_version_active_vs_dot
-    check_javac_version_active_vs_dot
+    check_version_active_vs_dot "$java_version_active" "java"
+    check_version_active_vs_dot "$javac_version_active" "javac"
 
     # Compile Hello World
     javac $HELLO_WORLD
     rq=$?
     if [ $rq -ne 0 ]; then
         echo "Java Compiler failed"
-        exit 6
+        exit 1
     else
         echo "Java Compiler: PASS"
     fi
@@ -261,7 +276,7 @@ for java_version in $(cat $LIST_ALL_INSTALLED_VERSIONS); do
     rq=$?
     if [ $rq -ne 0 ]; then
         echo "Java failed to run the program"
-        exit 7
+        exit 1
     else
         echo "Java runtime: PASS"
     fi
