@@ -32,29 +32,7 @@ sub handle_login {
     send_key "ret";
 }
 
-sub run() {
-    my $self = shift;
-
-    if (check_var('DESKTOP', 'textmode') || get_var('BOOT_TO_SNAPSHOT')) {
-        if (!check_var('ARCH', 's390x')) {
-            assert_screen 'linux-login', 200;
-        }
-        return;
-    }
-
-    if (get_var("NOAUTOLOGIN") || get_var("IMPORT_USER_DATA")) {
-        assert_screen [qw(displaymanager emergency-shell emergency-mode)], 200;
-        if (match_has_tag('emergency-shell')) {
-            # get emergency shell logs for bug, scp doesn't work
-            script_run "cat /run/initramfs/rdsosreport.txt > /dev/$serialdev";
-        }
-        elsif (match_has_tag('emergency-mode')) {
-            type_password;
-            send_key 'ret';
-        }
-        handle_login;
-    }
-
+sub handle_first_desktop {
     my @tags = qw(generic-desktop);
     if (check_var('DESKTOP', 'kde') && get_var('VERSION', '') =~ /^1[23]/) {
         push(@tags, 'kde-greeter');
@@ -76,6 +54,47 @@ sub run() {
         send_key "esc";
         assert_screen 'generic-desktop';
     }
+}
+
+sub run() {
+    my $self = shift;
+
+    if (check_var('DESKTOP', 'textmode') || get_var('BOOT_TO_SNAPSHOT')) {
+        if (!check_var('ARCH', 's390x')) {
+            assert_screen 'linux-login', 200;
+        }
+        return;
+    }
+
+    if (get_var("NOAUTOLOGIN") || get_var("IMPORT_USER_DATA")) {
+        assert_screen [qw(displaymanager emergency-shell emergency-mode)], 200;
+        if (match_has_tag('emergency-shell')) {
+            # get emergency shell logs for bug, scp doesn't work
+            script_run "cat /run/initramfs/rdsosreport.txt > /dev/$serialdev";
+        }
+        elsif (match_has_tag('emergency-mode')) {
+            type_password;
+            send_key 'ret';
+        }
+    }
+    else {
+        handle_first_desktop;
+        # hide mouse for clean logout needles
+        mouse_hide();
+        # logout to test login on openSUSE https://progress.opensuse.org/issues/13306
+        if (check_var('DESKTOP', 'gnome') || check_var('DESKTOP', 'lxde')) {
+            my $command = check_var('DESKTOP', 'gnome') ? 'gnome-session-quit' : 'lxsession-logout';
+            x11_start_program("$command");    # opens logout dialog
+            assert_screen 'logoutdialog' unless check_var('DESKTOP', 'gnome');
+        }
+        else {
+            my $key = check_var('DESKTOP', 'xfce') ? 'alt-f4' : 'ctrl-alt-delete';
+            send_key_until_needlematch 'logoutdialog', "$key";    # opens logout dialog
+        }
+        assert_and_click 'logout-button';                         # press logout
+    }
+    handle_login;
+    handle_first_desktop;
 }
 
 sub test_flags() {
