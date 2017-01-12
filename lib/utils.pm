@@ -455,7 +455,25 @@ sub validatelr {
     # if the system is SLE 12 SP2 and later; enabled otherwise, see PR#11460 and
     # FATE#320494.
     my $scc_install_sle12sp2 = check_var('SCC_REGISTER', 'installation') and sle_version_at_least('12-SP2');
-    my $enabled_repo = $args->{enabled_repo} || (($args->{uri} =~ m{(cd|dvd|hd):///} and $scc_install_sle12sp2) ? "No" : "Yes");
+    my $enabled_repo;
+    if ($args->{enabled_repo}) {
+        $enabled_repo = $args->{enabled_repo};
+    }
+    # bsc#1012258, bsc#793709: USB repo is disabled as the USB stick will be
+    # very likely removed from the system.
+    elsif ($args->{uri} =~ m{(cd|dvd|hd):///.*usb-}) {
+        $enabled_repo = 'No';
+    }
+    elsif ($args->{uri} =~ m{(cd|dvd|hd):///.*usbstick-}) {
+        record_soft_failure 'boo#1019634 repo on USB medium is not disabled for "hd:///…scsi…usbstick"';
+        $enabled_repo = 'Yes';
+    }
+    elsif ($args->{uri} =~ m{(cd|dvd|hd):///} and $scc_install_sle12sp2) {
+        $enabled_repo = 'No';
+    }
+    else {
+        $enabled_repo = 'Yes';
+    }
     my $uri = $args->{uri};
 
     if (check_var('DISTRI', 'sle')) {
