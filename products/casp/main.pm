@@ -75,41 +75,47 @@ sub load_inst_tests() {
     # https://trello.com/c/X5VAq8PJ/779-3-casp-installation-proposal
     loadtest 'installation/installation_overview';
 
-    # Check releasenotes button on installation proposal
-    loadtest 'installation/releasenotes';
-
     # Actual installation
     loadtest 'installation/start_install';
     loadtest 'installation/install_and_reboot';
 }
 
 # Feature tests before yast installation
-sub load_features_before {
+sub load_rcshell_tests {
     loadtest 'casp/rcshell_start';
     loadtest 'casp/libzypp_config';
     loadtest 'casp/timezone_utc';
-    loadtest 'casp/rcshell_exit';
 }
 
 # Feature tests after installation finishes
-sub load_features_after {
-    loadtest 'casp/libzypp_config_sym';
-    loadtest 'casp/timezone_utc_sym';
+sub load_feature_tests {
+    if (check_var('FLAVOR', 'DVD')) {
+        # Load DVD feature tests
+    }
+    else {
+        # Load VMX feature tests
+    }
+    # Load universal feature tests
+    loadtest 'casp/libzypp_config';
+    loadtest 'casp/timezone_utc';
     loadtest 'casp/filesystem_ro';
-    # Check autoyast profile - poo#321764
-    # loadtest 'casp/autoyast';
 }
 
+# ==== Installation workflow ====
 load_boot_tests;
 
 if (check_var('FLAVOR', 'DVD')) {
-    load_features_before if get_var('FEATURES');
-    load_inst_tests();
+    if (get_var('EXTRA', '') =~ /RCSHELL/) {
+        load_rcshell_tests;
+        return 1;
+    }
+    load_inst_tests;
 }
-loadtest 'installation/first_boot';
-loadtest 'casp/login';
+loadtest 'casp/first_boot';
 
-load_features_after if get_var('FEATURES');
+if (get_var('EXTRA', '') =~ /FEATURES/) {
+    load_feature_tests;
+}
 
 1;
 # vim: set sw=4 et:
