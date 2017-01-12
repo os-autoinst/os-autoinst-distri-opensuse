@@ -22,6 +22,7 @@ use testapi;
 
 sub run {
     type_string("shutdown -r now\n");
+    reset_consoles;
 
     #obsoletes installation/autoyast_reboot.pm
     assert_screen("bios-boot",     900);
