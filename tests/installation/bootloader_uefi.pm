@@ -118,36 +118,7 @@ sub run() {
 
     type_string " \\\n";    # changed the line before typing video params
                             # https://wiki.archlinux.org/index.php/Kernel_Mode_Setting#Forcing_modes_and_EDID
-    type_string_slow 'Y2DEBUG=1 ';
-    if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
-        type_string " video=hyperv_fb:1024x768";
-    }
-    if (!is_jeos && (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64'))) {
-        type_string_slow 'vga=791 ';
-        type_string_slow 'video=1024x768-16 ';
-
-        # not needed anymore atm as cirrus has 1024 as default now:
-        # https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=121a6a17439b000b9699c3fa876636db20fa4107
-        #type_string "drm_kms_helper.edid_firmware=edid/1024x768.bin ";
-        assert_screen "inst-video-typed-grub2";
-    }
-
-    if (!get_var("NICEVIDEO") && !is_jeos) {
-        type_string_slow "plymouth.ignore-serial-consoles ";    # make plymouth go graphical
-        type_string_slow "linuxrc.log=$serialdev ";             # to get linuxrc logs in serial
-        type_string " \\\n";                                    # changed the line before typing video params
-        type_string_slow "console=$serialdev ";                 # to get crash dumps as text
-        type_string_slow "console=tty ";                        # to get crash dumps as text
-        assert_screen "inst-consolesettingstyped", 10;
-        my $e = get_var("EXTRABOOTPARAMS");
-        if ($e) {
-            type_string_very_slow "$e ";
-            save_screenshot;
-        }
-    }
-
-    #type_string_slow 'kiwidebug=1 ';
-
+    bootmenu_default_params;
     specific_bootmenu_params;
 
     registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED);
