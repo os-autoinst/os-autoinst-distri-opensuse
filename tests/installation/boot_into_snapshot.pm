@@ -40,6 +40,7 @@ sub run() {
         }
     }
     script_run("systemctl reboot", 0);
+    reset_consoles;
 }
 
 sub test_flags() {
