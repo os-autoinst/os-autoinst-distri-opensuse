@@ -766,7 +766,12 @@ sub install_online_updates {
 sub load_system_update_tests {
     # we don't want live systems to run out of memory or virtual disk space.
     # Applying updates on a live system would not be persistent anyway
-    return if get_var("DUALBOOT") || get_var("UPGRADE") || is_livesystem;
+    # Applying updates on BOOT_TO_SNAPSHOT is useless.
+    return if get_var("BOOT_TO_SNAPSHOT") || get_var("DUALBOOT") || get_var("UPGRADE") || is_livesystem;
+    # Infamous boot order issue on UEFI+USBBOOT leads a kernel reboot failed to
+    # boot into HDD but USB again. Since uefi@usbboot is INSTALLONLY test and
+    # will not generate the asset image, just don't applying updates on it.
+    return if get_var("UEFI") && get_var("USBBOOT");
 
     if (need_clear_repos) {
         loadtest "update/zypper_clear_repos";
