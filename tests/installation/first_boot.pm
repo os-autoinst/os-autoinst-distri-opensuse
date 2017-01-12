@@ -23,7 +23,7 @@ sub handle_login {
     if (get_var('DM_NEEDS_USERNAME')) {
         type_string "$username\n";
     }
-    if (check_var('DESKTOP', 'gnome')) {
+    if (check_var('DESKTOP', 'gnome') || (check_var('DESKTOP', 'lxde') && check_var('VERSION', '42.1'))) {
         # In GNOME/gdm, we do not have to enter a username, but we have to select it
         send_key 'ret';
     }
