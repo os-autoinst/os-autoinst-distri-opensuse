@@ -19,7 +19,7 @@ sub run() {
     ensure_installed("MozillaThunderbird");
     x11_start_program("thunderbird");
     assert_screen 'test-thunderbird-1';
-    wait_screen_change {
+    assert_screen_change {
         send_key "alt-f4";    # close wizard
     };
     send_key "alt-f4";        # close prog

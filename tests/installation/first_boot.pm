@@ -108,7 +108,7 @@ sub post_fail_hook() {
     save_memory_dump;
 
     # Reveal what is behind Plymouth splash screen
-    wait_screen_change {
+    assert_screen_change {
         send_key 'esc';
     };
     $self->export_logs();

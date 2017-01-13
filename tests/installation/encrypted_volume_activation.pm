@@ -32,7 +32,7 @@ my $after_cancel_tags = [
 sub run {
     assert_screen 'encrypted_volume_activation_prompt';
     if (get_var('ENCRYPT_CANCEL_EXISTING')) {
-        wait_screen_change { send_key 'alt-c'; };
+        assert_screen_change { send_key 'alt-c'; };
         assert_screen($after_cancel_tags);
         if (match_has_tag('encrypted_volume_activation_prompt')) {
             record_soft_failure 'bsc#989770';

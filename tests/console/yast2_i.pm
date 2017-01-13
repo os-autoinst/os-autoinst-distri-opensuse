@@ -79,10 +79,10 @@ sub run() {
         assert_screen(\@tags, 60);
         # automatic changes for manual selections
         if (match_has_tag('yast2-sw-packages-autoselected') or match_has_tag('yast2-sw_automatic-changes')) {
-            wait_screen_change { send_key 'alt-o' };
+            assert_screen_change { send_key 'alt-o' };
         }
         elsif (match_has_tag('yast2-sw_shows_summary')) {
-            wait_screen_change { send_key 'alt-f' };
+            assert_screen_change { send_key 'alt-f' };
         }
     } until (match_has_tag('yast2_console-finished'));
 

@@ -48,10 +48,10 @@ sub run() {
 
     # Warning of spoofing ip may appear
     if (check_screen("pidgin-spoofing-ip", 10)) {
-        wait_screen_change {
+        assert_screen_change {
             send_key "alt-tab";
         };
-        wait_screen_change {
+        assert_screen_change {
             send_key "ctrl-w";    # close it
         };
     }

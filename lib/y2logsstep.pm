@@ -56,7 +56,7 @@ sub get_to_console() {
 # to workaround dep issues
 sub record_dependency_issues {
     while (check_screen 'dependancy-issue', 5) {
-        wait_screen_change {
+        assert_screen_change {
             if (check_var('VIDEOMODE', 'text')) {
                 send_key 'alt-s';
             }
@@ -64,7 +64,7 @@ sub record_dependency_issues {
                 send_key 'alt-1';
             }
         };
-        wait_screen_change {
+        assert_screen_change {
             send_key 'spc';
         };
         send_key 'alt-o';
@@ -91,7 +91,7 @@ sub check_and_record_dependency_problems {
 
     if (get_var("WORKAROUND_DEPS")) {
         $self->record_dependency_issues;
-        wait_screen_change {
+        assert_screen_change {
             send_key 'alt-a';
         };
         send_key 'alt-o';

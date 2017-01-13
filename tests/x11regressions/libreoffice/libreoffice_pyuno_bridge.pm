@@ -27,7 +27,7 @@ sub run() {
 
     #Open LibreOffice
     send_key "alt-f2";
-    wait_screen_change {
+    assert_screen_change {
         type_string "libreoffice --writer";
         send_key "ret";
     };

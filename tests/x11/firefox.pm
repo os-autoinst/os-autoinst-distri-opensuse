@@ -21,14 +21,14 @@ sub start_firefox() {
     # makes firefox as default browser
     assert_screen [qw(firefox_default_browser firefox_readerview_window firefox-html5test)], 120;
     if (check_screen('firefox_default_browser', 0)) {
-        wait_screen_change {
+        assert_screen_change {
             assert_and_click 'firefox_default_browser_yes';
         };
     }
     assert_screen [qw(firefox_readerview_window firefox-html5test)];
     # workaround for reader view , it grabed the focus than mainwindow
     if (check_screen('firefox_readerview_window', 0)) {
-        wait_screen_change {
+        assert_screen_change {
             assert_and_click 'firefox_readerview_window';
         };
     }

@@ -27,7 +27,7 @@ sub accept_license {
     send_key $cmd{accept};
     $confirmed_licenses++;
     # Prevent from matching previous license
-    wait_screen_change {
+    assert_screen_change {
         send_key $cmd{next};
     };
 }

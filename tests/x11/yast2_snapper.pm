@@ -29,11 +29,11 @@ sub y2snapper_create_snapshot() {
     assert_screen 'yast2_snapper-createsnapshotdialog', 100;
     # Fill the form and finish by pressing the 'O'k-button
     type_string $name;
-    wait_screen_change { send_key "tab" };
-    wait_screen_change { send_key "tab" };
-    wait_screen_change { send_key "tab" };
-    wait_screen_change { send_key "tab" };
-    wait_screen_change { send_key "tab" };
+    assert_screen_change { send_key "tab" };
+    assert_screen_change { send_key "tab" };
+    assert_screen_change { send_key "tab" };
+    assert_screen_change { send_key "tab" };
+    assert_screen_change { send_key "tab" };
     type_string "a=1,b=2";
     save_screenshot;
     send_key "alt-o";
@@ -44,7 +44,7 @@ sub clean_and_quit() {
     # Ensure yast2-snapper is not busy anymore
     wait_still_screen;
     # C'l'ose  the snapper module
-    wait_screen_change { send_key "alt-l" };
+    assert_screen_change { send_key "alt-l" };
     # Wait until xterm is focussed, delete the directory and close xterm
     wait_idle;
     script_run "rm -rf testdata";
@@ -90,22 +90,22 @@ sub run() {
     type_string "yast2 snapper\n";
     assert_screen 'yast2_snapper-snapshots', 100;
     send_key_until_needlematch([qw(yast2_snapper-new_snapshot yast2_snapper-new_snapshot_selected)], 'pgdn');
-    wait_screen_change { send_key 'end' };
+    assert_screen_change { send_key 'end' };
     send_key_until_needlematch('yast2_snapper-new_snapshot_selected', 'up');
     # Press 'S'how changes button and select both directories that have been
     # extracted from the tarball
     send_key "alt-s";
     assert_screen 'yast2_snapper-collapsed_testdata', 200;
-    wait_screen_change { send_key "tab" };
-    wait_screen_change { send_key "spc" };
+    assert_screen_change { send_key "tab" };
+    assert_screen_change { send_key "spc" };
     send_key "down";
-    wait_screen_change { send_key "spc" };
+    assert_screen_change { send_key "spc" };
     # Make sure it shows the new files from the unpacked tarball
     assert_screen 'yast2_snapper-show_testdata', 100;
     # Close the dialog and make sure it is closed
     send_key "alt-c";
     send_key_until_needlematch([qw(yast2_snapper-new_snapshot yast2_snapper-new_snapshot_selected)], 'pgdn');
-    wait_screen_change { send_key 'end' };
+    assert_screen_change { send_key 'end' };
     send_key_until_needlematch('yast2_snapper-new_snapshot_selected', 'up');
     # Dele't'e the snapshot
     send_key "alt-t";

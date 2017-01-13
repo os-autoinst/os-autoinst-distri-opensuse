@@ -59,7 +59,7 @@ sub addraid {
     # add
     send_key $cmd{add};
     wait_still_screen;
-    wait_screen_change {
+    assert_screen_change {
         send_key $cmd{next};
     };
 

@@ -180,7 +180,7 @@ sub fill_in_registration_data {
                     if (!check_screen(\@known_untrusted_keys, 0)) {
                         record_soft_failure 'untrusted gpg key';
                     }
-                    wait_screen_change {
+                    assert_screen_change {
                         send_key 'alt-t';
                     };
                     next;

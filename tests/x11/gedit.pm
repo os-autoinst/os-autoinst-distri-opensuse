@@ -21,7 +21,7 @@ sub run() {
     assert_screen 'gedit-launched';
     $self->enter_test_text('gedit');
     assert_screen 'test-gedit-1';
-    wait_screen_change { send_key 'alt-f4' };
+    assert_screen_change { send_key 'alt-f4' };
     send_key 'alt-w';
 }
 

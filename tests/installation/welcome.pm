@@ -30,7 +30,7 @@ sub run() {
         assert_screen @welcome_tags, $bootup_timeout;
     }
     if (match_has_tag('inst-welcome-confirm-self-update-server')) {
-        wait_screen_change { send_key $cmd{ok} };
+        assert_screen_change { send_key $cmd{ok} };
         assert_screen 'inst-welcome';
     }
 

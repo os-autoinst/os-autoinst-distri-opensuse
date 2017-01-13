@@ -268,7 +268,7 @@ sub ensure_unlocked_desktop {
             last;            # desktop is uncloked, mission accomplished
         }
         if (match_has_tag 'screenlock') {
-            wait_screen_change {
+            assert_screen_change {
                 send_key 'esc';    # end screenlock
             };
         }

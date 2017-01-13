@@ -20,7 +20,7 @@ my $dl_link_02 = "http://mirrors1.kernel.org/opensuse/distribution/13.2/iso/open
 
 sub dl_location_switch {
     my ($tg) = @_;
-    wait_screen_change {
+    assert_screen_change {
         send_key "alt-e";
     };
     send_key "n";
@@ -111,7 +111,7 @@ sub run() {
 
     # Retry
     send_key "ret";
-    wait_still_screen 2;    # extra wait for subsequent command execution, wait_screen_change sometimes works not well
+    wait_still_screen 2;    # extra wait for subsequent command execution, assert_screen_change sometimes works not well
     send_key "shift-f10";
     assert_screen 'firefox-downloading-resumed';
     send_key "esc";

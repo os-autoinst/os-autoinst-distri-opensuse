@@ -66,10 +66,10 @@ sub run() {
     do {
         assert_screen \@tags, 300;
         # enable kdump if it is not already
-        wait_screen_change { send_key 'alt-u' } if match_has_tag('yast2-kdump-disabled');
-        wait_screen_change { send_key 'alt-o' } if match_has_tag('yast2-kdump-enabled');
-        wait_screen_change { send_key 'alt-o' } if match_has_tag('yast2-kdump-restart-info');
-        wait_screen_change { send_key 'alt-i' } if match_has_tag('yast2-missing_package');
+        assert_screen_change { send_key 'alt-u' } if match_has_tag('yast2-kdump-disabled');
+        assert_screen_change { send_key 'alt-o' } if match_has_tag('yast2-kdump-enabled');
+        assert_screen_change { send_key 'alt-o' } if match_has_tag('yast2-kdump-restart-info');
+        assert_screen_change { send_key 'alt-i' } if match_has_tag('yast2-missing_package');
     } until (match_has_tag('yast2_console-finished'));
     script_run 'reboot', 0;
     $self->wait_boot;

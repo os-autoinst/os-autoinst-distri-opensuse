@@ -23,7 +23,7 @@ sub run() {
 
     x11_start_program("shotwell");
     assert_screen 'shotwell-first-launch';
-    wait_screen_change { send_key "ret"; };
+    assert_screen_change { send_key "ret"; };
 
     # Import two test pictures into the library
     $self->import_pictures(\@pictures);

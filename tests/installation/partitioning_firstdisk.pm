@@ -23,13 +23,13 @@ sub run() {
     send_key $cmd{createpartsetup};
     assert_screen 'prepare-hard-disk';
 
-    wait_screen_change {
+    assert_screen_change {
         send_key 'alt-1';
     };
     send_key 'alt-n';
 
     assert_screen 'use-entire-disk';
-    wait_screen_change {
+    assert_screen_change {
         send_key 'alt-e';
     };
     send_key $cmd{next};
