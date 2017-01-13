@@ -266,7 +266,7 @@ sub run {
         );
 
         script_run('ps axf');
-        script_run('netstat -ap');
+        script_run('ss -ltunp | column -t');
 
         # emulate /opt/ltp/testscripts/network.sh
         assert_script_run('TST_TOTAL=1 TCID="network_settings"; . test_net.sh; export TCID= TST_LIB_LOADED=');
