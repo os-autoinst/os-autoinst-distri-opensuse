@@ -104,10 +104,8 @@ sub test_flags() {
 sub post_fail_hook() {
     my $self = shift;
 
-    diag 'Save memory dump for bsc#1005313';
-    if (check_var('ARCH', 'aarch64') && check_var('DISTRI', 'sle')) {
-        save_memory_dump;
-    }
+    diag 'Save memory dump to debug bootup problems, e.g. for bsc#1005313';
+    save_memory_dump;
 
     # Reveal what is behind Plymouth splash screen
     wait_screen_change {
