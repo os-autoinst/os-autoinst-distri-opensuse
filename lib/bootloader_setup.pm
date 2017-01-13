@@ -226,11 +226,6 @@ sub specific_bootmenu_params {
         }
     }
 
-    if (check_var('ARCH', 'aarch64') && check_var('DISTRI', 'sle')) {
-        $args .= " plymouth=0 linuxrc.debug=trace";
-        record_soft_failure "bsc#1005313 - Unhandled level 1 translation fault";
-    }
-
     type_string_very_slow $args;
     save_screenshot;
 }
