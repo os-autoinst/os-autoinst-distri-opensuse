@@ -37,6 +37,7 @@ EOS
     script_run('alsamixer', 0);
     assert_screen 'test-aplay-2', 3;
     send_key "esc";
+    send_key "esc";    # sle11 alsamixer waits 1sec after first esc or exits immediately after second
     $self->clear_and_verify_console;
 
     start_audiocapture;

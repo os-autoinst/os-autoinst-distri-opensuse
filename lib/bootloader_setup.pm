@@ -168,7 +168,7 @@ sub specific_bootmenu_params {
     my $args     = "";
     my $netsetup = "";
     if (get_var("AUTOYAST") || get_var("AUTOUPGRADE") && get_var("AUTOUPGRADE") ne 'local') {
-        $netsetup = get_var("NETWORK_INIT_PARAM", "ifcfg=*=dhcp");    #need this instead of netsetup as default, see bsc#932692
+        $netsetup = get_var("NETWORK_INIT_PARAM", "netsetup=dhcp,all");    #sle11 needs this, see bsc#932692
         $args .= " $netsetup autoyast=" . data_url(get_var("AUTOYAST")) . " ";
     }
     else {
