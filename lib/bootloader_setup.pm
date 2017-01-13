@@ -91,10 +91,11 @@ sub bootmenu_default_params {
         type_string_very_slow "console=$serialdev ";                 # to get crash dumps as text
         type_string_very_slow "console=tty ";                        # to get crash dumps as text
 
+        assert_screen "inst-consolesettingstyped", 30;
+
         # Enable linuxrc core dumps https://en.opensuse.org/SDB:Linuxrc#p_linuxrccore
         type_string_very_slow "linuxrc.core=$serialdev ";
 
-        assert_screen "inst-consolesettingstyped", 30;
         my $e = get_var("EXTRABOOTPARAMS");
         if ($e) {
             type_string_very_slow "$e ";
