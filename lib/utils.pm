@@ -36,6 +36,7 @@ our @EXPORT = qw(
   setup_online_migration
   turn_off_kde_screensaver
   random_string
+  handle_login
 );
 
 
@@ -674,6 +675,22 @@ sub random_string {
     $length //= 4;
     my @chars = ('A' .. 'Z', 'a' .. 'z', 0 .. 9);
     return join '', map { @chars[rand @chars] } 1 .. $length;
+}
+
+sub handle_login {
+    assert_screen 'displaymanager';    # wait for DM, then try to login
+    mouse_hide();
+    wait_still_screen;
+    if (get_var('DM_NEEDS_USERNAME')) {
+        type_string "$username\n";
+    }
+    if (check_var('DESKTOP', 'gnome') || (check_var('DESKTOP', 'lxde') && check_var('VERSION', '42.1'))) {
+        # DMs in condition above have to select user
+        send_key 'ret';
+    }
+    assert_screen "displaymanager-password-prompt";
+    type_password;
+    send_key "ret";
 }
 
 1;
