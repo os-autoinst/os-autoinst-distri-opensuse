@@ -16,45 +16,7 @@
 use strict;
 use base "y2logsstep";
 use testapi;
-
-sub handle_login {
-    mouse_hide();
-    wait_still_screen;
-    if (get_var('DM_NEEDS_USERNAME')) {
-        type_string "$username\n";
-    }
-    if (check_var('DESKTOP', 'gnome') || (check_var('DESKTOP', 'lxde') && check_var('VERSION', '42.1'))) {
-        # In GNOME/gdm, we do not have to enter a username, but we have to select it
-        send_key 'ret';
-    }
-    assert_screen "displaymanager-password-prompt";
-    type_password;
-    send_key "ret";
-}
-
-sub handle_first_desktop {
-    my @tags = qw(generic-desktop);
-    if (check_var('DESKTOP', 'kde') && get_var('VERSION', '') =~ /^1[23]/) {
-        push(@tags, 'kde-greeter');
-    }
-    # GNOME and KDE get into screenlock after 5 minutes without activities.
-    # using multiple check intervals here then we can get the wrong desktop
-    # screenshot at least in case desktop screenshot changed, otherwise we get
-    # the screenlock screenshot.
-    my $timeout        = 600;
-    my $check_interval = 30;
-    while ($timeout > $check_interval) {
-        my $ret = check_screen \@tags, $check_interval;
-        last if $ret;
-        $timeout -= $check_interval;
-    }
-    # the last check after previous intervals must be fatal
-    assert_screen \@tags, $check_interval;
-    if (match_has_tag('kde-greeter')) {
-        send_key "esc";
-        assert_screen 'generic-desktop';
-    }
-}
+use utils 'handle_login';
 
 sub run() {
     my $self = shift;
@@ -76,25 +38,30 @@ sub run() {
             type_password;
             send_key 'ret';
         }
+        handle_login;
     }
-    else {
-        handle_first_desktop;
-        # hide mouse for clean logout needles
-        mouse_hide();
-        # logout to test login on openSUSE https://progress.opensuse.org/issues/13306
-        if (check_var('DESKTOP', 'gnome') || check_var('DESKTOP', 'lxde')) {
-            my $command = check_var('DESKTOP', 'gnome') ? 'gnome-session-quit' : 'lxsession-logout';
-            x11_start_program("$command");    # opens logout dialog
-            assert_screen 'logoutdialog' unless check_var('DESKTOP', 'gnome');
-        }
-        else {
-            my $key = check_var('DESKTOP', 'xfce') ? 'alt-f4' : 'ctrl-alt-delete';
-            send_key_until_needlematch 'logoutdialog', "$key";    # opens logout dialog
-        }
-        assert_and_click 'logout-button';                         # press logout
+
+    my @tags = qw(generic-desktop);
+    if (check_var('DESKTOP', 'kde') && get_var('VERSION', '') =~ /^1[23]/) {
+        push(@tags, 'kde-greeter');
     }
-    handle_login;
-    handle_first_desktop;
+    # GNOME and KDE get into screenlock after 5 minutes without activities.
+    # using multiple check intervals here then we can get the wrong desktop
+    # screenshot at least in case desktop screenshot changed, otherwise we get
+    # the screenlock screenshot.
+    my $timeout        = 600;
+    my $check_interval = 30;
+    while ($timeout > $check_interval) {
+        my $ret = check_screen \@tags, $check_interval;
+        last if $ret;
+        $timeout -= $check_interval;
+    }
+    # the last check after previous intervals must be fatal
+    assert_screen \@tags, $check_interval;
+    if (match_has_tag('kde-greeter')) {
+        send_key "esc";
+        assert_screen 'generic-desktop';
+    }
 }
 
 sub test_flags() {

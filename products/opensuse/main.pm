@@ -626,6 +626,7 @@ sub load_mate_tests() {
 sub load_x11tests() {
     return unless (!get_var("INSTALLONLY") && is_desktop_installed() && !get_var("DUALBOOT") && !get_var("RESCUECD"));
 
+    loadtest "x11/user_gui_login" unless get_var("LIVETEST") || get_var("NOAUTOLOGIN");
     if (get_var("XDMUSED")) {
         loadtest "x11/x11_login";
     }
