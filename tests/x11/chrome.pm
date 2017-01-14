@@ -40,7 +40,8 @@ sub run() {
     script_run "rpm -qi gpg-pubkey-7fac5991-*";
     assert_screen 'google-key-installed';
 
-    assert_script_run "zypper -n install $chrome_url";
+    # google chrome is a big package and might take some time
+    assert_script_run "zypper -n install $chrome_url", 300;
     save_screenshot;
     # closing xterm
     send_key "alt-f4";
