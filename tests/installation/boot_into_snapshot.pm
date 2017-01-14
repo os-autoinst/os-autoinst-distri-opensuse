@@ -7,17 +7,14 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-#                TEST DESCRIPTION:
-#  this test test the read-only snapshot, from console. (1)
+# Summary: Boot into root filesystem snapshot from boot menu
+#  this module tests the read-only snapshot, from console. (1)
 #  we print some console output only for nice debugging (1b)
 #  if variable UPGRADE is set, we want to check that the 2 snapshots
 #  before_upgrade and after upgrade are not identical. test is made
-#  by checking the /etc/os-release, this is compatible also for openSUSE-TW (2)
-
-# G-Summary: Add new test boot_into_snapshot
-#    Main for opensuse changed. boot_into_snapshot test ronly snapshot
-#    Test needed for testing the snapper rollback functionality.
-# G-Maintainer: dmaiocchi <dmaiocchi@suse.com>
+#  by checking the /etc/os-release, this is compatible also for openSUSE-TW (2).
+#  The test is also used for testing the snapper rollback functionality.
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use strict;
 use testapi;
