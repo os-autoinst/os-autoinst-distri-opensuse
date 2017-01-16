@@ -83,7 +83,7 @@ sub load_inst_tests() {
 # Feature tests before yast installation
 sub load_rcshell_tests {
     loadtest 'casp/rcshell_start';
-    loadtest 'casp/libzypp_config';
+    #    loadtest 'casp/libzypp_config';
     loadtest 'casp/timezone_utc';
 }
 
@@ -96,7 +96,7 @@ sub load_feature_tests {
         # Load VMX feature tests
     }
     # Load universal feature tests
-    loadtest 'casp/libzypp_config';
+    #    loadtest 'casp/libzypp_config';
     loadtest 'casp/timezone_utc';
     loadtest 'casp/filesystem_ro';
 }
