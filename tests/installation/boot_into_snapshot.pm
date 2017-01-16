@@ -18,10 +18,9 @@
 
 use strict;
 use testapi;
-use base "y2logsstep";
+use base "opensusebasetest";
 
 sub run() {
-    my $self = shift;
     assert_screen 'linux-login', 200;
     select_console 'root-console';
     # 1)
@@ -49,7 +48,8 @@ sub test_flags() {
 
 sub post_fail_hook() {
     my $self = shift;
-    $self->export_logs();
+    $self->SUPER::post_fail_hook;
+    $self->export_logs;
 }
 
 1;
