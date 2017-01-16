@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add test for command-not-found tool
-# G-Maintainer: Dominik Heidler <dheidler@suse.de>
+# Summary: Add test for command-not-found tool
+# Maintainer: Dominik Heidler <dheidler@suse.de>
 
 use base "consoletest";
 use testapi;
@@ -25,7 +25,7 @@ sub run() {
     }
 
     my $not_installed_pkg = "xosview";
-    assert_script_run("cnf $not_installed_pkg 2>&1 | tee /dev/stderr | grep -q \"zypper install $not_installed_pkg\"");
+    assert_script_run("echo \"\$(cnf $not_installed_pkg 2>&1 | tee /dev/stderr)\" | grep -q \"zypper install $not_installed_pkg\"");
     save_screenshot;
 }
 
