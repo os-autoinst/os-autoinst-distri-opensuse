@@ -80,11 +80,13 @@ sub bootmenu_default_params {
     if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
         type_string " video=hyperv_fb:1024x768";
     }
-    type_string "vga=791 ";
-    type_string "Y2DEBUG=1 ";
-    type_string_slow "video=1024x768-16 ";
+    type_string_slow "Y2DEBUG=1 ";
+    if (!is_jeos && (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64'))) {
+        type_string "vga=791 ";
+        type_string_slow "video=1024x768-16 ";
+        assert_screen check_var('UEFI', 1) ? 'inst-video-typed-grub2' : 'inst-video-typed', 4;
+    }
 
-    assert_screen check_var('UEFI', 1) ? 'inst-video-typed-grub2' : 'inst-video-typed', 4;
     if (!get_var("NICEVIDEO") && !is_jeos) {
         type_string_very_slow "plymouth.ignore-serial-consoles ";    # make plymouth go graphical
         type_string_very_slow "linuxrc.log=$serialdev ";             # to get linuxrc logs in serial
