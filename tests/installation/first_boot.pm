@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -18,26 +18,30 @@ use base "y2logsstep";
 use testapi;
 use utils 'handle_login';
 
-sub run() {
-    my $self = shift;
 
+sub handle_emergency {
+    if (match_has_tag('emergency-shell')) {
+        # get emergency shell logs for bug, scp doesn't work
+        script_run "cat /run/initramfs/rdsosreport.txt > /dev/$serialdev";
+        die "hit emergency-shell";
+    }
+    elsif (match_has_tag('emergency-mode')) {
+        type_password;
+        send_key 'ret';
+        die "hit emergency-mode";
+    }
+}
+
+sub run() {
+    my $boot_timeout = 200;
     if (check_var('DESKTOP', 'textmode') || get_var('BOOT_TO_SNAPSHOT')) {
-        if (!check_var('ARCH', 's390x')) {
-            assert_screen 'linux-login', 200;
-        }
+        assert_screen('linux-login', $boot_timeout) unless check_var('ARCH', 's390x');
         return;
     }
 
     if (get_var("NOAUTOLOGIN") || get_var("IMPORT_USER_DATA")) {
-        assert_screen [qw(displaymanager emergency-shell emergency-mode)], 200;
-        if (match_has_tag('emergency-shell')) {
-            # get emergency shell logs for bug, scp doesn't work
-            script_run "cat /run/initramfs/rdsosreport.txt > /dev/$serialdev";
-        }
-        elsif (match_has_tag('emergency-mode')) {
-            type_password;
-            send_key 'ret';
-        }
+        assert_screen [qw(displaymanager emergency-shell emergency-mode)], $boot_timeout;
+        handle_emergency if (match_has_tag('emergency-shell') or match_has_tag('emergency-mode'));
         handle_login;
     }
 
@@ -71,16 +75,19 @@ sub test_flags() {
 sub post_fail_hook() {
     my $self = shift;
 
-    diag 'Save memory dump to debug bootup problems, e.g. for bsc#1005313';
-    save_memory_dump;
-
     # Reveal what is behind Plymouth splash screen
     wait_screen_change {
         send_key 'esc';
     };
+    # if we found a shell, we do not need the memory dump
+    unless (match_has_tag('emergency-shell') or match_has_tag('emergency-mode')) {
+        diag 'Save memory dump to debug bootup problems, e.g. for bsc#1005313';
+        save_memory_dump;
+    }
+
+    # try to save logs as a last resort
     $self->export_logs();
 }
 
 1;
-
 # vim: set sw=4 et:
