@@ -12,6 +12,7 @@ use base "opensusebasetest";
 
 use strict;
 use testapi;
+use qam;
 
 sub post_fail_hook() {
     my $snapshot_before = get_var('KGRAFT_SNAPSHOT_BEFORE');
