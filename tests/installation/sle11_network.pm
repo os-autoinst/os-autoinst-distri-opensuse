@@ -30,7 +30,7 @@ sub run() {
         type_string "susetest";
         send_key "tab";
         for (1 .. 10) { send_key 'backspace'; }
-        type_string "zq1.de";
+        type_string "suse.de";
 
         assert_screen 'hostname-typed';
         send_key $cmd{next};
