@@ -34,6 +34,8 @@ our @EXPORT = qw(
   check_env
   ssh_key_import
   unregister_needle_tags
+  any_desktop_is_applicable
+  console_is_applicable
 );
 
 sub init_main {
@@ -86,6 +88,13 @@ sub setup_env {
     }
 }
 
+sub any_desktop_is_applicable() {
+    return get_var("DESKTOP") !~ /textmode/;
+}
+
+sub console_is_applicable() {
+    return !any_desktop_is_applicable();
+}
 
 sub logcurrentenv {
     for my $k (@_) {

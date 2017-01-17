@@ -702,7 +702,7 @@ sub load_yast2_gui_tests() {
         && !get_var("DUALBOOT")
         && !get_var("RESCUECD")
         && get_var("Y2UITEST"));
-
+    loadtest "x11/yast2_lan_restart";
     loadtest "yast2_gui/yast2_control_center";
     loadtest "yast2_gui/yast2_bootloader";
     loadtest "yast2_gui/yast2_datetime";
@@ -720,59 +720,48 @@ sub load_extra_test () {
     # 1) you don't want to run in stagings below here
     # 2) the application is not rely on desktop environment
     # 3) running based on preinstalled image
-    return unless get_var("EXTRATEST");
+    return unless get_var('EXTRATEST');
+    # pre-conditions for extra tests ie. the tests are running based on preinstalled image
+    return if get_var('INSTALLONLY') || get_var('DUALBOOT') || get_var('RESCUECD');
 
     # setup $serialdev permission and so on
-    loadtest "console/consoletest_setup";
-    loadtest "console/check_console_font";
-    if (sle_version_at_least('12-SP2')) {
-        loadtest "console/openssl_alpn";
+    loadtest 'console/consoletest_setup';
+    loadtest 'console/hostname';
+    if (any_desktop_is_applicable()) {
+        # start extra x11 tests from here
+        loadtest 'x11/vnc_two_passwords';
+        loadtest 'x11/user_defined_snapshot';
     }
-    loadtest "console/zypper_lr";
-    loadtest "console/zypper_ref";
-    loadtest "console/update_alternatives";
-
-    # start extra console tests from here
-    if (!get_var("OFW") && !is_jeos()) {
-        loadtest "console/aplay";
-    }
-    if (get_var("SP2ORLATER")) {
-        loadtest "console/autoyast_removed";
-    }
-    if (get_var("FILESYSTEM", "btrfs") eq "btrfs") {
-        loadtest "console/btrfs_autocompletion";
-        if (get_var("NUMDISKS", 0) > 1) {
-            loadtest "console/snapper_cleanup";
-            loadtest "console/btrfs_qgroups";
-            loadtest "console/btrfs_send_receive";
+    else {
+        if (sle_version_at_least('12-SP2')) {
+            loadtest 'console/openssl_alpn';
+            loadtest 'console/autoyast_removed';
         }
+        loadtest 'console/check_console_font';
+        loadtest 'console/zypper_lr';
+        loadtest 'console/zypper_ref';
+        loadtest 'console/update_alternatives';
+        # start extra console tests from here
+        if (!get_var('OFW') && !is_jeos()) {
+            loadtest 'console/aplay';
+        }
+        if (get_var('FILESYSTEM', 'btrfs') eq 'btrfs') {
+            loadtest 'console/btrfs_autocompletion';
+            if (get_var('NUMDISKS', 0) > 1) {
+                loadtest 'console/snapper_cleanup';
+                loadtest 'console/btrfs_qgroups';
+                loadtest 'console/btrfs_send_receive';
+            }
+        }
+        loadtest 'console/command_not_found';
+        loadtest 'console/openvswitch';
+        loadtest 'console/git';
+        loadtest 'console/java';
+        loadtest 'console/curl_ipv6';
+        loadtest 'console/wget_ipv6';
+        loadtest 'console/unzip';
     }
-
-    loadtest "console/command_not_found";
-    loadtest "console/yast2_lan_hostname";
-    loadtest "console/yast2_nis";
-    loadtest "console/yast2_http";
-    loadtest "console/yast2_ftp";
-    loadtest "console/yast2_proxy";
-    loadtest "console/yast2_ntpclient";
-    loadtest "console/yast2_tftp";
-    loadtest "console/yast2_vnc";
-    loadtest "console/yast2_samba";
-    loadtest "console/yast2_xinetd";
-    loadtest "console/yast2_apparmor";
-    loadtest "console/openvswitch";
-    loadtest "console/git";
-    loadtest "console/java";
-    loadtest "console/curl_ipv6";
-    loadtest "console/wget_ipv6";
-    loadtest "console/unzip";
-    # finished console test and back to desktop
-    loadtest "console/consoletest_finish";
-
-    # start extra x11 tests from here
-    loadtest "x11/vnc_two_passwords";
-    loadtest "x11/yast2_lan_restart";
-    loadtest "x11/user_defined_snapshot";
+    return 1;
 }
 
 sub load_x11tests() {
@@ -1215,8 +1204,20 @@ elsif (get_var("Y2UITEST")) {
     # setup $serialdev permission and so on
     loadtest "console/consoletest_setup";
     # start extra yast console test from here
+    loadtest "console/check_console_font";
     loadtest "console/zypper_lr";
     loadtest "console/zypper_ref";
+    loadtest "console/yast2_proxy";
+    loadtest "console/yast2_ntpclient";
+    loadtest "console/yast2_tftp";
+    loadtest "console/yast2_vnc";
+    loadtest "console/yast2_samba";
+    loadtest "console/yast2_xinetd";
+    loadtest "console/yast2_apparmor";
+    loadtest "console/yast2_lan_hostname";
+    loadtest "console/yast2_nis";
+    loadtest "console/yast2_http";
+    loadtest "console/yast2_ftp";
     # back to desktop
     loadtest "console/consoletest_finish";
     load_yast2_gui_tests();
