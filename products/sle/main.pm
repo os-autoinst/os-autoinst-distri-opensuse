@@ -607,6 +607,7 @@ sub load_consoletests() {
             loadtest "console/xorg_vt";
         }
         loadtest "console/zypper_lr";
+        loadtest 'console/enable_usb_repo' if check_var('USBBOOT', 1);
         if (need_clear_repos()) {
             loadtest "update/zypper_clear_repos";
         }

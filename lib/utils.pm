@@ -456,7 +456,25 @@ sub validatelr {
     # if the system is SLE 12 SP2 and later; enabled otherwise, see PR#11460 and
     # FATE#320494.
     my $scc_install_sle12sp2 = check_var('SCC_REGISTER', 'installation') and sle_version_at_least('12-SP2');
-    my $enabled_repo = $args->{enabled_repo} || (($args->{uri} =~ m{(cd|dvd|hd):///} and $scc_install_sle12sp2) ? "No" : "Yes");
+    my $enabled_repo;
+    if ($args->{enabled_repo}) {
+        $enabled_repo = $args->{enabled_repo};
+    }
+    # bsc#1012258, bsc#793709: USB repo is disabled as the USB stick will be
+    # very likely removed from the system.
+    elsif ($args->{uri} =~ m{(cd|dvd|hd):///.*usb-}) {
+        $enabled_repo = 'No';
+    }
+    elsif ($args->{uri} =~ m{(cd|dvd|hd):///.*usbstick-}) {
+        record_soft_failure 'boo#1019634 repo on USB medium is not disabled for "hd:///…scsi…usbstick"';
+        $enabled_repo = 'Yes';
+    }
+    elsif ($args->{uri} =~ m{(cd|dvd|hd):///} and $scc_install_sle12sp2) {
+        $enabled_repo = 'No';
+    }
+    else {
+        $enabled_repo = 'Yes';
+    }
     my $uri = $args->{uri};
 
     if (check_var('DISTRI', 'sle')) {
@@ -465,6 +483,176 @@ sub validatelr {
             assert_script_run
 "zypper lr --uri | awk -F '|' -v OFS=' ' '{ print \$2,\$3,\$4,\$NF }' | tr -s ' ' | grep \"$product$version\[\[:alnum:\]\[:punct:\]\]*-*$product_channel $product$version\[\[:alnum:\]\[:punct:\]\[:space:\]\]*-*$product_channel $enabled_repo $uri\"";
         }
+    }
+}
+
+sub validate_repos_sle {
+    my ($version) = @_;
+    script_run "clear";
+
+    # On SLE we follow "SLE Channels Checking Table"
+    # (https://wiki.microfocus.net/index.php?title=SLE12_SP2_Channels_Checking_Table)
+    my (%h_addons, %h_addonurl, %h_scc_addons);
+    my @addons_keys   = split(/,/, get_var('ADDONS',   ''));
+    my @addonurl_keys = split(/,/, get_var('ADDONURL', ''));
+    my $scc_addon_str = '';
+    for my $scc_addon (split(/,/, get_var('SCC_ADDONS', ''))) {
+        $scc_addon =~ s/geo/ha-geo/ if ($scc_addon eq 'geo');
+        $scc_addon_str .= "SLE-" . uc($scc_addon) . ',';
+    }
+    my @scc_addons_keys = split(/,/, $scc_addon_str);
+    @h_addons{@addons_keys}         = ();
+    @h_addonurl{@addonurl_keys}     = ();
+    @h_scc_addons{@scc_addons_keys} = ();
+
+    my $base_product;
+    if (check_var('DISTRI', 'sle')) {
+        $base_product = (get_var('FLAVOR') =~ m{Desktop-DVD}) ? 'SLED' : 'SLES';
+    }
+
+    # On Xen PV there are no CDs nor DVDs being emulated, "raw" HDD is used instead
+    my $cd  = (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux')) ? 'hd' : 'cd';
+    my $dvd = (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux')) ? 'hd' : 'dvd';
+
+    # On system with ONLINE_MIGRATION variable set, we don't have SLE media
+    # repository of VERSION N but N-1 (i.e. on SLES12-SP2 we have SLES12-SP1
+    # repository. For the sake of sanity, the base product repo is not being
+    # verified in such a scenario.
+    if (!get_var("ONLINE_MIGRATION")) {
+        # This is where we verify base product repos for SLES, SLED, and HA
+        if (check_var('FLAVOR', 'Server-DVD')) {
+            my $uri = "$cd:///";
+            if (check_var("BACKEND", "ipmi") || check_var("BACKEND", "generalhw")) {
+                $uri = "http[s]*://.*suse";
+            }
+            elsif (get_var('USBBOOT') && sle_version_at_least('12-SP3')) {
+                $uri = "hd:///.*usb-";
+            }
+            elsif (get_var('USBBOOT') && sle_version_at_least('12-SP2')) {
+                $uri = "hd:///.*usbstick";
+            }
+            elsif (check_var('ARCH', 's390x')) {
+                $uri = "ftp://";
+            }
+            validatelr(
+                {
+                    product      => "SLES",
+                    enabled_repo => get_var('ZDUP') ? "No" : undef,
+                    uri          => $uri,
+                    version      => $version
+                });
+        }
+        elsif (check_var('FLAVOR', 'SAP-DVD')) {
+            validatelr({product => "SLE-", uri => "$cd:///", version => $version});
+        }
+        elsif (check_var('FLAVOR', 'Server-DVD-HA')) {
+            validatelr({product => "SLES", uri => "$cd:///", version => $version});
+            validatelr({product => 'SLE-*HA', uri => get_var('ADDONURL_HA') || "$dvd:///", version => $version});
+            if (exists $h_addonurl{geo} || exists $h_addons{geo}) {
+                validatelr({product => 'SLE-*HAGEO', uri => get_var('ADDONURL_GEO') || "$dvd:///", version => $version});
+            }
+            delete @h_addonurl{qw(ha geo)};
+            delete @h_addons{qw(ha geo)};
+        }
+        elsif (check_var('FLAVOR', 'Desktop-DVD')) {
+            # Note: verification of AMD (SLED12) and NVIDIA (SLED12, SP1, and SP2) repos is missing
+            validatelr({product => "SLED", uri => "$cd:///", version => $version});
+        }
+    }
+
+    # URI Addons
+    for my $addonurl_prod (keys %h_addonurl) {
+        my $addonurl_tmp;
+        if ($addonurl_prod eq "sdk") {
+            $addonurl_tmp = $addonurl_prod;
+        }
+        else {
+            $addonurl_tmp = "sle" . $addonurl_prod;
+        }
+        validatelr({product => uc $addonurl_tmp, uri => get_var("ADDONURL_" . uc $addonurl_prod), version => $version});
+    }
+
+    # DVD Addons; FATE#320494 (PR#11460): disable installation source after installation if we register system
+    for my $addon (keys %h_addons) {
+        if ($addon ne "sdk") {
+            $addon = "sle" . $addon;
+        }
+        validatelr(
+            {
+                product      => uc $addon,
+                enabled_repo => get_var('SCC_REGCODE_' . uc $addon) ? "No" : "Yes",
+                uri          => "$dvd:///",
+                version      => $version
+            });
+    }
+
+    # Verify SLES, SLED, Addons and their online SCC sources, if SCC_REGISTER is enabled
+    if (check_var('SCC_REGISTER', 'installation')) {
+        my ($uri, $nvidia_uri, $we);
+
+        # Set uri and nvidia uri for smt registration and others (scc, proxyscc)
+        # For smt url variable, we have to use https to import smt server's certification
+        # After registration, the uri of smt could be http
+        if (get_var('SMT_URL')) {
+            ($uri = get_var('SMT_URL')) =~ s/https:\/\///;
+            $uri        = "http[s]*://" . $uri;
+            $nvidia_uri = $uri;
+        }
+        else {
+            $uri        = "http[s]*://.*suse";
+            $nvidia_uri = "http[s]*://.*nvidia";
+        }
+
+        for my $scc_product ($base_product, keys %h_scc_addons) {
+            $we = 1 if ($scc_product eq "SLE-WE");
+            for my $product_channel ("Pool", "Updates", "Debuginfo-Pool", "Debuginfo-Updates", "Source-Pool") {
+                validatelr(
+                    {
+                        product         => $scc_product,
+                        product_channel => $product_channel,
+                        enabled_repo    => ($product_channel =~ m{(Debuginfo|Source)}) ? "No" : "Yes",
+                        uri             => $uri,
+                        version         => $version
+                    });
+            }
+        }
+
+        # Check nvidia repo if SLED or sle-we extension registered
+        # For the name of product channel, sle12 uses NVIDIA, sle12sp1 and sp2 use nVidia
+        # Consider migration, use regex to match nvidia whether in upper, lower or mixed
+        # Skip check AMD/ATI repo since it would be removed from sled12 and sle-we-12, see bsc#984866
+        if ($base_product eq "SLED" || $we) {
+            # Show the softfail information here
+            if (check_var('SOFTFAIL', 'bsc#1013208')) {
+                record_soft_failure 'workaround for bsc#1013208, nvidia repo was disabled after migration';
+            }
+            validatelr(
+                {
+                    product         => "SLE-",
+                    product_channel => 'GA-Desktop-[nN][vV][iI][dD][iI][aA]-Driver',
+                    enabled_repo    => (check_var('SOFTFAIL', 'bsc#1013208')) ? "No" : "Yes",
+                    uri             => $nvidia_uri,
+                    version         => $version
+                });
+        }
+    }
+
+    # zdup upgrade repo verification
+    if (get_var('ZDUP')) {
+        my $uri;
+        if (get_var('TEST') =~ m{zdup_offline}) {
+            $uri = "$dvd:///";
+        }
+        else {
+            $uri = "ftp://openqa.suse.de/SLE-";
+        }
+        validatelr(
+            {
+                product      => "repo1",
+                enabled_repo => "Yes",
+                uri          => $uri,
+                version      => $version
+            });
     }
 }
 
@@ -477,177 +665,7 @@ sub validate_repos {
     assert_script_run "zypper lr -d | tee /dev/$serialdev";
 
     if (check_var('DISTRI', 'sle') and !get_var('STAGING') and sle_version_at_least('12-SP1')) {
-        script_run "clear";
-
-        # On SLE we follow "SLE Channels Checking Table"
-        # (https://wiki.microfocus.net/index.php?title=SLE12_SP2_Channels_Checking_Table)
-        my (%h_addons, %h_addonurl, %h_scc_addons);
-        my @addons_keys   = split(/,/, get_var('ADDONS',   ''));
-        my @addonurl_keys = split(/,/, get_var('ADDONURL', ''));
-        my $scc_addon_str = '';
-        for my $scc_addon (split(/,/, get_var('SCC_ADDONS', ''))) {
-            $scc_addon =~ s/geo/ha-geo/ if ($scc_addon eq 'geo');
-            $scc_addon_str .= "SLE-" . uc($scc_addon) . ',';
-        }
-        my @scc_addons_keys = split(/,/, $scc_addon_str);
-        @h_addons{@addons_keys}         = ();
-        @h_addonurl{@addonurl_keys}     = ();
-        @h_scc_addons{@scc_addons_keys} = ();
-
-        my $base_product;
-        if (check_var('DISTRI', 'sle')) {
-            if (get_var('FLAVOR') =~ m{Desktop-DVD}) {
-                $base_product = "SLED";
-            }
-            else {
-                $base_product = "SLES";
-            }
-        }
-
-        # On Xen PV there are no CDs nor DVDs being emulated, "raw" HDD is used instead
-        my $cd  = (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux')) ? 'hd' : 'cd';
-        my $dvd = (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux')) ? 'hd' : 'dvd';
-
-        # On system with ONLINE_MIGRATION variable set, we don't have SLE media
-        # repository of VERSION N but N-1 (i.e. on SLES12-SP2 we have SLES12-SP1
-        # repository. For the sake of sanity, the base product repo is not being
-        # verified in such a scenario.
-        if (!get_var("ONLINE_MIGRATION")) {
-            # This is where we verify base product repos for SLES, SLED, and HA
-            if (check_var('FLAVOR', 'Server-DVD')) {
-                my $uri = "$cd:///";
-                if (check_var("BACKEND", "ipmi") || check_var("BACKEND", "generalhw")) {
-                    $uri = "http[s]*://.*suse";
-                }
-                elsif (get_var('USBBOOT') && sle_version_at_least('12-SP3')) {
-                    $uri = "hd:///.*usb-";
-                }
-                elsif (get_var('USBBOOT') && sle_version_at_least('12-SP2')) {
-                    $uri = "hd:///.*usbstick";
-                }
-                elsif (check_var('ARCH', 's390x')) {
-                    $uri = "ftp://";
-                }
-                validatelr(
-                    {
-                        product      => "SLES",
-                        enabled_repo => get_var('ZDUP') ? "No" : undef,
-                        uri          => $uri,
-                        version      => $version
-                    });
-            }
-            elsif (check_var('FLAVOR', 'SAP-DVD')) {
-                validatelr({product => "SLE-", uri => "$cd:///", version => $version});
-            }
-            elsif (check_var('FLAVOR', 'Server-DVD-HA')) {
-                validatelr({product => "SLES", uri => "$cd:///", version => $version});
-                validatelr({product => 'SLE-*HA', uri => get_var('ADDONURL_HA') || "$dvd:///", version => $version});
-                if (exists $h_addonurl{geo} || exists $h_addons{geo}) {
-                    validatelr({product => 'SLE-*HAGEO', uri => get_var('ADDONURL_GEO') || "$dvd:///", version => $version});
-                }
-                delete @h_addonurl{qw(ha geo)};
-                delete @h_addons{qw(ha geo)};
-            }
-            elsif (check_var('FLAVOR', 'Desktop-DVD')) {
-                # Note: verification of AMD (SLED12) and NVIDIA (SLED12, SP1, and SP2) repos is missing
-                validatelr({product => "SLED", uri => "$cd:///", version => $version});
-            }
-        }
-
-        # URI Addons
-        for my $addonurl_prod (keys %h_addonurl) {
-            my $addonurl_tmp;
-            if ($addonurl_prod eq "sdk") {
-                $addonurl_tmp = $addonurl_prod;
-            }
-            else {
-                $addonurl_tmp = "sle" . $addonurl_prod;
-            }
-            validatelr({product => uc $addonurl_tmp, uri => get_var("ADDONURL_" . uc $addonurl_prod), version => $version});
-        }
-
-        # DVD Addons; FATE#320494 (PR#11460): disable installation source after installation if we register system
-        for my $addon (keys %h_addons) {
-            if ($addon ne "sdk") {
-                $addon = "sle" . $addon;
-            }
-            validatelr(
-                {
-                    product      => uc $addon,
-                    enabled_repo => get_var('SCC_REGCODE_' . uc $addon) ? "No" : "Yes",
-                    uri          => "$dvd:///",
-                    version      => $version
-                });
-        }
-
-        # Verify SLES, SLED, Addons and their online SCC sources, if SCC_REGISTER is enabled
-        if (check_var('SCC_REGISTER', 'installation')) {
-            my ($uri, $nvidia_uri, $we);
-
-            # Set uri and nvidia uri for smt registration and others (scc, proxyscc)
-            # For smt url variable, we have to use https to import smt server's certification
-            # After registration, the uri of smt could be http
-            if (get_var('SMT_URL')) {
-                ($uri = get_var('SMT_URL')) =~ s/https:\/\///;
-                $uri        = "http[s]*://" . $uri;
-                $nvidia_uri = $uri;
-            }
-            else {
-                $uri        = "http[s]*://.*suse";
-                $nvidia_uri = "http[s]*://.*nvidia";
-            }
-
-            for my $scc_product ($base_product, keys %h_scc_addons) {
-                $we = 1 if ($scc_product eq "SLE-WE");
-                for my $product_channel ("Pool", "Updates", "Debuginfo-Pool", "Debuginfo-Updates", "Source-Pool") {
-                    validatelr(
-                        {
-                            product         => $scc_product,
-                            product_channel => $product_channel,
-                            enabled_repo    => ($product_channel =~ m{(Debuginfo|Source)}) ? "No" : "Yes",
-                            uri             => $uri,
-                            version         => $version
-                        });
-                }
-            }
-
-            # Check nvidia repo if SLED or sle-we extension registered
-            # For the name of product channel, sle12 uses NVIDIA, sle12sp1 and sp2 use nVidia
-            # Consider migration, use regex to match nvidia whether in upper, lower or mixed
-            # Skip check AMD/ATI repo since it would be removed from sled12 and sle-we-12, see bsc#984866
-            if ($base_product eq "SLED" || $we) {
-                # Show the softfail information here
-                if (check_var('SOFTFAIL', 'bsc#1013208')) {
-                    record_soft_failure 'workaround for bsc#1013208, nvidia repo was disabled after migration';
-                }
-                validatelr(
-                    {
-                        product         => "SLE-",
-                        product_channel => 'GA-Desktop-[nN][vV][iI][dD][iI][aA]-Driver',
-                        enabled_repo    => (check_var('SOFTFAIL', 'bsc#1013208')) ? "No" : "Yes",
-                        uri             => $nvidia_uri,
-                        version         => $version
-                    });
-            }
-        }
-
-        # zdup upgrade repo verification
-        if (get_var('ZDUP')) {
-            my $uri;
-            if (get_var('TEST') =~ m{zdup_offline}) {
-                $uri = "$dvd:///";
-            }
-            else {
-                $uri = "ftp://openqa.suse.de/SLE-";
-            }
-            validatelr(
-                {
-                    product      => "repo1",
-                    enabled_repo => "Yes",
-                    uri          => $uri,
-                    version      => $version
-                });
-        }
+        validate_repos_sle($version);
     }
 }
 
