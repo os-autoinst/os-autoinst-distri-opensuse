@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -20,8 +20,8 @@ sub run() {
 
     # Fixes https://github.com/linux-test-project/ltp/issues/91
     script_run 'wget ' . data_url('toolchain/794b46d9.patch');
-    script_run 'wget ' . data_url('toolchain/ltp-full-20160510.tar.xz');
-    script_run 'tar xJf ltp-full-20160510.tar.xz';
+    script_run 'wget ' . data_url('toolchain/ltp-full-20170116.tar.xz');
+    script_run 'tar xJf ltp-full-20170116.tar.xz';
 
     # Some test cases do not play nicely with Btrfs. As we are testing
     # syscalls and not filesystem, workaroung involving Ext4 should be OK.
@@ -30,8 +30,7 @@ sub run() {
     assert_script_run 'mkdir /tmp/tmpdir';
     assert_script_run 'mount /tmp/tmpdir.loop /tmp/tmpdir -o loop';
 
-    script_run 'pushd ltp-full-20160510';
-    script_run 'patch -p1 < ../794b46d9.patch';
+    script_run 'pushd ltp-full-20170116';
     # workaround for missing patch https://patchwork.kernel.org/patch/8953231/ in SLES 12 SP2
     # (https://github.com/linux-test-project/ltp/issues/89)
     script_run "cp /proc/sys/fs/inotify/max_user_instances ~; echo 512 > /proc/sys/fs/inotify/max_user_instances";
