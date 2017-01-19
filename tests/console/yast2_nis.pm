@@ -42,7 +42,8 @@ sub run() {
     send_key 'alt-y';
     wait_screen_change { type_string "-c" };           # only checks if the config file has syntax errors and exits
     send_key 'alt-o';
-    wait_screen_change { send_key 'alt-s' };           # enter NFS configuration...
+    assert_screen 'nis-client-configuration';
+    send_key 'alt-s';                                  # enter NFS configuration...
     assert_screen 'nfs-client-configuration';          # add nfs settings
     send_key 'alt-a';
     assert_screen 'nfs-server-hostname';               # check that type string is sucessful
