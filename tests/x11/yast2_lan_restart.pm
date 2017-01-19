@@ -182,10 +182,6 @@ sub test_6 {
 sub test_7 {
     my $dev_name = shift;
     diag '__________(7) Start yast2 lan -> Edit (a NIC) -> switch to Hardware tab, change nic name, [Next] -> [OK] -> device name is changed__________';
-    # workaround bsc#991694
-    record_soft_failure 'bsc#991694';
-    assert_script_run "wicked ifdown --delete eth0 sta0 dyn0";
-    # workaround bsc#991694
     run_yast2_lan_edit;
     send_key 'alt-w';                                 # Hardware tab
     assert_screen 'yast2_lan_hardware_tab';
