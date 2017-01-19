@@ -28,7 +28,9 @@ sub run() {
 
     # Check and upload profile for chained tests
     upload_asset "/root/autoinst.xml";
-    script_run 'xmllint --noout --relaxng /usr/share/YaST2/schema/autoyast/rng/profile.rng /root/autoinst.xml' || record_soft_failure 'bsc#1013047';
+    if (script_run 'xmllint --noout --relaxng /usr/share/YaST2/schema/autoyast/rng/profile.rng /root/autoinst.xml' ne 0) {
+        record_soft_failure 'bsc#1013047';
+    }
 
     # Remove for autoyast_removed test - poo#11442
     assert_script_run "rm /root/autoinst.xml";
