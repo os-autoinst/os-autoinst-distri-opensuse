@@ -17,7 +17,7 @@ use testapi;
 
 sub type_password_and_verification {
     for (1 .. 2) {
-        wait_screen_change { type_string "$password\t" };
+        assert_screen_change { type_string "$password\t" };
     }
 }
 

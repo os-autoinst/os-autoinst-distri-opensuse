@@ -19,7 +19,7 @@ my $theme = "/usr/share/gnome-shell/theme/gnome-classic.css";
 
 sub type_and_wait {
     type_string shift;
-    wait_screen_change {
+    assert_screen_change {
         type_string "\n";
     };
 }
@@ -45,7 +45,7 @@ sub start_vnc_server {
 # poo#11794
 sub run() {
     select_console "root-console";
-    # Hide panel buttons so wait_screen_change ignores clock change
+    # Hide panel buttons so assert_screen_change ignores clock change
     assert_script_run "echo \"#panel .panel-button { color: transparent; }\" >> $theme";
     start_vnc_server;
 

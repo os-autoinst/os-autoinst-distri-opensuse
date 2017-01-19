@@ -17,7 +17,7 @@ use testapi;
 
 sub run() {
     x11_start_program("ristretto /usr/share/wallpapers/xfce/default.wallpaper");
-    wait_screen_change { send_key "ctrl-m" };
+    assert_screen_change { send_key "ctrl-m" };
     assert_screen 'test-ristretto-1';
     send_key "alt-f4";
 }

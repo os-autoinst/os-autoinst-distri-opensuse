@@ -29,7 +29,7 @@ sub run() {
     send_key "alt-o";                                     # OK => Close
     assert_screen([qw(yast2_bootloader-missing_package yast2_console-finished)], 200);
     if (match_has_tag('yast2_bootloader-missing_package')) {
-        wait_screen_change { send_key 'alt-i'; };
+        assert_screen_change { send_key 'alt-i'; };
     }
     assert_screen 'yast2_console-finished', 200;
     wait_serial("yast2-bootloader-status-0") || die "'yast2 bootloader' didn't finish";

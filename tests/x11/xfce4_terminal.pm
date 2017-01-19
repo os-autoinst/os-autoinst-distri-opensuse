@@ -23,7 +23,7 @@ sub run() {
     send_key "ctrl-shift-t";
     $self->enter_test_text('xfce4-terminal');
     assert_screen 'test-xfce4_terminal-1';
-    wait_screen_change { send_key 'alt-f4' };
+    assert_screen_change { send_key 'alt-f4' };
     # confirm close of multi-tab window
     send_key 'alt-w';
 }

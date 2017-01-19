@@ -20,7 +20,7 @@ sub run() {
     x11_start_program("gedit");
 
     # check about window
-    wait_screen_change {
+    assert_screen_change {
         send_key "alt-h";
     };
     send_key "a";
@@ -33,7 +33,7 @@ sub run() {
     assert_and_click 'gedit-about-link';
     # give a little time to open and load website
     assert_screen 'gedit-open-firefox', 60;
-    wait_screen_change {
+    assert_screen_change {
         send_key "ctrl-q";
     };
 

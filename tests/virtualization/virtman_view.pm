@@ -34,7 +34,7 @@ sub run {
     for (1 .. 3) { send_key "tab"; }
     save_screenshot;
     # activate disk I/O
-    wait_screen_change {
+    assert_screen_change {
         send_key "spc";
     };
     send_key "tab";
@@ -68,14 +68,14 @@ sub run {
         assert_screen "virtman-viewcheck", 30;
     }
     # close every open windows
-    wait_screen_change {
+    assert_screen_change {
         send_key "esc";
     };
-    wait_screen_change {
+    assert_screen_change {
         send_key "alt-f";
     };
     wait_still_screen;
-    wait_screen_change {
+    assert_screen_change {
         send_key "q";
     };
     # close the xterm

@@ -64,7 +64,7 @@ sub run() {
     assert_screen('firefox-email_link-settings_sending');
     send_key "alt-s";    #Server
     type_string "smtp.suse.com";
-    wait_screen_change {
+    assert_screen_change {
         send_key $next_key;
     };
 
@@ -80,7 +80,7 @@ sub run() {
     send_key "alt-a";
 
     assert_screen('firefox-email_link-send');
-    wait_screen_change {
+    assert_screen_change {
         send_key "esc";
     };
 

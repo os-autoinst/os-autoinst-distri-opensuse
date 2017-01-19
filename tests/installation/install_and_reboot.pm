@@ -108,7 +108,7 @@ sub run() {
         select_console 'installation';
         assert_screen 'rebootnow';
     }
-    wait_screen_change {
+    assert_screen_change {
         send_key 'alt-o';    # Reboot
     };
 

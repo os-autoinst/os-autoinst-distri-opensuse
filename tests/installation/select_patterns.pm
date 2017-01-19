@@ -26,7 +26,7 @@ sub accept3rdparty {
     while (check_screen([qw(3rdpartylicense automatic-changes inst-overview)], 15)) {
         last if match_has_tag("automatic-changes");
         last if match_has_tag("inst-overview");
-        wait_screen_change {
+        assert_screen_change {
             send_key $cmd{acceptlicense};
         };
     }
@@ -106,7 +106,7 @@ sub run {
             next;
         }
         if ($needs_to_be_selected && !$selected) {
-            wait_screen_change {
+            assert_screen_change {
                 send_key ' ';
             };
             assert_screen 'current-pattern-selected', 5;

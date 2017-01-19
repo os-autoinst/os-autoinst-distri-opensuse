@@ -32,7 +32,7 @@ sub import_pictures {
     }
 
     # Open the dialog 'Import From Folder'
-    wait_screen_change {
+    assert_screen_change {
         send_key "ctrl-i";
     };
     assert_screen 'shotwell-importing';
@@ -66,7 +66,7 @@ sub upload_libreoffice_specified_file() {
     wait_still_screen;
     type_string("cd /home/$username/Documents && ls -l");
     send_key "ret";
-    wait_screen_change {
+    assert_screen_change {
         assert_screen("libreoffice-find-tar-file");
         type_string("tar -xjvf ooo-test-doc-types.tar.bz2");
         send_key "ret";
@@ -84,7 +84,7 @@ sub cleanup_libreoffice_specified_file() {
     wait_still_screen;
     type_string("ls -l /home/$username/Documents");
     send_key "ret";
-    wait_screen_change {
+    assert_screen_change {
         assert_screen("libreoffice-find-no-tar-file");
     };
     wait_still_screen;
@@ -283,11 +283,11 @@ sub start_evolution {
     assert_screen "evolution_wizard-restore-backup";
     send_key $self->{next};
     assert_screen "evolution_wizard-identity";
-    wait_screen_change {
+    assert_screen_change {
         send_key "alt-e";
     };
     type_string "SUSE Test";
-    wait_screen_change {
+    assert_screen_change {
         send_key "alt-a";
     };
     type_string "$mail_box";
@@ -315,15 +315,15 @@ sub setup_mail_account {
     }
 
     assert_screen "evolution_wizard-receiving";
-    wait_screen_change {
+    assert_screen_change {
         send_key "alt-t";
     };
     send_key "ret";
     send_key_until_needlematch "evolution_wizard-receiving-$proto", "down", 10, 3;
-    wait_screen_change {
+    assert_screen_change {
         send_key "ret";
     };
-    wait_screen_change {
+    assert_screen_change {
         send_key "alt-s";
     };
     type_string "$mail_recvServer";
@@ -331,7 +331,7 @@ sub setup_mail_account {
         #No need set receive port with POP
     }
     elsif ($proto eq 'imap') {
-        wait_screen_change {
+        assert_screen_change {
             send_key "alt-p";
         };
         type_string "$mail_recvport";
@@ -339,16 +339,16 @@ sub setup_mail_account {
     else {
         die "Unsupported protocol: $proto";
     }
-    wait_screen_change {
+    assert_screen_change {
         send_key "alt-n";
     };
     type_string "$mail_user";
-    wait_screen_change {
+    assert_screen_change {
         send_key "alt-m";
     };
     send_key "ret";
     send_key_until_needlematch "evolution_wizard-receiving-ssl", "down", 5, 3;
-    wait_screen_change {
+    assert_screen_change {
         send_key "ret";
     };
     # add self-signed CA with internal account
@@ -356,7 +356,7 @@ sub setup_mail_account {
         assert_and_click "evolution_wizard-receiving-checkauthtype";
         assert_screen "evolution_mail_meeting_trust_ca";
         send_key "alt-a";
-        wait_screen_change {
+        assert_screen_change {
             send_key $self->{next};
             send_key "ret";
         }
@@ -376,27 +376,27 @@ sub setup_mail_account {
 
     #setup sending protocol as smtp
     assert_screen "evolution_wizard-sending";
-    wait_screen_change {
+    assert_screen_change {
         send_key "alt-t";
     };
     send_key "ret";
     save_screenshot;
     send_key_until_needlematch "evolution_wizard-sending-smtp", "down", 5, 3;
-    wait_screen_change {
+    assert_screen_change {
         send_key "ret";
     };
-    wait_screen_change {
+    assert_screen_change {
         send_key "alt-s";
     };
     type_string "$mail_sendServer";
-    wait_screen_change {
+    assert_screen_change {
         send_key "alt-p";
     };
     type_string "$mail_sendport";
-    wait_screen_change {
+    assert_screen_change {
         send_key "alt-v";
     };
-    wait_screen_change {
+    assert_screen_change {
         send_key "alt-m";
     };
     send_key "ret";
@@ -404,7 +404,7 @@ sub setup_mail_account {
     send_key "ret";
 
     #Known issue: hot key 'alt-y' doesn't work
-    #wait_screen_change {
+    #assert_screen_change {
     #   send_key "alt-y";
     #};
     #send_key "ret";
@@ -414,7 +414,7 @@ sub setup_mail_account {
     assert_and_click "evolution_wizard-sending-setauthtype";
     send_key_until_needlematch "evolution_wizard-sending-authtype", "down", 5, 3;
     send_key "ret";
-    wait_screen_change {
+    assert_screen_change {
         send_key "alt-n";
     };
     sleep 1;
@@ -424,7 +424,7 @@ sub setup_mail_account {
         assert_and_click "evolution_wizard-sending-checkauthtype";
         assert_screen "evolution_mail_meeting_trust_ca";
         send_key "alt-a";
-        wait_screen_change {
+        assert_screen_change {
             send_key $self->{next};
             send_key "ret";
         }
@@ -537,11 +537,11 @@ sub setup_evolution_for_ews {
     assert_screen "evolution_wizard-restore-backup";
     send_key "alt-o";
     assert_screen "evolution_wizard-identity";
-    wait_screen_change {
+    assert_screen_change {
         send_key "alt-e";
     };
     type_string "SUSE Test";
-    wait_screen_change {
+    assert_screen_change {
         send_key "alt-a";
     };
     type_string "$mailbox";
@@ -555,7 +555,7 @@ sub setup_evolution_for_ews {
         assert_screen 'evolution_wizard-receiving';
     }
 
-    wait_screen_change {
+    assert_screen_change {
         send_key "alt-t";
     };
     send_key "ret";
@@ -613,7 +613,7 @@ sub evolution_send_message {
     assert_screen "evolution_mail-compose-message";
     assert_and_click "evolution_mail-message-to";
     type_string "$mailbox";
-    wait_screen_change {
+    assert_screen_change {
         send_key "alt-u";
     };
     wait_still_screen;

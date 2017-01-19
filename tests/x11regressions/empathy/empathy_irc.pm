@@ -34,7 +34,7 @@ sub run() {
     assert_screen 'empathy-irc-network-choose';
     type_string "freenode";
     assert_screen 'empathy-irc-freenode';
-    wait_screen_change {
+    assert_screen_change {
         send_key "ret";
     };
     send_key "tab";
@@ -43,7 +43,7 @@ sub run() {
     type_string "openqa-$rstr";
     send_key "alt-d";
     assert_screen 'empathy-irc-account-added';
-    wait_screen_change {
+    assert_screen_change {
         send_key "alt-c";
     };
 
@@ -78,7 +78,7 @@ sub run() {
     assert_screen 'empathy-confirm-deletion';
     send_key "alt-r";
     assert_screen 'empathy-account-deleted';
-    wait_screen_change {
+    assert_screen_change {
         send_key "alt-c";
     };
 

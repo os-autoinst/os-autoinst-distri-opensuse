@@ -22,16 +22,16 @@ sub run() {
 
     $self->start_firefox;
 
-    wait_screen_change {
+    assert_screen_change {
         send_key "alt-tab";    #Switch to xterm
     };
     type_string "$changesaving_checktimestamp > dfa\n";
 
-    wait_screen_change {
+    assert_screen_change {
         send_key "alt-tab";    #Switch to firefox
     };
 
-    wait_screen_change {
+    assert_screen_change {
         send_key "alt-e";
     };
     send_key "n";
@@ -41,10 +41,10 @@ sub run() {
     send_key "down";           #Show a blank page
     assert_screen('firefox-changesaving-showblankpage', 30);
 
-    wait_screen_change {
+    assert_screen_change {
         send_key "ctrl-w";
     };
-    wait_screen_change {
+    assert_screen_change {
         send_key "alt-tab";    #Switch to xterm
     };
     type_string "$changesaving_checktimestamp > dfb\n";
@@ -54,7 +54,7 @@ sub run() {
     assert_screen('firefox-changesaving-diffresult', 30);
     type_string "rm df*\n", 1;    #Clear
 
-    wait_screen_change {
+    assert_screen_change {
         send_key "alt-tab";       #Switch to xterm
     };
 

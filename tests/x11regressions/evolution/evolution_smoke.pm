@@ -43,12 +43,12 @@ sub run() {
     assert_screen "evolution_mail-max-window";
 
     # Help
-    wait_screen_change {
+    assert_screen_change {
         send_key "alt-h";
     };
     send_key "a";
     assert_screen "evolution_about";
-    wait_screen_change {
+    assert_screen_change {
         send_key "esc";
     };
 

@@ -27,7 +27,7 @@ sub run() {
     assert_screen "evolution_mail-compose-message";
     assert_and_click "evolution_mail-message-to";
     type_string "$mailbox";
-    wait_screen_change {
+    assert_screen_change {
         send_key "alt-u";
     };
     type_string "Testing";
@@ -40,7 +40,7 @@ sub run() {
     }
 
     send_key_until_needlematch "evolution_mail-notification", "f12", 10, 10;
-    wait_screen_change {
+    assert_screen_change {
         send_key "alt-w";
     };
     send_key "ret";
@@ -51,7 +51,7 @@ sub run() {
     assert_screen "evolution_mail-ready";
     assert_screen "evolution_mail-message-info";
     # Delete the message and expunge the deleted item
-    wait_screen_change {
+    assert_screen_change {
         send_key "ctrl-d";
     };
     save_screenshot();

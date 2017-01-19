@@ -26,9 +26,9 @@ sub run() {
     send_key "shift-left";
     send_key "2";
     # undo produces "12" instead of "1"
-    wait_screen_change { send_key "ctrl-z" };
+    assert_screen_change { send_key "ctrl-z" };
     assert_screen 'test-oomath-1', 3;
-    wait_screen_change { send_key "alt-f4" };
+    assert_screen_change { send_key "alt-f4" };
     assert_screen 'oomath-prompt', 5;
     assert_and_click 'dont-save-libreoffice-btn';    # _Don't save
 }
