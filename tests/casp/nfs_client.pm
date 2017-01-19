@@ -14,20 +14,6 @@ use base "opensusebasetest";
 use strict;
 use testapi;
 
-sub casp_etc_strip {
-    # Due to RO access to /etc the files have to be written to etc overlay /var/lib/overlay/etc
-    # then /etc should be remounted - this behaviour may be changed later - /etc/ should be writable
-    my ($etc_file, $what) = @_;
-    my $etc_overlay_path = "/var/lib/overlay/etc/";
-    my $script           = "";
-
-    $script .= "cp -a /etc/$etc_file $etc_overlay_path 2> /dev/null || touch $etc_overlay_path/$etc_file\n";
-    $script .= "echo -e \"$what\" >> $etc_overlay_path/$etc_file\n";
-    $script .= "mount -o remount /etc\n";
-
-    return $script;
-}
-
 sub chkdir_strip {
     my ($nfs_share_dir) = @_;
     my $script = "";
@@ -67,18 +53,18 @@ sub run() {
         my $script = "";
         $script .= "mkdir -p /tmp/$a\n";
         if ($a eq "nfs") {
-            $script .= casp_etc_strip("auto.nfs", "share\\t$nfs_remotetarget");
+            $script .= "echo -e \"share\\t$nfs_remotetarget\" > /etc/auto.nfs\n";
         }
         elsif ($a eq "nfs4") {
-            $script .= casp_etc_strip("auto.nfs", "share\\t-fstype=nfs4\\t$nfs_server:/");
+            $script .= "echo -e \"share\\t-fstype=nfs4\\t$nfs_server:/\" > /etc/auto.nfs\n";
         }
-        $script .= casp_etc_strip("auto.master", "/tmp/$a\\t/etc/auto.nfs\\t--timeout=10");
+        $script .= "echo -e \"/tmp/$a\\t/etc/auto.nfs\\t--timeout=10\" >> /etc/auto.master\n";
         $script .= "systemctl start autofs\n";
         $script .= chkdir_strip("/tmp/$a/share");
 
         # autofs mount should be unmounted after 10 sec automatically
         $script .= "sleep 15\n";
-        $script .= "[ \"\$(mount -t $a | wc -l)\" -eq 0 ] && true || false\n";
+        $script .= "[ \"\$(mount -t $a | wc -l)\" -eq 0 ]\n";
         $script .= "systemctl stop autofs\n";
 
         # Cleanup
@@ -122,10 +108,10 @@ sub run() {
         my $script = "";
         $script .= "mkdir -p /tmp/$a\n";
         if ($a eq "nfs") {
-            $script .= casp_etc_strip("fstab", "$nfs_remotetarget\\t/tmp/$a\\t$a");
+            $script .= "echo -e \"$nfs_remotetarget\\t/tmp/$a\\t$a\" >> /etc/fstab\n";
         }
         if ($a eq "nfs4") {
-            $script .= casp_etc_strip("fstab", "$nfs_server:/\\t/tmp/$a\\t$a");
+            $script .= "echo -e \"$nfs_server:/\\t/tmp/$a\\t$a\" >> /etc/fstab\n";
         }
         $script .= "mount -a -t $a\n";
         $script .= chkdir_strip("/tmp/$a");
