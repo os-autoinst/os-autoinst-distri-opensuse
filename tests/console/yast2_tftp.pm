@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2016 SUSE LLC
+# Copyright (c) 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -13,79 +13,69 @@
 use strict;
 use base "consoletest";
 use testapi;
-
-
+use utils;
 
 sub run() {
     select_console 'root-console';
 
-    # install tftp and yast2-tftp-server
-    assert_script_run("/usr/bin/zypper -n -q in tftp yast2-tftp-server");
+    zypper_call("in tftp yast2-tftp-server");
 
-    # start tftp-server configuration
     script_run("yast2 tftp-server; echo yast2-tftp-server-status-\$? > /dev/$serialdev", 0);
-
-    # check yast2 tftp-server configuration is opened
     assert_screen 'yast2_tftp-server_configuration';
 
-    # select enable tftp
-    send_key 'alt-e';
+    send_key 'alt-e';    # enable tftp
+    assert_screen 'yast2_tftp-server_configuration_enabled';
 
-    # give a new file path for boot image directory
-    send_key 'alt-t';
-    for (1 .. 20) {
-        send_key 'backspace';
-    }
+    # provide a new TFTP root directory path
+    send_key 'alt-t';    # select input field
+    assert_screen 'yast2_tftp-server_configuration_chdir';
+    for (1 .. 20) { send_key 'backspace'; }
+    my $tftpboot_newdir = '/srv/tftpboot/new_dir';
+    type_string $tftpboot_newdir;
+    assert_screen 'yast2_tftp-server_configuration_newdir_typed';
 
-    type_string '/srv/tftpboot/new_dir';
-
-    # open port in firewall, if firewall is disabled, then continue with next test view log
-
+    # open port in firewall, if needed
     assert_screen([qw(yast2_tftp_open_port yast2_tftp_closed_port)]);
     if (match_has_tag('yast2_tftp_open_port')) {
-        send_key 'alt-f';
-        send_key 'alt-i';
+        send_key 'alt-f';    # open tftp port in firewall
+        assert_screen 'yast2_tftp_port_opened';
+        send_key 'alt-i';    # open firewall details window
         assert_screen 'yast2_tftp_firewall_details';
-        send_key 'alt-o';
+        send_key 'alt-o';    # close the window
         assert_screen 'yast2_tftp_closed_port';
     }
 
     # view log
-    # softfail for opensuse when error for view log throws out
-    send_key 'alt-v';
+    send_key 'alt-v';        # open log window
     assert_screen([qw(yast2_tftp_view_log_error yast2_tftp_view_log_show)]);
     if (match_has_tag('yast2_tftp_view_log_error')) {
+        # softfail for opensuse when error for view log throws out
         record_soft_failure "bsc#1008493";
-        send_key 'alt-o';
+        send_key 'alt-o';    # confirm the error message
     }
-    send_key 'alt-c';
-    wait_still_screen 1;
-
-
-    # check help text
-    send_key 'alt-h';
-    assert_screen 'yast2_tftp_show_help';
-    send_key 'alt-o';
+    send_key 'alt-c';        # close the window
+    assert_screen 'yast2_tftp_closed_port';
 
     # now finish tftp server configuration
-    send_key 'alt-o';
-    sleep 2;
+    send_key 'alt-o';        # confirm changes
 
     # and confirm for creating new directory
     assert_screen 'yast2_tftp_create_new_directory';
-    send_key 'alt-y';
+    send_key 'alt-y';        # approve creation of new directory
 
     # wait 60 seconds for yast2 tftp configuration got completed.
-    wait_serial("yast2-tftp-server-status-0", 60) || die "'yast2 tftp-server' didn't finish";
+    wait_serial("yast2-tftp-server-status-0") || die "'yast2 tftp-server' failed";
+    assert_screen 'yast2_console-finished';
 
     # create a test file for tftp server
-    assert_script_run('echo "QA tftp server, welcome" > /srv/tftpboot/new_dir/test');
+    my $server_string = 'This is a QA tftp server';
+    assert_script_run "echo $server_string > $tftpboot_newdir/test";
 
     # check tftp server
-    assert_script_run('tftp localhost -c get test');
-
-
+    assert_script_run 'tftp localhost -c get test';
+    assert_script_run "echo $server_string | cmp - test";
 }
+
 1;
 
 # vim: set sw=4 et:
