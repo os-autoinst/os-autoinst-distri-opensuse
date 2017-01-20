@@ -50,7 +50,8 @@ sub run() {
                 print "There are conflicts with the installation of java bootstrap packages\n";
                 record_soft_failure 'boo#1019090';
                 # Workaround: install java-* except from the problematic bootstrap packages
-                zypper_call "in `(zypper se java-* | grep -v bootstrap | grep -v 'i ' | awk '{print \$2}' | sed -n -E -e '/java/,\$ p')`";
+                zypper_call
+"in `(zypper se java-* | grep -v bootstrap | grep -v 'i ' | awk '{print \$2}' | sed -n -E -e '/java/,\$ p')`";
             }
         }
         else {

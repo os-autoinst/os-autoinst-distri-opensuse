@@ -84,7 +84,8 @@ sub run() {
     # check if automounter works
     check_automounter;
 
-    script_run(qq{rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE} (%{INSTALLTIME:date})\n" | sort -t '-' > /tmp/rpmlist.before});
+    script_run(
+        qq{rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE} (%{INSTALLTIME:date})\n" | sort -t '-' > /tmp/rpmlist.before});
     upload_logs('/tmp/rpmlist.before');
 
     # RUN HEAVY LOAD script
@@ -126,7 +127,8 @@ sub run() {
     # wait for cooldown:)
     sleep 45;
 
-    script_run(qq{rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE} (%{INSTALLTIME:date})\n" | sort -t '-' > /tmp/rpmlist.after});
+    script_run(
+        qq{rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE} (%{INSTALLTIME:date})\n" | sort -t '-' > /tmp/rpmlist.after});
     upload_logs('/tmp/rpmlist.after');
 
     capture_state("after");

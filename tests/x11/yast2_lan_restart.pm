@@ -155,7 +155,8 @@ sub del_device {
 }
 
 sub test_2 {
-    diag '__________(2) Start yast2 lan -> Edit (a NIC) -> no change, don\'t switch to another tab, [Next] -> [OK]__________';
+    diag
+'__________(2) Start yast2 lan -> Edit (a NIC) -> no change, don\'t switch to another tab, [Next] -> [OK]__________';
     run_yast2_lan_edit;
     send_key 'alt-n';                                 # Next
     check_network;
@@ -181,7 +182,8 @@ sub test_6 {
 
 sub test_7 {
     my $dev_name = shift;
-    diag '__________(7) Start yast2 lan -> Edit (a NIC) -> switch to Hardware tab, change nic name, [Next] -> [OK] -> device name is changed__________';
+    diag
+'__________(7) Start yast2 lan -> Edit (a NIC) -> switch to Hardware tab, change nic name, [Next] -> [OK] -> device name is changed__________';
     run_yast2_lan_edit;
     send_key 'alt-w';                                 # Hardware tab
     assert_screen 'yast2_lan_hardware_tab';

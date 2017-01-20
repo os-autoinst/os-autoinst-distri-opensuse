@@ -161,7 +161,8 @@ sub run() {
     assert_and_click "wireshark-edit-preferences";
     assert_screen "wireshark-preferences";
     assert_and_click "wireshark-preferences-columns";
-    assert_screen [qw(wireshark-preferences-columns-protocol-displayed wireshark-preferences-columns-protocol-not-displayed)];
+    assert_screen [
+        qw(wireshark-preferences-columns-protocol-displayed wireshark-preferences-columns-protocol-not-displayed)];
     if (match_has_tag "wireshark-preferences-columns-protocol-not-displayed") {
         record_soft_failure "bsc#1003086";
         assert_and_click "wireshark-preferences-columns-protocol-select";

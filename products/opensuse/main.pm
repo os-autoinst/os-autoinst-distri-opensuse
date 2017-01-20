@@ -168,7 +168,12 @@ sub updates_is_applicable() {
     # Applying updates on a live system would not be persistent anyway.
     # Also, applying updates on BOOT_TO_SNAPSHOT is useless.
     # Also, updates on INSTALLONLY do not match the meaning
-    return !get_var('INSTALLONLY') && !get_var('BOOT_TO_SNAPSHOT') && !get_var('DUALBOOT') && !get_var('UPGRADE') && !is_livesystem;
+    return
+         !get_var('INSTALLONLY')
+      && !get_var('BOOT_TO_SNAPSHOT')
+      && !get_var('DUALBOOT')
+      && !get_var('UPGRADE')
+      && !is_livesystem;
 }
 
 sub guiupdates_is_applicable() {
@@ -364,9 +369,9 @@ sub load_reboot_tests() {
 }
 
 sub load_fixup_network() {
-    # openSUSE 13.2's (and earlier) systemd has broken rules for virtio-net, not applying predictable names (despite being configured)
-    # A maintenance update breaking networking names sounds worse than just accepting that 13.2 -> TW breaks with virtio-net
-    # At this point, the system has been updated, but our network interface changed name (thus we lost network connection)
+# openSUSE 13.2's (and earlier) systemd has broken rules for virtio-net, not applying predictable names (despite being configured)
+# A maintenance update breaking networking names sounds worse than just accepting that 13.2 -> TW breaks with virtio-net
+# At this point, the system has been updated, but our network interface changed name (thus we lost network connection)
     my @old_hdds = qw(openSUSE-12.1 openSUSE-12.2 openSUSE-12.3 openSUSE-13.1-gnome openSUSE-13.2);
     return unless grep { check_var('HDDVERSION', $_) } @old_hdds;
 

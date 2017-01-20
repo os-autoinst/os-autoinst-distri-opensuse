@@ -27,9 +27,11 @@ sub run() {
         type_string
 qq(EDITOR="sed -ie '\$ a primitive dlm ocf:pacemaker:controld op monitor interval=60 timeout=60'" crm configure edit; echo dlm_add=\$? > /dev/$serialdev\n);
         die "create DLM resource failed" unless wait_serial "dlm_add=0", 60;
-        type_string qq(EDITOR="sed -ie '\$ a group base-group dlm'" crm configure edit; echo base_group_add=\$? > /dev/$serialdev\n);
+        type_string
+qq(EDITOR="sed -ie '\$ a group base-group dlm'" crm configure edit; echo base_group_add=\$? > /dev/$serialdev\n);
         die "create base-group failed" unless wait_serial "base_group_add=0", 60;
-        type_string qq(EDITOR="sed -ie '\$ a clone base-clone base-group'" crm configure edit; echo base_clone_add=\$? > /dev/$serialdev\n);
+        type_string
+qq(EDITOR="sed -ie '\$ a clone base-clone base-group'" crm configure edit; echo base_clone_add=\$? > /dev/$serialdev\n);
         die "create base-clone failed" unless wait_serial "base_clone_add=0", 60;
     }
     barrier_wait("DLM_GROUPS_CREATED_" . $self->cluster_name);

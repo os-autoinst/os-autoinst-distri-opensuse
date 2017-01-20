@@ -43,7 +43,9 @@ sub run() {
 
     assert_script_run "chmod +x bg_script.sh";
     # execute the script and direct its exit code to the serial console
-    type_string "./bg_script.sh " . data_url('imagemagick/bg_script.sh') . "; echo bg_script-\$? > /dev/$testapi::serialdev\n";
+    type_string "./bg_script.sh "
+      . data_url('imagemagick/bg_script.sh')
+      . "; echo bg_script-\$? > /dev/$testapi::serialdev\n";
 
     my @test_screens = qw(
       test shape plasma_fractal2 random tile_weave bg tile_aqua tile_water

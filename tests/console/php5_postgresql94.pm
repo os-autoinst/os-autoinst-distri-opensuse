@@ -47,7 +47,9 @@ sub run() {
     # configure the PHP code that:
     #  1. reads table 'test' from the 'openQAdb' database (created in 'console/postgresql94' test)
     #  2. inserts a new element 'can php write this?' into the same table
-    type_string "wget --quiet " . data_url('console/test_postgresql_connector.php') . " -O /srv/www/htdocs/test_postgresql_connector.php\n";
+    type_string "wget --quiet "
+      . data_url('console/test_postgresql_connector.php')
+      . " -O /srv/www/htdocs/test_postgresql_connector.php\n";
     assert_script_run "systemctl restart apache2.service";
 
     # access the website and verify that it can read the database

@@ -39,7 +39,8 @@ sub run {
     if (!$up) {
         type_string "mkdir /tmp/wicked\n";
         # enable debugging
-        type_string "perl -i -lpe 's{^(WICKED_DEBUG)=.*}{\$1=\"all\"};s{^(WICKED_LOG_LEVEL)=.*}{\$1=\"debug\"}' /etc/sysconfig/network/config\n";
+        type_string
+"perl -i -lpe 's{^(WICKED_DEBUG)=.*}{\$1=\"all\"};s{^(WICKED_LOG_LEVEL)=.*}{\$1=\"debug\"}' /etc/sysconfig/network/config\n";
         type_string "egrep \"WICKED_DEBUG|WICKED_LOG_LEVEL\" /etc/sysconfig/network/config\n";
         # restart the daemons
         type_string "systemctl restart wickedd\n";

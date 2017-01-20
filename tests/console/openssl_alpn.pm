@@ -19,7 +19,8 @@ use utils;
 sub run() {
     select_console 'root-console';
 
-    assert_script_run 'openssl req -newkey rsa:2048 -nodes -keyout domain.key -x509 -days 365 -out domain.crt -subj "/C=CZ/L=Prague/O=SUSE/CN=alpn.suse.cz"';
+    assert_script_run
+'openssl req -newkey rsa:2048 -nodes -keyout domain.key -x509 -days 365 -out domain.crt -subj "/C=CZ/L=Prague/O=SUSE/CN=alpn.suse.cz"';
 
     clear_console;
     type_string "openssl s_server -key domain.key -cert domain.crt -alpn http\n";

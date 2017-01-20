@@ -24,7 +24,9 @@ use testapi;
 sub run() {
     # reuse console
     my $packages = get_var("VERIFY_PACKAGE_VERSIONS");
-    assert_script_run("~$username/data/lsmfip --verbose --verify \$XDG_RUNTIME_DIR/install_packages.txt $packages | tee /dev/$serialdev");
+    assert_script_run(
+"~$username/data/lsmfip --verbose --verify \$XDG_RUNTIME_DIR/install_packages.txt $packages | tee /dev/$serialdev"
+    );
 }
 
 sub test_flags() {

@@ -176,7 +176,8 @@ sub run() {
         die "Test run didn't finish";
     }
     # Log submission link ( all testsuites are splitted )
-    my $cmd = q{grep -o -E "http:\/{2}.*\/submission\.php\?submission_id=[0-9]+" /var/log/qaset/submission/submission-*.log};
+    my $cmd
+      = q{grep -o -E "http:\/{2}.*\/submission\.php\?submission_id=[0-9]+" /var/log/qaset/submission/submission-*.log};
     $self->qa_log_cmd("/tmp/submission-links.log", $cmd);
 
     # Upload logs

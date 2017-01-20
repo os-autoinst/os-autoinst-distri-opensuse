@@ -28,7 +28,8 @@ sub import_pictures {
 
     # Fetch test pictures to ~/Documents
     foreach my $picture (@$pictures) {
-        x11_start_program("wget " . autoinst_url . "/data/x11regressions/$picture -O /home/$username/Documents/$picture");
+        x11_start_program(
+            "wget " . autoinst_url . "/data/x11regressions/$picture -O /home/$username/Documents/$picture");
     }
 
     # Open the dialog 'Import From Folder'
@@ -62,7 +63,9 @@ sub clean_shotwell() {
 sub upload_libreoffice_specified_file() {
 
     x11_start_program("xterm");
-    assert_script_run("wget " . autoinst_url . "/data/x11regressions/ooo-test-doc-types.tar.bz2 -O /home/$username/Documents/ooo-test-doc-types.tar.bz2");
+    assert_script_run("wget "
+          . autoinst_url
+          . "/data/x11regressions/ooo-test-doc-types.tar.bz2 -O /home/$username/Documents/ooo-test-doc-types.tar.bz2");
     wait_still_screen;
     type_string("cd /home/$username/Documents && ls -l");
     send_key "ret";
@@ -240,7 +243,9 @@ sub send_meeting_request {
     }
     assert_screen "evolution_mail-compse_meeting", 60;
     send_key "ctrl-w";
-    assert_screen [qw(evolution_mail-save_meeting_dialog evolution_mail-send_meeting_dialog evolution_mail-meeting_error_handle evolution_mail-max-window)];
+    assert_screen [
+        qw(evolution_mail-save_meeting_dialog evolution_mail-send_meeting_dialog evolution_mail-meeting_error_handle evolution_mail-max-window)
+    ];
     if (match_has_tag "evolution_mail-save_meeting_dialog") {
         send_key "ret";
     }
@@ -472,7 +477,8 @@ sub start_firefox() {
 
     x11_start_program 'xterm';
     # Clean and Start Firefox
-    type_string "killall -9 firefox;rm -rf .moz* .config/iced* .cache/iced* .local/share/gnome-shell/extensions/*; firefox > firefox.log 2>&1 &\n";
+    type_string
+"killall -9 firefox;rm -rf .moz* .config/iced* .cache/iced* .local/share/gnome-shell/extensions/*; firefox > firefox.log 2>&1 &\n";
     assert_screen 'firefox-launch', 90;
 }
 

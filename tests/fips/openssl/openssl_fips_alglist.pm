@@ -21,7 +21,7 @@ sub run {
     # List cipher algorithms in fips mode:
     # only AES and DES3 are approved
     validate_script_output
-      "echo -n 'Invalid Cipher: '; openssl list-cipher-algorithms | sed -e '/AES/d' -e '/aes/d' -e '/DES3/d' -e '/des3/d' -e '/DES-EDE/d' | wc -l",
+"echo -n 'Invalid Cipher: '; openssl list-cipher-algorithms | sed -e '/AES/d' -e '/aes/d' -e '/DES3/d' -e '/des3/d' -e '/DES-EDE/d' | wc -l",
       sub { m/^Invalid Cipher: 0$/ };
 
     # List message digest algorithms in fips mode:

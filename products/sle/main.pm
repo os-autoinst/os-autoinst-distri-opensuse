@@ -565,7 +565,11 @@ sub load_reboot_tests() {
     }
     if (installyaststep_is_applicable()) {
         # test makes no sense on s390 because grub2 can't be captured
-        if (!(check_var("ARCH", "s390x") or (check_var('VIRSH_VMM_FAMILY', 'xen') and check_var('VIRSH_VMM_TYPE', 'linux')))) {
+        if (
+            !(
+                check_var("ARCH", "s390x")
+                or (check_var('VIRSH_VMM_FAMILY', 'xen') and check_var('VIRSH_VMM_TYPE', 'linux'))))
+        {
             loadtest "installation/grub_test";
             if ((snapper_is_applicable()) && get_var("BOOT_TO_SNAPSHOT")) {
                 loadtest "installation/boot_into_snapshot";
@@ -598,7 +602,8 @@ sub load_consoletests() {
             if (get_var("UPGRADE")) {
                 loadtest "console/upgrade_snapshots";
             }
-            elsif (!get_var("ZDUP") and !check_var('VERSION', '12')) {    # zypper and sle12 doesn't do upgrade or installation snapshots
+            elsif (!get_var("ZDUP") and !check_var('VERSION', '12'))
+            {    # zypper and sle12 doesn't do upgrade or installation snapshots
                 loadtest "console/installation_snapshots";
             }
             loadtest "console/snapper_undochange";

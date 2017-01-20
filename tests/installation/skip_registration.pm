@@ -32,7 +32,8 @@ sub run() {
     );
     if (match_has_tag('yast2-windowborder-corner')) {
         if (check_var("INSTALLER_NO_SELF_UPDATE", 1)) {
-            die "installer should not self-update, therefore window should not have respawned, file bug and replace this line by record_soft_failure";
+            die
+"installer should not self-update, therefore window should not have respawned, file bug and replace this line by record_soft_failure";
         }
         elsif (check_var('INSTALLER_SELF_UPDATE', 1)) {
             ensure_fullscreen(tag => 'yast2-windowborder-corner');

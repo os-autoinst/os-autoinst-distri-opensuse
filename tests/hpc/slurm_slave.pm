@@ -28,8 +28,10 @@ sub run() {
     assert_script_run 'sed -i "/^ControlMachine.*/c\ControlMachine=slurm-master" /etc/slurm/slurm.conf';
     script_run "cat /etc/slurm/slurm.conf | grep Control";
 
-    assert_script_run 'sed -i "/^NodeName.*/c\NodeName=slurm-slave Sockets=2 CoresPerSocket=8 ThreadsPerCore=2 State=UNKNOWN" /etc/slurm/slurm.conf';
-    assert_script_run 'sed -i "/^PartitionName.*/c\PartitionName=normal Nodes=slurm-slave Default=YES MaxTime=24:00:00 State=UP" /etc/slurm/slurm.conf';
+    assert_script_run
+'sed -i "/^NodeName.*/c\NodeName=slurm-slave Sockets=2 CoresPerSocket=8 ThreadsPerCore=2 State=UNKNOWN" /etc/slurm/slurm.conf';
+    assert_script_run
+'sed -i "/^PartitionName.*/c\PartitionName=normal Nodes=slurm-slave Default=YES MaxTime=24:00:00 State=UP" /etc/slurm/slurm.conf';
     script_run "cat /etc/slurm/slurm.conf | grep NodeName";
     script_run "cat /etc/slurm/slurm.conf | grep PartitionName";
 

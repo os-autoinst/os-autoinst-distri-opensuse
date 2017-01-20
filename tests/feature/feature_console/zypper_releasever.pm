@@ -30,7 +30,7 @@ sub run() {
 
     # Add a test repo with $releasever var being used in its name
     script_run
-      "zypper ar -n '${dist}\${releasever_major}\${releasever_minor:+SP\$releasever_minor}' -d dir:/tmp $test_repo 2>&1 | tee /dev/$serialdev",
+"zypper ar -n '${dist}\${releasever_major}\${releasever_minor:+SP\$releasever_minor}' -d dir:/tmp $test_repo 2>&1 | tee /dev/$serialdev",
       0;
 
     my $out = wait_serial [$zypper_ar_ok, $zypper_pk_block];

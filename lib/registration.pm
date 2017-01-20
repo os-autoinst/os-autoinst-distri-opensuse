@@ -39,7 +39,8 @@ sub fill_in_registration_data {
     }
     my @known_untrusted_keys = qw(import-trusted-gpg-key-nvidia-F5113243C66B6EAE);
     unless (get_var('SCC_REGISTER', '') =~ /addon|network/) {
-        my @tags = qw(local-registration-servers registration-online-repos import-untrusted-gpg-key module-selection contacting-registration-server);
+        my @tags
+          = qw(local-registration-servers registration-online-repos import-untrusted-gpg-key module-selection contacting-registration-server);
         if (get_var('SCC_URL') || get_var('SMT_URL')) {
             push @tags, 'untrusted-ca-cert';
             if (get_var('SMT_URL')) {

@@ -55,7 +55,8 @@ sub run {
     }
     # else use the supportserver dns configured via dhcp
 
-    my $conf_script = "zypper -n --no-gpg-checks ar '" . get_var('SLENKINS_TESTSUITES_REPO') . "' slenkins_testsuites\n";
+    my $conf_script
+      = "zypper -n --no-gpg-checks ar '" . get_var('SLENKINS_TESTSUITES_REPO') . "' slenkins_testsuites\n";
 
     my $i = 0;
     if (get_var('FOREIGN_REPOS')) {

@@ -48,7 +48,8 @@ sub configure_static_ip {
     my ($ip_no_mask, $mask) = split('/', $ip);
     script_run "arping -w 1 -I \$NIC $ip_no_mask";    # check for duplicate IP
 
-    assert_script_run "echo \"STARTMODE='auto'\nBOOTPROTO='static'\nIPADDR='$ip'\" > /etc/sysconfig/network/ifcfg-\$NIC";
+    assert_script_run
+      "echo \"STARTMODE='auto'\nBOOTPROTO='static'\nIPADDR='$ip'\" > /etc/sysconfig/network/ifcfg-\$NIC";
     save_screenshot;
     assert_script_run "rcnetwork restart";
     assert_script_run "ip addr";
@@ -81,7 +82,9 @@ sub configure_default_gateway {
 sub configure_static_dns {
     my ($conf) = @_;
     my $servers = join(" ", @{$conf->{nameserver}});
-    script_run("sed -i -e 's|^NETCONFIG_DNS_STATIC_SERVERS=.*|NETCONFIG_DNS_STATIC_SERVERS=\"$servers\"|' /etc/sysconfig/network/config");
+    script_run(
+"sed -i -e 's|^NETCONFIG_DNS_STATIC_SERVERS=.*|NETCONFIG_DNS_STATIC_SERVERS=\"$servers\"|' /etc/sysconfig/network/config"
+    );
     script_run("netconfig -f update");
     script_run("cat /etc/resolv.conf");
 }

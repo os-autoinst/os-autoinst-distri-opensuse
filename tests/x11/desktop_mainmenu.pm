@@ -69,7 +69,7 @@ sub ocr_checklist() {
             result     => "OK"
         },    # kde 1280x960
 
-        # {screenshot=>1, x=>20, y=>500, xs=>200, ys=>250, pattern=>"(?si:Accessories.*System.*Logout)", result=>"OK"} # lxde - already matched with img
+# {screenshot=>1, x=>20, y=>500, xs=>200, ys=>250, pattern=>"(?si:Accessories.*System.*Logout)", result=>"OK"} # lxde - already matched with img
     ];
 }
 

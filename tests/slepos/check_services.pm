@@ -35,8 +35,10 @@ sub run() {
         $basedn =~ s/^"//;
         $basedn =~ s/"$//;
         #get bs services from ldap
-        my $services = script_output(
-            "posAdmin --query --list --base $basedn --scService --scServiceStatus TRUE --scServiceStartScript | grep scServiceStartScript:|cut -d ' ' -f 2");
+        my $services
+          = script_output(
+"posAdmin --query --list --base $basedn --scService --scServiceStatus TRUE --scServiceStartScript | grep scServiceStartScript:|cut -d ' ' -f 2"
+          );
         my $extdhcp   = script_output("posAdmin --query  --list --base $basedn --scLocation --scDhcpExtern ");
         my $nodhcpsrv = 0;
         $nodhcpsrv = 1 if $extdhcp =~ /scDhcpExtern: TRUE/;

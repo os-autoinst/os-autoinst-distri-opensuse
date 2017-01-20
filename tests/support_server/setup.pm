@@ -90,7 +90,8 @@ sub setup_networks {
         next if $network eq 'fixed';
         next unless $net_conf->{$network}->{gateway};
         "NIC=`grep $net_conf->{$network}->{mac} /sys/class/net/*/address |cut -d / -f 5`\n";
-        $setup_script .= "iptables -A FORWARD -i \$FIXED_NIC -o \$NIC -m state  --state RELATED,ESTABLISHED -j ACCEPT\n";
+        $setup_script
+          .= "iptables -A FORWARD -i \$FIXED_NIC -o \$NIC -m state  --state RELATED,ESTABLISHED -j ACCEPT\n";
         $setup_script .= "iptables -A FORWARD -i \$NIC -o \$FIXED_NIC -j ACCEPT\n";
     }
     $setup_script .= "echo 1 > /proc/sys/net/ipv4/ip_forward\n";
@@ -111,7 +112,8 @@ sub setup_dns_server {
         curl -f -v "
       . autoinst_url . "/data/supportserver/named/openqa.test.zone > /var/lib/named/master/openqa.test.zone
         curl -f -v "
-      . autoinst_url . "/data/supportserver/named/2.0.10.in-addr.arpa.zone > /var/lib/named/master/2.0.10.in-addr.arpa.zone
+      . autoinst_url
+      . "/data/supportserver/named/2.0.10.in-addr.arpa.zone > /var/lib/named/master/2.0.10.in-addr.arpa.zone
         chown named:named /var/lib/named/master
 
         netconfig update -f
@@ -152,7 +154,10 @@ sub setup_dhcp_server {
         next unless $net_conf->{$network}->{dhcp};
         my $server_ip = ip_in_subnet($net_conf->{$network}, 1);
         $setup_script .= "subnet $net_conf->{$network}->{subnet_ip} netmask $net_conf->{$network}->{subnet_mask} {\n";
-        $setup_script .= "  range  " . ip_in_subnet($net_conf->{$network}, 15) . "  " . ip_in_subnet($net_conf->{$network}, 100) . ";\n";
+        $setup_script
+          .= "  range  "
+          . ip_in_subnet($net_conf->{$network}, 15) . "  "
+          . ip_in_subnet($net_conf->{$network}, 100) . ";\n";
         $setup_script .= "  default-lease-time 14400;\n";
         $setup_script .= "  max-lease-time 172800;\n";
         $setup_script .= "  option domain-name \"openqa.test\";\n";
@@ -173,7 +178,8 @@ sub setup_dhcp_server {
     }
     $setup_script .= "EOT\n";
 
-    $setup_script .= "curl -f -v " . autoinst_url . "/data/supportserver/dhcp/sysconfig/dhcpd  >/etc/sysconfig/dhcpd \n";
+    $setup_script
+      .= "curl -f -v " . autoinst_url . "/data/supportserver/dhcp/sysconfig/dhcpd  >/etc/sysconfig/dhcpd \n";
     $setup_script .= "NIC_LIST=\"";
     for my $network (keys %$net_conf) {
         next unless $net_conf->{$network}->{dhcp};

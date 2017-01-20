@@ -59,7 +59,9 @@ sub run() {
     );
     script_run("cat /tmp/submission.log");
     save_screenshot;
-    script_run(q{grep -o -E 'http:\/{2}.*\/submission\.php\?submission_id=[0-9]+' /tmp/submission.log > /tmp/submission_url.log});
+    script_run(
+q{grep -o -E 'http:\/{2}.*\/submission\.php\?submission_id=[0-9]+' /tmp/submission.log > /tmp/submission_url.log}
+    );
     upload_logs('/tmp/submission_url.log');
     upload_logs('/tmp/submission.log');
 

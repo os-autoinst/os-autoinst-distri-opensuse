@@ -35,9 +35,9 @@ sub run() {
         $image_path = get_var("HOST_IMG_URL");
     }
     elsif (match_has_tag("qa-net-selection")) {
-        #Numburg
-        #send_key_until_needlematch "qa-net-selection-" . get_var('DISTRI') . "-" . get_var("VERSION"), 'down', 30, 3;
-        #Don't use send_key_until_needlematch to pick first menu tier as dist network sources might not be ready when openQA is running tests
+#Numburg
+#send_key_until_needlematch "qa-net-selection-" . get_var('DISTRI') . "-" . get_var("VERSION"), 'down', 30, 3;
+#Don't use send_key_until_needlematch to pick first menu tier as dist network sources might not be ready when openQA is running tests
         send_key 'esc';
         assert_screen 'qa-net-boot';
 

@@ -24,7 +24,8 @@ sub run() {
     script_run 'systemctl mask packagekit.service';
     script_run 'systemctl stop packagekit.service';
     # allow to load unsupported modules
-    script_run 'sed -i s\'/^allow_unsupported_modules 0/allow_unsupported_modules 1/\' /etc/modprobe.d/10-unsupported-modules.conf';
+    script_run
+'sed -i s\'/^allow_unsupported_modules 0/allow_unsupported_modules 1/\' /etc/modprobe.d/10-unsupported-modules.conf';
     # install kmp packages
     assert_script_run 'zypper -n in *-kmp-rt', 500;
     type_string "reboot\n";

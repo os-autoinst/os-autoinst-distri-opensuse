@@ -86,7 +86,8 @@ sub run() {
     script_run "systemctl stop packagekit.service";
     # Installing a minimal system gives a pattern conflicting with anything not minimal
     # Let's uninstall 'the pattern' (no packages affected) in order to be able to install stuff
-    script_run 'rpm -qi patterns-openSUSE-minimal_base-conflicts && zypper -n rm patterns-openSUSE-minimal_base-conflicts';
+    script_run
+      'rpm -qi patterns-openSUSE-minimal_base-conflicts && zypper -n rm patterns-openSUSE-minimal_base-conflicts';
     # Install curl and tar in order to get the test data
     assert_script_run "zypper -n install curl tar";
 
@@ -104,7 +105,8 @@ sub run() {
     # https://fate.suse.com/320347 https://bugzilla.suse.com/show_bug.cgi?id=988157
     if (check_var('NETWORK_INIT_PARAM', 'ifcfg=eth0=dhcp')) {
         # grep all also compressed files e.g. y2log-1.gz
-        assert_script_run 'less /var/log/YaST2/y2log*|grep "Automatic DHCP configuration not started - an interface is already configured"';
+        assert_script_run
+'less /var/log/YaST2/y2log*|grep "Automatic DHCP configuration not started - an interface is already configured"';
     }
 
     save_screenshot;

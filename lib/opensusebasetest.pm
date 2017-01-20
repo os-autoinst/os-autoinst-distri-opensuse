@@ -50,15 +50,22 @@ sub problem_detection {
     clear_console;
 
     # Failed system services
-    save_and_upload_log('systemctl --all --state=failed', "failed-system-services.txt", {screenshot => 1, noupload => 1});
+    save_and_upload_log(
+        'systemctl --all --state=failed',
+        "failed-system-services.txt",
+        {screenshot => 1, noupload => 1});
     clear_console;
 
     # Unapplied configuration files
-    save_and_upload_log("find /* -name '*.rpmnew'", "unapplied-configuration-files.txt", {screenshot => 1, noupload => 1});
+    save_and_upload_log(
+        "find /* -name '*.rpmnew'",
+        "unapplied-configuration-files.txt",
+        {screenshot => 1, noupload => 1});
     clear_console;
 
     # Errors, warnings, exceptions, and crashes mentioned in dmesg
-    save_and_upload_log("dmesg | grep -i 'error\\|warn\\|exception\\|crash'", "dmesg-errors.txt", {screenshot => 1, noupload => 1});
+    save_and_upload_log("dmesg | grep -i 'error\\|warn\\|exception\\|crash'",
+        "dmesg-errors.txt", {screenshot => 1, noupload => 1});
     clear_console;
 
     # Errors in journal
@@ -66,7 +73,8 @@ sub problem_detection {
     clear_console;
 
     # Tracebacks in journal
-    save_and_upload_log('journalctl | grep -i traceback', "journalctl-tracebacks.txt", {screenshot => 1, noupload => 1});
+    save_and_upload_log('journalctl | grep -i traceback', "journalctl-tracebacks.txt",
+        {screenshot => 1, noupload => 1});
     clear_console;
 
     # Segmentation faults
@@ -92,12 +100,14 @@ done", "binaries-with-missing-libraries.txt", {timeout => 60, noupload => 1});
     clear_console;
 
     # rpmverify problems
-    save_and_upload_log("rpmverify -a | grep -v \"[S5T].* c \"", "rpmverify-problems.txt", {timeout => 300, screenshot => 1, noupload => 1});
+    save_and_upload_log("rpmverify -a | grep -v \"[S5T].* c \"",
+        "rpmverify-problems.txt", {timeout => 300, screenshot => 1, noupload => 1});
     clear_console;
 
     # VMware specific
     if (check_var('VIRSH_VMM_FAMILY', 'vmware')) {
-        save_and_upload_log('systemctl status vmtoolsd vgauthd', "vmware-services.txt", {screenshot => 1, noupload => 1});
+        save_and_upload_log('systemctl status vmtoolsd vgauthd',
+            "vmware-services.txt", {screenshot => 1, noupload => 1});
         clear_console;
     }
 
@@ -133,7 +143,7 @@ sub export_logs {
 
     # do not upload empty .xsession-errors
     script_run
-      "xsefiles=(/home/*/.xsession-errors*); for file in \${xsefiles[@]}; do if [ -s \$file ]; then echo xsefile-valid > /dev/$serialdev; fi; done",
+"xsefiles=(/home/*/.xsession-errors*); for file in \${xsefiles[@]}; do if [ -s \$file ]; then echo xsefile-valid > /dev/$serialdev; fi; done",
       0;
     if (wait_serial("xsefile-valid", 10)) {
         save_and_upload_log('cat /home/*/.xsession-errors*', '/tmp/XSE.log', {screenshot => 1});
@@ -242,13 +252,23 @@ sub wait_boot {
         }
     }
     # On Xen PV and svirt we don't see a Grub menu
-    elsif (!(check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux') && check_var('BACKEND', 'svirt'))) {
+    elsif (
+        !(
+               check_var('VIRSH_VMM_FAMILY', 'xen')
+            && check_var('VIRSH_VMM_TYPE', 'linux')
+            && check_var('BACKEND',        'svirt')))
+    {
         my @tags = ('grub2');
-        push @tags, 'bootloader-shim-import-prompt'   if get_var('UEFI');
-        push @tags, 'boot-live-' . get_var('DESKTOP') if get_var('LIVETEST');    # LIVETEST won't to do installation and no grub2 menu show up
+        push @tags, 'bootloader-shim-import-prompt' if get_var('UEFI');
+        push @tags, 'boot-live-' . get_var('DESKTOP')
+          if get_var('LIVETEST');    # LIVETEST won't to do installation and no grub2 menu show up
         if (get_var('ONLINE_MIGRATION')) {
             push @tags, 'migration-source-system-grub2';
         }
+        # after gh#os-autoinst/os-autoinst#641 68c815a "use bootindex for boot
+        # order on UEFI" the USB install medium is priority and will always be
+        # booted so we have to handle that
+        push @tags, 'inst-bootmenu' if (get_var('USBBOOT') and get_var('UEFI'));
         check_screen(\@tags, $bootloader_time);
         if (match_has_tag("bootloader-shim-import-prompt")) {
             send_key "down";
@@ -256,7 +276,7 @@ sub wait_boot {
             assert_screen "grub2", 15;
         }
         elsif (match_has_tag("migration-source-system-grub2") or match_has_tag('grub2')) {
-            send_key "ret";                                                      # boot to source system
+            send_key "ret";    # boot to source system
         }
         elsif (get_var("LIVETEST")) {
             # prevent if one day booting livesystem is not the first entry of the boot list
@@ -264,6 +284,15 @@ sub wait_boot {
                 send_key_until_needlematch("boot-live-" . get_var("DESKTOP"), 'down', 10, 5);
             }
             send_key "ret";
+        }
+        elsif (match_has_tag('inst-bootmenu')) {
+            # assuming the cursor is on 'installation' by default and 'boot from
+            # harddisk' is above
+            send_key_until_needlematch 'inst-bootmenu-boot-harddisk', 'up';
+            wait_screen_change { send_key 'ret' };
+            assert_screen 'grub2', 15;
+            # confirm default choice
+            send_key 'ret';
         }
         elsif (!match_has_tag("grub2")) {
             # check_screen timeout

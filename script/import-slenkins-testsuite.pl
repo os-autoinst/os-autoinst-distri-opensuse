@@ -22,10 +22,10 @@ my $template_control = pp(
 
     {key => "SUPPORT_SERVER_ROLES", value => "dhcp,dns"},
 
-    #   this is a part of support server configuration
-    #    {key => "SLENKINS_TESTSUITES_REPO", value => "http://download.suse.de/ibs/Devel:/SLEnkins:/testsuites/SLE_12_SP1/"},
-    #
-    #    {key => "SLENKINS_REPO", value => "http://download.suse.de/ibs/Devel:/SLEnkins/SLE_12_SP1/"},
+#   this is a part of support server configuration
+#    {key => "SLENKINS_TESTSUITES_REPO", value => "http://download.suse.de/ibs/Devel:/SLEnkins:/testsuites/SLE_12_SP1/"},
+#
+#    {key => "SLENKINS_REPO", value => "http://download.suse.de/ibs/Devel:/SLEnkins/SLE_12_SP1/"},
 );
 
 my $template_node = pp(
@@ -43,8 +43,8 @@ my $template_node = pp(
 
     {key => "START_AFTER_TEST", value => "sles12_minimal_base+sdk_create_hdd"},
 
-    #   this should be a part of media configuration
-    #    {key => "SLENKINS_TESTSUITES_REPO", value => "http://download.suse.de/ibs/Devel:/SLEnkins:/testsuites/SLE_12_SP1/"},
+#   this should be a part of media configuration
+#    {key => "SLENKINS_TESTSUITES_REPO", value => "http://download.suse.de/ibs/Devel:/SLEnkins:/testsuites/SLE_12_SP1/"},
 );
 
 sub parse_channels {

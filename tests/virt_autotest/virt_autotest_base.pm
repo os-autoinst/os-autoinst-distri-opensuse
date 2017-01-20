@@ -138,7 +138,8 @@ sub push_junit_log {
 }
 
 sub run_test {
-    my ($self, $timeout, $assert_pattern, $add_junit_log_flag, $upload_virt_log_flag, $log_dir, $compressed_log_name) = @_;
+    my ($self, $timeout, $assert_pattern, $add_junit_log_flag, $upload_virt_log_flag, $log_dir, $compressed_log_name)
+      = @_;
     if (!$timeout) {
         $timeout = 300;
     }
@@ -156,7 +157,9 @@ sub run_test {
 
     if ($assert_pattern) {
         unless ($script_output =~ /$assert_pattern/m) {
-            assert_script_run("grep \"$assert_pattern\" $log_dir -r || zcat /tmp/$compressed_log_name.tar.gz | grep -a \"$assert_pattern\"");
+            assert_script_run(
+"grep \"$assert_pattern\" $log_dir -r || zcat /tmp/$compressed_log_name.tar.gz | grep -a \"$assert_pattern\""
+            );
         }
     }
 

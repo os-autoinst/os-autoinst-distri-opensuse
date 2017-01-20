@@ -50,7 +50,8 @@ sub connect_slave {
     $ipmi_pass //= 'ADMIN';
     die "Variable ipmi_machine is invalid in function connect_slave!" unless $ipmi_machine;
     script_run("clear");
-    type_string("ipmitool -H " . $ipmi_machine . " -U " . $ipmi_user . " -P " . $ipmi_pass . " -I lanplus sol activate", 20);
+    type_string("ipmitool -H " . $ipmi_machine . " -U " . $ipmi_user . " -P " . $ipmi_pass . " -I lanplus sol activate",
+        20);
     send_key 'ret';
     send_key 'ret';
     save_screenshot;

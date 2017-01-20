@@ -50,7 +50,8 @@ sub run() {
         assert_script_run "openssl dgst -dss1 -sign $dsa_prikey $file_dgt > $file_sig";
 
         # Verify signature with public key
-        validate_script_output "openssl dgst -dss1 -verify $dsa_pubkey -signature $file_sig $file_dgt", sub { m/Verified OK/ };
+        validate_script_output "openssl dgst -dss1 -verify $dsa_pubkey -signature $file_sig $file_dgt",
+          sub { m/Verified OK/ };
 
         # Clean up temp files
         script_run "rm -f $file_dgt $file_sig dsaparam.pem";

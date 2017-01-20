@@ -36,9 +36,10 @@ sub run() {
     script_run "cp /proc/sys/fs/inotify/max_user_instances ~; echo 512 > /proc/sys/fs/inotify/max_user_instances";
     assert_script_run './configure 2>&1 | tee /tmp/configure.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi', 600;
     assert_script_run
-      'make -j$(getconf _NPROCESSORS_ONLN) all 2>&1 | tee /tmp/make_all.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi',
+'make -j$(getconf _NPROCESSORS_ONLN) all 2>&1 | tee /tmp/make_all.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi',
       3600;
-    assert_script_run 'make install 2>&1 | tee /tmp/make_install.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi', 600;
+    assert_script_run 'make install 2>&1 | tee /tmp/make_install.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi',
+      600;
     script_run 'pushd /opt/ltp/';
 
     # gvfsd-trash running is probably causing https://github.com/linux-test-project/ltp/issues/92

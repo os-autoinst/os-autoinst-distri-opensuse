@@ -31,8 +31,9 @@ sub run() {
     if (get_var("UPGRADE")) {
         # if we made a migration, the version should be for example opensuse before migr. 42.1 > 42.2
         # extract number of version id: example SlES 12.2 -> 12.2. for opensuse also ok
-        my $OS_VERSION     = script_output("grep VERSION_ID /etc/os-release | cut -c13- | head -c -2");
-        my $OLD_OS_VERSION = script_output("grep VERSION_ID /.snapshots/2/snapshot/etc/os-release | cut -c13- | head -c -2");
+        my $OS_VERSION = script_output("grep VERSION_ID /etc/os-release | cut -c13- | head -c -2");
+        my $OLD_OS_VERSION
+          = script_output("grep VERSION_ID /.snapshots/2/snapshot/etc/os-release | cut -c13- | head -c -2");
         # grub_bug bug:956046. menu entry not stable. we could boot in wrong menu-entry.
         if ($OS_VERSION eq $OLD_OS_VERSION) {
             die "OS_VERSION after Rollback matches OS_VERSION before Rollback";

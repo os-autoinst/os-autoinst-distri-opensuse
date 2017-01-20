@@ -28,7 +28,7 @@ sub run() {
         type_string $testapi::password, max_interval => 5;
         wait_still_screen;
         wait_screen_change {
-            # Extra assert_and_click (with right click) to check the correct number of characters is typed and open up the 'show text' option
+# Extra assert_and_click (with right click) to check the correct number of characters is typed and open up the 'show text' option
             assert_and_click 'reboot-auth-typed', 'right';
         };
         wait_screen_change {
