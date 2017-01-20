@@ -249,6 +249,10 @@ sub wait_boot {
         if (get_var('ONLINE_MIGRATION')) {
             push @tags, 'migration-source-system-grub2';
         }
+        # after gh#os-autoinst/os-autoinst#641 68c815a "use bootindex for boot
+        # order on UEFI" the USB install medium is priority and will always be
+        # booted so we have to handle that
+        push @tags, 'inst-bootmenu' if (get_var('USBBOOT') and get_var('UEFI'));
         check_screen(\@tags, $bootloader_time);
         if (match_has_tag("bootloader-shim-import-prompt")) {
             send_key "down";
@@ -256,7 +260,7 @@ sub wait_boot {
             assert_screen "grub2", 15;
         }
         elsif (match_has_tag("migration-source-system-grub2") or match_has_tag('grub2')) {
-            send_key "ret";                                                      # boot to source system
+            send_key "ret";    # boot to source system
         }
         elsif (get_var("LIVETEST")) {
             # prevent if one day booting livesystem is not the first entry of the boot list
@@ -264,6 +268,15 @@ sub wait_boot {
                 send_key_until_needlematch("boot-live-" . get_var("DESKTOP"), 'down', 10, 5);
             }
             send_key "ret";
+        }
+        elsif (match_has_tag('inst-bootmenu')) {
+            # assuming the cursor is on 'installation' by default and 'boot from
+            # harddisk' is above
+            send_key_until_needlematch 'inst-bootmenu-boot-harddisk', 'up';
+            wait_screen_change { send_key 'ret' };
+            assert_screen 'grub2', 15;
+            # confirm default choice
+            send_key 'ret';
         }
         elsif (!match_has_tag("grub2")) {
             # check_screen timeout
