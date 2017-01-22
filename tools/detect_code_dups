@@ -98,15 +98,15 @@ sub __get_text {
 
     # delete end statement
     for my $statement (@{$Document->find('PPI::Statement')}) {
-	if ($statement->content eq '1;') {
-	    $statement->delete;
-	}
+    if ($statement->content eq '1;') {
+        $statement->delete;
+    }
     }
     # test_flags are duplicates
     for my $sub (@{$Document->find('PPI::Statement::Sub')}) {
-	if ($sub->name eq 'test_flags') {
-	    $sub->delete;
-	}
+    if ($sub->name eq 'test_flags') {
+        $sub->delete;
+    }
     }
 
     #my $lines = _dump($Document, []);
