@@ -137,12 +137,6 @@ for my $file (@files) {
     ++$here;
 }
 
-#print $Code::DRY::codetotal;
-
-use Data::Dumper;
-#print Dumper(\@files);
-#print $codetotal;
-
 # enter codestring
 Code::DRY::build_suffixarray_and_lcp($Code::DRY::codetotal) == 0
   or die "Error building suffix array:$!\n";
@@ -188,10 +182,6 @@ my $last_lcp = 0;
     if (1) {
         $last_lcp = $lcp;
     }
-
-    #print "index $_ with lcp ", get_len_at($_), " and offset ", get_offset_at($_), " is ", $res ? "accepted\n" : "filtered out\n";
-    #print "index $_ with lcp ", get_len_at($_), " and offset ", get_offset_at($_), " is accepted\n" if $res;
-    #print "index $_ with lcp ", get_len_at($_), " and offset ", get_offset_at($_), " is filtered out\n" if !$res;
     $res;
 } (1 .. $n - 1);
 
@@ -231,7 +221,6 @@ for my $matchentry_p (@ranks) {
         my $file_index   = Code::DRY::offset2fileindex($offset_start);
         my $file_start   = $file_index == 0 ? 0 : $Code::DRY::fileoffsets[$file_index - 1] + 1;
 
-        #print "$offset_start -> $offset_end => length ", $offset_end - $offset_start + 1, "\n";
         my ($upLine, $downLine);
         Code::DRY::offsetAndFileindex2line($offset_start, $file_index, \$upLine);
         Code::DRY::offsetAndFileindex2line($offset_end, $file_index, undef, \$downLine);
@@ -257,9 +246,6 @@ for my $matchentry_p (@ranks) {
     @dups = map { $_->[1] }
       sort { $a->[0] <=> $b->[0] } map { [$_->[2], $_] } @dups;
 
-    #print "\n";
-
     callback($minlength, $units, \@dups);
-
 }
 
