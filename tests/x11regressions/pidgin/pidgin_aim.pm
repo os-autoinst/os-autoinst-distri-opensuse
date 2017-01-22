@@ -17,7 +17,7 @@ use strict;
 use testapi;
 
 sub run() {
-    my ($self) = @_;
+    my ($self)    = @_;
     my $USERNAME  = "nooops_test3";
     my $USERNAME1 = "nooops_test4";
     my $DOMAIN    = "aim";
