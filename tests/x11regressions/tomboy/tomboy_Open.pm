@@ -18,6 +18,7 @@ use testapi;
 
 
 sub run() {
+    my ($self) = @_;
     # open start note and take screenshot
     x11_start_program("tomboy note");
     send_key "alt-f11";
@@ -41,28 +42,8 @@ sub run() {
     sleep 2;
     send_key "ctrl-w";
     sleep 2;
-    send_key "alt-f4";
-    sleep 2;
+    $self->tomboy_logout_and_login;
 
-    # logout
-    send_key "alt-f2";
-    sleep 1;
-    type_string "gnome-session-quit --logout --force\n";
-    sleep 20;
-    wait_idle;
-
-    # login
-    send_key "ret";
-    sleep 2;
-    wait_still_screen;
-    type_password();
-    sleep 2;
-    send_key "ret";
-    sleep 20;
-    wait_idle;
-
-    # open start note again and take screenshot
-    x11_start_program("tomboy note");
     send_key "alt-f11";
     sleep 2;
     send_key "up";
@@ -71,8 +52,6 @@ sub run() {
     send_key "ctrl-w";
     sleep 2;
     send_key "alt-f4";
-    sleep 2;
-    wait_idle;
 }
 
 1;

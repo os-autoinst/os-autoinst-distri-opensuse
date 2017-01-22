@@ -296,6 +296,26 @@ sub start_evolution {
     send_key $self->{next};
 }
 
+sub evolution_add_self_signed_ca {
+    my ($self, $account) = @_;
+    # add self-signed CA with internal account
+    if ($account =~ m/internal/) {
+        assert_and_click "evolution_wizard-receiving-checkauthtype";
+        assert_screen "evolution_mail_meeting_trust_ca";
+        send_key "alt-a";
+        wait_screen_change {
+            send_key $self->{next};
+            send_key "ret";
+        }
+    }
+    else {
+        send_key $self->{next};
+    }
+    if (sle_version_at_least('12-SP2')) {
+        send_key "ret";    #only need in SP2 or later
+    }
+}
+
 sub setup_mail_account {
     my ($self, $proto, $account) = @_;
 
@@ -351,22 +371,7 @@ sub setup_mail_account {
     wait_screen_change {
         send_key "ret";
     };
-    # add self-signed CA with internal account
-    if ($account =~ m/internal/) {
-        assert_and_click "evolution_wizard-receiving-checkauthtype";
-        assert_screen "evolution_mail_meeting_trust_ca";
-        send_key "alt-a";
-        wait_screen_change {
-            send_key $self->{next};
-            send_key "ret";
-        }
-    }
-    else {
-        send_key $self->{next};
-    }
-    if (sle_version_at_least('12-SP2')) {
-        send_key "ret";    #only need in SP2 or later
-    }
+    $self->evolution_add_self_signed_ca($account);
     save_screenshot;
     assert_screen "evolution_wizard-receiving-opts";
     send_key $self->{next};
@@ -419,22 +424,7 @@ sub setup_mail_account {
     };
     sleep 1;
     type_string "$mail_user";
-    # add self-signed CA with internal account
-    if ($account =~ m/internal/) {
-        assert_and_click "evolution_wizard-sending-checkauthtype";
-        assert_screen "evolution_mail_meeting_trust_ca";
-        send_key "alt-a";
-        wait_screen_change {
-            send_key $self->{next};
-            send_key "ret";
-        }
-    }
-    else {
-        send_key $self->{next};
-    }
-    if (sle_version_at_least('12-SP2')) {
-        send_key "ret";    #only in sp2, send ret to next page
-    }
+    $self->evolution_add_self_signed_ca($account);
     assert_screen "evolution_wizard-account-summary";
     send_key $self->{next};
     if (sle_version_at_least('12-SP2')) {
@@ -634,6 +624,64 @@ sub evolution_send_message {
     }
 
     return $mail_subject;
+}
+
+sub pidgin_remove_account {
+    send_key "ctrl-a";
+    sleep 2;
+    send_key "right";
+    sleep 2;
+    send_key "ret";
+    sleep 2;
+    send_key "alt-d";
+    sleep 2;
+    send_key "alt-d";
+}
+
+sub tomboy_logout_and_login {
+    wait_screen_change { send_key 'alt-f4' };
+
+    # logout
+    send_key "alt-f2";
+    sleep 1;
+    type_string "gnome-session-quit --logout --force\n";
+    sleep 20;
+    wait_idle;
+
+    # login
+    send_key "ret";
+    sleep 2;
+    wait_still_screen;
+    type_password();
+    sleep 2;
+    send_key "ret";
+    sleep 20;
+    wait_idle;
+
+    # open start note again and take screenshot
+    x11_start_program("tomboy note");
+}
+
+sub gnote_start_with_new_note {
+    x11_start_program("gnote");
+    assert_screen 'gnote-first-launched', 10;
+    send_key "ctrl-n";
+    assert_screen 'gnote-new-note', 5;
+}
+
+# clean: remove the created new note
+sub gnote_cleanup {
+    send_key "ctrl-tab";    #jump to toolbar
+    sleep 2;
+    send_key "ret";         #back to all notes interface
+    send_key_until_needlematch 'gnote-new-note-matched', 'down', 6;
+    send_key "delete";
+    sleep 2;
+    send_key "tab";
+    sleep 2;
+    send_key "ret";
+    sleep 2;
+    send_key "ctrl-w";
 }
 
 1;

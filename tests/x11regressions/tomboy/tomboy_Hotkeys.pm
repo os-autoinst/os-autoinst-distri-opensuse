@@ -18,10 +18,10 @@ use testapi;
 
 
 sub run() {
+    my ($self) = @_;
     # open Hotkeys sheet
     x11_start_program("tomboy note");
-    send_key "alt-e";
-    sleep 1;
+    wait_screen_change { send_key 'alt-e' };
     send_key "p";
     sleep 1;
     send_key "right";
@@ -34,27 +34,9 @@ sub run() {
     type_string "<Alt>F10\t<Alt>F9";
     assert_screen 'test-tomboy_Hotkeys-1', 3;
     sleep 2;
-    send_key "esc";
-    wait_idle;
-    send_key "alt-f4";
+    wait_screen_change { send_key 'esc' };
 
-    # logout
-    send_key "alt-f2";
-    sleep 1;
-    type_string "gnome-session-quit --logout --force\n";
-    sleep 20;
-    wait_idle;
-
-    # login and open tomboy again
-    send_key "ret";
-    sleep 2;
-    wait_still_screen;
-    type_password();
-    sleep 2;
-    send_key "ret";
-    sleep 20;
-    wait_idle;
-    x11_start_program("tomboy note");
+    $self->tomboy_logout_and_login;
 
     # test hotkeys
     send_key "alt-f12";
@@ -118,7 +100,6 @@ sub run() {
     send_key "esc";
     sleep 2;
     send_key "alt-f4";
-    sleep 2;
 }
 
 1;

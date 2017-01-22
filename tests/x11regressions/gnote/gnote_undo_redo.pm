@@ -17,12 +17,7 @@ use strict;
 use testapi;
 
 
-sub run() {
-    x11_start_program("gnote");
-    assert_screen "gnote-first-launched", 10;
-    send_key "ctrl-n";
-    assert_screen 'gnote-new-note', 5;
-    type_string "opensuse\nOPENSUSE\n";
+sub undo_redo_once {
     assert_screen 'gnote-new-note-1', 5;
     send_key "ctrl-z";    #undo
     assert_screen 'gnote-new-note', 5;
@@ -30,25 +25,29 @@ sub run() {
     sleep 2;
     send_key "left";            #unselect text
     assert_screen 'gnote-new-note-1', 5;
+}
+
+sub run() {
+    my ($self) = @_;
+    x11_start_program("gnote");
+    assert_screen "gnote-first-launched", 10;
+    send_key "ctrl-n";
+    assert_screen 'gnote-new-note', 5;
+    type_string "opensuse\nOPENSUSE\n";
+    $self->undo_redo_once;
 
     #assure undo and redo take effect after save note and re-enter note
-    send_key "ctrl-tab";        #jump to toolbar
+    send_key "ctrl-tab";    #jump to toolbar
     sleep 2;
-    send_key "ret";             #back to all notes interface
+    send_key "ret";         #back to all notes interface
     send_key_until_needlematch 'gnote-new-note-matched', 'down', 6;
     send_key "ret";
-    assert_screen 'gnote-new-note-1', 5;
-    send_key "ctrl-z";          #undo
-    assert_screen 'gnote-new-note', 5;
-    send_key "ctrl-shift-z";    #redo
-    sleep 2;
-    send_key "left";            #unselect text
-    assert_screen 'gnote-new-note-1', 5;
+    $self->undo_redo_once;
 
     #clean: remove the created new note
-    send_key "ctrl-tab";        #jump to toolbar
+    send_key "ctrl-tab";    #jump to toolbar
     sleep 2;
-    send_key "ret";             #back to all notes interface
+    send_key "ret";         #back to all notes interface
     send_key_until_needlematch 'gnote-new-note-matched', 'down', 6;
     send_key "delete";
     sleep 2;
