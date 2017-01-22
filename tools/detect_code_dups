@@ -249,3 +249,4 @@ for my $matchentry_p (@ranks) {
     callback($minlength, $units, \@dups);
 }
 
+exit ! (scalar @ranks == 0);
