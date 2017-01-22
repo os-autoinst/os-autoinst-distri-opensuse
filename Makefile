@@ -63,8 +63,12 @@ test-merge:
 	fi
 	@test ! -f failed
 
+.PHONY: test-dry
+test-dry:
+	export PERL5LIB=${PERL5LIB_} ; tools/detect_code_dups
+
 .PHONY: test
-test: tidy test-compile test-merge
+test: tidy test-compile test-merge test-dry
 
 PERLCRITIC=PERL5LIB=tools/lib/perlcritic:$$PERL5LIB perlcritic --quiet --gentle --include Perl::Critic::Policy::HashKeyQuote --include Perl::Critic::Policy::ConsistentQuoteLikeWords
 
