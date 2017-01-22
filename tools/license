@@ -1,0 +1,8 @@
+#!/bin/sh -e
+# inspired by http://stackoverflow.com/a/151699/5031322
+license_length=$(wc -l LICENSE | cut -f1 -d ' ')
+files="${*:-$(git ls-files 'tests/*.pm')}"
+for x in $files; do
+    tmp=$(mktemp)
+    head -$license_length $x | diff LICENSE - || ( (cat LICENSE; echo; cat $x) > $tmp; mv $tmp $x)
+done

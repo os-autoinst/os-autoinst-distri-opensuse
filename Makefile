@@ -77,7 +77,11 @@ test-no-wait_idle:
 	@! git --no-pager grep wait_idle lib/ tests/
 
 .PHONY: test-static
-test-static: tidy test-merge test-dry test-no-wait_idle test-unused-modules test-soft_failure-no-reference
+test-static: tidy test-merge test-dry test-no-wait_idle test-unused-modules test-soft_failure-no-reference test-license
+
+.PHONY: test-license
+test-license:
+	tools/license
 
 .PHONY: test
 ifeq ($(TESTS),compile)
