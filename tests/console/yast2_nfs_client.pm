@@ -59,14 +59,23 @@ sub run() {
     #
     # Check the result
     #
-    script_run "cat /tmp/nfs/client/file.txt > /dev/$serialdev", 0;
-
+    # check if nfs is mounted
+    script_run 'mount|grep nfs';
     # Wait for more than 90 seconds due to NFSD's 90 second grace period.
-    wait_serial('It worked', 100) || die "Reading from nfs failed.";
+    diag 'waiting 90 second due NFS grace period';
+    sleep 90;
+    # script_run is using bash return logic not perl logic, 0 is true
+    if ((script_run 'grep "It worked" /tmp/nfs/client/file.txt') != 0) {
+        record_soft_failure 'boo#1006815 nfs mount is not mounted';
+    }
     # remove added nfs from /etc/fstab
     assert_script_run 'sed -i \'/nfs/d\' /etc/fstab';
     # compare saved and current fstab, should be same
-    assert_script_run 'diff -b /etc/fstab fstab_before';
+    if ((script_run 'diff -b /etc/fstab fstab_before') != 0) {
+        record_soft_failure 'bsc#429326 comments were deleted';
+    }
+    # compare last line, should be not deleted
+    assert_script_run 'diff -b <(tail -n1 /etc/fstab) <(tail -n1 fstab_before)';
 }
 
 1;
