@@ -24,11 +24,12 @@ sub set_scc_proxy_url() {
 
 sub check_or_install_packages() {
     if (get_var("FULL_UPDATE") || get_var("MINIMAL_UPDATE")) {
-        # if system is fully updated or even minimal patch applied, all necessary packages for online migration should be installed
-        # check if the packages was installed along with update
+# if system is fully updated or even minimal patch applied, all necessary packages for online migration should be installed
+# check if the packages was installed along with update
         my $output = script_output "rpm -qa yast2-migration zypper-migration-plugin rollback-helper | sort";
         if ($output !~ /rollback-helper.*?yast2-migration.*?zypper-migration-plugin/s) {
-            record_soft_failure 'bsc#982150: migration packages were not installed along with system update. Installing missed package to continue the test';
+            record_soft_failure
+'bsc#982150: migration packages were not installed along with system update. Installing missed package to continue the test';
             assert_script_run "zypper -n in yast2-migration zypper-migration-plugin rollback-helper snapper", 190;
         }
     }
@@ -44,7 +45,8 @@ sub remove_kgraft_patch {
         for my $addon (split(/,/, get_var('SCC_ADDONS', ''))) {
             if ($addon eq 'live') {
                 zypper_call('rm $(rpm -qa kgraft-patch-*)');
-                record_soft_failure 'bsc#985647: [online migration] Conflict on kgraft-patch-3_12_57 when doing SCC online migration with Live Patching addon';
+                record_soft_failure
+'bsc#985647: [online migration] Conflict on kgraft-patch-3_12_57 when doing SCC online migration with Live Patching addon';
             }
         }
     }

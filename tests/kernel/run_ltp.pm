@@ -208,7 +208,8 @@ sub record_ltp_result {
         close $fh;
         push @{$self->{details}}, $details;
         save_memory_dump($name);
-        die "Can't continue; timed out waiting for LTP test case which may still be running or the OS may have crashed!";
+        die
+          "Can't continue; timed out waiting for LTP test case which may still be running or the OS may have crashed!";
     }
 
     if ($is_posix) {

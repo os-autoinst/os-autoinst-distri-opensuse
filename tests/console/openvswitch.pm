@@ -61,8 +61,10 @@ sub run() {
     assert_script_run "ovs-vsctl add-br ovs-openqa-br0";
     assert_script_run "ovs-vsctl add-br ovs-openqa-br1";
 
-    assert_script_run "ovs-vsctl add-port ovs-openqa-br0 patch-br1 -- set interface patch-br1 type=patch options:peer=patch-br0";
-    assert_script_run "ovs-vsctl add-port ovs-openqa-br1 patch-br0 -- set interface patch-br0 type=patch options:peer=patch-br1";
+    assert_script_run
+      "ovs-vsctl add-port ovs-openqa-br0 patch-br1 -- set interface patch-br1 type=patch options:peer=patch-br0";
+    assert_script_run
+      "ovs-vsctl add-port ovs-openqa-br1 patch-br0 -- set interface patch-br0 type=patch options:peer=patch-br1";
 
     script_run "ip link add ovs-veth0 type veth peer name ovs-veth-br0";
     script_run "ip link add ovs-veth1 type veth peer name ovs-veth-br1";

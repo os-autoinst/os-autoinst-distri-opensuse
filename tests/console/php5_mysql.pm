@@ -37,7 +37,9 @@ qq{mysql -u root -e "CREATE DATABASE openQAdb; USE openQAdb; CREATE TABLE test (
     # configure the PHP code that:
     #  1. reads table 'test' from the 'openQAdb' database
     #  2. inserts a new element 'can php write this?' into the same table
-    type_string "wget --quiet " . data_url('console/test_mysql_connector.php') . " -O /srv/www/htdocs/test_mysql_connector.php\n";
+    type_string "wget --quiet "
+      . data_url('console/test_mysql_connector.php')
+      . " -O /srv/www/htdocs/test_mysql_connector.php\n";
     assert_script_run "systemctl restart apache2.service";
 
     # access the website and verify that it can read the database

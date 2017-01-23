@@ -62,12 +62,14 @@ sub install_from_git {
     assert_script_run './configure --with-open-posix-testsuite --with-realtime-testsuite';
     assert_script_run 'make -j$(getconf _NPROCESSORS_ONLN)', timeout => 1440;
     assert_script_run 'make install',                        timeout => 360;
-    assert_script_run "find ~/ltp/testcases/open_posix_testsuite/conformance/interfaces -name '*.run-test' > ~/openposix_test_list.txt";
+    assert_script_run
+      "find ~/ltp/testcases/open_posix_testsuite/conformance/interfaces -name '*.run-test' > ~/openposix_test_list.txt";
 }
 
 sub install_from_repo {
     zypper_call 'in qa_test_ltp';
-    assert_script_run "find /opt/ltp/testcases/bin/openposix/conformance/interfaces/ -name '*.run-test' > ~/openposix_test_list.txt";
+    assert_script_run
+      "find /opt/ltp/testcases/bin/openposix/conformance/interfaces/ -name '*.run-test' > ~/openposix_test_list.txt";
 }
 
 sub run {

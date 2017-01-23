@@ -21,7 +21,8 @@ sub run() {
     my $packages = get_var("INSTALL_PACKAGES");
 
     assert_script_run("zypper -n in -l perl-solv");
-    my $ex = script_run("~$username/data/lsmfip --verbose $packages > \$XDG_RUNTIME_DIR/install_packages.txt 2> /tmp/lsmfip.log");
+    my $ex = script_run(
+        "~$username/data/lsmfip --verbose $packages > \$XDG_RUNTIME_DIR/install_packages.txt 2> /tmp/lsmfip.log");
     upload_logs '/tmp/lsmfip.log';
     die "lsmfip failed" if $ex;
     # make sure we install at least one package - otherwise this test is pointless
@@ -29,7 +30,9 @@ sub run() {
     assert_script_run("test -s \$XDG_RUNTIME_DIR/install_packages.txt");
     # might take longer for large patches (i.e. 12 kernel flavors)
     assert_script_run("xargs --no-run-if-empty zypper -n in -l < \$XDG_RUNTIME_DIR/install_packages.txt", 800);
-    assert_script_run("grep -Ev '^-' \$XDG_RUNTIME_DIR/install_packages.txt | xargs --no-run-if-empty rpm -q -- | tee /dev/$serialdev");
+    assert_script_run(
+        "grep -Ev '^-' \$XDG_RUNTIME_DIR/install_packages.txt | xargs --no-run-if-empty rpm -q -- | tee /dev/$serialdev"
+    );
 }
 
 sub test_flags() {

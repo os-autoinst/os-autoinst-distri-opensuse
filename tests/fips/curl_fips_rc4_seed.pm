@@ -20,8 +20,9 @@ use strict;
 
 sub run {
     select_console 'root-console';
-    validate_script_output "curl --ciphers RC4,SEED -v https://eu.httpbin.org/get 2>&1 || true", sub { m/failed setting cipher/ };
-    validate_script_output "rpm -q curl libcurl4",                                               sub { m/curl-.*/ };
+    validate_script_output "curl --ciphers RC4,SEED -v https://eu.httpbin.org/get 2>&1 || true",
+      sub { m/failed setting cipher/ };
+    validate_script_output "rpm -q curl libcurl4", sub { m/curl-.*/ };
 }
 
 sub test_flags {

@@ -15,7 +15,8 @@ use strict;
 use testapi;
 
 sub run() {
-    assert_script_run "systemctl -q is-active SuSEfirewall2 && systemctl disable SuSEfirewall2; systemctl stop SuSEfirewall2";
+    assert_script_run
+      "systemctl -q is-active SuSEfirewall2 && systemctl disable SuSEfirewall2; systemctl stop SuSEfirewall2";
 }
 
 sub test_flags {

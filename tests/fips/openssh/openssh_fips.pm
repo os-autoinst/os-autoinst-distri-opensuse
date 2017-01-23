@@ -28,18 +28,20 @@ sub run {
 
     # Verify MD5 is disabled in fips mode, no need to login
     validate_script_output
-      'expect -c "spawn ssh -v -o StrictHostKeyChecking=no localhost; expect -re \[Pp\]assword; send badpass\n; exit 0"',
+'expect -c "spawn ssh -v -o StrictHostKeyChecking=no localhost; expect -re \[Pp\]assword; send badpass\n; exit 0"',
       sub { m/MD5 not allowed in FIPS 140-2 mode, using SHA|Server host key: .* SHA/ };
 
     # Verify ssh doesn't work with non-approved cipher in fips mode
-    validate_script_output 'expect -c "spawn ssh -v -c blowfish localhost; expect EOF; exit 0"', sub { m/Unknown cipher type|no matching cipher found/ };
+    validate_script_output 'expect -c "spawn ssh -v -c blowfish localhost; expect EOF; exit 0"',
+      sub { m/Unknown cipher type|no matching cipher found/ };
 
     # Verify ssh doesn't work with non-approved hash in fips mode
     validate_script_output 'expect -c "spawn ssh -v -c aes256-ctr -m hmac-md5 localhost; expect EOF; exit 0"',
       sub { m/Unknown mac type|no matching MAC found/ };
 
     # Verify ssh doesn't support DSA public key in fips mode
-    validate_script_output 'ssh-keygen -t dsa -f ~/.ssh/id_dsa -P "" 2>&1 || true', sub { m/Key type dsa not alowed in FIPS mode/ };
+    validate_script_output 'ssh-keygen -t dsa -f ~/.ssh/id_dsa -P "" 2>&1 || true',
+      sub { m/Key type dsa not alowed in FIPS mode/ };
 }
 
 sub test_flags {

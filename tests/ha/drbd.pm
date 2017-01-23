@@ -42,7 +42,8 @@ q(awk -e '{print;}/startup {/{print "wfc-timeout 100;\ndegr-wfc-timeout 120;"};'
         assert_script_run "drbdadm primary --force r0";
         assert_script_run "drbdadm status r0";
         # run assert_script_run timeout 240 during the long assert_script_run drbd sync
-        assert_script_run q(while ! `drbdadm status r0 | grep -q "peer-disk:UpToDate"`; do sleep 10; drbdadm status r0;  done), 240;
+        assert_script_run
+          q(while ! `drbdadm status r0 | grep -q "peer-disk:UpToDate"`; do sleep 10; drbdadm status r0;  done), 240;
     }
     else {
         type_string "echo wait until drbd device is created\n";
@@ -55,7 +56,8 @@ q(awk -e '{print;}/startup {/{print "wfc-timeout 100;\ndegr-wfc-timeout 120;"};'
     else {
         assert_script_run "drbdadm status r0";
         # run assert_script_run timeout 240 during the long assert_script_run drbd sync
-        assert_script_run q(while ! `drbdadm status r0 | grep -q "peer-disk:UpToDate"`; do sleep 10;drbdadm status r0; done), 240;
+        assert_script_run
+          q(while ! `drbdadm status r0 | grep -q "peer-disk:UpToDate"`; do sleep 10;drbdadm status r0; done), 240;
     }
     save_screenshot;
     barrier_wait("DRBD_SETUP_DONE_" . $self->cluster_name);
@@ -73,7 +75,8 @@ q(awk -e '{print;}/startup {/{print "wfc-timeout 100;\ndegr-wfc-timeout 120;"};'
     else {
         assert_script_run "crm resource migrate ms-drbd-data host2";
         # check the migration / timeout 240 sec it takes some time to update
-        assert_script_run q(while ! `drbdadm status r0 | grep -q "r0 role:Primary"`; do sleep 10; drbdadm status r0;  done), 240;
+        assert_script_run
+          q(while ! `drbdadm status r0 | grep -q "r0 role:Primary"`; do sleep 10; drbdadm status r0;  done), 240;
         assert_script_run "crm resource status ms-drbd-data | grep 'host2 Master'";
     }
     barrier_wait("DRBD_MIGRATIONDONE_" . $self->cluster_name);

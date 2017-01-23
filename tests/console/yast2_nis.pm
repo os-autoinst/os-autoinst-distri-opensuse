@@ -55,13 +55,13 @@ sub run() {
     type_string "/mounts_local";
     send_key 'alt-o';
     assert_screen 'nfs_server_added';                  # check Mount point
-    wait_screen_change { send_key 'alt-t' };           # go back to nfs configuration and delete configuration created before
-    assert_screen 'nis_server_delete';                 # confirm to delete configuration
+    wait_screen_change { send_key 'alt-t' };    # go back to nfs configuration and delete configuration created before
+    assert_screen 'nis_server_delete';          # confirm to delete configuration
     send_key 'alt-y';
     wait_screen_change { send_key 'alt-o' };
-    send_key 'alt-f';                                  # close the dialog...
-    assert_screen 'nis_server_not_found';              # check error message for 'nis server not found'
-    send_key 'alt-o';                                  # close it now even when config is not valid
+    send_key 'alt-f';                           # close the dialog...
+    assert_screen 'nis_server_not_found';       # check error message for 'nis server not found'
+    send_key 'alt-o';                           # close it now even when config is not valid
 }
 1;
 

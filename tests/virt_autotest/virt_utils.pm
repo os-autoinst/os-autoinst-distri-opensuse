@@ -76,7 +76,8 @@ sub repl_repo_in_sourcefile() {
     # Replace the daily build repo as guest installation resource in source file (like source.cn; source.de ..)
     my $veritem = "source.http.sles-" . lc(get_var("VERSION")) . "-64";
     if (get_var("REPO_0")) {
-        my $location = &virt_autotest_base::execute_script_run("", "perl /usr/share/qa/tools/location_detect_impl.pl", 60);
+        my $location
+          = &virt_autotest_base::execute_script_run("", "perl /usr/share/qa/tools/location_detect_impl.pl", 60);
         $location =~ s/[\r\n]+$//;
         my $soucefile = "/usr/share/qa/virtautolib/data/" . "sources." . "$location";
         my $newrepo   = "ftp://openqa.suse.de/" . get_var("REPO_0");

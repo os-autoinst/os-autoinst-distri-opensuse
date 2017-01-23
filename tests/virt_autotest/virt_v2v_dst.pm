@@ -26,7 +26,8 @@ sub get_script_run() {
     my $guests   = get_var("GUEST_LIST");
     our $virt_v2v_log;
 
-    my $pre_test_cmd = "/usr/share/qa/virtautolib/lib/virt_v2v_test.sh -s $src_ip -u $src_user -p $src_pass -i \"$guests\" 2>&1 | tee $virt_v2v_log";
+    my $pre_test_cmd
+      = "/usr/share/qa/virtautolib/lib/virt_v2v_test.sh -s $src_ip -u $src_user -p $src_pass -i \"$guests\" 2>&1 | tee $virt_v2v_log";
 
     return "$pre_test_cmd";
 }

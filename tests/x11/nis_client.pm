@@ -66,9 +66,9 @@ sub run() {
     assert_screen 'nis-client-configuration';
     send_key 'alt-f';                                                        # finish
     assert_screen 'yast2_closed_xterm_visible', 90;
-    script_run 'mount|grep nfs';                                             # print nfs mounts
-    script_run 'echo "nfs is working" > /home/nis_user/test';                # create file with text, will be checked by server
-    type_string "killall xterm\n";                                           # game over -> xterm
+    script_run 'mount|grep nfs';                                 # print nfs mounts
+    script_run 'echo "nfs is working" > /home/nis_user/test';    # create file with text, will be checked by server
+    type_string "killall xterm\n";                               # game over -> xterm
 }
 
 sub test_flags {

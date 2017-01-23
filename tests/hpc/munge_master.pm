@@ -33,7 +33,8 @@ sub run() {
 
     zypper_call('in munge libmunge2');
     barrier_wait('MUNGE_INSTALLED');
-    exec_and_insert_password('scp -o StrictHostKeyChecking=no /etc/munge/munge.key root@172.16.0.23:/etc/munge/munge.key');
+    exec_and_insert_password(
+        'scp -o StrictHostKeyChecking=no /etc/munge/munge.key root@172.16.0.23:/etc/munge/munge.key');
     barrier_wait('MUNGE_KEY_COPY');
     assert_script_run('systemctl enable munge.service');
     assert_script_run('systemctl start munge.service');

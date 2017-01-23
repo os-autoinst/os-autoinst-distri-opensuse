@@ -38,7 +38,7 @@ sub run() {
 qq(EDITOR="sed -ie '\$ a primitive ocfs2-1 ocf:heartbeat:Filesystem params device='`ls -1 $ocfs2_partition`' directory="/srv/ocfs2" fstype="ocfs2" options="acl" op monitor interval=20 timeout=40'" crm configure edit; echo ocfs2_add=\$? > /dev/$serialdev\n);
         die "create OCFS2 resource failed" unless wait_serial "ocfs2_add=0", 60;
         type_string
-          qq(EDITOR="sed -ie 's/group base-group dlm/group base-group dlm ocfs2-1/'" crm configure edit; echo base_group_alter=\$? > /dev/$serialdev\n);
+qq(EDITOR="sed -ie 's/group base-group dlm/group base-group dlm ocfs2-1/'" crm configure edit; echo base_group_alter=\$? > /dev/$serialdev\n);
         die "adding ocfs2-1 to base-group failed" unless wait_serial "base_group_alter=0", 60;
     }
     barrier_wait("OCFS2_GROUP_ALTERED_" . $self->cluster_name);

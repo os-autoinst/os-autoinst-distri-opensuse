@@ -18,7 +18,8 @@ use testapi;
 
 sub run() {
     # ordered according to real repos lists
-    my @default_repos = qw(update-non-oss update-oss main-non-oss main-oss debug-main untested-update debug-update source);
+    my @default_repos
+      = qw(update-non-oss update-oss main-non-oss main-oss debug-main untested-update debug-update source);
 
     # maybe slow due to network connectivity
     assert_screen 'online-repos', 200;

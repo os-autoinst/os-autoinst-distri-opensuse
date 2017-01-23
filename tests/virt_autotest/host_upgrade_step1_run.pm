@@ -25,7 +25,8 @@ sub get_script_run() {
 
 sub run() {
     my $self = shift;
-    $self->run_test(5400, "Test run completed successfully", "no", "yes", "/var/log/qa/", "host-upgrade-updateVirtRpms");
+    $self->run_test(5400, "Test run completed successfully", "no", "yes", "/var/log/qa/",
+        "host-upgrade-updateVirtRpms");
 }
 1;
 

@@ -5,7 +5,8 @@ use strict;
 
 sub use_wicked() {
     script_run "cd /proc/sys/net/ipv4/conf";
-    script_run "for i in *[0-9]; do echo BOOTPROTO=dhcp > /etc/sysconfig/network/ifcfg-\$i; wicked --debug all ifup \$i; done";
+    script_run
+      "for i in *[0-9]; do echo BOOTPROTO=dhcp > /etc/sysconfig/network/ifcfg-\$i; wicked --debug all ifup \$i; done";
 }
 
 sub use_ifconfig() {
@@ -95,7 +96,8 @@ sub check_and_record_dependency_problems {
             send_key 'alt-a';
         };
         send_key 'alt-o';
-        assert_screen "inst-overview-after-depfix";    # Make sure you're back on the inst-overview before doing anything else
+        assert_screen
+          "inst-overview-after-depfix";    # Make sure you're back on the inst-overview before doing anything else
     }
     else {
         save_screenshot;

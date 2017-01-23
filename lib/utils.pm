@@ -214,10 +214,20 @@ sub minimal_patch_system {
     my (%args) = @_;
     $args{version_variable} //= 'VERSION';
     if (sle_version_at_least('12-SP1', version_variable => $args{version_variable})) {
-        zypper_call('patch --with-interactive -l --updatestack-only', exitcode => [0, 102, 103], timeout => 1500, log => 'minimal_patch.log');
+        zypper_call(
+            'patch --with-interactive -l --updatestack-only',
+            exitcode => [0, 102, 103],
+            timeout  => 1500,
+            log      => 'minimal_patch.log'
+        );
     }
     else {
-        zypper_call('patch --with-interactive -l', exitcode => [0, 102, 103], timeout => 1500, log => 'minimal_patch.log');
+        zypper_call(
+            'patch --with-interactive -l',
+            exitcode => [0, 102, 103],
+            timeout  => 1500,
+            log      => 'minimal_patch.log'
+        );
     }
 }
 
@@ -236,7 +246,8 @@ sub workaround_type_encrypted_passphrase {
 sub ensure_unlocked_desktop {
     my $counter = 10;
     while ($counter--) {
-        assert_screen [qw/displaymanager displaymanager-password-prompt generic-desktop screenlock gnome-screenlock-password/];
+        assert_screen [
+            qw/displaymanager displaymanager-password-prompt generic-desktop screenlock gnome-screenlock-password/];
         if (match_has_tag 'displaymanager') {
             if (check_var('DESKTOP', 'minimalx')) {
                 type_string "$username";
@@ -274,7 +285,7 @@ sub ensure_unlocked_desktop {
             };
         }
         wait_still_screen 2;       # slow down loop
-        die 'ensure_unlocked_desktop repeated too much' if ($counter eq 1);    # die loop when generic-desktop not matched
+        die 'ensure_unlocked_desktop repeated too much' if ($counter eq 1);  # die loop when generic-desktop not matched
     }
 }
 
@@ -339,9 +350,9 @@ sub reboot_gnome {
         assert_screen 'reboot-auth';
         wait_still_screen 3;
         type_password undef, max_interval => 5;
-        # Extra assert_and_click (with right click) to check the correct number of characters is typed and open up the 'show text' option
+# Extra assert_and_click (with right click) to check the correct number of characters is typed and open up the 'show text' option
         assert_and_click 'reboot-auth-typed', 'right';
-        assert_and_click 'reboot-auth-showtext';         # Click the 'Show Text' Option to enable the display of the typed text
+        assert_and_click 'reboot-auth-showtext';  # Click the 'Show Text' Option to enable the display of the typed text
         assert_screen 'reboot-auth-correct-password';    # Check the password is correct
 
         # we need to kill ssh for iucvconn here,
@@ -549,7 +560,8 @@ sub validate_repos_sle {
             validatelr({product => "SLES", uri => "$cd:///", version => $version});
             validatelr({product => 'SLE-*HA', uri => get_var('ADDONURL_HA') || "$dvd:///", version => $version});
             if (exists $h_addonurl{geo} || exists $h_addons{geo}) {
-                validatelr({product => 'SLE-*HAGEO', uri => get_var('ADDONURL_GEO') || "$dvd:///", version => $version});
+                validatelr(
+                    {product => 'SLE-*HAGEO', uri => get_var('ADDONURL_GEO') || "$dvd:///", version => $version});
             }
             delete @h_addonurl{qw(ha geo)};
             delete @h_addons{qw(ha geo)};

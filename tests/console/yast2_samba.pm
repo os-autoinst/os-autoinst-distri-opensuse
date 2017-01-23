@@ -20,7 +20,8 @@ sub run() {
     # check network at first
     assert_script_run("if ! systemctl -q is-active network; then systemctl -q start network; fi");
     # install local ldap server
-    assert_script_run("zypper -n -q in yast2-auth-server yast2-ldap openldap2 openldap2-client krb5-server krb5-client tdb-tools");
+    assert_script_run(
+        "zypper -n -q in yast2-auth-server yast2-ldap openldap2 openldap2-client krb5-server krb5-client tdb-tools");
 
     script_run("yast2 auth-server", 0);
     # check ldap server configuration started

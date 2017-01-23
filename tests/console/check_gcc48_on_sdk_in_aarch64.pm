@@ -24,10 +24,22 @@ sub run() {
         diag "checking package $package (only binary packages)";
         script_run('zypper search -t package --details ' . $package);
         diag "checking package $package is *not* in repo \'$not_repo\'";
-        assert_script_run('! zypper search -t package --details ' . $package . ' | grep \'\s\+' . $package . '\s\+.*' . $not_repo . '\'');
+        assert_script_run('! zypper search -t package --details '
+              . $package
+              . ' | grep \'\s\+'
+              . $package
+              . '\s\+.*'
+              . $not_repo
+              . '\'');
         if (get_var('ADDONS', '') =~ /sdk/) {
             diag "checking package $package *is* in repo \'$repo\'";
-            assert_script_run('zypper search -t package --details ' . $package . ' | grep \'\s\+' . $package . '\s\+.*' . $repo . '\'');
+            assert_script_run('zypper search -t package --details '
+                  . $package
+                  . ' | grep \'\s\+'
+                  . $package
+                  . '\s\+.*'
+                  . $repo
+                  . '\'');
         }
     }
 }

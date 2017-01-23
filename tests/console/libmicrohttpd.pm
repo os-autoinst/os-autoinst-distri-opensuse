@@ -25,7 +25,8 @@ sub run() {
     clear_console;
     assert_script_run "mkdir -p /etc/openvas/cert";
     assert_script_run "cd /etc/openvas/cert";
-    assert_script_run "echo -e \"\n\n\n\n\n\n\" | openssl req -new -x509 -newkey rsa:2048 -keyout gsa.key -days 3560 -out gsa.cert -nodes";
+    assert_script_run
+"echo -e \"\n\n\n\n\n\n\" | openssl req -new -x509 -newkey rsa:2048 -keyout gsa.key -days 3560 -out gsa.cert -nodes";
     assert_script_run "ls gsa.key gsa.cert";
 
     # Start greenbone-security-assistant

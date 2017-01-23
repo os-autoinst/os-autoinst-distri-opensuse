@@ -138,7 +138,8 @@ sub ensure_installed {
     my $retries = 5;    # arbitrary
 
     # make sure packagekit service is available
-    testapi::assert_script_sudo('systemctl is-active -q packagekit || (systemctl unmask -q packagekit ; systemctl start -q packagekit)');
+    testapi::assert_script_sudo(
+        'systemctl is-active -q packagekit || (systemctl unmask -q packagekit ; systemctl start -q packagekit)');
     $self->script_run(
 "for i in {1..$retries} ; do pkcon install $pkglist && break ; done ; RET=\$?; echo \"\n  pkcon finished\n\"; echo \"pkcon-\${RET}-\" > /dev/$testapi::serialdev",
         0
@@ -360,7 +361,7 @@ sub activate_console {
 
     if ($console eq 'install-shell' && get_var('BACKEND', 'qemu')) {
         if (get_var("LIVECD")) {
-            # LIVE CDa do not run inst-consoles as started by inst-linux (it's regular live run, auto-starting yast live installer)
+ # LIVE CDa do not run inst-consoles as started by inst-linux (it's regular live run, auto-starting yast live installer)
             assert_screen "text-login", 10;
             # login as root, who does not have a password on Live-CDs
             type_string "root\n";

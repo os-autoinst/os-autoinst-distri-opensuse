@@ -33,7 +33,8 @@ sub run() {
     assert_script_run("fdisk -l " . $partition);
     # add extra repo, because original qa-head repo don't contain some packages required by xfstests
     assert_script_run("cd /root/");
-    assert_script_run("zypper ar http://download.suse.de/ibs/home:/yosun:/branches:/QA:/Head:/Devel/SLE-12-SP2/ extra-repo");
+    assert_script_run(
+        "zypper ar http://download.suse.de/ibs/home:/yosun:/branches:/QA:/Head:/Devel/SLE-12-SP2/ extra-repo");
     assert_script_run("zypper ref");
     assert_script_run("zypper lr -U");
     # prepare/clone/make/install xfstests

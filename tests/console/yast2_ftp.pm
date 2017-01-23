@@ -26,7 +26,8 @@ sub run() {
 
     # create DSA certificate for ftp server at first which can be used for SSL configuration
     script_run("openssl dsaparam -out dsaparam.pem 1024");
-    type_string("openssl req -x509 -nodes -days 365 -newkey dsa:dsaparam.pem -keyout /etc/vsftpd.pem -out /etc/vsftpd.pem\n");
+    type_string(
+        "openssl req -x509 -nodes -days 365 -newkey dsa:dsaparam.pem -keyout /etc/vsftpd.pem -out /etc/vsftpd.pem\n");
 
     sleep 2;
     type_string "DE\n";

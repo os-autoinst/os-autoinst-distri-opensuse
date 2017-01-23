@@ -32,9 +32,11 @@ sub run() {
     wait_serial("ip1_okay") || die "support server doesn't have IP1";
     type_string "if `ip a | grep -q '172.16.0.17/28'`; then echo ip2_okay > /dev/$serialdev; fi\n";
     wait_serial("ip2_okay") || die "support server doesn't have IP2";
-    type_string "if `dig \@localhost srv1.alpha.ha-test.qa.suse.de +short | grep -q 172.16.0.1`; then echo dns1_okay > /dev/$serialdev; fi\n";
+    type_string
+"if `dig \@localhost srv1.alpha.ha-test.qa.suse.de +short | grep -q 172.16.0.1`; then echo dns1_okay > /dev/$serialdev; fi\n";
     wait_serial("dns1_okay") || die "support server cannot resolve DNS1";
-    type_string "if `dig \@localhost srv1.bravo.ha-test.qa.suse.de +short | grep -q 172.16.0.17`; then echo dns2_okay > /dev/$serialdev; fi\n";
+    type_string
+"if `dig \@localhost srv1.bravo.ha-test.qa.suse.de +short | grep -q 172.16.0.17`; then echo dns2_okay > /dev/$serialdev; fi\n";
     wait_serial("dns2_okay") || die "support server cannot resolve DNS2";
     type_string "exit\n";
     wait_for_children;    #don't destroy support server while children are running

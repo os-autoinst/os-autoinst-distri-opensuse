@@ -18,7 +18,7 @@ sub run() {
     select_console 'root-console';
     assert_script_run 'which OneClickInstallCLI || zypper -n in yast2-metapackage-handler',  200;
     assert_script_run 'yes | OneClickInstallCLI http://machinery-project.org/machinery.ymp', 200;
-    validate_script_output 'machinery --help',                                               sub { m/machinery - A systems management toolkit for Linux/ }, 100;
+    validate_script_output 'machinery --help', sub { m/machinery - A systems management toolkit for Linux/ }, 100;
 }
 
 1;

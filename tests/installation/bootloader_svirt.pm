@@ -224,11 +224,17 @@ sub run() {
         # happens to be omnipresent on workstations, bridges (br0, ...) on servers. If both 'default'
         # network and bridge are defined and active, bridge should be prefered as 'default' network
         # does not work.
-        if (my $bridges = $svirt->get_cmd_output("virsh iface-list --all | grep -w active | awk '{ print \$1 }' | tail -n1 | tr -d '\\n'")) {
+        if (
+            my $bridges = $svirt->get_cmd_output(
+                "virsh iface-list --all | grep -w active | awk '{ print \$1 }' | tail -n1 | tr -d '\\n'"))
+        {
             $ifacecfg{type} = 'bridge';
             $ifacecfg{source} = {bridge => $bridges};
         }
-        elsif (my $networks = $svirt->get_cmd_output("virsh net-list --all | grep -w active | awk '{ print \$1 }' | tail -n1 | tr -d '\\n'")) {
+        elsif (
+            my $networks = $svirt->get_cmd_output(
+                "virsh net-list --all | grep -w active | awk '{ print \$1 }' | tail -n1 | tr -d '\\n'"))
+        {
             $ifacecfg{type} = 'network';
             $ifacecfg{source} = {network => $networks};
         }
@@ -269,7 +275,8 @@ sub run() {
         if (get_var('EXTRABOOTPARAMS')) {
             $cmdline .= get_var('EXTRABOOTPARAMS') . " ";
         }
-        type_string "export pty=`virsh dumpxml $name | grep \"console type=\" | sed \"s/'/ /g\" | awk '{ print \$5 }'`\n";
+        type_string
+          "export pty=`virsh dumpxml $name | grep \"console type=\" | sed \"s/'/ /g\" | awk '{ print \$5 }'`\n";
         type_string "echo \$pty\n";
         $svirt->resume;
         wait_serial("Press enter to boot the selected OS", 10) || die "Can't get to Grub";

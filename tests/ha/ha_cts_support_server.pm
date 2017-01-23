@@ -37,7 +37,8 @@ sub run() {
     assert_script_run "zypper -n in pacemaker-cts";
     assert_script_run "ssh-keygen -qf /root/.ssh/id_rsa -N ''";
     for my $host ($host1, $host2) {
-        type_string "for i in `seq 1 300`; do sleep 1; if ping -c 1 $host; then break; fi; done; ping -c 1 $host; echo $host-ping-\$? > /dev/$serialdev\n";
+        type_string
+"for i in `seq 1 300`; do sleep 1; if ping -c 1 $host; then break; fi; done; ping -c 1 $host; echo $host-ping-\$? > /dev/$serialdev\n";
         wait_serial("$host-ping-0", 300) || die "support server cannot ping $host";
     }
     type_string "ssh-copy-id $host1\n";
@@ -54,7 +55,8 @@ sub run() {
     send_key 'ret';
     mutex_lock("MUTEX_CTS_INSTALLED");
     my $cts_params = get_var('CTS_PARAMS', '');
-    type_string "/usr/share/pacemaker/tests/cts/CTSlab.py --nodes '$host1 $host2' --outputfile pacemaker.log $cts_params; echo CTS_FINISHED>/dev/$serialdev\n";
+    type_string
+"/usr/share/pacemaker/tests/cts/CTSlab.py --nodes '$host1 $host2' --outputfile pacemaker.log $cts_params; echo CTS_FINISHED>/dev/$serialdev\n";
     die "CTS not finished in $cts_timeout seconds" unless wait_serial "CTS_FINISHED", $cts_timeout;
     upload_logs "pacemaker.log";
     mutex_unlock("MUTEX_CTS_FINISHED");    #to be locked by node1

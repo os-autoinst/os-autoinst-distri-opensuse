@@ -40,7 +40,9 @@ sub run() {
             record_soft_failure 'bsc#989750';
             $collect_logs = 1;
         }
-        elsif (match_has_tag('partitioning-encrypt-ignored-existing') and (sle_version_at_least('12-SP4') or sle_version_at_least('13'))) {
+        elsif (match_has_tag('partitioning-encrypt-ignored-existing')
+            and (sle_version_at_least('12-SP4') or sle_version_at_least('13')))
+        {
             record_soft_failure 'bsc#993247 https://fate.suse.com/321208';
             $collect_logs = 1;
         }
@@ -69,7 +71,8 @@ sub run() {
             send_key 'alt-l';
         }
         send_key 'alt-o';
-        assert_screen [qw(partition-lvm-new-summary partitioning-encrypt-activated-existing partitioning-encrypt-broke-existing)];
+        assert_screen [
+            qw(partition-lvm-new-summary partitioning-encrypt-activated-existing partitioning-encrypt-broke-existing)];
         if (match_has_tag('partitioning-encrypt-broke-existing')) {
             record_soft_failure 'bsc#993249';
             $collect_logs = 1;

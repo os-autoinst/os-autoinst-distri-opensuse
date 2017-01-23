@@ -78,7 +78,8 @@ sub run() {
 
     # direct access to the tap device
     # use of $vtap temporarily
-    $svirt->add_interface({type => 'direct', source => {dev => "enccw0.0.0600", mode => 'bridge'}, target => {dev => 'macvtap' . $vtap}});
+    $svirt->add_interface(
+        {type => 'direct', source => {dev => "enccw0.0.0600", mode => 'bridge'}, target => {dev => 'macvtap' . $vtap}});
 
     # use proper virtio
     # $svirt->add_interface({ type => 'network', source => { network => 'default' }, model => { type => 'virtio' } });

@@ -19,7 +19,8 @@ sub run() {
     # Valid mounts are by text(proc,mem), label, partlabel. Invalid mounts are by UUID, PARTUUID,
     # and path (note that /dev/disk/by-(part)label/ is considered 'as a (part)label mount', just
     # in different format).
-    my $invalid = script_output "! grep -e '^/dev/disk/by-[^\\(label,partlabel\\)]' -e '^UUID' -e '^PARTUUID' /etc/fstab";
+    my $invalid
+      = script_output "! grep -e '^/dev/disk/by-[^\\(label,partlabel\\)]' -e '^UUID' -e '^PARTUUID' /etc/fstab";
 
     if ($invalid) {
         die "Mount is by non-label path, non-partlabel path, UUID, or PARTUUID and hence invalid";

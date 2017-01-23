@@ -44,9 +44,9 @@ sub run() {
     print "$script\n";
     script_output($script);
 
-    # TODO as we don't know used NFS_SHARE value we should find some file from the share automatically and copy it to /tmp
-    # for eg. by # find /tmp/nfs -type f -size +1M -size -10M -print -quit 2> /dev/null (print path of file >1MB and <10MB and quit)
-    # NFSv4 uses different remotetarget with stripped path taken from showmount -e $nfs_server export
+# TODO as we don't know used NFS_SHARE value we should find some file from the share automatically and copy it to /tmp
+# for eg. by # find /tmp/nfs -type f -size +1M -size -10M -print -quit 2> /dev/null (print path of file >1MB and <10MB and quit)
+# NFSv4 uses different remotetarget with stripped path taken from showmount -e $nfs_server export
 
     # Autofs NFS test
     foreach my $a (@nfs_versions) {

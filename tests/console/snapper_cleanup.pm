@@ -50,6 +50,7 @@ sub run() {
 
     script_run("snapper get-config");    # get initial cfg
     script_run("snapper ls");            # get initial list of snap's
+    if (sle_version_at_least('12-SP3')) { script_run("btrfs quota enable /"); }
 
     if (get_var("UPGRADE") || get_var("AUTOUPGRADE") && !get_var("BOOT_TO_SNAPSHOT")) {
         assert_script_run("snapper setup-quota");

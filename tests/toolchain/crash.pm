@@ -62,7 +62,8 @@ sub run() {
 
     # activate kdump
     script_run 'yast2 kdump', 0;
-    my @tags = qw(yast2-kdump-disabled yast2-kdump-enabled yast2-kdump-restart-info yast2-missing_package yast2_console-finished);
+    my @tags
+      = qw(yast2-kdump-disabled yast2-kdump-enabled yast2-kdump-restart-info yast2-missing_package yast2_console-finished);
     do {
         assert_screen \@tags, 300;
         # enable kdump if it is not already

@@ -44,7 +44,8 @@ sub run() {
 
     my $target_ip = $self->get_var_from_parent('MY_IP');
 
-    my $cmd_output = $self->execute_script_run("/usr/share/qa/virtautolib/lib/guest_migrate.sh -s -d $target_ip -v $hyper_visor -u root -p novell", 3600);
+    my $cmd_output = $self->execute_script_run(
+        "/usr/share/qa/virtautolib/lib/guest_migrate.sh -s -d $target_ip -v $hyper_visor -u root -p novell", 3600);
 
     #Upload logs
     $self->upload_tar_log("/tmp/prj3_migrate_admin_log",                        "prj3_migrate_admin_log");

@@ -90,7 +90,9 @@ sub run() {
         # remove stray whitespace characters
         @vmguid = map { join(' ', split(' ')) } @vmguid;
         # find a GUID like this 52eac3c0-da62-4054-bf6a-ad99bdb07f82 in the array
-        until (grep { m/([A-Fa-f0-9]{8}[\-][A-Fa-f0-9]{4}[\-][A-Fa-f0-9]{4}[\-][A-Fa-f0-9]{4}[\-]([A-Fa-f0-9]){12})/gi } $vmguid[0]) {
+        until (grep { m/([A-Fa-f0-9]{8}[\-][A-Fa-f0-9]{4}[\-][A-Fa-f0-9]{4}[\-][A-Fa-f0-9]{4}[\-]([A-Fa-f0-9]){12})/gi }
+              $vmguid[0])
+        {
             shift(@vmguid);
         }
         # remove telnet transfer remnants

@@ -54,7 +54,8 @@ sub run() {
         assert_script_run "openssl dgst -$dgst_alg -sign $rsa_prikey -out $file_sig $file_raw";
 
         # Verify signature with public key
-        validate_script_output "openssl dgst -$dgst_alg -verify $rsa_pubkey -signature $file_sig $file_raw", sub { m/Verified OK/ };
+        validate_script_output "openssl dgst -$dgst_alg -verify $rsa_pubkey -signature $file_sig $file_raw",
+          sub { m/Verified OK/ };
 
         # Clean up temp files
         script_run "rm -f $file_enc $file_dec $file_sig";

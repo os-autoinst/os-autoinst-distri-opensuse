@@ -37,7 +37,8 @@ sub run {
     # With non-approved HASH algorithms, openssl will report failure
     my @invalid_hash = ("md4", "md5", "mdc2", "ripemd160", "whirlpool", "sha");
     for my $hash (@invalid_hash) {
-        validate_script_output "openssl dgst -$hash $tmp_file 2>&1 || true", sub { m/disabled for fips|unknown option/ };
+        validate_script_output "openssl dgst -$hash $tmp_file 2>&1 || true",
+          sub { m/disabled for fips|unknown option/ };
     }
 
     script_run 'rm -f $tmp_file';

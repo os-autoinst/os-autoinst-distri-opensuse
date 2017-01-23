@@ -188,7 +188,7 @@ sub specific_bootmenu_params {
         $args .= " $netsetup autoyast=" . data_url(get_var("AUTOYAST")) . " ";
     }
     else {
-        $netsetup = " " . get_var("NETWORK_INIT_PARAM") if defined get_var("NETWORK_INIT_PARAM");    #e.g netsetup=dhcp,all
+        $netsetup = " " . get_var("NETWORK_INIT_PARAM") if defined get_var("NETWORK_INIT_PARAM"); #e.g netsetup=dhcp,all
         $args .= $netsetup;
     }
 

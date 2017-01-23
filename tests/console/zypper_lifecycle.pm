@@ -19,7 +19,9 @@ use testapi;
 our $date_re = qr/[0-9]{4}-[0-9]{2}-[0-9]{2}/;
 
 sub run() {
-    diag('fate#320597: Introduce \'zypper lifecycle\' to provide information about life cycle of individual products and packages');
+    diag(
+'fate#320597: Introduce \'zypper lifecycle\' to provide information about life cycle of individual products and packages'
+    );
     select_console 'user-console';
     my $overview = script_output 'zypper lifecycle', 300;
     die "Missing header line" unless $overview =~ /Product end of support/;

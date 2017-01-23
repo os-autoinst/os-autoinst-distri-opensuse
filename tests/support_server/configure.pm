@@ -39,7 +39,10 @@ sub run {
     }
 
     if (get_var("SLENKINS_TESTSUITES_REPO")) {
-        $script .= "zypper -n --no-gpg-checks ar --refresh '" . get_var("SLENKINS_TESTSUITES_REPO") . "' slenkins_testsuites\n";
+        $script
+          .= "zypper -n --no-gpg-checks ar --refresh '"
+          . get_var("SLENKINS_TESTSUITES_REPO")
+          . "' slenkins_testsuites\n";
     }
 
     if (get_var("SLENKINS_REPO")) {

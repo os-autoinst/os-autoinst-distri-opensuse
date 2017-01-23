@@ -38,7 +38,8 @@ sub run() {
     assert_script_run('key=$(cat /tmp/key); echo "Verify with key: $key"; journalctl --verify --verify-key=$key');
 
     # Wait some time for the secret key being changed, and verify again
-    assert_script_run('sleep 40; key=$(cat /tmp/key); echo "Verify with key: $key"; journalctl --verify --verify-key=$key', 60);
+    assert_script_run(
+        'sleep 40; key=$(cat /tmp/key); echo "Verify with key: $key"; journalctl --verify --verify-key=$key', 60);
 
     assert_script_run("rm -f /tmp/key");
 }

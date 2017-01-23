@@ -17,9 +17,11 @@ use testapi;
 use mmapi;
 use Exporter 'import';
 
-our @EXPORT = qw($guest_install_prepare_keep_guest $hyper_visor $vm_disk_dir $guest_os $nfs_local_dir $install_script $scenario_name set_common_settings);
+our @EXPORT
+  = qw($guest_install_prepare_keep_guest $hyper_visor $vm_disk_dir $guest_os $nfs_local_dir $install_script $scenario_name set_common_settings);
 
-our ($guest_install_prepare_keep_guest, $hyper_visor, $vm_disk_dir, $guest_os, $nfs_local_dir, $install_script, $scenario_name);
+our ($guest_install_prepare_keep_guest,
+    $hyper_visor, $vm_disk_dir, $guest_os, $nfs_local_dir, $install_script, $scenario_name);
 
 sub set_common_settings {
     #get the guest product

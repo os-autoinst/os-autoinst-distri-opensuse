@@ -43,10 +43,12 @@ sub run() {
 
     type_string("ip a\n");
     type_string("ip route\n");
-    assert_script_run("ip a | grep -q '172.16.0.1/28'",                                            30, "support server doesn't have IP1");
-    assert_script_run("ip a | grep -q '172.16.0.17/28'",                                           30, "support server doesn't have IP2");
-    assert_script_run('dig @localhost srv1.alpha.ha-test.qa.suse.de +short | grep -q 172.16.0.1',  30, "support server cannot resolve DNS1");
-    assert_script_run('dig @localhost srv1.bravo.ha-test.qa.suse.de +short | grep -q 172.16.0.17', 30, "support server cannot resolve DNS2");
+    assert_script_run("ip a | grep -q '172.16.0.1/28'",  30, "support server doesn't have IP1");
+    assert_script_run("ip a | grep -q '172.16.0.17/28'", 30, "support server doesn't have IP2");
+    assert_script_run('dig @localhost srv1.alpha.ha-test.qa.suse.de +short | grep -q 172.16.0.1',
+        30, "support server cannot resolve DNS1");
+    assert_script_run('dig @localhost srv1.bravo.ha-test.qa.suse.de +short | grep -q 172.16.0.17',
+        30, "support server cannot resolve DNS2");
 
     type_string "exit\n";
     barrier_wait("NETWORK_READY");
