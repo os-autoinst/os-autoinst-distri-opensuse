@@ -142,6 +142,9 @@ sub export_logs {
     save_and_upload_log('systemctl list-unit-files', '/tmp/systemctl_unit-files.log');
     save_and_upload_log('systemctl status',          '/tmp/systemctl_status.log');
     save_and_upload_log('systemctl',                 '/tmp/systemctl.log', {screenshot => 1});
+
+    script_run "save_y2logs /tmp/y2logs_clone.tar.bz2";
+    upload_logs "/tmp/y2logs_clone.tar.bz2";
 }
 
 # Set a simple reproducible prompt for easier needle matching without hostname

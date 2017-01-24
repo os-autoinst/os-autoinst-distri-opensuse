@@ -7,12 +7,13 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add yast2_samba.pm
-# G-Maintainer: Zaoliang Luo <zluo@suse.de>
+# Summary: YaST2 Samba functionality
+# Maintainer: Zaoliang Luo <zluo@suse.de>
 
 use strict;
 use base "consoletest";
 use testapi;
+use utils;
 
 sub run() {
     select_console 'root-console';
@@ -20,9 +21,9 @@ sub run() {
     # check network at first
     assert_script_run("if ! systemctl -q is-active network; then systemctl -q start network; fi");
     # install local ldap server
-    assert_script_run("zypper -n -q in yast2-auth-server yast2-ldap openldap2 openldap2-client krb5-server krb5-client tdb-tools");
+    zypper_call("in yast2-auth-server yast2-ldap openldap2 openldap2-client krb5-server krb5-client tdb-tools");
 
-    script_run("yast2 auth-server", 0);
+    script_run("yast2 auth-server; echo yast2-auth-server-status-\$? > /dev/$serialdev ", 0);
     # check ldap server configuration started
     assert_screen 'yast2_ldap_configuration_startup';
     send_key 'alt-f';
@@ -56,13 +57,14 @@ sub run() {
 
     # finish ldap server configuration
     send_key 'alt-f';
-    wait_still_screen;
+    wait_serial("yast2-auth-server-status-0") || die "'yast2 auth server' failed";
+    assert_screen 'yast2_console-finished';
 
     # check ldap server status at first, a local ldap server is needed in the test case
     assert_script_run "systemctl show -p ActiveState slapd.service | grep ActiveState=active";
 
     # install samba stuffs at first
-    assert_script_run("zypper -n -q in samba yast2-samba-server");
+    zypper_call("in samba yast2-samba-server");
 
     # start samba server configuration
     script_run("yast2 samba-server; echo yast2-samba-server-status-\$? > /dev/$serialdev", 0);
@@ -228,6 +230,13 @@ sub run() {
     # check samba server status
     assert_script_run("systemctl show -p ActiveState smb.service | grep ActiveState=active");
 }
+
+sub post_fail_hook() {
+    my $self = shift;
+
+    $self->export_logs();
+}
+
 1;
 
 # vim: set sw=4 et:
