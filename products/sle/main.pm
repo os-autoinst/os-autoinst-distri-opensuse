@@ -1326,7 +1326,7 @@ else {
     elsif (get_var("REMOTE_TARGET")) {
         load_boot_tests();
         loadtest "remote/remote_target";
-        load_reboot_tests();
+        loadtest "installation/first_boot";
     }
     elsif (is_jeos) {
         load_boot_tests();
