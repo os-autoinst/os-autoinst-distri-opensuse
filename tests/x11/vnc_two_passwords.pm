@@ -61,7 +61,7 @@ sub run() {
     # Start vncviewer (rw & ro mode) and check if changes are processed by xev
     foreach my $opt (@options) {
         x11_start_program("vncviewer :1 -SecurityTypes=VncAuth");
-        assert_screen "vnc_password_dialog";
+        assert_screen "vnc_password_dialog", 60;
         type_string "$opt->{pw}\n";
         send_key "super-left";
         mouse_set(80, 120);
