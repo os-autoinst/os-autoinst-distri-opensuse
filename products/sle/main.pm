@@ -715,6 +715,10 @@ sub load_yast2_gui_tests() {
     loadtest "yast2_gui/yast2_users";
 }
 
+sub patch_before_migration {
+    loadtest "update/patch_before_migration";
+}
+
 sub load_extra_test () {
     # Put tests that filled the conditions below
     # 1) you don't want to run in stagings below here
@@ -1208,6 +1212,11 @@ elsif (is_kgraft) {
 elsif (get_var("EXTRATEST")) {
     prepare_target();
     load_extra_test();
+}
+elsif (get_var("PATCH")) {
+    prepare_target();
+    patch_before_migration();
+    loadtest "shutdown/shutdown";
 }
 elsif (get_var("Y2UITEST")) {
     load_boot_tests();
