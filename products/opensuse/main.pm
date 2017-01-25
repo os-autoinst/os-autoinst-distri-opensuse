@@ -183,14 +183,6 @@ sub lxdestep_is_applicable() {
     return check_var("DESKTOP", "lxde");
 }
 
-sub any_desktop_is_applicable() {
-    return get_var("DESKTOP") !~ /textmode/;
-}
-
-sub console_is_applicable() {
-    return !any_desktop_is_applicable();
-}
-
 sub need_clear_repos() {
     return is_staging();
 }
@@ -515,6 +507,7 @@ sub load_extra_tests() {
         if (get_var("FILESYSTEM", "btrfs") eq "btrfs") {
             loadtest "console/btrfs_autocompletion";
             if (get_var("NUMDISKS", 0) > 1) {
+                loadtest "console/snapper_cleanup";
                 loadtest "console/btrfs_qgroups";
                 loadtest "console/btrfs_send_receive";
             }
