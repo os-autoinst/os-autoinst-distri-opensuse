@@ -68,7 +68,6 @@ sub test_terminal {
     my ($self, $name) = @_;
     mouse_hide(1);
     x11_start_program($name);
-    assert_screen $name;
     $self->enter_test_text($name);
     assert_screen "test-$name-1";
     send_key 'alt-f4';
