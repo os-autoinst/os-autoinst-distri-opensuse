@@ -45,6 +45,8 @@ sub run() {
     assert_script_run "sed -Ei 'sXunzip-testXunzip-test/extractXg' /tmp/unzip-test/checklist.md5";
     assert_script_run "md5sum -c /tmp/unzip-test/checklist.md5";
 
+    # 3. Test the credibility of the zip archive
+    assert_script_run "cd /tmp/unzip-test/ ; unzip -tq archive.zip";
 }
 
 1;
