@@ -55,8 +55,16 @@ sub pre_bootmenu_setup {
 
 sub select_bootmenu_option {
     assert_screen 'inst-bootmenu';
+    if (get_var('LIVECD')) {
+        # live CDs might have a very short timeout of the initial bootmenu
+        # (1-2s with recent kiwi versions) so better stop the timeout
+        # immediately before checking more and having an opportunity to type
+        # more boot parameters. Send 'up' which should work also on textmode
+        # and UEFI menues.
+        send_key 'up';
+    }
     if (get_var('ZDUP') || get_var("ONLINE_MIGRATION")) {
-        send_key 'ret';               # boot from hard disk
+        send_key 'ret';    # boot from hard disk
         return 3;
     }
 
