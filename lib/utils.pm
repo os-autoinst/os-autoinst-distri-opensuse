@@ -37,7 +37,6 @@ our @EXPORT = qw(
   turn_off_kde_screensaver
   random_string
   handle_login
-  ensure_ready_terminal
 );
 
 
@@ -710,30 +709,6 @@ sub handle_login {
     assert_screen "displaymanager-password-prompt";
     type_password;
     send_key "ret";
-}
-
-=head2 ensure_ready_terminal
-Make sure terminal is ready by creating file with short content
-When it's done successfuly then it's proven terminal is ready
-By default non-root user shell is expected, with argument is
-expected root shell
-=cut
-sub ensure_ready_terminal {
-    my $root        = @_;
-    my $max_retries = 10;
-    for (1 .. $max_retries) {
-        eval {
-            if ($root) {
-                assert_script_run 'echo ready > term && grep ready term && rm term';
-            }
-            else {
-                assert_script_sudo 'echo ready > term && grep ready term && rm term';
-            }
-        };
-        last unless ($@);
-        diag "terminal is not ready: $@";
-        diag "terminal is not ready. Retry: $_ of $max_retries";
-    }
 }
 
 1;
