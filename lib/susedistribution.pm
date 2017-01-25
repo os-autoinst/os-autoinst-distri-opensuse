@@ -112,6 +112,10 @@ sub x11_start_program($$$) {
         sleep 3;
     }
     send_key('ret');
+    # test responsivnes of xterm to aviod miss typing
+    if ($program =~ 'xterm') {
+        utils::ensure_ready_terminal;
+    }
     wait_still_screen unless $options->{no_wait};
     # lrunner has auto-completion feature, sometimes it causes high load while
     # typing and the following 'ret' fails to work
