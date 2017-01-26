@@ -255,7 +255,8 @@ sub wait_boot {
         # after gh#os-autoinst/os-autoinst#641 68c815a "use bootindex for boot
         # order on UEFI" the USB install medium is priority and will always be
         # booted so we have to handle that
-        push @tags, 'inst-bootmenu' if (get_var('USBBOOT') and get_var('UEFI'));
+        # because of broken firmware, bootindex doesn't work on aarch64 bsc#1022064
+        push @tags, 'inst-bootmenu' if ((get_var('USBBOOT') and get_var('UEFI')) || (check_var('ARCH', 'aarch64') and get_var('UEFI')));
         check_screen(\@tags, $bootloader_time);
         if (match_has_tag("bootloader-shim-import-prompt")) {
             send_key "down";
@@ -277,6 +278,11 @@ sub wait_boot {
             # harddisk' is above
             send_key_until_needlematch 'inst-bootmenu-boot-harddisk', 'up';
             wait_screen_change { send_key 'ret' };
+            if (check_var('ARCH', 'aarch64') and get_var('UEFI')) {
+                record_soft_failure 'bsc#1022064';
+                assert_screen 'boot-firmware';
+                send_key 'ret';
+            }
             assert_screen 'grub2', 15;
             # confirm default choice
             send_key 'ret';
