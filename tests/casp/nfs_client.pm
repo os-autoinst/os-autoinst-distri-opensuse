@@ -42,7 +42,7 @@ sub run() {
     $script .= "showmount -e $nfs_server\n";
 
     print "$script\n";
-    script_output($script);
+    script_output($script, 60);
 
     # TODO as we don't know used NFS_SHARE value we should find some file from the share automatically and copy it to /tmp
     # for eg. by # find /tmp/nfs -type f -size +1M -size -10M -print -quit 2> /dev/null (print path of file >1MB and <10MB and quit)
@@ -74,7 +74,7 @@ sub run() {
         $script .= "rm -r /tmp/$a\n";
 
         print "$script\n";
-        script_output($script);
+        script_output($script, 60);
     }
 
     # Mount command NFS test
@@ -100,7 +100,7 @@ sub run() {
         $script .= "rm -r /tmp/$a\n";
 
         print "$script\n";
-        script_output($script);
+        script_output($script, 60);
     }
 
     # Fstab entry NFS test
@@ -123,7 +123,7 @@ sub run() {
         $script .= "rm -r /tmp/$a\n";
 
         print "$script\n";
-        script_output($script);
+        script_output($script, 60);
     }
 }
 
