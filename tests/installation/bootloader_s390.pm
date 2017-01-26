@@ -261,7 +261,7 @@ sub run() {
     my $c = select_console('iucvconn');
 
     # we also want to test the formatting during the installation if the variable is set
-    if (!get_var("FORMAT_DASD_YAST") && !get_var('S390_DISK')) {
+    if (!get_var("FORMAT_DASD_YAST") && !get_var('S390_DISK') && !get_var('UPGRADE')) {
         format_dasd;
     }
 
