@@ -241,6 +241,9 @@ sub load_boot_tests() {
         set_var("DELAYED_START", "1");
         loadtest "autoyast/pxe_boot";
     }
+    elsif (check_var('ARCH', 's390x')) {
+        loadtest "installation/bootloader_s390";
+    }
     else {
         loadtest "installation/bootloader";
     }
@@ -248,6 +251,9 @@ sub load_boot_tests() {
 
 sub load_inst_tests() {
     loadtest "installation/welcome";
+    if (check_var('ARCH', 's390x')) {
+        loadtest "installation/disk_activation";
+    }
     if (get_var("MULTIPATH")) {
         loadtest "installation/multipath";
     }
@@ -335,6 +341,9 @@ sub load_inst_tests() {
 }
 
 sub load_reboot_tests() {
+    if (check_var('ARCH', 's390x')) {
+        loadtest "installation/reconnect_s390";
+    }
     if (installyaststep_is_applicable()) {
         loadtest "installation/grub_test";
         if (get_var('ENCRYPT')) {
