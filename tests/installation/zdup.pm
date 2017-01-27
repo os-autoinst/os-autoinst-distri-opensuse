@@ -65,7 +65,7 @@ sub run() {
     }
     else {
         #SUSEMIRROR not set, zdup from ftp source for online migration
-        if (check_var('TEST', "migration_zdup_online_sle12_ga")) {
+        if (get_var('TEST') =~ /migration_zdup_online_sle12_ga/) {
             my $flavor  = get_var("FLAVOR");
             my $version = get_var("VERSION");
             my $build   = get_var("BUILD");
