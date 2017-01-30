@@ -71,6 +71,9 @@ EOF
 
     # dhcpd
     assert_script_run 'touch /var/lib/dhcp/db/dhcpd.leases /var/lib/dhcp6/db/dhcpd6.leases';
+
+    # echo/echoes, getaddrinfo_01
+    assert_script_run 'sed -i \'s/^\(hosts:\s+files\s\+dns$\)/\1 myhostname/\' /etc/nsswitch.conf';
 }
 
 # poo#14402
