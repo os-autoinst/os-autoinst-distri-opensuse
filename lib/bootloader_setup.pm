@@ -89,7 +89,9 @@ sub bootmenu_default_params {
         type_string " video=hyperv_fb:1024x768";
     }
     type_string_slow "Y2DEBUG=1 ";
-    if (!is_jeos && (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64'))) {
+
+    # gfxpayload variable replaced vga option in grub2
+    if (!is_jeos && !is_casp && (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64'))) {
         type_string "vga=791 ";
         type_string_slow "video=1024x768-16 ";
         assert_screen check_var('UEFI', 1) ? 'inst-video-typed-grub2' : 'inst-video-typed', 4;

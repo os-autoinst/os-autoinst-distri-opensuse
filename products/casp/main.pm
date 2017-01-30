@@ -39,13 +39,20 @@ if (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux')
 
 sub load_boot_tests() {
     if (check_var('FLAVOR', 'DVD')) {
-        loadtest 'installation/bootloader';
+        if (get_var("UEFI")) {
+            loadtest 'installation/bootloader_uefi';
+        }
+        else {
+            loadtest 'installation/bootloader';
+        }
     }
     else {
         if (check_var("BACKEND", "svirt")) {
             loadtest "installation/bootloader_svirt";
         }
-        loadtest 'boot/boot_to_desktop';
+        else {
+            loadtest 'installation/bootloader_uefi';
+        }
     }
 }
 
