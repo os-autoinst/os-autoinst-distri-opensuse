@@ -128,8 +128,16 @@ sub is_jeos() {
     return get_var('FLAVOR', '') =~ /^JeOS/;
 }
 
-sub is_casp() {
-    return check_var('DISTRI', 'casp');
+# Check if distribution is CASP
+# If argument is passed then flavor has to match (universal VMX keyword)
+sub is_casp {
+    my $flavor = shift;
+    return 0 unless check_var('DISTRI', 'casp');
+    return 1 unless $flavor;
+
+    # There is one DVD and multiple VMX (for KVM/XEN/VMware/Cloud) flavors
+    return !check_var('FLAVOR', 'DVD') if $flavor eq 'VMX';
+    return check_var('FLAVOR', $flavor);
 }
 
 sub type_string_slow {

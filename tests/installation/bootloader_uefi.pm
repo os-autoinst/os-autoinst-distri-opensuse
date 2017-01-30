@@ -69,7 +69,7 @@ sub run() {
         if (get_var("PROMO") || get_var('LIVETEST')) {
             send_key_until_needlematch("boot-live-" . get_var("DESKTOP"), 'down', 10, 5);
         }
-        elsif (!is_jeos) {
+        elsif (!is_jeos && !is_casp('VMX')) {
             send_key_until_needlematch('inst-oninstallation', 'down', 10, 5);
         }
     }
@@ -117,7 +117,6 @@ sub run() {
     }
 
     type_string " \\\n";    # changed the line before typing video params
-                            # https://wiki.archlinux.org/index.php/Kernel_Mode_Setting#Forcing_modes_and_EDID
     bootmenu_default_params;
     specific_bootmenu_params;
 
