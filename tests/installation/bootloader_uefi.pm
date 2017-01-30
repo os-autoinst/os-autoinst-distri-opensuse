@@ -117,7 +117,6 @@ sub run() {
     }
 
     type_string " \\\n";    # changed the line before typing video params
-                            # https://wiki.archlinux.org/index.php/Kernel_Mode_Setting#Forcing_modes_and_EDID
     bootmenu_default_params;
     specific_bootmenu_params;
 
