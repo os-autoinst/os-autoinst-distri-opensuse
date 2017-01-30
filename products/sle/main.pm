@@ -95,10 +95,6 @@ sub cleanup_needles {
         unregister_needle_tags('ENV-DISTRI-CASP');
     }
 
-    if (!check_var("ARCH", "s390x")) {
-        unregister_needle_tags('ENV-ARCH-s390x');
-    }
-
     if (get_var('OFW')) {
         unregister_needle_tags('ENV-OFW-0');
     }
