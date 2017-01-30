@@ -111,6 +111,7 @@ sub run {
             last if match_has_tag("bios-boot") || match_has_tag("reboot-after-installation");
 
             if (match_has_tag('autoyast-error')) {
+                record_soft_failure 'AUTOYAST_EXPECT_ERRORS ' . get_var('AUTOYAST_EXPECT_ERRORS_REASON');
                 send_key "alt-s";    #stop
                 save_logs_and_continue("stage1_error$i");
                 $i++;
@@ -186,6 +187,7 @@ sub run {
         #repeat until timeout or login screen
         if (defined $ret) {
             if (match_has_tag('autoyast-error')) {
+                record_soft_failure 'AUTOYAST_EXPECT_ERRORS ' . get_var('AUTOYAST_EXPECT_ERRORS_REASON');
                 send_key "alt-s";    #stop
                 save_logs_and_continue("stage2_error$i");
                 $i++;

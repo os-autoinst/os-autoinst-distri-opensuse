@@ -110,7 +110,12 @@ if (check_var('FLAVOR', 'DVD')) {
         load_rcshell_tests;
         return 1;
     }
-    load_inst_tests;
+    if (get_var('AUTOYAST')) {
+        loadtest 'autoyast/installation';
+    }
+    else {
+        load_inst_tests;
+    }
 }
 loadtest 'casp/first_boot';
 
