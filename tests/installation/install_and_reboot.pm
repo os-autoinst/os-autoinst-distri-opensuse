@@ -55,6 +55,10 @@ sub run() {
     if (check_var('SCC_REGISTER', 'installation')) {
         $timeout = 5500;
     }
+    # on s390 we might need to install additional packages depending on the installation method
+    if (check_var('ARCH', 's390x')) {
+        push(@tags, 'additional-packages');
+    }
     my $keep_trying                    = 1;
     my $screenlock_previously_detected = 0;
     my $mouse_x                        = 1;
@@ -92,6 +96,9 @@ sub run() {
             handle_livecd_screenlock;
             $screenlock_previously_detected = 1;
             next;
+        }
+        if (match_has_tag('additional-packages')) {
+            send_key 'alt-i';
         }
         last;
     }
