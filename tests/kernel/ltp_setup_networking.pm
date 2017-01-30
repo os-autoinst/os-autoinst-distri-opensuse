@@ -70,7 +70,7 @@ EOF
     assert_script_run 'which ping6 >/dev/null 2>&1 || ln -s `which ping` /usr/local/bin/ping6';
 
     # dhcpd
-    assert_script_run 'touch /var/lib/dhcp6/db/dhcpd6.leases';
+    assert_script_run 'touch /var/lib/dhcp/db/dhcpd.leases /var/lib/dhcp6/db/dhcpd6.leases';
 }
 
 # poo#14402
