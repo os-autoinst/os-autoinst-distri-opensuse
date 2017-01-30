@@ -1199,8 +1199,7 @@ elsif (get_var("EXTRATEST")) {
     load_extra_test();
 }
 elsif (get_var("Y2UITEST")) {
-    load_boot_tests();
-    loadtest "installation/finish_desktop";
+    prepare_target();
     # setup $serialdev permission and so on
     loadtest "console/consoletest_setup";
     # start extra yast console test from here
