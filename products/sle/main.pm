@@ -601,6 +601,7 @@ sub load_consoletests() {
                 loadtest "console/installation_snapshots";
             }
             loadtest "console/snapper_undochange";
+            loadtest "console/snapper_create";
         }
         if (get_var("DESKTOP") !~ /textmode/ && !check_var("ARCH", "s390x")) {
             loadtest "console/xorg_vt";
