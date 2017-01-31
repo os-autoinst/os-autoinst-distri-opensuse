@@ -55,6 +55,7 @@ sub init_cmd() {
       mountpoint alt-m
       filesystem alt-s
       expertpartitioner alt-e
+      encrypt alt-e
       resize alt-i
       acceptlicense alt-a
       instdetails alt-d

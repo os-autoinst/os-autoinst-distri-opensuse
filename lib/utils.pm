@@ -222,8 +222,10 @@ sub minimal_patch_system {
 }
 
 sub workaround_type_encrypted_passphrase {
-    if (check_var('ARCH', 'ppc64le')
-        && (get_var('ENCRYPT') && !get_var('ENCRYPT_ACTIVATE_EXISTING') || get_var('ENCRYPT_FORCE_RECOMPUTE')))
+    if (
+        get_var('FULL_LVM_ENCRYPT')
+        || (check_var('ARCH', 'ppc64le')
+            && (get_var('ENCRYPT') && !get_var('ENCRYPT_ACTIVATE_EXISTING') || get_var('ENCRYPT_FORCE_RECOMPUTE'))))
     {
         record_soft_failure 'workaround https://fate.suse.com/320901' if sle_version_at_least('12-SP3');
         unlock_if_encrypted;
