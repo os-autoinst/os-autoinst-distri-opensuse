@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
-# Summary: Log into and run a script on a virtio serial terminal
+# Summary: Stress test the virtio serial terminal for debugging OpenQA and QEMU
 # Maintainer: Richard Palethorpe <rpalethorpe@suse.com>
 
 use 5.018;
@@ -17,17 +17,23 @@ use testapi;
 use utils;
 
 my $multiline_script = <<'FIN.';
-echo line one
-echo line two
-echo line three
+for i in $(seq %d); do
+  sleep 0.$i;
+  head -n 1 /dev/urandom | base64;
+done
 FIN.
 
 sub run {
     my $self = shift;
+    my $m    = get_var('VIRTIO_CONSOLE_TEST_M') || 10;
+    my $n    = get_var('VIRTIO_CONSOLE_TEST_N') || 10;
     $self->wait_boot;
 
     select_console('root-virtio-terminal');
-    my $output = script_output($multiline_script);
+    for my $i (0 .. $m) {
+        script_run("echo '#$i'");
+        script_output(sprintf($multiline_script, $n));
+    }
 }
 
 1;
@@ -43,6 +49,15 @@ VIRTIO_CONSOLE_TEST=1
 
 =head2 VIRTIO_CONSOLE_TEST
 
-Just activates the test
+Just activates the test. For this test to stress the system `m x n > 10000`
+where `m` is the outer loop and `n` the inner loop.
+
+=head2 VIRTIO_CONSOLE_M
+
+The number of times the host loops.
+
+=head2 VIRTIO_CONSOLE_N
+
+The number of times the guest loops.
 
 =cut
