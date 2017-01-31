@@ -269,20 +269,27 @@ sub run {
         script_run('ps axf');
         script_run('netstat -ap');
 
+        script_run('cat /etc/resolv.conf');
+        script_run('cat /etc/nsswitch.conf');
+        script_run('cat /etc/hosts');
+
         # emulate /opt/ltp/testscripts/network.sh
         assert_script_run('TST_TOTAL=1 TCID="network_settings"; . test_net.sh; export TCID= TST_LIB_LOADED=');
 
         script_run('env');
+
+        script_run('ip addr');
+        script_run('ip route');
     }
 
     for my $test (@tests) {
         my $fin_msg    = "### TEST $test->{name} COMPLETE >>> ";
         my $cmd_text   = qq($test->{command}; echo "$fin_msg\$?");
         my $start_time = thetime();
-        my $set_rhost  = $is_network && $test->{command} =~ m/^finger01|ftp01|rcp01|rdist01|rsh01/;
+        my $set_rhost  = $is_network && $test->{command} =~ m/^finger01|ftp01|rcp01|rdist01|rlogin01|rpc01|rpcinfo01|rsh01|telnet01/;
 
         if ($set_rhost) {
-            assert_script_run(q(export RHOST='localhost'));
+            assert_script_run(q(export RHOST='127.0.0.1'));
         }
 
         if (is_serial_terminal) {

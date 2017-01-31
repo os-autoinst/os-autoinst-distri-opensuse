@@ -19,7 +19,7 @@ use utils;
 
 sub install {
     # utils
-    zypper_call("in expect iputils psmisc tcpdump telnet", log => 'utils.log');
+    zypper_call("in expect iputils psmisc tcpdump", log => 'utils.log');
 
     # clients
     zypper_call("in dhcp-client finger mrsh-rsh-compat telnet", log => 'clients.log');
@@ -70,7 +70,10 @@ EOF
     assert_script_run 'which ping6 >/dev/null 2>&1 || ln -s `which ping` /usr/local/bin/ping6';
 
     # dhcpd
-    assert_script_run 'touch /var/lib/dhcp6/db/dhcpd6.leases';
+    assert_script_run 'touch /var/lib/dhcp/db/dhcpd.leases /var/lib/dhcp6/db/dhcpd6.leases';
+
+    # echo/echoes, getaddrinfo_01
+    assert_script_run 'sed -i \'s/^\(hosts:\s+files\s\+dns$\)/\1 myhostname/\' /etc/nsswitch.conf';
 }
 
 # poo#14402
