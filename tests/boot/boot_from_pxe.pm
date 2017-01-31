@@ -51,7 +51,7 @@ sub run() {
 
         my $arch = get_var('ARCH');
         my $path = "/mnt/openqa/repo/${image_name}/boot/${arch}/loader";
-        my $repo = get_var('HOST') . "/assets/repo/${image_name}";
+        my $repo = get_required_var('OPENQA_URL') . "/assets/repo/${image_name}";
         $image_path = "$path/linux initrd=$path/initrd install=$repo";
     }
 
