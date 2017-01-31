@@ -36,6 +36,7 @@ our @EXPORT = qw(
   unregister_needle_tags
   any_desktop_is_applicable
   console_is_applicable
+  boot_hdd_image
 );
 
 sub init_main {
@@ -293,4 +294,19 @@ sub unregister_needle_tags {
     for my $n (@a) { $n->unregister(); }
 }
 
+sub boot_hdd_image {
+    die unless get_var("BOOT_HDD_IMAGE");
+    if (check_var("BACKEND", "svirt")) {
+        if (check_var("ARCH", "s390x")) {
+            loadtest "installation/bootloader_zkvm";
+        }
+        else {
+            loadtest "installation/bootloader_svirt";
+        }
+    }
+    if (get_var('UEFI') && get_var('BOOTFROM')) {
+        loadtest "boot/uefi_bootmenu";
+    }
+    loadtest "boot/boot_to_desktop";
+}
 1;

@@ -968,15 +968,7 @@ sub load_fips_tests_crypt() {
 
 sub prepare_target() {
     if (get_var("BOOT_HDD_IMAGE")) {
-        if (check_var("BACKEND", "svirt")) {
-            if (check_var("ARCH", "s390x")) {
-                loadtest "installation/bootloader_zkvm";
-            }
-            else {
-                loadtest "installation/bootloader_svirt";
-            }
-        }
-        loadtest "boot/boot_to_desktop";
+        boot_hdd_image;
     }
     else {
         load_boot_tests();
