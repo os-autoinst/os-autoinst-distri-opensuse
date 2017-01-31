@@ -16,7 +16,7 @@
 #    Since consoletest_setup is no longer the first thing running after the
 #    system has been updated (it is now the check for applicable updates) this
 #    fixup needed to be moved out of consoletest_setup in order to be started
-#    earlier (again, asap, before nything wants to access the network)
+#    earlier (again, asap, before anything wants to access the network)
 # Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
 
 use base "x11test";
@@ -28,7 +28,7 @@ sub run() {
     # openSUSE 13.2's (and earlier) systemd has broken rules for virtio-net, not applying predictable names (despite being configured)
     # A maintenance update breaking networking names sounds worse than just accepting that 13.2 -> TW breaks with virtio-net
     # At this point, the system has been updated, but our network interface changed name (thus we lost network connection)
-    my $command = "cp /etc/sysconfig/network/ifcfg-eth0 /etc/sysconfig/network/ifcfg-ens4; /usr/sbin/ifup ens4";
+    my $command = "mv /etc/sysconfig/network/ifcfg-eth0 /etc/sysconfig/network/ifcfg-ens4; /usr/sbin/ifup ens4";
 
     if (get_var("DESKTOP") =~ /kde|gnome/) {
         x11_start_program("xterm");
