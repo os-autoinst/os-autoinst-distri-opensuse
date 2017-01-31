@@ -691,26 +691,6 @@ sub load_consoletests() {
     }
 }
 
-sub load_yast2_gui_tests() {
-    return
-      unless (!get_var("INSTALLONLY")
-        && is_desktop_installed()
-        && !get_var("DUALBOOT")
-        && !get_var("RESCUECD")
-        && get_var("Y2UITEST"));
-    loadtest "x11/yast2_lan_restart";
-    loadtest "yast2_gui/yast2_control_center";
-    loadtest "yast2_gui/yast2_bootloader";
-    loadtest "yast2_gui/yast2_datetime";
-    loadtest "yast2_gui/yast2_firewall";
-    loadtest "yast2_gui/yast2_hostnames";
-    loadtest "yast2_gui/yast2_lang";
-    loadtest "yast2_gui/yast2_network_settings";
-    loadtest "yast2_gui/yast2_snapper";
-    loadtest "yast2_gui/yast2_software_management";
-    loadtest "yast2_gui/yast2_users";
-}
-
 sub load_extra_test () {
     # Put tests that filled the conditions below
     # 1) you don't want to run in stagings below here
@@ -1183,31 +1163,11 @@ elsif (is_kgraft) {
     loadtest "qam-kgraft/reboot_restore";
 }
 elsif (get_var("EXTRATEST")) {
-    prepare_target();
+    boot_hdd_image;
     load_extra_test();
 }
 elsif (get_var("Y2UITEST")) {
-    prepare_target();
-    # setup $serialdev permission and so on
-    loadtest "console/consoletest_setup";
-    # start extra yast console test from here
-    loadtest "console/check_console_font";
-    loadtest "console/zypper_lr";
-    loadtest "console/zypper_ref";
-    loadtest "console/yast2_proxy";
-    loadtest "console/yast2_ntpclient";
-    loadtest "console/yast2_tftp";
-    loadtest "console/yast2_vnc";
-    loadtest "console/yast2_samba";
-    loadtest "console/yast2_xinetd";
-    loadtest "console/yast2_apparmor";
-    loadtest "console/yast2_lan_hostname";
-    loadtest "console/yast2_nis";
-    loadtest "console/yast2_http";
-    loadtest "console/yast2_ftp";
-    # back to desktop
-    loadtest "console/consoletest_finish";
-    load_yast2_gui_tests();
+    load_yast2_ui_tests;
 }
 elsif (get_var("WINDOWS")) {
     loadtest "installation/win10_installation";
