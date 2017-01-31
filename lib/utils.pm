@@ -38,6 +38,7 @@ our @EXPORT = qw(
   random_string
   handle_login
   handle_emergency
+  service_action
 );
 
 
@@ -735,6 +736,31 @@ sub handle_emergency {
         send_key 'ret';
         script_run "journalctl --no-pager > /dev/$serialdev";
         die "hit emergency mode";
+    }
+}
+
+=head2 service_action
+
+  service_action($service_name [, {type => ['$unit_type', ...] [,action => ['$service_action', ...]]}]);
+
+Control systemd services. C<type> may be set to service, socket, ... and C<$action>
+to start, stop, ... Default action is to 'stop' $service_name.service unit file.
+
+Example:
+
+  service_action('dbus', {type => ['socket', 'service'], action => ['unmask', 'start']});
+
+=cut
+sub service_action {
+    my ($name, $args) = @_;
+
+    # default action is to 'stop' ${service_name}.service unit file
+    my @types   = $args->{type}   ? @{$args->{type}}   : 'service';
+    my @actions = $args->{action} ? @{$args->{action}} : 'stop';
+    foreach my $action (@actions) {
+        foreach my $type (@types) {
+            assert_script_run "systemctl $action $name.$type";
+        }
     }
 }
 
