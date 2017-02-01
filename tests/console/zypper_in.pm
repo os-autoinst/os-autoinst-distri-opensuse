@@ -22,7 +22,7 @@ sub run() {
     script_run("zypper lr -d | tee /dev/$serialdev");
 
     my $pkgname = get_var("PACKAGETOINSTALL");
-    assert_script_run("zypper -n in screen $pkgname");
+    zypper_call "in screen $pkgname";
     clear_console;    # clear screen to see that second update does not do any more
     assert_script_run("rpm -e $pkgname");
     assert_script_run("! rpm -q $pkgname");
