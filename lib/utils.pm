@@ -37,6 +37,7 @@ our @EXPORT = qw(
   turn_off_kde_screensaver
   random_string
   handle_login
+  handle_emergency
 );
 
 
@@ -719,6 +720,21 @@ sub handle_login {
     assert_screen "displaymanager-password-prompt";
     type_password;
     send_key "ret";
+}
+
+# Handle emergency mode
+sub handle_emergency {
+    if (match_has_tag('emergency-shell')) {
+        # get emergency shell logs for bug, scp doesn't work
+        script_run "cat /run/initramfs/rdsosreport.txt > /dev/$serialdev";
+        die "hit emergency shell";
+    }
+    elsif (match_has_tag('emergency-mode')) {
+        type_password;
+        send_key 'ret';
+        script_run "journalctl --no-pager > /dev/$serialdev";
+        die "hit emergency mode";
+    }
 }
 
 1;

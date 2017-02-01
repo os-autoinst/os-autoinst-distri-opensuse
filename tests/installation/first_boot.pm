@@ -16,21 +16,7 @@
 use strict;
 use base "y2logsstep";
 use testapi;
-use utils 'handle_login';
-
-
-sub handle_emergency {
-    if (match_has_tag('emergency-shell')) {
-        # get emergency shell logs for bug, scp doesn't work
-        script_run "cat /run/initramfs/rdsosreport.txt > /dev/$serialdev";
-        die "hit emergency-shell";
-    }
-    elsif (match_has_tag('emergency-mode')) {
-        type_password;
-        send_key 'ret';
-        die "hit emergency-mode";
-    }
-}
+use utils qw(handle_login handle_emergency);
 
 sub run() {
     my $boot_timeout = 200;
