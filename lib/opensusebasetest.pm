@@ -296,7 +296,8 @@ sub wait_boot {
     unlock_if_encrypted;
 
     if ($textmode || check_var('DESKTOP', 'textmode')) {
-        assert_screen 'linux-login', $ready_time;
+        assert_screen [qw(linux-login emergency-shell emergency-mode)], $ready_time;
+        handle_emergency if (match_has_tag('emergency-shell') or match_has_tag('emergency-mode'));
         reset_consoles;
 
         # Without this login name and password won't get to the system. They get
@@ -312,7 +313,9 @@ sub wait_boot {
     mouse_hide();
 
     if (get_var("NOAUTOLOGIN") || get_var("XDMUSED")) {
-        assert_screen 'displaymanager', $ready_time;
+        assert_screen [qw(displaymanager emergency-shell emergency-mode)], $ready_time;
+        handle_emergency if (match_has_tag('emergency-shell') or match_has_tag('emergency-mode'));
+
         wait_idle;
         if (get_var('DM_NEEDS_USERNAME')) {
             type_string "$username\n";
@@ -327,7 +330,8 @@ sub wait_boot {
         type_password $password. "\n";
     }
 
-    assert_screen 'generic-desktop', $ready_time + 100;
+    assert_screen [qw(generic-desktop emergency-shell emergency-mode)], $ready_time + 100;
+    handle_emergency if (match_has_tag('emergency-shell') or match_has_tag('emergency-mode'));
     mouse_hide(1);
     $self->{in_wait_boot} = 0;
 }
