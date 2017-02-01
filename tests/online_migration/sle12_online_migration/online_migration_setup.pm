@@ -20,5 +20,9 @@ sub run() {
     $self->setup_online_migration;
 }
 
+sub test_flags() {
+    return {fatal => 1, important => 1};
+}
+
 1;
 # vim: set sw=4 et:
