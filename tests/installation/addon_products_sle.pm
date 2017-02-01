@@ -30,8 +30,7 @@ sub run() {
         for my $addon (split(/,/, get_var('ADDONS'))) {
             $sr_number++;
             assert_screen 'addon-menu-active';
-            send_key 'alt-d';    # DVD
-            wait_still_screen 3;
+            wait_screen_change { send_key 'alt-d' };    # DVD
             send_key $cmd{next};
             assert_screen 'dvd-selector';
             send_key_until_needlematch 'addon-dvd-list',         'tab',  5;     # jump into addon list
