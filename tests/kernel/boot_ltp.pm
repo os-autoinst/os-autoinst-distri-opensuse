@@ -26,7 +26,7 @@ sub run {
         select_console('root-console');
     }
 
-    assert_script_run('export LTPROOT=/opt/ltp; export TMPDIR=/tmp PATH=$LTPROOT/testcases/bin:$PATH');
+    assert_script_run('export LTPROOT=/opt/ltp; export LTP_COLORIZE_OUTPUT=n TMPDIR=/tmp PATH=$LTPROOT/testcases/bin:$PATH');
 
     # setup for LTP networking tests
     assert_script_run("export PASSWD='$testapi::password'");
