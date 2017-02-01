@@ -18,14 +18,16 @@ use testapi;
 sub run() {
     send_key $cmd{install};
 
+    # Accept simple password
     assert_screen 'inst-userpasswdtoosimple';
     send_key 'ret';
 
+    # Confirm installation start
+    assert_screen "startinstall";
+    send_key $cmd{install};
+
     # We need to wait a bit for the disks to be formatted
     assert_screen "inst-packageinstallationstarted", 120;
-
-    # Check details view
-    # Check release notes
 }
 
 1;
