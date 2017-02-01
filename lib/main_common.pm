@@ -3,6 +3,7 @@ use base Exporter;
 use Exporter;
 use testapi qw(check_var get_var set_var diag);
 use autotest;
+use utils;
 use strict;
 use warnings;
 
@@ -36,6 +37,8 @@ our @EXPORT = qw(
   unregister_needle_tags
   any_desktop_is_applicable
   console_is_applicable
+  boot_hdd_image
+  load_yast2_ui_tests
 );
 
 sub init_main {
@@ -291,6 +294,80 @@ sub unregister_needle_tags {
     my ($tag) = @_;
     my @a = @{needle::tags($tag)};
     for my $n (@a) { $n->unregister(); }
+}
+
+sub boot_hdd_image {
+    die unless get_var("BOOT_HDD_IMAGE");
+    if (check_var("BACKEND", "svirt")) {
+        if (check_var("ARCH", "s390x")) {
+            loadtest "installation/bootloader_zkvm";
+        }
+        else {
+            loadtest "installation/bootloader_svirt";
+        }
+    }
+    if (get_var('UEFI') && get_var('BOOTFROM')) {
+        loadtest "boot/uefi_bootmenu";
+    }
+    loadtest "boot/boot_to_desktop";
+}
+
+sub load_yast2_ui_tests {
+    boot_hdd_image;
+    # setup $serialdev permission and so on
+    loadtest "console/consoletest_setup";
+    loadtest "console/hostname";
+    loadtest "console/check_console_font";
+    loadtest "console/zypper_lr";
+    loadtest "console/zypper_ref";
+    # start extra yast console test from here
+    loadtest "console/yast2_proxy";
+    loadtest "console/yast2_ntpclient";
+    loadtest "console/yast2_tftp";
+    loadtest "console/yast2_vnc";
+    loadtest "console/yast2_samba";
+    loadtest "console/yast2_xinetd";
+    loadtest "console/yast2_apparmor";
+    # TODO: why are the following two modules called on sle but not on opensuse?
+    # TODO: check if the following two modules also work on opensuse and delete if
+    if (check_var('DISTRI', 'sle')) {
+        loadtest "console/yast2_lan_hostname";
+        loadtest "console/yast2_nis";
+    }
+    # TODO: check if the following two modules also work on sle and delete if.
+    # yast-lan related tests do not work when using networkmanager.
+    # (Livesystem and laptops do use networkmanager)
+    if (check_var('DISTRI', 'opensuse') && !get_var("LIVETEST") && !get_var("LAPTOP")) {
+        loadtest "console/yast2_cmdline";
+        loadtest "console/yast2_dns_server";
+        loadtest "console/yast2_nfs_client";
+    }
+    loadtest "console/yast2_http";
+    loadtest "console/yast2_ftp";
+    # back to desktop
+    loadtest "console/consoletest_finish";
+    return
+      unless (!get_var("INSTALLONLY")
+        && is_desktop_installed()
+        && !get_var("DUALBOOT")
+        && !get_var("RESCUECD")
+        && get_var("Y2UITEST"));
+    # TODO: check why this was not called on opensuse
+    if (check_var('DISTRI', 'sle')) {
+        loadtest "x11/yast2_lan_restart";
+    }
+    loadtest "yast2_gui/yast2_control_center";
+    loadtest "yast2_gui/yast2_bootloader";
+    loadtest "yast2_gui/yast2_datetime";
+    loadtest "yast2_gui/yast2_firewall";
+    loadtest "yast2_gui/yast2_hostnames";
+    loadtest "yast2_gui/yast2_lang";
+    loadtest "yast2_gui/yast2_network_settings";
+    if (snapper_is_applicable()) {
+        loadtest "yast2_gui/yast2_snapper";
+    }
+    loadtest "yast2_gui/yast2_software_management";
+    loadtest "yast2_gui/yast2_users";
 }
 
 1;
