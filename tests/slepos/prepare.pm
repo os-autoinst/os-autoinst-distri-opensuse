@@ -59,6 +59,9 @@ sub run() {
     # init
     select_console 'root-console';
 
+    # Stop packagekit
+    script_run "chmod 444 /usr/sbin/packagekitd";    # packagekitd will be not executed
+
     configure_hostname(get_var('SLEPOS'));
     if (get_var('IP_BASED')) {
         configure_default_gateway;
