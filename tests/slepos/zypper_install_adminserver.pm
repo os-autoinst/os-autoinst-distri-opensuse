@@ -20,7 +20,8 @@ use utils;
 sub run() {
     my $self = shift;
 
-    assert_script_run "zypper -n --no-gpg-checks in --auto-agree-with-licenses -t pattern SLEPOS_Server_Admin > /dev/$serialdev";
+    assert_script_run
+      "zypper -n --no-gpg-checks in --auto-agree-with-licenses -t pattern SLEPOS_Server_Admin > /dev/$serialdev";
 }
 
 sub test_flags() {
