@@ -49,13 +49,18 @@ sub run() {
             build_image('minimal-3.4.0',   'minimal-3.4.0',   'linux32') if ($image eq 'minimal-3.4.0');
             build_image('jeos-4.0.0',      'jeos-4.0.0',      'linux32') if ($image eq 'jeos-4.0.0');
             build_image('graphical-3.4.0', 'graphical-4.0.0', 'linux32') if ($image eq 'graphical-3.4.0');
-            build_image('graphical-4.0.0', 'graphical-4.0.0', 'linux32', 's|</packages>|<package name=\"cryptsetup\"/><package name=\"liberation-fonts\"/></packages>|') if ($image eq 'graphical-4.0.0');
+            build_image(
+                'graphical-4.0.0', 'graphical-4.0.0',
+                'linux32',         's|</packages>|<package name=\"cryptsetup\"/><package name=\"liberation-fonts\"/></packages>|'
+            ) if ($image eq 'graphical-4.0.0');
         }
         elsif (get_var('VERSION') =~ /^12/) {
             build_image('minimal-sles12-3.4.0',   'minimal-3.4.0')   if ($image eq 'minimal-3.4.0');
             build_image('jeos-sles12-4.0.0',      'jeos-4.0.0')      if ($image eq 'jeos-4.0.0');
             build_image('graphical-sles12-3.4.0', 'graphical-4.0.0') if ($image eq 'graphical-3.4.0');
-            build_image('graphical-sles12-4.0.0', 'graphical-4.0.0', '', 's|</packages>|<package name=\"cryptsetup\"/><package name=\"liberation-fonts\"/></packages>|') if ($image eq 'graphical-4.0.0');
+            build_image('graphical-sles12-4.0.0', 'graphical-4.0.0', '',
+                's|</packages>|<package name=\"cryptsetup\"/><package name=\"liberation-fonts\"/></packages>|')
+              if ($image eq 'graphical-4.0.0');
         }
     }
 }
