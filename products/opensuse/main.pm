@@ -345,7 +345,10 @@ sub load_reboot_tests() {
         loadtest "installation/reconnect_s390";
     }
     if (installyaststep_is_applicable()) {
-        loadtest "installation/grub_test";
+        # s390 has no 'grub' that can be easily checked
+        if (!check_var('ARCH', 's390x')) {
+            loadtest "installation/grub_test";
+        }
         if (get_var('ENCRYPT')) {
             loadtest "installation/boot_encrypt";
         }
