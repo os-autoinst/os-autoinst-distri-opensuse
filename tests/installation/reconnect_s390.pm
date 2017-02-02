@@ -19,7 +19,7 @@ use strict;
 use warnings;
 
 sub run() {
-    my $login_ready = check_var('VERSION', 'Tumbleweed') ? qr/Welcome to openSUSE Tumbleweed.*/ : qr/Welcome to SUSE Linux Enterprise Server.*\(s390x\)/;
+    my $login_ready = check_var('VERSION', 'Tumbleweed') ? qr/Welcome to openSUSE Tumbleweed 20.*/ : qr/Welcome to SUSE Linux Enterprise Server.*\(s390x\)/;
 
     # different behaviour for z/VM and z/KVM
     if (check_var('BACKEND', 's390x')) {
