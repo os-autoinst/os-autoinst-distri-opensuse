@@ -20,7 +20,7 @@ use warnings;
 sub run() {
     my $svirt = select_console('svirt');
     my $name  = get_var('VIRSH_GUESTNAME');
-    $svirt->attach_to_running($name);
+    $svirt->attach_to_running({name => $name});
     reset_consoles;
     select_console('sut');
     select_console('root-console');

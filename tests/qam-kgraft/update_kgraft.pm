@@ -64,7 +64,7 @@ sub run() {
     my $svirt = select_console('svirt');
     my $name  = get_var('VIRSH_GUESTNAME');
     my $build = get_var('BUILD');
-    $svirt->attach_to_running($name);
+    $svirt->attach_to_running({name => $name});
     select_console('sut');
     select_console("root-console");
 
@@ -154,7 +154,7 @@ sub post_fail_hook() {
 
     # reconnect to svirt console
     my $svirt = select_console('svirt');
-    $svirt->attach_to_running($name);
+    $svirt->attach_to_running({name => $name});
 
     # revert to snapshot before update if it exists
     if ($snapshot_before) {

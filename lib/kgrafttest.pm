@@ -24,7 +24,7 @@ sub post_fail_hook() {
 
     #reconnect to svirt backend and revert to snapshot before update
     my $svirt = select_console('svirt');
-    $svirt->attach_to_running($name);
+    $svirt->attach_to_running({name => $name});
     snap_revert($svirt, $name, $snapshot_before);
 }
 

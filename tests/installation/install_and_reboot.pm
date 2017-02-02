@@ -128,13 +128,17 @@ sub run() {
     };
 
     if (check_var('VIRSH_VMM_FAMILY', 'xen')) {
-        reset_consoles;
         # VNC connection to SUT (the 'sut' console) is terminated on Xen via svirt
         # backend and we have to re-connect *after* the restart, otherwise we end up
         # with stalled VNC connection. The tricky part is to know *when* the system
         # is already booting.
-        sleep 7;
+        reset_consoles;
+        select_console 'svirt';
+        sleep 4;
         select_console 'sut';
+        # After restart connection to serial console seems to be closed. We have to
+        # open it again.
+        console('svirt')->attach_to_running({stop_vm => 1});
     }
 }
 

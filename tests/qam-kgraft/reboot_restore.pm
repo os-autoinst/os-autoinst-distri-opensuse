@@ -30,7 +30,7 @@ sub run() {
     my $name           = get_var('VIRSH_GUESTNAME');
     my $snapshot_after = get_var('KGRAFT_SNAPSHOT_AFTER');
     my $rrid           = get_var('MAINT_UPDATE_RRID');
-    $svirt->attach_to_running($name);
+    $svirt->attach_to_running({name => $name});
 
     reset_consoles;
     select_console('sut');
