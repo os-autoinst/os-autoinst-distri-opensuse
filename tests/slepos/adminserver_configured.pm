@@ -14,9 +14,6 @@ use lockapi;
 
 sub run() {
     my $self = shift;
-    select_console 'root-console';
-
-    script_run("while pgrep packagekitd; do killall -9 packagekitd ; sleep 1; done");
 
     mutex_create("adminserver_configured");
 
