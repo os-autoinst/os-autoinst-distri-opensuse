@@ -15,20 +15,18 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use lockapi;
 
 sub run() {
     my $self = shift;
-    #wait for adminserver
-    mutex_lock("images_registered");
-    mutex_unlock("images_registered");
 
+    #todo: add another images if needed
+    my $images_ref = get_var_array('IMAGE_OFFLINE_CREATOR');
+    foreach my $image (@{$images_ref}) {
+        #todo: build offline images using image creator
 
-    assert_script_run "possyncimages", 300;
-
-    mutex_create("bs1_images_synced");
+        #    upload_asset '/var/lib/SLEPOS/system/images/slepos-image-offline-graphical.raw';
+    }
 }
-
 sub test_flags() {
     return {fatal => 1};
 }

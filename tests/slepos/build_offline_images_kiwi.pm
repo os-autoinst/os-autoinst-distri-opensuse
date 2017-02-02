@@ -20,7 +20,13 @@ use utils;
 sub run() {
     my $self = shift;
 
-    script_output "
+
+    #todo: add another images if needed
+    my $images_ref = get_var_array('IMAGE_OFFLINE_KIWI');
+    foreach my $image (@{$images_ref}) {
+
+        if ($image eq 'graphical') {
+            script_output "
         set -x -e
         cd /var/lib/SLEPOS/system/images/graphical-3.4.0 && kiwi --bootusb initrd-netboot-suse-SLES11.i686-*.splash.gz
         dd if=/dev/zero bs=1M count=1024 >> /var/lib/SLEPOS/system/images/graphical-3.4.0/initrd-netboot-suse-SLES11.i686-*.splash*.raw
@@ -67,9 +73,10 @@ EOT
 
     ", 500;
 
-    upload_asset '/var/lib/SLEPOS/system/images/slepos-image-offline-graphical.raw';
+            upload_asset '/var/lib/SLEPOS/system/images/slepos-image-offline-graphical.raw';
+        }
+    }
 }
-
 sub test_flags() {
     return {fatal => 1};
 }
