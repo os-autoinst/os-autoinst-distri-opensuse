@@ -28,6 +28,12 @@ sub handle_Networkmanager_controlled {
     wait_serial("yast2-lan-status-0", 60) || die "'yast2 lan' didn't finish";
 }
 
+sub handle_dhcp_popup {
+    if (check_var('ARCH', 's390x') && match_has_tag('dhcp-popup')) {
+        wait_screen_change { send_key 'alt-o' };
+    }
+}
+
 sub run() {
     my $self = shift;
 
@@ -41,10 +47,11 @@ sub run() {
 
     script_sudo("yast2 lan; echo yast2-lan-status-\$? > /dev/$serialdev", 0);
 
-    assert_screen [qw(Networkmanager_controlled yast2_lan install-susefirewall2)], 60;
+    assert_screen [qw(Networkmanager_controlled yast2_lan install-susefirewall2 dhcp-popup)], 60;
+    handle_dhcp_popup;
     if (match_has_tag('Networkmanager_controlled')) {
         handle_Networkmanager_controlled;
-        return;                                         # don't change any settings
+        return;    # don't change any settings
     }
     if (match_has_tag('install-susefirewall2')) {
         # install SuSEfirewall2
@@ -61,7 +68,8 @@ sub run() {
     my $domain = "zq1.de";
 
     send_key "alt-s";    # open hostname tab
-    assert_screen "yast2_lan-hostname-tab";
+    assert_screen [qw(yast2_lan-hostname-tab dhcp-popup)];
+    handle_dhcp_popup;
     send_key "tab";
     for (1 .. 15) { send_key "backspace" }
     type_string $hostname;
