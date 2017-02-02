@@ -124,7 +124,7 @@ sub setup_dns_server {
 
 
 sub setup_dhcp_server {
-    my ($dns) = @_;
+    my ($dns, $pxe) = @_;
     return if $dhcp_server_set;
     my $net_conf = parse_network_configuration();
 
@@ -167,8 +167,10 @@ sub setup_dhcp_server {
                 $setup_script .= "  option routers $server_ip;\n";
             }
         }
-        $setup_script .= "  filename \"/boot/pxelinux.0\";\n";
-        $setup_script .= "  next-server $server_ip;\n";
+        if ($pxe) {
+            $setup_script .= "  filename \"/boot/pxelinux.0\";\n";
+            $setup_script .= "  next-server $server_ip;\n";
+        }
         $setup_script .= "}\n";
     }
     $setup_script .= "EOT\n";
@@ -228,7 +230,7 @@ sub run {
     setup_networks();
 
     if (exists $server_roles{pxe}) {
-        setup_dhcp_server((exists $server_roles{dns}));
+        setup_dhcp_server((exists $server_roles{dns}), 1);
         setup_pxe_server();
         setup_tftp_server();
         push @mutexes, 'pxe';
@@ -239,7 +241,7 @@ sub run {
     }
 
     if (exists $server_roles{dhcp}) {
-        setup_dhcp_server((exists $server_roles{dns}));
+        setup_dhcp_server((exists $server_roles{dns}), 0);
         push @mutexes, 'dhcp';
     }
     if (exists $server_roles{qemuproxy}) {
