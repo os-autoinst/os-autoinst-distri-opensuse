@@ -111,8 +111,8 @@ sub run() {
         select_console 'install-shell';
         assert_screen 'inst-console';
 
-        # check for right boot-device on s390x
-        if (check_var('ARCH', 's390x')) {
+        # check for right boot-device on s390x (zVM)
+        if (check_var('BACKEND', 's390x')) {
             if (script_run('lsreipl | grep 0.0.0150')) {
                 record_soft_failure 'default bootdevice not set';
                 script_run('chreipl ccw 0.0.0150');
