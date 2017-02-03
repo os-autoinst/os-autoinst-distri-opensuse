@@ -29,7 +29,7 @@ sub handle_Networkmanager_controlled {
 }
 
 sub handle_dhcp_popup {
-    if (check_var('ARCH', 's390x') && match_has_tag('dhcp-popup')) {
+    if (match_has_tag('dhcp-popup')) {
         wait_screen_change { send_key 'alt-o' };
     }
 }
