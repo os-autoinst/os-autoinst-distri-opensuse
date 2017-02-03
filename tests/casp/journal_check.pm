@@ -69,6 +69,16 @@ sub run() {
     # Write full journal output for reference and upload it into Uploaded Logs section in test webUI
     script_run("journalctl --no-pager -b 0 > /tmp/full_journal.log");
     upload_logs "/tmp/full_journal.log";
+
+    # Check for failed systemd services and examine them
+    # script_run("pkill -SEGV dbus-daemon"); # comment out for a test
+    my $failed_services = script_output("systemctl --failed --no-legend --plain --no-pager\n");
+    foreach my $line (split(/\n/, $failed_services)) {
+        if ($line =~ /^([\w.-]+)\s.+$/) {
+            my $failed_service_output = script_output("systemctl status $1 -l || true\n");
+            $self->write_detail_output("$1 failed", $failed_service_output, "fail");
+        }
+    }
 }
 
 sub test_flags() {
