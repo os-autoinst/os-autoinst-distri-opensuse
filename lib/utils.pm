@@ -683,7 +683,8 @@ sub validate_repos {
 sub setup_online_migration {
     my ($self) = @_;
     # if source system is minimal installation then boot to textmode
-    $self->wait_boot(textmode => !is_desktop_installed);
+    # we don't care about source system start time because our SUT is upgraded one
+    $self->wait_boot(textmode => !is_desktop_installed, ready_time => 600);
     select_console 'root-console';
 
     # stop packagekit service
