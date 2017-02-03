@@ -20,16 +20,23 @@ use utils;
 my $img_suffix = 'tar.bz2';
 
 sub build_image {
-    my ($target, $template, $linux32, $mod) = @_;
+    my ($target, $template, $type, $linux32, @mod) = @_;
     bmwqemu::diag("image '$target' will be built:");
     $linux32 = $linux32 ? 'linux32' : '';
-    $mod //= '';
-    script_output "./kiwi_build_image.sh '$target' '$template' '$linux32' '$mod'", 2000;
+    my $arch = $linux32 ? 'i686' : 'x86_64';
+    my ($name, $ver) = split "-", $target;
+    $type //= 'pxe';
+    script_output "./kiwi_build_image.sh '$target' '$template' '$linux32'" . join('', map { " '$_'" } @mod), 2000;
     script_output "ls -l /var/lib/SLEPOS/system/images/$target/";
     upload_logs "/var/log/image_prepare-$target";
     upload_logs "/var/log/image_create-$target";
-    script_output "tar -cjf $target.$img_suffix /var/lib/SLEPOS/system/images/$target/", 2000;
-    upload_asset "$target.$img_suffix",                                                  'public';
+    if ($type eq 'pxe') {
+        script_output "tar -cjf $target.$img_suffix /var/lib/SLEPOS/system/images/$target/", 2000;
+        upload_asset "$target.$img_suffix",                                                  'public';
+    }
+    elsif ($type eq 'oem') {
+        upload_asset "/var/lib/SLEPOS/system/images/$target/$name.$arch-$ver.raw", 'public';
+    }
 }
 
 
@@ -46,19 +53,25 @@ sub run() {
     foreach my $image (@{$images_ref}) {
         #todo:split versions code into specific subdirectories
         if (get_var('VERSION') =~ /^11/) {
-            build_image('minimal-3.4.0',   'minimal-3.4.0',   'linux32') if ($image eq 'minimal-3.4.0');
-            build_image('jeos-4.0.0',      'jeos-4.0.0',      'linux32') if ($image eq 'jeos-4.0.0');
-            build_image('graphical-3.4.0', 'graphical-4.0.0', 'linux32') if ($image eq 'graphical-3.4.0');
+            build_image('minimal-3.4.0', 'minimal-3.4.0', 'pxe', 'linux32') if ($image eq 'minimal-3.4.0');
+            build_image('jeos-4.0.0',    'jeos-4.0.0',    'pxe', 'linux32') if ($image eq 'jeos-4.0.0');
+            build_image('graphical-3.4.0', 'graphical-4.0.0', 'pxe', 'linux32', 's|</packages>|<package name=\"liberation-fonts\"/></packages>|')
+              if ($image eq 'graphical-3.4.0');
+            build_image('graphical-4.0.0', 'graphical-4.0.0', 'pxe', 'linux32',
+                's|</packages>|<package name=\"cryptsetup\"/><package name=\"liberation-fonts\"/></packages>|')
+              if ($image eq 'graphical-4.0.0');
             build_image(
-                'graphical-4.0.0', 'graphical-4.0.0',
-                'linux32',         's|</packages>|<package name=\"cryptsetup\"/><package name=\"liberation-fonts\"/></packages>|'
-            ) if ($image eq 'graphical-4.0.0');
+                'comboserver-4.0.0', 'comboserver-4.0.0', 'oem', '',
+                's|<type|<type vga=\"0x317\"|',
+                's|</packages>|<package name=\"liberation-fonts\"/><package name=\"SuSEfirewall2\"/></packages>|'
+            ) if ($image eq 'comboserver-4.0.0');
         }
         elsif (get_var('VERSION') =~ /^12/) {
-            build_image('minimal-sles12-3.4.0',   'minimal-3.4.0')   if ($image eq 'minimal-3.4.0');
-            build_image('jeos-sles12-4.0.0',      'jeos-4.0.0')      if ($image eq 'jeos-4.0.0');
-            build_image('graphical-sles12-3.4.0', 'graphical-4.0.0') if ($image eq 'graphical-3.4.0');
-            build_image('graphical-sles12-4.0.0', 'graphical-4.0.0', '',
+            build_image('minimal-sles12-3.4.0', 'minimal-3.4.0', 'pxe') if ($image eq 'minimal-3.4.0');
+            build_image('jeos-sles12-4.0.0',    'jeos-4.0.0',    'pxe') if ($image eq 'jeos-4.0.0');
+            build_image('graphical-sles12-3.4.0', 'graphical-4.0.0', 'pxe', '', 's|</packages>|<package name=\"liberation-fonts\"/></packages>|')
+              if ($image eq 'graphical-3.4.0');
+            build_image('graphical-sles12-4.0.0', 'graphical-4.0.0', 'pxe', '',
                 's|</packages>|<package name=\"cryptsetup\"/><package name=\"liberation-fonts\"/></packages>|')
               if ($image eq 'graphical-4.0.0');
         }
