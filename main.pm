@@ -639,11 +639,16 @@ sub load_slepos_tests() {
         loadtest "slepos/zypper_add_repo.pm";
         loadtest "slepos/zypper_install_adminserver.pm";
         loadtest "slepos/run_posInitAdminserver.pm";
+        loadtest "slepos/check_services.pm";
+        loadtest "slepos/adminserver_configured.pm";
         loadtest "slepos/zypper_install_imageserver.pm";
         loadtest "slepos/use_smt_for_kiwi.pm";
-        loadtest "slepos/build_images_kiwi.pm";
+        loadtest "slepos/download_images.pm"      if get_var("IMAGE_DOWNLOAD");
+        loadtest "slepos/build_images_kiwi.pm"    if get_var("IMAGE_KIWI");
+        loadtest "slepos/build_images_creator.pm" if get_var("IMAGE_CREATOR");
         loadtest "slepos/register_images.pm";
-        loadtest "slepos/build_offline_image_kiwi.pm";
+        loadtest "slepos/build_offline_images_kiwi.pm"    if get_var("IMAGE_OFFLINE_KIWI");
+        loadtest "slepos/build_offline_images_creator.pm" if get_var("IMAGE_OFFLINE_CREATOR");
         loadtest "slepos/wait.pm";
     }
     elsif (get_var("SLEPOS") =~ /^branchserver/) {
@@ -652,6 +657,7 @@ sub load_slepos_tests() {
         loadtest "slepos/zypper_add_repo.pm";
         loadtest "slepos/zypper_install_branchserver.pm";
         loadtest "slepos/run_posInitBranchserver.pm";
+        loadtest "slepos/check_services.pm";
         loadtest "slepos/run_possyncimages.pm";
         loadtest "slepos/wait.pm";
     }
