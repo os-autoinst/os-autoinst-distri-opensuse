@@ -73,10 +73,10 @@ echo "Updates: $UPDATES"
 
 echo "Step one - prepare image"
 ${LINUX32} /usr/sbin/kiwi --nocolor --root "$IMAGE_PATH/chroot/$THIS_IMAGE" --prepare "$IMAGE_PATH/$THIS_IMAGE" $UPDATES --logfile "/var/log/image_prepare-$THIS_IMAGE" || \
-	{ die "Step one failed - see log /var/log/image_prepare-$THIS_IMAGE" ; return; }
+	{ echo "Step one failed - see log /var/log/image_prepare-$THIS_IMAGE" ; exit 1; }
 echo "Step two - create image"
 # do not specify "--type pxe " - kiwi should build the default one
 ${LINUX32} /usr/sbin/kiwi --nocolor --create "$IMAGE_PATH/chroot/$THIS_IMAGE" --destdir "$IMAGE_PATH/images/$THIS_IMAGE" $UPDATES --logfile "/var/log/image_create-$THIS_IMAGE" || \
-	{ die "Step two failed - see log /var/log/image_prepare-$THIS_IMAGE" ; return; }
+	{ echo "Step two failed - see log /var/log/image_prepare-$THIS_IMAGE" ; exit 1; }
 echo "create_image $THIS_IMAGE succeeded"
 

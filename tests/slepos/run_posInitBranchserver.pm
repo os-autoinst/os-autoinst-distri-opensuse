@@ -20,19 +20,22 @@ use lockapi;
 sub run() {
     my $self = shift;
 
-    # FIXME: configure fw
-    assert_script_run "rcSuSEfirewall2 stop";
+    script_output '
+      sed -i -e \'s|^FW_ROUTE=.*|FW_ROUTE="yes"|\' -e \'s|^FW_MASQUERADE=.*|FW_MASQUERADE="yes"|\' -e \'s|^FW_DEV_INT=.*|FW_DEV_INT="eth1"|\'  -e \'s|^FW_DEV_EXT=.*|FW_DEV_EXT="any eth0"|\' /etc/sysconfig/SuSEfirewall2
+      for port in 69 53 67 21 30000:30400 ; do
+        yast2 firewall services add tcpport=$port udpport=$port zone=EXT
+      done
+      rcSuSEfirewall2 restart
+
+      sed -i -e \'s|\(TFTP_DEFAULT_KERNEL_PARAMETERS.*$\)|\1 kiwidebug=1 |\' /usr/lib/SLEPOS/defaults
+      sed -i -e \'s|vga=0x314|vga=0x317|\' /usr/lib/SLEPOS/defaults
+      cat /usr/lib/SLEPOS/defaults
+      ip a
+    ';
 
     #wait for adminserver
     mutex_lock("adminserver_configured");
     mutex_unlock("adminserver_configured");
-
-    assert_script_run "ip a";
-
-    script_output '
-      set -x -e
-      sed -i -e \'s|\(TFTP_DEFAULT_KERNEL_PARAMETERS.*$\)|\1 kiwidebug=1 |\' /usr/lib/SLEPOS/defaults
-    ';
 
     type_string "posInitBranchserver 2>&1 | tee /dev/$serialdev\n";
     wait_serial "Please, select initialization mode:" and type_string "1\n";
