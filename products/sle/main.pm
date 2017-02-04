@@ -1142,6 +1142,12 @@ elsif (get_var("VIRT_AUTOTEST")) {
     elsif (get_var("VIRT_PRJ6_VIRT_V2V_DST")) {
         loadtest "virt_autotest/virt_v2v_dst";
     }
+    elsif (get_var("VIRT_NEW_GUEST_MIGRATION_SOURCE")) {
+        loadtest "virt_autotest/guest_migration_src";
+    }
+    elsif (get_var("VIRT_NEW_GUEST_MIGRATION_DESTINATION")) {
+        loadtest "virt_autotest/guest_migration_dst";
+    }
 }
 elsif (get_var("QAM_MINIMAL")) {
     prepare_target();
