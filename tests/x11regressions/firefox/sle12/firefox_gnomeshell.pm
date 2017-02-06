@@ -34,6 +34,8 @@ sub run() {
     send_key "alt-a";
     assert_and_click "firefox-gnomeshell-allowremember";
     assert_and_click "firefox-gnomeshell-check_installed";
+    # Maximize the window to ensure all relevant parts are in the viewable area
+    send_key("super-up");
     assert_screen("firefox-gnomeshell-installed", 90);
     send_key "pgdn";
     assert_screen("firefox-gnomeshell-installed_02", 90);
