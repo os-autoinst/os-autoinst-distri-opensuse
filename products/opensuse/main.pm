@@ -837,7 +837,9 @@ sub load_slenkins_tests {
 }
 
 # load the tests in the right order
-if (get_var("REGRESSION")) {
+if (maybe_load_kernel_tests()) {
+}
+elsif (get_var("REGRESSION")) {
     if (get_var("KEEPHDDS")) {
         load_login_tests();
     }
@@ -888,26 +890,6 @@ elsif (ssh_key_import) {
     load_reboot_tests();
     # verify previous defined ssh keys
     loadtest "x11/ssh_key_verify";
-}
-elsif (get_var('INSTALL_LTP')) {
-    loadtest 'kernel/install_ltp';
-    loadtest 'kernel/boot_ltp';
-    loadtest 'kernel/shutdown_ltp';
-}
-elsif (get_var('LTP_SETUP_NETWORKING')) {
-    loadtest 'kernel/boot_ltp';
-    loadtest 'kernel/ltp_setup_networking';
-    loadtest 'kernel/shutdown_ltp';
-}
-elsif (get_var('LTP_COMMAND_FILE')) {
-    loadtest 'kernel/boot_ltp';
-    if (get_var('LTP_COMMAND_FILE') =~ m/ltp-aiodio.part[134]/) {
-        loadtest 'kernel/create_junkfile_ltp';
-    }
-    loadtest 'kernel/run_ltp';
-}
-elsif (get_var('VIRTIO_CONSOLE_TEST')) {
-    loadtest 'kernel/virtio_console';
 }
 else {
     if (get_var("LIVETEST") || get_var('LIVE_INSTALLATION')) {
