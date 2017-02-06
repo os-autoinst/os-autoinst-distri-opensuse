@@ -28,12 +28,15 @@ sub run() {
 
     # check Apparmor Configuration is opened
     assert_screen 'yast2_apparmor';
-    send_key 'ret';
-    wait_still_screen(1);
-    # need to enable apparmor here, otherwise set profile modes cannot be selected, this got changed now
-    send_key 'alt-e';
+    wait_still_screen(2);
+    wait_screen_change { send_key 'ret' };
+    if (!check_screen 'yast2_apparmor_enabled') {
+        wait_screen_change { send_key 'alt-e' };
+    }
+    else {
+        # No need to enable apparmor here because it is enabled by default. This got changed again.
+    }
     assert_screen 'yast2_apparmor_enabled';
-
     # part 1: open profile mode configuration and check toggle/show all profiles
     send_key 'alt-n';
     assert_screen 'yast2_apparmor_profile_mode_configuration';
