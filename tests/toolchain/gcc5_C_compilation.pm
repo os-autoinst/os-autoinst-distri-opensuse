@@ -31,6 +31,8 @@ sub run() {
     assert_script_run 'mount /tmp/tmpdir.loop /tmp/tmpdir -o loop';
 
     script_run 'pushd ltp-full-20170116';
+    assert_script_run "sed -i '/utimensat01/d' runtest/syscalls";
+    record_soft_failure('Once poo#15876 is resolved, bring the test back');
     # workaround for missing patch https://patchwork.kernel.org/patch/8953231/ in SLES 12 SP2
     # (https://github.com/linux-test-project/ltp/issues/89)
     script_run "cp /proc/sys/fs/inotify/max_user_instances ~; echo 512 > /proc/sys/fs/inotify/max_user_instances";
