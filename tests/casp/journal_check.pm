@@ -47,6 +47,7 @@ sub run() {
         bsc_1022527 => '.*wickedd.*ni_process_reap.*blocking waitpid.*',
         bsc_1022524 => '.*rpc\.statd.*Failed to open directory sm.*',
         bsc_1022525 => '.*rpcbind.*cannot(.*open file.*rpcbind.xdr.*|.*open file.*portmap.xdr.*|.*save any registration.*)',
+        bsc_1023818 => '.*Dev dev-disk-by.*device appeared twice with different sysfs paths.*',
     };
     my $master_pattern = "(" . join('|', map { "$_" } values %$bug_pattern) . ")";
 
