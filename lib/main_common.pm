@@ -363,9 +363,6 @@ sub load_yast2_ui_tests {
     loadtest "yast2_gui/yast2_hostnames";
     loadtest "yast2_gui/yast2_lang";
     loadtest "yast2_gui/yast2_network_settings";
-    if (snapper_is_applicable()) {
-        loadtest "yast2_gui/yast2_snapper";
-    }
     loadtest "yast2_gui/yast2_software_management";
     loadtest "yast2_gui/yast2_users";
 }
