@@ -17,6 +17,10 @@ use utils;
 
 sub run() {
     mouse_hide();
+    assert_and_click "enlightenment_language_english";
+    assert_and_click "enlightenment_assistant_next";
+    assert_and_click "enlightenment_keyboard_english";
+    assert_and_click "enlightenment_assistant_next";
     assert_and_click "enlightenment_profile_selection";
     assert_and_click "enlightenment_assistant_next";
     assert_and_click "enlightenment_profile_size";
