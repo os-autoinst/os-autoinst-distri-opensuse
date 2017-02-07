@@ -39,6 +39,7 @@ our @EXPORT = qw(
   console_is_applicable
   boot_hdd_image
   load_yast2_ui_tests
+  maybe_load_kernel_tests
 );
 
 sub init_main {
@@ -365,6 +366,36 @@ sub load_yast2_ui_tests {
     loadtest "yast2_gui/yast2_network_settings";
     loadtest "yast2_gui/yast2_software_management";
     loadtest "yast2_gui/yast2_users";
+}
+
+sub maybe_load_kernel_tests {
+    if (get_var('INSTALL_LTP')) {
+        if (get_var('INSTALL_KOTD')) {
+            loadtest 'kernel/install_kotd';
+        }
+        loadtest 'kernel/install_ltp';
+        loadtest 'kernel/boot_ltp';
+        loadtest 'kernel/shutdown_ltp';
+    }
+    elsif (get_var('LTP_SETUP_NETWORKING')) {
+        loadtest 'kernel/boot_ltp';
+        loadtest 'kernel/ltp_setup_networking';
+        loadtest 'kernel/shutdown_ltp';
+    }
+    elsif (get_var('LTP_COMMAND_FILE')) {
+        loadtest 'kernel/boot_ltp';
+        if (get_var('LTP_COMMAND_FILE') =~ m/ltp-aiodio.part[134]/) {
+            loadtest 'kernel/create_junkfile_ltp';
+        }
+        loadtest 'kernel/run_ltp';
+    }
+    elsif (get_var('VIRTIO_CONSOLE_TEST')) {
+        loadtest 'kernel/virtio_console';
+    }
+    else {
+        return 0;
+    }
+    return 1;
 }
 
 1;
