@@ -294,7 +294,7 @@ sub check_env {
 sub unregister_needle_tags {
     my ($tag) = @_;
     my @a = @{needle::tags($tag)};
-    for my $n (@a) { $n->unregister(); }
+    for my $n (@a) { $n->unregister($tag); }
 }
 
 sub boot_hdd_image {
