@@ -733,6 +733,7 @@ sub load_extra_test () {
                 loadtest 'console/btrfs_send_receive';
             }
         }
+        loadtest 'console/snapper_thin_lvm';
         loadtest 'console/command_not_found';
         loadtest 'console/openvswitch';
         loadtest 'console/git';
