@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: split the paritioning monster into smaller pieces
-# G-Maintainer: Stephan Kulow <coolo@suse.de>
+# Summary: split the partitioning monster into smaller pieces
+# Maintainer: Stephan Kulow <coolo@suse.de>
 
 use strict;
 use warnings;
@@ -75,6 +75,10 @@ sub addraid {
     else {
         send_key "alt-o";    # Operating System
     }
+    if ($step == 2 and get_var("UEFI")) {
+        send_key "alt-e";    #EFI boot
+        assert_screen 'partition-role-uefi';
+    }
     send_key $cmd{next};
 
     wait_idle 3;
@@ -85,8 +89,8 @@ sub setraidlevel {
     my %entry = (0 => 0, 1 => 1, 5 => 5, 6 => 6, 10 => 'g');
     send_key "alt-$entry{$level}";
 
-    send_key "alt-i";        # move to RAID name input field
-    send_key "tab";          # skip RAID name input field
+    send_key "alt-i";    # move to RAID name input field
+    send_key "tab";      # skip RAID name input field
 }
 
 sub set_lvm() {
@@ -171,28 +175,6 @@ sub run() {
         send_key 'down';           #should select first disk'
         wait_idle 5;
     }
-    elsif (get_var('UEFI')) {
-        send_key 'alt-p';
-        assert_screen 'partitioning-size';
-        send_key 'ctrl-a';
-        type_string "200 MB";
-        send_key 'alt-n';
-        assert_screen 'partition-role';
-        send_key "alt-e";          # EFI boot Part match
-        assert_screen 'partitoion-role-EFI';
-        send_key 'alt-n';
-        assert_screen 'partition-format';
-        send_key 'alt-a';          # Formatting options
-        send_key_until_needlematch 'filesystem-fat', 'down';
-        send_key 'alt-m';          #  Mounting options
-        type_string "/boot/efi";
-        send_key 'alt-f';
-        assert_screen 'custompart-efi-boot';
-        send_key 'alt-s';
-        send_key 'right';
-        send_key 'down';           # should select first disk'
-        wait_idle 5;
-    }
     else {
         send_key "right";          # unfold disks
         send_key "down";           # select first disk
@@ -232,13 +214,22 @@ sub run() {
     addraid(2);
 
     send_key "alt-s";    # change filesystem to FAT for /boot
-    for (1 .. 3) {
-        send_key "down";    # select Ext4
+    if (get_var('UEFI')) {
+        send_key_until_needlematch 'partition-efi-fat', 'down';
     }
-
+    else {
+        for (1 .. 3) {
+            send_key "down";    # select Ext4
+        }
+    }
     send_key $cmd{mountpoint};
-    for (1 .. 3) {
-        send_key "down";
+    if (get_var('UEFI')) {
+        send_key_until_needlematch 'mountpoint-boot-efi', 'down';
+    }
+    else {
+        for (1 .. 3) {
+            send_key "down";
+        }
     }
     send_key $cmd{finish};
 

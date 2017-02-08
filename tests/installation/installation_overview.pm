@@ -64,6 +64,12 @@ sub run() {
             }
         }
     }
+
+    if (check_screen('inst-overview-bootloader-warning', 0)) {
+        record_soft_failure 'bsc#1024409';
+        send_key 'alt-i';    #install
+        assert_screen 'inst-overview-error-found';
+    }
 }
 
 1;
