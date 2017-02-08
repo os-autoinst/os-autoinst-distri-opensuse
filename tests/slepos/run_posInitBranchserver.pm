@@ -38,7 +38,7 @@ sub run() {
     mutex_unlock("adminserver_configured");
 
     type_string "posInitBranchserver 2>&1 | tee /dev/$serialdev\n";
-    wait_serial "Please, select initialization mode:" and type_string "1\n";
+    wait_serial "Please, select initialization mode:" and type_string "1\n" unless get_var('SLEPOS') =~ /^combo/;
     wait_serial "company name.*:"                     and type_string get_var('ORGANIZATION') . "\n";
     wait_serial "2 letter abbreviation.*:"            and type_string get_var('COUNTRY') . "\n";
     wait_serial "name of organizational unit.*:"      and type_string get_var('ORGANIZATIONAL_UNIT') . "\n";
@@ -50,11 +50,10 @@ sub run() {
 
     wait_serial "Is Admin Server LDAP fingerprint correct" and type_string "Y\n" if get_var('SSL') eq 'yes';
 
-    wait_serial "Use Branch LDAP on localhost" and type_string "Y\n";
-    wait_serial "Enable secure connection"     and type_string "yes\n" if get_var('SSL') eq 'yes';
-    wait_serial "Continue with configuration"  and type_string "\n";
+    wait_serial "Use Branch LDAP on localhost" and type_string "Y\n" unless get_var('SLEPOS') =~ /^combo/;
+    wait_serial "Enable secure connection" and type_string "yes\n" if get_var('SSL') eq 'yes' && get_var('SLEPOS') !~ /^combo/;
+    wait_serial "Continue with configuration" and type_string "\n";
     wait_serial "configuration successful";
-
 }
 
 sub test_flags() {

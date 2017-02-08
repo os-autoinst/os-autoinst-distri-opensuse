@@ -31,23 +31,31 @@ sub run() {
         set_var('LOCATION',            "mybranch1");
         set_var('USER_PASSWORD',       "branchpass");
     }
+    elsif (get_var('SLEPOS') =~ /^combo/) {
+        set_var('ORGANIZATIONAL_UNIT', "myorgunit1");
+        set_var('LOCATION',            "mycombobranch");
+        set_var('USER_PASSWORD',       "branchpass");
+    }
 
     if (get_var('IP_BASED')) {
-        set_var('ADMINSERVER_ADDR', "10.0.2.15/24");
+        set_var('ADMINSERVER_ADDR', "10.0.2.15");
         if (get_var('SLEPOS') =~ /^branchserver/) {
-            set_var('MY_ADDR', "10.0.2.210/24");
+            set_var('MY_ADDR', "10.0.2.210");
         }
-        elsif (get_var('SLEPOS') =~ /^adminserver/) {
-            set_var('MY_ADDR', "10.0.2.15/24");
+        elsif (get_var('SLEPOS') =~ /^adminserver|^combo/) {
+            set_var('MY_ADDR', "10.0.2.15");
         }
     }
     else {
-        set_var('ADMINSERVER_ADDR', "adminserver.openqa.test");
+        set_var('MY_ADDR', get_var('SLEPOS') . ".openqa.test");
         if (get_var('SLEPOS') =~ /^branchserver/) {
-            set_var('MY_ADDR', "branchserver.openqa.test");
+            set_var('ADMINSERVER_ADDR', "adminserver.openqa.test");
         }
         elsif (get_var('SLEPOS') =~ /^adminserver/) {
-            set_var('MY_ADDR', "adminserver.openqa.test");
+            set_var('ADMINSERVER_ADDR', get_var('SLEPOS') . ".openqa.test");
+        }
+        elsif (get_var('SLEPOS') =~ /^combo/) {
+            set_var('ADMINSERVER_ADDR', get_var('SLEPOS') . ".openqa.test");
         }
     }
 
@@ -65,7 +73,7 @@ sub run() {
     configure_hostname(get_var('SLEPOS'));
     if (get_var('IP_BASED')) {
         configure_default_gateway;
-        configure_static_ip(get_var('MY_ADDR'));
+        configure_static_ip(get_var('MY_ADDR') . "/24");
         configure_static_dns(get_host_resolv_conf());
     }
     else {
