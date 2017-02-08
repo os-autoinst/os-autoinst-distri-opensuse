@@ -38,7 +38,7 @@ sub run() {
 
     # 2. Unzip into a new directory
     assert_script_run "cd /tmp/unzip-test/ ; unzip -d extract/ /tmp/unzip-test/archive.zip";
-    my $entries = script_output("ls -l /tmp/unzip-test/extract/ | wc -l");
+    $entries = script_output("ls -l /tmp/unzip-test/extract/ | wc -l");
     die "Extract produced too few values: $entries instead of 6" unless ($entries eq "6");
     # Go one step further and verify the md5sum in extract folder of each file.
     assert_script_run "cp /tmp/unzip-test/archive.zip /tmp/unzip-test/extract/archive.zip";
