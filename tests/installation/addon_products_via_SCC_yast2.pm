@@ -29,7 +29,7 @@ sub run() {
     }
     type_string "killall xterm\n";
     x11_start_program("xdg-su -c '/sbin/yast2'");
-    if ($password) { type_password; send_key 'ret', 1; }
+    if ($password) { type_password; send_key 'ret'; }
     send_key 'alt-y' if check_screen('packagekit-warning', 2);
     assert_screen 'yast2-control-center';
     type_string 'extens';                # filter 'Add System Extensions or Modules'
