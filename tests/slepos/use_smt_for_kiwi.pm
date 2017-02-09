@@ -18,8 +18,6 @@ use utils;
 
 
 sub run() {
-    my $self = shift;
-
     my $smt = get_var('SMT_SERVER');
 
     assert_script_run "sed -i -e 's|/srv/www/htdocs/|http://$smt/|' /etc/kiwi/repoalias";

@@ -24,9 +24,7 @@ sub check_service {
     script_output("chkconfig --list $service | grep 3:on | grep 5:on");
 }
 
-
 sub run() {
-    my $self = shift;
     #check services on adminserver
     if (get_var('SLEPOS') =~ /^adminserver/) {
         check_service('ldap');
@@ -37,8 +35,7 @@ sub run() {
         $basedn =~ s/^"//;
         $basedn =~ s/"$//;
         #get bs services from ldap
-        my $services
-          = script_output(
+        my $services = script_output(
             "posAdmin --query --list --base $basedn --scService --scServiceStatus TRUE --scServiceStartScript | grep scServiceStartScript:|cut -d ' ' -f 2");
         my $extdhcp   = script_output("posAdmin --query  --list --base $basedn --scLocation --scDhcpExtern ");
         my $nodhcpsrv = 0;

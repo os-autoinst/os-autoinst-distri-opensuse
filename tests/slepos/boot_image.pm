@@ -7,19 +7,18 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Basic SLEPOS test
-# G-Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
+# Summary: Basic SLEPOS test
+# Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
 
 use base "basetest";
 use strict;
 use warnings;
 use testapi;
-use utils;
 use lockapi;
+use utils;
+
 
 sub run() {
-    my $self = shift;
-
     unless (get_var("SLEPOS") =~ /^terminal-offline/) {
         mutex_lock("bs1_images_synced");
         mutex_unlock("bs1_images_synced");

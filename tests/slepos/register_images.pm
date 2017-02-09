@@ -7,8 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Basic SLEPOS test
-# G-Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
+# Summary: Basic SLEPOS test for registering images
+# Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
 
 use base "basetest";
 use strict;
@@ -18,8 +18,6 @@ use utils;
 use lockapi;
 
 sub run() {
-    my $self = shift;
-
     assert_script_run "registerImages --ldap --move --include-boot /var/lib/SLEPOS/system/images/minimal-3.4.0/";
     assert_script_run "registerImages --gzip --ldap /var/lib/SLEPOS/system/images/graphical-3.4.0";
 

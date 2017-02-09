@@ -18,8 +18,6 @@ use utils;
 use lockapi;
 
 sub run() {
-    my $self = shift;
-
     script_output '
       for port in 389 636 873 ; do
         yast2 firewall services add tcpport=$port udpport=$port zone=EXT
