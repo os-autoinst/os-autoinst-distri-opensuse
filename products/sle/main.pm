@@ -1245,6 +1245,9 @@ else {
             if (get_var("ADDONS")) {
                 loadtest "installation/addon_products_yast2";
             }
+            if (get_var('SCC_ADDONS')) {
+                loadtest "installation/addon_products_via_SCC_yast2";
+            }
             if (get_var("ISCSI_SERVER")) {
                 set_var('INSTALLONLY', 1);
                 loadtest "iscsi/iscsi_server";

@@ -19,7 +19,7 @@ use registration qw(fill_in_registration_data skip_registration);
 sub run() {
     my ($addon, $uc_addon);
     x11_start_program("xdg-su -c '/sbin/yast2 add-on'");
-    if ($password) { type_password; send_key "ret", 1; }
+    if ($password) { type_password; send_key "ret"; }
     if (check_screen 'packagekit-warning') {
         send_key 'alt-y';    # yes
     }

@@ -185,7 +185,16 @@ sub fill_in_registration_data {
                     };
                     next;
                 }
-                elsif (match_has_tag('inst-addon') || match_has_tag('yast_scc-pkgtoinstall')) {
+                elsif (match_has_tag('yast_scc-pkgtoinstall')) {
+                    send_key 'alt-a';
+                    assert_screen 'automatic-changes';
+                    wait_screen_change { send_key 'alt-o' };
+                    send_key 'alt-o' if check_screen('unsupported-packages', 2);
+                    assert_screen 'addon-installation-report', 200;
+                    send_key 'alt-f';
+                    last;
+                }
+                elsif (match_has_tag('inst-addon')) {
                     # it would show Add On Product screen if scc registration correctly during installation
                     # it would show software install dialog if scc registration correctly by yast2 scc
                     last;
