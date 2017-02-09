@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: split the paritioning monster into smaller pieces
-# G-Maintainer: Stephan Kulow <coolo@suse.de>
+# Summary: split the partitioning monster into smaller pieces
+# Maintainer: Stephan Kulow <coolo@suse.de>
 
 use strict;
 use warnings;
@@ -264,6 +264,10 @@ sub run() {
     # done
     send_key $cmd{accept};
 
+    # accept 8GB disk space with snapshots in RAID test fate#320416
+    if (check_screen 'partition-small-for-snapshots', 5) {
+        send_key 'alt-y';
+    }
     # skip subvolumes shadowed warning
     if (check_screen 'subvolumes-shadowed', 5) {
         send_key 'alt-y';
