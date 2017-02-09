@@ -18,16 +18,28 @@ use testapi;
 use utils;
 
 sub install {
+    my ($rsh_client_packages, $rsh_service_packages, $rsh_services);
+    if (check_var('VERSION', 'Tumbleweed')) {
+        $rsh_client_packages = 'mrsh-rsh-compat';
+        $rsh_service_packages = 'mrsh-server munge';
+        $rsh_services = 'mrlogind.socket mrshd.socket munge';
+    } else {
+        $rsh_client_packages = 'rsh';
+        $rsh_service_packages = 'rsh-server';
+        $rsh_services = '';
+    }
+
     # utils
     zypper_call("in expect iputils psmisc tcpdump", log => 'utils.log');
 
     # clients
-    zypper_call("in dhcp-client finger mrsh-rsh-compat telnet", log => 'clients.log');
+    zypper_call("in $rsh_client_packages dhcp-client finger telnet", log => 'clients.log');
 
     # services
-    zypper_call("in dhcp-server dnsmasq finger-server mrsh-server munge nfs-kernel-server rdist rpcbind rsync tcpd telnet-server vsftpd xinetd",
+    zypper_call("in $rsh_service_packages dhcp-server dnsmasq finger-server nfs-kernel-server rdist rpcbind rsync tcpd telnet-server vsftpd xinetd",
         log => 'services.log');
-    my $services = "dnsmasq munge mrlogind.socket mrshd.socket nfsserver rpcbind vsftpd xinetd";
+
+    my $services = "$rsh_services dnsmasq nfsserver rpcbind vsftpd xinetd";
     assert_script_run "systemctl enable $services";
     assert_script_run "systemctl start $services";
 }
@@ -39,6 +51,8 @@ sub setup {
 # ltp specific setup
 mrsh
 mrlogin
+rsh
+rlogin
 pts/1
 pts/2
 pts/3
@@ -51,8 +65,12 @@ pts/9
 EOF
     assert_script_run "echo \"$content\" >> '/etc/securetty'";
 
-    # xinetd (echo)
-    foreach my $xinetd_conf (qw(echo finger telnet)) {
+    # xinetd
+    my @list = qw(echo finger telnet);
+    if (!check_var('VERSION', 'Tumbleweed')) {
+        push(@list, qw(rlogin rsh));
+    }
+    foreach my $xinetd_conf (@list) {
         assert_script_run 'sed -i \'s/\(disable\s*=\s\)yes/\1no/\' /etc/xinetd.d/' . $xinetd_conf;
     }
     assert_script_run 'sed -i \'s/^#\(\s*bind\s*=\)\s*$/\1 0.0.0.0/\' /etc/xinetd.conf';
