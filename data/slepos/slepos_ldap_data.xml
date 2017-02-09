@@ -346,6 +346,18 @@
                                 <ipHostNumber>192.168.124.122</ipHostNumber>
                             </attributes>
                         </scService>
+                        <scService dn="cn=posleases">
+                            <attributes>
+                                <scDnsName>posleases</scDnsName>
+                                <scServiceName>posleases</scServiceName>
+                                <scServiceStatus>TRUE</scServiceStatus>
+                                <scServiceStartScript>posleases2ldap</scServiceStartScript>
+                                <ipHostNumber>192.168.124.122</ipHostNumber>
+                                <scPosleasesTimeout>60</scPosleasesTimeout>
+                                <scPosleasesChecktime>5</scPosleasesChecktime>
+                                <scPosleasesMaxNotify>6</scPosleasesMaxNotify>
+                            </attributes>
+                        </scService>
                         <scNetworkcard dn="scDevice=eth1">
                             <attributes>
                                 <ipHostNumber>192.168.124.122</ipHostNumber>

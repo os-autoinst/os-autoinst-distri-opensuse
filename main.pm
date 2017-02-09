@@ -661,6 +661,19 @@ sub load_slepos_tests() {
         loadtest "slepos/run_possyncimages.pm";
         loadtest "slepos/wait.pm";
     }
+    elsif (get_var("SLEPOS") =~ /^combo/) {
+        loadtest("boot/boot_to_desktop.pm");
+        loadtest "slepos/prepare.pm";
+        loadtest "slepos/run_posInitAdminserver.pm";
+        loadtest "slepos/check_services.pm";
+        loadtest "slepos/adminserver_configured.pm";
+        loadtest "slepos/download_images.pm" if get_var("IMAGE_DOWNLOAD");
+        loadtest "slepos/register_images.pm";
+        loadtest "slepos/run_posInitBranchserver.pm";
+        loadtest "slepos/check_services.pm";
+        loadtest "slepos/run_possyncimages.pm";
+        loadtest "slepos/wait.pm";
+    }
     elsif (get_var("SLEPOS") =~ /^terminal-online/) {
         set_var("DELAYED_START", "1");
         loadtest "slepos/boot_image.pm";
