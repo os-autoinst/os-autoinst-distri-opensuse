@@ -18,9 +18,6 @@ use utils;
 
 
 sub run() {
-    my $self = shift;
-
-
     #todo: add another images if needed
     my $images_ref = get_var_array('IMAGE_OFFLINE_KIWI');
     foreach my $image (@{$images_ref}) {

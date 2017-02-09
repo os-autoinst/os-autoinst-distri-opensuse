@@ -18,8 +18,6 @@ use utils;
 use lockapi;
 
 sub run() {
-    my $self = shift;
-
     script_output '
       sed -i -e \'s|^FW_ROUTE=.*|FW_ROUTE="yes"|\' -e \'s|^FW_MASQUERADE=.*|FW_MASQUERADE="yes"|\' -e \'s|^FW_DEV_INT=.*|FW_DEV_INT="eth1"|\'  -e \'s|^FW_DEV_EXT=.*|FW_DEV_EXT="any eth0"|\' /etc/sysconfig/SuSEfirewall2
       for port in 69 53 67 21 30000:30400 ; do
