@@ -698,70 +698,6 @@ sub load_consoletests() {
     }
 }
 
-sub load_extra_test () {
-    # Put tests that filled the conditions below
-    # 1) you don't want to run in stagings below here
-    # 2) the application is not rely on desktop environment
-    # 3) running based on preinstalled image
-    return unless get_var('EXTRATEST');
-    # pre-conditions for extra tests ie. the tests are running based on preinstalled image
-    return if get_var('INSTALLONLY') || get_var('DUALBOOT') || get_var('RESCUECD');
-
-    # possibility to run as part of aggregated tests
-    use List::Util qw(all);
-    my %test_repos = get_env_by_pattern("\\w+_TEST_REPO");
-    my @values     = values %test_repos;
-    if (all { length() < 1 } @values) {
-        loadtest "qa_automation/patch_and_reboot";
-        loadtest "boot/boot_to_desktop";
-    }
-
-    # setup $serialdev permission and so on
-    loadtest 'console/consoletest_setup';
-    loadtest 'console/hostname';
-    if (any_desktop_is_applicable()) {
-        # start extra x11 tests from here
-        loadtest 'x11/vnc_two_passwords';
-        loadtest 'x11/user_defined_snapshot';
-    }
-    else {
-        if (sle_version_at_least('12-SP2')) {
-            loadtest 'console/openssl_alpn';
-            loadtest 'console/autoyast_removed';
-        }
-        loadtest 'console/check_console_font';
-        loadtest 'console/zypper_lr';
-        loadtest 'console/zypper_ref';
-        loadtest "console/zypper_info";
-        loadtest 'console/update_alternatives';
-        # start extra console tests from here
-        if (!get_var('OFW') && !is_jeos()) {
-            loadtest 'console/aplay';
-        }
-        if (get_var('FILESYSTEM', 'btrfs') eq 'btrfs') {
-            loadtest 'console/btrfs_autocompletion';
-            if (get_var('NUMDISKS', 0) > 1) {
-                if (sle_version_at_least('12-SP2')) {
-                    loadtest 'console/snapper_cleanup';
-                }
-                loadtest 'console/btrfs_qgroups';
-                loadtest 'console/btrfs_send_receive';
-            }
-        }
-        loadtest 'console/snapper_undochange';
-        loadtest 'console/snapper_create';
-        loadtest 'console/snapper_thin_lvm';
-        loadtest 'console/command_not_found';
-        loadtest 'console/openvswitch';
-        loadtest 'console/git';
-        loadtest 'console/java';
-        loadtest 'console/curl_ipv6';
-        loadtest 'console/wget_ipv6';
-        loadtest 'console/unzip';
-    }
-    return 1;
-}
-
 sub load_x11tests() {
     return
       unless (!get_var("INSTALLONLY")
@@ -1183,7 +1119,7 @@ elsif (is_kgraft) {
 }
 elsif (get_var("EXTRATEST")) {
     boot_hdd_image;
-    load_extra_test();
+    load_extra_tests();
 }
 elsif (get_var("Y2UITEST")) {
     load_yast2_ui_tests;

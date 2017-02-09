@@ -42,6 +42,7 @@ our @EXPORT = qw(
   boot_hdd_image
   load_yast2_ui_tests
   maybe_load_kernel_tests
+  load_extra_tests
 );
 
 sub init_main {
@@ -402,6 +403,118 @@ sub maybe_load_kernel_tests {
     }
     else {
         return 0;
+    }
+    return 1;
+}
+
+sub run_aggregated_maintenance_tests {
+    use List::Util qw(all);
+    my %found;
+    foreach my $key (sort(keys %ENV)) {
+        $_ = $key;
+        if (m/\w+_TEST_REPO/) {
+            my $val = $ENV{"$key"};
+            $found{$key} = $val;
+        }
+    }
+    my @values = values %found;
+    return all { length() < 1 } @values;
+}
+
+sub load_extra_tests() {
+    # Put tests that filled the conditions below
+    # 1) you don't want to run in stagings below here
+    # 2) the application is not rely on desktop environment
+    # 3) running based on preinstalled image
+    return unless get_var('EXTRATEST');
+    # pre-conditions for extra tests ie. the tests are running based on preinstalled image
+    return if get_var("INSTALLONLY") || get_var("DUALBOOT") || get_var("RESCUECD");
+
+    if (run_aggregated_maintenance_tests()) {
+        loadtest "qa_automation/patch_and_reboot";
+        loadtest "boot/boot_to_desktop";
+    }
+
+    # setup $serialdev permission and so on
+    loadtest "console/consoletest_setup";
+    loadtest "console/hostname";
+    if (any_desktop_is_applicable()) {
+        if (check_var('DISTRI', 'sle')) {
+            # start extra x11 tests from here
+            loadtest 'x11/vnc_two_passwords';
+            loadtest 'x11/user_defined_snapshot';
+        }
+        elsif (check_var('DISTRI', 'opensuse')) {
+            if (!get_var("NOAUTOLOGIN")) {
+                loadtest "x11/multi_users_dm";
+            }
+            if (gnomestep_is_applicable()) {
+                if (check_var('VERSION', '42.2')) {
+                    # 42.2 feature - not even on Tumbleweed
+                    loadtest "x11/gdm_session_switch";
+                }
+                loadtest "x11/seahorse";
+            }
+        }
+    }
+    else {
+        loadtest "console/check_console_font";
+        loadtest "console/zypper_lr";
+        loadtest "console/openvswitch";
+        # dependency of git test
+        loadtest "console/sshd";
+        loadtest "console/zypper_ref";
+        loadtest "console/update_alternatives";
+        # start extra console tests from here
+        if (!get_var("OFW") && !is_jeos) {
+            loadtest "console/aplay";
+        }
+        if (get_var("FILESYSTEM", "btrfs") eq "btrfs") {
+            loadtest "console/btrfs_autocompletion";
+            if (get_var("NUMDISKS", 0) > 1) {
+                loadtest "console/btrfs_qgroups";
+                loadtest "console/btrfs_send_receive";
+                if (check_var('DISTRI', 'sle') && sle_version_at_least('12-SP2')) {
+                    loadtest 'console/snapper_cleanup';
+                }
+            }
+        }
+        loadtest 'console/snapper_undochange';
+        loadtest 'console/snapper_create';
+        loadtest "console/command_not_found";
+        if (check_var('DISTRI', 'sle')) {
+            loadtest 'console/snapper_thin_lvm';
+            loadtest 'console/openssl_alpn';
+            loadtest 'console/autoyast_removed';
+        }
+        elsif (check_var('DISTRI', 'opensuse')) {
+            loadtest "console/rabbitmq";
+            loadtest "console/salt";
+            loadtest "console/rails";
+            loadtest "console/machinery";
+            loadtest "console/pcre";
+            loadtest "console/openqa_review";
+            loadtest "console/zypper_info";
+            loadtest "console/zbar";
+            loadtest "console/zypper_ar";
+            loadtest "console/a2ps";    # a2ps is not a ring package and thus not available in staging
+        }
+        loadtest "console/git";
+        loadtest "console/java";
+        loadtest "console/curl_ipv6";
+        loadtest "console/wget_ipv6";
+        loadtest "console/unzip";
+        loadtest "console/zypper_moo";
+        if (get_var("SYSAUTHTEST")) {
+            # sysauth test scenarios run in the console
+            loadtest "sysauth/sssd";
+        }
+        # finished console test and back to desktop
+        loadtest "console/consoletest_finish";
+        # kdump is not supported on aarch64, see BSC#990418
+        if (!check_var('ARCH', 'aarch64')) {
+            loadtest "toolchain/crash";
+        }
     }
     return 1;
 }
