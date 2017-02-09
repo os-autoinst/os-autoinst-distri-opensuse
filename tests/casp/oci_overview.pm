@@ -16,8 +16,10 @@ use utils;
 use testapi;
 
 sub run() {
-    record_soft_failure 'bsc#1016887 - Beta warning is missing';
-
+    if (get_var('BETA')) {
+        assert_screen 'oci-betawarning', 120;
+        send_key 'ret';
+    }
     assert_screen 'oci-overview', 120;
     mouse_hide;
 }
