@@ -18,7 +18,12 @@ use utils;
 
 
 sub run() {
-    script_output "
+    #todo: add another images if needed
+    my $images_ref = get_var_array('IMAGE_OFFLINE_KIWI');
+    foreach my $image (@{$images_ref}) {
+
+        if ($image eq 'graphical') {
+            script_output "
         set -x -e
         cd /var/lib/SLEPOS/system/images/graphical-3.4.0 && kiwi --bootusb initrd-netboot-suse-SLES11.i686-*.splash.gz
         dd if=/dev/zero bs=1M count=1024 >> /var/lib/SLEPOS/system/images/graphical-3.4.0/initrd-netboot-suse-SLES11.i686-*.splash*.raw
@@ -42,6 +47,8 @@ EOT
 #        zypper -n in POS_Image-Tools
 #        posSyncSrvPart --source-config config.00:00:90:FF:90:04 --dest-dir /mnt
 
+        sed -i -e 's|vga=[^ ]*|vga=0x317|' /mnt/boot/grub/menu.lst
+
         cp -prv /srv/SLEPOS/boot /srv/SLEPOS/image /mnt
         mkdir -p /mnt/KIWI
         mkdir -p /mnt/KIWI/default
@@ -54,7 +61,8 @@ PART=3000;83;/srv/SLEPOS,1000;82;swap,3000;83;/
 DISK=/dev/sda
 POS_KERNEL=linux
 POS_INITRD=initrd.gz
-POS_KERNEL_PARAMS= panic=60 ramdisk_size=710000 ramdisk_blocksize=4096 vga=0x314 splash=silent
+POS_KERNEL_PARAMS= panic=60 ramdisk_size=710000 ramdisk_blocksize=4096 vga=0x317 splash=silent POS_KERNEL_PARAMS_HASH=36f616c2947904e4afb229b37302ffb6
+POS_KERNEL_PARAMS_HASH_VERIFY=36f616c2947904e4afb229b37302ffb6
 
 EOT
 
@@ -65,9 +73,10 @@ EOT
 
     ", 500;
 
-    upload_asset '/var/lib/SLEPOS/system/images/slepos-image-offline-graphical.raw';
+            upload_asset '/var/lib/SLEPOS/system/images/slepos-image-offline-graphical.raw';
+        }
+    }
 }
-
 sub test_flags() {
     return {fatal => 1};
 }

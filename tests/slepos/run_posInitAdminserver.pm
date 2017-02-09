@@ -18,12 +18,16 @@ use utils;
 use lockapi;
 
 sub run() {
-    # FIXME: configure fw
-    assert_script_run "rcSuSEfirewall2 stop";
-
     script_output '
-      set -x -e
+      for port in 389 636 873 ; do
+        yast2 firewall services add tcpport=$port udpport=$port zone=EXT
+      done
+
+      rcSuSEfirewall2 restart
+
       sed -i -e \'s|\(TFTP_DEFAULT_KERNEL_PARAMETERS.*$\)|\1 kiwidebug=1 |\' /usr/lib/SLEPOS/defaults
+      sed -i -e \'s|vga=0x314|vga=0x317|\' /usr/lib/SLEPOS/defaults
+      cat /usr/lib/SLEPOS/defaults
     ';
 
     type_string "posInitAdminserver 2>&1 | tee /dev/$serialdev\n";

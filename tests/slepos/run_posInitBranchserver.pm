@@ -18,22 +18,25 @@ use utils;
 use lockapi;
 
 sub run() {
-    # FIXME: configure fw
-    assert_script_run "rcSuSEfirewall2 stop";
+    script_output '
+      sed -i -e \'s|^FW_ROUTE=.*|FW_ROUTE="yes"|\' -e \'s|^FW_MASQUERADE=.*|FW_MASQUERADE="yes"|\' -e \'s|^FW_DEV_INT=.*|FW_DEV_INT="eth1"|\'  -e \'s|^FW_DEV_EXT=.*|FW_DEV_EXT="any eth0"|\' /etc/sysconfig/SuSEfirewall2
+      for port in 69 53 67 21 30000:30400 ; do
+        yast2 firewall services add tcpport=$port udpport=$port zone=EXT
+      done
+      rcSuSEfirewall2 restart
+
+      sed -i -e \'s|\(TFTP_DEFAULT_KERNEL_PARAMETERS.*$\)|\1 kiwidebug=1 |\' /usr/lib/SLEPOS/defaults
+      sed -i -e \'s|vga=0x314|vga=0x317|\' /usr/lib/SLEPOS/defaults
+      cat /usr/lib/SLEPOS/defaults
+      ip a
+    ';
 
     #wait for adminserver
     mutex_lock("adminserver_configured");
     mutex_unlock("adminserver_configured");
 
-    assert_script_run "ip a";
-
-    script_output '
-      set -x -e
-      sed -i -e \'s|\(TFTP_DEFAULT_KERNEL_PARAMETERS.*$\)|\1 kiwidebug=1 |\' /usr/lib/SLEPOS/defaults
-    ';
-
     type_string "posInitBranchserver 2>&1 | tee /dev/$serialdev\n";
-    wait_serial "Please, select initialization mode:" and type_string "1\n";
+    wait_serial "Please, select initialization mode:" and type_string "1\n" unless get_var('SLEPOS') =~ /^combo/;
     wait_serial "company name.*:"                     and type_string get_var('ORGANIZATION') . "\n";
     wait_serial "2 letter abbreviation.*:"            and type_string get_var('COUNTRY') . "\n";
     wait_serial "name of organizational unit.*:"      and type_string get_var('ORGANIZATIONAL_UNIT') . "\n";
@@ -45,11 +48,10 @@ sub run() {
 
     wait_serial "Is Admin Server LDAP fingerprint correct" and type_string "Y\n" if get_var('SSL') eq 'yes';
 
-    wait_serial "Use Branch LDAP on localhost" and type_string "Y\n";
-    wait_serial "Enable secure connection"     and type_string "yes\n" if get_var('SSL') eq 'yes';
-    wait_serial "Continue with configuration"  and type_string "\n";
+    wait_serial "Use Branch LDAP on localhost" and type_string "Y\n" unless get_var('SLEPOS') =~ /^combo/;
+    wait_serial "Enable secure connection" and type_string "yes\n" if get_var('SSL') eq 'yes' && get_var('SLEPOS') !~ /^combo/;
+    wait_serial "Continue with configuration" and type_string "\n";
     wait_serial "configuration successful";
-
 }
 
 sub test_flags() {
