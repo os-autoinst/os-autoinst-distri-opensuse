@@ -107,7 +107,7 @@ sub run() {
     if (!get_var("REMOTE_CONTROLLER")) {
         do {
             send_key 'alt-s';
-        } until (wait_still_screen(2, 4));
+        } until (wait_still_screen(3, 4));
         select_console 'install-shell';
         assert_screen 'inst-console';
 
