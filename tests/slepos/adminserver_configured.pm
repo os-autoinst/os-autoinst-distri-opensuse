@@ -7,6 +7,11 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Summary: Adminserver configured mutex
+# Maintainer: Pavel Sladek <psladek@suse.cz>
+
+use strict;
+use warnings;
 use base "basetest";
 use testapi;
 use utils;
