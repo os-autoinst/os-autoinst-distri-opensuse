@@ -175,6 +175,9 @@ sub run {
         }
     }
 
+    # CaaSP does not have second stage
+    return if is_casp;
+
     $maxtime   = 1000;
     $checktime = 30;
     $looptime  = 0;
