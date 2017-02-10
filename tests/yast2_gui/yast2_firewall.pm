@@ -9,7 +9,7 @@
 # without any warranty.
 
 # Summary: Extend YaST2 Firewall UI test
-# Make sure yast2 firewall can opened properly. Configuratioins can be changed and written correctly.
+# Make sure yast2 firewall can opened properly. Configurations can be changed and written correctly.
 # Maintainer: Max Lin <mlin@suse.com>
 
 use base "y2x11test";
