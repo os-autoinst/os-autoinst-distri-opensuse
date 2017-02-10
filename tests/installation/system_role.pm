@@ -18,9 +18,14 @@ sub run() {
     # Still initializing the system at this point, can take some time
     assert_screen 'system-role-default-system', 180;
 
-    if (get_var("SYSTEM_ROLE")) {
+    # Pick System Role; poo#16650
+    if (check_var('SYSTEM_ROLE', 'kvm')) {
         send_key 'alt-k';
         assert_screen 'system-role-kvm-virthost';
+    }
+    elsif (check_var('SYSTEM_ROLE', 'xen')) {
+        send_key 'alt-x';
+        assert_screen 'system-role-xen-virthost';
     }
 
     send_key $cmd{next};
