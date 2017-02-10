@@ -671,9 +671,9 @@ sub validate_repos {
     my ($version) = @_;
     $version //= get_var('VERSION');
 
-    assert_script_run "zypper lr | tee /dev/$serialdev";
+    assert_script_run "zypper lr | tee /dev/$serialdev", 180;
     script_run "clear";
-    assert_script_run "zypper lr -d | tee /dev/$serialdev";
+    assert_script_run "zypper lr -d | tee /dev/$serialdev", 180;
 
     if (check_var('DISTRI', 'sle') and !get_var('STAGING') and sle_version_at_least('12-SP1')) {
         validate_repos_sle($version);
