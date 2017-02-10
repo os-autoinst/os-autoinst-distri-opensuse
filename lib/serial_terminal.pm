@@ -43,7 +43,7 @@ sub login {
     wait_serial(qr/Password:\s*$/i);
     type_password;
     type_string("\n");
-    wait_serial(qr/$escseq* \w+:~\s\# $escseq* \s*$/x);
+    wait_serial(qr/$escseq* \w+:~\s\# \s* $escseq* \s*$/x);
     # TODO: use distribution::set_standard_prompt
     type_string(qq/PS1="# "\n/);
     wait_serial(qr/PS1="# "\s+# $/);
