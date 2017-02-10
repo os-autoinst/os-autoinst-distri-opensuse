@@ -79,6 +79,9 @@ sub prepare_parmfile {
     # we have to hardcode the hostname here - the true hostname would
     # create a too long parameter ;(
     my $instsrc = get_var('REPO_TYPE', 'ftp') . '://' . get_var('REPO_HOST', 'openqa') . '/';
+    if (check_var('REPO_TYPE', 'smb')) {
+        $instsrc .= "inst/";
+    }
     $params .= " install=" . $instsrc . $repo . " ";
 
     if (get_var('UPGRADE')) {
