@@ -19,7 +19,7 @@ use utils;
 
 sub install {
     # utils
-    zypper_call("in expect iputils psmisc tcpdump", log => 'utils.log');
+    zypper_call("in iputils psmisc tcpdump", log => 'utils.log');
 
     # clients
     zypper_call("in dhcp-client finger mrsh-rsh-compat telnet", log => 'clients.log');
