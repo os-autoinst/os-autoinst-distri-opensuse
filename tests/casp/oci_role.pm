@@ -24,7 +24,7 @@ sub run() {
 
     # Set dashboard url for worker
     if ($role eq 'worker') {
-        send_key 'alt-d';
+        send_key 'alt-c';
         type_string 'dashboard-url';
         assert_screen 'dashboard-url';
     }
