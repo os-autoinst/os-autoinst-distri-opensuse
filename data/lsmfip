@@ -146,6 +146,8 @@ sub problem_can_be_skipped {
     if ($pkg =~ /chromium-desktop-gnome/) {
         return !package_installed('gnome-session');
     }
+    # conflicts with firebird-classic
+    return 1 if $pkg =~ /firebird-superserver/;
 
     return;
 }
