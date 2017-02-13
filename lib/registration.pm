@@ -186,12 +186,41 @@ sub fill_in_registration_data {
                     next;
                 }
                 elsif (match_has_tag('yast_scc-pkgtoinstall')) {
-                    send_key 'alt-a';
-                    assert_screen 'automatic-changes';
-                    wait_screen_change { send_key 'alt-o' };
-                    send_key 'alt-o' if check_screen('unsupported-packages', 2);
-                    assert_screen 'addon-installation-report', 200;
-                    send_key 'alt-f';
+                    # if addons where selected yast shows the software install
+                    # dialog
+                    if (get_var('SCC_ADDONS')) {
+                        assert_screen("yast_scc-pkgtoinstall");
+                        send_key "alt-a";
+
+                        while (check_screen([qw(yast_scc-license-dialog yast_scc-automatic-changes)])) {
+                            if (match_has_tag('yast_scc-license-dialog')) {
+                                send_key "alt-a";
+                                next;
+                            }
+                            last;
+                        }
+                        send_key "alt-o";
+                        send_key 'alt-o' if check_screen('unsupported-packages', 2);
+
+                        # yast may pop up a reboot prompt window after addons installation such like ha on sle12 sp0
+                        while (assert_screen([qw(yast_scc-prompt-reboot yast_scc-installation-summary)], 900)) {
+                            if (match_has_tag('yast_scc-prompt-reboot')) {
+                                send_key "alt-o", 1;
+                                next;
+                            }
+                            elsif (match_has_tag('yast_scc-installation-summary')) {
+                                send_key "alt-f";
+                                last;
+                            }
+                        }
+                    }
+                    else {
+                        # yast would display empty pkg install screen if no addon selected on sle12 sp0
+                        # set check_screen timeout longer to ensure the screen checked in this case
+                        if (check_screen("yast-scc-emptypkg", 15)) {
+                            send_key "alt-a";
+                        }
+                    }
                     last;
                 }
                 elsif (match_has_tag('inst-addon')) {
@@ -251,44 +280,7 @@ sub yast_scc_registration {
 
     fill_in_registration_data;
 
-    my $timeout = 30;
-
-    # if addons where selected yast shows the software install
-    # dialog
-    if (get_var('SCC_ADDONS')) {
-        assert_screen("yast_scc-pkgtoinstall");
-        send_key "alt-a";
-
-        while (check_screen([qw(yast_scc-license-dialog yast_scc-automatic-changes)])) {
-            if (match_has_tag('yast_scc-license-dialog')) {
-                send_key "alt-a";
-                next;
-            }
-            last;
-        }
-        send_key "alt-o";
-
-        # yast may pop up a reboot prompt window after addons installation such like ha on sle12 sp0
-        while (assert_screen([qw(yast_scc-prompt-reboot yast_scc-installation-summary)], 900)) {
-            if (match_has_tag('yast_scc-prompt-reboot')) {
-                send_key "alt-o", 1;
-                next;
-            }
-            elsif (match_has_tag('yast_scc-installation-summary')) {
-                send_key "alt-f";
-                last;
-            }
-        }
-    }
-    else {
-        # yast would display empty pkg install screen if no addon selected on sle12 sp0
-        # set check_screen timeout longer to ensure the screen checked in this case
-        if (check_screen("yast-scc-emptypkg", 15)) {
-            send_key "alt-a";
-        }
-    }
-
-    my $ret = wait_serial "yast-scc-done-\\d+-", $timeout;
+    my $ret = wait_serial "yast-scc-done-\\d+-", 30;
     die "yast scc failed" unless (defined $ret && $ret =~ /yast-scc-done-0-/);
 
     # To check repos validity after registration, call 'validate_repos' as needed
