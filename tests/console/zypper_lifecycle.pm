@@ -80,7 +80,7 @@ sub run() {
     # verify that package eol defaults to product eol
     $output = script_output "zypper lifecycle $package", 300;
     die "$package lifecycle entry incorrect:'$output', expected: '/$package-\\S+\\s+$product_eol'"
-      unless $output =~ /$package-\S+\s+$product_eol/;
+      unless $output =~ m{$package-\S+\s+$product_eol};
 
     # restore original data, if any
     select_console 'root-console';
@@ -103,7 +103,7 @@ sub run() {
     );
     $output = script_output 'zypper lifecycle --days 9999', 300;
     die "Product 'end of support' line not found"         unless $output =~ /^Product end of support before/;
-    die "Current product should not be supported anymore" unless $output =~ /$product_name\s+$product_eol/;
+    die "Current product should not be supported anymore" unless $output =~ m{$product_name\s+$product_eol};
     assert_script_run(
         'zypper lifecycle --date $(date --iso-8601)',
         timeout      => 300,
