@@ -51,6 +51,7 @@ sub load_boot_tests() {
             loadtest "installation/bootloader_svirt";
         }
         else {
+            # For all [non]uefi VMX images as boot screens are the same
             loadtest 'installation/bootloader_uefi';
         }
     }
@@ -93,6 +94,7 @@ sub load_feature_tests {
     loadtest 'casp/libzypp_config';
     loadtest 'casp/timezone_utc';
     loadtest 'casp/filesystem_ro';
+    loadtest 'casp/services_enabled';
     loadtest 'casp/one_line_checks';
     loadtest 'casp/nfs_client' if get_var('NFS_SHARE');
     loadtest 'casp/journal_check';
