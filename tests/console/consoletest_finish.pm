@@ -34,7 +34,6 @@ sub run() {
 
     $console = select_console 'user-console';
 
-    send_key "ctrl-c";
     wait_still_screen(1);
     type_string "exit\n";    # logout
     $console->reset;
