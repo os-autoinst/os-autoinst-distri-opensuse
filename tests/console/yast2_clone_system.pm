@@ -21,7 +21,15 @@ sub run() {
 
     # Install for TW and generate profile
     zypper_call "in autoyast2";
-    assert_script_run "yast2 clone_system", 200;
+    script_run("yast2 clone_system; echo yast2-clone-system-status-\$? > /dev/$serialdev", 0);
+
+    # workaround for bsc#1013605
+    assert_screen([qw(dhcp-popup yast2_console-finished)], 200);
+    if (match_has_tag('dhcp-popup')) {
+        wait_screen_change { send_key 'alt-o' };
+        assert_screen 'yast2_console-finished', 200;
+    }
+    wait_serial('yast2-clone-system-status-0') || die "'yast2 clone_system' didn't finish";
 
     # Replace unitialized email variable - bsc#1015158
     assert_script_run 'sed -i "/server_email/ s/postmaster@/\0suse.com/" /root/autoinst.xml';
