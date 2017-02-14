@@ -93,6 +93,7 @@ sub load_feature_tests {
     loadtest 'casp/libzypp_config';
     loadtest 'casp/timezone_utc';
     loadtest 'casp/filesystem_ro';
+    loadtest 'casp/one_line_checks';
     loadtest 'casp/nfs_client' if get_var('NFS_SHARE');
     loadtest 'casp/journal_check';
 }
