@@ -24,6 +24,14 @@ sub run() {
 
     # Set dashboard url for worker
     if ($role eq 'worker') {
+        # Try with empty controller node
+        send_key 'alt-i';
+        assert_screen 'inst-userpasswdtoosimple';
+        send_key 'alt-y';
+        assert_screen 'controller-node-invalid';
+        send_key 'alt-o';
+
+        # Fill controller node information
         send_key 'alt-c';
         type_string 'dashboard-url';
         assert_screen 'dashboard-url';
