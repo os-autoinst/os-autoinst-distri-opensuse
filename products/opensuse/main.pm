@@ -275,8 +275,14 @@ sub load_inst_tests {
                 loadtest "installation/partitioning_resize_root";
             }
         }
+        if (get_var("EXPERTPARTITIONER")) {
+            loadtest "installation/partitioning_expert";
+        }
         if (get_var("SPLITUSR")) {
             loadtest "installation/partitioning_splitusr";
+        }
+        if (get_var("DELETEWINDOWS")) {
+            loadtest "installation/partitioning_guided";
         }
         loadtest "installation/partitioning_finish";
         loadtest "installation/installer_timezone";

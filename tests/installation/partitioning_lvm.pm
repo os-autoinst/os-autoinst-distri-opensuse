@@ -14,7 +14,7 @@
 
 use strict;
 use warnings;
-use base "y2logsstep";
+use parent qw(installation_user_settings y2logsstep);
 use testapi;
 use utils 'sle_version_at_least';
 
@@ -51,11 +51,23 @@ sub run {
         }
     }
 
-    send_key "alt-d";
+    # Storage NG introduces a new partitioning dialog. partitioning.pm detects this by the existence of the "Guided Setup" button
+    # and sets the STORAGE_NG variable. This button uses a new hotkey.
+    if (get_var("STORAGE_NG")) {
+        send_key "alt-g";
+    }
+    else {
+        send_key "alt-d";
+    }
 
-    if (check_screen('inst-partition-radio-buttons', 10)) {    # detect whether new (Radio Buttons) YaST behaviour
+    my $numdisks = get_var("NUMDISKS");
+    print "NUMDISKS = $numdisks\n";
+
+    assert_screen [qw(inst-partition-radio-buttons inst-partition-guided inst-partitioning-scheme)];
+    if (match_has_tag('inst-partition-radio-buttons')) {    # detect whether new (Radio Buttons) YaST behaviour
         if (get_var("ENCRYPT")) {
-            send_key 'alt-e';
+            send_key "alt-e";
+
             if (!get_var('ENCRYPT_ACTIVATE_EXISTING')) {
                 assert_screen 'inst-encrypt-password-prompt';
                 type_password;
@@ -73,6 +85,47 @@ sub run {
         if (match_has_tag('partitioning-encrypt-broke-existing')) {
             record_soft_failure 'bsc#993249';
             $collect_logs = 1;
+        }
+    }
+    elsif (get_var("STORAGE_NG")) {
+        if ($numdisks <= 1) {
+            die "Guided workflow does not skip disk selection when only one disk!"
+              unless match_has_tag('inst-partitioning-scheme');
+        }
+        else {
+            die "Guided workflow does skip disk selection when more than one disk! (NUMDISKS=$numdisks)"
+              unless match_has_tag('inst-partition-guided');
+            assert_screen "inst-partition-guided";
+            send_key 'alt-n';
+            assert_screen "inst-select-root-disk";
+            send_key 'alt-n';
+        }
+        send_key 'alt-e';
+        assert_screen "inst-partitioning-lvm-enabled";
+        if (get_var("ENCRYPT")) {
+            send_key 'alt-a';
+
+            if (!get_var('ENCRYPT_ACTIVATE_EXISTING')) {
+                assert_screen 'inst-encrypt-password-prompt';
+                type_password;
+                send_key 'tab';
+                type_password;
+                send_key 'alt-n';
+                $self->await_password_check;
+            }
+        }
+        else {
+            send_key 'alt-n';
+        }
+        assert_screen "inst-filesystem-options";
+        send_key 'alt-n';
+        assert_screen [qw(partition-lvm-new-summary partitioning-encrypt-activated-existing partitioning-encrypt-broke-existing)];
+        if (match_has_tag('partitioning-encrypt-broke-existing')) {
+            record_soft_failure 'bsc#993249';
+            $collect_logs = 1;
+        }
+        if (get_var("ENCRYPT")) {
+            assert_screen "partitioning-encrypt-activated";
         }
     }
     elsif (!get_var('ENCRYPT_ACTIVATE_EXISTING')) {    # old behaviour still needed

@@ -32,6 +32,21 @@ sub run {
         assert_screen "inst-xen-pattern";
     }
 
+    # preserve it for the video
+    wait_still_screen;
+
+    # In case the proposal does not fit on the screen, there is a scrollbar shown.
+    # Scroll down to see any errors.
+    if (check_screen('inst-scrollbar', 0)) {
+        send_key 'tab';
+        send_key 'end';
+
+        assert_screen "inst-overview-booting";
+
+        # preserve it for the video
+        wait_still_screen;
+    }
+
     # Check autoyast has been removed in SP2 (fate#317970)
     if (get_var("SP2ORLATER") && !check_var("INSTALL_TO_OTHERS", 1)) {
         if (check_var('VIDEOMODE', 'text')) {
