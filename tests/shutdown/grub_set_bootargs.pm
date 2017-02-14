@@ -7,8 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Remove quiet kernel option
-# G-Maintainer: Dominik Heidler <dheidler@suse.de>
+# Summary: Remove quiet kernel option
+# Maintainer: Dominik Heidler <dheidler@suse.de>
 
 use strict;
 use base "y2logsstep";
@@ -18,6 +18,7 @@ sub run() {
     select_console('root-console');
     script_run "source /etc/default/grub";
     script_run 'new_cmdline=`echo $GRUB_CMDLINE_LINUX_DEFAULT | sed \'s/\(^\| \)quiet\($\| \)/ /\'`';
+    script_run 'new_cmdline="$new_cmdline fips=1"' if (get_var("ENABLE_FIPS"));
     script_run 'sed -i "s#GRUB_CMDLINE_LINUX_DEFAULT=\"[^\"]*\"#GRUB_CMDLINE_LINUX_DEFAULT=\"$new_cmdline\"#" /etc/default/grub';
     script_run 'grub2-mkconfig -o /boot/grub2/grub.cfg';
 }
