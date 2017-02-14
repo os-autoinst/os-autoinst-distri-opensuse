@@ -232,6 +232,10 @@ sub fill_in_registration_data {
         }
         else {
             send_key $cmd{next};
+            if (check_var('HDDVERSION', '12')) {
+                assert_screen 'yast-scc-emptypkg';
+                send_key 'alt-a';
+            }
         }
     }
     else {
