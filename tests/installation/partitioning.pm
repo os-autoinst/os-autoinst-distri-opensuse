@@ -21,6 +21,12 @@ sub run {
 
     assert_screen 'partitioning-edit-proposal-button', 40;
 
+    # Storage NG introduces a new partitioning dialog. We detect this by the existence of the "Guided Setup" button
+    # and set the STORAGE_NG variable so later tests know about this.
+    if (match_has_tag('storage-ng')) {
+        set_var('STORAGE_NG', 1);
+    }
+
     if (get_var("DUALBOOT")) {
         assert_screen 'partitioning-windows', 40;
     }
