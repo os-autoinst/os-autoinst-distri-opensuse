@@ -60,6 +60,9 @@ sub load_boot_tests() {
 sub load_inst_tests() {
     loadtest 'casp/oci_overview';
 
+    # Register system
+    loadtest 'casp/oci_register' if check_var('REGISTER', 'installation');
+
     # Set root password
     loadtest 'casp/oci_password';
     # Set system Role
@@ -110,6 +113,11 @@ if (check_var('FLAVOR', 'DVD')) {
     }
 }
 loadtest 'casp/first_boot';
+
+# ==== Extra tests run after installation  ====
+if (get_var('REGISTER')) {
+    loadtest 'casp/register_and_check';
+}
 
 if (get_var('EXTRA', '') =~ /FEATURES/) {
     load_feature_tests;

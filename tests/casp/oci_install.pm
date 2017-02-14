@@ -22,6 +22,12 @@ sub run() {
     assert_screen 'inst-userpasswdtoosimple';
     send_key 'ret';
 
+    # Accept update repositories during installation
+    if (check_var('REGISTER', 'installation')) {
+        assert_screen 'registration-online-repos';
+        send_key "alt-y";
+    }
+
     # Confirm installation start
     assert_screen "startinstall";
     send_key $cmd{install};
