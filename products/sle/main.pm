@@ -993,6 +993,10 @@ elsif (get_var("REGRESSION")) {
         loadtest "boot/boot_to_desktop";
         load_x11regression_other();
     }
+    elsif (check_var("REGRESSION", "piglit")) {
+        loadtest "boot/boot_to_desktop";
+        loadtest "x11regressions/piglit/piglit";
+    }
 }
 elsif (get_var("FEATURE")) {
     prepare_target();
