@@ -374,6 +374,8 @@ sub activate_console {
 
     $console =~ m/^(\w+)-(console|virtio-terminal)/;
     my ($name, $user, $type) = ($1, $1, $2);
+    $name = $user //= '';
+    $type //= '';
     if ($name eq 'user') {
         $user = $testapi::username;
     }
