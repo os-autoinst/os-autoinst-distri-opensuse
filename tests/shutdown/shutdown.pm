@@ -28,6 +28,11 @@ sub run {
         type_string "rm -f /etc/udev/rules.d/70-persistent-net.rules\n";
     }
 
+    if (get_var('ENABLE_VIRTIO_CONSOLE')) {
+        type_string "echo 'hvc0:12345:respawn:/sbin/agetty -L 38400 hvc0 vt220' >> /etc/inittab\n";
+        type_string "echo 'hvc0' >> /etc/securetty\n";
+    }
+
     type_string "poweroff\n";
     assert_shutdown;
 }
