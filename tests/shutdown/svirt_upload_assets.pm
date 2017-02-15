@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -10,10 +10,39 @@
 # Summary: upload svirt assets
 # Maintainer: Michal Nowak <mnowak@suse.com>
 
-use base "installbasetest";
+use base 'installbasetest';
 use strict;
 use warnings;
 use testapi;
+
+sub extract_assets {
+    my ($args) = @_;
+
+    my $name   = $args->{name};
+    my $format = $args->{format};
+
+    type_string("clear\n");
+    my $image_storage  = '/var/lib/libvirt/images';
+    my $svirt_img_name = $image_storage . '/' . $args->{svirt_name} . '.img';
+    type_string("test -e $svirt_img_name && echo 'OK'\n");
+    assert_screen('svirt-asset-upload-hdd-image-exists');
+
+    my $cmd = "nice ionice qemu-img convert -p -O $format $svirt_img_name $image_storage/$name";
+    if (get_var('QEMU_COMPRESS_QCOW2')) {
+        $cmd .= ' -c';
+    }
+    type_string("$cmd && echo OK\n");
+    assert_screen('svirt-asset-upload-hdd-image-converted', 300);
+
+    # Upload the image as a private asset; do the upload verification
+    # on your own - hence the following assert_screen().
+    upload_asset("$image_storage/$name", 1, 1);
+    assert_screen('svirt-asset-upload-hdd-image-uploaded', 1000);
+
+    # clean up on s390pb
+    type_string("rm -f $image_storage/$name && echo OK\n");
+    assert_screen('svirt-image-cleaned-up');
+}
 
 sub run() {
     # connect to VIRSH_HOSTNAME screen and upload asset from there
@@ -29,37 +58,11 @@ sub run() {
         if (($format ne 'raw') and ($format ne 'qcow2')) {
             next;
         }
-        push @toextract, {name => $name, format => $format, svirt_name => $svirt->name};
+        push @toextract, {name => $name, format => $format, svirt_name => $svirt->name . chr(ord('a') + $i - 1)};
     }
     for my $asset (@toextract) {
         extract_assets($asset);
     }
-}
-
-sub extract_assets {
-    my ($args) = @_;
-
-    my $name   = $args->{name};
-    my $format = $args->{format};
-
-    type_string("clear\n");
-    my $svirt_img_name = "/var/lib/libvirt/images/" . $args->{svirt_name} . ".img";
-    type_string("test -e $svirt_img_name && echo 'OK'\n");
-    assert_screen('svirt-asset-upload-hdd-image-exists');
-
-    my $cmd = "nice ionice qemu-img convert -p -O $format $svirt_img_name /var/lib/libvirt/images/$name";
-    if (get_var('QEMU_COMPRESS_QCOW2')) {
-        $cmd .= " -c";
-    }
-    type_string("$cmd && echo 'OK'\n");
-    assert_screen('svirt-asset-upload-hdd-image-converted', 300);
-
-    upload_asset("/var/lib/libvirt/images/$name", 1, 1);
-    assert_screen('svirt-asset-upload-hdd-image-uploaded', 1000);
-
-    # clean up on s390pb
-    type_string("rm -f /var/lib/libvirt/images/$name && echo 'OK'\n");
-    assert_screen('svirt-image-cleaned-up');
 }
 
 1;
