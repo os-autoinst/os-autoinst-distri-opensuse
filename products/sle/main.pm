@@ -601,6 +601,7 @@ sub load_consoletests() {
                 loadtest "console/installation_snapshots";
             }
             loadtest "console/snapper_undochange";
+            loadtest "console/snapper_create";
         }
         if (get_var("DESKTOP") !~ /textmode/ && !check_var("ARCH", "s390x")) {
             loadtest "console/xorg_vt";
@@ -732,6 +733,7 @@ sub load_extra_test () {
                 loadtest 'console/btrfs_send_receive';
             }
         }
+        loadtest 'console/snapper_thin_lvm';
         loadtest 'console/command_not_found';
         loadtest 'console/openvswitch';
         loadtest 'console/git';
