@@ -26,9 +26,6 @@ sub install {
 
     # services
     zypper_call("in dhcp-server dnsmasq finger-server nfs-kernel-server rdist rpcbind rsync tcpd telnet-server vsftpd xinetd", log => 'services.log');
-    my $services = "dnsmasq nfsserver rpcbind vsftpd xinetd";
-    assert_script_run "systemctl enable $services";
-    assert_script_run "systemctl start $services";
 }
 
 sub setup {
@@ -68,6 +65,10 @@ EOF
 
     # echo/echoes, getaddrinfo_01
     assert_script_run 'sed -i \'s/^\(hosts:\s+files\s\+dns$\)/\1 myhostname/\' /etc/nsswitch.conf';
+
+    my $services = "dnsmasq nfsserver rpcbind vsftpd xinetd";
+    assert_script_run "systemctl enable $services";
+    assert_script_run "systemctl start $services";
 }
 
 # poo#14402
