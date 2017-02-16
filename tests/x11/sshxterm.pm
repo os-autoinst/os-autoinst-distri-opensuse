@@ -28,6 +28,7 @@ sub run() {
     }
     type_string "$password\n";
     assert_screen "ssh-second-xterm";
+    ensure_ready_console('root');
     $self->set_standard_prompt();
     $self->enter_test_text('ssh-X-forwarding');
     assert_screen 'test-sshxterm-1';
