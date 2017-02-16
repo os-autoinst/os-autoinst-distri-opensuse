@@ -84,19 +84,19 @@ sub load_rcshell_tests {
 
 # Feature tests after installation finishes
 sub load_feature_tests {
-    if (check_var('FLAVOR', 'DVD')) {
-        # Load DVD feature tests
-    }
-    else {
-        # Load VMX feature tests
-    }
-    # Load universal feature tests
+    # Feature tests
     loadtest 'casp/libzypp_config';
     loadtest 'casp/timezone_utc';
     loadtest 'casp/filesystem_ro';
     loadtest 'casp/services_enabled';
     loadtest 'casp/one_line_checks';
     loadtest 'casp/nfs_client' if get_var('NFS_SHARE');
+
+    # Transactional updates
+    loadtest 'casp/transactional_update';
+    loadtest 'casp/rebootmgr';
+
+    # Journal errors
     loadtest 'casp/journal_check';
 }
 
