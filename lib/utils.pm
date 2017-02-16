@@ -432,7 +432,7 @@ sub addon_license {
             wait_screen_change { send_key 'alt-t' };
         }
         elsif (match_has_tag("addon-betawarning-$addon")) {
-            wait_screen_change { 'ret' };
+            wait_screen_change { send_key 'ret' };
             assert_screen 'addon-license-beta';
             last;
         }
