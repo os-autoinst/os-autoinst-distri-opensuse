@@ -422,15 +422,21 @@ sub addon_decline_license {
 
 sub addon_license {
     my ($addon)  = @_;
-    my $uc_addon = uc $addon;         # variable name is upper case
-    if (get_var("BETA_$uc_addon")) {
-        assert_screen "addon-betawarning-$addon";
-        send_key "ret";
-        assert_screen "addon-license-beta";
-    }
-    else {
-        assert_screen "addon-license-$addon";
-    }
+    my $uc_addon = uc $addon;                      # variable name is upper case
+    my @tags     = ('import-untrusted-gpg-key');
+    push @tags, (get_var("BETA_$uc_addon") ? "addon-betawarning-$addon" : "addon-license-$addon");
+    do {
+        assert_screen \@tags;
+        if (match_has_tag('import-untrusted-gpg-key')) {
+            record_soft_failure 'untrusted gpg key';
+            wait_screen_change { send_key 'alt-t' };
+        }
+        elsif (match_has_tag("addon-betawarning-$addon")) {
+            wait_screen_change { 'ret' };
+            assert_screen 'addon-license-beta';
+            last;
+        }
+    } until (match_has_tag("addon-license-$addon"));
     addon_decline_license;
     wait_still_screen 2;
     send_key $cmd{next};
