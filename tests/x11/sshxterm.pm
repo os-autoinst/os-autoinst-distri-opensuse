@@ -19,7 +19,7 @@ sub run() {
     my ($self) = @_;
     mouse_hide(1);
     x11_start_program("xterm");
-    type_string("ssh -XC root\@localhost xterm\n");
+    type_string("ssh -Y root\@localhost xterm\n");
     assert_screen([qw(ssh-xterm-host-key-authentication ssh-password-prompt)]);
     # if ssh asks for authentication of the key accept it
     if (match_has_tag('ssh-xterm-host-key-authentication')) {
