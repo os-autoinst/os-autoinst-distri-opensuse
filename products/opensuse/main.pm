@@ -461,7 +461,7 @@ sub load_consoletests() {
         }
         loadtest "console/consoletest_finish";
     }
-    elsif (is_staging() && get_var('UEFI')) {
+    elsif (is_staging() && get_var('UEFI') || is_gnome_next) {
         # Stagings should test yast2-bootloader in miniuefi at least but not all
         loadtest "console/consoletest_setup";
         loadtest "console/check_console_font";
@@ -628,7 +628,7 @@ sub load_x11tests() {
         loadtest "x11/oomath";
         loadtest "x11/oocalc";
     }
-    if (get_var("DESKTOP") =~ /kde|gnome/ && !is_server && !is_krypton_argon) {
+    if (get_var("DESKTOP") =~ /kde|gnome/ && !is_server && !is_krypton_argon && !is_gnome_next) {
         loadtest "x11/ooffice";
     }
     if (kdestep_is_applicable()) {
