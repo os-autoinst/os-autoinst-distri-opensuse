@@ -38,10 +38,6 @@ sub is_leap {
     return get_var('VERSION') =~ /^42:S/;
 }
 
-sub is_krypton_argon {
-    return get_var('FLAVOR') =~ /(Krypton|Argon)/;
-}
-
 sub cleanup_needles() {
     remove_common_needles;
     if (!get_var("LIVECD")) {
@@ -461,7 +457,7 @@ sub load_consoletests() {
         }
         loadtest "console/consoletest_finish";
     }
-    elsif (is_staging() && get_var('UEFI') || is_gnome_next) {
+    elsif (is_staging() && get_var('UEFI') || is_gnome_next || is_krypton_argon) {
         # Stagings should test yast2-bootloader in miniuefi at least but not all
         loadtest "console/consoletest_setup";
         loadtest "console/check_console_font";
