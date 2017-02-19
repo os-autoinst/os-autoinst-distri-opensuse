@@ -225,7 +225,7 @@ sub kdestep_is_applicable {
 }
 
 sub consolestep_is_applicable {
-    return !get_var("INSTALLONLY") && !get_var("DUALBOOT") && !get_var("RESCUECD");
+    return !get_var("INSTALLONLY") && !get_var("DUALBOOT") && !get_var("RESCUECD") && !is_gnome_next && !is_krypton_argon;
 }
 
 sub rescuecdstep_is_applicable {

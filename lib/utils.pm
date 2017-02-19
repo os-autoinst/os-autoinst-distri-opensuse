@@ -12,6 +12,8 @@ our @EXPORT = qw(
   clear_console
   is_jeos
   is_casp
+  is_gnome_next
+  is_krypton_argon
   select_kernel
   type_string_slow
   type_string_very_slow
@@ -128,6 +130,14 @@ sub check_console_font {
 
 sub is_jeos() {
     return get_var('FLAVOR', '') =~ /^JeOS/;
+}
+
+sub is_krypton_argon {
+    return get_var('FLAVOR') =~ /(Krypton|Argon)/;
+}
+
+sub is_gnome_next {
+    return get_var('FLAVOR') =~ /Gnome-Live/;
 }
 
 # Check if distribution is CASP
