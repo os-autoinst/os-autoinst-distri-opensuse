@@ -53,7 +53,7 @@ sub run() {
     };
     my $master_pattern = "(" . join('|', map { "$_" } values %$bug_pattern) . ")";
 
-    my $journal_output = script_output("journalctl --no-pager -p err -b 0 | tail -n +2\n");
+    my $journal_output = script_output("journalctl --no-pager -p err -b 0 | tail -n +2");
 
     # Find lines which matches to the pattern_bug
     while (my ($bug, $pattern) = each %$bug_pattern) {
@@ -75,10 +75,10 @@ sub run() {
 
     # Check for failed systemd services and examine them
     # script_run("pkill -SEGV dbus-daemon"); # comment out for a test
-    my $failed_services = script_output("systemctl --failed --no-legend --plain --no-pager\n");
+    my $failed_services = script_output("systemctl --failed --no-legend --plain --no-pager");
     foreach my $line (split(/\n/, $failed_services)) {
         if ($line =~ /^([\w.-]+)\s.+$/) {
-            my $failed_service_output = script_output("systemctl status $1 -l || true\n");
+            my $failed_service_output = script_output("systemctl status $1 -l || true");
             $self->write_detail_output("$1 failed", $failed_service_output, "fail");
         }
     }
