@@ -41,6 +41,7 @@ our @EXPORT = qw(
   handle_login
   handle_emergency
   service_action
+  ensure_ready_console
 );
 
 
@@ -779,6 +780,33 @@ sub service_action {
         foreach my $type (@types) {
             assert_script_run "systemctl $action $name.$type";
         }
+    }
+}
+
+=head2 ensure_ready_console
+Make sure console is ready by creating file with short content
+When it's done successfuly then it's proven console is ready
+By default non-root user shell is expected, with argument is
+expected root shell
+=cut
+sub ensure_ready_console {
+    my $root        = @_;
+    my $max_retries = 10;
+    assert_screen ['console', 'xterm', 'text-logged-in-root', 'text-logged-in-user'], 60;
+    for (1 .. $max_retries) {
+        eval {
+            if ($root) {
+                assert_script_run 'echo ready > term && grep ready term && rm term';
+            }
+            else {
+                assert_script_sudo 'echo ready > term && grep ready term && rm term';
+            }
+            send_key 'ctrl-c';    # cancel mistyped console checks
+            sleep 2;              # slow down loop
+        };
+        last unless ($@);
+        diag "console is not ready: $@";
+        diag "console is not ready, Retry: $_ of $max_retries";
     }
 }
 
