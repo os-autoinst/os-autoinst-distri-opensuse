@@ -534,6 +534,7 @@ sub load_extra_tests() {
         loadtest "console/wget_ipv6";
         loadtest "console/unzip";
         loadtest "console/openqa_review";
+        loadtest "console/zypper_moo";
 
         # finished console test and back to desktop
         loadtest "console/consoletest_finish";
