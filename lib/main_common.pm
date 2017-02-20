@@ -1170,10 +1170,15 @@ sub load_x11tests {
         loadtest "x11/hexchat";
         loadtest "x11/vlc";
     }
+    loadtest 'x11/minimalx_sle.pm' if check_var('DESKTOP', 'minimalx');
     # Need to skip shutdown to keep backend alive if running rollback tests after migration
     unless (get_var('ROLLBACK_AFTER_MIGRATION')) {
         loadtest "x11/shutdown";
     }
+}
+
+sub load_minimalxtests {
+    loadtest 'x11/icewm_mail_shortcut' if check_var('DESKTOP', 'minimalx');
 }
 
 sub load_yast2_ncurses_tests {
