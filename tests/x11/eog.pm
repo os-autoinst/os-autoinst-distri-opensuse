@@ -14,12 +14,11 @@
 use base "x11test";
 use strict;
 use testapi;
+use utils;
 
 
 sub run() {
-    x11_start_program("eog " . get_var("WALLPAPER"));
-    assert_screen 'test-eog-1';
-    send_key "alt-f4";
+    assert_gui_app("eog", exec_param => get_var("WALLPAPER"));
 }
 
 1;
