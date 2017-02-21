@@ -14,11 +14,10 @@
 use base "x11test";
 use strict;
 use testapi;
+use utils;
 
 sub run() {
-    x11_start_program("gnome-music");
-    assert_screen 'test-gnome-music-1', 3;
-    send_key "alt-f4";
+    assert_gui_app('gnome-music');
 }
 
 1;
