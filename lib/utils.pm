@@ -41,6 +41,7 @@ our @EXPORT = qw(
   handle_login
   handle_emergency
   service_action
+  assert_gui_app
 );
 
 
@@ -85,6 +86,26 @@ sub prepare_system_reboot {
     if (check_var('BACKEND', 's390x')) {
         console('iucvconn')->kill_ssh;
     }
+}
+
+# assert_gui_app (optionally installs and) starts an application, checks it started
+# and closes it again. It's the most minimalistic way to test a GUI application
+# Mandatory parameter: application: the name of the application.
+# Optional parameters are:
+#   install: boolean    => does the application have to be installed first? Especially
+#                         on live images where we want to ensure the disks are complete
+#                         the parameter should not be set to true - otherwise we might
+#                         mask the fact that the app is not on the media
+#   exec_param: string => When calling the application, pass this parameter on the command line
+#   remain: boolean    => If set to true, do not close the application when tested it is
+#                         running. This can be used if the application shall be tested further
+
+sub assert_gui_app {
+    my ($application, %args) = @_;
+    ensure_installed($application) if $args{install};
+    x11_start_program("$application $args{exec_param}");
+    assert_screen("test-$application-started");
+    send_key "alt-f4" unless $args{remain};
 }
 
 sub select_kernel {
