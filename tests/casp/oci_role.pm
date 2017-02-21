@@ -21,6 +21,7 @@ sub run() {
     # Select proper role
     send_key 'alt-s';
     send_key_until_needlematch "system-role-$role", 'down', 2;
+    send_key 'ret' if (check_var('VIDEOMODE', 'text'));
 
     # Set dashboard url for worker
     if ($role eq 'worker') {
