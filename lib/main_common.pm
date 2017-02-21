@@ -1,5 +1,6 @@
 package main_common;
 use base Exporter;
+use File::Basename;
 use Exporter;
 use testapi qw(check_var get_var set_var diag);
 use autotest;
@@ -10,6 +11,7 @@ use warnings;
 our @EXPORT = qw(
   init_main
   loadtest
+  load_testdir
   set_defaults_for_username_and_password
   setup_env
   logcurrentenv
@@ -51,6 +53,12 @@ sub init_main {
 sub loadtest {
     my ($test) = @_;
     autotest::loadtest("tests/$test.pm");
+}
+
+sub load_testdir {
+    my ($testsuite) = @_;
+    my $testdir = testapi::get_var("CASEDIR") . "/tests/$testsuite";
+    map { loadtest "$testsuite/" . basename($_, '.pm') } glob("$testdir/*.pm");
 }
 
 sub set_defaults_for_username_and_password {
