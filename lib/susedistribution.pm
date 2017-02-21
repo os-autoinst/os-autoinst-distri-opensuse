@@ -9,7 +9,7 @@ use strict;
 use testapi qw(send_key %cmd assert_screen check_screen check_var get_var
   match_has_tag set_var type_password type_string wait_idle wait_serial
   mouse_hide send_key_until_needlematch record_soft_failure
-  wait_still_screen wait_screen_change);
+  wait_still_screen wait_screen_change assert_script_run);
 
 
 sub handle_password_prompt {
@@ -199,6 +199,30 @@ sub set_standard_prompt {
     else {
         type_string "PS1='\$ '\n";
     }
+}
+
+=head2 set_malloc_check
+
+  set_malloc_check([username])
+
+MALLOC_CHECK_ and MALLOC_PERTURB_ are environmental variables, which let GNU libc report
+problems with program's malloc() calls. Takes optionally C<username> as an argument.
+
+For more about heap consistency checking in GNU libc see:
+https://www.gnu.org/software/libc/manual/html_node/Heap-Consistency-Checking.html
+
+=cut
+sub set_malloc_check {
+    my ($self, $username) = @_;
+
+    my $perturb = int(rand(255)) + 1;    # returns integer from 1 .. 255
+    if (($username eq 'root') && $self->script_run('grep -q MALLOC /etc/environment')) {
+        assert_script_run 'echo MALLOC_CHECK_=3 >> /etc/environment';
+        assert_script_run "echo MALLOC_PERTURB_=$perturb >> /etc/environment";
+        assert_script_run 'touch /etc/suid-debug';
+    }
+    assert_script_run 'export MALLOC_CHECK_=3';
+    assert_script_run "export MALLOC_PERTURB_=$perturb";
 }
 
 sub become_root {
@@ -403,7 +427,11 @@ sub activate_console {
         }
         assert_screen "text-logged-in-$user";
         $self->set_standard_prompt($user);
-
+        # Remove MALLOC_TESTING guardian once we believe, there's no fallout
+        # from MALLOC_CHECK_ and MALLOC_PERTURB_ environmental variables.
+        if (get_var('MALLOC_TESTING')) {
+            $self->script_run('! (test ${MALLOC_CHECK_+x} && test ${MALLOC_PERTURB_+x})') or $self->set_malloc_check($user);
+        }
         # On s390x 'setterm' binary is not present as there's no linux console
         if (!check_var('ARCH', 's390x')) {
             # Disable console screensaver
