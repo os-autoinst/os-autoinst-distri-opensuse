@@ -675,6 +675,7 @@ sub load_x11tests() {
         if (!get_var("USBBOOT")) {
             loadtest "x11/reboot_gnome";
         }
+        load_testdir('x11/gnomeapps') if is_gnome_next;
     }
     loadtest "x11/desktop_mainmenu";
 
