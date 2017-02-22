@@ -60,9 +60,26 @@ sub unlock_if_encrypted {
 
     return unless get_var("ENCRYPT");
 
-    assert_screen("encrypted-disk-password-prompt", 200);
-    type_password;    # enter PW at boot
-    send_key "ret";
+    if (check_var('ARCH', 's390x') && check_var('BACKEND', 'svirt')) {
+        my $password = $testapi::password;
+        my $svirt    = select_console('svirt');
+        my $name     = $svirt->name;
+        $svirt->suspend;
+        type_string "export pty=`virsh dumpxml $name | grep \"console type=\" | sed \"s/'/ /g\" | awk '{ print \$5 }'`\n";
+        type_string "echo \$pty\n";
+        $svirt->resume;
+
+        # enter passphrase twice (before grub and after grub) the svirt s390x tricky way
+        wait_serial("Please enter passphrase for disk.*", 100);
+        type_string "echo $password > \$pty\n";
+        wait_serial("Please enter passphrase for disk.*", 100);
+        type_string "echo $password > \$pty\n";
+    }
+    else {
+        assert_screen("encrypted-disk-password-prompt", 200);
+        type_password;    # enter PW at boot
+        send_key "ret";
+    }
 }
 
 sub turn_off_kde_screensaver() {
