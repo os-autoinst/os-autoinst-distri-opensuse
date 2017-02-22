@@ -14,13 +14,13 @@ use strict;
 use warnings;
 use base "y2logsstep";
 use testapi;
+use caasp;
 
 sub run() {
     send_key $cmd{install};
 
     # Accept simple password
-    assert_screen 'inst-userpasswdtoosimple';
-    send_key 'ret';
+    handle_simple_pw;
 
     # Accept update repositories during installation
     if (check_var('REGISTER', 'installation')) {
