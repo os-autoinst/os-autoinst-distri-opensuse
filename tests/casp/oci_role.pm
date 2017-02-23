@@ -12,7 +12,7 @@
 
 use strict;
 use base "y2logsstep";
-use utils;
+use caasp;
 use testapi;
 
 sub run() {
@@ -27,8 +27,7 @@ sub run() {
     if ($role eq 'worker') {
         # Try with empty controller node
         send_key 'alt-i';
-        assert_screen 'inst-userpasswdtoosimple';
-        send_key 'alt-y';
+        handle_simple_pw;
         assert_screen 'controller-node-invalid';
         send_key 'alt-o';
 
