@@ -35,8 +35,7 @@ sub accept_license {
 sub save_logs_and_continue {
     my $name = shift;
     # save logs and continue
-    send_key "ctrl-alt-f2";
-    send_key "alt-f2";
+    select_console 'install-shell';
     sleep 5;
     wait_idle(5);
     assert_screen ["inst-console"];
@@ -54,7 +53,7 @@ sub save_logs_and_continue {
     upload_logs "/tmp/y2logs-$name.tar.bz2";
     save_screenshot;
     clear_console;
-    send_key "alt-f7";
+    select_console 'installation';
     wait_idle(5);
 }
 
