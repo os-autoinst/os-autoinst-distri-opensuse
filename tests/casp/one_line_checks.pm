@@ -15,11 +15,18 @@ use strict;
 use testapi;
 
 sub run() {
+    # Check that system is using UTC timezone
+    assert_script_run 'date +"%Z" | grep -x UTC';
+
     if (check_var('SYSTEM_ROLE', 'worker')) {
         # poo#16574
         # Should be replaced by actually connecting to admin node when it's implemented
         assert_script_run "grep \"master: 'dashboard-url'\" /etc/salt/minion.d/master.conf";
     }
+}
+
+sub test_flags() {
+    return {important => 1};
 }
 
 1;
