@@ -92,7 +92,6 @@ sub load_feature_tests {
     }
     # Load universal feature tests
     loadtest 'casp/libzypp_config';
-    loadtest 'casp/timezone_utc';
     loadtest 'casp/filesystem_ro';
     loadtest 'casp/services_enabled';
     loadtest 'casp/one_line_checks';
