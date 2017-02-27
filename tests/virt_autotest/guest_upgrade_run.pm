@@ -34,7 +34,7 @@ sub run {
     my $self = shift;
     my $timeout = get_var("MAX_TEST_TIME", "36000") + 10;
     script_run("echo \"Debug info: max_test_time is $timeout\"");
-    $self->run_test($timeout, "Test run completed successfully", "no", "yes", "/var/log/qa/", "guest-upgrade-logs");
+    $self->run_test($timeout, "guest_upgrade_test ... ... PASSED", "no", "yes", "/var/log/qa/", "guest-upgrade-logs");
 }
 
 sub test_flags {
