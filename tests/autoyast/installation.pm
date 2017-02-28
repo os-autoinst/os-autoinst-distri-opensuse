@@ -80,6 +80,8 @@ sub run {
 
     push @needles, "autoyast-confirm"        if get_var("AUTOYAST_CONFIRM");
     push @needles, "autoyast-postpartscript" if get_var("USRSCR_DIALOG");
+    push @needles, "autoyast-boot-manager"   if check_var('ARCH', 's390x');
+
     if (get_var("AUTOYAST_LICENSE")) {
         if (get_var("BETA")) {
             push @needles, "inst-betawarning";
@@ -101,6 +103,7 @@ sub run {
     my $timeout    = 0;
     my $num_errors = 0;
 
+    # Autoyast first stage
     while (!$timeout) {
         mouse_hide(1);
         $ret = check_screen([@needles], $checktime);
@@ -108,7 +111,13 @@ sub run {
         #repeat until timeout or login screen
         if (defined $ret) {
             last if match_has_tag("bios-boot") || match_has_tag("reboot-after-installation");
+            last if match_has_tag("autoyast-black");
 
+            # Don't match black screen too soon
+            if (match_has_tag('autoyast-boot-manager')) {
+                @needles = grep { $_ ne 'autoyast-boot-manager' } @needles;
+                push @needles, "autoyast-black";
+            }
             if (match_has_tag('autoyast-error')) {
                 record_soft_failure 'AUTOYAST_EXPECT_ERRORS ' . get_var('AUTOYAST_EXPECT_ERRORS_REASON');
                 send_key "alt-s";    #stop
@@ -177,10 +186,26 @@ sub run {
     # CaaSP does not have second stage
     return if is_casp;
 
+    # Reconnect after first stage
+    if (check_var('ARCH', 's390x')) {
+        my $svirt = console('svirt');
+        $svirt->change_domain_element(os => initrd => undef);
+        $svirt->change_domain_element(os => kernel => undef);
+        $svirt->change_domain_element(os => cmdline => undef);
+        $svirt->change_domain_element(on_reboot => undef);
+        $svirt->define_and_start;
+
+        reset_consoles;
+        sleep 50;
+        select_console 'installation';
+    }
+
     $maxtime   = 1000;
     $checktime = 30;
     $looptime  = 0;
     $timeout   = 0;
+
+    # Autoyast second stage
     while (!$timeout) {
 
         mouse_hide(1);

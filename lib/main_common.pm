@@ -146,6 +146,11 @@ sub load_zdup_tests {
 sub load_autoyast_tests {
     #    init boot in load_boot_tests
     loadtest("autoyast/installation");
+    # on svirt we need to redefine the xml-file to boot the installed kernel
+    if (check_var('BACKEND', 'svirt') and check_var('ARCH', 's390x')) {
+        loadtest "installation/redefine_svirt_domain";
+        loadtest "installation/reconnect_s390";
+    }
     loadtest("autoyast/console");
     loadtest("autoyast/login");
     loadtest("autoyast/wicked");
