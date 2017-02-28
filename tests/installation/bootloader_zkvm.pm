@@ -49,6 +49,10 @@ sub run() {
             $cmdline .= "upgrade=1 ";
         }
 
+        if (get_var('AUTOYAST')) {
+            $cmdline .= " autoyast=" . data_url(get_var('AUTOYAST')) . " ";
+        }
+
         $svirt->change_domain_element(os => initrd  => "$img_path/$name.initrd");
         $svirt->change_domain_element(os => kernel  => "$img_path/$name.kernel");
         $svirt->change_domain_element(os => cmdline => $cmdline);
