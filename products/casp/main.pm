@@ -79,7 +79,7 @@ sub load_inst_tests() {
 sub load_rcshell_tests {
     loadtest 'casp/rcshell_start';
     loadtest 'casp/libzypp_config';
-    loadtest 'casp/timezone_utc';
+    loadtest 'casp/one_line_checks';
 }
 
 # Feature tests after installation finishes
