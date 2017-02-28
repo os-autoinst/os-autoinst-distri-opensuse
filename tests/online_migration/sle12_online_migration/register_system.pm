@@ -10,7 +10,7 @@
 # Summary: sle12 online migration testsuite
 # Maintainer: mitiao <mitiao@gmail.com>
 
-use base "consoletest";
+use base "console_yasttest";
 use strict;
 use testapi;
 use registration;

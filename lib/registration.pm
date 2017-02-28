@@ -21,7 +21,7 @@ use Exporter;
 use strict;
 
 use testapi;
-use utils 'addon_decline_license';
+use utils qw(addon_decline_license assert_screen_with_soft_timeout);
 
 our @EXPORT = qw(fill_in_registration_data registration_bootloader_params yast_scc_registration skip_registration);
 
@@ -280,7 +280,12 @@ sub registration_bootloader_params {
 sub yast_scc_registration {
 
     type_string "yast2 scc; echo yast-scc-done-\$?- > /dev/$serialdev\n";
-    assert_screen 'scc-registration', 30;
+    assert_screen_with_soft_timeout(
+        'scc-registration',
+        timeout      => 90,
+        soft_timeout => 30,
+        bugref       => 'wait longer time to start yast2 scc in case of multiple jobs start to execute it in parallel on a same worker'
+    );
 
     fill_in_registration_data;
 
