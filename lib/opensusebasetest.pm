@@ -293,7 +293,8 @@ sub wait_boot {
         }
     }
 
-    unlock_if_encrypted;
+    # on s390x svirt is encryption unlocked with workaround_type_encrypted_passphrase before this wait_boot
+    unlock_if_encrypted if !get_var('S390_ZKVM');
 
     if ($textmode || check_var('DESKTOP', 'textmode')) {
         assert_screen [qw(linux-login emergency-shell emergency-mode)], $ready_time;
