@@ -4,3 +4,4 @@ tools/absolutize
 tools/lib
 tools/tidy
 .perltidyrc
+*.tdy
