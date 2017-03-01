@@ -500,6 +500,7 @@ sub load_extra_tests() {
         loadtest "console/zypper_lr";
         loadtest "console/zypper_ar";
         loadtest "console/zypper_ref";
+        loadtest "console/zypper_info";
         loadtest "console/update_alternatives";
         loadtest "console/zbar";
         # start extra console tests from here
