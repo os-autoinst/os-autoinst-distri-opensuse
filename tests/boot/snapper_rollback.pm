@@ -19,7 +19,13 @@ sub run() {
     my ($self) = @_;
 
     # assert the we are on a ro snapshot.
-    assert_screen 'linux-login', 200;
+    # assert_screen 'linux-login', 200;
+    # workaround known issue: bsc#980337
+    if (!check_screen('linux-login', 200)) {
+        record_soft_failure 'bsc#980337';
+        send_key "ctrl-alt-f1";
+        assert_screen 'tty1-selected';
+    }
     select_console 'root-console';
     # 1)
     script_run('touch NOWRITE;test ! -f NOWRITE', 0);
