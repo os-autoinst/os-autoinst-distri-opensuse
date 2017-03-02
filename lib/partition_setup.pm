@@ -106,6 +106,9 @@ sub addlv {
     send_key 'ret';    # create logical volume
     assert_screen 'partition-lv-type';
     type_string $args{name};
+    if ($args{type} eq 'thin_pool') {
+        send_key 'alt-t';
+    }
     send_key $cmd{next};
     assert_screen 'partition-lv-size';
     if ($args{size}) {    # use default max size if not defined
@@ -113,11 +116,13 @@ sub addlv {
         type_string $args{size} . 'mb';
     }
     send_key $cmd{next};
-    assert_screen 'partition-role';
-    send_key $role{$args{role}};    # swap role
-    send_key $cmd{next};
-    assert_screen 'partition-format';
-    send_key $cmd{finish};
+    if ($args{role}) {
+        assert_screen 'partition-role';
+        send_key $role{$args{role}};    # swap role
+        send_key $cmd{next};
+        assert_screen 'partition-format';
+        send_key $cmd{finish};
+    }
 }
 
 1;
