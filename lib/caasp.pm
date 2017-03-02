@@ -41,15 +41,20 @@ sub process_reboot {
 sub trup_call {
     my $cmd = shift;
     my $check = shift // 1;
-    $cmd .= "; echo trup-\$?- > /dev/$serialdev" if $check;
+    $cmd .= " > /dev/$serialdev";
+    $cmd .= " ; echo trup-\$?- > /dev/$serialdev" if $check;
 
     save_screenshot;
     send_key "ctrl-l";
 
     script_run "transactional-update $cmd", 0;
     if ($cmd =~ /ptf /) {
-        assert_screen "dialog_yes_no";
-        type_string "y\n";
+        if (wait_serial "\QContinue? [y/n/? shows all options] (y):") {
+            send_key "ret";
+        }
+        else {
+            die "Confirmation dialog not shown";
+        }
     }
     wait_serial 'trup-0-' if $check;
 }
