@@ -40,6 +40,7 @@ sub start_vnc_server {
 
     # Start server
     type_string "Xvnc :1 -SecurityTypes=VncAuth -PasswordFile=/tmp/file.passwd\n";
+    save_screenshot;
 }
 
 # poo#11794
