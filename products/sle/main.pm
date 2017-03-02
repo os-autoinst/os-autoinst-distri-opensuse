@@ -723,6 +723,7 @@ sub load_extra_test () {
         loadtest 'console/check_console_font';
         loadtest 'console/zypper_lr';
         loadtest 'console/zypper_ref';
+        loadtest "console/zypper_info";
         loadtest 'console/update_alternatives';
         # start extra console tests from here
         if (!get_var('OFW') && !is_jeos()) {
