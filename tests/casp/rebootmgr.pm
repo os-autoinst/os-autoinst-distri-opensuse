@@ -80,30 +80,24 @@ sub check_strategy_maint_window {
 #3 Test etcd locking strategy
 sub check_strategy_etcd_lock {
     rbm_call "set-strategy etcd-lock";
-    assert_script_run "rcetcd start";
+    assert_script_run "systemctl enable --now etcd";
 
     # Unlock during maintenance window - bsc#1026274
-    rbm_call "lock";
+    rbm_call "lock lock1";
     rbm_set_window 'now', '1h';
     trup_call 'reboot ptf install update-test-trival/update-test-reboot-needed-5-5.3.61.x86_64.rpm';
     rbm_check_status 3;
-    rbm_call "unlock", 0;
+    rbm_call "unlock lock1", 0;
     process_reboot;
 
     # Maintenance window passes while waiting for lock - bsc#1026298
-    rbm_call "lock";
+    rbm_call "lock lock2";
     rbm_set_window '+1minute', '1m';
     rbm_call 'reboot';
     sleep 120;
     rbm_check_status 3;
-    rbm_call "unlock";
+    rbm_call "unlock lock2";
     rbm_check_status 2;
-
-    # Create & remove lock - bsc#1026273
-    rbm_call "lock machineid";
-    rbm_call "unlock machineid";
-    assert_script_run "rebootmgrctl status | grep 'Available: 1'";
-    assert_script_run "! etcdctl get /opensuse.org/rebootmgr/locks/default/data | grep machineid";
 }
 
 sub run() {

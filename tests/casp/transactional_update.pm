@@ -35,13 +35,13 @@ sub check_package {
 
 # Reboot and check that mounted snapshot differ if we expect the change
 sub check_reboot_changes {
-    my $nochange = shift;
+    my $change = shift // 1;
 
     my $svbf = script_output 'mount | grep "on / " | grep -o "subvolid=.*snapshot"';
     process_reboot 1;
     my $svaf = script_output 'mount | grep "on / " | grep -o "subvolid=.*snapshot"';
 
-    die "Unexpected snapshot $svbf : $svaf is mounted" unless ($svbf eq $svaf) == $nochange;
+    die "Expected change:$change, but before:$svbf - after:$svaf mounted" if ($svbf eq $svaf) == $change;
 }
 
 sub run() {
@@ -65,7 +65,7 @@ sub run() {
 
     # System should be up to date - no changes expected
     trup_call 'cleanup up';
-    check_reboot_changes 1;
+    check_reboot_changes 0;
 
     # Remove PTF - snapshot #3
     trup_call 'ptf remove update-test-security';
