@@ -16,7 +16,7 @@ use strict;
 use warnings;
 use testapi;
 
-our @EXPORT = qw(handle_simple_pw process_reboot trup_call);
+our @EXPORT = qw(handle_simple_pw process_reboot trup_call write_detail_output);
 
 # Weak password warning should be displayed only once - bsc#1025835
 sub handle_simple_pw {
@@ -57,6 +57,34 @@ sub trup_call {
         }
     }
     wait_serial 'trup-0-' if $check;
+}
+
+# Function for writing custom text boxes for the test job
+# After fixing poo#17462 it should be replaced by record_info from testlib
+sub write_detail_output {
+    my ($self, $title, $output, $result) = @_;
+
+    $result =~ /^(ok|fail|softfail)$/ || die "Result value: $result not allowed.";
+
+    my $filename = $self->next_resultname('txt');
+    my $detail   = {
+        title  => $title,
+        result => $result,
+        text   => $filename,
+    };
+    push @{$self->{details}}, $detail;
+
+    open my $fh, '>', bmwqemu::result_dir() . "/$filename";
+    print $fh $output;
+    close $fh;
+
+    # Set overall result for the job
+    if ($result eq 'fail') {
+        $self->{result} = $result;
+    }
+    elsif ($result eq 'ok') {
+        $self->{result} ||= $result;
+    }
 }
 
 1;
