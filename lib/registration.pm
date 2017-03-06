@@ -86,7 +86,7 @@ sub fill_in_registration_data {
         }
     }
 
-    if (check_var('SCC_REGISTER', 'installation') || check_var('SCC_REGISTER', 'console')) {
+    if (check_var('SCC_REGISTER', 'installation') || check_var('SCC_REGISTER', 'yast') || check_var('SCC_REGISTER', 'console')) {
         # The value of SCC_ADDONS is a list of abbreviation of addons/modules
         # Following are abbreviations defined for modules and some addons
         #
