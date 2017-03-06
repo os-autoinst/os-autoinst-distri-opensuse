@@ -61,6 +61,12 @@ sub load_boot_tests() {
 sub load_inst_tests() {
     loadtest 'casp/oci_overview';
 
+    # bsc#1019652 - Installation on small disk
+    if (get_var('HDDSIZEGB') < 12) {
+        loadtest 'casp/oci_small_disk';
+        return;
+    }
+
     # Register system
     loadtest 'casp/oci_register' if check_var('REGISTER', 'installation');
 
