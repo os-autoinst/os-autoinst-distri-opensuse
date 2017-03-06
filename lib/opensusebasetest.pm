@@ -213,12 +213,9 @@ sub wait_boot {
 
     # Reset the consoles after the reboot: there is no user logged in anywhere
     reset_consoles;
-
-    if (get_var("OFW")) {
-        assert_screen "bootloader-ofw", $bootloader_time;
-    }
+    assert_screen "bootloader", $bootloader_time;
     # reconnect s390
-    elsif (check_var('ARCH', 's390x')) {
+    if (check_var('ARCH', 's390x')) {
         my $login_ready = qr/Welcome to SUSE Linux Enterprise Server.*\(s390x\)/;
         if (check_var('BACKEND', 's390x')) {
 
