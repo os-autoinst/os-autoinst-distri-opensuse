@@ -13,32 +13,7 @@
 use base "opensusebasetest";
 use strict;
 use testapi;
-
-sub write_detail_output {
-    my ($self, $title, $output, $result) = @_;
-
-    $result =~ /^(ok|fail|softfail)$/ || die "Result value: $result not allowed.";
-
-    my $filename = $self->next_resultname('txt');
-    my $detail   = {
-        title  => $title,
-        result => $result,
-        text   => $filename,
-    };
-    push @{$self->{details}}, $detail;
-
-    open my $fh, '>', bmwqemu::result_dir() . "/$filename";
-    print $fh $output;
-    close $fh;
-
-    # Set overall result for the job
-    if ($result eq 'fail') {
-        $self->{result} = $result;
-    }
-    elsif ($result eq 'ok') {
-        $self->{result} ||= $result;
-    }
-}
+use caasp;
 
 sub run() {
     my ($self) = @_;
