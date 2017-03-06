@@ -61,9 +61,10 @@ sub load_boot_tests() {
 sub load_inst_tests() {
     loadtest 'casp/oci_overview';
 
+    # Check keyboard layout
+    loadtest 'casp/oci_keyboard';
     # Register system
     loadtest 'casp/oci_register' if check_var('REGISTER', 'installation');
-
     # Set root password
     loadtest 'casp/oci_password';
     # Set system Role
