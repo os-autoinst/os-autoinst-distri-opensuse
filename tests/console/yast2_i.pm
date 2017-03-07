@@ -32,13 +32,11 @@ sub run() {
     # Check disk usage widget for not showing subvolumes (bsc#949945)
     # on SLE12SP0 hidden subvolume isn't supported
     if (!check_var('VERSION', '12')) {
-        send_key "alt-e";
-        wait_still_screen(1);
-        send_key "alt-s";
+        wait_screen_change { send_key 'alt-e' };
+        wait_screen_change { send_key 'alt-s' };
         assert_screen 'yast2-sw_single-disk_usage';
-        send_key "alt-o";
-        wait_still_screen(1);
-        send_key "alt-p";    # go back to search box
+        wait_screen_change { send_key 'alt-o' };
+        wait_screen_change { send_key 'alt-p' };    # go back to search box
     }
 
     # Testcase according to https://fate.suse.com/318099
