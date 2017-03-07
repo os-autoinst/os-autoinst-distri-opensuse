@@ -73,10 +73,10 @@ sub fill_in_registration_data {
             }
             elsif (match_has_tag('registration-online-repos')) {
                 if (!get_var('QAM_MINIMAL')) {
-                    send_key 'alt-y';    # want updates
+                    wait_screen_change { send_key 'alt-y' };    # want updates
                 }
                 else {
-                    send_key $cmd{next};    # minimal dont want updates
+                    wait_screen_change { send_key $cmd{next} };    # minimal dont want updates
                 }
                 next;
             }
