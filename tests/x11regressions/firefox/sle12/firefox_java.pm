@@ -35,6 +35,8 @@ sub java_testing {
     if (match_has_tag "oracle-cookies-handling") {
         assert_and_click "firefox-java-agree-and-proceed";
     }
+    #Click the "Verify Java version" button
+    assert_and_click "firefox-java-verifyversion";
 }
 
 sub run() {
