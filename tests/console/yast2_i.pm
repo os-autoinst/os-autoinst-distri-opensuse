@@ -32,13 +32,11 @@ sub run() {
     # Check disk usage widget for not showing subvolumes (bsc#949945)
     # on SLE12SP0 hidden subvolume isn't supported
     if (!check_var('VERSION', '12')) {
-        send_key "alt-e";
-        wait_still_screen(1);
-        send_key "alt-s";
+        wait_screen_change { send_key 'alt-e' };
+        wait_screen_change { send_key 'alt-s' };
         assert_screen 'yast2-sw_single-disk_usage';
-        send_key "alt-o";
-        wait_still_screen(1);
-        send_key "alt-p";    # go back to search box
+        wait_screen_change { send_key 'alt-o' };
+        wait_screen_change { send_key 'alt-p' };    # go back to search box
     }
 
     # Testcase according to https://fate.suse.com/318099
@@ -71,19 +69,22 @@ sub run() {
     }
     send_key "alt-a", 1;     # accept
 
-    my @tags = qw(yast2-sw-packages-autoselected yast2-sw_automatic-changes yast2_console-finished);
+    my @tags = qw(yast2-sw-packages-autoselected yast2-sw_automatic-changes);
     # Whether summary is shown depends on PKGMGR_ACTION_AT_EXIT in /etc/sysconfig/yast2
     push @tags, 'yast2-sw_shows_summary' unless get_var('YAST_SW_NO_SUMMARY');
-    do {
+    while (1) {
         assert_screen(\@tags, 60);
         # automatic changes for manual selections
         if (match_has_tag('yast2-sw-packages-autoselected') or match_has_tag('yast2-sw_automatic-changes')) {
             wait_screen_change { send_key 'alt-o' };
+            last if get_var('YAST_SW_NO_SUMMARY');
+            next;
         }
         elsif (match_has_tag('yast2-sw_shows_summary')) {
             wait_screen_change { send_key 'alt-f' };
+            last;
         }
-    } until (match_has_tag('yast2_console-finished'));
+    }
 
     wait_serial("yast2-i-status-0", 60) || die "'yast2 sw_single' didn't finish";
 
