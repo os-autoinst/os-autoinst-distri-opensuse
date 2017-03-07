@@ -731,7 +731,9 @@ sub load_extra_test () {
         if (get_var('FILESYSTEM', 'btrfs') eq 'btrfs') {
             loadtest 'console/btrfs_autocompletion';
             if (get_var('NUMDISKS', 0) > 1) {
-                loadtest 'console/snapper_cleanup';
+                if (sle_version_at_least('12-SP2')) {
+                    loadtest 'console/snapper_cleanup';
+                }
                 loadtest 'console/btrfs_qgroups';
                 loadtest 'console/btrfs_send_receive';
             }
