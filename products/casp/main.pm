@@ -86,6 +86,7 @@ sub load_rcshell_tests {
 # Feature tests after installation finishes
 sub load_feature_tests {
     # Feature tests
+    loadtest 'casp/create_autoyast';
     loadtest 'casp/libzypp_config';
     loadtest 'casp/filesystem_ro';
     loadtest 'casp/services_enabled';
