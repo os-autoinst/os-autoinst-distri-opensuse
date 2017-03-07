@@ -19,17 +19,18 @@ sub run() {
     # Switch to UK
     send_key 'alt-e';
     send_key 'up';
+    send_key 'ret' if check_var('VIDEOMODE', 'text');
 
     # Check that UK layout is active
     send_key 'alt-g';
     type_string '~@#\"|';    # writes ¬"£#@~
     assert_screen 'keyboard-layout-uk';
-    send_key 'ctrl-a';
-    send_key 'delete';
+    for (1 .. 6) { send_key 'backspace' }
 
     # Switch to US
     send_key 'alt-e';
     send_key 'down';
+    send_key 'ret' if check_var('VIDEOMODE', 'text');
 }
 
 1;
