@@ -42,6 +42,7 @@ our @EXPORT = qw(
   handle_emergency
   service_action
   assert_gui_app
+  get_env_by_pattern
 );
 
 
@@ -818,6 +819,18 @@ sub service_action {
             assert_script_run "systemctl $action $name.$type";
         }
     }
+}
+
+sub get_env_by_pattern {
+    my %found;
+    foreach my $key (sort(keys %ENV)) {
+        $_ = $key;
+        if (m/\w+_TEST_REPO/) {
+            my $val = $ENV{"$key"};
+            $found{$key} = $val;
+        }
+    }
+    return %found;
 }
 
 1;

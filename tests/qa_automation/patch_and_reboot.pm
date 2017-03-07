@@ -9,9 +9,9 @@
 #
 
 # inherit qa_run, but overwrite run
-# G-Summary: QA Automation: patch the system before running the test
-#    This is to test Test Updates for SP1 and GA
-# G-Maintainer: Stephan Kulow <coolo@suse.de>
+# Summary: QA Automation: patch the system before running the test
+#          This is to test Test Updates
+# Maintainer: Stephan Kulow <coolo@suse.de>
 
 use base "qa_run";
 use strict;
@@ -21,7 +21,14 @@ use testapi;
 
 sub run {
     my $self = shift;
-    $self->system_login();
+
+    # possibility to run as part of the aggregated tests
+    if (get_var('EXTRATEST')) {
+        select_console 'root-console';
+    }
+    else {
+        $self->system_login();
+    }
 
     pkcon_quit unless check_var('DESKTOP', 'textmode');
 
