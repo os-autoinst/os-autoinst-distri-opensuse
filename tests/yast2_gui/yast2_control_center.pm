@@ -8,7 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Extend YaST2 UI test yast2-control-center
+# Summary: YaST2 UI test yast2-control-center provides sanity checks for YaST modules
 #    Make sure those yast2 modules can opened properly. We can add more
 #    feature test against each module later, it is ensure it will not crashed
 #    while launching atm.
@@ -47,71 +47,102 @@ sub run() {
 
     #	start Media Check
     assert_and_click "yast2_control-center_media-check";
-    assert_and_click "yast2_control-center_media-check_close";
+    assert_screen "yast2_control-center_media-check_close";
+    send_key "alt-l";
     assert_screen 'yast2-control-center-ui';
 
     #	start Online Update
-    assert_and_click "yast2_control-center_online-update";
-    assert_screen "yast2_control-center_update-repo-dialogue";
-    send_key "alt-n";
-    assert_and_click "yast2_control-center_online-update_close";
+    assert_and_click 'yast2_control-center_online-update';
+    assert_screen [qw(yast2_control-center_update-repo-dialogue yast2_control-center_online-update_close)], 60;
+    if (match_has_tag('yast2_control-center_update-repo-dialogue')) {
+        send_key 'alt-n';
+        assert_screen 'yast2_control-center_online-update_close';
+    }
+    send_key 'alt-c';
     assert_screen 'yast2-control-center-ui';
 
     #	start Software Repositiories
     assert_and_click "yast2_control-center_software-repositories";
     assert_screen "yast2_control-center_configured-software-repositories";
-    assert_and_click "yast2_control-center_configured-software-repositories_ok";
+    send_key "alt-o";
     assert_screen 'yast2-control-center-ui';
 
     #	start Printer
     assert_and_click "yast2_control-center_printer";
     assert_screen "yast2_control-center_printer_configurations";
-    assert_and_click "yast2_control-center_printer_yes";
-    assert_and_click "yast2_control-center_printer_ok";
-    assert_and_click "yast2_control-center_printer_cups-daemon-restart_ok";
-    assert_and_click "yast2_control-center_printer_cups-daemon-enable-start";
-    assert_and_click "yast2_control-center_printer_close";
+    send_key "alt-o";
+    assert_screen "yast2_control-center_printer_running-cups-daemon";
+    send_key "alt-y";
+    assert_screen 'yast2_control-center_printer_running-cups-daemon_no-delay';
+    send_key "alt-o";
+    assert_screen 'yast2_control-center_printer_running-cups-daemon_enabled';
+    send_key 'alt-y';
+    assert_screen "yast2_control-center_printer_configurations";
+    send_key "alt-o";
+
+    assert_screen 'yast2-control-center-ui', 60;
+    #	test case if not restart cups daemon locally
+    select_console 'root-console';
+    assert_script_run 'systemctl stop cups.service';
+    select_console 'x11', await_console => 0;
     assert_screen 'yast2-control-center-ui';
+    send_key "up";
+    assert_and_click 'yast2_control-center_printer';
+    assert_screen 'yast2_control-center_printer_configurations';
+    assert_screen 'yast2_control-center_printer_running-cups-daemon';
+    send_key "alt-n";
+    assert_screen "yast2_control-center_printer_running-cups-daemon_error";
+    send_key "alt-o";
+    assert_screen "yast2_control-center_detect-printer-queues_error";
+    send_key "alt-o";
+    assert_screen 'yast2_control-center_show-printer-queues_error';
+    send_key "alt-o";
+    assert_screen "yast2_control-center_printer_configurations";
+    send_key "alt-o";
 
     #	start Sound
     assert_and_click "yast2_control-center_sound";
     assert_screen "yast2_control-center_sound_configuration";
-    assert_and_click "yast2_control-center_sound_cancel";
-    assert_screen 'yast2-control-center-ui';
+    send_key "alt-o";
+    assert_screen 'yast2-control-center-ui', 60;
 
     #   start System Keyboard Layout
     assert_and_click "yast2_control-center_keyboard";
     assert_screen "yast2_control-center_keyboard_configuration";
-    assert_and_click "yast2_control-center_keyboard_ok";
-    assert_screen 'yast2-control-center-ui';
+    send_key "alt-o";
+    assert_screen 'yast2-control-center-ui', 60;
 
     #	start Boot Loader
     assert_and_click "yast2_control-center_bootloarder";
-    assert_screen "yast2_control-center_bootloader_configuration";
-    assert_and_click "yast2_control-center_bootloader_ok";
-    assert_screen 'yast2-control-center-ui';
+    assert_screen "yast2_control-center_bootloader_ok";
+    send_key "alt-o";
+    assert_screen 'yast2-control-center-ui', 60;
 
     #	start Date and Time
     assert_and_click "yast2_control-center_date-and-time";
-    assert_screen "yast2_control-center_clock-and-time-zone";
-    assert_and_click "yast2_control-center_clock-and-time-zone_ok";
+    assert_screen [qw(yast2_control-center_data-and-time_ntp.conf_changed yast2_control-center_clock-and-time-zone)], 60;
+    if (match_has_tag 'yast2_control-center_data-and-time_ntp.conf_changed') {
+        send_key "alt-o";
+    }
+    assert_screen "yast2_control-center_clock-and-time-zone", 60;
+    send_key "alt-o";
     assert_screen 'yast2-control-center-ui';
 
     #	start Sysconfig Editor
     assert_and_click "yast2_control-sysconfig-editor";
-    assert_screen "yast2_control-center_etc-sysconfig-editor";
-    assert_and_click "yast2_control-sysconfig-editor_ok";
+    assert_screen "yast2_control-center_etc-sysconfig-editor", 60;
+    send_key "alt-o";
     assert_screen 'yast2-control-center-ui';
 
     #   start Kernel Kdump
     assert_and_click "yast2_control-kernel-kdump";
-    assert_screen "yast2_control-center_kernel-kdump-configuration";
+    assert_screen "yast2_control-center_kernel-kdump-configuration", 60;
     assert_and_click "yast2_control-kernel-kdump-configuration_ok";
     assert_screen 'yast2-control-center-ui';
 
     #   start Languages
     assert_and_click "yast2_control-languages";
-    assert_screen "yast2_control-center_languages-settings";
+    assert_screen "yast2_control-center_languages-settings", 60;
     assert_and_click "yast2_control-languages-settings_ok";
     assert_screen 'yast2-control-center-ui';
 
@@ -123,18 +154,19 @@ sub run() {
 
     #   start Online Migration
     assert_and_click "yast2_control-center_online-migration";
-    assert_and_click "yast2_control-center-online-migration_cancel";
+    assert_screen "yast2_control-center-online-migration_cancel", 60;
+    send_key "alt-c";
     assert_screen 'yast2-control-center-ui';
 
     #   start Partitioner
     assert_and_click "yast2_control-center_partitioner";
-    assert_screen "yast2_control-center-partitioner_warning";
+    assert_screen "yast2_control-center-partitioner_warning", 60;
     assert_and_click "yast2_control-center-partitioner_abort";
     assert_screen 'yast2-control-center-ui';
 
     #   start Service Manager
     assert_and_click "yast2_control-center_service-manager";
-    assert_screen "yast2_control-center-service-manager";
+    assert_screen "yast2_control-center-service-manager_list", 60;
     assert_and_click "yast2_control-center-service-manager_ok";
     assert_screen 'yast2-control-center-ui';
 
@@ -142,201 +174,287 @@ sub run() {
     #	need to scroll down to get other modules
     send_key "down";
     assert_and_click "yast2_control-center_authentication-server";
-    assert_screen "yast2_control-center-authentication-server_install";
-    assert_and_click "yast2_control-center-authentication-server_install-cancel";
-    assert_and_click "yast2_control-center-authentication-server_install-error";
-    assert_screen 'yast2-control-center-ui';
+    assert_screen [qw(yast2_control-center-authentication-server_install yast2_control-center-authentication-server_configuration)], 90;
+    if (match_has_tag('yast2_control-center-authentication-server_install')) {
+        send_key "alt-i";
+    }
+    else {
+        assert_screen 'yast2_control-center-authentication-server_configuration';
+        send_key "alt-c";
+        assert_screen 'yast2_control-center-authentication-server_configuration_abort';
+        send_key 'alt-y';
+    }
+    assert_screen 'yast2-control-center-ui', 60;
 
     #   start DHCP Server
     assert_and_click "yast2_control-center_dhcp-server";
-    assert_and_click "yast2_control-center-dhcp-server-install_cancel";
-    assert_and_click "yast2_control-center-dhcp-server-install-cancel_again";
-    assert_screen 'yast2-control-center-ui';
+    assert_screen [qw(yast2_control-center-dhcp-server-install_cancel yast2_control-center-dhcp-server-configuration)], 60;
+    if (match_has_tag 'yast2_control-center-dhcp-server-install_cancel') {
+        send_key 'alt-i';
+        assert_screen 'yast2_control-center-dhcp-server-hostname', 60;
+        send_key 'alt-o';
+        assert_screen 'yast2_control-center-dhcp-server-configuration', 60;
+        send_key 'alt-r';
+    }
+    else {
+        assert_screen 'yast2_control-center-dhcp-server-configuration', 60;
+        send_key 'alt-r';
+    }
+    assert_screen 'yast2-control-center-ui', 60;
 
     #   start DNS Server
     assert_and_click "yast2_control-center_dns-server";
-    assert_and_click "yast2_control-center-dns-server-install_cancel";
-    assert_and_click "yast2_control-center-dns-server-install_abort";
-    assert_screen 'yast2-control-center-ui';
+    assert_screen [qw(yast2_control-center-dns-server-install_cancel yast2_control-center-dns-server-start-up)], 60;
+    if (match_has_tag 'yast2_control-center-dns-server-install_cancel') {
+        send_key "alt-i";
+        assert_screen 'yast2_control-center-dns-server-configuration';
+        send_key 'alt-c';
+        assert_screen 'yast2_control-center-dns-server-really-abort';
+        send_key 'alt-y';
+    }
+    else {
+        assert_screen "yast2_control-center-dns-server-start-up";
+        send_key "alt-o";
+    }
+    assert_screen 'yast2-control-center-ui', 60;
 
     #   start FTP Server
     assert_and_click "yast2_control-center_ftp-server";
-    assert_screen "yast2_control-center_ftp-start-up";
-    assert_and_click "yast2_control-center_ftp-server_cancel";
-    assert_screen 'yast2-control-center-ui';
+    assert_screen "yast2_control-center_ftp-start-up", 60;
+    send_key "alt-f";
+    assert_screen 'yast2-control-center-ui', 60;
 
     #   start Hostnames
     assert_and_click "yast2_control-center_hostnames";
-    assert_and_click "yast2_control-center_hostnames_ok";
+    assert_screen "yast2_control-center_hostnames_ok";
+    send_key "alt-o";
     assert_screen 'yast2-control-center-ui';
 
     #   start HTTP Server
     assert_and_click "yast2_control-center_http";
-    assert_and_click "yast2_control-center_http_finish";
+    assert_screen [qw(yast2_control-center_http_finish yast2_control-center_http_install)], 60;
+    if (match_has_tag 'yast2_control-center_http_install') {
+        send_key 'alt-c';
+        send_key 'alt-o';
+    }
+    assert_screen 'yast2_control-center_http_finish';
+    send_key 'alt-f';
     assert_screen 'yast2-control-center-ui';
 
     #   start iSCSI initiator
     assert_and_click "yast2_control-center_iscsi-initiator";
-    assert_and_click "yast2_control-center_iscsi-intiator_cancel";
+    assert_screen "yast2_control-center_iscsi-initiator_cancel", 60;
+    send_key "alt-c";
     assert_screen 'yast2-control-center-ui';
 
     #   start iSNS Server
     assert_and_click "yast2_control-center_isns-server";
-    assert_and_click "yast2_control-center_isns-server_cancel";
-    assert_and_click "yast2_control-center_isns-server_error";
+    assert_screen "yast2_control-center_isns-server_cancel";
+    send_key "alt-c";
+    assert_screen "yast2_control-center_isns-server_error";
+    send_key "alt-o";
     assert_screen 'yast2-control-center-ui';
 
     #   start LDAP and Kerberos client
     assert_and_click "yast2_control-center_ldap-kerberos-client";
-    assert_screen "yast2_control-center_ldap-kerberos-client_configuration";
-    assert_and_click "yast2_control-center_ldap-kerberos-client_finish";
-    # it needs long time to get finished.
+    assert_screen "yast2_control-center_ldap-kerberos-client_finish";
+    send_key "alt-f";
     assert_screen 'yast2-control-center-ui', 60;
 
     #   start Mail Server
     assert_and_click "yast2_control-center_mail-server";
-    assert_and_click "yast2_control-center_mail-server_cancel";
-    assert_and_click "yast2_control-center_mail-server_cancel-confirm";
+    assert_screen "yast2_control-center_mail-server_cancel", 60;
+    send_key "alt-c";
+    assert_screen "yast2_control-center_mail-server_cancel-confirm";
+    send_key "alt-r";
+    assert_screen "yast2_control-center_mail-server_really-abort";
+    send_key "alt-y";
     assert_screen 'yast2-control-center-ui';
 
     #   start Xinetd
     assert_and_click "yast2_control-center_xinetd";
-    assert_and_click "yast2_control-center_xinetd-server_cancel";
+    assert_screen "yast2_control-center_xinetd-server_cancel", 60;
+    send_key "alt-c";
     assert_screen 'yast2-control-center-ui';
 
     #   start NFS Client
     assert_and_click "yast2_control-center_nfs-client";
-    assert_and_click "yast2_control-center_nfs_client_cancel";
-    assert_screen 'yast2-control-center-ui';
+    assert_screen "yast2_control-center_nfs_client_cancel";
+    send_key "alt-c";
+    assert_screen 'yast2-control-center-ui', 60;
 
     #   start NFS Server
     assert_and_click "yast2_control-center_nfs-server";
-    assert_and_click "yast2_control-center_nfs_server_cancel";
-    assert_screen 'yast2-control-center-ui';
+    assert_screen "yast2_control-center_nfs_server_cancel";
+    send_key "alt-c";
+    assert_screen 'yast2-control-center-ui', 60;
 
     #   start NIS Client
     assert_and_click "yast2_control-center_nis-client";
-    assert_and_click "yast2_control-center_nis_client_cancel";
-    assert_screen 'yast2-control-center-ui';
+    assert_screen "yast2_control-center_nis_client_cancel", 60;
+    send_key "alt-r";
+    assert_screen 'yast2-control-center-ui', 60;
 
     #   start NIS Server
     assert_and_click "yast2_control-center_nis-server";
-    assert_and_click "yast2_control-center_nis_server_cancel";
-    assert_screen 'yast2-control-center-ui';
+    assert_screen "yast2_control-center_nis_server_cancel", 60;
+    send_key "alt-r";
+    assert_screen 'yast2-control-center-ui', 60;
 
     #   start NTP Configuration
     assert_and_click "yast2_control-center_ntp-configuration";
-    assert_and_click "yast2_control-center_ntp-configuration_cancel";
-    assert_screen 'yast2-control-center-ui';
+    assert_screen [qw(yast2_control-center_ntp.conf_changed yast2_control-center_ntp-general-settings)], 60;
+    if (match_has_tag 'yast2_control-center_ntp.conf_changed') {
+        send_key 'alt-o';
+        assert_screen 'yast2_control-center_ntp-general-settings';
+        send_key 'alt-o';
+    }
+    else {
+        assert_screen 'yast2_control-center_ntp-general-settings';
+        send_key 'alt-o';
+    }
+    assert_screen 'yast2-control-center-ui', 60;
 
     #   start OpenLDAP MirrorMode Configuration
     assert_and_click "yast2_control-center_openldap-mirrormode-configuration";
-    assert_and_click "yast2_control-center_openldap-mirrormode-configuration_cancel";
-    assert_and_click "yast2_control-center_openldap-mirrormode-configuration_error";
+    assert_screen "yast2_control-center_openldap-mirrormode-configuration_cancel", 90;
+    send_key "alt-c";
     assert_screen 'yast2-control-center-ui';
 
     #   start Proxy Configuration
     assert_and_click "yast2_control-center_proxy-configuration";
-    assert_and_click "yast2_control-center_proxy-configuration_cancel";
-    assert_and_click "yast2_control-center_proxy-configuration-configuration_error";
+    assert_screen "yast2_control-center_proxy-configuration_enable", 60;
+    send_key "alt-o";
     assert_screen 'yast2-control-center-ui';
 
     #   start Remote Administration VNC
     assert_and_click "yast2_control-center_remote-administration";
-    assert_and_click "yast2_control-center_remote-administration_ok";
+    assert_screen "yast2_control-center_remote-administration_ok", 60;
+    send_key "alt-o";
+    assert_screen "yast2_control-center_remote-administration_display-manager-warning";
+    send_key "alt-o";
     assert_screen 'yast2-control-center-ui';
 
     #   start Samba Server
     assert_and_click "yast2_control-center_samba-server";
-    assert_and_click "yast2_control-center_samba-server-installation_abort";
+    assert_screen "yast2_control-center_samba-server_samba-configuration", 60;
+    send_key "alt-c";
     assert_screen 'yast2-control-center-ui';
 
     #   start Squid Server
     assert_and_click "yast2_control-center_squid-server-configuration";
-    assert_and_click "yast2_control-center_squid-server-start-up_cancel";
-    assert_and_click "yast2_control-center_squid-server-installation_cancel";
-    assert_screen 'yast2-control-center-ui';
+    assert_screen [qw(yast2_control-center_squid-server-install yast2_control-center_squid-server_start-up)];
+    if (match_has_tag 'yast2_control-center_squid-server-install') {
+        send_key "alt-i";
+        assert_screen 'yast2_control-center_squid-server_start-up', 60;
+        send_key "alt-o";
+    }
+    else {
+        assert_screen 'yast2_control-center_squid-server_start-up';
+        send_key "alt-o";
+    }
+    assert_screen 'yast2-control-center-ui', 60;
 
     #   start TFTP Server
     assert_and_click "yast2_control-center_tftp-server-configuration";
-    assert_and_click "yast2_control-center_tftp-server-configuration_cancel";
-    assert_screen 'yast2-control-center-ui';
+    assert_screen 'yast2_control-center_tftp-server-configuration_cancel';
+    send_key "alt-o";
+    assert_screen 'yast2-control-center-ui', 60;
 
     #   start User Logon Management
     assert_and_click "yast2_control-center_user-logon-management";
-    assert_and_click "yast2_control-center_user-logon-management_finish";
-    assert_screen 'yast2-control-center-ui';
+    assert_screen "yast2_control-center_user-logon-management_finish", 60;
+    send_key "alt-f";
+    assert_screen 'yast2-control-center-ui', 60;
 
     #   start VPN Gateway and Clients
     assert_and_click "yast2_control-center_vpn-gateway-client";
-    assert_and_click "yast2_control-center_vpn-gateway-client_cancel";
+    assert_screen "yast2_control-center_vpn-gateway-client_cancel", 60;
+    send_key "alt-c";
     assert_screen 'yast2-control-center-ui';
 
     #   start Wake-on-LAN
     assert_and_click "yast2_control-center_wake-on-lan";
-    assert_and_click "yast2_control-center_wake-on-lan_install_cancel";
-    assert_and_click "yast2_control-center_wake-on-lan_install_error";
-    assert_screen 'yast2-control-center-ui';
+    assert_screen "yast2_control-center_wake-on-lan_install_cancel";
+    send_key "alt-c";
+    assert_screen "yast2_control-center_wake-on-lan_install_error";
+    send_key "alt-o";
+    assert_screen 'yast2-control-center-ui', 60;
 
     #   start Windows Domain Membership
     assert_and_click "yast2_control-center_windows-domain-membership";
-    assert_and_click "yast2_control-center_windows-domain-membership_cancel";
-    assert_screen 'yast2-control-center-ui';
+    assert_screen "yast2_control-center_windows-domain-membership_verifying-membership", 60;
+    send_key 'alt-c';
+    assert_screen 'yast2-control-center-ui', 60;
 
     #   start AppArmor Configuration
     #   need to scroll down to get other modules
     send_key "down";
     assert_and_click "yast2_control-center_apparmor-configuration";
-    assert_and_click "yast2_control-center-apparmor-configuration_abort";
+    assert_screen "yast2_control-center-apparmor-configuration_abort", 60;
+    send_key "alt-r";
     assert_screen 'yast2-control-center-ui';
 
     #   start CA Management
     assert_and_click "yast2_control-center_ca-management";
-    assert_and_click "yast2_control-center_ca-management_abort";
+    assert_screen "yast2_control-center_ca-management_abort";
+    send_key "alt-f";
     assert_screen 'yast2-control-center-ui';
 
     #   start Common Server Certificate
     assert_and_click "yast2_control-center_common-server-certificate";
-    assert_and_click "yast2_control-center_common-server-certificate_abort";
+    assert_screen "yast2_control-center_common-server-certificate_abort";
+    send_key "alt-r";
     assert_screen 'yast2-control-center-ui';
 
     #   start Firewall
     assert_and_click "yast2_control-center_firewall";
-    assert_and_click "yast2_control-center_firewall_cancel";
+    assert_screen "yast2_control-center_firewall_configuration", 60;
+    send_key "alt-c";
     assert_screen 'yast2-control-center-ui';
 
     #   start Linux Audit Framework LAF
     assert_and_click "yast2_control-center_laf";
-    assert_and_click "yast2_control-center_laf_cancel";
-    assert_and_click "yast2_control-center_laf_abort";
-    assert_and_click "yast2_control-center_laf_abort_really";
-    assert_screen 'yast2-control-center-ui';
+    assert_screen [qw(yast2_control-center_laf_cancel yast2_control-center_configuration)], 60;
+    if (match_has_tag 'yast2_control-center_laf_cancel') {
+        send_key "alt-e";
+    }
+    else {
+        assert_screen "yast2_control-center_laf-configuration";
+        send_key "alt-f";
+    }
+    assert_screen 'yast2-control-center-ui', 60;
 
     #   start Security Center and Hardening
     assert_and_click "yast2_control-center_security-center-and-hardening";
-    assert_and_click "yast2_control-center_security-center-and-hardening_cancel";
+    assert_screen "yast2_control-center_security-center-and-hardening_cancel";
+    send_key "alt-c";
     assert_screen 'yast2-control-center-ui';
 
     #	start Sudo
     assert_and_click "yast2_control-center_sudo";
-    assert_and_click "yast2_control-center_sudo_cancel";
+    assert_screen "yast2_control-center_sudo_cancel";
+    send_key "alt-c";
     assert_screen 'yast2-control-center-ui';
 
     #   start User and Group Management
     assert_and_click "yast2_control-center_user-and-group-management";
-    assert_and_click "yast2_control-center_user-and-group-management_cancel";
+    assert_screen "yast2_control-center_user-and-group-management_cancel", 60;
+    send_key "alt-c";
     assert_screen 'yast2-control-center-ui';
 
     #   start Install Hypervisor and Tools
     #   need to scroll down to get other modules
     send_key "down";
     assert_and_click "yast2_control-center_install-hypervisor-and-tools";
-    assert_and_click "yast2_control-center_install-hypervisor-and-tools_cancel";
+    assert_screen "yast2_control-center_install-hypervisor-and-tools_cancel";
+    send_key "alt-c";
     assert_screen 'yast2-control-center-ui';
 
     #   start Relocation Server Configuration
     assert_and_click "yast2_control-center_relocation-server-configuration";
-    assert_and_click "yast2_control-center_relocation-server-configuration_cancel";
+    assert_screen "yast2_control-center_relocation-server-configuration_cancel";
+    send_key "alt-c";
     assert_screen 'yast2-control-center-ui';
 
     # 	finally done and exit
