@@ -6,7 +6,7 @@ use strict;
 # Base class for all openSUSE tests
 
 # don't import script_run - it will overwrite script_run from distribution and create a recursion
-use testapi qw(send_key %cmd assert_screen check_screen check_var get_var
+use testapi qw(send_key %cmd assert_screen check_screen check_var get_var save_screenshot
   match_has_tag set_var type_password type_string wait_idle wait_serial
   mouse_hide send_key_until_needlematch record_soft_failure
   wait_still_screen wait_screen_change);
@@ -112,6 +112,7 @@ sub x11_start_program($$$) {
         send_key('alt-t');
         sleep 3;
     }
+    save_screenshot;
     send_key('ret');
     wait_still_screen unless $options->{no_wait};
     # lrunner has auto-completion feature, sometimes it causes high load while
