@@ -260,7 +260,13 @@ sub run {
     assert_script_run('cd /opt/ltp/testcases/bin');
 
     if ($is_network) {
-        script_run('systemctl stop wicked wickedd NetworkManager');
+        # Disable network managing daemons and firewall. Once we have network
+        # set, we don't want network managing daemons to touch it (this is
+        # required at least for dhcp tests). Firewalls are stop as it can block
+        # iptables testing.
+        script_run('systemctl stop NetworkManager SuSEfirewall2 wicked wickedd');
+
+        # dhclient requires no wicked service not only running but also disabled
         script_run(
             'systemctl --no-pager -p Id show network.service | grep -q Id=wicked.service &&
 { export ENABLE_WICKED=1; systemctl disable wicked; }'
