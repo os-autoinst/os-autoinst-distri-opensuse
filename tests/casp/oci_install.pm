@@ -17,6 +17,24 @@ use testapi;
 use caasp;
 
 sub run() {
+    # poo#16408 part 1
+    send_key 'alt-p';    # partitioning
+    assert_screen 'prepare-hard-disk';
+    send_key 'alt-b';    # back
+    assert_screen 'oci-overview-filled';
+    send_key 'alt-b';    # booting
+    assert_screen 'inst-bootloader-settings';
+    send_key 'alt-c';    # cancel
+    assert_screen 'oci-overview-filled';
+    send_key $cmd{next};    # network configuration
+    assert_screen 'inst-networksettings';
+    send_key $cmd{next};    # next
+    assert_screen 'oci-overview-filled';
+    send_key 'alt-k';       # kdump
+    assert_screen 'inst-kdump';
+    send_key 'alt-o';       # OK
+    assert_screen 'oci-overview-filled';
+
     send_key $cmd{install};
 
     # Accept simple password
@@ -28,9 +46,18 @@ sub run() {
         send_key "alt-y";
     }
 
-    # Confirm installation start
-    assert_screen "startinstall";
-    send_key $cmd{install};
+    my $repeat_once = 2;
+    while ($repeat_once--) {
+        # Confirm installation start
+        assert_screen "startinstall";
+
+        # poo#16408 part 2
+        if ($repeat_once) {
+            send_key 'alt-b';    # abort
+            assert_screen 'oci-overview-filled';
+        }
+        send_key $cmd{install};
+    }
 
     # We need to wait a bit for the disks to be formatted
     assert_screen "inst-packageinstallationstarted", 120;
