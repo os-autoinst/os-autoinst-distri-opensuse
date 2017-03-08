@@ -61,7 +61,7 @@ sub run {
         send_key "alt-y";
     }
     # workaround for bsc#1013208
-    assert_screen ['yast2-migration-proposal', 'yast2-migration-nvidia_sp3_cannot_load'], 200;
+    assert_screen ['yast2-migration-proposal', 'yast2-migration-nvidia_sp3_cannot_load'], 500;
     if (match_has_tag 'yast2-migration-nvidia_sp3_cannot_load') {
         send_key "alt-s";
         record_soft_failure 'bsc#1013208: [online migration] nvidia repo is not ready for SLE12 SP3, skip it';
