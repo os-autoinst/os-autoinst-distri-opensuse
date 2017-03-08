@@ -16,7 +16,7 @@ use strict;
 use testapi;
 
 sub run() {
-    assert_screen('release-notes-button', 5);
+    assert_screen 'release-notes-button', fail_message => 'missing release notes';
 
     # workaround for bsc#1014178
     wait_still_screen(5);

@@ -166,9 +166,6 @@ sub run() {
             next;
         }
         elsif ($out =~ $zypper_dup_fileconflict) {
-            #             record_soft_failure;
-            #             send_key 'y';
-            #             send_key 'ret';
             $self->result('fail');
             save_screenshot;
             return;

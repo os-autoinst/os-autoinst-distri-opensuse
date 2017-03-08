@@ -524,6 +524,7 @@ sub addon_license {
         do {
             assert_screen \@tags;
             if (match_has_tag('import-untrusted-gpg-key')) {
+                # TODO how to handle?
                 record_soft_failure 'untrusted gpg key';
                 wait_screen_change { send_key 'alt-t' };
             }

@@ -96,6 +96,9 @@ sub run() {
         }
         # can happen multiple times
         if (match_has_tag("ERROR-removing-package")) {
+            # TODO we want to mark the current step as error but continue to
+            # gather more data. Also we know how to apply to workaround but
+            # still mark it as 'to be reviewed' if it appears
             record_soft_failure;
             send_key 'alt-d';    # details
             assert_screen 'ERROR-removing-package-details';
