@@ -113,11 +113,10 @@ sub run() {
         select_console 'install-shell';
         assert_screen 'inst-console';
 
-        # check for right boot-device on s390x (zVM)
-        if (check_var('BACKEND', 's390x')) {
+        # check for right boot-device on s390x (zVM, DASD ONLY)
+        if (check_var('BACKEND', 's390x') && !check_var('S390_DISK', 'ZFCP')) {
             if (script_run('lsreipl | grep 0.0.0150')) {
-                record_soft_failure 'default bootdevice not set';
-                script_run('chreipl ccw 0.0.0150');
+                die "IPL device was not set correctly";
             }
         }
         $self->get_ip_address();
