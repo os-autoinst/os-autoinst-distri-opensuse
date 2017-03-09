@@ -1254,6 +1254,10 @@ else {
         }
         else {
             if (get_var("BOOT_TO_SNAPSHOT") && (snapper_is_applicable())) {
+                # poo#13156 is not resolved: Add support to easily switch VERSION during a test run
+                # Disable further console and x11 tests after rollback
+                # Bring the tests back if poo#13156 is done
+                set_var('INSTALLONLY', 1);
                 loadtest "boot/grub_test_snapshot";
                 if (get_var("UPGRADE")) {
                     loadtest "boot/snapper_rollback";
