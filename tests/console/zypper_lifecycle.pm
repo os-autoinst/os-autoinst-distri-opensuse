@@ -37,11 +37,12 @@ sub run() {
 
     # select a package suitable for the following test
     # the package must be installed from base product repo
-    my $base_repos = script_output 'echo $(zypper -x se -i -t product -s ' . $prod . ' |grep repository= | sed -e \'s|.*repository="\([^"]*\)".*|\1|\' )', 300;
+    my $base_repos = script_output 'echo $(zypper -n -x se -i -t product -s ' . $prod . ' |grep repository= | sed -e \'s|.*repository="\([^"]*\)".*|\1|\' )',
+      300;
     my $package
       = script_output 'echo $(for repo in '
       . $base_repos
-      . ' ; do zypper -x se -t package -i -s -r $repo ; done | grep name= | head -n 1 |sed -e \'s|.*name="\([^"]*\)".*|\1|\' )', 300;
+      . ' ; do zypper -n -x se -t package -i -s -r $repo ; done | grep name= | head -n 1 |sed -e \'s|.*name="\([^"]*\)".*|\1|\' )', 300;
 
     die "No suitable package found" unless $package;
 
