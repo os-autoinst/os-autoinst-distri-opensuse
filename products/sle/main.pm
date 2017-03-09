@@ -698,6 +698,17 @@ sub load_consoletests() {
     }
 }
 
+# possibility to run as part of aggregated tests
+sub run_aggregated_maintenance_tests() {
+    use List::Util qw(all);
+    my %test_repos = get_env_by_pattern("\\w+_TEST_REPO");
+    my @values     = values %test_repos;
+    if (all { length() < 1 } @values) {
+        loadtest 'qa_automation/patch_and_reboot';
+        loadtest 'boot/boot_to_desktop';
+    }
+}
+
 sub load_extra_test () {
     # Put tests that filled the conditions below
     # 1) you don't want to run in stagings below here
@@ -707,14 +718,7 @@ sub load_extra_test () {
     # pre-conditions for extra tests ie. the tests are running based on preinstalled image
     return if get_var('INSTALLONLY') || get_var('DUALBOOT') || get_var('RESCUECD');
 
-    # possibility to run as part of aggregated tests
-    use List::Util qw(all);
-    my %test_repos = get_env_by_pattern("\\w+_TEST_REPO");
-    my @values     = values %test_repos;
-    if (all { length() < 1 } @values) {
-        loadtest "qa_automation/patch_and_reboot";
-        loadtest "boot/boot_to_desktop";
-    }
+    run_aggregated_maintenance_tests;
 
     # setup $serialdev permission and so on
     loadtest 'console/consoletest_setup';
