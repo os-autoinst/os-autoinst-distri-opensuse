@@ -33,7 +33,16 @@ sub process_reboot {
     script_run("reboot", 0) if $trigger;
 
     reset_consoles;
-    assert_screen 'linux-login', 200;
+    # We have to re-connect *after* the restart on xen
+    if (check_var('VIRSH_VMM_FAMILY', 'xen')) {
+        sleep 4;
+        select_console 'sut';
+        console('svirt')->attach_to_running({stop_vm => 1});
+    }
+    # No grub bootloader on xen-pv
+    assert_screen 'grub2' unless check_var('VIRSH_VMM_TYPE', 'linux');
+
+    assert_screen 'linux-login-casp', 90;
     select_console 'root-console';
 }
 
