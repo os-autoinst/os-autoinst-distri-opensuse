@@ -29,7 +29,7 @@ sub run() {
             'scc-registration',
             timeout      => 300,
             soft_timeout => 100,
-            bugref       => 'bsc#990254'
+            bugref       => 'bsc#1028774'
         );
     }
     fill_in_registration_data;

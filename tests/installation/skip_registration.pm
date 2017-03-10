@@ -28,7 +28,7 @@ sub run() {
         [qw(scc-registration yast2-windowborder-corner)],
         timeout      => 300,
         soft_timeout => 100,
-        bugref       => 'bsc#990254'
+        bugref       => 'bsc#1028774'
     );
     if (match_has_tag('yast2-windowborder-corner')) {
         if (check_var("INSTALLER_NO_SELF_UPDATE", 1)) {
@@ -45,7 +45,7 @@ sub run() {
             'scc-registration',
             timeout      => 300,
             soft_timeout => 100,
-            bugref       => 'bsc#990254'
+            bugref       => 'bsc#1028774'
         );
     }
     skip_registration;
