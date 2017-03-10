@@ -13,11 +13,15 @@
 use base "opensusebasetest";
 use strict;
 use testapi;
+use utils 'is_casp';
 
 sub run() {
-    if (!check_var('ARCH', 's390x')) {
-        assert_screen 'linux-login', 200;
-    }
+    # On VMX images bootloader_uefi eats grub2 needle
+    assert_screen 'grub2' unless is_casp('VMX');
+
+    # Check ssh keys & ip information are displayed
+    assert_screen 'linux-login-casp', 200;
+
     select_console 'root-console';
 }
 
