@@ -18,23 +18,7 @@ use testapi;
 use partition_setup;
 
 sub run() {
-    send_key $cmd{expertpartitioner};
-    assert_screen 'expert-partitioner';
-    wait_still_screen;
-    for (1 .. 4) {
-        send_key 'right';    # select vda hard disk
-    }
-    send_key 'alt-x';        # expert menu
-    send_key 'down';
-    wait_still_screen 2;
-    save_screenshot;
-    send_key 'ret';          # create new partition table
-    if (!get_var('UEFI')) {  # only GPT partition table
-        assert_screen 'partition-table-MSDOS-selected';
-        send_key 'alt-o';    # OK
-    }
-    assert_screen 'partition-create-new-table';
-    send_key 'alt-y';        # yes
+    wipe_existing_partitions;
     if (check_var('ARCH', 's390x')) {    # s390x need /boot/zipl on ext partition
         addpart(role => 'OS', size => 500, format => 'ext2', mount => '/boot');
     }

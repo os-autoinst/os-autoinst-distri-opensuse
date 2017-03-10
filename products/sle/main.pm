@@ -458,6 +458,9 @@ sub load_inst_tests() {
             loadtest 'installation/partitioning_full_lvm';
         }
         if (get_var("FILESYSTEM")) {
+            if (get_var('PARTITIONING_WARNINGS')) {
+                loadtest 'installation/partitioning_warnings';
+            }
             loadtest "installation/partitioning_filesystem";
         }
         if (get_var("TOGGLEHOME")) {

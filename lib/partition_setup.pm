@@ -15,7 +15,7 @@ use Exporter;
 use strict;
 use testapi;
 
-our @EXPORT = qw(addpart addlv);
+our @EXPORT = qw(wipe_existing_partitions addpart addlv);
 
 my %role = qw(
   OS alt-o
@@ -23,6 +23,27 @@ my %role = qw(
   swap alt-s
   raw alt-a
 );
+
+sub wipe_existing_partitions {
+    send_key $cmd{expertpartitioner};
+    assert_screen 'expert-partitioner';
+    wait_still_screen;
+    for (1 .. 4) {
+        send_key 'right';    # select vda hard disk
+    }
+    # empty disk partitions by creating new partition table
+    send_key 'alt-x';        # expert menu
+    send_key 'down';
+    wait_still_screen 2;
+    save_screenshot;
+    send_key 'ret';          # create new partition table
+    if (!get_var('UEFI')) {  # only GPT partition table
+        assert_screen 'partition-table-MSDOS-selected';
+        send_key 'alt-o';    # OK
+    }
+    assert_screen 'partition-create-new-table';
+    send_key 'alt-y';        # yes
+}
 
 sub addpart {
     my (%args) = @_;

@@ -1,15 +1,15 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Refactor partitioning test to handle all supported filesystems - needles present already
-# G-Maintainer: Richard Brown <rbrownccb@opensuse.org>
+# Summary: Partition setup via partition proposal menu
+# Maintainer: Richard Brown <rbrownccb@opensuse.org>
 
 use strict;
 use base "y2logsstep";
@@ -22,6 +22,10 @@ sub run() {
     # click the button
     assert_and_click 'edit-proposal-settings';
 
+    if (get_var('PARTITIONING_WARNINGS')) {
+        assert_screen 'proposal-will-overwrite-manual-changes';
+        send_key 'alt-y';
+    }
     # select the combo box
     assert_and_click 'default-root-filesystem';
 
