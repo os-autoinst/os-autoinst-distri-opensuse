@@ -473,9 +473,9 @@ sub load_extra_tests() {
             loadtest "console/btrfs_autocompletion";
             if (get_var("NUMDISKS", 0) > 1) {
                 loadtest "console/btrfs_qgroups";
-                loadtest "console/btrfs_send_receive";
                 if (check_var('DISTRI', 'sle') && sle_version_at_least('12-SP2')) {
                     loadtest 'console/snapper_cleanup';
+                    loadtest "console/btrfs_send_receive";
                 }
             }
         }
@@ -484,8 +484,10 @@ sub load_extra_tests() {
         loadtest "console/command_not_found";
         if (check_var('DISTRI', 'sle')) {
             loadtest 'console/snapper_thin_lvm';
-            loadtest 'console/openssl_alpn';
-            loadtest 'console/autoyast_removed';
+            if (sle_version_at_least('12-SP2')) {
+                loadtest 'console/openssl_alpn';
+                loadtest 'console/autoyast_removed';
+            }
         }
         elsif (check_var('DISTRI', 'opensuse')) {
             loadtest "console/rabbitmq";
