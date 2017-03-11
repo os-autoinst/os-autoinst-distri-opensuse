@@ -16,11 +16,7 @@ use strict;
 use testapi;
 
 sub run() {
-
-    if (!check_screen('release-notes-button', 5)) {
-        record_soft_failure 'workaround missing release notes';
-        return;
-    }
+    assert_screen('release-notes-button', 5);
 
     # workaround for bsc#1014178
     wait_still_screen(5);
