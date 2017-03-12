@@ -18,11 +18,11 @@ use strict;
 use testapi;
 
 sub run() {
-    select_console 'user-console';
-    assert_script_sudo('zypper -n in rabbitmq-server');
-    assert_script_sudo('systemctl start rabbitmq-server');
-    assert_script_sudo('systemctl status rabbitmq-server');
-    assert_script_sudo('zypper -n in python-pika');
+    select_console 'root-console';
+    assert_script_run('zypper -n in rabbitmq-server');
+    assert_script_run('systemctl start rabbitmq-server');
+    assert_script_run('systemctl status --no-pager rabbitmq-server');
+    assert_script_run('zypper -n in python-pika');
     my $cmd = <<'EOF';
 mkdir rabbitmq
 cd rabbitmq
@@ -33,7 +33,16 @@ EOF
     assert_script_run($_) foreach (split /\n/, $cmd);
     type_string("timeout 1 python receive.py > /dev/$serialdev\n");
     wait_serial(".*Received.*Hello World.*");
-    assert_script_sudo('systemctl stop rabbitmq-server');
+    # should be simple assert_script_run but takes too long to stop so
+    # workaround
+    my $ret = script_run('systemctl stop rabbitmq-server');
+    if (!defined($ret)) {
+        record_soft_failure 'boo#1029031 stopping systemd service takes more than 90s';
+        send_key 'ctrl-c';
+        assert_script_run("systemctl status --no-pager rabbitmq-server | tee /dev/$serialdev");
+        assert_script_run("rpm -q --changelog rabbitmq-server | head -n 60 | tee /dev/$serialdev");
+        assert_script_run('systemctl stop rabbitmq-server', 300);
+    }
 }
 
 1;
