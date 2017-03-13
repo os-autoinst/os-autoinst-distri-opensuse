@@ -36,7 +36,8 @@ sub run() {
         || get_var('NETBOOT')
         || get_var('AUTOYAST')
         || get_var('SCC_URL')
-        || get_var('DUD'))
+        || get_var('DUD')
+        || get_var('EXTRABOOTPARAMS'))
     {
         if (get_var("ZDUP") || get_var("ONLINE_MIGRATION")) {
             send_key "down";
