@@ -15,8 +15,8 @@ use strict;
 use base "x11regressiontest";
 use testapi;
 
-my $dl_link_01 = "http://mirrors1.kernel.org/opensuse/distribution/13.2/iso/openSUSE-13.2-DVD-x86_64.iso\n";
-my $dl_link_02 = "http://mirrors1.kernel.org/opensuse/distribution/13.2/iso/openSUSE-13.2-DVD-i586.iso\n";
+my $dl_link_01 = "http://mirrors.kernel.org/opensuse/distribution/13.2/iso/openSUSE-13.2-DVD-x86_64.iso\n";
+my $dl_link_02 = "http://mirrors.kernel.org/opensuse/distribution/13.2/iso/openSUSE-13.2-DVD-i586.iso\n";
 
 sub dl_location_switch {
     my ($tg) = @_;
