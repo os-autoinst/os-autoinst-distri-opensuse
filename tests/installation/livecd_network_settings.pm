@@ -19,10 +19,6 @@ use testapi;
 sub run() {
     assert_screen 'inst-network_settings-livecd';
     send_key $cmd{next};
-    # wait for key import dialog during initialization
-    assert_screen 'import-untrusted-gpg-key-B88B2FD43DBDC284', 120;
-    # 'T'rust
-    wait_screen_change { send_key 'alt-t'; };
     # LIVECD installer assumes online repos at this point
     wait_still_screen;
     wait_screen_change { send_key $cmd{next}; };
