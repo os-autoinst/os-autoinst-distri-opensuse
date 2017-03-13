@@ -39,8 +39,9 @@ EOF
     if (!defined($ret)) {
         record_soft_failure 'boo#1029031 stopping systemd service takes more than 90s';
         send_key 'ctrl-c';
-        assert_script_run("systemctl status --no-pager rabbitmq-server | tee /dev/$serialdev");
-        assert_script_run("rpm -q --changelog rabbitmq-server | head -n 60 | tee /dev/$serialdev");
+        # ignore non-zero exit code when collecting more data on soft fail
+        script_run("systemctl status --no-pager rabbitmq-server | tee /dev/$serialdev");
+        script_run("rpm -q --changelog rabbitmq-server | head -n 60 | tee /dev/$serialdev");
         assert_script_run('systemctl stop rabbitmq-server', 300);
     }
 }
