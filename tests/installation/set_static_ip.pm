@@ -22,7 +22,7 @@ sub run() {
     my $ifcfg = "/mnt/etc/sysconfig/network/ifcfg-eth0";
 
     script_run("cat $ifcfg");
-    script_run("sed -i -e \"/IPADDR=.*\$/s\@\@IPADDR=\'10.161.145.7/20\'\@\" $ifcfg");
+    script_run("sed -i -e \"/IPADDR=.*\$/s\@\@IPADDR=\'$ip/20\'\@\" $ifcfg");
     assert_script_run("cat $ifcfg | grep $ip", fail_message => 'IP address was not changed');
 
     select_console 'installation';
