@@ -464,6 +464,7 @@ sub load_extra_tests() {
         # dependency of git test
         loadtest "console/sshd";
         loadtest "console/zypper_ref";
+        loadtest "console/zypper_info";
         loadtest "console/update_alternatives";
         # start extra console tests from here
         if (!get_var("OFW") && !is_jeos) {
@@ -496,7 +497,6 @@ sub load_extra_tests() {
             loadtest "console/machinery";
             loadtest "console/pcre";
             loadtest "console/openqa_review";
-            loadtest "console/zypper_info";
             loadtest "console/zbar";
             loadtest "console/zypper_ar";
             loadtest "console/a2ps";    # a2ps is not a ring package and thus not available in staging
