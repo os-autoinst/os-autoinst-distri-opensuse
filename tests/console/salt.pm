@@ -24,7 +24,7 @@ systemctl start salt-master
 systemctl status salt-master
 sed -i -e "s/#master: salt/master: localhost/" /etc/salt/minion
 systemctl start salt-minion
-yes | salt-key --accept-all
+yes | salt-key --accept-all ; [ "$?" = "141" ] || [ "$?" = "0" ]
 salt '*' test.ping
 systemctl stop salt-master salt-minion
 EOF
