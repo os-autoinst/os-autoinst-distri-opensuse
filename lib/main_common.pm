@@ -16,6 +16,7 @@ our @EXPORT = qw(
   setup_env
   logcurrentenv
   is_staging
+  is_maintenance
   load_rescuecd_tests
   load_zdup_tests
   load_autoyast_tests
@@ -119,6 +120,10 @@ sub logcurrentenv {
 
 sub is_staging {
     return get_var('STAGING');
+}
+
+sub is_maintenance {
+    return get_var('OS_TEST_REPO');
 }
 
 sub load_rescuecd_tests {
@@ -515,7 +520,8 @@ sub load_extra_tests() {
         loadtest "console/consoletest_finish";
         # kdump is not supported on aarch64, see BSC#990418
         if (!check_var('ARCH', 'aarch64')) {
-            loadtest "toolchain/crash";
+            # crash relies on debug repos which are not available for SLE
+            loadtest "toolchain/crash" unless is_maintenance;
         }
     }
     return 1;
