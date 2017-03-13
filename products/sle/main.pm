@@ -525,6 +525,10 @@ sub load_inst_tests() {
     if (get_var("UEFI") && get_var("SECUREBOOT")) {
         loadtest "installation/secure_boot";
     }
+    # for upgrades on s390 zKVM we need to change the static ip adress of the image to reboot properly
+    if (check_var('BACKEND', 'svirt') && check_var('ARCH', 's390x') && get_var('UPGRADE')) {
+        loadtest "installation/set_static_ip";
+    }
     if (installyaststep_is_applicable()) {
         loadtest "installation/installation_overview";
         if (check_var("UPGRADE", "LOW_SPACE")) {
