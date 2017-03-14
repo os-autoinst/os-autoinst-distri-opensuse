@@ -385,6 +385,9 @@ sub load_fixup_firewall() {
 sub load_consoletests() {
     if (consolestep_is_applicable()) {
         loadtest "console/consoletest_setup";
+        if (get_var("LOCK_PACKAGE")) {
+            loadtest "console/check_locked_package";
+        }
         loadtest "console/check_console_font";
         loadtest "console/textinfo";
         loadtest "console/hostname";
