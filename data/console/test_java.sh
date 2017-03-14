@@ -162,12 +162,10 @@ check_version_active_vs_dot () {
         if [[ "$dot_version_short" == "1.7.1" ]]; then
             # Special Case
             if [[ "$version" == "1.7.0" ]]; then
-                echo -n "check linked $name version: OK"
-                        "INFO: linked $name is: $version which is normal according to bnc#1014602"
+                echo "check linked $name version: OK -> linked $name is: $version which is normal according to bnc#1014602"
             fi
         else
-	    echo -n "check linked $name version: FAIL"
-                    "linked $name is: $version should be $dot_version_short"
+	    echo "check linked $name version: FAIL -> linked $name is: $version should be $dot_version_short"
 	    exit 1
         fi
     fi
@@ -207,6 +205,10 @@ for java_version in $(cat $LIST_ALL_INSTALLED_VERSIONS); do
     echo $java_version:
     if [[ $java_version == *"gcj-compat"* ]]; then
         echo "SKIPPING. We do not test BSK Repo"
+        continue
+    fi
+    if [[ $java_version == *"1_9_0"* ]]; then
+        echo "SKIPPING. We do not test java-1_9_0-openjdk before the public release"
         continue
     fi
     # Current java under test
