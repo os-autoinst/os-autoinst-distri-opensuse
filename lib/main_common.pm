@@ -410,18 +410,8 @@ sub maybe_load_kernel_tests {
     return 1;
 }
 
-sub run_aggregated_maintenance_tests {
-    use List::Util qw(all);
-    my %found;
-    foreach my $key (sort(keys %ENV)) {
-        $_ = $key;
-        if (m/\w+_TEST_REPO/) {
-            my $val = $ENV{"$key"};
-            $found{$key} = $val;
-        }
-    }
-    my @values = values %found;
-    return all { length() < 1 } @values;
+sub should_run_aggregated_maintenance_tests {
+    return grep { m/\w+_TEST_REPO/ && $ENV{$_} } keys %ENV;
 }
 
 sub load_extra_tests() {
@@ -433,7 +423,7 @@ sub load_extra_tests() {
     # pre-conditions for extra tests ie. the tests are running based on preinstalled image
     return if get_var("INSTALLONLY") || get_var("DUALBOOT") || get_var("RESCUECD");
 
-    if (run_aggregated_maintenance_tests()) {
+    if (should_run_aggregated_maintenance_tests()) {
         loadtest "qa_automation/patch_and_reboot";
         loadtest "boot/boot_to_desktop";
     }
