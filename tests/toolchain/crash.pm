@@ -19,7 +19,8 @@ sub install_kernel_debuginfo {
     # list installed kernels
     assert_script_run 'rpmquery -a kernel-default*';
     # kernel debug symbols are huge, this can take a while
-    assert_script_run 'zypper ref; zypper -n -v in kernel-default-debuginfo', 1200;
+    script_run 'zypper ref';
+    zypper_call('-v in kernel-default-debuginfo');
 }
 
 sub run() {
@@ -27,32 +28,37 @@ sub run() {
     select_console('root-console');
 
     # disable packagekitd
-    script_run 'systemctl mask packagekit.service';
-    script_run 'systemctl stop packagekit.service';
-
-    script_run 'zypper -n in yast2-kdump kdump crash';
+    pkcon_quit;
+    zypper_call('in yast2-kdump kdump crash');
 
     # add debuginfo channels
     if (check_var('DISTRI', 'sle')) {
         # debuginfos for kernel has to be installed from build-specific directory on FTP.
         # To get the right directory we modify content of REPO_0 variable, e.g.:
         #   SLE-12-SP2-Server-DVD-x86_64-Build2188-Media1 -> SLE-12-SP2-SERVER-POOL-x86_64-Build2188-Media3
-        my $sles_debug_repo = get_var('REPO_0') =~ s/(Server|Desktop)/\U$1\E/r;
-        $sles_debug_repo =~ s/DVD/POOL/;
-        $sles_debug_repo =~ s/Media1/Media3/;
-        my $url = "ftp://openqa.suse.de/$sles_debug_repo";
-        assert_script_run "zypper ar -f $url SLES-Server-Debug";
-        install_kernel_debuginfo;
-        script_run 'zypper -n rr SLES-Server-Debug';
+        if (get_var('REPO_0')) {
+            my $sles_debug_repo = get_var('REPO_0') =~ s/(Server|Desktop)/\U$1\E/r;
+            $sles_debug_repo =~ s/DVD/POOL/;
+            $sles_debug_repo =~ s/Media1/Media3/;
+            my $url = "ftp://openqa.suse.de/$sles_debug_repo";
+            zypper_call("zypper ar -f $url SLES-Server-Debug");
+            install_kernel_debuginfo;
+            script_run 'zypper -n rr SLES-Server-Debug';
+        }
+        else {
+            script_run(q{zypper mr -e $(zypper lr | awk '/Debug/ {print $1}')}, 60);
+            install_kernel_debuginfo;
+            script_run(q{zypper mr -d $(zypper lr | awk '/Debug/ {print $1}')}, 60);
+        }
     }
     else {
         my $opensuse_debug_repos = 'repo-debug ';
         if (!check_var('VERSION', 'Tumbleweed')) {
             $opensuse_debug_repos .= 'repo-debug-update ';
         }
-        assert_script_run "zypper -n mr -e $opensuse_debug_repos";
+        zypper_call("mr -e $opensuse_debug_repos");
         install_kernel_debuginfo;
-        assert_script_run "zypper -n mr -d $opensuse_debug_repos";
+        zypper_call("mr -d $opensuse_debug_repos");
     }
 
     # restart to get rid of potential screen disruptions from previous test
