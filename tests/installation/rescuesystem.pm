@@ -22,9 +22,8 @@ sub run {
     ensure_shim_import;
     $self->select_bootmenu_option('inst-rescuesystem', 1);
 
-    if (check_screen "keyboardmap-list", 100) {
-        send_key "ret";
-    }
+    assert_screen 'keyboardmap-list', 100;
+    send_key "ret";
 
     # Login as root (no password)
     assert_screen "rescuesystem-login";
