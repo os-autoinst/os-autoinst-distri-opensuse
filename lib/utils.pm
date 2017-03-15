@@ -296,7 +296,7 @@ sub workaround_type_encrypted_passphrase {
 sub ensure_unlocked_desktop {
     my $counter = 10;
     while ($counter--) {
-        assert_screen [qw/displaymanager displaymanager-password-prompt generic-desktop screenlock gnome-screenlock-password/];
+        assert_screen [qw(displaymanager displaymanager-password-prompt generic-desktop screenlock gnome-screenlock-password)], no_wait => 1;
         if (match_has_tag 'displaymanager') {
             if (check_var('DESKTOP', 'minimalx')) {
                 type_string "$username";
@@ -775,7 +775,7 @@ sub handle_login {
         # DMs in condition above have to select user
         send_key 'ret';
     }
-    assert_screen "displaymanager-password-prompt";
+    assert_screen 'displaymanager-password-prompt', no_wait => 1;
     type_password;
     send_key "ret";
 }
