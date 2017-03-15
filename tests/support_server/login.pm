@@ -13,34 +13,24 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# G-Summary: supportserver and supportserver generator implementation
-# G-Maintainer: Pavel Sladek <psladek@suse.com>
+# Summary: Boot and login to the supportserver qcow2 image
+# Maintainer: Pavel Sladek <psladek@suse.com>
 
 use strict;
 use base 'basetest';
+use base 'opensusebasetest';
 use testapi;
+use utils;
 
 sub run {
+    my ($self) = @_;
+    # we have some tests that waits for dvd boot menu timeout and boot from hdd
+    # - the timeout here must cover it
+    $self->wait_boot(bootloader_time => 80, textmode => !is_desktop_installed);
+
     # the supportserver image can be different version than the currently tested system
     # so try to login without use of needles
-    #
-    if (get_var("SUPPORTSERVER_NEEDLE_LOGIN")) {
-        #fallback to needle based detection, if serial console not set or not supported
-        assert_screen("autoyast-system-login-console", 200);
-    }
-    else {
-        wait_serial("login:", 200);
-    }
-
-    type_string "root\n";
-    sleep 1;
-    wait_idle(10);
-    type_password;
-    type_string "\n";
-
-    type_string "echo LOK >/dev/$serialdev";
-    send_key "ret";
-    wait_serial("LOK", 100);
+    select_console 'root-console';
 
 }
 

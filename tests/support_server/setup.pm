@@ -20,6 +20,7 @@ use strict;
 use base 'basetest';
 use lockapi;
 use testapi;
+use utils;
 use mm_network;
 
 my $pxe_server_set  = 0;
@@ -30,6 +31,8 @@ my $tftp_server_set = 0;
 my $dns_server_set  = 0;
 my $dhcp_server_set = 0;
 my $nfs_mount_set   = 0;
+my $xvnc_server_set = 0;
+my $ssh_server_set  = 0;
 
 my $setup_script;
 
@@ -198,6 +201,56 @@ sub setup_nfs_mount {
     $nfs_mount_set = 1;
 }
 
+sub setup_ssh_server {
+    return if $ssh_server_set;
+
+    # If SLES(gnome) support server image is used, we should stop firewall
+    if (check_var('DESKTOP', 'gnome')) {
+        $setup_script .= "systemctl -q is-active SuSEfirewall2 && systemctl disable SuSEfirewall2; systemctl stop SuSEfirewall2\n";
+    }
+    $setup_script .= "chkconfig sshd on\n";
+    $setup_script .= "rcsshd start\n";
+    $setup_script .= "rcsshd status\n";
+
+    $ssh_server_set = 1;
+}
+
+sub setup_xvnc_server {
+    return if $xvnc_server_set;
+
+    # If SLES(gnome) support server image is used, we should stop firewall
+    if (check_var('DESKTOP', 'gnome')) {
+        script_run 'systemctl -q is-active SuSEfirewall2 && systemctl disable SuSEfirewall2; systemctl stop SuSEfirewall2';
+    }
+    if (check_var('REMOTE_DESKTOP_TYPE', 'persistent_vnc')) {
+        zypper_call('ar dvd:///?devices=/dev/sr0 dvd1repo');
+        zypper_call('ref');
+    }
+    script_run("yast remote; echo yast-remote-status-\$? > /dev/$serialdev", 0);
+    assert_screen 'xvnc_server_configuration';
+    if (check_var('REMOTE_DESKTOP_TYPE', 'one_time_vnc')) {
+        send_key 'alt-l';
+    }
+    elsif (check_var('REMOTE_DESKTOP_TYPE', 'persistent_vnc')) {
+        send_key 'alt-a';
+    }
+    wait_still_screen 3;
+    send_key 'alt-o';
+    if (check_var('REMOTE_DESKTOP_TYPE', 'persistent_vnc')) {
+        assert_screen 'xvnc-vncmanager-required';
+        send_key 'alt-i';
+    }
+    assert_screen 'xvnc_dmrestart_warning';
+    send_key 'ret';
+    wait_serial('yast-remote-status-0', 90) || die "'yast remote' didn't finish";
+    wait_still_screen 3;
+    script_run 'systemctl restart display-manager.service';
+    assert_screen 'displaymanager';
+    send_key 'ctrl-alt-f2';
+
+    $xvnc_server_set = 1;
+}
+
 
 sub setup_aytests {
     # install the aytests-tests package and export the tests over http
@@ -263,6 +316,16 @@ sub run {
     if (exists $server_roles{aytests}) {
         setup_aytests();
         push @mutexes, 'aytests';
+    }
+
+    if (exists $server_roles{xvnc}) {
+        setup_xvnc_server();
+        push @mutexes, 'xvnc';
+    }
+
+    if (exists $server_roles{ssh}) {
+        setup_ssh_server();
+        push @mutexes, 'ssh';
     }
 
     die "no services configured, SUPPORT_SERVER_ROLES variable missing?" unless $setup_script;

@@ -995,7 +995,6 @@ elsif (get_var("INSTALLCHECK")) {
     loadtest "installation/installcheck";
 }
 elsif (get_var("SUPPORT_SERVER")) {
-    loadtest "support_server/boot";
     loadtest "support_server/login";
     loadtest "support_server/setup";
     unless (load_slenkins_tests()) {
