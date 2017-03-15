@@ -25,9 +25,6 @@ sub run {
     if (check_screen "keyboardmap-list", 100) {
         send_key "ret";
     }
-    else {
-        record_soft_failure;
-    }
 
     # Login as root (no password)
     assert_screen "rescuesystem-login";
