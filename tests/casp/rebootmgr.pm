@@ -97,7 +97,7 @@ sub check_strategy_etcd_lock {
     sleep 120;
     rbm_check_status 3;
     rbm_call "unlock lock2";
-    rbm_check_status 2;
+    rbm_check_status 0;
 }
 
 sub run() {
