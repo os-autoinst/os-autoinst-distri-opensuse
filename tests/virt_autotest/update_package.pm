@@ -43,7 +43,7 @@ sub run() {
     my $self = shift;
     $self->update_package();
     if (!get_var("PROXY_MODE")) {
-        setup_console_in_grub();
+        resetup_console;
     }
     repl_repo_in_sourcefile();
 }
