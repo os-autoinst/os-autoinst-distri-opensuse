@@ -499,8 +499,6 @@ sub start_gnome_settings {
     send_key "super";
     wait_still_screen;
     type_string "settings";
-    # give gnome-shell time to digest the input
-    wait_still_screen 2;
     assert_and_click "settings";
     assert_screen "gnome-settings";
 }
