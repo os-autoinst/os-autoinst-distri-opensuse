@@ -22,7 +22,7 @@ sub login_to_console() {
     my $timeout = shift;
     $timeout //= 300;
     # Wait for bootload for the first time.
-    assert_screen "grub2", 120;
+    assert_screen([qw(grub2 grub)], 120);
     if (!get_var("reboot_for_upgrade_step")) {
         if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
             send_key_until_needlematch("virttest-bootmenu-xen-kernel", 'down', 10, 1);
