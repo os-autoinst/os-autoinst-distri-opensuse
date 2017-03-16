@@ -41,7 +41,7 @@ sub run() {
             $sles_debug_repo =~ s/DVD/POOL/;
             $sles_debug_repo =~ s/Media1/Media3/;
             my $url = "ftp://openqa.suse.de/$sles_debug_repo";
-            zypper_call("zypper ar -f $url SLES-Server-Debug");
+            zypper_call("ar -f $url SLES-Server-Debug");
             install_kernel_debuginfo;
             script_run 'zypper -n rr SLES-Server-Debug';
         }
