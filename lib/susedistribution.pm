@@ -190,15 +190,16 @@ sub script_sudo($$) {
     return;
 }
 
+# simplified but still colored prompt for better readability
 sub set_standard_prompt {
     my ($self, $user) = @_;
     $user ||= $testapi::username;
     if ($user eq 'root') {
         # set standard root prompt
-        type_string "PS1='# '\n";
+        type_string "PS1=\"\$(tput bold 2; tput setaf 1)#\$(tput sgr0) \"\n";
     }
     else {
-        type_string "PS1='\$ '\n";
+        type_string "PS1=\"\$(tput bold 2; tput setaf 1)\\\$\$(tput sgr0) \"\n";
     }
 }
 
