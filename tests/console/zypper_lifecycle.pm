@@ -107,16 +107,17 @@ sub run() {
     assert_script_run 'zypper lifecycle --help';
 
     # report should be empty - exit code 1 is expected
+    # but it can show maintenance updates released during last few minutes
     $output = script_output 'zypper lifecycle --days 0 || test $? -le 1', 300;
-    die "'end of support' line not found" unless $output =~ /No (products|packages).*before/;
+    die 'All products should be supported as of today' unless $output =~ /No products.*before/;
 
     $output = script_output 'zypper lifecycle --days 9999', 300;
     die "Product 'end of support' line not found"         unless $output =~ /^Product end of support before/;
     die "Current product should not be supported anymore" unless $output =~ /$product_name\s+$product_eol/;
 
     # report should be empty - exit code 1 is expected
+    # but it can show maintenance updates released during last few minutes
     $output = script_output 'zypper lifecycle --date $(date --iso-8601) || test $? -le 1', 300;
-    die 'All packages should be supported as of today' unless $output =~ /No packages.*before/;
     die 'All products should be supported as of today' unless $output =~ /No products.*before/;
 }
 
