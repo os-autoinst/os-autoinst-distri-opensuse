@@ -135,10 +135,10 @@ sub load_autoyast_clone_tests {
 
 sub load_zdup_tests {
     loadtest 'installation/setup_zdup';
-    loadtest 'installation/zdup';
     if (get_var("LOCK_PACKAGE")) {
         loadtest "console/lock_package";
     }
+    loadtest 'installation/zdup';
     loadtest 'installation/post_zdup';
     loadtest 'boot/boot_to_desktop';
 }
