@@ -39,6 +39,7 @@ sub run() {
         if ($tag ne 'xlsx') {
             hold_key "alt";
             send_key_until_needlematch("libreoffice-nautilus-window", "tab");
+            wait_still_screen;
             release_key "alt";
         }
     }
