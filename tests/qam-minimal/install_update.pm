@@ -29,24 +29,38 @@ sub run {
     my ($self) = @_;
     select_console 'root-console';
 
-    if (!get_var('INCIDENT_REPO')) {
-        die "no repository with update";
-    }
+    my $patch = get_required_var('INCIDENT_PATCH');
 
     capture_state('before');
 
-    my $repo = get_var('INCIDENT_REPO');
+    my $repo = get_required_var('INCIDENT_REPO');
     zypper_call("ar -f $repo test-minimal");
 
     zypper_call("ref");
 
-    zypper_call('in -l -t patch ' . get_var('INCIDENT_PATCH'), exitcode => [0, 102, 103], log => 'zypper.log');
+    # test if is patch needed and record_info
+    my $patch_status = script_output("zypper -n info -t patch $patch");
+    # record softfail on QAM_MINIMAL=small tests, or record info on others
+    # if isn't patch neded, zypper call with install makes no sense
+    if ($patch_status =~ /Status\s+:\s+not\sneeded/) {
+        if (check_var('QAM_MINIMAL', 'small')) {
+            record_soft_failure("Patch isn't needed on minimal installation poo#17412");
+        }
+        else {
+            record_info('Not needed', q{Patch doesn't fix any package in minimal pattern});
+        }
+    }
+    else {
+        zypper_call("in -l -t patch $patch", exitcode => [0, 102, 103], log => 'zypper.log');
 
-    capture_state('between', 1);
+        save_screenshot;
 
-    prepare_system_reboot;
-    type_string "reboot\n";
-    $self->wait_boot;
+        capture_state('between', 1);
+
+        prepare_system_reboot;
+        type_string "reboot\n";
+        $self->wait_boot;
+    }
 }
 
 sub test_flags {

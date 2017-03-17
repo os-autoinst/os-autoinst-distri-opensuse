@@ -25,14 +25,27 @@ use utils;
 use qam;
 use testapi;
 
+sub install_packages {
+    my $patch_info = shift;
+    my $pattern    = qr/\s+(.+)(?!\.src)\..*\s<\s.*/;
+
+    # loop over packages in patchinfo and try installation
+    foreach my $line (split(/\n/, $patch_info)) {
+        if (my ($package) = $line =~ $pattern) {
+            script_run("zypper -n in $package", 700);
+            save_screenshot;
+        }
+    }
+}
+
 sub run {
     my ($self) = @_;
+    my $patch = get_required_var('INCIDENT_PATCH');
+
     select_console 'root-console';
 
     pkcon_quit;
-
     zypper_call("ref");
-
     zypper_call("pt");
     save_screenshot;
 
@@ -44,6 +57,11 @@ sub run {
     script_run('sed -i -r "s/^DEFAULT_WM=\"icewm\"/DEFAULT_VM=\"\"/" /etc/sysconfig/windowmanager');
     # now we have gnome installed - restore DESKTOP variable
     set_var('DESKTOP', get_var('FULL_DESKTOP'));
+
+    my $patch_status = script_output("zypper -n info -t patch $patch");
+    if ($patch_status =~ /Status\s+:\s+not\sneeded/) {
+        install_packages($patch_status);
+    }
 
     prepare_system_reboot;
     type_string "reboot\n";
