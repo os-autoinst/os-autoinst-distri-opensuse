@@ -21,6 +21,10 @@ sub run() {
     send_key 'alt-p';    # partitioning
     assert_screen 'prepare-hard-disk';
     send_key 'alt-b';    # back
+    if (check_screen 'error-small-disk') {
+        record_soft_failure 'bsc#1029291 - blocking condition can not be unblocked';
+        send_key 'ret';
+    }
     assert_screen 'oci-overview-filled';
     send_key 'alt-b';    # booting
     assert_screen 'inst-bootloader-settings';
@@ -44,6 +48,14 @@ sub run() {
     if (check_var('REGISTER', 'installation')) {
         assert_screen 'registration-online-repos';
         send_key "alt-y";
+    }
+
+    # Return if disk is too small for installation
+    if (check_var('FAIL_EXPECTED', 'SMALL-DISK')) {
+        assert_screen 'error-small-disk';
+        send_key 'ret';
+        assert_screen 'oci-overview-filled';
+        return;
     }
 
     my $repeat_once = 2;

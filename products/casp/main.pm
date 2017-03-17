@@ -32,6 +32,8 @@ my $distri = testapi::get_var('CASEDIR') . '/lib/susedistribution.pm';
 require $distri;
 testapi::set_distribution(susedistribution->new());
 
+set_var 'FAIL_EXPECTED', 'SMALL-DISK' if get_var('HDDSIZEGB') < 12;
+
 # Set console for XEN-PV
 if (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux')) {
     set_var('SERIALDEV', 'hvc0');
@@ -71,6 +73,9 @@ sub load_inst_tests() {
     loadtest 'casp/oci_role';
     # Start installation
     loadtest 'casp/oci_install';
+
+    # Can not start installation with partitioning error
+    return if check_var('FAIL_EXPECTED', 'SMALL-DISK');
 
     # Actual installation
     loadtest 'installation/install_and_reboot';
@@ -115,7 +120,9 @@ if (check_var('FLAVOR', 'DVD')) {
     else {
         load_inst_tests;
     }
+    return 1 if get_var 'FAIL_EXPECTED';
 }
+
 loadtest 'casp/first_boot';
 
 # ==== Extra tests run after installation  ====
