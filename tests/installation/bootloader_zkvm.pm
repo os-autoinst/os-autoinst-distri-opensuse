@@ -14,6 +14,7 @@
 use base "installbasetest";
 
 use testapi;
+use File::Basename 'basename';
 
 use strict;
 use warnings;
@@ -71,8 +72,12 @@ sub run() {
     my $size_i = get_var('HDDSIZEGB') || '4';
 
     if (my $hdd = get_var('HDD_1')) {
+        my $hdd_dir  = "/var/lib/openqa/share/factory/hdd";
+        my $basename = basename($hdd);
+        my $hdd_path = `find $hdd_dir -name $basename | head -n1`;
+        diag("HDD path found: $hdd_path");
         type_string("# copying image...\n");
-        $svirt->add_disk({copy => 1, file => $hdd, dev_id => 'a'});
+        $svirt->add_disk({copy => 1, file => $hdd_path, dev_id => 'a'});
     }
     else {
         $svirt->add_disk({size => $size_i . "G", create => 1, dev_id => 'a'});
