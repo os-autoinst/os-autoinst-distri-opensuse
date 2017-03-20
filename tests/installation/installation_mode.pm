@@ -19,7 +19,12 @@ use testapi;
 sub run() {
     # autoconf phase
     # includes downloads, so wait_idle is bad.
-    assert_screen "inst-instmode", 120;
+    assert_screen [qw(partitioning-edit-proposal-button inst-instmode)], 120;
+    if (match_has_tag("partitioning-edit-proposal-button")) {
+        # new desktop selection workflow
+        set_var('NEW_DESKTOP_SELECTION', 1);
+        return;
+    }
 
     if (get_var("UPGRADE")) {
         send_key "alt-u";    # Include Add-On Products
