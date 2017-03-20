@@ -467,7 +467,9 @@ sub load_extra_tests() {
             loadtest "console/btrfs_autocompletion";
             if (get_var("NUMDISKS", 0) > 1) {
                 loadtest "console/btrfs_qgroups";
-                loadtest 'console/snapper_cleanup';
+                if (check_var('DISTRI', 'opensuse') || (check_var('DISTRI', 'sle') && sle_version_at_least('12-SP2'))) {
+                    loadtest 'console/snapper_cleanup';
+                }
                 if (check_var('DISTRI', 'sle') && sle_version_at_least('12-SP2')) {
                     loadtest "console/btrfs_send_receive";
                 }
