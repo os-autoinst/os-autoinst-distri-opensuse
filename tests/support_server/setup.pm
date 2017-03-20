@@ -23,16 +23,17 @@ use testapi;
 use utils;
 use mm_network;
 
-my $pxe_server_set  = 0;
-my $quemu_proxy_set = 0;
-my $http_server_set = 0;
-my $ftp_server_set  = 0;
-my $tftp_server_set = 0;
-my $dns_server_set  = 0;
-my $dhcp_server_set = 0;
-my $nfs_mount_set   = 0;
-my $xvnc_server_set = 0;
-my $ssh_server_set  = 0;
+my $pxe_server_set   = 0;
+my $quemu_proxy_set  = 0;
+my $http_server_set  = 0;
+my $ftp_server_set   = 0;
+my $tftp_server_set  = 0;
+my $dns_server_set   = 0;
+my $dhcp_server_set  = 0;
+my $nfs_mount_set    = 0;
+my $xvnc_server_set  = 0;
+my $ssh_server_set   = 0;
+my $xdmcp_server_set = 0;
 
 my $setup_script;
 
@@ -204,9 +205,9 @@ sub setup_nfs_mount {
 sub setup_ssh_server {
     return if $ssh_server_set;
 
-    # If SLES(gnome) support server image is used, we should stop firewall
+    # If SLES(gnome) support server image is used, we should configure the firewall
     if (check_var('DESKTOP', 'gnome')) {
-        $setup_script .= "systemctl -q is-active SuSEfirewall2 && systemctl disable SuSEfirewall2; systemctl stop SuSEfirewall2\n";
+        $setup_script .= "yast2 firewall services add zone=EXT service=service:sshd\n";
     }
     $setup_script .= "chkconfig sshd on\n";
     $setup_script .= "rcsshd start\n";
@@ -218,10 +219,6 @@ sub setup_ssh_server {
 sub setup_xvnc_server {
     return if $xvnc_server_set;
 
-    # If SLES(gnome) support server image is used, we should stop firewall
-    if (check_var('DESKTOP', 'gnome')) {
-        script_run 'systemctl -q is-active SuSEfirewall2 && systemctl disable SuSEfirewall2; systemctl stop SuSEfirewall2';
-    }
     if (check_var('REMOTE_DESKTOP_TYPE', 'persistent_vnc')) {
         zypper_call('ar dvd:///?devices=/dev/sr0 dvd1repo');
         zypper_call('ref');
@@ -235,6 +232,8 @@ sub setup_xvnc_server {
         send_key 'alt-a';
     }
     wait_still_screen 3;
+    send_key 'alt-p';
+    wait_still_screen 3;
     send_key 'alt-o';
     if (check_var('REMOTE_DESKTOP_TYPE', 'persistent_vnc')) {
         assert_screen 'xvnc-vncmanager-required';
@@ -246,9 +245,22 @@ sub setup_xvnc_server {
     wait_still_screen 3;
     script_run 'systemctl restart display-manager.service';
     assert_screen 'displaymanager';
-    send_key 'ctrl-alt-f2';
+    select_console 'root-console';
 
     $xvnc_server_set = 1;
+}
+
+sub setup_xdmcp_server {
+    return if $xdmcp_server_set;
+
+    script_run 'yast2 firewall services add zone=EXT service=service:xdmcp';
+    script_run "sed -i -e 's|^DISPLAYMANAGER_REMOTE_ACCESS=.*|DISPLAYMANAGER_REMOTE_ACCESS=\"yes\"|' /etc/sysconfig/displaymanager";
+    script_run "sed -i -e 's|^\\[xdmcp\\]|\\[xdmcp\\]\\nMaxSessions=2|' /etc/gdm/custom.conf";
+    script_run 'systemctl restart display-manager.service';
+    assert_screen 'displaymanager';
+    select_console 'root-console';
+
+    $xdmcp_server_set = 1;
 }
 
 
@@ -326,6 +338,11 @@ sub run {
     if (exists $server_roles{ssh}) {
         setup_ssh_server();
         push @mutexes, 'ssh';
+    }
+
+    if (exists $server_roles{xdmcp}) {
+        setup_xdmcp_server();
+        push @mutexes, 'xdmcp';
     }
 
     die "no services configured, SUPPORT_SERVER_ROLES variable missing?" unless $setup_script;
