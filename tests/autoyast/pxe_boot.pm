@@ -27,7 +27,7 @@ sub run {
     resume_vm();
 
     # wait for bootloader to appear
-    assert_screen("autoyast-boot", 300);
+    assert_screen("bootloader", 300);
 
     # select network (second entry)
     send_key "down";

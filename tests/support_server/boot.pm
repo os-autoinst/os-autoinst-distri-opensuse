@@ -13,8 +13,8 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# G-Summary: supportserver and supportserver generator implementation
-# G-Maintainer: Pavel Sladek <psladek@suse.com>
+# Summary: supportserver and supportserver generator implementation
+# Maintainer: Pavel Sladek <psladek@suse.com>
 
 use strict;
 use base 'basetest';
@@ -26,7 +26,7 @@ sub run {
         check_screen("inst-bootmenu", 10);
         send_key "ret";    #faster boot if boot from cd
     }
-    assert_screen("autoyast-boot", 10);
+    assert_screen("bootloader", 10);
     send_key "ret";        #faster boot
 
 }
