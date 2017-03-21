@@ -13,9 +13,9 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
-# Summary: Remote Login: X11 forwarding over OpenSSH
+# Summary: Remote Login: XDMCP with gdm and SLE-Classic configured
 # Maintainer: Chingkai <qkzhu@suse.com>
-# Tags: tc#1586202
+# Tags: tc#1586203
 
 use strict;
 use base 'basetest';
@@ -25,45 +25,32 @@ use lockapi;
 use utils;
 
 sub run() {
-    my $self = shift;
-
     # Wait for supportserver if not yet ready
     mutex_lock 'dhcp';
     mutex_unlock 'dhcp';
-    mutex_lock 'ssh';
-    mutex_unlock 'ssh';
+    mutex_lock 'xdmcp';
 
-    # Make sure the client gets the IP address
+    # Make sure the client gets the IP address and configure the firewall
     x11_start_program 'xterm';
     assert_screen 'xterm';
     become_root;
     assert_script_run 'dhclient';
+    assert_script_run 'yast2 firewall services add zone=EXT service=service:xdmcp';
     type_string "exit\n";
 
-    # ssh login
-    my $str = 'SSH-' . time;
-    type_string "ssh -X root\@10.0.2.1\n";
-    assert_screen 'ssh-login', 60;
-    type_string "yes\n";
-    assert_screen 'password-prompt', 60;
-    type_string "$password\n";
-    assert_screen 'ssh-login-ok';
-
-    $self->set_standard_prompt();
-    $self->enter_test_text('ssh-X-forwarding');
-    assert_screen 'test-sshxterm-1';
-
-    # Launch gedit and gnome control center remotely
-    type_string "gedit /etc/issue\n";
-    assert_screen 'x11-forwarding-gedit';
-    send_key 'alt-f4';
+    # Remote access SLES via Xephyr
+    type_string "Xephyr -query 10.0.2.1 -screen 1024x768+0+0 -terminate :1\n";
+    assert_screen 'xdmcp-gdm', 90;
+    send_key 'ret';
+    assert_screen 'xdmcp-login-gdm';
+    type_password;
+    send_key 'ret';
+    assert_screen 'xdmcp-gdm-generic-desktop';
+    send_key 'alt-f4';    # Close Xephyr
     wait_still_screen 3;
-    type_string "gnome-control-center info\n";
-    assert_screen 'x11-forwarding-gccinfo';
-    send_key 'alt-f4';
-    wait_still_screen 3;
-    type_string "exit\n";    # Exit the ssh login
-    send_key 'alt-f4';
+    send_key 'alt-f4';    # Close xterm
+
+    mutex_unlock 'xdmcp';
     assert_screen 'generic-desktop';
 }
 
