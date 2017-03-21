@@ -35,7 +35,7 @@ sub turn_off_screensaver() {
 # Update with GNOME PackageKit Update Viewer
 sub run() {
     my ($self) = @_;
-    select_console 'x11';
+    select_console 'x11', await_console => 0;
 
     my @updates_tags           = qw(updates_none updates_available);
     my @updates_installed_tags = qw(updates_none updates_installed-logout updates_installed-restart);

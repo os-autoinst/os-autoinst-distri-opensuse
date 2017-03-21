@@ -28,18 +28,11 @@ sub run() {
     else {
         assert_screen 'before-package-selection', 300;
     }
-
-    #send_key "ctrl-alt-shift-x"; sleep 3;
-    select_console('install-shell');
-    # switching back from X can be slow, we have to be sure here
-    assert_screen 'inst-console';
-
+    select_console 'install-shell';
     script_run "(cat /.timestamp ; echo /.packages.initrd: ; cat /.packages.initrd) > /dev/$serialdev";
     script_run "(echo /.packages.root: ; cat /.packages.root) > /dev/$serialdev";
     save_screenshot;
-
-    select_console('installation');
-    assert_screen "inst-returned-to-yast", 15;
+    select_console 'installation';
 }
 
 1;

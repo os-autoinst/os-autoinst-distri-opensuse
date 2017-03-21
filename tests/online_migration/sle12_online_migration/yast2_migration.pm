@@ -22,7 +22,7 @@ sub run {
         select_console 'root-console';
     }
     else {
-        select_console 'x11';
+        select_console 'x11', await_console => 0;
         ensure_unlocked_desktop;
         mouse_hide(1);
         assert_screen 'generic-desktop';

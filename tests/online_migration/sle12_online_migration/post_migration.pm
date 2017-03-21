@@ -30,7 +30,7 @@ sub run() {
         record_soft_failure 'workaround for bsc#1013208, disable nvidia repo after migration';
     }
 
-    select_console 'x11';
+    select_console 'x11', await_console => 0;
     ensure_unlocked_desktop;
     mouse_hide(1);
     assert_screen 'generic-desktop';

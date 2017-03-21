@@ -240,7 +240,7 @@ sub wait_boot {
             select_console('root-console');
         }
         else {
-            select_console('x11');
+            select_console('x11', await_console => 0);
         }
     }
     # On Xen PV and svirt we don't see a Grub menu
