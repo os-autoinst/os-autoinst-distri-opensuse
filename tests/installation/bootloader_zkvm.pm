@@ -74,7 +74,7 @@ sub run() {
     if (my $hdd = get_var('HDD_1')) {
         my $hdd_dir  = "/var/lib/openqa/share/factory/hdd";
         my $basename = basename($hdd);
-        my $hdd_path = `find $hdd_dir -name $basename | head -n1`;
+        chomp(my $hdd_path = `find $hdd_dir -name $basename | head -n1`);
         diag("HDD path found: $hdd_path");
         type_string("# copying image...\n");
         $svirt->add_disk({copy => 1, file => $hdd_path, dev_id => 'a'});
