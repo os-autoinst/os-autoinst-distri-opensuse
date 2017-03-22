@@ -315,9 +315,9 @@ sub load_inst_tests() {
         }
     }
     if (noupdatestep_is_applicable()) {
-        if (get_var('PATTERNS') || get_var('PACKAGES')) {
+        if (get_var('PATTERNS')) {
             loadtest "installation/installation_overview_before";
-            loadtest "installation/select_patterns_and_packages";
+            loadtest "installation/select_patterns";
         }
     }
     if (get_var("UEFI") && get_var("SECUREBOOT")) {

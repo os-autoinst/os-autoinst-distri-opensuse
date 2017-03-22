@@ -516,11 +516,11 @@ sub load_inst_tests() {
             loadtest "installation/user_settings";
         }
         loadtest "installation/user_settings_root";
-        if (get_var('PATTERNS') || get_var('PACKAGES')) {
+        if (get_var('PATTERNS')) {
             loadtest "installation/installation_overview_before";
-            loadtest "installation/select_patterns_and_packages";
+            loadtest "installation/select_patterns";
         }
-        if (!check_var('DESKTOP', 'gnome')) {
+        elsif (!check_var('DESKTOP', 'gnome')) {
             loadtest "installation/installation_overview_before";
             loadtest "installation/change_desktop";
         }
