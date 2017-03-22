@@ -11,7 +11,6 @@
 # Maintainer: dehai <dhkong@suse.com>
 
 use base "x11regressiontest";
-use base "x11regressiontest";
 use strict;
 use testapi;
 
@@ -29,7 +28,7 @@ sub run() {
     wait_still_screen(3);
     send_key_until_needlematch("libreoffice-specified-file-directory", "right");
     send_key "ret";
-    wait_still_screen;
+    wait_still_screen(3);
 
     # double click the below qw(doc docx fodg fodp fods fodt odf odg odp ods odt pptx xlsx) to check whether can be work
     for my $tag (qw(doc docx fodg fodp fods fodt odf odg odp ods odt pptx xlsx)) {
