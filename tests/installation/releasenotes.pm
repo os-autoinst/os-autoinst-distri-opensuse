@@ -14,6 +14,7 @@
 use base "y2logsstep";
 use strict;
 use testapi;
+use utils 'is_xen';
 
 sub run() {
     assert_screen('release-notes-button', 5);
@@ -35,11 +36,7 @@ sub run() {
     else {
         # In text mode we can't click anything. On Xen PV we don't have
         # correct exis coordinates, so we miss the button: POO#13536.
-        if (
-            check_var('VIDEOMODE', 'text')
-            or (    check_var('VIRSH_VMM_FAMILY', 'xen')
-                and check_var('VIRSH_VMM_TYPE', 'linux')))
-        {
+        if (check_var('VIDEOMODE', 'text') or is_xen('pv')) {
             send_key "alt-l";    # open release notes window
         }
         else {

@@ -30,7 +30,7 @@ sub run() {
     if (check_var('ARCH', 's390x') or get_var('NETBOOT')) {
         $svirt->change_domain_element(os => initrd => undef);
         $svirt->change_domain_element(os => kernel => undef);
-        if (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux')) {
+        if (is_xen 'pv') {
             $svirt->change_domain_element(os => kernel => "/usr/lib/grub2/x86_64-xen/grub.xen");
         }
         $svirt->change_domain_element(os => cmdline => undef);

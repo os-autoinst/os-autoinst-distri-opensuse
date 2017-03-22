@@ -35,9 +35,7 @@ testapi::set_distribution(susedistribution->new());
 set_var 'FAIL_EXPECTED', 'SMALL-DISK' if get_var('HDDSIZEGB') < 12;
 
 # Set console for XEN-PV
-if (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux')) {
-    set_var('SERIALDEV', 'hvc0');
-}
+set_var('SERIALDEV', 'hvc0') if is_xen('pv');
 
 sub load_boot_tests() {
     if (check_var('FLAVOR', 'DVD')) {

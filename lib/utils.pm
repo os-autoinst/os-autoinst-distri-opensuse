@@ -28,6 +28,7 @@ our @EXPORT = qw(
   clear_console
   is_jeos
   is_casp
+  is_xen
   is_gnome_next
   is_krypton_argon
   select_kernel
@@ -211,6 +212,16 @@ sub is_casp {
     # There is one DVD and multiple VMX (for KVM/XEN/VMware/Cloud) flavors
     return !check_var('FLAVOR', 'DVD') if $flavor eq 'VMX';
     return check_var('FLAVOR', $flavor);
+}
+
+# Checks if hypervisor is xen with optional type [pv|hvm] parameter
+sub is_xen {
+    my $type = shift;
+    return 0 unless check_var('VIRSH_VMM_FAMILY', 'xen');
+    return 1 unless $type;
+
+    return check_var('VIRSH_VMM_TYPE', 'linux') if $type eq 'pv';
+    return check_var('VIRSH_VMM_TYPE', $type);
 }
 
 sub type_string_slow {
@@ -602,8 +613,8 @@ sub validate_repos_sle {
     }
 
     # On Xen PV there are no CDs nor DVDs being emulated, "raw" HDD is used instead
-    my $cd  = (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux')) ? 'hd' : 'cd';
-    my $dvd = (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux')) ? 'hd' : 'dvd';
+    my $cd  = is_xen('pv') ? 'hd' : 'cd';
+    my $dvd = is_xen('pv') ? 'hd' : 'dvd';
 
     # On system with ONLINE_MIGRATION variable set, we don't have SLE media
     # repository of VERSION N but N-1 (i.e. on SLES12-SP2 we have SLES12-SP1

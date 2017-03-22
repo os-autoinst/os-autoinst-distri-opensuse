@@ -13,6 +13,7 @@ use base Exporter;
 use Exporter;
 
 use strict;
+use utils 'is_xen';
 use warnings;
 use testapi;
 
@@ -34,14 +35,14 @@ sub process_reboot {
 
     reset_consoles;
     # We have to re-connect *after* the restart on xen
-    if (check_var('VIRSH_VMM_FAMILY', 'xen')) {
+    if (is_xen) {
         assert_screen 'black';
         sleep 4;
         select_console 'sut';
         console('svirt')->attach_to_running({stop_vm => 1});
     }
     # No grub bootloader on xen-pv
-    assert_screen 'grub2' unless check_var('VIRSH_VMM_TYPE', 'linux');
+    assert_screen 'grub2' unless is_xen('pv');
 
     assert_screen 'linux-login-casp', 90;
     select_console 'root-console';

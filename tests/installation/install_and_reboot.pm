@@ -16,6 +16,7 @@
 use strict;
 use base "y2logsstep";
 use testapi;
+use utils 'is_xen';
 use lockapi;
 
 
@@ -126,7 +127,7 @@ sub run() {
         send_key 'alt-o';    # Reboot
     };
 
-    if (check_var('VIRSH_VMM_FAMILY', 'xen')) {
+    if (is_xen) {
         # VNC connection to SUT (the 'sut' console) is terminated on Xen via svirt
         # backend and we have to re-connect *after* the restart, otherwise we end up
         # with stalled VNC connection. The tricky part is to know *when* the system
