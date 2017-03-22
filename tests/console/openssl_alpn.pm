@@ -28,7 +28,8 @@ sub run() {
     select_console 'user-console';
     validate_script_output 'openssl s_client -alpn http < /dev/null', sub { m/ALPN protocol: http/ };
 
-    select_console 'root-console';
+    # the openssl server is still running so do not expect a ready prompt
+    select_console 'root-console', await_console => 0;
     send_key "ctrl-c";    # terminate `openssl s_server'
     save_screenshot;
 }

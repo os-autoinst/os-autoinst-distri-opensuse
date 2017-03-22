@@ -31,7 +31,6 @@ use utils;
 
 sub run() {
     select_console "x11";
-
     x11_start_program "xterm";
 
     become_root;

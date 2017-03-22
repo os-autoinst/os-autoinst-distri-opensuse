@@ -78,7 +78,7 @@ sub run() {
     type_string "exit\n";                     # logout
     wait_still_screen 2;
     save_screenshot();
-    select_console 'x11';
+    select_console 'x11', await_console => 0;
     assert_screen "wireshark-capturing";
 
     # set filter

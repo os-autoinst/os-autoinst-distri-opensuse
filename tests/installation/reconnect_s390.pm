@@ -44,7 +44,7 @@ sub run() {
     }
 
     if (!check_var('DESKTOP', 'textmode')) {
-        select_console('x11');
+        select_console('x11', await_console => 0);
     }
 }
 

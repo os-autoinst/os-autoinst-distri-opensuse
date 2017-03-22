@@ -190,15 +190,16 @@ sub script_sudo($$) {
     return;
 }
 
+# simplified but still colored prompt for better readability
 sub set_standard_prompt {
     my ($self, $user) = @_;
     $user ||= $testapi::username;
     if ($user eq 'root') {
         # set standard root prompt
-        type_string "PS1='# '\n";
+        type_string "PS1=\"\$(tput bold 2; tput setaf 1)#\$(tput sgr0) \"\n";
     }
     else {
-        type_string "PS1='\$ '\n";
+        type_string "PS1=\"\$(tput bold 2; tput setaf 1)\\\$\$(tput sgr0) \"\n";
     }
 }
 
@@ -417,6 +418,29 @@ sub activate_console {
     elsif ($console eq 'svirt') {
         $self->set_standard_prompt('root');
     }
+}
+
+=head2 console_selected
+
+    console_selected($console [, await_console => $await_console] [, tags => $tags ]);
+
+Overrides C<select_console> callback from C<testapi>. Waits for console by
+calling assert_screen on C<tags>, by default the name of the selected console.
+
+C<await_console> is set to 1 by default. Can be set to 0 to skip the check for
+the console. Call for example
+C<select_console('root-console', await_console => 0)> if there should be no
+checking for the console to be shown. Useful when the check should or must be
+test module specific.
+
+=cut
+
+sub console_selected {
+    my ($self, $console, %args) = @_;
+    $args{await_console} //= 1;
+    $args{tags} //= $console;
+    return unless $args{await_console};
+    assert_screen($args{tags}, no_wait => 1);
 }
 
 1;
