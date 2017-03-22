@@ -140,6 +140,7 @@ sub package_action {
         accept3rdparty;
     }
     if (get_var('INSTALLATION_BLOCKED') && $secondrun) {
+        record_soft_failure 'bsc#1029660';
         assert_screen 'inst-overview-blocked';
         send_key 'alt-i';
         assert_screen 'startinstall-blocked';
@@ -203,7 +204,6 @@ sub run {
         }
     }
     package_action;
-    record_soft_failure 'bsc#1029660';
     $secondrun++;
     gotopatterns;
     package_action;
