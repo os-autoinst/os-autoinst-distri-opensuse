@@ -520,7 +520,7 @@ sub load_inst_tests() {
             loadtest "installation/installation_overview_before";
             loadtest "installation/select_patterns_and_packages";
         }
-        if (!check_var('DESKTOP', 'gnome')) {
+        elsif (!check_var('DESKTOP', 'gnome')) {
             loadtest "installation/installation_overview_before";
             loadtest "installation/change_desktop";
         }
