@@ -11,7 +11,6 @@
 # Maintainer: dehai <dhkong@suse.com>
 
 use base "x11regressiontest";
-use base "x11regressiontest";
 use strict;
 use testapi;
 
@@ -40,6 +39,7 @@ sub run() {
             hold_key "alt";
             send_key_until_needlematch("libreoffice-nautilus-window", "tab");
             release_key "alt";
+            wait_still_screen(3);
         }
     }
     send_key "ctrl-q";
