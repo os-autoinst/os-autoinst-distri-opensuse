@@ -395,6 +395,9 @@ sub maybe_load_kernel_tests {
         loadtest 'kernel/shutdown_ltp';
     }
     elsif (get_var('LTP_COMMAND_FILE')) {
+        if (get_var('INSTALL_KOTD')) {
+            loadtest 'kernel/install_kotd';
+        }
         loadtest 'kernel/boot_ltp';
         if (get_var('LTP_COMMAND_FILE') =~ m/ltp-aiodio.part[134]/) {
             loadtest 'kernel/create_junkfile_ltp';
