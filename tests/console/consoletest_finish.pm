@@ -33,8 +33,6 @@ sub run() {
     $console->reset;
 
     $console = select_console 'user-console';
-
-    wait_still_screen(1);
     type_string "exit\n";    # logout
     $console->reset;
     wait_still_screen(2);

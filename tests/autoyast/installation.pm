@@ -36,8 +36,6 @@ sub save_logs_and_continue {
     my $name = shift;
     # save logs and continue
     select_console 'install-shell';
-    sleep 5;
-    wait_idle(5);
     assert_screen ["inst-console"];
 
     # the network may be down with keep_install_network=false
@@ -54,7 +52,6 @@ sub save_logs_and_continue {
     save_screenshot;
     clear_console;
     select_console 'installation';
-    wait_idle(5);
 }
 
 sub save_logs_in_linuxrc {

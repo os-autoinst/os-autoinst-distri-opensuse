@@ -25,7 +25,6 @@ sub run() {
         if (match_has_tag('generic-desktop-after_installation')) {
             record_soft_failure 'boo#993885 Kde-Live net installer does not reboot after installation';
             select_console 'install-shell';
-            wait_still_screen;
             type_string "reboot\n";
             save_screenshot;
             assert_screen 'grub2', 300;

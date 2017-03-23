@@ -21,7 +21,6 @@ use utils;
 
 sub run {
     select_console('root-console');
-
     pkcon_quit;
 
     # install piglit testsuite from distribution repository (Tumbleweed) or from defined
