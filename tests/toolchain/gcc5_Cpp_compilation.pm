@@ -18,7 +18,8 @@ use testapi;
 sub run() {
     my $self = shift;
 
-    script_run 'zypper -v -n in cmake';
+    script_run 'zypper -v -n in cmake sysstat';
+    script_run('pidstat -p ALL 1 > /tmp/pidstat.txt &');
     my $package = data_url('toolchain/llvm-3.8.1.src.tar.xz');
     script_run "wget $package";
     $package = data_url('toolchain/cfe-3.8.1.src.tar.xz');
@@ -67,6 +68,10 @@ sub test_flags() {
 sub post_fail_hook() {
     my $self = shift;
 
+    script_run('kill %1');
+    script_run('xz /tmp/pidstat.txt');
+    upload_logs('/tmp/pidstat.txt.xz');
+    record_soft_failure 'bsc#1024050';
     $self->export_logs();
     upload_logs '/tmp/configure.log';
     upload_logs '/tmp/make.log';
