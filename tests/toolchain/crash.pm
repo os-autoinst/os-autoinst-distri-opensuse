@@ -20,7 +20,7 @@ sub install_kernel_debuginfo {
     assert_script_run 'rpmquery -a kernel-default*';
     # kernel debug symbols are huge, this can take a while
     script_run 'zypper ref';
-    zypper_call('-v in kernel-default-debuginfo');
+    zypper_call('-v in $(rpmquery kernel-default | sed "s/kernel-default/kernel-default-debuginfo/")');
 }
 
 sub run() {
