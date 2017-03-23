@@ -261,7 +261,7 @@ sub run() {
     die join("\n", '#' x 67, $exception, '#' x 67) if $exception;
 
     # activate console so we can call wait_serial later
-    my $c = select_console('iucvconn');
+    my $c = select_console('iucvconn', await_console => 0);
 
     # we also want to test the formatting during the installation if the variable is set
     if (!get_var("FORMAT_DASD_YAST") && !get_var('S390_DISK') && !get_var('UPGRADE')) {

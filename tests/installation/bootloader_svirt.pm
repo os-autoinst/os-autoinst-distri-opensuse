@@ -300,7 +300,7 @@ sub run() {
         sleep 2;
     }
     # connects to a guest VNC session
-    select_console('sut');
+    select_console('sut', await_console => 0);
 }
 
 1;
