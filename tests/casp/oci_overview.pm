@@ -16,11 +16,18 @@ use utils;
 use testapi;
 
 sub run() {
+    my $timeout = 120;
     if (get_var('BETA')) {
-        assert_screen 'oci-betawarning', 120;
+        assert_screen 'oci-betawarning', $timeout;
         send_key 'ret';
+        $timeout = 30;
     }
-    assert_screen 'oci-overview', 120;
+    if (get_var('HDDSIZEGB') < 12) {
+        assert_screen 'error-small-disk', $timeout;
+        send_key 'ret';
+        $timeout = 30;
+    }
+    assert_screen 'oci-overview', $timeout;
     mouse_hide;
 }
 
