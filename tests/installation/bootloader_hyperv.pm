@@ -115,7 +115,7 @@ sub run() {
         # attach to console (a TCP port on HYPERV_SERVER)
         $svirt->attach_to_running;
 
-        select_console('sut');
+        select_console('sut', await_console => 0);
     }
 }
 
