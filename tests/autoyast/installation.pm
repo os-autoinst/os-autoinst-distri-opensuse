@@ -36,7 +36,6 @@ sub save_logs_and_continue {
     my $name = shift;
     # save logs and continue
     select_console 'install-shell';
-    assert_screen ["inst-console"];
 
     # the network may be down with keep_install_network=false
     # use static ip in that case
