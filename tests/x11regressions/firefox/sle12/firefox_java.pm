@@ -26,6 +26,10 @@ sub java_testing {
     if (check_screen 'firefox-reader-view') {
         assert_and_click('firefox-reader-close');
     }
+
+    # Click the "Verify Java version" button
+    assert_and_click "firefox-java-verifyversion";
+
     check_screen([qw(firefox-java-security oracle-cookies-handling)]);
     if (match_has_tag 'firefox-java-security') {
         assert_and_click('firefox-java-securityrun');
@@ -35,8 +39,6 @@ sub java_testing {
     if (match_has_tag "oracle-cookies-handling") {
         assert_and_click "firefox-java-agree-and-proceed";
     }
-    #Click the "Verify Java version" button
-    assert_and_click "firefox-java-verifyversion";
 }
 
 sub run() {
