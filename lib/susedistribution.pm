@@ -9,7 +9,7 @@ use strict;
 use testapi qw(send_key %cmd assert_screen check_screen check_var get_var save_screenshot
   match_has_tag set_var type_password type_string wait_idle wait_serial
   mouse_hide send_key_until_needlematch record_soft_failure
-  wait_still_screen wait_screen_change);
+  wait_still_screen wait_screen_change is_serial_terminal);
 
 
 sub handle_password_prompt {
@@ -439,8 +439,9 @@ sub console_selected {
     my ($self, $console, %args) = @_;
     $args{await_console} //= 1;
     $args{tags} //= $console;
-    return unless $args{await_console};
-    assert_screen($args{tags}, no_wait => 1);
+    if ($args{await_console} && !is_serial_terminal()) {
+        assert_screen($args{tags}, no_wait => 1);
+    }
 }
 
 1;
