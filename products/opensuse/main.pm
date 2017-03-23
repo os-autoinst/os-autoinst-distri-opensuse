@@ -463,7 +463,6 @@ sub load_consoletests() {
     elsif (is_staging() && get_var('UEFI') || is_gnome_next || is_krypton_argon) {
         # Stagings should test yast2-bootloader in miniuefi at least but not all
         loadtest "console/consoletest_setup";
-        loadtest "console/check_console_font";
         loadtest "console/textinfo";
         loadtest "console/hostname";
         if (!get_var("LIVETEST")) {
@@ -698,7 +697,6 @@ sub load_applicationstests {
     if (get_var('BOOT_HDD_IMAGE')) {
         @tests = (
             'console/consoletest_setup',
-            'console/check_console_font',
             'console/import_gpg_keys',
             'update/zypper_up',
             'console/install_packages',
