@@ -422,7 +422,7 @@ sub activate_console {
 
 =head2 console_selected
 
-    console_selected($console [, await_console => $await_console] [, tags => $tags ]);
+    console_selected($console [, await_console => $await_console] [, tags => $tags ] [, ignore => $ignore ]);
 
 Overrides C<select_console> callback from C<testapi>. Waits for console by
 calling assert_screen on C<tags>, by default the name of the selected console.
@@ -433,13 +433,18 @@ C<select_console('root-console', await_console => 0)> if there should be no
 checking for the console to be shown. Useful when the check should or must be
 test module specific.
 
+C<ignore> can be overridden to not check on certain consoles. By default the
+known uncheckable consoles are already ignored.
+
 =cut
 
 sub console_selected {
     my ($self, $console, %args) = @_;
     $args{await_console} //= 1;
-    $args{tags} //= $console;
+    $args{tags}          //= $console;
+    $args{ignore}        //= qr{sut|root-virtio-terminal|iucvconn|svirt};
     return unless $args{await_console};
+    return if $args{tags} =~ $args{ignore};
     assert_screen($args{tags}, no_wait => 1);
 }
 
