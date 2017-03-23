@@ -20,30 +20,32 @@ use utils;
 sub run() {
     select_console 'root-console';
 
-    my $info_output = script_output 'zypper info vim';
+    my $info_output_vim = script_output 'zypper info vim';
 
-    my $expected_header = 'Information for package vim:';
-    die "Missing info header. Expected: /$expected_header/"
-      unless $info_output =~ /$expected_header/;
+    my $expected_header_vim = 'Information for package vim:';
+    die "Missing info header. Expected: /$expected_header_vim/"
+      unless $info_output_vim =~ /$expected_header_vim/;
 
-    my $expected_package_name = 'Name *: vim';
-    die "Missing package name. Expected: /$expected_package_name/"
-      unless $info_output =~ /$expected_package_name/;
+    my $expected_package_name_vim = 'Name *: vim';
+    die "Missing package name. Expected: /$expected_package_name_vim/"
+      unless $info_output_vim =~ /$expected_package_name_vim/;
 
-    if (check_var('DISTRI', 'opensuse')) {
-        # sle not yet supported because of missing source repos
-        zypper_call('mr -e repo-source');
-        zypper_call('ref');
-        $info_output = script_output 'zypper info srcpackage:htop';
-
-        $expected_header = 'Information for srcpackage htop:';
-        die "Missing info header. Expected: /$expected_header/"
-          unless $info_output =~ /$expected_header/;
-
-        $expected_package_name = 'Name *: htop';
-        die "Missing package name. Expected: /$expected_package_name/"
-          unless $info_output =~ /$expected_package_name/;
+    if (check_var('DISTRI', 'sle')) {
+        # use dvd2 as the src-repository
+        zypper_call('ar --disable --type plaindir cd:///?devices=/dev/sr1 repo-source');
     }
+
+    zypper_call('mr -e repo-source');
+    zypper_call('ref');
+    my $info_output_coreutils = script_output 'zypper info srcpackage:coreutils';
+
+    my $expected_header_coreutils = 'Information for srcpackage coreutils:';
+    die "Missing info header. Expected: /$expected_header_coreutils/"
+      unless $info_output_coreutils =~ /$expected_header_coreutils/;
+
+    my $expected_package_name_coreutils = 'Name *: coreutils';
+    die "Missing package name. Expected: /$expected_package_name_coreutils/"
+      unless $info_output_coreutils =~ /$expected_package_name_coreutils/;
 }
 
 1;
