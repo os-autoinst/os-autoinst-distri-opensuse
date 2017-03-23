@@ -229,15 +229,6 @@ sub init_consoles {
         $self->add_console('root-virtio-terminal', 'virtio-terminal', {});
     }
 
-    if (check_var('BACKEND', 'qemu') || check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'generalhw')) {
-        $self->add_console('install-shell', 'tty-console', {tty => 2});
-        $self->add_console('installation',  'tty-console', {tty => check_var('VIDEOMODE', 'text') ? 1 : 7});
-        $self->add_console('root-console',  'tty-console', {tty => 2});
-        $self->add_console('user-console',  'tty-console', {tty => 4});
-        $self->add_console('log-console',   'tty-console', {tty => 5});
-        $self->add_console('x11',           'tty-console', {tty => 7});
-    }
-
     # svirt backend, except s390x ARCH
     if (!get_var('S390_ZKVM') and check_var('BACKEND', 'svirt')) {
         my $hostname = get_var('VIRSH_GUEST');
@@ -251,12 +242,16 @@ sub init_consoles {
                 port     => $port,
                 password => $testapi::password
             });
-        $self->add_console('install-shell', 'tty-console', {tty => 2});
-        $self->add_console('installation',  'tty-console', {tty => check_var('VIDEOMODE', 'text') ? 1 : 7});
-        $self->add_console('root-console',  'tty-console', {tty => 2});
-        $self->add_console('user-console',  'tty-console', {tty => 4});
-        $self->add_console('log-console',   'tty-console', {tty => 5});
-        $self->add_console('x11',           'tty-console', {tty => 7});
+    }
+
+    if (get_var('BACKEND', '') =~ /qemu|ipmi|generalhw/ || (check_var('BACKEND', 'svirt') && !get_var('S390_ZKVM'))) {
+        $self->add_console('install-shell',  'tty-console', {tty => 2});
+        $self->add_console('installation',   'tty-console', {tty => check_var('VIDEOMODE', 'text') ? 1 : 7});
+        $self->add_console('install-shell2', 'tty-console', {tty => 9});
+        $self->add_console('root-console',   'tty-console', {tty => 2});
+        $self->add_console('user-console',   'tty-console', {tty => 4});
+        $self->add_console('log-console',    'tty-console', {tty => 5});
+        $self->add_console('x11',            'tty-console', {tty => 7});
     }
 
     if (check_var('BACKEND', 's390x') || get_var('S390_ZKVM')) {
