@@ -178,8 +178,10 @@ sub check_console_font {
     # for the needle to match
     select_console('root-console', await_console => 0);
 
-    # Ensure the echo of input actually happened by using assert_script_run
-    assert_script_run 'showconsolefont';
+    # if this command failed, we're not in a console (e.g. in a svirt
+    # ssh connection) and don't see the console font but the local
+    # xterm font - no reason to change
+    return if script_run 'showconsolefont';
     assert_screen [qw(broken-console-font correct-console-font)];
     if (match_has_tag 'broken-console-font') {
         assert_script_run("/usr/lib/systemd/systemd-vconsole-setup");
