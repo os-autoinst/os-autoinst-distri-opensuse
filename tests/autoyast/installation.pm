@@ -55,11 +55,7 @@ sub save_logs_and_continue {
 
 sub save_logs_in_linuxrc {
     my $name = shift;
-    # tty9 is available in linuxrc
-    send_key "ctrl-alt-f9";
-    send_key "alt-f9";
-    sleep 5;
-    assert_screen ["inst-console"];
+    select_console 'install-shell2', tags => 'install-shell';
 
     # save_y2logs is not present
     assert_script_run "tar czf /tmp/logs-$name.tar.bz2 /var/log";
