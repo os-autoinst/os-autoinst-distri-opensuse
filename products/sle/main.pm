@@ -602,7 +602,6 @@ sub load_consoletests() {
         if (get_var("LOCK_PACKAGE")) {
             loadtest "console/check_locked_package";
         }
-        loadtest "console/check_console_font";
         loadtest "console/textinfo";
         loadtest "console/hostname";
         if (get_var("SYSTEM_ROLE")) {

@@ -68,7 +68,7 @@ sub run() {
     }
 
     # init
-    select_console 'root-console';
+    check_console_font;
 
     type_string "chown $username /dev/$serialdev\n";
     script_run 'echo "set -o pipefail" >> /etc/bash.bashrc.local';
