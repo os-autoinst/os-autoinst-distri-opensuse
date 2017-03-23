@@ -37,19 +37,19 @@ sub wipe_existing_partitions {
     wait_still_screen 2;
     save_screenshot;
     send_key 'ret';          # create new partition table
-    if (!get_var('UEFI')) {  # only GPT partition table
+    if (!get_var('UEFI') || !check_var('BACKEND', 's390x')) {    # only GPT partition table
         assert_screen 'partition-table-MSDOS-selected';
-        send_key 'alt-o';    # OK
+        send_key 'alt-o';                                        # OK
     }
     assert_screen 'partition-create-new-table';
-    send_key 'alt-y';        # yes
+    send_key 'alt-y';                                            # yes
 }
 
 sub addpart {
     my (%args) = @_;
     assert_screen 'expert-partitioner';
     send_key $cmd{addpart};
-    if (!get_var('UEFI')) {    # partitioning type does not appear when GPT disk used, GPT is default for UEFI
+    if (!get_var('UEFI')) {                                      # partitioning type does not appear when GPT disk used, GPT is default for UEFI
         assert_screen 'partitioning-type';
         send_key $cmd{next};
     }
