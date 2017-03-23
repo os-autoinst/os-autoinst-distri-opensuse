@@ -78,6 +78,8 @@ sub run {
 
     if ($inst_ltp =~ /git/i) {
         install_dependencies;
+        # bsc#1024050 - Watch for Zombies
+        script_run('pidstat -p ALL 1 > /tmp/pidstat.txt &');
         install_from_git;
     }
     elsif ($inst_ltp =~ /repo/i) {
@@ -91,6 +93,14 @@ sub run {
 
     select_console('root-console');
     type_string "reboot\n";
+}
+
+sub post_fail_hook {
+    my $self = shift;
+
+    # bsc#1024050
+    script_run('kill %1');
+    upload_logs('/tmp/pidstat.txt');
 }
 
 sub test_flags {
