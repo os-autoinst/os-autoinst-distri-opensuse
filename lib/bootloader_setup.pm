@@ -86,13 +86,13 @@ sub select_bootmenu_option {
 sub bootmenu_default_params {
     # https://wiki.archlinux.org/index.php/Kernel_Mode_Setting#Forcing_modes_and_EDID
     if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
-        type_string " video=hyperv_fb:1024x768";
+        type_string_slow " video=hyperv_fb:1024x768";
     }
     type_string_slow "Y2DEBUG=1 ";
 
     # gfxpayload variable replaced vga option in grub2
     if (!is_jeos && !is_casp && (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64'))) {
-        type_string "vga=791 ";
+        type_string_slow "vga=791 ";
         type_string_slow "video=1024x768-16 ";
         assert_screen check_var('UEFI', 1) ? 'inst-video-typed-grub2' : 'inst-video-typed', 4;
     }
@@ -148,9 +148,9 @@ sub bootmenu_network_source {
         }
 
         # Type variables into fields
-        type_string "$m_server\t";
-        type_string "$m_share\t" if $m_protocol eq "smb";
-        type_string "$m_directory\n";
+        type_string_slow "$m_server\t";
+        type_string_slow "$m_share\t" if $m_protocol eq "smb";
+        type_string_slow "$m_directory\n";
         save_screenshot;
 
         # HTTP-proxy
@@ -161,7 +161,7 @@ sub bootmenu_network_source {
                 send_key "down";
             }
             send_key "ret";
-            type_string "$proxyhost\t$proxyport\n";
+            type_string_slow "$proxyhost\t$proxyport\n";
             assert_screen "inst-proxy_is_setup";
 
             # add boot parameters
