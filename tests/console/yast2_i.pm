@@ -69,15 +69,12 @@ sub run() {
     }
     send_key "alt-a", 1;     # accept
 
-    my @tags = qw(yast2-sw-packages-autoselected yast2-sw_automatic-changes);
     # Whether summary is shown depends on PKGMGR_ACTION_AT_EXIT in /etc/sysconfig/yast2
-    push @tags, 'yast2-sw_shows_summary' unless get_var('YAST_SW_NO_SUMMARY');
-    while (1) {
-        assert_screen(\@tags, 60);
+    until (get_var('YAST_SW_NO_SUMMARY')) {
+        assert_screen ['yast2-sw-packages-autoselected', 'yast2-sw_automatic-changes', 'yast2-sw_shows_summary'], 60;
         # automatic changes for manual selections
         if (match_has_tag('yast2-sw-packages-autoselected') or match_has_tag('yast2-sw_automatic-changes')) {
             wait_screen_change { send_key 'alt-o' };
-            last if get_var('YAST_SW_NO_SUMMARY');
             next;
         }
         elsif (match_has_tag('yast2-sw_shows_summary')) {
