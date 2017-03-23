@@ -947,6 +947,7 @@ elsif (get_var("REGRESSION")) {
         load_reboot_tests();
         loadtest "x11regressions/x11regressions_setup";
         loadtest "console/hostname";
+        loadtest "console/force_cron_run";
         loadtest "shutdown/grub_set_bootargs";
         loadtest "shutdown/shutdown";
     }
