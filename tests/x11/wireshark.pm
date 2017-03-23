@@ -72,7 +72,6 @@ sub run() {
 
     # generate traffic
     select_console 'root-console';
-    wait_still_screen 2;
     assert_script_run "dig www.suse.com A";
     assert_script_run "host www.suse.com";    # check for valid IP address
     type_string "exit\n";                     # logout

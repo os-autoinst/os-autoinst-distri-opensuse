@@ -111,7 +111,6 @@ sub run() {
             send_key 'alt-s';
         } until (wait_still_screen(3, 4));
         select_console 'install-shell';
-        assert_screen 'inst-console';
 
         # check for right boot-device on s390x (zVM, DASD ONLY)
         if (check_var('BACKEND', 's390x') && !check_var('S390_DISK', 'ZFCP')) {
@@ -122,7 +121,6 @@ sub run() {
         $self->get_ip_address();
         $self->save_upload_y2logs();
         select_console 'installation';
-        assert_screen 'rebootnow';
     }
     wait_screen_change {
         send_key 'alt-o';    # Reboot

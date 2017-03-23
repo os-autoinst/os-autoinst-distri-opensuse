@@ -148,7 +148,6 @@ sub post_fail_hook() {
 
     $self->SUPER::post_fail_hook;
     select_console 'log-console';
-    wait_still_screen(2);
     $self->save_upload_y2logs;
 }
 

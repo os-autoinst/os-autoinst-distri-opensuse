@@ -80,7 +80,7 @@ sub run() {
 
     # Cleanup
     send_key "alt-f4";
-    select_console "root-console";
+    select_console 'root-console', await_console => 0;
     send_key "ctrl-c";
     assert_script_run "sed -i '\$d' $theme";
     select_console "x11";
