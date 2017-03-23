@@ -330,7 +330,6 @@ sub load_yast2_ui_tests {
     # setup $serialdev permission and so on
     loadtest "console/consoletest_setup";
     loadtest "console/hostname";
-    loadtest "console/check_console_font";
     loadtest "console/zypper_lr";
     loadtest "console/zypper_ref";
     # start extra yast console test from here
@@ -454,7 +453,6 @@ sub load_extra_tests() {
         }
     }
     else {
-        loadtest "console/check_console_font";
         loadtest "console/zypper_lr";
         loadtest "console/openvswitch";
         # dependency of git test
