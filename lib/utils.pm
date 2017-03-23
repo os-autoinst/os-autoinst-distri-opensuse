@@ -1,3 +1,19 @@
+# Copyright (C) 2015-2017 SUSE LLC
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
 package utils;
 
 use base Exporter;
@@ -158,11 +174,16 @@ sub select_kernel {
 # console font, we need to call systemd-vconsole-setup to workaround
 # that
 sub check_console_font {
-    select_console('root-console');
+    # we do not await the console here, as we have to expect the font to be broken
+    # for the needle to match
+    select_console('root-console', await_console => 0);
+
     # Ensure the echo of input actually happened by using assert_script_run
-    assert_script_run "echo Jeder wackere Bayer vertilgt bequem zwo Pfund Kalbshaxen. 0123456789";
-    if (check_screen "broken-console-font", 5) {
+    assert_script_run 'showconsolefont';
+    assert_screen [qw(broken-console-font correct-console-font)];
+    if (match_has_tag 'broken-console-font') {
         assert_script_run("/usr/lib/systemd/systemd-vconsole-setup");
+        assert_screen 'correct-console-font';
     }
 }
 
