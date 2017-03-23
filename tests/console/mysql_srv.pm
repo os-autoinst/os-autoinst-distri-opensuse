@@ -18,19 +18,10 @@ use utils;
 
 sub run() {
     select_console 'root-console';
-
-    # Install mysql
-    zypper_call("in mysql");
-
-    # After installation, mysql is disabled
-    script_run "systemctl status mysql.service | tee /dev/$serialdev -", 0;
-    wait_serial(".*inactive.*", 4) || die "mysql should be disabled by default";
-
-    # Now the service must be enabled
-    script_run "systemctl start mysql.service",                          60;
-    script_run "systemctl status mysql.service | tee /dev/$serialdev -", 0;
-    wait_serial(".*Syntax error.*", 2, 1) || die "have error while starting mysql";
-
+    zypper_call('in mysql');
+    assert_script_run '! systemctl status --no-pager mysql.service', fail_message => 'mysql should be disabled by default';
+    assert_script_run 'systemctl start mysql.service';
+    assert_script_run 'systemctl status --no-pager mysql.service';
     assert_screen 'test-mysql_srv-1';
 }
 
