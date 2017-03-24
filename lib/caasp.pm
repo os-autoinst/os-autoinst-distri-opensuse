@@ -35,6 +35,7 @@ sub process_reboot {
     reset_consoles;
     # We have to re-connect *after* the restart on xen
     if (check_var('VIRSH_VMM_FAMILY', 'xen')) {
+        assert_screen 'black';
         sleep 4;
         select_console 'sut';
         console('svirt')->attach_to_running({stop_vm => 1});
