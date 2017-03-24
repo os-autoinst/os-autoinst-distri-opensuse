@@ -68,21 +68,19 @@ sub run() {
             send_key 'alt-u';                                                   # select URL field
             type_string get_var("ADDONURL_$uc_addon");                          # repo URL
             send_key $cmd{next};
-            if (get_var("ADDONS")) {
-                if (get_var("BETA_$uc_addon")) {
-                    assert_screen "addon-betawarning-$addon";
+            my @tags = ("addon-products", "addon-betawarning-$addon", "addon-license-$addon");
+            assert_screen(\@tags, 90);
+            if (match_has_tag("addon-betawarning-$addon") or match_has_tag("addon-license-$addon")) {
+                if (match_has_tag("addon-betawarning-$addon")) {
                     send_key "ret";
                     assert_screen "addon-license-beta";
-                }
-                else {
-                    assert_screen "addon-license-$addon";
                 }
                 wait_still_screen 2;
                 send_key 'alt-a';                                               # yes, agree
                 wait_still_screen 2;
                 send_key $cmd{next};
+                assert_screen 'addon-products', 90;
             }
-            assert_screen 'addon-products', 90;
             send_key "tab";                                                     # select addon-products-$addon
             if (check_var('VIDEOMODE', 'text')) {                               # textmode need more tabs, depends on add-on count
                 send_key_until_needlematch "addon-list-selected", 'tab';
