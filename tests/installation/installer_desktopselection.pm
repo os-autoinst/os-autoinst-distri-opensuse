@@ -16,7 +16,6 @@ use base "y2logsstep";
 use testapi;
 
 sub run() {
-    my $install_patterns = '';
     assert_screen 'desktop-selection';
     my $d = get_var('DESKTOP');
 
@@ -24,9 +23,6 @@ sub run() {
         # select computer role
         if ($d ne 'kde' && $d ne 'gnome' && $d ne 'textmode') {
             $d = 'custom';
-        }
-        if ($d eq 'custom') {
-            $install_patterns = 'x11' if get_var('DESKTOP') eq 'minimalx';
         }
     }
     if ($d ne 'kde' && $d ne 'gnome') {
@@ -48,10 +44,9 @@ sub run() {
 
     if (get_var('NEW_DESKTOP_SELECTION') && $d eq 'custom') {
         assert_screen "pattern-selection";
-        for my $p (split(/,/, $install_patterns)) {
-            assert_and_click "pattern-$p";
-            assert_and_click "pattern-$p-selected";
-        }
+        my $de = get_var('DESKTOP');
+        assert_and_click "pattern-$de";
+        assert_and_click "pattern-$de-selected";
         send_key $cmd{ok};
     }
 }
