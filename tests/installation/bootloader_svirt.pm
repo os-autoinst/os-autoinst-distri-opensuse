@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -16,6 +16,15 @@ use warnings;
 use testapi;
 use utils;
 use File::Basename;
+
+sub copy_image {
+    my ($file, $dir) = @_;
+    my $basename = basename($file);
+    my $path     = `find $dir -name $basename | head -n1 | tr -d '\n'`;
+    diag("Path found: $path");
+    type_string("# Copying image $basename...\n");
+    return $path;
+}
 
 sub run() {
     my $arch       = get_var('ARCH');
@@ -68,24 +77,26 @@ sub run() {
         $svirt->change_domain_element(os => cmdline => $cmdline);
     }
 
+    my $hdddir = '/var/lib/openqa/share/factory/hdd';
     my $size_i = get_var('HDDSIZEGB', '24');
     # In JeOS we have the disk, we just need to deploy it, for the rest
     # - installs from network and ISO media - we have to create it.
     if (my $hddfile = get_var('HDD_1')) {
+        my $hddpath = copy_image($hddfile, $hdddir);
         $svirt->add_disk(
             {
-                size      => $size_i . 'G',
-                file      => ($vmm_family eq 'vmware') ? basename($hddfile) : $hddfile,
-                dev_id    => 'a',
-                bootorder => 1
+                file => ($vmm_family eq 'vmware') ? basename($hddpath) : $hddpath,
+                dev_id      => 'a',
+                bootorder   => 1,
+                backingfile => 1
             });
         if (my $extra_hdd = get_var('HDD_2')) {
+            my $extra_hddpath = copy_image($extra_hdd, $hdddir);
             $svirt->add_disk(
                 {
-                    file => ($vmm_family eq 'vmware') ? basename($extra_hdd) : $extra_hdd,
+                    file => ($vmm_family eq 'vmware') ? basename($extra_hddpath) : $extra_hddpath,
                     dev_id => 'b'
                 });
-
         }
     }
     else {
@@ -98,16 +109,15 @@ sub run() {
             });
     }
 
+    my $isodir = '/var/lib/openqa/share/factory/iso';
     # In JeOS and netinstall we don't have ISO media, for the rest we have to attach it.
     if (!get_var('NETBOOT') and !is_jeos() and !get_var('HDD_1')) {
         my $isofile = get_required_var('ISO');
-        if ($vmm_family eq 'vmware') {
-            $isofile = basename($isofile);
-        }
+        my $isopath = copy_image($isofile, $isodir);
         $svirt->add_disk(
             {
                 cdrom     => 1,
-                file      => $isofile,
+                file      => ($vmm_family eq 'vmware') ? basename($isopath) : $isopath,
                 dev_id    => 'b',
                 bootorder => 2
             });
@@ -116,13 +126,11 @@ sub run() {
         my $dev_id = 'c';
         foreach my $n (1 .. 9) {
             if (my $addon_isofile = get_var("ISO_" . $n)) {
-                if ($vmm_family eq 'vmware') {
-                    $addon_isofile = basename($addon_isofile);
-                }
+                my $addon_isopath = copy_image($addon_isofile, $isodir);
                 $svirt->add_disk(
                     {
                         cdrom  => 1,
-                        file   => $addon_isofile,
+                        file   => ($vmm_family eq 'vmware') ? basename($addon_isopath) : $addon_isopath,
                         dev_id => $dev_id
                     });
                 $dev_id = chr((ord $dev_id) + 1);    # return next letter in alphabet
