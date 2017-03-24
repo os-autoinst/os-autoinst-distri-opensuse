@@ -768,7 +768,10 @@ sub load_x11tests() {
         loadtest "x11/reboot_gnome";
     }
     loadtest "x11/desktop_mainmenu";
-    loadtest "x11/shutdown";
+    # Need to skip shutdown to keep beckend alive if run rollback tests after migration
+    unless (get_var('ROLLBACK_AFTER_MIGRATION')) {
+        loadtest "x11/shutdown";
+    }
 }
 
 sub load_applicationstests {
@@ -933,6 +936,16 @@ sub prepare_target() {
         load_boot_tests();
         load_inst_tests();
         load_reboot_tests();
+    }
+}
+
+sub load_rollback_tests() {
+    loadtest "boot/grub_test_snapshot";
+    if (get_var('UPGRADE') || get_var('ZDUP')) {
+        loadtest "boot/snapper_rollback";
+    }
+    if (get_var('MIGRATION_ROLLBACK')) {
+        loadtest "online_migration/sle12_online_migration/snapper_rollback";
     }
 }
 
@@ -1218,13 +1231,7 @@ else {
         }
         else {
             if (get_var("BOOT_TO_SNAPSHOT") && (snapper_is_applicable())) {
-                loadtest "boot/grub_test_snapshot";
-                if (get_var("UPGRADE")) {
-                    loadtest "boot/snapper_rollback";
-                }
-                if (get_var("MIGRATION_ROLLBACK")) {
-                    loadtest "online_migration/sle12_online_migration/snapper_rollback";
-                }
+                load_rollback_tests();
             }
             else {
                 loadtest "boot/boot_to_desktop";
@@ -1292,6 +1299,9 @@ else {
         load_rescuecd_tests();
         load_consoletests();
         load_x11tests();
+        if (get_var('ROLLBACK_AFTER_MIGRATION') && (snapper_is_applicable())) {
+            load_rollback_tests();
+        }
     }
 }
 
