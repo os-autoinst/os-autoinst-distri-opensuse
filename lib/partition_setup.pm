@@ -37,7 +37,7 @@ sub wipe_existing_partitions {
     wait_still_screen 2;
     save_screenshot;
     send_key 'ret';          # create new partition table
-    if (!get_var('UEFI') || !check_var('BACKEND', 's390x')) {    # only GPT partition table
+    if (!get_var('UEFI') && !check_var('BACKEND', 's390x')) {    # only GPT partition table
         assert_screen 'partition-table-MSDOS-selected';
         send_key 'alt-o';                                        # OK
     }
