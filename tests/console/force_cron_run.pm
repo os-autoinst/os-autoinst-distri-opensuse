@@ -18,10 +18,11 @@ use testapi;
 sub run() {
     select_console 'root-console';
 
-    assert_script_run "test -x /usr/lib/cron/run-crons && bash -x /usr/lib/cron/run-crons", 400;
+    assert_script_run "test -x /usr/lib/cron/run-crons && bash -x /usr/lib/cron/run-crons", 1000;
     sleep 3;    # some head room for the load average to rise
     script_run "top; echo TOP-DONE-\$? > /dev/$serialdev", 0;
-    assert_screen 'top-load-decreased',                    3000;
+    # let the load settle
+    assert_screen 'top-load-decreased', 1000;
     send_key 'q';
     wait_serial 'TOP-DONE';
 }
