@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Add first PowerPC test
-# Maintainer: Dinar Valeev <k0da@opensuse.org>
+# Summary: Handle PowerPC specific boot process
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "installbasetest";
 use strict;
@@ -22,7 +22,7 @@ use utils;
 
 # hint: press shift-f10 trice for highest debug level
 sub run() {
-    assert_screen "bootloader-ofw", 15;
+    assert_screen "bootloader", 15;
     if (get_var("UPGRADE")) {
         send_key_until_needlematch 'inst-onupgrade', 'up';
     }
