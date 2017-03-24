@@ -7,8 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Basic SLEPOS test
-# G-Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
+# Summary: Basic SLEPOS test
+# Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
 
 use strict;
 use base 'basetest';

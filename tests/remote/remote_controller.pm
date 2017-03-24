@@ -7,13 +7,13 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Rename remote installation nodes (#1588)
+# Summary: Rename remote installation nodes (#1588)
 #    * Rename remote installation nodes
 #    slave -> target
 #    master -> controller
 #
 #    * Enable remote installation tests for opensuse
-# G-Maintainer: Martin Kravec <kravciak@users.noreply.github.com>
+# Maintainer: Martin Kravec <kravciak@users.noreply.github.com>
 
 use base "opensusebasetest";
 use strict;

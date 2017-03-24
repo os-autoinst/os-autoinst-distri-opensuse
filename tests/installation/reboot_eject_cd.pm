@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: splited wait_encrypt_prompt being a single step; harmonized once wait_encrypt_prompt obsoleted
-# G-Maintainer: Max Lin <mlin@suse.com>
+# Summary: splited wait_encrypt_prompt being a single step; harmonized once wait_encrypt_prompt obsoleted
+# Maintainer: Max Lin <mlin@suse.com>
 
 use strict;
 use base "y2logsstep";

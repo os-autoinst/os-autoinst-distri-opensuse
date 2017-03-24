@@ -9,10 +9,10 @@
 
 # Case #1459498 - FIPS : hexchat_ssl
 
-# G-Summary: Add hexchat_ssl test case and fips test entry
+# Summary: Add hexchat_ssl test case and fips test entry
 #    Add hexchat_ssl.pm test case was located in x11/hexchat_ssl.pm
 #    Add hexchat_ssl.pm test entry in load_fips_tests_misc() in sle/main.pm
-# G-Maintainer: Ben Chou <bchou@suse.com>
+# Maintainer: Ben Chou <bchou@suse.com>
 
 use base "x11test";
 use strict;

@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Rework the tests layout.
-# G-Maintainer: Alberto Planas <aplanas@suse.com>
+# Summary: Rework the tests layout.
+# Maintainer: Alberto Planas <aplanas@suse.com>
 
 use base "x11test";
 use strict;

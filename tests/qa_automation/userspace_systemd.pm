@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: split userspace into pieces for easy review.
-# G-Maintainer: Yong Sun <yosun@suse.com>
+# Summary: split userspace into pieces for easy review.
+# Maintainer: Yong Sun <yosun@suse.com>
 
 use base "qa_run";
 use strict;

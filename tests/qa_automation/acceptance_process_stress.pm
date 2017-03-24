@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: splite acceptance test into three to avoid timeout issue
-# G-Maintainer: Yong Sun <yosun@suse.com>
+# Summary: splite acceptance test into three to avoid timeout issue
+# Maintainer: Yong Sun <yosun@suse.com>
 
 use base "qa_run";
 use strict;

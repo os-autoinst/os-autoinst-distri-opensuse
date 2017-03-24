@@ -13,8 +13,8 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# G-Summary: merge of sles11sp4 autoyast test, base commit
-# G-Maintainer: Pavel Sladek <psladek@suse.cz>
+# Summary: merge of sles11sp4 autoyast test, base commit
+# Maintainer: Pavel Sladek <psladek@suse.cz>
 
 use strict;
 use base 'y2logsstep';

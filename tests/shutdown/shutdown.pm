@@ -14,8 +14,8 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-# G-Summary: support for saving and loading of hdd image
-# G-Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
+# Summary: support for saving and loading of hdd image
+# Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
 
 use strict;
 use base 'basetest';

@@ -7,8 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Let real hardware boot to BIOS and PXE menu before grub_test
-# G-Maintainer: Stephan Kulow <coolo@suse.de>
+# Summary: Let real hardware boot to BIOS and PXE menu before grub_test
+# Maintainer: Stephan Kulow <coolo@suse.de>
 
 use base "basetest";
 use strict;

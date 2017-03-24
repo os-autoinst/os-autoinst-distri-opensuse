@@ -9,10 +9,10 @@
 
 # Case 1525204 - FIPS: w3m_https
 
-# G-Summary: Add w3m_https test case and fips test entry
+# Summary: Add w3m_https test case and fips test entry
 #    Add w3m_https.pm test case was located in console/w3m_https.pm
 #    Add w3m_https.pm test entry in load_fips_tests_web() in sle/main.pm
-# G-Maintainer: Ben Chou <bchou@suse.com>
+# Maintainer: Ben Chou <bchou@suse.com>
 
 use base "consoletest";
 use strict;

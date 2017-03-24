@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add openssh test cases for FIPS testing
+# Summary: Add openssh test cases for FIPS testing
 #    Test Case 1525228: FIPS: openssh
 #
 #    Involve the existing openssh test case: sshd.pm
@@ -18,7 +18,7 @@
 #    openssh will refuse to work with any non-approved
 #    algorithm in fips mode, just like blowfish cipher
 #    or MD5 hash.
-# G-Maintainer: Qingming Su <qingming.su@suse.com>
+# Maintainer: Qingming Su <qingming.su@suse.com>
 
 use base "consoletest";
 use strict;

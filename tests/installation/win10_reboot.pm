@@ -7,8 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add separate windows reboot test
-# G-Maintainer: Ludwig Nussel <ludwig.nussel@suse.de>
+# Summary: Add separate windows reboot test
+# Maintainer: Ludwig Nussel <ludwig.nussel@suse.de>
 
 use base "installbasetest";
 use strict;
