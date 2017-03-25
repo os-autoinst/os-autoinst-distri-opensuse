@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -20,6 +20,13 @@ use utils;
 
 sub run() {
     my $self = shift;
+    x11_start_program('xterm');
+    script_sudo(q{echo 'ForwardToConsole=yes' >> /etc/systemd/journald.conf});
+    script_sudo(q{echo 'MaxLevelConsole=debug' >> /etc/systemd/journald.conf});
+    script_sudo(qq{echo 'TTYPath=/dev/$serialdev' >> /etc/systemd/journald.conf});
+    script_sudo(q{systemctl restart systemd-journald});
+    type_string("exit\n");
+
     $self->{await_shutdown} = 0;
 
     if (check_var("DESKTOP", "kde")) {
@@ -129,8 +136,9 @@ sub test_flags() {
 sub post_fail_hook {
     my ($self) = @_;
     # In case plymouth splash shows up and the shutdown is blocked, show
-    # console logs
-    send_key 'esc' if $self->{await_shutdown};
+    # console logs - save screen of console (plymouth splash screen in disabled at boottime)
+    send_key('esc') if $self->{await_shutdown};
+    save_screenshot;
 }
 
 1;
