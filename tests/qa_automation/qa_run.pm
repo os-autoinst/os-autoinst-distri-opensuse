@@ -70,7 +70,8 @@ sub prepare_repos {
     else {
         script_run("echo 'info: No QA_WEB_REPO configured in this testsuit.'");
     }
-    assert_script_run "zypper --gpg-auto-import-keys ref";
+    # sometimes updates.suse.com is busy, so we need to wait for possiblye retries
+    assert_script_run "zypper --gpg-auto-import-keys ref", 600;
     zypper_call("in qa_testset_automation qa_tools");
 }
 
