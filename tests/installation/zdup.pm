@@ -88,8 +88,11 @@ sub run() {
                        esac
                        done
                        [ -z \$dev ] || echo \"found dev \$dev with label \$label\"";
-            # if that fails, e.g. if volume descriptor too long, just try /dev/sr0
-            $defaultrepo = "dvd:/?devices=\${dev:-/dev/sr0}";
+            # get all attached ISOs including addons' as zdup dup repos
+            my $srx = script_output("ls -al /dev/disk/by-label | grep -E /sr[0-9]+ | wc -l");
+            for my $n (0 .. $srx - 1) {
+                $defaultrepo .= "dvd:/?devices=\${dev:-/dev/sr$n}+";
+            }
         }
     }
 
