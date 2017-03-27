@@ -402,7 +402,7 @@ sub load_consoletests() {
             loadtest "console/xorg_vt";
         }
         loadtest "console/zypper_lr";
-        loadtest "console/force_cron_run";
+        loadtest "console/force_cron_run" if !is_jeos;
         loadtest 'console/enable_usb_repo' if check_var('USBBOOT', 1);
         if (have_addn_repos) {
             loadtest "console/zypper_ar";
