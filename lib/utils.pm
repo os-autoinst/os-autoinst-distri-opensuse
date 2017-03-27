@@ -28,8 +28,9 @@ our @EXPORT = qw(
   clear_console
   is_jeos
   is_casp
-  is_gnome_next
   is_krypton_argon
+  is_kde_live
+  is_gnome_next
   select_kernel
   type_string_slow
   type_string_very_slow
@@ -195,6 +196,10 @@ sub is_jeos() {
 
 sub is_krypton_argon {
     return get_var('FLAVOR') =~ /(Krypton|Argon)/;
+}
+
+sub is_kde_live {
+    return get_var('FLAVOR') =~ /KDE-Live/;
 }
 
 sub is_gnome_next {
