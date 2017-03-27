@@ -24,7 +24,7 @@ sub run() {
     my $zypper_dup_conflict      = qr/^Choose from above solutions by number[\s\S,]* \[1/m;
     my $zypper_dup_notifications = qr/^View the notifications now\? \[y/m;
     my $zypper_dup_error         = qr/^Abort, retry, ignore\? \[a/m;
-    my $zypper_dup_finish        = qr/^There are some running programs that might use files|^ZYPPER-DONE/m;
+    my $zypper_dup_finish        = qr/^There are some running programs that might use files|ZYPPER-DONE/m;
     my $zypper_packagekit        = qr/^Tell PackageKit to quit\?/m;
     my $zypper_packagekit_again  = qr/^Try again\?/m;
     my $zypper_repo_disabled     = qr/^Repository '[^']+' has been successfully disabled./m;
