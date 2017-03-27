@@ -60,16 +60,16 @@ sub run() {
     # verify eol from lifecycle data
     select_console 'user-console';
     my $output = script_output "zypper lifecycle $package", 300;
-    die "$package lifecycle entry incorrect:$output" unless $output =~ /$package-\S+\s+$testdate/;
+    die "$package lifecycle entry incorrect:$output" unless $output =~ /$package(-\S+)?\s+$testdate/;
 
     # test that the package is reported if we query the date after
     $output = script_output "zypper lifecycle --date $testdate_after", 300;
-    die "$package not reported for date $testdate_after:$output" unless $output =~ /$package-\S+\s+$testdate/;
+    die "$package not reported for date $testdate_after:$output" unless $output =~ /$package(-\S+)?\s+$testdate/;
 
     # test that the package is not reported if we query the date before
     # report can be empty - exit code 1 is allowed
     $output = script_output "zypper lifecycle --date $testdate_before || test \$? -le 1", 300;
-    die "$package reported for date $testdate_before:$output" if $output =~ /$package-\S+\s+$testdate/;
+    die "$package reported for date $testdate_before:$output" if $output =~ /$package(-\S+)?\s+$testdate/;
 
     # delete lifecycle data - package eol should default to product eol
     select_console 'root-console';
@@ -92,7 +92,7 @@ sub run() {
     # verify that package eol defaults to product eol
     $output = script_output "zypper lifecycle $package", 300;
     die "$package lifecycle entry incorrect:'$output', expected: '/$package-\\S+\\s+$product_eol'"
-      unless $output =~ /$package-\S+\s+$product_eol/;
+      unless $output =~ /$package(-\S+)?\s+$product_eol/;
 
     # restore original data, if any
     select_console 'root-console';
