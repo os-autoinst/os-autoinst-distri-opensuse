@@ -148,6 +148,8 @@ sub problem_can_be_skipped {
     }
     # conflicts with firebird-classic
     return 1 if $pkg =~ /firebird-superserver/;
+    # conflict with julia, julia-devel, respectively
+    return 1 if $pkg =~ /^julia-compat(-devel)?/;
 
     return;
 }
