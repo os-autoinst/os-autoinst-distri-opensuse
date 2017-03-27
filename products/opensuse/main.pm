@@ -532,8 +532,9 @@ sub load_x11tests() {
     if (kdestep_is_applicable()) {
         loadtest "x11/kate";
     }
-    loadtest "x11/firefox";
-    if (!get_var("OFW") && check_var('BACKEND', 'qemu')) {
+    # no firefox on KDE-Live # boo#1022499
+    loadtest "x11/firefox" unless is_kde_live;
+    if (!get_var("OFW") && check_var('BACKEND', 'qemu') && !is_kde_live) {
         loadtest "x11/firefox_audio";
     }
     if (gnomestep_is_applicable() && !(get_var("LIVECD") || is_server)) {
@@ -552,7 +553,7 @@ sub load_x11tests() {
         loadtest "x11/oomath";
         loadtest "x11/oocalc";
     }
-    if (get_var("DESKTOP") =~ /kde|gnome/ && !is_server && !is_krypton_argon && !is_gnome_next) {
+    if (get_var("DESKTOP") =~ /kde|gnome/ && !is_server && !is_kde_live && !is_krypton_argon && !is_gnome_next) {
         loadtest "x11/ooffice";
     }
     if (kdestep_is_applicable()) {
