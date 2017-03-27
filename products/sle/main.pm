@@ -121,7 +121,7 @@ set_var('NOAUTOLOGIN', 1);
 set_var('HASLICENSE',  1);
 
 # Set serial console for Xen PV
-if (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux')) {
+if (is_xen 'pv') {
     if (sle_version_at_least('12-SP2')) {
         set_var('SERIALDEV', 'hvc0');
     }
@@ -364,7 +364,7 @@ sub load_boot_tests() {
         # TODO: rename to bootloader_grub2
         # Unless GRUB2 supports framebuffer on Xen PV (bsc#961638), grub2 tests
         # has to be skipped there.
-        if (!(check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux'))) {
+        if (!is_xen('pv')) {
             if (get_var("UEFI") || is_jeos) {
                 loadtest "installation/bootloader_uefi";
             }
@@ -572,7 +572,7 @@ sub load_reboot_tests() {
     }
     if (installyaststep_is_applicable()) {
         # test makes no sense on s390 because grub2 can't be captured
-        if (!(check_var("ARCH", "s390x") or (check_var('VIRSH_VMM_FAMILY', 'xen') and check_var('VIRSH_VMM_TYPE', 'linux')))) {
+        if (!(check_var("ARCH", "s390x") or is_xen('pv'))) {
             loadtest "installation/grub_test";
             if ((snapper_is_applicable()) && get_var("BOOT_TO_SNAPSHOT")) {
                 loadtest "installation/boot_into_snapshot";
