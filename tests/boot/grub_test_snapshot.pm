@@ -21,6 +21,7 @@ sub run() {
         set_var('BOOT_TO_SNAPSHOT', 1);
         select_console 'root-console';
         type_string "reboot\n";
+        reset_consoles;
         assert_screen 'grub2', 200;
     }
     else {
