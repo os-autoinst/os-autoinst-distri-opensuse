@@ -400,6 +400,7 @@ sub activate_console {
         }
         assert_screen "text-logged-in-$user";
         $self->set_standard_prompt($user);
+        assert_screen $console;
 
         # On s390x 'setterm' binary is not present as there's no linux console
         if (!check_var('ARCH', 's390x')) {
