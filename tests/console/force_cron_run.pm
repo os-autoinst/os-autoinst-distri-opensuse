@@ -18,7 +18,7 @@ use testapi;
 sub run() {
     select_console 'root-console';
 
-    assert_script_run "test -x /usr/lib/cron/run-crons && bash -x /usr/lib/cron/run-crons", 1000;
+    assert_script_run "bash -x /usr/lib/cron/run-crons", 1000;
     sleep 3;    # some head room for the load average to rise
     script_run "top; echo TOP-DONE-\$? > /dev/$serialdev", 0;
     # let the load settle
