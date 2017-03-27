@@ -619,7 +619,7 @@ sub load_consoletests() {
             loadtest "console/xorg_vt";
         }
         loadtest "console/zypper_lr";
-        loadtest "console/force_cron_run";
+        loadtest "console/force_cron_run" unless is_jeos;
         loadtest 'console/enable_usb_repo' if check_var('USBBOOT', 1);
         if (need_clear_repos()) {
             loadtest "update/zypper_clear_repos";
@@ -959,7 +959,7 @@ elsif (get_var("REGRESSION")) {
         load_reboot_tests();
         loadtest "x11regressions/x11regressions_setup";
         loadtest "console/hostname";
-        loadtest "console/force_cron_run";
+        loadtest "console/force_cron_run" unless is_jeos;
         loadtest "shutdown/grub_set_bootargs";
         loadtest "shutdown/shutdown";
     }
@@ -1312,7 +1312,7 @@ if (get_var("CLONE_SYSTEM")) {
 if (get_var("STORE_HDD_1") || get_var("PUBLISH_HDD_1")) {
     if (get_var("INSTALLONLY")) {
         loadtest "console/hostname";
-        loadtest "console/force_cron_run";
+        loadtest "console/force_cron_run" unless is_jeos;
         loadtest "shutdown/grub_set_bootargs";
         loadtest "shutdown/shutdown";
         if (check_var("BACKEND", "svirt")) {
