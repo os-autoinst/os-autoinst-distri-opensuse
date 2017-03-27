@@ -76,7 +76,6 @@ sub run() {
     $self->exit_firefox;
 
     mutex_unlock 'xvnc';
-    assert_screen 'generic-desktop';
 }
 
 1;

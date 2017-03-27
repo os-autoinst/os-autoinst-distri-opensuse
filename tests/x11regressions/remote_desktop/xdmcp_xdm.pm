@@ -13,16 +13,14 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
-# Summary: Remote Login: XDMCP with gdm and SLE-Classic configured
+# Summary: Remote Login: XDMCP with xdm and icewm configured
 # Maintainer: Chingkai <qkzhu@suse.com>
-# Tags: tc#1586203
+# Tags: tc#1586204
 
 use strict;
-use base 'basetest';
 use base 'x11test';
 use testapi;
 use lockapi;
-use utils;
 
 sub run() {
     # Wait for supportserver if not yet ready
@@ -39,13 +37,13 @@ sub run() {
     type_string "exit\n";
 
     # Remote access SLES via Xephyr
-    type_string "Xephyr -query 10.0.2.1 -screen 1024x768+0+0 -terminate :1\n";
-    assert_screen 'xdmcp-gdm', 90;
-    send_key 'ret';
-    assert_screen 'xdmcp-login-gdm';
+    type_string "Xephyr -query 10.0.2.1 -terminate :1\n";
+    assert_screen 'xdmcp-xdm', 90;
+    type_string "$username\n";
+    wait_still_screen 3;
     type_password;
     send_key 'ret';
-    assert_screen 'xdmcp-gdm-generic-desktop';
+    assert_screen 'xdmcp-icewm-generic-desktop';
     send_key 'alt-f4';    # Close Xephyr
     wait_still_screen 3;
     send_key 'alt-f4';    # Close xterm

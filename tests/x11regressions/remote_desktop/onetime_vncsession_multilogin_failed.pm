@@ -77,7 +77,6 @@ sub run() {
     send_key 'x';
 
     mutex_unlock 'xvnc';
-    assert_screen 'generic-desktop';
 }
 
 1;
