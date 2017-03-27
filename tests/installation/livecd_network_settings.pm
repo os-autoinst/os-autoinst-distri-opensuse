@@ -19,9 +19,6 @@ use testapi;
 sub run() {
     assert_screen 'inst-network_settings-livecd';
     send_key $cmd{next};
-    # LIVECD installer assumes online repos at this point
-    wait_still_screen;
-    wait_screen_change { send_key $cmd{next}; };
 }
 
 1;
