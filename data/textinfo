@@ -35,4 +35,4 @@ rpm -qa | sort
 
 journalctl -a --no-full -m > /var/log/journal.dump
 
-tar cjf /tmp/logs.tar.bz2 /var/log
+tar cjf /tmp/logs.tar.bz2 --warning=no-file-changed /var/log
