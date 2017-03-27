@@ -28,7 +28,7 @@ sub run() {
     assert_screen('firefox-pagesaving-load', 90);
 
     send_key "ctrl-s";
-    assert_screen('firefox-pagesaving-saveas', 30);
+    assert_screen 'firefox-pagesaving-saveas';
 
     send_key "alt-s";
     sleep 5;
@@ -40,8 +40,8 @@ sub run() {
     send_key "ctrl-l";
     wait_still_screen 3;
     type_string "ls Downloads/\n";
-    assert_screen('firefox-pagesaving-downloads', 10);
-    type_string "rm -rf Downloads/*\n";
+    assert_screen 'firefox-pagesaving-downloads';
+    assert_script_run 'rm -rf Downloads/*';
     send_key "ctrl-d";
 }
 1;
