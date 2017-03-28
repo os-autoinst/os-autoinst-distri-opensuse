@@ -57,6 +57,9 @@ sub run() {
     assert_script_run "~$username/data/delete_users $users_to_create";
     script_run "clear";
     restart_x11;
+    # after restart of X11 give the desktop a bit more time to show up to
+    # prevent the post_run_hook to fail being too impatient
+    assert_screen 'generic-desktop', 600;
 }
 
 1;
