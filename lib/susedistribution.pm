@@ -99,6 +99,7 @@ sub x11_start_program($$$) {
     my ($self, $program, $timeout, $options) = @_;
     # enable valid option as default
     $options->{valid} //= 1;
+    die "no desktop-runner available on minimalx" if check_var('DESKTOP', 'minimalx');
     send_key "alt-f2";
     mouse_hide(1);
     if (!check_screen("desktop-runner", $timeout)) {
