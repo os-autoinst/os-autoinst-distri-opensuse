@@ -15,15 +15,14 @@ use base "consoletest";
 use testapi;
 
 
-
 sub run() {
     select_console 'root-console';
 
     # check network at first
     assert_script_run("if ! systemctl -q is-active network; then systemctl -q start network; fi");
 
-    # install xorg-x11 and vncmanager at first
-    assert_script_run("/usr/bin/zypper -n -q in vncmanager xorg-x11 ");
+    # install components to test plus dependencies for checking
+    zypper_call("in vncmanager xorg-x11 net-tools");
 
     # start Remote Administration configuration
     script_run("yast2 remote; echo yast2-remote-status-\$? > /dev/$serialdev", 0);
@@ -58,8 +57,7 @@ sub run() {
     wait_serial('yast2-remote-status-0', 60) || die "'yast2 remote' didn't finish";
 
     # check vnc port is listening
-    assert_script_run("/bin/netstat -tl | grep 5901 | grep LISTEN");
-
+    assert_script_run("netstat -tl | grep 5901 | grep LISTEN");
 }
 1;
 
