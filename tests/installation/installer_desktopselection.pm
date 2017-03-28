@@ -47,6 +47,7 @@ sub run() {
         my $de = get_var('DESKTOP');
         assert_and_click "pattern-$de";
         assert_and_click "pattern-$de-selected";
+        save_screenshot;
         send_key $cmd{ok};
     }
 }
