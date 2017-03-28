@@ -18,7 +18,8 @@ use utils;
 sub run() {
     select_console 'root-console';
     zypper_call("in gcc-c++ pcre-devel");
-    assert_script_run "cd; curl -L -v " . autoinst_url . "/data/pcre > pcre-tests.data && cpio -id < pcre-tests.data && mv data pcre && cd pcre && ls .";
+    assert_script_run "mkdir pcre_data; cd pcre_data; curl -L -v " . autoinst_url . "/data/pcre > pcre-tests.data && cpio -id < pcre-tests.data && cd data";
+    assert_script_run "ls .";
     assert_script_run "g++ pcretest.cpp -o test_pcrecpp -lpcrecpp";
     assert_script_run "./test_pcrecpp";
     save_screenshot;
@@ -31,6 +32,9 @@ sub run() {
     save_screenshot;
 
     assert_script_run "grep -qP '^VERSI(O?)N' /etc/os-release";
+
+    # cleanup
+    assert_script_run "cd; rm -rf pcre_data";
 }
 
 1;
