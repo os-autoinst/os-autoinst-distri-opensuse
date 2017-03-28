@@ -13,6 +13,7 @@
 use strict;
 use base "consoletest";
 use testapi;
+use utils 'zypper_call';
 
 
 sub run() {
