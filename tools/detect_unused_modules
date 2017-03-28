@@ -3,5 +3,9 @@
 for test in $(git ls-files "*tests/*.pm") ; do
     t=$(echo $test | sed -e 's@tests/.*/@@' -e 's@.pm@@')
     git grep -q $t || echo $test
-done | grep -v 'qa_automation'
-git rm -f main.pm >/dev/null 2>&1
+    # fetchmail_ssl: https://progress.opensuse.org/issues/31750
+    # qa_automation, hpc: Tests are loaded dynamically based on test variable
+    # content
+done | \
+    grep -vE '(tools/|qa_automation|fetchmail_ssl|hpc/)' && \
+    { exit 1; } || { exit 0; }

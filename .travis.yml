@@ -15,4 +15,3 @@ install:
   - make prepare
 script:
   - make test
-  - tools/detect_unused_modules || true
