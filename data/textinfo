@@ -1,25 +1,15 @@
-#!/bin/sh -x
+#!/bin/sh -ex
 
 uname -a
-
 lsmod
-
 free
-
 cat /etc/fstab
-
 mount
-
 /usr/sbin/btrfs filesystem df /
-
 df -h
-
 ip -o a s
-
 ip r s
-
 ip -6 r s
-
 cat /etc/resolv.conf
 ls -al /etc/sysconfig/network
 rpm -qa 'kernel-*'
@@ -27,12 +17,9 @@ grep DISPLAYMANAGER /etc/sysconfig/displaymanager
 grep DEFAULT /etc/sysconfig/windowmanager
 ls -l /etc/ntp*
 du /var/log/messages
-
-ps ax 
-
+ps ax
 systemctl --no-pager --full
 rpm -qa | sort
-
 journalctl -a --no-full -m > /var/log/journal.dump
-
-tar cjf /tmp/logs.tar.bz2 --warning=no-file-changed /var/log
+# explicitly ignore exit code as we know files can change in the mean time
+tar cjf /tmp/logs.tar.bz2 --warning=no-file-changed /var/log || true
