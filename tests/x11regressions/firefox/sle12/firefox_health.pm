@@ -20,16 +20,12 @@ use testapi;
 sub run() {
     my ($self) = @_;
     $self->start_firefox;
-
-    send_key "alt-h";
-    sleep 1;
-    send_key "e";
-    check_screen('firefox-health-report', 60);
-
-    send_key "/";
-    sleep 1;
+    wait_screen_change { send_key 'alt-h' };
+    send_key 'e';
+    assert_screen 'firefox-health-report', 60;
+    wait_screen_change { send_key '/' };
     type_string "raw data\n";
-    check_screen('firefox-health-report-rawdata', 60);
+    assert_screen 'firefox-health-report-rawdata', 60;
 
     $self->exit_firefox;
 }
