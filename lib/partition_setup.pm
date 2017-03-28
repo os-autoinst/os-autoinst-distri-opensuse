@@ -49,7 +49,7 @@ sub addpart {
     my (%args) = @_;
     assert_screen 'expert-partitioner';
     send_key $cmd{addpart};
-    if (!get_var('UEFI')) {                                        # partitioning type does not appear when GPT disk used, GPT is default for UEFI
+    unless (get_var('UEFI') || check_var('BACKEND', 's390x')) {    # partitioning type does not appear when GPT disk used, GPT is default for UEFI
         assert_screen 'partitioning-type';
         send_key $cmd{next};
     }
