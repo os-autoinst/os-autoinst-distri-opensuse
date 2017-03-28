@@ -16,7 +16,7 @@ rpm -qa 'kernel-*'
 grep DISPLAYMANAGER /etc/sysconfig/displaymanager
 grep DEFAULT /etc/sysconfig/windowmanager
 ls -l /etc/ntp*
-du /var/log/messages
+[ -f /var/log/messages ] && du /var/log/messages
 ps ax
 systemctl --no-pager --full
 rpm -qa | sort
