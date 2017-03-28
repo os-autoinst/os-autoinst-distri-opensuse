@@ -20,13 +20,15 @@ use utils;
 
 sub run() {
     my $self = shift;
-    x11_start_program('xterm');
-    script_sudo(q{echo 'ForwardToConsole=yes' >> /etc/systemd/journald.conf});
-    script_sudo(q{echo 'MaxLevelConsole=debug' >> /etc/systemd/journald.conf});
-    script_sudo(qq{echo 'TTYPath=/dev/$serialdev' >> /etc/systemd/journald.conf});
-    script_sudo(q{systemctl restart systemd-journald});
-    type_string("exit\n");
-
+    # no desktop runner in minimal-X and other desktop environments
+    unless (check_var('DESKTOP', 'minimalx')) {
+        x11_start_program('xterm');
+        script_sudo(q{echo 'ForwardToConsole=yes' >> /etc/systemd/journald.conf});
+        script_sudo(q{echo 'MaxLevelConsole=debug' >> /etc/systemd/journald.conf});
+        script_sudo(qq{echo 'TTYPath=/dev/$serialdev' >> /etc/systemd/journald.conf});
+        script_sudo(q{systemctl restart systemd-journald});
+        type_string("exit\n");
+    }
     $self->{await_shutdown} = 0;
 
     if (check_var("DESKTOP", "kde")) {
