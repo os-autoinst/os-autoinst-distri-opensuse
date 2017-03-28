@@ -326,7 +326,7 @@ sub wait_boot {
             # In GNOME/gdm, we do not have to enter a username, but we have to select it
             send_key 'ret';
         }
-        assert_screen 'displaymanager-password-prompt';
+        assert_screen 'displaymanager-password-prompt', no_wait => 1;
         type_password $password. "\n";
     }
 
