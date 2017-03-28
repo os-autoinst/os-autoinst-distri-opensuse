@@ -5,7 +5,7 @@ lsmod
 free
 cat /etc/fstab
 mount
-/usr/sbin/btrfs filesystem df /
+mount | grep -q '/ type btrfs' && /usr/sbin/btrfs filesystem df /
 df -h
 ip -o a s
 ip r s
