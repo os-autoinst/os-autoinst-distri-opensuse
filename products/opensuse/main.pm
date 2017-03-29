@@ -10,7 +10,7 @@
 
 use strict;
 use warnings;
-use testapi qw(check_var get_var set_var);
+use testapi qw(check_var get_var get_required_var set_var);
 use lockapi;
 use needle;
 use File::Find;
@@ -81,7 +81,7 @@ sub cleanup_needles() {
 my @time = localtime();
 set_var('WINTER_IS_THERE', 1) if ($time[4] == 11 || $time[4] == 0);
 
-my $distri = testapi::get_var("CASEDIR") . '/lib/susedistribution.pm';
+my $distri = testapi::get_required_var('CASEDIR') . '/lib/susedistribution.pm';
 require $distri;
 testapi::set_distribution(susedistribution->new());
 
