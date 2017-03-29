@@ -28,6 +28,11 @@ sub run() {
         # Should be replaced by actually connecting to admin node when it's implemented
         assert_script_run "grep \"master: 'dashboard-url'\" /etc/salt/minion.d/master.conf";
     }
+
+    # check if installation script was executed https://trello.com/c/PJqM8x0T
+    if (check_var('SYSTEM_ROLE', 'admin')) {
+        assert_script_run 'zgrep manifests/activate.sh /var/log/YaST2/y2log-1.gz';
+    }
 }
 
 sub test_flags() {
