@@ -17,6 +17,7 @@ use strict;
 use testapi;
 
 sub run() {
+    my ($self)    = @_;
     my $USERNAME  = "nooops_test3";
     my $USERNAME1 = "nooops_test4";
     my $DOMAIN    = "aim";
@@ -94,28 +95,10 @@ sub run() {
     send_key "ctrl-w";
     sleep 2;
 
-    # Remove one account
-    send_key "ctrl-a";
-    sleep 2;
-    send_key "right";
-    sleep 2;
-    send_key "ret";
-    sleep 2;
-    send_key "alt-d";
-    sleep 2;
-    send_key "alt-d";
-    sleep 2;
-
-    # Remove the other account
-    send_key "ctrl-a";
-    sleep 2;
-    send_key "right";
-    sleep 2;
-    send_key "ret";
-    sleep 2;
-    send_key "alt-d";
-    sleep 2;
-    send_key "alt-d";
+    # Remove both accounts
+    for (1 .. 2) {
+        $self->pidgin_remove_account;
+    }
 
     # Should not have any account
     assert_screen 'pidgin-welcome';

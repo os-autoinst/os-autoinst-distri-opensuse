@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 use strict;
 use warnings;
 
@@ -76,7 +76,7 @@ sub match_file {
 }
 
 my $verbose             = 1;
-my $minlength           = 8;
+my $minlength           = 13;
 my $ignoreContentFilter = qr(\A(?:^\s*(?:\#.*)?$)*\z);
 
 Code::DRY::clearData;
@@ -98,15 +98,15 @@ sub __get_text {
 
     # delete end statement
     for my $statement (@{$Document->find('PPI::Statement')}) {
-	if ($statement->content eq '1;') {
-	    $statement->delete;
-	}
+    if ($statement->content eq '1;') {
+        $statement->delete;
+    }
     }
     # test_flags are duplicates
     for my $sub (@{$Document->find('PPI::Statement::Sub')}) {
-	if ($sub->name eq 'test_flags') {
-	    $sub->delete;
-	}
+    if ($sub->name eq 'test_flags') {
+        $sub->delete;
+    }
     }
 
     #my $lines = _dump($Document, []);
@@ -136,12 +136,6 @@ for my $file (@files) {
     push @Code::DRY::file_lineoffsets, [@lineoffsets];
     ++$here;
 }
-
-#print $Code::DRY::codetotal;
-
-use Data::Dumper;
-#print Dumper(\@files);
-#print $codetotal;
 
 # enter codestring
 Code::DRY::build_suffixarray_and_lcp($Code::DRY::codetotal) == 0
@@ -188,10 +182,6 @@ my $last_lcp = 0;
     if (1) {
         $last_lcp = $lcp;
     }
-
-    #print "index $_ with lcp ", get_len_at($_), " and offset ", get_offset_at($_), " is ", $res ? "accepted\n" : "filtered out\n";
-    #print "index $_ with lcp ", get_len_at($_), " and offset ", get_offset_at($_), " is accepted\n" if $res;
-    #print "index $_ with lcp ", get_len_at($_), " and offset ", get_offset_at($_), " is filtered out\n" if !$res;
     $res;
 } (1 .. $n - 1);
 
@@ -231,7 +221,6 @@ for my $matchentry_p (@ranks) {
         my $file_index   = Code::DRY::offset2fileindex($offset_start);
         my $file_start   = $file_index == 0 ? 0 : $Code::DRY::fileoffsets[$file_index - 1] + 1;
 
-        #print "$offset_start -> $offset_end => length ", $offset_end - $offset_start + 1, "\n";
         my ($upLine, $downLine);
         Code::DRY::offsetAndFileindex2line($offset_start, $file_index, \$upLine);
         Code::DRY::offsetAndFileindex2line($offset_end, $file_index, undef, \$downLine);
@@ -257,9 +246,7 @@ for my $matchentry_p (@ranks) {
     @dups = map { $_->[1] }
       sort { $a->[0] <=> $b->[0] } map { [$_->[2], $_] } @dups;
 
-    #print "\n";
-
     callback($minlength, $units, \@dups);
-
 }
 
+exit ! (scalar @ranks == 0);

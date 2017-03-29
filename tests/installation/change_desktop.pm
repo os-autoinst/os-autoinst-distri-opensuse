@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -12,19 +12,9 @@ package change_desktop;
 # Summary: [OOP]Change desktop
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
-use base "y2logsstep";
+use base "installsummarystep";
 use strict;
 use testapi;
-
-sub accept3rdparty {
-    my ($self) = @_;
-    #Third party licenses sometimes appear
-    while (check_screen([qw(3rdpartylicense automatic-changes inst-overview)], 15)) {
-        last if match_has_tag("automatic-changes");
-        last if match_has_tag("inst-overview");
-        send_key $cmd{acceptlicense}, 1;
-    }
-}
 
 sub change_desktop() {
     my ($self) = @_;
@@ -81,19 +71,7 @@ sub change_desktop() {
         }
         assert_screen "desktop-selected";
     }
-
-    if (check_var('VIDEOMODE', 'text')) {
-        send_key 'alt-a';    # accept
-        accept3rdparty;
-        assert_screen 'automatic-changes';
-        send_key 'alt-o';    # OK
-    }
-    else {
-        send_key 'alt-o';    # OK
-        accept3rdparty;
-    }
-    assert_screen 'inst-overview';
-
+    $self->accept_changes_with_3rd_party_repos;
 }
 
 sub run {

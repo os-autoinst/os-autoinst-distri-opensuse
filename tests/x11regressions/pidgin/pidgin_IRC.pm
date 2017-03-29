@@ -18,6 +18,7 @@ use testapi;
 
 
 sub run() {
+    my ($self) = @_;
     my $CHANNELNAME = "susetesting";
     x11_start_program("pidgin");
 
@@ -75,15 +76,7 @@ sub run() {
     sleep 2;
 
     # Cleaning
-    send_key "ctrl-a";
-    sleep 2;
-    send_key "right";
-    sleep 2;
-    send_key "ret";
-    sleep 2;
-    send_key "alt-d";
-    sleep 2;
-    send_key "alt-d";
+    $self->pidgin_remove_account;
 
     # Should not have any account and show welcome window
     assert_screen 'pidgin-welcome';
