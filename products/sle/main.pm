@@ -930,10 +930,7 @@ sub load_fips_tests_crypt() {
 
 sub load_patching_tests() {
     loadtest 'boot/boot_to_desktop_sym';
-    # Staging cannot be registered, so Staging cannot be patched before testing upgrades in staging
-    if (!is_staging()) {     
-        loadtest 'update/patch_before_migration';
-    }
+    loadtest 'update/patch_before_migration';
     loadtest 'console/consoletest_finish_sym';
     loadtest 'x11/reboot_and_install';
 }
@@ -1232,7 +1229,10 @@ else {
         load_reboot_tests();
     }
     elsif (installzdupstep_is_applicable()) {
-        load_patching_tests();
+        # Staging cannot be registered, so Staging cannot be patched before testing upgrades in staging
+        if (!is_staging) {
+            load_patching_tests();
+        }
         load_zdup_tests();
     }
     elsif (get_var("ONLINE_MIGRATION")) {
