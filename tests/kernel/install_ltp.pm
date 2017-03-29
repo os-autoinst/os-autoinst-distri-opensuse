@@ -38,7 +38,7 @@ sub install_dependencies {
     my @deps = qw(git-core make automake autoconf gcc expect libnuma-devel libaio-devel
       numactl flex bison dmapi-devel kernel-default-devel libopenssl-devel libselinux-devel
       libacl-devel libtirpc-devel keyutils-devel libcap-devel net-tools sysstat
-      tpm-tools tpm2.0-tools psmisc acl quota);
+      tpm-tools psmisc acl quota);
     if (check_var('DISTRI', 'opensuse') || try_add_workstation_addon()) {
         push @deps, 'ntfsprogs';
     }
