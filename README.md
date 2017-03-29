@@ -1,4 +1,4 @@
-os-autoinst/openQA tests for openSUSE and SUSE Linux Enterprise [![Build Status](https://travis-ci.org/os-autoinst/os-autoinst-distri-opensuse.svg?branch=master)](https://travis-ci.org/os-autoinst/os-autoinst-distri-opensuse)
+os-autoinst/openQA tests for openSUSE and SUSE Linux Enterprise [![Build Status](https://travis-ci.org/os-autoinst/os-autoinst-distri-opensuse.svg?branch=master)](https://travis-ci.org/os-autoinst/os-autoinst-distri-opensuse?branch=master)
 =================================================================================================================================================================================================================================
 
 For more details see http://os-autoinst.github.io/openQA/
