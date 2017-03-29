@@ -928,6 +928,13 @@ sub load_fips_tests_crypt() {
     loadtest "console/ecryptfs_fips";
 }
 
+sub load_patching_tests() {
+    loadtest 'boot/boot_to_desktop_sym';
+    loadtest 'update/patch_before_migration';
+    loadtest 'console/consoletest_finish_sym';
+    loadtest 'x11/reboot_and_install';
+}
+
 sub prepare_target() {
     if (get_var("BOOT_HDD_IMAGE")) {
         boot_hdd_image;
@@ -1212,17 +1219,27 @@ elsif (get_var("HPC")) {
 }
 else {
     if (get_var("AUTOYAST") || get_var("AUTOUPGRADE")) {
-        load_boot_tests();
+        if (get_var('PATCH')) {
+            load_patching_tests();
+        }
+        else {
+            load_boot_tests();
+        }
         load_autoyast_tests();
         load_reboot_tests();
     }
     elsif (installzdupstep_is_applicable()) {
-        load_boot_tests();
+        load_patching_tests();
         load_zdup_tests();
     }
     elsif (get_var("ONLINE_MIGRATION")) {
         load_boot_tests();
         load_online_migration_tests();
+    }
+    elsif (get_var("PATCH")) {
+        load_patching_tests();
+        load_inst_tests();
+        load_reboot_tests();
     }
     elsif (get_var("BOOT_HDD_IMAGE")) {
         if (get_var("RT_TESTS")) {

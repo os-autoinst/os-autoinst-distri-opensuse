@@ -34,6 +34,9 @@ sub run() {
     # due to pre-installation setup, qemu boot order is always booting from CD-ROM
     if (check_var("BOOTFROM", "d")) {
         assert_screen 'inst-bootmenu';
+        if (check_var("AUTOUPGRADE") && check_var("PATCH")) {
+            assert_screen 'grub2';
+        }
         send_key 'ret';
     }
     elsif (get_var('UEFI') && get_var('USBBOOT')) {
