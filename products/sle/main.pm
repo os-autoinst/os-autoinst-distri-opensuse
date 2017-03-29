@@ -930,7 +930,10 @@ sub load_fips_tests_crypt() {
 
 sub load_patching_tests() {
     loadtest 'boot/boot_to_desktop_sym';
-    loadtest 'update/patch_before_migration';
+    # Staging cannot be registered, so Staging cannot be patched before testing upgrades in staging
+    if (!is_staging()) {     
+        loadtest 'update/patch_before_migration';
+    }
     loadtest 'console/consoletest_finish_sym';
     loadtest 'x11/reboot_and_install';
 }
