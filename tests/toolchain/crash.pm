@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -52,13 +52,21 @@ sub run() {
         }
     }
     else {
-        my $opensuse_debug_repos = 'repo-debug ';
-        if (!check_var('VERSION', 'Tumbleweed')) {
-            $opensuse_debug_repos .= 'repo-debug-update ';
+        if (get_var('REPO_0_DEBUGINFO')) {
+            my $snapshot_debuginfo_repo = get_var('REPO_0_DEBUGINFO');
+            zypper_call('ar -f ' . get_var('MIRROR_HTTP') . "-debuginfo $snapshot_debuginfo_repo");
+            install_kernel_debuginfo;
+            script_run "zypper -n rr $snapshot_debuginfo_repo";
         }
-        zypper_call("mr -e $opensuse_debug_repos");
-        install_kernel_debuginfo;
-        zypper_call("mr -d $opensuse_debug_repos");
+        else {
+            my $opensuse_debug_repos = 'repo-debug ';
+            if (!check_var('VERSION', 'Tumbleweed')) {
+                $opensuse_debug_repos .= 'repo-debug-update ';
+            }
+            zypper_call("mr -e $opensuse_debug_repos");
+            install_kernel_debuginfo;
+            zypper_call("mr -d $opensuse_debug_repos");
+        }
     }
 
     # restart to get rid of potential screen disruptions from previous test
