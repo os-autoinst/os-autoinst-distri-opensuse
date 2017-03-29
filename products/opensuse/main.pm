@@ -529,7 +529,7 @@ sub load_x11tests() {
         loadtest "x11/gnome_terminal";
         loadtest "x11/gedit";
     }
-    if (kdestep_is_applicable()) {
+    if (kdestep_is_applicable() && !is_kde_live) {
         loadtest "x11/kate";
     }
     # no firefox on KDE-Live # boo#1022499
@@ -580,12 +580,12 @@ sub load_x11tests() {
             loadtest "x11/reboot_lxde";
         }
     }
-    loadtest "x11/glxgears" if packagekit_available;
+    loadtest "x11/glxgears" if (packagekit_available && !get_var('LIVECD'));
     if (kdestep_is_applicable()) {
-        if (!is_krypton_argon) {
+        if (!is_krypton_argon && !is_kde_live) {
             loadtest "x11/amarok";
         }
-        loadtest "x11/kontact";
+        loadtest "x11/kontact" unless is_kde_live;
         if (!get_var("USBBOOT")) {
             if (get_var("PLASMA5")) {
                 loadtest "x11/reboot_plasma5";
