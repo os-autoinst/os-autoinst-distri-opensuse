@@ -77,7 +77,7 @@ sub run() {
         chomp(my $hdd_path = `find $hdd_dir -name $basename | head -n1`);
         diag("HDD path found: $hdd_path");
         type_string("# copying image...\n");
-        $svirt->add_disk({copy => 1, file => $hdd_path, dev_id => 'a'});
+        $svirt->add_disk({file => $hdd_path, dev_id => 'a'});    # Copy disk to local storage
     }
     else {
         $svirt->add_disk({size => $size_i . "G", create => 1, dev_id => 'a'});
