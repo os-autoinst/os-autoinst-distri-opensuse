@@ -20,8 +20,9 @@ use utils;
 
 sub run() {
     my $self = shift;
-    # no desktop runner in minimal-X and other desktop environments
-    unless (check_var('DESKTOP', 'minimalx')) {
+    # make some information available on common systems to debug shutdown
+    # issues
+    if (get_var('DESKTOP', '') =~ qr/gnome|kde/) {
         x11_start_program('xterm');
         script_sudo(q{echo 'ForwardToConsole=yes' >> /etc/systemd/journald.conf});
         script_sudo(q{echo 'MaxLevelConsole=debug' >> /etc/systemd/journald.conf});
