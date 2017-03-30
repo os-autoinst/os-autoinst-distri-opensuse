@@ -13,29 +13,28 @@
 # Tags: tc#1436143
 
 
-use base "x11regressiontest";
+use base 'x11regressiontest';
 use strict;
 use testapi;
 use utils 'sle_version_at_least';
 
 sub run() {
-    x11_start_program("nautilus");
-    send_key "ctrl-l";
+    x11_start_program('nautilus');
+    wait_screen_change { send_key 'ctrl-l' };
     type_string "ftp://ftp.suse.com\n";
-    assert_screen "nautilus-ftp-login", 5;
-    send_key "ret";
-    assert_screen 'nautilus-ftp-suse-com', 20;
-
+    assert_screen 'nautilus-ftp-login';
+    send_key 'ret';
+    assert_screen 'nautilus-ftp-suse-com';
     if (sle_version_at_least('12-SP2')) {
-        assert_and_click "unselected-pub";
-        assert_and_click "ftp-path-selected";
-        wait_still_screen;
+        assert_and_click 'unselected-pub';
+        assert_and_click 'ftp-path-selected';
+        wait_still_screen(2);
     }
-    send_key "shift-f10";
-    assert_screen 'nautilus-ftp-rightkey-menu', 3;
-    send_key "u";    #umount the ftp
-
-    send_key "ctrl-w";
+    send_key 'shift-f10';
+    assert_screen 'nautilus-ftp-rightkey-menu';
+    # unmount ftp
+    wait_screen_change { send_key 'u' };
+    send_key 'ctrl-w';
 }
 
 1;
