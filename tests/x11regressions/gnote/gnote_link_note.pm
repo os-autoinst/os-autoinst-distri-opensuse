@@ -12,7 +12,7 @@
 # Maintainer: Xudong Zhang <xdzhang@suse.com>
 # Tags: tc#1436158
 
-use base "x11regressiontest";
+use base 'x11regressiontest';
 use strict;
 use testapi;
 
@@ -21,25 +21,24 @@ sub run() {
     my ($self) = @_;
     $self->gnote_start_with_new_note;
     type_string "Start Here\n";
-    assert_screen 'gnote-new-note-link', 5;
-    send_key "up";
-    sleep 2;
-    send_key "ctrl-ret";    #switch to link
-    assert_screen 'gnote-note-start-here', 5;
+    assert_screen 'gnote-new-note-link';
+    wait_screen_change { send_key 'up' };
+    send_key 'ctrl-ret';    #switch to link
+    assert_screen 'gnote-note-start-here';
 
-    send_key "ctrl-tab";    #jump to toolbar
-    for (1 .. 6) { send_key "right" }
-    sleep 2;
-    send_key "ret";
-    send_key "down";
-    if (get_var("SP2ORLATER")) {
-        send_key "ret";
+    wait_screen_change { send_key 'ctrl-tab' };    #jump to toolbar
+    wait_screen_change {
+        for (1 .. 6) { send_key 'right' }
+    };
+    wait_screen_change { send_key 'ret' };
+    wait_screen_change { send_key 'down' };
+    if (get_var('SP2ORLATER')) {
+        wait_screen_change { send_key 'ret' };
     }
-    assert_screen 'gnote-what-link-here', 5;
-    send_key "esc";
-    send_key "ctrl-w";      #close the note "Start Here"
-    sleep 2;
-
+    assert_screen 'gnote-what-link-here';
+    wait_screen_change { send_key 'esc' };
+    #close the note "Start Here"
+    wait_screen_change { send_key 'ctrl-w' };
     $self->cleanup_gnote;
 }
 
