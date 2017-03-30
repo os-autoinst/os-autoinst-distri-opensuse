@@ -95,7 +95,8 @@ sub run() {
             $svirt->add_disk(
                 {
                     file => ($vmm_family eq 'vmware') ? basename($extra_hddpath) : $extra_hddpath,
-                    dev_id => 'b'
+                    dev_id      => 'b',
+                    backingfile => 1
                 });
         }
     }
