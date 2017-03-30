@@ -37,7 +37,9 @@ sub run() {
         || get_var('AUTOYAST')
         || get_var('SCC_URL')
         || get_var('DUD')
-        || get_var('EXTRABOOTPARAMS'))
+        || get_var('EXTRABOOTPARAMS')
+        || get_var('INSTALLER_NO_SELF_UPDATE')
+        || get_var('INSTALLER_SELF_UPDATE'))
     {
         if (get_var("ZDUP") || get_var("ONLINE_MIGRATION")) {
             send_key "down";
@@ -86,6 +88,15 @@ sub run() {
 
             if (get_var("AUTOUPGRADE")) {
                 $args .= " autoupgrade=1";
+            }
+
+            if (check_var("INSTALLER_NO_SELF_UPDATE", 1)) {
+                diag "Disabling installer self update";
+                $args .= " self_update=0";
+            }
+            elsif (my $self_update_repo = get_var("INSTALLER_SELF_UPDATE")) {
+                diag "Explicitly enabling installer self with $self_update_repo";
+                $args .= " self_update=$self_update_repo";
             }
 
             type_string_slow $args;
