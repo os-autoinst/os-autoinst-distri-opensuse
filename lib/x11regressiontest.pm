@@ -662,26 +662,22 @@ sub tomboy_logout_and_login {
     x11_start_program("tomboy note");
 }
 
+# remove the created new note
+sub cleanup_gnote {
+    wait_screen_change { send_key 'ctrl-tab' };    #jump to toolbar
+    send_key 'ret';                                #back to all notes interface
+    send_key_until_needlematch 'gnote-new-note-matched', 'down', 6;
+    wait_screen_change { send_key 'delete' };
+    wait_screen_change { send_key 'tab' };
+    wait_screen_change { send_key 'ret' };
+    send_key 'ctrl-w';
+}
+
 sub gnote_start_with_new_note {
     x11_start_program("gnote");
     assert_screen 'gnote-first-launched', 10;
     send_key "ctrl-n";
     assert_screen 'gnote-new-note', 5;
-}
-
-# clean: remove the created new note
-sub gnote_cleanup {
-    send_key "ctrl-tab";    #jump to toolbar
-    sleep 2;
-    send_key "ret";         #back to all notes interface
-    send_key_until_needlematch 'gnote-new-note-matched', 'down', 6;
-    send_key "delete";
-    sleep 2;
-    send_key "tab";
-    sleep 2;
-    send_key "ret";
-    sleep 2;
-    send_key "ctrl-w";
 }
 
 1;
