@@ -79,7 +79,7 @@ sub run {
     if ($inst_ltp =~ /git/i) {
         install_dependencies;
         # bsc#1024050 - Watch for Zombies
-        script_run('pidstat -p ALL 1 > /tmp/pidstat.txt &');
+        type_string "pidstat -p ALL 1 > /tmp/pidstat.txt &\n";
         install_from_git;
     }
     elsif ($inst_ltp =~ /repo/i) {
