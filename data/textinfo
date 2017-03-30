@@ -13,9 +13,9 @@ ip -6 r s
 cat /etc/resolv.conf
 ls -al /etc/sysconfig/network
 rpm -qa 'kernel-*'
-grep DISPLAYMANAGER /etc/sysconfig/displaymanager
-grep DEFAULT /etc/sysconfig/windowmanager
-ls -l /etc/ntp*
+grep DISPLAYMANAGER /etc/sysconfig/displaymanager || true
+grep DEFAULT /etc/sysconfig/windowmanager || true
+ls -l /etc/ntp* || true
 [ -f /var/log/messages ] && du /var/log/messages
 ps ax
 systemctl --no-pager --full
