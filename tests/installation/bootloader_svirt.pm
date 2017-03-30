@@ -109,19 +109,20 @@ sub run() {
             });
     }
 
-    my $isodir = '/var/lib/openqa/share/factory/iso';
-    # In JeOS and netinstall we don't have ISO media, for the rest we have to attach it.
-    if (!get_var('NETBOOT') and !is_jeos() and !get_var('HDD_1')) {
-        my $isofile = get_required_var('ISO');
-        my $isopath = copy_image($isofile, $isodir);
-        $svirt->add_disk(
-            {
-                cdrom     => 1,
-                file      => ($vmm_family eq 'vmware') ? basename($isopath) : $isopath,
-                dev_id    => 'b',
-                bootorder => 2
-            });
-
+    # Add cdrom devices where required
+    if (get_var('ISO') || get_var('ISO_1')) {
+        my $isodir = '/var/lib/openqa/share/factory/iso';
+        if (get_var('ISO')) {
+            my $isofile = get_var('ISO');
+            my $isopath = copy_image($isofile, $isodir);
+            $svirt->add_disk(
+                {
+                    cdrom     => 1,
+                    file      => ($vmm_family eq 'vmware') ? basename($isopath) : $isopath,
+                    dev_id    => 'b',
+                    bootorder => 2
+                });
+        }
         # Add addon media (if present at all)
         my $dev_id = 'c';
         foreach my $n (1 .. 9) {
