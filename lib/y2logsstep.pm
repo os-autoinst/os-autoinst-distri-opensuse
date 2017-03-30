@@ -104,6 +104,7 @@ sub check_and_record_dependency_problems {
 }
 
 sub save_upload_y2logs() {
+    assert_script_run 'sed -i \'s/^tar \(.*$\)/tar --warning=no-file-changed -\1 || true/\' /usr/sbin/save_y2logs';
     assert_script_run "save_y2logs /tmp/y2logs.tar.bz2";
     upload_logs "/tmp/y2logs.tar.bz2";
     save_screenshot();
