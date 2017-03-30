@@ -34,5 +34,9 @@ sub run() {
     assert_script_run("sed -i 's/DEFAULT_WM=.*/DEFAULT_WM=\"${pattern}\"/' /etc/sysconfig/windowmanager");
 }
 
+sub test_flags() {
+    return {milestone => 1, fatal => 1};
+}
+
 1;
 # vim: set sw=4 et:
