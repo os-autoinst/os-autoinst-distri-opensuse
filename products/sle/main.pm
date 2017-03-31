@@ -929,6 +929,17 @@ sub load_fips_tests_crypt() {
 }
 
 sub load_patching_tests() {
+    if (check_var("ARCH", "s390x")) {
+        if (check_var('BACKEND', 's390x')) {
+            loadtest "installation/bootloader_s390";
+        }
+        else {
+            loadtest "installation/bootloader_zkvm";
+        }
+    }
+    if (get_var("OFW")) {
+        loadtest "installation/bootloader_ofw";
+    }
     loadtest 'boot/boot_to_desktop_sym';
     loadtest 'update/patch_before_migration';
     loadtest 'console/consoletest_finish_sym';
