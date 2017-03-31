@@ -30,11 +30,17 @@ sub run() {
     die "Missing package name. Expected: /$expected_package_name_vim/"
       unless $info_output_vim =~ /$expected_package_name_vim/;
 
-    if (check_var('DISTRI', 'sle')) {
+    if (sle_version_at_least('12-SP3')) {
         # use dvd2 as the src-repository
         zypper_call('ar --disable --type plaindir cd:///?devices=/dev/sr1 repo-source');
     }
 
+    if (check_var('DISTRI', 'opensuse') || sle_version_at_least('12-SP3')) {
+        test_dvd_src_as_repo();
+    }
+}
+
+sub test_dvd_src_as_repo {
     zypper_call('mr -e repo-source');
     zypper_call('ref');
     my $info_output_coreutils = script_output 'zypper info srcpackage:coreutils';
