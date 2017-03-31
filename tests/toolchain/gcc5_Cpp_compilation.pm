@@ -19,7 +19,7 @@ sub run() {
     my $self = shift;
 
     script_run 'zypper -v -n in cmake sysstat';
-    script_run('pidstat -p ALL 1 > /tmp/pidstat.txt &');
+    assert_script_run '(pidstat -p ALL 1 > /tmp/pidstat.txt &)';
     my $package = data_url('toolchain/llvm-3.8.1.src.tar.xz');
     script_run "wget $package";
     $package = data_url('toolchain/cfe-3.8.1.src.tar.xz');
