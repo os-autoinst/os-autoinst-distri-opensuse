@@ -94,6 +94,7 @@ sub fill_in_registration_data {
         # asmm - Advanced System Management Module
         # certm - Certifications Module
         # contm - Containers Module
+        # hpcm - HPC Module
         # lgm - Legacy Module
         # pcm - Public Cloud Module
         # tcm - Toolchain Module
@@ -128,7 +129,7 @@ sub fill_in_registration_data {
             send_key $cmd{next};    # all addons selected
             for my $addon (split(/,/, get_var('SCC_ADDONS', ''))) {
                 # most modules don't have license, skip them
-                next unless grep { $addon eq $_ } qw(ha geo sdk we live rt idu ids lgm wsm);
+                next unless grep { $addon eq $_ } qw(ha geo sdk we live rt idu ids lgm wsm hpcm);
                 while (check_screen('scc-downloading-license', 5)) {
                     # wait for SCC to give us the license
                     sleep 5;
