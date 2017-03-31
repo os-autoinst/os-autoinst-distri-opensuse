@@ -20,6 +20,7 @@ use strict;
 use base 'basetest';
 use testapi;
 use lockapi;
+use utils;
 
 sub run {
     mutex_lock('pxe');
@@ -44,21 +45,21 @@ sub run {
     if (get_var("AUTOYAST")) {
         my $proto = get_var("PROTO") || 'http';
 
-        #edit parameters
+        # edit parameters
         if (get_var("UPGRADE_FROM_AUTOYAST") || get_var("UPGRADE")) {
-            type_string " autoupgrade=1";
+            type_string_very_slow " autoupgrade=1";
         }
         if (get_var("AUTOYAST") =~ /^aytests\//) {
             # test from aytests package
-            type_string " autoyast=$proto://10.0.2.1/" . get_var("AUTOYAST");
+            type_string_very_slow " autoyast=$proto://10.0.2.1/" . get_var("AUTOYAST");
         }
         else {
             # test from re-exported data directory
-            type_string " autoyast=$proto://10.0.2.1/data/" . get_var("AUTOYAST");
+            type_string_very_slow " autoyast=$proto://10.0.2.1/data/" . get_var("AUTOYAST");
         }
     }
     if (get_var("EXTRA_BOOT_ARG")) {
-        type_string(' ' . get_var("EXTRA_BOOT_ARG"));
+        type_string_very_slow(' ' . get_var("EXTRA_BOOT_ARG"));
     }
 
     sleep 3;
