@@ -69,8 +69,6 @@ sub run() {
 
     #	start Printer
     assert_and_click "yast2_control-center_printer";
-    assert_screen "yast2_control-center_printer_configurations";
-    send_key "alt-o";
     assert_screen "yast2_control-center_printer_running-cups-daemon";
     send_key "alt-y";
     assert_screen 'yast2_control-center_printer_running-cups-daemon_no-delay';
@@ -88,7 +86,6 @@ sub run() {
     assert_screen 'yast2-control-center-ui';
     send_key "up";
     assert_and_click 'yast2_control-center_printer';
-    assert_screen 'yast2_control-center_printer_configurations';
     assert_screen 'yast2_control-center_printer_running-cups-daemon';
     send_key "alt-n";
     assert_screen "yast2_control-center_printer_running-cups-daemon_error";
@@ -177,12 +174,12 @@ sub run() {
     assert_screen [qw(yast2_control-center-authentication-server_install yast2_control-center-authentication-server_configuration)], 90;
     if (match_has_tag('yast2_control-center-authentication-server_install')) {
         send_key "alt-i";
+        assert_screen 'yast2_control-center-authentication-server_configuration', 60;
+        send_key "alt-c";
     }
     else {
         assert_screen 'yast2_control-center-authentication-server_configuration';
-        send_key "alt-c";
-        assert_screen 'yast2_control-center-authentication-server_configuration_abort';
-        send_key 'alt-y';
+        send_key "alt-o";
     }
     assert_screen 'yast2-control-center-ui', 60;
 
@@ -418,6 +415,8 @@ sub run() {
     assert_screen [qw(yast2_control-center_laf_cancel yast2_control-center_configuration)], 60;
     if (match_has_tag 'yast2_control-center_laf_cancel') {
         send_key "alt-e";
+        assert_screen "yast2_control-center_laf-configuration";
+        send_key "alt-f";
     }
     else {
         assert_screen "yast2_control-center_laf-configuration";
