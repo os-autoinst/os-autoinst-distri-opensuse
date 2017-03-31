@@ -19,7 +19,7 @@ sub run() {
     my $self = shift;
 
     script_run 'zypper -v -n in sysstat';
-    type_string 'pidstat -p ALL 1 > /tmp/pidstat.txt &';
+    assert_script_run '(pidstat -p ALL 1 > /tmp/pidstat.txt &)';
 
     # Fixes https://github.com/linux-test-project/ltp/issues/91
     script_run 'wget ' . data_url('toolchain/794b46d9.patch');
