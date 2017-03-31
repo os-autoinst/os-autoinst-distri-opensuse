@@ -110,7 +110,7 @@ sub fill_in_registration_data {
                     # The actions of selecting scc addons have been changed on SP2 or later in textmode
                     # For online migration, we have to do registration on pre-created HDD, set a flag
                     # to distinguish the sle version of HDD and perform addons selection based on it
-                    if (get_var('ONLINE_MIGRATION')) {
+                    if (get_var('ONLINE_MIGRATION') || get_var('PATCH')) {
                         select_addons_in_textmode($addon, get_var('HDD_SP2ORLATER'));
                     }
                     else {
