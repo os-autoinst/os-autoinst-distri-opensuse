@@ -11,6 +11,8 @@ sub new {
     my ($class, $args) = @_;
     my $self = $class->SUPER::new($args);
     $self->{in_wait_boot} = 0;
+    $self->{typing_limit} //= get_var('VNC_TYPING_LIMIT', 50);
+    set_var('VNC_TYPING_LIMIT', $self->{typing_limit});
     return $self;
 }
 
