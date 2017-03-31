@@ -632,8 +632,10 @@ sub load_x11tests() {
             loadtest "x11/chrome";
         }
     }
-
-    loadtest "x11/shutdown";
+    # Need to skip shutdown to keep beckend alive if run rollback tests after migration
+    unless (get_var('ROLLBACK_AFTER_MIGRATION')) {
+        loadtest "x11/shutdown";
+    }
 }
 
 sub install_online_updates {
@@ -884,6 +886,9 @@ else {
         load_rescuecd_tests();
         load_consoletests();
         load_x11tests();
+        if (get_var('ROLLBACK_AFTER_MIGRATION') && (snapper_is_applicable())) {
+            load_rollback_tests();
+        }
     }
 }
 
