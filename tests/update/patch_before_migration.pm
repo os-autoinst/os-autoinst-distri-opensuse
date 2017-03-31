@@ -24,7 +24,10 @@ sub system_prepare() {
 sub patching_sle() {
     set_var("VIDEOMODE",    'text');
     set_var("SCC_REGISTER", 'installation');
-    set_var("SP2ORLATER",   '0') if get_var('HDDVERSION', '12');
+    # remember we perform registration on pre-created HDD images
+    if (sle_version_at_least('12-SP2', version_variable => 'HDDVERSION')) {
+        set_var('HDD_SP2ORLATER', 1);
+    }
 
     # stop packagekit service
     script_run "systemctl mask packagekit.service";
