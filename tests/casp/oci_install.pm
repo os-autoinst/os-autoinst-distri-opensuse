@@ -46,7 +46,7 @@ sub run() {
 
     # Accept update repositories during installation
     if (check_var('REGISTER', 'installation')) {
-        assert_screen 'registration-online-repos';
+        assert_screen 'registration-online-repos', 60;
         send_key "alt-y";
     }
 
