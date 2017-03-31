@@ -15,6 +15,7 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
+use utils 'assert_screen_with_soft_timeout';
 
 our @EXPORT = qw(handle_simple_pw process_reboot trup_call write_detail_output);
 
@@ -41,7 +42,7 @@ sub process_reboot {
         console('svirt')->attach_to_running({stop_vm => 1});
     }
     # No grub bootloader on xen-pv
-    assert_screen 'grub2' unless check_var('VIRSH_VMM_TYPE', 'linux');
+    assert_screen_with_soft_timeout('grub2', timeout => 300, soft_timeout => 30, bugref => 'bsc#1031114') unless check_var('VIRSH_VMM_TYPE', 'linux');
 
     assert_screen 'linux-login-casp', 90;
     select_console 'root-console';
