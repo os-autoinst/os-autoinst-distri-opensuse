@@ -632,7 +632,7 @@ sub load_x11tests() {
             loadtest "x11/chrome";
         }
     }
-    # Need to skip shutdown to keep beckend alive if run rollback tests after migration
+    # Need to skip shutdown to keep backend alive if running rollback tests after migration
     unless (get_var('ROLLBACK_AFTER_MIGRATION')) {
         loadtest "x11/shutdown";
     }
