@@ -436,10 +436,12 @@ sub load_consoletests() {
         }
         loadtest "console/sshd";
         loadtest "console/ssh_cleanup";
-        if (!get_var("LIVETEST") && !is_staging()) {
+        if (!get_var("LIVETEST") && !is_staging() && !is_jeos) {
             # in live we don't have a password for root so ssh doesn't
             # work anyways, and except staging_core image, the rest of
             # staging_* images don't need run this test case
+            #
+            # On JeOS we don't have fuse.ko in kernel-default-base package.
             loadtest "console/sshfs";
         }
         loadtest "console/mtab";
