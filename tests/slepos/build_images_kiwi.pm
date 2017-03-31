@@ -15,28 +15,19 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use slepos_images;
 
 
-my $img_suffix = 'tar.bz2';
 
 sub build_image {
     my ($target, $template, $type, $linux32, @mod) = @_;
     bmwqemu::diag("image '$target' will be built:");
-    $linux32 = $linux32 ? 'linux32' : '';
-    my $arch = $linux32 ? 'i686' : 'x86_64';
-    my ($name, $ver) = split "-", $target;
     $type //= 'pxe';
     script_output "./kiwi_build_image.sh '$target' '$template' '$linux32'" . join('', map { " '$_'" } @mod), 2000;
     script_output "ls -l /var/lib/SLEPOS/system/images/$target/";
     upload_logs "/var/log/image_prepare-$target";
     upload_logs "/var/log/image_create-$target";
-    if ($type eq 'pxe') {
-        script_output "tar -cjf $target.$img_suffix /var/lib/SLEPOS/system/images/$target/", 2000;
-        upload_asset "$target.$img_suffix",                                                  'public';
-    }
-    elsif ($type eq 'oem') {
-        upload_asset "/var/lib/SLEPOS/system/images/$target/$name.$arch-$ver.raw", 'public';
-    }
+    upload_slepos_image($target, $type, $linux32);
 }
 
 sub run() {

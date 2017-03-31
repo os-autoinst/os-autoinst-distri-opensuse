@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -15,20 +15,16 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-
+use slepos_images;
 
 
 my %template_done;
 
 sub build_image {
-
     my ($image, $template, $template_idx, $packages_ar) = @_;
-    my $img_suffix = 'tar.bz2';
 
-    $image =~ /^(.*)-([^-]*)$/;
-    my $imagebase = $1;
-    my $version   = $2;
-    bmwqemu::diag("image '$image' will be built using image creator:");
+    my ($imagebase, $version) = split_image_name($image);
+    diag("image to be built using image creator: '$image' ");
 
     #add virtual drivers unless already done
     if (!$template_done{$template}) {
@@ -48,6 +44,7 @@ sub build_image {
     mouse_hide;
     save_screenshot;
     assert_and_click('image-creator-addimage');
+    wait_still_screen(3);
     send_key('alt-s');
     save_screenshot;
     assert_and_click('image-creator-list-templates');
@@ -57,19 +54,20 @@ sub build_image {
     for (my $i = 0; $i < $template_idx; $i++) {
         send_key('up');
     }
-    wait_still_screen;
+    wait_still_screen(3);
     save_screenshot;
     send_key('ret');
 
     assert_and_click('image-creator-imagename');
     type_string($imagebase);
+    wait_still_screen(3);
     save_screenshot;
     #todo: uncheck 32bit for (get_var('VERSION') =~ /^12/) {
     assert_and_click('image-creator-next1');
-    if (check_screen('import-untrusted-gpg-key')) {
+    assert_screen(['import-untrusted-gpg-key', 'image-creator-image-configuration']);
+    if (match_has_tag('import-untrusted-gpg-key')) {
         send_key('alt-i');
     }
-    assert_screen('image-creator-image-configuration');
     assert_and_click('image-creator-version');
     send_key('shift-home');
     send_key('delete');
@@ -100,23 +98,28 @@ sub build_image {
     send_key('alt-o');
 
     #add packages
-    #assume first package found is correct one to select
     #TODO: allow general packages also via variable
     assert_and_click('image-creator-configuration-tab');
+    assert_screen('image-creator-image-configuration');
     for my $package (@$packages_ar) {
-        assert_screen('image-creator-image-configuration');
         send_key('alt-a');
-        assert_and_click('image-creator-package-search-tab');
+        assert_and_click('image-creator-package-search-tab');     #assume pattern selection is default selection
         assert_screen('image-creator-package-search');
-        assert_and_click('image-creator-package-search-dialog');    #assume pattern selection is default selection
+        assert_and_click('image-creator-package-search-mode');    #exact match
+        send_key('down');
+        send_key('down');
+        send_key('ret');
+        assert_and_click('image-creator-package-search-dialog');
         type_string($package);
         send_key('ret');
         wait_still_screen;
-        send_key(' ');
+        assert_and_click('package-checkbox');
         save_screenshot;
         send_key('alt-a');
-        if (check_screen('changed-packages')) {
+        assert_screen(['changed-packages', 'image-creator-image-configuration']);
+        if (match_has_tag('changed-packages')) {
             send_key('alt-o');
+            assert_screen('image-creator-image-configuration');
         }
 
     }
@@ -173,19 +176,16 @@ sub build_image {
     type_string "rm -fr /var/lib/SLEPOS/system/$imagebase\n";    #remove previous cfg to allow subsequent images of same basename
     script_output "ls -l /var/lib/SLEPOS/system/images/$image/";
     script_output "ls -l /tmp/$image*";
-    upload_logs "/tmp/$image.stderr",                                                  'public';
-    upload_logs "/tmp/$image.stdout",                                                  'public';
-    script_output "tar -cjf $image.$img_suffix /var/lib/SLEPOS/system/images/$image/", 2000;
-    upload_asset "$image.$img_suffix",                                                 'public';
+    upload_logs "/tmp/$image.stderr", 'public';
+    upload_logs "/tmp/$image.stdout", 'public';
+    upload_slepos_image($image, 'pxe');
 
-    select_console('x11');
+    select_console('x11', await_console => 0);
     ensure_unlocked_desktop;
-
 }
 
 
 sub prepare_template {
-
     my ($template) = @_;
 
     my $image_path = '/usr/share/kiwi/image/SLEPOS';
@@ -206,22 +206,19 @@ sub prepare_template {
     type_string "cat $image_path/$template/config.xml\n";
     wait_still_screen;
     save_screenshot;
-
 }
 
 
 sub run() {
-
     #todo: generalize so more than just graphical can be built
     my $images_ref = get_var_array('IMAGE_CREATOR');
 
     save_screenshot;
-    select_console('x11');
+    select_console('x11', await_console => 0);
     save_screenshot;
     ensure_unlocked_desktop;
     save_screenshot;
 
-    #start image creator
     x11_start_program("xdg-su -c '/sbin/yast2 image-creator'", 3);
     if (check_screen('root-auth-dialog')) {
         if ($password) {
@@ -229,22 +226,19 @@ sub run() {
             send_key('ret', 1);
         }
     }
-    assert_screen('image-creator-addimage');    #check start ascreen
+    assert_screen('image-creator-addimage', 100);    #check start ascreen
 
     foreach my $image (@{$images_ref}) {
         build_image('graphical-3.4.0', 'graphical-4.0.0', 2, ['liberation-fonts']) if ($image eq 'graphical-3.4.0');
         build_image('graphical-4.0.0', 'graphical-4.0.0', 2, ['liberation-fonts', 'cryptsetup']) if ($image eq 'graphical-4.0.0');
-        build_image('minimal-3.4.0', 'graphical-4.0.0', 0) if ($image eq 'minimal-3.4.0');
-        build_image('jeos-4.0.0',    'jeos-4.0.0',      1) if ($image eq 'jeos-4.0.0');
+        build_image('minimal-3.4.0', 'minimal-3.4.0', 0) if ($image eq 'minimal-3.4.0');
+        build_image('jeos-4.0.0',    'jeos-4.0.0',    1) if ($image eq 'jeos-4.0.0');
     }
 
-    send_key('alt-l');                          #close
+    send_key('alt-l');                               #close
     select_console('root-console');
     wait_still_screen;
-
 }
-
-
 
 sub test_flags() {
     return {fatal => 1};
