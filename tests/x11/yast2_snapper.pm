@@ -47,7 +47,7 @@ sub clean_and_quit() {
     wait_screen_change { send_key "alt-l" };
     # Wait until xterm is focussed, delete the directory and close xterm
     wait_idle;
-    script_run "rm -rf testdata";
+    script_run 'rm -rf testdata', 300;
     script_run "ls";
     type_string "exit\n";
     save_screenshot;
