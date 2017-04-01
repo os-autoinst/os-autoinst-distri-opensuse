@@ -61,7 +61,9 @@ sub patching_sle() {
     }
     assert_script_run("zypper mr --enable --all");
     set_var("VIDEOMODE", '');
-    if (get_var('TEST') !~ /migration_offline_sle12sp1_smt/) { set_var("SCC_REGISTER", ''); }
+    # keep the value of SCC_REGISTER for the test of migration with smt patterns
+    # since functionality tesing of smt needs registration during offline migration
+    if (get_var('TEST') !~ /migration_offline_sle12sp\d_smt/) { set_var("SCC_REGISTER", ''); }
 }
 
 sub run() {
