@@ -57,19 +57,19 @@ sub is_update_test_repo_test {
 
 sub cleanup_needles {
     remove_common_needles;
-    if (get_var('VERSION', '') ne '12') {
+    if ((get_var('VERSION', '') ne '12') && (get_var('BASE_VERSION', '') ne '12')) {
         unregister_needle_tags("ENV-VERSION-12");
     }
 
-    if (get_var('VERSION', '') ne '12-SP1') {
+    if ((get_var('VERSION', '') ne '12-SP1') && (get_var('BASE_VERSION', '') ne '12-SP1')) {
         unregister_needle_tags("ENV-VERSION-12-SP1");
     }
 
-    if (get_var('VERSION', '') ne '12-SP2') {
+    if ((get_var('VERSION', '') ne '12-SP2') && (get_var('BASE_VERSION', '') ne '12-SP2')) {
         unregister_needle_tags("ENV-VERSION-12-SP2");
     }
 
-    if (get_var('VERSION', '') ne '12-SP3') {
+    if ((get_var('VERSION', '') ne '12-SP3') && (get_var('BASE_VERSION', '') ne '12-SP3')) {
         unregister_needle_tags("ENV-VERSION-12-SP3");
     }
 
