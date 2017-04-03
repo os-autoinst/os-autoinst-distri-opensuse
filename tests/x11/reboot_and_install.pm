@@ -19,8 +19,12 @@ use bootloader_setup;
 use registration;
 
 sub run() {
-    reboot_gnome;    # reboot from previously booted hdd to do pre check or change e.g. before upgrade
-    return if select_bootmenu_option == 3;
+    # reboot from previously booted hdd to do pre check or change e.g. before upgrade
+    reboot_gnome;
+    # give some time to shutdown+reboot from gnome. Also, because mainly we
+    # are coming from old systems here it is unlikely the reboot time
+    # increases
+    return if select_bootmenu_option(300) == 3;
     bootmenu_default_params;
     specific_bootmenu_params;
     registration_bootloader_params;
