@@ -47,7 +47,11 @@ sub install_dependencies {
     }
     zypper_call('in ' . join(' ', @deps), log => 'install-deps.txt');
 
-    script_run('zypper -n in net-tools-deprecated');
+    my @maybe_deps = qw(net-tools-deprecated gcc-32bit);
+
+    for my $dep (@maybe_deps) {
+        script_run('zypper -n in ' . $dep);
+    }
 }
 
 sub install_from_git {
