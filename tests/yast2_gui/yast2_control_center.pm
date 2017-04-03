@@ -328,8 +328,6 @@ sub run() {
     assert_and_click "yast2_control-center_remote-administration";
     assert_screen "yast2_control-center_remote-administration_ok", 60;
     send_key "alt-o";
-    assert_screen "yast2_control-center_remote-administration_display-manager-warning";
-    send_key "alt-o";
     assert_screen 'yast2-control-center-ui';
 
     #   start Samba Server
