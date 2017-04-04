@@ -66,7 +66,8 @@ sub post_fail_hook() {
         send_key 'esc';
     };
     # if we found a shell, we do not need the memory dump
-    unless (match_has_tag('emergency-shell') or match_has_tag('emergency-mode')) {
+    if (!(match_has_tag('emergency-shell') or match_has_tag('emergency-mode'))) {
+        die "save_memory_dump not implemented, no way to save memory_dump" unless check_var('BACKEND', 'qemu');
         diag 'Save memory dump to debug bootup problems, e.g. for bsc#1005313';
         save_memory_dump;
     }
