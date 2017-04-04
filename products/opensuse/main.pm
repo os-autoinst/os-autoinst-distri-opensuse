@@ -445,8 +445,8 @@ sub load_consoletests() {
             loadtest "console/sshfs";
         }
         loadtest "console/mtab";
-        if (!get_var("NOINSTALL") && !get_var("LIVETEST") && (check_var("DESKTOP", "textmode")) && !is_jeos) {
-            if (check_var('BACKEND', 'qemu')) {
+        if (!get_var("NOINSTALL") && !get_var("LIVETEST") && (check_var("DESKTOP", "textmode"))) {
+            if (check_var('BACKEND', 'qemu') && !is_jeos) {
                 # The NFS test expects the IP to be 10.0.2.15
                 loadtest "console/yast2_nfs_server";
             }
