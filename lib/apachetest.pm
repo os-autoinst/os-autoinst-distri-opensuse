@@ -30,7 +30,7 @@ sub setup_apache2 {
         $mode = "NSSFIPS";
     }
     if ($mode =~ m/NSS/) {
-        push @packages, qw(apache2-mod_nss mozilla-nss-tools);
+        push @packages, qw(apache2-mod_nss mozilla-nss-tools expect);
     }
 
     # Make sure the packages are installed
