@@ -71,7 +71,7 @@ sub run() {
     # Check for bsc#993841
     assert_script_run "btrfs subvolume create e";
     assert_script_run "btrfs qgroup limit 50m e .";
-    assert_script_run "! for c in {1..40}; do dd if=/dev/zero bs=1M count=40 of=e/file; done";
+    assert_script_run "for c in {1..40}; do dd if=/dev/zero bs=1M count=40 of=e/file; done";
     script_run "sync";
     assert_script_run("rm e/file", fail_message => 'bsc#993841');
 
