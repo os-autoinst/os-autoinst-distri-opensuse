@@ -437,6 +437,7 @@ sub load_extra_tests() {
         if (check_var('DISTRI', 'sle')) {
             # start extra x11 tests from here
             loadtest 'x11/vnc_two_passwords';
+            loadtest 'x11/yast2_lan_restart';
             loadtest 'x11/user_defined_snapshot';
         }
         elsif (check_var('DISTRI', 'opensuse')) {
