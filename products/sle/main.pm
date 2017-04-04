@@ -672,7 +672,7 @@ sub load_consoletests() {
             loadtest "console/no_perl_bootloader";
         }
         if (!get_var("NOINSTALL") && !is_desktop && (check_var("DESKTOP", "textmode"))) {
-            if (!is_staging() && check_var('BACKEND', 'qemu')) {
+            if (!is_staging() && check_var('BACKEND', 'qemu') && !is_jeos) {
                 # The NFS test expects the IP to be 10.0.2.15
                 loadtest "console/yast2_nfs_server";
             }
