@@ -41,6 +41,11 @@ sub run {
     fully_patch_system;
 
     type_string "reboot\n";
+
+    # extratests excepts correctly booted SUT
+    if (get_var('EXTRATEST')) {
+        $self->wait_boot;
+    }
 }
 
 sub test_flags {

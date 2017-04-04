@@ -1178,6 +1178,10 @@ elsif (is_kgraft) {
 }
 elsif (get_var("EXTRATEST")) {
     boot_hdd_image;
+    # update system with agregate repositories
+    if (get_var('FLAVOR', '') =~ m/-Updates$/) {
+        loadtest "qa_automation/patch_and_reboot";
+    }
     load_extra_tests();
 }
 elsif (get_var("Y2UITEST")) {

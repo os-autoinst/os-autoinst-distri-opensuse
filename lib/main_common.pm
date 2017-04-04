@@ -412,10 +412,6 @@ sub maybe_load_kernel_tests {
     return 1;
 }
 
-sub should_run_aggregated_maintenance_tests {
-    return grep { m/\w+_TEST_REPO/ && $ENV{$_} } keys %ENV;
-}
-
 sub load_extra_tests() {
     # Put tests that filled the conditions below
     # 1) you don't want to run in stagings below here
@@ -424,11 +420,6 @@ sub load_extra_tests() {
     return unless get_var('EXTRATEST');
     # pre-conditions for extra tests ie. the tests are running based on preinstalled image
     return if get_var("INSTALLONLY") || get_var("DUALBOOT") || get_var("RESCUECD");
-
-    if (should_run_aggregated_maintenance_tests()) {
-        loadtest "qa_automation/patch_and_reboot";
-        loadtest "boot/boot_to_desktop";
-    }
 
     # setup $serialdev permission and so on
     loadtest "console/consoletest_setup";
