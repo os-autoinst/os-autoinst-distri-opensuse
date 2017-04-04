@@ -68,12 +68,18 @@ sub run() {
     }
     assert_script_run "cp nofile c/nofile";
 
-    # Check for bsc#993841
-    assert_script_run "btrfs subvolume create e";
-    assert_script_run "btrfs qgroup limit 50m e .";
-    assert_script_run "! for c in {1..40}; do dd if=/dev/zero bs=1M count=40 of=e/file; done";
-    script_run "sync";
-    assert_script_run("rm e/file", fail_message => 'bsc#993841');
+    # Check for quota exceeding
+    assert_script_run 'btrfs subvolume create e';
+    assert_script_run 'btrfs qgroup limit 50m e .';
+    my $write_chunk = 'dd if=/dev/zero bs=1M count=40 of=e/file';
+    assert_script_run "for c in {1..2}; do $write_chunk; done", fail_message => 'bsc#1019614 overwriting same file should not exceed quota';
+    # write some more times to the same file to be sure
+    assert_script_run "for c in {1..38}; do $write_chunk; done";
+    assert_script_run 'sync';
+    assert_script_run 'rm e/file', fail_message => 'bsc#993841';
+    # test exceeding real quota
+    assert_script_run '! for c in {1..2}; do dd if=/dev/zero bs=1M count=40 of=e/file_$c; done';
+    assert_script_run 'rm e/file_*';
 
     assert_script_run "cd; umount $dest";
     assert_script_run "btrfsck /dev/vdb";
