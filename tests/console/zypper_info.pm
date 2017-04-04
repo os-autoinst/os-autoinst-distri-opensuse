@@ -17,32 +17,7 @@ use warnings;
 use testapi;
 use utils;
 
-sub run() {
-    select_console 'root-console';
-
-    my $info_output_vim = script_output 'zypper info vim';
-
-    my $expected_header_vim = 'Information for package vim:';
-    die "Missing info header. Expected: /$expected_header_vim/"
-      unless $info_output_vim =~ /$expected_header_vim/;
-
-    my $expected_package_name_vim = 'Name *: vim';
-    die "Missing package name. Expected: /$expected_package_name_vim/"
-      unless $info_output_vim =~ /$expected_package_name_vim/;
-
-    if (sle_version_at_least('12-SP3')) {
-        # use dvd2 as the src-repository
-        zypper_call('ar --disable --type plaindir cd:///?devices=/dev/sr1 repo-source');
-    }
-
-    if (check_var('DISTRI', 'opensuse') || sle_version_at_least('12-SP3')) {
-        test_dvd_src_as_repo();
-    }
-}
-
-sub test_dvd_src_as_repo {
-    zypper_call('mr -e repo-source');
-    zypper_call('ref');
+sub test_srcpackage_output {
     my $info_output_coreutils = script_output 'zypper info srcpackage:coreutils';
 
     my $expected_header_coreutils = 'Information for srcpackage coreutils:';
@@ -52,6 +27,50 @@ sub test_dvd_src_as_repo {
     my $expected_package_name_coreutils = 'Name *: coreutils';
     die "Missing package name. Expected: /$expected_package_name_coreutils/"
       unless $info_output_coreutils =~ /$expected_package_name_coreutils/;
+}
+
+sub test_package_output {
+    my $info_output_vim = script_output 'zypper info vim';
+
+    my $expected_header_vim = 'Information for package vim:';
+    die "Missing info header. Expected: /$expected_header_vim/"
+      unless $info_output_vim =~ /$expected_header_vim/;
+
+    my $expected_package_name_vim = 'Name *: vim';
+    die "Missing package name. Expected: /$expected_package_name_vim/"
+      unless $info_output_vim =~ /$expected_package_name_vim/;
+}
+
+sub run() {
+    select_console 'root-console';
+
+    # preparation of source repositories
+    my $cmd;
+    if (check_var('DISTRI', 'sle')) {
+        # SLE maintenance tests are assumed to be SCC registered
+        # and source repositories disabled by default
+        if (get_var('FLAVOR') =~ /-Updates$/) {
+            $cmd = q{mr -e $(zypper -n lr | awk '/-Source/ {print $1}')};
+        }
+        # use dvd2 as the src-repository
+        else {
+            $cmd = 'ar --type plaindir cd:///?devices=/dev/sr1 repo-source';
+        }
+    }
+    # source repository is disabled by default
+    elsif (check_var('DISTRI', 'opensuse')) {
+        $cmd = "mr -e repo-source";
+    }
+
+    zypper_call($cmd);
+    zypper_call("ref");
+
+    # check for zypper info
+    test_package_output;
+
+    if (sle_version_at_least('12-SP2') || check_var('DISTRI', 'opensuse')) {
+        test_srcpackage_output;
+    }
 }
 
 1;
