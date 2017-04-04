@@ -103,7 +103,12 @@ sub fill_in_registration_data {
         # ids - IBM DLPAR sdk (ppc64le only)
         if (get_var('SCC_ADDONS')) {
             if (check_screen('scc-beta-filter-checkbox', 5)) {
-                send_key 'alt-f';    # uncheck 'Filter Out Beta Version'
+                if (get_var('SP3ORLATER')) {
+                    send_key 'alt-i';    # uncheck 'Hide Beta Versions'
+                }
+                else {
+                    send_key 'alt-f';    # uncheck 'Filter Out Beta Version'
+                }
             }
             for my $addon (split(/,/, get_var('SCC_ADDONS', ''))) {
                 if (check_var('VIDEOMODE', 'text') || check_var('SCC_REGISTER', 'console')) {
