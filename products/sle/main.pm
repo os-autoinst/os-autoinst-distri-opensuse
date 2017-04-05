@@ -344,6 +344,32 @@ sub load_x11regression_other() {
     }
 }
 
+sub load_x11regression_remote() {
+    # load onetime vncsession testing
+    if (check_var('REMOTE_DESKTOP_TYPE', 'one_time_vnc')) {
+        loadtest 'x11regressions/remote_desktop/onetime_vncsession_xvnc_tigervnc';
+        loadtest 'x11regressions/remote_desktop/onetime_vncsession_xvnc_java';
+        loadtest 'x11regressions/remote_desktop/onetime_vncsession_multilogin_failed';
+    }
+    # load persistemt vncsession, x11 forwarding, xdmcp with gdm testing
+    elsif (check_var('REMOTE_DESKTOP_TYPE', 'persistent_vnc')) {
+        loadtest 'x11regressions/remote_desktop/persistent_vncsession_xvnc';
+        loadtest 'x11regressions/remote_desktop/x11_forwarding_openssh';
+        loadtest 'x11regressions/remote_desktop/xdmcp_gdm';
+    }
+    # load xdmcp with xdm testing
+    elsif (check_var('REMOTE_DESKTOP_TYPE', 'xdmcp_xdm')) {
+        loadtest 'x11regressions/remote_desktop/xdmcp_xdm';
+    }
+    # load vino testing
+    elsif (check_var('REMOTE_DESKTOP_TYPE', 'vino_server')) {
+        loadtest 'x11regressions/remote_desktop/vino_server';
+    }
+    elsif (check_var('REMOTE_DESKTOP_TYPE', 'vino_client')) {
+        loadtest 'x11regressions/remote_desktop/vino_client';
+    }
+}
+
 sub load_boot_tests() {
     if (get_var("ISO_MAXSIZE")) {
         loadtest "installation/isosize";
@@ -1000,6 +1026,10 @@ elsif (get_var("REGRESSION")) {
     elsif (check_var("REGRESSION", "other")) {
         loadtest "boot/boot_to_desktop";
         load_x11regression_other();
+    }
+    elsif (check_var('REGRESSION', 'remote')) {
+        loadtest 'boot/boot_to_desktop';
+        load_x11regression_remote();
     }
     elsif (check_var("REGRESSION", "piglit")) {
         loadtest "boot/boot_to_desktop";
