@@ -23,8 +23,8 @@ sub run() {
         bsc_1022524         => '.*rpc\.statd.*Failed to open directory sm.*',
         bsc_1022525         => '.*rpcbind.*cannot(.*open file.*rpcbind.xdr.*|.*open file.*portmap.xdr.*|.*save any registration.*)',
         bsc_1023818         => '.*Dev dev-disk-by.*device appeared twice with different sysfs paths.*',
-        bsc_1025217         => '.*piix4_smbus.*SMBus Host Controller not enabled.*',
-        bsc_1025218         => '.*dmi.*Firmware registration failed.*',
+        bsc_1025217_FEATURE => '.*piix4_smbus.*SMBus Host Controller not enabled.*',
+        bsc_1025218_FEATURE => '.*dmi.*Firmware registration failed.*',
         bsc_1028060_FEATURE => '.*getting etcd lock took too long, reboot canceld.*',
     };
     my $master_pattern = "(" . join('|', map { "$_" } values %$bug_pattern) . ")";
