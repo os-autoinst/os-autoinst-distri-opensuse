@@ -680,5 +680,19 @@ sub gnote_start_with_new_note {
     assert_screen 'gnote-new-note', 5;
 }
 
+# Configure static ip for NetworkManager on SLED or SLE+WE
+sub configure_static_ip_nm {
+    my ($self, $ip) = @_;
+
+    x11_start_program 'xterm';
+    assert_screen 'xterm';
+    become_root;
+    assert_script_run "nmcli connection add type ethernet con-name wired ifname eth0 ip4 '$ip' gw4 10.0.2.2";
+    assert_script_run 'nmcli device disconnect eth0';
+    assert_script_run 'nmcli connection up wired ifname eth0', 60;
+    type_string "exit\n";
+    wait_screen_change { send_key 'alt-f4' };
+}
+
 1;
 # vim: set sw=4 et:
