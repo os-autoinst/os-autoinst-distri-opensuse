@@ -23,10 +23,10 @@ use utils;
 # hint: press shift-f10 trice for highest debug level
 sub run() {
     assert_screen "bootloader", 15;
-    if (get_var("UPGRADE")) {
+    if (get_var("UPGRADE") && get_var('PATCHED_SYSTEM')) {
         send_key_until_needlematch 'inst-onupgrade', 'up';
     }
-    elsif (get_var("ZDUP") || get_var("ONLINE_MIGRATION")) {
+    elsif (get_var("ZDUP") || get_var("ONLINE_MIGRATION") || get_var('PATCH')) {
         assert_screen 'inst-onlocal';
     }
     else {
@@ -35,11 +35,11 @@ sub run() {
     if (   check_var('VIDEOMODE', 'text')
         || get_var('NETBOOT')
         || get_var('AUTOYAST')
-        || get_var('SCC_URL')
+        || get_var('SCC_URL') && !get_var('PATCH')
         || get_var('DUD')
         || get_var('EXTRABOOTPARAMS'))
     {
-        if (get_var("ZDUP") || get_var("ONLINE_MIGRATION")) {
+        if (get_var("ZDUP") || get_var("ONLINE_MIGRATION") || get_var('PATCH')) {
             send_key "down";
             send_key "ret";
         }
