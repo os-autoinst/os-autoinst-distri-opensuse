@@ -51,9 +51,7 @@ sub run() {
     assert_script_run "echo \"#panel .panel-button { color: transparent; }\" >> $theme";
     start_vnc_server;
 
-    select_console 'x11', await_console => 0;
-    ensure_unlocked_desktop;
-
+    select_console 'x11';
     # Reload theme to hide panel text
     x11_start_program "rt";
 
