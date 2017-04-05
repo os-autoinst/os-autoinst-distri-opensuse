@@ -14,6 +14,7 @@
 use base "opensusebasetest";
 use strict;
 use testapi;
+use utils;
 
 sub run() {
     my ($self) = @_;
@@ -29,8 +30,8 @@ sub run() {
         assert_script_run "zypper ar -f http://download.suse.de/ibs/SUSE/Products/SLE-Module-Toolchain/12/$arch/product/ SLE-Module-Toolchain12-Pool";
         assert_script_run "zypper ar -f http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Toolchain/12/$arch/update/ SLE-Module-Toolchain12-Updates";
     }
-    assert_script_run 'zypper -n in -t pattern gcc5';
-    assert_script_run 'zypper -n up';
+    zypper_call('in -t pattern gcc5');
+    zypper_call('up');
     # reboot when runing processes use deleted files after packages update
     type_string "zypper ps|grep 'PPID' || echo OK | tee /dev/$serialdev\n";
     if (!wait_serial("OK", 100)) {
