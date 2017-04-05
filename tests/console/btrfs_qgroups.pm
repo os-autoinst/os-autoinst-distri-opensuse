@@ -74,7 +74,9 @@ sub run() {
     my $write_chunk = 'dd if=/dev/zero bs=1M count=40 of=e/file';
     assert_script_run "for c in {1..2}; do $write_chunk; done", fail_message => 'bsc#1019614 overwriting same file should not exceed quota';
     # write some more times to the same file to be sure
-    assert_script_run "for c in {1..38}; do $write_chunk; done";
+    if (script_run "for c in {1..38}; do $write_chunk; done") {
+        record_soft_failure 'bsc#1019614';
+    }
     assert_script_run 'sync';
     assert_script_run 'rm e/file', fail_message => 'bsc#993841';
     # test exceeding real quota
