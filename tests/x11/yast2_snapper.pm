@@ -120,8 +120,8 @@ sub run() {
         # immediately but takes 1-2 seconds. That's why after deletion
         # it's still there which is detected now in the new faster version
         # of the test. On a second look it should really be gone
-        wait_still_screen;
-        if (check_screen([qw(yast2_snapper-new_snapshot yast2_snapper-new_snapshot_selected)], 240)) {
+        wait_still_screen 30;
+        if (check_screen([qw(yast2_snapper-new_snapshot yast2_snapper-new_snapshot_selected)], 0)) {
             die("The snapshot is still visible after trying to delete it and waiting a bit");
         }
     }
