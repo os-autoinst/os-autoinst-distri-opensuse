@@ -39,15 +39,15 @@ sub y2snapper_create_snapshot() {
     send_key "alt-o";
 }
 
-# Quit yast2-snapper and cleanup the mess
+# Quit yast2-snapper and cleanup
 sub clean_and_quit() {
     # Ensure yast2-snapper is not busy anymore
     wait_still_screen;
     # C'l'ose  the snapper module
     wait_screen_change { send_key "alt-l" };
-    # Wait until xterm is focussed, delete the directory and close xterm
-    wait_idle;
-    script_run 'rm -rf testdata', 300;
+    # Wait until root gnome terminal is focussed, delete the directory and close window
+    assert_screen 'root-gnome-terminal', no_wait => 1;
+    script_run 'rm -rf testdata';
     script_run "ls";
     type_string "exit\n";
     save_screenshot;
