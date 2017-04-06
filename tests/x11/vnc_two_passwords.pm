@@ -13,6 +13,7 @@
 use base "x11test";
 use strict;
 use testapi;
+use utils 'ensure_unlocked_desktop';
 
 my @options = ({pw => "full_access_pw", change => 1}, {pw => "view_only_pw", change => 0});
 my $theme = "/usr/share/gnome-shell/theme/gnome-classic.css";
@@ -50,7 +51,9 @@ sub run() {
     assert_script_run "echo \"#panel .panel-button { color: transparent; }\" >> $theme";
     start_vnc_server;
 
-    select_console "x11";
+    select_console 'x11', await_console => 0;
+    ensure_unlocked_desktop;
+
     # Reload theme to hide panel text
     x11_start_program "rt";
 
