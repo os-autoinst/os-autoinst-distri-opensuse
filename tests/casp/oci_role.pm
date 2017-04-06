@@ -32,7 +32,7 @@ sub run() {
         send_key 'alt-o';
 
         # Fill controller node information
-        send_key 'alt-c';
+        send_key 'alt-d';
         type_string 'dashboard-url';
         assert_screen 'dashboard-url';
     }
