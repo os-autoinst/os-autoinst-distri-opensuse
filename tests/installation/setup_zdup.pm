@@ -31,6 +31,14 @@ sub run() {
         # script_sudo "/sbin/init 3";
 
         select_console('root-console');
+        # Create a snapshot with specified description to do snapper rollback
+        # This action is concerned about following points:
+        # 1. Source image could be original installation or updated
+        # 2. Source image may apply patches before migration
+        # 3. Hard to assert similar snapshots in grub2
+        # 4. Menu of each snapshot is long with openSUSE leap, use short and unique description
+        # 5. Avoid rollback to snapshot without graphical target
+        assert_script_run "snapper create --type pre --cleanup-algorithm=number --print-number --userdata important=yes --description 'b_zdup migration'";
 
         # Remove the --force when this is fixed:
         # https://bugzilla.redhat.com/show_bug.cgi?id=1075131

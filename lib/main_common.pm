@@ -43,6 +43,7 @@ our @EXPORT = qw(
   load_yast2_ui_tests
   maybe_load_kernel_tests
   load_extra_tests
+  load_rollback_tests
 );
 
 sub init_main {
@@ -507,6 +508,16 @@ sub load_extra_tests() {
         }
     }
     return 1;
+}
+
+sub load_rollback_tests() {
+    loadtest "boot/grub_test_snapshot";
+    if (get_var('UPGRADE') || get_var('ZDUP')) {
+        loadtest "boot/snapper_rollback";
+    }
+    if (get_var('MIGRATION_ROLLBACK')) {
+        loadtest "online_migration/sle12_online_migration/snapper_rollback";
+    }
 }
 
 1;
