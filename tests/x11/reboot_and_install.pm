@@ -21,6 +21,11 @@ use registration;
 sub run() {
     # reboot from previously booted hdd to do pre check or change e.g. before upgrade
     reboot_gnome;
+
+    # on s390 zKVM we handle the boot of the patched system differently
+    set_var('PATCHED_SYSTEM', 1) if get_var('PATCH');
+    return if get_var('S390_ZKVM');
+
     # give some time to shutdown+reboot from gnome. Also, because mainly we
     # are coming from old systems here it is unlikely the reboot time
     # increases
