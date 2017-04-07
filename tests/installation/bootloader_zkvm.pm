@@ -29,7 +29,8 @@ sub run() {
     my $vtap = $svirt->instance + 4;
     my $repo = "ftp://openqa.suse.de/" . get_var('REPO_0');
 
-    if (!get_var('BOOT_HDD_IMAGE')) {
+
+    if (!get_var('BOOT_HDD_IMAGE') or get_var('PATCHED_SYSTEM')) {
         my $cmdline = get_var('VIRSH_CMDLINE') . " ";
 
         $cmdline .= "install=$repo ";
@@ -76,8 +77,15 @@ sub run() {
         my $basename = basename($hdd);
         chomp(my $hdd_path = `find $hdd_dir -name $basename | head -n1`);
         diag("HDD path found: $hdd_path");
-        type_string("# copying image...\n");
-        $svirt->add_disk({file => $hdd_path, dev_id => 'a'});    # Copy disk to local storage
+        if (get_var('PATCHED_SYSTEM')) {
+            diag('in patched systems just load the patched image');
+            my $patched_img = "$img_path/$name" . "a.img";
+            $svirt->add_disk({file => $patched_img, dev_id => 'a'});
+        }
+        else {
+            type_string("# copying image...\n");
+            $svirt->add_disk({file => $hdd_path, backingfile => 1, dev_id => 'a'});    # Copy disk to local storage
+        }
     }
     else {
         $svirt->add_disk({size => $size_i . "G", create => 1, dev_id => 'a'});
@@ -95,7 +103,7 @@ sub run() {
 
     $svirt->define_and_start;
 
-    if (!get_var("BOOT_HDD_IMAGE")) {
+    if (!get_var("BOOT_HDD_IMAGE") or get_var('PATCHED_SYSTEM')) {
         if (check_var("VIDEOMODE", "text")) {
             wait_serial("run 'yast.ssh'", 300) || die "linuxrc didn't finish";
             select_console("installation");

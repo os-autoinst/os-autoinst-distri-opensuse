@@ -974,6 +974,7 @@ sub load_patching_tests() {
     }
     loadtest 'console/consoletest_finish_sym';
     loadtest 'x11/reboot_and_install';
+    loadtest 'installation/bootloader_zkvm_sym' if get_var('S390_ZKVM');
 }
 
 sub prepare_target() {
