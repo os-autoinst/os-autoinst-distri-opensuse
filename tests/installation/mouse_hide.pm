@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Test to see if mouse is hidden - to be run before/as part of installation_mode
-# G-Maintainer: Richard Brown <rbrownccb@opensuse.org>
+# Summary: Test to see if mouse is hidden - to be run before/as part of installation_mode
+# Maintainer: Richard Brown <rbrownccb@opensuse.org>
 
 use base "opensusebasetest";
 use testapi;

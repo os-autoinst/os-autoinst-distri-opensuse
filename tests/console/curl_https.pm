@@ -8,10 +8,10 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: consoletests: add a new curl_https test
+# Summary: consoletests: add a new curl_https test
 #    Ensure curl is able to successfully connect to a https site
 #    (www.opensuse.org) without certificate errors.
-# G-Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
+# Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
 
 use base "consoletest";
 use testapi;

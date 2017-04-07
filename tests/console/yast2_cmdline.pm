@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Support for the new tests for yast command line
-# G-Maintainer: Ancor Gonzalez Sosa <ancor@suse.de>
+# Summary: Support for the new tests for yast command line
+# Maintainer: Ancor Gonzalez Sosa <ancor@suse.de>
 
 use base "console_yasttest";
 use strict;

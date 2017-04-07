@@ -13,8 +13,8 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# G-Summary: configure support server repos during image building
-# G-Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
+# Summary: configure support server repos during image building
+# Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
 
 use strict;
 use base 'basetest';

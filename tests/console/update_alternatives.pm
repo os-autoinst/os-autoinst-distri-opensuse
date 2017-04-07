@@ -7,8 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: console/update_alternatives test for bsc#969171
-# G-Maintainer: Ondřej Súkup <osukup@suse.cz>
+# Summary: console/update_alternatives test for bsc#969171
+# Maintainer: Ondřej Súkup <osukup@suse.cz>
 
 use base "consoletest";
 use strict;

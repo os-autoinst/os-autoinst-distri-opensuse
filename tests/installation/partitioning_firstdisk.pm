@@ -7,10 +7,10 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: New test to take the first disk
+# Summary: New test to take the first disk
 #    Otherwise the partitioning proposal will use a free disk, which makes
 #    rebooting a game of chance on real hardware
-# G-Maintainer: Stephan Kulow <coolo@suse.de>
+# Maintainer: Stephan Kulow <coolo@suse.de>
 
 use strict;
 use warnings;

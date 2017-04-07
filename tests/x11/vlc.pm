@@ -14,9 +14,9 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-# G-Summary: vlc test
+# Summary: vlc test
 #    plays some free video file
-# G-Maintainer: Ludwig Nussel <ludwig.nussel@suse.de>
+# Maintainer: Ludwig Nussel <ludwig.nussel@suse.de>
 
 use base "x11test";
 use strict;

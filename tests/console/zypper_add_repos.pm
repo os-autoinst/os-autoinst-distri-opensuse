@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: new test that adds configured repositories
-# G-Maintainer: Ludwig Nussel <ludwig.nussel@suse.de>
+# Summary: new test that adds configured repositories
+# Maintainer: Ludwig Nussel <ludwig.nussel@suse.de>
 
 use base "consoletest";
 use strict;

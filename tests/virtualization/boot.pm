@@ -14,8 +14,8 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-# G-Summary: - add the virtualization test suite- add a load_virtualization_tests call
-# G-Maintainer: aginies <aginies@suse.com>
+# Summary: - add the virtualization test suite- add a load_virtualization_tests call
+# Maintainer: aginies <aginies@suse.com>
 
 use base "basetest";
 use strict;

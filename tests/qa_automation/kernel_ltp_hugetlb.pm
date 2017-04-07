@@ -13,8 +13,8 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# G-Summary: Add four new ltp subtest to regression test
-# G-Maintainer: Yong Sun <yosun@suse.com>
+# Summary: Add four new ltp subtest to regression test
+# Maintainer: Yong Sun <yosun@suse.com>
 
 use base "qa_run";
 use strict;

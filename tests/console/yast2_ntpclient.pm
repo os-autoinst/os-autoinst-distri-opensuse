@@ -7,8 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add yast2_ntpclient test
-# G-Maintainer: Zaoliang Luo <zluo@suse.de>
+# Summary: Add yast2_ntpclient test
+# Maintainer: Zaoliang Luo <zluo@suse.de>
 
 use strict;
 use base "consoletest";

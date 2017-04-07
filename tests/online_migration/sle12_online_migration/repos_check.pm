@@ -7,8 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add compatibility to check smt and nvidia repos
-# G-Maintainer: mitiao <mitiao@gmail.com>
+# Summary: Add compatibility to check smt and nvidia repos
+# Maintainer: mitiao <mitiao@gmail.com>
 
 use base "consoletest";
 use strict;
