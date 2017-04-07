@@ -968,6 +968,10 @@ sub load_patching_tests() {
     }
     loadtest 'boot/boot_to_desktop_sym';
     loadtest 'update/patch_before_migration';
+    # Lock package for offline migration by Yast installer
+    if (get_var('LOCK_PACKAGE') && !installzdupstep_is_applicable) {
+        loadtest 'console/lock_package';
+    }
     loadtest 'console/consoletest_finish_sym';
     loadtest 'x11/reboot_and_install';
 }
