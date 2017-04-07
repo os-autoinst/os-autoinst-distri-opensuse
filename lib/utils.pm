@@ -56,6 +56,7 @@ our @EXPORT = qw(
   turn_off_kde_screensaver
   random_string
   handle_login
+  handle_logout
   handle_emergency
   service_action
   assert_gui_app
@@ -806,6 +807,22 @@ sub handle_login {
     assert_screen 'displaymanager-password-prompt', no_wait => 1;
     type_password;
     send_key "ret";
+}
+
+sub handle_logout {
+    # hide mouse for clean logout needles
+    mouse_hide();
+    # logout
+    if (check_var('DESKTOP', 'gnome') || check_var('DESKTOP', 'lxde')) {
+        my $command = check_var('DESKTOP', 'gnome') ? 'gnome-session-quit' : 'lxsession-logout';
+        x11_start_program("$command");    # opens logout dialog
+        assert_screen 'logoutdialog' unless check_var('DESKTOP', 'gnome');
+    }
+    else {
+        my $key = check_var('DESKTOP', 'xfce') ? 'alt-f4' : 'ctrl-alt-delete';
+        send_key_until_needlematch 'logoutdialog', "$key";    # opens logout dialog
+    }
+    assert_and_click 'logout-button';                         # press logout
 }
 
 # Handle emergency mode
