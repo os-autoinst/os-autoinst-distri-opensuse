@@ -794,7 +794,7 @@ sub load_x11tests() {
         loadtest "x11/reboot_gnome";
     }
     loadtest "x11/desktop_mainmenu";
-    # Need to skip shutdown to keep beckend alive if run rollback tests after migration
+    # Need to skip shutdown to keep backend alive if running rollback tests after migration
     unless (get_var('ROLLBACK_AFTER_MIGRATION')) {
         loadtest "x11/shutdown";
     }
@@ -968,6 +968,10 @@ sub load_patching_tests() {
     }
     loadtest 'boot/boot_to_desktop_sym';
     loadtest 'update/patch_before_migration';
+    # Lock package for offline migration by Yast installer
+    if (get_var('LOCK_PACKAGE') && !installzdupstep_is_applicable) {
+        loadtest 'console/lock_package';
+    }
     loadtest 'console/consoletest_finish_sym';
     loadtest 'x11/reboot_and_install';
 }
