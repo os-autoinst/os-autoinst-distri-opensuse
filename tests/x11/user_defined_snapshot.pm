@@ -62,8 +62,10 @@ sub run() {
     send_key 'ret';
     send_key_until_needlematch("snap-bootloader-comment", 'down', 10, 5);
     save_screenshot;
-    send_key 'ret';
-    if (!check_screen([qw(tty-selected displaymanager, 60)])) { record_soft_failure 'bsc#980337'; }
+    wait_screen_change { send_key 'ret' };
+    # boot into the snapshot
+    $self->wait_boot(textmode => 1);
+    # request reboot again to ensure we will end up in the original system
     send_key 'ctrl-alt-delete';
     $self->wait_boot;
 }
