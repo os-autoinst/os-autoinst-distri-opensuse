@@ -5,5 +5,5 @@ encrypted_password="$2"
 
 for i in `seq 1 $n_users` ; do
 	num=`printf "%02d" $i`
-	useradd -m -c "User #${num}" -p "$encrypted_password" "user${i}"
+	useradd -m -d /home/user${i} -c "User #${num}" -p "$encrypted_password" "user${i}"
 done

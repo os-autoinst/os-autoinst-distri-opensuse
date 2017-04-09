@@ -17,6 +17,7 @@
 use base "x11test";
 use strict;
 use testapi;
+use utils;
 
 sub ensure_multi_user_target {
     type_string "systemctl isolate multi-user.target\n";
@@ -49,7 +50,20 @@ sub run() {
     assert_script_run "~$username/data/create_users $users_to_create \"$encrypted_password\"";
     restart_x11;
 
-    assert_screen "multi_users_dm";
+    # login created user
+    assert_screen 'multi_users_dm';
+    wait_still_screen;
+    send_key 'down';    # select created user #01
+    ensure_unlocked_desktop;
+    # verify correct user is logged in
+    x11_start_program 'xterm';
+    assert_screen 'xterm';
+    wait_still_screen;
+    type_string "whoami|grep user1 > /tmp/whoami.log\n";
+    assert_script_sudo 'grep user1 /tmp/whoami.log';
+    # logout user
+    handle_logout;
+    wait_still_screen;
 
     # restore previous config
     select_console 'root-console';
