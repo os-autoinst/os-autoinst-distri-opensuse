@@ -87,8 +87,4 @@ sub run() {
     assert_script_run "btrfsck /dev/vdb";
 }
 
-sub test_flags() {
-    return {important => 1};
-}
-
 1;

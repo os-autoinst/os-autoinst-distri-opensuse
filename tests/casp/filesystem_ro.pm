@@ -27,9 +27,5 @@ sub run() {
     assert_script_run "mount | grep 'on / type btrfs (ro,'";
 }
 
-sub test_flags() {
-    return {important => 1};
-}
-
 1;
 # vim: set sw=4 et:

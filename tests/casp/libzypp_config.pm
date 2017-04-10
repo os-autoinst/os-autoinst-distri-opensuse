@@ -27,9 +27,5 @@ sub post_fail_hook() {
     upload_logs '/etc/zypp/zypp.conf';
 }
 
-sub test_flags() {
-    return {important => 1};
-}
-
 1;
 # vim: set sw=4 et:

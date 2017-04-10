@@ -50,8 +50,4 @@ sub post_fail_hook() {
     upload_logs('/var/log/snapper.log');
 }
 
-sub test_flags() {
-    return {important => 1};
-}
-
 1;

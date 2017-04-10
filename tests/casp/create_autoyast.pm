@@ -56,8 +56,4 @@ sub run() {
     upload_asset $autoinst_file;
 }
 
-sub test_flags() {
-    return {important => 1};
-}
-
 1;

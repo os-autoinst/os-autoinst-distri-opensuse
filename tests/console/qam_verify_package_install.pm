@@ -27,9 +27,5 @@ sub run() {
     assert_script_run("~$username/data/lsmfip --verbose --verify \$XDG_RUNTIME_DIR/install_packages.txt $packages | tee /dev/$serialdev");
 }
 
-sub test_flags() {
-    return {important => 1};
-}
-
 1;
 # vim: set sw=4 et:

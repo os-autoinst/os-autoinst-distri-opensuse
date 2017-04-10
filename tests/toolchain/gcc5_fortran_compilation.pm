@@ -44,10 +44,6 @@ sub run() {
     script_run 'popd';
 }
 
-sub test_flags() {
-    return {important => 1};
-}
-
 sub post_fail_hook() {
     my $self = shift;
 

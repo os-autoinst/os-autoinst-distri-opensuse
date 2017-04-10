@@ -37,9 +37,5 @@ sub run {
     $self->run_test($timeout, "guest_upgrade_test ... ... PASSED", "no", "yes", "/var/log/qa/", "guest-upgrade-logs");
 }
 
-sub test_flags {
-    return {important => 1};
-}
-
 1;
 

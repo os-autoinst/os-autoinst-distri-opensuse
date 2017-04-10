@@ -79,9 +79,5 @@ sub run() {
     check_package '5.3.61';
 }
 
-sub test_flags() {
-    return {important => 1};
-}
-
 1;
 # vim: set sw=4 et:

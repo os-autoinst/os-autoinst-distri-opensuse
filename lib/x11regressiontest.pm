@@ -18,10 +18,6 @@ use testapi;
 use utils;
 use POSIX 'strftime';
 
-sub test_flags() {
-    return {important => 1};
-}
-
 # import_pictures helps shotwell to import test pictures into shotwell's library.
 sub import_pictures {
     my ($self, $pictures) = @_;

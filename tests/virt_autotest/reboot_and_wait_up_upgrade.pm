@@ -23,9 +23,5 @@ sub run() {
     $self->reboot_and_wait_up($timeout);
 }
 
-sub test_flags {
-    return {important => 1};
-}
-
 1;
 

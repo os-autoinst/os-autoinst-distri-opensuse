@@ -58,9 +58,5 @@ sub run() {
     type_string "killall xterm\n";
 }
 
-sub test_flags {
-    return {important => 1};
-}
-
 1;
 # vim: set sw=4 et:

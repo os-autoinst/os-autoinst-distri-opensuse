@@ -34,10 +34,6 @@ sub run {
     else { assert_screen("autoyast-boot", 20); }
 }
 
-sub test_flags {
-    return {important => 1};
-}
-
 1;
 
 # vim: set sw=4 et:

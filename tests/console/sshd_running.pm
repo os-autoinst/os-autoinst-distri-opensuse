@@ -24,8 +24,4 @@ sub run() {
     assert_script_run("systemctl show -p SubState sshd|grep SubState=running");
 }
 
-sub test_flags() {
-    return {important => 1};
-}
-
 1;
