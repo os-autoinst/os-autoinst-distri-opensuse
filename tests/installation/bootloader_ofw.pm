@@ -35,7 +35,7 @@ sub run() {
     if (   check_var('VIDEOMODE', 'text')
         || get_var('NETBOOT')
         || get_var('AUTOYAST')
-        || get_var('SCC_URL') && !get_var('PATCH')
+        || get_var('SCC_URL')
         || get_var('DUD')
         || get_var('EXTRABOOTPARAMS'))
     {
