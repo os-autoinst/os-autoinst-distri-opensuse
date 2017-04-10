@@ -40,7 +40,7 @@ sub snapper_cleanup {
     assert_script_run("$snapper list");
     clear_console;
     script_output("$btrfs_fs_usage | sed -n '7p' | awk -F ' ' '{print\$3}'");
-    die "bsc#998360: Exclusive space is below user-defined limiti: $free_space (free_space) < $excl_free_space (excl_free_space)"
+    die "bsc#998360: Exclusive space is below user-defined limit: $free_space (free_space) < $excl_free_space (excl_free_space)"
       if $free_space < $excl_free_space;
 }
 
