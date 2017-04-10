@@ -59,7 +59,7 @@ sub run {
     set_var('DESKTOP', get_var('FULL_DESKTOP'));
 
     my $patch_status = script_output("zypper -n info -t patch $patch");
-    if ($patch_status =~ /Status\s+:\s+not\sneeded/) {
+    if ($patch_status =~ /Status\s*:\s+[Nn]ot\s[Nn]eeded/) {
         install_packages($patch_status);
     }
 
