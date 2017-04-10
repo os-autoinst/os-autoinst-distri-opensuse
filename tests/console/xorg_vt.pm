@@ -23,9 +23,5 @@ sub run() {
     assert_screen("xorg-tty7");    # suppose used terminal is tty7
 }
 
-sub test_flags() {
-    return {important => 1};
-}
-
 1;
 # vim: set sw=4 et:

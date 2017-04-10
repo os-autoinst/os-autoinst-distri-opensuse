@@ -33,9 +33,7 @@ sub run() {
 }
 
 sub test_flags() {
-    # as long as we don't understand the failure in mouse_hide we should rather not
-    # rely on this test. The problem can't be reproduced outside of openqa
-    return {important => 0, milestone => 1};
+    return {milestone => 1};
 }
 
 1;

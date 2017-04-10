@@ -56,9 +56,5 @@ sub run() {
     $self->run_test(7600, "", "yes", "yes", "/var/log/qa/", "guest-installation-logs");
 }
 
-sub test_flags {
-    return {important => 1};
-}
-
 1;
 

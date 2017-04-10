@@ -28,9 +28,5 @@ sub run() {
     }
 }
 
-sub test_flags() {
-    return {important => 1};
-}
-
 1;
 # vim: set sw=4 et:

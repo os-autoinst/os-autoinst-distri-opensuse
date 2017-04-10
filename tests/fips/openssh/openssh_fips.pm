@@ -42,9 +42,5 @@ sub run {
     validate_script_output 'ssh-keygen -t dsa -f ~/.ssh/id_dsa -P "" 2>&1 || true', sub { m/Key type dsa not alowed in FIPS mode/ };
 }
 
-sub test_flags {
-    return {important => 1};
-}
-
 1;
 # vim: set sw=4 et:

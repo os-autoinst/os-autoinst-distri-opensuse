@@ -46,9 +46,5 @@ sub run() {
     wait_serial($pattern, 90) || die "$snapshot_name snapshot test failed";
 }
 
-sub test_flags() {
-    return {important => 1};
-}
-
 1;
 # vim: set sw=4 et:

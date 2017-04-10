@@ -194,9 +194,5 @@ sub run() {
     parse_junit_log("/tmp/junit.xml");
 }
 
-sub test_flags {
-    return {important => 1};
-}
-
 1;
 

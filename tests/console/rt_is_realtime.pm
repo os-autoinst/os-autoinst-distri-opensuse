@@ -19,8 +19,4 @@ sub run() {
     assert_script_run "grep -q 1 /sys/kernel/realtime";
 }
 
-sub test_flags() {
-    return {important => 1};
-}
-
 1;

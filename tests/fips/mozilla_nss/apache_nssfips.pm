@@ -20,9 +20,5 @@ sub run() {
     setup_apache2(mode => 'NSSFIPS');
 }
 
-sub test_flags {
-    return {important => 1};
-}
-
 1;
 # vim: set sw=4 et:

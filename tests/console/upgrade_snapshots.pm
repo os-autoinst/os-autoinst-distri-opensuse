@@ -32,9 +32,5 @@ sub run() {
       || die 'upgrade snapshots test failed';
 }
 
-sub test_flags() {
-    return {important => 1};
-}
-
 1;
 # vim: set sw=4 et:

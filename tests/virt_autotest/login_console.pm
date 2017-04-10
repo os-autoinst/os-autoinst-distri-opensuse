@@ -54,9 +54,5 @@ sub run() {
     set_serialdev;
 }
 
-sub test_flags {
-    return {important => 1};
-}
-
 1;
 

@@ -30,7 +30,7 @@ sub run() {
 }
 
 sub test_flags() {
-    return {important => 1, milestone => 1};
+    return {milestone => 1};
 }
 
 1;

@@ -58,10 +58,6 @@ sub run() {
     script_run 'cat ~/max_user_instances > /proc/sys/fs/inotify/max_user_instances';
 }
 
-sub test_flags() {
-    return {important => 1};
-}
-
 sub post_fail_hook() {
     my $self = shift;
 

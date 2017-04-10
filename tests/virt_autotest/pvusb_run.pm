@@ -33,9 +33,5 @@ sub run() {
     $self->run_test(5000, "Congratulations! All test is successful!", "no", "yes", "/var/log/qa/", "pvusb-test-logs");
 }
 
-sub test_flags {
-    return {important => 1};
-}
-
 1;
 

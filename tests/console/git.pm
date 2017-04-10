@@ -58,9 +58,5 @@ sub run() {
     assert_script_run("rm -rf ~/repos ~/os-autoinst*");
 }
 
-sub test_flags() {
-    return {important => 1};
-}
-
 1;
 # vim: set sw=4 et:

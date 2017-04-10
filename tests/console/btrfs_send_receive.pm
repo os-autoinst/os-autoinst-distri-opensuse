@@ -70,8 +70,4 @@ sub run() {
     assert_script_run("umount -fl /dev/vdb");
 }
 
-sub test_flags() {
-    return {important => 1};
-}
-
 1;
