@@ -49,13 +49,7 @@ sub run() {
 
     # join openqa channel
     send_key "ctrl-j";
-    if (!check_screen 'empathy-join-room') {
-        record_soft_failure 'bsc#999832: keyboard shortcut of empathy not working on SLED12SP2';
-        assert_and_click 'empathy-menu';
-        send_key_until_needlematch "empathy-menu-rooms", "down";
-        assert_and_click 'empathy-menu-joinrooms';
-        assert_screen 'empathy-join-room';
-    }
+    assert_screen "empathy-join-room";
     type_string "openqa";
     send_key "ret";
 
