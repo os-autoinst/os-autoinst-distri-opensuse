@@ -540,6 +540,30 @@ sub validatelr {
         $product = 'SLE-Live-Patching';
         $version = '12';
     }
+    if ($product eq 'SLE-ASMM') {
+        $product = 'SLE-Module-Adv-Systems-Management';
+        $version = '12';
+    }
+    if ($product eq 'SLE-CONTM') {
+        $product = 'SLE-Module-Containers';
+        $version = '12';
+    }
+    if ($product eq 'SLE-HPCM') {
+        $product = 'SLE-Module-HPC';
+        $version = '12';
+    }
+    if ($product eq 'SLE-LGM') {
+        $product = 'SLE-Module-Legacy';
+        $version = '12';
+    }
+    if ($product eq 'SLE-PCM') {
+        $product = 'SLE-Module-Public-Cloud';
+        $version = '12';
+    }
+    if ($product eq 'SLE-TCM') {
+        $product = 'SLE-Module-Toolchain';
+        $version = '12';
+    }
     if ($product eq 'SLE-WSM') {
         $product = 'SLE-Module-Web-Scripting';
         $version = '12';
@@ -703,6 +727,8 @@ sub validate_repos_sle {
         for my $scc_product ($base_product, keys %h_scc_addons) {
             $we = 1 if ($scc_product eq "SLE-WE");
             for my $product_channel ("Pool", "Updates", "Debuginfo-Pool", "Debuginfo-Updates", "Source-Pool") {
+                # Toolchain module doesn't have Source-Pool channel
+                next if (($scc_product eq 'SLE-TCM') && ($product_channel eq 'Source-Pool'));
                 validatelr(
                     {
                         product         => $scc_product,
