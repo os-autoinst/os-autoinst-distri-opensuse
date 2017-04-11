@@ -2,6 +2,7 @@ package susedistribution;
 use base 'distribution';
 use serial_terminal ();
 use strict;
+use utils 'type_string_slow';
 
 # Base class for all openSUSE tests
 
@@ -107,8 +108,16 @@ sub x11_start_program($$$) {
         record_soft_failure 'bsc#978027' if check_screen 'generic-desktop', 0;
         send_key_until_needlematch 'desktop-runner', 'alt-f2', 3, 10;
     }
-    type_string $program;
-    wait_idle 5;
+    # krunner may use auto-completion which sometimes gets confused by
+    # too fast typing or looses characters because of the load caused (also
+    # see below). See https://progress.opensuse.org/issues/18200
+    if (check_var('DESKTOP', 'kde')) {
+        type_string_slow $program;
+    }
+    else {
+        type_string $program;
+    }
+    wait_still_screen(1);
     if ($options->{terminal}) {
         wait_screen_change { send_key 'alt-t' };
     }
