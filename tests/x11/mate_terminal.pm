@@ -22,7 +22,7 @@ sub run() {
     assert_screen "mate-terminal";
     send_key "ctrl-shift-t";
     assert_screen "mate-terminal-second-tab";
-    $self->enter_test_text('mate-terminal');
+    $self->enter_test_text('mate-terminal', cmd => 1);
     assert_screen 'test-mate_terminal-1';
     send_key "alt-f4";
 }

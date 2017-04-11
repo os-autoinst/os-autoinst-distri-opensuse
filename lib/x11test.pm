@@ -58,10 +58,13 @@ sub prepare_sle_classic {
 }
 
 sub enter_test_text {
-    my ($self, $name) = @_;
+    my ($self, $name, %args) = @_;
     $name //= 'your program';
-    for (1 .. 13) { send_key "ret" }
-    type_string "echo If you can see this text $name is working.\n";
+    $args{cmd} //= 0;
+    for (1 .. 13) { send_key 'ret' }
+    my $text = "If you can see this text $name is working.\n";
+    $text = 'echo ' . $text if $args{cmd};
+    type_string $text;
 }
 
 sub test_terminal {
@@ -69,7 +72,7 @@ sub test_terminal {
     mouse_hide(1);
     x11_start_program($name);
     assert_screen $name;
-    $self->enter_test_text($name);
+    $self->enter_test_text($name, cmd => 1);
     assert_screen "test-$name-1";
     send_key 'alt-f4';
 }

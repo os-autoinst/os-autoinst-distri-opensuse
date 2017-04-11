@@ -24,7 +24,7 @@ sub run() {
     if (!check_screen "gnome-terminal-second-tab") {
         record_soft_failure 'bsc#999243';
     }
-    $self->enter_test_text('gnome-terminal');
+    $self->enter_test_text('gnome-terminal', cmd => 1);
     assert_screen 'test-gnome_terminal-1';
     send_key 'alt-f4';
 }

@@ -21,7 +21,7 @@ sub run() {
     x11_start_program("xfce4-terminal");
     wait_still_screen 1;
     send_key "ctrl-shift-t";
-    $self->enter_test_text('xfce4-terminal');
+    $self->enter_test_text('xfce4-terminal', cmd => 1);
     assert_screen 'test-xfce4_terminal-1';
     wait_screen_change { send_key 'alt-f4' };
     # confirm close of multi-tab window
