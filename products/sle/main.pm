@@ -853,13 +853,16 @@ sub load_hacluster_tests() {
         loadtest("ha/ocfs2");
         loadtest("ha/drbd");
         loadtest("ha/crm_mon");
-        loadtest("ha/fencing");
+	if (get_var('HA_CLUSTER_TEST_ADVANCED')) {
+        	loadtest("ha/fencing");
         if (!get_var("HACLUSTERJOIN")) {                     #node1 will be fenced
             loadtest "ha/fencing_boot";
             loadtest "ha/fencing_consoletest_setup";
         }
     }
-    loadtest("ha/check_logs");                               #check_logs must be after ha/fencing
+}
+    # check_logs must be after ha/fencing
+    loadtest("ha/check_logs") if get_var('HA_CLUSTER_TEST_ADVANCED');
     return 1;
 }
 
@@ -1087,7 +1090,7 @@ elsif (get_var("FIPS_TS")) {
     }
 }
 elsif (get_var("HACLUSTER_SUPPORT_SERVER")) {
-    if (get_var("CTS")) {
+    if (get_var("CTS") and get_var('HA_CLUSTER_TEST_ADVANCED')) {
         loadtest "ha/ha_cts_support_server";
     }
     else {
