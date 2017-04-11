@@ -19,9 +19,7 @@ sub run() {
     select_console 'root-console';
 
     # print repos to screen and serial console after online migration
-    wait_still_screen;
-    script_run("zypper lr -u | tee /dev/$serialdev");
-    save_screenshot;
+    zypper_call('lr -u');
 
     # nvidia repo is always updated by scc during migration
     # we have to disable it after migration if find workaround
