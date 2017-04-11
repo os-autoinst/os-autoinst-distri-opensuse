@@ -70,13 +70,7 @@ sub test_terminal {
     x11_start_program($name);
     assert_screen $name;
     $self->enter_test_text($name);
-    unless (check_screen "test-$name-1") {
-        record_soft_failure 'poo#17442 workaround for too early typing, remove after ticket fixed';
-        # We really should not use sleeps but too many keys have gone missing
-        sleep 1;
-        # let's try again
-        assert_screen "test-$name-1";
-    }
+    assert_screen "test-$name-1";
     send_key 'alt-f4';
 }
 
