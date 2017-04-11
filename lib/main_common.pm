@@ -365,7 +365,7 @@ sub load_yast2_ui_tests {
     if (check_var('DISTRI', 'sle')) {
         loadtest "x11/yast2_lan_restart";
     }
-    loadtest "yast2_gui/yast2_control_center";
+    loadtest 'yast2_gui/yast2_control_center';
     loadtest "yast2_gui/yast2_bootloader";
     loadtest "yast2_gui/yast2_datetime";
     loadtest "yast2_gui/yast2_firewall";
