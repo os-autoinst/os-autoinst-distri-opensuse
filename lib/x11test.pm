@@ -6,6 +6,7 @@ use base "opensusebasetest";
 
 use strict;
 use testapi;
+use utils 'type_string_slow';
 
 sub post_fail_hook() {
     my ($self) = shift;
@@ -59,12 +60,18 @@ sub prepare_sle_classic {
 
 sub enter_test_text {
     my ($self, $name, %args) = @_;
-    $name //= 'your program';
-    $args{cmd} //= 0;
+    $name       //= 'your program';
+    $args{cmd}  //= 0;
+    $args{slow} //= 0;
     for (1 .. 13) { send_key 'ret' }
     my $text = "If you can see this text $name is working.\n";
     $text = 'echo ' . $text if $args{cmd};
-    type_string $text;
+    if ($args{slow}) {
+        type_string_slow $text;
+    }
+    else {
+        type_string $text;
+    }
 }
 
 sub test_terminal {
