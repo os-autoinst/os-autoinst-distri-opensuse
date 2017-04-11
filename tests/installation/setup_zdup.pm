@@ -38,7 +38,11 @@ sub run() {
         # 3. Hard to assert similar snapshots in grub2
         # 4. Menu of each snapshot is long with openSUSE leap, use short and unique description
         # 5. Avoid rollback to snapshot without graphical target
-        assert_script_run "snapper create --type pre --cleanup-algorithm=number --print-number --userdata important=yes --description 'b_zdup migration'";
+        # snapper is not available at least on our version of openSUSE 13.1
+        # HDD used for upgrade.
+        if (get_var('HDDVERSION', '') !~ /13.1/) {
+            assert_script_run "snapper create --type pre --cleanup-algorithm=number --print-number --userdata important=yes --description 'b_zdup migration'";
+        }
 
         # Remove the --force when this is fixed:
         # https://bugzilla.redhat.com/show_bug.cgi?id=1075131
