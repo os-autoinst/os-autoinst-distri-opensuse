@@ -42,7 +42,7 @@ sub run {
     my $patch_status = script_output("zypper -n info -t patch $patch");
     # record softfail on QAM_MINIMAL=small tests, or record info on others
     # if isn't patch neded, zypper call with install makes no sense
-    if ($patch_status =~ /Status\s+:\s+not\sneeded/) {
+    if ($patch_status =~ /Status\s*:\s+[nN]ot\s[nN]eeded/) {
         if (check_var('QAM_MINIMAL', 'small')) {
             record_soft_failure("Patch isn't needed on minimal installation poo#17412");
         }
