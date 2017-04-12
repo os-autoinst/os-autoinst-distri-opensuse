@@ -14,6 +14,10 @@ use testapi;
 use utils;
 use registration;
 
+sub is_smt_or_module_tests {
+    return get_var('SCC_ADDONS', '') =~ /asmm|contm|hpcm|lgm|pcm|tcm|wsm|idu|ids/ || get_var('TEST', '') =~ /migration_offline_sle12sp\d_smt/;
+}
+
 sub system_prepare() {
     select_console 'root-console';
     type_string "chown $username /dev/$serialdev\n";
@@ -61,9 +65,9 @@ sub patching_sle() {
     }
     assert_script_run("zypper mr --enable --all");
     set_var("VIDEOMODE", '');
-    # keep the value of SCC_REGISTER for the test of migration with smt patterns
-    # since functionality tesing of smt needs registration during offline migration
-    if (get_var('TEST') !~ /migration_offline_sle12sp\d_smt/) { set_var("SCC_REGISTER", ''); }
+    # keep the value of SCC_REGISTER for offline migration tests with smt pattern or modules
+    # Both of them need registration during offline migration
+    if (!is_smt_or_module_tests) { set_var("SCC_REGISTER", ''); }
 }
 
 sub run() {
