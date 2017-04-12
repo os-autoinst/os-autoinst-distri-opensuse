@@ -46,7 +46,12 @@ sub clean_and_quit() {
     # C'l'ose  the snapper module
     wait_screen_change { send_key "alt-l" };
     # Wait until root gnome terminal is focussed, delete the directory and close window
-    assert_screen 'root-gnome-terminal', no_wait => 1;
+    assert_screen_with_soft_timeout(
+        'root-gnome-terminal',
+        timeout      => 90,
+        soft_timeout => 30,
+        bugref       => 'bsc#1032831'
+    );
     script_run 'rm -rf testdata';
     script_run "ls";
     type_string "exit\n";
