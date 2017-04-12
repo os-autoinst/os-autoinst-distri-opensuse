@@ -42,8 +42,8 @@ sub run() {
 
         # Fill controller node information
         send_key 'alt-d';
-        type_string 'dashboard-url';
-        assert_screen 'dashboard-url';
+        type_string get_var('DASHBOARD_URL', 'dashboard-url');
+        assert_screen 'dashboard-url' unless get_var('DASHBOARD_URL');
     }
     save_screenshot;
 }

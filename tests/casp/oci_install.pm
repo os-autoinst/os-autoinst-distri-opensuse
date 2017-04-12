@@ -21,8 +21,8 @@ sub run() {
     send_key 'alt-p';    # partitioning
     assert_screen 'prepare-hard-disk';
     send_key 'alt-b';    # back
-    if (check_screen 'error-small-disk') {
-        record_soft_failure 'bsc#1029291 - blocking condition can not be unblocked';
+    if (check_var('FAIL_EXPECTED', 'SMALL-DISK')) {
+        assert_screen 'error-small-disk';
         send_key 'ret';
     }
     assert_screen 'oci-overview-filled';

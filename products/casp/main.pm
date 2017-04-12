@@ -106,24 +106,42 @@ sub load_feature_tests {
     loadtest 'casp/journal_check';
 }
 
-# ==== Installation workflow ====
-load_boot_tests;
-
-if (check_var('FLAVOR', 'DVD')) {
-    if (get_var('EXTRA', '') =~ /RCSHELL/) {
-        load_rcshell_tests;
-        return 1;
-    }
-    if (get_var('AUTOYAST')) {
-        loadtest 'autoyast/installation';
-    }
-    else {
-        load_inst_tests;
-    }
-    return 1 if get_var 'FAIL_EXPECTED';
+sub load_stack_tests {
+    loadtest "casp/stack_" . get_var('STACK_ROLE');
 }
 
-loadtest 'casp/first_boot';
+if (get_var('STACK_ROLE')) {
+    # ==== CaaSP tests ====
+    if (check_var 'STACK_ROLE', 'controller') {
+        loadtest 'casp/stack_barrier_init';
+        loadtest "support_server/login";
+        loadtest "support_server/setup";
+    }
+    else {
+        load_boot_tests;
+        load_inst_tests;
+        loadtest 'casp/first_boot';
+    }
+    load_stack_tests;
+}
+else {
+    # ==== MicroOS tests ====
+    load_boot_tests;
+    if (check_var('FLAVOR', 'DVD')) {
+        if (get_var('EXTRA', '') =~ /RCSHELL/) {
+            load_rcshell_tests;
+            return 1;
+        }
+        if (get_var('AUTOYAST')) {
+            loadtest 'autoyast/installation';
+        }
+        else {
+            load_inst_tests;
+        }
+        return 1 if get_var 'FAIL_EXPECTED';
+    }
+    loadtest 'casp/first_boot';
+}
 
 # ==== Extra tests run after installation  ====
 if (get_var('REGISTER')) {

@@ -18,6 +18,7 @@ use Time::HiRes 'sleep';
 
 use testapi;
 use utils;
+use lockapi;
 use mm_network;
 
 our @EXPORT = qw(
@@ -27,6 +28,7 @@ our @EXPORT = qw(
   bootmenu_default_params
   bootmenu_network_source
   specific_bootmenu_params
+  specific_caasp_params
   select_bootmenu_video_mode
   select_bootmenu_language
   tianocore_enter_menu
@@ -401,6 +403,20 @@ sub select_bootmenu_language {
             sleep 2;
             send_key "ret";
         }
+    }
+}
+
+sub specific_caasp_params {
+    return unless is_casp && get_var('STACK_ROLE');
+
+    # Wait for supportserver (controller node)
+    if (!check_var 'STACK_ROLE', 'controller') {
+        mutex_lock 'dhcp';
+        mutex_unlock 'dhcp';
+    }
+    # Wait for admin node installation on workers
+    if (check_var 'STACK_ROLE', 'worker') {
+        barrier_wait 'VELUM_STARTED';
     }
 }
 
