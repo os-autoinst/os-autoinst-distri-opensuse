@@ -56,11 +56,15 @@ sub run() {
 
     # no relnotes for ltss in QAM_MINIMAL
     push @no_relnotes, qw(ltss) if get_var('QAM_MINIMAL');
+    # no HA-GEO release-notes for s390x on SLE12-SP1 GM media, see bsc#1033504
+    if (check_var('ARCH', 's390x') and check_var('BASE_VERSION', '12-SP1')) {
+        push @no_relnotes, qw(geo);
+    }
     if (@addons) {
         for my $a (@addons) {
             next if grep { $a eq $_ } @no_relnotes;
             send_key_until_needlematch("release-notes-$a", 'right', 4, 60);
-            send_key 'left';     # move back to first tab
+            send_key 'left';    # move back to first tab
             send_key 'left';
             send_key 'left';
             send_key 'left';
