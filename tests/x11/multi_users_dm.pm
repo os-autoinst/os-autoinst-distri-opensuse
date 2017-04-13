@@ -39,7 +39,8 @@ sub restart_x11 {
 
 sub run() {
 
-    my $users_to_create = 100;
+    my $user               = 'user1';
+    my $users_to_create    = 100;
     my $encrypted_password = crypt($password, "abcsalt");
 
     # login
@@ -53,14 +54,25 @@ sub run() {
     # login created user
     assert_screen 'multi_users_dm';
     wait_still_screen;
-    send_key 'down';    # select created user #01
-    ensure_unlocked_desktop;
+    if (check_var('DESKTOP', 'gnome') || check_var('DESKTOP', 'xfce')) {
+        send_key 'down';    # select created user #01
+    }
+    elsif (check_var('DESKTOP', 'kde')) {
+        for (1 .. 6) {
+            wait_screen_change { send_key 'tab' };
+        }
+        send_key 'ctrl-a';
+        type_string "$user\n";
+        send_key 'tab';
+    }
+    handle_login;
+    assert_screen 'generic-desktop', 60;
     # verify correct user is logged in
     x11_start_program 'xterm';
     assert_screen 'xterm';
     wait_still_screen;
-    type_string "whoami|grep user1 > /tmp/whoami.log\n";
-    assert_script_sudo 'grep user1 /tmp/whoami.log';
+    type_string "whoami|grep $user > /tmp/whoami.log\n";
+    assert_script_sudo "grep $user /tmp/whoami.log";
     # logout user
     handle_logout;
     wait_still_screen;
