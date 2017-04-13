@@ -355,7 +355,7 @@ sub ensure_unlocked_desktop {
                     next;    # most probably screen is locked
                 }
             }
-            last;            # desktop is uncloked, mission accomplished
+            last;            # desktop is unlocked, mission accomplished
         }
         if (match_has_tag 'screenlock') {
             wait_screen_change {
@@ -363,7 +363,7 @@ sub ensure_unlocked_desktop {
             };
         }
         wait_still_screen 2;       # slow down loop
-        die 'ensure_unlocked_desktop repeated too much' if ($counter eq 1);    # die loop when generic-desktop not matched
+        die 'ensure_unlocked_desktop repeated too much. Check for X-server crash.' if ($counter eq 1);    # die loop when generic-desktop not matched
     }
 }
 
