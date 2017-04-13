@@ -41,8 +41,9 @@ sub run() {
     # NET isos are slow to install
     my $timeout = 2000;
 
-    # workaround for yast popups
-    my @tags = qw(rebootnow);
+    # workaround for yast popups and
+    # detect "Wrong Digest" error to end test earlier
+    my @tags = qw(rebootnow yast2_wrong_digest);
     if (get_var("UPGRADE")) {
         push(@tags, "ERROR-removing-package");
         push(@tags, "DIALOG-packages-notifications");
@@ -82,6 +83,11 @@ sub run() {
         else {
             assert_screen \@tags, $timeout;
         }
+
+        if (match_has_tag("yast2_wrong_digest")) {
+            die "Wrong Digest detected error, need to end test.";
+        }
+
         if (match_has_tag("DIALOG-packages-notifications")) {
             send_key 'alt-o';    # ok
             next;
