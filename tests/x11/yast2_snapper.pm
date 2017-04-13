@@ -14,7 +14,7 @@
 use base "x11test";
 use strict;
 use testapi;
-use utils 'sle_version_at_least';
+use utils;
 
 # Test for basic yast2-snapper functionality. It assumes the data of the
 # opensuse distri to be available at /home/$username/data (as granted by
