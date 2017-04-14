@@ -110,7 +110,11 @@ sub fill_in_registration_data {
                     send_key 'alt-f';    # uncheck 'Filter Out Beta Version'
                 }
             }
-            for my $addon (split(/,/, get_var('SCC_ADDONS', ''))) {
+            my @scc_addons = split(/,/, get_var('SCC_ADDONS', ''));
+            if (get_var('SKIP_LTSS') && get_var('SCC_ADDONS', '') =~ /ltss/) {
+                @scc_addons = grep { $_ ne 'ltss' } @scc_addons;
+            }
+            for my $addon (@scc_addons) {
                 if (check_var('VIDEOMODE', 'text') || check_var('SCC_REGISTER', 'console')) {
                     # The actions of selecting scc addons have been changed on SP2 or later in textmode
                     # For online migration, we have to do registration on pre-created HDD, set a flag
@@ -132,7 +136,7 @@ sub fill_in_registration_data {
                 }
             }
             send_key $cmd{next};    # all addons selected
-            for my $addon (split(/,/, get_var('SCC_ADDONS', ''))) {
+            for my $addon (@scc_addons) {
                 # most modules don't have license, skip them
                 next unless grep { $addon eq $_ } qw(ha geo sdk we live rt idu ids lgm wsm hpcm);
                 while (check_screen('scc-downloading-license', 5)) {
@@ -144,7 +148,7 @@ sub fill_in_registration_data {
                 wait_still_screen 2;
                 send_key $cmd{next};
             }
-            for my $addon (split(/,/, get_var('SCC_ADDONS', ''))) {
+            for my $addon (@scc_addons) {
                 # no need to input registration code if register via SMT
                 last if (get_var('SMT_URL'));
                 $uc_addon = uc $addon;    # change to uppercase to match variable

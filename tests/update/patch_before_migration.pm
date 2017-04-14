@@ -50,7 +50,9 @@ sub patching_sle() {
     if (get_var('FULL_UPDATE')) {
         fully_patch_system();
     }
+
     de_register(version_variable => 'HDDVERSION');
+    remove_ltss;
     assert_script_run("zypper mr --enable --all");
     set_var("VIDEOMODE", '');
     # keep the value of SCC_REGISTER for offline migration tests with smt pattern or modules

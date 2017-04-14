@@ -28,6 +28,7 @@ our @EXPORT = qw(
   setup_online_migration
   register_system_in_textmode
   de_register
+  remove_ltss
 );
 
 sub setup_online_migration {
@@ -84,6 +85,13 @@ sub de_register {
     }
 }
 
-1;
+# Remove LTSS product and manually remove its relevant package before migration
+sub remove_ltss {
+    if (get_var('SCC_ADDONS', '') =~ /ltss/) {
+        zypper_call 'rm -t product SLES-LTSS';
+        zypper_call 'rm sles-ltss-release-POOL';
+    }
+}
 
+1;
 # vim: sw=4 et

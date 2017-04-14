@@ -907,6 +907,9 @@ sub load_online_migration_tests() {
     if (get_var("MINIMAL_UPDATE")) {
         loadtest "online_migration/sle12_online_migration/minimal_patch";
     }
+    if (get_var('SCC_ADDONS', '') =~ /ltss/) {
+        loadtest "online_migration/sle12_online_migration/register_without_ltss";
+    }
     loadtest "online_migration/sle12_online_migration/pre_migration";
     if (get_var("LOCK_PACKAGE")) {
         loadtest "console/lock_package";
