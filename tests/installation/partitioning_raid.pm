@@ -19,7 +19,14 @@ use testapi;
 # add a new primary partition
 #   $type == 3 => 0xFD Linux RAID
 sub addpart {
-    my ($size) = @_;
+    my ($part) = @_;
+    my $size = 0;
+
+    if    ($part eq 'boot') { $size = 300; }
+    elsif ($part eq 'root') { $size = 8000; }
+    elsif ($part eq 'swap') { $size = 100; }
+    else                    { die 'Unknown argument'; }
+
     assert_screen "expert-partitioner";
     send_key $cmd{addpart};
     if (!get_var('UEFI')) {    # partitioning type does not appear when GPT disk used, GPT is default for UEFI
@@ -42,7 +49,12 @@ sub addpart {
     send_key $cmd{donotformat};
     send_key "tab";
 
-    send_key_until_needlematch 'partition-selected-raid-type', 'down';
+    if ($part eq 'boot' and get_var('UEFI')) {
+        send_key_until_needlematch 'partition-selected-efi-type', 'down';
+    }
+    else {
+        send_key_until_needlematch 'partition-selected-raid-type', 'down';
+    }
     send_key $cmd{finish};
 }
 
@@ -69,18 +81,9 @@ sub addraid {
     }
     send_key $cmd{next};
     assert_screen 'partition-role';
-    if ($step == 3 and get_var("LVM")) {
-        send_key "alt-a";    # Raw Volume
-    }
-    else {
-        send_key "alt-o";    # Operating System
-    }
-    if ($step == 2 and get_var("UEFI")) {
-        send_key "alt-e";    #EFI boot
-        assert_screen 'partition-role-uefi';
-    }
-    send_key $cmd{next};
+    send_key "alt-o";    # Operating System
 
+    send_key $cmd{next};
     wait_idle 3;
 }
 
@@ -182,14 +185,32 @@ sub run() {
     }
 
     for (1 .. 4) {
-        addpart(300);              # boot
-        addpart(8000);             # root
-        addpart(100);              # swap
+        addpart('boot');
+        addpart('root');
+        addpart('swap');
         assert_screen 'raid-partition';
 
         # select next disk
         send_key "shift-tab";
         send_key "shift-tab";
+
+        # in last step of for loop edit first vda1 and format it as EFI ESP, preparation for fate#322485
+        if ($_ == 4 and get_var('UEFI')) {
+            send_key 'left';     # fold the drive tree
+            send_key 'right';    # select first disk
+            assert_screen 'raid-partition';
+            send_key 'alt-e';    # edit first partition
+            assert_screen 'partition-format';
+            send_key 'alt-a';           # format as FAT (first choice)
+            send_key 'alt-o';           # mount point selection
+            type_string '/boot/efi';    # enter mount point
+            send_key $cmd{finish};
+            assert_screen 'expert-partitioner';
+            send_key 'shift-tab';
+            send_key 'shift-tab';
+            send_key 'left';            # go to top "Hard Disks" node
+            send_key 'left';            # fold the drive tree again
+        }
 
         # walk through sub-tree
         send_key "down";
@@ -200,50 +221,50 @@ sub run() {
     wait_idle 4;
 
     setraidlevel(get_var("RAIDLEVEL"));
-    send_key "down";    # start at second partition (i.e. sda2)
-                        # in this case, press down key doesn't move to next one but itself
-    addraid(3, 6);
+    send_key "down" if (!get_var('UEFI'));    # start at second partition (i.e. sda2) but not for UEFI
+
+    if (get_var('UEFI')) {
+        addraid(2, 6);
+    }
+    else {
+        addraid(3, 6);
+    }
+
+    if (get_var('LVM')) {
+        send_key $cmd{donotformat};           # 'Operating System' role to 'Raw Volume' for LVM
+        send_key 'alt-u';
+    }
 
     send_key $cmd{finish};
     wait_idle 3;
 
-    # select RAID add
-    send_key $cmd{addraid};
-    wait_idle 4;
-    setraidlevel(1);    # RAID 1 for /boot
-    addraid(2);
+    if (!get_var('UEFI')) {
+        # select RAID add
+        send_key $cmd{addraid};
+        wait_idle 4;
+        setraidlevel(1);                      # RAID1 for /boot
+        addraid(2);
 
-    send_key "alt-s";    # change filesystem to FAT for /boot
-    if (get_var('UEFI')) {
-        send_key_until_needlematch 'partition-efi-fat', 'down';
-    }
-    else {
+        send_key "alt-s";                     # change filesystem for /boot
         for (1 .. 3) {
-            send_key "down";    # select Ext4
+            send_key "down";                  # select Ext4
         }
-    }
-    send_key $cmd{mountpoint};
-    if (get_var('UEFI')) {
-        send_key_until_needlematch 'mountpoint-boot-efi', 'down';
-    }
-    else {
-        for (1 .. 3) {
-            send_key "down";
-        }
-    }
-    send_key $cmd{finish};
+        send_key "alt-m";
+        type_string "/boot";
 
-    wait_idle 3;
+        send_key $cmd{finish};
+        wait_idle 3;
+    }
 
     # select RAID add
     send_key $cmd{addraid};
     wait_idle 4;
-    setraidlevel(0);    # RAID 0 for swap
+    setraidlevel(0);                          # RAID0 for swap
     addraid(1);
 
     # select file-system
     send_key $cmd{filesystem};
-    send_key "end";     # swap at end of list
+    send_key "end";                           # swap at end of list
     send_key $cmd{finish};
     wait_idle 3;
 
@@ -263,9 +284,15 @@ sub run() {
     if (check_screen 'subvolumes-shadowed', 5) {
         send_key 'alt-y';
     }
-
-    if (get_var("LVM")) {
+    # check overview page for Suggested partitioning
+    if (get_var("LVM") and !get_var("UEFI")) {
         assert_screen 'acceptedpartitioningraidlvm';
+    }
+    elsif (get_var("LVM") and get_var("UEFI")) {
+        assert_screen 'acceptedpartitioningraidlvmefi';
+    }
+    elsif (get_var("UEFI") and !get_var("LVM")) {
+        assert_screen 'acceptedpartitioningraidefi';
     }
     else {
         assert_screen 'acceptedpartitioning';
