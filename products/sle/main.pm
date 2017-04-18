@@ -996,6 +996,16 @@ sub prepare_target() {
     }
 }
 
+
+sub load_virtauto_tests() {
+        loadtest "virt_autotest/common/init_pxe_install.pm";
+        load_inst_tests();
+        #loadtest "virt_autotest/common/login_console.pm";
+        #loadtest "virt_autotest/common/install_package.pm";
+        #loadtest "virt_autotest/Prj1_Guest_Installation/guest_installation_run.pm";
+
+}
+
 # load the tests in the right order
 if (maybe_load_kernel_tests()) {
 }
@@ -1186,6 +1196,10 @@ elsif (get_var("VIRT_AUTOTEST")) {
     elsif (get_var("VIRT_NEW_GUEST_MIGRATION_DESTINATION")) {
         loadtest "virt_autotest/guest_migration_dst";
     }
+}
+elsif (get_var("QA_VIRTTEST_GI")) {
+        load_virtauto_tests();
+
 }
 elsif (get_var("QAM_MINIMAL")) {
     prepare_target();
