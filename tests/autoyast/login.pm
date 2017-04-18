@@ -1,4 +1,4 @@
-# Copyright (C) 2015 SUSE Linux GmbH
+# Copyright (C) 2015-2017 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -13,8 +13,8 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# G-Summary: merge of sles11sp4 autoyast test, base commit
-# G-Maintainer: Pavel Sladek <psladek@suse.cz>
+# Summary: Log into system installed with autoyast
+# Maintainer: Pavel Sladek <psladek@suse.cz>
 
 use strict;
 use base 'y2logsstep';
@@ -29,10 +29,7 @@ sub run {
     type_password;
     send_key "ret";
     sleep 10;
-
-    type_string "echo SERIAL OK | tee /dev/$serialdev";
-    send_key "ret";
-    die unless wait_serial("SERIAL OK", 100);
+    assert_script_run 'echo "checking serial port"';
     wait_idle(10);
     type_string "cat /proc/cmdline\n";
     wait_idle(10);
@@ -41,10 +38,6 @@ sub run {
 }
 
 sub test_flags {
-    # without anything - rollback to 'lastgood' snapshot if failed
-    # 'fatal' - whole test suite is in danger if this fails
-    # 'milestone' - after this test succeeds, update 'lastgood'
-    # 'important' - if this fails, set the overall state to 'fail'
     return {fatal => 1};
 }
 

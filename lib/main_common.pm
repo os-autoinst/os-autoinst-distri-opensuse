@@ -2,7 +2,7 @@ package main_common;
 use base Exporter;
 use File::Basename;
 use Exporter;
-use testapi qw(check_var get_var set_var diag);
+use testapi qw(check_var get_var get_required_var set_var diag);
 use autotest;
 use utils;
 use strict;
@@ -311,7 +311,7 @@ sub unregister_needle_tags {
 }
 
 sub boot_hdd_image {
-    die unless get_var("BOOT_HDD_IMAGE");
+    get_required_var('BOOT_HDD_IMAGE');
     if (check_var("BACKEND", "svirt")) {
         if (check_var("ARCH", "s390x")) {
             loadtest "installation/bootloader_zkvm";
