@@ -42,12 +42,7 @@ sub run() {
     zypper_call "in wireshark";
 
     # start
-    if (check_var("VERSION", "Tumbleweed")) {
-        type_string "wireshark-gtk\n";
-    }
-    else {    # works for SLE12SP1 & SLE12SP2
-        type_string "wireshark\n";
-    }
+    type_string "wireshark-gtk\n";
     assert_screen "wireshark-welcome", 30;
     send_key "super-up";
     assert_screen "wireshark-fullscreen";
@@ -115,7 +110,7 @@ sub run() {
     assert_script_run "test -f /tmp/wireshark-openQA-test.pcapng";
 
     # start and load capture
-    type_string "wireshark /tmp/wireshark-openQA-test.pcapng\n";
+    type_string "wireshark-gtk /tmp/wireshark-openQA-test.pcapng\n";
     assert_screen "wireshark-filter-selected";
     type_string "dns.a and dns.qry.name == \"www.suse.com\"\n";
     assert_screen "wireshark-filter-applied";
@@ -129,16 +124,14 @@ sub run() {
     #   Profile test   #
     ####################
     # Create new 'openQA' profile.
-    assert_and_click "wireshark-edit";
-    assert_and_click "wireshark-edit-profiles";
+    send_key "ctrl-shift-a";
     assert_screen "wireshark-profiles";
     assert_and_click "wireshark-profiles-new";
     type_string "openQA\n";
     assert_screen "wireshark-fullscreen";
 
     # Unselect the display of the Protocol in the UI.
-    assert_and_click "wireshark-edit";
-    assert_and_click "wireshark-edit-preferences";
+    send_key "ctrl-shift-p";
     assert_screen "wireshark-preferences";
     assert_and_click "wireshark-preferences-columns";
     assert_screen "wireshark-preferences-columns-protocol-displayed";
@@ -149,15 +142,13 @@ sub run() {
     assert_screen "wireshark-fullscreen";
 
     # Change back to the Default profile.
-    assert_and_click "wireshark-edit";
-    assert_and_click "wireshark-edit-profiles";
+    send_key "ctrl-shift-a";
     assert_screen "wireshark-profiles";
     assert_and_dclick "wireshark-profiles-default";
     assert_screen "wireshark-fullscreen";
 
     # Verify that the Protocol is properly displayed.
-    assert_and_click "wireshark-edit";
-    assert_and_click "wireshark-edit-preferences";
+    send_key "ctrl-shift-p";
     assert_screen "wireshark-preferences";
     assert_and_click "wireshark-preferences-columns";
     assert_screen [qw(wireshark-preferences-columns-protocol-displayed wireshark-preferences-columns-protocol-not-displayed)];
