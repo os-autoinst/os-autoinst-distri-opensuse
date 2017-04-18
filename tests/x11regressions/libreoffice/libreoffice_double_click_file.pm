@@ -30,19 +30,13 @@ sub run() {
     send_key "ret";
     wait_still_screen;
 
-    # double click the below qw(doc docx fodg fodp fods fodt odf odg odp ods odt pptx xlsx) to check whether can be work
+    # open test files of different formats
     for my $tag (qw(doc docx fodg fodp fods fodt odf odg odp ods odt pptx xlsx)) {
         send_key_until_needlematch("libreoffice-specified-list-$tag", "right", 50, 1);
         assert_and_dclick("libreoffice-specified-list-$tag");
         assert_screen("libreoffice-test-$tag", 90);
-        if ($tag ne 'xlsx') {
-            hold_key "alt";
-            send_key_until_needlematch("libreoffice-nautilus-window", "tab");
-            release_key "alt";
-            wait_still_screen(3);
-        }
+        send_key 'ctrl-q';
     }
-    send_key "ctrl-q";
     if (!check_screen("generic-desktop")) {
         send_key "ctrl-q";
     }
