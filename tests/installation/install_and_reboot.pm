@@ -39,7 +39,7 @@ sub handle_livecd_screenlock {
 sub run() {
     my $self = shift;
     # NET isos are slow to install
-    my $timeout = 2000;
+    my $timeout = 3000;
 
     # workaround for yast popups and
     # detect "Wrong Digest" error to end test earlier
