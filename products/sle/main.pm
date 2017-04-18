@@ -465,11 +465,14 @@ sub load_inst_tests() {
     }
     loadtest "installation/addon_products_sle";
     if (noupdatestep_is_applicable()) {
+        #system_role selection during installation was added as a new feature since sles12sp2
+        #so system_role.pm should be loaded for all tests that actually install to versions over sles12sp2
+        #no matter with or without INSTALL_TO_OTHERS tag
         if (   check_var('ARCH', 'x86_64')
             && sle_version_at_least('12-SP2')
             && is_server()
             && (!is_sles4sap() || is_sles4sap_standard())
-            && install_this_version())
+            && (install_this_version() || install_to_other_at_least('12-SP2')))
         {
             loadtest "installation/system_role";
         }

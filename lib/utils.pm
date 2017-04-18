@@ -43,6 +43,7 @@ our @EXPORT = qw(
   workaround_type_encrypted_passphrase
   ensure_unlocked_desktop
   sle_version_at_least
+  install_to_other_at_least
   ensure_fullscreen
   ensure_shim_import
   reboot_gnome
@@ -395,6 +396,25 @@ sub sle_version_at_least {
           && !check_var($version_variable, '13');
     }
     die "unsupported SLE $version_variable $version in check";
+}
+
+#Check the real version of the test machine is at least some value, rather than the VERSION variable
+#It is for version checking for tests with variable "INSTALL_TO_OTHERS".
+sub install_to_other_at_least {
+    my $version = shift;
+
+    if (!check_var("INSTALL_TO_OTHERS", "1")) {
+        return 0;
+    }
+
+    #setup the var for real VERSION
+    my $real_installed_version = get_var("REPO_0_TO_INSTALL");
+    $real_installed_version =~ /.*SLES?-(\d+-SP\d+)-.*/m;
+    $real_installed_version = $1;
+    set_var("REAL_INSTALLED_VERSION", $real_installed_version);
+    bmwqemu::save_vars();
+
+    return sle_version_at_least($version, version_variable => "REAL_INSTALLED_VERSION");
 }
 
 sub ensure_fullscreen {
