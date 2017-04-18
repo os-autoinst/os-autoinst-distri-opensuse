@@ -33,7 +33,7 @@ sub run() {
     # expect partition setup warning pop-ups
     while (1) {
         assert_screen ['partition-warning-too-small-for-snapshots', 'partition-warning-no-efi-boot', 'partition-warning-no-swap'];
-        send_key 'alt-y';                     # yes
+        wait_screen_change { send_key 'alt-y' };    # yes
         last if match_has_tag 'partition-warning-no-swap';
     }
 }
