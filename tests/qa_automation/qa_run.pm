@@ -34,7 +34,12 @@ sub test_suite {
 sub system_login {
     my $self = shift;
     $self->wait_boot;
-    select_console('root-console');
+    if (get_var('VIRTIO_CONSOLE')) {
+        select_console('root-virtio-terminal');
+    }
+    else {
+        select_console('root-console');
+    }
 }
 
 # Call test_run_list and write the result into /root/qaset/config

@@ -24,7 +24,12 @@ sub run {
 
     # possibility to run as part of the aggregated tests
     if (get_var('EXTRATEST')) {
-        select_console 'root-console';
+        if (get_var('VIRTIO_CONSOLE')) {
+            select_console('root-virtio-terminal');
+        }
+        else {
+            select_console('root-console');
+        }
     }
     else {
         $self->system_login();

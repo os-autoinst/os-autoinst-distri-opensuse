@@ -31,7 +31,12 @@ sub install_from_repo {
 sub run {
     my $self = shift;
     $self->wait_boot;
-    select_console('root-console');
+    if (get_var('VIRTIO_CONSOLE')) {
+        select_console('root-virtio-terminal');
+    }
+    else {
+        select_console('root-console');
+    }
     add_repos;
     install_from_repo;
 }
