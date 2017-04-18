@@ -2,6 +2,7 @@ package susedistribution;
 use base 'distribution';
 use serial_terminal ();
 use strict;
+use utils 'type_string_slow';
 
 # Base class for all openSUSE tests
 
@@ -100,21 +101,28 @@ sub x11_start_program($$$) {
     # enable valid option as default
     $options->{valid} //= 1;
     die "no desktop-runner available on minimalx" if check_var('DESKTOP', 'minimalx');
-    send_key "alt-f2";
+    send_key 'alt-f2';
     mouse_hide(1);
-    if (!check_screen("desktop-runner", $timeout)) {
+    if (!check_screen('desktop-runner', $timeout)) {
         # if "desktop-runner" not found send alt-f2 three times with 10 seconds timeout
-        record_soft_failure 'bsc#978027';
+        record_soft_failure 'bsc#978027' if check_screen 'generic-desktop', 0;
         send_key_until_needlematch 'desktop-runner', 'alt-f2', 3, 10;
     }
-    type_string $program;
-    wait_idle 5;
+    # krunner may use auto-completion which sometimes gets confused by
+    # too fast typing or looses characters because of the load caused (also
+    # see below). See https://progress.opensuse.org/issues/18200
+    if (check_var('DESKTOP', 'kde')) {
+        type_string_slow $program;
+    }
+    else {
+        type_string $program;
+    }
+    wait_still_screen(1);
     if ($options->{terminal}) {
-        send_key('alt-t');
-        sleep 3;
+        wait_screen_change { send_key 'alt-t' };
     }
     save_screenshot;
-    send_key('ret');
+    send_key 'ret';
     wait_still_screen unless $options->{no_wait};
     # lrunner has auto-completion feature, sometimes it causes high load while
     # typing and the following 'ret' fails to work
@@ -122,9 +130,9 @@ sub x11_start_program($$$) {
     # exec x11_start_program( $program, $timeout, { valid => 1 } );
     if ($options->{valid}) {
         for (1 .. 3) {
-            last unless check_screen "desktop-runner-border", 2;
+            last unless check_screen 'desktop-runner-border', 2;
             wait_screen_change {
-                send_key "ret";
+                send_key 'ret';
             };
         }
     }
