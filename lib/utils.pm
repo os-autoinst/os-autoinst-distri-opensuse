@@ -655,11 +655,11 @@ sub validate_repos_sle {
     my $cd  = (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux')) ? 'hd' : 'cd';
     my $dvd = (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux')) ? 'hd' : 'dvd';
 
-    # On system with ONLINE_MIGRATION variable set, we don't have SLE media
+    # On system with ONLINE_MIGRATION/ZDUP variable set, we don't have SLE media
     # repository of VERSION N but N-1 (i.e. on SLES12-SP2 we have SLES12-SP1
     # repository. For the sake of sanity, the base product repo is not being
     # verified in such a scenario.
-    if (!get_var("ONLINE_MIGRATION")) {
+    if (!(get_var('ONLINE_MIGRATION') || get_var('ZDUP'))) {
         # This is where we verify base product repos for SLES, SLED, and HA
         if (check_var('FLAVOR', 'Server-DVD')) {
             my $uri = "$cd:///";
@@ -675,13 +675,7 @@ sub validate_repos_sle {
             elsif (check_var('ARCH', 's390x')) {
                 $uri = "ftp://";
             }
-            validatelr(
-                {
-                    product      => "SLES",
-                    enabled_repo => get_var('ZDUP') ? "No" : undef,
-                    uri          => $uri,
-                    version      => $version
-                });
+            validatelr({product => "SLES", uri => $uri, version => $version});
         }
         elsif (check_var('FLAVOR', 'SAP-DVD')) {
             validatelr({product => "SLE-", uri => "$cd:///", version => $version});
