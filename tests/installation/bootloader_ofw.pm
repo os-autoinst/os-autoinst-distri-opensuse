@@ -65,16 +65,12 @@ sub run() {
             if (check_var('VIDEOMODE', 'text')) {
                 $args .= " textmode=1";
             }
-            if (get_var("NETBOOT")) {
-                if (get_var("SUSEMIRROR")) {
-                    $args .= ' install=http://' . get_var("SUSEMIRROR");
-                }
-                else {
-                    $args .= ' kernel=1 insecure=1';
-                }
+            if (get_var("NETBOOT") && get_var("SUSEMIRROR")) {
+                $args .= ' install=http://' . get_var("SUSEMIRROR");
             }
 
             type_string_very_slow $args;
+            save_screenshot;
 
             specific_bootmenu_params;
 
@@ -83,7 +79,6 @@ sub run() {
                 save_screenshot;
             }
 
-            save_screenshot;
             registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED);
             send_key "ctrl-x";
         }
