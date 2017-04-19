@@ -18,6 +18,8 @@ use utils;
 use lockapi;
 
 sub run() {
+    # current structure of HPC tests in sle/main.pm make it easiest way to skip this module for HPC=repository
+    return if check_var('HPC', 'repository');
     barrier_wait('NODES_STARTED');
     barrier_wait('NETWORK_READY');
     # hpc channels

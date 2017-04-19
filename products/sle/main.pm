@@ -1263,6 +1263,9 @@ elsif (get_var("HPC")) {
             loadtest "hpc/install_slurm";
             loadtest "hpc/slurm_slave";
         }
+        if (check_var("HPC", "repository")) {
+            loadtest "console/install_all_from_repository";
+        }
     }
 }
 else {
