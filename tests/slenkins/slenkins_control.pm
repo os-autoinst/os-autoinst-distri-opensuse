@@ -1,4 +1,4 @@
-# Copyright (C) 2015-2016 SUSE LLC
+# Copyright (C) 2017 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -144,16 +144,28 @@ sub run {
         export TARGET_TYPE="ssh"
         echo
 
+        # Prepare failures file
+        FAILURES="${WORKSPACE}/failed.txt"
+        rm -f "$FAILURES"
+        touch "$FAILURES"
+
+        # Prepare log files
+        export REPORT="${WORKSPACE}/junit-results.xml"
+        LOGFILE="${WORKSPACE}/junit-results.log"
+        rm -f "$REPORT" "$LOGFILE"
+        touch "$LOGFILE"
+        set-test-environment
+        echo
+
+        # Node preparations - only "default" run is supported (came from multirun slenkins support)
+        display-nodes-file
+        export RUN_NAME="default"
+
         # Parse nodes file
         NETWORKS=""
         NODES=""
         echo "Parsing nodes file"
         parse-nodes-file
-        echo
-
-        # Start test environment file
-        export REPORT="${WORKSPACE}/junit-results.xml"
-        set-test-environment
         echo
 
         # Node preparations
@@ -183,19 +195,17 @@ sub run {
         get-tests-table
         echo
 
-        # Prepare logs files
-        FAILURES="${WORKSPACE}/failed.txt"
-        LOGFILE="${WORKSPACE}/junit-results.log"
-        echo "Preparing logs files"
-        prepare-logs
-        echo
-
         # Run one test after the other
         for current_test in ${TESTS_TABLE[@]}; do
           echo "Trying to run test ${current_test}"
           run-tests $current_test
           echo
         done
+
+        # Check for failures
+        echo "Checking for failed tests"
+        check-failures
+        echo
 
         # Finish log files
         echo "Finishing log files"
