@@ -67,7 +67,10 @@ sub run() {
     }
 
     # after installation we need to redefine the domain, so just shutdown
-    $svirt->change_domain_element(on_reboot => 'destroy');
+    # on zdup we don't need to redefine in between
+    if (!get_var('ZDUP')) {
+        $svirt->change_domain_element(on_reboot => 'destroy');
+    }
 
     # For some tests we need more than the default 4GB
     my $size_i = get_var('HDDSIZEGB') || '4';
