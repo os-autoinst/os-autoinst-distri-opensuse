@@ -216,14 +216,8 @@ sub specific_bootmenu_params {
         $args .= " self_update=0";
     }
     elsif (my $self_update_repo = get_var("INSTALLER_SELF_UPDATE")) {
-        if ($self_update_repo eq "1") {
-            diag "Explicitly enabling installer self update";
-            $args .= " self_update=1";
-        }
-        else {
-            diag "Explicitly enabling installer self with $self_update_repo";
-            $args .= " self_update=$self_update_repo";
-        }
+        $args .= " self_update=$self_update_repo";
+        diag "Explicitly enabling installer self update with $self_update_repo";
     }
 
     if (get_var("FIPS")) {
