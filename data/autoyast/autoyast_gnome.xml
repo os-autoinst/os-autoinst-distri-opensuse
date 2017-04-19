@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+    <general>
+        <mode>
+            <confirm config:type="boolean">false</confirm>
+        </mode>
+    </general>
+    <networking>
+        <keep_install_network config:type="boolean">true</keep_install_network>
+    </networking>
+    <software>
+        <packages config:type="list">
+            <package>grub2</package>
+            <package>sles-release</package>
+        </packages>
+        <patterns config:type="list">
+            <pattern>Minimal</pattern>
+            <pattern>apparmor</pattern>
+            <pattern>base</pattern>
+            <pattern>documentation</pattern>
+            <pattern>gnome-basic</pattern>
+            <pattern>x11</pattern>
+        </patterns>
+    </software>
+    <users config:type="list">
+        <user>
+            <fullname>Bernhard M. Wiedemann</fullname>  
+            <encrypted config:type="boolean">false</encrypted>
+            <user_password>nots3cr3t</user_password>
+            <username>bernhard</username>
+        </user>
+        <user>
+            <encrypted config:type="boolean">false</encrypted>
+            <user_password>nots3cr3t</user_password>
+            <username>root</username>
+        </user>
+    </users>
+</profile>
