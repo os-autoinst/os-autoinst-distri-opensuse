@@ -43,9 +43,8 @@ sub run() {
     type_string "openqa-$rstr";
     send_key "alt-d";
     assert_screen 'empathy-irc-account-added';
-    wait_screen_change {
-        send_key "alt-c";
-    };
+    send_key 'alt-c';
+    wait_still_screen 3;
 
     # join openqa channel
     send_key "ctrl-j";
