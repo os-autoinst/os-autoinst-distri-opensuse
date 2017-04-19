@@ -145,6 +145,7 @@ sub run() {
     assert_and_click "wireshark-preferences-columns-protocol-unselect";
     assert_screen "wireshark-preferences-columns-protocol-not-displayed-selected";
     assert_and_click "wireshark-preferences-apply";
+    wait_still_screen 3;
     send_key "alt-f4";
     assert_screen "wireshark-fullscreen";
 
@@ -167,6 +168,7 @@ sub run() {
         assert_screen "wireshark-preferences-columns-protocol-displayed-selected";
         assert_and_click "wireshark-preferences-apply";
     }
+    wait_still_screen 3;
     send_key "alt-f4";
     assert_screen "wireshark-fullscreen";
     send_key "alt-f4";
