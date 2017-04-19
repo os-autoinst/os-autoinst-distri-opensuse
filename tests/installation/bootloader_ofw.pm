@@ -17,6 +17,7 @@ use strict;
 use Time::HiRes 'sleep';
 
 use testapi;
+use bootloader_setup;
 use registration;
 use utils;
 
@@ -37,7 +38,12 @@ sub run() {
         || get_var('AUTOYAST')
         || get_var('SCC_URL')
         || get_var('DUD')
-        || get_var('EXTRABOOTPARAMS'))
+        || get_var('EXTRABOOTPARAMS')
+        || get_var('FIPS')
+        || get_var('AUTOUPGRADE')
+        || get_var('INSTALLER_SELF_UPDATE')
+        || get_var('INSTALLER_NO_SELF_UPDATE')
+        || get_var('IBFT'))
     {
         if (get_var("ZDUP") || get_var("ONLINE_MIGRATION") || get_var('PATCH')) {
             send_key "down";
@@ -67,33 +73,10 @@ sub run() {
                     $args .= ' kernel=1 insecure=1';
                 }
             }
-            if (get_var("DUD")) {
-                my $dud = get_var("DUD");
-                if ($dud =~ /http:\/\/|https:\/\/|ftp:\/\//) {
-                    $args .= " dud=$dud insecure=1";
-                }
-                else {
-                    $args .= " dud=" . data_url($dud) . " insecure=1";
-                }
-            }
-            if (get_var("AUTOYAST") || get_var("AUTOUPGRADE")) {
-                my $netsetup = " ifcfg=*=dhcp";    #need this instead of netsetup as default, see bsc#932692
-                $netsetup = " " . get_var("NETWORK_INIT_PARAM")
-                  if defined get_var("NETWORK_INIT_PARAM");    #e.g netsetup=dhcp,all
-                $args .= $netsetup;
-                $args .= " autoyast=" . data_url(get_var("AUTOYAST")) . " ";
-            }
 
-            if (get_var("AUTOUPGRADE")) {
-                $args .= " autoupgrade=1";
-            }
+            type_string_very_slow $args;
 
-            type_string_slow $args;
-
-            if (get_var("FIPS")) {
-                type_string_slow ' fips=1';
-                save_screenshot;
-            }
+            specific_bootmenu_params;
 
             if (my $e = get_var("EXTRABOOTPARAMS")) {
                 type_string_very_slow " $e";
