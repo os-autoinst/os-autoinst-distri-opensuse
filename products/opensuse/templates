@@ -2698,6 +2698,7 @@
                         { key => "QEMUTHREADS", value => 8 },
                         { key => "QEMURAM", value => 4096 },
                         { key => "WORKER_CLASS", value => "qemu_ppc64le" },
+                        { key => "VNC_TYPING_LIMIT", value => 10 },
                       ],
                     },
                     {
@@ -2712,6 +2713,7 @@
                         { key => "QEMUTHREADS", value => 8 },
                         { key => "QEMURAM", value => 4096 },
                         { key => "WORKER_CLASS", value => "qemu_ppc64" },
+                        { key => "VNC_TYPING_LIMIT", value => 10 },
                       ],
                     },
                     {
