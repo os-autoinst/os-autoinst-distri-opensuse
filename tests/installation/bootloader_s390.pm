@@ -20,6 +20,8 @@ use strict;
 use warnings;
 use English;
 
+use bootloader_setup;
+
 # try to find the 2 longest lines that are below beyond the limit
 # collapsing the lines - we have a limit of 10 lines
 sub try_merge_lines {
@@ -87,6 +89,9 @@ sub prepare_parmfile {
     if (get_var('UPGRADE')) {
         $params .= 'upgrade=1 ';
     }
+
+    $params .= specific_bootmenu_params;
+
     if (check_var('SCC_REGISTER', 'installation')) {
         if (get_var('SCC_URL')) {
             my $regurl = get_var('SCC_URL');
