@@ -18,8 +18,8 @@ use testapi;
 
 my %services_for = (
     default => [qw(sshd cloud-init-local cloud-init cloud-config cloud-final issue-generator issue-add-ssh-keys)],
-    admin   => [qw(container-feeder, docker, kubelet, etcd)],
-    worker  => [qw(container-feeder, salt-minion)],
+    admin   => [qw(container-feeder docker kubelet etcd)],
+    worker  => [qw(container-feeder salt-minion)],
     plain   => undef
 );
 
