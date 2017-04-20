@@ -75,15 +75,20 @@ sub run() {
             $collect_logs = 1;
         }
     }
-    elsif (!get_var('ENCRYPT_ACTIVATE_EXISTING')) {    # old behaviour still needed
-        send_key "alt-l", 1;                           # enable LVM-based proposal
+    elsif (!get_var('ENCRYPT_ACTIVATE_EXISTING') or get_var('ENCRYPT_FORCE_RECOMPUTE')) {    # old behaviour still needed
+        send_key "alt-l", 1;                                                                 # enable LVM-based proposal
         if (get_var("ENCRYPT")) {
             send_key "alt-y";
-            assert_screen "inst-encrypt-password-prompt";
-            type_password;
-            send_key "tab";
-            type_password;
-            send_key "ret";
+            if (get_var('ENCRYPT_FORCE_RECOMPUTE')) {                                        # RECOMPUTE does not ask for new password
+                send_key "ret";
+            }
+            else {
+                assert_screen "inst-encrypt-password-prompt";
+                type_password;
+                send_key "tab";
+                type_password;
+                send_key "ret";
+            }
             assert_screen "partition-cryptlvm-summary";
         }
         else {
