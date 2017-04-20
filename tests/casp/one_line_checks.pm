@@ -27,6 +27,8 @@ sub run() {
         # poo#16574
         # Should be replaced by actually connecting to admin node when it's implemented
         assert_script_run "grep \"master: 'dashboard-url'\" /etc/salt/minion.d/master.conf";
+        # poo#18668 - Check ntp client configuration
+        assert_script_run 'grep "^NTP=dashboard-url" /etc/systemd/timesyncd.conf';
     }
 
     # check if installation script was executed https://trello.com/c/PJqM8x0T
