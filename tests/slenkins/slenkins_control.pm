@@ -202,11 +202,6 @@ sub run {
           echo
         done
 
-        # Check for failures
-        echo "Checking for failed tests"
-        check-failures
-        echo
-
         # Finish log files
         echo "Finishing log files"
         finish-logs
