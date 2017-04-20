@@ -6,6 +6,7 @@ use base "opensusebasetest";
 
 use strict;
 use testapi;
+use utils 'type_string_slow';
 
 sub post_fail_hook() {
     my ($self) = shift;
@@ -58,10 +59,19 @@ sub prepare_sle_classic {
 }
 
 sub enter_test_text {
-    my ($self, $name) = @_;
-    $name //= 'your program';
-    for (1 .. 13) { send_key "ret" }
-    type_string "echo If you can see this text $name is working.\n";
+    my ($self, $name, %args) = @_;
+    $name       //= 'your program';
+    $args{cmd}  //= 0;
+    $args{slow} //= 0;
+    for (1 .. 13) { send_key 'ret' }
+    my $text = "If you can see this text $name is working.\n";
+    $text = 'echo ' . $text if $args{cmd};
+    if ($args{slow}) {
+        type_string_slow $text;
+    }
+    else {
+        type_string $text;
+    }
 }
 
 sub test_terminal {
@@ -69,14 +79,8 @@ sub test_terminal {
     mouse_hide(1);
     x11_start_program($name);
     assert_screen $name;
-    $self->enter_test_text($name);
-    unless (check_screen "test-$name-1") {
-        record_soft_failure 'poo#17442 workaround for too early typing, remove after ticket fixed';
-        # We really should not use sleeps but too many keys have gone missing
-        sleep 1;
-        # let's try again
-        assert_screen "test-$name-1";
-    }
+    $self->enter_test_text($name, cmd => 1);
+    assert_screen "test-$name-1";
     send_key 'alt-f4';
 }
 

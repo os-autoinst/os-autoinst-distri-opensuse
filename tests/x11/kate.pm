@@ -17,19 +17,21 @@ use strict;
 use testapi;
 
 sub run() {
+    my ($self) = @_;
     ensure_installed("kate");
     x11_start_program("kate", 6, {valid => 1});
-    assert_screen 'test-kate-1', 10;
+    assert_screen 'test-kate-1';
 
     if (!get_var("PLASMA5")) {
         # close welcome screen
-        send_key 'alt-c';
-        sleep 2;
+        wait_screen_change { send_key 'alt-c' };
     }
-    type_string "If you can see this text kate is working.\n";
-    assert_screen 'test-kate-2', 5;
+    # type slow as kate can garble up text when typing with the super natural
+    # standard speed
+    $self->enter_test_text('kate', slow => 1);
+    assert_screen 'test-kate-2';
     send_key "ctrl-q";
-    assert_screen 'test-kate-3', 5;
+    assert_screen 'test-kate-3';
     send_key "alt-d";    # discard
 }
 

@@ -50,7 +50,7 @@ sub run() {
     assert_screen 'ssh-login-ok';
 
     $self->set_standard_prompt();
-    $self->enter_test_text('ssh-X-forwarding');
+    $self->enter_test_text('ssh-X-forwarding', cmd => 1);
     assert_screen 'test-sshxterm-1';
 
     # Launch gedit and gnome control center remotely
