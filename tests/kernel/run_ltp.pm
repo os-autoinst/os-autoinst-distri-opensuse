@@ -259,6 +259,8 @@ sub run {
 
     assert_script_run('cd /opt/ltp/testcases/bin');
 
+    script_run('$LTPROOT/ver_linux');
+
     if ($is_network) {
         # Disable network managing daemons and firewall. Once we have network
         # set, we don't want network managing daemons to touch it (this is
