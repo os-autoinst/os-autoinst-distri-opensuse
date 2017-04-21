@@ -11,8 +11,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License along
-# with this program; if not, write to the Free Software Foundation, Inc.,
-# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+# with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # Summary: support for saving and loading of hdd image
 # Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
@@ -23,7 +22,6 @@ use testapi;
 use utils 'sle_version_at_least';
 
 sub run {
-
     select_console('root-console');
     if (get_var('DROP_PERSISTENT_NET_RULES')) {
         type_string "rm -f /etc/udev/rules.d/70-persistent-net.rules\n";
