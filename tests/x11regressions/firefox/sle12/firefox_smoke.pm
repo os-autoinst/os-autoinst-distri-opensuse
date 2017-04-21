@@ -16,11 +16,9 @@ use base "x11regressiontest";
 use testapi;
 
 sub run() {
-    mouse_hide(1);
+    my ($self) = @_;
 
-    # Clean and Start Firefox
-    x11_start_program("xterm -e \"killall -9 firefox;rm -rf .moz*\"");
-    x11_start_program("firefox");
+    $self->start_firefox;
     assert_screen('firefox-gnome', 90);
 
     # Topsites
@@ -41,11 +39,8 @@ sub run() {
     send_key "esc";
 
     # Exit
-    send_key "alt-f4";
-    if (check_screen('firefox-save-and-quit', 30)) {
-        # confirm "save&quit"
-        send_key "ret";
-    }
+    $self->exit_firefox;
+
 }
 
 sub test_flags() {
