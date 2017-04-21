@@ -14,6 +14,7 @@ use base "consoletest";
 use strict;
 use testapi;
 use utils;
+use migration;
 
 sub run() {
     my ($self) = @_;

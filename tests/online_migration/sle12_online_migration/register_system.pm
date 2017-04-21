@@ -13,25 +13,11 @@
 use base "console_yasttest";
 use strict;
 use testapi;
-use registration;
-use utils;
+use migration;
 
 sub run() {
     select_console 'root-console';
-
-    # SCC_URL was placed to medium types
-    # so set SMT_URL here if register system via smt server
-    # otherwise must register system via real SCC before online migration
-    if (my $u = get_var('SMT_URL')) {
-        type_string "echo 'url: $u' > /etc/SUSEConnect\n";
-    }
-
-    # register system and addons in textmode for all archs
-    set_var("VIDEOMODE", 'text');
-    if (sle_version_at_least('12-SP2', version_variable => 'HDDVERSION')) {
-        set_var('HDD_SP2ORLATER', 1);
-    }
-    yast_scc_registration;
+    register_system_in_textmode;
 }
 
 sub test_flags {
