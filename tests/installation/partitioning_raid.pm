@@ -90,7 +90,7 @@ sub addraid {
 sub setraidlevel {
     my ($level) = @_;
     my %entry = (0 => 0, 1 => 1, 5 => 5, 6 => 6, 10 => 'g');
-    send_key "alt-$entry{$level}";
+    wait_screen_change { send_key "alt-$entry{$level}"; };
 
     wait_screen_change { send_key "alt-i"; };    # move to RAID name input field
     wait_screen_change { send_key "tab"; };      # skip RAID name input field
