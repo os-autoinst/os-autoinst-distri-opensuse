@@ -3,6 +3,7 @@ use base 'distribution';
 use serial_terminal ();
 use strict;
 use utils 'type_string_slow';
+use utils 'ensure_unlocked_desktop';
 
 # Base class for all openSUSE tests
 
@@ -450,6 +451,9 @@ sub console_selected {
     $args{ignore}        //= qr{sut|root-virtio-terminal|iucvconn|svirt};
     return unless $args{await_console};
     return if $args{tags} =~ $args{ignore};
+    # x11 needs special handling because we can not easily know if screen is
+    # locked, display manager is waiting for login, etc.
+    return ensure_unlocked_desktop if $args{tags} =~ /x11/;
     assert_screen($args{tags}, no_wait => 1);
 }
 
