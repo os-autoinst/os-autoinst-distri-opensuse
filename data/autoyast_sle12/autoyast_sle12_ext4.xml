@@ -90,6 +90,9 @@
         <startmode>auto</startmode>
       </interface>
     </interfaces>
+    <dns>
+      <dhcp_hostname config:type="boolean">false</dhcp_hostname>
+    </dns>
   </networking>
   <firewall>
     <enable_firewall config:type="boolean">true</enable_firewall>
