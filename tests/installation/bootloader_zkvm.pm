@@ -18,6 +18,7 @@ use File::Basename 'basename';
 
 use strict;
 use warnings;
+use bootloader_setup;
 
 
 sub run() {
@@ -54,6 +55,8 @@ sub run() {
         if (get_var('AUTOYAST')) {
             $cmdline .= " autoyast=" . data_url(get_var('AUTOYAST')) . " ";
         }
+
+        $cmdline .= specific_bootmenu_params;
 
         $svirt->change_domain_element(os => initrd  => "$img_path/$name.initrd");
         $svirt->change_domain_element(os => kernel  => "$img_path/$name.kernel");
