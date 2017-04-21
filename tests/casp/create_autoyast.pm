@@ -28,13 +28,21 @@ sub run() {
     # Generate autoyast profile using all possible arguments with fake values
     my $autoinst_with_args = script_output("create_autoyast_profile --salt-master $salt_master --smt-url $smt_url --regcode $regcode --reg-email $reg_email");
 
-    my $xml  = XML::Simple->new;
-    my $data = $xml->XMLin($autoinst_with_args);
+    my $xml = XML::Simple->new;
+    my $data = $xml->XMLin($autoinst_with_args, ForceArray => ['script']);
 
-    # Check for salt_master value in XML
-    unless ($data->{scripts}{'chroot-scripts'}{script}{source} =~ /$salt_master/) {
-        $self->write_detail_output("salt-master missing", "Value $salt_master for salt-master missing in xml", "fail");
+    # Check autoyast scripts in XML
+    my $ntp_hostname = 'NTP=' . script_output("hostname -f 2> /dev/null || hostname");
+    my $script_arref = \@{$data->{scripts}{'chroot-scripts'}{script}};
+
+    my $counter = 0;
+    foreach my $script (@$script_arref) {
+        if ($script->{source} =~ /$salt_master/)  { $counter += 1; next; }
+        if ($script->{source} =~ /$ntp_hostname/) { $counter += 2; next; }
     }
+    $self->write_detail_output("scripts missing",     "Values $salt_master and $ntp_hostname missing in xml", "fail") if ($counter == 0);
+    $self->write_detail_output("ntp missing",         "Value $ntp_hostname for ntp missing in xml",           "fail") if ($counter == 1);
+    $self->write_detail_output("salt_master missing", "Value $salt_master for salt-master missing in xml",    "fail") if ($counter == 2);
 
     # Check for smt_url value in XML
     unless ($data->{suse_register}{reg_server} =~ /$smt_url/) {
