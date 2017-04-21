@@ -286,6 +286,7 @@ sub run {
 
         script_run('ip addr');
         script_run('ip route');
+        script_run('ip -6 route');
     }
 
     for my $test (@tests) {
