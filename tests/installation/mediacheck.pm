@@ -26,7 +26,7 @@ sub run {
     }
 
     ensure_shim_import;
-    $self->select_bootmenu_option('inst-onmediacheck', 1);
+    $self->select_bootmenu_more('inst-onmediacheck', 1);
 
     # the timeout is insane - but some old DVDs took almost forever, could
     # recheck with all current one and lower again

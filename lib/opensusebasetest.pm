@@ -3,6 +3,7 @@ use base 'basetest';
 
 use testapi;
 use utils;
+use bootloader_setup 'select_bootmenu_option';
 use strict;
 
 # Base class for all openSUSE tests
@@ -152,7 +153,7 @@ sub set_standard_prompt {
     $testapi::distri->set_standard_prompt;
 }
 
-sub select_bootmenu_option {
+sub select_bootmenu_more {
     my ($self, $tag, $more) = @_;
 
     assert_screen "inst-bootmenu", 15;
@@ -214,7 +215,7 @@ sub wait_boot {
     # Reset the consoles after the reboot: there is no user logged in anywhere
     reset_consoles;
     if (get_var("OFW")) {
-        assert_screen 'bootloader', $bootloader_time;
+        select_bootmenu_option;
     }
     # reconnect s390
     elsif (check_var('ARCH', 's390x')) {
