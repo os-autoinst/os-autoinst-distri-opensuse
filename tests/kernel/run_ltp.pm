@@ -289,6 +289,8 @@ sub run {
         script_run('ip addr');
         script_run('ip route');
         script_run('ip -6 route');
+
+        script_run('ping -c 2 8.8.8.8');
     }
 
     for my $test (@tests) {
