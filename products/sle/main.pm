@@ -525,7 +525,7 @@ sub load_inst_tests() {
         # system is not being tested (e.g. INSTALLONLY etc.)
         if (    !consolestep_is_applicable()
             and !get_var("REMOTE_CONTROLLER")
-            and !check_var('BACKEND', 's390x')
+            and !check_var('ARCH', 's390x')
             and sle_version_at_least('12-SP2'))
         {
             loadtest "installation/hostname_inst";
