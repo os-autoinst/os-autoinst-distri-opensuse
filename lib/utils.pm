@@ -53,7 +53,6 @@ our @EXPORT = qw(
   addon_decline_license
   addon_license
   validate_repos
-  setup_online_migration
   turn_off_kde_screensaver
   random_string
   handle_login
@@ -805,26 +804,6 @@ sub validate_repos {
     if (check_var('DISTRI', 'sle') and !get_var('STAGING') and sle_version_at_least('12-SP1')) {
         validate_repos_sle($version);
     }
-}
-
-sub setup_online_migration {
-    my ($self) = @_;
-    # if source system is minimal installation then boot to textmode
-    # we don't care about source system start time because our SUT is upgraded one
-    $self->wait_boot(textmode => !is_desktop_installed, ready_time => 600);
-    select_console 'root-console';
-
-    # stop packagekit service
-    script_run "systemctl mask packagekit.service";
-    script_run "systemctl stop packagekit.service";
-
-    type_string "chown $username /dev/$serialdev\n";
-
-    # enable Y2DEBUG all time
-    type_string "echo 'export Y2DEBUG=1' >> /etc/bash.bashrc.local\n";
-    script_run "source /etc/bash.bashrc.local";
-
-    save_screenshot;
 }
 
 sub random_string {
