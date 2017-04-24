@@ -115,7 +115,7 @@ sub run() {
     if (!get_var("REMOTE_CONTROLLER")) {
         do {
             send_key 'alt-s';
-        } until (wait_still_screen(3, 4));
+        } until (wait_still_screen(3, 4, 99));
         select_console 'install-shell';
 
         # check for right boot-device on s390x (zVM, DASD ONLY)
