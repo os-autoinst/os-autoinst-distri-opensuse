@@ -45,12 +45,12 @@ sub install_dependencies {
     else {
         record_soft_failure 'Need Workstation Extension for ntfsprogs; poo#15652';
     }
-    zypper_call('in ' . join(' ', @deps), log => 'install-deps.txt');
+    zypper_call('-t in ' . join(' ', @deps), log => 'install-deps.txt');
 
     my @maybe_deps = qw(net-tools-deprecated gcc-32bit);
 
     for my $dep (@maybe_deps) {
-        script_run('zypper -n in ' . $dep);
+        script_run('zypper -n -t in ' . $dep);
     }
 }
 
@@ -60,7 +60,7 @@ sub install_from_git {
     if ($tag) {
         $tag = ' -b ' . $tag;
     }
-    assert_script_run("git clone $url --depth 1" . $tag, timeout => 360);
+    assert_script_run("git clone -q --depth 1 $url" . $tag, timeout => 360);
     assert_script_run 'cd ltp';
     assert_script_run 'make autotools';
     assert_script_run('./configure --with-open-posix-testsuite --with-realtime-testsuite', timeout => 300);
@@ -83,7 +83,7 @@ sub run {
     if ($inst_ltp =~ /git/i) {
         install_dependencies;
         # bsc#1024050 - Watch for Zombies
-        type_string "pidstat -p ALL 1 > /tmp/pidstat.txt &\n";
+        script_run('(pidstat -p ALL 1 > /tmp/pidstat.txt &)');
         install_from_git;
     }
     elsif ($inst_ltp =~ /repo/i) {
@@ -103,7 +103,7 @@ sub post_fail_hook {
     my $self = shift;
 
     # bsc#1024050
-    script_run('kill %1');
+    script_run('pkill pidstat');
     upload_logs('/tmp/pidstat.txt');
 }
 

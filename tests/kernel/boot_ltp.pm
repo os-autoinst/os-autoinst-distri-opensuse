@@ -21,6 +21,7 @@ sub run {
 
     if (get_var('VIRTIO_CONSOLE')) {
         select_console('root-virtio-terminal');
+        script_run('dmesg --console-level 7');
     }
     else {
         select_console('root-console');
