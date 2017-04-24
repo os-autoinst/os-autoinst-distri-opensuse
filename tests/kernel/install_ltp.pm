@@ -71,7 +71,7 @@ sub install_from_git {
 
 sub install_from_repo {
     zypper_call 'in qa_test_ltp';
-    assert_script_run "find /opt/ltp/testcases/bin/openposix/conformance/interfaces/ -name '*.run-test' > ~/openposix_test_list.txt";
+    assert_script_run q(find $LTPROOT/testcases/bin/openposix/conformance/interfaces/ -name '*.run-test' > ~/openposix_test_list.txt);
 }
 
 sub run {

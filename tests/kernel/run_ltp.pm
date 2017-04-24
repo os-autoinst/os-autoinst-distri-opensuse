@@ -42,7 +42,7 @@ sub parse_runfile {
     my ($self, $cmd_file, $cmd_pattern, $cmd_exclude) = @_;
     my @tests         = ();
     my $tests_ignored = 0;
-    my $cmd_file_text = script_output("cat /opt/ltp/runtest/$cmd_file");
+    my $cmd_file_text = script_output('cat $LTPROOT/runtest/' . $cmd_file);
 
     my ($result, $rfh) = $self->start_result('runfile', 'parse runfile');
     say $rfh "## Parsing `$cmd_file` for tests which match `$cmd_pattern`";
@@ -257,7 +257,7 @@ sub run {
         @tests = $self->parse_runfile($cmd_file, $cmd_pattern, $cmd_exclude);
     }
 
-    assert_script_run('cd /opt/ltp/testcases/bin');
+    assert_script_run('cd $LTPROOT/testcases/bin');
 
     script_run('$LTPROOT/ver_linux');
 
@@ -281,7 +281,7 @@ sub run {
         script_run('cat /etc/nsswitch.conf');
         script_run('cat /etc/hosts');
 
-        # emulate /opt/ltp/testscripts/network.sh
+        # emulate $LTPROOT/testscripts/network.sh
         assert_script_run('TST_TOTAL=1 TCID="network_settings"; . test_net.sh; export TCID= TST_LIB_LOADED=');
 
         script_run('env');
