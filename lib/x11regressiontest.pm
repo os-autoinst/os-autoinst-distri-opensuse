@@ -464,8 +464,7 @@ sub start_firefox() {
 
 sub exit_firefox() {
     # Exit
-    send_key "alt-f4";
-    assert_screen [qw(firefox-save-and-quit xterm-left-open xterm-without-focus)], 30;
+    send_key_until_needlematch([qw(firefox-save-and-quit xterm-left-open xterm-without-focus)], "alt-f4", 3, 30);
     if (match_has_tag 'firefox-save-and-quit') {
         # confirm "save&quit"
         send_key "ret";
