@@ -31,7 +31,7 @@ sub run() {
     my $repo = "ftp://openqa.suse.de/" . get_var('REPO_0');
 
 
-    if (!get_var('BOOT_HDD_IMAGE') or get_var('PATCHED_SYSTEM')) {
+    if (!get_var('BOOT_HDD_IMAGE') or (get_var('PATCHED_SYSTEM') and !get_var('ZDUP'))) {
         my $cmdline = get_var('VIRSH_CMDLINE') . " ";
 
         $cmdline .= "install=$repo ";
@@ -109,7 +109,7 @@ sub run() {
 
     $svirt->define_and_start;
 
-    if (!get_var("BOOT_HDD_IMAGE") or get_var('PATCHED_SYSTEM')) {
+    if (!get_var("BOOT_HDD_IMAGE") or (get_var('PATCHED_SYSTEM') and !get_var('ZDUP'))) {
         if (check_var("VIDEOMODE", "text")) {
             wait_serial("run 'yast.ssh'", 300) || die "linuxrc didn't finish";
             select_console("installation");
