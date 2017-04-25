@@ -34,6 +34,7 @@ sub run() {
     # check if installation script was executed https://trello.com/c/PJqM8x0T
     if (check_var('SYSTEM_ROLE', 'admin')) {
         assert_script_run 'zgrep manifests/activate.sh /var/log/YaST2/y2log-1.gz';
+        assert_script_run 'grep "^server ns.openqa.test" /etc/ntp.conf';
     }
 }
 

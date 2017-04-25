@@ -23,8 +23,17 @@ sub run() {
     send_key_until_needlematch "system-role-$role", 'down', 2;
     send_key 'ret' if (check_var('VIDEOMODE', 'text'));
 
-    # Set dashboard url for worker
-    if ($role eq 'worker') {
+    if ($role eq 'admin') {
+        # Try without ntp servers
+        send_key 'alt-i';
+        handle_simple_pw;
+        assert_screen 'ntp-servers-missing';
+        send_key 'alt-n';
+
+        send_key 'alt-t';
+        type_string 'ns.openqa.test';
+    }
+    elsif ($role eq 'worker') {
         # Try with empty controller node
         send_key 'alt-i';
         handle_simple_pw;
@@ -36,6 +45,7 @@ sub run() {
         type_string 'dashboard-url';
         assert_screen 'dashboard-url';
     }
+    save_screenshot;
 }
 
 1;
