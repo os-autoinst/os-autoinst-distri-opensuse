@@ -23,7 +23,11 @@ sub run() {
     assert_script_run("if ! systemctl -q is-active network; then systemctl -q start network; fi");
 
     # install components to test plus dependencies for checking
-    zypper_call("in vncmanager xorg-x11 net-tools");
+    my $packages = 'vncmanager xorg-x11';
+    # netstat is deprecated in newer versions, use 'ss' instead
+    my $use_ss = check_var('VERSION', 'Tumbleweed');
+    $packages .= ' net-tools' unless $use_ss;
+    zypper_call("in $packages");
 
     # start Remote Administration configuration
     script_run("yast2 remote; echo yast2-remote-status-\$? > /dev/$serialdev", 0);
@@ -58,7 +62,7 @@ sub run() {
     wait_serial('yast2-remote-status-0', 60) || die "'yast2 remote' didn't finish";
 
     # check vnc port is listening
-    assert_script_run("netstat -tl | grep 5901 | grep LISTEN");
+    assert_script_run $use_ss ? 'ss' : 'netstat' . ' -tl | grep 5901 | grep LISTEN';
 }
 1;
 
