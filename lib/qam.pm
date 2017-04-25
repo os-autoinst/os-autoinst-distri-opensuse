@@ -17,7 +17,7 @@ use Exporter;
 use testapi;
 use utils;
 
-our @EXPORT = qw(capture_state check_automounter snap_revert);
+our @EXPORT = qw(capture_state check_automounter snap_revert is_patch_needed);
 
 sub capture_state {
     my ($state, $y2logs) = @_;
@@ -59,6 +59,16 @@ sub snap_revert {
     my ($svirt, $vm_name, $snapshot) = @_;
     my $ret = $svirt->run_cmd("virsh snapshot-revert $vm_name $snapshot --running");
     die "Snapshot revert $snapshot failed" if $ret;
+}
+
+sub is_patch_needed {
+    my $patch = shift;
+    my $install = shift // 0;
+
+    my $patch_status = script_output("zypper -n info -t patch $patch");
+    if ($patch_status =~ /Status\s*:\s+[nN]ot\s[nN]eeded/) {
+        return $install ? $patch_status : 1;
+    }
 }
 
 1;

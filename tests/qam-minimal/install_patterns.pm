@@ -32,7 +32,7 @@ sub install_packages {
     # loop over packages in patchinfo and try installation
     foreach my $line (split(/\n/, $patch_info)) {
         if (my ($package) = $line =~ $pattern) {
-            script_run("zypper -n in $package", 700);
+            zypper_call("in $package");
             save_screenshot;
         }
     }
@@ -58,10 +58,8 @@ sub run {
     # now we have gnome installed - restore DESKTOP variable
     set_var('DESKTOP', get_var('FULL_DESKTOP'));
 
-    my $patch_status = script_output("zypper -n info -t patch $patch");
-    if ($patch_status =~ /Status\s*:\s+[Nn]ot\s[Nn]eeded/) {
-        install_packages($patch_status);
-    }
+    my $patch_status = is_patch_needed($patch, 1);
+    install_packages($patch_status) if $patch_status;
 
     prepare_system_reboot;
     type_string "reboot\n";

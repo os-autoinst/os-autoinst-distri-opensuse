@@ -87,21 +87,26 @@ sub run() {
     script_run(qq{rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE} (%{INSTALLTIME:date})\n" | sort -t '-' > /tmp/rpmlist.before});
     upload_logs('/tmp/rpmlist.before');
 
-    # RUN HEAVY LOAD script
+    # Download HEAVY LOAD script
     assert_script_run("curl -f " . autoinst_url . "/data/qam/heavy_load.sh -o /tmp/heavy_load.sh");
-    script_run("bash /tmp/heavy_load.sh");
-    #
-    sleep 15;
 
-    #INSTALL UPDATE ... #TODO it needs some coop with IBS ( update repo , patch name)
-    my $repo = get_var('KGRAFT_TEST_REPO');
+    # Add repository with patch + get name of patch
+    my $repo  = get_required_var('INCIDENT_TEST_REPO');
+    my $patch = get_required_var('INCIDENT_PATCH');
+
     zypper_call("ar -f $repo test-kgraft");
     zypper_call("ref");
 
-    # TODO . it needs patchinfo and definition of patch
+    #run HEAVY Load script
+    script_run("bash /tmp/heavy_load.sh");
+    # warm up system
+    sleep 15;
+
+    die "Patch isnt valid for this system" if is_patch_needed($patch);
+
     #patch system
     zypper_call(
-        qq{in -l -y -t patch \$(zypper patches | awk -F "|" '/test-kgraft/ { print \$2;}')},
+        "in -t patch $patch",
         exitcode => [0, 102, 103],
         log      => 'zypper.log'
     );
@@ -111,6 +116,7 @@ sub run() {
     script_run("rm /tmp/heavy_load.sh");
 
     # check if kgraft patch is applied to all functions..
+    # TODO: check if is still needed
     until (kgr_status) {
         kgr_block;
     }
