@@ -120,7 +120,9 @@ sub run() {
     bootmenu_default_params;
     specific_bootmenu_params;
 
-    registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED);
+    # JeOS and CaaSP are never deployed with Linuxrc involved,
+    # so 'regurl' does not apply there.
+    registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED) unless (is_jeos or is_casp);
 
     # boot
     send_key "f10";
