@@ -91,7 +91,7 @@ sub run() {
     assert_script_run("curl -f " . autoinst_url . "/data/qam/heavy_load.sh -o /tmp/heavy_load.sh");
 
     # Add repository with patch + get name of patch
-    my $repo  = get_required_var('INCIDENT_TEST_REPO');
+    my $repo  = get_required_var('INCIDENT_REPO');
     my $patch = get_required_var('INCIDENT_PATCH');
 
     zypper_call("ar -f $repo test-kgraft");
