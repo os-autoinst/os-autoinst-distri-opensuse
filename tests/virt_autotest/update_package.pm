@@ -42,7 +42,7 @@ sub update_package() {
 sub run() {
     my $self = shift;
     $self->update_package();
-    if (!get_var("PROXY_MODE")) {
+    if (!get_var("PROXY_MODE") && (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen"))) {
         resetup_console;
     }
     repl_repo_in_sourcefile();
