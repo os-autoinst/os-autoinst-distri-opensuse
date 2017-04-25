@@ -40,9 +40,10 @@ sub run() {
         if ($script->{source} =~ /$salt_master/)  { $counter += 1; next; }
         if ($script->{source} =~ /$ntp_hostname/) { $counter += 2; next; }
     }
-    $self->write_detail_output("scripts missing",     "Values $salt_master and $ntp_hostname missing in xml", "fail") if ($counter == 0);
-    $self->write_detail_output("ntp missing",         "Value $ntp_hostname for ntp missing in xml",           "fail") if ($counter == 1);
-    $self->write_detail_output("salt_master missing", "Value $salt_master for salt-master missing in xml",    "fail") if ($counter == 2);
+    $self->write_detail_output("scripts missing", "Values $salt_master and $ntp_hostname missing in xml", "fail") if ($counter == 0);
+    # Softfail due bsc#1035665 and XEN snapshot incompatabily
+    $self->write_detail_output("ntp missing",         "Value $ntp_hostname for ntp missing in xml",        "softfail") if ($counter == 1);
+    $self->write_detail_output("salt_master missing", "Value $salt_master for salt-master missing in xml", "fail")     if ($counter == 2);
 
     # Check for smt_url value in XML
     unless ($data->{suse_register}{reg_server} =~ /$smt_url/) {
