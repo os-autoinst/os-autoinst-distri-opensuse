@@ -18,9 +18,6 @@ use testapi;
 sub run() {
     my $self = shift;
 
-    script_run 'zypper -v -n in sysstat';
-    assert_script_run '(pidstat -p ALL 1 > /tmp/pidstat.txt &)';
-
     # Fixes https://github.com/linux-test-project/ltp/issues/91
     script_run 'wget ' . data_url('toolchain/794b46d9.patch');
     script_run 'wget ' . data_url('toolchain/ltp-full-20170116.tar.xz');
@@ -61,10 +58,6 @@ sub run() {
 sub post_fail_hook() {
     my $self = shift;
 
-    script_run('kill %1');
-    script_run('xz /tmp/pidstat.txt');
-    upload_logs('/tmp/pidstat.txt.xz');
-    record_soft_failure 'bsc#1024050';
     script_run 'tar cvvfJ ltp-run-outputdir.tar.xz /opt/ltp/output/';
     upload_logs 'ltp-run-outputdir.tar.xz';
     upload_logs '/tmp/configure.log';
