@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -21,6 +21,7 @@ use utils;
 use mm_network;
 
 our @EXPORT = qw(
+  boot_local_disk
   pre_bootmenu_setup
   select_bootmenu_option
   bootmenu_default_params
@@ -30,6 +31,19 @@ our @EXPORT = qw(
   select_bootmenu_language
   tianocore_select_bootloader
 );
+
+sub boot_local_disk {
+    if (check_var('ARCH', 'ppc64le')) {
+        # TODO use bootindex to properly boot from disk when first in boot order is cd-rom
+        wait_screen_change { send_key 'ret' };
+        if (check_screen 'inst-slof', 5) {
+            # specify local disk for boot
+            type_string_very_slow "boot /pci\t/sc\t4";
+            save_screenshot;
+        }
+    }
+    send_key 'ret';    # boot from hard disk
+}
 
 sub pre_bootmenu_setup {
     if (get_var("IPXE")) {
@@ -64,55 +78,74 @@ sub select_bootmenu_option {
         # and UEFI menues.
         send_key 'up';
     }
-    if (get_var('ZDUP') || get_var("ONLINE_MIGRATION")) {
-        send_key 'ret';    # boot from hard disk
+    if (get_var('ZDUP') || get_var('ONLINE_MIGRATION')) {
+        boot_local_disk;
         return 3;
     }
 
-    if (get_var("UPGRADE")) {
-        # random magic numbers
-        send_key_until_needlematch('inst-onupgrade', 'down', 10, 5);
+    if (get_var('UPGRADE')) {
+        # OFW has contralily oriented menu behavior
+        send_key_until_needlematch 'inst-onupgrade', check_var('ARCH', 'ppc64le') ? 'up' : 'down', 10, 5;
     }
     else {
-        if (get_var("PROMO") || get_var('LIVETEST') || get_var('LIVE_INSTALLATION')) {
-            send_key_until_needlematch("boot-live-" . get_var("DESKTOP"), 'down', 10, 5);
+        if (get_var('PROMO') || get_var('LIVETEST') || get_var('LIVE_INSTALLATION')) {
+            send_key_until_needlematch 'boot-live-' . get_var('DESKTOP'), 'down', 10, 5;
         }
-        elsif (!get_var("JEOS")) {
-            send_key_until_needlematch('inst-oninstallation', 'down', 10, 5);
+        elsif (check_var('ARCH', 'ppc64le')) {
+            send_key_until_needlematch 'inst-oninstallation', 'up', 10, 5;
+        }
+        elsif (!get_var('JEOS')) {
+            send_key_until_needlematch 'inst-oninstallation', 'down', 10, 5;
         }
     }
     return 0;
 }
 
 sub bootmenu_default_params {
-    # https://wiki.archlinux.org/index.php/Kernel_Mode_Setting#Forcing_modes_and_EDID
-    if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
-        type_string_slow " video=hyperv_fb:1024x768";
+    if (check_var('ARCH', 'ppc64le')) {
+        # edit menu, wait until we get to grub edit
+        wait_screen_change { send_key "e" };
+        # go down to kernel entry
+        send_key "down";
+        send_key "down";
+        send_key "down";
+        wait_screen_change { send_key "end" };
+        # load kernel manually with append
+        if (check_var('VIDEOMODE', 'text')) {
+            type_string_very_slow " textmode=1";
+        }
+        type_string_very_slow " Y2DEBUG=1";
     }
-    type_string_slow "Y2DEBUG=1 ";
+    else {
+        # https://wiki.archlinux.org/index.php/Kernel_Mode_Setting#Forcing_modes_and_EDID
+        if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
+            type_string_slow " video=hyperv_fb:1024x768";
+        }
+        type_string_slow "Y2DEBUG=1 ";
 
-    # gfxpayload variable replaced vga option in grub2
-    if (!is_jeos && !is_casp && (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64'))) {
-        type_string_slow "vga=791 ";
-        type_string_slow "video=1024x768-16 ";
-        assert_screen check_var('UEFI', 1) ? 'inst-video-typed-grub2' : 'inst-video-typed', 4;
-    }
+        # gfxpayload variable replaced vga option in grub2
+        if (!is_jeos && !is_casp && (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64'))) {
+            type_string_slow "vga=791 ";
+            type_string_slow "video=1024x768-16 ";
+            assert_screen check_var('UEFI', 1) ? 'inst-video-typed-grub2' : 'inst-video-typed', 4;
+        }
 
-    if (!get_var("NICEVIDEO") && !is_jeos) {
-        type_string_very_slow "plymouth.ignore-serial-consoles ";    # make plymouth go graphical
-        type_string_very_slow "linuxrc.log=$serialdev ";             # to get linuxrc logs in serial
-        type_string_very_slow "console=$serialdev ";                 # to get crash dumps as text
-        type_string_very_slow "console=tty ";                        # to get crash dumps as text
+        if (!get_var("NICEVIDEO") && !is_jeos) {
+            type_string_very_slow "plymouth.ignore-serial-consoles ";    # make plymouth go graphical
+            type_string_very_slow "linuxrc.log=$serialdev ";             # to get linuxrc logs in serial
+            type_string_very_slow "console=$serialdev ";                 # to get crash dumps as text
+            type_string_very_slow "console=tty ";                        # to get crash dumps as text
 
-        assert_screen "inst-consolesettingstyped", 30;
+            assert_screen "inst-consolesettingstyped", 30;
 
-        # Enable linuxrc core dumps https://en.opensuse.org/SDB:Linuxrc#p_linuxrccore
-        type_string_very_slow "linuxrc.core=$serialdev ";
+            # Enable linuxrc core dumps https://en.opensuse.org/SDB:Linuxrc#p_linuxrccore
+            type_string_very_slow "linuxrc.core=$serialdev ";
 
-        my $e = get_var("EXTRABOOTPARAMS");
-        if ($e) {
-            type_string_very_slow "$e ";
-            save_screenshot;
+            my $e = get_var("EXTRABOOTPARAMS");
+            if ($e) {
+                type_string_very_slow "$e ";
+                save_screenshot;
+            }
         }
     }
 }
@@ -120,64 +153,74 @@ sub bootmenu_default_params {
 sub bootmenu_network_source {
     # set HTTP-source to not use factory-snapshot
     if (get_var("NETBOOT")) {
-        my $m_protocol = get_var('INSTALL_SOURCE', 'http');
-        my $m_mirror = get_netboot_mirror;
-        my ($m_server, $m_share, $m_directory);
-
-        # Parse SUSEMIRROR into variables
-        if ($m_mirror =~ m{^[a-z]+://([a-zA-Z0-9.-]*)(/.*)$}) {
-            ($m_server, $m_directory) = ($1, $2);
-            if ($m_protocol eq "smb") {
-                ($m_share, $m_directory) = $m_directory =~ /\/(.+?)(\/.*)/;
+        if (check_var('ARCH', 'ppc64le')) {
+            if (get_var("SUSEMIRROR")) {
+                type_string_very_slow ' install=http://' . get_var("SUSEMIRROR");
+            }
+            else {
+                type_string_very_slow ' kernel=1 insecure=1';
             }
         }
+        else {
+            my $m_protocol = get_var('INSTALL_SOURCE', 'http');
+            my $m_mirror = get_netboot_mirror;
+            my ($m_server, $m_share, $m_directory);
 
-        # select installation source (http, ftp, nfs, smb)
-        send_key "f4";
-        assert_screen "inst-instsourcemenu";
-        send_key_until_needlematch "inst-instsourcemenu-$m_protocol", 'down';
-        send_key "ret";
-        assert_screen "inst-instsourcedialog-$m_protocol";
-
-        # Clean server name and path
-        if ($m_protocol eq "http") {
-            for (1 .. 2) {
-                # just type enough backspaces
-                for (1 .. 32) { send_key "backspace" }
-                send_key "tab";
+            # Parse SUSEMIRROR into variables
+            if ($m_mirror =~ m{^[a-z]+://([a-zA-Z0-9.-]*)(/.*)$}) {
+                ($m_server, $m_directory) = ($1, $2);
+                if ($m_protocol eq "smb") {
+                    ($m_share, $m_directory) = $m_directory =~ /\/(.+?)(\/.*)/;
+                }
             }
-        }
 
-        # Type variables into fields
-        type_string_slow "$m_server\t";
-        type_string_slow "$m_share\t" if $m_protocol eq "smb";
-        type_string_slow "$m_directory\n";
-        save_screenshot;
-
-        # HTTP-proxy
-        if (get_var("HTTPPROXY", '') =~ m/([0-9.]+):(\d+)/) {
-            my ($proxyhost, $proxyport) = ($1, $2);
+            # select installation source (http, ftp, nfs, smb)
             send_key "f4";
-            for (1 .. 4) {
-                send_key "down";
-            }
+            assert_screen "inst-instsourcemenu";
+            send_key_until_needlematch "inst-instsourcemenu-$m_protocol", 'down';
             send_key "ret";
-            type_string_slow "$proxyhost\t$proxyport\n";
-            assert_screen "inst-proxy_is_setup";
+            assert_screen "inst-instsourcedialog-$m_protocol";
 
-            # add boot parameters
-            # ZYPP... enables proxy caching
-        }
+            # Clean server name and path
+            if ($m_protocol eq "http") {
+                for (1 .. 2) {
+                    # just type enough backspaces
+                    for (1 .. 32) { send_key "backspace" }
+                    send_key "tab";
+                }
+            }
 
-        my $remote = get_var("REMOTE_TARGET");
-        if ($remote) {
-            my $dns = get_host_resolv_conf()->{nameserver};
-            type_string_slow " " . get_var("NETSETUP") if get_var("NETSETUP");
-            type_string_slow " nameserver=" . join(",", @$dns);
-            type_string_slow " $remote=1 ${remote}password=$password";
+            # Type variables into fields
+            type_string_slow "$m_server\t";
+            type_string_slow "$m_share\t" if $m_protocol eq "smb";
+            type_string_slow "$m_directory\n";
+            save_screenshot;
+
+            # HTTP-proxy
+            if (get_var("HTTPPROXY", '') =~ m/([0-9.]+):(\d+)/) {
+                my ($proxyhost, $proxyport) = ($1, $2);
+                send_key "f4";
+                for (1 .. 4) {
+                    send_key "down";
+                }
+                send_key "ret";
+                type_string_slow "$proxyhost\t$proxyport\n";
+                assert_screen "inst-proxy_is_setup";
+
+                # add boot parameters
+                # ZYPP... enables proxy caching
+            }
+
+            my $remote = get_var("REMOTE_TARGET");
+            if ($remote) {
+                my $dns = get_host_resolv_conf()->{nameserver};
+                type_string_slow " " . get_var("NETSETUP") if get_var("NETSETUP");
+                type_string_slow " nameserver=" . join(",", @$dns);
+                type_string_slow " $remote=1 ${remote}password=$password";
+            }
+            #type_string "ZYPP_ARIA2C=0 "; sleep 9;
+            #type_string "ZYPP_MULTICURL=0 "; sleep 2;
         }
-        #type_string "ZYPP_ARIA2C=0 "; sleep 9;
-        #type_string "ZYPP_MULTICURL=0 "; sleep 2;
     }
 
     if (check_var("LINUXRC_KEXEC", "1")) {

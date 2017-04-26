@@ -374,10 +374,7 @@ sub load_boot_tests() {
     if (get_var("ISO_MAXSIZE")) {
         loadtest "installation/isosize";
     }
-    if (get_var("OFW")) {
-        loadtest "installation/bootloader_ofw";
-    }
-    elsif ((get_var("UEFI") || is_jeos()) && !check_var("BACKEND", "svirt")) {
+    if ((get_var("UEFI") || is_jeos()) && !check_var("BACKEND", "svirt")) {
         loadtest "installation/bootloader_uefi";
     }
     elsif (check_var("BACKEND", "svirt") && !check_var("ARCH", "s390x")) {
@@ -970,9 +967,6 @@ sub load_patching_tests() {
             loadtest "installation/bootloader_zkvm";
         }
     }
-    if (get_var("OFW")) {
-        loadtest "installation/bootloader_ofw";
-    }
     loadtest 'boot/boot_to_desktop_sym';
     loadtest 'update/patch_before_migration';
     # Lock package for offline migration by Yast installer
@@ -982,7 +976,6 @@ sub load_patching_tests() {
     loadtest 'console/consoletest_finish_sym';
     loadtest 'x11/reboot_and_install';
     loadtest 'installation/bootloader_zkvm_sym' if get_var('S390_ZKVM');
-    loadtest 'installation/bootloader_ofw_sym'  if get_var('OFW');
 }
 
 sub prepare_target() {

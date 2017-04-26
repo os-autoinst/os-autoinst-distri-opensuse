@@ -1,15 +1,15 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Rework the tests layout.
-# G-Maintainer: Alberto Planas <aplanas@suse.com>
+# Summary: Bootloader to setup boot process with arguments/options
+# Maintainer: Jozef Pupava <jpupava@suse.com>
 
 use base "installbasetest";
 use strict;
@@ -26,10 +26,18 @@ sub run() {
     bootmenu_network_source;
     specific_bootmenu_params;
     registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED);
-    select_bootmenu_language;
-    select_bootmenu_video_mode;
-    # boot
-    send_key "ret";
+    # on ppc64le boot have to be confirmed with ctrl-x or F10
+    # and it doesn't have nice graphical menu with video and language options
+    if (!check_var('ARCH', 'ppc64le')) {
+        select_bootmenu_language;
+        select_bootmenu_video_mode;
+        # boot
+        send_key 'ret';
+    }
+    else {
+        # boot
+        send_key 'ctrl-x';
+    }
 }
 
 1;

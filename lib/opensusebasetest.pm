@@ -3,7 +3,7 @@ use base 'basetest';
 
 use testapi;
 use utils;
-use bootloader_setup 'select_bootmenu_option';
+use bootloader_setup 'boot_local_disk';
 use strict;
 
 # Base class for all openSUSE tests
@@ -215,7 +215,8 @@ sub wait_boot {
     # Reset the consoles after the reboot: there is no user logged in anywhere
     reset_consoles;
     if (get_var("OFW")) {
-        select_bootmenu_option;
+        assert_screen 'bootloader', $bootloader_time;
+        boot_local_disk;
     }
     # reconnect s390
     elsif (check_var('ARCH', 's390x')) {
@@ -277,7 +278,7 @@ sub wait_boot {
             # assuming the cursor is on 'installation' by default and 'boot from
             # harddisk' is above
             send_key_until_needlematch 'inst-bootmenu-boot-harddisk', 'up';
-            wait_screen_change { send_key 'ret' };
+            boot_local_disk;
             if (check_var('ARCH', 'aarch64') and get_var('UEFI')) {
                 record_soft_failure 'bsc#1022064';
                 assert_screen 'boot-firmware';

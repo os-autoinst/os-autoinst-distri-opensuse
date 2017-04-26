@@ -19,8 +19,8 @@ use utils;
 sub run() {
     my ($self) = @_;
 
-    $self->wait_boot(ready_time => 600);
-
+    assert_screen 'displaymanager', 500;
+    ensure_unlocked_desktop;
     if (get_var('ZDUP_IN_X')) {
         x11_start_program('xterm');
         become_root;
