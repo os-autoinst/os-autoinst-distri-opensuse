@@ -290,7 +290,10 @@ sub run {
         script_run('ip route');
         script_run('ip -6 route');
 
-        script_run('ping -c 2 8.8.8.8');
+        script_run('ping -c 2 $IPV4_NETWORK.$LHOST_IPV4_HOST');
+        script_run('ping -c 2 $IPV4_NETWORK.$RHOST_IPV4_HOST');
+        script_run('ping6 -c 2 $IPV6_NETWORK:$LHOST_IPV6_HOST');
+        script_run('ping6 -c 2 $IPV6_NETWORK:$RHOST_IPV6_HOST');
     }
 
     for my $test (@tests) {
