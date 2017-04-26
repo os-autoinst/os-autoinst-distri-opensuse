@@ -49,7 +49,7 @@ sub run() {
       200;
     assert_script_run
       'make -j$(getconf _NPROCESSORS_ONLN) 2>&1 | tee /tmp/make.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi',
-      6000;
+      10000;
     script_run 'pushd tools/clang/test';
     assert_script_run
       'make -j$(getconf _NPROCESSORS_ONLN) 2>&1 | tee /tmp/make-clang.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi',
