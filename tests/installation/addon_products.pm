@@ -23,7 +23,7 @@ sub run() {
         send_key 'alt-o', 2;                    # OK
     }
 
-    assert_screen 'addon-selection';
+    assert_screen 'addon-selection', 60;
 
     if (get_var("ADDONURL")) {
 
@@ -39,7 +39,7 @@ sub run() {
                 send_key "alt-t", 1;                     # confirm import (trust) key
             }
         }
-        assert_screen 'addon-selection';
+        assert_screen 'addon-selection', 60;
         send_key $cmd{next}, 1;                          # done
     }
 
@@ -67,7 +67,7 @@ sub run() {
             assert_screen 'addon-list';
             if ((split(/,/, get_var('ADDONS')))[-1] ne $a) {
                 send_key 'alt-a';
-                assert_screen 'addon-selection';
+                assert_screen 'addon-selection', 60;
             }
         }
         send_key $cmd{next};
