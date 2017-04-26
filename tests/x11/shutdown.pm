@@ -128,6 +128,7 @@ sub run() {
 
     }
 
+    console->disable_vnc_stalls;
     $self->{await_shutdown} = 1;
     assert_shutdown;
 }
