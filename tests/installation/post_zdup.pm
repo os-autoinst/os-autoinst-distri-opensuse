@@ -28,12 +28,11 @@ sub run() {
 
     save_screenshot;
 
-    # TODO: why not just script_run 'root' ?
-    # switch to tty3 (in case we are in X)
-    send_key "ctrl-alt-f3";
-    assert_screen "text-login";
+    # switch to root-console (in case we are in X)
+    select_console 'root-console';
+
     # Reboot after dup
-    send_key "ctrl-alt-delete";
+    type_string "reboot\n";
 }
 
 1;
