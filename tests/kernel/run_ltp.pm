@@ -275,7 +275,7 @@ sub run {
         );
 
         script_run('ps axf');
-        script_run('netstat -ap');
+        script_run('netstat -nap');
 
         script_run('cat /etc/resolv.conf');
         script_run('cat /etc/nsswitch.conf');
