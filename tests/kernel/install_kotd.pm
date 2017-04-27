@@ -25,7 +25,6 @@ sub add_repos {
 # Install kotd kernel and reboot
 sub install_from_repo {
     zypper_call("install --from kotd kernel-default", timeout => 1200);
-    type_string("reboot\n");
 }
 
 sub run {
@@ -39,6 +38,9 @@ sub run {
     }
     add_repos;
     install_from_repo;
+
+    select_console('root-console');
+    type_string "reboot\n";
 }
 
 sub test_flags {
