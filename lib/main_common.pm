@@ -433,6 +433,9 @@ sub load_extra_tests() {
             loadtest 'x11/user_defined_snapshot';
         }
         elsif (check_var('DISTRI', 'opensuse')) {
+            if (chromestep_is_applicable()) {
+                loadtest "x11/chrome";
+            }
             if (!get_var("NOAUTOLOGIN")) {
                 loadtest "x11/multi_users_dm";
             }
