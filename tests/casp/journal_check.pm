@@ -23,7 +23,9 @@ sub run() {
         bsc_1022524         => '.*rpc\.statd.*Failed to open directory sm.*',
         bsc_1022525         => '.*rpcbind.*cannot(.*open file.*rpcbind.xdr.*|.*open file.*portmap.xdr.*|.*save any registration.*)',
         bsc_1023818         => '.*Dev dev-disk-by.*device appeared twice with different sysfs paths.*',
+        bsc_1033792         => '.*blk_update_request.*error.*dev fd0.*sector 0.*',
         bsc_1025217_FEATURE => '.*piix4_smbus.*SMBus Host Controller not enabled.*',
+        bsc_1025217_FEATURE => '.*piix4_smbus.*SMBus base address uninitialized.*',
         bsc_1025218_FEATURE => '.*dmi.*Firmware registration failed.*',
         bsc_1028060_FEATURE => '.*getting etcd lock took too long, reboot canceld.*',
     };
