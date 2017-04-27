@@ -775,9 +775,10 @@ sub validate_repos_sle {
     }
 
     # zdup upgrade repo verification
+    # s390x can't use dvd media, only works with network repo
     if (get_var('ZDUP')) {
         my $uri;
-        if (get_var('TEST') =~ m{zdup_offline}) {
+        if (get_var('TEST') =~ m{zdup_offline} and !check_var('ARCH', 's390x')) {
             $uri = "$dvd:///";
         }
         else {
