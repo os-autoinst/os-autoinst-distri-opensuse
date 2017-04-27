@@ -31,6 +31,22 @@ sub test_suite {
     die "you need to overload test_suite in your class";
 }
 
+
+sub system_status {
+    my $self = shift;
+    my %cmds = (
+        uname   => "uname -a",
+        cpuinfo => "cat /proc/cpuinfo",
+        free    => "free -m"
+    );
+    foreach my $key (keys %cmds) {
+        my $log = "/tmp/${key}.log";
+        script_run("$cmds{$key} > $log 2>&1", 40);
+        upload_logs($log, failok => 1);
+    }
+}
+
+
 sub system_login {
     my $self = shift;
     $self->wait_boot;
@@ -160,6 +176,7 @@ sub qa_log_cmd {
 sub run() {
     my $self = shift;
     $self->system_login();
+    $self->system_status();
     $self->prepare_repos();
 
     # Log zypper repo info
