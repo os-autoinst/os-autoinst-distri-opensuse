@@ -27,7 +27,13 @@ sub search {
     }
     # with the gtk interface we have to click as there is no shortcut
     elsif (check_var('DISTRI', 'sle')) {
-        assert_and_click 'yast2_control-center_search_clear';
+        assert_screen [qw(yast2_control-center_search_clear yast2_control-center_search)];
+        if (match_has_tag 'yast2_control-center_search') {
+            assert_and_click 'yast2_control-center_search';
+        }
+        else {
+            assert_and_click 'yast2_control-center_search_clear';
+        }
     }
     type_string $name if $name;
 }
@@ -100,7 +106,7 @@ sub start_system_keyboard_layout {
 sub start_boot_loader {
     search('boot');
     assert_and_click 'yast2_control-center_bootloader';
-    assert_screen 'yast2_control-center_bootloader_settings';
+    assert_screen 'yast2_control-center_bootloader_settings', 60;
     send_key 'alt-o';
     assert_screen 'yast2-control-center-ui', 60;
 }
@@ -191,8 +197,7 @@ sub start_service_manager {
 sub start_authentication_server {
     # available by default only on SLES
     if (check_var('DISTRI', 'sle')) {
-        # need to scroll down to get other modules
-        send_key 'down';
+        search 'authentication';
         assert_and_click 'yast2_control-center_authentication-server';
         assert_screen [qw(yast2_control-center-authentication-server_install yast2_control-center-authentication-server_configuration)], 90;
         if (match_has_tag('yast2_control-center-authentication-server_install')) {
@@ -210,12 +215,15 @@ sub start_authentication_server {
 
 sub start_dhcp_server {
     if (check_var('DISTRI', 'sle')) {
+        search('dhcp');
         assert_and_click 'yast2_control-center_dhcp-server';
         assert_screen [qw(yast2_control-center-dhcp-server-install_cancel yast2_control-center-dhcp-server-configuration)], 60;
         if (match_has_tag 'yast2_control-center-dhcp-server-install_cancel') {
             send_key 'alt-i';
-            assert_screen 'yast2_control-center-dhcp-server-hostname', 60;
-            send_key 'alt-o';
+            assert_screen [qw(yast2_control-center-dhcp-server-hostname yast2_control-center-dhcp-server-configuration)], 60;
+            if (match_has_tag 'yast2_control-center-dhcp-server-hostname') {
+                send_key 'alt-o';
+            }
             assert_screen 'yast2_control-center-dhcp-server-configuration', 60;
             send_key 'alt-r';
         }
@@ -238,22 +246,12 @@ sub start_dhcp_server {
 sub start_dns_server {
     search('dns');
     assert_and_click 'yast2_control-center_dns-server';
-    assert_screen [qw(yast2_control-center-dns-server-install_cancel yast2_control-center-dns-server-start-up yast2_control-center-dns-server-installation)],
-      60;
+    assert_screen [qw(yast2_control-center-dns-server-start-up yast2_control-center-dns-server-install_cancel)], 60;
     if (match_has_tag 'yast2_control-center-dns-server-install_cancel') {
         send_key 'alt-i';
-        assert_screen 'yast2_control-center-dns-server-configuration';
+        assert_screen 'yast2_control-center-dns-server-configuration', 90;
         send_key 'alt-c';
         assert_screen 'yast2_control-center-dns-server-really-abort';
-        send_key 'alt-y';
-    }
-    elsif (match_has_tag 'yast2_control-center-dns-server-installation') {
-        send_key 'alt-c';
-        assert_screen 'yast2_control-center-dns-server-installation_abort';
-        send_key 'alt-o';
-        assert_screen 'yast2_control-center-dns-server-installation_forwarder-setting';
-        send_key 'alt-c';
-        assert_screen 'yast2_control-center-dns-server-installation_really-abort';
         send_key 'alt-y';
     }
     else {
@@ -274,7 +272,7 @@ sub start_ftp_server {
 sub start_hostnames {
     search('hostname');
     assert_and_click 'yast2_control-center_hostnames';
-    assert_screen 'yast2_control-center_hostnames_ok';
+    assert_screen 'yast2_control-center_hostnames_ok', 60;
     send_key 'alt-o';
     assert_screen 'yast2-control-center-ui';
 }
@@ -282,7 +280,7 @@ sub start_hostnames {
 sub start_http_server {
     search('http');
     assert_and_click 'yast2_control-center_http';
-    assert_screen [qw(yast2_control-center_http_finish yast2_control-center_http_wizard)];
+    assert_screen [qw(yast2_control-center_http_finish yast2_control-center_http_wizard)], 60;
     if (match_has_tag 'yast2_control-center_http_wizard') {
         send_key 'alt-n';
         assert_screen 'yast2_control-center_http_wizard-2';
@@ -394,9 +392,12 @@ sub start_ntp_configuration {
 
 sub start_openldap {
     if (check_var('DISTRI', 'sle')) {
+        search('openldap');
         assert_and_click 'yast2_control-center_openldap-mirrormode-configuration';
         assert_screen 'yast2_control-center_openldap-mirrormode-configuration_cancel', 90;
         send_key 'alt-c';
+        assert_screen 'yast2_control-center_openldap-mirrormode-configuration_error';
+        send_key 'alt-o';
         assert_screen 'yast2-control-center-ui';
     }
 }
@@ -418,7 +419,11 @@ sub start_remote_administration_vnc {
         assert_screen 'yast2_control-center_remote-administration_configuration', 60;
     }
     send_key 'alt-o';
-    assert_screen 'yast2-control-center-ui';
+    assert_screen [qw(yast2-control-center-ui yast2_control-center_remote-admin-warning)];
+    if (match_has_tag('yast2_control-center_remote-admin-warning')) {
+        send_key 'alt-o';
+        assert_screen 'yast2-control-center-ui';
+    }
 }
 
 sub start_samba_server {
@@ -430,11 +435,12 @@ sub start_samba_server {
     send_key 'alt-n';
     assert_screen 'yast2_control-center_samba-server_samba-configuration_start-up';
     send_key 'alt-o';
-    assert_screen 'yast2-control-center-ui';
+    assert_screen 'yast2-control-center-ui', 60;
 }
 
 sub start_squid_server {
     if (check_var('DISTRI', 'sle')) {
+        search('squid');
         assert_and_click 'yast2_control-center_squid-server-configuration';
         assert_screen [qw(yast2_control-center_squid-server-install yast2_control-center_squid-server_start-up)];
         if (match_has_tag 'yast2_control-center_squid-server-install') {
@@ -446,15 +452,24 @@ sub start_squid_server {
             assert_screen 'yast2_control-center_squid-server_start-up';
             send_key 'alt-o';
         }
-        assert_screen 'yast2-control-center-ui', 60;
+        assert_screen 'yast2-control-center-ui', 90;
     }
 }
 
 sub start_tftp_server {
     search('tftp');
-    assert_and_click 'yast2_control-center_tftp-server-configuration';
-    assert_screen 'yast2_control-center_tftp-server-configuration_cancel', 60;
-    send_key 'alt-o';
+    if (check_var('DISTRI', 'opensuse')) {
+        assert_and_click 'yast2_control-center_tftp-server-configuration';
+        assert_screen 'yast2_control-center_tftp-server-configuration_cancel', 60;
+        send_key 'alt-o';
+    }
+    elsif (check_var('DISTRI', 'sle')) {
+        assert_and_click 'yast2_control-center_tftp-server-configuration';
+        assert_screen 'yast2_control-center_tftp-server-install';
+        send_key 'alt-i';
+        assert_screen 'yast2_control-center_tftp-server-configuration_ready', 60;
+        send_key 'alt-o';
+    }
     assert_screen 'yast2-control-center-ui', 60;
 }
 
@@ -478,8 +493,9 @@ sub start_vpn_gateway {
 
 sub start_wake_on_lan {
     if (check_var('DISTRI', 'sle')) {
+        search('wake');
         assert_and_click 'yast2_control-center_wake-on-lan';
-        assert_screen 'yast2_control-center_wake-on-lan_install_cancel';
+        assert_screen 'yast2_control-center_wake-on-lan_install_cancel', 60;
         send_key 'alt-c';
         assert_screen 'yast2_control-center_wake-on-lan_install_error';
         send_key 'alt-o';
@@ -507,13 +523,17 @@ sub start_apparmor_configuration {
 
 sub start_ca_management {
     if (check_var('DISTRI', 'sle')) {
-        # start CA Management
+        search('ca');
         assert_and_click 'yast2_control-center_ca-management';
         assert_screen 'yast2_control-center_ca-management_abort';
         send_key 'alt-f';
         assert_screen 'yast2-control-center-ui';
+    }
+}
 
-        # start Common Server Certificate
+sub start_common_server_certificate {
+    if (check_var('DISTRI', 'sle')) {
+        search('ca');
         assert_and_click 'yast2_control-center_common-server-certificate';
         assert_screen 'yast2_control-center_common-server-certificate_abort';
         send_key 'alt-r';
@@ -577,21 +597,12 @@ sub start_hypervisor {
     assert_screen 'yast2-control-center-ui';
 }
 
-sub start_relation_server_configuration {
-    if (check_var('DISTRI', 'sle')) {
-        assert_and_click 'yast2_control-center_relocation-server-configuration';
-        assert_screen 'yast2_control-center_relocation-server-configuration_cancel';
-        send_key 'alt-c';
-        assert_screen 'yast2-control-center-ui';
-    }
-}
-
 sub start_printer {
-    search('print');
-    assert_and_click 'yast2_control-center_printer';
     # for now only test on SLE as openSUSE looks different. Can be extended
     # later
     if (check_var('DISTRI', 'sle')) {
+        search('print');
+        assert_and_click 'yast2_control-center_printer';
         assert_screen 'yast2_control-center_printer_running-cups-daemon';
         send_key 'alt-y';
         assert_screen 'yast2_control-center_printer_running-cups-daemon_no-delay';
@@ -617,10 +628,17 @@ sub start_printer {
         send_key 'alt-o';
         assert_screen 'yast2_control-center_show-printer-queues_error';
         send_key 'alt-o';
+        assert_screen 'yast2_control-center_printer_configurations';
+        send_key 'alt-o';
+        assert_screen 'yast2-control-center-ui', 60;
     }
-    assert_screen 'yast2_control-center_printer_configurations';
-    send_key 'alt-o';
-    assert_screen 'yast2-control-center-ui';
+    elsif (check_var('DISTRI', 'opensuse')) {
+        search('print');
+        assert_and_click 'yast2_control-center_printer';
+        assert_screen 'yast2_control-center_printer_configurations';
+        send_key 'alt-o';
+        assert_screen 'yast2-control-center-ui';
+    }
 }
 
 sub run() {
@@ -640,6 +658,7 @@ sub run() {
 
     # search module by typing string
     search('add');
+
     assert_screen 'yast2_control-center_search_add';
 
     # start yast2 modules
@@ -656,7 +675,9 @@ sub run() {
     start_software_repositories;
     start_printer;
     start_sound;
-    start_scanner;
+    if (check_var('DISTRI', 'opensuse')) {
+        start_scanner;
+    }
     start_system_keyboard_layout;
     start_boot_loader;
     start_date_and_time;
@@ -665,7 +686,9 @@ sub run() {
     if (check_var('DISTRI', 'sle')) {
         start_kernel_dump;
     }
-    start_kernel_settings;
+    if (check_var('DISTRI', 'opensuse')) {
+        start_kernel_settings;
+    }
     start_languages;
     start_network_settings;
     start_partitioner;
@@ -700,13 +723,13 @@ sub run() {
     start_windows_domain_membership;
     start_apparmor_configuration;
     start_ca_management;
+    start_common_server_certificate;
     start_firewall;
     start_laf;
     start_security_center;
     start_sudo;
     start_user_and_group_management;
     start_hypervisor;
-    start_relation_server_configuration;
 
     #  finally done and exit
     send_key 'alt-f4';
