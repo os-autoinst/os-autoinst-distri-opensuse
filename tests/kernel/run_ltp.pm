@@ -262,6 +262,27 @@ sub run {
     script_run('$LTPROOT/ver_linux');
 
     if ($is_network) {
+        # poo#18762: Sometimes there is physical NIC which is not configured.
+        # One of the reasons can be renaming by udev rule in
+        # /etc/udev/rules.d/70-persistent-net.rules. This breaks some tests
+        # (even net namespace based ones).
+        # Workaround: configure physical NIS (if needed).
+        my $tmp = << 'EOF';
+dir=/sys/class/net
+ifaces="`basename -a $dir/* | grep -v -e ^lo -e ^tun -e ^virbr -e ^vnet`"
+for iface in $ifaces; do
+    config=/etc/sysconfig/network/ifcfg-$iface
+    if [ "`cat $dir/$iface/operstate`" = "down" ] && [ ! -e $config ]; then
+        echo "WARNING: create config '$config'"
+        printf "BOOTPROTO='dhcp'\nSTARTMODE='auto'\nDHCLIENT_SET_DEFAULT_ROUTE='yes'\n" > $config
+        systemctl restart network
+        sleep 1
+    fi
+done
+EOF
+        chomp $tmp;
+        script_output($tmp);
+
         # Disable network managing daemons and firewall. Once we have network
         # set, we don't want network managing daemons to touch it (this is
         # required at least for dhcp tests). Firewalls are stop as it can block
@@ -275,7 +296,7 @@ sub run {
         );
 
         script_run('ps axf');
-        script_run('netstat -ap');
+        script_run('netstat -nap');
 
         script_run('cat /etc/resolv.conf');
         script_run('cat /etc/nsswitch.conf');
@@ -287,6 +308,7 @@ sub run {
         script_run('env');
 
         script_run('ip addr');
+        script_run('ip netns exec ltp_ns ip addr');
         script_run('ip route');
         script_run('ip -6 route');
 
