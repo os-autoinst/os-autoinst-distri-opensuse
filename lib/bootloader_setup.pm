@@ -130,17 +130,22 @@ sub bootmenu_default_params {
             assert_screen check_var('UEFI', 1) ? 'inst-video-typed-grub2' : 'inst-video-typed', 4;
         }
 
-        if (!get_var("NICEVIDEO") && !is_jeos) {
-            type_string_very_slow "plymouth.ignore-serial-consoles ";    # make plymouth go graphical
-            type_string_very_slow "linuxrc.log=$serialdev ";             # to get linuxrc logs in serial
-            type_string_very_slow "console=$serialdev ";                 # to get crash dumps as text
-            type_string_very_slow "console=tty ";                        # to get crash dumps as text
+        if (!get_var("NICEVIDEO")) {
+            if (is_jeos) {
+                type_string_very_slow "console=$serialdev ";    # to get crash dumps as text
+                type_string_very_slow "console=tty ";           # to get crash dumps as text
+            }
+            else {
+                type_string_very_slow "plymouth.ignore-serial-consoles ";    # make plymouth go graphical
+                type_string_very_slow "linuxrc.log=$serialdev ";             # to get linuxrc logs in serial
+                type_string_very_slow "console=$serialdev ";                 # to get crash dumps as text
+                type_string_very_slow "console=tty ";                        # to get crash dumps as text
 
-            assert_screen "inst-consolesettingstyped", 30;
+                assert_screen "inst-consolesettingstyped", 30;
 
-            # Enable linuxrc core dumps https://en.opensuse.org/SDB:Linuxrc#p_linuxrccore
-            type_string_very_slow "linuxrc.core=$serialdev ";
-
+                # Enable linuxrc core dumps https://en.opensuse.org/SDB:Linuxrc#p_linuxrccore
+                type_string_very_slow "linuxrc.core=$serialdev ";
+            }
             my $e = get_var("EXTRABOOTPARAMS");
             if ($e) {
                 type_string_very_slow "$e ";
