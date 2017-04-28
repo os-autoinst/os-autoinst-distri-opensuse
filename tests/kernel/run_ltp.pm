@@ -287,6 +287,7 @@ sub run {
         script_run('env');
 
         script_run('ip addr');
+        script_run('ip netns exec ltp_ns ip addr');
         script_run('ip route');
         script_run('ip -6 route');
 
