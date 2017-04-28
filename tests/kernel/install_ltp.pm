@@ -17,12 +17,9 @@ use testapi;
 use utils;
 
 sub add_repos {
-    my $qa_head_repo = get_var 'QA_HEAD_REPO';
-    die 'No QA_HEAD_REPO' unless $qa_head_repo;
-    $qa_head_repo =~ s/\/$//;
-
-    zypper_call "ar '$qa_head_repo/QA:Head.repo'";
-    zypper_call '--gpg-auto-import-keys ref';
+    my $qa_head_repo = get_required_var('QA_HEAD_REPO');
+    zypper_call("ar $qa_head_repo qa_repo");
+    zypper_call('--gpg-auto-import-keys ref');
 }
 
 sub try_add_workstation_addon {
@@ -71,7 +68,7 @@ sub install_from_git {
 
 sub install_from_repo {
     zypper_call 'in qa_test_ltp';
-    assert_script_run q(find $LTPROOT/testcases/bin/openposix/conformance/interfaces/ -name '*.run-test' > ~/openposix_test_list.txt);
+    assert_script_run q(find ${LTPROOT:-/opt/ltp}/testcases/bin/openposix/conformance/interfaces/ -name '*.run-test' > ~/openposix_test_list.txt);
 }
 
 sub run {
