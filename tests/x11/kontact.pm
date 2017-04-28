@@ -24,6 +24,8 @@ sub run() {
     # To disable it run at first time start
     x11_start_program("echo \"[General]\" >> ~/.kde4/share/config/kmail2rc");
     x11_start_program("echo \"first-start=false\" >> ~/.kde4/share/config/kmail2rc");
+    x11_start_program("echo \"[General]\" >> ~/.config/kmail2rc");
+    x11_start_program("echo \"first-start=false\" >> ~/.config/kmail2rc");
 
     x11_start_program("kontact", 6, {valid => 1});
 
