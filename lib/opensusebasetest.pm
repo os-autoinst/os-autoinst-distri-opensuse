@@ -173,7 +173,20 @@ sub select_bootmenu_option {
     else {
         send_key_until_needlematch($tag, 'down', 10, 5);
     }
-    send_key "ret";
+    if (get_var('MACHINE', '') =~ /aarch64/) {
+        # newer versions of qemu on arch automatically add 'console=ttyS0' so
+        # we would end up nowhere. Setting console parameter explicitly
+        # See https://bugzilla.suse.com/show_bug.cgi?id=1032335 for details
+        record_soft_failure 'bsc#1032335';
+        send_key 'e';
+        send_key 'down' for (1 .. 4);
+        send_key 'end';
+        type_string_slow ' console=tty1';
+        send_key 'f10';
+    }
+    else {
+        send_key 'ret';
+    }
 }
 
 sub export_kde_logs {
