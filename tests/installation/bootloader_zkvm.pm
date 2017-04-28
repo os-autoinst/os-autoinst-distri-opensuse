@@ -70,8 +70,8 @@ sub run() {
     }
 
     # after installation we need to redefine the domain, so just shutdown
-    # on zdup we don't need to redefine in between
-    if (!get_var('ZDUP')) {
+    # on zdup and online migration we don't need to redefine in between
+    if (!get_var('ZDUP') and !get_var('ONLINE_MIGRATION')) {
         $svirt->change_domain_element(on_reboot => 'destroy');
     }
 
