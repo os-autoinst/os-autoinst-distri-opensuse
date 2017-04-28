@@ -38,8 +38,8 @@ sub handle_livecd_screenlock {
 
 sub run() {
     my $self = shift;
-    # NET isos are slow to install
-    my $timeout = 2000;
+    # NET isos are slow to install and encryption makes it even slower
+    my $timeout = get_var('ENCRYPT') ? 7200 : 3600;
 
     # workaround for yast popups and
     # detect "Wrong Digest" error to end test earlier
