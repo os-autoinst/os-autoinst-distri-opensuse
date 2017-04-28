@@ -61,6 +61,7 @@ our @EXPORT = qw(
   service_action
   assert_gui_app
   install_all_from_repo
+  gather_pidstat_data
 );
 
 
@@ -901,6 +902,13 @@ sub install_all_from_repo {
     }
     my $exec_str = sprintf("zypper se -ur %s -t package | awk '{print \$2}' | sed '1,/|/d' %s | xargs zypper -n in", $repo, $grep_str);
     assert_script_run($exec_str);
+}
+
+sub gather_pidstat_data {
+    my ($pidstat_file) = @_;
+
+    script_run('pkill pidstat');
+    upload_logs($pidstat_file);
 }
 
 1;

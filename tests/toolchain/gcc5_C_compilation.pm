@@ -14,6 +14,7 @@
 use base "opensusebasetest";
 use strict;
 use testapi;
+use utils 'gather_pidstat_data';
 
 sub run() {
     my $self = shift;
@@ -61,9 +62,7 @@ sub run() {
 sub post_fail_hook() {
     my $self = shift;
 
-    script_run('kill %1');
-    script_run('xz /tmp/pidstat.txt');
-    upload_logs('/tmp/pidstat.txt.xz');
+    gather_pidstat_data('/tmp/pidstat.txt');
     record_soft_failure 'bsc#1024050';
     script_run 'tar cvvfJ ltp-run-outputdir.tar.xz /opt/ltp/output/';
     upload_logs 'ltp-run-outputdir.tar.xz';
@@ -76,5 +75,10 @@ sub post_fail_hook() {
     script_run 'umount /tmp/tmpdir';
 }
 
+sub post_run_hook() {
+    gather_pidstat_data('/tmp/pidstat.txt');
+}
+
 1;
+
 # vim: set sw=4 et:
