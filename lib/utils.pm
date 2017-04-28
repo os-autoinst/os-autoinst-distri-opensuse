@@ -588,6 +588,11 @@ sub validatelr {
         $product = 'SLE-Module-Web-Scripting';
         $version = '12';
     }
+    # LTSS version is included in its product name
+    # leave it as empty to match the regex
+    if ($product =~ /LTSS/) {
+        $version = '';
+    }
     diag "validatelr alias:$alias product:$product cha:$product_channel version:$version";
 
     # Repo is checked for enabled/disabled state. If the information about the
@@ -638,6 +643,12 @@ sub validate_repos_sle {
     my @addonurl_keys = split(/,/, get_var('ADDONURL', ''));
     my $scc_addon_str = '';
     for my $scc_addon (split(/,/, get_var('SCC_ADDONS', ''))) {
+        # The form of LTSS repos is different with other addons
+        # For example: SLES12-LTSS-Updates
+        if ($scc_addon eq 'ltss') {
+            $scc_addon_str .= "SLES$version-" . uc($scc_addon) . ',';
+            next;
+        }
         $scc_addon =~ s/geo/ha-geo/ if ($scc_addon eq 'geo');
         $scc_addon_str .= "SLE-" . uc($scc_addon) . ',';
     }
@@ -743,6 +754,8 @@ sub validate_repos_sle {
             for my $product_channel ("Pool", "Updates", "Debuginfo-Pool", "Debuginfo-Updates", "Source-Pool") {
                 # Toolchain module doesn't have Source-Pool channel
                 next if (($scc_product eq 'SLE-TCM') && ($product_channel eq 'Source-Pool'));
+                # LTSS doesn't have Pool, Debuginfo-Pool and Source-Pool channels
+                next if (($scc_product =~ /LTSS/) && ($product_channel =~ /(|Debuginfo-|Source-)Pool/));
                 validatelr(
                     {
                         product         => $scc_product,
