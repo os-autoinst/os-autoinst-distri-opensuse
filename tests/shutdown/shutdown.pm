@@ -14,12 +14,13 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-# G-Summary: support for saving and loading of hdd image
-# G-Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
+# Summary: support for saving and loading of hdd image
+# Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
 
 use strict;
 use base 'basetest';
 use testapi;
+use utils 'sle_version_at_least';
 
 sub run {
 
@@ -27,7 +28,11 @@ sub run {
     if (get_var('DROP_PERSISTENT_NET_RULES')) {
         type_string "rm -f /etc/udev/rules.d/70-persistent-net.rules\n";
     }
-
+    if (!sle_version_at_least('12-SP2') && check_var('VIRTIO_CONSOLE', 1)) {
+        type_string("echo 'hvc0' >> /etc/securetty\n");
+        script_run('systemctl enable serial-getty@hvc0');
+        script_run('systemctl start serial-getty@hvc0');
+    }
     type_string "poweroff\n";
     assert_shutdown;
 }
