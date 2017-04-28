@@ -108,15 +108,17 @@ test_java_alternatives () {
 test_javac_alternatives () {
     list_all_javac_alternatives
 #    java_versions=$(cat $LIST_ALL_INSTALLED_VERSIONS | wc -l)
-    javac_versions=$(rpm -qa | grep java | grep devel | wc -l)
+    javac_versions=$(rpm -qa | grep java | grep devel | grep -v debuginfo | wc -l)
     javac_alternatives=$(cat $LIST_ALL_JAVAC_ALTERNATIVES | wc -l)
     if [ $javac_versions -eq $javac_alternatives ]; then
 	echo "javac: PASS"
     else
 	echo "javac: FAIL"
         echo "Debug:"
-        echo "Number of java versions: $java_versions and number of javac_alternatives $javac_alternatives"
+        echo "Number of java versions: $javac_versions and number of javac_alternatives $javac_alternatives"
         echo
+        echo "List all javac_versions"
+        rpm -qa | grep java | grep devel | grep -v debuginfo
         echo "List all javac alternatives"
         cat $LIST_ALL_JAVAC_ALTERNATIVES
 	exit 1
