@@ -4,6 +4,7 @@ use base 'basetest';
 use testapi;
 use utils;
 use strict;
+use bootloader_setup 'tianocore_enter_menu';
 
 # Base class for all openSUSE tests
 
@@ -210,6 +211,32 @@ sub export_kde_logs {
     }
 }
 
+# Our aarch64 setup fails to boot properly from an installed hard disk so
+# point the firmware boot manager to the right file.
+sub handle_uefi_boot_disk_workaround {
+    record_soft_failure 'bsc#1022064';
+    tianocore_enter_menu;
+    send_key_until_needlematch 'tianocore-boot_maintenance_manager', 'down', 5, 5;
+    wait_screen_change { send_key 'ret' };
+    send_key_until_needlematch 'tianocore-boot_from_file', 'down';
+    wait_screen_change { send_key 'ret' };
+    save_screenshot;
+    wait_screen_change { send_key 'ret' };
+    # cycle to last entry by going up in the next steps
+    # <EFI>
+    send_key 'up';
+    save_screenshot;
+    wait_screen_change { send_key 'ret' };
+    # <sles>
+    send_key 'up';
+    save_screenshot;
+    wait_screen_change { send_key 'ret' };
+    # efi file
+    send_key 'up';
+    save_screenshot;
+    wait_screen_change { send_key 'ret' };
+}
+
 # makes sure bootloader appears and then boots to desktop resp text
 # mode. Handles unlocking encrypted disk if needed.
 # arguments: bootloader_time => seconds # now long to wait for bootloader to appear
@@ -269,6 +296,7 @@ sub wait_boot {
         # booted so we have to handle that
         # because of broken firmware, bootindex doesn't work on aarch64 bsc#1022064
         push @tags, 'inst-bootmenu' if ((get_var('USBBOOT') and get_var('UEFI')) || (check_var('ARCH', 'aarch64') and get_var('UEFI')));
+        handle_uefi_boot_disk_workaround if (check_var('MACHINE', 'aarch64') && get_var('BOOT_HDD_IMAGE'));
         check_screen(\@tags, $bootloader_time);
         if (match_has_tag("bootloader-shim-import-prompt")) {
             send_key "down";
