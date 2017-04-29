@@ -24,11 +24,6 @@ sub snapper_cleanup {
     my $free_space      = script_output("$btrfs_fs_usage | sed -n '7p' | awk -F ' ' '{print\$3}'");
     my $excl_free_space = ($fs_size / 2);
 
-    diag 'Check if we have enough free space to create snapshots';
-    if ($free_space < $excl_free_space) {
-        die 'The filesystem has less free space than this tests expects, the test will most likely fail';
-    }
-
     # we want to fill up disk enough so that snapper cleanup triggers
     my $scratch_size_gb = 6;
     my $fill_space      = 'dd if=/dev/urandom of=data bs=1M count=1024';
@@ -66,7 +61,6 @@ sub run() {
         assert_script_run("$snapper get-config");    # get initial cfg
         assert_script_run("$snapper list");          # get initial list of snap's
         assert_script_run("$snapper set-config NUMBER_MIN_AGE=0");
-        assert_script_run("$snapper btrfs filesystem usage / --raw");    # get FS overview
         assert_script_run("btrfs qgroup show -pc /", 3);
 
         # We need to run snapper at least couple of times to ensure it cleans up properly
