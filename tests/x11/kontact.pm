@@ -11,14 +11,13 @@
 # Summary: Plasma kontact startup test
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
-use base "x11test";
+use base 'x11test';
 use strict;
 use testapi;
 
 sub run() {
-    # start akonadi server avoid self-test running when launch kontact
-    x11_start_program("akonadictl start");
-    wait_idle 3;
+    # start akonadi server to avoid the self-test running when we launch kontact
+    x11_start_program('akonadictl start');
 
     # Workaround: sometimes the account assistant behind of mainwindow or tips window
     # To disable it run at first time start
@@ -27,16 +26,15 @@ sub run() {
     x11_start_program("echo \"[General]\" >> ~/.config/kmail2rc");
     x11_start_program("echo \"first-start=false\" >> ~/.config/kmail2rc");
 
-    x11_start_program("kontact", 6, {valid => 1});
-
-    my @tags = qw(test-kontact-1 kontact-import-data-dialog);
+    x11_start_program('kontact');
+    my @tags = qw(test-kontact-1 kontact-import-data-dialog kontact-window);
     do {
         assert_screen \@tags;
         # kontact might ask to import data from another mailer, don't
         wait_screen_change { send_key 'alt-n' } if match_has_tag('kontact-import-data-dialog');
-    } until (match_has_tag('test-kontact-1'));
-    send_key 'alt-c';    # KF5-based account assistant ignores alt-f4
-    assert_screen 'kontact-window';
+        # KF5-based account assistant ignores alt-f4
+        wait_screen_change { send_key 'alt-c' } if match_has_tag('test-kontact-1');
+    } until (match_has_tag('kontact-window'));
     send_key 'alt-f4';
 }
 
