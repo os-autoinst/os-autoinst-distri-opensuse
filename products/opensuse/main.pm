@@ -378,7 +378,11 @@ sub load_fixup_firewall() {
     # The openSUSE 13.1 GNOME disk image has the firewall disabled
     # Upon upgrading to a new system the service state is supposed to remain as pre-configured
     # If the service is disabled here, we enable it here
-    return unless check_var('HDDVERSION', 'openSUSE-13.1-gnome');
+    # For the older openSUSE base images we also see a problem with the
+    # firewall being disabled since
+    # https://build.opensuse.org/request/show/483163
+    # which seems to be in openSUSE Tumbleweed since 20170413
+    return unless get_var('HDDVERSION', '') =~ /openSUSE-(12.1|12.2|13.1-gnome)/;
     loadtest 'fixup/enable_firewall';
 }
 
