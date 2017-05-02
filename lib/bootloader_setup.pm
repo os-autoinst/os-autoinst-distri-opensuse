@@ -28,6 +28,7 @@ our @EXPORT = qw(
   specific_bootmenu_params
   select_bootmenu_video_mode
   select_bootmenu_language
+  tianocore_enter_menu
   tianocore_select_bootloader
 );
 
@@ -355,10 +356,15 @@ sub select_bootmenu_language {
     }
 }
 
-sub tianocore_select_bootloader {
+sub tianocore_enter_menu {
     # press F2 and be quick about it
-    send_key_until_needlematch('tianocore-mainmenu',    'f2',   15, 1);
-    send_key_until_needlematch('tianocore-bootmanager', 'down', 5,  5);
+    send_key_until_needlematch('tianocore-mainmenu', 'f2', 15, 1);
+}
+
+
+sub tianocore_select_bootloader {
+    tianocore_enter_menu;
+    send_key_until_needlematch('tianocore-bootmanager', 'down', 5, 5);
     send_key 'ret';
 }
 
