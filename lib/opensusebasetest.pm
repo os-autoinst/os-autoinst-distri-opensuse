@@ -409,6 +409,8 @@ sub wait_for_boot_menu {
         reset_consoles;
         $self->{in_wait_boot} = 0;
     }
+    # prevent grub2 timeout; 'esc' would be cleaner, but grub2-efi falls to the menu then
+    send_key 'up';
 }
 
 =head2 wait_boot
