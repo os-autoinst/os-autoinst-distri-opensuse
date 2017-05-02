@@ -284,28 +284,23 @@ sub rewrite_static_svirt_network_configuration {
     type_line_svirt "systemctl is-active network",         expect => 'active';
 }
 
-=head2 wait_boot
+=head2 wait_for_boot_menu
 
-  wait_boot([bootloader_time => $bootloader_time] [, textmode => $textmode] [,ready_time => $ready_time] [,in_grub => $in_grub]);
+  wait_for_boot_menu([bootloader_time => $bootloader_time] [, in_grub => $in_grub]);
 
-Makes sure the bootloader appears and then boots to desktop or text mode
-correspondingly. Returns successfully when the system is ready on a login
-prompt or logged in desktop. Set C<$textmode> to 1 when the text mode login
-prompt should be expected rather than a desktop or display manager.
-C<wait_boot> also handles unlocking encrypted disks if needed as well as
-various exceptions during the boot process. Also, before the bootloader menu
-or login prompt various architecture or machine specific handlings are in
-place. The time waiting for the bootloader can be configured with
-C<$bootloader_time> in seconds as well as the time waiting for the system to
-be fully booted with C<$ready_time> in seconds. Set C<$in_grub> to 1 when the
-SUT is already expected to be within the grub menu. C<wait_boot> continues
-from there.
+Makes sure the bootloader appears and then stop in the boot menu. Only
+available on all systems where we have a detectable bootloader screen, for
+example the grub menu.
+
+The time waiting for the bootloader can be configured with C<$bootloader_time>
+in seconds as well as the time waiting for the system to be fully booted with
+C<$ready_time> in seconds. C<$bootloader_time> is forwarded to
+C<$wait_for_boot_menu>. Set C<$in_grub> to 1 when the SUT is already expected
+to be within the grub menu. C<wait_boot> continues from there.
 =cut
-sub wait_boot {
+sub wait_for_boot_menu {
     my ($self, %args) = @_;
     my $bootloader_time = $args{bootloader_time} // 100;
-    my $textmode        = $args{textmode};
-    my $ready_time      = $args{ready_time} // 200;
     my $in_grub         = $args{in_grub} // 0;
 
     # used to register a post fail hook being active while we are waiting for
@@ -413,32 +408,68 @@ sub wait_boot {
 
         reset_consoles;
         $self->{in_wait_boot} = 0;
-        return;
     }
+}
 
-    mouse_hide();
+=head2 wait_boot
 
-    if (get_var("NOAUTOLOGIN") || get_var("XDMUSED")) {
-        assert_screen [qw(displaymanager emergency-shell emergency-mode)], $ready_time;
-        handle_emergency if (match_has_tag('emergency-shell') or match_has_tag('emergency-mode'));
+  wait_boot([bootloader_time => $bootloader_time] [, textmode => $textmode] [,ready_time => $ready_time] [,in_grub => $in_grub]);
 
-        if (get_var('DM_NEEDS_USERNAME')) {
-            type_string "$username\n";
+Makes sure the bootloader appears and then boots to desktop or text mode
+correspondingly. Returns successfully when the system is ready on a login
+prompt or logged in desktop. Set C<$textmode> to 1 when the text mode login
+prompt should be expected rather than a desktop or display manager.
+C<wait_boot> also handles unlocking encrypted disks if needed as well as
+various exceptions during the boot process. Also, before the bootloader menu
+or login prompt various architecture or machine specific handlings are in
+place. C<$bootloader_time> and C<$in_grub> are forwarded to to
+C<$wait_for_boot_menu>.
+=cut
+sub wait_boot {
+    my ($self, %args) = @_;
+    my $bootloader_time = $args{bootloader_time} // 100;
+    my $textmode        = $args{textmode};
+    my $ready_time      = $args{ready_time} // 200;
+    my $in_grub         = $args{in_grub} // 0;
+
+    # used to register a post fail hook being active while we are waiting for
+    # boot to be finished to help investigate in case the system is stuck in
+    # shutting down or booting up
+    $self->{in_wait_boot} = 1;
+
+    # Reset the consoles after the reboot: there is no user logged in anywhere
+    reset_consoles;
+    # reconnect s390
+    if (check_var('ARCH', 's390x')) {
+        my $login_ready = qr/Welcome to SUSE Linux Enterprise Server.*\(s390x\)/;
+        if (check_var('BACKEND', 's390x')) {
+
+            console('x3270')->expect_3270(
+                output_delim => $login_ready,
+                timeout      => $ready_time + 100
+            );
+
+            # give the system time to have routes up
+            # and start serial grab again
+            sleep 30;
+            select_console('iucvconn');
         }
-        # log in
-        #assert_screen "dm-password-input", 10;
-        elsif (check_var('DESKTOP', 'gnome')) {
-            # In GNOME/gdm, we do not have to enter a username, but we have to select it
-            send_key 'ret';
+        else {
+            wait_serial($login_ready, $ready_time + 100);
         }
-        assert_screen 'displaymanager-password-prompt', no_wait => 1;
-        type_password $password. "\n";
+
+        # on z/(K)VM we need to re-select a console
+        if ($textmode || check_var('DESKTOP', 'textmode')) {
+            select_console('root-console');
+        }
+        else {
+            select_console('x11', await_console => 0);
+        }
     }
-
-    assert_screen [qw(generic-desktop emergency-shell emergency-mode)], $ready_time + 100;
-    handle_emergency if (match_has_tag('emergency-shell') or match_has_tag('emergency-mode'));
-    mouse_hide(1);
-    $self->{in_wait_boot} = 0;
+    # On Xen PV and svirt we don't see a Grub menu
+    elsif (!(check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux') && check_var('BACKEND', 'svirt'))) {
+        wait_for_boot_menu(bootloader_time => $bootloader_time, in_grub => $in_grub);
+    }
 }
 
 sub enter_test_text {
