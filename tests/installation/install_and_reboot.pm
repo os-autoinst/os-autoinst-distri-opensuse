@@ -113,9 +113,18 @@ sub run() {
 
     # Stop reboot countdown for e.g. uploading logs
     if (!get_var("REMOTE_CONTROLLER")) {
-        do {
+        # Depending on the used backend the initial key press to stop the
+        # countdown might not be evaluated correctly or in time. In these
+        # cases we try more often. As the timeout is 10 seconds trying more
+        # than 4 times when waiting 3 seconds each time in between is not
+        # helping.
+        my $counter = 4;
+        while ($counter--) {
             send_key 'alt-s';
-        } until (wait_still_screen(3, 4, 99));
+            last if wait_still_screen(3, 4, 99);
+            record_info('workaround', "While trying to stop countdown no still screen could be detected, retrying up to $counter times more");
+            die 'Failed to detect a still picture while waiting for stopped countdown.' if ($counter eq 1);
+        }
         select_console 'install-shell';
 
         # check for right boot-device on s390x (zVM, DASD ONLY)
