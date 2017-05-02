@@ -9,7 +9,7 @@
 # without any warranty.
 
 # Summary: Select 'snapshot' boot option from grub menu
-# Maintainer: dmaiocchi <dmaiocchi@suse.com>
+# Maintainer: okurz <okurz@suse.de>
 
 use strict;
 use base 'opensusebasetest';
@@ -24,16 +24,7 @@ sub run {
     select_console 'root-console';
     power_action('reboot', keepconsole => 1, textmode => 1);
     reset_consoles;
-    $self->handle_uefi_boot_disk_workaround if (get_var('MACHINE') =~ /aarch64/ && get_var('UEFI') && get_var('BOOT_HDD_IMAGE'));
-
-    my @tags = ('grub2');
-    push @tags, 'encrypted-disk-password-prompt' if get_var('ENCRYPT');
-    assert_screen(\@tags, 200);
-    if (match_has_tag('encrypted-disk-password-prompt')) {
-        workaround_type_encrypted_passphrase;
-        assert_screen 'grub2', 15;
-    }
-    stop_grub_timeout;
+    $self->wait_grub(bootloader_time => 200);
     boot_into_snapshot;
 }
 sub test_flags {
