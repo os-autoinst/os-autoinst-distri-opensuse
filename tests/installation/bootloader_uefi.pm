@@ -43,12 +43,7 @@ sub run {
 
     # aarch64 firmware 'tianocore' can take longer to load
     my $bootloader_timeout = check_var('ARCH', 'aarch64') ? 30 : 15;
-    assert_screen([qw(bootloader-shim-import-prompt bootloader-grub2)], $bootloader_timeout);
-    if (match_has_tag("bootloader-shim-import-prompt")) {
-        send_key "down";
-        send_key "ret";
-        assert_screen "bootloader-grub2", $bootloader_timeout;
-    }
+    $self->wait_for_boot_menu(bootloader_time => $bootloader_timeout);
     if (get_var("QEMUVGA") && get_var("QEMUVGA") ne "cirrus") {
         sleep 5;
     }

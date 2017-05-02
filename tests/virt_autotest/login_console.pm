@@ -27,6 +27,8 @@ sub login_to_console {
 
     # Wait for bootload for the first time.
     assert_screen([qw(grub2 grub1)], 420);
+    # boot default entry
+    send_key 'ret';
 
     if (!get_var("reboot_for_upgrade_step")) {
         if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {

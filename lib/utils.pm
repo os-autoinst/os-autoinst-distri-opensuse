@@ -204,8 +204,7 @@ sub assert_gui_app {
 
 sub select_kernel {
     my $kernel = shift;
-
-    assert_screen ['grub2', "grub2-$kernel-selected"], 100;
+    wait_for_boot_menu(bootloader_time => 100);
     if (match_has_tag "grub2-$kernel-selected") {    # if requested kernel is selected continue
         send_key 'ret';
     }

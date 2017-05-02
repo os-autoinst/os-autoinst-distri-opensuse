@@ -53,11 +53,7 @@ sub run {
     # C'l'ose  the snapper module
     send_key "alt-l";
     type_string "reboot\n";
-
-    $self->handle_uefi_boot_disk_workaround() if get_var('MACHINE') =~ qr'aarch64';
-    assert_screen "grub2";
-    send_key 'up';
-
+    $self->wait_for_boot_menu(bootloader_time => 90);
     send_key_until_needlematch("boot-menu-snapshot", 'down', 10, 5);
     send_key 'ret';
 

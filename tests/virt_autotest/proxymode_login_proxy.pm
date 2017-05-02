@@ -19,8 +19,8 @@ use testapi;
 sub run {
     assert_screen "bootloader";
     send_key "ret";
-    assert_screen "grub2", 10;
-    send_key "ret";
+    $self->wait_for_boot_menu(bootloader_time => 10);
+    send_key 'ret';
     assert_screen "displaymanager", 300;
     select_console('root-console');
 }

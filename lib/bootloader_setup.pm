@@ -105,8 +105,9 @@ sub pre_bootmenu_setup {
     }
 
     if (get_var("BOOT_HDD_IMAGE")) {
-        assert_screen "grub2", 15;    # Use the same bootloader needle as in grub-test
-        send_key "ret";               # boot from hd
+        wait_for_boot_menu(bootloader_time => 15);
+        # boot default selection, assumed to be first HDD entry
+        send_key 'ret';
         return 3;
     }
     return 0;
