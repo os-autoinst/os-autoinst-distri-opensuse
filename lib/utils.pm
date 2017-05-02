@@ -672,8 +672,8 @@ sub validate_repos_sle {
     # verified in such a scenario.
     if (!(get_var('ONLINE_MIGRATION') || get_var('ZDUP'))) {
         # This is where we verify base product repos for SLES, SLED, and HA
+        my $uri = check_var('ARCH', 's390x') ? "ftp://" : "$cd:///";
         if (check_var('FLAVOR', 'Server-DVD')) {
-            my $uri = "$cd:///";
             if (check_var("BACKEND", "ipmi") || check_var("BACKEND", "generalhw")) {
                 $uri = "http[s]*://.*suse";
             }
@@ -683,16 +683,13 @@ sub validate_repos_sle {
             elsif (get_var('USBBOOT') && sle_version_at_least('12-SP2')) {
                 $uri = "hd:///.*usbstick";
             }
-            elsif (check_var('ARCH', 's390x')) {
-                $uri = "ftp://";
-            }
             validatelr({product => "SLES", uri => $uri, version => $version});
         }
         elsif (check_var('FLAVOR', 'SAP-DVD')) {
-            validatelr({product => "SLE-", uri => "$cd:///", version => $version});
+            validatelr({product => "SLE-", uri => $uri, version => $version});
         }
         elsif (check_var('FLAVOR', 'Server-DVD-HA')) {
-            validatelr({product => "SLES", uri => "$cd:///", version => $version});
+            validatelr({product => "SLES", uri => $uri, version => $version});
             validatelr({product => 'SLE-*HA', uri => get_var('ADDONURL_HA') || "$dvd:///", version => $version});
             if (exists $h_addonurl{geo} || exists $h_addons{geo}) {
                 validatelr({product => 'SLE-*HAGEO', uri => get_var('ADDONURL_GEO') || "$dvd:///", version => $version});
@@ -702,7 +699,7 @@ sub validate_repos_sle {
         }
         elsif (check_var('FLAVOR', 'Desktop-DVD')) {
             # Note: verification of AMD (SLED12) and NVIDIA (SLED12, SP1, and SP2) repos is missing
-            validatelr({product => "SLED", uri => "$cd:///", version => $version});
+            validatelr({product => "SLED", uri => $uri, version => $version});
         }
     }
 
