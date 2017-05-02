@@ -362,21 +362,17 @@ sub wait_boot {
         # because of broken firmware, bootindex doesn't work on aarch64 bsc#1022064
         push @tags, 'inst-bootmenu' if ((get_var('USBBOOT') and get_var('UEFI')) || (check_var('ARCH', 'aarch64') and get_var('UEFI')) || get_var('OFW'));
         $self->handle_uefi_boot_disk_workaround if (get_var('MACHINE') =~ qr'aarch64' && get_var('BOOT_HDD_IMAGE') && !$in_grub);
-        check_screen(\@tags, $bootloader_time);
+        assert_screen(\@tags, $bootloader_time);
         if (match_has_tag("bootloader-shim-import-prompt")) {
             send_key "down";
             send_key "ret";
-            assert_screen "grub2", 15;
-        }
-        elsif (match_has_tag("migration-source-system-grub2") or match_has_tag('grub2')) {
-            send_key "ret";    # boot to source system
+            assert_screen 'grub2', 15;
         }
         elsif (get_var("LIVETEST")) {
             # prevent if one day booting livesystem is not the first entry of the boot list
             if (!match_has_tag("boot-live-" . get_var("DESKTOP"))) {
                 send_key_until_needlematch("boot-live-" . get_var("DESKTOP"), 'down', 10, 5);
             }
-            send_key "ret";
         }
         elsif (match_has_tag('inst-bootmenu')) {
             # assuming the cursor is on 'installation' by default and 'boot from
@@ -384,18 +380,9 @@ sub wait_boot {
             send_key_until_needlematch 'inst-bootmenu-boot-harddisk', 'up';
             boot_local_disk;
             assert_screen 'grub2', 15;
-            # confirm default choice
-            send_key 'ret';
         }
-        elsif (match_has_tag('encrypted-disk-password-prompt')) {
-            # unlock encrypted disk before grub
-            workaround_type_encrypted_passphrase;
-            assert_screen "grub2", 15;
-        }
-        elsif (!match_has_tag("grub2")) {
-            # check_screen timeout
-            die "needle 'grub2' not found";
-        }
+        # confirm default choice
+        send_key 'ret';
     }
 
     # On Xen we have to re-connect to serial line as Xen closed it after restart
