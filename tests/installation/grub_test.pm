@@ -57,6 +57,18 @@ sub run {
         send_key_until_needlematch 'inst-bootmenu-boot-harddisk', 'up';
         send_key 'ret';
     }
+
+    if (get_var("STORAGE_NG") && get_var("ENCRYPT")) {
+        my @tags = ();
+	for ( my $disk = 0; $disk < get_var("NUMDISKS", 1); $disk++ ) {
+            push @tags, "grub-encrypted-disk$disk-password-prompt";
+        }
+        foreach my $tag (@tags) {
+            assert_screen($tag, 100);
+            type_password;    # enter PW at boot
+            send_key "ret";
+        }
+    }
     workaround_type_encrypted_passphrase;
     # 60 due to rare slowness e.g. multipath poo#11908
     assert_screen "grub2", 60;
