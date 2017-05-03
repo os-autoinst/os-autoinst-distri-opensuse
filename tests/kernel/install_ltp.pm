@@ -62,7 +62,8 @@ sub install_from_git {
     assert_script_run 'make autotools';
     assert_script_run('./configure --with-open-posix-testsuite --with-realtime-testsuite', timeout => 300);
     assert_script_run 'make -j$(getconf _NPROCESSORS_ONLN)', timeout => 1440;
-    assert_script_run 'make install',                        timeout => 360;
+    script_run 'export CREATE_ENTRIES=1';
+    assert_script_run 'make install', timeout => 360;
     assert_script_run "find ~/ltp/testcases/open_posix_testsuite/conformance/interfaces -name '*.run-test' > ~/openposix_test_list.txt";
 }
 
