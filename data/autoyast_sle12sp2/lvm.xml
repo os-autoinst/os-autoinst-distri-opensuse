@@ -67,7 +67,7 @@
           <partition>
             <lv_name>root_lv</lv_name>
             <mount>/</mount>
-            <size>3G</size>
+            <size>5G</size>
           </partition>
           <partition>
             <lv_name>opt_lv</lv_name>
