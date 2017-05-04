@@ -32,13 +32,9 @@ sub run() {
             send_key 'spc';                                                    # open 'Other' selection'
         }
     }
-    # somehow 'tabbing' through selections does not work in the live
-    # installer but we know we are in graphical environment so we can get
-    # away with just asserting the right selection and continuing
-    if (!get_var('LIVECD')) {
-        send_key_until_needlematch "selection_on_desktop_$d", 'tab';    # Move selection to the specific desktop
-        send_key 'spc';                                                 # Select the desktop
-    }
+    send_key_until_needlematch "selection_on_desktop_$d", 'tab';               # Move selection to the specific desktop
+    send_key 'spc';                                                            # Select the desktop
+
     assert_screen "$d-selected";
     send_key $cmd{next};
 

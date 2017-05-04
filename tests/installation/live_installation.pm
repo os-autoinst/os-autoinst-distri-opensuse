@@ -30,6 +30,8 @@ sub send_key_and_wait {
 }
 
 sub run() {
+    # stop packagekit, root password is not needed on live system
+    x11_start_program("systemctl stop packagekit.service");
     turn_off_kde_screensaver;
     assert_and_click 'live-installation';
     assert_and_click 'maximize';
