@@ -80,7 +80,6 @@
       <package>syslinux</package>
       <package>kdump</package>
       <package>sles-release</package>
-      <package>sle-sdk-release</package>
       <package>kexec-tools</package>
     </packages>
     <patterns config:type="list">
