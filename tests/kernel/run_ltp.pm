@@ -248,8 +248,9 @@ sub run {
     my $timeout     = get_var('LTP_TIMEOUT')         || 900;
     my $is_posix    = $cmd_file =~ m/^\s*openposix\s*$/i;
     my $is_network  = $cmd_file =~ m/^\s*net\./;
-
+    my $tmp;
     my @tests;
+
     if ($is_posix) {
         @tests = $self->parse_openposix_runfile($cmd_pattern, $cmd_exclude);
     }
@@ -267,7 +268,7 @@ sub run {
         # /etc/udev/rules.d/70-persistent-net.rules. This breaks some tests
         # (even net namespace based ones).
         # Workaround: configure physical NIS (if needed).
-        my $tmp = << 'EOF';
+        $tmp = << 'EOF';
 dir=/sys/class/net
 ifaces="`basename -a $dir/* | grep -v -e ^lo -e ^tun -e ^virbr -e ^vnet`"
 for iface in $ifaces; do
@@ -280,14 +281,12 @@ for iface in $ifaces; do
     fi
 done
 EOF
-        chomp $tmp;
         script_output($tmp);
 
         # Disable network managing daemons and firewall. Once we have network
         # set, we don't want network managing daemons to touch it (this is
-        # required at least for dhcp tests). Firewalls are stop as it can block
-        # iptables testing.
-        script_run('systemctl stop NetworkManager SuSEfirewall2 wicked wickedd');
+        # required at least for dhcp tests).
+        script_run('systemctl stop NetworkManager wicked wickedd');
 
         # dhclient requires no wicked service not only running but also disabled
         script_run(
@@ -295,17 +294,46 @@ EOF
 { export ENABLE_WICKED=1; systemctl disable wicked; }'
         );
 
+        # emulate $LTPROOT/testscripts/network.sh
+        assert_script_run('TST_TOTAL=1 TCID="network_settings"; . test_net.sh; export TCID= TST_LIB_LOADED=');
+        script_run('env');
+
+        # Disable IPv4 and IPv6 iptables.
+        # Disabling IPv4 is needed for iptables tests (net.tcp_cmds).
+        # Disabling IPv6 is needed for ICMPv6 tests (net.ipv6).
+        # This must be done after stopping network service and loading
+        # test_net.sh script.
+        $tmp = << 'EOF';
+iptables -P INPUT ACCEPT;
+iptables -P OUTPUT ACCEPT;
+iptables -P FORWARD ACCEPT;
+iptables -t nat -F;
+iptables -t mangle -F;
+iptables -F;
+iptables -X;
+
+ip6tables -P INPUT ACCEPT;
+ip6tables -P OUTPUT ACCEPT;
+ip6tables -P FORWARD ACCEPT;
+ip6tables -t nat -F;
+ip6tables -t mangle -F;
+ip6tables -F;
+ip6tables -X;
+EOF
+        script_output($tmp);
+        # display resulting iptables
+        script_run('iptables -L');
+        script_run('iptables -S');
+        script_run('ip6tables -L');
+        script_run('ip6tables -S');
+
+        # display various network configuration
         script_run('ps axf');
         script_run('netstat -nap');
 
         script_run('cat /etc/resolv.conf');
         script_run('cat /etc/nsswitch.conf');
         script_run('cat /etc/hosts');
-
-        # emulate $LTPROOT/testscripts/network.sh
-        assert_script_run('TST_TOTAL=1 TCID="network_settings"; . test_net.sh; export TCID= TST_LIB_LOADED=');
-
-        script_run('env');
 
         script_run('ip addr');
         script_run('ip netns exec ltp_ns ip addr');
