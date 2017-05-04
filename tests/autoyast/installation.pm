@@ -102,7 +102,7 @@ sub run {
             last if match_has_tag("bios-boot") || match_has_tag("reboot-after-installation");
 
             if (match_has_tag('autoyast-error')) {
-                record_soft_failure 'AUTOYAST_EXPECT_ERRORS ' . get_var('AUTOYAST_EXPECT_ERRORS_REASON');
+                record_info('Expected error', 'Iteration = ' . $i);
                 send_key "alt-s";    #stop
                 save_logs_and_continue("stage1_error$i");
                 $i++;
@@ -111,7 +111,7 @@ sub run {
                 wait_idle(5);
                 $num_errors++;
             }
-            if (match_has_tag('linuxrc-install-fail')) {
+            elsif (match_has_tag('linuxrc-install-fail')) {
                 save_logs_in_linuxrc("stage1_error$i");
                 die "installation ends in linuxrc";
             }
@@ -181,7 +181,7 @@ sub run {
         #repeat until timeout or login screen
         if (defined $ret) {
             if (match_has_tag('autoyast-error')) {
-                record_soft_failure 'AUTOYAST_EXPECT_ERRORS ' . get_var('AUTOYAST_EXPECT_ERRORS_REASON');
+                record_info('Expected error', 'Iteration = ' . $i);
                 send_key "alt-s";    #stop
                 save_logs_and_continue("stage2_error$i");
                 $i++;
