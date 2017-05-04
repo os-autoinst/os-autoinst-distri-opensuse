@@ -16,6 +16,7 @@ use warnings;
 use testapi;
 use utils;
 use lockapi;
+use slepos_images;
 
 my $img_suffix = 'tar.bz2';
 
@@ -29,9 +30,7 @@ sub run() {
     my @creator_images;
     my $pxe_done = 0;
     foreach my $idx (@$dwl_images_idx_ref) {
-        my $target = get_var("ASSET_$idx");
-        $target =~ s/^\d+-//;                #remove if private assets reference
-        $target =~ s/\Q.$img_suffix\E$//;    #remove suffix
+        my $target = get_image_from_asset(get_asset_name($idx));
         @dwl_images = (@dwl_images, $target);
     }
     @kiwi_images    = @{$kiwi_images_ref}    if defined $kiwi_images_ref;
