@@ -2,11 +2,24 @@
 package x11test;
 use base "opensusebasetest";
 
-# Base class for all openSUSE tests
-
 use strict;
 use testapi;
 use utils 'type_string_slow';
+
+
+sub new {
+    my ($class, $args) = @_;
+    my $self = $class->SUPER::new($args);
+    # overwrite default from baseclass with slower value for X11 based tests
+    # as many problems have been discovered with keys typed in not correct
+    # order. Maybe because of the desktop trying to be smart with
+    # auto-completion, auto-correction and such
+    # https://progress.opensuse.org/issues/18200
+    # still faster than possibly humans can type in these dialogs and windows
+    my $self->{typing_limit_x11} = 10;
+    set_var('VNC_TYPING_LIMIT', $self->{typing_limit} <= $self->{typing_limit_x11} ? $self->{typing_limit} : $self->{typing_limit_x11});
+    return $self;
+}
 
 sub post_fail_hook() {
     my ($self) = shift;
