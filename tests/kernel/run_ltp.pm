@@ -19,6 +19,7 @@ use utils;
 use Time::HiRes qw(clock_gettime CLOCK_MONOTONIC);
 use File::Basename 'basename';
 use JSON;
+use serial_terminal;
 require bmwqemu;
 
 sub start_result {
@@ -458,6 +459,7 @@ EOF
         }
 
         if (is_serial_terminal) {
+            wait_serial($serial_term_prompt, undef, 0, no_regex => 1);
             type_string($cmd_text);
             wait_serial($cmd_text, undef, 0, no_regex => 1);
             type_string("\n");
