@@ -40,6 +40,8 @@ sub run() {
     my $self = shift;
     # NET isos are slow to install
     my $timeout = 2000;
+    # and encryption makes it even slower
+    $timeout *= 2 if get_var('ENCRYPT');
 
     # workaround for yast popups and
     # detect "Wrong Digest" error to end test earlier
