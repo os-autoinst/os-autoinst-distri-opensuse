@@ -13,7 +13,7 @@
 #          This is to test Test Updates
 # Maintainer: Stephan Kulow <coolo@suse.de>
 
-use base "qa_run";
+use base "opensusebasetest";
 use strict;
 use warnings;
 use utils;
@@ -27,7 +27,8 @@ sub run {
         select_console 'root-console';
     }
     else {
-        $self->system_login();
+        $self->wait_boot;
+        select_console 'root-console';
     }
 
     pkcon_quit unless check_var('DESKTOP', 'textmode');
