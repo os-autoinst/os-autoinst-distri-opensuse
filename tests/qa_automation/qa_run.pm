@@ -50,7 +50,7 @@ sub system_status {
 sub system_login {
     my $self = shift;
     $self->wait_boot;
-    if (get_var('VIRTIO_CONSOLE')) {
+    if (get_var('VIRTIO_CONSOLE') && check_var('ARCH', 'x86_64')) {
         select_console('root-virtio-terminal');
     }
     else {
