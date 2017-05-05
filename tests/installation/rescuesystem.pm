@@ -20,7 +20,7 @@ sub run {
     my $self = shift;
 
     ensure_shim_import;
-    $self->select_bootmenu_option('inst-rescuesystem', 1);
+    $self->select_bootmenu_more('inst-rescuesystem', 1);
 
     assert_screen 'keyboardmap-list', 100;
     send_key "ret";

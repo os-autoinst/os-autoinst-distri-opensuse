@@ -34,7 +34,8 @@ sub run() {
     specific_bootmenu_params;
     registration_bootloader_params;
     # boot
-    send_key "ret";
+    my $key = check_var('ARCH', 'ppc64le') ? 'ctrl-x' : 'ret';
+    send_key $key;
 }
 
 sub post_fail_hook {

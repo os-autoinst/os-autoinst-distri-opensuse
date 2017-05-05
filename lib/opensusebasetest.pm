@@ -3,6 +3,7 @@ use base 'basetest';
 
 use testapi;
 use utils;
+use bootloader_setup 'boot_local_disk';
 use strict;
 use bootloader_setup 'tianocore_enter_menu';
 
@@ -153,7 +154,7 @@ sub set_standard_prompt {
     $testapi::distri->set_standard_prompt;
 }
 
-sub select_bootmenu_option {
+sub select_bootmenu_more {
     my ($self, $tag, $more) = @_;
 
     assert_screen "inst-bootmenu", 15;
@@ -255,6 +256,7 @@ sub wait_boot {
     reset_consoles;
     if (get_var("OFW")) {
         assert_screen 'bootloader', $bootloader_time;
+        boot_local_disk;
     }
     # reconnect s390
     elsif (check_var('ARCH', 's390x')) {
@@ -317,7 +319,7 @@ sub wait_boot {
             # assuming the cursor is on 'installation' by default and 'boot from
             # harddisk' is above
             send_key_until_needlematch 'inst-bootmenu-boot-harddisk', 'up';
-            wait_screen_change { send_key 'ret' };
+            boot_local_disk;
             if (check_var('ARCH', 'aarch64') and get_var('UEFI')) {
                 record_soft_failure 'bsc#1022064';
                 assert_screen 'boot-firmware';
