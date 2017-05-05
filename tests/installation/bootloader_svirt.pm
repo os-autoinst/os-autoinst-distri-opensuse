@@ -111,9 +111,9 @@ sub run() {
     }
 
     my $isodir = '/var/lib/openqa/share/factory/iso';
-    # In JeOS and netinstall we don't have ISO media, for the rest we have to attach it.
-    if (!get_var('NETBOOT') and !is_jeos() and !get_var('HDD_1')) {
-        my $isofile = get_required_var('ISO');
+    # In JeOS, CaaSP, and netinstall we don't have ISO media, for the rest we have to attach it.
+    if (!get_var('NETBOOT') and !is_jeos and !is_casp) {
+        my $isofile = get_var('ISO');
         my $isopath = copy_image($isofile, $isodir);
         $svirt->add_disk(
             {
