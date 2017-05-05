@@ -19,6 +19,7 @@
 use base "opensusebasetest";
 use strict;
 use testapi;
+use utils 'is_jeos';
 
 sub run {
     my $video;
@@ -40,7 +41,9 @@ sub run {
     }
 
     if ($video) {
-        assert_script_run("sed -ie '/GRUB_CMDLINE_LINUX_DEFAULT=/s/\"\$/ $video \"/' /etc/default/grub");
+        # On JeOS we have GRUB_CMDLINE_LINUX, on CaaSP we have GRUB_CMDLINE_LINUX_DEFAULT.
+        my $grub_cmdline_label = is_jeos ? 'GRUB_CMDLINE_LINUX' : 'GRUB_CMDLINE_LINUX_DEFAULT';
+        assert_script_run("sed -ie '/${grub_cmdline_label}=/s/\"\$/ $video \"/' /etc/default/grub");
     }
     assert_script_run("grub2-mkconfig -o /boot/grub2/grub.cfg");
 }
