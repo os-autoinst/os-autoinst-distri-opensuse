@@ -454,7 +454,8 @@ sub load_extra_tests() {
         loadtest "console/zypper_info";
         loadtest "console/update_alternatives";
         # start extra console tests from here
-        if (!get_var("OFW") && !is_jeos) {
+        # Audio device is not supported on ppc64le, JeOS, and Xen PV
+        if (!get_var("OFW") && !is_jeos && !check_var('VIRSH_VMM_TYPE', 'linux')) {
             loadtest "console/aplay";
         }
         if (get_var("FILESYSTEM", "btrfs") eq "btrfs") {
