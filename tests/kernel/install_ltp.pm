@@ -22,13 +22,27 @@ sub add_repos {
     zypper_call('--gpg-auto-import-keys ref');
 }
 
-sub try_add_workstation_addon {
-    my $have_wse = get_var('BUILD_WE') && get_var('ISO_2');
-    if ($have_wse) {
+sub scc_we_enabled {
+    script_run("zypper -n products -i", 0);
+    return wait_serial(qr/Workstation Extension/);
+}
+
+sub we_available {
+    # opensuse has ntfsprogs in repository
+    if (check_var('DISTRI', 'opensuse')) {
+        return 1;
+    }
+    # productQA test with enabled we as iso_2
+    elsif (get_var('BUILD_WE') && get_var('ISO_2')) {
         zypper_call 'ar dvd:///?devices=/dev/sr2 WSE', log => 'add-WSE.txt';
         zypper_call '--gpg-auto-import-keys ref',      log => 'ref-WSE.txt';
+        return 1;
     }
-    return $have_wse;
+    # registered product
+    elsif (scc_we_enabled) {
+        return 1;
+    }
+    return 0;
 }
 
 sub install_dependencies {
@@ -36,7 +50,7 @@ sub install_dependencies {
       numactl flex bison dmapi-devel kernel-default-devel libopenssl-devel libselinux-devel
       libacl-devel libtirpc-devel keyutils-devel libcap-devel net-tools sysstat
       tpm-tools psmisc acl quota);
-    if (check_var('DISTRI', 'opensuse') || try_add_workstation_addon()) {
+    if (we_available) {
         push @deps, 'ntfsprogs';
     }
     else {
@@ -69,6 +83,7 @@ sub install_from_git {
 
 sub install_from_repo {
     zypper_call 'in qa_test_ltp';
+    zypper_call('in ntfsprogs') if we_available;
     assert_script_run q(find ${LTPROOT:-/opt/ltp}/testcases/bin/openposix/conformance/interfaces/ -name '*.run-test' > ~/openposix_test_list.txt);
 }
 
