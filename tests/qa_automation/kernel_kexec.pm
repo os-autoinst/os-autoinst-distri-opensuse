@@ -41,7 +41,12 @@ sub run() {
     # wait for reboot
     wait_idle();
     reset_consoles();
-    select_console("root-console");
+    if (get_var('VIRTIO_CONSOLE')) {
+        select_console('root-virtio-terminal');
+    }
+    else {
+        select_console('root-console');
+    }
     # Check kernel cmdline parameter
     my $result = $self->qa_script_output("cat /proc/cmdline");
     print "Checking kernel boot parameter...\nCurrent:  $result\nExpected: $cmdline\n";
