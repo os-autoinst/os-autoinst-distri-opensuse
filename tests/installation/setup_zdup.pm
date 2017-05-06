@@ -19,7 +19,8 @@ use utils;
 sub run() {
     my ($self) = @_;
 
-    assert_screen 'displaymanager', 500;
+    my $initial_screen = (get_var('NOAUTOLOGIN') || get_var('XDMUSED')) ? 'displaymanager' : 'generic-desktop';
+    assert_screen $initial_screen, 500;
     ensure_unlocked_desktop;
     if (get_var('ZDUP_IN_X')) {
         x11_start_program('xterm');
