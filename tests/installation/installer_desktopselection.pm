@@ -41,7 +41,12 @@ sub run() {
     if (get_var('NEW_DESKTOP_SELECTION') && $d eq 'custom') {
         assert_screen "pattern-selection";
         my $de = get_var('DESKTOP');
-        send_key_until_needlematch "pattern-$de-selected", 'down';
+        # On the NET installer we have more than 20 patterns until walk to X
+        # pattern, and pattern's ordering is an art we are not sure, therefore
+        # we need to introduce a reasonable number as the counter here. On the
+        # Net installer we need 77 * 'down' to the last pattern including the
+        # group title, use 85 to be the counter then we have 8 spare places.
+        send_key_until_needlematch "pattern-$de-selected", 'down', 85;
         send_key 'spc';
         assert_screen "pattern-$de-checked";
         send_key $cmd{ok};
