@@ -800,16 +800,6 @@ sub load_x11tests() {
     }
 }
 
-sub load_applicationstests {
-    if (my $val = get_var("APPTESTS")) {
-        for my $test (split(/,/, $val)) {
-            loadtest "$test";
-        }
-        return 1;
-    }
-    return 0;
-}
-
 sub load_slenkins_tests {
     if (get_var("SLENKINS_CONTROL")) {
         unless (get_var("SUPPORT_SERVER")) {
