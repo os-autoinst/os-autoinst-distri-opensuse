@@ -652,7 +652,7 @@ sub install_online_updates {
       console/zypper_add_repos
       update/zypper_up
       console/console_reboot
-      console/console_shutdown
+      shutdown/shutdown
     );
 
     for my $test (@tests) {

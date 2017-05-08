@@ -11,12 +11,11 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License along
-# with this program; if not, write to the Free Software Foundation, Inc.,
-# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+# with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# G-Summary: vlc test
+# Summary: vlc test
 #    plays some free video file
-# G-Maintainer: Ludwig Nussel <ludwig.nussel@suse.de>
+# Maintainer: Ludwig Nussel <ludwig.nussel@suse.de>
 
 use base "x11test";
 use strict;
