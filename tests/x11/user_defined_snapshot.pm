@@ -55,7 +55,7 @@ sub run() {
     send_key "alt-l";
     type_string "reboot\n";
 
-    $self->handle_uefi_boot_disk_workaround() if (check_var('MACHINE', 'aarch64') && get_var('BOOT_HDD_IMAGE'));
+    $self->handle_uefi_boot_disk_workaround() if check_var('MACHINE', 'aarch64');
     assert_screen "grub2";
     send_key 'up';
 
@@ -65,7 +65,8 @@ sub run() {
     save_screenshot;
     wait_screen_change { send_key 'ret' };
     # boot into the snapshot
-    $self->wait_boot(textmode => 1);
+    # do not try to search for the grub menu again as we are already here
+    $self->wait_boot(textmode => 1, in_grub => 1);
     # request reboot again to ensure we will end up in the original system
     send_key 'ctrl-alt-delete';
     $self->wait_boot;

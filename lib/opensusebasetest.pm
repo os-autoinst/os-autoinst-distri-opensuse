@@ -246,6 +246,7 @@ sub wait_boot {
     my $bootloader_time = $args{bootloader_time} // 100;
     my $textmode        = $args{textmode};
     my $ready_time      = $args{ready_time} // 200;
+    my $in_grub         = $args{in_grub} // 0;
 
     # used to register a post fail hook being active while we are waiting for
     # boot to be finished to help investigate in case the system is stuck in
@@ -298,7 +299,7 @@ sub wait_boot {
         # booted so we have to handle that
         # because of broken firmware, bootindex doesn't work on aarch64 bsc#1022064
         push @tags, 'inst-bootmenu' if ((get_var('USBBOOT') and get_var('UEFI')) || (check_var('ARCH', 'aarch64') and get_var('UEFI')));
-        handle_uefi_boot_disk_workaround if (check_var('MACHINE', 'aarch64') && get_var('BOOT_HDD_IMAGE'));
+        handle_uefi_boot_disk_workaround if (check_var('MACHINE', 'aarch64') && get_var('BOOT_HDD_IMAGE') && !$in_grub);
         check_screen(\@tags, $bootloader_time);
         if (match_has_tag("bootloader-shim-import-prompt")) {
             send_key "down";
