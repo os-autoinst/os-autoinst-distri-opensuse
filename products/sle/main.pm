@@ -620,119 +620,118 @@ sub load_reboot_tests() {
 }
 
 sub load_consoletests() {
-    if (consolestep_is_applicable()) {
-        if (get_var("ADDONS", "") =~ /rt/) {
-            loadtest "rt/kmp_modules";
-        }
-        loadtest "console/consoletest_setup";
-        if (get_var("LOCK_PACKAGE")) {
-            loadtest "console/check_locked_package";
-        }
-        loadtest "console/textinfo";
-        loadtest "console/hostname";
-        if (get_var("SYSTEM_ROLE")) {
-            loadtest "console/patterns";
-        }
-        if (snapper_is_applicable()) {
-            if (get_var("UPGRADE")) {
-                loadtest "console/upgrade_snapshots";
-            }
-            elsif (!get_var("ZDUP") and !check_var('VERSION', '12')) {    # zypper and sle12 doesn't do upgrade or installation snapshots
-                loadtest "console/installation_snapshots";
-            }
-        }
-        if (get_var("DESKTOP") !~ /textmode/ && !check_var("ARCH", "s390x")) {
-            loadtest "console/xorg_vt";
-        }
-        loadtest "console/zypper_lr";
-        loadtest "console/force_cron_run" unless is_jeos;
-        loadtest 'console/enable_usb_repo' if check_var('USBBOOT', 1);
-        if (need_clear_repos()) {
-            loadtest "update/zypper_clear_repos";
-        }
-        #have SCC repo for SLE product
-        if (have_scc_repos()) {
-            loadtest "console/yast_scc";
-        }
-        elsif (have_addn_repos()) {
-            loadtest "console/zypper_ar";
-        }
-        loadtest "console/zypper_ref";
-        loadtest "console/yast2_lan";
-        loadtest "console/curl_https";
-        if (check_var("ARCH", "x86_64")) {
-            loadtest "console/glibc_i686";
-        }
-        if (check_var('ARCH', 'aarch64')) {
-            loadtest "console/acpi";
-        }
-        if (!gnomestep_is_applicable()) {
-            loadtest "update/zypper_up";
-        }
-        if (is_jeos()) {
-            loadtest "console/console_reboot";
-        }
-        loadtest "console/zypper_in";
-        loadtest "console/yast2_i";
-        loadtest "console/yast2_bootloader";
-        loadtest "console/vim";
-        if (!is_staging()) {
-            loadtest "console/firewall_enabled";
-        }
-        if (is_jeos()) {
-            loadtest "console/gpt_ptable";
-            loadtest "console/kdump_disabled";
-            loadtest "console/sshd_running";
-        }
-        if (rt_is_applicable()) {
-            loadtest "console/rt_is_realtime";
-            loadtest "console/rt_devel_packages";
-            loadtest "console/rt_peak_pci";
-            loadtest "console/rt_preempt_test";
-        }
-        loadtest "console/sshd";
-        loadtest "console/ssh_cleanup";
-        loadtest "console/mtab";
-
-        if (is_new_installation && sle_version_at_least('12-SP2')) {
-            loadtest "console/no_perl_bootloader";
-        }
-        if (!get_var("NOINSTALL") && !is_desktop && (check_var("DESKTOP", "textmode"))) {
-            if (!is_staging() && check_var('BACKEND', 'qemu') && !is_jeos) {
-                # The NFS test expects the IP to be 10.0.2.15
-                loadtest "console/yast2_nfs_server";
-            }
-            loadtest "console/http_srv";
-            loadtest "console/mysql_srv";
-            loadtest "console/postgresql94server";
-            if (sle_version_at_least('12-SP1')) {    # shibboleth-sp not available on SLES 12 GA
-                loadtest "console/shibboleth";
-            }
-            if (!is_staging()) {
-                # Very temporary removal of this test from staging - rbrown 6 Apr 2016
-                loadtest "console/dns_srv";
-            }
-            if (get_var('ADDONS', '') =~ /wsm/ || get_var('SCC_ADDONS', '') =~ /wsm/) {
-                loadtest "console/pcre";
-                loadtest "console/php5";
-                loadtest "console/php5_mysql";
-                loadtest "console/php5_postgresql94";
-            }
-            loadtest "console/apache_ssl";
-            loadtest "console/apache_nss";
-        }
-        if (check_var("DESKTOP", "xfce")) {
-            loadtest "console/xfce_gnome_deps";
-        }
-        if (check_var('ARCH', 'aarch64') and sle_version_at_least('12-SP2')) {
-            loadtest "console/check_gcc48_on_sdk_in_aarch64";
-        }
-        if (!is_staging() && sle_version_at_least('12-SP2')) {
-            loadtest "console/zypper_lifecycle";
-        }
-        loadtest 'console/install_all_from_repository' if get_var('INSTALL_ALL_REPO');
-        loadtest "console/consoletest_finish";
+    return unless consolestep_is_applicable;
+    if (get_var("ADDONS", "") =~ /rt/) {
+        loadtest "rt/kmp_modules";
     }
+    loadtest "console/consoletest_setup";
+    if (get_var("LOCK_PACKAGE")) {
+        loadtest "console/check_locked_package";
+    }
+    loadtest "console/textinfo";
+    loadtest "console/hostname";
+    if (get_var("SYSTEM_ROLE")) {
+        loadtest "console/patterns";
+    }
+    if (snapper_is_applicable()) {
+        if (get_var("UPGRADE")) {
+            loadtest "console/upgrade_snapshots";
+        }
+        elsif (!get_var("ZDUP") and !check_var('VERSION', '12')) {    # zypper and sle12 doesn't do upgrade or installation snapshots
+            loadtest "console/installation_snapshots";
+        }
+    }
+    if (get_var("DESKTOP") !~ /textmode/ && !check_var("ARCH", "s390x")) {
+        loadtest "console/xorg_vt";
+    }
+    loadtest "console/zypper_lr";
+    loadtest "console/force_cron_run" unless is_jeos;
+    loadtest 'console/enable_usb_repo' if check_var('USBBOOT', 1);
+    if (need_clear_repos()) {
+        loadtest "update/zypper_clear_repos";
+    }
+    #have SCC repo for SLE product
+    if (have_scc_repos()) {
+        loadtest "console/yast_scc";
+    }
+    elsif (have_addn_repos()) {
+        loadtest "console/zypper_ar";
+    }
+    loadtest "console/zypper_ref";
+    loadtest "console/yast2_lan";
+    loadtest "console/curl_https";
+    if (check_var("ARCH", "x86_64")) {
+        loadtest "console/glibc_i686";
+    }
+    if (check_var('ARCH', 'aarch64')) {
+        loadtest "console/acpi";
+    }
+    if (!gnomestep_is_applicable()) {
+        loadtest "update/zypper_up";
+    }
+    if (is_jeos()) {
+        loadtest "console/console_reboot";
+    }
+    loadtest "console/zypper_in";
+    loadtest "console/yast2_i";
+    loadtest "console/yast2_bootloader";
+    loadtest "console/vim";
+    if (!is_staging()) {
+        loadtest "console/firewall_enabled";
+    }
+    if (is_jeos()) {
+        loadtest "console/gpt_ptable";
+        loadtest "console/kdump_disabled";
+        loadtest "console/sshd_running";
+    }
+    if (rt_is_applicable()) {
+        loadtest "console/rt_is_realtime";
+        loadtest "console/rt_devel_packages";
+        loadtest "console/rt_peak_pci";
+        loadtest "console/rt_preempt_test";
+    }
+    loadtest "console/sshd";
+    loadtest "console/ssh_cleanup";
+    loadtest "console/mtab";
+
+    if (is_new_installation && sle_version_at_least('12-SP2')) {
+        loadtest "console/no_perl_bootloader";
+    }
+    if (!get_var("NOINSTALL") && !is_desktop && (check_var("DESKTOP", "textmode"))) {
+        if (!is_staging() && check_var('BACKEND', 'qemu') && !is_jeos) {
+            # The NFS test expects the IP to be 10.0.2.15
+            loadtest "console/yast2_nfs_server";
+        }
+        loadtest "console/http_srv";
+        loadtest "console/mysql_srv";
+        loadtest "console/postgresql94server";
+        if (sle_version_at_least('12-SP1')) {    # shibboleth-sp not available on SLES 12 GA
+            loadtest "console/shibboleth";
+        }
+        if (!is_staging()) {
+            # Very temporary removal of this test from staging - rbrown 6 Apr 2016
+            loadtest "console/dns_srv";
+        }
+        if (get_var('ADDONS', '') =~ /wsm/ || get_var('SCC_ADDONS', '') =~ /wsm/) {
+            loadtest "console/pcre";
+            loadtest "console/php5";
+            loadtest "console/php5_mysql";
+            loadtest "console/php5_postgresql94";
+        }
+        loadtest "console/apache_ssl";
+        loadtest "console/apache_nss";
+    }
+    if (check_var("DESKTOP", "xfce")) {
+        loadtest "console/xfce_gnome_deps";
+    }
+    if (check_var('ARCH', 'aarch64') and sle_version_at_least('12-SP2')) {
+        loadtest "console/check_gcc48_on_sdk_in_aarch64";
+    }
+    if (!is_staging() && sle_version_at_least('12-SP2')) {
+        loadtest "console/zypper_lifecycle";
+    }
+    loadtest 'console/install_all_from_repository' if get_var('INSTALL_ALL_REPO');
+    loadtest "console/consoletest_finish";
 }
 
 sub load_x11tests() {
@@ -886,6 +885,80 @@ sub load_virtualization_tests() {
     loadtest "virtualization/virtman_create_guest";
 }
 
+sub load_virtualization2_tests() {
+    if (get_var("PROXY_MODE")) {
+        loadtest "virt_autotest/proxymode_login_proxy";
+        loadtest "virt_autotest/proxymode_init_pxe_install";
+        loadtest "virt_autotest/proxymode_redirect_serial1";
+        loadtest "virt_autotest/install_package";
+        if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
+            loadtest "virt_autotest/reboot_and_wait_up_normal1";
+        }
+        loadtest "virt_autotest/update_package";
+        loadtest "virt_autotest/reboot_and_wait_up_normal2";
+    }
+    else {
+        load_boot_tests();
+        if (get_var("AUTOYAST")) {
+            loadtest "autoyast/installation";
+            loadtest "autoyast/console";
+            loadtest "autoyast/login";
+        }
+        else {
+            load_inst_tests();
+            loadtest "virt_autotest/login_console";
+        }
+        if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
+            loadtest "virt_autotest/setup_console_on_host1";
+            loadtest "virt_autotest/reboot_and_wait_up_normal1";
+        }
+        loadtest "virt_autotest/install_package";
+        loadtest "virt_autotest/update_package";
+        loadtest "virt_autotest/reboot_and_wait_up_normal2";
+    }
+    if (get_var("VIRT_PRJ1_GUEST_INSTALL")) {
+        loadtest "virt_autotest/guest_installation_run";
+    }
+    elsif (get_var("VIRT_PRJ2_HOST_UPGRADE")) {
+        loadtest "virt_autotest/host_upgrade_generate_run_file";
+        loadtest "virt_autotest/host_upgrade_step2_run";
+        loadtest "virt_autotest/reboot_and_wait_up_upgrade";
+        if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
+            loadtest "virt_autotest/setup_console_on_host2";
+            loadtest "virt_autotest/reboot_and_wait_up_normal3";
+        }
+        loadtest "virt_autotest/host_upgrade_step3_run";
+    }
+    elsif (get_var("VIRT_PRJ3_GUEST_MIGRATION_SOURCE")) {
+        loadtest "virt_autotest/guest_migration_config_virtualization_env";
+        loadtest "virt_autotest/guest_migration_source_nfs_setup";
+        loadtest "virt_autotest/guest_migration_source_install_guest";
+        loadtest "virt_autotest/guest_migration_source_migrate";
+    }
+    elsif (get_var("VIRT_PRJ3_GUEST_MIGRATION_TARGET")) {
+        loadtest "virt_autotest/guest_migration_config_virtualization_env";
+        loadtest "virt_autotest/guest_migration_target_nfs_setup";
+    }
+    elsif (get_var("VIRT_PRJ4_GUEST_UPGRADE")) {
+        loadtest "virt_autotest/guest_upgrade_run";
+    }
+    elsif (get_var("VIRT_PRJ5_PVUSB")) {
+        loadtest "virt_autotest/pvusb_run";
+    }
+    elsif (get_var("VIRT_PRJ6_VIRT_V2V_SRC")) {
+        loadtest "virt_autotest/virt_v2v_src";
+    }
+    elsif (get_var("VIRT_PRJ6_VIRT_V2V_DST")) {
+        loadtest "virt_autotest/virt_v2v_dst";
+    }
+    elsif (get_var("VIRT_NEW_GUEST_MIGRATION_SOURCE")) {
+        loadtest "virt_autotest/guest_migration_src";
+    }
+    elsif (get_var("VIRT_NEW_GUEST_MIGRATION_DESTINATION")) {
+        loadtest "virt_autotest/guest_migration_dst";
+    }
+}
+
 sub load_feature_tests() {
     loadtest "console/consoletest_setup";
     loadtest "feature/feature_console/zypper_releasever";
@@ -982,21 +1055,7 @@ sub load_patching_tests() {
     loadtest 'installation/bootloader_zkvm_sym' if get_var('S390_ZKVM');
 }
 
-sub prepare_target() {
-    if (get_var("BOOT_HDD_IMAGE")) {
-        boot_hdd_image;
-    }
-    else {
-        load_boot_tests();
-        load_inst_tests();
-        load_reboot_tests();
-    }
-}
-
-# load the tests in the right order
-if (maybe_load_kernel_tests()) {
-}
-elsif (get_var("REGRESSION")) {
+load_regression_tests() {
     if (check_var("REGRESSION", "installation")) {
         load_boot_tests();
         load_inst_tests();
@@ -1036,6 +1095,62 @@ elsif (get_var("REGRESSION")) {
         loadtest "x11regressions/piglit/piglit";
     }
 }
+
+sub load_fips_tests() {
+    if (check_var("FIPS_TS", "setup")) {
+        prepare_target();
+        # Setup system into fips mode
+        loadtest "fips/fips_setup";
+    }
+    else {
+        loadtest "boot/boot_to_desktop";
+        # Turn off packagekit, setup $serialdev permission and etc
+        loadtest "console/consoletest_setup";
+        if (check_var("FIPS_TS", "core")) {
+            load_fips_tests_core;
+        }
+        elsif (check_var("FIPS_TS", "web")) {
+            load_fips_tests_web;
+        }
+        elsif (check_var("FIPS_TS", "misc")) {
+            load_fips_tests_misc;
+        }
+        elsif (check_var("FIPS_TS", "crypt")) {
+            load_fips_tests_crypt;
+        }
+    }
+}
+
+sub load_hpc_tests() {
+    if (check_var('HPC', 'install')) {
+        load_boot_tests();
+        load_inst_tests();
+        load_reboot_tests();
+    }
+    else {
+        loadtest 'boot/boot_to_desktop';
+        loadtest 'hpc/enable_in_zypper' if (check_var('HPC', 'enable'));
+        loadtest 'console/install_all_from_repository';
+    }
+}
+
+sub prepare_target() {
+    if (get_var("BOOT_HDD_IMAGE")) {
+        boot_hdd_image;
+    }
+    else {
+        load_boot_tests();
+        load_inst_tests();
+        load_reboot_tests();
+    }
+}
+
+# load the tests in the right order
+if (maybe_load_kernel_tests()) {
+}
+elsif (get_var("REGRESSION")) {
+    load_regression_tests;
+}
 elsif (get_var("FEATURE")) {
     prepare_target();
     load_feature_tests();
@@ -1067,28 +1182,7 @@ elsif (get_var("SLEPOS")) {
     load_slepos_tests();
 }
 elsif (get_var("FIPS_TS")) {
-    if (check_var("FIPS_TS", "setup")) {
-        prepare_target();
-        # Setup system into fips mode
-        loadtest "fips/fips_setup";
-    }
-    else {
-        loadtest "boot/boot_to_desktop";
-        # Turn off packagekit, setup $serialdev permission and etc
-        loadtest "console/consoletest_setup";
-        if (check_var("FIPS_TS", "core")) {
-            load_fips_tests_core;
-        }
-        elsif (check_var("FIPS_TS", "web")) {
-            load_fips_tests_web;
-        }
-        elsif (check_var("FIPS_TS", "misc")) {
-            load_fips_tests_misc;
-        }
-        elsif (check_var("FIPS_TS", "crypt")) {
-            load_fips_tests_crypt;
-        }
-    }
+    load_fips_tests;
 }
 elsif (get_var("HACLUSTER_SUPPORT_SERVER")) {
     if (get_var("CTS")) {
@@ -1112,77 +1206,7 @@ elsif (get_var("QA_TESTSET")) {
     loadtest "qa_automation/" . get_var("QA_TESTSET");
 }
 elsif (get_var("VIRT_AUTOTEST")) {
-    if (get_var("PROXY_MODE")) {
-        loadtest "virt_autotest/proxymode_login_proxy";
-        loadtest "virt_autotest/proxymode_init_pxe_install";
-        loadtest "virt_autotest/proxymode_redirect_serial1";
-        loadtest "virt_autotest/install_package";
-        if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
-            loadtest "virt_autotest/reboot_and_wait_up_normal1";
-        }
-        loadtest "virt_autotest/update_package";
-        loadtest "virt_autotest/reboot_and_wait_up_normal2";
-    }
-    else {
-        load_boot_tests();
-        if (get_var("AUTOYAST")) {
-            loadtest "autoyast/installation";
-            loadtest "autoyast/console";
-            loadtest "autoyast/login";
-        }
-        else {
-            load_inst_tests();
-            loadtest "virt_autotest/login_console";
-        }
-        if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
-            loadtest "virt_autotest/setup_console_on_host1";
-            loadtest "virt_autotest/reboot_and_wait_up_normal1";
-        }
-        loadtest "virt_autotest/install_package";
-        loadtest "virt_autotest/update_package";
-        loadtest "virt_autotest/reboot_and_wait_up_normal2";
-    }
-    if (get_var("VIRT_PRJ1_GUEST_INSTALL")) {
-        loadtest "virt_autotest/guest_installation_run";
-    }
-    elsif (get_var("VIRT_PRJ2_HOST_UPGRADE")) {
-        loadtest "virt_autotest/host_upgrade_generate_run_file";
-        loadtest "virt_autotest/host_upgrade_step2_run";
-        loadtest "virt_autotest/reboot_and_wait_up_upgrade";
-        if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
-            loadtest "virt_autotest/setup_console_on_host2";
-            loadtest "virt_autotest/reboot_and_wait_up_normal3";
-        }
-        loadtest "virt_autotest/host_upgrade_step3_run";
-    }
-    elsif (get_var("VIRT_PRJ3_GUEST_MIGRATION_SOURCE")) {
-        loadtest "virt_autotest/guest_migration_config_virtualization_env";
-        loadtest "virt_autotest/guest_migration_source_nfs_setup";
-        loadtest "virt_autotest/guest_migration_source_install_guest";
-        loadtest "virt_autotest/guest_migration_source_migrate";
-    }
-    elsif (get_var("VIRT_PRJ3_GUEST_MIGRATION_TARGET")) {
-        loadtest "virt_autotest/guest_migration_config_virtualization_env";
-        loadtest "virt_autotest/guest_migration_target_nfs_setup";
-    }
-    elsif (get_var("VIRT_PRJ4_GUEST_UPGRADE")) {
-        loadtest "virt_autotest/guest_upgrade_run";
-    }
-    elsif (get_var("VIRT_PRJ5_PVUSB")) {
-        loadtest "virt_autotest/pvusb_run";
-    }
-    elsif (get_var("VIRT_PRJ6_VIRT_V2V_SRC")) {
-        loadtest "virt_autotest/virt_v2v_src";
-    }
-    elsif (get_var("VIRT_PRJ6_VIRT_V2V_DST")) {
-        loadtest "virt_autotest/virt_v2v_dst";
-    }
-    elsif (get_var("VIRT_NEW_GUEST_MIGRATION_SOURCE")) {
-        loadtest "virt_autotest/guest_migration_src";
-    }
-    elsif (get_var("VIRT_NEW_GUEST_MIGRATION_DESTINATION")) {
-        loadtest "virt_autotest/guest_migration_dst";
-    }
+    load_virtualization2_tests;
 }
 elsif (get_var("QAM_MINIMAL")) {
     prepare_target();
@@ -1231,17 +1255,8 @@ elsif (ssh_key_import) {
     # verify previous defined ssh keys
     loadtest "x11/ssh_key_verify";
 }
-elsif (get_var('HPC')) {
-    if (check_var('HPC', 'install')) {
-        load_boot_tests();
-        load_inst_tests();
-        load_reboot_tests();
-    }
-    else {
-        loadtest 'boot/boot_to_desktop';
-        loadtest 'hpc/enable_in_zypper' if (check_var('HPC', 'enable'));
-        loadtest 'console/install_all_from_repository';
-    }
+elsif (get_var("HPC")) {
+    load_hpc_tests;
 }
 else {
     if (get_var("AUTOYAST") || get_var("AUTOUPGRADE")) {
