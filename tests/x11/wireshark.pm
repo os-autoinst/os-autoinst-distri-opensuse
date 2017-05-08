@@ -170,6 +170,7 @@ sub run() {
         assert_and_click "wireshark-preferences-apply";
         wait_still_screen 3;
     }
+    wait_still_screen 3;
     send_key "alt-f4";
     assert_screen "wireshark-fullscreen";
     send_key "alt-f4";
