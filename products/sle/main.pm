@@ -1227,38 +1227,16 @@ elsif (ssh_key_import) {
     # verify previous defined ssh keys
     loadtest "x11/ssh_key_verify";
 }
-elsif (get_var("HPC")) {
-    if (check_var("HPC", "support")) {
-        loadtest "hpc/barrier_init";
-        loadtest "hpc/hpc_support_server";
+elsif (get_var('HPC')) {
+    if (check_var('HPC', 'install')) {
+        load_boot_tests();
+        load_inst_tests();
+        load_reboot_tests();
     }
     else {
-        loadtest "boot/boot_to_desktop";
-        loadtest "hpc/hpc_init";
-
-        if (check_var("HPC", "basic")) {
-            loadtest "hpc/rasdaemon";
-        }
-        if (check_var("HPC", "openhpc")) {
-            loadtest "hpc/openhpc_install";
-        }
-        if (check_var("HPC", "munge_master")) {
-            loadtest "hpc/munge_master";
-        }
-        if (check_var("HPC", "munge_slave")) {
-            loadtest "hpc/munge_slave";
-        }
-        if (check_var("HPC", "slurm_master")) {
-            loadtest "hpc/install_slurm";
-            loadtest "hpc/slurm_master";
-        }
-        if (check_var("HPC", "slurm_slave")) {
-            loadtest "hpc/install_slurm";
-            loadtest "hpc/slurm_slave";
-        }
-        if (check_var("HPC", "repository")) {
-            loadtest "console/install_all_from_repository";
-        }
+        loadtest 'boot/boot_to_desktop';
+        loadtest 'hpc/enable_in_zypper' if (check_var('HPC', 'enable'));
+        loadtest 'console/install_all_from_repository';
     }
 }
 else {
