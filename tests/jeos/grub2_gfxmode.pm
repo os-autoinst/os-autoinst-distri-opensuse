@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -19,6 +19,7 @@
 use base "opensusebasetest";
 use strict;
 use testapi;
+use utils 'is_jeos';
 
 sub run {
     my $video;
@@ -36,11 +37,13 @@ sub run {
         $video = "video=hyperv_fb:1024x768";
     }
     elsif (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux')) {
-        $video = "xenfb.video=4,1024,768";
+        $video = 'xen-fbfront.video=32,1024,768';
     }
 
     if ($video) {
-        assert_script_run("sed -ie '/GRUB_CMDLINE_LINUX_DEFAULT=/s/\"\$/ $video \"/' /etc/default/grub");
+        # On JeOS we have GRUB_CMDLINE_LINUX, on CaaSP we have GRUB_CMDLINE_LINUX_DEFAULT.
+        my $grub_cmdline_label = is_jeos ? 'GRUB_CMDLINE_LINUX' : 'GRUB_CMDLINE_LINUX_DEFAULT';
+        assert_script_run("sed -ie '/${grub_cmdline_label}=/s/\"\$/ $video \"/' /etc/default/grub");
     }
     assert_script_run("grub2-mkconfig -o /boot/grub2/grub.cfg");
 }
