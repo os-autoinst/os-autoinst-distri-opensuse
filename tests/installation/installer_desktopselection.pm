@@ -41,9 +41,9 @@ sub run() {
     if (get_var('NEW_DESKTOP_SELECTION') && $d eq 'custom') {
         assert_screen "pattern-selection";
         my $de = get_var('DESKTOP');
-        assert_and_click "pattern-$de";
-        assert_and_click "pattern-$de-selected";
-        save_screenshot;
+        send_key_until_needlematch "pattern-$de-selected", 'down';
+        send_key 'spc';
+        assert_screen "pattern-$de-checked";
         send_key $cmd{ok};
     }
 }
