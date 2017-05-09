@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -33,9 +33,14 @@ sub run() {
     bootmenu_default_params;
     specific_bootmenu_params;
     registration_bootloader_params;
-    # boot
-    my $key = check_var('ARCH', 'ppc64le') ? 'ctrl-x' : 'ret';
-    send_key $key;
+
+    # Boot the entry unless we are in "zdup" upgrade where we expect the
+    # bootloader entry to be still shown
+    unless (get_var('ZDUP')) {
+        # boot
+        my $key = check_var('ARCH', 'ppc64le') ? 'ctrl-x' : 'ret';
+        send_key $key;
+    }
 }
 
 sub post_fail_hook {
