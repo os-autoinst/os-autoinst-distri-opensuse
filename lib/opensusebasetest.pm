@@ -238,14 +238,30 @@ sub handle_uefi_boot_disk_workaround {
     wait_screen_change { send_key 'ret' };
 }
 
-# makes sure bootloader appears and then boots to desktop resp text
-# mode. Handles unlocking encrypted disk if needed.
-# arguments: bootloader_time => seconds # now long to wait for bootloader to appear
+
+=head2 wait_boot
+
+  wait_boot([bootloader_time => $bootloader_time] [, textmode => $textmode] [,ready_time => $ready_time] [,in_grub => $in_grub]);
+
+Makes sure the bootloader appears and then boots to desktop or text mode
+correspondingly. Returns successfully when the system is ready on a login
+prompt or logged in desktop. Set C<$textmode> to 1 when the text mode login
+prompt should be expected rather than a desktop or display manager.
+C<wait_boot> also handles unlocking encrypted disks if needed as well as
+various exceptions during the boot process. Also, before the bootloader menu
+or login prompt various architecture or machine specific handlings are in
+place. The time waiting for the bootloader can be configured with
+C<$bootloader_time> in seconds as well as the time waiting for the system to
+be fully booted with C<$ready_time> in seconds. Set C<$in_grub> to 1 when the
+SUT is already expected to be within the grub menu. C<wait_boot> continues
+from there.
+=cut
 sub wait_boot {
     my ($self, %args) = @_;
     my $bootloader_time = $args{bootloader_time} // 100;
     my $textmode        = $args{textmode};
     my $ready_time      = $args{ready_time} // 200;
+    my $in_grub         = $args{in_grub} // 0;
 
     # used to register a post fail hook being active while we are waiting for
     # boot to be finished to help investigate in case the system is stuck in
@@ -298,7 +314,7 @@ sub wait_boot {
         # booted so we have to handle that
         # because of broken firmware, bootindex doesn't work on aarch64 bsc#1022064
         push @tags, 'inst-bootmenu' if ((get_var('USBBOOT') and get_var('UEFI')) || (check_var('ARCH', 'aarch64') and get_var('UEFI')));
-        handle_uefi_boot_disk_workaround if (check_var('MACHINE', 'aarch64') && get_var('BOOT_HDD_IMAGE'));
+        handle_uefi_boot_disk_workaround if (check_var('MACHINE', 'aarch64') && get_var('BOOT_HDD_IMAGE') && !$in_grub);
         check_screen(\@tags, $bootloader_time);
         if (match_has_tag("bootloader-shim-import-prompt")) {
             send_key "down";
