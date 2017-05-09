@@ -45,7 +45,8 @@ sub run() {
 
         # run only on qemu backend, e.g. svirt backend is fast enough to reboot properly
         if (check_var('BACKEND', 'qemu')) {
-            sleep 10;    # wait 10 seconds to make authentication window disappear after successful authentication
+            my $delay = check_var('ARCH', 'x86_64') ? 5 : 10;
+            sleep $delay;    # wait to make authentication window disappear after successful authentication
             if (check_screen 'reboot-auth', 2) {
                 record_soft_failure 'bsc#981299';
                 send_key_until_needlematch 'generic-desktop', 'esc', 7, 10;    # close timed out authentication window
