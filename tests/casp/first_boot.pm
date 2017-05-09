@@ -20,7 +20,7 @@ sub run() {
     assert_screen 'grub2' unless is_casp('VMX');
 
     # Check ssh keys & ip information are displayed
-    assert_screen 'linux-login-casp', 200;
+    assert_screen 'linux-login-casp', 300;
 
     select_console 'root-console';
 }

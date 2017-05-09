@@ -31,6 +31,7 @@ my $tftp_server_set  = 0;
 my $dns_server_set   = 0;
 my $dhcp_server_set  = 0;
 my $nfs_mount_set    = 0;
+my $ntp_server_set   = 0;
 my $xvnc_server_set  = 0;
 my $ssh_server_set   = 0;
 my $xdmcp_server_set = 0;
@@ -216,6 +217,17 @@ sub setup_ssh_server {
     $ssh_server_set = 1;
 }
 
+sub setup_ntp_server {
+    return if $ntp_server_set;
+
+    script_run 'yast2 firewall services add zone=EXT service=service:ntp';
+    script_run 'echo "server pool.ntp.org" >> /etc/ntp.conf';
+    script_run 'systemctl start ntpd';
+
+    $ntp_server_set = 1;
+}
+
+
 sub setup_xvnc_server {
     return if $xvnc_server_set;
 
@@ -332,6 +344,11 @@ sub run {
     if (exists $server_roles{aytests}) {
         setup_aytests();
         push @mutexes, 'aytests';
+    }
+
+    if (exists $server_roles{ntp}) {
+        setup_ntp_server();
+        push @mutexes, 'ntp';
     }
 
     if (exists $server_roles{xvnc}) {

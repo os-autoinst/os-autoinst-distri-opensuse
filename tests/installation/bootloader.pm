@@ -25,6 +25,7 @@ sub run() {
     bootmenu_default_params;
     bootmenu_network_source;
     specific_bootmenu_params;
+    specific_caasp_params;
     registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED);
     # on ppc64le boot have to be confirmed with ctrl-x or F10
     # and it doesn't have nice graphical menu with video and language options
