@@ -143,6 +143,10 @@ sub parse_ltp_log {
             elsif ($1 == 32 && $tfail) {
                 say $fh 'TEST EXIT CODE IS 32 (TCONF), YET TFAIL OR TBROK WAS SEEN!';
             }
+            elsif ($1 == 4) {
+                say $fh 'Passed with warnings.';
+                $tconf = 0;
+            }
             elsif ($1 == 32) {
                 say $fh 'Test process returned TCONF (32).';
                 $tconf = 1;
