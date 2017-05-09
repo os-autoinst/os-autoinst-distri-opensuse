@@ -202,7 +202,7 @@ sub fill_in_registration_data {
                 # set check_screen timeout longer to ensure the screen checked in this case
                 elsif (match_has_tag('yast-scc-emptypkg')) {
                     send_key 'alt-a';
-                    next;  # this could be last, but it can happen that during processing packages it looks like empty packages to install and then it will fail
+                    last;    # The needle of empty packages has been update more specific, no need to enter determine statement again.
                 }
                 elsif (match_has_tag('inst-addon')) {
                     # it would show Add On Product screen if scc registration correctly during installation
