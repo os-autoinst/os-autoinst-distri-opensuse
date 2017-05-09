@@ -62,7 +62,7 @@ sub run() {
 
     # Start an xterm as root
     x11_start_program("xterm");
-    wait_idle;
+    assert_screen "xterm";
     become_root;
     script_run "cd";
 
