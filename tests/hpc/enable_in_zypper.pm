@@ -18,7 +18,6 @@ use utils;
 use lockapi;
 
 sub run() {
-
     select_console 'root-console';
 
     # disable packagekitd
@@ -26,8 +25,8 @@ sub run() {
 
     my $repo     = get_required_var('HPC_REPO');
     my $reponame = get_required_var('HPC_REPONAME');
-    zypper_call("ar -f $repo");
-    assert_script_run "zypper lr | grep $reponame  | tee /dev/$serialdev";
+    zypper_call("ar -f $repo $reponame");
+    assert_script_run "zypper lr | grep $reponame";
 
     zypper_call("--gpg-auto-import-keys ref");
     zypper_call 'up';
