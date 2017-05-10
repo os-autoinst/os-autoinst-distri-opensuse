@@ -278,6 +278,9 @@ sub load_inst_tests {
         if (get_var("SPLITUSR")) {
             loadtest "installation/partitioning_splitusr";
         }
+        if (get_var("DELETEWINDOWS")) {
+            loadtest "installation/partitioning_guided";
+        }
         loadtest "installation/partitioning_finish";
         loadtest "installation/installer_timezone";
     }
