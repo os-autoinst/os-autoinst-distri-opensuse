@@ -37,7 +37,7 @@ sub run {
         $video = "video=hyperv_fb:1024x768";
     }
     elsif (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux')) {
-        $video = 'xen-fbfront.video=32,1024,768';
+        $video = 'xen-fbfront.video=32,1024,768 xen-kbdfront.ptr_size=1024,768 ';
     }
 
     if ($video) {
