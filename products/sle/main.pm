@@ -1236,7 +1236,8 @@ elsif (get_var('HPC')) {
     else {
         loadtest 'boot/boot_to_desktop';
         loadtest 'hpc/enable_in_zypper' if (check_var('HPC', 'enable'));
-        loadtest 'console/install_all_from_repository';
+        loadtest 'hpc/conman'           if (check_var('HPC', 'conman'));
+        loadtest 'console/install_all_from_repository' if (get_var('INSTALL_ALL_REPO'));
     }
 }
 else {
