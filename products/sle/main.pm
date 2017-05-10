@@ -55,10 +55,6 @@ sub is_update_test_repo_test {
     return get_var('TEST') !~ /^mru-/ && (get_var('FLAVOR', '') =~ /-Updates$/);
 }
 
-sub is_bridged_networking {
-    return !(check_var('VIRSH_VMM_FAMILY', 'kvm') or (check_var('BACKEND', 'svirt') and check_var('ARCH', 's390x')));
-}
-
 sub cleanup_needles {
     remove_common_needles;
     if ((get_var('VERSION', '') ne '12') && (get_var('BASE_VERSION', '') ne '12')) {
@@ -633,7 +629,7 @@ sub load_consoletests() {
             loadtest "console/check_locked_package";
         }
         loadtest "console/textinfo";
-        loadtest "console/hostname" unless is_bridged_networking;
+        loadtest "console/hostname";
         if (get_var("SYSTEM_ROLE")) {
             loadtest "console/patterns";
         }
@@ -662,7 +658,7 @@ sub load_consoletests() {
             loadtest "console/zypper_ar";
         }
         loadtest "console/zypper_ref";
-        loadtest "console/yast2_lan" unless is_bridged_networking;
+        loadtest "console/yast2_lan";
         loadtest "console/curl_https";
         if (check_var("ARCH", "x86_64")) {
             loadtest "console/glibc_i686";
@@ -837,7 +833,7 @@ sub load_hacluster_tests() {
     barrier_wait("BARRIER_HA_" . get_var("CLUSTERNAME"));    #nodes wait here
     loadtest "installation/first_boot";
     loadtest "console/consoletest_setup";
-    loadtest "console/hostname" unless is_bridged_networking;
+    loadtest "console/hostname";
     loadtest("ha/firewall_disable");
     loadtest("ha/ntp_client");
     loadtest("ha/iscsi_client");
@@ -1005,7 +1001,7 @@ elsif (get_var("REGRESSION")) {
         load_inst_tests();
         load_reboot_tests();
         loadtest "x11regressions/x11regressions_setup";
-        loadtest "console/hostname" unless is_bridged_networking;
+        loadtest "console/hostname";
         loadtest "console/force_cron_run" unless is_jeos;
         loadtest "shutdown/grub_set_bootargs";
         loadtest "shutdown/shutdown";
@@ -1360,7 +1356,7 @@ if (get_var("CLONE_SYSTEM")) {
 
 if (get_var("STORE_HDD_1") || get_var("PUBLISH_HDD_1")) {
     if (get_var("INSTALLONLY")) {
-        loadtest "console/hostname" unless is_bridged_networking;
+        loadtest "console/hostname";
         loadtest "console/force_cron_run" unless is_jeos;
         loadtest "shutdown/grub_set_bootargs";
         loadtest "shutdown/shutdown";
