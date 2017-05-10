@@ -17,7 +17,7 @@ use strict;
 use testapi;
 
 sub start_firefox() {
-    x11_start_program("firefox https://html5test.com/index.html", 6, {valid => 1});
+    x11_start_program("firefox https://html5test.com/index.html", 6);
     # makes firefox as default browser
     assert_screen [qw(firefox_default_browser firefox_readerview_window firefox-html5test)], 120;
     if (check_screen('firefox_default_browser', 0)) {
