@@ -746,6 +746,7 @@ sub validate_repos_sle {
         }
 
         for my $scc_product ($base_product, keys %h_scc_addons) {
+            next if (($scc_product =~ /LTSS/) && get_var('SKIP_LTSS'));
             $we = 1 if ($scc_product eq "SLE-WE");
             for my $product_channel ("Pool", "Updates", "Debuginfo-Pool", "Debuginfo-Updates", "Source-Pool") {
                 # Toolchain module doesn't have Source-Pool channel
