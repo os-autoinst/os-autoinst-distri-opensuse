@@ -8,19 +8,23 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Extend YaST2 Firewall UI test
+# Summary: YaST2 Firewall UI test checks verious configurations and settings of firewall
 # Make sure yast2 firewall can opened properly. Configurations can be changed and written correctly.
-# Maintainer: Max Lin <mlin@suse.com>
+# Maintainer: Zaoliang Luo <zluo@suse.com>
 
 use base "y2x11test";
 use strict;
 use testapi;
+use utils;
 
 sub run() {
     my $self = shift;
 
-    $self->launch_yast2_module_x11('firewall');
+    select_console 'root-console';
+    zypper_call('in yast2-http-server apache2 apache2-prefork');
+    select_console 'x11', await_console => 0;
 
+    $self->launch_yast2_module_x11('firewall');
     assert_screen "yast2-firewall-ui", 30;
 
     # 	enter page interfaces and change zone for network interface
