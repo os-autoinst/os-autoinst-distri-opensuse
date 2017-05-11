@@ -8,11 +8,11 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add YaST2 UI tests
+# Summary: YaST2 UI test yast2_datetime checks minium settings for clock and time zone
 #    Make sure those yast2 modules can opened properly. We can add more
 #    feature test against each module later, it is ensure it will not crashed
 #    while launching atm.
-# G-Maintainer: Max Lin <mlin@suse.com>
+# Maintainer: Zaoliang Luo <zluo@suse.com>
 
 use base "y2x11test";
 use strict;
@@ -23,8 +23,15 @@ sub run() {
     my $module = "timezone";
 
     $self->launch_yast2_module_x11($module);
-    assert_screen "yast2-$module-ui", 60;
-    send_key "alt-o";    # OK => Exit
+    assert_screen [qw(yast2-datetime-ui yast2-datetime_ntp-conf)];
+    if (match_has_tag 'yast2-datetime_ntp-conf') {
+        send_key 'alt-d';
+        send_key 'alt-o';
+    }
+    assert_screen 'yast2-timezone-ui', 60;
+
+    # OK => Exit
+    send_key "alt-o";
 }
 
 1;
