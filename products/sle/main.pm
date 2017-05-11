@@ -1370,8 +1370,7 @@ if (get_var("TCM") || check_var("ADDONS", "tcm")) {
     loadtest "console/force_cron_run";
     loadtest "toolchain/install";
     loadtest "toolchain/gcc5_fortran_compilation";
-    loadtest "toolchain/gcc5_C_compilation";
-    loadtest "toolchain/gcc5_Cpp_compilation";
+    loadtest "toolchain/gcc_compilation";
     # kdump is not supported on aarch64, see BSC#990418
     if (!check_var('ARCH', 'aarch64')) {
         loadtest "toolchain/crash";
