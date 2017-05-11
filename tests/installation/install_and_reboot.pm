@@ -118,12 +118,16 @@ sub run() {
         # Depending on the used backend the initial key press to stop the
         # countdown might not be evaluated correctly or in time. In these
         # cases we try more often. As the timeout is 10 seconds trying more
-        # than 4 times when waiting 3 seconds each time in between is not
-        # helping.
+        # than 4 times when waiting 2.5 seconds each time in between is not
+        # helping. wait_still_screen can work with float numbers. A still time
+        # of 2 seconds was leading to problems not detecting the countdown
+        # still being active whereas 3 seconds would sometimes hit the timeout
+        # even though the screen did not change after the initial stop button
+        # press. Selecting 2.5 might be a good compromise
         my $counter = 4;
         while ($counter--) {
             send_key 'alt-s';
-            last if wait_still_screen(3, 4, 99);
+            last if wait_still_screen(2.5, 4, 99);
             record_info('workaround', "While trying to stop countdown no still screen could be detected, retrying up to $counter times more");
             die 'Failed to detect a still picture while waiting for stopped countdown.' if ($counter eq 1);
         }
