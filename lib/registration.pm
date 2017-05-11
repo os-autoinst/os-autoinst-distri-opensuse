@@ -205,8 +205,14 @@ sub fill_in_registration_data {
                 # yast would display empty pkg install screen if no addon selected on sle12 sp0
                 # set check_screen timeout longer to ensure the screen checked in this case
                 elsif (match_has_tag('yast-scc-emptypkg')) {
-                    send_key 'alt-a';
-                    last;    # The needle of empty packages has been update more specific, no need to enter determine statement again.
+                    if (check_screen('yast-scc-emptypkg'), 5) {
+                        send_key 'alt-a';
+                        last;    # Exit yast scc register, no package need be install
+                    }
+                    else {
+                        record_soft_failure 'bsc#1040758';
+                        next;    # Yast may popup dependencies or software install dialog, enter determine statement again.
+                    }
                 }
                 elsif (match_has_tag('inst-addon')) {
                     # it would show Add On Product screen if scc registration correctly during installation
