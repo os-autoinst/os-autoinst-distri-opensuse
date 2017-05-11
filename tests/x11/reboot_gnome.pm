@@ -16,11 +16,26 @@ use strict;
 use testapi;
 use utils;
 
+sub assert_and_click_until_screen_change {
+    my ($mustmatch, $wait_change, $repeat) = @_;
+    $wait_change //= 2;
+    $repeat      //= 3;
+    my $i = 0;
+
+    for (; $i < $repeat; $i++) {
+        wait_screen_change { assert_and_click $mustmatch; }, $wait_change;
+        last unless check_screen($mustmatch, 0);
+    }
+
+    return $i;
+}
+
 sub run() {
     my ($self) = @_;
     wait_still_screen;
     send_key_until_needlematch 'logoutdialog', 'ctrl-alt-delete', 7, 10;    # reboot
-    assert_and_click 'logoutdialog-reboot-highlighted';
+    my $repetitions = assert_and_click_until_screen_change 'logoutdialog-reboot-highlighted';
+    record_soft_failure 'poo#19082' if ($repetitions > 0);
 
     if (get_var("SHUTDOWN_NEEDS_AUTH")) {
         assert_screen 'reboot-auth';
