@@ -51,7 +51,7 @@ sub run() {
                 $cmdline .= "xenfb.video=4,1024,768 ";
             }
             else {
-                $cmdline .= "xen-fbfront.video=32,1024,768 ";
+                $cmdline .= 'xen-fbfront.video=32,1024,768 xen-kbdfront.ptr_size=1024,768 ';
             }
             $cmdline .= "console=$xenconsole console=tty ";
         }
@@ -293,13 +293,13 @@ sub run() {
         type_string "echo -en '\\033[K' > \$pty\n";                         # end of line
         type_string "echo -en ' $cmdline' > \$pty\n";
         if (sle_version_at_least('12-SP2') or is_casp) {
-            type_string "echo -en ' xen-fbfront.video=32,1024,768' > \$pty\n";    # set kernel framebuffer
+            type_string "echo -en ' xen-fbfront.video=32,1024,768 xen-kbdfront.ptr_size=1024,768 ' > \$pty\n";    # set kernel framebuffer
         }
         else {
-            type_string "echo -en ' xenfb.video=4,1024,768' > \$pty\n";           # set kernel framebuffer
+            type_string "echo -en ' xenfb.video=4,1024,768' > \$pty\n";                                           # set kernel framebuffer
         }
 
-        type_string "echo -en '\\x18' > \$pty\n";                                 # send Ctrl-x to boot guest kernel
+        type_string "echo -en '\\x18' > \$pty\n";                                                                 # send Ctrl-x to boot guest kernel
         save_screenshot;
     }
 
