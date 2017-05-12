@@ -270,12 +270,8 @@ sub wait_boot {
 
     # Reset the consoles after the reboot: there is no user logged in anywhere
     reset_consoles;
-    if (get_var("OFW")) {
-        assert_screen 'bootloader', $bootloader_time;
-        boot_local_disk;
-    }
     # reconnect s390
-    elsif (check_var('ARCH', 's390x')) {
+    if (check_var('ARCH', 's390x')) {
         my $login_ready = qr/Welcome to SUSE Linux Enterprise Server.*\(s390x\)/;
         if (check_var('BACKEND', 's390x')) {
 
@@ -306,6 +302,7 @@ sub wait_boot {
         my @tags = ('grub2');
         push @tags, 'bootloader-shim-import-prompt'   if get_var('UEFI');
         push @tags, 'boot-live-' . get_var('DESKTOP') if get_var('LIVETEST');    # LIVETEST won't to do installation and no grub2 menu show up
+        push @tags, 'bootloader'                      if get_var('OFW');
         if (get_var('ONLINE_MIGRATION')) {
             push @tags, 'migration-source-system-grub2';
         }
@@ -313,7 +310,7 @@ sub wait_boot {
         # order on UEFI" the USB install medium is priority and will always be
         # booted so we have to handle that
         # because of broken firmware, bootindex doesn't work on aarch64 bsc#1022064
-        push @tags, 'inst-bootmenu' if ((get_var('USBBOOT') and get_var('UEFI')) || (check_var('ARCH', 'aarch64') and get_var('UEFI')));
+        push @tags, 'inst-bootmenu' if ((get_var('USBBOOT') and get_var('UEFI')) || (check_var('ARCH', 'aarch64') and get_var('UEFI')) || get_var('OFW'));
         handle_uefi_boot_disk_workaround if (check_var('MACHINE', 'aarch64') && get_var('BOOT_HDD_IMAGE') && !$in_grub);
         check_screen(\@tags, $bootloader_time);
         if (match_has_tag("bootloader-shim-import-prompt")) {
@@ -336,11 +333,6 @@ sub wait_boot {
             # harddisk' is above
             send_key_until_needlematch 'inst-bootmenu-boot-harddisk', 'up';
             boot_local_disk;
-            if (check_var('ARCH', 'aarch64') and get_var('UEFI')) {
-                record_soft_failure 'bsc#1022064';
-                assert_screen 'boot-firmware';
-                send_key 'ret';
-            }
             assert_screen 'grub2', 15;
             # confirm default choice
             send_key 'ret';
