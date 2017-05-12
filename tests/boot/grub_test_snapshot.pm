@@ -14,6 +14,7 @@
 use strict;
 use base "basetest";
 use testapi;
+use bootloader_setup 'stop_grub_timeout';
 
 sub run() {
     if (get_var('ROLLBACK_AFTER_MIGRATION')) {
@@ -27,8 +28,7 @@ sub run() {
     else {
         assert_screen "grub2";
     }
-    # prevent grub2 timeout; 'esc' would be cleaner, but grub2-efi falls to the menu then
-    send_key 'up';
+    stop_grub_timeout;
     if (get_var("BOOT_TO_SNAPSHOT")) {
         send_key_until_needlematch("boot-menu-snapshot", 'down', 10, 5);
         send_key 'ret';

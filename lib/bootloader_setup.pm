@@ -37,6 +37,7 @@ our @EXPORT = qw(
 );
 
 # prevent grub2 timeout; 'esc' would be cleaner, but grub2-efi falls to the menu then
+# 'up' also works in textmode and UEFI menues.
 sub stop_grub_timeout {
     send_key 'up';
 }
@@ -93,9 +94,8 @@ sub select_bootmenu_option {
         # live CDs might have a very short timeout of the initial bootmenu
         # (1-2s with recent kiwi versions) so better stop the timeout
         # immediately before checking more and having an opportunity to type
-        # more boot parameters. Send 'up' which should work also on textmode
-        # and UEFI menues.
-        send_key 'up';
+        # more boot parameters.
+        stop_grub_timeout;
     }
     if (get_var('ZDUP') || get_var('ONLINE_MIGRATION')) {
         boot_local_disk;

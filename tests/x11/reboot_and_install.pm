@@ -38,7 +38,7 @@ sub run() {
     # bootloader entry to be still shown later on and just in case it is
     # already shown here. In other cases select the default boot entry.
     if (get_var('ZDUP')) {
-        send_key 'up';
+        stop_grub_timeout;
     }
     else {
         # boot
