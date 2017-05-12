@@ -22,7 +22,8 @@ sub run() {
     # Check ssh keys & ip information are displayed
     assert_screen 'linux-login-casp', 300;
 
-    select_console 'root-console';
+    # Workers installed using autoyast have no password - bsc#1030876
+    select_console 'root-console' unless get_var('AUTOYAST');
 }
 
 sub test_flags() {

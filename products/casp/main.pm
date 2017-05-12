@@ -61,24 +61,29 @@ sub load_boot_tests() {
 
 # One-click installer - fate#322328
 sub load_inst_tests() {
-    loadtest 'casp/oci_overview';
+    if (get_var 'AUTOYAST') {
+        loadtest 'autoyast/installation';
+    }
+    else {
+        loadtest 'casp/oci_overview';
 
-    # Check keyboard layout
-    loadtest 'casp/oci_keyboard';
-    # Register system
-    loadtest 'casp/oci_register' if check_var('REGISTER', 'installation');
-    # Set root password
-    loadtest 'casp/oci_password';
-    # Set system Role
-    loadtest 'casp/oci_role';
-    # Start installation
-    loadtest 'casp/oci_install';
+        # Check keyboard layout
+        loadtest 'casp/oci_keyboard';
+        # Register system
+        loadtest 'casp/oci_register' if check_var('REGISTER', 'installation');
+        # Set root password
+        loadtest 'casp/oci_password';
+        # Set system Role
+        loadtest 'casp/oci_role';
+        # Start installation
+        loadtest 'casp/oci_install';
 
-    # Can not start installation with partitioning error
-    return if check_var('FAIL_EXPECTED', 'SMALL-DISK');
+        # Can not start installation with partitioning error
+        return if check_var('FAIL_EXPECTED', 'SMALL-DISK');
 
-    # Actual installation
-    loadtest 'installation/install_and_reboot';
+        # Actual installation
+        loadtest 'installation/install_and_reboot';
+    }
 }
 
 # Feature tests before yast installation
@@ -132,12 +137,7 @@ else {
             load_rcshell_tests;
             return 1;
         }
-        if (get_var('AUTOYAST')) {
-            loadtest 'autoyast/installation';
-        }
-        else {
-            load_inst_tests;
-        }
+        load_inst_tests;
         return 1 if get_var 'FAIL_EXPECTED';
     }
     loadtest 'casp/first_boot';

@@ -242,14 +242,17 @@ sub specific_bootmenu_params {
 
     if (!check_var('ARCH', 's390x')) {
         my $netsetup = "";
-        if (get_var("AUTOYAST") || get_var("AUTOUPGRADE") && get_var("AUTOUPGRADE") ne 'local') {
+        my $autoyast = get_var("AUTOYAST", "");
+        if ($autoyast || get_var("AUTOUPGRADE") && get_var("AUTOUPGRADE") ne 'local') {
             # We need to use 'ifcfg=*=dhcp' instead of 'netsetup=dhcp' as a default
             # due to BSC#932692 (SLE-12). 'SetHostname=0' has to be set because autoyast
             # profile has DHCLIENT_SET_HOSTNAME="yes" in /etc/sysconfig/network/dhcp,
             # 'ifcfg=*=dhcp' sets this variable in ifcfg-eth0 as well and we can't
             # have them both as it's not deterministic.
             $netsetup = get_var("NETWORK_INIT_PARAM", "ifcfg=*=dhcp SetHostname=0");
-            $args .= " $netsetup autoyast=" . data_url(get_var("AUTOYAST")) . " ";
+            # If AUTOYAST is url (://) or slp dont't translate it to openqa asset
+            $autoyast = data_url($autoyast) if $autoyast !~ /^slp$|:\/\//;
+            $args .= " $netsetup autoyast=$autoyast ";
         }
         else {
             $netsetup = " " . get_var("NETWORK_INIT_PARAM") if defined get_var("NETWORK_INIT_PARAM");    #e.g netsetup=dhcp,all
