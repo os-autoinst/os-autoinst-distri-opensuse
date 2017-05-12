@@ -130,16 +130,14 @@ sub run() {
     #   Profile test   #
     ####################
     # Create new 'openQA' profile.
-    assert_and_click "wireshark-edit";
-    assert_and_click "wireshark-edit-profiles";
+    send_key "ctrl-shift-a";
     assert_screen "wireshark-profiles";
     assert_and_click "wireshark-profiles-new";
     type_string "openQA\n";
     assert_screen "wireshark-fullscreen";
 
     # Unselect the display of the Protocol in the UI.
-    assert_and_click "wireshark-edit";
-    assert_and_click "wireshark-edit-preferences";
+    send_key "ctrl-shift-p";
     assert_screen "wireshark-preferences";
     assert_and_click "wireshark-preferences-columns";
     assert_screen "wireshark-preferences-columns-protocol-displayed";
@@ -151,15 +149,13 @@ sub run() {
     assert_screen "wireshark-fullscreen";
 
     # Change back to the Default profile.
-    assert_and_click "wireshark-edit";
-    assert_and_click "wireshark-edit-profiles";
+    send_key "ctrl-shift-a";
     assert_screen "wireshark-profiles";
     assert_and_dclick "wireshark-profiles-default";
     assert_screen "wireshark-fullscreen";
 
     # Verify that the Protocol is properly displayed.
-    assert_and_click "wireshark-edit";
-    assert_and_click "wireshark-edit-preferences";
+    send_key "ctrl-shift-p";
     assert_screen "wireshark-preferences";
     assert_and_click "wireshark-preferences-columns";
     assert_screen [qw(wireshark-preferences-columns-protocol-displayed wireshark-preferences-columns-protocol-not-displayed)];
