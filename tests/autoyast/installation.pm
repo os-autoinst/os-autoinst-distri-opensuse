@@ -22,6 +22,7 @@ use testapi;
 use utils;
 
 my $confirmed_licenses = 0;
+my $stage;
 
 sub accept_license {
     send_key $cmd{accept};
@@ -33,7 +34,8 @@ sub accept_license {
 }
 
 sub save_logs_and_continue {
-    my $name = shift;
+    my ($name) = @_;
+    $name //= $stage;
     # save logs and continue
     select_console 'install-shell';
 
@@ -62,95 +64,70 @@ sub save_logs_in_linuxrc {
     upload_logs "/tmp/logs-$name.tar.bz2";
 }
 
+sub handle_expected_errors {
+    my ($stage, %args) = @_;
+    my $i = $args{iteration};
+    record_info('Expected error', 'Iteration = ' . $i);
+    send_key "alt-s";    #stop
+    save_logs_and_continue("stage1_error$i");
+    $i++;
+    send_key "tab";      #continue
+    send_key "ret";
+    wait_idle(5);
+}
+
 sub run {
-    my $self = shift;
-    $self->result('ok');
-    # wait for bootloader to appear
-    my $ret;
-
     my @needles = ("bios-boot", "autoyast-error", "reboot-after-installation", "linuxrc-install-fail");
-
     push @needles, "autoyast-confirm"        if get_var("AUTOYAST_CONFIRM");
     push @needles, "autoyast-postpartscript" if get_var("USRSCR_DIALOG");
     if (get_var("AUTOYAST_LICENSE")) {
-        if (get_var("BETA")) {
-            push @needles, "inst-betawarning";
-        }
-        else {
-            push @needles, "autoyast-license";
-        }
+        push @needles, (get_var('BETA') ? 'inst-betawarning' : 'autoyast-license');
     }
 
     my $postpartscript = 0;
     my $confirmed      = 0;
 
-    my $maxtime     = 2000;
-    my $confirmtime = 200;
-
-    my $checktime  = 30;
-    my $looptime   = 0;
+    my $maxtime    = 2000;
     my $i          = 1;
-    my $timeout    = 0;
     my $num_errors = 0;
-
-    while (!$timeout) {
-        mouse_hide(1);
-        $ret = check_screen([@needles], $checktime);
-
+    $stage = 'stage1';
+    mouse_hide(1);
+    do {
+        assert_screen \@needles, $maxtime;
         #repeat until timeout or login screen
-        if (defined $ret) {
-            last if match_has_tag("bios-boot") || match_has_tag("reboot-after-installation");
-
-            if (match_has_tag('autoyast-error')) {
-                record_info('Expected error', 'Iteration = ' . $i);
-                send_key "alt-s";    #stop
-                save_logs_and_continue("stage1_error$i");
-                $i++;
-                send_key "tab";      #continue
-                send_key "ret";
-                wait_idle(5);
-                $num_errors++;
-            }
-            elsif (match_has_tag('linuxrc-install-fail')) {
-                save_logs_in_linuxrc("stage1_error$i");
-                die "installation ends in linuxrc";
-            }
-            elsif (match_has_tag('autoyast-confirm')) {
-                # select network (second entry)
-                send_key "ret";
-
-                assert_screen("startinstall", 20);
-
-                send_key "tab";
-                send_key "ret";
-                wait_idle(5);
-                @needles = grep { $_ ne 'autoyast-confirm' } @needles;
-                $confirmed = 1;
-            }
-            elsif (match_has_tag('autoyast-license')) {
-                accept_license;
-            }
-            elsif (match_has_tag('inst-betawarning')) {
-                send_key $cmd{ok};
-                assert_screen 'autoyast-license';
-                accept_license;
-            }
-            elsif (match_has_tag('autoyast-postpartscript')) {
-                @needles = grep { $_ ne 'autoyast-postpartscript' } @needles;
-                $postpartscript = 1;
-            }
+        if (match_has_tag('autoyast-error')) {
+            handle_expected_errors('stage1', iteration => $i);
+            $num_errors++;
         }
+        elsif (match_has_tag('linuxrc-install-fail')) {
+            save_logs_in_linuxrc("stage1_error$i");
+            die "installation ends in linuxrc";
+        }
+        elsif (match_has_tag('autoyast-confirm')) {
+            # select network (second entry)
+            send_key "ret";
 
-        $looptime = $looptime + $checktime;
-        $timeout  = 1 if $looptime > $maxtime;
-        $timeout  = 1 if get_var("AUTOYAST_CONFIRM") && $looptime > $confirmtime && !$confirmed;
-    }
+            assert_screen("startinstall", 20);
 
-
-    if ($timeout) {    #timeout - save log
-        save_logs_and_continue("stage1_timeout");
-        die "timeout hit";
-    }
+            send_key "tab";
+            send_key "ret";
+            wait_idle(5);
+            @needles = grep { $_ ne 'autoyast-confirm' } @needles;
+            $confirmed = 1;
+        }
+        elsif (match_has_tag('autoyast-license')) {
+            accept_license;
+        }
+        elsif (match_has_tag('inst-betawarning')) {
+            send_key $cmd{ok};
+            assert_screen 'autoyast-license';
+            accept_license;
+        }
+        elsif (match_has_tag('autoyast-postpartscript')) {
+            @needles = grep { $_ ne 'autoyast-postpartscript' } @needles;
+            $postpartscript = 1;
+        }
+    } until (match_has_tag('reboot-after-installation') || match_has_tag('bios-boot'));
 
     if (get_var("USRSCR_DIALOG")) {
         die "usrscr dialog" if !$postpartscript;
@@ -169,56 +146,27 @@ sub run {
     # CaaSP does not have second stage
     return if is_casp;
 
-    $maxtime   = 1000;
-    $checktime = 30;
-    $looptime  = 0;
-    $timeout   = 0;
-    while (!$timeout) {
-
-        mouse_hide(1);
-        $ret = check_screen(["reboot-after-installation", "autoyast-error"], $checktime);
-
-        #repeat until timeout or login screen
-        if (defined $ret) {
-            if (match_has_tag('autoyast-error')) {
-                record_info('Expected error', 'Iteration = ' . $i);
-                send_key "alt-s";    #stop
-                save_logs_and_continue("stage2_error$i");
-                $i++;
-                send_key "tab";      #continue
-                send_key "ret";
-                wait_idle(5);
-                $num_errors++;
-            }
-            else {                   #all ok
-                last;
-            }
+    $stage = 'stage2';
+    mouse_hide(1);
+    $maxtime = 1000;
+    do {
+        assert_screen qw(reboot-after-installation autoyast-expected-error), $maxtime;
+        if (match_has_tag('autoyast-error')) {
+            handle_expected_errors('stage2', iteration => $i);
+            $num_errors++;
         }
-        $looptime = $looptime + $checktime;
-        $timeout = 1 if $looptime > $maxtime;
-    }
-
-    if ($timeout) {                  #timeout - save log
-        save_logs_and_continue("stage2_timeout");
-        die "stage2_timeout";
-        return;
-    }
+    } until match_has_tag 'reboot-after-installation';
 
     my $expect_errors = get_var("AUTOYAST_EXPECT_ERRORS") // 0;
-    if ($num_errors != $expect_errors) {
-        die "exceeded expected autoyast errors";
-    }
-
-    #go to text console if graphical login detected
-    send_key "ctrl-alt-f1" if match_has_tag('displaymanager');
+    die "exceeded expected autoyast errors" if $num_errors != $expect_errors;
 }
 
 sub test_flags {
-    # without anything - rollback to 'lastgood' snapshot if failed
-    # 'fatal' - whole test suite is in danger if this fails
-    # 'milestone' - after this test succeeds, update 'lastgood'
-    # 'important' - if this fails, set the overall state to 'fail'
     return {fatal => 1};
+}
+
+sub post_fail_hook {
+    save_logs_and_continue;
 }
 
 1;
