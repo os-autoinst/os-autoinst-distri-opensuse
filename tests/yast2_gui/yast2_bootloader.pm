@@ -50,9 +50,9 @@ sub run() {
     #	proctect boot loader with password
     assert_and_click 'yast2-bootloader_protect-bootloader-with-password';
     send_key 'alt-p';
-    type_string 'dammy-password';
+    type_string 'dummy-password';
     send_key 'alt-y';
-    type_string 'dammy-password';
+    type_string 'dummy-password';
 
     # OK => Exit
     send_key "alt-o";
