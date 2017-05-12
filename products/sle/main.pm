@@ -730,6 +730,7 @@ sub load_consoletests() {
         if (!is_staging() && sle_version_at_least('12-SP2')) {
             loadtest "console/zypper_lifecycle";
         }
+        loadtest 'console/install_all_from_repository' if get_var('INSTALL_ALL_REPO');
         loadtest "console/consoletest_finish";
     }
 }
