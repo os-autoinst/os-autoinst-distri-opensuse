@@ -385,6 +385,9 @@ sub maybe_load_kernel_tests {
         if (get_var('INSTALL_KOTD')) {
             loadtest 'kernel/install_kotd';
         }
+        if (get_var('FLAVOR', '') =~ /Incidents-Kernel$/) {
+            loadtest 'kernel/update_kernel';
+        }
         loadtest 'kernel/install_ltp';
         loadtest 'kernel/boot_ltp';
         loadtest 'kernel/shutdown_ltp';
