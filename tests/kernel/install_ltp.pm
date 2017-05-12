@@ -79,12 +79,15 @@ sub install_from_git {
     script_run 'export CREATE_ENTRIES=1';
     assert_script_run 'make install', timeout => 360;
     assert_script_run "find ~/ltp/testcases/open_posix_testsuite/conformance/interfaces -name '*.run-test' > ~/openposix_test_list.txt";
+    # It is a shallow clone so 'git describe' won't work
+    script_run 'git log -1 --pretty=format:"git %h" > /opt/ltp_version';
 }
 
 sub install_from_repo {
     zypper_call 'in qa_test_ltp';
     zypper_call('in ntfsprogs') if we_available;
     assert_script_run q(find ${LTPROOT:-/opt/ltp}/testcases/bin/openposix/conformance/interfaces/ -name '*.run-test' > ~/openposix_test_list.txt);
+    script_run 'rpm -q qa_test_ltp > /opt/ltp_version';
 }
 
 sub run {
