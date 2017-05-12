@@ -16,6 +16,7 @@ use strict;
 use base "basetest";
 use testapi;
 use utils;
+use bootloader_setup 'stop_grub_timeout';
 
 sub run() {
     if (get_var('LIVECD')) {
@@ -49,8 +50,7 @@ sub run() {
     workaround_type_encrypted_passphrase;
     # 60 due to rare slowness e.g. multipath poo#11908
     assert_screen "grub2", 60;
-    # prevent grub2 timeout; 'esc' would be cleaner, but grub2-efi falls to the menu then
-    send_key 'up';
+    stop_grub_timeout;
 
     # BSC#997263 - VMware screen resolution defaults to 800x600
     # By default VMware starts with Grub2 in 640x480 mode and then boots the system to

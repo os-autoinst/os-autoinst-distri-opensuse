@@ -22,6 +22,7 @@ use lockapi;
 use mm_network;
 
 our @EXPORT = qw(
+  stop_grub_timeout
   boot_local_disk
   pre_bootmenu_setup
   select_bootmenu_option
@@ -35,17 +36,33 @@ our @EXPORT = qw(
   tianocore_select_bootloader
 );
 
+# prevent grub2 timeout; 'esc' would be cleaner, but grub2-efi falls to the menu then
+# 'up' also works in textmode and UEFI menues.
+sub stop_grub_timeout {
+    send_key 'up';
+}
+
 sub boot_local_disk {
     if (check_var('ARCH', 'ppc64le')) {
         # TODO use bootindex to properly boot from disk when first in boot order is cd-rom
         wait_screen_change { send_key 'ret' };
-        if (check_screen 'inst-slof', 5) {
-            # specify local disk for boot
+        assert_screen [qw(inst-slof bootloader grub2 inst-bootmenu)];
+        if (match_has_tag 'grub2') {
+            diag 'already in grub2, returning from boot_local_disk';
+            stop_grub_timeout;
+            return;
+        }
+        if (match_has_tag 'inst-slof') {
+            diag 'specifying local disk for boot from slof';
             type_string_very_slow "boot /pci\t/sc\t4";
             save_screenshot;
         }
     }
-    send_key 'ret';    # boot from hard disk
+    if (check_var('ARCH', 'aarch64') and get_var('UEFI')) {
+        record_soft_failure 'bsc#1022064';
+        assert_screen 'boot-firmware';
+    }
+    send_key 'ret';
 }
 
 sub pre_bootmenu_setup {
@@ -77,9 +94,8 @@ sub select_bootmenu_option {
         # live CDs might have a very short timeout of the initial bootmenu
         # (1-2s with recent kiwi versions) so better stop the timeout
         # immediately before checking more and having an opportunity to type
-        # more boot parameters. Send 'up' which should work also on textmode
-        # and UEFI menues.
-        send_key 'up';
+        # more boot parameters.
+        stop_grub_timeout;
     }
     if (get_var('ZDUP') || get_var('ONLINE_MIGRATION')) {
         boot_local_disk;

@@ -34,9 +34,13 @@ sub run() {
     specific_bootmenu_params;
     registration_bootloader_params;
 
-    # Boot the entry unless we are in "zdup" upgrade where we expect the
-    # bootloader entry to be still shown
-    unless (get_var('ZDUP')) {
+    # Stop the bootloader timeout in "zdup" upgrade where we expect the
+    # bootloader entry to be still shown later on and just in case it is
+    # already shown here. In other cases select the default boot entry.
+    if (get_var('ZDUP')) {
+        stop_grub_timeout;
+    }
+    else {
         # boot
         my $key = check_var('ARCH', 'ppc64le') ? 'ctrl-x' : 'ret';
         send_key $key;
