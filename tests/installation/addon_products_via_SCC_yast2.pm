@@ -26,19 +26,20 @@ sub run() {
             push(@addon_proxy, "\b.$addon-" . get_var("BUILD_$uc_addon"));
         }
         script_sudo "echo \"@addon_proxy.proxy.scc.suse.de\" > /etc/SUSEConnect", 0;
+        script_sudo 'zypper mr -d 1',                                             0;    # zypper_lr test is expecting this repo disabled
     }
     type_string "killall xterm\n";
     x11_start_program("xdg-su -c '/sbin/yast2'");
     if ($password) { type_password; send_key 'ret'; }
     send_key 'alt-y' if check_screen('packagekit-warning', 2);
     assert_screen 'yast2-control-center';
-    type_string 'extens';                # filter 'Add System Extensions or Modules'
-    send_key 'tab';                      # go to modules field
+    type_string 'extens';                                                               # filter 'Add System Extensions or Modules'
+    send_key 'tab';                                                                     # go to modules field
     send_key 'ret';
     assert_screen 'scc-registration';
     fill_in_registration_data;
     assert_screen 'yast2-control-center';
-    send_key 'alt-f4';                   # close yast2 control center
+    send_key 'alt-f4';                                                                  # close yast2 control center
     assert_screen 'generic-desktop';
 }
 
