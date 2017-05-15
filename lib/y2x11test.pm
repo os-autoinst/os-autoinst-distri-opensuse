@@ -5,15 +5,19 @@ use strict;
 use testapi;
 
 sub launch_yast2_module_x11 {
-    my ($self, $module) = @_;
+    my ($self, $module, %args) = @_;
     $module //= '';
+    my $tag = $args{tag} // "yast2-$module-ui";
+    my $timeout = $args{timeout} // 30;
 
     x11_start_program("xdg-su -c '/sbin/yast2 $module'");
-    if (check_screen "root-auth-dialog") {
+    assert_screen ['root-auth-dialog', $tag], $timeout;
+    if (match_has_tag 'root-auth-dialog') {
         if ($password) {
             type_password;
-            send_key "ret", 1;
+            send_key 'ret';
         }
+        assert_screen $tag, $timeout;
     }
 }
 

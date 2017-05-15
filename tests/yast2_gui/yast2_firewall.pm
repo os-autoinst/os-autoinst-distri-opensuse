@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -19,13 +19,10 @@ use utils;
 
 sub run() {
     my $self = shift;
-
     select_console 'root-console';
     zypper_call('in yast2-http-server apache2 apache2-prefork');
     select_console 'x11', await_console => 0;
-
     $self->launch_yast2_module_x11('firewall');
-    assert_screen "yast2-firewall-ui", 30;
 
     # 	enter page interfaces and change zone for network interface
     assert_and_click("yast2_firewall_config_list");
