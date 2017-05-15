@@ -55,7 +55,7 @@ sub run() {
     send_key "alt-l";
     type_string "reboot\n";
 
-    $self->handle_uefi_boot_disk_workaround() if check_var('MACHINE', 'aarch64');
+    $self->handle_uefi_boot_disk_workaround() if get_var('MACHINE') =~ qr'aarch64';
     assert_screen "grub2";
     send_key 'up';
 
