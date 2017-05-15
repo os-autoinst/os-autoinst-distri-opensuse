@@ -2,8 +2,6 @@ package y2x11test;
 use base "opensusebasetest";
 use strict;
 
-# Base class for all openSUSE tests
-
 use testapi;
 
 sub launch_yast2_module_x11 {
