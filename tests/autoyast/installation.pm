@@ -150,7 +150,7 @@ sub run {
     mouse_hide(1);
     $maxtime = 1000;
     do {
-        assert_screen qw(reboot-after-installation autoyast-expected-error), $maxtime;
+        assert_screen [qw(reboot-after-installation autoyast-expected-error)], $maxtime;
         if (match_has_tag('autoyast-error')) {
             handle_expected_errors('stage2', iteration => $i);
             $num_errors++;
