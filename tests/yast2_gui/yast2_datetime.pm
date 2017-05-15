@@ -30,6 +30,11 @@ sub run() {
     }
     assert_screen 'yast2-timezone-ui', 60;
 
+    # check map and location, other settings can be added later
+    assert_and_click 'yast2-datetime_map';
+    assert_and_click 'yast2-datetime_location';
+    assert_screen 'yast2-timezone-ui', 60;
+
     # OK => Exit
     send_key "alt-o";
 }
