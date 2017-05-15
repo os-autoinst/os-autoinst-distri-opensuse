@@ -22,7 +22,6 @@ use testapi;
 use utils;
 
 my $confirmed_licenses = 0;
-my $stage;
 
 sub accept_license {
     send_key $cmd{accept};
@@ -55,15 +54,6 @@ sub save_logs_and_continue {
     select_console 'installation';
 }
 
-sub save_logs_in_linuxrc {
-    my $name = shift;
-    select_console 'install-shell2', tags => 'install-shell';
-
-    # save_y2logs is not present
-    assert_script_run "tar czf /tmp/logs-$name.tar.bz2 /var/log";
-    upload_logs "/tmp/logs-$name.tar.bz2";
-}
-
 sub handle_expected_errors {
     my (%args) = @_;
     my $i = $args{iteration};
@@ -90,7 +80,6 @@ sub run {
     my $maxtime    = 2000;
     my $i          = 1;
     my $num_errors = 0;
-    $stage = 'stage1';
     mouse_hide(1);
     do {
         assert_screen \@needles, $maxtime;
@@ -106,7 +95,10 @@ sub run {
             die 'Fix invalid SCC reg URL https://trello.com/c/N09TRZxX/968-3-don-t-crash-on-invalid-regurl-on-linuxrc-commandline';
         }
         elsif (match_has_tag('linuxrc-install-fail')) {
-            save_logs_in_linuxrc("stage1_error$i");
+            select_console 'install-shell2', tags => 'install-shell';
+            # save_y2logs is not present
+            assert_script_run "tar czf /tmp/logs-error$i.tar.bz2 /var/log";
+            upload_logs "/tmp/logs-error$i.tar.bz2";
             die "installation ends in linuxrc";
         }
         elsif (match_has_tag('autoyast-confirm')) {
@@ -152,7 +144,6 @@ sub run {
     # CaaSP does not have second stage
     return if is_casp;
 
-    $stage = 'stage2';
     mouse_hide(1);
     $maxtime = 1000;
     do {
@@ -172,7 +163,7 @@ sub test_flags {
 }
 
 sub post_fail_hook {
-    save_logs_and_continue;
+    save_logs_and_continue("post_fail");
 }
 
 1;
