@@ -175,7 +175,7 @@ sub generate_grub {
 sub set_default_boot_sequence {
     my ($self, $hypervisor) = @_;
     # Set default boot order only for xen hypervisor
-    if ($hypervisor = 'xen') {
+    if ($hypervisor eq 'xen') {
         my $cmd
           = "grub=`find /boot/ -name grub.cfg -o -name menu.list`;echo \$grub;index=`grep -iE '^menuentry\|^submenu\|^title' \$grub|grep -ni 'xen'|head -1|awk -F: '{print \$1-1}'`;echo \$index;if [ \$index -ge 0 ];then if [[ \$grub = *\"grub.cfg\"* ]];then echo \$index;grub2-set-default \$index; else sed -i \"s/^default .*/default \$index/;s/set default=.*/set default=\$index/\" \$grub; fi; else echo \"There is no xen boot options\"; fi";
         script_run("$cmd");
