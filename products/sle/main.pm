@@ -1072,6 +1072,10 @@ elsif (get_var("FIPS_TS")) {
         # Setup system into fips mode
         loadtest "fips/fips_setup";
     }
+    elsif (check_var("FIPS_TS", "fipsenv")) {
+        prepare_target();
+        loadtest "fips/openssl/openssl_fips_env";
+    }
     else {
         loadtest "boot/boot_to_desktop";
         # Turn off packagekit, setup $serialdev permission and etc
