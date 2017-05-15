@@ -18,6 +18,7 @@ use testapi qw(is_serial_terminal :DEFAULT);
 use utils;
 use Time::HiRes qw(clock_gettime CLOCK_MONOTONIC);
 use File::Basename 'basename';
+use JSON;
 require bmwqemu;
 
 sub start_result {
@@ -117,8 +118,14 @@ sub parse_openposix_runfile {
 
 sub parse_ltp_log {
     my ($self, $test_log, $fin_msg, $fh) = @_;
-    my $ignored_lines = 0;
-    my ($tconf, $tfail) = (0, 0);
+    my $results = {
+        tpass         => 0,
+        tconf         => 0,
+        tfail         => 0,
+        tbrok         => 0,
+        twarn         => 0,
+        ignored_lines => 0
+    };
 
     for (split(qr/\n/, $test_log)) {
         if (m/^\s+$/) {
@@ -126,121 +133,186 @@ sub parse_ltp_log {
         }
 
         if (m/^(\w+)\s+(\d+)\s+(\w+)\s+:\s+(.*)$/) {
-            if ($3 eq 'TFAIL' || $3 eq 'TBROK') {
-                $tfail = 1;
+            if ($3 eq 'TFAIL') {
+                $results->{tfail}++;
+                print $fh $_;
+            }
+            elsif ($3 eq 'TPASS') {
+                $results->{tpass}++;
+                print $fh $_;
+            }
+            elsif ($3 eq 'TBROK') {
+                $results->{tbrok}++;
                 print $fh $_;
             }
             elsif ($3 eq 'TCONF') {
-                $tconf = 1;
+                $results->{tconf}++;
+                print $fh $_;
+            }
+            elsif ($3 eq 'TWARN') {
+                $results->{twarn}++;
                 print $fh $_;
             }
         }
         elsif (m/$fin_msg(\d+)/) {
-            if ($1 == 0 && ($tfail || $tconf)) {
+            if ($1 == 0 && $results->{tfail} + $results->{tconf} + $results->{tbrok}) {
                 say $fh 'TEST EXIT CODE IS ZERO, YET TFAIL, TCONF OR TBROK WAS SEEN!';
-                $tfail = 1;
             }
-            elsif ($1 == 32 && $tfail) {
+            elsif ($1 == 0) {
+                say $fh "Passed.";
+                $results->{tpass}++;
+            }
+            elsif ($1 == 32 && $results->{tfail} + $results->{tbrok}) {
                 say $fh 'TEST EXIT CODE IS 32 (TCONF), YET TFAIL OR TBROK WAS SEEN!';
-            }
-            elsif ($1 == 4) {
-                say $fh 'Passed with warnings.';
-                $tconf = 0;
             }
             elsif ($1 == 32) {
                 say $fh 'Test process returned TCONF (32).';
-                $tconf = 1;
+                $results->{tconf}++;
             }
-            elsif ($1 != 0) {
-                say $fh "Test process returned none zero value ($1).";
-                $tfail = 1;
+            elsif ($1 == 4 && $results->{tfail} + $results->{tbrok}) {
+                say $fh 'TEST EXIT CODE IS 4 (TWARN), YET TFAIL OR TBROK WAS SEEN!';
+            }
+            elsif ($1 == 4) {
+                say $fh 'Passed with warnings.';
+                $results->{twarn}++;
+                $results->{tpass}++;
             }
             else {
-                say $fh "Passed.";
+                say $fh "Test process returned unkown none zero value ($1).";
+                $results->{tbrok}++;
             }
         }
         else {
-            $ignored_lines++;
+            $results->{ignored_lines}++;
         }
     }
 
-    return ($ignored_lines, $tconf, $tfail);
+    return $results;
 }
 
 sub parse_openposix_log {
     my ($self, $test_log, $fin_msg, $fh) = @_;
-    my ($tconf, $tfail) = (0, 0);
+    my $results = {
+        tpass         => 0,
+        tconf         => 0,
+        tfail         => 0,
+        tbrok         => 0,
+        twarn         => 0,
+        ignored_lines => 0
+    };
 
     $test_log =~ m/$fin_msg(\d+)/;
     print $fh 'Test process returned ';
     if ($1 eq '0') {
         print $fh 'PASSED';
+        $results->{tpass}++;
     }
     elsif ($1 eq '1') {
         print $fh 'FAILED';
-        $tfail = 1;
+        $results->{tfail}++;
     }
     elsif ($1 eq '2') {
         print $fh 'UNRESOLVED';
-        $tfail = 1;
+        $results->{tfail}++;
     }
     elsif ($1 eq '4') {
         print $fh 'UNSUPPORTED';
-        $tconf = 1;
+        $results->{tconf}++;
     }
     elsif ($1 eq '5') {
         print $fh 'UNTESTED';
-        $tconf = 1;
+        $results->{tconf}++;
     }
     else {
         print $fh 'unknown';
-        $tfail = 1;
+        $results->{tbrok}++;
     }
     say $fh " ($1) exit code.";
-    return (0, $tconf, $tfail);
+    return $results;
 }
 
 sub record_ltp_result {
-    my ($self, $name, $test_log, $fin_msg, $duration, $is_posix) = @_;
-    my ($details, $fh) = $self->start_result($name, $name);
-    my $ignored_lines = 0;
-    my ($tconf, $tfail) = (0, 0);
+    my ($self, $suite, $test, $test_log, $fin_msg, $duration, $is_posix) = @_;
+    my ($details, $fh) = $self->start_result($test->{name}, $test->{name});
+    my $results;
+
+    # Top level fields are required for all test suites, unless otherwise
+    # stated. Lower level fields can vary between test suites and even
+    # idividual tests.
+    my $export_details = {
+        # Fully qualified name of the test suite and individual test case
+        test_fqn => "LTP:$suite:$test->{name}",
+        # The environment in which the test was executed. Ideally, when
+        # comparing results, only one of these should change
+        environment => {},
+        # Simplified indicator of the test result. It is only true if the test
+        # passed successfully
+        status => 'fail',
+        # Test suite specific data
+        test => {
+            result   => '',
+            duration => $duration,
+            log      => $test_log
+        }};
 
     unless (defined $test_log) {
         print $fh "This test took too long to complete! It was running for $duration seconds.";
         $details->{result} = 'fail';
         close $fh;
         push @{$self->{details}}, $details;
-        save_memory_dump(filename => $name);
-        die "Can't continue; timed out waiting for LTP test case which may still be running or the OS may have crashed!";
+
+        $export_details->{test}->{result} = 'timeout';
+        return (1, $export_details);
     }
 
     if ($is_posix) {
-        ($ignored_lines, $tconf, $tfail) = $self->parse_openposix_log($test_log, $fin_msg, $fh);
+        $results = $self->parse_openposix_log($test_log, $fin_msg, $fh);
     }
     else {
-        ($ignored_lines, $tconf, $tfail) = $self->parse_ltp_log($test_log, $fin_msg, $fh);
+        $results = $self->parse_ltp_log($test_log, $fin_msg, $fh);
     }
 
-    if ($tfail) {
-        $details->{result} = 'fail';
-        $self->{result}    = 'fail';
+    if ($results->{tbrok}) {
+        $details->{result}                = 'fail';
+        $self->{result}                   = 'fail';
+        $export_details->{test}->{result} = 'TBROK';
     }
-    elsif ($tconf) {
+    elsif ($results->{tfail}) {
+        $details->{result}                = 'fail';
+        $self->{result}                   = 'fail';
+        $export_details->{test}->{result} = 'TFAIL';
+    }
+    elsif ($results->{tconf}) {
         $details->{result} = 'unk';
+        $export_details->{test}->{result} = 'TCONF';
+    }
+    else {
+        $export_details->{status} = 'pass';
+        $export_details->{test}->{result} = 'TPASS';
     }
 
     say $fh "Test took approximately $duration seconds";
 
-    if ($ignored_lines > 0) {
-        print $fh "Some test output could not be parsed: $ignored_lines lines were ignored.";
+    if ($results->{ignored_lines} > 0) {
+        print $fh "Some test output could not be parsed: $results->{ignored_lines} lines were ignored.";
     }
 
     $self->commit_result($details, $fh);
+    return (0, $export_details);
 }
 
 sub thetime {
     return clock_gettime(CLOCK_MONOTONIC);
+}
+
+sub export_to_json {
+    my ($test_result_export) = @_;
+    my $export_file = 'assets_public/result_array.json';
+
+    if (!-d 'assets_public') {
+        mkdir('assets_public');
+    }
+    bmwqemu::save_json_file($test_result_export, $export_file);
 }
 
 sub run {
@@ -253,6 +325,11 @@ sub run {
     my $is_posix    = $cmd_file =~ m/^\s*openposix\s*$/i;
     my $is_network  = $cmd_file =~ m/^\s*net\./;
     my $tmp;
+
+    my $test_result_export = {
+        format  => 'result_array:v1',
+        results => []};
+
     my @tests;
 
     if ($is_posix) {
@@ -264,7 +341,27 @@ sub run {
 
     assert_script_run('cd $LTPROOT/testcases/bin');
 
-    script_run('$LTPROOT/ver_linux');
+    my $ver_linux   = script_output('$LTPROOT/ver_linux');
+    my $environment = {
+        product     => get_var('DISTRI') . ':' . get_var('VERSION'),
+        revision    => get_var('BUILD'),
+        arch        => get_var('WORKER_CLASS'),
+        kernel      => '',
+        libc        => '',
+        gcc         => '',
+        harness     => 'SUSE OpenQA',
+        ltp_version => ''
+    };
+    if ($ver_linux =~ qr'^Linux\s+(.*?)\s*$'m) {
+        $environment->{kernel} = $1;
+    }
+    if ($ver_linux =~ qr'^Linux C Library\s*>?\s*(.*?)\s*$'m) {
+        $environment->{libc} = $1;
+    }
+    if ($ver_linux =~ qr'^Gnu C\s*(.*?)\s*$'m) {
+        $environment->{gcc} = $1;
+    }
+    $environment->{ltp_version} = script_output('touch /opt/ltp_version; cat /opt/ltp_version');
 
     if ($is_network) {
         # poo#18762: Sometimes there is physical NIC which is not configured.
@@ -369,15 +466,26 @@ EOF
             type_string("($cmd_text) | tee /dev/$serialdev\n");
         }
         my $test_log = wait_serial(qr/$fin_msg\d+/, $timeout, 0, record_output => 1);
-        $self->record_ltp_result($test->{name}, $test_log, $fin_msg, thetime() - $start_time, $is_posix);
+        my ($timed_out, $result_export) = $self->record_ltp_result($cmd_file, $test, $test_log, $fin_msg, thetime() - $start_time, $is_posix);
+
+        $result_export->{environment} = $environment;
+        push(@{$test_result_export->{results}}, $result_export);
+        if ($timed_out) {
+            export_to_json($test_result_export);
+            if (get_var('LTP_DUMP_MEMORY_ON_TIMEOUT')) {
+                save_memory_dump(filename => $test->{name});
+            }
+            die "Can't continue; timed out waiting for LTP test case which may still be running or the OS may have crashed!";
+        }
 
         if ($set_rhost) {
             assert_script_run('unset RHOST');
         }
     }
 
-    script_run('[ "$ENABLE_WICKED" ] && systemctl enable wicked');
+    export_to_json($test_result_export);
 
+    script_run('[ "$ENABLE_WICKED" ] && systemctl enable wicked');
     script_run('journalctl --no-pager -p warning');
 }
 
@@ -430,6 +538,12 @@ This overrides LTP_COMMAND_PATTERN.
 =head2 LTP_TIMEOUT
 
 The time in seconds which each test command has to run.
+
+=head2 LTP_DUMP_MEMORY_ON_TIMEOUT
+
+If set will request that the SUT's memory is dumped if the timer in this test
+module runs out. This is does not include timeouts which are built into the
+LTP test itself.
 
 =cut
 
