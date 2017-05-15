@@ -34,8 +34,8 @@ sub accept_license {
 }
 
 sub save_logs_and_continue {
-    my ($name) = @_;
-    $name //= $stage;
+    my ($suffix) = @_;
+    my $name = $stage . $suffix;
     # save logs and continue
     select_console 'install-shell';
 
@@ -65,11 +65,11 @@ sub save_logs_in_linuxrc {
 }
 
 sub handle_expected_errors {
-    my ($stage, %args) = @_;
+    my (%args) = @_;
     my $i = $args{iteration};
     record_info('Expected error', 'Iteration = ' . $i);
     send_key "alt-s";    #stop
-    save_logs_and_continue("stage1_error$i");
+    save_logs_and_continue("_expected_error$i");
     $i++;
     send_key "tab";      #continue
     send_key "ret";
@@ -96,7 +96,7 @@ sub run {
         assert_screen \@needles, $maxtime;
         #repeat until timeout or login screen
         if (match_has_tag('autoyast-error')) {
-            handle_expected_errors('stage1', iteration => $i);
+            handle_expected_errors(iteration => $i);
             $num_errors++;
         }
         elsif (match_has_tag('linuxrc-install-fail')) {
@@ -152,7 +152,7 @@ sub run {
     do {
         assert_screen [qw(reboot-after-installation autoyast-expected-error)], $maxtime;
         if (match_has_tag('autoyast-error')) {
-            handle_expected_errors('stage2', iteration => $i);
+            handle_expected_errors(iteration => $i);
             $num_errors++;
         }
     } until match_has_tag 'reboot-after-installation';
