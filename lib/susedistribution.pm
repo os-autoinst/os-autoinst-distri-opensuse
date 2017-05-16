@@ -5,7 +5,7 @@ use strict;
 use utils 'type_string_slow';
 use utils 'ensure_unlocked_desktop';
 
-# Base class for all openSUSE tests
+# Base class implementation of distribution class necessary for testapi
 
 # don't import script_run - it will overwrite script_run from distribution and create a recursion
 use testapi qw(send_key %cmd assert_screen check_screen check_var get_var save_screenshot

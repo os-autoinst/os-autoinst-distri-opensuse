@@ -2,8 +2,6 @@
 package x11test;
 use base "opensusebasetest";
 
-# Base class for all openSUSE tests
-
 use strict;
 use testapi;
 use utils 'type_string_slow';

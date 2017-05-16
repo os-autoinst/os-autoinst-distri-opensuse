@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -20,9 +20,7 @@ use testapi;
 
 sub run() {
     my $self   = shift;
-    my $module = "timezone";
-
-    $self->launch_yast2_module_x11($module);
+    $self->launch_yast2_module_x11('timezone', timeout => 60);
     assert_screen [qw(yast2-datetime-ui yast2-datetime_ntp-conf)];
     if (match_has_tag 'yast2-datetime_ntp-conf') {
         send_key 'alt-d';
