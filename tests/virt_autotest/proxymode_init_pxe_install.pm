@@ -23,7 +23,7 @@ sub run() {
 
     die "There is no ipmi ip address defined variable IPMI_HOSTNAME"       unless $ipmi_machine;
     die "There is no re-install product cmd defined variable HOST_IMG_URL" unless $image_path;
-    die "There is no autoyase file defined variable AUTOYAST_FILE"         unless $autoyast;
+    die "There is no autoyast file defined variable AUTOYAST_FILE"         unless $autoyast;
     ## Login to command line of pxe management
     $self->connect_slave($ipmi_machine);
     $self->restart_host($ipmi_machine);
