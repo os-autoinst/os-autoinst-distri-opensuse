@@ -26,6 +26,7 @@ sub run() {
         $arch = "x86_64";
     }
     my $chrome_url = "https://dl.google.com/linux/direct/google-chrome-stable_current_$arch.rpm";
+    select_console('x11');
 
     mouse_hide;
 

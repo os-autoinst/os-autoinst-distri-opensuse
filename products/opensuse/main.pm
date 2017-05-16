@@ -629,14 +629,6 @@ sub load_x11tests() {
         loadtest "x11/gnucash";
         loadtest "x11/hexchat";
         loadtest "x11/vlc";
-        # chrome pulls in lsb which creates /media (bug#915562),
-        # which in turn breaks the thunar test as then suddenly the
-        # content of / looks different depending on whether the
-        # chrome test succeeded or not. So let's put that kind of
-        # tests at the end.
-        if (chromestep_is_applicable()) {
-            loadtest "x11/chrome";
-        }
     }
     # Need to skip shutdown to keep backend alive if running rollback tests after migration
     unless (get_var('ROLLBACK_AFTER_MIGRATION')) {
