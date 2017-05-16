@@ -24,14 +24,15 @@ sub run {
     type_string("shutdown -r now\n");
     reset_consoles;
 
-    #obsoletes installation/autoyast_reboot.pm
     assert_screen("bios-boot",  900);
     assert_screen("bootloader", 20);
 
     if (check_var("BOOTFROM", "d")) {
         assert_screen("inst-bootmenu", 60);
     }
-    else { assert_screen("autoyast-boot", 20); }
+    else {
+        assert_screen 'grub2';
+    }
 }
 
 1;
