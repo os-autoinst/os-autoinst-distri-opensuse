@@ -8,11 +8,11 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add YaST2 UI tests
+# Summary: yast2_hostnames check hostnames and add/delete hostsnames
 #    Make sure those yast2 modules can opened properly. We can add more
 #    feature test against each module later, it is ensure it will not crashed
 #    while launching atm.
-# G-Maintainer: Max Lin <mlin@suse.com>
+# Maintainer: Zaoliang Luo <zluo@suse.com>
 
 use base "y2x11test";
 use strict;
@@ -22,9 +22,25 @@ sub run() {
     my $self   = shift;
     my $module = "host";
 
+    select_console 'root-console';
+    #	add 1 entry to /etc/hosts and edit it later
+    script_run "echo '80.92.65.530    n-tv.de ntv' >> /etc/hosts";
+    select_console 'x11', await_console => 0;
+
     $self->launch_yast2_module_x11($module);
+
+    assert_and_click "yast2_hostnames_added";
+    send_key 'alt-i';
+    send_key 'alt-t';
+    type_string 'download-srv';
+    send_key 'alt-h';
+    type_string 'download.opensuse.org';
+    send_key 'alt-i';
+    type_string '195.135.221.134';
+    assert_and_click 'yast2_hostnames_changed_ok';
     assert_screen "yast2-$module-ui", 30;
-    send_key "alt-o";    # OK => Exit
+    #	OK => Exit
+    send_key "alt-o";
 }
 
 1;
