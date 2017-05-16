@@ -93,6 +93,7 @@ sub cleanup_needles {
 
     if (!is_jeos) {
         unregister_needle_tags('ENV-FLAVOR-JeOS-for-kvm');
+        unregister_needle_tags('ENV-JEOS-1');
     }
 
     if (!is_casp) {
