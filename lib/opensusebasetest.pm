@@ -345,7 +345,9 @@ sub wait_boot {
 
     # On Xen we have to re-connect to serial line as Xen closed it after restart
     if (check_var('VIRSH_VMM_FAMILY', 'xen')) {
+        wait_serial("reboot: (Restarting system|System halted)") if check_var('VIRSH_VMM_TYPE', 'linux');
         console('svirt')->attach_to_running;
+        select_console('sut');
     }
 
     # on s390x svirt is encryption unlocked with workaround_type_encrypted_passphrase before this wait_boot
