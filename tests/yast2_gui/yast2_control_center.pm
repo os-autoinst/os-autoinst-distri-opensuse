@@ -396,8 +396,6 @@ sub start_openldap {
         assert_and_click 'yast2_control-center_openldap-mirrormode-configuration';
         assert_screen 'yast2_control-center_openldap-mirrormode-configuration_cancel', 90;
         send_key 'alt-c';
-        assert_screen 'yast2_control-center_openldap-mirrormode-configuration_error';
-        send_key 'alt-o';
         assert_screen 'yast2-control-center-ui';
     }
 }
@@ -465,8 +463,10 @@ sub start_tftp_server {
     }
     elsif (check_var('DISTRI', 'sle')) {
         assert_and_click 'yast2_control-center_tftp-server-configuration';
-        assert_screen 'yast2_control-center_tftp-server-install';
-        send_key 'alt-i';
+        assert_screen [qw(yast2_control-center_tftp-server-install yast2_control-center_tftp-server-configuration_ready)];
+        if (match_has_tag 'yast2_control-center_tftp-server-install') {
+            send_key 'alt-i';
+        }
         assert_screen 'yast2_control-center_tftp-server-configuration_ready', 60;
         send_key 'alt-o';
     }
