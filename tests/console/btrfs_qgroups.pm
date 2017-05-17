@@ -15,6 +15,7 @@
 use base "consoletest";
 use strict;
 use testapi;
+use utils 'get_secondary_disk_devname';
 
 my $dest = "/mnt/qg";
 
@@ -24,7 +25,8 @@ sub run() {
 
     # Set up
     assert_script_run "mkdir $dest";
-    assert_script_run "mkfs.btrfs -f /dev/vdb && mount /dev/vdb $dest && cd $dest";
+    my $hdd2 = get_secondary_disk_devname;
+    assert_script_run "mkfs.btrfs -f /dev/$hdd2 && mount /dev/$hdd2 $dest && cd $dest";
     assert_script_run "btrfs quota enable .";
 
     # Create subvolumes, qgroups, assigns and limits
@@ -84,7 +86,7 @@ sub run() {
     assert_script_run 'rm e/file_*';
 
     assert_script_run "cd; umount $dest";
-    assert_script_run "btrfsck /dev/vdb";
+    assert_script_run "btrfsck /dev/$hdd2";
 }
 
 1;

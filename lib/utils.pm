@@ -60,6 +60,7 @@ our @EXPORT = qw(
   service_action
   assert_gui_app
   install_all_from_repo
+  get_secondary_disk_devname
 );
 
 
@@ -910,6 +911,20 @@ sub install_all_from_repo {
     }
     my $exec_str = sprintf("zypper se -ur %s -t package | awk '{print \$2}' | sed '1,/|/d' %s | xargs zypper -n in", $repo, $grep_str);
     assert_script_run($exec_str);
+}
+
+=head2 get_secondary_disk_devname
+Returns device name of secondary disk.
+=cut
+sub get_secondary_disk_devname {
+    my $hdd2 = 'vdb';    # KVM
+    if (check_var('VIRSH_VMM_FAMILY', 'xen')) {
+        $hdd2 = 'xvdb';    # Xen HVM & PV
+    }
+    elsif (check_var('VIRSH_VMM_FAMILY', 'hyperv') or check_var('VIRSH_VMM_FAMILY', 'vmware')) {
+        $hdd2 = 'sdb';     # Hyper-V, VMware, default
+    }
+    return $hdd2;
 }
 
 1;
