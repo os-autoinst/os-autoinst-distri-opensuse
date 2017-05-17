@@ -8,11 +8,11 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add YaST2 UI tests
+# Summary: yast2_lang.pm checks basic settings of language
 #    Make sure those yast2 modules can opened properly. We can add more
 #    feature test against each module later, it is ensure it will not crashed
 #    while launching atm.
-# G-Maintainer: Max Lin <mlin@suse.com>
+# Maintainer: Zaoliang Luo <zluo@suse.com>
 
 use base "y2x11test";
 use strict;
@@ -24,7 +24,21 @@ sub run() {
 
     $self->launch_yast2_module_x11($module);
     assert_screen "yast2-$module-ui", 60;
-    send_key "alt-o";    # OK => Exit
+
+    #	check language details and change detailed locale setting
+    assert_and_click 'yast2-lang_details';
+    assert_and_click 'yast2-lang_detailed-locale-setting';
+    assert_and_click 'yast2-lang_detailed-locale-setting_en_GB';
+    assert_screen 'yast2-lang_detailed-locale-setting_changed';
+    send_key 'alt-o';
+
+    #	change adapt time zone to German
+    assert_and_click 'yast2-lang_adapt-timezone';
+    assert_and_click 'yast2-lang_secondary-language';
+    assert_screen 'yast2-lang_settings_done';
+
+    #	Now it will install required language packages and exit
+    send_key "alt-o";
 }
 
 1;
