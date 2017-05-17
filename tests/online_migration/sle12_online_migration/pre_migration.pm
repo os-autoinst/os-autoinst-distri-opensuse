@@ -14,6 +14,7 @@ use base "consoletest";
 use strict;
 use testapi;
 use utils;
+use migration;
 
 sub set_scc_proxy_url() {
     if (my $u = get_var('SCC_PROXY_URL')) {
@@ -58,8 +59,7 @@ sub run() {
     # set scc proxy url here to perform online migration via scc proxy
     set_scc_proxy_url;
 
-    # disable installation repos before online migration
-    assert_script_run "zypper mr -d -l";
+    disable_installation_repos;
 
     # according to comment 19 of bsc#985647, uninstall all kgraft-patch* packages prior to migration as a workaround to
     # solve conflict during online migration with live patching addon
