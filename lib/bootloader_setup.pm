@@ -59,7 +59,6 @@ sub boot_local_disk {
         }
     }
     if (check_var('ARCH', 'aarch64') and get_var('UEFI')) {
-        record_soft_failure 'bsc#1022064';
         assert_screen 'boot-firmware';
     }
     send_key 'ret';
