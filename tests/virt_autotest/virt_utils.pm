@@ -43,7 +43,7 @@ sub set_serialdev() {
         }
     }
     else {
-        $serialdev = "ttyS1";
+        $serialdev = get_var('SERIALDEV', 'ttyS1');
     }
 
     if (match_has_tag("grub1")) {

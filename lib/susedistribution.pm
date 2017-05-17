@@ -11,7 +11,7 @@ use utils 'ensure_unlocked_desktop';
 use testapi qw(send_key %cmd assert_screen check_screen check_var get_var save_screenshot
   match_has_tag set_var type_password type_string wait_idle wait_serial
   mouse_hide send_key_until_needlematch record_soft_failure
-  wait_still_screen wait_screen_change);
+  wait_still_screen wait_screen_change get_required_var);
 
 
 sub handle_password_prompt {
@@ -261,6 +261,18 @@ sub init_consoles {
         $self->add_console('x11',            'tty-console', {tty => 7});
     }
 
+    if (check_var('BACKEND', 'ipmi')) {
+        $self->add_console(
+            'root-ssh',
+            'ssh-xterm',
+            {
+                hostname => get_required_var('SUT_IP'),
+                password => $testapi::password,
+                user     => 'root',
+                serial   => 'mkfifo /dev/sshserial; tail -f /dev/sshserial'
+            });
+    }
+
     if (check_var('BACKEND', 's390x') || get_var('S390_ZKVM')) {
         my $hostname = get_var('VIRSH_GUEST');
 
@@ -376,7 +388,7 @@ sub activate_console {
         }
     }
 
-    $console =~ m/^(\w+)-(console|virtio-terminal)/;
+    $console =~ m/^(\w+)-(console|virtio-terminal|ssh)/;
     my ($name, $user, $type) = ($1, $1, $2);
     $name = $user //= '';
     $type //= '';
@@ -391,7 +403,7 @@ sub activate_console {
         # different handling for ssh consoles
         if (check_var('BACKEND', 's390x') || get_var('S390_ZKVM')) {
             # different console-behaviour for s390x
-            type_string("su - $user\n") unless ($user eq 'root');
+            type_string("su - $user\n") if $user ne 'root';
         }
         else {
             my $nr = 4;
@@ -418,8 +430,10 @@ sub activate_console {
     elsif ($type eq 'virtio-terminal') {
         serial_terminal::login($user);
     }
-    elsif ($console eq 'svirt') {
-        $self->set_standard_prompt('root');
+    elsif ($type eq 'ssh' || $console eq 'svirt') {
+        $user ||= 'root';
+        type_string("su - $user\n") if $user ne 'root';
+        $self->set_standard_prompt($user);
     }
 }
 
@@ -445,7 +459,7 @@ sub console_selected {
     my ($self, $console, %args) = @_;
     $args{await_console} //= 1;
     $args{tags}          //= $console;
-    $args{ignore}        //= qr{sut|root-virtio-terminal|iucvconn|svirt};
+    $args{ignore}        //= qr{sut|root-virtio-terminal|iucvconn|svirt|root-ssh};
     return unless $args{await_console};
     return if $args{tags} =~ $args{ignore};
     # x11 needs special handling because we can not easily know if screen is
