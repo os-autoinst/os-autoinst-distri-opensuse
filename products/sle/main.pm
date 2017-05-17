@@ -87,8 +87,13 @@ sub cleanup_needles {
         unregister_needle_tags("ENV-FLAVOR-Desktop-DVD");
     }
 
+    if (!is_sles4sap) {
+        unregister_needle_tags("ENV-FLAVOR-SAP-DVD");
+    }
+
     if (!is_jeos) {
         unregister_needle_tags('ENV-FLAVOR-JeOS-for-kvm');
+        unregister_needle_tags('ENV-JEOS-1');
     }
 
     if (!is_casp) {
