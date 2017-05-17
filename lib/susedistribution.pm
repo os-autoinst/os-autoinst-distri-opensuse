@@ -231,7 +231,8 @@ sub init_consoles {
     # avoid complex boolean logic by setting interim variables
     if (check_var('BACKEND', 'svirt')) {
         if (check_var('ARCH', 's390x')) {
-            set_var('S390_ZKVM', 1);
+            set_var('S390_ZKVM',         1);
+            set_var('SVIRT_VNC_CONSOLE', 'x11');
         }
     }
 
@@ -252,6 +253,7 @@ sub init_consoles {
                 port     => $port,
                 password => $testapi::password
             });
+        set_var('SVIRT_VNC_CONSOLE', 'sut');
     }
 
     if (get_var('BACKEND', '') =~ /qemu|ipmi|generalhw/ || (check_var('BACKEND', 'svirt') && !get_var('S390_ZKVM'))) {
