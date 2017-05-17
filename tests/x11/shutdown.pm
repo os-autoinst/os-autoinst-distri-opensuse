@@ -129,7 +129,8 @@ sub run() {
     }
 
     if (check_var('BACKEND', 'svirt')) {
-        console('x11')->disable_vnc_stalls;
+        my $con = get_required_var('SVIRT_VNC_CONSOLE');
+        console($con)->disable_vnc_stalls;
     }
     $self->{await_shutdown} = 1;
     assert_shutdown;
