@@ -17,7 +17,8 @@ use mmapi;
 
 sub run() {
     # Number of parallel jobs
-    my $jobs = 4;
+    my $children = get_children;
+    my $jobs     = 1 + keys %$children;
 
     barrier_create("VELUM_STARTED",     $jobs);        # Velum node is ready
     barrier_create("WORKERS_INSTALLED", $jobs - 1);    # Nodes are installed
