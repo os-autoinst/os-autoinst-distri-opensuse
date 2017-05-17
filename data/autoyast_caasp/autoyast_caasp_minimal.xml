@@ -12,8 +12,8 @@
       <package>caasp-release</package>
     </packages>
     <patterns config:type="list">
-      <pattern>MicroOS</pattern>
-      <pattern>Stack</pattern>
+      <pattern>SUSE-MicroOS</pattern>
+      <pattern>SUSE-CaaSP-Stack</pattern>
     </patterns>
   </software>
   <users config:type="list">
