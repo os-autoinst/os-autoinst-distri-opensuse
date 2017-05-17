@@ -1250,6 +1250,10 @@ elsif (get_var('HPC')) {
         loadtest 'boot/boot_to_desktop';
         loadtest 'hpc/enable_in_zypper' if (check_var('HPC', 'enable'));
         loadtest 'hpc/conman'           if (check_var('HPC', 'conman'));
+        if (check_var('HPC', 'powerman')) {
+            loadtest 'console/hostname';
+            loadtest 'hpc/powerman';
+        }
         loadtest 'console/install_all_from_repository' if (get_var('INSTALL_ALL_REPO'));
     }
 }
