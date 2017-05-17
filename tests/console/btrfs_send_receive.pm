@@ -17,6 +17,7 @@ use utils;
 
 my $src  = "/root/sr";
 my $dest = "/mnt/sr";
+my $disk = get_extra_disk;
 
 sub generate_data {
     assert_script_run "cd $src/sv";
@@ -50,7 +51,7 @@ sub run() {
     assert_script_run "mkdir $src";
     assert_script_run "btrfs subvolume create $src/sv";
     assert_script_run "mkdir $dest";
-    assert_script_run "mkfs.btrfs -f /dev/vdb && mount /dev/vdb $dest";
+    assert_script_run "mkfs.btrfs -f $disk && mount $disk $dest";
     #make sure that pax is installed
     zypper_call('in -C pax');
 
@@ -67,7 +68,7 @@ sub run() {
         assert_script_run "btrfs send -p $src/snap" . ($i - 1) . " $src/snap$i | btrfs receive $dest";
         compare_data $i;
     }
-    assert_script_run("umount -fl /dev/vdb");
+    assert_script_run("umount -fl $disk");
 }
 
 1;
