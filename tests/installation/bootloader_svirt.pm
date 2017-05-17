@@ -79,6 +79,7 @@ sub run() {
 
     my $hdddir = '/var/lib/openqa/share/factory/hdd';
     my $size_i = get_var('HDDSIZEGB', '24');
+    my $dev_id = 'b';
     # In JeOS we have the disk, we just need to deploy it, for the rest
     # - installs from network and ISO media - we have to create it.
     if (my $hddfile = get_var('HDD_1')) {
@@ -90,14 +91,25 @@ sub run() {
                 bootorder   => 1,
                 backingfile => 1
             });
-        if (my $extra_hdd = get_var('HDD_2')) {
-            my $extra_hddpath = copy_image($extra_hdd, $hdddir);
-            $svirt->add_disk(
-                {
-                    file => ($vmm_family eq 'vmware') ? basename($extra_hddpath) : $extra_hddpath,
-                    dev_id      => 'b',
-                    backingfile => 1
-                });
+        foreach my $n (2 .. get_var('NUMDISKS')) {
+            if (my $extra_hdd = get_var('HDD_' . $n)) {
+                my $extra_hddpath = copy_image($extra_hdd, $hdddir);
+                $svirt->add_disk(
+                    {
+                        file => ($vmm_family eq 'vmware') ? basename($extra_hddpath) : $extra_hddpath,
+                        dev_id      => $dev_id,
+                        backingfile => 1
+                    });
+            }
+            else {
+                $svirt->add_disk(
+                    {
+                        size   => $size_i . 'G',
+                        create => 1,
+                        dev_id => $dev_id,
+                    });
+            }
+            $dev_id = chr((ord $dev_id) + 1);    # return next letter in alphabet
         }
     }
     else {
@@ -110,6 +122,7 @@ sub run() {
             });
     }
 
+    $dev_id = 'c' if (ord($dev_id) < ord('c'));
     my $isodir = '/var/lib/openqa/share/factory/iso';
     # In JeOS, CaaSP, and netinstall we don't have ISO media, for the rest we have to attach it.
     if (!get_var('NETBOOT') and !is_jeos and !is_casp) {
@@ -119,12 +132,12 @@ sub run() {
             {
                 cdrom     => 1,
                 file      => ($vmm_family eq 'vmware') ? basename($isopath) : $isopath,
-                dev_id    => 'b',
+                dev_id    => $dev_id,
                 bootorder => 2
             });
+        $dev_id = chr((ord $dev_id) + 1);    # return next letter in alphabet
 
         # Add addon media (if present at all)
-        my $dev_id = 'c';
         foreach my $n (1 .. 9) {
             if (my $addon_isofile = get_var("ISO_" . $n)) {
                 my $addon_isopath = copy_image($addon_isofile, $isodir);
