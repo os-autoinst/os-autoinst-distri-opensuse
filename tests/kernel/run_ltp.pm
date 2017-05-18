@@ -176,7 +176,6 @@ sub parse_ltp_log {
             elsif ($1 == 4) {
                 say $fh 'Passed with warnings.';
                 $results->{twarn}++;
-                $results->{tpass}++;
             }
             else {
                 say $fh "Test process returned unkown none zero value ($1).";
