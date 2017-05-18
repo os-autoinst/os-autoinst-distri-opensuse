@@ -22,17 +22,19 @@ use testapi;
 
 sub run() {
     my $self = shift;
-    $self->system_login();
+    $self->wait_boot;
+    select_console('root-console');
     # Copy current kernel and rename it
-    $_ = $self->qa_script_output("uname -r", 10);
+    $_ = script_output("uname -r", 120);
     s/-default$/-kexec/;
     my $kernel_file = "vmlinuz-$_";
     my $initrd_file = "initrd-$_";
     assert_script_run("cp /boot/vmlinu*-`uname -r` /boot/$kernel_file");
     assert_script_run("cp /boot/initrd-`uname -r` /boot/$initrd_file");
     # kernel cmdline parameter
-    $_ = $self->qa_script_output("cat /proc/cmdline");
+    $_ = script_output("cat /proc/cmdline", 120);
     s/-default /-kexec /;
+    s/ splash=silent//;
     my $cmdline = "$_ debug";
     # kexec -l
     assert_script_run("kexec -l /boot/$kernel_file --initrd=/boot/$initrd_file --command-line='$cmdline'");
@@ -43,7 +45,7 @@ sub run() {
     reset_consoles();
     select_console("root-console");
     # Check kernel cmdline parameter
-    my $result = $self->qa_script_output("cat /proc/cmdline");
+    my $result = script_output("cat /proc/cmdline", 120);
     print "Checking kernel boot parameter...\nCurrent:  $result\nExpected: $cmdline\n";
     if ($cmdline ne $result) {
         die "kexec failed";
