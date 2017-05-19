@@ -1333,9 +1333,7 @@ else {
         load_boot_tests();
         loadtest "jeos/firstrun";
         loadtest "jeos/grub2_gfxmode";
-        if (check_var('VIRSH_VMM_FAMILY', 'xen')) {
-            loadtest "installation/redefine_svirt_domain";
-        }
+        loadtest 'jeos/revive_xen_domain' if check_var('VIRSH_VMM_FAMILY', 'xen');
         loadtest "jeos/diskusage";
         loadtest "jeos/root_fs_size";
         loadtest "jeos/mount_by_label";
