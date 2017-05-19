@@ -24,7 +24,9 @@ sub run() {
 
     # Set up
     assert_script_run "mkdir $dest";
-    assert_script_run "mkfs.btrfs -f /dev/vdb && mount /dev/vdb $dest && cd $dest";
+    # choose the disk without a partition table for btrfs experiments
+    assert_script_run 'disk=$(parted --machine -l |& sed -n \'s@^\(/dev/vd[ab]\):.*unknown.*$@\1@p\')';
+    assert_script_run "mkfs.btrfs -f \$disk && mount \$disk $dest && cd $dest";
     assert_script_run "btrfs quota enable .";
 
     # Create subvolumes, qgroups, assigns and limits
@@ -84,7 +86,7 @@ sub run() {
     assert_script_run 'rm e/file_*';
 
     assert_script_run "cd; umount $dest";
-    assert_script_run "btrfsck /dev/vdb";
+    assert_script_run 'btrfsck $disk';
 }
 
 1;
