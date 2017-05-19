@@ -458,7 +458,7 @@ sub load_extra_tests() {
         loadtest "console/update_alternatives";
         # start extra console tests from here
         # Audio device is not supported on ppc64le, JeOS, and Xen PV
-        if (!get_var("OFW") && !is_jeos && !check_var('VIRSH_VMM_TYPE', 'linux')) {
+        if (!get_var("OFW") && !is_jeos && !check_var('VIRSH_VMM_FAMILY', 'xen')) {
             loadtest "console/aplay";
         }
         if (get_var("FILESYSTEM", "btrfs") eq "btrfs") {
