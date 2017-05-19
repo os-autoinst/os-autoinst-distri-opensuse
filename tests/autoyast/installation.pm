@@ -1,4 +1,4 @@
-# Copyright (C) 2015 SUSE Linux GmbH
+# Copyright (C) 2015-2017 SUSE Linux GmbH
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -77,7 +77,7 @@ sub handle_expected_errors {
 }
 
 sub run {
-    my @needles = ("bios-boot", "autoyast-error", "reboot-after-installation", "linuxrc-install-fail");
+    my @needles = ("bios-boot", "autoyast-error", "reboot-after-installation", "linuxrc-install-fail", 'scc-invalid-url');
     push @needles, "autoyast-confirm"        if get_var("AUTOYAST_CONFIRM");
     push @needles, "autoyast-postpartscript" if get_var("USRSCR_DIALOG");
     if (get_var("AUTOYAST_LICENSE")) {
@@ -98,6 +98,9 @@ sub run {
         if (match_has_tag('autoyast-error')) {
             handle_expected_errors(iteration => $i);
             $num_errors++;
+        }
+        elsif (match_has_tag('scc-invalid-url')) {
+            die 'Fix invalid SCC reg URL https://trello.com/c/N09TRZxX/968-3-don-t-crash-on-invalid-regurl-on-linuxrc-commandline';
         }
         elsif (match_has_tag('linuxrc-install-fail')) {
             save_logs_in_linuxrc("stage1_error$i");
