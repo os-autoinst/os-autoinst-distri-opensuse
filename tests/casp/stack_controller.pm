@@ -40,6 +40,8 @@ sub velum_signup {
 sub velum_certificates {
     assert_screen 'velum-certificates-page';
     for (1 .. 5) { send_key 'tab' }
+    type_string "node1.openqa.test";
+    send_key 'tab';
     type_string "SUSE";
     send_key 'tab';
     type_string "QA";
