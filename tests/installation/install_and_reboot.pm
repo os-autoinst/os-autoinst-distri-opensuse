@@ -17,7 +17,7 @@ use strict;
 use base "y2logsstep";
 use testapi;
 use lockapi;
-
+use utils;
 
 sub handle_livecd_screenlock {
     record_soft_failure 'boo#994044: Kde-Live net installer is interrupted by screenlock';
@@ -147,19 +147,7 @@ sub run() {
         send_key 'alt-o';    # Reboot
     };
 
-    if (check_var('VIRSH_VMM_FAMILY', 'xen')) {
-        # VNC connection to SUT (the 'sut' console) is terminated on Xen via svirt
-        # backend and we have to re-connect *after* the restart, otherwise we end up
-        # with stalled VNC connection. The tricky part is to know *when* the system
-        # is already booting.
-        reset_consoles;
-        select_console 'svirt';
-        sleep 4;
-        select_console 'sut';
-        # After restart connection to serial console seems to be closed. We have to
-        # open it again.
-        console('svirt')->attach_to_running({stop_vm => 1});
-    }
+    xen_restore_system;
 }
 
 1;
