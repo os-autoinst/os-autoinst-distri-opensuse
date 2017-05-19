@@ -59,7 +59,7 @@ sub loadtest {
 
 sub load_testdir {
     my ($testsuite) = @_;
-    my $testdir = testapi::get_var("CASEDIR") . "/tests/$testsuite";
+    my $testdir = testapi::get_required_var('CASEDIR') . "/tests/$testsuite";
     map { loadtest "$testsuite/" . basename($_, '.pm') } glob("$testdir/*.pm");
 }
 

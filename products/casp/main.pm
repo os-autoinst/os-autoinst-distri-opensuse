@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use testapi qw(check_var get_var set_var);
+use testapi qw(check_var get_var get_required_var set_var);
 use needle;
 use File::Basename;
 
@@ -28,7 +28,7 @@ sub cleanup_needles {
 }
 $needle::cleanuphandler = \&cleanup_needles;
 
-my $distri = testapi::get_var('CASEDIR') . '/lib/susedistribution.pm';
+my $distri = testapi::get_required_var('CASEDIR') . '/lib/susedistribution.pm';
 require $distri;
 testapi::set_distribution(susedistribution->new());
 
