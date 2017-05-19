@@ -142,7 +142,9 @@ sub run {
 
         # Setting new TARGET_TYPE variable (due commit 4128f126f4 in SLEnkins-engine)
         export TARGET_TYPE="ssh"
-        echo
+
+        # Node preparations - only "default" run is supported (came from multirun slenkins support)
+        export RUN_NAME="default"
 
         # Prepare failures file
         FAILURES="${WORKSPACE}/failed.txt"
@@ -157,9 +159,8 @@ sub run {
         set-test-environment
         echo
 
-        # Node preparations - only "default" run is supported (came from multirun slenkins support)
+        # Display nodes file
         display-nodes-file
-        export RUN_NAME="default"
 
         # Parse nodes file
         NETWORKS=""
@@ -185,8 +186,8 @@ sub run {
           echo
         done
 
-        # End test environment file
-        echo "</testenv>" >> $WORKSPACE/testenv.xml
+        # End test environment file - multirun testenv file handling
+        finish-test-environment
 
         # Get the tests table
         TESTS_DIR="/var/lib/slenkins/${PROJECT_NAME}/${CONTROL_PKG}/bin"
