@@ -86,43 +86,6 @@ sub start_sound {
     assert_screen 'yast2-control-center-ui', 60;
 }
 
-sub start_scanner {
-    search('scann');
-    assert_and_click 'yast2_control-center_scanner';
-    # give 90 seconds timout for creating scanner database and detecting scanners
-    assert_screen 'yast2_control-center_scanner_configuration', 90;
-    send_key 'alt-o';
-    assert_screen 'yast2-control-center-ui', 60;
-}
-
-sub start_system_keyboard_layout {
-    search('keyboard');
-    assert_and_click 'yast2_control-center_keyboard';
-    assert_screen 'yast2_control-center_keyboard_configuration', 60;
-    send_key 'alt-o';
-    assert_screen 'yast2-control-center-ui', 60;
-}
-
-sub start_boot_loader {
-    search('boot');
-    assert_and_click 'yast2_control-center_bootloader';
-    assert_screen 'yast2_control-center_bootloader_settings', 60;
-    send_key 'alt-o';
-    assert_screen 'yast2-control-center-ui', 60;
-}
-
-sub start_date_and_time {
-    search('date');
-    assert_and_click 'yast2_control-center_date-and-time';
-    assert_screen [qw(yast2_control-center_data-and-time_ntp.conf_changed yast2_control-center_clock-and-time-zone)], 60;
-    if (match_has_tag 'yast2_control-center_data-and-time_ntp.conf_changed') {
-        send_key 'alt-o';
-    }
-    assert_screen 'yast2_control-center_clock-and-time-zone', 60;
-    send_key 'alt-o';
-    assert_screen 'yast2-control-center-ui';
-}
-
 sub start_fonts {
     # only available on openSUSE or at least not SLES
     if (check_var('DISTRI', 'opensuse')) {
@@ -158,22 +121,6 @@ sub start_kernel_settings {
     assert_screen 'yast2-control-center-ui';
 }
 
-sub start_languages {
-    search('language');
-    assert_and_click 'yast2_control-center-languages';
-    assert_screen 'yast2_control-center_languages-settings', 60;
-    send_key 'alt-o';
-    assert_screen 'yast2-control-center-ui';
-}
-
-sub start_network_settings {
-    search('network');
-    assert_and_click 'yast2_control-center_network-settings';
-    assert_screen 'yast2_control-network-settings_overview', 60;
-    send_key 'alt-o';
-    assert_screen 'yast2-control-center-ui';
-}
-
 sub start_partitioner {
     search('partitioner');
     assert_and_click 'yast2_control-center-partitioner';
@@ -181,16 +128,6 @@ sub start_partitioner {
     send_key 'alt-y';
     assert_screen 'yast2_control-center-partitioner_expert';
     send_key 'alt-f';
-    assert_screen 'yast2-control-center-ui';
-}
-
-sub start_service_manager {
-    search('service');
-    assert_and_click 'yast2_control-center_service-manager';
-    # for a short moment the screen is not dimmed down
-    wait_still_screen 30;
-    assert_screen 'yast2_control-center-service-manager_list', 60;
-    send_key 'alt-o';
     assert_screen 'yast2-control-center-ui';
 }
 
@@ -211,266 +148,6 @@ sub start_authentication_server {
         }
         assert_screen 'yast2-control-center-ui', 60;
     }
-}
-
-sub start_dhcp_server {
-    if (check_var('DISTRI', 'sle')) {
-        search('dhcp');
-        assert_and_click 'yast2_control-center_dhcp-server';
-        assert_screen [qw(yast2_control-center-dhcp-server-install_cancel yast2_control-center-dhcp-server-configuration)], 60;
-        if (match_has_tag 'yast2_control-center-dhcp-server-install_cancel') {
-            send_key 'alt-i';
-            assert_screen [qw(yast2_control-center-dhcp-server-hostname yast2_control-center-dhcp-server-configuration)], 60;
-            if (match_has_tag 'yast2_control-center-dhcp-server-hostname') {
-                send_key 'alt-o';
-            }
-            assert_screen 'yast2_control-center-dhcp-server-configuration', 60;
-            send_key 'alt-r';
-        }
-        else {
-            assert_screen 'yast2_control-center-dhcp-server-configuration', 60;
-            send_key 'alt-r';
-        }
-        assert_screen 'yast2-control-center-ui', 60;
-    }
-    elsif (check_var('DISTRI', 'opensuse')) {
-        search('dhcp');
-        assert_and_click 'yast2_control-center_dhcp-server';
-        assert_screen 'yast2_control-center-dhcp-server_hostname-error';
-        send_key 'alt-o';
-        assert_screen 'yast2_control-center-dhcp-server_start-up', 60;
-        send_key 'alt-o';
-    }
-}
-
-sub start_dns_server {
-    search('dns');
-    assert_and_click 'yast2_control-center_dns-server';
-    assert_screen [qw(yast2_control-center-dns-server-start-up yast2_control-center-dns-server-install_cancel)], 60;
-    if (match_has_tag 'yast2_control-center-dns-server-install_cancel') {
-        send_key 'alt-i';
-        assert_screen 'yast2_control-center-dns-server-configuration', 90;
-        send_key 'alt-c';
-        assert_screen 'yast2_control-center-dns-server-really-abort';
-        send_key 'alt-y';
-    }
-    else {
-        assert_screen 'yast2_control-center-dns-server-start-up';
-        send_key 'alt-o';
-    }
-    assert_screen 'yast2-control-center-ui', 60;
-}
-
-sub start_ftp_server {
-    search('ftp');
-    assert_and_click 'yast2_control-center_ftp-server';
-    assert_screen 'yast2_control-center_ftp-start-up', 60;
-    send_key 'alt-f';
-    assert_screen 'yast2-control-center-ui', 60;
-}
-
-sub start_hostnames {
-    search('hostname');
-    assert_and_click 'yast2_control-center_hostnames';
-    assert_screen 'yast2_control-center_hostnames_ok', 60;
-    send_key 'alt-o';
-    assert_screen 'yast2-control-center-ui';
-}
-
-sub start_http_server {
-    search('http');
-    assert_and_click 'yast2_control-center_http';
-    assert_screen [qw(yast2_control-center_http_finish yast2_control-center_http_wizard)], 60;
-    if (match_has_tag 'yast2_control-center_http_wizard') {
-        send_key 'alt-n';
-        assert_screen 'yast2_control-center_http_wizard-2';
-        send_key 'alt-n';
-        assert_screen 'yast2_control-center_http_wizard-3';
-        send_key 'alt-n';
-        assert_screen 'yast2_control-center_http_wizard-4';
-        send_key 'alt-n';
-        assert_screen 'yast2_control-center_http_wizard-5';
-        send_key 'alt-f';
-    }
-    assert_screen 'yast2_control-center_http_finish';
-    send_key 'alt-f';
-    assert_screen 'yast2-control-center-ui';
-}
-
-sub start_iscsi_initiator {
-    search('iSCSI');
-    assert_and_click 'yast2_control-center_iscsi-initiator';
-    assert_screen 'yast2_control-center_iscsi-initiator_cancel', 60;
-    send_key 'alt-c';
-    assert_screen 'yast2-control-center-ui';
-}
-
-sub start_isns_server {
-    search('isns');
-    assert_and_click 'yast2_control-center_isns-server';
-    assert_screen 'yast2_control-center_isns-server_install', 60;
-    send_key 'alt-i';
-    assert_screen 'yast2_control-center_isns-server_config', 60;
-    send_key 'alt-o';
-    assert_screen 'yast2-control-center-ui';
-}
-
-sub start_ldap_and_kerberos_client {
-    search('ldap');
-    assert_and_click 'yast2_control-center_ldap-kerberos-client';
-    # for a short moment the screen is not dimmed down
-    wait_still_screen 40;
-    assert_screen 'yast2_control-center_ldap-kerberos-client_finish';
-    send_key 'alt-f';
-    assert_screen 'yast2-control-center-ui', 60;
-}
-
-sub start_mail_server {
-    search('mail');
-    assert_and_click 'yast2_control-center_mail-server';
-    assert_screen 'yast2_control-center_mail-server_general-settings', 60;
-    send_key 'alt-r';
-    assert_screen 'yast2_control-center_mail-server_really-abort';
-    send_key 'alt-y';
-    assert_screen 'yast2-control-center-ui';
-}
-
-sub start_xinetd {
-    search('xinetd');
-    assert_and_click 'yast2_control-center_xinetd';
-    assert_screen 'yast2_control-center_xinetd-server_cancel', 60;
-    send_key 'alt-c';
-    assert_screen 'yast2-control-center-ui';
-}
-
-sub start_nfs_client {
-    search('nfs');
-    assert_and_click 'yast2_control-center_nfs-client';
-    assert_screen 'yast2_control-center_nfs_client_cancel', 60;
-    send_key 'alt-c';
-    assert_screen 'yast2-control-center-ui', 60;
-}
-
-sub start_nfs_server {
-    search('nfs');
-    assert_and_click 'yast2_control-center_nfs-server';
-    assert_screen 'yast2_control-center_nfs_server_configuraton', 60;
-    send_key 'alt-o';
-    assert_screen 'yast2-control-center-ui', 60;
-}
-
-sub start_nis_client {
-    search('nis');
-    assert_and_click 'yast2_control-center_nis-client';
-    assert_screen 'yast2_control-center_nis_client_cancel', 60;
-    send_key 'alt-r';
-    assert_screen 'yast2-control-center-ui', 60;
-}
-
-sub start_nis_server {
-    assert_and_click 'yast2_control-center_nis-server';
-    assert_screen 'yast2_control-center_nis_server_cancel', 60;
-    send_key 'alt-f';
-    assert_screen 'yast2-control-center-ui', 60;
-}
-
-sub start_ntp_configuration {
-    search('ntp');
-    assert_and_click 'yast2_control-center_ntp-configuration';
-    assert_screen [qw(yast2_control-center_ntp.conf_changed yast2_control-center_ntp-general-settings)], 60;
-    if (match_has_tag 'yast2_control-center_ntp.conf_changed') {
-        send_key 'alt-o';
-        assert_screen 'yast2_control-center_ntp-general-settings';
-        send_key 'alt-o';
-    }
-    else {
-        assert_screen 'yast2_control-center_ntp-general-settings';
-        send_key 'alt-o';
-    }
-    assert_screen 'yast2-control-center-ui', 60;
-}
-
-sub start_openldap {
-    if (check_var('DISTRI', 'sle')) {
-        search('openldap');
-        assert_and_click 'yast2_control-center_openldap-mirrormode-configuration';
-        assert_screen 'yast2_control-center_openldap-mirrormode-configuration_cancel', 90;
-        send_key 'alt-c';
-        assert_screen 'yast2_control-center_openldap-mirrormode-configuration_error';
-        send_key 'alt-o';
-        assert_screen 'yast2-control-center-ui';
-    }
-}
-
-sub start_proxy_configuration {
-    search('proxy');
-    assert_and_click 'yast2_control-center_proxy-configuration';
-    assert_screen 'yast2_control-center_proxy-configuration_enable', 60;
-    send_key 'alt-o';
-    assert_screen 'yast2-control-center-ui';
-}
-
-sub start_remote_administration_vnc {
-    search('remote');
-    assert_and_click 'yast2_control-center_remote-administration';
-    assert_screen [qw(yast2_control-center_remote-administration_ok yast2_control-center_remote-administration_install)], 60;
-    if (match_has_tag('yast2_control-center_remote-administration_install')) {
-        send_key 'alt-i';
-        assert_screen 'yast2_control-center_remote-administration_configuration', 60;
-    }
-    send_key 'alt-o';
-    assert_screen [qw(yast2-control-center-ui yast2_control-center_remote-admin-warning)];
-    if (match_has_tag('yast2_control-center_remote-admin-warning')) {
-        send_key 'alt-o';
-        assert_screen 'yast2-control-center-ui';
-    }
-}
-
-sub start_samba_server {
-    search('samba');
-    assert_and_click 'yast2_control-center_samba-server';
-    assert_screen 'yast2_control-center_samba-server_samba-configuration', 60;
-    send_key 'alt-n';
-    assert_screen 'yast2_control-center_samba-server_samba-configuration_dc';
-    send_key 'alt-n';
-    assert_screen 'yast2_control-center_samba-server_samba-configuration_start-up';
-    send_key 'alt-o';
-    assert_screen 'yast2-control-center-ui', 60;
-}
-
-sub start_squid_server {
-    if (check_var('DISTRI', 'sle')) {
-        search('squid');
-        assert_and_click 'yast2_control-center_squid-server-configuration';
-        assert_screen [qw(yast2_control-center_squid-server-install yast2_control-center_squid-server_start-up)];
-        if (match_has_tag 'yast2_control-center_squid-server-install') {
-            send_key 'alt-i';
-            assert_screen 'yast2_control-center_squid-server_start-up', 60;
-            send_key 'alt-o';
-        }
-        else {
-            assert_screen 'yast2_control-center_squid-server_start-up';
-            send_key 'alt-o';
-        }
-        assert_screen 'yast2-control-center-ui', 90;
-    }
-}
-
-sub start_tftp_server {
-    search('tftp');
-    if (check_var('DISTRI', 'opensuse')) {
-        assert_and_click 'yast2_control-center_tftp-server-configuration';
-        assert_screen 'yast2_control-center_tftp-server-configuration_cancel', 60;
-        send_key 'alt-o';
-    }
-    elsif (check_var('DISTRI', 'sle')) {
-        assert_and_click 'yast2_control-center_tftp-server-configuration';
-        assert_screen 'yast2_control-center_tftp-server-install';
-        send_key 'alt-i';
-        assert_screen 'yast2_control-center_tftp-server-configuration_ready', 60;
-        send_key 'alt-o';
-    }
-    assert_screen 'yast2-control-center-ui', 60;
 }
 
 sub start_user_logon_management {
@@ -503,29 +180,11 @@ sub start_wake_on_lan {
     }
 }
 
-sub start_windows_domain_membership {
-    search('domain');
-    assert_and_click 'yast2_control-center_windows-domain-membership';
-    # the screen is not dimmed down for a short moment
-    wait_still_screen 90;
-    assert_screen 'yast2_control-center_windows-domain-membership_verifying-membership';
-    send_key 'alt-o';
-    assert_screen 'yast2-control-center-ui', 60;
-}
-
-sub start_apparmor_configuration {
-    search('apparmor');
-    assert_and_click 'yast2_control-center_apparmor-configuration';
-    assert_screen 'yast2_control-center-apparmor-configuration_abort', 60;
-    send_key 'alt-r';
-    assert_screen 'yast2-control-center-ui';
-}
-
 sub start_ca_management {
     if (check_var('DISTRI', 'sle')) {
         search('ca');
         assert_and_click 'yast2_control-center_ca-management';
-        assert_screen 'yast2_control-center_ca-management_abort';
+        assert_screen 'yast2_control-center_ca-management_abort', 60;
         send_key 'alt-f';
         assert_screen 'yast2-control-center-ui';
     }
@@ -539,30 +198,6 @@ sub start_common_server_certificate {
         send_key 'alt-r';
         assert_screen 'yast2-control-center-ui';
     }
-}
-
-sub start_firewall {
-    search('firewall');
-    assert_and_click 'yast2_control-center_firewall';
-    assert_screen 'yast2_control-center_firewall_configuration', 60;
-    send_key 'alt-c';
-    assert_screen 'yast2-control-center-ui';
-}
-
-sub start_laf {
-    search('audit');
-    assert_and_click 'yast2_control-center_laf';
-    assert_screen [qw(yast2_control-center_laf_cancel yast2_control-center_laf-configuration)];
-    if (match_has_tag 'yast2_control-center_laf_cancel') {
-        send_key 'alt-e';
-        assert_screen 'yast2_control-center_laf-configuration', 60;
-        send_key 'alt-f';
-    }
-    else {
-        assert_screen 'yast2_control-center_laf-configuration', 60;
-        send_key 'alt-f';
-    }
-    assert_screen 'yast2-control-center-ui', 60;
 }
 
 sub start_security_center {
@@ -584,7 +219,7 @@ sub start_sudo {
 sub start_user_and_group_management {
     search('user and');
     assert_and_click 'yast2_control-center_user-and-group-management';
-    assert_screen 'yast2_control-center_user-and-group-management_users', 60;
+    assert_screen 'yast2_control-center_user-and-group-management_users', 90;
     send_key 'alt-o';
     assert_screen 'yast2-control-center-ui';
 }
@@ -643,22 +278,11 @@ sub start_printer {
 
 sub run() {
     my $self = shift;
-
-    # on SLE we can assume the yast modules all to be pre-installed
-    if (check_var('DISTRI', 'opensuse')) {
-        select_console 'root-console';
-        zypper_call(
-'in yast2-dhcp-server yast2-http-server apache2 yast2-isns yast2-nfs-server yast2-nis-server tftp yast2-tftp-server yast2-nis-server yast2-audit-laf xorg-x11-Xvnc'
-        );
-        select_console 'x11', await_console => 0;
-    }
-
     $self->launch_yast2_module_x11;
     assert_screen 'yast2-control-center-ui';
 
     # search module by typing string
     search('add');
-
     assert_screen 'yast2_control-center_search_add';
 
     # start yast2 modules
@@ -675,12 +299,6 @@ sub run() {
     start_software_repositories;
     start_printer;
     start_sound;
-    if (check_var('DISTRI', 'opensuse')) {
-        start_scanner;
-    }
-    start_system_keyboard_layout;
-    start_boot_loader;
-    start_date_and_time;
     start_fonts;
     start_sysconfig_editor;
     if (check_var('DISTRI', 'sle')) {
@@ -689,43 +307,12 @@ sub run() {
     if (check_var('DISTRI', 'opensuse')) {
         start_kernel_settings;
     }
-    start_languages;
-    start_network_settings;
     start_partitioner;
-    start_service_manager;
     start_authentication_server;
-    if (check_var('DISTRI', 'sle')) {
-        start_dhcp_server;
-    }
-    start_dns_server;
-    start_ftp_server;
-    start_hostnames;
-    start_http_server;
-    start_iscsi_initiator;
-    start_isns_server;
-    start_ldap_and_kerberos_client;
-    start_mail_server;
-    start_xinetd;
-    start_nfs_client;
-    start_nfs_server;
-    start_nis_client;
-    start_nis_server;
-    start_ntp_configuration;
-    start_openldap;
-    start_proxy_configuration;
-    start_remote_administration_vnc;
-    start_samba_server;
-    start_squid_server;
-    start_tftp_server;
-    start_user_logon_management;
     start_vpn_gateway;
     start_wake_on_lan;
-    start_windows_domain_membership;
-    start_apparmor_configuration;
     start_ca_management;
     start_common_server_certificate;
-    start_firewall;
-    start_laf;
     start_security_center;
     start_sudo;
     start_user_and_group_management;
