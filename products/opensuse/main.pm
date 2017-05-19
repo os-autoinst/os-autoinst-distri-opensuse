@@ -540,7 +540,7 @@ sub load_x11tests() {
     }
     # no firefox on KDE-Live # boo#1022499
     loadtest "x11/firefox" unless is_kde_live;
-    if (!get_var("OFW") && check_var('BACKEND', 'qemu') && !is_kde_live) {
+    if (!get_var("OFW") && check_var('BACKEND', 'qemu') && !check_var('FLAVOR', 'Rescue-CD') && !is_kde_live) {
         loadtest "x11/firefox_audio";
     }
     if (gnomestep_is_applicable() && !(get_var("LIVECD") || is_server)) {
