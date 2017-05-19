@@ -22,7 +22,7 @@ use testapi;
 use utils;
 
 my $confirmed_licenses = 0;
-my $stage;
+my $stage              = 'stage1';
 
 sub accept_license {
     send_key $cmd{accept};
@@ -33,7 +33,15 @@ sub accept_license {
     };
 }
 
-sub save_logs_and_continue {
+sub save_and_upload_logs {
+    my $i = shift;
+    select_console 'install-shell2', tags => 'install-shell';
+    # save_y2logs is not present
+    assert_script_run "tar czf /tmp/logs-stage.tar.bz2 /var/log";
+    upload_logs "/tmp/logs-stage1-error$i.tar.bz2";
+}
+
+sub save_and_upload_yastlogs {
     my ($suffix) = @_;
     my $name = $stage . $suffix;
     # save logs and continue
@@ -55,21 +63,12 @@ sub save_logs_and_continue {
     select_console 'installation';
 }
 
-sub save_logs_in_linuxrc {
-    my $name = shift;
-    select_console 'install-shell2', tags => 'install-shell';
-
-    # save_y2logs is not present
-    assert_script_run "tar czf /tmp/logs-$name.tar.bz2 /var/log";
-    upload_logs "/tmp/logs-$name.tar.bz2";
-}
-
 sub handle_expected_errors {
     my (%args) = @_;
     my $i = $args{iteration};
     record_info('Expected error', 'Iteration = ' . $i);
     send_key "alt-s";    #stop
-    save_logs_and_continue("_expected_error$i");
+    save_and_upload_yastlogs("_expected_error$i");
     $i++;
     send_key "tab";      #continue
     send_key "ret";
@@ -77,10 +76,10 @@ sub handle_expected_errors {
 }
 
 sub run {
-    my @needles = ("bios-boot", "autoyast-error", "reboot-after-installation", "linuxrc-install-fail", 'scc-invalid-url', 'warning-pop-up');
-    push @needles, "autoyast-confirm"        if get_var("AUTOYAST_CONFIRM");
-    push @needles, "autoyast-postpartscript" if get_var("USRSCR_DIALOG");
-    if (get_var("AUTOYAST_LICENSE")) {
+    my @needles = qw(bios-boot nonexisting-package reboot-after-installation linuxrc-install-fail scc-invalid-url warning-pop-up);
+    push @needles, 'autoyast-confirm'        if get_var('AUTOYAST_CONFIRM');
+    push @needles, 'autoyast-postpartscript' if get_var('USRSCR_DIALOG');
+    if (get_var('AUTOYAST_LICENSE')) {
         push @needles, (get_var('BETA') ? 'inst-betawarning' : 'autoyast-license');
     }
 
@@ -90,12 +89,12 @@ sub run {
     my $maxtime    = 2000;
     my $i          = 1;
     my $num_errors = 0;
-    $stage = 'stage1';
     mouse_hide(1);
     do {
         assert_screen \@needles, $maxtime;
         #repeat until timeout or login screen
-        if (match_has_tag('autoyast-error')) {
+        if (match_has_tag('nonexisting-package')) {
+            @needles = grep { $_ ne 'nonexisting-package' } @needles;
             handle_expected_errors(iteration => $i);
             $num_errors++;
         }
@@ -106,7 +105,7 @@ sub run {
             die 'Fix invalid SCC reg URL https://trello.com/c/N09TRZxX/968-3-don-t-crash-on-invalid-regurl-on-linuxrc-commandline';
         }
         elsif (match_has_tag('linuxrc-install-fail')) {
-            save_logs_in_linuxrc("stage1_error$i");
+            save_and_upload_logs($i);
             die "installation ends in linuxrc";
         }
         elsif (match_has_tag('autoyast-confirm')) {
@@ -152,19 +151,19 @@ sub run {
     # CaaSP does not have second stage
     return if is_casp;
 
-    $stage = 'stage2';
     mouse_hide(1);
     $maxtime = 1000;
+    $stage   = 'stage2';
     do {
-        assert_screen [qw(reboot-after-installation autoyast-expected-error)], $maxtime;
-        if (match_has_tag('autoyast-error')) {
+        assert_screen [qw(reboot-after-installation autoyast-postinstall-error)], $maxtime;
+        if (match_has_tag('autoyast-postinstall-error')) {
             handle_expected_errors(iteration => $i);
             $num_errors++;
         }
     } until match_has_tag 'reboot-after-installation';
 
-    my $expect_errors = get_var("AUTOYAST_EXPECT_ERRORS") // 0;
-    die "exceeded expected autoyast errors" if $num_errors != $expect_errors;
+    my $expect_errors = get_var('AUTOYAST_EXPECT_ERRORS') // 0;
+    die 'exceeded expected autoyast errors' if $num_errors != $expect_errors;
 }
 
 sub test_flags {
@@ -172,7 +171,7 @@ sub test_flags {
 }
 
 sub post_fail_hook {
-    save_logs_and_continue;
+    save_and_upload_yastlogs;
 }
 
 1;
