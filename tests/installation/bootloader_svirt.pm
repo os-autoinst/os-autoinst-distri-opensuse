@@ -40,6 +40,14 @@ sub run() {
         $xenconsole = "xvc0";
     }
 
+    # FIXME: Remove this provision once os-autoinst/os-autoinst/pull/796 is deployed.
+    #
+    # The root of all problems is this: Xen closes VNC and serial console connections
+    # on reboot. Unlike KVM. So, to know when we are restarting if we are in the
+    # state before, or after restart we have to configure libvirt to destroy
+    # (i.e. turn off) the VM. Then we have to explicitely start it define_and_start.
+    $svirt->change_domain_element(on_reboot => 'destroy') if ($vmm_family eq 'xen');
+
     if (get_var('NETBOOT')) {
         my $cmdline = get_var('VIRSH_CMDLINE', '') . " ";
 
