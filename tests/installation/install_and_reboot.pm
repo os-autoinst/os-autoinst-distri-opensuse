@@ -36,6 +36,16 @@ sub handle_livecd_screenlock {
     assert_screen('yast-still-running', 120);
 }
 
+sub wait_countdown_stop {
+    my $stilltime = shift;
+    return wait_screen_change(
+        sub {
+            send_key 'alt-s';
+        },
+        $stilltime
+    );
+}
+
 sub run() {
     my $self = shift;
     # NET isos are slow to install
@@ -117,19 +127,10 @@ sub run() {
     if (!get_var("REMOTE_CONTROLLER")) {
         # Depending on the used backend the initial key press to stop the
         # countdown might not be evaluated correctly or in time. In these
-        # cases we try more often. As the timeout is 10 seconds trying more
-        # than 4 times when waiting 2.5 seconds each time in between is not
-        # helping. wait_still_screen can work with float numbers. A still time
-        # of 2 seconds was leading to problems not detecting the countdown
-        # still being active whereas 3 seconds would sometimes hit the timeout
-        # even though the screen did not change after the initial stop button
-        # press. Selecting 2.5 might be a good compromise
-        my $counter = 4;
-        while ($counter--) {
-            send_key 'alt-s';
-            last if wait_still_screen(2.5, 4, 99);
-            record_info('workaround', "While trying to stop countdown no still screen could be detected, retrying up to $counter times more");
-            die 'Failed to detect a still picture while waiting for stopped countdown.' if ($counter eq 1);
+        # cases we keep hitting the keys until the countdown stops.
+        my $counter = 10;
+        while ($counter-- and wait_countdown_stop(3)) {
+            record_info('workaround', "While trying to stop countdown we saw a screen change, retrying up to $counter times more");
         }
         select_console 'install-shell';
 
