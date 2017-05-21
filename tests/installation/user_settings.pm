@@ -25,7 +25,7 @@ sub run() {
     send_key "tab";
     $self->type_password_and_verification;
     assert_screen "inst-userinfostyped";
-    if (get_var("NOAUTOLOGIN") && !check_screen('autologindisabled')) {
+    if (get_var("NOAUTOLOGIN") && !check_screen('autologindisabled', timeout => 0)) {
         send_key $cmd{noautologin};
         assert_screen "autologindisabled";
     }
