@@ -481,11 +481,25 @@ sub exit_firefox() {
 }
 
 sub start_gnome_settings {
-    send_key "super";
-    wait_still_screen;
-    type_string "settings";
-    assert_and_click "settings";
-    assert_screen "gnome-settings";
+    my $is_sle_12_sp1 = (check_var('DISTRI', 'sle') && check_var('VERSION', '12-SP1'));
+    my $workaround_repetitions = 3;
+
+    # the loop is a workaround for SP1: bug in launcher. Sometimes it doesn't react to click
+    # The bug will be NOT fixed for SP1.
+    do {
+        if ($is_sle_12_sp1) {
+            send_key 'super';    # if launcher is open, close it (search string will also be removed).
+            send_key 'esc';      # close launcher, if it still open
+        }
+        send_key 'super';
+        wait_still_screen;
+        type_string 'settings';
+        wait_still_screen(3);
+        $workaround_repetitions--;
+    } while ($is_sle_12_sp1 && !check_screen('settings', 0) && $workaround_repetitions > 0);
+
+    assert_and_click 'settings';
+    assert_screen 'gnome-settings';
 }
 
 sub unlock_user_settings {
