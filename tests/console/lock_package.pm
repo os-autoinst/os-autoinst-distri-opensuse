@@ -25,7 +25,7 @@ sub run() {
     for my $pkg (@pkgs) {
         # Save each package's name, version and release info to variable
         my $fullname = script_output "rpm -q $pkg";
-        push $locked_pkg_info, {name => $pkg, fullname => $fullname};
+        push @$locked_pkg_info, {name => $pkg, fullname => $fullname};
 
         # Add a lock for each package
         assert_script_run "zypper al $pkg";
