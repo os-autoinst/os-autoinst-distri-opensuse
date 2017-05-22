@@ -1,6 +1,6 @@
 # SUSE's Apache tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -15,10 +15,11 @@ use Exporter;
 use strict;
 
 use testapi;
+use utils;
 
 our @EXPORT = qw(setup_apache2);
 
-# Setup apache2 service in different mode: SSL, NSS, NSSFIPS
+# Setup apache2 service in different mode: SSL, NSS, NSSFIPS, PHP5, PHP7
 # Example: setup_apache2(mode => 'SSL');
 sub setup_apache2 {
     my %args      = @_;
@@ -33,8 +34,28 @@ sub setup_apache2 {
         push @packages, qw(apache2-mod_nss mozilla-nss-tools expect);
     }
 
+    if ($mode eq "PHP7") {
+        push @packages, qw(apache2-mod_php7 php7);
+        zypper_call("rm -u apache2-mod_php5 php5", exitcode => [0, 104]);
+    }
+
+    if ($mode eq "PHP5") {
+        push @packages, qw(apache2-mod_php5 php5);
+        zypper_call("rm -u apache2-mod_php7 php7", exitcode => [0, 104]);
+    }
+
     # Make sure the packages are installed
-    assert_script_run "zypper -n in @packages", 300;
+    zypper_call("in @packages");
+
+    # Enable php5 or php7
+    if ($mode eq "PHP5") {
+        assert_script_run 'a2enmod -d php7';
+        assert_script_run 'a2enmod php5';
+    }
+    elsif ($mode eq "PHP7") {
+        assert_script_run 'a2enmod -d php5';
+        assert_script_run 'a2enmod php7';
+    }
 
     # Enable the ssl
     if ($mode eq "SSL") {
@@ -49,7 +70,6 @@ sub setup_apache2 {
         assert_script_run "sed -i '/^APACHE_SERVER_FLAGS=/s/^/#/' /etc/sysconfig/apache2";
         assert_script_run 'echo APACHE_SERVER_FLAGS="SSL" >> /etc/sysconfig/apache2';
     }
-
     # Create x509 certificate for this apache server
     if ($mode eq "SSL") {
         assert_script_run 'gensslcert -n $(hostname) -C $(hostname) -e webmaster@$(hostname)', 600;
@@ -100,12 +120,19 @@ sub setup_apache2 {
     # Create a test html page
     assert_script_run 'echo "<html><h2>Hello Linux</h2></html>" > /srv/www/htdocs/hello.html';
 
+    # create a test php page
+    assert_script_run qq{echo -e "<?php\nphpinfo()\n?>" > /srv/www/htdocs/index.php};
+
     # Verify apache+ssl works
     if ($mode =~ m/SSL|NSS/) {
         validate_script_output 'curl -k https://localhost/hello.html', sub { m/Hello Linux/ };
     }
     else {
         validate_script_output 'curl http://localhost/hello.html', sub { m/Hello Linux/ };
+    }
+
+    if ($mode =~ /PHP5|PHP7/) {
+        assert_script_run "curl --no-buffer http://localhost/index.php | grep \"\$(uname -s -n -r -v -m)\"";
     }
 }
 
