@@ -157,7 +157,13 @@ sub load_autoyast_tests {
     else {
         loadtest("autoyast/repos");
         loadtest("autoyast/clone");
+        if (get_var('SP3ORLATER') && check_var('FILESYSTEM', 'btrfs')) {
+            loadtest "autoyast/verify_autoinst_btrfs";
+        }
         loadtest("autoyast/logs");
+    }
+    if (get_var('SP3ORLATER') && check_var('FILESYSTEM', 'btrfs')) {
+        loadtest "autoyast/verify_btrfs";
     }
     loadtest("autoyast/autoyast_reboot");
     #    next boot in load_reboot_tests
