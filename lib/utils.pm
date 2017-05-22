@@ -36,6 +36,7 @@ our @EXPORT = qw(
   unlock_if_encrypted
   prepare_system_reboot
   get_netboot_mirror
+  get_extra_disk
   zypper_call
   fully_patch_system
   minimal_patch_system
@@ -251,6 +252,11 @@ sub type_string_very_slow {
 sub get_netboot_mirror {
     my $m_protocol = get_var('INSTALL_SOURCE', 'http');
     return get_var('MIRROR_' . uc($m_protocol));
+}
+
+# Device order in QEMU is switched - bsc#1038275
+sub get_extra_disk() {
+    return check_var('ARCH', 'ppc64le') ? '/dev/vda' : '/dev/vdb';
 }
 
 # function wrapping 'zypper -n' with allowed return code, timeout and logging facility
