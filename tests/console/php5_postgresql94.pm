@@ -12,10 +12,8 @@
 #   Then, PHP reads the elements and writes a new one in the database.
 #   If all succeed, the test passes.
 #
-#   The test requires the Web and Scripting module on SLE and should be
-#   executed after the 'console/http_srv', 'console/postgresql94', and
-#   'console/php5' tests.
-# Maintainer: Romanos Dodopoulos <romanos.dodopoulos@suse.cz>
+#   The test requires the Web and Scripting module on SLE
+# Maintainer: Ondřej Súkup <osukup@suse.cz>
 
 
 use base "consoletest";
@@ -23,12 +21,21 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use apachetest;
 
 sub run() {
     select_console 'root-console';
 
+    # ensure apache2 + php5 installed and running
+    setup_apache2(mode => 'PHP5');
+
     # install requirements
-    zypper_call "in php5-pgsql";
+    zypper_call "in php5-pgsql postgresql94-server";
+
+    # start postgresql
+    assert_script_run "systemctl start postgresql";
+    # setup database
+    setup_pgsqldb;
 
     # configuration so that PHP can access PostgreSQL
     # setup password
@@ -55,5 +62,8 @@ sub run() {
 
     # verify that PHP successfully wrote the element in the database
     assert_script_run "sudo -u postgres psql -d openQAdb -c \"SELECT * FROM test\" | grep 'can php write this?'";
+
+    # destroy database
+    destroy_pgsqldb;
 }
 1;

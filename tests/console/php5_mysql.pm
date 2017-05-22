@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -12,10 +12,8 @@
 #   PHP reads the elements and writes a new one in the database. If
 #   all succeed, the test passes.
 #
-#   The test requires the Web and Scripting module on SLE and should be
-#   executed after the 'console/http_srv', 'console/mysql_srv', and
-#   'console/php5' tests.
-# Maintainer: Romanos Dodopoulos <romanos.dodopoulos@suse.cz>
+#   The test requires the Web and Scripting module on SLE
+# Maintainer: Ondřej Súkup <osukup@suse.cz>
 
 
 use base "consoletest";
@@ -23,10 +21,12 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use apachetest;
 
 sub run() {
     select_console 'root-console';
 
+    setup_apache2(mode => 'PHP5');
     # install requirements
     zypper_call "in php5-mysql";
 
@@ -37,7 +37,7 @@ qq{mysql -u root -e "CREATE DATABASE openQAdb; USE openQAdb; CREATE TABLE test (
     # configure the PHP code that:
     #  1. reads table 'test' from the 'openQAdb' database
     #  2. inserts a new element 'can php write this?' into the same table
-    type_string "wget --quiet " . data_url('console/test_mysql_connector.php') . " -O /srv/www/htdocs/test_mysql_connector.php\n";
+    assert_script_run "wget --quiet " . data_url('console/test_mysql_connector.php') . " -O /srv/www/htdocs/test_mysql_connector.php";
     assert_script_run "systemctl restart apache2.service";
 
     # access the website and verify that it can read the database

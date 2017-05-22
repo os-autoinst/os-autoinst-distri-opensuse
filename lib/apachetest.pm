@@ -17,7 +17,7 @@ use strict;
 use testapi;
 use utils;
 
-our @EXPORT = qw(setup_apache2);
+our @EXPORT = qw(setup_apache2 setup_pgsqldb destroy_pgsqldb);
 
 # Setup apache2 service in different mode: SSL, NSS, NSSFIPS, PHP5, PHP7
 # Example: setup_apache2(mode => 'SSL');
@@ -134,6 +134,26 @@ sub setup_apache2 {
     if ($mode =~ /PHP5|PHP7/) {
         assert_script_run "curl --no-buffer http://localhost/index.php | grep \"\$(uname -s -n -r -v -m)\"";
     }
+}
+sub setup_pgsqldb {
+    # without changing current working directory we get:
+    # 'could not change directory to "/root": Permission denied'
+    assert_script_run 'pushd /tmp';
+    assert_script_run "curl " . data_url('console/postgres_openqadb.sql') . " -o /tmp/postgres_openqadb.sql"
+    # requires running postgresql94 server
+    # test basic functionality - require postgresql94
+    assert_script_run "sudo -u postgres psql -f /tmp/postgres_openqadb.sql";
+    assert_script_run "sudo -u postgres psql -d openQAdb -c \"SELECT * FROM test\" | grep \"can you read this\"";
+
+    assert_script_run 'popd';    # back to previous directory
+}
+
+sub destroy_pgsqldb {
+    assert_script_run 'pushd /tmp';
+
+    assert_script_run "sudo -u postgres dropdb openQAdb";
+
+    assert_script_run 'popd';    # back to previous directory
 }
 
 1;
