@@ -1,10 +1,9 @@
 <?php
-    mysql_connect('localhost', 'root', '');
-    mysql_select_db('openQAdb');
-    $result = mysql_query("SELECT * FROM test");
-    while($row = mysql_fetch_array($result)){
+    $link = mysqli_connect('localhost', 'root', '', 'openQAdb');
+    $result = mysqli_query($link, "SELECT * FROM test");
+    while($row = mysqli_fetch_assoc($result)){
         echo $row['entry'];
     }
-    mysql_query("INSERT INTO test (entry) VALUE ('can php write this?')");
+    mysqli_query($link, "INSERT INTO test (entry) VALUE ('can php write this?')");
 ?>
 

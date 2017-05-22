@@ -729,9 +729,10 @@ sub load_consoletests() {
             if (get_var('ADDONS', '') =~ /wsm/ || get_var('SCC_ADDONS', '') =~ /wsm/) {
                 loadtest "console/pcre";
                 loadtest "console/php5";
-                loadtest "console/php7";
                 loadtest "console/php5_mysql";
                 loadtest "console/php5_postgresql94";
+                loadtest "console/php7";
+                loadtest "console/php7_mysql";
                 loadtest "console/php7_postgresql94";
             }
             loadtest "console/apache_ssl";
