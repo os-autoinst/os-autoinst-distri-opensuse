@@ -17,7 +17,7 @@ use strict;
 use testapi;
 use utils;
 
-our @EXPORT = qw(setup_apache2 setup_pgsqldb destroy_pgsqldb);
+our @EXPORT = qw(setup_apache2 setup_pgsqldb destroy_pgsqldb test_pgsql);
 
 # Setup apache2 service in different mode: SSL, NSS, NSSFIPS, PHP5, PHP7
 # Example: setup_apache2(mode => 'SSL');
@@ -139,7 +139,7 @@ sub setup_pgsqldb {
     # without changing current working directory we get:
     # 'could not change directory to "/root": Permission denied'
     assert_script_run 'pushd /tmp';
-    assert_script_run "curl " . data_url('console/postgres_openqadb.sql') . " -o /tmp/postgres_openqadb.sql"
+    assert_script_run "curl " . data_url('console/postgres_openqadb.sql') . " -o /tmp/postgres_openqadb.sql";
     # requires running postgresql94 server
     # test basic functionality - require postgresql94
     assert_script_run "sudo -u postgres psql -f /tmp/postgres_openqadb.sql";
@@ -154,6 +154,34 @@ sub destroy_pgsqldb {
     assert_script_run "sudo -u postgres dropdb openQAdb";
 
     assert_script_run 'popd';    # back to previous directory
+}
+
+sub test_pgsql {
+    # configuration so that PHP can access PostgreSQL
+    # setup password
+    type_string "sudo -u postgres psql postgres\n";
+    type_string "\\password postgres\n";
+    type_string "postgres\n";
+    type_string "postgres\n";
+    type_string "\\q\n";
+    # comment out default configuration
+    assert_script_run "sed -i 's/^host/#host/g' /var/lib/pgsql/data/pg_hba.conf";
+    # allow postgres to access the db with password authentication
+    assert_script_run "echo 'host openQAdb postgres 127.0.0.1/32 password' >> /var/lib/pgsql/data/pg_hba.conf";
+    assert_script_run "echo 'host openQAdb postgres      ::1/128 password' >> /var/lib/pgsql/data/pg_hba.conf";
+    assert_script_run "systemctl restart postgresql.service";
+
+    # configure the PHP code that:
+    #  1. reads table 'test' from the 'openQAdb' database (created in 'console/postgresql94' test)
+    #  2. inserts a new element 'can php write this?' into the same table
+    type_string "curl " . data_url('console/test_postgresql_connector.php') . " -o /srv/www/htdocs/test_postgresql_connector.php\n";
+    assert_script_run "systemctl restart apache2.service";
+
+    # access the website and verify that it can read the database
+    assert_script_run "curl --no-buffer http://localhost/test_postgresql_connector.php | grep 'can you read this?'";
+
+    # verify that PHP successfully wrote the element in the database
+    assert_script_run "sudo -u postgres psql -d openQAdb -c \"SELECT * FROM test\" | grep 'can php write this?'";
 }
 
 1;
