@@ -14,7 +14,7 @@
 use base "consoletest";
 use testapi;
 use strict;
-use utils 'service_action';
+use utils qw(service_action get_secondary_disk_devname);
 
 sub run() {
     select_console 'root-console';
@@ -27,12 +27,13 @@ sub run() {
     foreach my $snapper (@snapper_runs) {
         service_action('dbus', {type => ['socket', 'service'], action => ['stop', 'mask']}) if ($snapper =~ /dbus/);
 
-        # Create partition on /dev/vbd
-        assert_script_run 'echo -e "g\nn\n\n\n\nt\n8e\np\nw" | fdisk /dev/vdb';
+        my $hdd2 = get_secondary_disk_devname;
+        # Create partition on /dev/$hdd2
+        assert_script_run 'echo -e "g\nn\n\n\n\nt\n8e\np\nw" | fdisk /dev/' . $hdd2;
         assert_script_run 'lsblk';
 
         # Create a volume group named 'test'
-        assert_script_run 'vgcreate test /dev/vdb1';
+        assert_script_run "vgcreate test /dev/${hdd2}1";
         # Follow guide at https://lizards.opensuse.org/2012/07/25/snapper-lvm/
         assert_script_run 'lvcreate --thin test/pool --size 3G';
         assert_script_run 'lvcreate --thin test/pool --virtualsize 5G --name thin';
@@ -61,7 +62,7 @@ sub run() {
         assert_script_run "umount $mnt_thin";
         assert_script_run "rm -rf $mnt_thin_snapshot $mnt_thin";
         assert_script_run 'vgremove -f test';
-        assert_script_run 'echo -e "g\np\nw" | fdisk /dev/vdb';
+        assert_script_run 'echo -e "g\np\nw" | fdisk /dev/' . $hdd2;
         assert_script_run 'lsblk';
 
         service_action('dbus', {type => ['socket', 'service'], action => ['unmask', 'start']}) if ($snapper =~ /dbus/);

@@ -50,7 +50,8 @@ sub run() {
     assert_script_run "mkdir $src";
     assert_script_run "btrfs subvolume create $src/sv";
     assert_script_run "mkdir $dest";
-    assert_script_run "mkfs.btrfs -f /dev/vdb && mount /dev/vdb $dest";
+    my $hdd2 = get_secondary_disk_devname;
+    assert_script_run "mkfs.btrfs -f /dev/$hdd2 && mount /dev/$hdd2 $dest";
     #make sure that pax is installed
     zypper_call('in -C pax');
 
@@ -67,7 +68,7 @@ sub run() {
         assert_script_run "btrfs send -p $src/snap" . ($i - 1) . " $src/snap$i | btrfs receive $dest";
         compare_data $i;
     }
-    assert_script_run("umount -fl /dev/vdb");
+    assert_script_run("umount -fl /dev/$hdd2");
 }
 
 1;
