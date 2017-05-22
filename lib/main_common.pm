@@ -496,6 +496,7 @@ sub load_extra_tests() {
             loadtest "console/zbar";
             loadtest "console/zypper_ar";
             loadtest "console/a2ps";    # a2ps is not a ring package and thus not available in staging
+            loadtest "console/weechat";
         }
         loadtest "console/git";
         loadtest "console/java";
