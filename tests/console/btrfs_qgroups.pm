@@ -12,7 +12,7 @@
 #	 putting data into them and then running btrfsck on the hard disk
 # Maintainer: mkravec <mkravec@suse.com>
 
-use base "consoletest";
+use base 'btrfs_test';
 use strict;
 use testapi;
 
@@ -20,12 +20,12 @@ my $dest = "/mnt/qg";
 
 # poo#11446
 sub run() {
+    my ($self) = @_;
     select_console 'root-console';
 
     # Set up
     assert_script_run "mkdir $dest";
-    # choose the disk without a partition table for btrfs experiments
-    assert_script_run 'disk=$(parted --machine -l |& sed -n \'s@^\(/dev/vd[ab]\):.*unknown.*$@\1@p\')';
+    $self->set_unpartitioned_disk_in_bash;
     assert_script_run "mkfs.btrfs -f \$disk && mount \$disk $dest && cd $dest";
     assert_script_run "btrfs quota enable .";
 
