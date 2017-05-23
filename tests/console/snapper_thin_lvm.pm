@@ -11,12 +11,13 @@
 # poo#15944 FATE#321049
 # Maintainer: Michal Nowak <mnowak@suse.com>
 
-use base "consoletest";
+use base 'btrfs_test';
 use testapi;
 use strict;
 use utils 'service_action';
 
 sub run() {
+    my ($self) = @_;
     select_console 'root-console';
 
     my @snapper_runs = 'snapper';
@@ -24,15 +25,16 @@ sub run() {
     my $mnt_thin          = '/mnt/thin';
     my $mnt_thin_snapshot = $mnt_thin . '-snapshot';
 
+    $self->set_unpartitioned_disk_in_bash;
     foreach my $snapper (@snapper_runs) {
         service_action('dbus', {type => ['socket', 'service'], action => ['stop', 'mask']}) if ($snapper =~ /dbus/);
 
-        # Create partition on /dev/vbd
-        assert_script_run 'echo -e "g\nn\n\n\n\nt\n8e\np\nw" | fdisk /dev/vdb';
+        # Create partition on unpartitioned
+        assert_script_run 'echo -e "g\nn\n\n\n\nt\n8e\np\nw" | fdisk $disk';
         assert_script_run 'lsblk';
 
         # Create a volume group named 'test'
-        assert_script_run 'vgcreate test /dev/vdb1';
+        assert_script_run 'vgcreate test ${disk}1';
         # Follow guide at https://lizards.opensuse.org/2012/07/25/snapper-lvm/
         assert_script_run 'lvcreate --thin test/pool --size 3G';
         assert_script_run 'lvcreate --thin test/pool --virtualsize 5G --name thin';
@@ -61,7 +63,7 @@ sub run() {
         assert_script_run "umount $mnt_thin";
         assert_script_run "rm -rf $mnt_thin_snapshot $mnt_thin";
         assert_script_run 'vgremove -f test';
-        assert_script_run 'echo -e "g\np\nw" | fdisk /dev/vdb';
+        assert_script_run 'echo -e "g\np\nw" | fdisk $disk';
         assert_script_run 'lsblk';
 
         service_action('dbus', {type => ['socket', 'service'], action => ['unmask', 'start']}) if ($snapper =~ /dbus/);
