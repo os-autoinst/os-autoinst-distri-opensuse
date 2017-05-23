@@ -135,6 +135,15 @@ sub run() {
 
 sub post_fail_hook {
     my ($self) = @_;
+    # snapper actions can put the system under quite some load so we want to
+    # give some more time, e.g. for login in the consoles
+    my $factor = 10;
+    my $previous_timeout_scale = get_var('TIMEOUT_SCALE', 1);
+    set_var('TIMEOUT_SCALE', $previous_timeout_scale * $factor);
+    select_console('root-console', await_console => 0);
+    my $additional_sleep_time = 10;
+    sleep $additional_sleep_time;
+
     $self->export_kde_logs;
     $self->export_logs;
 
@@ -142,6 +151,12 @@ sub post_fail_hook {
     assert_script_run "save_y2logs /tmp/y2logs.tar.bz2";
     upload_logs "/tmp/y2logs.tar.bz2";
     save_screenshot;
+    diag('check if at least snapper low-level commands still work');
+    script_run('snapper ls');
+    diag('Collect a backtrace from potentially running snapperd, e.g. for bsc#1032831');
+    script_run('pidof snapperd && gdb --batch -q -ex "thread apply all bt" -ex q /usr/sbin/snapperd $(pidof snapperd) |& tee /tmp/snapperd_bt_all.log');
+    upload_logs '/tmp/snapperd_bt_all.log';
+    set_var('TIMEOUT_SCALE', $previous_timeout_scale);
 }
 
 1;
