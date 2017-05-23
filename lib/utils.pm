@@ -46,6 +46,8 @@ our @EXPORT = qw(
   ensure_fullscreen
   ensure_shim_import
   reboot_gnome
+  reboot
+  xen_restore_system
   assert_screen_with_soft_timeout
   is_desktop_installed
   pkcon_quit
@@ -437,6 +439,20 @@ sub ensure_shim_import {
     }
 }
 
+# VNC connection to SUT (the 'sut' console) is terminated on Xen via svirt
+# backend and we have to re-connect *after* the restart, otherwise we end up
+# with stalled VNC connection. The tricky part is to know *when* the system
+# is already booting.
+sub xen_restore_system {
+    return unless check_var('VIRSH_VMM_FAMILY', 'xen');
+    my $vnc_console = get_required_var('SVIRT_VNC_CONSOLE');
+    console($vnc_console)->disable_vnc_stalls;
+    assert_shutdown;
+    reset_consoles;
+    console('svirt')->define_and_start;
+    select_console($vnc_console);
+}
+
 sub reboot_gnome {
     wait_idle;
     send_key "ctrl-alt-delete";    # reboot
@@ -459,6 +475,18 @@ sub reboot_gnome {
         send_key "ret";
     }
     workaround_type_encrypted_passphrase;
+}
+
+=head2 reboot
+
+    reboot;
+
+Reboot system from root console.
+=cut
+sub reboot {
+    select_console 'root-console';
+    type_string "reboot\n";
+    xen_restore_system;
 }
 
 =head2 assert_screen_with_soft_timeout
