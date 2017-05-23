@@ -226,7 +226,7 @@ sub start_user_and_group_management {
 
 sub start_hypervisor {
     search('hypervisor');
-    assert_and_click 'ast2_control-center_install-hypervisor-and-tools';
+    assert_and_click 'yast2_control-center_install-hypervisor-and-tools';
     assert_screen 'yast2_control-center_install-hypervisor-and-tools_cancel', 60;
     send_key 'alt-c';
     assert_screen 'yast2-control-center-ui';
