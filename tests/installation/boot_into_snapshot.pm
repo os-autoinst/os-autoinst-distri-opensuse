@@ -26,7 +26,7 @@ sub run() {
     # 1)
     assert_script_run('touch NOWRITE;test ! -f NOWRITE');
     # 1b) just debugging infos
-    assert_script_run("snapper list");
+    assert_script_run("snapper --iso list");
     assert_script_run("cat /etc/os-release");
     if (get_var("UPGRADE")) {
         # if we made a migration, the version should be for example opensuse before migr. 42.1 > 42.2
@@ -37,6 +37,11 @@ sub run() {
         if ($OS_VERSION eq $OLD_OS_VERSION) {
             die "OS_VERSION after Rollback matches OS_VERSION before Rollback";
         }
+    }
+    if (get_var('CHECK_SNAPPER_ROLLBACK_CLEANUP')) {
+        assert_script_run('snapper rollback');
+        assert_script_run('snapper --iso list');
+        assert_screen('snapper-autocleanup');
     }
     script_run("systemctl reboot", 0);
     reset_consoles;

@@ -619,10 +619,10 @@ sub load_reboot_tests() {
     if (installyaststep_is_applicable()) {
         # test makes no sense on s390 because grub2 can't be captured
         if (!(check_var("ARCH", "s390x") or (check_var('VIRSH_VMM_FAMILY', 'xen') and check_var('VIRSH_VMM_TYPE', 'linux')))) {
-            loadtest "installation/grub_test";
             if ((snapper_is_applicable()) && get_var("BOOT_TO_SNAPSHOT")) {
                 loadtest "installation/boot_into_snapshot";
             }
+            loadtest "installation/grub_test";
         }
         if (get_var('ENCRYPT')) {
             loadtest "installation/boot_encrypt";
