@@ -21,18 +21,25 @@ sub reboot_and_wait_up() {
     my $self           = shift;
     my $reboot_timeout = shift;
 
-    wait_idle 1;
-    select_console('root-console');
     if (get_var("PROXY_MODE")) {
+        wait_idle 1;
+        select_console('root-console');
         my $test_machine = get_var("TEST_MACHINE");
         $self->reboot($test_machine, $reboot_timeout);
     }
     else {
-        wait_idle 1;
-        type_string("/sbin/reboot\n");
-        wait_idle 1;
+        #leave root-ssh console
+        set_var('SERIALDEV', '');
+        $serialdev = 'ttyS1';
+        bmwqemu::save_vars();
+        console('root-ssh')->kill_ssh;
+        console('sut')->disable;
+        #type reboot
+        type_string("reboot\n");
+        #switch to sut console
         reset_consoles;
-        wait_idle 1;
+        select_console("sut");
+        #wait boot finish and relogin
         &login_console::login_to_console($reboot_timeout);
     }
 }

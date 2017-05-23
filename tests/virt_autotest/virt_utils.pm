@@ -29,28 +29,34 @@ our @EXPORT = qw(set_serialdev setup_console_in_grub repl_repo_in_sourcefile res
 my $grub_ver;
 
 sub set_serialdev() {
-    script_run("clear");
-    script_run("cat /etc/SuSE-release");
-    save_screenshot;
-    assert_screen([qw(on_host_sles_12_sp2_or_above on_host_lower_than_sles_12_sp2)]);
+    if (!check_var('SERIALDEV', 'sshserial')) {
+        script_run("clear");
+        script_run("cat /etc/SuSE-release");
+        save_screenshot;
+        assert_screen([qw(on_host_sles_12_sp2_or_above on_host_lower_than_sles_12_sp2)]);
 
-    if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
-        if (match_has_tag("on_host_sles_12_sp2_or_above")) {
-            $serialdev = "hvc0";
+        if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
+            if (match_has_tag("on_host_sles_12_sp2_or_above")) {
+                $serialdev = "hvc0";
+            }
+            elsif (match_has_tag("on_host_lower_than_sles_12_sp2")) {
+                $serialdev = "xvc0";
+            }
         }
-        elsif (match_has_tag("on_host_lower_than_sles_12_sp2")) {
-            $serialdev = "xvc0";
+        else {
+            $serialdev = 'ttyS1';
+        }
+
+        if (match_has_tag("grub1")) {
+            $grub_ver = "grub1";
+        }
+        else {
+            $grub_ver = "grub2";
         }
     }
     else {
-        $serialdev = get_var('SERIALDEV', 'ttyS1');
-    }
-
-    if (match_has_tag("grub1")) {
-        $grub_ver = "grub1";
-    }
-    else {
-        $grub_ver = "grub2";
+        $serialdev = "sshserial";
+        $grub_ver  = "unknown";
     }
 
     type_string("echo \"Debug info: serial dev is set to $serialdev. Grub version is $grub_ver.\"\n");
@@ -125,7 +131,9 @@ sub resetup_console() {
     if (get_var("PROXY_MODE")) {
         &proxymode::set_serialdev();
     }
-    setup_console_in_grub($ipmi_console);
+    if ($ipmi_console ne "sshserial") {
+        setup_console_in_grub($ipmi_console);
+    }
 }
 
 1;

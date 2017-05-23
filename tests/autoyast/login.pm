@@ -19,16 +19,23 @@
 use strict;
 use base 'y2logsstep';
 use testapi;
+use ipmi_backend_utils;
 
 sub run {
     my $self = shift;
     assert_screen("autoyast-system-login-console", 20);
     $self->result('fail');    # default result
-    type_string "root\n";
-    sleep 10;
-    type_password;
-    send_key "ret";
-    sleep 10;
+    if (check_var('BACKEND', 'ipmi')) {
+        #use console based on ssh to avoid unstable ipmi
+        use_ssh_serial_console;
+    }
+    else {
+        type_string "root\n";
+        sleep 10;
+        type_password;
+        send_key "ret";
+        sleep 10;
+    }
     assert_script_run 'echo "checking serial port"';
     wait_idle(10);
     type_string "cat /proc/cmdline\n";
