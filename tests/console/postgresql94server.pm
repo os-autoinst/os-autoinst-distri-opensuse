@@ -1,7 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -9,12 +8,13 @@
 # without any warranty.
 
 # Summary: Postgres tests for SLE12
-# Maintainer: Romanos Dodopoulos <romanos.dodopoulos@suse.cz>
+# Maintainer:  Ondřej Súkup <osukup@suse.cz>
 
 use base "consoletest";
 use strict;
 use testapi;
 use utils;
+use apachetest;
 
 sub run() {
     select_console 'root-console';
@@ -35,17 +35,9 @@ sub run() {
         assert_script_run "systemctl show -p SubState postgresql.service | grep SubState=running";
     }
 
-    # without changing current working directory we get:
-    # 'could not change directory to "/root": Permission denied'
-    assert_script_run 'pushd /tmp';
-
-    # test basic functionality - require postgresql94
-    assert_script_run "sudo -u postgres createdb openQAdb";
-    assert_script_run "sudo -u postgres psql -d openQAdb -c \"CREATE TABLE test (id SERIAL PRIMARY KEY, entry VARCHAR)\"";
-    assert_script_run "sudo -u postgres psql -d openQAdb -c \"INSERT INTO test (entry) VALUES ('openQA_test'), ('can you read this?');\"";
-    assert_script_run "sudo -u postgres psql -d openQAdb -c \"SELECT * FROM test\" | grep \"can you read this\"";
-
-    assert_script_run 'popd';    # back to previous directory
+    # test basic functionality of postgresql94
+    setup_pgsqldb;
+    destroy_pgsqldb;
 }
 
 1;

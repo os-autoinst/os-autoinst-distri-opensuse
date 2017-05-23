@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: PHP5 code that interacts locally with MySQL
+# Summary: PHP7 code that interacts locally with MySQL
 #   This tests creates a MySQL database and inserts an element. Then,
 #   PHP reads the elements and writes a new one in the database. If
 #   all succeed, the test passes.
@@ -26,13 +26,12 @@ use apachetest;
 sub run() {
     select_console 'root-console';
 
-    setup_apache2(mode => 'PHP5');
+    setup_apache2(mode => 'PHP7');
     # install requirements
-    zypper_call "in php5-mysql mysql sudo";
+    zypper_call "in php7-mysql mysql sudo";
 
     assert_script_run "systemctl restart mysql", 300;
 
     test_mysql;
 }
-
 1;

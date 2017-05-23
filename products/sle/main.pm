@@ -731,6 +731,9 @@ sub load_consoletests() {
                 loadtest "console/php5";
                 loadtest "console/php5_mysql";
                 loadtest "console/php5_postgresql94";
+                loadtest "console/php7";
+                loadtest "console/php7_mysql";
+                loadtest "console/php7_postgresql94";
             }
             loadtest "console/apache_ssl";
             loadtest "console/apache_nss";

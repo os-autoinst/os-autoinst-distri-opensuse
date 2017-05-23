@@ -1,6 +1,6 @@
 # SUSE's Apache tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -15,10 +15,11 @@ use Exporter;
 use strict;
 
 use testapi;
+use utils;
 
-our @EXPORT = qw(setup_apache2);
+our @EXPORT = qw(setup_apache2 setup_pgsqldb destroy_pgsqldb test_pgsql test_mysql);
 
-# Setup apache2 service in different mode: SSL, NSS, NSSFIPS
+# Setup apache2 service in different mode: SSL, NSS, NSSFIPS, PHP5, PHP7
 # Example: setup_apache2(mode => 'SSL');
 sub setup_apache2 {
     my %args      = @_;
@@ -33,8 +34,28 @@ sub setup_apache2 {
         push @packages, qw(apache2-mod_nss mozilla-nss-tools expect);
     }
 
+    if ($mode eq "PHP7") {
+        push @packages, qw(apache2-mod_php7 php7);
+        zypper_call("rm -u apache2-mod_php5 php5", exitcode => [0, 104]);
+    }
+
+    if ($mode eq "PHP5") {
+        push @packages, qw(apache2-mod_php5 php5);
+        zypper_call("rm -u apache2-mod_php7 php7", exitcode => [0, 104]);
+    }
+
     # Make sure the packages are installed
-    assert_script_run "zypper -n in @packages", 300;
+    zypper_call("in @packages");
+
+    # Enable php5 or php7
+    if ($mode eq "PHP5") {
+        assert_script_run 'a2enmod -d php7';
+        assert_script_run 'a2enmod php5';
+    }
+    elsif ($mode eq "PHP7") {
+        assert_script_run 'a2enmod -d php5';
+        assert_script_run 'a2enmod php7';
+    }
 
     # Enable the ssl
     if ($mode eq "SSL") {
@@ -49,7 +70,6 @@ sub setup_apache2 {
         assert_script_run "sed -i '/^APACHE_SERVER_FLAGS=/s/^/#/' /etc/sysconfig/apache2";
         assert_script_run 'echo APACHE_SERVER_FLAGS="SSL" >> /etc/sysconfig/apache2';
     }
-
     # Create x509 certificate for this apache server
     if ($mode eq "SSL") {
         assert_script_run 'gensslcert -n $(hostname) -C $(hostname) -e webmaster@$(hostname)', 600;
@@ -100,6 +120,9 @@ sub setup_apache2 {
     # Create a test html page
     assert_script_run 'echo "<html><h2>Hello Linux</h2></html>" > /srv/www/htdocs/hello.html';
 
+    # create a test php page
+    assert_script_run qq{echo -e "<?php\nphpinfo()\n?>" > /srv/www/htdocs/index.php};
+
     # Verify apache+ssl works
     if ($mode =~ m/SSL|NSS/) {
         validate_script_output 'curl -k https://localhost/hello.html', sub { m/Hello Linux/ };
@@ -107,6 +130,78 @@ sub setup_apache2 {
     else {
         validate_script_output 'curl http://localhost/hello.html', sub { m/Hello Linux/ };
     }
+
+    if ($mode =~ /PHP5|PHP7/) {
+        assert_script_run "curl --no-buffer http://localhost/index.php | grep \"\$(uname -s -n -r -v -m)\"";
+    }
+}
+sub setup_pgsqldb {
+    # without changing current working directory we get:
+    # 'could not change directory to "/root": Permission denied'
+    assert_script_run 'pushd /tmp';
+    assert_script_run "curl " . data_url('console/postgres_openqadb.sql') . " -o /tmp/postgres_openqadb.sql";
+    # requires running postgresql94 server
+    # test basic functionality - require postgresql94
+    assert_script_run "sudo -u postgres psql -f /tmp/postgres_openqadb.sql";
+    assert_script_run "sudo -u postgres psql -d openQAdb -c \"SELECT * FROM test\" | grep \"can you read this\"";
+
+    assert_script_run 'popd';    # back to previous directory
+}
+
+sub destroy_pgsqldb {
+    assert_script_run 'pushd /tmp';
+
+    assert_script_run "sudo -u postgres dropdb openQAdb";
+
+    assert_script_run 'popd';    # back to previous directory
+}
+
+sub test_pgsql {
+    # configuration so that PHP can access PostgreSQL
+    # setup password
+    type_string "sudo -u postgres psql postgres\n";
+    type_string "\\password postgres\n";
+    type_string "postgres\n";
+    type_string "postgres\n";
+    type_string "\\q\n";
+    # comment out default configuration
+    assert_script_run "sed -i 's/^host/#host/g' /var/lib/pgsql/data/pg_hba.conf";
+    # allow postgres to access the db with password authentication
+    assert_script_run "echo 'host openQAdb postgres 127.0.0.1/32 password' >> /var/lib/pgsql/data/pg_hba.conf";
+    assert_script_run "echo 'host openQAdb postgres      ::1/128 password' >> /var/lib/pgsql/data/pg_hba.conf";
+    assert_script_run "systemctl restart postgresql.service";
+
+    # configure the PHP code that:
+    #  1. reads table 'test' from the 'openQAdb' database (created in 'console/postgresql94' test)
+    #  2. inserts a new element 'can php write this?' into the same table
+    type_string "curl " . data_url('console/test_postgresql_connector.php') . " -o /srv/www/htdocs/test_postgresql_connector.php\n";
+    assert_script_run "systemctl restart apache2.service";
+
+    # access the website and verify that it can read the database
+    assert_script_run "curl --no-buffer http://localhost/test_postgresql_connector.php | grep 'can you read this?'";
+
+    # verify that PHP successfully wrote the element in the database
+    assert_script_run "sudo -u postgres psql -d openQAdb -c \"SELECT * FROM test\" | grep 'can php write this?'";
+}
+
+sub test_mysql {
+    # create the 'openQAdb' database with table 'test' and insert one element 'can php read this?'
+    assert_script_run
+qq{mysql -u root -e "CREATE DATABASE openQAdb; USE openQAdb; CREATE TABLE test (id int NOT NULL AUTO_INCREMENT, entry varchar(255) NOT NULL, PRIMARY KEY(id)); INSERT INTO test (entry) VALUE ('can you read this?');"};
+
+    # configure the PHP code that:
+    #  1. reads table 'test' from the 'openQAdb' database
+    #  2. inserts a new element 'can php write this?' into the same table
+    assert_script_run "curl " . data_url('console/test_mysql_connector.php') . " -o /srv/www/htdocs/test_mysql_connector.php";
+    assert_script_run "systemctl restart apache2.service";
+
+    # access the website and verify that it can read the database
+    assert_script_run "curl --no-buffer http://localhost/test_mysql_connector.php | grep 'can you read this?'";
+
+    # verify that PHP successfully wrote the element in the database
+    assert_script_run "mysql -u root -e 'USE openQAdb; SELECT * FROM test;' | grep 'can php write this?'";
+
+    assert_script_run qq{mysql -u root -e "DROP DATABASE openQAdb;"};
 }
 
 1;

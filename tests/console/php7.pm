@@ -1,13 +1,13 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Simple PHP5 code hosted locally
+# Summary: Simple PHP7 code hosted locally
 #   This test requires the Web and Scripting module on SLE.
 # Maintainer: Ondřej Súkup <osukup@suse.cz>
 
@@ -20,7 +20,7 @@ use apachetest;
 
 sub run() {
     select_console 'root-console';
-    setup_apache2(mode => 'PHP5');
-    validate_script_output('curl http://localhost/index.php', sub { /PHP Version 5/ });
+    setup_apache2(mode => 'PHP7');
+    validate_script_output('curl http://localhost/index.php', sub { /PHP Version 7/ });
 }
 1;
