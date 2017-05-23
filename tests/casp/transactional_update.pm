@@ -61,7 +61,7 @@ sub run() {
     assert_script_run 'zypper ar utt.repo';
     trup_call 'reboot cleanup up';
     check_reboot_changes;
-    check_package '5.30.1';
+    check_package '5.31.2';
 
     # System should be up to date - no changes expected
     trup_call 'cleanup up';
