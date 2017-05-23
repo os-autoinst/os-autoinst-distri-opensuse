@@ -746,12 +746,16 @@ sub validate_repos_sle {
 
         for my $scc_product ($base_product, keys %h_scc_addons) {
             next if (($scc_product =~ /LTSS/) && get_var('SKIP_LTSS'));
-            $we = 1 if ($scc_product eq "SLE-WE");
+            # there will be no nvidia repo when WE add-on was removed with MIGRATION_REMOVE_ADDONS
+            my $addon_removed = uc get_var('MIGRATION_REMOVE_ADDONS', 'none');
+            $we = 1 if ($scc_product eq 'SLE-WE' && $scc_product !~ /$addon_removed/);
             for my $product_channel ("Pool", "Updates", "Debuginfo-Pool", "Debuginfo-Updates", "Source-Pool") {
                 # Toolchain module doesn't have Source-Pool channel
                 next if (($scc_product eq 'SLE-TCM') && ($product_channel eq 'Source-Pool'));
                 # LTSS doesn't have Pool, Debuginfo-Pool and Source-Pool channels
                 next if (($scc_product =~ /LTSS/) && ($product_channel =~ /(|Debuginfo-|Source-)Pool/));
+                # don't look for add-on that was removed with MIGRATION_REMOVE_ADDONS
+                next if (get_var('ZYPPER_LR') && get_var('MIGRATION_INCONSISTENCY_DEACTIVATE') && $scc_product =~ /$addon_removed/);
                 validatelr(
                     {
                         product         => $scc_product,
