@@ -48,7 +48,7 @@ sub rbm_set_window {
 #1 Test instant reboot
 sub check_strategy_instantly {
     rbm_call "set-strategy instantly";
-    trup_call 'reboot ptf install update-test-trival/update-test-trival-5-5.3.61.x86_64.rpm', 0;
+    trup_call 'reboot ptf install update-test-trival/update-test-interactive-5-5.3.61.x86_64.rpm', 0;
     process_reboot;
     rbm_call "get-strategy | grep instantly";
 }
