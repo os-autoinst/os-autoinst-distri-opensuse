@@ -28,7 +28,7 @@ sub run() {
 
     setup_apache2(mode => 'PHP7');
     # install requirements
-    zypper_call "in php7-mysql mysql";
+    zypper_call "in php7-mysql mysql sudo";
 
     assert_script_run "systemctl restart mysql", 300;
 

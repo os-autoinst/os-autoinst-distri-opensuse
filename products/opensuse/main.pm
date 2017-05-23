@@ -457,6 +457,12 @@ sub load_consoletests() {
             loadtest "console/http_srv";
             loadtest "console/mysql_srv";
             loadtest "console/dns_srv";
+            loadtest "console/php5";
+            loadtest "console/php5_mysql";
+            loadtest "console/php5_postgresql94";
+            loadtest "console/php7";
+            loadtest "console/php7_mysql";
+            loadtest "console/php7_postgresql94";
             if (check_var('ARCH', 'x86_64')) {
                 loadtest "console/docker";
             }

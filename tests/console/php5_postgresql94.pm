@@ -30,7 +30,7 @@ sub run() {
     setup_apache2(mode => 'PHP5');
 
     # install requirements
-    zypper_call "in php5-pgsql postgresql94-server";
+    zypper_call "in php5-pgsql postgresql94-server sudo";
 
     # start postgresql
     assert_script_run "systemctl start postgresql";
