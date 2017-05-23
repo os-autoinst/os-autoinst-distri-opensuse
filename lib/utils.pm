@@ -772,15 +772,11 @@ sub validate_repos_sle {
         # Consider migration, use regex to match nvidia whether in upper, lower or mixed
         # Skip check AMD/ATI repo since it would be removed from sled12 and sle-we-12, see bsc#984866
         if ($base_product eq "SLED" || $we) {
-            # Show the softfail information here
-            if (check_var('SOFTFAIL', 'bsc#1013208')) {
-                record_soft_failure 'workaround for bsc#1013208, nvidia repo was disabled after migration';
-            }
             validatelr(
                 {
                     product         => "SLE-",
                     product_channel => 'GA-Desktop-[nN][vV][iI][dD][iI][aA]-Driver',
-                    enabled_repo    => (check_var('SOFTFAIL', 'bsc#1013208')) ? "No" : "Yes",
+                    enabled_repo    => 'Yes',
                     uri             => $nvidia_uri,
                     version         => $version
                 });

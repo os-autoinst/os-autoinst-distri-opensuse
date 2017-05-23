@@ -21,13 +21,6 @@ sub run() {
     # print repos to screen and serial console after online migration
     zypper_call('lr -u');
 
-    # nvidia repo is always updated by scc during migration
-    # we have to disable it after migration if find workaround
-    if (check_var('SOFTFAIL', 'bsc#1013208')) {
-        assert_script_run "zypper mr -d \$(zypper lr | grep -i nvidia | awk \'{print \$1}\')";
-        record_soft_failure 'workaround for bsc#1013208, disable nvidia repo after migration';
-    }
-
     select_console 'x11', await_console => 0;
     ensure_unlocked_desktop;
     mouse_hide(1);
