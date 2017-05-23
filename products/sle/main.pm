@@ -1163,10 +1163,6 @@ elsif (get_var("VIRT_AUTOTEST")) {
             load_inst_tests();
             loadtest "virt_autotest/login_console";
         }
-        if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
-            loadtest "virt_autotest/setup_console_on_host1";
-            loadtest "virt_autotest/reboot_and_wait_up_normal1";
-        }
         loadtest "virt_autotest/install_package";
         loadtest "virt_autotest/update_package";
         loadtest "virt_autotest/reboot_and_wait_up_normal2";
@@ -1179,7 +1175,6 @@ elsif (get_var("VIRT_AUTOTEST")) {
         loadtest "virt_autotest/host_upgrade_step2_run";
         loadtest "virt_autotest/reboot_and_wait_up_upgrade";
         if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
-            loadtest "virt_autotest/setup_console_on_host2";
             loadtest "virt_autotest/reboot_and_wait_up_normal3";
         }
         loadtest "virt_autotest/host_upgrade_step3_run";

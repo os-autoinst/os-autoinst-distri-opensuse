@@ -16,7 +16,7 @@ use warnings;
 use File::Basename;
 use base "opensusebasetest";
 use testapi;
-use virt_utils;
+use ipmi_backend_utils;
 
 sub login_to_console() {
     my ($self, $timeout) = @_;
@@ -39,16 +39,13 @@ sub login_to_console() {
 
     assert_screen(['linux-login', 'virttest-displaymanager'], $timeout);
 
-    console('sol')->disable;
-    select_console('root-ssh');
-    $serialdev = 'sshserial';
-    set_var('SERIALDEV', 'sshserial');
+    #use console based on ssh to avoid unstable ipmi
+    use_ssh_serial_console;
 }
 
 sub run() {
     my $self = shift;
     $self->login_to_console;
-    set_serialdev;
 }
 
 1;
