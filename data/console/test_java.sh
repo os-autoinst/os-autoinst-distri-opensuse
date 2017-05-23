@@ -157,7 +157,7 @@ check_version_active_vs_dot () {
     version=$1
     name=$2
 
-    dot_version_short=`echo $dot_version | awk -F '-' '{print $1}'`   
+    dot_version_short=`echo $dot_version | awk -F '-' '{print $1}'`
     if [ $version == $dot_version_short ]; then
 	echo "check linked $name version: PASS"
     else
@@ -209,8 +209,8 @@ for java_version in $(cat $LIST_ALL_INSTALLED_VERSIONS); do
         echo "SKIPPING. We do not test BSK Repo"
         continue
     fi
-    if [[ $java_version == *"1_9_0"* ]]; then
-        echo "SKIPPING. We do not test java-1_9_0-openjdk before the public release"
+    if [[ $java_version == *"-9-"* ]]; then
+        echo "SKIPPING. We do not test java-9-openjdk before the public release"
         continue
     fi
     # Current java under test
@@ -275,7 +275,7 @@ for java_version in $(cat $LIST_ALL_INSTALLED_VERSIONS); do
     fi
 
     # JVM is unable to load the *.class file unless you are into
-    # the very same directory that the file exist 
+    # the very same directory that the file exist
     cd $DIR; java Hello > /dev/null
     rq=$?
     if [ $rq -ne 0 ]; then
