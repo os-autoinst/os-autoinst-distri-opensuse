@@ -787,6 +787,10 @@ elsif (get_var("MEDIACHECK")) {
 elsif (get_var("MEMTEST")) {
     loadtest "installation/memtest";
 }
+elsif (get_var("FILESYSTEM_TEST")) {
+    boot_hdd_image;
+    load_filesystem_tests();
+}
 elsif (get_var("RESCUESYSTEM")) {
     loadtest "installation/rescuesystem";
     loadtest "installation/rescuesystem_validate_131";

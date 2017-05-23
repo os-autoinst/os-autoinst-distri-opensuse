@@ -44,6 +44,7 @@ our @EXPORT = qw(
   maybe_load_kernel_tests
   load_extra_tests
   load_rollback_tests
+  load_filesystem_tests
 );
 
 sub init_main {
@@ -470,27 +471,10 @@ sub load_extra_tests() {
         if (!get_var("OFW") && !is_jeos && !check_var('VIRSH_VMM_FAMILY', 'xen')) {
             loadtest "console/aplay";
         }
-        if (get_var("FILESYSTEM", "btrfs") eq "btrfs") {
-            loadtest "console/btrfs_autocompletion";
-            if (get_var("NUMDISKS", 0) > 1) {
-                loadtest "console/btrfs_qgroups";
-                if (check_var('DISTRI', 'opensuse') || (check_var('DISTRI', 'sle') && sle_version_at_least('12-SP2'))) {
-                    loadtest 'console/snapper_cleanup';
-                }
-                if (check_var('DISTRI', 'sle') && sle_version_at_least('12-SP2')) {
-                    loadtest "console/btrfs_send_receive";
-                }
-            }
-        }
-        loadtest 'console/snapper_undochange';
-        loadtest 'console/snapper_create';
         loadtest "console/command_not_found";
-        if (check_var('DISTRI', 'sle')) {
-            loadtest 'console/snapper_thin_lvm';
-            if (sle_version_at_least('12-SP2')) {
-                loadtest 'console/openssl_alpn';
-                loadtest 'console/autoyast_removed';
-            }
+        if (check_var('DISTRI', 'sle') && sle_version_at_least('12-SP2')) {
+            loadtest 'console/openssl_alpn';
+            loadtest 'console/autoyast_removed';
         }
         elsif (check_var('DISTRI', 'opensuse')) {
             loadtest "console/rabbitmq";
@@ -532,6 +516,33 @@ sub load_rollback_tests() {
     }
     if (get_var('MIGRATION_ROLLBACK')) {
         loadtest "online_migration/sle12_online_migration/snapper_rollback";
+    }
+}
+
+sub load_filesystem_tests() {
+    return unless get_var('FILESYSTEM_TEST');
+    # pre-conditions for filesystem tests ie. the tests are running based on preinstalled image
+    return if get_var("INSTALLONLY") || get_var("DUALBOOT") || get_var("RESCUECD");
+
+    # setup $serialdev permission and so on
+    loadtest "console/consoletest_setup";
+    loadtest "console/hostname";
+    if (get_var("FILESYSTEM", "btrfs") eq "btrfs") {
+        loadtest "console/btrfs_autocompletion";
+        if (get_var("NUMDISKS", 0) > 1) {
+            loadtest "console/btrfs_qgroups";
+            if (check_var('DISTRI', 'opensuse') || (check_var('DISTRI', 'sle') && sle_version_at_least('12-SP2'))) {
+                loadtest 'console/snapper_cleanup';
+            }
+            if (check_var('DISTRI', 'sle') && sle_version_at_least('12-SP2')) {
+                loadtest "console/btrfs_send_receive";
+            }
+        }
+    }
+    loadtest 'console/snapper_undochange';
+    loadtest 'console/snapper_create';
+    if (check_var('DISTRI', 'sle')) {
+        loadtest 'console/snapper_thin_lvm';
     }
 }
 
