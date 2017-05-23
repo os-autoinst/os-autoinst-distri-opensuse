@@ -56,22 +56,6 @@ sub prepare_sle_classic {
     assert_screen "desktop-sle-classic", 120;
 }
 
-sub enter_test_text {
-    my ($self, $name, %args) = @_;
-    $name       //= 'your program';
-    $args{cmd}  //= 0;
-    $args{slow} //= 0;
-    for (1 .. 13) { send_key 'ret' }
-    my $text = "If you can see this text $name is working.\n";
-    $text = 'echo ' . $text if $args{cmd};
-    if ($args{slow}) {
-        type_string_slow $text;
-    }
-    else {
-        type_string $text;
-    }
-}
-
 sub test_terminal {
     my ($self, $name) = @_;
     mouse_hide(1);
