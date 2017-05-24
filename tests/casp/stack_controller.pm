@@ -11,7 +11,6 @@
 # Manual modifications to controller node:
 #   Installed packages for DHCP, DNS and enable them in firewall
 #   Installer kubernetes-client from virtualization repo
-#   Configured ntpd server (using local clock)
 #   Firefox:
 #     - disabled readerview, password remember, bookmarks bar
 #     - startup page, search tips, auto-save to disk
@@ -40,7 +39,7 @@ sub velum_signup {
 sub velum_certificates {
     assert_screen 'velum-certificates-page';
     for (1 .. 5) { send_key 'tab' }
-    type_string "node1.openqa.test";
+    type_string "master.openqa.test";
     send_key 'tab';
     type_string "SUSE";
     send_key 'tab';
@@ -66,7 +65,12 @@ sub velum_bootstrap {
     barrier_wait "WORKERS_INSTALLED";
 
     # Select master and bootstrap
-    assert_and_click "select-master";
+    send_key "ctrl-f";
+    type_string "master.op\n";
+    send_key "esc";
+    send_key "tab";
+    send_key "spc";
+    assert_screen "master-selected";
     assert_and_click "velum-bootstrap";
 
     assert_screen "velum-botstrap-done", 300;
@@ -82,8 +86,11 @@ sub initialize {
     assert_script_sudo "chown $testapi::username /dev/$testapi::serialdev";
     # Disable screensaver
     script_run "gsettings set org.gnome.desktop.session idle-delay 0";
-    send_key "ctrl-d";
 
+    # Leave xterm open for kubernetes tests
+    save_screenshot;
+    send_key "ctrl-l";
+    send_key 'super-up';
     x11_start_program("firefox");
 }
 
@@ -99,16 +106,31 @@ sub run() {
     send_key 'ret';
     send_key "f11";
 
-    # Velum tests
+    # Bootstrap cluster and download kubeconfig
     velum_signup;
     velum_certificates;
     velum_bootstrap;
 
     # Use downloaded kubeconfig to display basic information
-    select_console "user-console";
-    type_string "export KUBECONFIG=Downloads/kubeconfig\n";
+    send_key "alt-tab";
+    assert_screen 'xterm';
+    type_string "export KUBECONFIG=~/Downloads/kubeconfig\n";
     assert_script_run "kubectl cluster-info";
     assert_script_run "kubectl get nodes";
+
+    # Check cluster size - minus controller & admin & master jobs
+    my $minion_count = get_required_var("STACK_SIZE") - 3;
+    assert_script_run "kubectl get nodes --no-headers | wc -l | grep $minion_count";
+
+    # Deploy nginx minimal application
+    assert_script_run 'kubectl run nginx --image=nginx:alpine --replicas=2 --port=80';
+    assert_script_run 'kubectl expose deployment nginx --type=NodePort';
+    assert_script_run 'kubectl get all';
+
+    # Check deployed application in firefox
+    type_string "NODEPORT=`kubectl get svc | egrep -o '80:3[0-9]{4}' | cut -d: -f2`\n";
+    type_string "firefox node1.openqa.test:\$NODEPORT\n";
+    assert_screen 'nginx-alpine';
 
     barrier_wait "CNTRL_FINISHED";
     wait_for_children;
