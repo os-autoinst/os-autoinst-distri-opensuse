@@ -87,6 +87,7 @@ sub run() {
 
     assert_script_run "cd; umount $dest";
     assert_script_run 'btrfsck $disk';
+    $self->cleanup_partition_table;
 }
 
 1;
