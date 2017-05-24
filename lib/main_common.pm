@@ -499,12 +499,11 @@ sub load_extra_tests() {
             # sysauth test scenarios run in the console
             loadtest "sysauth/sssd";
         }
-        # finished console test and back to desktop
-        loadtest "console/consoletest_finish";
-        # kdump is not supported on aarch64, see BSC#990418
+        # kdump is not supported on aarch64, see bsc#990418
         if (!check_var('ARCH', 'aarch64')) {
-            loadtest "toolchain/crash";
+            loadtest "console/kdump_and_crash";
         }
+        loadtest "console/consoletest_finish";
     }
     return 1;
 }
