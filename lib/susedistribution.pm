@@ -263,6 +263,15 @@ sub init_consoles {
         $self->add_console('x11',            'tty-console', {tty => 7});
     }
 
+    if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
+        $self->add_console(
+            'hyperv-intermediary',
+            'ssh-virtsh',
+            {
+                hostname => get_required_var('VIRSH_GUEST'),
+                password => get_var('VIRSH_GUEST_PASSWORD')});
+    }
+
     if (check_var('BACKEND', 'ikvm') || check_var('BACKEND', 'ipmi')) {
         $self->add_console(
             'root-ssh',
@@ -502,7 +511,7 @@ sub console_selected {
     my ($self, $console, %args) = @_;
     $args{await_console} //= 1;
     $args{tags}          //= $console;
-    $args{ignore}        //= qr{sut|root-virtio-terminal|iucvconn|svirt|root-ssh};
+    $args{ignore}        //= qr{sut|root-virtio-terminal|iucvconn|svirt|root-ssh|hyperv-intermediary};
     return unless $args{await_console};
     return if $args{tags} =~ $args{ignore};
     # x11 needs special handling because we can not easily know if screen is
