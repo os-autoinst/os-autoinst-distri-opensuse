@@ -410,7 +410,7 @@ sub activate_console {
         }
     }
 
-    $console =~ m/^(\w+)-(console|virtio-terminal|ssh)/;
+    $console =~ m/^(\w+)-(console|virtio-terminal|ssh|shell)/;
     my ($name, $user, $type) = ($1, $1, $2);
     $name = $user //= '';
     $type //= '';
@@ -453,12 +453,6 @@ sub activate_console {
         assert_screen "text-logged-in-$user";
         $self->set_standard_prompt($user);
         assert_screen $console;
-
-        # On s390x 'setterm' binary is not present as there's no linux console
-        if (!check_var('ARCH', 's390x')) {
-            # Disable console screensaver
-            $self->script_run("setterm -blank 0");
-        }
     }
     elsif ($type eq 'virtio-terminal') {
         serial_terminal::login($user, $self->{serial_term_prompt});
@@ -486,6 +480,14 @@ sub activate_console {
     }
     else {
         diag 'activate_console called with generic type, no action';
+    }
+    # Both consoles and shells should be prevented from blanking
+    if ((($type eq 'console') or ($type =~ /shell/)) and (get_var('BACKEND', '') =~ /qemu|svirt/)) {
+        # On s390x 'setterm' binary is not present as there's no linux console
+        if (!check_var('ARCH', 's390x')) {
+            # Disable console screensaver
+            $self->script_run('setterm -blank 0');
+        }
     }
 }
 
