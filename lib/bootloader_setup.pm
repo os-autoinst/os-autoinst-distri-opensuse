@@ -119,6 +119,14 @@ sub select_bootmenu_option {
     return 0;
 }
 
+sub bootmenu_type_extra_boot_params {
+    my $e = get_var("EXTRABOOTPARAMS");
+    if ($e) {
+        type_string_very_slow "$e ";
+        save_screenshot;
+    }
+}
+
 sub bootmenu_default_params {
     if (check_var('ARCH', 'ppc64le')) {
         # edit menu, wait until we get to grub edit
@@ -132,7 +140,8 @@ sub bootmenu_default_params {
         if (check_var('VIDEOMODE', 'text')) {
             type_string_very_slow " textmode=1";
         }
-        type_string_very_slow " Y2DEBUG=1";
+        type_string_very_slow " Y2DEBUG=1 ";
+        bootmenu_type_extra_boot_params;
     }
     else {
         # https://wiki.archlinux.org/index.php/Kernel_Mode_Setting#Forcing_modes_and_EDID
@@ -164,11 +173,7 @@ sub bootmenu_default_params {
                 # Enable linuxrc core dumps https://en.opensuse.org/SDB:Linuxrc#p_linuxrccore
                 type_string_very_slow "linuxrc.core=$serialdev ";
             }
-            my $e = get_var("EXTRABOOTPARAMS");
-            if ($e) {
-                type_string_very_slow "$e ";
-                save_screenshot;
-            }
+            bootmenu_type_extra_boot_params;
         }
     }
 }
