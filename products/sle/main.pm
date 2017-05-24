@@ -1235,6 +1235,10 @@ elsif (get_var("EXTRATEST")) {
     }
     load_extra_tests();
 }
+elsif (get_var("FILESYSTEM_TEST")) {
+    boot_hdd_image;
+    load_filesystem_tests();
+}
 elsif (get_var("Y2UITEST")) {
     load_yast2_ui_tests;
 }
