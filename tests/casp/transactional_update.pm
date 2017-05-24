@@ -72,8 +72,16 @@ sub run {
     check_reboot_changes;
     check_package;
 
-    # Revert to first snapshot that we created
-    my $snap = is_casp('VMX') ? 2 : 3;
+    # Revert to first snapshot that we created. On Hyper-V we need to modify GRUB
+    # to add special framebuffer provision; as it involves and additional snapshot
+    # magic numbers below have to be altered there.
+    my $snap;
+    if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
+        $snap = is_casp('VMX') ? 3 : 4;
+    }
+    else {
+        $snap = is_casp('VMX') ? 2 : 3;
+    }
     trup_call "rollback $snap";
     check_reboot_changes;
     check_package '5.3.61';

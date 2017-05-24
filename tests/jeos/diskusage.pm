@@ -16,9 +16,8 @@ use strict;
 use testapi;
 
 sub run {
-    my $self    = shift;
-    my $result  = 'ok';
-    my $datamax = get_var("BTRFS_MAXDATASIZE");
+    my $self   = shift;
+    my $result = 'ok';
 
     # spit out only the part of the btrfs filesystem size we're interested in
     script_run "echo btrfs-data=\$(btrfs filesystem df -b / | grep Data | sed -n -e 's/^.*used=//p') | tee -a /dev/$serialdev", 0;
@@ -27,10 +26,7 @@ sub run {
     die "failed to get btrfs-data size" unless (defined $datasize);
     $datasize = substr $datasize, 11;
 
-    if ($datasize > $datamax) {
-        $result = 'fail';
-    }
-    $self->result($result);
+    die 'Data used by JeOS exceeded BTRFS_MAXDATASIZE' if ($datasize > get_var("BTRFS_MAXDATASIZE"));
 }
 
 1;

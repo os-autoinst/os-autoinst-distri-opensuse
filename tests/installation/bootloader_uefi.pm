@@ -82,7 +82,7 @@ sub run {
 
     uefi_bootmenu_params;
     bootmenu_default_params;
-    specific_bootmenu_params;
+    specific_bootmenu_params unless is_casp || is_jeos;
     specific_caasp_params;
 
     # JeOS and CaaSP are never deployed with Linuxrc involved,

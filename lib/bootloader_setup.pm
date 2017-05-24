@@ -224,11 +224,8 @@ sub bootmenu_default_params {
         bootmenu_type_extra_boot_params;
     }
     else {
-        # https://wiki.archlinux.org/index.php/Kernel_Mode_Setting#Forcing_modes_and_EDID
-        if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
-            type_string_slow " video=hyperv_fb:1024x768";
-        }
-        type_string_slow "Y2DEBUG=1 ";
+        # On JeOS and CaaSP we don't have YaST installer.
+        type_string_slow "Y2DEBUG=1 " unless is_jeos || is_casp;
 
         # gfxpayload variable replaced vga option in grub2
         if (!is_jeos && !is_casp && (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64'))) {
@@ -238,7 +235,7 @@ sub bootmenu_default_params {
         }
 
         if (!get_var("NICEVIDEO")) {
-            if (is_jeos) {
+            if (is_jeos || is_casp) {
                 bootmenu_type_console_params;
             }
             else {
