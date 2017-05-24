@@ -51,12 +51,15 @@ sub load_boot_tests {
     }
     else {
         if (check_var("BACKEND", "svirt")) {
-            loadtest "installation/bootloader_svirt";
+            if (check_var("VIRSH_VMM_FAMILY", "hyperv")) {
+                loadtest "installation/bootloader_hyperv";
+            }
+            else {
+                loadtest "installation/bootloader_svirt";
+            }
         }
-        else {
-            # For all [non]uefi VMX images as boot screens are the same
-            loadtest 'installation/bootloader_uefi';
-        }
+        # Make sure GRUB is present and in sane state (except Xen PV)
+        loadtest 'installation/bootloader_uefi' unless check_var('VIRSH_VMM_TYPE', 'linux');
     }
 }
 
@@ -98,7 +101,9 @@ sub load_rcshell_tests {
 # Feature tests after installation finishes
 sub load_feature_tests {
     # Feature tests
-    loadtest 'casp/create_autoyast';
+    # 'create_autoyast' uses serial line heavily, which is notentirely
+    # reliable on Hyper-V, no point in executing it as it always fails.
+    loadtest 'casp/create_autoyast' unless check_var('VIRSH_VMM_FAMILY', 'hyperv');
     loadtest 'casp/libzypp_config';
     loadtest 'casp/filesystem_ro';
     loadtest 'casp/services_enabled';

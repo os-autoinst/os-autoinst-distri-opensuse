@@ -25,6 +25,8 @@ use testapi qw(is_serial_terminal :DEFAULT);
 our @EXPORT = qw(
   check_console_font
   clear_console
+  is_jeos
+  is_hyperv_in_gui
   is_casp
   is_gnome_next
   is_jeos
@@ -222,6 +224,10 @@ sub check_console_font {
 
 sub is_jeos {
     return get_var('FLAVOR', '') =~ /^JeOS/;
+}
+
+sub is_hyperv_in_gui {
+    return check_var('VIRSH_VMM_FAMILY', 'hyperv') && !check_var('VIDEOMODE', 'text');
 }
 
 sub is_krypton_argon {

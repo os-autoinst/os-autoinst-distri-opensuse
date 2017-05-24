@@ -129,7 +129,7 @@ sub run {
     }
 
     # Stop reboot countdown for e.g. uploading logs
-    if (!get_var("REMOTE_CONTROLLER")) {
+    unless (get_var("REMOTE_CONTROLLER") || is_hyperv_in_gui) {
         # Depending on the used backend the initial key press to stop the
         # countdown might not be evaluated correctly or in time. In these
         # cases we keep hitting the keys until the countdown stops.

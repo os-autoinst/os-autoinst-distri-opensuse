@@ -12,6 +12,7 @@ use warnings;
 use testapi qw(check_var get_var get_required_var set_var check_var_array);
 use lockapi;
 use needle;
+use utils 'is_hyperv_in_gui';
 use File::Find;
 use File::Basename;
 
@@ -611,12 +612,14 @@ sub load_inst_tests {
         # system is not being tested (e.g. INSTALLONLY etc.)
         if (    !consolestep_is_applicable()
             and !get_var("REMOTE_CONTROLLER")
+            and !is_hyperv_in_gui
             and !check_var('BACKEND', 's390x')
             and sle_version_at_least('12-SP2'))
         {
             loadtest "installation/hostname_inst";
         }
-        if (!get_var("REMOTE_CONTROLLER") && !check_var('BACKEND', 'ipmi')) {
+        # Do not run on REMOTE_CONTROLLER, IPMI and on Hyper-V in GUI mode
+        if (!get_var("REMOTE_CONTROLLER") && !check_var('BACKEND', 'ipmi') && !is_hyperv_in_gui) {
             loadtest "installation/logpackages";
         }
         if (is_sles4sap()) {
