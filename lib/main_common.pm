@@ -799,7 +799,14 @@ sub load_create_hdd_tests {
     loadtest 'console/force_cron_run' unless is_jeos;
     loadtest 'shutdown/grub_set_bootargs';
     loadtest 'shutdown/shutdown';
-    loadtest 'shutdown/svirt_upload_assets' if check_var('BACKEND', 'svirt');
+    if (check_var('BACKEND', 'svirt')) {
+        if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
+            loadtest 'shutdown/hyperv_upload_assets';
+        }
+        else {
+            loadtest 'shutdown/svirt_upload_assets';
+        }
+    }
 }
 
 1;
