@@ -10,8 +10,15 @@ Choose the disk without a partition table for btrfs experiments.
 Defines the variable C<$disk> in a bash session.
 =cut
 sub set_unpartitioned_disk_in_bash {
+    my $vd = 'vd';    # KVM
+    if (check_var('VIRSH_VMM_FAMILY', 'xen')) {
+        $vd = 'xvd';
+    }
+    elsif (check_var('VIRSH_VMM_FAMILY', 'hyperv') or check_var('VIRSH_VMM_FAMILY', 'vmware')) {
+        $vd = 'sd';
+    }
     assert_script_run 'parted --machine -l';
-    assert_script_run 'disk=${disk:-$(parted --machine -l |& sed -n \'s@^\(/dev/vd[ab]\):.*unknown.*$@\1@p\')}';
+    assert_script_run 'disk=${disk:-$(parted --machine -l |& sed -n \'s@^\(/dev/' . $vd . '[ab]\):.*unknown.*$@\1@p\')}';
     assert_script_run 'echo $disk';
 }
 
