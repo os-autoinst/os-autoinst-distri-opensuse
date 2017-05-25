@@ -65,6 +65,8 @@ sub is_bridged_networking {
         my $vmm_family = get_required_var('VIRSH_VMM_FAMILY');
         $ret = ($vmm_family =~ /xen|vmware|hyperv/);
     }
+    # Some needles match hostname which we can't set permanently with bridge.
+    set_var('BRIDGED_NETWORKING', 1) if $ret;
     return $ret;
 }
 
