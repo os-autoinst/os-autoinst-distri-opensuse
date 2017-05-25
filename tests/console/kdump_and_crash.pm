@@ -10,7 +10,6 @@
 # Summary: Run 'crash' utility on a kernel memory dump
 # Maintainer: Michal Nowak <mnowak@suse.com>, Yi Xu <yxu@suse.com>
 
-use base "opensusebasetest";
 use base "console_yasttest";
 use strict;
 use testapi;
