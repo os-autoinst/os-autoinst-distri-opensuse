@@ -23,7 +23,7 @@ sub run {
     my $self = shift;
 
     # possibility to run as part of the aggregated tests
-    if (get_var('EXTRATEST')) {
+    if (get_var('EXTRATEST') || get_var('FILESYSTEM_TEST')) {
         select_console 'root-console';
     }
     else {
@@ -47,7 +47,7 @@ sub run {
     type_string "reboot\n";
 
     # extratests excepts correctly booted SUT
-    if (get_var('EXTRATEST')) {
+    if (get_var('EXTRATEST') || get_var('FILESYSTEM_TEST')) {
         $self->wait_boot;
     }
 }
