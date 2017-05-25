@@ -23,7 +23,6 @@ sub cleanup_needles {
     unregister_needle_tags('ENV-FLAVOR-Desktop-DVD');
     unregister_needle_tags('ENV-FLAVOR-JeOS-for-kvm');
     unregister_needle_tags('ENV-ARCH-s390x');
-    unregister_needle_tags('ENV-OFW-0');
     unregister_needle_tags('ENV-OFW-1');
 }
 $needle::cleanuphandler = \&cleanup_needles;
