@@ -47,12 +47,16 @@ sub is_kgraft() {
     return get_var('FLAVOR', '') =~ /^KGraft/;
 }
 
+sub is_updates_tests {
+    return get_var('FLAVOR', '') =~ /-Updates$/;
+}
+
 sub is_new_installation {
     return !get_var('UPGRADE') && !get_var('ONLINE_MIGRATION') && !get_var('ZDUP') && !get_var('AUTOUPGRADE');
 }
 
 sub is_update_test_repo_test {
-    return get_var('TEST') !~ /^mru-/ && (get_var('FLAVOR', '') =~ /-Updates$/);
+    return get_var('TEST') !~ /^mru-/ && is_updates_tests;
 }
 
 sub is_bridged_networking {
@@ -1230,13 +1234,16 @@ elsif (is_kgraft) {
 elsif (get_var("EXTRATEST")) {
     boot_hdd_image;
     # update system with agregate repositories
-    if (get_var('FLAVOR', '') =~ m/-Updates$/) {
+    if (is_updates_tests) {
         loadtest "qa_automation/patch_and_reboot";
     }
     load_extra_tests();
 }
 elsif (get_var("FILESYSTEM_TEST")) {
     boot_hdd_image;
+    if (is_updates_tests) {
+        loadtest "qa_automation/patch_and_reboot";
+    }
     load_filesystem_tests();
 }
 elsif (get_var("Y2UITEST")) {
