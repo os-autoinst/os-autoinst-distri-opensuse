@@ -37,7 +37,7 @@ tidy: check-links
 
 .PHONY: test-compile
 test-compile: check-links
-	export PERL5LIB=${PERL5LIB_} ; for f in `git ls-files "*.pm" || find . -name \*.pm|grep -v /os-autoinst/` ; do perl -c $$f 2>&1 | grep -v " OK$$" && exit 2; done ; true
+	export PERL5LIB=${PERL5LIB_} ; ( git ls-files "*.pm" || find . -name \*.pm|grep -v /os-autoinst/ ) | parallel perl -c 2>&1 | grep -v " OK$$" && exit 2; true
 
 .PHONY: test-compile-changed
 test-compile-changed: os-autoinst/
