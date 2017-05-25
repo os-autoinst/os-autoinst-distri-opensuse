@@ -29,6 +29,7 @@ our @EXPORT = qw(
   register_system_in_textmode
   de_register
   remove_ltss
+  disable_installation_repos
 );
 
 sub setup_online_migration {
@@ -90,6 +91,18 @@ sub remove_ltss {
     if (get_var('SCC_ADDONS', '') =~ /ltss/) {
         zypper_call 'rm -t product SLES-LTSS';
         zypper_call 'rm sles-ltss-release-POOL';
+    }
+}
+
+# Disable installation repos before online migration
+# s390x: use ftp remote repos as installation repos
+# Other archs: use local DVDs as installation repos
+sub disable_installation_repos {
+    if (check_var('ARCH', 's390x')) {
+        zypper_call "mr -d `zypper lr -u | awk '/ftp:.*?openqa.suse.de/ {print \$1}'`";
+    }
+    else {
+        zypper_call "mr -d -l";
     }
 }
 
