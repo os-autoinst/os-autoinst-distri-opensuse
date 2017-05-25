@@ -3,6 +3,8 @@ use warnings;
 use testapi qw(check_var get_var get_required_var set_var);
 use needle;
 use File::Basename;
+use mmapi 'get_children';
+use lockapi 'barrier_create';
 
 BEGIN {
     unshift @INC, dirname(__FILE__) . '/../../lib';
@@ -114,10 +116,23 @@ sub load_stack_tests {
     loadtest "casp/stack_" . get_var('STACK_ROLE');
 }
 
+# Init barriers on on controller node startup
+# Have to be done here because grub2 needle times out on supportserver
+sub stack_barriers_init {
+    my $children = get_children;
+    my $jobs     = 1 + keys %$children;
+
+    barrier_create("VELUM_STARTED",     $jobs);        # Velum node is ready
+    barrier_create("WORKERS_INSTALLED", $jobs - 1);    # Nodes are installed
+    barrier_create("CNTRL_FINISHED",    $jobs);        # We are finished with testing
+
+    set_var "STACK_SIZE", $jobs;
+}
+
 if (get_var('STACK_ROLE')) {
     # ==== CaaSP tests ====
     if (check_var 'STACK_ROLE', 'controller') {
-        loadtest 'casp/stack_barrier_init';
+        stack_barriers_init;
         loadtest "support_server/login";
         loadtest "support_server/setup";
     }
