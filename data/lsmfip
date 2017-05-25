@@ -140,8 +140,8 @@ sub problem_can_be_skipped {
     # conflicts with virtualbox-host (and virtualbox as such)
     return 1 if $pkg =~ /^virtualbox-guest/;
     if ($pkg =~ /chromium-desktop-kde/) {
-       # can not be skipped if plasma5 not installed
-       return !package_installed('plasma5-session');
+        # can not be skipped if plasma5 not installed
+        return !package_installed('plasma5-session');
     }
     if ($pkg =~ /chromium-desktop-gnome/) {
         return !package_installed('gnome-session');
@@ -167,8 +167,10 @@ if (!$options{verify}) {
             my $latest_solvable;
             for my $s ($sel->solvables()) {
                 next unless $s->installable;
-                $latest_solvable = $s;
+                my $newer = 0;
+                $newer = $latest_solvable->evrcmp($s) if $latest_solvable;
                 print STDERR "-> $s->{name}-$s->{evr}.$s->{arch}\n" if $options{verbose};
+                $latest_solvable = $s if $newer <= 0;
             }
             if ($latest_solvable && $latest_solvable->isinstalled) {
                 # upgrade
