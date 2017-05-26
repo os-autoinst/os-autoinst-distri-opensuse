@@ -40,7 +40,7 @@ sub run() {
     # persist consistently as a process in the background causing kontact to
     # be "restored" after a re-login/reboot causing later tests to fail. To
     # prevent this we explicitly stop the kontact background process.
-    x11_start_program('killall kontact', valid => 0);
+    x11_start_program('killall kontact', 6, {valid => 0});
 }
 
 1;
