@@ -36,6 +36,11 @@ sub run() {
         wait_screen_change { send_key 'alt-c' } if match_has_tag('test-kontact-1');
     } until (match_has_tag('kontact-window'));
     send_key 'ctrl-q';
+    # Since gcc7 used for packages within openSUSE Factory kontact seems to
+    # persist consistently as a process in the background causing kontact to
+    # be "restored" after a re-login/reboot causing later tests to fail. To
+    # prevent this we explicitly stop the kontact background process.
+    x11_start_program('killall kontact', valid => 0);
 }
 
 1;
