@@ -277,7 +277,7 @@ sub record_ltp_result {
         $self->{result}                   = 'fail';
         $export_details->{test}->{result} = 'TBROK';
     }
-    elsif ($results->{tfail}) {
+    elsif ($results->{tfail} || $results->{twarn}) {
         $details->{result}                = 'fail';
         $self->{result}                   = 'fail';
         $export_details->{test}->{result} = 'TFAIL';
