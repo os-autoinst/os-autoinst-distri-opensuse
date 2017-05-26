@@ -594,10 +594,10 @@ sub load_x11tests() {
     }
     loadtest "x11/glxgears" if (packagekit_available && !get_var('LIVECD'));
     if (kdestep_is_applicable()) {
+        loadtest "x11/kontact" unless is_kde_live;
         if (!is_krypton_argon && !is_kde_live) {
             loadtest "x11/amarok";
         }
-        loadtest "x11/kontact" unless is_kde_live;
         if (!get_var("USBBOOT")) {
             if (get_var("PLASMA5")) {
                 loadtest "x11/reboot_plasma5";
