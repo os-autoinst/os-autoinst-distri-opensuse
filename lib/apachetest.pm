@@ -160,10 +160,15 @@ sub test_pgsql {
     # configuration so that PHP can access PostgreSQL
     # setup password
     type_string "sudo -u postgres psql postgres\n";
+    wait_still_screen(1);
     type_string "\\password postgres\n";
+    wait_still_screen(1);
     type_string "postgres\n";
+    wait_still_screen(1);
     type_string "postgres\n";
+    wait_still_screen(1);
     type_string "\\q\n";
+    wait_still_screen(1);
     # comment out default configuration
     assert_script_run "sed -i 's/^host/#host/g' /var/lib/pgsql/data/pg_hba.conf";
     # allow postgres to access the db with password authentication
