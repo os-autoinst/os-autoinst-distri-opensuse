@@ -69,7 +69,7 @@ sub run() {
         assert_script_run "btrfs send -p $src/snap" . ($i - 1) . " $src/snap$i | btrfs receive $dest";
         compare_data $i;
     }
-    assert_script_run 'umount -fl $disk';
+    assert_script_run 'umount $disk', 600;
     $self->cleanup_partition_table;
 }
 
