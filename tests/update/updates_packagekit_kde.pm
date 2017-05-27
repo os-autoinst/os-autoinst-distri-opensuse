@@ -35,17 +35,26 @@ sub run() {
 
         # First update package manager, then packages, then bsc#992773 (2x)
         while (1) {
-            assert_and_click("updates_click-install");
+            assert_and_click('updates_click-install');
 
             # Wait until installation is done
             assert_screen \@updates_installed_tags, 3600;
-            if (match_has_tag("updates_none")) {
-                wait_still_screen;
-                if (check_screen "updates_none") {
+            # Make sure we saw the right string and the same screen or a
+            # different one
+            wait_still_screen;
+            if (match_has_tag('updates_none')) {
+                if (check_screen 'updates_none') {
                     last;
                 }
                 else {
-                    record_soft_failure 'bsc#992773';
+                    record_soft_failure 'boo#992773';
+                }
+            }
+            elsif (match_has_tag('updates_available')) {
+                # look again
+                if (check_screen 'updates_none', 0) {
+                    record_soft_failure 'boo#1041112';
+                    last;
                 }
             }
         }
