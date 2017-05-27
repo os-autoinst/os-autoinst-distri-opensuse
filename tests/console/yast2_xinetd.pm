@@ -27,7 +27,7 @@ sub run() {
     script_run("yast2 xinetd; echo yast2-xinetd-status-\$? > /dev/$serialdev", 0);
 
     # check xinetd network configuration got started
-    assert_screen 'yast2_xinetd_startup';
+    assert_screen 'yast2_xinetd_startup', 90;
 
     # enable xinetd
     send_key 'alt-l';
