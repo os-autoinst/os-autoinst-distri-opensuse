@@ -794,6 +794,9 @@ elsif (get_var("FILESYSTEM_TEST")) {
 elsif (get_var('GNUHEALTH')) {
     boot_hdd_image;
     loadtest 'gnuhealth/gnuhealth_install';
+    loadtest 'gnuhealth/tryton_install';
+    loadtest 'gnuhealth/tryton_preconfigure';
+    loadtest 'gnuhealth/tryton_first_time';
 }
 
 elsif (get_var("RESCUESYSTEM")) {

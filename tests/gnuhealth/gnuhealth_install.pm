@@ -40,5 +40,9 @@ sub run() {
     send_key 'ctrl-d';
 }
 
+sub test_flags() {
+    return {fatal => 1};
+}
+
 1;
 # vim: set sw=4 et:
