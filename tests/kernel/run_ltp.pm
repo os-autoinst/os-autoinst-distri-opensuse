@@ -307,10 +307,10 @@ sub thetime {
 
 sub export_to_json {
     my ($test_result_export) = @_;
-    my $export_file = 'assets_public/result_array.json';
+    my $export_file = 'ulogs/result_array.json';
 
-    if (!-d 'assets_public') {
-        mkdir('assets_public');
+    if (!-d 'ulogs') {
+        mkdir('ulogs');
     }
     bmwqemu::save_json_file($test_result_export, $export_file);
 }
