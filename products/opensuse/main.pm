@@ -791,6 +791,14 @@ elsif (get_var("FILESYSTEM_TEST")) {
     boot_hdd_image;
     load_filesystem_tests();
 }
+elsif (get_var('GNUHEALTH')) {
+    boot_hdd_image;
+    loadtest 'gnuhealth/gnuhealth_install';
+    loadtest 'gnuhealth/tryton_install';
+    loadtest 'gnuhealth/tryton_preconfigure';
+    loadtest 'gnuhealth/tryton_first_time';
+}
+
 elsif (get_var("RESCUESYSTEM")) {
     loadtest "installation/rescuesystem";
     loadtest "installation/rescuesystem_validate_131";
