@@ -122,9 +122,16 @@ sub run() {
     my $minion_count = get_required_var("STACK_SIZE") - 3;
     assert_script_run "kubectl get nodes --no-headers | wc -l | grep $minion_count";
 
-    # Deploy nginx minimal application
-    assert_script_run 'kubectl run nginx --image=nginx:alpine --replicas=2 --port=80';
-    assert_script_run 'kubectl expose deployment nginx --type=NodePort';
+    # Deploy nginx minimal application and check pods started succesfully
+    my $pods_count = $minion_count * 3;
+    assert_script_run "kubectl run nginx --image=nginx:alpine --replicas=$pods_count --port=80";
+    type_string "kubectl get pods --watch\n";
+    wait_still_screen 15, 60;
+    send_key "ctrl-c";
+    assert_script_run "kubectl get pods | grep -c Running | grep $pods_count";
+
+    # Expose application to access it from controller node
+    assert_script_run 'kubectl expose deploy nginx --type=NodePort';
     assert_script_run 'kubectl get all';
 
     # Check deployed application in firefox
@@ -137,7 +144,7 @@ sub run() {
 }
 
 sub test_flags() {
-    return {fatal => 1, milestone => 1};
+    return {fatal => 1};
 }
 
 # Controller job is parent. If it fails we need to export deployment logs from child jobs
