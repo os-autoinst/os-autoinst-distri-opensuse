@@ -176,7 +176,6 @@ sub parse_ltp_log {
             elsif ($1 == 4) {
                 say $fh 'Passed with warnings.';
                 $results->{twarn}++;
-                $results->{tpass}++;
             }
             else {
                 say $fh "Test process returned unkown none zero value ($1).";
@@ -278,7 +277,7 @@ sub record_ltp_result {
         $self->{result}                   = 'fail';
         $export_details->{test}->{result} = 'TBROK';
     }
-    elsif ($results->{tfail}) {
+    elsif ($results->{tfail} || $results->{twarn}) {
         $details->{result}                = 'fail';
         $self->{result}                   = 'fail';
         $export_details->{test}->{result} = 'TFAIL';
