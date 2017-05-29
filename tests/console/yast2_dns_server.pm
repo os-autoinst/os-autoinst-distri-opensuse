@@ -25,10 +25,10 @@ sub assert_running() {
     my $running = shift;
 
     if ($running) {
-        assert_script_run 'systemctl is-active named | grep -E "^active"';
+        assert_script_run '(systemctl is-active named || true) | grep -E "^active"';
     }
     else {
-        assert_script_run 'systemctl is-active named | grep -E "^(inactive|unknown)"';
+        assert_script_run '(systemctl is-active named || true) | grep -E "^(inactive|unknown)"';
     }
 }
 
@@ -38,10 +38,10 @@ sub assert_enabled() {
     my $enabled = shift;
 
     if ($enabled) {
-        assert_script_run 'systemctl is-enabled named | grep enabled';
+        assert_script_run 'systemctl is-enabled named';
     }
     else {
-        assert_script_run 'systemctl is-enabled named | grep disabled';
+        assert_script_run '! systemctl is-enabled named';
     }
 }
 
