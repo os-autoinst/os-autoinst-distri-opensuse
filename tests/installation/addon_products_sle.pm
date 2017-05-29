@@ -68,7 +68,7 @@ sub run() {
             send_key 'alt-u';                                                   # select URL field
             type_string get_var("ADDONURL_$uc_addon");                          # repo URL
             send_key $cmd{next};
-            my @tags = ("addon-products", "addon-betawarning-$addon", "addon-license-$addon");
+            my @tags = ('addon-products', 'addon-betawarning-$addon', 'addon-license-$addon', 'import-untrusted-gpg-key');
             assert_screen(\@tags, 90);
             if (match_has_tag("addon-betawarning-$addon") or match_has_tag("addon-license-$addon")) {
                 if (match_has_tag("addon-betawarning-$addon")) {
@@ -80,6 +80,9 @@ sub run() {
                 wait_still_screen 2;
                 send_key $cmd{next};
                 assert_screen 'addon-products', 90;
+            }
+            elsif (match_has_tag('import-untrusted-gpg-key')) {
+                send_key 'alt-t';
             }
             send_key "tab";                                                     # select addon-products-$addon
             if (check_var('VIDEOMODE', 'text')) {                               # textmode need more tabs, depends on add-on count
