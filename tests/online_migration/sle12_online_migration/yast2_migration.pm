@@ -125,22 +125,20 @@ sub run {
     send_key "alt-p";                                       # focus on the item of possible migration targets
     send_key_until_needlematch 'migration-target-' . get_var("VERSION"), 'down', 5;
     send_key "alt-n";
-    # currently scc proxy update channel doesn't have content
-    if (!get_var("SCC_PROXY_URL")) {
-        assert_screen 'yast2-migration-installupdate', 200;
-        send_key "alt-y";
+    assert_screen ['yast2-migration-installupdate', 'yast2-migration-proposal'], 500;
+    if (match_has_tag 'yast2-migration-installupdate') {
+        send_key 'alt-y';
     }
-    assert_screen 'yast2-migration-proposal', 500;
     # giva a little time to check package conflicts
     if (check_screen("yast2-migration-conflicts", 15)) {
         if (!is_desktop_installed()) {
             send_key "alt-c";
-            send_key "alt-p";    # show package dependencies
+            send_key "alt-p";                               # show package dependencies
         }
         else {
             assert_and_click 'migration-proposal-packages';
         }
-        wait_still_screen(5);    # package dependencies need a few second to open in x11
+        wait_still_screen(5);                               # package dependencies need a few second to open in x11
         save_screenshot;
         if (get_var('RESOLVE_PACKAGE_CONFLICTS')) {
             while (1) {
