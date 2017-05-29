@@ -144,7 +144,7 @@ sub run() {
 }
 
 sub test_flags() {
-    return {fatal => 1, milestone => 1};
+    return {fatal => 1};
 }
 
 # Controller job is parent. If it fails we need to export deployment logs from child jobs
