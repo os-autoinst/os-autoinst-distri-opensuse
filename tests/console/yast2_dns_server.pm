@@ -113,8 +113,8 @@ sub run() {
     #
     # Fourth execution (tree-based interface)
     #
-    script_run 'yast2 dns-server', 0;
-    assert_screen 'yast2-service-running-disabled';
+    script_run 'yast2 dns-server',                  0;
+    assert_screen 'yast2-service-running-disabled', 90;
     # Stop the service
     send_key 'alt-s';
     assert_screen 'yast2-service-stopped-disabled';
