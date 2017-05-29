@@ -1,4 +1,4 @@
-# Copyright (C) 2015 SUSE Linux Products GmbH
+# Copyright (C) 2015, 2017 SUSE Linux Products GmbH
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 use strict;
 use base 'basetest';
 use testapi;
-use utils 'sle_version_at_least';
+use utils qw(sle_version_at_least power_action);
 
 sub run {
     select_console('root-console');
@@ -31,8 +31,7 @@ sub run {
         script_run('systemctl enable serial-getty@hvc0');
         script_run('systemctl start serial-getty@hvc0');
     }
-    type_string "poweroff\n";
-    assert_shutdown;
+    power_action('poweroff');
 }
 
 sub test_flags {

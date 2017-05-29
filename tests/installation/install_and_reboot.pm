@@ -148,7 +148,7 @@ sub run() {
         send_key 'alt-o';    # Reboot
     };
 
-    xen_restore_system;
+    assert_shutdown_and_restore_system if check_var('VIRSH_VMM_FAMILY', 'xen');
 }
 
 1;
