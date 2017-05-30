@@ -26,7 +26,7 @@
 #   - change an option
 #   - select default profile
 #   - verify the option is not changed
-# Maintainer: Romanos Dodopoulos <romanos.dodopoulos@suse.cz>
+# Maintainer: Veronika Svecova <vsvecova@suse.cz>
 
 use base "opensusebasetest";
 use strict;
