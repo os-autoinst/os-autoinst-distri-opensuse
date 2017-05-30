@@ -27,7 +27,6 @@ sub run() {
     # restart to activate kdump
     script_run 'reboot', 0;
     $self->wait_boot;
-    reset_consoles;
     select_console 'root-console';
 
     # often kdump could not be enabled: bsc#1022064
@@ -35,7 +34,6 @@ sub run() {
     do_kdump;
     # wait for system's reboot
     $self->wait_boot;
-    reset_consoles;
     select_console 'root-console';
 
     # all but PPC64LE arch's vmlinux images are gzipped
