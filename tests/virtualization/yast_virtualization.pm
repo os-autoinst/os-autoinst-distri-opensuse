@@ -20,7 +20,7 @@ sub run() {
     send_key "alt-f10";
     become_root;
     script_run("yast2 virtualization; echo yast2-virtualization-done-\$? > /dev/$serialdev", 0);
-    assert_screen "virt-sle-gnome_yast_virtualization";
+    assert_screen "virt-sle-gnome_yast_virtualization", 60;
     if (check_var("FLAVOR", "Desktop-DVD")) {
         # select everything
         send_key "alt-v";    # Virtualization client tools
