@@ -15,7 +15,7 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
-use utils 'assert_screen_with_soft_timeout';
+use utils qw(power_action assert_shutdown_and_restore_system assert_screen_with_soft_timeout);
 
 our @EXPORT = qw(handle_simple_pw process_reboot trup_call write_detail_output);
 
@@ -31,18 +31,19 @@ sub handle_simple_pw {
 # Process reboot with an option to trigger it
 sub process_reboot {
     my $trigger = shift;
-    script_run("reboot", 0) if $trigger;
-
-    reset_consoles;
-    # We have to re-connect *after* the restart on xen
+    power_action('reboot') if $trigger;
     if (check_var('VIRSH_VMM_FAMILY', 'xen')) {
-        assert_screen 'black';
-        sleep 4;
-        select_console 'sut';
-        console('svirt')->attach_to_running({stop_vm => 1});
+        assert_shutdown_and_restore_system unless $trigger;
     }
+    else {
+        reset_consoles;
+    }
+
     # No grub bootloader on xen-pv
-    assert_screen_with_soft_timeout('grub2', timeout => 300, soft_timeout => 30, bugref => 'bsc#1031114') unless check_var('VIRSH_VMM_TYPE', 'linux');
+    unless (check_var('VIRSH_VMM_TYPE', 'linux')) {
+        assert_screen_with_soft_timeout('grub2', timeout => 300, soft_timeout => 30, bugref => 'bsc#1031114');
+        send_key 'ret';
+    }
 
     assert_screen 'linux-login-casp', 90;
     select_console 'root-console';

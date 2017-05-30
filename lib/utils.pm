@@ -46,8 +46,8 @@ our @EXPORT = qw(
   ensure_fullscreen
   ensure_shim_import
   reboot_gnome
-  reboot
-  xen_restore_system
+  power_action
+  assert_shutdown_and_restore_system
   assert_screen_with_soft_timeout
   is_desktop_installed
   pkcon_quit
@@ -443,14 +443,17 @@ sub ensure_shim_import {
 # backend and we have to re-connect *after* the restart, otherwise we end up
 # with stalled VNC connection. The tricky part is to know *when* the system
 # is already booting.
-sub xen_restore_system {
-    return unless check_var('VIRSH_VMM_FAMILY', 'xen');
+sub assert_shutdown_and_restore_system {
+    my ($action) = @_;
+    $action //= 'reboot';
     my $vnc_console = get_required_var('SVIRT_VNC_CONSOLE');
     console($vnc_console)->disable_vnc_stalls;
     assert_shutdown;
-    reset_consoles;
-    console('svirt')->define_and_start;
-    select_console($vnc_console);
+    if ($action eq 'reboot') {
+        reset_consoles;
+        console('svirt')->define_and_start;
+        select_console($vnc_console);
+    }
 }
 
 sub reboot_gnome {
@@ -477,16 +480,24 @@ sub reboot_gnome {
     workaround_type_encrypted_passphrase;
 }
 
-=head2 reboot
+=head2 power_action
 
-    reboot;
+    power_action($action);
 
-Reboot system from root console.
+Executes power action (e.g. poweroff, reboot) from root console.
 =cut
-sub reboot {
+sub power_action {
+    my ($action) = @_;
+    die "'action' was not provided" unless $action;
     select_console 'root-console';
-    type_string "reboot\n";
-    xen_restore_system;
+    type_string "$action\n";
+    if (check_var('VIRSH_VMM_FAMILY', 'xen')) {
+        assert_shutdown_and_restore_system($action);
+    }
+    else {
+        assert_shutdown if $action eq 'poweroff';
+        reset_consoles;
+    }
 }
 
 =head2 assert_screen_with_soft_timeout
