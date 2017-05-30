@@ -41,5 +41,12 @@ sub run() {
     send_key 'alt-o';
 }
 
+# override for base class to allow a longer timeout for package installation
+# before returning to desktop
+sub post_run_hook {
+    assert_screen 'generic-desktop', 600;
+}
+
+
 1;
 # vim: set sw=4 et:
