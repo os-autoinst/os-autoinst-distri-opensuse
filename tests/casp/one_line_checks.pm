@@ -24,8 +24,7 @@ sub run() {
     assert_script_run "snapper list";
 
     if (check_var('SYSTEM_ROLE', 'worker')) {
-        # poo#16574
-        # Should be replaced by actually connecting to admin node when it's implemented
+        # poo#16574 - Check salt master configuration
         assert_script_run "grep \"master: 'dashboard-url'\" /etc/salt/minion.d/master.conf";
         # poo#18668 - Check ntp client configuration
         assert_script_run 'grep "^NTP=dashboard-url" /etc/systemd/timesyncd.conf';
@@ -34,6 +33,8 @@ sub run() {
     # check if installation script was executed https://trello.com/c/PJqM8x0T
     if (check_var('SYSTEM_ROLE', 'admin')) {
         assert_script_run 'zgrep manifests/activate.sh /var/log/YaST2/y2log-1.gz';
+        # bsc#1039863 - Check we are running only sles12 docker images
+        assert_script_run '! docker images | sed 1d | grep -v ^sles12';
         assert_script_run 'grep "^server ns.openqa.test" /etc/ntp.conf';
     }
 }
