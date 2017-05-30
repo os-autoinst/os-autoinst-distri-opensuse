@@ -19,17 +19,8 @@ use testapi;
 use virt_utils;
 
 sub login_to_console() {
-    my $timeout = shift;
+    my ($self, $timeout) = @_;
     $timeout //= 300;
-
-    #setup needle tag
-    my $displaymanager_tag = "displaymanager";
-    if (check_var("INSTALL_TO_SLE11", "yes")) {
-        $displaymanager_tag = "displaymanager-sle11";
-    }
-    if (check_var("reboot_for_upgrade_step", "yes") || check_var("after_upgrade", "yes")) {
-        $displaymanager_tag = "displaymanager";
-    }
 
     # Wait for bootload for the first time.
     assert_screen([qw(grub2 grub1)], 120);
@@ -46,13 +37,17 @@ sub login_to_console() {
         set_var("after_upgrade",           "yes");
     }
 
-    assert_screen(["$displaymanager_tag", "virttest-displaymanager"], $timeout);
+    assert_screen(['linux-login', 'virttest-displaymanager'], $timeout);
 
-    select_console('root-console');
+    console('sol')->disable;
+    select_console('root-ssh');
+    $serialdev = 'sshserial';
+    set_var('SERIALDEV', 'sshserial');
 }
 
 sub run() {
-    login_to_console;
+    my $self = shift;
+    $self->login_to_console;
     set_serialdev;
 }
 
