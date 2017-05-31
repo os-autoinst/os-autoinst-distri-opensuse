@@ -4,7 +4,7 @@ use base "opensusebasetest";
 use strict;
 use testapi;
 
-# Base class for all openSUSE console tests
+# Base class for all console tests
 
 sub post_run_hook {
     my ($self) = @_;
@@ -18,7 +18,7 @@ sub post_run_hook {
 
 sub post_fail_hook {
     my ($self) = shift;
-    select_console('root-console');
+    select_console('log-console');
     $self->SUPER::post_fail_hook;
 
     # Export logs after failure
