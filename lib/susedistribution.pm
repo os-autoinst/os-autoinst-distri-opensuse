@@ -375,7 +375,7 @@ sub init_consoles {
 sub activate_console {
     my ($self, $console) = @_;
 
-    if ($console eq 'install-shell' && get_var('BACKEND', 'qemu')) {
+    if ($console eq 'install-shell') {
         if (get_var("LIVECD")) {
             # LIVE CDa do not run inst-consoles as started by inst-linux (it's regular live run, auto-starting yast live installer)
             assert_screen "text-login", 10;
@@ -384,6 +384,8 @@ sub activate_console {
             sleep 1;
         }
         else {
+            # on s390x we need to login here by providing a password
+            handle_password_prompt if check_var('BACKEND', 's390x');
             assert_screen "inst-console";
         }
     }
@@ -430,13 +432,15 @@ sub activate_console {
     elsif ($type eq 'virtio-terminal') {
         serial_terminal::login($user);
     }
-    elsif ($type eq 'ssh' || $console eq 'svirt') {
+    elsif ($type eq 'ssh') {
         $user ||= 'root';
-        assert_screen 'password-prompt';
-        type_string("$testapi::password\n");
+        handle_password_prompt;
         type_string("su - $user\n") if $user ne 'root';
         assert_screen(["text-logged-in-$user", "text-login"], 60);
         $self->set_standard_prompt($user);
+    }
+    elsif ($console eq 'svirt') {
+        $self->set_standard_prompt('root');
     }
 }
 
