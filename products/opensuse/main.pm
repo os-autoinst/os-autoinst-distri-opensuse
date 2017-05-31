@@ -463,9 +463,6 @@ sub load_consoletests() {
             loadtest "console/php7";
             loadtest "console/php7_mysql";
             loadtest "console/php7_postgresql94";
-            if (check_var('ARCH', 'x86_64')) {
-                loadtest "console/docker";
-            }
         }
         if (check_var("DESKTOP", "xfce")) {
             loadtest "console/xfce_gnome_deps";
