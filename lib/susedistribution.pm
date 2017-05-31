@@ -375,7 +375,7 @@ sub init_consoles {
 sub activate_console {
     my ($self, $console) = @_;
 
-    if ($console eq 'install-shell' && get_var('BACKEND', 'qemu')) {
+    if ($console eq 'install-shell') {
         if (get_var("LIVECD")) {
             # LIVE CDa do not run inst-consoles as started by inst-linux (it's regular live run, auto-starting yast live installer)
             assert_screen "text-login", 10;
