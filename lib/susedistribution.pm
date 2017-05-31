@@ -434,8 +434,7 @@ sub activate_console {
     }
     elsif ($type eq 'ssh') {
         $user ||= 'root';
-        assert_screen 'password-prompt';
-        type_string("$testapi::password\n");
+        handle_password_prompt;
         type_string("su - $user\n") if $user ne 'root';
         assert_screen(["text-logged-in-$user", "text-login"], 60);
         $self->set_standard_prompt($user);
