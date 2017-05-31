@@ -98,7 +98,7 @@ sub unlock_if_encrypted {
     else {
         assert_screen("encrypted-disk-password-prompt", 200);
         type_password;    # enter PW at boot
-        assert_screen 'encrypted_disk-typed_password';
+        save_screenshot;
         send_key "ret";
     }
 }
