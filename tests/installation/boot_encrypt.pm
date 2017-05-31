@@ -23,7 +23,7 @@ sub run() {
         }
         return;
     }
-    unlock_if_encrypted;
+    unlock_if_encrypted(check_typed_password => 1);
 }
 
 1;

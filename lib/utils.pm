@@ -77,6 +77,8 @@ use constant SLOW_TYPING_SPEED => 13;
 use constant VERY_SLOW_TYPING_SPEED => 4;
 
 sub unlock_if_encrypted {
+    my (%args) = @_;
+    $args{check_typed_password} //= 0;
 
     return unless get_var("ENCRYPT");
 
@@ -99,6 +101,7 @@ sub unlock_if_encrypted {
         assert_screen("encrypted-disk-password-prompt", 200);
         type_password;    # enter PW at boot
         save_screenshot;
+        assert_screen 'encrypted_disk-typed_password' if $args{check_typed_password};
         send_key "ret";
     }
 }
