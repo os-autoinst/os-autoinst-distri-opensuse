@@ -58,6 +58,8 @@ sub save_and_upload_yastlogs {
       fi
     ";
     upload_logs "/tmp/y2logs-$name.tar.bz2";
+    save_and_upload_log('btrfs filesystem usage /mnt', 'btrfs-filesystem-usage-mnt.txt');
+    save_and_upload_log('df',                          'df.txt');
     save_screenshot;
     clear_console;
     select_console 'installation';
