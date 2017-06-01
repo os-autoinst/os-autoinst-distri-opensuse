@@ -472,6 +472,9 @@ sub console_selected {
     # x11 needs special handling because we can not easily know if screen is
     # locked, display manager is waiting for login, etc.
     return ensure_unlocked_desktop if $args{tags} =~ /x11/;
+    # press return twice to make sure that PS1 prompt is visible
+    send_key 'ret';
+    send_key 'ret';
     assert_screen($args{tags}, no_wait => 1);
 }
 
