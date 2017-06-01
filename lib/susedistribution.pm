@@ -385,7 +385,7 @@ sub activate_console {
         }
         else {
             # on s390x we need to login here by providing a password
-            handle_password_prompt if check_var('BACKEND', 's390x');
+            handle_password_prompt if check_var('ARCH', 's390x');
             assert_screen "inst-console";
         }
     }
@@ -403,9 +403,10 @@ sub activate_console {
 
     if ($type eq 'console') {
         # different handling for ssh consoles
-        if (check_var('BACKEND', 's390x') || get_var('S390_ZKVM')) {
+        if (check_var('ARCH', 's390x')) {
             # different console-behaviour for s390x
             type_string("su - $user\n") if $user ne 'root';
+            handle_password_prompt;
         }
         else {
             my $nr = 4;
