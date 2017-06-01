@@ -56,12 +56,10 @@ sub run() {
         else {
             # Xen PV has different device for 2nd CDROM
             if (check_var('VIRSH_VMM_TYPE', 'linux')) {
-                $cmd = 'ar --type plaindir hd:///?device=/dev/xvdc repo-source';
+                $cmd = 'ar --type plaindir hd:///?device=/dev/xvdd repo-source';
             }
             else {
-                # Xen HVM has the DVD on '/dev/sr0', rest on 'sr1'
-                my $dvd = check_var('VIRSH_VMM_FAMILY', 'xen') ? 'sr0' : 'sr1';
-                $cmd = "ar --type plaindir cd:///?devices=/dev/$dvd repo-source";
+                $cmd = "ar --type plaindir cd:///?devices=/dev/sr1 repo-source";
             }
         }
     }
