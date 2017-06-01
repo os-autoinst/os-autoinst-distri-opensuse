@@ -37,7 +37,7 @@ sub run() {
         reset_consoles;
 
         # reconnect the ssh for serial grab
-        select_console('iucvconn');
+        select_console('iucvconn', await_console => 0);
     }
     else {
         wait_serial($login_ready, 300) || die "System couldn't boot";
