@@ -17,9 +17,7 @@ use testapi;
 
 # Check that installer does not freeze when pressing next
 sub check_bsc997635 {
-    my $ret = wait_screen_change {
-        send_key $cmd{next};
-    }, 10;
+    my $ret = wait_screen_change(sub { send_key $cmd{next}; }, 10);
     if (!$ret) {
         record_soft_failure 'bsc#997635';
         sleep 30;
