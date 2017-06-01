@@ -216,9 +216,15 @@ sub is_casp {
     return 0 unless check_var('DISTRI', 'casp');
     return 1 unless $flavor;
 
-    # There is one DVD and multiple VMX (for KVM/XEN/VMware/Cloud) flavors
-    return !check_var('FLAVOR', 'DVD') if $flavor eq 'VMX';
-    return check_var('FLAVOR', $flavor);
+    if ($flavor eq 'DVD') {
+        return get_var('FLAVOR') =~ /DVD/;    # Catch DVD and DVD-Staging
+    }
+    elsif ($flavor eq 'VMX') {
+        return 1;                             # Everything other than DVD is VMX image
+    }
+    else {
+        return check_var('FLAVOR', $flavor);    # In other cases compare requested flavor
+    }
 }
 
 sub type_string_slow {

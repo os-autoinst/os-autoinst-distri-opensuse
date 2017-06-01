@@ -41,7 +41,7 @@ if (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux')
 }
 
 sub load_boot_tests() {
-    if (check_var('FLAVOR', 'DVD')) {
+    if (is_casp 'DVD') {
         if (get_var("UEFI")) {
             loadtest 'installation/bootloader_uefi';
         }
@@ -146,7 +146,7 @@ if (get_var('STACK_ROLE')) {
 else {
     # ==== MicroOS tests ====
     load_boot_tests;
-    if (check_var('FLAVOR', 'DVD')) {
+    if (is_casp 'DVD') {
         if (get_var('EXTRA', '') =~ /RCSHELL/) {
             load_rcshell_tests;
             return 1;
