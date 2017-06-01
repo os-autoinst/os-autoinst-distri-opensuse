@@ -235,7 +235,7 @@ sub select_addons_in_textmode {
     if ($flag) {
         send_key_until_needlematch 'scc-module-area-selected', 'tab';
         send_key_until_needlematch "scc-module-$addon",        'down';
-        send_key 'spc';
+        wait_screen_change { send_key 'spc' };
         # After selected/deselected an addon, yast scc would automatically bounce the focus
         # back to the top of list on SP2 or later in textmode, remove sendkey up
         # And give a tiny time to wait it back completely to the top of list
@@ -243,7 +243,7 @@ sub select_addons_in_textmode {
     }
     else {
         send_key_until_needlematch "scc-module-$addon", 'tab';
-        send_key "spc";
+        wait_screen_change { send_key 'spc' };
     }
 }
 
