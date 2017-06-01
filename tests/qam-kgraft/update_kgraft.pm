@@ -104,6 +104,18 @@ sub run() {
 
     die "Patch isnt valid for this system" if is_patch_needed($patch);
 
+    #die if patch is already installed on the system
+    # Only exit codes
+    # 100 - ZYPPER_EXIT_INF_UPDATE_NEEDED
+    # and
+    # 101 - ZYPPER_EXIT_INF_SEC_UPDATE_NEEDED
+    # are acceptible for patch-checking the repository containing the
+    # kgraft-patch to test.
+    # Stop testing immediately if it is anything else.
+    if (!zypper_call("patch-check -r test-kgraft", exitcode => [100, 101])) {
+        die "Patch is already installed";
+    }
+
     #patch system
     zypper_call(
         "in -t patch $patch",
