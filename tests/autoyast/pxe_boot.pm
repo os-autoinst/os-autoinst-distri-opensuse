@@ -27,8 +27,8 @@ sub run {
     mutex_unlock('pxe');
     resume_vm();
 
-    # wait for bootloader to appear
-    assert_screen("bootloader", 300);
+    # wait for pxe-menu to appear
+    assert_screen("pxe-menu", 300);
 
     # select network (second entry)
     send_key "down";
