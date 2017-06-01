@@ -11,7 +11,7 @@
 # Maintainer: Zaoliang Luo <zluo@suse.de>
 
 use strict;
-use base "consoletest";
+use base "console_yasttest";
 use testapi;
 
 

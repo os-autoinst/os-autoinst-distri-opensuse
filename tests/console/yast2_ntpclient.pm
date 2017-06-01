@@ -7,11 +7,11 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add yast2_ntpclient test
-# G-Maintainer: Zaoliang Luo <zluo@suse.de>
+# Summary: yast2_ntpclient test
+# Maintainer: Zaoliang Luo <zluo@suse.de>
 
 use strict;
-use base "consoletest";
+use base "console_yasttest";
 use testapi;
 
 sub run() {
