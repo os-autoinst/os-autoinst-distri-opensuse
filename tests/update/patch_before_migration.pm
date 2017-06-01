@@ -57,7 +57,8 @@ sub patching_sle() {
     set_var("VIDEOMODE", '');
     # keep the value of SCC_REGISTER for offline migration tests with smt pattern or modules
     # Both of them need registration during offline migration
-    if (!is_smt_or_module_tests) { set_var("SCC_REGISTER", ''); }
+    # No registration will be done during zdup test
+    if (!is_smt_or_module_tests or get_var('ZDUP')) { set_var("SCC_REGISTER", ''); }
 }
 
 sub run() {
