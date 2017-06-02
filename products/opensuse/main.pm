@@ -348,11 +348,8 @@ sub load_reboot_tests() {
         if (get_var('ENCRYPT')) {
             loadtest "installation/boot_encrypt";
         }
-        if ((snapper_is_applicable()) && get_var("BOOT_TO_SNAPSHOT")) {
-            loadtest "installation/boot_into_snapshot";
-            if (get_var("UPGRADE")) {
-                loadtest "installation/snapper_rollback";
-            }
+        if ((snapper_is_applicable()) && get_var("BOOT_TO_SNAPSHOT") && get_var('UPGRADE')) {
+            loadtest "installation/snapper_rollback";
         }
         loadtest "installation/first_boot";
     }
@@ -830,6 +827,10 @@ elsif (ssh_key_import) {
     load_reboot_tests();
     # verify previous defined ssh keys
     loadtest "x11/ssh_key_verify";
+}
+elsif ((snapper_is_applicable()) && get_var("BOOT_TO_SNAPSHOT")) {
+    loadtest "installation/grub_test";
+    loadtest "installation/boot_into_snapshot";
 }
 else {
     if (get_var("LIVETEST") || get_var('LIVE_INSTALLATION')) {

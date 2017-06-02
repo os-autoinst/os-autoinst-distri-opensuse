@@ -38,11 +38,9 @@ sub run() {
             die "OS_VERSION after Rollback matches OS_VERSION before Rollback";
         }
     }
-    if (get_var('CHECK_SNAPPER_ROLLBACK_CLEANUP')) {
-        assert_script_run('snapper rollback');
-        assert_script_run('snapper --iso list');
-        assert_screen('snapper-autocleanup');
-    }
+    assert_script_run('snapper rollback');
+    assert_script_run('snapper --iso list');
+    sleep 3600;
     script_run("systemctl reboot", 0);
     reset_consoles;
 }

@@ -70,6 +70,16 @@ sub is_bridged_networking {
     return $ret;
 }
 
+sub grub_test_is_applicable {
+  # test makes no sense on s390 because grub2 can't be captured
+  return !(check_var("ARCH", "s390x") or (check_var('VIRSH_VMM_FAMILY', 'xen') and check_var('VIRSH_VMM_TYPE', 'linux'));
+}
+
+sub boot_to_snapshot_is_applicable {
+  # for snapshots we need the availability of snapper and also we need a grub menue where a test can be selected
+  return snapper_is_applicable() && get_var("BOOT_TO_SNAPSHOT") && grub_test_is_applicable);
+}
+
 sub cleanup_needles {
     remove_common_needles;
     if ((get_var('VERSION', '') ne '12') && (get_var('BASE_VERSION', '') ne '12')) {
@@ -617,10 +627,7 @@ sub load_reboot_tests() {
         loadtest "boot/qa_net_boot_from_hdd";
     }
     if (installyaststep_is_applicable()) {
-        # test makes no sense on s390 because grub2 can't be captured
-        if (!(check_var("ARCH", "s390x") or (check_var('VIRSH_VMM_FAMILY', 'xen') and check_var('VIRSH_VMM_TYPE', 'linux')))) {
-            loadtest "installation/grub_test";
-        }
+        loadtest 'installation/grub_test' if grub_test_is_applicable;
         if (get_var('ENCRYPT')) {
             loadtest "installation/boot_encrypt";
             # reconnect after installation/boot_encrypt
@@ -1245,7 +1252,8 @@ elsif (get_var("FILESYSTEM_TEST")) {
     }
     load_filesystem_tests();
 }
-elsif (snapper_is_applicable() && get_var("BOOT_TO_SNAPSHOT") && (!(check_var("ARCH", "s390x") or (check_var('VIRSH_VMM_FAMILY', 'xen') and check_var('VIRSH_VMM_TYPE', 'linux'))))) {
+#elsif (boot_to_snapshot_is_applicable && !all_upgrade_variables_and_such) {
+elsif (boot_to_snapshot_is_applicable) {
     loadtest "installation/grub_test";
     loadtest "installation/boot_into_snapshot";
 }
