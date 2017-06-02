@@ -17,33 +17,25 @@ use testapi;
 use bootloader_setup 'stop_grub_timeout';
 
 sub run() {
-    if (get_var('ROLLBACK_AFTER_MIGRATION')) {
-        # set BOOT_TO_SNAPSHOT here rather than in main.pm to prevent conflict with existing snapshot tests
-        set_var('BOOT_TO_SNAPSHOT', 1);
-        select_console 'root-console';
-        type_string "reboot\n";
-        reset_consoles;
-        assert_screen 'grub2', 200;
-    }
-    else {
-        assert_screen "grub2";
-    }
+    select_console 'root-console';
+    type_string "reboot\n";
+    reset_consoles;
+    assert_screen 'grub2', 200;
     stop_grub_timeout;
-    if (get_var("BOOT_TO_SNAPSHOT")) {
-        send_key_until_needlematch("boot-menu-snapshot", 'down', 10, 5);
-        send_key 'ret';
-        # find out the before migration snapshot
-        send_key_until_needlematch("snap-before-update", 'down', 40, 5) if (get_var("UPGRADE") || get_var("ZDUP"));
-        send_key_until_needlematch("snap-before-migration", 'down', 40, 5) if (get_var("MIGRATION_ROLLBACK"));
-        send_key "ret";
-        # bsc#956046  check if we are in first menu-entry, or not
-        if (check_screen("boot-menu-snapshot-bootmenu")) {
-            record_soft_failure 'bsc#956046';
-            send_key 'down', 1;
-            save_screenshot;
-        }
-        send_key 'ret';
+
+    send_key_until_needlematch("boot-menu-snapshot", 'down', 10, 5);
+    send_key 'ret';
+    # find out the before migration snapshot
+    send_key_until_needlematch("snap-before-update", 'down', 40, 5) if (get_var("UPGRADE") || get_var("ZDUP"));
+    send_key_until_needlematch("snap-before-migration", 'down', 40, 5) if (get_var("MIGRATION_ROLLBACK"));
+    send_key "ret";
+    # bsc#956046  check if we are in first menu-entry, or not
+    if (check_screen("boot-menu-snapshot-bootmenu")) {
+        record_soft_failure 'bsc#956046';
+        send_key 'down', 1;
+        save_screenshot;
     }
+    send_key 'ret';
     # avoid timeout for booting to HDD
     send_key 'ret';
 }
