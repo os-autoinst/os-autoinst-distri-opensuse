@@ -29,13 +29,6 @@ sub run() {
     send_key_until_needlematch("snap-before-update", 'down', 40, 5) if (get_var("UPGRADE") || get_var("ZDUP"));
     send_key_until_needlematch("snap-before-migration", 'down', 40, 5) if (get_var("MIGRATION_ROLLBACK"));
     send_key "ret";
-    # bsc#956046  check if we are in first menu-entry, or not
-    if (check_screen("boot-menu-snapshot-bootmenu")) {
-        record_soft_failure 'bsc#956046';
-        send_key 'down', 1;
-        save_screenshot;
-    }
-    send_key 'ret';
     # avoid timeout for booting to HDD
     send_key 'ret';
 }

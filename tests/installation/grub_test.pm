@@ -73,12 +73,6 @@ sub run() {
             save_screenshot;
         }
         send_key 'ret';
-        # bsc#956046  check if we are in first menu-entry, or not
-        if (check_screen("boot-menu-snapshot-bootmenu")) {
-            record_soft_failure 'bsc#956046';
-            send_key 'down', 1;
-            save_screenshot;
-        }
         send_key 'ret';
     }
     if (get_var("XEN")) {
