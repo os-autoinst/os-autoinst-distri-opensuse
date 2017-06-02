@@ -41,17 +41,18 @@ sub y2snapper_create_snapshot() {
 
 # Quit yast2-snapper and cleanup
 sub clean_and_quit() {
+    my ($self) = @_;
     # Ensure yast2-snapper is not busy anymore
     wait_still_screen;
     # C'l'ose the snapper module
     send_key "alt-l";
     # Wait until root gnome terminal is focussed, delete the directory and close window
-    assert_screen_with_soft_timeout(
-        'root-gnome-terminal',
-        timeout      => 90,
-        soft_timeout => 30,
-        bugref       => 'bsc#1032831'
-    );
+    my $ret = check_screen('root-gnome-terminal');
+    if (!$ret) {
+        record_soft_failure 'bsc#1032831';
+        $self->failure_analysis();
+        assert_screen 'root-gnome-terminal', 90;
+    }
     script_run 'rm -rf testdata';
     script_run "ls";
     type_string "exit\n";
@@ -133,7 +134,7 @@ sub run() {
     $self->clean_and_quit;
 }
 
-sub post_fail_hook {
+sub failure_analysis {
     my ($self) = @_;
     # snapper actions can put the system under quite some load so we want to
     # give some more time, e.g. for login in the consoles
@@ -157,6 +158,11 @@ sub post_fail_hook {
     script_run('pidof snapperd && gdb --batch -q -ex "thread apply all bt" -ex q /usr/sbin/snapperd $(pidof snapperd) |& tee /tmp/snapperd_bt_all.log');
     upload_logs '/tmp/snapperd_bt_all.log';
     set_var('TIMEOUT_SCALE', $previous_timeout_scale);
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->failure_analysis();
 }
 
 1;
