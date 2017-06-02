@@ -14,7 +14,7 @@
 use strict;
 use base "basetest";
 use testapi;
-use bootloader_setup 'stop_grub_timeout';
+use bootloader_setup qw(stop_grub_timeout boot_into_snapshot);
 
 sub run() {
     select_console 'root-console';
@@ -22,15 +22,7 @@ sub run() {
     reset_consoles;
     assert_screen 'grub2', 200;
     stop_grub_timeout;
-
-    send_key_until_needlematch("boot-menu-snapshot", 'down', 10, 5);
-    send_key 'ret';
-    # find out the before migration snapshot
-    send_key_until_needlematch("snap-before-update", 'down', 40, 5) if (get_var("UPGRADE") || get_var("ZDUP"));
-    send_key_until_needlematch("snap-before-migration", 'down', 40, 5) if (get_var("MIGRATION_ROLLBACK"));
-    send_key "ret";
-    # avoid timeout for booting to HDD
-    send_key 'ret';
+    boot_into_snapshot;
 }
 sub test_flags() {
     return {fatal => 1};

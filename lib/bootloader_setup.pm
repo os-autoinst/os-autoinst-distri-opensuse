@@ -24,6 +24,7 @@ use mm_network;
 our @EXPORT = qw(
   stop_grub_timeout
   boot_local_disk
+  boot_into_snapshot
   pre_bootmenu_setup
   select_bootmenu_option
   bootmenu_default_params
@@ -61,6 +62,20 @@ sub boot_local_disk {
     if (check_var('ARCH', 'aarch64') and get_var('UEFI')) {
         assert_screen 'boot-firmware';
     }
+    send_key 'ret';
+}
+
+sub boot_into_snapshot {
+    send_key_until_needlematch('boot-menu-snapshot', 'down', 10, 5);
+    send_key 'ret';
+    # in upgrade/migration scenario, we want to boot from snapshot 1 before migration.
+    if (get_var('UPGRADE') || get_var('ZDUP')) {
+        send_key_until_needlematch('snap-before-update', 'down', 40, 5);
+        save_screenshot;
+    }
+    send_key_until_needlematch('snap-before-migration', 'down', 40, 5) if (get_var('MIGRATION_ROLLBACK'));
+    send_key 'ret';
+    # avoid timeout for booting to HDD
     send_key 'ret';
 }
 
