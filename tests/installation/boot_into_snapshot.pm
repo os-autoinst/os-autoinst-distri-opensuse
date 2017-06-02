@@ -26,7 +26,7 @@ sub run() {
     # 1)
     assert_script_run('touch NOWRITE;test ! -f NOWRITE');
     # 1b) just debugging infos
-    assert_script_run("snapper list");
+    assert_script_run("snapper --iso list");
     assert_script_run("cat /etc/os-release");
     if (get_var("UPGRADE")) {
         # if we made a migration, the version should be for example opensuse before migr. 42.1 > 42.2
@@ -38,6 +38,14 @@ sub run() {
             die "OS_VERSION after Rollback matches OS_VERSION before Rollback";
         }
     }
+    assert_script_run('snapper rollback');
+    assert_script_run('snapper --iso list');
+    assert_script_run('snapper --iso list | grep \'number.*first root filesystem.*|\s*$\'',
+        fail_message => 'first root filesystem should be marked for cleanup as well');
+    assert_script_run('snapper --iso list | grep \'number.*after installation\'.*important=yes');
+    assert_script_run('snapper --iso list | grep \'number.*rollback\'.*important=yes',
+        fail_message => 'rollback backup should be marked for cleanup fate#321773');
+    assert_script_run('snapper --iso list | tail -n 1 | grep \'|\s*|\s*|\s*$\'', fail_message => 'last snapshot should not be cleaned up but is not-important');
     script_run("systemctl reboot", 0);
     reset_consoles;
 }
