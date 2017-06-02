@@ -16,15 +16,17 @@ use testapi;
 
 # Add kotd repo
 sub add_repos {
-    my $release = get_required_var("INSTALL_KOTD");
-    my $url     = "http://download.suse.de/ibs/Devel:/Kernel:/$release/standard/";
+    my $url = get_required_var("INSTALL_KOTD");
+    if ($url =~ /^[\w.]+-[\w.]+$/) {
+        $url = "http://download.suse.de/ibs/Devel:/Kernel:/$url/standard/";
+    }
     zypper_call("--no-gpg-check ar -f '$url' kotd", timeout => 600);
     zypper_call("--gpg-auto-import-keys ref",       timeout => 1200);
 }
 
 # Install kotd kernel and reboot
 sub install_from_repo {
-    zypper_call("install --from kotd kernel-default", timeout => 1200);
+    zypper_call("install --oldpackage --from kotd kernel-default", timeout => 1200);
 }
 
 sub run {
@@ -53,6 +55,6 @@ sub test_flags {
 
 =head2 INSTALL_KOTD
 
-INSTALL_KOTD is the version of operating system, such as openSUSE-42.2, SLE12-SP3
+INSTALL_KOTD can be the version of operating system(e.g. openSUSE-42.2, SLE12-SP3) or the entire url of a zypper repo(e.g. http://download.suse.de/ibs/Devel:/Kernel:/SLE12-SP3/standard/)
 
 =cut
