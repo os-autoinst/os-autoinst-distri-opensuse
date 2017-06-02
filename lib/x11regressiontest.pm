@@ -477,6 +477,7 @@ sub exit_firefox() {
     }
     script_run "cat firefox.log";
     save_screenshot;
+    upload_logs "firefox.log";
     type_string "exit\n";
 }
 

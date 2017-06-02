@@ -455,6 +455,10 @@ sub load_extra_tests() {
                     loadtest "x11/gdm_session_switch";
                 }
                 loadtest "x11/seahorse";
+                # Setup env for x11 regression tests
+                loadtest "x11regressions/x11regressions_setup";
+                # poo#18850 java test support for firefox
+                loadtest "x11regressions/firefox/firefox_java";
             }
         }
     }

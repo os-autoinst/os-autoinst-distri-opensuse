@@ -55,11 +55,19 @@ sub run() {
     my ($self) = @_;
     $self->start_firefox;
 
-    assert_and_click('firefox-logo');
+    #Required only on sle, as open mozilla home page
+    if (check_var('DISTRI', 'sle')) {
+        assert_and_click('firefox-logo');
+    }
     sleep 1;
     send_key "ctrl-shift-a";
 
     assert_screen("firefox-java-addonsmanager");
+    #Required only on opensuse's FF, on sle search is available from "Get Add-ons"
+    if (check_var('DISTRI', 'opensuse')) {
+        assert_and_click('firefox-java-extensions');
+        sleep 1;
+    }
 
     send_key "/";
     sleep 1;
