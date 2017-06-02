@@ -21,7 +21,7 @@ use Exporter;
 use strict;
 
 use testapi;
-use utils qw(addon_decline_license assert_screen_with_soft_timeout);
+use utils qw(addon_decline_license assert_screen_with_soft_timeout type_string_slow);
 
 our @EXPORT = qw(fill_in_registration_data registration_bootloader_params yast_scc_registration skip_registration);
 
@@ -262,8 +262,15 @@ sub registration_bootloader_params {
 }
 
 sub yast_scc_registration {
-
-    type_string "yast2 scc; echo yast-scc-done-\$?- > /dev/$serialdev\n";
+    my ($type_slow) = @_;
+    my $yast_scc_cmd = "yast2 scc; echo yast-scc-done-\$?- > /dev/$serialdev\n";
+    #Due to ninja keys on PPC, may be required to type command slowlier, see poo#19230
+    if ($type_slow) {
+        type_string_slow $yast_scc_cmd;
+    }
+    else {
+        type_string $yast_scc_cmd;
+    }
     assert_screen_with_soft_timeout(
         'scc-registration',
         timeout      => 90,

@@ -22,16 +22,16 @@ sub is_smt_or_module_tests {
 sub system_prepare() {
     select_console 'root-console';
     type_string "chown $username /dev/$serialdev\n";
-    type_string "echo 'export Y2DEBUG=1' >> /etc/bash.bashrc.local\n";
+    type_string "echo ' export Y2DEBUG = 1 ' >> /etc/bash.bashrc.local\n";
     script_run "source /etc/bash.bashrc.local";
 }
 
 sub patching_sle() {
-    set_var("VIDEOMODE",    'text');
-    set_var("SCC_REGISTER", 'installation');
+    set_var("VIDEOMODE",    ' text ');
+    set_var("SCC_REGISTER", ' installation ');
     # remember we perform registration on pre-created HDD images
-    if (sle_version_at_least('12-SP2', version_variable => 'HDDVERSION')) {
-        set_var('HDD_SP2ORLATER', 1);
+    if (sle_version_at_least(' 12 -SP2 ', version_variable => ' HDDVERSION ')) {
+        set_var(' HDD_SP2ORLATER ', 1);
     }
 
     # stop packagekit service
@@ -40,18 +40,18 @@ sub patching_sle() {
 
     assert_script_run("zypper lr && zypper mr --disable --all");
     save_screenshot;
-    yast_scc_registration();
-    assert_script_run('zypper lr -d');
+    yast_scc_registration(check_var("ARCH", "ppc64le"));    #See poo#19230, pass true to type slowly
+    assert_script_run(' zypper lr -d ');
 
-    if (get_var('MINIMAL_UPDATE')) {
-        minimal_patch_system(version_variable => 'HDDVERSION');
+    if (get_var(' MINIMAL_UPDATE ')) {
+        minimal_patch_system(version_variable => ' HDDVERSION ');
     }
 
-    if (get_var('FULL_UPDATE')) {
+    if (get_var(' FULL_UPDATE ')) {
         fully_patch_system();
     }
 
-    de_register(version_variable => 'HDDVERSION');
+    de_register(version_variable => ' HDDVERSION ');
     remove_ltss;
     assert_script_run("zypper mr --enable --all");
     set_var("VIDEOMODE", '');
