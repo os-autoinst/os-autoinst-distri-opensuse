@@ -68,7 +68,7 @@ sub run() {
             send_key 'alt-u';                                                   # select URL field
             type_string get_var("ADDONURL_$uc_addon");                          # repo URL
             send_key $cmd{next};
-            my @tags = ('addon-products', 'addon-betawarning-$addon', 'addon-license-$addon', 'import-untrusted-gpg-key');
+            my @tags = ('addon-products', "addon-betawarning-$addon", "addon-license-$addon", 'import-untrusted-gpg-key');
             assert_screen(\@tags, 90);
             if (match_has_tag("addon-betawarning-$addon") or match_has_tag("addon-license-$addon")) {
                 if (match_has_tag("addon-betawarning-$addon")) {
