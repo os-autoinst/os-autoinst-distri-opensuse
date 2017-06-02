@@ -127,6 +127,15 @@ sub bootmenu_type_extra_boot_params {
     }
 }
 
+sub bootmenu_type_console_params {
+    # To get crash dumps as text
+    type_string_very_slow "console=$serialdev ";
+
+    # See bsc#1011815, last console set as boot parameter is linked to /dev/console
+    # and doesn't work if set to serial device.
+    type_string_very_slow "console=tty ";
+}
+
 sub bootmenu_default_params {
     if (check_var('ARCH', 'ppc64le')) {
         # edit menu, wait until we get to grub edit
@@ -159,14 +168,12 @@ sub bootmenu_default_params {
 
         if (!get_var("NICEVIDEO")) {
             if (is_jeos) {
-                type_string_very_slow "console=$serialdev ";    # to get crash dumps as text
-                type_string_very_slow "console=tty ";           # to get crash dumps as text
+                bootmenu_type_console_params;
             }
             else {
                 type_string_very_slow "plymouth.ignore-serial-consoles ";    # make plymouth go graphical
-                type_string_very_slow "linuxrc.log=$serialdev ";             # to get linuxrc logs in serial
-                type_string_very_slow "console=$serialdev ";                 # to get crash dumps as text
-                type_string_very_slow "console=tty ";                        # to get crash dumps as text
+                type_string_very_slow "linuxrc.log=$serialdev ";
+                bootmenu_type_console_params;
 
                 assert_screen "inst-consolesettingstyped", 30;
 
