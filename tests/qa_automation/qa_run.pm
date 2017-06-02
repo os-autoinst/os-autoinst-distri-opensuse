@@ -114,6 +114,10 @@ sub wait_testrun {
     # so that it will wait until test run finished or
     # MAX_JOB_TIME(can be set on openQA webui) reached
     my $ret = wait_serial("$pattern-$code", $timeout);
+    if (is_serial_terminal()) {
+        # Print new terminal prompt for script_run
+        type_string("\n");
+    }
     return $ret ? 1 : 0;
 }
 

@@ -431,7 +431,7 @@ sub activate_console {
         }
     }
     elsif ($type eq 'virtio-terminal') {
-        serial_terminal::login($user);
+        serial_terminal::login($user, $self->{serial_term_prompt});
     }
     elsif ($type eq 'ssh') {
         $user ||= 'root';
