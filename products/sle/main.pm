@@ -1381,6 +1381,12 @@ elsif (ssh_key_import) {
     # verify previous defined ssh keys
     loadtest "x11/ssh_key_verify";
 }
+elsif (get_var('ISO_IN_EXTERNAL_DRIVE')) {
+    loadtest "boot/boot_to_desktop";
+    loadtest 'console/copy_iso_to_external_drive';
+    load_inst_tests();
+    load_reboot_tests();
+}
 elsif (get_var('HPC')) {
     if (check_var('HPC', 'install')) {
         load_boot_tests();
