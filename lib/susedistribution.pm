@@ -371,6 +371,12 @@ sub init_consoles {
     return;
 }
 
+# Make sure the right user is logged in, e.g. when using remote shells
+sub ensure_user {
+    my ($user) = @_;
+    type_string("su - $user\n") if $user ne 'root';
+}
+
 # callback whenever a console is selected for the first time
 sub activate_console {
     my ($self, $console) = @_;
@@ -402,22 +408,30 @@ sub activate_console {
     }
 
     if ($type eq 'console') {
-        # different handling for ssh consoles
-        if (check_var('ARCH', 's390x')) {
-            # different console-behaviour for s390x
-            type_string("su - $user\n") if $user ne 'root';
+        # different handling for ssh consoles on s390x zVM
+        if (check_var('BACKEND', 's390x')) {
             handle_password_prompt;
+            ensure_user($user);
         }
         else {
             my $nr = 4;
             $nr = 2 if ($name eq 'root');
             $nr = 5 if ($name eq 'log');
+            my @tags = ("tty$nr-selected", "text-logged-in-$user", "text-login");
+            # s390 zkvm uses a remote ssh session which is root by default so
+            # search for that and su to user later if necessary
+            push(@tags, 'text-logged-in-root') if get_var('S390_ZKVM');
             # we need to wait more than five seconds here to pass the idle timeout in
             # case the system is still booting (https://bugzilla.novell.com/show_bug.cgi?id=895602)
-            assert_screen(["tty$nr-selected", "text-logged-in-$user", "text-login"], 60);
+            # or when using remote consoles which can take some seconds, e.g.
+            # just after ssh login
+            assert_screen \@tags, 60;
             if (match_has_tag("tty$nr-selected") or match_has_tag("text-login")) {
                 type_string "$user\n";
                 handle_password_prompt;
+            }
+            elsif (match_has_tag('text-logged-in-root')) {
+                ensure_user($user);
             }
         }
         assert_screen "text-logged-in-$user";
@@ -436,7 +450,7 @@ sub activate_console {
     elsif ($type eq 'ssh') {
         $user ||= 'root';
         handle_password_prompt;
-        type_string("su - $user\n") if $user ne 'root';
+        ensure_user($user);
         assert_screen(["text-logged-in-$user", "text-login"], 60);
         $self->set_standard_prompt($user);
     }
