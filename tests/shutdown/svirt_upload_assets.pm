@@ -38,10 +38,6 @@ sub extract_assets {
     # on your own - hence the following assert_screen().
     upload_asset("$image_storage/$name", 1, 1);
     assert_screen('svirt-asset-upload-hdd-image-uploaded', 1000);
-
-    # clean up on s390pb
-    type_string("rm -f $image_storage/$name && echo OK\n");
-    assert_screen('svirt-image-cleaned-up');
 }
 
 sub run() {
