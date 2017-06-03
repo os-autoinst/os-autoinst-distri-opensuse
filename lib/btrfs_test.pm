@@ -17,8 +17,8 @@ sub set_unpartitioned_disk_in_bash {
     elsif (check_var('VIRSH_VMM_FAMILY', 'hyperv') or check_var('VIRSH_VMM_FAMILY', 'vmware')) {
         $vd = 'sd';
     }
-    assert_script_run 'parted --machine -l';
-    assert_script_run 'disk=${disk:-$(parted --machine -l |& sed -n \'s@^\(/dev/' . $vd . '[ab]\):.*unknown.*$@\1@p\')}';
+    assert_script_run 'parted --script --machine -l';
+    assert_script_run 'disk=${disk:-$(parted --script --machine -l |& sed -n \'s@^\(/dev/' . $vd . '[ab]\):.*unknown.*$@\1@p\')}';
     assert_script_run 'echo $disk';
 }
 
