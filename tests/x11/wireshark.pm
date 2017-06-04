@@ -158,14 +158,7 @@ sub run() {
     send_key "ctrl-shift-p";
     assert_screen "wireshark-preferences";
     assert_and_click "wireshark-preferences-columns";
-    assert_screen [qw(wireshark-preferences-columns-protocol-displayed wireshark-preferences-columns-protocol-not-displayed)];
-    if (match_has_tag "wireshark-preferences-columns-protocol-not-displayed") {
-        record_soft_failure "bsc#1003086";
-        assert_and_click "wireshark-preferences-columns-protocol-select";
-        assert_screen "wireshark-preferences-columns-protocol-displayed-selected";
-        assert_and_click "wireshark-preferences-apply";
-        wait_still_screen 3;
-    }
+    assert_screen 'wireshark-preferences-columns-protocol-displayed';
     send_key "alt-f4";
     assert_screen "wireshark-fullscreen";
     send_key "alt-f4";
