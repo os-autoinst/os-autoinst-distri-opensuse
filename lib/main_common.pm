@@ -372,10 +372,6 @@ sub load_yast2_ui_tests {
         && !get_var("DUALBOOT")
         && !get_var("RESCUECD")
         && get_var("Y2UITEST"));
-    # TODO: check why this was not called on opensuse
-    if (check_var('DISTRI', 'sle')) {
-        loadtest "x11/yast2_lan_restart";
-    }
     loadtest 'yast2_gui/yast2_control_center';
     loadtest "yast2_gui/yast2_bootloader";
     loadtest "yast2_gui/yast2_datetime";
@@ -439,6 +435,7 @@ sub load_extra_tests() {
         if (check_var('DISTRI', 'sle')) {
             # start extra x11 tests from here
             loadtest 'x11/vnc_two_passwords';
+            # TODO: check why this is not called on opensuse
             loadtest 'x11/yast2_lan_restart';
             loadtest 'x11/user_defined_snapshot';
         }
