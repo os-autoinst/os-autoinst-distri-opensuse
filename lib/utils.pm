@@ -213,20 +213,20 @@ sub is_gnome_next {
 }
 
 # Check if distribution is CASP
-# If argument is passed then flavor has to match (universal VMX keyword)
+# If argument is passed then FLAVOR has to match (universal VMX keyword)
 sub is_casp {
-    my $flavor = shift;
+    my $filter = shift;
     return 0 unless check_var('DISTRI', 'casp');
-    return 1 unless $flavor;
+    return 1 unless $filter;
 
-    if ($flavor eq 'DVD') {
-        return get_var('FLAVOR') =~ /DVD/;    # Catch DVD and DVD-Staging
+    if ($filter eq 'DVD') {
+        return get_var('FLAVOR') =~ /DVD/;    # DVD and Staging-?-DVD
     }
-    elsif ($flavor eq 'VMX') {
-        return 1;                             # Everything other than DVD is VMX image
+    elsif ($filter eq 'VMX') {
+        return get_var('FLAVOR') !~ /DVD/;    # If not DVD it's VMX
     }
     else {
-        return check_var('FLAVOR', $flavor);    # In other cases compare requested flavor
+        return check_var('FLAVOR', $filter);    # Specific FLAVOR selector
     }
 }
 
