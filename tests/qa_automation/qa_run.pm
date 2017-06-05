@@ -69,12 +69,16 @@ sub qaset_config {
 # remove all existing zypper repos first
 sub prepare_repos {
     my $self           = shift;
-    my $qa_server_repo = get_var('QA_SERVER_REPO');
+    my $qa_server_repo = get_var('QA_SERVER_REPO', '');
+    my $qa_sdk_repo    = get_var('QA_SDK_REPO', '');
     pkcon_quit;
     if ($qa_server_repo) {
         # Remove all existing repos and add QA_SERVER_REPO
-        script_run('for ((i = 1; i <= $(zypper lr| tail -n+3 |wc -l); i++ )); do zypper -n rr $i; done; unset i', 300);
+        script_run('for ((i = $(zypper lr| tail -n+5 |wc -l); i >= 1; i-- )); do zypper -n rr $i; done; unset i', 300);
         zypper_call("--no-gpg-check ar -f '$qa_server_repo' server-repo");
+        if ($qa_sdk_repo) {
+            zypper_call("--no-gpg-check ar -f '$qa_sdk_repo' sle-sdk");
+        }
     }
     my $qa_head_repo = get_var('QA_HEAD_REPO', '');
     my $qa_web_repo  = get_var('QA_WEB_REPO',  '');
