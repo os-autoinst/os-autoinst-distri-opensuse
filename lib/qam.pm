@@ -17,7 +17,7 @@ use Exporter;
 use testapi;
 use utils;
 
-our @EXPORT = qw(capture_state check_automounter snap_revert is_patch_needed);
+our @EXPORT = qw(capture_state check_automounter snap_revert is_patch_needed add_test_repositories);
 
 sub capture_state {
     my ($state, $y2logs) = @_;
@@ -70,5 +70,19 @@ sub is_patch_needed {
         return $install ? $patch_status : 1;
     }
 }
+
+# Function that will add all test repos available and then logs all the patches needed
+sub add_test_repositories {
+    my @repos = @_;
+    for my $var (qw(OS_TEST_REPO SDK_TEST_REPO TCM_TEST_REPO WSM_TEST_REPO WE_TEST_REPO)) {
+        my $repo = get_var($var);
+        next unless $repo;
+        zypper_call("--no-gpg-check ar -f '$repo' test-repo-$var");
+        zypper_call("ref -r $repo");
+        zypper_call("patches -r $repo", log => "patches-$var.log");
+        zypper_call("se -t package -r $repo", exitcode => [0, 104], log => "packages-$var.log");
+    }
+}
+
 
 1;

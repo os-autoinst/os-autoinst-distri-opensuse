@@ -18,6 +18,7 @@ use strict;
 use warnings;
 use utils;
 use testapi;
+use qam;
 
 sub run {
     my $self = shift;
@@ -33,14 +34,7 @@ sub run {
 
     pkcon_quit unless check_var('DESKTOP', 'textmode');
 
-    for my $var (qw(OS_TEST_REPO SDK_TEST_REPO TCM_TEST_REPO WSM_TEST_REPO WE_TEST_REPO)) {
-        my $repo = get_var($var);
-        next unless $repo;
-        zypper_call("--no-gpg-check ar -f '$repo' test-repo-$var");
-        zypper_call("ref -r $repo");
-        zypper_call("patches -r $repo", log => "patches-$var.log");
-        zypper_call("se -t package -r $repo", exitcode => [0, 104], log => "packages-$var.log");
-    }
+    add_test_repositories;
 
     fully_patch_system;
 

@@ -14,6 +14,7 @@ use testapi;
 use utils;
 use migration;
 use registration;
+use qam;
 
 sub is_smt_or_module_tests {
     return get_var('SCC_ADDONS', '') =~ /asmm|contm|hpcm|lgm|pcm|tcm|wsm|idu|ids/ || get_var('TEST', '') =~ /migration_offline_sle12sp\d_smt/;
@@ -37,6 +38,9 @@ sub patching_sle() {
     # stop packagekit service
     script_run "systemctl mask packagekit.service";
     script_run "systemctl stop packagekit.service";
+
+    # add test repositories and logs the required patches
+    add_test_repositories();
 
     assert_script_run("zypper lr && zypper mr --disable --all");
     save_screenshot;
