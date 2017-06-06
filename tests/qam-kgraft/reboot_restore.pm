@@ -76,17 +76,20 @@ sub run() {
     script_run("basename /boot/initrd-\$(uname -r) | sed s_initrd-__g > /dev/$serialdev", 0);
     my ($kver) = wait_serial(qr/(^[\d.-]+)-.+\s/) =~ /(^[\d.-]+)-.+\s/;
 
-    script_run("lsinitrd /boot/initrd-$kver-xen | grep patch");
-    save_screenshot;
-    script_run("lsinitrd /boot/initrd-$kver-xen | awk '/-patch-.*ko\$/ {print \$NF}' > /dev/$serialdev", 0);
-    my ($module) = wait_serial(qr/lib*/) =~ /(^.*ko)\s+/;
+    # xen kernel exists only on SLE12 and SLE12SP1
+    if (!sle_version_at_least('12-SP2')) {
+        script_run("lsinitrd /boot/initrd-$kver-xen | grep patch");
+        save_screenshot;
+        script_run("lsinitrd /boot/initrd-$kver-xen | awk '/-patch-.*ko\$/ {print \$NF}' > /dev/$serialdev", 0);
+        my ($module) = wait_serial(qr/lib*/) =~ /(^.*ko)\s+/;
 
-    mod_rpm_info($module);
+        mod_rpm_info($module);
+    }
 
     script_run("lsinitrd /boot/initrd-$kver-default | grep patch");
     save_screenshot;
     script_run("lsinitrd /boot/initrd-$kver-default | awk '/-patch-.*ko\$/ {print \$NF}' > /dev/$serialdev", 0);
-    ($module) = wait_serial(qr/lib*/) =~ /(^.*ko)\s+/;
+    my ($module) = wait_serial(qr/lib*/) =~ /(^.*ko)\s+/;
 
     mod_rpm_info($module);
 
