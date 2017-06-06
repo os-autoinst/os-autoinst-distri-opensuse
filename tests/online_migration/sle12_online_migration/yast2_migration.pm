@@ -31,7 +31,7 @@ sub run {
         # set blank screen to be never for current session
         script_run("gsettings set org.gnome.desktop.session idle-delay 0");
         become_root;
-        if (check_var('HDDVERSION', '12')) {
+        if (check_var('HDDVERSION', '12') && get_var('MIGRATION_REMOVE_ADDONS')) {
             # use latest yast2-registration version because is not officially available
             assert_script_run 'wget --quiet ' . data_url('yast2-registration-3.1.129.18-1.noarch.rpm');
             zypper_call '--no-gpg-checks in yast2-registration-3.1.129.18-1.noarch.rpm';
