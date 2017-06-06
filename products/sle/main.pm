@@ -1305,12 +1305,7 @@ else {
             loadtest "rt/boot_rt_kernel";
         }
         else {
-            if (get_var("BOOT_TO_SNAPSHOT") && (snapper_is_applicable())) {
-                load_rollback_tests();
-            }
-            else {
-                loadtest "boot/boot_to_desktop";
-            }
+            loadtest "boot/boot_to_desktop";
             if (get_var("ADDONS")) {
                 loadtest "installation/addon_products_yast2";
             }
