@@ -56,6 +56,10 @@ sub run() {
             $cmdline .= " autoyast=" . data_url(get_var('AUTOYAST')) . " ";
         }
 
+        if (get_var('FIPS')) {
+            $cmdline .= "fips=1 ";
+        }
+
         $cmdline .= specific_bootmenu_params;
 
         $svirt->change_domain_element(os => initrd  => "$img_path/$name.initrd");
