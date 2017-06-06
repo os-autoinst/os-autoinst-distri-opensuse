@@ -405,8 +405,8 @@ sub activate_console {
         # different handling for ssh consoles
         if (check_var('ARCH', 's390x')) {
             # different console-behaviour for s390x
-            type_string("su - $user\n") if $user ne 'root';
             handle_password_prompt;
+            type_string("su - $user\n") if $user ne 'root';
         }
         else {
             my $nr = 4;
