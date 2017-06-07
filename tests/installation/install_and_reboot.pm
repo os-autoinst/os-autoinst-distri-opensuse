@@ -140,7 +140,8 @@ sub run() {
                 die "IPL device was not set correctly";
             }
         }
-        $self->get_ip_address();
+        # avoid known issue in FIPS mode: bsc#985969
+        $self->get_ip_address() if (!get_var('FIPS'));
         $self->save_upload_y2logs();
         select_console 'installation';
     }
