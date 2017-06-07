@@ -27,6 +27,7 @@ sub run() {
         # kill serial ssh connection (if it exists)
         eval { console('iucvconn')->kill_ssh unless get_var('BOOT_EXISTING_S390', ''); };
         diag('ignoring already shut down console') if ($@);
+        console('installation')->disable_vnc_stalls;
 
         # 'wait_serial' implementation for x3270
         console('x3270')->expect_3270(
