@@ -70,15 +70,18 @@ sub velum_bootstrap {
     assert_screen 'velum-bootstrap-page';
     barrier_wait "WORKERS_INSTALLED";
 
-    # Select master and bootstrap
-    send_key "ctrl-f";
-    type_string "master.op\n";
-    send_key "esc";
-    send_key "tab";
-    send_key "spc";
-    assert_screen "master-selected";
-    assert_and_click "velum-bootstrap";
+    # Calculate position of master node radio button
+    my $needle = assert_screen('master-checkbox-xy')->{area};
+    my $row    = $needle->[0];                                  # get y-position of master node
+    my $col    = $needle->[1];                                  # get x-position of checkbox
+    my $x      = $col->{x} + int($col->{w} / 2);
+    my $y      = $row->{y} + int($row->{h} / 2);
 
+    # Select master and bootstrap
+    mouse_set $x, $y;
+    mouse_click;
+    mouse_hide;
+    assert_and_click "velum-bootstrap";
     assert_screen "velum-botstrap-done", 300;
     assert_and_click "velum-kubeconfig";
 }
