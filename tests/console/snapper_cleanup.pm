@@ -45,6 +45,10 @@ sub snapper_cleanup {
 }
 
 sub run() {
+    if(check_var('VERSION','42.3'){
+      record_soft_failure 'bsc#1030140';
+      return 1;
+    }
     select_console 'root-console';
 
     my @snapper_runs = 'snapper';
