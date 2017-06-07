@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -31,7 +31,8 @@ sub run () {
     $self->auto_login_alter;
     my $ov = get_var('NOAUTOLOGIN');
     set_var('NOAUTOLOGIN', '');
-    reboot_gnome;
+    power_action('reboot');
+    workaround_type_encrypted_passphrase;
     $self->wait_boot(bootloader_time => 300);
     set_var('NOAUTOLOGIN', $ov);
     $self->auto_login_alter;
