@@ -45,7 +45,8 @@ our @EXPORT = qw(
   install_to_other_at_least
   ensure_fullscreen
   ensure_shim_import
-  reboot_gnome
+  reboot_x11
+  poweroff_x11
   power_action
   assert_shutdown_and_restore_system
   assert_screen_with_soft_timeout
@@ -465,26 +466,169 @@ sub assert_shutdown_and_restore_system {
     }
 }
 
-sub reboot_gnome {
-    wait_idle;
-    send_key "ctrl-alt-delete";    # reboot
-    assert_screen 'logoutdialog';
-    assert_and_click 'logoutdialog-reboot-highlighted';
+sub assert_and_click_until_screen_change {
+    my ($mustmatch, $wait_change, $repeat) = @_;
+    $wait_change //= 2;
+    $repeat      //= 3;
+    my $i = 0;
 
-    if (get_var("SHUTDOWN_NEEDS_AUTH")) {
-        assert_screen 'reboot-auth';
-        wait_still_screen 3;
-        type_password undef, max_interval => 5;
-        # Extra assert_and_click (with right click) to check the correct number of characters is typed and open up the 'show text' option
-        assert_and_click 'reboot-auth-typed', 'right';
-        assert_and_click 'reboot-auth-showtext';         # Click the 'Show Text' Option to enable the display of the typed text
-        assert_screen 'reboot-auth-correct-password';    # Check the password is correct
+    for (; $i < $repeat; $i++) {
+        wait_screen_change(sub { assert_and_click $mustmatch }, $wait_change);
+        last unless check_screen($mustmatch, 0);
+    }
 
-        # we need to kill ssh for iucvconn here,
-        # because after pressing return, the system is down
-        prepare_system_reboot;
+    return $i;
+}
 
+sub reboot_x11 {
+    my ($self) = @_;
+    wait_still_screen;
+    if (check_var('DESKTOP', 'gnome')) {
+        send_key_until_needlematch 'logoutdialog', 'ctrl-alt-delete', 7, 10;    # reboot
+        my $repetitions = assert_and_click_until_screen_change 'logoutdialog-reboot-highlighted';
+        record_soft_failure 'poo#19082' if ($repetitions > 0);
+
+        if (get_var("SHUTDOWN_NEEDS_AUTH")) {
+            assert_screen 'reboot-auth';
+            wait_still_screen;
+            type_string $testapi::password, max_interval => 5;
+            wait_still_screen;
+            wait_screen_change {
+                # Extra assert_and_click (with right click) to check the correct number of characters is typed and open up the 'show text' option
+                assert_and_click 'reboot-auth-typed', 'right';
+            };
+            wait_screen_change {
+                # Click the 'Show Text' Option to enable the display of the typed text
+                assert_and_click 'reboot-auth-showtext';
+            };
+            # Check the password is correct
+            assert_screen 'reboot-auth-correct-password';
+            # we need to kill ssh for iucvconn here,
+            # because after pressing return, the system is down
+            prepare_system_reboot;
+
+            # Pure 'ret' is sometimes not enough, taking the more labourish way to do it
+            for (1 .. 2) { send_key 'tab'; }
+            send_key 'ret';
+
+            # run only on qemu backend, e.g. svirt backend is fast enough to reboot properly
+            if (check_var('BACKEND', 'qemu')) {
+                my $delay = check_var('ARCH', 'x86_64') ? 5 : 10;
+                sleep $delay;    # wait to make authentication window disappear after successful authentication
+                if (check_screen 'reboot-auth', 2) {
+                    record_soft_failure 'bsc#981299';
+                    send_key_until_needlematch 'generic-desktop', 'esc', 7, 10;    # close timed out authentication window
+                    if (check_var('DISTRI', 'sle') && !sle_version_at_least('12-SP2')) {
+                        # retrying does not help on SP1 - once it fails, it will always fail
+                        # so just keep it as soft failure
+                        return;
+                    }
+                    send_key_until_needlematch 'logoutdialog', 'ctrl-alt-delete', 7, 10;    # reboot
+                    assert_and_click 'logoutdialog-reboot-highlighted';
+                }
+            }
+        }
+    }
+}
+
+sub poweroff_x11 {
+    my ($self) = @_;
+    wait_still_screen;
+
+    if (check_var("DESKTOP", "kde")) {
+        send_key "ctrl-alt-delete";    # shutdown
+        assert_screen 'logoutdialog', 15;
+
+        if (get_var("PLASMA5")) {
+            assert_and_click 'sddm_shutdown_option_btn';
+            if (check_screen([qw(sddm_shutdown_option_btn sddm_shutdown_btn)], 3)) {
+                # sometimes not reliable, since if clicked the background
+                # color of button should changed, thus check and click again
+                if (match_has_tag('sddm_shutdown_option_btn')) {
+                    assert_and_click 'sddm_shutdown_option_btn';
+                }
+                # plasma < 5.8
+                elsif (match_has_tag('sddm_shutdown_btn')) {
+                    assert_and_click 'sddm_shutdown_btn';
+                }
+            }
+        }
+        else {
+            type_string "\t";
+            assert_screen "kde-turn-off-selected", 2;
+            type_string "\n";
+        }
+    }
+
+    if (check_var("DESKTOP", "gnome")) {
+        send_key "ctrl-alt-delete";
+        assert_screen 'logoutdialog', 15;
+        send_key "ret";    # confirm shutdown
+
+        if (get_var("SHUTDOWN_NEEDS_AUTH")) {
+            assert_screen 'shutdown-auth', 15;
+            type_password;
+
+            # we need to kill all open ssh connections before the system shuts down
+            prepare_system_reboot;
+            send_key "ret";
+        }
+    }
+
+    if (check_var("DESKTOP", "xfce")) {
+        for (1 .. 5) {
+            send_key "alt-f4";    # opens log out popup after all windows closed
+        }
+        wait_idle;
+        assert_screen 'logoutdialog', 15;
+        type_string "\t\t";       # select shutdown
+        sleep 1;
+
+        # assert_screen 'test-shutdown-1', 3;
+        type_string "\n";
+    }
+
+    if (check_var("DESKTOP", "lxde")) {
+        x11_start_program("lxsession-logout");    # opens logout dialog
+        assert_screen "logoutdialog", 20;
         send_key "ret";
+    }
+
+    if (check_var("DESKTOP", "lxqt")) {
+        x11_start_program("shutdown");            # opens logout dialog
+        assert_screen "lxqt_logoutdialog", 20;
+        send_key "ret";
+    }
+    if (check_var("DESKTOP", "enlightenment")) {
+        send_key "ctrl-alt-delete";               # shutdown
+        assert_screen 'logoutdialog', 15;
+        assert_and_click 'enlightenment_shutdown_btn';
+    }
+
+    if (check_var('DESKTOP', 'awesome')) {
+        assert_and_click 'awesome-menu-main';
+        assert_and_click 'awesome-menu-system';
+        assert_and_click 'awesome-menu-shutdown';
+    }
+
+    if (check_var("DESKTOP", "mate")) {
+        x11_start_program("mate-session-save --shutdown-dialog");
+        send_key "ctrl-alt-delete";    # shutdown
+        assert_screen 'mate_logoutdialog', 15;
+        assert_and_click 'mate_shutdown_btn';
+    }
+
+    if (get_var("DESKTOP") =~ m/minimalx|textmode/) {
+        power('off');
+    }
+
+    if (check_var('BACKEND', 's390x')) {
+        # make sure SUT shut down correctly
+        console('x3270')->expect_3270(
+            output_delim => qr/.*SIGP stop.*/,
+            timeout      => 30
+        );
+
     }
 }
 
@@ -497,8 +641,18 @@ Executes power action (e.g. poweroff, reboot) from root console.
 sub power_action {
     my ($action) = @_;
     die "'action' was not provided" unless $action;
-    select_console 'root-console';
-    type_string "$action\n";
+    if (check_var('DESKTOP', 'textmode')) {
+        select_console 'root-console';
+        type_string "$action\n";
+    }
+    else {
+        if ($action eq 'reboot') {
+            reboot_x11;
+        }
+        elsif ($action eq 'poweroff') {
+            poweroff_x11;
+        }
+    }
     if (check_var('VIRSH_VMM_FAMILY', 'xen')) {
         assert_shutdown_and_restore_system($action);
     }
