@@ -17,7 +17,7 @@
 # Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
 
 use strict;
-use base 'basetest';
+use base "opensusebasetest";
 use testapi;
 use utils;
 
@@ -42,7 +42,7 @@ sub save_and_upload_logs {
 }
 
 sub save_and_upload_yastlogs {
-    my ($suffix) = @_;
+    my ($self, $suffix) = @_;
     my $name = $stage . $suffix;
     # save logs and continue
     select_console 'install-shell';
@@ -58,19 +58,19 @@ sub save_and_upload_yastlogs {
       fi
     ";
     upload_logs "/tmp/y2logs-$name.tar.bz2";
-    save_and_upload_log('btrfs filesystem usage /mnt', 'btrfs-filesystem-usage-mnt.txt');
-    save_and_upload_log('df',                          'df.txt');
+    $self->save_and_upload_log('btrfs filesystem usage /mnt', 'btrfs-filesystem-usage-mnt.txt');
+    $self->save_and_upload_log('df',                          'df.txt');
     save_screenshot;
     clear_console;
     select_console 'installation';
 }
 
 sub handle_expected_errors {
-    my (%args) = @_;
+    my ($self, %args) = @_;
     my $i = $args{iteration};
     record_info('Expected error', 'Iteration = ' . $i);
     send_key "alt-s";    #stop
-    save_and_upload_yastlogs("_expected_error$i");
+    $self->save_and_upload_yastlogs("_expected_error$i");
     $i++;
     send_key "tab";      #continue
     send_key "ret";
@@ -78,6 +78,7 @@ sub handle_expected_errors {
 }
 
 sub run {
+    my ($self) = @_;
     my @needles = qw(bios-boot nonexisting-package reboot-after-installation linuxrc-install-fail scc-invalid-url warning-pop-up);
     push @needles, 'autoyast-confirm'        if get_var('AUTOYAST_CONFIRM');
     push @needles, 'autoyast-postpartscript' if get_var('USRSCR_DIALOG');
@@ -97,7 +98,7 @@ sub run {
         #repeat until timeout or login screen
         if (match_has_tag('nonexisting-package')) {
             @needles = grep { $_ ne 'nonexisting-package' } @needles;
-            handle_expected_errors(iteration => $i);
+            $self->handle_expected_errors(iteration => $i);
             $num_errors++;
         }
         elsif (match_has_tag('warning-pop-up')) {
@@ -159,7 +160,7 @@ sub run {
     do {
         assert_screen [qw(reboot-after-installation autoyast-postinstall-error)], $maxtime;
         if (match_has_tag('autoyast-postinstall-error')) {
-            handle_expected_errors(iteration => $i);
+            $self->handle_expected_errors(iteration => $i);
             $num_errors++;
         }
     } until match_has_tag 'reboot-after-installation';
@@ -173,7 +174,8 @@ sub test_flags {
 }
 
 sub post_fail_hook {
-    save_and_upload_yastlogs;
+    my ($self) = shift;
+    $self->save_and_upload_yastlogs;
 }
 
 1;
