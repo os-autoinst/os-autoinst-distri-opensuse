@@ -26,7 +26,7 @@ sub post_run_hook {
     # Workers installed using autoyast have no password - bsc#1030876
     return if get_var('AUTOYAST');
 
-    script_run "journalctl > journal.log";
+    script_run "journalctl > journal.log", 90;
     upload_logs "journal.log";
 }
 

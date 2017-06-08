@@ -34,7 +34,7 @@ sub run() {
 }
 
 sub post_run_hook {
-    script_run "journalctl > journal.log";
+    script_run "journalctl > journal.log", 90;
     upload_logs "journal.log";
 
     script_run 'velumid=$(docker ps | grep velum-dashboard | awk \'{print $1}\')';
