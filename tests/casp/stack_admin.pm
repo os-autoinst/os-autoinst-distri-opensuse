@@ -38,10 +38,7 @@ sub post_run_hook {
     upload_logs "journal.log";
 
     script_run 'velumid=$(docker ps | grep velum-dashboard | awk \'{print $1}\')';
-    my $railscmd = 'bundle exec rails';
-    if (check_var('FLAVOR', 'Staging-B-DVD')) {
-        $railscmd = "entrypoint.sh $railscmd";
-    }
+    my $railscmd = 'entrypoint.sh bundle exec rails';
 
     script_run "docker exec -it \$velumid $railscmd runner 'puts SaltEvent.all.to_json' > SaltEvents.log";
     upload_logs "SaltEvents.log";
