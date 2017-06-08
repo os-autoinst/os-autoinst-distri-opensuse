@@ -635,6 +635,9 @@ sub validatelr {
         $product = 'SLE-Module-Web-Scripting';
         $version = '12';
     }
+    if ($product eq 'SLE-IDU') {
+        $product = 'IBM-DLPAR-utils';
+    }
     # LTSS version is included in its product name
     # leave it as empty to match the regex
     if ($product =~ /LTSS/) {
@@ -670,7 +673,11 @@ sub validatelr {
     }
     my $uri = $args->{uri};
 
-    if (check_var('DISTRI', 'sle')) {
+    if ($product eq 'IBM-DLPAR-utils') {
+        assert_script_run
+"zypper lr --uri | awk -F '|' -v OFS=' ' '{ print \$3,\$4,\$NF }' | tr -s ' ' | grep \"$product\[\[:space:\]\[:punct:\]\[:space:\]\]*$enabled_repo $uri\"";
+    }
+    elsif (check_var('DISTRI', 'sle')) {
         # SLES12 does not have 'SLES12-Source-Pool' SCC channel
         unless (($version eq "12") and ($product_channel eq "Source-Pool")) {
             assert_script_run
@@ -805,6 +812,8 @@ sub validate_repos_sle {
                 next if (($scc_product =~ /LTSS/) && ($product_channel =~ /(|Debuginfo-|Source-)Pool/));
                 # don't look for add-on that was removed with MIGRATION_REMOVE_ADDONS
                 next if (get_var('ZYPPER_LR') && get_var('MIGRATION_INCONSISTENCY_DEACTIVATE') && $scc_product =~ /$addon_removed/);
+                # IDU doesn't have channels, repo is checked below
+                next if ($scc_product eq 'SLE-IDU');
                 validatelr(
                     {
                         product         => $scc_product,
@@ -814,6 +823,14 @@ sub validate_repos_sle {
                         version         => $version
                     });
             }
+        }
+        if (exists $h_scc_addons{'SLE-IDU'}) {
+            validatelr(
+                {
+                    product      => 'SLE-IDU',
+                    enabled_repo => 'Yes',
+                    uri          => 'http://public.dhe.ibm'
+                });
         }
 
         # Check nvidia repo if SLED or sle-we extension registered
