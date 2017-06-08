@@ -38,15 +38,20 @@ sub velum_signup {
 # Fill certificate information
 sub velum_certificates {
     assert_screen 'velum-certificates-page';
-    my $proxy = !check_screen('velum-certificates-noproxy', 3);
 
-    for (1 .. 5) { send_key 'tab' }
-    type_string "master.openqa.test";
-    send_key 'tab';
-    # Workaround for new proxy fields for staging
-    if ($proxy) {
-        for (1 .. 3) { send_key 'tab' }
+    my $staging_workaroung = !check_screen('velum-certificates-nohelp', 3);
+    if ($staging_workaroung) {
+        for (1 .. 6) { send_key 'tab' }
+        type_string "master.openqa.test";
+        for (1 .. 6) { send_key 'tab' }    # Skip proxy fields
     }
+    else {
+        for (1 .. 5) { send_key 'tab' }
+        type_string "master.openqa.test";
+        send_key 'tab';
+        for (1 .. 3) { send_key 'tab' }    # Skip proxy fields
+    }
+
     type_string "SUSE";
     send_key 'tab';
     type_string "QA";
