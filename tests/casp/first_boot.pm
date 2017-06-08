@@ -23,7 +23,11 @@ sub run() {
     assert_screen 'linux-login-casp', 300;
 
     # Workers installed using autoyast have no password - bsc#1030876
-    select_console 'root-console' unless get_var('AUTOYAST');
+    if (!get_var('AUTOYAST')) {
+        select_console 'root-console' unless get_var('AUTOYAST');
+        script_run "journalctl -p warning > journal.warning";
+        upload_logs "journal.warning";
+    }
 }
 
 sub test_flags() {
