@@ -32,7 +32,7 @@ sub post_run_hook {
 }
 
 sub save_and_upload_log {
-    my ($cmd, $file, $args) = @_;
+    my ($self, $cmd, $file, $args) = @_;
     script_run("$cmd | tee $file", $args->{timeout});
     upload_logs($file) unless $args->{noupload};
     save_screenshot if $args->{screenshot};
