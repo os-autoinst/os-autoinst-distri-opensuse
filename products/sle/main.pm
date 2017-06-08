@@ -9,7 +9,7 @@
 # without any warranty.
 use strict;
 use warnings;
-use testapi qw(check_var get_var get_required_var set_var);
+use testapi qw(check_var get_var get_required_var set_var check_var_array);
 use lockapi;
 use needle;
 use File::Find;
@@ -778,6 +778,9 @@ sub load_consoletests() {
         }
         if (!is_staging() && sle_version_at_least('12-SP2')) {
             loadtest "console/zypper_lifecycle";
+            if (check_var_array('SCC_ADDONS', 'tcm')) {
+                loadtest "console/zypper_lifecycle_toolchain";
+            }
         }
         loadtest 'console/install_all_from_repository' if get_var('INSTALL_ALL_REPO');
         loadtest "console/consoletest_finish";
