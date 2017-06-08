@@ -14,14 +14,13 @@ use base "opensusebasetest";
 use strict;
 
 use testapi;
-use utils qw(power_action workaround_type_encrypted_passphrase);
+use utils 'reboot_gnome';
 use bootloader_setup;
 use registration;
 
 sub run() {
     # reboot from previously booted hdd to do pre check or change e.g. before upgrade
-    power_action('reboot');
-    workaround_type_encrypted_passphrase;
+    reboot_gnome;
 
     # on s390 zKVM we handle the boot of the patched system differently
     set_var('PATCHED_SYSTEM', 1) if get_var('PATCH');
