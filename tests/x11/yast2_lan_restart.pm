@@ -11,7 +11,7 @@
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 # Tags: fate#318787 poo#11450
 
-use base "x11test";
+use base 'y2logsstep';
 use strict;
 use testapi;
 
@@ -263,6 +263,7 @@ sub run() {
     check_network;
     del_device('VLAN');
     diag '__________(10) Start yast2 lan -> Edit (a NIC) -> change from DHCP to static, [Next] -> [OK]__________';
+    type_string "# (10) restart\n";
     run_yast2_lan_edit;
     send_key 'alt-t';    # Static address
     send_key 'alt-i';    # Select IP field
@@ -278,12 +279,12 @@ sub run() {
     assert_screen 'yast2_lan_hostname_tab';
     send_key 'alt-1';    # Name server 1
     type_string '10.160.2.88';
-    wait_still_screen;
+    wait_still_screen 4, 4;    # blinking cursor
     save_screenshot;
-    send_key 'alt-u';    # Routing tab
+    send_key 'alt-u';          # Routing tab
     assert_screen 'yast2_lan_routing_tab';
     type_string '10.0.2.2';
-    wait_still_screen;
+    wait_still_screen 4, 4;    # blinking cursor
     save_screenshot;
     check_network('restart');
     diag '__________(9) checks described in (2), (5) - (7) static configuration__________';
@@ -302,6 +303,11 @@ sub run() {
     send_key 'alt-n';    # Next
     check_network('restart');
     type_string "killall xterm\n";
+}
+
+sub post_fail_hook() {
+    script_run 'journalctl -b > /tmp/journal', 90;
+    upload_logs '/tmp/journal';
 }
 
 1;
