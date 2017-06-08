@@ -486,7 +486,6 @@ sub reboot_gnome {
 
         send_key "ret";
     }
-    workaround_type_encrypted_passphrase;
 }
 
 =head2 power_action
