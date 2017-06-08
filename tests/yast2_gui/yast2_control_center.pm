@@ -27,7 +27,7 @@ sub search {
     }
     # with the gtk interface we have to click as there is no shortcut
     elsif (check_var('DISTRI', 'sle')) {
-        assert_screen [qw(yast2_control-center_search_clear yast2_control-center_search)];
+        assert_screen([qw(yast2_control-center_search_clear yast2_control-center_search)], no_wait => 1);
         if (match_has_tag 'yast2_control-center_search') {
             assert_and_click 'yast2_control-center_search';
         }
