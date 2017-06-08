@@ -207,8 +207,9 @@ sub run() {
     select_console 'x11';
     x11_start_program("xterm -geometry 155x50+5+5");
     become_root;
-    type_string "journalctl -f -u wickedd > journal.log &\n";
-    send_key 'ret';
+    # enable debug for detailed messages and easier detection of restart
+    script_run 'sed -i \'s/DEBUG="no"/DEBUG="yes"/\' /etc/sysconfig/network/config';
+    type_string "journalctl -f|egrep -i --line-buffered 'shutting down|ifdown all' > journal.log &\n";
     script_run '> journal.log';                                       # clear journal.log
     diag '__________(1) Start yast2 lan -> [OK]__________';
     type_string "# (1) NO restart\n";
