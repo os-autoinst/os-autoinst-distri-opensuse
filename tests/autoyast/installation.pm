@@ -101,7 +101,9 @@ sub run {
             $num_errors++;
         }
         elsif (match_has_tag('warning-pop-up')) {
-            die 'Check the pop-up message, it is not critical so installation would continue';
+            unless (check_screen('autoyast-known-warning', 0)) {
+                die 'Check the pop-up message, it is not critical so installation would continue';
+            }
         }
         elsif (match_has_tag('scc-invalid-url')) {
             die 'Fix invalid SCC reg URL https://trello.com/c/N09TRZxX/968-3-don-t-crash-on-invalid-regurl-on-linuxrc-commandline';
