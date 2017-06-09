@@ -19,6 +19,12 @@ sub run() {
     assert_screen 'desktop-selection';
     my $d = get_var('DESKTOP');
 
+    # this error pop-up is present only on TW now
+    if (check_var('VERSION', 'Tumbleweed')) {
+        send_key $cmd{next};
+        assert_screen 'desktop-not-selected';
+        send_key $cmd{ok};
+    }
     if (get_var('NEW_DESKTOP_SELECTION')) {
         # select computer role
         if ($d ne 'kde' && $d ne 'gnome' && $d ne 'textmode') {
@@ -36,6 +42,12 @@ sub run() {
     send_key 'spc';                                                            # Select the desktop
 
     assert_screen "$d-selected";
+    if (check_var('VERSION', 'Tumbleweed')) {
+        send_key 'alt-o';                                                      # configure online repos
+        assert_screen 'repo-list';
+        send_key 'alt-c';                                                      # cancel
+        assert_screen 'desktop-selection';
+    }
     send_key $cmd{next};
 
     if (get_var('NEW_DESKTOP_SELECTION') && $d eq 'custom') {
