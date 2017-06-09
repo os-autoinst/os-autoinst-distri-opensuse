@@ -21,7 +21,18 @@ sub run() {
     my @default_repos = qw(update-non-oss update-oss main-non-oss main-oss debug-main untested-update debug-update source);
 
     # maybe slow due to network connectivity
-    assert_screen 'online-repos', 200;
+    assert_screen [qw(setup_online_repos-configure setup_online_repos-configure-text online-repos)], 200;
+
+    if (match_has_tag('setup_online_repos-configure-text')) {
+        send_key 'alt-o';
+    }
+    elsif (match_has_tag('setup_online_repos-configure')) {
+        assert_and_click 'setup_online_repos-configure';
+    }
+
+    if (!match_has_tag('online-repos')) {
+        assert_screen 'online-repos', 200;
+    }
 
     # move the cursor to repos lists
     if (check_var("VIDEOMODE", "text")) {
