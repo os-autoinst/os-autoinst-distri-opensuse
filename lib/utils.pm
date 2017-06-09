@@ -622,6 +622,10 @@ Executes power action (e.g. poweroff, reboot) from root console.
 sub power_action {
     my ($action) = @_;
     die "'action' was not provided" unless $action;
+    if (check_var('BACKEND', 'svirt')) {
+        my $vnc_console = get_required_var('SVIRT_VNC_CONSOLE');
+        console($vnc_console)->disable_vnc_stalls;
+    }
     if (check_var('DESKTOP', 'textmode')) {
         select_console 'root-console';
         type_string "$action\n";
