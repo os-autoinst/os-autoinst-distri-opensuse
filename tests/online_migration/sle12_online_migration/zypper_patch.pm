@@ -15,11 +15,13 @@ use strict;
 use testapi;
 use utils;
 use migration;
+use qam;
 
 sub run() {
     my ($self) = @_;
     select_console 'root-console';
 
+    add_test_repositories;
     fully_patch_system;
     type_string "reboot\n";
     $self->setup_online_migration;
