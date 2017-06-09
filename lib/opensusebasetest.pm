@@ -44,47 +44,47 @@ sub problem_detection {
     type_string "pushd \$(mktemp -d)\n";
 
     # Slowest services
-    save_and_upload_log("systemd-analyze blame", "systemd-analyze-blame.txt", {noupload => 1});
+    $self->save_and_upload_log("systemd-analyze blame", "systemd-analyze-blame.txt", {noupload => 1});
     clear_console;
 
     # Generate and upload SVG out of `systemd-analyze plot'
-    save_and_upload_log('systemd-analyze plot', "systemd-analyze-plot.svg", {noupload => 1});
+    $self->save_and_upload_log('systemd-analyze plot', "systemd-analyze-plot.svg", {noupload => 1});
     clear_console;
 
     # Failed system services
-    save_and_upload_log('systemctl --all --state=failed', "failed-system-services.txt", {screenshot => 1, noupload => 1});
+    $self->save_and_upload_log('systemctl --all --state=failed', "failed-system-services.txt", {screenshot => 1, noupload => 1});
     clear_console;
 
     # Unapplied configuration files
-    save_and_upload_log("find /* -name '*.rpmnew'", "unapplied-configuration-files.txt", {screenshot => 1, noupload => 1});
+    $self->save_and_upload_log("find /* -name '*.rpmnew'", "unapplied-configuration-files.txt", {screenshot => 1, noupload => 1});
     clear_console;
 
     # Errors, warnings, exceptions, and crashes mentioned in dmesg
-    save_and_upload_log("dmesg | grep -i 'error\\|warn\\|exception\\|crash'", "dmesg-errors.txt", {screenshot => 1, noupload => 1});
+    $self->save_and_upload_log("dmesg | grep -i 'error\\|warn\\|exception\\|crash'", "dmesg-errors.txt", {screenshot => 1, noupload => 1});
     clear_console;
 
     # Errors in journal
-    save_and_upload_log("journalctl --no-pager -p 'err'", "journalctl-errors.txt", {screenshot => 1, noupload => 1});
+    $self->save_and_upload_log("journalctl --no-pager -p 'err'", "journalctl-errors.txt", {screenshot => 1, noupload => 1});
     clear_console;
 
     # Tracebacks in journal
-    save_and_upload_log('journalctl | grep -i traceback', "journalctl-tracebacks.txt", {screenshot => 1, noupload => 1});
+    $self->save_and_upload_log('journalctl | grep -i traceback', "journalctl-tracebacks.txt", {screenshot => 1, noupload => 1});
     clear_console;
 
     # Segmentation faults
-    save_and_upload_log("coredumpctl list", "segmentation-faults-list.txt", {screenshot => 1, noupload => 1});
-    save_and_upload_log("coredumpctl info", "segmentation-faults-info.txt", {screenshot => 1, noupload => 1});
+    $self->save_and_upload_log("coredumpctl list", "segmentation-faults-list.txt", {screenshot => 1, noupload => 1});
+    $self->save_and_upload_log("coredumpctl info", "segmentation-faults-info.txt", {screenshot => 1, noupload => 1});
     clear_console;
 
     # Broken links
-    save_and_upload_log(
+    $self->save_and_upload_log(
 "find / -type d \\( -path /proc -o -path /run -o -path /.snapshots -o -path /var \\) -prune -o -xtype l -exec ls -l --color=always {} \\; -exec rpmquery -f {} \\;",
         "broken-symlinks.txt",
         {screenshot => 1, noupload => 1});
     clear_console;
 
     # Binaries with missing libraries
-    save_and_upload_log("
+    $self->save_and_upload_log("
 IFS=:
 for path in \$PATH; do
     for bin in \$path/*; do
@@ -94,12 +94,12 @@ done", "binaries-with-missing-libraries.txt", {timeout => 60, noupload => 1});
     clear_console;
 
     # rpmverify problems
-    save_and_upload_log("rpmverify -a | grep -v \"[S5T].* c \"", "rpmverify-problems.txt", {timeout => 300, screenshot => 1, noupload => 1});
+    $self->save_and_upload_log("rpmverify -a | grep -v \"[S5T].* c \"", "rpmverify-problems.txt", {timeout => 300, screenshot => 1, noupload => 1});
     clear_console;
 
     # VMware specific
     if (check_var('VIRSH_VMM_FAMILY', 'vmware')) {
-        save_and_upload_log('systemctl status vmtoolsd vgauthd', "vmware-services.txt", {screenshot => 1, noupload => 1});
+        $self->save_and_upload_log('systemctl status vmtoolsd vgauthd', "vmware-services.txt", {screenshot => 1, noupload => 1});
         clear_console;
     }
 
@@ -109,17 +109,18 @@ done", "binaries-with-missing-libraries.txt", {timeout => 60, noupload => 1});
 }
 
 sub export_logs {
+    my ($self) = shift;
     select_console 'root-console';
     save_screenshot;
 
-    problem_detection;
+    $self->problem_detection;
 
-    save_and_upload_log('cat /proc/loadavg', '/tmp/loadavg.txt', {screenshot => 1});
-    save_and_upload_log('journalctl -b',     '/tmp/journal.log', {screenshot => 1});
-    save_and_upload_log('ps axf',            '/tmp/psaxf.log',   {screenshot => 1});
+    $self->save_and_upload_log('cat /proc/loadavg', '/tmp/loadavg.txt', {screenshot => 1});
+    $self->save_and_upload_log('journalctl -b',     '/tmp/journal.log', {screenshot => 1});
+    $self->save_and_upload_log('ps axf',            '/tmp/psaxf.log',   {screenshot => 1});
 
     # Just after the setup: let's see the network configuration
-    save_and_upload_log("ip addr show", "/tmp/ip-addr-show.log");
+    $self->save_and_upload_log("ip addr show", "/tmp/ip-addr-show.log");
 
     save_screenshot;
 
@@ -127,10 +128,10 @@ sub export_logs {
     # home instead of /var/log
     script_run "test -d /home/*/.local/share/xorg ; echo user-xlog-path-\$? > /dev/$serialdev", 0;
     if (wait_serial("user-xlog-path-0", 10)) {
-        save_and_upload_log('cat /home/*/.local/share/xorg/X*', '/tmp/Xlogs.log', {screenshot => 1});
+        $self->save_and_upload_log('cat /home/*/.local/share/xorg/X*', '/tmp/Xlogs.log', {screenshot => 1});
     }
     else {
-        save_and_upload_log('cat /var/log/X*', '/tmp/Xlogs.log', {screenshot => 1});
+        $self->save_and_upload_log('cat /var/log/X*', '/tmp/Xlogs.log', {screenshot => 1});
     }
 
     # do not upload empty .xsession-errors
@@ -138,12 +139,12 @@ sub export_logs {
       "xsefiles=(/home/*/.xsession-errors*); for file in \${xsefiles[@]}; do if [ -s \$file ]; then echo xsefile-valid > /dev/$serialdev; fi; done",
       0;
     if (wait_serial("xsefile-valid", 10)) {
-        save_and_upload_log('cat /home/*/.xsession-errors*', '/tmp/XSE.log', {screenshot => 1});
+        $self->save_and_upload_log('cat /home/*/.xsession-errors*', '/tmp/XSE.log', {screenshot => 1});
     }
 
-    save_and_upload_log('systemctl list-unit-files', '/tmp/systemctl_unit-files.log');
-    save_and_upload_log('systemctl status',          '/tmp/systemctl_status.log');
-    save_and_upload_log('systemctl',                 '/tmp/systemctl.log', {screenshot => 1});
+    $self->save_and_upload_log('systemctl list-unit-files', '/tmp/systemctl_unit-files.log');
+    $self->save_and_upload_log('systemctl status',          '/tmp/systemctl_status.log');
+    $self->save_and_upload_log('systemctl',                 '/tmp/systemctl.log', {screenshot => 1});
 
     script_run "save_y2logs /tmp/y2logs_clone.tar.bz2";
     upload_logs "/tmp/y2logs_clone.tar.bz2";
