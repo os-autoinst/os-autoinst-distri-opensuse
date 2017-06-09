@@ -169,9 +169,6 @@ if (get_var('HDD_1', '') =~ /\D*-11-\S*/) {
     set_var('FILESYSTEM', 'ext4');
 }
 
-unless (get_var('PACKAGETOINSTALL')) {
-    set_var("PACKAGETOINSTALL", "x3270");
-}
 set_var("WALLPAPER", '/usr/share/wallpapers/SLEdefault/contents/images/1280x1024.jpg');
 
 # set KDE and GNOME, ...
