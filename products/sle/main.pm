@@ -726,13 +726,10 @@ sub load_consoletests() {
             }
             loadtest "console/http_srv";
             loadtest "console/mysql_srv";
+            loadtest "console/dns_srv";
             loadtest "console/postgresql94server";
             if (sle_version_at_least('12-SP1')) {    # shibboleth-sp not available on SLES 12 GA
                 loadtest "console/shibboleth";
-            }
-            if (!is_staging()) {
-                # Very temporary removal of this test from staging - rbrown 6 Apr 2016
-                loadtest "console/dns_srv";
             }
             if (get_var('ADDONS', '') =~ /wsm/ || get_var('SCC_ADDONS', '') =~ /wsm/) {
                 loadtest "console/pcre";
