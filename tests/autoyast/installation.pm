@@ -33,7 +33,7 @@ sub accept_license {
     };
 }
 
-sub save_and_upload_logs {
+sub save_and_upload_stage_logs {
     my $i = shift;
     select_console 'install-shell2', tags => 'install-shell';
     # save_y2logs is not present
@@ -108,7 +108,7 @@ sub run {
             die 'Fix invalid SCC reg URL https://trello.com/c/N09TRZxX/968-3-don-t-crash-on-invalid-regurl-on-linuxrc-commandline';
         }
         elsif (match_has_tag('linuxrc-install-fail')) {
-            save_and_upload_logs($i);
+            save_and_upload_stage_logs($i);
             die "installation ends in linuxrc";
         }
         elsif (match_has_tag('autoyast-confirm')) {
