@@ -39,8 +39,13 @@ sub velum_signup {
 sub velum_certificates {
     assert_screen 'velum-certificates-page';
 
+    # Staging workaround
+    if (check_screen('velum-certificates-ca-info', 3)) {
+        send_key "tab";
+    }
+
     # Fill generic settings
-    for (1 .. 5) { send_key 'tab' }
+    for (1 .. 4) { send_key 'tab' }
     type_string "master.openqa.test";
 
     # Skip proxy settings
