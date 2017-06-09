@@ -631,6 +631,7 @@ sub power_action {
         type_string "$action\n";
     }
     else {
+        select_console 'x11';
         if ($action eq 'reboot') {
             reboot_x11;
         }
