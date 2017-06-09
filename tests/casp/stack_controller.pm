@@ -140,7 +140,7 @@ sub run() {
     my $pods_count = $minion_count * 3;
     assert_script_run "kubectl run nginx --image=nginx:alpine --replicas=$pods_count --port=80";
     type_string "kubectl get pods --watch\n";
-    wait_still_screen 15, 60;
+    wait_still_screen 30, 120;
     send_key "ctrl-c";
     assert_script_run "kubectl get pods | grep -c Running | grep $pods_count";
 
