@@ -20,8 +20,11 @@ sub run() {
     select_console 'root-console';
 
     script_run("zypper lr -d | tee /dev/$serialdev");
-
-    my $pkgname = get_var("PACKAGETOINSTALL");
+    my $pkgname = get_var('PACKAGETOINSTALL');
+    if (!$pkgname) {
+        $pkgname = 'x3270'  if check_var('DISTRI', 'sle');
+        $pkgname = 'xdelta' if check_var('DISTRI', 'opensuse');
+    }
     zypper_call "in screen $pkgname";
     clear_console;    # clear screen to see that second update does not do any more
     assert_script_run("rpm -e $pkgname");
