@@ -39,13 +39,13 @@ sub patching_sle() {
     script_run "systemctl mask packagekit.service";
     script_run "systemctl stop packagekit.service";
 
-    # add test repositories and logs the required patches
-    add_test_repositories();
-
     assert_script_run("zypper lr && zypper mr --disable --all");
     save_screenshot;
     yast_scc_registration();
     assert_script_run('zypper lr -d');
+
+    # add test repositories and logs the required patches
+    add_test_repositories();
 
     if (get_var('MINIMAL_UPDATE')) {
         minimal_patch_system(version_variable => 'HDDVERSION');
