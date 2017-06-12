@@ -69,6 +69,9 @@ sub run() {
 
     # init
     check_console_font;
+    # Workaround to avoid kernel messages on cuurent tty console
+    # Redirect all to tty10, see poo#19398 and bsc#1011815
+    type_string "command -v klogconsole && klogconsole -r10\n";
 
     type_string "chown $username /dev/$serialdev\n";
     script_run 'echo "set -o pipefail" >> /etc/bash.bashrc.local';
