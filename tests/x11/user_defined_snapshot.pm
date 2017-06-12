@@ -61,6 +61,10 @@ sub run() {
 
     send_key_until_needlematch("boot-menu-snapshot", 'down', 10, 5);
     send_key 'ret';
+
+    # On slow VMs we press down key before snapshots list is on screen
+    wait_screen_change { assert_screen 'boot-menu-snapshots-list' };
+
     send_key_until_needlematch("snap-bootloader-comment", 'down', 10, 5);
     save_screenshot;
     wait_screen_change { send_key 'ret' };
