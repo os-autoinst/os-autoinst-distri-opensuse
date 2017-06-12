@@ -34,6 +34,12 @@ sub run() {
         send_key "ret";
     }
 
+    # Skip to load bootloader in test of online migration on aarch64
+    # Handle aarch64 image boot by wait_boot called in setup_online_migration
+    if (get_var('ONLINE_MIGRATION') && check_var('ARCH', 'aarch64')) {
+        return;
+    }
+
     # aarch64 firmware 'tianocore' can take longer to load
     my $bootloader_timeout = check_var('ARCH', 'aarch64') ? 25 : 15;
     assert_screen([qw(bootloader-shim-import-prompt bootloader-grub2)], $bootloader_timeout);
