@@ -252,31 +252,31 @@ sub uses_qa_net_hardware() {
 }
 
 sub load_x11regression_firefox() {
-    loadtest "x11regressions/firefox/sle12/firefox_smoke";
-    loadtest "x11regressions/firefox/sle12/firefox_localfiles";
-    loadtest "x11regressions/firefox/sle12/firefox_emaillink";
-    loadtest "x11regressions/firefox/sle12/firefox_urlsprotocols";
-    loadtest "x11regressions/firefox/sle12/firefox_downloading";
-    loadtest "x11regressions/firefox/sle12/firefox_extcontent";
-    loadtest "x11regressions/firefox/sle12/firefox_headers";
-    loadtest "x11regressions/firefox/sle12/firefox_pdf";
-    loadtest "x11regressions/firefox/sle12/firefox_changesaving";
-    loadtest "x11regressions/firefox/sle12/firefox_fullscreen";
-    loadtest "x11regressions/firefox/sle12/firefox_health";
-    loadtest "x11regressions/firefox/sle12/firefox_flashplayer";
-    loadtest "x11regressions/firefox/sle12/firefox_java";
-    loadtest "x11regressions/firefox/sle12/firefox_pagesaving";
-    loadtest "x11regressions/firefox/sle12/firefox_private";
-    loadtest "x11regressions/firefox/sle12/firefox_mhtml";
-    loadtest "x11regressions/firefox/sle12/firefox_plugins";
-    loadtest "x11regressions/firefox/sle12/firefox_extensions";
-    loadtest "x11regressions/firefox/sle12/firefox_appearance";
-    loadtest "x11regressions/firefox/sle12/firefox_gnomeshell";
-    loadtest "x11regressions/firefox/sle12/firefox_passwd";
-    loadtest "x11regressions/firefox/sle12/firefox_html5";
-    loadtest "x11regressions/firefox/sle12/firefox_developertool";
-    loadtest "x11regressions/firefox/sle12/firefox_rss";
-    loadtest "x11regressions/firefox/sle12/firefox_ssl";
+    loadtest "x11regressions/firefox/firefox_smoke";
+    loadtest "x11regressions/firefox/firefox_localfiles";
+    loadtest "x11regressions/firefox/firefox_emaillink";
+    loadtest "x11regressions/firefox/firefox_urlsprotocols";
+    loadtest "x11regressions/firefox/firefox_downloading";
+    loadtest "x11regressions/firefox/firefox_extcontent";
+    loadtest "x11regressions/firefox/firefox_headers";
+    loadtest "x11regressions/firefox/firefox_pdf";
+    loadtest "x11regressions/firefox/firefox_changesaving";
+    loadtest "x11regressions/firefox/firefox_fullscreen";
+    loadtest "x11regressions/firefox/firefox_health";
+    loadtest "x11regressions/firefox/firefox_flashplayer";
+    loadtest "x11regressions/firefox/firefox_java";
+    loadtest "x11regressions/firefox/firefox_pagesaving";
+    loadtest "x11regressions/firefox/firefox_private";
+    loadtest "x11regressions/firefox/firefox_mhtml";
+    loadtest "x11regressions/firefox/firefox_plugins";
+    loadtest "x11regressions/firefox/firefox_extensions";
+    loadtest "x11regressions/firefox/firefox_appearance";
+    loadtest "x11regressions/firefox/firefox_gnomeshell";
+    loadtest "x11regressions/firefox/firefox_passwd";
+    loadtest "x11regressions/firefox/firefox_html5";
+    loadtest "x11regressions/firefox/firefox_developertool";
+    loadtest "x11regressions/firefox/firefox_rss";
+    loadtest "x11regressions/firefox/firefox_ssl";
     if (!get_var("OFW") && check_var('BACKEND', 'qemu')) {
         loadtest "x11/firefox_audio";
     }
