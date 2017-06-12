@@ -66,6 +66,7 @@ sub run() {
         # poo#16408 part 2
         if ($repeat_once) {
             send_key 'alt-b';    # abort
+            sleep 5 if check_var('VIDEOMODE', 'text');    # Wait until DOM reloads data tree
             assert_screen 'oci-overview-filled';
         }
         send_key $cmd{install};
