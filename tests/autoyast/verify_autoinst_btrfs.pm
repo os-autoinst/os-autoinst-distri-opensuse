@@ -27,10 +27,9 @@ my $dom;
 my $xpc;
 
 sub run {
-    my $self = shift;
-    $self->result('ok');    # default result
-
-    ## Copy file content to variable
+    # Accumulate errors in this variable if any
+    my $errors;
+    # Copy file content to variable
     my $autoinst = script_output("cat /root/autoinst.xml");
     # Init parser
     $dom = XML::LibXML->load_xml(string => $autoinst);
@@ -41,47 +40,44 @@ sub run {
     ### Verify mount options enable_snapshots
     my $result_str = verify_option('//ns:partitioning/ns:drive[ns:device="/dev/vda"]/ns:enable_snapshots', 'true');
     if ($result_str) {
-        record_info("Enable_snapshots option check failed", $result_str);
-        $self->result('fail');
+        $errors .= "enable_snapshots option check failed: $result_str\n";
     }
     ### Verify mount options btrfs_set_default_subvolume_name
     my $result_str = verify_option('//ns:btrfs_set_default_subvolume_name', 'false');
     if ($result_str) {
-        record_info("Enable_snapshots option check failed", $result_str);
-        $self->result('fail');
+        $errors .= "btrfs_set_default_subvolume_name option check failed: $result_str\n";
     }
 
     ### Verify mount options
     my $result_str = verify_mount_opts("/", "rw,relatime,space_cache");
     if ($result_str) {
-        record_info("Mount options verification failed for /", $result_str);
-        $self->result('fail');
+        $errors .= "Mount options verification failed for /: $result_str\n";
     }
 
     $result_str = verify_mount_opts("/var/log", "rw,relatime,nobarrier,nodatacow");
     if ($result_str) {
-        record_info("Mount options verification failed for /", $result_str);
-        $self->result('fail');
+        $errors .= "Mount options verification failed for /: $result_str\n";
     }
 
     ### Verify subvolumes
     $result_str = verify_subvolumes("/var/log", ());
     if ($result_str) {
-        record_info("Subvolumes verification failed for /var/log", $result_str);
-        $self->result('fail');
+        $errors .= "Subvolumes verification failed for /var/log: $result_str\n";
     }
 
     ### Verify subvolumes
     $result_str = verify_subvolumes('/', (opt => 'true', 'usr/local' => 'true', tmp => 'false'));
     if ($result_str) {
-        record_info("Subvolumes verification failed for /", $result_str);
-        $self->result('fail');
+        $errors .= "Subvolumes verification failed for /: $result_str\n";
     }
 
     $result_str = verify_subvolumes("/var/log", ());
     if ($result_str) {
-        record_info("Subvolumes verification failed for /var/log", $result_str);
-        $self->result('fail');
+        $errors .= "Subvolumes verification failed for /var/log: $result_str\n";
+    }
+    ### Fail test in case of any failed checks
+    if ($errors) {
+        die $errors;
     }
 }
 
