@@ -55,7 +55,7 @@ sub run() {
 
     # workaround for yast popups and
     # detect "Wrong Digest" error to end test earlier
-    my @tags = qw(rebootnow yast2_wrong_digest);
+    my @tags = qw(rebootnow yast2_wrong_digest yast2_package_retry);
     if (get_var("UPGRADE")) {
         push(@tags, "ERROR-removing-package");
         push(@tags, "DIALOG-packages-notifications");
@@ -98,6 +98,12 @@ sub run() {
 
         if (match_has_tag("yast2_wrong_digest")) {
             die "Wrong Digest detected error, need to end test.";
+        }
+
+        if (match_has_tag("yast2_package_retry")) {
+            record_soft_failure "boo#1018262 - retry failing packages";
+            send_key 'alt-y';    # retry
+            next;
         }
 
         if (match_has_tag("DIALOG-packages-notifications")) {
