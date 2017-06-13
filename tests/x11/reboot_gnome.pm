@@ -18,7 +18,8 @@ use utils;
 
 sub run() {
     my ($self) = @_;
-    power_action('reboot');
+    # 'keepconsole => 1' is workaround for bsc#1044072
+    power_action('reboot', keepconsole => 1);
     workaround_type_encrypted_passphrase;
     $self->wait_boot(bootloader_time => 300);
 }
