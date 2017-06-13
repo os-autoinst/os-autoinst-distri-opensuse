@@ -1269,6 +1269,7 @@ elsif (get_var('HPC')) {
             loadtest 'hpc/powerman';
         }
         loadtest 'console/install_all_from_repository' if (get_var('INSTALL_ALL_REPO'));
+        loadtest 'console/install_single_package'      if (get_var('PACKAGETOINSTALL'));
     }
 }
 else {
