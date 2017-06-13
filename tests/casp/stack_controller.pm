@@ -76,6 +76,7 @@ sub velum_bootstrap {
     barrier_wait "WORKERS_INSTALLED";
 
     # Calculate position of master node radio button
+    send_key_until_needlematch "master-checkbox-xy", "pgdn", 2, 5;
     my $needle = assert_screen('master-checkbox-xy')->{area};
     my $row    = $needle->[0];                                  # get y-position of master node
     my $col    = $needle->[1];                                  # get x-position of checkbox
