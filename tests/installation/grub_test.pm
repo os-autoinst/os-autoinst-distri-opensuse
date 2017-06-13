@@ -84,18 +84,23 @@ sub run() {
     if (get_var("XEN")) {
         send_key_until_needlematch("bootmenu-xen-kernel", 'down', 10, 5);
     }
-    if (check_var('ARCH', 'aarch64') && check_var('DISTRI', 'sle') && get_var('PLYMOUTH_DEBUG')) {
-        record_soft_failure "Running with plymouth:debug to catch bsc#995310";
+    if ((check_var('ARCH', 'aarch64') && check_var('DISTRI', 'sle') && get_var('PLYMOUTH_DEBUG'))
+        || get_var('GRUB_KERNEL_OPTION_APPEND'))
+    {
+        record_soft_failure "Running with plymouth:debug to catch bsc#995310" if get_var('PLYMOUTH_DEBUG');
 
         send_key 'e';
         # Move to end of kernel boot parameters line
         send_key_until_needlematch "linux-line-selected", "down";
         send_key "end";
 
-        # remove "splash=silent quiet showopts"
         assert_screen "linux-line-matched";
-        for (1 .. 28) { send_key "backspace" }
-        type_string 'plymouth:debug';
+        if (get_var('PLYMOUTH_DEBUG')) {
+            # remove "splash=silent quiet showopts"
+            for (1 .. 28) { send_key "backspace" }
+            type_string 'plymouth:debug';
+        }
+        type_string " " . get_var('GRUB_KERNEL_OPTION_APPEND') if get_var('GRUB_KERNEL_OPTION_APPEND');
 
         save_screenshot;
         send_key 'ctrl-x';
