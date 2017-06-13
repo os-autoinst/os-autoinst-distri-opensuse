@@ -361,8 +361,21 @@ sub wait_boot {
     unlock_if_encrypted if !get_var('S390_ZKVM');
 
     if ($textmode || check_var('DESKTOP', 'textmode')) {
-        assert_screen [qw(linux-login emergency-shell emergency-mode)], $ready_time;
+        my $textmode_needles = [qw(linux-login emergency-shell emergency-mode)];
+        # Soft-fail for user_defined_snapshot in extra_tests_on_gnome and extra_tests_on_gnome_on_ppc
+        # if not able to boot from snapshot
+        if (get_var('TEST') !~ /extra_tests_on_gnome/) {
+            assert_screen $textmode_needles, $ready_time;
+        }
+        elsif (!check_screen $textmode_needles, $ready_time) {
+            # We are not able to boot due to bsc#980337
+            record_soft_failure 'bsc#980337';
+            # Switch to root console and continue
+            select_console 'root-console';
+        }
+
         handle_emergency if (match_has_tag('emergency-shell') or match_has_tag('emergency-mode'));
+
         reset_consoles;
 
         # Without this login name and password won't get to the system. They get
