@@ -20,8 +20,12 @@ sub run() {
 
     de_register(version_variable => 'HDDVERSION');
     remove_ltss;
-    # Set this variable to skip registration and repos validation of LTSS
-    set_var('SKIP_LTSS', 1);
+
+    # Re-register system without LTSS with resetting SCC_ADDONS variable without ltss
+    my @scc_addons = split(/,/, get_var('SCC_ADDONS', ''));
+    @scc_addons = grep { $_ ne 'ltss' } @scc_addons;
+    set_var('SCC_ADDONS', join(',', @scc_addons));
+
     register_system_in_textmode;
 }
 
