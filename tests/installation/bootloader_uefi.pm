@@ -119,6 +119,7 @@ sub run() {
     type_string " \\\n";    # changed the line before typing video params
     bootmenu_default_params;
     specific_bootmenu_params;
+    specific_caasp_params;
 
     # JeOS and CaaSP are never deployed with Linuxrc involved,
     # so 'regurl' does not apply there.

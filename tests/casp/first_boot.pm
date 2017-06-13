@@ -23,7 +23,23 @@ sub run() {
     assert_screen 'linux-login-casp', 300;
 
     # Workers installed using autoyast have no password - bsc#1030876
-    select_console 'root-console' unless get_var('AUTOYAST');
+    unless (get_var('AUTOYAST')) {
+        # Workaround for bsc#1035968
+        if (is_casp 'VMX') {
+            my $tty2 = wait_screen_change(sub { send_key 'ctrl-alt-f2'; }, 1);
+            unless ($tty2) {
+                wait_screen_change(undef, 180);
+                wait_still_screen;
+                record_soft_failure 'bsc#1035968';
+            }
+        }
+        select_console 'root-console';
+
+        # Restart network to push hostname to dns
+        if (is_casp('VMX') && get_var('STACK_ROLE')) {
+            script_run "systemctl restart network", 60;
+        }
+    }
 }
 
 sub test_flags() {
