@@ -615,28 +615,38 @@ sub poweroff_x11 {
 
 =head2 power_action
 
-    power_action($action);
+    power_action($action [,dryrun => $dryrun] [,keepconsole => $keepconsole]);
 
-Executes power action (e.g. poweroff, reboot) from root console.
+Executes power action (e.g. poweroff, reboot) from root console. If C<$dryrun> is set,
+function expects that specified C<$action> was already executed by another actor and
+function justs makes sure system shuts down, restart etc. properly. C<$keepconsole>
+prevents console change, which we do by default to make sure that system with GUI
+desktop which was in text console at the time of C<power_action> call, is switched
+to 'expected' console: 'root-console' for textmode, 'x11' otherwise.
 =cut
 sub power_action {
-    my ($action) = @_;
+    my ($action, %args) = @_;
+    $args{dryrun}      //= 0;
+    $args{keepconsole} //= 0;
     die "'action' was not provided" unless $action;
     if (check_var('BACKEND', 'svirt')) {
         my $vnc_console = get_required_var('SVIRT_VNC_CONSOLE');
         console($vnc_console)->disable_vnc_stalls;
     }
-    if (check_var('DESKTOP', 'textmode')) {
-        select_console 'root-console';
-        type_string "$action\n";
+    unless ($args{keepconsole}) {
+        check_var('DESKTOP', 'textmode') ? select_console 'root-console' : select_console 'x11';
     }
-    else {
-        select_console 'x11';
-        if ($action eq 'reboot') {
-            reboot_x11;
+    unless ($args{dryrun}) {
+        if (check_var('DESKTOP', 'textmode')) {
+            type_string "$action\n";
         }
-        elsif ($action eq 'poweroff') {
-            poweroff_x11;
+        else {
+            if ($action eq 'reboot') {
+                reboot_x11;
+            }
+            elsif ($action eq 'poweroff') {
+                poweroff_x11;
+            }
         }
     }
     if (check_var('VIRSH_VMM_FAMILY', 'xen')) {
