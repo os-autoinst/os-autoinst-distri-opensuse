@@ -45,7 +45,8 @@ our @EXPORT = qw(
   install_to_other_at_least
   ensure_fullscreen
   ensure_shim_import
-  reboot_gnome
+  reboot_x11
+  poweroff_x11
   power_action
   assert_shutdown_and_restore_system
   assert_screen_with_soft_timeout
@@ -350,7 +351,7 @@ sub ensure_unlocked_desktop {
         }
         if (match_has_tag 'generic-desktop') {
             send_key 'esc';
-            if (!check_var('DESKTOP', 'minimalx')) {
+            unless (get_var('DESKTOP', '') =~ m/minimalx|awesome|enlightenment|lxqt|mate/) {
                 # gnome might show the old 'generic desktop' screen although that is
                 # just a left over in the framebuffer but actually the screen is
                 # already locked so we have to try something else to check
@@ -465,40 +466,189 @@ sub assert_shutdown_and_restore_system {
     }
 }
 
-sub reboot_gnome {
-    wait_idle;
-    send_key "ctrl-alt-delete";    # reboot
-    assert_screen 'logoutdialog';
-    assert_and_click 'logoutdialog-reboot-highlighted';
+sub assert_and_click_until_screen_change {
+    my ($mustmatch, $wait_change, $repeat) = @_;
+    $wait_change //= 2;
+    $repeat      //= 3;
+    my $i = 0;
 
-    if (get_var("SHUTDOWN_NEEDS_AUTH")) {
-        assert_screen 'reboot-auth';
-        wait_still_screen 3;
-        type_password undef, max_interval => 5;
-        # Extra assert_and_click (with right click) to check the correct number of characters is typed and open up the 'show text' option
-        assert_and_click 'reboot-auth-typed', 'right';
-        assert_and_click 'reboot-auth-showtext';         # Click the 'Show Text' Option to enable the display of the typed text
-        assert_screen 'reboot-auth-correct-password';    # Check the password is correct
+    for (; $i < $repeat; $i++) {
+        wait_screen_change(sub { assert_and_click $mustmatch }, $wait_change);
+        last unless check_screen($mustmatch, 0);
+    }
 
-        # we need to kill ssh for iucvconn here,
-        # because after pressing return, the system is down
-        prepare_system_reboot;
+    return $i;
+}
 
+sub reboot_x11 {
+    my ($self) = @_;
+    wait_still_screen;
+    if (check_var('DESKTOP', 'gnome')) {
+        send_key_until_needlematch 'logoutdialog', 'ctrl-alt-delete', 7, 10;    # reboot
+        my $repetitions = assert_and_click_until_screen_change 'logoutdialog-reboot-highlighted';
+        record_soft_failure 'poo#19082' if ($repetitions > 0);
+
+        if (get_var("SHUTDOWN_NEEDS_AUTH")) {
+            assert_screen 'reboot-auth';
+            wait_still_screen(3);                                               # 981299#c41
+            type_string $testapi::password, max_interval => 5;
+            wait_still_screen(3);                                               # 981299#c41
+            wait_screen_change {
+                # Extra assert_and_click (with right click) to check the correct number of characters is typed and open up the 'show text' option
+                assert_and_click 'reboot-auth-typed', 'right';
+            };
+            wait_screen_change {
+                # Click the 'Show Text' Option to enable the display of the typed text
+                assert_and_click 'reboot-auth-showtext';
+            };
+            # Check the password is correct
+            assert_screen 'reboot-auth-correct-password';
+            # we need to kill ssh for iucvconn here,
+            # because after pressing return, the system is down
+            prepare_system_reboot;
+
+            send_key 'ret';    # Confirm
+        }
+    }
+}
+
+sub poweroff_x11 {
+    my ($self) = @_;
+    wait_still_screen;
+
+    if (check_var("DESKTOP", "kde")) {
+        send_key "ctrl-alt-delete";    # shutdown
+        assert_screen 'logoutdialog', 15;
+
+        if (get_var("PLASMA5")) {
+            assert_and_click 'sddm_shutdown_option_btn';
+            if (check_screen([qw(sddm_shutdown_option_btn sddm_shutdown_btn)], 3)) {
+                # sometimes not reliable, since if clicked the background
+                # color of button should changed, thus check and click again
+                if (match_has_tag('sddm_shutdown_option_btn')) {
+                    assert_and_click 'sddm_shutdown_option_btn';
+                }
+                # plasma < 5.8
+                elsif (match_has_tag('sddm_shutdown_btn')) {
+                    assert_and_click 'sddm_shutdown_btn';
+                }
+            }
+        }
+        else {
+            type_string "\t";
+            assert_screen "kde-turn-off-selected", 2;
+            type_string "\n";
+        }
+    }
+
+    if (check_var("DESKTOP", "gnome")) {
+        send_key "ctrl-alt-delete";
+        assert_screen 'logoutdialog', 15;
+        send_key "ret";    # confirm shutdown
+
+        if (get_var("SHUTDOWN_NEEDS_AUTH")) {
+            assert_screen 'shutdown-auth', 15;
+            type_password;
+
+            # we need to kill all open ssh connections before the system shuts down
+            prepare_system_reboot;
+            send_key "ret";
+        }
+    }
+
+    if (check_var("DESKTOP", "xfce")) {
+        for (1 .. 5) {
+            send_key "alt-f4";    # opens log out popup after all windows closed
+        }
+        wait_idle;
+        assert_screen 'logoutdialog', 15;
+        type_string "\t\t";       # select shutdown
+        sleep 1;
+
+        # assert_screen 'test-shutdown-1', 3;
+        type_string "\n";
+    }
+
+    if (check_var("DESKTOP", "lxde")) {
+        x11_start_program("lxsession-logout");    # opens logout dialog
+        assert_screen "logoutdialog", 20;
         send_key "ret";
+    }
+
+    if (check_var("DESKTOP", "lxqt")) {
+        x11_start_program("shutdown");            # opens logout dialog
+        assert_screen "lxqt_logoutdialog", 20;
+        send_key "ret";
+    }
+    if (check_var("DESKTOP", "enlightenment")) {
+        send_key "ctrl-alt-delete";               # shutdown
+        assert_screen 'logoutdialog', 15;
+        assert_and_click 'enlightenment_shutdown_btn';
+    }
+
+    if (check_var('DESKTOP', 'awesome')) {
+        assert_and_click 'awesome-menu-main';
+        assert_and_click 'awesome-menu-system';
+        assert_and_click 'awesome-menu-shutdown';
+    }
+
+    if (check_var("DESKTOP", "mate")) {
+        x11_start_program("mate-session-save --shutdown-dialog");
+        send_key "ctrl-alt-delete";    # shutdown
+        assert_screen 'mate_logoutdialog', 15;
+        assert_and_click 'mate_shutdown_btn';
+    }
+
+    if (get_var("DESKTOP") =~ m/minimalx|textmode/) {
+        power('off');
+    }
+
+    if (check_var('BACKEND', 's390x')) {
+        # make sure SUT shut down correctly
+        console('x3270')->expect_3270(
+            output_delim => qr/.*SIGP stop.*/,
+            timeout      => 30
+        );
+
     }
 }
 
 =head2 power_action
 
-    power_action($action);
+    power_action($action [,dryrun => $dryrun] [,keepconsole => $keepconsole]);
 
-Executes power action (e.g. poweroff, reboot) from root console.
+Executes power action (e.g. poweroff, reboot) from root console. If C<$dryrun> is set,
+function expects that specified C<$action> was already executed by another actor and
+function justs makes sure system shuts down, restart etc. properly. C<$keepconsole>
+prevents console change, which we do by default to make sure that system with GUI
+desktop which was in text console at the time of C<power_action> call, is switched
+to 'expected' console: 'root-console' for textmode, 'x11' otherwise.
 =cut
 sub power_action {
-    my ($action) = @_;
+    my ($action, %args) = @_;
+    $args{dryrun}      //= 0;
+    $args{keepconsole} //= 0;
     die "'action' was not provided" unless $action;
-    select_console 'root-console';
-    type_string "$action\n";
+    if (check_var('BACKEND', 'svirt')) {
+        my $vnc_console = get_required_var('SVIRT_VNC_CONSOLE');
+        console($vnc_console)->disable_vnc_stalls;
+    }
+    unless ($args{keepconsole}) {
+        check_var('DESKTOP', 'textmode') ? select_console 'root-console' : select_console 'x11';
+    }
+    unless ($args{dryrun}) {
+        if (check_var('DESKTOP', 'textmode')) {
+            type_string "$action\n";
+        }
+        else {
+            if ($action eq 'reboot') {
+                reboot_x11;
+            }
+            elsif ($action eq 'poweroff') {
+                poweroff_x11;
+            }
+        }
+    }
     if (check_var('VIRSH_VMM_FAMILY', 'xen')) {
         assert_shutdown_and_restore_system($action);
     }
