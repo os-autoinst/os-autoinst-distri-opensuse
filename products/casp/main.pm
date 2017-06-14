@@ -138,7 +138,7 @@ if (get_var('STACK_ROLE')) {
     }
     else {
         load_boot_tests;
-        load_inst_tests;
+        load_inst_tests if is_casp('DVD');
         loadtest 'casp/first_boot';
     }
     load_stack_tests;
