@@ -34,6 +34,7 @@ sub run() {
             send_key_until_needlematch 'scc-invalid-url-deleted', 'backspace';
             type_string get_var('SCC_URL_VALID');
             wait_still_screen 2;
+            save_screenshot;     # create a needle from this, then replace to an assert_screen
             wait_screen_change { send_key 'alt-o' };    # OK
         }
         if (match_has_tag('inst-welcome-confirm-self-update-server')) {
