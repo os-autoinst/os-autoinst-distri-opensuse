@@ -23,6 +23,8 @@ use utils;
 
 my $confirmed_licenses = 0;
 my $stage              = 'stage1';
+my $maxtime            = 2000;       #Max waiting time for stage 1
+my $check_time         = 50;         #Period to check screen during stage 1 and 2
 
 sub accept_license {
     send_key $cmd{accept};
@@ -77,6 +79,17 @@ sub handle_expected_errors {
     wait_idle(5);
 }
 
+sub verify_timeout_and_check_screen {
+    my ($timer, $needles) = @_;
+    if ($timer > $maxtime) {
+        #Try to assert_screen to explicitly show mismatching needles
+        assert_screen $needles;
+        #Die explicitly in case of infinite loop when we match some needle
+        die "timeout hit on during $stage";
+    }
+    return check_screen $needles, $check_time;
+}
+
 sub run {
     my @needles = qw(bios-boot nonexisting-package reboot-after-installation linuxrc-install-fail scc-invalid-url warning-pop-up);
     push @needles, 'autoyast-confirm'        if get_var('AUTOYAST_CONFIRM');
@@ -88,12 +101,15 @@ sub run {
     my $postpartscript = 0;
     my $confirmed      = 0;
 
-    my $maxtime    = 2000;
     my $i          = 1;
     my $num_errors = 0;
+    my $timer      = 0;    # Prevent endless loop
+
     mouse_hide(1);
-    do {
-        assert_screen \@needles, $maxtime;
+    check_screen \@needles, $check_time;
+    until (match_has_tag('reboot-after-installation') || match_has_tag('bios-boot')) {
+        #Verify timeout and continue if there was a match
+        next unless verify_timeout_and_check_screen(($timer += $check_time), \@needles);
         #repeat until timeout or login screen
         if (match_has_tag('nonexisting-package')) {
             @needles = grep { $_ ne 'nonexisting-package' } @needles;
@@ -134,7 +150,7 @@ sub run {
             @needles = grep { $_ ne 'autoyast-postpartscript' } @needles;
             $postpartscript = 1;
         }
-    } until (match_has_tag('reboot-after-installation') || match_has_tag('bios-boot'));
+    }
 
     if (get_var("USRSCR_DIALOG")) {
         die "usrscr dialog" if !$postpartscript;
@@ -155,14 +171,18 @@ sub run {
 
     mouse_hide(1);
     $maxtime = 1000;
+    $timer   = 0;
     $stage   = 'stage2';
-    do {
-        assert_screen [qw(reboot-after-installation autoyast-postinstall-error)], $maxtime;
+
+    check_screen \@needles, $check_time;
+    until (match_has_tag 'reboot-after-installation') {
+        #Verify timeout and continue if there was a match
+        next unless verify_timeout_and_check_screen(($timer += $check_time), [qw(reboot-after-installation autoyast-postinstall-error)]);
         if (match_has_tag('autoyast-postinstall-error')) {
             handle_expected_errors(iteration => $i);
             $num_errors++;
         }
-    } until match_has_tag 'reboot-after-installation';
+    }
 
     my $expect_errors = get_var('AUTOYAST_EXPECT_ERRORS') // 0;
     die 'exceeded expected autoyast errors' if $num_errors != $expect_errors;
