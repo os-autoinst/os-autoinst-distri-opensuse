@@ -17,6 +17,9 @@ use base "opensusebasetest";
 use testapi;
 
 sub run() {
+    if (check_var('BACKEND', 'ipmi')) {
+        select_console 'sol', await_console => 0;
+    }
     assert_screen([qw(virttest-bootloader qa-net-selection)], 300);
     my $image_path = "";
 

@@ -250,7 +250,9 @@ sub init_consoles {
         set_var('SVIRT_VNC_CONSOLE', 'sut');
     }
 
-    if (get_var('BACKEND', '') =~ /qemu|ipmi|generalhw/ || (check_var('BACKEND', 'svirt') && !get_var('S390_ZKVM'))) {
+    if (get_var('BACKEND', '') =~ /qemu|ikvm|generalhw/
+        || (check_var('BACKEND', 'svirt') && !get_var('S390_ZKVM')))
+    {
         $self->add_console('install-shell',  'tty-console', {tty => 2});
         $self->add_console('installation',   'tty-console', {tty => check_var('VIDEOMODE', 'text') ? 1 : 7});
         $self->add_console('install-shell2', 'tty-console', {tty => 9});
@@ -260,7 +262,7 @@ sub init_consoles {
         $self->add_console('x11',            'tty-console', {tty => 7});
     }
 
-    if (check_var('BACKEND', 'ipmi')) {
+    if (check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'ikvm')) {
         $self->add_console(
             'root-ssh',
             'ssh-xterm',
