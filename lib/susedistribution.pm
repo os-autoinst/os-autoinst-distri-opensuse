@@ -262,7 +262,7 @@ sub init_consoles {
         $self->add_console('x11',            'tty-console', {tty => 7});
     }
 
-    if (check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'ikvm')) {
+    if (check_var('BACKEND', 'ikvm')) {
         $self->add_console(
             'root-ssh',
             'ssh-xterm',
@@ -274,14 +274,17 @@ sub init_consoles {
             });
     }
 
-    if (check_var('BACKEND', 's390x') || get_var('S390_ZKVM')) {
-        my $hostname = get_var('VIRSH_GUEST');
+    if (check_var('BACKEND', 'ipmi') || check_var('BACKEND', 's390x') || get_var('S390_ZKVM')) {
+        my $hostname;
+
+        $hostname = get_var('VIRSH_GUEST') if get_var('S390_ZKVM');
+        $hostname = get_required_var('SUT_IP') if check_var('BACKEND', 'ipmi');
 
         if (check_var('BACKEND', 's390x')) {
 
             # expand the S390 params
             my $s390_params = get_var("S390_NETWORK_PARAMS");
-            my $s390_host = get_var('S390_HOST') or die;
+            my $s390_host   = get_required_var('S390_HOST');
             $s390_params =~ s,\@S390_HOST\@,$s390_host,g;
             set_var("S390_NETWORK_PARAMS", $s390_params);
 
@@ -392,7 +395,7 @@ sub activate_console {
         }
         else {
             # on s390x we need to login here by providing a password
-            handle_password_prompt if check_var('ARCH', 's390x');
+            handle_password_prompt if (check_var('ARCH', 's390x') || check_var('BACKEND', 'ipmi'));
             assert_screen "inst-console";
         }
     }
@@ -460,8 +463,10 @@ sub activate_console {
     elsif ($console eq 'svirt') {
         $self->set_standard_prompt('root');
     }
-    elsif ($console eq 'installation'
-        && (((check_var('BACKEND', 's390x') || get_var('S390_ZKVM'))) && (check_var('VIDEOMODE', 'text') || check_var('VIDEOMODE', 'ssh-x'))))
+    elsif (
+        $console eq 'installation'
+        && (   ((check_var('BACKEND', 's390x') || check_var('BACKEND', 'ipmi') || get_var('S390_ZKVM')))
+            && (check_var('VIDEOMODE', 'text') || check_var('VIDEOMODE', 'ssh-x'))))
     {
         diag 'activate_console called with installation for ssh based consoles';
         $user ||= 'root';

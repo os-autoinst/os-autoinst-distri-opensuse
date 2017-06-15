@@ -64,6 +64,22 @@ sub run() {
     type_string "vga=791 ",   $type_speed;
     type_string "Y2DEBUG=1 ", $type_speed;
 
+    if (check_var('BACKEND', 'ipmi')) {
+        my $cmdline = '';
+        if (check_var('VIDEOMODE', 'text')) {
+            $cmdline .= 'ssh=1 ';    # trigger ssh-text installation
+        }
+        else {
+            $cmdline .= "sshd=1 vnc=1 VNCPassword=$testapi::password ";    # trigger default VNC installation
+        }
+
+        # we need ssh access to gather logs
+        # 'ssh=1' and 'sshd=1' are equal, both together don't work
+        # so let's just set the password here
+        $cmdline .= "sshpassword=$testapi::password ";
+        type_string $cmdline;
+    }
+
     if (check_var("INSTALL_TO_OTHERS", 1)) {
         type_string "video=1024x768-16 ", $type_speed;
     }
@@ -83,7 +99,18 @@ sub run() {
     }
     send_key 'ret';
     save_screenshot;
+
+    if (check_var('BACKEND', 'ipmi')) {
+        assert_screen 'sshd-server-started', 300;
+        select_console 'installation';
+
+        # We have textmode installation via ssh and the default vnc installation so far
+        if (check_var('VIDEOMODE', 'text') || check_var('VIDEOMODE', 'ssh-x')) {
+            type_string('DISPLAY= ') if check_var('VIDEOMODE', 'text');
+            type_string("yast.ssh\n");
+        }
+        wait_still_screen;
+    }
 }
 
 1;
-
