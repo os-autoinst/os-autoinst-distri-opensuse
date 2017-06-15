@@ -607,10 +607,6 @@ sub poweroff_x11 {
         send_key "alt-o";              # _o_k
     }
 
-    if (get_var("DESKTOP") =~ /textmode/) {
-        power('off');
-    }
-
     if (check_var('BACKEND', 's390x')) {
         # make sure SUT shut down correctly
         console('x3270')->expect_3270(
