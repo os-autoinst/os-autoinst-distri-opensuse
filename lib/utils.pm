@@ -599,8 +599,12 @@ sub poweroff_x11 {
         assert_and_click 'mate_shutdown_btn';
     }
 
-    if (get_var("DESKTOP") =~ m/minimalx|textmode/) {
-        power('off');
+    if (check_var("DESKTOP", "minimalx")) {
+        send_key "ctrl-alt-delete";    # logout dialog
+        assert_screen 'logoutdialog', 10;
+        send_key "alt-d";              # shut_d_own
+        assert_screen 'logout-confirm-dialog', 10;
+        send_key "alt-o";              # _o_k
     }
 
     if (check_var('BACKEND', 's390x')) {
