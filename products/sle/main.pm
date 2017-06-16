@@ -695,6 +695,9 @@ sub load_consoletests() {
         loadtest "console/yast2_i";
         loadtest "console/yast2_bootloader";
         loadtest "console/vim";
+        if (check_var('UPGRADE', '1')) {
+            loadtest "console/sblim_sfcb";
+        }
         if (!is_staging()) {
             loadtest "console/firewall_enabled";
         }
