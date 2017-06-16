@@ -14,9 +14,8 @@
 use base 'btrfs_test';
 use testapi;
 use strict;
-use utils 'service_action';
 
-sub run() {
+sub run {
     my ($self) = @_;
     select_console 'root-console';
 
@@ -64,12 +63,13 @@ sub run() {
         assert_script_run "umount $mnt_thin";
         assert_script_run "rm -rf $mnt_thin_snapshot $mnt_thin";
         assert_script_run 'vgremove -f test';
-        assert_script_run 'echo -e "g\np\nw" | fdisk $disk';
+        $self->cleanup_partition_table;
         assert_script_run 'lsblk';
 
-        service_action('dbus', {type => ['socket', 'service'], action => ['unmask', 'start']}) if ($snapper =~ /dbus/);
+        $self->snapper_nodbus_restore if $snapper =~ /dbus/;
     }
 }
 
 1;
+
 # vim: set sw=4 et:
