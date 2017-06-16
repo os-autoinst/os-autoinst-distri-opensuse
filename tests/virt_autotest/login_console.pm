@@ -28,7 +28,7 @@ sub login_to_console() {
         if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
             #send key 'up' to stop grub timer counting down, to be more robust to select xen
             send_key 'up';
-            send_key_until_needlematch("virttest-bootmenu-xen-kernel", 'down', 10, 1);
+            send_key_until_needlematch("virttest-bootmenu-xen-kernel", 'down', 10, 3);
             send_key 'ret';
         }
     }
