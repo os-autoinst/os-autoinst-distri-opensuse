@@ -499,6 +499,7 @@ sub load_extra_tests() {
         loadtest "console/wget_ipv6";
         loadtest "console/unzip";
         loadtest "console/zypper_moo";
+        loadtest "console/gpg";
         if (get_var("SYSAUTHTEST")) {
             # sysauth test scenarios run in the console
             loadtest "sysauth/sssd";
