@@ -38,7 +38,7 @@ sub analyzeResult {
     $text =~ /Test in progress(.*)Test run complete/s;
     my $rough_result = $1;
     foreach (split("\n", $rough_result)) {
-        if ($_ =~ /(\S+)\s+\.{3}\s+\.{3}\s+(PASSED|FAILED)\s+\((\S+)\)/g) {
+        if ($_ =~ /(\S+)\s+\.{3}\s+\.{3}\s+(PASSED|FAILED|SKIPPED)\s+\((\S+)\)/g) {
             $result->{$1}{status} = $2;
             $result->{$1}{time}   = $3;
         }
