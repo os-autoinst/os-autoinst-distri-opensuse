@@ -152,7 +152,8 @@ sub export_logs {
 
 # Set a simple reproducible prompt for easier needle matching without hostname
 sub set_standard_prompt {
-    $testapi::distri->set_standard_prompt;
+    my ($self, $user) = @_;
+    $testapi::distri->set_standard_prompt($user);
 }
 
 sub select_bootmenu_more {
