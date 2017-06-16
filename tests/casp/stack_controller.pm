@@ -87,6 +87,7 @@ sub velum_bootstrap {
     mouse_set $x, $y;
     mouse_click;
     assert_and_click "velum-bootstrap";
+    mouse_hide;
     assert_screen "velum-botstrap-done", 300;
     assert_and_click "velum-kubeconfig";
 }
