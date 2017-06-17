@@ -619,29 +619,34 @@ sub poweroff_x11 {
 
 =head2 power_action
 
-    power_action($action [,dryrun => $dryrun] [,keepconsole => $keepconsole]);
+    power_action($action [,dryrun => $dryrun] [,keepconsole => $keepconsole] [,textmode => $textmode]);
 
-Executes power action (e.g. poweroff, reboot) from root console. If C<$dryrun> is set,
-function expects that specified C<$action> was already executed by another actor and
-function justs makes sure system shuts down, restart etc. properly. C<$keepconsole>
-prevents console change, which we do by default to make sure that system with GUI
-desktop which was in text console at the time of C<power_action> call, is switched
-to 'expected' console: 'root-console' for textmode, 'x11' otherwise.
+Executes the selected power action (e.g. poweroff, reboot). If C<$dryrun> is
+set the function expects that the specified C<$action> was already executed by
+another actor and the function justs makes sure the system shuts down, restart
+etc. properly. C<$keepconsole> prevents a console change, which we do by
+default to make sure that a system with a GUI desktop which was in text
+console at the time of C<power_action> call, is switched to the expected
+console, that is 'root-console' for textmode, 'x11' otherwise. The actual
+execution happens in a shell for textmode or with GUI commands otherwise
+unless explicitly overridden by setting C<$textmode> to either 0 or 1.
+
 =cut
 sub power_action {
     my ($action, %args) = @_;
     $args{dryrun}      //= 0;
     $args{keepconsole} //= 0;
+    $args{textmode}    //= check_var('DESKTOP', 'textmode');
     die "'action' was not provided" unless $action;
     if (check_var('BACKEND', 'svirt')) {
         my $vnc_console = get_required_var('SVIRT_VNC_CONSOLE');
         console($vnc_console)->disable_vnc_stalls;
     }
     unless ($args{keepconsole}) {
-        check_var('DESKTOP', 'textmode') ? select_console 'root-console' : select_console 'x11';
+        select_console $args{textmode} ? 'root-console' : 'x11';
     }
     unless ($args{dryrun}) {
-        if (check_var('DESKTOP', 'textmode')) {
+        if ($args{textmode}) {
             type_string "$action\n";
         }
         else {

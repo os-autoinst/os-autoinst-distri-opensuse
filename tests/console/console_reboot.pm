@@ -19,8 +19,7 @@ use strict;
 
 sub run() {
     my ($self) = @_;
-    select_console 'root-console';
-    power_action('reboot');
+    power_action('reboot', textmode => 1);
     $self->wait_boot;
     select_console 'root-console';
     assert_script_run "chown $username /dev/$serialdev";
