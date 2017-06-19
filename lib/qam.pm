@@ -71,17 +71,18 @@ sub is_patch_needed {
     }
 }
 
-# Function that will add all test repos available and then logs all the patches needed
+# Function that will add all test repos
 sub add_test_repositories {
-    my @repos = @_;
-    for my $var (qw(OS_TEST_REPO SDK_TEST_REPO TCM_TEST_REPO WSM_TEST_REPO WE_TEST_REPO)) {
-        my $repo = get_var($var);
-        next unless $repo;
-        zypper_call("--no-gpg-check ar -f '$repo' test-repo-$var");
-        zypper_call("ref -r $repo");
-        zypper_call("patches -r $repo", log => "patches-$var.log");
-        zypper_call("se -t package -r $repo", exitcode => [0, 104], log => "packages-$var.log");
+    my $counter = 0;
+    my @repos = split(/,/, get_required_var('MAINT_TEST_REPO'));
+    for my $var (@repos) {
+        zypper_call("--no-gpg-check ar -f $var 'TEST_$counter'");
+        $counter++;
     }
+
+    # refresh repositories, inf 106 is accepted because repositories with test
+    # can be removed before test start
+    zypper_call('ref', exitcode => [0, 106]);
 }
 
 
