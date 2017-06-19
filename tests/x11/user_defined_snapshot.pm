@@ -43,7 +43,7 @@ sub run() {
     type_string "yast2 snapper\n";
     assert_screen 'yast2_snapper-snapshots', 100;
     # ensure the last screenshots are visible
-    send_key 'pgdn';
+    send_key 'end';
     # Make sure the test snapshot is not there
     die("Unexpected snapshot found") if (check_screen([qw(grub_comment)], 1));
 
