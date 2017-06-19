@@ -105,8 +105,7 @@ sub x11_start_program($$$) {
     send_key 'alt-f2';
     mouse_hide(1);
     if (!check_screen('desktop-runner', $timeout)) {
-        # if "desktop-runner" not found send alt-f2 three times with 10 seconds timeout
-        record_soft_failure 'bsc#978027' if check_screen 'generic-desktop', 0;
+        record_info('workaround', 'desktop-runner does not show up on alt-f2, retrying up to three times (see bsc#978027)');
         send_key_until_needlematch 'desktop-runner', 'alt-f2', 3, 10;
     }
     # krunner may use auto-completion which sometimes gets confused by
