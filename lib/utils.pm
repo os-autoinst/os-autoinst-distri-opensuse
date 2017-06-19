@@ -619,9 +619,9 @@ sub poweroff_x11 {
 
 =head2 power_action
 
-    power_action($action [,dryrun => $dryrun] [,keepconsole => $keepconsole] [,textmode => $textmode]);
+    power_action($action [,observe => $observe] [,keepconsole => $keepconsole] [,textmode => $textmode]);
 
-Executes the selected power action (e.g. poweroff, reboot). If C<$dryrun> is
+Executes the selected power action (e.g. poweroff, reboot). If C<$observe> is
 set the function expects that the specified C<$action> was already executed by
 another actor and the function justs makes sure the system shuts down, restart
 etc. properly. C<$keepconsole> prevents a console change, which we do by
@@ -634,7 +634,7 @@ unless explicitly overridden by setting C<$textmode> to either 0 or 1.
 =cut
 sub power_action {
     my ($action, %args) = @_;
-    $args{dryrun}      //= 0;
+    $args{observe}     //= 0;
     $args{keepconsole} //= 0;
     $args{textmode}    //= check_var('DESKTOP', 'textmode');
     die "'action' was not provided" unless $action;
@@ -645,7 +645,7 @@ sub power_action {
     unless ($args{keepconsole}) {
         select_console $args{textmode} ? 'root-console' : 'x11';
     }
-    unless ($args{dryrun}) {
+    unless ($args{observe}) {
         if ($args{textmode}) {
             type_string "$action\n";
         }

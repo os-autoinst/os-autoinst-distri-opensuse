@@ -32,7 +32,7 @@ sub run() {
     # often kdump could not be enabled: bsc#1022064
     return 1 unless kdump_is_active;
     do_kdump;
-    power_action('reboot', dryrun => 1, keepconsole => 1);
+    power_action('reboot', observe => 1, keepconsole => 1);
     # wait for system's reboot
     $self->wait_boot;
     select_console 'root-console';
