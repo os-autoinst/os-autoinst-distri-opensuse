@@ -21,7 +21,7 @@ sub run() {
 
     # overview-generation
     # this is almost impossible to check for real
-    assert_screen "inst-overview";
+    assert_screen "installation-settings-overview-loaded";
     if (get_var("XEN")) {
         assert_screen "inst-xen-pattern";
     }
