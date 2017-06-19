@@ -440,11 +440,18 @@ sub load_extra_tests() {
             loadtest 'x11/user_defined_snapshot';
         }
         elsif (check_var('DISTRI', 'opensuse')) {
-            # Setup env for x11 regression tests
-            loadtest "x11regressions/x11regressions_setup";
-            # poo#18850 java test support for firefox, run firefox before chrome
-            # as otherwise have wizard on first run to import settings from it
-            loadtest "x11regressions/firefox/firefox_java";
+            if (gnomestep_is_applicable()) {
+                # Setup env for x11 regression tests
+                loadtest "x11regressions/x11regressions_setup";
+                # poo#18850 java test support for firefox, run firefox before chrome
+                # as otherwise have wizard on first run to import settings from it
+                loadtest "x11regressions/firefox/firefox_java";
+                if (check_var('VERSION', '42.2')) {
+                    # 42.2 feature - not even on Tumbleweed
+                    loadtest "x11/gdm_session_switch";
+                }
+                loadtest "x11/seahorse";
+            }
 
             if (chromestep_is_applicable()) {
                 loadtest "x11/chrome";
@@ -452,13 +459,7 @@ sub load_extra_tests() {
             if (!get_var("NOAUTOLOGIN")) {
                 loadtest "x11/multi_users_dm";
             }
-            if (gnomestep_is_applicable()) {
-                if (check_var('VERSION', '42.2')) {
-                    # 42.2 feature - not even on Tumbleweed
-                    loadtest "x11/gdm_session_switch";
-                }
-                loadtest "x11/seahorse";
-            }
+
         }
     }
     else {

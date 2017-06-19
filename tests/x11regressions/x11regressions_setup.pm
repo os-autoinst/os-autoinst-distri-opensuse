@@ -15,6 +15,9 @@ use strict;
 use testapi;
 
 sub run() {
+    #Switch to x11 console, if not selected, before trying to start xterm
+    select_console('x11');
+
     x11_start_program("xterm");
 
     # grant user permission to access serial port until next reboot
