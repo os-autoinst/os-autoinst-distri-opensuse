@@ -27,14 +27,15 @@ sub run {
     foreach my $snapper (@snapper_runs) {
         $self->snapper_nodbus_setup if $snapper =~ /dbus/;
 
-        $self->set_playground_disk_in_bash;
+        $self->set_playground_disk;
+        my $disk = get_required_var('PLAYGROUNDDISK');
 
         # Create partition on unpartitioned
-        assert_script_run 'echo -e "g\nn\n\n\n\nt\n8e\np\nw" | fdisk $disk';
+        assert_script_run 'echo -e "g\nn\n\n\n\nt\n8e\np\nw" | fdisk ' . $disk;
         assert_script_run 'lsblk';
 
         # Create a volume group named 'test'
-        assert_script_run 'vgcreate test ${disk}1';
+        assert_script_run "vgcreate test ${disk}1";
         # Follow guide at https://lizards.opensuse.org/2012/07/25/snapper-lvm/
         assert_script_run 'lvcreate --thin test/pool --size 3G';
         assert_script_run 'lvcreate --thin test/pool --virtualsize 5G --name thin';
