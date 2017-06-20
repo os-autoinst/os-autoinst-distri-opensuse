@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -51,8 +51,9 @@ sub run() {
     assert_script_run "mkdir $src";
     assert_script_run "btrfs subvolume create $src/sv";
     assert_script_run "mkdir $dest";
-    $self->set_playground_disk_in_bash;
-    assert_script_run "mkfs.btrfs -f \$disk && mount \$disk $dest";
+    $self->set_playground_disk;
+    my $disk = get_required_var('PLAYGROUNDDISK');
+    assert_script_run "mkfs.btrfs -f $disk && mount $disk $dest";
     #make sure that pax is installed
     zypper_call('in -C pax');
 
@@ -69,7 +70,7 @@ sub run() {
         assert_script_run "btrfs send -p $src/snap" . ($i - 1) . " $src/snap$i | btrfs receive $dest";
         compare_data $i;
     }
-    assert_script_run 'umount -l $disk';
+    assert_script_run "umount -l $disk";
     $self->cleanup_partition_table;
 }
 

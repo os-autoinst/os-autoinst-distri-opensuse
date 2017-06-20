@@ -4,27 +4,29 @@ use base 'consoletest';
 use strict;
 use testapi;
 
-=head2 unpartitioned_disk_in_bash
+=head2 set_playground_disk
 
-Choose the disk without a partition table for btrfs experiments.
-Defines the variable C<$disk> in a bash session, which defaults to
-'/dev/*b' drive (i.e. /dev/{vd,xvd,sd}b) be it blank or used before.
+Returns disk without a partition table for filesystem experiments.
+Sets the test variable C<PLAYGROUNDDISK>, on first invocation of
+the function.
 =cut
-sub set_playground_disk_in_bash {
-    my $vd = 'vd';    # KVM
-    if (check_var('VIRSH_VMM_FAMILY', 'xen')) {
-        $vd = 'xvd';
+sub set_playground_disk {
+    unless (get_var('PLAYGROUNDDISK')) {
+        my $vd = 'vd';    # KVM
+        if (check_var('VIRSH_VMM_FAMILY', 'xen')) {
+            $vd = 'xvd';
+        }
+        elsif (check_var('VIRSH_VMM_FAMILY', 'hyperv') or check_var('VIRSH_VMM_FAMILY', 'vmware')) {
+            $vd = 'sd';
+        }
+        assert_script_run 'parted --script --machine -l';
+        my $disk = script_output 'parted --script --machine -l |& sed -n \'s@^\(/dev/' . $vd . '[ab]\):.*unknown.*$@\1@p\'';
+        set_var('PLAYGROUNDDISK', $disk);
     }
-    elsif (check_var('VIRSH_VMM_FAMILY', 'hyperv') or check_var('VIRSH_VMM_FAMILY', 'vmware')) {
-        $vd = 'sd';
-    }
-    assert_script_run 'parted --script --machine -l';
-    assert_script_run 'disk=${disk:-$(parted --script --machine -l |& sed -n \'s@^\(/dev/' . $vd . 'b\):.*$@\1@p\')}';
-    assert_script_run 'echo $disk';
 }
 
 sub cleanup_partition_table {
-    assert_script_run 'wipefs --force --all $disk';
+    assert_script_run 'wipefs --force --all ' . get_var('PLAYGROUNDDISK');
 }
 
 =head2 snapper_nodbus_setup

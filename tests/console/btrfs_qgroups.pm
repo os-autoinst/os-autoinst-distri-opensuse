@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -25,8 +25,9 @@ sub run() {
 
     # Set up
     assert_script_run "mkdir $dest";
-    $self->set_playground_disk_in_bash;
-    assert_script_run "mkfs.btrfs -f \$disk && mount \$disk $dest && cd $dest";
+    $self->set_playground_disk;
+    my $disk = get_required_var('PLAYGROUNDDISK');
+    assert_script_run "mkfs.btrfs -f $disk && mount $disk $dest && cd $dest";
     assert_script_run "btrfs quota enable .";
 
     # Create subvolumes, qgroups, assigns and limits
@@ -86,7 +87,7 @@ sub run() {
     assert_script_run 'rm e/file_*';
 
     assert_script_run "cd; umount $dest";
-    assert_script_run 'btrfsck $disk';
+    assert_script_run "btrfsck $disk";
     $self->cleanup_partition_table;
 }
 
