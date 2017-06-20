@@ -188,21 +188,49 @@ if (check_var('DESKTOP', 'minimalx')) {
 # This way we can reuse existant test suites without having to patch their
 # settings
 if (is_update_test_repo_test && !get_var('MAINT_TEST_REPO')) {
-    my $repos = get_var('OS_TEST_REPO');
+    my %incidents;
+    my %u_url;
+    $incidents{'OS'} = get_var('OS_TEST_ISSUES',   '');
+    $u_url{'OS'}     = get_var('OS_TEST_TEMPLATE', '');
+
+    my @maint_repos;
+    my @inclist;
+
     my @addons = split(/,/, get_var('SCC_ADDONS', ''));
     for my $a (split(/,/, get_var('ADDONS', ''))) {
         push(@addons, $a);
     }
+
+    # push sdk addon to slenkins tests
+    if (get_var('TEST', '') =~ /^slenkins/) {
+        push(@addons, 'sdk');
+    }
     # move ADDONS to SCC_ADDONS for maintenance
     set_var('ADDONS', '');
+
     for my $a (@addons) {
         if ($a) {
-            $repos .= "," . get_var(uc($a) . '_TEST_REPO');
+            $incidents{uc($a)} = get_var(uc($a) . '_TEST_ISSUES');
+            $u_url{uc($a)}     = get_var(uc($a) . '_TEST_TEMPLATE');
         }
     }
-    set_var('SCC_ADDONS', join(',', @addons));
-    set_var('MAINT_TEST_REPO', $repos);
+
+    for my $a (keys %incidents) {
+        for my $b (split(/,/, $incidents{$a})) {
+            if ($b) {
+                push @maint_repos, join($b, split('%INCIDENTNR%', $u_url{$a}));
+            }
+        }
+    }
+
+    set_var('SCC_ADDONS',      join(',', @addons));
+    set_var('MAINT_TEST_REPO', join(',', @maint_repos));
     set_var('SCC_REGISTER',    'installation');
+
+    # slenkins test needs FOREIGN_REPOS
+    if (get_var('TEST', '') =~ /^slenkins/) {
+        set_var('FOREIGN_REPOS', join(',', @maint_repos));
+    }
 }
 
 $needle::cleanuphandler = \&cleanup_needles;
