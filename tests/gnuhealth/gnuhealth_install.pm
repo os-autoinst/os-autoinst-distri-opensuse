@@ -27,9 +27,9 @@ sub run() {
     wait_screen_change { send_key 'ctrl-d' };
     assert_script_run 'systemctl restart postgresql';
     # generate the crypted password as described in /etc/tryton/trytond.conf
-    script_run
-'pw=$(python -c \'import getpass,crypt,random,string; print crypt.crypt(getpass.getpass(), "".join(random.sample(string.ascii_letters + string.digits, 8)))\')',
-      0;
+    # but with no randomness for easier testing and preventing a stray '/' to
+    # destroy the sed call
+    script_run 'pw=$(python -c \'import getpass,crypt; print(crypt.crypt(getpass.getpass(), str(123456789)))\')', 0;
     wait_still_screen(1);
     type_string "susetesting\n";
     assert_script_run 'sed -i -e "s/^.*super_pwd.*\$/super_pwd = ${pw}/g" /etc/tryton/trytond.conf';
