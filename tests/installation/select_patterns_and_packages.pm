@@ -55,6 +55,7 @@ sub check12qtbug {
 sub gotopatterns {
     my $self = @_;
     if (check_var('VIDEOMODE', 'text')) {
+        wait_still_screen;
         send_key 'alt-c';
         assert_screen 'inst-overview-options';
         send_key 'alt-s';

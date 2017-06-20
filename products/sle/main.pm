@@ -576,7 +576,7 @@ sub load_inst_tests() {
         {
             loadtest "installation/hostname_inst";
         }
-        if (!get_var("REMOTE_CONTROLLER")) {
+        if (!get_var("REMOTE_CONTROLLER") && !check_var('BACKEND', 'ipmi')) {
             loadtest "installation/logpackages";
         }
         if (is_sles4sap()) {
@@ -1182,6 +1182,8 @@ elsif (get_var("VIRT_AUTOTEST")) {
             loadtest "autoyast/login";
         }
         else {
+            set_var('VIDEOMODE', 'text');
+            set_var('DESKTOP',   'textmode');
             load_inst_tests();
             loadtest "virt_autotest/login_console";
         }
