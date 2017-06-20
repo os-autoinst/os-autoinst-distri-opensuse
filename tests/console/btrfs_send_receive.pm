@@ -51,7 +51,7 @@ sub run() {
     assert_script_run "mkdir $src";
     assert_script_run "btrfs subvolume create $src/sv";
     assert_script_run "mkdir $dest";
-    $self->set_playground_disk_in_bash;
+    $self->set_unpartitioned_disk_in_bash;
     assert_script_run "mkfs.btrfs -f \$disk && mount \$disk $dest";
     #make sure that pax is installed
     zypper_call('in -C pax');
