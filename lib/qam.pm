@@ -74,7 +74,7 @@ sub is_patch_needed {
 # Function that will add all test repos
 sub add_test_repositories {
     my $counter = 0;
-    my @repos = split(/,/, get_required_var('MAINT_TEST_REPO'));
+    my @repos = split(/,/, get_var('MAINT_TEST_REPO', ''));
     for my $var (@repos) {
         zypper_call("--no-gpg-check ar -f $var 'TEST_$counter'");
         $counter++;
