@@ -201,6 +201,9 @@ if (is_update_test_repo_test && !get_var('MAINT_TEST_REPO')) {
         push(@addons, $a);
     }
 
+    # set SCC_ADDONS before push to slenkins
+    set_var('SCC_ADDONS', join(',', @addons));
+
     # push sdk addon to slenkins tests
     if (get_var('TEST', '') =~ /^slenkins/) {
         push(@addons, 'sdk');
@@ -223,9 +226,8 @@ if (is_update_test_repo_test && !get_var('MAINT_TEST_REPO')) {
         }
     }
 
-    set_var('SCC_ADDONS',      join(',', @addons));
     set_var('MAINT_TEST_REPO', join(',', @maint_repos));
-    set_var('SCC_REGISTER',    'installation');
+    set_var('SCC_REGISTER', 'installation');
 
     # slenkins test needs FOREIGN_REPOS
     if (get_var('TEST', '') =~ /^slenkins/) {
