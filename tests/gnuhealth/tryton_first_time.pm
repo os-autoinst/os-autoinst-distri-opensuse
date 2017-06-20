@@ -23,9 +23,10 @@ sub run() {
     send_key 'ret';
     assert_screen 'tryton-module_configuration_wizard-add_users_dialog';
     # let's not add a user for now
-    wait_screen_change { send_key 'alt-o' };
-    wait_screen_change { send_key 'alt-e' };
-    wait_screen_change { send_key 'alt-n' };
+    send_key 'alt-e';
+    assert_screen 'tryton-module_configuration_wizard-next_step';
+    send_key 'alt-n';
+    assert_screen 'tryton-module_configuration_wizard-configuration_done';
     send_key 'alt-o';
     assert_screen 'tryton-admin_view', 300;
 }
