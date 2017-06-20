@@ -18,38 +18,51 @@ use testapi;
 use utils 'ensure_fullscreen';
 
 sub run() {
-    while (1) {
-        my @welcome_tags = ('inst-welcome-confirm-self-update-server', 'scc-invalid-url');
-        if (get_var('BETA')) {
-            push @welcome_tags, 'inst-betawarning';
+    my $iterations;
+
+    my @welcome_tags = ('inst-welcome-confirm-self-update-server', 'scc-invalid-url');
+    my $expect_beta_warn = get_var('BETA');
+    if ($expect_beta_warn) {
+        push @welcome_tags, 'inst-betawarning';
+    }
+    else {
+        push @welcome_tags, 'inst-welcome';
+    }
+
+    ensure_fullscreen;
+
+    # Process expected pop-up windows and exit when welcome/beta_war is shown or too many iterations
+    while ($iterations++ < scalar(@welcome_tags)) {
+        # See poo#19832, sometimes manage to match same tag twice and test fails due to broken sequence
+        wait_still_screen 5;
+        assert_screen(\@welcome_tags, 500);
+        # Normal exit condition
+        if (match_has_tag 'inst-betawarning' || match_has_tag 'inst-welcome') {
+            last;
         }
-        else {
-            push @welcome_tags, 'inst-welcome';
-        }
-        ensure_fullscreen;
-        assert_screen \@welcome_tags, 500;
         if (match_has_tag 'scc-invalid-url') {
             die 'SCC reg URL is invalid' if !get_var('SCC_URL_VALID');
             send_key 'alt-r';    # registration URL field
             send_key_until_needlematch 'scc-invalid-url-deleted', 'backspace';
             type_string get_var('SCC_URL_VALID');
             wait_still_screen 2;
-            wait_screen_change { send_key 'alt-o' };    # OK
+            # Press Ok to confirm scc url
+            wait_screen_change { send_key 'alt-o' };
+            next;
         }
-        if (match_has_tag('inst-welcome-confirm-self-update-server')) {
+        if (match_has_tag 'inst-welcome-confirm-self-update-server') {
             wait_screen_change { send_key $cmd{ok} };
-        }
-        # this is needed because of race condition, there is shortly visible
-        # welcome screen before Beta pop-up
-        if (match_has_tag 'inst-betawarning') {
-            send_key 'ret';
-            assert_screen 'inst-welcome';
-            last;
-        }
-        if (match_has_tag('inst-welcome')) {
-            last;
+            next;
         }
     }
+
+    # Process beta warning if expected
+    if ($expect_beta_warn) {
+        assert_screen 'inst-betawarning';
+        wait_screen_change { send_key 'ret' };
+    }
+    assert_screen 'inst-welcome';
+
     wait_idle;
     mouse_hide;
 
