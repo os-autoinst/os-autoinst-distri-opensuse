@@ -24,10 +24,10 @@ sub run {
     my $mnt_thin          = '/mnt/thin';
     my $mnt_thin_snapshot = $mnt_thin . '-snapshot';
 
+    $self->set_unpartitioned_disk_in_bash;
     foreach my $snapper (@snapper_runs) {
         $self->snapper_nodbus_setup if $snapper =~ /dbus/;
 
-        $self->set_playground_disk_in_bash;
 
         # Create partition on unpartitioned
         assert_script_run 'echo -e "g\nn\n\n\n\nt\n8e\np\nw" | fdisk $disk';
