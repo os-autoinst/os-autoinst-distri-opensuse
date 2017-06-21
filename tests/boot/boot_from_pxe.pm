@@ -41,8 +41,7 @@ sub run() {
         #Numburg
         #send_key_until_needlematch "qa-net-selection-" . get_var('DISTRI') . "-" . get_var("VERSION"), 'down', 30, 3;
         #Don't use send_key_until_needlematch to pick first menu tier as dist network sources might not be ready when openQA is running tests
-        send_key 'esc';
-        assert_screen 'qa-net-boot';
+        send_key_until_needlematch 'qa-net-boot', 'esc';
 
         my $image_name = "";
         if (check_var("INSTALL_TO_OTHERS", 1)) {
