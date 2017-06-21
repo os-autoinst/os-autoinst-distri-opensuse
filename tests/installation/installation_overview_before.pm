@@ -21,7 +21,11 @@ sub run() {
 
     # overview-generation
     # this is almost impossible to check for real
-    assert_screen "inst-overview";
+    # See poo#12322. Prevent checks before overview is fully loaded
+    # 'inst-overview' needle is used in many places and sometimes includes only
+    # parts which are there while overview is still loading. This check has to be
+    # performed only once, as state of buttons can be different
+    assert_screen "installation-settings-overview-loaded";
 
     # preserve it for the video
     wait_idle 10;
