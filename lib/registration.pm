@@ -241,7 +241,13 @@ sub select_addons_in_textmode {
     if ($flag) {
         send_key_until_needlematch 'scc-module-area-selected', 'tab';
         send_key_until_needlematch "scc-module-$addon",        'down';
-        send_key 'spc';
+        if (check_var('ARCH', 'aarch64') && check_var('HDDVERSION', '12-SP2') && check_screen('scc-module-tcm-selected', 5)) {
+            record_info('Workaround',
+                "Toolchain module is selected and installed by default on sles12sp2 aarch64\nSee: https://progress.opensuse.org/issues/19852");
+        }
+        else {
+            send_key 'spc';
+        }
         # After selected/deselected an addon, yast scc would automatically bounce the focus
         # back to the top of list on SP2 or later in textmode, remove sendkey up
         # And give a tiny time to wait it back completely to the top of list
