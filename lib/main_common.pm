@@ -29,6 +29,7 @@ our @EXPORT = qw(
   installyaststep_is_applicable
   noupdatestep_is_applicable
   kdestep_is_applicable
+  kdump_is_applicable
   consolestep_is_applicable
   rescuecdstep_is_applicable
   bootencryptstep_is_applicable
@@ -242,6 +243,11 @@ sub noupdatestep_is_applicable {
 
 sub kdestep_is_applicable {
     return check_var("DESKTOP", "kde");
+}
+
+# kdump is not supported on aarch64 (bsc#990418), and Xen PV (feature not implemented)
+sub kdump_is_applicable {
+    return !check_var('ARCH', 'aarch64') && !check_var('VIRSH_VMM_TYPE', 'linux');
 }
 
 sub consolestep_is_applicable {
@@ -507,10 +513,7 @@ sub load_extra_tests() {
             # sysauth test scenarios run in the console
             loadtest "sysauth/sssd";
         }
-        # kdump is not supported on aarch64, see bsc#990418
-        if (!check_var('ARCH', 'aarch64')) {
-            loadtest "console/kdump_and_crash";
-        }
+        loadtest "console/kdump_and_crash" if kdump_is_applicable;
         loadtest "console/consoletest_finish";
     }
     return 1;
