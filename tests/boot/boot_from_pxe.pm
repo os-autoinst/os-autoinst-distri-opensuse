@@ -39,7 +39,7 @@ sub run() {
     }
     elsif (match_has_tag("qa-net-selection")) {
         #Nuremberg
-        send_key_until_needlematch 'qa-net-boot', 'esc', 5, 5;
+        send_key_until_needlematch 'qa-net-boot', 'esc', 8, 3;
 
         my $image_name = "";
         if (check_var("INSTALL_TO_OTHERS", 1)) {
@@ -97,7 +97,7 @@ sub run() {
     send_key 'ret';
     save_screenshot;
 
-    if (check_var('BACKEND', 'ipmi')) {
+    if (check_var('BACKEND', 'ipmi') && !get_var('AUTOYAST')) {
         assert_screen 'sshd-server-started', 300;
         select_console 'installation';
 
