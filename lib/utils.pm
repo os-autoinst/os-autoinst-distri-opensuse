@@ -1133,7 +1133,7 @@ sub install_all_from_repo {
         $grep_str = '|grep -vE "(' . join('|', @packages_array) . ')$"';
     }
     my $exec_str = sprintf("zypper se -ur %s -t package | awk '{print \$2}' | sed '1,/|/d' %s | xargs zypper -n in", $repo, $grep_str);
-    assert_script_run($exec_str);
+    assert_script_run($exec_str, 900);
 }
 
 1;
