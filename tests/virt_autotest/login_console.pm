@@ -22,6 +22,9 @@ sub login_to_console() {
     my ($self, $timeout) = @_;
     $timeout //= 300;
 
+    reset_consoles;
+    select_console 'sol';
+
     # Wait for bootload for the first time.
     assert_screen([qw(grub2 grub1)], 120);
     if (!get_var("reboot_for_upgrade_step")) {

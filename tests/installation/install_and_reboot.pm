@@ -18,6 +18,7 @@ use base "y2logsstep";
 use testapi;
 use lockapi;
 use utils;
+use ipmi_backend_utils;
 
 sub handle_livecd_screenlock {
     record_soft_failure 'boo#994044: Kde-Live net installer is interrupted by screenlock';
@@ -146,11 +147,20 @@ sub run() {
                 die "IPL device was not set correctly";
             }
         }
-        # avoid known issue in FIPS mode: bsc#985969
-        $self->get_ip_address() if (!get_var('FIPS'));
+        # while technically SUT has a different network than the BMC
+        # we require ssh installation anyway
+        if (check_var('BACKEND', 'ipmi')) {
+            use_ssh_serial_console;
+        }
+        else {
+            # avoid known issue in FIPS mode: bsc#985969
+            $self->get_ip_address();
+        }
         $self->save_upload_y2logs();
         select_console 'installation';
     }
+    # kill the ssh connection before triggering reboot
+    console('root-ssh')->kill_ssh if check_var('BACKEND', 'ipmi');
     wait_screen_change {
         send_key 'alt-o';    # Reboot
     };

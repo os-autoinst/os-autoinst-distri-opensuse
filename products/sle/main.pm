@@ -1186,8 +1186,6 @@ elsif (get_var("VIRT_AUTOTEST")) {
             loadtest "autoyast/login";
         }
         else {
-            set_var('VIDEOMODE', 'text');
-            set_var('DESKTOP',   'textmode');
             load_inst_tests();
             loadtest "virt_autotest/login_console";
         }

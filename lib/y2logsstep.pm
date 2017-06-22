@@ -14,18 +14,21 @@ sub use_ifconfig() {
 }
 
 sub get_ip_address() {
-    if (!get_var('NET') && !check_var('ARCH', 's390x')) {
-        if (get_var('OLD_IFCONFIG')) {
-            use_ifconfig;
-        }
-        else {
-            use_wicked;
-        }
-        script_run "ip a";
-        save_screenshot;
-        script_run "cat /etc/resolv.conf";
-        save_screenshot;
+    return if (get_var('NET') || check_var('ARCH', 's390x'));
+
+    # avoid known issue in FIPS mode: bsc#985969
+    return if get_var('FIPS');
+
+    if (get_var('OLD_IFCONFIG')) {
+        use_ifconfig;
     }
+    else {
+        use_wicked;
+    }
+    script_run "ip a";
+    save_screenshot;
+    script_run "cat /etc/resolv.conf";
+    save_screenshot;
 }
 
 sub get_to_console() {
