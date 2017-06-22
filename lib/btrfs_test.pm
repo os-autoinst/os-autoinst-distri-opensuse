@@ -66,7 +66,12 @@ sub snapper_nodbus_restore {
 }
 
 sub post_fail_hook {
+    my ($self) = shift;
+    select_console('log-console');
+    $self->SUPER::post_fail_hook;
+
     upload_logs('/var/log/snapper.log');
+    $self->export_logs;
 }
 
 1;

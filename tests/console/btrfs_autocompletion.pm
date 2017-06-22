@@ -10,7 +10,7 @@
 # Summary: Bash autocompletion for btrfs
 # Maintainer: mkravec <mkravec@suse.com>
 
-use base "consoletest";
+use base 'btrfs_test';
 use strict;
 use testapi;
 

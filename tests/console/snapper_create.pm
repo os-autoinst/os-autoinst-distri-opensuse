@@ -11,7 +11,7 @@
 # Maintainer: Michal Nowak <mnowak@suse.com>
 
 use strict;
-use base "consoletest";
+use base 'btrfs_test';
 use testapi;
 use utils;
 
@@ -49,11 +49,6 @@ sub run {
     # Delete all those snapshots we just created so other tests are not confused
     assert_script_run("snapper delete --sync $first_snap_to_delete-" . script_output($get_last_snap_number));
     assert_script_run("snapper list");
-}
-
-sub post_fail_hook {
-    my ($self) = @_;
-    upload_logs('/var/log/snapper.log');
 }
 
 1;
