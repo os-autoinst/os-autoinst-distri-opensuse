@@ -549,7 +549,7 @@ sub load_filesystem_tests() {
     loadtest 'console/snapper_undochange';
     loadtest 'console/snapper_create';
     if (   (check_var('DISTRI', 'sle') && sle_version_at_least('12-SP3'))
-        || (check_var('DISTRI', 'opensuse') && (check_var('VERSION', '42.3') || check_var('VERSION', 'Tumbleweed'))))
+        || (check_var('DISTRI', 'opensuse') && (leap_version_at_least('42.3') || check_var('VERSION', 'Tumbleweed'))))
     {
         loadtest 'console/snapper_thin_lvm';
     }
