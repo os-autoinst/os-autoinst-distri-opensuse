@@ -25,11 +25,13 @@ use testapi qw(is_serial_terminal :DEFAULT);
 our @EXPORT = qw(
   check_console_font
   clear_console
-  is_jeos
   is_casp
+  is_gnome_next
+  is_jeos
   is_krypton_argon
   is_kde_live
-  is_gnome_next
+  is_leap
+  is_tumbleweed
   select_kernel
   type_string_slow
   type_string_very_slow
@@ -41,6 +43,7 @@ our @EXPORT = qw(
   minimal_patch_system
   workaround_type_encrypted_passphrase
   ensure_unlocked_desktop
+  leap_version_at_least
   sle_version_at_least
   install_to_other_at_least
   ensure_fullscreen
@@ -231,6 +234,20 @@ sub is_casp {
     }
 }
 
+sub is_tumbleweed {
+    # Tumbleweed and its stagings
+    return 0 unless check_var('DISTRI', 'opensuse');
+    return 1 if check_var('VERSION', 'Tumbleweed');
+    return get_var('VERSION') =~ /^Staging:/;
+}
+
+sub is_leap {
+    # Leap and its stagings
+    return 0 unless check_var('DISTRI', 'opensuse');
+    return 1 if get_var('VERSION', '') =~ /(?:[4-9][0-9]|[0-9]{3,})\.[0-9]/;
+    return get_var('VERSION') =~ /^42:S/;
+}
+
 sub type_string_slow {
     my ($string) = @_;
 
@@ -407,6 +424,27 @@ sub sle_version_at_least {
           && !check_var($version_variable, '13');
     }
     die "unsupported SLE $version_variable $version in check";
+}
+
+# Method has to be extended similarly to sle_version_at_least once we know
+# version naming convention as of now, we only add versions which we see in
+# test. If one will use function and it dies, please extend function accordingly.
+sub leap_version_at_least {
+    my ($version, %args) = @_;
+    # Verify if it's leap at all
+    return 0 unless is_leap;
+
+    my $version_variable = $args{version_variable} // 'VERSION';
+
+    if ($version eq '42.2') {
+        return check_var($version_variable, $version) || leap_version_at_least('42.3', version_variable => $version_variable);
+    }
+
+    if ($version eq '42.3') {
+        return check_var($version_variable, $version);
+    }
+    # Die to point out that function has to be extended
+    die "Unsupported Leap version $version_variable $version in check";
 }
 
 #Check the real version of the test machine is at least some value, rather than the VERSION variable

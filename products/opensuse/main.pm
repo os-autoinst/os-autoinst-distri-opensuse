@@ -24,20 +24,6 @@ use main_common;
 
 init_main();
 
-sub is_tumbleweed {
-    # Tumbleweed and its stagings
-    return 0 unless check_var('DISTRI', 'opensuse');
-    return 1 if check_var('VERSION', 'Tumbleweed');
-    return get_var('VERSION') =~ /^Staging:/;
-}
-
-sub is_leap {
-    # Leap and its stagings
-    return 0 unless check_var('DISTRI', 'opensuse');
-    return 1 if get_var('VERSION', '') =~ /(?:[4-9][0-9]|[0-9]{3,})\.[0-9]/;
-    return get_var('VERSION') =~ /^42:S/;
-}
-
 sub cleanup_needles() {
     remove_common_needles;
     if (!get_var("LIVECD")) {
@@ -295,7 +281,7 @@ sub load_inst_tests() {
     if (installwithaddonrepos_is_applicable() && !get_var("LIVECD")) {
         loadtest "installation/setup_online_repos";
     }
-    if (!get_var("LIVECD") && get_var("ADDONURL")) {
+    if (!get_var("LIVECD") && get_var("ADDONURL") && !(leap_version_at_least('42.3') && check_var('FLAVOR', 'Maintenance'))) {
         loadtest "installation/addon_products";
     }
     if (noupdatestep_is_applicable() && !get_var("LIVECD") && !get_var("REMOTE_CONTROLLER")) {
