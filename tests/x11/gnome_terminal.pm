@@ -22,7 +22,7 @@ sub run() {
     assert_screen "gnome-terminal";
     send_key "ctrl-shift-t";
     if (!check_screen "gnome-terminal-second-tab") {
-        record_soft_failure 'bsc#999243';
+        record_info('workaround', 'gnome_terminal does not open second terminal when shortcut is pressed (see bsc#999243)');
     }
     $self->enter_test_text('gnome-terminal', cmd => 1);
     assert_screen 'test-gnome_terminal-1';
