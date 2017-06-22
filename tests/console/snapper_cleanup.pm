@@ -32,7 +32,7 @@ sub snapper_cleanup {
     for (1 .. $scratch_size_gb / 2) { assert_script_run("$snap_create", 500); }
 
     script_run "echo There are `$snaps_numb` snapshots BEFORE cleanup";
-    assert_script_run("snapper cleanup number");    # cleanup created snapshots
+    assert_script_run("snapper cleanup number",  180);    # cleanup created snapshots
     assert_script_run("btrfs quota rescan -w /", 15);
     script_run "echo There are `$snaps_numb` snapshots AFTER cleanup";
     assert_script_run("btrfs qgroup show -pcre /", 3);
