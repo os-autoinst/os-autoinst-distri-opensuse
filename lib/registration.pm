@@ -135,6 +135,15 @@ sub fill_in_registration_data {
                     assert_and_click "scc-module-$addon";
                 }
             }
+            # go back and forward, checked checkboxes have to remember state poo#17840
+            if (check_var('SCC_REGISTER', 'yast')) {
+                wait_screen_change { send_key 'alt-b' };
+                assert_screen 'scc-registration-already-registered';
+                wait_screen_change { send_key $cmd{next} };
+                for my $addon (@scc_addons) {
+                    assert_screen "scc-module-$addon-selected";
+                }
+            }
             send_key $cmd{next};    # all addons selected
             for my $addon (@scc_addons) {
                 # most modules don't have license, skip them
