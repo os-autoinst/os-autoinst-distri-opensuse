@@ -119,10 +119,9 @@ sub run {
         }
         elsif (match_has_tag('warning-pop-up')) {
             die "Unknown popup message" unless check_screen('autoyast-known-warning', 0);
-            # Die if there is no timeout
-            die 'Popup message without timeout' unless wait_screen_change(undef, 5);
+
             # Wait until popup disappears
-            sleep 3 while check_screen('autoyast-known-warning', 0);
+            die "Popup message without timeout" unless wait_screen_change { sleep 11 };
         }
         elsif (match_has_tag('scc-invalid-url')) {
             die 'Fix invalid SCC reg URL https://trello.com/c/N09TRZxX/968-3-don-t-crash-on-invalid-regurl-on-linuxrc-commandline';
