@@ -10,7 +10,7 @@
 # Summary: Check that snapper can revert file changes between snapshots
 # Maintainer: mkravec <mkravec@suse.com>
 
-use base "btrfs_test";
+use base 'btrfs_test';
 use strict;
 use testapi;
 

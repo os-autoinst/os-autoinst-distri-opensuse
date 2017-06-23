@@ -10,7 +10,7 @@
 # Summary: Snapper cleanup test based on FATE#312751
 # Maintainer: Dumitru Gutu <dgutu@suse.com>
 
-use base "consoletest";
+use base 'btrfs_test';
 use strict;
 use testapi;
 use utils 'clear_console';
@@ -69,12 +69,6 @@ sub run {
     for (1 .. 4) { snapper_cleanup; }
 
     assert_script_run("snapper set-config NUMBER_MIN_AGE=1800");
-}
-
-
-sub post_fail_hook {
-    my ($self) = @_;
-    upload_logs('/var/log/snapper.log');
 }
 
 1;
