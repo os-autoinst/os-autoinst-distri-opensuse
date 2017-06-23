@@ -354,10 +354,12 @@ sub load_yast2_ui_tests {
     loadtest "console/yast2_samba";
     loadtest "console/yast2_xinetd";
     loadtest "console/yast2_apparmor";
-    # TODO: why are the following two modules called on sle but not on opensuse?
-    # TODO: check if the following two modules also work on opensuse and delete if
+    loadtest "console/yast2_lan_hostname";
+
+    #   we use internal nis server for the test and it cannot be used for openSUSE tests.
     if (check_var('DISTRI', 'sle')) {
-        loadtest "console/yast2_lan_hostname";
+        #    loadtest "console/yast2_lan_hostname";
+        #	SUSE has an internal nis server, but it cannot be used for openSUSE tests.
         loadtest "console/yast2_nis";
     }
     # TODO: check if the following two modules also work on sle and delete if.
