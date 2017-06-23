@@ -1,14 +1,14 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Simple test for installing any given package
+# Summary: Testing Installation of any given package which
+# has openqa-ci-tools package as dependency and obey the provided contract
 # Maintainer: soulofdestiny <mgriessmeier@suse.com>
 
 use base "consoletest";
@@ -36,6 +36,15 @@ sub run() {
 
     # ensure that package was installed correctly
     assert_script_run("rpm -q $pkgname");
+    my $exit_code = script_run('ci-openqa-tests');
+    upload_logs("/var/lib/openqa/CI/results/summary.results");
+    assert_script_run("tar -zcvf logs.tar.gz /var/lib/openqa/CI/log/");
+    upload_logs("logs.tar.gz");
+    die("\'ci-openqa-tests\' failed with $exit_code. Failing the test") if $exit_code;
+}
+
+# we don't need any system log for this package test.
+sub post_fail_hook() {
 }
 
 1;
