@@ -1432,10 +1432,7 @@ if (get_var("TCM") || check_var("ADDONS", "tcm")) {
     loadtest "toolchain/install";
     loadtest "toolchain/gcc5_fortran_compilation";
     loadtest "toolchain/gcc_compilation";
-    # kdump is not supported on aarch64, see BSC#990418
-    if (!check_var('ARCH', 'aarch64')) {
-        loadtest "console/kdump_and_crash";
-    }
+    loadtest "console/kdump_and_crash" if kdump_is_applicable;
 }
 
 1;
