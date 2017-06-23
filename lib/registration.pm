@@ -111,9 +111,6 @@ sub fill_in_registration_data {
                 }
             }
             my @scc_addons = split(/,/, get_var('SCC_ADDONS', ''));
-            if (get_var('SKIP_LTSS') && get_var('SCC_ADDONS', '') =~ /ltss/) {
-                @scc_addons = grep { $_ ne 'ltss' } @scc_addons;
-            }
             for my $addon (@scc_addons) {
                 if (check_var('VIDEOMODE', 'text') || check_var('SCC_REGISTER', 'console')) {
                     # The actions of selecting scc addons have been changed on SP2 or later in textmode

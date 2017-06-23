@@ -997,7 +997,6 @@ sub validate_repos_sle {
         }
 
         for my $scc_product ($base_product, keys %h_scc_addons) {
-            next if (($scc_product =~ /LTSS/) && get_var('SKIP_LTSS'));
             # there will be no nvidia repo when WE add-on was removed with MIGRATION_REMOVE_ADDONS
             my $addon_removed = uc get_var('MIGRATION_REMOVE_ADDONS', 'none');
             $we = 1 if ($scc_product eq 'SLE-WE' && $scc_product !~ /$addon_removed/);
