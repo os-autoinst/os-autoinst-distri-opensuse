@@ -9,7 +9,7 @@
 # without any warranty.
 use strict;
 use warnings;
-use testapi qw(check_var get_var get_required_var set_var);
+use testapi qw(check_var get_var get_required_var set_var check_var_array);
 use lockapi;
 use needle;
 use File::Find;
@@ -709,6 +709,9 @@ sub load_consoletests() {
         loadtest "console/zypper_ref";
         loadtest "console/yast2_lan" unless is_bridged_networking;
         loadtest "console/curl_https";
+        if (check_var_array('SCC_ADDONS', 'asmm')) {
+            loadtest "console/puppet";
+        }
         if (check_var("ARCH", "x86_64")) {
             loadtest "console/glibc_i686";
         }
