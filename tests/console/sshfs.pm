@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Rework the tests layout.
-# G-Maintainer: Alberto Planas <aplanas@suse.com>
+# Summary: Mount and access a directory using sshfs
+# Maintainer: Stephan Kulow <coolo@suse.com>
 
 use base "consoletest";
 use strict;
@@ -27,8 +27,8 @@ sub run() {
     send_key "ret";
     assert_screen 'sshfs-accepted';
     script_run('cd mnt/tmp');
-    assert_script_run("zypper -n in xdelta");
-    assert_script_run("rpm -e xdelta");
+    assert_script_run("zypper -n in xdelta3");
+    assert_script_run("rpm -e xdelta3");
     script_run('cd /tmp');
 
     # we need to umount that otherwise root is considered logged in!
