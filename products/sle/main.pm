@@ -679,129 +679,128 @@ sub load_reboot_tests() {
 }
 
 sub load_consoletests() {
-    if (consolestep_is_applicable()) {
-        if (get_var("ADDONS", "") =~ /rt/) {
-            loadtest "rt/kmp_modules";
-        }
-        loadtest "console/consoletest_setup";
-        if (get_var("LOCK_PACKAGE")) {
-            loadtest "console/check_locked_package";
-        }
-        loadtest "console/textinfo";
-        loadtest "console/hostname" unless is_bridged_networking;
-        if (get_var("SYSTEM_ROLE")) {
-            loadtest "console/patterns";
-        }
-        if (snapper_is_applicable()) {
-            if (get_var("UPGRADE")) {
-                loadtest "console/upgrade_snapshots";
-            }
-            elsif (!get_var("ZDUP") and !check_var('VERSION', '12')) {    # zypper and sle12 doesn't do upgrade or installation snapshots
-                loadtest "console/installation_snapshots";
-            }
-        }
-        if (get_var("DESKTOP") !~ /textmode/ && !check_var("ARCH", "s390x")) {
-            loadtest "console/xorg_vt";
-        }
-        loadtest "console/zypper_lr";
-        loadtest "console/force_cron_run" unless is_jeos;
-        loadtest 'console/enable_usb_repo' if check_var('USBBOOT', 1);
-        if (need_clear_repos()) {
-            loadtest "update/zypper_clear_repos";
-        }
-        #have SCC repo for SLE product
-        if (have_scc_repos()) {
-            loadtest "console/yast_scc";
-        }
-        elsif (have_addn_repos()) {
-            loadtest "console/zypper_ar";
-        }
-        loadtest "console/zypper_ref";
-        loadtest "console/yast2_lan" unless is_bridged_networking;
-        loadtest "console/curl_https";
-        if (check_var_array('SCC_ADDONS', 'asmm')) {
-            loadtest "console/puppet";
-            loadtest "console/salt";
-        }
-        if (check_var("ARCH", "x86_64")) {
-            loadtest "console/glibc_i686";
-        }
-        if (check_var('ARCH', 'aarch64')) {
-            loadtest "console/acpi";
-        }
-        if (!gnomestep_is_applicable()) {
-            loadtest "update/zypper_up";
-        }
-        if (is_jeos()) {
-            loadtest "console/console_reboot";
-        }
-        loadtest "console/zypper_in";
-        loadtest "console/yast2_i";
-        loadtest "console/yast2_bootloader";
-        loadtest "console/vim";
-        if (!is_staging()) {
-            loadtest "console/firewall_enabled";
-        }
-        if (is_jeos()) {
-            loadtest "console/gpt_ptable";
-            loadtest "console/kdump_disabled";
-            loadtest "console/sshd_running";
-        }
-        if (rt_is_applicable()) {
-            loadtest "console/rt_is_realtime";
-            loadtest "console/rt_devel_packages";
-            loadtest "console/rt_peak_pci";
-            loadtest "console/rt_preempt_test";
-        }
-        loadtest "console/sshd";
-        loadtest "console/ssh_cleanup";
-        loadtest "console/mtab";
-
-        if (is_new_installation && sle_version_at_least('12-SP2')) {
-            loadtest "console/no_perl_bootloader";
-        }
-        if (!get_var("NOINSTALL") && !is_desktop && (check_var("DESKTOP", "textmode"))) {
-            if (!is_staging() && check_var('BACKEND', 'qemu') && !is_jeos) {
-                # The NFS test expects the IP to be 10.0.2.15
-                loadtest "console/yast2_nfs_server";
-            }
-            loadtest "console/http_srv";
-            loadtest "console/mysql_srv";
-            loadtest "console/dns_srv";
-            loadtest "console/postgresql96server";
-            if (sle_version_at_least('12-SP1')) {    # shibboleth-sp not available on SLES 12 GA
-                loadtest "console/shibboleth";
-            }
-            if (get_var('ADDONS', '') =~ /wsm/ || get_var('SCC_ADDONS', '') =~ /wsm/) {
-                loadtest "console/pcre";
-                loadtest "console/php5";
-                loadtest "console/php5_mysql";
-                loadtest "console/php5_postgresql96";
-                loadtest "console/php7";
-                loadtest "console/php7_mysql";
-                loadtest "console/php7_postgresql96";
-            }
-            loadtest "console/apache_ssl";
-            loadtest "console/apache_nss";
-        }
-        if (check_var("DESKTOP", "xfce")) {
-            loadtest "console/xfce_gnome_deps";
-        }
-        if (check_var('ARCH', 'aarch64') and sle_version_at_least('12-SP2')) {
-            loadtest "console/check_gcc48_on_sdk_in_aarch64";
-        }
-        if (!is_staging() && sle_version_at_least('12-SP2')) {
-            loadtest "console/zypper_lifecycle";
-            if (check_var_array('SCC_ADDONS', 'tcm')) {
-                loadtest "console/zypper_lifecycle_toolchain";
-            }
-        }
-        loadtest 'console/install_all_from_repository' if get_var('INSTALL_ALL_REPO');
-        if (check_var_array('SCC_ADDONS', 'tcm') && get_var('PATTERNS') && sle_version_at_least('12-SP3')) {
-            loadtest "feature/feature_console/deregister";
-        }
-        loadtest "console/consoletest_finish";
+    return unless consolestep_is_applicable();
+    if (get_var("ADDONS", "") =~ /rt/) {
+        loadtest "rt/kmp_modules";
     }
+    loadtest "console/consoletest_setup";
+    if (get_var("LOCK_PACKAGE")) {
+        loadtest "console/check_locked_package";
+    }
+    loadtest "console/textinfo";
+    loadtest "console/hostname" unless is_bridged_networking;
+    if (get_var("SYSTEM_ROLE")) {
+        loadtest "console/patterns";
+    }
+    if (snapper_is_applicable()) {
+        if (get_var("UPGRADE")) {
+            loadtest "console/upgrade_snapshots";
+        }
+        elsif (!get_var("ZDUP") and !check_var('VERSION', '12')) {    # zypper and sle12 doesn't do upgrade or installation snapshots
+            loadtest "console/installation_snapshots";
+        }
+    }
+    if (get_var("DESKTOP") !~ /textmode/ && !check_var("ARCH", "s390x")) {
+        loadtest "console/xorg_vt";
+    }
+    loadtest "console/zypper_lr";
+    loadtest "console/force_cron_run" unless is_jeos;
+    loadtest 'console/enable_usb_repo' if check_var('USBBOOT', 1);
+    if (need_clear_repos()) {
+        loadtest "update/zypper_clear_repos";
+    }
+    #have SCC repo for SLE product
+    if (have_scc_repos()) {
+        loadtest "console/yast_scc";
+    }
+    elsif (have_addn_repos()) {
+        loadtest "console/zypper_ar";
+    }
+    loadtest "console/zypper_ref";
+    loadtest "console/yast2_lan" unless is_bridged_networking;
+    loadtest "console/curl_https";
+    if (check_var_array('SCC_ADDONS', 'asmm')) {
+        loadtest "console/puppet";
+        loadtest "console/salt";
+    }
+    if (check_var("ARCH", "x86_64")) {
+        loadtest "console/glibc_i686";
+    }
+    if (check_var('ARCH', 'aarch64')) {
+        loadtest "console/acpi";
+    }
+    if (!gnomestep_is_applicable()) {
+        loadtest "update/zypper_up";
+    }
+    if (is_jeos()) {
+        loadtest "console/console_reboot";
+    }
+    loadtest "console/zypper_in";
+    loadtest "console/yast2_i";
+    loadtest "console/yast2_bootloader";
+    loadtest "console/vim";
+    if (!is_staging()) {
+        loadtest "console/firewall_enabled";
+    }
+    if (is_jeos()) {
+        loadtest "console/gpt_ptable";
+        loadtest "console/kdump_disabled";
+        loadtest "console/sshd_running";
+    }
+    if (rt_is_applicable()) {
+        loadtest "console/rt_is_realtime";
+        loadtest "console/rt_devel_packages";
+        loadtest "console/rt_peak_pci";
+        loadtest "console/rt_preempt_test";
+    }
+    loadtest "console/sshd";
+    loadtest "console/ssh_cleanup";
+    loadtest "console/mtab";
+
+    if (is_new_installation && sle_version_at_least('12-SP2')) {
+        loadtest "console/no_perl_bootloader";
+    }
+    if (!get_var("NOINSTALL") && !is_desktop && (check_var("DESKTOP", "textmode"))) {
+        if (!is_staging() && check_var('BACKEND', 'qemu') && !is_jeos) {
+            # The NFS test expects the IP to be 10.0.2.15
+            loadtest "console/yast2_nfs_server";
+        }
+        loadtest "console/http_srv";
+        loadtest "console/mysql_srv";
+        loadtest "console/dns_srv";
+        loadtest "console/postgresql96server";
+        if (sle_version_at_least('12-SP1')) {    # shibboleth-sp not available on SLES 12 GA
+            loadtest "console/shibboleth";
+        }
+        if (get_var('ADDONS', '') =~ /wsm/ || get_var('SCC_ADDONS', '') =~ /wsm/) {
+            loadtest "console/pcre";
+            loadtest "console/php5";
+            loadtest "console/php5_mysql";
+            loadtest "console/php5_postgresql96";
+            loadtest "console/php7";
+            loadtest "console/php7_mysql";
+            loadtest "console/php7_postgresql96";
+        }
+        loadtest "console/apache_ssl";
+        loadtest "console/apache_nss";
+    }
+    if (check_var("DESKTOP", "xfce")) {
+        loadtest "console/xfce_gnome_deps";
+    }
+    if (check_var('ARCH', 'aarch64') and sle_version_at_least('12-SP2')) {
+        loadtest "console/check_gcc48_on_sdk_in_aarch64";
+    }
+    if (!is_staging() && sle_version_at_least('12-SP2')) {
+        loadtest "console/zypper_lifecycle";
+        if (check_var_array('SCC_ADDONS', 'tcm')) {
+            loadtest "console/zypper_lifecycle_toolchain";
+        }
+    }
+    loadtest 'console/install_all_from_repository' if get_var('INSTALL_ALL_REPO');
+    if (check_var_array('SCC_ADDONS', 'tcm') && get_var('PATTERNS') && sle_version_at_least('12-SP3')) {
+        loadtest "feature/feature_console/deregister";
+    }
+    loadtest "console/consoletest_finish";
 }
 
 sub load_x11tests() {
