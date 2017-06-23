@@ -11,27 +11,19 @@
 # of this package
 # Maintainer: Anton Smorodskyi <asmorodskyi@suse.com>, soulofdestiny <mgriessmeier@suse.com>
 
-use base "opensusebasetest";
+use base "hpcbase";
 use strict;
 use warnings;
 use testapi;
 use lockapi;
 use utils;
-use mm_network;
-use mmapi;
 
 sub run() {
     my $self    = shift;
     my $host_ip = get_required_var('HPC_HOST_IP');
     select_console 'root-console';
 
-    # Setup static NETWORK
-    configure_default_gateway;
-    configure_static_ip($host_ip);
-    configure_static_dns(get_host_resolv_conf());
-
-    # check if gateway is reachable
-    assert_script_run "ping -c 1 10.0.2.2 || journalctl -b --no-pager >/dev/$serialdev";
+    $self->setup_static_mm_network($host_ip);
 
     # stop firewall, so key can be copied
     assert_script_run "rcSuSEfirewall2 stop";
