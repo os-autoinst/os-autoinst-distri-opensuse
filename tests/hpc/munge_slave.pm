@@ -11,7 +11,7 @@
 # of this package
 # Maintainer: Anton Smorodskyi <asmorodskyi@suse.com>, soulofdestiny <mgriessmeier@suse.com>
 
-use base "opensusebasetest";
+use base "hpcbase";
 use strict;
 use warnings;
 use testapi;
@@ -19,16 +19,30 @@ use lockapi;
 use utils;
 
 sub run() {
+    my $self    = shift;
+    my $host_ip = get_required_var('HPC_HOST_IP');
+    select_console 'root-console';
+
+    $self->setup_static_mm_network($host_ip);
+
+    # stop firewall, so key can be copied
+    assert_script_run "rcSuSEfirewall2 stop";
+
     # set proper hostname
     assert_script_run('hostnamectl set-hostname munge-slave');
 
-    zypper_call('in munge libmunge2');
-    barrier_wait('MUNGE_INSTALLED');
-    barrier_wait('MUNGE_KEY_COPY');
+    # install munge, wait for master and munge key
+    zypper_call('in munge');
+    barrier_wait('INSTALLATION_FINISHED');
+    mutex_lock('KEY_COPIED');
+
+    # start enable service
     assert_script_run('systemctl enable munge.service');
     assert_script_run('systemctl start munge.service');
-    barrier_wait('MUNGE_SERVICE_START');
-    barrier_wait('TEST_END');
+    barrier_wait("SERVICE_ENABLED");
+
+    # wait for master to finish
+    mutex_lock('MUNGE_DONE');
 }
 
 1;
