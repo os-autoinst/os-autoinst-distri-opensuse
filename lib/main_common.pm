@@ -363,9 +363,11 @@ sub load_yast2_ui_tests {
     # TODO: check if the following two modules also work on sle and delete if.
     # yast-lan related tests do not work when using networkmanager.
     # (Livesystem and laptops do use networkmanager)
-    if (check_var('DISTRI', 'opensuse') && !get_var("LIVETEST") && !get_var("LAPTOP")) {
-        loadtest "console/yast2_cmdline";
-        loadtest "console/yast2_dns_server";
+    if (!get_var("LIVETEST") && !get_var("LAPTOP")) {
+        if (check_var('DISTRI', 'opensuse')) {
+            loadtest "console/yast2_cmdline";
+            loadtest "console/yast2_dns_server";
+        }
         loadtest "console/yast2_nfs_client";
     }
     loadtest "console/yast2_http";
