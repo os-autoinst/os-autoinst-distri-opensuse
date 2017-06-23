@@ -1307,6 +1307,10 @@ elsif (get_var('HPC')) {
         # munge sanity multimachine tests
         loadtest 'hpc/munge_master' if (check_var('HPC', 'munge_master'));
         loadtest 'hpc/munge_slave'  if (check_var('HPC', 'munge_slave'));
+
+        # slurm sanity multimachine tests
+        loadtest 'hpc/slurm_master' if (check_var('HPC', 'slurm_master'));
+        loadtest 'hpc/slurm_slave'  if (check_var('HPC', 'slurm_slave'));
     }
 }
 else {
