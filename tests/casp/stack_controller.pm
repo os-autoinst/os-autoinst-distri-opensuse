@@ -39,11 +39,6 @@ sub velum_signup {
 sub velum_certificates {
     assert_screen 'velum-certificates-page';
 
-    # Staging workaround
-    if (check_screen('velum-certificates-ca-info', 3)) {
-        send_key "tab";
-    }
-
     # Fill generic settings
     for (1 .. 4) { send_key 'tab' }
     type_string "master.openqa.test";
@@ -74,6 +69,11 @@ sub velum_certificates {
 sub velum_bootstrap {
     assert_screen 'velum-bootstrap-page';
     barrier_wait "WORKERS_INSTALLED";
+
+    # Staging workaround
+    if (check_screen('select-all-nodes', 3)) {
+        assert_and_click 'select-all-nodes';
+    }
 
     # Calculate position of master node radio button
     send_key_until_needlematch "master-checkbox-xy", "pgdn", 2, 5;
