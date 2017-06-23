@@ -33,12 +33,20 @@ sub reboot_and_wait_up() {
         $serialdev = 'ttyS1';
         bmwqemu::save_vars();
         console('root-ssh')->kill_ssh;
-        console('sut')->disable;
+        console('sol')->disable;
+        # do the activation manually - the sol can be anything normally
+        select_console 'sol', await_console => 0;
+        assert_screen "text-login";
+        type_string "root\n";
+        assert_screen "password-prompt";
+        type_password;
+        send_key('ret');
+        assert_screen "text-logged-in-root";
+
         #type reboot
         type_string("reboot\n");
         #switch to sut console
         reset_consoles;
-        select_console("sut");
         #wait boot finish and relogin
         &login_console::login_to_console($reboot_timeout);
     }
