@@ -1303,6 +1303,10 @@ elsif (get_var('HPC')) {
         }
         loadtest 'console/install_all_from_repository' if (get_var('INSTALL_ALL_REPO'));
         loadtest 'console/install_single_package'      if (get_var('PACKAGETOINSTALL'));
+
+        # munge sanity multimachine tests
+        loadtest 'hpc/munge_master' if (check_var('HPC', 'munge_master'));
+        loadtest 'hpc/munge_slave'  if (check_var('HPC', 'munge_slave'));
     }
 }
 else {
