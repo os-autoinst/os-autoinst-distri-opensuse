@@ -105,16 +105,18 @@ sub check_and_record_dependency_problems {
 }
 
 sub save_upload_y2logs() {
+    my ($self) = shift;
     assert_script_run 'sed -i \'s/^tar \(.*$\)/tar --warning=no-file-changed -\1 || true/\' /usr/sbin/save_y2logs';
     assert_script_run "save_y2logs /tmp/y2logs.tar.bz2";
     upload_logs "/tmp/y2logs.tar.bz2";
     save_screenshot();
+    $self->investigate_yast2_failure();
 }
 
 sub post_fail_hook() {
     my $self = shift;
     get_to_console;
-    save_upload_y2logs;
+    $self->save_upload_y2logs;
     if (get_var('FILESYSTEM', 'btrfs') =~ /btrfs/) {
         assert_script_run 'btrfs filesystem df /mnt | tee /tmp/btrfs-filesystem-df-mnt.txt';
         assert_script_run 'btrfs filesystem usage /mnt | tee /tmp/btrfs-filesystem-usage-mnt.txt';

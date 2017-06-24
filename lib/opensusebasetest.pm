@@ -108,6 +108,21 @@ done", "binaries-with-missing-libraries.txt", {timeout => 60, noupload => 1});
     type_string "popd\n";
 }
 
+sub investigate_yast2_failure {
+    my ($self) = shift;
+
+    # first check if badlist exists which could be the most likely problem
+    if (my $badlist = script_output 'test -f /var/log/YaST2/badlist && cat /var/log/YaST2/badlist | tail -n 20 || true') {
+        record_info 'Likely error detected: badlist', "badlist content:\n\n$badlist", 'fail';
+    }
+    if (my $y2log_internal_error = script_output 'grep -B 3 \'Internal error. Please report a bug report\' /var/log/YaST2/y2log | tail -n 20 || true') {
+        record_info 'Internal error in YaST2 detected', "Details:\n\n$y2log_internal_error", 'fail';
+    }
+    elsif (my $y2log_other_error = script_output 'grep -B 3 \'<3>\' /var/log/YaST2/y2log | tail -n 20 || true') {
+        record_info 'Other error in YaST2 detected', "Details:\n\n$y2log_other_error", 'fail';
+    }
+}
+
 sub export_logs {
     my ($self) = shift;
     select_console 'root-console';
@@ -148,6 +163,7 @@ sub export_logs {
 
     script_run "save_y2logs /tmp/y2logs_clone.tar.bz2";
     upload_logs "/tmp/y2logs_clone.tar.bz2";
+    $self->investigate_yast2_failure();
 }
 
 # Set a simple reproducible prompt for easier needle matching without hostname

@@ -31,6 +31,7 @@ sub post_fail_hook() {
         upload_logs $fn;
     }
     save_screenshot;
+    $self->investigate_yast2_failure();
 }
 
 sub post_run_hook {
