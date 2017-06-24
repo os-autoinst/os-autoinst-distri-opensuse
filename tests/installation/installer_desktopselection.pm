@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -19,6 +19,12 @@ sub run() {
     assert_screen 'desktop-selection';
     my $d = get_var('DESKTOP');
 
+    # this error pop-up is present only on TW now
+    if (check_var('VERSION', 'Tumbleweed')) {
+        send_key $cmd{next};
+        assert_screen 'desktop-not-selected';
+        send_key $cmd{ok};
+    }
     if (get_var('NEW_DESKTOP_SELECTION')) {
         # select computer role
         if ($d ne 'kde' && $d ne 'gnome' && $d ne 'textmode') {
@@ -36,6 +42,12 @@ sub run() {
     send_key 'spc';                                                            # Select the desktop
 
     assert_screen "$d-selected";
+    if (check_var('VERSION', 'Tumbleweed')) {
+        send_key 'alt-o';                                                      # configure online repos
+        assert_screen 'repo-list';
+        send_key 'alt-c';                                                      # cancel
+        send_key_until_needlematch "$d-selected", 'tab';                       # select correct field to match needle
+    }
     send_key $cmd{next};
 
     if (get_var('NEW_DESKTOP_SELECTION') && $d eq 'custom') {
