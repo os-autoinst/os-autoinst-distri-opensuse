@@ -609,6 +609,9 @@ sub load_inst_tests() {
     }
     if (installyaststep_is_applicable()) {
         loadtest "installation/installation_overview";
+        if (check_var('VIDEOMODE', 'text')) {
+            loadtest "installation/disable_grub_graphics";
+        }
         if (check_var("UPGRADE", "LOW_SPACE")) {
             loadtest "installation/disk_space_release";
         }
@@ -1186,8 +1189,6 @@ elsif (get_var("VIRT_AUTOTEST")) {
             loadtest "autoyast/login";
         }
         else {
-            set_var('VIDEOMODE', 'text');
-            set_var('DESKTOP',   'textmode');
             load_inst_tests();
             loadtest "virt_autotest/login_console";
         }

@@ -22,8 +22,12 @@ sub login_to_console() {
     my ($self, $timeout) = @_;
     $timeout //= 300;
 
+    reset_consoles;
+    select_console 'sol', await_console => 0;
+
     # Wait for bootload for the first time.
-    assert_screen([qw(grub2 grub1)], 120);
+    assert_screen([qw(grub2 grub1)], 420);
+
     if (!get_var("reboot_for_upgrade_step")) {
         if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
             #send key 'up' to stop grub timer counting down, to be more robust to select xen
@@ -35,6 +39,7 @@ sub login_to_console() {
     else {
         set_var("reboot_for_upgrade_step", undef);
         set_var("after_upgrade",           "yes");
+        send_key 'ret';
     }
 
     assert_screen(['linux-login', 'virttest-displaymanager'], $timeout);

@@ -262,7 +262,7 @@ sub init_consoles {
         $self->add_console('x11',            'tty-console', {tty => 7});
     }
 
-    if (check_var('BACKEND', 'ikvm')) {
+    if (check_var('BACKEND', 'ikvm') || check_var('BACKEND', 'ipmi')) {
         $self->add_console(
             'root-ssh',
             'ssh-xterm',
