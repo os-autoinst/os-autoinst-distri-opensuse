@@ -54,7 +54,7 @@ sub run() {
     send_key 'alt-o';
     assert_screen 'smt-installation-overview';
     send_key 'alt-n';
-    wait_serial("yast2-smt-wizard-0", 200) || die 'smt wizard failed';
+    wait_serial("yast2-smt-wizard-0", 400) || die 'smt wizard failed';
 
     assert_script_run 'smt-sync', 600;
     assert_script_run 'smt-repos';
