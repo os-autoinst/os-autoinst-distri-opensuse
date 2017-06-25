@@ -16,7 +16,7 @@ use strict;
 use base "basetest";
 use testapi;
 use utils;
-use bootloader_setup 'stop_grub_timeout';
+use bootloader_setup qw(stop_grub_timeout boot_into_snapshot);
 
 sub run() {
     if (get_var('LIVECD')) {
@@ -63,24 +63,7 @@ sub run() {
         send_key 'esc';
     }
 
-    if (get_var("BOOT_TO_SNAPSHOT")) {
-        send_key_until_needlematch("boot-menu-snapshot", 'down', 10, 5);
-        send_key 'ret';
-        assert_screen("boot-menu-snapshot-list");
-        # in upgrade/migration scenario, we want to boot from snapshot 1 before migration.
-        if (get_var("UPGRADE")) {
-            send_key 'down';
-            save_screenshot;
-        }
-        send_key 'ret';
-        # bsc#956046  check if we are in first menu-entry, or not
-        if (check_screen("boot-menu-snapshot-bootmenu")) {
-            record_soft_failure 'bsc#956046';
-            send_key 'down', 1;
-            save_screenshot;
-        }
-        send_key 'ret';
-    }
+    boot_into_snapshot if (get_var("BOOT_TO_SNAPSHOT"));
     if (get_var("XEN")) {
         send_key_until_needlematch("bootmenu-xen-kernel", 'down', 10, 5);
     }
