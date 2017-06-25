@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -9,7 +9,7 @@
 # without any warranty.
 
 # Summary: split the partitioning monster into smaller pieces
-# Maintainer: Stephan Kulow <coolo@suse.de>
+# Maintainer: Stephan Kulow <coolo@suse.de>, Sergio Lindo Mansilla <slindomansilla@suse.com>
 
 use strict;
 use warnings;
@@ -148,11 +148,15 @@ sub run() {
 
     # user defined
     send_key $cmd{custompart};
+    assert_screen 'custompart_option-selected';
     send_key $cmd{next};
     assert_screen 'custompart';
 
     send_key "tab";
-    send_key "down";    # select disks
+    assert_screen 'custompart_systemview-selected';
+    send_key "down";
+    assert_screen 'partitioning_raid-hard_disks-selected';
+
     if (get_var("OFW")) {    ## no RAID /boot partition for ppc
         send_key 'alt-p';
         if (!get_var('UEFI')) {    # partitioning type does not appear when GPT disk used, GPT is default for UEFI
@@ -160,33 +164,40 @@ sub run() {
             send_key 'alt-n';
         }
         assert_screen 'partitioning-size';
-        send_key 'ctrl-a';
+        wait_screen_change { send_key 'ctrl-a' };
         type_string "200 MB";
+        assert_screen 'partitioning_raid-custom-size-200MB';
         send_key 'alt-n';
         assert_screen 'partition-role';
-        send_key "alt-a";          # Raw Volume
+        send_key "alt-a";
+        assert_screen 'partitioning_raid-partition_role_raw_volume';
         send_key 'alt-n';
         assert_screen 'partition-format';
         send_key 'alt-d';
+        assert_screen 'partitioning_raid-format_noformat';
         send_key 'alt-i';
+        assert_screen 'partitioning_raid-file_system_id-selected';
         send_key_until_needlematch 'filesystem-prep', 'down';
-        send_key 'ret';
         send_key 'alt-f';
         assert_screen 'custompart';
         send_key 'alt-s';
         send_key 'right';
-        send_key 'down';           #should select first disk'
-        wait_idle 5;
+        assert_screen 'partitioning_raid-hard_disks-unfolded';
+        send_key 'down';
+        assert_screen 'partitioning_raid-disk_vda-selected';
     }
     else {
-        send_key "right";          # unfold disks
-        send_key "down";           # select first disk
-        wait_idle 5;
+        send_key "right";
+        assert_screen 'partitioning_raid-hard_disks-unfolded';
+        send_key "down";
+        assert_screen 'partitioning_raid-disk_vda-selected';
     }
 
     for (1 .. 4) {
         addpart('boot');
+        assert_screen 'partitioning_raid-part_boot_added';
         addpart('root');
+        assert_screen 'partitioning_raid-part_root_added';
         addpart('swap');
         assert_screen 'raid-partition';
 
@@ -196,32 +207,52 @@ sub run() {
 
         # in last step of for loop edit first vda1 and format it as EFI ESP, preparation for fate#322485
         if ($_ == 4 and get_var('UEFI')) {
-            send_key 'left';     # fold the drive tree
+            assert_screen 'partitioning_raid-disk_vdd_with_partitions-selected';
+            send_key 'left';    # fold the drive tree
+            assert_screen 'partitioning_raid-hard_disks-unfolded';
             send_key 'right';    # select first disk
-            assert_screen 'raid-partition';
+            assert_screen 'partitioning_raid-disk_vda_with_partitions-selected';
             send_key 'alt-e';    # edit first partition
             assert_screen 'partition-format';
-            send_key 'alt-a';           # format as FAT (first choice)
-            send_key 'alt-o';           # mount point selection
+            send_key 'alt-a';    # format as FAT (first choice)
+            assert_screen 'partitioning_raid-format_fat_UEFI';
+            send_key 'alt-o';    # mount point selection
+            assert_screen 'partitioning_raid-mount_point-focused';
             type_string '/boot/efi';    # enter mount point
+            assert_screen 'partitioning_raid-mount_point_boot_efi';
             send_key $cmd{finish};
             assert_screen 'expert-partitioner';
             send_key 'shift-tab';
             send_key 'shift-tab';
             send_key 'left';            # go to top "Hard Disks" node
+            assert_screen 'partitioning_raid-hard_disks-unfolded';
             send_key 'left';            # fold the drive tree again
         }
 
         # walk through sub-tree
         send_key "down";
+        if ($_ < 4) {
+            my %selection_to_disk = (
+                1 => 'vdb',
+                2 => 'vdc',
+                3 => 'vdd'
+            );
+            assert_screen 'partitioning_raid-disk_' . $selection_to_disk{$_} . '-selected';
+        }
     }
 
     # select RAID add
+    assert_screen 'partitioning_raid-raid-selected';
     send_key $cmd{addraid};
-    wait_idle 4;
 
+    assert_screen 'partitioning_raid-menu_add_raid';
     setraidlevel(get_var("RAIDLEVEL"));
-    send_key "down" if (!get_var('UEFI'));    # start at second partition (i.e. sda2) but not for UEFI
+    assert_screen 'partitioning_raid-raid_' . get_var("RAIDLEVEL") . '-selected';
+
+    if (!get_var('UEFI')) {    # start at second partition (i.e. sda2) but not for UEFI
+        send_key 'down';
+        assert_screen 'partitioning_raid-devices_second_partition';
+    }
 
     if (get_var('UEFI')) {
         addraid(2, 6);
@@ -230,47 +261,85 @@ sub run() {
         addraid(3, 6);
     }
 
+    assert_screen 'partition-format';
     if (get_var('LVM')) {
-        send_key $cmd{donotformat};           # 'Operating System' role to 'Raw Volume' for LVM
+        send_key $cmd{donotformat};    # 'Operating System' role to 'Raw Volume' for LVM
+        assert_screen 'partitioning_raid-format_noformat';
         send_key 'alt-u';
     }
 
     send_key $cmd{finish};
-    wait_idle 3;
+    if (get_var('LVM')) {
+        assert_screen 'partitioning_raid-raid_noformat_added';
+    }
+    else {
+        assert_screen 'partitioning_raid-raid_btrfs_added';
+    }
 
     if (!get_var('UEFI')) {
         # select RAID add
         send_key $cmd{addraid};
-        wait_idle 4;
-        setraidlevel(1);                      # RAID1 for /boot
+        assert_screen 'partitioning_raid-menu_add_raid';
+        setraidlevel(1);
+        assert_screen 'partitioning_raid-raid_1-selected';
         addraid(2);
 
-        send_key "alt-s";                     # change filesystem for /boot
-        for (1 .. 3) {
-            send_key "down";                  # select Ext4
-        }
+        assert_screen 'partition-format';
+        send_key "alt-s";
+        assert_screen 'partitioning_raid-filesystem-focused';
+        send_key 'down' for (1 .. 3);
+        assert_screen 'partitioning_raid-filesystem_ext4';
         send_key "alt-m";
+        assert_screen 'partitioning_raid-mount_point-focused';
         type_string "/boot";
+        assert_screen 'partitioning_raid-mount_point-_boot';
 
         send_key $cmd{finish};
-        wait_idle 3;
+        if (get_var('LVM')) {
+            assert_screen 'partitioning_raid-raid_ext4_added-lvm';
+        }
+        else {
+            assert_screen 'partitioning_raid-raid_ext4_added';
+        }
     }
 
     # select RAID add
     send_key $cmd{addraid};
-    wait_idle 4;
-    setraidlevel(0);                          # RAID0 for swap
+    assert_screen 'partitioning_raid-menu_add_raid';
+    setraidlevel(0);    # RAID0 for swap
+    assert_screen 'partitioning_raid-raid_0-selected';
     addraid(1);
 
     # select file-system
+    assert_screen 'partition-format';
     send_key $cmd{filesystem};
-    send_key "end";                           # swap at end of list
+    assert_screen 'partitioning_raid-filesystem-focused';
+    send_key "end";
+    assert_screen 'partitioning_raid-swap_format-selected';
     send_key $cmd{finish};
-    wait_idle 3;
+    my %needle_raid_swap_added_suffixes = (
+        lvm      => '-lvm',
+        uefi     => '',
+        lvm_uefi => '-lvm-UEFI'
+    );
+    my $needle_suffix = '';
+    if (get_var('LVM') && get_var('UEFI')) {
+        $needle_suffix = $needle_raid_swap_added_suffixes{lvm_uefi};
+
+    }
+    elsif (get_var('LVM')) {
+        $needle_suffix = $needle_raid_swap_added_suffixes{lvm};
+    }
+    else {
+        $needle_suffix = $needle_raid_swap_added_suffixes{uefi};
+    }
+    assert_screen 'partitioning_raid-raid_swap_added' . $needle_suffix;
 
     # LVM on top of raid if needed
     if (get_var("LVM")) {
         set_lvm();
+        wait_idle 3;
+        save_screenshot;
     }
 
     # done
