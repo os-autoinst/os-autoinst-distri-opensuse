@@ -609,7 +609,7 @@ sub load_inst_tests() {
     }
     if (installyaststep_is_applicable()) {
         loadtest "installation/installation_overview";
-        if (check_var('VIDEOMODE', 'text')) {
+        if (check_var('VIDEOMODE', 'text') && check_var('BACKEND', 'ipmi')) {
             loadtest "installation/disable_grub_graphics";
         }
         if (check_var("UPGRADE", "LOW_SPACE")) {
