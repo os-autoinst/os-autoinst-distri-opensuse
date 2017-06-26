@@ -1547,7 +1547,6 @@
       <package>grub2-snapper-plugin</package>
       <package>gsettings-backend-dconf</package>
       <package>gtk3-metatheme-adwaita</package>
-      <package>gtk3-theming-engine-adwaita</package>
       <package>gxditview</package>
       <package>libboost_system1_54_0</package>
       <package>libboost_thread1_54_0</package>
