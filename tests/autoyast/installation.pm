@@ -118,6 +118,12 @@ sub run {
             $num_errors++;
         }
         elsif (match_has_tag('warning-pop-up')) {
+            if (check_screen('warning-partition-reduced', 0)) {
+                # See poo#19978, no timeout on partition warning, hence need to click OK button to soft-fail
+                record_soft_failure('bsc#1045470');
+                send_key $cmd{ok};
+                next;
+            }
             die "Unknown popup message" unless check_screen('autoyast-known-warning', 0);
 
             # Wait until popup disappears
