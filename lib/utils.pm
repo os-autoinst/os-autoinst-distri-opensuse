@@ -980,7 +980,7 @@ sub validate_repos_sle {
     }
 
     # Verify SLES, SLED, Addons and their online SCC sources, if SCC_REGISTER is enabled
-    if (check_var('SCC_REGISTER', 'installation')) {
+    if (check_var('SCC_REGISTER', 'installation') && !get_var('ZDUP')) {
         my ($uri, $nvidia_uri, $we);
 
         # Set uri and nvidia uri for smt registration and others (scc, proxyscc)
