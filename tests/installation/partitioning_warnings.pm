@@ -31,11 +31,14 @@ sub run() {
     assert_screen 'expert-partitioner';
     send_key $cmd{accept};
     # expect partition setup warning pop-ups
-    while (1) {
-        assert_screen ['partition-warning-too-small-for-snapshots', 'partition-warning-no-efi-boot', 'partition-warning-no-swap'];
+    assert_screen 'partition-warning-too-small-for-snapshots';
+    wait_screen_change { send_key 'alt-y' };    # yes
+    if (get_var('UEFI')) {
+        assert_screen 'partition-warning-no-efi-boot';
         wait_screen_change { send_key 'alt-y' };    # yes
-        last if match_has_tag 'partition-warning-no-swap';
     }
+    assert_screen 'partition-warning-no-swap';
+    wait_screen_change { send_key 'alt-y' };        # yes
 }
 
 1;
