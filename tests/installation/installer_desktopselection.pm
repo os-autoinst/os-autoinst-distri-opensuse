@@ -44,7 +44,9 @@ sub run() {
     assert_screen "$d-selected";
     if (check_var('VERSION', 'Tumbleweed')) {
         send_key 'alt-o';                                                      # configure online repos
+        wait_still_screen 3;                                                   # wait for the potential 'low memory warning' to show up
         assert_screen 'repo-list';
+        wait_screen_change { send_key $cmd{ok} } if match_has_tag 'repo-list-low_memory_warning';
         send_key 'alt-c';                                                      # cancel
         send_key_until_needlematch "$d-selected", 'tab';                       # select correct field to match needle
     }
