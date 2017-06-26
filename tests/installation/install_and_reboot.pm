@@ -104,6 +104,7 @@ sub run() {
         if (match_has_tag("yast2_package_retry")) {
             record_soft_failure "boo#1018262 - retry failing packages";
             send_key 'alt-y';    # retry
+            die "boo#1018262 - seems to be stuck on retry" unless wait_screen_change { sleep 4 };
             next;
         }
 
