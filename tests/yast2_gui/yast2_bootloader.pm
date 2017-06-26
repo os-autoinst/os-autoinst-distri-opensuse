@@ -32,6 +32,7 @@ sub run() {
     send_key 'alt-c';
 
     #	kernel parameters and use graphical console
+    wait_still_screen 3;
     assert_and_click 'yast2-bootloader_kernel-parameters';
     send_key 'alt-p';
     send_key 'end';
@@ -40,6 +41,7 @@ sub run() {
     #	bootloader options and set probe foreign OS, timeout
     assert_and_click 'yast2-bootloader_bootloader-options';
     send_key 'alt-b';
+    wait_still_screen 3;
     send_key 'alt-t';
     type_string '16';
 
@@ -53,9 +55,11 @@ sub run() {
     type_string 'dummy-password';
     send_key 'alt-y';
     type_string 'dummy-password';
+    wait_still_screen 3;
 
     # OK => Exit
     send_key "alt-o";
+    assert_screen 'generic-desktop', 600;
 }
 
 1;
