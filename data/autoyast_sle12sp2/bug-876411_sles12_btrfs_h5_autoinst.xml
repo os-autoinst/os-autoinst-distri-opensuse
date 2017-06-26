@@ -8,7 +8,7 @@
         <media_url>http://download.suse.de/ibs/SUSE:/SLE-12-SP2:/Update/standard</media_url>
         <product>SuSE-Linux-Updates</product>
         <product_dir>/</product_dir>
-        <name>Updates</name> 
+        <name>Updates</name>
       </listentry>
     </add_on_products>
   </add-on>
@@ -20,7 +20,7 @@
         <media_url>http://10.0.2.1/factory/extra/standard/</media_url>
         <product>SuSE-Linux-Updates</product>
         <product_dir>/</product_dir>
-        <name>Updates</name> 
+        <name>Updates</name>
       </listentry>
     </add_on_products>
   </add-on>
@@ -60,7 +60,7 @@ WantedBy=default.target
 EOT
 
 cp YaST2-Second-Stage.service /mnt/usr/lib/systemd/system/
-cat /mnt/usr/lib/systemd/system/YaST2-Second-Stage.service 
+cat /mnt/usr/lib/systemd/system/YaST2-Second-Stage.service
 find / -name YaST2-Second-Stage.service
 
 
@@ -578,7 +578,7 @@ find / -name YaST2-Second-Stage.service
     <interfaces config:type="list">
       <interface>
         <bootproto>dhcp</bootproto>
-        <device>eth0</device>        
+        <device>eth0</device>
         <startmode>onboot</startmode>
       </interface>
       <interface>
@@ -882,7 +882,6 @@ find / -name YaST2-Second-Stage.service
       <package>libdnet1</package>
       <package>libgirepository-1_0-1</package>
       <package>libproxy1-config-gnome3</package>
-      <package>libpyglib-gi-2_0-python2-0</package>
       <package>libvmtools0</package>
       <package>open-vm-tools</package>
       <package>openssh-askpass</package>
@@ -962,13 +961,13 @@ find / -name YaST2-Second-Stage.service
   </user_defaults>
   <users config:type="list">
                 <user>
-                   <fullname>Bernhard M. Wiedemann</fullname>  
+                   <fullname>Bernhard M. Wiedemann</fullname>
                    <encrypted config:type="boolean">false</encrypted>
                    <user_password>nots3cr3t</user_password>
                    <username>bernhard</username>
                 </user>
-                
-    
+
+
     <user>
       <encrypted config:type="boolean">false</encrypted>
       <fullname>nobody</fullname>

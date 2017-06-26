@@ -8,7 +8,7 @@
         <media_url>http://download.suse.de/ibs/SUSE:/SLE-12-SP2:/Update/standard</media_url>
         <product>SuSE-Linux-Updates</product>
         <product_dir>/</product_dir>
-        <name>Updates</name> 
+        <name>Updates</name>
       </listentry>
     </add_on_products>
   </add-on>
@@ -1555,7 +1555,6 @@
       <package>libcanberra-gtk0</package>
       <package>libdconf1</package>
       <package>libproxy1-config-gnome3</package>
-      <package>libpyglib-gi-2_0-python2-0</package>
       <package>plymouth-dracut</package>
       <package>python-gobject</package>
       <package>python-gobject-cairo</package>
@@ -1610,12 +1609,12 @@
   </user_defaults>
   <users config:type="list">
                 <user>
-                   <fullname>Bernhard M. Wiedemann</fullname>  
+                   <fullname>Bernhard M. Wiedemann</fullname>
                    <encrypted config:type="boolean">false</encrypted>
                    <user_password>nots3cr3t</user_password>
                    <username>bernhard</username>
                 </user>
-                
+
     <user>
       <encrypted config:type="boolean">false</encrypted>
       <fullname>ix64ph1045</fullname>

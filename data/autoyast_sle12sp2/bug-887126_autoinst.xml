@@ -8,7 +8,7 @@
         <media_url>http://download.suse.de/ibs/SUSE:/SLE-12-SP2:/Update/standard</media_url>
         <product>SuSE-Linux-Updates</product>
         <product_dir>/</product_dir>
-        <name>Updates</name> 
+        <name>Updates</name>
       </listentry>
     </add_on_products>
   </add-on>
@@ -482,7 +482,6 @@
       <package>gstreamer-plugins-base</package>
       <package>gstreamer-plugins-base-lang</package>
       <package>gtk3-metatheme-adwaita</package>
-      <package>gtk3-theming-engine-adwaita</package>
       <package>gxditview</package>
       <package>input-utils</package>
       <package>libSDL-1_2-0</package>
@@ -499,7 +498,6 @@
       <package>libgsttag-1_0-0</package>
       <package>libgstvideo-1_0-0</package>
       <package>libproxy1-config-gnome3</package>
-      <package>libpyglib-gi-2_0-python2-0</package>
       <package>libtheora0</package>
       <package>libvisual</package>
       <package>plymouth-dracut</package>
@@ -564,12 +562,12 @@
   </user_defaults>
   <users config:type="list">
                 <user>
-                   <fullname>Bernhard M. Wiedemann</fullname>  
+                   <fullname>Bernhard M. Wiedemann</fullname>
                    <encrypted config:type="boolean">false</encrypted>
                    <user_password>nots3cr3t</user_password>
                    <username>bernhard</username>
                 </user>
-                
+
           <user>
                       <encrypted config:type="boolean">false</encrypted>
                       <user_password>nots3cr3t</user_password>
