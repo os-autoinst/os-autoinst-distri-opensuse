@@ -22,7 +22,8 @@ use testapi;
 use utils;
 
 sub run {
-    assert_script_run 'ip addr';
+    # sles12_minimal.xml profile does not install "ip"
+    assert_script_run 'ip a || ifstatus all';
     pkcon_quit;
     zypper_call 'ref';
     # make sure that save_y2logs from yast2 package and tar is installed
