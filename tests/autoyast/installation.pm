@@ -118,7 +118,8 @@ sub run {
             $num_errors++;
         }
         elsif (match_has_tag('warning-pop-up')) {
-            if (check_screen('warning-partition-reduced', 0)) {
+            # Softfail only on sle, as timeout is there on CaaSP
+            if (check_var('DISTRI', 'sle') && check_screen('warning-partition-reduced', 0)) {
                 # See poo#19978, no timeout on partition warning, hence need to click OK button to soft-fail
                 record_soft_failure('bsc#1045470');
                 send_key $cmd{ok};
