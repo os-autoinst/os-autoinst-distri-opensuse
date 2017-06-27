@@ -33,13 +33,13 @@ sub run() {
 
     # install munge, wait for master and munge key
     zypper_call('in munge');
-    barrier_wait('INSTALLATION_FINISHED');
-    mutex_lock('KEY_COPIED');
+    barrier_wait('MUNGE_INSTALLATION_FINISHED');
+    mutex_lock('MUNGE_KEY_COPIED');
 
     # start enable service
     assert_script_run('systemctl enable munge.service');
     assert_script_run('systemctl start munge.service');
-    barrier_wait("SERVICE_ENABLED");
+    barrier_wait("MUNGE_SERVICE_ENABLED");
 
     # wait for master to finish
     mutex_lock('MUNGE_DONE');
