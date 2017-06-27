@@ -49,7 +49,7 @@ sub download_kernel {
     else {
         $url = "$url$kernel";
     }
-    assert_script_run("wget -O '$file' '$url'", timeout => 600);
+    assert_script_run("wget -O '$file' '$url'", timeout => 1800);
     return $file;
 }
 
@@ -110,7 +110,7 @@ sub run {
     }
 
     my $url = get_required_var("INSTALL_KOTD");
-    if ($url =~ /^[\w.]+-[\w.]+$/) {
+    if ($url !~ /^https?:\/\//) {
         my $arch = get_required_var("ARCH");
         $url = "http://download.suse.de/ibs/Devel:/Kernel:/$url/standard/$arch/";
     }
