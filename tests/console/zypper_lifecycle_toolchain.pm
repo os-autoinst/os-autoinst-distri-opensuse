@@ -20,6 +20,7 @@
 use base "consoletest";
 use strict;
 use testapi;
+use utils 'zypper_call';
 
 sub run() {
     my %expiration = (
