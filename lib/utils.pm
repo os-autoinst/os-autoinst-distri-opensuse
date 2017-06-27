@@ -66,6 +66,7 @@ our @EXPORT = qw(
   service_action
   assert_gui_app
   install_all_from_repo
+  run_scripted_command_slow
 );
 
 
@@ -870,14 +871,16 @@ sub validatelr {
     my $uri = $args->{uri};
 
     if ($product eq 'IBM-DLPAR-utils') {
-        assert_script_run
-"zypper lr --uri | awk -F '|' -v OFS=' ' '{ print \$3,\$4,\$NF }' | tr -s ' ' | grep \"$product\[\[:space:\]\[:punct:\]\[:space:\]\]*$enabled_repo $uri\"";
+        my $cmd
+          = "zypper lr --uri | awk -F \'|\' -v OFS=\' \' \'{ print \$3,\$4,\$NF }\' | tr -s \' \' | grep --color \"$product\[\[:space:\]\[:punct:\]\[:space:\]\]*$enabled_repo $uri\"";
+        run_scripted_command_slow $cmd;
     }
     elsif (check_var('DISTRI', 'sle')) {
         # SLES12 does not have 'SLES12-Source-Pool' SCC channel
         unless (($version eq "12") and ($product_channel eq "Source-Pool")) {
-            assert_script_run
-"zypper lr --uri | awk -F '|' -v OFS=' ' '{ print \$2,\$3,\$4,\$NF }' | tr -s ' ' | grep \"$product$version\[\[:alnum:\]\[:punct:\]\]*-*$product_channel $product$version\[\[:alnum:\]\[:punct:\]\[:space:\]\]*-*$product_channel $enabled_repo $uri\"";
+            my $cmd
+              = "zypper lr --uri | awk -F \'|\' -v OFS=\' \' \'{ print \$2,\$3,\$4,\$NF }\' | tr -s \' \' | grep --color \"$product$version\[\[:alnum:\]\[:punct:\]\]*-*$product_channel $product$version\[\[:alnum:\]\[:punct:\]\[:space:\]\]*-*$product_channel $enabled_repo $uri\"";
+            run_scripted_command_slow $cmd;
         }
     }
 }
@@ -1171,6 +1174,49 @@ sub install_all_from_repo {
     }
     my $exec_str = sprintf("zypper se -ur %s -t package | awk '{print \$2}' | sed '1,/|/d' %s | xargs zypper -n in", $repo, $grep_str);
     assert_script_run($exec_str, 900);
+}
+
+=head2 run_scripted_command_slow
+
+    run_scripted_command_slow($cmd [, slow_type => <num>]);
+
+Type slowly to run very long command in scripted way to avoid issue of 'key event queue full' (see poo#12250).
+Pass optional slow_type key to control how slow to type the command.
+Scripted very long command to shorten typing length.
+Default slow_type is type_string_slow.
+
+=cut
+
+sub run_scripted_command_slow {
+    my ($cmd, %args) = @_;
+    my $suffix = hashed_string("SO$cmd");
+
+    open(my $fh, '>', 'current_script');
+    print $fh $cmd;
+    close $fh;
+
+    my $slow_type   = $args{slow_type} // 1;
+    my $curl_script = "curl -f -v " . autoinst_url("/current_script") . " > /tmp/script$suffix.sh" . " ; echo curl-\$? > /dev/$testapi::serialdev\n";
+    my $exec_script = "/bin/bash -x /tmp/script$suffix.sh" . " ; echo script$suffix-\$? > /dev/$testapi::serialdev\n";
+    if ($slow_type == 1) {
+        type_string_slow $curl_script;
+        wait_serial "curl-0";
+        type_string_slow $exec_script;
+        wait_serial "script$suffix-0";
+    }
+    elsif ($slow_type == 2) {
+        type_string_very_slow $curl_script;
+        wait_serial "curl-0";
+        type_string_very_slow $exec_script;
+        wait_serial "script$suffix-0";
+    }
+    elsif ($slow_type == 3) {
+        type_string $curl_script, wait_screen_change => 1;
+        wait_serial "curl-0";
+        type_string $exec_script, wait_screen_change => 1;
+        wait_serial "script$suffix-0";
+    }
+    clear_console;
 }
 
 1;
