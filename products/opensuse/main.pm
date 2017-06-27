@@ -298,7 +298,7 @@ sub load_inst_tests() {
         else {
             loadtest "installation/user_settings";
         }
-        if (get_var("DOCRUN") || get_var("IMPORT_USER_DATA")) {    # root user
+        if (get_var("DOCRUN") || get_var("IMPORT_USER_DATA") || get_var("ROOTONLY")) {    # root user
             loadtest "installation/user_settings_root";
         }
     }
