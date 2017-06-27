@@ -30,7 +30,7 @@ sub run {
     type_string "rm -f /root/autoinst.xml\n";
 
     type_string "yast2 --ncurses clone_system ; echo CLONED >/dev/$serialdev\n";
-    while (!wait_serial("CLONED", 200)) {
+    while (!wait_serial("CLONED", 400)) {
         $self->result('fail');
         save_screenshot;
         send_key "ret";
