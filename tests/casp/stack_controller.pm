@@ -71,8 +71,13 @@ sub velum_bootstrap {
     barrier_wait "WORKERS_INSTALLED";
 
     # Staging workaround
-    if (check_screen('select-all-nodes', 3)) {
-        assert_and_click 'select-all-nodes';
+    if (check_screen('velum-bootstrap-accept-nodes', 3)) {
+        assert_and_click 'velum-bootstrap-accept-nodes';
+    }
+
+    # Staging workaround
+    if (check_screen('velum-bootstrap-select-nodes', 3)) {
+        assert_and_click 'velum-bootstrap-select-nodes';
     }
 
     # Calculate position of master node radio button
