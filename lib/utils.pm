@@ -31,6 +31,7 @@ our @EXPORT = qw(
   is_kde_live
   is_gnome_next
   select_kernel
+  type_string_and_wait
   type_string_slow
   type_string_very_slow
   unlock_if_encrypted
@@ -216,6 +217,21 @@ sub is_casp {
     # There is one DVD and multiple VMX (for KVM/XEN/VMware/Cloud) flavors
     return !check_var('FLAVOR', 'DVD') if $flavor eq 'VMX';
     return check_var('FLAVOR', $flavor);
+}
+
+sub type_string_and_wait {
+
+    # FIXME: which is the correct way to define $string and wait @seconds
+    # my @args = split(/,/, @_);
+    # my $string = shift;
+    # my $seconds = shift;
+
+    my ($string) = @_;
+    my $seconds = shift;
+
+    type_string $string;
+    wait_still_screen($seconds);
+    save_screenshot;
 }
 
 sub type_string_slow {
