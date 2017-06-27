@@ -110,7 +110,7 @@ done", "binaries-with-missing-libraries.txt", {timeout => 60, noupload => 1});
 
 sub export_logs {
     my ($self) = shift;
-    select_console 'root-console';
+    select_console 'log-console';
     save_screenshot;
 
     $self->problem_detection;
@@ -194,7 +194,7 @@ sub select_bootmenu_more {
 }
 
 sub export_kde_logs {
-    select_console 'root-console';
+    select_console 'log-console';
     save_screenshot;
 
     if (check_var("DESKTOP", "kde")) {
