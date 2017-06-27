@@ -2,17 +2,6 @@
 <!DOCTYPE profile>
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
 
-  <add-on>
-    <add_on_products config:type="list">
-      <listentry>
-        <media_url>http://download.suse.de/ibs/SUSE:/SLE-12-SP2:/Update/standard</media_url>
-        <product>SuSE-Linux-Updates</product>
-        <product_dir>/</product_dir>
-        <name>Updates</name> 
-      </listentry>
-    </add_on_products>
-  </add-on>
-
   <firewall>
     <enable_firewall config:type="boolean">false</enable_firewall>
     <start_firewall config:type="boolean">false</start_firewall>
@@ -168,7 +157,7 @@
 		    [ '2000'  == "`get_qa_config hamsta_multicast_port`" ]   || different=1 ;
 		    [ ''  == "`get_qa_config hamsta_multicast_dev`" ]   || different=1 ;
 		    [ '2222'  == "`get_qa_config hamsta_client_port`" ]   || different=1 ;
-	
+
 		    if [ $different -eq 1 ] ; then
 		      echo '# This file contains custom configuration, that has beed used to install'  &gt; $file;
 		      echo '# this host. If you want to use default values for next installation, '   &gt;&gt; $file;
@@ -234,12 +223,12 @@
   </timezone>
   <users config:type="list">
                 <user>
-                   <fullname>Bernhard M. Wiedemann</fullname>  
+                   <fullname>Bernhard M. Wiedemann</fullname>
                    <encrypted config:type="boolean">false</encrypted>
                    <user_password>nots3cr3t</user_password>
                    <username>bernhard</username>
                 </user>
-                
+
     <user>
       <encrypted config:type="boolean">false</encrypted>
       <fullname>root</fullname>

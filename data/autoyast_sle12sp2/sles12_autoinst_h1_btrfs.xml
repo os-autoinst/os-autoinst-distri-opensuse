@@ -8,20 +8,9 @@
   init-scripts testing
   two disk devices
   gpt partitioning with btrfs filesystem on small size partitions
-  mount by device name  
-    
--->
-  <add-on>
-    <add_on_products config:type="list">
-      <listentry>
-        <media_url>http://download.suse.de/ibs/SUSE:/SLE-12-SP2:/Update/standard</media_url>
-        <product>SuSE-Linux-Updates</product>
-        <product_dir>/</product_dir>
-        <name>Updates</name> 
-      </listentry>
-    </add_on_products>
-  </add-on>
+  mount by device name
 
+-->
   <bootloader>
     <device_map config:type="list">
       <device_map_entry>
@@ -116,7 +105,7 @@
     <dns>
       <dhcp_hostname config:type="boolean">false</dhcp_hostname>
       <dhcp_resolv config:type="boolean">false</dhcp_resolv>
-      <searchlist config:type="list"> 
+      <searchlist config:type="list">
         <search>openqa.de</search>
         <search>openqa.de</search>
       </searchlist>
@@ -124,13 +113,13 @@
     <interfaces config:type="list">
       <interface>
         <bootproto>dhcp</bootproto>
-        <device>eth0</device>        
+        <device>eth0</device>
         <startmode>onboot</startmode>
       </interface>
     </interfaces>
     <routing>
-      <ip_forward config:type="boolean">false</ip_forward> 
-      <routes config:type="list"> 
+      <ip_forward config:type="boolean">false</ip_forward>
+      <routes config:type="list">
         <route>
           <destination>default</destination>
           <device>-</device>
@@ -348,12 +337,12 @@ ls -lsa /
   </software>
   <users config:type="list">
                 <user>
-                   <fullname>Bernhard M. Wiedemann</fullname>  
+                   <fullname>Bernhard M. Wiedemann</fullname>
                    <encrypted config:type="boolean">false</encrypted>
                    <user_password>nots3cr3t</user_password>
                    <username>bernhard</username>
                 </user>
-                
+
     <user>
       <encrypted config:type="boolean">false</encrypted>
       <fullname>root</fullname>
@@ -368,7 +357,7 @@ ls -lsa /
       <uid>0</uid>
       <user_password>nots3cr3t</user_password>
       <username>root</username>
-    </user> 
+    </user>
   </users>
   <sysconfig config:type="list">
     <sysconfig_entry>

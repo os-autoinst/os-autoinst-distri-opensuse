@@ -8,17 +8,6 @@
 -->
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
 
-  <add-on>
-    <add_on_products config:type="list">
-      <listentry>
-        <media_url>http://download.suse.de/ibs/SUSE:/SLE-12-SP2:/Update/standard</media_url>
-        <product>SuSE-Linux-Updates</product>
-        <product_dir>/</product_dir>
-        <name>Updates</name> 
-      </listentry>
-    </add_on_products>
-  </add-on>
-
   <!-- Bootloader {{{ -->
   <bootloader>
     <global>
@@ -166,12 +155,12 @@
 	<partition>
           <mount>swap</mount>
           <size>auto</size>
-	  <partition_nr config:type="integer">2</partition_nr> 
+	  <partition_nr config:type="integer">2</partition_nr>
         </partition>
         <partition>
           <size>30%</size>
           <format config:type="boolean">false</format>
-	  <partition_nr config:type="integer">3</partition_nr> 
+	  <partition_nr config:type="integer">3</partition_nr>
         </partition>
         <partition>
           <mount>/</mount>
@@ -275,7 +264,7 @@
         systemctl enable sshd && systemctl start sshd
         ]]>
         </source>
-      </script> 
+      </script>
     </init-scripts>
   </scripts>
   <!-- }}} -->
@@ -362,12 +351,12 @@
   <!-- Users {{{ -->
   <users config:type="list">
                 <user>
-                   <fullname>Bernhard M. Wiedemann</fullname>  
+                   <fullname>Bernhard M. Wiedemann</fullname>
                    <encrypted config:type="boolean">false</encrypted>
                    <user_password>nots3cr3t</user_password>
                    <username>bernhard</username>
                 </user>
-                
+
     <user>
       <encrypted config:type="boolean">false</encrypted>
       <fullname>root</fullname>

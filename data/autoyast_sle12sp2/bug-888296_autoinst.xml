@@ -2,17 +2,6 @@
 <!DOCTYPE profile>
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
 
-  <add-on>
-    <add_on_products config:type="list">
-      <listentry>
-        <media_url>http://download.suse.de/ibs/SUSE:/SLE-12-SP2:/Update/standard</media_url>
-        <product>SuSE-Linux-Updates</product>
-        <product_dir>/</product_dir>
-        <name>Updates</name>
-      </listentry>
-    </add_on_products>
-  </add-on>
-
   <audit-laf>
     <auditd>
       <action_mail_acct>root</action_mail_acct>
@@ -63,7 +52,7 @@
     <global>
       <append> console=ttyS0,115200 resume=/dev/sda3 splash=silent quiet crashkernel=176M-:88M  showopts</append>
       <append_failsafe>showopts apm=off noresume edd=off powersaved=off nohz=off highres=off processor.max_cstate=1 nomodeset x11failsafe crashkernel=176M-:88M</append_failsafe>
-      <default>SLES 12-SP2</default>
+      <default>SLES 12-SP3</default>
       <gfxbackground>/boot/grub2/themes/SLE/background.png</gfxbackground>
       <gfxmode>auto</gfxmode>
       <gfxtheme>/boot/grub2/themes/SLE/theme.txt</gfxtheme>

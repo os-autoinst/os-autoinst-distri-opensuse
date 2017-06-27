@@ -7,17 +7,6 @@
   - custom local zones
   - reverse dns mapping
 -->
-  <add-on>
-    <add_on_products config:type="list">
-      <listentry>
-        <media_url>http://download.suse.de/ibs/SUSE:/SLE-12-SP2:/Update/standard</media_url>
-        <product>SuSE-Linux-Updates</product>
-        <product_dir>/</product_dir>
-        <name>Updates</name> 
-      </listentry>
-    </add_on_products>
-  </add-on>
-
   <bootloader>
     <device_map config:type="list">
       <device_map_entry>
@@ -70,7 +59,7 @@
       <start_multipath config:type="boolean">false</start_multipath>
     </storage>
   </general>
-  
+
 
 <dns-server>
   <allowed_interfaces config:type="list"/>
@@ -768,7 +757,7 @@
     <messages>
       <log config:type="boolean">true</log>
       <show config:type="boolean">true</show>
-    <timeout config:type="integer">7</timeout> 
+    <timeout config:type="integer">7</timeout>
     </messages>
     <warnings>
       <log config:type="boolean">true</log>
@@ -823,12 +812,12 @@
   </user_defaults>
   <users config:type="list">
                 <user>
-                   <fullname>Bernhard M. Wiedemann</fullname>  
+                   <fullname>Bernhard M. Wiedemann</fullname>
                    <encrypted config:type="boolean">false</encrypted>
                    <user_password>nots3cr3t</user_password>
                    <username>bernhard</username>
                 </user>
-                
+
     <user>
       <encrypted config:type="boolean">false</encrypted>
       <fullname>user</fullname>
