@@ -13,11 +13,8 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# G-Summary: autoyast cleanup
-#    - split repos.pm into separater tests
-#    - changed order of tests, run the specific tests in autoyast_verify
-#      earlier
-# G-Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
+# Summary: Clone the existing installation for use in validation
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use strict;
 use base 'basetest';
@@ -25,27 +22,14 @@ use testapi;
 
 sub run {
     my $self = shift;
-    $self->result('ok');    # default result
-
-    type_string "rm -f /root/autoinst.xml\n";
-
-    type_string "yast2 --ncurses clone_system ; echo CLONED >/dev/$serialdev\n";
-    while (!wait_serial("CLONED", 400)) {
-        $self->result('fail');
-        save_screenshot;
-        send_key "ret";
-    }
-
-    upload_logs "/root/autoinst.xml";
+    assert_script_run 'rm -f /root/autoinst.xml';
+    assert_script_run 'yast2 --ncurses clone_system', 400;
+    upload_logs '/root/autoinst.xml';
 
     # original autoyast on kernel cmdline
-    upload_logs "/var/adm/autoinstall/cache/installedSystem.xml";
-    wait_idle(30);
-
-    type_string "save_y2logs /tmp/y2logs_clone.tar.bz2\n";
-    upload_logs "/tmp/y2logs_clone.tar.bz2";
-    wait_idle(30);
-
+    upload_logs '/var/adm/autoinstall/cache/installedSystem.xml';
+    assert_script_run 'save_y2logs /tmp/y2logs_clone.tar.bz2';
+    upload_logs '/tmp/y2logs_clone.tar.bz2';
     save_screenshot;
 }
 
