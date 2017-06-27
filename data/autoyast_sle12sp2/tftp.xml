@@ -6,17 +6,6 @@
   test it via script run by autoyast_verify.pm
   - default, anonymous access configuration
 -->
-  <add-on>
-    <add_on_products config:type="list">
-      <listentry>
-        <media_url>http://download.suse.de/ibs/SUSE:/SLE-12-SP2:/Update/standard</media_url>
-        <product>SuSE-Linux-Updates</product>
-        <product_dir>/</product_dir>
-        <name>Updates</name> 
-      </listentry>
-    </add_on_products>
-  </add-on>
-
   <deploy_image>
     <image_installation config:type="boolean">false</image_installation>
   </deploy_image>
@@ -60,12 +49,12 @@ chmod 755 /srv/tftpboot
 
   <users config:type="list">
                 <user>
-                   <fullname>Bernhard M. Wiedemann</fullname>  
+                   <fullname>Bernhard M. Wiedemann</fullname>
                    <encrypted config:type="boolean">false</encrypted>
                    <user_password>nots3cr3t</user_password>
                    <username>bernhard</username>
                 </user>
-                
+
           <user>
                       <encrypted config:type="boolean">false</encrypted>
                       <user_password>nots3cr3t</user_password>

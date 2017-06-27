@@ -7,17 +7,6 @@
   - http and https setup
 -->
 
-  <add-on>
-    <add_on_products config:type="list">
-      <listentry>
-        <media_url>http://download.suse.de/ibs/SUSE:/SLE-12-SP2:/Update/standard</media_url>
-        <product>SuSE-Linux-Updates</product>
-        <product_dir>/</product_dir>
-        <name>Updates</name> 
-      </listentry>
-    </add_on_products>
-  </add-on>
-
   <general>
     <ask-list config:type="list"/>
     <mode>
@@ -206,7 +195,7 @@ Tmr9shvqBQKa2NyWfUBcct9hvmlrZD6fnc9a4+3nTxv3TJRwxBUc9Q==
             <OVERHEAD>#
 # Global configuration that will be applicable for all virtual hosts, unless
 # deleted here, or overriden elswhere.
-# 
+#
 
 </OVERHEAD>
             <VALUE>"/srv/www/htdocs"</VALUE>
@@ -259,13 +248,13 @@ Tmr9shvqBQKa2NyWfUBcct9hvmlrZD6fnc9a4+3nTxv3TJRwxBUc9Q==
           <listentry>
             <KEY>Alias</KEY>
             <OVERHEAD>
-# Aliases: aliases can be added as needed (with no limit). The format is 
+# Aliases: aliases can be added as needed (with no limit). The format is
 # Alias fakename realname
 #
 # Note that if you include a trailing / on fakename then the server will
 # require it to be present in the URL.  So "/icons" isn't aliased in this
-# example, only "/icons/".  If the fakename is slash-terminated, then the 
-# realname must also be slash terminated, and if the fakename omits the 
+# example, only "/icons/".  If the fakename is slash-terminated, then the
+# realname must also be slash terminated, and if the fakename omits the
 # trailing slash, the realname must also omit it.
 #
 # We include the /icons/ alias for FancyIndexed directory listings.  If you
@@ -450,12 +439,12 @@ Tmr9shvqBQKa2NyWfUBcct9hvmlrZD6fnc9a4+3nTxv3TJRwxBUc9Q==
   </suse_register>
   <users config:type="list">
                 <user>
-                   <fullname>Bernhard M. Wiedemann</fullname>  
+                   <fullname>Bernhard M. Wiedemann</fullname>
                    <encrypted config:type="boolean">false</encrypted>
                    <user_password>nots3cr3t</user_password>
                    <username>bernhard</username>
                 </user>
-                
+
           <user>
                       <encrypted config:type="boolean">false</encrypted>
                       <user_password>nots3cr3t</user_password>

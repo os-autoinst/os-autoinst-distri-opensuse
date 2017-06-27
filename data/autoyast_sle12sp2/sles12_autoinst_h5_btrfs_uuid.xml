@@ -11,18 +11,8 @@
   large xfs partition
   sorted fstab
   mount by uuid
-    
+
 -->
-  <add-on>
-    <add_on_products config:type="list">
-      <listentry>
-        <media_url>http://download.suse.de/ibs/SUSE:/SLE-12-SP2:/Update/standard</media_url>
-        <product>SuSE-Linux-Updates</product>
-        <product_dir>/</product_dir>
-        <name>Updates</name> 
-      </listentry>
-    </add_on_products>
-  </add-on>
 
   <bootloader>
     <global>
@@ -70,7 +60,7 @@
     </storage>
   </general>
   <groups config:type="list">
-    
+
   </groups>
   <host>
     <hosts config:type="list">
@@ -126,7 +116,7 @@
     <interfaces config:type="list">
       <interface>
         <bootproto>dhcp</bootproto>
-        <device>eth0</device>        
+        <device>eth0</device>
         <startmode>onboot</startmode>
       </interface>
     </interfaces>
@@ -264,7 +254,7 @@
       </partitions>
       <use>all</use>
     </drive>
-    
+
   </partitioning>
   <scripts>
     <post-scripts config:type="list">
@@ -422,12 +412,12 @@ ls -lsa /
   </timezone>
   <users config:type="list">
                 <user>
-                   <fullname>Bernhard M. Wiedemann</fullname>  
+                   <fullname>Bernhard M. Wiedemann</fullname>
                    <encrypted config:type="boolean">false</encrypted>
                    <user_password>nots3cr3t</user_password>
                    <username>bernhard</username>
                 </user>
-                
+
     <user>
       <encrypted config:type="boolean">false</encrypted>
       <fullname>root</fullname>
@@ -443,6 +433,6 @@ ls -lsa /
       <user_password>nots3cr3t</user_password>
       <username>root</username>
     </user>
-    
+
   </users>
 </profile>
