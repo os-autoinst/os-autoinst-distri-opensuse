@@ -33,6 +33,7 @@ our @EXPORT = qw(
   is_leap
   is_tumbleweed
   select_kernel
+  type_string_and_wait
   type_string_slow
   type_string_very_slow
   unlock_if_encrypted
@@ -246,6 +247,21 @@ sub is_leap {
     return 0 unless check_var('DISTRI', 'opensuse');
     return 1 if get_var('VERSION', '') =~ /(?:[4-9][0-9]|[0-9]{3,})\.[0-9]/;
     return get_var('VERSION') =~ /^42:S/;
+}
+
+sub type_string_and_wait {
+
+    # FIXME: which is the correct way to define $string and wait @seconds
+    # my @args = split(/,/, @_);
+    # my $string = shift;
+    # my $seconds = shift;
+
+    my ($string) = @_;
+    my $seconds = shift;
+
+    type_string $string;
+    wait_still_screen($seconds);
+    save_screenshot;
 }
 
 sub type_string_slow {
