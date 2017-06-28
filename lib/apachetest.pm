@@ -140,8 +140,8 @@ sub setup_pgsqldb {
     # 'could not change directory to "/root": Permission denied'
     assert_script_run 'pushd /tmp';
     assert_script_run "curl " . data_url('console/postgres_openqadb.sql') . " -o /tmp/postgres_openqadb.sql";
-    # requires running postgresql94 server
-    # test basic functionality - require postgresql94
+    # requires running postgresql server
+    # test basic functionality - require postgresql
     assert_script_run "sudo -u postgres psql -f /tmp/postgres_openqadb.sql";
     assert_script_run "sudo -u postgres psql -d openQAdb -c \"SELECT * FROM test\" | grep \"can you read this\"";
 
@@ -177,7 +177,7 @@ sub test_pgsql {
     assert_script_run "systemctl restart postgresql.service";
 
     # configure the PHP code that:
-    #  1. reads table 'test' from the 'openQAdb' database (created in 'console/postgresql94' test)
+    #  1. reads table 'test' from the 'openQAdb' database (created in 'console/postgresql...' test)
     #  2. inserts a new element 'can php write this?' into the same table
     type_string "curl " . data_url('console/test_postgresql_connector.php') . " -o /srv/www/htdocs/test_postgresql_connector.php\n";
     assert_script_run "systemctl restart apache2.service";

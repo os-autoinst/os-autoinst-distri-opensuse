@@ -760,7 +760,7 @@ sub load_consoletests() {
             loadtest "console/http_srv";
             loadtest "console/mysql_srv";
             loadtest "console/dns_srv";
-            loadtest "console/postgresql94server";
+            loadtest "console/postgresql96server";
             if (sle_version_at_least('12-SP1')) {    # shibboleth-sp not available on SLES 12 GA
                 loadtest "console/shibboleth";
             }
@@ -768,10 +768,10 @@ sub load_consoletests() {
                 loadtest "console/pcre";
                 loadtest "console/php5";
                 loadtest "console/php5_mysql";
-                loadtest "console/php5_postgresql94";
+                loadtest "console/php5_postgresql96";
                 loadtest "console/php7";
                 loadtest "console/php7_mysql";
-                loadtest "console/php7_postgresql94";
+                loadtest "console/php7_postgresql96";
             }
             loadtest "console/apache_ssl";
             loadtest "console/apache_nss";
