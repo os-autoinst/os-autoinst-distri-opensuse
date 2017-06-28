@@ -49,6 +49,7 @@ sub clean_and_quit() {
     # Wait until root gnome terminal is focussed, delete the directory and close window
     my $ret = check_screen('root-gnome-terminal');
     if (!$ret) {
+        $self->{mute_post_fail} = 1;
         record_soft_failure 'bsc#1032831';
         $self->failure_analysis();
         assert_screen 'root-gnome-terminal', 90;
@@ -62,6 +63,8 @@ sub clean_and_quit() {
 
 sub run() {
     my $self = shift;
+    # for not running failure_analysis twice in case we fail inside failure_analysis
+    $self->{mute_post_fail} = 0;
 
     # Make sure yast2-snapper is installed (if not: install it)
     ensure_installed "yast2-snapper";
@@ -162,6 +165,7 @@ sub failure_analysis {
 
 sub post_fail_hook {
     my ($self) = @_;
+    return if $self->{mute_post_fail};
     $self->failure_analysis();
 }
 
