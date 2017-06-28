@@ -10,8 +10,8 @@ use utils 'ensure_unlocked_desktop';
 # don't import script_run - it will overwrite script_run from distribution and create a recursion
 use testapi qw(send_key %cmd assert_screen check_screen check_var get_var save_screenshot
   match_has_tag set_var type_password type_string wait_idle wait_serial
-  mouse_hide send_key_until_needlematch record_info
-  wait_still_screen wait_screen_change get_required_var diag);
+  mouse_hide send_key_until_needlematch record_info record_soft_failure
+  wait_still_screen wait_screen_change get_required_var diag assert_and_click);
 
 
 sub handle_password_prompt {
@@ -107,6 +107,18 @@ sub x11_start_program($$$) {
     if (!check_screen('desktop-runner', $timeout)) {
         record_info('workaround', 'desktop-runner does not show up on alt-f2, retrying up to three times (see bsc#978027)');
         send_key_until_needlematch 'desktop-runner', 'alt-f2', 3, 10;
+    }
+    #check if desktop runner is focussed to type in
+    #currently only needle for gnome
+    if (match_has_tag 'desktop-runner-unfocused') {
+        if (check_var('DESKTOP', 'gnome')) {
+            record_soft_failure('boo#1046320');
+        }
+        else {
+            die("unexpected boo#1046320 in non-gnome");
+        }
+        assert_and_click('desktop-runner-unfocused');
+
     }
     # krunner may use auto-completion which sometimes gets confused by
     # too fast typing or looses characters because of the load caused (also
