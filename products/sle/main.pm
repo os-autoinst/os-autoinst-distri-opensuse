@@ -1015,7 +1015,10 @@ sub load_fips_tests_misc() {
     loadtest "fips/curl_fips_rc4_seed";
     loadtest "console/git";
     loadtest "console/consoletest_finish";
-    loadtest "x11/hexchat_ssl";
+    # In SLE, the hexchat package is provided only in WE addon which is
+    # only for x86_64 platform. Then hexchat is x86_64 specific and not
+    # appropriate for other arches.
+    loadtest "x11/hexchat_ssl" if (check_var('ARCH', 'x86_64'));
 }
 
 sub load_fips_tests_crypt() {
