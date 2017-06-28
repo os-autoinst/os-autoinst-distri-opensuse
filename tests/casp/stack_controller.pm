@@ -73,6 +73,8 @@ sub velum_bootstrap {
     # Staging workaround
     if (check_screen('velum-bootstrap-accept-nodes', 3)) {
         assert_and_click 'velum-bootstrap-accept-nodes';
+        # Wait until nodes are moved from pending
+        assert_screen 'velum-nodes-accepted';
     }
 
     # Staging workaround
