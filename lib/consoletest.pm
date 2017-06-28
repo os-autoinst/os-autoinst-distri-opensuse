@@ -24,6 +24,8 @@ sub post_fail_hook {
     # Export logs after failure
     assert_script_run("journalctl --no-pager -b 0 > /tmp/full_journal.log");
     upload_logs "/tmp/full_journal.log";
+    assert_script_run("dmesg > /tmp/dmesg.log");
+    upload_logs "/tmp/dmesg.log";
 }
 
 1;
