@@ -73,7 +73,7 @@ sub velum_bootstrap {
     # Staging workaround
     if (check_screen('velum-bootstrap-accept-nodes', 3)) {
         assert_and_click 'velum-bootstrap-accept-nodes';
-        # Wait until nodes are moved from pending
+        # Nodes are moved from pending - minus admin & controller
         my $nodes = get_var('STACK_SIZE') - 2;
         assert_screen "velum-$nodes-nodes-accepted";
     }
