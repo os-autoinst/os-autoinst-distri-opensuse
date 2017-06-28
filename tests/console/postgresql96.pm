@@ -19,11 +19,11 @@ use utils;
 sub run() {
     select_console 'root-console';
 
-    # install the postgresql94 client package
-    zypper_call "in postgresql94";
+    # install the postgresql96 client package
+    zypper_call 'in postgresql96';
 
-    # check the postgresql94 client
-    assert_script_run "/usr/bin/psql --help", 200;
+    # check the postgresql client
+    assert_script_run '/usr/bin/psql --help', 200;
 }
 
 1;
