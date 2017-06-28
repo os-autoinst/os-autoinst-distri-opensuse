@@ -28,7 +28,7 @@ sub run() {
     script_run "systemctl unmask packagekit.service";
 
     # set dmesg output back to normal
-    assert_script_run "dmesg -n 7";
+    assert_script_run "dmesg -n 1";
 
     # logout root (and later user) so they don't block logout
     # in KDE
