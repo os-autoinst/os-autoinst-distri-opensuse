@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2016 SUSE LLC
+# Copyright © 2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -11,28 +11,70 @@
 # Summary: HPC_Module: slurm master
 #    This test is setting up slurm master and starts the control node
 # Maintainer: soulofdestiny <mgriessmeier@suse.com>
+# Tags: https://fate.suse.com/316379
 
-use base "opensusebasetest";
+use base "hpcbase";
 use strict;
 use testapi;
 use lockapi;
+use utils;
 
 sub run() {
+    my $self                      = shift;
+    my $host_ip                   = get_required_var('HPC_HOST_IP');
+    my ($host_ip_without_netmask) = $host_ip =~ /(.*)\/.*/;
+    my $slave_ip                  = get_required_var('HPC_SLAVE_IP');
+    barrier_create("SLURM_MASTER_SERVICE_ENABLED", 2);
+    barrier_create("SLURM_SLAVE_SERVICE_ENABLED",  2);
+
+    select_console 'root-console';
+    $self->setup_static_mm_network($host_ip);
+
+    # stop firewall
+    assert_script_run "rcSuSEfirewall2 stop";
+
     # set proper hostname
     assert_script_run "hostnamectl set-hostname slurm-master";
 
-    # setup slurm master
-    script_run "groupadd -r slurm";
-    script_run "useradd -r -g slurm -d /var/run/slurm -s /bin/false -c \"SLURM Workload Manager\" slurm";
-    assert_script_run 'sed -i "/^ControlMachine.*/c\ControlMachine=slurm-master" /etc/slurm/slurm.conf';
-    script_run "cat /etc/slurm/slurm.conf | grep Control";
+    # install slurm
+    zypper_call('in slurm-munge');
+
+    # create proper /etc/hosts and /etc/slurm.conf
+    my $config = << "EOF";
+echo -e "$host_ip_without_netmask slurm-master" >> /etc/hosts
+echo -e "$slave_ip slurm-slave" >> /etc/hosts
+sed -i "/^ControlMachine.*/c\\ControlMachine=slurm-master" /etc/slurm/slurm.conf
+sed -i "/^NodeName.*/c\\NodeName=slurm-master,slurm-slave Sockets=1 CoresPerSocket=1 ThreadsPerCore=1 State=unknown" /etc/slurm/slurm.conf
+sed -i "/^PartitionName.*/c\\PartitionName=normal Nodes=slurm-master,slurm-slave Default=YES MaxTime=24:00:00 State=UP" /etc/slurm/slurm.conf
+EOF
+    assert_script_run($_) foreach (split /\n/, $config);
+
+    # copy munge key and slurm conf
+    $self->exec_and_insert_password("scp -o StrictHostKeyChecking=no /etc/munge/munge.key root\@$slave_ip:/etc/munge/munge.key");
+    $self->exec_and_insert_password("scp -o StrictHostKeyChecking=no /etc/slurm/slurm.conf root\@$slave_ip:/etc/slurm/slurm.conf");
+
+    # enable and start munge
+    assert_script_run "systemctl enable munge.service";
+    assert_script_run "systemctl start munge.service";
 
     # enable and start slurmctld
     assert_script_run "systemctl enable slurmctld.service";
     assert_script_run "systemctl start slurmctld.service";
     assert_script_run "systemctl status slurmctld.service";
-    barrier_wait('SLURMCTLD_STARTED');
-    barrier_wait('SLURMD_STARTED');
+
+    # enable and start slurmd since master also acts as Node here
+    assert_script_run "systemctl enable slurmd.service";
+    assert_script_run "systemctl start slurmd.service";
+    assert_script_run "systemctl status slurmd.service";
+
+    # wait for slave to be ready
+    barrier_wait("SLURM_MASTER_SERVICE_ENABLED");
+    barrier_wait("SLURM_SLAVE_SERVICE_ENABLED");
+
+    # run the actual test against both nodes
+    assert_script_run("srun -N 2 /bin/ls");
+
+    mutex_create('SLURM_MASTER_RUN_TESTS');
 }
 
 sub test_flags() {
