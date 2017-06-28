@@ -17,8 +17,10 @@ use Exporter;
 use bmwqemu ();
 
 BEGIN {
-    our @EXPORT = qw($serial_term_prompt login);
+    our @EXPORT = qw(serial_term_prompt login);
 }
+
+our $serial_term_prompt;
 
 =head2 login
 
@@ -30,8 +32,10 @@ escape sequences (i.e. a single #) and changes the terminal width.
 =cut
 sub login {
     die 'Login expects two arguments' unless @_ == 2;
-    my ($user, $serial_term_prompt) = @_;
+    my $user   = shift;
     my $escseq = qr/(\e [\(\[] [\d\w]{1,2})/x;
+
+    $serial_term_prompt = shift;
 
     bmwqemu::log_call;
 
@@ -49,6 +53,10 @@ sub login {
     # TODO: Send 'tput rmam' instead/also
     assert_script_run('stty cols 2048');
     assert_script_run('echo Logged into $(tty)', $bmwqemu::default_timeout, result_title => 'vconsole_login');
+}
+
+sub serial_term_prompt {
+    return $serial_term_prompt;
 }
 
 1;
