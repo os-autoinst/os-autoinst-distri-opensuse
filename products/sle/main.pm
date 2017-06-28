@@ -1363,6 +1363,9 @@ elsif (get_var('HPC')) {
         # mrsh sanity multimachine tests
         loadtest 'hpc/mrsh_master' if (check_var('HPC', 'mrsh_master'));
         loadtest 'hpc/mrsh_slave'  if (check_var('HPC', 'mrsh_slave'));
+        # pdsh sanity multimachine tests
+        loadtest 'hpc/pdsh_master' if (check_var('HPC', 'pdsh_master'));
+        loadtest 'hpc/pdsh_slave'  if (check_var('HPC', 'pdsh_slave'));
     }
 }
 else {
