@@ -47,7 +47,7 @@ sub run() {
     }
 
     # no release-notes for WE and all modules
-    my @no_relnotes = qw(we lgm asmm certm contm pcm tcm wsm hpcm ids idu);
+    my @no_relnotes = qw(we lgm asmm certm contm pcm tcm wsm hpcm ids idu phub);
 
     # no relnotes for ltss in QAM_MINIMAL
     push @no_relnotes, qw(ltss) if get_var('QAM_MINIMAL');
