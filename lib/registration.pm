@@ -29,6 +29,7 @@ our @EXPORT = qw(
   registration_bootloader_params
   yast_scc_registration
   skip_registration
+  get_addon_fullname
   %SLE15_MODULES
   %SLE15_DEFAULT_MODULES
 );
@@ -385,6 +386,27 @@ sub skip_registration {
     elsif (match_has_tag('scc-skip-reg-warning-yes')) {
         send_key "alt-y";                       # confirmed skip SCC registration
     }
+}
+
+sub get_addon_fullname {
+    my ($addon) = @_;
+
+    # extensions product list
+    my %product_list = (
+        'ha'    => 'sle-ha',
+        'geo'   => 'sle-ha-geo',
+        'we'    => 'sle-we',
+        'sdk'   => 'sle-sdk',
+        'live'  => 'sle-live-patching',
+        'asmm'  => 'sle-module-adv-systems-management',
+        'contm' => 'sle-module-containers',
+        'hpcm'  => 'sle-module-hpc',
+        'lgm'   => 'sle-module-legacy',
+        'pcm'   => 'sle-module-public-cloud',
+        'tcm'   => 'sle-module-toolchain',
+        'wsm'   => 'sle-module-web-scripting',
+    );
+    return $product_list{"$addon"};
 }
 
 1;
