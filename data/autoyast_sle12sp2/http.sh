@@ -38,33 +38,19 @@ perl - opened <<EOP && IPTABLESRES=1
     /ACCEPT[[:space:]]*(tcp|udp)[[:space:]\*0\.\/-]*(tcp|udp) dpt:([0-9]{2,4})/;
     \$proto = \$1;
     \$port = \$3;
-    print "[DEBUG] port \$port/\$proto opened\n";
-    if (\$proto eq 'tcp') {
-      if (\$port =~ /80|443|8080/) {
+    print "[INFO] port \$port/\$proto opened.\n";
+    #If tcp, expect 80/443/8080, for udp only 9090
+    if (\$proto eq 'tcp' && \$port =~ /80|443|8080/ || \$proto eq 'udp' && \$port eq 9090) {
         \$res += \$port;
-      }
-      else {
-        \$err = 1;
-      }
+        next;
     }
-    elsif (\$proto eq 'udp') {
-      if (\$port eq 9090) {
-        \$res += 9090;
-      }
-      else {
-        \$err = 1;
-      }
-    }
-    else {
-      \$err = 1;
-    }
-    if (\$err == 1) {
-      print "[WARN] Unexpected \$proto port \$port opened\n";
-      \$res = -100;
-    }
+
+    print "[ERROR] Unexpected \$proto port \$port opened.\n";
+    \$err=1;
   }
-  if (\$res != 17693) {
-    print "[ERROR] Some ports were not opened but expected or opened but not expected\n";
+  if (\$res != 17693 || \$err) {
+    print "[ERROR] Some ports were not opened but expected or opened but not expected.\n";
+    print "        Expect only tcp:80,443,8080 and udp:9090.\n";
     exit 1;
   }
   exit 0;
