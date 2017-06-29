@@ -37,7 +37,7 @@ sub fill_in_registration_data {
         save_screenshot;
         wait_screen_change { send_key $cmd{next} };
     }
-    my @known_untrusted_keys = qw(import-trusted-gpg-key-nvidia-F5113243C66B6EAE);
+    my @known_untrusted_keys = qw(import-trusted-gpg-key-nvidia-F5113243C66B6EAE import-trusted-gpg-key-phub-9C214D4065176565);
     unless (get_var('SCC_REGISTER', '') =~ /addon|network/) {
         my @tags = qw(local-registration-servers registration-online-repos import-untrusted-gpg-key module-selection contacting-registration-server);
         if (get_var('SCC_URL') || get_var('SMT_URL')) {
@@ -101,6 +101,7 @@ sub fill_in_registration_data {
         # wsm - Web and Scripting Module
         # idu - IBM DLPAR Utils (ppc64le only)
         # ids - IBM DLPAR sdk (ppc64le only)
+        # phub - PackageHub
         if (get_var('SCC_ADDONS')) {
             if (check_screen('scc-beta-filter-checkbox', 5)) {
                 if (get_var('SP3ORLATER')) {
@@ -160,7 +161,7 @@ sub fill_in_registration_data {
                 $uc_addon = uc $addon;    # change to uppercase to match variable
                 if (my $regcode = get_var("SCC_REGCODE_$uc_addon")) {
                     # skip addons which doesn't need to input scc code
-                    next unless grep { $addon eq $_ } qw(ha geo we live rt ltss);
+                    next unless grep { $addon eq $_ } qw(ha geo we live rt ltss phub);
                     if (check_var('VIDEOMODE', 'text')) {
                         send_key_until_needlematch "scc-code-field-$addon", 'tab';
                     }

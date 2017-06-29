@@ -834,6 +834,9 @@ sub validatelr {
     if ($product eq 'SLE-IDU') {
         $product = 'IBM-DLPAR-utils';
     }
+    if ($product eq 'SLE-PHUB') {
+        $product = 'SUSE-PackageHub-';
+    }
     # LTSS version is included in its product name
     # leave it as empty to match the regex
     if ($product =~ /LTSS/) {
@@ -997,6 +1000,8 @@ sub validate_repos_sle {
         }
 
         for my $scc_product ($base_product, keys %h_scc_addons) {
+            # Skip PackageHub as being not part of modules to validate
+            next if $scc_product eq 'SLE-PHUB';
             # there will be no nvidia repo when WE add-on was removed with MIGRATION_REMOVE_ADDONS
             my $addon_removed = uc get_var('MIGRATION_REMOVE_ADDONS', 'none');
             $we = 1 if ($scc_product eq 'SLE-WE' && $scc_product !~ /$addon_removed/);
