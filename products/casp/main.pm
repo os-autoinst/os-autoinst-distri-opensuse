@@ -81,6 +81,7 @@ sub load_inst_tests() {
 
         # Can not start installation with partitioning error
         return if check_var('FAIL_EXPECTED', 'SMALL-DISK');
+        return if check_var('FAIL_EXPECTED', 'BSC_1043619');
 
         # Actual installation
         loadtest 'installation/install_and_reboot';
