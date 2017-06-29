@@ -16,6 +16,7 @@ use base "installbasetest";
 use strict;
 use testapi;
 use utils 'OPENQA_FTP_URL';
+use suseconnect_register;
 
 sub run {
     my $self = shift;
@@ -102,8 +103,16 @@ sub run {
         assert_script_run("zypper -n addrepo \"$r\" repo$nr");
         $nr++;
     }
-    assert_script_run("zypper -n refresh", 240);
 
+    # Register modules by suseconnect
+    if (assert_module) {
+        suseconnect_registration();
+
+        # disable base product repo added by suseconnect
+        my $repo_version = get_required_var("VERSION");
+        zypper_call("mr -d SLES$repo_version-Pool SLES$repo_version-Updates");
+    }
+    zypper_call("-n refresh", 240);
     script_run("(zypper dup -l;echo ZYPPER-DONE) | tee /dev/$serialdev", 0);
 
     $out = wait_serial([$zypper_dup_continue, $zypper_dup_conflict, $zypper_dup_error], 240);
