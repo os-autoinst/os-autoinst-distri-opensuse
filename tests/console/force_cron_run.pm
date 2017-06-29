@@ -18,6 +18,9 @@ use testapi;
 sub run() {
     select_console 'root-console';
 
+    # show dmesg output in console during cron run
+    assert_script_run "dmesg -n 7";
+
     assert_script_run "bash -x /usr/lib/cron/run-crons", 1000;
     sleep 3;    # some head room for the load average to rise
     script_run "top; echo TOP-DONE-\$? > /dev/$serialdev", 0;
@@ -25,6 +28,9 @@ sub run() {
     assert_screen 'top-load-decreased', 1000;
     send_key 'q';
     wait_serial 'TOP-DONE';
+
+    # return dmesg output to normal
+    assert_script_run "dmesg -n 1";
 }
 
 sub test_flags() {

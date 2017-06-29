@@ -109,9 +109,6 @@ sub run() {
 
     save_screenshot;
 
-    # show dmesg output in console during cron run
-    assert_script_run "dmesg -n 7";
-
     $self->clear_and_verify_console;
 
     select_console 'user-console';
