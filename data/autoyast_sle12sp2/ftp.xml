@@ -43,7 +43,7 @@
     <SSLEnable>NO</SSLEnable>
     <SSLv2>NO</SSLv2>
     <SSLv3>NO</SSLv3>
-    <StartDaemon>2</StartDaemon>
+    <StartDaemon>0</StartDaemon>
     <StartXinetd>YES</StartXinetd>
     <TLS>YES</TLS>
     <Umask/>
