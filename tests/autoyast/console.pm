@@ -1,4 +1,4 @@
-# Copyright (C) 2015 SUSE Linux GmbH
+# Copyright (C) 2015-2017 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -13,39 +13,26 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# G-Summary: merge of sles11sp4 autoyast test, base commit
-# G-Maintainer: Pavel Sladek <psladek@suse.cz>
+# Summary: Make sure we are logged in
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use strict;
 use base 'y2logsstep';
 use testapi;
+use utils 'power_action';
 
 sub run {
-    my $self = shift;
-    # the main motivation for doing this test was bsc#889757 and related
-
-    #switch to second console
-    send_key "alt-f2";
-    send_key "ctrl-alt-f2";
-    sleep 10;
-    send_key "ret";
-
-    if (!check_screen("autoyast-system-login-console", 300)) {
-        $self->result('fail');
-        # back to console 1, maybe we can login there to continue with testing
-        send_key "alt-f1";
-        sleep 5;
+    my ($self) = @_;
+    # trying to change consoles manually because of bsc#1042554
+    send_key 'ctrl-alt-f2';
+    send_key 'alt-f2';
+    if (!check_screen 'text-login') {
+        record_soft_failure 'bsc#1042554';
+        send_key 'ctrl-alt-delete';
+        power_action('reboot', keepconsole => 0, observe => 0);
+        $self->wait_boot();
     }
-    else {
-        $self->result('ok');
-        #check also first console for errors
-        send_key "alt-f1";
-        sleep 5;
-        save_screenshot;
-        send_key "alt-f2";
-        sleep 5;
-
-    }
+    select_console 'root-console';
 }
 
 1;
