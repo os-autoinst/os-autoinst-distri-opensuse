@@ -547,7 +547,7 @@
         <warn>7</warn>
       </password_settings>
       <shell>/bin/bash</shell>
-      <uid>1000</uid>
+      <uid>1001</uid>
       <user_password>nots3cr3t</user_password>
       <username>maier</username>
     </user>
