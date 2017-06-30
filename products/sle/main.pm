@@ -714,6 +714,7 @@ sub load_consoletests() {
         loadtest "console/curl_https";
         if (check_var_array('SCC_ADDONS', 'asmm')) {
             loadtest "console/puppet";
+            loadtest "console/salt";
         }
         if (check_var("ARCH", "x86_64")) {
             loadtest "console/glibc_i686";
