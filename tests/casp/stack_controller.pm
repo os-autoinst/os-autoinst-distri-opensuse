@@ -19,6 +19,7 @@
 use base "opensusebasetest";
 use strict;
 use testapi;
+use utils 'assert_screen_with_soft_timeout';
 use lockapi;
 use mmapi;
 
@@ -75,7 +76,7 @@ sub velum_bootstrap {
         assert_and_click 'velum-bootstrap-accept-nodes';
         # Nodes are moved from pending - minus admin & controller
         my $nodes = get_var('STACK_SIZE') - 2;
-        assert_screen "velum-$nodes-nodes-accepted";
+        assert_screen_with_soft_timeout("velum-$nodes-nodes-accepted", timeout => 90, soft_timeout => 15, bugref => 'bsc#1046663');
     }
 
     # Staging workaround
