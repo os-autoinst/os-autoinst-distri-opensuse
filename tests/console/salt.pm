@@ -15,20 +15,23 @@
 use base "consoletest";
 use strict;
 use testapi;
+use utils 'pkcon_quit';
 
 sub run() {
     select_console 'root-console';
+    pkcon_quit;
     my $cmd = <<'EOF';
 zypper -n in salt-master salt-minion
 systemctl start salt-master
 systemctl status salt-master
 sed -i -e "s/#master: salt/master: localhost/" /etc/salt/minion
 systemctl start salt-minion
-yes | salt-key --accept-all ; [ "$?" = "141" ] || [ "$?" = "0" ]
-salt '*' test.ping
-systemctl stop salt-master salt-minion
+systemctl status salt-minion
+salt-key --accept-all -y
 EOF
     assert_script_run($_) foreach (split /\n/, $cmd);
+    validate_script_output "salt '*' test.ping | grep -woh True > /dev/$serialdev", sub { m/True/ };
+    assert_script_run 'systemctl stop salt-master salt-minion';
 }
 
 1;
