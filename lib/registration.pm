@@ -159,6 +159,10 @@ sub fill_in_registration_data {
                 # no need to input registration code if register via SMT
                 last if (get_var('SMT_URL'));
                 $uc_addon = uc $addon;    # change to uppercase to match variable
+                if ($addon eq 'phub') {
+                    record_soft_failure 'bsc#1046172';
+                    set_var('SCC_REGCODE_PHUB', get_required_var('SCC_REGCODE'));
+                }
                 if (my $regcode = get_var("SCC_REGCODE_$uc_addon")) {
                     # skip addons which doesn't need to input scc code
                     next unless grep { $addon eq $_ } qw(ha geo we live rt ltss phub);
