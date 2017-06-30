@@ -50,12 +50,12 @@ sub run() {
     wait_still_screen;
     send_key "alt-shift-d";
     assert_screen "firefox-device-manager";
-    send_key "alt-f";
+    # Enable FIPS mode
+    send_key "alt-shift-f";
     assert_screen "firefox-fips-password-inputfiled", 300;
     type_string $fips_password;
     send_key "ret";
-    send_key "tab";
-    send_key "ret";
+    # No shortcut to close device manager, quit firefox directly
     quit_firefox;
     assert_screen "generic-desktop";
 
@@ -64,15 +64,15 @@ sub run() {
     assert_screen "firefox-fips-password-inputfiled", 90;
     type_string $fips_password;
     send_key "ret";
-    assert_screen "firefox-homepage", 90;
+    # Need click on tab area twice to make sure it is selected
+    assert_and_click "firefox-homepage", 90;
+    assert_and_click "firefox-homepage";
     send_key "alt-d";
     type_string "about:preferences#advanced\n";
     assert_screen "firefox-preferences-advanced";
     send_key "alt-shift-d";
     assert_screen "firefox-device-manager";
-    send_key "down";
     assert_screen "firefox-confirm-fips_enabled";
-    send_key "ret";
     quit_firefox;
     assert_screen "generic-desktop";
 }
