@@ -44,21 +44,24 @@ sub velum_certificates {
     for (1 .. 4) { send_key 'tab' }
     type_string "master.openqa.test";
 
-    # Skip proxy settings
-    for (1 .. 4) { send_key 'tab' }
+    # Staging workaround
+    unless (check_screen 'velum-proxy-optional') {
+        # Skip proxy settings
+        for (1 .. 4) { send_key 'tab' }
 
-    # Fill certificate settings
-    type_string "SUSE";
-    send_key 'tab';
-    type_string "QA";
-    send_key 'tab';
-    type_string "email\@email.com";
-    send_key 'tab';
-    type_string "cz";
-    send_key 'tab';
-    type_string "CZ";
-    send_key 'tab';
-    type_string "Prague";
+        # Fill certificate settings
+        type_string "SUSE";
+        send_key 'tab';
+        type_string "QA";
+        send_key 'tab';
+        type_string "email\@email.com";
+        send_key 'tab';
+        type_string "cz";
+        send_key 'tab';
+        type_string "CZ";
+        send_key 'tab';
+        type_string "Prague";
+    }
     save_screenshot;
     send_key 'ret';
 
@@ -94,11 +97,24 @@ sub velum_bootstrap {
 
     # Select master and bootstrap
     mouse_set $x, $y;
+    sleep 0.5;
     mouse_click;
     assert_and_click "velum-bootstrap";
     mouse_hide;
+
+    # Accept small-cluster warning
+    assert_and_click 'velum-botstrap-warning' if check_var('STACK_SIZE', 4);
+
     assert_screen "velum-botstrap-done", 300;
     assert_and_click "velum-kubeconfig";
+}
+
+sub confirm_insecure_https {
+    # Workaround for non-staging
+    return if check_screen('create-an-account', 10);
+    assert_and_click 'velum-https-advanced';
+    assert_and_click 'velum-https-add_exception';
+    assert_and_click 'velum-https-confirm';
 }
 
 # Setup while waiting for admin dashboard installation
@@ -126,9 +142,11 @@ sub run() {
     barrier_wait "VELUM_STARTED";
 
     # Display velum dashboard
+    type_string 'https://' if check_var('FLAVOR', 'Staging-B-DVD');
     type_string get_var('DASHBOARD_URL');
     send_key 'ret';
     send_key "f11";
+    confirm_insecure_https;
 
     # Bootstrap cluster and download kubeconfig
     velum_signup;
