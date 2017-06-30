@@ -26,7 +26,7 @@ systemctl start salt-master
 systemctl status salt-master
 sed -i -e "s/#master: salt/master: localhost/" /etc/salt/minion
 systemctl start salt-minion
-systemctl status salt-minion
+systemctl status --no-pager salt-minion
 salt-key --accept-all -y
 EOF
     assert_script_run($_) foreach (split /\n/, $cmd);
