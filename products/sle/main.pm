@@ -9,7 +9,7 @@
 # without any warranty.
 use strict;
 use warnings;
-use testapi qw(check_var get_var get_required_var set_var check_var_array diag);
+use testapi qw(check_var get_var get_required_var set_var get_var_array check_var_array diag);
 use lockapi;
 use needle;
 use registration;
@@ -1414,6 +1414,41 @@ elsif (get_var('HPC')) {
 }
 elsif (get_var('SYSTEMD_TESTSUITE')) {
     load_systemd_patches_tests;
+}
+elsif (get_var('SUMA_IMAGE_BUILD')) {
+    prepare_target();
+    if (get_var('SUMA_MINION')) {
+      loadtest "suma/minion_installation";
+      loadtest "shutdown/shutdown";
+    }
+    else {
+      loadtest "suma/installation";
+      loadtest "suma/webinit";
+      loadtest "suma/shutdown";
+    }
+}
+elsif (get_var('SUMA_TESTS') && !get_var('SUMA_SALT_MINION')){
+    loadtest "suma/masterlocks";
+    prepare_target();
+    loadtest "suma/webinit";
+    loadtest "suma/wait_for_minion";
+    for my $t (@{get_var_array('SUMA_TESTS')}) {
+      loadtest "suma/$t";
+    }
+#    loadtest "suma/wait_for_minion";
+}
+elsif (get_var('SUMA_SALT_MINION')) {
+    prepare_target();
+    if (check_var('SUMA_SALT_MINION', 'branch')) {
+      loadtest "suma/minionlocks";
+      loadtest "suma/minion_init";
+    }
+    elsif (check_var('SUMA_SALT_MINION', 'terminal')) {
+      loadtest "suma/terminal_init";
+    }
+    for my $t (@{get_var_array('SUMA_TESTS')}) {
+      loadtest "suma/$t";
+    }
 }
 else {
     if (get_var("AUTOYAST") || get_var("AUTOUPGRADE")) {
