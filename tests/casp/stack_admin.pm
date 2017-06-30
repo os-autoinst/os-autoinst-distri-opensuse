@@ -21,6 +21,9 @@ sub run() {
     my $timeout   = 240;
     my $starttime = time;
     while (script_run 'curl -I localhost | grep velum') {
+        # Staging workaround - if script_run returns zero velum is running
+        last unless script_run('curl -kI https://localhost | grep velum');
+
         my $timerun = time - $starttime;
         if ($timerun < $timeout) {
             sleep 15;
