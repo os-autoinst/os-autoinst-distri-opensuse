@@ -17,20 +17,36 @@ use strict;
 use testapi;
 
 sub start_firefox() {
+    my ($self) = @_;
     x11_start_program("firefox https://html5test.com/index.html", 6, {valid => 1});
-    for (1 .. 3) {
-        assert_screen [qw(firefox_default_browser firefox_trackinfo firefox_readerview_window firefox-html5test)], 120;
-        if (match_has_tag('firefox_default_browser')) {
-            wait_screen_change {
-                assert_and_click 'firefox_default_browser_yes';
-            };
-        }
-        elsif (match_has_tag('firefox_trackinfo')) {
+    $self->check_firefox_default;
+    $self->check_firefox_popups;
+    assert_screen 'firefox-html5test';
+}
+
+sub check_firefox_default {
+    # Set firefox as default browser if asked
+    assert_screen [qw(firefox_default_browser firefox_trackinfo firefox_readerview_window firefox-html5test)], 120;
+    if (match_has_tag('firefox_default_browser')) {
+        wait_screen_change {
+            assert_and_click 'firefox_default_browser_yes';
+        };
+    }
+}
+
+sub check_firefox_popups {
+    # Check whether there are any pop up windows and handle them one by one
+    for (1 .. 2) {
+        wait_still_screen;
+        assert_screen [qw(firefox_trackinfo firefox_readerview_window firefox-html5test)], 60;
+        # Handle the tracking protection pop up
+        if (match_has_tag('firefox_trackinfo')) {
             wait_screen_change {
                 assert_and_click 'firefox_trackinfo';
                 assert_and_click 'firefox_titlebar';    # workaround for bsc#1046005
             };
         }
+        # Handle the reader view pop up
         elsif (match_has_tag('firefox_readerview_window')) {
             wait_screen_change {
                 assert_and_click 'firefox_readerview_window';
@@ -38,7 +54,6 @@ sub start_firefox() {
             };
         }
     }
-    assert_screen 'firefox-html5test';
 }
 
 sub run() {
