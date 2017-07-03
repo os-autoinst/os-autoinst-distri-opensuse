@@ -95,13 +95,17 @@ sub prepare_kgraft {
     my ($repo, $patch) = @_;
     my $arch    = get_required_var('ARCH');
     my $version = get_required_var('VERSION');
+    my $release_override;
+    if ($version eq '12') {
+        $release_override = '-d';
+    }
     if (!sle_version_at_least('12-SP3')) {
         $version = '12';
     }
 
     #install kgraft product
     zypper_call("ar http://download.suse.de/ibs/SUSE/Products/SLE-Live-Patching/$version/$arch/product/ kgraft-pool");
-    zypper_call("ar -d http://download.suse.de/ibs/SUSE/Updates/SLE-Live-Patching/$version/$arch/update/ kgraft-update");
+    zypper_call("ar $release_override http://download.suse.de/ibs/SUSE/Updates/SLE-Live-Patching/$version/$arch/update/ kgraft-update");
     zypper_call("ref");
     zypper_call("in sle-live-patching-release", exitcode => [0, 102, 103]);
     zypper_call("mr -e kgraft-update");
