@@ -71,7 +71,8 @@ sub run() {
 
     # after installation we need to redefine the domain, so just shutdown
     # on zdup and online migration we don't need to redefine in between
-    if (!get_var('ZDUP') and !get_var('ONLINE_MIGRATION')) {
+    # If boot from existing hdd image, we don't expect shutdown on reboot
+    if (!get_var('ZDUP') and !get_var('ONLINE_MIGRATION') and !get_var('BOOT_HDD_IMAGE')) {
         $svirt->change_domain_element(on_reboot => 'destroy');
     }
 
