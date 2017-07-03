@@ -32,28 +32,30 @@ grep -q -E "Chain (INPUT|FORWARD) \(policy DROP" $IPTABLESLOG || exit 1
 grep -E "ACCEPT[[:space:]]*(tcp|udp)[[:space:]\*0\./-]*(tcp|udp)" $IPTABLESLOG > opened || exit 2
 
 perl - opened <<EOP && IPTABLESRES=1
-  my \$res = 0;
+  my @ports = qw(tcp:80 tcp:443 tcp:8080 udp:5353 udp:9090);
+  my %res = map { \$_ => 1 } @ports;
   my \$err = 0;
   while(<>) {
     /ACCEPT[[:space:]]*(tcp|udp)[[:space:]\*0\.\/-]*(tcp|udp) dpt:([0-9]{2,4})/;
     \$proto = \$1;
     \$port = \$3;
     print "[INFO] port \$port/\$proto opened.\n";
-    #If tcp, expect 80/443/8080, for udp only 9090
-    if (\$proto eq 'tcp' && \$port =~ /80|443|8080/ || \$proto eq 'udp' && \$port eq 9090) {
-        \$res += \$port;
+    #Check if opened port is expected
+    if (exists(\$res{"\$proto:\$port"})) {
+        #remove expected ports from hash
+        delete \$res{"\$proto:\$port"};
         next;
     }
 
     print "[ERROR] Unexpected \$proto port \$port opened.\n";
     \$err=1;
   }
-  if (\$res != 17693 || \$err) {
-    print "[ERROR] Some ports were not opened but expected or opened but not expected.\n";
-    print "        Expect only tcp:80,443,8080 and udp:9090.\n";
-    exit 1;
+  #Check if some ports were not opened but expected to be
+  if (%res) {
+    print "[ERROR] Some of ports were not opened: " . keys %res . ".\n";
+    \$err=1;
   }
-  exit 0;
+  exit \$err;
 EOP
 
 test $HTTPRES -eq 1 -a $IPTABLESRES -eq 1 && echo "AUTOYAST OK"
