@@ -346,7 +346,16 @@ sub load_yast2_ui_tests {
     loadtest "console/hostname";
     loadtest "console/zypper_lr";
     loadtest "console/zypper_ref";
-    # start extra yast console test from here
+    # split YaST2 UI tests relying on external development controlled test
+    # suites and self-contained ones
+    if (get_var('Y2UITEST_DEVEL')) {
+        # (Livesystem and laptops do use networkmanager)
+        if (!get_var("LIVETEST") && !get_var("LAPTOP")) {
+            loadtest 'console/yast2_cmdline';
+        }
+        return;
+    }
+    # start extra yast console tests (self-contained only) from here
     loadtest "console/yast2_proxy";
     loadtest "console/yast2_ntpclient";
     loadtest "console/yast2_tftp";
@@ -365,7 +374,6 @@ sub load_yast2_ui_tests {
     # (Livesystem and laptops do use networkmanager)
     if (!get_var("LIVETEST") && !get_var("LAPTOP")) {
         if (check_var('DISTRI', 'opensuse')) {
-            loadtest "console/yast2_cmdline";
             loadtest "console/yast2_dns_server";
         }
         loadtest "console/yast2_nfs_client";
