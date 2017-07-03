@@ -61,7 +61,7 @@ sub trup_call {
 
     script_run "transactional-update $cmd", 0;
     if ($cmd =~ /ptf /) {
-        if (wait_serial "\QContinue? [y/n/...? shows all options] (y):") {
+        if (wait_serial "Continue?") {
             send_key "ret";
         }
         else {
