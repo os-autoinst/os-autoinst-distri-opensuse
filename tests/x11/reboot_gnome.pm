@@ -20,6 +20,9 @@ sub run() {
     my ($self) = @_;
     # 'keepconsole => 1' is workaround for bsc#1044072
     power_action('reboot', keepconsole => 1);
+
+    # on s390x svirt encryption unlock has to be done before this wait_boot
+    workaround_type_encrypted_passphrase if get_var('S390_ZKVM');
     $self->wait_boot(bootloader_time => 300);
 }
 
