@@ -20,14 +20,9 @@ sub is_smt_or_module_tests {
     return get_var('SCC_ADDONS', '') =~ /asmm|contm|hpcm|lgm|pcm|tcm|wsm|idu|ids/ || get_var('TEST', '') =~ /migration_offline_sle12sp\d_smt/;
 }
 
-sub system_prepare() {
-    select_console 'root-console';
-    type_string "chown $username /dev/$serialdev\n";
-    type_string "echo 'export Y2DEBUG=1' >> /etc/bash.bashrc.local\n";
-    script_run "source /etc/bash.bashrc.local";
-}
-
 sub patching_sle() {
+    my ($self) = @_;
+
     set_var("VIDEOMODE",    'text');
     set_var("SCC_REGISTER", 'installation');
     # remember we perform registration on pre-created HDD images
@@ -53,6 +48,9 @@ sub patching_sle() {
 
     if (get_var('FULL_UPDATE')) {
         fully_patch_system();
+        type_string "reboot\n";
+        $self->wait_boot(textmode => !is_desktop_installed, ready_time => 600);
+        $self->setup_migration;
     }
 
     de_register(version_variable => 'HDDVERSION');
@@ -65,8 +63,10 @@ sub patching_sle() {
 }
 
 sub run() {
-    system_prepare();
-    patching_sle();
+    my ($self) = @_;
+
+    $self->setup_migration;
+    $self->patching_sle();
 }
 
 sub test_flags {

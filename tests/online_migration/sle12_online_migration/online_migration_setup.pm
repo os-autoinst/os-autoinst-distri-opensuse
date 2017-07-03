@@ -12,12 +12,17 @@
 
 use base "consoletest";
 use strict;
+use utils;
 use testapi;
 use migration;
 
 sub run() {
     my ($self) = @_;
-    $self->setup_online_migration;
+
+    # if source system is minimal installation then boot to textmode
+    # we don't care about source system start time because our SUT is upgraded one
+    $self->wait_boot(textmode => !is_desktop_installed, ready_time => 600);
+    $self->setup_migration;
 }
 
 sub test_flags() {
