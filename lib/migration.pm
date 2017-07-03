@@ -25,18 +25,15 @@ use utils;
 use registration;
 
 our @EXPORT = qw(
-  setup_online_migration
+  setup_migration
   register_system_in_textmode
   de_register
   remove_ltss
   disable_installation_repos
 );
 
-sub setup_online_migration {
+sub setup_migration {
     my ($self) = @_;
-    # if source system is minimal installation then boot to textmode
-    # we don't care about source system start time because our SUT is upgraded one
-    $self->wait_boot(textmode => !is_desktop_installed, ready_time => 600);
     select_console 'root-console';
 
     # stop packagekit service
