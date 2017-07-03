@@ -68,7 +68,7 @@ sub velum_certificates {
 
 # Run bootstrap and download kubeconfig
 sub velum_bootstrap {
-    assert_screen 'velum-bootstrap-page', 60;
+    assert_screen 'velum-bootstrap-page', 90;
     barrier_wait "WORKERS_INSTALLED";
 
     # Staging workaround
