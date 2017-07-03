@@ -37,14 +37,11 @@ sub handle_livecd_screenlock {
     assert_screen('yast-still-running', 120);
 }
 
+# Stop countdown and check success by waiting screen change without performing an action
 sub wait_countdown_stop {
     my $stilltime = shift;
-    return wait_screen_change(
-        sub {
-            send_key 'alt-s';
-        },
-        $stilltime
-    );
+    send_key 'alt-s';
+    return wait_screen_change(undef, $stilltime);
 }
 
 sub run() {
