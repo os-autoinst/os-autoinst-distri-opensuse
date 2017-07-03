@@ -33,7 +33,12 @@ sub run() {
         send_key $cmd{next};
         assert_screen 'addon-products';
         # if more repos to come, add more
-        send_key 'alt-a' if @repos;
+        if (@repos) {
+            send_key 'alt-a';
+            until (check_screen('addon-menu-active', 5)) {
+                send_key 'alt-a';
+            }
+        }
     }
 }
 
