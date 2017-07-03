@@ -52,7 +52,8 @@ perl - opened <<EOP && IPTABLESRES=1
   }
   #Check if some ports were not opened but expected to be
   if (%res) {
-    print "[ERROR] Some of ports were not opened: " . keys %res . ".\n";
+    print "[ERROR] Some of ports were not opened:\n";
+    print "        " . "\$_\n" for keys %res;
     \$err=1;
   }
   exit \$err;
