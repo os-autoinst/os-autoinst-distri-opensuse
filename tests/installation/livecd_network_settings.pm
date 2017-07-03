@@ -18,7 +18,8 @@ use testapi;
 
 sub run() {
     assert_screen 'inst-network_settings-livecd';
-    send_key $cmd{next};
+    # For network settings we have different shortcut, see discussion under bsc#1045798
+    send_key 'alt-x';
 }
 
 1;
