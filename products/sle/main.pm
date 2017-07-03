@@ -790,6 +790,9 @@ sub load_consoletests() {
             }
         }
         loadtest 'console/install_all_from_repository' if get_var('INSTALL_ALL_REPO');
+        if (get_var('SCC_ADDONS') && get_var('PATTERNS')) {
+            loadtest "feature/feature_console/deregister";
+        }
         loadtest "console/consoletest_finish";
     }
 }
