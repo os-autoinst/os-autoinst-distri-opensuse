@@ -95,10 +95,13 @@ sub velum_bootstrap {
     my $x      = $col->{x} + int($col->{w} / 2);
     my $y      = $row->{y} + int($row->{h} / 2);
 
-    # Select master and bootstrap
+    # Select master
     mouse_set $x, $y;
     sleep 0.5;
     mouse_click;
+
+    # Click bootstrap button
+    send_key_until_needlematch "velum-bootstrap", "pgdn", 2, 5;
     assert_and_click "velum-bootstrap";
     mouse_hide;
 
