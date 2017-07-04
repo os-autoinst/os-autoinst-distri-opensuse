@@ -60,7 +60,8 @@ sub fill_in_registration_data {
             }
             elsif ((get_var('SCC_URL') || get_var('SMT_URL')) && match_has_tag("untrusted-ca-cert")) {
                 record_soft_failure 'bsc#943966' if get_var('SCC_CERT');
-                wait_screen_change { send_key 'alt-t' };
+                send_key 'alt-t';
+                wait_still_screen 5;
                 # the behavior here of smt registration on 12sp1 is a little different with
                 # 12sp0 and 12sp2, normally registration would start automatically after
                 # untrusted certification imported, but it would not on 12sp1, and we have to
