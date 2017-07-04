@@ -72,9 +72,17 @@ sub kgraft_state {
 }
 
 sub install_lock_kernel {
-    my $version  = shift;
-    my @packages = qw(kernel-default  kernel-default-devel kernel-macros kernel-source);
+    my $version = shift;
+    # version numbers can be 'out of sync'
+    my $numbering_exception = {
+        'kernel-source' => {
+            '4.4.59-92.17.3' => '4.4.59-92.17.2',
+        },
+        'kernel-macros' => {
+            '4.4.59-92.17.3' => '4.4.59-92.17.2',
+        }};
 
+    my @packages = qw(kernel-default kernel-default-devel kernel-macros kernel-source);
     # SLE12 and SLE12SP1 has xen kernel
     if (!sle_version_at_least('12-SP2')) {
         push @packages, qw(kernel-xen kernel-xen-devel);
@@ -84,7 +92,17 @@ sub install_lock_kernel {
     script_run("zypper -n rm " . join(' ', @packages), 700);
 
     my @lpackages = @packages;
-    foreach (@packages) { s/$/-$version/ }
+
+    # extend list of packages with $version + workaround exceptions
+    foreach my $package (@packages) {
+        my $l_v = $version;
+        for my $k (grep { $_ eq $package } keys %{$numbering_exception}) {
+            for my $kk (keys %{$numbering_exception->{$k}}) {
+                $l_v = $numbering_exception->{$k}->{$kk} if $version eq $kk;
+            }
+        }
+        $package =~ s/$/-$l_v/;
+    }
 
     # install and lock needed kernel
     zypper_call("in " . join(' ', @packages), exitcode => [0, 102, 103, 104]);
