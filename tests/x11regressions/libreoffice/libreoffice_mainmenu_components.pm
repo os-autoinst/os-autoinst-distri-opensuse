@@ -74,9 +74,11 @@ sub run() {
 
     $self->open_mainmenu();
     assert_and_click 'mainmenu-office-impress';    #open impress
-    assert_screen 'ooimpress-select-a-template';
-    send_key "alt-f4";                             #close template window
-    assert_screen 'ooimpress-launched';
+    assert_screen [qw(ooimpress-select-a-template ooimpress-launched)];
+    if (match_has_tag 'ooimpress-select-a-template') {
+        send_key 'alt-f4';                         # close impress template window
+        assert_screen 'ooimpress-launched';
+    }
     send_key "ctrl-q";                             #close impress
 
     $self->open_mainmenu();
@@ -109,9 +111,11 @@ sub run() {
     type_string "impress";                         #open impress
     assert_screen 'overview-office-impress';
     send_key "ret";
-    assert_screen 'ooimpress-select-a-template';
-    send_key "alt-f4";                             #close template window
-    assert_screen 'ooimpress-launched';
+    assert_screen [qw(ooimpress-select-a-template ooimpress-launched)];
+    if (match_has_tag 'ooimpress-select-a-template') {
+        send_key 'alt-f4';                         # close impress template window
+        assert_screen 'ooimpress-launched';
+    }
     send_key "ctrl-q";                             #close impress
 
     $self->open_overview();
