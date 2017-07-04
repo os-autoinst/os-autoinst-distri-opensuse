@@ -27,6 +27,7 @@ our @EXPORT = qw(
   boot_into_snapshot
   pre_bootmenu_setup
   select_bootmenu_option
+  uefi_bootmenu_params
   bootmenu_default_params
   bootmenu_network_source
   specific_bootmenu_params
@@ -149,6 +150,52 @@ sub bootmenu_type_console_params {
     # See bsc#1011815, last console set as boot parameter is linked to /dev/console
     # and doesn't work if set to serial device.
     type_string_very_slow "console=tty ";
+}
+
+sub uefi_bootmenu_params {
+    # assume bios+grub+anim already waited in start.sh
+    # in grub2 it's tricky to set the screen resolution
+    send_key "e";
+    if (is_jeos) {
+        for (1 .. 3) { send_key "down"; }
+        send_key "end";
+        # delete "800x600"
+        for (1 .. 7) { send_key "backspace"; }
+    }
+    else {
+        for (1 .. 2) { send_key "down"; }
+        send_key "end";
+        # delete "keep" word
+        for (1 .. 4) { send_key "backspace"; }
+    }
+    # hardcoded the value of gfxpayload to 1024x768
+    type_string "1024x768";
+    assert_screen "gfxpayload_changed", 10;
+    # back to the entry position
+    send_key "home";
+    for (1 .. 2) { send_key "up"; }
+    if (is_jeos) {
+        send_key "up";
+    }
+    sleep 5;
+    for (1 .. 4) { send_key "down"; }
+    send_key "end";
+
+    if (get_var("NETBOOT")) {
+        type_string_slow " install=" . get_netboot_mirror;
+        save_screenshot();
+    }
+    send_key "spc";
+
+    # if(get_var("PROMO")) {
+    #     for(1..2) {send_key "down";} # select KDE Live
+    # }
+
+    if (check_var('VIDEOMODE', "text")) {
+        type_string_slow "textmode=1 ";
+    }
+
+    type_string " \\\n";    # changed the line before typing video params
 }
 
 sub bootmenu_default_params {
