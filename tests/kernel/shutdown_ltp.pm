@@ -18,7 +18,7 @@ use utils;
 
 sub run {
     type_string "poweroff\n";
-    assert_shutdown;
+    assert_shutdown 1800;
 }
 
 sub test_flags {
