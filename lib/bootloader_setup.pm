@@ -20,6 +20,7 @@ use testapi;
 use utils;
 use lockapi;
 use mm_network;
+use main_common "addon_products_is_applicable";
 
 our @EXPORT = qw(
   stop_grub_timeout
@@ -335,6 +336,13 @@ sub specific_bootmenu_params {
         else {
             $args .= " dud=" . data_url($dud) . " insecure=1";
         }
+    }
+
+    # For leap 42.3 we don't have addon_products screen
+    if (!addon_products_is_applicable()) {
+        my $addon_url = get_var("ADDONURL");
+        $addon_url =~ s/\+/,/g;
+        $args .= " addon=" . $addon_url;
     }
 
     if (check_var('ARCH', 's390x')) {
