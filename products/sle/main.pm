@@ -1174,7 +1174,7 @@ elsif (get_var("QA_TESTSET")) {
     if (get_var('INSTALL_KOTD')) {
         loadtest 'kernel/install_kotd';
     }
-    if (get_var('OS_TEST_REPO')) {
+    if (get_var('MAINT_TEST_REPO')) {
         loadtest "qa_automation/patch_and_reboot";
     }
     loadtest "qa_automation/" . get_var("QA_TESTSET");
