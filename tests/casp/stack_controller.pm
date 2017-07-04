@@ -74,18 +74,14 @@ sub velum_bootstrap {
     assert_screen 'velum-bootstrap-page', 90;
     barrier_wait "WORKERS_INSTALLED";
 
-    # Staging workaround
-    if (check_screen('velum-bootstrap-accept-nodes', 3)) {
-        assert_and_click 'velum-bootstrap-accept-nodes';
-        # Nodes are moved from pending - minus admin & controller
-        my $nodes = get_var('STACK_SIZE') - 2;
-        assert_screen_with_soft_timeout("velum-$nodes-nodes-accepted", timeout => 90, soft_timeout => 15, bugref => 'bsc#1046663');
-    }
+    # Accept pending nodes
+    assert_and_click 'velum-bootstrap-accept-nodes';
+    # Nodes are moved from pending - minus admin & controller
+    my $nodes = get_var('STACK_SIZE') - 2;
+    assert_screen_with_soft_timeout("velum-$nodes-nodes-accepted", timeout => 90, soft_timeout => 15, bugref => 'bsc#1046663');
 
-    # Staging workaround
-    if (check_screen('velum-bootstrap-select-nodes', 3)) {
-        assert_and_click 'velum-bootstrap-select-nodes';
-    }
+    # Select all nodes for bootstrap
+    assert_and_click 'velum-bootstrap-select-nodes';
 
     # Calculate position of master node radio button
     send_key_until_needlematch "master-checkbox-xy", "pgdn", 2, 5;
@@ -145,7 +141,6 @@ sub run() {
     barrier_wait "VELUM_STARTED";
 
     # Display velum dashboard
-    type_string 'https://' if check_var('FLAVOR', 'Staging-B-DVD');
     type_string get_var('DASHBOARD_URL');
     send_key 'ret';
     send_key "f11";
