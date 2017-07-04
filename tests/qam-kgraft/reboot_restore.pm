@@ -13,6 +13,7 @@
 use base 'kgrafttest';
 use testapi;
 use qam;
+use utils;
 
 use strict;
 use warnings;
