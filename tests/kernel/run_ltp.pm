@@ -458,7 +458,7 @@ EOF
         }
 
         if (is_serial_terminal) {
-            wait_serial($serial_term_prompt, undef, 0, no_regex => 1);
+            wait_serial(serial_term_prompt(), undef, 0, no_regex => 1);
             type_string($cmd_text);
             wait_serial($cmd_text, undef, 0, no_regex => 1);
             type_string("\n");
