@@ -18,9 +18,9 @@ use main_common "noupdatestep_is_applicable";
 
 sub run() {
     assert_screen "inst-timezone", 125 || die 'no timezone';
-    # Different hotkey on kde live distri
+    # Unpredictable hotkey on kde live distri, click button. See bsc#1045798
     if (noupdatestep_is_applicable() && get_var("LIVECD")) {
-        send_key "alt-x";
+        assert_and_click 'next-button';
     }
     else {
         send_key $cmd{next};
