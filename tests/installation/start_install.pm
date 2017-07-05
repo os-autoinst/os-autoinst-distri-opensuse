@@ -90,6 +90,12 @@ sub run() {
 
         # confirm
         send_key $cmd{install};
+        if (check_var('VERSION', '15')) {    # SLE 15 has unsigned file errors, workaround them - rbrown 04/07/2017
+            while (check_screen('sle-15-unsigned-file')) {
+                record_soft_failure 'bsc#1047304';
+                send_key 'alt-y';
+            }
+        }
         # we need to wait a bit for the disks to be formatted, live cd
         # installation seems to be exceptionally slow
         my $started_timeout = get_var('LIVECD') ? 600 : 120;

@@ -420,9 +420,9 @@ sub sle_version_at_least {
           && !check_var($version_variable, '12-SP3');
     }
 
-    if ($version eq '13') {
+    if ($version eq '15') {
         return sle_version_at_least('12-SP4', version_variable => $version_variable)
-          && !check_var($version_variable, '13');
+          && !check_var($version_variable, '12-SP4');
     }
     die "unsupported SLE $version_variable $version in check";
 }

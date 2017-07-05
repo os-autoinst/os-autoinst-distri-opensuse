@@ -17,10 +17,16 @@ use testapi;
 use utils 'addon_license';
 
 sub run() {
+    if (check_var('VERSION', '15')) {    # SLE 15 has unsigned file errors, workaround them - rbrown 04/07/2017
+        while (check_screen('sle-15-unsigned-file')) {
+            record_soft_failure 'bsc#1047304';
+            send_key 'alt-y';
+        }
+    }
     assert_screen [qw(inst-addon addon-products)];
     if (get_var("ADDONS")) {
         if (match_has_tag('inst-addon')) {
-            send_key 'alt-k';    # install with addons
+            send_key 'alt-k';            # install with addons
         }
         else {
             send_key 'alt-a';

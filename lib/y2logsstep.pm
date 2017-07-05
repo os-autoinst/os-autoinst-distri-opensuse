@@ -99,6 +99,14 @@ sub check_and_record_dependency_problems {
             send_key 'alt-a';
         };
         send_key 'alt-o';
+        my @tags = 'inst-overview-after-depfix';
+        # SLE 15 has unsupported packages, workaround them - rbrown 04/07/2017
+        push @tags, 'sle-15-unsupported-packages' if (check_var('VERSION', '15'));
+        assert_screen \@tags;
+        if (match_has_tag('sle-15-unsupported-packages')) {
+            record_soft_failure 'bsc#1047337';
+            send_key 'alt-o';
+        }
         assert_screen "inst-overview-after-depfix";    # Make sure you're back on the inst-overview before doing anything else
     }
     else {

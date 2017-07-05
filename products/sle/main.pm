@@ -31,6 +31,10 @@ sub is_desktop {
     return get_var('FLAVOR', '') =~ /^Desktop/;
 }
 
+sub is_leanos {
+    return get_var('FLAVOR', '') =~ /^Leanos/;
+}
+
 sub is_sles4sap {
     return get_var('FLAVOR', '') =~ /SAP/;
 }
@@ -70,8 +74,26 @@ sub is_bridged_networking {
     return $ret;
 }
 
+sub default_desktop {
+    if (get_var('VERSION', '') =~ /^12/) {
+        return 'gnome';
+    }
+    if (get_var('VERSION', '') =~ /^15/) {
+        if (get_var('BASE_VERSION', '') =~ /^12/) {
+            return 'gnome';
+        }
+        else {
+            return 'textmode';
+        }
+    }
+}
+
 sub cleanup_needles {
     remove_common_needles;
+    if ((get_var('VERSION', '') ne '15') && (get_var('BASE_VERSION', '') ne '15')) {
+        unregister_needle_tags("ENV-VERSION-15");
+    }
+
     if ((get_var('VERSION', '') ne '12') && (get_var('BASE_VERSION', '') ne '12')) {
         unregister_needle_tags("ENV-VERSION-12");
     }
@@ -135,6 +157,9 @@ unless (get_var("DESKTOP")) {
         set_var("DESKTOP", "gnome");
     }
 }
+
+print default_desktop;
+print get_var("DESKTOP");
 
 # SLE specific variables
 set_var('NOAUTOLOGIN', 1);
@@ -497,11 +522,13 @@ sub load_inst_tests() {
             loadtest "installation/disk_space_fill";
         }
     }
-    if (get_var('SCC_REGISTER', '') eq 'installation') {
-        loadtest "installation/scc_registration";
-    }
-    else {
-        loadtest "installation/skip_registration";
+    if (!check_var('VERSION', '15')) {    # No registration in SLE 15 atm - rbrown 04/07/17
+        if (get_var('SCC_REGISTER', '') eq 'installation') {
+            loadtest "installation/scc_registration";
+        }
+        else {
+            loadtest "installation/skip_registration";
+        }
     }
     if (is_sles4sap) {
         loadtest "installation/sles4sap_product_installation_mode";
@@ -518,7 +545,8 @@ sub load_inst_tests() {
             && sle_version_at_least('12-SP2')
             && is_server()
             && (!is_sles4sap() || is_sles4sap_standard())
-            && (install_this_version() || install_to_other_at_least('12-SP2')))
+            && (install_this_version() || install_to_other_at_least('12-SP2'))
+            || check_var('VERSION', '15'))    # SLE 15 will always show the system role
         {
             loadtest "installation/system_role";
         }
@@ -595,7 +623,7 @@ sub load_inst_tests() {
             loadtest "installation/installation_overview_before";
             loadtest "installation/select_patterns_and_packages";
         }
-        elsif (!check_var('DESKTOP', 'gnome')) {
+        elsif (!check_var('DESKTOP', default_desktop)) {
             loadtest "installation/installation_overview_before";
             loadtest "installation/change_desktop";
         }
