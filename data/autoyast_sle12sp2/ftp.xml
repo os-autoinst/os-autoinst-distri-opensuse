@@ -1,12 +1,7 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE profile>
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
-<!--
-  sets up an ftp server,
-  test it via script run by autoyast_verify.pm
-  - default, anonymous access configuration
--->
-
+  <!--  sets up an ftp server,  test it via script run by autoyast_verify.pm  - default, anonymous access configuration-->
   <deploy_image>
     <image_installation config:type="boolean">false</image_installation>
   </deploy_image>
@@ -16,7 +11,7 @@
     </mode>
   </general>
   <networking>
-      <keep_install_network config:type="boolean">true</keep_install_network>
+    <keep_install_network config:type="boolean">true</keep_install_network>
   </networking>
   <ftp-server>
     <AnonAuthen>2</AnonAuthen>
@@ -27,9 +22,9 @@
     <Banner>Welcome message</Banner>
     <CertFile/>
     <ChrootEnable>NO</ChrootEnable>
-    <EnableUpload>NO</EnableUpload>
+    <EnableUpload>YES</EnableUpload>
     <FTPUser>ftp</FTPUser>
-    <FtpDirAnon>/tmp</FtpDirAnon>
+    <FtpDirAnon>/tmp/ftp</FtpDirAnon>
     <FtpDirLocal/>
     <GuestUser/>
     <LocalMaxRate>0</LocalMaxRate>
@@ -38,16 +33,15 @@
     <MaxIdleTime>15</MaxIdleTime>
     <PasMaxPort>40500</PasMaxPort>
     <PasMinPort>40000</PasMinPort>
-    <PassiveMode>NO</PassiveMode>
+    <PassiveMode>YES</PassiveMode>
     <SSL>0</SSL>
     <SSLEnable>NO</SSLEnable>
     <SSLv2>NO</SSLv2>
     <SSLv3>NO</SSLv3>
-    <StartDaemon>0</StartDaemon>
-    <StartXinetd>YES</StartXinetd>
+    <StartDaemon>2</StartDaemon>
     <TLS>YES</TLS>
     <Umask/>
-    <UmaskAnon/>
+    <UmaskAnon>022</UmaskAnon>
     <UmaskLocal/>
     <VerboseLogging>NO</VerboseLogging>
     <VirtualUser>NO</VirtualUser>
@@ -77,18 +71,16 @@
     <do_registration config:type="boolean">false</do_registration>
   </suse_register>
   <users config:type="list">
-                <user>
-                   <fullname>Bernhard M. Wiedemann</fullname>
-                   <encrypted config:type="boolean">false</encrypted>
-                   <user_password>nots3cr3t</user_password>
-                   <username>bernhard</username>
-                </user>
-
-          <user>
-                      <encrypted config:type="boolean">false</encrypted>
-                      <user_password>nots3cr3t</user_password>
-                      <username>root</username>
-          </user>
+    <user>
+      <fullname>Bernhard M. Wiedemann</fullname>
+      <encrypted config:type="boolean">false</encrypted>
+      <user_password>nots3cr3t</user_password>
+      <username>bernhard</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">false</encrypted>
+      <user_password>nots3cr3t</user_password>
+      <username>root</username>
+    </user>
   </users>
-
 </profile>
