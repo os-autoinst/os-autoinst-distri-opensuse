@@ -96,9 +96,11 @@ sub unlock_if_encrypted {
         type_string "echo \$pty\n";
         $svirt->resume;
 
-        # enter passphrase twice (before grub and after grub) the svirt s390x tricky way
-        wait_serial("Please enter passphrase for disk.*", 100);
-        type_string "echo $password > \$pty\n";
+        # enter passphrase twice (before grub and after grub) if full disk is encrypted
+        if (get_var('FULL_LVM_ENCRYPT')) {
+            wait_serial("Please enter passphrase for disk.*", 100);
+            type_string "echo $password > \$pty\n";
+        }
         wait_serial("Please enter passphrase for disk.*", 100);
         type_string "echo $password > \$pty\n";
     }

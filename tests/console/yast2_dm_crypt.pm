@@ -73,7 +73,9 @@ sub run() {
     # reboot system with crypt file volume
     set_var("ENCRYPT", 1);
     script_run("reboot", 0);
-    $self->wait_boot(textmode => !is_desktop_installed);
+    # on s390 svirt we need to unlock encryption here
+    unlock_if_encrypted if get_var('S390_ZKVM');
+    $self->wait_boot(textmode => !is_desktop_installed, bootloader_time => 300);
 
     # check the crypt mount volume after reboot
     select_console 'root-console';
