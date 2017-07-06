@@ -452,6 +452,7 @@ sub load_extra_tests() {
             # start extra x11 tests from here
             loadtest 'x11/vnc_two_passwords';
             # TODO: check why this is not called on opensuse
+            loadtest 'x11/yast2_lan_restart';
             loadtest 'x11/user_defined_snapshot';
         }
         elsif (check_var('DISTRI', 'opensuse')) {
@@ -476,7 +477,6 @@ sub load_extra_tests() {
             }
 
         }
-        loadtest 'x11/yast2_lan_restart';
     }
     else {
         loadtest "console/zypper_lr";
