@@ -18,8 +18,8 @@ use testapi;
 
 sub run() {
     assert_screen 'inst-network_settings-livecd';
-    # For network settings we have different shortcut, see discussion under bsc#1045798
-    send_key 'alt-x';
+    # Unpredictable hotkey on kde live distri, click button. See bsc#1045798
+    assert_and_click 'next-button';
 }
 
 1;
