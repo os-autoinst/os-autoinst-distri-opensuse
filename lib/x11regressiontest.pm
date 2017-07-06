@@ -454,12 +454,45 @@ sub post_fail_hook {
 }
 
 sub start_firefox {
+    my ($self) = @_;
     mouse_hide(1);
 
     x11_start_program 'xterm';
     # Clean and Start Firefox
     type_string "killall -9 firefox;rm -rf .moz* .config/iced* .cache/iced* .local/share/gnome-shell/extensions/*; firefox > firefox.log 2>&1 &\n";
+    $self->firefox_check_default;
+    $self->firefox_check_popups;
     assert_screen 'firefox-launch', 90;
+}
+
+sub firefox_check_default {
+    # Set firefox as default browser if asked
+    assert_screen [qw(firefox_default_browser firefox_trackinfo firefox_readerview_window firefox_clean)], 120;
+    if (match_has_tag('firefox_default_browser')) {
+        wait_screen_change {
+            assert_and_click 'firefox_default_browser_yes';
+        };
+    }
+}
+
+sub firefox_check_popups {
+    # Check whether there are any pop up windows and handle them one by one
+    for (1 .. 2) {
+        wait_still_screen;
+        assert_screen [qw(firefox_trackinfo firefox_readerview_window firefox_clean)], 60;
+        # handle the tracking protection pop up
+        if (match_has_tag('firefox_trackinfo')) {
+            wait_screen_change { assert_and_click 'firefox_trackinfo'; };
+            # workaround for bsc#1046005
+            wait_screen_change { assert_and_click 'firefox_titlebar'; };
+        }
+        # handle the reader view pop up
+        elsif (match_has_tag('firefox_readerview_window')) {
+            wait_screen_change { assert_and_click 'firefox_readerview_window'; };
+            # workaround for bsc#1046005
+            wait_screen_change { assert_and_click 'firefox_titlebar'; };
+        }
+    }
 }
 
 sub exit_firefox {
