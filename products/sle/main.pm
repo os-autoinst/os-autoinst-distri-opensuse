@@ -121,6 +121,13 @@ sub cleanup_needles {
     else {
         unregister_needle_tags('ENV-OFW-1');
     }
+
+    if (get_var('PXEBOOT')) {
+        unregister_needle_tags('ENV-PXEBOOT-0');
+    }
+    else {
+        unregister_needle_tags('ENV-PXEBOOT-1');
+    }
 }
 
 my $distri = testapi::get_required_var('CASEDIR') . '/lib/susedistribution.pm';
