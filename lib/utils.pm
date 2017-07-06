@@ -1098,6 +1098,14 @@ sub handle_login {
     assert_screen 'displaymanager';    # wait for DM, then try to login
     mouse_hide();
     wait_still_screen;
+    if (get_var('ROOTONLY')) {
+        if (check_screen 'displaymanager-username-notlisted', 10) {
+            record_soft_failure 'bgo#731320/boo#1047262 "not listed" Login screen for root user is not intuitive';
+            assert_and_click 'displaymanager-username-notlisted';
+            wait_still_screen 3;
+        }
+        type_string "root\n";
+    }
     if (get_var('DM_NEEDS_USERNAME')) {
         type_string "$username\n";
     }
