@@ -45,14 +45,10 @@ sub run() {
     send_key 'alt-d';
     type_string "10.0.2.1:5801\n";
     assert_screen 'firefox-ssl-untrusted';
-    send_key 'tab';
-    send_key 'ret';
-    send_key 'tab';
-    send_key 'ret';
+    assert_and_click 'firefox-ssl-untrusted-advanced';
+    assert_and_click 'firefox-ssl-addexception-button';
     assert_screen 'firefox-ssl-addexception', 60;
     send_key 'alt-c';
-    wait_still_screen 3;
-    send_key 'alt-f10';
     assert_and_click 'xvnc-firefox-activate-IcedTea';
     assert_and_click 'xvnc-firefox-IcedTea-allow';
     assert_screen 'xvnc-firefox-certification-warning';
