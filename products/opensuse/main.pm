@@ -238,7 +238,6 @@ sub load_inst_tests() {
     if (get_var("MULTIPATH")) {
         loadtest "installation/multipath";
     }
-    loadtest "installation/good_buttons";
     if (get_var('ENCRYPT_CANCEL_EXISTING') || get_var('ENCRYPT_ACTIVATE_EXISTING')) {
         loadtest "installation/encrypted_volume_activation";
     }
