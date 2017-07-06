@@ -1,6 +1,9 @@
 #!/bin/bash
 
-set -e -x
+HO=`hostname`
+
+SuSEfirewall2 start
+rcapache2 start
 
 HTTPTEST=/var/log/test-http.txt
 HTTPSTEST=/var/log/test-https.txt
@@ -8,9 +11,9 @@ HTTPRES=0
 
 echo test > /srv/www/htdocs/test.txt
 echo "[DEBUG] http test:"
-curl -s -S http://localhost/test.txt 2>&1 | tee $HTTPTEST
+curl -s -S http://$HO/test.txt 2>&1 | tee $HTTPTEST
 echo "[DEBUG] https -k test:"
-curl -s -S -k https://localhost/test.txt 2>&1 | tee $HTTPSTEST
+curl -s -S -k https://$HO/test.txt 2>&1 | tee $HTTPSTEST
 
 diff -u /srv/www/htdocs/test.txt $HTTPTEST && diff -u $HTTPTEST $HTTPSTEST && HTTPRES=1 || echo "[ERROR] HTTP/HTTPS test failed"
 
