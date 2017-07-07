@@ -41,7 +41,7 @@ sub run() {
     script_run("sed -i \"s/hostname -s/hostname/\" ./common/rc");
     script_run("sed -i \"s/hostname -s/hostname/\" ./common/config");
 
-    script_run("./check", 60 * 60 * 6);
+    script_run("./check", 60 * 60 * 5);
 
     # Upload all log tarballs in ./results/
     $self->log_upload();

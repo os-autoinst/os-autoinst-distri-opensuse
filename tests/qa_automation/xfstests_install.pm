@@ -81,6 +81,10 @@ sub prepare_env {
     assert_script_run("export SCRATCH_DIR=/mnt/scratch");
     assert_script_run("export SCRATCH_DEV=" . $scratch_partition, 10);
     assert_script_run("export SCRATCH_MNT=/mnt/scratch");
+
+    #to get more useful logs
+    assert_script_run("dmesg -n 7");
+    assert_script_run("systemctl stop cron");
 }
 
 1;
