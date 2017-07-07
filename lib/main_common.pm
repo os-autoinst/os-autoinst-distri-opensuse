@@ -33,6 +33,7 @@ our @EXPORT = qw(
   consolestep_is_applicable
   rescuecdstep_is_applicable
   bootencryptstep_is_applicable
+  addon_products_is_applicable
   remove_common_needles
   remove_desktop_needles
   check_env
@@ -260,6 +261,10 @@ sub rescuecdstep_is_applicable {
 
 sub ssh_key_import {
     return get_var("SSH_KEY_IMPORT") || get_var("SSH_KEY_DO_NOT_IMPORT");
+}
+
+sub addon_products_is_applicable {
+    return !get_var("LIVECD") && get_var("ADDONURL") && !leap_version_at_least('42.3');
 }
 
 sub remove_common_needles {

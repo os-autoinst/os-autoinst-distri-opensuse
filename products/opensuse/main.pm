@@ -283,7 +283,7 @@ sub load_inst_tests() {
     if (installwithaddonrepos_is_applicable() && !get_var("LIVECD")) {
         loadtest "installation/setup_online_repos";
     }
-    if (!get_var("LIVECD") && get_var("ADDONURL") && !(leap_version_at_least('42.3') && check_var('FLAVOR', 'Maintenance'))) {
+    if (addon_products_is_applicable()) {
         loadtest "installation/addon_products";
     }
     if (noupdatestep_is_applicable() && !get_var("LIVECD") && !get_var("REMOTE_CONTROLLER")) {
