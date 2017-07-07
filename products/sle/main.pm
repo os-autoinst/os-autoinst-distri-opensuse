@@ -1036,7 +1036,7 @@ sub load_fips_tests_crypt() {
     loadtest "console/consoletest_setup";
     loadtest "console/yast2_dm_crypt";
     loadtest "console/cryptsetup";
-    loadtest "console/ecryptfs_fips";
+    loadtest "fips/ecryptfs_fips";
 }
 
 sub load_patching_tests() {

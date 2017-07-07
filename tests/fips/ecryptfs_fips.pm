@@ -33,11 +33,10 @@ sub run() {
         sub { m/Mounted eCryptfs/ });
 
     # touch a new file and try to write with it
+    # According to comment 12 of bsc#973318, ecryptfs expects a failure in fips mode
     assert_script_run("cd private && touch testfile ");
-    script_run("echo hello > testfile");
-    assert_script_run("ls");
-    validate_script_output("cat testfile",              sub { m/hello/ });
-    validate_script_output("file ../.private/testfile", sub { m/testfile: data/ });
+    validate_script_output("(echo hello > testfile) 2>&1 || true", sub { m/write error/ });
+    validate_script_output("cat testfile 2>&1 || true",            sub { m/^$|No such file or directory/ });
 
     # unmount and check the encrypt file
     assert_script_run("cd .. && umount -l private");
