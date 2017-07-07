@@ -13,12 +13,14 @@
 # Maintainer: Martin Kravec <mkravec@suse.com>
 
 use strict;
-use base "basetest";
+use base "opensusebasetest";
 use testapi;
 use utils;
 use bootloader_setup qw(stop_grub_timeout boot_into_snapshot);
 
 sub run() {
+    my ($self) = @_;
+
     if (get_var('LIVECD')) {
         mouse_hide;
         wait_still_screen;
@@ -38,7 +40,15 @@ sub run() {
         if (check_var("AUTOUPGRADE") && check_var("PATCH")) {
             assert_screen 'grub2';
         }
-        send_key 'ret';
+        # use firmware boot manager of aarch64 to boot upgraded system
+        if (check_var('ARCH', 'aarch64') && get_var('UPGRADE')) {
+            send_key_until_needlematch 'inst-bootmenu-boot-harddisk', 'up';
+            send_key 'ret';
+            $self->handle_uefi_boot_disk_workaround;
+        }
+        else {
+            send_key 'ret';
+        }
     }
     elsif (get_var('UEFI') && get_var('USBBOOT')) {
         assert_screen 'inst-bootmenu';

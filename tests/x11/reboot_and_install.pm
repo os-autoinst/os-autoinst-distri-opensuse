@@ -31,6 +31,10 @@ sub run() {
     # are coming from old systems here it is unlikely the reboot time
     # increases
     return if select_bootmenu_option(300) == 3;
+    # set uefi bootmenu parameters properly for aarch64, such like gfxpayload and so on
+    if (check_var('ARCH', 'aarch64')) {
+        uefi_bootmenu_params;
+    }
     bootmenu_default_params;
     specific_bootmenu_params;
     registration_bootloader_params;
@@ -43,7 +47,7 @@ sub run() {
     }
     else {
         # boot
-        my $key = check_var('ARCH', 'ppc64le') ? 'ctrl-x' : 'ret';
+        my $key = check_var('ARCH', 'ppc64le') || check_var('ARCH', 'aarch64') ? 'ctrl-x' : 'ret';
         send_key $key;
     }
 }

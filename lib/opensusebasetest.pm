@@ -233,6 +233,7 @@ sub export_kde_logs {
 # Our aarch64 setup fails to boot properly from an installed hard disk so
 # point the firmware boot manager to the right file.
 sub handle_uefi_boot_disk_workaround {
+    my ($self) = @_;
     record_soft_failure 'bsc#1022064';
     tianocore_enter_menu;
     send_key_until_needlematch 'tianocore-boot_maintenance_manager', 'down', 5, 5;
@@ -330,7 +331,7 @@ sub wait_boot {
         # booted so we have to handle that
         # because of broken firmware, bootindex doesn't work on aarch64 bsc#1022064
         push @tags, 'inst-bootmenu' if ((get_var('USBBOOT') and get_var('UEFI')) || (check_var('ARCH', 'aarch64') and get_var('UEFI')) || get_var('OFW'));
-        handle_uefi_boot_disk_workaround if (get_var('MACHINE') =~ qr'aarch64' && get_var('BOOT_HDD_IMAGE') && !$in_grub);
+        $self->handle_uefi_boot_disk_workaround if (get_var('MACHINE') =~ qr'aarch64' && get_var('BOOT_HDD_IMAGE') && !$in_grub);
         check_screen(\@tags, $bootloader_time);
         if (match_has_tag("bootloader-shim-import-prompt")) {
             send_key "down";
