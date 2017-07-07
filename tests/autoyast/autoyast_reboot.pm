@@ -25,7 +25,7 @@ sub run {
     reset_consoles;
 
     assert_screen("bios-boot",  900);
-    assert_screen("bootloader", 20);
+    assert_screen("bootloader", 30);
 
     if (check_var("BOOTFROM", "d")) {
         assert_screen("inst-bootmenu", 60);
