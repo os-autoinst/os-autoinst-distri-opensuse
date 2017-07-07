@@ -18,7 +18,7 @@ use testapi;
 
 sub sle15_workaround_broken_patterns {
     if (check_var('VERSION', '15')) {    # SLE 15 has pattern errors, workaround them - rbrown 04/07/2017
-        while (check_screen('sle-15-failed-to-select-pattern')) {
+        while (check_screen('sle-15-failed-to-select-pattern', 2)) {
             record_soft_failure 'bsc#1047327';
             send_key 'alt-o';
         }
@@ -55,7 +55,9 @@ sub run {
         assert_screen 'autoyast_removed';
     }
 
-    $self->check_and_record_dependency_problems;
+    if (check_screen('manual-intervention', 0)) {
+        $self->deal_with_dependency_issues;
+    }
 
     sle15_workaround_broken_patterns;    # Pattern warnings appear after dependancy resolution also;
 
