@@ -222,8 +222,8 @@ if (check_var('DESKTOP', 'minimalx')) {
 if (is_update_test_repo_test && !get_var('MAINT_TEST_REPO')) {
     my %incidents;
     my %u_url;
-    $incidents{'OS'} = get_var('OS_TEST_ISSUES',   '');
-    $u_url{'OS'}     = get_var('OS_TEST_TEMPLATE', '');
+    $incidents{OS} = get_var('OS_TEST_ISSUES',   '');
+    $u_url{OS}     = get_var('OS_TEST_TEMPLATE', '');
 
     my @maint_repos;
     my @inclist;
