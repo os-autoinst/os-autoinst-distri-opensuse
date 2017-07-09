@@ -373,102 +373,102 @@ sub load_fixup_firewall() {
     loadtest 'fixup/enable_firewall';
 }
 
-sub load_consoletests() {
-    if (consolestep_is_applicable()) {
-        loadtest "console/consoletest_setup";
-        if (get_var("LOCK_PACKAGE")) {
-            loadtest "console/check_locked_package";
-        }
-        loadtest "console/textinfo";
-        loadtest "console/hostname";
-        if (snapper_is_applicable()) {
-            if (get_var("UPGRADE")) {
-                loadtest "console/upgrade_snapshots";
-            }
-            else {
-                loadtest "console/installation_snapshots";
-            }
-        }
-        if (get_var("DESKTOP") !~ /textmode/) {
-            loadtest "console/xorg_vt";
-        }
-        loadtest "console/zypper_lr";
-        loadtest "console/force_cron_run" if !is_jeos;
-        loadtest 'console/enable_usb_repo' if check_var('USBBOOT', 1);
-        if (have_addn_repos) {
-            loadtest "console/zypper_ar";
-        }
-        loadtest "console/zypper_ref";
-        loadtest "console/yast2_lan";
-        # no local certificate store
-        if (!is_krypton_argon) {
-            loadtest "console/curl_https";
-        }
-        if (   check_var('ARCH', 'x86_64')
-            || check_var('ARCH', 'i686')
-            || check_var('ARCH', 'i586'))
-        {
-            loadtest "console/glibc_i686";
-        }
-        loadtest "console/zypper_in";
-        loadtest "console/yast2_i";
-        if (!get_var("LIVETEST")) {
-            loadtest "console/yast2_bootloader";
-        }
-        loadtest "console/vim";
-        # textmode install comes without firewall by default atm
-        if (!check_var("DESKTOP", "textmode") && !is_staging() && !is_krypton_argon) {
-            loadtest "console/firewall_enabled";
-        }
-        if (is_jeos) {
-            loadtest "console/gpt_ptable";
-            loadtest "console/kdump_disabled";
-            loadtest "console/sshd_running";
-        }
-        loadtest "console/sshd";
-        loadtest "console/ssh_cleanup";
-        if (!get_var("LIVETEST") && !is_staging() && !is_jeos) {
-            # in live we don't have a password for root so ssh doesn't
-            # work anyways, and except staging_core image, the rest of
-            # staging_* images don't need run this test case
-            #
-            # On JeOS we don't have fuse.ko in kernel-default-base package.
-            loadtest "console/sshfs";
-        }
-        loadtest "console/mtab";
-        if (!get_var("NOINSTALL") && !get_var("LIVETEST") && (check_var("DESKTOP", "textmode"))) {
-            if (check_var('BACKEND', 'qemu') && !is_jeos) {
-                # The NFS test expects the IP to be 10.0.2.15
-                loadtest "console/yast2_nfs_server";
-            }
-            loadtest "console/http_srv";
-            loadtest "console/mysql_srv";
-            loadtest "console/dns_srv";
-            loadtest "console/php5";
-            loadtest "console/php5_mysql";
-            loadtest "console/php5_postgresql94";
-            if (!is_staging()) {
-                loadtest "console/php7";
-                loadtest "console/php7_mysql";
-                loadtest "console/php7_postgresql94";
-            }
-        }
-        if (check_var("DESKTOP", "xfce")) {
-            loadtest "console/xfce_gnome_deps";
-        }
-        loadtest "console/consoletest_finish";
+sub load_consoletests_minimal() {
+    return unless (is_staging() && get_var('UEFI') || is_gnome_next || is_krypton_argon);
+    # Stagings should test yast2-bootloader in miniuefi at least but not all
+    loadtest "console/consoletest_setup";
+    loadtest "console/textinfo";
+    loadtest "console/hostname";
+    if (!get_var("LIVETEST")) {
+        loadtest "console/yast2_bootloader";
     }
-    elsif (is_staging() && get_var('UEFI') || is_gnome_next || is_krypton_argon) {
-        # Stagings should test yast2-bootloader in miniuefi at least but not all
-        loadtest "console/consoletest_setup";
-        loadtest "console/textinfo";
-        loadtest "console/hostname";
-        if (!get_var("LIVETEST")) {
-            loadtest "console/yast2_bootloader";
-        }
-        loadtest "console/consoletest_finish";
-    }
+    loadtest "console/consoletest_finish";
+}
 
+sub load_consoletests() {
+    return unless consolestep_is_applicable();
+    loadtest "console/consoletest_setup";
+    if (get_var("LOCK_PACKAGE")) {
+        loadtest "console/check_locked_package";
+    }
+    loadtest "console/textinfo";
+    loadtest "console/hostname";
+    if (snapper_is_applicable()) {
+        if (get_var("UPGRADE")) {
+            loadtest "console/upgrade_snapshots";
+        }
+        else {
+            loadtest "console/installation_snapshots";
+        }
+    }
+    if (get_var("DESKTOP") !~ /textmode/) {
+        loadtest "console/xorg_vt";
+    }
+    loadtest "console/zypper_lr";
+    loadtest "console/force_cron_run" if !is_jeos;
+    loadtest 'console/enable_usb_repo' if check_var('USBBOOT', 1);
+    if (have_addn_repos) {
+        loadtest "console/zypper_ar";
+    }
+    loadtest "console/zypper_ref";
+    loadtest "console/yast2_lan";
+    # no local certificate store
+    if (!is_krypton_argon) {
+        loadtest "console/curl_https";
+    }
+    if (   check_var('ARCH', 'x86_64')
+        || check_var('ARCH', 'i686')
+        || check_var('ARCH', 'i586'))
+    {
+        loadtest "console/glibc_i686";
+    }
+    loadtest "console/zypper_in";
+    loadtest "console/yast2_i";
+    if (!get_var("LIVETEST")) {
+        loadtest "console/yast2_bootloader";
+    }
+    loadtest "console/vim";
+    # textmode install comes without firewall by default atm
+    if (!check_var("DESKTOP", "textmode") && !is_staging() && !is_krypton_argon) {
+        loadtest "console/firewall_enabled";
+    }
+    if (is_jeos) {
+        loadtest "console/gpt_ptable";
+        loadtest "console/kdump_disabled";
+        loadtest "console/sshd_running";
+    }
+    loadtest "console/sshd";
+    loadtest "console/ssh_cleanup";
+    if (!get_var("LIVETEST") && !is_staging() && !is_jeos) {
+        # in live we don't have a password for root so ssh doesn't
+        # work anyways, and except staging_core image, the rest of
+        # staging_* images don't need run this test case
+        #
+        # On JeOS we don't have fuse.ko in kernel-default-base package.
+        loadtest "console/sshfs";
+    }
+    loadtest "console/mtab";
+    if (!get_var("NOINSTALL") && !get_var("LIVETEST") && (check_var("DESKTOP", "textmode"))) {
+        if (check_var('BACKEND', 'qemu') && !is_jeos) {
+            # The NFS test expects the IP to be 10.0.2.15
+            loadtest "console/yast2_nfs_server";
+        }
+        loadtest "console/http_srv";
+        loadtest "console/mysql_srv";
+        loadtest "console/dns_srv";
+        loadtest "console/php5";
+        loadtest "console/php5_mysql";
+        loadtest "console/php5_postgresql94";
+        if (!is_staging()) {
+            loadtest "console/php7";
+            loadtest "console/php7_mysql";
+            loadtest "console/php7_postgresql94";
+        }
+    }
+    if (check_var("DESKTOP", "xfce")) {
+        loadtest "console/xfce_gnome_deps";
+    }
+    loadtest "console/consoletest_finish";
 }
 
 sub load_otherDE_tests() {
@@ -886,7 +886,12 @@ else {
         load_fixup_firewall();
         load_system_update_tests();
         load_rescuecd_tests();
-        load_consoletests();
+        if (consolestep_is_applicable) {
+            load_consoletests();
+        }
+        elsif (is_staging() && get_var('UEFI') || is_gnome_next || is_krypton_argon) {
+            load_consoletests_minimal();
+        }
         load_x11tests();
         if (get_var('ROLLBACK_AFTER_MIGRATION') && (snapper_is_applicable())) {
             load_rollback_tests();
