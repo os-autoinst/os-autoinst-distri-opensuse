@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -26,7 +26,7 @@ sub run {
     # if you change hostname using `hostnamectl set-hostname`, then `hostname -f` will fail with "hostname: Name or service not known"
     # also DHCP/DNS don't know about the changed hostname, you need to send a new DHCP request to update dynamic DNS
     # yast2-network module does "NetworkService.ReloadOrRestart if Stage.normal || !Linuxrc.usessh" if hostname is changed via `yast2 lan`
-    script_run "systemctl --no-pager status network.service";
+    systemctl 'status network.service';
     save_screenshot;
     assert_script_run "if systemctl -q is-active network.service; then systemctl reload-or-restart network.service; fi";
     if (script_run("ip addr show br0 | grep DOWN") == 0) {

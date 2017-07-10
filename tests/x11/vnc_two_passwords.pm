@@ -14,7 +14,7 @@
 use base "x11test";
 use strict;
 use testapi;
-use utils 'ensure_unlocked_desktop';
+use utils qw(ensure_unlocked_desktop systemctl);
 
 my @options = ({pw => "full_access_pw", change => 1}, {pw => "view_only_pw", change => 0});
 my $theme = "/usr/share/gnome-shell/theme/gnome-classic.css";
@@ -30,7 +30,7 @@ sub type_and_wait {
 
 sub start_vnc_server {
     # Disable remote administration from previous tests
-    script_run "systemctl stop vncmanager";
+    systemctl 'stop vncmanager';
 
     # Create password file
     type_string "tput civis\n";

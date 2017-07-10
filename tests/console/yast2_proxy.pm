@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2016 SUSE LLC
+# Copyright (c) 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -260,8 +260,8 @@ sub run {
     wait_serial("yast2-squid-status-0", 360) || die "'yast2 squid' didn't finish";
 
     # check squid proxy server status
-    assert_script_run "systemctl show -p ActiveState squid.service|grep ActiveState=active";
-    assert_script_run "systemctl show -p SubState squid.service|grep SubState=running";
+    systemctl 'show -p ActiveState squid.service|grep ActiveState=active';
+    systemctl 'show -p SubState squid.service|grep SubState=running';
 }
 1;
 

@@ -30,7 +30,7 @@ sub run {
     # install requirements
     zypper_call "in php7-mysql mysql sudo";
 
-    assert_script_run "systemctl restart mysql", 300;
+    systemctl 'restart mysql', timeout => 300;
 
     test_mysql;
 }

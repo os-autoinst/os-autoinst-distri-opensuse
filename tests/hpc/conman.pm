@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -37,7 +37,7 @@ sub run {
     $self->enable_and_start('conman');
 
     # check service status
-    systemctl("status conman");
+    systemctl 'status conman';
 
     # run conman client on serialdev
     type_string("conman serial1\n");
@@ -54,7 +54,7 @@ sub run {
     type_string("netcat -ClU /tmp/testsocket &\n");
 
     # restart conmand service
-    systemctl("restart conman.service");
+    systemctl 'restart conman';
 
     # start conman on this socket
     type_string("conman socket1 &\n");

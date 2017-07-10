@@ -1,6 +1,6 @@
 # SLE12 online migration tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -82,7 +82,7 @@ sub run {
         }
         $out = wait_serial($migration_checks, $timeout);
     }
-    script_run("systemctl reboot", 0);
+    power_action('reboot', keepconsole => 1, textmode => 1);
 
     # sometimes reboot takes longer time after online migration, give more time
     $self->wait_boot(bootloader_time => 300);

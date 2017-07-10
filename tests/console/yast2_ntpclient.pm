@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2016 SUSE LLC
+# Copyright (c) 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -13,7 +13,7 @@
 use strict;
 use base "console_yasttest";
 use testapi;
-use utils qw(type_string_slow zypper_call);
+use utils qw(type_string_slow zypper_call systemctl);
 use version_utils qw(is_sle sle_version_at_least is_leap leap_version_at_least);
 
 sub run {
@@ -177,10 +177,10 @@ sub run {
     script_run('sed -i \'s/^\\(NTPD_FORCE_SYNC_ON_STARTUP=\\).*$/\\1yes/\' /etc/sysconfig/ntp') if (!$sle_or_leap_at_least_15);
 
     # restart ntp daemon
-    script_run("systemctl restart $ntp_service.service");
+    systemctl "restart $ntp_service.service";
 
     # check ntp synchronization service state
-    assert_script_run("systemctl show -p ActiveState $ntp_service.service | grep ActiveState=active");
+    systemctl "show -p ActiveState $ntp_service.service | grep ActiveState=active";
 }
 1;
 

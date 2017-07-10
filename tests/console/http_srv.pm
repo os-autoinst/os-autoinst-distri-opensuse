@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -23,12 +23,12 @@ sub run {
     # Install apache2
     zypper_call("in apache2");
     # After installation, apache2 is disabled
-    assert_script_run "systemctl show -p UnitFileState apache2.service|grep UnitFileState=disabled";
+    systemctl 'show -p UnitFileState apache2.service|grep UnitFileState=disabled';
 
     # let's try to run it
-    assert_script_run "systemctl start apache2.service";
-    assert_script_run "systemctl show -p ActiveState apache2.service|grep ActiveState=active";
-    assert_script_run "systemctl show -p SubState apache2.service|grep SubState=running";
+    systemctl 'start apache2.service';
+    systemctl 'show -p ActiveState apache2.service|grep ActiveState=active';
+    systemctl 'show -p SubState apache2.service|grep SubState=running';
 
     # verify httpd serves index.html
     type_string "echo Lorem ipsum dolor sit amet > /srv/www/htdocs/index.html\n";

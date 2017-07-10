@@ -84,7 +84,7 @@ sub prepare_env {
 
     #to get more useful logs
     assert_script_run("dmesg -n 7");
-    assert_script_run("systemctl stop cron");
+    systemctl 'stop cron';
 }
 
 1;

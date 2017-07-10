@@ -89,7 +89,7 @@ sub set_config {
     assert_script_run "SUSEfirewall2 off";
 
     # Start racoon service
-    assert_script_run "systemctl start racoon.service";
+    systemctl 'start racoon.service';
     assert_script_run "setkey -f /etc/racoon/setkey.conf";
 }
 1;

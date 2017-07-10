@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2016 SUSE LLC
+# Copyright (c) 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -13,7 +13,7 @@
 use strict;
 use base "console_yasttest";
 use testapi;
-use utils "zypper_call";
+use utils;
 
 
 sub run {
@@ -93,8 +93,7 @@ sub run {
     wait_serial('yast2-xinetd-status-0', 180) || die "'yast2 xinetd' didn't finish";
 
     # check xinetd configuration
-    assert_script_run("systemctl show -p ActiveState xinetd.service | grep ActiveState=active");
-
+    systemctl 'show -p ActiveState xinetd.service | grep ActiveState=active';
 }
 1;
 

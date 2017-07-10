@@ -15,6 +15,7 @@ use strict;
 use base "opensusebasetest";
 use testapi;
 use caasp;
+use utils;
 
 # Optionally skip exit status check in case immediate reboot is expected
 sub rbm_call {
@@ -80,7 +81,7 @@ sub check_strategy_maint_window {
 #3 Test etcd locking strategy
 sub check_strategy_etcd_lock {
     rbm_call "set-strategy etcd-lock";
-    assert_script_run "systemctl enable --now etcd";
+    systemctl 'enable --now etcd';
 
     # Unlock during maintenance window - bsc#1026274
     rbm_call "lock lock1";

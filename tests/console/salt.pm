@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -15,7 +15,7 @@
 use base "consoletest";
 use strict;
 use testapi;
-use utils qw(zypper_call pkcon_quit);
+use utils qw(zypper_call pkcon_quit systemctl);
 
 sub run {
     select_console 'root-console';
@@ -34,7 +34,7 @@ EOF
     assert_script_run("salt-key --accept-all -y");
     record_soft_failure 'bsc#1069711';    # Added 180s to ping minion
     validate_script_output "salt '*' test.ping -t 180 | grep -woh True > /dev/$serialdev", sub { m/True/ }, 190;
-    assert_script_run 'systemctl stop salt-master salt-minion';
+    systemctl 'stop salt-master salt-minion';
 }
 
 1;

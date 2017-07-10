@@ -51,8 +51,8 @@ sub run() {
     assert_script_run "postconf -e 'smtpd_sasl_type = dovecot'";
 
     # start/restart services
-    assert_script_run "systemctl start dovecot";
-    assert_script_run "systemctl restart postfix";
+    systemctl 'start dovecot';
+    systemctl 'restart postfix';
 
     # create test users
     assert_script_run "useradd -m admin";

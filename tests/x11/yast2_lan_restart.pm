@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -15,6 +15,7 @@ use base 'y2logsstep';
 use strict;
 use testapi;
 use version_utils;
+use utils 'systemctl';
 
 sub run_yast2_lan {
     type_string "yast2 lan\n";
@@ -233,7 +234,7 @@ sub run {
     if (((is_sle && sle_version_at_least('15')) || (is_leap && leap_version_at_least('15.0')))
         && script_run "systemctl show -p ActiveState firewalld.service | grep ActiveState=active")
     {
-        assert_script_run "systemctl stop firewalld";
+        systemctl 'stop firewalld';
     }
     # enable debug for detailed messages and easier detection of restart
     assert_script_run 'sed -i \'s/DEBUG="no"/DEBUG="yes"/\' /etc/sysconfig/network/config';

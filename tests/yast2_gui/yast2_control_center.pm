@@ -265,7 +265,7 @@ sub start_printer {
         assert_screen 'yast2-control-center-ui', 60;
         # test case if not restart cups daemon locally
         select_console 'root-console';
-        assert_script_run 'systemctl stop cups.service';
+        systemctl 'stop cups.service';
         select_console 'x11', await_console => 0;
         assert_screen 'yast2-control-center-ui';
         send_key 'up';

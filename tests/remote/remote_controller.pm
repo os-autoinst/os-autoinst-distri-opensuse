@@ -33,9 +33,9 @@ sub run {
 
     if (check_var("REMOTE_CONTROLLER", "vnc")) {
         # Get target ip using slptool
-        script_run "systemctl stop SuSEfirewall2";
+        systemctl 'stop SuSEfirewall2';
         $target_ip = script_output "slptool findsrvs service:YaST.installation.suse:vnc | cut -d: -f4 | tr -d /";
-        script_run "systemctl start SuSEfirewall2";
+        systemctl 'start SuSEfirewall2';
 
         select_console 'x11';
         x11_start_program('xterm');

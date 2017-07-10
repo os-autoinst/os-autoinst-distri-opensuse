@@ -15,6 +15,7 @@ use strict;
 use testapi;
 use lockapi;
 use hacluster;
+use utils 'systemctl';
 
 sub run {
     my $hawk_port = '7630';
@@ -22,7 +23,7 @@ sub run {
     barrier_wait("HAWK_INIT_$cluster_name");
 
     # Test the Hawk service
-    assert_script_run 'systemctl show -p ActiveState hawk.service | grep ActiveState=active';
+    systemctl 'show -p ActiveState hawk.service | grep ActiveState=active';
 
     # Test the Hawk port
     assert_script_run "ss -nap | grep -w ':$hawk_port'";

@@ -46,14 +46,14 @@ sub run {
     assert_script_run "chgrp dovecot $dovecot_ssl_dir/*";
 
     # Start dovecot service
-    systemctl "restart dovecot.service";
-    systemctl "is-active dovecot.service";
+    systemctl 'restart dovecot.service';
+    systemctl 'is-active dovecot.service';
 
     # Dovecot will generate SSL parameters at first start up, it takes minutes for long parameters (i.e. 2048)
     script_run "while ! (systemctl -l --no-pager status dovecot.service | grep -q 'SSL parameters regeneration completed'); do sleep 30; done", 900;
 
     # Print service status for debugging
-    script_run "systemctl -l --no-pager status dovecot.service 2>&1 | tee /dev/$serialdev";
+    systemctl "-l status dovecot.service 2>&1 | tee /dev/$serialdev";
     script_run "(ss -nltp | grep dovecot) 2>&1 | tee /dev/$serialdev";
 
     # Verify pop3s protocol

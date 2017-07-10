@@ -26,7 +26,7 @@ sub run {
     ensure_serialdev_permissions;
 
     assert_script_run "echo \"download.use_deltarpm = false\" >> /etc/zypp/zypp.conf";
-    assert_script_run "systemctl unmask packagekit";
+    systemctl 'unmask packagekit';
     assert_script_run "pkcon refresh", 300;
 }
 

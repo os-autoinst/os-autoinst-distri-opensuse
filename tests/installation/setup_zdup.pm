@@ -45,7 +45,7 @@ sub run {
 
         # Remove the --force when this is fixed:
         # https://bugzilla.redhat.com/show_bug.cgi?id=1075131
-        script_run("systemctl set-default --force multi-user.target");
+        systemctl 'set-default --force multi-user.target';
         # The CD was ejected in the bootloader test
         type_string("/sbin/reboot\n");
 

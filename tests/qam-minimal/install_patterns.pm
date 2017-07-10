@@ -51,7 +51,7 @@ sub run {
 
     zypper_call("in -t pattern base x11 gnome-basic apparmor", exitcode => [0, 102], timeout => 2000);
 
-    assert_script_run("systemctl set-default graphical.target");
+    systemctl 'set-default graphical.target';
     script_run('sed -i -r "s/^DISPLAYMANAGER=\"\"/DISPLAYMANAGER=\"gdm\"/" /etc/sysconfig/displaymanager');
     script_run('sed -i -r "s/^DISPLAYMANAGER_AUTOLOGIN/#DISPLAYMANAGER_AUTOLOGIN/" /etc/sysconfig/displaymanager');
     script_run('sed -i -r "s/^DEFAULT_WM=\"icewm\"/DEFAULT_VM=\"\"/" /etc/sysconfig/windowmanager');

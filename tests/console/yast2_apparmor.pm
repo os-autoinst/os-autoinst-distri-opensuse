@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2016 SUSE LLC
+# Copyright (c) 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -13,7 +13,7 @@
 use strict;
 use base "console_yasttest";
 use testapi;
-
+use utils 'systemctl';
 
 
 sub run {
@@ -56,7 +56,7 @@ sub run {
     wait_screen_change { send_key 'alt-d' };
     # increase value for timeout to 200 seconds
     wait_serial("yast2-apparmor-status-0", 200) || die "'yast2 apparmor' didn't finish";
-    assert_script_run("systemctl show -p ActiveState apparmor.service | grep ActiveState=active");
+    systemctl 'show -p ActiveState apparmor.service | grep ActiveState=active';
 
     # part 2: start apparmor configuration again
     script_run("yast2 apparmor; echo yast2-apparmor-status-\$? > /dev/$serialdev", 0);

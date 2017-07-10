@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -79,16 +79,16 @@ sub configure_hostapd {
 
 sub reload_services {
     type_string "# reload required services\n";
-    assert_script_run 'systemctl restart NetworkManager';
-    assert_script_run 'systemctl restart hostapd';
-    assert_script_run 'systemctl is-active hostapd';
+    systemctl 'restart NetworkManager';
+    systemctl 'restart hostapd';
+    systemctl 'is-active hostapd';
 }
 
 sub post_fail_hook {
     my ($self) = @_;
     select_console 'log-console';
     $self->save_and_upload_log('journalctl --no-pager -u hostapd', 'hostapd_journal.log');
-    assert_script_run 'systemctl status hostapd';
+    systemctl 'status hostapd';
     $self->SUPER::post_fail_hook;
 }
 

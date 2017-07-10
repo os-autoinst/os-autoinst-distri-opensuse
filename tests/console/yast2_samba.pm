@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2016 SUSE LLC
+# Copyright (c) 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -74,7 +74,7 @@ sub setup_ldap {
     assert_screen 'yast2_console-finished';
 
     # check ldap server status at first, a local ldap server is needed in the test case
-    assert_script_run "systemctl show -p ActiveState slapd.service | grep ActiveState=active";
+    systemctl "show -p ActiveState slapd.service | grep ActiveState=active";
 }
 
 sub gui_current {
@@ -257,7 +257,7 @@ sub run {
 
     # check samba server status
     # samba doesn't start up correctly, so add record soft failure here
-    if (script_run("systemctl show -p ActiveState smb.service | grep ActiveState=active")) {
+    if (script_run('systemctl show -p ActiveState smb.service | grep ActiveState=active')) {
         record_soft_failure "bsc#1068900";
     }
 

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2016 SUSE LLC
+# Copyright (c) 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -14,6 +14,8 @@ use base 'opensusebasetest';
 use strict;
 use testapi;
 use hacluster;
+use lockapi;
+use utils;
 
 sub run {
     my $module = 'softdog';
@@ -21,7 +23,7 @@ sub run {
     # Configure the software watchdog
     script_run "echo $module > /etc/modules-load.d/$module.conf";
     script_run "echo 'options $module soft_margin=$softdog_timeout' > /etc/modprobe.d/99-$module.conf";
-    script_run 'systemctl restart systemd-modules-load.service';
+    systemctl 'restart systemd-modules-load.service';
 
     # Softdog module needs to be loaded
     # Note: 'grep -q' is not always working, because it can exits with RC=141 due to the pipe...
