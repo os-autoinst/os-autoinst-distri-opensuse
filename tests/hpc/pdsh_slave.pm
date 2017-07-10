@@ -21,11 +21,10 @@ use utils;
 
 sub run() {
     my $self      = shift;
-    my $host_ip   = get_required_var('HPC_HOST_IP');
     my $master_ip = get_required_var('HPC_MASTER_IP');
 
     select_console 'root-console';
-    $self->setup_static_mm_network($host_ip);
+    $self->setup_static_mm_network();
 
     # stop firewall, so key can be copied
     assert_script_run "rcSuSEfirewall2 stop";
@@ -39,8 +38,7 @@ sub run() {
     mutex_lock("PDSH_KEY_COPIED");
 
     # start munge
-    assert_script_run('systemctl enable munge.service');
-    assert_script_run('systemctl start munge.service');
+    $self->enable_and_start('munge');
     barrier_wait("PDSH_MUNGE_ENABLED");
     mutex_lock("MRSH_SOCKET_STARTED");
 

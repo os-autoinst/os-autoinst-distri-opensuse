@@ -20,14 +20,13 @@ use utils;
 
 sub run() {
     my $self     = shift;
-    my $host_ip  = get_required_var('HPC_HOST_IP');
     my $slave_ip = get_required_var('HPC_SLAVE_IP');
     barrier_create("MUNGE_INSTALLATION_FINISHED", 2);
     barrier_create("MUNGE_SERVICE_ENABLED",       2);
 
     select_console 'root-console';
 
-    $self->setup_static_mm_network($host_ip);
+    $self->setup_static_mm_network();
 
     # set proper hostname
     assert_script_run('hostnamectl set-hostname munge-master');
@@ -41,8 +40,7 @@ sub run() {
     mutex_create('MUNGE_KEY_COPIED');
 
     # enable and start service
-    assert_script_run('systemctl enable munge.service');
-    assert_script_run('systemctl start munge.service');
+    $self->enable_and_start('munge');
     barrier_wait("MUNGE_SERVICE_ENABLED");
 
     # test if munch works fine

@@ -1,6 +1,5 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
 # Copyright © 2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
@@ -21,14 +20,13 @@ use utils;
 
 sub run() {
     my $self                      = shift;
-    my $host_ip                   = get_required_var('HPC_HOST_IP');
-    my ($host_ip_without_netmask) = $host_ip =~ /(.*)\/.*/;
+    my ($host_ip_without_netmask) = get_required_var('HPC_HOST_IP') =~ /(.*)\/.*/;
     my $slave_ip                  = get_required_var('HPC_SLAVE_IP');
     barrier_create("SLURM_MASTER_SERVICE_ENABLED", 2);
     barrier_create("SLURM_SLAVE_SERVICE_ENABLED",  2);
 
     select_console 'root-console';
-    $self->setup_static_mm_network($host_ip);
+    $self->setup_static_mm_network();
 
     # stop firewall
     assert_script_run "rcSuSEfirewall2 stop";
@@ -54,17 +52,14 @@ EOF
     $self->exec_and_insert_password("scp -o StrictHostKeyChecking=no /etc/slurm/slurm.conf root\@$slave_ip:/etc/slurm/slurm.conf");
 
     # enable and start munge
-    assert_script_run "systemctl enable munge.service";
-    assert_script_run "systemctl start munge.service";
+    $self->enable_and_start('munge');
 
     # enable and start slurmctld
-    assert_script_run "systemctl enable slurmctld.service";
-    assert_script_run "systemctl start slurmctld.service";
+    $self->enable_and_start('slurmctld');
     assert_script_run "systemctl status slurmctld.service";
 
-    # enable and start slurmd since master also acts as Node here
-    assert_script_run "systemctl enable slurmd.service";
-    assert_script_run "systemctl start slurmd.service";
+    # enable and start slurmd since maester also acts as Node here
+    $self->enable_and_start('slurmd');
     assert_script_run "systemctl status slurmd.service";
 
     # wait for slave to be ready

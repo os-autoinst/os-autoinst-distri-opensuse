@@ -1,6 +1,5 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
 # Copyright © 2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
@@ -21,11 +20,9 @@ use lockapi;
 use utils;
 
 sub run() {
-    my $self    = shift;
-    my $host_ip = get_required_var('HPC_HOST_IP');
-
+    my $self = shift;
     select_console 'root-console';
-    $self->setup_static_mm_network($host_ip);
+    $self->setup_static_mm_network();
 
     # stop firewall, so key can be copied
     assert_script_run "rcSuSEfirewall2 stop";
@@ -39,13 +36,11 @@ sub run() {
     mutex_lock("MRSH_KEY_COPIED");
 
     # start munge
-    assert_script_run('systemctl enable munge.service');
-    assert_script_run('systemctl start munge.service');
+    $self->enable_and_start('munge');
     barrier_wait("MRSH_MUNGE_ENABLED");
 
     # Start the socket listener for mrlogind and mrsh
-    assert_script_run('systemctl enable mrlogind.socket mrshd.socket');
-    assert_script_run('systemctl start mrlogind.socket mrshd.socket');
+    $self->enable_and_start('mrlogind.socket mrshd.socket');
     barrier_wait("SLAVE_MRLOGIN_STARTED");
     barrier_wait("MRSH_MASTER_DONE");
 }

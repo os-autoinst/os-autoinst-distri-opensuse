@@ -22,14 +22,13 @@ use utils;
 
 sub run() {
     my $self     = shift;
-    my $host_ip  = get_required_var('HPC_HOST_IP');
     my $slave_ip = get_required_var('HPC_SLAVE_IP');
     barrier_create("PDSH_INSTALLATION_FINISHED", 2);
     barrier_create("PDSH_MUNGE_ENABLED",         2);
     barrier_create("PDSH_SLAVE_DONE",            2);
 
     select_console 'root-console';
-    $self->setup_static_mm_network($host_ip);
+    $self->setup_static_mm_network();
 
     # set proper hostname
     assert_script_run "hostnamectl set-hostname pdsh-master";
@@ -46,12 +45,10 @@ sub run() {
     mutex_create("PDSH_KEY_COPIED");
 
     # start munge
-    assert_script_run('systemctl enable munge.service');
-    assert_script_run('systemctl start munge.service');
+    $self->enable_and_start('munge');
     barrier_wait("PDSH_MUNGE_ENABLED");
 
-    assert_script_run('systemctl enable mrshd.socket');
-    assert_script_run('systemctl start mrshd.socket');
+    $self->enable_and_start('mrshd.socket');
     mutex_create("MRSH_SOCKET_STARTED");
     barrier_wait("PDSH_SLAVE_DONE");
 }

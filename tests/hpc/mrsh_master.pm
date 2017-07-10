@@ -1,6 +1,5 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
 # Copyright © 2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
@@ -23,7 +22,6 @@ use utils;
 
 sub run() {
     my $self     = shift;
-    my $host_ip  = get_required_var('HPC_HOST_IP');
     my $slave_ip = get_required_var('HPC_SLAVE_IP');
     barrier_create("MRSH_INSTALLATION_FINISHED", 2);
     barrier_create("MRSH_MUNGE_ENABLED",         2);
@@ -31,7 +29,7 @@ sub run() {
     barrier_create("MRSH_MASTER_DONE",           2);
 
     select_console 'root-console';
-    $self->setup_static_mm_network($host_ip);
+    $self->setup_static_mm_network();
 
     # set proper hostname
     assert_script_run "hostnamectl set-hostname mrsh-master";
@@ -48,8 +46,7 @@ sub run() {
     mutex_create("MRSH_KEY_COPIED");
 
     # start munge
-    assert_script_run('systemctl enable munge.service');
-    assert_script_run('systemctl start munge.service');
+    $self->enable_and_start('munge');
     barrier_wait("MRSH_MUNGE_ENABLED");
     barrier_wait("SLAVE_MRLOGIN_STARTED");
 
