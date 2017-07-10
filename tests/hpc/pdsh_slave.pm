@@ -44,13 +44,14 @@ sub run() {
     barrier_wait("PDSH_MUNGE_ENABLED");
     mutex_lock("MRSH_SOCKET_STARTED");
 
-    # make sure that nobody has permissions for $serialdev to get openQA work properly
+    # make sure that user 'nobody' has permissions for $serialdev to get openQA work properly
     assert_script_run("chmod 666 /dev/$serialdev");
 
     type_string("su - nobody\n");
     assert_screen 'user-nobody';
 
-    assert_script_run("pdsh -R mrsh -w $master_ip ls");
+    assert_script_run("pdsh -R mrsh -w $master_ip ls / &> /tmp/pdsh.log");
+    upload_logs '/tmp/pdsh.log';
     barrier_wait("PDSH_SLAVE_DONE");
 }
 
