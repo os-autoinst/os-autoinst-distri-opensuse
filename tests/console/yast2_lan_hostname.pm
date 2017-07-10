@@ -50,7 +50,6 @@ sub run() {
     hostname_via_dhcp('no');
     hostname_via_dhcp('yes-eth0');
     hostname_via_dhcp('yes-any');
-    select_console 'user-console';
 }
 
 sub post_fail_hook() {
