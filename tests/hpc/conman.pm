@@ -72,6 +72,7 @@ sub run() {
     type_string("Hello from conman...\n");
     send_key('ctrl-l');     # send \n
     type_string '&.';
+    assert_screen("connection-closed");
     type_string "fg 1\n";
     assert_screen('nc-response');
 
