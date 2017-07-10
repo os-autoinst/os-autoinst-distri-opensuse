@@ -50,7 +50,7 @@ sub run() {
     type_string("su - nobody\n");
     assert_screen 'user-nobody';
 
-    assert_script_run("pdsh -R mrsh -w $master_ip ls");
+    assert_script_run("pdsh -R mrsh -w $master_ip ls /");
     barrier_wait("PDSH_SLAVE_DONE");
 }
 
