@@ -39,6 +39,7 @@
     <SSLv2>NO</SSLv2>
     <SSLv3>NO</SSLv3>
     <StartDaemon>2</StartDaemon>
+    <StartXinetd>YES</StartXinetd>
     <TLS>YES</TLS>
     <Umask/>
     <UmaskAnon>022</UmaskAnon>
