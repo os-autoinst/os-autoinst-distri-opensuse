@@ -19,11 +19,10 @@ use lockapi;
 use utils;
 
 sub run() {
-    my $self    = shift;
-    my $host_ip = get_required_var('HPC_HOST_IP');
+    my $self = shift;
     select_console 'root-console';
 
-    $self->setup_static_mm_network($host_ip);
+    $self->setup_static_mm_network();
 
     # stop firewall, so key can be copied
     assert_script_run "rcSuSEfirewall2 stop";
@@ -36,9 +35,8 @@ sub run() {
     barrier_wait('MUNGE_INSTALLATION_FINISHED');
     mutex_lock('MUNGE_KEY_COPIED');
 
-    # start enable service
-    assert_script_run('systemctl enable munge.service');
-    assert_script_run('systemctl start munge.service');
+    # start and enable munge
+    $self->enable_and_start('munge');
     barrier_wait("MUNGE_SERVICE_ENABLED");
 
     # wait for master to finish

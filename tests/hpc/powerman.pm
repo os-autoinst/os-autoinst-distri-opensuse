@@ -23,6 +23,7 @@ use utils;
 use susedistribution;
 
 sub run() {
+    my $self = shift;
     select_console 'root-console';
 
     # install powerman
@@ -44,8 +45,7 @@ EOF
     assert_script_run("cat $cfg_file");
 
     # enable and start service
-    assert_script_run('systemctl enable powerman.service');
-    assert_script_run('systemctl start powerman.service');
+    $self->enable_and_start('powerman');
 
     # list available targets
     script_run("powerman -l | tee /dev/$serialdev", 0);

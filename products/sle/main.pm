@@ -1352,20 +1352,10 @@ elsif (get_var('HPC')) {
         loadtest 'console/install_all_from_repository' if (get_var('INSTALL_ALL_REPO'));
         loadtest 'console/install_single_package'      if (get_var('PACKAGETOINSTALL'));
 
-        # munge sanity multimachine tests
-        loadtest 'hpc/munge_master' if (check_var('HPC', 'munge_master'));
-        loadtest 'hpc/munge_slave'  if (check_var('HPC', 'munge_slave'));
-
-        # slurm sanity multimachine tests
-        loadtest 'hpc/slurm_master' if (check_var('HPC', 'slurm_master'));
-        loadtest 'hpc/slurm_slave'  if (check_var('HPC', 'slurm_slave'));
-
-        # mrsh sanity multimachine tests
-        loadtest 'hpc/mrsh_master' if (check_var('HPC', 'mrsh_master'));
-        loadtest 'hpc/mrsh_slave'  if (check_var('HPC', 'mrsh_slave'));
-        # pdsh sanity multimachine tests
-        loadtest 'hpc/pdsh_master' if (check_var('HPC', 'pdsh_master'));
-        loadtest 'hpc/pdsh_slave'  if (check_var('HPC', 'pdsh_slave'));
+        # load hpc multimachine scenario based on value of HPC variable
+        # e.g 'hpc/$testsuite_[master|slave].pm'
+        my $hpc_mm_scenario = get_var('HPC');
+        loadtest "hpc/$hpc_mm_scenario";
     }
 }
 else {

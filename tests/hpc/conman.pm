@@ -23,6 +23,7 @@ use utils;
 use susedistribution;
 
 sub run() {
+    my $self = shift;
     select_console 'root-console';
 
     # install conman
@@ -33,9 +34,7 @@ sub run() {
     assert_script_run("echo 'CONSOLE name=\"serial1\" dev=\"/dev/$serialdev\" seropts=\"115200\"' >> /etc/conman.conf");
     assert_script_run("cat /etc/conman.conf");
 
-    # enable and start conmand
-    assert_script_run('systemctl enable conman.service');
-    assert_script_run('systemctl start conman.service');
+    $self->enable_and_start('conman');
 
     # check service status
     assert_script_run('systemctl status conman');

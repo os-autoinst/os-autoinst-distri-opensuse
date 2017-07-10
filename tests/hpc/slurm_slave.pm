@@ -1,6 +1,5 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
 # Copyright © 2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
@@ -21,12 +20,11 @@ use utils;
 
 sub run() {
     my $self                      = shift;
-    my $host_ip                   = get_required_var('HPC_HOST_IP');
-    my ($host_ip_without_netmask) = $host_ip =~ /(.*)\/.*/;
+    my ($host_ip_without_netmask) = get_required_var('HPC_HOST_IP') =~ /(.*)\/.*/;
     my $master_ip                 = get_required_var('HPC_MASTER_IP');
 
     select_console 'root-console';
-    $self->setup_static_mm_network($host_ip);
+    $self->setup_static_mm_network();
 
     # stop firewall, so key can be copied
     assert_script_run "rcSuSEfirewall2 stop";
@@ -44,12 +42,10 @@ sub run() {
     barrier_wait("SLURM_MASTER_SERVICE_ENABLED");
 
     # enable and start munge
-    assert_script_run "systemctl enable munge.service";
-    assert_script_run "systemctl start munge.service";
+    $self->enable_and_start('munge');
 
     # enable and start slurmd
-    assert_script_run "systemctl enable slurmd.service";
-    assert_script_run "systemctl start slurmd.service";
+    $self->enable_and_start('slurmd');
     assert_script_run "systemctl status slurmd.service";
     barrier_wait("SLURM_SLAVE_SERVICE_ENABLED");
 
