@@ -1343,19 +1343,25 @@ elsif (get_var('HPC')) {
     }
     else {
         loadtest 'boot/boot_to_desktop';
-        loadtest 'hpc/enable_in_zypper' if (check_var('HPC', 'enable'));
-        loadtest 'hpc/conman'           if (check_var('HPC', 'conman'));
-        if (check_var('HPC', 'powerman')) {
+        if (check_var('HPC', 'enable')) {
+            loadtest 'hpc/enable_in_zypper';
+        }
+        elsif (check_var('HPC', 'conman')) {
+            loadtest 'hpc/conman';
+        }
+        elsif (check_var('HPC', 'powerman')) {
             loadtest 'console/hostname';
             loadtest 'hpc/powerman';
         }
-        loadtest 'console/install_all_from_repository' if (get_var('INSTALL_ALL_REPO'));
-        loadtest 'console/install_single_package'      if (get_var('PACKAGETOINSTALL'));
+        else {
+            loadtest 'console/install_all_from_repository' if (get_var('INSTALL_ALL_REPO'));
+            loadtest 'console/install_single_package'      if (get_var('PACKAGETOINSTALL'));
 
-        # load hpc multimachine scenario based on value of HPC variable
-        # e.g 'hpc/$testsuite_[master|slave].pm'
-        my $hpc_mm_scenario = get_var('HPC');
-        loadtest "hpc/$hpc_mm_scenario";
+            # load hpc multimachine scenario based on value of HPC variable
+            # e.g 'hpc/$testsuite_[master|slave].pm'
+            my $hpc_mm_scenario = get_var('HPC');
+            loadtest "hpc/$hpc_mm_scenario" if $hpc_mm_scenario ne '1';
+        }
     }
 }
 else {

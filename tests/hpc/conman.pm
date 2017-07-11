@@ -16,7 +16,7 @@
 # Maintainer: Matthias Griessmeier <mgriessmeier@suse.com>
 
 
-use base "opensusebasetest";
+use base "hpcbase";
 use strict;
 use testapi;
 use utils;
