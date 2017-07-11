@@ -899,7 +899,7 @@ else {
     }
 }
 
-if (get_var("CLONE_SYSTEM")) {
+if (get_var("CLONE_SYSTEM") && !get_var("INSTALLONLY")) {
     load_autoyast_clone_tests;
 }
 
