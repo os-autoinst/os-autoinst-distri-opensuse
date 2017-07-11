@@ -16,7 +16,7 @@
 # Maintainer: Matthias Griessmeier <mgriessmeier@suse.com>
 
 
-use base "opensusebasetest";
+use base "hpcbase";
 use strict;
 use testapi;
 use utils;
@@ -34,8 +34,8 @@ sub run() {
     my $cfg_file = "/etc/powerman/powerman.conf";
     my $hostname = script_output('hostname');
     assert_script_run(
-        "echo \"\$(cat <<EOF 
-listen \"0.0.0.0:10101\" 
+        "echo \"\$(cat <<EOF
+listen \"0.0.0.0:10101\"
 include \"/etc/powerman/bashfun.dev\"
 device \"test\" \"bashfun\" \"/bin/bash |&\"
 node \"$hostname\" \"test\" \"1\"
