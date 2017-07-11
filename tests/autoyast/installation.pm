@@ -122,7 +122,7 @@ sub run {
             if (check_var('DISTRI', 'sle') && check_screen('warning-partition-reduced', 0)) {
                 # See poo#19978, no timeout on partition warning, hence need to click OK button to soft-fail
                 record_soft_failure('bsc#1045470');
-                send_key $cmd{ok};
+                send_key_until_needlematch 'create-partition-plans-finished', $cmd{ok};
                 next;
             }
             die "Unknown popup message" unless check_screen('autoyast-known-warning', 0);
