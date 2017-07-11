@@ -275,6 +275,9 @@ sub load_inst_tests {
                 loadtest "installation/partitioning_resize_root";
             }
         }
+        if (get_var("EXPERTPARTITIONER")) {
+            loadtest "installation/partitioning_expert";
+        }
         if (get_var("SPLITUSR")) {
             loadtest "installation/partitioning_splitusr";
         }
