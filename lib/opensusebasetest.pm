@@ -234,7 +234,7 @@ sub export_kde_logs {
 # point the firmware boot manager to the right file.
 sub handle_uefi_boot_disk_workaround {
     my ($self) = @_;
-    record_soft_failure 'bsc#1022064';
+    record_info 'workaround', 'Manually selecting boot entry, see bsc#1022064 for details';
     tianocore_enter_menu;
     send_key_until_needlematch 'tianocore-boot_maintenance_manager', 'down', 5, 5;
     wait_screen_change { send_key 'ret' };
