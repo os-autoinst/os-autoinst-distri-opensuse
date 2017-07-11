@@ -92,10 +92,6 @@ sub kdump_is_active {
     if ($status =~ /Active: active/) {
         return 1;
     }
-    elsif ($status =~ /Active: failed/) {
-        record_soft_failure 'bsc#1022064';
-        return undef;
-    }
     die "undefined state of kdump service";
 }
 
