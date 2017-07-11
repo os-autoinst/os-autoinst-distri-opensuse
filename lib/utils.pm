@@ -878,14 +878,14 @@ sub validatelr {
     if ($product eq 'IBM-DLPAR-utils') {
         my $cmd
           = "zypper lr --uri | awk -F \'|\' -v OFS=\' \' \'{ print \$3,\$4,\$NF }\' | tr -s \' \' | grep --color \"$product\[\[:space:\]\[:punct:\]\[:space:\]\]*$enabled_repo $uri\"";
-        run_scripted_command_slow($cmd);
+        run_scripted_command_slow($cmd, slow_type => 2);
     }
     elsif (check_var('DISTRI', 'sle')) {
         # SLES12 does not have 'SLES12-Source-Pool' SCC channel
         unless (($version eq "12") and ($product_channel eq "Source-Pool")) {
             my $cmd
               = "zypper lr --uri | awk -F \'|\' -v OFS=\' \' \'{ print \$2,\$3,\$4,\$NF }\' | tr -s \' \' | grep --color \"$product$version\[\[:alnum:\]\[:punct:\]\]*-*$product_channel $product$version\[\[:alnum:\]\[:punct:\]\[:space:\]\]*-*$product_channel $enabled_repo $uri\"";
-            run_scripted_command_slow($cmd);
+            run_scripted_command_slow($cmd, slow_type => 2);
         }
     }
 }
