@@ -197,7 +197,6 @@ sub select_bootmenu_more {
         # newer versions of qemu on arch automatically add 'console=ttyS0' so
         # we would end up nowhere. Setting console parameter explicitly
         # See https://bugzilla.suse.com/show_bug.cgi?id=1032335 for details
-        record_soft_failure 'bsc#1032335';
         send_key 'e';
         send_key 'down' for (1 .. 4);
         send_key 'end';
