@@ -16,6 +16,7 @@ use warnings;
 use testapi;
 use base "virt_autotest_base";
 use virt_utils;
+use ipmi_backend_utils;
 
 sub update_package() {
     my $self           = shift;
@@ -42,6 +43,7 @@ sub update_package() {
 sub run() {
     my $self = shift;
     $self->update_package();
+    set_serial_console_on_xen if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen"));
     repl_repo_in_sourcefile();
 }
 

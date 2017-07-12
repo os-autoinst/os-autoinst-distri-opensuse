@@ -20,18 +20,12 @@ sub run() {
     if (check_var('BACKEND', 'ipmi')) {
         select_console 'sol', await_console => 0;
     }
-    assert_screen([qw(virttest-bootloader qa-net-selection)], 300);
+    assert_screen([qw(virttest-pxe-menu qa-net-selection)], 300);
     my $image_path = "";
 
     #detect pxe location
-    if (match_has_tag("virttest-bootloader")) {
+    if (match_has_tag("virttest-pxe-menu")) {
         #BeiJing
-        # Wait the second screen for ipmi bootloader
-        send_key_until_needlematch "virttest-boot-into-pxe", "f12", 3, 60;
-
-        # Wait pxe management screen
-        send_key_until_needlematch "virttest-pxe-menu", "f12", 200, 1;
-
         # Login to command line of pxe management
         send_key_until_needlematch "virttest-pxe-edit-prompt", "esc", 60, 1;
 
