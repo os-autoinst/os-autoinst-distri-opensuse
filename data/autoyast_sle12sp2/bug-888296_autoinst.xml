@@ -1,7 +1,6 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE profile>
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
-
   <audit-laf>
     <auditd>
       <action_mail_acct>root</action_mail_acct>
@@ -27,21 +26,7 @@
       <tcp_listen_queue>5</tcp_listen_queue>
       <tcp_max_per_addr>1</tcp_max_per_addr>
     </auditd>
-    <rules># This file contains the auditctl rules that are loaded
-# whenever the audit daemon is started via the initscripts.
-# The rules are simply the parameters that would be passed
-# to auditctl.
-
-# First rule - delete all
--D
-
-# Increase the buffers to survive stress events.
-# Make this bigger for busy systems
--b 320
-
-# Feel free to add below this line. See auditctl man page
-
-</rules>
+    <rules># This file contains the auditctl rules that are loaded# whenever the audit daemon is started via the initscripts.# The rules are simply the parameters that would be passed# to auditctl.# First rule - delete all-D# Increase the buffers to survive stress events.# Make this bigger for busy systems-b 320# Feel free to add below this line. See auditctl man page</rules>
   </audit-laf>
   <auth-client>
     <nssldap config:type="boolean">false</nssldap>
@@ -887,23 +872,8 @@
         <service>vnchttpd3</service>
       </conf>
       <conf>
-        <comment> default: off
- description:
-   The vsftpd FTP server serves FTP connections. It uses
-   normal, unencrypted usernames and passwords for authentication.
- vsftpd is designed to be secure.
-
- NOTE: This file contains the configuration for xinetd to start vsftpd.
-       the configuration file for vsftp itself is in /etc/vsftpd.conf
-
- NOTE: Remember to set both listen and listen_ipv6 to NO in /etc/vsftpd.conf
-       in order to have working xinetd connection.
-
-</comment>
-        <comment_inside>        log_on_success          += DURATION USERID
-        log_on_failure          += USERID
-        nice                    = 10
-</comment_inside>
+        <comment> default: off description:   The vsftpd FTP server serves FTP connections. It uses   normal, unencrypted usernames and passwords for authentication. vsftpd is designed to be secure. NOTE: This file contains the configuration for xinetd to start vsftpd.       the configuration file for vsftp itself is in /etc/vsftpd.conf NOTE: Remember to set both listen and listen_ipv6 to NO in /etc/vsftpd.conf       in order to have working xinetd connection.</comment>
+        <comment_inside>        log_on_success          += DURATION USERID        log_on_failure          += USERID        nice                    = 10</comment_inside>
         <enabled config:type="boolean">false</enabled>
         <iid>1:/etc/xinetd.d/vsftpd</iid>
         <protocol>tcp</protocol>
@@ -951,8 +921,7 @@
     <aliases config:type="list">
       <alias>
         <alias>postmaster</alias>
-        <comment> Basic system aliases that MUST be present.
-</comment>
+        <comment> Basic system aliases that MUST be present.</comment>
         <destinations>root</destinations>
       </alias>
       <alias>
@@ -962,14 +931,12 @@
       </alias>
       <alias>
         <alias>virusalert</alias>
-        <comment> amavis
-</comment>
+        <comment> amavis</comment>
         <destinations>root</destinations>
       </alias>
       <alias>
         <alias>administrator</alias>
-        <comment> General redirections for pseudo accounts in /etc/passwd.
-</comment>
+        <comment> General redirections for pseudo accounts in /etc/passwd.</comment>
         <destinations>root</destinations>
       </alias>
       <alias>
@@ -1054,14 +1021,12 @@
       </alias>
       <alias>
         <alias>bin</alias>
-        <comment> "bin" used to be in /etc/passwd
-</comment>
+        <comment> "bin" used to be in /etc/passwd</comment>
         <destinations>root</destinations>
       </alias>
       <alias>
         <alias>newsadm</alias>
-        <comment> Further well-known aliases for dns/news/ftp/mail/fax/web/gnats.
-</comment>
+        <comment> Further well-known aliases for dns/news/ftp/mail/fax/web/gnats.</comment>
         <destinations>news</destinations>
       </alias>
       <alias>
@@ -1116,8 +1081,7 @@
       </alias>
       <alias>
         <alias>abuse</alias>
-        <comment> "abuse" is often used to fight against spam email
-</comment>
+        <comment> "abuse" is often used to fight against spam email</comment>
         <destinations>postmaster</destinations>
       </alias>
       <alias>
@@ -1253,56 +1217,31 @@
     <peers config:type="list">
       <peer>
         <address>/var/lib/ntp/drift/ntp.drift </address>
-        <comment>
-# Clients from this (example!) subnet have unlimited access, but only if
-# cryptographically authenticated.
-#restrict 192.168.123.0 mask 255.255.255.0 notrust
-
-##
-## Miscellaneous stuff
-##
-
-</comment>
+        <comment># Clients from this (example!) subnet have unlimited access, but only if# cryptographically authenticated.#restrict 192.168.123.0 mask 255.255.255.0 notrust#### Miscellaneous stuff##</comment>
         <options/>
         <type>driftfile</type>
       </peer>
       <peer>
         <address>/var/log/ntp		</address>
-        <comment># path for drift file
-
-</comment>
+        <comment># path for drift file</comment>
         <options/>
         <type>logfile</type>
       </peer>
       <peer>
         <address>/etc/ntp.keys		</address>
-        <comment># alternate log file
-# logconfig =syncstatus + sysevents
-# logconfig =all
-
-# statsdir /tmp/		# directory for statistics files
-# filegen peerstats  file peerstats  type day enable
-# filegen loopstats  file loopstats  type day enable
-# filegen clockstats file clockstats type day enable
-
-#
-# Authentication stuff
-#
-</comment>
+        <comment># alternate log file# logconfig =syncstatus + sysevents# logconfig =all# statsdir /tmp/		# directory for statistics files# filegen peerstats  file peerstats  type day enable# filegen loopstats  file loopstats  type day enable# filegen clockstats file clockstats type day enable## Authentication stuff#</comment>
         <options/>
         <type>keys</type>
       </peer>
       <peer>
         <address>1			</address>
-        <comment># path for keys file
-</comment>
+        <comment># path for keys file</comment>
         <options/>
         <type>trustedkey</type>
       </peer>
       <peer>
         <address>1			</address>
-        <comment># define trusted keys
-</comment>
+        <comment># define trusted keys</comment>
         <options/>
         <type>requestkey</type>
       </peer>
@@ -1394,34 +1333,30 @@
   <printer>
     <client_conf_content>
       <file_contents><![CDATA[# CUPS client configuration file (optional).
-
-# You may use /etc/cups/client.conf (system wide)
-# or ~/.cups/client.conf (per user).
-# For more information see "man 5 client.conf".
-
-# The ServerName directive specifies the remote server
-# that is to be used for all client operations. That is, it
-# redirects all client requests directly to that remote server
-# so that a local running cupsd is not used in this case.
-# The default is to use the local server ("localhost") or domain socket.
-# Only one ServerName directive may appear.
-# If multiple names are present, only the last one is used.
-# The default port number is 631 but can be overridden by adding
-# a colon followed by the desired port number.
-# The default IPP version is 2.0 but can be overridden by adding
-# a slash followed by version=V where V is 1.0 or 1.1 or 2.0 or 2.1 or 2.2.
-# IPP version 2.0 does do not work with CUPS 1.3 or older servers.
-# If an CUPS 1.3 or older server is used, its older IPP version
-# must be specified as .../version=1.1 or .../version=1.0.
-
-# Examples:
-# ServerName sever.example.com
-# ServerName 192.0.2.10
-# ServerName sever.example.com:8631
-# ServerName older.server.example.com/version=1.1
-# ServerName older.server.example.com:8631/version=1.1
-
-]]></file_contents>
+      # You may use /etc/cups/client.conf (system wide)
+      # or ~/.cups/client.conf (per user).
+      # For more information see "man 5 client.conf".
+      # The ServerName directive specifies the remote server
+      # that is to be used for all client operations. That is, it
+      # redirects all client requests directly to that remote server
+      # so that a local running cupsd is not used in this case.
+      # The default is to use the local server ("localhost") or domain socket.
+      # Only one ServerName directive may appear.
+      # If multiple names are present, only the last one is used.
+      # The default port number is 631 but can be overridden by adding
+      # a colon followed by the desired port number.
+      # The default IPP version is 2.0 but can be overridden by adding
+      # a slash followed by version=V where V is 1.0 or 1.1 or 2.0 or 2.1 or 2.2.
+      # IPP version 2.0 does do not work with CUPS 1.3 or older servers.
+      # If an CUPS 1.3 or older server is used, its older IPP version
+      # must be specified as .../version=1.1 or .../version=1.0.
+      # Examples:
+      # ServerName sever.example.com
+      # ServerName 192.0.2.10
+      # ServerName sever.example.com:8631
+      # ServerName older.server.example.com/version=1.1
+      # ServerName older.server.example.com:8631/version=1.1
+      ]]></file_contents>
     </client_conf_content>
     <cupsd_conf_content>
       <file_contents><![CDATA[]]></file_contents>
@@ -1595,13 +1530,24 @@
     <umask>022</umask>
   </user_defaults>
   <users config:type="list">
-                <user>
-                   <fullname>Bernhard M. Wiedemann</fullname>
-                   <encrypted config:type="boolean">false</encrypted>
-                   <user_password>nots3cr3t</user_password>
-                   <username>bernhard</username>
-                </user>
-
+    <user>
+      <encrypted config:type="boolean">false</encrypted>
+      <fullname>Bernhard M. Wiedemann</fullname>
+      <gid>100</gid>
+      <home>/home/bernhard</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max>99999</max>
+        <min>0</min>
+        <warn>7</warn>
+      </password_settings>
+      <shell>/bin/bash</shell>
+      <username>bernhard</username>
+      <uid>1001</uid>
+      <user_password>nots3cr3t</user_password>
+    </user>
     <user>
       <encrypted config:type="boolean">false</encrypted>
       <fullname>ix64ph1045</fullname>
