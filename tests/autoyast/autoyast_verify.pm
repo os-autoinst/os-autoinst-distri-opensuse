@@ -1,4 +1,4 @@
-# Copyright (C) 2015 SUSE Linux GmbH
+# Copyright (C) 2015-2017 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -12,14 +12,25 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
-
-# G-Summary: merge of sles11sp4 autoyast test, base commit
-# G-Maintainer: Pavel Sladek <psladek@suse.cz>
+#
+# Summary: common framework to run verification scripts for systems
+#          installed with autoyast
+# Maintainer: Rodion Iafarov <riafarov@suse.com>
 
 use strict;
 use base 'basetest';
 use testapi;
 use lockapi;
+
+sub expected_failures {
+    # Function is used to sof-fail known issues. As long as we use generic
+    # framework here, we need to perform additional checks to identify
+    # particular test case based on script url
+    my ($script_output) = @_;
+    if ($script_output =~ /bsc#1046605/) {
+        record_soft_failure('bsc#1046605');
+    }
+}
 
 sub run {
     my $self = shift;
@@ -89,6 +100,8 @@ sub run {
         ./verify.sh
         ');
         $success = 1 if $res =~ /AUTOYAST OK/;
+        # Soft-fail known bugs
+        expected_failures($res);
     }
 
     save_screenshot;
