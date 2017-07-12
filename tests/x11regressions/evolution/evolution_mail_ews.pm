@@ -14,7 +14,7 @@ use strict;
 use base "x11regressiontest";
 use testapi;
 
-sub run() {
+sub run {
 
     my ($self)      = @_;
     my $mailbox     = 'zzzSUSEExTest19@microfocus.com';

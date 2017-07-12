@@ -15,7 +15,7 @@ use warnings;
 use testapi;
 use base "proxymode";
 
-sub run() {
+sub run {
     my $self         = shift;
     my $ipmi_machine = get_var("IPMI_HOSTNAME");
     die "There is no ipmi ip address defined variable IPMI_HOSTNAME" unless $ipmi_machine;

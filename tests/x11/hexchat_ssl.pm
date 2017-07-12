@@ -18,7 +18,7 @@ use base "x11test";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     my $name = ('hexchat');
     ensure_installed($name);
     # we need to move the mouse in the top left corner as hexchat

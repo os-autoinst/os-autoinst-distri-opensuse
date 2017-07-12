@@ -18,7 +18,7 @@ use base "opensusebasetest";
 use testapi;
 use ipmi_backend_utils;
 
-sub login_to_console() {
+sub login_to_console {
     my ($self, $timeout) = @_;
     $timeout //= 300;
 
@@ -48,7 +48,7 @@ sub login_to_console() {
     use_ssh_serial_console;
 }
 
-sub run() {
+sub run {
     my $self = shift;
     $self->login_to_console;
 }

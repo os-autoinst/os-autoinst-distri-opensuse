@@ -15,7 +15,7 @@ use base "basetest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     x11_start_program("banshee");
     assert_screen 'test-banshee-1', 3;
     send_key "ctrl-q";    # really quit (alt-f4 just backgrounds)
@@ -23,7 +23,7 @@ sub run() {
     wait_idle;
 }
 
-sub ocr_checklist() {
+sub ocr_checklist {
     [
 
         {

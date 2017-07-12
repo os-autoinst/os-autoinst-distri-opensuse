@@ -18,7 +18,7 @@ use testapi;
 # test xfce4-appfinder, auto-completion and starting xfce4-about
 
 # this part contains the steps to run this test
-sub run() {
+sub run {
     send_key "alt-f2";
     sleep 2;
     send_key "down";

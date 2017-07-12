@@ -17,14 +17,14 @@ use testapi;
 use utils;
 use lockapi;
 
-sub run() {
+sub run {
     my $self = shift;
 
     mutex_create("adminserver_configured");
 
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

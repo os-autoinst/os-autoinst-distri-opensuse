@@ -35,7 +35,7 @@ sub start_vncviewer {
     }
 }
 
-sub run() {
+sub run {
     my $self = shift;
 
     #wait for supportserver if not yet ready

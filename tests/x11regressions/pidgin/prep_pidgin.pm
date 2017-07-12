@@ -17,7 +17,7 @@ use strict;
 use testapi;
 use utils;
 
-sub pidgin_preparation() {
+sub pidgin_preparation {
     mouse_hide(1);
     ensure_installed('pidgin');
 
@@ -64,7 +64,7 @@ sub pidgin_preparation() {
     send_key "ctrl-q";    # quit pidgin
 }
 
-sub run() {
+sub run {
     pidgin_preparation;
 }
 

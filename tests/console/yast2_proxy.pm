@@ -14,7 +14,7 @@ use strict;
 use base "console_yasttest";
 use testapi;
 
-sub run() {
+sub run {
     select_console 'root-console';
 
     # install yast2-squid, yast2-proxy, squid package at first

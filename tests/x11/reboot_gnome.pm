@@ -16,7 +16,7 @@ use strict;
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     my ($self) = @_;
     if (check_var('DISTRI', 'sle')) {
         # Increase logging level for bsc#1000599
@@ -45,7 +45,7 @@ sub post_fail_hook {
     $self->export_logs;
 }
 
-sub test_flags() {
+sub test_flags {
     return {milestone => 1};
 }
 

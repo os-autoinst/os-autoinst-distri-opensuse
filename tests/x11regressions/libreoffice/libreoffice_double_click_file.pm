@@ -14,7 +14,7 @@ use base "x11regressiontest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     my $self = shift;
 
     # upload libreoffice specified files for testing

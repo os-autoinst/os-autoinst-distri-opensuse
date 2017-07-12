@@ -16,7 +16,7 @@ use base "y2logsstep";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     # ordered according to real repos lists
     my @default_repos = qw(update-non-oss update-oss main-non-oss main-oss debug-main untested-update debug-update source);
 

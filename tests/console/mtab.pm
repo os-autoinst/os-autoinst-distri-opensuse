@@ -15,7 +15,7 @@ use base "consoletest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     select_console 'user-console';
     assert_script_run 'test -L /etc/mtab';
     script_run('cat /etc/mtab');

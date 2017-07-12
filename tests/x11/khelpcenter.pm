@@ -15,7 +15,7 @@ use base "x11test";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     x11_start_program("khelpcenter", 6, {valid => 1});
     assert_screen 'test-khelpcenter-1';
     send_key 'alt-f4';

@@ -19,7 +19,7 @@ use testapi;
 use lockapi;
 use utils;
 
-sub run() {
+sub run {
     my $self = shift;
     select_console 'root-console';
     $self->setup_static_mm_network();
@@ -45,7 +45,7 @@ sub run() {
     barrier_wait("MRSH_MASTER_DONE");
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1, milestone => 1};
 }
 

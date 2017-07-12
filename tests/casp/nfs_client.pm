@@ -24,7 +24,7 @@ sub chkdir_strip {
     return $script;
 }
 
-sub run() {
+sub run {
     my $nfs_uri = get_var('NFS_SHARE');
 
     # format $nfs_uri for mount command similarly to function bootmenu_network_setup() in bootloader_setup.pm

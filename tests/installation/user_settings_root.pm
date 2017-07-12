@@ -16,7 +16,7 @@ use warnings;
 use parent qw(installation_user_settings y2logsstep);
 use testapi;
 
-sub run() {
+sub run {
     my ($self) = @_;
     assert_screen "inst-rootpassword";
     $self->type_password_and_verification;

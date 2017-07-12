@@ -15,7 +15,7 @@ use base "consoletest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     select_console 'user-console';
     my $not_repo = 'SLE';
     my $repo     = 'SDK';

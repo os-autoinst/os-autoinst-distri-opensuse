@@ -16,7 +16,7 @@ use strict;
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     select_console 'root-console';
 
     pkcon_quit;
@@ -44,7 +44,7 @@ sub run() {
 }
 
 # we don't need any system log for this package test.
-sub post_fail_hook() {
+sub post_fail_hook {
 }
 
 1;

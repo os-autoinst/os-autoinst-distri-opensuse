@@ -16,7 +16,7 @@ use testapi;
 use strict;
 
 # test for regression of bug http://bugzilla.suse.com/show_bug.cgi?id=952496
-sub run() {
+sub run {
     # select user-console; for one we want to be sure cnf works for a user, 2nd assert_script_run does not work in root-console
     select_console 'user-console';
 

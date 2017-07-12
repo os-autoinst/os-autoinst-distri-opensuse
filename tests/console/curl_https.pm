@@ -18,7 +18,7 @@ use testapi;
 use strict;
 
 # test for bug https://bugzilla.novell.com/show_bug.cgi?id=598574
-sub run() {
+sub run {
     select_console 'user-console';
 
     # arbitrary number of retries

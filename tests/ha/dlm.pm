@@ -16,7 +16,7 @@ use testapi;
 use autotest;
 use lockapi;
 
-sub run() {
+sub run {
     my $self = shift;
     barrier_wait("DLM_INIT_" . $self->cluster_name);
     type_string "rpm -q dlm-kmp-default; echo dlm_kmp_default_installed=\$? > /dev/$serialdev\n";

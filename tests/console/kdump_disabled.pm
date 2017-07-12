@@ -19,7 +19,7 @@ use base "consoletest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     assert_script_run("grep ^0 /sys/kernel/kexec_crash_loaded", fail_message => 'kdump should be disabled');
 }
 

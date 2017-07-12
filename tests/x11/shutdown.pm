@@ -17,7 +17,7 @@ use strict;
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     my $self = shift;
     # Make some information available on common systems to help debug shutdown issues.
     if (get_var('DESKTOP', '') =~ qr/gnome|kde/) {
@@ -33,7 +33,7 @@ sub run() {
     $self->{await_shutdown} = 1;
 }
 
-sub test_flags() {
+sub test_flags {
     return {norollback => 1};
 }
 

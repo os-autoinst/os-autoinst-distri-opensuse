@@ -17,7 +17,7 @@ sub launch_yast2_module_x11 {
     }
 }
 
-sub post_fail_hook() {
+sub post_fail_hook {
     my ($self) = shift;
     $self->export_logs;
     save_screenshot;

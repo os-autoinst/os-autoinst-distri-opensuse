@@ -14,7 +14,7 @@ use strict;
 use base "y2logsstep";
 use testapi;
 
-sub run() {
+sub run {
     # Still initializing the system at this point, can take some time
     assert_screen 'system-role-default-system', 180;
 

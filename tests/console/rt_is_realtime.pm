@@ -14,7 +14,7 @@ use base "opensusebasetest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     assert_script_run "uname -v | grep -qo 'PREEMPT RT'";
     assert_script_run "grep -q 1 /sys/kernel/realtime";
 }

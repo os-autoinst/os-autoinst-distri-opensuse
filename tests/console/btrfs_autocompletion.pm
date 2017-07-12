@@ -26,7 +26,7 @@ sub compare_commands {
     assert_script_run "diff /tmp/command\[12\]";
 }
 
-sub run() {
+sub run {
     select_console 'root-console';
 
     compare_commands("btrfs device stats ",                  "btrfs d\tst\t");

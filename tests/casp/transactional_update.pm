@@ -44,7 +44,7 @@ sub check_reboot_changes {
     die "Expected change:$change, but before:$svbf - after:$svaf mounted" if ($svbf eq $svaf) == $change;
 }
 
-sub run() {
+sub run {
     script_run "rebootmgrctl set-strategy off";
 
     # Download files needed for transactional update test

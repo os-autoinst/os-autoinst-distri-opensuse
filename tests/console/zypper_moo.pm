@@ -14,7 +14,7 @@ use base "consoletest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     select_console 'user-console';
     validate_script_output 'zypper moo', sub {
         <<'EOF'

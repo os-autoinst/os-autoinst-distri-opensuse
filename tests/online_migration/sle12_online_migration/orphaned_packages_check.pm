@@ -16,7 +16,7 @@ use strict;
 use testapi;
 use utils 'zypper_call';
 
-sub run() {
+sub run {
     select_console 'root-console';
 
     #No orphaned packages list to compare currently, so we simply output the result

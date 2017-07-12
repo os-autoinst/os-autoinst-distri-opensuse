@@ -17,7 +17,7 @@ use strict;
 use testapi;
 
 
-sub run() {
+sub run {
     mouse_hide(1);
     x11_start_program("gnome-control-center");
     assert_screen "gnome-control-center-started", 120;    # for timeout selection see bsc#965857

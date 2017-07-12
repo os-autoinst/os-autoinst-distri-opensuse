@@ -20,7 +20,7 @@ use warnings;
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     select_console "x11";
     x11_start_program "xterm";
 

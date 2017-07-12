@@ -44,7 +44,7 @@ sub hostname_via_dhcp {
     }
 }
 
-sub run() {
+sub run {
     select_console 'root-console';
     assert_script_run 'zypper -n in yast2-network';    # make sure yast2 lan module installed
     hostname_via_dhcp('no');
@@ -52,7 +52,7 @@ sub run() {
     hostname_via_dhcp('yes-any');
 }
 
-sub post_fail_hook() {
+sub post_fail_hook {
     assert_script_run 'iface=`ip -o addr show scope global | head -n1 | cut -d" " -f2`';
     upload_logs '/etc/sysconfig/network/ifcfg-$iface';
     upload_logs '/etc/sysconfig/network/dhcp';

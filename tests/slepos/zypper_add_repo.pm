@@ -18,7 +18,7 @@ use utils;
 use mm_network;
 use lockapi;
 
-sub run() {
+sub run {
     my $smt = get_var('SMT_SERVER');
 
     my $slepos_repo         = get_var('SLEPOS_REPO');
@@ -39,7 +39,7 @@ sub run() {
     save_screenshot;
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

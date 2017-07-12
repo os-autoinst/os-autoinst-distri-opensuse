@@ -19,7 +19,7 @@ use utils;
 # test yast2 bootloader functionality
 # https://bugzilla.novell.com/show_bug.cgi?id=610454
 
-sub run() {
+sub run {
     select_console 'root-console';
 
     assert_script_run "zypper -n in yast2-bootloader";    # make sure yast2 bootloader module installed

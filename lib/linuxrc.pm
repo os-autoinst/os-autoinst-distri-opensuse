@@ -9,7 +9,7 @@ use strict;
 
 # Waits for the Linuxrc (media) boot menu and tries to choose
 # booting from CD/DVD media. Call this right away after VM starts.
-sub wait_for_bootmenu() {
+sub wait_for_bootmenu {
     my $self = shift;
 
     # Load the BIOS media selection

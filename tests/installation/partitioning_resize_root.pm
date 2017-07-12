@@ -17,7 +17,7 @@ use warnings;
 use base "y2logsstep";
 use testapi;
 
-sub run() {
+sub run {
     die "Test needs at least 40 GB HDD size" unless (get_required_var('HDDSIZEGB') > 40);
     send_key $cmd{expertpartitioner};
     assert_screen 'expert-partitioner';

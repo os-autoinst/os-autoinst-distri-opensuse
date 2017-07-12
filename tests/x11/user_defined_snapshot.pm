@@ -15,7 +15,7 @@ use strict;
 use testapi;
 use utils;
 
-sub y2snapper_create_snapshot() {
+sub y2snapper_create_snapshot {
     my ($self, $name, $user_data) = @_;
     $name      //= 'grub_comment';
     $user_data //= 'bootloader="Bootloader_Comment"';
@@ -31,7 +31,7 @@ sub y2snapper_create_snapshot() {
     save_screenshot;
 }
 
-sub run() {
+sub run {
     my $self = shift;
     # Start an xterm as root
     x11_start_program("xterm");

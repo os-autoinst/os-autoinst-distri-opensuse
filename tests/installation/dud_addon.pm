@@ -16,7 +16,7 @@ use strict;
 use testapi;
 use utils 'addon_license';
 
-sub run() {
+sub run {
     assert_screen 'additional-products';
     send_key 'alt-p';
     for my $addon (split(/,/, get_var('DUD_ADDONS'))) {

@@ -5,7 +5,7 @@ use strict;
 
 # Base class for all RESCUECD tests
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

@@ -24,7 +24,7 @@ sub check_service {
     script_output("chkconfig --list $service | grep 3:on | grep 5:on");
 }
 
-sub run() {
+sub run {
     #check services on adminserver
     if (get_var('SLEPOS') =~ /^adminserver/) {
         check_service('ldap');
@@ -51,7 +51,7 @@ sub run() {
 }
 
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

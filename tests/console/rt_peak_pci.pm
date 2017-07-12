@@ -15,7 +15,7 @@ use strict;
 use testapi;
 
 # https://fate.suse.com/317131
-sub run() {
+sub run {
     assert_script_run "modprobe peak_pci";
     assert_script_run "lsmod | grep ^peak_pci";
 }

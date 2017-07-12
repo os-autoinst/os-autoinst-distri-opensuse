@@ -15,7 +15,7 @@ use strict;
 use testapi;
 use utils 'leap_version_at_least';
 
-sub run() {
+sub run {
     if (check_var('VERSION', 'Tumbleweed') || leap_version_at_least('42.3')) {
         wait_screen_change { send_key 'tab' };
         send_key 'ret';
@@ -39,7 +39,7 @@ sub run() {
     assert_screen 'tryton-admin_view', 300;
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

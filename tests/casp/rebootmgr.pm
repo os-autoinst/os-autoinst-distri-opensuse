@@ -100,7 +100,7 @@ sub check_strategy_etcd_lock {
     rbm_check_status 0;
 }
 
-sub run() {
+sub run {
     type_string "tput civis\n";
 
     check_strategy_instantly;

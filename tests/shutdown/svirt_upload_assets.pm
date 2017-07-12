@@ -40,7 +40,7 @@ sub extract_assets {
     assert_screen('svirt-asset-upload-hdd-image-uploaded', 1000);
 }
 
-sub run() {
+sub run {
     # connect to VIRSH_HOSTNAME screen and upload asset from there
     my $svirt = select_console('svirt');
 

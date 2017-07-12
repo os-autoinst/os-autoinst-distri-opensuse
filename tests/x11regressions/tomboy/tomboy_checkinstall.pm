@@ -16,7 +16,7 @@ use strict;
 use testapi;
 
 
-sub run() {
+sub run {
     mouse_hide();
     sleep 60;
     wait_idle;

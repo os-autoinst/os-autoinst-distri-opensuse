@@ -37,7 +37,7 @@ sub run {
     }
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

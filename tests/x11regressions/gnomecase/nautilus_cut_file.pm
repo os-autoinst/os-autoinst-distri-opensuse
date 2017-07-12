@@ -15,7 +15,7 @@ use base "x11regressiontest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     x11_start_program("nautilus");
     assert_screen 'nautilus-launched';
     x11_start_program("touch newfile");

@@ -23,12 +23,12 @@ use strict;
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     select_console 'root-console';
     assert_script_run "echo 'download.use_deltarpm = false' >> /etc/zypp/zypp.conf";
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

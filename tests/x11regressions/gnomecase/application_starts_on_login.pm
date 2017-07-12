@@ -81,7 +81,7 @@ sub restore_status_auto_save_session {
     send_key "alt-f4";
 }
 
-sub run() {
+sub run {
     my ($self) = @_;
     #add firefox to startup application
     assert_screen "generic-desktop";

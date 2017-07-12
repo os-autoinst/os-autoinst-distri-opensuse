@@ -20,7 +20,7 @@ use strict;
 use testapi;
 use base "opensusebasetest";
 
-sub run() {
+sub run {
     assert_screen 'linux-login', 200;
     select_console 'root-console';
     # 1)
@@ -50,11 +50,11 @@ sub run() {
     reset_consoles;
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1, milestone => 1};
 }
 
-sub post_fail_hook() {
+sub post_fail_hook {
     my $self = shift;
     $self->SUPER::post_fail_hook;
     $self->export_logs;

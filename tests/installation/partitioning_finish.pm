@@ -15,7 +15,7 @@ use strict;
 use base "y2logsstep";
 use testapi;
 
-sub run() {
+sub run {
     wait_still_screen();
     send_key $cmd{next};
     assert_screen "after-partitioning";

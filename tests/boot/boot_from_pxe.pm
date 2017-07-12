@@ -16,7 +16,7 @@ use File::Basename;
 use base "opensusebasetest";
 use testapi;
 
-sub run() {
+sub run {
     if (check_var('BACKEND', 'ipmi')) {
         select_console 'sol', await_console => 0;
     }

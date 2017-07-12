@@ -25,7 +25,7 @@ sub sle15_workaround_broken_patterns {
     }
 }
 
-sub run() {
+sub run {
     my ($self) = shift;
 
     # overview-generation

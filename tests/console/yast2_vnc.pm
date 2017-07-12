@@ -16,7 +16,7 @@ use testapi;
 use utils 'zypper_call';
 
 
-sub run() {
+sub run {
     select_console 'root-console';
 
     # check network at first

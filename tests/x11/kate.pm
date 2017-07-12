@@ -16,7 +16,7 @@ use base "x11test";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     my ($self) = @_;
     ensure_installed("kate");
     x11_start_program("kate", 6, {valid => 1});

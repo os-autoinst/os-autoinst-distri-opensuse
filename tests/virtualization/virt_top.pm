@@ -15,7 +15,7 @@ use strict;
 use testapi;
 
 
-sub run() {
+sub run {
     ensure_installed("virt-top");
     x11_start_program("xterm");
     wait_idle;

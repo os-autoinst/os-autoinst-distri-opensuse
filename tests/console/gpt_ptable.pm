@@ -16,7 +16,7 @@ use strict;
 use testapi;
 
 # verify that the disks have a gpt partition label
-sub run() {
+sub run {
     assert_script_run("parted -mls | grep '^/dev/.*:gpt:'", fail_message => 'no gpt partition table found');
 }
 

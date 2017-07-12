@@ -19,7 +19,7 @@ use base "x11test";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     x11_start_program("seahorse");
     assert_screen 'seahorse-launched', 15;    # Seahorse main window appeared
     send_key "ctrl-n";                                # New keyring
@@ -38,7 +38,7 @@ sub run() {
     send_key "alt-f4";                                       # Close seahorse
 }
 
-sub test_flags() {
+sub test_flags {
     # milestone as we initialize a keyring, which future tests might rely on
     # without milestone, this step might be undone on snapshot revert
     return {milestone => 1};

@@ -16,7 +16,7 @@ use warnings;
 use base "y2logsstep";
 use testapi;
 
-sub run() {
+sub run {
     # autoconf phase
     # includes downloads, so wait_idle is bad.
     assert_screen [qw(partitioning-edit-proposal-button inst-instmode)], 120;

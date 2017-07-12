@@ -3,17 +3,17 @@ use base "installbasetest";
 use testapi;
 use strict;
 
-sub use_wicked() {
+sub use_wicked {
     script_run "cd /proc/sys/net/ipv4/conf";
     script_run("for i in *[0-9]; do echo BOOTPROTO=dhcp > /etc/sysconfig/network/ifcfg-\$i; wicked --debug all ifup \$i; done", 300);
     save_screenshot;
 }
 
-sub use_ifconfig() {
+sub use_ifconfig {
     script_run "dhcpcd eth0";
 }
 
-sub get_ip_address() {
+sub get_ip_address {
     return if (get_var('NET') || check_var('ARCH', 's390x'));
 
     # avoid known issue in FIPS mode: bsc#985969
@@ -31,7 +31,7 @@ sub get_ip_address() {
     save_screenshot;
 }
 
-sub get_to_console() {
+sub get_to_console {
     my @tags = qw(yast-still-running linuxrc-install-fail linuxrc-repo-not-found);
     my $ret = check_screen(\@tags, 5);
     if ($ret && match_has_tag("linuxrc-repo-not-found")) {    # KVM only
@@ -115,7 +115,7 @@ sub check_and_record_dependency_problems {
     }
 }
 
-sub save_upload_y2logs() {
+sub save_upload_y2logs {
     my ($self) = shift;
     assert_script_run 'sed -i \'s/^tar \(.*$\)/tar --warning=no-file-changed -\1 || true/\' /usr/sbin/save_y2logs';
     assert_script_run "save_y2logs /tmp/y2logs.tar.bz2";
@@ -124,7 +124,7 @@ sub save_upload_y2logs() {
     $self->investigate_yast2_failure();
 }
 
-sub post_fail_hook() {
+sub post_fail_hook {
     my $self = shift;
     get_to_console;
     $self->save_upload_y2logs;

@@ -22,7 +22,7 @@ use base "consoletest";
 use testapi;
 use registration;
 
-sub run() {
+sub run {
     select_console 'root-console';
 
     if (my $u = get_var('SCC_URL')) {

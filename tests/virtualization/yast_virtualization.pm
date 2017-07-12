@@ -14,7 +14,7 @@ use base "x11test";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     x11_start_program("xterm");
     wait_idle;
     send_key "alt-f10";
@@ -71,7 +71,7 @@ sub run() {
     send_key "alt-f4";
 }
 
-sub test_flags() {
+sub test_flags {
     return {milestone => 1};
 }
 

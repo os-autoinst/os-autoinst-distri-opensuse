@@ -15,7 +15,7 @@ use strict;
 use base "x11regressiontest";
 use testapi;
 
-sub run() {
+sub run {
     my ($self) = @_;
     $self->start_firefox;
 

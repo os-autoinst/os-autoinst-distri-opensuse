@@ -20,15 +20,15 @@ use base "qa_run";
 use strict;
 use testapi;
 
-sub test_run_list() {
+sub test_run_list {
     return qw(_reboot_off ltp_pty);
 }
 
-sub test_suite() {
+sub test_suite {
     return 'kernel';
 }
 
-sub junit_type() {
+sub junit_type {
     return 'kernel_regression';
 }
 

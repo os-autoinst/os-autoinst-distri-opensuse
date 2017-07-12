@@ -14,7 +14,7 @@ use base "opensusebasetest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     assert_script_run('wget ' . data_url('toolchain/gawk-src.tar.gz'));
     assert_script_run('tar xf gawk-src.tar.gz');
     assert_script_run('cd ./gawk-4.1.4');
@@ -24,7 +24,7 @@ sub run() {
     save_screenshot;
 }
 
-sub post_fail_hook() {
+sub post_fail_hook {
     my $self = shift;
     upload_logs '/tmp/make.log';
     upload_logs '/tmp/configure.log';

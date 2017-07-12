@@ -21,7 +21,7 @@ use strict;
 use testapi;
 use utils 'zypper_call';
 
-sub run() {
+sub run {
     my ($self) = @_;
     select_console('root-console');
     zypper_call('in nano');

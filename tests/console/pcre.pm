@@ -15,7 +15,7 @@ use base "consoletest";
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     select_console 'root-console';
     zypper_call("in gcc-c++ pcre-devel");
     assert_script_run "mkdir pcre_data; cd pcre_data; curl -L -v " . autoinst_url . "/data/pcre > pcre-tests.data && cpio -id < pcre-tests.data && cd data";

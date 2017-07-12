@@ -15,7 +15,7 @@ use base "x11test";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     x11_start_program("thunar");
     sleep 10;
     send_key "shift-tab";

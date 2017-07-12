@@ -16,7 +16,7 @@ use strict;
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     # permissions don't matter
 
     script_run('ps -ef | grep bin/X');

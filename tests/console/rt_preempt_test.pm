@@ -15,7 +15,7 @@ use strict;
 use testapi;
 
 # Run preempt test
-sub run() {
+sub run {
     script_run "zypper -q ar http://download.suse.de/ibs/Devel:/RTE:/SLE12SP1/standard/Devel:RTE:SLE12SP1.repo";
     script_run "zypper -q --gpg-auto-import-keys refresh";
     script_run "zypper -q --non-interactive install preempt-test";

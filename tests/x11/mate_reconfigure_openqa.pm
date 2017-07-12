@@ -15,7 +15,7 @@ use strict;
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     my $self = shift;
 
     # Next time we boot we are no longer minimalx based, but mate based

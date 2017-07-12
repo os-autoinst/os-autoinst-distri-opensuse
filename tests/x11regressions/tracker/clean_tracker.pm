@@ -17,7 +17,7 @@ use testapi;
 
 my @filenames = qw(newfile newpl.pl);
 
-sub run() {
+sub run {
     # Delete a file.
     foreach (@filenames) {
         x11_start_program("rm -rf $_");

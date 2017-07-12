@@ -17,7 +17,7 @@ use warnings;
 use base "y2logsstep";
 use testapi;
 
-sub run() {
+sub run {
 
     # create partitioning
     send_key $cmd{createpartsetup};

@@ -16,14 +16,14 @@ use testapi;
 use utils;
 use migration;
 
-sub set_scc_proxy_url() {
+sub set_scc_proxy_url {
     if (my $u = get_var('SCC_PROXY_URL')) {
         type_string "echo 'url: $u' > /etc/SUSEConnect\n";
     }
     save_screenshot;
 }
 
-sub check_or_install_packages() {
+sub check_or_install_packages {
     if (get_var("FULL_UPDATE") || get_var("MINIMAL_UPDATE")) {
         # if system is fully updated or even minimal patch applied, all necessary packages for online migration should be installed
         # check if the packages was installed along with update
@@ -51,7 +51,7 @@ sub remove_kgraft_patch {
     }
 }
 
-sub run() {
+sub run {
     select_console 'root-console';
 
     check_or_install_packages;

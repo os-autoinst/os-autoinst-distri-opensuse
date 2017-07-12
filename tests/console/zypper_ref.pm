@@ -15,7 +15,7 @@ use base "consoletest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     select_console 'root-console';
 
     script_run("zypper ref; echo zypper-ref-\$? > /dev/$serialdev", 0);
@@ -27,7 +27,7 @@ sub run() {
     wait_serial("zypper-ref-0") || die "zypper ref failed";
 }
 
-sub test_flags() {
+sub test_flags {
     return {milestone => 1};
 }
 

@@ -17,7 +17,7 @@ use testapi;
 use utils;
 
 
-sub run() {
+sub run {
     my $USERNAME0 = "nooops_test3";
     my $USERNAME1 = "nooops_test4";
     my $DOMAIN    = "aim";

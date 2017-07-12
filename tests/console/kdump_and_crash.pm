@@ -16,7 +16,7 @@ use testapi;
 use utils;
 use kdump_utils;
 
-sub run() {
+sub run {
     my ($self) = @_;
     select_console('root-console');
 

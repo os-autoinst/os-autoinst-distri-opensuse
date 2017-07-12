@@ -15,7 +15,7 @@ use strict;
 use testapi;
 use lockapi;
 
-sub run() {
+sub run {
     my $self         = shift;
     my $sbd_device   = "/dev/disk/by-path/ip-*-lun-0";
     my $cluster_init = script_output "ha-cluster-init -y -s $sbd_device; echo ha_cluster_init=\$?", 120;

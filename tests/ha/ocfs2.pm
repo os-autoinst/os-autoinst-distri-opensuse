@@ -16,7 +16,7 @@ use testapi;
 use autotest;
 use lockapi;
 
-sub run() {
+sub run {
     my $self            = shift;
     my $ocfs2_partition = "/dev/disk/by-path/ip-*-lun-2";
     barrier_wait("OCFS2_INIT_" . $self->cluster_name);

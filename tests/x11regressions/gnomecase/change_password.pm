@@ -103,7 +103,7 @@ sub add_user {
     send_key "alt-f4";
 }
 
-sub run () {
+sub run {
     my ($self) = @_;
 
     #change pwd for current user and add new user for switch scenario

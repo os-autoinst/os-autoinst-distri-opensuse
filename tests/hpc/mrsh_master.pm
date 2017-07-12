@@ -20,7 +20,7 @@ use testapi;
 use lockapi;
 use utils;
 
-sub run() {
+sub run {
     my $self     = shift;
     my $slave_ip = get_required_var('HPC_SLAVE_IP');
     barrier_create("MRSH_INSTALLATION_FINISHED", 2);
@@ -68,7 +68,7 @@ sub run() {
     barrier_wait("MRSH_MASTER_DONE");
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1, milestone => 1};
 }
 

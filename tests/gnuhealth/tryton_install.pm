@@ -14,12 +14,12 @@ use base 'x11test';
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     my ($self) = @_;
     ensure_installed 'tryton';
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

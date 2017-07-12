@@ -18,7 +18,7 @@ use strict;
 use testapi;
 use utils 'zypper_call';
 
-sub run() {
+sub run {
     select_console 'root-console';
     zypper_call('in sshfs');
     script_run('cd /var/tmp ; mkdir mnt ; sshfs localhost:/ mnt', 0);

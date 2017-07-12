@@ -15,7 +15,7 @@ use base 'x11test';
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     # start akonadi server to avoid the self-test running when we launch kontact
     x11_start_program('akonadictl start');
 

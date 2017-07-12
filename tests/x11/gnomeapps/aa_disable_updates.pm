@@ -15,7 +15,7 @@ use strict;
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     x11_start_program 'xterm';
     assert_screen 'xterm';
     type_string "gsettings set org.gnome.software download-updates false\n";

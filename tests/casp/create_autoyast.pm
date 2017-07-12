@@ -16,7 +16,7 @@ use testapi;
 use caasp;
 use XML::Simple;
 
-sub run() {
+sub run {
     my $self = shift;
 
     my $salt_master   = 'fake-salt-master.com';

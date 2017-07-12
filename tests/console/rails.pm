@@ -14,7 +14,7 @@ use strict;
 use base "consoletest";
 use testapi;
 
-sub run() {
+sub run {
     select_console 'root-console';
     # something like `test -f tmp/pids/server.pid; pumactl -P tmp/pids/server.pid stop; !test -f tmp/pids/server.pid`
     # is the correct test procedure on rails >= 5, for earlier versions we

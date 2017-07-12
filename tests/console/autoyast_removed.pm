@@ -15,7 +15,7 @@ use strict;
 use testapi;
 
 # poo#11442
-sub run() {
+sub run {
     select_console("root-console");
     assert_script_run("[ ! -f /root/autoinst.xml ]");
 }

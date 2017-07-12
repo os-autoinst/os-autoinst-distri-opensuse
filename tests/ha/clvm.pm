@@ -16,7 +16,7 @@ use testapi;
 use autotest;
 use lockapi;
 
-sub run() {
+sub run {
     my $self             = shift;
     my $vg_name          = "vg_openqa";
     my $lv_name          = "lv_openqa";

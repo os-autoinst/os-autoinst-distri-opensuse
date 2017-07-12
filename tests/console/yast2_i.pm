@@ -16,7 +16,7 @@ use strict;
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     my $self        = shift;
     my $pkgname     = get_var("PACKAGETOINSTALL_RECOMMENDER", "yast2-nfs-client");
     my $recommended = get_var("PACKAGETOINSTALL_RECOMMENDED", "nfs-client");

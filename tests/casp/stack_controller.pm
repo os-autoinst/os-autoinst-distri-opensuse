@@ -133,7 +133,7 @@ sub initialize {
     x11_start_program("firefox");
 }
 
-sub run() {
+sub run {
     select_console 'x11';
 
     # Setup and wait until dashboard becomes ready
@@ -183,7 +183,7 @@ sub run() {
     wait_for_children;
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

@@ -16,7 +16,7 @@ use strict;
 use warnings;
 use testapi;
 
-sub get_script_run() {
+sub get_script_run {
     my $pre_test_cmd;
 
     my $mode         = get_var("TEST_MODE",       "");
@@ -37,7 +37,7 @@ sub get_script_run() {
     return "$pre_test_cmd";
 }
 
-sub run() {
+sub run {
     my $self = shift;
     $self->run_test(180, "Generated test run file");
 }

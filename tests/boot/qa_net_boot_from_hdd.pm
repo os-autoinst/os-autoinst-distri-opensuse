@@ -14,14 +14,14 @@ use base "basetest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     assert_screen "qa-net-selection", 300;
     # boot to hard disk is default
     send_key 'ret';
 
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

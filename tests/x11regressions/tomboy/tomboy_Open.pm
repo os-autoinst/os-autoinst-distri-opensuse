@@ -17,7 +17,7 @@ use strict;
 use testapi;
 
 
-sub run() {
+sub run {
     my ($self) = @_;
     # open start note and take screenshot
     x11_start_program("tomboy note");

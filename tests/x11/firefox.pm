@@ -16,7 +16,7 @@ use base "x11test";
 use strict;
 use testapi;
 
-sub start_firefox() {
+sub start_firefox {
     my ($self) = @_;
     x11_start_program("firefox https://html5test.com/index.html", 6, {valid => 1});
     $self->check_firefox_default;
@@ -56,7 +56,7 @@ sub check_firefox_popups {
     }
 }
 
-sub run() {
+sub run {
     my $self = shift;
     mouse_hide(1);
     $self->start_firefox();

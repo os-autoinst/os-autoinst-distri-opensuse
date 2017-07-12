@@ -20,7 +20,7 @@ use strict;
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     assert_script_run("SuSEfirewall2 status");
     if (is_jeos) {
         assert_script_run("grep '^FW_CONFIGURATIONS_EXT=\"sshd\"\\|^FW_SERVICES_EXT_TCP=\"ssh\"' /etc/sysconfig/SuSEfirewall2");

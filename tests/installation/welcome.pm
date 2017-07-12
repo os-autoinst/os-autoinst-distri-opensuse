@@ -17,7 +17,7 @@ use base "y2logsstep";
 use testapi;
 use utils 'ensure_fullscreen';
 
-sub run() {
+sub run {
     my $iterations;
 
     my @welcome_tags = ('inst-welcome-confirm-self-update-server', 'scc-invalid-url');

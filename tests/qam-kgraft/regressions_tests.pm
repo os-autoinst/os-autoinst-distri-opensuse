@@ -17,7 +17,7 @@ use qam;
 use strict;
 use warnings;
 
-sub run() {
+sub run {
     my $svirt = select_console('svirt');
     my $name  = get_var('VIRSH_GUESTNAME');
     $svirt->attach_to_running({name => $name});

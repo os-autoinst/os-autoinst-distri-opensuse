@@ -15,7 +15,7 @@ use strict;
 use base "x11regressiontest";
 use testapi;
 
-sub run() {
+sub run {
 
     my ($self) = @_;
     my $changesaving_checktimestamp = "ll --time-style=full-iso .mozilla/firefox/*.default/prefs.js | cut -d' ' -f7";

@@ -15,7 +15,7 @@ use base "x11test";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     ensure_installed("MozillaThunderbird");
     x11_start_program("thunderbird");
     assert_screen 'test-thunderbird-1';

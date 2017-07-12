@@ -18,7 +18,7 @@ use testapi;
 
 our $date_re = qr/[0-9]{4}-[0-9]{2}-[0-9]{2}/;
 
-sub run() {
+sub run {
     diag('fate#320597: Introduce \'zypper lifecycle\' to provide information about life cycle of individual products and packages');
     select_console 'user-console';
     my $overview = script_output 'zypper lifecycle', 300;
@@ -121,7 +121,7 @@ sub run() {
     die 'All products should be supported as of today' unless $output =~ /No products.*before/;
 }
 
-sub test_flags() {
+sub test_flags {
     return {milestone => 1};
 }
 

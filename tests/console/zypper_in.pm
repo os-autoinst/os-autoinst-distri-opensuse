@@ -16,7 +16,7 @@ use strict;
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     select_console 'root-console';
 
     script_run("zypper lr -d | tee /dev/$serialdev");

@@ -15,7 +15,7 @@ use strict;
 use testapi;
 use utils;
 
-sub turn_off_screensaver() {
+sub turn_off_screensaver {
     # Turn off screensaver
     x11_start_program("xterm");
     assert_screen('xterm');
@@ -33,7 +33,7 @@ sub turn_off_screensaver() {
 }
 
 # Update with GNOME PackageKit Update Viewer
-sub run() {
+sub run {
     my ($self) = @_;
     select_console 'x11', await_console => 0;
 
@@ -81,7 +81,7 @@ sub run() {
     }
 }
 
-sub test_flags() {
+sub test_flags {
     return {milestone => 1, fatal => 1};
 }
 

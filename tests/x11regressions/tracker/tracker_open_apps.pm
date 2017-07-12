@@ -17,7 +17,7 @@ use strict;
 use testapi;
 
 
-sub run() {
+sub run {
     x11_start_program("tracker-needle");
     sleep 2;
     wait_idle;    # extra wait because oo sometimes appears to be idle during start

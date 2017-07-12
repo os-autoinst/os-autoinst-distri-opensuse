@@ -17,7 +17,7 @@ use strict;
 use testapi;
 
 
-sub run() {
+sub run {
     # open tomboy
     x11_start_program('tomboy note');
 

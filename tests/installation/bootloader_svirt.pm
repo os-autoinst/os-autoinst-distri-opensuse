@@ -26,7 +26,7 @@ sub copy_image {
     return $path;
 }
 
-sub run() {
+sub run {
     my $arch       = get_var('ARCH');
     my $vmm_family = get_required_var('VIRSH_VMM_FAMILY');
     my $vmm_type   = get_required_var('VIRSH_VMM_TYPE');

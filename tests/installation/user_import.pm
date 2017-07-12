@@ -16,7 +16,7 @@ use warnings;
 use base "y2logsstep";
 use testapi;
 
-sub run() {
+sub run {
     assert_screen 'import-user-data';
     send_key 'alt-i';
     send_key 'alt-e';

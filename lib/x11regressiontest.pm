@@ -46,7 +46,7 @@ sub import_pictures {
 }
 
 # clean_shotwell helps to clean shotwell's library then remove the test picture.
-sub clean_shotwell() {
+sub clean_shotwell {
     # Clean shotwell's database
     x11_start_program("rm -rf /home/$username/.local/share/shotwell");
 
@@ -55,7 +55,7 @@ sub clean_shotwell() {
 }
 
 # upload libreoffice specified file into /home/$username/Documents
-sub upload_libreoffice_specified_file() {
+sub upload_libreoffice_specified_file {
 
     x11_start_program("xterm");
     assert_script_run("wget " . autoinst_url . "/data/x11regressions/ooo-test-doc-types.tar.bz2 -O /home/$username/Documents/ooo-test-doc-types.tar.bz2");
@@ -73,7 +73,7 @@ sub upload_libreoffice_specified_file() {
 }
 
 # cleanup libreoffcie specified file from test vm
-sub cleanup_libreoffice_specified_file() {
+sub cleanup_libreoffice_specified_file {
 
     x11_start_program("xterm");
     assert_script_run("rm -rf /home/$username/Documents/ooo-test-doc-types*");
@@ -89,7 +89,7 @@ sub cleanup_libreoffice_specified_file() {
 }
 
 # cleanup libreoffice recent open file to make sure libreoffice clean
-sub cleanup_libreoffice_recent_file() {
+sub cleanup_libreoffice_recent_file {
 
     x11_start_program("libreoffice");
     send_key "alt-f";
@@ -103,7 +103,7 @@ sub cleanup_libreoffice_recent_file() {
 }
 
 # check libreoffice dialog windows setting- "gnome dialog" or "libreoffice dialog"
-sub check_libreoffice_dialogs() {
+sub check_libreoffice_dialogs {
 
     # make sure libreoffice dialog option is disabled status
     send_key "alt-t";
@@ -450,10 +450,10 @@ sub setup_mail_account {
     assert_screen "evolution_mail-max-window";
 }
 
-sub post_fail_hook() {
+sub post_fail_hook {
 }
 
-sub start_firefox() {
+sub start_firefox {
     mouse_hide(1);
 
     x11_start_program 'xterm';
@@ -462,7 +462,7 @@ sub start_firefox() {
     assert_screen 'firefox-launch', 90;
 }
 
-sub exit_firefox() {
+sub exit_firefox {
     # Exit
     send_key_until_needlematch([qw(firefox-save-and-quit xterm-left-open xterm-without-focus)], "alt-f4", 3, 30);
     if (match_has_tag 'firefox-save-and-quit') {

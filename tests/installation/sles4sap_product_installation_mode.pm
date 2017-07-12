@@ -6,7 +6,7 @@ use strict;
 use base "y2logsstep";
 use testapi;
 
-sub run() {
+sub run {
     assert_screen "sles4sap-product-installation-mode";
     send_key "alt-s";    # SUSE Linux Enterprise Server
     save_screenshot;

@@ -21,7 +21,7 @@ use strict;
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     select_console 'root-console';
 
     assert_script_run "chown $testapi::username /dev/$testapi::serialdev";
@@ -30,7 +30,7 @@ sub run() {
     assert_script_run "pkcon refresh", 90;
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1, milestone => 1};
 }
 

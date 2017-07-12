@@ -15,7 +15,7 @@ use strict;
 use testapi;
 
 # poo#11798
-sub run() {
+sub run {
     select_console 'root-console';
 
     my $acpi = "/sys/firmware/acpi";

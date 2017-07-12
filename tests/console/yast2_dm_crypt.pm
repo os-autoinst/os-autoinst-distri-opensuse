@@ -17,7 +17,7 @@ use strict;
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     my ($self)        = @_;
     my $loop_filename = 'loopfile';
     my $mount_point   = '/mnt/test';

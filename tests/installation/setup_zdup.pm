@@ -16,7 +16,7 @@ use strict;
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     my ($self) = @_;
 
     $self->wait_boot(ready_time => 600);

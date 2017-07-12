@@ -16,7 +16,7 @@ use strict;
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     my $self = shift;
 
     set_var('DESKTOP', 'enlightenment');

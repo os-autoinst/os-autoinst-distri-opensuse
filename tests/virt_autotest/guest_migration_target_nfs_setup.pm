@@ -17,7 +17,7 @@ use lockapi;
 use mmapi;
 use guest_migration_base;
 
-sub run() {
+sub run {
     my ($self) = @_;
 
     #Sync the setting for ip address

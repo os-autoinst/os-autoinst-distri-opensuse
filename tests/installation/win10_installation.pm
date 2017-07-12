@@ -17,7 +17,7 @@ use strict;
 
 use testapi;
 
-sub run() {
+sub run {
     # This test works onlywith CDMODEL=ide-cd due to windows missing scsi drivers which are installed via scsi iso
     if (get_var('UEFI')) {
         assert_screen 'windows-boot';

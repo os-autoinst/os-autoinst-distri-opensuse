@@ -21,7 +21,7 @@ sub run {
     wait_serial("VERSION = 13.1", 2) || die "Not SUSE-brand found";
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

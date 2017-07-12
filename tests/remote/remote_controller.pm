@@ -23,7 +23,7 @@ use mm_network;
 use lockapi;
 
 # poo#9576
-sub run() {
+sub run {
     my $target_ip;
 
     select_console 'root-console';

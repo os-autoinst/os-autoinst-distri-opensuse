@@ -20,7 +20,7 @@ sub remove_repo {
     script_run "zypper -n rr $repo";
 }
 
-sub run() {
+sub run {
     select_console 'root-console';
 
     my $dist            = uc(get_var "DISTRI");

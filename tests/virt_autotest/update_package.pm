@@ -18,7 +18,7 @@ use base "virt_autotest_base";
 use virt_utils;
 use ipmi_backend_utils;
 
-sub update_package() {
+sub update_package {
     my $self           = shift;
     my $test_type      = get_var('TEST_TYPE', 'Milestone');
     my $update_pkg_cmd = "source /usr/share/qa/virtautolib/lib/virtlib;update_virt_rpms";
@@ -40,7 +40,7 @@ sub update_package() {
 
 }
 
-sub run() {
+sub run {
     my $self = shift;
     $self->update_package();
     set_serial_console_on_xen if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen"));

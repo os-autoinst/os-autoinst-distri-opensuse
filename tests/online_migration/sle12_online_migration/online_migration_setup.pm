@@ -16,7 +16,7 @@ use utils;
 use testapi;
 use migration;
 
-sub run() {
+sub run {
     my ($self) = @_;
 
     # if source system is minimal installation then boot to textmode
@@ -25,7 +25,7 @@ sub run() {
     $self->setup_migration;
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

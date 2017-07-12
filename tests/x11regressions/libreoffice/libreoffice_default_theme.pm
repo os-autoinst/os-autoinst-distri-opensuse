@@ -17,7 +17,7 @@ use utils;
 use strict;
 
 
-sub run() {
+sub run {
     # Check LO default theme on standard GUI toolkit var
     x11_start_program("ooffice");
     assert_screen 'welcome-to-libreoffice';

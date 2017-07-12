@@ -16,7 +16,7 @@ use testapi;
 use autotest;
 use lockapi;
 
-sub run() {
+sub run {
     my $self = shift;
     barrier_wait("FENCING_DONE_" . $self->cluster_name);
     select_console 'root-console';

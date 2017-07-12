@@ -15,7 +15,7 @@ use base "rescuecdstep";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     assert_screen "rescuecd-desktop", 120;
 
     # Mount and show the local hard disk contect

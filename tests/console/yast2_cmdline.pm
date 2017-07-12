@@ -15,7 +15,7 @@ use base "console_yasttest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     my $self = shift;
     select_console 'root-console';
 

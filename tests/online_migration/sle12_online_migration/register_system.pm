@@ -15,7 +15,7 @@ use strict;
 use testapi;
 use migration;
 
-sub run() {
+sub run {
     select_console 'root-console';
     register_system_in_textmode;
 }

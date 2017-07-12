@@ -17,7 +17,7 @@ use base "y2logsstep";
 use testapi;
 
 # Entry test code
-sub run() {
+sub run {
 
     assert_screen 'partitioning-edit-proposal-button', 40;
 

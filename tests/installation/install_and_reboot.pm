@@ -44,7 +44,7 @@ sub wait_countdown_stop {
     return wait_screen_change(undef, $stilltime);
 }
 
-sub run() {
+sub run {
     my $self = shift;
     # NET isos are slow to install
     my $timeout = 2000;

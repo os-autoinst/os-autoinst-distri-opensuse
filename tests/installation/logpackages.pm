@@ -19,7 +19,7 @@ use warnings;
 use base "y2logsstep";
 use testapi;
 
-sub run() {
+sub run {
     # the waiting might take long in case of online update repos being
     # initialized before that screen
     if (get_var('NEW_DESKTOP_SELECTION')) {

@@ -16,7 +16,7 @@ use testapi;
 use autotest;
 use lockapi;
 
-sub run() {
+sub run {
     type_string "crm_mon -1\n";
     assert_script_run q(crm_mon -1 | grep 'partition with quorum');
     assert_script_run q(crm_mon -s | grep "`crm node list | wc -l` nodes online");

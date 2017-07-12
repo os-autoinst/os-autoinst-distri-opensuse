@@ -16,7 +16,7 @@ use File::Basename;
 use testapi;
 use base "reboot_and_wait_up";
 
-sub run() {
+sub run {
     my $self    = shift;
     my $timeout = 3600;
     set_var("reboot_for_upgrade_step", "yes");

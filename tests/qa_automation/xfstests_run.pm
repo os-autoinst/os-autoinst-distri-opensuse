@@ -23,7 +23,7 @@ use base "xfstests_logs";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     my $self = shift;
     $self->system_login();
     $self->prepare_repo();

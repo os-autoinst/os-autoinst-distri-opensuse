@@ -15,7 +15,7 @@ use strict;
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     handle_logout;
     handle_login;
     assert_screen 'generic-desktop', 90;    # x11test is checking generic-desktop in post_run_hook but after login it can take longer than 30 sec

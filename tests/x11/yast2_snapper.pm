@@ -21,7 +21,7 @@ use utils;
 # console_setup.pm)
 
 # Helper for letting y2-snapper to create a snapper snapshot
-sub y2snapper_create_snapshot() {
+sub y2snapper_create_snapshot {
     my $self = shift;
     my $name = shift || "Awesome Snapshot";
     # Open the 'C'reate dialog and wait until it is there
@@ -40,7 +40,7 @@ sub y2snapper_create_snapshot() {
 }
 
 # Quit yast2-snapper and cleanup
-sub clean_and_quit() {
+sub clean_and_quit {
     my ($self) = @_;
     # Ensure yast2-snapper is not busy anymore
     wait_still_screen;
@@ -61,7 +61,7 @@ sub clean_and_quit() {
     type_string "exit\n";
 }
 
-sub run() {
+sub run {
     my $self = shift;
     # for not running failure_analysis twice in case we fail inside failure_analysis
     $self->{mute_post_fail} = 0;

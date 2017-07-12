@@ -21,7 +21,7 @@ use warnings;
 use File::Basename;
 use Net::Telnet ();
 
-sub run() {
+sub run {
     my $svirt = select_console('svirt');
     my $name  = $svirt->name;
 

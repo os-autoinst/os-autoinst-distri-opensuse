@@ -21,7 +21,7 @@ use warnings;
 use bootloader_setup;
 
 
-sub run() {
+sub run {
     my $svirt    = select_console('svirt', await_console => 0);
     my $name     = $svirt->name;
     my $img_path = "/var/lib/libvirt/images";

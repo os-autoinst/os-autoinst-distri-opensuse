@@ -16,7 +16,7 @@ use strict;
 use base "y2logsstep";
 use testapi;
 
-sub run() {
+sub run {
     assert_screen 'disk-activation-iscsi';
     send_key 'alt-i';    # configure iscsi disk
     assert_screen 'iscsi-overview', 100;

@@ -16,7 +16,7 @@ use warnings;
 use base "virt_autotest_base";
 use testapi;
 
-sub get_test_name_prefix() {
+sub get_test_name_prefix {
     my $test_name_prefix = "";
 
     my $mode       = get_var("TEST_MODE",       "");

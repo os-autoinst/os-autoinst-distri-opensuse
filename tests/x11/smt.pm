@@ -17,7 +17,7 @@ use strict;
 use warnings;
 use testapi;
 
-sub run() {
+sub run {
     x11_start_program("xterm -geometry 150x35+5+5");
     assert_screen('xterm');
     become_root;

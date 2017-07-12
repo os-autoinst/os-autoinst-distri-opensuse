@@ -15,7 +15,7 @@ use warnings;
 use testapi;
 use base "reboot_and_wait_up";
 
-sub run() {
+sub run {
     my $self    = shift;
     my $timeout = 600;
     $self->reboot_and_wait_up($timeout);

@@ -15,7 +15,7 @@ use base "x11test";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     ensure_installed 'Mesa-demo-x';
     # 'no_wait' for still screen because glxgears will be always moving
     x11_start_program('glxgears', 30, {no_wait => 1});

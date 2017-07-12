@@ -15,7 +15,7 @@ use testapi;
 use utils;
 use strict;
 
-sub run() {
+sub run {
     my ($self) = @_;
 
     # assert the we are on a ro snapshot.
@@ -41,7 +41,7 @@ sub run() {
     select_console 'root-console';
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 
 }

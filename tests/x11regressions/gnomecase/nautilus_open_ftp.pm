@@ -18,7 +18,7 @@ use strict;
 use testapi;
 use utils 'sle_version_at_least';
 
-sub run() {
+sub run {
     x11_start_program('nautilus');
     wait_screen_change { send_key 'ctrl-l' };
     type_string "ftp://ftp.suse.com\n";

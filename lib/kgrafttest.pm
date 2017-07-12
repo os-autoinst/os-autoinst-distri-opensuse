@@ -14,7 +14,7 @@ use strict;
 use testapi;
 use qam;
 
-sub post_fail_hook() {
+sub post_fail_hook {
     my $snapshot_before = get_var('KGRAFT_SNAPSHOT_BEFORE');
     my $name            = get_var('VIRSH_GUESTNAME');
     save_screenshot;
@@ -28,7 +28,7 @@ sub post_fail_hook() {
     snap_revert($svirt, $name, $snapshot_before);
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

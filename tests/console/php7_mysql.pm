@@ -23,7 +23,7 @@ use testapi;
 use utils;
 use apachetest;
 
-sub run() {
+sub run {
     select_console 'root-console';
 
     setup_apache2(mode => 'PHP7');

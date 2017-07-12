@@ -15,7 +15,7 @@ use base "opensusebasetest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     my $sccmail = get_var("SCC_EMAIL");
     my $scccode = get_var("SCC_REGCODE");
     my $url     = get_var('SCC_URL', 'https://scc.suse.com');

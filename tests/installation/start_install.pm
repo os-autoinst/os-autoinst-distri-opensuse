@@ -16,13 +16,13 @@ use warnings;
 use base "y2logsstep";
 use testapi;
 
-sub check_bsc982138() {
+sub check_bsc982138 {
     if (check_screen('installation-details-view-remaining-time-gt2h', 5)) {
         record_soft_failure 'bsc#982138: Remaining time estimation during installation shows >2h most of the time';
     }
 }
 
-sub run() {
+sub run {
     # start install
     if (get_var("UPGRADE")) {
         send_key $cmd{update};

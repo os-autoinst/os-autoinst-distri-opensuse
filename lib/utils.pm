@@ -113,7 +113,7 @@ sub unlock_if_encrypted {
     }
 }
 
-sub turn_off_kde_screensaver() {
+sub turn_off_kde_screensaver {
     x11_start_program("kcmshell5 screenlocker");
     assert_screen([qw(kde-screenlock-enabled screenlock-disabled)]);
     if (match_has_tag('kde-screenlock-enabled')) {
@@ -203,7 +203,7 @@ sub check_console_font {
     }
 }
 
-sub is_jeos() {
+sub is_jeos {
     return get_var('FLAVOR', '') =~ /^JeOS/;
 }
 

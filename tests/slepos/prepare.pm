@@ -18,7 +18,7 @@ use utils;
 use mm_network;
 use lockapi;
 
-sub run() {
+sub run {
     set_var('ORGANIZATION', "myorg");
     set_var('COUNTRY',      "us");
     set_var('ADMINPASS',    "adminpass");
@@ -84,7 +84,7 @@ sub run() {
     save_screenshot;
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 
