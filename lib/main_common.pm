@@ -64,6 +64,7 @@ our @EXPORT = qw(
   load_create_hdd_tests
   is_memtest
   is_mediacheck
+  load_syscontainer_tests
 );
 
 sub init_main {
@@ -825,6 +826,26 @@ sub is_memtest {
 
 sub is_mediacheck {
     return get_var('MEDIACHECK');
+}
+
+sub load_syscontainer_tests() {
+    return unless get_var('SYSCONTAINER_IMAGE_TEST');
+    # pre-conditions for system container tests ie. the tests are running based on preinstalled image
+    return if get_var("INSTALLONLY") || get_var("DUALBOOT") || get_var("RESCUECD");
+
+    # setup $serialdev permission and so on
+    loadtest "console/consoletest_setup";
+
+    # Install needed pieces
+    loadtest 'virtualization/libvirtlxc_setup';
+
+    # Register if possible
+    if (check_var('DISTRI', 'sle')) {
+        loadtest "console/suseconnect_scc";
+    }
+
+    # Run the actual test
+    loadtest 'virtualization/syscontainer_image_test';
 }
 
 1;
