@@ -828,8 +828,6 @@ sub load_consoletests() {
     if (check_var_array('SCC_ADDONS', 'tcm') && get_var('PATTERNS') && sle_version_at_least('12-SP3')) {
         loadtest "feature/feature_console/deregister";
     }
-
-    loadtest 'console/hwloc_testsuite' if sle_version_at_least('12-SP2');
     loadtest "console/consoletest_finish";
 }
 
@@ -1354,6 +1352,9 @@ elsif (get_var('HPC')) {
         elsif (check_var('HPC', 'powerman')) {
             loadtest 'console/hostname';
             loadtest 'hpc/powerman';
+        }
+        elsif (check_var('HPC', 'hwloc') && sle_version_at_least('12-SP2')) {
+            loadtest 'console/hwloc_testsuite';
         }
         else {
             loadtest 'console/install_all_from_repository' if (get_var('INSTALL_ALL_REPO'));
