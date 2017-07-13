@@ -703,7 +703,12 @@ sub power_action {
         assert_shutdown_and_restore_system($action);
     }
     else {
-        assert_shutdown if $action eq 'poweroff';
+        if ($action eq 'poweroff') {
+            # switch to console to view log
+            # interesting in case of hang.
+            wait_screen_change(sub { send_key 'ctrl-alt-f2'; }, 1);
+            assert_shutdown 120;
+        }
         reset_consoles;
     }
 }
