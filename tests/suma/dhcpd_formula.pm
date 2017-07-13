@@ -23,10 +23,11 @@ sub run {
     barrier_create('dhcp_ready_finish', 2);
 
     # configure second interface for dhcp
-    assert_script_run "echo \"STARTMODE='auto'\nBOOTPROTO='static'\nIPADDR='192.168.128.1'\nNETMASK='255.255.128.0'\" > /etc/sysconfig/network/ifcfg-eth1";
+    assert_script_run "echo \"STARTMODE='auto'\nBOOTPROTO='static'\nIPADDR='192.168.1.1'\nNETMASK='255.255.0.0'\" > /etc/sysconfig/network/ifcfg-eth1";
     assert_script_run 'ifup eth1';
     assert_script_run 'ip addr';
-    assert_script_run 'systemctl stop SuSEfirewall2';
+    assert_script_run 'sed -i -e "s|FW_DEV_INT=.*|FW_DEV_INT=eth1|" -e "s|FW_ROUTE=.*|FW_ROUTE=yes|" -e "s|FW_MASQUERADE=.*|FW_MASQUERADE=yes|" /etc/sysconfig/SuSEfirewall2';
+    assert_script_run 'systemctl restart SuSEfirewall2';
     barrier_wait('dhcpd_formula');
 
     # minion test
@@ -40,6 +41,7 @@ sub run {
     barrier_wait('dhcpd_formula_finish');
   } 
   elsif (check_var('SUMA_SALT_MINION', 'terminal')) {
+    barrier_wait('dhcpd_formula');
     barrier_wait('dhcp_ready');
     assert_script_run('/usr/lib/wicked/bin/wickedd-dhcp4 --test eth0');
     # TODO test concrete data
@@ -57,6 +59,7 @@ sub run {
     assert_and_click('suma-system-all');
     assert_and_click('suma-system-branch');
     assert_and_click('suma-system-formulas');
+    send_key_until_needlematch('suma-system-formula-dhcpd', 'down', 40, 1);
     assert_and_click('suma-system-formula-dhcpd');
     assert_and_click('suma-system-formulas-save');
     assert_and_click('suma-system-formula-dhcpd-tab');
@@ -66,26 +69,26 @@ sub run {
     # domain
     type_string('internal.suma.openqa.suse.de');send_key 'tab';
     # dns servers
-    type_string('internal.suma.openqa.suse.de');send_key 'tab';
+    type_string('192.168.1.1');send_key 'tab';
     # device
     type_string('eth1');send_key 'tab';
     # skip leases
     send_key 'tab';send_key 'tab';
     # network
-    type_string('192.168.128.0');send_key 'tab';
+    type_string('192.168.0.0');send_key 'tab';
     # netmask
-    type_string('255.255.128.0');send_key 'tab';
+    type_string('255.255.0.0');send_key 'tab';
     # dhcp range
     type_string('192.168.242.51,192.168.243.151');send_key 'tab';
     # broadcast
     type_string('192.168.255.255');send_key 'tab';
     # routers
-    type_string('suma.openqa.suse.de');send_key 'tab';
+    type_string('192.168.1.1');send_key 'tab';
     # next server
-    type_string('192.168.128.1');send_key 'tab';
+    type_string('192.168.1.1');send_key 'tab';
     # pxe filename
     type_string('/boot/pxelinux.0');send_key 'tab';
-    assert_screen('suma-system-formula-dhcpd-form-filled');
+    #assert_screen('suma-system-formula-dhcpd-form-filled');
     assert_and_click('suma-system-formula-dhcpd-form-save');
 
     # apply high state

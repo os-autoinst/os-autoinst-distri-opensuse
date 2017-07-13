@@ -28,7 +28,7 @@ sub run {
 
   # create barriers for all loaded suma tests
   for my $t (@{get_var_array('SUMA_TESTS')}) {
-    barrier_create($t, 2);
+    barrier_create($t, 3);
   }
   barrier_wait('suma_minion_ready');
 }

@@ -10,7 +10,7 @@
 # Summary: Installation and configuration of SUSE Manager Server
 # Maintainer: Ondrej Holecek <oholecek@suse.com>
 
-use base "consoletest";
+use base "sumatest";
 use 5.018;
 use testapi;
 use utils 'zypper_call';
@@ -29,6 +29,13 @@ sub run {
   assert_script_run("ping -c1 $master");
   script_run('ip a');
   script_run('zypper -n in dhcp-server');
+
+
+  $self->check_and_add_repo();
+
+  zypper_call('in POS_Image-JeOS6 kiwi kiwi-desc-netboot kiwi-desc-saltboot');
+
+
   barrier_wait('suma_master_ready');
   assert_script_run('systemctl restart salt-minion');
   barrier_wait('suma_minion_ready');
