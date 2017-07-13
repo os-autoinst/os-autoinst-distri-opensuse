@@ -369,7 +369,6 @@ sub load_yast2_ui_tests {
     loadtest "console/yast2_xinetd";
     loadtest "console/yast2_apparmor";
     loadtest "console/yast2_lan_hostname";
-    # TODO: why are the following two modules called on sle but not on opensuse?
     # TODO: check if the following two modules also work on opensuse and delete if
     if (check_var('DISTRI', 'sle')) {
         loadtest "console/yast2_nis";
@@ -457,7 +456,6 @@ sub load_extra_tests() {
             # start extra x11 tests from here
             loadtest 'x11/vnc_two_passwords';
             # TODO: check why this is not called on opensuse
-            loadtest 'x11/yast2_lan_restart';
             loadtest 'x11/user_defined_snapshot';
         }
         elsif (check_var('DISTRI', 'opensuse')) {
@@ -482,6 +480,7 @@ sub load_extra_tests() {
             }
 
         }
+        loadtest 'x11/yast2_lan_restart';
     }
     else {
         loadtest "console/zypper_lr";
