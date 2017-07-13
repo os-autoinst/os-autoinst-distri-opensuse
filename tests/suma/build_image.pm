@@ -22,23 +22,20 @@ sub run {
   if (check_var('SUMA_SALT_MINION', 'branch')) {
     select_console 'root-console';
 
-    #FIXME: use SUMA repos
-    assert_script_run 'mkdir -p /etc/kiwi; echo \'
-
-{SLES 12 SP2 x86_64}               http://smt.suse.cz/repo/SUSE/Products/SLE-SERVER/12-SP2/x86_64/product/
-{SLES 12 SP2 Updates x86_64}       http://smt.suse.cz/repo/SUSE/Updates/SLE-SERVER/12-SP2/x86_64/update/ 
-
-{SLEPOS 12 SP2 x86_64}             http://smt.suse.cz/repo/SUSE/Products/SLE-POS/12-SP2/x86_64/product/
-{SLEPOS 12 SP2 Updates x86_64}     http://smt.suse.cz/repo/SUSE/Updates/SLE-POS/12-SP2/x86_64/update/
-
-\' > /etc/kiwi/repoalias ';
-
     assert_script_run 'mkdir -p /usr/share/kiwi/image/saltboot/root/etc/salt/minion.d';
 
     # FIXME: the default 'salt' should be resolvable
     assert_script_run 'echo "master: 10.0.2.10" > /usr/share/kiwi/image/saltboot/root/etc/salt/minion.d/master.conf';
 
-    script_output 'kiwi -b jeos-6.0.0 -d /built-image', 2000;
+    #FIXME: use SUMA repos
+
+    assert_script_run '( cd /usr/share/kiwi/image/jeos-6.0.0/ ; mkdir -p repo ; cd repo ; wget http://10.0.2.10/pub/rhn-org-trusted-ssl-cert-1.0-1.noarch.rpm )';
+    script_output 'kiwi -b jeos-6.0.0 -d /built-image  ' .
+      ' --add-repo http://smt.suse.cz/repo/SUSE/Products/SLE-SERVER/12-SP2/x86_64/product/ --add-repotype rpm-md ' .
+      ' --add-repo http://smt.suse.cz/repo/SUSE/Updates/SLE-SERVER/12-SP2/x86_64/update/ --add-repotype rpm-md ' .
+      ' --add-repo http://smt.suse.cz/repo/SUSE/Products/SLE-POS/12-SP2/x86_64/product/ --add-repotype rpm-md ' .
+      ' --add-repo http://smt.suse.cz/repo/SUSE/Updates/SLE-POS/12-SP2/x86_64/update/ --add-repotype rpm-md '
+      , 2000;
     script_output 'ls -l /built-image';
     
     assert_script_run 'mkdir -p /srv/tftpboot/boot';
