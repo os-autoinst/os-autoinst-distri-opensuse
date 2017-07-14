@@ -17,18 +17,35 @@ use testapi;
 use utils;
 use bootloader_setup;
 
+sub check_ret_accepted {
+    my $tag = shift;
+    wait_screen_change(
+        sub {
+            send_key 'ret';
+        },
+        5
+    );
+    return !check_screen($tag, timeout => 0);
+}
+
 sub run() {
     tianocore_select_bootloader;
+    my $matchtag;
     if (check_var('BOOTFROM', 'd')) {
         send_key_until_needlematch('tianocore-bootmanager-dvd', 'down', 5, 1);
+        $matchtag = 'tianocore-bootmanager-dvd';
     }
     elsif (check_var('BOOTFROM', 'c')) {
         send_key_until_needlematch("ovmf-boot-HDD", 'down', 5, 1);
+        $matchtag = 'ovmf-boot-HDD';
     }
     else {
         die "BOOTFROM value not supported";
     }
-    send_key 'ret';
+    my $counter = 60;
+    while ($counter--) {
+        last if check_ret_accepted($matchtag);
+    }
 }
 
 sub test_flags() {
