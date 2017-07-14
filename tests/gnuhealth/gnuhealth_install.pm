@@ -17,27 +17,6 @@ use testapi;
 sub run() {
     my ($self) = @_;
     ensure_installed 'gnuhealth';
-    x11_start_program 'xterm';
-    assert_screen 'xterm';
-    become_root;
-    assert_script_run 'systemctl start postgresql';
-    wait_screen_change { script_run 'su postgres', 0 };
-    script_run 'sed -i -e \'s/\(local.*all.*all.*\)md5/\1trust/g\' /var/lib/pgsql/data/pg_hba.conf', 0;
-    script_run 'psql -c "CREATE USER tryton WITH CREATEDB;"',                                        0;
-    wait_screen_change { send_key 'ctrl-d' };
-    assert_script_run 'systemctl restart postgresql';
-    # generate the crypted password as described in /etc/tryton/trytond.conf
-    # but with no randomness for easier testing and preventing a stray '/' to
-    # destroy the sed call
-    script_run 'pw=$(python -c \'import getpass,crypt; print(crypt.crypt(getpass.getpass(), str(123456789)))\')', 0;
-    wait_still_screen(1);
-    type_string "susetesting\n";
-    assert_script_run 'sed -i -e "s/^.*super_pwd.*\$/super_pwd = ${pw}/g" /etc/tryton/trytond.conf';
-    assert_script_run 'systemctl start trytond';
-    # exit from root session
-    send_key 'ctrl-d';
-    # exit xterm
-    send_key 'ctrl-d';
 }
 
 sub test_flags() {

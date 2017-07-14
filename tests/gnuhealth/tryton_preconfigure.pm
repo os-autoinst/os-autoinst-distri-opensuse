@@ -25,21 +25,28 @@ sub run() {
     send_key_until_needlematch 'tryton-manage_profiles-host_textfield_selected', 'tab';
     type_string 'localhost';
     send_key 'tab';
-    # button 'create' should appear, weird GUI behaviour
-    assert_and_click 'tryton-manage_profiles-create_database';
-    # tryton server password
-    type_string 'susetesting';
-    send_key 'tab';
-    # database name
-    type_string 'gnuhealth_demo';
-    send_key 'tab';
-    send_key 'tab';
-    # admin password
-    type_string 'susetesting';
-    send_key 'tab';
-    type_string 'susetesting';
-    # wait for create button to be active
-    assert_and_click 'tryton-manage_profiles-create_database-create';
+    if (check_var('VERSION', 'Tumbleweed') || leap_version_at_least('42.3')) {
+        assert_screen 'tryton-manage_profiles-database_selected';
+        type_string 'admin';
+    }
+    else {
+        # button 'create' should appear, weird GUI behaviour
+        assert_and_click 'tryton-manage_profiles-create_database';
+        # tryton server password
+        type_string 'susetesting';
+        send_key 'tab';
+        # database name
+        type_string 'gnuhealth_demo';
+        send_key 'tab';
+        send_key 'tab';
+        # admin password
+        type_string 'susetesting';
+        send_key 'tab';
+        type_string 'susetesting';
+        # wait for create button to be active
+        assert_and_click 'tryton-manage_profiles-create_database-create';
+
+    }
     # back to profiles menue
     assert_screen 'tryton-manage_profiles-add', 300;
     send_key 'ret';
