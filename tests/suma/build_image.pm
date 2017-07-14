@@ -30,6 +30,10 @@ sub run {
     #FIXME: use SUMA repos
 
     assert_script_run '( cd /usr/share/kiwi/image/jeos-6.0.0/ ; mkdir -p repo ; cd repo ; wget http://10.0.2.10/pub/rhn-org-trusted-ssl-cert-1.0-1.noarch.rpm )';
+
+    # set std openqa password
+    assert_script_run 'sed -i -e "s|pwd=[^ ]*|pwd=\"lQxldvDc9mR/o\"|"  /usr/share/kiwi/image/jeos-6.0.0/config.xml';
+
     script_output 'kiwi -b jeos-6.0.0 -d /built-image  ' .
       ' --add-repo http://smt.suse.cz/repo/SUSE/Products/SLE-SERVER/12-SP2/x86_64/product/ --add-repotype rpm-md ' .
       ' --add-repo http://smt.suse.cz/repo/SUSE/Updates/SLE-SERVER/12-SP2/x86_64/update/ --add-repotype rpm-md ' .
