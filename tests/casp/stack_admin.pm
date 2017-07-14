@@ -15,6 +15,14 @@ use strict;
 use testapi;
 use lockapi;
 
+# Set default password on worker nodes
+sub workaround_bsc_1030876 {
+    mutex_lock "NODES_ACCEPTED";
+    script_run 'id=$(docker ps | grep salt-master | awk \'{print $1}\')';
+    script_run 'pw=$(python -c "import crypt; print crypt.crypt(\'nots3cr3t\', \'\$6\$susetest\')")';
+    script_run 'docker exec $id salt -E ".{32}" shadow.set_password root "$pw"';
+}
+
 sub run {
     # Admin node needs long time to start web interface - bsc#1031682
     # Wait in loop until velum is available until controller node can connect
@@ -30,6 +38,7 @@ sub run {
         }
     }
     barrier_wait "VELUM_STARTED";     # Worker installation can start
+    workaround_bsc_1030876;           # Workaround for log export from autoyast nodes
     barrier_wait "CNTRL_FINISHED";    # Wait until controller node finishes
 }
 
