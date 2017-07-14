@@ -87,6 +87,7 @@
                         { key => "BOOT_HDD_IMAGE", value => 1 },
                         { key => "DESKTOP", value => "textmode" },
                         { key => "HDD_1", value => "suma_minion.qcow2" },
+                        { key => "HDDMODEL, value => "virtio-scsi-pci" },
                         { key => "HOSTNAME", value => "suma-terminal" },
                         { key => "MASTER", value => "suma" },
                         { key => "NETWORKS", value => "branch" },
@@ -105,6 +106,7 @@
                         { key => "BOOT_HDD_IMAGE", value => 1 },
                         { key => "DESKTOP", value => "textmode" },
                         { key => "HDD_1", value => "suma_minion.qcow2" },
+                        { key => "HDDMODEL, value => "virtio-scsi-pci" },
                         { key => "HOSTNAME", value => "suma-branch" },
                         { key => "MASTER", value => "suma" },
                         { key => "NETWORKS", value => "admin,branch" },
@@ -136,6 +138,7 @@
                       settings => [
                         { key => "ADDONS", value => "SUMA" },
                         { key => "DESKTOP", value => "textmode" },
+                        { key => "HDDMODEL, value => "virtio-scsi-pci" },
                         { key => "MASTER", value => "suma" },
                         { key => "PUBLISH_HDD_1", value => "suma_minion.qcow2" },
                         { key => "SUMA_IMAGE_BUILD", value => 1 },
