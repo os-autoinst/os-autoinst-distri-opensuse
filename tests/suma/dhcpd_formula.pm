@@ -69,7 +69,7 @@ sub run {
     # domain
     type_string('internal.suma.openqa.suse.de');send_key 'tab';
     # dns servers
-    type_string('192.168.1.1');send_key 'tab';
+    type_string('10.100.2.10');send_key 'tab'; # dns1.suse.cz for now, FIXME: dns on branch server
     # device
     type_string('eth1');send_key 'tab';
     # skip leases
