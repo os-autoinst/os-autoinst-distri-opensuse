@@ -35,28 +35,30 @@ sub search {
             assert_and_click 'yast2_control-center_search_clear';
         }
     }
-    type_string $name if $name;
+    wait_screen_change { type_string $name; } if $name;
+    wait_still_screen 1;
 }
 
 sub start_addon_products {
     assert_and_click 'yast2_control-center_add-on';
-    assert_screen 'yast2_control-center_add-on_installed';
+    assert_screen 'yast2_control-center_add-on_installed', timeout => 180;
     send_key 'alt-o';
-    assert_screen 'yast2-control-center-ui';
+    assert_screen 'yast2-control-center-ui', timeout => 60;
 }
 
 sub start_add_system_extensions_or_modules {
     assert_and_click 'yast2_control-center_add-system-extensions-or-modules';
-    assert_screen 'yast2_control-center_registration';
+    assert_screen 'yast2_control-center_registration', timeout => 180;
     send_key 'alt-r';
-    assert_screen 'yast2-control-center-ui';
+    assert_screen 'yast2-control-center-ui', timeout => 60;
 }
 
 sub start_media_check {
     assert_and_click 'yast2_control-center_media-check';
-    assert_screen 'yast2_control-center_media-check_close', 60;
+    assert_screen 'yast2_control-center_media-check_close', timeout => 180;
+    wait_still_screen;
     send_key 'alt-l';
-    assert_screen 'yast2-control-center-ui';
+    assert_screen 'yast2-control-center-ui', timeout => 60;
 }
 
 sub start_online_update {
@@ -67,15 +69,15 @@ sub start_online_update {
         assert_screen 'yast2_control-center_online-update_close';
     }
     send_key 'alt-c';
-    assert_screen 'yast2-control-center-ui';
+    assert_screen 'yast2-control-center-ui', timeout => 60;
 }
 
 sub start_software_repositories {
     search('software');
     assert_and_click 'yast2_control-center_software-repositories';
-    assert_screen 'yast2_control-center_configured-software-repositories', 60;
+    assert_screen 'yast2_control-center_configured-software-repositories', timeout => 180;
     send_key 'alt-o';
-    assert_screen 'yast2-control-center-ui';
+    assert_screen 'yast2-control-center-ui', timeout => 60;
 }
 
 sub start_sound {
@@ -87,149 +89,137 @@ sub start_sound {
 }
 
 sub start_fonts {
-    # only available on openSUSE or at least not SLES
-    if (check_var('DISTRI', 'opensuse')) {
-        search('fonts');
-        assert_and_click 'yast2_control-center_fonts';
-        assert_screen 'yast2_control-center_fonts-configuration';
-        send_key 'alt-o';
-        assert_screen 'yast2-control-center-ui';
-    }
+    search('fonts');
+    assert_and_click 'yast2_control-center_fonts';
+    assert_screen 'yast2_control-center_fonts-configuration', timeout => 180;
+    send_key 'alt-o';
+    assert_screen 'yast2-control-center-ui', timeout => 60;
 }
 
 sub start_sysconfig_editor {
     search('sysconfig');
     assert_and_click 'yast2_control-sysconfig-editor';
-    assert_screen 'yast2_control-center_etc-sysconfig-editor', 60;
+    assert_screen 'yast2_control-center_etc-sysconfig-editor', timeout => 180;
     send_key 'alt-o';
-    assert_screen 'yast2-control-center-ui';
+    assert_screen 'yast2-control-center-ui', timeout => 60;
 }
 
 sub start_kernel_dump {
     search('dump');
     assert_and_click 'yast2_control-kernel-kdump';
-    assert_screen 'yast2_control-center_kernel-kdump-configuration', 60;
+    assert_screen 'yast2_control-center_kernel-kdump-configuration', timeout => 180;
     assert_and_click 'yast2_control-kernel-kdump-configuration_ok';
-    assert_screen 'yast2-control-center-ui';
+    assert_screen 'yast2-control-center-ui', timeout => 60;
 }
 
 sub start_kernel_settings {
     search('kernel');
     assert_and_click 'yast2_control-center-kernel-settings';
-    assert_screen 'yast2_control-center_kernel-settings_pci-id-setup', 60;
+    assert_screen 'yast2_control-center_kernel-settings_pci-id-setup', timeout => 180;
     send_key 'alt-o';
-    assert_screen 'yast2-control-center-ui';
+    assert_screen 'yast2-control-center-ui', timeout => 60;
 }
 
 sub start_partitioner {
     search('partitioner');
     assert_and_click 'yast2_control-center-partitioner';
-    assert_screen 'yast2_control-center-partitioner_warning', 60;
+    assert_screen 'yast2_control-center-partitioner_warning', timeout => 180;
     send_key 'alt-y';
-    assert_screen 'yast2_control-center-partitioner_expert';
+    assert_screen 'yast2_control-center-partitioner_expert', timeout => 60;
     send_key 'alt-f';
-    assert_screen 'yast2-control-center-ui';
+    assert_screen 'yast2-control-center-ui', timeout => 60;
 }
 
 sub start_authentication_server {
-    # available by default only on SLES
-    if (check_var('DISTRI', 'sle')) {
-        search 'authentication';
-        assert_and_click 'yast2_control-center_authentication-server';
-        assert_screen [qw(yast2_control-center-authentication-server_install yast2_control-center-authentication-server_configuration)], 90;
-        if (match_has_tag('yast2_control-center-authentication-server_install')) {
-            send_key 'alt-i';
-            assert_screen 'yast2_control-center-authentication-server_configuration', 60;
-            send_key 'alt-c';
-        }
-        else {
-            assert_screen 'yast2_control-center-authentication-server_configuration';
-            send_key 'alt-o';
-        }
-        assert_screen 'yast2-control-center-ui', 60;
+    search 'authentication';
+    assert_and_click 'yast2_control-center_authentication-server';
+    assert_screen [qw(yast2_control-center-authentication-server_install yast2_control-center-authentication-server_configuration)], 90;
+    if (match_has_tag('yast2_control-center-authentication-server_install')) {
+        send_key 'alt-i';
+        assert_screen 'yast2_control-center-authentication-server_configuration';
+        send_key 'alt-c';
     }
+    else {
+        assert_screen 'yast2_control-center-authentication-server_configuration';
+        send_key 'alt-o';
+    }
+    assert_screen 'yast2-control-center-ui', 60;
 }
 
 sub start_user_logon_management {
     search('user');
     assert_and_click 'yast2_control-center_user-logon-management';
-    assert_screen 'yast2_control-center_user-logon-management_finish', 60;
+    assert_screen 'yast2_control-center_user-logon-management_finish', timeout => 180;
     send_key 'alt-f';
     assert_screen 'yast2_control-center_user-logon-management_new-users';
     send_key 'alt-o';
-    assert_screen 'yast2-control-center-ui', 60;
+    assert_screen 'yast2-control-center-ui', timeout => 180;
 }
 
 sub start_vpn_gateway {
     search('vpn');
     assert_and_click 'yast2_control-center_vpn-gateway-client';
-    assert_screen 'yast2_control-center_vpn-gateway-client_cancel', 60;
+    assert_screen 'yast2_control-center_vpn-gateway-client_cancel', timeout => 180;
     send_key 'alt-c';
     assert_screen 'yast2-control-center-ui', 60;
 }
 
 sub start_wake_on_lan {
-    if (check_var('DISTRI', 'sle')) {
-        search('wake');
-        assert_and_click 'yast2_control-center_wake-on-lan';
-        assert_screen 'yast2_control-center_wake-on-lan_install_cancel', 60;
-        send_key 'alt-c';
-        assert_screen 'yast2_control-center_wake-on-lan_install_error';
-        send_key 'alt-o';
-        assert_screen 'yast2-control-center-ui', 60;
-    }
+    search('wake');
+    assert_and_click 'yast2_control-center_wake-on-lan';
+    assert_screen 'yast2_control-center_wake-on-lan_install_cancel', 60;
+    send_key 'alt-c';
+    assert_screen 'yast2_control-center_wake-on-lan_install_error';
+    send_key 'alt-o';
+    assert_screen 'yast2-control-center-ui', 60;
 }
 
 sub start_ca_management {
-    if (check_var('DISTRI', 'sle')) {
-        search('ca');
-        assert_and_click 'yast2_control-center_ca-management';
-        assert_screen 'yast2_control-center_ca-management_abort', 60;
-        send_key 'alt-f';
-        assert_screen 'yast2-control-center-ui';
-    }
+    search('ca');
+    assert_and_click 'yast2_control-center_ca-management';
+    assert_screen 'yast2_control-center_ca-management_abort', 60;
+    send_key 'alt-f';
+    assert_screen 'yast2-control-center-ui';
 }
 
 sub start_common_server_certificate {
-    if (check_var('DISTRI', 'sle')) {
-        search('ca');
-        assert_and_click 'yast2_control-center_common-server-certificate';
-        assert_screen 'yast2_control-center_common-server-certificate_abort';
-        send_key 'alt-r';
-        assert_screen 'yast2-control-center-ui';
-    }
+    search('ca');
+    assert_and_click 'yast2_control-center_common-server-certificate';
+    assert_screen 'yast2_control-center_common-server-certificate_abort';
+    send_key 'alt-r';
+    assert_screen 'yast2-control-center-ui';
 }
 
 sub start_security_center {
     search('security');
     assert_and_click 'yast2_control-center_security-center-and-hardening';
-    assert_screen 'yast2_control-center_security-center-and-hardening_overview', 60;
+    assert_screen 'yast2_control-center_security-center-and-hardening_overview', timeout => 180;
     send_key 'alt-o';
-    assert_screen 'yast2-control-center-ui';
+    assert_screen 'yast2-control-center-ui', timeout => 60;
 }
 
 sub start_sudo {
     search('sudo');
     assert_and_click 'yast2_control-center_sudo';
-    assert_screen 'yast2_control-center_sudo_rules', 60;
+    assert_screen 'yast2_control-center_sudo_rules', timeout => 180;
     send_key 'alt-o';
-    assert_screen 'yast2-control-center-ui';
+    assert_screen 'yast2-control-center-ui', timeout => 60;
 }
 
 sub start_user_and_group_management {
     search('user and');
     assert_and_click 'yast2_control-center_user-and-group-management';
-    assert_screen 'yast2_control-center_user-and-group-management_users', 90;
+    assert_screen 'yast2_control-center_user-and-group-management_users', timeout => 180;
     send_key 'alt-o';
-    assert_screen 'yast2-control-center-ui';
+    assert_screen 'yast2-control-center-ui', timeout => 60;
 }
 
 sub start_hypervisor {
     search('hypervisor');
     assert_and_click 'yast2_control-center_install-hypervisor-and-tools';
-    assert_screen 'yast2_control-center_install-hypervisor-and-tools_cancel', 60;
+    assert_screen 'yast2_control-center_install-hypervisor-and-tools_cancel', timeout => 180;
     send_key 'alt-c';
-    assert_screen 'yast2-control-center-ui';
+    assert_screen 'yast2-control-center-ui', 60;
 }
 
 sub start_printer {
@@ -270,20 +260,21 @@ sub start_printer {
     elsif (check_var('DISTRI', 'opensuse')) {
         search('print');
         assert_and_click 'yast2_control-center_printer';
-        assert_screen 'yast2_control-center_printer_configurations';
+        assert_screen 'yast2_control-center_printer_configurations', timeout => 180;
+        wait_still_screen;
         send_key 'alt-o';
-        assert_screen 'yast2-control-center-ui';
+        assert_screen 'yast2-control-center-ui', 60;
     }
 }
 
 sub run {
     my $self = shift;
     $self->launch_yast2_module_x11;
-    assert_screen 'yast2-control-center-ui';
+    assert_screen 'yast2-control-center-ui', timeout => 180;
 
     # search module by typing string
     search('add');
-    assert_screen 'yast2_control-center_search_add';
+    assert_screen 'yast2_control-center_search_add', 60;
 
     # start yast2 modules
     for (1 .. 6) {
@@ -291,9 +282,6 @@ sub run {
     }
 
     start_addon_products;
-    if (check_var('DISTRI', 'sle')) {
-        start_add_system_extensions_or_modules;
-    }
     start_media_check;
     start_online_update;
     start_software_repositories;
@@ -301,25 +289,29 @@ sub run {
     start_sound;
     start_fonts;
     start_sysconfig_editor;
-    if (check_var('DISTRI', 'sle')) {
-        start_kernel_dump;
-    }
-    if (check_var('DISTRI', 'opensuse')) {
-        start_kernel_settings;
-    }
     start_partitioner;
-    start_authentication_server;
     start_vpn_gateway;
-    start_wake_on_lan;
-    start_ca_management;
-    start_common_server_certificate;
     start_security_center;
     start_sudo;
     start_user_and_group_management;
     start_hypervisor;
+    if (check_var('DISTRI', 'sle')) {
+        start_add_system_extensions_or_modules;
+        start_kernel_dump;
+        start_common_server_certificate;
+        start_ca_management;
+        start_wake_on_lan;
+        # available by default only on SLES
+        start_authentication_server;
+    }
+    if (check_var('DISTRI', 'opensuse')) {
+        start_kernel_settings;
+        # only available on openSUSE or at least not SLES
+        start_fonts;
+    }
 
     #  finally done and exit
-    send_key 'alt-f4';
+    wait_screen_change { send_key 'alt-f4'; };
 }
 
 1;
