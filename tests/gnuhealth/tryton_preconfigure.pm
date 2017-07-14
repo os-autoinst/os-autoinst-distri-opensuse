@@ -13,6 +13,7 @@
 use base 'x11test';
 use strict;
 use testapi;
+use utils;
 
 sub run() {
     x11_start_program 'tryton';
