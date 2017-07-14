@@ -80,6 +80,8 @@ sub check_and_record_dependency_problems {
     my ($self) = @_;
 
     return unless check_screen("inst-overview-dep-warning", 1);
+    # TODO this seems to be a case of better die and put the rest of the logic
+    # into a custom post_fail_hook
     record_soft_failure 'dependency warning';
     if (check_var('VIDEOMODE', 'text')) {
         send_key 'alt-c';

@@ -50,6 +50,7 @@ sub run() {
                 send_key 'alt-o';                                                   # continue
             }
             if (check_screen('import-untrusted-gpg-key', 10)) {                     # workaround untrusted key pop-up, record soft fail and trust it
+                # TODO
                 record_soft_failure;
                 send_key 'alt-t';
             }
@@ -74,6 +75,7 @@ sub run() {
             assert_screen 'automatic-changes';
             send_key 'alt-o';                                                       # OK
             if (check_screen 'unsupported-packages', 5) {
+                # TODO
                 record_soft_failure 'unsupported packages';
                 send_key 'alt-o';
             }

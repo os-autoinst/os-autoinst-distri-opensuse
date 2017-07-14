@@ -43,6 +43,7 @@ sub run() {
             }
         }
         if (!check_screen "tty1-selected", 5) {    #workaround for bsc#977007
+            # TODO
             record_soft_failure "unable to switch to the text mode";
             send_key 'ctrl-alt-backspace';         #kill X and log in again
             send_key 'ctrl-alt-backspace';
