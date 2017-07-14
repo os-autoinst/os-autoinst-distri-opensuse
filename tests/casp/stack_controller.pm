@@ -43,27 +43,7 @@ sub velum_certificates {
     # Fill generic settings
     for (1 .. 4) { send_key 'tab' }
     type_string "master.openqa.test";
-
-    # Staging workaround
-    unless (check_screen 'velum-proxy-optional') {
-        # Skip proxy settings
-        for (1 .. 4) { send_key 'tab' }
-
-        # Fill certificate settings
-        type_string "SUSE";
-        send_key 'tab';
-        type_string "QA";
-        send_key 'tab';
-        type_string "email\@email.com";
-        send_key 'tab';
-        type_string "cz";
-        send_key 'tab';
-        type_string "CZ";
-        send_key 'tab';
-        type_string "Prague";
-    }
-    save_screenshot;
-    send_key 'ret';
+    assert_and_click "velum-next";
 
     assert_screen 'velum-tips-page';
     assert_and_click "velum-next";
