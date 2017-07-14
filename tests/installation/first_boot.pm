@@ -65,6 +65,8 @@ sub post_fail_hook() {
     wait_screen_change {
         send_key 'esc';
     };
+    # save a screenshot before trying further measures which might fail
+    save_screenshot;
     # if we found a shell, we do not need the memory dump
     if (!(match_has_tag('emergency-shell') or match_has_tag('emergency-mode'))) {
         die "save_memory_dump is temporarily unavailable, see https://progress.opensuse.org/issues/19390";
