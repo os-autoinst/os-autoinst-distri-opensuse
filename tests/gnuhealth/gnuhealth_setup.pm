@@ -13,6 +13,7 @@
 use base 'x11test';
 use strict;
 use testapi;
+use utils 'leap_version_at_least';
 
 sub run() {
     my ($self) = @_;

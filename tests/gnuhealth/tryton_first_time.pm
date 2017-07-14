@@ -13,6 +13,7 @@
 use base 'x11test';
 use strict;
 use testapi;
+use utils 'leap_version_at_least';
 
 sub run() {
     if (check_var('VERSION', 'Tumbleweed') || leap_version_at_least('42.3')) {
