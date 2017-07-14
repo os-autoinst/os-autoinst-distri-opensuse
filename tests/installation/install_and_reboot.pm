@@ -150,7 +150,7 @@ sub run() {
         if (check_var('BACKEND', 'ipmi')) {
             use_ssh_serial_console;
             # set serial console for xen
-            &set_serial_console_on_xen("/mnt") if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen"));
+            set_serial_console_on_xen("/mnt") if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen"));
         }
         else {
             # avoid known issue in FIPS mode: bsc#985969
