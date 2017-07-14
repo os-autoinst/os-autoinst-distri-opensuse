@@ -73,13 +73,12 @@ sub velum_bootstrap {
 
     # Select master
     mouse_set $x, $y;
-    sleep 0.5;
-    mouse_click;
+    mouse_click 'left', 1;
+    mouse_hide;
 
     # Click bootstrap button
     send_key_until_needlematch "velum-bootstrap", "pgdn", 2, 5;
     assert_and_click "velum-bootstrap";
-    mouse_hide;
 
     # Accept small-cluster warning
     assert_and_click 'velum-botstrap-warning' if check_var('STACK_SIZE', 4);
