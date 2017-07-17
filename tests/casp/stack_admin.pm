@@ -28,7 +28,7 @@ sub run {
     # Wait in loop until velum is available until controller node can connect
     my $timeout   = 240;
     my $starttime = time;
-    while (script_run 'curl -kI https://localhost | grep velum') {
+    while (script_run 'curl -kLI localhost | grep velum') {
         my $timerun = time - $starttime;
         if ($timerun < $timeout) {
             sleep 15;
