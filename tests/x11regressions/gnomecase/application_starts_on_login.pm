@@ -105,6 +105,7 @@ sub run {
     send_key "alt-f4";
 
     logout_and_login;
+    $self->firefox_check_popups;
     assert_screen "firefox-gnome", 90;
     send_key "alt-f4";
     wait_still_screen;
@@ -134,8 +135,11 @@ sub run {
 
     x11_start_program("firefox");
     wait_still_screen;
+    $self->firefox_check_default;
+    $self->firefox_check_popups;
     assert_screen "firefox-gnome", 90;
     logout_and_login;
+    $self->firefox_check_popups;
     assert_screen "firefox-gnome", 90;
     send_key "alt-f4";
     wait_still_screen;

@@ -18,6 +18,7 @@ use utils;
 
 # applications are called twiced
 sub application_test {
+    my ($self) = @_;
     x11_start_program "gnome-terminal";
     assert_screen "gnome-terminal-launched";
     send_key "alt-f4";
@@ -25,6 +26,8 @@ sub application_test {
     wait_still_screen;
 
     x11_start_program "firefox";
+    $self->firefox_check_default;
+    $self->firefox_check_popups;
     assert_screen "firefox-gnome", 150;
     send_key "alt-f4";
     wait_still_screen;
