@@ -18,10 +18,10 @@ use utils;
 
 sub run {
     select_console 'root-console';
-
+    # Log space available before installation, see poo#19834
+    script_run("df -h > /dev/$serialdev", 0);
     # Install apache2
     zypper_call("in apache2");
-
     # After installation, apache2 is disabled
     assert_script_run "systemctl show -p UnitFileState apache2.service|grep UnitFileState=disabled";
 
@@ -37,6 +37,15 @@ sub run {
         timeout      => 90,
         fail_message => 'Could not access local apache2 instance'
     );
+}
+
+sub post_fail_hook {
+    my ($self) = shift;
+    $self->SUPER::post_fail_hook;
+    select_console('log-console');
+    # Log disk usage if test failed, see poo#19834
+    script_run("df -h > /dev/$serialdev", 0);
+
 }
 
 1;
