@@ -27,7 +27,8 @@ sub run {
         script_run "SUSEConnect --status | tee /dev/$serialdev", 0;
         my $out = wait_serial [$not_registered, $registered];
         if ($out =~ $not_registered) {
-            die "The test can only be run on registered system\n";
+            set_var 'SCC_REGISTER', 'console';
+            yast_scc_registration;
         }
     }
 
