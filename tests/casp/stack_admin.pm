@@ -43,10 +43,10 @@ sub post_run_hook {
     script_run 'velumid=$(docker ps | grep velum-dashboard | awk \'{print $1}\')';
     my $railscmd = 'entrypoint.sh bundle exec rails';
 
-    script_run "docker exec -it \$velumid $railscmd runner 'puts SaltEvent.all.to_json' > SaltEvents.log";
+    script_run "docker exec -it \$velumid $railscmd runner 'puts SaltEvent.all.to_yaml' > SaltEvents.log";
     upload_logs "SaltEvents.log";
 
-    script_run "docker exec -it \$velumid $railscmd runner 'puts Pillar.all.to_json' > Pillar.log";
+    script_run "docker exec -it \$velumid $railscmd runner 'puts Pillar.all.to_yaml' > Pillar.log";
     upload_logs "Pillar.log";
 }
 
