@@ -75,9 +75,6 @@ sub run {
     select_console 'root-console';
     assert_script_run "dig www.suse.com A";
     assert_script_run "host www.suse.com";    # check for valid IP address
-    type_string "exit\n";                     # logout
-    wait_still_screen 2;
-    save_screenshot();
     select_console 'x11', await_console => 0;
     assert_screen "wireshark-capturing";
 
