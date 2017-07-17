@@ -264,7 +264,7 @@ sub ssh_key_import {
 }
 
 sub addon_products_is_applicable {
-    return !get_var("LIVECD") && get_var("ADDONURL") && !leap_version_at_least('42.3');
+    return !get_var("LIVECD") && get_var("ADDONURL");
 }
 
 sub remove_common_needles {
