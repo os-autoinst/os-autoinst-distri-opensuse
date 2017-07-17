@@ -94,7 +94,11 @@ sub setup_console_in_grub {
     if ($grub_ver eq "grub2") {
         #grub2
         $cmd
-          = "cp $grub_cfg_file ${grub_cfg_file}.org \&\& sed -ri '/(multiboot|module\\s*.*vmlinuz)/ {s/(console|loglevel|log_lvl|guest_loglvl)=[^ ]*//g; /multiboot/ s/\$/ console=com2,115200 log_lvl=all guest_loglvl=all/; /module\\s*.*vmlinuz/ s/\$/ console=$ipmi_console,115200 console=tty loglevel=5/;}' $grub_cfg_file";
+          = "cp $grub_cfg_file ${grub_cfg_file}.org "
+          . "\&\& sed -ri '/(multiboot|module\\s*.*vmlinuz)/ "
+          . "{s/(console|loglevel|log_lvl|guest_loglvl)=[^ ]*//g; "
+          . "/multiboot/ s/\$/ console=com2,115200 log_lvl=all guest_loglvl=all sync_console/; "
+          . "/module\\s*.*vmlinuz/ s/\$/ console=$ipmi_console,115200 console=tty loglevel=5/;}' $grub_cfg_file";
         assert_script_run("$cmd");
         save_screenshot;
         $cmd = "sed -rn '/(multiboot|module\\s*.*vmlinuz)/p' $grub_cfg_file";
@@ -148,7 +152,7 @@ sub get_installation_partition() {
 #For post installation, use set_serial_console_on_xen directly
 #For during installation, use set_serial_console_on_xen("/mnt")
 #For custom usage, use set_serial_console_on_xen($mount_point, $installation_disk)
-sub set_serial_console_on_xen() {
+sub set_serial_console_on_xen {
     my ($mount_point, $installation_disk) = @_;
 
     #prepare accessible grub
