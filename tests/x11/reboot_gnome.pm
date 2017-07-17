@@ -18,19 +18,6 @@ use utils;
 
 sub run() {
     my ($self) = @_;
-    if (check_var('DISTRI', 'sle')) {
-        # Increase logging level for bsc#1000599
-        select_console("root-console");
-        # Long string, hence type slowly
-        type_string_slow "sed -i 's|\\(/usr/lib/gnome-settings-daemon-3.0/gnome-settings-daemon\\)|\\1 --debug|g'"
-          . " /usr/lib/gnome-settings-daemon-3.0/gnome-settings-daemon-localeexec\n";
-        type_string_slow "sed -i 's|\\(/usr/lib/gnome-settings-daemon-3.0/gnome-settings-daemon-localeexec\\)|systemd-cat \\1|g'"
-          . " /etc/xdg/autostart/gnome-settings-daemon.desktop\n";
-        # Restart gnome to apply changes to services
-        assert_script_run "systemctl restart xdm";
-        # After restarting gnome need to login again
-        handle_login;
-    }
     # 'keepconsole => 1' is workaround for bsc#1044072
     power_action('reboot', keepconsole => 1);
 
