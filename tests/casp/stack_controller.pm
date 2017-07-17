@@ -59,6 +59,7 @@ sub velum_bootstrap {
     # Nodes are moved from pending - minus admin & controller
     my $nodes = get_var('STACK_SIZE') - 2;
     assert_screen_with_soft_timeout("velum-$nodes-nodes-accepted", timeout => 90, soft_timeout => 15, bugref => 'bsc#1046663');
+    mutex_create "NODES_ACCEPTED";
 
     # Select all nodes for bootstrap
     assert_and_click 'velum-bootstrap-select-nodes';
