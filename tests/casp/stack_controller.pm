@@ -62,6 +62,8 @@ sub velum_bootstrap {
 
     # Select all nodes for bootstrap
     assert_and_click 'velum-bootstrap-select-nodes';
+    # Wait until "three nodes" warning disappears
+    wait_still_screen;
 
     # Calculate position of master node radio button
     send_key_until_needlematch "master-checkbox-xy", "pgdn", 2, 5;
@@ -72,9 +74,17 @@ sub velum_bootstrap {
     my $y      = $row->{y} + int($row->{h} / 2);
 
     # Select master
-    mouse_set $x, $y;
-    mouse_click 'left', 1;
-    mouse_hide;
+    for (1 .. 3) {
+        mouse_set $x, $y;
+        mouse_click;
+        mouse_hide;
+        if (check_screen('master-checkbox-selected', 1)) {
+            last;
+        }
+        else {
+            record_soft_failure 'bsc#1048975 - User interaction is lost after page refresh';
+        }
+    }
 
     # Click bootstrap button
     send_key_until_needlematch "velum-bootstrap", "pgdn", 2, 5;
