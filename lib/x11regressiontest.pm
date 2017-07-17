@@ -139,13 +139,30 @@ sub check_libreoffice_dialogs() {
 # get email account information for Evolution test cases
 sub getconfig_emailaccount {
     my ($self) = @_;
-    my $url = "http://jupiter.bej.suse.com/openqa/password.conf";
+    my $local_config = << 'END_LOCAL_CONFIG';
+[internal_account_A]
+user = admin 
+mailbox = admin@localhost
+passwd = password123
+recvport =995
+imapport =993
+recvServer = localhost
+sendServer = localhost
+sendport =25
 
-
-    my $file = get($url);
+[internal_account_B]
+user = nimda
+mailbox = nimda@localhost
+passwd = password123
+recvport =995
+imapport =993
+recvServer = localhost
+sendServer = localhost
+sendport =25 
+END_LOCAL_CONFIG
 
     my $config = Config::Tiny->new;
-    $config = Config::Tiny->read_string($file);
+    $config = Config::Tiny->read_string($local_config);
 
     return $config;
 
@@ -420,7 +437,8 @@ sub setup_mail_account {
     };
     sleep 1;
     type_string "$mail_user";
-    $self->evolution_add_self_signed_ca($account);
+    send_key $self->{next};
+    send_key "ret";
     assert_screen "evolution_wizard-account-summary";
     send_key $self->{next};
     if (sle_version_at_least('12-SP2')) {
