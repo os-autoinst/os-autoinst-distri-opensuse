@@ -18,7 +18,7 @@ use base "y2x11test";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     my $self   = shift;
     my $module = "timezone";
 

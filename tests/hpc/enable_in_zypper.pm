@@ -17,7 +17,7 @@ use testapi;
 use utils;
 use lockapi;
 
-sub run() {
+sub run {
     select_console 'root-console';
 
     # disable packagekitd
@@ -32,7 +32,7 @@ sub run() {
     zypper_call 'up';
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1, milestone => 1};
 }
 

@@ -15,7 +15,7 @@ use base "opensusebasetest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     my $self    = shift;
     my $result  = 'ok';
     my $datamax = get_var("BTRFS_MAXDATASIZE");

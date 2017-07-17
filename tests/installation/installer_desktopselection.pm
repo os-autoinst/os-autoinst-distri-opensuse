@@ -15,7 +15,7 @@ use strict;
 use base "y2logsstep";
 use testapi;
 
-sub run() {
+sub run {
     assert_screen 'desktop-selection';
     my $d = get_var('DESKTOP');
 

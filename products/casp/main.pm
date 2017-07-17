@@ -40,7 +40,7 @@ if (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux')
     set_var('SERIALDEV', 'hvc0');
 }
 
-sub load_boot_tests() {
+sub load_boot_tests {
     if (is_casp 'DVD') {
         if (get_var("UEFI")) {
             loadtest 'installation/bootloader_uefi';
@@ -61,7 +61,7 @@ sub load_boot_tests() {
 }
 
 # One-click installer - fate#322328
-sub load_inst_tests() {
+sub load_inst_tests {
     if (get_var 'AUTOYAST') {
         loadtest 'autoyast/installation';
     }

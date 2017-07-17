@@ -17,11 +17,11 @@ use testapi;
 use utils;
 
 
-sub run() {
+sub run {
     assert_script_run "zypper -n --no-gpg-checks in --auto-agree-with-licenses -t pattern SLEPOS_Server_Admin > /dev/$serialdev";
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

@@ -19,7 +19,7 @@ use testapi;
 # dependencies
 
 # this part contains the steps to run this test
-sub run() {
+sub run {
     my $self = shift;
 
     select_console 'user-console';

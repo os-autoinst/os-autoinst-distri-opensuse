@@ -14,7 +14,7 @@ use strict;
 use base "y2logsstep";
 use testapi;
 
-sub run() {
+sub run {
     send_key 'alt-g';
     type_string get_var('REGCODE');
 

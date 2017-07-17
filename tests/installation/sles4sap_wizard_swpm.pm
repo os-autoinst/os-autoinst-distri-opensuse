@@ -6,7 +6,7 @@ use strict;
 use base "y2logsstep";
 use testapi;
 
-sub run() {
+sub run {
     my $sap_product = get_var('TREX') ? 'trex' : 'nw';
     assert_screen "sles4sap-wizard-swpm-overview";
     send_key $cmd{next};

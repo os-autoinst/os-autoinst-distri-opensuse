@@ -19,7 +19,7 @@ use base "consoletest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     assert_script_run("systemctl show -p ActiveState sshd|grep ActiveState=active");
     assert_script_run("systemctl show -p SubState sshd|grep SubState=running");
 }

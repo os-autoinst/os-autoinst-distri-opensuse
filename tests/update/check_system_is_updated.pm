@@ -14,14 +14,14 @@ use base "consoletest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     select_console 'root-console';
     assert_script_run "chown $testapi::username /dev/$testapi::serialdev";
     assert_script_run "pkcon refresh";
     assert_script_run "pkcon get-updates | tee /dev/$serialdev | grep 'There are no updates'";
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

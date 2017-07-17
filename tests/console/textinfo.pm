@@ -16,7 +16,7 @@ use strict;
 use testapi;
 
 # have various useful general info included in videos
-sub run() {
+sub run {
     select_console 'root-console';
     assert_script_run("/home/$username/data/textinfo 2>&1 | tee /tmp/info.txt");
     upload_logs("/tmp/info.txt");

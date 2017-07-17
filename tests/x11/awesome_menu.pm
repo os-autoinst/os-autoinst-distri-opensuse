@@ -7,13 +7,13 @@ use base "x11test";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     send_key "super-w";
     assert_screen 'test-awesome-menu-1', 3;
     send_key "esc";
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

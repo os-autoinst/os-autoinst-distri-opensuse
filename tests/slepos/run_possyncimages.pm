@@ -17,7 +17,7 @@ use testapi;
 use utils;
 use lockapi;
 
-sub run() {
+sub run {
     #wait for adminserver
     mutex_lock("images_registered");
     mutex_unlock("images_registered");
@@ -28,7 +28,7 @@ sub run() {
     mutex_create("bs1_images_synced");
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

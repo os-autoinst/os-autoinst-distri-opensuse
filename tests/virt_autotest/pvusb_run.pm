@@ -17,7 +17,7 @@ use warnings;
 use base "virt_autotest_base";
 use testapi;
 
-sub get_script_run() {
+sub get_script_run {
     my $pre_test_cmd = "/usr/share/qa/tools/test_virtualization-pvusb-run";
     my $which_usb = get_var("PVUSB_DEVICE", "");
     if ($which_usb eq "") {
@@ -31,7 +31,7 @@ sub get_script_run() {
     return $pre_test_cmd;
 }
 
-sub run() {
+sub run {
     my $self = shift;
     $self->run_test(5000, "Congratulations! All test is successful!", "no", "yes", "/var/log/qa/", "pvusb-test-logs");
 }

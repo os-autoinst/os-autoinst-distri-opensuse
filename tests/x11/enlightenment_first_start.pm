@@ -15,7 +15,7 @@ use strict;
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     mouse_hide();
     assert_and_click "enlightenment_keyboard_english";
     assert_and_click "enlightenment_assistant_next";
@@ -32,7 +32,7 @@ sub run() {
     assert_screen "enlightenment_generic_desktop";
 }
 
-sub test_flags() {
+sub test_flags {
     return {milestone => 1};
 }
 

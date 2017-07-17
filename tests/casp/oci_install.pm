@@ -16,7 +16,7 @@ use base "y2logsstep";
 use testapi;
 use caasp;
 
-sub run() {
+sub run {
     # poo#16408 part 1
     send_key 'alt-p';    # partitioning
     assert_screen 'prepare-hard-disk';

@@ -18,7 +18,7 @@ use strict;
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     select_console 'root-console';
 
     script_run("zypper lr -d | tee /dev/$serialdev");
@@ -34,7 +34,7 @@ sub run() {
     assert_script_run("sed -i 's/DEFAULT_WM=.*/DEFAULT_WM=\"${pattern}\"/' /etc/sysconfig/windowmanager");
 }
 
-sub test_flags() {
+sub test_flags {
     return {milestone => 1, fatal => 1};
 }
 

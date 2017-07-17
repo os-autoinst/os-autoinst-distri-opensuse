@@ -18,7 +18,7 @@ use warnings;
 use testapi;
 use utils;
 use base "consoletest";
-sub run() {
+sub run {
     select_console 'root-console';
 
     # Make sure that PackageKit is not running

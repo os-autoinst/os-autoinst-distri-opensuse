@@ -15,7 +15,7 @@ use strict;
 use testapi;
 use caasp;
 
-sub run() {
+sub run {
     my ($self) = @_;
 
     my $bug_pattern = {

@@ -15,7 +15,7 @@ use base "x11test";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     x11_start_program("oocalc", 6, {valid => 1});
     sleep 2;
     wait_still_screen;    # extra wait because oo sometimes appears to be idle during start
@@ -31,7 +31,7 @@ sub run() {
     assert_and_click 'dont-save-libreoffice-btn';    # _Don't save
 }
 
-sub ocr_checklist() {
+sub ocr_checklist {
     [
 
         #                {screenshot=>2, x=>104, y=>201, xs=>380, ys=>150, pattern=>"H ?ello", result=>"OK"}

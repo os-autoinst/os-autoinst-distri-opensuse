@@ -16,7 +16,7 @@ use warnings;
 use base "y2logsstep";
 use testapi;
 
-sub run() {
+sub run {
     assert_screen "inst-overview-secureboot";
 
     $cmd{bootloader} = "alt-b" if check_var('VIDEOMODE', "text");

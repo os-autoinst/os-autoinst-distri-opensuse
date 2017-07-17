@@ -23,7 +23,7 @@ sub quit_firefox {
     }
 }
 
-sub run() {
+sub run {
     # define fips password for firefox, and it should be consisted by:
     # - at least 8 characters
     # - at least one upper case

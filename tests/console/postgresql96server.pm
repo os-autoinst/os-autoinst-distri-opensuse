@@ -16,7 +16,7 @@ use testapi;
 use utils;
 use apachetest;
 
-sub run() {
+sub run {
     select_console 'root-console';
 
     # install the postgresql server package

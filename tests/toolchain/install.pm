@@ -16,7 +16,7 @@ use strict;
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     my ($self) = @_;
 
     select_console('root-console');
@@ -46,7 +46,7 @@ sub run() {
     save_screenshot;
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1, milestone => 1};
 }
 

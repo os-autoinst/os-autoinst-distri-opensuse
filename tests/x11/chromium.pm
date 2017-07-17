@@ -16,7 +16,7 @@ use strict;
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     mouse_hide;
 
     ensure_installed("chromium");

@@ -15,7 +15,7 @@ use strict;
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     my ($self) = @_;
 
     power_action('reboot');
@@ -32,7 +32,7 @@ sub run() {
     select_console 'root-console';
 }
 
-sub test_flags() {
+sub test_flags {
     # On JeOS this is the time for first snapshot as system is deployed correctly.
     return {fatal => 1, milestone => 1};
 }

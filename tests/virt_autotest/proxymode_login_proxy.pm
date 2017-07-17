@@ -16,7 +16,7 @@ use File::Basename;
 use base "opensusebasetest";
 use testapi;
 
-sub run() {
+sub run {
     assert_screen "bootloader";
     send_key "ret";
     assert_screen "grub2", 10;

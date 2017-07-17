@@ -16,7 +16,7 @@ use testapi;
 
 
 
-sub run() {
+sub run {
 
     select_console 'root-console';
     # install http server

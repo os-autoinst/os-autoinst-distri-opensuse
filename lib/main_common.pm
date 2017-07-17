@@ -105,11 +105,11 @@ sub setup_env {
     }
 }
 
-sub any_desktop_is_applicable() {
+sub any_desktop_is_applicable {
     return get_var("DESKTOP") !~ /textmode/;
 }
 
-sub console_is_applicable() {
+sub console_is_applicable {
     return !any_desktop_is_applicable();
 }
 
@@ -172,7 +172,7 @@ sub load_autoyast_tests {
     #    next boot in load_reboot_tests
 }
 
-sub load_slepos_tests() {
+sub load_slepos_tests {
     if (get_var("SLEPOS") =~ /^adminserver/) {
         loadtest("boot/boot_to_desktop");
         loadtest "slepos/prepare";
@@ -439,7 +439,7 @@ sub maybe_load_kernel_tests {
     return 1;
 }
 
-sub load_extra_tests() {
+sub load_extra_tests {
     # Put tests that filled the conditions below
     # 1) you don't want to run in stagings below here
     # 2) the application is not rely on desktop environment
@@ -533,7 +533,7 @@ sub load_extra_tests() {
     return 1;
 }
 
-sub load_rollback_tests() {
+sub load_rollback_tests {
     loadtest "boot/grub_test_snapshot";
     if (get_var('UPGRADE') || get_var('ZDUP')) {
         loadtest "boot/snapper_rollback";
@@ -543,7 +543,7 @@ sub load_rollback_tests() {
     }
 }
 
-sub load_filesystem_tests() {
+sub load_filesystem_tests {
     return unless get_var('FILESYSTEM_TEST');
     # pre-conditions for filesystem tests ie. the tests are running based on preinstalled image
     return if get_var("INSTALLONLY") || get_var("DUALBOOT") || get_var("RESCUECD");

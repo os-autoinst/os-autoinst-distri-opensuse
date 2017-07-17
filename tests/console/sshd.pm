@@ -17,7 +17,7 @@ use strict;
 use testapi;
 
 # check if sshd works
-sub run() {
+sub run {
     my $self = shift;
     # new user to test sshd
     my $ssh_testman        = "sshboy";
@@ -54,7 +54,7 @@ sub run() {
     assert_screen "ssh-login-ok";
 }
 
-sub test_flags() {
+sub test_flags {
     return {milestone => 1};
 }
 

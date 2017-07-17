@@ -23,7 +23,7 @@ sub kernel_updated {
 }
 
 # Update with Plasma applet for software updates using PackageKit
-sub run() {
+sub run {
     my ($self) = @_;
     select_console 'x11', await_console => 0;
     turn_off_kde_screensaver;
@@ -71,7 +71,7 @@ sub run() {
     }
 }
 
-sub test_flags() {
+sub test_flags {
     return {milestone => 1, fatal => 1};
 }
 

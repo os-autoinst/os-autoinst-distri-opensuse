@@ -17,7 +17,7 @@ use testapi;
 use utils;
 use bootloader_setup;
 
-sub run() {
+sub run {
     tianocore_select_bootloader;
     if (check_var('BOOTFROM', 'd')) {
         send_key_until_needlematch('tianocore-bootmanager-dvd', 'down', 5, 1);
@@ -31,7 +31,7 @@ sub run() {
     send_key 'ret';
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

@@ -15,7 +15,7 @@ use base "consoletest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     select_console 'root-console';
 
     my $hostname = get_var("HOSTNAME", 'susetest');
@@ -30,7 +30,7 @@ sub run() {
     assert_script_run "if systemctl -q is-active network.service; then systemctl reload-or-restart network.service; fi";
 }
 
-sub test_flags() {
+sub test_flags {
     return {milestone => 1, fatal => 1};
 }
 

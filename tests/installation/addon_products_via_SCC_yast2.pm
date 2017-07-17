@@ -16,7 +16,7 @@ use strict;
 use testapi;
 use registration 'fill_in_registration_data';
 
-sub run() {
+sub run {
     x11_start_program('xterm');
     # add every used addon to regurl for proxy SCC
     if (get_var('SCC_ADDONS')) {

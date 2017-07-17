@@ -15,7 +15,7 @@ use strict;
 use base "y2logsstep";
 use testapi;
 
-sub run() {
+sub run {
     assert_screen("grub2", get_var('AUTOUPGRADE') ? 5900 : 900);
 }
 

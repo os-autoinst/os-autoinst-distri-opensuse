@@ -16,7 +16,7 @@ use strict;
 use testapi;
 
 
-sub run() {
+sub run {
     x11_start_program("touch newfile");
     x11_start_program("nautilus");
     send_key_until_needlematch 'nautilus-newfile-matched', 'right', 15;

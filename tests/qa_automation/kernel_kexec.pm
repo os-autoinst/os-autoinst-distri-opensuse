@@ -20,7 +20,7 @@ use base "qa_run";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     my $self = shift;
     $self->wait_boot;
     select_console('root-console');

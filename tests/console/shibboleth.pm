@@ -16,7 +16,7 @@ use warnings;
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     select_console 'root-console';
 
     zypper_call "in shibboleth-sp apache2";

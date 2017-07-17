@@ -17,7 +17,7 @@ use testapi;
 use mm_network;
 use lockapi;
 
-sub run() {
+sub run {
     x11_start_program("xterm -geometry 155x45+5+5");
     type_string "gsettings set org.gnome.desktop.session idle-delay 0\n";    # disable blank scree
     become_root;

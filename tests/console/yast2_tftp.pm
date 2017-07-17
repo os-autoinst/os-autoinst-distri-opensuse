@@ -15,7 +15,7 @@ use base "console_yasttest";
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     select_console 'root-console';
 
     zypper_call("in tftp yast2-tftp-server");

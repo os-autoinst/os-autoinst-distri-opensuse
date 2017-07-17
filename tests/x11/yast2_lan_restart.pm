@@ -203,7 +203,7 @@ sub test_7 {
     check_network('restart');
 }
 
-sub run() {
+sub run {
     select_console 'x11';
     x11_start_program("xterm -geometry 155x50+5+5");
     become_root;
@@ -275,7 +275,7 @@ sub run() {
     type_string "killall xterm\n";
 }
 
-sub post_fail_hook() {
+sub post_fail_hook {
     script_run 'journalctl -b > /tmp/journal', 90;
     upload_logs '/tmp/journal';
 }

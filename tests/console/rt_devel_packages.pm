@@ -15,7 +15,7 @@ use strict;
 use testapi;
 
 # https://fate.suse.com/316652
-sub run() {
+sub run {
     my $pkgs = "babeltrace-devel lttng-tools-devel kernel-rt-devel kernel-rt_debug-devel kernel-devel-rt libcpuset-devel";
     my $count = () = $pkgs =~ /\S+/g;
 

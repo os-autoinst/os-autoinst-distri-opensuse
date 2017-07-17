@@ -96,7 +96,7 @@ sub setraidlevel {
     wait_screen_change { send_key "tab"; };      # skip RAID name input field
 }
 
-sub set_lvm() {
+sub set_lvm {
     send_key "shift-tab";
     # select LVM
     send_key "down";
@@ -140,7 +140,7 @@ sub set_lvm() {
     wait_idle 4;
 }
 
-sub run() {
+sub run {
 
     # create partitioning
     send_key $cmd{createpartsetup};

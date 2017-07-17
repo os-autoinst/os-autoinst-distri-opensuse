@@ -14,7 +14,7 @@ use base "x11regressiontest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     my $self     = shift;
     my $mail_ssl = '1';     #Set it as 1, if you want enable SSL
 

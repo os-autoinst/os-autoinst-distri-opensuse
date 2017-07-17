@@ -20,15 +20,15 @@ use base "qa_run";
 use strict;
 use testapi;
 
-sub test_run_list() {
+sub test_run_list {
     return qw(_reboot_off process_stress fs_stress sched_stress);
 }
 
-sub test_suite() {
+sub test_suite {
     return 'acceptance';
 }
 
-sub junit_type() {
+sub junit_type {
     return 'acceptance';
 }
 

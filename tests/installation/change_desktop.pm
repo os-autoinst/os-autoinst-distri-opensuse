@@ -16,7 +16,7 @@ use base "installsummarystep";
 use strict;
 use testapi;
 
-sub change_desktop() {
+sub change_desktop {
     my ($self) = @_;
     # ncurses offers a faster way
     if (check_var('VIDEOMODE', 'text')) {

@@ -15,7 +15,7 @@ use base "y2logsstep";
 use caasp;
 use testapi;
 
-sub run() {
+sub run {
     my $role = get_var('SYSTEM_ROLE', 'admin');
 
     # Select proper role

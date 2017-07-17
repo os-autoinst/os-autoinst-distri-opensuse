@@ -16,7 +16,7 @@ use base "x11regressiontest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     x11_start_program("gedit");
     assert_screen 'gedit-launched', 3;
     assert_and_click 'gedit-x-button';

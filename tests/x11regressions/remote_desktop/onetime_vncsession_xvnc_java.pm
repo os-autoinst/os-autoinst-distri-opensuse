@@ -23,7 +23,7 @@ use base 'x11regressiontest';
 use testapi;
 use lockapi;
 
-sub run() {
+sub run {
     my $self = shift;
 
     # Wait for supportserver if not yet ready

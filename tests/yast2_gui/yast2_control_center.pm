@@ -276,7 +276,7 @@ sub start_printer {
     }
 }
 
-sub run() {
+sub run {
     my $self = shift;
     $self->launch_yast2_module_x11;
     assert_screen 'yast2-control-center-ui';

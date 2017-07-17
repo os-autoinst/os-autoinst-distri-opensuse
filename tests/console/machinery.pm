@@ -14,7 +14,7 @@ use base "consoletest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     select_console 'root-console';
     assert_script_run 'which OneClickInstallCLI || zypper -n in yast2-metapackage-handler', 200;
     my $ret_check = '[ "$?" = "141" ] || [ "$?" = "0" ]';

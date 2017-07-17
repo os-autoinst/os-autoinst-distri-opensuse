@@ -16,7 +16,7 @@ use strict;
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     x11_start_program("tracker-needle");
     sleep 2;
     wait_idle;

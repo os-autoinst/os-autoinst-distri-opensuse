@@ -15,7 +15,7 @@ use strict;
 use testapi;
 use utils 'is_casp';
 
-sub run() {
+sub run {
     # On VMX images bootloader_uefi eats grub2 needle
     assert_screen 'grub2' unless is_casp('VMX');
 
@@ -42,7 +42,7 @@ sub run() {
     }
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1, milestone => 1};
 }
 

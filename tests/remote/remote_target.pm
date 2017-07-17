@@ -17,7 +17,7 @@ use lockapi;
 use mmapi;
 
 # poo#9576
-sub run() {
+sub run {
     # Notice MASTER system is ready for installation
     assert_screen "remote_slave_ready", 200;
     mutex_create "installation_ready";

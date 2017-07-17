@@ -14,7 +14,7 @@ use base "x11test";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     mouse_hide(1);
     x11_start_program("gnome-tweak-tool");
     assert_screen "gnome-tweak-tool-started";

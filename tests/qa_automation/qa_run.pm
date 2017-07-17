@@ -128,7 +128,7 @@ sub wait_testrun {
 
 # Save the output of $cmd into $file and upload it
 # qa_testset_automation validation test
-sub run() {
+sub run {
     my $self = shift;
     $self->system_login();
     $self->prepare_repos();

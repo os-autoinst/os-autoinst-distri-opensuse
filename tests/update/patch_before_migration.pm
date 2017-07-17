@@ -20,7 +20,7 @@ sub is_smt_or_module_tests {
     return get_var('SCC_ADDONS', '') =~ /asmm|contm|hpcm|lgm|pcm|tcm|wsm|idu|ids/ || get_var('TEST', '') =~ /migration_offline_sle12sp\d_smt/;
 }
 
-sub patching_sle() {
+sub patching_sle {
     my ($self) = @_;
 
     set_var("VIDEOMODE",    'text');
@@ -62,7 +62,7 @@ sub patching_sle() {
     if (!is_smt_or_module_tests) { set_var("SCC_REGISTER", ''); }
 }
 
-sub run() {
+sub run {
     my ($self) = @_;
 
     $self->setup_migration;

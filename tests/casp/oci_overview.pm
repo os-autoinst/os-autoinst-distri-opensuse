@@ -15,7 +15,7 @@ use base "y2logsstep";
 use utils;
 use testapi;
 
-sub run() {
+sub run {
     my $timeout = 120;
     if (get_var('BETA')) {
         assert_screen 'oci-betawarning', $timeout;

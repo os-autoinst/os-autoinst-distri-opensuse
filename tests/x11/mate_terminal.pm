@@ -15,7 +15,7 @@ use base "x11test";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     my ($self) = @_;
     mouse_hide(1);
     x11_start_program("mate-terminal");

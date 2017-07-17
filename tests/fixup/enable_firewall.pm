@@ -15,14 +15,14 @@ use base "x11test";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     record_soft_failure('boo#1036590') if get_var('HDDVERSION', '') =~ /openSUSE-(12.1|12.2)/;
     x11_start_program('xterm');
     assert_script_sudo('SuSEfirewall2 on');
     send_key "alt-f4";
 }
 
-sub test_flags() {
+sub test_flags {
     return {milestone => 1};
 }
 

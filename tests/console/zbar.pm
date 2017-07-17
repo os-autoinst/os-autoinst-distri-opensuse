@@ -17,7 +17,7 @@ use strict;
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     select_console 'user-console';
     assert_script_sudo("zypper -n in zbar");
     assert_script_run("wget " . autoinst_url . "/data/qr.png -O /tmp/qr.png");

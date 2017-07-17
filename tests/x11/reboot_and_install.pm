@@ -18,7 +18,7 @@ use utils qw(power_action workaround_type_encrypted_passphrase);
 use bootloader_setup;
 use registration;
 
-sub run() {
+sub run {
     # reboot from previously booted hdd to do pre check or change e.g. before upgrade
     power_action('reboot');
     workaround_type_encrypted_passphrase;
@@ -57,7 +57,7 @@ sub post_fail_hook {
     $self->export_logs;
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

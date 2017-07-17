@@ -15,7 +15,7 @@ use strict;
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     # ZYPPER_LR is needed for inconsistent migration, test would fail looking for deactivated addon
     set_var 'ZYPPER_LR', 1;
     select_console 'root-console';

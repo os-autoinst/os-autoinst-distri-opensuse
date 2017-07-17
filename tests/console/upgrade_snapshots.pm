@@ -18,7 +18,7 @@ use utils;
 
 # fate#317900: Create snapshot before starting Upgrade
 
-sub run() {
+sub run {
     select_console 'root-console';
 
     script_run("snapper list | tee /dev/$serialdev", 0);

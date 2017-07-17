@@ -34,7 +34,7 @@ sub handle_dhcp_popup {
     }
 }
 
-sub run() {
+sub run {
     my $self = shift;
 
     select_console 'user-console';

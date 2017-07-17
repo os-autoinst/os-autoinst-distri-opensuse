@@ -16,7 +16,7 @@ use base "consoletest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     select_console "root-console";
     assert_script_run("rpm -q wget");
     assert_script_run("wget -c https://build.opensuse.org -O opensuse.html");

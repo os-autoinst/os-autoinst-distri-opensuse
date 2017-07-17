@@ -15,7 +15,7 @@ use base "x11regressiontest";
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     my $self        = shift;
     my $mail_box    = 'nooops_test3@aim.com';
     my $mail_passwd = 'opensuse';

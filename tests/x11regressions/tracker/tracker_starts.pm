@@ -15,7 +15,7 @@ use base "x11regressiontest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     x11_start_program("tracker-needle");
     sleep 2;
     wait_idle;

@@ -14,7 +14,7 @@ use base "opensusebasetest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     # Check that system is using UTC timezone
     assert_script_run 'date +"%Z" | grep -x UTC';
 

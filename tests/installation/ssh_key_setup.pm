@@ -16,7 +16,7 @@ use warnings;
 use base "y2logsstep";
 use testapi;
 
-sub run() {
+sub run {
     send_key_until_needlematch 'ssh-key-import-selected', 'tab';
     send_key 'ret';
     assert_screen "inst-import-ssh-key";

@@ -33,7 +33,7 @@ sub application_test {
 
 }
 
-sub run () {
+sub run {
     my ($self) = @_;
     $self->prepare_sle_classic;
     $self->application_test;

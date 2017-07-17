@@ -15,7 +15,7 @@ use warnings;
 use base "virt_autotest_base";
 use testapi;
 
-sub install_package() {
+sub install_package {
     my $qa_server_repo = get_var('QA_HEAD_REPO', '');
     if ($qa_server_repo) {
         script_run "zypper --non-interactive rr server-repo";
@@ -35,7 +35,7 @@ sub install_package() {
     }
 }
 
-sub run() {
+sub run {
     install_package;
 }
 

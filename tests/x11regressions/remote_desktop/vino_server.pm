@@ -25,7 +25,7 @@ use testapi;
 use lockapi;
 use mmapi;
 
-sub run() {
+sub run {
     my $self = shift;
 
     # Setup static NETWORK

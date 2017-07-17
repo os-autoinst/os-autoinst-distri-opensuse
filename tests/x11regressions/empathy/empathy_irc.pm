@@ -17,7 +17,7 @@ use testapi;
 use utils;
 
 
-sub run() {
+sub run {
     x11_start_program("empathy");
 
     assert_screen 'empathy-accounts-discover';

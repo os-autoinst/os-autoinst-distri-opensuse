@@ -15,7 +15,7 @@ use strict;
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     zypper_call('in python-openqa_review');
     assert_script_run 'openqa-review --help';
 }

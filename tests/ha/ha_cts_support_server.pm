@@ -16,7 +16,7 @@ use testapi;
 use lockapi;
 use mmapi;
 
-sub run() {
+sub run {
     my $domainname  = get_var("CLUSTERNAME") . ".ha-test.qa.suse.de";
     my $host1       = "host1";
     my $host2       = "host2";
@@ -61,7 +61,7 @@ sub run() {
     wait_for_children;                     #don't destroy support server while children are running
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

@@ -18,7 +18,7 @@ use warnings;
 
 use backend::console_proxy;
 
-sub get_to_system() {
+sub get_to_system {
     my $s3270 = console('x3270');
 
     $s3270->sequence_3270("ENTER",);
@@ -34,7 +34,7 @@ sub get_to_system() {
 
 }
 
-sub run() {
+sub run {
     my ($self) = @_;
     select_console 'x3270';
     $self->get_to_system();

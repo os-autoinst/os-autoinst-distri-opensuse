@@ -15,7 +15,7 @@ use strict;
 use testapi;
 use guest_migration_base;
 
-sub run() {
+sub run {
     my ($self) = @_;
 
     #settle all common settings

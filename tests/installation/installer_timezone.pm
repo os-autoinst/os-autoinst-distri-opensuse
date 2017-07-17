@@ -16,7 +16,7 @@ use base "y2logsstep";
 use testapi;
 use main_common "noupdatestep_is_applicable";
 
-sub run() {
+sub run {
     assert_screen "inst-timezone", 125 || die 'no timezone';
     # Unpredictable hotkey on kde live distri, click button. See bsc#1045798
     if (noupdatestep_is_applicable() && get_var("LIVECD")) {

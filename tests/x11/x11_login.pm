@@ -15,7 +15,7 @@ use base "x11test";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     type_string $username. "\n";
     sleep 1;
     type_string $password. "\n";

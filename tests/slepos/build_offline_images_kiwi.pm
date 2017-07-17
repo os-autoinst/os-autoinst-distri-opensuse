@@ -17,7 +17,7 @@ use testapi;
 use utils;
 
 
-sub run() {
+sub run {
     #todo: add another images if needed
     my $images_ref = get_var_array('IMAGE_OFFLINE_KIWI');
     foreach my $image (@{$images_ref}) {
@@ -77,7 +77,7 @@ EOT
         }
     }
 }
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

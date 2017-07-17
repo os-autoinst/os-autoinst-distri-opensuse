@@ -45,7 +45,7 @@ sub start_vnc_server {
 }
 
 # poo#11794
-sub run() {
+sub run {
     select_console "root-console";
     # Hide panel buttons so wait_screen_change ignores clock change
     assert_script_run "echo \"#panel .panel-button { color: transparent; }\" >> $theme";

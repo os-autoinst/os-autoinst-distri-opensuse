@@ -15,7 +15,7 @@ use warnings;
 use testapi;
 use base "proxymode";
 
-sub run() {
+sub run {
     my $self         = shift;
     my $ipmi_machine = get_var("IPMI_HOSTNAME");
     my $autoyast     = get_var("AUTOYAST_FILE");

@@ -18,7 +18,7 @@ use base "y2logsstep";
 use testapi;
 use linuxrc;
 
-sub run() {
+sub run {
     my $self = shift;
 
     $self->linuxrc::wait_for_bootmenu();
@@ -37,7 +37,7 @@ sub run() {
     assert_screen("displaymanager", 60);
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1, milestone => 1};
 }
 

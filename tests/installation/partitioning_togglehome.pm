@@ -15,7 +15,7 @@ use strict;
 use base "y2logsstep";
 use testapi;
 
-sub run() {
+sub run {
     send_key 'alt-d';    # open proposal settings
     if (!check_screen 'disabledhome', 5) {
         if (check_screen('inst-partition-radio-buttons', 5)) {    # detect whether new (Radio Buttons) YaST behaviour

@@ -41,7 +41,7 @@ sub test_package_output {
       unless $info_output_vim =~ /$expected_package_name_vim/;
 }
 
-sub run() {
+sub run {
     select_console 'root-console';
 
     # preparation of source repositories

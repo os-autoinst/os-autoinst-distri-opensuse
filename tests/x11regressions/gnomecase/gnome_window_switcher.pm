@@ -14,7 +14,7 @@ use base "x11regressiontest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     # Launch 3 applications
     x11_start_program("nautilus");
     assert_screen 'nautilus-launched';

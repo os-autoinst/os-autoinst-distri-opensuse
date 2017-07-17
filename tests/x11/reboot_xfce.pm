@@ -16,7 +16,7 @@ use strict;
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     my ($self) = @_;
     wait_idle;
     send_key "alt-f4";    # open logout dialog
@@ -27,7 +27,7 @@ sub run() {
     $self->wait_boot;
 }
 
-sub test_flags() {
+sub test_flags {
     return {milestone => 1};
 }
 

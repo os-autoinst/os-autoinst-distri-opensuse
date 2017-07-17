@@ -15,7 +15,7 @@ use base "opensusebasetest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     assert_script_run "! touch /should_fail";
     assert_script_run "touch /etc/should_succeed";
     assert_script_run "touch /var/log/should_succeed";

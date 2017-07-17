@@ -21,7 +21,7 @@ use base "x11test";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     ensure_installed('vlc');
     x11_start_program("vlc --no-autoscale");
     assert_screen "vlc-first-time-wizard";

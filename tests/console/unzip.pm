@@ -21,7 +21,7 @@ use base "consoletest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     # Preparation
     select_console 'root-console';
     assert_script_run 'mkdir -p /tmp/unzip-test/';

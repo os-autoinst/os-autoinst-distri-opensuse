@@ -15,7 +15,7 @@ use strict;
 use base "y2logsstep";
 use testapi;
 
-sub run() {
+sub run {
     if (check_screen('network-setup', 10)) {    # won't appear for NET installs
         send_key $cmd{next};                    # use network
         assert_screen 'dhcp-network';

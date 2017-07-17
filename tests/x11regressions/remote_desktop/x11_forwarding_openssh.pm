@@ -24,7 +24,7 @@ use testapi;
 use lockapi;
 use utils;
 
-sub run() {
+sub run {
     my $self = shift;
 
     # Wait for supportserver if not yet ready

@@ -21,7 +21,7 @@ use strict;
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     my $name = ref($_[0]);
     ensure_installed($name);
     # we need to move the mouse in the top left corner as xchat

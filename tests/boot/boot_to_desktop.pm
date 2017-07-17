@@ -15,7 +15,7 @@ use base 'opensusebasetest';
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     my ($self) = @_;
     # We have tests that boot from HDD and wait for DVD boot menu's timeout, so
     # the timeout here must cover it. UEFI DVD adds some 60 seconds on top.
@@ -28,7 +28,7 @@ sub run() {
     }
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1, milestone => 1};    # add milestone flag to save setup in lastgood VM snapshot
 }
 

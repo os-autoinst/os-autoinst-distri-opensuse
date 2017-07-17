@@ -76,7 +76,7 @@ sub dl_resume {
     wait_still_screen 2;
 }
 
-sub run() {
+sub run {
     my ($self) = @_;
 
     $self->start_firefox;

@@ -16,7 +16,7 @@ use testapi;
 use strict;
 
 # using this as base class means only run when an install is needed
-sub run() {
+sub run {
     my $self = shift;
 
     # live may take ages to boot
@@ -30,11 +30,11 @@ sub run() {
     }
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 
-sub post_fail_hook() {
+sub post_fail_hook {
     my $self = shift;
 
     $self->export_logs();

@@ -16,7 +16,7 @@ use base "x11regressiontest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     x11_start_program("tomboy note");
 
     # select "start note", to see that start note cann't be deleted

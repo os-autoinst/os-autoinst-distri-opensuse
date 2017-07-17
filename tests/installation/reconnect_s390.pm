@@ -18,7 +18,7 @@ use testapi;
 use strict;
 use warnings;
 
-sub run() {
+sub run {
     my $login_ready = check_var('VERSION', 'Tumbleweed') ? qr/Welcome to openSUSE Tumbleweed 20.*/ : qr/Welcome to SUSE Linux Enterprise Server.*\(s390x\)/;
 
     # different behaviour for z/VM and z/KVM

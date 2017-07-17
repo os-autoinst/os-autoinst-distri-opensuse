@@ -19,7 +19,7 @@ use strict;
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     my $self         = shift;
     my $mail_subject = $self->get_dated_random_string(4);
     #Setup account account A, and use it to send a meeting

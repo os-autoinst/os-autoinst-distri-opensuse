@@ -23,7 +23,7 @@ use testapi;
 use registration 'skip_registration';
 use utils qw(ensure_fullscreen assert_screen_with_soft_timeout);
 
-sub run() {
+sub run {
     assert_screen_with_soft_timeout(
         [qw(scc-registration yast2-windowborder-corner)],
         timeout      => 300,

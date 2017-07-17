@@ -20,7 +20,7 @@ use testapi;
 # Used for 106_tracker_info
 my @filenames = qw(newfile newpl.pl);
 
-sub run() {
+sub run {
     # Create a file.
     foreach (@filenames) {
         x11_start_program("touch $_");
@@ -29,7 +29,7 @@ sub run() {
     wait_idle;
 }
 
-sub test_flags() {
+sub test_flags {
     return {milestone => 1};
 }
 

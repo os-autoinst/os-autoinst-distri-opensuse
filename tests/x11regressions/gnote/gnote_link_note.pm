@@ -17,7 +17,7 @@ use strict;
 use testapi;
 
 
-sub run() {
+sub run {
     my ($self) = @_;
     $self->gnote_start_with_new_note;
     type_string "Start Here\n";

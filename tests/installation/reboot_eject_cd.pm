@@ -16,7 +16,7 @@ use base "y2logsstep";
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     # Eject the DVD
     send_key "ctrl-alt-f3";
     assert_screen('text-login');

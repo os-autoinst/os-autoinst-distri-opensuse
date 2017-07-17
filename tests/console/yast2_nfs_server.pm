@@ -24,7 +24,7 @@ use lockapi;
 use mmapi;
 use mm_network;
 
-sub run() {
+sub run {
     select_console 'root-console';
 
     if (get_var('NFSSERVER')) {

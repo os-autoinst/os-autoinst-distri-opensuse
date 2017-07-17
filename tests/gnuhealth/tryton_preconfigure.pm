@@ -15,7 +15,7 @@ use strict;
 use testapi;
 use utils 'leap_version_at_least';
 
-sub run() {
+sub run {
     x11_start_program 'tryton';
     assert_screen 'tryton-startup';
     assert_and_click 'tryton-manage_profiles';
@@ -55,7 +55,7 @@ sub run() {
     assert_screen 'tryton-startup';
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

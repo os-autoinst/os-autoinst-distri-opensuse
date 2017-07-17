@@ -16,7 +16,7 @@ use base "installbasetest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     my $self = shift;
 
     # precompile regexes
@@ -184,7 +184,7 @@ sub run() {
     assert_screen "zypper-dup-finish";
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

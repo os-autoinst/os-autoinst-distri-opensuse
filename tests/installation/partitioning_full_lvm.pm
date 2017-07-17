@@ -17,7 +17,7 @@ use base 'y2logsstep';
 use testapi;
 use partition_setup;
 
-sub run() {
+sub run {
     wipe_existing_partitions;
     if (check_var('ARCH', 's390x')) {    # s390x need /boot/zipl on ext partition
         addpart(role => 'OS', size => 500, format => 'ext2', mount => '/boot');

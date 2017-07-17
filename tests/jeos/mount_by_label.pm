@@ -15,7 +15,7 @@ use base "opensusebasetest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     # Valid mounts are by text(proc,mem), label, partlabel. Invalid mounts are by UUID, PARTUUID,
     # and path (note that /dev/disk/by-(part)label/ is considered 'as a (part)label mount', just
     # in different format).

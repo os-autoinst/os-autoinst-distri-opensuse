@@ -32,7 +32,7 @@ sub select_keyboard {
     send_key 'ret';
 }
 
-sub run() {
+sub run {
     if (check_var('VERSION', '12')) {
         # JeOS-SLE
         accept_license;
@@ -83,7 +83,7 @@ sub run() {
     die "passwd failed" unless (defined $ret && $ret =~ /$str-0-/);
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

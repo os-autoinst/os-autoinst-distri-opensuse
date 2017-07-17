@@ -32,7 +32,7 @@ sub download_image {
 }
 
 
-sub run() {
+sub run {
     my $self    = shift;
     my $indexes = get_var_array("IMAGE_DOWNLOAD");
     for my $n (@{$indexes}) {          #process all referenced assets for image filename
@@ -41,7 +41,7 @@ sub run() {
 }
 
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

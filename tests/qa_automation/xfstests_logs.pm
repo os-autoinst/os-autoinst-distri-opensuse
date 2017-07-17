@@ -17,7 +17,7 @@ use utils;
 use testapi qw(is_serial_terminal :DEFAULT);
 
 # Upload all log tarballs in ./results/
-sub log_upload() {
+sub log_upload {
     my $self    = shift;
     my $tarball = "/tmp/qaset-xfstests-results.tar.bz2";
     assert_script_run("tar jcvf " . $tarball . " ./results/");

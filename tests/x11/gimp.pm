@@ -15,7 +15,7 @@ use base "x11test";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     ensure_installed("gimp");
     x11_start_program("gimp");
     assert_screen "test-gimp-1";

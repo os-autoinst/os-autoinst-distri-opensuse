@@ -22,7 +22,7 @@ use strict;
 use testapi;
 use utils 'zypper_call';
 
-sub run() {
+sub run {
     my %expiration = (
         gcc5      => 'Now',
         libada5   => 'Now',

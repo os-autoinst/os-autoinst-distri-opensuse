@@ -22,7 +22,7 @@ use testapi;
 use utils;
 use susedistribution;
 
-sub run() {
+sub run {
     my $self = shift;
     select_console 'root-console';
 

@@ -17,7 +17,7 @@ use strict;
 use testapi;
 
 
-sub run() {
+sub run {
     mouse_hide();
     x11_start_program("tomboy note");
     while (check_screen "tomboy_command_not_found", 5) {

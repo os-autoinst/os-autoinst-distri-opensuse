@@ -25,7 +25,7 @@ sub save_logs_and_resume {
     select_console 'installation';
 }
 
-sub run() {
+sub run {
     my $self             = shift;
     my $file_system_tags = [
         qw(

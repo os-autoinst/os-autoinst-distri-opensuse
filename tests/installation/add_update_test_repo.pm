@@ -14,7 +14,7 @@ use strict;
 use base "y2logsstep";
 use testapi;
 
-sub run() {
+sub run {
     assert_screen 'inst-addon';
     send_key 'alt-k';    # install with a maint update repo
     my @repos = split(/,/, get_var('MAINT_TEST_REPO'));

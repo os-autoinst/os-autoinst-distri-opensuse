@@ -24,7 +24,7 @@ sub check_bsc997635 {
     }
 }
 
-sub run() {
+sub run {
     # offline DVD upgrade may not have network (boo#995771)
     if (!check_var("FLAVOR", "NET") && check_screen('network-not-configured')) {
         send_key $cmd{next};

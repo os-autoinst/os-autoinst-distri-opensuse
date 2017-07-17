@@ -17,7 +17,7 @@ use strict;
 use testapi;
 
 
-sub run() {
+sub run {
     x11_start_program("evince " . autoinst_url . "/data/x11regressions/test.pdf");
 
     send_key "f11";    # fullscreen mode

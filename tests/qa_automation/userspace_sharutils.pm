@@ -15,15 +15,15 @@ use base "qa_run";
 use strict;
 use testapi;
 
-sub test_run_list() {
+sub test_run_list {
     return qw(_reboot_off sharutils);
 }
 
-sub test_suite() {
+sub test_suite {
     return 'regression';
 }
 
-sub junit_type() {
+sub junit_type {
     return 'user_regression';
 }
 

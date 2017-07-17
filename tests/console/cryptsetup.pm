@@ -17,7 +17,7 @@ use base "consoletest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     my $cryptpasswd = $testapi::password;
     select_console "root-console";
 

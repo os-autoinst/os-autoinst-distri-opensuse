@@ -16,7 +16,7 @@ use base "x11regressiontest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     # download test text file from x11regression data directory
     x11_start_program("wget " . autoinst_url . "/data/x11regressions/test.txt");
 

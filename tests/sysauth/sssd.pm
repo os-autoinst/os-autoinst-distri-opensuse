@@ -16,7 +16,7 @@ use strict;
 use testapi;
 
 
-sub run() {
+sub run {
     # Assume consoletest_setup is completed
     select_console 'root-console';
 

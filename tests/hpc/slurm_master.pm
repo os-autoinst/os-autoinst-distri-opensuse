@@ -18,7 +18,7 @@ use testapi;
 use lockapi;
 use utils;
 
-sub run() {
+sub run {
     my $self                      = shift;
     my ($host_ip_without_netmask) = get_required_var('HPC_HOST_IP') =~ /(.*)\/.*/;
     my $slave_ip                  = get_required_var('HPC_SLAVE_IP');
@@ -72,7 +72,7 @@ EOF
     mutex_create('SLURM_MASTER_RUN_TESTS');
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1, milestone => 1};
 }
 

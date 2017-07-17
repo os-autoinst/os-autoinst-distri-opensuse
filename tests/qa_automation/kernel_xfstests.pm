@@ -21,7 +21,7 @@ use base "qa_run";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     my $self = shift;
     $self->system_login();
     $self->prepare_repos();

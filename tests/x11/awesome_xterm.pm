@@ -6,7 +6,7 @@ use base "x11test";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     my ($self) = @_;
     send_key "super-r";
     type_string "xterm\n";
@@ -17,7 +17,7 @@ sub run() {
     send_key "super-shift-c";
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

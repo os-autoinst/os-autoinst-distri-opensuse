@@ -15,7 +15,7 @@ use base "x11test";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     ensure_installed('inkscape', timeout => 300);
     x11_start_program("inkscape");
     assert_screen 'test-inkscape-1', 3;

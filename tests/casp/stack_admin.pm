@@ -15,7 +15,7 @@ use strict;
 use testapi;
 use lockapi;
 
-sub run() {
+sub run {
     # Admin node needs long time to start web interface - bsc#1031682
     # Wait in loop until velum is available until controller node can connect
     my $timeout   = 240;

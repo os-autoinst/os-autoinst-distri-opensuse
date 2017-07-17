@@ -16,7 +16,7 @@ use base "consoletest";
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     select_console 'root-console';
     zypper_call('in mysql');
     assert_script_run '! systemctl status --no-pager mysql.service', fail_message => 'mysql should be disabled by default';

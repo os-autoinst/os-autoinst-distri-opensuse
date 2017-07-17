@@ -18,7 +18,7 @@ use testapi;
 use utils;
 
 
-sub run() {
+sub run {
     x11_start_program("xterm");
     if (sle_version_at_least('12-SP2')) {
         script_run "tracker search newfile";

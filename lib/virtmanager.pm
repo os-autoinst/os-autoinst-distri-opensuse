@@ -8,7 +8,7 @@ our @EXPORT = qw(launch_virtmanager connection_details create_vnet create_new_po
   create_guest);
 
 
-sub launch_virtmanager() {
+sub launch_virtmanager {
     clean_up_desktop();
     # start a console
     # launch virt-manager in an xterm

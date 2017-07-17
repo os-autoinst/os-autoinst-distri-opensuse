@@ -23,7 +23,7 @@ use testapi;
 use utils;
 use apachetest;
 
-sub run() {
+sub run {
     select_console 'root-console';
 
     # ensure apache2 + php5 installed and running

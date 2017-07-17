@@ -25,7 +25,7 @@ sub run {
     send_key "esc";
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

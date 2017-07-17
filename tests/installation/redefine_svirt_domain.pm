@@ -16,7 +16,7 @@ use strict;
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     my $svirt = console('svirt');
 
     if (check_var('ARCH', 's390x') or get_var('NETBOOT')) {
@@ -33,7 +33,7 @@ sub run() {
     $svirt->define_and_start;
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

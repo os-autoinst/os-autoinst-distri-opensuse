@@ -22,7 +22,7 @@ use registration;
 use utils;
 
 # hint: press shift-f10 trice for highest debug level
-sub run() {
+sub run {
     assert_screen "bootloader", 15;
     if (get_var("UPGRADE") && get_var('PATCHED_SYSTEM')) {
         send_key_until_needlematch 'inst-onupgrade', 'up';
