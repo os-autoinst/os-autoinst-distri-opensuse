@@ -993,7 +993,6 @@ sub load_online_migration_tests {
     # stop packagekit service and more
     loadtest "online_migration/sle12_online_migration/online_migration_setup";
     loadtest "online_migration/sle12_online_migration/register_system";
-    loadtest "online_migration/sle12_online_migration/repos_check";
     # do full/minimal update before migration
     if (get_var("FULL_UPDATE")) {
         loadtest "online_migration/sle12_online_migration/zypper_patch";
