@@ -15,7 +15,7 @@ use base "x11regressiontest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     # Prepare test files
     x11_start_program("xterm");
     assert_screen 'xterm';

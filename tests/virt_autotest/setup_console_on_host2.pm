@@ -16,7 +16,7 @@ use base "proxymode";
 use testapi;
 use virt_utils;
 
-sub run() {
+sub run {
     resetup_console();
 }
 

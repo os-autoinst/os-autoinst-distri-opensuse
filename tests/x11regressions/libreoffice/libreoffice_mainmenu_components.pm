@@ -15,7 +15,7 @@ use strict;
 use testapi;
 
 # open desktop mainmenu and click office
-sub open_mainmenu() {
+sub open_mainmenu {
     my $self = shift;
 
     wait_still_screen;
@@ -26,7 +26,7 @@ sub open_mainmenu() {
 }
 
 # enter 'Activities overview'
-sub open_overview() {
+sub open_overview {
     wait_still_screen;
     send_key "super";
     assert_screen 'tracker-mainmenu-launched';
@@ -49,7 +49,7 @@ sub select_base_and_cleanup {
     send_key 'alt-f4';
 }
 
-sub run() {
+sub run {
     my $self = shift;
 
     # launch components from mainmenu

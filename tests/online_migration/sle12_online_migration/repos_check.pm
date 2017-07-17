@@ -15,7 +15,7 @@ use strict;
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     select_console 'root-console';
     validate_repos(get_var('HDDVERSION'));
 }

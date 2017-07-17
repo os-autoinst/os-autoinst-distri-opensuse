@@ -17,7 +17,7 @@ use testapi;
 use utils 'zypper_call';
 
 # this part contains the steps to run this test
-sub run() {
+sub run {
     select_console 'root-console';
 
     zypper_call 'in -C libc.so.6';

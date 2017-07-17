@@ -22,7 +22,7 @@ use registration;
 use utils;
 
 # hint: press shift-f10 trice for highest debug level
-sub run() {
+sub run {
     if (get_var("IPXE")) {
         sleep 60;
         return;

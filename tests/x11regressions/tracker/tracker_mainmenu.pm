@@ -16,7 +16,7 @@ use strict;
 use testapi;
 
 
-sub run() {
+sub run {
     # enter 'Activities overview'
     send_key "super";
     assert_screen 'tracker-mainmenu-launched';

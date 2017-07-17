@@ -24,7 +24,7 @@ use base "y2logsstep";
 use testapi;
 
 # poo#11438
-sub run() {
+sub run {
     # Release disk space according to warning message + some extra
     assert_screen "low-space-warning";
     select_console('install-shell');

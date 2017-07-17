@@ -15,12 +15,12 @@ use strict;
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     select_console 'root-console';
     minimal_patch_system(version_variable => 'HDDVERSION');
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

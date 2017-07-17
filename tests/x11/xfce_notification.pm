@@ -15,7 +15,7 @@ use base "x11test";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     x11_start_program('notify-send --expire-time=30 Test');
     assert_screen 'test-xfce_notification-1', 5;
 }

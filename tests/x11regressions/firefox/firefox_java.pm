@@ -51,7 +51,7 @@ sub java_testing {
 
 }
 
-sub run() {
+sub run {
     my ($self) = @_;
     $self->start_firefox;
 

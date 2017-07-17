@@ -28,7 +28,7 @@ sub application_test {
     send_key "alt-f4";
 }
 
-sub run () {
+sub run {
     my ($self) = @_;
 
     $self->prepare_sle_classic;

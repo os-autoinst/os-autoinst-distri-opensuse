@@ -16,7 +16,7 @@ use testapi;
 use autotest;
 use lockapi;
 
-sub run() {
+sub run {
     my $self = shift;
     barrier_wait("CLUSTER_INITIALIZED_" . $self->cluster_name);
     script_run "ping -c1 " . get_var("HACLUSTERJOIN");

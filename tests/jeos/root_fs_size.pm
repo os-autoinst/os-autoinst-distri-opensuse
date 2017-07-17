@@ -15,7 +15,7 @@ use base "opensusebasetest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     my $expected_size = "24G";
     if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
         $expected_size = "30G";

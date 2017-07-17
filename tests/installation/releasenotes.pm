@@ -15,7 +15,7 @@ use base "y2logsstep";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     assert_screen('release-notes-button', 5);
 
     # workaround for bsc#1014178

@@ -14,7 +14,7 @@ use base 'btrfs_test';
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     my ($self) = @_;
     select_console 'root-console';
 

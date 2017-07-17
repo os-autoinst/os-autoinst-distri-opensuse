@@ -17,7 +17,7 @@ use strict;
 use testapi;
 use utils 'pkcon_quit';
 
-sub run() {
+sub run {
     select_console 'root-console';
     pkcon_quit;
     my $cmd = <<'EOF';

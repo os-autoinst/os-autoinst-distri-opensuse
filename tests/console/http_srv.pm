@@ -16,7 +16,7 @@ use base "consoletest";
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     select_console 'root-console';
 
     # Install apache2

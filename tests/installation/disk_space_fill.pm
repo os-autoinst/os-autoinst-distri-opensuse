@@ -24,7 +24,7 @@ use base "y2logsstep";
 use testapi;
 
 # poo#11438
-sub run() {
+sub run {
     # After mounting partitions leave only 100M available
     select_console('install-shell');
     my $avail = script_output "btrfs fi usage -m /mnt | awk '/Free/ {print \$3}' | cut -d'.' -f 1";

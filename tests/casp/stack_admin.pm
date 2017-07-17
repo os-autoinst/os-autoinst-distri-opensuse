@@ -15,15 +15,12 @@ use strict;
 use testapi;
 use lockapi;
 
-sub run() {
+sub run {
     # Admin node needs long time to start web interface - bsc#1031682
     # Wait in loop until velum is available until controller node can connect
     my $timeout   = 240;
     my $starttime = time;
-    while (script_run 'curl -I localhost | grep velum') {
-        # Staging workaround - if script_run returns zero velum is running
-        last unless script_run('curl -kI https://localhost | grep velum');
-
+    while (script_run 'curl -kI https://localhost | grep velum') {
         my $timerun = time - $starttime;
         if ($timerun < $timeout) {
             sleep 15;
@@ -43,10 +40,10 @@ sub post_run_hook {
     script_run 'velumid=$(docker ps | grep velum-dashboard | awk \'{print $1}\')';
     my $railscmd = 'entrypoint.sh bundle exec rails';
 
-    script_run "docker exec -it \$velumid $railscmd runner 'puts SaltEvent.all.to_json' > SaltEvents.log";
+    script_run "docker exec -it \$velumid $railscmd runner 'puts SaltEvent.all.to_yaml' > SaltEvents.log";
     upload_logs "SaltEvents.log";
 
-    script_run "docker exec -it \$velumid $railscmd runner 'puts Pillar.all.to_json' > Pillar.log";
+    script_run "docker exec -it \$velumid $railscmd runner 'puts Pillar.all.to_yaml' > Pillar.log";
     upload_logs "Pillar.log";
 }
 

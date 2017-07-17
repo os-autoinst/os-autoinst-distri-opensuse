@@ -14,7 +14,7 @@ use strict;
 use base "consoletest";
 use testapi;
 
-sub run() {
+sub run {
     select_console 'root-console';
 
     # Install bind

@@ -15,7 +15,7 @@ use base "x11regressiontest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     # start destop application memu
     wait_still_screen;
     send_key "alt-f1";

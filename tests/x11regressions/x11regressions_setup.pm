@@ -14,7 +14,7 @@ use base "x11regressiontest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     #Switch to x11 console, if not selected, before trying to start xterm
     select_console('x11');
 
@@ -31,7 +31,7 @@ sub run() {
 }
 
 # add milestone flag to save setup in lastgood vm snapshot
-sub test_flags() {
+sub test_flags {
     return {milestone => 1, fatal => 1};
 }
 

@@ -16,7 +16,7 @@ use warnings;
 use base "y2logsstep";
 use testapi;
 
-sub run() {
+sub run {
     my ($self) = @_;
 
     # overview-generation

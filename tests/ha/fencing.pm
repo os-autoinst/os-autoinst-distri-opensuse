@@ -16,7 +16,7 @@ use testapi;
 use autotest;
 use lockapi;
 
-sub run() {
+sub run {
     my $self = shift;
     barrier_wait("BEFORE_FENCING_" . $self->cluster_name);
     if ($self->is_node1) {

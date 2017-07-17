@@ -20,7 +20,7 @@ sub run {
     wait_serial("SUSE Linux Enterprise Server", 10) || die "Not SLES found";
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

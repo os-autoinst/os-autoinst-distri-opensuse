@@ -14,7 +14,7 @@ use base "hacluster";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     my $self = shift;
     type_string "yast2 iscsi-client\n";
     assert_screen "yast2-iscsi-client";

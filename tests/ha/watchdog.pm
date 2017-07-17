@@ -15,7 +15,7 @@ use strict;
 use testapi;
 use lockapi;
 
-sub run() {
+sub run {
     script_run "echo softdog > /etc/modules-load.d/softdog.conf";
     script_run "systemctl restart systemd-modules-load.service";
     type_string "echo \"softdog=`lsmod | grep softdog | wc -l`\" > /dev/$serialdev\n";

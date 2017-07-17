@@ -19,7 +19,7 @@ use testapi;
 use lockapi;
 use utils;
 
-sub run() {
+sub run {
     my $self      = shift;
     my $master_ip = get_required_var('HPC_MASTER_IP');
 
@@ -53,7 +53,7 @@ sub run() {
     barrier_wait("PDSH_SLAVE_DONE");
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1, milestone => 1};
 }
 

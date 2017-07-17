@@ -43,7 +43,7 @@ sub compare_data {
 }
 
 # poo#11792
-sub run() {
+sub run {
     my ($self) = @_;
     select_console 'root-console';
 

@@ -15,7 +15,7 @@ use strict;
 use warnings;
 use testapi;
 
-sub get_script_run() {
+sub get_script_run {
     my $prd_version = script_output("cat /etc/issue");
     my $pre_test_cmd;
     if ($prd_version =~ m/SUSE Linux Enterprise Server 12/) {
@@ -46,7 +46,7 @@ sub analyzeResult {
     return $result;
 }
 
-sub run() {
+sub run {
     my $self = shift;
 
     $self->{"product_tested_on"} = "SLES-12-SP2";

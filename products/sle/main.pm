@@ -47,7 +47,7 @@ sub is_smt {
     return (get_var("PATTERNS", '') || get_var('HDD_1', '')) =~ /smt/;
 }
 
-sub is_kgraft() {
+sub is_kgraft {
     return get_var('FLAVOR', '') =~ /^KGraft/;
 }
 
@@ -279,15 +279,15 @@ logcurrentenv(
 );
 
 
-sub need_clear_repos() {
+sub need_clear_repos {
     return get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/ && get_var("SUSEMIRROR");
 }
 
-sub have_scc_repos() {
+sub have_scc_repos {
     return check_var('SCC_REGISTER', 'console');
 }
 
-sub have_addn_repos() {
+sub have_addn_repos {
     return
          !get_var("NET")
       && !get_var("EVERGREEN")
@@ -295,22 +295,22 @@ sub have_addn_repos() {
       && !get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/;
 }
 
-sub rt_is_applicable() {
+sub rt_is_applicable {
     return is_server() && get_var("ADDONS", "") =~ /rt/;
 }
 
-sub we_is_applicable() {
+sub we_is_applicable {
     return
          is_server()
       && (get_var("ADDONS", "") =~ /we/ or get_var("SCC_ADDONS", "") =~ /we/ or get_var("ADDONURL", "") =~ /we/)
       && get_var('MIGRATION_REMOVE_ADDONS', '') !~ /we/;
 }
 
-sub uses_qa_net_hardware() {
+sub uses_qa_net_hardware {
     return check_var("BACKEND", "ipmi") || check_var("BACKEND", "generalhw");
 }
 
-sub load_x11regression_firefox() {
+sub load_x11regression_firefox {
     loadtest "x11regressions/firefox/firefox_smoke";
     loadtest "x11regressions/firefox/firefox_localfiles";
     loadtest "x11regressions/firefox/firefox_emaillink";
@@ -341,7 +341,7 @@ sub load_x11regression_firefox() {
     }
 }
 
-sub load_x11regression_gnome() {
+sub load_x11regression_gnome {
     if (check_var("DESKTOP", "gnome")) {
         loadtest "x11regressions/gnomecase/nautilus_cut_file";
         loadtest "x11regressions/gnomecase/nautilus_permission";
@@ -355,7 +355,7 @@ sub load_x11regression_gnome() {
     }
 }
 
-sub load_x11regression_documentation() {
+sub load_x11regression_documentation {
     if (check_var("DESKTOP", "gnome")) {
         loadtest "x11regressions/gnote/gnote_first_run";
         loadtest "x11regressions/gnote/gnote_link_note";
@@ -384,7 +384,7 @@ sub load_x11regression_documentation() {
     }
 }
 
-sub load_x11regression_message() {
+sub load_x11regression_message {
     if (check_var("DESKTOP", "gnome")) {
         loadtest "x11regressions/empathy/empathy_aim";
         loadtest "x11regressions/empathy/empathy_irc";
@@ -403,7 +403,7 @@ sub load_x11regression_message() {
     }
 }
 
-sub load_x11regression_other() {
+sub load_x11regression_other {
     if (check_var("DESKTOP", "gnome")) {
         loadtest "x11regressions/shotwell/shotwell_import";
         loadtest "x11regressions/shotwell/shotwell_edit";
@@ -425,7 +425,7 @@ sub load_x11regression_other() {
     }
 }
 
-sub load_x11regression_remote() {
+sub load_x11regression_remote {
     # load onetime vncsession testing
     if (check_var('REMOTE_DESKTOP_TYPE', 'one_time_vnc')) {
         loadtest 'x11regressions/remote_desktop/onetime_vncsession_xvnc_tigervnc';
@@ -451,7 +451,7 @@ sub load_x11regression_remote() {
     }
 }
 
-sub load_boot_tests() {
+sub load_boot_tests {
     if (get_var("ISO_MAXSIZE")) {
         loadtest "installation/isosize";
     }
@@ -501,7 +501,7 @@ sub install_this_version {
     return !check_var('INSTALL_TO_OTHERS', 1);
 }
 
-sub load_inst_tests() {
+sub load_inst_tests {
     loadtest "installation/welcome";
     if (get_var('DUD_ADDONS')) {
         loadtest "installation/dud_addon";
@@ -675,7 +675,7 @@ sub load_inst_tests() {
 
 }
 
-sub load_reboot_tests() {
+sub load_reboot_tests {
     # there is encryption passphrase prompt which is handled in installation/boot_encrypt
     if (check_var("ARCH", "s390x") && !(get_var('ENCRYPT') && check_var('BACKEND', 'svirt'))) {
         loadtest "installation/reconnect_s390";
@@ -706,7 +706,7 @@ sub load_reboot_tests() {
     }
 }
 
-sub load_consoletests() {
+sub load_consoletests {
     return unless consolestep_is_applicable();
     if (get_var("ADDONS", "") =~ /rt/) {
         loadtest "rt/kmp_modules";
@@ -828,12 +828,10 @@ sub load_consoletests() {
     if (check_var_array('SCC_ADDONS', 'tcm') && get_var('PATTERNS') && sle_version_at_least('12-SP3')) {
         loadtest "feature/feature_console/deregister";
     }
-
-    loadtest 'console/hwloc_testsuite' if sle_version_at_least('12-SP2');
     loadtest "console/consoletest_finish";
 }
 
-sub load_x11tests() {
+sub load_x11tests {
     return
       unless (!get_var("INSTALLONLY")
         && is_desktop_installed()
@@ -926,7 +924,7 @@ sub load_slenkins_tests {
     return 0;
 }
 
-sub load_hacluster_tests() {
+sub load_hacluster_tests {
     return unless (get_var("HACLUSTER"));
     sleep 10;                                                # wait to make sure that support server created locks
     barrier_wait("BARRIER_HA_" . get_var("CLUSTERNAME"));    #nodes wait here
@@ -966,7 +964,7 @@ sub load_hacluster_tests() {
     return 1;
 }
 
-sub load_virtualization_tests() {
+sub load_virtualization_tests {
     # standalone suite to fit needed installation
     if (get_var("STANDALONEVT")) {
         loadtest "virtualization/boot";
@@ -984,14 +982,14 @@ sub load_virtualization_tests() {
     loadtest "virtualization/virtman_create_guest";
 }
 
-sub load_feature_tests() {
+sub load_feature_tests {
     loadtest "console/consoletest_setup";
     loadtest "feature/feature_console/zypper_releasever";
     loadtest "feature/feature_console/suseconnect";
     loadtest "feature/feature_console/zypper_crit_sec_fix_only";
 }
 
-sub load_online_migration_tests() {
+sub load_online_migration_tests {
     # stop packagekit service and more
     loadtest "online_migration/sle12_online_migration/online_migration_setup";
     loadtest "online_migration/sle12_online_migration/register_system";
@@ -1020,7 +1018,7 @@ sub load_online_migration_tests() {
     loadtest "online_migration/sle12_online_migration/post_migration";
 }
 
-sub load_fips_tests_core() {
+sub load_fips_tests_core {
     loadtest "console/consoletest_setup";
     loadtest "fips/openssl/openssl_fips_alglist";
     loadtest "fips/openssl/openssl_fips_hash";
@@ -1036,7 +1034,7 @@ sub load_fips_tests_core() {
     loadtest "fips/openssh/openssh_fips";
 }
 
-sub load_fips_tests_web() {
+sub load_fips_tests_web {
     loadtest "console/consoletest_setup";
     loadtest "console/curl_https";
     loadtest "console/wget_https";
@@ -1048,7 +1046,7 @@ sub load_fips_tests_web() {
     loadtest "fips/mozilla_nss/firefox_nss";
 }
 
-sub load_fips_tests_misc() {
+sub load_fips_tests_misc {
     loadtest "console/consoletest_setup";
     loadtest "console/aide_check";
     loadtest "console/journald_fss";
@@ -1061,14 +1059,14 @@ sub load_fips_tests_misc() {
     loadtest "x11/hexchat_ssl" if (check_var('ARCH', 'x86_64'));
 }
 
-sub load_fips_tests_crypt() {
+sub load_fips_tests_crypt {
     loadtest "console/consoletest_setup";
     loadtest "console/yast2_dm_crypt";
     loadtest "console/cryptsetup";
     loadtest "fips/ecryptfs_fips";
 }
 
-sub load_patching_tests() {
+sub load_patching_tests {
     if (check_var("ARCH", "s390x")) {
         if (check_var('BACKEND', 's390x')) {
             loadtest "installation/bootloader_s390";
@@ -1088,7 +1086,7 @@ sub load_patching_tests() {
     loadtest 'installation/bootloader_zkvm_sym' if get_var('S390_ZKVM');
 }
 
-sub prepare_target() {
+sub prepare_target {
     if (get_var("BOOT_HDD_IMAGE")) {
         boot_hdd_image;
     }
@@ -1354,6 +1352,9 @@ elsif (get_var('HPC')) {
         elsif (check_var('HPC', 'powerman')) {
             loadtest 'console/hostname';
             loadtest 'hpc/powerman';
+        }
+        elsif (check_var('HPC', 'hwloc') && sle_version_at_least('12-SP2')) {
+            loadtest 'console/hwloc_testsuite';
         }
         else {
             loadtest 'console/install_all_from_repository' if (get_var('INSTALL_ALL_REPO'));

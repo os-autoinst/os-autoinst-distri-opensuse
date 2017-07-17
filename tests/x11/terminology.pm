@@ -14,7 +14,7 @@ use base "x11test";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     my ($self) = @_;
     $self->test_terminal('terminology');
 }

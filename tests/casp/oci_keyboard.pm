@@ -15,7 +15,7 @@ use warnings;
 use base "y2logsstep";
 use testapi;
 
-sub run() {
+sub run {
     # Switch to UK
     send_key 'alt-e';
     send_key 'up';

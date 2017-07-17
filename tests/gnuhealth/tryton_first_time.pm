@@ -13,9 +13,17 @@
 use base 'x11test';
 use strict;
 use testapi;
+use utils 'leap_version_at_least';
 
-sub run() {
-    send_key_until_needlematch 'tryton-login_password', 'tab';
+sub run {
+    if (check_var('VERSION', 'Tumbleweed') || leap_version_at_least('42.3')) {
+        wait_screen_change { send_key 'tab' };
+        send_key 'ret';
+        assert_screen 'tryton-login_password';
+    }
+    else {
+        send_key_until_needlematch 'tryton-login_password', 'tab';
+    }
     type_string "susetesting\n";
     assert_screen 'tryton-module_configuration_wizard_start';
     send_key 'ret';
@@ -31,7 +39,7 @@ sub run() {
     assert_screen 'tryton-admin_view', 300;
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

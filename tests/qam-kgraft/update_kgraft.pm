@@ -60,7 +60,7 @@ sub kgr_block {
     }
 }
 
-sub run() {
+sub run {
     my $svirt = select_console('svirt');
     my $name  = get_var('VIRSH_GUESTNAME');
     my $build = get_var('BUILD');
@@ -158,7 +158,7 @@ sub run() {
     set_var('KGRAFT_SNAPSHOT_AFTER', $snapshot_after);
 }
 
-sub post_fail_hook() {
+sub post_fail_hook {
     my $name            = get_var('VIRSH_GUESTNAME');
     my $snapshot_before = get_var('KGRAFT_SNAPSHOT_BEFORE');
     save_screenshot;
@@ -180,7 +180,7 @@ sub post_fail_hook() {
     }
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

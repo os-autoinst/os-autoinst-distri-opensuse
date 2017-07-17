@@ -18,7 +18,7 @@ use testapi;
 use utils;
 use bootloader_setup qw(stop_grub_timeout boot_into_snapshot);
 
-sub run() {
+sub run {
     my ($self) = @_;
 
     if (get_var('LIVECD')) {
@@ -104,7 +104,7 @@ sub run() {
     }
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

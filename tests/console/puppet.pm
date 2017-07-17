@@ -15,7 +15,7 @@ use strict;
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     select_console 'root-console';
     pkcon_quit;
     my $output      = "puppet cert list --all | grep -woh puppetslave.local > /dev/$serialdev";

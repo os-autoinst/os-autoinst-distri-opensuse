@@ -15,7 +15,7 @@ use strict;
 use base "opensusebasetest";
 use testapi;
 
-sub run() {
+sub run {
     my $regcode = get_var 'REGCODE';
     if (check_var('REGISTER', 'suseconnect')) {
         assert_script_run "SUSEConnect --regcode $regcode";

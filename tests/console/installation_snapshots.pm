@@ -17,7 +17,7 @@ use strict;
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     select_console 'root-console';
 
     script_run("snapper list | tee /dev/$serialdev", 0);

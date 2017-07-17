@@ -21,13 +21,13 @@ use strict;
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     select_console 'root-console';
 
     zypper_call('in -l -t patch ' . get_var('INCIDENT_PATCH'), exitcode => [0, 102, 103], timeout => 1400);
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1, milestone => 1};
 }
 

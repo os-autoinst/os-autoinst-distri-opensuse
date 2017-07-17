@@ -15,7 +15,7 @@ use strict;
 use testapi;
 
 
-sub run() {
+sub run {
     #ensure_installed("virt-manager");
     # workaround for bug:
     # Bug 948366 - "pkcon install virt-manager" report it will remove

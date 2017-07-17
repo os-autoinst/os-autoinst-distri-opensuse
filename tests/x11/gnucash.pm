@@ -15,7 +15,7 @@ use base "x11test";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     ensure_installed("gnucash");
     ensure_installed("gnucash-docs");
 

@@ -16,7 +16,7 @@ use strict;
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     select_console 'root-console';
     pkcon_quit;
     fully_patch_system;
@@ -28,7 +28,7 @@ sub run() {
     zypper_call("-q patch");
 }
 
-sub test_flags() {
+sub test_flags {
     return {milestone => 1, fatal => 1};
 }
 

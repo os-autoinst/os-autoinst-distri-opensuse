@@ -16,7 +16,7 @@ use testapi;
 use utils;
 use strict;
 
-sub run() {
+sub run {
     my $self = shift;
 
     # Without this login name and password won't get to the system. They get
@@ -120,13 +120,13 @@ sub run() {
     save_screenshot;
 }
 
-sub post_fail_hook() {
+sub post_fail_hook {
     my $self = shift;
 
     $self->export_logs();
 }
 
-sub test_flags() {
+sub test_flags {
     return {milestone => 1, fatal => 1};
 }
 

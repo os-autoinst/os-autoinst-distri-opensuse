@@ -14,7 +14,7 @@ use base "opensusebasetest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     assert_screen 'startshell', 120;
 }
 

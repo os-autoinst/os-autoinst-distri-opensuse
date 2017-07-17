@@ -15,7 +15,7 @@ use base "x11test";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     x11_start_program("xdg-su -c '/sbin/yast2 users'");
     if ($password) {
         type_password;

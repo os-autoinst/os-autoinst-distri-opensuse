@@ -15,7 +15,7 @@ use base "consoletest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     select_console 'root-console';
 
     my $packages = get_var("INSTALL_PACKAGES");
@@ -32,7 +32,7 @@ sub run() {
     assert_script_run("grep -Ev '^-' \$XDG_RUNTIME_DIR/install_packages.txt | xargs --no-run-if-empty rpm -q -- | tee /dev/$serialdev");
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

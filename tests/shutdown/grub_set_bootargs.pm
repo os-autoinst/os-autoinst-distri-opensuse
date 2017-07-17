@@ -14,7 +14,7 @@ use strict;
 use base "y2logsstep";
 use testapi;
 
-sub run() {
+sub run {
     select_console('root-console');
     my @cmds;
     push @cmds, "source /etc/default/grub";

@@ -14,7 +14,7 @@ use base "host_upgrade_base";
 use testapi;
 use strict;
 
-sub get_script_run() {
+sub get_script_run {
     my $self = shift;
 
     my $pre_test_cmd = $self->get_test_name_prefix;
@@ -23,7 +23,7 @@ sub get_script_run() {
     return "$pre_test_cmd";
 }
 
-sub run() {
+sub run {
     my $self = shift;
     $self->run_test(5400, "Test run completed successfully", "no", "yes", "/var/log/qa/", "host-upgrade-updateVirtRpms");
 }

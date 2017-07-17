@@ -19,7 +19,7 @@ use testapi;
 my $dest = "/mnt/qg";
 
 # poo#11446
-sub run() {
+sub run {
     my ($self) = @_;
     select_console 'root-console';
 

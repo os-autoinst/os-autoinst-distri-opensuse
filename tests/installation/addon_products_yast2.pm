@@ -16,7 +16,7 @@ use strict;
 use testapi;
 use registration qw(fill_in_registration_data skip_registration);
 
-sub run() {
+sub run {
     my ($addon, $uc_addon);
     x11_start_program("xdg-su -c '/sbin/yast2 add-on'");
     if ($password) { type_password; send_key "ret"; }

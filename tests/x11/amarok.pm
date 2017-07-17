@@ -15,7 +15,7 @@ use base "x11test";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     ensure_installed("amarok");
     x11_start_program("amarok", 6, {valid => 1});
     assert_screen 'test-amarok-1';

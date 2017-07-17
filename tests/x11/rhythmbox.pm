@@ -15,7 +15,7 @@ use base "x11test";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     x11_start_program("rhythmbox");
     assert_screen 'test-rhythmbox-1';
     send_key "alt-f4";

@@ -18,7 +18,7 @@ use testapi;
 use lockapi;
 use utils;
 
-sub run() {
+sub run {
     my $self     = shift;
     my $slave_ip = get_required_var('HPC_SLAVE_IP');
     barrier_create("MUNGE_INSTALLATION_FINISHED", 2);

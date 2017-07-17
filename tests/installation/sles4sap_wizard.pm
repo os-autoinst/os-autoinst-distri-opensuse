@@ -6,7 +6,7 @@ use strict;
 use base "y2logsstep";
 use testapi;
 
-sub run() {
+sub run {
     my ($swpm_proto, $swpm_path) = split m|://|, get_var('SWPM');
     my ($sapinst_proto, $sapinst_path);
     my $sap_product = get_var('TREX') ? 'trex' : 'nw';

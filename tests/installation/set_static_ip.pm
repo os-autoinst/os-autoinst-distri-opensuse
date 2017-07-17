@@ -15,7 +15,7 @@ use base "y2logsstep";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     select_console 'install-shell';
 
     my $ip    = get_var('VIRSH_GUEST');
@@ -28,7 +28,7 @@ sub run() {
     select_console 'installation';
 }
 
-sub test_flags() {
+sub test_flags {
     return {milestone => 1, fatal => 1};
 }
 

@@ -17,7 +17,7 @@ use testapi;
 use lockapi;
 use mmapi;
 
-sub run() {
+sub run {
     my ($self) = @_;
 
     my $ip_out = $self->execute_script_run('ip route show|grep kernel|cut -d" " -f12|head -1', 30);

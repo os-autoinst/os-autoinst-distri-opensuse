@@ -15,7 +15,7 @@ use base "x11test";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     x11_start_program("oowriter");
     assert_screen 'test-ooffice-1';
     # clicking the writing area to make sure the cursor addressed there

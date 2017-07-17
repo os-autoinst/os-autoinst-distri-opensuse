@@ -62,7 +62,7 @@ sub run {
     assert_script_run('! grep ": crash" < /tmp/piglit.log', 90);
 }
 
-sub post_fail_hook() {
+sub post_fail_hook {
     select_console('root-console');
     # tar coredumps and uplad resultinf tar to assests
     script_run("tar -cf /tmp/core.tar /var/lib/systemd/coredump/*");

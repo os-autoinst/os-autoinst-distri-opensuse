@@ -17,7 +17,7 @@ use strict;
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     select_console 'root-console';
     # actually not checking that the first repo is a USB repo but just
     # assuming that the first repo is the install repo should be good enough.

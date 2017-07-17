@@ -17,7 +17,7 @@ use testapi;
 
 our $locked_pkg_info = [];
 
-sub run() {
+sub run {
     select_console 'root-console';
 
     # Packages to be locked is comma-separated

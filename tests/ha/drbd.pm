@@ -21,7 +21,7 @@ use testapi;
 use autotest;
 use lockapi;
 
-sub run() {
+sub run {
     my $self    = shift;
     my $lun0    = get_var("DRBD_LUN0");
     my $lun1    = get_var("DRBD_LUN1");

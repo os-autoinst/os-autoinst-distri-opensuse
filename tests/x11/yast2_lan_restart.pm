@@ -203,7 +203,7 @@ sub test_7 {
     check_network('restart');
 }
 
-sub run() {
+sub run {
     select_console 'x11';
     x11_start_program("xterm -geometry 155x50+5+5");
     become_root;
@@ -263,31 +263,6 @@ sub run() {
     select_special_device_tab('VLAN');
     check_network;
     del_device('VLAN');
-    diag '__________(10) Start yast2 lan -> Edit (a NIC) -> change from DHCP to static, [Next] -> [OK]__________';
-    type_string "# (10) restart\n";
-    run_yast2_lan_edit;
-    send_key 'alt-t';    # Static address
-    send_key 'alt-i';    # Select IP field
-    type_string '10.0.2.1';
-    send_key 'tab';      # Subnet mask
-    type_string '/24';
-    send_key 'tab';      # Hostname
-    type_string 'openqa';
-    save_screenshot;
-    send_key 'alt-n';    # Next
-    wait_still_screen;
-    send_key 'alt-s';    # Hostname/DNS tab
-    assert_screen 'yast2_lan_hostname_tab';
-    send_key 'alt-1';    # Name server 1
-    type_string '10.160.2.88';
-    wait_still_screen 4, 4;    # blinking cursor
-    save_screenshot;
-    send_key 'alt-u';          # Routing tab
-    assert_screen 'yast2_lan_routing_tab';
-    type_string '10.0.2.2';
-    wait_still_screen 4, 4;    # blinking cursor
-    save_screenshot;
-    check_network('restart');
     diag '__________(9) checks described in (2), (5) - (7) static configuration__________';
     type_string "# (9.2) NO restart\n";
     test_2;
@@ -297,16 +272,10 @@ sub run() {
     test_6;
     type_string "# (9.7) restart\n";
     test_7('sta0');
-    diag '__________(10) Start yast2 lan -> Edit (a NIC) -> change from static to DHCP, [Next] -> [OK]__________';
-    type_string "# (10) restart\n";
-    run_yast2_lan_edit;
-    send_key 'alt-y';    # Dynamic address
-    send_key 'alt-n';    # Next
-    check_network('restart');
     type_string "killall xterm\n";
 }
 
-sub post_fail_hook() {
+sub post_fail_hook {
     script_run 'journalctl -b > /tmp/journal', 90;
     upload_logs '/tmp/journal';
 }

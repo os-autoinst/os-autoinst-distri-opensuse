@@ -17,7 +17,7 @@ use strict;
 use testapi;
 
 
-sub run() {
+sub run {
     my ($self) = @_;
     # open Hotkeys sheet
     x11_start_program("tomboy note");

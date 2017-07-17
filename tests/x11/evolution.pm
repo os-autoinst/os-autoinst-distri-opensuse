@@ -16,7 +16,7 @@ use strict;
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     x11_start_program("evolution");
     my @tags = qw(test-evolution-1 evolution-default-client-ask);
     push(@tags, 'evolution-preview-release') if is_gnome_next;

@@ -19,7 +19,7 @@ use bootloader_setup;
 use registration;
 
 # hint: press shift-f10 trice for highest debug level
-sub run() {
+sub run {
     return if pre_bootmenu_setup == 3;
     return if select_bootmenu_option == 3;
     bootmenu_default_params;

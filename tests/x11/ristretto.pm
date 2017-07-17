@@ -15,7 +15,7 @@ use base "x11test";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     x11_start_program("ristretto /usr/share/wallpapers/xfce/default.wallpaper");
     wait_screen_change { send_key "ctrl-m" };
     assert_screen 'test-ristretto-1';

@@ -16,7 +16,7 @@ use base "x11regressiontest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     my ($self)    = @_;
     my $USERNAME  = "nooops_test3";
     my $USERNAME1 = "nooops_test4";

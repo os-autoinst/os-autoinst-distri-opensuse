@@ -17,7 +17,7 @@ use strict;
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     assert_screen 'generic-desktop';
     select_console 'root-console';
     # Stop packagekit
@@ -55,7 +55,7 @@ sub run() {
     reset_consoles;
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

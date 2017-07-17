@@ -24,7 +24,7 @@ sub auto_login_alter {
     send_key "alt-f4";
 }
 
-sub run () {
+sub run {
     my ($self) = @_;
 
     assert_screen "generic-desktop";

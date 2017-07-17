@@ -15,7 +15,7 @@ use strict;
 use base "consoletest";
 use testapi;
 
-sub run() {
+sub run {
     select_console 'root-console';
     assert_script_run("zypper -n in a2ps");
     assert_script_run("curl https://www.suse.com > /tmp/suse.html");

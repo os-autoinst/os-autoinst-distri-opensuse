@@ -20,7 +20,7 @@ use testapi;
 # can be set
 
 # Assert if the dns service is running or stopped
-sub assert_running() {
+sub assert_running {
     my $self    = shift;
     my $running = shift;
 
@@ -33,7 +33,7 @@ sub assert_running() {
 }
 
 # Assert if the dns service is enabled or disabled
-sub assert_enabled() {
+sub assert_enabled {
     my $self    = shift;
     my $enabled = shift;
 
@@ -45,7 +45,7 @@ sub assert_enabled() {
     }
 }
 
-sub run() {
+sub run {
     my $self = shift;
 
     #

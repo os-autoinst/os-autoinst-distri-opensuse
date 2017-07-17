@@ -16,7 +16,7 @@ use testapi;
 use autotest;
 use lockapi;
 
-sub run() {
+sub run {
     my $self = shift;
     assert_script_run "zypper -n in pacemaker-cts";
     type_string "exit\n";

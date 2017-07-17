@@ -24,7 +24,7 @@ use main_common;
 
 init_main();
 
-sub cleanup_needles() {
+sub cleanup_needles {
     remove_common_needles;
     if (!get_var("LIVECD")) {
         unregister_needle_tags("ENV-LIVECD-1");
@@ -128,23 +128,23 @@ logcurrentenv(
       LIVECD NETBOOT NOIMAGES QEMUVGA SPLITUSR VIDEOMODE)
 );
 
-sub is_server() {
+sub is_server {
     return (check_var('ARCH', 'aarch64') || get_var("OFW") || check_var("FLAVOR", "Server-DVD"));
 }
 
-sub is_livesystem() {
+sub is_livesystem {
     return (check_var("FLAVOR", 'Rescue-CD') || get_var("LIVETEST"));
 }
 
-sub xfcestep_is_applicable() {
+sub xfcestep_is_applicable {
     return check_var("DESKTOP", "xfce");
 }
 
-sub installwithaddonrepos_is_applicable() {
+sub installwithaddonrepos_is_applicable {
     return get_var("HAVE_ADDON_REPOS") && !get_var("UPGRADE") && !get_var("NET");
 }
 
-sub updates_is_applicable() {
+sub updates_is_applicable {
     # we don't want live systems to run out of memory or virtual disk space.
     # Applying updates on a live system would not be persistent anyway.
     # Also, applying updates on BOOT_TO_SNAPSHOT is useless.
@@ -152,7 +152,7 @@ sub updates_is_applicable() {
     return !get_var('INSTALLONLY') && !get_var('BOOT_TO_SNAPSHOT') && !get_var('DUALBOOT') && !get_var('UPGRADE') && !is_livesystem;
 }
 
-sub guiupdates_is_applicable() {
+sub guiupdates_is_applicable {
     return get_var("DESKTOP") =~ /gnome|kde|xfce|lxde/ && !check_var("FLAVOR", "Rescue-CD");
 }
 
@@ -160,19 +160,19 @@ sub packagekit_available {
     return !check_var('FLAVOR', 'Rescue-CD') && !is_staging;
 }
 
-sub lxdestep_is_applicable() {
+sub lxdestep_is_applicable {
     return check_var("DESKTOP", "lxde");
 }
 
-sub need_clear_repos() {
+sub need_clear_repos {
     return is_staging();
 }
 
-sub have_addn_repos() {
+sub have_addn_repos {
     return !get_var("NET") && !get_var("EVERGREEN") && get_var("SUSEMIRROR") && !is_staging();
 }
 
-sub load_x11regresion_tests() {
+sub load_x11regresion_tests {
     if ((check_var("DESKTOP", "gnome"))) {
         loadtest "x11regressions/tomboy/tomboy_Hotkeys";
         loadtest "x11regressions/tomboy/tomboy_AlreadyRunning";
@@ -204,7 +204,7 @@ sub load_x11regresion_tests() {
     }
 }
 
-sub load_boot_tests() {
+sub load_boot_tests {
     if (get_var("ISO_MAXSIZE")) {
         loadtest "installation/isosize";
     }
@@ -230,7 +230,7 @@ sub load_boot_tests() {
     }
 }
 
-sub load_inst_tests() {
+sub load_inst_tests {
     loadtest "installation/welcome";
     if (check_var('ARCH', 's390x')) {
         loadtest "installation/disk_activation";
@@ -323,7 +323,7 @@ sub load_inst_tests() {
     loadtest "installation/install_and_reboot";
 }
 
-sub load_reboot_tests() {
+sub load_reboot_tests {
     if (check_var('ARCH', 's390x')) {
         loadtest "installation/reconnect_s390";
     }
@@ -350,7 +350,7 @@ sub load_reboot_tests() {
     }
 }
 
-sub load_fixup_network() {
+sub load_fixup_network {
     # openSUSE 13.2's (and earlier) systemd has broken rules for virtio-net, not applying predictable names (despite being configured)
     # A maintenance update breaking networking names sounds worse than just accepting that 13.2 -> TW breaks with virtio-net
     # At this point, the system has been updated, but our network interface changed name (thus we lost network connection)
@@ -361,7 +361,7 @@ sub load_fixup_network() {
 
 }
 
-sub load_fixup_firewall() {
+sub load_fixup_firewall {
     # The openSUSE 13.1 GNOME disk image has the firewall disabled
     # Upon upgrading to a new system the service state is supposed to remain as pre-configured
     # If the service is disabled here, we enable it here
@@ -373,7 +373,7 @@ sub load_fixup_firewall() {
     loadtest 'fixup/enable_firewall';
 }
 
-sub load_consoletests_minimal() {
+sub load_consoletests_minimal {
     return unless (is_staging() && get_var('UEFI') || is_gnome_next || is_krypton_argon);
     # Stagings should test yast2-bootloader in miniuefi at least but not all
     loadtest "console/consoletest_setup";
@@ -385,7 +385,7 @@ sub load_consoletests_minimal() {
     loadtest "console/consoletest_finish";
 }
 
-sub load_consoletests() {
+sub load_consoletests {
     return unless consolestep_is_applicable();
     loadtest "console/consoletest_setup";
     if (get_var("LOCK_PACKAGE")) {
@@ -471,7 +471,7 @@ sub load_consoletests() {
     loadtest "console/consoletest_finish";
 }
 
-sub load_otherDE_tests() {
+sub load_otherDE_tests {
     if (get_var("DE_PATTERN")) {
         my $de = get_var("DE_PATTERN");
         loadtest "console/consoletest_setup";
@@ -492,24 +492,24 @@ sub load_otherDE_tests() {
     return 0;
 }
 
-sub load_awesome_tests() {
+sub load_awesome_tests {
     loadtest "x11/awesome_menu";
     loadtest "x11/awesome_xterm";
 }
 
-sub load_enlightenment_tests() {
+sub load_enlightenment_tests {
     loadtest "x11/enlightenment_first_start";
     loadtest "x11/terminology";
 }
 
-sub load_lxqt_tests() {
+sub load_lxqt_tests {
 }
 
-sub load_mate_tests() {
+sub load_mate_tests {
     loadtest "x11/mate_terminal";
 }
 
-sub load_x11tests() {
+sub load_x11tests {
     return unless (!get_var("INSTALLONLY") && is_desktop_installed() && !get_var("DUALBOOT") && !get_var("RESCUECD"));
 
     loadtest "x11/user_gui_login" unless get_var("LIVETEST") || get_var("NOAUTOLOGIN");
@@ -780,6 +780,7 @@ elsif (get_var("FILESYSTEM_TEST")) {
 elsif (get_var('GNUHEALTH')) {
     boot_hdd_image;
     loadtest 'gnuhealth/gnuhealth_install';
+    loadtest 'gnuhealth/gnuhealth_setup';
     loadtest 'gnuhealth/tryton_install';
     loadtest 'gnuhealth/tryton_preconfigure';
     loadtest 'gnuhealth/tryton_first_time';

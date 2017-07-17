@@ -105,11 +105,11 @@ sub setup_env {
     }
 }
 
-sub any_desktop_is_applicable() {
+sub any_desktop_is_applicable {
     return get_var("DESKTOP") !~ /textmode/;
 }
 
-sub console_is_applicable() {
+sub console_is_applicable {
     return !any_desktop_is_applicable();
 }
 
@@ -172,7 +172,7 @@ sub load_autoyast_tests {
     #    next boot in load_reboot_tests
 }
 
-sub load_slepos_tests() {
+sub load_slepos_tests {
     if (get_var("SLEPOS") =~ /^adminserver/) {
         loadtest("boot/boot_to_desktop");
         loadtest "slepos/prepare";
@@ -369,7 +369,6 @@ sub load_yast2_ui_tests {
     loadtest "console/yast2_xinetd";
     loadtest "console/yast2_apparmor";
     loadtest "console/yast2_lan_hostname";
-    # TODO: why are the following two modules called on sle but not on opensuse?
     # TODO: check if the following two modules also work on opensuse and delete if
     if (check_var('DISTRI', 'sle')) {
         loadtest "console/yast2_nis";
@@ -440,7 +439,7 @@ sub maybe_load_kernel_tests {
     return 1;
 }
 
-sub load_extra_tests() {
+sub load_extra_tests {
     # Put tests that filled the conditions below
     # 1) you don't want to run in stagings below here
     # 2) the application is not rely on desktop environment
@@ -457,7 +456,6 @@ sub load_extra_tests() {
             # start extra x11 tests from here
             loadtest 'x11/vnc_two_passwords';
             # TODO: check why this is not called on opensuse
-            loadtest 'x11/yast2_lan_restart';
             loadtest 'x11/user_defined_snapshot';
         }
         elsif (check_var('DISTRI', 'opensuse')) {
@@ -482,6 +480,7 @@ sub load_extra_tests() {
             }
 
         }
+        loadtest 'x11/yast2_lan_restart' if check_var('DISTRI', 'gnome');
     }
     else {
         loadtest "console/zypper_lr";
@@ -534,7 +533,7 @@ sub load_extra_tests() {
     return 1;
 }
 
-sub load_rollback_tests() {
+sub load_rollback_tests {
     loadtest "boot/grub_test_snapshot";
     if (get_var('UPGRADE') || get_var('ZDUP')) {
         loadtest "boot/snapper_rollback";
@@ -544,7 +543,7 @@ sub load_rollback_tests() {
     }
 }
 
-sub load_filesystem_tests() {
+sub load_filesystem_tests {
     return unless get_var('FILESYSTEM_TEST');
     # pre-conditions for filesystem tests ie. the tests are running based on preinstalled image
     return if get_var("INSTALLONLY") || get_var("DUALBOOT") || get_var("RESCUECD");

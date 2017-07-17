@@ -39,7 +39,7 @@ sub build_image {
     }
 }
 
-sub run() {
+sub run {
     script_output "
       set -x -e
       curl " . autoinst_url . "/data/slepos/kiwi_build_image.sh > kiwi_build_image.sh
@@ -75,7 +75,7 @@ sub run() {
     }
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

@@ -14,7 +14,7 @@ use strict;
 use base "y2logsstep";
 use testapi;
 
-sub run() {
+sub run {
     send_key 'alt-d';    # open proposal settings
     if (!check_screen 'enlarge-enabled', 5) {
         assert_screen 'enlarge-disabled';

@@ -49,7 +49,7 @@ sub vncviewer_login_presession {
     assert_screen 'gnome-terminal-launched';
 }
 
-sub run() {
+sub run {
     my $self = shift;
 
     # Wait for supportserver if not yet ready

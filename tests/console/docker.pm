@@ -21,7 +21,7 @@ use base "consoletest";
 use testapi;
 use strict;
 
-sub run() {
+sub run {
     select_console 'root-console';
 
     # install the docker package

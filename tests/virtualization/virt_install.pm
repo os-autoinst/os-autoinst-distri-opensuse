@@ -14,7 +14,7 @@ use base "x11test";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     ensure_installed("virt-install");
     x11_start_program("xterm");
     wait_idle;

@@ -17,7 +17,7 @@ use testapi;
 use utils;
 use lockapi;
 
-sub run() {
+sub run {
     script_output '
       for port in 389 636 873 ; do
         yast2 firewall services add tcpport=$port udpport=$port zone=EXT
@@ -53,7 +53,7 @@ sub run() {
     mutex_create("adminserver_configured");
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

@@ -17,7 +17,7 @@ use testapi;
 use utils;
 use strict;
 
-sub run() {
+sub run {
     my ($self) = @_;
     power_action('reboot', textmode => 1);
     $self->wait_boot;
@@ -26,7 +26,7 @@ sub run() {
     check_console_font;
 }
 
-sub test_flags() {
+sub test_flags {
     return {milestone => 1};
 }
 

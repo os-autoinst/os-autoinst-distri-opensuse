@@ -15,7 +15,7 @@ use strict;
 use testapi;
 use utils;
 
-sub check_rollback_system() {
+sub check_rollback_system {
     # first to check rollback-helper service is enabled and worked properly
     my $output = script_output "systemctl status rollback.service";
     if ($output !~ /enabled.*?code=exited,\sstatus=0\/SUCCESS/s) {
@@ -26,7 +26,7 @@ sub check_rollback_system() {
     script_run("zypper lr -u | tee /dev/$serialdev");
 }
 
-sub run() {
+sub run {
     my ($self) = @_;
 
     # login to before online migration snapshot

@@ -102,7 +102,7 @@ sub prepare_parmfile {
     return split_lines($params);
 }
 
-sub get_to_yast() {
+sub get_to_yast {
     my $self  = shift;
     my $s3270 = console('x3270');
 
@@ -192,7 +192,7 @@ EO_frickin_boot_parms
 
 }
 
-sub show_debug() {
+sub show_debug {
     type_string "ps auxf\n";
     save_screenshot;
     type_string "dmesg\n";
@@ -204,7 +204,7 @@ sub show_debug() {
     type_string "reset\n";
 }
 
-sub format_dasd() {
+sub format_dasd {
     my $self = shift;
     my $r;
 
@@ -230,7 +230,7 @@ sub format_dasd() {
     die "dasdfmt died with exit code $r" unless (defined($r) && $r == 0);
 }
 
-sub run() {
+sub run {
     my $self = shift;
 
     select_console 'x3270';

@@ -17,7 +17,7 @@ use strict;
 use testapi;
 
 
-sub run() {
+sub run {
     x11_start_program("tracker-preferences");
     sleep 2;
     wait_idle;

@@ -18,7 +18,7 @@ use warnings;
 use testapi;
 use apachetest;
 
-sub run() {
+sub run {
     select_console 'root-console';
     setup_apache2(mode => 'PHP5');
     validate_script_output('curl http://localhost/index.php', sub { /PHP Version 5/ });

@@ -15,7 +15,7 @@ use base "consoletest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     my $val = get_var("ZYPPER_ADD_REPOS");
     return unless $val;
 
@@ -29,7 +29,7 @@ sub run() {
     }
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

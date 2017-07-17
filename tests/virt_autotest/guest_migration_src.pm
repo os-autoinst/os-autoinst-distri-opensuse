@@ -17,7 +17,7 @@ use testapi;
 use lockapi;
 use mmapi;
 
-sub get_script_run() {
+sub get_script_run {
     my ($self) = @_;
 
     my $dst_ip       = $self->get_var_from_parent('DST_IP');
@@ -32,7 +32,7 @@ sub get_script_run() {
     return "$pre_test_cmd";
 }
 
-sub run() {
+sub run {
     my ($self) = @_;
 
     #preparation

@@ -15,7 +15,7 @@ use base "x11regressiontest";
 use strict;
 use testapi;
 
-sub remove_pkg() {
+sub remove_pkg {
     my @packages = qw(pidgin);
     x11_start_program("xterm");
 
@@ -36,7 +36,7 @@ sub remove_pkg() {
     sleep 2;
 }
 
-sub run() {
+sub run {
     remove_pkg;
 }
 

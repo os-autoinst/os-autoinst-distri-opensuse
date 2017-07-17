@@ -17,7 +17,7 @@ use testapi;
 use lockapi;
 use mmapi;
 
-sub get_script_run() {
+sub get_script_run {
     my ($self) = @_;
 
     my $src_ip   = $self->get_var_from_parent('SRC_IP');
@@ -31,7 +31,7 @@ sub get_script_run() {
     return "$pre_test_cmd";
 }
 
-sub run() {
+sub run {
     my ($self) = @_;
 
     mutex_lock('SRC_READY_TO_START');

@@ -14,7 +14,7 @@ use strict;
 use base "console_yasttest";
 use testapi;
 
-sub run() {
+sub run {
 
     select_console 'root-console';
     script_run "zypper -n in yast2-nis-client";    # make sure yast client module installed

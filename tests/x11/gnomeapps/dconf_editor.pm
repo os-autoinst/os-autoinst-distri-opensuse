@@ -15,7 +15,7 @@ use strict;
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     assert_gui_app('dconf-editor');
     # assert_gui_app tries to terminate the app by pressing alt-f4
     # for dconf-editor, this only closes the "Warning dialog"

@@ -15,7 +15,7 @@ use strict;
 
 use testapi;
 
-sub run() {
+sub run {
     send_key 'super';    # windows menu
     assert_screen 'windows-menu';
     send_key 'up';

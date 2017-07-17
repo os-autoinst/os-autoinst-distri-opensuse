@@ -18,7 +18,7 @@ use strict;
 use testapi;
 
 
-sub run() {
+sub run {
     #
     # Preparation
     #

@@ -27,7 +27,7 @@ our @EXPORT = qw(use_ssh_serial_console set_serial_console_on_xen);
 #TODO: we need the serial output to debug issues in reboot, coolo will help add it.
 
 #use it after SUT boot finish, as it requires ssh connection to SUT to interact with SUT, including window and serial console
-sub use_ssh_serial_console() {
+sub use_ssh_serial_console {
     console('sol')->disable;
     select_console('root-ssh');
     $serialdev = 'sshserial';
@@ -37,7 +37,7 @@ sub use_ssh_serial_console() {
 
 my $grub_ver;
 
-sub get_dom0_serialdev() {
+sub get_dom0_serialdev {
     my $root_dir = shift;
     $root_dir //= '/';
 
@@ -94,7 +94,11 @@ sub setup_console_in_grub {
     if ($grub_ver eq "grub2") {
         #grub2
         $cmd
-          = "cp $grub_cfg_file ${grub_cfg_file}.org \&\& sed -ri '/(multiboot|module\\s*.*vmlinuz)/ {s/(console|loglevel|log_lvl|guest_loglvl)=[^ ]*//g; /multiboot/ s/\$/ console=com2,115200 log_lvl=all guest_loglvl=all/; /module\\s*.*vmlinuz/ s/\$/ console=$ipmi_console,115200 console=tty loglevel=5/;}' $grub_cfg_file";
+          = "cp $grub_cfg_file ${grub_cfg_file}.org "
+          . "\&\& sed -ri '/(multiboot|module\\s*.*vmlinuz)/ "
+          . "{s/(console|loglevel|log_lvl|guest_loglvl)=[^ ]*//g; "
+          . "/multiboot/ s/\$/ console=com2,115200 log_lvl=all guest_loglvl=all sync_console/; "
+          . "/module\\s*.*vmlinuz/ s/\$/ console=$ipmi_console,115200 console=tty loglevel=5/;}' $grub_cfg_file";
         assert_script_run("$cmd");
         save_screenshot;
         $cmd = "sed -rn '/(multiboot|module\\s*.*vmlinuz)/p' $grub_cfg_file";
@@ -115,7 +119,7 @@ sub setup_console_in_grub {
     upload_logs("$grub_cfg_file");
 }
 
-sub mount_installation_disk() {
+sub mount_installation_disk {
     my ($installation_disk, $mount_point) = @_;
 
     #default from yast installation
@@ -128,7 +132,7 @@ sub mount_installation_disk() {
     assert_script_run("ls ${mount_point}/boot");
 }
 
-sub umount_installation_disk() {
+sub umount_installation_disk {
     my $mount_point = shift;
 
     #default from yast installation
@@ -139,7 +143,7 @@ sub umount_installation_disk() {
     assert_script_run("ls $mount_point");
 }
 
-sub get_installation_partition() {
+sub get_installation_partition {
     my $partition = script_output("fdisk -l | grep \"^\/dev\/sda\.\*\\\*\" | cut -d ' ' -f 1");
     return $partition;
 }
@@ -148,7 +152,7 @@ sub get_installation_partition() {
 #For post installation, use set_serial_console_on_xen directly
 #For during installation, use set_serial_console_on_xen("/mnt")
 #For custom usage, use set_serial_console_on_xen($mount_point, $installation_disk)
-sub set_serial_console_on_xen() {
+sub set_serial_console_on_xen {
     my ($mount_point, $installation_disk) = @_;
 
     #prepare accessible grub

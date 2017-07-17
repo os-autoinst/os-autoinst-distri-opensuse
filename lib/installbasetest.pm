@@ -4,7 +4,7 @@ use strict;
 
 # All steps in the installation are 'fatal'.
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

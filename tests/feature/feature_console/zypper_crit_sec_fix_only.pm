@@ -17,7 +17,7 @@ use warnings;
 use testapi;
 use registration;
 
-sub run() {
+sub run {
     select_console 'root-console';
 
     my $not_registered = qr/"status":"Not Registered"/;

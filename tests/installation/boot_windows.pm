@@ -16,7 +16,7 @@ use strict;
 use testapi;
 use windows_utils;
 
-sub run() {
+sub run {
     assert_screen "grub-reboot-windows", 125;
 
     send_key "down";

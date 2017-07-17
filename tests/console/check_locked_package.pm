@@ -14,7 +14,7 @@ use base "consoletest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     select_console 'root-console';
 
     # List each active package lock and check its version and release info

@@ -22,7 +22,7 @@ use base "consoletest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     select_console 'root-console';
 
     if (my $keys = get_var("IMPORT_GPG_KEYS")) {
@@ -34,7 +34,7 @@ sub run() {
     }
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

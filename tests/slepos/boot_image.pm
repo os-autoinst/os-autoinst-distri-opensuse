@@ -18,7 +18,7 @@ use lockapi;
 use utils;
 
 
-sub run() {
+sub run {
     unless (get_var("SLEPOS") =~ /^terminal-offline/) {
         mutex_lock("bs1_images_synced");
         mutex_unlock("bs1_images_synced");
@@ -52,7 +52,7 @@ sub run() {
     send_key "ret";
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1, milestone => 1};
 }
 

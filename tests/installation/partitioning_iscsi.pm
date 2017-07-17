@@ -16,7 +16,7 @@ use strict;
 use base "y2logsstep";
 use testapi;
 
-sub run() {
+sub run {
     send_key "alt-c";    # create partition setup
     wait_still_screen(2);
     assert_screen "preparing-disk-select-iscsi-disk";

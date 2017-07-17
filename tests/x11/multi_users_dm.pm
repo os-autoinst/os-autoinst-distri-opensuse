@@ -37,7 +37,7 @@ sub restart_x11 {
     ensure_graphical_target;
 }
 
-sub run() {
+sub run {
 
     my $user               = 'user1';
     my $users_to_create    = 100;

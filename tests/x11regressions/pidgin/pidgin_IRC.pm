@@ -17,7 +17,7 @@ use strict;
 use testapi;
 
 
-sub run() {
+sub run {
     my ($self) = @_;
     my $CHANNELNAME = "susetesting";
     x11_start_program("pidgin");

@@ -21,7 +21,7 @@ use strict;
 use warnings;
 use testapi;
 
-sub run() {
+sub run {
     select_console 'root-console';
 
     my $count = script_output("SUSEConnect --status-text | grep -c \"^\\s*Registered\"", 200);

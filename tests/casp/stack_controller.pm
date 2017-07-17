@@ -43,27 +43,7 @@ sub velum_certificates {
     # Fill generic settings
     for (1 .. 4) { send_key 'tab' }
     type_string "master.openqa.test";
-
-    # Staging workaround
-    unless (check_screen 'velum-proxy-optional') {
-        # Skip proxy settings
-        for (1 .. 4) { send_key 'tab' }
-
-        # Fill certificate settings
-        type_string "SUSE";
-        send_key 'tab';
-        type_string "QA";
-        send_key 'tab';
-        type_string "email\@email.com";
-        send_key 'tab';
-        type_string "cz";
-        send_key 'tab';
-        type_string "CZ";
-        send_key 'tab';
-        type_string "Prague";
-    }
-    save_screenshot;
-    send_key 'ret';
+    assert_and_click "velum-next";
 
     assert_screen 'velum-tips-page';
     assert_and_click "velum-next";
@@ -93,13 +73,12 @@ sub velum_bootstrap {
 
     # Select master
     mouse_set $x, $y;
-    sleep 0.5;
-    mouse_click;
+    mouse_click 'left', 1;
+    mouse_hide;
 
     # Click bootstrap button
     send_key_until_needlematch "velum-bootstrap", "pgdn", 2, 5;
     assert_and_click "velum-bootstrap";
-    mouse_hide;
 
     # Accept small-cluster warning
     assert_and_click 'velum-botstrap-warning' if check_var('STACK_SIZE', 4);
@@ -133,7 +112,7 @@ sub initialize {
     x11_start_program("firefox");
 }
 
-sub run() {
+sub run {
     select_console 'x11';
 
     # Setup and wait until dashboard becomes ready
@@ -183,7 +162,7 @@ sub run() {
     wait_for_children;
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

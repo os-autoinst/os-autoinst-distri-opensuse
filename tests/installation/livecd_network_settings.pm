@@ -16,7 +16,7 @@ use warnings;
 use base "y2logsstep";
 use testapi;
 
-sub run() {
+sub run {
     assert_screen 'inst-network_settings-livecd';
     # Unpredictable hotkey on kde live distri, click button. See bsc#1045798
     assert_and_click 'next-button';

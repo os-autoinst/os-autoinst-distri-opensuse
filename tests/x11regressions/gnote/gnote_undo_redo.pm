@@ -27,7 +27,7 @@ sub undo_redo_once {
     assert_screen 'gnote-new-note-1', 5;
 }
 
-sub run() {
+sub run {
     my ($self) = @_;
     x11_start_program("gnote");
     assert_screen "gnote-first-launched", 10;

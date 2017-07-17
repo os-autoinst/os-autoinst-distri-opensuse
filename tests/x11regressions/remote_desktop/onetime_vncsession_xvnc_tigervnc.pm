@@ -23,7 +23,7 @@ use testapi;
 use lockapi;
 use utils;
 
-sub run() {
+sub run {
     #wait for supportserver if not yet ready
     mutex_lock 'dhcp';
     mutex_unlock 'dhcp';

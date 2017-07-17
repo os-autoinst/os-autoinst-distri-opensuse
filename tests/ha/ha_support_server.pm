@@ -16,7 +16,7 @@ use testapi;
 use lockapi;
 use mmapi;
 
-sub run() {
+sub run {
     #    for my $clustername (split(/,/, get_var('CLUSTERNAME'))) {
     #        mutex_unlock("MUTEX_HA_" . $clustername . "_NODE1_WAIT");    #start node1 and node2 jobs
     #        mutex_unlock("MUTEX_HA_" . $clustername . "_NODE2_WAIT");
@@ -40,7 +40,7 @@ sub run() {
     wait_for_children;    #don't destroy support server while children are running
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

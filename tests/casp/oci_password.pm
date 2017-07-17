@@ -15,7 +15,7 @@ use warnings;
 use parent qw(installation_user_settings y2logsstep);
 use testapi;
 
-sub run() {
+sub run {
     my ($self) = @_;
 
     send_key 'alt-a';

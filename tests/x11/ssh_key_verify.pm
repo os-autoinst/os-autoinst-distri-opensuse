@@ -16,7 +16,7 @@ use warnings;
 use base "y2logsstep";
 use testapi;
 
-sub run() {
+sub run {
     x11_start_program("xterm -geometry 150x45+5+5");
     become_root;
     script_run 'cd /etc/ssh';

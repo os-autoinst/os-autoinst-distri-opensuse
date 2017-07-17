@@ -15,7 +15,7 @@ use warnings;
 use base "y2logsstep";
 use testapi;
 
-sub run() {
+sub run {
     my ($self) = shift;
 
     send_key 'alt-c';
@@ -32,7 +32,7 @@ sub run() {
     send_key 'alt-o';
 }
 
-sub post_fail_hook() {
+sub post_fail_hook {
 }
 
 1;

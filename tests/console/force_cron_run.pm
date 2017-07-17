@@ -15,7 +15,7 @@ use strict;
 use testapi;
 
 # check if sshd works
-sub run() {
+sub run {
     select_console 'root-console';
 
     # show dmesg output in console during cron run
@@ -33,7 +33,7 @@ sub run() {
     assert_script_run "dmesg -n 1";
 }
 
-sub test_flags() {
+sub test_flags {
     return {milestone => 1, fatal => 1};
 }
 

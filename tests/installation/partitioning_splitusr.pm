@@ -15,7 +15,7 @@ use base "y2logsstep";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     send_key "alt-e", 1;    # Edit
                             # select vda2
     send_key "right";

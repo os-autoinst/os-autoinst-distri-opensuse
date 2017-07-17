@@ -30,7 +30,7 @@ sub check_services {
     }
 }
 
-sub run() {
+sub run {
     my $role = get_var('SYSTEM_ROLE');
 
     check_services $services_for{default};

@@ -15,7 +15,7 @@ use base "opensusebasetest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     my $self = shift;
 
     my $package_main  = data_url('toolchain/fcvs21_f95.tar.bz2');
@@ -44,7 +44,7 @@ sub run() {
     script_run 'popd';
 }
 
-sub post_fail_hook() {
+sub post_fail_hook {
     my $self = shift;
 
     $self->export_logs();

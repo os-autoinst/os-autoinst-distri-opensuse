@@ -15,7 +15,7 @@ use strict;
 use testapi;
 use lockapi;
 
-sub run() {
+sub run {
     # Notify others that installation finished
     barrier_wait "WORKERS_INSTALLED";
     # Wait until controller node finishes

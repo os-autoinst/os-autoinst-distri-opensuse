@@ -16,7 +16,7 @@ use strict;
 use testapi;
 use windows_utils;
 
-sub run() {
+sub run {
     send_key 'super';    # windows menu
 
     assert_screen 'windows-menu';

@@ -17,7 +17,7 @@ use testapi;
 use utils;
 use lockapi;
 
-sub run() {
+sub run {
     assert_script_run "registerImages --ldap --move --include-boot /var/lib/SLEPOS/system/images/minimal-3.4.0/";
     assert_script_run "registerImages --gzip --ldap /var/lib/SLEPOS/system/images/graphical-3.4.0";
 
@@ -27,7 +27,7 @@ sub run() {
     mutex_create("images_registered");
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

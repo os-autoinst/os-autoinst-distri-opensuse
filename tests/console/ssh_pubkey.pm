@@ -25,7 +25,7 @@ use strict;
 use testapi;
 
 # check if sshd works with public key
-sub run() {
+sub run {
     select_console 'user-console';
 
     # Assume user "sshboy" has been created in sshd.pm test script

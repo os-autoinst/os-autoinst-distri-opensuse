@@ -15,7 +15,7 @@ use base "consoletest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     select_console 'root-console';
 
     # non-NET installs have only milestone repo, which might be incompatible.

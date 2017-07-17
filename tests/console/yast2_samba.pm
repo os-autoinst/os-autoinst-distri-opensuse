@@ -15,7 +15,7 @@ use base "console_yasttest";
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     select_console 'root-console';
 
     # check network at first
@@ -231,7 +231,7 @@ sub run() {
     assert_script_run("systemctl show -p ActiveState smb.service | grep ActiveState=active");
 }
 
-sub post_fail_hook() {
+sub post_fail_hook {
     my $self = shift;
 
     $self->export_logs();

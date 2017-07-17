@@ -6,7 +6,7 @@ use strict;
 
 use testapi;
 
-sub post_fail_hook() {
+sub post_fail_hook {
     my $self = shift;
 
     select_console 'log-console';

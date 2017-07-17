@@ -17,7 +17,7 @@ use strict;
 use testapi;
 
 
-sub run() {
+sub run {
     wait_idle;
     if (check_var("DESKTOP", "lxde")) {
         x11_start_program("lxpanelctl menu");    # or Super_L or Windows key
@@ -38,7 +38,7 @@ sub run() {
     send_key "esc";
 }
 
-sub ocr_checklist() {
+sub ocr_checklist {
     [
 
         {

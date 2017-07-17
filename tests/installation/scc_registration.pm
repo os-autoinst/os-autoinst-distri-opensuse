@@ -23,7 +23,7 @@ use testapi;
 use registration;
 use utils 'assert_screen_with_soft_timeout';
 
-sub run() {
+sub run {
     if (!get_var("HDD_SCC_REGISTERED")) {
         assert_screen_with_soft_timeout(
             'scc-registration',

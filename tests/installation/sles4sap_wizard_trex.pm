@@ -6,7 +6,7 @@ use strict;
 use base "y2logsstep";
 use testapi;
 
-sub run() {
+sub run {
     assert_screen "sles4sap-wizard-trex-swpm-welcome", 120;
     send_key $cmd{next};
     assert_screen "sles4sap-wizard-trex-swpm-params", 120;

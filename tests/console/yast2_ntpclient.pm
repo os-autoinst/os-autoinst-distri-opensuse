@@ -14,7 +14,7 @@ use strict;
 use base "console_yasttest";
 use testapi;
 
-sub run() {
+sub run {
     select_console 'root-console';
 
     # check network at first

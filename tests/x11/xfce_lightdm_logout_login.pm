@@ -15,7 +15,7 @@ use base "x11test";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     x11_start_program("xfce4-session-logout");
     send_key "alt-l";
     assert_screen 'test-xfce_lightdm_logout_login-1';
@@ -32,7 +32,7 @@ sub run() {
     die "mouse cursor still visible";
 }
 
-sub test_flags() {
+sub test_flags {
     return {milestone => 1};
 }
 

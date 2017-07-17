@@ -15,7 +15,7 @@ use base "x11test";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     start_audiocapture;
     x11_start_program("firefox " . autoinst_url . "/data/1d5d9dD.oga");
     assert_screen 'test-firefox_audio-1', 35;

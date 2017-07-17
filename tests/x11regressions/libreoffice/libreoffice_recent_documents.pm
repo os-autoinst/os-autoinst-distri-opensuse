@@ -15,7 +15,7 @@ use base "x11regressiontest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     # Edit file hello.odt using oowriter
     x11_start_program("oowriter");
     assert_screen 'test-ooffice-1';

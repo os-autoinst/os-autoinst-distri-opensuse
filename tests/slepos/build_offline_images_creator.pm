@@ -16,7 +16,7 @@ use warnings;
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     my $self = shift;
 
     #todo: add another images if needed
@@ -27,7 +27,7 @@ sub run() {
         #    upload_asset '/var/lib/SLEPOS/system/images/slepos-image-offline-graphical.raw';
     }
 }
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

@@ -15,7 +15,7 @@ use strict;
 use base "y2logsstep";
 use testapi;
 
-sub run() {
+sub run {
 
     my $fs = get_var('FILESYSTEM');
 

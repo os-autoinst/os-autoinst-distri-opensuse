@@ -22,7 +22,7 @@ sub handle_password_prompt {
     }
 }
 
-sub init() {
+sub init {
     my ($self) = @_;
 
     $self->SUPER::init();
@@ -30,7 +30,7 @@ sub init() {
     $self->init_consoles();
 }
 
-sub init_cmd() {
+sub init_cmd {
     my ($self) = @_;
 
     ## keyboard cmd vars

@@ -15,15 +15,15 @@ use base "qa_run";
 use strict;
 use testapi;
 
-sub create_qaset_config() {
+sub create_qaset_config {
     # nothing by default
 }
 
-sub junit_type() {
+sub junit_type {
     return 'stress_validation';
 }
 
-sub test_suite() {
+sub test_suite {
     return 'acceptance';
 }
 

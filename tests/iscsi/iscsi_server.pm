@@ -19,7 +19,7 @@ use lockapi;
 use mmapi;
 use utils 'zypper_call';
 
-sub run() {
+sub run {
     my $self = shift;
 
     x11_start_program("xterm -geometry 160x45+5+5");

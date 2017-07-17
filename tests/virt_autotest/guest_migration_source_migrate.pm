@@ -32,14 +32,14 @@ sub analyzeResult {
     return $result;
 }
 
-sub upload_tar_log() {
+sub upload_tar_log {
     my ($self, $log_dir, $log_tar_name) = @_;
     my $full_log_tar_name = "/tmp/$log_tar_name.tar.gz";
     script_run("tar zcf $full_log_tar_name $log_dir", 60);
     upload_logs "$full_log_tar_name";
 }
 
-sub run() {
+sub run {
     my ($self) = @_;
 
     my $target_ip = $self->get_var_from_parent('MY_IP');

@@ -42,13 +42,13 @@ sub run {
 
     if ($video) {
         # On JeOS we have GRUB_CMDLINE_LINUX, on CaaSP we have GRUB_CMDLINE_LINUX_DEFAULT.
-        my $grub_cmdline_label = is_jeos ? 'GRUB_CMDLINE_LINUX' : 'GRUB_CMDLINE_LINUX_DEFAULT';
+        my $grub_cmdline_label = is_jeos() ? 'GRUB_CMDLINE_LINUX' : 'GRUB_CMDLINE_LINUX_DEFAULT';
         assert_script_run("sed -ie '/${grub_cmdline_label}=/s/\"\$/ $video \"/' /etc/default/grub");
     }
     assert_script_run("grub2-mkconfig -o /boot/grub2/grub.cfg");
 }
 
-sub test_flags() {
+sub test_flags {
     return {fatal => 1};
 }
 

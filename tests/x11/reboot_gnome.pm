@@ -16,7 +16,7 @@ use strict;
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     my ($self) = @_;
     # 'keepconsole => 1' is workaround for bsc#1044072
     power_action('reboot', keepconsole => 1);
@@ -32,7 +32,7 @@ sub post_fail_hook {
     $self->export_logs;
 }
 
-sub test_flags() {
+sub test_flags {
     return {milestone => 1};
 }
 

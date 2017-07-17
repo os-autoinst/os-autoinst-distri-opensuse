@@ -23,7 +23,7 @@ use base "consoletest";
 use testapi;
 use strict;
 
-sub run() {
+sub run {
     select_console 'root-console';
 
     my $file_raw      = "hello.txt";

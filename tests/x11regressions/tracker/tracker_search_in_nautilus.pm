@@ -15,7 +15,7 @@ use base "x11regressiontest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     x11_start_program("nautilus");
     wait_idle;
     send_key "ctrl-f";

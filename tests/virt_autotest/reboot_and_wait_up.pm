@@ -17,7 +17,7 @@ use testapi;
 use login_console;
 use base "proxymode";
 
-sub reboot_and_wait_up() {
+sub reboot_and_wait_up {
     my $self           = shift;
     my $reboot_timeout = shift;
 

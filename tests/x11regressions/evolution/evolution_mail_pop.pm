@@ -15,7 +15,7 @@ use base "x11regressiontest";
 use testapi;
 use utils;
 
-sub run() {
+sub run {
     my $self    = shift;
     my $account = "internal_account_A";
     $self->setup_pop($account);

@@ -15,7 +15,7 @@ use base "opensusebasetest";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
     assert_script_run 'egrep -x "^solver.onlyRequires ?= ?true" /etc/zypp/zypp.conf';
     assert_script_run 'egrep -x "^rpm.install.excludedocs ?= ?yes" /etc/zypp/zypp.conf';
     assert_script_run 'egrep -x "^multiversion ?=" /etc/zypp/zypp.conf';
@@ -23,7 +23,7 @@ sub run() {
     record_soft_failure 'bsc#1023204' if script_run('grep -x "^solver.onlyRequires = true" /etc/zypp/zypp.conf');
 }
 
-sub post_fail_hook() {
+sub post_fail_hook {
     upload_logs '/etc/zypp/zypp.conf';
 }
 

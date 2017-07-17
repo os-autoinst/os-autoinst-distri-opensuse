@@ -17,7 +17,7 @@ use utils;
 use testapi qw(is_serial_terminal :DEFAULT);
 
 # Create test partition and scratch partition, and make FS in them
-sub dev_create_partition() {
+sub dev_create_partition {
     my $self = shift;
     my $test_fs_type = get_var('TEST_FS_TYPE', '');
     unless ($test_fs_type) {
@@ -65,7 +65,7 @@ sub dev_create_partition() {
 
 # get_cut_point(begin, end, dev_num): find the suitable cut point between begin and end, and return the first cut point, unit: Mbit
 #   e.g. get_cut_point(21.1MB, 33.1MB, 6) will return 23.1
-sub get_cut_point() {
+sub get_cut_point {
     my $self = shift;
     my ($begin, $end, $dev_num) = @_;
     print "begin = $begin, end = $end, test and scratch device number = $dev_num\n";
@@ -81,7 +81,7 @@ sub get_cut_point() {
 }
 
 # str_to_mb(string): Change string to number, unit: Mbit, e.g: 2GB -> 2000
-sub str_to_mb() {
+sub str_to_mb {
     my $self = shift;
     my $str  = shift;
     print "str = $str\n";
@@ -104,7 +104,7 @@ sub str_to_mb() {
 }
 
 # dev_update_fstab(test_partition, scratch_partition, test_fs_type): Add new partition into /etc/fstab, to solve problem when mount them
-sub dev_update_fstab() {
+sub dev_update_fstab {
     my $self = shift;
     my ($test_partition, $scratch_partition, $test_fs_type) = @_;
     assert_script_run("cat /etc/fstab");

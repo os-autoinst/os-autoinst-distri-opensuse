@@ -26,7 +26,7 @@ use virt_autotest_base;
 
 our @EXPORT = qw(repl_repo_in_sourcefile);
 
-sub repl_repo_in_sourcefile() {
+sub repl_repo_in_sourcefile {
     # Replace the daily build repo as guest installation resource in source file (like source.cn; source.de ..)
     my $veritem = "source.http.sles-" . lc(get_var("VERSION")) . "-64";
     if (get_var("REPO_0")) {

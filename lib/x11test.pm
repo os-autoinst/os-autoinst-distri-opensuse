@@ -6,7 +6,7 @@ use strict;
 use testapi;
 use utils 'type_string_slow';
 
-sub post_fail_hook() {
+sub post_fail_hook {
     my ($self) = shift;
     $self->SUPER::post_fail_hook;
     $self->export_kde_logs;

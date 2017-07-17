@@ -23,7 +23,7 @@ use base "x11test";
 use strict;
 use testapi;
 
-sub run() {
+sub run {
 
     # openSUSE 13.2's (and earlier) systemd has broken rules for virtio-net, not applying predictable names (despite being configured)
     # A maintenance update breaking networking names sounds worse than just accepting that 13.2 -> TW breaks with virtio-net
@@ -41,7 +41,7 @@ sub run() {
     }
 }
 
-sub test_flags() {
+sub test_flags {
     return {milestone => 1};
 }
 

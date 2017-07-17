@@ -15,7 +15,7 @@ use strict;
 
 use testapi;
 
-sub run() {
+sub run {
     assert_screen 'windows-first-boot', 1000;
     send_key 'alt-e';    # use express settings button
     assert_screen 'windows-owner', 200;

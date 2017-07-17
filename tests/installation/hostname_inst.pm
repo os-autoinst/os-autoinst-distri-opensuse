@@ -16,7 +16,7 @@ use strict;
 use warnings;
 use testapi;
 
-sub run() {
+sub run {
     assert_screen "before-package-selection";
     select_console 'install-shell';
     if (my $expected_install_hostname = get_var('EXPECTED_INSTALL_HOSTNAME')) {
