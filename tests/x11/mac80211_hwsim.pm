@@ -7,12 +7,12 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: mac80211 hw test
+# Summary: tests the wpa2-enterprise capabilites of 'hostapd' and 'NetworkManager'
 # Maintainer: Nick Singer <nsinger@suse.de>
 # Tags: poo#20306
 
 use base 'x11test';
-use y2x11test qw(launch_yast2_module_x11);
+use y2x11test 'launch_yast2_module_x11';
 use strict;
 use warnings;
 use testapi;
@@ -29,18 +29,28 @@ sub run {
     $self->generate_certs;
     $self->configure_hostapd;
     $self->reload_services;
-    type_string "exit\n";
 
     select_console 'x11';
     $self->configure_system;
     $self->connect_to_network;
-
-    # root password
+    $self->enter_NM_credentials;
     $self->handle_polkit_root_auth;
 
-    select_console 'root-console';
+    # the root console will most likely be polluted with dmesg output
+    select_console 'root-console', await_console => 0;
+    send_key 'ctrl-l';
+    assert_screen 'root-console';
     $self->NM_disable_ip;
-    select_console 'x11';
+
+    # we've the NetworkManager window open on x11 so the await_console
+    # needle cannot match so we rely on the assert_and_click from
+    # connect_to_network
+    select_console 'x11', 'await_console' => 0;
+
+    # connect again to see if NM has a "connection" after we disabled v4 and v6
+    $self->connect_to_network;
+    assert_screen 'network_manager-network_connected';
+    assert_and_click 'network_manager-close-click';
 }
 
 sub install_packages {
@@ -52,6 +62,7 @@ sub install_packages {
 
 sub prepare_NM {
     type_string "# configure NetworkManager to ignore one of the hwsim interfaces\n";
+    release_key 'shift';    # workaround for stuck key
 
     my $nm_conf = '/etc/NetworkManager/NetworkManager.conf';
     assert_script_run "echo \"[keyfile]\" >> $nm_conf";
@@ -61,9 +72,9 @@ sub prepare_NM {
 sub connect_to_network {
     my $self = shift;
 
-    # open the gnome widget
+    # open the wifi widget
     assert_and_click 'gnome_widget';
-    # select 'wifi 1'
+    # select 'wifi 1' (The one not beeing ignored by NM)
     assert_and_click 'gnome_widget-network_selection-click';
     # click on 'select network'
     assert_and_click 'gnome_widget-network_search-click';
@@ -73,11 +84,11 @@ sub connect_to_network {
     assert_and_click 'gnome_widget-choose_network-click';
     # and click on 'connect'
     assert_and_click 'gnome_widget-connect-click';
-    $self->enter_NM_credentials;
 }
 
 sub enter_NM_credentials {
     my $self = shift;
+
     # we expect here to enter our credentials for this wireless network
     assert_screen 'network_manager-wpa2_authentication';
 
@@ -87,14 +98,12 @@ sub enter_NM_credentials {
     # to go up by pressing "Shift+Tab".
 
     send_key 'tab';
-    hold_key 'shift';
-    send_key 'tab';
-    release_key 'shift';
+    send_key 'shift-tab';
 
     # then we open the dropdown
     send_key 'spc';
     # and select 'Protected EAP (PEAP)'
-    send_key_until_needlematch('network_manager-peap_selected', 'up');
+    send_key_until_needlematch('network_manager-peap_selected', 'down');
     send_key 'ret';
 
     # enter anonymous identity
@@ -106,16 +115,17 @@ sub enter_NM_credentials {
     send_key 'tab';
     send_key 'tab';
     send_key 'spc';
-    
-    # 2x tab, franz.nord@example.com
+
+    # jump to username
     send_key 'tab';
     send_key 'tab';
     send_key 'tab';
     type_string 'franz.nord@example.com';
     send_key 'tab';
-    type_string 'nots3cr3t';
+    # and enter the password for this specific user (definded in hostapd config)
+    type_password 'nots3cr3t';
 
-    # aat 'connect'
+    # finally click on 'connect'
     assert_and_click 'network_manager-connect-click';
 }
 
@@ -151,29 +161,24 @@ sub configure_hostapd {
 
 sub configure_system {
     my $self = shift;
-    y2x11test::launch_yast2_module_x11;
-    $self->yast_search('Network Settings');
 
-    # assert_and_click 'yast2-networksettings'
-    assert_and_click 'yast2_control-center_network-check';
-    # assert 'networksettings_open'
+    # we have to change the networkmanager form wicked to NetworkManager
+    y2x11test::launch_yast2_module_x11 module => 'lan';
     assert_screen 'yast2_control-center_network-opened';
-    # aac 'global options'
+
+    # switch to 'Global options'
     assert_and_click 'yast2_network-global_options-click';
-    # aac 'network setup method'
+    # open the networkmanager dropdown and select 'NetworkManager'
     assert_and_click 'yast2_network-nm_selection-click';
-    # aac 'NetworkManager
     assert_and_click 'yast2_network-network_manager-click';
     assert_screen 'yast2_network-network_manager-selected';
+    # now apply the settings
     assert_and_click 'yast2_network-apply_settings-click';
-    # aac 'ok'
     assert_and_click 'yast2_network-applet_warning-click';
     assert_screen 'yast2_network-is_applying';
-    # assert 'saving-is-running'
-    # softfail yast2 error
-    #   aac 'ok'
+
     if (check_screen 'yast2_network-error_dialog') {
-        record_soft_failure 'bsc#TODO';
+        record_soft_failure 'boo#1049097';
         assert_and_click 'yast2_network-error_dialog';
     }
 }
@@ -184,35 +189,17 @@ sub reload_services {
     assert_script_run 'systemctl restart hostapd';
 }
 
-sub yast_search {
-    my ($self, $name) = @_;
-    # on openSUSE we have a Qt setup with keyboard shortcut
-    if (check_var('DISTRI', 'opensuse')) {
-        send_key 'alt-s';
-    }
-    # with the gtk interface we have to click as there is no shortcut
-    elsif (check_var('DISTRI', 'sle')) {
-        assert_screen([qw(yast2_control-center_search_clear yast2_control-center_search)], no_wait => 1);
-        if (match_has_tag 'yast2_control-center_search') {
-            assert_and_click 'yast2_control-center_search';
-        }
-        else {
-            assert_and_click 'yast2_control-center_search_clear';
-        }
-    }
-    type_string $name if $name;
-}
-
 sub NM_disable_ip {
     type_string "# disable IPv4 and IPv6 so NM thinks we are online even without dhcp\n";
     my $nm = 'nmcli connection ';
-    my $connection_uuid = script_output("$nm show | grep foobar | awk '{ print \$2 }'");
-    assert_script_run "$nm modify $connection_uuid ipv4.method disabled";
-    assert_script_run "$nm modify $connection_uuid ipv6.method ignore";
+    assert_script_run "connection_uuid=\$($nm show | grep foobar | awk '{ print \$2 }')";
+    assert_script_run "$nm modify \$connection_uuid ipv4.method disabled";
+    assert_script_run "$nm modify \$connection_uuid ipv6.method ignore";
 }
 
 sub handle_polkit_root_auth {
     assert_screen 'Policykit-root';
+    wait_still_screen 3;    # the input takes a couple of seconds to be ready
     type_password;
     send_key 'ret';
 }
