@@ -22,6 +22,7 @@ sub log_upload {
     my $tarball = "/tmp/qaset-xfstests-results.tar.bz2";
     assert_script_run("tar jcvf " . $tarball . " ./results/");
     upload_logs($tarball);
+    assert_script_run("rm -rf ./results/*");
 }
 
 1;

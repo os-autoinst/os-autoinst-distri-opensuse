@@ -1212,6 +1212,22 @@ elsif (get_var("QA_TESTSET")) {
     }
     loadtest "qa_automation/" . get_var("QA_TESTSET");
 }
+elsif (get_var("XFSTESTS")) {
+    loadtest "qa_automation/xfstests_prepare_boot";
+    loadtest "qa_automation/xfstests_prepare_testsuite";
+    loadtest "qa_automation/xfstests_prepare_env";
+    loadtest "qa_automation/xfstests_run_generic";
+    loadtest "qa_automation/xfstests_run_shared";
+    if (check_var("TEST_FS_TYPE", "xfs")) {
+        loadtest "qa_automation/xfstests_run_xfs";
+    }
+    elsif (check_var("TEST_FS_TYPE", "btrfs")) {
+        loadtest "qa_automation/xfstests_run_btrfs";
+    }
+    elsif (check_var("TEST_FS_TYPE", "ext4")) {
+        loadtest "qa_automation/xfstests_run_ext4";
+    }
+}
 elsif (get_var("VIRT_AUTOTEST")) {
     if (get_var("PROXY_MODE")) {
         loadtest "virt_autotest/proxymode_login_proxy";

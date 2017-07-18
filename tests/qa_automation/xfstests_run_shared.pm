@@ -25,23 +25,7 @@ use testapi;
 
 sub run {
     my $self = shift;
-    $self->system_login();
-    $self->prepare_repo();
-
-    #Split /home into many partitions
-    my ($test_partition, $scratch_partition, $test_fs_type) = $self->dev_create_partition();
-
-    #Install xfstests test package
-    $self->prepare_testpackage();
-
-    #Prepare envirorment and all parameters before run test
-    $self->prepare_env($test_partition, $scratch_partition);
-
-    #Modify obsoleted "hostname -s" to "hostname" in ./common/rc and ./common/config
-    script_run("sed -i \"s/hostname -s/hostname/\" ./common/rc");
-    script_run("sed -i \"s/hostname -s/hostname/\" ./common/config");
-
-    script_run("./check", 60 * 60 * 5);
+    script_run("./check shared/???", 60 * 60 * 1);
 
     # Upload all log tarballs in ./results/
     $self->log_upload();
