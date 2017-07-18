@@ -52,7 +52,9 @@ sub is_kgraft {
 }
 
 sub is_updates_tests {
-    return get_var('FLAVOR', '') =~ /-Updates$/;
+    my $flavor = get_required_var('FLAVOR');
+    # Incidents might be also Incidents-Gnome or Incidents-Kernel
+    return $flavor =~ /-Updates$/ || $flavor =~ /-Incidents/;
 }
 
 sub is_new_installation {
@@ -530,7 +532,7 @@ sub load_inst_tests {
         }
     }
     if (!check_var('VERSION', '15')) {    # No registration in SLE 15 atm - rbrown 04/07/17
-        if (get_var('SCC_REGISTER', '') eq 'installation') {
+        if (check_var('SCC_REGISTER', 'installation')) {
             loadtest "installation/scc_registration";
         }
         else {
