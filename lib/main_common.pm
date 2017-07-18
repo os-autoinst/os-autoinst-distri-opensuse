@@ -496,7 +496,15 @@ sub load_extra_tests {
             }
 
         }
-        loadtest 'x11/yast2_lan_restart' if check_var('DISTRI', 'gnome');
+        # the following tests care about network and need some DE specific
+        # needles. For now we only have them for gnome and do not want to
+        # support more than just this DE. Probably for later at least the wifi
+        # test, checking the wifi applet, would make sense in other DEs as
+        # well
+        if (check_var('DESKTOP', 'gnome')) {
+            loadtest 'x11/yast2_lan_restart';
+            loadtest 'x11/mac80211_hwsim';
+        }
     }
     else {
         loadtest "console/zypper_lr_validate";
