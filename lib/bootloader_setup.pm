@@ -386,7 +386,7 @@ sub specific_bootmenu_params {
     }
 
     # For leap 42.3 we don't have addon_products screen
-    if (!addon_products_is_applicable()) {
+    if (addon_products_is_applicable() && leap_version_at_least('42.3')) {
         my $addon_url = get_var("ADDONURL");
         $addon_url =~ s/\+/,/g;
         $args .= " addon=" . $addon_url;
