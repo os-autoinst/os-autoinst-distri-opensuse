@@ -85,6 +85,8 @@ sub install_from_git {
 
 sub install_from_repo {
     zypper_call 'in qa_test_ltp';
+    # make sure have all required tools
+    zypper_call 'in quota sysstat net-tools acl psmisc numactl tpm-tools sudo';
     zypper_call('in ntfsprogs') if we_available;
     assert_script_run q(find ${LTPROOT:-/opt/ltp}/testcases/bin/openposix/conformance/interfaces/ -name '*.run-test' > ~/openposix_test_list.txt);
     script_run 'rpm -q qa_test_ltp > /opt/ltp_version';
