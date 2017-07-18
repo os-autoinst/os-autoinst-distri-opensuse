@@ -13,6 +13,39 @@
 use strict;
 use base "console_yasttest";
 use testapi;
+use utils "type_string_slow";
+
+my %sub_menu_needles = (
+    start_up      => 'yast2_proxy_start-up',
+    http_ports    => 'yast2_proxy_http_ports_selected',
+    patterns      => 'yast2_proxy_http_refresh_patterns_selected',
+    cache_setting => 'yast2_proxy_http_cache_setting_selected',
+    cache_dir     => 'yast2_proxy_http_cache_directory_selected',
+    access_ctrl   => 'yast2_proxy_http_access_control_selected',
+    log_timeouts  => 'yast2_proxy_logging_timeouts_selected',
+    miscellanous  => 'yast2_proxy_miscellanous_selected'
+);
+
+sub select_sub_menu {
+    my ($initial_screen, $wanted_screen) = @_;
+    send_key_until_needlematch $sub_menu_needles{$initial_screen}, 'tab';
+    wait_still_screen 1;
+    send_key 'down';
+    assert_screen $sub_menu_needles{$wanted_screen};
+    wait_screen_change { send_key 'ret'; };
+    wait_still_screen 1;
+}
+
+sub empty_field {
+    my ($shortkey, $empty_field_needle, $symbols_to_remove) = @_;
+    $symbols_to_remove //= 20;
+
+    for my $i (0 .. $symbols_to_remove) {
+        send_key $shortkey;
+        send_key 'backspace';
+        return if check_screen $empty_field_needle, 0;
+    }
+}
 
 sub run {
     select_console 'root-console';
@@ -30,22 +63,23 @@ sub run {
     assert_screen 'yast2_proxy_squid';
 
     # enable service start
-    send_key 'alt-b';
+    send_key_until_needlematch 'yast2_proxy_service_start', 'alt-b';    #Start service when booting
 
     # if firewall is enabled, then send_key alt-p, else move to page http ports
     if (check_screen 'yast2_proxy_firewall_enabled') { send_key 'alt-p'; }
-    send_key 'alt-d';
+    wait_still_screen 3;
 
     # check network interfaces with open port in firewall
-    assert_screen 'yast2_proxy_network_interfaces';
+    # repeat action as sometimes keys are not triggering action on leap if workers are slow
+    send_key_until_needlematch 'yast2_proxy_network_interfaces', 'alt-d', 2, 5;
+
+    wait_still_screen 1;
     send_key 'alt-n';
     send_key 'alt-a';
     send_key 'alt-o';
 
     # move to http ports
-    send_key_until_needlematch 'yast2_proxy_start-up', 'tab';
-    send_key 'down';
-    send_key 'ret';
+    select_sub_menu 'start_up', 'http_ports';
 
     # edit details of http ports setting
     send_key 'alt-i';
@@ -54,8 +88,8 @@ sub run {
     assert_screen 'yast2_proxy_http_ports_current';
     send_key 'alt-h';
     type_string 'localhost';
-    send_key 'alt-p';
-    for (1 .. 6) { send_key 'backspace'; }
+    # On leap it happens that field losses it's focus and backspace doesn't remove symbols
+    empty_field 'alt-p', 'yast2_proxy_http_port_empty', 10;
     type_string '80';
     send_key 'alt-t';
     assert_screen 'yast2_proxy_http_port_transparent';
@@ -63,9 +97,7 @@ sub run {
     assert_screen 'yast2_proxy_http_ports_edit';
 
     #	move to page refresh patterns
-    send_key_until_needlematch 'yast2_proxy_http_ports_selected', 'tab';
-    send_key 'down';
-    send_key 'ret';
+    select_sub_menu 'http_ports', 'patterns';
 
     # check refresh patterns page is opend
     assert_screen 'yast2_proxy_refresh_patterns';
@@ -74,66 +106,64 @@ sub run {
     assert_screen 'yast2_proxy_refresh_patterns_oder';
 
     # move to page cache setting
-    send_key_until_needlematch 'yast2_proxy_http_refresh_patterns_selected', 'shift-tab';
-    send_key 'down';
-    send_key 'ret';
+    select_sub_menu 'patterns', 'cache_setting';
 
     # change some value in cache settings
     send_key 'alt-a';
-    for (1 .. 3) { send_key 'up'; }
+    type_string_slow "11\n";
     send_key 'alt-x';
-    for (1 .. 10) { send_key 'down'; }
+    type_string_slow "4086\n";
     send_key 'alt-i';
-    for (1 .. 3) { send_key 'up'; }
+    type_string_slow "3\n";
     send_key 'alt-l';
-    for (1 .. 3) { send_key 'down'; }
+    type_string_slow "87\n";
     send_key 'alt-s';
-    for (1 .. 3) { send_key 'down'; }
-    send_key 'alt-e';
-    for (1 .. 3) { send_key 'down'; }
-    send_key 'ret';
-    send_key 'alt-m';
-    for (1 .. 3) { send_key 'down'; }
-    send_key 'ret';
+    type_string_slow "92\n";
+    wait_screen_change { send_key 'alt-e'; };
+    send_key 'end';
+    wait_screen_change { send_key 'ret'; };
+    wait_screen_change { send_key 'alt-m'; };
+    send_key 'end';
+    wait_screen_change { send_key 'ret'; };
 
     # check new value in cache settings
     assert_screen 'yast2_proxy_cache_settings_new';
 
     # move to page cache directory
-    send_key_until_needlematch 'yast2_proxy_http_cache_setting_selected', 'shift-tab';
-    send_key 'down';
-    send_key 'ret';
+    select_sub_menu 'cache_setting', 'cache_dir';
 
     # check the page cache directory is opened for a new directory name and other changes
     assert_screen 'yast_proxy_cache_directory_name';
-    send_key 'alt-d';
-    for (1 .. 20) { send_key 'backspace'; }
-    type_string "/var/cache/squid1";
+    empty_field 'alt-d', 'yast_proxy_cache_dir_empty', 25;
+    type_string_slow "/var/cache/squid1";
     send_key 'alt-s';
-    for (1 .. 20) { send_key 'up'; }
+    type_string_slow "120\n";
     send_key 'alt-e';
-    for (1 .. 4) { send_key 'up'; }
+    type_string_slow "20\n";
     send_key 'alt-v';
-    for (1 .. 10) { send_key 'down'; }
+    type_string_slow "246\n";
 
     # check the changes made correctly
     assert_screen 'yast_proxy_cache_directory_new';
 
     # move to page Access Control to edit ACL Groups
-    send_key_until_needlematch 'yast2_proxy_http_cache_directory_selected', 'shift-tab';
-    send_key 'down';
-    send_key 'ret';
+    select_sub_menu 'cache_dir', 'access_ctrl';
+    assert_screen 'yast2_proxy_http_new_cache_dir';
     send_key 'alt-y';    # confirm to create new directory
-
     assert_screen 'yast2_proxy_http_access_control_selected';
-    send_key 'tab';
-    send_key 'down';
-    send_key 'down';
+    wait_still_screen 1;
+    # change subnet for 192.168.0.0/16 to 192.168.0.0/18
+    wait_screen_change { send_key 'tab'; };
+    wait_screen_change { send_key 'down'; };
+    wait_screen_change { send_key 'down'; };
+    assert_screen 'yast2_proxy_acl_group_localnet';
+    wait_still_screen 1;
     send_key 'alt-i';
+    assert_screen 'yast2_proxy_acl_group_edit';
     send_key 'alt-e';
     send_key 'backspace';
     type_string '8';
-    send_key 'alt-o';
+    wait_screen_change { send_key 'alt-o'; };
 
     # move to Access Control and change something
     send_key 'tab';
@@ -145,9 +175,7 @@ sub run {
     assert_screen 'yast2_proxy_access_control_new';
 
     # move to Logging and Timeouts
-    send_key_until_needlematch 'yast2_proxy_http_access_control_selected', 'shift-tab';
-    send_key 'down';
-    send_key 'ret';
+    select_sub_menu 'access_ctrl', 'log_timeouts';
     # check logging and timeouts setting is opened to edit
     assert_screen 'yast2_proxy_logging_timeouts_setting';
     send_key 'alt-a';
@@ -155,32 +183,31 @@ sub run {
 
     # check acces log directory can be browsed and defined
     assert_screen 'yast2_proxy_access_log_directory';
+    wait_still_screen 1;
     send_key 'alt-c';
     send_key 'alt-g';
-    for (1 .. 40) { send_key 'backspace'; }
+    empty_field 'alt-e', 'yast2_proxy_cache_log_dir_empty', 35;
     type_string "/var/log/squid/proxy_cache.log";
-    send_key 'alt-s';
-    for (1 .. 40) { send_key 'backspace'; }
+    empty_field 'alt-s', 'yast2_proxy_store_log_dir_empty', 35;
     type_string "/var/log/squid/proxy_store.log";
-    send_key 'alt-e';
 
     # move to timeouts now
-    send_key 'alt-t';
-    send_key 'up';
-    send_key 'alt-l';
-    send_key 'up';
-
+    wait_screen_change { send_key 'alt-t'; };
+    wait_screen_change { send_key 'up'; };
+    wait_screen_change { send_key 'alt-l'; };
+    wait_screen_change { send_key 'up'; };
     # check above changes for logging and timeouts
     assert_screen 'yast2_proxy_logging_timeouts_new';
+
     #	move to miscellanous now for change language into de-de and admin email
-    send_key_until_needlematch 'yast2_proxy_logging_timeouts_selected', 'shift-tab';
-    send_key 'down';
-    send_key 'ret';
-    send_key 'alt-l';
-    for (1 .. 5) { send_key 'up'; }
-    send_key 'ret';
+    select_sub_menu 'log_timeouts', 'miscellanous';
+    wait_screen_change { send_key 'alt-l'; };
+    for (1 .. 5) {
+        wait_screen_change { send_key 'up'; };
+    }
+    wait_screen_change { send_key 'ret'; };
     send_key 'alt-a';
-    for (1 .. 10) { send_key 'backspace'; }
+    empty_field 'alt-a', 'yast2_proxy_admin_email_empty', 35;
     type_string 'webmaster@localhost';
 
     # check language and email now
@@ -189,19 +216,21 @@ sub run {
     # move to Start-Up and start proxy server now
     #	for (1..35) {send_key 'tab'; save_screenshot;}
     send_key_until_needlematch 'yast2_proxy_miscellanous_selected', 'shift-tab';
-    for (1 .. 7) { send_key 'up'; }
+    send_key_until_needlematch 'yast2_proxy_start-up',              'up';
+    wait_still_screen 1;
     send_key 'ret';
 
     assert_screen 'yast2_proxy_squid';
+    wait_still_screen 1;
     # now save settings and start squid server
     send_key 'alt-s';
     #	check again before to close configuration
     assert_screen 'yast2_proxy_before_close';
     # finish configuration with OK
-    send_key 'alt-o';
+    wait_screen_change { send_key 'alt-o' };
 
     # yast might take a while on sle12 due to suseconfig
-    wait_serial("yast2-squid-status-0", 60) || die "'yast2 squid' didn't finish";
+    wait_serial("yast2-squid-status-0", 180) || die "'yast2 squid' didn't finish";
 
     # check squid proxy server status
     assert_script_run "systemctl show -p ActiveState squid.service|grep ActiveState=active";
