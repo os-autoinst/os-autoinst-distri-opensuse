@@ -834,9 +834,6 @@ sub validatelr {
         $product = 'SLE-Module-Web-Scripting';
         $version = '12';
     }
-    if ($product eq 'SLE-IDU') {
-        $product = 'IBM-DLPAR-utils';
-    }
     if ($product eq 'SLE-PHUB') {
         $product = 'SUSE-PackageHub-';
     }
@@ -875,7 +872,7 @@ sub validatelr {
     }
     my $uri = $args->{uri};
 
-    if ($product eq 'IBM-DLPAR-utils') {
+    if ($product =~ /IBM-DLPAR-(Adv-Toolchain|SDK|utils)/) {
         my $cmd
           = "zypper lr --uri | awk -F \'|\' -v OFS=\' \' \'{ print \$3,\$4,\$NF }\' | tr -s \' \' | grep --color \"$product\[\[:space:\]\[:punct:\]\[:space:\]\]*$enabled_repo $uri\"";
         run_scripted_command_slow($cmd, slow_type => 2);
@@ -1017,8 +1014,8 @@ sub validate_repos_sle {
                 next if (($scc_product =~ /LTSS/) && ($product_channel =~ /(|Debuginfo-|Source-)Pool/));
                 # don't look for add-on that was removed with MIGRATION_REMOVE_ADDONS
                 next if (get_var('ZYPPER_LR') && get_var('MIGRATION_INCONSISTENCY_DEACTIVATE') && $scc_product =~ /$addon_removed/);
-                # IDU doesn't have channels, repo is checked below
-                next if ($scc_product eq 'SLE-IDU');
+                # IDU and IDS don't have channels, repo is checked below
+                next if ($scc_product eq 'SLE-IDU' || $scc_product eq 'SLE-IDS');
                 validatelr(
                     {
                         product         => $scc_product,
@@ -1029,12 +1026,28 @@ sub validate_repos_sle {
                     });
             }
         }
+
+        # IBM DLPAR repos check for ppc64le
         if (exists $h_scc_addons{'SLE-IDU'}) {
             validatelr(
                 {
-                    product      => 'SLE-IDU',
+                    product      => 'IBM-DLPAR-utils',
                     enabled_repo => 'Yes',
                     uri          => 'http://public.dhe.ibm'
+                });
+        }
+        if (exists $h_scc_addons{'SLE-IDS'}) {
+            validatelr(
+                {
+                    product      => 'IBM-DLPAR-SDK',
+                    enabled_repo => 'Yes',
+                    uri          => 'http://public.dhe.ibm'
+                });
+            validatelr(
+                {
+                    product      => 'IBM-DLPAR-Adv-Toolchain',
+                    enabled_repo => 'Yes',
+                    uri          => 'http://ftp.unicamp.br'
                 });
         }
 
