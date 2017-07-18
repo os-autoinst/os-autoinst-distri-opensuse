@@ -13,7 +13,9 @@
 
 use strict;
 use base "y2logsstep";
+use main_common "addon_products_is_applicable";
 use testapi;
+use utils "leap_version_at_least";
 
 sub run {
     assert_screen 'desktop-selection';
@@ -51,6 +53,14 @@ sub run {
         send_key_until_needlematch "$d-selected", 'tab';                       # select correct field to match needle
     }
     send_key $cmd{next};
+
+    # On leap 42.3 we don't have addon products page, and provide urls as addon
+    # as boot parameter. Trusting gpg key is the done after we click next
+    # on Desktop selection screen
+    if (addon_products_is_applicable() && leap_version_at_least('42.3')) {
+        assert_screen 'import-untrusted-gpg-key-598D0E63B3FD7E48';
+        send_key "alt-t";    # confirm import (trust) key
+    }
 
     if (get_var('NEW_DESKTOP_SELECTION') && $d eq 'custom') {
         assert_screen "pattern-selection";
