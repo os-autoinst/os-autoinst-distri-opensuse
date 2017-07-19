@@ -83,6 +83,8 @@ sub prepare_for_kdump {
 
 sub activate_kdump {
     # activate kdump
+    type_string 'echo "remove potential harmful nokogiri package boo#1047449"';
+    zypper_call('rm -y ruby2.1-rubygem-nokogiri');
     script_run 'yast2 kdump', 0;
     my @tags = qw(yast2-kdump-disabled yast2-kdump-enabled yast2-kdump-restart-info yast2-missing_package yast2_console-finished);
     do {
