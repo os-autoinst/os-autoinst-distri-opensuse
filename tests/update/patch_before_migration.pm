@@ -30,10 +30,6 @@ sub patching_sle {
         set_var('HDD_SP2ORLATER', 1);
     }
 
-    # stop packagekit service
-    script_run "systemctl mask packagekit.service";
-    script_run "systemctl stop packagekit.service";
-
     assert_script_run("zypper lr && zypper mr --disable --all");
     save_screenshot;
     yast_scc_registration();
