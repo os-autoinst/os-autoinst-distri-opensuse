@@ -100,17 +100,26 @@ sub activate_kdump {
 sub kdump_is_active {
     # make sure kdump is enabled after reboot
 
-    my $status = script_output('systemctl status kdump ||:');
-
-    if ($status =~ /No kdump initial ramdisk found/) {
-        record_soft_failure 'bsc#1021484 -- fail to create kdump initrd';
-        assert_script_run 'systemctl restart kdump';
+    my $status;
+    for (1 .. 10) {
         $status = script_output('systemctl status kdump ||:');
+
+        if ($status =~ /No kdump initial ramdisk found/) {
+            record_soft_failure 'bsc#1021484 -- fail to create kdump initrd';
+            assert_script_run 'systemctl restart kdump';
+            $status = script_output('systemctl status kdump ||:');
+            last;
+        }
+        elsif ($status =~ /Active: active/) {
+            return 1;
+        }
+        elsif ($status =~ /Active: activating/) {
+            diag "Service is activating, sleeping and looking again. Retry $_";
+            sleep 10;
+            next;
+        }
+        die "undefined state of kdump service";
     }
-    if ($status =~ /Active: active/) {
-        return 1;
-    }
-    die "undefined state of kdump service";
 }
 
 sub do_kdump {
