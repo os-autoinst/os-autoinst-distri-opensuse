@@ -46,9 +46,9 @@ sub prepare_for_kdump_sle {
             zypper_call("--no-gpg-check ar -f $b 'DEBUG_$counter'");
         }
     }
-    script_run(q{zypper mr -e $(zypper lr | awk '/Debug/ {print $1}')}, 60);
+    script_run(q(zypper mr -e $(zypper lr | awk '/Debug/ {print $1}')), 60);
     install_kernel_debuginfo;
-    script_run(q{zypper mr -d $(zypper lr | awk '/Debug/ {print $1}')}, 60);
+    script_run(q(zypper mr -d $(zypper lr | awk '/Debug/ {print $1}')), 60);
     for my $i (1 .. $counter) {
         script_run "zypper rr DEBUG_$i";
     }
