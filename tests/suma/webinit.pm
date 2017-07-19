@@ -19,8 +19,11 @@ sub run {
   select_console('root-console');
   type_string "chown $username /dev/$serialdev\n";
 
+  my $master = get_var('HOSTNAME');
+  die "Error: variable HOSTNAME not defined." unless defined $master;
+
   select_console('x11');
-  x11_start_program('firefox https://'.get_var('HOSTNAME').'.openqa.suse.de');
+  x11_start_program('firefox https://'.$master.'.openqa.suse.de');
   if (check_screen('suma_ff_maximize')) {
     assert_and_click('suma_ff_maximize');
   }
@@ -37,7 +40,7 @@ sub run {
     type_string('admin');send_key('tab');
     type_password;send_key('tab');
     type_password;send_key('tab');
-    type_string('susemanager@suma.openqa.suse.de');send_key('tab');
+    type_string('susemanager@'.$master.'.openqa.suse.de');send_key('tab');
     type_string('Mr');send_key('tab');
     type_string('openQA');send_key('tab');
     type_string('TestManager');send_key('tab');

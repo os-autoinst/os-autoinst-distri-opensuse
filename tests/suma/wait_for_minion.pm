@@ -16,7 +16,7 @@ use testapi;
 use lockapi;
 
 sub run {
-  send_key_until_needlematch('suma_pending_minions', 'ctrl-r', 20, 5);
+  send_key_until_needlematch('suma_pending_minions', 'ctrl-r', 10, 15);
   wait_screen_change {
     assert_and_click('suma_pending_minions');
   };
@@ -24,7 +24,7 @@ sub run {
   wait_screen_change {
     assert_and_click('suma_salt_key_accept');
   };
-  send_key_until_needlematch('suma-salt-minion-bootstrapped', 'ctrl-r', 20, 5);
+  send_key_until_needlematch('suma-salt-minion-bootstrapped', 'ctrl-r', 10, 15);
 
   # create barriers for all loaded suma tests
   for my $t (@{get_var_array('SUMA_TESTS')}) {
