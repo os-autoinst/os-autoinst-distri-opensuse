@@ -24,6 +24,10 @@ sub check_bsc982138 {
 
 sub run {
     # start install
+    # we need to wait a bit for the disks to be formatted, live cd
+    # installation seems to be exceptionally slow.
+    # Also, virtual machines for testing can be really slow in this step
+    my $started_timeout = get_var('LIVECD') ? 1200 : 300;
     if (get_var("UPGRADE")) {
         send_key $cmd{update};
         sleep 1;
@@ -69,14 +73,14 @@ sub run {
             send_key 'alt-n';
             record_soft_failure 'error bootloader preupdate';
         }
-        assert_screen "inst-packageinstallationstarted", 120;
+        assert_screen "inst-packageinstallationstarted", $started_timeout;
 
         # view installation details
         send_key $cmd{instdetails};
         check_bsc982138;
     }
     elsif (get_var("AUTOYAST")) {
-        assert_screen("inst-packageinstallationstarted", 120);
+        assert_screen("inst-packageinstallationstarted", $started_timeout);
     }
     else {
         sleep 2;    # textmode is sometimes pressing alt-i too early
@@ -96,9 +100,6 @@ sub run {
                 send_key 'alt-y';
             }
         }
-        # we need to wait a bit for the disks to be formatted, live cd
-        # installation seems to be exceptionally slow
-        my $started_timeout = get_var('LIVECD') ? 600 : 120;
         assert_screen "inst-packageinstallationstarted", $started_timeout;
     }
     if (   !get_var("LIVECD")
