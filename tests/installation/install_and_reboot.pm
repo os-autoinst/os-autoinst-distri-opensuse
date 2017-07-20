@@ -59,6 +59,9 @@ sub run {
         push(@tags, "DIALOG-packages-notifications");
         $timeout = 5500;    # upgrades are slower
     }
+    if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
+        $timeout = 5500;    # our Hyper-V server is just too slow
+    }
     if (get_var('LIVECD')) {
         push(@tags, 'screenlock');
     }
