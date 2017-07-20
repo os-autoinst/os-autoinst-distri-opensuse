@@ -42,6 +42,7 @@ our @EXPORT = qw(
   zkvm_add_interface
   zkvm_add_pty
   $zkvm_img_path
+  set_framebuffer_resolution
 );
 
 my $zkvm_img_path = "/var/lib/libvirt/images";
@@ -574,6 +575,25 @@ sub zkvm_add_interface {
     my $vtap = $svirt->instance + 4;
     # direct access to the tap device, use of $vtap temporarily
     $svirt->add_interface({type => 'direct', source => {dev => "enccw0.0.0600", mode => 'bridge'}, target => {dev => 'macvtap' . $vtap}});
+}
+
+# On Hyper-V and Xen PV we need to add special framebuffer provisions
+sub set_framebuffer_resolution {
+    my $video;
+    if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
+        $video = 'video=hyperv_fb:1024x768';
+    }
+    elsif (check_var('VIRSH_VMM_TYPE', 'linux')) {
+        $video = 'xen-fbfront.video=32,1024,768 xen-kbdfront.ptr_size=1024,768';
+    }
+    else {
+        return;
+    }
+    if ($video) {
+        # On JeOS we have GRUB_CMDLINE_LINUX, on CaaSP we have GRUB_CMDLINE_LINUX_DEFAULT.
+        my $grub_cmdline_label = is_jeos() ? 'GRUB_CMDLINE_LINUX' : 'GRUB_CMDLINE_LINUX_DEFAULT';
+        assert_script_run("sed -ie '/${grub_cmdline_label}=/s/\"\$/ $video \"/' /etc/default/grub");
+    }
 }
 
 1;
