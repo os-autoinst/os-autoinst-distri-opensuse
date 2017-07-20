@@ -55,6 +55,7 @@ our @EXPORT = qw(
   assert_screen_with_soft_timeout
   is_desktop_installed
   pkcon_quit
+  systemctl
   addon_decline_license
   addon_license
   validate_repos
@@ -111,6 +112,11 @@ sub unlock_if_encrypted {
         assert_screen 'encrypted_disk-typed_password' if $args{check_typed_password};
         send_key "ret";
     }
+}
+
+sub systemctl {
+    my ($command, %args) = @_;
+    assert_script_run "systemctl --no-pager $command", %args;
 }
 
 sub turn_off_kde_screensaver {
