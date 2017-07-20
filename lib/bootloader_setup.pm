@@ -252,6 +252,13 @@ sub bootmenu_default_params {
             bootmenu_type_extra_boot_params;
         }
     }
+    # https://wiki.archlinux.org/index.php/Kernel_Mode_Setting#Forcing_modes_and_EDID
+    # Default namescheme 'by-id' for devices is broken on Hyper-V (bsc#1029303),
+    # we have to use something else.
+    if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
+        type_string_slow 'video=hyperv_fb:1024x768 ';
+        type_string_slow 'namescheme=by-label ' unless is_jeos or is_casp;
+    }
 }
 
 sub bootmenu_network_source {
