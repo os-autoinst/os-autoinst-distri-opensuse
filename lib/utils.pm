@@ -229,7 +229,7 @@ sub is_gnome_next {
 # If argument is passed then FLAVOR has to match (universal VMX keyword)
 sub is_casp {
     my $filter = shift;
-    return 0 unless check_var('DISTRI', 'casp');
+    return 0 unless get_var('DISTRI') =~ /casp|kubic/;
     return 1 unless $filter;
 
     if ($filter eq 'DVD') {
