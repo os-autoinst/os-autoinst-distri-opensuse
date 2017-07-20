@@ -204,4 +204,12 @@ sub handle_polkit_root_auth {
     type_password;
     send_key 'ret';
 }
+
+sub post_fail_hook {
+    my ($self) = @_;
+    select_console 'log-console';
+    assert_script_run 'systemctl status hostapd';
+    $self->SUPER::post_fail_hook;
+}
+
 1;
