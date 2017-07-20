@@ -187,6 +187,7 @@ sub reload_services {
     type_string "# reload required services\n";
     assert_script_run 'systemctl restart NetworkManager';
     assert_script_run 'systemctl restart hostapd';
+    assert_script_run 'systemctl is-active hostapd';
 }
 
 sub NM_disable_ip {
