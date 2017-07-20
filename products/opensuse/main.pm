@@ -756,6 +756,11 @@ sub load_slenkins_tests {
 # load the tests in the right order
 if (maybe_load_kernel_tests()) {
 }
+elsif (get_var("WICKED")) {
+    boot_hdd_image;
+    loadtest "console/wicked_before_test";
+    loadtest "console/wicked_basic";
+}
 elsif (get_var("REGRESSION")) {
     if (get_var("KEEPHDDS")) {
         load_login_tests();
