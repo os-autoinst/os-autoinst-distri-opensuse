@@ -503,7 +503,9 @@ sub load_extra_tests {
         # well
         if (check_var('DESKTOP', 'gnome')) {
             loadtest 'x11/yast2_lan_restart';
-            loadtest 'x11/mac80211_hwsim';
+            loadtest 'x11/network/hwsim_wpa2_enterprise_setup';
+            loadtest 'x11/network/yast2_network_setup';
+            loadtest 'x11/network/NM_wpa2_enterprise';
         }
     }
     else {
