@@ -120,7 +120,8 @@ sub NM_disable_ip {
 sub post_fail_hook {
     my ($self) = @_;
     select_console 'log-console';
-    # TODO: collect NetworkManager logs
+    $self->save_and_upload_log('journalctl --no-pager -u NetworkManager', 'NetworkManager_journal.log');
+    $self->save_and_upload_log('journalctl --no-pager -u hostapd', 'hostapd_journal.log');
     # TODO: collect gnome/nm-applet logs
     $self->SUPER::post_fail_hook;
 }

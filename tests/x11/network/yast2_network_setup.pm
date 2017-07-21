@@ -13,6 +13,7 @@
 
 use base 'x11test';
 use y2x11test 'launch_yast2_module_x11';
+use y2logsstep;
 use strict;
 use warnings;
 use testapi;
@@ -45,14 +46,22 @@ sub configure_system {
     if (check_screen 'yast2_network-error_dialog') {
         record_soft_failure 'boo#1049097';
         assert_and_click 'yast2_network-error_dialog';
-        # TODO: collect yast2 logs
+        select_console 'log-console';
+        # Not sure if this is always needed of related to the bug we handle here
+        assert_script_run "ethernet_uuid=\$(nmcli -t -f UUID connection show)";
+        assert_script_run 'ip link set sta0 up';
+        assert_script_run 'nmcli c up $ethernet_uuid';
+        serial_wait 'cont', 3600
+        y2logsstep::save_upload_y2logs;
+        serial_wait 'cont', 3600
+        select_console 'x11';
     }
 }
 
 sub post_fail_hook {
     my ($self) = @_;
     select_console 'log-console';
-    # TODO: collect yast2 logs
+    y2logsstep::save_upload_y2logs;
     $self->SUPER::post_fail_hook;
 }
 
