@@ -380,6 +380,7 @@ sub load_x11regression_documentation {
         loadtest "x11regressions/libreoffice/libreoffice_mainmenu_components";
         loadtest "x11regressions/libreoffice/libreoffice_recent_documents";
         loadtest "x11regressions/libreoffice/libreoffice_default_theme";
+        loadtest "x11regressions/evolution/evolution_prepare_servers";
         loadtest "x11regressions/libreoffice/libreoffice_pyuno_bridge";
         loadtest "x11regressions/libreoffice/libreoffice_open_specified_file";
         loadtest "x11regressions/libreoffice/libreoffice_double_click_file";
@@ -392,13 +393,11 @@ sub load_x11regression_message {
         loadtest "x11regressions/empathy/empathy_irc";
         loadtest "x11regressions/evolution/evolution_smoke";
         loadtest "x11regressions/evolution/evolution_prepare_servers";
-        if (get_var("VERSION") =~ /12/) {
-            loadtest "x11regressions/evolution/evolution_mail_imap";
-            loadtest "x11regressions/evolution/evolution_mail_pop";
-            loadtest "x11regressions/evolution/evolution_timezone_setup";
-            loadtest "x11regressions/evolution/evolution_meeting_imap";
-            loadtest "x11regressions/evolution/evolution_meeting_pop";
-        }
+        loadtest "x11regressions/evolution/evolution_mail_imap";
+        loadtest "x11regressions/evolution/evolution_mail_pop";
+        loadtest "x11regressions/evolution/evolution_timezone_setup";
+        loadtest "x11regressions/evolution/evolution_meeting_imap";
+        loadtest "x11regressions/evolution/evolution_meeting_pop";
     }
     if (get_var("DESKTOP") =~ /kde|gnome/) {
         loadtest "x11regressions/pidgin/prep_pidgin";
