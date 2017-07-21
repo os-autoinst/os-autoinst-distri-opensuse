@@ -29,6 +29,7 @@ sub run {
 
     send_key "alt-d";
     type_string "extensions.gnome.org\n";
+    $self->firefox_check_popups;
     assert_screen('firefox-gnomeshell-frontpage', 120);
     send_key "alt-a";
     assert_and_click "firefox-gnomeshell-allowremember";
@@ -41,11 +42,8 @@ sub run {
 
     send_key "alt-d";
     type_string "extensions.gnome.org/extension/512/wikipedia-search-provider/\n";
-    assert_screen([qw(firefox-reader-view firefox-gnomeshell-extension)], 90);
-    if (match_has_tag 'firefox-reader-view') {
-        assert_and_click('firefox-reader-close');
-        assert_screen("firefox-gnomeshell-extension");
-    }
+    $self->firefox_check_popups;
+    assert_screen "firefox-gnomeshell-extension";
     assert_and_click "firefox-gnomeshell-extension_install";
     assert_and_click "firefox-gnomeshell-extension_confirm";
     assert_screen("firefox-gnomeshell-extension_on", 60);

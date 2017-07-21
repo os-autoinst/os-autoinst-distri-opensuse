@@ -30,9 +30,9 @@ sub run {
     for my $i (1 .. 2) { send_key "tab"; }
     send_key "pgdn";
     assert_screen('firefox-plugins-overview_02', 60);
-
+    assert_and_click('firefox-plugins-tools');
     assert_and_click('firefox-plugins-check_update');
-    assert_screen('firefox-plugins-update_page', 60);
+    assert_screen('firefox-plugins-updates', 60);
 
     $self->exit_firefox;
 }

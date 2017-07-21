@@ -28,7 +28,7 @@ sub run {
 
     send_key "tab";
     send_key "ret";
-    send_key "tab";
+    for (1 .. 3) { send_key "tab"; }
     send_key "ret";
 
     assert_screen('firefox-ssl-addexception', 60);
@@ -45,11 +45,14 @@ sub run {
     send_key "alt-shift-c";
 
     sleep 1;
+    assert_and_click('firefox-ssl-certificate_table');
+
+    sleep 1;
     type_string "hong";
     send_key "down";
 
     sleep 1;
-    send_key "alt-e";
+    send_key "alt-shift-e";
 
     sleep 1;
     send_key "spc";
@@ -60,13 +63,12 @@ sub run {
     sleep 1;
     assert_and_click('firefox-ssl-certificate_servers');
 
-    send_key "pgdn";
-    send_key "pgdn";
+    for (1 .. 3) { send_key "pgdn"; }
 
     sleep 1;
     assert_screen('firefox-ssl-servers_cert', 30);
 
-    wait_screen_change { send_key "alt-f4" };
+    wait_screen_change { send_key "esc" };
     send_key "ctrl-w";
 
     send_key "alt-d";
