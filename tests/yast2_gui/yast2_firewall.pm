@@ -25,7 +25,7 @@ sub run {
     select_console 'x11', await_console => 0;
 
     $self->launch_yast2_module_x11('firewall');
-    assert_screen "yast2-firewall-ui", 30;
+    assert_screen "yast2-firewall-ui", 60;
 
     # 	enter page interfaces and change zone for network interface
     assert_and_click("yast2_firewall_config_list");
@@ -33,11 +33,14 @@ sub run {
     assert_and_click("yast2_firewall_interface_zone_change");
     wait_still_screen(2);
     assert_and_click("yast2_firewall_interface_no-zone_assigned");
+    wait_still_screen 1;
     wait_screen_change {
         send_key "down";
         send_key "ret"
     };
+    wait_still_screen 1;
     send_key "alt-o";
+    assert_screen "yast2_firewall_interfaces";
 
     # 	enter page Allowed Services and make  some changes
     assert_and_click("yast2_firewall_allowed-services");
@@ -48,7 +51,8 @@ sub run {
 
     #	enter page Broadcast and disable logging broadcast packets
     assert_and_click("yast2_firewall_broadcast");
-    send_key "alt-l";
+    wait_still_screen 1;
+    wait_screen_change { send_key "alt-l"; };
     send_key "alt-o";
     assert_screen "yast2_firewall_broadcast_no-logging";
 
@@ -59,6 +63,8 @@ sub run {
 
     #	enter page Custom Rules and check ui
     assert_and_click("yast2_firewall_custom-rules");
+    # verify Custom Rules page is displayed
+    assert_screen("yast2_firewall_custom-rules-loaded");
     send_key "alt-a";
     assert_screen "yast2_firewall_add-new-allowing-rules";
     send_key "alt-c";

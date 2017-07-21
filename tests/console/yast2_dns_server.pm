@@ -14,6 +14,7 @@
 use base "console_yasttest";
 use strict;
 use testapi;
+use utils "zypper_call";
 
 # Test "yast2 dhcp-server" functionality
 # Ensure that all combinations of running/stopped and active/inactive
@@ -54,7 +55,7 @@ sub run {
     select_console 'root-console';
 
     # Make sure packages are installed
-    assert_script_run 'zypper -n in yast2-dns-server bind SuSEfirewall2';
+    zypper_call('in yast2-dns-server bind SuSEfirewall2', timeout => 180);
     # Let's pretend this is the first execution (could not be the case if
     # yast2_cmdline was executed before)
     script_run 'rm /var/lib/YaST2/dns_server';
@@ -71,7 +72,7 @@ sub run {
     assert_screen 'yast2-dns-server-step3';
     # Enable dns server and finish
     send_key 'alt-s';
-    send_key 'alt-f';
+    wait_screen_change { send_key 'alt-f'; };
     wait_idle;
     # The wizard-like interface still uses the old approach of always starting the service
     # while enabling it, so named should be both active and enabled

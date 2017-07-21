@@ -17,6 +17,8 @@
 use base "y2x11test";
 use strict;
 use testapi;
+use utils 'type_string_slow';
+
 
 sub run {
     my $self   = shift;
@@ -30,17 +32,26 @@ sub run {
     $self->launch_yast2_module_x11($module);
 
     assert_and_click "yast2_hostnames_added";
-    send_key 'alt-i';
+    wait_still_screen 1;
+    wait_screen_change { send_key 'alt-i'; };
     send_key 'alt-t';
     type_string 'download-srv';
+    wait_still_screen 1;
     send_key 'alt-h';
     type_string 'download.opensuse.org';
+    wait_still_screen 1;
     send_key 'alt-i';
-    type_string '195.135.221.134';
+    type_string_slow '195.135.221.134';
     assert_and_click 'yast2_hostnames_changed_ok';
     assert_screen "yast2-$module-ui", 30;
     #	OK => Exit
-    send_key "alt-o";
+    wait_screen_change { send_key "alt-o"; };
+}
+
+# override for base class to allow a longer timeout for package installation
+# before returning to desktop
+sub post_run_hook {
+    assert_screen 'generic-desktop', 600;
 }
 
 1;

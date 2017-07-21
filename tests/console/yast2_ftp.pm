@@ -19,7 +19,7 @@ sub run {
     select_console 'root-console';
 
     # install vsftps
-    zypper_call("-q in vsftpd yast2-ftp-server");
+    zypper_call("in vsftpd yast2-ftp-server", timeout => 180);
 
     # bsc#694167
     # create RSA certificate for ftp server at first which can be used for SSL configuration
@@ -96,18 +96,27 @@ sub run {
     send_key_until_needlematch 'yast2_tftp_authentication_selected', 'shift-tab';
     wait_screen_change { send_key 'down' };
     send_key 'ret';
-    assert_screen 'yast2_ftp_create_upload_dir_confirm';                           # confirm to create upload directory
+    # Soft-fail bsc#1041829 on TW
+    if (check_var('VERSION', 'Tumbleweed') && check_screen('yast2_ftp_syntax_error_bsc#1041829')) {
+        record_soft_failure('bsc#1041829');
+        wait_screen_change { send_key 'alt-c'; };
+        wait_screen_change { send_key 'alt-f'; };
+        wait_still_screen;
+        return;
+    }
+
+    assert_screen 'yast2_ftp_create_upload_dir_confirm';    # confirm to create upload directory
     wait_screen_change { send_key 'alt-y' };
     wait_screen_change { send_key 'alt-m' };
     type_string_slow "30000\n";
     wait_screen_change { send_key 'alt-a' };
     type_string_slow "30100\n";
-    wait_screen_change { send_key 'alt-l' };                                       # enable SSL
-    assert_screen 'yast2_ftp_expert_settings';                                     # check passive mode value and enable SSL
-    wait_screen_change { send_key 'alt-s' };                                       # give path for DSA certificate
+    wait_screen_change { send_key 'alt-l' };                # enable SSL
+    assert_screen 'yast2_ftp_expert_settings';              # check passive mode value and enable SSL
+    wait_screen_change { send_key 'alt-s' };                # give path for DSA certificate
     type_string '/etc/vsftpd.pem';
-    wait_screen_change { send_key 'alt-p' };                                       # open port in firewall
-    send_key 'alt-f';                                                              # done and close the configuration page now
+    wait_screen_change { send_key 'alt-p' };                # open port in firewall
+    send_key 'alt-f';                                       # done and close the configuration page now
 
     # yast might take a while on sle12 due to suseconfig
     die "'yast2 ftp-server' didn't exit with zero exit code in defined timeout" unless wait_serial("yast2-ftp-server-status-0", 180);

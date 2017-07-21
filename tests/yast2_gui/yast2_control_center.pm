@@ -47,6 +47,7 @@ sub start_addon_products {
 }
 
 sub start_add_system_extensions_or_modules {
+    search '';    # call with empty string to simply clean the field
     assert_and_click 'yast2_control-center_add-system-extensions-or-modules';
     assert_screen 'yast2_control-center_registration', timeout => 180;
     send_key 'alt-r';
@@ -287,7 +288,6 @@ sub run {
     start_software_repositories;
     start_printer;
     start_sound;
-    start_fonts;
     start_sysconfig_editor;
     start_partitioner;
     start_vpn_gateway;

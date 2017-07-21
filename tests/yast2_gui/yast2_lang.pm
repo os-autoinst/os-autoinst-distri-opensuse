@@ -38,7 +38,15 @@ sub run {
     assert_screen 'yast2-lang_settings_done';
 
     # Now it will install required language packages and exit
-    send_key 'alt-o';
+    wait_screen_change { send_key 'alt-o'; };
+
+    # Problem here is that sometimes installation takes longer than 10 minutes
+    # And then screen saver is activated, so add this step to wake
+    my $timeout = 0;
+    until (check_screen 'generic-desktop' || ++$timeout > 10) {
+        sleep 60;
+        send_key 'ctrl';
+    }
 }
 
 # override for base class to allow a longer timeout for package installation
