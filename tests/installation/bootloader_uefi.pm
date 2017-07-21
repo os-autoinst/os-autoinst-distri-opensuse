@@ -91,15 +91,6 @@ sub run {
 
     # boot
     send_key "f10";
-
-    # This is a workaround for xfreerdp connected to Windows Server 2008 R2.
-    # See issue https://github.com/FreeRDP/FreeRDP/issues/3362.
-    # xfreerdp is started in window-mode (i.e. non-fullscreen), now when
-    # all resolution changes (by Hyper-V BIOS, Grub) were done we should
-    # switch to fullscreen so needles match.
-    if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
-        send_key("ctrl-alt-ret");
-    }
 }
 
 1;
