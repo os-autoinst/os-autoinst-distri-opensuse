@@ -34,7 +34,11 @@ sub run {
     assert_script_run('cat /etc/sysconfig/atftpd | grep \'ATFTPD_BIND_ADDRESSES="'.$testip.'"\''); 
 
     #test tftp listening on udp port 69
-    assert_script_run('netstat -ulnp | grep \':69\s\' | grep -P \'/atftpd\s*$\' '); 
+    #TODO: remove softfail after bug is fixed
+    script_run('netstat -uplne'); 
+    if ( script_run('netstat -ulnp | grep \''.$testip.':69\s\' | grep -P \'/atftpd\s*$\' ') ) {
+      record_soft_failure('atftpd listens everywhere: bsc#1049832');
+    }
 
     script_run('echo "test" > /srv/tftpboot/test');
     type_string('atftp localhost');send_key('ret');
