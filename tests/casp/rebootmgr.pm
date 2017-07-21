@@ -101,6 +101,8 @@ sub check_strategy_etcd_lock {
 }
 
 sub run {
+    get_utt_packages;
+
     type_string "tput civis\n";
 
     check_strategy_instantly;

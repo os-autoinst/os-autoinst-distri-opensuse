@@ -47,10 +47,7 @@ sub check_reboot_changes {
 sub run {
     script_run "rebootmgrctl set-strategy off";
 
-    # Download files needed for transactional update test
-    assert_script_run 'curl -O ' . data_url('caasp/utt.tgz');
-    assert_script_run 'curl -O ' . data_url('caasp/utt.repo');
-    assert_script_run 'tar xzvf utt.tgz';
+    get_utt_packages;
 
     # Install PTF - snapshot #1
     trup_call 'ptf install update-test-trival/update-test-security-5-5.3.61.x86_64.rpm';
