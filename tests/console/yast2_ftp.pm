@@ -111,7 +111,6 @@ sub run {
 
     # yast might take a while on sle12 due to suseconfig
     die "'yast2 ftp-server' didn't exit with zero exit code in defined timeout" unless wait_serial("yast2-ftp-server-status-0", 180);
-    assert_screen 'yast2_console-finished';
 
     # let's try to run it
     assert_script_run "systemctl start vsftpd.service";
