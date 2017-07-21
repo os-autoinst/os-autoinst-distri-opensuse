@@ -20,12 +20,23 @@ sub run {
     x11_start_program("evolution");
     my @tags = qw(test-evolution-1 evolution-default-client-ask);
     push(@tags, 'evolution-preview-release') if is_gnome_next;
-    do {
-        assert_screen \@tags;
-        send_key 'alt-o'                                  if match_has_tag('evolution-preview-release');
-        assert_and_click 'evolution-default-client-agree' if match_has_tag('evolution-default-client-ask');
-    } until (match_has_tag('test-evolution-1'));
-    send_key "ctrl-q";    # really quit (alt-f4 just backgrounds)
+    my $times = scalar(@tags) - 1;
+    assert_screen \@tags;
+
+    unless (match_has_tag('test-evolution-1')) {
+        for (0 .. $times) {
+            if (match_has_tag('evolution-default-client-ask')) {
+                assert_and_click 'evolution-default-client-agree';
+            }
+            elsif (match_has_tag('evolution-preview-release')) {
+                send_key 'alt-o';
+            }
+            wait_still_screen;    # avoid race condition caused by asserting multitags
+            assert_screen \@tags;
+        }
+        assert_screen 'test-evolution-1';
+    }
+    send_key "ctrl-q";            # really quit (alt-f4 just backgrounds)
     send_key "alt-f4";
 }
 
