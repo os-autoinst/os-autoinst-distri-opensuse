@@ -51,7 +51,7 @@ sub check_and_add_repo {
 
   my $ret = zypper_call("lr SUMA_REPO", exitcode => [0,6]);
   if ($ret == 6) {
-    zypper_call("ar -c -f $SUMA_FORMULA_REPO SUMA_REPO");
+    zypper_call("ar -c -f -G $SUMA_FORMULA_REPO SUMA_REPO");
     zypper_call("--gpg-auto-import-keys ref");
   }
 }
