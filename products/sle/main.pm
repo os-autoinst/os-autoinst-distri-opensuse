@@ -380,6 +380,7 @@ sub load_x11regression_documentation {
         loadtest "x11regressions/libreoffice/libreoffice_mainmenu_components";
         loadtest "x11regressions/libreoffice/libreoffice_recent_documents";
         loadtest "x11regressions/libreoffice/libreoffice_default_theme";
+        loadtest "x11regressions/evolution/evolution_prepare_servers";
         loadtest "x11regressions/libreoffice/libreoffice_pyuno_bridge";
         loadtest "x11regressions/libreoffice/libreoffice_open_specified_file";
         loadtest "x11regressions/libreoffice/libreoffice_double_click_file";
