@@ -820,9 +820,6 @@ sub load_consoletests {
     if (check_var("DESKTOP", "xfce")) {
         loadtest "console/xfce_gnome_deps";
     }
-    if (check_var('ARCH', 'aarch64') and sle_version_at_least('12-SP2')) {
-        loadtest "console/check_gcc48_on_sdk_in_aarch64";
-    }
     if (!is_staging() && sle_version_at_least('12-SP2')) {
         loadtest "console/zypper_lifecycle";
         if (check_var_array('SCC_ADDONS', 'tcm')) {
