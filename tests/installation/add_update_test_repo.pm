@@ -13,8 +13,16 @@
 use strict;
 use base "y2logsstep";
 use testapi;
+use qam 'advance_installer_window';
 
-sub run {
+sub run() {
+
+    if (get_var('SKIP_INSTALLER_SCREEN', 0)) {
+        advance_installer_window('inst-addon');
+        # Since we already advanced, we don't want to advance more in the add_products_sle tests
+        set_var('SKIP_INSTALLER_SCREEN', 0);
+    }
+
     assert_screen 'inst-addon';
     send_key 'alt-k';    # install with a maint update repo
     my @repos = split(/,/, get_var('MAINT_TEST_REPO'));
@@ -30,8 +38,7 @@ sub run {
         assert_screen 'addonurl-entry';
         send_key 'alt-u';    # select URL field
         type_string $maintrepo;
-        send_key $cmd{next};
-        assert_screen 'addon-products';
+        advance_installer_window('addon-products');
         # if more repos to come, add more
         send_key 'alt-a' if @repos;
     }

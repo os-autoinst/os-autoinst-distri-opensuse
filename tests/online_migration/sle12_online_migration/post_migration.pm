@@ -14,12 +14,15 @@ use base "installbasetest";
 use strict;
 use testapi;
 use utils;
+use qam qw(add_test_repositories remove_test_repositories);
 
 sub run {
     select_console 'root-console';
 
     # print repos to screen and serial console after online migration
     zypper_call('lr -u');
+
+    add_maintenance_repos() if (get_var('MAINT_TEST_REPO'));
 
     select_console 'x11', await_console => 0;
     ensure_unlocked_desktop;
@@ -29,6 +32,12 @@ sub run {
 
 sub test_flags {
     return {fatal => 1};
+}
+
+sub add_maintenance_repos {
+    set_var('PATCH_TEST_REPO', '');
+    add_test_repositories();
+    fully_patch_system();
 }
 
 1;
