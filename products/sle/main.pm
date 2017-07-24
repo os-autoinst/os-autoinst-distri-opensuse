@@ -398,6 +398,7 @@ sub load_x11regression_message {
         loadtest "x11regressions/evolution/evolution_timezone_setup";
         loadtest "x11regressions/evolution/evolution_meeting_imap";
         loadtest "x11regressions/evolution/evolution_meeting_pop";
+        loadtest "x11regressions/groupwise/groupwise";
     }
     if (get_var("DESKTOP") =~ /kde|gnome/) {
         loadtest "x11regressions/pidgin/prep_pidgin";
