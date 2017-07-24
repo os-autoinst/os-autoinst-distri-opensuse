@@ -46,9 +46,9 @@ sub prepare_for_kdump_sle {
             zypper_call("--no-gpg-check ar -f $b 'DEBUG_$counter'");
         }
     }
-    script_run(q{zypper mr -e $(zypper lr | awk '/Debug/ {print $1}')}, 60);
+    script_run(q(zypper mr -e $(zypper lr | awk '/Debug/ {print $1}')), 60);
     install_kernel_debuginfo;
-    script_run(q{zypper mr -d $(zypper lr | awk '/Debug/ {print $1}')}, 60);
+    script_run(q(zypper mr -d $(zypper lr | awk '/Debug/ {print $1}')), 60);
     for my $i (1 .. $counter) {
         script_run "zypper rr DEBUG_$i";
     }
@@ -83,6 +83,8 @@ sub prepare_for_kdump {
 
 sub activate_kdump {
     # activate kdump
+    type_string 'echo "remove potential harmful nokogiri package boo#1047449"';
+    zypper_call('rm -y ruby2.1-rubygem-nokogiri');
     script_run 'yast2 kdump', 0;
     my @tags = qw(yast2-kdump-disabled yast2-kdump-enabled yast2-kdump-restart-info yast2-missing_package yast2_console-finished);
     do {
@@ -98,17 +100,26 @@ sub activate_kdump {
 sub kdump_is_active {
     # make sure kdump is enabled after reboot
 
-    my $status = script_output('systemctl status kdump ||:');
-
-    if ($status =~ /No kdump initial ramdisk found/) {
-        record_soft_failure 'bsc#1021484 -- fail to create kdump initrd';
-        assert_script_run 'systemctl restart kdump';
+    my $status;
+    for (1 .. 10) {
         $status = script_output('systemctl status kdump ||:');
+
+        if ($status =~ /No kdump initial ramdisk found/) {
+            record_soft_failure 'bsc#1021484 -- fail to create kdump initrd';
+            assert_script_run 'systemctl restart kdump';
+            $status = script_output('systemctl status kdump ||:');
+            last;
+        }
+        elsif ($status =~ /Active: active/) {
+            return 1;
+        }
+        elsif ($status =~ /Active: activating/) {
+            diag "Service is activating, sleeping and looking again. Retry $_";
+            sleep 10;
+            next;
+        }
+        die "undefined state of kdump service";
     }
-    if ($status =~ /Active: active/) {
-        return 1;
-    }
-    die "undefined state of kdump service";
 }
 
 sub do_kdump {
