@@ -45,8 +45,20 @@ pts/9
 EOF
     assert_script_run("echo \"$content\" >> '/etc/securetty'");
 
+    # systemd based services
+    my @services    = qw(finger telnet);
+    my $data_dir    = 'ltp/networking';
+    my $systemd_dir = '/usr/lib/systemd/system';
+    foreach my $service (@services) {
+        foreach my $ext (qw(@.service .socket)) {
+            my $file = $service . $ext;
+            assert_script_run('wget ' . data_url("$data_dir/$file"), 60);
+            assert_script_run("[ -f \"$systemd_dir/$file\" ] || cp -v $file $systemd_dir");
+        }
+    }
+
     # xinetd (echo)
-    foreach my $xinetd_conf (qw(echo finger telnet)) {
+    foreach my $xinetd_conf (qw(echo)) {
         assert_script_run('sed -i \'s/\(disable\s*=\s\)yes/\1no/\' /etc/xinetd.d/' . $xinetd_conf);
     }
     assert_script_run('sed -i \'s/^#\(\s*bind\s*=\)\s*$/\1 0.0.0.0/\' /etc/xinetd.conf');
@@ -66,9 +78,10 @@ EOF
     # echo/echoes, getaddrinfo_01
     assert_script_run('sed -i \'s/^\(hosts:\s+files\s\+dns$\)/\1 myhostname/\' /etc/nsswitch.conf');
 
-    my $services = 'dnsmasq nfsserver rpcbind vsftpd xinetd';
-    assert_script_run("systemctl enable $services");
-    assert_script_run("systemctl start $services");
+    foreach my $service (qw(dnsmasq finger.socket nfsserver rpcbind telnet.socket vsftpd xinetd)) {
+        assert_script_run("systemctl enable $service");
+        assert_script_run("systemctl start $service || { systemctl status --no-pager $service; journalctl -xe --no-pager; false; }");
+    }
 }
 
 # poo#14402
