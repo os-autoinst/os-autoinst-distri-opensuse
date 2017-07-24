@@ -163,10 +163,9 @@ sub run {
             assert_screen 'partitioning-type';
             send_key 'alt-n';
         }
-        assert_screen 'partitioning-size';
+        assert_screen 'partition-size';
         wait_screen_change { send_key 'ctrl-a' };
-        type_string "200 MB";
-        assert_screen 'partitioning_raid-custom-size-200MB';
+        type_string "8 MB";
         send_key 'alt-n';
         assert_screen 'partition-role';
         send_key "alt-a";
@@ -179,7 +178,7 @@ sub run {
         assert_screen 'partitioning_raid-file_system_id-selected';
         send_key_until_needlematch 'filesystem-prep', 'down';
         send_key 'alt-f';
-        assert_screen 'custompart';
+        assert_screen 'partitioning_raid-added_prep';
         send_key 'alt-s';
         send_key 'right';
         assert_screen 'partitioning_raid-hard_disks-unfolded';
@@ -194,8 +193,11 @@ sub run {
     }
 
     for (1 .. 4) {
-        addpart('boot');
-        assert_screen 'partitioning_raid-part_boot_added';
+        if (!get_var('OFW')) {
+            # add raid boot partition except for PowerPC
+            addpart('boot');
+            assert_screen 'partitioning_raid-part_boot_added';
+        }
         addpart('root');
         assert_screen 'partitioning_raid-part_root_added';
         addpart('swap');
@@ -249,16 +251,14 @@ sub run {
     setraidlevel(get_var("RAIDLEVEL"));
     assert_screen 'partitioning_raid-raid_' . get_var("RAIDLEVEL") . '-selected';
 
-    if (!get_var('UEFI')) {    # start at second partition (i.e. sda2) but not for UEFI
+    if (!get_var('UEFI') && !get_var('OFW')) {
+        # start at second partition (i.e. sda2) except if UEFI or PowerPC
         send_key 'down';
         assert_screen 'partitioning_raid-devices_second_partition';
-    }
-
-    if (get_var('UEFI')) {
-        addraid(2, 6);
+        addraid(3, 6);
     }
     else {
-        addraid(3, 6);
+        addraid(2, 6);
     }
 
     assert_screen 'partition-format';
@@ -276,8 +276,8 @@ sub run {
         assert_screen 'partitioning_raid-raid_btrfs_added';
     }
 
-    if (!get_var('UEFI')) {
-        # select RAID add
+    if (!get_var('UEFI') && !get_var('OFW')) {
+        # select RAID for /boot except if UEFI or PowerPC
         send_key $cmd{addraid};
         assert_screen 'partitioning_raid-menu_add_raid';
         setraidlevel(1);
@@ -318,12 +318,16 @@ sub run {
     assert_screen 'partitioning_raid-swap_format-selected';
     send_key $cmd{finish};
     my %needle_raid_swap_added_suffixes = (
+        ofw      => '-no_boot',
         lvm      => '-lvm',
         uefi     => '',
         lvm_uefi => '-lvm-UEFI'
     );
     my $needle_suffix = '';
-    if (get_var('LVM') && get_var('UEFI')) {
+    if (get_var('OFW')) {
+        $needle_suffix = $needle_raid_swap_added_suffixes{ofw};
+    }
+    elsif (get_var('LVM') && get_var('UEFI')) {
         $needle_suffix = $needle_raid_swap_added_suffixes{lvm_uefi};
 
     }
@@ -354,7 +358,10 @@ sub run {
         send_key 'alt-y';
     }
     # check overview page for Suggested partitioning
-    if (get_var("LVM") and !get_var("UEFI")) {
+    if (get_var('OFW')) {
+        assert_screen 'acceptedpartitioningraid-no_boot';
+    }
+    elsif (get_var("LVM") and !get_var("UEFI")) {
         assert_screen 'acceptedpartitioningraidlvm';
     }
     elsif (get_var("LVM") and get_var("UEFI")) {
