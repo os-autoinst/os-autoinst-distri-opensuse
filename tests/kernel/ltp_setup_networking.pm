@@ -79,7 +79,7 @@ EOF
     assert_script_run('sed -i \'s/^\(hosts:\s+files\s\+dns$\)/\1 myhostname/\' /etc/nsswitch.conf');
 
     foreach my $service (qw(dnsmasq finger.socket nfsserver rpcbind telnet.socket vsftpd xinetd)) {
-        assert_script_run("systemctl enable $service");
+        assert_script_run("systemctl reenable $service");
         assert_script_run("systemctl start $service || { systemctl status --no-pager $service; journalctl -xe --no-pager; false; }");
     }
 }
