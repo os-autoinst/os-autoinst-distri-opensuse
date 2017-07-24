@@ -25,38 +25,30 @@ sub run {
 
     # start apparmor configuration
     script_run("yast2 apparmor; echo yast2-apparmor-status-\$? > /dev/$serialdev", 0);
-
     # check Apparmor Configuration is opened
     assert_screen 'yast2_apparmor';
-    wait_still_screen(2);
-    wait_screen_change { send_key 'ret' };
-    if (!check_screen 'yast2_apparmor_enabled') {
-        wait_screen_change { send_key 'alt-e' };
-    }
-    else {
-        # No need to enable apparmor here because it is enabled by default. This got changed again.
+    send_key 'ret';
+
+    assert_screen [qw(yast2_apparmor_disabled yast2_apparmor_enabled)];
+    if (match_has_tag 'yast2_apparmor_disabled') {
+        send_key 'alt-e';
     }
     assert_screen 'yast2_apparmor_enabled';
     # part 1: open profile mode configuration and check toggle/show all profiles
     send_key 'alt-n';
     assert_screen 'yast2_apparmor_profile_mode_configuration';
     send_key 'alt-o';
-    wait_still_screen(1);
     assert_screen 'yast2_apparmor_profile_mode_configuration_show_all';
-    wait_still_screen(1);
-    send_key 'tab';
-    wait_still_screen(1);
-    send_key 'down';
-    wait_still_screen(1);
+    wait_screen_change { send_key 'tab' };
+    wait_screen_change { send_key 'down' };
     send_key 'alt-t';
     assert_screen 'yast2_apparmor_profile_mode_configuration_toggle';
-    wait_still_screen(1);
-    send_key 'alt-b';
-    wait_still_screen(1);
+    wait_screen_change { send_key 'alt-b' };
 
     # close apparmor configuration
-    send_key 'alt-d';
-    wait_still_screen(1);
+    wait_screen_change { send_key 'alt-d' };
+    # increase value for timeout to 200 seconds
+    wait_serial("yast2-apparmor-status-0", 200) || die "'yast2 apparmor' didn't finish";
     assert_script_run("systemctl show -p ActiveState apparmor.service | grep ActiveState=active");
 
     # part 2: start apparmor configuration again
@@ -66,95 +58,75 @@ sub run {
     assert_screen 'yast2_apparmor_configuration_manage_existing_profiles';
     send_key 'ret';
     assert_screen 'yast2_apparmor_configuration_manage_existing_profiles_edit_add';
-    send_key 'alt-i';
-    wait_still_screen(1);
-    send_key 'alt-a';
-    wait_still_screen(1);
+    wait_screen_change { send_key 'alt-i' };
+    wait_screen_change { send_key 'alt-a' };
     send_key 'alt-f';
-    wait_still_screen(1);
     assert_screen 'yast2_apparmor_configuration_manage_existing_profiles_edit_add_file';
-    send_key 'ret';
-    wait_still_screen(1);
-    send_key 'alt-e';
-    wait_still_screen(1);
+    wait_screen_change { send_key 'ret' };
+    wait_screen_change { send_key 'alt-e' };
     type_string 'I_added_this_profile';
-    wait_still_screen(1);
-    send_key 'alt-p';
-    wait_still_screen(1);
-    send_key 'down';
-    send_key 'up';
-    send_key 'spc';
-    send_key 'down';
-    send_key 'spc';
+    wait_screen_change { send_key 'alt-p' };
+    wait_screen_change { send_key 'spc' };
+    assert_screen 'yast2_apparmor_configuration_manage_existing_profiles_edit_add_file_permissions_read';
+    wait_screen_change { send_key 'down' };
+    wait_screen_change { send_key 'spc' };
+    assert_screen 'yast2_apparmor_configuration_manage_existing_profiles_edit_add_file_permissions_write';
 
     # confirm with cancel
-    send_key 'alt-c';
-    wait_still_screen(1);
+    wait_screen_change { send_key 'alt-c' };
 
     # now add a directory with permission for read and write
-    send_key 'alt-a';
-    wait_still_screen(1);
-    send_key 'alt-d';
-    wait_still_screen(1);
-    send_key 'alt-b';
-    wait_still_screen(1);
-    send_key 'alt-c';
-    wait_still_screen(1);
-    send_key 'alt-e';
-    wait_still_screen(1);
+    wait_screen_change { send_key 'alt-a' };
+    wait_screen_change { send_key 'alt-d' };
+    wait_screen_change { send_key 'alt-e' };
     type_string '/tmp';
-    wait_still_screen(1);
-    send_key 'alt-p';
-    wait_still_screen(1);
-    send_key 'down';
-    send_key 'up';
-    send_key 'spc';
-    send_key 'down';
-    send_key 'spc';
-    send_key 'alt-o';
-    wait_still_screen(1);
+    wait_screen_change { send_key 'alt-p' };
+    wait_screen_change { send_key 'spc' };
+    assert_screen 'yast2_apparmor_configuration_manage_existing_profiles_edit_add_directory_permissions_read';
+    wait_screen_change { send_key 'down' };
+    wait_screen_change { send_key 'spc' };
+    assert_screen 'yast2_apparmor_configuration_manage_existing_profiles_edit_add_directory_permissions_write';
+    wait_screen_change { send_key 'alt-o' };
     send_key 'alt-d';
 
     # confirm to save changes to the profile
     assert_screen 'yast2_apparmor_configuration_manage_existing_profiles_edit_file_changed';
     send_key 'alt-y';
+    # add assert_screen here to check the page of edit profile and workaround the problem
+    # with previous page got showed up for a very short timere the following
+    assert_screen 'yast2_apparmor_configuration_manage_existing_profiles_edit';
 
     # close now AppArmor configuration
-    wait_still_screen(3);
     send_key 'alt-n';
-    wait_still_screen(2);
+    wait_serial("yast2-apparmor-status-0", 200) || die "'yast2 apparmor' didn't finish";
 
     # part 3: manually add profile
-    # prepare a new profile at first
-    script_run("cp /etc/apparmor.d/sbin.syslogd /new_profile");
+    # prepare a new profile at first and check that the new file has been copied
+    assert_script_run("cp /etc/apparmor.d/sbin.syslogd /new_profile");
 
-    #start apparmor configuration again
+    # start apparmor configuration again
     script_run("yast2 apparmor; echo yast2-apparmor-status-\$? > /dev/$serialdev", 0);
     assert_screen 'yast2_apparmor';
-    send_key 'down';
-    send_key 'down';
+    wait_screen_change { send_key 'down' };
+    wait_screen_change { send_key 'down' };
     send_key 'ret';
     assert_screen 'yast2_apparmor_configuration_add_profile';
-    send_key 'alt-f';
+    wait_screen_change { send_key 'alt-f' };
     for (1 .. 30) { send_key 'backspace'; }
     type_string '/new_profile';
-    wait_still_screen(1);
-    send_key 'alt-o';
-    wait_still_screen(2);
+    wait_screen_change { send_key 'alt-o' };
 
-    # Add entry for new profile
+    # check profile dialog after new profile created and add a new rule to it
+    assert_screen 'yast2_apparmor_configuration_profile_dialog';
     send_key 'alt-a';
-    send_key 'alt-r';
-    send_key 'alt-s';
+    wait_screen_change { send_key 'alt-r' };
+    wait_screen_change { send_key 'alt-s' };
     send_key 'alt-d';
 
-    # confirm to save changes to profile
+    # confirm to save changes to profile and finish test
     assert_screen 'yast2_apparmor_configuration_manage_existing_profiles_edit_file_changed_again';
     send_key 'alt-y';
-
-    # finish test
-    wait_serial("yast2-apparmor-status-0", 60) || die "'yast2 apparmor' didn't finish";
-
+    wait_serial("yast2-apparmor-status-0", 200) || die "'yast2 apparmor' didn't finish";
 
 }
 1;
