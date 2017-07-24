@@ -49,7 +49,7 @@ sub run {
     if (check_var('DISTRI', 'sle')) {
         # SLE maintenance tests are assumed to be SCC registered
         # and source repositories disabled by default
-        if (get_var('FLAVOR') =~ /-Updates$/) {
+        if (get_var('FLAVOR') =~ /-Updates$|-Incidents$/) {
             $cmd = q{mr -e $(zypper -n lr | awk '/-Source/ {print $1}')};
         }
         # use dvd2 as the src-repository
