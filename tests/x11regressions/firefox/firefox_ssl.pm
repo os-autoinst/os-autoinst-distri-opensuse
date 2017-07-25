@@ -37,7 +37,7 @@ sub run {
     assert_screen('firefox-ssl-loadpage', 60);
 
     send_key "alt-e";
-    send_key "n", 1;
+    send_key "n";
 
     assert_and_click('firefox-ssl-preference_advanced');
     assert_and_click('firefox-ssl-advanced_certificate');
@@ -66,7 +66,7 @@ sub run {
     sleep 1;
     assert_screen('firefox-ssl-servers_cert', 30);
 
-    send_key "alt-f4", 1;
+    wait_screen_change { send_key "alt-f4" };
     send_key "ctrl-w";
 
     send_key "alt-d";

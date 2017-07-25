@@ -16,10 +16,10 @@ use strict;
 use testapi;
 
 sub run {
-    send_key "alt-e", 1;    # Edit
-                            # select vda2
+    send_key "alt-e";    # Edit
+                         # select vda2
     send_key "right";
-    send_key "down";        # only works with multiple HDDs
+    send_key "down";     # only works with multiple HDDs
     send_key "right";
     send_key "down";
     send_key "tab";
@@ -27,11 +27,11 @@ sub run {
     send_key "down";
 
     #send_key "right"; send_key "down"; send_key "down";
-    send_key "alt-i", 1;    # Resize
-    send_key "alt-u";       # Custom
+    wait_screen_change { send_key 'alt-i' };    # Resize
+    send_key "alt-u";                           # Custom
     type_string "1.5G";
     sleep 2;
-    send_key "ret", 1;
+    send_key "ret";
 
     # add /usr
     wait_screen_change { send_key $cmd{addpart} };
@@ -49,7 +49,7 @@ sub run {
     assert_screen "partition-splitusr-submitted-usr";
     send_key $cmd{finish};
     assert_screen "partition-splitusr-finished";
-    send_key $cmd{accept}, 1;
+    wait_screen_change { send_key $cmd{accept} };
     send_key "alt-y";        # Quit the warning window
 }
 

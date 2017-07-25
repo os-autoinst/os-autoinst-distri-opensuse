@@ -28,9 +28,9 @@ sub run {
         send_key "ret";
         assert_screen "SLE12_login", 520;
         type_string "linux";
-        send_key "ret", 1;
+        wait_screen_change { send_key "ret" };
         type_string $password;
-        send_key "ret", 1;
+        send_key "ret";
         save_screenshot;
         # install and launch polkit
         x11_start_program("xterm");

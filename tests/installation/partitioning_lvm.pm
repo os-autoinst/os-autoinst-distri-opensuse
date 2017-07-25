@@ -76,7 +76,7 @@ sub run {
         }
     }
     elsif (!get_var('ENCRYPT_ACTIVATE_EXISTING')) {    # old behaviour still needed
-        send_key "alt-l", 1;                           # enable LVM-based proposal
+        wait_screen_change { send_key "alt-l" };       # enable LVM-based proposal
         if (get_var("ENCRYPT")) {
             send_key "alt-y";
             assert_screen "inst-encrypt-password-prompt";

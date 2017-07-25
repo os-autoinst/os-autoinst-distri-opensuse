@@ -23,7 +23,7 @@ sub run {
     type_string "ha-cluster-join -yc " . get_var("HACLUSTERJOIN") . "\n";
     assert_screen "ha-cluster-join-password";
     type_password;
-    send_key("ret", 1);
+    send_key 'ret';
     wait_still_screen;
     script_run "crm_mon -1";
     save_screenshot;

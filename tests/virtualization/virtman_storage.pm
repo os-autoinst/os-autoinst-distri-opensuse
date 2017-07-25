@@ -52,9 +52,9 @@ sub go_for_volume {
     launch_virtmanager();
     connection_details("storage");
     # got to pool
-    send_key "tab", 1;
+    wait_screen_change { send_key "tab" };
     for (0 .. $poolnb) {
-        send_key "down", 1;
+        wait_screen_change { send_key "down" };
     }
     # do all other format available
     foreach my $format (@formats) {

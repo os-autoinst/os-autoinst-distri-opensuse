@@ -19,7 +19,7 @@ sub run {
     my ($self) = @_;
     $self->start_firefox;
 
-    send_key "alt-v", 1;
+    send_key "alt-v";
     wait_still_screen 3;
     send_key "t";
     wait_still_screen 3;

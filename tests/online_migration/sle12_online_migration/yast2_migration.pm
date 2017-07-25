@@ -201,7 +201,7 @@ sub run {
         }
         elsif (match_has_tag("yast2-migration-wrongdigest")) {
             $self->result('fail');
-            send_key "alt-a", 1;
+            send_key "alt-a";
             save_screenshot;
             send_key "alt-n";
             return;

@@ -162,7 +162,7 @@ sub ensure_installed {
         last if (match_has_tag('pkcon-finished'));
         if (match_has_tag('Policykit')) {
             type_password;
-            send_key("ret", 1);
+            send_key 'ret';
             @tags = grep { $_ ne 'Policykit' } @tags;
             @tags = grep { $_ ne 'Policykit-behind-window' } @tags;
             next;

@@ -30,7 +30,7 @@ sub checking_vnet_result {
     send_key "ret";
     foreach my $vnet (@$net) {
         type_string "virsh -c qemu:///system net-info $vnet";
-        send_key "ret", 1;
+        send_key "ret";
     }
     if (get_var("DESKTOP") !~ /icewm/) {
         assert_screen "virtman-sle12-sp1-gnome_vnetcheck";

@@ -31,7 +31,7 @@ sub run {
 
     # Confirm booting
     diag "Booting the installed system now...";
-    send_key "ret", 0;
+    send_key "ret";
 
     # Wait for the system to boot
     assert_screen("displaymanager", 60);
