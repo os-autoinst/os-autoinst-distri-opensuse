@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
-# Summary: virt_autotest: the initial version of virtualization automation test in openqa, with kvm support fully, xen support not done yet
+# Summary: virt_autotest: virtualization automation test in openqa, both kvm and xen supported
 # Maintainer: alice <xlai@suse.com>
 
 use strict;

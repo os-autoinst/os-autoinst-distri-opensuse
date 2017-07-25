@@ -55,7 +55,7 @@ sub run {
     type_string "vga=791 ",   $type_speed;
     type_string "Y2DEBUG=1 ", $type_speed;
 
-    if (check_var('BACKEND', 'ipmi')) {
+    if (check_var('BACKEND', 'ipmi') && !check_var('AUTOYAST', '1')) {
         my $cmdline = '';
         if (check_var('VIDEOMODE', 'text')) {
             $cmdline .= 'ssh=1 ';    # trigger ssh-text installation
@@ -79,7 +79,9 @@ sub run {
     }
 
     type_string "console=$serialdev,115200 ", $type_speed;    # to get crash dumps as text
-    type_string "console=tty ",               $type_speed;
+    if (!(check_var('BACKEND', 'ipmi') && get_var('AUTOYAST'))) {
+        type_string "console=tty ", $type_speed;
+    }
 
     save_screenshot;
     assert_screen 'qa-net-typed';

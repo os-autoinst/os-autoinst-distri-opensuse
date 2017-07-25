@@ -1249,8 +1249,7 @@ elsif (get_var("VIRT_AUTOTEST")) {
         load_boot_tests();
         if (get_var("AUTOYAST")) {
             loadtest "autoyast/installation";
-            loadtest "autoyast/console";
-            loadtest "autoyast/login";
+            loadtest "virt_autotest/reboot_and_wait_up_normal4";
         }
         else {
             load_inst_tests();
