@@ -58,6 +58,7 @@ test-merge:
 	  FILES=$$(git diff --name-only FETCH_HEAD `git merge-base FETCH_HEAD master 2>/dev/null` | grep 'tests.*pm') ;\
 	  for file in $$FILES; do if test -f $$file; then \
 	    tools/check_metadata $$file || touch failed; \
+	    git grep wait_idle $$file && touch failed; \
 	    ${PERLCRITIC} $$file || touch failed ;\
 	  fi ; done; \
 	fi
