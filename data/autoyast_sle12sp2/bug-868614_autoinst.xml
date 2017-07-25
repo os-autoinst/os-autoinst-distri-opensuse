@@ -82,7 +82,7 @@
     </routing>
   </networking>
   <services-manager>
-    <default_target>graphical</default_target>
+    <default_target>multi-user</default_target>
     <services config:type="list"/>
   </services-manager>
   <timezone>
