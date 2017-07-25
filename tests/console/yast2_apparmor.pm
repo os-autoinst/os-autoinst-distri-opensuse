@@ -67,10 +67,10 @@ sub run {
     type_string 'I_added_this_profile';
     wait_screen_change { send_key 'alt-p' };
     wait_screen_change { send_key 'spc' };
-    assert_screen 'yast2_apparmor_configuration_manage_existing_profiles_edit_add_file_permissions_read';
+    assert_screen 'yast2_apparmor_file_permissions_read';
     wait_screen_change { send_key 'down' };
     wait_screen_change { send_key 'spc' };
-    assert_screen 'yast2_apparmor_configuration_manage_existing_profiles_edit_add_file_permissions_write';
+    assert_screen 'yast2_apparmor_file_permissions_write';
 
     # confirm with cancel
     wait_screen_change { send_key 'alt-c' };
@@ -82,10 +82,10 @@ sub run {
     type_string '/tmp';
     wait_screen_change { send_key 'alt-p' };
     wait_screen_change { send_key 'spc' };
-    assert_screen 'yast2_apparmor_configuration_manage_existing_profiles_edit_add_directory_permissions_read';
+    assert_screen 'yast2_apparmor_dir_permissions_read';
     wait_screen_change { send_key 'down' };
     wait_screen_change { send_key 'spc' };
-    assert_screen 'yast2_apparmor_configuration_manage_existing_profiles_edit_add_directory_permissions_write';
+    assert_screen 'yast2_apparmor_dir_permissions_write';
     wait_screen_change { send_key 'alt-o' };
     send_key 'alt-d';
 
