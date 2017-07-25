@@ -516,6 +516,10 @@ sub load_x11tests {
     if (get_var("XDMUSED")) {
         loadtest "x11/x11_login";
     }
+    if (kdestep_is_applicable() && get_var("WAYLAND")) {
+        loadtest "x11/plasma5_force_96dpi";
+        loadtest "x11/start_wayland_plasma5";
+    }
     if (xfcestep_is_applicable()) {
         loadtest "x11/xfce4_terminal";
     }
