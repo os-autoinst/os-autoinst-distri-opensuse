@@ -40,9 +40,7 @@ sub run {
 
     # test hotkeys
     send_key "alt-f12";
-    sleep 1;
-    wait_idle;
-    assert_screen 'test-tomboy_Hotkeys-2', 3;
+    assert_screen 'test-tomboy_Hotkeys-2';
     sleep 1;
     send_key "esc";
     sleep 2;
@@ -51,16 +49,13 @@ sub run {
     sleep 1;
     send_key "up";
     sleep 1;
-    wait_idle;
-    assert_screen 'test-tomboy_Hotkeys-3', 3;
+    assert_screen 'test-tomboy_Hotkeys-3';
     sleep 1;
     send_key "ctrl-w";
     sleep 2;
 
     send_key "alt-f10";
-    sleep 10;
-    wait_idle;
-    assert_screen 'test-tomboy_Hotkeys-4', 3;
+    assert_screen 'test-tomboy_Hotkeys-4';
     sleep 1;
     send_key "alt-t";
     sleep 3;

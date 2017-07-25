@@ -62,9 +62,8 @@ sub run {
         wait_screen_change { send_key 'ret' };
     }
     assert_screen 'inst-welcome';
-
-    wait_idle;
     mouse_hide;
+    wait_still_screen(3);
 
     # license+lang
     if (get_var('HASLICENSE')) {

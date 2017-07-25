@@ -26,8 +26,7 @@ sub run {
     sleep 2;
     type_string "hehe";
     sleep 1;
-    send_key "alt-f4";
-    wait_idle;
+    wait_screen_change { send_key 'alt-f4' };
 
     send_key "alt-f9";
     sleep 2;
@@ -35,8 +34,7 @@ sub run {
     sleep 1;
     assert_screen 'test-tomboy_TestFindFunctionalityInSearchAllNotes-1', 3;
     sleep 2;
-    send_key "alt-f4";
-    wait_idle;
+    wait_screen_change { send_key 'alt-f4' };
 
     # test Edit->preferences
     send_key "alt-f9";
@@ -49,8 +47,7 @@ sub run {
     sleep 2;
     send_key "alt-f4";
     sleep 1;
-    send_key "alt-f4";
-    wait_idle;
+    wait_screen_change { send_key 'alt-f4' };
 
     # test Help->Contents
     send_key "alt-f9";
@@ -63,8 +60,7 @@ sub run {
     sleep 2;
     send_key "alt-f4";
     sleep 1;
-    send_key "alt-f4";
-    wait_idle;
+    wait_screen_change { send_key 'alt-f4' };
 
     # test Help-> About
     send_key "alt-f9";
@@ -76,8 +72,7 @@ sub run {
     sleep 2;
     send_key "alt-f4";
     sleep 1;
-    send_key "alt-f4";
-    wait_idle;
+    wait_screen_change { send_key 'alt-f4' };
 
     # test File->Close
     send_key "alt-f";
@@ -96,8 +91,7 @@ sub run {
     sleep 1;
     send_key "alt-d";
     sleep 1;
-    send_key "alt-f4";
-    wait_idle;
+    wait_screen_change { send_key 'alt-f4' };
 }
 
 1;

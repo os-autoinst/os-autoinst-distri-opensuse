@@ -36,13 +36,10 @@ sub get_to_console {
     my $ret = check_screen(\@tags, 5);
     if ($ret && match_has_tag("linuxrc-repo-not-found")) {    # KVM only
         send_key "ctrl-alt-f9";
-        wait_idle;
         assert_screen "inst-console";
         type_string "blkid\n";
         save_screenshot();
-        send_key "ctrl-alt-f3";
-        wait_idle;
-        sleep 1;
+        wait_screen_change { send_key 'ctrl-alt-f3' };
         save_screenshot();
     }
     elsif ($ret) {

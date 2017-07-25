@@ -34,10 +34,8 @@ sub run {
     send_key "ret", 1;
 
     # add /usr
-    send_key $cmd{addpart};
-    wait_idle 4;
-    send_key $cmd{next};
-    wait_idle 3;
+    wait_screen_change { send_key $cmd{addpart} };
+    wait_screen_change { send_key $cmd{next} };
     for (1 .. 10) {
         send_key "backspace";
     }
@@ -45,8 +43,7 @@ sub run {
     send_key $cmd{next};
     assert_screen 'partition-role';
     send_key "alt-o";    # Operating System
-    send_key $cmd{next};
-    wait_idle 5;
+    wait_screen_change { send_key $cmd{next} };
     send_key "alt-m";        # Mount Point
     type_string "/usr\b";    # Backspace to break bad completion to /usr/local
     assert_screen "partition-splitusr-submitted-usr";

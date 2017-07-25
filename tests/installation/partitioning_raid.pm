@@ -83,8 +83,7 @@ sub addraid {
     assert_screen 'partition-role';
     send_key "alt-o";    # Operating System
 
-    send_key $cmd{next};
-    wait_idle 3;
+    wait_screen_change { send_key $cmd{next} };
 }
 
 sub setraidlevel {
@@ -135,9 +134,8 @@ sub set_lvm {
     send_key "alt-o";    # Operating System
     send_key $cmd{next};
 
-    # keep deafult to mount as root and btrfs
-    send_key $cmd{finish};
-    wait_idle 4;
+    # keep default to mount as root and btrfs
+    wait_screen_change { send_key $cmd{finish} };
 }
 
 sub run {
@@ -338,7 +336,6 @@ sub run {
     # LVM on top of raid if needed
     if (get_var("LVM")) {
         set_lvm();
-        wait_idle 3;
         save_screenshot;
     }
 

@@ -61,7 +61,6 @@ sub go_for_volume {
         # all other previous declaration are OK
         $newvolume->{name}   = "VOL" . $poolnb . "_" . $format;
         $newvolume->{format} = $format;
-        wait_idle;
         create_new_volume($newvolume);
     }
 }
@@ -69,7 +68,6 @@ sub go_for_volume {
 sub create_nfs_share {
     my ($dir) = @_;
     x11_start_program("xterm");
-    wait_idle;
     become_root();
     type_string "mkdir -p $dir";
     send_key "ret";
@@ -78,7 +76,6 @@ sub create_nfs_share {
     type_string "systemctl restart nfsserver.service";
     send_key "ret";
     type_string "exportfs\n";
-    wait_idle;
     type_string "exit";
     send_key "ret";
 }
@@ -86,15 +83,13 @@ sub create_nfs_share {
 sub checking_storage_result {
     my $volumes = shift;
     x11_start_program("xterm");
-    wait_idle;
     send_key "alt-f10";
     become_root();
     type_string "virsh -c qemu:///system pool-list";
     send_key "ret";
     foreach my $vol (@$volumes) {
         type_string "virsh -c qemu:///system vol-list $vol";
-        send_key "ret";
-        wait_idle;
+        wait_screen_change { send_key 'ret' };
     }
     save_screenshot;
     if (get_var("DESKTOP") !~ /icewm/) {

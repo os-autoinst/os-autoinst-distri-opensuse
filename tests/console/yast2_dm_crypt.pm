@@ -62,7 +62,6 @@ sub run {
     assert_screen "yast2-cryptfile-summary";
     send_key "alt-f";
     assert_screen "yast2-cryptfile-creation";
-    wait_idle;
 
     wait_serial('yast2-disk-status-0') || die "'yast2 disk' didn't finish";
 

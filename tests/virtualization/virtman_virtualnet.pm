@@ -24,7 +24,6 @@ use virtmanager;
 sub checking_vnet_result {
     my $net = shift;
     x11_start_program("xterm");
-    wait_idle;
     send_key "alt-f10";
     become_root();
     type_string "virsh -c qemu:///system net-list";
@@ -33,12 +32,11 @@ sub checking_vnet_result {
         type_string "virsh -c qemu:///system net-info $vnet";
         send_key "ret", 1;
     }
-    wait_idle;
     if (get_var("DESKTOP") !~ /icewm/) {
-        assert_screen "virtman-sle12-sp1-gnome_vnetcheck", 20;
+        assert_screen "virtman-sle12-sp1-gnome_vnetcheck";
     }
     else {
-        assert_screen "virtman_vnetcheck", 20;
+        assert_screen "virtman_vnetcheck";
     }
 }
 

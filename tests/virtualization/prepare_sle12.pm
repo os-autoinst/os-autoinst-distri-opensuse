@@ -22,6 +22,7 @@ use testapi;
 use virtmanager;
 
 sub run {
+    my ($self) = @_;
     # login and preparation of the system
     if (get_var("DESKTOP") =~ /icewm/) {
         send_key "ret";
@@ -46,11 +47,9 @@ sub run {
         assert_screen "virt-manager_SLE12_desktop", 520;
     }
     x11_start_program("xterm");
-    wait_idle;
     become_root;
     script_run("hostname susetest");
     script_run("echo susetest > /etc/hostname");
-    wait_idle;
 
     send_key "alt-f4";
 }

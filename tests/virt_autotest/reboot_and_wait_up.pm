@@ -22,7 +22,6 @@ sub reboot_and_wait_up {
     my $reboot_timeout = shift;
 
     if (get_var("PROXY_MODE")) {
-        wait_idle 1;
         select_console('root-console');
         my $test_machine = get_var("TEST_MACHINE");
         $self->reboot($test_machine, $reboot_timeout);

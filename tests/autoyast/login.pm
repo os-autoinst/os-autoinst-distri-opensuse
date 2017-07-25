@@ -30,9 +30,7 @@ sub run {
         use_ssh_serial_console;
     }
     assert_script_run 'echo "checking serial port"';
-    wait_idle(10);
     type_string "cat /proc/cmdline\n";
-    wait_idle(10);
     save_screenshot;
     $self->result('ok');
 }

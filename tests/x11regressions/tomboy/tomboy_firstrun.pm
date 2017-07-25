@@ -36,7 +36,6 @@ sub run {
     sleep 3;
     send_key "alt-f4";
     sleep 7;
-    wait_idle;
 }
 
 1;

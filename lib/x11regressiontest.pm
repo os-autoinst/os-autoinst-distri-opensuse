@@ -722,8 +722,7 @@ sub tomboy_logout_and_login {
     send_key "alt-f2";
     sleep 1;
     type_string "gnome-session-quit --logout --force\n";
-    sleep 20;
-    wait_idle;
+    wait_still_screen;
 
     # login
     send_key "ret";
@@ -732,8 +731,7 @@ sub tomboy_logout_and_login {
     type_password();
     sleep 2;
     send_key "ret";
-    sleep 20;
-    wait_idle;
+    assert_screen 'generic-desktop';
 
     # open start note again and take screenshot
     x11_start_program("tomboy note");

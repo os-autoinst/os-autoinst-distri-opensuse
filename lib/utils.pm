@@ -201,8 +201,7 @@ sub select_kernel {
             type_string $username;
         }
         else {
-            send_key 'ret';
-            wait_idle;
+            wait_screen_change { send_key 'ret' };
         }
         type_password;
         send_key 'ret';
@@ -633,8 +632,7 @@ sub poweroff_x11 {
         for (1 .. 5) {
             send_key "alt-f4";    # opens log out popup after all windows closed
         }
-        wait_idle;
-        assert_screen 'logoutdialog', 15;
+        assert_screen 'logoutdialog';
         type_string "\t\t";       # select shutdown
         sleep 1;
 

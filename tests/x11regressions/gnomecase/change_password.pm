@@ -44,7 +44,6 @@ sub logout_and_login {
 
 sub reboot_system {
     my ($self) = @_;
-    wait_idle;
     send_key "ctrl-alt-delete";    #reboot
     assert_screen 'logoutdialog', 15;
     assert_and_click 'logoutdialog-reboot-highlighted';

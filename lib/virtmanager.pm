@@ -13,14 +13,11 @@ sub launch_virtmanager {
     # start a console
     # launch virt-manager in an xterm
     x11_start_program("xterm");
-    wait_idle;
     type_string "virt-manager", 50;
     send_key "ret";
-    wait_idle;
     if (check_screen("virt-manager-auth")) {
         type_password;
         send_key "ret";
-        wait_idle;
     }
     save_screenshot;
 }
@@ -470,15 +467,13 @@ sub delete_netinterface {
 sub create_netinterface {
     my $netif = shift;
     # go to the "+" button
-    wait_idle;
     for (1 .. 7) {
         send_key "tab", 10;
     }
     # press it
-    send_key "spc", 1;
+    wait_screen_change { send_key 'spc' };
     # step 1
     # be sure to be at the first value (bridge)
-    wait_idle;
     for (1 .. 4) {
         send_key "up", 20;
     }
@@ -627,8 +622,7 @@ sub create_guest {
     }
     save_screenshot;
     # go to step2
-    send_key "alt-f";
-    wait_idle;
+    wait_screen_change { send_key "alt-f" };
     # step 2: media installation
     send_key "alt-f", 10;
     # step 3: Mem and CPU

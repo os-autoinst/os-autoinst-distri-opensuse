@@ -74,9 +74,8 @@ sub handle_expected_errors {
     send_key "alt-s";    #stop
     $self->save_and_upload_yastlogs("_expected_error$i");
     $i++;
-    send_key "tab";      #continue
-    send_key "ret";
-    wait_idle(5);
+    wait_screen_change { send_key 'tab' };    #continue
+    wait_screen_change { send_key 'ret' };
 }
 
 sub verify_timeout_and_check_screen {
@@ -145,9 +144,8 @@ sub run {
 
             assert_screen("startinstall", 20);
 
-            send_key "tab";
-            send_key "ret";
-            wait_idle(5);
+            wait_screen_change { send_key 'tab' };
+            wait_screen_change { send_key 'ret' };
             @needles = grep { $_ ne 'autoyast-confirm' } @needles;
             $confirmed = 1;
         }

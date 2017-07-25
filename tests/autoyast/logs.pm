@@ -33,12 +33,8 @@ sub run {
     type_string
 "tar cjf /tmp/logs.tar.bz2 --exclude=/etc/{brltty,udev/hwdb.bin} --exclude=/var/log/{YaST2,zypp,{pbl,zypper}.log} /var/{log,adm/autoinstall} /run/systemd/system/ /usr/lib/systemd/system/ /boot/grub2/{device.map,grub{.cfg,env}} /etc/\n";
     upload_logs "/tmp/logs.tar.bz2";
-
-    #on high load, wait_idle is not enough
     type_string "echo UPLOADFINISH >/dev/$serialdev\n";
     wait_serial("UPLOADFINISH", 200);
-
-    wait_idle(30);
     save_screenshot;
 }
 

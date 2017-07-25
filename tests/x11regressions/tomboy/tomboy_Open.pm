@@ -27,8 +27,7 @@ sub run {
     sleep 2;
     type_string "Rename_";
     sleep 1;
-    send_key "ctrl-w";
-    wait_idle;
+    wait_screen_change { send_key 'ctrl-w' };
 
     # Check hotkey for open "start here" still works
     send_key "alt-fll";

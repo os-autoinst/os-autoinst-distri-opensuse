@@ -96,7 +96,6 @@ sub run {
     send_key "alt-i",                          1;
     assert_screen "SLE12_install_in_progress", 10;
     # reboot !
-    wait_idle 530;
 }
 
 sub test_flags {

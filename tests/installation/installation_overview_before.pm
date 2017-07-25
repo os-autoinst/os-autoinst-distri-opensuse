@@ -27,9 +27,6 @@ sub run {
     # performed only once, as state of buttons can be different
     assert_screen "installation-settings-overview-loaded";
 
-    # preserve it for the video
-    wait_idle 10;
-
     if (match_has_tag 'manual-intervention') {
         $self->deal_with_dependency_issues;
     }
