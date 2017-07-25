@@ -229,8 +229,7 @@ sub send_meeting_request {
     #create new meeting
     send_key "shift-ctrl-e";
     assert_screen "evolution_mail-compse_meeting", 30;
-    send_key "alt-a";
-    sleep 2;
+    wait_screen_change { send_key 'alt-a' };
     type_string "$mail_box";
     send_key "alt-s";
     if (sle_version_at_least('12-SP2')) {
@@ -303,8 +302,7 @@ sub start_evolution {
     wait_screen_change {
         send_key "alt-a";
     };
-    type_string "$mail_box";
-    sleep 1;
+    wait_screen_change { type_string "$mail_box" };
     save_screenshot();
 
     # skip server look up for localhost email address
@@ -439,10 +437,7 @@ sub setup_mail_account {
     assert_and_click "evolution_wizard-sending-setauthtype";
     send_key_until_needlematch "evolution_wizard-sending-authtype", "down", 5, 3;
     send_key "ret";
-    wait_screen_change {
-        send_key "alt-n";
-    };
-    sleep 1;
+    wait_screen_change { send_key 'alt-n' };
     type_string "$mail_user";
     send_key $self->{next};
     send_key "ret";
@@ -610,7 +605,6 @@ sub setup_evolution_for_ews {
         send_key "alt-a";
     };
     type_string "$mailbox";
-    sleep 1;
     save_screenshot();
 
     send_key "alt-o";
@@ -704,14 +698,10 @@ sub evolution_send_message {
 }
 
 sub pidgin_remove_account {
-    send_key "ctrl-a";
-    sleep 2;
-    send_key "right";
-    sleep 2;
-    send_key "ret";
-    sleep 2;
-    send_key "alt-d";
-    sleep 2;
+    wait_screen_change { send_key "ctrl-a" };
+    wait_screen_change { send_key "right" };
+    wait_screen_change { send_key "ret" };
+    wait_screen_change { send_key "alt-d" };
     send_key "alt-d";
 }
 
@@ -719,17 +709,14 @@ sub tomboy_logout_and_login {
     wait_screen_change { send_key 'alt-f4' };
 
     # logout
-    send_key "alt-f2";
-    sleep 1;
+    wait_screen_change { send_key "alt-f2" };
     type_string "gnome-session-quit --logout --force\n";
     wait_still_screen;
 
     # login
     send_key "ret";
-    sleep 2;
     wait_still_screen;
     type_password();
-    sleep 2;
     send_key "ret";
     assert_screen 'generic-desktop';
 

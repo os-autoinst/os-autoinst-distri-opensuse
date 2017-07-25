@@ -24,7 +24,6 @@ sub run {
     # Create a file.
     foreach (@filenames) {
         x11_start_program("touch $_");
-        sleep 2;
     }
 }
 

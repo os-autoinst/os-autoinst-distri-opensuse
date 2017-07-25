@@ -23,7 +23,6 @@ sub run {
     send_key "ret";
     assert_screen "displaymanager", 300;
     select_console('root-console');
-    sleep 2;
 }
 
 sub test_flags {

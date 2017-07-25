@@ -20,8 +20,6 @@ sub run {
     $self->start_firefox;
 
     send_key "ctrl-shift-p";
-    sleep 5;
-
     send_key "alt-d";
     type_string "gnu.org\n";
     assert_screen('firefox-private-gnu', 90);
@@ -33,15 +31,12 @@ sub run {
     wait_still_screen 3;
     $self->exit_firefox;
 
-    sleep 2;
     x11_start_program("firefox");
     assert_screen('firefox-launch', 90);
 
     send_key "ctrl-h";
     assert_and_click('firefox-private-checktoday');
     assert_screen('firefox-private-checkhistory', 60);
-
-    sleep 1;
     send_key "alt-f4";
 
     # Exit

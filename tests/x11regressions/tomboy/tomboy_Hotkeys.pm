@@ -23,9 +23,7 @@ sub run {
     x11_start_program("tomboy note");
     wait_screen_change { send_key 'alt-e' };
     send_key "p";
-    sleep 1;
     send_key "right";
-    sleep 1;
 
     # set Hotkeys
     for (1 .. 4) {
@@ -33,7 +31,6 @@ sub run {
     }
     type_string "<Alt>F10\t<Alt>F9";
     assert_screen 'test-tomboy_Hotkeys-1', 3;
-    sleep 2;
     wait_screen_change { send_key 'esc' };
 
     $self->tomboy_logout_and_login;
@@ -41,59 +38,35 @@ sub run {
     # test hotkeys
     send_key "alt-f12";
     assert_screen 'test-tomboy_Hotkeys-2';
-    sleep 1;
     send_key "esc";
-    sleep 2;
 
     send_key "alt-f11";
-    sleep 1;
     send_key "up";
-    sleep 1;
     assert_screen 'test-tomboy_Hotkeys-3';
-    sleep 1;
     send_key "ctrl-w";
-    sleep 2;
 
     send_key "alt-f10";
     assert_screen 'test-tomboy_Hotkeys-4';
-    sleep 1;
     send_key "alt-t";
-    sleep 3;
     send_key "esc";
-    sleep 1;
     send_key "right";
-    sleep 1;
     send_key "right";
-    sleep 1;
     send_key "right";
-    sleep 1;
     send_key "ret";
-    sleep 3;
     send_key "alt-d";
-    sleep 2;
 
     send_key "alt-f9";
-    sleep 2;
     type_string "sssss\n";
-    sleep 1;
     assert_screen 'test-tomboy_Hotkeys-5', 3;
-    sleep 1;
     send_key "ctrl-a";
-    sleep 1;
     send_key "delete";
-    sleep 1;
 
     # to check all hotkeys
     send_key "alt-e";
-    sleep 1;
     send_key "p";
-    sleep 1;
     send_key "right";
-    sleep 1;
     assert_screen 'test-tomboy_Hotkeys-6', 3;
-    sleep 1;
     send_key "esc";
-    sleep 2;
     send_key "alt-f4";
 }
 

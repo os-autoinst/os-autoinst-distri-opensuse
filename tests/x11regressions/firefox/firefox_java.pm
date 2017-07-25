@@ -16,9 +16,7 @@ use base "x11regressiontest";
 use testapi;
 
 sub java_testing {
-    sleep 1;
     send_key "ctrl-t";
-    sleep 2;
     send_key "alt-d";
     type_string "http://www.java.com/en/download/installed.jsp?detect=jre\n";
 
@@ -59,31 +57,25 @@ sub run {
     if (check_var('DISTRI', 'sle')) {
         assert_and_click('firefox-logo');
     }
-    sleep 1;
     send_key "ctrl-shift-a";
 
     assert_screen("firefox-java-addonsmanager");
     #Required only on opensuse's FF, on sle search is available from "Get Add-ons"
     if (check_var('DISTRI', 'opensuse')) {
         assert_and_click('firefox-java-extensions');
-        sleep 1;
     }
 
     send_key "/";
-    sleep 1;
     type_string "iced\n";
 
     #Focus to "Available Add-ons"
     assert_and_click "firefox-java-myaddons";
 
     #Focus to "Ask to Activate"
-    sleep 1;
     assert_and_click "firefox-java-asktoactivate";
 
     #Focus to "Never Activate"
-    sleep 1;
     send_key "up";
-    sleep 1;
     send_key "ret";
 
     assert_screen("firefox-java-neveractive");
@@ -94,7 +86,7 @@ sub run {
     send_key "ctrl-w";
 
     #Focus to "Always Activate"
-    for my $i (1 .. 2) { sleep 1; send_key "down"; }
+    for my $i (1 .. 2) { send_key "down"; }
     assert_screen("firefox-java-active", 60);
 
     java_testing();

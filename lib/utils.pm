@@ -633,26 +633,25 @@ sub poweroff_x11 {
             send_key "alt-f4";    # opens log out popup after all windows closed
         }
         assert_screen 'logoutdialog';
-        type_string "\t\t";       # select shutdown
-        sleep 1;
+        wait_screen_change { type_string "\t\t" };    # select shutdown
 
         # assert_screen 'test-shutdown-1', 3;
         type_string "\n";
     }
 
     if (check_var("DESKTOP", "lxde")) {
-        x11_start_program("lxsession-logout");    # opens logout dialog
+        x11_start_program("lxsession-logout");        # opens logout dialog
         assert_screen "logoutdialog", 20;
         send_key "ret";
     }
 
     if (check_var("DESKTOP", "lxqt")) {
-        x11_start_program("shutdown");            # opens logout dialog
+        x11_start_program("shutdown");                # opens logout dialog
         assert_screen "lxqt_logoutdialog", 20;
         send_key "ret";
     }
     if (check_var("DESKTOP", "enlightenment")) {
-        send_key "ctrl-alt-delete";               # shutdown
+        send_key "ctrl-alt-delete";                   # shutdown
         assert_screen 'logoutdialog', 15;
         assert_and_click 'enlightenment_shutdown_btn';
     }

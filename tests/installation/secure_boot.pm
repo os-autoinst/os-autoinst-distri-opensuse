@@ -22,13 +22,11 @@ sub run {
     $cmd{bootloader} = "alt-b" if check_var('VIDEOMODE', "text");
     send_key $cmd{change};        # Change
     send_key $cmd{bootloader};    # Bootloader
-    sleep 4;
 
     # Is secure boot enabled?
     assert_screen "bootloader-secureboot-enabled";
-    send_key $cmd{accept};        # Accept
-    sleep 2;
-    send_key "alt-o";             # cOntinue
+    wait_screen_change { send_key $cmd{accept} };    # Accept
+    send_key "alt-o";                                # cOntinue
 }
 
 1;

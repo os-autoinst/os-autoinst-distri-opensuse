@@ -60,9 +60,7 @@ sub run {
             else {
                 assert_screen "addon-license-$a";
             }
-            sleep 2;
-            send_key 'alt-y';    # yes, agree
-            sleep 2;
+            wait_screen_change { send_key 'alt-y' };    # yes, agree
             send_key $cmd{next};
             assert_screen 'addon-list';
             if ((split(/,/, get_var('ADDONS')))[-1] ne $a) {

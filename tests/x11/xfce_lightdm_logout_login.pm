@@ -23,10 +23,8 @@ sub run {
     send_key "ret";
     assert_screen 'generic-desktop';
     mouse_set(100, 100);
-    sleep 1;
     for (1 .. 4) {
         mouse_hide;
-        sleep 3;
         check_screen('mouse-cursor', 1) || return;
     }
     die "mouse cursor still visible";

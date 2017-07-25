@@ -21,21 +21,16 @@ sub run {
     mouse_hide();
     x11_start_program("tomboy note");
     while (check_screen "tomboy_command_not_found", 5) {
-        sleep 30;
+        wait_still_screen;
         send_key "ret";
-        sleep 1;
     }
-    sleep 1;
+    wait_still_screen(3);
 
     # open the menu
     send_key "alt-f12";
-    sleep 2;
     check_screen "tomboy_menu", 5;
-    sleep 2;
-    send_key "esc";
-    sleep 3;
+    wait_screen_change { send_key 'esc' };
     send_key "alt-f4";
-    sleep 7;
 }
 
 1;

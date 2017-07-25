@@ -26,13 +26,11 @@ sub run {
     # Clean and Start Firefox
     $self->start_firefox;
 
-    sleep 2;
     send_key "alt-e";
     wait_still_screen 3;
     send_key "n";
     assert_and_click('firefox-passwd-security');
 
-    sleep 1;
     send_key "alt-shift-u";
 
     assert_screen('firefox-passwd-master_setting', 30);
@@ -40,18 +38,15 @@ sub run {
     type_string $masterpw;
     send_key "tab";
     type_string $masterpw;
-    for my $i (1 .. 3) { sleep 1; send_key "ret"; }
+    for my $i (1 .. 3) { send_key "ret"; }
 
     #Restart firefox
-    sleep 1;
     send_key "ctrl-q";
-    sleep 3;
     x11_start_program("firefox");
     assert_screen('firefox-gnome', 60);
 
     send_key "esc";
     send_key "alt-d";
-    sleep 1;
     type_string $mozlogin. "\n";
 
     assert_and_click('firefox-passwd-input_username');
@@ -59,40 +54,29 @@ sub run {
     send_key "tab";
     type_string "calamari";
     send_key "ret";
-    sleep 2;
     assert_and_click('firefox-passwd-confirm_remember');
     assert_screen('firefox-passwd-confirm_master_pw', 30);
     type_string $masterpw. "\n";
 
-    sleep 1;
     send_key "esc";
     send_key "alt-d";
     type_string $mozlogin. "\n";
     assert_screen('firefox-passwd-auto_filled', 90);
 
-    sleep 1;
     send_key "alt-e";
     send_key "n";    #Preferences
-    sleep 1;
     assert_and_click('firefox-passwd-security');
     send_key "alt-shift-p";    #"Saved Passwords..."
-    sleep 1;
     send_key "alt-shift-p";    #"Show Passwords"
-    sleep 1;
     type_string $masterpw. "\n";
-    sleep 1;
     send_key "alt-shift-l";
     assert_screen('firefox-passwd-saved', 30);
 
-    sleep 1;
     send_key "alt-shift-a";    #"Remove"
     wait_still_screen 3;
     send_key "alt-y";
-    sleep 1;
     send_key "alt-shift-c";
-    sleep 1;
     send_key "ctrl-w";
-    sleep 1;
     send_key "f5";
     assert_screen('firefox-passwd-removed', 60);
 

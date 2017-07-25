@@ -30,7 +30,6 @@ sub run {
     wait_screen_change { send_key 'alt-i' };    # Resize
     send_key "alt-u";                           # Custom
     type_string "1.5G";
-    sleep 2;
     send_key "ret";
 
     # add /usr

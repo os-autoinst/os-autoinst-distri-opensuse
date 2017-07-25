@@ -21,31 +21,19 @@ sub run {
 
     # select "start note", to see that start note cann't be deleted
     send_key "tab";
-    sleep 2;
     send_key "down";
-    sleep 2;
     send_key "down";
-    sleep 2;
     send_key "ret";
-    sleep 2;
     check_screen "tomboy_delete_0";    # to see if the delete buttom is avaiable
-    sleep 2;
 
     # press the delete button
     send_key "alt-t";
-    sleep 2;
     send_key "esc";
-    sleep 2;
     send_key "right";
-    sleep 2;
     send_key "right";
-    sleep 2;
     send_key "right";
-    sleep 2;
     send_key "ret";
-    sleep 2;
     send_key "ret";
-    sleep 2;
     wait_still_screen;
 
     send_key "alt-c";
@@ -56,7 +44,6 @@ sub run {
     check_screen "tomboy_delete_1", 5;    # to see if start note still there
     send_key "tab";                       # move the cursor back to text.
     send_key "alt-f4";
-    sleep 2;
 }
 
 1;

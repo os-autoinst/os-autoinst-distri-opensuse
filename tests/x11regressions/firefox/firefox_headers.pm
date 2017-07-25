@@ -29,7 +29,6 @@ sub run {
     type_string "www.gnu.org\n";
     assert_screen('firefox-headers-website', 90);
 
-    sleep 10;
     send_key "down";
     assert_screen('firefox-headers-first_item', 50);
 

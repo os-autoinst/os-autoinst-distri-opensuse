@@ -168,8 +168,7 @@ sub ensure_installed {
             next;
         }
         if (match_has_tag('Policykit-behind-window')) {
-            send_key("alt-tab");
-            sleep 3;
+            wait_screen_change { send_key 'alt-tab' };
             next;
         }
         if (match_has_tag('pkcon-proceed-prompt')) {
@@ -399,8 +398,7 @@ sub activate_console {
             # LIVE CDa do not run inst-consoles as started by inst-linux (it's regular live run, auto-starting yast live installer)
             assert_screen "text-login", 10;
             # login as root, who does not have a password on Live-CDs
-            type_string "root\n";
-            sleep 1;
+            wait_screen_change { type_string "root\n" };
         }
         else {
             # on s390x we need to login here by providing a password

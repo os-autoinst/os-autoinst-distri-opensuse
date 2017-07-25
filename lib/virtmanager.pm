@@ -37,11 +37,8 @@ sub connection_details {
     my ($tab) = @_;
     # connection details
     wait_screen_change { send_key "alt-e" };
-    sleep 1;
     # be sure return has been done
     send_key "ret";
-    sleep 1;
-    # send_key "ret";
     if (get_var("DESKTOP") !~ /icewm/) {
         assert_screen "virtman-sle12-gnome_details", 40;
     }
@@ -51,7 +48,6 @@ sub connection_details {
     # be sure to be on a tab
     for (1 .. 4) {
         send_key "tab";
-        #sleep 1;
     }
     # need to send X "right" key to go to the correct tab
     # network interface = 3
@@ -71,7 +67,6 @@ sub connection_details {
     }
     for (1 .. $count) {
         send_key "right";
-        sleep 1;
     }
 }
 
@@ -98,9 +93,6 @@ sub create_vnet {
     # got to "+"
     # i know assert_and_click could be used
     #    for (1 .. 6) {
-    #	send_key "tab";
-    #        #sleep 1;
-    #   }
     #send_key "spc";
     assert_and_click "SLE12_virt-manager_vnet_plus";
 
@@ -114,11 +106,9 @@ sub create_vnet {
     # got to enable_ipv4
     wait_screen_change { send_key "tab" };
     if ($vnet->{ipv4}{active} eq "true") {
-        send_key "tab";
-        sleep 1;
+        wait_screen_change { send_key "tab" };
         type_string $vnet->{ipv4}{network};
-        send_key "tab";
-        sleep 1;
+        wait_screen_change { send_key "tab" };
         if ($vnet->{ipv4}{dhcpv4}{active} eq "true") {
             send_key "tab";
             type_string $vnet->{ipv4}{dhcpv4}{start};
@@ -128,17 +118,14 @@ sub create_vnet {
         else {
             # disable
             send_key "spc";
-            sleep 1;
         }
         send_key "tab";
         if ($vnet->{ipv4}{staticrouteipv4}{active} eq "true") {
-            send_key "spc";
-            sleep 1;
+            wait_screen_change { send_key "spc" };
             send_key "tab";
             type_string $vnet->{ipv4}{staticrouteipv4}{tonet};
             send_key "tab";
             type_string $vnet->{ipv4}{staticrouteipv4}{viagw};
-            sleep 1;
         }
         # if not staticrouteipv4 we can go next
     }
@@ -150,17 +137,13 @@ sub create_vnet {
     wait_screen_change { send_key "alt-f" };
     # step 3
     if ($vnet->{ipv6}{active} eq "true") {
-        send_key "tab";
-        send_key "spc";
-        sleep 1;
-        send_key "tab";
-        sleep 1;
+        wait_screen_change { send_key "tab" };
+        wait_screen_change { send_key "spc" };
+        wait_screen_change { send_key "tab" };
         type_string $vnet->{ipv6}{network};
-        send_key "tab";
-        sleep 1;
+        wait_screen_change { send_key "tab" };
         if ($vnet->{ipv6}{dhcpv6}{active} eq "true") {
-            send_key "spc";
-            sleep 1;
+            wait_screen_change { send_key "spc" };
             send_key "tab";
             type_string $vnet->{ipv6}{dhcpv6}{start};
             send_key "tab";
@@ -168,8 +151,7 @@ sub create_vnet {
         }
         send_key "tab";
         if ($vnet->{ipv4}{staticrouteipv6}{active} eq "true") {
-            send_key "spc";
-            sleep 1;
+            wait_screen_change { send_key "spc" };
             send_key "tab";
             type_string $vnet->{ipv6}{staticrouteipv6}{tonet};
             send_key "tab";
@@ -226,8 +208,7 @@ sub loop_down {
 sub valid_step {
     # quick function to valid a step
     # validate step with forward
-    send_key "alt-f";
-    sleep 1;
+    wait_screen_change { send_key "alt-f" };
     # be sure that there is no error, or remove them from screen
     save_screenshot;
     for (1 .. 4) { send_key "esc"; }
@@ -249,7 +230,6 @@ sub create_new_pool {
     # got to the "+"
     for (1 .. 8) {
         send_key "tab";
-        #sleep 1;
     }
     send_key "spc";
     # step 1
@@ -450,12 +430,9 @@ sub delete_netinterface {
     send_key "esc";
     # lets go to an interface now
     send_key "tab";
-    sleep 1;
     send_key "down";
-    sleep 1;
-    for (1 .. 7) { send_key "tab"; sleep 1; }
+    for (1 .. 7) { send_key "tab"; }
     send_key "spc";
-    sleep 1;
     save_screenshot;
     send_key "alt-y";
     # close virt-manager
@@ -492,8 +469,7 @@ sub create_netinterface {
     # step 2
     # there is no name for ethernet or vlan
     if ($netif->{type} ne "ethernet" && $netif->{type} ne "vlan") {
-        send_key "tab";
-        sleep 1;
+        wait_screen_change { send_key "tab" };
         type_string $netif->{name}, 50;
     }
     send_key "tab";
@@ -514,12 +490,10 @@ sub create_netinterface {
     send_key "tab";
     #go to IPsettings
     send_key "ret";
-    sleep 1;
     if ($netif->{ipsetting}{copy}{active} eq "true") {
         send_key "tab";
         send_key "up";
         send_key "alt-o";
-        sleep 1;
     }
     elsif ($netif->{ipsetting}{manually}{active} eq "true") {
         # default selection
@@ -529,31 +503,22 @@ sub create_netinterface {
         }
         elsif ($netif->{ipsetting}{manually}{ipv4}{mode} eq "static") {
             send_key "tab";
-            sleep 1;
             send_key "tab";
-            sleep 1;
             send_key "tab";
             send_key "down";
-            sleep 1;
             send_key "tab";
             type_string $netif->{ipsetting}{manually}{ipv4}{address}, 50;
             send_key "tab";
-            sleep 1;
             type_string $netif->{ipsetting}{manually}{ipv4}{gateway}, 50;
         }
         elsif ($netif->{ipsetting}{manually}{ipv4}{mode} eq "noconf") {
             send_key "tab";
-            sleep 1;
             send_key "tab";
-            sleep 1;
             send_key "down";
-            sleep 1;
             send_key "down";
-            sleep 1;
         }
         save_screenshot;
         send_key "alt-o";
-        sleep 1;
     }
     # next step for ethernet is interface selection, there is no other conf
     if ($netif->{type} ne "ethernet") {
@@ -568,7 +533,6 @@ sub create_netinterface {
         }
         save_screenshot;
         send_key "alt-o";
-        sleep 1;
     }
     if ($netif->{type} eq "vlan") {
         type_string $netif->{vlantag}, 50;
@@ -643,7 +607,6 @@ sub create_guest {
     create_new_volume($newvolume);
     save_screenshot;
     # choose this volume and press alt-v
-    #send_key "tab"; sleep 1;
     if (get_var("DESKTOP") !~ /icewm/) {
         assert_and_click "virtman-sle12-gnome_choose_volume";
     }

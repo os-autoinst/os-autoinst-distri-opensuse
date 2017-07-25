@@ -90,7 +90,6 @@ sub start_nc_on_slave {
     my ($self) = @_;
     # Create nc connection on root console
     type_string "mkfifo /dev/$SLAVE_SERIALDEV\n";
-    sleep 2;
     type_string "tail -f /dev/$SLAVE_SERIALDEV | nc -l 1234 &\n";
     save_screenshot;
     save_org_serialdev();
@@ -105,7 +104,6 @@ sub con_nc_on_proxy {
     my $proxy_serialdev = get_var("PROXY_SERIALDEV", "ttyS0");
 
     type_string "nc ${test_machine} 1234 |tee /dev/" . $proxy_serialdev . "\n";
-    sleep 3;
     save_screenshot;
 }
 

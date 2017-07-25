@@ -18,8 +18,7 @@ sub post_fail_hook {
     my $snapshot_before = get_var('KGRAFT_SNAPSHOT_BEFORE');
     my $name            = get_var('VIRSH_GUESTNAME');
     save_screenshot;
-    send_key('ctrl-c');
-    sleep 2;
+    wait_screen_change { send_key 'ctrl-c' };
     capture_state("fail");
 
     #reconnect to svirt backend and revert to snapshot before update

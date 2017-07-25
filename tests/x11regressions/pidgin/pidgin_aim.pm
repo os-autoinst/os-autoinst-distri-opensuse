@@ -26,74 +26,50 @@ sub run {
     x11_start_program("pidgin");
 
     # Create account
-    send_key "alt-a";
-    sleep 2;
-    send_key "spc";
-    sleep 2;
-
+    wait_screen_change { send_key 'alt-a' };
+    wait_screen_change { send_key 'spc' };
     send_key_until_needlematch 'pidgin-protocol-aim', 'down';
-    send_key "ret";
-    sleep 2;
-    send_key "alt-u";
-    sleep 1;
-
+    wait_screen_change { send_key 'ret' };
+    wait_screen_change { send_key 'alt-u' };
     type_string $USERNAME. "@" . $DOMAIN . ".com";
-    sleep 2;
-    send_key "alt-p";
-    sleep 1;
+    wait_still_screen(1);
+    wait_screen_change { send_key 'alt-p' };
     type_string $PASSWD;
-    sleep 2;
-    send_key "alt-a";
+    wait_screen_change { send_key "alt-a" };
 
     # Should create AIM account 1
     assert_screen 'pidgin-aim-account1';
 
     # Create another account
-    send_key "ctrl-a";
-    sleep 2;
-    send_key "alt-a";
-    sleep 2;
-    send_key "alt-u";
-    sleep 1;
-    type_string $USERNAME1. "@" . $DOMAIN . ".com";
-    sleep 2;
-    send_key "alt-p";
-    sleep 1;
-    type_string "$PASSWD";
-    sleep 2;
-    send_key "alt-a";
-    sleep 15;    # wait until account2 online
-
+    wait_screen_change { send_key 'ctrl-a' };
+    wait_screen_change { send_key 'alt-a' };
+    wait_screen_change { send_key 'alt-u' };
+    wait_screen_change { type_string $USERNAME1. "@" . $DOMAIN . ".com" };
+    wait_screen_change { send_key "alt-p" };
+    wait_screen_change { type_string "$PASSWD" };
+    wait_screen_change { send_key "alt-a" };
     # Should have AIM accounts 1 and 2
     assert_screen 'pidgin-aim-account2';
 
     # Close account manager
-    send_key "ctrl-a";
-    sleep 2;
-    send_key "alt-c";
-    sleep 2;
+    wait_screen_change { send_key "ctrl-a" };
+    wait_screen_change { send_key "alt-c" };
 
     # Open a chat
-    send_key "tab";
-    sleep 2;
+    wait_screen_change { send_key "tab" };
     send_key_until_needlematch 'pidgin-aim-online-buddy', 'down';
-    sleep 2;
-    send_key "ret";
-    sleep 2;
+    wait_screen_change { send_key "ret" };
     type_string "hello world!\n";
 
     # Should see "hello world!" in screen.
     assert_screen 'pidgin-aim-sentmsg';
     send_key "ctrl-tab";
     assert_screen 'pidgin-aim-receivedmsg';
-    sleep 2;
 
     # Cleaning
     # Close the conversation
+    wait_screen_change { send_key "ctrl-w" };
     send_key "ctrl-w";
-    sleep 2;
-    send_key "ctrl-w";
-    sleep 2;
 
     # Remove both accounts
     for (1 .. 2) {
@@ -104,10 +80,8 @@ sub run {
     assert_screen 'pidgin-welcome';
 
     # Exit
-    send_key "alt-c";
-    sleep 2;
+    wait_screen_change { send_key "alt-c" };
     send_key "ctrl-q";
-    sleep 2;
 }
 
 1;

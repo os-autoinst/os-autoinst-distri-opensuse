@@ -26,10 +26,8 @@ sub run {
     else {
         script_run "tracker-info newpl.pl";
     }
-    sleep 5;
     assert_screen 'tracker-info-newpl';
     send_key "alt-f4";
-    sleep 2;    # close xterm
 }
 
 1;

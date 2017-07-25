@@ -21,7 +21,6 @@ sub run {
     x11_start_program("gnote");
     assert_screen "gnote-first-launched", 10;
     send_key "ctrl-f";
-    sleep 2;
     type_string "welcome";
     assert_screen 'gnote-search-welcome', 5;
 

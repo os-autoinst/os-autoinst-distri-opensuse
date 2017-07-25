@@ -47,7 +47,7 @@ sub run {
 
     script_sudo("yast2 lan; echo yast2-lan-status-\$? > /dev/$serialdev", 0);
 
-    assert_screen [qw(Networkmanager_controlled yast2_lan install-susefirewall2 dhcp-popup)], 60;
+    assert_screen [qw(Networkmanager_controlled yast2_lan install-susefirewall2 dhcp-popup)], 120;
     handle_dhcp_popup;
     if (match_has_tag('Networkmanager_controlled')) {
         handle_Networkmanager_controlled;

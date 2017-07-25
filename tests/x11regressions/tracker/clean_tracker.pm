@@ -21,7 +21,6 @@ sub run {
     # Delete a file.
     foreach (@filenames) {
         x11_start_program("rm -rf $_");
-        sleep 2;
     }
 }
 

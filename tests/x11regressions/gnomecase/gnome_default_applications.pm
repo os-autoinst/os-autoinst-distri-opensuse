@@ -35,7 +35,6 @@ sub run {
     send_key "ctrl-l";
     type_string "/home/$username/gnometest\n";
     send_key "ret";
-    sleep 5;
     assert_screen 'gnomecase-defaultapps-nautilus';
 
     # Open test files with default applications
