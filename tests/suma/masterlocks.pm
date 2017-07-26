@@ -13,12 +13,23 @@
 use 5.018;
 use parent "basetest";
 use lockapi;
+use mmapi;
+use testapi;
 
 sub run {
-  # this is for master to wait for minion
+  # this is for master to wait for minion-branchserver
   barrier_create('suma_minion_ready', 2);
   # this is for minion to wait for master
   barrier_create('suma_master_ready', 2);
+
+  my $n = keys get_children();
+
+  # create barriers for all loaded suma tests
+  for my $t (@{get_var_array('SUMA_TESTS')}) {
+    barrier_create($t, $n+1);
+    barrier_create($t.'_finish', $n+1);
+  }
+  
 }
 
 sub test_flags {

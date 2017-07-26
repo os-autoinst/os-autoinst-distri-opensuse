@@ -16,7 +16,6 @@ use lockapi;
 
 sub run {
   # this is for master to wait for minion
-  barrier_create('suma_branch_ready', 2);
 }
 
 sub test_flags {

@@ -26,10 +26,6 @@ sub run {
   };
   send_key_until_needlematch('suma-salt-minion-bootstrapped', 'ctrl-r', 10, 15);
 
-  # create barriers for all loaded suma tests
-  for my $t (@{get_var_array('SUMA_TESTS')}) {
-    barrier_create($t, 3);
-  }
   barrier_wait('suma_minion_ready');
 }
 

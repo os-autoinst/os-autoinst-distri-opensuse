@@ -22,7 +22,6 @@ sub run {
   select_console 'root-console';
   configure_dhcp();
   script_run('ip a');
-  barrier_wait('suma_branch_ready');
 }
 
 1;

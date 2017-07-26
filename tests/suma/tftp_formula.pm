@@ -39,7 +39,6 @@ sub run {
     if ( script_run('netstat -ulnp | grep \''.$testip.':69\s\' | grep -P \'/atftpd\s*$\' ') ) {
       record_soft_failure('atftpd listens everywhere: bsc#1049832');
     }
-
     script_run('echo "test" > /srv/tftpboot/test');
     type_string('atftp localhost');send_key('ret');
     type_string('get test');send_key('ret');
@@ -58,7 +57,6 @@ sub run {
             
     my $master = get_var('HOSTNAME');#exists, checked in webinit
 
-    barrier_create('tftp_formula_finish', 3);
     $self->install_formula('tftp-formula');
     
     wait_still_screen; 

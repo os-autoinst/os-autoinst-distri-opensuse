@@ -39,7 +39,6 @@ sub run {
   barrier_wait('suma_master_ready');
   assert_script_run('systemctl restart salt-minion');
   barrier_wait('suma_minion_ready');
-  barrier_wait('suma_branch_ready');
 }
 
 1;

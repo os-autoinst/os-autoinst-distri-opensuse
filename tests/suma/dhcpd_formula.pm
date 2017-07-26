@@ -48,7 +48,6 @@ sub run {
     barrier_wait('dhcp_ready_finish');
   }
   else {
-    barrier_create('dhcpd_formula_finish', 2);
     $self->install_formula('dhcpd-formula');
     assert_and_click('suma-salt-menu');
     assert_and_click('suma-salt-formulas');
