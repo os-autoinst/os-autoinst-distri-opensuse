@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -9,6 +9,7 @@
 
 # Summary: Check VNC Secondary viewonly password
 # Maintainer: mkravec <mkravec@suse.com>
+# Tags: poo#11794
 
 use base "x11test";
 use strict;
@@ -17,6 +18,8 @@ use utils 'ensure_unlocked_desktop';
 
 my @options = ({pw => "full_access_pw", change => 1}, {pw => "view_only_pw", change => 0});
 my $theme = "/usr/share/gnome-shell/theme/gnome-classic.css";
+# arbitrary display assumed to be free for a VNC server
+my $display = ':37';
 
 sub type_and_wait {
     type_string shift;
@@ -40,11 +43,10 @@ sub start_vnc_server {
     type_string "tput cnorm\n";
 
     # Start server
-    type_string "Xvnc :1 -SecurityTypes=VncAuth -PasswordFile=/tmp/file.passwd\n";
+    type_string "Xvnc $display -SecurityTypes=VncAuth -PasswordFile=/tmp/file.passwd\n";
     save_screenshot;
 }
 
-# poo#11794
 sub run {
     select_console "root-console";
     # Hide panel buttons so wait_screen_change ignores clock change
@@ -59,11 +61,11 @@ sub run {
     x11_start_program "xterm";
     assert_screen('xterm');
     send_key "super-right";
-    type_string "DISPLAY=:1 xev\n";
+    type_string "DISPLAY=$display xev\n";
 
     # Start vncviewer (rw & ro mode) and check if changes are processed by xev
     foreach my $opt (@options) {
-        x11_start_program("vncviewer :1 -SecurityTypes=VncAuth");
+        x11_start_program("vncviewer $display -SecurityTypes=VncAuth");
         assert_screen "vnc_password_dialog", 60;
         type_string "$opt->{pw}\n";
         assert_screen 'vncviewer-xev';
