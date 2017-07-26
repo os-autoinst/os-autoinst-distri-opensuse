@@ -8,25 +8,22 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: split the paritioning monster into smaller pieces
-# G-Maintainer: Stephan Kulow <coolo@suse.de>
+# Summary: Test/execute the toggling of a separate home partition
+# Maintainer: Stephan Kulow <coolo@suse.de>
 
 use strict;
 use base "y2logsstep";
 use testapi;
 
 sub run {
-    send_key 'alt-d';    # open proposal settings
-    if (!check_screen 'disabledhome', 5) {
-        if (check_screen('inst-partition-radio-buttons', 5)) {    # detect whether new (Radio Buttons) YaST behaviour
-            send_key 'alt-r';                                     # unselect separate home partition
-        }
-        else {
-            send_key 'alt-p';                                     # unselect separate home partition
-        }
+    wait_screen_change { send_key 'alt-d' };    # open proposal settings
+    if (!check_screen 'disabledhome', 0) {
+        # detect whether new (Radio Buttons) YaST behaviour
+        my $new_radio_buttons = check_screen('inst-partition-radio-buttons', 0);
+        send_key $new_radio_buttons ? 'alt-r' : 'alt-p';
     }
     assert_screen 'disabledhome';
-    send_key 'alt-o';                                             # close proposal settings
+    send_key 'alt-o';                           # close proposal settings
 }
 
 1;
