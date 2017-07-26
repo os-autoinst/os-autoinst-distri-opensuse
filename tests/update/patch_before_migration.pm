@@ -40,16 +40,27 @@ sub patching_sle {
 
     if (get_var('MINIMAL_UPDATE')) {
         minimal_patch_system(version_variable => 'HDDVERSION');
+        remove_test_repositories;
     }
 
     if (get_var('FULL_UPDATE')) {
         fully_patch_system();
         type_string "reboot\n";
-        $self->wait_boot(textmode => !is_desktop_installed, ready_time => 600);
-        $self->setup_migration;
+        $self->wait_boot(textmode => !is_desktop_installed(), ready_time => 600);
+        # Go back to the initial state, before the patching
+        $self->setup_migration();
     }
 
-    de_register(version_variable => 'HDDVERSION');
+    if (get_var('FLAVOR', '') =~ /-(Updates|Incidents)$/) {
+        # The system is registered.
+        set_var('HDD_SCC_REGISTERED', 1);
+        # SKIP the module installation window, from the add_update_test_repo test
+        set_var('SKIP_INSTALLER_SCREEN', 1);
+
+    }
+    else {
+        de_register(version_variable => 'HDDVERSION');
+    }
     remove_ltss;
     assert_script_run("zypper mr --enable --all");
     set_var("VIDEOMODE", '');
@@ -61,7 +72,7 @@ sub patching_sle {
 sub run {
     my ($self) = @_;
 
-    $self->setup_migration;
+    $self->setup_migration();
     $self->patching_sle();
 }
 

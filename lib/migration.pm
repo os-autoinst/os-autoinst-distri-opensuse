@@ -23,6 +23,7 @@ use strict;
 use testapi;
 use utils;
 use registration;
+use qam qw/remove_test_repositories/;
 
 our @EXPORT = qw(
   setup_migration
@@ -46,6 +47,8 @@ sub setup_migration {
     type_string "echo 'export Y2DEBUG=1' >> /etc/bash.bashrc.local\n";
     script_run "source /etc/bash.bashrc.local";
 
+    # remove the PATCH test_repos
+    remove_test_repositories();
     save_screenshot;
 }
 
