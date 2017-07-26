@@ -13,7 +13,8 @@
 use strict;
 use base "console_yasttest";
 use testapi;
-use utils "type_string_slow";
+use utils qw(type_string_slow zypper_call);
+
 
 my %sub_menu_needles = (
     start_up      => 'yast2_proxy_start-up',
@@ -32,6 +33,7 @@ sub select_sub_menu {
     wait_still_screen 1;
     send_key 'down';
     assert_screen $sub_menu_needles{$wanted_screen};
+    wait_still_screen 1;
     wait_screen_change { send_key 'ret'; };
     wait_still_screen 1;
 }
@@ -51,7 +53,7 @@ sub run {
     select_console 'root-console';
 
     # install yast2-squid, yast2-proxy, squid package at first
-    assert_script_run("zypper -n -q in squid yast2-squid yast2-proxy");
+    zypper_call("in squid yast2-squid yast2-proxy", timeout => 180);
 
     # set up visible_hostname or squid spends 30s trying to determine public hostname
     script_run 'echo "visible_hostname $HOSTNAME" >> /etc/squid/squid.conf';
@@ -166,9 +168,9 @@ sub run {
     wait_screen_change { send_key 'alt-o'; };
 
     # move to Access Control and change something
-    send_key 'tab';
-    send_key 'tab';
+    send_key_until_needlematch 'yast2_proxy_safe_ports_selected', 'tab';
     send_key 'alt-w';
+    wait_still_screen 1;
     send_key 'alt-w';
 
     # check changes in ACL Groups and Access Control
@@ -226,11 +228,12 @@ sub run {
     send_key 'alt-s';
     #	check again before to close configuration
     assert_screen 'yast2_proxy_before_close';
+    wait_still_screen 1;
     # finish configuration with OK
-    wait_screen_change { send_key 'alt-o' };
+    wait_screen_change { send_key 'alt-o'; };
 
     # yast might take a while on sle12 due to suseconfig
-    wait_serial("yast2-squid-status-0", 180) || die "'yast2 squid' didn't finish";
+    wait_serial("yast2-squid-status-0", 360) || die "'yast2 squid' didn't finish";
 
     # check squid proxy server status
     assert_script_run "systemctl show -p ActiveState squid.service|grep ActiveState=active";

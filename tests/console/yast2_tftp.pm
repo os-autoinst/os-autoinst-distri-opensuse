@@ -18,7 +18,7 @@ use utils;
 sub run {
     select_console 'root-console';
 
-    zypper_call("in tftp yast2-tftp-server");
+    zypper_call("in tftp yast2-tftp-server", timeout => 240);
 
     script_run("yast2 tftp-server; echo yast2-tftp-server-status-\$? > /dev/$serialdev", 0);
     assert_screen 'yast2_tftp-server_configuration';
@@ -63,9 +63,8 @@ sub run {
     assert_screen 'yast2_tftp_create_new_directory';
     send_key 'alt-y';        # approve creation of new directory
 
-    # wait 60 seconds for yast2 tftp configuration got completed.
-    wait_serial("yast2-tftp-server-status-0") || die "'yast2 tftp-server' failed";
-    assert_screen 'yast2_console-finished';
+    # wait for yast2 tftp configuration completion
+    wait_serial("yast2-tftp-server-status-0", 180) || die "'yast2 tftp-server' failed";
 
     # create a test file for tftp server
     my $server_string = 'This is a QA tftp server';

@@ -13,7 +13,7 @@
 use strict;
 use base "console_yasttest";
 use testapi;
-
+use utils "zypper_call";
 
 
 sub run {
@@ -22,7 +22,7 @@ sub run {
     # check network at first
     assert_script_run("if ! systemctl -q is-active network; then systemctl -q start network; fi");
     # install xinetd at first
-    assert_script_run("/usr/bin/zypper -n -q in xinetd");
+    zypper_call("in xinetd", timeout => 180);
 
     script_run("yast2 xinetd; echo yast2-xinetd-status-\$? > /dev/$serialdev", 0);
 
@@ -59,7 +59,7 @@ sub run {
     send_key 'alt-d';
     wait_still_screen 1;
     assert_screen 'yast2_xinetd_cannot_delete_again';
-    send_key 'alt-o';
+    wait_screen_change { send_key 'alt-o'; };
 
     # add a service
     send_key 'alt-a';
@@ -78,10 +78,10 @@ sub run {
     wait_still_screen 1;
 
     # close xinetd with finish
-    send_key 'alt-f';
+    wait_screen_change { send_key 'alt-f'; };
 
     # wait till xinetd got closed
-    wait_serial('yast2-xinetd-status-0', 60) || die "'yast2 xinetd' didn't finish";
+    wait_serial('yast2-xinetd-status-0', 180) || die "'yast2 xinetd' didn't finish";
 
     # check xinetd configuration
     assert_script_run("systemctl show -p ActiveState xinetd.service | grep ActiveState=active");

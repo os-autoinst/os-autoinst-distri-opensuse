@@ -16,7 +16,7 @@
 use base "console_yasttest";
 use strict;
 use testapi;
-
+use utils "zypper_call";
 
 sub run {
     #
@@ -27,7 +27,7 @@ sub run {
     assert_script_run 'sed -i \'5i# test comment\' /etc/fstab';
     assert_script_run 'cat /etc/fstab > fstab_before';
     # Make sure packages are installed
-    assert_script_run 'zypper -n in yast2-nfs-client nfs-client nfs-kernel-server';
+    zypper_call('in yast2-nfs-client nfs-client nfs-kernel-server', timeout => 180);
     # Prepare the test file structure
     assert_script_run 'mkdir -p /tmp/nfs/server';
     assert_script_run 'echo "It worked" > /tmp/nfs/server/file.txt';
@@ -52,8 +52,8 @@ sub run {
     send_key 'alt-m';
     type_string '/tmp/nfs/client';
     # Save the new connection and close YaST
-    send_key 'alt-o';
-    send_key 'alt-o';
+    wait_screen_change { send_key 'alt-o'; };
+    wait_screen_change { send_key 'alt-o'; };
     wait_idle;
 
     #

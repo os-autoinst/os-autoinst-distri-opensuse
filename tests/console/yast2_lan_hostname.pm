@@ -24,12 +24,12 @@ sub hostname_via_dhcp {
     send_key "alt-s";    # open hostname tab
     assert_screen "yast2_lan-hostname-tab";
     for (1 .. 4) { send_key 'tab' }    # go to roll-down list
-    send_key 'down';                   # open roll-down list
-    for (1 .. 3) { send_key 'up' }     # go on top of list
+    wait_screen_change { send_key 'down'; };    # open roll-down list
+    for (1 .. 3) { send_key 'up' }              # go on top of list
     send_key_until_needlematch "yast2_lan-hostname-DHCP-$dhcp", 'down';
-    send_key 'spc';                     # pick selected option
-    send_key 'alt-o';                   # OK=>Save&Exit
-    assert_screen 'console-visible';    # yast module exited
+    wait_screen_change { send_key 'spc'; };     # pick selected option
+    send_key 'alt-o';                           # OK=>Save&Exit
+    assert_screen 'console-visible';            # yast module exited
     wait_still_screen;
     if ($dhcp eq 'no') {
         assert_script_run 'grep DHCLIENT_SET_HOSTNAME /etc/sysconfig/network/dhcp|grep no';
@@ -40,6 +40,8 @@ sub hostname_via_dhcp {
         assert_script_run 'grep DHCLIENT_SET_HOSTNAME /etc/sysconfig/network/dhcp|grep no';
     }
     elsif ($dhcp eq 'yes-any') {
+        # sometimes settings not yep
+        sleep 60;
         assert_script_run 'grep DHCLIENT_SET_HOSTNAME /etc/sysconfig/network/dhcp|grep yes';
     }
 }
