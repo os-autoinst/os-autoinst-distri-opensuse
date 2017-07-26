@@ -19,7 +19,7 @@
 use strict;
 use base 'basetest';
 use testapi;
-use utils qw(sle_version_at_least power_action);
+use utils qw(sle_version_at_least power_action add_serial_console);
 
 sub run {
     select_console('root-console');
@@ -27,9 +27,7 @@ sub run {
         type_string "rm -f /etc/udev/rules.d/70-persistent-net.rules\n";
     }
     if (!sle_version_at_least('12-SP2') && check_var('VIRTIO_CONSOLE', 1)) {
-        type_string("echo 'hvc0' >> /etc/securetty\n");
-        script_run('systemctl enable serial-getty@hvc0');
-        script_run('systemctl start serial-getty@hvc0');
+        add_serial_console('hvc0');
     }
     power_action('poweroff');
 }

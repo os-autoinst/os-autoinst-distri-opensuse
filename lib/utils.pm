@@ -57,6 +57,7 @@ our @EXPORT = qw(
   power_action
   assert_shutdown_and_restore_system
   assert_screen_with_soft_timeout
+  add_serial_console
   is_desktop_installed
   pkcon_quit
   systemctl
@@ -766,6 +767,22 @@ sub assert_screen_with_soft_timeout {
         record_soft_failure "$args{soft_failure_reason}";
     }
     return assert_screen $mustmatch, $args{timeout} - $args{soft_timeout};
+}
+
+=head2 add_serial_console
+
+    add_serial_console($console);
+
+Adds $console to /etc/securetty (unless already in file), enables systemd
+service and start it. It requires selecting root console before.
+
+=cut
+sub add_serial_console {
+    my ($console) = @_;
+    my $service   = 'serial-getty@' . $console;
+    my $config    = '/etc/securetty';
+    my $device    = "/dev/$console";
+    script_run("grep -q '^$console\$' $config || echo '$device' >> $config; systemctl enable $service; systemctl start $service");
 }
 
 sub is_desktop_installed {
