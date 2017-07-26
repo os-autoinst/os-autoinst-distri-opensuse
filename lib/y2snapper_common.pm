@@ -104,30 +104,16 @@ sub y2snapper_clean_and_quit {
     # Ensure yast2-snapper is not busy anymore
     wait_still_screen;
     # C'l'ose the snapper module
-    send_key "alt-l";
+    wait_screen_change { send_key "alt-l"; };
 
-    my $ret;
     if ($ncurses) {
-        $ret = wait_serial("yast2-snapper-status-0", 30);
+        wait_serial("yast2-snapper-status-0", 180) || die "yast2 snapper failed";
     }
     else {
         # Wait until root gnome terminal is focussed, delete the directory and close window
-        $ret = check_screen('root-gnome-terminal');
+        assert_screen('root-gnome-terminal', timeout => 180);
     }
 
-    if (!$ret) {
-        $self->{mute_post_fail} = 1;
-        record_soft_failure 'bsc#1032831';
-        $self->y2snapper_failure_analysis;
-        # After failure analysis done, switch back to check if yast2 snapper quit
-        if ($ncurses) {
-            select_console 'root-console';
-        }
-        else {
-            select_console 'x11', await_console => 0;
-            assert_screen 'root-gnome-terminal', 90;
-        }
-    }
     script_run 'rm -rf testdata';
     script_run "ls";
     if (!$ncurses) {
