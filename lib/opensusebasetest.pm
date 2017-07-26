@@ -1,11 +1,11 @@
 package opensusebasetest;
 use base 'basetest';
 
+use bootloader_setup qw(boot_local_disk tianocore_enter_menu zkvm_add_disk zkvm_add_pty zkvm_add_interface);
 use testapi;
-use utils;
-use bootloader_setup 'boot_local_disk';
 use strict;
-use bootloader_setup 'tianocore_enter_menu';
+use utils;
+
 
 # Base class for all openSUSE tests
 
@@ -332,6 +332,13 @@ sub wait_boot {
             select_console('iucvconn');
         }
         else {
+            if (get_var('QA_TESTSET') && check_var('BACKEND', 'svirt')) {
+                my $svirt = select_console('svirt');
+                zkvm_add_disk $svirt;
+                zkvm_add_pty $svirt;
+                zkvm_add_interface $svirt;
+                $svirt->define_and_start;
+            }
             save_svirt_pty;
             wait_serial($login_ready, $ready_time + 100);
             $self->rewrite_static_svirt_network_configuration();

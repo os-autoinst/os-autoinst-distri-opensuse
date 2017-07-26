@@ -14,6 +14,7 @@ use Exporter;
 
 use strict;
 
+use File::Basename 'basename';
 use Time::HiRes 'sleep';
 
 use testapi;
@@ -37,7 +38,13 @@ our @EXPORT = qw(
   select_bootmenu_language
   tianocore_enter_menu
   tianocore_select_bootloader
+  zkvm_add_disk
+  zkvm_add_interface
+  zkvm_add_pty
+  $zkvm_img_path
 );
+
+my $zkvm_img_path = "/var/lib/libvirt/images";
 
 # prevent grub2 timeout; 'esc' would be cleaner, but grub2-efi falls to the menu then
 # 'up' also works in textmode and UEFI menues.
@@ -531,6 +538,45 @@ sub tianocore_select_bootloader {
     tianocore_enter_menu;
     send_key_until_needlematch('tianocore-bootmanager', 'down', 5, 5);
     send_key 'ret';
+}
+
+sub zkvm_add_disk {
+    my ($svirt) = @_;
+    if (my $hdd = get_var('HDD_1')) {
+        my $basename = basename($hdd);
+        my $hdd_dir  = "/var/lib/openqa/share/factory/hdd";
+        chomp(my $hdd_path = `find $hdd_dir -name $basename | head -n1`);
+        diag("HDD path found: $hdd_path");
+        if (get_var('PATCHED_SYSTEM')) {
+            diag('in patched systems just load the patched image');
+            my $name        = $svirt->name;
+            my $patched_img = "$zkvm_img_path/$name" . "a.img";
+            $svirt->add_disk({file => $patched_img, dev_id => 'a'});
+        }
+        else {
+            type_string("# copying image...\n");
+            $svirt->add_disk({file => $hdd_path, backingfile => 1, dev_id => 'a'});    # Copy disk to local storage
+        }
+    }
+    else {
+        # For some tests we need more than the default 4GB
+        my $size_i = get_var('HDDSIZEGB') || '4';
+        $svirt->add_disk({size => $size_i . "G", create => 1, dev_id => 'a'});
+    }
+}
+
+sub zkvm_add_pty {
+    my ($svirt) = shift;
+    # need that for s390
+    $svirt->add_pty({pty_dev => 'console', pty_dev_type => 'pty', target_type => 'sclp', target_port => '0'});
+}
+
+sub zkvm_add_interface {
+    my ($svirt) = shift;
+    # temporary use of hardcoded '+4' to workaround messed up network setup on z/KVM
+    my $vtap = $svirt->instance + 4;
+    # direct access to the tap device, use of $vtap temporarily
+    $svirt->add_interface({type => 'direct', source => {dev => "enccw0.0.0600", mode => 'bridge'}, target => {dev => 'macvtap' . $vtap}});
 }
 
 1;

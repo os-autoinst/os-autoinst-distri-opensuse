@@ -13,28 +13,20 @@
 
 use base "installbasetest";
 
-use testapi;
-use File::Basename 'basename';
-
 use strict;
 use warnings;
+
 use bootloader_setup;
+use testapi;
 
 
-sub run {
-    my $svirt    = select_console('svirt', await_console => 0);
-    my $name     = $svirt->name;
-    my $img_path = "/var/lib/libvirt/images";
-
-    # temporary use of hardcoded '+4' to workaround messed up network setup on z/KVM
-    my $vtap = $svirt->instance + 4;
-    my $repo = "ftp://openqa.suse.de/" . get_var('REPO_0');
-
+sub set_svirt_domain_elements {
+    my ($svirt) = shift;
 
     if (!get_var('BOOT_HDD_IMAGE') or (get_var('PATCHED_SYSTEM') and !get_var('ZDUP'))) {
-        my $cmdline = get_var('VIRSH_CMDLINE') . " ";
-
-        $cmdline .= "install=$repo ";
+        my $repo    = "ftp://openqa.suse.de/" . get_var('REPO_0');
+        my $cmdline = get_var('VIRSH_CMDLINE') . " install=$repo ";
+        my $name    = $svirt->name;
 
         if (check_var("VIDEOMODE", "text")) {
             $cmdline .= "ssh=1 ";    # trigger ssh-text installation
@@ -58,55 +50,31 @@ sub run {
 
         $cmdline .= specific_bootmenu_params;
 
-        $svirt->change_domain_element(os => initrd  => "$img_path/$name.initrd");
-        $svirt->change_domain_element(os => kernel  => "$img_path/$name.kernel");
+        $svirt->change_domain_element(os => initrd  => "$zkvm_img_path/$name.initrd");
+        $svirt->change_domain_element(os => kernel  => "$zkvm_img_path/$name.kernel");
         $svirt->change_domain_element(os => cmdline => $cmdline);
 
         # show this on screen and make sure that kernel and initrd are actually saved
-        type_string "wget $repo/boot/s390x/initrd -O $img_path/$name.initrd\n";
+        type_string "wget $repo/boot/s390x/initrd -O $zkvm_img_path/$name.initrd\n";
         assert_screen "initrd-saved";
-        type_string "wget $repo/boot/s390x/linux -O $img_path/$name.kernel\n";
+        type_string "wget $repo/boot/s390x/linux -O $zkvm_img_path/$name.kernel\n";
         assert_screen "kernel-saved";
     }
-
     # after installation we need to redefine the domain, so just shutdown
     # on zdup and online migration we don't need to redefine in between
     # If boot from existing hdd image, we don't expect shutdown on reboot
     if (!get_var('ZDUP') and !get_var('ONLINE_MIGRATION') and !get_var('BOOT_HDD_IMAGE')) {
         $svirt->change_domain_element(on_reboot => 'destroy');
     }
+}
 
-    # For some tests we need more than the default 4GB
-    my $size_i = get_var('HDDSIZEGB') || '4';
+sub run {
+    my $svirt = select_console('svirt', await_console => 0);
 
-    if (my $hdd = get_var('HDD_1')) {
-        my $hdd_dir  = "/var/lib/openqa/share/factory/hdd";
-        my $basename = basename($hdd);
-        chomp(my $hdd_path = `find $hdd_dir -name $basename | head -n1`);
-        diag("HDD path found: $hdd_path");
-        if (get_var('PATCHED_SYSTEM')) {
-            diag('in patched systems just load the patched image');
-            my $patched_img = "$img_path/$name" . "a.img";
-            $svirt->add_disk({file => $patched_img, dev_id => 'a'});
-        }
-        else {
-            type_string("# copying image...\n");
-            $svirt->add_disk({file => $hdd_path, backingfile => 1, dev_id => 'a'});    # Copy disk to local storage
-        }
-    }
-    else {
-        $svirt->add_disk({size => $size_i . "G", create => 1, dev_id => 'a'});
-    }
-    # need that for s390
-    $svirt->add_pty({pty_dev => 'console', pty_dev_type => 'pty', target_type => 'sclp', target_port => '0'});
-
-    # direct access to the tap device
-    # use of $vtap temporarily
-    $svirt->add_interface({type => 'direct', source => {dev => "enccw0.0.0600", mode => 'bridge'}, target => {dev => 'macvtap' . $vtap}});
-
-    # use proper virtio
-    # $svirt->add_interface({ type => 'network', source => { network => 'default' }, model => { type => 'virtio' } });
-
+    set_svirt_domain_elements $svirt;
+    zkvm_add_disk $svirt;
+    zkvm_add_pty $svirt;
+    zkvm_add_interface $svirt;
 
     $svirt->define_and_start;
 
