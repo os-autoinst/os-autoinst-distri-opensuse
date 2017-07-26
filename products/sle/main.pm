@@ -1101,6 +1101,10 @@ sub prepare_target {
 # load the tests in the right order
 if (maybe_load_kernel_tests()) {
 }
+elsif (get_var("WICKED")) {
+    boot_hdd_image();
+    load_wicked_tests();
+}
 elsif (get_var("REGRESSION")) {
     if (check_var("REGRESSION", "installation")) {
         load_boot_tests();

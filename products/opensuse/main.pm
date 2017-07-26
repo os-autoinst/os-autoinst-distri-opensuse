@@ -757,9 +757,8 @@ sub load_slenkins_tests {
 if (maybe_load_kernel_tests()) {
 }
 elsif (get_var("WICKED")) {
-    boot_hdd_image;
-    loadtest "console/wicked_before_test";
-    loadtest "console/wicked_basic";
+    boot_hdd_image();
+    load_wicked_tests();
 }
 elsif (get_var("REGRESSION")) {
     if (get_var("KEEPHDDS")) {

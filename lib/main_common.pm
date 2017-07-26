@@ -47,6 +47,7 @@ our @EXPORT = qw(
   load_extra_tests
   load_rollback_tests
   load_filesystem_tests
+  load_wicked_tests
 );
 
 sub init_main {
@@ -571,6 +572,11 @@ sub load_filesystem_tests {
     {
         loadtest 'console/snapper_thin_lvm';
     }
+}
+
+sub load_wicked_tests {
+    loadtest "console/wicked_before_test";
+    loadtest "console/wicked_basic";
 }
 
 1;
