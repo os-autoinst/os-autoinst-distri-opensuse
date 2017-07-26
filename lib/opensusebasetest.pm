@@ -257,6 +257,33 @@ sub handle_uefi_boot_disk_workaround {
     wait_screen_change { send_key 'ret' };
 }
 
+=head2 rewrite_static_svirt_network_configuration
+
+Rewrite the static network configuration within a SUT over the svirt console
+based on the worker specific configuration to allow reuse of images created on
+one host and booted on another host. Can also be used for debugging in case of
+consoles relying on remote connections to within the SUT being blocked by
+malfunctioning network or services within the SUT.
+
+Relies on the C<$pty> variable set in the remote svirt shell by C<utils::save_svirt_pty>.
+
+Also see poo#18016 for details.
+=cut
+sub rewrite_static_svirt_network_configuration {
+    my ($self) = @_;
+    type_string "echo root > \$pty\n";
+    wait_serial('Password');
+    type_string "echo $testapi::password > \$pty\n";
+    my $virsh_guest = get_required_var('VIRSH_GUEST');
+    type_string "echo sed -i \"\\\"s:IPADDR='[0-9.]*/\\([0-9]*\\)':IPADDR='$virsh_guest/\\1':\\\" /etc/sysconfig/network/ifcfg-\*\" > \$pty\n";
+    type_string "# output of current network configuration for debugging\n";
+    type_string "echo cat /etc/sysconfig/network/ifcfg-\* > \$pty\n";
+    wait_serial('#');
+    type_string "echo systemctl restart network > \$pty\n";
+    wait_serial('#');
+    type_string "echo systemctl is-active network > \$pty\n";
+    wait_serial('active');
+}
 
 =head2 wait_boot
 
@@ -305,7 +332,9 @@ sub wait_boot {
             select_console('iucvconn');
         }
         else {
+            save_svirt_pty;
             wait_serial($login_ready, $ready_time + 100);
+            $self->rewrite_static_svirt_network_configuration();
         }
 
         # on z/(K)VM we need to re-select a console
