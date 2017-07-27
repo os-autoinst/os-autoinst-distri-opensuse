@@ -508,14 +508,19 @@ sub firefox_check_popups {
         # handle the tracking protection pop up
         if (match_has_tag('firefox_trackinfo')) {
             wait_screen_change { assert_and_click 'firefox_trackinfo'; };
-            # workaround for bsc#1046005
-            wait_screen_change { assert_and_click 'firefox_titlebar'; };
         }
         # handle the reader view pop up
         elsif (match_has_tag('firefox_readerview_window')) {
             wait_screen_change { assert_and_click 'firefox_readerview_window'; };
-            # workaround for bsc#1046005
-            wait_screen_change { assert_and_click 'firefox_titlebar'; };
+        }
+
+        if (match_has_tag('firefox_trackinfo') or match_has_tag('firefox_readerview_window')) {
+            # bsc#1046005 does not seem to affect KDE and as the workaround sometimes results in
+            # accidentially moving the firefox window around, skip it.
+            if (!check_var("DESKTOP", "kde")) {
+                # workaround for bsc#1046005
+                wait_screen_change { assert_and_click 'firefox_titlebar' };
+            }
         }
     }
 }
