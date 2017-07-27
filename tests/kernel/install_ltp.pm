@@ -96,7 +96,16 @@ sub run {
     my $self     = shift;
     my $inst_ltp = get_var 'INSTALL_LTP';
     $self->wait_boot;
-    select_console(get_var('VIRTIO_CONSOLE') ? 'root-virtio-terminal' : 'root-console');
+
+    # poo#18980
+    if (check_var('ARCH', 'ppc64le') && check_var('VIRTIO_CONSOLE', 1)) {
+        select_console('root-console');
+        add_serial_console('hvc1');
+        select_console('root-virtio-terminal');
+    }
+    else {
+        select_console(get_var('VIRTIO_CONSOLE') ? 'root-virtio-terminal' : 'root-console');
+    }
 
     if ($inst_ltp =~ /git/i) {
         install_dependencies;
