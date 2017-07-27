@@ -263,6 +263,15 @@ sub init_consoles {
         $self->add_console('x11',            'tty-console', {tty => 7});
     }
 
+    if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
+        $self->add_console(
+            'hyperv-intermediary',
+            'ssh-virtsh',
+            {
+                hostname => get_required_var('VIRSH_GUEST'),
+                password => get_var('VIRSH_GUEST_PASSWORD')});
+    }
+
     if (check_var('BACKEND', 'ikvm') || check_var('BACKEND', 'ipmi')) {
         $self->add_console(
             'root-ssh',
@@ -401,7 +410,7 @@ sub activate_console {
         }
     }
 
-    $console =~ m/^(\w+)-(console|virtio-terminal|ssh)/;
+    $console =~ m/^(\w+)-(console|virtio-terminal|ssh|shell)/;
     my ($name, $user, $type) = ($1, $1, $2);
     $name = $user //= '';
     $type //= '';
@@ -444,12 +453,6 @@ sub activate_console {
         assert_screen "text-logged-in-$user";
         $self->set_standard_prompt($user);
         assert_screen $console;
-
-        # On s390x 'setterm' binary is not present as there's no linux console
-        if (!check_var('ARCH', 's390x')) {
-            # Disable console screensaver
-            $self->script_run("setterm -blank 0");
-        }
     }
     elsif ($type eq 'virtio-terminal') {
         serial_terminal::login($user, $self->{serial_term_prompt});
@@ -478,6 +481,14 @@ sub activate_console {
     else {
         diag 'activate_console called with generic type, no action';
     }
+    # Both consoles and shells should be prevented from blanking
+    if ((($type eq 'console') or ($type =~ /shell/)) and (get_var('BACKEND', '') =~ /qemu|svirt/)) {
+        # On s390x 'setterm' binary is not present as there's no linux console
+        if (!check_var('ARCH', 's390x')) {
+            # Disable console screensaver
+            $self->script_run('setterm -blank 0');
+        }
+    }
 }
 
 =head2 console_selected
@@ -502,7 +513,7 @@ sub console_selected {
     my ($self, $console, %args) = @_;
     $args{await_console} //= 1;
     $args{tags}          //= $console;
-    $args{ignore}        //= qr{sut|root-virtio-terminal|iucvconn|svirt|root-ssh};
+    $args{ignore}        //= qr{sut|root-virtio-terminal|iucvconn|svirt|root-ssh|hyperv-intermediary};
     return unless $args{await_console};
     return if $args{tags} =~ $args{ignore};
     # x11 needs special handling because we can not easily know if screen is

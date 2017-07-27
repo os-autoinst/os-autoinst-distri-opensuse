@@ -17,7 +17,14 @@ use warnings;
 use testapi;
 use utils qw(power_action assert_shutdown_and_restore_system assert_screen_with_soft_timeout);
 
-our @EXPORT = qw(handle_simple_pw process_reboot trup_call write_detail_output);
+our @EXPORT = qw(get_utt_packages handle_simple_pw process_reboot trup_call write_detail_output);
+
+# Download files needed for transactional update test
+sub get_utt_packages {
+    assert_script_run 'curl -O ' . data_url('caasp/utt.tgz');
+    assert_script_run 'curl -O ' . data_url('caasp/utt.repo');
+    assert_script_run 'tar xzvf utt.tgz';
+}
 
 # Weak password warning should be displayed only once - bsc#1025835
 sub handle_simple_pw {

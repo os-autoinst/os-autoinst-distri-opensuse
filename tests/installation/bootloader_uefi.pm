@@ -82,7 +82,7 @@ sub run {
 
     uefi_bootmenu_params;
     bootmenu_default_params;
-    specific_bootmenu_params;
+    specific_bootmenu_params unless is_casp || is_jeos;
     specific_caasp_params;
 
     # JeOS and CaaSP are never deployed with Linuxrc involved,
@@ -91,15 +91,6 @@ sub run {
 
     # boot
     send_key "f10";
-
-    # This is a workaround for xfreerdp connected to Windows Server 2008 R2.
-    # See issue https://github.com/FreeRDP/FreeRDP/issues/3362.
-    # xfreerdp is started in window-mode (i.e. non-fullscreen), now when
-    # all resolution changes (by Hyper-V BIOS, Grub) were done we should
-    # switch to fullscreen so needles match.
-    if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
-        send_key("ctrl-alt-ret");
-    }
 }
 
 1;

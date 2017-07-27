@@ -13,7 +13,9 @@
 use base "opensusebasetest";
 use strict;
 use testapi;
-use utils 'is_casp';
+use utils qw(is_casp power_action);
+use bootloader_setup 'set_framebuffer_resolution';
+use caasp 'process_reboot';
 
 sub run {
     # On VMX images bootloader_uefi eats grub2 needle
@@ -34,6 +36,13 @@ sub run {
             }
         }
         select_console 'root-console';
+
+        # On Hyper-V we need to add special framebuffer provisions
+        if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
+            set_framebuffer_resolution;
+            assert_script_run 'transactional-update grub.cfg';
+            process_reboot 1;
+        }
 
         # Restart network to push hostname to dns
         if (is_casp('VMX') && get_var('STACK_ROLE')) {

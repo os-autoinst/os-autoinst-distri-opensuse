@@ -59,6 +59,9 @@ sub run {
         push(@tags, "DIALOG-packages-notifications");
         $timeout = 5500;    # upgrades are slower
     }
+    if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
+        $timeout = 5500;    # our Hyper-V server is just too slow
+    }
     if (get_var('LIVECD')) {
         push(@tags, 'screenlock');
     }
@@ -129,7 +132,7 @@ sub run {
     }
 
     # Stop reboot countdown for e.g. uploading logs
-    if (!get_var("REMOTE_CONTROLLER")) {
+    unless (get_var("REMOTE_CONTROLLER") || is_hyperv_in_gui) {
         # Depending on the used backend the initial key press to stop the
         # countdown might not be evaluated correctly or in time. In these
         # cases we keep hitting the keys until the countdown stops.

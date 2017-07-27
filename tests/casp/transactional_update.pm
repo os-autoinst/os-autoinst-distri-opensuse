@@ -47,10 +47,7 @@ sub check_reboot_changes {
 sub run {
     script_run "rebootmgrctl set-strategy off";
 
-    # Download files needed for transactional update test
-    assert_script_run 'curl -O ' . data_url('caasp/utt.tgz');
-    assert_script_run 'curl -O ' . data_url('caasp/utt.repo');
-    assert_script_run 'tar xzvf utt.tgz';
+    get_utt_packages;
 
     # Install PTF - snapshot #1
     trup_call 'ptf install update-test-trival/update-test-security-5-5.3.61.x86_64.rpm';
@@ -72,8 +69,16 @@ sub run {
     check_reboot_changes;
     check_package;
 
-    # Revert to first snapshot that we created
-    my $snap = is_casp('VMX') ? 2 : 3;
+    # Revert to first snapshot that we created. On Hyper-V we need to modify GRUB
+    # to add special framebuffer provision; as it involves and additional snapshot
+    # magic numbers below have to be altered there.
+    my $snap;
+    if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
+        $snap = is_casp('VMX') ? 3 : 4;
+    }
+    else {
+        $snap = is_casp('VMX') ? 2 : 3;
+    }
     trup_call "rollback $snap";
     check_reboot_changes;
     check_package '5.3.61';

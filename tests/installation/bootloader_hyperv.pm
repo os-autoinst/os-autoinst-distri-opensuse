@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -11,112 +11,124 @@
 # Maintainer: Michal Nowak <mnowak@suse.com>
 
 use base "installbasetest";
-
 use testapi;
 use utils;
-
 use strict;
 use warnings;
-
 use File::Basename;
-use Net::Telnet ();
+
+sub hyperv_cmd {
+    my ($cmd, $args) = @_;
+    $args->{ignore_return_code} ||= 0;
+    my $ret = console('svirt')->run_cmd($cmd);
+    die 'Command on Hyper-V failed' unless ($args->{ignore_return_code} || !$ret);
+}
 
 sub run {
-    my $svirt = select_console('svirt');
-    my $name  = $svirt->name;
+    my $svirt               = select_console('svirt');
+    my $hyperv_intermediary = select_console('hyperv-intermediary');
+    my $name                = $svirt->name;
+    my $xvncport            = get_var('VIRSH_INSTANCE');
 
-    my $file = basename(get_var('HDD_1'));
+    my $hdd1 = get_var('HDD_1') ? 'd:\\hdd\\' . basename(get_var('HDD_1')) : undef;
+    my $hdd2 = get_var('HDD_2') ? 'd:\\hdd\\' . basename(get_var('HDD_2')) : undef;
+    my $hdd1size = get_var('HDDSIZEGB');
+    my $iso      = get_var('ISO') ? 'd:\\iso\\' . basename(get_var('ISO')) : undef;
+    my $ramsize  = get_var('QEMURAM');
+    my $cpucount = get_var('QEMUCPUS');
 
-    if (is_jeos) {
-        type_string "mkdir -p ~/.vnc/\n";
-        type_string "vncpasswd -f <<<$testapi::password > ~/.vnc/passwd\n";
-        type_string "chmod 600 ~/.vnc/passwd\n";
-        type_string "pkill -f \"Xvnc :1\"; pkill -9 -f \"Xvnc :1\"\n";
-        type_string "Xvnc :1 -geometry 1024x768 -pn -rfbauth ~/.vnc/passwd &\n";
+    type_string "mkdir -p ~/.vnc/\n";
+    type_string "vncpasswd -f <<<$testapi::password > ~/.vnc/passwd\n";
+    type_string "chmod 0600 ~/.vnc/passwd\n";
+    type_string "pkill -f \"Xvnc :$xvncport\"; pkill -9 -f \"Xvnc :$xvncport\"\n";
+    type_string "Xvnc :$xvncport -geometry 1024x768 -pn -rfbauth ~/.vnc/passwd &\n";
 
-        my $ps   = "powershell -Command";
-        my $wait = "";
+    my $ps = 'powershell -Command';
 
-        my ($t, $winserver, @winver, @vmguid);
+    my ($winserver, $winver, $vmguid);
 
-        $t = new Net::Telnet(Timeout => 60);
+    $winver = $svirt->get_cmd_output("cmd /C ver");
+    if (grep { /Microsoft Windows \[Version 6.3.*\]/ } $winver) {
+        $winserver = 2012;
+    }
+    else {
+        die "Unsupported version: $winver";
+    }
 
-        $t->open(get_var('HYPERV_SERVER'));
-        $t->login(get_var('HYPERV_USERNAME'), get_var('HYPERV_PASSWORD'));
+    hyperv_cmd("$ps Get-VM");
+    hyperv_cmd("$ps Stop-VM -Force $name -TurnOff", {ignore_return_code => 1});
+    hyperv_cmd("$ps Remove-VM -Force $name",        {ignore_return_code => 1});
+    hyperv_cmd("del d:\\hdd\\${name}a.vhd d:\\hdd\\${name}a.vhdx");
 
-        # This is the expected shell prompt: '$ ' otherwise cmd() will timeout.
-        # * in Bash: PS1='$ ' in ~/.bash_profile
-        # * as a CMD.exe: set user var PROMPT to $$$S
-        $t->prompt('/\$ /i');
-
-        @winver = $t->cmd("cmd /C ver");
-
-        if (grep { /Microsoft Windows \[Version 6.1.*\]/ } @winver) {
-            $wait      = "-Wait";
-            $winserver = 2008;
-        }
-        elsif (grep { /Microsoft Windows \[Version 6.3.*\]/ } @winver) {
-            $winserver = 2012;
-        }
-        elsif (grep { /Microsoft Windows \[Version 10.0.*\]/ } @winver) {
-            $winserver = 2016;
+    if ($winserver eq "2012") {
+        my $vm_generation = get_var('UEFI') ? 2 : 1;
+        if ($hdd1) {
+            hyperv_cmd("$ps New-VHD -ParentPath $hdd1 -Path d:\\hdd\\${name}a.vhd -Differencing");
+            hyperv_cmd("$ps New-VM -Name $name -Generation $vm_generation -VHDPath d:\\hdd\\${name}a.vhd -SwitchName * -MemoryStartupBytes ${ramsize}MB");
+            if (get_var('HDD_2')) {
+                hyperv_cmd("$ps Set-VMDvdDrive -VMName $name -Path $hdd2 -ControllerNumber 1");
+            }
         }
         else {
-            die "Unsupported version: @winver";
+            hyperv_cmd(
+"$ps New-VM -Name $name -Generation $vm_generation -NewVHDPath d:\\hdd\\${name}a.vhdx -NewVHDSizeBytes ${hdd1size}GB -SwitchName * -MemoryStartupBytes ${ramsize}MB"
+            );
+            if (get_var('UEFI')) {
+                hyperv_cmd("$ps Add-VMDvdDrive -VMName $name -Path $iso");
+            }
+            else {
+                hyperv_cmd("$ps Remove-VMDvdDrive -VMName $name -ControllerNumber 1 -ControllerLocation 0");    # Removes DvdDrive on 1:0
+                hyperv_cmd("$ps Add-VMDvdDrive -VMName $name -Path $iso -ControllerNumber 0 -ControllerLocation 1");
+            }
         }
-
-        $t->cmd("$ps Get-VM");
-        # It fails on WS 2008 R2 for Stopped VMs
-        $t->cmd("$ps Stop-VM -Force $name $wait");
-        $t->cmd("$ps Remove-VM -Force $name");
-        if ($winserver eq "2008") {
-            $t->cmd("$ps New-VM -Name $name");
-            $t->cmd("$ps Add-VMNic -VM $name (Select-VMSwitch)");
-            $t->cmd("$ps Add-VMDisk -VM $name -ControllerID 0 -Lun 0 $file");
-            $t->cmd("$ps Set-VMSerialPort -VM $name -PortNumber 1 -Connection '\\\\.\\pipe\\$name'");
-            @vmguid = $t->cmd("$ps (Get-VM -VMName $name).name");
-        }
-        elsif ($winserver eq "2012") {
-            $t->cmd("$ps New-VM -Name $name -VHDPath $file -SwitchName *");
-            $t->cmd("$ps Set-VMComPort -VMName $name -Number 1 -Path '\\\\.\\pipe\\$name'");
-            @vmguid = $t->cmd("$ps (Get-VM -VMName $name).id.guid");
-        }
-        elsif ($winserver eq "2016") {
-            $t->cmd("$ps New-VM -Name $name -VHDPath $file -SwitchName \\*");
-            $t->cmd("$ps Set-VMComPort -VMName $name -Number 1 -Path '\\\\.\\pipe\\$name'");
-            @vmguid = $t->cmd("$ps \\(Get-VM -VMName $name\\).id.guid");
-        }
-
-        # remove stray whitespace characters
-        @vmguid = map { join(' ', split(' ')) } @vmguid;
-        # find a GUID like this 52eac3c0-da62-4054-bf6a-ad99bdb07f82 in the array
-        until (grep { m/([A-Fa-f0-9]{8}[\-][A-Fa-f0-9]{4}[\-][A-Fa-f0-9]{4}[\-][A-Fa-f0-9]{4}[\-]([A-Fa-f0-9]){12})/gi } $vmguid[0]) {
-            shift(@vmguid);
-        }
-        # remove telnet transfer remnants
-        $vmguid[0] =~ s/[^[:print:]]+//;
-
-        # xfreerdp should be run with fullscreen option (/f) so the needle match but
-        # due to bug https://github.com/FreeRDP/FreeRDP/issues/3362 on WS 2008 R2 we
-        # have to start xfreerdp without the /f option and toggle to fullscreen later.
-        # Typing this string takes so long that we miss grub menu at all...
-        type_string "DISPLAY=:1 xfreerdp /u:"
-          . get_var('HYPERV_USERNAME') . " /p:'"
-          . get_var('HYPERV_PASSWORD') . "' /v:"
-          . get_var('HYPERV_SERVER')
-          . " /cert-ignore /jpeg /jpeg-quality:100 /fast-path:1 /bpp:32 /vmconnect:$vmguid[0]";
-
-        $t->cmd("$ps Start-VM $name $wait");
-        $t->close;
-
-        # ...so we execute the command right after VMs starts.
-        type_string "\n";
-
-        # attach to console (a TCP port on HYPERV_SERVER)
-        $svirt->attach_to_running;
-
-        select_console('sut', await_console => 0);
+        hyperv_cmd("$ps Set-VMComPort -VMName $name -Number 1 -Path '\\\\.\\pipe\\$name'");
+        $vmguid = $svirt->get_cmd_output("$ps (Get-VM -VMName $name).id.guid");
     }
+    else {
+        die "Hyper-V $winserver is not supported version";
+    }
+
+    # For Gen1 type machine: As we boot from IDE (then CD), HDD has to be connected to IDE
+    # controller. However that leaves us with just three spare IDE channels for CDs, and one
+    # of them has to be install CD, so: only three CDs can be attached to machine at once
+    # (CDROM device can't be connected to SCSI, HDD can but we won't be able to bott from it).
+    for my $n (1 .. 3) {
+        if (my $addoniso = get_var("ISO_$n")) {
+            hyperv_cmd("$ps Add-VMDvdDrive -VMName $name -Path d:\\iso\\" . basename($addoniso));
+        }
+    }
+
+    hyperv_cmd("$ps Set-VMProcessor $name -Count $cpucount");
+    # All booteble devices has to be enumerated all the time...
+    my $startup_order = (check_var('BOOTFROM', 'd') ? "'CD', 'VHD'" : "'VHD', 'CD'") . ", 'Floppy', 'NetworkAdapter'";
+    if (get_var('UEFI')) {
+        hyperv_cmd("$ps Set-VMFirmware $name -EnableSecureBoot off ");
+    }
+    else {
+        hyperv_cmd($ps . ' "' . "Set-VMBios $name -StartupOrder @($startup_order)" . '"');
+    }
+
+    # remove stray whitespace characters
+    $vmguid =~ s/[^[:print:]]+//;
+
+    # xfreerdp should be run with fullscreen option (/f) so the needle match.
+    # Typing this string takes so long that we would miss grub menu, so...
+    type_string "rm -fv xfreerdp_${name}_stop* xfreerdp_${name}.log; while true; do inotifywait xfreerdp_${name}_stop; DISPLAY=:$xvncport xfreerdp /u:"
+      . get_var('HYPERV_USERNAME') . " /p:'"
+      . get_var('HYPERV_PASSWORD') . "' /v:"
+      . get_var('HYPERV_SERVER')
+      . " /cert-ignore /vmconnect:$vmguid /f 2>&1 >> xfreerdp_${name}.log; echo $vmguid > xfreerdp_${name}_stop; done";
+    #      . " /cert-ignore /jpeg /jpeg-quality:100 /fast-path:1 /bpp:32 /vmconnect:$vmguid /f";
+
+    hyperv_cmd("$ps Start-VM $name");
+
+    # ...we execute the command right after VMs starts.
+    send_key 'ret';
+
+    # Attach to serial console (a TCP port on HYPERV_SERVER).
+    $svirt->attach_to_running({stop_vm => 1});
+    # Get the VM's display.
+    select_console('sut', await_console => 0);
 }
 
 1;
