@@ -219,5 +219,15 @@ sub post_fail_hook {
     upload_logs '/tmp/df.txt';
 }
 
+# Workaround to continue installation even with error pop-ups about missing patterns.
+sub sle15_workaround_broken_patterns {
+    if (check_var('VERSION', '15')) {    # SLE 15 has pattern errors, workaround them - rbrown 04/07/2017
+        while (check_screen('sle-15-failed-to-select-pattern')) {
+            record_soft_failure 'bsc#1047327';
+            send_key 'alt-o';
+        }
+    }
+}
+
 1;
 # vim: set sw=4 et:
