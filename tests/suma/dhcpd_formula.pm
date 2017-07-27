@@ -22,12 +22,7 @@ sub run {
     barrier_create('dhcp_ready', 2);
     barrier_create('dhcp_ready_finish', 2);
 
-    # configure second interface for dhcp
-    assert_script_run "echo \"STARTMODE='auto'\nBOOTPROTO='static'\nIPADDR='192.168.1.1'\nNETMASK='255.255.0.0'\" > /etc/sysconfig/network/ifcfg-eth1";
-    assert_script_run 'ifup eth1';
     assert_script_run 'ip addr';
-    assert_script_run 'sed -i -e "s|FW_DEV_INT=.*|FW_DEV_INT=eth1|" -e "s|FW_ROUTE=.*|FW_ROUTE=yes|" -e "s|FW_MASQUERADE=.*|FW_MASQUERADE=yes|" /etc/sysconfig/SuSEfirewall2';
-    assert_script_run 'systemctl restart SuSEfirewall2';
     barrier_wait('dhcpd_formula');
 
     # minion test

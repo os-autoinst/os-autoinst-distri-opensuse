@@ -13,4 +13,4 @@ minion terminal has SUMA_SALT_MINION variable set to 'terminal'
 
 
 Schedule command example:
-# openqa-client --host sleposbuilder.suse.cz isos post DISTRI=sle FLAVOR=Server-DVD ARCH=x86_64 VERSION=12-SP2 ISO=SLE-12-SP2-Server-DVD-x86_64-GM-DVD1.iso ISO_2_URL=http://mirror.suse.cz/install/SUSE-Manager-3.1-Beta3/SUSE-Manager-Server-3.1-DVD-x86_64-Build0093-Media1.iso TEST=suma_minion,suma_minion_terminal SUMA_TESTS=tftp_formula,build_image,pxe_formula,dhcpd_formula,saltboot_formula,saltboot_orchestrate
+# openqa-client --host sleposbuilder.suse.cz isos post DISTRI=sle FLAVOR=Server-DVD ARCH=x86_64 VERSION=12-SP2 ISO=SLE-12-SP2-Server-DVD-x86_64-GM-DVD1.iso ISO_2_URL=http://mirror.suse.cz/install/SUSE-Manager-3.1-Beta3/SUSE-Manager-Server-3.1-DVD-x86_64-Build0093-Media1.iso TEST=suma_minion,suma_minion_terminal SUMA_TESTS=branch_network_formula,tftp_formula,build_image,pxe_formula,dhcpd_formula,saltboot_formula,saltboot_orchestrate
