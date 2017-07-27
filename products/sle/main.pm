@@ -1221,6 +1221,9 @@ elsif (get_var("QA_TESTSET")) {
 elsif (get_var("XFSTESTS")) {
     loadtest "qa_automation/xfstests_prepare_boot";
     loadtest "qa_automation/xfstests_prepare_testsuite";
+    if (get_var("XFSTESTS_KNOWN_ISSUE")) {
+        loadtest "qa_automation/xfstests_prepare_issue_case";
+    }
     loadtest "qa_automation/xfstests_prepare_env";
     loadtest "qa_automation/xfstests_run_generic";
     loadtest "qa_automation/xfstests_run_shared";
@@ -1232,6 +1235,9 @@ elsif (get_var("XFSTESTS")) {
     }
     elsif (check_var("TEST_FS_TYPE", "ext4")) {
         loadtest "qa_automation/xfstests_run_ext4";
+    }
+    if (get_var("XFSTESTS_KNOWN_ISSUE")) {
+        loadtest "qa_automation/xfstests_run_issue_case";
     }
 }
 elsif (get_var("VIRT_AUTOTEST")) {
