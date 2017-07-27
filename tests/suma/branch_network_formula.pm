@@ -40,6 +40,7 @@ sub run {
     assert_and_click('suma-system-all');
     assert_and_click('suma-system-branch');
     assert_and_click('suma-system-formulas');
+    send_key_until_needlematch('suma-system-formula-branch-network', 'down', 40, 1);
     assert_and_click('suma-system-formula-branch-network');
     assert_and_click('suma-system-formulas-save');
     assert_and_click('suma-system-formula-branch-network-tab');

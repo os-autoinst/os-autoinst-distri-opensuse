@@ -71,6 +71,7 @@ sub run {
     send_key 'ctrl-l';
     type_string('https://'.$master.'.openqa.suse.de/rhn/manager/systems/details/formulas?sid=1000010000');send_key('ret');
 
+    send_key_until_needlematch('suma-system-formula-tftp', 'down', 40, 1);
     assert_and_click('suma-system-formula-tftp');
     assert_and_click('suma-system-formulas-save');
     assert_and_click('suma-system-formula-tftp-tab');

@@ -48,6 +48,7 @@ sub run {
     assert_and_click('suma-create-group-button');
 
     assert_and_click('suma-group-formulas');
+    send_key_until_needlematch('suma-group-formula-saltboot', 'down', 40, 1);
     assert_and_click('suma-group-formula-saltboot');
     assert_and_click('suma-group-formulas-save');
     assert_and_click('suma-group-formula-saltboot-tab');
