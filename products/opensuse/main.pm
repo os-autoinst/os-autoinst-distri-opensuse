@@ -458,11 +458,11 @@ sub load_consoletests {
         loadtest "console/dns_srv";
         loadtest "console/php5";
         loadtest "console/php5_mysql";
-        loadtest "console/php5_postgresql94";
+        loadtest "console/php5_postgresql96";
         if (!is_staging()) {
             loadtest "console/php7";
             loadtest "console/php7_mysql";
-            loadtest "console/php7_postgresql94";
+            loadtest "console/php7_postgresql96";
         }
     }
     if (check_var("DESKTOP", "xfce")) {
