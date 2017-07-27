@@ -26,7 +26,6 @@ sub run {
     barrier_wait('saltboot_formula_finish');
   }
   else {
-    barrier_create('saltboot_formula_finish', 3);
     $self->install_formula('saltboot-formula');
 
     select_console 'root-console';

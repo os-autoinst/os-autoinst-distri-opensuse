@@ -46,6 +46,7 @@ sub run {
     assert_script_run('/usr/lib/wicked/bin/wickedd-dhcp4 --test eth0');
     # TODO test concrete data
     barrier_wait('dhcp_ready_finish');
+    barrier_wait('dhcpd_formula_finish');
   }
   else {
     $self->install_formula('dhcpd-formula');

@@ -45,7 +45,6 @@ sub run {
     select_console 'root-console';
   }
   else {
-    barrier_create('saltboot_orchestrate_finish', 3);
     select_console 'root-console';
     if (get_var('SALT_DEBUG')) {
         assert_script_run 'systemctl stop salt-master';

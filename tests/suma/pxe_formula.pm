@@ -23,9 +23,9 @@ sub run {
   } 
   elsif (check_var('SUMA_SALT_MINION', 'terminal')) {
     barrier_wait('pxe_formula');
+    barrier_wait('pxe_formula_finish');
   }
   else {
-    barrier_create('pxe_formula_finish', 2);
     $self->install_formula('pxe-formula');
 #    assert_and_click('suma-salt-menu');
 #    assert_and_click('suma-salt-formulas');
