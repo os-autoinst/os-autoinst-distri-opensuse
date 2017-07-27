@@ -39,17 +39,21 @@ sub generateXML {
     my $xml_result;
     my $pass_nums = 0;
     my $fail_nums = 0;
+    my $skip_nums = 0;
     my $writer    = new XML::Writer(DATA_MODE => 'true', DATA_INDENT => 2, OUTPUT => 'self');
 
     foreach my $item (keys(%my_hash)) {
         if ($my_hash{$item}->{status} =~ m/PASSED/) {
             $pass_nums += 1;
         }
+        elsif ($my_hash{$item}->{status} =~ m/SKIPPED/ && $item =~ m/iso/) {
+            $skip_nums += 1;
+        }
         else {
             $fail_nums += 1;
         }
     }
-    my $count = $pass_nums + $fail_nums;
+    my $count = $pass_nums + $fail_nums + $skip_nums;
     $writer->startTag(
         'testsuites',
         error    => "0",
@@ -76,6 +80,9 @@ sub generateXML {
     foreach my $item (keys(%my_hash)) {
         if ($my_hash{$item}->{status} =~ m/PASSED/) {
             $case_status = "success";
+        }
+        elsif ($my_hash{$item}->{status} =~ m/SKIPPED/ && $item =~ m/iso/) {
+            $case_status = "skipped";
         }
         else {
             $case_status = "failure";
