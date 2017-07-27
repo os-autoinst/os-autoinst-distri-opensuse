@@ -569,12 +569,12 @@ sub load_x11tests {
     }
     if (xfcestep_is_applicable()) {
         loadtest "x11/thunar";
-        if (!get_var("USBBOOT")) {
+        if (!get_var("USBBOOT") && !is_livesystem) {
             loadtest "x11/reboot_xfce";
         }
     }
     if (lxdestep_is_applicable()) {
-        if (!get_var("USBBOOT")) {
+        if (!get_var("USBBOOT") && !is_livesystem) {
             loadtest "x11/reboot_lxde";
         }
     }
@@ -584,7 +584,7 @@ sub load_x11tests {
             loadtest "x11/amarok";
         }
         loadtest "x11/kontact" unless is_kde_live;
-        if (!get_var("USBBOOT")) {
+        if (!get_var("USBBOOT") && !is_livesystem) {
             if (get_var("PLASMA5")) {
                 loadtest "x11/reboot_plasma5";
             }
@@ -597,7 +597,7 @@ sub load_x11tests {
         loadtest "x11/nautilus" unless get_var("LIVECD");
         loadtest "x11/gnome_music";
         loadtest "x11/evolution" unless is_server;
-        if (!get_var("USBBOOT")) {
+        if (!get_var("USBBOOT") && !is_livesystem) {
             loadtest "x11/reboot_gnome";
         }
         load_testdir('x11/gnomeapps') if is_gnome_next;
