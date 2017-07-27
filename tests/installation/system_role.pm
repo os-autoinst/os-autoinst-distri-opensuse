@@ -14,7 +14,7 @@ use strict;
 use base "y2logsstep";
 use testapi;
 
-sub run {
+sub assert_system_role {
     # Still initializing the system at this point, can take some time
     assert_screen 'system-role-default-system', 180;
 
@@ -29,6 +29,24 @@ sub run {
     }
 
     send_key $cmd{next};
+}
+
+sub assert_system_role_with_workaround_sle15_aarch64_missing_system_role {
+    # Workaround for bsc#1049297
+    # When the workaround is no more needed, execute on `sub run` only the function `sub assert_system_role`
+    wait_still_screen;
+    # SLE 15 will always show the system role
+    if (check_var('VERSION', '15') && check_var('ARCH', 'aarch64')) {
+        assert_screen 'partitioning-edit-proposal-button';
+        record_soft_failure 'bsc#1049297 - missing system role';
+    }
+    else {
+        assert_system_role;
+    }
+}
+
+sub run {
+    assert_system_role_with_workaround_sle15_aarch64_missing_system_role;
 }
 
 1;
