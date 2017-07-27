@@ -24,10 +24,9 @@ sub run() {
     }
 
     assert_screen 'inst-addon';
-    send_key 'alt-k';    # install with a maint update repo
+    send_key_until_needlematch('addon-menu-active', 'alt-k', 10, 5);
     my @repos = split(/,/, get_var('MAINT_TEST_REPO'));
     while (my $maintrepo = shift @repos) {
-        assert_screen('addon-menu-active', 60);
         send_key 'alt-u';    # specify url
         if (check_var('VERSION', '12') and check_var('VIDEOMODE', 'text')) {
             send_key 'alt-x';
@@ -40,7 +39,7 @@ sub run() {
         type_string $maintrepo;
         advance_installer_window('addon-products');
         # if more repos to come, add more
-        send_key 'alt-a' if @repos;
+        send_key_until_needlematch('addon-menu-active', 'alt-a', 10, 5) if @repos;
     }
 }
 
