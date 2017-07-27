@@ -57,61 +57,113 @@ sub get_to_console {
     }
 }
 
-# to workaround dep issues
-sub record_dependency_issues {
-    while (check_screen 'dependancy-issue', 5) {
-        wait_screen_change {
-            if (check_var('VIDEOMODE', 'text')) {
-                send_key 'alt-s';
-            }
-            else {
-                send_key 'alt-1';
-            }
-        };
-        wait_screen_change {
+# to workaround dependency issues
+sub workaround_dependency_issues {
+    assert_screen 'dependency-issue';
+
+    if (check_var('VIDEOMODE', 'text')) {
+        while (check_screen('dependency-issue', 5)) {
+            wait_screen_change { send_key 'alt-s' };
+            wait_screen_change { send_key 'ret' };
+            wait_screen_change { send_key 'alt-o' };
+        }
+    }
+    else {
+        while (check_screen('dependency-issue', 5)) {
+            send_key 'alt-1';
+            sleep 1;
             send_key 'spc';
-        };
-        send_key 'alt-o';
+            sleep 1;
+            send_key 'alt-o';
+            sleep 2;
+        }
     }
 }
 
-# check for dependency issues, if found, drill down to software selection, take a screenshot, then die
-sub check_and_record_dependency_problems {
+# to break dependency issues
+sub break_dependency {
+    assert_screen 'dependency-issue';
+
+    if (check_var('VIDEOMODE', 'text')) {
+        while (check_screen('dependency-issue-text', 5)) {    # repeat it untill all dependency issues are resolved
+            wait_screen_change { send_key 'alt-s' };          # Solution
+            while (check_screen('break-not-highlighted', 5)) {
+                send_key 'down';                              # down to option break dependency
+            }
+            send_key 'ret';                                   # select option break dependency
+            wait_screen_change { send_key 'alt-o' };          # OK - Try Again
+        }
+    }
+    else {
+        while (check_screen('dependency-issue', 5)) {
+            send_key 'alt-2';                                 # 2 is the option to break dependency
+            sleep 1;
+            send_key 'spc';                                   # select it
+            sleep 1;
+            send_key 'alt-o';                                 # OK
+            sleep 2;
+        }
+    }
+}
+
+# to deal with dependency issues, either work around it, or break dependency to continue with installation
+sub deal_with_dependency_issues {
     my ($self) = @_;
 
-    return unless check_screen("inst-overview-dep-warning", 1);
+    assert_screen 'manual-intervention';
     record_soft_failure 'dependency warning';
+
     if (check_var('VIDEOMODE', 'text')) {
-        send_key 'alt-c';
+        send_key 'alt-c';    # Change
         assert_screen 'inst-overview-options';
-        send_key 'alt-s';
+        send_key 'alt-s';    # Software
     }
     else {
         send_key_until_needlematch 'packages-section-selected', 'tab';
         send_key 'ret';
     }
-
-    assert_screen 'dependancy-issue';    #make sure the dependancy issue is actually showing
-
     if (get_var("WORKAROUND_DEPS")) {
-        $self->record_dependency_issues;
-        wait_screen_change {
-            send_key 'alt-a';
-        };
-        send_key 'alt-o';
-        my @tags = 'inst-overview-after-depfix';
-        # SLE 15 has unsupported packages, workaround them - rbrown 04/07/2017
-        push @tags, 'sle-15-unsupported-packages' if (check_var('VERSION', '15'));
-        assert_screen \@tags;
-        if (match_has_tag('sle-15-unsupported-packages')) {
-            record_soft_failure 'bsc#1047337';
-            send_key 'alt-o';
-        }
-        assert_screen "inst-overview-after-depfix";    # Make sure you're back on the inst-overview before doing anything else
+        $self->workaround_dependency_issues;
+    }
+    elsif (get_var("BREAK_DEPS")) {
+        $self->break_dependency;
     }
     else {
-        save_screenshot;
-        die 'Dependency Problems';
+        die 'Dependency problems';
+    }
+
+    assert_screen 'dependency-issue-fixed';    # make sure the dependancy issue is fixed now
+    send_key 'alt-a';                          # Accept
+    sleep 2;
+
+  DO_CHECKS:
+    while (check_screen('accept-licence', 2)) {
+        send_key 'alt-a';                      # Accept
+    }
+    while (check_screen('automatic-changes', 2)) {
+        send_key 'alt-o';                      # Continue
+    }
+    while (check_screen('unsupported-packages', 2)) {
+        send_key 'alt-o';                      # Continue
+    }
+    while (check_screen([qw(error-with-patterns sle-15-failed-to-select-pattern)], 2)) {
+        record_soft_failure 'bsc#1047337';
+        send_key 'alt-o';                      # OK
+    }
+    sleep 2;
+
+    if (check_screen('dependency-issue-fixed', 0)) {
+        if (check_var('VIDEOMODE', 'text')) {
+            send_key 'alt-o';                  # OK
+        }
+        else {
+            send_key 'alt-a';                  # Accept
+        }
+        sleep 2;
+    }
+
+    if (check_screen([qw(accept-licence automatic-changes unsupported-packages error-with-patterns sle-15-failed-to-select-pattern)], 2)) {
+        goto DO_CHECKS;
     }
 }
 

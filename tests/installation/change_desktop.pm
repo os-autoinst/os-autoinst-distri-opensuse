@@ -12,6 +12,7 @@ package change_desktop;
 # Summary: [OOP]Change desktop
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
+use base "y2logsstep";
 use base "installsummarystep";
 use strict;
 use testapi;
@@ -29,17 +30,11 @@ sub change_desktop {
         wait_screen_change { send_key 'ret'; };
     }
 
-    if (check_screen('dependancy-issue', 10) && get_var("WORKAROUND_DEPS")) {
-        while (check_screen 'dependancy-issue', 5) {
-            if (check_var('VIDEOMODE', 'text')) {
-                wait_screen_change { send_key 'alt-s'; };
-            }
-            else {
-                wait_screen_change { send_key 'alt-1'; };
-            }
-            wait_screen_change { send_key 'spc'; };
-            send_key 'alt-o';
-        }
+    if (check_screen('dependency-issue', 5) && get_var("WORKAROUND_DEPS")) {
+        $self->workaround_dependency_issues;
+    }
+    if (check_screen('dependency-issue', 0) && get_var("BREAK_DEPS")) {
+        $self->break_dependency;
     }
 
     assert_screen 'pattern_selector';

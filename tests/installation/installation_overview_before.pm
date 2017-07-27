@@ -30,7 +30,9 @@ sub run {
     # preserve it for the video
     wait_idle 10;
 
-    $self->check_and_record_dependency_problems;
+    if (match_has_tag 'manual-intervention') {
+        $self->deal_with_dependency_issues;
+    }
 }
 
 1;

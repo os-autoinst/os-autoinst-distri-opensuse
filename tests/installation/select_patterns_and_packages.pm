@@ -65,8 +65,11 @@ sub gotopatterns {
         send_key 'ret';
     }
 
-    if (check_screen('dependancy-issue', 10) && get_var("WORKAROUND_DEPS")) {
-        $self->record_dependency_issues;
+    if (check_screen('dependency-issue', 5) && get_var("WORKAROUND_DEPS")) {
+        $self->workaround_dependency_issues;
+    }
+    if (check_screen('dependency-issue', 0) && get_var("BREAK_DEPS")) {
+        $self->break_dependency;
     }
 
     assert_screen 'pattern_selector';
@@ -134,7 +137,7 @@ sub package_action {
         send_key 'alt-a';                           # accept
         accept3rdparty;
         assert_screen 'automatic-changes';
-        send_key 'alt-o';                           # OK
+        send_key 'alt-o';                           # Continue
     }
     else {
         send_key 'alt-o';
