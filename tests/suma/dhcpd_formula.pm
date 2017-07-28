@@ -14,13 +14,14 @@ use base "sumatest";
 use 5.018;
 use testapi;
 use lockapi;
+use mmapi;
 
 sub run {
   my ($self) = @_;
   if (check_var('SUMA_SALT_MINION', 'branch')) {
-    # barriers for salt terminal
-    barrier_create('dhcp_ready', 2);
-    barrier_create('dhcp_ready_finish', 2);
+    # barriers for salt terminal(s)
+    my $n = keys get_children();
+    barrier_create('dhcp_ready', $n+1);
 
     assert_script_run 'ip addr';
     barrier_wait('dhcpd_formula');
@@ -30,17 +31,18 @@ sub run {
     # TODO check files are proper
     # allow salt terminal to continue
     barrier_wait('dhcp_ready');
-    # and wait for it to finish
-    barrier_wait('dhcp_ready_finish');
-    # allow salt master to continue
+    # and wait for it to finish, and allow salt master to continue
     barrier_wait('dhcpd_formula_finish');
   } 
   elsif (check_var('SUMA_SALT_MINION', 'terminal')) {
     barrier_wait('dhcpd_formula');
     barrier_wait('dhcp_ready');
     assert_script_run('/usr/lib/wicked/bin/wickedd-dhcp4 --test eth0');
-    # TODO test concrete data
-    barrier_wait('dhcp_ready_finish');
+    assert_script_run "echo \"STARTMODE='auto'\nBOOTPROTO='dhcp4'\n'\" > /etc/sysconfig/network/ifcfg-eth0";
+    assert_script_run 'systemctl restart network';
+    assert_script_run 'ifup eth0';
+    assert_script_run 'ip addr';
+
     barrier_wait('dhcpd_formula_finish');
   }
   else {

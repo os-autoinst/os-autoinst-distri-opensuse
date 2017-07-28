@@ -61,12 +61,12 @@ sub run {
     barrier_wait('tftp_formula');
     barrier_wait('tftp_ready');  
 
-    script_run('echo "test" > /srv/tftpboot/test');
+    script_run('echo "test" > /tmp/test2cmp');
     type_string('atftp '.$testip);send_key('ret');
     type_string('get test');send_key('ret');
     type_string('quit');send_key('ret');
-    assert_script_run('diff test /srv/tftpboot/test'); 
-    
+    assert_script_run('diff test /tmp/test2cmp'); 
+      
     barrier_wait('tftp_formula_finish');
   }
   else {
