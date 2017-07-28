@@ -20,7 +20,7 @@ use ipmi_backend_utils;
 
 sub login_to_console {
     my ($self, $timeout) = @_;
-    $timeout //= 300;
+    $timeout //= 120;
 
     reset_consoles;
     select_console 'sol', await_console => 0;

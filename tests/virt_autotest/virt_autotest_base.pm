@@ -164,7 +164,7 @@ sub run_test {
 
     if ($assert_pattern) {
         unless ($script_output =~ /$assert_pattern/m) {
-            assert_script_run("grep \"$assert_pattern\" $log_dir -r || zcat /tmp/$compressed_log_name.tar.gz | grep -a \"$assert_pattern\"");
+            assert_script_run("grep -E \"$assert_pattern\" $log_dir -r || zcat /tmp/$compressed_log_name.tar.gz | grep -aE \"$assert_pattern\"");
         }
     }
 
