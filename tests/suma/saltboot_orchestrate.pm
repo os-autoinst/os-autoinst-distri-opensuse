@@ -59,7 +59,7 @@ sub run {
     select_console 'x11', tags => 'suma_welcome_screen';
 
     barrier_wait('saltboot_orchestrate');
-    send_key_until_needlematch('suma_pending_minions', 'ctrl-r', 50, 5);
+    send_key_until_needlematch('suma_pending_minions', 'ctrl-r', 50, 15);
     wait_screen_change {
       assert_and_click('suma_pending_minions');
     };

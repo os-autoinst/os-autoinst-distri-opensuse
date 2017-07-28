@@ -63,7 +63,7 @@ sub run {
     };
     # wait for high state
     # check for success
-    send_key_until_needlematch('suma-system-highstate-finish', 'ctrl-r');
+    send_key_until_needlematch('suma-system-highstate-finish', 'ctrl-r', 10, 15);
     wait_screen_change {
       assert_and_click('suma-system-highstate-finish');
     };
