@@ -391,7 +391,7 @@ sub ensure_unlocked_desktop {
         if ((match_has_tag 'displaymanager-password-prompt') || (match_has_tag 'gnome-screenlock-password')) {
             if ($password ne '') {
                 type_password;
-                assert_screen 'locked_screen-typed_password';
+                assert_screen [qw(locked_screen-typed_password login_screen-typed_password)];
             }
             send_key 'ret';
         }
