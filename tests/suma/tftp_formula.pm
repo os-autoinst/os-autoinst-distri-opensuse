@@ -14,18 +14,24 @@ use base "sumatest";
 use 5.018;
 use testapi;
 use lockapi;
+use mmapi;
 
 sub run {
   my ($self) = @_;
   
   #TODO: get from common module / branch network test to ensure compatibility
   my $testip = '192.168.1.1';
-
+  
   if (check_var('SUMA_SALT_MINION', 'branch')) {
+ 
+    #need to create after tftp_formula barrier is breached, or creation will be too early    
+    my $bn= keys get_children();
+    barrier_create('tftp_ready', $bn+1);  
+
     # configure second interface for tftp
     assert_script_run 'systemctl stop SuSEfirewall2';
     barrier_wait('tftp_formula');
-
+    
     # minion test
     script_run('systemctl status atftpd.service');
     assert_script_run('systemctl is-active atftpd.service');
@@ -39,6 +45,7 @@ sub run {
     if ( script_run('netstat -ulnp | grep \''.$testip.':69\s\' | grep -P \'/atftpd\s*$\' ') ) {
       record_soft_failure('atftpd listens everywhere: bsc#1049832');
     }
+    
     script_run('echo "test" > /srv/tftpboot/test');
     type_string('atftp localhost');send_key('ret');
     type_string('get test');send_key('ret');
@@ -47,10 +54,19 @@ sub run {
 
     save_screenshot;
     
+    barrier_wait('tftp_ready');  
     barrier_wait('tftp_formula_finish');
   } 
   elsif (check_var('SUMA_SALT_MINION', 'terminal')) {
     barrier_wait('tftp_formula');
+    barrier_wait('tftp_ready');  
+
+    script_run('echo "test" > /srv/tftpboot/test');
+    type_string('atftp '.$testip);send_key('ret');
+    type_string('get test');send_key('ret');
+    type_string('quit');send_key('ret');
+    assert_script_run('diff test /srv/tftpboot/test'); 
+    
     barrier_wait('tftp_formula_finish');
   }
   else {
