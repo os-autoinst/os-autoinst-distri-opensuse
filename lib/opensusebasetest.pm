@@ -339,7 +339,6 @@ sub wait_boot {
                 zkvm_add_interface $svirt;
                 $svirt->define_and_start;
             }
-            save_svirt_pty;
             wait_serial($login_ready, $ready_time + 100);
             $self->rewrite_static_svirt_network_configuration();
         }

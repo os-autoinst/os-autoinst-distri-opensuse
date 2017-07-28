@@ -2,8 +2,7 @@ package susedistribution;
 use base 'distribution';
 use serial_terminal ();
 use strict;
-use utils 'type_string_slow';
-use utils 'ensure_unlocked_desktop';
+use utils qw(type_string_slow ensure_unlocked_desktop save_svirt_pty);
 
 # Base class implementation of distribution class necessary for testapi
 
@@ -463,6 +462,7 @@ sub activate_console {
     }
     elsif ($console eq 'svirt') {
         $self->set_standard_prompt('root');
+        save_svirt_pty;
     }
     elsif (
         $console eq 'installation'

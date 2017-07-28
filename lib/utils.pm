@@ -91,11 +91,9 @@ correct pty pointing to the first tty, e.g. for password entry for encrypted
 partitions and rewriting the network definition of zkvm instances
 =cut
 sub save_svirt_pty {
-    return if $svirt_pty_saved;
     my $name = console('svirt')->name;
-    type_string "export pty=`virsh dumpxml $name | grep \"console type=\" | sed \"s/'/ /g\" | awk '{ print \$5 }'`\n";
+    type_string "pty=`virsh dumpxml $name 2>/dev/null | grep \"console type=\" | sed \"s/'/ /g\" | awk '{ print \$5 }'`\n";
     type_string "echo \$pty\n";
-    $svirt_pty_saved = 1;
 }
 
 sub unlock_if_encrypted {
@@ -106,7 +104,6 @@ sub unlock_if_encrypted {
 
     if (check_var('ARCH', 's390x') && check_var('BACKEND', 'svirt')) {
         my $password = $testapi::password;
-        save_svirt_pty;
 
         # enter passphrase twice (before grub and after grub) if full disk is encrypted
         if (get_var('FULL_LVM_ENCRYPT')) {
