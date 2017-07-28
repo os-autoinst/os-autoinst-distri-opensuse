@@ -384,11 +384,6 @@ done
 EOF
         script_output($tmp);
 
-        # Disable network managing daemons and firewall. Once we have network
-        # set, we don't want network managing daemons to touch it (this is
-        # required at least for dhcp tests).
-        script_run('systemctl stop NetworkManager wicked wickedd');
-
         # dhclient requires no wicked service not only running but also disabled
         script_run(
             'systemctl --no-pager -p Id show network.service | grep -q Id=wicked.service &&
