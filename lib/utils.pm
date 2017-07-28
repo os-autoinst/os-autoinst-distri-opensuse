@@ -38,6 +38,7 @@ our @EXPORT = qw(
   type_string_slow
   type_string_very_slow
   save_svirt_pty
+  type_line_svirt
   unlock_if_encrypted
   prepare_system_reboot
   get_netboot_mirror
@@ -93,11 +94,17 @@ correct pty pointing to the first tty, e.g. for password entry for encrypted
 partitions and rewriting the network definition of zkvm instances
 =cut
 sub save_svirt_pty {
-    return if $svirt_pty_saved;
     my $name = console('svirt')->name;
-    type_string "export pty=`virsh dumpxml $name | grep \"console type=\" | sed \"s/'/ /g\" | awk '{ print \$5 }'`\n";
+    type_string "pty=`virsh dumpxml $name 2>/dev/null | grep \"console type=\" | sed \"s/'/ /g\" | awk '{ print \$5 }'`\n";
     type_string "echo \$pty\n";
-    $svirt_pty_saved = 1;
+}
+
+sub type_line_svirt {
+    my ($string, %args) = @_;
+    type_string "echo $string > \$pty\n";
+    if ($args{expect}) {
+        wait_serial($args{expect}, $args{timeout}) || die $args{fail_message} // 'expected \'' . $args{expect} . '\' not found';
+    }
 }
 
 sub unlock_if_encrypted {
@@ -108,15 +115,14 @@ sub unlock_if_encrypted {
 
     if (check_var('ARCH', 's390x') && check_var('BACKEND', 'svirt')) {
         my $password = $testapi::password;
-        save_svirt_pty;
 
         # enter passphrase twice (before grub and after grub) if full disk is encrypted
         if (get_var('FULL_LVM_ENCRYPT')) {
             wait_serial("Please enter passphrase for disk.*", 100);
-            type_string "echo $password > \$pty\n";
+            type_line_svirt "$password";
         }
         wait_serial("Please enter passphrase for disk.*", 100);
-        type_string "echo $password > \$pty\n";
+        type_line_svirt "$password";
     }
     else {
         assert_screen("encrypted-disk-password-prompt", 200);

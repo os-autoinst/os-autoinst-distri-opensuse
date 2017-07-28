@@ -271,18 +271,14 @@ Also see poo#18016 for details.
 =cut
 sub rewrite_static_svirt_network_configuration {
     my ($self) = @_;
-    type_string "echo root > \$pty\n";
-    wait_serial('Password');
-    type_string "echo $testapi::password > \$pty\n";
+    type_line_svirt "root", expect => 'Password';
+    type_line_svirt "$testapi::password";
     my $virsh_guest = get_required_var('VIRSH_GUEST');
-    type_string "echo sed -i \"\\\"s:IPADDR='[0-9.]*/\\([0-9]*\\)':IPADDR='$virsh_guest/\\1':\\\" /etc/sysconfig/network/ifcfg-\*\" > \$pty\n";
+    type_line_svirt "sed -i \"\\\"s:IPADDR='[0-9.]*/\\([0-9]*\\)':IPADDR='$virsh_guest/\\1':\\\" /etc/sysconfig/network/ifcfg-\*\"", expect => '#';
     type_string "# output of current network configuration for debugging\n";
-    type_string "echo cat /etc/sysconfig/network/ifcfg-\* > \$pty\n";
-    wait_serial('#');
-    type_string "echo systemctl restart network > \$pty\n";
-    wait_serial('#');
-    type_string "echo systemctl is-active network > \$pty\n";
-    wait_serial('active');
+    type_line_svirt "cat /etc/sysconfig/network/ifcfg-\*", expect => '#';
+    type_line_svirt "systemctl restart network",           expect => '#';
+    type_line_svirt "systemctl is-active network",         expect => 'active';
 }
 
 =head2 wait_boot
@@ -339,8 +335,9 @@ sub wait_boot {
                 zkvm_add_interface $svirt;
                 $svirt->define_and_start;
             }
-            save_svirt_pty;
-            wait_serial($login_ready, $ready_time + 100);
+            wait_serial('GNU GRUB') || diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
+            select_console('svirt');
+            type_line_svirt '', expect => $login_ready, timeout => $ready_time + 100, fail_message => 'Could not find login prompt';
             $self->rewrite_static_svirt_network_configuration();
         }
 
