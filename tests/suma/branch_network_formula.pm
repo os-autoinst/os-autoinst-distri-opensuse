@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Installation and configuration of SUSE Manager pxe salt formula
+# Summary: Installation and configuration of Branch Server Network formula
 # Maintainer: Pavel Sladek <psladek@suse.cz>
 
 use base "sumatest";
