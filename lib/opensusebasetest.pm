@@ -335,7 +335,9 @@ sub wait_boot {
                 zkvm_add_interface $svirt;
                 $svirt->define_and_start;
             }
-            wait_serial($login_ready, $ready_time + 100);
+            wait_serial('GNU GRUB') || diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
+            select_console('svirt');
+            type_line_svirt '', expect => $login_ready, timeout => $ready_time + 100, fail_message => 'Could not find login prompt';
             $self->rewrite_static_svirt_network_configuration();
         }
 
