@@ -535,7 +535,7 @@ sub load_inst_tests {
             loadtest "installation/disk_space_fill";
         }
     }
-    if (!check_var('VERSION', '15')) {    # No registration in SLE 15 atm - rbrown 04/07/17
+    if (!sle_version_at_least('15')) {    # No registration in SLE 15 atm - rbrown 04/07/17
         if (check_var('SCC_REGISTER', 'installation')) {
             loadtest "installation/scc_registration";
         }
@@ -559,7 +559,7 @@ sub load_inst_tests {
             && is_server()
             && (!is_sles4sap() || is_sles4sap_standard())
             && (install_this_version() || install_to_other_at_least('12-SP2'))
-            || check_var('VERSION', '15'))    # SLE 15 will always show the system role
+            || sle_version_at_least('15'))    # SLE 15 will always show the system role
         {
             loadtest "installation/system_role";
         }
