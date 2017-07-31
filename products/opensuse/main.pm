@@ -251,10 +251,11 @@ sub load_inst_tests {
         }
         loadtest "installation/upgrade_select_opensuse";
     }
-    if (noupdatestep_is_applicable() && get_var("LIVECD")) {
-        loadtest "installation/livecd_network_settings";
-    }
     if (noupdatestep_is_applicable()) {
+        # Krypton/Argon disable the network configuration stage
+        if (get_var("LIVECD") && !is_krypton_argon) {
+            loadtest "installation/livecd_network_settings";
+        }
         loadtest "installation/partitioning";
         if (defined(get_var("RAIDLEVEL"))) {
             loadtest "installation/partitioning_raid";
