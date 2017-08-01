@@ -39,9 +39,9 @@ sub handle_livecd_screenlock {
 
 # Stop countdown and check success by waiting screen change without performing an action
 sub wait_countdown_stop {
-    my $stilltime = shift;
+    my ($stilltime, $similarity) = @_;
     send_key 'alt-s';
-    return wait_screen_change(undef, $stilltime);
+    return wait_screen_change(undef, $stilltime, similarity => $similarity);
 }
 
 sub run {
@@ -137,7 +137,10 @@ sub run {
         # countdown might not be evaluated correctly or in time. In these
         # cases we keep hitting the keys until the countdown stops.
         my $counter = 10;
-        while ($counter-- and wait_countdown_stop(3)) {
+        # A single changing digit is only a minor change, overide default
+        # similarity level considered a screen change
+        my $minor_change_similarity = 55;
+        while ($counter-- and wait_countdown_stop(3, $minor_change_similarity)) {
             record_info('workaround', "While trying to stop countdown we saw a screen change, retrying up to $counter times more");
         }
         select_console 'install-shell';
