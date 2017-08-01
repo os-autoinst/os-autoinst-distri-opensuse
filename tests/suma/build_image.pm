@@ -64,7 +64,10 @@ sub run {
     assert_script_run 'salt -t 1000 suma-branch\* cp.push /built-image/POS_Image_JeOS5.x86_64-6.0.0', 1000;
     script_output 'find /var/cache/salt/master/minions -type f ';
     assert_script_run 'cp /var/cache/salt/master/minions/suma-branch*/files/built-image/POS_Image_JeOS5.x86_64-6.0.0 /srv/www/htdocs/pub/';
-    assert_script_run 'echo "images:
+
+    # share one pillar file between tests, each test appends its own config
+    script_output 'cat >> /srv/pillar/suma_test.sls << EOT
+images:
   JeOS:
     url: http://10.0.2.10/pub/POS_Image_JeOS5.x86_64-6.0.0
     name: POS_Image_JeOS5
@@ -72,11 +75,12 @@ sub run {
     fstype: ext3
     size: `stat -c%s /srv/www/htdocs/pub/POS_Image_JeOS5.x86_64-6.0.0`
     md5: `md5sum /srv/www/htdocs/pub/POS_Image_JeOS5.x86_64-6.0.0 |cut -d \' \' -f 1`
-" > /srv/pillar/images.sls';
-    
+EOT
+';
+
     assert_script_run 'echo "base:
   \'*\':
-    - images" > /srv/pillar/top.sls';
+    - suma_test" > /srv/pillar/top.sls';
     script_output 'cat /srv/pillar/*';
     script_output 'salt suma-branch\* pillar.items';
     select_console 'x11', tags => 'suma_welcome_screen';

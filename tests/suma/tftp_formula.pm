@@ -29,7 +29,6 @@ sub run {
     barrier_create('tftp_ready', $bn+1);  
 
     # configure second interface for tftp
-    assert_script_run 'systemctl stop SuSEfirewall2';
     barrier_wait('tftp_formula');
     
     # minion test

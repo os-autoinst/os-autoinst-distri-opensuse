@@ -28,7 +28,7 @@ sub run {
 
   assert_script_run("ping -c1 $master");
   script_run('ip a');
-  script_run('zypper -n in dhcp-server');
+  script_run('zypper -n in dhcp-server bind');
 
 
   $self->check_and_add_repo();
