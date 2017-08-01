@@ -14,7 +14,7 @@
 use strict;
 use base "y2logsstep";
 use testapi;
-use utils 'addon_license';
+use utils qw(addon_license sle_version_at_least);
 use qam 'advance_installer_window';
 
 sub run {
@@ -22,7 +22,7 @@ sub run {
         advance_installer_window('inst-addon');
         set_var('SKIP_INSTALLER_SCREEN', 0);
     }
-    if (check_var('VERSION', '15')) {    # SLE 15 has unsigned file errors, workaround them - rbrown 04/07/2017
+    if (sle_version_at_least('15')) {    # SLE 15 has unsigned file errors, workaround them - rbrown 04/07/2017
         while (check_screen('sle-15-unsigned-file')) {
             record_soft_failure 'bsc#1047304';
             send_key 'alt-y';

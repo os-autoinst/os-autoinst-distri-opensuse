@@ -15,6 +15,7 @@ use strict;
 use warnings;
 use base "y2logsstep";
 use testapi;
+use utils 'sle_version_at_least';
 
 sub check_bsc982138 {
     if (check_screen('installation-details-view-remaining-time-gt2h', 5)) {
@@ -94,7 +95,7 @@ sub run {
 
         # confirm
         send_key $cmd{install};
-        if (check_var('VERSION', '15')) {    # SLE 15 has unsigned file errors, workaround them - rbrown 04/07/2017
+        if (sle_version_at_least('15')) {    # SLE 15 has unsigned file errors, workaround them - rbrown 04/07/2017
             while (check_screen([qw(sle-15-unsigned-file workaround_no_checksum_found)])) {
                 record_soft_failure 'bsc#1047304';
                 send_key 'alt-y';
