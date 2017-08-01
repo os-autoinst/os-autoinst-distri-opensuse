@@ -32,8 +32,6 @@ sub run {
         assert_script_run "zypper -n in psmisc";
     }
     script_run "zypper -n refresh && zypper -n in @test_subjects";
-    wait_idle;
-
     script_run "cd; curl -L -v " . autoinst_url . "/data/sssd-tests > sssd-tests.data && cpio -id < sssd-tests.data && mv data sssd && ls sssd";
 
     # The test scenarios are now ready to run

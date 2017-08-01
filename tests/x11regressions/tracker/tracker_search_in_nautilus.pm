@@ -17,18 +17,11 @@ use testapi;
 
 sub run {
     x11_start_program("nautilus");
-    wait_idle;
-    send_key "ctrl-f";
-    sleep 2;
+    wait_screen_change { send_key 'ctrl-f' };
     type_string "newfile";
-    wait_idle;
     send_key "ret";
-    wait_idle;
     assert_screen 'gedit-launched', 3;    # should open file newfile
-    send_key "alt-f4";
-    sleep 2;                              #close gedit
-
-    # close nautilus
+    wait_screen_change { send_key 'alt-f4' };
     send_key "alt-f4";
 }
 

@@ -34,18 +34,16 @@ sub go_for_netif {
 sub checking_netif_result {
     my $volumes = shift;
     x11_start_program("xterm");
-    wait_idle;
     send_key "alt-f10";
     become_root();
     type_string "ip link show";
     send_key "ret";
-    wait_idle;
     save_screenshot;
     if (get_var("DESKTOP") !~ /icewm/) {
-        assert_screen "virtman-sle12-gnome_netifcheck", 20;
+        assert_screen "virtman-sle12-gnome_netifcheck";
     }
     else {
-        assert_screen "virtman_netifcheck", 20;
+        assert_screen "virtman_netifcheck";
     }
 }
 

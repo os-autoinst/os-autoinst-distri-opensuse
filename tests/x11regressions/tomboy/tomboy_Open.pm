@@ -22,35 +22,24 @@ sub run {
     # open start note and take screenshot
     x11_start_program("tomboy note");
     send_key "alt-f11";
-    sleep 2;
     send_key "ctrl-home";
-    sleep 2;
     type_string "Rename_";
-    sleep 1;
-    send_key "ctrl-w";
-    wait_idle;
+    wait_screen_change { send_key 'ctrl-w' };
 
     # Check hotkey for open "start here" still works
     send_key "alt-fll";
-    sleep 2;
     wait_still_screen;
     check_screen "tomboy_open_0", 5;
 
     send_key "shift-up";
-    sleep 2;
     send_key "delete";
-    sleep 2;
     send_key "ctrl-w";
-    sleep 2;
     $self->tomboy_logout_and_login;
 
     send_key "alt-f11";
-    sleep 2;
     send_key "up";
-    sleep 1;
     check_screen "tomboy_open_1", 5;
     send_key "ctrl-w";
-    sleep 2;
     send_key "alt-f4";
 }
 

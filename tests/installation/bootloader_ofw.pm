@@ -51,15 +51,13 @@ sub run {
         }
         else {
             # edit menu
-            send_key "e";
+            wait_screen_change { send_key "e" };
             #wait until we get to grub edit
-            wait_idle(5);
             #go down to kernel entry
             send_key "down";
             send_key "down";
             send_key "down";
-            send_key "end";
-            wait_idle(5);
+            wait_screen_change { send_key "end" };
             my $args = "";
             # load kernel manually with append
             if (check_var('VIDEOMODE', 'text')) {

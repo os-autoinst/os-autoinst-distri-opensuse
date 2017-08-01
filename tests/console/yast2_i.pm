@@ -67,7 +67,7 @@ sub run {
         type_string("$pkgname\n");
         assert_screen "$pkgname-selected-for-install", 10;
     }
-    send_key "alt-a", 1;     # accept
+    send_key "alt-a";        # accept
 
     # Whether summary is shown depends on PKGMGR_ACTION_AT_EXIT in /etc/sysconfig/yast2
     until (get_var('YAST_SW_NO_SUMMARY')) {

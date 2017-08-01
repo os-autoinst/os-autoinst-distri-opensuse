@@ -329,8 +329,6 @@ sub bootmenu_network_source {
                 type_string_slow " nameserver=" . join(",", @$dns);
                 type_string_slow " $remote=1 ${remote}password=$password";
             }
-            #type_string "ZYPP_ARIA2C=0 "; sleep 9;
-            #type_string "ZYPP_MULTICURL=0 "; sleep 2;
         }
     }
 
@@ -511,9 +509,6 @@ sub select_bootmenu_language {
             for (1 .. abs($n)) {
                 send_key($n < 0 ? "up" : "down");
             }
-
-            # TODO: add needles for some often tested
-            sleep 2;
             send_key "ret";
         }
     }

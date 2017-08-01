@@ -15,10 +15,17 @@ use base "y2logsstep";
 use strict;
 use testapi;
 
+sub format_dasd {
+    while (check_screen 'process-dasd-format') {    # format progress
+        diag("formatting DASD ...");
+        sleep 20;
+    }
+}
+
 sub run {
-    if (check_var('S390_DISK', 'ZFCP')) {    # use zfcp as install disk
+    if (check_var('S390_DISK', 'ZFCP')) {           # use zfcp as install disk
         assert_screen 'disk-activation-zfcp';
-        send_key 'alt-z';                    # configure ZFCP disk
+        send_key 'alt-z';                           # configure ZFCP disk
         assert_screen 'zfcp-disk-management';
         send_key 'alt-a';
         assert_screen 'zfcp-add-device';
@@ -71,44 +78,34 @@ sub run {
         # sometimes it happens, that the DASD is in a unstable state, so
         # if the systems wants to format the DASD by itself, do it.
         if (check_screen 'dasd-format-device', 10) {    # format device pop-up
-            send_key 'alt-o';                               # continue
-            while (check_screen 'process-dasd-format') {    # format progress
-                diag("formatting DASD ...");
-                sleep 20;
-            }
+            send_key 'alt-o';                           # continue
+            format_dasd;
         }
 
         # format DASD if the variable is that, because we format it usually pre-installation
         elsif (get_var('FORMAT_DASD_YAST')) {
-            send_key 'alt-s';                               # select all
+            send_key 'alt-s';                           # select all
             assert_screen 'dasd-selected';
-            send_key 'alt-a';                               # perform action button
+            send_key 'alt-a';                           # perform action button
             if (check_screen 'dasd-device-formatted') {
                 assert_screen 'action-list';
                 send_key 'f';
-                send_key 'f';                               # Pressing f twice because of bsc#940817
+                send_key 'f';                           # Pressing f twice because of bsc#940817
                 send_key 'ret';
-                assert_screen 'confirm-dasd-format';        # confirmation popup
+                assert_screen 'confirm-dasd-format';    # confirmation popup
                 send_key 'alt-y';
-                while (check_screen 'process-dasd-format') {
-                    diag("formatting DASD ...");
-                    sleep 20;
-                }
+                format_dasd;
             }
         }
-        sleep 5;
         assert_screen 'dasd-active';
         send_key $cmd{next};
-        sleep 5;
     }
     assert_screen 'disk-activation', 15;
     send_key $cmd{next};
-    sleep 5;
 
     # check for multipath popup
     if (check_screen('detected-multipath', 5)) {
-        send_key 'alt-y';
-        sleep 4;
+        wait_screen_change { send_key 'alt-y' };
         send_key 'alt-n';
     }
 }

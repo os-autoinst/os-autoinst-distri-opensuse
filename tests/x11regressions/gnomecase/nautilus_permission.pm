@@ -25,32 +25,24 @@ sub run {
     send_key "r";    #choose properties
     assert_screen 'nautilus-properties';
     send_key "up";       #move focus onto tab
-    sleep 2;
     send_key "right";    #move to tab Permissions
     for (1 .. 4) { send_key "tab" }
     send_key "ret";
     assert_screen 'nautilus-access-permission';
     send_key "down";
-    sleep 1;
     send_key "ret";
-    sleep 1;
     send_key "tab";
-    sleep 1;
     send_key "ret";
     assert_screen 'nautilus-access-permission';
     send_key "down";
-    sleep 1;
     send_key "ret";
-    sleep 1;
-    send_key "esc";    #close the dialog
-    sleep 1;
-    #reopen the properties menu to check if the changes kept
+    send_key "esc";      #close the dialog
+                         #reopen the properties menu to check if the changes kept
     send_key "shift-f10";
     assert_screen 'nautilus-rightkey-menu';
-    send_key "r";      #choose properties
+    send_key "r";        #choose properties
     assert_screen 'nautilus-properties';
     send_key "up";       #move focus onto tab
-    sleep 2;
     send_key "right";    #move to tab Permissions
     assert_screen 'nautilus-permissions-changed';
     send_key "esc";      #close the dialog

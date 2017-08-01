@@ -21,14 +21,11 @@ sub run {
     x11_start_program("touch newfile");
 
     send_key_until_needlematch 'nautilus-newfile-matched', 'right', 15;
-    sleep 2;
     send_key "ctrl-x";
     send_key_until_needlematch 'nautilus-Downloads-matched', 'left', 5;
     send_key "ret";
-    sleep 2;
     send_key "ctrl-v";    #paste to dir ~/Downloads
     assert_screen "nautilus-newfile-moved";
-    sleep 2;
     send_key "alt-up";                      #back to home dir from ~/Downloads
     assert_screen 'nautilus-no-newfile';    #assure newfile moved
     send_key "ctrl-w";                      #close nautilus

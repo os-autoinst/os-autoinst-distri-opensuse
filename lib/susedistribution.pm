@@ -8,7 +8,7 @@ use utils qw(type_string_slow ensure_unlocked_desktop save_svirt_pty);
 
 # don't import script_run - it will overwrite script_run from distribution and create a recursion
 use testapi qw(send_key %cmd assert_screen check_screen check_var get_var save_screenshot
-  match_has_tag set_var type_password type_string wait_idle wait_serial
+  match_has_tag set_var type_password type_string wait_serial
   mouse_hide send_key_until_needlematch record_info
   wait_still_screen wait_screen_change get_required_var diag);
 
@@ -162,14 +162,13 @@ sub ensure_installed {
         last if (match_has_tag('pkcon-finished'));
         if (match_has_tag('Policykit')) {
             type_password;
-            send_key("ret", 1);
+            send_key 'ret';
             @tags = grep { $_ ne 'Policykit' } @tags;
             @tags = grep { $_ ne 'Policykit-behind-window' } @tags;
             next;
         }
         if (match_has_tag('Policykit-behind-window')) {
-            send_key("alt-tab");
-            sleep 3;
+            wait_screen_change { send_key 'alt-tab' };
             next;
         }
         if (match_has_tag('pkcon-proceed-prompt')) {
@@ -399,8 +398,7 @@ sub activate_console {
             # LIVE CDa do not run inst-consoles as started by inst-linux (it's regular live run, auto-starting yast live installer)
             assert_screen "text-login", 10;
             # login as root, who does not have a password on Live-CDs
-            type_string "root\n";
-            sleep 1;
+            wait_screen_change { type_string "root\n" };
         }
         else {
             # on s390x we need to login here by providing a password

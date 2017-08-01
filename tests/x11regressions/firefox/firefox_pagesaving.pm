@@ -20,18 +20,12 @@ sub run {
     $self->start_firefox;
 
     send_key "esc";
-    sleep 1;
     send_key "alt-d";
-    sleep 1;
     type_string "http://www.mozilla.org/en-US\n";
-
     assert_screen('firefox-pagesaving-load', 90);
-
     send_key "ctrl-s";
     assert_screen 'firefox-pagesaving-saveas';
-
     send_key "alt-s";
-    sleep 5;
 
     # Exit
     $self->exit_firefox;

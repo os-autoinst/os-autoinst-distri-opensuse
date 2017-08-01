@@ -20,7 +20,6 @@ sub run {
     assert_screen 'test-banshee-1', 3;
     send_key "ctrl-q";    # really quit (alt-f4 just backgrounds)
     send_key "alt-f4";
-    wait_idle;
 }
 
 sub ocr_checklist {

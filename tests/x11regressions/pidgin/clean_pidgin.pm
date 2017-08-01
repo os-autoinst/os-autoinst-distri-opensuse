@@ -14,26 +14,18 @@
 use base "x11regressiontest";
 use strict;
 use testapi;
+use utils 'clear_console';
 
 sub remove_pkg {
     my @packages = qw(pidgin);
     x11_start_program("xterm");
 
     # Remove packages
-    type_string "xdg-su -c 'rpm -e @packages'\n";
-    sleep 3;
-    if ($password) {
-        type_password;
-        send_key "ret";
-    }
-    sleep 30;    # give time to uninstall
-    type_string "clear\n";
-    sleep 2;
+    assert_script_sudo "rpm -e @packages";
+    clear_console;
     type_string "rpm -qa @packages\n";
     assert_screen "pidgin-pkg-removed";    #make sure pkgs removed.
-
     type_string "exit\n";
-    sleep 2;
 }
 
 sub run {

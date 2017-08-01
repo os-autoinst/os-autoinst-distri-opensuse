@@ -13,14 +13,11 @@ sub launch_virtmanager {
     # start a console
     # launch virt-manager in an xterm
     x11_start_program("xterm");
-    wait_idle;
     type_string "virt-manager", 50;
     send_key "ret";
-    wait_idle;
     if (check_screen("virt-manager-auth")) {
         type_password;
         send_key "ret";
-        wait_idle;
     }
     save_screenshot;
 }
@@ -39,12 +36,9 @@ sub clean_up_desktop {
 sub connection_details {
     my ($tab) = @_;
     # connection details
-    send_key "alt-e", 1;
-    sleep 1;
+    wait_screen_change { send_key "alt-e" };
     # be sure return has been done
-    send_key "ret", 1;
-    sleep 1;
-    # send_key "ret";
+    send_key "ret";
     if (get_var("DESKTOP") !~ /icewm/) {
         assert_screen "virtman-sle12-gnome_details", 40;
     }
@@ -54,7 +48,6 @@ sub connection_details {
     # be sure to be on a tab
     for (1 .. 4) {
         send_key "tab";
-        #sleep 1;
     }
     # need to send X "right" key to go to the correct tab
     # network interface = 3
@@ -74,7 +67,6 @@ sub connection_details {
     }
     for (1 .. $count) {
         send_key "right";
-        sleep 1;
     }
 }
 
@@ -101,9 +93,6 @@ sub create_vnet {
     # got to "+"
     # i know assert_and_click could be used
     #    for (1 .. 6) {
-    #	send_key "tab";
-    #        #sleep 1;
-    #   }
     #send_key "spc";
     assert_and_click "SLE12_virt-manager_vnet_plus";
 
@@ -111,17 +100,15 @@ sub create_vnet {
     # go to text
     type_string $vnet->{name}, 30;
     save_screenshot;
-    send_key "ret", 10;
+    send_key "ret";
     # step 2
     save_screenshot;
     # got to enable_ipv4
-    send_key "tab", 1;
+    wait_screen_change { send_key "tab" };
     if ($vnet->{ipv4}{active} eq "true") {
-        send_key "tab";
-        sleep 1;
+        wait_screen_change { send_key "tab" };
         type_string $vnet->{ipv4}{network};
-        send_key "tab";
-        sleep 1;
+        wait_screen_change { send_key "tab" };
         if ($vnet->{ipv4}{dhcpv4}{active} eq "true") {
             send_key "tab";
             type_string $vnet->{ipv4}{dhcpv4}{start};
@@ -131,39 +118,32 @@ sub create_vnet {
         else {
             # disable
             send_key "spc";
-            sleep 1;
         }
         send_key "tab";
         if ($vnet->{ipv4}{staticrouteipv4}{active} eq "true") {
-            send_key "spc";
-            sleep 1;
+            wait_screen_change { send_key "spc" };
             send_key "tab";
             type_string $vnet->{ipv4}{staticrouteipv4}{tonet};
             send_key "tab";
             type_string $vnet->{ipv4}{staticrouteipv4}{viagw};
-            sleep 1;
         }
         # if not staticrouteipv4 we can go next
     }
     else {
         # disable IPV4
-        send_key "spc", 10;
+        send_key "spc";
     }
     save_screenshot;
-    send_key "alt-f", 10;
+    wait_screen_change { send_key "alt-f" };
     # step 3
     if ($vnet->{ipv6}{active} eq "true") {
-        send_key "tab";
-        send_key "spc";
-        sleep 1;
-        send_key "tab";
-        sleep 1;
+        wait_screen_change { send_key "tab" };
+        wait_screen_change { send_key "spc" };
+        wait_screen_change { send_key "tab" };
         type_string $vnet->{ipv6}{network};
-        send_key "tab";
-        sleep 1;
+        wait_screen_change { send_key "tab" };
         if ($vnet->{ipv6}{dhcpv6}{active} eq "true") {
-            send_key "spc";
-            sleep 1;
+            wait_screen_change { send_key "spc" };
             send_key "tab";
             type_string $vnet->{ipv6}{dhcpv6}{start};
             send_key "tab";
@@ -171,8 +151,7 @@ sub create_vnet {
         }
         send_key "tab";
         if ($vnet->{ipv4}{staticrouteipv6}{active} eq "true") {
-            send_key "spc";
-            sleep 1;
+            wait_screen_change { send_key "spc" };
             send_key "tab";
             type_string $vnet->{ipv6}{staticrouteipv6}{tonet};
             send_key "tab";
@@ -180,16 +159,16 @@ sub create_vnet {
         }
     }
     save_screenshot;
-    send_key "alt-f", 1;
+    wait_screen_change { send_key "alt-f" };
     # step 4
     if ($vnet->{vnet}{isolatedvnet}{active} eq "true") {
         send_key "alt-i";
-        send_key "tab", 1;
+        send_key "tab";
     }
     elsif ($vnet->{vnet}{fwdphysical}{active} eq "true") {
-        send_key "tab",  1;
-        send_key "down", 1;
-        send_key "tab",  1;
+        wait_screen_change { send_key "tab" };
+        wait_screen_change { send_key "down" };
+        wait_screen_change { send_key "tab" };
         # we only support ANY now
         if ($vnet->{vnet}{fwdphysical}{destination} eq "any") {
             # sending tab will go to "mode"
@@ -199,7 +178,7 @@ sub create_vnet {
             send_key "tab";
         }
         elsif ($vnet->{vnet}{fwdphysical}{mode} eq "routed") {
-            send_key "down", 1;
+            wait_screen_change { send_key "down" };
         }
     }
     # go to enable ipv6 routing
@@ -209,8 +188,7 @@ sub create_vnet {
     }
     save_screenshot;
     # go to next
-    send_key "tab", 1;
-    sleep 1;
+    wait_screen_change { send_key "tab" };
     if ($vnet->{vnetl}{DNSdomainname} ne "") {
         type_string $vnet->{vnet}{DNSdomainname};
     }
@@ -230,8 +208,7 @@ sub loop_down {
 sub valid_step {
     # quick function to valid a step
     # validate step with forward
-    send_key "alt-f";
-    sleep 1;
+    wait_screen_change { send_key "alt-f" };
     # be sure that there is no error, or remove them from screen
     save_screenshot;
     for (1 .. 4) { send_key "esc"; }
@@ -253,7 +230,6 @@ sub create_new_pool {
     # got to the "+"
     for (1 .. 8) {
         send_key "tab";
-        #sleep 1;
     }
     send_key "spc";
     # step 1
@@ -268,26 +244,26 @@ sub create_new_pool {
     }
     elsif ($pool->{data}{type} eq "disk") {
         loop_down("1");
-        send_key "alt-f", 1;
-        send_key "tab",   1;
+        wait_screen_change { send_key "alt-f" };
+        wait_screen_change { send_key "tab" };
         type_string $pool->{data}{target_path}, 50;
-        send_key "tab", 1;
-        send_key "tab", 1;
+        wait_screen_change { send_key 'tab' };
+        wait_screen_change { send_key 'tab' };
         type_string $pool->{data}{source_path}, 50;
-        send_key "tab", 1;
-        send_key "tab", 1;
+        wait_screen_change { send_key 'tab' };
+        wait_screen_change { send_key 'tab' };
         if ($pool->{data}{buildpool} eq "true") {
-            send_key "spc", 1;
+            wait_screen_change { send_key 'spc' };
         }
         valid_step();
     }
     elsif ($pool->{data}{type} eq "fs") {
         loop_down("2");
-        send_key "alt-f", 1;
-        send_key "tab",   1;
+        wait_screen_change { send_key 'alt-f' };
+        wait_screen_change { send_key 'tab' };
         type_string $pool->{data}{target_path}, 50;
-        send_key "tab", 1;
-        send_key "tab", 1;
+        wait_screen_change { send_key 'tab' };
+        wait_screen_change { send_key 'tab' };
         type_string $pool->{data}{source_path}, 50;
         valid_step();
     }
@@ -298,32 +274,32 @@ sub create_new_pool {
     }
     elsif ($pool->{data}{type} eq "iscsi") {
         loop_down("4");
-        send_key "alt-f", 1;
-        send_key "tab",   1;
+        send_key "alt-f";
+        send_key "tab";
         type_string $pool->{data}{target_path};
         send_key "tab";
-        send_key "tab", 1;
+        send_key "tab";
         type_string $pool->{data}{hostname}, 50;
-        send_key "tab", 1;
+        send_key "tab";
         type_string $pool->{data}{IQNsource}, 50;
-        send_key "tab", 1;
+        send_key "tab";
         if ($pool->{data}{initiator}{activate} eq "true") {
             send_key "spc";
-            send_key "tab", 1;
+            send_key "tab";
             type_string $pool->{data}{initiator}{name};
         }
         valid_step();
     }
     elsif ($pool->{data}{type} eq "logical") {
         loop_down("5");
-        send_key "alt-f", 1;
-        send_key "tab",   1;
+        send_key "alt-f";
+        send_key "tab";
         type_string $pool->{data}{target_path}, 50;
-        send_key "tab", 1;
-        send_key "tab", 1;
+        send_key "tab";
+        send_key "tab";
         type_string $pool->{data}{source_path}, 50;
-        send_key "tab", 1;
-        send_key "tab", 1;
+        send_key "tab";
+        send_key "tab";
         if ($pool->{data}{buildpool} eq "true") {
             send_key "spc";
         }
@@ -331,30 +307,30 @@ sub create_new_pool {
     }
     elsif ($pool->{data}{type} eq "mpath") {
         loop_down("6");
-        send_key "alt-f", 1;
-        send_key "tab",   1;
+        send_key "alt-f";
+        send_key "tab";
         type_string $pool->{data}{target_path}, 50;
         valid_step();
     }
     elsif ($pool->{data}{type} eq "netfs") {
         loop_down("7");
-        send_key "alt-f", 1;
-        send_key "tab",   1;
+        send_key "alt-f";
+        send_key "tab";
         type_string $pool->{data}{target_path}, 50;
         send_key "tab";
-        send_key "tab", 1;
+        send_key "tab";
         type_string $pool->{data}{hostname}, 50;
-        send_key "tab", 1;
+        send_key "tab";
         type_string $pool->{data}{source_path}, 50;
         valid_step();
     }
     elsif ($pool->{data}{type} eq "scsi") {
         loop_down("8");
-        send_key "alt-f", 1;
-        send_key "tab",   1;
+        send_key "alt-f";
+        send_key "tab";
         type_string $pool->{data}{target_path}, 50;
-        send_key "tab", 1;
-        send_key "tab", 1;
+        send_key "tab";
+        send_key "tab";
         type_string $pool->{data}{source_path}, 50;
         valid_step();
     }
@@ -377,10 +353,10 @@ sub create_new_volume {
     }
     else {
         # old version of virt-manager provide shortcut...
-        send_key "alt-n", 1;
+        send_key "alt-n";
     }
     type_string $volume->{name}, 20;
-    send_key "tab", 10;
+    send_key "tab";
     # default is qcow2 go to the upper selection
     for (1 .. 4) { send_key "up"; }
     # order is: qcow2, raw, cow, qcow, qed, vmdk, vpc, vdi
@@ -406,12 +382,12 @@ sub create_new_volume {
         $index_down = $index + 2;
         loop_down($index_down);
         if ($volume->{backingstore} ne "") {
-            send_key "tab", 10;
-            send_key "spc", 10;
-            send_key "tab", 10;
+            send_key "tab";
+            send_key "spc";
+            send_key "tab";
             type_string $volume->{backingstore}, 50;
         }
-        else { send_key "tab", 1; }
+        else { send_key "tab"; }
     }
     elsif ($volume->{format} eq "qed") {
         $index_down = $index + 3;
@@ -429,19 +405,19 @@ sub create_new_volume {
         $index_down = $index + 6;
         loop_down($index_down);
     }
-    send_key "tab", 1;
+    send_key "tab";
     type_string $volume->{maxcapacity}, 50;
     if ($volume->{format} ne "qcow2") {
-        send_key "tab", 1;
+        send_key "tab";
         type_string $volume->{allocation};
     }
     # alt-f is used for format also! duplicate shortcut....
-    send_key "alt-f", 4;
-    #    send_key "alt-f", 4;
-    #send_key "ret", 4;
+    send_key "alt-f";
+    #    send_key "alt-f";
+    #send_key "ret";
     save_screenshot;
     # close error windows in case of....
-    #send_key "alt-c", 1;
+    #send_key "alt-c";
 }
 
 sub delete_netinterface {
@@ -454,12 +430,9 @@ sub delete_netinterface {
     send_key "esc";
     # lets go to an interface now
     send_key "tab";
-    sleep 1;
     send_key "down";
-    sleep 1;
-    for (1 .. 7) { send_key "tab"; sleep 1; }
+    for (1 .. 7) { send_key "tab"; }
     send_key "spc";
-    sleep 1;
     save_screenshot;
     send_key "alt-y";
     # close virt-manager
@@ -470,17 +443,15 @@ sub delete_netinterface {
 sub create_netinterface {
     my $netif = shift;
     # go to the "+" button
-    wait_idle;
     for (1 .. 7) {
-        send_key "tab", 10;
+        send_key "tab";
     }
     # press it
-    send_key "spc", 1;
+    wait_screen_change { send_key 'spc' };
     # step 1
     # be sure to be at the first value (bridge)
-    wait_idle;
     for (1 .. 4) {
-        send_key "up", 20;
+        send_key "up";
     }
     if ($netif->{type} eq "bridge") {
         print "nothing to do\n";
@@ -494,39 +465,35 @@ sub create_netinterface {
     elsif ($netif->{type} eq "vlan") {
         loop_down("3");
     }
-    send_key "alt-f", 1;
+    send_key "alt-f";
     # step 2
     # there is no name for ethernet or vlan
     if ($netif->{type} ne "ethernet" && $netif->{type} ne "vlan") {
-        send_key "tab";
-        sleep 1;
+        wait_screen_change { send_key "tab" };
         type_string $netif->{name}, 50;
     }
-    send_key "tab", 1;
+    send_key "tab";
     if ($netif->{startmode} eq "none") {
         print "default choice\n";
     }
     elsif ($netif->{startmode} eq "onboot") {
-        send_key "down", 1;
+        send_key "down";
     }
     elsif ($netif->{startmode} eq "hotplug") {
         send_key "down";
-        send_key "down", 1;
+        send_key "down";
     }
-    send_key "tab", 1;
+    send_key "tab";
     if ($netif->{activenow} eq "true") {
-        send_key "spc", 1;
+        send_key "spc";
     }
-    send_key "tab", 1;
+    send_key "tab";
     #go to IPsettings
     send_key "ret";
-    sleep 1;
     if ($netif->{ipsetting}{copy}{active} eq "true") {
-        # FIXME
-        send_key "tab", 10;
-        send_key "up",  10;
+        send_key "tab";
+        send_key "up";
         send_key "alt-o";
-        sleep 1;
     }
     elsif ($netif->{ipsetting}{manually}{active} eq "true") {
         # default selection
@@ -536,46 +503,36 @@ sub create_netinterface {
         }
         elsif ($netif->{ipsetting}{manually}{ipv4}{mode} eq "static") {
             send_key "tab";
-            sleep 1;
             send_key "tab";
-            sleep 1;
             send_key "tab";
             send_key "down";
-            sleep 1;
             send_key "tab";
             type_string $netif->{ipsetting}{manually}{ipv4}{address}, 50;
             send_key "tab";
-            sleep 1;
             type_string $netif->{ipsetting}{manually}{ipv4}{gateway}, 50;
         }
         elsif ($netif->{ipsetting}{manually}{ipv4}{mode} eq "noconf") {
             send_key "tab";
-            sleep 1;
             send_key "tab";
-            sleep 1;
             send_key "down";
-            sleep 1;
             send_key "down";
-            sleep 1;
         }
         save_screenshot;
         send_key "alt-o";
-        sleep 1;
     }
     # next step for ethernet is interface selection, there is no other conf
     if ($netif->{type} ne "ethernet") {
-        send_key "tab", 10;
+        send_key "tab";
     }
     if ($netif->{type} eq "bridge") {
-        send_key "ret", 10;
+        send_key "ret";
         type_string $netif->{ipsetting}{bridgesettings}{fwddelay}, 50;
         if ($netif->{ipsetting}{bridgesettings}{stp} eq "true") {
             send_key "tab";
             send_key "ret";
         }
         save_screenshot;
-        send_key "alt-o", 1;
-        sleep 1;
+        send_key "alt-o";
     }
     if ($netif->{type} eq "vlan") {
         type_string $netif->{vlantag}, 50;
@@ -585,7 +542,7 @@ sub create_netinterface {
         # FIXME
         print "not yet implemented\n";
     }
-    send_key "tab", 10;
+    send_key "tab";
     save_screenshot;
     if ($netif->{interface} eq "lo") {
         send_key "spc";
@@ -593,9 +550,9 @@ sub create_netinterface {
     elsif ($netif->{interface} eq "other") {
         send_key "down";
         send_key "down";
-        send_key "spc", 1;
+        send_key "spc";
     }
-    send_key "alt-f", 30;
+    send_key "alt-f";
     if ($netif->{type} ne "vlan" && $netif->{type} ne "bond") {
         # bridge/ethernet can take time to be up; waiting 35sec more
         save_screenshot;
@@ -611,7 +568,7 @@ sub create_guest {
     my $guest = shift;
     # create using virt-install
     send_key "alt-f";
-    send_key "n", 10;
+    send_key "n";
     # step 1: method
     if ($guest->{method} eq "cdrom") {
         print "nothing to do\n";
@@ -627,20 +584,19 @@ sub create_guest {
     }
     save_screenshot;
     # go to step2
-    send_key "alt-f";
-    wait_idle;
+    wait_screen_change { send_key "alt-f" };
     # step 2: media installation
-    send_key "alt-f", 10;
+    send_key "alt-f";
     # step 3: Mem and CPU
-    send_key "tab", 10;
+    send_key "tab";
     type_string $guest->{memory}, 50;
-    send_key "tab", 10;
+    send_key "tab";
     type_string $guest->{cpu}, 50;
     save_screenshot;
-    send_key "alt-f", 10;
+    send_key "alt-f";
     # step 4: storage
-    send_key "alt-m", 10;
-    send_key "alt-w", 10;
+    send_key "alt-m";
+    send_key "alt-w";
 
     my $newvolume = {
         name        => "guest",
@@ -651,7 +607,6 @@ sub create_guest {
     create_new_volume($newvolume);
     save_screenshot;
     # choose this volume and press alt-v
-    #send_key "tab"; sleep 1;
     if (get_var("DESKTOP") !~ /icewm/) {
         assert_and_click "virtman-sle12-gnome_choose_volume";
     }
@@ -659,12 +614,12 @@ sub create_guest {
         assert_and_click "virtman_choose_volume";
     }
     # go to last step
-    send_key "alt-f", 10;
+    send_key "alt-f";
     # step 5: last conf
-    send_key "tab", 10;
+    send_key "tab";
     type_string $guest->{name}, 50;
     # be sure to be in "customize"
-    send_key "tab", 10;
+    send_key "tab";
     if ($guest->{custom} eq "true") {
         send_key "alt-u";
     }
@@ -674,7 +629,7 @@ sub create_guest {
         send_key "spc";
         send_key "tab";
         # unselect and select FIXED MAC
-        send_key "alt-m", 10;
+        send_key "alt-m";
         send_key "alt-m";
         send_key "tab";
         # enter custom mac
@@ -685,10 +640,10 @@ sub create_guest {
     if ($guest->{custom} eq "true") {
         send_key "tab";
         send_key "tab";
-        send_key "tab", 10;
+        send_key "tab";
         for (1 .. 11) {
             # parse all options
-            send_key "down", 10;
+            send_key "down";
         }
         save_screenshot;
         send_key "up";

@@ -26,8 +26,5 @@ sub run {
         $self->execute_script_run("$install_script $guest", 3600);
         save_screenshot;
     }
-
-    sleep 5;
-
 }
 1;

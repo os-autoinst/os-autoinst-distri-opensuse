@@ -18,14 +18,7 @@ use testapi;
 
 sub run {
     mouse_hide();
-    sleep 60;
-    wait_idle;
     ensure_installed("tomboy");
-    send_key "ret";
-    sleep 90;
-    send_key "esc";
-    sleep 5;
-    wait_idle;
 }
 
 1;

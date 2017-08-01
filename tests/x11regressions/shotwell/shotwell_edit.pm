@@ -40,7 +40,6 @@ sub run {
     send_key "shift-delete";    # Remove picture from library
     assert_screen 'shotwell-remove-prompt';
     send_key "alt-r";
-    sleep 2;
     send_key "esc";
     wait_still_screen;
     assert_screen 'shotwell-removed-picture';

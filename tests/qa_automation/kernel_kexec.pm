@@ -41,7 +41,6 @@ sub run {
     # kexec -e
     type_string("systemctl kexec\n");
     # wait for reboot
-    wait_idle();
     reset_consoles();
     select_console("root-console");
     # Check kernel cmdline parameter

@@ -18,13 +18,6 @@ use strict;
 
 sub run {
     my $self = shift;
-
-    # Without this login name and password won't get to the system. They get
-    # lost somewhere. Applies for all systems installed via svirt, but zKVM.
-    if (check_var('BACKEND', 'svirt') and !check_var('ARCH', 's390x')) {
-        wait_idle;
-    }
-
     # let's see how it looks at the beginning
     save_screenshot;
 
@@ -58,8 +51,7 @@ sub run {
                 assert_and_click "sddm-password-input";
             }
             else {
-                send_key "ret";
-                wait_idle;
+                wait_screen_change { send_key 'ret' };
             }
             type_string "$password";
             send_key "ret";

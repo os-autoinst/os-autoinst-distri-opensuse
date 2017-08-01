@@ -36,9 +36,7 @@ sub run {
     my $pre_test_cmd = "/usr/share/qa/virtautolib/lib/guest_migrate.sh " . $args;
     type_string("$pre_test_cmd \n");
     save_screenshot;
-    sleep 10;
     send_key("ctrl-c");
-    sleep 3;
     save_screenshot;
     #workaround end
 

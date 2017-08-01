@@ -16,7 +16,6 @@ use testapi;
 
 sub run {
     x11_start_program("xterm");
-    wait_idle;
     send_key "alt-f10";
     become_root;
     script_run("yast2 virtualization; echo yast2-virtualization-done-\$? > /dev/$serialdev", 0);
@@ -57,12 +56,10 @@ sub run {
     send_key "alt-f4";
     # now need to start libvirtd
     x11_start_program("xterm");
-    send_key "alt-f10";
-    wait_idle;
+    wait_screen_change { send_key "alt-f10" };
     become_root;
     type_string "systemctl start libvirtd", 50;
-    send_key "ret";
-    wait_idle;
+    wait_screen_change { send_key "ret" };
     type_string "systemctl status libvirtd", 50;
     send_key "ret";
     save_screenshot;

@@ -34,11 +34,9 @@ sub run {
     send_key "alt-1";
     assert_screen('firefox-extensions-show_flag', 60);
 
-    sleep 1;
     send_key "alt-3";
     assert_and_click('firefox-extensions-flagfox_installed');
 
-    sleep 2;
     send_key "alt-1";
     assert_screen('firefox-extensions-no_flag', 90);
 

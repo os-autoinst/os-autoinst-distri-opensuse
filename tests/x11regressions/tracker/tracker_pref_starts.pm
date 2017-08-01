@@ -19,8 +19,6 @@ use testapi;
 
 sub run {
     x11_start_program("tracker-preferences");
-    sleep 2;
-    wait_idle;
     assert_screen 'tracker_pref_launched';
     send_key "alt-f4";
 }

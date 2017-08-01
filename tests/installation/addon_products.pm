@@ -19,8 +19,8 @@ sub run {
     if (check_screen('network-setup', 10)) {    # won't appear for NET installs
         send_key $cmd{next};                    # use network
         assert_screen 'dhcp-network';
-        send_key 'alt-d', 2;                    # DHCP
-        send_key 'alt-o', 2;                    # OK
+        wait_screen_change { send_key 'alt-d' };    # DHCP
+        send_key 'alt-o';                           # OK
     }
 
     assert_screen 'addon-selection';
@@ -29,25 +29,25 @@ sub run {
 
         # FIXME: do the same as sle here
         foreach my $url (split(/\+/, get_var("ADDONURL"))) {
-            send_key "alt-a";                   # Add another
-            send_key $cmd{xnext}, 1;            # Specify URL (default)
+            send_key "alt-a";                       # Add another
+            wait_screen_change { send_key $cmd{xnext} };    # Specify URL (default)
             type_string $url;
-            send_key $cmd{next}, 1;
-            if (get_var("ADDONURL") !~ m{/update/}) {    # update is already trusted, so would trigger "delete"
+            wait_screen_change { send_key $cmd{next} };
+            if (get_var("ADDONURL") !~ m{/update/}) {       # update is already trusted, so would trigger "delete"
                 send_key "alt-i";
                 assert_screen 'import-untrusted-gpg-key-598D0E63B3FD7E48';
-                send_key "alt-t", 1;                     # confirm import (trust) key
+                send_key "alt-t";                           # confirm import (trust) key
             }
         }
         assert_screen 'addon-selection';
-        send_key $cmd{next}, 1;                          # done
+        wait_screen_change { send_key $cmd{next} };         # done
     }
 
     if (get_var("ADDONS")) {
 
         for my $a (split(/,/, get_var('ADDONS'))) {
-            send_key 'alt-d';                            # DVD
-            send_key $cmd{xnext}, 1;
+            send_key 'alt-d';                               # DVD
+            send_key $cmd{xnext};
             assert_screen 'dvd-selector';
             send_key_until_needlematch 'addon-dvd-list', 'tab';
             send_key_until_needlematch "addon-dvd-$a",   'down';
@@ -60,9 +60,7 @@ sub run {
             else {
                 assert_screen "addon-license-$a";
             }
-            sleep 2;
-            send_key 'alt-y';    # yes, agree
-            sleep 2;
+            wait_screen_change { send_key 'alt-y' };    # yes, agree
             send_key $cmd{next};
             assert_screen 'addon-list';
             if ((split(/,/, get_var('ADDONS')))[-1] ne $a) {

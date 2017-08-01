@@ -18,7 +18,6 @@ use utils;
 
 sub run {
     my ($self) = @_;
-    wait_idle;
     send_key "alt-f4";    # open logout dialog
     assert_screen 'logoutdialog', 15;
     send_key "tab";       # reboot

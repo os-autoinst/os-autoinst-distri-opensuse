@@ -1,4 +1,4 @@
-# Copyright (C) 2015 SUSE Linux GmbH
+# Copyright (C) 2015-2016 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -13,15 +13,14 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# G-Summary: wicked script for more logs if eth0 is not up
-# G-Maintainer: Jozef Pupava <jpupava@suse.com>
+# Summary: wicked script for more logs if eth0 is not up
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use strict;
 use base 'basetest';
 use testapi;
 
 sub run {
-
     # https://en.opensuse.org/openSUSE:Bugreport_wicked
     type_string "systemctl status wickedd.service\n";
     type_string "echo `wicked show all |cut -d ' ' -f 1` END | tee /dev/$serialdev\n";
@@ -49,7 +48,6 @@ sub run {
         save_screenshot;
         # collect the configuration
         type_string "wicked show-config > /tmp/wicked/config-dump.log\n";
-        sleep 5;
         # collect the status
         type_string "wicked ifstatus --verbose all > /tmp/wicked/status.log\n";
         type_string "journalctl -b -o short-precise > /tmp/wicked/wicked.log\n";

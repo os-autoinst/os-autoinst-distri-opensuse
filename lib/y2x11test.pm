@@ -12,7 +12,7 @@ sub launch_yast2_module_x11 {
     if (check_screen "root-auth-dialog") {
         if ($password) {
             type_password;
-            send_key "ret", 1;
+            wait_screen_change { send_key "ret" };
         }
     }
 }

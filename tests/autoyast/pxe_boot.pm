@@ -61,8 +61,7 @@ sub run {
     if (get_var("EXTRA_BOOT_ARG")) {
         type_string_very_slow(' ' . get_var("EXTRA_BOOT_ARG"));
     }
-
-    sleep 3;
+    wait_still_screen(3);
     save_screenshot;
     send_key "ret";
 

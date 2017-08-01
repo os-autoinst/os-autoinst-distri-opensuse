@@ -19,23 +19,14 @@ use testapi;
 
 sub run {
     x11_start_program("tracker-needle");
-    sleep 2;
-    wait_idle;    # extra wait because oo sometimes appears to be idle during start
     assert_screen 'tracker-needle-launched';
     type_string "cheese";
-    sleep 8;
     assert_screen 'tracker-search-cheese';
-    sleep 2;
-    send_key "tab";
-    sleep 2;
-    send_key "down";
-    sleep 2;
+    wait_screen_change { send_key 'tab' };
+    wait_screen_change { send_key 'down' };
     send_key "ret";
-    sleep 2;
-    wait_idle;
     assert_screen 'cheese-launched';
-    send_key "alt-f4";
-    sleep 2;    #close cheese
+    wait_screen_change { send_key 'alt-f4' };
     send_key "alt-f4";
 }
 

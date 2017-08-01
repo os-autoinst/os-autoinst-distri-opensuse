@@ -24,8 +24,6 @@ sub run {
     # Remove the --force when this is fixed:
     # https://bugzilla.redhat.com/show_bug.cgi?id=1075131
     script_run("systemctl set-default --force graphical.target");
-    sleep 5;
-
     save_screenshot;
 
     # switch to root-console (in case we are in X)

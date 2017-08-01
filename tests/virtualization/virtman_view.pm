@@ -27,7 +27,7 @@ sub run {
     # go to preferences
     send_key "alt-e";
     wait_still_screen;
-    send_key "p", 1;
+    wait_screen_change { send_key "p" };
     # go to polling
     send_key "right";
     for (1 .. 3) { send_key "tab"; }
@@ -50,8 +50,8 @@ sub run {
     sleep 1;
 
     # go to view now
-    send_key "alt-v", 1;
-    send_key "right", 1;
+    wait_screen_change { send_key "alt-v" };
+    wait_screen_change { send_key "right" };
     # activate everything
     for (1 .. 4) {
         send_key "down";

@@ -35,7 +35,7 @@ sub run {
     send_key "spc";
     assert_screen('firefox-mhtml-unmht_installed', 90);
 
-    send_key "ctrl-w", 1;
+    wait_screen_change { send_key "ctrl-w" };
 
     send_key "alt-d";
     type_string "file:///dev/shm/ie10.mht\n";

@@ -20,19 +20,13 @@ use testapi;
 sub run {
     # open tomboy
     x11_start_program("tomboy note");
-    wait_idle;
-    assert_screen 'test-tomboy_AlreadyRunning-1', 3;
-    sleep 2;
+    assert_screen 'test-tomboy_AlreadyRunning-1';
     send_key "alt-f4";
-    sleep 2;
 
     # open again
     x11_start_program("tomboy note");
-    wait_idle;
-    assert_screen 'test-tomboy_AlreadyRunning-2', 3;
-    sleep 2;
+    assert_screen 'test-tomboy_AlreadyRunning-2';
     send_key "alt-f4";
-    sleep 2;
 }
 
 1;

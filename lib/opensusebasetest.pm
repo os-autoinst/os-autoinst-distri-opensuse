@@ -428,13 +428,6 @@ sub wait_boot {
         handle_emergency if (match_has_tag('emergency-shell') or match_has_tag('emergency-mode'));
 
         reset_consoles;
-
-        # Without this login name and password won't get to the system. They get
-        # lost somewhere. Applies for all systems installed via svirt, but zKVM.
-        if (check_var('BACKEND', 'svirt') and !check_var('ARCH', 's390x')) {
-            wait_idle;
-        }
-
         $self->{in_wait_boot} = 0;
         return;
     }
@@ -445,7 +438,6 @@ sub wait_boot {
         assert_screen [qw(displaymanager emergency-shell emergency-mode)], $ready_time;
         handle_emergency if (match_has_tag('emergency-shell') or match_has_tag('emergency-mode'));
 
-        wait_idle;
         if (get_var('DM_NEEDS_USERNAME')) {
             type_string "$username\n";
         }

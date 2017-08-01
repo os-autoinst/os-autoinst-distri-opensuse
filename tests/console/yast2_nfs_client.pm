@@ -52,9 +52,8 @@ sub run {
     send_key 'alt-m';
     type_string '/tmp/nfs/client';
     # Save the new connection and close YaST
-    wait_screen_change { send_key 'alt-o'; };
-    wait_screen_change { send_key 'alt-o'; };
-    wait_idle;
+    wait_screen_change { send_key 'alt-o' };
+    wait_screen_change { send_key 'alt-o' };
 
     #
     # Check the result

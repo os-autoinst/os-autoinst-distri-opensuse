@@ -22,7 +22,6 @@ sub undo_redo_once {
     send_key "ctrl-z";    #undo
     assert_screen 'gnote-new-note', 5;
     send_key "ctrl-shift-z";    #redo
-    sleep 2;
     send_key "left";            #unselect text
     assert_screen 'gnote-new-note-1', 5;
 }
@@ -38,7 +37,6 @@ sub run {
 
     #assure undo and redo take effect after save note and re-enter note
     send_key "ctrl-tab";    #jump to toolbar
-    sleep 2;
     send_key "ret";         #back to all notes interface
     send_key_until_needlematch 'gnote-new-note-matched', 'down', 6;
     send_key "ret";
@@ -46,13 +44,10 @@ sub run {
 
     #clean: remove the created new note
     send_key "ctrl-tab";    #jump to toolbar
-    sleep 2;
     send_key "ret";         #back to all notes interface
     send_key_until_needlematch 'gnote-new-note-matched', 'down', 6;
     send_key "delete";
-    sleep 2;
     send_key "tab";
-    sleep 2;
     send_key "ret";
     assert_screen "gnote-first-launched", 5;
     send_key "ctrl-w";

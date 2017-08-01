@@ -36,7 +36,7 @@ sub run {
     }
     assert_screen 'evince-search-1stresult', 5;
 
-    send_key "esc", 1;
+    wait_screen_change { send_key "esc" };
     send_key "ctrl-w";
 }
 

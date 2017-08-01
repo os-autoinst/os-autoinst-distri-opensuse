@@ -64,7 +64,6 @@ sub run {
 
     # Exit
     send_key "ctrl-q";
-    wait_idle;
 }
 
 1;

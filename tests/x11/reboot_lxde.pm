@@ -18,8 +18,6 @@ use utils;
 
 sub run {
     my ($self) = @_;
-    wait_idle;
-
     #send_key "ctrl-alt-delete"; # does open task manager instead of reboot
     x11_start_program "lxsession-logout";
     assert_screen "logoutdialog", 20;

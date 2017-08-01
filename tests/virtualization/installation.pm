@@ -23,80 +23,79 @@ use testapi;
 sub run {
     if (get_var("BETA") =~ /beta/) {
         assert_screen "SLE12_beta", 120;
-        send_key "alt-o",           1;
+        send_key "alt-o";
     }
 
     # accept Licence
     assert_screen "SLE12_acceptlicence", 120;
-    send_key "alt-a",                    1;
-    send_key "alt-n",                    1;
+    send_key "alt-a";
+    send_key "alt-n";
 
     # Skip registration
-    send_key "alt-s", 1;
-    send_key "alt-y", 1;
+    send_key "alt-s";
+    send_key "alt-y";
 
     # No external repository
-    send_key "alt-n", 3;
+    send_key "alt-n";
     save_screenshot;
 
     # don't use btrfs, switch to ext4
     assert_screen "SLE12_partition_ext4", 20;
-    send_key "alt-d",                     1;
-    send_key "alt-f",                     1;
-    send_key "down",                      1;
-    send_key "alt-o",                     1;
-    send_key "alt-n",                     1;
+    send_key "alt-d";
+    send_key "alt-f";
+    send_key "down";
+    send_key "alt-o";
+    send_key "alt-n";
 
     # timezone default (NY)
-    send_key "alt-n", 1;
+    send_key "alt-n";
     save_screenshot;
 
     # user
     type_string $username, 2;
-    #    send_key "alt-u", 1;
+    #    send_key "alt-u";
     #    type_string "linux", 2;
-    send_key "alt-p", 1;
+    send_key "alt-p";
     type_string $password;
-    send_key "alt-o", 1;
+    send_key "alt-o";
     type_string $password;
-    send_key "alt-s", 2;
-    send_key "alt-a", 2;
-    send_key "alt-n", 2;
-    send_key "alt-y", 2;
+    send_key "alt-s";
+    send_key "alt-a";
+    send_key "alt-n";
+    send_key "alt-y";
 
     # install setting go to software selection
     assert_screen "SLE12_software_selection", 20;
-    send_key "tab",                           3;
-    send_key "tab",                           3;
-    send_key "ret",                           3;
+    send_key "tab";
+    send_key "tab";
+    send_key "ret";
 
     # remove doc and apparmor, add kvm
     assert_screen "SLE12_pre_selection", 20;
-    send_key "tab",                      3;
+    send_key "tab";
     # remove doc
-    send_key "down", 3;
-    send_key "spc",  2;
+    send_key "down";
+    send_key "spc";
     # remove apparmor
-    for (1 .. 3) { send_key "down", 3; }
-    send_key "spc", 2;
+    for (1 .. 3) { send_key "down"; }
+    send_key "spc";
     # select KVM
-    for (1 .. 3) { send_key "down", 3; }
-    send_key "spc", 2;
+    for (1 .. 3) { send_key "down"; }
+    send_key "spc";
     if (get_var("DESKTOP") =~ /icewm/) {
         # remove Gnome desktop
-        for (1 .. 3) { send_key "down", 3; }
-        send_key "spc", 2;
+        for (1 .. 3) { send_key "down"; }
+        send_key "spc";
     }
     save_screenshot;
-    send_key "alt-o", 1;
+    send_key "alt-o";
 
     # Launch the intallation
-    assert_screen "SLE12_goforinstall",        20;
-    send_key "alt-i",                          1;
-    send_key "alt-i",                          1;
+    assert_screen "SLE12_goforinstall", 20;
+    send_key "alt-i";
+    send_key "alt-i";
     assert_screen "SLE12_install_in_progress", 10;
     # reboot !
-    wait_idle 530;
 }
 
 sub test_flags {

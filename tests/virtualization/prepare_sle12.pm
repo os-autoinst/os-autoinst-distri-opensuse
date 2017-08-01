@@ -22,14 +22,15 @@ use testapi;
 use virtmanager;
 
 sub run {
+    my ($self) = @_;
     # login and preparation of the system
     if (get_var("DESKTOP") =~ /icewm/) {
         send_key "ret";
         assert_screen "SLE12_login", 520;
         type_string "linux";
-        send_key "ret", 1;
+        wait_screen_change { send_key "ret" };
         type_string $password;
-        send_key "ret", 1;
+        send_key "ret";
         save_screenshot;
         # install and launch polkit
         x11_start_program("xterm");
@@ -46,11 +47,9 @@ sub run {
         assert_screen "virt-manager_SLE12_desktop", 520;
     }
     x11_start_program("xterm");
-    wait_idle;
     become_root;
     script_run("hostname susetest");
     script_run("echo susetest > /etc/hostname");
-    wait_idle;
 
     send_key "alt-f4";
 }

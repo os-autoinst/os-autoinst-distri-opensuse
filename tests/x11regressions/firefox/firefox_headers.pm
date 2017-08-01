@@ -24,12 +24,11 @@ sub run {
     assert_screen('firefox-launch', 90);
 
     send_key "esc";
-    send_key "ctrl-shift-q", 1;
-    send_key "alt-d",        1;
+    wait_screen_change { send_key "ctrl-shift-q" };
+    wait_screen_change { send_key "alt-d" };
     type_string "www.gnu.org\n";
     assert_screen('firefox-headers-website', 90);
 
-    sleep 10;
     send_key "down";
     assert_screen('firefox-headers-first_item', 50);
 

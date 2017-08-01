@@ -18,7 +18,7 @@ use testapi;
 
 sub run {
     # autoconf phase
-    # includes downloads, so wait_idle is bad.
+    # includes downloads
     assert_screen [qw(partitioning-edit-proposal-button inst-instmode)], 120;
     if (match_has_tag("partitioning-edit-proposal-button")) {
         # new desktop selection workflow

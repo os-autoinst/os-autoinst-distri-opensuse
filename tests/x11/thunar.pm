@@ -17,7 +17,6 @@ use testapi;
 
 sub run {
     x11_start_program("thunar");
-    sleep 10;
     send_key "shift-tab";
     send_key "home";
     send_key "down";

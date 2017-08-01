@@ -52,7 +52,6 @@ sub configure_static_ip {
     save_screenshot;
     assert_script_run "rcnetwork restart";
     assert_script_run "ip addr";
-    wait_idle(20);
     save_screenshot;
 }
 
@@ -66,11 +65,9 @@ sub configure_dhcp {
     type_string "NIC=`grep \$MAC /sys/class/net/*/address |cut -d / -f 5`;";
     type_string("echo \"STARTMODE='auto'\nBOOTPROTO='dhcp'\n\" > /etc/sysconfig/network/ifcfg-\$NIC;");
     type_string("done\n");
-    wait_idle(20);
     save_screenshot;
     type_string("rcnetwork restart\n");
     type_string("ip addr\n");
-    wait_idle(20);
     save_screenshot;
 }
 

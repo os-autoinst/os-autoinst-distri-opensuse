@@ -35,7 +35,7 @@ sub run {
 
         while (match_has_tag("startupdate-conflict") || match_has_tag("license-popup")) {
             if (match_has_tag("startupdate-conflict")) {
-                send_key $cmd{ok}, 1;
+                send_key $cmd{ok};
 
                 while (!check_screen('packages-section-selected', 2)) {
                     send_key 'tab';
@@ -46,21 +46,21 @@ sub run {
 
                 while (!check_screen('all-conflicts-resolved-packages', 4)) {
                     assert_and_click 'package-conflict-choice';
-                    send_key $cmd{ok}, 1;
+                    send_key $cmd{ok};
                 }
-                send_key $cmd{accept}, 1;
+                send_key $cmd{accept};
 
                 while (check_screen('license-popup', 2)) {
-                    send_key $cmd{accept}, 1;
+                    send_key $cmd{accept};
                 }
                 assert_screen "automatic-changes";
-                send_key $cmd{continue}, 1;
+                send_key $cmd{continue};
 
                 send_key $cmd{update};
                 sleep 1;
             }
             if (match_has_tag("license-popup")) {
-                send_key $cmd{accept}, 1;
+                send_key $cmd{accept};
             }
             assert_screen [qw(startupdate startupdate-conflict license-popup)], 5;
         }
@@ -88,7 +88,7 @@ sub run {
         wait_screen_change { send_key 'alt-o' } if match_has_tag('inst-overview-error-found', 0);
         while (check_screen([qw(confirmlicense startinstall)], 5)) {
             last if match_has_tag("startinstall");
-            send_key $cmd{acceptlicense}, 1;
+            send_key $cmd{acceptlicense};
         }
         assert_screen "startinstall";
 

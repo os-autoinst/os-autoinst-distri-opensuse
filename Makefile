@@ -58,6 +58,7 @@ test-merge:
 	  FILES=$$(git diff --name-only FETCH_HEAD `git merge-base FETCH_HEAD master 2>/dev/null` | grep 'tests.*pm') ;\
 	  for file in $$FILES; do if test -f $$file; then \
 	    tools/check_metadata $$file || touch failed; \
+	    git grep wait_idle $$file && touch failed; \
 	    ${PERLCRITIC} $$file || touch failed ;\
 	  fi ; done; \
 	fi
@@ -67,8 +68,12 @@ test-merge:
 test-dry:
 	export PERL5LIB=${PERL5LIB_} ; tools/detect_code_dups
 
+.PHONY: test-no-wait_idle
+test-no-wait_idle:
+	@! git grep wait_idle lib/ tests/
+
 .PHONY: test
-test: tidy test-compile test-merge test-dry
+test: tidy test-compile test-merge test-dry test-no-wait_idle
 
 PERLCRITIC=PERL5LIB=tools/lib/perlcritic:$$PERL5LIB perlcritic --quiet --gentle --include Perl::Critic::Policy::HashKeyQuote --include Perl::Critic::Policy::ConsistentQuoteLikeWords
 

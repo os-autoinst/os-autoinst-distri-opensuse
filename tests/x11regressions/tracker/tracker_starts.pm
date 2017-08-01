@@ -17,8 +17,6 @@ use testapi;
 
 sub run {
     x11_start_program("tracker-needle");
-    sleep 2;
-    wait_idle;
     assert_screen 'tracker-needle-launched';
     send_key "alt-f4";
 }

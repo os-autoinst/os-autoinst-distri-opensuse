@@ -19,7 +19,6 @@ sub run {
     x11_start_program("rhythmbox");
     assert_screen 'test-rhythmbox-1';
     send_key "alt-f4";
-    wait_idle;
 }
 
 1;

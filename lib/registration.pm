@@ -174,7 +174,6 @@ sub fill_in_registration_data {
                         assert_and_click "scc-code-field-$addon";
                     }
                     type_string $regcode;
-                    sleep 1;
                     save_screenshot;
                 }
             }

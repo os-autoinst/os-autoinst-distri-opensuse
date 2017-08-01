@@ -28,7 +28,6 @@ sub run {
     assert_screen('firefox-gnomeshell-default', 30);
 
     send_key "alt-d";
-    sleep 1;
     type_string "extensions.gnome.org\n";
     assert_screen('firefox-gnomeshell-frontpage', 120);
     send_key "alt-a";
@@ -47,19 +46,15 @@ sub run {
         assert_and_click('firefox-reader-close');
         assert_screen("firefox-gnomeshell-extension");
     }
-    sleep 5;
     assert_and_click "firefox-gnomeshell-extension_install";
     assert_and_click "firefox-gnomeshell-extension_confirm";
-    sleep 10;
     assert_screen("firefox-gnomeshell-extension_on", 60);
 
     # Exit
     $self->exit_firefox;
 
-    sleep 2;
     x11_start_program("xterm");
     type_string "ls .local/share/gnome-shell/extensions/\n";
-    sleep 2;
     assert_screen('firefox-gnomeshell-checkdir', 30);
     type_string "rm -rf .local/share/gnome-shell/extensions/*;exit\n";
 }

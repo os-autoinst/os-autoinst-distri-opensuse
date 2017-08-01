@@ -16,10 +16,7 @@ use strict;
 use testapi;
 
 sub run {
-    record_soft_failure 'we should not have it';
-    sleep 3;
-    send_key $cmd{next};
-    sleep 5;
+    wait_screen_change { send_key $cmd{next} };
 }
 
 1;
