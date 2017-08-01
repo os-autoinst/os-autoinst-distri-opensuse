@@ -17,6 +17,8 @@ use utils;
 
 sub run {
     select_console 'root-console';
+    # workaround kernel message floating over console
+    assert_script_run "dmesg -n 4";
 
     # check network at first
     assert_script_run("if ! systemctl -q is-active network; then systemctl -q start network; fi");
@@ -37,26 +39,25 @@ sub run {
 
     assert_screen 'yast2_ldap_configuration_stand-alone_tls';
     # move to next page basic database settings and set base dn, ldap admin password
-    send_key 'alt-n';
-    wait_still_screen;
-    send_key 'alt-s';
+    wait_screen_change { send_key 'alt-n' };
+    wait_screen_change { send_key 'alt-s' };
     type_string 'dc=qa, dc=suse, dc=de';
-    send_key 'alt-a';
+    wait_screen_change { send_key 'alt-a' };
     for (1 .. 20) { send_key 'backspace'; }
     type_string 'cn=admin';
-    send_key 'alt-l';
+    wait_screen_change { send_key 'alt-l' };
     type_string 'testing';
-    send_key 'alt-v';
+    wait_screen_change { send_key 'alt-v' };
     type_string 'testing';
     # use database as default for ldap client
-    send_key 'alt-u';
+    wait_screen_change { send_key 'alt-u' };
     send_key 'alt-n';
     assert_screen 'yast2_ldap_configuration_kerberos';
-    send_key 'alt-x';
+    wait_screen_change { send_key 'alt-x' };
     assert_screen 'yast2_ldap_configuration_summary';
 
     # finish ldap server configuration
-    send_key 'alt-f';
+    wait_screen_change { send_key 'alt-f' };
     wait_serial("yast2-auth-server-status-0") || die "'yast2 auth server' failed";
     assert_screen 'yast2_console-finished';
 
@@ -71,7 +72,7 @@ sub run {
 
     # check Samba-Server Configuration got started
     assert_screen 'yast2_samba_installation';
-    send_key 'alt-w';
+    wait_screen_change { send_key 'alt-w' };
     for (1 .. 12) { send_key 'backspace'; }
     # give a new name for Workgroup
     type_string 'QA-Workgroup';
@@ -92,135 +93,122 @@ sub run {
 
     # open port in firewall if it is enabled and check network interfaces, check long text by send key right.
     assert_screen 'yast2_samba_open_port_firewall';
-    send_key 'alt-f';
+    wait_screen_change { send_key 'alt-f' };
     send_key 'alt-i';
 
     assert_screen 'yast2_samba_firewall_port_details';
-    send_key 'alt-e';
-    send_key 'alt-a';
-    send_key 'alt-o';
+    wait_screen_change { send_key 'alt-e' };
+    wait_screen_change { send_key 'alt-a' };
+    wait_screen_change { send_key 'alt-o' };
 
     # switch to Samba Configuration - Shares
     send_key 'alt-s';
     assert_screen 'yast2_samba-server_shares';
 
     # add a shares config html_public
-    send_key 'alt-a';
+    wait_screen_change { send_key 'alt-a' };
     assert_screen 'yast2_samba-server_new-share';
 
     type_string 'html_public';
-    send_key 'alt-a';    # set share description
+    wait_screen_change { send_key 'alt-a' };    # set share description
     type_string 'html docs for share';
-    send_key 'alt-s';
-    type_string '/html_public';    # set share path to /home/html_public
-    send_key 'alt-r';              # set read-only
+    wait_screen_change { send_key 'alt-s' };
+    type_string '/html_public';                 # set share path to /home/html_public
+    wait_screen_change { send_key 'alt-r' };    # set read-only
 
     # check config before confirm new share with ok, confirm to create new share path
     assert_screen 'yast2_samba-server_new-share_create';
-    send_key 'alt-o';
+    wait_screen_change { send_key 'alt-o' };
     assert_screen 'yast2_samba-server_new-share-path';
-    send_key 'alt-y';
-
-    wait_still_screen;
+    wait_screen_change { send_key 'alt-y' };
 
     # back to samba configuration and make some changes to share directories
-    send_key 'alt-w';              # allow users to share directories
-    send_key 'alt-g';              # allow guest access
-    send_key 'alt-m';
-    for (1 .. 10) { send_key 'down'; }    # Maximum number of shares
+    wait_screen_change { send_key 'alt-w' };    # allow users to share directories
+    wait_screen_change { send_key 'alt-g' };    # allow guest access
+    wait_screen_change { send_key 'alt-m' };
+    for (1 .. 10) { send_key 'down'; }          # Maximum number of shares
 
     # switch to identity configuration
     send_key 'alt-d';
     assert_screen 'yast2_samba-server_identity';
 
     # use wins server support and check NetBIOS hostname Advanced settings
-    send_key 'alt-i';
-    send_key 'alt-e';
+    wait_screen_change { send_key 'alt-i' };
+    wait_screen_change { send_key 'alt-e' };
     type_string 'QA-Samba';
     send_key 'alt-v';
     assert_screen 'yast2_samba-server_identity_netbios_advanced_expert';
-    wait_still_screen;
     send_key 'ret';
     assert_screen 'yast2_samba-server_netbios_name_change_warning';
-    send_key 'alt-o';
-    wait_still_screen;
+    wait_screen_change { send_key 'alt-o' };
 
     # change logon drive to C:
     send_key_until_needlematch 'yast2_samba-server_netbios_logon-drive', 'down';
-    send_key 'ret';
-    wait_still_screen;
-    send_key 'alt-l';
+    wait_screen_change { send_key 'ret' };
+    wait_screen_change { send_key 'alt-l' };
     for (1 .. 5) { send_key 'backspace'; }
     type_string 'C:';
-    send_key 'alt-o';
-    wait_still_screen;
-    send_key 'alt-o';
-    wait_still_screen;
+    wait_screen_change { send_key 'alt-o' };
+    wait_screen_change { send_key 'alt-o' };
 
     # swith to Trusted Domains
     # add a trusted domain
     send_key 'alt-t';
     assert_screen 'yast2_samba-server_trusted-domains';
-    send_key 'alt-a';
+    wait_screen_change { send_key 'alt-a' };
     type_string 'suse.de';
-    send_key 'alt-p';
+    wait_screen_change { send_key 'alt-p' };
     type_string 'testing';
     send_key 'alt-o';
     assert_screen 'yast2_samba-server_trusted-domains_error';
-    send_key 'alt-o';
-    wait_still_screen;
+    wait_screen_change { send_key 'alt-o' };
 
     # cancel trusted domain configuration
-    send_key 'alt-c';
-    wait_still_screen;
+    wait_screen_change { send_key 'alt-c' };
 
     # swith to LDAP Settings
     send_key 'alt-l';
     assert_screen 'yast2_samba-server_ldap-settings';
-    send_key 'alt-b';
+    wait_screen_change { send_key 'alt-b' };
     assert_screen 'yast2_samba-server_ldap_value_rewritten';
-    send_key 'alt-y';
-    send_key 'alt-e';
+    wait_screen_change { send_key 'alt-y' };
+    wait_screen_change { send_key 'alt-e' };
     type_string 'ldap://localhost:389';
 
     # set admin password and search base dn
-    send_key 'alt-a';
+    wait_screen_change { send_key 'alt-a' };
     type_string 'cn=admin,dc=qa,dc=suse,dc=de';
-    send_key 'alt-p';
+    wait_screen_change { send_key 'alt-p' };
     type_string 'testing';
-    send_key 'alt-g';
+    wait_screen_change { send_key 'alt-g' };
     type_string 'testing';
-    send_key 'alt-n';
+    wait_screen_change { send_key 'alt-n' };
     type_string 'dc=qa, dc=suse, dc=de';
 
     # check advanced settings befor run test connection to ldap server
-    send_key 'alt-v';
+    wait_screen_change { send_key 'alt-v' };
     send_key 'ret';
-    wait_still_screen;
 
     # enter expert ldap settings
     assert_screen 'yast2_samba-server_ldap_advanced_expert_settings';
 
     # change replication sleep and time-out
-    send_key 'alt-p';
+    wait_screen_change { send_key 'alt-p' };
     for (1 .. 10) { send_key 'down'; }
-    send_key 'alt-t';
+    wait_screen_change { send_key 'alt-t' };
     for (1 .. 2) { send_key 'up'; }
 
     # change to not use SSL or TLS
-    send_key 'alt-u';
-    wait_still_screen;
+    wait_screen_change { send_key 'alt-u' };
     for (1 .. 2) { send_key 'up'; }
     assert_screen 'yast2_samba-server_ldap_advanced_expert_settings_not-use-ssl';
-    send_key 'ret';
-    send_key 'alt-o';
+    wait_screen_change { send_key 'ret' };
+    wait_screen_change { send_key 'alt-o' };
 
     # now run test connection
-    wait_still_screen;
     send_key 'alt-t';
     assert_screen 'yast2_samba-server_ldap_test-connection';
-    send_key 'alt-o';
-    wait_still_screen;
+    wait_screen_change { send_key 'alt-o' };
 
     # finally, close with OK
     send_key 'alt-o';
