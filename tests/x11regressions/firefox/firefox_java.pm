@@ -26,7 +26,7 @@ sub java_testing {
 
         assert_screen(
             [
-                qw(firefox-reader-view firefox-java-verifyversion firefox-java-security oracle-cookies-handling firefox-java-verifyfailed firefox-java-verifypassed)
+                qw(firefox-reader-view firefox-java-verifyversion firefox-java-security oracle-cookies-handling firefox-java-verifyfailed firefox-java-verifypassed firefox-newer-java-available)
             ]);
         if (match_has_tag 'firefox-reader-view') {
             assert_and_click('firefox-reader-close');
@@ -42,6 +42,12 @@ sub java_testing {
         # Click the "Verify Java version" button
         if (match_has_tag 'firefox-java-verifyversion') {
             assert_and_click "firefox-java-verifyversion";
+        }
+        # Newer version of java is available
+        if (match_has_tag 'firefox-newer-java-available') {
+            record_info('Newer java version available',
+                "Aim of the test is to verify that java is installed and works in browser, it's acceptable that it's not always latest version.");
+            return;
         }
         return if match_has_tag 'firefox-java-verifyfailed';
         return if match_has_tag 'firefox-java-verifypassed';
@@ -90,7 +96,8 @@ sub run {
     assert_screen("firefox-java-active", 60);
 
     java_testing();
-    assert_screen("firefox-java-verifypassed", 90);
+    # If java version is not latest in official repos
+    assert_screen([qw(firefox-java-verifypassed firefox-newer-java-available)], 90);
 
     $self->exit_firefox;
 }
