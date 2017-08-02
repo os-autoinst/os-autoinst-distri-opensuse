@@ -20,6 +20,29 @@ sub run {
     x11_start_program("xterm");
     assert_screen 'xterm';
 
+    my @applications = (
+        ['image/jpg',           'eog.desktop'],
+        ['image/png',           'eog.desktop'],
+        ['application/pdf',     'evince.desktop'],
+        ['application/x-bzip2', 'org.gnome.FileRoller.desktop'],
+        ['application/gzip',    'org.gnome.FileRoller.desktop']);
+    my $defaultApps = check_default_apps(@applications);
+    if ($defaultApps) {
+        prepare_application_environment();
+        open_default_apps();
+        clear_application_environment();
+    }
+
+    # clear the xterm
+    send_key 'alt-f4';
+
+}
+
+sub clear_application_environment {
+    x11_start_program("rm -rf /home/$username/gnometest");    # Clean the test directory
+}
+
+sub prepare_application_environment {
     assert_script_run "mkdir gnometest";
     assert_script_run "wget -P /home/$username/gnometest " . autoinst_url . "/data/x11regressions/test.pdf";
     assert_script_run "wget -P /home/$username/gnometest " . autoinst_url . "/data/x11regressions/shotwell_test.jpg";
@@ -27,7 +50,6 @@ sub run {
     assert_script_run "cp /usr/share/w3m/w3mhelp.html /home/$username/gnometest/";
     assert_script_run "tar cjvf /home/$username/gnometest/test.tar.bz2 -C /home/$username/gnometest/ test.pdf";
     assert_script_run "tar czvf /home/$username/gnometest/test.tar.gz -C /home/$username/gnometest/ test.pdf";
-    send_key 'alt-f4';
 
     # Open nautilus
     x11_start_program("nautilus");
@@ -36,7 +58,9 @@ sub run {
     type_string "/home/$username/gnometest\n";
     send_key "ret";
     assert_screen 'gnomecase-defaultapps-nautilus';
+}
 
+sub open_default_apps {
     # Open test files with default applications
     assert_and_dclick "gnomecase-defaultapps-jpgfile";     #open jpg
     assert_screen 'gnomecase-defaultapps-jpgopen';
@@ -65,9 +89,24 @@ sub run {
     send_key "alt-f4";                                     #close firefox
     wait_still_screen;
     send_key "ctrl-w";                                     #close nautilus
+}
 
-    # Clean the test directory
-    x11_start_program("rm -rf /home/$username/gnometest");
+# For each element, will check if the mimetype will open with the correct application
+sub check_default_apps {
+    my @apps = @_;
+
+    my $default = 1;
+    my @message = ();
+    for my $app (@apps) {
+        my $returnCode = script_run("[ '$app->[1]' == \$(gvfs-mime --query '$app->[0]' |  awk 'NR==1{print \$NF}' | sed 's/[[:space:]]//' ) ]");
+        if ($returnCode) {
+            push @message, "The mimetype $app->[0] should open with $app->[1]";
+            $default = 0;
+        }
+    }
+    record_soft_failure(join("\n", @message, "Please check bsc#1051183")) if !$default;
+
+    return $default;
 }
 
 1;
