@@ -8,11 +8,10 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add YaST2 UI tests
-#    Make sure those yast2 modules can opened properly. We can add more
-#    feature test against each module later, it is ensure it will not crashed
-#    while launching atm.
-# G-Maintainer: Max Lin <mlin@suse.com>
+# Summary: yast2_software_management.pm checks some basic functions like
+# "search, pattern, installation summary"
+# Make sure it can opened properly and it's basic functions work correctly.
+# Maintainer: Zaoliang Luo <zluo@suse.com>
 
 use base "y2x11test";
 use strict;
@@ -24,7 +23,26 @@ sub run {
 
     $self->launch_yast2_module_x11($module);
     assert_screen "yast2-$module-ui", 120;
-    send_key "alt-a";    # Accept => Exit
+
+    # search packages and check package list and technical data
+    type_string "ftp";
+    assert_and_click "yast2-$module-search";
+    assert_screen "yast2-$module-show-packages";
+    assert_and_click "yast2-$module-technical-data";
+    assert_screen "yast2-$module-td-details";
+
+    # open View, select and show pattern content
+    assert_and_click "yast2-$module-view";
+    assert_screen "yast2-$module-groups";
+    assert_and_click "yast2-$module-pattern";
+    assert_screen "yast2-$module-show-pattern";
+
+    # check Installation Summary
+    assert_and_click "yast2-$module-summary";
+    assert_screen "yast2-$module-show-summary";
+
+    # Exit
+    send_key "alt-a";
 }
 
 1;
