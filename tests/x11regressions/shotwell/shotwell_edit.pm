@@ -13,7 +13,6 @@
 
 
 use base "x11regressiontest";
-use base "x11regressiontest";
 use strict;
 use testapi;
 
@@ -39,7 +38,7 @@ sub run {
     assert_screen 'shotwell-crop-picture';
     send_key "shift-delete";    # Remove picture from library
     assert_screen 'shotwell-remove-prompt';
-    send_key "alt-r";
+    wait_screen_change { send_key 'alt-r' };
     send_key "esc";
     wait_still_screen;
     assert_screen 'shotwell-removed-picture';
