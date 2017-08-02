@@ -18,7 +18,7 @@ use testapi;
 
 sub run {
     my ($self) = @_;
-
+    $self->sle15_workaround_broken_patterns;
     # overview-generation
     # this is almost impossible to check for real
     # See poo#12322. Prevent checks before overview is fully loaded
@@ -26,6 +26,8 @@ sub run {
     # parts which are there while overview is still loading. This check has to be
     # performed only once, as state of buttons can be different
     assert_screen "installation-settings-overview-loaded";
+
+    $self->sle15_workaround_broken_patterns;
 
     if (match_has_tag 'manual-intervention') {
         $self->deal_with_dependency_issues;
