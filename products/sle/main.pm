@@ -608,6 +608,9 @@ sub load_inst_tests {
         if (uses_qa_net_hardware()) {
             loadtest "installation/partitioning_firstdisk";
         }
+        if (get_var("ISO_IN_EXTERNAL_DRIVE")) {
+            loadtest "installation/partitioning_choose_disk";
+        }
         loadtest "installation/partitioning_finish";
     }
     # the VNC gadget is too unreliable to click, but we
@@ -1382,10 +1385,7 @@ elsif (ssh_key_import) {
     loadtest "x11/ssh_key_verify";
 }
 elsif (get_var('ISO_IN_EXTERNAL_DRIVE')) {
-    loadtest "boot/boot_to_desktop";
-    loadtest "console/copy_iso_to_external_drive";
-    loadtest 'x11/reboot_and_install';
-    #load_boot_tests();
+    load_iso_in_external_tests();
     load_inst_tests();
     load_reboot_tests();
 }

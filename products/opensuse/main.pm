@@ -257,6 +257,9 @@ sub load_inst_tests {
             loadtest "installation/livecd_network_settings";
         }
         loadtest "installation/partitioning";
+        if (get_var("ISO_IN_EXTERNAL_DRIVE")) {
+            loadtest "installation/partitioning_choose_disk";
+        }
         if (defined(get_var("RAIDLEVEL"))) {
             loadtest "installation/partitioning_raid";
         }
@@ -835,6 +838,11 @@ elsif (ssh_key_import) {
     load_reboot_tests();
     # verify previous defined ssh keys
     loadtest "x11/ssh_key_verify";
+}
+elsif (get_var("ISO_IN_EXTERNAL_DRIVE")) {
+    load_iso_in_external_tests();
+    load_inst_tests();
+    load_reboot_tests();
 }
 else {
     if (get_var("LIVETEST") || get_var('LIVE_INSTALLATION')) {

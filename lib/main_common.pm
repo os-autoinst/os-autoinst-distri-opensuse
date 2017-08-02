@@ -48,6 +48,7 @@ our @EXPORT = qw(
   load_rollback_tests
   load_filesystem_tests
   load_wicked_tests
+  load_iso_in_external_tests
 );
 
 sub init_main {
@@ -582,6 +583,12 @@ sub load_filesystem_tests {
 sub load_wicked_tests {
     loadtest "console/wicked_before_test";
     loadtest "console/wicked_basic";
+}
+
+sub load_iso_in_external_tests {
+    loadtest "boot/boot_to_desktop";
+    loadtest "console/copy_iso_to_external_drive";
+    loadtest "x11/reboot_and_install";
 }
 
 1;
