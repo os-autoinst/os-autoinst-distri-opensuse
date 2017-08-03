@@ -1,4 +1,4 @@
-# Copyright (C) 2016 SUSE LLC
+# Copyright (C) 2016-2017 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -13,8 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# Summary: vlc test
-#    plays some free video file
+# Summary: Play some free video file with VLC
 # Maintainer: Ludwig Nussel <ludwig.nussel@suse.de>
 
 use base "x11test";
@@ -34,7 +33,9 @@ sub run {
     send_key "backspace";
     type_string autoinst_url . "/data/Big_Buck_Bunny_8_seconds_bird_clip.ogv";
     assert_and_click "vlc-play_button";
-    assert_screen "vlc-done-playing";
+    # The video is actually 23 seconds long so give a bit of headroom for
+    # startup
+    assert_screen "vlc-done-playing", 40;
     send_key "ctrl-q";
 }
 
