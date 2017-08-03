@@ -514,7 +514,7 @@ sub ensure_fullscreen {
 sub ensure_shim_import {
     my (%args) = @_;
     $args{tags} //= [qw(inst-bootmenu bootloader-shim-import-prompt)];
-    assert_screen($args{tags}, 15);
+    assert_screen($args{tags}, 30);
     if (match_has_tag("bootloader-shim-import-prompt")) {
         send_key "down";
         send_key "ret";
