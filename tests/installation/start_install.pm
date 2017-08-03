@@ -108,10 +108,10 @@ sub run {
         && !get_var("UPGRADE")
         && !check_var('VIDEOMODE', 'text'))
     {
-        my $counter = 10;
+        my $counter = 20;
         while ($counter--) {
             send_key $cmd{instdetails};
-            last if check_screen 'installation-details-view', 5;
+            last if check_screen 'installation-details-view', 10;
         }
         assert_screen 'installation-details-view';
         check_bsc982138;

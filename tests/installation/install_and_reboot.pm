@@ -48,8 +48,8 @@ sub run {
     my $self = shift;
     # NET isos are slow to install
     my $timeout = 2000;
-    # and encryption makes it even slower
-    $timeout *= 2 if get_var('ENCRYPT');
+    # encryption, LVM and RAID makes it even slower
+    $timeout *= 2 if (get_var('ENCRYPT') || get_var('LVM') || get_var('RAID'));
 
     # workaround for yast popups and
     # detect "Wrong Digest" error to end test earlier
