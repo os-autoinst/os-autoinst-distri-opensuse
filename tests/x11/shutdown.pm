@@ -29,7 +29,7 @@ sub run {
         type_string("exit\n");
     }
     $self->{await_shutdown} = 0;
-    power_action('poweroff');
+    power_action('poweroff', keepconsole => 1);
     $self->{await_shutdown} = 1;
 }
 
