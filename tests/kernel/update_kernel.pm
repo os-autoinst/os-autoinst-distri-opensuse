@@ -139,6 +139,8 @@ sub prepare_kgraft {
     my $wanted_version = right_kversion($kversion, $pversion);
     fully_patch_system;
     install_lock_kernel($wanted_version);
+    # install released kGraft patches on top of wanted kernel
+    zypper_call('patch --with-interactive -l', exitcode => [0, 102], timeout => 700);
     type_string("reboot\n");
 }
 
