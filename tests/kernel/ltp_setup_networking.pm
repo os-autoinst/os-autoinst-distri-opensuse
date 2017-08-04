@@ -78,8 +78,10 @@ EOF
     # echo/echoes, getaddrinfo_01
     assert_script_run('sed -i \'s/^\(hosts:\s+files\s\+dns$\)/\1 myhostname/\' /etc/nsswitch.conf');
 
+    # SLE12GA uses too many old style services
+    my $action = check_var('VERSION', '12') ? "enable" : "reenable";
     foreach my $service (qw(dnsmasq finger.socket nfsserver rpcbind telnet.socket vsftpd xinetd)) {
-        assert_script_run("systemctl reenable $service");
+        systemctl($action . " " . $service);
         assert_script_run("systemctl start $service || { systemctl status --no-pager $service; journalctl -xe --no-pager; false; }");
     }
 }
