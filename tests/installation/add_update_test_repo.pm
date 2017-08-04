@@ -30,7 +30,7 @@ sub run() {
     while (defined(my $maintrepo = shift @repos)) {
         next if $maintrepo =~ /^\s*$/;
         assert_screen('addon-menu-active', 60);
-        send_key 'alt-u';    # specify url
+        wait_screen_change { send_key 'alt-u' };    # specify url
         if (check_var('VERSION', '12') and check_var('VIDEOMODE', 'text')) {
             send_key 'alt-x';
         }
@@ -38,7 +38,7 @@ sub run() {
             send_key $cmd{next};
         }
         assert_screen 'addonurl-entry';
-        send_key 'alt-u';    # select URL field
+        send_key 'alt-u';                           # select URL field
         type_string $maintrepo;
         advance_installer_window('addon-products');
         # if more repos to come, add more
