@@ -389,6 +389,7 @@ sub load_consoletests_minimal {
 sub load_consoletests {
     return unless consolestep_is_applicable();
     loadtest "console/consoletest_setup";
+    loadtest "console/force_cron_run" if !is_jeos;
     if (get_var("LOCK_PACKAGE")) {
         loadtest "console/check_locked_package";
     }
@@ -406,7 +407,6 @@ sub load_consoletests {
         loadtest "console/xorg_vt";
     }
     loadtest "console/zypper_lr";
-    loadtest "console/force_cron_run" if !is_jeos;
     loadtest 'console/enable_usb_repo' if check_var('USBBOOT', 1);
     if (have_addn_repos) {
         loadtest "console/zypper_ar";
