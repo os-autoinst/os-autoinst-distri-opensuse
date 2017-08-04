@@ -164,6 +164,8 @@ sub update_kgraft {
         # Download HEAVY LOAD script
         assert_script_run("curl -f " . autoinst_url . "/data/qam/heavy_load.sh -o /tmp/heavy_load.sh");
 
+        # install screen command
+        zypper_call("in screen", exitcode => [0, 102, 103]);
         #run HEAVY Load script
         script_run("bash /tmp/heavy_load.sh");
         # warm up system
