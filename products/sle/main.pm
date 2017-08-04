@@ -720,6 +720,7 @@ sub load_consoletests {
         loadtest "rt/kmp_modules";
     }
     loadtest "console/consoletest_setup";
+    loadtest "console/force_cron_run" unless is_jeos;
     if (get_var("LOCK_PACKAGE")) {
         loadtest "console/check_locked_package";
     }
@@ -740,7 +741,6 @@ sub load_consoletests {
         loadtest "console/xorg_vt";
     }
     loadtest "console/zypper_lr";
-    loadtest "console/force_cron_run" unless is_jeos;
     loadtest 'console/enable_usb_repo' if check_var('USBBOOT', 1);
     if (need_clear_repos()) {
         loadtest "update/zypper_clear_repos";

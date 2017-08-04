@@ -40,8 +40,7 @@ sub run {
     assert_screen 'shotwell-remove-prompt';
     wait_screen_change { send_key 'alt-r' };
     send_key "esc";
-    wait_still_screen;
-    assert_screen 'shotwell-removed-picture';
+    assert_screen 'shotwell-removed-picture', 60;
     send_key "ctrl-q";          # Quit shotwell
 
     # Clean shotwell's library then remove the test pictures
