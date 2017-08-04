@@ -366,7 +366,8 @@ sub load_yast2_ui_tests {
     loadtest "console/yast2_ntpclient";
     loadtest "console/yast2_tftp";
     loadtest "console/yast2_vnc";
-    loadtest "console/yast2_samba";
+    # TODO https://progress.opensuse.org/issues/20200
+    #loadtest "console/yast2_samba";
     loadtest "console/yast2_xinetd";
     loadtest "console/yast2_apparmor";
     loadtest "console/yast2_lan_hostname";
@@ -379,7 +380,8 @@ sub load_yast2_ui_tests {
     # (Livesystem and laptops do use networkmanager)
     if (!get_var("LIVETEST") && !get_var("LAPTOP")) {
         if (check_var('DISTRI', 'opensuse')) {
-            loadtest "console/yast2_dns_server";
+            # TODO: https://progress.opensuse.org/issues/20970
+            #loadtest "console/yast2_dns_server";
         }
         loadtest "console/yast2_nfs_client";
     }
