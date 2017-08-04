@@ -40,6 +40,9 @@ sub run {
 
     # Wait until logged in
     assert_screen 'generic-desktop', 60;
+
+    # We're now in a wayland session, which is in a different VT
+    console('x11')->{args}->{tty} = 3;
 }
 
 sub test_flags {
