@@ -26,7 +26,7 @@ sub run {
     # this is almost impossible to check for real
     assert_screen "installation-settings-overview-loaded";
 
-    $self->sle15_workaround_broken_patterns;
+    $self->deal_with_dependency_issues;
 
     if (get_var("XEN")) {
         assert_screen "inst-xen-pattern";

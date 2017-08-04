@@ -57,7 +57,7 @@ sub get_to_console {
 
 # to workaround dependency issues
 sub workaround_dependency_issues {
-    assert_screen 'dependency-issue';
+    return unless sle_version_at_least('15') && check_screen 'dependency-issue', 10;
 
     if (check_var('VIDEOMODE', 'text')) {
         while (check_screen('dependency-issue', 5)) {
@@ -80,7 +80,7 @@ sub workaround_dependency_issues {
 
 # to break dependency issues
 sub break_dependency {
-    assert_screen 'dependency-issue';
+    return unless sle_version_at_least('15') && check_screen 'dependency-issue', 10;
 
     if (check_var('VIDEOMODE', 'text')) {
         while (check_screen('dependency-issue-text', 5)) {    # repeat it untill all dependency issues are resolved
@@ -173,6 +173,10 @@ sub deal_with_dependency_issues {
 
     if (check_screen([qw(accept-licence automatic-changes unsupported-packages error-with-patterns sle-15-failed-to-select-pattern)], 2)) {
         goto DO_CHECKS;
+    }
+    # In text mode dependency issues may occur again after resolving them
+    if (check_screen 'manual-intervention') {
+        $self->deal_with_dependency_issues;
     }
 }
 

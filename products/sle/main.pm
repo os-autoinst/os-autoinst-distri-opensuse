@@ -85,9 +85,11 @@ sub default_desktop {
         if (get_var('BASE_VERSION', '') =~ /^12/) {
             return 'gnome';
         }
-        else {
-            return 'textmode';
+        # In sle15 we add repos manually to make a workaround of missing SCC, gnome will be installed as default system.
+        if (get_var('ADDONURL') =~ /(desktop|server)/) {
+            return 'gnome';
         }
+        return 'textmode';
     }
 }
 

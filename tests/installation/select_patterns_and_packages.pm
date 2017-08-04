@@ -194,7 +194,7 @@ sub run {
                 };
                 assert_screen 'current-pattern-selected', 5;
             }
-
+            $self->workaround_dependency_issues;
             # stick to the default patterns
             if (get_var('PATTERNS', '') =~ /default/) {
                 $needs_to_be_selected = $selected;
