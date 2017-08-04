@@ -20,6 +20,7 @@ use strict;
 use warnings;
 use English;
 
+use utils 'sle_version_at_least';
 use bootloader_setup;
 
 # try to find the 2 longest lines that are below beyond the limit
@@ -110,6 +111,7 @@ sub get_to_yast {
 
     # qaboot
     my $dir_with_suse_ins = get_var('REPO_UPGRADE_BASE_0') ? get_required_var('REPO_UPGRADE_BASE_0') : get_required_var('REPO_0');
+    $dir_with_suse_ins = "fixed/$dir_with_suse_ins" if !sle_version_at_least('12-SP4');
     my $repo_host = get_var('REPO_HOST', 'openqa.suse.de');
 
     my $parmfile_with_Newline_s = prepare_parmfile($dir_with_suse_ins);
