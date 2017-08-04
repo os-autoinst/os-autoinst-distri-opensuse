@@ -74,6 +74,10 @@ sub problem_detection {
     # Segmentation faults
     $self->save_and_upload_log("coredumpctl list", "segmentation-faults-list.txt", {screenshot => 1, noupload => 1});
     $self->save_and_upload_log("coredumpctl info", "segmentation-faults-info.txt", {screenshot => 1, noupload => 1});
+    # Save core dumps
+    type_string "mkdir -p coredumps\n";
+    type_string 'awk \'/Coredump/{printf("cp %s ./coredumps/\n",$2)}\' segmentation-faults-info.txt | sh';
+    type_string "\n";
     clear_console;
 
     # Broken links
