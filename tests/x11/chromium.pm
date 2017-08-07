@@ -35,7 +35,7 @@ sub run {
 
     send_key "ctrl-l";
     sleep 1;
-    type_string "http://html5test.com/index.html\n";
+    type_string "https://html5test.com/index.html\n";
     assert_screen 'chromium-html5test', 30;
 
     send_key "alt-f4";
