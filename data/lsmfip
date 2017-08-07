@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# Copyright (c) 2015,2016 SUSE LLC
+# Copyright (c) 2015-2017 SUSE LLC
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -152,6 +152,8 @@ sub problem_can_be_skipped {
     return 1 if $pkg =~ /firebird-superserver/;
     # conflict with julia, julia-devel, respectively
     return 1 if $pkg =~ /^julia-compat(-devel)?/;
+    # conflicts with wxWidgets-3_0-devel/
+    return 1 if $pkg =~ /^wxWidgets-3_0-nostl-devel/;
 
     return;
 }
