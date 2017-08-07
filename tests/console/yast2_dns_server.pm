@@ -71,8 +71,9 @@ sub run {
     send_key 'alt-n';
     assert_screen 'yast2-dns-server-step3';
     # Enable dns server and finish
-    send_key 'alt-s';
-    wait_screen_change { send_key 'alt-f'; };
+    wait_screen_change { send_key 'alt-s' };
+    send_key 'alt-f';
+    assert_screen 'root-console';
     # The wizard-like interface still uses the old approach of always starting the service
     # while enabling it, so named should be both active and enabled
     $self->assert_running(1);
@@ -84,13 +85,13 @@ sub run {
     script_run 'yast2 dns-server', 0;
     assert_screen 'yast2-service-running-enabled';
     # Stop the service
-    send_key 'alt-s';
+    wait_screen_change { send_key 'alt-s' };
     assert_screen 'yast2-service-stopped-enabled';
     # Cancel yast2 to check the effect
-    wait_screen_change { send_key 'alt-c' };
-    if (check_screen('yast2-dns-server-quit')) {
-        wait_screen_change { send_key 'alt-y' };
-    }
+    # workaround for single send_key 'alt-c' because it doesn't work.
+    send_key_until_needlematch([qw(root-console yast2-dns-server-quit)], 'alt-c');
+    send_key 'alt-y';
+    assert_screen 'root-console', 180;
     $self->assert_running(0);
     $self->assert_enabled(1);
 
@@ -104,7 +105,8 @@ sub run {
     assert_screen 'yast2-service-running-enabled';
     # Disable the service and finish
     wait_screen_change { send_key 'alt-t' };
-    wait_screen_change { send_key 'alt-o' };
+    send_key 'alt-o';
+    assert_screen 'root-console', 180;
     $self->assert_running(1);
     $self->assert_enabled(0);
 
@@ -117,7 +119,8 @@ sub run {
     send_key 'alt-s';
     assert_screen 'yast2-service-stopped-disabled';
     # Finish
-    wait_screen_change { send_key 'alt-o' };
+    send_key 'alt-o';
+    assert_screen 'root-console', 180;
     $self->assert_running(0);
     $self->assert_enabled(0);
 }

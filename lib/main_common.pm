@@ -381,8 +381,8 @@ sub load_yast2_ui_tests {
     # (Livesystem and laptops do use networkmanager)
     if (!get_var("LIVETEST") && !get_var("LAPTOP")) {
         if (check_var('DISTRI', 'opensuse')) {
-            # TODO: https://progress.opensuse.org/issues/20970
-            #loadtest "console/yast2_dns_server";
+            # fix the issue reported in https://progress.opensuse.org/issues/20970
+            loadtest "console/yast2_dns_server";
         }
         loadtest "console/yast2_nfs_client";
     }
