@@ -38,7 +38,7 @@ sub run {
         select_console 'root-console';
 
         # On Hyper-V we need to add special framebuffer provisions
-        if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
+        if (check_var('VIRSH_VMM_FAMILY', 'hyperv') || check_var('VIRSH_VMM_TYPE', 'linux')) {
             set_framebuffer_resolution;
             assert_script_run 'transactional-update grub.cfg';
             process_reboot 1;

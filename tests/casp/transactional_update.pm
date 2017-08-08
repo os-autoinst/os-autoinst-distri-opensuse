@@ -69,11 +69,12 @@ sub run {
     check_reboot_changes;
     check_package;
 
-    # Revert to first snapshot that we created. On Hyper-V we need to modify GRUB
-    # to add special framebuffer provision; as it involves and additional snapshot
-    # magic numbers below have to be altered there.
+    # Revert to first snapshot we created. On Hyper-V and Xen PV we modified GRUB to add
+    # special framebuffer provisions to scale down, and scale up, respectively, the
+    # hypervizor's native screen resolution. As it involved an additional snapshot, magic
+    # snapshot numbers below have to be altered properly.
     my $snap;
-    if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
+    if (check_var('VIRSH_VMM_FAMILY', 'hyperv') || check_var('VIRSH_VMM_TYPE', 'linux')) {
         $snap = is_casp('VMX') ? 3 : 4;
     }
     else {
