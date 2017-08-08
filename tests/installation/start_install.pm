@@ -48,6 +48,7 @@ sub run {
                 while (!check_screen('all-conflicts-resolved-packages', 4)) {
                     assert_and_click 'package-conflict-choice';
                     send_key $cmd{ok};
+                    wait_still_screen 10;
                 }
                 send_key $cmd{accept};
 
