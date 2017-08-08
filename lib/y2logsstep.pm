@@ -2,6 +2,7 @@ package y2logsstep;
 use base "installbasetest";
 use testapi;
 use strict;
+use utils 'sle_version_at_least';
 
 sub use_wicked {
     script_run "cd /proc/sys/net/ipv4/conf";
@@ -56,7 +57,7 @@ sub get_to_console {
 
 # to workaround dependency issues
 sub workaround_dependency_issues {
-    assert_screen 'dependency-issue';
+    return unless sle_version_at_least('15') && check_screen 'dependency-issue', 10;
 
     if (check_var('VIDEOMODE', 'text')) {
         while (check_screen('dependency-issue', 5)) {
@@ -79,7 +80,7 @@ sub workaround_dependency_issues {
 
 # to break dependency issues
 sub break_dependency {
-    assert_screen 'dependency-issue';
+    return unless sle_version_at_least('15') && check_screen 'dependency-issue', 10;
 
     if (check_var('VIDEOMODE', 'text')) {
         while (check_screen('dependency-issue-text', 5)) {    # repeat it untill all dependency issues are resolved
@@ -103,11 +104,21 @@ sub break_dependency {
     }
 }
 
+sub sle15_workaround_broken_patterns {
+    return unless sle_version_at_least('15');
+    # SLE 15 has pattern errors, workaround them - rbrown 04/07/2017
+    while (check_screen('sle-15-failed-to-select-pattern', 2)) {
+        record_soft_failure 'bsc#1047327';
+        send_key 'alt-o';
+    }
+}
+
 # to deal with dependency issues, either work around it, or break dependency to continue with installation
 sub deal_with_dependency_issues {
     my ($self) = @_;
 
-    assert_screen 'manual-intervention';
+    return unless check_screen 'manual-intervention', 10;
+
     record_soft_failure 'dependency warning';
 
     if (check_var('VIDEOMODE', 'text')) {
@@ -143,10 +154,11 @@ sub deal_with_dependency_issues {
     while (check_screen('unsupported-packages', 2)) {
         send_key 'alt-o';                      # Continue
     }
-    while (check_screen([qw(error-with-patterns sle-15-failed-to-select-pattern)], 2)) {
+    while (check_screen('error-with-patterns', 2)) {
         record_soft_failure 'bsc#1047337';
         send_key 'alt-o';                      # OK
     }
+    sle15_workaround_broken_patterns;
     sleep 2;
 
     if (check_screen('dependency-issue-fixed', 0)) {
@@ -161,6 +173,10 @@ sub deal_with_dependency_issues {
 
     if (check_screen([qw(accept-licence automatic-changes unsupported-packages error-with-patterns sle-15-failed-to-select-pattern)], 2)) {
         goto DO_CHECKS;
+    }
+    # In text mode dependency issues may occur again after resolving them
+    if (check_screen 'manual-intervention') {
+        $self->deal_with_dependency_issues;
     }
 }
 

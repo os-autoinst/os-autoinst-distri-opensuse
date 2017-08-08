@@ -12,7 +12,7 @@ use warnings;
 use testapi qw(check_var get_var get_required_var set_var check_var_array);
 use lockapi;
 use needle;
-use utils 'is_hyperv_in_gui';
+use utils qw(is_hyperv_in_gui sle_version_at_least);
 use File::Find;
 use File::Basename;
 
@@ -85,9 +85,11 @@ sub default_desktop {
         if (get_var('BASE_VERSION', '') =~ /^12/) {
             return 'gnome';
         }
-        else {
-            return 'textmode';
+        # In sle15 we add repos manually to make a workaround of missing SCC, gnome will be installed as default system.
+        if (get_var('ADDONURL') =~ /(desktop|server)/) {
+            return 'gnome';
         }
+        return 'textmode';
     }
 }
 
@@ -603,7 +605,8 @@ sub load_inst_tests {
     # the VNC gadget is too unreliable to click, but we
     # need to be able to do installations on it. The release notes
     # functionality needs to be covered by other backends
-    if (!check_var('BACKEND', 'generalhw')) {
+    # Skip release notes test on sle 15 if have addons
+    if (!check_var('BACKEND', 'generalhw') && !(sle_version_at_least('15') && get_var('ADDONURL'))) {
         loadtest "installation/releasenotes";
     }
     if (noupdatestep_is_applicable()) {

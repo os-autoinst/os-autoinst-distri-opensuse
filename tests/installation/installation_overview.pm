@@ -17,23 +17,16 @@ use base "y2logsstep";
 use testapi;
 use utils 'sle_version_at_least';
 
-sub sle15_workaround_broken_patterns {
-    if (sle_version_at_least('15')) {    # SLE 15 has pattern errors, workaround them - rbrown 04/07/2017
-        while (check_screen('sle-15-failed-to-select-pattern', 2)) {
-            record_soft_failure 'bsc#1047327';
-            send_key 'alt-o';
-        }
-    }
-}
 
 sub run {
     my ($self) = shift;
 
+    $self->sle15_workaround_broken_patterns;
     # overview-generation
     # this is almost impossible to check for real
     assert_screen "installation-settings-overview-loaded";
 
-    sle15_workaround_broken_patterns;
+    $self->deal_with_dependency_issues;
 
     if (get_var("XEN")) {
         assert_screen "inst-xen-pattern";
@@ -57,9 +50,9 @@ sub run {
         $self->deal_with_dependency_issues;
     }
 
-    sle15_workaround_broken_patterns;    # Pattern warnings appear after dependancy resolution also;
+    $self->sle15_workaround_broken_patterns;    # Pattern warnings appear after dependancy resolution also;
 
-    my $need_ssh = check_var('ARCH', 's390x');    # s390x always needs SSH
+    my $need_ssh = check_var('ARCH', 's390x');  # s390x always needs SSH
     $need_ssh = 1 if check_var('BACKEND', 'ipmi');    # we better be able to login
 
     if (!get_var('UPGRADE') && $need_ssh) {

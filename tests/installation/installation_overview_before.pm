@@ -18,6 +18,7 @@ use testapi;
 
 sub run {
     my ($self) = @_;
+    $self->sle15_workaround_broken_patterns;
 
     # overview-generation
     # this is almost impossible to check for real
@@ -27,7 +28,7 @@ sub run {
     # performed only once, as state of buttons can be different
     assert_screen "installation-settings-overview-loaded";
 
-    if (match_has_tag 'manual-intervention') {
+    if (check_screen 'manual-intervention') {
         $self->deal_with_dependency_issues;
     }
 }

@@ -51,7 +51,7 @@ sub run {
             # might involve some network lookup of products, licenses, etc.
             assert_screen 'addon-products', 90;
             send_key "tab";                                                     # select addon-products-$addon
-            wait_still_screen 2;
+            wait_still_screen 10;
             if (check_var('VIDEOMODE', 'text')) {                               # textmode need more tabs, depends on add-on count
                 send_key_until_needlematch "addon-list-selected", 'tab';
             }
@@ -96,6 +96,7 @@ sub run {
                 send_key 'alt-t';
             }
             send_key "tab";                                                     # select addon-products-$addon
+            wait_still_screen 10;                                               # wait until repo is added and list is initialized
             if (check_var('VIDEOMODE', 'text')) {                               # textmode need more tabs, depends on add-on count
                 send_key_until_needlematch "addon-list-selected", 'tab';
             }

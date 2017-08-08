@@ -53,7 +53,10 @@ sub check12qtbug {
 }
 
 sub gotopatterns {
-    my $self = @_;
+    my ($self) = @_;
+
+    $self->deal_with_dependency_issues;
+
     if (check_var('VIDEOMODE', 'text')) {
         wait_still_screen;
         send_key 'alt-c';
@@ -63,13 +66,6 @@ sub gotopatterns {
     else {
         send_key_until_needlematch 'packages-section-selected', 'tab';
         send_key 'ret';
-    }
-
-    if (check_screen('dependency-issue', 5) && get_var("WORKAROUND_DEPS")) {
-        $self->workaround_dependency_issues;
-    }
-    if (check_screen('dependency-issue', 0) && get_var("BREAK_DEPS")) {
-        $self->break_dependency;
     }
 
     assert_screen 'pattern_selector';
@@ -87,9 +83,11 @@ sub gotopatterns {
 }
 
 sub package_action {
-    my $unblock = @_;
+    my ($self, $unblock) = @_;
     my $operation;
     my $packages = $unblock ? get_var('INSTALLATION_BLOCKED') : get_var('PACKAGES');
+    # Workaround for sle 15. Version check is performed inside of the method
+    $self->sle15_workaround_broken_patterns;
     if (get_var('PACKAGES')) {
         if (check_var('VIDEOMODE', 'text')) {
             send_key 'alt-f';
@@ -143,6 +141,8 @@ sub package_action {
         send_key 'alt-o';
         accept3rdparty;
     }
+    # Workaround for sle 15. Version check is performed inside of the method
+    $self->sle15_workaround_broken_patterns;
     if (get_var('INSTALLATION_BLOCKED') && $secondrun) {
         record_soft_failure 'bsc#1029660';
         assert_screen 'inst-overview-blocked';
@@ -157,9 +157,9 @@ sub package_action {
 }
 
 sub run {
-    my $self = shift;
+    my ($self) = @_;
 
-    gotopatterns;
+    $self->gotopatterns;
     if (get_var('PATTERNS')) {
         my %wanted_patterns;
         for my $p (split(/,/, get_var('PATTERNS'))) {
@@ -194,7 +194,7 @@ sub run {
                 };
                 assert_screen 'current-pattern-selected', 5;
             }
-
+            $self->workaround_dependency_issues;
             # stick to the default patterns
             if (get_var('PATTERNS', '') =~ /default/) {
                 $needs_to_be_selected = $selected;
@@ -207,13 +207,13 @@ sub run {
             check12qtbug;
         }
     }
-    package_action;
+    $self->package_action;
     $secondrun++;
-    gotopatterns;
-    package_action;
+    $self->gotopatterns;
+    $self->package_action;
     $secondrun--;
-    gotopatterns;
-    package_action('unblock');
+    $self->gotopatterns;
+    $self->package_action('unblock');
 }
 
 1;
