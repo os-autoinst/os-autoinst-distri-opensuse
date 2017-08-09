@@ -15,7 +15,7 @@ use 5.018;
 use testapi;
 use lockapi;
 use utils 'zypper_call';
-
+use selenium;
 
 sub run {
   my ($self) = @_;
@@ -59,16 +59,20 @@ sub run {
     select_console 'x11', tags => 'suma_welcome_screen';
 
     barrier_wait('saltboot_orchestrate');
-    send_key_until_needlematch('suma_pending_minions', 'ctrl-r', 50, 15);
-    wait_screen_change {
-      assert_and_click('suma_pending_minions');
-    };
-    send_key_until_needlematch('suma_salt_key_accept', 'right', 40, 1);
-    wait_screen_change {
-      assert_and_click('suma_salt_key_accept');
-    };
+    my $driver = selenium_driver();
+
+    wait_for_link("Pending Minions", 50, 15);
+
+    $driver->find_element('Pending Minions', 'partial_link_text')->click();
+    wait_for_page_to_load;
+    save_screenshot;
+    $driver->find_element("//button[\@title='accept']")->click();
+    wait_for_page_to_load;
+    save_screenshot;
+
     barrier_wait('saltboot_orchestrate_finish');
-    assert_and_click('suma_go_home');
+    $driver->find_element("//a[\@href='/']")->click();
+    wait_for_page_to_load;
     assert_screen('suma_welcome_screen');
 
     select_console 'root-console';

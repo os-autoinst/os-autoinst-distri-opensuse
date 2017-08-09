@@ -15,6 +15,7 @@ use 5.018;
 use testapi;
 use lockapi;
 use mmapi;
+use selenium;
 
 sub run {
   my ($self) = @_;
@@ -69,52 +70,66 @@ sub run {
     barrier_wait('tftp_formula_finish');
   }
   else {
-            
+
     my $master = get_var('HOSTNAME');#exists, checked in webinit
 
     $self->install_formula('tftp-formula');
-    
-    wait_still_screen; 
-    send_key 'ctrl-l';
-    type_string('https://'.$master.'.openqa.suse.de/rhn/manager/formula-catalog');send_key('ret');
-    
-    assert_and_click('suma-tftp-formula-details');
-    assert_screen('suma-tftp-formula-details-screen');
 
-    #goto first system formula details
-    wait_still_screen;     
-    send_key 'ctrl-l';
-    type_string('https://'.$master.'.openqa.suse.de/rhn/manager/systems/details/formulas?sid=1000010000');send_key('ret');
+    my $driver = selenium_driver();
 
-    send_key_until_needlematch('suma-system-formula-tftp', 'down', 40, 1);
-    assert_and_click('suma-system-formula-tftp');
-    assert_and_click('suma-system-formulas-save');
-    assert_and_click('suma-system-formula-tftp-tab');
-    # fill in form details
-    assert_and_click('suma-system-formula-tftp-form');
-    # tftp ip
-    send_key 'shift-home';
-    type_string($testip);send_key 'tab';
-    assert_and_click('suma-system-formula-dhcpd-form-save');
+    $self->suma_menu('Salt', 'Formula Catalog');
+
+    $driver->find_element('tftp', 'link_text')->click();
+    wait_for_page_to_load;
+    #FIXME: check formula details
+
+    $self->suma_menu('Systems', 'Systems', 'All');
+
+    $driver->find_element('suma-branch.openqa.suse.de', 'link_text')->click();
+    wait_for_page_to_load;
+    save_screenshot;
+    $driver->find_element('Formula Catalog', 'link_text')->click();
+    wait_for_page_to_load;
+    $driver->find_element("//a[\@id='tftp']")->click();
+    wait_for_page_to_load;
+    $driver->find_element("//button[\@id='save-btn']")->click();
+    wait_for_page_to_load;
+    save_screenshot;
+    $driver->find_element("//li/a[.//text()[contains(., 'Tftp')]]")->click();
+    wait_for_page_to_load;
+    save_screenshot;
+
+    $driver->mouse_move_to_location(element => $driver->find_element("//form[\@id='editFormulaForm']//input[1]"));
+    $driver->double_click();
+    save_screenshot;
+    # ip
+
+    $driver->send_keys_to_active_element($testip);
+    $driver->send_keys_to_active_element("\t");
+
+    save_screenshot;
+    $driver->find_element("//button[\@id='save-btn']")->click();
 
     # apply high state
-    assert_and_click('suma-system-formulas');
-    assert_and_click('suma-system-formula-highstate');
-    wait_screen_change {
-      assert_and_click('suma-system-formula-event');
-    };
-    # wait for high state
+    $driver->find_element('Formula Catalog', 'link_text')->click();
+    wait_for_page_to_load;
+    save_screenshot;
+    $driver->find_element("//button[.//text()[contains(., 'Apply Highstate')]]")->click();
+    wait_for_page_to_load;
+    save_screenshot;
+    $driver->find_element('scheduled', 'partial_link_text')->click();
+
     # check for success
-    send_key_until_needlematch('suma-system-highstate-finish', 'ctrl-r', 10, 15);
-    wait_screen_change {
-      assert_and_click('suma-system-highstate-finish');
-    };
-    send_key_until_needlematch('suma-system-highstate-success', 'pgdn');
+    die "Highstate failed" unless wait_for_text("Successfully applied state", 10, 15);
 
     # signal minion to check configuration
     barrier_wait('tftp_formula');
     barrier_wait('tftp_formula_finish');
   }
+}
+
+sub test_flags() {
+    return {milestone => 1};
 }
 
 1;

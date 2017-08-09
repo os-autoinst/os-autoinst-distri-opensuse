@@ -14,6 +14,7 @@ use base "sumatest";
 use 5.018;
 use testapi;
 use lockapi;
+use selenium;
 
 sub run {
   my ($self) = @_;
@@ -123,6 +124,10 @@ EOT
     barrier_wait('bind_formula_finish');
  
   }
+}
+
+sub test_flags() {
+    return {milestone => 1};
 }
 
 1;

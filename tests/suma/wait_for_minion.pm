@@ -14,19 +14,27 @@ use base "sumatest";
 use 5.018;
 use testapi;
 use lockapi;
+use selenium;
 
 sub run {
-  send_key_until_needlematch('suma_pending_minions', 'ctrl-r', 10, 15);
-  wait_screen_change {
-    assert_and_click('suma_pending_minions');
-  };
-  send_key_until_needlematch('suma_salt_key_accept', 'right', 40, 1);
-  wait_screen_change {
-    assert_and_click('suma_salt_key_accept');
-  };
-  send_key_until_needlematch('suma-salt-minion-bootstrapped', 'ctrl-r', 10, 15);
+  my $driver = selenium_driver();
+
+  wait_for_link("Pending Minions", 10, 15);
+
+  $driver->find_element('Pending Minions', 'partial_link_text')->click();
+  wait_for_page_to_load;
+  $driver->find_element("//button[\@title='accept']")->click();
+  wait_for_page_to_load;
+
+  wait_for_link(".openqa.suse.de", 10, 15);
+
+  save_screenshot;
 
   barrier_wait('suma_minion_ready');
+}
+
+sub test_flags() {
+    return {fatal => 1, milestone => 1};
 }
 
 1;

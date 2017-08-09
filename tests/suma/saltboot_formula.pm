@@ -14,6 +14,7 @@ use base "sumatest";
 use 5.018;
 use testapi;
 use lockapi;
+use selenium;
 
 sub run {
   my ($self) = @_;
@@ -35,28 +36,65 @@ sub run {
     assert_script_run 'systemctl restart salt-master'; # because of reactors installed
     select_console 'x11', tags => 'suma_welcome_screen';
 
-#    assert_and_click('suma-salt-menu');
-#    assert_and_click('suma-salt-formulas');
-#    assert_and_click('suma-saltboot-formula-details');
-#    assert_screen('suma-saltboot-formula-details-screen');
-    assert_and_click('suma-systems-menu');
-    assert_and_click('suma-system-groups-submenu');
-    assert_and_click('suma-create-group');
-    assert_and_click('suma-create-group-form');
-    type_string('hwtype_testterm');send_key 'tab';
-    type_string('group for testterm hwtype');
-    assert_and_click('suma-create-group-button');
+    my $driver = selenium_driver();
 
-    assert_and_click('suma-group-formulas');
-    send_key_until_needlematch('suma-group-formula-saltboot', 'down', 40, 1);
-    assert_and_click('suma-group-formula-saltboot');
-    assert_and_click('suma-group-formulas-save');
-    assert_and_click('suma-group-formula-saltboot-tab');
+    $self->suma_menu('Salt', 'Formula Catalog');
+
+    $driver->find_element('saltboot', 'link_text')->click();
+    wait_for_page_to_load;
+    #FIXME: check formula details
+
+    $self->suma_menu('Systems', 'System Groups');
+
+    $driver->find_element('Create Group', 'link_text')->click();
+    wait_for_page_to_load;
+    save_screenshot;
+
+    $driver->mouse_move_to_location(element => $driver->find_element("//input[\@id='name']"));
+    $driver->double_click();
+
+    $driver->send_keys_to_active_element('hwtype_testterm');
+    $driver->send_keys_to_active_element("\t");
+
+    $driver->send_keys_to_active_element('group for testterm hwtype');
+    $driver->send_keys_to_active_element("\t");
+
+    save_screenshot;
+
+    $driver->find_element("//input[\@value='Create Group']")->click();
+    wait_for_page_to_load;
+
+
+    $driver->find_element('Formulas', 'link_text')->click();
+    wait_for_page_to_load;
+    $driver->find_element("//a[\@id='saltboot']")->click();
+    wait_for_page_to_load;
+    $driver->find_element("//button[\@id='save-btn']")->click();
+    wait_for_page_to_load;
+    save_screenshot;
+    $driver->find_element("//li/a[.//text()[contains(., 'Saltboot')]]")->click();
+    wait_for_page_to_load;
+    save_screenshot;
+
+    $driver->mouse_move_to_location(element => $driver->find_element("//form[\@id='editFormulaForm']//input[1]"));
+    $driver->double_click();
+    save_screenshot;
+
+    # FIXME: fill in form data
+    save_screenshot;
+    $driver->find_element("//button[\@id='save-btn']")->click();
+
+    wait_for_page_to_load;
+    save_screenshot;
 
     # signal minion to check configuration
     barrier_wait('saltboot_formula');
     barrier_wait('saltboot_formula_finish');
   }
+}
+
+sub test_flags() {
+    return {milestone => 1};
 }
 
 1;

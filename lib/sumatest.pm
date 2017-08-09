@@ -15,6 +15,7 @@ use 5.018;
 use testapi;
 use utils 'zypper_call';
 use mm_network;
+use selenium;
 
 sub post_fail_hook() {
     my ($self) = @_;
@@ -32,8 +33,10 @@ sub post_run_hook {
       $self->clear_and_verify_console;
     }
     else {
-      assert_and_click('suma_go_home');
-      assert_screen('suma_welcome_screen');
+      save_screenshot;
+      my $driver = selenium_driver();
+      $driver->find_element("//a[\@href='/']")->click();
+      wait_for_page_to_load;
     }
 }
 
@@ -63,8 +66,9 @@ sub install_formula {
   $self->check_and_add_repo();
   zypper_call("in $formula");
   select_console 'x11', tags => 'suma_welcome_screen';
-  assert_and_click('suma_go_home');
-  assert_screen('suma_welcome_screen');
+  my $driver = selenium_driver();
+  $driver->find_element("//a[\@href='/']")->click();
+  wait_for_page_to_load;
 }
 
 sub configure_networks {
@@ -79,6 +83,24 @@ sub configure_networks {
   assert_script_run 'cat /etc/hosts';
   assert_script_run "hostname -f|grep $hostname";
 }
+
+sub suma_menu {
+  my $self = shift;
+  my $entry = shift;
+
+  my $driver = selenium_driver();
+
+  my $entry_elem = $driver->find_element("//a[.//text()[contains(., '$entry')]]");
+  $entry_elem->click();
+  wait_for_page_to_load;
+
+  while ($entry = shift) {
+    $entry_elem = $driver->find_child_element($entry_elem, "./ancestor::ul//ul//a[.//text()[contains(., '$entry')]]");
+    $entry_elem->click();
+    wait_for_page_to_load;
+  }
+}
+
 
 1;
 # vim: set sw=4 et:

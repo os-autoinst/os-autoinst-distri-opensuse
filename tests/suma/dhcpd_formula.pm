@@ -15,6 +15,7 @@ use 5.018;
 use testapi;
 use lockapi;
 use mmapi;
+use selenium;
 
 sub run {
   my ($self) = @_;
@@ -47,65 +48,91 @@ sub run {
   }
   else {
     $self->install_formula('dhcpd-formula');
-    assert_and_click('suma-salt-menu');
-    assert_and_click('suma-salt-formulas');
-    assert_and_click('suma-dhcpd-formula-details');
-    assert_screen('suma-dhcpd-formula-details-screen');
-    assert_and_click('suma-systems-menu');
-    assert_and_click('suma-systems-submenu');
-    assert_and_click('suma-system-all');
-    assert_and_click('suma-system-branch');
-    assert_and_click('suma-system-formulas');
-    send_key_until_needlematch('suma-system-formula-dhcpd', 'down', 40, 1);
-    assert_and_click('suma-system-formula-dhcpd');
-    assert_and_click('suma-system-formulas-save');
-    assert_and_click('suma-system-formula-dhcpd-tab');
-    # fill in form details
-    assert_and_click('suma-system-formula-dhcpd-form');
-    
+
+    my $driver = selenium_driver();
+
+    $self->suma_menu('Salt', 'Formula Catalog');
+
+    $driver->find_element('dhcpd', 'link_text')->click();
+    wait_for_page_to_load;
+    #FIXME: check formula details
+
+    $self->suma_menu('Systems', 'Systems', 'All');
+
+    $driver->find_element('suma-branch.openqa.suse.de', 'link_text')->click();
+    wait_for_page_to_load;
+    save_screenshot;
+    $driver->find_element('Formula Catalog', 'link_text')->click();
+    wait_for_page_to_load;
+    $driver->find_element("//a[\@id='dhcpd']")->click();
+    wait_for_page_to_load;
+    $driver->find_element("//button[\@id='save-btn']")->click();
+    wait_for_page_to_load;
+    save_screenshot;
+    $driver->find_element("//li/a[.//text()[contains(., 'Dhcpd')]]")->click();
+    wait_for_page_to_load;
+    save_screenshot;
+
+    $driver->mouse_move_to_location(element => $driver->find_element("//form[\@id='editFormulaForm']//input[1]"));
+    $driver->double_click();
+    save_screenshot;
     # domain
-    type_string('internal.suma.openqa.suse.de');send_key 'tab';
+    $driver->send_keys_to_active_element('internal.suma.openqa.suse.de');
+    $driver->send_keys_to_active_element("\t");
     # dns servers
-    type_string('192.168.1.1');send_key 'tab';
+    $driver->send_keys_to_active_element('192.168.1.1');
+    $driver->send_keys_to_active_element("\t");
     # device
-    type_string('eth1');send_key 'tab';
+    $driver->send_keys_to_active_element('eth1');
+    $driver->send_keys_to_active_element("\t");
     # skip leases
-    send_key 'tab';send_key 'tab';
+    $driver->send_keys_to_active_element("\t");
+    $driver->send_keys_to_active_element("\t");
     # network
-    type_string('192.168.0.0');send_key 'tab';
+    $driver->send_keys_to_active_element('192.168.0.0');
+    $driver->send_keys_to_active_element("\t");
     # netmask
-    type_string('255.255.0.0');send_key 'tab';
+    $driver->send_keys_to_active_element('255.255.0.0');
+    $driver->send_keys_to_active_element("\t");
     # dhcp range
-    type_string('192.168.242.51,192.168.243.151');send_key 'tab';
+    $driver->send_keys_to_active_element('192.168.242.51,192.168.243.151');
+    $driver->send_keys_to_active_element("\t");
     # broadcast
-    type_string('192.168.255.255');send_key 'tab';
+    $driver->send_keys_to_active_element('192.168.255.255');
+    $driver->send_keys_to_active_element("\t");
     # routers
-    type_string('192.168.1.1');send_key 'tab';
+    $driver->send_keys_to_active_element('192.168.1.1');
+    $driver->send_keys_to_active_element("\t");
     # next server
-    type_string('192.168.1.1');send_key 'tab';
+    $driver->send_keys_to_active_element('192.168.1.1');
+    $driver->send_keys_to_active_element("\t");
     # pxe filename
-    type_string('/boot/pxelinux.0');send_key 'tab';
-    #assert_screen('suma-system-formula-dhcpd-form-filled');
-    assert_and_click('suma-system-formula-dhcpd-form-save');
+    $driver->send_keys_to_active_element('/boot/pxelinux.0');
+    $driver->send_keys_to_active_element("\t");
+
+    save_screenshot;
+    $driver->find_element("//button[\@id='save-btn']")->click();
 
     # apply high state
-    assert_and_click('suma-system-formulas');
-    assert_and_click('suma-system-formula-highstate');
-    wait_screen_change {
-      assert_and_click('suma-system-formula-event');
-    };
-    # wait for high state
+    $driver->find_element('Formula Catalog', 'link_text')->click();
+    wait_for_page_to_load;
+    save_screenshot;
+    $driver->find_element("//button[.//text()[contains(., 'Apply Highstate')]]")->click();
+    wait_for_page_to_load;
+    save_screenshot;
+    $driver->find_element('scheduled', 'partial_link_text')->click();
+
     # check for success
-    send_key_until_needlematch('suma-system-highstate-finish', 'ctrl-r', 10, 15);
-    wait_screen_change {
-      assert_and_click('suma-system-highstate-finish');
-    };
-    send_key_until_needlematch('suma-system-highstate-success', 'pgdn');
+    die "Highstate failed" unless wait_for_text("Successfully applied state", 10, 15);
 
     # signal minion to check configuration
     barrier_wait('dhcpd_formula');
     barrier_wait('dhcpd_formula_finish');
   }
+}
+
+sub test_flags() {
+    return {milestone => 1};
 }
 
 1;

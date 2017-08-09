@@ -14,6 +14,7 @@ use base "sumatest";
 use 5.018;
 use testapi;
 use lockapi;
+use selenium;
 
 sub run {
   my ($self) = @_;
@@ -27,37 +28,64 @@ sub run {
   }
   else {
     $self->install_formula('pxe-formula');
-#    assert_and_click('suma-salt-menu');
-#    assert_and_click('suma-salt-formulas');
-#    assert_and_click('suma-pxe-formula-details');
-#    assert_screen('suma-pxe-formula-details-screen');
-    assert_and_click('suma-systems-menu');
-    assert_and_click('suma-systems-submenu');
-    assert_and_click('suma-system-all');
-    assert_and_click('suma-system-branch');
-    assert_and_click('suma-system-formulas');
-    send_key_until_needlematch('suma-system-formula-pxe', 'down', 40, 1);
-    assert_and_click('suma-system-formula-pxe');
-    assert_and_click('suma-system-formulas-save');
-#    assert_and_click('suma-system-formula-pxe-tab');
+
+    my $driver = selenium_driver();
+
+    $self->suma_menu('Salt', 'Formula Catalog');
+
+    $driver->find_element('pxe', 'link_text')->click();
+    wait_for_page_to_load;
+    #FIXME: check formula details
+
+    $self->suma_menu('Systems', 'Systems', 'All');
+
+    $driver->find_element('suma-branch.openqa.suse.de', 'link_text')->click();
+    wait_for_page_to_load;
+    save_screenshot;
+    $driver->find_element('Formula Catalog', 'link_text')->click();
+    wait_for_page_to_load;
+    $driver->find_element("//a[\@id='pxe']")->click();
+    wait_for_page_to_load;
+    $driver->find_element("//button[\@id='save-btn']")->click();
+    wait_for_page_to_load;
+    save_screenshot;
+    $driver->find_element("//li/a[.//text()[contains(., 'Pxe')]]")->click();
+    wait_for_page_to_load;
+    save_screenshot;
+
+    $driver->mouse_move_to_location(element => $driver->find_element("//form[\@id='editFormulaForm']//input[1]"));
+    $driver->double_click();
+    save_screenshot;
+
+    $driver->send_keys_to_active_element("linux");
+    $driver->send_keys_to_active_element("\t");
+
+    $driver->send_keys_to_active_element("initrd.gz");
+    $driver->send_keys_to_active_element("\t");
+
+    save_screenshot;
+    $driver->find_element("//button[\@id='save-btn']")->click();
 
     # apply high state
-    assert_and_click('suma-system-formulas');
-    assert_and_click('suma-system-formula-highstate');
-    wait_screen_change {
-      assert_and_click('suma-system-formula-event');
-    };
-    # wait for high state
+    $driver->find_element('Formula Catalog', 'link_text')->click();
+    wait_for_page_to_load;
+    save_screenshot;
+    $driver->find_element("//button[.//text()[contains(., 'Apply Highstate')]]")->click();
+    wait_for_page_to_load;
+    save_screenshot;
+    $driver->find_element('scheduled', 'partial_link_text')->click();
+
     # check for success
-    send_key_until_needlematch('suma-system-highstate-finish', 'ctrl-r', 10, 15);
-    wait_screen_change {
-      assert_and_click('suma-system-highstate-finish');
-    };
-    send_key_until_needlematch('suma-system-highstate-success', 'pgdn');
+    die "Highstate failed" unless wait_for_text("Successfully applied state", 10, 15);
+
     barrier_wait('pxe_formula');
     barrier_wait('pxe_formula_finish');
  
   }
+}
+
+sub test_flags() {
+    return {milestone => 1};
 }
 
 1;
