@@ -46,31 +46,35 @@ sub run {
 #    assert_and_click('suma_ff_configm_exception');
 #  }
 
+  if ($driver->get_page_source() =~ "Create SUSE Manager Administrator") {
+    $driver->mouse_move_to_location(element => $driver->find_element("//input[\@id='orgName']"));
+    $driver->double_click();
+
+    $driver->send_keys_to_active_element('openQA');$driver->send_keys_to_active_element("\t");
+    $driver->send_keys_to_active_element('admin');$driver->send_keys_to_active_element("\t");
+    $driver->send_keys_to_active_element($password);$driver->send_keys_to_active_element("\t");
+    $driver->send_keys_to_active_element($password);$driver->send_keys_to_active_element("\t");
+    $driver->send_keys_to_active_element('susemanager@'.$master.'.openqa.suse.de');$driver->send_keys_to_active_element("\t");
+    $driver->send_keys_to_active_element('Mr');$driver->send_keys_to_active_element("\t");
+    $driver->send_keys_to_active_element('openQA');$driver->send_keys_to_active_element("\t");
+    $driver->send_keys_to_active_element('TestManager');$driver->send_keys_to_active_element("\t");
+
+    $driver->find_element("//input[\@value='Create Organization']")->click();
+    wait_for_page_to_load;
+    die "SUMA setup failed" unless wait_for_text("You have just created", 10, 15);
+
+    if (get_var('SUMA_IMAGE_BUILD')) {
+      return 1;
+    }
+  }
+
+
   if ($driver->get_title() =~ /Sign In/) {
     $driver->find_element("//input[\@id='username-field']")->send_keys("admin");
     $driver->find_element("//input[\@id='password-field']")->send_keys($password);
     $driver->find_element("login", "id")->click();
   }
 
-#  FIXME:
-#  assert_screen(['suma_need_config', 'suma_welcome_screen', 'suma_login']);
-#  if (match_has_tag('suma_need_config')) {
-#    assert_and_click('suma_org_name_entry');
-#    type_string('openQA');send_key('tab');
-#    type_string('admin');send_key('tab');
-#    type_password;send_key('tab');
-#    type_password;send_key('tab');
-#    type_string('susemanager@'.$master.'.openqa.suse.de');send_key('tab');
-#    type_string('Mr');send_key('tab');
-#    type_string('openQA');send_key('tab');
-#    type_string('TestManager');send_key('tab');
-#    assert_and_click('suma_create_org');
-#    assert_and_click('suma_ff_store_credentials');
-#    assert_screen('suma_welcome_screen');
-#    if (get_var('SUMA_IMAGE_BUILD')) {
-#      return 1;
-#    }
-#  }
 
   # turn off screensaver
   x11_start_program('xterm');

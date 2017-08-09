@@ -65,6 +65,19 @@
                       },
                       test_suite => { name => "suma_minion_terminal" },
                     },
+                    {
+                      group_name => 3.2,
+                      machine => { name => "64bit" },
+                      prio => 50,
+                      product => {
+                        arch    => "x86_64",
+                        distri  => "sle",
+                        flavor  => "Server-DVD",
+                        group   => "sle-Server-DVD",
+                        version => "*",
+                      },
+                      test_suite => { name => "suma_supportserver" },
+                    },
                   ],
   Machines     => [],
   Products     => [],
@@ -75,6 +88,8 @@
                         { key => "ADDONS", value => "SUMA" },
                         { key => "HDDSIZEGB", value => 40 },
                         { key => "HOSTNAME", value => "suma" },
+                        { key => "NICTYPE", value => "tap" },
+                        { key => "PARALLEL_WITH", value => "suma_supportserver" },
                         { key => "PUBLISH_HDD_1", value => "suma_server.qcow2" },
                         { key => "SUMA_IMAGE_BUILD", value => 1 },
                         { key => "TOGGLEHOME", value => 1 },
@@ -145,5 +160,22 @@
                         { key => "SUMA_MINION", value => 1 },
                       ],
                     },
+                    {
+                      name => "suma_supportserver",
+                      settings => [
+                        { key => "BOOTFROM", value => "c" },
+                        { key => "DESKTOP", value => "textmode" },
+                        {
+                          key => "HDD_1",
+                          value => "openqa_support_server_sles12sp1.x86_64.qcow2",
+                        },
+                        { key => "NETWORKS", value => "fixed" },
+                        { key => "NICTYPE", value => "tap" },
+                        { key => "SUPPORT_SERVER", value => 1 },
+                        { key => "SUPPORT_SERVER_ROLES", value => "dhcp,dns" },
+                        { key => "WORKER_CLASS", value => "tap" },
+                      ],
+                    },
+
                   ],
 }

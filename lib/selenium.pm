@@ -37,11 +37,14 @@ use Selenium::Waiter qw/wait_until/;
 my $port = 4444;
 
 sub add_chromium_repos {
-  zypper_call('--gpg-auto-import-keys ar -fc http://download.opensuse.org/repositories/openSUSE:/Backports:/SLE-12/standard/openSUSE:Backports:SLE-12.repo');
-  zypper_call('--gpg-auto-import-keys ar -fc http://download.opensuse.org/repositories/openSUSE:/Backports:/SLE-12-SP1/standard/openSUSE:Backports:SLE-12-SP1.repo');
-  zypper_call('--gpg-auto-import-keys ar -fc http://download.opensuse.org/repositories/openSUSE:/Backports:/SLE-12-SP2/standard/openSUSE:Backports:SLE-12-SP2.repo');
-  zypper_call('--gpg-auto-import-keys ar -fc http://smt.suse.cz/repo/SUSE/Products/SLE-SDK/12-SP2/x86_64/product/ sdk');
-  zypper_call('--gpg-auto-import-keys ref');
+  my $ret = zypper_call("se chromedriver", exitcode => [0,104]);
+  if ($ret == 104) {
+    zypper_call('--gpg-auto-import-keys ar -fc http://download.opensuse.org/repositories/openSUSE:/Backports:/SLE-12/standard/openSUSE:Backports:SLE-12.repo');
+    zypper_call('--gpg-auto-import-keys ar -fc http://download.opensuse.org/repositories/openSUSE:/Backports:/SLE-12-SP1/standard/openSUSE:Backports:SLE-12-SP1.repo');
+    zypper_call('--gpg-auto-import-keys ar -fc http://download.opensuse.org/repositories/openSUSE:/Backports:/SLE-12-SP2/standard/openSUSE:Backports:SLE-12-SP2.repo');
+    zypper_call('--gpg-auto-import-keys ar -fc http://smt.suse.cz/repo/SUSE/Products/SLE-SDK/12-SP2/x86_64/product/ sdk');
+    zypper_call('--gpg-auto-import-keys ref');
+  }
 }
 
 sub install_chromium {
