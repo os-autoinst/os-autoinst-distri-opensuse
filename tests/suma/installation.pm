@@ -98,7 +98,7 @@ sub run {
   wait_serial('SUMA_SETUP_DONE');
    
   #install generated certificate for HTTPS
-  zypper_call('in /srv/www/htdocs/pub/rhn-org-trusted-ssl-cert-*.noarch.rpm');
+  zypper_call('--no-gpg-checks in /srv/www/htdocs/pub/rhn-org-trusted-ssl-cert-*.noarch.rpm');
 }
 
 sub test_flags {

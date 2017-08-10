@@ -46,7 +46,7 @@ sub run {
     $driver->find_element('suma-branch.openqa.suse.de', 'link_text')->click();
     wait_for_page_to_load;
     save_screenshot;
-    $driver->find_element('Formula Catalog', 'link_text')->click();
+    $driver->find_element('Formulas', 'link_text')->click();
     wait_for_page_to_load;
     $driver->find_element("//a[\@id='branch-network']")->click();
     wait_for_page_to_load;
@@ -75,13 +75,18 @@ sub run {
     $driver->find_element("//button[\@id='save-btn']")->click();
 
     # apply high state
-    $driver->find_element('Formula Catalog', 'link_text')->click();
+    $driver->find_element('States', 'link_text')->click();
     wait_for_page_to_load;
     save_screenshot;
     $driver->find_element("//button[.//text()[contains(., 'Apply Highstate')]]")->click();
     wait_for_page_to_load;
     save_screenshot;
     $driver->find_element('scheduled', 'partial_link_text')->click();
+    wait_for_page_to_load;
+    wait_for_link("1 system", 10, 15)->click();
+
+    $driver->find_element('suma-branch.openqa.suse.de', 'link_text')->click();
+    wait_for_page_to_load;
 
     # check for success
     die "Highstate failed" unless wait_for_text("Successfully applied state", 10, 15);
