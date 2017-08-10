@@ -17,7 +17,7 @@
 use strict;
 use base "opensusebasetest";
 use testapi;
-use utils 'is_casp';
+use utils 'is_caasp';
 use caasp;
 
 # Check that package presence & version is as expected
@@ -75,10 +75,10 @@ sub run {
     # snapshot numbers below have to be altered properly.
     my $snap;
     if (check_var('VIRSH_VMM_FAMILY', 'hyperv') || check_var('VIRSH_VMM_TYPE', 'linux')) {
-        $snap = is_casp('VMX') ? 3 : 4;
+        $snap = is_caasp('VMX') ? 3 : 4;
     }
     else {
-        $snap = is_casp('VMX') ? 2 : 3;
+        $snap = is_caasp('VMX') ? 2 : 3;
     }
     trup_call "rollback $snap";
     check_reboot_changes;

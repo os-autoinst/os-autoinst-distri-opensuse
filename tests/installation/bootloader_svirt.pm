@@ -125,7 +125,7 @@ sub run {
     $dev_id = 'c' if (ord($dev_id) < ord('c'));
     my $isodir = '/var/lib/openqa/share/factory/iso';
     # In JeOS, CaaSP, and netinstall we don't have ISO media, for the rest we have to attach it.
-    if (!get_var('NETBOOT') and !is_jeos and !is_casp) {
+    if (!get_var('NETBOOT') and !is_jeos and !is_caasp) {
         my $isofile = get_var('ISO');
         my $isopath = copy_image($isofile, $isodir);
         $svirt->add_disk(
@@ -297,7 +297,7 @@ sub run {
         wait_serial("Press enter to boot the selected OS", 10) || die "Can't get to Grub";
         type_string "echo e > \$pty\n";    # edit
 
-        if (is_jeos or is_casp) {
+        if (is_jeos or is_caasp) {
             for (1 .. 4) { type_string "echo -en '\\033[B' > \$pty\n"; }    # four-times key down
         }
         else {
@@ -305,7 +305,7 @@ sub run {
         }
         type_string "echo -en '\\033[K' > \$pty\n";                         # end of line
         type_string "echo -en ' $cmdline' > \$pty\n";
-        if (sle_version_at_least('12-SP2') or is_casp) {
+        if (sle_version_at_least('12-SP2') or is_caasp) {
             type_string "echo -en ' xen-fbfront.video=32,1024,768 xen-kbdfront.ptr_size=1024,768 ' > \$pty\n";    # set kernel framebuffer
             type_string "echo -en ' console=hvc console=tty' > \$pty\n";                                          # set consoles
         }

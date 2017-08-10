@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Basic CASP journal tests
+# Summary: Basic CaaSP journal tests
 # Maintainer: Tomas Hehejik <thehejik@suse.com>
 
 use base "opensusebasetest";

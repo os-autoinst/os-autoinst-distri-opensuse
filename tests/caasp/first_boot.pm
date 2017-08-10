@@ -7,19 +7,19 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: First boot and login into CASP
+# Summary: First boot and login into CaaSP
 # Maintainer: Martin Kravec <mkravec@suse.com>
 
 use base "opensusebasetest";
 use strict;
 use testapi;
-use utils qw(is_casp power_action);
+use utils qw(is_caasp power_action);
 use bootloader_setup 'set_framebuffer_resolution';
 use caasp 'process_reboot';
 
 sub run {
     # On VMX images bootloader_uefi eats grub2 needle
-    assert_screen 'grub2' unless is_casp('VMX');
+    assert_screen 'grub2' unless is_caasp('VMX');
 
     # Check ssh keys & ip information are displayed
     assert_screen 'linux-login-casp', 300;
@@ -27,7 +27,7 @@ sub run {
     # Workers installed using autoyast have no password - bsc#1030876
     unless (get_var('AUTOYAST')) {
         # Workaround for bsc#1035968
-        if (is_casp 'VMX') {
+        if (is_caasp 'VMX') {
             my $tty2 = wait_screen_change(sub { send_key 'ctrl-alt-f2'; }, 1);
             unless ($tty2) {
                 wait_screen_change(undef, 180);
@@ -45,7 +45,7 @@ sub run {
         }
 
         # Restart network to push hostname to dns
-        if (is_casp('VMX') && get_var('STACK_ROLE')) {
+        if (is_caasp('VMX') && get_var('STACK_ROLE')) {
             script_run "systemctl restart network", 60;
         }
     }

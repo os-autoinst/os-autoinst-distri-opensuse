@@ -75,19 +75,19 @@ sub run {
         if (get_var("PROMO") || get_var('LIVETEST')) {
             send_key_until_needlematch("boot-live-" . get_var("DESKTOP"), 'down', 10, 5);
         }
-        elsif (!is_jeos && !is_casp('VMX')) {
+        elsif (!is_jeos && !is_caasp('VMX')) {
             send_key_until_needlematch('inst-oninstallation', 'down', 10, 5);
         }
     }
 
     uefi_bootmenu_params;
     bootmenu_default_params;
-    specific_bootmenu_params unless is_casp || is_jeos;
+    specific_bootmenu_params unless is_caasp || is_jeos;
     specific_caasp_params;
 
     # JeOS and CaaSP are never deployed with Linuxrc involved,
     # so 'regurl' does not apply there.
-    registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED) unless (is_jeos or is_casp);
+    registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED) unless (is_jeos or is_caasp);
 
     # boot
     send_key "f10";

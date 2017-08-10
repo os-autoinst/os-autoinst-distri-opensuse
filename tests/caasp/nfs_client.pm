@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Basic check for NFSv3/v4 client in CASP using NFS_SHARE=nfs://server.somewhere/some/path
+# Summary: Basic check for NFSv3/v4 client in CaaSP using NFS_SHARE=nfs://server.somewhere/some/path
 # Maintainer: Tomas Hehejik <thehejik@suse.com>
 
 use base "opensusebasetest";

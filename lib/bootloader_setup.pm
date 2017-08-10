@@ -226,17 +226,17 @@ sub bootmenu_default_params {
     }
     else {
         # On JeOS and CaaSP we don't have YaST installer.
-        type_string_slow "Y2DEBUG=1 " unless is_jeos || is_casp;
+        type_string_slow "Y2DEBUG=1 " unless is_jeos || is_caasp;
 
         # gfxpayload variable replaced vga option in grub2
-        if (!is_jeos && !is_casp && (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64'))) {
+        if (!is_jeos && !is_caasp && (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64'))) {
             type_string_slow "vga=791 ";
             type_string_slow "video=1024x768-16 ";
             assert_screen check_var('UEFI', 1) ? 'inst-video-typed-grub2' : 'inst-video-typed', 4;
         }
 
         if (!get_var("NICEVIDEO")) {
-            if (is_jeos || is_casp) {
+            if (is_jeos || is_caasp) {
                 bootmenu_type_console_params;
             }
             else {
@@ -257,7 +257,7 @@ sub bootmenu_default_params {
     # we have to use something else.
     if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
         type_string_slow 'video=hyperv_fb:1024x768 ';
-        type_string_slow 'namescheme=by-label ' unless is_jeos or is_casp;
+        type_string_slow 'namescheme=by-label ' unless is_jeos or is_caasp;
     }
 }
 
@@ -515,7 +515,7 @@ sub select_bootmenu_language {
 }
 
 sub specific_caasp_params {
-    return unless is_casp && get_var('STACK_ROLE');
+    return unless is_caasp && get_var('STACK_ROLE');
 
     # Wait for supportserver (controller node)
     if (!check_var 'STACK_ROLE', 'controller') {

@@ -27,7 +27,7 @@ our @EXPORT = qw(
   clear_console
   is_jeos
   is_hyperv_in_gui
-  is_casp
+  is_caasp
   is_gnome_next
   is_jeos
   is_krypton_argon
@@ -249,9 +249,9 @@ sub is_gnome_next {
 
 # Check if distribution is CASP
 # If argument is passed then FLAVOR has to match (universal VMX keyword)
-sub is_casp {
+sub is_caasp {
     my $filter = shift;
-    return 0 unless get_var('DISTRI') =~ /casp|kubic/;
+    return 0 unless get_var('DISTRI') =~ /casp|caasp|kubic/;
     return 1 unless $filter;
 
     if ($filter eq 'DVD') {

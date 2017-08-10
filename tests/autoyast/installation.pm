@@ -178,7 +178,7 @@ sub run {
     }
 
     # CaaSP does not have second stage
-    return if is_casp;
+    return if is_caasp;
 
     mouse_hide(1);
     $maxtime = 1000;
