@@ -37,9 +37,8 @@ sub run {
             assert_script_run("snapper list | tail -n1");
             for (1 .. 3) { pop @snapper_cmd; }
             if ($type eq 'pre') {
-                type_string("( snapper list | tail -n1 | awk \'{ print \$3 }\'; echo snapper-post-\$?; ) > /dev/$serialdev\n");
-                my @snap_number = split('\n', wait_serial('snapper-post-0'));
-                push @snap_numbers, substr($snap_number[0], 0, -1);    # strip \n
+                # Add last snapshot id for pre type
+                push @snap_numbers, script_output($get_last_snap_number);
             }
         }
         pop @snapper_cmd if ($type eq 'post');
