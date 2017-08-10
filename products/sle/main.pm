@@ -1211,6 +1211,9 @@ elsif (get_var("FIPS_TS")) {
     elsif (check_var("FIPS_TS", "crypt")) {
         load_fips_tests_crypt;
     }
+    elsif (check_var("FIPS_TS", "ipsec")) {
+        loadtest "console/ipsec_tools_h2h";
+    }
     elsif (check_var("FIPS_TS", "mmtest")) {
         # Load client tests by APPTESTS variable
         load_applicationstests;

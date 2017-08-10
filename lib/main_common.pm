@@ -516,6 +516,9 @@ sub load_extra_tests {
             loadtest "console/weechat";
             loadtest "console/nano";
         }
+        if (get_var("IPSEC")) {
+            loadtest "console/ipsec_tools_h2h";
+        }
         if (check_var('ARCH', 'x86_64')) {
             loadtest "console/docker";
             if (check_var('DISTRI', 'sle')) {
