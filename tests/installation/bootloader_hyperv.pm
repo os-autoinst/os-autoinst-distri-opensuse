@@ -62,17 +62,18 @@ sub run {
 
     if ($winserver eq "2012") {
         my $vm_generation = get_var('UEFI') ? 2 : 1;
+        my $hyperv_switch_name = get_var('HYPERV_VIRTUAL_SWITCH', 'ExternalVirtualSwitch');
         if ($hdd1) {
             hyperv_cmd("$ps New-VHD -ParentPath $hdd1 -Path d:\\hdd\\${name}a.vhd -Differencing");
-            hyperv_cmd("$ps New-VM -Name $name -Generation $vm_generation -VHDPath d:\\hdd\\${name}a.vhd -SwitchName * -MemoryStartupBytes ${ramsize}MB");
+            hyperv_cmd("$ps New-VM -Name $name -Generation $vm_generation -VHDPath d:\\hdd\\${name}a.vhd "
+                  . "-SwitchName $hyperv_switch_name -MemoryStartupBytes ${ramsize}MB");
             if (get_var('HDD_2')) {
                 hyperv_cmd("$ps Set-VMDvdDrive -VMName $name -Path $hdd2 -ControllerNumber 1");
             }
         }
         else {
-            hyperv_cmd(
-"$ps New-VM -Name $name -Generation $vm_generation -NewVHDPath d:\\hdd\\${name}a.vhdx -NewVHDSizeBytes ${hdd1size}GB -SwitchName * -MemoryStartupBytes ${ramsize}MB"
-            );
+            hyperv_cmd("$ps New-VM -Name $name -Generation $vm_generation -NewVHDPath d:\\hdd\\${name}a.vhdx "
+                  . "-NewVHDSizeBytes ${hdd1size}GB -SwitchName $hyperv_switch_name -MemoryStartupBytes ${ramsize}MB");
             if (get_var('UEFI')) {
                 hyperv_cmd("$ps Add-VMDvdDrive -VMName $name -Path $iso");
             }
