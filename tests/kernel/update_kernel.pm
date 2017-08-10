@@ -125,7 +125,7 @@ sub prepare_kgraft {
     zypper_call("ar http://download.suse.de/ibs/SUSE/Products/SLE-Live-Patching/$version/$arch/product/ kgraft-pool");
     zypper_call("ar $release_override http://download.suse.de/ibs/SUSE/Updates/SLE-Live-Patching/$version/$arch/update/ kgraft-update");
     zypper_call("ref");
-    zypper_call("in sle-live-patching-release", exitcode => [0, 102, 103]);
+    zypper_call("in -l sle-live-patching-release", exitcode => [0, 102, 103]);
     zypper_call("mr -e kgraft-update");
 
     #add repository with tested patch

@@ -111,6 +111,12 @@ sub run {
     else {
         die 'INSTALL_LTP must contain "git" or "repo"';
     }
+
+    # check kGraft if KGRAFT=1
+    if (check_var("KGRAFT", '1')) {
+        assert_script_run("uname -v | grep '/kGraft-'");
+    }
+
     upload_logs '/root/openposix_test_list.txt';
 
     select_console('root-console');

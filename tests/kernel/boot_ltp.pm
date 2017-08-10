@@ -37,6 +37,11 @@ sub run {
         assert_script_run("lsblk -la; export LTP_BIG_DEV=$block_dev");
     }
 
+    # check kGraft patch if KGRAFT=1
+    if (check_var('KGRAFT', '1')) {
+        assert_script_run("uname -v| grep '/kGraft-'");
+    }
+
     script_run('env');
 }
 
