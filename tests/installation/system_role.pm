@@ -36,8 +36,8 @@ sub assert_system_role_with_workaround_sle15_aarch64_missing_system_role {
     # Workaround for bsc#1049297
     # When the workaround is no more needed, execute on `sub run` only the function `sub assert_system_role`
     wait_still_screen;
-    # SLE 15 will always show the system role
-    if (sle_version_at_least('15') && check_var('ARCH', 'aarch64')) {
+    # SLE 15 will always show the system role. Occurs on arm and ppc
+    if (sle_version_at_least('15') && get_var('ARCH') =~ /aarch64|ppc64le/) {
         assert_screen 'partitioning-edit-proposal-button';
         record_soft_failure 'bsc#1049297 - missing system role';
     }
