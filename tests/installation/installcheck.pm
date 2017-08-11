@@ -18,7 +18,7 @@ use testapi;
 
 sub run {
     assert_script_run "mount /dev/sr0 /mnt";
-    assert_script_run 'cd /tmp; rpm2cpio /mnt/suse/*/libsolv-tools*.rpm | cpio -dium';
+    assert_script_run 'cd /tmp; rpm2cpio $(find /mnt -name libsolv-tools*.rpm) | cpio -dium';
     assert_script_run 'export PATH=/tmp/usr/bin:$PATH; usr/bin/repo2solv.sh /mnt > /tmp/solv';
     script_run 'installcheck ' . get_var("ARCH") . ' /tmp/solv > /tmp/installcheck.log 2>&1 && touch /tmp/WORKED';
     script_run 'cat /tmp/installcheck.log';
