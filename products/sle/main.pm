@@ -1071,6 +1071,7 @@ sub load_fips_tests_crypt {
     loadtest "console/yast2_dm_crypt";
     loadtest "console/cryptsetup";
     loadtest "fips/ecryptfs_fips";
+    loadtest "console/gpg";
 }
 
 sub load_patching_tests {
