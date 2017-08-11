@@ -8,22 +8,42 @@
 # without any warranty.
 
 # Summary: Check cluster status in crm_mon
-# Maintainer: Denis Zyuzin <dzyuzin@suse.com>
+# Maintainer: Loic Devulder <ldevulder@suse.com>
 
-use base "hacluster";
+use base 'hacluster';
 use strict;
 use testapi;
 use autotest;
 use lockapi;
 
 sub run {
-    type_string "crm_mon -1\n";
-    assert_script_run q(crm_mon -1 | grep 'partition with quorum');
-    assert_script_run q(crm_mon -s | grep "`crm node list | wc -l` nodes online");
+    my $self = shift;
+
+    # Synchronize nodes
+    barrier_wait('MON_INIT_' . $self->cluster_name);
+
+    # Show cluster informations
+    assert_script_run 'crm_mon -R -1';
+    assert_script_run 'crm_mon -1 | grep \'partition with quorum\'';
+    assert_script_run 'crm_mon -s | grep "$(crm node list | wc -l) nodes online"';
+
+    # Synchronize nodes
+    barrier_wait('MON_CHECKED_' . $self->cluster_name);
 }
 
 sub test_flags {
-    return {fatal => 1};
+    return {milestone => 1, fatal => 1};
+}
+
+sub post_fail_hook {
+    my $self = shift;
+
+    # Save a screenshot before trying further measures which might fail
+    save_screenshot;
+
+    # Try to save logs as a last resort
+    $self->export_logs();
 }
 
 1;
+# vim: set sw=4 et:

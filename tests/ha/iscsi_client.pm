@@ -8,48 +8,77 @@
 # without any warranty.
 
 # Summary: Configure iSCSI target for HA tests
-# Maintainer: Denis Zyuzin <dzyuzin@suse.com>
+# Maintainer: Loic Devulder <ldevulder@suse.com>
 
-use base "hacluster";
+use base 'hacluster';
 use strict;
 use testapi;
 
 sub run {
     my $self = shift;
-    type_string "yast2 iscsi-client\n";
-    assert_screen "yast2-iscsi-client";
-    send_key 'alt-b';    #start iscsi daemon on Boot
-    send_key 'alt-i';    #Initiator name
-    for (1 .. 40) { send_key "backspace"; }
-    type_string "iqn.1996-04.de.suse:01:" . get_var("HOSTNAME") . "." . get_var("CLUSTERNAME");
-    save_screenshot;
-    send_key 'alt-v';    #discoVered targets
-    assert_screen "yast2-iscsi-client-discovered-targets";
-    send_key 'alt-d';    #Discovery
-    assert_screen "yast2-iscsi-client-discovery";
-    send_key 'alt-i';    #Ip address
-    type_string "srv1";
-    send_key 'alt-n';    #Next
-    assert_screen "yast2-iscsi-client-target-list";
-    send_key_until_needlematch "iscsi-client-srv1-selected", 'down';
-    #select target with internal IP first?
-    send_key 'alt-e';    #connEct
-    assert_screen "yast2-iscsi-client-target-startup";
-    send_key 'alt-s';    #Startup
+
+    # Configuration of iSCSI client
+    script_run("yast2 iscsi-client; echo yast2-iscsi-client-status-\$? > /dev/$serialdev", 0);
+    assert_screen 'iscsi-client-overview-service-tab';
+    send_key 'alt-b';    # Start iscsi daemon on Boot
+    wait_still_screen 3;
+    send_key 'alt-i';    # Initiator name
+    wait_still_screen 3;
+    for (1 .. 40) { send_key 'backspace'; }
+    type_string 'iqn.1996-04.de.suse:01:' . get_var('HOSTNAME') . '.' . get_var('CLUSTER_NAME');
+    wait_still_screen 3;
+    send_key 'alt-v';    # discoVered targets
+    wait_still_screen 3;
+
+    # Go to Discovered Targets screen can take time
+    assert_screen 'iscsi-client-discovered-targets', 120;
+    send_key 'alt-d';    # Discovery
+    wait_still_screen 3;
+    assert_screen 'iscsi-client-discovery';
+    send_key 'alt-i';    # Ip address
+    wait_still_screen 3;
+    type_string 'ns';
+    wait_still_screen 3;
+    send_key 'alt-n';    # Next
+
+    # Select target with internal IP first?
+    assert_screen 'iscsi-client-target-list';
+    send_key 'alt-e';    # connEct
+    assert_screen 'iscsi-client-target-startup';
+    send_key 'alt-s';    # Startup
+    wait_still_screen 3;
     send_key 'down';
-    send_key 'down';     #select 'automatic'
-    assert_screen "yast2-iscsi-client-target-startup-automatic-selected";
+    wait_still_screen 3;
+    send_key 'down';     # Select 'automatic'
+    assert_screen 'iscsi-client-target-startup-automatic-selected';
     send_key 'ret';
-    send_key 'alt-n';    #Next
-    assert_screen "yast2-iscsi-client-target-connected", 120;
-    send_key 'alt-o';    #Ok
-    wait_still_screen;
+    wait_still_screen 3;
+    send_key 'alt-n';    # Next
+
+    # Go to Discovered Targets screen can take time
+    assert_screen 'iscsi-client-target-connected', 120;
+    send_key 'alt-o';    # Ok
+    wait_still_screen 3;
+    wait_serial('yast2-iscsi-client-status-0', 90) || die "'yast2 iscsi-client' didn't finish";
+
+    # iSCSI LUN must be present
     $self->clear_and_verify_console;
-    assert_script_run "ls -1 /dev/disk/by-path/ip-*-lun-*";
+    assert_script_run 'ls -1 /dev/disk/by-path/ip-*-lun-*';
 }
 
 sub test_flags {
-    return {fatal => 1};
+    return {milestone => 1, fatal => 1};
+}
+
+sub post_fail_hook {
+    my $self = shift;
+
+    # Save a screenshot before trying further measures which might fail
+    save_screenshot;
+
+    # Try to save logs as a last resort
+    $self->export_logs();
 }
 
 1;
+# vim: set sw=4 et:

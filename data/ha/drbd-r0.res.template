@@ -1,0 +1,24 @@
+resource r0 {
+  device    /dev/drbd0;
+  meta-disk internal;
+
+  on %NODE_01% {
+    address  %ADDR_NODE_01%:7788;
+    disk     %DRBD_LUN_01%;
+    node-id 0;
+  }
+
+  on %NODE_02% {
+    address %ADDR_NODE_02%:7788;
+    disk    %DRBD_LUN_02%;
+    node-id 1;
+  }
+
+  disk {
+    resync-rate 10M;
+  }
+
+  connection-mesh {
+    hosts %NODE_01% %NODE_02%;
+  }
+}

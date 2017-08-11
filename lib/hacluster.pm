@@ -8,22 +8,47 @@
 # without any warranty.
 
 package hacluster;
-use base "opensusebasetest";
+use base 'opensusebasetest';
 use testapi;
 use autotest;
 use lockapi;
 use strict;
 
-sub is_node1 {
-    return (get_var("HOSTNAME") eq "host1");
+# Check if we are on $node_number
+sub is_node {
+    my ($self, $node_number) = @_;
+
+    # Node number must be coded with 2 digits
+    $node_number = sprintf("%02d", $node_number);
+
+    # Return true if HOSTNAME contains $node_number at his end
+    return (get_var('HOSTNAME') =~ /$node_number$/);
 }
 
-sub is_node2 {
-    return (get_var("HOSTNAME") eq "host2");
+# Check if we are on $node_number
+sub choose_node {
+    my ($self, $node_number) = @_;
+    my $tmp_hostname = get_var('HOSTNAME');
+
+    # Node number must be coded with 2 digits
+    $node_number = sprintf("%02d", $node_number);
+
+    # Replace the digit of HOSTNAME to create the new hostname
+    $tmp_hostname =~ s/([a-z]*).*$/$1$node_number/;
+
+    # And return it
+    return ($tmp_hostname);
 }
 
+# Return the cluster name
 sub cluster_name {
-    return get_var("CLUSTERNAME");
+    return get_var('CLUSTER_NAME');
+}
+
+# Print the state of the cluster and do a screenshot
+sub save_state {
+    type_string "crm_mon -R -1\n";
+    save_screenshot;
 }
 
 sub post_run_hook {

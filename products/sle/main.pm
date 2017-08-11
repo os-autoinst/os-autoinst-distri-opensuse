@@ -844,7 +844,7 @@ sub load_x11tests {
         && is_desktop_installed()
         && !get_var("DUALBOOT")
         && !get_var("RESCUECD")
-        && !get_var("HACLUSTER"));
+        && !get_var("HA_CLUSTER"));
 
     if (is_smt()) {
         loadtest "x11/smt";
@@ -931,43 +931,36 @@ sub load_slenkins_tests {
     return 0;
 }
 
-sub load_hacluster_tests {
-    return unless (get_var("HACLUSTER"));
-    sleep 10;                                                # wait to make sure that support server created locks
-    barrier_wait("BARRIER_HA_" . get_var("CLUSTERNAME"));    #nodes wait here
+sub load_ha_cluster_tests {
+    return unless (get_var("HA_CLUSTER"));
+    loadtest "ha/wait_support_server";
     loadtest "installation/first_boot";
     loadtest "console/consoletest_setup";
     loadtest "console/hostname" unless is_bridged_networking;
-    loadtest("ha/firewall_disable");
-    loadtest("ha/ntp_client");
-    loadtest("ha/iscsi_client");
-    loadtest("ha/watchdog");
-    if (get_var("HOSTNAME") eq 'host1') {
-        loadtest("ha/ha_cluster_init");                      #node1 creates a cluster
+    loadtest "ha/firewall_disable";
+    loadtest "ha/ntp_client";
+    loadtest "ha/iscsi_client";
+    loadtest "ha/watchdog";
+    if (get_var("HA_CLUSTER_INIT")) {
+        loadtest "ha/ha_cluster_init";    # Node1 creates a cluster
     }
     else {
-        loadtest("ha/ha_cluster_join");                      #node2 joins the cluster
+        loadtest "ha/ha_cluster_join";    # Node2 joins the cluster
     }
-    if (get_var("CTS")) {
-        loadtest("ha/cts");
+    loadtest "ha/dlm";
+    loadtest "ha/clvm";
+    loadtest "ha/ocfs2";
+    loadtest "ha/drbd";
+    loadtest "ha/crm_mon";
+    loadtest "ha/fencing";
+    if (!get_var("HA_CLUSTER_JOIN")) {
+        # Node1 will be fenced
+        loadtest "ha/fencing_boot";
+        loadtest "ha/fencing_consoletest_setup";
     }
-    else {
-        loadtest("ha/dlm");
-        loadtest("ha/clvm");
-        loadtest("ha/ocfs2");
-        loadtest("ha/drbd");
-        loadtest("ha/crm_mon");
-        if (get_var('HA_CLUSTER_TEST_ADVANCED')) {
-            loadtest("ha/fencing");
-            if (!get_var("HACLUSTERJOIN")) {    #node1 will be fenced
-                loadtest "ha/fencing_boot";
-                loadtest "ha/fencing_consoletest_setup";
-            }
-        }
-    }
+    # Check_logs must be after ha/fencing
+    loadtest "ha/check_logs";
 
-    # check_logs must be after ha/fencing
-    loadtest("ha/check_logs") if get_var('HA_CLUSTER_TEST_ADVANCED');
     return 1;
 }
 
@@ -1175,6 +1168,7 @@ elsif (get_var("INSTALLCHECK")) {
 elsif (get_var("SUPPORT_SERVER")) {
     loadtest "support_server/login";
     loadtest "support_server/setup";
+    loadtest "ha/barrier_init" if get_var("HA_CLUSTER_SUPPORT_SERVER");
     unless (load_slenkins_tests()) {
         loadtest "support_server/wait";
     }
@@ -1208,17 +1202,8 @@ elsif (get_var("FIPS_TS")) {
         load_applicationstests;
     }
 }
-elsif (get_var("HACLUSTER_SUPPORT_SERVER")) {
-    if (get_var("CTS")) {
-        loadtest "ha/ha_cts_support_server";
-    }
-    else {
-        loadtest("ha/barrier_init");
-        loadtest "ha/ha_support_server";
-    }
-}
-elsif (get_var("HACLUSTER")) {
-    load_hacluster_tests();
+elsif (get_var("HA_CLUSTER")) {
+    load_ha_cluster_tests();
 }
 elsif (get_var("QA_TESTSET")) {
     if (get_var('INSTALL_KOTD')) {
