@@ -48,6 +48,8 @@ sub run {
     my $self = shift;
     # NET isos are slow to install
     my $timeout = 2000;
+    # aarch64 can be particularily slow depending on the hardware
+    $timeout *= 2 if check_var('ARCH', 'aarch64') && get_var('MAX_JOB_TIME');
     # encryption, LVM and RAID makes it even slower
     $timeout *= 2 if (get_var('ENCRYPT') || get_var('LVM') || get_var('RAID'));
 

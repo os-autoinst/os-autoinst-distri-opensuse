@@ -41,7 +41,7 @@ sub run {
     }
 
     # aarch64 firmware 'tianocore' can take longer to load
-    my $bootloader_timeout = check_var('ARCH', 'aarch64') ? 25 : 15;
+    my $bootloader_timeout = check_var('ARCH', 'aarch64') ? 30 : 15;
     assert_screen([qw(bootloader-shim-import-prompt bootloader-grub2)], $bootloader_timeout);
     if (match_has_tag("bootloader-shim-import-prompt")) {
         send_key "down";
