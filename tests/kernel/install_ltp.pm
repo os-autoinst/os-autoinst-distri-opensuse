@@ -48,17 +48,11 @@ sub we_available {
 sub install_dependencies {
     my @deps = qw(git-core make automake autoconf gcc expect libnuma-devel libaio-devel
       numactl flex bison dmapi-devel kernel-default-devel libopenssl-devel libselinux-devel
-      libacl-devel libtirpc-devel keyutils-devel libcap-devel net-tools sysstat
-      tpm-tools psmisc acl quota);
-    if (we_available) {
-        push @deps, 'ntfsprogs';
-    }
-    else {
-        record_soft_failure 'Need Workstation Extension for ntfsprogs; poo#15652';
-    }
+      libacl-devel libtirpc-devel keyutils-devel libcap-devel net-tools psmisc acl quota curl);
+
     zypper_call('-t in ' . join(' ', @deps), log => 'install-deps.txt');
 
-    my @maybe_deps = qw(net-tools-deprecated gcc-32bit);
+    my @maybe_deps = qw(net-tools-deprecated gcc-32bit sysstat tpm-tools ntfsprogs);
 
     for my $dep (@maybe_deps) {
         script_run('zypper -n -t in ' . $dep);
