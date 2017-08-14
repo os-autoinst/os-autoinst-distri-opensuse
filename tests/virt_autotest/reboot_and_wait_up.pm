@@ -47,7 +47,7 @@ sub reboot_and_wait_up {
         #switch to sut console
         reset_consoles;
         #wait boot finish and relogin
-        &login_console::login_to_console($reboot_timeout);
+        login_console::login_to_console($self, $reboot_timeout);
     }
 }
 

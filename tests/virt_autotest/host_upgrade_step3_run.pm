@@ -28,7 +28,7 @@ sub get_script_run {
 sub run {
     my $self = shift;
     repl_repo_in_sourcefile();
-    $self->run_test(5400, "Test run completed successfully", "no", "yes", "/var/log/qa/", "host-upgrade-postVerify-logs");
+    $self->run_test(5400, "Host upgrade virtualization test pass", "no", "yes", "/var/log/qa/", "host-upgrade-postVerify-logs");
 }
 
 1;
