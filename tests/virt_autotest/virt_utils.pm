@@ -33,7 +33,7 @@ sub repl_repo_in_sourcefile {
         my $location = &virt_autotest_base::execute_script_run("", "perl /usr/share/qa/tools/location_detect_impl.pl", 60);
         $location =~ s/[\r\n]+$//;
         my $soucefile = "/usr/share/qa/virtautolib/data/" . "sources." . "$location";
-        my $newrepo   = "ftp://openqa.suse.de/" . get_var("REPO_0");
+        my $newrepo   = "http://openqa.suse.de/assets/repo/" . get_var("REPO_0");
         my $shell_cmd
           = "if grep $veritem $soucefile >> /dev/null;then sed -i \"s#$veritem=.*#$veritem=$newrepo#\" $soucefile;else echo \"$veritem=$newrepo\" >> $soucefile;fi";
         assert_script_run($shell_cmd);
