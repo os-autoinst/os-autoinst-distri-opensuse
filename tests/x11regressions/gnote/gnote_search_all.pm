@@ -18,13 +18,9 @@ use testapi;
 
 
 sub run {
-    x11_start_program("gnote");
-    assert_screen "gnote-first-launched", 10;
-    send_key "ctrl-f";
-    type_string "welcome";
-    assert_screen 'gnote-search-welcome', 5;
-
-    send_key "ctrl-w";
+    my ($self) = @_;
+    $self->gnote_launch();
+    $self->gnote_search_and_close('welcome', 'gnote-search-welcome');
 }
 
 1;

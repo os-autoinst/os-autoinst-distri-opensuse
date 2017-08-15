@@ -18,15 +18,10 @@ use testapi;
 
 
 sub run {
-    x11_start_program("gnote");
-    assert_screen "gnote-first-launched", 5;
-    send_key_until_needlematch 'gnote-start-here-matched', 'down', 5;
+    my ($self) = @_;
+    $self->gnote_launch();
     send_key "ret";
-    send_key "ctrl-f";
-    type_string "and";
-    assert_screen 'gnote-search-body-and', 5;
-
-    send_key "ctrl-w";
+    $self->gnote_search_and_close('and', 'gnote-search-body-and');
 }
 
 1;

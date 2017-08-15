@@ -729,6 +729,24 @@ sub tomboy_logout_and_login {
     x11_start_program("tomboy note");
 }
 
+sub gnote_launch {
+    x11_start_program("gnote");
+    assert_screen "gnote-first-launched", 5;
+    send_key_until_needlematch 'gnote-start-here-matched', 'down', 5;
+}
+
+sub gnote_search_and_close {
+    my ($self, $string, $needle) = @_;
+
+    send_key "ctrl-f";
+    # The gnote interface is slow. So we can't start immediately searching. We need to wait
+    wait_still_screen(2);
+    type_string $string;
+    assert_screen $needle, 5;
+
+    send_key "ctrl-w";
+}
+
 # remove the created new note
 sub cleanup_gnote {
     wait_screen_change { send_key 'ctrl-tab' };    #jump to toolbar
