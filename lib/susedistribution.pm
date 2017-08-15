@@ -198,12 +198,19 @@ sub script_sudo($$) {
     return;
 }
 
-# simplified but still colored prompt for better readability
+# Simplified but still colored prompt for better readability.
 sub set_standard_prompt {
-    my ($self, $user) = @_;
+    my ($self, $user, $os_type) = @_;
     $user ||= $testapi::username;
+    $os_type ||= 'linux';
     my $prompt_sign = $user eq 'root' ? '#' : '$';
-    type_string "which tput 2>&1 && PS1=\"\\\[\$(tput bold 2; tput setaf 1)\\\]$prompt_sign\\\[\$(tput sgr0)\\\] \"\n";
+    $prompt_sign = $user eq 'root' ? '# ' : '$$ ';
+    if ($os_type eq 'windows') {
+        type_string "prompt $prompt_sign\n";
+    }
+    elsif ($os_type eq 'linux') {
+        type_string "which tput 2>&1 && PS1=\"\\\[\$(tput bold 2; tput setaf 1)\\\]$prompt_sign\\\[\$(tput sgr0)\\\] \"\n";
+    }
 }
 
 sub become_root {
@@ -462,7 +469,8 @@ sub activate_console {
         $self->set_standard_prompt($user);
     }
     elsif ($console eq 'svirt') {
-        $self->set_standard_prompt('root');
+        my $os_type = check_var('VIRSH_VMM_FAMILY', 'hyperv') ? 'windows' : 'linux';
+        $self->set_standard_prompt('root', $os_type);
         save_svirt_pty;
     }
     elsif (
@@ -511,7 +519,7 @@ sub console_selected {
     my ($self, $console, %args) = @_;
     $args{await_console} //= 1;
     $args{tags}          //= $console;
-    $args{ignore}        //= qr{sut|root-virtio-terminal|iucvconn|svirt|root-ssh|hyperv-intermediary};
+    $args{ignore}        //= qr{sut|root-virtio-terminal|iucvconn|svirt|root-ssh};
     return unless $args{await_console};
     return if $args{tags} =~ $args{ignore};
     # x11 needs special handling because we can not easily know if screen is
