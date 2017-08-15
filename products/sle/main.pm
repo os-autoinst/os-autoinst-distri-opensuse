@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -234,7 +234,8 @@ if (is_update_test_repo_test && !get_var('MAINT_TEST_REPO')) {
     my @inclist;
 
     my @addons = split(/,/, get_var('SCC_ADDONS', ''));
-    for my $a (split(/,/, get_var('ADDONS', ''))) {
+
+    for my $a (split(/,/, get_var('ADDONS', '')), split(/,/, get_var('ADDONURL', ''))) {
         push(@addons, $a);
     }
 
@@ -247,6 +248,9 @@ if (is_update_test_repo_test && !get_var('MAINT_TEST_REPO')) {
     }
     # move ADDONS to SCC_ADDONS for maintenance
     set_var('ADDONS', '');
+    # move ADDONURL to SCC_ADDONS and remove ADDONURL_SDK
+    set_var('ADDONURL',     '');
+    set_var('ADDONURL_SDK', '');
 
     for my $a (@addons) {
         if ($a) {
