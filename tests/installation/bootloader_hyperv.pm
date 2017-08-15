@@ -7,10 +7,10 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Hyper-V bootloader
+# Summary: Hyper-V bootloader with asset downloading
 # Maintainer: Michal Nowak <mnowak@suse.com>
 
-use base "installbasetest";
+use base 'installbasetest';
 use testapi;
 use utils;
 use strict;
@@ -28,12 +28,52 @@ sub run {
     my $svirt               = select_console('svirt');
     my $hyperv_intermediary = select_console('hyperv-intermediary');
     my $name                = $svirt->name;
-    my $xvncport            = get_var('VIRSH_INSTANCE');
 
-    my $hdd1 = get_var('HDD_1') ? 'd:\\hdd\\' . basename(get_var('HDD_1')) : undef;
-    my $hdd2 = get_var('HDD_2') ? 'd:\\hdd\\' . basename(get_var('HDD_2')) : undef;
+    # Gather paths of assets on NFS to be downloaded to Hyper-V
+    my @filepaths;
+    @filepaths = get_var('ISO') if get_var('ISO');
+    for my $n (1 .. 9) {
+        push @filepaths, "hdd\\" . basename get_var("HDD_$n") if get_var("HDD_$n");
+        push @filepaths, "iso\\" . basename get_var("ISO_$n") if get_var("ISO_$n");
+    }
+
+    # Mount openQA NFS share to drive N:
+    hyperv_cmd("if not exist N: ( mount \\\\openqa.suse.de\\var\\lib\\openqa\\share\\factory N: )");
+
+    # Copy assets from NFS share to local cache on Hyper-V
+    my $type = fileparse_set_fstype('MSWin32');
+    for my $filepath (@filepaths) {
+        my $filename = basename $filepath;
+        hyperv_cmd("if not exist D:\\cache\\$filename ( copy N:\\$filepath D:\\cache\\ )");
+        # Decompress the XZ compressed image & rename it to .vhd
+        if ($filename =~ m/vhdfixed\.xz/) {
+            # Becaus we wrote 30-40 GB of zeros to disk, we have to wait some time for the disk
+            # to write all the data, otherwise the test would be error-prone due to the load.
+            # Wrt `ping 127.0.0.1 ...`: this is actually the 'standard' way to sleep $nap seconds
+            # in scripted Windows environments...
+            hyperv_cmd("if not exist D:\\cache\\" . $filename =~ s/vhdfixed\.xz/vhd/r . " ( xz --decompress --keep --verbose D:\\cache\\$filename )");
+            # Check average disk load for $nap seconds to make sure all the data are in cold on disk.
+            my $nap = 600;
+            select_console('svirt');
+            type_string("typeperf \"\\PhysicalDisk(1 D:)\\Avg\. Disk Bytes/Write\"\n");
+            assert_screen('no-hyperv-disk-load', $nap);
+            send_key 'ctrl-c';
+            assert_screen 'hyperv-typeperf-command-finished';
+            select_console('hyperv-intermediary');
+            # Rename .vhdfixed to .vhd
+            $filename = $filename =~ s/\.xz//r;
+            hyperv_cmd("if not exist D:\\cache\\" . $filename =~ s/vhdfixed/vhd/r . " ( move /Y D:\\cache\\$filename D:\\cache\\" . $filename
+                  =~ s/vhdfixed/vhd/r . " )");
+        }
+    }
+    fileparse_set_fstype($type);
+
+    my $xvncport = get_required_var('VIRSH_INSTANCE');
+
+    my $hdd1 = get_var('HDD_1') ? 'd:\\cache\\' . basename(get_var('HDD_1')) =~ s/vhdfixed\.xz/vhd/r : undef;
+    my $hdd2 = get_var('HDD_2') ? 'd:\\cache\\' . basename(get_var('HDD_2')) =~ s/vhdfixed\.xz/vhd/r : undef;
     my $hdd1size = get_var('HDDSIZEGB');
-    my $iso      = get_var('ISO') ? 'd:\\iso\\' . basename(get_var('ISO')) : undef;
+    my $iso      = get_var('ISO') ? 'd:\\cache\\' . basename(get_var('ISO')) : undef;
     my $ramsize  = get_var('QEMURAM');
     my $cpucount = get_var('QEMUCPUS');
 
@@ -58,21 +98,21 @@ sub run {
     hyperv_cmd("$ps Get-VM");
     hyperv_cmd("$ps Stop-VM -Force $name -TurnOff", {ignore_return_code => 1});
     hyperv_cmd("$ps Remove-VM -Force $name",        {ignore_return_code => 1});
-    hyperv_cmd("del d:\\hdd\\${name}a.vhd d:\\hdd\\${name}a.vhdx");
+    hyperv_cmd("del d:\\cache\\${name}a.vhd d:\\cache\\${name}a.vhdx");
 
     if ($winserver eq "2012") {
         my $vm_generation = get_var('UEFI') ? 2 : 1;
         my $hyperv_switch_name = get_var('HYPERV_VIRTUAL_SWITCH', 'ExternalVirtualSwitch');
         if ($hdd1) {
-            hyperv_cmd("$ps New-VHD -ParentPath $hdd1 -Path d:\\hdd\\${name}a.vhd -Differencing");
-            hyperv_cmd("$ps New-VM -Name $name -Generation $vm_generation -VHDPath d:\\hdd\\${name}a.vhd "
+            hyperv_cmd("$ps New-VHD -ParentPath $hdd1 -Path d:\\cache\\${name}a.vhd -Differencing");
+            hyperv_cmd("$ps New-VM -Name $name -Generation $vm_generation -VHDPath d:\\cache\\${name}a.vhd "
                   . "-SwitchName $hyperv_switch_name -MemoryStartupBytes ${ramsize}MB");
             if (get_var('HDD_2')) {
                 hyperv_cmd("$ps Set-VMDvdDrive -VMName $name -Path $hdd2 -ControllerNumber 1");
             }
         }
         else {
-            hyperv_cmd("$ps New-VM -Name $name -Generation $vm_generation -NewVHDPath d:\\hdd\\${name}a.vhdx "
+            hyperv_cmd("$ps New-VM -Name $name -Generation $vm_generation -NewVHDPath d:\\cache\\${name}a.vhdx "
                   . "-NewVHDSizeBytes ${hdd1size}GB -SwitchName $hyperv_switch_name -MemoryStartupBytes ${ramsize}MB");
             if (get_var('UEFI')) {
                 hyperv_cmd("$ps Add-VMDvdDrive -VMName $name -Path $iso");
@@ -95,7 +135,7 @@ sub run {
     # (CDROM device can't be connected to SCSI, HDD can but we won't be able to bott from it).
     for my $n (1 .. 3) {
         if (my $addoniso = get_var("ISO_$n")) {
-            hyperv_cmd("$ps Add-VMDvdDrive -VMName $name -Path d:\\iso\\" . basename($addoniso));
+            hyperv_cmd("$ps Add-VMDvdDrive -VMName $name -Path d:\\cache\\" . basename($addoniso));
         }
     }
 
