@@ -148,12 +148,12 @@ sub run {
     assert_script_run "kubectl cluster-info";
     assert_script_run "kubectl get nodes";
 
-    # Check cluster size - minus controller & admin & master jobs
-    my $minion_count = get_required_var("STACK_SIZE") - 3;
+    # Check cluster size - minus controller & admin jobs
+    my $minion_count = get_required_var("STACK_SIZE") - 2;
     assert_script_run "kubectl get nodes --no-headers | wc -l | grep $minion_count";
 
     # Deploy nginx minimal application and check pods started succesfully
-    my $pods_count = $minion_count * 3;
+    my $pods_count = $minion_count * 15;
     assert_script_run "kubectl run nginx --image=nginx:alpine --replicas=$pods_count --port=80";
     type_string "kubectl get pods --watch\n";
     wait_still_screen 15, 60;

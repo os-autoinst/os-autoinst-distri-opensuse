@@ -41,7 +41,7 @@ if (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux')
 }
 
 sub load_boot_tests {
-    if (is_casp 'DVD') {
+    if (is_caasp 'DVD') {
         if (get_var("UEFI")) {
             loadtest 'installation/bootloader_uefi';
         }
@@ -69,18 +69,18 @@ sub load_inst_tests {
         loadtest 'autoyast/installation';
     }
     else {
-        loadtest 'casp/oci_overview';
+        loadtest 'caasp/oci_overview';
 
         # Check keyboard layout
-        loadtest 'casp/oci_keyboard';
+        loadtest 'caasp/oci_keyboard';
         # Register system
-        loadtest 'casp/oci_register' if check_var('REGISTER', 'installation');
+        loadtest 'caasp/oci_register' if check_var('REGISTER', 'installation');
         # Set root password
-        loadtest 'casp/oci_password';
+        loadtest 'caasp/oci_password';
         # Set system Role
-        loadtest 'casp/oci_role';
+        loadtest 'caasp/oci_role';
         # Start installation
-        loadtest 'casp/oci_install';
+        loadtest 'caasp/oci_install';
 
         # Can not start installation with partitioning error
         return if check_var('FAIL_EXPECTED', 'SMALL-DISK');
@@ -93,9 +93,9 @@ sub load_inst_tests {
 
 # Feature tests before yast installation
 sub load_rcshell_tests {
-    loadtest 'casp/rcshell_start';
-    loadtest 'casp/libzypp_config';
-    loadtest 'casp/one_line_checks';
+    loadtest 'caasp/rcshell_start';
+    loadtest 'caasp/libzypp_config';
+    loadtest 'caasp/one_line_checks';
 }
 
 # Feature tests after installation finishes
@@ -103,23 +103,23 @@ sub load_feature_tests {
     # Feature tests
     # 'create_autoyast' uses serial line heavily, which is notentirely
     # reliable on Hyper-V, no point in executing it as it always fails.
-    loadtest 'casp/create_autoyast' unless check_var('VIRSH_VMM_FAMILY', 'hyperv');
-    loadtest 'casp/libzypp_config';
-    loadtest 'casp/filesystem_ro';
-    loadtest 'casp/services_enabled';
-    loadtest 'casp/one_line_checks';
-    loadtest 'casp/nfs_client' if get_var('NFS_SHARE');
+    loadtest 'caasp/create_autoyast' unless check_var('VIRSH_VMM_FAMILY', 'hyperv');
+    loadtest 'caasp/libzypp_config';
+    loadtest 'caasp/filesystem_ro';
+    loadtest 'caasp/services_enabled';
+    loadtest 'caasp/one_line_checks';
+    loadtest 'caasp/nfs_client' if get_var('NFS_SHARE');
 
     # Transactional updates
-    loadtest 'casp/transactional_update';
-    loadtest 'casp/rebootmgr';
+    loadtest 'caasp/transactional_update';
+    loadtest 'caasp/rebootmgr';
 
     # Journal errors
-    loadtest 'casp/journal_check';
+    loadtest 'caasp/journal_check';
 }
 
 sub load_stack_tests {
-    loadtest "casp/stack_" . get_var('STACK_ROLE');
+    loadtest "caasp/stack_" . get_var('STACK_ROLE');
 }
 
 # Init barriers on on controller node startup
@@ -144,15 +144,15 @@ if (get_var('STACK_ROLE')) {
     }
     else {
         load_boot_tests;
-        load_inst_tests if is_casp('DVD');
-        loadtest 'casp/first_boot';
+        load_inst_tests if is_caasp('DVD');
+        loadtest 'caasp/first_boot';
     }
     load_stack_tests;
 }
 else {
     # ==== MicroOS tests ====
     load_boot_tests;
-    if (is_casp 'DVD') {
+    if (is_caasp 'DVD') {
         if (get_var('EXTRA', '') =~ /RCSHELL/) {
             load_rcshell_tests;
             return 1;
@@ -160,12 +160,12 @@ else {
         load_inst_tests;
         return 1 if get_var 'FAIL_EXPECTED';
     }
-    loadtest 'casp/first_boot';
+    loadtest 'caasp/first_boot';
 }
 
 # ==== Extra tests run after installation  ====
 if (get_var('REGISTER')) {
-    loadtest 'casp/register_and_check';
+    loadtest 'caasp/register_and_check';
 }
 
 if (get_var('EXTRA', '') =~ /FEATURES/) {

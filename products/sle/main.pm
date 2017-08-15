@@ -138,7 +138,7 @@ sub cleanup_needles {
         unregister_needle_tags('ENV-JEOS-1');
     }
 
-    if (!is_casp) {
+    if (!is_caasp) {
         unregister_needle_tags('ENV-DISTRI-CASP');
     }
 
