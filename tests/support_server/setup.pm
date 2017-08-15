@@ -35,6 +35,7 @@ my $ntp_server_set   = 0;
 my $xvnc_server_set  = 0;
 my $ssh_server_set   = 0;
 my $xdmcp_server_set = 0;
+my $iscsi_server_set = 0;
 
 my $setup_script;
 
@@ -129,7 +130,6 @@ sub setup_dns_server {
     $dns_server_set = 1;
 }
 
-
 sub setup_dhcp_server {
     my ($dns, $pxe) = @_;
     return if $dhcp_server_set;
@@ -198,8 +198,6 @@ sub setup_dhcp_server {
     $dhcp_server_set = 1;
 }
 
-
-
 sub setup_nfs_mount {
     return if $nfs_mount_set;
 
@@ -230,7 +228,6 @@ sub setup_ntp_server {
 
     $ntp_server_set = 1;
 }
-
 
 sub setup_xvnc_server {
     return if $xvnc_server_set;
@@ -283,6 +280,90 @@ sub setup_xdmcp_server {
     $xdmcp_server_set = 1;
 }
 
+sub setup_iscsi_server {
+    return if $iscsi_server_set;
+
+    # If no LUN number is specified we must die!
+    my $num_luns = get_required_var('NUMLUNS');
+
+    # A second disk for iSCSI LUN is mandatory
+    my $hdd_lun_size = get_required_var('HDDSIZEGB_2');
+
+    # Integer part of the LUN size is keep and can't be lesser than 1GB
+    my $lun_size = int($hdd_lun_size / $num_luns);
+    die "iSCSI LUN cannot be lesser than 1GB!" if ($lun_size < 1);
+
+    # Are we using virtio or virtio-scsi?
+    my $hdd_lun = script_output "ls /dev/[sv]db";
+    die "detection of disk for iSCSI LUN failed" unless $hdd_lun;
+
+    # Needed if a firewall is configured
+    script_run 'yast2 firewall services add zone=EXT service=service:target';
+
+    # Create the iSCSI LUN
+    script_run "parted --align optimal --wipesignatures --script $hdd_lun mklabel gpt";
+    my $start = 0;
+    my $size  = 0;
+    for (my $num_lun = 1; $num_lun <= $num_luns; $num_lun++) {
+        $start = $size + 1;
+        $size  = $num_lun * $lun_size * 1024;
+        script_run "parted --script $hdd_lun mkpart primary ${start}MiB ${size}MiB";
+    }
+
+    # The easiest way (really!?) to configure LIO is with YaST
+    # Code grab and adapted from tests/iscsi/iscsi_server.pm
+    script_run("yast2 iscsi-lio-server; echo yast2-iscsi-lio-server-status-\$? > /dev/$serialdev", 0);
+    assert_screen 'iscsi-target-overview-service-tab';
+    send_key 'alt-g';    # go to global tab
+    assert_screen 'iscsi-target-overview-global-tab';
+    send_key 'alt-t';    # go to target tab
+    wait_still_screen 3;
+    send_key 'alt-a';    # add target
+    wait_still_screen 3;
+    send_key 'alt-t';    # select target field
+    wait_still_screen 3;
+    for (1 .. 40) { send_key 'backspace'; }    # delete text
+    type_string 'iqn.openqa.de';
+    wait_still_screen 3;
+    send_key 'tab';                            # tab to identifier field
+    wait_still_screen 3;
+    for (1 .. 40) { send_key 'backspace'; }    # delete text
+    wait_still_screen 3;
+    type_string '132';
+    wait_still_screen 3;
+    send_key 'alt-u';                          # un-check use authentication
+    wait_still_screen 3;
+    for (my $num_lun = 1; $num_lun <= $num_luns; $num_lun++) {
+        send_key 'alt-a';                      # add LUN
+        send_key_until_needlematch 'iscsi-target-LUN-path-selected', 'alt-p', 5, 5;    # send alt-p until LUN path is selected
+        type_string "$hdd_lun$num_lun";
+        assert_screen 'iscsi-target-LUN-support-server';
+        send_key 'alt-o';                                                              # OK
+        wait_still_screen 3;
+    }
+    assert_screen 'iscsi-target-overview';
+    send_key 'alt-n';                                                                  # next
+    assert_screen 'iscsi-target-client-setup';
+    send_key 'alt-n';                                                                  # next
+    wait_still_screen 3;
+    send_key 'alt-y';                                                                  # no client configured, it's "normal"
+    assert_screen 'iscsi-target-overview-target-tab';
+    send_key 'alt-f';                                                                  # finish
+    wait_serial('yast2-iscsi-lio-server-status-0', 90) || die "'yast2 iscsi-lio-server' didn't finish";
+
+    # Now we need to enable iSCSI Demo Mode
+    # With this mode, we don't need to manage iSCSI initiators
+    # It's OK for a test/QA system, but of course not for a production one!
+    script_run 'systemctl stop target.service';
+    script_run "sed -i -e '/\\/demo_mode_write_protect\$/s/^echo 1/echo 0/' \\
+                       -e '/\\/cache_dynamic_acls\$/s/^echo 0/echo 1/'      \\
+                       -e '/\\/generate_node_acls\$/s/^echo 0/echo 1/'      \\
+                       -e '/\\/authentication\$/s/^echo 1/echo 0/' /etc/target/lio_setup.sh";
+    script_run 'systemctl start target.service';
+    select_console 'root-console';
+
+    $iscsi_server_set = 1;
+}
 
 sub setup_aytests {
     # install the aytests-tests package and export the tests over http
@@ -299,7 +380,6 @@ sub setup_aytests {
     rcapache2 restart
     ";
 }
-
 
 sub run {
 
@@ -368,6 +448,11 @@ sub run {
     if (exists $server_roles{xdmcp}) {
         setup_xdmcp_server();
         push @mutexes, 'xdmcp';
+    }
+
+    if (exists $server_roles{iscsi}) {
+        setup_iscsi_server();
+        push @mutexes, 'iscsi';
     }
 
     die "no services configured, SUPPORT_SERVER_ROLES variable missing?" unless $setup_script;
