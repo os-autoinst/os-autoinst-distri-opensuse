@@ -28,6 +28,8 @@ sub run {
     record_soft_failure('bsc#1053222');    # Once bug is resolved, this code can be removed
     zypper_call('ar http://download.suse.de/ibs/SUSE:/SLE-15:/GA/standard/SUSE:SLE-15:GA.repo');
     zypper_call('--gpg-auto-import-keys ref');
+    # Requested by ltp team, as curl is missing after installation
+    zypper_call('in curl');
 }
 
 1;
