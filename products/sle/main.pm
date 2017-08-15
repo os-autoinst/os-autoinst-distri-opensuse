@@ -267,12 +267,16 @@ if (is_update_test_repo_test && !get_var('MAINT_TEST_REPO')) {
         }
     }
 
-    set_var('MAINT_TEST_REPO', join(',', @maint_repos));
-    set_var('SCC_REGISTER', 'installation');
+    my $repos = join(',', @maint_repos);
+    # MAINT_TEST_REPO cannot start with ','
+    $repos = s/^,//s;
+
+    set_var('MAINT_TEST_REPO', $repos);
+    set_var('SCC_REGISTER',    'installation');
 
     # slenkins test needs FOREIGN_REPOS
     if (get_var('TEST', '') =~ /^slenkins/) {
-        set_var('FOREIGN_REPOS', join(',', @maint_repos));
+        set_var('FOREIGN_REPOS', $repos);
     }
 }
 
