@@ -445,6 +445,7 @@ EOF
     for my $test (@tests) {
         my $fin_msg    = "### TEST $test->{name} COMPLETE >>> ";
         my $cmd_text   = qq($test->{command}; echo "$fin_msg\$?");
+        my $klog_stamp = "echo 'OpenQA::run_ltp.pm: Starting $test->{command}' > /dev/$serialdev";
         my $start_time = thetime();
         my $set_rhost  = $is_network && $test->{command} =~ m/^finger01|ftp01|rcp01|rdist01|rlogin01|rpc01|rpcinfo01|rsh01|telnet01/;
 
@@ -453,6 +454,7 @@ EOF
         }
 
         if (is_serial_terminal) {
+            script_run($klog_stamp);
             wait_serial(serial_term_prompt(), undef, 0, no_regex => 1);
             type_string($cmd_text);
             wait_serial($cmd_text, undef, 0, no_regex => 1);
