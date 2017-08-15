@@ -36,7 +36,7 @@ sub run {
             if (get_var("ADDONURL") !~ m{/update/}) {       # update is already trusted, so would trigger "delete"
                 send_key "alt-i";
                 assert_screen 'import-untrusted-gpg-key-598D0E63B3FD7E48';
-                send_key "alt-t";                           # confirm import (trust) key
+                wait_screen_change { send_key 'alt-t' };    # confirm import (trust) key. Ensure repo shows up in list
             }
         }
         assert_screen 'addon-selection';
