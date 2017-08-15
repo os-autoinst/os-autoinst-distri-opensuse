@@ -92,9 +92,12 @@ my $svirt_pty_saved = 0;
 =head2 save_svirt_pty
 save the pty device within the svirt shell session so that we can refer to the
 correct pty pointing to the first tty, e.g. for password entry for encrypted
-partitions and rewriting the network definition of zkvm instances
+partitions and rewriting the network definition of zKVM instances.
+
+Does not work on Hyper-V.
 =cut
 sub save_svirt_pty {
+    return if check_var('VIRSH_VMM_FAMILY', 'hyperv');
     my $name = console('svirt')->name;
     type_string "pty=`virsh dumpxml $name 2>/dev/null | grep \"console type=\" | sed \"s/'/ /g\" | awk '{ print \$5 }'`\n";
     type_string "echo \$pty\n";
