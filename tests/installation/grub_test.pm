@@ -60,7 +60,7 @@ sub run {
 
     if (get_var("STORAGE_NG") && get_var("ENCRYPT")) {
         my @tags = ();
-	for ( my $disk = 0; $disk < get_var("NUMDISKS", 1); $disk++ ) {
+        for (my $disk = 0; $disk < get_var("NUMDISKS", 1); $disk++) {
             push @tags, "grub-encrypted-disk$disk-password-prompt";
         }
         foreach my $tag (@tags) {

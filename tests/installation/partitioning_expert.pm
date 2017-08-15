@@ -8,8 +8,8 @@
 # without any warranty.
 #
 #
-# Summary: 
-# Maintainer: Christopher Hofmann <cwh@suse.de> 
+# Summary: Some simple actions to test the new expert partitioner.
+# Maintainer: Christopher Hofmann <cwh@suse.de>
 
 use strict;
 use warnings;
@@ -23,13 +23,13 @@ sub run() {
     assert_and_click 'hard-disks';
     assert_and_click 'home';
 
-    send_key 'alt-d'; # Delete
-    send_key 'alt-y'; # Confirm with 'yes'
+    wait_screen_change { send_key 'alt-d' };    # Delete
+    wait_screen_change { send_key 'alt-y' };    # Confirm with 'yes'
     assert_and_click 'hard-disks';
     save_screenshot;
 
-    send_key $cmd{accept};
-    die "/home still there" if check_screen('home');
+    wait_screen_change { send_key $cmd{accept} };
+    die "/home still there" if check_screen('home', 0);
 }
 
 1;

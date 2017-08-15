@@ -33,7 +33,7 @@ sub run {
     }
 
     # preserve it for the video
-    wait_idle 10;
+    wait_still_screen;
 
     # In case the proposal does not fit on the screen, there is a scrollbar shown.
     # Scroll down to see any errors.
@@ -44,7 +44,7 @@ sub run {
         assert_screen "inst-overview-booting";
 
         # preserve it for the video
-        wait_idle 10;
+        wait_still_screen;
     }
 
     # Check autoyast has been removed in SP2 (fate#317970)

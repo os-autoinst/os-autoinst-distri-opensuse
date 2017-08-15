@@ -1,21 +1,20 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Use guided partitioning setup to delete an existing windows partition. 
-# Maintainer: cwh
+# Summary: Use guided partitioning setup to delete an existing windows partition.
+# Maintainer: Christopher Hofmann <cwh@suse.de>
 
-
+use strict;
 use warnings;
-use parent qw(y2logsstep);
+use parent 'y2logsstep';
 use testapi;
-#use utils 'sle_version_at_least';
 
 sub save_logs_and_resume {
     my $self = shift;
@@ -25,14 +24,12 @@ sub save_logs_and_resume {
 }
 
 sub run() {
-    my $self             = shift;
-
     die "Module only supports StorageNG" if !get_var("STORAGE_NG");
 
     # Enter guided setup
     send_key "alt-g";
 
-    assert_screen('inst-partition-guided', 10);
+    assert_screen 'inst-partition-guided';
 
     assert_and_click 'resize-remove-if-needed';
     assert_and_click 'remove-if-not-needed';
@@ -45,8 +42,6 @@ sub run() {
     send_key 'alt-n';
 
     assert_screen 'delete-windows';
-
-    $self->save_logs_and_resume() if $collect_logs;
 }
 
 1;

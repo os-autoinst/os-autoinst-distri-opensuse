@@ -63,7 +63,7 @@ sub run {
     my $numdisks = get_var("NUMDISKS");
     print "NUMDISKS = $numdisks\n";
 
-    check_screen([qw(inst-partition-radio-buttons inst-partition-guided inst-partitioning-scheme)], 10);
+    assert_screen [qw(inst-partition-radio-buttons inst-partition-guided inst-partitioning-scheme)];
     if (match_has_tag('inst-partition-radio-buttons')) {    # detect whether new (Radio Buttons) YaST behaviour
         if (get_var("ENCRYPT")) {
             send_key "alt-e";
@@ -90,12 +90,12 @@ sub run {
     elsif (get_var("STORAGE_NG")) {
         if ($numdisks <= 1) {
             die "Guided workflow does not skip disk selection when only one disk!"
-                if !match_has_tag('inst-partitioning-scheme');
+              unless match_has_tag('inst-partitioning-scheme');
         }
         else {
             die "Guided workflow does skip disk selection when more than one disk! (NUMDISKS=$numdisks)"
-                if !match_has_tag('inst-partition-guided');
-            assert_screen "inst-partition-guided";       
+              unless match_has_tag('inst-partition-guided');
+            assert_screen "inst-partition-guided";
             send_key 'alt-n';
             assert_screen "inst-select-root-disk";
             send_key 'alt-n';
@@ -107,12 +107,11 @@ sub run {
 
             if (!get_var('ENCRYPT_ACTIVATE_EXISTING')) {
                 assert_screen 'inst-encrypt-password-prompt';
-                #send_key 'tab'; # might be needed again later 
                 type_password;
                 send_key 'tab';
                 type_password;
                 send_key 'alt-n';
-	        $self->await_password_check;
+                $self->await_password_check;
             }
         }
         else {
@@ -125,7 +124,7 @@ sub run {
             record_soft_failure 'bsc#993249';
             $collect_logs = 1;
         }
-	if (get_var("ENCRYPT")) {
+        if (get_var("ENCRYPT")) {
             assert_screen "partitioning-encrypt-activated";
         }
     }
