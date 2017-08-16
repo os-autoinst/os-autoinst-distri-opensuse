@@ -512,8 +512,11 @@ sub load_extra_tests {
             loadtest "console/a2ps";    # a2ps is not a ring package and thus not available in staging
             loadtest "console/weechat";
             loadtest "console/nano";
-            if (check_var('ARCH', 'x86_64')) {
-                loadtest "console/docker";
+        }
+        if (check_var('ARCH', 'x86_64')) {
+            loadtest "console/docker";
+            if (check_var('DISTRI', 'sle')) {
+                loadtest "console/sle2docker";
             }
         }
         loadtest "console/git";
