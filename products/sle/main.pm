@@ -269,7 +269,7 @@ if (is_update_test_repo_test && !get_var('MAINT_TEST_REPO')) {
 
     my $repos = join(',', @maint_repos);
     # MAINT_TEST_REPO cannot start with ','
-    $repos = s/^,//s;
+    $repos =~ s/^,//s;
 
     set_var('MAINT_TEST_REPO', $repos);
     set_var('SCC_REGISTER',    'installation');
