@@ -22,8 +22,18 @@ sub run {
   # this is for minion to wait for master
   barrier_create('suma_master_ready', 2);
 
-  my $n = keys get_children();
+  my $ch = get_children();
+  my $branchhostname;
+  foreach my $id (keys %{$ch}) {
+    my $chi = get_job_info($id);
+    if ($chi->{'settings'}->{'SUMA_SALT_MINION'} eq 'branch') {
+      $branchhostname = $chi->{'settings'}->{'HOSTNAME'};
+      last;
+    }
+  }
+  set_var('BRANCH_HOSTNAME',$branchhostname);
 
+  my $n = keys $ch;
   # create barriers for all loaded suma tests
   for my $t (@{get_var_array('SUMA_TESTS')}) {
     barrier_create($t, $n+1);

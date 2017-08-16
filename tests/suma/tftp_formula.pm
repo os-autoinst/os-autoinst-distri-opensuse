@@ -70,9 +70,6 @@ sub run {
     barrier_wait('tftp_formula_finish');
   }
   else {
-
-    my $master = get_var('HOSTNAME');#exists, checked in webinit
-
     $self->install_formula('tftp-formula');
 
     my $driver = selenium_driver();
@@ -85,7 +82,7 @@ sub run {
 
     $self->suma_menu('Systems', 'Systems', 'All');
 
-    $driver->find_element('suma-branch.openqa.suse.de', 'link_text')->click();
+    $driver->find_element(get_var('BRANCH_HOSTNAME').'.openqa.suse.de', 'link_text')->click();
     wait_for_page_to_load;
     save_screenshot;
     $driver->find_element('Formulas', 'link_text')->click();
@@ -95,7 +92,7 @@ sub run {
     $driver->find_element("//button[\@id='save-btn']")->click();
     wait_for_page_to_load;
     save_screenshot;
-    $driver->find_element("//li/a[.//text()[contains(., 'Tftp')]]")->click();
+    wait_for_xpath("//li/a[.//text()[contains(., 'Tftp')]]", 15, 2)->click();
     wait_for_page_to_load;
     save_screenshot;
 
@@ -117,11 +114,12 @@ sub run {
     $driver->find_element("//button[.//text()[contains(., 'Apply Highstate')]]")->click();
     wait_for_page_to_load;
     save_screenshot;
-    $driver->find_element('scheduled', 'partial_link_text')->click();
+    wait_for_link('scheduled', 15, 2)->click();
     wait_for_page_to_load;
+    save_screenshot;
     wait_for_link("1 system", 10, 15)->click();
 
-    $driver->find_element('suma-branch.openqa.suse.de', 'link_text')->click();
+    $driver->find_element(get_var('BRANCH_HOSTNAME').'.openqa.suse.de', 'link_text')->click();
     wait_for_page_to_load;
 
     # check for success

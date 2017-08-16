@@ -72,7 +72,7 @@ sub run {
     $driver->find_element("//button[\@id='save-btn']")->click();
     wait_for_page_to_load;
     save_screenshot;
-    $driver->find_element("//li/a[.//text()[contains(., 'Saltboot')]]")->click();
+    wait_for_xpath("//li/a[.//text()[contains(., 'Saltboot')]]", 15, 2)->click();
     wait_for_page_to_load;
     save_screenshot;
 

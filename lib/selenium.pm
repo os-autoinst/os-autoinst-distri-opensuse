@@ -25,6 +25,7 @@ our @EXPORT = qw(
   wait_for_page_to_load
   wait_for_link
   wait_for_text
+  wait_for_xpath
 );
 
 use testapi;
@@ -80,8 +81,9 @@ sub selenium_driver {
     curl -f -v " . autoinst_url . "/data/selenium-server-standalone-3.4.0.jar > selenium-server-standalone-3.4.0.jar
   ");
 
-  type_string("java -jar selenium-server-standalone-3.4.0.jar -port $port\n");
-  sleep 3;
+  type_string("java -jar selenium-server-standalone-3.4.0.jar -port $port 2>&1 | tee /dev/$serialdev\n");
+  save_screenshot;
+  wait_serial('Selenium Server is up and running');
   save_screenshot;
 
   # HACK: this connection is only possible because the SUT initiated
@@ -128,5 +130,21 @@ sub wait_for_text {
   }
   return;
 }
+
+sub wait_for_xpath {
+  my ($xpath, $tries, $wait) = @_;
+  my $i = 0;
+  while ($i < $tries) {
+    my $element = $driver->find_element($xpath);
+    return $element if $element;
+    save_screenshot;
+    sleep $wait;
+    $driver->refresh();
+    wait_for_page_to_load;
+    $i++;
+  }
+  return;
+}
+
 
 1;
