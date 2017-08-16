@@ -25,10 +25,11 @@ sub run {
     return unless sle_version_at_least('15');
     select_console 'root-console';
     # Kernel devel packages are not in the dev tools module, so add standard repos
-    record_soft_failure('bsc#1053222');    # Once bug is resolved, this code can be removed
+    record_soft_failure('bsc#1054062');    # Once bug is resolved, this code can be removed
     zypper_call('ar http://download.suse.de/ibs/SUSE:/SLE-15:/GA/standard/SUSE:SLE-15:GA.repo');
     zypper_call('--gpg-auto-import-keys ref');
     # Requested by ltp team, as curl is missing after installation
+    record_soft_failure('bsc#1053837');    # Once bug is resolved, this code can be removed
     zypper_call('in curl');
 }
 
