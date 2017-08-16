@@ -15,7 +15,7 @@ use 5.018;
 use testapi;
 use lockapi;
 
-use utils 'zypper_call';
+use utils 'zypper_call', 'pkcon_quit';
 
 use selenium;
 
@@ -26,6 +26,7 @@ sub run {
   my $master = get_var('HOSTNAME');
   die "Error: variable HOSTNAME not defined." unless defined $master;
 
+  pkcon_quit();
   add_chromium_repos;
   install_chromium;
   enable_selenium_port;
