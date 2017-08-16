@@ -20,6 +20,7 @@ sub run() {
     send_key $cmd{expertpartitioner};
     assert_screen 'expert-partitioner';
 
+    # Delete home partition
     assert_and_click 'hard-disks';
     assert_and_click 'home';
 
@@ -28,7 +29,17 @@ sub run() {
     assert_and_click 'hard-disks';
     save_screenshot;
 
+    # Add a btrfs subvolume
+    assert_and_click 'btrfs';
+    wait_screen_change { send_key 'alt-e' };    # Edit
+    wait_screen_change { send_key 'alt-a' };    # Add
+    type_string '@/usr/lib';
+    wait_screen_change { send_key 'alt-n' };    # noCoW
+    wait_screen_change { send_key 'alt-o' };    # Ok
+    wait_screen_change { send_key 'alt-o' };    # Ok
+
     wait_screen_change { send_key $cmd{accept} };
+    assert_and_click 'see-details';
     die "/home still there" if check_screen('home', 0);
 }
 
