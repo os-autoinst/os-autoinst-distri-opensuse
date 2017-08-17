@@ -23,6 +23,9 @@ sub run {
     # bsc#1019652 - Check that snapper is configured
     assert_script_run "snapper list";
 
+    # bsc#1051762 - Docker is on btrfs partition
+    assert_script_run 'stat -fc %T /var/lib/docker | grep -q btrfs';
+
     if (check_var('SYSTEM_ROLE', 'worker')) {
         # poo#16574 - Check salt master configuration
         assert_script_run "grep \"master: 'dashboard-url'\" /etc/salt/minion.d/master.conf";
