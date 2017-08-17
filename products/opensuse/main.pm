@@ -457,14 +457,14 @@ sub load_consoletests {
         loadtest "console/http_srv";
         loadtest "console/mysql_srv";
         loadtest "console/dns_srv";
-        loadtest "console/php5";
-        loadtest "console/php5_mysql";
-        loadtest "console/php5_postgresql96";
         if (!is_staging()) {
-            loadtest "console/php7";
-            loadtest "console/php7_mysql";
-            loadtest "console/php7_postgresql96";
+            loadtest "console/php5";
+            loadtest "console/php5_mysql";
+            loadtest "console/php5_postgresql96";
         }
+        loadtest "console/php7";
+        loadtest "console/php7_mysql";
+        loadtest "console/php7_postgresql96";
     }
     if (check_var("DESKTOP", "xfce")) {
         loadtest "console/xfce_gnome_deps";
