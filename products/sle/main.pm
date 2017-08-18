@@ -545,13 +545,14 @@ sub load_inst_tests {
             loadtest "installation/disk_space_fill";
         }
     }
-    if (!sle_version_at_least('15')) {    # No registration in SLE 15 atm - rbrown 04/07/17
-        if (check_var('SCC_REGISTER', 'installation')) {
-            loadtest "installation/scc_registration";
-        }
-        else {
-            loadtest "installation/skip_registration";
-        }
+    if (sle_version_at_least('15')) {
+        loadtest "installation/select_products_sle";
+    }
+    if (check_var('SCC_REGISTER', 'installation')) {
+        loadtest "installation/scc_registration";
+    }
+    else {
+        loadtest "installation/skip_registration";
     }
     if (is_sles4sap) {
         loadtest "installation/sles4sap_product_installation_mode";

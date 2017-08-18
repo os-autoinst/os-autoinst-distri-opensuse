@@ -18,20 +18,17 @@ use utils qw(addon_license sle_version_at_least);
 use qam 'advance_installer_window';
 
 sub run {
+    my ($self) = @_;
+
     if (get_var('SKIP_INSTALLER_SCREEN', 0)) {
         advance_installer_window('inst-addon');
         set_var('SKIP_INSTALLER_SCREEN', 0);
     }
-    if (sle_version_at_least('15')) {    # SLE 15 has unsigned file errors, workaround them - rbrown 04/07/2017
-        while (check_screen('sle-15-unsigned-file')) {
-            record_soft_failure 'bsc#1047304';
-            send_key 'alt-y';
-        }
-    }
+    $self->process_unsigned_files;
     assert_screen [qw(inst-addon addon-products)];
     if (get_var("ADDONS")) {
         if (match_has_tag('inst-addon')) {
-            send_key 'alt-k';            # install with addons
+            send_key 'alt-k';    # install with addons
         }
         else {
             send_key 'alt-a';

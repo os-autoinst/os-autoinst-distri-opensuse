@@ -113,6 +113,16 @@ sub sle15_workaround_broken_patterns {
     }
 }
 
+sub process_unsigned_files {
+    # SLE 15 has unsigned file errors, workaround them - rbrown 04/07/2017
+    if (sle_version_at_least('15')) {
+        while (check_screen('sle-15-unsigned-file')) {
+            record_soft_failure 'bsc#1047304';
+            send_key 'alt-y';
+        }
+    }
+}
+
 # to deal with dependency issues, either work around it, or break dependency to continue with installation
 sub deal_with_dependency_issues {
     my ($self) = @_;
