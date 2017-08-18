@@ -69,7 +69,7 @@ sub run {
     if (get_var('HASLICENSE')) {
         send_key $cmd{next};
         assert_screen 'license-not-accepted';
-        send_key $cmd{ok};
+        wait_screen_change { send_key $cmd{ok} };
         send_key $cmd{accept};    # accept license
     }
     assert_screen 'languagepicked';
