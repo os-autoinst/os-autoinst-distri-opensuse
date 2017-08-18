@@ -67,6 +67,7 @@ sub init_cmd {
       software s
       package p
       bootloader b
+      entiredisk alt-e
     );
 
     if (check_var('INSTLANG', "de_DE")) {

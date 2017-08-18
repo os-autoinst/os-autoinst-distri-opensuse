@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2176 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -16,9 +16,7 @@ use warnings;
 use base "y2logsstep";
 use testapi;
 
-# Entry test code
 sub run {
-
     assert_screen 'partitioning-edit-proposal-button', 40;
 
     # Storage NG introduces a new partitioning dialog. We detect this by the existence of the "Guided Setup" button
@@ -30,7 +28,6 @@ sub run {
     if (get_var("DUALBOOT")) {
         assert_screen 'partitioning-windows', 40;
     }
-
 }
 
 1;

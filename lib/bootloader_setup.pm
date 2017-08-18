@@ -403,6 +403,10 @@ sub specific_bootmenu_params {
         $args .= " addon=" . $addon_url;
     }
 
+    if (get_var('ISO_IN_EXTERNAL_DRIVE')) {
+        $args .= " install=hd:/install.iso";
+    }
+
     if (check_var('ARCH', 's390x')) {
         return $args;
     }
