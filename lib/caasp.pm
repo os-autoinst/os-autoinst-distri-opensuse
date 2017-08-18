@@ -15,7 +15,7 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
-use utils qw(power_action assert_shutdown_and_restore_system assert_screen_with_soft_timeout);
+use utils qw(power_action assert_shutdown_and_restore_system);
 
 our @EXPORT = qw(get_utt_packages handle_simple_pw process_reboot trup_call write_detail_output);
 
@@ -48,7 +48,7 @@ sub process_reboot {
 
     # No grub bootloader on xen-pv
     unless (check_var('VIRSH_VMM_TYPE', 'linux')) {
-        assert_screen_with_soft_timeout('grub2', timeout => 300, soft_timeout => 30, bugref => 'bsc#1031114');
+        assert_screen 'grub2', 60;
         send_key 'ret';
     }
 
