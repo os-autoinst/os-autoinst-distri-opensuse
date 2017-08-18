@@ -17,14 +17,7 @@ use warnings;
 use testapi;
 use utils qw(power_action assert_shutdown_and_restore_system);
 
-our @EXPORT = qw(get_utt_packages handle_simple_pw process_reboot trup_call write_detail_output);
-
-# Download files needed for transactional update test
-sub get_utt_packages {
-    assert_script_run 'curl -O ' . data_url('caasp/utt.tgz');
-    assert_script_run 'curl -O ' . data_url('caasp/utt.repo');
-    assert_script_run 'tar xzvf utt.tgz';
-}
+our @EXPORT = qw(handle_simple_pw process_reboot trup_call write_detail_output);
 
 # Weak password warning should be displayed only once - bsc#1025835
 sub handle_simple_pw {
@@ -37,18 +30,12 @@ sub handle_simple_pw {
 
 # Process reboot with an option to trigger it
 sub process_reboot {
-    my $trigger = shift;
-    power_action('reboot') if $trigger;
-    if (check_var('VIRSH_VMM_FAMILY', 'xen')) {
-        assert_shutdown_and_restore_system unless $trigger;
-    }
-    else {
-        reset_consoles;
-    }
+    my $trigger = shift // 0;
+    power_action('reboot', observe => !$trigger, keepconsole => 1);
 
     # No grub bootloader on xen-pv
     unless (check_var('VIRSH_VMM_TYPE', 'linux')) {
-        assert_screen 'grub2', 60;
+        assert_screen 'grub2', 90;
         send_key 'ret';
     }
 
@@ -63,11 +50,8 @@ sub trup_call {
     $cmd .= " > /dev/$serialdev";
     $cmd .= " ; echo trup-\$?- > /dev/$serialdev" if $check;
 
-    save_screenshot;
-    send_key "ctrl-l";
-
     script_run "transactional-update $cmd", 0;
-    if ($cmd =~ /ptf /) {
+    if ($cmd =~ /pkg |ptf /) {
         if (wait_serial "Continue?") {
             send_key "ret";
         }

@@ -59,7 +59,7 @@ sub check_strategy_maint_window {
 
     # Trigger reboot during maint-window
     rbm_set_window '-5minutes';
-    trup_call 'reboot ptf install update-test-trival/update-test-feature-5-5.3.61.x86_64.rpm', 0;
+    trup_call 'reboot pkg install update-test-trival/update-test-feature-5-5.3.61.x86_64.rpm', 0;
     process_reboot;
 
     # Trigger reboot and wait for maintenance window
@@ -101,12 +101,15 @@ sub check_strategy_etcd_lock {
 }
 
 sub run {
-    get_utt_packages;
-
     type_string "tput civis\n";
 
+    record_info 'Test #1', 'Test instant reboot';
     check_strategy_instantly;
+
+    record_info 'Test #2', 'Test maint-window strategy';
     check_strategy_maint_window;
+
+    record_info 'Test #3', 'Test etcd locking strategy';
     check_strategy_etcd_lock;
 }
 

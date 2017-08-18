@@ -54,7 +54,7 @@ sub run {
 }
 
 sub test_flags {
-    return {fatal => 1, milestone => 1};
+    return {fatal => 1};
 }
 
 1;
