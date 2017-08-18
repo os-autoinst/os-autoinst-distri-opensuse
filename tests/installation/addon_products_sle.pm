@@ -24,7 +24,7 @@ sub run {
         advance_installer_window('inst-addon');
         set_var('SKIP_INSTALLER_SCREEN', 0);
     }
-    $self->process_unsigned_files;
+    $self->process_unsigned_files([qw(inst-addon addon-products)]);
     assert_screen [qw(inst-addon addon-products)];
     if (get_var("ADDONS")) {
         if (match_has_tag('inst-addon')) {

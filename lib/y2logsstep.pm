@@ -114,12 +114,19 @@ sub sle15_workaround_broken_patterns {
 }
 
 sub process_unsigned_files {
+    my ($self, $expected_screens) = @_;
     # SLE 15 has unsigned file errors, workaround them - rbrown 04/07/2017
-    if (sle_version_at_least('15')) {
-        while (check_screen('sle-15-unsigned-file')) {
+    return unless (sle_version_at_least('15'));
+    my $counter = 0;
+    while ($counter++ < 5) {
+        if (check_screen 'sle-15-unsigned-file', 0) {
             record_soft_failure 'bsc#1047304';
             send_key 'alt-y';
         }
+        elsif (check_screen $expected_screens, 0) {
+            last;
+        }
+        wait_still_screen;
     }
 }
 
