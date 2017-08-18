@@ -19,11 +19,10 @@
 use strict;
 use base "y2logsstep";
 use testapi;
-use utils qw(addon_license sle_version_at_least);
 
 sub run {
     my ($self) = @_;
-    $self->process_unsigned_files;
+    $self->process_unsigned_files('select-product');
     assert_screen('select-product');
     send_key 'alt-u';
     assert_screen('select-product-sles');
