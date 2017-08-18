@@ -1383,7 +1383,9 @@ elsif (ssh_key_import) {
 }
 elsif (get_var('ISO_IN_EXTERNAL_DRIVE')) {
     loadtest "boot/boot_to_desktop";
-    loadtest 'console/copy_iso_to_external_drive';
+    loadtest "console/copy_iso_to_external_drive";
+    loadtest 'x11/reboot_and_install';
+    #load_boot_tests();
     load_inst_tests();
     load_reboot_tests();
 }
