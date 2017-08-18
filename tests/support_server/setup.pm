@@ -22,6 +22,7 @@ use lockapi;
 use testapi;
 use utils;
 use mm_network;
+use mm_tests;
 
 my $pxe_server_set   = 0;
 my $quemu_proxy_set  = 0;
@@ -38,6 +39,7 @@ my $xdmcp_server_set = 0;
 my $iscsi_server_set = 0;
 
 my $setup_script;
+my $disable_firewall = 0;
 
 my @mutexes;
 
@@ -49,7 +51,6 @@ sub setup_pxe_server {
 
     $pxe_server_set = 1;
 }
-
 
 sub setup_http_server {
     return if $http_server_set;
@@ -381,13 +382,22 @@ sub setup_aytests {
     ";
 }
 
+sub setup_stunnel_server {
+    zypper_call('in stunnel');
+    configure_stunnel(1);
+    assert_script_run 'mkdir -p ~/.vnc/';
+    assert_script_run "vncpasswd -f <<<$password > ~/.vnc/passwd";
+    assert_script_run 'chmod 0600 ~/.vnc/passwd';
+    assert_script_run 'vncserver :5';
+    assert_script_run 'netstat -nal | grep 5905';
+    if (get_var('FIPS_TS') || get_var('FIPS')) {
+        assert_script_run "grep 'stunnel:.*FIPS mode enabled' /var/log/messages";
+    }
+    $disable_firewall = 1;
+}
+
 sub run {
-
-    configure_default_gateway;
-    configure_static_ip('10.0.2.1/24');
-    configure_static_dns(get_host_resolv_conf());
-
-    assert_script_run "ping -c 1 10.0.2.2 || journalctl -b --no-pager >/dev/$serialdev";
+    configure_static_network('10.0.2.1/24');
 
     my @server_roles = split(',|;', lc(get_var("SUPPORT_SERVER_ROLES")));
     my %server_roles = map { $_ => 1 } @server_roles;
@@ -454,12 +464,17 @@ sub run {
         setup_iscsi_server();
         push @mutexes, 'iscsi';
     }
+    if (exists $server_roles{stunnel}) {
+        setup_stunnel_server;
+        push @mutexes, 'stunnel';
+    }
 
     die "no services configured, SUPPORT_SERVER_ROLES variable missing?" unless $setup_script;
 
-    print $setup_script;
+    bmwqemu::log_call(setup_script => $setup_script);
 
     script_output($setup_script, 200);
+    assert_script_run "SuSEfirewall2 stop" if $disable_firewall;
 
     #create mutexes for running services
     foreach my $mutex (@mutexes) {

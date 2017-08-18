@@ -1211,6 +1211,10 @@ elsif (get_var("FIPS_TS")) {
     elsif (check_var("FIPS_TS", "crypt")) {
         load_fips_tests_crypt;
     }
+    elsif (check_var("FIPS_TS", "mmtest")) {
+        # Load client tests by APPTESTS variable
+        load_applicationstests;
+    }
 }
 elsif (get_var("HACLUSTER_SUPPORT_SERVER")) {
     if (get_var("CTS")) {
