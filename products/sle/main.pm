@@ -1072,6 +1072,7 @@ sub load_fips_tests_misc {
     # only for x86_64 platform. Then hexchat is x86_64 specific and not
     # appropriate for other arches.
     loadtest "x11/hexchat_ssl" if (check_var('ARCH', 'x86_64'));
+    loadtest "x11/x3270_ssl";
 }
 
 sub load_fips_tests_crypt {
