@@ -28,7 +28,9 @@ sub run {
     unless (get_var('AUTOYAST')) {
         # Workaround for bsc#1035968
         if (is_caasp 'VMX') {
-            my $tty2 = wait_screen_change(sub { send_key 'ctrl-alt-f2'; }, 1);
+            # FreeRDP is not sending 'Ctrl' as part of 'Ctrl-Alt-Fx', 'Alt-Fx' is fine though.
+            my $ctrl = check_var('VIRSH_VMM_FAMILY', 'hyperv') ? '' : 'ctrl-';
+            my $tty2 = wait_screen_change(sub { send_key "${ctrl}alt-f2"; }, 1);
             unless ($tty2) {
                 wait_screen_change(undef, 180);
                 wait_still_screen;
