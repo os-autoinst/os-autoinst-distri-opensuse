@@ -17,6 +17,7 @@ use testapi;
 
 sub run {
     assert_screen('release-notes-button', 5);
+    return if match_has_tag('bsc#1054478');
 
     # workaround for bsc#1014178
     wait_still_screen(5);
