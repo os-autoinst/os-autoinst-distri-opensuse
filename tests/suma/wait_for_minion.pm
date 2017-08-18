@@ -17,6 +17,7 @@ use lockapi;
 use selenium;
 
 sub run {
+  my ($self) = @_;  
   my $driver = selenium_driver();
 
   wait_for_link("Pending Minions", 10, 15);
@@ -26,9 +27,11 @@ sub run {
   $driver->find_element("//button[\@title='accept']")->click();
   wait_for_page_to_load;
 
-  wait_for_link(".openqa.suse.de", 10, 15);
+  wait_for_link(".openqa.suse.de", 10, 15)->click();
 
   save_screenshot;
+
+  $self->apply_highstate();
 
   barrier_wait('suma_minion_ready');
 }

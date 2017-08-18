@@ -102,15 +102,17 @@ sub wait_for_page_to_load {
 }
 
 sub wait_for_link {
-  my ($link, $tries, $wait) = @_;
+  my ($link, $tries, $wait, $cfg_hr) = @_;
   my $i = 0;
   while ($i < $tries) {
     my $element = $driver->find_element_by_partial_link_text($link);
     return $element if $element;
     save_screenshot;
     sleep $wait;
-    $driver->refresh();
-    wait_for_page_to_load;
+    if (! $cfg_hr->{'no_reload'}) {
+      $driver->refresh();
+      wait_for_page_to_load;
+    }
     $i++;
   }
   return;

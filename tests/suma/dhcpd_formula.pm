@@ -48,31 +48,10 @@ sub run {
   }
   else {
     $self->install_formula('dhcpd-formula');
+    $self->select_formula('dhcpd','Dhcpd');
+
 
     my $driver = selenium_driver();
-
-    $self->suma_menu('Salt', 'Formula Catalog');
-
-    $driver->find_element('dhcpd', 'link_text')->click();
-    wait_for_page_to_load;
-    #FIXME: check formula details
-
-    $self->suma_menu('Systems', 'Systems', 'All');
-
-    $driver->find_element( get_var('BRANCH_HOSTNAME').'.openqa.suse.de', 'link_text')->click();
-    wait_for_page_to_load;
-    save_screenshot;
-    $driver->find_element('Formulas', 'link_text')->click();
-    wait_for_page_to_load;
-    $driver->find_element("//a[\@id='dhcpd']")->click();
-    wait_for_page_to_load;
-    $driver->find_element("//button[\@id='save-btn']")->click();
-    wait_for_page_to_load;
-    save_screenshot;
-    wait_for_xpath("//li/a[.//text()[contains(., 'Dhcpd')]]", 15, 2)->click();
-    wait_for_page_to_load;
-    save_screenshot;
-
     $driver->mouse_move_to_location(element => $driver->find_element("//form[\@id='editFormulaForm']//input[1]"));
     $driver->double_click();
     save_screenshot;
@@ -113,24 +92,7 @@ sub run {
     save_screenshot;
     $driver->find_element("//button[\@id='save-btn']")->click();
 
-    # apply high state
-    $driver->find_element('States', 'link_text')->click();
-    wait_for_page_to_load;
-    save_screenshot;
-    $driver->find_element("//button[.//text()[contains(., 'Apply Highstate')]]")->click();
-    wait_for_page_to_load;
-    save_screenshot;
-    wait_for_link('scheduled', 15, 2)->click();
-    wait_for_page_to_load;
-    save_screenshot;
-    wait_for_link("1 system", 10, 15)->click();
-    save_screenshot;
-
-    $driver->find_element( get_var('BRANCH_HOSTNAME').'.openqa.suse.de', 'link_text')->click();
-    wait_for_page_to_load;
-
-    # check for success
-    die "Highstate failed" unless wait_for_text("Successfully applied state", 10, 15);
+    $self->apply_highstate();
 
     # signal minion to check configuration
     barrier_wait('dhcpd_formula');

@@ -71,6 +71,61 @@ sub install_formula {
   wait_for_page_to_load;
 }
 
+sub select_formula {
+    my ($self, $formula, $formula_name) = @_;        
+    my $driver = selenium_driver();
+
+    $self->suma_menu('Salt', 'Formula Catalog');
+    $driver->find_element($formula, 'link_text')->click();
+    wait_for_page_to_load;
+    #FIXME: check formula details
+    $self->suma_menu('Systems', 'Systems', 'All');
+
+    $driver->find_element( get_var('BRANCH_HOSTNAME').'.openqa.suse.de', 'link_text')->click();
+    wait_for_page_to_load;
+    save_screenshot;
+    $driver->find_element('Formulas', 'link_text')->click();
+    wait_for_page_to_load;
+    save_screenshot;
+    wait_for_xpath("//a[\@id='$formula']", 5, 10)->click();
+    wait_for_page_to_load;
+    save_screenshot;
+    $driver->find_element("//button[\@id='save-btn']")->click();
+    wait_for_page_to_load;
+    save_screenshot;
+    wait_for_xpath("//li/a[.//text()[contains(., '$formula_name')]]", 5, 10)->click();
+    wait_for_page_to_load;
+    save_screenshot;
+}
+
+sub apply_highstate {
+    my ($self) = @_;
+    my $driver = selenium_driver();
+    
+    # apply high state
+    $driver->find_element('States', 'link_text')->click();
+    wait_for_page_to_load;
+    save_screenshot;
+
+    $driver->find_element("//button[.//text()[contains(., 'Apply Highstate')]]")->click();
+    wait_for_page_to_load;
+    save_screenshot;
+    wait_for_link('scheduled', 5, 10,{'no_reload' => 1})->click();
+    save_screenshot;
+    wait_for_page_to_load;
+    save_screenshot;
+    wait_for_link("1 system", 30, 15)->click();
+    save_screenshot;
+ 
+    $driver->find_element( get_var('BRANCH_HOSTNAME').'.openqa.suse.de', 'link_text')->click();
+    save_screenshot;
+    wait_for_page_to_load;
+
+    # check for success
+    die "Highstate failed" unless wait_for_text("Successfully applied state", 10, 15);
+    
+}
+
 sub configure_networks {
   my ($self, $ip, $hostname) = @_;
 
