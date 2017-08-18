@@ -57,7 +57,7 @@ sub get_to_console {
 
 # to workaround dependency issues
 sub workaround_dependency_issues {
-    return unless sle_version_at_least('15') && check_screen 'dependency-issue', 10;
+    return unless check_screen 'dependency-issue', 10;
 
     if (check_var('VIDEOMODE', 'text')) {
         while (check_screen('dependency-issue', 5)) {
@@ -80,7 +80,7 @@ sub workaround_dependency_issues {
 
 # to break dependency issues
 sub break_dependency {
-    return unless sle_version_at_least('15') && check_screen 'dependency-issue', 10;
+    return unless check_screen 'dependency-issue', 10;
 
     if (check_var('VIDEOMODE', 'text')) {
         while (check_screen('dependency-issue-text', 5)) {    # repeat it untill all dependency issues are resolved
