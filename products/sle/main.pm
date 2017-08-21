@@ -818,6 +818,7 @@ sub load_consoletests {
         }
         loadtest "console/http_srv";
         loadtest "console/mysql_srv";
+        loadtest "console/mysql_odbc";
         loadtest "console/dns_srv";
         loadtest "console/postgresql96server";
         if (sle_version_at_least('12-SP1')) {    # shibboleth-sp not available on SLES 12 GA
