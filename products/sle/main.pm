@@ -78,19 +78,13 @@ sub is_bridged_networking {
 }
 
 sub default_desktop {
-    if (get_var('VERSION', '') =~ /^12/) {
-        return 'gnome';
-    }
-    if (get_var('VERSION', '') =~ /^15/) {
-        if (get_var('BASE_VERSION', '') =~ /^12/) {
-            return 'gnome';
-        }
-        # In sle15 we add repos manually to make a workaround of missing SCC, gnome will be installed as default system.
-        if (get_var('ADDONURL') =~ /(desktop|server)/) {
-            return 'gnome';
-        }
-        return 'textmode';
-    }
+    return undef   if get_var('VERSION', '') lt '12';
+    return 'gnome' if get_var('VERSION', '') lt '15';
+    # with SLE 15 LeanOS only the default is textmode
+    return 'gnome' if get_var('BASE_VERSION', '') =~ /^12/;
+    # In sle15 we add repos manually to make a workaround of missing SCC, gnome will be installed as default system.
+    return 'gnome' if get_var('ADDONURL', '') =~ /(desktop|server)/;
+    return 'textmode';
 }
 
 sub cleanup_needles {
