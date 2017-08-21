@@ -9,7 +9,7 @@
 # without any warranty.
 use strict;
 use warnings;
-use testapi qw(check_var get_var get_required_var set_var check_var_array);
+use testapi qw(check_var get_var get_required_var set_var check_var_array diag);
 use lockapi;
 use needle;
 use utils qw(is_hyperv_in_gui sle_version_at_least);
@@ -170,8 +170,7 @@ unless (get_var("DESKTOP")) {
     }
 }
 
-print default_desktop;
-print get_var("DESKTOP");
+diag('default desktop: ' . default_desktop);
 
 # SLE specific variables
 set_var('NOAUTOLOGIN', 1);
