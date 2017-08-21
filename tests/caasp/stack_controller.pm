@@ -94,7 +94,7 @@ sub velum_bootstrap {
     # Accept small-cluster warning
     assert_and_click 'velum-botstrap-warning' if check_var('STACK_SIZE', 4);
 
-    assert_screen "velum-botstrap-done", 300;
+    assert_screen "velum-bootstrap-done", 300;
     assert_and_click "velum-kubeconfig";
 }
 
