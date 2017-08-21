@@ -25,7 +25,8 @@ my %role = qw(
 );
 
 sub wipe_existing_partitions {
-    send_key $cmd{expertpartitioner};
+    assert_screen('release-notes-button');
+    send_key match_has_tag('bsc#1054478') ? 'alt-x' : $cmd{expertpartitioner};
     assert_screen 'expert-partitioner';
     wait_still_screen;
     for (1 .. 4) {
