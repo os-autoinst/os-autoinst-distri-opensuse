@@ -84,7 +84,7 @@ sub default_desktop {
     return 'gnome' if get_var('BASE_VERSION', '') =~ /^12/;
     # In sle15 we add repos manually to make a workaround of missing SCC, gnome will be installed as default system.
     return 'gnome' if get_var('ADDONURL', '') =~ /(desktop|server)/;
-    return 'textmode';
+    return (check_var('VIDEOMODE', 'text') || check_var('SLE_PRODUCT', 'leanos')) ? 'textmode' : 'gnome';
 }
 
 sub cleanup_needles {
@@ -155,20 +155,13 @@ my $distri = testapi::get_required_var('CASEDIR') . '/lib/susedistribution.pm';
 require $distri;
 testapi::set_distribution(susedistribution->new());
 
-unless (get_var("DESKTOP")) {
-    if (check_var("VIDEOMODE", "text")) {
-        set_var("DESKTOP", "textmode");
-    }
-    else {
-        set_var("DESKTOP", "gnome");
-    }
-}
-
 diag('default desktop: ' . default_desktop);
 
 # SLE specific variables
 set_var('NOAUTOLOGIN', 1);
 set_var('HASLICENSE',  1);
+set_var('SLE_PRODUCT', get_var('SLE_PRODUCT') // 'sles');
+set_var('DESKTOP',     get_var('DESKTOP') // default_desktop);
 
 # Set serial console for Xen PV
 if (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux')) {
@@ -281,7 +274,7 @@ logcurrentenv(
       NOINSTALL UPGRADE USBBOOT ZDUP ZDUPREPOS TEXTMODE
       DISTRI NOAUTOLOGIN QEMUCPU QEMUCPUS RAIDLEVEL ENCRYPT INSTLANG
       QEMUVGA DOCRUN UEFI DVD GNOME KDE ISO ISO_MAXSIZE NETBOOT USEIMAGES
-      QEMUVGA SPLITUSR VIDEOMODE)
+      SLE_PRODUCT SPLITUSR VIDEOMODE)
 );
 
 
