@@ -25,7 +25,7 @@ sub run {
     $self->process_unsigned_files('select-product');
     assert_screen('select-product');
     send_key 'alt-u';
-    assert_screen('select-product-sles');
+    assert_screen('select-product-' . get_required_var('SLE_PRODUCT'));
     send_key $cmd{next};
 }
 
