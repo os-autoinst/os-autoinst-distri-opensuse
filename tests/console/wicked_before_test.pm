@@ -16,10 +16,13 @@ use testapi;
 use utils 'systemctl';
 
 sub run {
+    my ($self) = @_;
     select_console('root-console');
     systemctl('is-active network');
     systemctl('is-active wicked');
     assert_script_run('[ -z "$(coredumpctl -1 --no-pager --no-legend)" ]');
+    my $snapshot_number = script_output('snapper create -p -d "clean system"');
+    set_var('BTRFS_SNAPSHOT_NUMBER', $snapshot_number);
 }
 
 1;

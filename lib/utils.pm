@@ -72,6 +72,7 @@ our @EXPORT = qw(
   assert_gui_app
   install_all_from_repo
   run_scripted_command_slow
+  snapper_revert_system
 );
 
 
@@ -135,7 +136,8 @@ sub unlock_if_encrypted {
 
 sub systemctl {
     my ($command, %args) = @_;
-    assert_script_run "systemctl --no-pager $command", %args;
+    my $expect_false = $args{expect_false} ? '!' : '';
+    assert_script_run "$expect_false systemctl --no-pager $command", timeout => $args{timeout}, fail_message => $args{fail_message};
 }
 
 sub turn_off_kde_screensaver {
@@ -1276,6 +1278,20 @@ sub run_scripted_command_slow {
         wait_serial "script$suffix-0";
     }
     clear_console;
+}
+
+=head2 snapper_revert_system
+    Revert system to previously created snapper snapshot.
+    Rely on a fact that snapshot is already created and id of
+    snapshot stored in BTRFS_SNAPSHOT_NUMBER.
+=cut
+sub snapper_revert_system {
+    my ($self) = @_;
+    my $snapshot_number = get_required_var('BTRFS_SNAPSHOT_NUMBER');
+    assert_script_run("snapper rollback $snapshot_number");
+    power_action('reboot', textmode => 1);
+    $self->wait_boot;
+    select_console 'root-console';
 }
 
 1;

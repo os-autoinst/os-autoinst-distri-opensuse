@@ -13,13 +13,29 @@
 use base "consoletest";
 use strict;
 use testapi;
-use utils 'systemctl';
+use utils qw(systemctl snapper_revert_system);
+
+sub assert_wicked_state {
+    my (%args) = @_;
+    systemctl('is-active wicked.service',  expect_false => $args{wicked_client_down});
+    systemctl('is-active wickedd.service', expect_false => $args{wicked_daemon_down});
+    my $status = $args{interfaces_down} ? 'down' : 'up';
+    assert_script_run("for dev in /sys/class/net/!(lo); do grep \"$status\" \$dev/operstate || (echo \"device \$dev is not $status\" && exit 1) ; done");
+}
 
 sub run {
+    my ($self) = @_;
+    type_string("#STOP WICKED CLIENT\n");
     systemctl('stop wicked.service');
-    assert_script_run('! systemctl is-active wicked.service');
-    systemctl('is-active wickedd');
-    assert_script_run('for dev in /sys/class/net/!(lo); do grep "down" $dev/operstate || (echo "device $dev is not down" && exit 1) ; done');
+    assert_wicked_state(wicked_client_down => 1, interfaces_down => 1);
+    type_string("#START WICKED CLIENT\n");
+    systemctl('start wicked.service');
+    assert_wicked_state();
+    type_string("#STOP WICKED DAEMON\n");
+    systemctl('stop wickedd.service');
+    assert_wicked_state(wicked_daemon_down => 1);
+    assert_script_run('! ifdown $(ls -d /sys/class/net/!(lo) | head -1 | sed "s/.*\///")');
+    $self->snapper_revert_system();
 }
 
 1;
