@@ -24,8 +24,14 @@ sub run {
     my ($self) = @_;
     $self->process_unsigned_files('select-product');
     assert_screen('select-product');
-    send_key 'alt-u';
-    assert_screen('select-product-' . get_required_var('SLE_PRODUCT'));
+    my %hotkey = (
+        sles   => 'u',
+        sled   => 'e',
+        leanos => 's'
+    );
+    my $product = get_required_var('SLE_PRODUCT');
+    send_key 'alt-' . $hotkey{$product};
+    assert_screen('select-product-' . $product);
     send_key $cmd{next};
 }
 
