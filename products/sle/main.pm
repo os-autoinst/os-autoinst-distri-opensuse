@@ -664,6 +664,7 @@ sub load_inst_tests {
         }
         loadtest "installation/start_install";
     }
+    return 1 if get_var('EXIT_AFTER_START_INSTALL');
     loadtest "installation/install_and_reboot";
     if (check_var('BACKEND', 'svirt') and check_var('ARCH', 's390x')) {
         # on svirt we need to redefine the xml-file to boot the installed kernel
@@ -1497,6 +1498,7 @@ else {
         else {
             load_boot_tests();
             load_inst_tests();
+            return 1 if get_var('EXIT_AFTER_START_INSTALL');
             load_reboot_tests();
         }
     }

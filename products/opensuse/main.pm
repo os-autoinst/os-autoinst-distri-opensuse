@@ -330,6 +330,7 @@ sub load_inst_tests {
         }
         loadtest "installation/start_install";
     }
+    return 1 if get_var('EXIT_AFTER_START_INSTALL');
     loadtest "installation/install_and_reboot";
 }
 
@@ -897,6 +898,7 @@ else {
     else {
         load_boot_tests();
         load_inst_tests();
+        return 1 if get_var('EXIT_AFTER_START_INSTALL');
         load_reboot_tests();
     }
 
