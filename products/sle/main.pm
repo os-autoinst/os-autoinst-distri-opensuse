@@ -538,7 +538,7 @@ sub load_inst_tests {
         loadtest "installation/scc_registration";
     }
     else {
-        loadtest "installation/skip_registration";
+        loadtest "installation/skip_registration" unless check_var('SLE_PRODUCT', 'leanos');
     }
     if (is_sles4sap) {
         loadtest "installation/sles4sap_product_installation_mode";
