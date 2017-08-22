@@ -15,15 +15,21 @@
 # Summary: performing extra actions specific to sle 15 which are not available normally
 # Maintainer: Rodion Iafarov <riafarov@suse.com>
 
-use base "consoletest";
+use base qw(consoletest distribution);
 use strict;
 use testapi;
 use utils qw(zypper_call sle_version_at_least);
 
 
 sub run {
+    my $self = shift;
     return unless sle_version_at_least('15');
-    select_console 'root-console';
+    send_key('ctrl-alt-f2');
+    assert_screen(["tty2-selected", 'text-login', 'text-logged-in-root', 'generic-desktop']);
+    if (match_has_tag 'generic-desktop') {
+        record_soft_failure 'bsc#1054782';
+    }
+    select_console('root-console');
     # Kernel devel packages are not in the dev tools module, so add standard repos
     record_soft_failure('bsc#1054062');    # Once bug is resolved, this code can be removed
     zypper_call('ar http://download.suse.de/ibs/SUSE:/SLE-15:/GA/standard/SUSE:SLE-15:GA.repo');
