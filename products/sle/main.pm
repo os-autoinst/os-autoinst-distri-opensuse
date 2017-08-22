@@ -1530,10 +1530,10 @@ if (get_var("CLONE_SYSTEM")) {
 
 if (get_var("STORE_HDD_1") || get_var("PUBLISH_HDD_1")) {
     if (get_var("INSTALLONLY")) {
-        loadtest "console/hostname" unless is_bridged_networking;
-        loadtest "console/force_cron_run" unless is_jeos;
         # temporary adding test modules which applies hacks for missing parts in sle15
         loadtest "console/sle15_workarounds" if sle_version_at_least('15');
+        loadtest "console/hostname" unless is_bridged_networking;
+        loadtest "console/force_cron_run" unless is_jeos;
         loadtest "shutdown/grub_set_bootargs";
         loadtest "shutdown/shutdown";
         if (check_var("BACKEND", "svirt")) {
