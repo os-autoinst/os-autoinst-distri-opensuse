@@ -61,12 +61,10 @@ sub velum_bootstrap {
     assert_screen_with_soft_timeout("velum-$nodes-nodes-accepted", timeout => 90, soft_timeout => 30, bugref => 'bsc#1046663');
     mutex_create "NODES_ACCEPTED";
 
-    # Select all nodes for bootstrap
+    # Select all nodes as workers
     assert_and_click 'velum-bootstrap-select-nodes';
-    # Wait until "three nodes" warning disappears
-    wait_still_screen;
 
-    # Calculate position of master node radio button
+    # Calculate position of master node
     send_key_until_needlematch "master-checkbox-xy", "pgdn", 2, 5;
     my $needle = assert_screen('master-checkbox-xy')->{area};
     my $row    = $needle->[0];                                  # get y-position of master node
@@ -74,18 +72,13 @@ sub velum_bootstrap {
     my $x      = $col->{x} + int($col->{w} / 2);
     my $y      = $row->{y} + int($row->{h} / 2);
 
-    # Select master
-    for (1 .. 3) {
-        mouse_set $x, $y;
-        mouse_click;
-        mouse_hide;
-        if (check_screen('master-checkbox-selected', 1)) {
-            last;
-        }
-        else {
-            record_soft_failure 'bsc#1048975 - User interaction is lost after page refresh';
-        }
-    }
+    # Select master node
+    mouse_set $x, $y;
+    mouse_click;
+    mouse_hide;
+
+    # Wait until warning messages disappears
+    wait_still_screen;
 
     # Click bootstrap button
     send_key_until_needlematch "velum-bootstrap", "pgdn", 2, 5;
