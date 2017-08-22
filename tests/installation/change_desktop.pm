@@ -44,11 +44,8 @@ sub change_desktop {
             wait_screen_change { send_key 'up'; };
         }
         send_key 'ret';
-        send_key_until_needlematch 'patterns-list-selected', 'tab', 10;
     }
-    else {
-        send_key_until_needlematch 'patterns-list-selected', 'tab', 10;
-    }
+    send_key_until_needlematch 'patterns-list-selected', 'tab', 10;
 
     if (get_var('SYSTEM_ROLE')) {
         assert_screen "desktop-unselected";

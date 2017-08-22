@@ -9,7 +9,7 @@
 # without any warranty.
 use strict;
 use warnings;
-use testapi qw(check_var get_var get_required_var set_var check_var_array);
+use testapi qw(check_var get_var get_required_var set_var check_var_array diag);
 use lockapi;
 use needle;
 use utils qw(is_hyperv_in_gui sle_version_at_least);
@@ -78,19 +78,13 @@ sub is_bridged_networking {
 }
 
 sub default_desktop {
-    if (get_var('VERSION', '') =~ /^12/) {
-        return 'gnome';
-    }
-    if (get_var('VERSION', '') =~ /^15/) {
-        if (get_var('BASE_VERSION', '') =~ /^12/) {
-            return 'gnome';
-        }
-        # In sle15 we add repos manually to make a workaround of missing SCC, gnome will be installed as default system.
-        if (get_var('ADDONURL') =~ /(desktop|server)/) {
-            return 'gnome';
-        }
-        return 'textmode';
-    }
+    return undef   if get_var('VERSION', '') lt '12';
+    return 'gnome' if get_var('VERSION', '') lt '15';
+    # with SLE 15 LeanOS only the default is textmode
+    return 'gnome' if get_var('BASE_VERSION', '') =~ /^12/;
+    # In sle15 we add repos manually to make a workaround of missing SCC, gnome will be installed as default system.
+    return 'gnome' if get_var('ADDONURL', '') =~ /(desktop|server)/;
+    return (check_var('VIDEOMODE', 'text') || check_var('SLE_PRODUCT', 'leanos')) ? 'textmode' : 'gnome';
 }
 
 sub cleanup_needles {
@@ -161,21 +155,13 @@ my $distri = testapi::get_required_var('CASEDIR') . '/lib/susedistribution.pm';
 require $distri;
 testapi::set_distribution(susedistribution->new());
 
-unless (get_var("DESKTOP")) {
-    if (check_var("VIDEOMODE", "text")) {
-        set_var("DESKTOP", "textmode");
-    }
-    else {
-        set_var("DESKTOP", "gnome");
-    }
-}
-
-print default_desktop;
-print get_var("DESKTOP");
+diag('default desktop: ' . default_desktop);
 
 # SLE specific variables
 set_var('NOAUTOLOGIN', 1);
 set_var('HASLICENSE',  1);
+set_var('SLE_PRODUCT', get_var('SLE_PRODUCT') // 'sles');
+set_var('DESKTOP',     get_var('DESKTOP') // default_desktop);
 
 # Set serial console for Xen PV
 if (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux')) {
@@ -288,7 +274,7 @@ logcurrentenv(
       NOINSTALL UPGRADE USBBOOT ZDUP ZDUPREPOS TEXTMODE
       DISTRI NOAUTOLOGIN QEMUCPU QEMUCPUS RAIDLEVEL ENCRYPT INSTLANG
       QEMUVGA DOCRUN UEFI DVD GNOME KDE ISO ISO_MAXSIZE NETBOOT USEIMAGES
-      QEMUVGA SPLITUSR VIDEOMODE)
+      SLE_PRODUCT SPLITUSR VIDEOMODE)
 );
 
 
