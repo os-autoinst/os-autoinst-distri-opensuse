@@ -396,6 +396,26 @@ sub setup_stunnel_server {
     $disable_firewall = 1;
 }
 
+sub setup_mariadb_server {
+    my $ip     = '10.0.2.%';
+    my $passwd = 'suse';
+
+    zypper_call('in mariadb');
+    systemctl('start mysql');
+
+    # Enter mysql command to grant the access privileges to root
+    type_string_slow "mysql\n";
+    assert_screen 'mariadb-monitor-opened';
+    type_string_slow "SELECT User, Host FROM mysql.user WHERE Host <> \'localhost\';\n";
+    assert_screen 'mariadb-user-host';
+    type_string_slow "GRANT ALL PRIVILEGES ON *.* TO \'root\'@\'$ip\' IDENTIFIED BY \'$passwd\' WITH GRANT OPTION;\n";
+    assert_screen 'mariadb-grant-ok';
+    type_string_slow "quit\n";
+    wait_still_screen 2;
+    systemctl('restart mysql');
+    $disable_firewall = 1;
+}
+
 sub run {
     configure_static_network('10.0.2.1/24');
 
@@ -467,6 +487,10 @@ sub run {
     if (exists $server_roles{stunnel}) {
         setup_stunnel_server;
         push @mutexes, 'stunnel';
+    }
+    if (exists $server_roles{mariadb}) {
+        setup_mariadb_server;
+        push @mutexes, 'mariadb';
     }
 
     die "no services configured, SUPPORT_SERVER_ROLES variable missing?" unless $setup_script;

@@ -702,20 +702,25 @@ sub load_applicationstests {
     # adjust $pos below if you modify the position of
     # consoletest_finish!
     if (get_var('BOOT_HDD_IMAGE')) {
-        @tests = (
-            'console/consoletest_setup',
-            'console/import_gpg_keys',
-            'update/zypper_up',
-            'console/install_packages',
-            'console/zypper_add_repos',
-            'console/qam_zypper_patch',
-            'console/qam_verify_package_install',
-            'console/console_reboot',
-            # position -2
-            'console/consoletest_finish',
-            # position -1
-            'x11/shutdown'
-        );
+        if (get_var('MM_CLIENT')) {
+            @tests = split(/,/, get_var('APPTESTS'));
+        }
+        else {
+            @tests = (
+                'console/consoletest_setup',
+                'console/import_gpg_keys',
+                'update/zypper_up',
+                'console/install_packages',
+                'console/zypper_add_repos',
+                'console/qam_zypper_patch',
+                'console/qam_verify_package_install',
+                'console/console_reboot',
+                # position -2
+                'console/consoletest_finish',
+                # position -1
+                'x11/shutdown'
+            );
+        }
     }
     else {
         @tests = (
@@ -843,6 +848,10 @@ elsif (get_var("ISO_IN_EXTERNAL_DRIVE")) {
     load_iso_in_external_tests();
     load_inst_tests();
     load_reboot_tests();
+}
+elsif (get_var('MM_CLIENT')) {
+    boot_hdd_image;
+    load_applicationstests;
 }
 else {
     if (get_var("LIVETEST") || get_var('LIVE_INSTALLATION')) {
