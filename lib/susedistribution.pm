@@ -2,7 +2,7 @@ package susedistribution;
 use base 'distribution';
 use serial_terminal ();
 use strict;
-use utils qw(type_string_slow ensure_unlocked_desktop save_svirt_pty sle_version_at_least is_caasp);
+use utils qw(type_string_slow ensure_unlocked_desktop save_svirt_pty sle_version_at_least is_caasp get_root_console_tty);
 
 # Base class implementation of distribution class necessary for testapi
 
@@ -264,7 +264,7 @@ sub init_consoles {
         $self->add_console('installation',   'tty-console', {tty => check_var('VIDEOMODE', 'text') ? 1 : 7});
         $self->add_console('install-shell2', 'tty-console', {tty => 9});
         # On SLE15 X is running on tty2 see bsc#1054782
-        $self->add_console('root-console', 'tty-console', {tty => (sle_version_at_least('15') && !is_caasp) ? 6 : 2});
+        $self->add_console('root-console', 'tty-console', {tty => get_root_console_tty});
         $self->add_console('user-console', 'tty-console', {tty => 4});
         $self->add_console('log-console',  'tty-console', {tty => 5});
         $self->add_console('x11',          'tty-console', {tty => 7});
@@ -437,7 +437,7 @@ sub activate_console {
         }
         else {
             my $nr = 4;
-            $nr = 2 if ($name eq 'root');
+            $nr = get_root_console_tty if ($name eq 'root');
             $nr = 5 if ($name eq 'log');
             my @tags = ("tty$nr-selected", "text-logged-in-$user", "text-login");
             # s390 zkvm uses a remote ssh session which is root by default so

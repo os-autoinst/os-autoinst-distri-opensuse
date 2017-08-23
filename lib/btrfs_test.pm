@@ -3,6 +3,7 @@ use base 'consoletest';
 
 use strict;
 use testapi;
+use utils 'get_root_console_tty';
 
 =head2 set_playground_disk
 
@@ -56,7 +57,8 @@ it means that DBus got activated somehow, thus invalidated `snapper --no-dbus` t
 sub snapper_nodbus_restore {
     if (script_run('systemctl is-active dbus')) {
         script_run('systemctl default', 0);
-        assert_screen 'tty2-selected';
+        my $tty = get_root_console_tty;
+        assert_screen "tty$tty-selected";
         console('root-console')->reset;
         select_console 'root-console';
     }

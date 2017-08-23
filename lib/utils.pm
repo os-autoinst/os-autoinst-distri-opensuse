@@ -74,6 +74,7 @@ our @EXPORT = qw(
   install_all_from_repo
   run_scripted_command_slow
   snapper_revert_system
+  get_root_console_tty
 );
 
 
@@ -1311,6 +1312,16 @@ sub snapper_revert_system {
     power_action('reboot', textmode => 1);
     $self->wait_boot;
     select_console 'root-console';
+}
+
+=head2 get_root_console_tty
+    Returns tty number used designed to be used for root-console.
+    When console is not yet initialized, we cannot get it from arguments.
+    Since SLE 15 gdm is running on tty2, so we change behaviour for it and
+    openSUSE distris.
+=cut
+sub get_root_console_tty {
+    return (sle_version_at_least('15') && !is_caasp) ? 6 : 2;
 }
 
 1;
