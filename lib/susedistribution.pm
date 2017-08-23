@@ -2,7 +2,7 @@ package susedistribution;
 use base 'distribution';
 use serial_terminal ();
 use strict;
-use utils qw(type_string_slow ensure_unlocked_desktop save_svirt_pty sle_version_at_least);
+use utils qw(type_string_slow ensure_unlocked_desktop save_svirt_pty sle_version_at_least is_caasp);
 
 # Base class implementation of distribution class necessary for testapi
 
@@ -264,7 +264,7 @@ sub init_consoles {
         $self->add_console('installation',   'tty-console', {tty => check_var('VIDEOMODE', 'text') ? 1 : 7});
         $self->add_console('install-shell2', 'tty-console', {tty => 9});
         # On SLE15 X is running on tty2 see bsc#1054782
-        $self->add_console('root-console', 'tty-console', {tty => sle_version_at_least('15') ? 6 : 2});
+        $self->add_console('root-console', 'tty-console', {tty => (sle_version_at_least('15') && !is_caasp) ? 6 : 2});
         $self->add_console('user-console', 'tty-console', {tty => 4});
         $self->add_console('log-console',  'tty-console', {tty => 5});
         $self->add_console('x11',          'tty-console', {tty => 7});
