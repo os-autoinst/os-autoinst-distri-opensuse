@@ -578,9 +578,10 @@ sub zkvm_add_pty {
 sub zkvm_add_interface {
     my ($svirt) = shift;
     # temporary use of hardcoded '+4' to workaround messed up network setup on z/KVM
-    my $vtap = $svirt->instance + 4;
+    my $vtap   = $svirt->instance + 4;
+    my $netdev = get_required_var('NETDEV');
     # direct access to the tap device, use of $vtap temporarily
-    $svirt->add_interface({type => 'direct', source => {dev => "enccw0.0.0600", mode => 'bridge'}, target => {dev => 'macvtap' . $vtap}});
+    $svirt->add_interface({type => 'direct', source => {dev => $netdev, mode => 'bridge'}, target => {dev => 'macvtap' . $vtap}});
 }
 
 # On Hyper-V and Xen PV we need to add special framebuffer provisions
