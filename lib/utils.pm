@@ -786,8 +786,7 @@ sub add_serial_console {
     my ($console) = @_;
     my $service   = 'serial-getty@' . $console;
     my $config    = '/etc/securetty';
-    my $device    = "/dev/$console";
-    script_run("grep -q '^$console\$' $config || echo '$device' >> $config; systemctl enable $service; systemctl start $service");
+    script_run(qq{grep -q "^$console\$" $config || echo '$console' >> $config; systemctl enable $service; systemctl start $service});
 }
 
 sub is_desktop_installed {
