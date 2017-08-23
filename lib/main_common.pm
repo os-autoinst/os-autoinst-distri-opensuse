@@ -435,6 +435,13 @@ sub maybe_load_kernel_tests {
         }
         loadtest 'kernel/run_ltp';
     }
+    elsif (get_var('QA_TEST_KLP_REPO')) {
+        if (get_var('INSTALL_KOTD')) {
+            loadtest 'kernel/install_kotd';
+        }
+        loadtest 'kernel/boot_ltp';
+        loadtest 'kernel/qa_test_klp';
+    }
     elsif (get_var('VIRTIO_CONSOLE_TEST')) {
         loadtest 'kernel/virtio_console';
     }
