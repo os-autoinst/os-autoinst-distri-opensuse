@@ -749,7 +749,12 @@ sub load_consoletests {
     }
     #have SCC repo for SLE product
     if (have_scc_repos()) {
-        loadtest "console/yast_scc";
+        if (sle_version_at_least '15') {
+            loadtest "console/proxyscc_postreg";
+        }
+	else {
+            loadtest "console/yast_scc";
+	}
     }
     elsif (have_addn_repos()) {
         loadtest "console/zypper_ar";
