@@ -19,13 +19,13 @@ use utils;
 
 sub install {
     # utils
-    zypper_call('in iputils psmisc tcpdump', log => 'utils.log');
+    zypper_call('in wget iputils psmisc tcpdump', log => 'utils.log');
 
     # clients
     zypper_call('in dhcp-client finger telnet', log => 'clients.log');
 
     # services
-    zypper_call('in dhcp-server dnsmasq finger-server nfs-kernel-server rdist rpcbind rsync tcpd telnet-server vsftpd xinetd', log => 'services.log');
+    zypper_call('in dhcp-server dnsmasq finger-server nfs-kernel-server rpcbind rsync tcpd telnet-server vsftpd xinetd', log => 'services.log');
 }
 
 sub setup {
