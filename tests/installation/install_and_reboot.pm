@@ -127,6 +127,7 @@ sub run {
         }
         if (match_has_tag('additional-packages')) {
             send_key 'alt-i';
+            next;
         }
         last;
     }
