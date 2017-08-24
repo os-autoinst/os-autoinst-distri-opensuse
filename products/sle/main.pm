@@ -266,6 +266,53 @@ if (is_update_test_repo_test && !get_var('MAINT_TEST_REPO')) {
     }
 }
 
+# This setting is used to set ADDONURL properly when SDK is required.
+# Temporary we add this on SLE 15, later it should be done in installer directly.
+# TODO: remove part for SLE 15 when not used anymore
+if (get_var('DEV_IMAGE')) {
+    my $arch    = get_required_var("ARCH");
+    my $build   = get_required_var("BUILD");
+    my $version = get_required_var("VERSION");
+    if (sle_version_at_least('15')) {
+        set_var('ADDONURL_SDK', "$utils::OPENQA_FTP_URL/SLE-$version-Module-Development-Tools-POOL-$arch-Build$build-Media1/");
+        set_var("ADDONURL",     "sdk");
+    }
+    else {
+        my $build_sdk = get_var("BUILD_SDK");
+        # Set SDK URL unless already set, then don't override
+        set_var('ADDONURL_SDK', "$utils::OPENQA_FTP_URL/SLE-$version-SDK-POOL-$arch-Build$build_sdk-Media1/") unless get_var('ADDONURL_SDK');
+        set_var("ADDONURL", "sdk");
+    }
+}
+
+# This is workaround setting which will be removed once SCC add repos and allows adding modules
+# TODO: remove when not used anymore
+if (get_var('ALL_MODULES') && sle_version_at_least('15')) {
+    my $arch    = get_required_var("ARCH");
+    my $build   = get_required_var("BUILD");
+    my $version = get_required_var("VERSION");
+    # We already have needles with names which are different we would use here
+    # As it's only workaround, better not to create another set of needles.
+    my %modules = (
+        base      => 'Basesystem',
+        sdk       => 'Development-Tools',
+        desktop   => 'DESKTOP-Applications',
+        legacy    => 'Legacy',
+        script    => 'Scripting',
+        serverapp => 'SERVER-Applications'
+    );
+    my $addonurl;
+
+    while (my ($short_name, $full_name) = each %modules) {
+        $addonurl .= "$short_name,";
+        my $module_repo_name = get_var("REPO_SLE${version}_MODULE_" . uc $full_name, "SLE-$version-Module-$full_name-POOL-$arch-Build$build-Media1/");
+        set_var('ADDONURL_' . uc $short_name, "$utils::OPENQA_FTP_URL/$module_repo_name");
+    }
+    #remove last comma from ADDONURL setting value
+    $addonurl =~ s/,$//;
+    set_var("ADDONURL", $addonurl);
+}
+
 $needle::cleanuphandler = \&cleanup_needles;
 
 # dump other important ENV:

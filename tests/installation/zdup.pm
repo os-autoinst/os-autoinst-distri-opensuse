@@ -15,6 +15,7 @@
 use base "installbasetest";
 use strict;
 use testapi;
+use utils 'OPENQA_FTP_URL';
 
 sub run {
     my $self = shift;
@@ -70,7 +71,7 @@ sub run {
             my $version = get_var("VERSION");
             my $build   = get_var("BUILD");
             my $arch    = get_var("ARCH");
-            $defaultrepo = "ftp://openqa.suse.de/SLE-$version-$flavor-$arch-Build$build-Media1";
+            $defaultrepo = "$utils::OPENQA_FTP_URL/SLE-$version-$flavor-$arch-Build$build-Media1";
         }
         else {
             # SUSEMIRROR not set, zdup from attached ISO

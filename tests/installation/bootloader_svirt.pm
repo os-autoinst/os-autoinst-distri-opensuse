@@ -43,7 +43,7 @@ sub run {
     if (get_var('NETBOOT')) {
         my $cmdline = get_var('VIRSH_CMDLINE', '') . " ";
 
-        $repo = "ftp://openqa.suse.de/" . get_var('REPO_0');
+        $repo = "$utils::OPENQA_FTP_URL/" . get_var('REPO_0');
         $cmdline .= "install=$repo ";
 
         if ($vmm_family eq 'xen' && $vmm_type eq 'linux') {

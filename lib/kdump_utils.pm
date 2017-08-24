@@ -29,7 +29,7 @@ sub prepare_for_kdump_sle {
         my $sles_debug_repo = get_var('REPO_0') =~ s/(Server|Desktop)/\U$1\E/r;
         $sles_debug_repo =~ s/DVD/POOL/;
         $sles_debug_repo =~ s/Media1/Media3/;
-        my $url = "ftp://openqa.suse.de/$sles_debug_repo";
+        my $url = "$utils::OPENQA_FTP_URL/$sles_debug_repo";
         zypper_call("ar -f $url SLES-Server-Debug");
         install_kernel_debuginfo;
         script_run 'zypper -n rr SLES-Server-Debug';

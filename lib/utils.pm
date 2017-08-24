@@ -75,6 +75,7 @@ our @EXPORT = qw(
   run_scripted_command_slow
   snapper_revert_system
   get_root_console_tty
+  OPENQA_FTP_URL
 );
 
 
@@ -88,6 +89,9 @@ use constant SLOW_TYPING_SPEED => 13;
 # when scrolling within the boot command line to prevent character
 # mangling
 use constant VERY_SLOW_TYPING_SPEED => 4;
+
+# openQA internal ftp server url
+our $OPENQA_FTP_URL = "ftp://openqa.suse.de";
 
 my $svirt_pty_saved = 0;
 
@@ -1126,7 +1130,7 @@ sub validate_repos_sle {
             $uri = "$dvd:///";
         }
         else {
-            $uri = "ftp://openqa.suse.de/SLE-";
+            $uri = "$OPENQA_FTP_URL/SLE-";
         }
         validatelr(
             {
