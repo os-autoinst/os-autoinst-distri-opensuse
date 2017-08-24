@@ -47,7 +47,7 @@ sub wait_countdown_stop {
 sub run {
     my $self = shift;
     # NET isos are slow to install
-    my $timeout = 2000;
+    my $timeout = 3600;
     # encryption, LVM and RAID makes it even slower
     $timeout *= 2 if (get_var('ENCRYPT') || get_var('LVM') || get_var('RAID'));
 
