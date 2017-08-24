@@ -26,6 +26,7 @@ sub change_desktop {
         wait_screen_change { send_key 'alt-s'; };
     }
     else {
+        sle15_workaround_broken_patterns();
         send_key_until_needlematch 'packages-section-selected', 'tab', 10;
         wait_screen_change { send_key 'ret'; };
     }

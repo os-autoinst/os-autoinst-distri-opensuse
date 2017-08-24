@@ -17,7 +17,6 @@ use base "y2logsstep";
 use testapi;
 use utils 'sle_version_at_least';
 
-
 sub run {
     my ($self) = shift;
 
@@ -27,6 +26,7 @@ sub run {
     assert_screen "installation-settings-overview-loaded";
 
     $self->deal_with_dependency_issues;
+    #sle15_workaround_broken_patterns();
 
     if (get_var("XEN")) {
         assert_screen "inst-xen-pattern";
@@ -66,6 +66,7 @@ sub run {
     }
 
     $self->sle15_workaround_broken_patterns;    # Pattern warnings appear after dependancy resolution also;
+    #sle15_workaround_broken_patterns();    # Pattern warnings appear after dependancy resolution also;
 
     my $need_ssh = check_var('ARCH', 's390x');  # s390x always needs SSH
     $need_ssh = 1 if check_var('BACKEND', 'ipmi');    # we better be able to login
