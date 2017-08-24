@@ -45,7 +45,7 @@ our @EXPORT = qw(
   set_framebuffer_resolution
 );
 
-my $zkvm_img_path = "/var/lib/libvirt/images";
+our $zkvm_img_path = "/var/lib/libvirt/images";
 
 # prevent grub2 timeout; 'esc' would be cleaner, but grub2-efi falls to the menu then
 # 'up' also works in textmode and UEFI menues.
