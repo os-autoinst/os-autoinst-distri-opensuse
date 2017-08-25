@@ -14,13 +14,27 @@ use base 'btrfs_test';
 use strict;
 use testapi;
 use utils 'clear_console';
+use List::Util 'max';
 
+sub get_space {
+    my ($script) = @_;
+    my $script_output = script_output($script);
+    # Problem is that sometimes we get kernel messages or other output when execute the script
+    # So we assume that biggest number returned is size we are looking for
+    if ($script_output =~ /^(\d+)$/) {
+        return $script_output;
+    }
+    record_soft_failure('bsc#1011815');
+    my @numbers = $script_output =~ /(\d+)/g;
+
+    return max(@numbers);
+}
 sub snapper_cleanup {
     my $snaps_numb      = "snapper list | grep number | wc -l";
     my $btrfs_fs_usage  = "btrfs filesystem usage / --raw";
-    my $fs_size         = script_output("$btrfs_fs_usage | sed -n '2p' | awk -F ' ' '{print\$3}'");
-    my $used_space      = script_output("$btrfs_fs_usage | sed -n '6p' | awk -F ' ' '{print\$2}'");
-    my $free_space      = script_output("$btrfs_fs_usage | sed -n '7p' | awk -F ' ' '{print\$3}'");
+    my $fs_size         = get_space("$btrfs_fs_usage | sed -n '2p' | awk -F ' ' '{print\$3}'");
+    my $used_space      = get_space("$btrfs_fs_usage | sed -n '6p' | awk -F ' ' '{print\$2}'");
+    my $free_space      = get_space("$btrfs_fs_usage | sed -n '7p' | awk -F ' ' '{print\$3}'");
     my $excl_free_space = ($fs_size / 2);
 
     # we want to fill up disk enough so that snapper cleanup triggers
