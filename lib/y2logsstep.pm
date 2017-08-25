@@ -206,17 +206,17 @@ sub save_upload_y2logs {
 
 sub post_fail_hook {
     my $self = shift;
-    get_to_console;
-    $self->save_upload_y2logs;
-    if (get_var('FILESYSTEM', 'btrfs') =~ /btrfs/) {
-        assert_script_run 'btrfs filesystem df /mnt | tee /tmp/btrfs-filesystem-df-mnt.txt';
-        assert_script_run 'btrfs filesystem usage /mnt | tee /tmp/btrfs-filesystem-usage-mnt.txt';
-        upload_logs '/tmp/btrfs-filesystem-df-mnt.txt';
-        upload_logs '/tmp/btrfs-filesystem-usage-mnt.txt';
-    }
-    assert_script_run 'df -h';
-    assert_script_run 'df > /tmp/df.txt';
-    upload_logs '/tmp/df.txt';
+    # get_to_console;
+    # $self->save_upload_y2logs;
+    # if (get_var('FILESYSTEM', 'btrfs') =~ /btrfs/) {
+    #     assert_script_run 'btrfs filesystem df /mnt | tee /tmp/btrfs-filesystem-df-mnt.txt';
+    #     assert_script_run 'btrfs filesystem usage /mnt | tee /tmp/btrfs-filesystem-usage-mnt.txt';
+    #     upload_logs '/tmp/btrfs-filesystem-df-mnt.txt';
+    #     upload_logs '/tmp/btrfs-filesystem-usage-mnt.txt';
+    # }
+    # assert_script_run 'df -h';
+    # assert_script_run 'df > /tmp/df.txt';
+    # upload_logs '/tmp/df.txt';
 }
 
 1;

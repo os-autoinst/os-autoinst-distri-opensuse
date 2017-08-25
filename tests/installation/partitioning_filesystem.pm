@@ -14,6 +14,7 @@
 use strict;
 use base "y2logsstep";
 use testapi;
+use utils 'is_storage_ng';
 
 sub run {
 
@@ -23,8 +24,19 @@ sub run {
     assert_and_click 'edit-proposal-settings';
 
     if (get_var('PARTITIONING_WARNINGS')) {
-        assert_screen 'proposal-will-overwrite-manual-changes';
-        send_key 'alt-y';
+        if (is_storage_ng) {
+            assert_screen 'partition-scheme';
+            # No warnings with storage ng stack
+            record_soft_failure 'bsc#1055756';
+        }
+        else {
+            assert_screen 'proposal-will-overwrite-manual-changes';
+            send_key 'alt-y';
+        }
+    }
+    if (is_storage_ng) {
+        assert_screen 'partition-scheme';
+        send_key $cmd{next};
     }
     # select the combo box
     assert_and_click 'default-root-filesystem';
@@ -32,7 +44,7 @@ sub run {
     # select filesystem
     assert_and_click "filesystem-$fs";
     assert_screen "$fs-selected";
-    assert_and_click 'ok-button';
+    send_key(is_storage_ng() ? 'alt-n' : 'alt-o');
 
     # make sure we're back from the popup
     assert_screen 'edit-proposal-settings';
