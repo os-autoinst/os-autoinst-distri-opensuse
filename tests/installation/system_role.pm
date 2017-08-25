@@ -18,7 +18,6 @@ use utils 'sle_version_at_least';
 sub assert_system_role {
     # Still initializing the system at this point, can take some time
     assert_screen 'system-role-default-system', 180;
-    record_soft_failure('bsc#1055071') if (get_required_var('SLE_PRODUCT') eq 'leanos');
     # Pick System Role; poo#16650
     if (check_var('SYSTEM_ROLE', 'kvm')) {
         send_key 'alt-k';
