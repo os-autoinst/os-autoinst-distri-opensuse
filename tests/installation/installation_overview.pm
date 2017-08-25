@@ -22,11 +22,11 @@ sub run {
     my ($self) = shift;
     # Softfail not to forget remove workaround
     record_soft_failure('bsc#1054974') if get_var('ALL_MODULES');
-    $self->sle15_workaround_broken_patterns;
     # overview-generation
     # this is almost impossible to check for real
     assert_screen "installation-settings-overview-loaded";
 
+    $self->sle15_workaround_broken_patterns;
     $self->deal_with_dependency_issues;
 
     if (get_var("XEN")) {
