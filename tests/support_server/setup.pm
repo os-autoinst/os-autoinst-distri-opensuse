@@ -416,6 +416,23 @@ sub setup_mariadb_server {
     $disable_firewall = 1;
 }
 
+sub setup_openvpn_server {
+    # Install openvpn and Generate a static key
+    zypper_call("in openvpn");
+    assert_script_run("openvpn --genkey --secret openvpn.key");
+    assert_script_run("mkdir -p /etc/openvpn/keys ; cp openvpn.key /etc/openvpn/keys");
+    # Setup VPN server
+    my $server_conf = <<EOF;
+dev tun
+ifconfig 10.8.0.1 10.8.0.2
+secret /etc/openvpn/keys/openvpn.key
+cipher AES-256-CBC
+EOF
+    assert_script_run("echo \"$server_conf\" >> /etc/openvpn/server.conf");
+    assert_script_run("systemctl start openvpn\@server.service");
+    $disable_firewall = 1;
+}
+
 sub run {
     configure_static_network('10.0.2.1/24');
 
@@ -491,6 +508,10 @@ sub run {
     if (exists $server_roles{mariadb}) {
         setup_mariadb_server;
         push @mutexes, 'mariadb';
+    }
+    if (exists $server_roles{openvpn}) {
+        setup_openvpn_server;
+        push @mutexes, 'openvpn';
     }
 
     die "no services configured, SUPPORT_SERVER_ROLES variable missing?" unless $setup_script;
