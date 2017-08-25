@@ -13,8 +13,8 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# G-Summary: supportserver and supportserver generator implementation
-# G-Maintainer: Pavel Sladek <psladek@suse.com>
+# Summary: supportserver and supportserver generator implementation
+# Maintainer: Pavel Sladek <psladek@suse.com>
 
 use strict;
 use base 'basetest';
@@ -33,6 +33,11 @@ sub run {
     my @server_roles = split(',|;', lc(get_var("SUPPORT_SERVER_ROLES")));
     my %server_roles = map { $_ => 1 } @server_roles;
 
+    # No messages file in openSUSE which use journal by default
+    # Write journal log to /var/log/messages for openSUSE
+    if (check_var('DISTRI', 'opensuse')) {
+        script_run 'journalctl -b -x > /var/log/messages', 90;
+    }
     my $log_cmd = "tar cjf /tmp/logs.tar.bz2 /var/log/messages ";
     if (exists $server_roles{qemuproxy} || exists $server_roles{aytest}) {
         $log_cmd .= "/var/log/apache2 ";
