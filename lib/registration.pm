@@ -33,7 +33,7 @@ sub fill_in_registration_data {
         send_key "backspace";    # delete m or e
         type_string get_var("SCC_EMAIL");
         send_key "alt-c";        # select registration code field
-        type_string get_var("SCC_REGCODE");
+        type_string get_required_var('SCC_REGCODE');
         save_screenshot;
         wait_screen_change { send_key $cmd{next} };
     }
