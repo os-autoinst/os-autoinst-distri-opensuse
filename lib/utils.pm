@@ -34,6 +34,7 @@ our @EXPORT = qw(
   is_kde_live
   is_leap
   is_tumbleweed
+  is_storage_ng
   select_kernel
   type_string_slow
   type_string_very_slow
@@ -288,6 +289,10 @@ sub is_leap {
     return 0 unless check_var('DISTRI', 'opensuse');
     return 1 if get_var('VERSION', '') =~ /(?:[4-9][0-9]|[0-9]{3,})\.[0-9]/;
     return get_var('VERSION') =~ /^42:S/;
+}
+
+sub is_storage_ng {
+    return get_var('STORAGE_NG');
 }
 
 sub type_string_slow {

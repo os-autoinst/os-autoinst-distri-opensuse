@@ -15,6 +15,8 @@ use strict;
 use warnings;
 use base "y2logsstep";
 use testapi;
+use utils 'is_storage_ng';
+use partition_setup 'wipe_existing_partitions';
 
 # add a new primary partition
 #   $type == 3 => 0xFD Linux RAID
@@ -29,13 +31,22 @@ sub addpart {
 
     assert_screen "expert-partitioner";
     send_key $cmd{addpart};
-    if (!get_var('UEFI')) {    # partitioning type does not appear when GPT disk used, GPT is default for UEFI
+    if (is_storage_ng) {
+        # No partitioning type page ATM
+        record_soft_failure 'bsc#1055743';
+    }
+    elsif (!get_var('UEFI')) {    # partitioning type does not appear when GPT disk used, GPT is default for UEFI
         assert_screen "partitioning-type";
         send_key $cmd{next};
     }
 
     assert_screen "partition-size";
-
+    if (is_storage_ng) {
+        # maximum size is selected by default
+        send_key 'alt-c';
+        assert_screen 'partition-custom-size-selected';
+        send_key 'alt-s';
+    }
     for (1 .. 10) {
         send_key "backspace";
     }
@@ -141,16 +152,23 @@ sub set_lvm {
 sub run {
 
     # create partitioning
-    send_key $cmd{createpartsetup};
-    assert_screen 'createpartsetup';
+    send_key(is_storage_ng() ? $cmd{expertpartitioner} : $cmd{createpartsetup});
 
-    # user defined
-    send_key $cmd{custompart};
-    assert_screen 'custompart_option-selected';
-    send_key $cmd{next};
-    assert_screen 'custompart';
+    if (is_storage_ng) {
+        wipe_existing_partitions;    #Remove all partiotions to get same behavior as with create custom patiotion setup in SLE 12 SP3
+        send_key 'alt-s';            #Select system view again
+        send_key_until_needlematch 'custompart', 'left';
+    }
+    else {
+        assert_screen 'createpartsetup';
+        # user defined
+        send_key $cmd{custompart};
+        assert_screen 'custompart_option-selected';
+        send_key $cmd{next};
+        assert_screen 'custompart';
+        send_key "tab";
+    }
 
-    send_key "tab";
     assert_screen 'custompart_systemview-selected';
     send_key "down";
     assert_screen 'partitioning_raid-hard_disks-selected';

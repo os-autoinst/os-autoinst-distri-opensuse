@@ -16,7 +16,7 @@ use strict;
 use warnings;
 use parent qw(installation_user_settings y2logsstep);
 use testapi;
-use utils 'sle_version_at_least';
+use utils qw(sle_version_at_least is_storage_ng);
 
 sub save_logs_and_resume {
     my $self = shift;
@@ -53,7 +53,7 @@ sub run {
 
     # Storage NG introduces a new partitioning dialog. partitioning.pm detects this by the existence of the "Guided Setup" button
     # and sets the STORAGE_NG variable. This button uses a new hotkey.
-    if (get_var("STORAGE_NG")) {
+    if (is_storage_ng) {
         send_key "alt-g";
     }
     else {
@@ -87,7 +87,7 @@ sub run {
             $collect_logs = 1;
         }
     }
-    elsif (get_var("STORAGE_NG")) {
+    elsif (is_storage_ng) {
         if ($numdisks <= 1) {
             die "Guided workflow does not skip disk selection when only one disk!"
               unless match_has_tag('inst-partitioning-scheme');

@@ -17,6 +17,7 @@ use warnings;
 use base 'y2logsstep';
 use testapi;
 use partition_setup;
+use utils 'is_storage_ng';
 
 sub run {
     wipe_existing_partitions;
@@ -28,17 +29,29 @@ sub run {
     }
     # create small enough partition (11GB) to get warning
     addpart(role => 'OS', size => 11000, format => 'btrfs');
+
     assert_screen 'expert-partitioner';
     send_key $cmd{accept};
-    # expect partition setup warning pop-ups
-    assert_screen 'partition-warning-too-small-for-snapshots';
-    wait_screen_change { send_key 'alt-y' };    # yes
+    if (is_storage_ng) {
+        assert_screen 'partitioning-edit-proposal-button';
+        record_soft_failure 'bsc#1055744';
+    }
+    else {
+        # expect partition setup warning pop-ups
+        assert_screen 'partition-warning-too-small-for-snapshots';
+        wait_screen_change { send_key 'alt-y' };    # yes
+    }
     if (get_var('UEFI')) {
         assert_screen 'partition-warning-no-efi-boot';
         wait_screen_change { send_key 'alt-y' };    # yes
     }
-    assert_screen 'partition-warning-no-swap';
-    wait_screen_change { send_key 'alt-y' };        # yes
+    if (is_storage_ng && !check_screen('partitioning-edit-proposal-button', 0)) {
+        record_soft_failure 'bsc#1055747';
+    }
+    else {
+        assert_screen 'partition-warning-no-swap';
+        wait_screen_change { send_key 'alt-y' };    # yes
+    }
 }
 
 1;
