@@ -6,6 +6,7 @@ addons:
     packages:
       - libdbus-1-dev
       - libssh2-1-dev
+      - parallel
 before_install:
   - eval $(curl https://travis-perl.github.io/init) --perl
   - echo "requires 'Code::DRY';" >> cpanfile
