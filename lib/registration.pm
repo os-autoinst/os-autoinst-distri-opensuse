@@ -32,6 +32,7 @@ sub fill_in_registration_data {
         send_key "alt-e";        # select email field if installation
         send_key "backspace";    # delete m or e
         type_string get_required_var('SCC_EMAIL') if get_var('SCC_EMAIL');
+        save_screenshot;         # show typed value or empty fields also as synchronization
         send_key "alt-c";        # select registration code field
         type_string get_required_var('SCC_REGCODE') if get_var('SCC_REGCODE');
         save_screenshot;
