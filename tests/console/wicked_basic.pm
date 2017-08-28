@@ -23,6 +23,12 @@ sub assert_wicked_state {
     assert_script_run("for dev in /sys/class/net/!(lo); do grep \"$status\" \$dev/operstate || (echo \"device \$dev is not $status\" && exit 1) ; done");
 }
 
+sub save_and_upload_log {
+    my $log_name = join('', map { ("a" .. "z")[rand 26] } 1 .. 8);
+    assert_script_run("journalctl -o short-precise > /tmp/$log_name.log");
+    upload_logs("/tmp/$log_name.log");
+}
+
 sub run {
     my ($self) = @_;
     type_string("#STOP WICKED CLIENT\n");
@@ -35,6 +41,7 @@ sub run {
     systemctl('stop wickedd.service');
     assert_wicked_state(wicked_daemon_down => 1);
     assert_script_run('! ifdown $(ls -d /sys/class/net/!(lo) | head -1 | sed "s/.*\///")');
+    save_and_upload_log();
     $self->snapper_revert_system();
 }
 
