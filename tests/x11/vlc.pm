@@ -35,7 +35,7 @@ sub run {
     assert_and_click "vlc-play_button";
     # The video is actually 23 seconds long so give a bit of headroom for
     # startup
-    assert_screen "vlc-done-playing", 40;
+    assert_screen "vlc-done-playing", 90;
     send_key "ctrl-q";
 }
 
