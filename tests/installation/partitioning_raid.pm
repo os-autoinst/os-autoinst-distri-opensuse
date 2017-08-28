@@ -82,6 +82,7 @@ sub addraid {
     # add
     send_key $cmd{add};
     wait_still_screen;
+    save_screenshot;
     wait_screen_change {
         send_key $cmd{next};
     };
