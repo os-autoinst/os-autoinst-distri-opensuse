@@ -76,7 +76,7 @@ sub problem_detection {
     $self->save_and_upload_log("coredumpctl info", "segmentation-faults-info.txt", {screenshot => 1, noupload => 1});
     # Save core dumps
     type_string "mkdir -p coredumps\n";
-    type_string 'awk \'/Coredump/{printf("cp %s ./coredumps/\n",$2)}\' segmentation-faults-info.txt | sh';
+    type_string 'awk \'/Storage|Coredump/{printf("cp %s ./coredumps/\n",$2)}\' segmentation-faults-info.txt | sh';
     type_string "\n";
     clear_console;
 
