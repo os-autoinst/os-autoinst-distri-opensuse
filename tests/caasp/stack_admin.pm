@@ -23,7 +23,24 @@ sub workaround_bsc_1030876 {
     script_run 'docker exec $id salt -E ".{32}" shadow.set_password root "$pw"';
 }
 
-sub run {
+sub export_logs {
+    script_run 'docker ps';
+    save_screenshot;
+
+    script_run "journalctl > journal.log", 60;
+    upload_logs "journal.log";
+
+    script_run 'velumid=$(docker ps | grep velum-dashboard | awk \'{print $1}\')';
+    my $railscmd = 'entrypoint.sh bundle exec rails';
+
+    script_run "docker exec -it \$velumid $railscmd runner 'puts SaltEvent.all.to_yaml' > SaltEvents.yml";
+    upload_logs "SaltEvents.yml";
+
+    script_run "docker exec -it \$velumid $railscmd runner 'puts Pillar.all.to_yaml' > Pillar.yml";
+    upload_logs "Pillar.yml";
+}
+
+sub run() {
     # Admin node needs long time to start web interface - bsc#1031682
     # Wait in loop until velum is available until controller node can connect
     my $timeout   = 240;
@@ -37,23 +54,16 @@ sub run {
             die "Velum did not start in $timeout seconds";
         }
     }
-    barrier_wait "VELUM_STARTED";     # Worker installation can start
-    workaround_bsc_1030876;           # Workaround for log export from autoyast nodes
-    barrier_wait "CNTRL_FINISHED";    # Wait until controller node finishes
-}
 
-sub post_run_hook {
-    script_run "journalctl > journal.log", 90;
-    upload_logs "journal.log";
+    # Controller node can connect to velum
+    mutex_create "VELUM_STARTED";
+    workaround_bsc_1030876;
 
-    script_run 'velumid=$(docker ps | grep velum-dashboard | awk \'{print $1}\')';
-    my $railscmd = 'entrypoint.sh bundle exec rails';
+    # Wait until controller node finishes
+    mutex_lock "CNTRL_FINISHED";
+    mutex_unlock "CNTRL_FINISHED";
 
-    script_run "docker exec -it \$velumid $railscmd runner 'puts SaltEvent.all.to_yaml' > SaltEvents.log";
-    upload_logs "SaltEvents.log";
-
-    script_run "docker exec -it \$velumid $railscmd runner 'puts Pillar.all.to_yaml' > Pillar.log";
-    upload_logs "Pillar.log";
+    export_logs;
 }
 
 1;

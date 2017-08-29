@@ -126,23 +126,19 @@ sub load_stack_tests {
     loadtest "caasp/stack_" . get_var('STACK_ROLE');
 }
 
-# Init barriers on on controller node startup
-# Have to be done here because grub2 needle times out on supportserver
-sub stack_barriers_init {
-    my $children = get_children;
-    my $jobs     = 1 + keys %$children;
+# Init cluster variables
+sub stack_init {
+    my $children   = get_children;
+    my $stack_size = keys %$children;
 
-    barrier_create("VELUM_STARTED",     $jobs);        # Velum node is ready
-    barrier_create("WORKERS_INSTALLED", $jobs - 1);    # Nodes are installed
-    barrier_create("CNTRL_FINISHED",    $jobs);        # We are finished with testing
-
-    set_var "STACK_SIZE", $jobs;
+    barrier_create("WORKERS_INSTALLED", $stack_size);
+    set_var "STACK_SIZE", $stack_size;
 }
 
 if (get_var('STACK_ROLE')) {
     # ==== CaaSP tests ====
     if (check_var 'STACK_ROLE', 'controller') {
-        stack_barriers_init;
+        stack_init;
         loadtest "support_server/login";
         loadtest "support_server/setup";
     }

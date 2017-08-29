@@ -18,8 +18,10 @@ use lockapi;
 sub run {
     # Notify others that installation finished
     barrier_wait "WORKERS_INSTALLED";
+
     # Wait until controller node finishes
-    barrier_wait "CNTRL_FINISHED";
+    mutex_lock "CNTRL_FINISHED";
+    mutex_unlock "CNTRL_FINISHED";
 }
 
 sub post_run_hook {
