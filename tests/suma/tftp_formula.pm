@@ -61,6 +61,10 @@ sub run {
     barrier_wait('tftp_formula');
     barrier_wait('tftp_ready');  
 
+    script_run('rcSuSEfirewall2 status');
+    script_run('rcSuSEfirewall2 stop');
+    save_screenshot;
+
     script_run('echo "test" > /tmp/test2cmp');
     type_string('atftp '.$testip);send_key('ret');
     type_string('get test');send_key('ret');
