@@ -172,38 +172,6 @@ sub have_addn_repos {
     return !get_var("NET") && !get_var("EVERGREEN") && get_var("SUSEMIRROR") && !is_staging();
 }
 
-sub load_x11regresion_tests {
-    if ((check_var("DESKTOP", "gnome"))) {
-        loadtest "x11regressions/tomboy/tomboy_Hotkeys";
-        loadtest "x11regressions/tomboy/tomboy_AlreadyRunning";
-        loadtest "x11regressions/tomboy/tomboy_TestFindFunctionalityInSearchAllNotes";
-        loadtest "x11regressions/tomboy/tomboy_TestUndoRedoFeature";
-        loadtest "x11regressions/tomboy/tomboy_firstrun";
-        loadtest "x11regressions/tomboy/tomboy_StartNoteCannotBeDeleted";
-        loadtest "x11regressions/tomboy/tomboy_Open";
-        loadtest "x11regressions/tomboy/tomboy_Print";
-        loadtest "x11regressions/tomboy/tomboy_checkinstall";
-        loadtest "x11regressions/gnomecase/Gnomecutfile";
-    }
-    if (get_var("DESKTOP") =~ /kde|gnome/) {
-        loadtest "x11regressions/pidgin/pidgin_IRC";
-        loadtest "x11regressions/pidgin/pidgin_googletalk";
-        loadtest "x11regressions/pidgin/pidgin_aim";
-        loadtest "x11regressions/pidgin/prep_pidgin";
-        loadtest "x11regressions/pidgin/pidgin_msn";
-        loadtest "x11regressions/pidgin/clean_pidgin";
-        loadtest "x11regressions/tracker/prep_tracker";
-        loadtest "x11regressions/tracker/tracker_starts";
-        loadtest "x11regressions/tracker/tracker_searchall";
-        loadtest "x11regressions/tracker/tracker_pref_starts";
-        loadtest "x11regressions/tracker/tracker_open_apps";
-        loadtest "x11regressions/tracker/tracker_by_command";
-        loadtest "x11regressions/tracker/tracker_search_in_nautilus";
-        loadtest "x11regressions/tracker/clean_tracker";
-        loadtest "x11regressions/tracker/tracker_info";
-    }
-}
-
 sub load_boot_tests {
     if (get_var("ISO_MAXSIZE")) {
         loadtest "installation/isosize";
@@ -781,15 +749,16 @@ elsif (get_var("WICKED")) {
     load_wicked_tests();
 }
 elsif (get_var("REGRESSION")) {
-    if (get_var("KEEPHDDS")) {
-        load_login_tests();
-    }
-    else {
+    if (check_var("REGRESSION", "installation")) {
+        load_boot_tests();
         load_inst_tests();
         load_reboot_tests();
+        loadtest "x11regressions/x11regressions_setup";
+        loadtest "console/hostname";
+        loadtest "console/force_cron_run";
+        loadtest "shutdown/grub_set_bootargs";
+        loadtest "shutdown/shutdown";
     }
-
-    load_x11regresion_tests();
 }
 elsif (get_var("MEDIACHECK")) {
     loadtest "installation/mediacheck";
