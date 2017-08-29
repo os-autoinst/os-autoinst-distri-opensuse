@@ -313,6 +313,15 @@ if (get_var('ALL_MODULES') && sle_version_at_least('15')) {
     set_var("ADDONURL", $addonurl);
 }
 
+if (get_var('ENABLE_ALL_SCC_MODULES') && !get_var('SCC_MODULES')) {
+    if (check_var('ARCH', 'aarch64')) {
+        set_var('SCC_ADDONS', 'pcm,tcm');
+    }
+    else {
+        set_var('SCC_ADDONS', 'phub,asmm,contm,lgm,pcm,tcm,wsm');
+    }
+}
+
 $needle::cleanuphandler = \&cleanup_needles;
 
 # dump other important ENV:
