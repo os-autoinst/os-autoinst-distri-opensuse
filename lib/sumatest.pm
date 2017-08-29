@@ -90,10 +90,11 @@ sub select_formula {
     wait_for_xpath("//a[\@id='$formula']", 5, 10)->click();
     wait_for_page_to_load;
     save_screenshot;
-    $driver->find_element("//button[\@id='save-btn']")->click();
+    wait_for_xpath("//button[\@id='save-btn']")->click();
     wait_for_page_to_load;
     save_screenshot;
-    wait_for_xpath("//li/a[.//text()[contains(., '$formula_name')]]", 5, 10)->click();
+    sleep 1;
+    wait_for_xpath("//li/a[.//text()[contains(., '$formula_name')]]", 15, 3, 3)->click();
     wait_for_page_to_load;
     save_screenshot;
 }
@@ -101,20 +102,20 @@ sub select_formula {
 sub apply_highstate {
     my ($self) = @_;
     my $driver = selenium_driver();
-    
+    wait_for_page_to_load;
     # apply high state
     $driver->find_element('States', 'link_text')->click();
     wait_for_page_to_load;
     save_screenshot;
 
-    $driver->find_element("//button[.//text()[contains(., 'Apply Highstate')]]")->click();
+    wait_for_xpath("//button[.//text()[contains(., 'Apply Highstate')]]")->click();
     wait_for_page_to_load;
     save_screenshot;
-    wait_for_link('scheduled', 5, 10,{'no_reload' => 1})->click();
+    wait_for_link('scheduled', 30, 5, 3)->click();
     save_screenshot;
     wait_for_page_to_load;
     save_screenshot;
-    wait_for_link("1 system", 30, 15)->click();
+    wait_for_link("1 system", 30, 5, 3)->click();
     save_screenshot;
  
     $driver->find_element( get_var('BRANCH_HOSTNAME').'.openqa.suse.de', 'link_text')->click();
@@ -145,7 +146,7 @@ sub suma_menu {
 
   my $driver = selenium_driver();
 
-  my $entry_elem = $driver->find_element("//a[.//text()[contains(., '$entry')]]");
+  my $entry_elem = wait_for_xpath("//a[.//text()[contains(., '$entry')]]");
   $entry_elem->click();
   wait_for_page_to_load;
 

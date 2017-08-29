@@ -35,7 +35,7 @@ sub run {
     $self->select_formula('branch-network','Branch Network');
     
     my $driver = selenium_driver();
-    $driver->mouse_move_to_location(element => $driver->find_element("//form[\@id='editFormulaForm']//input[1]"));
+    $driver->mouse_move_to_location(element => wait_for_xpath("//form[\@id='editFormulaForm']//input[1]"));
     $driver->double_click();
     save_screenshot;
     # nic
@@ -50,7 +50,7 @@ sub run {
     $driver->send_keys_to_active_element('255.255.0.0');
     $driver->send_keys_to_active_element("\t");
     save_screenshot;
-    $driver->find_element("//button[\@id='save-btn']")->click();
+    wait_for_xpath("//button[\@id='save-btn']")->click();
 
     
     $self->apply_highstate();

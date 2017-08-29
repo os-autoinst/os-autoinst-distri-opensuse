@@ -50,7 +50,7 @@ sub run {
     wait_for_page_to_load;
     save_screenshot;
 
-    $driver->mouse_move_to_location(element => $driver->find_element("//input[\@id='name']"));
+    $driver->mouse_move_to_location(element => wait_for_xpath("//input[\@id='name']"));
     $driver->double_click();
 
     $driver->send_keys_to_active_element('hwtype_testterm');
@@ -61,28 +61,28 @@ sub run {
 
     save_screenshot;
 
-    $driver->find_element("//input[\@value='Create Group']")->click();
+    wait_for_xpath("//input[\@value='Create Group']")->click();
     wait_for_page_to_load;
 
 
     $driver->find_element('Formulas', 'link_text')->click();
     wait_for_page_to_load;
-    $driver->find_element("//a[\@id='saltboot']")->click();
+    wait_for_xpath("//a[\@id='saltboot']")->click();
     wait_for_page_to_load;
-    $driver->find_element("//button[\@id='save-btn']")->click();
+    wait_for_xpath("//button[\@id='save-btn']")->click();
     wait_for_page_to_load;
     save_screenshot;
     wait_for_xpath("//li/a[.//text()[contains(., 'Saltboot')]]", 15, 2)->click();
     wait_for_page_to_load;
     save_screenshot;
 
-    $driver->mouse_move_to_location(element => $driver->find_element("//form[\@id='editFormulaForm']//input[1]"));
+    $driver->mouse_move_to_location(element => wait_for_xpath("//form[\@id='editFormulaForm']//input[1]"));
     $driver->double_click();
     save_screenshot;
 
     # FIXME: fill in form data
     save_screenshot;
-    $driver->find_element("//button[\@id='save-btn']")->click();
+    wait_for_xpath("//button[\@id='save-btn']")->click();
 
     wait_for_page_to_load;
     save_screenshot;

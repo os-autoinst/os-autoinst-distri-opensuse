@@ -61,17 +61,17 @@ sub run {
     barrier_wait('saltboot_orchestrate');
     my $driver = selenium_driver();
 
-    wait_for_link("Pending Minions", 50, 15);
+    wait_for_link("Pending Minions", 50, 5, 3);
 
     $driver->find_element('Pending Minions', 'partial_link_text')->click();
     wait_for_page_to_load;
     save_screenshot;
-    $driver->find_element("//button[\@title='accept']")->click();
+    wait_for_xpath("//button[\@title='accept']")->click();
     wait_for_page_to_load;
     save_screenshot;
 
     barrier_wait('saltboot_orchestrate_finish');
-    $driver->find_element("//a[\@href='/']")->click();
+    wait_for_xpath("//a[\@href='/']")->click();
     wait_for_page_to_load;
     assert_screen('suma_welcome_screen');
 

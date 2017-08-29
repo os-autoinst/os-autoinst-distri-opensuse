@@ -96,56 +96,78 @@ sub selenium_driver {
 sub wait_for_page_to_load {
   my ($timeout) = @_;
 
-  return wait_until { 
+  return wait_until {
     $driver->execute_script("return document.readyState") eq 'complete'
   }, timeout => $timeout;
 }
 
 sub wait_for_link {
-  my ($link, $tries, $wait, $cfg_hr) = @_;
+  my ($link, $tries, $wait, $reload_after_tries) = @_;
+  $tries //= 5;
+  $wait //= 1;
+  $reload_after_tries //= $tries; #disabled by default
+  print "waiting for link '$link'\n";
   my $i = 0;
   while ($i < $tries) {
+    save_screenshot;
     my $element = $driver->find_element_by_partial_link_text($link);
     return $element if $element;
-    save_screenshot;
-    sleep $wait;
-    if (! $cfg_hr->{'no_reload'}) {
+    if (($i > 0) &&($i % $reload_after_tries == 0)) {
+      print "reload\n";
       $driver->refresh();
       wait_for_page_to_load;
     }
+    sleep $wait;
     $i++;
   }
-  return;
+  print $driver->get_page_source();
+  die "$link not found on the page";
 }
 
 
 sub wait_for_text {
-  my ($text, $tries, $wait) = @_;
+  my ($text, $tries, $wait, $reload_after_tries) = @_;
+  $tries //= 5;
+  $wait //= 1;
+  $reload_after_tries //= $tries; #disabled by default
+  print "waiting for text '$text'\n";
   my $i = 0;
   while ($i < $tries) {
-    return 1 if $driver->get_page_source() =~ /$text/;
     save_screenshot;
+    return 1 if $driver->get_page_source() =~ /$text/;
+    if (($i > 0) &&($i % $reload_after_tries == 0)) {
+      print "reload\n";
+      $driver->refresh();
+      wait_for_page_to_load;
+    }
     sleep $wait;
-    $driver->refresh();
-    wait_for_page_to_load;
     $i++;
   }
-  return;
+  print $driver->get_page_source();
+  die "$text not found on the page";
 }
 
 sub wait_for_xpath {
-  my ($xpath, $tries, $wait) = @_;
+  my ($xpath, $tries, $wait, $reload_after_tries) = @_;
+  $tries //= 5;
+  $wait //= 1;
+  $reload_after_tries //= $tries; #disabled by default
+  print "waiting for xpath '$xpath'\n";
   my $i = 0;
   while ($i < $tries) {
-    my $element = $driver->find_element($xpath);
-    return $element if $element;
     save_screenshot;
+    my $element = $driver->find_element_by_xpath($xpath);
+    return $element if $element;
+    if (($i > 0) &&($i % $reload_after_tries == 0)) {
+      print "reload\n";
+      $driver->refresh();
+      wait_for_page_to_load;
+    }
     sleep $wait;
-    $driver->refresh();
-    wait_for_page_to_load;
     $i++;
   }
-  return;
+  print $driver->get_page_source();
+  die "$xpath not found on the page";
 }
 
 

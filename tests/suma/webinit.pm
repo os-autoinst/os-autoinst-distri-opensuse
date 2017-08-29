@@ -48,7 +48,7 @@ sub run {
 #  }
 
   if ($driver->get_page_source() =~ "Create SUSE Manager Administrator") {
-    $driver->mouse_move_to_location(element => $driver->find_element("//input[\@id='orgName']"));
+    $driver->mouse_move_to_location(element => wait_for_xpath("//input[\@id='orgName']"));
     $driver->double_click();
 
     $driver->send_keys_to_active_element('openQA');$driver->send_keys_to_active_element("\t");
@@ -60,7 +60,7 @@ sub run {
     $driver->send_keys_to_active_element('openQA');$driver->send_keys_to_active_element("\t");
     $driver->send_keys_to_active_element('TestManager');$driver->send_keys_to_active_element("\t");
 
-    $driver->find_element("//input[\@value='Create Organization']")->click();
+    wait_for_xpath("//input[\@value='Create Organization']")->click();
     wait_for_page_to_load;
     die "SUMA setup failed" unless wait_for_text("You have just created", 10, 15);
 
@@ -71,8 +71,8 @@ sub run {
 
 
   if ($driver->get_title() =~ /Sign In/) {
-    $driver->find_element("//input[\@id='username-field']")->send_keys("admin");
-    $driver->find_element("//input[\@id='password-field']")->send_keys($password);
+    wait_for_xpath("//input[\@id='username-field']")->send_keys("admin");
+    wait_for_xpath("//input[\@id='password-field']")->send_keys($password);
     $driver->find_element("login", "id")->click();
   }
 
