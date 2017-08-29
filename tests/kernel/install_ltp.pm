@@ -48,14 +48,15 @@ sub we_available {
 sub install_dependencies {
     my @deps = qw(git-core make automake autoconf gcc expect libnuma-devel libaio-devel
       numactl flex bison dmapi-devel kernel-default-devel libopenssl-devel libselinux-devel
-      libacl-devel libtirpc-devel keyutils-devel libcap-devel net-tools psmisc acl quota curl);
+      libacl-devel libtirpc-devel keyutils-devel libcap-devel net-tools psmisc acl quota curl
+      iputils);
 
     zypper_call('-t in ' . join(' ', @deps), log => 'install-deps.txt');
 
     my @maybe_deps = qw(net-tools-deprecated gcc-32bit sysstat tpm-tools ntfsprogs);
 
     for my $dep (@maybe_deps) {
-        script_run('zypper -n -t in ' . $dep);
+        script_run('zypper -n -t in ' . $dep . ' | tee');
     }
 }
 
