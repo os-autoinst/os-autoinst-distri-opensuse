@@ -748,7 +748,13 @@ sub power_action {
         assert_shutdown_and_restore_system($action);
     }
     else {
-        assert_shutdown if $action eq 'poweroff';
+        # Shutdown takes longer than 60 seconds on SLE 15
+        my $shutdown_timeout = 60;
+        if (sle_version_at_least('15') && check_var('DISTRI', 'sle') && check_var('DESKTOP', 'gnome')) {
+            record_soft_failure('bsc#1055462');
+            $shutdown_timeout *= 3;
+        }
+        assert_shutdown($shutdown_timeout) if $action eq 'poweroff';
         reset_consoles;
     }
 }
