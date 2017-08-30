@@ -114,6 +114,13 @@ sub fill_in_registration_data {
                 }
             }
             my @scc_addons = split(/,/, get_var('SCC_ADDONS', ''));
+
+            # Workaround for boo#1056047
+            if (!(check_screen 'scc_module-phub')) {
+                record_soft_failure 'boo#1056047';
+                #find and remove phub
+                @scc_addons = grep { !/phub/ } @scc_addons;
+            }
             for my $addon (@scc_addons) {
                 if (check_var('VIDEOMODE', 'text') || check_var('SCC_REGISTER', 'console')) {
                     # The actions of selecting scc addons have been changed on SP2 or later in textmode
