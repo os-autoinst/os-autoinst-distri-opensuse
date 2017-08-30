@@ -31,6 +31,11 @@ sub run {
     # configure second interface for vsftpd
     barrier_wait('vsftpd_formula');
 
+    #FIXME: workaround for ftp directory
+    script_run('mount --bind /srv/tftpboot /srv/ftp');
+    script_run('chmod 755 /srv/ftp');
+    script_output('ls -l /srv');
+
     # minion test
     script_run('systemctl status vsftpd.service');
     assert_script_run('systemctl is-active vsftpd.service');
