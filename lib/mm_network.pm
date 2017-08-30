@@ -66,8 +66,8 @@ sub configure_dhcp {
     type_string("echo \"STARTMODE='auto'\nBOOTPROTO='dhcp'\n\" > /etc/sysconfig/network/ifcfg-\$NIC;");
     type_string("done\n");
     save_screenshot;
-    type_string("rcnetwork restart\n");
-    type_string("ip addr\n");
+    assert_script_run "rcnetwork restart";
+    assert_script_run "ip addr";
     save_screenshot;
 }
 

@@ -86,9 +86,9 @@ sub run {
         chmod 700 /root/.ssh
         chmod 600 /home/testuser/.ssh/*
         chmod 700 /home/testuser/.ssh
-        systemctl disable SuSEfirewall2
-        systemctl stop SuSEfirewall2
-        rcsshd restart
+        systemctl disable SuSEfirewall2 || true # SLE-15 doesn't have SuSEfirewall2 pkgs anymore
+        systemctl stop SuSEfirewall2 || true    # SLE-15 doesn't have SuSEfirewall2 pkgs anymore
+        systemctl restart sshd
     ";
     script_output($conf_script, 100);
 

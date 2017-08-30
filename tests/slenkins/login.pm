@@ -21,7 +21,7 @@ use base 'basetest';
 use testapi;
 
 sub run {
-    select_console('root-console');
+    select_console(get_var('VIRTIO_CONSOLE') ? 'root-virtio-terminal' : 'root-console');
 }
 
 sub test_flags {
