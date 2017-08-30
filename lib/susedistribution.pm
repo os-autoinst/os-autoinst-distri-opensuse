@@ -68,6 +68,7 @@ sub init_cmd {
       package p
       bootloader b
       entiredisk alt-e
+      guidedsetup alt-g
     );
 
     if (check_var('INSTLANG', "de_DE")) {

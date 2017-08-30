@@ -44,7 +44,7 @@ sub run {
     # select filesystem
     assert_and_click "filesystem-$fs";
     assert_screen "$fs-selected";
-    send_key(is_storage_ng() ? 'alt-n' : 'alt-o');
+    send_key(is_storage_ng() ? $cmd{next} : 'alt-o');
 
     # make sure we're back from the popup
     assert_screen 'edit-proposal-settings';

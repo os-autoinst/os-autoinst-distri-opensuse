@@ -7,18 +7,34 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: New test to take the first disk
+# Summary: New test to take the first disk
 #    Otherwise the partitioning proposal will use a free disk, which makes
 #    rebooting a game of chance on real hardware
-# G-Maintainer: Stephan Kulow <coolo@suse.de>
+# Maintainer: Stephan Kulow <coolo@suse.de>
 
 use strict;
 use warnings;
 use base "y2logsstep";
 use testapi;
+use utils 'is_storage_ng';
 
-sub run {
+sub take_first_disk_storage_ng {
+    return unless is_storage_ng;
+    send_key $cmd{guidedsetup};    # select guided setup
+    assert_screen 'select-hard-disks';
+    send_key 'alt-e';              # Unselect second drive
+    assert_screen 'select-hard-disks-one-selected';
+    send_key $cmd{next};
+    assert_screen 'partition-scheme';
+    send_key $cmd{next};
+    # select btrfs file system
+    assert_and_click 'default-root-filesystem';
+    assert_and_click "filesystem-btrfs";
+    assert_screen "btrfs-selected";
+    send_key $cmd{next};
+}
 
+sub take_first_disk {
     # create partitioning
     send_key $cmd{createpartsetup};
     assert_screen 'prepare-hard-disk';
@@ -33,6 +49,14 @@ sub run {
         send_key 'alt-e';
     };
     send_key $cmd{next};
+}
+
+sub run {
+    if (is_storage_ng) {
+        take_first_disk_storage_ng;
+        return 1;
+    }
+    take_first_disk;
 }
 
 1;
