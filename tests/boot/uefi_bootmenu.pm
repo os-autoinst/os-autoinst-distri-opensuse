@@ -18,6 +18,10 @@ use utils;
 use bootloader_setup;
 
 sub run {
+    my ($self) = @_;
+    # because of broken firmware, bootindex doesn't work on aarch64 bsc#1022064
+    # selecting a workaround is handled in boot/boot_to_desktop
+    return if (get_var('MACHINE') =~ qr'aarch64' && get_var('BOOT_HDD_IMAGE'));
     tianocore_select_bootloader;
     if (check_var('BOOTFROM', 'd')) {
         send_key_until_needlematch('tianocore-bootmanager-dvd', 'down', 5, 1);
