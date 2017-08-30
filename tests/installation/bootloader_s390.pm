@@ -228,6 +228,9 @@ sub format_dasd {
     $r = script_run("echo yes | dasdfmt -b 4096 -p /dev/dasda", 1200);
     show_debug();
     die "dasdfmt died with exit code $r" unless (defined($r) && $r == 0);
+
+    # bring DASD down again to test the activation during the installation
+    assert_script_run("dasd_configure 0.0.0150 0");
 }
 
 sub run {
