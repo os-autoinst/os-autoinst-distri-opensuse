@@ -77,7 +77,7 @@ sub run {
         $svirt->change_domain_element(os => cmdline => $cmdline);
     }
 
-    my $hdddir = '/var/lib/openqa/share/factory/hdd';
+    my $hdddir = '/var/lib/openqa/share/factory/hdd /var/lib/openqa/share/factory/hdd/fixed';
     my $size_i = get_var('HDDSIZEGB', '24');
     my $dev_id = 'b';
     # In JeOS we have the disk, we just need to deploy it, for the rest
@@ -123,20 +123,20 @@ sub run {
     }
 
     $dev_id = 'c' if (ord($dev_id) < ord('c'));
-    my $isodir = '/var/lib/openqa/share/factory/iso';
-    # In JeOS, CaaSP, and netinstall we don't have ISO media, for the rest we have to attach it.
-    if (!get_var('NETBOOT') and !is_jeos and !is_caasp) {
-        my $isofile = get_var('ISO');
-        my $isopath = copy_image($isofile, $isodir);
-        $svirt->add_disk(
-            {
-                cdrom     => 1,
-                file      => ($vmm_family eq 'vmware') ? basename($isopath) : $isopath,
-                dev_id    => $dev_id,
-                bootorder => 2
-            });
-        $dev_id = chr((ord $dev_id) + 1);    # return next letter in alphabet
-
+    my $isodir = '/var/lib/openqa/share/factory/iso /var/lib/openqa/share/factory/iso/fixed';
+    # In netinstall we don't have ISO media, for the rest we attach it, if it's defined
+    unless (get_var('NETBOOT')) {
+        if (my $isofile = get_var('ISO')) {
+            my $isopath = copy_image($isofile, $isodir);
+            $svirt->add_disk(
+                {
+                    cdrom     => 1,
+                    file      => ($vmm_family eq 'vmware') ? basename($isopath) : $isopath,
+                    dev_id    => $dev_id,
+                    bootorder => 2
+                });
+            $dev_id = chr((ord $dev_id) + 1);    # return next letter in alphabet
+        }
         # Add addon media (if present at all)
         foreach my $n (1 .. 9) {
             if (my $addon_isofile = get_var("ISO_" . $n)) {
