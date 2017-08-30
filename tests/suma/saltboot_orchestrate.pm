@@ -61,7 +61,7 @@ sub run {
     barrier_wait('saltboot_orchestrate');
     my $driver = selenium_driver();
 
-    wait_for_link("Pending Minions", 50, 5, 3);
+    wait_for_link("Pending Minions", -tries => 50, -wait => 5, -reload_after_tries => 3);
 
     $driver->find_element('Pending Minions', 'partial_link_text')->click();
     wait_for_page_to_load;

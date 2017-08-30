@@ -20,10 +20,10 @@ sub run {
   my ($self) = @_;  
   my $driver = selenium_driver();
 
-  wait_for_link("Pending Minions", 10, 15, 1)->click();
+  wait_for_link("Pending Minions", -tries => 10, -wait => 15, -reload_after_tries => 1)->click();
   wait_for_xpath("//button[\@title='accept']")->click();
 
-  wait_for_link(".openqa.suse.de", 10, 15, 1)->click();
+  wait_for_link(".openqa.suse.de", -tries => 10, -wait => 15, -reload_after_tries => 1)->click();
 
   save_screenshot;
 

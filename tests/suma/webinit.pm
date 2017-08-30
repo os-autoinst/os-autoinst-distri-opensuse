@@ -62,7 +62,7 @@ sub run {
 
     wait_for_xpath("//input[\@value='Create Organization']")->click();
     wait_for_page_to_load;
-    die "SUMA setup failed" unless wait_for_text("You have just created", 10, 15);
+    die "SUMA setup failed" unless wait_for_text("You have just created", -tries => 10, -wait => 15);
 
     if (get_var('SUMA_IMAGE_BUILD')) {
       return 1;

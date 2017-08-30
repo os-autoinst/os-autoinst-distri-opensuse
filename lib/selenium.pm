@@ -102,22 +102,26 @@ sub wait_for_page_to_load {
 }
 
 sub wait_for_link {
-  my ($link, $tries, $wait, $reload_after_tries) = @_;
-  $tries //= 5;
-  $wait //= 1;
-  $reload_after_tries //= $tries; #disabled by default
+  my $link = shift;
+  my %args = (
+    -tries => 5,
+    -wait => 1,
+    -reload_after_tries => undef,
+    @_
+  );
+  $args{-reload_after_tries} //= $args{-tries}; #disabled by default
   print "waiting for link '$link'\n";
   my $i = 0;
-  while ($i < $tries) {
+  while ($i < $args{-tries}) {
     save_screenshot;
     my $element = $driver->find_element_by_partial_link_text($link);
     return $element if $element;
-    if (($i > 0) &&($i % $reload_after_tries == 0)) {
+    if (($i > 0) &&($i % $args{-reload_after_tries} == 0)) {
       print "reload\n";
       $driver->refresh();
       wait_for_page_to_load;
     }
-    sleep $wait;
+    sleep $args{-wait};
     $i++;
   }
   print $driver->get_page_source();
@@ -126,21 +130,25 @@ sub wait_for_link {
 
 
 sub wait_for_text {
-  my ($text, $tries, $wait, $reload_after_tries) = @_;
-  $tries //= 5;
-  $wait //= 1;
-  $reload_after_tries //= $tries; #disabled by default
+  my $text = shift;
+  my %args = (
+    -tries => 5,
+    -wait => 1,
+    -reload_after_tries => undef,
+    @_
+  );
+  $args{-reload_after_tries} //= $args{-tries}; #disabled by default
   print "waiting for text '$text'\n";
   my $i = 0;
-  while ($i < $tries) {
+  while ($i < $args{-tries}) {
     save_screenshot;
     return 1 if $driver->get_page_source() =~ /$text/;
-    if (($i > 0) &&($i % $reload_after_tries == 0)) {
+    if (($i > 0) &&($i % $args{-reload_after_tries} == 0)) {
       print "reload\n";
       $driver->refresh();
       wait_for_page_to_load;
     }
-    sleep $wait;
+    sleep $args{-wait};
     $i++;
   }
   print $driver->get_page_source();
@@ -148,22 +156,26 @@ sub wait_for_text {
 }
 
 sub wait_for_xpath {
-  my ($xpath, $tries, $wait, $reload_after_tries) = @_;
-  $tries //= 5;
-  $wait //= 1;
-  $reload_after_tries //= $tries; #disabled by default
+  my $xpath = shift;
+  my %args = (
+    -tries => 5,
+    -wait => 1,
+    -reload_after_tries => undef,
+    @_
+  );
+  $args{-reload_after_tries} //= $args{-tries}; #disabled by default
   print "waiting for xpath '$xpath'\n";
   my $i = 0;
-  while ($i < $tries) {
+  while ($i < $args{-tries}) {
     save_screenshot;
     my $element = $driver->find_element_by_xpath($xpath);
     return $element if $element;
-    if (($i > 0) &&($i % $reload_after_tries == 0)) {
+    if (($i > 0) &&($i % $args{-reload_after_tries} == 0)) {
       print "reload\n";
       $driver->refresh();
       wait_for_page_to_load;
     }
-    sleep $wait;
+    sleep $args{-wait};
     $i++;
   }
   print $driver->get_page_source();

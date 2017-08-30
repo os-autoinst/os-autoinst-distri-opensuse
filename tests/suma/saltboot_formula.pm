@@ -72,7 +72,8 @@ sub run {
     wait_for_xpath("//button[\@id='save-btn']")->click();
     wait_for_page_to_load;
     save_screenshot;
-    wait_for_xpath("//li/a[.//text()[contains(., 'Saltboot')]]", 15, 2)->click();
+    sleep 1;
+    wait_for_xpath("//li/a[.//text()[contains(., 'Saltboot')]]", -tries => 15, -wait => 2)->click();
     wait_for_page_to_load;
     save_screenshot;
 
