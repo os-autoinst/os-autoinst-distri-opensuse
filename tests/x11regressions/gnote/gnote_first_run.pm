@@ -14,12 +14,24 @@
 use base "x11regressiontest";
 use strict;
 use testapi;
+use utils;
 
 sub run {
+    if (is_tumbleweed) {
+        select_console('root-console');
+        pkcon_quit;
+        zypper_call('in gnote');
+        select_console('x11');
+    }
     x11_start_program("gnote");
     assert_screen "gnote-first-launched", 10;
 
     send_key "ctrl-w";
+}
+
+# add milestone flag to save gnote installation in lastgood vm snapshot
+sub test_flags {
+    return {milestone => 1} if (is_tumbleweed);
 }
 
 1;

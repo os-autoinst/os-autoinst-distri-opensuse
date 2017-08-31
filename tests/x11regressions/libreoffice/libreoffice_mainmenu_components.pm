@@ -13,12 +13,13 @@
 use base "x11regressiontest";
 use strict;
 use testapi;
+use utils;
 
 # open desktop mainmenu and click office
 sub open_mainmenu {
     my $self = shift;
 
-    wait_still_screen;
+    wait_still_screen 3;
     send_key "alt-f1";
     assert_screen 'test-desktop_mainmenu-1';
     assert_and_click 'mainmenu-office';
@@ -27,7 +28,7 @@ sub open_mainmenu {
 
 # enter 'Activities overview'
 sub open_overview {
-    wait_still_screen;
+    wait_still_screen 3;
     send_key "super";
     assert_screen 'tracker-mainmenu-launched';
 }
@@ -52,79 +53,80 @@ sub select_base_and_cleanup {
 sub run {
     my $self = shift;
 
-    # launch components from mainmenu
-    $self->open_mainmenu();
-    assert_and_click 'mainmenu-office-lo';    #open lo
-    assert_screen 'welcome-to-libreoffice';
-    send_key "ctrl-q";                        #close lo
+    if (!is_tumbleweed) {
+        # launch components from mainmenu
+        $self->open_mainmenu();
+        assert_and_click 'mainmenu-office-lo';    #open lo
+        assert_screen 'welcome-to-libreoffice';
+        send_key "ctrl-q";                        #close lo
 
-    $self->open_mainmenu();
-    assert_and_click 'mainmenu-office-base';    #open base
-    select_base_and_cleanup;
+        $self->open_mainmenu();
+        assert_and_click 'mainmenu-office-base';    #open base
+        select_base_and_cleanup;
 
-    $self->open_mainmenu();
-    assert_and_click 'mainmenu-office-calc';    #open calc
-    assert_screen 'test-oocalc-1';
-    send_key "ctrl-q";                          #close calc
+        $self->open_mainmenu();
+        assert_and_click 'mainmenu-office-calc';    #open calc
+        assert_screen 'test-oocalc-1';
+        send_key "ctrl-q";                          #close calc
 
-    $self->open_mainmenu();
-    assert_and_click 'mainmenu-office-draw';    #open draw
-    assert_screen 'oodraw-launched';
-    send_key "ctrl-q";                          #close draw
+        $self->open_mainmenu();
+        assert_and_click 'mainmenu-office-draw';    #open draw
+        assert_screen 'oodraw-launched';
+        send_key "ctrl-q";                          #close draw
 
-    $self->open_mainmenu();
-    assert_and_click 'mainmenu-office-impress';    #open impress
-    assert_screen [qw(ooimpress-select-a-template ooimpress-launched)];
-    if (match_has_tag 'ooimpress-select-a-template') {
-        send_key 'alt-f4';                         # close impress template window
-        assert_screen 'ooimpress-launched';
+        $self->open_mainmenu();
+        assert_and_click 'mainmenu-office-impress';    #open impress
+        assert_screen [qw(ooimpress-select-a-template ooimpress-launched)];
+        if (match_has_tag 'ooimpress-select-a-template') {
+            send_key 'alt-f4';                         # close impress template window
+            assert_screen 'ooimpress-launched';
+        }
+        send_key "ctrl-q";                             #close impress
+
+        $self->open_mainmenu();
+        assert_and_click 'mainmenu-office-writer';     #open writer
+        assert_screen 'test-ooffice-1';
+        send_key "ctrl-q";                             #close writer
     }
-    send_key "ctrl-q";                             #close impress
-
-    $self->open_mainmenu();
-    assert_and_click 'mainmenu-office-writer';     #open writer
-    assert_screen 'test-ooffice-1';
-    send_key "ctrl-q";                             #close writer
 
     # launch components from Activities overview
     $self->open_overview();
-    type_string "base";                            #open base
+    type_string "base";                                #open base
     assert_screen 'overview-office-base';
     send_key "ret";
     select_base_and_cleanup;
 
     $self->open_overview();
-    type_string "calc";                            #open calc
-    assert_screen 'overview-office-calc';
-    send_key "ret";
+    type_string "calc";                                #open calc
+    assert_and_click 'overview-office-calc';
     assert_screen 'test-oocalc-1';
-    send_key "ctrl-q";                             #close calc
+    send_key "ctrl-q";                                 #close calc
 
     $self->open_overview();
-    type_string "draw";                            #open draw
+    type_string "draw";                                #open draw
     assert_screen 'overview-office-draw';
     send_key "ret";
     assert_screen 'oodraw-launched';
-    send_key "ctrl-q";                             #close draw
+    send_key "ctrl-q";                                 #close draw
 
     $self->open_overview();
-    type_string "impress";                         #open impress
+    type_string "impress";                             #open impress
     assert_screen 'overview-office-impress';
     send_key "ret";
     assert_screen [qw(ooimpress-select-a-template ooimpress-launched)];
     if (match_has_tag 'ooimpress-select-a-template') {
-        send_key 'alt-f4';                         # close impress template window
+        send_key 'alt-f4';                             # close impress template window
         assert_screen 'ooimpress-launched';
     }
-    send_key "ctrl-q";                             #close impress
+    send_key "ctrl-q";                                 #close impress
 
     $self->open_overview();
-    type_string "writer";                          #open writer
+    type_string "writer";                              #open writer
     assert_screen 'overview-office-writer';
     send_key "ret";
     assert_screen 'test-ooffice-1';
     assert_and_click 'ooffice-writing-area', 'left', 10;
-    send_key "ctrl-q";                             #close writer
+    send_key "ctrl-q";                                 #close writer
 }
 
 1;
