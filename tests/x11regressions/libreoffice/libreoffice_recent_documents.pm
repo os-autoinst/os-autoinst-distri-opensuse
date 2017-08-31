@@ -14,6 +14,7 @@
 use base "x11regressiontest";
 use strict;
 use testapi;
+use utils;
 
 sub run {
     # Edit file hello.odt using oowriter
@@ -37,7 +38,14 @@ sub run {
     assert_screen 'test-ooffice-1';
     send_key "alt-f";
     assert_screen 'oowriter-menus-file';
-    send_key "ctrl-u";
+    if (is_tumbleweed) {
+        send_key 'down';
+        wait_still_screen 3;
+        send_key 'u';
+    }
+    else {
+        send_key "ctrl-u";
+    }
     assert_screen 'oowriter-menus-file-recentDucuments';
     send_key_until_needlematch("libreoffice-clear-list", "down");
     send_key "ret";

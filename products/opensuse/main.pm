@@ -759,6 +759,10 @@ elsif (get_var("REGRESSION")) {
         loadtest "shutdown/grub_set_bootargs";
         loadtest "shutdown/shutdown";
     }
+    elsif (check_var("REGRESSION", "documentation")) {
+        loadtest "boot/boot_to_desktop";
+        load_x11regression_documentation();
+    }
 }
 elsif (get_var("MEDIACHECK")) {
     loadtest "installation/mediacheck";

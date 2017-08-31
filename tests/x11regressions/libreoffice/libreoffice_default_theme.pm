@@ -16,18 +16,29 @@ use testapi;
 use utils;
 use strict;
 
-
-sub run {
-    # Check LO default theme on standard GUI toolkit var
+sub check_lo_theme {
     x11_start_program("ooffice");
     assert_screen 'welcome-to-libreoffice';
-    send_key "alt-t";
-    assert_screen 'ooffice-menus-tools';
-    send_key "o";
+    if (is_tumbleweed) {
+        send_key 'alt-f12';
+    }
+    else {
+        send_key "alt-t";
+        assert_screen 'ooffice-menus-tools';
+        send_key "o";
+    }
     assert_screen 'ooffice-tools-options';
     send_key_until_needlematch 'ooffice-tools-options-view', 'down';
     send_key "esc";
+    wait_still_screen 3;
     send_key "ctrl-q";    # Quit LO
+}
+
+sub run {
+    my $self = shift;
+
+    # Check LO default theme on standard GUI toolkit var
+    $self->check_lo_theme;
 
     # Set LO GUI toolkit var to none
     x11_start_program("xterm");
@@ -39,16 +50,7 @@ sub run {
     send_key 'alt-f4';    # Quit xterm
 
     # Check LO default theme on none standard GUI toolkit var
-    x11_start_program("ooffice");
-    assert_screen 'welcome-to-libreoffice';
-    send_key "alt-t";
-    assert_screen 'ooffice-menus-tools';
-    send_key "o";
-    assert_screen 'ooffice-tools-options';
-    send_key_until_needlematch 'ooffice-tools-options-view', 'down';
-    send_key "esc";
-    wait_still_screen;
-    send_key "ctrl-q";    # Quit LO
+    $self->check_lo_theme;
 
     # Unset LO GUI toolkit var
     x11_start_program("xterm");

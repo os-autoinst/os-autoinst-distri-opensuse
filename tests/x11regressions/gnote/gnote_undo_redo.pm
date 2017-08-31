@@ -18,20 +18,21 @@ use testapi;
 
 
 sub undo_redo_once {
-    assert_screen 'gnote-new-note-1', 5;
+    assert_screen 'gnote-new-note-1';
     send_key "ctrl-z";    #undo
-    assert_screen 'gnote-new-note', 5;
+    assert_screen 'gnote-new-note';
     send_key "ctrl-shift-z";    #redo
+    wait_still_screen 3;
     send_key "left";            #unselect text
-    assert_screen 'gnote-new-note-1', 5;
+    assert_screen 'gnote-new-note-1';
 }
 
 sub run {
     my ($self) = @_;
     x11_start_program("gnote");
-    assert_screen "gnote-first-launched", 10;
+    assert_screen "gnote-first-launched";
     send_key "ctrl-n";
-    assert_screen 'gnote-new-note', 5;
+    assert_screen 'gnote-new-note';
     type_string "opensuse\nOPENSUSE\n";
     $self->undo_redo_once;
 
@@ -39,6 +40,7 @@ sub run {
     send_key "ctrl-tab";    #jump to toolbar
     send_key "ret";         #back to all notes interface
     send_key_until_needlematch 'gnote-new-note-matched', 'down', 6;
+    wait_still_screen 3;
     send_key "ret";
     $self->undo_redo_once;
 
@@ -49,7 +51,7 @@ sub run {
     send_key "delete";
     send_key "tab";
     send_key "ret";
-    assert_screen "gnote-first-launched", 5;
+    assert_screen "gnote-first-launched";
     send_key "ctrl-w";
 }
 

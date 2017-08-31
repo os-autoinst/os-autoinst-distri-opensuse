@@ -78,7 +78,7 @@ sub cleanup_libreoffice_specified_file {
     x11_start_program("xterm");
     assert_script_run("rm -rf /home/$username/Documents/ooo-test-doc-types*");
     wait_still_screen;
-    type_string("ls -l /home/$username/Documents");
+    type_string_slow "ls -l /home/$username/Documents";
     send_key "ret";
     wait_screen_change {
         assert_screen("libreoffice-find-no-tar-file");
@@ -92,8 +92,16 @@ sub cleanup_libreoffice_specified_file {
 sub cleanup_libreoffice_recent_file {
 
     x11_start_program("libreoffice");
+    wait_still_screen 3;
     send_key "alt-f";
-    send_key "alt-u";
+    if (is_tumbleweed) {
+        send_key 'down';
+        wait_still_screen 3;
+        send_key 'u';
+    }
+    else {
+        send_key "alt-u";
+    }
     assert_screen("libreoffice-recent-documents");
     send_key_until_needlematch("libreoffice-clear-list", "down");
     send_key "ret";
@@ -102,36 +110,51 @@ sub cleanup_libreoffice_recent_file {
 
 }
 
+sub open_libreoffice_options {
+    if (is_tumbleweed) {
+        send_key 'alt-f12';
+    }
+    else {
+        send_key "alt-t";
+        wait_still_screen 3;
+        send_key "alt-o";
+    }
+}
+
 # check libreoffice dialog windows setting- "gnome dialog" or "libreoffice dialog"
 sub check_libreoffice_dialogs {
+    my ($self) = shift;
 
     # make sure libreoffice dialog option is disabled status
-    send_key "alt-t";
-    send_key "alt-o";
+    $self->open_libreoffice_options;
+
     assert_screen("ooffice-tools-options");
     send_key_until_needlematch('libreoffice-options-general', 'down');
     assert_screen("libreoffice-general-dialogs-disabled");
     send_key "alt-o";
+    wait_still_screen 3;
     send_key "alt-o";
     assert_screen("libreoffice-gnome-dialogs");
     send_key "alt-c";
+    wait_still_screen 3;
 
     # enable libreoffice dialog
-    send_key "alt-t";
-    send_key "alt-o";
+    $self->open_libreoffice_options;
     assert_screen("libreoffice-options-general");
     send_key "alt-u";
     assert_screen("libreoffice-general-dialogs-enabled");
     send_key "alt-o";
+    wait_still_screen 3;
     send_key "alt-o";
     assert_screen("libreoffice-specific-dialogs");
     send_key "alt-c";
+    wait_still_screen 3;
 
     # restore the default setting
-    send_key "alt-t";
-    send_key "alt-o";
+    $self->open_libreoffice_options;
     assert_screen("libreoffice-options-general");
     send_key "alt-u";
+    wait_still_screen 3;
     send_key "alt-o";
 
 }
@@ -749,8 +772,7 @@ sub gnote_search_and_close {
 
 # remove the created new note
 sub cleanup_gnote {
-    wait_screen_change { send_key 'ctrl-tab' };    #jump to toolbar
-    send_key 'ret';                                #back to all notes interface
+    send_key 'esc';    #back to all notes interface
     send_key_until_needlematch 'gnote-new-note-matched', 'down', 6;
     wait_screen_change { send_key 'delete' };
     wait_screen_change { send_key 'tab' };

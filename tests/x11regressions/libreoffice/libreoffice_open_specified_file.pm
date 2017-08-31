@@ -13,6 +13,7 @@
 use base "x11regressiontest";
 use strict;
 use testapi;
+use utils;
 
 sub run {
     my $self = shift;
@@ -33,11 +34,11 @@ sub run {
         wait_still_screen 3;
         send_key "ctrl-l";
         save_screenshot;
-        type_string "/home/$username/Documents/ooo-test-doc-types/test.$tag\n";
+        type_string_slow "/home/$username/Documents/ooo-test-doc-types/test.$tag\n";
         wait_still_screen 3;
-        assert_screen("libreoffice-test-$tag", 90);
+        assert_screen("libreoffice-test-$tag", 120);
         # Close every 3 files to reduce the VM's burden
-        if ($i % 3 == 0) { send_key_until_needlematch('libreoffice-test-doc', 'alt-f4', 3, 5); }
+        if ($i % 3 == 0) { send_key_until_needlematch('libreoffice-test-doc', 'alt-f4', 5, 10); }
         $i++;
     }
     if (!check_screen("generic-desktop")) {

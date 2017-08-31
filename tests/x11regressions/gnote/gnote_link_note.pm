@@ -15,6 +15,7 @@
 use base 'x11regressiontest';
 use strict;
 use testapi;
+use utils;
 
 
 sub run {
@@ -32,13 +33,13 @@ sub run {
     };
     wait_screen_change { send_key 'ret' };
     wait_screen_change { send_key 'down' };
-    if (get_var('SP2ORLATER')) {
+    if (get_var('SP2ORLATER') || is_tumbleweed) {
         wait_screen_change { send_key 'ret' };
     }
     assert_screen 'gnote-what-link-here';
     wait_screen_change { send_key 'esc' };
     #close the note "Start Here"
-    wait_screen_change { send_key 'ctrl-w' };
+    wait_screen_change { send_key 'ctrl-w' } if (!is_tumbleweed);
     $self->cleanup_gnote;
 }
 
