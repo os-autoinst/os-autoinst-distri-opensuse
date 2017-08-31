@@ -22,7 +22,7 @@ sub take_first_disk_storage_ng {
     return unless is_storage_ng;
     send_key $cmd{guidedsetup};    # select guided setup
     assert_screen 'select-hard-disks';
-    send_key 'alt-e';              # Unselect second drive
+    assert_and_click 'hard-disk-dev-sdb-selected';    # Unselect second drive
     assert_screen 'select-hard-disks-one-selected';
     send_key $cmd{next};
     assert_screen 'partition-scheme';
