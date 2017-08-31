@@ -77,8 +77,9 @@ sub run {
 
     wait_still_screen 1;
     send_key 'alt-n';
+    wait_still_screen 1;
     send_key 'alt-a';
-    send_key 'alt-o';
+    wait_screen_change { send_key 'alt-o' };
 
     # move to http ports
     select_sub_menu 'start_up', 'http_ports';
@@ -181,12 +182,14 @@ sub run {
     # check logging and timeouts setting is opened to edit
     assert_screen 'yast2_proxy_logging_timeouts_setting';
     send_key 'alt-a';
+    wait_still_screen 1;
     send_key 'alt-w';
 
     # check acces log directory can be browsed and defined
     assert_screen 'yast2_proxy_access_log_directory';
     wait_still_screen 1;
     send_key 'alt-c';
+    wait_still_screen 1;
     send_key 'alt-g';
     empty_field 'alt-e', 'yast2_proxy_cache_log_dir_empty', 35;
     type_string "/var/log/squid/proxy_cache.log";
