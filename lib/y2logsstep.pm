@@ -195,6 +195,16 @@ sub deal_with_dependency_issues {
     }
 }
 
+sub verify_license_has_to_be_accepted {
+    # license+lang
+    if (get_var('HASLICENSE')) {
+        send_key $cmd{next};
+        assert_screen 'license-not-accepted';
+        wait_screen_change { send_key $cmd{ok} };
+        send_key $cmd{accept};    # accept license
+    }
+}
+
 sub save_upload_y2logs {
     my ($self) = shift;
     assert_script_run 'sed -i \'s/^tar \(.*$\)/tar --warning=no-file-changed -\1 || true/\' /usr/sbin/save_y2logs';

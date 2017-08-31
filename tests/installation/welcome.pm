@@ -15,9 +15,10 @@ use strict;
 use warnings;
 use base "y2logsstep";
 use testapi;
-use utils 'ensure_fullscreen';
+use utils qw(ensure_fullscreen sle_version_at_least);
 
 sub run {
+    my ($self) = @_;
     my $iterations;
 
     my @welcome_tags = ('inst-welcome-confirm-self-update-server', 'scc-invalid-url');
@@ -66,12 +67,11 @@ sub run {
     wait_still_screen(3);
 
     # license+lang
-    if (get_var('HASLICENSE')) {
-        send_key $cmd{next};
-        assert_screen 'license-not-accepted';
-        wait_screen_change { send_key $cmd{ok} };
-        send_key $cmd{accept};    # accept license
+    # On sle 15 license is on different screen
+    unless (sle_version_at_least('15')) {
+        $self->verify_license_has_to_be_accepted;
     }
+
     assert_screen 'languagepicked';
     send_key $cmd{next};
     if (!check_var('INSTLANG', 'en_US') && check_screen 'langincomplete', 1) {
