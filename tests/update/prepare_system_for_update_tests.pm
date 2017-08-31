@@ -34,5 +34,11 @@ sub test_flags {
     return {fatal => 1, milestone => 1};
 }
 
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->SUPER::post_fail_hook;
+    upload_logs '/var/log/pk_backend_zypp';
+}
+
 1;
 # vim: set sw=4 et:
