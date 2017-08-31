@@ -317,13 +317,16 @@ if (get_var('ENABLE_ALL_SCC_MODULES') && !get_var('SCC_MODULES')) {
     if (sle_version_at_least('15')) {
         # let's start with what corresponds to server
         set_var('SCC_ADDONS', 'base,script,desktop,serverapp,phub,legacy,sdk,ha,wsm');
+        set_var('PATTERNS',   'default,asmm,pcm');
     }
     else {
         if (check_var('ARCH', 'aarch64')) {
             set_var('SCC_ADDONS', 'pcm,tcm');
+            set_var('PATTERNS',   'default,pcm');
         }
         else {
             set_var('SCC_ADDONS', 'phub,asmm,contm,lgm,pcm,tcm,wsm');
+            set_var('PATTERNS',   'default,asmm,pcm');
         }
     }
 }
