@@ -566,8 +566,8 @@ sub load_inst_tests {
             loadtest "installation/disk_space_fill";
         }
     }
-    if (sle_version_at_least('15')) {
-        loadtest "installation/select_products_sle" unless is_staging;
+    if (sle_version_at_least('15') && !is_staging()) {
+        loadtest "installation/select_products_sle";
         loadtest "installation/accept_license" if get_var('HASLICENSE');
     }
     if (check_var('SCC_REGISTER', 'installation')) {
