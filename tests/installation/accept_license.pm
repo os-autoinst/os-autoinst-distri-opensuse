@@ -23,6 +23,7 @@ use testapi;
 
 sub run {
     my ($self) = @_;
+    assert_screen 'license-agreement';
     $self->verify_license_has_to_be_accepted;
     send_key $cmd{next};
 }
