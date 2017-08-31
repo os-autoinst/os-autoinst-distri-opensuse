@@ -79,10 +79,10 @@ sub run {
 
     my $xvncport = get_required_var('VIRSH_INSTANCE');
     my $hdd1     = get_var('HDD_1') ? 'd:\\cache\\' . basename(get_var('HDD_1')) =~ s/vhdfixed\.xz/vhd/r : undef;
-    my $hdd1size = get_var('HDDSIZEGB');
+    my $hdd1size = get_var('HDDSIZEGB', 40);
     my $iso      = get_var('ISO') ? 'd:\\cache\\' . basename(get_var('ISO')) : undef;
-    my $ramsize  = get_var('QEMURAM');
-    my $cpucount = get_var('QEMUCPUS');
+    my $ramsize  = get_var('QEMURAM', 1024);
+    my $cpucount = get_var('QEMUCPUS', 1);
 
     type_string "mkdir -p ~/.vnc/\n";
     type_string "vncpasswd -f <<<$testapi::password > ~/.vnc/passwd\n";
