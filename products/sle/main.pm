@@ -568,7 +568,7 @@ sub load_inst_tests {
     }
     if (sle_version_at_least('15')) {
         loadtest "installation/select_products_sle" unless is_staging;
-        loadtest "installation/accept_license";
+        loadtest "installation/accept_license" if get_var('HASLICENSE');
     }
     if (check_var('SCC_REGISTER', 'installation')) {
         loadtest "installation/scc_registration";
