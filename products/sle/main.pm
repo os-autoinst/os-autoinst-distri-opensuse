@@ -628,7 +628,7 @@ sub load_inst_tests {
         if (get_var("IBFT")) {
             loadtest "installation/partitioning_iscsi";
         }
-        if (uses_qa_net_hardware()) {
+        if (uses_qa_net_hardware() || get_var('SELECT_FIRST_DISK')) {
             loadtest "installation/partitioning_firstdisk";
         }
         if (get_var("ISO_IN_EXTERNAL_DRIVE")) {
