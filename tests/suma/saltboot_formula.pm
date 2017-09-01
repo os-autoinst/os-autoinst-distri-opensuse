@@ -14,7 +14,66 @@ use base "sumatest";
 use 5.018;
 use testapi;
 use lockapi;
+use mmapi;
 use selenium;
+
+sub create_group_for_hwtype {
+  my $self = shift;
+  my $hwtype = shift;
+
+  my $driver = selenium_driver();
+
+  $self->suma_menu('Salt', 'Formula Catalog');
+
+  $driver->find_element('saltboot', 'link_text')->click();
+  wait_for_page_to_load;
+  #FIXME: check formula details
+
+  $self->suma_menu('Systems', 'System Groups');
+
+  $driver->find_element('Create Group', 'link_text')->click();
+  wait_for_page_to_load;
+  save_screenshot;
+
+  $driver->mouse_move_to_location(element => wait_for_xpath("//input[\@id='name']"));
+  $driver->double_click();
+
+  $driver->send_keys_to_active_element("hwtype_$hwtype");
+  $driver->send_keys_to_active_element("\t");
+
+  $driver->send_keys_to_active_element("group for $hwtype hwtype");
+  $driver->send_keys_to_active_element("\t");
+
+  save_screenshot;
+
+  wait_for_xpath("//input[\@value='Create Group']")->click();
+  wait_for_page_to_load;
+
+
+  $driver->find_element('Formulas', 'link_text')->click();
+  wait_for_page_to_load;
+  wait_for_xpath("//a[\@id='saltboot']")->click();
+  wait_for_page_to_load;
+  wait_for_xpath("//button[\@id='save-btn']")->click();
+  wait_for_page_to_load;
+  save_screenshot;
+  sleep 1;
+  wait_for_xpath("//li/a[.//text()[contains(., 'Saltboot')]]", -tries => 15, -wait => 2)->click();
+  wait_for_page_to_load;
+  save_screenshot;
+
+  $driver->mouse_move_to_location(element => wait_for_xpath("//form[\@id='editFormulaForm']//input[1]"));
+  $driver->double_click();
+  save_screenshot;
+
+  # FIXME: fill in form data
+  save_screenshot;
+  wait_for_xpath("//button[\@id='save-btn']")->click();
+
+  wait_for_page_to_load;
+  save_screenshot;
+}
+
 
 sub run {
   my ($self) = @_;
@@ -36,57 +95,23 @@ sub run {
     assert_script_run 'systemctl restart salt-master'; # because of reactors installed
     select_console 'x11', tags => 'suma_welcome_screen';
 
-    my $driver = selenium_driver();
+    my %hwtypes = ('testterm' => 1);
 
-    $self->suma_menu('Salt', 'Formula Catalog');
+    # detect all configured hwtypes
+    my $ch = get_children();
+    for my $id (keys %{$ch}) {
+      my $chi = get_job_info($id);
+      if ($chi->{'settings'}->{'QEMU_SMBIOS'}) {
+        my $hwtype = $chi->{'settings'}->{'QEMU_SMBIOS'};
+        $hwtype =~ s/^.*product=//;
+        $hwtype =~ s/,.*$//;
+        $hwtypes{$hwtype} = 1;
+      }
+    }
 
-    $driver->find_element('saltboot', 'link_text')->click();
-    wait_for_page_to_load;
-    #FIXME: check formula details
-
-    $self->suma_menu('Systems', 'System Groups');
-
-    $driver->find_element('Create Group', 'link_text')->click();
-    wait_for_page_to_load;
-    save_screenshot;
-
-    $driver->mouse_move_to_location(element => wait_for_xpath("//input[\@id='name']"));
-    $driver->double_click();
-
-    $driver->send_keys_to_active_element('hwtype_testterm');
-    $driver->send_keys_to_active_element("\t");
-
-    $driver->send_keys_to_active_element('group for testterm hwtype');
-    $driver->send_keys_to_active_element("\t");
-
-    save_screenshot;
-
-    wait_for_xpath("//input[\@value='Create Group']")->click();
-    wait_for_page_to_load;
-
-
-    $driver->find_element('Formulas', 'link_text')->click();
-    wait_for_page_to_load;
-    wait_for_xpath("//a[\@id='saltboot']")->click();
-    wait_for_page_to_load;
-    wait_for_xpath("//button[\@id='save-btn']")->click();
-    wait_for_page_to_load;
-    save_screenshot;
-    sleep 1;
-    wait_for_xpath("//li/a[.//text()[contains(., 'Saltboot')]]", -tries => 15, -wait => 2)->click();
-    wait_for_page_to_load;
-    save_screenshot;
-
-    $driver->mouse_move_to_location(element => wait_for_xpath("//form[\@id='editFormulaForm']//input[1]"));
-    $driver->double_click();
-    save_screenshot;
-
-    # FIXME: fill in form data
-    save_screenshot;
-    wait_for_xpath("//button[\@id='save-btn']")->click();
-
-    wait_for_page_to_load;
-    save_screenshot;
+    for my $hwtype (keys %hwtypes) {
+      $self->create_group_for_hwtype($hwtype);
+    }
 
     # signal minion to check configuration
     barrier_wait('saltboot_formula');

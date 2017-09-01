@@ -81,9 +81,12 @@ sub run {
     $driver->find_element('Pending Minions', 'partial_link_text')->click();
     wait_for_page_to_load;
     save_screenshot;
-    wait_for_xpath("//button[\@title='accept']")->click();
-    wait_for_page_to_load;
-    save_screenshot;
+    for (my $i = 0; $i < get_var('NUMBER_OF_TERMINALS', 0); $i++) {
+      wait_for_xpath("//button[\@title='accept']", -tries => 300, -wait => 1, -reload_after_tries => 5)->click();
+      sleep 20; # wait long enough to let the button we just clicked disappear
+      wait_for_page_to_load;
+      save_screenshot;
+    }
 
     barrier_wait('saltboot_orchestrate_finish');
     wait_for_xpath("//a[\@href='/']")->click();
