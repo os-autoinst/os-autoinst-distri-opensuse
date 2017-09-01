@@ -322,9 +322,16 @@ sub run {
     my $cmd_pattern = get_var('LTP_COMMAND_PATTERN') || '.*';
     my $cmd_exclude = get_var('LTP_COMMAND_EXCLUDE') || '$^';
     my $timeout     = get_var('LTP_TIMEOUT')         || 900;
+    my $ltp_env     = get_var('LTP_ENV');
     my $is_posix    = $cmd_file =~ m/^\s*openposix\s*$/i;
     my $is_network  = $cmd_file =~ m/^\s*net\./;
     my $tmp;
+
+    if ($ltp_env) {
+        $ltp_env =~ s/,/ /g;
+        script_run("export $ltp_env");
+        script_run('env');
+    }
 
     my $test_result_export = {
         format  => 'result_array:v1',
@@ -542,6 +549,11 @@ The time in seconds which each test command has to run.
 If set will request that the SUT's memory is dumped if the timer in this test
 module runs out. This is does not include timeouts which are built into the
 LTP test itself.
+
+=head2 LTP_ENV
+
+Comma separated list of environment variables to be set for tests.
+E.g.: key=value,key2="value with spaces",key3='another value with spaces'
 
 =cut
 
