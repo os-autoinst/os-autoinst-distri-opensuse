@@ -18,7 +18,8 @@ use strict;
 use testapi;
 
 sub run {
-    my $cryptpasswd = $testapi::password;
+    # Strengthen password to avoid password quality check failed on Tumbleweed
+    my $cryptpasswd = $testapi::password . '123';
     select_console "root-console";
 
     # create a random volume.

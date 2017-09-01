@@ -61,7 +61,9 @@ sub run {
     send_key "alt-n";
     assert_screen "yast2-cryptfile-summary";
     send_key "alt-f";
-    assert_screen "yast2-cryptfile-creation";
+    # a package need to be installed before cryptfile
+    # creation on Tumbleweed, give more time to wait
+    assert_screen "yast2-cryptfile-creation", 180;
 
     wait_serial('yast2-disk-status-0') || die "'yast2 disk' didn't finish";
 

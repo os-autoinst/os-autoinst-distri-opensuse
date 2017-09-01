@@ -1060,56 +1060,6 @@ sub load_online_migration_tests {
     loadtest "online_migration/sle12_online_migration/post_migration";
 }
 
-sub load_fips_tests_core {
-    loadtest "console/consoletest_setup";
-    loadtest "fips/openssl/openssl_fips_alglist";
-    loadtest "fips/openssl/openssl_fips_hash";
-    loadtest "fips/openssl/openssl_fips_cipher";
-    loadtest "fips/openssl/openssl_pubkey_rsa";
-    loadtest "fips/openssl/openssl_pubkey_dsa";
-    if (sle_version_at_least('12-SP2')) {
-        loadtest "console/openssl_alpn";
-    }
-    loadtest "console/sshd";
-    loadtest "console/ssh_pubkey";
-    loadtest "console/ssh_cleanup";
-    loadtest "fips/openssh/openssh_fips";
-}
-
-sub load_fips_tests_web {
-    loadtest "console/consoletest_setup";
-    loadtest "console/curl_https";
-    loadtest "console/wget_https";
-    loadtest "console/w3m_https";
-    loadtest "console/apache_ssl";
-    loadtest "fips/mozilla_nss/apache_nssfips";
-    loadtest "console/libmicrohttpd";
-    loadtest "console/consoletest_finish";
-    loadtest "fips/mozilla_nss/firefox_nss";
-}
-
-sub load_fips_tests_misc {
-    loadtest "console/consoletest_setup";
-    loadtest "console/aide_check";
-    loadtest "console/journald_fss";
-    loadtest "fips/curl_fips_rc4_seed";
-    loadtest "console/git";
-    loadtest "console/consoletest_finish";
-    # In SLE, the hexchat package is provided only in WE addon which is
-    # only for x86_64 platform. Then hexchat is x86_64 specific and not
-    # appropriate for other arches.
-    loadtest "x11/hexchat_ssl" if (check_var('ARCH', 'x86_64'));
-    loadtest "x11/x3270_ssl";
-}
-
-sub load_fips_tests_crypt {
-    loadtest "console/consoletest_setup";
-    loadtest "console/yast2_dm_crypt";
-    loadtest "console/cryptsetup";
-    loadtest "fips/ecryptfs_fips";
-    loadtest "console/gpg";
-}
-
 sub load_patching_tests {
     if (check_var("ARCH", "s390x")) {
         if (check_var('BACKEND', 's390x')) {
@@ -1220,6 +1170,9 @@ elsif (get_var("SLEPOS")) {
 }
 elsif (get_var("FIPS_TS")) {
     prepare_target();
+    if (get_var('BOOT_HDD_IMAGE')) {
+        loadtest "console/consoletest_setup";
+    }
     if (check_var("FIPS_TS", "setup")) {
         # Setup system into fips mode
         loadtest "fips/fips_setup";
@@ -1228,16 +1181,16 @@ elsif (get_var("FIPS_TS")) {
         loadtest "fips/openssl/openssl_fips_env";
     }
     elsif (check_var("FIPS_TS", "core")) {
-        load_fips_tests_core;
+        load_security_tests_core;
     }
     elsif (check_var("FIPS_TS", "web")) {
-        load_fips_tests_web;
+        load_security_tests_web;
     }
     elsif (check_var("FIPS_TS", "misc")) {
-        load_fips_tests_misc;
+        load_security_tests_misc;
     }
     elsif (check_var("FIPS_TS", "crypt")) {
-        load_fips_tests_crypt;
+        load_security_tests_crypt;
     }
     elsif (check_var("FIPS_TS", "ipsec")) {
         loadtest "console/ipsec_tools_h2h";

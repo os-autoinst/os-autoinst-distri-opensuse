@@ -827,6 +827,23 @@ elsif (get_var('MM_CLIENT')) {
     boot_hdd_image;
     load_applicationstests;
 }
+elsif (get_var('SECURITYTEST')) {
+    boot_hdd_image;
+    loadtest "console/consoletest_setup";
+    loadtest "console/hostname";
+    if (check_var('SECURITYTEST', 'core')) {
+        load_security_tests_core;
+    }
+    elsif (check_var('SECURITYTEST', 'web')) {
+        load_security_tests_web;
+    }
+    elsif (check_var('SECURITYTEST', 'misc')) {
+        load_security_tests_misc;
+    }
+    elsif (check_var('SECURITYTEST', 'crypt')) {
+        load_security_tests_crypt;
+    }
+}
 else {
     if (get_var("LIVETEST") || get_var('LIVE_INSTALLATION')) {
         load_boot_tests();

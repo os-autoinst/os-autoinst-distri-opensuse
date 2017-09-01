@@ -62,7 +62,8 @@ sub run {
     # init
     check_console_font;
 
-    type_string "chown $username /dev/$serialdev\n";
+    # This enables user to access serial in case of reboot system happened during console tests
+    script_run "echo 'chown $username /dev/$serialdev' >> /etc/bash.bashrc.local";
     script_run 'echo "set -o pipefail" >> /etc/bash.bashrc.local';
     script_run '. /etc/bash.bashrc.local';
     # Export the existing status of running tasks and system load for future reference (fail would export it again)
