@@ -16,9 +16,22 @@ use strict;
 use testapi;
 
 sub workaround_broken_disk_activation {
+    my $r;
     record_soft_failure 'bsc#1055871';
     select_console 'install-shell';
-    assert_script_run 'dasd_configure 0.0.0150 1';
+
+    $r = script_run("dasd_configure 0.0.0150 1");
+    die "DASD in undefined state" unless (defined($r) && ($r == 0 || $r == 8));
+
+    $r = script_run("lsdasd");
+    assert_screen("ensure-dasd-exists");
+    die "dasd_configure died with exit code $r" unless (defined($r) && $r == 0);
+
+    # if formatting is supposed to do inside yast, do it here as workaround
+    if (get_var('FORMAT_DASD_YAST')) {
+        $r = script_run("echo yes | dasdfmt -b 4096 -p /dev/dasda", 1200);
+        die "dasdfmt died with exit code $r" unless (defined($r) && $r == 0);
+    }
     select_console 'installation';
 }
 
