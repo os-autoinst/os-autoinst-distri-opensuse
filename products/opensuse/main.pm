@@ -226,7 +226,7 @@ sub load_inst_tests {
         }
         loadtest "installation/partitioning";
         if (get_var("ISO_IN_EXTERNAL_DRIVE")) {
-            loadtest "installation/partitioning_choose_disk";
+            loadtest "installation/partitioning_firstdisk";
         }
         if (defined(get_var("RAIDLEVEL"))) {
             loadtest "installation/partitioning_raid";
