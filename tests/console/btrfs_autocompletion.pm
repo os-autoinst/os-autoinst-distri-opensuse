@@ -41,5 +41,12 @@ sub run {
     assert_script_run "btrfs inspect-internal min-dev-size / | grep -E '^[0-9]{6,} bytes'";
 }
 
+sub post_fail_hook {
+    my ($self) = @_;
+    assert_script_run('rpm -qa > /tmp/rpm_qa.txt');
+    upload_logs('/tmp/rpm_qa.txt');
+    $self->SUPER::post_fail_hook;
+}
+
 1;
 # vim: set sw=4 et:
