@@ -46,7 +46,7 @@ sub run {
     else {
         send_key "ctrl-u";
     }
-    assert_screen 'oowriter-menus-file-recentDucuments';
+    assert_screen 'oowriter-menus-file-recentDocuments';
     send_key_until_needlematch("libreoffice-clear-list", "down");
     send_key "ret";
     assert_screen 'test-ooffice-1';

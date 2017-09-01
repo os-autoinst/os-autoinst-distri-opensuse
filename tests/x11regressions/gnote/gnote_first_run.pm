@@ -31,7 +31,7 @@ sub run {
 
 # add milestone flag to save gnote installation in lastgood vm snapshot
 sub test_flags {
-    return {milestone => 1} if (is_tumbleweed);
+    return {milestone => 1};
 }
 
 1;
