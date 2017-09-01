@@ -299,6 +299,12 @@ sub run {
         assert_screen 'partitioning_raid-menu_add_raid';
         setraidlevel(1);
         assert_screen 'partitioning_raid-raid_1-selected';
+        if (get_var('OFW')) {
+            # verify that start at first partition for PowerPC
+            send_key 'down';
+            send_key 'up';
+            assert_screen 'partitioning_raid-devices_first_partition';
+        }
         addraid(2);
 
         assert_screen 'partition-format';
