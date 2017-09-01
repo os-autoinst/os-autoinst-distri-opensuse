@@ -17,7 +17,9 @@ use utils;
 
 sub run {
     assert_gui_app('polari');
-    # Polari asks to run in backgroun or quit on pressing alt-f4
+    # assert_gui_app pressed alt-f4, but that closed 'only' the 'welcome dialog'
+    # press once again alt-f4
+    send_key('alt-f4');
     assert_and_click('polari-quit');
 }
 
