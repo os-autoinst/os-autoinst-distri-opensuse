@@ -71,7 +71,7 @@ sub run {
     # the disk to write all the data, otherwise the test would be unstable due to the load.
     # Check average disk load for some time to make sure all the data are in cold on disk.
     select_console('svirt');
-    type_string("typeperf \"\\PhysicalDisk(1 D:)\\Avg\. Disk Bytes/Write\"\n");
+    type_string("typeperf \"\\LogicalDisk(D:)\\Avg\. Disk Bytes/Write\"\n");
     assert_screen('no-hyperv-disk-load', 600);
     send_key 'ctrl-c';
     assert_screen 'hyperv-typeperf-command-finished';
