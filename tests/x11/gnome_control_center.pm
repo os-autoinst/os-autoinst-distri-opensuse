@@ -21,9 +21,17 @@ sub run {
     mouse_hide(1);
     x11_start_program("gnome-control-center");
     assert_screen "gnome-control-center-started", 120;    # for timeout selection see bsc#965857
-    type_string "details";
-    assert_screen "gnome-control-center-details-typed";
-    assert_and_click "gnome-control-center-details";
+    if (match_has_tag('gnome-control-center-new-layout')) {
+        # with GNOME 3.26, the control-center got a different layout / workflow
+        type_string "about";
+        assert_screen "gnome-control-center-about-typed";
+        assert_and_click "gnome-control-center-about";
+    }
+    else {
+        type_string "details";
+        assert_screen "gnome-control-center-details-typed";
+        assert_and_click "gnome-control-center-details";
+    }
     assert_screen 'test-gnome_control_center-1';
     send_key "alt-f4";
 }
