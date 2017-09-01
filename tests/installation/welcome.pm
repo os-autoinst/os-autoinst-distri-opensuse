@@ -16,6 +16,7 @@ use warnings;
 use base "y2logsstep";
 use testapi;
 use utils qw(ensure_fullscreen sle_version_at_least);
+use main_common 'is_staging';
 
 sub run {
     my ($self) = @_;
@@ -68,7 +69,7 @@ sub run {
 
     # license+lang
     # On sle 15 license is on different screen
-    unless (sle_version_at_least('15')) {
+    if (!sle_version_at_least('15') || is_staging()) {
         $self->verify_license_has_to_be_accepted;
     }
 
