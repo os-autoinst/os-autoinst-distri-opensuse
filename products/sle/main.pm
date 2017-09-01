@@ -628,11 +628,8 @@ sub load_inst_tests {
         if (get_var("IBFT")) {
             loadtest "installation/partitioning_iscsi";
         }
-        if (uses_qa_net_hardware() || get_var('SELECT_FIRST_DISK')) {
+        if (uses_qa_net_hardware() || get_var('SELECT_FIRST_DISK') || get_var("ISO_IN_EXTERNAL_DRIVE")) {
             loadtest "installation/partitioning_firstdisk";
-        }
-        if (get_var("ISO_IN_EXTERNAL_DRIVE")) {
-            loadtest "installation/partitioning_choose_disk";
         }
         loadtest "installation/partitioning_finish";
     }

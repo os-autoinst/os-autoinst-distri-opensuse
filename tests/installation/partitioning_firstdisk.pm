@@ -25,6 +25,11 @@ sub take_first_disk_storage_ng {
     assert_and_click 'hard-disk-dev-sdb-selected';    # Unselect second drive
     assert_screen 'select-hard-disks-one-selected';
     send_key $cmd{next};
+    # If drive is not formatted, we have select hard disks page
+    if (get_var('ISO_IN_EXTERNAL_DRIVE')) {
+        assert_screen 'select-hard-disks';
+        send_key $cmd{next};
+    }
     assert_screen 'partition-scheme';
     send_key $cmd{next};
     # select btrfs file system
