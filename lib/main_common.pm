@@ -600,33 +600,32 @@ sub load_iso_in_external_tests {
 }
 
 sub load_x11regression_documentation {
-    if (check_var("DESKTOP", "gnome")) {
-        loadtest "x11regressions/gnote/gnote_first_run";
-        loadtest "x11regressions/gnote/gnote_link_note";
-        loadtest "x11regressions/gnote/gnote_rename_title";
-        loadtest "x11regressions/gnote/gnote_undo_redo";
-        loadtest "x11regressions/gnote/gnote_edit_format";
-        loadtest "x11regressions/gnote/gnote_search_all";
-        loadtest "x11regressions/gnote/gnote_search_body";
-        loadtest "x11regressions/gnote/gnote_search_title";
-        loadtest "x11regressions/evince/evince_open";
-        loadtest "x11regressions/evince/evince_view";
-        loadtest "x11regressions/evince/evince_rotate_zoom";
-        loadtest "x11regressions/evince/evince_find";
-        loadtest "x11regressions/gedit/gedit_launch";
-        loadtest "x11regressions/gedit/gedit_save";
-        loadtest "x11regressions/gedit/gedit_about";
-        if (!is_tumbleweed) {
-            loadtest "x11regressions/libreoffice/libreoffice_mainmenu_favorites";
-            loadtest "x11regressions/evolution/evolution_prepare_servers";
-            loadtest "x11regressions/libreoffice/libreoffice_pyuno_bridge";
-        }
-        loadtest "x11regressions/libreoffice/libreoffice_mainmenu_components";
-        loadtest "x11regressions/libreoffice/libreoffice_recent_documents";
-        loadtest "x11regressions/libreoffice/libreoffice_default_theme";
-        loadtest "x11regressions/libreoffice/libreoffice_open_specified_file";
-        loadtest "x11regressions/libreoffice/libreoffice_double_click_file";
+    return unless check_var('DESKTOP', 'gnome');
+    loadtest "x11regressions/gnote/gnote_first_run";
+    loadtest "x11regressions/gnote/gnote_link_note";
+    loadtest "x11regressions/gnote/gnote_rename_title";
+    loadtest "x11regressions/gnote/gnote_undo_redo";
+    loadtest "x11regressions/gnote/gnote_edit_format";
+    loadtest "x11regressions/gnote/gnote_search_all";
+    loadtest "x11regressions/gnote/gnote_search_body";
+    loadtest "x11regressions/gnote/gnote_search_title";
+    loadtest "x11regressions/evince/evince_open";
+    loadtest "x11regressions/evince/evince_view";
+    loadtest "x11regressions/evince/evince_rotate_zoom";
+    loadtest "x11regressions/evince/evince_find";
+    loadtest "x11regressions/gedit/gedit_launch";
+    loadtest "x11regressions/gedit/gedit_save";
+    loadtest "x11regressions/gedit/gedit_about";
+    if (sle_version_at_least('12-SP1')) {
+        loadtest "x11regressions/libreoffice/libreoffice_mainmenu_favorites";
+        loadtest "x11regressions/evolution/evolution_prepare_servers";
+        loadtest "x11regressions/libreoffice/libreoffice_pyuno_bridge";
     }
+    loadtest "x11regressions/libreoffice/libreoffice_mainmenu_components";
+    loadtest "x11regressions/libreoffice/libreoffice_recent_documents";
+    loadtest "x11regressions/libreoffice/libreoffice_default_theme";
+    loadtest "x11regressions/libreoffice/libreoffice_open_specified_file";
+    loadtest "x11regressions/libreoffice/libreoffice_double_click_file";
 }
 
 # Move fips testsuites to main_common to apply to SLE_FIPS + openSUSE
