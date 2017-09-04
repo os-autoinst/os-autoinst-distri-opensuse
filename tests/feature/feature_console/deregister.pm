@@ -20,6 +20,8 @@ use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
+use utils;
+use suseconnect_register;
 
 sub run {
     select_console 'root-console';
@@ -30,8 +32,8 @@ sub run {
     }
 
     # check if a certain module is registered, e.g. toolchain
-    my $module  = "sle-module-toolchain";
     my $abbrv   = "tcm";
+    my $module  = get_addon_fullname("$abbrv");
     my $version = get_required_var('VERSION') =~ s/([0-9]+).*/$1/r;
     my $arch    = get_required_var('ARCH');
     die "$module needs to be part of SCC_ADDONS for this test" unless check_var_array('SCC_ADDONS', $abbrv);
@@ -48,7 +50,7 @@ sub run {
     }
 
     # register the module again, check if it is successful. OR using yast_scc_registration();
-    assert_script_run "SUSEConnect -p $module/$version/$arch";
+    suseconnect_register::command_register($version, $abbrv);
     assert_script_run("SUSEConnect --status-text | grep -A 3 $module | grep \"^\\s*Registered\"", 200);
 }
 

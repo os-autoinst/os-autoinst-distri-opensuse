@@ -77,6 +77,7 @@ our @EXPORT = qw(
   snapper_revert_system
   get_root_console_tty
   OPENQA_FTP_URL
+  get_addon_fullname
 );
 
 
@@ -1337,6 +1338,27 @@ sub snapper_revert_system {
 =cut
 sub get_root_console_tty {
     return (sle_version_at_least('15') && !is_caasp) ? 6 : 2;
+}
+
+sub get_addon_fullname {
+    my ($addon) = @_;
+
+    # extensions product list
+    my %product_list = (
+        'ha'    => 'sle-ha',
+        'geo'   => 'sle-ha-geo',
+        'we'    => 'sle-we',
+        'sdk'   => 'sle-sdk',
+        'live'  => 'sle-live-patching',
+        'asmm'  => 'sle-module-adv-systems-management',
+        'contm' => 'sle-module-containers',
+        'hpcm'  => 'sle-module-hpc',
+        'lgm'   => 'sle-module-legacy',
+        'pcm'   => 'sle-module-public-cloud',
+        'tcm'   => 'sle-module-toolchain',
+        'wsm'   => 'sle-module-web-scripting',
+    );
+    return $product_list{"$addon"};
 }
 
 1;
