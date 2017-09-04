@@ -20,6 +20,7 @@ use utils 'zypper_call';
 sub run {
   my ($self) = @_;
   if (check_var('SUMA_SALT_MINION', 'branch')) {
+    $self->register_barriers('build_image', 'image_registered', 'image_synced');
     select_console 'root-console';
 
     assert_script_run 'mkdir -p /usr/share/kiwi/image/saltboot/root/etc/salt/minion.d';
@@ -42,16 +43,17 @@ sub run {
       , 2000;
     script_output 'ls -l /built-image';
 
-    barrier_wait('build_image');
-    barrier_wait('image_registered');
-    barrier_wait('image_synced');
+    $self->registered_barrier_wait('build_image');
+    $self->registered_barrier_wait('image_registered');
+    $self->registered_barrier_wait('image_synced');
 
     assert_script_run 'test -f /srv/tftpboot/boot/initrd.gz';
     assert_script_run 'test -f /srv/tftpboot/boot/linux';
 
   } 
   elsif (check_var('SUMA_SALT_MINION', 'terminal')) {
-    barrier_wait('build_image');
+    $self->register_barriers('build_image');
+    $self->registered_barrier_wait('build_image');
   }
   else {
     select_console 'root-console';
@@ -60,7 +62,8 @@ sub run {
     assert_script_run 'systemctl restart salt-master';
     barrier_create('image_registered', 2);
     barrier_create('image_synced', 2);
-    barrier_wait('build_image');
+    $self->register_barriers('build_image', 'image_registered', 'image_synced');
+    $self->registered_barrier_wait('build_image');
 
     assert_script_run 'salt -t 1000 suma-branch\* cp.push /built-image/POS_Image_JeOS5.x86_64-6.0.0', 1000;
     assert_script_run 'salt -t 1000 suma-branch\* cp.push /built-image/initrd-netboot-suse-SLES12.x86_64-2.1.1.gz', 1000;
@@ -120,7 +123,7 @@ EOT
     - suma_test" > /srv/pillar/top.sls';
     script_output 'cat /srv/pillar/*';
     script_output 'salt suma-branch\* pillar.items';
-    barrier_wait('image_registered');
+    $self->registered_barrier_wait('image_registered');
 
     $self->check_and_add_repo();
     zypper_call("in image-sync-formula");
@@ -128,7 +131,7 @@ EOT
     script_output 'salt -t 1000 suma-branch\* state.apply image-sync';
 
     select_console 'x11', tags => 'suma_welcome_screen';
-    barrier_wait('image_synced');
+    $self->registered_barrier_wait('image_synced');
   }
 }
 

@@ -20,6 +20,8 @@ use utils 'zypper_call', 'pkcon_quit';
 use selenium;
 
 sub run {
+  my $self = shift;
+  $self->register_barriers('suma_master_ready');
   select_console('root-console');
   type_string "chown $username /dev/$serialdev\n";
 
@@ -84,7 +86,7 @@ sub run {
   send_key('ctrl-d');
 
   # allow minion to continue
-  barrier_wait('suma_master_ready');
+  $self->registered_barrier_wait('suma_master_ready');
 }
 
 sub test_flags {

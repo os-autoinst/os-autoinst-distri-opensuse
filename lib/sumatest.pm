@@ -15,13 +15,37 @@ use 5.018;
 use testapi;
 use utils 'zypper_call';
 use mm_network;
+use lockapi;
 use selenium;
+
+sub register_barriers {
+  my $self = shift;
+  $self->{registered_barriers} = [@_];
+}
+
+sub registered_barrier_wait {
+  my $self = shift;
+  my $barrier = shift;
+  my $next_reg = shift @{$self->{registered_barriers}};
+  die "barrier $barrier is not registered (next registered barrier: $next_reg)" unless $barrier eq $next_reg;
+  barrier_wait($barrier);
+}
 
 sub post_fail_hook() {
     my ($self) = @_;
-    $self->SUPER::post_fail_hook;
-    $self->export_suma_logs;
-    save_screenshot;
+
+    eval {
+      $self->SUPER::post_fail_hook;
+      $self->export_suma_logs;
+      save_screenshot;
+    };
+    my $res = $@;
+
+    while (@{$self->{registered_barriers}} > 0) {
+      $self->registered_barrier_wait($self->{registered_barriers}->[0]);
+    }
+
+    die $res if $res;
 }
 
 sub post_run_hook {

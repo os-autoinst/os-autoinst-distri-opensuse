@@ -34,21 +34,22 @@ sub post_fail_hook() {
 
 sub run {
   my ($self) = @_;
+  $self->register_barriers('saltboot_orchestrate', 'saltboot_orchestrate_finish');
   if (check_var('SUMA_SALT_MINION', 'branch')) {
-    barrier_wait('saltboot_orchestrate');
-    barrier_wait('saltboot_orchestrate_finish');
+    $self->registered_barrier_wait('saltboot_orchestrate');
+    $self->registered_barrier_wait('saltboot_orchestrate_finish');
     script_output 'ls -l /srv/tftpboot/boot/pxelinux.cfg/';
 
     assert_script_run 'ls /srv/tftpboot/boot/pxelinux.cfg |grep ^01- ';
   }
   elsif (check_var('SUMA_SALT_MINION', 'terminal')) {
     select_console 'root-console';
-    barrier_wait('saltboot_orchestrate');
+    $self->registered_barrier_wait('saltboot_orchestrate');
     type_string "shutdown -r now\n";
     assert_screen("suma-image-pxe", 300);
     assert_screen("suma-image-login", 300);
 
-    barrier_wait('saltboot_orchestrate_finish');
+    $self->registered_barrier_wait('saltboot_orchestrate_finish');
 
     # clear kiwidebug console
     send_key 'alt-f2';
@@ -73,7 +74,7 @@ sub run {
     assert_script_run 'salt -l debug -I "dhcpd:domain_name:internal.suma.openqa.suse.de" test.ping';
     select_console 'x11', tags => 'suma_welcome_screen';
 
-    barrier_wait('saltboot_orchestrate');
+    $self->registered_barrier_wait('saltboot_orchestrate');
     my $driver = selenium_driver();
 
     wait_for_link("Pending Minions", -tries => 50, -wait => 5, -reload_after_tries => 3);
@@ -88,7 +89,7 @@ sub run {
       save_screenshot;
     }
 
-    barrier_wait('saltboot_orchestrate_finish');
+    $self->registered_barrier_wait('saltboot_orchestrate_finish');
     wait_for_xpath("//a[\@href='/']")->click();
     wait_for_page_to_load;
     assert_screen('suma_welcome_screen');

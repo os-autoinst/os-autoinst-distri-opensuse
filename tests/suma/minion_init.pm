@@ -41,4 +41,8 @@ sub run {
   barrier_wait('suma_minion_ready');
 }
 
+sub test_flags() {
+    return {fatal => 1, milestone => 1};
+}
+
 1;

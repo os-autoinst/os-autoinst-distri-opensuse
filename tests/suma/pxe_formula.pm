@@ -18,13 +18,14 @@ use selenium;
 
 sub run {
   my ($self) = @_;
+  $self->register_barriers('pxe_formula', 'pxe_formula_finish');
   if (check_var('SUMA_SALT_MINION', 'branch')) {
-    barrier_wait('pxe_formula');
-    barrier_wait('pxe_formula_finish');
+    $self->registered_barrier_wait('pxe_formula');
+    $self->registered_barrier_wait('pxe_formula_finish');
   } 
   elsif (check_var('SUMA_SALT_MINION', 'terminal')) {
-    barrier_wait('pxe_formula');
-    barrier_wait('pxe_formula_finish');
+    $self->registered_barrier_wait('pxe_formula');
+    $self->registered_barrier_wait('pxe_formula_finish');
   }
   else {
     $self->install_formula('pxe-formula');
@@ -46,8 +47,8 @@ sub run {
     
     $self->apply_highstate();
 
-    barrier_wait('pxe_formula');
-    barrier_wait('pxe_formula_finish');
+    $self->registered_barrier_wait('pxe_formula');
+    $self->registered_barrier_wait('pxe_formula_finish');
  
   }
 }

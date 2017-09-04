@@ -77,13 +77,14 @@ sub create_group_for_hwtype {
 
 sub run {
   my ($self) = @_;
+  $self->register_barriers('saltboot_formula', 'saltboot_formula_finish');
   if (check_var('SUMA_SALT_MINION', 'branch')) {
-    barrier_wait('saltboot_formula');
-    barrier_wait('saltboot_formula_finish');
+    $self->registered_barrier_wait('saltboot_formula');
+    $self->registered_barrier_wait('saltboot_formula_finish');
   } 
   elsif (check_var('SUMA_SALT_MINION', 'terminal')) {
-    barrier_wait('saltboot_formula');
-    barrier_wait('saltboot_formula_finish');
+    $self->registered_barrier_wait('saltboot_formula');
+    $self->registered_barrier_wait('saltboot_formula_finish');
   }
   else {
     $self->install_formula('saltboot-formula');
@@ -114,8 +115,8 @@ sub run {
     }
 
     # signal minion to check configuration
-    barrier_wait('saltboot_formula');
-    barrier_wait('saltboot_formula_finish');
+    $self->registered_barrier_wait('saltboot_formula');
+    $self->registered_barrier_wait('saltboot_formula_finish');
   }
 }
 

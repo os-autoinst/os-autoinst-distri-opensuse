@@ -18,18 +18,19 @@ use selenium;
 
 sub run {
   my ($self) = @_;
+  $self->register_barriers('bind_formula', 'bind_formula_finish');
   if (check_var('SUMA_SALT_MINION', 'branch')) {
-    barrier_wait('bind_formula');
+    $self->registered_barrier_wait('bind_formula');
     script_output('cat /etc/named.d/named.conf.local');
     script_output('cat /var/lib/named/branch1.txt');
     assert_script_run 'host salt.internal.suma.openqa.suse.de 127.0.0.1 | grep 10.0.2.10';
     assert_script_run 'host branchserver1.internal.suma.openqa.suse.de 127.0.0.1 | grep 192.168.1.1';
     assert_script_run 'host tftp.internal.suma.openqa.suse.de 127.0.0.1 | grep 192.168.1.1';
-    barrier_wait('bind_formula_finish');
+    $self->registered_barrier_wait('bind_formula_finish');
   } 
   elsif (check_var('SUMA_SALT_MINION', 'terminal')) {
-    barrier_wait('bind_formula');
-    barrier_wait('bind_formula_finish');
+    $self->registered_barrier_wait('bind_formula');
+    $self->registered_barrier_wait('bind_formula_finish');
   }
   else {
     $self->install_formula('bind-formula');
@@ -120,8 +121,8 @@ EOT
 #      assert_and_click('suma-system-highstate-finish');
 #    };
 #    send_key_until_needlematch('suma-system-highstate-success', 'pgdn');
-    barrier_wait('bind_formula');
-    barrier_wait('bind_formula_finish');
+    $self->registered_barrier_wait('bind_formula');
+    $self->registered_barrier_wait('bind_formula_finish');
  
   }
 }

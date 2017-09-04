@@ -24,13 +24,13 @@ sub run {
   my $testip = '192.168.1.1';
   
   if (check_var('SUMA_SALT_MINION', 'branch')) {
- 
+    $self->register_barriers('tftp_formula', 'tftp_ready', 'tftp_formula_finish');
     #need to create after tftp_formula barrier is breached, or creation will be too early    
     my $bn= keys get_children();
     barrier_create('tftp_ready', $bn+1);  
 
     # configure second interface for tftp
-    barrier_wait('tftp_formula');
+    $self->registered_barrier_wait('tftp_formula');
     
     # minion test
     script_run('systemctl status atftpd.service');
@@ -54,12 +54,13 @@ sub run {
 
     save_screenshot;
     
-    barrier_wait('tftp_ready');  
-    barrier_wait('tftp_formula_finish');
+    $self->registered_barrier_wait('tftp_ready');
+    $self->registered_barrier_wait('tftp_formula_finish');
   } 
   elsif (check_var('SUMA_SALT_MINION', 'terminal')) {
-    barrier_wait('tftp_formula');
-    barrier_wait('tftp_ready');  
+    $self->register_barriers('tftp_formula', 'tftp_ready', 'tftp_formula_finish');
+    $self->registered_barrier_wait('tftp_formula');
+    $self->registered_barrier_wait('tftp_ready');
 
     script_run('rcSuSEfirewall2 status');
     script_run('rcSuSEfirewall2 stop');
@@ -71,9 +72,10 @@ sub run {
     type_string('quit');send_key('ret');
     assert_script_run('diff test /tmp/test2cmp'); 
 
-    barrier_wait('tftp_formula_finish');
+    $self->registered_barrier_wait('tftp_formula_finish');
   }
   else {
+    $self->register_barriers('tftp_formula', 'tftp_formula_finish');
     $self->install_formula('tftp-formula');
     $self->select_formula('tftp','Tftp');
 
@@ -92,8 +94,8 @@ sub run {
     $self->apply_highstate();
 
     # signal minion to check configuration
-    barrier_wait('tftp_formula');
-    barrier_wait('tftp_formula_finish');
+    $self->registered_barrier_wait('tftp_formula');
+    $self->registered_barrier_wait('tftp_formula_finish');
   }
 }
 

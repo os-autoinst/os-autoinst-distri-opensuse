@@ -18,17 +18,18 @@ use selenium;
 
 sub run {
   my ($self) = @_;
+  $self->register_barriers('branch_network_formula', 'branch_network_formula_finish');
   if (check_var('SUMA_SALT_MINION', 'branch')) {
-    barrier_wait('branch_network_formula');
+    $self->registered_barrier_wait('branch_network_formula');
     assert_script_run('ip a');
     assert_script_run('ip a | grep 192.168.1.1');
     assert_script_run('grep "^FW_DEV_INT=.*eth1" /etc/sysconfig/SuSEfirewall2');
     assert_script_run('grep "^FW_ROUTE=.*yes" /etc/sysconfig/SuSEfirewall2');
-    barrier_wait('branch_network_formula_finish');
+    $self->registered_barrier_wait('branch_network_formula_finish');
   } 
   elsif (check_var('SUMA_SALT_MINION', 'terminal')) {
-    barrier_wait('branch_network_formula');
-    barrier_wait('branch_network_formula_finish');
+    $self->registered_barrier_wait('branch_network_formula');
+    $self->registered_barrier_wait('branch_network_formula_finish');
   }
   else {
     $self->install_formula('branch-network-formula');
@@ -55,8 +56,8 @@ sub run {
     
     $self->apply_highstate();
 
-    barrier_wait('branch_network_formula');
-    barrier_wait('branch_network_formula_finish');
+    $self->registered_barrier_wait('branch_network_formula');
+    $self->registered_barrier_wait('branch_network_formula_finish');
 
   }
 }

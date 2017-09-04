@@ -24,12 +24,12 @@ sub run {
   my $testip = '192.168.1.1';
   
   if (check_var('SUMA_SALT_MINION', 'branch')) {
- 
+    $self->register_barriers('vsftpd_formula', 'vsftpd_ready', 'vsftpd_formula_finish');
     my $bn= keys get_children();
     barrier_create('vsftpd_ready', $bn+1);  
 
     # configure second interface for vsftpd
-    barrier_wait('vsftpd_formula');
+    $self->registered_barrier_wait('vsftpd_formula');
 
     #FIXME: workaround for ftp directory
     script_run('mount --bind /srv/tftpboot /srv/ftp');
@@ -55,21 +55,23 @@ sub run {
     
     save_screenshot;
     
-    barrier_wait('vsftpd_ready');  
-    barrier_wait('vsftpd_formula_finish');
+    $self->registered_barrier_wait('vsftpd_ready');
+    $self->registered_barrier_wait('vsftpd_formula_finish');
   } 
   elsif (check_var('SUMA_SALT_MINION', 'terminal')) {
-    barrier_wait('vsftpd_formula');
-    barrier_wait('vsftpd_ready');  
+    $self->register_barriers('vsftpd_formula', 'vsftpd_ready', 'vsftpd_formula_finish');
+    $self->registered_barrier_wait('vsftpd_formula');
+    $self->registered_barrier_wait('vsftpd_ready');
 
     #download test:
     script_run('echo "vsftpd_test" > ./vsftpd_test2cmp');
     assert_script_run('curl ftp://'.$testip.'/vsftpd_test > vsftpd_test_terminal_dwl');
     assert_script_run('diff vsftpd_test2cmp vsftpd_test_terminal_dwl'); 
       
-    barrier_wait('vsftpd_formula_finish');
+    $self->registered_barrier_wait('vsftpd_formula_finish');
   }
   else {
+    $self->register_barriers('vsftpd_formula', 'vsftpd_formula_finish');
     $self->install_formula('vsftpd-formula');
     $self->select_formula('vsftpd','Vsftpd');
 
@@ -86,8 +88,8 @@ sub run {
     $self->apply_highstate();
 
     # signal minion to check configuration
-    barrier_wait('vsftpd_formula');
-    barrier_wait('vsftpd_formula_finish');
+    $self->registered_barrier_wait('vsftpd_formula');
+    $self->registered_barrier_wait('vsftpd_formula_finish');
   }
 }
 

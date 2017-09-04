@@ -23,30 +23,33 @@ sub run {
     # barriers for salt terminal(s)
     my $n = keys get_children();
     barrier_create('dhcp_ready', $n+1);
+    $self->register_barriers('dhcpd_formula', 'dhcp_ready', 'dhcpd_formula_finish');
 
     assert_script_run 'ip addr';
-    barrier_wait('dhcpd_formula');
+    $self->registered_barrier_wait('dhcpd_formula');
 
     # minion test
     assert_script_run('systemctl is-active dhcpd.service');
     # TODO check files are proper
     # allow salt terminal to continue
-    barrier_wait('dhcp_ready');
+    $self->registered_barrier_wait('dhcp_ready');
     # and wait for it to finish, and allow salt master to continue
-    barrier_wait('dhcpd_formula_finish');
+    $self->registered_barrier_wait('dhcpd_formula_finish');
   } 
   elsif (check_var('SUMA_SALT_MINION', 'terminal')) {
-    barrier_wait('dhcpd_formula');
-    barrier_wait('dhcp_ready');
+    $self->register_barriers('dhcpd_formula', 'dhcp_ready', 'dhcpd_formula_finish');
+    $self->registered_barrier_wait('dhcpd_formula');
+    $self->registered_barrier_wait('dhcp_ready');
     assert_script_run('/usr/lib/wicked/bin/wickedd-dhcp4 --test eth0');
     assert_script_run "echo \"STARTMODE='auto'\nBOOTPROTO='dhcp4'\n'\" > /etc/sysconfig/network/ifcfg-eth0";
     assert_script_run 'systemctl restart network';
     assert_script_run 'ifup eth0';
     assert_script_run 'ip addr';
 
-    barrier_wait('dhcpd_formula_finish');
+    $self->registered_barrier_wait('dhcpd_formula_finish');
   }
   else {
+    $self->register_barriers('dhcpd_formula', 'dhcpd_formula_finish');
     $self->install_formula('dhcpd-formula');
     $self->select_formula('dhcpd','Dhcpd');
 
@@ -95,8 +98,8 @@ sub run {
     $self->apply_highstate();
 
     # signal minion to check configuration
-    barrier_wait('dhcpd_formula');
-    barrier_wait('dhcpd_formula_finish');
+    $self->registered_barrier_wait('dhcpd_formula');
+    $self->registered_barrier_wait('dhcpd_formula_finish');
   }
 }
 
