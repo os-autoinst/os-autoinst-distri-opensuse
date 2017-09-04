@@ -20,7 +20,7 @@ sub run {
 
     select_console('root-console');
     zypper_call('ar -f -G ' . get_required_var('QA_HEAD_REPO') . ' qa_head');
-    zypper_call('in -l bats');
+    zypper_call('in -l bats hiworkload');
 
     if (check_var('DISTRI', 'sle') and get_var('INCIDENT_PATCH', '')) {
         my $version = get_required_var('VERSION') =~ s/-SP/\./gr;
