@@ -21,15 +21,20 @@ use Exporter;
 use strict;
 
 use testapi;
-use utils qw(addon_decline_license assert_screen_with_soft_timeout);
+use utils qw(addon_decline_license assert_screen_with_soft_timeout sle_version_at_least);
 
 our @EXPORT = qw(fill_in_registration_data registration_bootloader_params yast_scc_registration skip_registration);
 
 sub fill_in_registration_data {
     my ($addon, $uc_addon);
     if (!get_var("HDD_SCC_REGISTERED")) {
-        send_key "alt-m";        # select email field if yast2 add-on
-        send_key "alt-e";        # select email field if installation
+        # SLE 15 & textmode
+        if (sle_version_at_least('15') && check_var('DESKTOP', 'textmode')) {
+            send_key "alt-m";    # select email field if yast2 add-on
+        }
+        else {
+            send_key "alt-e";    # select email field if installation
+        }
         send_key "backspace";    # delete m or e
         type_string get_required_var('SCC_EMAIL') if get_var('SCC_EMAIL');
         save_screenshot;         # show typed value or empty fields also as synchronization
