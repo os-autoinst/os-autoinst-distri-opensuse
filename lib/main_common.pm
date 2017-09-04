@@ -50,6 +50,10 @@ our @EXPORT = qw(
   load_wicked_tests
   load_iso_in_external_tests
   load_x11regression_documentation
+  load_security_tests_core
+  load_security_tests_web
+  load_security_tests_misc
+  load_security_tests_crypt
 );
 
 sub init_main {
@@ -623,6 +627,68 @@ sub load_x11regression_documentation {
         loadtest "x11regressions/libreoffice/libreoffice_open_specified_file";
         loadtest "x11regressions/libreoffice/libreoffice_double_click_file";
     }
+}
+
+# Move fips testsuites to main_common to apply to SLE_FIPS + openSUSE
+# Rename load_fips_tests_* to load_security_tests_* to avoid confusedness since
+# openSUSE does NOT have FIPS mode
+# Some tests are only valid for SLE FIPS and loaded if defined variables set
+sub load_security_tests_core {
+    if (check_var('DISTRI', 'sle') && get_var('FIPS_TS')) {
+        loadtest "fips/openssl/openssl_fips_alglist";
+        loadtest "fips/openssl/openssl_fips_hash";
+        loadtest "fips/openssl/openssl_fips_cipher";
+        loadtest "fips/openssh/openssh_fips";
+    }
+    loadtest "fips/openssl/openssl_pubkey_rsa";
+    loadtest "fips/openssl/openssl_pubkey_dsa";
+    if (sle_version_at_least('12-SP2') || check_var('VERSION', 'Tumbleweed')) {
+        loadtest "console/openssl_alpn";
+    }
+    loadtest "console/sshd";
+    loadtest "console/ssh_pubkey";
+    loadtest "console/ssh_cleanup";
+    loadtest "console/consoletest_finish";
+}
+
+sub load_security_tests_web {
+    loadtest "console/curl_https";
+    loadtest "console/wget_https";
+    loadtest "console/w3m_https";
+    loadtest "console/apache_ssl";
+    if (check_var('DISTRI', 'sle') && get_var('FIPS_TS')) {
+        loadtest "fips/mozilla_nss/apache_nssfips";
+        loadtest "console/libmicrohttpd";
+    }
+    loadtest "console/consoletest_finish";
+    if (check_var('DISTRI', 'sle') && get_var('FIPS_TS')) {
+        loadtest "fips/mozilla_nss/firefox_nss";
+    }
+}
+
+sub load_security_tests_misc {
+    if (check_var('DISTRI', 'sle') && get_var('FIPS_TS')) {
+        loadtest "fips/curl_fips_rc4_seed";
+        loadtest "console/aide_check";
+    }
+    loadtest "console/journald_fss";
+    loadtest "console/git";
+    loadtest "console/consoletest_finish";
+    # In SLE, the hexchat package is provided only in WE addon which is
+    # only for x86_64 platform. Then hexchat is x86_64 specific and not
+    # appropriate for other arches.
+    loadtest "x11/hexchat_ssl" if (check_var('ARCH', 'x86_64'));
+    loadtest "x11/x3270_ssl";
+}
+
+sub load_security_tests_crypt {
+    if (check_var('DISTRI', 'sle') && get_var('FIPS_TS')) {
+        loadtest "fips/ecryptfs_fips";
+    }
+    loadtest "console/gpg";
+    loadtest "console/yast2_dm_crypt";
+    loadtest "console/cryptsetup";
+    loadtest "console/consoletest_finish";
 }
 
 1;
