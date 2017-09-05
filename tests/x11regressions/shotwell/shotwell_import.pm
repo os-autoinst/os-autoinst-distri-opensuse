@@ -11,7 +11,6 @@
 # Maintainer: Chingkai <qkzhu@suse.com>
 
 use base "x11regressiontest";
-use base "x11regressiontest";
 use strict;
 use testapi;
 
@@ -21,9 +20,7 @@ sub run {
     my $self     = shift;
     my @pictures = qw(shotwell_test.jpg shotwell_test.png);
 
-    x11_start_program("shotwell");
-    assert_screen 'shotwell-first-launch';
-    wait_screen_change { send_key "ret"; };
+    $self->start_shotwell();
 
     # Import two test pictures into the library
     $self->import_pictures(\@pictures);

@@ -20,8 +20,8 @@ sub run {
     my $self     = shift;
     my @pictures = qw(shotwell_test.jpg shotwell_test.png);
 
-    x11_start_program("shotwell");
-    assert_screen 'shotwell-launched';
+    # Open shotwell
+    $self->start_shotwell();
 
     # Import two test pictures into the library
     $self->import_pictures(\@pictures);

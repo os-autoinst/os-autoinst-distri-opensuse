@@ -12,7 +12,6 @@
 # Tags: tc#1503754
 
 use base "x11regressiontest";
-use base "x11regressiontest";
 use strict;
 use testapi;
 
@@ -20,8 +19,8 @@ sub run {
     my $self     = shift;
     my @pictures = qw(shotwell_test.jpg shotwell_test.png);
 
-    x11_start_program("shotwell");
-    assert_screen 'shotwell-launched';
+    # Open shotwell
+    $self->start_shotwell;
 
     # Import two test pictures into the library
     $self->import_pictures(\@pictures);
@@ -30,7 +29,7 @@ sub run {
     send_key "alt-home";
     send_key "ctrl-shift-e";
     assert_screen 'shotwell-export-prompt';
-    send_key "alt-f";    # Choose jepg format to export
+    send_key "alt-f";    # Choose jpeg format to export
     send_key "down";
     assert_screen 'shotwell-export-jepg';
     send_key "alt-o";
@@ -50,7 +49,6 @@ sub run {
 
     # Clean shotwell's library then remove the test pictures
     $self->clean_shotwell();
-    x11_start_program("rm /home/$username/Desktop/shotwell_test.jpg");
 }
 
 1;
