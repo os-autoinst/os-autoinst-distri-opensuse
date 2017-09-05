@@ -15,6 +15,7 @@ use needle;
 use utils qw(is_hyperv_in_gui sle_version_at_least);
 use File::Find;
 use File::Basename;
+use LWP::Simple 'head';
 
 BEGIN {
     unshift @INC, dirname(__FILE__) . '/../../lib';
@@ -287,30 +288,54 @@ if (get_var('DEV_IMAGE')) {
 
 # This is workaround setting which will be removed once SCC add repos and allows adding modules
 # TODO: remove when not used anymore
-if (get_var('ALL_MODULES') && sle_version_at_least('15')) {
-    my $arch    = get_required_var("ARCH");
-    my $build   = get_required_var("BUILD");
-    my $version = get_required_var("VERSION");
-    # We already have needles with names which are different we would use here
-    # As it's only workaround, better not to create another set of needles.
-    my %modules = (
-        base      => 'Basesystem',
-        sdk       => 'Development-Tools',
-        desktop   => 'DESKTOP-Applications',
-        legacy    => 'Legacy',
-        script    => 'Scripting',
-        serverapp => 'SERVER-Applications'
-    );
-    my $addonurl;
-
-    while (my ($short_name, $full_name) = each %modules) {
-        $addonurl .= "$short_name,";
-        my $module_repo_name = get_var("REPO_SLE${version}_MODULE_" . uc $full_name, "SLE-$version-Module-$full_name-POOL-$arch-Build$build-Media1/");
-        set_var('ADDONURL_' . uc $short_name, "$utils::OPENQA_FTP_URL/$module_repo_name");
+if (sle_version_at_least('15')) {
+    my @modules;
+    if (get_var('ALL_MODULES')) {
+        # By default add all modules
+        @modules = qw(base sdk desktop legacy script serverapp);
     }
-    #remove last comma from ADDONURL setting value
-    $addonurl =~ s/,$//;
-    set_var("ADDONURL", $addonurl);
+    # If WORKAROUND_MODULES contains a list of modules, add only them
+    if (get_var('WORKAROUND_MODULES')) {
+        @modules = split(/,/, get_var('WORKAROUND_MODULES'));
+    }
+    if (@modules) {
+        my $arch    = get_required_var("ARCH");
+        my $build   = get_required_var("BUILD");
+        my $version = get_required_var("VERSION");
+        # We already have needles with names which are different we would use here
+        # As it's only workaround, better not to create another set of needles.
+        my %modules = (
+            base      => 'Basesystem',
+            sdk       => 'Development-Tools',
+            desktop   => 'DESKTOP-Applications',
+            legacy    => 'Legacy',
+            script    => 'Scripting',
+            serverapp => 'SERVER-Applications'
+        );
+        my $addonurl;
+
+        for my $short_name (@modules) {
+            my $full_name = $modules{$short_name};
+            my $repo_name = uc $full_name;
+            # Replace dashes with underscore symbols
+            $repo_name =~ s/-/_/;
+            my $prefix = "SLE-$version";
+            # Add staging prefix
+            if (is_staging()) {
+                $prefix .= "-Staging:" . get_var("STAGING");
+            }
+            my $module_repo_name = get_var("REPO_SLE${version}_MODULE_${repo_name}", "$prefix-Module-$full_name-POOL-$arch-Build$build-Media1");
+            my $url = "$utils::OPENQA_FTP_URL/$module_repo_name";
+            # Verify if url exists before adding
+            if (head($url)) {
+                set_var('ADDONURL_' . uc $short_name, "$utils::OPENQA_FTP_URL/$module_repo_name");
+                $addonurl .= "$short_name,";
+            }
+        }
+        #remove last comma from ADDONURL setting value
+        $addonurl =~ s/,$//;
+        set_var("ADDONURL", $addonurl);
+    }
 }
 
 if (get_var('ENABLE_ALL_SCC_MODULES') && !get_var('SCC_MODULES')) {
@@ -566,8 +591,8 @@ sub load_inst_tests {
             loadtest "installation/disk_space_fill";
         }
     }
-    if (sle_version_at_least('15') && !is_staging()) {
-        loadtest "installation/select_products_sle";
+    if (sle_version_at_least('15')) {
+        loadtest "installation/select_products_sle" unless is_staging();
         loadtest "installation/accept_license" if get_var('HASLICENSE');
     }
     if (check_var('SCC_REGISTER', 'installation')) {

@@ -67,9 +67,22 @@ sub run {
     mouse_hide;
     wait_still_screen(3);
 
-    # license+lang
-    # On sle 15 license is on different screen
-    if (!sle_version_at_least('15') || is_staging()) {
+    # license+lang +product (on sle15)
+    # On sle 15 license is on different screen, here select the product
+    if (sle_version_at_least('15')) {
+        if (check_var('STAGING', 'Y')) {
+            assert_screen('select-product');
+            my %hotkey = (
+                sles   => 'u',
+                sled   => 'i',
+                leanos => 's'
+            );
+            my $product = get_required_var('SLE_PRODUCT');
+            send_key 'alt-' . $hotkey{$product};
+            assert_screen('select-product-' . $product);
+        }
+    }
+    else {
         $self->verify_license_has_to_be_accepted;
     }
 
