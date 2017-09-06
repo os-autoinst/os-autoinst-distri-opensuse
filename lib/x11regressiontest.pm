@@ -18,6 +18,15 @@ use testapi;
 use utils;
 use POSIX 'strftime';
 
+# Start shotwell and handle the welcome screen, if there
+sub start_shotwell {
+    x11_start_program("shotwell");
+    assert_screen [qw(shotwell-first-launch shotwell-launched)];
+    if (match_has_tag "shotwell-first-launch") {
+        wait_screen_change { send_key "ret" };
+    }
+}
+
 # import_pictures helps shotwell to import test pictures into shotwell's library.
 sub import_pictures {
     my ($self, $pictures) = @_;
@@ -49,7 +58,8 @@ sub import_pictures {
 sub clean_shotwell {
     # Clean shotwell's database
     x11_start_program("rm -rf /home/$username/.local/share/shotwell");
-
+    # Clean shotwell cache files
+    x11_start_program("rm -rf /home/$username/.cache/shotwell");
     # Remove test pictures
     x11_start_program("rm /home/$username/Documents/shotwell_test.*");
 }
