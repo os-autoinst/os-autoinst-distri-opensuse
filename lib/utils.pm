@@ -248,15 +248,15 @@ sub is_hyperv_in_gui {
 }
 
 sub is_krypton_argon {
-    return get_var('FLAVOR') =~ /(Krypton|Argon)/;
+    return get_var('FLAVOR', '') =~ /(Krypton|Argon)/;
 }
 
 sub is_kde_live {
-    return get_var('FLAVOR') =~ /KDE-Live/;
+    return get_var('FLAVOR', '') =~ /KDE-Live/;
 }
 
 sub is_gnome_next {
-    return get_var('FLAVOR') =~ /Gnome-Live/;
+    return get_var('FLAVOR', '') =~ /Gnome-Live/;
 }
 
 # Check if distribution is CASP
