@@ -18,7 +18,7 @@
 use base qw(consoletest distribution);
 use strict;
 use testapi;
-use utils qw(zypper_call sle_version_at_least);
+use utils qw(zypper_call sle_version_at_least pkcon_quit);
 
 
 sub run {
@@ -30,6 +30,8 @@ sub run {
         record_soft_failure 'bsc#1054782';
     }
     select_console('root-console');
+    # Stop packagekit
+    pkcon_quit;
     # Kernel devel packages are not in the dev tools module, so add standard repos
     record_soft_failure('bsc#1054062');    # Once bug is resolved, this code can be removed
     zypper_call('ar http://download.suse.de/ibs/SUSE:/SLE-15:/GA/standard/SUSE:SLE-15:GA.repo');
