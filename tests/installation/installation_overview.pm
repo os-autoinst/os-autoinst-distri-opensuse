@@ -20,8 +20,7 @@ use utils 'sle_version_at_least';
 
 sub run {
     my ($self) = shift;
-    # Softfail not to forget remove workaround
-    record_soft_failure('bsc#1054974') if get_var('ALL_MODULES');
+
     # overview-generation
     # this is almost impossible to check for real
     assert_screen "installation-settings-overview-loaded";

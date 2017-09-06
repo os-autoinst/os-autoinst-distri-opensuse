@@ -20,6 +20,12 @@ use qam 'advance_installer_window';
 sub run {
     my ($self) = @_;
 
+    # Softfail not to forget remove workaround
+    # TODO: Remove once fixed for SLE15
+    if (get_var('ALL_MODULES') || get_var('WORKAROUND_MODULES')) {
+        record_soft_failure('bsc#1054974');
+    }
+
     if (get_var('SKIP_INSTALLER_SCREEN', 0)) {
         advance_installer_window('inst-addon');
         set_var('SKIP_INSTALLER_SCREEN', 0);
