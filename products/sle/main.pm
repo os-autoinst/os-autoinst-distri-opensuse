@@ -465,28 +465,6 @@ sub load_x11regression_message {
     }
 }
 
-sub load_x11regression_other {
-    if (check_var("DESKTOP", "gnome")) {
-        loadtest "x11regressions/shotwell/shotwell_import";
-        loadtest "x11regressions/shotwell/shotwell_edit";
-        loadtest "x11regressions/shotwell/shotwell_export";
-        loadtest "virtualization/yast_virtualization";
-        loadtest "virtualization/virtman_view";
-    }
-    if (get_var("DESKTOP") =~ /kde|gnome/) {
-        loadtest "x11regressions/tracker/prep_tracker";
-        loadtest "x11regressions/tracker/tracker_starts";
-        loadtest "x11regressions/tracker/tracker_searchall";
-        loadtest "x11regressions/tracker/tracker_pref_starts";
-        loadtest "x11regressions/tracker/tracker_open_apps";
-        loadtest "x11regressions/tracker/tracker_by_command";
-        loadtest "x11regressions/tracker/tracker_info";
-        loadtest "x11regressions/tracker/tracker_search_in_nautilus";
-        loadtest "x11regressions/tracker/tracker_mainmenu";
-        loadtest "x11regressions/tracker/clean_tracker";
-    }
-}
-
 sub load_x11regression_remote {
     # load onetime vncsession testing
     if (check_var('REMOTE_DESKTOP_TYPE', 'one_time_vnc')) {

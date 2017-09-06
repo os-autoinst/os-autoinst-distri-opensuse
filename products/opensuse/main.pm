@@ -763,6 +763,10 @@ elsif (get_var("REGRESSION")) {
         loadtest "boot/boot_to_desktop";
         load_x11regression_documentation();
     }
+    elsif (check_var("REGRESSION", "other")) {
+        loadtest "boot/boot_to_desktop";
+        load_x11regression_other();
+    }
 }
 elsif (get_var("MEDIACHECK")) {
     loadtest "installation/mediacheck";

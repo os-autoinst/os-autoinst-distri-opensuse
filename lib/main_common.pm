@@ -50,6 +50,7 @@ our @EXPORT = qw(
   load_wicked_tests
   load_iso_in_external_tests
   load_x11regression_documentation
+  load_x11regression_other
   load_security_tests_core
   load_security_tests_web
   load_security_tests_misc
@@ -633,6 +634,33 @@ sub load_x11regression_documentation {
     loadtest "x11regressions/libreoffice/libreoffice_default_theme";
     loadtest "x11regressions/libreoffice/libreoffice_open_specified_file";
     loadtest "x11regressions/libreoffice/libreoffice_double_click_file";
+}
+
+sub load_x11regression_other {
+    if (check_var("DESKTOP", "gnome")) {
+        loadtest "x11regressions/brasero/brasero_launch";
+        loadtest "x11/gnomeapps/gnome_documents";
+        loadtest "x11regressions/totem/totem_launch";
+    }
+    if (check_var('DISTRI', 'sle') && sle_version_at_least('12-SP2')) {
+        loadtest "x11regressions/shotwell/shotwell_import";
+        loadtest "x11regressions/shotwell/shotwell_edit";
+        loadtest "x11regressions/shotwell/shotwell_export";
+        loadtest "virtualization/yast_virtualization";
+        loadtest "virtualization/virtman_view";
+    }
+    if (get_var("DESKTOP") =~ /kde|gnome/) {
+        loadtest "x11regressions/tracker/prep_tracker";
+        loadtest "x11regressions/tracker/tracker_starts";
+        loadtest "x11regressions/tracker/tracker_searchall";
+        loadtest "x11regressions/tracker/tracker_pref_starts";
+        loadtest "x11regressions/tracker/tracker_open_apps";
+        loadtest "x11regressions/tracker/tracker_by_command";
+        loadtest "x11regressions/tracker/tracker_info";
+        loadtest "x11regressions/tracker/tracker_search_in_nautilus";
+        loadtest "x11regressions/tracker/tracker_mainmenu";
+        loadtest "x11regressions/tracker/clean_tracker";
+    }
 }
 
 # Move fips testsuites to main_common to apply to SLE_FIPS + openSUSE
