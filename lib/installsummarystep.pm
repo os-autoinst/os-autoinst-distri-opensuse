@@ -2,7 +2,6 @@ package installsummarystep;
 use base "y2logsstep";
 use testapi;
 use strict;
-use utils 'sle_version_at_least';
 
 
 sub accept3rdparty {
@@ -28,9 +27,7 @@ sub accept_changes_with_3rd_party_repos {
         send_key $cmd{ok};
         accept3rdparty;
     }
-    if (sle_version_at_least '15') {
-        $self->sle15_workaround_broken_patterns;
-    }
+
     assert_screen 'inst-overview';
 }
 
