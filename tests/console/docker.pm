@@ -28,8 +28,13 @@ use strict;
 sub run {
     select_console("root-console");
 
-    # install the docker package
-    zypper_call("in docker");
+    if (check_var("DISTRI", "caasp")) {
+        # Docker should be pre-installed in MicroOS
+        die "Docker is not pre-installed." if script_run("rpm -q docker");
+    }
+    else {
+        zypper_call("in docker");
+    }
 
     # start the docker daemon
     systemctl("start docker");

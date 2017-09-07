@@ -116,6 +116,9 @@ sub load_feature_tests {
 
     # Journal errors
     loadtest 'caasp/journal_check';
+
+    # Docker
+    loadtest 'console/docker';
 }
 
 sub load_stack_tests {
