@@ -17,6 +17,8 @@ use testapi;
 use utils;
 
 sub run {
+    my $git_repo = get_required_var('QA_TEST_KLP_REPO');
+    my ($test_type) = $git_repo =~ /qa_test_(\w+).git/;
 
     select_console('root-console');
     zypper_call('ar -f -G ' . get_required_var('QA_HEAD_REPO') . ' qa_head');
@@ -30,9 +32,9 @@ sub run {
 
     zypper_call('in -l git gcc kernel-devel');
 
-    assert_script_run('git clone ' . get_var('QA_TEST_KLP_REPO'));
+    assert_script_run('git clone ' . $git_repo);
 
-    assert_script_run('cd qa_test_klp;bats klp.bats');
+    assert_script_run("cd qa_test_$test_type;bats $test_type.bats", 2760);
 }
 
 1;
