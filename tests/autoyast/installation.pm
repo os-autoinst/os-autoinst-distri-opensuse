@@ -91,12 +91,9 @@ sub verify_timeout_and_check_screen {
 
 sub run {
     my ($self) = @_;
-    my @needles = qw(bios-boot nonexisting-package reboot-after-installation linuxrc-install-fail scc-invalid-url warning-pop-up);
+    my @needles = qw(bios-boot nonexisting-package reboot-after-installation linuxrc-install-fail scc-invalid-url warning-pop-up inst-betawarning);
     push @needles, 'autoyast-confirm'        if get_var('AUTOYAST_CONFIRM');
     push @needles, 'autoyast-postpartscript' if get_var('USRSCR_DIALOG');
-    if (get_var('AUTOYAST_LICENSE')) {
-        push @needles, (get_var('BETA') ? 'inst-betawarning' : 'autoyast-license');
-    }
 
     my $postpartscript = 0;
     my $confirmed      = 0;
@@ -168,8 +165,8 @@ sub run {
         }
         elsif (match_has_tag('inst-betawarning')) {
             send_key $cmd{ok};
-            assert_screen 'autoyast-license';
-            accept_license;
+            push(@needles, 'autoyast-license') if (get_var('AUTOYAST_LICENSE'));
+            next;
         }
         elsif (match_has_tag('autoyast-postpartscript')) {
             @needles = grep { $_ ne 'autoyast-postpartscript' } @needles;
