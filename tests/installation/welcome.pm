@@ -69,7 +69,7 @@ sub run {
 
     # license+lang +product (on sle15)
     # On sle 15 license is on different screen, here select the product
-    if (sle_version_at_least('15')) {
+    if (check_var('DISTRI', 'sle') && sle_version_at_least('15')) {
         assert_screen('select-product');
         my %hotkey = (
             sles   => 'u',
