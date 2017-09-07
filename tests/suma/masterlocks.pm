@@ -43,6 +43,9 @@ sub run {
     barrier_create($t, $n+1);
     barrier_create($t.'_finish', $n+1);
   }
+  #TODO: uncomment after saltboot dir works in all tests
+  #set_var('SERVER_DIR','/srv/saltboot') unless get_var('SERVER_DIR');
+  set_var('SERVER_DIR','/srv/tftpboot') unless get_var('SERVER_DIR');
   
 }
 

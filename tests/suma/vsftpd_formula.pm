@@ -20,8 +20,8 @@ use selenium;
 sub run {
   my ($self) = @_;
   
-  #TODO: get from common module / branch network test to ensure compatibility
-  my $testip = '192.168.1.1';
+  my $testip = '192.168.1.1';  #TODO: get from common module / branch network test to ensure compatibility
+  my $srvdir = get_var('SERVER_DIR');
   
   if (check_var('SUMA_SALT_MINION', 'branch')) {
     $self->register_barriers('vsftpd_formula', 'vsftpd_ready', 'vsftpd_formula_finish');
@@ -31,10 +31,8 @@ sub run {
     # configure second interface for vsftpd
     $self->registered_barrier_wait('vsftpd_formula');
 
-    #FIXME: workaround for ftp directory
-    script_run('mount --bind /srv/tftpboot /srv/ftp');
-    script_run('chmod 755 /srv/ftp');
-    script_output('ls -l /srv');
+    #FIXME: workaround for server directory ownership tbd in branch network formula
+    script_run('chmod 755 '.$srvdir);
 
     # minion test
     script_run('systemctl status vsftpd.service');
@@ -48,10 +46,10 @@ sub run {
     script_run('netstat -plutn | grep \''.$testip.':21\s\' | grep -P \'/vsftpd\s*$\' ');
 
     #download test:
-    script_run('echo "vsftpd_test" > /srv/ftp/vsftpd_test');
-    script_run('ls -l /srv/ftp');
+    script_run('echo "vsftpd_test" > '.$srvdir.'/vsftpd_test');
+    script_run('ls -l '.$srvdir);
     assert_script_run('curl ftp://'.$testip.'/vsftpd_test > vsftpd_test_dwl');
-    assert_script_run('diff /srv/ftp/vsftpd_test vsftpd_test_dwl'); 
+    assert_script_run('diff '.$srvdir.'/vsftpd_test vsftpd_test_dwl'); 
     
     save_screenshot;
     
@@ -76,9 +74,16 @@ sub run {
     $self->select_formula('vsftpd','Vsftpd');
 
     my $driver = selenium_driver();
-    $driver->mouse_move_to_location(element => wait_for_xpath("//form[\@id='editFormulaForm']//input[1]"));
-    $driver->double_click();
+    $driver->mouse_move_to_location(element => wait_for_xpath("//form[\@id='editFormulaForm']/div/div"));
+    $driver->click();
+    $driver->send_keys_to_active_element("\t");
     save_screenshot;
+
+    # dir
+    $driver->send_keys_to_active_element($srvdir);
+    $driver->send_keys_to_active_element("\t");
+    save_screenshot;
+
     # ip
     $driver->send_keys_to_active_element($testip);
     $driver->send_keys_to_active_element("\t");

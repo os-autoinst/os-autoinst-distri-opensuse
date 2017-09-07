@@ -22,6 +22,10 @@ sub run {
 
   my $id = get_var('HOSTNAME', 'minion') . '.openqa.suse.de';
   my $master = get_var('MASTER', 'master') . '.openqa.suse.de';
+  
+  #TODO: uncomment after saltboot dir works in all tests
+  #set_var('SERVER_DIR','/srv/saltboot') unless get_var('SERVER_DIR');
+  set_var('SERVER_DIR','/srv/tftpboot') unless get_var('SERVER_DIR');
 
   assert_script_run("echo \"id: $id\" >> /etc/salt/minion");
   assert_script_run("echo \"master: $master\" >> /etc/salt/minion");

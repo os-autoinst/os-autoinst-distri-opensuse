@@ -22,6 +22,7 @@ sub run {
   
   #TODO: get from common module / branch network test to ensure compatibility
   my $testip = '192.168.1.1';
+  my $srvdir = get_var('SERVER_DIR');
   
   if (check_var('SUMA_SALT_MINION', 'branch')) {
     $self->register_barriers('tftp_formula', 'tftp_ready', 'tftp_formula_finish');
@@ -46,11 +47,11 @@ sub run {
       record_soft_failure('atftpd listens everywhere: bsc#1049832');
     }
     
-    script_run('echo "test" > /srv/tftpboot/test');
+    script_run('echo "test" > '.$srvdir.'/test');
     type_string('atftp localhost');send_key('ret');
     type_string('get test');send_key('ret');
     type_string('quit');send_key('ret');
-    assert_script_run('diff test /srv/tftpboot/test'); 
+    assert_script_run('diff test '.$srvdir.'/test'); 
 
     save_screenshot;
     
@@ -80,14 +81,20 @@ sub run {
     $self->select_formula('tftp','Tftp');
 
     my $driver = selenium_driver();
-    $driver->mouse_move_to_location(element => wait_for_xpath("//form[\@id='editFormulaForm']//input[1]"));
-    $driver->double_click();
+    #select all text in first form entry
+    $driver->mouse_move_to_location(element => wait_for_xpath("//form[\@id='editFormulaForm']/div/div"));
+    $driver->click();
+    $driver->send_keys_to_active_element("\t");
     save_screenshot;
-    # ip
 
+    # ip
     $driver->send_keys_to_active_element($testip);
     $driver->send_keys_to_active_element("\t");
+    save_screenshot;
 
+    # dir
+    $driver->send_keys_to_active_element($srvdir);
+    $driver->send_keys_to_active_element("\t");
     save_screenshot;
     wait_for_xpath("//button[\@id='save-btn']")->click();
 
