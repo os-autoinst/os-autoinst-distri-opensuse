@@ -80,8 +80,12 @@ sub velum_bootstrap {
     # Wait until warning messages disappears
     wait_still_screen;
 
+    # Click next button to 'Confirm bootstrap' page
+    send_key_until_needlematch 'velum-next', 'pgdn', 2, 5;
+    assert_and_click 'velum-next';
+
     # Click bootstrap button
-    send_key_until_needlematch "velum-bootstrap", "pgdn", 2, 5;
+    assert_screen 'velum-confirm-bootstrap';
     assert_and_click "velum-bootstrap";
 
     # Accept small-cluster warning
