@@ -450,6 +450,8 @@ sub sle_version_at_least {
     my ($version, %args) = @_;
     my $version_variable = $args{version_variable} // 'VERSION';
 
+    return 0 unless check_var('DISTRI', 'sle');
+
     if ($version eq '12-SP1') {
         return !check_var($version_variable, '12');
     }
