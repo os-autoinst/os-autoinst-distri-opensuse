@@ -315,8 +315,9 @@ if (get_var('ALL_MODULES') && sle_version_at_least('15')) {
 
 if (get_var('ENABLE_ALL_SCC_MODULES') && !get_var('SCC_MODULES')) {
     if (sle_version_at_least('15')) {
-        # let's start with what corresponds to server
-        set_var('SCC_ADDONS', 'base,script,desktop,serverapp,phub,legacy,sdk,ha,we');
+        my $addons = 'base,script,desktop,serverapp,phub,legacy,sdk,ha';
+        $addons .= ',we' if get_var('ARCH', '') =~ /x86_64|aarch64/;
+        set_var('SCC_ADDONS', $addons);
         set_var('PATTERNS',   'default,asmm,pcm');
     }
     else {
