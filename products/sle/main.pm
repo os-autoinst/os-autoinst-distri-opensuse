@@ -1472,6 +1472,7 @@ else {
     elsif (is_jeos) {
         load_boot_tests();
         loadtest "jeos/firstrun";
+        loadtest "console/force_cron_run";
         loadtest "jeos/grub2_gfxmode";
         loadtest 'jeos/revive_xen_domain' if check_var('VIRSH_VMM_FAMILY', 'xen');
         loadtest "jeos/diskusage";
