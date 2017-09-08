@@ -28,7 +28,7 @@ use strict;
 sub run {
     select_console("root-console");
 
-    if (check_var("DISTRI", "caasp")) {
+    if (is_caasp) {
         # Docker should be pre-installed in MicroOS
         die "Docker is not pre-installed." if script_run("rpm -q docker");
     }
