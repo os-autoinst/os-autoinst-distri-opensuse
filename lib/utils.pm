@@ -840,6 +840,11 @@ sub addon_license {
     push @tags, (get_var("BETA_$uc_addon") ? "addon-betawarning-$addon" : "addon-license-$addon");
   license: {
         do {
+            # Soft-fail on SLE-15 if license is not there.
+            if (sle_version_at_least('15') && !check_screen \@tags) {
+                record_soft_failure 'bsc#1057223';
+                return;
+            }
             assert_screen \@tags;
             if (match_has_tag('import-untrusted-gpg-key')) {
                 record_soft_failure 'untrusted gpg key';
