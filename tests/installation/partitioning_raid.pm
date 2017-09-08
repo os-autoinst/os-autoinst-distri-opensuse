@@ -59,14 +59,14 @@ sub addpart {
     assert_screen 'partition-format';
     send_key $cmd{donotformat};
     send_key "tab";
-
+    send_key 'alt-i' if is_storage_ng;    # Select file system
     if ($part eq 'boot' and get_var('UEFI')) {
         send_key_until_needlematch 'partition-selected-efi-type', 'down';
     }
     else {
         send_key_until_needlematch 'partition-selected-raid-type', 'down';
     }
-    send_key $cmd{finish};
+    send_key(is_storage_ng() ? $cmd{next} : $cmd{finish});
 }
 
 sub addraid {
@@ -155,10 +155,12 @@ sub run {
     # create partitioning
     send_key(is_storage_ng() ? $cmd{expertpartitioner} : $cmd{createpartsetup});
 
+    # With storage ng, we go directly to expert partitioner and invalidate configuration by rescan
     if (is_storage_ng) {
-        wipe_existing_partitions;    #Remove all partiotions to get same behavior as with create custom patiotion setup in SLE 12 SP3
-        send_key 'alt-s';            #Select system view again
-        send_key_until_needlematch 'custompart', 'left';
+        send_key 'alt-e';                          # Rescan devices
+        assert_screen 'rescan-devices-warning';    # Confirm rescan
+        send_key 'alt-y';
+        wait_still_screen;                         # Wait until rescan is done
     }
     else {
         assert_screen 'createpartsetup';
@@ -166,9 +168,9 @@ sub run {
         send_key $cmd{custompart};
         assert_screen 'custompart_option-selected';
         send_key $cmd{next};
-        assert_screen 'custompart';
-        send_key "tab";
     }
+    assert_screen 'custompart';
+    send_key "tab";
 
     assert_screen 'custompart_systemview-selected';
     send_key "down";
@@ -201,21 +203,23 @@ sub run {
         send_key 'right';
         assert_screen 'partitioning_raid-hard_disks-unfolded';
         send_key 'down';
-        assert_screen 'partitioning_raid-disk_vda-selected';
     }
     else {
-        send_key "right";
+        send_key "right" unless is_storage_ng;
         assert_screen 'partitioning_raid-hard_disks-unfolded';
         send_key "down";
-        assert_screen 'partitioning_raid-disk_vda-selected';
     }
 
-    for (1 .. 4) {
+    for (qw(vda vdb vdc vdd)) {
+        assert_screen "partitioning_raid-disk_$_-selected";
         addpart('boot');
+        send_key_until_needlematch "partitioning_raid-disk_$_-selected", 'down' if is_storage_ng;    # Need to navigate to the disk manually
         assert_screen 'partitioning_raid-part_boot_added';
         addpart('root');
+        send_key_until_needlematch "partitioning_raid-disk_$_-selected", 'down' if is_storage_ng;    # Need to navigate to the disk manually
         assert_screen 'partitioning_raid-part_root_added';
         addpart('swap');
+        send_key_until_needlematch "partitioning_raid-disk_$_-selected", 'down' if is_storage_ng;    # Need to navigate to the disk manuallyy
         assert_screen 'raid-partition';
 
         # select next disk
@@ -223,39 +227,31 @@ sub run {
         send_key "shift-tab";
 
         # in last step of for loop edit first vda1 and format it as EFI ESP, preparation for fate#322485
-        if ($_ == 4 and get_var('UEFI')) {
+        if ($_ eq 'vdd' and get_var('UEFI')) {
             assert_screen 'partitioning_raid-disk_vdd_with_partitions-selected';
-            send_key 'left';    # fold the drive tree
+            send_key 'left';                                                                         # fold the drive tree
             assert_screen 'partitioning_raid-hard_disks-unfolded';
-            send_key 'right';    # select first disk
+            send_key 'right';                                                                        # select first disk
             assert_screen 'partitioning_raid-disk_vda_with_partitions-selected';
-            send_key 'alt-e';    # edit first partition
+            send_key 'alt-e';                                                                        # edit first partition
             assert_screen 'partition-format';
-            send_key 'alt-a';    # format as FAT (first choice)
+            send_key 'alt-a';                                                                        # format as FAT (first choice)
             assert_screen 'partitioning_raid-format_fat_UEFI';
-            send_key 'alt-o';    # mount point selection
+            send_key 'alt-o';                                                                        # mount point selection
             assert_screen 'partitioning_raid-mount_point-focused';
-            type_string '/boot/efi';    # enter mount point
+            type_string '/boot/efi';                                                                 # enter mount point
             assert_screen 'partitioning_raid-mount_point_boot_efi';
             send_key $cmd{finish};
             assert_screen 'expert-partitioner';
             send_key 'shift-tab';
             send_key 'shift-tab';
-            send_key 'left';            # go to top "Hard Disks" node
+            send_key 'left';                                                                         # go to top "Hard Disks" node
             assert_screen 'partitioning_raid-hard_disks-unfolded';
-            send_key 'left';            # fold the drive tree again
+            send_key 'left';                                                                         # fold the drive tree again
         }
 
         # walk through sub-tree
         send_key "down";
-        if ($_ < 4) {
-            my %selection_to_disk = (
-                1 => 'vdb',
-                2 => 'vdc',
-                3 => 'vdd'
-            );
-            assert_screen 'partitioning_raid-disk_' . $selection_to_disk{$_} . '-selected';
-        }
     }
 
     # select RAID add
