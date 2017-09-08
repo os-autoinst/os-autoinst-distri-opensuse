@@ -90,12 +90,13 @@ images:
           url: http://10.0.2.10/pub/built-image/POS_Image_JeOS5.x86_64-6.0.0
 
     - 6.0.1:
-        url: ftp://ftp/image/POS_Image_JeOS5.x86_64-6.0.1
+        url: tftp://ftp/image/POS_Image_JeOS5.x86_64-6.0.1
         name: POS_Image_JeOS5
         fstype: ext3
         size: `stat -c%s /srv/www/htdocs/pub/built-image2/POS_Image_JeOS5.x86_64-6.0.1`
         hash: `sha256sum /srv/www/htdocs/pub/built-image2/POS_Image_JeOS5.x86_64-6.0.1 |cut -d \' \' -f 1`
         boot_image: default
+        inactive: True
         sync:
           url: http://10.0.2.10/pub/built-image2/POS_Image_JeOS5.x86_64-6.0.1
 

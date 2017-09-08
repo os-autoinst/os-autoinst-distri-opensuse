@@ -22,6 +22,11 @@ sub run {
   select_console 'root-console';
   configure_dhcp();
   script_run('ip a');
+
+  my $hwtype = get_var('QEMU_SMBIOS');
+  $hwtype =~ s/^.*product=//;
+  $hwtype =~ s/,.*$//;
+  set_var('HWTYPE', $hwtype);
 }
 
 sub test_flags() {

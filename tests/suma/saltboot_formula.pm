@@ -98,19 +98,7 @@ sub run {
 
     my %hwtypes = ('testterm' => 1);
 
-    # detect all configured hwtypes
-    my $ch = get_children();
-    for my $id (keys %{$ch}) {
-      my $chi = get_job_info($id);
-      if ($chi->{'settings'}->{'QEMU_SMBIOS'}) {
-        my $hwtype = $chi->{'settings'}->{'QEMU_SMBIOS'};
-        $hwtype =~ s/^.*product=//;
-        $hwtype =~ s/,.*$//;
-        $hwtypes{$hwtype} = 1;
-      }
-    }
-
-    for my $hwtype (keys %hwtypes) {
+    for my $hwtype ($self->get_hwtypes) {
       $self->create_group_for_hwtype($hwtype);
     }
 

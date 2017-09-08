@@ -10,6 +10,9 @@
 # Summary: Test boot of a terminal
 # Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
 
+# boot terminals, salt keys are accepted,
+# all terminals should boot with image version 6.0.0 - the only active image version configured in build_image.pm
+
 use base "sumatest";
 use 5.018;
 use testapi;
@@ -23,11 +26,11 @@ sub post_fail_hook() {
       select_console 'root-console';
       save_screenshot;
       script_run("cat /var/log/salt/* >/dev/$serialdev");
-      script_run("salt-call state.apply >/dev/$serialdev");
+      script_run("cat /var/log/boot.kiwi >/dev/$serialdev");
+      script_run("salt-call --no-color state.apply >/dev/$serialdev");
+      script_run("salt-call --no-color pillar.items >/dev/$serialdev");
     }
-    else {
-      $self->SUPER::post_fail_hook;
-    }
+    $self->SUPER::post_fail_hook;
     save_screenshot;
 }
 
@@ -49,8 +52,6 @@ sub run {
     assert_screen("suma-image-pxe", 300);
     assert_screen("suma-image-login", 300);
 
-    $self->registered_barrier_wait('saltboot_orchestrate_finish');
-
     # clear kiwidebug console
     send_key 'alt-f2';
     type_string "exit\n\n\n";
@@ -59,6 +60,10 @@ sub run {
     reset_consoles;
 
     select_console 'root-console';
+
+    assert_script_run('grep 6.0.0 /etc/ImageVersion'); # the only active image version configured in build_image.pm
+    $self->registered_barrier_wait('saltboot_orchestrate_finish');
+
   }
   else {
     select_console 'root-console';

@@ -16,6 +16,7 @@ use testapi;
 use utils 'zypper_call';
 use mm_network;
 use lockapi;
+use mmapi;
 use selenium;
 
 sub register_barriers {
@@ -181,6 +182,21 @@ sub suma_menu {
   }
 }
 
+sub get_hwtypes {
+  my $self = shift;
+  my %hwtypes;
+  my $ch = get_children();
+  for my $id (keys %{$ch}) {
+    my $chi = get_job_info($id);
+    if ($chi->{'settings'}->{'QEMU_SMBIOS'}) {
+      my $hwtype = $chi->{'settings'}->{'QEMU_SMBIOS'};
+      $hwtype =~ s/^.*product=//;
+      $hwtype =~ s/,.*$//;
+      $hwtypes{$hwtype} = 1;
+    }
+  }
+  return keys(%hwtypes);
+}
 
 1;
 # vim: set sw=4 et:
