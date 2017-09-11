@@ -14,6 +14,7 @@
 use base "installbasetest";
 
 use testapi;
+use utils 'sle_version_at_least';
 
 use strict;
 use warnings;
@@ -44,7 +45,8 @@ sub run {
         wait_serial($login_ready, 300) || die "System couldn't boot";
     }
 
-    if (!check_var('DESKTOP', 'textmode')) {
+    # SLE >= 15 does not offer auto-started VNC server in SUT, only login prompt as in textmode
+    if (!check_var('DESKTOP', 'textmode') && !sle_version_at_least('15')) {
         select_console('x11', await_console => 0);
     }
 }
