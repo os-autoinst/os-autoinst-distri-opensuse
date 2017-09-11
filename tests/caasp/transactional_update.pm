@@ -22,9 +22,17 @@ use caasp;
 
 # Download files needed for transactional update test
 sub get_utt_packages {
-    assert_script_run 'curl -O ' . data_url('caasp/utt.tgz');
-    assert_script_run 'curl -O ' . data_url('caasp/utt.repo');
-    assert_script_run 'tar xzvf utt.tgz';
+    my $testtarball = 'utt-os.tgz';
+
+    # CaaSP uses different testfiles & needs an additional repo for testing
+    if (check_var('DISTRI', 'caasp')) {
+        $testtarball = 'utt.tgz';
+        my $testrepo = 'utt.repo';
+        assert_script_run 'curl -O ' . data_url("caasp/$testrepo");
+    }
+
+    assert_script_run 'curl -O ' . data_url("caasp/$testtarball");
+    assert_script_run "tar xzvf $testtarball";
     send_key "ctrl-l";
 }
 
@@ -61,20 +69,41 @@ sub check_reboot_changes {
 }
 
 sub run {
+    # FIXME: Make a different version of the update-test-security package for Tumbleweed, with a valid key, to make test #2 valid
+    my $ptfutsver     = '1.3';
+    my $ptfutsverlong = '5-1.3';
+    my $oriutsver     = '1.3';
+
+    # Define versions of update-test-security used in testing. CaaSP has different versions than Kubic.
+    if (check_var('DISTRI', 'caasp')) {
+        $ptfutsver     = '5.3.61';
+        $ptfutsverlong = '5-5.3.61';
+        $oriutsver     = '5.29.2';
+    }
+
     script_run "rebootmgrctl set-strategy off";
 
     get_utt_packages;
 
     record_info 'Test #1', 'Install package - snapshot #1';
-    trup_call 'ptf install update-test-trival/update-test-security-5-5.3.61.x86_64.rpm';
+    trup_call "ptf install update-test-trival/update-test-security-$ptfutsverlong.x86_64.rpm";
     check_reboot_changes;
-    check_package '5.3.61';
+    check_package "$ptfutsver";
 
     record_info 'Test #2', 'Add repository and update - snapshot #2';
-    assert_script_run 'zypper ar utt.repo';
-    trup_call 'reboot cleanup up';
-    check_reboot_changes;
-    check_package '5.29.2';
+    # FIXME: Disable test for now on Kubic, as impossible to change package versions ATM
+    if (check_var('DISTRI', 'kubic')) {
+        record_soft_failure('Test #2 Skipped on openSUSE Kubic');
+    }
+    else {
+        # Only CaaSP needs an additional repo for testing
+        if (check_var('DISTRI', 'caasp')) {
+            assert_script_run 'zypper ar utt.repo';
+        }
+        trup_call 'cleanup up';
+        check_reboot_changes;
+        check_package "$oriutsver";
+    }
 
     record_info 'Test #3', 'System should be up to date - no changes expected';
     trup_call 'cleanup up';
@@ -95,7 +124,7 @@ sub run {
     }
     trup_call "rollback $snap";
     check_reboot_changes;
-    check_package '5.3.61';
+    check_package "$ptfutsver";
 }
 
 sub test_flags {
