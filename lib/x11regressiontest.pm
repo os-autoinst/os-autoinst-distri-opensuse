@@ -263,6 +263,7 @@ sub send_meeting_request {
     send_key "shift-ctrl-e";
     assert_screen "evolution_mail-compse_meeting", 30;
     wait_screen_change { send_key 'alt-a' };
+    wait_still_screen;
     type_string "$mail_box";
     send_key "alt-s";
     if (sle_version_at_least('12-SP2')) {
