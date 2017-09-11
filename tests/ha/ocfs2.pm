@@ -8,60 +8,93 @@
 # without any warranty.
 
 # Summary: Create OCFS2 filesystem and check content
-# Maintainer: Denis Zyuzin <dzyuzin@suse.com>
+# Maintainer: Loic Devulder <ldevulder@suse.com>
 
-use base "hacluster";
+use base 'hacluster';
 use strict;
 use testapi;
 use autotest;
 use lockapi;
 
 sub run {
-    my $self            = shift;
-    my $ocfs2_partition = "/dev/disk/by-path/ip-*-lun-2";
-    barrier_wait("OCFS2_INIT_" . $self->cluster_name);
-    type_string "ps -A | grep -q dlm_controld; echo dlm_running=\$? > /dev/$serialdev\n";
-    die "dlm_controld is not running" unless wait_serial "dlm_running=0", 60;
-    if ($self->is_node1) {
-        type_string "mkfs.ocfs2 $ocfs2_partition; echo mkfs_ocfs2=\$? > /dev/$serialdev\n";
-        die "mkfs.ocfs2 failed" unless wait_serial "mkfs_ocfs2=0", 60;
+    my $self      = shift;
+    my $ocfs2_lun = '/dev/disk/by-path/ip-*-lun-3';
+
+    # Wait until OCFS2 test is initialized
+    barrier_wait('OCFS2_INIT_' . $self->cluster_name);
+
+    # DLM process needs to be started
+    assert_script_run 'ps -A | grep -q dlm_controld';
+
+    # Format the OCFS2 device
+    # Force the filesystem creation and allows 16 nodes
+    if ($self->is_node(1)) {
+        assert_script_run "mkfs.ocfs2 -F -N 16 $ocfs2_lun";
     }
     else {
-        type_string "echo wait until OCFS2 is formatted\n";
+        diag 'Wait until OCFS2 device is formatted...';
     }
-    barrier_wait("OCFS2_MKFS_DONE_" . $self->cluster_name);
-    if ($self->is_node1) {
-        type_string "echo wait until OCFS2 resource is created\n";
-    }
-    else {
-        type_string
-qq(EDITOR="sed -ie '\$ a primitive ocfs2-1 ocf:heartbeat:Filesystem params device='`ls -1 $ocfs2_partition`' directory="/srv/ocfs2" fstype="ocfs2" options="acl" op monitor interval=20 timeout=40'" crm configure edit; echo ocfs2_add=\$? > /dev/$serialdev\n);
-        die "create OCFS2 resource failed" unless wait_serial "ocfs2_add=0", 60;
-        type_string
-          qq(EDITOR="sed -ie 's/group base-group dlm/group base-group dlm ocfs2-1/'" crm configure edit; echo base_group_alter=\$? > /dev/$serialdev\n);
-        die "adding ocfs2-1 to base-group failed" unless wait_serial "base_group_alter=0", 60;
-    }
-    barrier_wait("OCFS2_GROUP_ALTERED_" . $self->cluster_name);
-    if ($self->is_node1) {
-        type_string "cp -r /usr/bin/ /srv/ocfs2; echo copy_success=\$? > /dev/$serialdev\n";
-        die "copying files to /srv/ocfs2 failed" unless wait_serial "copy_success=0", 60;
-        type_string "cd /srv/ocfs2; find bin/ -exec md5sum {} \\; > out; echo md5sums=\$? > /dev/$serialdev\n";
-        die "calculating md5sums failed" unless wait_serial "md5sums=0", 60;
+
+    # Wait until OCFS2 device is formatted
+    barrier_wait('OCFS2_MKFS_DONE_' . $self->cluster_name);
+
+    if ($self->is_node(1)) {
+        # Create the OCFS resource
+        assert_script_run
+"EDITOR=\"sed -ie '\$ a primitive ocfs2-1 ocf:heartbeat:Filesystem params device='\$(ls -1 $ocfs2_lun)' directory='/srv/ocfs2' fstype='ocfs2' options='acl' op monitor interval=20 timeout=40'\" crm configure edit";
+        assert_script_run 'EDITOR="sed -ie \'s/group base-group dlm/group base-group dlm ocfs2-1/\'" crm configure edit';
+
+        # Wait to get OCFS2 running on all nodes
+        sleep 10;
     }
     else {
-        type_string "echo wait until OCFS2 is filled with data\n";
+        diag 'Wait until OCFS2 resource is added...';
     }
-    barrier_wait("OCFS2_DATA_COPIED_" . $self->cluster_name);
-    if ($self->is_node1) {
-        type_string "echo wait until OCFS2 content is checked\n";
+
+    # Wait until OCFS2 resource is added
+    barrier_wait('OCFS2_GROUP_ADDED_' . $self->cluster_name);
+
+    if ($self->is_node(1)) {
+        # Add files/data in the OCFS2 filesystem
+        assert_script_run 'cp -r /usr/bin/ /srv/ocfs2';
+        assert_script_run 'cd /srv/ocfs2; find bin/ -exec md5sum {} \; > out';
     }
     else {
-        type_string "cd /srv/ocfs2; find bin/ -exec md5sum {} \\; > out_node2; echo md5sums=\$? > /dev/$serialdev\n";
-        die "calculating md5sums failed" unless wait_serial "md5sums=0", 60;
-        type_string "diff out out_node2; echo md5sums_diff=\$? > /dev/$serialdev\n";
-        die "md5sums are different on different nodes" unless wait_serial "md5sums_diff=0", 60;
+        diag 'Wait until OCFS2 is filled with data...';
     }
-    barrier_wait("OCFS2_MD5_CHECKED_" . $self->cluster_name);
+
+    # Wait until OCFS2 is filled with data
+    barrier_wait('OCFS2_DATA_COPIED_' . $self->cluster_name);
+
+    if ($self->is_node(1)) {
+        diag 'Wait until OCFS2 content is checked on other nodes...';
+    }
+    else {
+        # Check if files/data are different in the OCFS2 filesystem
+        assert_script_run 'cd /srv/ocfs2; find bin/ -exec md5sum {} \; > out_$(hostname)';
+        assert_script_run 'diff out out_$(hostname)';
+    }
+
+    # Wait until OCFS2 content is checked
+    barrier_wait('OCFS2_MD5_CHECKED_' . $self->cluster_name);
+
+    # Do a check of the cluster with a screenshot
+    $self->save_state;
+}
+
+sub test_flags {
+    return {milestone => 1, fatal => 1};
+}
+
+sub post_fail_hook {
+    my $self = shift;
+
+    # Save a screenshot before trying further measures which might fail
+    save_screenshot;
+
+    # Try to save logs as a last resort
+    $self->export_logs();
 }
 
 1;
+# vim: set sw=4 et:

@@ -8,18 +8,30 @@
 # without any warranty.
 
 # Summary: Disable firewall in HA tests
-# Maintainer: Denis Zyuzin <dzyuzin@suse.com>
+# Maintainer: Loic Devulder <ldevulder@suse.com>
 
-use base "hacluster";
+use base 'hacluster';
 use strict;
 use testapi;
 
 sub run {
-    assert_script_run "systemctl -q is-active SuSEfirewall2 && systemctl disable SuSEfirewall2; systemctl stop SuSEfirewall2";
+    # Deactivate firewall
+    assert_script_run 'systemctl -q is-active SuSEfirewall2 && systemctl disable SuSEfirewall2; systemctl stop SuSEfirewall2';
 }
 
 sub test_flags {
-    return {fatal => 1};
+    return {milestone => 1, fatal => 1};
+}
+
+sub post_fail_hook {
+    my $self = shift;
+
+    # Save a screenshot before trying further measures which might fail
+    save_screenshot;
+
+    # Try to save logs as a last resort
+    $self->export_logs();
 }
 
 1;
+# vim: set sw=4 et:

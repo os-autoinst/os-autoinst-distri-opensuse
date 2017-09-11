@@ -8,33 +8,50 @@
 # without any warranty.
 
 # Summary: Configure NTP client for HA tests
-# Maintainer: Denis Zyuzin <dzyuzin@suse.com>
+# Maintainer: Loic Devulder <ldevulder@suse.com>
 
-use base "hacluster";
+use base 'hacluster';
 use strict;
 use testapi;
 
 sub run {
     my $self = shift;
-    type_string "yast2 ntp-client\n";
-    assert_screen "yast2-ntp-client";
-    send_key 'alt-b';    #start ntp daemon on Boot
-    send_key 'alt-a';    #add new Server
-    assert_screen "yast2-ntp-client-add-source";
-    send_key 'alt-n';    #Next
-    assert_screen "yast2-ntp-client-add-server";
-    type_string "ntp";
-    send_key 'alt-o';    #Ok
-    assert_screen "yast2-ntp-client-server-list";
-    send_key 'alt-o';    #Ok
-    wait_still_screen;
+
+    # Configuration of NTP client
+    script_run("yast2 ntp-client; echo yast2-ntp-client-status-\$? > /dev/$serialdev", 0);
+    assert_screen 'yast2-ntp-client';
+    send_key 'alt-b';    # start ntp daemon on Boot
+    wait_still_screen 3;
+    send_key 'alt-a';    # add new Server
+    assert_screen 'yast2-ntp-client-add-source';
+    send_key 'alt-s';    # select Server
+    wait_still_screen 3;
+    send_key 'alt-n';    # Next
+    assert_screen 'yast2-ntp-client-add-server';
+    type_string 'ns';
+    send_key 'alt-o';    # Ok
+    assert_screen 'yast2-ntp-client-server-list';
+    send_key 'alt-o';    # Ok
+    wait_serial('yast2-ntp-client-status-0', 90) || die "'yast2 ntp-client' didn't finish";
+
+    # At least one NTP server is needed
     $self->clear_and_verify_console;
-    type_string "echo \"ntpcount=`ntpq -p | tail -n +3 | wc -l`\" > /dev/$serialdev\n";
-    die "Adding NTP servers failed" unless wait_serial "ntpcount=1";
+    assert_script_run '(( $(ntpq -p | tail -n +3 | wc -l) > 0 ))';
 }
 
 sub test_flags {
-    return {fatal => 1};
+    return {milestone => 1, fatal => 1};
+}
+
+sub post_fail_hook {
+    my $self = shift;
+
+    # Save a screenshot before trying further measures which might fail
+    save_screenshot;
+
+    # Try to save logs as a last resort
+    $self->export_logs();
 }
 
 1;
+# vim: set sw=4 et:

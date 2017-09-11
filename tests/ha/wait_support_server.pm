@@ -7,31 +7,23 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Execute fence command on one of the cluster nodes
+# Summary: Start HA support server and check network connectivity
 # Maintainer: Loic Devulder <ldevulder@suse.com>
 
 use base 'hacluster';
 use strict;
 use testapi;
-use autotest;
 use lockapi;
+use mmapi;
 
 sub run {
-    my $self = shift;
-    barrier_wait('BEFORE_FENCING_' . $self->cluster_name);
-    if ($self->is_node(1)) {
-        reset_consoles;
-    }
-    elsif ($self->is_node(2)) {
-        # Fence the node
-        assert_script_run 'crm -F node fence ' . get_var('HA_CLUSTER_JOIN');
+    # Support server takes time to complete setup, so we need to wait (a little!) before
+    my $wait_time = 600;
+    diag "Waiting $wait_time seconds for support server to complete setup...";
+    sleep $wait_time;
 
-        # Wait to be sure that node is fenced and HA has time to recover
-        sleep 120;
-    }
-
-    # Do a check of the cluster with a screenshot
-    $self->save_state;
+    # Now we can wait for barrier to synchronize nodes
+    barrier_wait('BARRIER_HA_' . get_var('CLUSTER_NAME'));
 }
 
 sub test_flags {
