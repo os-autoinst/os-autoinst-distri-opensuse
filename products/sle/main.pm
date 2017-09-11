@@ -550,6 +550,9 @@ sub load_inst_tests {
     if (get_var('IBFT')) {
         loadtest "installation/iscsi_configuration";
     }
+    if (sle_version_at_least('15')) {
+        loadtest "installation/accept_license" if get_var('HASLICENSE');
+    }
     if (check_var('ARCH', 's390x')) {
         if (check_var('BACKEND', 's390x')) {
             loadtest "installation/disk_activation";
@@ -569,9 +572,6 @@ sub load_inst_tests {
         if (check_var("UPGRADE", "LOW_SPACE")) {
             loadtest "installation/disk_space_fill";
         }
-    }
-    if (sle_version_at_least('15')) {
-        loadtest "installation/accept_license" if get_var('HASLICENSE');
     }
     if (check_var('SCC_REGISTER', 'installation')) {
         loadtest "installation/scc_registration";
