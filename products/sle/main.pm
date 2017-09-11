@@ -288,7 +288,7 @@ if (get_var('DEV_IMAGE')) {
 
 # This is workaround setting which will be removed once SCC add repos and allows adding modules
 # TODO: remove when not used anymore
-if (sle_version_at_least('15')) {
+if (sle_version_at_least('15') && !check_var('SCC_REGISTER', 'installation')) {
     my @modules;
     if (get_var('ALL_MODULES')) {
         # By default add all modules
@@ -340,8 +340,7 @@ if (sle_version_at_least('15')) {
 
 if (get_var('ENABLE_ALL_SCC_MODULES') && !get_var('SCC_MODULES')) {
     if (sle_version_at_least('15')) {
-        my $addons = 'base,script,desktop,serverapp,phub,legacy,sdk,ha';
-        $addons .= ',we' if get_var('ARCH', '') =~ /x86_64|aarch64/;
+        my $addons = 'base,script,desktop,serverapp,legacy,sdk';
         set_var('SCC_ADDONS', $addons);
         set_var('PATTERNS',   'default,asmm,pcm');
     }

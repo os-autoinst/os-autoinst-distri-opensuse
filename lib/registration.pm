@@ -155,17 +155,27 @@ sub fill_in_registration_data {
                 }
             }
             send_key $cmd{next};    # all addons selected
+            my @addons_with_license = qw(ha geo we live rt idu ids lgm wsm hpcm);
+            # Development tools do not have license in SLE 15
+            push(@addons_with_license, 'sdk') unless sle_version_at_least('15');
+
             for my $addon (@scc_addons) {
                 # most modules don't have license, skip them
-                next unless grep { $addon eq $_ } qw(ha geo sdk we live rt idu ids lgm wsm hpcm);
+                next unless grep { $addon eq $_ } @addons_with_license;
                 while (check_screen('scc-downloading-license', 5)) {
                     # wait for SCC to give us the license
                     sleep 5;
                 }
-                assert_screen "scc-addon-license-$addon", 60;
-                addon_decline_license;
-                wait_still_screen 2;
-                send_key $cmd{next};
+                # No license agreements are shown in SLE 15 at the moment
+                if (sle_version_at_least('15') && check_screen([qw(ext-module-registration-codes inst-addon)], 0)) {
+                    record_soft_failure 'bsc#1057223';
+                }
+                else {
+                    assert_screen "scc-addon-license-$addon", 60;
+                    addon_decline_license;
+                    wait_still_screen 2;
+                    send_key $cmd{next};
+                }
             }
             for my $addon (@scc_addons) {
                 # no need to input registration code if register via SMT
