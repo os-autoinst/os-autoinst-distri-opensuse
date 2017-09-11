@@ -16,10 +16,12 @@
 use strict;
 use base "y2logsstep";
 use testapi;
-use utils qw(handle_login handle_emergency);
+use utils qw(sle_version_at_least handle_login handle_emergency);
 
 sub run {
     my $boot_timeout = 200;
+    # SLE >= 15 s390x does not offer auto-started VNC server in SUT, only login prompt as in textmode
+    return if check_var('ARCH', 's390x') && sle_version_at_least('15');
     if (check_var('DESKTOP', 'textmode') || get_var('BOOT_TO_SNAPSHOT')) {
         assert_screen('linux-login', $boot_timeout) unless check_var('ARCH', 's390x');
         return;
