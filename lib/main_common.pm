@@ -373,21 +373,20 @@ sub load_yast2_ui_tests {
     loadtest "console/yast2_ntpclient";
     loadtest "console/yast2_tftp";
     loadtest "console/yast2_vnc";
-    # TODO https://progress.opensuse.org/issues/20200
+    # product issue #bcs1049433
     #loadtest "console/yast2_samba";
     loadtest "console/yast2_xinetd";
     loadtest "console/yast2_apparmor";
     loadtest "console/yast2_lan_hostname";
-    # TODO: check if the following two modules also work on opensuse and delete if
+    # yast2_nis works fine in SUSE network because it use existing nis server
+    # this is not possible on openqa.opensuse.org
     if (check_var('DISTRI', 'sle')) {
         loadtest "console/yast2_nis";
     }
-    # TODO: check if the following two modules also work on sle and delete if.
     # yast-lan related tests do not work when using networkmanager.
     # (Livesystem and laptops do use networkmanager)
     if (!get_var("LIVETEST") && !get_var("LAPTOP")) {
         if (check_var('DISTRI', 'opensuse')) {
-            # fix the issue reported in https://progress.opensuse.org/issues/20970
             loadtest "console/yast2_dns_server";
         }
         loadtest "console/yast2_nfs_client";
@@ -472,7 +471,7 @@ sub load_extra_tests {
         if (check_var('DISTRI', 'sle')) {
             # start extra x11 tests from here
             loadtest 'x11/vnc_two_passwords';
-            # TODO: check why this is not called on opensuse
+            # because of bsc#978027, it is not called for opensuse
             loadtest 'x11/user_defined_snapshot';
         }
         elsif (check_var('DISTRI', 'opensuse')) {
