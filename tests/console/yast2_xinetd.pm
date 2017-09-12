@@ -22,7 +22,7 @@ sub run {
     # check network at first
     assert_script_run("if ! systemctl -q is-active network; then systemctl -q start network; fi");
     # install xinetd at first
-    zypper_call("in xinetd", timeout => 180);
+    zypper_call("in xinetd yast2-inetd", timeout => 180);
 
     script_run("yast2 xinetd; echo yast2-xinetd-status-\$? > /dev/$serialdev", 0);
 
