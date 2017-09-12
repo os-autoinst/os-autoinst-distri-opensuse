@@ -750,6 +750,7 @@ elsif (get_var("WICKED")) {
 }
 elsif (get_var("REGRESSION")) {
     if (check_var("REGRESSION", "installation")) {
+        set_var('NOAUTOLOGIN', 1);
         load_boot_tests();
         load_inst_tests();
         load_reboot_tests();
@@ -762,6 +763,10 @@ elsif (get_var("REGRESSION")) {
     elsif (check_var("REGRESSION", "documentation")) {
         loadtest "boot/boot_to_desktop";
         load_x11regression_documentation();
+    }
+    elsif (check_var("REGRESSION", "gnome")) {
+        loadtest "boot/boot_to_desktop";
+        load_x11regression_gnome();
     }
     elsif (check_var("REGRESSION", "other")) {
         loadtest "boot/boot_to_desktop";

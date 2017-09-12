@@ -50,6 +50,7 @@ our @EXPORT = qw(
   load_wicked_tests
   load_iso_in_external_tests
   load_x11regression_documentation
+  load_x11regression_gnome
   load_x11regression_other
   load_security_tests_core
   load_security_tests_web
@@ -634,6 +635,21 @@ sub load_x11regression_documentation {
     loadtest "x11regressions/libreoffice/libreoffice_default_theme";
     loadtest "x11regressions/libreoffice/libreoffice_open_specified_file";
     loadtest "x11regressions/libreoffice/libreoffice_double_click_file";
+}
+
+sub load_x11regression_gnome {
+    return unless check_var('DESKTOP', 'gnome');
+    loadtest "x11regressions/gnomecase/nautilus_cut_file";
+    loadtest "x11regressions/gnomecase/nautilus_permission";
+    loadtest "x11regressions/gnomecase/nautilus_open_ftp";
+    loadtest "x11regressions/gnomecase/application_starts_on_login";
+    loadtest "x11regressions/gnomecase/change_password";
+    loadtest "x11regressions/gnomecase/login_test";
+    if (check_var('DISTRI', 'sle') && sle_version_at_least('12-SP1')) {
+        loadtest "x11regressions/gnomecase/gnome_classic_switch";
+    }
+    loadtest "x11regressions/gnomecase/gnome_default_applications";
+    loadtest "x11regressions/gnomecase/gnome_window_switcher";
 }
 
 sub load_x11regression_other {

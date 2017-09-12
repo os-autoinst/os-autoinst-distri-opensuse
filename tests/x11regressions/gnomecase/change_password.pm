@@ -32,25 +32,19 @@ sub lock_screen {
 }
 
 sub logout_and_login {
-    assert_and_click "system-indicator";
-    assert_and_click "user-logout-sector";
-    assert_and_click "logout-system";
-    send_key "ret";
-    assert_screen "displaymanager";
-    send_key "ret";
-    type_string "$newpwd\n";
+    handle_logout;
+    assert_screen 'displaymanager';
+    mouse_hide();
+    wait_still_screen;
+    send_key 'ret';
+    assert_screen 'displaymanager-password-prompt', no_wait => 1;
+    type_password "$newpwd\n";
     assert_screen "generic-desktop";
 }
 
 sub reboot_system {
     my ($self) = @_;
-    send_key "ctrl-alt-delete";    #reboot
-    assert_screen 'logoutdialog', 15;
-    assert_and_click 'logoutdialog-reboot-highlighted';
-    if (check_screen("reboot-auth", 5)) {
-        type_password;
-        assert_and_click "authenticate";
-    }
+    reboot_x11;
     $self->{await_reboot} = 1;
     assert_screen "displaymanager", 200;
     $self->{await_reboot} = 0;
@@ -79,7 +73,7 @@ sub change_pwd {
     wait_still_screen;
     type_string $newpwd;
     wait_still_screen;
-    send_key "alt-v";
+    send_key 'tab';
     wait_still_screen;
     type_string $newpwd;
     assert_screen "actived-change-password";
@@ -94,7 +88,7 @@ sub add_user {
     assert_and_click "set-password-option";
     send_key "alt-p";
     type_string $pwd4newUser;
-    send_key "alt-v";
+    send_key 'tab';
     type_string $pwd4newUser;
     assert_screen "actived-add-user";
     send_key "alt-a";
@@ -115,6 +109,7 @@ sub run {
     lock_screen;
     logout_and_login;
     $self->reboot_system;
+
     #swtich to new added user then switch back
     switch_user;
     send_key "esc";
@@ -123,17 +118,18 @@ sub run {
     send_key "ret";
     assert_screen "testUser-login-dm";
     type_string "$pwd4newUser\n";
-    assert_screen "generic-desktop", 60;
+    assert_screen "generic-desktop", 120;
     switch_user;
     send_key "esc";
     assert_screen "displaymanager";
     send_key "ret";
     assert_screen "originUser-login-dm";
     type_string "$newpwd\n";
-    assert_screen "generic-desktop", 60;
+    assert_screen "generic-desktop", 120;
 
     #restore password to original value
     x11_start_program("gnome-terminal");
+    assert_screen 'gnome-terminal';
     type_string "su\n";
     assert_screen "pwd4root-terminal";
     type_password "$password\n";
