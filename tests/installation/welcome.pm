@@ -72,9 +72,8 @@ sub run {
     if (sle_version_at_least('15') && check_var('DISTRI', 'sle')) {
         assert_screen('select-product');
         my %hotkey = (
-            sles   => 'u',
-            sled   => 'i',
-            leanos => 's'
+            sles => 's',
+            sled => 'u'
         );
         my $product = get_required_var('SLE_PRODUCT');
         send_key 'alt-' . $hotkey{$product};
