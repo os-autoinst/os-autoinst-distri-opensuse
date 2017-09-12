@@ -14,6 +14,7 @@
 use base "y2logsstep";
 use strict;
 use testapi;
+use utils 'sle_version_at_least';
 
 sub run {
     assert_screen('release-notes-button', 5);
@@ -49,6 +50,11 @@ sub run {
 
     # no release-notes for WE and all modules
     my @no_relnotes = qw(we lgm asmm certm contm pcm tcm wsm hpcm ids idu phub);
+
+    # No release-notes for basic modules on SLE 15
+    if (sle_version_at_least('15') && check_var('DISTRI', 'sle')) {
+        push @no_relnotes, qw(base script desktop serverapp legacy sdk);
+    }
 
     # no relnotes for ltss in QAM_MINIMAL
     push @no_relnotes, qw(ltss) if get_var('QAM_MINIMAL');
