@@ -500,10 +500,13 @@ sub run {
     script_output($setup_script, 200);
     assert_script_run "SuSEfirewall2 stop" if $disable_firewall;
 
-    #create mutexes for running services
+    # Create mutexes for running services
     foreach my $mutex (@mutexes) {
         mutex_create($mutex);
     }
+
+    # Create a *last* mutex to signal that support_server initialization is done
+    mutex_create('support_server_ready');
 }
 
 sub test_flags {
