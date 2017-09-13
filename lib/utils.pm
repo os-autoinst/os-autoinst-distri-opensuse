@@ -632,7 +632,7 @@ sub poweroff_x11 {
     if (check_var("DESKTOP", "gnome")) {
         send_key "ctrl-alt-delete";
         assert_screen 'logoutdialog', 15;
-        send_key "ret";    # confirm shutdown
+        assert_and_click 'gnome-shell_shutdown_btn';
 
         if (get_var("SHUTDOWN_NEEDS_AUTH")) {
             assert_screen 'shutdown-auth', 15;
