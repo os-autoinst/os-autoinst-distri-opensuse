@@ -161,8 +161,12 @@ diag('default desktop: ' . default_desktop);
 # SLE specific variables
 set_var('NOAUTOLOGIN', 1);
 set_var('HASLICENSE',  1);
-set_var('SLE_PRODUCT', get_var('SLE_PRODUCT') // 'sles');
-set_var('DESKTOP',     get_var('DESKTOP') // default_desktop);
+set_var('SLE_PRODUCT', get_var('SLE_PRODUCT', 'sles'));
+set_var('DESKTOP',     get_var('DESKTOP', default_desktop));
+# Always register against SCC if SLE 15
+if (sle_version_at_least('15')) {
+    set_var('SCC_REGISTER', get_var('SCC_REGISTER', 'installation'));
+}
 
 # Set serial console for Xen PV
 if (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux')) {
@@ -267,21 +271,22 @@ if (is_update_test_repo_test && !get_var('MAINT_TEST_REPO')) {
     }
 }
 
-# This setting is used to set ADDONURL properly when SDK is required.
-# Temporary we add this on SLE 15, later it should be done in installer directly.
-# TODO: remove part for SLE 15 when not used anymore
+# This setting is used to set veriables properly when SDK or Development-Tools are required.
+# For SLE 15 we add Development-Tools during using SCC, and using ftp url in case of other versions.
 if (get_var('DEV_IMAGE')) {
-    my $arch    = get_required_var("ARCH");
-    my $build   = get_required_var("BUILD");
-    my $version = get_required_var("VERSION");
     if (sle_version_at_least('15')) {
-        set_var('ADDONURL_SDK', "$utils::OPENQA_FTP_URL/SLE-$version-Module-Development-Tools-POOL-$arch-Build$build-Media1/");
-        set_var("ADDONURL",     "sdk");
+        # On SLE 15 activate Development-Tools module with SCC
+        my $addons = (get_var('SCC_ADDONS') ? get_var('SCC_ADDONS') . ',' : '') . 'sdk';
+        set_var('SCC_ADDONS', $addons);
     }
     else {
+        my $arch      = get_required_var("ARCH");
+        my $build     = get_required_var("BUILD");
+        my $version   = get_required_var("VERSION");
         my $build_sdk = get_var("BUILD_SDK");
         # Set SDK URL unless already set, then don't override
         set_var('ADDONURL_SDK', "$utils::OPENQA_FTP_URL/SLE-$version-SDK-POOL-$arch-Build$build_sdk-Media1/") unless get_var('ADDONURL_SDK');
+        my $addons = (get_var('ADDONURL') ? get_var('ADDONURL') . ',' : '') . 'sdk';
         set_var("ADDONURL", "sdk");
     }
 }
@@ -340,7 +345,8 @@ if (sle_version_at_least('15') && !check_var('SCC_REGISTER', 'installation')) {
 
 if (get_var('ENABLE_ALL_SCC_MODULES') && !get_var('SCC_MODULES')) {
     if (sle_version_at_least('15')) {
-        my $addons = 'base,script,desktop,serverapp,legacy,sdk';
+        # Add only modules which are not pre-selected
+        my $addons = (get_var('SCC_ADDONS') ? get_var('SCC_ADDONS') . ',' : '') . 'legacy,sdk';
         set_var('SCC_ADDONS', $addons);
         set_var('PATTERNS',   'default,asmm,pcm');
     }

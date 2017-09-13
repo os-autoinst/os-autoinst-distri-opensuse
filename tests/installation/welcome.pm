@@ -30,7 +30,8 @@ sub run {
     else {
         push @welcome_tags, 'inst-welcome';
     }
-
+    # Add tag for soft-failure on SLE 15
+    push @welcome_tags, 'no-product-found-on-scc' if sle_version_at_least('15');
     ensure_fullscreen;
 
     # Process expected pop-up windows and exit when welcome/beta_war is shown or too many iterations
@@ -53,6 +54,11 @@ sub run {
             next;
         }
         if (match_has_tag 'inst-welcome-confirm-self-update-server') {
+            wait_screen_change { send_key $cmd{ok} };
+            next;
+        }
+        if (match_has_tag 'no-product-found-on-scc') {
+            record_soft_failure 'bsc#1056413';
             wait_screen_change { send_key $cmd{ok} };
             next;
         }

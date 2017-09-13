@@ -32,13 +32,10 @@ sub run {
     select_console('root-console');
     # Stop packagekit
     pkcon_quit;
-    # Kernel devel packages are not in the dev tools module, so add standard repos
-    record_soft_failure('bsc#1054062');    # Once bug is resolved, this code can be removed
-    zypper_call('ar http://download.suse.de/ibs/SUSE:/SLE-15:/GA/standard/SUSE:SLE-15:GA.repo');
-    zypper_call('--gpg-auto-import-keys ref');
-    # Requested by ltp team, as curl is missing after installation
-    record_soft_failure('bsc#1053837');    # Once bug is resolved, this code can be removed
-    zypper_call('in curl');
+    if (script_run('test -f /etc/products.d/baseproduct')) {
+        record_soft_failure('bsc#1049164');
+        assert_script_run('ln -s /etc/products.d/SLES.prod /etc/products.d/baseproduct');
+    }
 }
 
 1;
