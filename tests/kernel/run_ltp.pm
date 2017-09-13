@@ -324,7 +324,7 @@ sub run {
     my $timeout     = get_var('LTP_TIMEOUT')         || 900;
     my $ltp_env     = get_var('LTP_ENV');
     my $is_posix    = $cmd_file =~ m/^\s*openposix\s*$/i;
-    my $is_network  = $cmd_file =~ m/^\s*net\./;
+    my $is_network  = $cmd_file =~ m/^\s*(net|net_stress)\./;
     my $tmp;
 
     if ($ltp_env) {
