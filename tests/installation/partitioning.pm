@@ -23,6 +23,8 @@ sub run {
     # and set the STORAGE_NG variable so later tests know about this.
     if (match_has_tag('storage-ng')) {
         set_var('STORAGE_NG', 1);
+        # Define changed shortcuts
+        $cmd{donotformat} = 'alt-t';
     }
 
     if (get_var("DUALBOOT")) {
