@@ -43,6 +43,7 @@ sub fill_in_registration_data {
         save_screenshot;
         wait_screen_change { send_key $cmd{next} };
     }
+
     my @known_untrusted_keys = qw(import-trusted-gpg-key-nvidia-F5113243C66B6EAE import-trusted-gpg-key-phub-9C214D4065176565);
     unless (get_var('SCC_REGISTER', '') =~ /addon|network/) {
         my @tags = qw(local-registration-servers registration-online-repos import-untrusted-gpg-key module-selection contacting-registration-server);
@@ -79,17 +80,26 @@ sub fill_in_registration_data {
                 next;
             }
             elsif (match_has_tag('registration-online-repos')) {
-                if (!get_var('QAM_MINIMAL')) {
-                    wait_screen_change { send_key 'alt-y' };    # want updates
-                }
-                else {
-                    wait_screen_change { send_key $cmd{next} };    # minimal dont want updates
-                }
+                # don't want updates, as we don't test it or rely on it in any tests, if is executed during installation
+                # Proxy SCC replaces all update repo urls and we end up having invalid update repos, and we
+                # also do not want to have official update repos, which will lead to inconsistent SUT.
+                wait_screen_change { send_key $cmd{next} };
                 next;
             }
             elsif (match_has_tag('module-selection')) {
                 last;
             }
+        }
+    }
+
+    # Soft-failure for module preselection
+    if (sle_version_at_least('15') && check_var('DISTRI', 'sle')) {
+        assert_screen("modules-preselected-" . get_required_var('SLE_PRODUCT'));
+        if (match_has_tag 'bsc#1056413') {
+            record_soft_failure('bsc#1056413');
+            # Add expected modules to select them manually, as not preselected
+            my $addons = 'base,script,desktop,serverapp' . (get_var('SCC_ADDONS') ? ',' . get_var('SCC_ADDONS') : '');
+            set_var('SCC_ADDONS', $addons);
         }
     }
 
