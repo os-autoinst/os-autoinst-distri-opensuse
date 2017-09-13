@@ -312,10 +312,10 @@ if (sle_version_at_least('15') && !check_var('SCC_REGISTER', 'installation')) {
         my %modules = (
             base      => 'Basesystem',
             sdk       => 'Development-Tools',
-            desktop   => 'DESKTOP-Applications',
+            desktop   => 'Desktop-Applications',
             legacy    => 'Legacy',
             script    => 'Scripting',
-            serverapp => 'SERVER-Applications'
+            serverapp => 'Server-Applications'
         );
         my $addonurl;
 
