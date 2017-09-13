@@ -28,9 +28,12 @@ use strict;
 sub run {
     select_console("root-console");
 
+    my $images = 0;
     if (is_caasp) {
         # Docker should be pre-installed in MicroOS
         die "Docker is not pre-installed." if script_run("rpm -q docker");
+        # On CaaSP se have several images from day one
+        $images = 13;
     }
     else {
         zypper_call("in docker");
@@ -43,7 +46,7 @@ sub run {
     systemctl("status docker");
 
     # get docker infor after installation and check number of images, should be 0
-    validate_script_output("docker info", sub { m/Images\: 0/ });
+    validate_script_output("docker info", sub { m/Images\: $images/ });
 
     # do search for openSUSE
     validate_script_output("docker search  --no-trunc opensuse", sub { m/This project contains the stable releases of the openSUSE distribution/ });
@@ -51,16 +54,18 @@ sub run {
     # pull minimalistic alpine image
     # https://store.docker.com/images/alpine
     assert_script_run("docker pull alpine", 300);
+    $images++;
 
     # check number of images, should be 1
-    validate_script_output("docker info", sub { m/Images\: 1/ });
+    validate_script_output("docker info", sub { m/Images\: $images/ });
 
     # pull hello-world image, typical docker demo image
     # https://store.docker.com/images/hello-world
     assert_script_run("docker pull hello-world", 300);
+    $images++;
 
     # check number of images, should be 2
-    validate_script_output("docker info", sub { m/Images\: 2/ });
+    validate_script_output("docker info", sub { m/Images\: $images/ });
 
     # run hello-world
     validate_script_output("docker run hello-world", sub { m/Hello from Docker/ });
@@ -95,9 +100,15 @@ sub run {
     # check number of running containers, should be 0
     validate_script_output("docker info", sub { m/Running\: 0/ });
 
-    # network test
-    script_run("docker run --rm alpine wget http://google.com && echo 'container_network_works' > /dev/$serialdev", 0);
-    die("network does not work inside of the container") unless wait_serial("container_network_works", 200);
+    # FIXME: Aren't containers on CaaSP isolated from outside by default?
+    if (is_caasp) {
+        record_soft_failure 'Containers networking not tested';
+    }
+    else {
+        # network test
+        script_run("docker run --rm alpine wget http://google.com && echo 'container_network_works' > /dev/$serialdev", 0);
+        die("network does not work inside of the container") unless wait_serial("container_network_works", 200);
+    }
 
     # remove all containers
     assert_script_run("docker rm \$(docker ps -a -q)");
@@ -105,11 +116,12 @@ sub run {
     # check number of containers, should be 0
     validate_script_output("docker info", sub { m/Containers\: 0/ });
 
-    # remove all images
-    assert_script_run("docker rmi --force \$(docker images -a -q)");
+    # remove images we created
+    assert_script_run('docker rmi --force alpine hello-world');
+    $images -= 2;
 
     # check number of images, should be 0
-    validate_script_output("docker info", sub { m/Images\: 0/ });
+    validate_script_output("docker info", sub { m/Images\: $images/ });
 }
 
 1;
