@@ -552,11 +552,11 @@ sub load_inst_tests {
     if (get_var('DUD_ADDONS')) {
         loadtest "installation/dud_addon";
     }
-    if (get_var('IBFT')) {
-        loadtest "installation/iscsi_configuration";
-    }
     if (sle_version_at_least('15')) {
         loadtest "installation/accept_license" if get_var('HASLICENSE');
+    }
+    if (get_var('IBFT')) {
+        loadtest "installation/iscsi_configuration";
     }
     if (check_var('ARCH', 's390x')) {
         if (check_var('BACKEND', 's390x')) {
