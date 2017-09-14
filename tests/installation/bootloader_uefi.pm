@@ -17,6 +17,7 @@ use strict;
 use Time::HiRes 'sleep';
 
 use testapi;
+use lockapi;
 use bootloader_setup;
 use registration;
 use utils;
@@ -88,6 +89,16 @@ sub run {
     # JeOS and CaaSP are never deployed with Linuxrc involved,
     # so 'regurl' does not apply there.
     registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED) unless (is_jeos or is_caasp);
+
+    # if a support_server is used, we need to wait for him to finish its initialization
+    # and we need to do it *before* starting the OS, as a DHCP request can happen too early
+    if (check_var('USE_SUPPORT_SERVER', 1)) {
+        diag "Waiting for support server to complete setup...";
+
+        # we use mutex to do this
+        mutex_lock('support_server_ready');
+        mutex_unlock('support_server_ready');
+    }
 
     # boot
     send_key "f10";

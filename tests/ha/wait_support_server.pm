@@ -18,9 +18,11 @@ use mmapi;
 
 sub run {
     # Support server takes time to complete setup, so we need to wait (a little!) before
-    my $wait_time = 600;
-    diag "Waiting $wait_time seconds for support server to complete setup...";
-    sleep $wait_time;
+    diag "Waiting for support server to complete setup...";
+
+    # Wait for the support_server to finish
+    mutex_lock('support_server_ready');
+    mutex_unlock('support_server_ready');
 
     # Now we can wait for barrier to synchronize nodes
     barrier_wait('BARRIER_HA_' . get_var('CLUSTER_NAME'));

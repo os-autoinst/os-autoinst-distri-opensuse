@@ -17,41 +17,45 @@ use lockapi;
 use mmapi;
 
 sub run {
-    # Number of node is a mandatory variable!
-    my $num_nodes = get_required_var('HA_NUM_NODES');
+    for my $cluster_infos (split(/,/, get_required_var('CLUSTER_INFOS'))) {
+        # The CLUSTER_INFOS variable for support_server also contains the number of node
+        my ($cluster_name, $num_nodes) = split(/:/, $cluster_infos);
 
-    # Initialize all barrier locks for each cluster
-    for my $clustername (split(/,/, get_var('CLUSTER_NAME'))) {
+        # Number of node is a mandatory variable!
+        if ($num_nodes lt '2') {
+            die "A valid number of nodes is mandatory";
+        }
+
         # BARRIER_HA_ needs to also wait the support-server
-        barrier_create('BARRIER_HA_' . $clustername,                 $num_nodes + 1);
-        barrier_create('CLUSTER_INITIALIZED_' . $clustername,        $num_nodes);
-        barrier_create('NODE_JOINED_' . $clustername,                $num_nodes);
-        barrier_create('DLM_INIT_' . $clustername,                   $num_nodes);
-        barrier_create('DLM_GROUPS_CREATED_' . $clustername,         $num_nodes);
-        barrier_create('DLM_CHECKED_' . $clustername,                $num_nodes);
-        barrier_create('DRBD_INIT_' . $clustername,                  $num_nodes);
-        barrier_create('DRBD_CHECK_DEVICE_NODE_02_' . $clustername,  $num_nodes);
-        barrier_create('DRBD_CREATE_DEVICE_NODE_01_' . $clustername, $num_nodes);
-        barrier_create('DRBD_DOWN_DONE_' . $clustername,             $num_nodes);
-        barrier_create('DRBD_MIGRATION_DONE_' . $clustername,        $num_nodes);
-        barrier_create('DRBD_RES_CREATED_' . $clustername,           $num_nodes);
-        barrier_create('DRBD_SETUP_DONE_' . $clustername,            $num_nodes);
-        barrier_create('OCFS2_INIT_' . $clustername,                 $num_nodes);
-        barrier_create('OCFS2_MKFS_DONE_' . $clustername,            $num_nodes);
-        barrier_create('OCFS2_GROUP_ADDED_' . $clustername,          $num_nodes);
-        barrier_create('OCFS2_DATA_COPIED_' . $clustername,          $num_nodes);
-        barrier_create('OCFS2_MD5_CHECKED_' . $clustername,          $num_nodes);
-        barrier_create('BEFORE_FENCING_' . $clustername,             $num_nodes);
-        barrier_create('FENCING_DONE_' . $clustername,               $num_nodes);
-        barrier_create('LOGS_CHECKED_' . $clustername,               $num_nodes);
-        barrier_create('CLVM_INIT_' . $clustername,                  $num_nodes);
-        barrier_create('CLVM_RESOURCE_CREATED_' . $clustername,      $num_nodes);
-        barrier_create('CLVM_PV_VG_LV_CREATED_' . $clustername,      $num_nodes);
-        barrier_create('CLVM_VG_RESOURCE_CREATED_' . $clustername,   $num_nodes);
-        barrier_create('CLVM_RW_CHECKED_' . $clustername,            $num_nodes);
-        barrier_create('CLVM_MD5SUM_' . $clustername,                $num_nodes);
-        barrier_create('MON_INIT_' . $clustername,                   $num_nodes);
-        barrier_create('MON_CHECKED_' . $clustername,                $num_nodes);
+        barrier_create('BARRIER_HA_' . $cluster_name,                 $num_nodes + 1);
+        barrier_create('CLUSTER_INITIALIZED_' . $cluster_name,        $num_nodes);
+        barrier_create('NODE_JOINED_' . $cluster_name,                $num_nodes);
+        barrier_create('DLM_INIT_' . $cluster_name,                   $num_nodes);
+        barrier_create('DLM_GROUPS_CREATED_' . $cluster_name,         $num_nodes);
+        barrier_create('DLM_CHECKED_' . $cluster_name,                $num_nodes);
+        barrier_create('DRBD_INIT_' . $cluster_name,                  $num_nodes);
+        barrier_create('DRBD_CHECK_DEVICE_NODE_02_' . $cluster_name,  $num_nodes);
+        barrier_create('DRBD_CREATE_DEVICE_NODE_01_' . $cluster_name, $num_nodes);
+        barrier_create('DRBD_DOWN_DONE_' . $cluster_name,             $num_nodes);
+        barrier_create('DRBD_MIGRATION_DONE_' . $cluster_name,        $num_nodes);
+        barrier_create('DRBD_RES_CREATED_' . $cluster_name,           $num_nodes);
+        barrier_create('DRBD_SETUP_DONE_' . $cluster_name,            $num_nodes);
+        barrier_create('OCFS2_INIT_' . $cluster_name,                 $num_nodes);
+        barrier_create('OCFS2_MKFS_DONE_' . $cluster_name,            $num_nodes);
+        barrier_create('OCFS2_GROUP_ADDED_' . $cluster_name,          $num_nodes);
+        barrier_create('OCFS2_DATA_COPIED_' . $cluster_name,          $num_nodes);
+        barrier_create('OCFS2_MD5_CHECKED_' . $cluster_name,          $num_nodes);
+        barrier_create('BEFORE_FENCING_' . $cluster_name,             $num_nodes);
+        barrier_create('FENCING_DONE_' . $cluster_name,               $num_nodes);
+        barrier_create('LOGS_CHECKED_' . $cluster_name,               $num_nodes);
+        barrier_create('CLVM_INIT_' . $cluster_name,                  $num_nodes);
+        barrier_create('CLVM_RESOURCE_CREATED_' . $cluster_name,      $num_nodes);
+        barrier_create('CLVM_PV_VG_LV_CREATED_' . $cluster_name,      $num_nodes);
+        barrier_create('CLVM_VG_RESOURCE_CREATED_' . $cluster_name,   $num_nodes);
+        barrier_create('CLVM_RW_CHECKED_' . $cluster_name,            $num_nodes);
+        barrier_create('CLVM_MD5SUM_' . $cluster_name,                $num_nodes);
+        barrier_create('MON_INIT_' . $cluster_name,                   $num_nodes);
+        barrier_create('MON_CHECKED_' . $cluster_name,                $num_nodes);
     }
 
     # Wait for all children to start
@@ -59,8 +63,10 @@ sub run {
     wait_for_children_to_start;
 
     # To synchronize all nodes (including  the support server)
-    for my $clustername (split(/,/, get_var('CLUSTER_NAME'))) {
-        barrier_wait('BARRIER_HA_' . $clustername);
+    for my $cluster_infos (split(/,/, get_var('CLUSTER_INFOS'))) {
+        # The CLUSTER_INFOS variable for support_server also contains the number of node
+        my ($cluster_name, $num_nodes) = split(/:/, $cluster_infos);
+        barrier_wait('BARRIER_HA_' . $cluster_name);
     }
 }
 
