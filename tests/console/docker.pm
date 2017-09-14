@@ -28,7 +28,7 @@ use strict;
 sub run {
     select_console("root-console");
 
-    if (is_caasp) {
+    if (is_caasp && check_var('FLAVOR', 'DVD') && !check_var('SYSTEM_ROLE', 'plain')) {
         # Docker should be pre-installed in MicroOS
         die "Docker is not pre-installed." if script_run("rpm -q docker");
     }
@@ -42,9 +42,6 @@ sub run {
     # check status of docker daemon
     systemctl("status docker");
 
-    # get docker infor after installation and check number of images, should be 0
-    validate_script_output("docker info", sub { m/Images\: 0/ });
-
     # do search for openSUSE
     validate_script_output("docker search  --no-trunc opensuse", sub { m/This project contains the stable releases of the openSUSE distribution/ });
 
@@ -52,30 +49,28 @@ sub run {
     # https://store.docker.com/images/alpine
     assert_script_run("docker pull alpine", 300);
 
-    # check number of images, should be 1
-    validate_script_output("docker info", sub { m/Images\: 1/ });
+    # Check if the alpine image has been fetched
+    assert_script_run("docker images -q alpine:latest");
 
     # pull hello-world image, typical docker demo image
     # https://store.docker.com/images/hello-world
     assert_script_run("docker pull hello-world", 300);
 
-    # check number of images, should be 2
-    validate_script_output("docker info", sub { m/Images\: 2/ });
+    # Check if the hello-world image has been fetched
+    assert_script_run("docker images -q hello-world:latest");
 
-    # run hello-world
-    validate_script_output("docker run hello-world", sub { m/Hello from Docker/ });
+    # run hello-world container and name it test_1
+    validate_script_output("docker run --name test_1 hello-world", sub { m/Hello from Docker/ });
 
-    # run hello world from alpine
-    validate_script_output("docker run alpine /bin/echo Hello world", sub { m/Hello world/ });
+    # run hello world from alpine and name it test_2
+    validate_script_output("docker run --name test_2 alpine /bin/echo Hello world", sub { m/Hello world/ });
 
-    # check number of containers, should be 2
-    validate_script_output("docker info", sub { m/Containers\: 2/ });
+    # Check that we have 2 containers with the proper naming scheme
+    validate_script_output("docker ps -a", sub { m/test_1/ });
+    validate_script_output("docker ps -a", sub { m/test_2/ });
 
-    # run hello world from alpine and delete container
-    validate_script_output("docker run --rm alpine /bin/echo Hello world", sub { m/Hello world/ });
-
-    # check number of containers, still should be 2
-    validate_script_output("docker info", sub { m/Containers\: 2/ });
+    # run hello world from alpine as an ephemeral container
+    validate_script_output("docker run --name test_ephemeral --rm alpine /bin/echo Hello world", sub { m/Hello world/ });
 
     # list docker images
     validate_script_output("docker images", sub { m/alpine/ });
@@ -83,33 +78,26 @@ sub run {
     # run alpine container on background and get back its id
     my ($container_id) = script_output("docker run -d -t -i alpine /bin/sh") =~ /(.+)/;
 
-    # check number of running containers, should be 1
-    validate_script_output("docker info", sub { m/Running\: 1/ });
-
-    # check number of running containers, should be 1
-    validate_script_output("docker ps --no-trunc -q", sub { m/${container_id}/ });
+    # check that alpine container is running (in background)
+    script_run("docker inspect --format='{{.State.Running}}' ${container_id}");
+    validate_script_output("docker inspect --format='{{.State.Running}}' ${container_id}", sub { m/true/ });
 
     # stop running container
     assert_script_run("docker stop ${container_id}");
 
-    # check number of running containers, should be 0
-    validate_script_output("docker info", sub { m/Running\: 0/ });
+    # check that alpine container should not be running anymore
+    validate_script_output("docker inspect --format='{{.State.Running}}' ${container_id}", sub { m/false/ });
 
     # network test
     script_run("docker run --rm alpine wget http://google.com && echo 'container_network_works' > /dev/$serialdev", 0);
     die("network does not work inside of the container") unless wait_serial("container_network_works", 200);
 
-    # remove all containers
-    assert_script_run("docker rm \$(docker ps -a -q)");
+    # remove all containers related to alpine and hello-world
+    assert_script_run("docker rm \$(docker ps -a | grep 'alpine\\|hello-world' | awk '{print \$1}')");
 
-    # check number of containers, should be 0
-    validate_script_output("docker info", sub { m/Containers\: 0/ });
+    # Remove the alpine and hello-world images
+    assert_script_run("docker images | grep 'alpine\\|hello-world' | awk '{print \$1}' | xargs docker rmi");
 
-    # remove all images
-    assert_script_run("docker rmi --force \$(docker images -a -q)");
-
-    # check number of images, should be 0
-    validate_script_output("docker info", sub { m/Images\: 0/ });
 }
 
 1;
