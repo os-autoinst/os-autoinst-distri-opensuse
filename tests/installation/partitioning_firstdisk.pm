@@ -22,7 +22,18 @@ sub take_first_disk_storage_ng {
     return unless is_storage_ng;
     send_key $cmd{guidedsetup};    # select guided setup
     assert_screen 'select-hard-disks';
-    assert_and_click 'hard-disk-dev-sdb-selected';    # Unselect second drive
+    if (check_var('VIDEOMODE', 'text')) {
+        assert_screen 'hard-disk-dev-sdb-selected';
+        if (match_has_tag 'hotkey_d') {
+            send_key 'alt-d';
+        }
+        elsif (match_has_tag 'hotkey_e') {
+            send_key 'alt-e';
+        }
+    }
+    else {
+        assert_and_click 'hard-disk-dev-sdb-selected';    # Unselect second drive
+    }
     assert_screen 'select-hard-disks-one-selected';
     send_key $cmd{next};
     # If drive is not formatted, we have select hard disks page
@@ -34,8 +45,16 @@ sub take_first_disk_storage_ng {
     assert_screen 'partition-scheme';
     send_key $cmd{next};
     # select btrfs file system
-    assert_and_click 'default-root-filesystem';
-    assert_and_click "filesystem-btrfs";
+    if (check_var('VIDEOMODE', 'text')) {
+        assert_screen 'select-root-filesystem';
+        send_key 'alt-f';
+        send_key_until_needlematch 'filesystem-btrfs', 'down', 10, 3;
+        send_key 'ret';
+    }
+    else {
+        assert_and_click 'default-root-filesystem';
+        assert_and_click "filesystem-btrfs";
+    }
     assert_screen "btrfs-selected";
     send_key $cmd{next};
 }
