@@ -97,6 +97,7 @@ sub run {
 
     # Remove the alpine and hello-world images
     assert_script_run("docker images | grep 'alpine\\|hello-world' | awk '{print \$1}' | xargs docker rmi");
+
 }
 
 1;

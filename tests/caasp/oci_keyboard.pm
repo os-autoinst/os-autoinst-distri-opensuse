@@ -17,7 +17,7 @@ use testapi;
 
 sub run {
     # Switch to UK
-    check_var('VIDEOMODE', 'text') ? send_key 'alt-y' : send_key 'alt-e';
+    send_key 'alt-e';
     send_key 'up';
     send_key 'ret' if check_var('VIDEOMODE', 'text');
 
@@ -28,7 +28,7 @@ sub run {
     for (1 .. 6) { send_key 'backspace' }
 
     # Switch to US
-    check_var('VIDEOMODE', 'text') ? send_key 'alt-y' : send_key 'alt-e';
+    send_key 'alt-e';
     send_key 'down';
     send_key 'ret' if check_var('VIDEOMODE', 'text');
 }

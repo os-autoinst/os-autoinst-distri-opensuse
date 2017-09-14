@@ -18,7 +18,7 @@ use testapi;
 sub run {
     my ($self) = @_;
 
-    check_var('VIDEOMODE', 'text') ? send_key 'alt-a' : send_key 'alt-w';
+    send_key 'alt-a';
     $self->type_password_and_verification;
     assert_screen "rootpassword-typed";
 }
