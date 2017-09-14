@@ -645,7 +645,7 @@ sub load_inst_tests {
     # need to be able to do installations on it. The release notes
     # functionality needs to be covered by other backends
     # Skip release notes test on sle 15 if have addons
-    if (!check_var('BACKEND', 'generalhw') && !(sle_version_at_least('15') && get_var('ADDONURL'))) {
+    if (!check_var('BACKEND', 'generalhw') && !check_var('BACKEND', 'ipmi') && !(sle_version_at_least('15') && get_var('ADDONURL'))) {
         loadtest "installation/releasenotes";
     }
     if (noupdatestep_is_applicable()) {
