@@ -83,7 +83,13 @@ sub fill_in_registration_data {
                 # don't want updates, as we don't test it or rely on it in any tests, if is executed during installation
                 # Proxy SCC replaces all update repo urls and we end up having invalid update repos, and we
                 # also do not want to have official update repos, which will lead to inconsistent SUT.
-                wait_screen_change { send_key $cmd{next} };
+                # For released products we want install updates during installation, only in minimal workflow disable
+                if (get_required_var('FLAVOR') =~ /-Updates$|-Incidents/ && !get_var('QAM_MINIMAL')) {
+                    wait_screen_change { send_key 'alt-y' };
+                }
+                else {
+                    wait_screen_change { send_key $cmd{next} };
+                }
                 next;
             }
             elsif (match_has_tag('module-selection')) {
