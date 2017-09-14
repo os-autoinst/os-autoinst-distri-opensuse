@@ -212,65 +212,6 @@ if (check_var('DESKTOP', 'minimalx')) {
     set_var('DM_NEEDS_USERNAME', 1);
 }
 
-# Always register at scc and use the test updates if the Flavor is -Updates.
-# This way we can reuse existant test suites without having to patch their
-# settings
-if (is_update_test_repo_test && !get_var('MAINT_TEST_REPO')) {
-    my %incidents;
-    my %u_url;
-    $incidents{OS} = get_var('OS_TEST_ISSUES',   '');
-    $u_url{OS}     = get_var('OS_TEST_TEMPLATE', '');
-
-    my @maint_repos;
-    my @inclist;
-
-    my @addons = split(/,/, get_var('SCC_ADDONS', ''));
-
-    for my $a (split(/,/, get_var('ADDONS', '')), split(/,/, get_var('ADDONURL', ''))) {
-        push(@addons, $a);
-    }
-
-    # set SCC_ADDONS before push to slenkins
-    set_var('SCC_ADDONS', join(',', @addons));
-
-    # push sdk addon to slenkins tests
-    if (get_var('TEST', '') =~ /^slenkins/) {
-        push(@addons, 'sdk');
-    }
-    # move ADDONS to SCC_ADDONS for maintenance
-    set_var('ADDONS', '');
-    # move ADDONURL to SCC_ADDONS and remove ADDONURL_SDK
-    set_var('ADDONURL',     '');
-    set_var('ADDONURL_SDK', '');
-
-    for my $a (@addons) {
-        if ($a) {
-            $incidents{uc($a)} = get_var(uc($a) . '_TEST_ISSUES');
-            $u_url{uc($a)}     = get_var(uc($a) . '_TEST_TEMPLATE');
-        }
-    }
-
-    for my $a (keys %incidents) {
-        for my $b (split(/,/, $incidents{$a})) {
-            if ($b) {
-                push @maint_repos, join($b, split('%INCIDENTNR%', $u_url{$a}));
-            }
-        }
-    }
-
-    my $repos = join(',', @maint_repos);
-    # MAINT_TEST_REPO cannot start with ','
-    $repos =~ s/^,//s;
-
-    set_var('MAINT_TEST_REPO', $repos);
-    set_var('SCC_REGISTER',    'installation');
-
-    # slenkins test needs FOREIGN_REPOS
-    if (get_var('TEST', '') =~ /^slenkins/) {
-        set_var('FOREIGN_REPOS', $repos);
-    }
-}
-
 # This setting is used to set veriables properly when SDK or Development-Tools are required.
 # For SLE 15 we add Development-Tools during using SCC, and using ftp url in case of other versions.
 if (get_var('DEV_IMAGE')) {
@@ -340,6 +281,65 @@ if (sle_version_at_least('15') && !check_var('SCC_REGISTER', 'installation')) {
         #remove last comma from ADDONURL setting value
         $addonurl =~ s/,$//;
         set_var("ADDONURL", $addonurl);
+    }
+}
+
+# Always register at scc and use the test updates if the Flavor is -Updates.
+# This way we can reuse existant test suites without having to patch their
+# settings
+if (is_update_test_repo_test && !get_var('MAINT_TEST_REPO')) {
+    my %incidents;
+    my %u_url;
+    $incidents{OS} = get_var('OS_TEST_ISSUES',   '');
+    $u_url{OS}     = get_var('OS_TEST_TEMPLATE', '');
+
+    my @maint_repos;
+    my @inclist;
+
+    my @addons = split(/,/, get_var('SCC_ADDONS', ''));
+
+    for my $a (split(/,/, get_var('ADDONS', '')), split(/,/, get_var('ADDONURL', ''))) {
+        push(@addons, $a);
+    }
+
+    # set SCC_ADDONS before push to slenkins
+    set_var('SCC_ADDONS', join(',', @addons));
+
+    # push sdk addon to slenkins tests
+    if (get_var('TEST', '') =~ /^slenkins/) {
+        push(@addons, 'sdk');
+    }
+    # move ADDONS to SCC_ADDONS for maintenance
+    set_var('ADDONS', '');
+    # move ADDONURL to SCC_ADDONS and remove ADDONURL_SDK
+    set_var('ADDONURL',     '');
+    set_var('ADDONURL_SDK', '');
+
+    for my $a (@addons) {
+        if ($a) {
+            $incidents{uc($a)} = get_var(uc($a) . '_TEST_ISSUES');
+            $u_url{uc($a)}     = get_var(uc($a) . '_TEST_TEMPLATE');
+        }
+    }
+
+    for my $a (keys %incidents) {
+        for my $b (split(/,/, $incidents{$a})) {
+            if ($b) {
+                push @maint_repos, join($b, split('%INCIDENTNR%', $u_url{$a}));
+            }
+        }
+    }
+
+    my $repos = join(',', @maint_repos);
+    # MAINT_TEST_REPO cannot start with ','
+    $repos =~ s/^,//s;
+
+    set_var('MAINT_TEST_REPO', $repos);
+    set_var('SCC_REGISTER',    'installation');
+
+    # slenkins test needs FOREIGN_REPOS
+    if (get_var('TEST', '') =~ /^slenkins/) {
+        set_var('FOREIGN_REPOS', $repos);
     }
 }
 
