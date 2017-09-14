@@ -29,10 +29,10 @@ sub run {
     select_console("root-console");
 
     my $images = 0;
-    if (is_caasp && check_var('FLAVOR', 'DVD') && !check_var('SYSTEM_ROLE', 'plain')) {
+    if (is_caasp) {
         # Docker should be pre-installed in MicroOS
         die "Docker is not pre-installed." if script_run("rpm -q docker");
-        # On CaaSP we have several images from day one
+        # On CaaSP se have several images from day one
         $images = 13;
     }
     else {
