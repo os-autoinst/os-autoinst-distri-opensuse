@@ -94,7 +94,13 @@ sub fill_in_registration_data {
 
     # Soft-failure for module preselection
     if (sle_version_at_least('15') && check_var('DISTRI', 'sle')) {
-        assert_screen("modules-preselected-" . get_required_var('SLE_PRODUCT'));
+        my $modules_needle = "modules-preselected-" . get_required_var('SLE_PRODUCT');
+        if (get_var('UPGRADE') || get_var('PATCH')) {
+            check_screen($modules_needle, 5);
+        }
+        else {
+            assert_screen($modules_needle);
+        }
         if (match_has_tag 'bsc#1056413') {
             record_soft_failure('bsc#1056413');
             # Add expected modules to select them manually, as not preselected
