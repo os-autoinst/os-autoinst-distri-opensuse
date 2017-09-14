@@ -92,7 +92,8 @@ sub run {
     assert_and_click 'empathy-disable-aim-account1';
     assert_and_click 'empathy-delete-aim-account1';
     assert_screen 'empathy-confirm-aim-deletion1';
-    wait_screen_change { send_key "alt-r" };
+    send_key "alt-r";
+    wait_still_screen 2;
 
     send_key "alt-c";
 

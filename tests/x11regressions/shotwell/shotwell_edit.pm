@@ -38,7 +38,8 @@ sub run {
     assert_screen 'shotwell-crop-picture';
     send_key "shift-delete";    # Remove picture from library
     assert_screen 'shotwell-remove-prompt';
-    wait_screen_change { send_key 'alt-r' };
+    send_key 'alt-r';
+    wait_still_screen 2;
     send_key "esc";
     assert_screen 'shotwell-removed-picture', 60;
     send_key "ctrl-q";          # Quit shotwell

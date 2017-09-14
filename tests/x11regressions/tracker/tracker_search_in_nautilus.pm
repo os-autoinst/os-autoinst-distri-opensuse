@@ -18,7 +18,8 @@ use testapi;
 sub run {
     x11_start_program("nautilus");
     wait_screen_change { send_key 'ctrl-f' };
-    wait_screen_change { type_string 'newfile' };
+    type_string 'newfile';
+    wait_still_screen 2;
     save_screenshot;
     send_key 'ret';
     assert_screen 'gedit-launched';    # should open file newfile
