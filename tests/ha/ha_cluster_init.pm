@@ -37,8 +37,17 @@ sub run {
     assert_script_run 'crm_mon -R -1';
     assert_script_run "sbd -d $sbd_device message " . get_var('HOSTNAME') . " exit";
     type_string "ps -A | grep sbd\n";
+
     # SBD default timeouts must be changed!
     assert_script_run "sbd -d $sbd_device -1 30 -4 60 create";
+
+    # So the global stonith-timeout must also be changed!
+    assert_script_run 'crm_attribute -t crm_config -n stonith-timeout -v 120';
+
+    # Verify the stonith-timeout value
+    assert_script_run 'crm_attribute -t crm_config -n stonith-timeout -G';
+
+    # And restart the STONITH and Pacemaker
     assert_script_run 'crm resource start stonith-sbd';
     assert_script_run 'systemctl restart pacemaker';
     for (1 .. 5) {
@@ -49,7 +58,12 @@ sub run {
         }
     }
     assert_screen('ha-crm-mon-sbd-started');
+
+    # Signal that the cluster stack is initialized
     barrier_wait('CLUSTER_INITIALIZED_' . $self->cluster_name);
+
+    # Waiting for the other nodes to join
+    diag 'Waiting for other nodes to join...';
     barrier_wait('NODE_JOINED_' . $self->cluster_name);
 
     # Do a check of the cluster with a screenshot
