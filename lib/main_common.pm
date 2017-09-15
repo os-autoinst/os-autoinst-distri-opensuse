@@ -500,7 +500,7 @@ sub load_extra_tests {
         loadtest 'x11/yast2_lan_restart' if check_var('DISTRI', 'gnome');
     }
     else {
-        loadtest "console/zypper_lr";
+        loadtest "console/zypper_lr_validate";
         loadtest "console/openvswitch";
         # dependency of git test
         loadtest "console/sshd";
