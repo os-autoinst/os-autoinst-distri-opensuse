@@ -16,6 +16,15 @@ use base "opensusebasetest";
 use testapi;
 use caasp;
 
+# Defines versions used in subsequent tests
+sub packageversion {
+    my $ptfutsverlong = '5-1.3';
+    if (check_var('DISTRI', 'caasp')) {
+        $ptfutsverlong = '5-5.3.61';
+    }
+    return $ptfutsverlong;
+}
+
 # Optionally skip exit status check in case immediate reboot is expected
 sub rbm_call {
     my $cmd = shift;
@@ -48,7 +57,7 @@ sub rbm_set_window {
 #1 Test instant reboot
 sub check_strategy_instantly {
     rbm_call "set-strategy instantly";
-    trup_call 'reboot ptf install update-test-trival/update-test-interactive-5-5.3.61.x86_64.rpm', 0;
+    trup_call "reboot ptf install update-test-trival/update-test-interactive-" . packageversion() . ".x86_64.rpm", 0;
     process_reboot;
     rbm_call "get-strategy | grep instantly";
 }
@@ -59,7 +68,7 @@ sub check_strategy_maint_window {
 
     # Trigger reboot during maint-window
     rbm_set_window '-5minutes';
-    trup_call 'reboot pkg install update-test-trival/update-test-feature-5-5.3.61.x86_64.rpm', 0;
+    trup_call "reboot pkg install update-test-trival/update-test-feature-" . packageversion() . ".x86_64.rpm", 0;
     process_reboot;
 
     # Trigger reboot and wait for maintenance window
@@ -85,7 +94,7 @@ sub check_strategy_etcd_lock {
     # Unlock during maintenance window - bsc#1026274
     rbm_call "lock lock1";
     rbm_set_window 'now', '1h';
-    trup_call 'reboot ptf install update-test-trival/update-test-reboot-needed-5-5.3.61.x86_64.rpm';
+    trup_call "reboot ptf install update-test-trival/update-test-reboot-needed-" . packageversion() . ".x86_64.rpm";
     rbm_check_status 3;
     rbm_call "unlock lock1", 0;
     process_reboot;
