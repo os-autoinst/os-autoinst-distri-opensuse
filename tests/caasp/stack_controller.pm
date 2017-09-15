@@ -142,6 +142,17 @@ sub run {
     send_key "alt-tab";
     assert_screen 'xterm';
     type_string "export KUBECONFIG=~/Downloads/kubeconfig\n";
+
+    if (check_var('DISTRI', 'caasp') && get_var('VERSION', '2.0')) {
+        # Add repository and install caasp-cli tool
+        my $cli_repo = get_required_var("CLI_REPO");
+        script_sudo "zypper --non-interactive addrepo $cli_repo";
+        script_sudo "zypper --non-interactive --gpg-auto-import-key refresh";
+        script_sudo "zypper --non-interactive install caasp-cli";
+        # Inject auth info into downloaded kubeconfig by using caasp-cli tool
+        assert_script_run "caasp-cli login -u email\@email.com -p password -s https://master.openqa.test:6443";
+    }
+
     assert_script_run "kubectl cluster-info";
     assert_script_run "kubectl get nodes";
 
