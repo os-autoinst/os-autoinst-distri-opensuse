@@ -19,12 +19,13 @@ sub run {
     my ($self) = @_;
 
     my $bug_pattern = {
-        bsc_1022527         => '.*wickedd.*ni_process_reap.*blocking waitpid.*',
-        bsc_1022524         => '.*rpc\.statd.*Failed to open directory sm.*',
-        bsc_1022525         => '.*rpcbind.*cannot(.*open file.*rpcbind.xdr.*|.*open file.*portmap.xdr.*|.*save any registration.*)',
+        bsc_1022527_FEATURE => '.*wickedd.*ni_process_reap.*blocking waitpid.*',
+        bsc_1022524_FEATURE => '.*rpc\.statd.*Failed to open directory sm.*',
+        bsc_1022525_FEATURE => '.*rpcbind.*cannot(.*open file.*rpcbind.xdr.*|.*open file.*portmap.xdr.*|.*save any registration.*)',
         bsc_1023818         => '.*Dev dev-disk-by.*device appeared twice with different sysfs paths.*',
         bsc_1033792         => '.*blk_update_request.*error.*dev fd0.*sector 0.*',
         bsc_1047923         => '.*e820: (cannot find a gap in the 32bit address range|PCI devices with unassigned 32bit BARs may break!)',
+        bsc_1058703         => '.*Specified group \'.*\' unknown.*',
         bsc_1025217_FEATURE => '.*piix4_smbus.*SMBus (Host Controller not enabled|base address uninitialized - upgrade BIOS).*',
         bsc_1025218_FEATURE => '.*dmi.*Firmware registration failed.*',
         bsc_1028060_FEATURE => '.*getting etcd lock took too long, reboot canceld.*',
