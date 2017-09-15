@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -30,8 +30,8 @@ sub run {
     assert_script_run 'wget --quiet ' . data_url('console/test_unzip.zip') . ' -O /tmp/unzip-test/archive.zip';
     assert_script_run 'cd /tmp/unzip-test; unzip archive.zip';
 
-    my $entries = script_output('ls -l /tmp/unzip-test/ | wc -l');
-    die "Extract produced too few values: $entries instead of 7" unless ($entries =~ /^7$/);
+    my $entries = script_output('ls -1Uq /tmp/unzip-test/ | wc -l');
+    die "Extract produced too few values: $entries instead of 6" unless ($entries =~ /^6$/);
 
     # Go one step further and verify the md5sum of each file
     assert_script_run 'wget --quiet ' . data_url('console/checklist.md5') . ' -O /tmp/unzip-test/checklist.md5';
@@ -39,8 +39,8 @@ sub run {
 
     # 2. Unzip into a new directory
     assert_script_run 'cd /tmp/unzip-test/ ; unzip -d extract/ /tmp/unzip-test/archive.zip';
-    $entries = script_output('ls -l /tmp/unzip-test/extract/ | wc -l');
-    die "Extract produced too few values: $entries instead of 6" unless ($entries =~ /^6$/);
+    $entries = script_output('ls -1Uq /tmp/unzip-test/extract/ | wc -l');
+    die "Extract produced too few values: $entries instead of 5" unless ($entries =~ /^5$/);
     # Go one step further and verify the md5sum in extract folder of each file.
     assert_script_run 'cp /tmp/unzip-test/archive.zip /tmp/unzip-test/extract/archive.zip';
     assert_script_run "sed -Ei 'sXunzip-testXunzip-test/extractXg' /tmp/unzip-test/checklist.md5";
