@@ -19,10 +19,14 @@ use selenium;
 sub run {
   my ($self) = @_;
   $self->register_barriers('branch_network_formula', 'branch_network_formula_finish');
+  
+  my $testip = '192.168.1.1';  #TODO: get also from configurable variable if present
+  my $srvdir = get_var('SERVER_DIR');
+
   if (check_var('SUMA_SALT_MINION', 'branch')) {
     $self->registered_barrier_wait('branch_network_formula');
     assert_script_run('ip a');
-    assert_script_run('ip a | grep 192.168.1.1');
+    assert_script_run('ip a | grep '.$testip);
     assert_script_run('grep "^FW_DEV_INT=.*eth1" /etc/sysconfig/SuSEfirewall2');
     assert_script_run('grep "^FW_ROUTE=.*yes" /etc/sysconfig/SuSEfirewall2');
     $self->registered_barrier_wait('branch_network_formula_finish');
@@ -39,21 +43,27 @@ sub run {
     $driver->mouse_move_to_location(element => wait_for_xpath("//form[\@id='editFormulaForm']//input[1]"));
     $driver->double_click();
     save_screenshot;
+
     # nic
     $driver->send_keys_to_active_element('eth1');
     $driver->send_keys_to_active_element("\t");
-    # ip
 
-    $driver->send_keys_to_active_element('192.168.1.1');
+    # ip
+    $driver->send_keys_to_active_element($testip);
     $driver->send_keys_to_active_element("\t");
 
     # netmask
     $driver->send_keys_to_active_element('255.255.0.0');
     $driver->send_keys_to_active_element("\t");
+
+    # dir
+    $driver->send_keys_to_active_element($srvdir);
+    $driver->send_keys_to_active_element("\t");
+    sleep(1);
     save_screenshot;
+
     wait_for_xpath("//button[\@id='save-btn']")->click();
 
-    
     $self->apply_highstate();
 
     $self->registered_barrier_wait('branch_network_formula');

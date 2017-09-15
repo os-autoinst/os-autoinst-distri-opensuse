@@ -27,7 +27,7 @@ sub run {
     $self->register_barriers('vsftpd_formula', 'vsftpd_ready', 'vsftpd_formula_finish');
     my $bn= keys get_children();
     barrier_create('vsftpd_ready', $bn+1);  
-
+    
     # configure second interface for vsftpd
     $self->registered_barrier_wait('vsftpd_formula');
 
@@ -46,6 +46,7 @@ sub run {
     script_run('netstat -plutn | grep \''.$testip.':21\s\' | grep -P \'/vsftpd\s*$\' ');
 
     #download test:
+    script_run('ls -l '.$srvdir.'/..');
     script_run('echo "vsftpd_test" > '.$srvdir.'/vsftpd_test');
     script_run('ls -l '.$srvdir);
     assert_script_run('curl ftp://'.$testip.'/vsftpd_test > vsftpd_test_dwl');
@@ -88,6 +89,7 @@ sub run {
     $driver->send_keys_to_active_element($testip);
     $driver->send_keys_to_active_element("\t");
     save_screenshot;
+    sleep(5);
     wait_for_xpath("//button[\@id='save-btn']")->click();
 
     $self->apply_highstate();

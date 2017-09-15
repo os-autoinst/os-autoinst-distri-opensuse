@@ -57,6 +57,7 @@ sub run {
   }
   else {
     select_console 'root-console';
+    my $branch = get_var('BRANCH_HOSTNAME');
 
     assert_script_run "mkdir -p /etc/salt/master.d ; echo 'file_recv_max_size: 10000' >/etc/salt/master.d/openqa_test_image.conf";
     assert_script_run 'systemctl restart salt-master';
@@ -65,11 +66,11 @@ sub run {
     $self->register_barriers('build_image', 'image_registered', 'image_synced');
     $self->registered_barrier_wait('build_image');
 
-    assert_script_run 'salt -t 1000 suma-branch\* cp.push /built-image/POS_Image_JeOS5.x86_64-6.0.0', 1000;
-    assert_script_run 'salt -t 1000 suma-branch\* cp.push /built-image/initrd-netboot-suse-SLES12.x86_64-2.1.1.gz', 1000;
-    assert_script_run 'salt -t 1000 suma-branch\* cp.push /built-image/initrd-netboot-suse-SLES12.x86_64-2.1.1.kernel', 1000;
+    assert_script_run 'salt -t 1000 '.$branch.'\* cp.push /built-image/POS_Image_JeOS5.x86_64-6.0.0', 1000;
+    assert_script_run 'salt -t 1000 '.$branch.'\* cp.push /built-image/initrd-netboot-suse-SLES12.x86_64-2.1.1.gz', 1000;
+    assert_script_run 'salt -t 1000 '.$branch.'\* cp.push /built-image/initrd-netboot-suse-SLES12.x86_64-2.1.1.kernel', 1000;
     script_output 'find /var/cache/salt/master/minions -type f ';
-    assert_script_run 'mv /var/cache/salt/master/minions/suma-branch*/files/built-image /srv/www/htdocs/pub/';
+    assert_script_run 'mv /var/cache/salt/master/minions/'.$branch.'*/files/built-image /srv/www/htdocs/pub/';
     assert_script_run 'cp -r /srv/www/htdocs/pub/built-image /srv/www/htdocs/pub/built-image2';
     assert_script_run 'mount -o loop -t ext3 /srv/www/htdocs/pub/built-image2/POS_Image_JeOS5.x86_64-6.0.0 /mnt ; echo POS_Image_JeOS5-6.0.1 > /mnt/etc/ImageVersion ; umount /mnt ; sync';
     assert_script_run 'e2fsck -f -y /srv/www/htdocs/pub/built-image2/POS_Image_JeOS5.x86_64-6.0.0 ; sync';
@@ -123,13 +124,13 @@ EOT
   \'*\':
     - suma_test" > /srv/pillar/top.sls';
     script_output 'cat /srv/pillar/*';
-    script_output 'salt suma-branch\* pillar.items';
+    script_output 'salt '.$branch.'\* pillar.items';
     $self->registered_barrier_wait('image_registered');
 
     $self->check_and_add_repo();
     zypper_call("in image-sync-formula");
-    script_output 'salt -t 1000 suma-branch\* state.show_sls image-sync';
-    script_output 'salt -t 1000 suma-branch\* state.apply image-sync';
+    script_output 'salt -t 1000 '.$branch.'\* state.show_sls image-sync';
+    script_output 'salt -t 1000 '.$branch.'\* state.apply image-sync';
 
     select_console 'x11', tags => 'suma_welcome_screen';
     $self->registered_barrier_wait('image_synced');
