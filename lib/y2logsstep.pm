@@ -202,6 +202,8 @@ sub verify_license_has_to_be_accepted {
         assert_screen 'license-not-accepted';
         wait_screen_change { send_key $cmd{ok} };
         send_key $cmd{accept};    # accept license
+        wait_still_screen 1;
+        save_screenshot;
     }
 }
 
