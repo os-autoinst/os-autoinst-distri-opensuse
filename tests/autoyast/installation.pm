@@ -136,6 +136,11 @@ sub run {
                 send_key $cmd{ok};
                 next;
             }
+            if (match_has_tag('bsc#1058099')) {
+                record_soft_failure('bsc#1058099');
+                send_key $cmd{ok};
+                next;
+            }
 
             die "Unknown popup message" unless check_screen('autoyast-known-warning', 0);
 
