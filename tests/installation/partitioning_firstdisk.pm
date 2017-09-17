@@ -26,7 +26,8 @@ sub take_first_disk_storage_ng {
     assert_screen 'select-hard-disks-one-selected';
     send_key $cmd{next};
     # If drive is not formatted, we have select hard disks page
-    if (get_var('ISO_IN_EXTERNAL_DRIVE')) {
+    # On ipmi we always have unformatted drive
+    if (get_var('ISO_IN_EXTERNAL_DRIVE') || check_var('BACKEND', 'ipmi')) {
         assert_screen 'select-hard-disks';
         send_key $cmd{next};
     }
