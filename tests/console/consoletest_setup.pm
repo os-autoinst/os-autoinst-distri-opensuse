@@ -85,6 +85,12 @@ sub run {
     upload_logs "/tmp/psaxf.log";
     upload_logs "/tmp/loadavg_consoletest_setup.txt";
 
+    # BSC#1054448 ncurses rendering is broken in xterm
+    if (check_var('ARCH', 's390x')) {
+        assert_script_run("export TERM=linux");
+        record_soft_failure('bsc#1054448');
+    }
+
     # BSC#997263 - VMware screen resolution defaults to 800x600
     if (check_var('VIRSH_VMM_FAMILY', 'vmware')) {
         assert_script_run("sed -ie '/GFXMODE=/s/=.*/=1024x768x32/' /etc/default/grub");
