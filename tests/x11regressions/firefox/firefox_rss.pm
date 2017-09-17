@@ -37,6 +37,7 @@ sub run {
     send_key "esc";
     send_key "alt-d";
     type_string "https://linux.slashdot.org/\n";
+    $self->firefox_check_popups;
 
     assert_and_click "firefox-rss-button_enabled", "left", 30;
     assert_screen("firefox-rss-page", 60);

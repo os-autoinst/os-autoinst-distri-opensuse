@@ -22,6 +22,7 @@ sub run {
     send_key "esc";
     send_key "alt-d";
     type_string "http://www.gnupg.org/gph/en/manual.pdf\n";
+    $self->firefox_check_popups;
 
     assert_screen('firefox-pdf-load', 90);
 

@@ -40,6 +40,7 @@ sub run {
         send_key "alt-d";
         sleep 1;
         type_string $sites_url{$proto} . "\n";
+        $self->firefox_check_popups;
         assert_screen('firefox-urls_protocols-' . $proto, 60);
     }
 

@@ -22,12 +22,8 @@ sub run {
     send_key "esc";
     send_key "alt-d";
     type_string "http://www.adobe.com/software/flash/about/\n";
-    wait_still_screen 3;
-    assert_screen ['firefox-reader-view', 'firefox-flashplayer-verify_loaded'], 90;
-    if (match_has_tag 'firefox-reader-view') {
-        assert_and_click('firefox-reader-close');
-        assert_screen('firefox-flashplayer-verify_loaded');
-    }
+    $self->firefox_check_popups;
+    assert_screen('firefox-flashplayer-verify_loaded');
 
     send_key "pgdn";
     # flashplayer dropped since sled12 sp2
@@ -37,6 +33,7 @@ sub run {
             send_key "esc";
             send_key "alt-d";
             type_string "https://www.youtube.com/watch?v=Z4j5rJQMdOU\n";
+            $self->firefox_check_popups;
             assert_screen('firefox-flashplayer-video_loaded', 90);
         }
         last;

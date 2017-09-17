@@ -16,17 +16,20 @@ use base "x11regressiontest";
 use testapi;
 
 sub run {
+    my ($self) = @_;
     mouse_hide(1);
 
     # Clean and Start Firefox
     x11_start_program("xterm -e \"killall -9 firefox;rm -rf .moz*\"");
     x11_start_program("firefox");
+    $self->firefox_check_popups;
     assert_screen('firefox-launch', 90);
 
     send_key "esc";
     wait_screen_change { send_key "ctrl-shift-q" };
     wait_screen_change { send_key "alt-d" };
     type_string "www.gnu.org\n";
+    $self->firefox_check_popups;
     assert_screen('firefox-headers-website', 90);
 
     send_key "down";

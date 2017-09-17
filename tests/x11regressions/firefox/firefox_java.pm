@@ -16,44 +16,39 @@ use base "x11regressiontest";
 use testapi;
 
 sub java_testing {
+    my ($self) = @_;
+
     send_key "ctrl-t";
     send_key "alt-d";
     type_string "http://www.java.com/en/download/installed.jsp?detect=jre\n";
 
     wait_still_screen 3;
+    assert_and_click('firefox-java-agree-and-proceed') if check_screen('oracle-cookies-handling', 0);
 
-    for (my $counter = 0; $counter < 6; $counter++) {
-
-        assert_screen(
-            [
-                qw(firefox-reader-view firefox-java-verifyversion firefox-java-security oracle-cookies-handling firefox-java-verifyfailed firefox-java-verifypassed firefox-newer-java-available)
-            ]);
-        if (match_has_tag 'firefox-reader-view') {
-            assert_and_click('firefox-reader-close');
-        }
-
-        if (match_has_tag 'firefox-java-security') {
-            assert_and_click('firefox-java-securityrun');
-            assert_and_click('firefox-java-run_confirm');
-        }
-        if (match_has_tag "oracle-cookies-handling") {
-            assert_and_click "firefox-java-agree-and-proceed";
-        }
-        # Click the "Verify Java version" button
-        if (match_has_tag 'firefox-java-verifyversion') {
-            assert_and_click "firefox-java-verifyversion";
-        }
-        # Newer version of java is available
-        if (match_has_tag 'firefox-newer-java-available') {
-            record_info('Newer java version available',
-                "Aim of the test is to verify that java is installed and works in browser, it's acceptable that it's not always latest version.");
-            return;
-        }
-        return if match_has_tag 'firefox-java-verifyfailed';
-        return if match_has_tag 'firefox-java-verifypassed';
+    wait_still_screen 3;
+    if (check_screen('firefox-java-security', 0)) {
+        assert_and_click('firefox-java-securityrun');
+        assert_and_click('firefox-java-run_confirm');
     }
 
+    $self->firefox_check_popups;
+
+    wait_still_screen 3;
+    assert_screen([qw(firefox-java-verifyversion firefox-java-verifyfailed firefox-java-verifypassed firefox-newer-java-available)]);
+
+    if (match_has_tag 'firefox-java-verifyversion') {
+        assert_and_click "firefox-java-verifyversion";
+    }
+    # Newer version of java is available
+    if (match_has_tag 'firefox-newer-java-available') {
+        record_info('Newer java version available',
+            "Aim of the test is to verify that java is installed and works in browser, it's acceptable that it's not always latest version.");
+        return;
+    }
+    return if match_has_tag 'firefox-java-verifyfailed';
+    return if match_has_tag 'firefox-java-verifypassed';
 }
+
 
 sub run {
     my ($self) = @_;
@@ -66,10 +61,7 @@ sub run {
     send_key "ctrl-shift-a";
 
     assert_screen("firefox-java-addonsmanager");
-    #Required only on opensuse's FF, on sle search is available from "Get Add-ons"
-    if (check_var('DISTRI', 'opensuse')) {
-        assert_and_click('firefox-java-extensions');
-    }
+    assert_and_click('firefox-java-extensions');
 
     send_key "/";
     type_string "iced\n";
@@ -86,7 +78,7 @@ sub run {
 
     assert_screen("firefox-java-neveractive");
 
-    java_testing();
+    $self->java_testing;
     assert_screen("firefox-java-verifyfailed", 90);
 
     send_key "ctrl-w";
@@ -95,7 +87,7 @@ sub run {
     for my $i (1 .. 2) { send_key "down"; }
     assert_screen("firefox-java-active", 60);
 
-    java_testing();
+    $self->java_testing;
     # If java version is not latest in official repos
     assert_screen([qw(firefox-java-verifypassed firefox-newer-java-available)], 90);
 

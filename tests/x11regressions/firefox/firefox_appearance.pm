@@ -30,15 +30,10 @@ sub run {
     sleep 1;
     type_string "addons.mozilla.org/en-US/firefox/addon/opensuse\n";
     assert_screen('firefox-appearance-mozilla_addons', 90);
-    send_key "alt-f10";
-    wait_still_screen 3;
     assert_and_click "firefox-appearance-addto";
     assert_screen('firefox-appearance-installed', 90);
     # Undo the theme installation
     send_key "alt-u";
-
-    # Exit
-    for my $i (1 .. 2) { sleep 1; send_key "ctrl-w"; }
 
     $self->exit_firefox;
 }

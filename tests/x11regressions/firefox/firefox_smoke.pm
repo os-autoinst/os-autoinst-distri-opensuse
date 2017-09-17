@@ -28,6 +28,7 @@ sub run {
         send_key "alt-d";
         sleep 1;
         type_string $site. "\n";
+        $self->firefox_check_popups;
         assert_screen('firefox-topsite_' . $site, 120);
     }
 

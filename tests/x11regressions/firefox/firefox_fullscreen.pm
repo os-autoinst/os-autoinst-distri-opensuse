@@ -27,6 +27,7 @@ sub run {
     send_key "alt-d";
     sleep 1;
     type_string "file:///usr/share/w3m/w3mhelp.html\n";
+    $self->firefox_check_popups;
     assert_screen('firefox-fullscreen-page', 90);
 
     send_key "f11";

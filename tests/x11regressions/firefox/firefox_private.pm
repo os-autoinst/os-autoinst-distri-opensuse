@@ -22,9 +22,11 @@ sub run {
     send_key "ctrl-shift-p";
     send_key "alt-d";
     type_string "gnu.org\n";
+    $self->firefox_check_popups;
     assert_screen('firefox-private-gnu', 90);
     send_key "alt-d";
     type_string "facebook.com\n";
+    $self->firefox_check_popups;
     assert_screen('firefox-private-facebook', 90);
 
     send_key "alt-f4";
@@ -32,6 +34,8 @@ sub run {
     $self->exit_firefox;
 
     x11_start_program("firefox");
+    $self->firefox_check_default;
+    $self->firefox_check_popups;
     assert_screen('firefox-launch', 90);
 
     send_key "ctrl-h";

@@ -24,7 +24,7 @@ sub run {
     wait_still_screen 3;
     send_key "ctrl-shift-a";
     assert_screen('firefox-addons_manager', 90);
-
+    assert_and_click "firefox-extensions";
     assert_and_click "firefox-searchall-addon";
     type_string "flagfox\n";
     assert_and_click('firefox-extensions-flagfox', 'right');
@@ -32,9 +32,10 @@ sub run {
     assert_screen('firefox-extensions-flagfox_installed', 90);
 
     send_key "alt-1";
+    $self->firefox_check_popups;
     assert_screen('firefox-extensions-show_flag', 60);
 
-    send_key "alt-3";
+    send_key "alt-2";
     assert_and_click('firefox-extensions-flagfox_installed');
 
     send_key "alt-1";
