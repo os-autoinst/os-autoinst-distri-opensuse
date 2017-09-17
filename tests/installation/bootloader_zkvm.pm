@@ -1,14 +1,14 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: zKVM bootloader
+# Summary: Interface with the zKVM bootloader based on test settings
 # Maintainer: Matthias Grießmeier <mgriessmeier@suse.de>
 
 use base "installbasetest";
@@ -17,6 +17,7 @@ use strict;
 use warnings;
 
 use bootloader_setup;
+use registration;
 use testapi;
 use utils 'OPENQA_FTP_URL';
 
@@ -49,6 +50,7 @@ sub set_svirt_domain_elements {
         }
 
         $cmdline .= specific_bootmenu_params;
+        $cmdline .= registration_bootloader_cmdline if check_var('SCC_REGISTER', 'installation');
 
         $svirt->change_domain_element(os => initrd  => "$zkvm_img_path/$name.initrd");
         $svirt->change_domain_element(os => kernel  => "$zkvm_img_path/$name.kernel");
