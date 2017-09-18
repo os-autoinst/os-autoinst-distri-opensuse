@@ -3,7 +3,7 @@
 uname -a
 lsmod
 free
-cat /etc/fstab
+cat /etc/fstab || echo "no /etc/fstab found"
 mount
 mount | grep -q '/ type btrfs' && /usr/sbin/btrfs filesystem df /
 df -h
