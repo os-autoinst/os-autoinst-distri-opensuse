@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -21,6 +21,7 @@ use warnings;
 use English;
 
 use bootloader_setup;
+use registration;
 
 # try to find the 2 longest lines that are below beyond the limit
 # collapsing the lines - we have a limit of 10 lines
@@ -91,14 +92,7 @@ sub prepare_parmfile {
     }
 
     $params .= specific_bootmenu_params;
-
-    if (check_var('SCC_REGISTER', 'installation')) {
-        if (get_var('SCC_URL')) {
-            my $regurl = get_var('SCC_URL');
-            $params .= " regurl=$regurl ";
-        }
-    }
-
+    $params .= registration_bootloader_cmdline if check_var('SCC_REGISTER', 'installation');
     return split_lines($params);
 }
 

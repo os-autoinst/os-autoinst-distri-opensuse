@@ -23,7 +23,13 @@ use strict;
 use testapi;
 use utils qw(addon_decline_license assert_screen_with_soft_timeout sle_version_at_least);
 
-our @EXPORT = qw(fill_in_registration_data registration_bootloader_params yast_scc_registration skip_registration);
+our @EXPORT = qw(
+  fill_in_registration_data
+  registration_bootloader_cmdline
+  registration_bootloader_params
+  yast_scc_registration
+  skip_registration
+);
 
 sub fill_in_registration_data {
     my ($addon, $uc_addon);
@@ -313,22 +319,24 @@ sub select_addons_in_textmode {
     }
 }
 
-sub registration_bootloader_params {
-    my ($max_interval) = @_;    # see 'type_string'
-    $max_interval //= 13;
+sub registration_bootloader_cmdline {
     # https://www.suse.com/documentation/smt11/book_yep/data/smt_client_parameters.html
     # SCC_URL=https://smt.example.com
-    if (my $url = get_var("SCC_URL") || get_var("SMT_URL")) {
-        type_string " regurl=$url", $max_interval;
-        if ($url = get_var("SCC_CERT")) {
-            type_string " regcert=$url", $max_interval;
-        }
-        save_screenshot;
+    if (my $url = get_var('SCC_URL') || get_var('SMT_URL')) {
+        my $cmdline = " regurl=$url";
+        $cmdline .= " regcert=$url" if get_var('SCC_CERT');
+        return $cmdline;
     }
 }
 
-sub yast_scc_registration {
+sub registration_bootloader_params {
+    my ($max_interval) = @_;    # see 'type_string'
+    $max_interval //= 13;
+    type_string registration_bootloader_cmdline, $max_interval;
+    save_screenshot;
+}
 
+sub yast_scc_registration {
     type_string "yast2 scc; echo yast-scc-done-\$?- > /dev/$serialdev\n";
     assert_screen_with_soft_timeout(
         'scc-registration',
