@@ -55,8 +55,6 @@ sub check12qtbug {
 sub gotopatterns {
     my ($self) = @_;
 
-    $self->deal_with_dependency_issues;
-
     if (check_var('VIDEOMODE', 'text')) {
         wait_still_screen;
         send_key 'alt-c';
@@ -86,8 +84,7 @@ sub package_action {
     my ($self, $unblock) = @_;
     my $operation;
     my $packages = $unblock ? get_var('INSTALLATION_BLOCKED') : get_var('PACKAGES');
-    # Workaround for sle 15. Version check is performed inside of the method
-    $self->sle15_workaround_broken_patterns;
+
     if (get_var('PACKAGES')) {
         if (check_var('VIDEOMODE', 'text')) {
             send_key 'alt-f';
@@ -141,8 +138,7 @@ sub package_action {
         send_key 'alt-o';
         accept3rdparty;
     }
-    # Workaround for sle 15. Version check is performed inside of the method
-    $self->sle15_workaround_broken_patterns;
+
     if (get_var('INSTALLATION_BLOCKED') && $secondrun) {
         record_soft_failure 'bsc#1029660';
         assert_screen 'inst-overview-blocked';
