@@ -30,7 +30,7 @@ sub run {
 
     if (is_caasp && check_var('FLAVOR', 'DVD') && !check_var('SYSTEM_ROLE', 'plain')) {
         # Docker should be pre-installed in MicroOS
-        die "Docker is not pre-installed." if script_run("rpm -q docker");
+        die "Docker is not pre-installed." if script_run("zypper se -x --provides -i docker | grep docker");
     }
     else {
         zypper_call("in docker");
