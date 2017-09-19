@@ -33,6 +33,7 @@ our @EXPORT = qw(
   is_krypton_argon
   is_kde_live
   is_leap
+  is_sle
   is_tumbleweed
   is_storage_ng
   select_kernel
@@ -289,6 +290,11 @@ sub is_leap {
     return 0 unless check_var('DISTRI', 'opensuse');
     return 1 if get_var('VERSION', '') =~ /(?:[4-9][0-9]|[0-9]{3,})\.[0-9]/;
     return get_var('VERSION') =~ /^42:S/;
+}
+
+sub is_sle {
+    return 0 unless check_var('DISTRI', 'sle');
+    return 1;
 }
 
 sub is_storage_ng {

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -24,7 +24,8 @@ sub run {
     assert_script_run "./test_pcrecpp";
     save_screenshot;
 
-    zypper_call("in php5");
+    my $php = ((is_leap && !leap_version_at_least('15')) || (is_sle && !sle_version_at_least('15'))) ? 'php5' : 'php7';
+    zypper_call("in $php");
     assert_script_run "php simple.php | grep 'matches'";
     save_screenshot;
 
