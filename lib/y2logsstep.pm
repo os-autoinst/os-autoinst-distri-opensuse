@@ -102,15 +102,6 @@ sub break_dependency {
     }
 }
 
-sub sle15_workaround_broken_patterns {
-    return unless sle_version_at_least('15');
-    # SLE 15 has pattern errors, workaround them - rbrown 04/07/2017
-    while (check_screen('sle-15-failed-to-select-pattern', (check_var('ARCH', 'aarch64') ? 10 : 2))) {
-        record_soft_failure 'bsc#1047327';
-        send_key 'alt-o';
-    }
-}
-
 sub process_unsigned_files {
     my ($self, $expected_screens) = @_;
     # SLE 15 has unsigned file errors, workaround them - rbrown 04/07/2017
@@ -173,7 +164,6 @@ sub deal_with_dependency_issues {
         record_soft_failure 'bsc#1047337';
         send_key 'alt-o';                      # OK
     }
-    sle15_workaround_broken_patterns;
     sleep 2;
 
     if (check_screen('dependency-issue-fixed', 0)) {
