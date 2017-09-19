@@ -1301,6 +1301,9 @@ elsif (get_var("VIRT_AUTOTEST")) {
         loadtest "virt_autotest/guest_migration_dst";
     }
 }
+elsif (get_var("VERIFY_INSTALLATION_ONLY")) {
+    prepare_target();
+}
 elsif (get_var("QAM_MINIMAL")) {
     prepare_target();
     loadtest "qam-minimal/install_update";
