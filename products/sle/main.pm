@@ -12,6 +12,7 @@ use warnings;
 use testapi qw(check_var get_var get_required_var set_var check_var_array diag);
 use lockapi;
 use needle;
+use registration;
 use utils qw(is_hyperv_in_gui sle_version_at_least);
 use File::Find;
 use File::Basename;
@@ -238,7 +239,7 @@ if (get_var('DEV_IMAGE')) {
 }
 
 # This is workaround setting which will be removed once SCC add repos and allows adding modules
-# TODO: remove when not used anymore
+# TODO: place it somewhere else since test module suseconnect_scc will use it
 if (sle_version_at_least('15') && !check_var('SCC_REGISTER', 'installation')) {
     my @modules;
     if (get_var('ALL_MODULES')) {
@@ -253,20 +254,10 @@ if (sle_version_at_least('15') && !check_var('SCC_REGISTER', 'installation')) {
         my $arch    = get_required_var("ARCH");
         my $build   = get_required_var("BUILD");
         my $version = get_required_var("VERSION");
-        # We already have needles with names which are different we would use here
-        # As it's only workaround, better not to create another set of needles.
-        my %modules = (
-            base      => 'Basesystem',
-            sdk       => 'Development-Tools',
-            desktop   => 'Desktop-Applications',
-            legacy    => 'Legacy',
-            script    => 'Scripting',
-            serverapp => 'Server-Applications'
-        );
         my $addonurl;
 
         for my $short_name (@modules) {
-            my $full_name = $modules{$short_name};
+            my $full_name = $registration::SLE15_MODULES{$short_name};
             my $repo_name = uc $full_name;
             # Replace dashes with underscore symbols
             $repo_name =~ s/-/_/;
@@ -1360,6 +1351,16 @@ elsif (get_var('ISO_IN_EXTERNAL_DRIVE')) {
     load_iso_in_external_tests();
     load_inst_tests();
     load_reboot_tests();
+}
+# post registration testsuites using suseconnect or yast
+elsif (have_scc_repos()) {
+    loadtest "boot/boot_to_desktop";
+    if (get_var('USE_SUSECONNECT')) {
+        loadtest "console/suseconnect_scc";
+    }
+    else {
+        loadtest "console/yast_scc";
+    }
 }
 elsif (get_var('HPC')) {
     if (check_var('HPC', 'install')) {
