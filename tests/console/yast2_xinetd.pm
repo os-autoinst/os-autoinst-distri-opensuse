@@ -17,6 +17,7 @@ use utils "zypper_call";
 
 
 sub run {
+    my ($self) = @_;
     select_console 'root-console';
 
     # check network at first
@@ -27,7 +28,15 @@ sub run {
     script_run("yast2 xinetd; echo yast2-xinetd-status-\$? > /dev/$serialdev", 0);
 
     # check xinetd network configuration got started
-    assert_screen 'yast2_xinetd_startup', 90;
+    assert_screen([qw(yast2_xinetd_startup yast2_xinetd_core-dumped)], 90);
+    if (match_has_tag('yast2_xinetd_core-dumped')) {
+        # softfail when yast2 crashed and throws core dumped message
+        # we need logs even after yast2 got crashed
+        record_soft_failure "bsc#1049433";
+        $self->problem_detection();
+        return;
+
+    }
 
     # enable xinetd
     send_key 'alt-l';
