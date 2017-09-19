@@ -42,7 +42,8 @@ our @EXPORT = qw(
   any_desktop_is_applicable
   console_is_applicable
   boot_hdd_image
-  load_yast2_ui_tests
+  load_yast2_ncurses_tests
+  load_yast2_gui_tests
   maybe_load_kernel_tests
   load_extra_tests
   load_rollback_tests
@@ -353,7 +354,7 @@ sub boot_hdd_image {
     loadtest "boot/boot_to_desktop";
 }
 
-sub load_yast2_ui_tests {
+sub load_yast2_ncurses_tests {
     boot_hdd_image;
     # setup $serialdev permission and so on
     loadtest "console/consoletest_setup";
@@ -397,12 +398,15 @@ sub load_yast2_ui_tests {
     loadtest "console/yast2_ftp";
     # back to desktop
     loadtest "console/consoletest_finish";
+}
+
+sub load_yast2_gui_tests {
     return
       unless (!get_var("INSTALLONLY")
         && is_desktop_installed()
         && !get_var("DUALBOOT")
-        && !get_var("RESCUECD")
-        && get_var("Y2UITEST"));
+        && !get_var("RESCUECD"));
+    boot_hdd_image;
     loadtest 'yast2_gui/yast2_control_center';
     loadtest "yast2_gui/yast2_bootloader";
     loadtest "yast2_gui/yast2_datetime";
