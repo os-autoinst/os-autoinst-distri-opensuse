@@ -21,6 +21,7 @@ sub change_desktop {
     my ($self) = @_;
     # ncurses offers a faster way
     if (check_var('VIDEOMODE', 'text')) {
+        assert_screen 'inst-button-ready';
         send_key 'alt-c';
         assert_screen 'inst-overview-options';
         wait_screen_change { send_key 'alt-s'; };
