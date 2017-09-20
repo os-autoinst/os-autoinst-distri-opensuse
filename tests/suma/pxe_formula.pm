@@ -19,6 +19,9 @@ use selenium;
 sub run {
   my ($self) = @_;
   $self->register_barriers('pxe_formula', 'pxe_formula_finish');
+
+  my $srvdir = get_var('SERVER_DIR');
+
   if (check_var('SUMA_SALT_MINION', 'branch')) {
     $self->registered_barrier_wait('pxe_formula');
     $self->registered_barrier_wait('pxe_formula_finish');
@@ -42,6 +45,11 @@ sub run {
     $driver->send_keys_to_active_element("initrd.gz");
     $driver->send_keys_to_active_element("\t");
 
+    $driver->send_keys_to_active_element("\t");
+    
+    #pxe base dir
+    $driver->send_keys_to_active_element($srvdir);
+    
     save_screenshot;
     wait_for_xpath("//button[\@id='save-btn']")->click();
     
