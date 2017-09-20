@@ -26,7 +26,6 @@ sub run {
     # this is almost impossible to check for real
     assert_screen "installation-settings-overview-loaded";
 
-    $self->sle15_workaround_broken_patterns;
     $self->deal_with_dependency_issues;
 
     if (get_var("XEN")) {
@@ -66,9 +65,7 @@ sub run {
         $self->deal_with_dependency_issues;
     }
 
-    $self->sle15_workaround_broken_patterns;    # Pattern warnings appear after dependancy resolution also;
-
-    my $need_ssh = check_var('ARCH', 's390x');  # s390x always needs SSH
+    my $need_ssh = check_var('ARCH', 's390x');    # s390x always needs SSH
     $need_ssh = 1 if check_var('BACKEND', 'ipmi');    # we better be able to login
 
     if (!get_var('UPGRADE') && $need_ssh) {
