@@ -169,8 +169,16 @@ sub clear_console {
 
 # in some backends we need to prepare the reboot/shutdown
 sub prepare_system_reboot {
-    if (check_var('BACKEND', 's390x')) {
-        console('iucvconn')->kill_ssh;
+    # kill the ssh connection before triggering reboot
+    console('root-ssh')->kill_ssh if check_var('BACKEND', 'ipmi');
+
+    if (check_var('ARCH', 's390x')) {
+        if (check_var('BACKEND', 's390x')) {
+            # kill serial ssh connection (if it exists)
+            eval { console('iucvconn')->kill_ssh unless get_var('BOOT_EXISTING_S390', ''); };
+            diag('ignoring already shut down console') if ($@);
+        }
+        console('installation')->disable_vnc_stalls;
     }
 }
 

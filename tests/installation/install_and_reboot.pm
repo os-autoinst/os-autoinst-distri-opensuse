@@ -168,8 +168,9 @@ sub run {
         $self->save_upload_y2logs();
         select_console 'installation';
     }
-    # kill the ssh connection before triggering reboot
-    console('root-ssh')->kill_ssh if check_var('BACKEND', 'ipmi');
+
+    prepare_system_reboot if (check_var('ARCH', 's390x') || check_var('BACKEND', 'ipmi'));
+
     wait_screen_change {
         send_key 'alt-o';    # Reboot
     };
