@@ -49,7 +49,8 @@ sub add_chromium_repos {
 }
 
 sub install_chromium {
-  zypper_call('in chromium chromedriver');
+# broken with current chromium, keep the old one from suma image
+#  zypper_call('in chromium chromedriver');
   script_run("ln -s /usr/lib64/chromium/chromedriver /usr/bin/chromedriver");
 }
 
