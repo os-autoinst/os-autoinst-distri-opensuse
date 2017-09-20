@@ -497,6 +497,10 @@ sub leap_version_at_least {
     }
 
     if ($version eq '42.3') {
+        return check_var($version_variable, $version) || leap_version_at_least('15', version_variable => $version_variable);
+    }
+
+    if ($version eq '15') {
         return check_var($version_variable, $version);
     }
     # Die to point out that function has to be extended
