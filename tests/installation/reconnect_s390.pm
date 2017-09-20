@@ -14,7 +14,7 @@
 use base "installbasetest";
 
 use testapi;
-use utils 'sle_version_at_least';
+use utils qw(is_sle sle_version_at_least);
 
 use strict;
 use warnings;
@@ -35,11 +35,11 @@ sub handle_login_not_found {
     diag 'Checking for known failure';
     return record_soft_failure 'bsc#1040606 - incomplete message when LeanOS is implicitly selected instead of SLES'
       if $str =~ /Welcome to SUSE Linux Enterprise 15/;
-    die "unknown error";
+    die "unknown error, system couldn't boot";
 }
 
 sub run {
-    my $login_ready = check_var('VERSION', 'Tumbleweed') ? qr/Welcome to openSUSE Tumbleweed 20.*/ : qr/Welcome to SUSE Linux Enterprise Server.*\(s390x\)/;
+    my $login_ready = check_var('VERSION', 'Tumbleweed') ? qr/Welcome to openSUSE Tumbleweed 20.*/ : qr/Welcome to SUSE Linux Enterprise .*\(s390x\)/;
 
     # different behaviour for z/VM and z/KVM
     if (check_var('BACKEND', 's390x')) {
@@ -61,7 +61,13 @@ sub run {
         select_console('iucvconn');
     }
     else {
-        wait_serial($login_ready, 300) || die "System couldn't boot";
+        my $r = wait_serial($login_ready, 300);
+        if ($r =~ qr/Welcome to SUSE Linux Enterprise 15/) {
+            record_soft_failure('bsc#1040606');
+        }
+        elsif (is_sle) {
+            $r =~ qr/Welcome to SUSE Linux Enterprise Server/ || die "Correct welcome string not found";
+        }
     }
 
     # SLE >= 15 does not offer auto-started VNC server in SUT, only login prompt as in textmode
