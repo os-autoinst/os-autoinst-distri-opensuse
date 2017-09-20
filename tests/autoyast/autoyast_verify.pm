@@ -21,6 +21,7 @@ use strict;
 use base 'basetest';
 use testapi;
 use lockapi;
+use utils "zypper_call";
 
 sub expected_failures {
     # Function is used to sof-fail known issues. As long as we use generic
@@ -36,7 +37,8 @@ sub run {
     my $self = shift;
     $self->result('fail');    # default result
     my $success = 0;
-
+    # make sure that curl has been installed
+    zypper_call("in curl", timeout => 180);
     #wait for supportserver if not yet ready
     my $roles_r = get_var_array('SUPPORT_SERVER_ROLES');
     foreach my $role (@$roles_r) {
