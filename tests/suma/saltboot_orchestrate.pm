@@ -20,30 +20,16 @@ use lockapi;
 use utils 'zypper_call';
 use selenium;
 
-sub post_fail_hook() {
-    my ($self) = @_;
-    if (check_var('SUMA_SALT_MINION', 'terminal')) {
-      select_console 'root-console';
-      save_screenshot;
-      script_run("cat /var/log/salt/* >/dev/$serialdev");
-      script_run("cat /var/log/boot.kiwi >/dev/$serialdev");
-      script_run("salt-call --no-color state.apply >/dev/$serialdev");
-      script_run("salt-call --no-color pillar.items >/dev/$serialdev");
-    }
-    $self->SUPER::post_fail_hook;
-    save_screenshot;
-}
-
-
 sub run {
   my ($self) = @_;
+  my $srvdir = get_var('SERVER_DIR');
   $self->register_barriers('saltboot_orchestrate', 'saltboot_orchestrate_finish');
   if (check_var('SUMA_SALT_MINION', 'branch')) {
     $self->registered_barrier_wait('saltboot_orchestrate');
     $self->registered_barrier_wait('saltboot_orchestrate_finish');
-    script_output 'ls -l /srv/tftpboot/boot/pxelinux.cfg/';
+    script_output "ls -l $srvdir/boot/pxelinux.cfg/";
 
-    assert_script_run 'ls /srv/tftpboot/boot/pxelinux.cfg |grep ^01- ';
+    assert_script_run "ls $srvdir/boot/pxelinux.cfg |grep ^01- ";
   }
   elsif (check_var('SUMA_SALT_MINION', 'terminal')) {
     select_console 'root-console';

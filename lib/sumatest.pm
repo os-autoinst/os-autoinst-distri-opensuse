@@ -36,8 +36,20 @@ sub post_fail_hook() {
     my ($self) = @_;
 
     eval {
-      $self->SUPER::post_fail_hook;
-      $self->export_suma_logs;
+      if (check_var('SUMA_SALT_MINION', 'terminal')) {
+        select_console 'root-console';
+        save_screenshot;
+        script_run("cat /var/log/salt/* >/dev/$serialdev");
+        script_run("cat /var/log/boot.kiwi >/dev/$serialdev");
+        script_run("salt-call -l all --no-color state.apply >/dev/$serialdev");
+        script_run("salt-call --no-color pillar.items >/dev/$serialdev");
+      }
+      elsif (!get_var('SUMA_SALT_MINION')) {
+        select_console 'root-console';
+        save_screenshot;
+        $self->export_suma_logs;
+      }
+#      $self->SUPER::post_fail_hook;
       save_screenshot;
     };
     my $res = $@;

@@ -19,14 +19,12 @@ use utils 'zypper_call';
 
 sub run {
   my ($self) = @_;
+  my $srvdir = get_var('SERVER_DIR');
   if (check_var('SUMA_SALT_MINION', 'branch')) {
     $self->register_barriers('build_image', 'image_registered', 'image_synced');
     select_console 'root-console';
 
     assert_script_run 'mkdir -p /usr/share/kiwi/image/saltboot/root/etc/salt/minion.d';
-
-    # FIXME: the default 'salt' should be resolvable
-    assert_script_run 'echo "master: 10.0.2.10" > /usr/share/kiwi/image/saltboot/root/etc/salt/minion.d/master.conf';
 
     #FIXME: use SUMA repos
 
@@ -47,8 +45,8 @@ sub run {
     $self->registered_barrier_wait('image_registered');
     $self->registered_barrier_wait('image_synced');
 
-    assert_script_run 'test -f /srv/tftpboot/boot/initrd.gz';
-    assert_script_run 'test -f /srv/tftpboot/boot/linux';
+    assert_script_run "test -f $srvdir/boot/initrd.gz";
+    assert_script_run "test -f $srvdir/boot/linux";
 
   } 
   elsif (check_var('SUMA_SALT_MINION', 'terminal')) {

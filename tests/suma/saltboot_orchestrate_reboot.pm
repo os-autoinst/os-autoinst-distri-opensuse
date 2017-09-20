@@ -27,21 +27,6 @@ use mmapi;
 use utils 'zypper_call';
 use selenium;
 
-sub post_fail_hook() {
-    my ($self) = @_;
-    if (check_var('SUMA_SALT_MINION', 'terminal')) {
-      select_console 'root-console';
-      save_screenshot;
-      script_run("cat /var/log/salt/* >/dev/$serialdev");
-      script_run("cat /var/log/boot.kiwi >/dev/$serialdev");
-      script_run("salt-call --no-color state.apply >/dev/$serialdev");
-      script_run("salt-call --no-color pillar.items >/dev/$serialdev");
-    }
-    $self->SUPER::post_fail_hook;
-    save_screenshot;
-}
-
-
 sub run {
   my ($self) = @_;
   $self->register_barriers('saltboot_orchestrate_reboot', 'saltboot_orchestrate_reboot_finish');
