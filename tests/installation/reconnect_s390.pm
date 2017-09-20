@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -19,6 +19,25 @@ use utils 'sle_version_at_least';
 use strict;
 use warnings;
 
+sub handle_login_not_found {
+    my ($str) = @_;
+    diag 'Expected welcome message not found, investigating bootup log content: ' . $str;
+    diag 'Checking for bootloader';
+    diag "WARNING: bootloader grub menue not found" unless $str =~ /GNU GRUB/;
+    diag 'Checking for ssh daemon';
+    diag "WARNING: ssh daemon in SUT is not available" unless $str =~ /Started OpenSSH Daemon/;
+    diag 'Checking for any welcome message';
+    die "no welcome message found, system seems to have never passed the bootloader (stuck or not enough waiting time)" unless $str =~ /Welcome to/;
+    diag 'Checking login target reached';
+    die "login target not reached" unless $str =~ /Reached target Login Prompts/;
+    diag 'Checking for login prompt';
+    die "no login prompt found" unless $str =~ /login:/;
+    diag 'Checking for known failure';
+    return record_soft_failure 'bsc#1040606 - incomplete message when LeanOS is implicitly selected instead of SLES'
+      if $str =~ /Welcome to SUSE Linux Enterprise 15/;
+    die "unknown error";
+}
+
 sub run {
     my $login_ready = check_var('VERSION', 'Tumbleweed') ? qr/Welcome to openSUSE Tumbleweed 20.*/ : qr/Welcome to SUSE Linux Enterprise Server.*\(s390x\)/;
 
@@ -30,12 +49,12 @@ sub run {
         diag('ignoring already shut down console') if ($@);
         console('installation')->disable_vnc_stalls;
 
-        # 'wait_serial' implementation for x3270
-        console('x3270')->expect_3270(
-            output_delim => $login_ready,
-            timeout      => 300
-        );
-
+        my $r;
+        eval { $r = console('x3270')->expect_3270(output_delim => $login_ready, timeout => 300); };
+        if ($@) {
+            my $ret = $@;
+            handle_login_not_found($ret);
+        }
         reset_consoles;
 
         # reconnect the ssh for serial grab
