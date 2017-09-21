@@ -68,11 +68,16 @@ sub run {
         $cmd = "mr -e repo-source";
     }
 
-    zypper_call($cmd);
+    zypper_call($cmd) unless (is_sle && sle_version_at_least('15'));
     zypper_call("ref");
 
     # check for zypper info
     test_package_output;
+
+    if (is_sle && sle_version_at_least('15')) {
+        record_soft_failure('no source repo for SLE15 available boo#1059680');
+        return;
+    }
 
     if (sle_version_at_least('12-SP2') || check_var('DISTRI', 'opensuse')) {
         test_srcpackage_output;
