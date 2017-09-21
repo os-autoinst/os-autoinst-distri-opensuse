@@ -43,7 +43,7 @@ sub run {
     # UC1:
     # Select a certain package, check that another gets selected/installed
     type_string("$pkgname\n");
-    sleep 3;
+    wait_still_screen 3;
     send_key "+";    # select for install
     assert_screen "$pkgname-selected-for-install", 5;
 
