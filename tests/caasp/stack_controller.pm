@@ -80,13 +80,20 @@ sub velum_bootstrap {
     # Wait until warning messages disappears
     wait_still_screen;
 
-    # Click next button to 'Confirm bootstrap' page
-    send_key_until_needlematch 'velum-next', 'pgdn', 2, 5;
-    assert_and_click 'velum-next';
+    if (check_var('DISTRI', 'caasp') && !check_var('VERSION', '1.0')) {
+        # Click next button to 'Confirm bootstrap' page [version >= 2.0]
+        send_key_until_needlematch 'velum-next', 'pgdn', 2, 5;
+        assert_and_click 'velum-next';
 
-    # Click bootstrap button
-    assert_screen 'velum-confirm-bootstrap';
-    assert_and_click "velum-bootstrap";
+        # Click bootstrap button [version >= 2.0]
+        assert_screen 'velum-confirm-bootstrap';
+        assert_and_click "velum-bootstrap";
+    }
+    else {
+        # Click bootstrap button [CaaSP 1.0]
+        send_key_until_needlematch "velum-bootstrap", "pgdn", 2, 5;
+        assert_and_click "velum-bootstrap";
+    }
 
     # Accept small-cluster warning
     assert_and_click 'velum-botstrap-warning' if check_var('STACK_SIZE', 4);
@@ -143,8 +150,8 @@ sub run {
     assert_screen 'xterm';
     type_string "export KUBECONFIG=~/Downloads/kubeconfig\n";
 
-    if (check_var('DISTRI', 'caasp') && get_var('VERSION', '2.0')) {
-        # Add repository and install caasp-cli tool
+    if (check_var('DISTRI', 'caasp') && !check_var('VERSION', '1.0')) {
+        # Add repository and install caasp-cli tool [version >= 2.0]
         my $cli_repo = get_required_var("CLI_REPO");
         script_sudo "zypper --non-interactive addrepo $cli_repo";
         script_sudo "zypper --non-interactive --gpg-auto-import-key refresh";
@@ -156,8 +163,16 @@ sub run {
     assert_script_run "kubectl cluster-info";
     assert_script_run "kubectl get nodes";
 
-    # Check cluster size - minus controller & admin jobs
+    # Check cluster size
+    # CaaSP 2.0 = %number_of_jobs - minus two (controller & admin) jobs
     my $minion_count = get_required_var("STACK_SIZE") - 2;
+    if (check_var('DISTRI', 'caasp') && check_var('VERSION', '1.0')) {
+        # CaaSP 1.0 = %number_of_jobs - minus three (controller + admin + master) jobs
+        $minion_count = get_required_var("STACK_SIZE") - 3;
+    }
+    my $temp = get_required_var("STACK_SIZE");
+    assert_script_run "echo $temp";
+    assert_script_run "echo $minion_count";
     assert_script_run "kubectl get nodes --no-headers | wc -l | grep $minion_count";
 
     # Deploy nginx minimal application and check pods started succesfully
