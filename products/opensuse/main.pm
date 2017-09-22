@@ -390,6 +390,7 @@ sub load_consoletests {
         loadtest "console/zypper_ar";
     }
     loadtest "console/zypper_ref";
+    loadtest "console/ncurses";
     loadtest "console/yast2_lan";
     # no local certificate store
     if (!is_krypton_argon) {
