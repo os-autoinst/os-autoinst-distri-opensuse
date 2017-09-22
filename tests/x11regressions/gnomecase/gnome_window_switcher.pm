@@ -22,8 +22,8 @@ sub run {
     x11_start_program("gedit");
     assert_screen 'gedit-launched';
     send_key "super-h";    # Minimize the window
-    x11_start_program("gnote");
-    assert_screen "gnote-first-launched";
+    x11_start_program("totem");
+    assert_screen "test-totem-started";
     send_key "super-h";    # Minimize the window
 
     # Switch windowns with alt+tab
@@ -33,7 +33,7 @@ sub run {
     send_key "tab";
     assert_screen "alt-tab-nautilus";
     send_key "tab";
-    assert_screen "alt-tab-gnote";
+    assert_screen "alt-tab-totem";
     release_key "alt";
 
     # Close the 3 applications

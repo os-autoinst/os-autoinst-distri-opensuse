@@ -439,20 +439,6 @@ sub load_x11regression_firefox {
     }
 }
 
-sub load_x11regression_gnome {
-    if (check_var("DESKTOP", "gnome")) {
-        loadtest "x11regressions/gnomecase/nautilus_cut_file";
-        loadtest "x11regressions/gnomecase/nautilus_permission";
-        loadtest "x11regressions/gnomecase/nautilus_open_ftp";
-        loadtest "x11regressions/gnomecase/application_starts_on_login";
-        loadtest "x11regressions/gnomecase/change_password";
-        loadtest "x11regressions/gnomecase/login_test";
-        loadtest "x11regressions/gnomecase/gnome_classic_switch";
-        loadtest "x11regressions/gnomecase/gnome_default_applications";
-        loadtest "x11regressions/gnomecase/gnome_window_switcher";
-    }
-}
-
 sub load_x11regression_message {
     if (check_var("DESKTOP", "gnome")) {
         loadtest "x11regressions/empathy/empathy_aim";

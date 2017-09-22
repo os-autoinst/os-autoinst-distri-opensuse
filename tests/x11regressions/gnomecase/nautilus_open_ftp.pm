@@ -33,7 +33,8 @@ sub run {
     send_key 'shift-f10';
     assert_screen 'nautilus-ftp-rightkey-menu';
     # unmount ftp
-    wait_screen_change { send_key 'u' };
+    send_key 'alt-u';
+    assert_screen 'nautilus-launched';
     send_key 'ctrl-w';
 }
 
