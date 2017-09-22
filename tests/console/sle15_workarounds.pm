@@ -24,10 +24,14 @@ use utils qw(zypper_call sle_version_at_least pkcon_quit);
 sub run {
     my $self = shift;
     return unless sle_version_at_least('15');
-    send_key('ctrl-alt-f2');
-    assert_screen(["tty2-selected", 'text-login', 'text-logged-in-root', 'generic-desktop']);
-    if (match_has_tag 'generic-desktop') {
-        record_soft_failure 'bsc#1054782';
+    # try to detect bsc#1054782 only on the backend which can handle
+    # 'ctrl-alt-f2' directly
+    if (check_var('BACKEND', 'qemu')) {
+        send_key('ctrl-alt-f2');
+        assert_screen(["tty2-selected", 'text-login', 'text-logged-in-root', 'generic-desktop']);
+        if (match_has_tag 'generic-desktop') {
+            record_soft_failure 'bsc#1054782';
+        }
     }
     select_console('root-console');
     # Stop packagekit
