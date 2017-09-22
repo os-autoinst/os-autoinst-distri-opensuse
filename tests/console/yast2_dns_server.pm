@@ -14,7 +14,7 @@
 use base "console_yasttest";
 use strict;
 use testapi;
-use utils "zypper_call";
+use utils;
 
 # Test "yast2 dhcp-server" functionality
 # Ensure that all combinations of running/stopped and active/inactive
@@ -55,7 +55,8 @@ sub run {
     select_console 'root-console';
 
     # Make sure packages are installed
-    zypper_call('in yast2-dns-server bind SuSEfirewall2', timeout => 180);
+    my $firewall_package = ((is_sle && is_sle_version_at_least('15')) || (is_leap && is_leap_version_at_least('15'))) ? 'firewalld' : 'SuSEfirewall2';
+    zypper_call("in yast2-dns-server bind $firewall_package", timeout => 180);
     # Let's pretend this is the first execution (could not be the case if
     # yast2_cmdline was executed before)
     script_run 'rm /var/lib/YaST2/dns_server';

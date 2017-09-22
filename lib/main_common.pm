@@ -375,22 +375,20 @@ sub load_yast2_ui_tests {
     loadtest "console/yast2_tftp";
     loadtest "console/yast2_vnc";
     # TODO https://progress.opensuse.org/issues/20200
-    #loadtest "console/yast2_samba";
+    # softfail record #bsc1049433 for samba and xinetd
+    loadtest "console/yast2_samba";
     loadtest "console/yast2_xinetd";
     loadtest "console/yast2_apparmor";
     loadtest "console/yast2_lan_hostname";
-    # TODO: check if the following two modules also work on opensuse and delete if
+    # internal nis server in suse network is used, but this is not possible for
+    # openqa.opensuse.org
     if (check_var('DISTRI', 'sle')) {
         loadtest "console/yast2_nis";
     }
-    # TODO: check if the following two modules also work on sle and delete if.
     # yast-lan related tests do not work when using networkmanager.
     # (Livesystem and laptops do use networkmanager)
     if (!get_var("LIVETEST") && !get_var("LAPTOP")) {
-        if (check_var('DISTRI', 'opensuse')) {
-            # fix the issue reported in https://progress.opensuse.org/issues/20970
-            loadtest "console/yast2_dns_server";
-        }
+        loadtest "console/yast2_dns_server";
         loadtest "console/yast2_nfs_client";
     }
     loadtest "console/yast2_http";
