@@ -454,8 +454,17 @@ sub ensure_unlocked_desktop {
             wait_screen_change {
                 send_key 'esc';    # end screenlock
             };
+            if (check_screen 'screenlock', 0) {
+                record_soft_failure 'bsc#1058521';
+                send_key 'spc';
+                mouse_set(0,   0);      # initial mouse set for defined position
+                mouse_set(100, 100);    # now we can be sure we moved it
+                mouse_click('left');
+                mouse_click('right');
+                wait_still_screen 3;
+            }
         }
-        wait_still_screen 2;       # slow down loop
+        wait_still_screen 2;            # slow down loop
         die 'ensure_unlocked_desktop repeated too much. Check for X-server crash.' if ($counter eq 1);    # die loop when generic-desktop not matched
     }
 }
