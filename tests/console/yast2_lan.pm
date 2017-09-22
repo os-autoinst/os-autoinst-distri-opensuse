@@ -69,6 +69,11 @@ sub run {
 
     send_key "alt-s";    # open hostname tab
     assert_screen [qw(yast2_lan-hostname-tab dhcp-popup)];
+    if (match_has_tag('boo#1054448')) {
+        record_soft_failure 'boo#1054448';
+        send_key 'f9';
+        return;
+    }
     handle_dhcp_popup;
     send_key "tab";
     for (1 .. 15) { send_key "backspace" }
