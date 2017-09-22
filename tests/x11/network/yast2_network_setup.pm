@@ -26,8 +26,6 @@ sub run {
 }
 
 sub configure_system {
-    my $self = shift;
-
     # we have to change the networkmanager form wicked to NetworkManager
     y2x11test::launch_yast2_module_x11 module => 'lan';
     assert_screen 'yast2_control-center_network-opened';
@@ -43,18 +41,10 @@ sub configure_system {
     assert_and_click 'yast2_network-applet_warning-click';
     assert_screen 'yast2_network-is_applying';
 
-    if (check_screen 'yast2_network-error_dialog') {
+    assert_screen([qw(generic-desktop yast2_network-error_dialog)]);
+    if (match_has_tag 'yast2_network-error_dialog') {
         record_soft_failure 'boo#1049097';
         assert_and_click 'yast2_network-error_dialog';
-        select_console 'log-console';
-        # Not sure if this is always needed of related to the bug we handle here
-        assert_script_run "ethernet_uuid=\$(nmcli -t -f UUID connection show)";
-        assert_script_run 'ip link set sta0 up';
-        assert_script_run 'nmcli c up $ethernet_uuid';
-        serial_wait 'cont', 3600
-        y2logsstep::save_upload_y2logs;
-        serial_wait 'cont', 3600
-        select_console 'x11';
     }
 }
 

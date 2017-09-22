@@ -26,14 +26,15 @@ sub run {
 
     # the root console will most likely be polluted with dmesg output
     select_console 'root-console', await_console => 0;
-    send_key 'ctrl-l';
+    wait_still_screen 3;
+    clear_console;
     assert_screen 'root-console';
     $self->NM_disable_ip;
 
     # we've the NetworkManager window open on x11 so the await_console
     # needle cannot match so we rely on the assert_and_click from
     # connect_to_network
-    select_console 'x11', 'await_console' => 0;
+    select_console 'x11', await_console => 0;
 
     # connect again to see if NM has a "connection" after we disabled v4 and v6
     $self->connect_to_network;
@@ -41,10 +42,7 @@ sub run {
     assert_and_click 'network_manager-close-click';
 }
 
-
 sub connect_to_network {
-    my $self = shift;
-
     # open the wifi widget
     assert_and_click 'gnome_widget';
     # select 'wifi 1' (The one not beeing ignored by NM)
@@ -60,12 +58,15 @@ sub connect_to_network {
 }
 
 sub enter_NM_credentials {
-    my $self = shift;
-
     # we expect here to enter our credentials for this wireless network
-    assert_screen 'network_manager-wpa2_authentication';
+    assert_screen([qw(network_manager-wpa2_authentication generic_gnome_configuration-boo1060079)]);
+    if (match_has_tag 'generic_gnome_configuration-boo1060079') {
+        assert_and_click 'generic_gnome_configuration-boo1060079';
+        assert_and_click 'gnome_settings-wifi-found_network';
+        assert_screen 'network_manager-wpa2_authentication';
+    }
 
-    # When we land at this dialog, nothing has focus.
+    # When we land at the credentials dialog, nothing has focus.
     # The first tab results in focusing the first input field.
     # But since we want the dropdown field one above, we have
     # to go up by pressing "Shift+Tab".
@@ -121,8 +122,7 @@ sub post_fail_hook {
     my ($self) = @_;
     select_console 'log-console';
     $self->save_and_upload_log('journalctl --no-pager -u NetworkManager', 'NetworkManager_journal.log');
-    $self->save_and_upload_log('journalctl --no-pager -u hostapd', 'hostapd_journal.log');
-    # TODO: collect gnome/nm-applet logs
+    $self->save_and_upload_log('journalctl --no-pager -u hostapd',        'hostapd_journal.log');
     $self->SUPER::post_fail_hook;
 }
 

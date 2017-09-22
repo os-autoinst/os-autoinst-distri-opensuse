@@ -87,7 +87,6 @@ sub reload_services {
 sub post_fail_hook {
     my ($self) = @_;
     select_console 'log-console';
-    # TODO: collect dmesg (already done by super post fail hook?)
     $self->save_and_upload_log('journalctl --no-pager -u hostapd', 'hostapd_journal.log');
     assert_script_run 'systemctl status hostapd';
     $self->SUPER::post_fail_hook;
