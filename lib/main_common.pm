@@ -707,6 +707,7 @@ sub load_security_tests_misc {
     }
     loadtest "console/journald_fss";
     loadtest "console/git";
+    loadtest "console/clamav";
     loadtest "console/consoletest_finish";
     # In SLE, the hexchat package is provided only in WE addon which is
     # only for x86_64 platform. Then hexchat is x86_64 specific and not
