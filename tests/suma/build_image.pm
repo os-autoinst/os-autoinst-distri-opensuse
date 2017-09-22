@@ -69,7 +69,7 @@ sub run {
     assert_script_run 'salt -t 1000 '.$branch.'\* cp.push /built-image/initrd-netboot-suse-SLES12.x86_64-2.1.1.kernel', 1000;
     script_output 'find /var/cache/salt/master/minions -type f ';
     assert_script_run 'mv /var/cache/salt/master/minions/'.$branch.'*/files/built-image /srv/www/htdocs/pub/';
-    assert_script_run 'cp -r /srv/www/htdocs/pub/built-image /srv/www/htdocs/pub/built-image2';
+    assert_script_run 'cp -r /srv/www/htdocs/pub/built-image /srv/www/htdocs/pub/built-image2', 1000;
     assert_script_run 'mount -o loop -t ext3 /srv/www/htdocs/pub/built-image2/POS_Image_JeOS5.x86_64-6.0.0 /mnt ; echo POS_Image_JeOS5-6.0.1 > /mnt/etc/ImageVersion ; umount /mnt ; sync';
     assert_script_run 'e2fsck -f -y /srv/www/htdocs/pub/built-image2/POS_Image_JeOS5.x86_64-6.0.0 ; sync';
     assert_script_run 'mv /srv/www/htdocs/pub/built-image2/POS_Image_JeOS5.x86_64-6.0.0 /srv/www/htdocs/pub/built-image2/POS_Image_JeOS5.x86_64-6.0.1';

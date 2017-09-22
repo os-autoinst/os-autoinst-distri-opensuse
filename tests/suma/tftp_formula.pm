@@ -48,7 +48,7 @@ sub run {
     }
     
     script_run('echo "test" > '.$srvdir.'/test');
-    type_string('atftp localhost');send_key('ret');
+    type_string('atftp '.$testip);send_key('ret');
     type_string('get test');send_key('ret');
     type_string('quit');send_key('ret');
     assert_script_run('diff test '.$srvdir.'/test'); 

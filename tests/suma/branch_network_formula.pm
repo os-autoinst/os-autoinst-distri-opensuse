@@ -29,6 +29,10 @@ sub run {
     assert_script_run('ip a | grep '.$testip);
     assert_script_run('grep "^FW_DEV_INT=.*eth1" /etc/sysconfig/SuSEfirewall2');
     assert_script_run('grep "^FW_ROUTE=.*yes" /etc/sysconfig/SuSEfirewall2');
+    script_run('df');
+    script_run('ls -l '.$srvdir.'/..');
+    assert_script_run('[ `stat -c %U '.$srvdir.'` == "saltboot" ]');
+    assert_script_run('[ `stat -c %G '.$srvdir.'` == "saltboot" ]');
     $self->registered_barrier_wait('branch_network_formula_finish');
   } 
   elsif (check_var('SUMA_SALT_MINION', 'terminal')) {
