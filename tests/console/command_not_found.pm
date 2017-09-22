@@ -24,7 +24,7 @@ sub run {
         assert_script_sudo "zypper -n in command-not-found";
     }
 
-    my $not_installed_pkg = "xosview";
+    my $not_installed_pkg = "yelp";
     assert_script_run("echo \"\$(cnf $not_installed_pkg 2>&1 | tee /dev/stderr)\" | grep -q \"zypper install $not_installed_pkg\"");
     save_screenshot;
 }
