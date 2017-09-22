@@ -40,6 +40,7 @@ sub handle_login_not_found {
 
 sub run {
     my $login_ready = check_var('VERSION', 'Tumbleweed') ? qr/Welcome to openSUSE Tumbleweed 20.*/ : qr/Welcome to SUSE Linux Enterprise .*\(s390x\)/;
+    console('installation')->disable_vnc_stalls;
 
     # different behaviour for z/VM and z/KVM
     if (check_var('BACKEND', 's390x')) {
@@ -47,7 +48,6 @@ sub run {
         # kill serial ssh connection (if it exists)
         eval { console('iucvconn')->kill_ssh unless get_var('BOOT_EXISTING_S390', ''); };
         diag('ignoring already shut down console') if ($@);
-        console('installation')->disable_vnc_stalls;
 
         my $r;
         eval { $r = console('x3270')->expect_3270(output_delim => $login_ready, timeout => 300); };
