@@ -14,6 +14,7 @@
 use base "consoletest";
 use testapi;
 use strict;
+use utils;
 
 # test for regression of bug http://bugzilla.suse.com/show_bug.cgi?id=952496
 sub run {
@@ -24,7 +25,8 @@ sub run {
         assert_script_sudo "zypper -n in command-not-found";
     }
 
-    my $not_installed_pkg = "yelp";
+    (is_sle && sle_version_at_least '15') ? my $not_installed_pkg = "xosview" : my $not_installed_pkg = "wireshark";
+    my $not_installed_pkg = (is_sle && sle_version_at_least '15') ? 'wireshark' : 'xosview';
     assert_script_run("echo \"\$(cnf $not_installed_pkg 2>&1 | tee /dev/stderr)\" | grep -q \"zypper install $not_installed_pkg\"");
     save_screenshot;
 }
