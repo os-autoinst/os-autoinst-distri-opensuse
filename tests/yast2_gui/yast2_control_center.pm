@@ -21,12 +21,8 @@ use utils;
 
 sub search {
     my ($name) = @_;
-    # on openSUSE we have a Qt setup with keyboard shortcut
-    if (check_var('DISTRI', 'opensuse')) {
-        send_key 'alt-s';
-    }
     # with the gtk interface we have to click as there is no shortcut
-    elsif (check_var('DISTRI', 'sle')) {
+    if ((is_sle && !sle_version_at_least('15')) || (is_leap && !leap_version_at_least('15'))) {
         assert_screen([qw(yast2_control-center_search_clear yast2_control-center_search)], no_wait => 1);
         if (match_has_tag 'yast2_control-center_search') {
             assert_and_click 'yast2_control-center_search';
@@ -34,6 +30,10 @@ sub search {
         else {
             assert_and_click 'yast2_control-center_search_clear';
         }
+        # openSUSE and sles 15 have a Qt setup with keyboard shortcut
+    }
+    else {
+        send_key 'alt-s';
     }
     wait_screen_change { type_string $name; } if $name;
     wait_still_screen 1;
