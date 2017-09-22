@@ -18,7 +18,7 @@ use testapi;
 use utils;
 
 sub run {
-    if ((is_sle && sle_version_at_least('15')) || (is_leap && is_leap_version_at_least('15'))) {
+    if ((is_sle && sle_version_at_least('15')) || (is_leap && leap_version_at_least('15'))) {
         assert_script_run('firewallctl state');
     }
     elsif (is_jeos) {
