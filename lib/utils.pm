@@ -19,6 +19,7 @@ use base Exporter;
 use Exporter;
 
 use strict;
+use Time::HiRes 'sleep';
 
 use testapi qw(is_serial_terminal :DEFAULT);
 
@@ -456,7 +457,14 @@ sub ensure_unlocked_desktop {
             };
         }
         wait_still_screen 2;       # slow down loop
-        die 'ensure_unlocked_desktop repeated too much. Check for X-server crash.' if ($counter eq 1);    # die loop when generic-desktop not matched
+        if ($counter <= 3 && check_var('DESKTOP', 'gnome')) {
+            mouse_set(500, 300);
+            sleep 0.1;
+            mouse_set(500, 200);
+            sleep 0.1;
+            mouse_set(500, 100);
+        }
+        die 'ensure_unlocked_desktop repeated too much. Check for X-server crash.' if ($counter == 1);    # die loop when generic-desktop not matched
     }
 }
 
