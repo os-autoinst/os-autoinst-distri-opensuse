@@ -25,7 +25,6 @@ sub run {
         assert_script_sudo "zypper -n in command-not-found";
     }
 
-    (is_sle && sle_version_at_least '15') ? my $not_installed_pkg = "xosview" : my $not_installed_pkg = "wireshark";
     my $not_installed_pkg = (is_sle && sle_version_at_least '15') ? 'wireshark' : 'xosview';
     assert_script_run("echo \"\$(cnf $not_installed_pkg 2>&1 | tee /dev/stderr)\" | grep -q \"zypper install $not_installed_pkg\"");
     save_screenshot;
