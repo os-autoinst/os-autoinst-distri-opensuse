@@ -18,7 +18,7 @@ use testapi;
 sub run {
     my ($self) = @_;
 
-    if (check_var('VERSION', '2.0')) {
+    if (!check_var('VERSION', '1.0')) {
         check_var('VIDEOMODE', 'text') ? send_key 'alt-a' : send_key 'alt-w';
     }
     else {
