@@ -23,21 +23,19 @@ use testapi;
 
 sub run {
     my ($self) = @_;
-    assert_screen 'license-agreement';
-    $self->verify_license_has_to_be_accepted;
-    send_key $cmd{next};
-
-    # workaround bsc#1058503 - license shown twice on s390x
-    # if next screen has a network settings button, everything is fine
-    if (check_var('ARCH', 's390x')) {
-        assert_screen([qw(network-settings-button license-agreement-accepted)]);
-        if (match_has_tag('license-agreement-accepted')) {
-            record_soft_failure 'bsc#1058503 - license shown twice';
-            save_screenshot;
-            send_key $cmd{next};
+    assert_screen([qw(network-settings-button license-agreement-accepted)]);
+    if (match_has_tag('network-settings-button')) {
+        # workaround for hpc missing license: https://bugzilla.suse.com/show_bug.cgi?id=1060174
+        if (check_var('SLE_PRODUCT', 'hpc')) {
+            record_soft_failure('bsc#1060174');
+            return;
+        }
+        else {
+            die 'It seems that license agreement is missing, please check!';
         }
     }
-
+    $self->verify_license_has_to_be_accepted;
+    send_key $cmd{next};
 }
 
 1;
