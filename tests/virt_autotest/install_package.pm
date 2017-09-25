@@ -24,9 +24,24 @@ sub install_package {
     else {
         die "There is no qa server repo defined variable QA_HEAD_REPO\n";
     }
+    #workaround for dependency on xmlstarlet for qa_lib_virtauto on sles11sp4 and sles12sp1
+    my $repo_0_to_install = get_var("REPO_0_TO_INSTALL", '');
+    my $dependency_repo = '';
+    if ($repo_0_to_install =~ /SLES-11-SP4/m) {
+        $dependency_repo = 'http://download.suse.de/ibs/SUSE:/SLE-11:/Update/standard/';
+    }
+    elsif ($repo_0_to_install =~ /SLE-12-SP1/m) {
+        $dependency_repo = 'http://download.suse.de/ibs/SUSE:/SLE-12:/Update/standard/';
+    }
+    if ($dependency_repo) {
+        assert_script_run("zypper --non-interactive --no-gpg-check -n ar -f ${dependency_repo} dependency_repo");
+        assert_script_run("zypper --non-interactive --gpg-auto-import-keys ref", 180);
+        assert_script_run("zypper --non-interactive -n in xmlstarlet");
+        assert_script_run("zypper --non-interactive -n rr dependency_repo");
+    }
+    #install qa_lib_virtauto
     assert_script_run("zypper --non-interactive --gpg-auto-import-keys ref", 180);
-
-    assert_script_run("zypper --non-interactive -n in qa_lib_virtauto", 1800);
+    assert_script_run("zypper --non-interactive -n in qa_lib_virtauto",      1800);
 
     if (get_var("PROXY_MODE")) {
         if (get_var("XEN")) {
