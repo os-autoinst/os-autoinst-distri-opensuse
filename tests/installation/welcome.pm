@@ -80,8 +80,10 @@ sub run {
         return if check_var('ARCH', 's390x');
         assert_screen('select-product');
         my %hotkey = (
-            sles => 's',
-            sled => 'u'
+            sles     => 's',
+            sled     => 'u',
+            sles4sap => 'i',
+            hpc      => 'x'
         );
         my $product = get_required_var('SLE_PRODUCT');
         send_key 'alt-' . $hotkey{$product};
