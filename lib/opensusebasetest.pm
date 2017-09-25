@@ -439,7 +439,7 @@ sub wait_boot {
     mouse_hide();
 
     if (get_var("NOAUTOLOGIN") || get_var("XDMUSED")) {
-        assert_screen [qw(displaymanager emergency-shell emergency-mode)], $ready_time;
+        assert_screen [qw(displaymanager emergency-shell emergency-mode linux-login)], $ready_time;
         handle_emergency if (match_has_tag('emergency-shell') or match_has_tag('emergency-mode'));
 
         if (get_var('DM_NEEDS_USERNAME')) {
@@ -451,11 +451,11 @@ sub wait_boot {
             # In GNOME/gdm, we do not have to enter a username, but we have to select it
             send_key 'ret';
         }
-        assert_screen 'displaymanager-password-prompt', no_wait => 1;
+        assert_screen [qw(displaymanager-password-prompt password-prompt)], no_wait => 1;
         type_password $password. "\n";
     }
 
-    assert_screen [qw(generic-desktop emergency-shell emergency-mode)], $ready_time + 100;
+    assert_screen [qw(generic-desktop emergency-shell emergency-mode linux-login)], $ready_time + 100;
     handle_emergency if (match_has_tag('emergency-shell') or match_has_tag('emergency-mode'));
     mouse_hide(1);
     $self->{in_wait_boot} = 0;
