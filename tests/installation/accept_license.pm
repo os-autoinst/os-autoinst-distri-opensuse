@@ -23,7 +23,10 @@ use testapi;
 
 sub run {
     my ($self) = @_;
-    assert_screen 'license-agreement';
+    assert_screen([qw(network-settings-button license-agreement-accepted)]);
+    if (match_has_tag('network-settings-button')) {
+            die 'It seems that license agreement is missing, please check!';
+        }
     $self->verify_license_has_to_be_accepted;
     send_key $cmd{next};
 }
