@@ -28,11 +28,12 @@ sub system_status {
     my $log  = shift || "/tmp/system-status.log";
     my @klst = ("kernel", "cpuinfo", "memory", "repos", "dmesg");
     my %cmds = (
-        kernel  => "uname -a",
-        cpuinfo => "cat /proc/cpuinfo",
-        memory  => "free -m",
-        repos   => "zypper repos -u",
-        dmesg   => "dmesg"
+        kernel   => "uname -a",
+        cpuinfo  => "cat /proc/cpuinfo",
+        memory   => "free -m",
+        iptables => "iptables -L -n --line-numbers",
+        repos    => "zypper repos -u",
+        dmesg    => "dmesg"
     );
     foreach my $key (@klst) {
         my $cmd = "echo '=========> $key <=========' >> $log; ";
