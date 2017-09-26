@@ -26,18 +26,6 @@ sub run {
     assert_screen 'license-agreement';
     $self->verify_license_has_to_be_accepted;
     send_key $cmd{next};
-
-    # workaround bsc#1058503 - license shown twice on s390x
-    # if next screen has a network settings button, everything is fine
-    if (check_var('ARCH', 's390x')) {
-        assert_screen([qw(network-settings-button license-agreement-accepted)]);
-        if (match_has_tag('license-agreement-accepted')) {
-            record_soft_failure 'bsc#1058503 - license shown twice';
-            save_screenshot;
-            send_key $cmd{next};
-        }
-    }
-
 }
 
 1;
