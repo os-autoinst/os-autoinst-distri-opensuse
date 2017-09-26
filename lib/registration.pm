@@ -116,7 +116,11 @@ sub fill_in_registration_data {
         if (match_has_tag 'bsc#1056413') {
             record_soft_failure('bsc#1056413');
             # Add expected modules to select them manually, as not preselected
-            my $addons = 'base,script,desktop,serverapp' . (get_var('SCC_ADDONS') ? ',' . get_var('SCC_ADDONS') : '');
+            my %addons = (
+                sles => 'base,script,desktop,serverapp',
+                sled => 'base,script,desktop'
+            );
+            my $addons = $addons{get_required_var('SLE_PRODUCT')} . (get_var('SCC_ADDONS') ? ',' . get_var('SCC_ADDONS') : '');
             set_var('SCC_ADDONS', $addons);
         }
     }
