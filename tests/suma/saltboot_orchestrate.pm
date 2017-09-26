@@ -34,18 +34,8 @@ sub run {
   elsif (check_var('SUMA_SALT_MINION', 'terminal')) {
     select_console 'root-console';
     $self->registered_barrier_wait('saltboot_orchestrate');
-    type_string "shutdown -r now\n";
-    assert_screen("suma-image-pxe", 300);
-    assert_screen("suma-image-login", 300);
 
-    # clear kiwidebug console
-    send_key 'alt-f2';
-    type_string "exit\n\n\n";
-    send_key 'alt-f1';
-
-    reset_consoles;
-
-    select_console 'root-console';
+    $self->reboot_terminal;
 
     assert_script_run('grep 6.0.0 /etc/ImageVersion'); # the only active image version configured in build_image.pm
     $self->registered_barrier_wait('saltboot_orchestrate_finish');

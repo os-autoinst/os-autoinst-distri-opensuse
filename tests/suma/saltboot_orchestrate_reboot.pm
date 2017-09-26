@@ -38,18 +38,8 @@ sub run {
     select_console 'root-console';
     $self->registered_barrier_wait('saltboot_orchestrate_reboot');
     script_output("salt-call pillar.items");
-    type_string "shutdown -r now\n";
-    assert_screen("suma-image-pxe", 300);
-    assert_screen("suma-image-login", 300);
 
-    # clear kiwidebug console
-    send_key 'alt-f2';
-    type_string "exit\n\n\n";
-    send_key 'alt-f1';
-
-    reset_consoles;
-
-    select_console 'root-console';
+    $self->reboot_terminal;
 
     assert_script_run('grep 6.0.0 /etc/ImageVersion') if check_var('HWTYPE', 'testterm2'); # version requested
     assert_script_run('grep 6.0.1 /etc/ImageVersion') if check_var('HWTYPE', 'testterm'); # highest active
