@@ -167,7 +167,9 @@ else {
 }
 
 # ==== Extra tests run after installation  ====
-if (get_var('REGISTER')) {
+# REGISTER = 'suseconnect' -> Registers with SCC after the installation
+# REGISTER = 'installation' -> Registers with SCC during the installation
+if (get_var('REGISTER') && !check_var('STACK_ROLE', 'controller')) {
     loadtest 'caasp/register_and_check';
 }
 
