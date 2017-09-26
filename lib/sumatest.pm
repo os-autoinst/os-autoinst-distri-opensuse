@@ -41,7 +41,7 @@ sub post_fail_hook() {
         save_screenshot;
         script_run("cat /var/log/salt/* >/dev/$serialdev");
         script_run("cat /var/log/boot.kiwi >/dev/$serialdev");
-        script_run("salt-call -l all --no-color state.apply >/dev/$serialdev");
+        script_run("salt-call -l all --no-color state.apply saltboot >/dev/$serialdev 2>&1");
         script_run("salt-call --no-color pillar.items >/dev/$serialdev");
       }
       elsif (!get_var('SUMA_SALT_MINION')) {
