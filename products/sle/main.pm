@@ -854,6 +854,7 @@ sub load_consoletests {
         }
         loadtest "console/apache_ssl";
         loadtest "console/apache_nss";
+        loadtest 'console/systemd_testsuite' if sle_version_at_least('12-SP2');
     }
     if (check_var("DESKTOP", "xfce")) {
         loadtest "console/xfce_gnome_deps";
