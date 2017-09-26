@@ -314,42 +314,62 @@ sub setup_iscsi_server {
     # The easiest way (really!?) to configure LIO is with YaST
     # Code grab and adapted from tests/iscsi/iscsi_server.pm
     script_run("yast2 iscsi-lio-server; echo yast2-iscsi-lio-server-status-\$? > /dev/$serialdev", 0);
-    assert_screen 'iscsi-target-overview-service-tab';
-    send_key 'alt-g';    # go to global tab
-    assert_screen 'iscsi-target-overview-global-tab';
+    assert_screen 'iscsi-target-overview-service-tab', 60;
     send_key 'alt-t';    # go to target tab
-    wait_still_screen 3;
+    assert_screen 'iscsi-target-overview-empty-target-tab';
     send_key 'alt-a';    # add target
+    assert_screen 'iscsi-target-overview-add-target-tab';
+
+    # Wait for the Identifier field to change from 'test' value to the correct one
+    # We could simply use a 'sleep' here but it's less good
+    wait_screen_change(undef, 10);
+
+    # Select Target field
+    send_key 'alt-t';
     wait_still_screen 3;
-    send_key 'alt-t';    # select target field
-    wait_still_screen 3;
-    for (1 .. 40) { send_key 'backspace'; }    # delete text
+
+    # Change Target value
+    for (1 .. 40) { send_key 'backspace'; }
     type_string 'iqn.openqa.de';
     wait_still_screen 3;
-    send_key 'tab';                            # tab to identifier field
+
+    # Select Identifier field
+    send_key 'alt-f';
     wait_still_screen 3;
-    for (1 .. 40) { send_key 'backspace'; }    # delete text
+
+    # Change Identifier value
+    for (1 .. 40) { send_key 'backspace'; }
     wait_still_screen 3;
     type_string '132';
     wait_still_screen 3;
-    send_key 'alt-u';                          # un-check use authentication
+
+    # Un-check Use Authentication
+    send_key 'alt-u';
     wait_still_screen 3;
+
+    # Add LUNs
     for (my $num_lun = 1; $num_lun <= $num_luns; $num_lun++) {
-        send_key 'alt-a';                      # add LUN
-        send_key_until_needlematch 'iscsi-target-LUN-path-selected', 'alt-p', 5, 5;    # send alt-p until LUN path is selected
+        send_key 'alt-a';
+
+        # Send alt-p until LUN path is selected
+        send_key_until_needlematch 'iscsi-target-LUN-path-selected', 'alt-p', 5, 5;
         type_string "$hdd_lun$num_lun";
         assert_screen 'iscsi-target-LUN-support-server';
-        send_key 'alt-o';                                                              # OK
+        send_key 'alt-o';
         wait_still_screen 3;
     }
     assert_screen 'iscsi-target-overview';
-    send_key 'alt-n';                                                                  # next
-    assert_screen 'iscsi-target-client-setup';
-    send_key 'alt-n';                                                                  # next
+    send_key 'alt-n';
+    assert_screen('iscsi-target-client-setup', 120);
+    send_key 'alt-n';
     wait_still_screen 3;
-    send_key 'alt-y';                                                                  # no client configured, it's "normal"
+
+    # No client configured, it's "normal"
+    send_key 'alt-y';
     assert_screen 'iscsi-target-overview-target-tab';
-    send_key 'alt-f';                                                                  # finish
+
+    # iSCSI LIO configuguration is finished
+    send_key 'alt-f';
     wait_serial('yast2-iscsi-lio-server-status-0', 90) || die "'yast2 iscsi-lio-server' didn't finish";
 
     # Now we need to enable iSCSI Demo Mode
@@ -425,6 +445,9 @@ sub run {
     setup_networks();
 
     if (exists $server_roles{pxe}) {
+        # PXE server cannot be configured on other ARCH than x86_64
+        # because 'syslinux' package only exists on it
+        die "PXE server is only supported on x86_64 architecture" unless check_var('ARCH', 'x86_64');
         setup_dhcp_server((exists $server_roles{dns}), 1);
         setup_pxe_server();
         setup_tftp_server();
