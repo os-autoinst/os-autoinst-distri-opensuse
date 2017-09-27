@@ -219,7 +219,7 @@ sub format_dasd {
     die "dasd_configure died with exit code $r" unless (defined($r) && $r == 0);
 
     # format dasda (this can take up to 20 minutes depending on disk size)
-    $r = script_run("echo yes | dasdfmt -b 4096 -p /dev/dasda", 1200);
+    $r = script_run("echo yes | dasdfmt -b 4096 -p /dev/dasda", 1800);
     show_debug();
     die "dasdfmt died with exit code $r" unless (defined($r) && $r == 0);
 
