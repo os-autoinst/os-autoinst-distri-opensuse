@@ -21,11 +21,14 @@ sub run {
     zypper_call("in tftp yast2-tftp-server", timeout => 240);
 
     script_run("yast2 tftp-server; echo yast2-tftp-server-status-\$? > /dev/$serialdev", 0);
+    # make sure the module is loaded and any potential popups are there to be
+    # asserted later
+    wait_still_screen(3);
     assert_screen([qw(yast2_tftp-server_configuration yast2_still_susefirewall2)], 90);
     if (match_has_tag 'yast2_still_susefirewall2') {
         record_soft_failure "bsc#1059569";
         send_key 'alt-i';
-        wait_still_screen;
+        assert_screen 'yast2_tftp-server_configuration';
     }
 
     send_key 'alt-e';    # enable tftp
