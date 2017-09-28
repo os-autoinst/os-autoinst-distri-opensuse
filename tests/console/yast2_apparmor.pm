@@ -35,7 +35,15 @@ sub run {
     assert_screen 'yast2_apparmor_enabled';
     # part 1: open profile mode configuration and check toggle/show all profiles
     send_key 'alt-n';
-    assert_screen 'yast2_apparmor_profile_mode_configuration';
+    assert_screen([qw(yast2_apparmor_profile_mode_configuration yast2_apparmor_failed_to_change_bsc1058981)]);
+    if (match_has_tag 'yast2_apparmor_failed_to_change_bsc1058981') {
+        send_key 'alt-o';
+        wait_still_screen(3);
+        record_soft_failure 'bsc#1058981';
+        send_key 'f9';
+        wait_still_screen(3);
+        return;
+    }
     send_key 'alt-o';
     assert_screen 'yast2_apparmor_profile_mode_configuration_show_all';
     wait_screen_change { send_key 'tab' };
