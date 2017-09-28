@@ -17,7 +17,6 @@ use testapi;
 
 
 sub run {
-
     select_console 'root-console';
 
     # install yast2_apparmor package at first
@@ -127,8 +126,16 @@ sub run {
     assert_screen 'yast2_apparmor_configuration_manage_existing_profiles_edit_file_changed_again';
     send_key 'alt-y';
     wait_serial("yast2-apparmor-status-0", 200) || die "'yast2 apparmor' didn't finish";
-
 }
+
+sub post_fail_hook {
+    my $self = @_;
+    select_console 'log-console';
+    assert_script_run('journalctl --no-pager -u apparmor > /tmp/journal_apparmor.log');
+    upload_logs('/tmp/journal_apparmor.log');
+    $self->SUPER::post_fail_hook;
+}
+
 1;
 
 # vim: set sw=4 et:
