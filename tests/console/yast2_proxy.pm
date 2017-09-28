@@ -13,7 +13,7 @@
 use strict;
 use base "console_yasttest";
 use testapi;
-use utils qw(type_string_slow zypper_call);
+use utils;
 
 
 my %sub_menu_needles = (
@@ -51,6 +51,11 @@ sub empty_field {
 
 sub run {
     select_console 'root-console';
+
+    if (is_sle && sle_version_at_least('15')) {
+        my $ret = zypper_call('in squid', exitcode => [0, 104]);
+        return record_soft_failure 'bsc#1056793' if $ret == 104;
+    }
 
     # install yast2-squid, yast2-proxy, squid package at first
     zypper_call("in squid yast2-squid yast2-proxy", timeout => 180);
