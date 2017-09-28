@@ -19,7 +19,14 @@ sub run {
     select_console 'root-console';
     script_run "zypper -n in yast2-nis-client";    # make sure yast client module installed
     type_string "yast2 nis\n";
-    assert_screen 'nis-client';
+    wait_still_screen(3);
+    assert_screen([qw(nis-client yast2_still_susefirewall2)], 90);
+    if (match_has_tag 'yast2_still_susefirewall2') {
+        record_soft_failure "bsc#1059569";
+        send_key 'alt-i';
+        assert_screen 'nis-client';
+    }
+
     wait_screen_change { send_key 'alt-u' };
     send_key 'alt-m';
     assert_screen 'nis-client-automounter-enabled';    # this checks if nis and automounter got really enabled
