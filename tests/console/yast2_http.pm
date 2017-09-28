@@ -25,8 +25,15 @@ sub run {
     assert_screen 'http-server', 60;    # check page "Initializing HTTP Server Configuration"
     wait_still_screen 1;
     send_key 'alt-i';                   # make sure that apache2, apache2-prefork packages needs to be installed
-    assert_screen 'http_server_wizard', 120;    # check http server wizard (1/5) -- Network Device Selection
-    wait_still_screen;
+                                        # check http server wizard (1/5) -- Network Device Selection
+    assert_screen([qw(http_server_wizard yast2_still_susefirewall2)], 120);
+    if (match_has_tag 'yast2_still_susefirewall2') {
+        record_soft_failure "bsc#1059569";
+        send_key 'alt-i';
+        assert_screen 'http_server_wizard';
+    }
+
+    wait_still_screen(3);
     send_key 'alt-n';                               # go to http server wizard (1/5) -- Network Device Selection
     assert_screen 'http_server_modules';            # check modules and enable php, perl, python before go to next step
     wait_still_screen 1;

@@ -30,7 +30,21 @@ sub run {
     script_run("yast2 ntp-client; echo yast2-ntp-client-status-\$? > /dev/$serialdev", 0);
 
     # check Advanced NTP Configuration is opened
-    assert_screen 'yast2_ntp-client_configuration', 90;
+    assert_screen([qw(yast2_ntp-client_configuration yast2_ntp-needs_install)], 90);
+    if (match_has_tag 'yast2_ntp-needs_install') {
+        send_key 'alt-i';
+        assert_screen 'yast2_ntp-client_configuration';
+    }
+    if (match_has_tag 'bsc#1058475') {
+        record_soft_failure 'bsc#1058475';
+        send_key 'alt-o';
+        wait_still_screen(2);
+        send_key 'alt-o';
+        wait_still_screen(2);
+        send_key 'f9';
+        wait_still_screen(2);
+        return;
+    }
 
     # use Synchronize without daemon
     send_key 'alt-y';

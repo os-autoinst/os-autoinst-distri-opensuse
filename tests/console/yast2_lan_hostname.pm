@@ -20,7 +20,13 @@ sub hostname_via_dhcp {
     my $dhcp = shift;
 
     type_string "yast2 lan\n";
-    assert_screen 'yast2_lan';
+    assert_screen([qw(yast2_lan yast2_still_susefirewall2)], 90);
+    if (match_has_tag 'yast2_still_susefirewall2') {
+        record_soft_failure "bsc#1059569";
+        send_key 'alt-i';
+        assert_screen 'yast2_lan';
+    }
+
     send_key "alt-s";    # open hostname tab
     assert_screen "yast2_lan-hostname-tab";
     for (1 .. 4) { send_key 'tab' }    # go to roll-down list

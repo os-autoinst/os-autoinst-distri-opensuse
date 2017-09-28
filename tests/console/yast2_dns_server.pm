@@ -70,7 +70,14 @@ sub run {
     send_key 'alt-n';
     assert_screen 'yast2-dns-server-step2';
     send_key 'alt-n';
-    assert_screen 'yast2-dns-server-step3';
+    wait_still_screen(3);
+    assert_screen([qw(yast2-dns-server-step3 yast2_still_susefirewall2)], 90);
+    if (match_has_tag 'yast2_still_susefirewall2') {
+        record_soft_failure "bsc#1059569";
+        send_key 'alt-i';
+        assert_screen 'yast2-dns-server-step3';
+    }
+
     # Enable dns server and finish
     wait_screen_change { send_key 'alt-s' };
     send_key 'alt-f';
