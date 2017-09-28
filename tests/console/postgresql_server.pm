@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -34,6 +34,16 @@ sub run {
     # test basic functionality of postgresql
     setup_pgsqldb;
     destroy_pgsqldb;
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    select_console 'log-console';
+    $self->SUPER::post_fail_hook;
+    upload_logs('/var/lib/pgsql/initlog');
+    # this might fail to find any files so conduct as last step
+    assert_script_run('tar -capf /tmp/pg_log.tar.xz /var/lib/pgsql/data/pg_log/*');
+    upload_logs('/tmp/pg_log.tar.xz');
 }
 
 1;
