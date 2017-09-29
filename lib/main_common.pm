@@ -732,6 +732,7 @@ sub load_security_tests_misc {
     # appropriate for other arches.
     loadtest "x11/hexchat_ssl" if (check_var('ARCH', 'x86_64'));
     loadtest "x11/x3270_ssl";
+    loadtest "x11/seahorse_sshkey";
 }
 
 sub load_security_tests_crypt {
