@@ -51,7 +51,13 @@ sub run {
     send_key 'alt-o';
     assert_screen 'nis-client-configuration';
     send_key 'alt-s';                                  # enter NFS configuration...
-    assert_screen 'nfs-client-configuration';          # add nfs settings
+
+    # add nfs settings
+    assert_screen([qw(nfs-client-configuration yast2_nfs_client_needs_install)], 90);
+    if (match_has_tag 'yast2_nfs_client_needs_install') {
+        send_key 'alt-i';
+        assert_screen 'nfs-client-configuration';
+    }
     send_key 'alt-a';
     assert_screen 'nfs-server-hostname';               # check that type string is sucessful
     send_key 'alt-n';                                  # from here enter some configurations...

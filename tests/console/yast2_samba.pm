@@ -23,6 +23,12 @@ sub run {
     # check network at first
     assert_script_run("if ! systemctl -q is-active network; then systemctl -q start network; fi");
     # install local ldap server
+
+    if (is_sle && sle_version_at_least('15')) {
+        my $ret = zypper_call('in yast2-auth-server openldap2-client tdb-tools', exitcode => [0, 104], timeout => 240);
+        return record_soft_failure 'bsc#1060870' if $ret == 104;
+    }
+
     zypper_call("in yast2-auth-server yast2-ldap openldap2 openldap2-client krb5-server krb5-client tdb-tools", timeout => 240);
 
     script_run("yast2 auth-server; echo yast2-auth-server-status-\$? > /dev/$serialdev ", 0);
