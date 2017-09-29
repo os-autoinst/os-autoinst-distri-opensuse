@@ -77,6 +77,7 @@ our @EXPORT = qw(
   run_scripted_command_slow
   snapper_revert_system
   get_root_console_tty
+  get_x11_console_tty
   OPENQA_FTP_URL
 );
 
@@ -1368,11 +1369,20 @@ sub snapper_revert_system {
 =head2 get_root_console_tty
     Returns tty number used designed to be used for root-console.
     When console is not yet initialized, we cannot get it from arguments.
-    Since SLE 15 gdm is running on tty2, so we change behaviour for it and
-    openSUSE distris.
+    Since SLE 15 gdm is always running on tty7, GUI session will running
+    independently on tty2, so we change behaviour for it and openSUSE distris.
 =cut
 sub get_root_console_tty {
     return (sle_version_at_least('15') && !is_caasp) ? 6 : 2;
+}
+
+=head2 get_x11_console_tty
+    Returns tty number used designed to be used for X
+    Since SLE 15 gdm is always running on tty7, currently the main GUI session
+    is running on tty2 by default. see also: bsc#1054782
+=cut
+sub get_x11_console_tty {
+    return (sle_version_at_least('15')) ? 2 : 7;
 }
 
 1;
