@@ -184,7 +184,11 @@ sub load_boot_tests {
         loadtest "installation/bootloader_uefi";
     }
     elsif (get_var("IPMI_HOSTNAME")) {    # abuse of variable for now
-        loadtest "installation/qa_net";
+#        loadtest "installation/qa_net";
+# replace IPMI as PXE Boot moth
+#        set_var("DELAYED_START", "1");
+#        loadtest "autoyast/pxe_boot";
+        loadtest "boot/boot_from_pxe";
     }
     elsif (get_var("PXEBOOT")) {
         set_var("DELAYED_START", "1");
@@ -814,6 +818,14 @@ elsif (get_var("SUPPORT_SERVER")) {
     unless (load_slenkins_tests()) {    # either run the slenkins control node or just wait for connections
         loadtest "support_server/wait";
     }
+}
+elsif (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
+    load_boot_tests();
+    load_inst_tests();
+    return 1 if get_var('EXIT_AFTER_START_INSTALL');
+    loadtest "virt_autotest/login_console";
+    loadtest "virt_autotest/update_package";
+    loadtest "virt_autotest/reboot_and_wait_up_normal2";
 }
 elsif (get_var("WINDOWS")) {
     loadtest "installation/win10_installation";

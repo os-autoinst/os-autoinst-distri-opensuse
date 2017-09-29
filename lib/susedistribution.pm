@@ -341,7 +341,8 @@ sub init_consoles {
                 {
                     hostname => $hostname,
                     password => $testapi::password,
-                    user     => 'root'
+                    user     => 'root',
+                    serial   => 'mkfifo /dev/sshserial; tail -f /dev/sshserial'
                 });
         }
         elsif (check_var("VIDEOMODE", "ssh-x")) {
