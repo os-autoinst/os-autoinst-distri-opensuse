@@ -26,7 +26,7 @@ sub test_run_list {
 sub system_status {
     my $self = shift;
     my $log  = shift || "/tmp/system-status.log";
-    my @klst = ("kernel", "cpuinfo", "memory", "repos", "dmesg");
+    my @klst = ("kernel", "cpuinfo", "memory", "iptables", "repos", "dmesg");
     my %cmds = (
         kernel   => "uname -a",
         cpuinfo  => "cat /proc/cpuinfo",
