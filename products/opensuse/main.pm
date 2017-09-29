@@ -184,7 +184,11 @@ sub load_boot_tests {
         loadtest "installation/bootloader_uefi";
     }
     elsif (get_var("IPMI_HOSTNAME")) {    # abuse of variable for now
-        loadtest "installation/qa_net";
+#        loadtest "installation/qa_net";
+# replace IPMI as PXE Boot moth
+#        set_var("DELAYED_START", "1");
+#        loadtest "autoyast/pxe_boot";
+        loadtest "boot/boot_from_pxe";
     }
     elsif (get_var("PXEBOOT")) {
         set_var("DELAYED_START", "1");
