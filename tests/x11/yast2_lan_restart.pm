@@ -33,17 +33,17 @@ sub close_yast {
         send_key 'alt-i';              # Install
     }
     assert_screen 'yast2_closed_xterm_visible', 120;
-    script_run '> journal.log';        # clear journal.log
-    type_string "\n\n";                # make space for better readability of the console
+    assert_script_run '> journal.log';    # clear journal.log
+    type_string "\n\n";                   # make space for better readability of the console
 }
 
 sub check_network {
     my ($status, $workaround) = @_;
     $status //= 'no_restart';
     wait_still_screen;
-    send_key 'alt-o';                  # OK
+    send_key 'alt-o';                     # OK
     assert_screen 'yast2_closed_xterm_visible', 120;
-    script_run 'ip a';
+    assert_script_run 'ip a';
     if ("$workaround" eq 'bsc#992113') {
         record_soft_failure 'bsc#992113';
     }
@@ -57,7 +57,7 @@ sub check_network {
     else {
         assert_script_run '[ ! -s journal.log ]';                     # journal.log size is not greater than zero (network not restarted)
     }
-    script_run '> journal.log';                                       # clear journal.log
+    assert_script_run '> journal.log';                                # clear journal.log
     type_string "\n\n";                                               # make space for better readability of the console
 }
 
@@ -208,9 +208,9 @@ sub run {
     x11_start_program("xterm -geometry 155x50+5+5");
     become_root;
     # enable debug for detailed messages and easier detection of restart
-    script_run 'sed -i \'s/DEBUG="no"/DEBUG="yes"/\' /etc/sysconfig/network/config';
+    assert_script_run 'sed -i \'s/DEBUG="no"/DEBUG="yes"/\' /etc/sysconfig/network/config';
     type_string "journalctl -f|egrep -i --line-buffered 'shutting down|ifdown all' > journal.log &\n";
-    script_run '> journal.log';                                       # clear journal.log
+    assert_script_run '> journal.log';                                # clear journal.log
     diag '__________(1) Start yast2 lan -> [OK]__________';
     type_string "# (1) NO restart\n";
     run_yast2_lan;
@@ -276,7 +276,7 @@ sub run {
 }
 
 sub post_fail_hook {
-    script_run 'journalctl -b > /tmp/journal', 90;
+    assert_script_run 'journalctl -b > /tmp/journal', 90;
     upload_logs '/tmp/journal';
 }
 
