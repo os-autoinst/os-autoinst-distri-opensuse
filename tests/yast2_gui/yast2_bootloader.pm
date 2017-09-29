@@ -50,7 +50,7 @@ sub run {
 
     #	default boot section
     assert_and_click 'yast2-bootloader_default-boot-section';
-    assert_screen 'yast2-bootloader_defautl-boot-section_tw';
+    assert_screen 'yast2-bootloader_default-boot-section_tw';
 
     #	proctect boot loader with password
     assert_and_click 'yast2-bootloader_protect-bootloader-with-password';
