@@ -53,7 +53,13 @@ sub run {
     #	Hostname/DNS, set hostname via dhcp, yes for br0
     send_key 'alt-s';
     assert_screen 'yast2-network-settings_hostname-dns';
-    assert_and_click 'yast2-network-settings_hostname-dns_set-via-dhcp';
+    assert_screen([qw(yast2-network-settings_hostname-dns_set-via-dhcp dns_set-via-dhcp_no)], 90);
+    if (match_has_tag('dns_set-via-dhcp_no')) {
+        assert_and_click 'dns_set-via-dhcp_no';
+    }
+    else {
+        assert_and_click 'yast2-network-settings_hostname-dns_set-via-dhcp';
+    }
     assert_and_click 'yast2-network-settings_hostname-dns_br0';
 
     #	Routing, enable Forwarding
@@ -64,8 +70,12 @@ sub run {
 
     #	Save network setting and it can take long time, exit
     send_key "alt-o";
-    wait_still_screen(60);
 }
+
+sub post_run_hook {
+    assert_screen('generic-desktop', 300);
+}
+
 
 1;
 # vim: set sw=4 et:
