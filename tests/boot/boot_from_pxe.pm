@@ -47,7 +47,7 @@ sub run {
         my $path       = "/mnt/openqa/repo/${image_name}/boot/${arch}/loader";
         my $openqa_url = get_required_var('OPENQA_URL');
         $openqa_url = 'http://' . $openqa_url unless $openqa_url =~ /http:\/\//;
-        my $repo = $openqa_url . "/assets/repo/${image_name}";
+        my $repo = get_required_var('OPENQA_URL') . "/assets/repo/${image_name}";
         $image_path = "$path/linux initrd=$path/initrd install=$repo";
     }
 

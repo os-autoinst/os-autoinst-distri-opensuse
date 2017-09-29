@@ -19,6 +19,15 @@ use warnings;
 use base "y2logsstep";
 use testapi;
 
+sub use_ssh_serial_console {
+    console('sol')->disable;
+    select_console('root-ssh');
+    $serialdev = 'sshserial';
+    set_var('SERIALDEV', 'sshserial');
+    bmwqemu::save_vars();
+}
+
+
 sub run {
     # the waiting might take long in case of online update repos being
     # initialized before that screen
@@ -28,7 +37,14 @@ sub run {
     else {
         assert_screen 'before-package-selection', 300;
     }
-    select_console 'install-shell';
+    if (check_var('BACKEND', 'ipmi')) {
+	select_console('root-ssh');
+	$serialdev = 'sshserial';
+	set_var('SERIALDEV', 'sshserial');
+    }
+    else {	
+       select_console 'install-shell';
+    }
     script_run "(cat /.timestamp ; echo /.packages.initrd: ; cat /.packages.initrd) > /dev/$serialdev";
     script_run "(echo /.packages.root: ; cat /.packages.root) > /dev/$serialdev";
     save_screenshot;
