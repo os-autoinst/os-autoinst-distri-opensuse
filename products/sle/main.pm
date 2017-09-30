@@ -155,10 +155,6 @@ sub cleanup_needles {
     }
 }
 
-my $distri = testapi::get_required_var('CASEDIR') . '/lib/susedistribution.pm';
-require $distri;
-testapi::set_distribution(susedistribution->new());
-
 diag('default desktop: ' . default_desktop);
 
 # SLE specific variables
@@ -1080,6 +1076,10 @@ sub prepare_target {
         load_reboot_tests();
     }
 }
+
+my $distri = testapi::get_required_var('CASEDIR') . '/lib/susedistribution.pm';
+require $distri;
+testapi::set_distribution(susedistribution->new());
 
 # load the tests in the right order
 if (maybe_load_kernel_tests()) {
