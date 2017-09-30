@@ -891,7 +891,7 @@ sub load_x11tests {
     loadtest "x11/xterm";
     loadtest "x11/sshxterm";
     if (gnomestep_is_applicable()) {
-        loadtest "update/updates_packagekit_gpk";
+        loadtest "update/updates_packagekit_gpk" unless is_staging;
         loadtest "x11/gnome_control_center";
         loadtest "x11/gnome_terminal";
         loadtest "x11/gedit";
