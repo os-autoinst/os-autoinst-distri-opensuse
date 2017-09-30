@@ -26,7 +26,10 @@ use main_common;
 init_main();
 
 sub is_server {
-    return is_sles4sap() || get_var('FLAVOR', '') =~ /^Server/;
+    return 1 if is_sles4sap();
+    return 1 if get_var('FLAVOR', '') =~ /^Server/;
+    return 0 unless is_leanos();
+    return check_var('SLE_PRODUCT', 'sles');
 }
 
 sub is_desktop {
