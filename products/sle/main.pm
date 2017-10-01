@@ -26,7 +26,10 @@ use main_common;
 init_main();
 
 sub is_server {
-    return is_sles4sap() || get_var('FLAVOR', '') =~ /^Server/;
+    return 1 if is_sles4sap();
+    return 1 if get_var('FLAVOR', '') =~ /^Server/;
+    return 0 unless is_leanos();
+    return check_var('SLE_PRODUCT', 'sles');
 }
 
 sub is_desktop {
@@ -888,7 +891,7 @@ sub load_x11tests {
     loadtest "x11/xterm";
     loadtest "x11/sshxterm";
     if (gnomestep_is_applicable()) {
-        loadtest "update/updates_packagekit_gpk";
+        loadtest "update/updates_packagekit_gpk" unless is_staging;
         loadtest "x11/gnome_control_center";
         loadtest "x11/gnome_terminal";
         loadtest "x11/gedit";
