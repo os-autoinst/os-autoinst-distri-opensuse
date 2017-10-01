@@ -56,7 +56,7 @@ sub prepare_testpackage {
     assert_script_run("cd /root/");
     assert_script_run("zypper ref", 60);
     assert_script_run(
-"zypper -n in git e2fsprogs automake gcc libuuid1 quota attr make xfsprogs libgdbm4 gawk uuid-runtime acl bc dump indent libtool lvm2 psmisc sed xfsdump libacl-devel libattr-devel libaio-devel libuuid-devel openssl-devel xfsprogs-devel",
+"zypper -n in git e2fsprogs automake gcc libuuid1 quota attr make xfsprogs libgdbm4 gawk uuid-runtime acl bc dump indent libtool lvm2 psmisc sed xfsdump libacl-devel libattr-devel libaio-devel libuuid-devel openssl-devel xfsprogs-devel parted",
         60 * 10
     );
     assert_script_run("git clone git://git.kernel.org/pub/scm/fs/xfs/xfstests-dev.git", 60 * 10);
