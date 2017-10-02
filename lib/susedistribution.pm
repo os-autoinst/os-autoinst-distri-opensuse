@@ -220,7 +220,7 @@ sub script_sudo($$) {
     }
     type_string "clear\n";    # poo#13710
     type_string "su -c \'$prog\'\n";
-    handle_password_prompt;
+    handle_password_prompt unless ($testapi::username eq 'root');
     if ($wait > 0) {
         return wait_serial("$str-\\d+-");
     }
