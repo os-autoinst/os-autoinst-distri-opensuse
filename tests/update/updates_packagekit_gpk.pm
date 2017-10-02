@@ -45,6 +45,13 @@ sub run {
 
     while (1) {
         x11_start_program('gpk-update-viewer', target_match => \@updates_tags, match_timeout => 100);
+
+        if ($testapi::username eq 'root') {
+            assert_screen 'package-updater-privileged-user-warning', 60;
+            send_key "alt-a" if (match_has_tag("package-updater-privileged-user-warning"));
+        }
+
+        assert_screen \@updates_tags, 100;
         if (match_has_tag("updates_none")) {
             send_key "ret";
             return;
