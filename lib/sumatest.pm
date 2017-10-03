@@ -47,6 +47,8 @@ sub post_fail_hook() {
       elsif (!get_var('SUMA_SALT_MINION')) {
         select_console 'root-console';
         save_screenshot;
+        script_run("ps axfv >/dev/$serialdev");
+        upload_logs('/var/log/messages');
         $self->export_suma_logs;
       }
 #      $self->SUPER::post_fail_hook;
@@ -189,6 +191,9 @@ sub suma_menu {
 
   while ($entry = shift) {
     $entry_elem = $driver->find_child_element($entry_elem, "./ancestor::ul//ul//a[.//text()[contains(., '$entry')]]");
+    $driver->execute_script("arguments[0].scrollIntoView(false);", $entry_elem);
+    sleep 1;
+    save_screenshot;
     $entry_elem->click();
     wait_for_page_to_load;
   }

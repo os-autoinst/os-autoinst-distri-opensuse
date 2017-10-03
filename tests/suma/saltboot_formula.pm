@@ -25,13 +25,13 @@ sub create_group_for_hwtype {
 
   $self->suma_menu('Salt', 'Formula Catalog');
 
-  $driver->find_element('saltboot', 'link_text')->click();
+  wait_for_link('saltboot')->click();
   wait_for_page_to_load;
   #FIXME: check formula details
 
   $self->suma_menu('Systems', 'System Groups');
 
-  $driver->find_element('Create Group', 'link_text')->click();
+  wait_for_link('Create Group')->click();
   wait_for_page_to_load;
   save_screenshot;
 

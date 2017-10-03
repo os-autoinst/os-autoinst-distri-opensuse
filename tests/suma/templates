@@ -173,6 +173,7 @@
                         { key => "HOSTNAME", value => "suma" },
                         { key => "NETWORKS", value => "admin" },
                         { key => "NICTYPE", value => "tap" },
+                        { key => "QEMURAM", value => '2048' },
                         {
                           key => "SUMA_FORMULA_REPO",
                           value => "http://download.suse.de/ibs/Devel:/SLEPOS:/SUSE-Manager-Retail:/Head/SLE_12_SP2/",

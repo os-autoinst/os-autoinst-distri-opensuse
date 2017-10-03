@@ -49,8 +49,7 @@ sub add_chromium_repos {
 }
 
 sub install_chromium {
-# broken with current chromium, keep the old one from suma image
-#  zypper_call('in chromium chromedriver');
+  zypper_call('in chromium chromedriver');
   script_run("ln -s /usr/lib64/chromium/chromedriver /usr/bin/chromedriver");
 }
 
@@ -116,7 +115,12 @@ sub wait_for_link {
   while ($i < $args{-tries}) {
     save_screenshot;
     my $element = $driver->find_element_by_partial_link_text($link);
-    return $element if $element;
+    if ($element) {
+      $driver->execute_script("arguments[0].scrollIntoView(false);", $element);
+      sleep 1;
+      save_screenshot;
+      return $element;
+    }
     if (($i > 0) &&($i % $args{-reload_after_tries} == 0)) {
       print "reload\n";
       $driver->refresh();
@@ -170,7 +174,12 @@ sub wait_for_xpath {
   while ($i < $args{-tries}) {
     save_screenshot;
     my $element = $driver->find_element_by_xpath($xpath);
-    return $element if $element;
+    if ($element) {
+      $driver->execute_script("arguments[0].scrollIntoView(false);", $element);
+      sleep 1;
+      save_screenshot;
+      return $element;
+    }
     if (($i > 0) &&($i % $args{-reload_after_tries} == 0)) {
       print "reload\n";
       $driver->refresh();
