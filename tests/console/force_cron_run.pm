@@ -14,24 +14,31 @@
 use base "consoletest";
 use strict;
 use testapi;
-use utils 'assert_screen_with_soft_timeout';
+use utils qw(assert_screen_with_soft_timeout is_jeos);
 
-# check if sshd works
+sub settle_load {
+    script_run "top; echo TOP-DONE-\$? > /dev/$serialdev", 0;
+    # JeOS is different to SLE general as it extends the appliance's disk on first boot,
+    # so the balance is a different challenge to SLE. Elapsed time is not necessary a key
+    # measure here, responsiveness of the system is.
+    assert_screen_with_soft_timeout('top-load-decreased', soft_timeout => is_jeos() ? 180 : 30, bugref => 'bsc#1017461', timeout => 1000);
+    send_key 'q';
+    wait_serial 'TOP-DONE' || die 'top did not quit?';
+}
+
 sub run {
     select_console 'root-console';
 
     # show dmesg output in console during cron run
     assert_script_run "dmesg -n 7";
 
+    # Make sure there's no load before we trigger one via cron.
+    settle_load;
     my $before = time;
     assert_script_run "bash -x /usr/lib/cron/run-crons", 1000;
     record_soft_failure 'bsc#1017461 - long running btrfs cron jobs can make system unresponsive' if (time - $before) > 60;
     sleep 3;    # some head room for the load average to rise
-    script_run "top; echo TOP-DONE-\$? > /dev/$serialdev", 0;
-    # let the load settle
-    assert_screen_with_soft_timeout('top-load-decreased', soft_timeout => 30, bugref => 'bsc#1017461', timeout => 1000);
-    send_key 'q';
-    wait_serial 'TOP-DONE' || die 'top did not quit?';
+    settle_load;
 
     # return dmesg output to normal
     assert_script_run "dmesg -n 1";
