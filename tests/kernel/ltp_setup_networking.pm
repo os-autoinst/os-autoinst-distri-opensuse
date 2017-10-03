@@ -25,7 +25,7 @@ sub install {
     zypper_call('in dhcp-client telnet', log => 'clients.log');
 
     # services
-    zypper_call('in dhcp-server dnsmasq nfs-kernel-server rpcbind rsync tcpd telnet-server vsftpd xinetd', log => 'services.log');
+    zypper_call('in dhcp-server dnsmasq nfs-kernel-server rpcbind rsync telnet-server vsftpd xinetd', log => 'services.log');
 }
 
 sub setup {
