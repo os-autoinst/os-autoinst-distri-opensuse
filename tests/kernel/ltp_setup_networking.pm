@@ -22,10 +22,10 @@ sub install {
     zypper_call('in wget iptables psmisc tcpdump', log => 'utils.log');
 
     # clients
-    zypper_call('in dhcp-client finger telnet', log => 'clients.log');
+    zypper_call('in dhcp-client telnet', log => 'clients.log');
 
     # services
-    zypper_call('in dhcp-server dnsmasq finger-server nfs-kernel-server rpcbind rsync tcpd telnet-server vsftpd xinetd', log => 'services.log');
+    zypper_call('in dhcp-server dnsmasq nfs-kernel-server rpcbind rsync tcpd telnet-server vsftpd xinetd', log => 'services.log');
 }
 
 sub setup {
@@ -46,7 +46,7 @@ EOF
     assert_script_run("echo \"$content\" >> '/etc/securetty'");
 
     # systemd based services
-    my @services    = qw(finger telnet);
+    my @services    = qw(telnet);
     my $data_dir    = 'ltp/networking';
     my $systemd_dir = '/usr/lib/systemd/system';
     foreach my $service (@services) {
@@ -80,7 +80,7 @@ EOF
 
     # SLE12GA uses too many old style services
     my $action = check_var('VERSION', '12') ? "enable" : "reenable";
-    foreach my $service (qw(dnsmasq finger.socket nfsserver rpcbind telnet.socket vsftpd xinetd)) {
+    foreach my $service (qw(dnsmasq nfsserver rpcbind telnet.socket vsftpd xinetd)) {
         systemctl($action . " " . $service);
         assert_script_run("systemctl start $service || { systemctl status --no-pager $service; journalctl -xe --no-pager; false; }");
     }

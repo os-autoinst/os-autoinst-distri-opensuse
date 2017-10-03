@@ -1,7 +1,0 @@
-[Unit]
-Description=Finger Per-Connection Server
-
-[Service]
-User=nobody
-ExecStart=/usr/sbin/in.fingerd
-StandardInput=socket
