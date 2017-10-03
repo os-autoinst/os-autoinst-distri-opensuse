@@ -21,69 +21,69 @@ use utils 'zypper_call';
 use selenium;
 
 sub run {
-  my ($self) = @_;
-  my $srvdir = get_var('SERVER_DIR');
-  $self->register_barriers('saltboot_orchestrate', 'saltboot_orchestrate_finish');
-  if (check_var('SUMA_SALT_MINION', 'branch')) {
-    $self->registered_barrier_wait('saltboot_orchestrate');
-    $self->registered_barrier_wait('saltboot_orchestrate_finish');
-    script_output "ls -l $srvdir/boot/pxelinux.cfg/";
+    my ($self) = @_;
+    my $srvdir = get_var('SERVER_DIR');
+    $self->register_barriers('saltboot_orchestrate', 'saltboot_orchestrate_finish');
+    if (check_var('SUMA_SALT_MINION', 'branch')) {
+        $self->registered_barrier_wait('saltboot_orchestrate');
+        $self->registered_barrier_wait('saltboot_orchestrate_finish');
+        script_output "ls -l $srvdir/boot/pxelinux.cfg/";
 
-    assert_script_run "ls $srvdir/boot/pxelinux.cfg |grep ^01- ";
-  }
-  elsif (check_var('SUMA_SALT_MINION', 'terminal')) {
-    select_console 'root-console';
-    $self->registered_barrier_wait('saltboot_orchestrate');
-
-    $self->reboot_terminal;
-
-    assert_script_run('grep 6.0.0 /etc/ImageVersion'); # the only active image version configured in build_image.pm
-    $self->registered_barrier_wait('saltboot_orchestrate_finish');
-
-  }
-  else {
-    select_console 'root-console';
-    if (get_var('SALT_DEBUG')) {
-        assert_script_run 'systemctl stop salt-master';
-        # send salt-master debug log to serial
-        type_string "salt-master -l all >/dev/ttyS0 2>&1 &\n";
-
-        sleep 10;
+        assert_script_run "ls $srvdir/boot/pxelinux.cfg |grep ^01- ";
     }
-    # maybe something like https://github.com/saltstack/salt/issues/32144 - FIXME: needs to be investigated
-    assert_script_run 'salt "*" saltutil.refresh_pillar';
-    assert_script_run 'salt -l debug -I "dhcpd:domain_name:internal.suma.openqa.suse.de" test.ping';
-    select_console 'x11', tags => 'suma_welcome_screen';
+    elsif (check_var('SUMA_SALT_MINION', 'terminal')) {
+        select_console 'root-console';
+        $self->registered_barrier_wait('saltboot_orchestrate');
 
-    $self->registered_barrier_wait('saltboot_orchestrate');
-    my $driver = selenium_driver();
+        $self->reboot_terminal;
 
-    wait_for_link("Pending Minions", -tries => 50, -wait => 5, -reload_after_tries => 3);
+        assert_script_run('grep 6.0.0 /etc/ImageVersion');    # the only active image version configured in build_image.pm
+        $self->registered_barrier_wait('saltboot_orchestrate_finish');
 
-    $driver->find_element('Pending Minions', 'partial_link_text')->click();
-    wait_for_page_to_load;
-    save_screenshot;
-    for (my $i = 0; $i < get_var('NUMBER_OF_TERMINALS', 0); $i++) {
-      wait_for_xpath("//button[\@title='accept']", -tries => 300, -wait => 1, -reload_after_tries => 5)->click();
-      sleep 20; # wait long enough to let the button we just clicked disappear
-      wait_for_page_to_load;
-      save_screenshot;
     }
+    else {
+        select_console 'root-console';
+        if (get_var('SALT_DEBUG')) {
+            assert_script_run 'systemctl stop salt-master';
+            # send salt-master debug log to serial
+            type_string "salt-master -l all >/dev/ttyS0 2>&1 &\n";
 
-    $self->registered_barrier_wait('saltboot_orchestrate_finish');
-    wait_for_xpath("//a[\@href='/']")->click();
-    wait_for_page_to_load;
-    assert_screen('suma_welcome_screen');
+            sleep 10;
+        }
+        # maybe something like https://github.com/saltstack/salt/issues/32144 - FIXME: needs to be investigated
+        assert_script_run 'salt "*" saltutil.refresh_pillar';
+        assert_script_run 'salt -l debug -I "dhcpd:domain_name:internal.suma.openqa.suse.de" test.ping';
+        select_console 'x11', tags => 'suma_welcome_screen';
 
-    select_console 'root-console';
-    if (get_var('SALT_DEBUG')) {
-        # stop debug log
+        $self->registered_barrier_wait('saltboot_orchestrate');
+        my $driver = selenium_driver();
 
-        assert_script_run "killall salt-master";
-        assert_script_run 'systemctl start salt-master';
+        wait_for_link("Pending Minions", -tries => 50, -wait => 5, -reload_after_tries => 3);
+
+        $driver->find_element('Pending Minions', 'partial_link_text')->click();
+        wait_for_page_to_load;
+        save_screenshot;
+        for (my $i = 0; $i < get_var('NUMBER_OF_TERMINALS', 0); $i++) {
+            wait_for_xpath("//button[\@title='accept']", -tries => 300, -wait => 1, -reload_after_tries => 5)->click();
+            sleep 20;    # wait long enough to let the button we just clicked disappear
+            wait_for_page_to_load;
+            save_screenshot;
+        }
+
+        $self->registered_barrier_wait('saltboot_orchestrate_finish');
+        wait_for_xpath("//a[\@href='/']")->click();
+        wait_for_page_to_load;
+        assert_screen('suma_welcome_screen');
+
+        select_console 'root-console';
+        if (get_var('SALT_DEBUG')) {
+            # stop debug log
+
+            assert_script_run "killall salt-master";
+            assert_script_run 'systemctl start salt-master';
+        }
+        select_console 'x11', tags => 'suma_welcome_screen';
     }
-    select_console 'x11', tags => 'suma_welcome_screen';
-  }
 }
 
 sub test_flags() {

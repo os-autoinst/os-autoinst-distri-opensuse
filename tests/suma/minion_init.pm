@@ -17,31 +17,31 @@ use utils 'zypper_call';
 use lockapi;
 
 sub run {
-  my ($self) = @_;
-  select_console 'root-console';
+    my ($self) = @_;
+    select_console 'root-console';
 
-  my $id = get_var('HOSTNAME', 'minion') . '.openqa.suse.de';
-  my $master = get_var('MASTER', 'master') . '.openqa.suse.de';
-  
-  set_var('SERVER_DIR','/srv/saltboot') unless get_var('SERVER_DIR');
+    my $id     = get_var('HOSTNAME', 'minion') . '.openqa.suse.de';
+    my $master = get_var('MASTER',   'master') . '.openqa.suse.de';
 
-  assert_script_run("echo \"id: $id\" >> /etc/salt/minion");
-  assert_script_run("echo \"master: $master\" >> /etc/salt/minion");
+    set_var('SERVER_DIR', '/srv/saltboot') unless get_var('SERVER_DIR');
 
-  script_run('df');
-  assert_script_run("ping -c1 $master");
-  script_run('ip a');
-  script_run('zypper -n in dhcp-server bind');
+    assert_script_run("echo \"id: $id\" >> /etc/salt/minion");
+    assert_script_run("echo \"master: $master\" >> /etc/salt/minion");
 
-
-  $self->check_and_add_repo();
-
-  zypper_call('in POS_Image-JeOS6 kiwi kiwi-desc-netboot kiwi-desc-saltboot');
+    script_run('df');
+    assert_script_run("ping -c1 $master");
+    script_run('ip a');
+    script_run('zypper -n in dhcp-server bind');
 
 
-  barrier_wait('suma_master_ready');
-  assert_script_run('systemctl restart salt-minion');
-  barrier_wait('suma_minion_ready');
+    $self->check_and_add_repo();
+
+    zypper_call('in POS_Image-JeOS6 kiwi kiwi-desc-netboot kiwi-desc-saltboot');
+
+
+    barrier_wait('suma_master_ready');
+    assert_script_run('systemctl restart salt-minion');
+    barrier_wait('suma_minion_ready');
 }
 
 sub test_flags() {

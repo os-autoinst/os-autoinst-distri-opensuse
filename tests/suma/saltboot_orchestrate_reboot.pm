@@ -28,60 +28,60 @@ use utils 'zypper_call';
 use selenium;
 
 sub run {
-  my ($self) = @_;
-  $self->register_barriers('saltboot_orchestrate_reboot', 'saltboot_orchestrate_reboot_finish');
-  if (check_var('SUMA_SALT_MINION', 'branch')) {
-    $self->registered_barrier_wait('saltboot_orchestrate_reboot');
-    $self->registered_barrier_wait('saltboot_orchestrate_reboot_finish');
-  }
-  elsif (check_var('SUMA_SALT_MINION', 'terminal')) {
-    select_console 'root-console';
-    $self->registered_barrier_wait('saltboot_orchestrate_reboot');
-    script_output("salt-call pillar.items");
+    my ($self) = @_;
+    $self->register_barriers('saltboot_orchestrate_reboot', 'saltboot_orchestrate_reboot_finish');
+    if (check_var('SUMA_SALT_MINION', 'branch')) {
+        $self->registered_barrier_wait('saltboot_orchestrate_reboot');
+        $self->registered_barrier_wait('saltboot_orchestrate_reboot_finish');
+    }
+    elsif (check_var('SUMA_SALT_MINION', 'terminal')) {
+        select_console 'root-console';
+        $self->registered_barrier_wait('saltboot_orchestrate_reboot');
+        script_output("salt-call pillar.items");
 
-    $self->reboot_terminal;
+        $self->reboot_terminal;
 
-    assert_script_run('grep 6.0.0 /etc/ImageVersion') if check_var('HWTYPE', 'testterm2'); # version requested
-    assert_script_run('grep 6.0.1 /etc/ImageVersion') if check_var('HWTYPE', 'testterm'); # highest active
+        assert_script_run('grep 6.0.0 /etc/ImageVersion') if check_var('HWTYPE', 'testterm2');    # version requested
+        assert_script_run('grep 6.0.1 /etc/ImageVersion') if check_var('HWTYPE', 'testterm');     # highest active
 
-    $self->registered_barrier_wait('saltboot_orchestrate_reboot_finish');
-  }
-  else {
-    select_console 'root-console';
+        $self->registered_barrier_wait('saltboot_orchestrate_reboot_finish');
+    }
+    else {
+        select_console 'root-console';
 
-    # FIXME: this should be configured via forms but the forms have to support Null value first
-    for my $hwtype ($self->get_hwtypes) {
-      assert_script_run 'echo "
+        # FIXME: this should be configured via forms but the forms have to support Null value first
+        for my $hwtype ($self->get_hwtypes) {
+            assert_script_run 'echo "
   \'*-' . $hwtype . '-*\':
     - pillar_' . $hwtype . '" >> /srv/pillar/top.sls';
 
-      if ($hwtype eq 'testterm') {
-        # terminal-specific pillar is empty for now
-        assert_script_run 'echo "" > /srv/pillar/pillar_' . $hwtype . '.sls';
-      }
-      elsif ($hwtype eq 'testterm2') {
-        # Request specific image version 6.0.0 on terminal 2
-        assert_script_run 'echo "
+            if ($hwtype eq 'testterm') {
+                # terminal-specific pillar is empty for now
+                assert_script_run 'echo "" > /srv/pillar/pillar_' . $hwtype . '.sls';
+            }
+            elsif ($hwtype eq 'testterm2') {
+                # Request specific image version 6.0.0 on terminal 2
+                assert_script_run 'echo "
 partitioning:
     disk1:
         partitions:
             p3:
                 image_version: 6.0.0" > /srv/pillar/pillar_' . $hwtype . '.sls';
-      }
+            }
+        }
+
+        # delete inactive flag everywhere so 6.0.1 becomes highest active version
+        assert_script_run('sed -i -e "s|inactive.*$||" /srv/pillar/suma_test.sls');
+
+        script_output('cat /srv/pillar/top.sls');
+        script_output('cat /srv/pillar/pillar_*.sls');
+        script_output('salt "*" pillar.items');
+
+        $self->registered_barrier_wait('saltboot_orchestrate_reboot');
+        $self->registered_barrier_wait('saltboot_orchestrate_reboot_finish');
+
+        select_console 'x11', tags => 'suma_welcome_screen';
     }
-
-    # delete inactive flag everywhere so 6.0.1 becomes highest active version
-    assert_script_run('sed -i -e "s|inactive.*$||" /srv/pillar/suma_test.sls');
-
-    script_output('cat /srv/pillar/top.sls');
-    script_output('cat /srv/pillar/pillar_*.sls');
-    script_output('salt "*" pillar.items');
-
-    $self->registered_barrier_wait('saltboot_orchestrate_reboot');
-    $self->registered_barrier_wait('saltboot_orchestrate_reboot_finish');
-
-    select_console 'x11', tags => 'suma_welcome_screen';
-  }
 }
 
 1;

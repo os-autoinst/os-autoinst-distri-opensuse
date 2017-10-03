@@ -18,15 +18,15 @@ use lockapi;
 use mm_network;
 
 sub run {
-  my ($self) = @_;
-  select_console 'root-console';
-  configure_dhcp();
-  script_run('ip a');
+    my ($self) = @_;
+    select_console 'root-console';
+    configure_dhcp();
+    script_run('ip a');
 
-  my $hwtype = get_var('QEMU_SMBIOS');
-  $hwtype =~ s/^.*product=//;
-  $hwtype =~ s/,.*$//;
-  set_var('HWTYPE', $hwtype);
+    my $hwtype = get_var('QEMU_SMBIOS');
+    $hwtype =~ s/^.*product=//;
+    $hwtype =~ s/,.*$//;
+    set_var('HWTYPE', $hwtype);
 }
 
 sub test_flags() {

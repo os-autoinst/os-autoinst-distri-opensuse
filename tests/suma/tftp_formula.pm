@@ -18,92 +18,98 @@ use mmapi;
 use selenium;
 
 sub run {
-  my ($self) = @_;
-  
-  #TODO: get from common module / branch network test to ensure compatibility
-  my $testip = '192.168.1.1';
-  my $srvdir = get_var('SERVER_DIR');
-  
-  if (check_var('SUMA_SALT_MINION', 'branch')) {
-    $self->register_barriers('tftp_formula', 'tftp_ready', 'tftp_formula_finish');
-    #need to create after tftp_formula barrier is breached, or creation will be too early    
-    my $bn= keys get_children();
-    barrier_create('tftp_ready', $bn+1);  
+    my ($self) = @_;
 
-    # configure second interface for tftp
-    $self->registered_barrier_wait('tftp_formula');
-    
-    # minion test
-    script_run('systemctl status atftpd.service');
-    assert_script_run('systemctl is-active atftpd.service');
+    #TODO: get from common module / branch network test to ensure compatibility
+    my $testip = '192.168.1.1';
+    my $srvdir = get_var('SERVER_DIR');
 
-    script_run('cat /etc/sysconfig/atftpd | grep -P -v \'^(\s*$|^#)\'');
-    assert_script_run('cat /etc/sysconfig/atftpd | grep \'ATFTPD_BIND_ADDRESSES="'.$testip.'"\''); 
+    if (check_var('SUMA_SALT_MINION', 'branch')) {
+        $self->register_barriers('tftp_formula', 'tftp_ready', 'tftp_formula_finish');
+        #need to create after tftp_formula barrier is breached, or creation will be too early
+        my $bn = keys get_children();
+        barrier_create('tftp_ready', $bn + 1);
 
-    #test tftp listening on udp port 69
-    #TODO: remove softfail after bug is fixed
-    script_run('netstat -uplne'); 
-    if ( script_run('netstat -ulnp | grep \''.$testip.':69\s\' | grep -P \'/atftpd\s*$\' ') ) {
-      record_soft_failure('atftpd listens everywhere: bsc#1049832');
+        # configure second interface for tftp
+        $self->registered_barrier_wait('tftp_formula');
+
+        # minion test
+        script_run('systemctl status atftpd.service');
+        assert_script_run('systemctl is-active atftpd.service');
+
+        script_run('cat /etc/sysconfig/atftpd | grep -P -v \'^(\s*$|^#)\'');
+        assert_script_run('cat /etc/sysconfig/atftpd | grep \'ATFTPD_BIND_ADDRESSES="' . $testip . '"\'');
+
+        #test tftp listening on udp port 69
+        #TODO: remove softfail after bug is fixed
+        script_run('netstat -uplne');
+        if (script_run('netstat -ulnp | grep \'' . $testip . ':69\s\' | grep -P \'/atftpd\s*$\' ')) {
+            record_soft_failure('atftpd listens everywhere: bsc#1049832');
+        }
+
+        script_run('echo "test" > ' . $srvdir . '/test');
+        type_string('atftp ' . $testip);
+        send_key('ret');
+        type_string('get test');
+        send_key('ret');
+        type_string('quit');
+        send_key('ret');
+        assert_script_run('diff test ' . $srvdir . '/test');
+
+        save_screenshot;
+
+        $self->registered_barrier_wait('tftp_ready');
+        $self->registered_barrier_wait('tftp_formula_finish');
     }
-    
-    script_run('echo "test" > '.$srvdir.'/test');
-    type_string('atftp '.$testip);send_key('ret');
-    type_string('get test');send_key('ret');
-    type_string('quit');send_key('ret');
-    assert_script_run('diff test '.$srvdir.'/test'); 
+    elsif (check_var('SUMA_SALT_MINION', 'terminal')) {
+        $self->register_barriers('tftp_formula', 'tftp_ready', 'tftp_formula_finish');
+        $self->registered_barrier_wait('tftp_formula');
+        $self->registered_barrier_wait('tftp_ready');
 
-    save_screenshot;
-    
-    $self->registered_barrier_wait('tftp_ready');
-    $self->registered_barrier_wait('tftp_formula_finish');
-  } 
-  elsif (check_var('SUMA_SALT_MINION', 'terminal')) {
-    $self->register_barriers('tftp_formula', 'tftp_ready', 'tftp_formula_finish');
-    $self->registered_barrier_wait('tftp_formula');
-    $self->registered_barrier_wait('tftp_ready');
+        script_run('rcSuSEfirewall2 status');
+        script_run('rcSuSEfirewall2 stop');
+        save_screenshot;
 
-    script_run('rcSuSEfirewall2 status');
-    script_run('rcSuSEfirewall2 stop');
-    save_screenshot;
+        script_run('echo "test" > /tmp/test2cmp');
+        type_string('atftp ' . $testip);
+        send_key('ret');
+        type_string('get test');
+        send_key('ret');
+        type_string('quit');
+        send_key('ret');
+        assert_script_run('diff test /tmp/test2cmp');
 
-    script_run('echo "test" > /tmp/test2cmp');
-    type_string('atftp '.$testip);send_key('ret');
-    type_string('get test');send_key('ret');
-    type_string('quit');send_key('ret');
-    assert_script_run('diff test /tmp/test2cmp'); 
+        $self->registered_barrier_wait('tftp_formula_finish');
+    }
+    else {
+        $self->register_barriers('tftp_formula', 'tftp_formula_finish');
+        $self->install_formula('tftp-formula');
+        $self->select_formula('tftp', 'Tftp');
 
-    $self->registered_barrier_wait('tftp_formula_finish');
-  }
-  else {
-    $self->register_barriers('tftp_formula', 'tftp_formula_finish');
-    $self->install_formula('tftp-formula');
-    $self->select_formula('tftp','Tftp');
+        my $driver = selenium_driver();
+        #select all text in first form entry
+        $driver->mouse_move_to_location(element => wait_for_xpath("//form[\@id='editFormulaForm']/div/div"));
+        $driver->click();
+        $driver->send_keys_to_active_element("\t");
+        save_screenshot;
 
-    my $driver = selenium_driver();
-    #select all text in first form entry
-    $driver->mouse_move_to_location(element => wait_for_xpath("//form[\@id='editFormulaForm']/div/div"));
-    $driver->click();
-    $driver->send_keys_to_active_element("\t");
-    save_screenshot;
+        # ip
+        $driver->send_keys_to_active_element($testip);
+        $driver->send_keys_to_active_element("\t");
+        save_screenshot;
 
-    # ip
-    $driver->send_keys_to_active_element($testip);
-    $driver->send_keys_to_active_element("\t");
-    save_screenshot;
+        # dir
+        $driver->send_keys_to_active_element($srvdir);
+        $driver->send_keys_to_active_element("\t");
+        save_screenshot;
+        wait_for_xpath("//button[\@id='save-btn']")->click();
 
-    # dir
-    $driver->send_keys_to_active_element($srvdir);
-    $driver->send_keys_to_active_element("\t");
-    save_screenshot;
-    wait_for_xpath("//button[\@id='save-btn']")->click();
+        $self->apply_highstate();
 
-    $self->apply_highstate();
-
-    # signal minion to check configuration
-    $self->registered_barrier_wait('tftp_formula');
-    $self->registered_barrier_wait('tftp_formula_finish');
-  }
+        # signal minion to check configuration
+        $self->registered_barrier_wait('tftp_formula');
+        $self->registered_barrier_wait('tftp_formula_finish');
+    }
 }
 
 sub test_flags() {

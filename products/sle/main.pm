@@ -1418,36 +1418,36 @@ elsif (get_var('SYSTEMD_TESTSUITE')) {
 elsif (get_var('SUMA_IMAGE_BUILD')) {
     prepare_target();
     if (get_var('SUMA_MINION')) {
-      loadtest "suma/minion_installation";
-      loadtest "shutdown/shutdown";
+        loadtest "suma/minion_installation";
+        loadtest "shutdown/shutdown";
     }
     else {
-      loadtest "suma/installation";
-      loadtest "suma/webinit";
-      loadtest "suma/shutdown";
+        loadtest "suma/installation";
+        loadtest "suma/webinit";
+        loadtest "suma/shutdown";
     }
 }
-elsif (get_var('SUMA_TESTS') && !get_var('SUMA_SALT_MINION')){
+elsif (get_var('SUMA_TESTS') && !get_var('SUMA_SALT_MINION')) {
     loadtest "suma/masterlocks";
     prepare_target();
     loadtest "suma/webinit";
     loadtest "suma/wait_for_minion";
     for my $t (@{get_var_array('SUMA_TESTS')}) {
-      loadtest "suma/$t";
+        loadtest "suma/$t";
     }
-#    loadtest "suma/wait_for_minion";
+    #    loadtest "suma/wait_for_minion";
 }
 elsif (get_var('SUMA_SALT_MINION')) {
     prepare_target();
     if (check_var('SUMA_SALT_MINION', 'branch')) {
-      loadtest "suma/minionlocks";
-      loadtest "suma/minion_init";
+        loadtest "suma/minionlocks";
+        loadtest "suma/minion_init";
     }
     elsif (check_var('SUMA_SALT_MINION', 'terminal')) {
-      loadtest "suma/terminal_init";
+        loadtest "suma/terminal_init";
     }
     for my $t (@{get_var_array('SUMA_TESTS')}) {
-      loadtest "suma/$t";
+        loadtest "suma/$t";
     }
 }
 else {

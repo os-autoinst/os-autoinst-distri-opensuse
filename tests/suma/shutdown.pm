@@ -29,7 +29,7 @@ sub run {
     else {
         assert_shutdown(480) if $action eq 'poweroff';
         reset_consoles;
-    } 
+    }
 }
 
 1;

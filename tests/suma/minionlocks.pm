@@ -15,11 +15,11 @@ use parent "basetest";
 use lockapi;
 
 sub run {
-  # this is for master to wait for minion
+    # this is for master to wait for minion
 }
 
 sub test_flags {
-  return {fatal => 1}
+    return {fatal => 1};
 }
 
 1;
