@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 
-# G-Summary: saptune availability and basic commands to the tuned daemon
-# G-Maintainer: Alvaro Carvajal <acarvajal@suse.de>
+# Summary: saptune availability and basic commands to the tuned daemon
+# Maintainer: Alvaro Carvajal <acarvajal@suse.de>
 
 use base "x11test";
 use strict;

@@ -19,13 +19,9 @@ use testapi;
 sub run {
     select_console 'root-console';
     # If we're doing this test as the user root, we will not find the textinfo script
-    # in /home/root but rather in /root
-    if ($username eq 'root') {
-        assert_script_run("/root/data/textinfo 2>&1 | tee /tmp/info.txt");
-    }
-    else {
-        assert_script_run("/home/$username/data/textinfo 2>&1 | tee /tmp/info.txt");
-    }
+    # in /home/root, so we'll set $home with the appropiate home directory
+    my $home = $username eq 'root' ? '/root' : "/home/$username";
+    assert_script_run("$home/data/textinfo 2>&1 | tee /tmp/info.txt");
     upload_logs("/tmp/info.txt");
     upload_logs("/tmp/logs.tar.bz2");
 }

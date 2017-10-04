@@ -1,8 +1,8 @@
 # SUSE's openQA tests
 
-# G-Summary: Perform an unattended installation of SAP NetWeaver ASCS
-# G-Requires: ENV variable NW pointing to installation media
-# G-Maintainer: Alvaro Carvajal <acarvajal@suse.de>
+# Summary: Perform an unattended installation of SAP NetWeaver ASCS
+# Requires: ENV variable NW pointing to installation media
+# Maintainer: Alvaro Carvajal <acarvajal@suse.de>
 
 use base "x11test";
 use strict;

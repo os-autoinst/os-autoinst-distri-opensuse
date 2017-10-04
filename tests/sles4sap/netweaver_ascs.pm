@@ -1,8 +1,8 @@
 # SUSE's SLES4SAP openQA tests
 
-# G-Summary: Checks NetWeaver's ASCS installation as performed by sles4sap/nw_ascs_install
-# G-Requires: sles4sap/nw_ascs_install
-# G-Maintainer: Alvaro Carvajal <acarvajal@suse.de>
+# Summary: Checks NetWeaver's ASCS installation as performed by sles4sap/nw_ascs_install
+# Requires: sles4sap/nw_ascs_install
+# Maintainer: Alvaro Carvajal <acarvajal@suse.de>
 
 use base "x11test";
 use strict;
