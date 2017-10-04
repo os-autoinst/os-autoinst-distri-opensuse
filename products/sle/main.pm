@@ -1440,7 +1440,6 @@ elsif (get_var('SUMA_TESTS') && !get_var('SUMA_SALT_MINION')) {
 elsif (get_var('SUMA_SALT_MINION')) {
     prepare_target();
     if (check_var('SUMA_SALT_MINION', 'branch')) {
-        loadtest "suma/minionlocks";
         loadtest "suma/minion_init";
     }
     elsif (check_var('SUMA_SALT_MINION', 'terminal')) {
