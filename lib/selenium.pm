@@ -106,20 +106,31 @@ sub wait_for_page_to_load {
     }, timeout => $timeout;
 }
 
-sub wait_for_link {
-    my $link = shift;
+sub wait_for {
+    my ($type, $target, @args) = @_;
     my %args = (
         -tries              => 5,
         -wait               => 1,
-        -reload_after_tries => undef,
-        @_
+        -reload_after_tries => 5,
+        @args
     );
-    $args{-reload_after_tries} //= $args{-tries};    #disabled by default
-    print "waiting for link '$link'\n";
+
+    die 'Unknown wait type' unless grep(/$type/, qw(text link xpath));
+    diag "waiting for ${type}: ${target}";
     my $i = 0;
     while ($i < $args{-tries}) {
         save_screenshot;
-        my $element = $driver->find_element_by_partial_link_text($link);
+        my $element;
+        if ($type eq 'text') {
+            return 1 if $driver->get_page_source() =~ /$target/;
+        }
+        elsif ($type eq 'link') {
+            $element = $driver->find_element_by_partial_link_text($target);
+        }
+        elsif ($type eq 'xpath') {
+            $element = $driver->find_element_by_xpath($target);
+        }
+
         if ($element) {
             $driver->execute_script("arguments[0].scrollIntoView(false);", $element);
             sleep 1;
@@ -135,66 +146,20 @@ sub wait_for_link {
         $i++;
     }
     print $driver->get_page_source();
-    die "$link not found on the page";
+    die "$target not found on the page";
+}
+
+sub wait_for_link {
+    return wait_for('link', @_);
 }
 
 
 sub wait_for_text {
-    my $text = shift;
-    my %args = (
-        -tries              => 5,
-        -wait               => 1,
-        -reload_after_tries => undef,
-        @_
-    );
-    $args{-reload_after_tries} //= $args{-tries};    #disabled by default
-    print "waiting for text '$text'\n";
-    my $i = 0;
-    while ($i < $args{-tries}) {
-        save_screenshot;
-        return 1 if $driver->get_page_source() =~ /$text/;
-        if (($i > 0) && ($i % $args{-reload_after_tries} == 0)) {
-            print "reload\n";
-            $driver->refresh();
-            wait_for_page_to_load;
-        }
-        sleep $args{-wait};
-        $i++;
-    }
-    print $driver->get_page_source();
-    die "$text not found on the page";
+    return wait_for('text', @_);
 }
 
 sub wait_for_xpath {
-    my $xpath = shift;
-    my %args  = (
-        -tries              => 5,
-        -wait               => 1,
-        -reload_after_tries => undef,
-        @_
-    );
-    $args{-reload_after_tries} //= $args{-tries};    #disabled by default
-    print "waiting for xpath '$xpath'\n";
-    my $i = 0;
-    while ($i < $args{-tries}) {
-        save_screenshot;
-        my $element = $driver->find_element_by_xpath($xpath);
-        if ($element) {
-            $driver->execute_script("arguments[0].scrollIntoView(false);", $element);
-            sleep 1;
-            save_screenshot;
-            return $element;
-        }
-        if (($i > 0) && ($i % $args{-reload_after_tries} == 0)) {
-            print "reload\n";
-            $driver->refresh();
-            wait_for_page_to_load;
-        }
-        sleep $args{-wait};
-        $i++;
-    }
-    print $driver->get_page_source();
-    die "$xpath not found on the page";
+    return wait_for('xpath', @_);
 }
 
 
