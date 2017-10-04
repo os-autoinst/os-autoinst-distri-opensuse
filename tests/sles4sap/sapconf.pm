@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 
-# G-Summary: sapconf availability and basic commands to tuned-adm
-# G-Maintainer: Alvaro Carvajal <acarvajal@suse.de>
+# Summary: sapconf availability and basic commands to tuned-adm
+# Maintainer: Alvaro Carvajal <acarvajal@suse.de>
 
 use base "x11test";
 use strict;

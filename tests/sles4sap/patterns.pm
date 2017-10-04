@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 
-# G-Summary: SAP Pattern test
-# G-Maintainer: Alvaro Carvajal <acarvajal@suse.de>
+# Summary: SAP Pattern test
+# Maintainer: Alvaro Carvajal <acarvajal@suse.de>
 
 use base "x11test";
 use strict;
