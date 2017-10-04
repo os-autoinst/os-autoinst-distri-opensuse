@@ -887,7 +887,9 @@ sub load_x11tests {
     loadtest "x11/xterm";
     loadtest "x11/sshxterm";
     if (gnomestep_is_applicable()) {
-        loadtest "update/updates_packagekit_gpk" unless is_staging;
+        if (!sle_version_at_least('15') && !(is_staging)) {
+            loadtest "update/updates_packagekit_gpk";    # updates_packagekit_gpk is disabled for SLE15 because of bsc#1061243
+        }
         loadtest "x11/gnome_control_center";
         loadtest "x11/gnome_terminal";
         loadtest "x11/gedit";
