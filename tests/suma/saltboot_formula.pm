@@ -98,7 +98,7 @@ sub run {
         assert_script_run 'systemctl restart salt-master';    # because of reactors installed
         select_console 'x11', tags => 'suma_welcome_screen';
 
-        my %hwtypes = ('testterm' => 1);
+        my %hwtypes = (testterm => 1);
 
         for my $hwtype ($self->get_hwtypes) {
             $self->create_group_for_hwtype($hwtype);

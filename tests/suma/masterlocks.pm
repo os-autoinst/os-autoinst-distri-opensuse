@@ -27,10 +27,10 @@ sub run {
     my $ch = get_children();
     for my $id (keys %{$ch}) {
         my $chi = get_job_info($id);
-        if ($chi->{'settings'}->{'SUMA_SALT_MINION'} eq 'branch') {
-            $branchhostname = $chi->{'settings'}->{'HOSTNAME'};
+        if ($chi->{settings}->{SUMA_SALT_MINION} eq 'branch') {
+            $branchhostname = $chi->{settings}->{HOSTNAME};
         }
-        if ($chi->{'settings'}->{'SUMA_SALT_MINION'} eq 'terminal') {
+        if ($chi->{settings}->{SUMA_SALT_MINION} eq 'terminal') {
             $n_term++;
         }
     }

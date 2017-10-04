@@ -11,7 +11,7 @@
 # Maintainer: Ondrej Holecek <oholecek@suse.com>
 
 use parent "basetest";
-use 5.002;
+use 5.018;
 use testapi;
 
 sub run {
