@@ -95,7 +95,6 @@ sub run {
             if (check_screen 'dasd-device-formatted') {
                 assert_screen 'action-list';
                 send_key 'f';
-                send_key 'f';                           # Pressing f twice because of bsc#940817
                 send_key 'ret';
                 assert_screen 'confirm-dasd-format';    # confirmation popup
                 send_key 'alt-y';
