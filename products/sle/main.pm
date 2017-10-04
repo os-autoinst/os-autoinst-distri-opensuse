@@ -944,10 +944,10 @@ sub load_x11tests {
         loadtest "sles4sap/sapconf";
         loadtest "sles4sap/saptune";
         loadtest "sles4sap/patterns";
-        if (get_var('SLES4SAP_MODE') !~ /wizard/) {
-            loadtest "sles4sap/nw_ascs_install" if (get_var('NW'));
+        if (get_var('NW')) {
+            loadtest "sles4sap/nw_ascs_install" if (get_var('SLES4SAP_MODE') !~ /wizard/);
+            loadtest "sles4sap/netweaver_ascs";
         }
-        loadtest "sles4sap/netweaver_ascs" if (get_var('NW'));
     }
     # Need to skip shutdown to keep backend alive if running rollback tests after migration
     unless (get_var('ROLLBACK_AFTER_MIGRATION')) {
