@@ -24,6 +24,9 @@ sub run {
     # add specific repository which contains the package
     if (get_var('PACKAGE_REPO')) {
         zypper_call("ar -f " . get_var('PACKAGE_REPO') . " testrepo");
+        # flow suggested in this test requires 'openqa-ci-tools' package
+        # which currently exists in single repo in the world so point to give flexibility here
+        zypper_call("ar -f http://download.suse.de/ibs/Devel:/HPC:/CI/SLE_12_SP2_HPC_CI/ hpc_ci");
         zypper_call("--gpg-auto-import-keys ref");
     }
 
