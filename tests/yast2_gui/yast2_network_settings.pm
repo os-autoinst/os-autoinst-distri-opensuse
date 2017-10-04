@@ -23,7 +23,13 @@ sub run {
     my $module = "lan";
 
     $self->launch_yast2_module_x11($module);
-    assert_screen "yast2-$module-ui", 60;
+    assert_screen([qw(yast2-lan-ui yast2_still_susefirewall2)], 90);
+    if (match_has_tag('yast2_still_susefirewall2')) {
+        record_soft_failure "bsc#1059569";
+        send_key 'alt-i';
+        wait_still_screen;
+    }
+
 
     #	Global Options
     send_key 'alt-g';
