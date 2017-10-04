@@ -77,12 +77,20 @@ sub run {
     assert_script_sudo("chgrp -R sapinst /sapinst/unattended");
     assert_script_sudo("chmod -R 0775 /sapinst/unattended");
 
+    # Set SAPADM to the SAP Admin user for future use
+    my $sid = script_output "awk '/NW_GetSidNoProfiles.sid/ {print \$NF}' inifile.params", 10;
+    set_var('SAPADM', lc($sid) . 'adm');
+
     # Start the installation
     type_string "cd /sapinst/unattended\n";
     $cmd = "../SWPM/sapinst";
     $cmd = $cmd . ' ' . join(' ', @sapoptions);
 
     assert_script_sudo($cmd, 600);
+
+    # Set the SAP Admin user password to a known one in case we need it
+    $cmd = 'echo ' . lc($sid) . 'adm:' . $testapi::password . ' | chpasswd';
+    assert_script_sudo($cmd, 60);
 
     send_key 'alt-f4';
 }

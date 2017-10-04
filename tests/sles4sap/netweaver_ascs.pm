@@ -23,13 +23,17 @@ sub run {
     x11_start_program('xterm');
     assert_screen('xterm');
 
-    # The SAP Admin user 'qadadm' was set in sles4sap/nw_ascs_install
-    my $sapadmin = 'qadadm';
+    # The SAP Admin was set in sles4sap/nw_ascs_install
+    my $sapadmin = get_var('SAPADM');
+    die "netweaver_ascs: coulnd't determine the SAP Administrator's username"
+      unless ($sapadmin);
 
     # Allow SAP Admin user to inform status via $testapi::serialdev
     assert_script_sudo("chown $sapadmin /dev/$testapi::serialdev", 5);
 
     type_string "su - $sapadmin\n";
+    type_string "$testapi::password\n" unless ($testapi::username eq 'root');
+
     assert_script_run("sapcontrol -nr 00 -function GetVersionInfo", 20);
     assert_screen('netweaver-version-info', 10);
 
