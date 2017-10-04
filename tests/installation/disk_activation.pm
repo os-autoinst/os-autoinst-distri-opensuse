@@ -14,6 +14,7 @@
 use base "y2logsstep";
 use strict;
 use testapi;
+use utils 'sle_version_at_least';
 
 sub format_dasd {
     while (check_screen 'process-dasd-format') {
@@ -94,9 +95,8 @@ sub run {
             send_key 'alt-a';                           # perform action button
             if (check_screen 'dasd-device-formatted') {
                 assert_screen 'action-list';
-                send_key 'f';
-                send_key 'f';                           # Pressing f twice because of bsc#940817
-                send_key 'ret';
+                # shortcut changed for sle 15
+                send_key sle_version_at_least('15') ? 'o' : 'f';
                 assert_screen 'confirm-dasd-format';    # confirmation popup
                 send_key 'alt-y';
                 format_dasd;
