@@ -11,13 +11,16 @@
 # Summary: add addon to SLES via DVD or URL
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
-use base "y2logsstep";
+use base qw(y2logsstep opensusebasetest);
 use strict;
 use testapi;
+use utils 'reboot_x11';
 use registration qw(fill_in_registration_data skip_registration);
 
 sub run {
+    my ($self) = @_;
     my ($addon, $uc_addon);
+    my $perform_reboot;
     x11_start_program("xdg-su -c '/sbin/yast2 add-on'");
     if ($password) { type_password; send_key "ret"; }
     if (check_screen 'packagekit-warning') {
@@ -38,7 +41,7 @@ sub run {
                 assert_screen 'addonurl-entry', 3;
                 type_string get_var("ADDONURL_$uc_addon");
                 send_key 'alt-p';     # name
-                type_string "SLE$uc_addon" . "12-SP1_repo";
+                type_string "SLE$uc_addon" . get_var('VERSION') . "_repo";
                 send_key $cmd{next};
             }
             else {
@@ -78,6 +81,7 @@ sub run {
                 send_key 'alt-o';
             }
             if (check_screen 'addon-installation-pop-up', 100) {                    # e.g. RT reboot to activate new kernel
+                $perform_reboot = 1;
                 send_key 'alt-o';                                                   # OK
             }
             assert_screen "addon-installation-report";
@@ -112,10 +116,18 @@ sub run {
                 send_key 'alt-o';                                                   # ok continue
             }
         }
+        if (defined $perform_reboot) {
+            reboot_x11;
+            $self->wait_boot;
+        }
     }
     else {
         send_key 'alt-n';                                                           # done
     }
+}
+
+sub test_flags {
+    return {fatal => 1, milestone => 1};                                            # add milestone flag to save setup in lastgood VM snapshot
 }
 
 1;
