@@ -53,7 +53,10 @@ sub install_dependencies {
 
     zypper_call('-t in ' . join(' ', @deps), log => 'install-deps.txt');
 
-    my @maybe_deps = qw(net-tools-deprecated gcc-32bit sysstat tpm-tools ntfsprogs);
+    my @maybe_deps = qw(net-tools-deprecated gcc-32bit libnuma-devel-32bit
+      libaio-devel-32bit sysstat tpm-tools libopenssl-devel-32bit
+      kernel-default-devel-32bit libselinux-devel-32bit libacl-devel-32bit
+      libtirpc-devel-32bit keyutils-devel-32bit libcap-devel-32bit ntfsprogs);
 
     for my $dep (@maybe_deps) {
         script_run('zypper -n -t in ' . $dep . ' | tee');
@@ -63,13 +66,15 @@ sub install_dependencies {
 sub install_from_git {
     my $url = get_var('LTP_GIT_URL') || 'https://github.com/linux-test-project/ltp';
     my $tag = get_var('LTP_RELEASE') || '';
+    my $configure = './configure --with-open-posix-testsuite --with-realtime-testsuite';
+    my $extra_flags = get_var('LTP_EXTRA_CONF_FLAGS') || '';
     if ($tag) {
         $tag = ' -b ' . $tag;
     }
     assert_script_run("git clone -q --depth 1 $url" . $tag, timeout => 360);
     assert_script_run 'cd ltp';
     assert_script_run 'make autotools';
-    assert_script_run('./configure --with-open-posix-testsuite --with-realtime-testsuite', timeout => 300);
+    assert_script_run("$configure $extra_flags", timeout => 300);
     assert_script_run 'make -j$(getconf _NPROCESSORS_ONLN)', timeout => 1440;
     script_run 'export CREATE_ENTRIES=1';
     assert_script_run 'make install', timeout => 360;
