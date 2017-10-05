@@ -49,7 +49,8 @@ sub is_sles4sap_standard {
 }
 
 sub is_smt {
-    return (get_var("PATTERNS", '') || get_var('HDD_1', '')) =~ /smt/;
+    # Smt is replaced with rmt in SLE 15, see bsc#1061291
+    return ((get_var("PATTERNS", '') || get_var('HDD_1', '')) =~ /smt/) && !sle_version_at_least('15');
 }
 
 sub is_kgraft {
