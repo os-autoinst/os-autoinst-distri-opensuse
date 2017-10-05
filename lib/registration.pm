@@ -199,7 +199,7 @@ sub fill_in_registration_data {
                     sleep 5;
                 }
                 # No license agreements are shown in SLE 15 at the moment
-                if (sle_version_at_least('15') && check_screen([qw(ext-module-registration-codes inst-addon)], 0)) {
+                if (sle_version_at_least('15')) {
                     record_soft_failure 'bsc#1057223';
                 }
                 else {
