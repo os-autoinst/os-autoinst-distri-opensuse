@@ -48,10 +48,6 @@ sub run {
     my $self = shift;
     # NET isos are slow to install
     my $timeout = 2000;
-    # aarch64 can be particularily slow depending on the hardware
-    $timeout *= 2 if check_var('ARCH', 'aarch64') && get_var('MAX_JOB_TIME');
-    # encryption, LVM and RAID makes it even slower
-    $timeout *= 2 if (get_var('ENCRYPT') || get_var('LVM') || get_var('RAID'));
 
     # workaround for yast popups and
     # detect "Wrong Digest" error to end test earlier
@@ -68,9 +64,13 @@ sub run {
         push(@tags, 'screenlock');
     }
     # SCC might mean we install everything from the slow internet
-    if (check_var('SCC_REGISTER', 'installation')) {
+    if (check_var('SCC_REGISTER', 'installation') && !get_var('SCC_URL')) {
         $timeout = 5500;
     }
+    # aarch64 can be particularily slow depending on the hardware
+    $timeout *= 2 if check_var('ARCH', 'aarch64') && get_var('MAX_JOB_TIME');
+    # encryption, LVM and RAID makes it even slower
+    $timeout *= 2 if (get_var('ENCRYPT') || get_var('LVM') || get_var('RAID'));
     # multipath installations seem to take longer (failed some time)
     $timeout *= 2 if check_var('MULTIPATH', 1);
     # on s390 we might need to install additional packages depending on the installation method
