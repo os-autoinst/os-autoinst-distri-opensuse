@@ -17,7 +17,6 @@ use utils;
 
 sub run {
     my ($self) = @_;
-    $self->{mute_post_fail} = 0;
     select_console 'root-console';
     zypper_call('in yast2-snapper');
 
@@ -34,7 +33,6 @@ sub run {
 
 sub post_fail_hook {
     my ($self) = @_;
-    return if $self->{mute_post_fail};
     $self->y2snapper_failure_analysis;
 }
 

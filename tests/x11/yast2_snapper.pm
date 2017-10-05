@@ -22,9 +22,6 @@ use utils;
 
 sub run {
     my $self = shift;
-    # for not running failure_analysis twice in case we fail inside failure_analysis
-    $self->{mute_post_fail} = 0;
-
     # Make sure yast2-snapper is installed (if not: install it)
     ensure_installed "yast2-snapper";
 
@@ -37,21 +34,19 @@ sub run {
     }
     become_root;
     script_run "cd";
-
     type_string "yast2 snapper\n";
     $self->y2snapper_new_snapshot;
 
     wait_still_screen;
     $self->y2snapper_untar_testfile;
 
-    type_string "yast2 snapper\n";
+    type_string "yast2 snapper; echo yast2-snapper-status-\$? > /dev/$serialdev\n";
     $self->y2snapper_show_changes_and_delete;
     $self->y2snapper_clean_and_quit;
 }
 
 sub post_fail_hook {
     my ($self) = @_;
-    return if $self->{mute_post_fail};
     $self->y2snapper_failure_analysis;
 }
 
