@@ -37,7 +37,9 @@ sub is_desktop {
 }
 
 sub is_leanos {
-    return get_var('FLAVOR', '') =~ /^Leanos/;
+    return 1 if get_var('FLAVOR', '') =~ /^Leanos/;
+    return 1 if get_var('FLAVOR', '') =~ /^Installer-/;
+    return 0;
 }
 
 sub is_sles4sap {
