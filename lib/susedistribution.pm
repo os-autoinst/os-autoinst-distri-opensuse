@@ -120,9 +120,6 @@ sub x11_start_program($$$) {
         type_string $program;
     }
     wait_still_screen(1);
-    if ($options->{terminal}) {
-        wait_screen_change { send_key 'alt-t' };
-    }
     save_screenshot;
     send_key 'ret';
     wait_still_screen unless $options->{no_wait};
