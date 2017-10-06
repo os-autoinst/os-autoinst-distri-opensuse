@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -16,8 +16,7 @@ use strict;
 use testapi;
 
 sub run {
-    x11_start_program("oowriter");
-    assert_screen 'test-ooffice-1';
+    x11_start_program('oowriter', target_match => 'test-ooffice-1');
     # clicking the writing area to make sure the cursor addressed there
     wait_screen_change { assert_and_click 'ooffice-writing-area', 'left', 10 };
     type_string "Hello World!";

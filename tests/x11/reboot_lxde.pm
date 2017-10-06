@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -19,8 +19,7 @@ use utils;
 sub run {
     my ($self) = @_;
     #send_key "ctrl-alt-delete"; # does open task manager instead of reboot
-    x11_start_program "lxsession-logout";
-    assert_screen "logoutdialog", 20;
+    x11_start_program('lxsession-logout', target_match => 'logoutdialog');
     send_key "tab";    # reboot
     save_screenshot;
     send_key "ret";    # confirm

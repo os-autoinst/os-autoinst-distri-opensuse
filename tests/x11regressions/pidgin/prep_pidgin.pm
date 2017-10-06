@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -22,8 +22,7 @@ sub pidgin_preparation {
     ensure_installed('pidgin');
 
     # Enable the showoffline
-    x11_start_program("pidgin");
-    assert_screen "pidgin-welcome";
+    x11_start_program('pidgin', target_match => 'pidgin-welcome');
     send_key "alt-c";
 
     # pidgin main winodow is hidden in tray at first run

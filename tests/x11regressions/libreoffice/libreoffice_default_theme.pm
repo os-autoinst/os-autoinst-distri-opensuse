@@ -1,6 +1,6 @@
 # LibreOffice tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -17,8 +17,7 @@ use utils;
 use strict;
 
 sub check_lo_theme {
-    x11_start_program("ooffice");
-    assert_screen 'welcome-to-libreoffice';
+    x11_start_program('ooffice', target_match => 'welcome-to-libreoffice');
     if (is_tumbleweed) {
         send_key 'alt-f12';
     }
@@ -41,7 +40,7 @@ sub run {
     $self->check_lo_theme;
 
     # Set LO GUI toolkit var to none
-    x11_start_program("xterm");
+    x11_start_program('xterm', target_match => 'xterm');
     assert_script_run 'export OOO_FORCE_DESKTOP="none"';
     type_string "cd\n";
     clear_console;
@@ -53,7 +52,7 @@ sub run {
     $self->check_lo_theme;
 
     # Unset LO GUI toolkit var
-    x11_start_program("xterm");
+    x11_start_program('xterm', target_match => 'xterm');
     assert_script_run 'unset OOO_FORCE_DESKTOP';
     send_key 'alt-f4';    # Quit xterm
 }

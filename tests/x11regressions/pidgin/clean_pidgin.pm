@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -18,7 +18,7 @@ use utils 'clear_console';
 
 sub remove_pkg {
     my @packages = qw(pidgin);
-    x11_start_program("xterm");
+    x11_start_program('xterm', target_match => 'xterm');
 
     # Remove packages
     assert_script_sudo "rpm -e @packages";

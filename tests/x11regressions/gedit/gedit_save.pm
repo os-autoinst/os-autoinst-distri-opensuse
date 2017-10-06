@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -21,8 +21,7 @@ sub run {
     x11_start_program("wget " . autoinst_url . "/data/x11regressions/test.txt");
 
     # open test text file locally
-    x11_start_program("gedit " . "test.txt");
-    assert_screen 'gedit-file-opened';
+    x11_start_program('gedit ' . 'test.txt', target_match => 'gedit-file-opened');
 
     # delete one line
     send_key "ctrl-d";
@@ -50,8 +49,7 @@ sub run {
     wait_still_screen 3;
 
     # open saved file to validate
-    x11_start_program("gedit " . "test.txt");
-    assert_screen 'gedit-saved-file';
+    x11_start_program('gedit ' . 'test.txt', target_match => 'gedit-saved-file');
     wait_screen_change { send_key "ctrl-q"; };
 
     # clean up saved file

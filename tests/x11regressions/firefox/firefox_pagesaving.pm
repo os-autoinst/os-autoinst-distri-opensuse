@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -32,7 +32,7 @@ sub run {
     # Exit
     $self->exit_firefox;
 
-    x11_start_program("xterm");
+    x11_start_program('xterm', target_match => 'xterm');
     send_key "ctrl-l";
     wait_still_screen 3;
     type_string "ls Downloads/\n";

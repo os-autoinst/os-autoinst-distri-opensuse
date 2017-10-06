@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -21,8 +21,7 @@ sub run {
     $self->upload_libreoffice_specified_file();
 
     # open gnome file manager- nautilus for testing
-    x11_start_program("nautilus");
-    assert_screen("nautilus-launched");
+    x11_start_program('nautilus', target_match => 'nautilus-launched');
     send_key_until_needlematch("nautilus-Documents-matched", "right");
     send_key "ret";
     wait_still_screen(3);

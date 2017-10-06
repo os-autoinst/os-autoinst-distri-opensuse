@@ -112,8 +112,7 @@ sub confirm_insecure_https {
 
 # Setup while waiting for admin dashboard installation
 sub initialize {
-    x11_start_program "xterm";
-    assert_screen "xterm";
+    x11_start_program('xterm', target_match => 'xterm');
 
     # Fix permissions
     assert_script_sudo "chown $testapi::username /dev/$testapi::serialdev";
@@ -124,7 +123,7 @@ sub initialize {
     save_screenshot;
     send_key "ctrl-l";
     send_key 'super-up';
-    x11_start_program("firefox");
+    x11_start_program('firefox');
 }
 
 sub run {

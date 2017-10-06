@@ -167,8 +167,7 @@ sub ensure_installed {
     my $pkglist = ref $pkgs eq 'ARRAY' ? join ' ', @$pkgs : $pkgs;
     $args{timeout} //= 90;
 
-    testapi::x11_start_program("xterm");
-    assert_screen('xterm');
+    testapi::x11_start_program('xterm', target_match => 'xterm');
     testapi::assert_script_sudo("chown $testapi::username /dev/$testapi::serialdev");
     my $retries = 5;    # arbitrary
 

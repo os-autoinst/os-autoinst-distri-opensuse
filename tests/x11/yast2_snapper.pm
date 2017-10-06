@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -26,8 +26,7 @@ sub run {
     ensure_installed "yast2-snapper";
 
     # Start an xterm as root
-    x11_start_program("xterm");
-    assert_screen "xterm";
+    x11_start_program('xterm', target_match => 'xterm');
     # Disable screen lock and blank screen for current Gnome session
     if (check_var('DESKTOP', 'gnome')) {
         assert_script_run('gsettings set org.gnome.desktop.session idle-delay 0');

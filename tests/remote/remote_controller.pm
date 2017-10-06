@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -43,7 +43,7 @@ sub run {
         script_run "systemctl start SuSEfirewall2";
 
         select_console 'x11';
-        x11_start_program("xterm");
+        x11_start_program('xterm', target_match => 'xterm');
         type_string "vncviewer -fullscreen $target_ip:1\n";
         assert_screen "remote_master_password";    # wait for password prompt
         type_string "$password\n";

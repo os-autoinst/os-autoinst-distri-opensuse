@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -17,7 +17,7 @@ use testapi;
 
 sub run {
     record_soft_failure('boo#1036590') if get_var('HDDVERSION', '') =~ /openSUSE-(12.1|12.2)/;
-    x11_start_program('xterm');
+    x11_start_program('xterm', target_match => 'xterm');
     assert_script_sudo('SuSEfirewall2 on');
     send_key "alt-f4";
 }

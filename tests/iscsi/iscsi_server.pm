@@ -22,7 +22,7 @@ use utils 'zypper_call';
 sub run {
     my $self = shift;
 
-    x11_start_program("xterm -geometry 160x45+5+5");
+    x11_start_program('xterm -geometry 160x45+5+5', target_match => 'xterm');
     type_string "gsettings set org.gnome.desktop.session idle-delay 0\n";    # disable blank screen
     become_root;
     configure_default_gateway;

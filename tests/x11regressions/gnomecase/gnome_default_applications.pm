@@ -18,8 +18,7 @@ use utils;
 
 sub run {
     # Prepare test files
-    x11_start_program("xterm");
-    assert_screen 'xterm';
+    x11_start_program('xterm', target_match => 'xterm');
 
     my @applications = (
         ['image/jpg',           'eog.desktop'],
@@ -53,8 +52,7 @@ sub prepare_application_environment {
     assert_script_run "tar czvf /home/$username/gnometest/test.tar.gz -C /home/$username/gnometest/ test.pdf";
 
     # Open nautilus
-    x11_start_program("nautilus");
-    assert_screen 'nautilus-launched', 3;
+    x11_start_program('nautilus', target_match => 'nautilus-launched');
     send_key "ctrl-l";
     type_string "/home/$username/gnometest\n";
     send_key "ret";

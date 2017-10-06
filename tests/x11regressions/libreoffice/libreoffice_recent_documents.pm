@@ -1,6 +1,6 @@
 # LibreOffice tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -18,8 +18,7 @@ use utils;
 
 sub run {
     # Edit file hello.odt using oowriter
-    x11_start_program("oowriter");
-    assert_screen 'test-ooffice-1';
+    x11_start_program('oowriter', target_match => 'test-ooffice-1');
     # clicking the writing area to make sure the cursor addressed there
     assert_and_click 'ooffice-writing-area', 'left', 10;
     wait_still_screen;
@@ -34,8 +33,7 @@ sub run {
 
     # Check Recent Documents
     wait_still_screen;
-    x11_start_program("oowriter");
-    assert_screen 'test-ooffice-1';
+    x11_start_program('oowriter', target_match => 'test-ooffice-1');
     send_key "alt-f";
     assert_screen 'oowriter-menus-file';
     if (is_tumbleweed) {

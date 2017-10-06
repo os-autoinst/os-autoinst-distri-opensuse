@@ -1,6 +1,6 @@
 # Base class for all x11regression test
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -20,8 +20,7 @@ use POSIX 'strftime';
 
 # Start shotwell and handle the welcome screen, if there
 sub start_shotwell {
-    x11_start_program("shotwell");
-    assert_screen [qw(shotwell-first-launch shotwell-launched)];
+    x11_start_program('shotwell', target_match => [qw(shotwell-first-launch shotwell-launched)]);
     if (match_has_tag "shotwell-first-launch") {
         wait_screen_change { send_key "ret" };
     }
@@ -318,9 +317,8 @@ sub start_evolution {
     mouse_hide(1);
     # Clean and Start Evolution
     x11_start_program("xterm -e \"killall -9 evolution; find ~ -name evolution | xargs rm -rf;\"");
-    x11_start_program("evolution");
+    x11_start_program('evolution', target_match => [qw(evolution-default-client-ask test-evolution-1)]);
     # Follow the wizard to setup mail account
-    assert_screen [qw(evolution-default-client-ask test-evolution-1)];
     if (match_has_tag 'evolution-default-client-ask') {
         assert_and_click "evolution-default-client-agree";
         assert_screen "test-evolution-1";
@@ -511,7 +509,7 @@ sub start_firefox {
     my ($self) = @_;
     mouse_hide(1);
 
-    x11_start_program 'xterm';
+    x11_start_program('xterm', target_match => 'xterm');
     # Clean and Start Firefox
     type_string "killall -9 firefox;rm -rf .moz* .config/iced* .cache/iced* .local/share/gnome-shell/extensions/*; firefox > firefox.log 2>&1 &\n";
     $self->firefox_check_default;
@@ -623,8 +621,7 @@ sub setup_evolution_for_ews {
 
     # Clean and Start Evolution
     x11_start_program("xterm -e \"killall -9 evolution; find ~ -name evolution | xargs rm -rf;\"");
-    x11_start_program("evolution");
-    assert_screen [qw(evolution-default-client-ask test-evolution-1)];
+    x11_start_program('evolution', target_match => [qw(evolution-default-client-ask test-evolution-1)]);
     if (match_has_tag "evolution-default-client-ask") {
         assert_and_click "evolution-default-client-agree";
         assert_screen 'test-evolution-1';
@@ -764,8 +761,7 @@ sub tomboy_logout_and_login {
 }
 
 sub gnote_launch {
-    x11_start_program("gnote");
-    assert_screen "gnote-first-launched", 5;
+    x11_start_program('gnote', target_match => 'gnote-first-launched');
     send_key_until_needlematch 'gnote-start-here-matched', 'down', 5;
 }
 
@@ -792,8 +788,7 @@ sub cleanup_gnote {
 }
 
 sub gnote_start_with_new_note {
-    x11_start_program("gnote");
-    assert_screen 'gnote-first-launched', 10;
+    x11_start_program('gnote', target_match => 'gnote-first-launched');
     send_key "ctrl-n";
     assert_screen 'gnote-new-note', 5;
 }
@@ -802,8 +797,7 @@ sub gnote_start_with_new_note {
 sub configure_static_ip_nm {
     my ($self, $ip) = @_;
 
-    x11_start_program 'xterm';
-    assert_screen 'xterm';
+    x11_start_program('xterm', target_match => 'xterm');
     become_root;
     assert_script_run "nmcli connection add type ethernet con-name wired ifname eth0 ip4 '$ip' gw4 10.0.2.2";
     assert_script_run 'nmcli device disconnect eth0';

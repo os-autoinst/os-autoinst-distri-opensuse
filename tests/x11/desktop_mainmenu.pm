@@ -20,18 +20,19 @@ use testapi;
 sub run {
     sleep 5;
     if (check_var("DESKTOP", "lxde")) {
-        x11_start_program("lxpanelctl menu");    # or Super_L or Windows key
+        # or Super_L or Windows key
+        x11_start_program('lxpanelctl menu', target_match => 'test-desktop_mainmenu-1');
     }
     elsif (check_var("DESKTOP", "xfce")) {
         mouse_set(0, 0);
         sleep 1;
-        send_key "ctrl-esc";                     # open menu
+        send_key "ctrl-esc";    # open menu
         sleep 1;
-        send_key "up";                           # go into Applications submenu
+        send_key "up";          # go into Applications submenu
         mouse_hide(1);
     }
     else {
-        send_key "alt-f1";                       # open main menu
+        send_key "alt-f1";      # open main menu
     }
     assert_screen 'test-desktop_mainmenu-1', 20;
 

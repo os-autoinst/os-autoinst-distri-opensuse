@@ -1,4 +1,4 @@
-# Copyright (C) 2014 SUSE Linux GmbH
+# Copyright (C) 2014-2017 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -67,7 +67,7 @@ sub go_for_volume {
 
 sub create_nfs_share {
     my ($dir) = @_;
-    x11_start_program("xterm");
+    x11_start_program('xterm', target_match => 'xterm');
     become_root();
     type_string "mkdir -p $dir";
     send_key "ret";
@@ -82,7 +82,7 @@ sub create_nfs_share {
 
 sub checking_storage_result {
     my $volumes = shift;
-    x11_start_program("xterm");
+    x11_start_program('xterm', target_match => 'xterm');
     send_key "alt-f10";
     become_root();
     type_string "virsh -c qemu:///system pool-list";

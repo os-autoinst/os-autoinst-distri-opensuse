@@ -1,6 +1,6 @@
 # SUSE's openQA tests - FIPS tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -31,8 +31,7 @@ sub run {
         x11_start_program("$name --url=$url");
     }
     else {
-        x11_start_program("$name");
-        assert_screen "$name-network-select";
+        x11_start_program("$name", target_match => "$name-network-select");
         type_string "freenode\n";
 
         # use ssl for all servers on this network

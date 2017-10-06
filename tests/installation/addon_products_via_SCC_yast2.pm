@@ -17,7 +17,7 @@ use testapi;
 use registration 'fill_in_registration_data';
 
 sub run {
-    x11_start_program('xterm');
+    x11_start_program('xterm', target_match => 'xterm');
     # add every used addon to regurl for proxy SCC
     if (get_var('SCC_ADDONS')) {
         my @addon_proxy = ("url: http://server-" . get_var('BUILD_SLE'));
@@ -28,7 +28,7 @@ sub run {
         script_sudo "echo \"@addon_proxy.proxy.scc.suse.de\" > /etc/SUSEConnect", 0;
     }
     type_string "killall xterm\n";
-    x11_start_program("xdg-su -c '/sbin/yast2'");
+    x11_start_program("xdg-su -c '/sbin/yast2'", target_match => 'yast2-control-center-ui');
     if ($password) { type_password; send_key 'ret'; }
     send_key 'alt-y' if check_screen('packagekit-warning', 2);
     assert_screen 'yast2-control-center';

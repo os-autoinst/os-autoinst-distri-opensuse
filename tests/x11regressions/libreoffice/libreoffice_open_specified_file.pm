@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -23,8 +23,7 @@ sub run {
     $self->upload_libreoffice_specified_file();
 
     # check libreoffice dialogs setting
-    x11_start_program("libreoffice");
-    assert_screen("welcome-to-libreoffice");
+    x11_start_program('libreoffice', target_match => 'welcome-to-libreoffice');
     $self->check_libreoffice_dialogs();
 
     # open test files of different formats

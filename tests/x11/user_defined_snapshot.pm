@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -34,8 +34,7 @@ sub y2snapper_create_snapshot {
 sub run {
     my $self = shift;
     # Start an xterm as root
-    x11_start_program("xterm");
-    assert_screen('xterm');
+    x11_start_program('xterm', target_match => 'xterm');
     become_root;
     script_run "cd";
 

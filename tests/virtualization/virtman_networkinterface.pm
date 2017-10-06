@@ -1,4 +1,4 @@
-# Copyright (C) 2014 SUSE Linux GmbH
+# Copyright (C) 2014-2017 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@ sub go_for_netif {
 
 sub checking_netif_result {
     my $volumes = shift;
-    x11_start_program("xterm");
+    x11_start_program('xterm', target_match => 'xterm');
     send_key "alt-f10";
     become_root();
     type_string "ip link show";

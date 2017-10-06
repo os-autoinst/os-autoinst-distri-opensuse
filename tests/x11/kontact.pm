@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -26,8 +26,8 @@ sub run {
     x11_start_program("echo \"[General]\" >> ~/.config/kmail2rc");
     x11_start_program("echo \"first-start=false\" >> ~/.config/kmail2rc");
 
-    x11_start_program('kontact');
     my @tags = qw(test-kontact-1 kontact-import-data-dialog kontact-window);
+    x11_start_program('kontact', target_match => \@tags);
     do {
         assert_screen \@tags;
         # kontact might ask to import data from another mailer, don't

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -31,7 +31,7 @@ sub send_key_and_wait {
 
 sub run {
     # stop packagekit, root password is not needed on live system
-    x11_start_program("systemctl stop packagekit.service");
+    x11_start_program('systemctl stop packagekit.service', target_match => 'generic-desktop');
     turn_off_kde_screensaver;
     assert_and_click 'live-installation';
     assert_and_click 'maximize';

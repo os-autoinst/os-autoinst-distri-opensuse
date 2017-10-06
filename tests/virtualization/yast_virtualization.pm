@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -15,7 +15,7 @@ use strict;
 use testapi;
 
 sub run {
-    x11_start_program("xterm");
+    x11_start_program('xterm', target_match => 'xterm');
     send_key "alt-f10";
     become_root;
     script_run("yast2 virtualization; echo yast2-virtualization-done-\$? > /dev/$serialdev", 0);
@@ -55,7 +55,7 @@ sub run {
     # close the xterm
     send_key "alt-f4";
     # now need to start libvirtd
-    x11_start_program("xterm");
+    x11_start_program('xterm', target_match => 'xterm');
     wait_screen_change { send_key "alt-f10" };
     become_root;
     type_string "systemctl start libvirtd", 50;

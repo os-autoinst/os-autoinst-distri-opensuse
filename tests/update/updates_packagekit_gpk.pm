@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -17,8 +17,7 @@ use utils;
 
 sub turn_off_screensaver {
     # Turn off screensaver
-    x11_start_program("xterm");
-    assert_screen('xterm');
+    x11_start_program('xterm', target_match => 'xterm');
 
     # in case we rebooted
     assert_script_sudo "chown $testapi::username /dev/$testapi::serialdev";
@@ -34,11 +33,9 @@ sub turn_off_screensaver {
 
 # Update with GNOME PackageKit Update Viewer
 sub run {
-
     my ($self) = @_;
     # updates_packagekit_gpk is disabled for SLE15 because of bsc#1060844
     return record_soft_failure 'bsc#1060844' if sle_version_at_least('15') && is_sle();
-
     select_console 'x11', await_console => 0;
 
     my @updates_tags           = qw(updates_none updates_available);
@@ -47,9 +44,7 @@ sub run {
     turn_off_screensaver;
 
     while (1) {
-        x11_start_program("gpk-update-viewer");
-
-        assert_screen \@updates_tags, 100;
+        x11_start_program('gpk-update-viewer', target_match => \@updates_tags, match_timeout => 100);
         if (match_has_tag("updates_none")) {
             send_key "ret";
             return;

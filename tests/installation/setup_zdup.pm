@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -21,7 +21,7 @@ sub run {
 
     $self->wait_boot(ready_time => 600);
     if (get_var('ZDUP_IN_X')) {
-        x11_start_program('xterm');
+        x11_start_program('xterm', target_match => 'xterm');
         become_root;
     }
     else {

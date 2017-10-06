@@ -1,6 +1,6 @@
 # LibreOffice tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -45,7 +45,7 @@ sub select_base_and_cleanup {
     send_key "ctrl-q";    #close base
 
     # clean the test database file
-    x11_start_program("xterm");
+    x11_start_program('xterm', target_match => 'xterm');
     assert_script_run "find /home/$username -name testdatabase.odb | xargs rm";
     send_key 'alt-f4';
 }

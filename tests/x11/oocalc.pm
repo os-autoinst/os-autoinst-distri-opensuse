@@ -16,9 +16,8 @@ use strict;
 use testapi;
 
 sub run {
-    x11_start_program('oocalc');
+    x11_start_program('oocalc', target_match => 'test-oocalc-1');
     wait_still_screen;    # extra wait because oo sometimes appears to be idle during start
-    assert_screen 'test-oocalc-1';
     wait_screen_change { assert_and_click 'input-area-oocalc', 'left', 10 };
     type_string "Hello World!\n";
     assert_screen 'test-oocalc-2';

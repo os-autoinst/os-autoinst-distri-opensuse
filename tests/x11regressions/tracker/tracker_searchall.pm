@@ -17,8 +17,7 @@ use testapi;
 use utils;
 
 sub run {
-    x11_start_program("tracker-needle");
-    assert_screen 'tracker-needle-launched';
+    x11_start_program("tracker-needle", target_match => 'tracker-needle-launched');
     if (!sle_version_at_least('12-SP2')) {
         wait_screen_change { send_key 'tab' };
         wait_screen_change { send_key 'tab' };

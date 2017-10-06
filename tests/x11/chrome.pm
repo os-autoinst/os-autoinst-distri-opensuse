@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -30,8 +30,7 @@ sub run {
 
     mouse_hide;
 
-    x11_start_program("xterm");
-    assert_screen('xterm');
+    x11_start_program('xterm', target_match => 'xterm');
 
     # install the google key first
     become_root;
@@ -48,9 +47,7 @@ sub run {
     send_key "alt-f4";
 
     # avoid async keyring popups
-    x11_start_program("google-chrome --password-store=basic");
-
-    assert_screen 'chrome-default-browser-query';
+    x11_start_program('google-chrome --password-store=basic', target_match => 'chrome-default-browser-query');
     # we like to preserve the privacy of the non-human openqa workers ;-)
     assert_and_click 'chrome-do_not_send_data' if match_has_tag 'chrome-default-browser-query-send-data';
     assert_and_click 'chrome-default-browser-query';

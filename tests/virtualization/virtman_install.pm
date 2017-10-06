@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -20,7 +20,7 @@ sub run {
     # workaround for bug:
     # Bug 948366 - "pkcon install virt-manager" report it will remove
     # the package if this command is run twice
-    x11_start_program("xterm");
+    x11_start_program('xterm', target_match => 'xterm');
     become_root();
     script_run "zypper -n in virt-manager";
     # exit root, and be the default user

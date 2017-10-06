@@ -27,8 +27,7 @@ sub run() {
     save_screenshot;
 
     select_console 'x11';
-    x11_start_program("groupwise");    # start groupwise client
-    assert_screen "groupwise-groupwise-startup";
+    x11_start_program('groupwise', target_match => 'groupwise-groupwise-startup');
     send_key "alt-f4";
 }
 

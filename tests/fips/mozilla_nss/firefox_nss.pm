@@ -1,6 +1,6 @@
 # SUSE's openQA tests - FIPS tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -31,8 +31,7 @@ sub run {
     my $fips_password = 'openqa@SUSE';
 
     # launch firefox first and enable FIPS mode
-    x11_start_program("firefox");
-    assert_screen "firefox-launch", 90;
+    x11_start_program('firefox', target_match => 'firefox-launch', match_timeout => 90);
     send_key "alt-d";
     type_string "about:preferences#security\n";
     assert_screen "firefox-preferences-security";
@@ -60,8 +59,7 @@ sub run {
     assert_screen "generic-desktop";
 
     # launch firefox again and check FIPS mode is enabled
-    x11_start_program("firefox");
-    assert_screen "firefox-fips-password-inputfiled", 90;
+    x11_start_program('firefox', target_match => 'firefox-fips-password-inputfiled', match_timeout => 90);
     type_string $fips_password;
     send_key "ret";
     # Need click on tab area twice to make sure it is selected
