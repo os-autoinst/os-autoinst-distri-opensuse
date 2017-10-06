@@ -59,8 +59,7 @@ sub prepare_sle_classic {
 sub test_terminal {
     my ($self, $name) = @_;
     mouse_hide(1);
-    x11_start_program($name);
-    assert_screen $name;
+    x11_start_program($name, 6, {target_match => $name});
     $self->enter_test_text($name, cmd => 1);
     assert_screen "test-$name-1";
     send_key 'alt-f4';
