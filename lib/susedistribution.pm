@@ -98,6 +98,29 @@ sub init_cmd {
     ## keyboard cmd vars end
 }
 
+=head2 x11_start_program
+
+  x11_start_program($program [, $timeout] [, { [no_wait => 0|1, ] [valid => 0|1, [target_match => $target_match, ] [match_timeout => $match_timeout, ]] }]);
+
+Start the program C<$program> in an X11 session using the I<desktop-runner>.
+
+The timeout for C<check_screen> for I<desktop-runner> can be configured with
+optional C<$timeout>. Specify C<no_wait> to skip the C<wait_still_screen>
+after the typing of C<$program>. Specify C<valid> to make sure the
+I<desktop-runner> executed and closed. This can be especially useful when the
+used I<desktop-runner> has an auto-completion feature which can cause high
+load while typing potentially causing the subsequent C<ret> to fail.
+Additionally tags can be specified in C<$target_match> to check for on
+C<valid> with C<assert_screen> after executing the command to launch
+C<$program>. C<$match_timeout> can be specified to configure the timeout on
+that internal C<assert_screen>.
+
+The combination of C<no_wait> with C<valid> and C<target_match> is the
+preferred solution for the most efficient approach by saving time within
+tests.
+
+=cut
+
 sub x11_start_program($$$) {
     my ($self, $program, $timeout, $options) = @_;
     # enable valid option as default
@@ -122,18 +145,19 @@ sub x11_start_program($$$) {
     wait_still_screen(1);
     save_screenshot;
     send_key 'ret';
-    wait_still_screen unless $options->{no_wait};
-    # lrunner has auto-completion feature, sometimes it causes high load while
-    # typing and the following 'ret' fails to work
-    # make sure desktop runner executed and closed when have had valid value
-    # exec x11_start_program( $program, $timeout, { valid => 1 } );
-    if ($options->{valid}) {
-        for (1 .. 3) {
-            last unless check_screen 'desktop-runner-border', 2;
-            wait_screen_change {
-                send_key 'ret';
-            };
+    wait_still_screen(3) unless ($options->{no_wait} || ($options->{valid} && $options->{target_match}));
+    return unless $options->{valid};
+    for (1 .. 3) {
+        if ($options->{target_match}) {
+            assert_screen([ref $options->{target_match} eq 'ARRAY' ? @{$options->{target_match}} : $options->{target_match}, 'desktop-runner-border'], $options->{match_timeout});
+            last unless match_has_tag 'desktop-runner-border';
         }
+        else {
+            last unless check_screen 'desktop-runner-border', 2;
+        }
+        wait_screen_change {
+            send_key 'ret';
+        };
     }
 }
 
