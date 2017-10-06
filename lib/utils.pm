@@ -1382,7 +1382,7 @@ sub get_root_console_tty {
     is running on tty2 by default. see also: bsc#1054782
 =cut
 sub get_x11_console_tty {
-    my $new_gdm = !(is_sle && !sle_version_at_least('15')) && !(is_leap && !leap_version_at_least('15'));
+    my $new_gdm = !(is_sle && !sle_version_at_least('15')) && !(is_leap && !leap_version_at_least('15')) && !is_caasp;
     return (check_var('DESKTOP', 'gnome') && get_var('NOAUTOLOGIN') && $new_gdm) ? 2 : 7;
 }
 
