@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -19,7 +19,7 @@ use testapi;
 
 sub start_firefox {
     my ($self) = @_;
-    x11_start_program("firefox https://html5test.com/index.html", 6, {valid => 1});
+    x11_start_program('firefox https://html5test.com/index.html');
     $self->firefox_check_default;
     $self->firefox_check_popups;
     assert_screen 'firefox-html5test';

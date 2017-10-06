@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -16,7 +16,7 @@ use strict;
 use testapi;
 
 sub run {
-    x11_start_program("oocalc", 6, {valid => 1});
+    x11_start_program('oocalc');
     wait_still_screen;    # extra wait because oo sometimes appears to be idle during start
     assert_screen 'test-oocalc-1';
     wait_screen_change { assert_and_click 'input-area-oocalc', 'left', 10 };

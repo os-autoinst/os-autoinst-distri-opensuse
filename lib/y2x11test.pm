@@ -18,7 +18,7 @@ sub launch_yast2_module_x11 {
     $module //= '';
     $args{target_match} //= $module ? "yast2-$module-ui" : 'yast2-ui';
     my @tags = ['root-auth-dialog', ref $args{target_match} eq 'ARRAY' ? @{$args{target_match}} : $args{target_match}];
-    x11_start_program("xdg-su -c '/sbin/yast2 $module'", 6, {target_match => @tags, match_timeout => $args{match_timeout}});
+    x11_start_program("xdg-su -c '/sbin/yast2 $module'", target_match => @tags, match_timeout => $args{match_timeout});
     foreach ($args{target_match}) {
         return if match_has_tag($_);
     }

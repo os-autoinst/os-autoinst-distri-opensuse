@@ -17,7 +17,7 @@ use testapi;
 
 sub run {
     ensure_installed("amarok");
-    x11_start_program("amarok", 6, {valid => 1});
+    x11_start_program('amarok');
     assert_screen 'test-amarok-1';
     send_key "alt-y";    # use music path as collection folder
                          # a workaround for librivox authentication popup window.
