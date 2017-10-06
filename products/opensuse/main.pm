@@ -857,6 +857,10 @@ elsif (get_var('SECURITYTEST')) {
         load_security_tests_crypt;
     }
 }
+elsif (get_var('SYSTEMD_TESTSUITE')) {
+    boot_hdd_image;
+    loadtest 'console/systemd_testsuite';
+}
 else {
     if (get_var("LIVETEST") || get_var('LIVE_INSTALLATION')) {
         load_boot_tests();
