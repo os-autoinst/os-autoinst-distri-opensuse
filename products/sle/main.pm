@@ -1393,6 +1393,9 @@ elsif (get_var('HPC')) {
         }
     }
 }
+elsif (get_var('SYSTEMD_TESTSUITE')) {
+    load_systemd_patches_tests;
+}
 else {
     if (get_var("AUTOYAST") || get_var("AUTOUPGRADE")) {
         if (get_var('PATCH')) {
