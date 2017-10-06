@@ -34,11 +34,13 @@ sub turn_off_screensaver {
 
 # Update with GNOME PackageKit Update Viewer
 sub run {
-    if (sle_version_at_least('15')) {
-        record_soft_failure 'bsc#1057223';    # updates_packagekit_gpk is disabled for SLE15 because of bsc#1061243
+
+    my ($self) = @_;
+    if (sle_version_at_least('15') && is_sle()) {
+        record_soft_failure 'bsc#1060844';    # updates_packagekit_gpk is disabled for SLE15 because of bsc#1060844
+        $self->result('ok');
         return;
     }
-    my ($self) = @_;
     select_console 'x11', await_console => 0;
 
     my @updates_tags           = qw(updates_none updates_available);
