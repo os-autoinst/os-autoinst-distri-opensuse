@@ -30,7 +30,7 @@ sub run {
     mutex_lock 'xvnc';
 
     # Make sure the client gets the IP address
-    x11_start_program('xterm', target_match => 'xterm');
+    x11_start_program('xterm');
     become_root;
     assert_script_run 'dhclient';
     type_string "exit\n";
@@ -53,11 +53,11 @@ sub run {
     assert_screen 'generic-desktop';
 
     # Launch gnome-terminal and nautilus remotely
-    x11_start_program('gnome-terminal', target_match => 'gnome-terminal-launched');
+    x11_start_program('gnome-terminal');
     send_key 'alt-f4';
     send_key 'ret';
     wait_still_screen 3;
-    x11_start_program('nautilus', target_match => 'nautilus-launched');
+    x11_start_program('nautilus');
     send_key 'alt-f4';
 
     # Exit vncviewer

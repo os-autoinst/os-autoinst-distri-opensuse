@@ -17,7 +17,7 @@ use testapi;
 
 sub run {
     record_soft_failure('boo#1036590') if get_var('HDDVERSION', '') =~ /openSUSE-(12.1|12.2)/;
-    x11_start_program('xterm', target_match => 'xterm');
+    x11_start_program('xterm');
     assert_script_sudo('SuSEfirewall2 on');
     send_key "alt-f4";
 }

@@ -16,7 +16,7 @@ use testapi;
 use utils 'leap_version_at_least';
 
 sub run {
-    x11_start_program('tryton', target_match => 'tryton-startup');
+    x11_start_program('tryton');
     assert_and_click 'tryton-manage_profiles';
     # wait for indexing to be done
     wait_still_screen(3);

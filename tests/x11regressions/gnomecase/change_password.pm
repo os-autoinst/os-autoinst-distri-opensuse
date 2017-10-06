@@ -128,7 +128,7 @@ sub run {
     assert_screen "generic-desktop", 120;
 
     #restore password to original value
-    x11_start_program('gnome-terminal', target_match => 'gnome-terminal');
+    x11_start_program('gnome-terminal');
     type_string "su\n";
     assert_screen "pwd4root-terminal";
     type_password "$password\n";

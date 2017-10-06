@@ -17,10 +17,10 @@ use strict;
 use testapi;
 
 sub run {
-    x11_start_program('gedit', target_match => 'gedit-launched');
+    x11_start_program('gedit');
     assert_and_click 'gedit-x-button';
 
-    x11_start_program('gedit', target_match => 'gedit-launched');
+    x11_start_program('gedit');
     send_key "ctrl-q";
 }
 

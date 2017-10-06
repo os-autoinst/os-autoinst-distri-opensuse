@@ -31,7 +31,7 @@ sub run {
     my $command = "mv /etc/sysconfig/network/ifcfg-eth0 /etc/sysconfig/network/ifcfg-ens4; /usr/sbin/ifup ens4";
 
     if (get_var("DESKTOP") =~ /kde|gnome/) {
-        x11_start_program('xterm', target_match => 'xterm');
+        x11_start_program('xterm');
         assert_script_sudo($command);
         send_key "alt-f4";
     }

@@ -16,7 +16,7 @@ use strict;
 use testapi;
 
 sub run {
-    x11_start_program('oowriter', target_match => 'test-ooffice-1');
+    x11_start_program('oowriter');
     # clicking the writing area to make sure the cursor addressed there
     wait_screen_change { assert_and_click 'ooffice-writing-area', 'left', 10 };
     type_string "Hello World!";

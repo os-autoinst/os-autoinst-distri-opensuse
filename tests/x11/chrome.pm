@@ -30,7 +30,7 @@ sub run {
 
     mouse_hide;
 
-    x11_start_program('xterm', target_match => 'xterm');
+    x11_start_program('xterm');
 
     # install the google key first
     become_root;

@@ -17,7 +17,7 @@ use testapi;
 
 sub run {
     ensure_installed("virt-top");
-    x11_start_program('xterm', target_match => 'xterm');
+    x11_start_program('xterm');
     become_root;
     script_run "/usr/bin/virt-top";
     assert_screen "virtman-sle12sp1-gnome_virt-top";

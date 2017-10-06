@@ -16,7 +16,7 @@ use strict;
 use testapi;
 
 sub run {
-    x11_start_program('dolphin', target_match => 'test-dolphin-1');
+    x11_start_program('dolphin');
     send_key "alt-f4";
 }
 

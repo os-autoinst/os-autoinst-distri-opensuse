@@ -27,7 +27,7 @@ sub run {
         mouse_hide(1);
         assert_screen 'generic-desktop';
 
-        x11_start_program('xterm', target_match => 'xterm');
+        x11_start_program('xterm');
         # set blank screen to be never for current session
         script_run("gsettings set org.gnome.desktop.session idle-delay 0");
         become_root;

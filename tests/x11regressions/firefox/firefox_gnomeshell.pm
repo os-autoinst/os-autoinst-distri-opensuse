@@ -51,7 +51,7 @@ sub run {
     # Exit
     $self->exit_firefox;
 
-    x11_start_program('xterm', target_match => 'xterm');
+    x11_start_program('xterm');
     type_string "ls .local/share/gnome-shell/extensions/\n";
     assert_screen('firefox-gnomeshell-checkdir', 30);
     type_string "rm -rf .local/share/gnome-shell/extensions/*;exit\n";

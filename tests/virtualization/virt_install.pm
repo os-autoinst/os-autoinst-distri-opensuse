@@ -16,7 +16,7 @@ use testapi;
 
 sub run {
     ensure_installed("virt-install");
-    x11_start_program('xterm', target_match => 'xterm');
+    x11_start_program('xterm');
     become_root;
     script_run("virt-install --name TESTING --memory 512 --disk none --boot cdrom --graphics vnc &");
     x11_start_program('vncviewer :0', target_match => 'virtman-sle12sp1-gnome_virt-install', match_timeout => 100);

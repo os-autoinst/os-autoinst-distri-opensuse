@@ -18,7 +18,7 @@ use testapi;
 
 sub run {
     # download test text file from x11regression data directory
-    x11_start_program("wget " . autoinst_url . "/data/x11regressions/test.txt");
+    x11_start_program("wget " . autoinst_url . "/data/x11regressions/test.txt", valid => 0);
 
     # open test text file locally
     x11_start_program('gedit ' . 'test.txt', target_match => 'gedit-file-opened');
@@ -53,7 +53,7 @@ sub run {
     wait_screen_change { send_key "ctrl-q"; };
 
     # clean up saved file
-    x11_start_program("rm " . "test.txt");
+    x11_start_program("rm " . "test.txt", valid => 0);
 }
 
 1;

@@ -32,7 +32,7 @@ sub run {
     # Exit
     $self->exit_firefox;
 
-    x11_start_program('xterm', target_match => 'xterm');
+    x11_start_program('xterm');
     send_key "ctrl-l";
     wait_still_screen 3;
     type_string "ls Downloads/\n";

@@ -17,7 +17,7 @@ use utils;
 
 sub turn_off_screensaver {
     # Turn off screensaver
-    x11_start_program('xterm', target_match => 'xterm');
+    x11_start_program('xterm');
 
     # in case we rebooted
     assert_script_sudo "chown $testapi::username /dev/$testapi::serialdev";

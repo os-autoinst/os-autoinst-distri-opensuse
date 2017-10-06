@@ -32,7 +32,7 @@ sub run {
     $self->configure_static_ip_nm('10.0.2.15/15');
 
     # Add the firewall port for VNC
-    x11_start_program('xterm', target_match => 'xterm');
+    x11_start_program('xterm');
     become_root;
     assert_script_run 'yast2 firewall services add zone=EXT service=service:vnc-server';
     type_string "exit\n";

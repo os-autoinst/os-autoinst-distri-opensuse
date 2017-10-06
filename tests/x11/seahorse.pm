@@ -20,7 +20,7 @@ use strict;
 use testapi;
 
 sub run {
-    x11_start_program('seahorse', target_match => 'seahorse-launched');
+    x11_start_program('seahorse');
     send_key "ctrl-n";                                # New keyring
     assert_screen "seahorse-keyring-selector";        # Dialog "Select type to create"
     assert_and_dclick "seahorse-password-keyring";    # Selection: Password keyring

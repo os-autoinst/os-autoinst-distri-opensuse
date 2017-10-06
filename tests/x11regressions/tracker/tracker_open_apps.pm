@@ -18,7 +18,7 @@ use testapi;
 
 
 sub run {
-    x11_start_program("tracker-needle", target_match => 'tracker-needle-launched');
+    x11_start_program('tracker-needle');
     type_string "cheese";
     assert_screen 'tracker-search-cheese';
     wait_screen_change { send_key 'tab' };

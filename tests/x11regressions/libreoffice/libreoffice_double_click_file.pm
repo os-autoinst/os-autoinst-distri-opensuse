@@ -21,7 +21,7 @@ sub run {
     $self->upload_libreoffice_specified_file();
 
     # open gnome file manager- nautilus for testing
-    x11_start_program('nautilus', target_match => 'nautilus-launched');
+    x11_start_program('nautilus');
     send_key_until_needlematch("nautilus-Documents-matched", "right");
     send_key "ret";
     wait_still_screen(3);

@@ -18,7 +18,7 @@ use testapi;
 
 
 sub run {
-    x11_start_program("tracker-preferences", target_match => 'tracker_pref_launched');
+    x11_start_program('tracker-preferences');
     send_key "alt-f4";
 }
 

@@ -17,7 +17,7 @@ use testapi;
 
 sub run {
     ensure_installed("gimp");
-    x11_start_program('gimp', target_match => 'test-gimp-1');
+    x11_start_program('gimp');
     send_key "alt-f4";    # Exit
 }
 

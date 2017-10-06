@@ -16,7 +16,7 @@ use testapi;
 
 sub run {
     mouse_hide(1);
-    x11_start_program('gnome-tweak-tool', target_match => 'gnome-tweak-tool-started');
+    x11_start_program('gnome-tweak-tool');
     assert_and_click "gnome-tweak-tool-fonts";
     assert_screen "gnome-tweak-tool-fonts-dialog";
     send_key "alt-f4";

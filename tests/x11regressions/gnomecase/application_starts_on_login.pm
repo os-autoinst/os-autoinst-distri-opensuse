@@ -139,7 +139,7 @@ sub run {
     }
     $self->alter_status_auto_save_session;
 
-    x11_start_program("firefox");
+    x11_start_program('firefox');
     wait_still_screen;
     $self->firefox_check_default;
     $self->firefox_check_popups;

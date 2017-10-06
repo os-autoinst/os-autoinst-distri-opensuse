@@ -29,7 +29,7 @@ sub undo_redo_once {
 
 sub run {
     my ($self) = @_;
-    x11_start_program('gnote', target_match => 'gnote-first-launched');
+    x11_start_program('gnote');
     send_key "ctrl-n";
     assert_screen 'gnote-new-note';
     type_string "opensuse\nOPENSUSE\n";

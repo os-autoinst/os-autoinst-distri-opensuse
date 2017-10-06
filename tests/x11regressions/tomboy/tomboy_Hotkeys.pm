@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -20,7 +20,7 @@ use testapi;
 sub run {
     my ($self) = @_;
     # open Hotkeys sheet
-    x11_start_program("tomboy note");
+    x11_start_program('tomboy note', valid => 0);
     wait_screen_change { send_key 'alt-e' };
     send_key "p";
     send_key "right";

@@ -112,7 +112,7 @@ sub confirm_insecure_https {
 
 # Setup while waiting for admin dashboard installation
 sub initialize {
-    x11_start_program('xterm', target_match => 'xterm');
+    x11_start_program('xterm');
 
     # Fix permissions
     assert_script_sudo "chown $testapi::username /dev/$testapi::serialdev";

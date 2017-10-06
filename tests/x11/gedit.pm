@@ -17,7 +17,7 @@ use testapi;
 
 sub run {
     my ($self) = @_;
-    x11_start_program('gedit', target_match => 'gedit-launched');
+    x11_start_program('gedit');
     $self->enter_test_text('gedit');
     assert_screen 'test-gedit-1';
     send_key 'alt-f4';

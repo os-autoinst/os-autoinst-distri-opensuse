@@ -12,7 +12,7 @@ sub launch_virtmanager {
     clean_up_desktop();
     # start a console
     # launch virt-manager in an xterm
-    x11_start_program("xterm");
+    x11_start_program('xterm');
     type_string "virt-manager", 50;
     send_key "ret";
     if (check_screen("virt-manager-auth")) {

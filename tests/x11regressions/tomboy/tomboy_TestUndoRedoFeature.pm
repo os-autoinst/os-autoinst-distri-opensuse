@@ -19,7 +19,7 @@ use testapi;
 
 sub run {
     # open tomboy
-    x11_start_program('tomboy note');
+    x11_start_program('tomboy note', valid => 0);
 
     # create a note type something and undo it
     wait_screen_change { send_key 'ctrl-n' };
@@ -68,7 +68,7 @@ sub run {
     wait_screen_change { send_key 'alt-f4' };
 
     # Kill tomboy note
-    x11_start_program('killall tomboy');
+    x11_start_program('killall tomboy', valid => 0);
 }
 
 1;

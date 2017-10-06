@@ -205,7 +205,7 @@ sub test_7 {
 
 sub run {
     select_console 'x11';
-    x11_start_program("xterm -geometry 155x50+5+5");
+    x11_start_program("xterm -geometry 155x50+5+5", target_match => 'xterm');
     become_root;
     # enable debug for detailed messages and easier detection of restart
     assert_script_run 'sed -i \'s/DEBUG="no"/DEBUG="yes"/\' /etc/sysconfig/network/config';

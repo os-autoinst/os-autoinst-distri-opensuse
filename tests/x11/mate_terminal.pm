@@ -18,7 +18,7 @@ use testapi;
 sub run {
     my ($self) = @_;
     mouse_hide(1);
-    x11_start_program('mate-terminal', target_match => 'mate-terminal');
+    x11_start_program('mate-terminal');
     send_key "ctrl-shift-t";
     assert_screen "mate-terminal-second-tab";
     $self->enter_test_text('mate-terminal', cmd => 1);

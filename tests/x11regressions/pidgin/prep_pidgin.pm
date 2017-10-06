@@ -22,7 +22,7 @@ sub pidgin_preparation {
     ensure_installed('pidgin');
 
     # Enable the showoffline
-    x11_start_program('pidgin', target_match => 'pidgin-welcome');
+    x11_start_program('pidgin');
     send_key "alt-c";
 
     # pidgin main winodow is hidden in tray at first run

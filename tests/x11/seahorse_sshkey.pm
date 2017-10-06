@@ -15,7 +15,7 @@ use strict;
 use testapi;
 
 sub run {
-    x11_start_program('seahorse', target_match => 'seahorse-launched');
+    x11_start_program('seahorse');
     send_key "ctrl-n";                            # New Keyring
     assert_screen 'seahorse-keyring-selector';    # Dialog "Select type to create"
     send_key_until_needlematch("seahorse-secure-shell-key", "down");    # Selected secure shell key

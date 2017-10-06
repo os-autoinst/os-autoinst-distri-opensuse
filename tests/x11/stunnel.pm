@@ -19,7 +19,7 @@ use utils;
 use mm_tests;
 
 sub run {
-    x11_start_program('xterm', target_match => 'xterm');
+    x11_start_program('xterm');
     become_root;
     script_run 'cd';
     configure_static_network('10.0.2.11/24');

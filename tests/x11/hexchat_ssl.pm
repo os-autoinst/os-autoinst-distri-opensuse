@@ -7,12 +7,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Case #1459498 - FIPS : hexchat_ssl
-
-# G-Summary: Add hexchat_ssl test case and fips test entry
-#    Add hexchat_ssl.pm test case was located in x11/hexchat_ssl.pm
-#    Add hexchat_ssl.pm test entry in load_fips_tests_misc() in sle/main.pm
-# G-Maintainer: Ben Chou <bchou@suse.com>
+# Summary: FIPS : hexchat_ssl
+# Maintainer: Ben Chou <bchou@suse.com>
+# Tags: testopia#1459498
 
 use base "x11test";
 use strict;
@@ -28,7 +25,7 @@ sub run {
     mouse_set(0, 0);
 
     if (my $url = get_var("XCHAT_URL")) {
-        x11_start_program("$name --url=$url");
+        x11_start_program("$name --url=$url", target_match => "$name-main-window");
     }
     else {
         x11_start_program("$name", target_match => "$name-network-select");

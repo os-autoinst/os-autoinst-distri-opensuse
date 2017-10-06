@@ -22,7 +22,7 @@ use utils;
 
 sub run {
     select_console "x11";
-    x11_start_program('xterm', target_match => 'xterm');
+    x11_start_program('xterm');
 
     # become root, disable packagekit and install all needed packages
     become_root;

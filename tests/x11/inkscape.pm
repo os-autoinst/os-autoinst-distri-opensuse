@@ -17,7 +17,7 @@ use testapi;
 
 sub run {
     ensure_installed('inkscape', timeout => 300);
-    x11_start_program('inkscape', target_match => 'test-inkscape-1');
+    x11_start_program('inkscape');
     send_key "alt-f4";    # Exit
 }
 

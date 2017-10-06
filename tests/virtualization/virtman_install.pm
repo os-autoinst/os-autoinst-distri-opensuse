@@ -20,7 +20,7 @@ sub run {
     # workaround for bug:
     # Bug 948366 - "pkcon install virt-manager" report it will remove
     # the package if this command is run twice
-    x11_start_program('xterm', target_match => 'xterm');
+    x11_start_program('xterm');
     become_root();
     script_run "zypper -n in virt-manager";
     # exit root, and be the default user

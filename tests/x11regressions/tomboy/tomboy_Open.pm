@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -20,7 +20,7 @@ use testapi;
 sub run {
     my ($self) = @_;
     # open start note and take screenshot
-    x11_start_program("tomboy note");
+    x11_start_program('tomboy note', valid => 0);
     send_key "alt-f11";
     send_key "ctrl-home";
     type_string "Rename_";

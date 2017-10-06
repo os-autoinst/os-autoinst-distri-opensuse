@@ -33,7 +33,7 @@ sub go_for_netif {
 
 sub checking_netif_result {
     my $volumes = shift;
-    x11_start_program('xterm', target_match => 'xterm');
+    x11_start_program('xterm');
     send_key "alt-f10";
     become_root();
     type_string "ip link show";

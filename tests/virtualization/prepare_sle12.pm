@@ -33,7 +33,7 @@ sub run {
         send_key "ret";
         save_screenshot;
         # install and launch polkit
-        x11_start_program('xterm', target_match => 'xterm');
+        x11_start_program('xterm');
         become_root();
         script_run "zypper -n in polkit-gnome";
         # exit root, and be the default user
@@ -46,7 +46,7 @@ sub run {
         # auto-login has been selected for gnome
         assert_screen "virt-manager_SLE12_desktop", 520;
     }
-    x11_start_program('xterm', target_match => 'xterm');
+    x11_start_program('xterm');
     become_root;
     script_run("hostname susetest");
     script_run("echo susetest > /etc/hostname");

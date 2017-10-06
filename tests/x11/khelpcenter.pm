@@ -16,7 +16,7 @@ use strict;
 use testapi;
 
 sub run {
-    x11_start_program('khelpcenter', target_match => 'test-khelpcenter-1');
+    x11_start_program('khelpcenter');
     send_key 'alt-f4';
 }
 

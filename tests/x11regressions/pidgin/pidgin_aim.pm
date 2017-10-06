@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -23,7 +23,7 @@ sub run {
     my $DOMAIN    = "aim";
     my $PASSWD    = "opensuse";
 
-    x11_start_program("pidgin");
+    x11_start_program('pidgin');
 
     # Create account
     wait_screen_change { send_key 'alt-a' };

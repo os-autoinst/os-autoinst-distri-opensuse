@@ -18,7 +18,7 @@ use utils;
 
 sub run {
     # Edit file hello.odt using oowriter
-    x11_start_program('oowriter', target_match => 'test-ooffice-1');
+    x11_start_program('oowriter');
     # clicking the writing area to make sure the cursor addressed there
     assert_and_click 'ooffice-writing-area', 'left', 10;
     wait_still_screen;
@@ -33,7 +33,7 @@ sub run {
 
     # Check Recent Documents
     wait_still_screen;
-    x11_start_program('oowriter', target_match => 'test-ooffice-1');
+    x11_start_program('oowriter');
     send_key "alt-f";
     assert_screen 'oowriter-menus-file';
     if (is_tumbleweed) {
@@ -56,7 +56,7 @@ sub run {
     assert_screen 'generic-desktop';
 
     # Clean test file
-    x11_start_program("rm /home/$username/Documents/hello.odt");
+    x11_start_program("rm /home/$username/Documents/hello.odt", valid => 0);
 }
 
 1;

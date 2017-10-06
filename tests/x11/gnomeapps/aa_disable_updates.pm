@@ -16,7 +16,7 @@ use testapi;
 use utils;
 
 sub run {
-    x11_start_program('xterm', target_match => 'xterm');
+    x11_start_program('xterm');
     type_string "gsettings set org.gnome.software download-updates false\n";
     save_screenshot;
     type_string "exit\n";

@@ -22,7 +22,7 @@ sub run {
     assert_and_dclick "hd-volume";
     assert_screen "hd-mounted", 6;
 
-    x11_start_program('xterm', target_match => 'xterm');
+    x11_start_program('xterm');
     script_run "cd `cat /proc/self/mounts | grep /dev/vda2 | cut -d' ' -f2`";
     script_sudo "sh -c 'cat etc/SUSE-brand > /dev/$serialdev'";
     wait_serial("VERSION = 13.1", 2) || die "Not SUSE-brand found";

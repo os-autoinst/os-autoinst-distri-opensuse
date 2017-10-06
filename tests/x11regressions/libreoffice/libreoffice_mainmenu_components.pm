@@ -45,7 +45,7 @@ sub select_base_and_cleanup {
     send_key "ctrl-q";    #close base
 
     # clean the test database file
-    x11_start_program('xterm', target_match => 'xterm');
+    x11_start_program('xterm');
     assert_script_run "find /home/$username -name testdatabase.odb | xargs rm";
     send_key 'alt-f4';
 }

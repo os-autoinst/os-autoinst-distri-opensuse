@@ -17,7 +17,7 @@ use testapi;
 use registration 'fill_in_registration_data';
 
 sub run {
-    x11_start_program('xterm', target_match => 'xterm');
+    x11_start_program('xterm');
     # add every used addon to regurl for proxy SCC
     if (get_var('SCC_ADDONS')) {
         my @addon_proxy = ("url: http://server-" . get_var('BUILD_SLE'));

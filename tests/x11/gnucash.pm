@@ -21,7 +21,7 @@ sub run {
 
     # needed for viewing
     ensure_installed("yelp");
-    x11_start_program('gnucash', target_match => 'test-gnucash-1');
+    x11_start_program('gnucash');
     send_key "ctrl-h";    # open user tutorial
     assert_screen 'test-gnucash-2';
     # Leave tutorial window

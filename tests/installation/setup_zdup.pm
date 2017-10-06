@@ -21,7 +21,7 @@ sub run {
 
     $self->wait_boot(ready_time => 600);
     if (get_var('ZDUP_IN_X')) {
-        x11_start_program('xterm', target_match => 'xterm');
+        x11_start_program('xterm');
         become_root;
     }
     else {

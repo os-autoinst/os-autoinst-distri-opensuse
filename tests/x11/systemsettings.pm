@@ -16,7 +16,7 @@ use strict;
 use testapi;
 
 sub run {
-    x11_start_program('systemsettings', target_match => 'test-systemsettings-1');
+    x11_start_program('systemsettings');
     send_key "alt-f4";
 }
 

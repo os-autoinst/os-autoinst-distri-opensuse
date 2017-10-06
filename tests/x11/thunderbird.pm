@@ -17,7 +17,7 @@ use testapi;
 
 sub run {
     ensure_installed("MozillaThunderbird");
-    x11_start_program('thunderbird', target_match => 'test-thunderbird-1');
+    x11_start_program('thunderbird');
     wait_screen_change {
         send_key "alt-f4";    # close wizard
     };

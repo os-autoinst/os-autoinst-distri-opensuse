@@ -19,10 +19,10 @@ use utils;
 
 # Smoke test: launch some applications
 sub application_test {
-    x11_start_program('gnome-terminal', target_match => 'gnome-terminal');
+    x11_start_program('gnome-terminal');
     send_key "alt-f4";
 
-    x11_start_program('nautilus', target_match => 'test-nautilus-1');
+    x11_start_program('nautilus');
     send_key "alt-f4";
 }
 

@@ -16,7 +16,7 @@ use strict;
 use testapi;
 
 sub run {
-    x11_start_program('nautilus', target_match => 'test-nautilus-1');
+    x11_start_program('nautilus');
     send_key "alt-f4";
 }
 

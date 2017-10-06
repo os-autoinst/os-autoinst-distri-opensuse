@@ -18,7 +18,7 @@ use testapi;
 
 
 sub run {
-    x11_start_program('gnote', target_match => 'gnote-first-launched');
+    x11_start_program('gnote');
     send_key "ctrl-n";
     assert_screen 'gnote-new-note', 5;
     send_key "up";

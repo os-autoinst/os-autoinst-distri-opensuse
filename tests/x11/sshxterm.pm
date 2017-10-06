@@ -18,7 +18,7 @@ use testapi;
 sub run {
     my ($self) = @_;
     mouse_hide(1);
-    x11_start_program('xterm', target_match => 'xterm');
+    x11_start_program('xterm');
     type_string("ssh -XC root\@localhost xterm\n");
     assert_screen([qw(ssh-xterm-host-key-authentication ssh-password-prompt)]);
     # if ssh asks for authentication of the key accept it

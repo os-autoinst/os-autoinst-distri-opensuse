@@ -29,7 +29,7 @@ sub run {
     mutex_lock 'xdmcp';
 
     # Make sure the client gets the IP address and configure the firewall
-    x11_start_program('xterm', target_match => 'xterm');
+    x11_start_program('xterm');
     become_root;
     assert_script_run 'dhclient';
     assert_script_run 'yast2 firewall services add zone=EXT service=service:xdmcp';

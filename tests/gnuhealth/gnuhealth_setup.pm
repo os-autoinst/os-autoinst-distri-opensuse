@@ -17,7 +17,7 @@ use utils 'leap_version_at_least';
 
 sub run() {
     my ($self) = @_;
-    x11_start_program('xterm', target_match => 'xterm');
+    x11_start_program('xterm');
     become_root;
     assert_script_run 'systemctl start postgresql';
     wait_screen_change { script_run 'su postgres', 0 };

@@ -19,7 +19,7 @@ use utils;
 
 
 sub run {
-    x11_start_program('xterm', target_match => 'xterm');
+    x11_start_program('xterm');
     if (sle_version_at_least('12-SP2')) {
         script_run "tracker search newfile";
     }

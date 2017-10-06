@@ -23,7 +23,7 @@ sub run {
     $self->upload_libreoffice_specified_file();
 
     # check libreoffice dialogs setting
-    x11_start_program('libreoffice', target_match => 'welcome-to-libreoffice');
+    x11_start_program('libreoffice');
     $self->check_libreoffice_dialogs();
 
     # open test files of different formats

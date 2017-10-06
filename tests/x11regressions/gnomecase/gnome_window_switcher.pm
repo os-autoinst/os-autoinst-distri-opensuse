@@ -16,11 +16,11 @@ use testapi;
 
 sub run {
     # Launch 3 applications
-    x11_start_program('nautilus', target_match => 'nautilus-launched');
+    x11_start_program('nautilus');
     send_key "super-h";    # Minimize the window
-    x11_start_program('gedit', target_match => 'gedit-launched');
+    x11_start_program('gedit');
     send_key "super-h";    # Minimize the window
-    x11_start_program('totem', target_match => 'test-totem-started');
+    x11_start_program('totem');
     send_key "super-h";    # Minimize the window
 
     # Switch windowns with alt+tab

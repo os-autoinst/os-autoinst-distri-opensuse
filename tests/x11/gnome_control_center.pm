@@ -20,7 +20,7 @@ use testapi;
 sub run {
     mouse_hide(1);
     # for timeout selection see bsc#965857
-    x11_start_program('gnome-control-center', target_match => 'gnome-control-center-started', match_timeout => 120);
+    x11_start_program('gnome-control-center', match_timeout => 120);
     if (match_has_tag('gnome-control-center-new-layout')) {
         # with GNOME 3.26, the control-center got a different layout / workflow
         type_string "about";

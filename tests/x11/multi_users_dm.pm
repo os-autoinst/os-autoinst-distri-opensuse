@@ -71,7 +71,7 @@ sub run {
     handle_login;
     assert_screen 'generic-desktop', 60;
     # verify correct user is logged in
-    x11_start_program('xterm', target_match => 'xterm');
+    x11_start_program('xterm');
     wait_still_screen;
     type_string "whoami|grep $user > /tmp/whoami.log\n";
     assert_script_sudo "grep $user /tmp/whoami.log";

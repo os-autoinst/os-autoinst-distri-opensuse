@@ -33,7 +33,7 @@ sub run {
     zypper_call("in piglit", exitcode => [0, 102, 103]);
 
     select_console('x11');
-    x11_start_program('xterm', target_match => 'xterm');
+    x11_start_program('xterm');
 
     # prepare results dir
     script_run("mkdir -p /tmp/p_results");

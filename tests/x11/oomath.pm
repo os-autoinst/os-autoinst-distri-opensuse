@@ -17,7 +17,7 @@ use strict;
 use testapi;
 
 sub run {
-    x11_start_program('oomath', target_match => 'oomath-textfield-ready');
+    x11_start_program('oomath');
     type_string "E %PHI = H %PHI\nnewline\n1 = 1";
     wait_still_screen(1);
 

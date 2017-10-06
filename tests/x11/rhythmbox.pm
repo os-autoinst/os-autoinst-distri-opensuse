@@ -16,7 +16,7 @@ use strict;
 use testapi;
 
 sub run {
-    x11_start_program('rhythmbox', target_match => 'test-rhythmbox-1');
+    x11_start_program('rhythmbox');
     send_key "alt-f4";
 }
 

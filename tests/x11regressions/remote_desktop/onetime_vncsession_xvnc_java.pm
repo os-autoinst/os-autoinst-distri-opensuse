@@ -32,7 +32,7 @@ sub run {
     mutex_lock 'xvnc';
 
     # Make sure the client gets the IP address
-    x11_start_program('xterm', target_match => 'xterm');
+    x11_start_program('xterm');
     become_root;
     assert_script_run 'dhclient';
     type_string "exit\n";

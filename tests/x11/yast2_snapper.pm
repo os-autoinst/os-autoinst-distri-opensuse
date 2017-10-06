@@ -26,7 +26,7 @@ sub run {
     ensure_installed "yast2-snapper";
 
     # Start an xterm as root
-    x11_start_program('xterm', target_match => 'xterm');
+    x11_start_program('xterm');
     # Disable screen lock and blank screen for current Gnome session
     if (check_var('DESKTOP', 'gnome')) {
         assert_script_run('gsettings set org.gnome.desktop.session idle-delay 0');

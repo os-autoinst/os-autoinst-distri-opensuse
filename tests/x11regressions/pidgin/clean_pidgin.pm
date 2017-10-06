@@ -18,7 +18,7 @@ use utils 'clear_console';
 
 sub remove_pkg {
     my @packages = qw(pidgin);
-    x11_start_program('xterm', target_match => 'xterm');
+    x11_start_program('xterm');
 
     # Remove packages
     assert_script_sudo "rpm -e @packages";

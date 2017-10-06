@@ -55,10 +55,10 @@ sub run {
 
     select_console 'x11';
     # Reload theme to hide panel text
-    x11_start_program "rt";
+    x11_start_program('rt', target_match => 'generic-desktop');
 
     # Start xev event watcher
-    x11_start_program('xterm', target_match => 'xterm');
+    x11_start_program('xterm');
     send_key "super-right";
     type_string "DISPLAY=$display xev\n";
 

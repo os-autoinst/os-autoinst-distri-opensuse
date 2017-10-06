@@ -1,6 +1,6 @@
 # Gnome tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -18,7 +18,7 @@ use utils;
 
 sub run {
     # Prepare test files
-    x11_start_program('xterm', target_match => 'xterm');
+    x11_start_program('xterm');
 
     my @applications = (
         ['image/jpg',           'eog.desktop'],
@@ -39,7 +39,7 @@ sub run {
 }
 
 sub clear_application_environment {
-    x11_start_program("rm -rf /home/$username/gnometest");    # Clean the test directory
+    x11_start_program("rm -rf /home/$username/gnometest", valid => 0);    # Clean the test directory
 }
 
 sub prepare_application_environment {
@@ -52,7 +52,7 @@ sub prepare_application_environment {
     assert_script_run "tar czvf /home/$username/gnometest/test.tar.gz -C /home/$username/gnometest/ test.pdf";
 
     # Open nautilus
-    x11_start_program('nautilus', target_match => 'nautilus-launched');
+    x11_start_program('nautilus');
     send_key "ctrl-l";
     type_string "/home/$username/gnometest\n";
     send_key "ret";

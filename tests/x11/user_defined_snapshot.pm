@@ -34,7 +34,7 @@ sub y2snapper_create_snapshot {
 sub run {
     my $self = shift;
     # Start an xterm as root
-    x11_start_program('xterm', target_match => 'xterm');
+    x11_start_program('xterm');
     become_root;
     script_run "cd";
 

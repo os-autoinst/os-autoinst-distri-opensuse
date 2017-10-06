@@ -46,7 +46,7 @@ sub run {
 
     select_console 'x11';
 
-    x11_start_program('xterm', target_match => 'xterm');
+    x11_start_program('xterm');
     mouse_hide(1);
 
     #Launch x3270

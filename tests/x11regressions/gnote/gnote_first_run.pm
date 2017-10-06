@@ -23,7 +23,7 @@ sub run {
         zypper_call('in gnote');
         select_console('x11');
     }
-    x11_start_program('gnote', target_match => 'gnote-first-launched');
+    x11_start_program('gnote');
     send_key "ctrl-w";
 }
 

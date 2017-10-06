@@ -18,7 +18,7 @@ use testapi;
 sub run {
     my ($self) = @_;
     mouse_hide(1);
-    x11_start_program('gnome-terminal', target_match => 'gnome-terminal');
+    x11_start_program('gnome-terminal');
     send_key "ctrl-shift-t";
     if (!check_screen "gnome-terminal-second-tab") {
         record_info('workaround', 'gnome_terminal does not open second terminal when shortcut is pressed (see bsc#999243)');

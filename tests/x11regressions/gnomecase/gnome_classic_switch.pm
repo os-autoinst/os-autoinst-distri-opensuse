@@ -19,12 +19,12 @@ use utils;
 # applications are called twiced
 sub application_test {
     my ($self) = @_;
-    x11_start_program('gnome-terminal', target_match => 'gnome-terminal-launched');
+    x11_start_program('gnome-terminal');
     send_key "alt-f4";
     send_key "ret";
     wait_still_screen;
 
-    x11_start_program "firefox";
+    x11_start_program('firefox');
     $self->firefox_check_default;
     $self->firefox_check_popups;
     assert_screen "firefox-gnome", 150;

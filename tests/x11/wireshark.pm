@@ -36,7 +36,7 @@ use utils;
 
 sub run {
     select_console 'x11';
-    x11_start_program('xterm', target_match => 'xterm');
+    x11_start_program('xterm');
     become_root;
     pkcon_quit;
     zypper_call "in wireshark";

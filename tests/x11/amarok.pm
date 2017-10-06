@@ -17,7 +17,7 @@ use testapi;
 
 sub run {
     ensure_installed("amarok");
-    x11_start_program('amarok', target_match => 'test-amarok-1');
+    x11_start_program('amarok');
     send_key "alt-y";    # use music path as collection folder
                          # a workaround for librivox authentication popup window.
                          # and don't put this after opening oga file, per video

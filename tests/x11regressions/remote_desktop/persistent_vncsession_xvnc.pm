@@ -57,7 +57,7 @@ sub run {
     mutex_lock 'xvnc';
 
     # Make sure the client gets the IP address
-    x11_start_program('xterm', target_match => 'xterm');
+    x11_start_program('xterm');
     become_root;
     assert_script_run 'dhclient';
     type_string "exit\n";
@@ -67,7 +67,7 @@ sub run {
     $self->start_vncviewer;
     handle_login;
     assert_screen 'generic-desktop';
-    x11_start_program('gnome-terminal', target_match => 'gnome-terminal-launched');
+    x11_start_program('gnome-terminal');
     type_string "vncmanager-controller\n";
     assert_screen 'vncmanager-controller';
     assert_and_click 'vncmanager-controller-visibility';

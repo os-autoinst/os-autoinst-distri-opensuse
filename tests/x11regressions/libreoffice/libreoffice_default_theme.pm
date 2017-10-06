@@ -17,7 +17,7 @@ use utils;
 use strict;
 
 sub check_lo_theme {
-    x11_start_program('ooffice', target_match => 'welcome-to-libreoffice');
+    x11_start_program('ooffice');
     if (is_tumbleweed) {
         send_key 'alt-f12';
     }
@@ -40,7 +40,7 @@ sub run {
     $self->check_lo_theme;
 
     # Set LO GUI toolkit var to none
-    x11_start_program('xterm', target_match => 'xterm');
+    x11_start_program('xterm');
     assert_script_run 'export OOO_FORCE_DESKTOP="none"';
     type_string "cd\n";
     clear_console;
@@ -52,7 +52,7 @@ sub run {
     $self->check_lo_theme;
 
     # Unset LO GUI toolkit var
-    x11_start_program('xterm', target_match => 'xterm');
+    x11_start_program('xterm');
     assert_script_run 'unset OOO_FORCE_DESKTOP';
     send_key 'alt-f4';    # Quit xterm
 }
