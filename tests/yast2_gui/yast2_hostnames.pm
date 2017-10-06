@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -28,9 +28,7 @@ sub run {
     #	add 1 entry to /etc/hosts and edit it later
     script_run "echo '80.92.65.530    n-tv.de ntv' >> /etc/hosts";
     select_console 'x11', await_console => 0;
-
-    $self->launch_yast2_module_x11($module);
-
+    $self->launch_yast2_module_x11('host');
     assert_and_click "yast2_hostnames_added";
     wait_still_screen 1;
     wait_screen_change { send_key 'alt-i'; };

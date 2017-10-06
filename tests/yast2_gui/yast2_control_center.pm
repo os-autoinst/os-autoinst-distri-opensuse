@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -270,8 +270,7 @@ sub start_printer {
 
 sub run {
     my $self = shift;
-    $self->launch_yast2_module_x11;
-    assert_screen 'yast2-control-center-ui', timeout => 180;
+    $self->launch_yast2_module_x11('', target_match => 'yast2-control-center-ui', match_timeout => 180);
 
     # search module by typing string
     search('add');

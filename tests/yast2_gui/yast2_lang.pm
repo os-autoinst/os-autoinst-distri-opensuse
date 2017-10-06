@@ -19,11 +19,8 @@ use strict;
 use testapi;
 
 sub run {
-    my $self   = shift;
-    my $module = "language";
-
-    $self->launch_yast2_module_x11($module);
-    assert_screen "yast2-$module-ui", 60;
+    my $self = shift;
+    $self->launch_yast2_module_x11('language', match_timeout => 60);
 
     # check language details and change detailed locale setting
     assert_and_click 'yast2-lang_details';

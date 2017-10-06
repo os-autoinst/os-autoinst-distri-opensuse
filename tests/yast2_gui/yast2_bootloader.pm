@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -22,11 +22,8 @@ use testapi;
 use utils 'ensure_unlocked_desktop';
 
 sub run {
-    my $self   = shift;
-    my $module = "bootloader";
-
-    $self->launch_yast2_module_x11($module);
-    assert_screen "yast2-$module-ui", 120;
+    my $self = shift;
+    $self->launch_yast2_module_x11('bootloader', match_timeout => 120);
 
     #	boot code options
     assert_and_click 'yast2-bootloader_grub2';

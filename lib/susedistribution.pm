@@ -98,10 +98,34 @@ sub init_cmd {
     ## keyboard cmd vars end
 }
 
-sub x11_start_program($$$) {
-    my ($self, $program, $timeout, $options) = @_;
+=head2 x11_start_program
+
+  x11_start_program($program [, timeout => $timeout ] [, no_wait => 0|1 ] [, valid => 0|1, [target_match => $target_match, ] [match_timeout => $match_timeout, ]]);
+
+Start the program C<$program> in an X11 session using the I<desktop-runner>.
+
+The timeout for C<check_screen> for I<desktop-runner> can be configured with
+optional C<$timeout>. Specify C<no_wait> to skip the C<wait_still_screen>
+after the typing of C<$program>. Overwrite C<valid> with a false value to exit
+after I<desktop-runner> executed without checking for the result. C<valid=1>
+is especially useful when the used I<desktop-runner> has an auto-completion
+feature which can cause high load while typing potentially causing the
+subsequent C<ret> to fail. Additionally tags can be specified in
+C<$target_match> to check for on C<valid> with C<assert_screen> after
+executing the command to launch C<$program>. C<$match_timeout> can be
+specified to configure the timeout on that internal C<assert_screen>.
+
+The combination of C<no_wait> with C<valid> and C<target_match> is the
+preferred solution for the most efficient approach by saving time within
+tests.
+
+=cut
+
+sub x11_start_program {
+    my ($self, $program, %args) = @_;
+    my $timeout = $args{timeout};
     # enable valid option as default
-    $options->{valid} //= 1;
+    $args{valid} //= 1;
     die "no desktop-runner available on minimalx" if check_var('DESKTOP', 'minimalx');
     send_key 'alt-f2';
     mouse_hide(1);
@@ -120,23 +144,21 @@ sub x11_start_program($$$) {
         type_string $program;
     }
     wait_still_screen(1);
-    if ($options->{terminal}) {
-        wait_screen_change { send_key 'alt-t' };
-    }
     save_screenshot;
     send_key 'ret';
-    wait_still_screen unless $options->{no_wait};
-    # lrunner has auto-completion feature, sometimes it causes high load while
-    # typing and the following 'ret' fails to work
-    # make sure desktop runner executed and closed when have had valid value
-    # exec x11_start_program( $program, $timeout, { valid => 1 } );
-    if ($options->{valid}) {
-        for (1 .. 3) {
-            last unless check_screen 'desktop-runner-border', 2;
-            wait_screen_change {
-                send_key 'ret';
-            };
+    wait_still_screen(3) unless ($args{no_wait} || ($args{valid} && $args{target_match}));
+    return unless $args{valid};
+    for (1 .. 3) {
+        if ($args{target_match}) {
+            assert_screen([ref $args{target_match} eq 'ARRAY' ? @{$args{target_match}} : $args{target_match}, 'desktop-runner-border'], $args{match_timeout});
+            last unless match_has_tag 'desktop-runner-border';
         }
+        else {
+            last unless check_screen 'desktop-runner-border', 2;
+        }
+        wait_screen_change {
+            send_key 'ret';
+        };
     }
 }
 
