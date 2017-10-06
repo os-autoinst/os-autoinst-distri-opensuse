@@ -54,8 +54,11 @@ sub run {
     # login created user
     assert_screen 'multi_users_dm';
     wait_still_screen;
-    if (check_var('DESKTOP', 'gnome') || check_var('DESKTOP', 'xfce')) {
-        send_key 'down';    # select created user #01
+    if (check_var('DESKTOP', 'gnome')) {
+        send_key_until_needlematch('user#01_selected', 'up', 5, 3);    # select created user #01
+    }
+    elsif (check_var('DESKTOP', 'xfce')) {
+        send_key 'down';                                               # select created user #01
     }
     elsif (check_var('DESKTOP', 'kde')) {
         for (1 .. 6) {
