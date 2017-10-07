@@ -28,7 +28,7 @@ sub launch_yast2_module_x11 {
     type_password;
     save_screenshot;
     send_key 'ret';
-    assert_screen $args{target_match};
+    assert_screen $args{target_match}, $args{match_timeout};
 }
 
 sub post_fail_hook {
