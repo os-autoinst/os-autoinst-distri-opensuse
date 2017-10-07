@@ -100,7 +100,7 @@ sub init_cmd {
 
 =head2 x11_start_program
 
-  x11_start_program($program [, timeout => $timeout ] [, no_wait => 0|1 ] [, valid => 0|1, [target_match => $target_match, ] [match_timeout => $match_timeout, ]]);
+  x11_start_program($program [, timeout => $timeout ] [, no_wait => 0|1 ] [, valid => 0|1, [target_match => $target_match, ] [match_timeout => $match_timeout, ] [match_no_wait => 0|1 ]]);
 
 Start the program C<$program> in an X11 session using the I<desktop-runner>
 and looking for a target screen to match.
@@ -115,7 +115,8 @@ subsequent C<ret> to fail. By default C<x11_start_program> looks for a screen
 tagged with the value of C<$program> with C<assert_screen> after executing the
 command to launch C<$program>. The tag(s) can be customized with the parameter
 C<$target_match>. C<$match_timeout> can be specified to configure the timeout
-on that internal C<assert_screen>.
+on that internal C<assert_screen>. Specify C<match_no_wait> to forward the
+C<no_wait> option to the internal C<assert_screen>.
 
 The combination of C<no_wait> with C<valid> and C<target_match> is the
 preferred solution for the most efficient approach by saving time within
@@ -129,8 +130,9 @@ sub x11_start_program {
     my ($self, $program, %args) = @_;
     my $timeout = $args{timeout};
     # enable valid option as default
-    $args{valid} //= 1;
-    $args{target_match} //= $program;
+    $args{valid}         //= 1;
+    $args{target_match}  //= $program;
+    $args{match_no_wait} //= 0;
     die "no desktop-runner available on minimalx" if check_var('DESKTOP', 'minimalx');
     send_key 'alt-f2';
     mouse_hide(1);
@@ -154,7 +156,8 @@ sub x11_start_program {
     wait_still_screen(3) unless ($args{no_wait} || ($args{valid} && $args{target_match}));
     return unless $args{valid};
     for (1 .. 3) {
-        assert_screen([ref $args{target_match} eq 'ARRAY' ? @{$args{target_match}} : $args{target_match}, 'desktop-runner-border'], $args{match_timeout});
+        assert_screen([ref $args{target_match} eq 'ARRAY' ? @{$args{target_match}} : $args{target_match}, 'desktop-runner-border'],
+            $args{match_timeout}, no_wait => $args{match_no_wait});
         last unless match_has_tag 'desktop-runner-border';
         wait_screen_change {
             send_key 'ret';
