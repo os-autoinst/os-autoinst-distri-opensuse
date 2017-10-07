@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -14,6 +14,7 @@
 use base "consoletest";
 use strict;
 use testapi;
+use utils;
 
 
 our $date_re = qr/[0-9]{4}-[0-9]{2}-[0-9]{2}/;
@@ -91,8 +92,10 @@ sub run {
     select_console 'user-console';
     # verify that package eol defaults to product eol
     $output = script_output "zypper lifecycle $package", 300;
-    die "$package lifecycle entry incorrect:'$output', expected: '/$package-\\S+\\s+$product_eol'"
-      unless $output =~ /$package(-\S+)?\s+$product_eol/;
+    unless ($output =~ /$package(-\S+)?\s+$product_eol/) {
+        return record_soft_failure 'bsc#1057788' if (is_sle && sle_version_at_least('15'));
+        die "$package lifecycle entry incorrect:'$output', expected: '/$package-\\S+\\s+$product_eol'";
+    }
 
     # restore original data, if any
     select_console 'root-console';
