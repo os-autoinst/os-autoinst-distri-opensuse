@@ -17,5 +17,9 @@ sub run {
     assert_script_run('getent passwd sshboy > /dev/null && userdel -fr sshboy');
 }
 
+sub test_flags {
+    return {milestone => 1};
+}
+
 1;
 # vim: set sw=4 et:
