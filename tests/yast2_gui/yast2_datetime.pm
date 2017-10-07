@@ -20,7 +20,7 @@ use testapi;
 
 sub run {
     my $self = shift;
-    $self->launch_yast2_module_x11('timezone', target_match => [qw(yast2-datetime-ui yast2-datetime_ntp-conf)]);
+    $self->launch_yast2_module_x11('timezone', target_match => [qw(yast2-datetime-ui yast2-datetime_ntp-conf)], match_timeout => 90);
     if (match_has_tag 'yast2-datetime_ntp-conf') {
         send_key 'alt-d';
         send_key 'alt-o';
