@@ -45,12 +45,13 @@ sub run {
     # do search for openSUSE
     validate_script_output("docker search  --no-trunc opensuse", sub { m/This project contains the stable releases of the openSUSE distribution/ });
 
-    # pull minimalistic alpine image
+    my $alpine_image_version = '3.5';
+    # pull minimalistic alpine image of declared version
     # https://store.docker.com/images/alpine
-    assert_script_run("docker pull alpine", 300);
+    assert_script_run("docker pull alpine:$alpine_image_version", 300);
 
     # Check if the alpine image has been fetched
-    assert_script_run("docker images -q alpine:latest");
+    assert_script_run("docker images -q alpine:$alpine_image_version");
 
     # pull hello-world image, typical docker demo image
     # https://store.docker.com/images/hello-world
@@ -63,20 +64,20 @@ sub run {
     validate_script_output("docker run --name test_1 hello-world", sub { m/Hello from Docker/ });
 
     # run hello world from alpine and name it test_2
-    validate_script_output("docker run --name test_2 alpine /bin/echo Hello world", sub { m/Hello world/ });
+    validate_script_output("docker run --name test_2 alpine:$alpine_image_version /bin/echo Hello world", sub { m/Hello world/ });
 
     # Check that we have 2 containers with the proper naming scheme
     validate_script_output("docker ps -a", sub { m/test_1/ });
     validate_script_output("docker ps -a", sub { m/test_2/ });
 
     # run hello world from alpine as an ephemeral container
-    validate_script_output("docker run --name test_ephemeral --rm alpine /bin/echo Hello world", sub { m/Hello world/ });
+    validate_script_output("docker run --name test_ephemeral --rm alpine:$alpine_image_version /bin/echo Hello world", sub { m/Hello world/ });
 
     # list docker images
     validate_script_output("docker images", sub { m/alpine/ });
 
     # run alpine container on background and get back its id
-    my ($container_id) = script_output("docker run -d -t -i alpine /bin/sh") =~ /(.+)/;
+    my ($container_id) = script_output("docker run -d -t -i alpine:$alpine_image_version /bin/sh") =~ /(.+)/;
 
     # check that alpine container is running (in background)
     script_run("docker inspect --format='{{.State.Running}}' ${container_id}");
@@ -89,14 +90,14 @@ sub run {
     validate_script_output("docker inspect --format='{{.State.Running}}' ${container_id}", sub { m/false/ });
 
     # network test
-    script_run("docker run --rm alpine wget http://google.com && echo 'container_network_works' > /dev/$serialdev", 0);
+    script_run("docker run --rm alpine:$alpine_image_version wget http://google.com && echo 'container_network_works' > /dev/$serialdev", 0);
     die("network does not work inside of the container") unless wait_serial("container_network_works", 200);
 
     # remove all containers related to alpine and hello-world
-    assert_script_run("docker rm \$(docker ps -a | grep 'alpine\\|hello-world' | awk '{print \$1}')");
+    assert_script_run("docker rm \$(docker ps -a | grep 'alpine:$alpine_image_version\\|hello-world' | awk '{print \$1}')");
 
     # Remove the alpine and hello-world images
-    assert_script_run("docker images | grep 'alpine\\|hello-world' | awk '{print \$1}' | xargs docker rmi");
+    assert_script_run("docker images | grep 'alpine:$alpine_image_version\\|hello-world' | awk '{print \$1}' | xargs docker rmi");
 
 }
 
