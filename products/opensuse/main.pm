@@ -858,8 +858,7 @@ elsif (get_var('SECURITYTEST')) {
     }
 }
 elsif (get_var('SYSTEMD_TESTSUITE')) {
-    boot_hdd_image;
-    loadtest 'console/systemd_testsuite';
+    load_systemd_patches_tests;
 }
 else {
     if (get_var("LIVETEST") || get_var('LIVE_INSTALLATION')) {

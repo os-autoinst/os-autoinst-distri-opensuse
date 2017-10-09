@@ -57,6 +57,7 @@ our @EXPORT = qw(
   load_security_tests_web
   load_security_tests_misc
   load_security_tests_crypt
+  load_systemd_patches_tests
 );
 
 sub init_main {
@@ -753,6 +754,11 @@ sub load_security_tests_crypt {
     loadtest "console/yast2_dm_crypt";
     loadtest "console/cryptsetup";
     loadtest "console/consoletest_finish";
+}
+
+sub load_systemd_patches_tests {
+    boot_hdd_image;
+    loadtest 'console/systemd_testsuite';
 }
 
 1;
