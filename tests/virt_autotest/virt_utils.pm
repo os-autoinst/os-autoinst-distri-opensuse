@@ -26,9 +26,17 @@ use virt_autotest_base;
 
 our @EXPORT = qw(repl_repo_in_sourcefile);
 
+sub get_version_for_daily_build_guest {
+    my $version = lc(get_var("VERSION"));
+    if ($version !~ /sp/m) {
+        $version = $version . "-fcs";
+    }
+    return $version;
+}
+
 sub repl_repo_in_sourcefile {
     # Replace the daily build repo as guest installation resource in source file (like source.cn; source.de ..)
-    my $veritem = "source.http.sles-" . lc(get_var("VERSION")) . "-64";
+    my $veritem = "source.http.sles-" . get_version_for_daily_build_guest . "-64";
     if (get_var("REPO_0")) {
         my $location = &virt_autotest_base::execute_script_run("", "perl /usr/share/qa/tools/location_detect_impl.pl", 60);
         $location =~ s/[\r\n]+$//;
@@ -37,7 +45,7 @@ sub repl_repo_in_sourcefile {
         my $shell_cmd
           = "if grep $veritem $soucefile >> /dev/null;then sed -i \"s#$veritem=.*#$veritem=$newrepo#\" $soucefile;else echo \"$veritem=$newrepo\" >> $soucefile;fi";
         assert_script_run($shell_cmd);
-        assert_script_run("cat $soucefile");
+        assert_script_run("grep \"$veritem\" $soucefile");
     }
     else {
         print "Do not need to change resource for $veritem item\n";
