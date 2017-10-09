@@ -643,9 +643,11 @@ sub load_inst_tests {
         loadtest "installation/installer_timezone";
         # the test should run only in scenarios, where installed
         # system is not being tested (e.g. INSTALLONLY etc.)
+        # The test also won't work reliably when network is bridged (non-s390x svirt).
         if (    !consolestep_is_applicable()
             and !get_var("REMOTE_CONTROLLER")
             and !is_hyperv_in_gui
+            and !is_bridged_networking
             and !check_var('BACKEND', 's390x')
             and sle_version_at_least('12-SP2'))
         {
