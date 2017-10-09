@@ -25,7 +25,7 @@ sub install {
     zypper_call('in dhcp-client telnet', log => 'clients.log');
 
     # services
-    zypper_call('in dhcp-server dnsmasq nfs-kernel-server rpcbind rsync vsftpd xinetd', log => 'services.log');
+    zypper_call('in dhcp-server dnsmasq nfs-kernel-server rpcbind rsync vsftpd', log => 'services.log');
 }
 
 sub setup {
@@ -45,12 +45,6 @@ pts/9
 EOF
     assert_script_run("echo \"$content\" >> '/etc/securetty'");
 
-    # xinetd (echo)
-    foreach my $xinetd_conf (qw(echo)) {
-        assert_script_run('sed -i \'s/\(disable\s*=\s\)yes/\1no/\' /etc/xinetd.d/' . $xinetd_conf);
-    }
-    assert_script_run('sed -i \'s/^#\(\s*bind\s*=\)\s*$/\1 0.0.0.0/\' /etc/xinetd.conf');
-
     # ftp
     assert_script_run('sed -i \'s/^\s*\(root\)\s*$/# \1/\' /etc/ftpusers');
 
@@ -69,7 +63,7 @@ EOF
     # SLE12GA uses too many old style services
     my $action = check_var('VERSION', '12') ? "enable" : "reenable";
 
-    foreach my $service (qw(dnsmasq nfsserver rpcbind vsftpd xinetd)) {
+    foreach my $service (qw(dnsmasq nfsserver rpcbind vsftpd)) {
         systemctl($action . " " . $service);
         assert_script_run("systemctl start $service || { systemctl status --no-pager $service; journalctl -xe --no-pager; false; }");
     }
