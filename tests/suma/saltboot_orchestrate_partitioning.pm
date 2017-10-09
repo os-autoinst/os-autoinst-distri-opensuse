@@ -67,7 +67,7 @@ sub run {
             select_console 'root-console';
 
             # minor number of raid partition seems to be random
-            script_output('lsblk | sed -e "s|259:.|259:0|" | tee part_exist');
+            script_output('lsblk | sed -e "s|259:.|259:0|" | grep -v ^sr | tee part_exist');
             assert_script_run "curl -f -v " . autoinst_url . "/data/suma/$partitioning.expected > part_expected";
             assert_script_run "diff -w -u part_expected part_exist";
 
