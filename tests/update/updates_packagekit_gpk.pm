@@ -36,11 +36,9 @@ sub turn_off_screensaver {
 sub run {
 
     my ($self) = @_;
-    if (sle_version_at_least('15') && is_sle()) {
-        record_soft_failure 'bsc#1060844';    # updates_packagekit_gpk is disabled for SLE15 because of bsc#1060844
-        $self->result('ok');
-        return;
-    }
+    # updates_packagekit_gpk is disabled for SLE15 because of bsc#1060844
+    return record_soft_failure 'bsc#1060844' if sle_version_at_least('15') && is_sle();
+
     select_console 'x11', await_console => 0;
 
     my @updates_tags           = qw(updates_none updates_available);
