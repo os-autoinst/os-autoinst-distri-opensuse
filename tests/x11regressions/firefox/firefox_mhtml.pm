@@ -21,7 +21,7 @@ sub run {
 
 
     # Fetch mht file to shm
-    x11_start_program("wget " . autoinst_url . "/data/x11regressions/ie10.mht -O /dev/shm/ie10.mht");
+    x11_start_program("wget " . autoinst_url . "/data/x11regressions/ie10.mht -O /dev/shm/ie10.mht", valid => 0);
 
     send_key "ctrl-w";
     wait_still_screen 3;
@@ -49,7 +49,7 @@ sub run {
     # Exit and Clear
     $self->exit_firefox;
     wait_still_screen 3;
-    x11_start_program("rm /dev/shm/ie10.mht");
+    x11_start_program('rm /dev/shm/ie10.mht', valid => 0);
 }
 1;
 # vim: set sw=4 et:

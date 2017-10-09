@@ -17,7 +17,6 @@ use testapi;
 
 sub run {
     x11_start_program('khelpcenter');
-    assert_screen 'test-khelpcenter-1';
     send_key 'alt-f4';
 }
 

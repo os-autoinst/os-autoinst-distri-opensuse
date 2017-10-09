@@ -24,8 +24,7 @@ use lockapi;
 use utils;
 
 sub start_vncviewer {
-    x11_start_program 'vncviewer 10.0.2.1:1 -Fullscreen';
-    assert_screen [qw(displaymanager vncmanager-greeter vnc_certificate_warning)];
+    x11_start_program('vncviewer 10.0.2.1:1 -Fullscreen', target_match => [qw(displaymanager vncmanager-greeter vnc_certificate_warning)]);
     if (match_has_tag 'vnc_certificate_warning') {
         send_key 'ret';
         assert_screen [qw(displaymanager vncmanager-greeter vnc_certificate_warning-2)];
@@ -58,8 +57,7 @@ sub run {
     mutex_lock 'xvnc';
 
     # Make sure the client gets the IP address
-    x11_start_program 'xterm';
-    assert_screen 'xterm';
+    x11_start_program('xterm');
     become_root;
     assert_script_run 'dhclient';
     type_string "exit\n";
@@ -69,8 +67,7 @@ sub run {
     $self->start_vncviewer;
     handle_login;
     assert_screen 'generic-desktop';
-    x11_start_program 'gnome-terminal';
-    assert_screen 'gnome-terminal-launched';
+    x11_start_program('gnome-terminal');
     type_string "vncmanager-controller\n";
     assert_screen 'vncmanager-controller';
     assert_and_click 'vncmanager-controller-visibility';

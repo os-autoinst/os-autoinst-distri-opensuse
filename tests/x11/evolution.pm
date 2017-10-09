@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -17,11 +17,10 @@ use testapi;
 use utils;
 
 sub run {
-    x11_start_program("evolution");
     my @tags = qw(test-evolution-1 evolution-default-client-ask);
     push(@tags, 'evolution-preview-release') if is_gnome_next;
+    x11_start_program('evolution', target_match => \@tags);
     my $times = scalar(@tags) - 1;
-    assert_screen \@tags;
 
     unless (match_has_tag('test-evolution-1')) {
         for (0 .. $times) {

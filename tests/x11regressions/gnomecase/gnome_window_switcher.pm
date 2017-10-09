@@ -1,6 +1,6 @@
 # Gnome tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -16,14 +16,11 @@ use testapi;
 
 sub run {
     # Launch 3 applications
-    x11_start_program("nautilus");
-    assert_screen 'nautilus-launched';
+    x11_start_program('nautilus');
     send_key "super-h";    # Minimize the window
-    x11_start_program("gedit");
-    assert_screen 'gedit-launched';
+    x11_start_program('gedit');
     send_key "super-h";    # Minimize the window
-    x11_start_program("totem");
-    assert_screen "test-totem-started";
+    x11_start_program('totem');
     send_key "super-h";    # Minimize the window
 
     # Switch windowns with alt+tab

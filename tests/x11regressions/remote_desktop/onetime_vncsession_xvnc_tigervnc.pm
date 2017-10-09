@@ -30,16 +30,14 @@ sub run {
     mutex_lock 'xvnc';
 
     # Make sure the client gets the IP address
-    x11_start_program 'xterm';
-    assert_screen 'xterm';
+    x11_start_program('xterm');
     become_root;
     assert_script_run 'dhclient';
     type_string "exit\n";
     send_key 'alt-f4';
 
     # Start vncviewer and login with fullscreen
-    x11_start_program 'vncviewer';
-    assert_screen 'vnc_password_dialog';
+    x11_start_program('vncviewer', target_match => 'vnc_password_dialog');
     type_string '10.0.2.1:1';
     assert_and_click 'vncviewer-options';
     assert_and_click 'vncviewer-options-screen';
@@ -55,13 +53,11 @@ sub run {
     assert_screen 'generic-desktop';
 
     # Launch gnome-terminal and nautilus remotely
-    x11_start_program 'gnome-terminal';
-    assert_screen 'gnome-terminal-launched';
+    x11_start_program('gnome-terminal');
     send_key 'alt-f4';
     send_key 'ret';
     wait_still_screen 3;
-    x11_start_program 'nautilus';
-    assert_screen 'nautilus-launched';
+    x11_start_program('nautilus');
     send_key 'alt-f4';
 
     # Exit vncviewer

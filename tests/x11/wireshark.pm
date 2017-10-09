@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -36,7 +36,7 @@ use utils;
 
 sub run {
     select_console 'x11';
-    x11_start_program "xterm";
+    x11_start_program('xterm');
     become_root;
     pkcon_quit;
     zypper_call "in wireshark";

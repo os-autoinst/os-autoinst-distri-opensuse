@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -16,7 +16,7 @@ use strict;
 use testapi;
 
 sub run {
-    x11_start_program("xfce4-session-logout");
+    x11_start_program('xfce4-session-logout', target_match => 'logoutdialog');
     send_key "alt-l";
     assert_screen 'test-xfce_lightdm_logout_login-1';
     type_password;

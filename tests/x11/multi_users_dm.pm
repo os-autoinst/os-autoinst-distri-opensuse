@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -71,8 +71,7 @@ sub run {
     handle_login;
     assert_screen 'generic-desktop', 60;
     # verify correct user is logged in
-    x11_start_program 'xterm';
-    assert_screen 'xterm';
+    x11_start_program('xterm');
     wait_still_screen;
     type_string "whoami|grep $user > /tmp/whoami.log\n";
     assert_script_sudo "grep $user /tmp/whoami.log";

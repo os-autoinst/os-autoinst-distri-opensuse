@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -18,7 +18,6 @@ use testapi;
 sub run {
     ensure_installed("amarok");
     x11_start_program('amarok');
-    assert_screen 'test-amarok-1';
     send_key "alt-y";    # use music path as collection folder
                          # a workaround for librivox authentication popup window.
                          # and don't put this after opening oga file, per video
@@ -32,8 +31,7 @@ sub run {
     # do not playing audio file as we have not testdata if NICEVIDEO
     if (!get_var("NICEVIDEO")) {
         start_audiocapture;
-        x11_start_program("amarok -l ~/data/1d5d9dD.oga");
-        assert_screen 'test-amarok-3';
+        x11_start_program('amarok -l ~/data/1d5d9dD.oga', target_match => 'test-amarok-3');
         assert_recorded_sound('DTMF-159D');
     }
     send_key "ctrl-q";       # really quit (alt-f4 just backgrounds)

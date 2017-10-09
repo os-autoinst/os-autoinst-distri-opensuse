@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -20,8 +20,7 @@ use strict;
 use testapi;
 
 sub run {
-    x11_start_program("seahorse");
-    assert_screen 'seahorse-launched', 15;    # Seahorse main window appeared
+    x11_start_program('seahorse');
     send_key "ctrl-n";                                # New keyring
     assert_screen "seahorse-keyring-selector";        # Dialog "Select type to create"
     assert_and_dclick "seahorse-password-keyring";    # Selection: Password keyring

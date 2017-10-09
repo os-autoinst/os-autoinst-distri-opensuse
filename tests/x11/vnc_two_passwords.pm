@@ -55,18 +55,16 @@ sub run {
 
     select_console 'x11';
     # Reload theme to hide panel text
-    x11_start_program "rt";
+    x11_start_program('rt', target_match => 'generic-desktop');
 
     # Start xev event watcher
-    x11_start_program "xterm";
-    assert_screen('xterm');
+    x11_start_program('xterm');
     send_key "super-right";
     type_string "DISPLAY=$display xev\n";
 
     # Start vncviewer (rw & ro mode) and check if changes are processed by xev
     foreach my $opt (@options) {
-        x11_start_program("vncviewer $display -SecurityTypes=VncAuth");
-        assert_screen "vnc_password_dialog", 60;
+        x11_start_program("vncviewer $display -SecurityTypes=VncAuth", target_match => 'vnc_password_dialog', match_timeout => 60);
         type_string "$opt->{pw}\n";
         assert_screen 'vncviewer-xev';
         send_key "super-left";
@@ -87,7 +85,7 @@ sub run {
     send_key "ctrl-c";
     assert_script_run "sed -i '\$d' $theme";
     select_console "x11";
-    x11_start_program "rt";
+    x11_start_program('rt', target_match => 'generic-desktop');
 }
 
 1;

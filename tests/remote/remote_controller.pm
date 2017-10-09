@@ -1,19 +1,15 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Rename remote installation nodes (#1588)
-#    * Rename remote installation nodes
-#    slave -> target
-#    master -> controller
-#
-#    * Enable remote installation tests for opensuse
-# G-Maintainer: Martin Kravec <kravciak@users.noreply.github.com>
+# Summary: Controller/master for remote installations
+# Tags: poo#9576
+# Maintainer: Martin Kravec <mkravec@suse.com>
 
 use base "opensusebasetest";
 use strict;
@@ -22,7 +18,6 @@ use utils;
 use mm_network;
 use lockapi;
 
-# poo#9576
 sub run {
     my $target_ip;
 
@@ -43,7 +38,7 @@ sub run {
         script_run "systemctl start SuSEfirewall2";
 
         select_console 'x11';
-        x11_start_program("xterm");
+        x11_start_program('xterm');
         type_string "vncviewer -fullscreen $target_ip:1\n";
         assert_screen "remote_master_password";    # wait for password prompt
         type_string "$password\n";

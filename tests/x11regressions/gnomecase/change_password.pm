@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -128,8 +128,7 @@ sub run {
     assert_screen "generic-desktop", 120;
 
     #restore password to original value
-    x11_start_program("gnome-terminal");
-    assert_screen 'gnome-terminal';
+    x11_start_program('gnome-terminal');
     type_string "su\n";
     assert_screen "pwd4root-terminal";
     type_password "$password\n";

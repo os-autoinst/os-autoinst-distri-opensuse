@@ -11,7 +11,7 @@
 # Summary: add addon to SLES via DVD or URL
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
-use base qw(y2logsstep opensusebasetest);
+use base qw(y2logsstep y2x11test);
 use strict;
 use testapi;
 use utils 'reboot_x11';
@@ -21,13 +21,12 @@ sub run {
     my ($self) = @_;
     my ($addon, $uc_addon);
     my $perform_reboot;
-    x11_start_program("xdg-su -c '/sbin/yast2 add-on'");
-    if ($password) { type_password; send_key "ret"; }
-    if (check_screen 'packagekit-warning') {
-        send_key 'alt-y';    # yes
+    $self->launch_yast2_module_x11('add-on', target_match => [qw(addon-products packagekit-warning)]);
+    if (match_has_tag 'packagekit-warning') {
+        send_key 'alt-y';
+        assert_screen 'addon-products';
     }
-    assert_screen 'addon-products';
-    send_key 'alt-a';        # add add-on
+    send_key 'alt-a';    # add add-on
     if (get_var("ADDONS")) {
         # the ISO_X variables must match the ADDONS list
         my $sr_number = 0;

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -31,7 +31,7 @@ sub run {
     my $command = "mv /etc/sysconfig/network/ifcfg-eth0 /etc/sysconfig/network/ifcfg-ens4; /usr/sbin/ifup ens4";
 
     if (get_var("DESKTOP") =~ /kde|gnome/) {
-        x11_start_program("xterm");
+        x11_start_program('xterm');
         assert_script_sudo($command);
         send_key "alt-f4";
     }

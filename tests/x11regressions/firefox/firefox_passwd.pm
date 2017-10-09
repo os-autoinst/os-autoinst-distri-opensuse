@@ -42,7 +42,7 @@ sub run {
 
     #Restart firefox
     send_key "ctrl-q";
-    x11_start_program("firefox");
+    x11_start_program('firefox');
     $self->firefox_check_popups;
     assert_screen('firefox-gnome', 60);
 

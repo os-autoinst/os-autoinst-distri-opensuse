@@ -32,16 +32,14 @@ sub run {
     $self->configure_static_ip_nm('10.0.2.15/15');
 
     # Add the firewall port for VNC
-    x11_start_program 'xterm';
-    assert_screen 'xterm';
+    x11_start_program('xterm');
     become_root;
     assert_script_run 'yast2 firewall services add zone=EXT service=service:vnc-server';
     type_string "exit\n";
     wait_screen_change { send_key 'alt-f4' };
 
     # Activate vino server
-    x11_start_program 'gnome-control-center sharing';
-    assert_screen 'gcc-sharing';
+    x11_start_program('gnome-control-center sharing', target_match => 'gcc-sharing');
     assert_and_click 'gcc-sharing-on';
     send_key 'alt-s';
     assert_screen 'gcc-screen-sharing';

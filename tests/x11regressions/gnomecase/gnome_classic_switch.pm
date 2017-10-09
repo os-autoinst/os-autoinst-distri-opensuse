@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -19,13 +19,12 @@ use utils;
 # applications are called twiced
 sub application_test {
     my ($self) = @_;
-    x11_start_program "gnome-terminal";
-    assert_screen "gnome-terminal-launched";
+    x11_start_program('gnome-terminal');
     send_key "alt-f4";
     send_key "ret";
     wait_still_screen;
 
-    x11_start_program "firefox";
+    x11_start_program('firefox');
     $self->firefox_check_default;
     $self->firefox_check_popups;
     assert_screen "firefox-gnome", 150;

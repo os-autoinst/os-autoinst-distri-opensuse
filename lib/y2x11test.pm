@@ -26,7 +26,6 @@ sub launch_yast2_module_x11 {
     die "need password definition" unless $password;
     diag 'assuming root-auth-dialog, typing password';
     type_password;
-    save_screenshot;
     send_key 'ret';
     assert_screen $args{target_match}, $args{match_timeout};
 }

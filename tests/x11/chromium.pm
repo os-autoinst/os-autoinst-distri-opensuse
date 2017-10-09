@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -22,9 +22,7 @@ sub run {
     ensure_installed("chromium");
 
     # avoid async keyring popups
-    x11_start_program("chromium --password-store=basic");
-
-    assert_screen 'chromium-main-window', 50;
+    x11_start_program('chromium --password-store=basic', target_match => 'chromium-main-window', match_timeout => 50);
 
     send_key "esc";       # get rid of popup
     sleep 1;

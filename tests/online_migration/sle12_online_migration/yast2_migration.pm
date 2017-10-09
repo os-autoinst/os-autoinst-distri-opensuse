@@ -1,6 +1,6 @@
 # SLE12 online migration tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -27,7 +27,7 @@ sub run {
         mouse_hide(1);
         assert_screen 'generic-desktop';
 
-        x11_start_program("xterm");
+        x11_start_program('xterm');
         # set blank screen to be never for current session
         script_run("gsettings set org.gnome.desktop.session idle-delay 0");
         become_root;

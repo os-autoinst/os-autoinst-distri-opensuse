@@ -1,6 +1,6 @@
 # Shotwell tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -40,7 +40,7 @@ sub run {
     wait_still_screen;
 
     # Check the exported file
-    x11_start_program("nautilus");
+    x11_start_program('nautilus');
     wait_screen_change { send_key 'ctrl-l' };
     type_string "/home/$username/Desktop\n";
     send_key "ret";

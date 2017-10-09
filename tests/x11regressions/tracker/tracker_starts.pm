@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -16,8 +16,7 @@ use strict;
 use testapi;
 
 sub run {
-    x11_start_program("tracker-needle");
-    assert_screen 'tracker-needle-launched';
+    x11_start_program("tracker-needle", target_match => 'tracker-needle-launched');
     send_key "alt-f4";
 }
 

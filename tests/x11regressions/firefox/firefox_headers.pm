@@ -20,8 +20,8 @@ sub run {
     mouse_hide(1);
 
     # Clean and Start Firefox
-    x11_start_program("xterm -e \"killall -9 firefox;rm -rf .moz*\"");
-    x11_start_program("firefox");
+    x11_start_program("xterm -e \"killall -9 firefox;rm -rf .moz*\"", valid => 0);
+    x11_start_program('firefox');
     $self->firefox_check_popups;
     assert_screen('firefox-launch', 90);
 

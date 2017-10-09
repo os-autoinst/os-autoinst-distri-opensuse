@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -16,9 +16,8 @@ use strict;
 use testapi;
 
 sub run {
-    x11_start_program("nautilus");
-    assert_screen 'nautilus-launched';
-    x11_start_program("touch newfile");
+    x11_start_program('nautilus');
+    x11_start_program("touch newfile", valid => 0);
 
     send_key_until_needlematch 'nautilus-newfile-matched', 'right', 15;
     send_key "ctrl-x";
@@ -31,7 +30,7 @@ sub run {
     send_key "ctrl-w";                      #close nautilus
 
     #remove the newfile, rm via cmd to avoid file moving to trash
-    x11_start_program("rm Downloads/newfile");
+    x11_start_program("rm Downloads/newfile", valid => 0);
 }
 
 1;

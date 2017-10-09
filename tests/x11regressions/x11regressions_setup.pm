@@ -1,6 +1,6 @@
 # X11 regression tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -18,7 +18,7 @@ sub run {
     #Switch to x11 console, if not selected, before trying to start xterm
     select_console('x11');
 
-    x11_start_program("xterm");
+    x11_start_program('xterm');
 
     # grant user permission to access serial port until next reboot
     script_sudo "chown $username /dev/$serialdev";

@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -18,8 +18,7 @@ use testapi;
 sub run {
     my ($self) = @_;
     mouse_hide(1);
-    x11_start_program("xterm");
-    assert_screen("xterm");
+    x11_start_program('xterm');
     type_string("ssh -XC root\@localhost xterm\n");
     assert_screen([qw(ssh-xterm-host-key-authentication ssh-password-prompt)]);
     # if ssh asks for authentication of the key accept it

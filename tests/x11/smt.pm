@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -18,8 +18,7 @@ use warnings;
 use testapi;
 
 sub run {
-    x11_start_program("xterm -geometry 150x35+5+5");
-    assert_screen('xterm');
+    x11_start_program('xterm -geometry 150x35+5+5', target_match => 'xterm');
     become_root;
 
     type_string "yast2 smt-wizard;echo yast2-smt-wizard-\$? > /dev/$serialdev\n";

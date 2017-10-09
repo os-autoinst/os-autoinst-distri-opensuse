@@ -35,8 +35,7 @@ sub run {
     mutex_lock 'vino_server_ready';
 
     # Login to the sharing session using vinagre via vino server
-    x11_start_program 'vinagre';
-    assert_screen 'vinagre-launched';
+    x11_start_program('vinagre', target_match => 'vinagre-launched');
     assert_and_click 'vinagre-enable-shortcut1';
     assert_and_click 'vinagre-enable-shortcut2';
     send_key 'alt-f10';

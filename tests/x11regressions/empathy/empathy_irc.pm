@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -18,9 +18,7 @@ use utils;
 
 
 sub run {
-    x11_start_program("empathy");
-
-    assert_screen 'empathy-accounts-discover';
+    x11_start_program('empathy', target_match => 'empathy-accounts-discover');
     send_key "alt-s";    # skip accounts discover
 
     # choose irc account type

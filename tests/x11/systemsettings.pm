@@ -17,7 +17,6 @@ use testapi;
 
 sub run {
     x11_start_program('systemsettings');
-    assert_screen 'test-systemsettings-1';
     send_key "alt-f4";
 }
 

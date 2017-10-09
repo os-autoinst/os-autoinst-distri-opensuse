@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -19,7 +19,7 @@ use testapi;
 
 sub run {
     mouse_hide();
-    x11_start_program("tomboy note");
+    x11_start_program('tomboy note', valid => 0);
     while (check_screen "tomboy_command_not_found", 5) {
         wait_still_screen;
         send_key "ret";

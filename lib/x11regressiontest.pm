@@ -1,6 +1,6 @@
 # Base class for all x11regression test
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -20,8 +20,7 @@ use POSIX 'strftime';
 
 # Start shotwell and handle the welcome screen, if there
 sub start_shotwell {
-    x11_start_program("shotwell");
-    assert_screen [qw(shotwell-first-launch shotwell-launched)];
+    x11_start_program('shotwell', target_match => [qw(shotwell-first-launch shotwell-launched)]);
     if (match_has_tag "shotwell-first-launch") {
         wait_screen_change { send_key "ret" };
     }
@@ -33,7 +32,7 @@ sub import_pictures {
 
     # Fetch test pictures to ~/Documents
     foreach my $picture (@$pictures) {
-        x11_start_program("wget " . autoinst_url . "/data/x11regressions/$picture -O /home/$username/Documents/$picture");
+        x11_start_program("wget " . autoinst_url . "/data/x11regressions/$picture -O /home/$username/Documents/$picture", valid => 0);
     }
 
     # Open the dialog 'Import From Folder'
@@ -57,17 +56,17 @@ sub import_pictures {
 # clean_shotwell helps to clean shotwell's library then remove the test picture.
 sub clean_shotwell {
     # Clean shotwell's database
-    x11_start_program("rm -rf /home/$username/.local/share/shotwell");
+    x11_start_program("rm -rf /home/$username/.local/share/shotwell", valid => 0);
     # Clean shotwell cache files
-    x11_start_program("rm -rf /home/$username/.cache/shotwell");
+    x11_start_program("rm -rf /home/$username/.cache/shotwell", valid => 0);
     # Remove test pictures
-    x11_start_program("rm /home/$username/Documents/shotwell_test.*");
+    x11_start_program("rm /home/$username/Documents/shotwell_test.*", valid => 0);
 }
 
 # upload libreoffice specified file into /home/$username/Documents
 sub upload_libreoffice_specified_file {
 
-    x11_start_program("xterm");
+    x11_start_program('xterm');
     assert_script_run("wget " . autoinst_url . "/data/x11regressions/ooo-test-doc-types.tar.bz2 -O /home/$username/Documents/ooo-test-doc-types.tar.bz2");
     wait_still_screen;
     type_string("cd /home/$username/Documents && ls -l");
@@ -85,7 +84,7 @@ sub upload_libreoffice_specified_file {
 # cleanup libreoffcie specified file from test vm
 sub cleanup_libreoffice_specified_file {
 
-    x11_start_program("xterm");
+    x11_start_program('xterm');
     assert_script_run("rm -rf /home/$username/Documents/ooo-test-doc-types*");
     wait_still_screen;
     type_string_slow "ls -l /home/$username/Documents";
@@ -100,8 +99,7 @@ sub cleanup_libreoffice_specified_file {
 
 # cleanup libreoffice recent open file to make sure libreoffice clean
 sub cleanup_libreoffice_recent_file {
-
-    x11_start_program("libreoffice");
+    x11_start_program('libreoffice');
     wait_still_screen 3;
     send_key "alt-f";
     if (is_tumbleweed) {
@@ -317,10 +315,9 @@ sub start_evolution {
     }
     mouse_hide(1);
     # Clean and Start Evolution
-    x11_start_program("xterm -e \"killall -9 evolution; find ~ -name evolution | xargs rm -rf;\"");
-    x11_start_program("evolution");
+    x11_start_program("xterm -e \"killall -9 evolution; find ~ -name evolution | xargs rm -rf;\"", valid => 0);
+    x11_start_program('evolution', target_match => [qw(evolution-default-client-ask test-evolution-1)]);
     # Follow the wizard to setup mail account
-    assert_screen [qw(evolution-default-client-ask test-evolution-1)];
     if (match_has_tag 'evolution-default-client-ask') {
         assert_and_click "evolution-default-client-agree";
         assert_screen "test-evolution-1";
@@ -511,7 +508,7 @@ sub start_firefox {
     my ($self) = @_;
     mouse_hide(1);
 
-    x11_start_program 'xterm';
+    x11_start_program('xterm');
     # Clean and Start Firefox
     type_string "killall -9 firefox;rm -rf .moz* .config/iced* .cache/iced* .local/share/gnome-shell/extensions/*; firefox > firefox.log 2>&1 &\n";
     $self->firefox_check_default;
@@ -622,9 +619,8 @@ sub setup_evolution_for_ews {
     mouse_hide(1);
 
     # Clean and Start Evolution
-    x11_start_program("xterm -e \"killall -9 evolution; find ~ -name evolution | xargs rm -rf;\"");
-    x11_start_program("evolution");
-    assert_screen [qw(evolution-default-client-ask test-evolution-1)];
+    x11_start_program("xterm -e \"killall -9 evolution; find ~ -name evolution | xargs rm -rf;\"", valid => 0);
+    x11_start_program('evolution', target_match => [qw(evolution-default-client-ask test-evolution-1)]);
     if (match_has_tag "evolution-default-client-ask") {
         assert_and_click "evolution-default-client-agree";
         assert_screen 'test-evolution-1';
@@ -760,12 +756,11 @@ sub tomboy_logout_and_login {
     assert_screen 'generic-desktop';
 
     # open start note again and take screenshot
-    x11_start_program("tomboy note");
+    x11_start_program('tomboy note', valid => 0);
 }
 
 sub gnote_launch {
-    x11_start_program("gnote");
-    assert_screen "gnote-first-launched", 5;
+    x11_start_program('gnote');
     send_key_until_needlematch 'gnote-start-here-matched', 'down', 5;
 }
 
@@ -792,8 +787,7 @@ sub cleanup_gnote {
 }
 
 sub gnote_start_with_new_note {
-    x11_start_program("gnote");
-    assert_screen 'gnote-first-launched', 10;
+    x11_start_program('gnote');
     send_key "ctrl-n";
     assert_screen 'gnote-new-note', 5;
 }
@@ -802,8 +796,7 @@ sub gnote_start_with_new_note {
 sub configure_static_ip_nm {
     my ($self, $ip) = @_;
 
-    x11_start_program 'xterm';
-    assert_screen 'xterm';
+    x11_start_program('xterm');
     become_root;
     assert_script_run "nmcli connection add type ethernet con-name wired ifname eth0 ip4 '$ip' gw4 10.0.2.2";
     assert_script_run 'nmcli device disconnect eth0';

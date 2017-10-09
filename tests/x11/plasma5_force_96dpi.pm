@@ -15,7 +15,8 @@ use strict;
 use testapi;
 
 sub run {
-    x11_start_program('kcmshell5 fonts');      # Start the fonts KCM
+    # Start the fonts KCM
+    x11_start_program('kcmshell5 fonts', target_match => 'kcm_fonts_force_dpi');
     assert_and_click 'kcm_fonts_force_dpi';    # Check force DPI checkbox (96 is preselected)
     send_key 'alt-o';                          # Save and close the dialog
 }

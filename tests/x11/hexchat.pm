@@ -1,4 +1,4 @@
-# Copyright (C) 2015 SUSE Linux GmbH
+# Copyright (C) 2015-2017 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -30,11 +30,10 @@ sub run {
     # may suddenly cover parts of the dialog ... o_O
     mouse_set(0, 0);
     if (my $url = get_var('XCHAT_URL')) {
-        x11_start_program("$name --url=$url");
+        x11_start_program("$name --url=$url", target_match => "$name-main-window");
     }
     else {
-        x11_start_program($name);
-        assert_screen "$name-network-select";
+        x11_start_program($name, target_match => "$name-network-select");
         type_string "freenode\n";
         assert_and_click "hexchat-nick-$username";
         send_key 'ctrl-a';

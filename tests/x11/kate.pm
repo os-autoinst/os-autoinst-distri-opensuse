@@ -20,7 +20,6 @@ sub run {
     my ($self) = @_;
     ensure_installed("kate");
     x11_start_program('kate');
-    assert_screen 'test-kate-1';
 
     if (!get_var("PLASMA5")) {
         # close welcome screen

@@ -19,7 +19,7 @@ use testapi;
 
 sub start_firefox {
     my ($self) = @_;
-    x11_start_program('firefox https://html5test.com/index.html');
+    x11_start_program('firefox https://html5test.com/index.html', valid => 0);
     $self->firefox_check_default;
     $self->firefox_check_popups;
     assert_screen 'firefox-html5test';

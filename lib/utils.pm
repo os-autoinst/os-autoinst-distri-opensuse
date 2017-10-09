@@ -153,8 +153,7 @@ sub systemctl {
 }
 
 sub turn_off_kde_screensaver {
-    x11_start_program("kcmshell5 screenlocker");
-    assert_screen([qw(kde-screenlock-enabled screenlock-disabled)]);
+    x11_start_program('kcmshell5 screenlocker', target_match => [qw(kde-screenlock-enabled screenlock-disabled)]);
     if (match_has_tag('kde-screenlock-enabled')) {
         assert_and_click('kde-disable-screenlock');
     }
@@ -198,8 +197,7 @@ sub prepare_system_reboot {
 sub assert_gui_app {
     my ($application, %args) = @_;
     ensure_installed($application) if $args{install};
-    x11_start_program("$application $args{exec_param}");
-    assert_screen("test-$application-started");
+    x11_start_program("$application $args{exec_param}", target_match => "test-$application-started");
     send_key "alt-f4" unless $args{remain};
 }
 
@@ -684,18 +682,18 @@ sub poweroff_x11 {
     }
 
     if (check_var("DESKTOP", "lxde")) {
-        x11_start_program("lxsession-logout");        # opens logout dialog
-        assert_screen "logoutdialog", 20;
+        # opens logout dialog
+        x11_start_program('lxsession-logout', target_match => 'logoutdialog');
         send_key "ret";
     }
 
     if (check_var("DESKTOP", "lxqt")) {
-        x11_start_program("shutdown");                # opens logout dialog
-        assert_screen "lxqt_logoutdialog", 20;
+        # opens logout dialog
+        x11_start_program('shutdown', target_match => 'lxqt_logoutdialog');
         send_key "ret";
     }
     if (check_var("DESKTOP", "enlightenment")) {
-        send_key "ctrl-alt-delete";                   # shutdown
+        send_key "ctrl-alt-delete";    # shutdown
         assert_screen 'logoutdialog', 15;
         assert_and_click 'enlightenment_shutdown_btn';
     }
@@ -707,7 +705,7 @@ sub poweroff_x11 {
     }
 
     if (check_var("DESKTOP", "mate")) {
-        x11_start_program("mate-session-save --shutdown-dialog");
+        x11_start_program("mate-session-save --shutdown-dialog", valid => 0);
         send_key "ctrl-alt-delete";    # shutdown
         assert_screen 'mate_logoutdialog', 15;
         assert_and_click 'mate_shutdown_btn';
@@ -1240,14 +1238,14 @@ sub handle_logout {
     # logout
     if (check_var('DESKTOP', 'gnome') || check_var('DESKTOP', 'lxde')) {
         my $command = check_var('DESKTOP', 'gnome') ? 'gnome-session-quit' : 'lxsession-logout';
-        x11_start_program("$command");    # opens logout dialog
-        assert_screen 'logoutdialog' unless check_var('DESKTOP', 'gnome');
+        my $target_match = check_var('DESKTOP', 'gnome') ? undef : 'logoutdialog';
+        x11_start_program($command, target_match => $target_match);    # opens logout dialog
     }
     else {
         my $key = check_var('DESKTOP', 'xfce') ? 'alt-f4' : 'ctrl-alt-delete';
-        send_key_until_needlematch 'logoutdialog', "$key";    # opens logout dialog
+        send_key_until_needlematch 'logoutdialog', "$key";             # opens logout dialog
     }
-    assert_and_click 'logout-button';                         # press logout
+    assert_and_click 'logout-button';                                  # press logout
 }
 
 # Handle emergency mode

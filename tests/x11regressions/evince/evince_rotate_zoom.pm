@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -18,7 +18,7 @@ use testapi;
 
 
 sub run {
-    x11_start_program("evince " . autoinst_url . "/data/x11regressions/test.pdf");
+    x11_start_program("evince " . autoinst_url . "/data/x11regressions/test.pdf", valid => 0);
 
     send_key "ctrl-left";    # rotate left
     assert_screen 'evince-rotate-left', 5;

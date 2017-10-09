@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -16,11 +16,10 @@ use testapi;
 
 sub run {
     ensure_installed("virt-install");
-    x11_start_program("xterm");
+    x11_start_program('xterm');
     become_root;
     script_run("virt-install --name TESTING --memory 512 --disk none --boot cdrom --graphics vnc &");
-    x11_start_program("vncviewer :0");
-    assert_screen "virtman-sle12sp1-gnome_virt-install", 100;
+    x11_start_program('vncviewer :0', target_match => 'virtman-sle12sp1-gnome_virt-install', match_timeout => 100);
     for (0 .. 2) {
         send_key "alt-f4";
     }    # closing all windows

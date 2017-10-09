@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -46,8 +46,7 @@ sub run {
 
     select_console 'x11';
 
-    x11_start_program("xterm");
-    assert_screen("xterm");
+    x11_start_program('xterm');
     mouse_hide(1);
 
     #Launch x3270

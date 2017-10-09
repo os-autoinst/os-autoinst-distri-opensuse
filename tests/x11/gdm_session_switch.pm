@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -19,12 +19,10 @@ use utils;
 
 # Smoke test: launch some applications
 sub application_test {
-    x11_start_program "gnome-terminal";
-    assert_screen "gnome-terminal";
+    x11_start_program('gnome-terminal');
     send_key "alt-f4";
 
-    x11_start_program "nautilus";
-    assert_screen "test-nautilus-1";
+    x11_start_program('nautilus');
     send_key "alt-f4";
 }
 
