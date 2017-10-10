@@ -46,8 +46,6 @@ sub system_status {
 
 
 sub system_login {
-    my $self = shift;
-    $self->wait_boot;
     if (get_var('VIRTIO_CONSOLE')) {
         select_console('root-virtio-terminal');
     }
@@ -158,4 +156,3 @@ sub run {
 }
 
 1;
-

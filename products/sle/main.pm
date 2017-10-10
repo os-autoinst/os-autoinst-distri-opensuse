@@ -1204,6 +1204,7 @@ elsif (get_var("HA_CLUSTER")) {
     load_ha_cluster_tests();
 }
 elsif (get_var("QA_TESTSET")) {
+    boot_hdd_image;
     if (get_var('INSTALL_KOTD')) {
         loadtest 'kernel/install_kotd';
     }
