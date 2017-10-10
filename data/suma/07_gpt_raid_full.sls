@@ -2,7 +2,7 @@ partitioning:
     disk1:
         type: DISK
         device: /dev/sda
-        disklabel: msdos
+        disklabel: gpt
         partitions:
             p1:
                  size_MiB: 2000
@@ -17,10 +17,7 @@ partitioning:
                  image: JeOS
             p4:
                  size_MiB: 2000
-                 flags: 
-                 format: btrfs
-                 mountpoint: /data
-                 luks_pass: 1234
+                 flags: raid
 
 
     md0:
@@ -28,7 +25,7 @@ partitioning:
         level: 1
         devices:
             - disk1p1
-            - missing
+            - disk1p4
 
         disklabel: msdos
         partitions:

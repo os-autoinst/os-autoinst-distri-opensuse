@@ -6,21 +6,21 @@ partitioning:
         partitions:
             p1:
                  size_MiB: 2000
-                 type: 82
+                 flags: swap
                  format: swap
             p2:
-                 type: 83
+                 flags: 
                  mountpoint: /
                  image: JeOS
             p3:
                  size_MiB: 2000
-                 type: 83
+                 flags: 
                  format: btrfs
                  mountpoint: /data
                  luks_pass: 1234
             p4:
                  size_MiB: 2000
-                 type: 82
+                 flags: swap
                  format: ext4
                  mountpoint: /data2
 

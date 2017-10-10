@@ -44,7 +44,8 @@ sub toggle_formula_for_hwtype {
 
 sub run {
     my ($self) = @_;
-    my @partitioning_tests = qw( 01_raid_degraded  02_raid_full  03_raid_degraded2  04_raid_full2  05_normal );
+    my @partitioning_tests = qw( 01_raid_degraded  02_raid_full  03_raid_degraded2  04_raid_full2  05_normal 
+                                 06_gpt_raid_degraded  07_gpt_raid_full  08_gpt_raid_degraded2  09_gpt_raid_full2  10_gpt_normal );
 
     my @barriers = map { ("partitioning_$_", "partitioning_${_}_finish") } @partitioning_tests;
 

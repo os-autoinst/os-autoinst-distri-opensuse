@@ -2,7 +2,7 @@ partitioning:
     disk1:
         type: DISK
         device: /dev/sda
-        disklabel: msdos
+        disklabel: gpt
         partitions:
             p1:
                  size_MiB: 2000

@@ -6,13 +6,13 @@ partitioning:
         partitions:
             p1:
                  size_MiB: 2000
-                 type: fd
+                 flags: raid
             p2:
                  size_MiB: 2000
-                 type: 82
+                 flags: swap
                  format: swap
             p3:
-                 type: 83
+                 flags: 
                  mountpoint: /
                  image: JeOS
 
@@ -26,7 +26,7 @@ partitioning:
         disklabel: msdos
         partitions:
             p1:
-                type: 82
+                flags: swap
                 format: ext4
                 mountpoint: /data2
 
