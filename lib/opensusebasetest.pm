@@ -332,13 +332,6 @@ sub wait_boot {
             select_console('iucvconn');
         }
         else {
-            if (get_var('QA_TESTSET') && check_var('BACKEND', 'svirt')) {
-                my $svirt = select_console('svirt');
-                zkvm_add_disk $svirt;
-                zkvm_add_pty $svirt;
-                zkvm_add_interface $svirt;
-                $svirt->define_and_start;
-            }
             wait_serial('GNU GRUB') || diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
             select_console('svirt');
             save_svirt_pty;
