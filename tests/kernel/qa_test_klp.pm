@@ -30,7 +30,7 @@ sub run {
         assert_script_run("SUSEConnect -p sle-sdk/" . $version . "/" . $arch);
     }
 
-    zypper_call('in -l git gcc kernel-devel');
+    zypper_call('in -l git gcc kernel-devel make');
 
     assert_script_run('git clone ' . $git_repo);
 
