@@ -52,7 +52,7 @@ sub run {
     restart_x11;
 
     # login created user
-    assert_screen 'multi_users_dm';
+    assert_screen 'multi_users_dm', 180;    # gnome loading takes long sometimes
     wait_still_screen;
     if (check_var('DESKTOP', 'gnome')) {
         send_key_until_needlematch('user#01_selected', 'up', 5, 3);    # select created user #01
