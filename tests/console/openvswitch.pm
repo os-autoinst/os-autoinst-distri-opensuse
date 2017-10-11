@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -22,12 +22,12 @@
 use base "consoletest";
 use testapi;
 use strict;
+use utils;
 
 sub run {
     select_console 'root-console';
 
-    # Install the openvswitch package
-    assert_script_run "zypper -n in openvswitch-switch", 200;
+    zypper_call('in openvswitch-switch iputils', timeout => 200);
 
     # Start the openvswitch daemon
     assert_script_run "systemctl start openvswitch", 200;
