@@ -435,12 +435,14 @@ sub load_consoletests {
         }
         loadtest "console/http_srv";
         loadtest "console/mysql_srv";
-        loadtest "console/mysql_odbc";
         loadtest "console/dns_srv";
-        if (!is_staging() && is_leap && !leap_version_at_least('15')) {
-            loadtest "console/php5";
-            loadtest "console/php5_mysql";
-            loadtest "console/php5_postgresql96";
+        if (!is_staging) {
+            loadtest "console/mysql_odbc";
+            if (is_leap && !leap_version_at_least('15')) {
+                loadtest "console/php5";
+                loadtest "console/php5_mysql";
+                loadtest "console/php5_postgresql96";
+            }
         }
         loadtest "console/php7";
         loadtest "console/php7_mysql";
