@@ -23,7 +23,7 @@ my @filenames = qw(newfile newpl.pl);
 sub run {
     # Create a file.
     foreach (@filenames) {
-        x11_start_program('touch $_', target_match => 'generic-desktop');
+        x11_start_program("touch $_", target_match => 'generic-desktop');
     }
 }
 
