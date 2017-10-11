@@ -52,13 +52,6 @@ sub run {
     if (get_var("QEMUVGA") && get_var("QEMUVGA") ne "cirrus") {
         sleep 5;
     }
-    if (is_jeos) {
-        # tell grub to use the correct gfx mode (bsc#963952)
-        send_key 'c';
-        type_string "gfxmode=1024x768; terminal_output console; terminal_output gfxterm\n";
-        sleep 2;
-        send_key 'esc';
-    }
     if (get_var("ZDUP")) {
         # uefi bootloader has no "boot from harddisk" option. So we
         # have to just reboot here
