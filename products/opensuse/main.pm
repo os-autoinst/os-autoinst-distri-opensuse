@@ -437,7 +437,6 @@ sub load_consoletests {
         loadtest "console/mysql_srv";
         loadtest "console/dns_srv";
         if (!is_staging) {
-            loadtest "console/mysql_odbc";
             if (is_leap && !leap_version_at_least('15')) {
                 loadtest "console/php5";
                 loadtest "console/php5_mysql";
