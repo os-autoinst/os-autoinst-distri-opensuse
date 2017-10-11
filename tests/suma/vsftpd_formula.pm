@@ -31,9 +31,6 @@ sub run {
         # configure second interface for vsftpd
         $self->registered_barrier_wait('vsftpd_formula');
 
-        #FIXME: workaround for server directory ownership tbd in branch network formula
-        script_run('chmod 755 ' . $srvdir);
-
         # minion test
         script_run('systemctl status vsftpd.service');
         assert_script_run('systemctl is-active vsftpd.service');

@@ -33,6 +33,7 @@ sub run {
         script_run('ls -l ' . $srvdir . '/..');
         assert_script_run('[ `stat -c %U ' . $srvdir . '` == "saltboot" ]');
         assert_script_run('[ `stat -c %G ' . $srvdir . '` == "saltboot" ]');
+        assert_script_run('[ `stat -c %a ' . $srvdir . '` == "750" ]');
         $self->registered_barrier_wait('branch_network_formula_finish');
     }
     elsif (check_var('SUMA_SALT_MINION', 'terminal')) {
