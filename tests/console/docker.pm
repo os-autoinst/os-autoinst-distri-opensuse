@@ -94,10 +94,10 @@ sub run {
     die("network does not work inside of the container") unless wait_serial("container_network_works", 200);
 
     # remove all containers related to alpine and hello-world
-    assert_script_run("docker rm \$(docker ps -a | grep 'alpine:$alpine_image_version\\|hello-world' | awk '{print \$1}')");
+    assert_script_run("docker rm \$(docker ps -a | grep 'alpine\\|hello-world' | awk '{print \$1}')");
 
     # Remove the alpine and hello-world images
-    assert_script_run("docker images | grep 'alpine:$alpine_image_version\\|hello-world' | awk '{print \$1}' | xargs docker rmi");
+    assert_script_run("docker images | grep 'alpine\\|hello-world' | awk '{print \$3}' | xargs docker rmi");
 
 }
 
