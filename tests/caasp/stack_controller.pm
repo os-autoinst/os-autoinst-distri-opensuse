@@ -123,7 +123,7 @@ sub initialize {
     save_screenshot;
     send_key "ctrl-l";
     send_key 'super-up';
-    x11_start_program('firefox');
+    x11_start_program('firefox', valid => 0);
 }
 
 sub run {
