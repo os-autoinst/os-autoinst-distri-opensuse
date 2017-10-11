@@ -153,7 +153,9 @@ sub x11_start_program {
     wait_still_screen(1);
     save_screenshot;
     send_key 'ret';
-    wait_still_screen(3) unless ($args{no_wait} || ($args{valid} && $args{target_match}));
+    # As above especially krunner seems to take some time before disappearing
+    # after 'ret' press we should wait in this case nevertheless
+    wait_still_screen(3) unless ($args{no_wait} || ($args{valid} && $args{target_match} && !check_var('DESKTOP', 'kde')));
     return unless $args{valid};
     for (1 .. 3) {
         assert_screen([ref $args{target_match} eq 'ARRAY' ? @{$args{target_match}} : $args{target_match}, 'desktop-runner-border'],
