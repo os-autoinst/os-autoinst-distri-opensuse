@@ -23,15 +23,18 @@ use utils 'assert_screen_with_soft_timeout';
 use lockapi;
 use mmapi;
 
+my $admin_email    = 'email@email.com';
+my $admin_password = 'password';
+
 # Create admin account
 sub velum_signup {
     assert_and_click 'create-an-account';
     assert_screen 'velum-signup';
-    type_string 'email@email.com';
+    type_string $admin_email;
     send_key 'tab';
-    type_string 'password';
+    type_string $admin_password;
     send_key 'tab';
-    type_string 'password';
+    type_string $admin_password;
     save_screenshot;
     send_key 'ret';
 }
@@ -47,6 +50,14 @@ sub velum_certificates {
 
     assert_screen 'velum-tips-page';
     assert_and_click "velum-next";
+}
+
+sub confirm_insecure_https {
+    # Workaround for non-staging
+    return if check_screen('create-an-account', 10);
+    assert_and_click 'velum-https-advanced';
+    assert_and_click 'velum-https-add_exception';
+    assert_and_click 'velum-https-confirm';
 }
 
 # Run bootstrap and download kubeconfig
@@ -100,14 +111,17 @@ sub velum_bootstrap {
 
     assert_screen "velum-bootstrap-done", 300;
     assert_and_click "velum-kubeconfig";
-}
-
-sub confirm_insecure_https {
-    # Workaround for non-staging
-    return if check_screen('create-an-account', 10);
-    assert_and_click 'velum-https-advanced';
-    assert_and_click 'velum-https-add_exception';
-    assert_and_click 'velum-https-confirm';
+    if (check_var('DISTRI', 'caasp') && !check_var('VERSION', '1.0')) {
+        confirm_insecure_https;
+        type_string $admin_email;
+        send_key 'tab';
+        type_string $admin_password;
+        send_key 'tab';
+        save_screenshot;
+        send_key 'ret';
+        sleep 1;
+        save_screenshot;
+    }
 }
 
 # Setup while waiting for admin dashboard installation
@@ -148,16 +162,6 @@ sub run {
     send_key "alt-tab";
     assert_screen 'xterm';
     type_string "export KUBECONFIG=~/Downloads/kubeconfig\n";
-
-    if (check_var('DISTRI', 'caasp') && !check_var('VERSION', '1.0')) {
-        # Add repository and install caasp-cli tool [version >= 2.0]
-        my $cli_repo = get_required_var("CLI_REPO");
-        script_sudo "zypper --non-interactive addrepo $cli_repo";
-        script_sudo "zypper --non-interactive --gpg-auto-import-key refresh";
-        script_sudo "zypper --non-interactive install caasp-cli";
-        # Inject auth info into downloaded kubeconfig by using caasp-cli tool
-        assert_script_run "caasp-cli login -u email\@email.com -p password -s https://master.openqa.test:6443";
-    }
 
     assert_script_run "kubectl cluster-info";
     assert_script_run "kubectl get nodes";
