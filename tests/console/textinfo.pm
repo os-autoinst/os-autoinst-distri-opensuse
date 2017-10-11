@@ -8,8 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Rework the tests layout.
-# Maintainer: Alberto Planas <aplanas@suse.com>
+# Summary: Get useful text-based information from the system and upload it as a log.
+#          For more information regarding the collected data, check data/textinfo
+# Maintainer: Alvaro Carvajal <acarvajal@suse.de>
 
 use base "consoletest";
 use strict;
