@@ -29,6 +29,18 @@ our @EXPORT = qw(
   registration_bootloader_params
   yast_scc_registration
   skip_registration
+  SLE15_MODULES
+);
+
+# We already have needles with names which are different we would use here
+# As it's only workaround, better not to create another set of needles.
+our %SLE15_MODULES = (
+    base      => 'Basesystem',
+    sdk       => 'Development-Tools',
+    desktop   => 'Desktop-Applications',
+    legacy    => 'Legacy',
+    script    => 'Scripting',
+    serverapp => 'Server-Applications'
 );
 
 sub fill_in_registration_data {
