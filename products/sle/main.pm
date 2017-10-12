@@ -1093,6 +1093,8 @@ elsif (get_var("REGRESSION")) {
         load_inst_tests();
         load_reboot_tests();
         loadtest "x11regressions/x11regressions_setup";
+        # temporary adding test modules which applies hacks for missing parts in sle15
+        loadtest "console/sle15_workarounds" if sle_version_at_least('15');
         loadtest "console/hostname" unless is_bridged_networking;
         loadtest "console/force_cron_run" unless is_jeos;
         loadtest "shutdown/grub_set_bootargs";
