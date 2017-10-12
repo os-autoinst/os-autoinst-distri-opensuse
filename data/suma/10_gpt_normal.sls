@@ -20,7 +20,6 @@ partitioning:
                  flags: 
                  format: btrfs
                  mountpoint: /data
-                 luks_pass: 1234
             p5:
                  size_MiB: 2000
                  flags: swap
