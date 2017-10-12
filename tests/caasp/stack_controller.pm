@@ -109,7 +109,7 @@ sub velum_bootstrap {
     # Accept small-cluster warning
     assert_and_click 'velum-botstrap-warning' if check_var('STACK_SIZE', 4);
 
-    assert_screen "velum-bootstrap-done", 300;
+    assert_screen "velum-bootstrap-done", 900;
     assert_and_click "velum-kubeconfig";
     if (check_var('DISTRI', 'caasp') && !check_var('VERSION', '1.0')) {
         confirm_insecure_https;
