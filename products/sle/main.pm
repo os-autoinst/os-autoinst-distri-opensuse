@@ -593,7 +593,7 @@ sub load_inst_tests {
         elsif (get_var("LVM")) {
             loadtest "installation/partitioning_lvm";
         }
-        elsif (get_var('FULL_LVM_ENCRYPT')) {
+        elsif (get_var('FULL_LVM_ENCRYPT') || get_var('THIN_LVM_ENCRYPT')) {
             loadtest 'installation/partitioning_full_lvm';
         }
         if (get_var("FILESYSTEM")) {

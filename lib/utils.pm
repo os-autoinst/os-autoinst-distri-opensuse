@@ -399,7 +399,8 @@ sub minimal_patch_system {
 
 sub workaround_type_encrypted_passphrase {
     if (
-        get_var('FULL_LVM_ENCRYPT')
+           get_var('FULL_LVM_ENCRYPT')
+        || get_var('THIN_LVM_ENCRYPT')
         || (check_var('ARCH', 'ppc64le')
             && (get_var('ENCRYPT') && !get_var('ENCRYPT_ACTIVATE_EXISTING') || get_var('ENCRYPT_FORCE_RECOMPUTE'))))
     {

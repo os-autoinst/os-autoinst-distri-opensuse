@@ -42,9 +42,10 @@ sub run {
     wait_still_screen 2;
     save_screenshot;
     send_key $cmd{finish};
+    addlv(name => 'lv-thin-pool', type => 'thin_pool') if get_var('THIN_LVM_ENCRYPT');
     addlv(name => 'lv-swap', role => 'swap', size => 2000);
     assert_screen 'expert-partitioner';
-    addlv(name => 'lv-root', role => 'OS');
+    addlv(name => 'lv-root', role => 'OS', size => get_var('THIN_LVM_ENCRYPT') ? 20000 : undef);
     assert_screen 'expert-partitioner';
     send_key $cmd{accept};
     assert_screen 'partitioning-full-lvm-encrypt';
