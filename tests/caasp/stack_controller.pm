@@ -19,7 +19,7 @@
 use base "opensusebasetest";
 use strict;
 use testapi;
-use utils 'assert_screen_with_soft_timeout';
+use utils;
 use lockapi;
 use mmapi;
 
@@ -89,7 +89,7 @@ sub velum_bootstrap {
     # Wait until warning messages disappears
     wait_still_screen;
 
-    if (check_var('DISTRI', 'caasp') && !check_var('VERSION', '1.0')) {
+    if (is_caasp '2.0+') {
         # Click next button to 'Confirm bootstrap' page [version >= 2.0]
         send_key_until_needlematch 'velum-next', 'pgdn', 2, 5;
         assert_and_click 'velum-next';
@@ -121,7 +121,7 @@ sub velum_bootstrap {
     }
 
     assert_and_click "velum-kubeconfig";
-    if (check_var('DISTRI', 'caasp') && !check_var('VERSION', '1.0')) {
+    if (is_caasp '2.0+') {
         confirm_insecure_https;
         type_string $admin_email;
         send_key 'tab';
@@ -179,7 +179,7 @@ sub run {
     # Check cluster size
     # CaaSP 2.0 = %number_of_jobs - minus two (controller & admin) jobs
     my $minion_count = get_required_var("STACK_SIZE") - 2;
-    if (check_var('DISTRI', 'caasp') && check_var('VERSION', '1.0')) {
+    if (is_caasp '1.0') {
         # CaaSP 1.0 = %number_of_jobs - minus three (controller + admin + master) jobs
         $minion_count = get_required_var("STACK_SIZE") - 3;
     }
