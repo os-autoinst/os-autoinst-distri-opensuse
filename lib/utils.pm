@@ -661,8 +661,12 @@ sub poweroff_x11 {
         assert_and_click 'gnome-shell_shutdown_btn';
 
         if (get_var("SHUTDOWN_NEEDS_AUTH")) {
-            assert_screen 'shutdown-auth', 15;
-            type_password;
+            if (check_screen('shutdown-auth', 15)) {
+                type_password;
+            }
+            else {
+                record_soft_failure 'bsc#1062788';
+            }
 
             # we need to kill all open ssh connections before the system shuts down
             prepare_system_reboot;
