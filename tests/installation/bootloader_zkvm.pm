@@ -25,7 +25,7 @@ sub set_svirt_domain_elements {
     my ($svirt) = shift;
 
     if (!get_var('BOOT_HDD_IMAGE') or (get_var('PATCHED_SYSTEM') and !get_var('ZDUP'))) {
-        my $repo    = "$utils::OPENQA_FTP_URL/" . get_var('REPO_0');
+        my $repo    = "$utils::OPENQA_FTP_URL/" . get_required_var('REPO_0');
         my $cmdline = get_var('VIRSH_CMDLINE') . " install=$repo ";
         my $name    = $svirt->name;
 
