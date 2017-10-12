@@ -19,6 +19,7 @@ sub run {
     my ($self) = @_;
 
     my $bug_pattern = {
+        bsc_1062349         => '.*vbd.*xenbus_dev_probe on device.*',
         bsc_1022527_FEATURE => '.*wickedd.*ni_process_reap.*blocking waitpid.*',
         bsc_1022524_FEATURE => '.*rpc\.statd.*Failed to open directory sm.*',
         bsc_1022525_FEATURE => '.*rpcbind.*cannot(.*open file.*rpcbind.xdr.*|.*open file.*portmap.xdr.*|.*save any registration.*)',
