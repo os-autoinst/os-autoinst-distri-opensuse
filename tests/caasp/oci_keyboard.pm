@@ -14,10 +14,11 @@ use strict;
 use warnings;
 use base "y2logsstep";
 use testapi;
+use utils 'is_caasp';
 
 sub run {
     # Switch to UK keyboard
-    if (!check_var('VERSION', '1.0')) {
+    if (is_caasp '2.0+') {
         check_var('VIDEOMODE', 'text') ? send_key 'alt-y' : send_key 'alt-e';
     }
     else {
@@ -33,7 +34,7 @@ sub run {
     for (1 .. 6) { send_key 'backspace' }
 
     # Switch back to US keyboard
-    if (!check_var('VERSION', '1.0')) {
+    if (is_caasp '2.0+') {
         check_var('VIDEOMODE', 'text') ? send_key 'alt-y' : send_key 'alt-e';
     }
     else {
