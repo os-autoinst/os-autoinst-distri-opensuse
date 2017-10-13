@@ -8,7 +8,11 @@
 # without any warranty.
 
 # Summary: Sanity checks of wicked
-# Maintainer: Anton Smorodskyi <asmorodskyi@suse.com>
+# Test scenarios:
+# Test 1: Bring down the wicked client service
+# Test 2: Bring up the wicked client service
+# Test 3: Bring down the wicked server service
+# Maintainer: Anton Smorodskyi <asmorodskyi@suse.com>, Sebastian Chlad <schlad@suse.de>
 
 use base "consoletest";
 use strict;
@@ -31,13 +35,13 @@ sub save_and_upload_log {
 
 sub run {
     my ($self) = @_;
-    type_string("#STOP WICKED CLIENT\n");
+    type_string("***Test 1: Bring down the wicked client service***\n");
     systemctl('stop wicked.service');
     assert_wicked_state(wicked_client_down => 1, interfaces_down => 1);
-    type_string("#START WICKED CLIENT\n");
+    type_string("***Test 2: Bring up the wicked client service***\n");
     systemctl('start wicked.service');
     assert_wicked_state();
-    type_string("#STOP WICKED DAEMON\n");
+    type_string("***Test 3: Bring down the wicked server service***\n");
     systemctl('stop wickedd.service');
     assert_wicked_state(wicked_daemon_down => 1);
     assert_script_run('! ifdown $(ls -d /sys/class/net/!(lo) | head -1 | sed "s/.*\///")');
