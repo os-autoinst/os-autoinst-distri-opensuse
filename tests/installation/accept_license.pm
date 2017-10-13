@@ -36,6 +36,14 @@ sub run {
     }
     $self->verify_license_has_to_be_accepted;
     send_key $cmd{next};
+    # workaround for bsc#1059317, multiple times clicking accept license
+    my $count = 5;
+    while (check_screen('license-not-accepted', 3) && $count >= 1) {
+        record_soft_failure 'bsc#1059317';
+        $self->verify_license_has_to_be_accepted;
+        send_key $cmd{next};
+        $count--;
+    }
 }
 
 1;
