@@ -394,8 +394,13 @@ sub wait_boot {
             assert_screen "grub2", 15;
         }
         elsif (!match_has_tag("grub2")) {
-            # check_screen timeout
-            die "needle 'grub2' not found";
+            if (check_var("ARCH", "aarch64")) {
+                die "needle 'grub' not found" unless wait_serial("Please press t to show the boot menu on this console");
+            }
+            else {
+                # check_screen timeout
+                die "needle 'grub2' not found";
+            }
         }
     }
 
