@@ -352,7 +352,7 @@ sub run {
     my $environment = {
         product     => get_var('DISTRI') . ':' . get_var('VERSION'),
         revision    => get_var('BUILD'),
-        arch        => get_var('WORKER_CLASS'),
+        arch        => get_var('ARCH'),
         kernel      => '',
         libc        => '',
         gcc         => '',
