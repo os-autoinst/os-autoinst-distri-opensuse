@@ -86,7 +86,7 @@ sub selenium_driver {
     curl -f -v " . autoinst_url . "/data/selenium-server-standalone-3.4.0.jar > selenium-server-standalone-3.4.0.jar
   ");
 
-    type_string("java -jar selenium-server-standalone-3.4.0.jar -port $port 2>&1 | tee /dev/$serialdev\n");
+    type_string("java -jar selenium-server-standalone-3.4.0.jar -port $port -timeout 7200 2>&1 | tee /dev/$serialdev\n");
     save_screenshot;
     wait_serial('Selenium Server is up and running');
     save_screenshot;
