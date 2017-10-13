@@ -98,6 +98,10 @@ sub velum_bootstrap {
 
         # Click bootstrap button [version >= 2.0]
         assert_screen 'velum-confirm-bootstrap';
+
+        # External Dashboard FQDN
+        for (1 .. 3) { send_key 'tab'; }
+        type_string 'admin.openqa.test';
         assert_and_click "velum-bootstrap";
     }
     else {
