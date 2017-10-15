@@ -29,7 +29,8 @@ our @EXPORT = qw(
   registration_bootloader_params
   yast_scc_registration
   skip_registration
-  SLE15_MODULES
+  %SLE15_MODULES
+  %SLE15_DEFAULT_MODULES
 );
 
 # We already have needles with names which are different we would use here
@@ -41,6 +42,14 @@ our %SLE15_MODULES = (
     legacy    => 'Legacy',
     script    => 'Scripting',
     serverapp => 'Server-Applications'
+);
+
+# The expected modules of a default installation per product. Use them if they
+# are not preselected, to crosscheck or just recreate automatic selections
+# manually
+our %SLE15_DEFAULT_MODULES = (
+    sles => 'base,script,desktop,serverapp',
+    sled => 'base,script,desktop'
 );
 
 sub fill_in_registration_data {
@@ -128,11 +137,7 @@ sub fill_in_registration_data {
         if (match_has_tag 'bsc#1056413') {
             record_soft_failure('bsc#1056413');
             # Add expected modules to select them manually, as not preselected
-            my %addons = (
-                sles => 'base,script,desktop,serverapp',
-                sled => 'base,script,desktop'
-            );
-            my $addons = $addons{get_required_var('SLE_PRODUCT')} . (get_var('SCC_ADDONS') ? ',' . get_var('SCC_ADDONS') : '');
+            my $addons = $SLE15_DEFAULT_MODULES{get_required_var('SLE_PRODUCT')} . (get_var('SCC_ADDONS') ? ',' . get_var('SCC_ADDONS') : '');
             set_var('SCC_ADDONS', $addons);
         }
     }
