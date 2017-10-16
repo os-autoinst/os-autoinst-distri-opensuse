@@ -210,20 +210,18 @@ sub run {
     }
 
     for (qw(vda vdb vdc vdd)) {
-        my $timeout = 2;
-        my $counter = 50;
-        send_key_until_needlematch "partitioning_raid-disk_$_-selected", "down", $counter, $timeout;
+        send_key_until_needlematch "partitioning_raid-disk_$_-selected", "down";
         addpart('boot');
         # Need to navigate to the disk manually
-        send_key_until_needlematch "partitioning_raid-disk_$_-selected", 'down', $counter, $timeout if is_storage_ng;
+        send_key_until_needlematch "partitioning_raid-disk_$_-selected", 'down' if is_storage_ng;
         assert_screen 'partitioning_raid-part_boot_added';
         addpart('root');
         # Need to navigate to the disk manually
-        send_key_until_needlematch "partitioning_raid-disk_$_-selected", 'down', $counter, $timeout if is_storage_ng;
+        send_key_until_needlematch "partitioning_raid-disk_$_-selected", 'down' if is_storage_ng;
         assert_screen 'partitioning_raid-part_root_added';
         addpart('swap');
         # Need to navigate to the disk manually
-        send_key_until_needlematch "partitioning_raid-disk_$_-selected", 'down', $counter, $timeout if is_storage_ng;
+        send_key_until_needlematch "partitioning_raid-disk_$_-selected", 'down' if is_storage_ng;
         assert_screen 'raid-partition';
 
         # select next disk
@@ -261,18 +259,11 @@ sub run {
             # fold the drive tree again
             send_key 'left';
         }
-
-        # walk through sub-tree
-        send_key "down" unless is_storage_ng;
     }
 
     # select RAID add
-    if (is_storage_ng) {
-        send_key_until_needlematch 'partitioning_raid-raid-selected', 'down';
-    }
-    else {
-        assert_screen 'partitioning_raid-raid-selected';
-    }
+    send_key_until_needlematch 'partitioning_raid-raid-selected', 'down';
+
     send_key $cmd{addraid};
 
     assert_screen 'partitioning_raid-menu_add_raid';
@@ -329,8 +320,16 @@ sub run {
         send_key $cmd{filesystem};
         assert_screen 'partitioning_raid-filesystem-focused';
         send_key 'down';
-        send_key 'home';
-        send_key_until_needlematch 'partitioning_raid-filesystem_ext4', 'down';
+        if (is_storage_ng) {
+            # Needle matches ext2 and ext3, so select from initial position
+            # Don't select from bottom due to bsc#1063596
+            send_key 'alt-f';
+            send_key_until_needlematch 'partitioning_raid-filesystem_ext4', 'up';
+        }
+        else {
+            send_key 'home';
+            send_key_until_needlematch 'partitioning_raid-filesystem_ext4', 'down';
+        }
         send_key 'alt-o' if is_storage_ng;
         send_key 'alt-m';
         assert_screen 'partitioning_raid-mount_point-focused';
