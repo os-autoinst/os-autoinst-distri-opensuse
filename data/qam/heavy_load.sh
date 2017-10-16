@@ -11,6 +11,9 @@ for pkg in qa_lib_ctcs2 qa_test_ltp qa_test_newburn ; do
 	fi	# if ! rpm -q "$pkg" ; then
 done
 
+# disable add_key02 test - on most kernels causes panic
+sed  -i '/\n/!N;/\n.*\n/!N;/\n.*\n.*add_key02/{$d;N;N;d};P;D' /usr/share/qa/qa_test_ltp/tcf/syscalls.tcf
+
 cat /usr/share/qa/qa_test_ltp/tcf/syscalls.tcf \
     /usr/share/qa/qa_test_ltp/tcf/syscalls.tcf \
   > /usr/share/qa/qa_test_ltp/tcf/syscalls_twice.tcf
