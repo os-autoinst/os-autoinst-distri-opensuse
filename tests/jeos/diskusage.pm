@@ -1,15 +1,15 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Check diskusage on JeOS
-# Maintainer: Richard Brown <rbrownccb@opensuse.org>
+# Summary: Check disk usage on JeOS
+# Maintainer: Michal Nowak <mnowak@suse.com>
 
 use base "opensusebasetest";
 use strict;
@@ -21,12 +21,12 @@ sub run {
 
     # spit out only the part of the btrfs filesystem size we're interested in
     script_run "echo btrfs-data=\$(btrfs filesystem df -b / | grep Data | sed -n -e 's/^.*used=//p') | tee -a /dev/$serialdev", 0;
-    my $datasize = wait_serial('btrfs-data=\d+\S+');    # https://xkcd.com/208/
-                                                        # shouldn't ever happen, bet just incase it does
-    die "failed to get btrfs-data size" unless (defined $datasize);
+    my $datasize = wait_serial('btrfs-data=\d+\S+') || die "failed to get btrfs-data size";
     $datasize = substr $datasize, 11;
+    chomp($datasize);
 
-    die 'Data used by JeOS exceeded BTRFS_MAXDATASIZE' if ($datasize > get_var("BTRFS_MAXDATASIZE"));
+    my $btrfs_maxdatasize = get_required_var('BTRFS_MAXDATASIZE');
+    die "Data used by JeOS ($datasize) exceeded expected OS installation size ($btrfs_maxdatasize)" if $datasize > $btrfs_maxdatasize;
 }
 
 1;
