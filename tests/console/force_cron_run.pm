@@ -29,6 +29,11 @@ sub settle_load {
 sub run {
     select_console 'root-console';
 
+    if (script_run 'grep -w mail /etc/group') {
+        record_soft_failure 'bsc#1061838 - Group "mail" not found';
+        return;
+    }
+
     # show dmesg output in console during cron run
     assert_script_run "dmesg -n 7";
 
