@@ -22,7 +22,6 @@ use testapi;
 
 sub run {
     my $self = shift;
-    $self->wait_boot;
     select_console('root-console');
     # Copy current kernel and rename it
     $_ = script_output("uname -r", 120);
