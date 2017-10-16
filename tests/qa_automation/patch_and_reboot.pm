@@ -23,14 +23,7 @@ use qam;
 sub run {
     my $self = shift;
 
-    # possibility to run as part of the aggregated tests
-    if (get_var('EXTRATEST') || get_var('FILESYSTEM_TEST')) {
-        select_console 'root-console';
-    }
-    else {
-        $self->wait_boot;
-        select_console 'root-console';
-    }
+    select_console 'root-console';
 
     pkcon_quit unless check_var('DESKTOP', 'textmode');
 
@@ -40,10 +33,7 @@ sub run {
 
     type_string "reboot\n";
 
-    # extratests excepts correctly booted SUT
-    if (get_var('EXTRATEST') || get_var('FILESYSTEM_TEST')) {
-        $self->wait_boot;
-    }
+    $self->wait_boot;
 }
 
 sub test_flags {
