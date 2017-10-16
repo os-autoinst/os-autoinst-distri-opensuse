@@ -123,7 +123,7 @@ sub velum_bootstrap {
         send_key 'tab';
         save_screenshot;
         send_key 'ret';
-        sleep 1;
+        sleep 5;
         save_screenshot;
     }
 }
