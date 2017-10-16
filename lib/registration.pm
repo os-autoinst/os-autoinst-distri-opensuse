@@ -71,10 +71,10 @@ sub fill_in_registration_data {
         while (check_screen(\@tags, 60)) {
             if (match_has_tag("import-untrusted-gpg-key")) {
                 if (check_var("IMPORT_UNTRUSTED_KEY", 1) || check_screen(\@known_untrusted_keys, 0)) {
-                    send_key "alt-t";    # import
+                    wait_screen_change { send_key "alt-t" };    # import
                 }
                 else {
-                    send_key "alt-c";    # cancel
+                    wait_screen_change { send_key "alt-c" };    # cancel
                 }
                 next;
             }
@@ -92,7 +92,7 @@ sub fill_in_registration_data {
                 # untrusted certification imported, but it would not on 12sp1, and we have to
                 # send next manually to start registration.
                 if (get_var('SMT_URL') && (check_var('VERSION', '12-SP1') || check_var('HDDVERSION', '12-SP1'))) {
-                    send_key $cmd{next};
+                    wait_screen_change { send_key $cmd{next} };
                 }
                 @tags = grep { $_ ne 'untrusted-ca-cert' } @tags;
                 next;
