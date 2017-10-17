@@ -232,33 +232,37 @@ sub run {
         if ($_ eq 'vdd' and get_var('UEFI')) {
             assert_screen 'partitioning_raid-disk_vdd_with_partitions-selected';
             # fold the drive tree
-            send_key 'left';
-            assert_screen 'partitioning_raid-hard_disks-unfolded';
+            # Have to press to navigate in the system view tree
+            send_key 'down' if is_storage_ng;
+            send_key_until_needlematch 'partitioning_raid-hard_disks-unfolded', 'left';
             # select first disk
             send_key 'right';
-            assert_screen 'partitioning_raid-disk_vda_with_partitions-selected';
+            send_key_until_needlematch "partitioning_raid-disk_vda-selected", "down";
             # edit first partition
             send_key 'alt-e';
             assert_screen 'partition-format';
-            # format as FAT (first choice)
+            # format as FAT (first choice) unless storage-ng
             send_key 'alt-a';
-            assert_screen 'partitioning_raid-format_fat_UEFI';
+            if (is_storage_ng) {
+                send_key 'alt-f';
+                send_key_until_needlematch 'partitioning_raid-format_fat_UEFI', 'down';
+            }
+            else {
+                assert_screen 'partitioning_raid-format_fat_UEFI';
+            }
             # mount point selection
             send_key 'alt-o';
             assert_screen 'partitioning_raid-mount_point-focused';
             # enter mount point
             type_string '/boot/efi';
             assert_screen 'partitioning_raid-mount_point_boot_efi';
-            send_key $cmd{finish};
+            send_key(is_storage_ng() ? $cmd{next} : $cmd{finish});
             assert_screen 'expert-partitioner';
-            send_key 'shift-tab';
-            send_key 'shift-tab';
-            # go to top "Hard Disks" node
-            send_key 'left';
-            assert_screen 'partitioning_raid-hard_disks-unfolded';
-            # fold the drive tree again
-            send_key 'left';
         }
+
+        # select next disk
+        send_key "shift-tab" unless is_storage_ng;
+        send_key "shift-tab" unless is_storage_ng;
     }
 
     # select RAID add
