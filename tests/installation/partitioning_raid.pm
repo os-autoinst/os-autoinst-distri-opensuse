@@ -176,7 +176,15 @@ sub run {
     assert_screen 'partitioning_raid-hard_disks-selected';
 
     if (get_var("OFW")) {    ## no RAID /boot partition for ppc
-        send_key 'alt-p';
+        if (is_storage_ng) {
+            record_soft_failure 'bsc#1063844';    # Cannot add partition from menu option "hard disks"
+            send_key 'down';
+            assert_screen 'partitioning_raid-disk_vda-selected';
+            send_key 'alt-d';
+        }
+        else {
+            send_key 'alt-p';
+        }
         if (!get_var('UEFI')) {    # partitioning type does not appear when GPT disk used, GPT is default for UEFI
             assert_screen 'partitioning-type';
             send_key 'alt-n';
