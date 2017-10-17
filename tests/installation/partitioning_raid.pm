@@ -176,10 +176,21 @@ sub run {
     assert_screen 'partitioning_raid-hard_disks-selected';
 
     if (get_var("OFW")) {    ## no RAID /boot partition for ppc
-        send_key 'alt-p';
-        if (!get_var('UEFI')) {    # partitioning type does not appear when GPT disk used, GPT is default for UEFI
-            assert_screen 'partitioning-type';
-            send_key 'alt-n';
+        if (is_storage_ng) {
+            # No partitioning type page ATM
+            record_soft_failure 'bsc#1055743';
+            send_key 'down'; # bsc#1055743
+            assert_screen 'partitioning_raid-disk_vda-selected'; # bsc#1055743
+            send_key 'alt-d'; # bsc#1055743
+            assert_screen 'partitioning-size'; # bsc#1055743
+            send_key 'alt-c'; # bsc#1055743
+        }
+        else {
+            send_key 'alt-p';
+            if (!get_var('UEFI')) {    # partitioning type does not appear when GPT disk used, GPT is default for UEFI
+                assert_screen 'partitioning-type';
+                send_key 'alt-n';
+            }
         }
         assert_screen 'partitioning-size';
         wait_screen_change { send_key 'ctrl-a' };
