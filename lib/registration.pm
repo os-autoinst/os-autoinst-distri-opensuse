@@ -248,7 +248,8 @@ sub fill_in_registration_data {
                     save_screenshot;
                 }
             }
-            wait_screen_change { send_key $cmd{next} };
+            send_key $cmd{next};
+            wait_still_screen 2;
             # start addons/modules registration, it needs longer time if select multiple or all addons/modules
             while (assert_screen(['import-untrusted-gpg-key', 'yast_scc-pkgtoinstall', 'yast-scc-emptypkg', 'inst-addon'], 120)) {
                 if (match_has_tag('import-untrusted-gpg-key')) {
