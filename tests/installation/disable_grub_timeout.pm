@@ -15,6 +15,7 @@ use strict;
 use warnings;
 use base "y2logsstep";
 use testapi;
+use utils;
 
 sub run {
     my ($self) = shift;
@@ -30,13 +31,22 @@ sub run {
     }
     else {
         # Select section booting on Installation Settings overview (video mode)
-        send_key_until_needlematch 'booting-section-selected', 'tab', 10;
+        send_key_until_needlematch 'booting-section-selected', 'tab';
         assert_screen 'booting-section-selected';
         send_key 'ret';
     }
 
     # Select bootloader options tab
-    wait_screen_change { send_key 'alt-r'; };
+    # older sle version use 'alt-t;
+    my $shortcut = 'alt-r';
+    if (check_var('DISTRI', 'sle')) {
+        if (!sle_version_at_least('12-SP2')) {
+            $shortcut = 'alt-t';
+        }
+    }
+    # openSUSE all supported distributions use 'alt-r'
+    wait_screen_change { send_key $shortcut; };
+
     assert_screen 'installation-bootloader-options';
 
     # Select Timeout dropdown box and disable
