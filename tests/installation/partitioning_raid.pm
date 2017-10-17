@@ -151,7 +151,6 @@ sub set_lvm {
 }
 
 sub run {
-
     # create partitioning
     send_key(is_storage_ng() ? $cmd{expertpartitioner} : $cmd{createpartsetup});
 
@@ -211,51 +210,60 @@ sub run {
     }
 
     for (qw(vda vdb vdc vdd)) {
-        assert_screen "partitioning_raid-disk_$_-selected";
+        send_key_until_needlematch "partitioning_raid-disk_$_-selected", "down";
         addpart('boot');
-        send_key_until_needlematch "partitioning_raid-disk_$_-selected", 'down' if is_storage_ng;    # Need to navigate to the disk manually
+        # Need to navigate to the disk manually
+        send_key_until_needlematch "partitioning_raid-disk_$_-selected", 'down' if is_storage_ng;
         assert_screen 'partitioning_raid-part_boot_added';
         addpart('root');
-        send_key_until_needlematch "partitioning_raid-disk_$_-selected", 'down' if is_storage_ng;    # Need to navigate to the disk manually
+        # Need to navigate to the disk manually
+        send_key_until_needlematch "partitioning_raid-disk_$_-selected", 'down' if is_storage_ng;
         assert_screen 'partitioning_raid-part_root_added';
         addpart('swap');
-        send_key_until_needlematch "partitioning_raid-disk_$_-selected", 'down' if is_storage_ng;    # Need to navigate to the disk manuallyy
+        # Need to navigate to the disk manually
+        send_key_until_needlematch "partitioning_raid-disk_$_-selected", 'down' if is_storage_ng;
         assert_screen 'raid-partition';
 
         # select next disk
-        send_key "shift-tab";
-        send_key "shift-tab";
+        send_key "shift-tab" unless is_storage_ng;
+        send_key "shift-tab" unless is_storage_ng;
 
         # in last step of for loop edit first vda1 and format it as EFI ESP, preparation for fate#322485
         if ($_ eq 'vdd' and get_var('UEFI')) {
             assert_screen 'partitioning_raid-disk_vdd_with_partitions-selected';
-            send_key 'left';                                                                         # fold the drive tree
+            # fold the drive tree
+            send_key 'left';
             assert_screen 'partitioning_raid-hard_disks-unfolded';
-            send_key 'right';                                                                        # select first disk
+            # select first disk
+            send_key 'right';
             assert_screen 'partitioning_raid-disk_vda_with_partitions-selected';
-            send_key 'alt-e';                                                                        # edit first partition
+            # edit first partition
+            send_key 'alt-e';
             assert_screen 'partition-format';
-            send_key 'alt-a';                                                                        # format as FAT (first choice)
+            # format as FAT (first choice)
+            send_key 'alt-a';
             assert_screen 'partitioning_raid-format_fat_UEFI';
-            send_key 'alt-o';                                                                        # mount point selection
+            # mount point selection
+            send_key 'alt-o';
             assert_screen 'partitioning_raid-mount_point-focused';
-            type_string '/boot/efi';                                                                 # enter mount point
+            # enter mount point
+            type_string '/boot/efi';
             assert_screen 'partitioning_raid-mount_point_boot_efi';
             send_key $cmd{finish};
             assert_screen 'expert-partitioner';
             send_key 'shift-tab';
             send_key 'shift-tab';
-            send_key 'left';                                                                         # go to top "Hard Disks" node
+            # go to top "Hard Disks" node
+            send_key 'left';
             assert_screen 'partitioning_raid-hard_disks-unfolded';
-            send_key 'left';                                                                         # fold the drive tree again
+            # fold the drive tree again
+            send_key 'left';
         }
-
-        # walk through sub-tree
-        send_key "down";
     }
 
     # select RAID add
-    assert_screen 'partitioning_raid-raid-selected';
+    send_key_until_needlematch 'partitioning_raid-raid-selected', 'down';
+
     send_key $cmd{addraid};
 
     assert_screen 'partitioning_raid-menu_add_raid';
@@ -275,13 +283,18 @@ sub run {
     }
 
     assert_screen 'partition-format';
+    # device must be mounted manually on SLE15
+    send_key 'alt-o' if is_storage_ng;
     if (get_var('LVM')) {
         send_key $cmd{donotformat};    # 'Operating System' role to 'Raw Volume' for LVM
         assert_screen 'partitioning_raid-format_noformat';
         send_key 'alt-u';
     }
 
-    send_key $cmd{finish};
+    send_key(is_storage_ng() ? $cmd{next} : $cmd{finish});
+
+    send_key_until_needlematch('partitioning_raid-raid-selected', 'down') if is_storage_ng;    # go back to raid entry
+
     if (get_var('LVM')) {
         assert_screen 'partitioning_raid-raid_noformat_added';
     }
@@ -304,21 +317,31 @@ sub run {
         addraid(2);
 
         assert_screen 'partition-format';
-        send_key "alt-s";
+        send_key $cmd{filesystem};
         assert_screen 'partitioning_raid-filesystem-focused';
-        send_key 'down' for (1 .. 3);
-        assert_screen 'partitioning_raid-filesystem_ext4';
-        send_key "alt-m";
+        send_key 'down';
+        if (is_storage_ng) {
+            # Needle matches ext2 and ext3, so select from initial position
+            # Don't select from bottom due to bsc#1063596
+            send_key 'alt-f';
+            send_key_until_needlematch 'partitioning_raid-filesystem_ext4', 'up';
+        }
+        else {
+            send_key 'home';
+            send_key_until_needlematch 'partitioning_raid-filesystem_ext4', 'down';
+        }
+        send_key 'alt-o' if is_storage_ng;
+        send_key 'alt-m';
         assert_screen 'partitioning_raid-mount_point-focused';
         type_string "/boot";
         assert_screen 'partitioning_raid-mount_point-_boot';
 
-        send_key $cmd{finish};
+        send_key(is_storage_ng() ? $cmd{next} : $cmd{finish});
         if (get_var('LVM')) {
-            assert_screen 'partitioning_raid-raid_ext4_added-lvm';
+            send_key_until_needlematch 'partitioning_raid-raid_ext4_added-lvm', 'down';
         }
         else {
-            assert_screen 'partitioning_raid-raid_ext4_added';
+            send_key_until_needlematch 'partitioning_raid-raid_ext4_added', 'down';
         }
     }
 
@@ -333,9 +356,8 @@ sub run {
     assert_screen 'partition-format';
     send_key $cmd{filesystem};
     assert_screen 'partitioning_raid-filesystem-focused';
-    send_key "end";
-    assert_screen 'partitioning_raid-swap_format-selected';
-    send_key $cmd{finish};
+    send_key_until_needlematch 'partitioning_raid-swap_format-selected', 'down';
+    send_key(is_storage_ng() ? $cmd{next} : $cmd{finish});
     my %needle_raid_swap_added_suffixes = (
         lvm      => '-lvm',
         uefi     => '',
@@ -352,7 +374,7 @@ sub run {
     else {
         $needle_suffix = $needle_raid_swap_added_suffixes{uefi};
     }
-    assert_screen 'partitioning_raid-raid_swap_added' . $needle_suffix;
+    send_key_until_needlematch 'partitioning_raid-raid_swap_added' . $needle_suffix, 'down';
 
     # LVM on top of raid if needed
     if (get_var("LVM")) {
