@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh -e
 #
 # Summary: script to add local ip and hostname into /etc/hosts
 # Maintainer: Alvaro Carvajal <acarvajal@suse.de>

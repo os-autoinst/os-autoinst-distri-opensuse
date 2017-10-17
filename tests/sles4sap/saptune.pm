@@ -10,42 +10,48 @@
 # Summary: saptune availability and basic commands to the tuned daemon
 # Maintainer: Alvaro Carvajal <acarvajal@suse.de>
 
-use base "x11test";
-use strict;
+use base "opensusebasetest";
 use testapi;
+use utils;
+use strict;
+
+sub is_tuned {
+    my ($pattern, $text) = @_;
+    $text =~ /^Daemon \(tuned\.service\) is $pattern./;
+}
 
 sub run {
-    my ($self) = @_;
+    my ($self)       = @_;
+    my $prev_console = $testapi::selected_console;
+    my @solutions    = qw(BOBJ HANA MAXDB NETWEAVER S4HANA-APPSERVER S4HANA-DBSERVER SAP-ASE);
 
-    x11_start_program('xterm');
-    assert_screen('xterm');
+    select_console 'root-console';
 
-    script_sudo("saptune daemon status");
-    assert_screen 'saptune-tuned-daemon-is-running', 10;
+    my $output = script_output "saptune daemon status || true";
+    die "Command 'saptune daemon status' returned unexpected output. Expected tuned to be running"
+      unless (is_tuned 'running', $output);
 
-    type_string "clear\n";
-    assert_script_sudo("saptune daemon stop");
-    script_sudo("saptune daemon status");
-    assert_screen 'saptune-tuned-daemon-is-stopped', 10;
-    die "Command 'saptune daemon stop' couldn't stop tuned" unless match_has_tag "saptune-tuned-daemon-is-stopped";
+    assert_script_run "saptune daemon stop";
+    $output = script_output "saptune daemon status 2>&1 || true";
+    die "Command 'saptune daemon stop' couldn't stop tuned"
+      unless (is_tuned 'stopped', $output);
 
-    type_string "clear\n";
-    assert_script_sudo("saptune daemon start");
-    script_sudo("saptune daemon status");
-    assert_screen 'saptune-tuned-daemon-is-running', 10;
-    die "Command 'saptune daemon start' couldn't start tuned" unless match_has_tag "saptune-tuned-daemon-is-running";
+    assert_script_run "saptune daemon start";
+    $output = script_output "saptune daemon status || true";
+    die "Command 'saptune daemon start' couldn't start tuned"
+      unless (is_tuned 'running', $output);
 
-    type_string "clear\n";
-    assert_script_sudo("saptune solution list");
-    assert_screen 'saptune-solution-list', 10;
-    die "Command 'saptune solution list' output is not recognized" unless match_has_tag "saptune-solution-list";
+    $output = script_output "saptune solution list";
+    my $regexp = join('.+', @solutions);
+    die "Command 'saptune solution list' output is not recognized" unless ($output =~ m|$regexp|s);
 
-    type_string "clear\n";
-    assert_script_sudo("saptune note list");
-    assert_screen 'saptune-note-list', 10;
-    die "Command 'saptune note list' output is not recognized" unless match_has_tag "saptune-note-list";
+    $output = script_output "saptune note list";
+    die "Command 'saptune note list' output is not recognized"
+      unless ($output =~ m|^All notes \(\+ denotes manually enabled notes, \* denotes notes enabled by solutions\):|);
 
-    send_key 'alt-f4';
+    # Return to previous console
+    select_console($prev_console, await_console => 0);
+    ensure_unlocked_desktop if ($prev_console eq 'x11');
 }
 
 1;

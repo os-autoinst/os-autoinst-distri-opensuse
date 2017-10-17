@@ -773,7 +773,8 @@ sub load_consoletests {
         if (get_var("UPGRADE")) {
             loadtest "console/upgrade_snapshots";
         }
-        # zypper and sle12 doesn't do upgrade or installation snapshots. Won't test snapper on sles4sap
+        # zypper and sle12 doesn't do upgrade or installation snapshots
+        # SLES4SAP default installation flow does not configure snapshots
         elsif (!get_var("ZDUP") and !check_var('VERSION', '12') and !is_sles4sap()) {
             loadtest "console/installation_snapshots";
         }
@@ -925,6 +926,7 @@ sub load_x11tests {
         loadtest "x11/systemsettings";
         loadtest "x11/dolphin";
     }
+    # SLES4SAP default installation does not configure snapshots
     if (snapper_is_applicable() and !is_sles4sap()) {
         loadtest "x11/yast2_snapper";
     }
