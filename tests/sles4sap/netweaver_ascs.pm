@@ -8,71 +8,71 @@
 # without any warranty.
 
 # Summary: Checks NetWeaver's ASCS installation as performed by sles4sap/nw_ascs_install
-# Requires: sles4sap/nw_ascs_install
+# Requires: sles4sap/nw_ascs_install, ENV variable SAPADM
 # Maintainer: Alvaro Carvajal <acarvajal@suse.de>
 
-use base "x11test";
-use strict;
+use base "opensusebasetest";
 use testapi;
+use utils;
+use strict;
 
 sub run {
-    my ($self) = @_;
-    my $pscmd = "ps auxw | grep ASCS | grep -vw grep";
-    $pscmd = "$pscmd | wc -l ; $pscmd";
+    my ($self)       = @_;
+    my $output       = '';
+    my $pscmd        = "ps auxw | grep ASCS | grep -vw grep";
+    my $prev_console = $testapi::selected_console;
 
-    x11_start_program('xterm');
-    assert_screen('xterm');
+    select_console 'root-console';
 
     # The SAP Admin was set in sles4sap/nw_ascs_install
-    my $sapadmin = get_var('SAPADM');
-    die "netweaver_ascs: coulnd't determine the SAP Administrator's username"
-      unless ($sapadmin);
+    my $sapadmin = get_required_var('SAPADM');
+    my $sid = uc(substr($sapadmin, 0, 3));
 
     # Allow SAP Admin user to inform status via $testapi::serialdev
-    assert_script_sudo("chown $sapadmin /dev/$testapi::serialdev", 5);
+    assert_script_run "chown $sapadmin /dev/$testapi::serialdev";
 
     type_string "su - $sapadmin\n";
-    type_string "$testapi::password\n" unless ($testapi::username eq 'root');
 
-    assert_script_run("sapcontrol -nr 00 -function GetVersionInfo", 20);
-    assert_screen('netweaver-version-info', 10);
+    $output = script_output "sapcontrol -nr 00 -function GetVersionInfo";
+    die "sapcontrol: GetVersionInfo API failed\n\n$output" unless ($output =~ /GetVersionInfo[\r\n]+OK/);
 
-    type_string "clear\n";
-    assert_script_run("sapcontrol -nr 00 -function GetInstanceProperties | grep ^SAP", 20);
-    assert_screen('netweaver-instance-properties', 10);
+    $output = script_output "sapcontrol -nr 00 -function GetInstanceProperties | grep ^SAP";
+    die "sapcontrol: GetInstanceProperties API failed\n\n$output" unless ($output =~ /SAPSYSTEM.+SAPSYSTEMNAME.+SAPLOCALHOST/s);
 
-    type_string "clear\n";
-    assert_script_run("sapcontrol -nr 00 -function Stop", 20);
-    assert_screen('netweaver-stop-instance', 10);
+    $output =~ /SAPSYSTEMNAME, Attribute, ([A-Z][A-Z0-9]{2})/m;
+    die "sapcontrol: SAP administrator [$sapadmin] does not match with System SID [$1]" if ($1 ne $sid);
 
-    type_string "clear\n";
-    assert_script_run("sapcontrol -nr 00 -function StopService", 20);
-    assert_screen('netweaver-stop-service', 10);
+    $output = script_output "sapcontrol -nr 00 -function Stop";
+    die "sapcontrol: Stop API failed\n\n$output" unless ($output =~ /Stop[\r\n]+OK/);
 
-    type_string "clear\n";
-    type_string "$pscmd\n";
-    check_screen('netweaver-service-started', 30);
+    $output = script_output "sapcontrol -nr 00 -function StopService";
+    die "sapcontrol: StopService API failed\n\n$output" unless ($output =~ /StopService[\r\n]+OK/);
 
-    type_string "clear\n";
-    assert_script_run("sapcontrol -nr 00 -function StartService QAD", 20);
-    assert_screen('netweaver-start-service', 10);
+    script_run "$pscmd | wc -l ; $pscmd";
+    save_screenshot;
 
-    type_string "clear\n";
-    type_string "$pscmd\n";
-    assert_screen('netweaver-service-started', 20);
+    $output = script_output "sapcontrol -nr 00 -function StartService $sid";
+    die "sapcontrol: StartService API failed\n\n$output" unless ($output =~ /StartService[\r\n]+OK/);
 
-    type_string "clear\n";
-    assert_script_run("sapcontrol -nr 00 -function Start", 20);
-    assert_screen('netweaver-start-instance', 10);
+    $output = script_output $pscmd;
+    my @olines = split(/\n/, $output);
+    die "sapcontrol: wrong number of processes running after an StartService\n\n" . @olines unless (@olines == 1);
+    die "sapcontrol failed to start the service" unless ($output =~ /^$sapadmin.+sapstartsrv/);
 
-    type_string "clear\n";
-    type_string "$pscmd\n";
-    assert_screen('netweaver-instance-started', 20);
+    $output = script_output "sapcontrol -nr 00 -function Start";
+    die "sapcontrol: Start API failed\n\n$output" unless ($output =~ /Start[\r\n]+OK/);
+
+    $output = script_output $pscmd;
+    @olines = split(/\n/, $output);
+    die "sapcontrol: failed to start the instance" unless (@olines > 1);
 
     # Rollback changes to $testapi::serialdev and close the window
     type_string "exit\n";
-    assert_script_sudo("chown $testapi::username /dev/$testapi::serialdev", 5);
-    send_key 'alt-f4';
+    assert_script_run "chown $testapi::username /dev/$testapi::serialdev";
+
+    # Return to previous console
+    select_console($prev_console, await_console => 0);
+    ensure_unlocked_desktop if ($prev_console eq 'x11');
 }
 
 1;

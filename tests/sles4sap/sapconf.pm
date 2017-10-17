@@ -10,28 +10,35 @@
 # Summary: sapconf availability and basic commands to tuned-adm
 # Maintainer: Alvaro Carvajal <acarvajal@suse.de>
 
-use base "x11test";
-use strict;
+use base "opensusebasetest";
 use testapi;
+use utils;
+use strict;
 
 sub run {
-    my ($self) = @_;
+    my ($self)       = @_;
+    my $prev_console = $testapi::selected_console;
+    my $output       = '';
 
-    x11_start_program('xterm');
-    assert_screen('xterm');
+    select_console 'root-console';
 
-    script_sudo("sapconf status");
-    assert_screen 'sapconf-status', 10;
-    die "Command 'sapconf status' output is not recognized" unless match_has_tag "sapconf-status";
+    $output = script_output "sapconf status";
+    my $statusregex
+      = 'tuned.service - Dynamic System Tuning Daemon.+'
+      . 'Loaded: loaded \(/usr/lib/systemd/system/tuned.service;.+'
+      . 'Active: active \(running\).+'
+      . 'Starting Dynamic System Tuning Daemon.+'
+      . 'Started Dynamic System Tuning Daemon.$';
+    die "Command 'sapconf status' output is not recognized" unless ($output =~ m|$statusregex|s);
 
     foreach my $cmd (qw(start hana b1 ase sybase bobj)) {
-        type_string "clear\n";
-        assert_script_sudo("sapconf $cmd");
-        assert_screen 'sapconf-fwd2tuned-adm', 10;
-        die "Command 'sapconf $cmd' output is not recognized" unless match_has_tag "sapconf-fwd2tuned-adm";
+        $output = script_output "sapconf $cmd";
+        die "Command 'sapconf $cmd' output is not recognized" unless ($output =~ /Forwarding action to tuned\-adm.$/);
     }
 
-    send_key 'alt-f4';
+    # Return to previous console
+    select_console($prev_console, await_console => 0);
+    ensure_unlocked_desktop if ($prev_console eq 'x11');
 }
 
 1;
