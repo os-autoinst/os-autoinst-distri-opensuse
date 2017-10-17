@@ -185,9 +185,14 @@ sub run {
         else {
             send_key 'alt-p';
         }
-        if (!get_var('UEFI')) {    # partitioning type does not appear when GPT disk used, GPT is default for UEFI
-            assert_screen 'partitioning-type';
-            send_key 'alt-n';
+        if (!get_var('UEFI')) {                   # partitioning type does not appear when GPT disk used, GPT is default for UEFI
+            if (is_storage_ng) {
+                record_soft_failure 'bsc#1055743';    # No partitioning type page ATM
+            }
+            else {
+                assert_screen 'partitioning-type';
+                send_key 'alt-n';
+            }
         }
         assert_screen 'partitioning-size';
         wait_screen_change { send_key 'ctrl-a' };
