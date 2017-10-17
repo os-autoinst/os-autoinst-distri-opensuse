@@ -25,6 +25,9 @@ sub run {
         set_var('STORAGE_NG', 1);
         # Define changed shortcuts
         $cmd{donotformat} = 'alt-t';
+        $cmd{addraid}     = 'alt-d';
+        $cmd{filesystem}  = 'alt-a'
+
     }
 
     if (get_var("DUALBOOT")) {
