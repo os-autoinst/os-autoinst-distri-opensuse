@@ -1490,9 +1490,7 @@ else {
         loadtest "jeos/diskusage";
         loadtest "jeos/root_fs_size";
         loadtest "jeos/mount_by_label";
-        if (get_var("SCC_EMAIL") && get_var("SCC_REGCODE")) {
-            loadtest "jeos/sccreg";
-        }
+        loadtest "jeos/sccreg";
     }
     else {
         if (get_var('BOOT_EXISTING_S390')) {
