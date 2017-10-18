@@ -178,8 +178,12 @@ if (sle_version_at_least('15')) {
     set_var('SYSTEM_ROLE', get_var('SYSTEM_ROLE', check_var('SCC_REGISTER', 'installation') ? 'default' : 'minimal'));
     # in the 'minimal' system role we can not execute many test modules
     set_var('INSTALLONLY', get_var('INSTALLONLY', check_var('SYSTEM_ROLE', 'minimal')));
-}
 
+    if (check_var('ARCH', 's390x') and get_var('DESKTOP', '') =~ /gnome|minimalx/) {
+        diag 'BUG: bsc#1058071 - No VNC server available in SUT, disabling X11 tests. Re-enable after bug is fixed';
+        set_var('DESKTOP', 'textmode');
+    }
+}
 
 # Set serial console for Xen PV
 if (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux')) {
