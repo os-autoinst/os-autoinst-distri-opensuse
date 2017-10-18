@@ -14,7 +14,7 @@ use base "opensusebasetest";
 use strict;
 
 use testapi;
-use utils qw(power_action workaround_type_encrypted_passphrase);
+use utils qw(power_action workaround_type_encrypted_passphrase is_sle12_hdd_in_upgrade);
 use bootloader_setup;
 use registration;
 
@@ -49,6 +49,12 @@ sub run {
         # boot
         my $key = check_var('ARCH', 'ppc64le') || check_var('ARCH', 'aarch64') ? 'ctrl-x' : 'ret';
         send_key $key;
+    }
+
+    # All actions have been done e.g. fully/minimal patch on booted hdd before this step
+    # After this, the hdd would be upgraded to the target version in case of Upgrade scenario
+    if (is_sle12_hdd_in_upgrade) {
+        set_var('HDDVERSION', get_var('VERSION'));
     }
 }
 
