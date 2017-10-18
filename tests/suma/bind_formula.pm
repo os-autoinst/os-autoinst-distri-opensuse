@@ -89,38 +89,6 @@ EOT
 
         select_console 'x11', tags => 'suma_welcome_screen';
 
-        #    assert_and_click('suma-salt-menu');
-        #    assert_and_click('suma-salt-formulas');
-        #    assert_and_click('suma-branch-network-formula-details');
-        #    assert_screen('suma-branch-network-formula-details-screen');
-
-        # no form yet
-        #     assert_and_click('suma-systems-menu');
-        #     assert_and_click('suma-systems-submenu');
-        #     assert_and_click('suma-system-all');
-        #     assert_and_click('suma-system-branch');
-        #     assert_and_click('suma-system-formulas');
-        #     send_key_until_needlematch('suma-system-formula-bind', 'down', 40, 1);
-        #     assert_and_click('suma-system-formula-bind');
-        #     assert_and_click('suma-system-formulas-save');
-        #     assert_and_click('suma-system-formula-bind-tab');
-        #     assert_and_click('suma-system-formula-bind-form');
-
-        #    assert_and_click('suma-system-formula-form-save');
-
-        # apply high state
-        #    assert_and_click('suma-system-formulas');
-        #    assert_and_click('suma-system-formula-highstate');
-        #    wait_screen_change {
-        #      assert_and_click('suma-system-formula-event');
-        #    };
-        # wait for high state
-        # check for success
-        #    send_key_until_needlematch('suma-system-highstate-finish', 'ctrl-r', 10, 15);
-        #    wait_screen_change {
-        #      assert_and_click('suma-system-highstate-finish');
-        #    };
-        #    send_key_until_needlematch('suma-system-highstate-success', 'pgdn');
         $self->registered_barrier_wait('bind_formula');
         $self->registered_barrier_wait('bind_formula_finish');
 

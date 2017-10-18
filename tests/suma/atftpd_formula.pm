@@ -20,7 +20,6 @@ use selenium;
 sub run {
     my ($self) = @_;
 
-    #TODO: get from common module / branch network test to ensure compatibility
     my $testip = '192.168.1.1';
     my $srvdir = get_var('SERVER_DIR');
 
@@ -41,7 +40,6 @@ sub run {
         assert_script_run('cat /etc/sysconfig/atftpd | grep \'ATFTPD_BIND_ADDRESSES="' . $testip . '"\'');
 
         #test atftpd listening on udp port 69
-        #TODO: remove softfail after bug is fixed
         script_run('netstat -uplne');
         if (script_run('netstat -ulnp | grep \'' . $testip . ':69\s\' | grep -P \'/atftpd\s*$\' ')) {
             record_soft_failure('atftpd listens everywhere: bsc#1049832');

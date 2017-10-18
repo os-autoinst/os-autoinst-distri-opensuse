@@ -20,7 +20,7 @@ use selenium;
 sub run {
     my ($self) = @_;
 
-    my $testip = '192.168.1.1';           #TODO: get from common module / branch network test to ensure compatibility
+    my $testip = '192.168.1.1';
     my $srvdir = get_var('SERVER_DIR');
 
     if (check_var('SUMA_SALT_MINION', 'branch')) {

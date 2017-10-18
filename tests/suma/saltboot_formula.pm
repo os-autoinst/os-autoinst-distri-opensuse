@@ -27,7 +27,6 @@ sub create_group_for_hwtype {
 
     wait_for_link('saltboot')->click();
     wait_for_page_to_load;
-    #FIXME: check formula details
 
     $self->suma_menu('Systems', 'System Groups');
 
@@ -66,7 +65,6 @@ sub create_group_for_hwtype {
     $driver->double_click();
     save_screenshot;
 
-    # FIXME: fill in form data
     save_screenshot;
     wait_for_xpath("//button[\@id='save-btn']")->click();
 

@@ -50,6 +50,7 @@ sub run {
         select_console 'root-console';
 
         # FIXME: this should be configured via forms but the forms have to support Null value first
+        # not yet available on SUMA
         for my $hwtype ($self->get_hwtypes) {
             assert_script_run 'echo "
   \'*-' . $hwtype . '-*\':

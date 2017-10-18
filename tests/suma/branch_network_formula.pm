@@ -20,7 +20,7 @@ sub run {
     my ($self) = @_;
     $self->register_barriers('branch_network_formula', 'branch_network_formula_finish');
 
-    my $testip = '192.168.1.1';           #TODO: get also from configurable variable if present
+    my $testip = '192.168.1.1';
     my $srvdir = get_var('SERVER_DIR');
 
     if (check_var('SUMA_SALT_MINION', 'branch')) {

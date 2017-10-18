@@ -27,6 +27,7 @@ sub run {
         assert_script_run 'mkdir -p /usr/share/kiwi/image/saltboot/root/etc/salt/minion.d';
 
         #FIXME: use SUMA repos
+        # this part is not yet implemented in SUMA itself
 
         assert_script_run
           '( cd /usr/share/kiwi/image/jeos-6.0.0/ ; mkdir -p repo ; cd repo ; wget http://10.0.2.10/pub/rhn-org-trusted-ssl-cert-1.0-1.noarch.rpm )';

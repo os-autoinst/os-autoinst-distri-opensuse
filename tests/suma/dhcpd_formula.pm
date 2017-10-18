@@ -30,7 +30,6 @@ sub run {
 
         # minion test
         assert_script_run('systemctl is-active dhcpd.service');
-        # TODO check files are proper
         # allow salt terminal to continue
         $self->registered_barrier_wait('dhcp_ready');
         # and wait for it to finish, and allow salt master to continue
