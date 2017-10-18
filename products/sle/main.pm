@@ -174,7 +174,12 @@ set_var('DESKTOP',     get_var('DESKTOP', default_desktop));
 # Always register against SCC if SLE 15
 if (sle_version_at_least('15')) {
     set_var('SCC_REGISTER', get_var('SCC_REGISTER', 'installation'));
+    # depending on registration only limited system roles are available
+    set_var('SYSTEM_ROLE', get_var('SYSTEM_ROLE', check_var('SCC_REGISTER', 'installation') ? 'default' : 'minimal'));
+    # in the 'minimal' system role we can not execute many test modules
+    set_var('INSTALLONLY', get_var('INSTALLONLY', check_var('SYSTEM_ROLE', 'minimal')));
 }
+
 
 # Set serial console for Xen PV
 if (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux')) {
@@ -756,7 +761,7 @@ sub load_consoletests {
     }
     loadtest "console/textinfo";
     loadtest "console/hostname" unless is_bridged_networking;
-    if (get_var("SYSTEM_ROLE")) {
+    if (get_var('SYSTEM_ROLE', '') =~ /kvm|xen/) {
         loadtest "console/patterns";
     }
     if (snapper_is_applicable()) {
