@@ -44,11 +44,11 @@ sub toggle_formula_for_hwtype {
 
 sub run {
     my ($self) = @_;
-    my @partitioning_tests = qw( 01_raid_degraded  02_raid_full  03_raid_degraded2  04_raid_full2  05_normal 
-                                 06_gpt_raid_degraded  07_gpt_raid_full  08_gpt_raid_degraded2  09_gpt_raid_full2  10_gpt_normal );
+    my @partitioning_tests = qw( 01_raid_degraded  02_raid_full  03_raid_degraded2  04_raid_full2  05_normal
+      06_gpt_raid_degraded  07_gpt_raid_full  08_gpt_raid_degraded2  09_gpt_raid_full2  10_gpt_normal );
 
     # local boot works only if there is no encrypted partition and on gpt it requires special grub partition
-    my %test_local_boot = map { $_ => 1 }  qw( 02_raid_full  03_raid_degraded2  04_raid_full2 05_normal 10_gpt_normal );
+    my %test_local_boot = map { $_ => 1 } qw( 02_raid_full  03_raid_degraded2  04_raid_full2 05_normal 10_gpt_normal );
 
     my @barriers = map { ("partitioning_$_", "partitioning_${_}_offline1", "partitioning_${_}_offline2", "partitioning_${_}_finish") } @partitioning_tests;
 

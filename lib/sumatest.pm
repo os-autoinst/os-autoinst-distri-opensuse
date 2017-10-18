@@ -216,11 +216,11 @@ sub get_hwtypes {
 }
 
 sub reboot_terminal {
-    my $self = shift;
+    my $self      = shift;
     my $grub_boot = shift;
     type_string "shutdown -r now\n";
 
-    assert_screen("suma-image-pxe",   300) if !$grub_boot;
+    assert_screen("suma-image-pxe", 300) if !$grub_boot;
     assert_screen("suma-image-login", 300);
 
     # clear kiwidebug console
