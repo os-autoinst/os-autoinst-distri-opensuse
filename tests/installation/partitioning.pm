@@ -1,15 +1,15 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2176 SUSE LLC
+# Copyright © 2012-017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: change to nicer directory structure
-# Maintainer: Bernhard M. Wiedemann <bernhard+osautoinst@lsmod.de>
+# Summary: Check initial partitioning screen and prepare optional substeps
+# Maintainer: Joachim Rauch <jrauch@suse.com>
 
 use strict;
 use warnings;
@@ -26,8 +26,14 @@ sub run {
         # Define changed shortcuts
         $cmd{donotformat} = 'alt-t';
         $cmd{addraid}     = 'alt-d';
-        $cmd{filesystem}  = 'alt-a'
+        if (check_var('DISTRI', 'opensuse')) {
+            $cmd{expertpartitioner} = 'alt-x';
+            $cmd{rescandevices}     = 'alt-c';
 
+        }
+        else {
+            $cmd{filesystem} = 'alt-a';
+        }
     }
 
     if (get_var("DUALBOOT")) {

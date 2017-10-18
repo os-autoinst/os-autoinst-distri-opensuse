@@ -69,6 +69,7 @@ sub init_cmd {
       bootloader b
       entiredisk alt-e
       guidedsetup alt-g
+      rescandevices alt-e
     );
 
     if (check_var('INSTLANG', "de_DE")) {
