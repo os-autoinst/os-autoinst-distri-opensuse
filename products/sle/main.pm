@@ -679,7 +679,6 @@ sub load_inst_tests {
             loadtest "installation/installation_overview_before";
             loadtest "installation/change_desktop";
         }
-        loadtest "installation/disable_grub_timeout";
     }
     if (get_var("UEFI") && get_var("SECUREBOOT")) {
         loadtest "installation/secure_boot";
@@ -690,6 +689,7 @@ sub load_inst_tests {
     }
     if (installyaststep_is_applicable()) {
         loadtest "installation/installation_overview";
+        loadtest "installation/disable_grub_timeout";
         if (check_var('VIDEOMODE', 'text') && check_var('BACKEND', 'ipmi')) {
             loadtest "installation/disable_grub_graphics";
         }

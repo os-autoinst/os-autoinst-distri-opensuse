@@ -25,7 +25,7 @@ sub run {
 
     if (check_var('VIDEOMODE', 'text')) {
         # Select section booting on Installation Settings overview on text mode
-        send_key 'alt-c';
+        send_key $cmd{change};
         assert_screen 'inst-overview-options';
         wait_screen_change { send_key 'alt-b'; };
     }
@@ -37,21 +37,24 @@ sub run {
     }
 
     # Select bootloader options tab
-    # older sle version use 'alt-t;
-    my $shortcut = 'alt-r';
+    $cmd{bootloader} = 'alt-r';    # Value for most products
     if (check_var('DISTRI', 'sle')) {
         if (!sle_version_at_least('12-SP2')) {
-            $shortcut = 'alt-t';
+            $cmd{bootloader} = 'alt-t';    # SLE-12 GA & SLE-SP1 use 'alt-t
         }
     }
-    # openSUSE all supported distributions use 'alt-r'
-    wait_screen_change { send_key $shortcut; };
-
+    elsif (!is_tumbleweed) {
+        $cmd{bootloader} = 'alt-l';        #openSUSE LEAP uses 'alt-l'
+    }
+    wait_screen_change { send_key $cmd{bootloader}; };
     assert_screen 'installation-bootloader-options';
 
     # Select Timeout dropdown box and disable
     send_key 'alt-t';
-    type_string "-1";
+    my $timeout = "-1";
+    # SLE-12 GA only accepts positive integers in range [0,300]
+    $timeout = "60" if !(sle_version_at_least('12-SP1'));
+    type_string $timeout;
 
     # ncurses uses blocking modal dialog, so press return is needed
     send_key 'ret' if check_var('VIDEOMODE', 'text');
