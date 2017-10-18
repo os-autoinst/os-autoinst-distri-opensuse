@@ -36,6 +36,7 @@ our @EXPORT = qw(
   is_sle
   is_tumbleweed
   is_storage_ng
+  is_sle12_hdd_in_upgrade
   select_kernel
   type_string_slow
   type_string_very_slow
@@ -306,6 +307,10 @@ sub is_sle {
 
 sub is_storage_ng {
     return get_var('STORAGE_NG');
+}
+
+sub is_sle12_hdd_in_upgrade {
+    return get_var('UPGRADE') && !sle_version_at_least('15', version_variable => 'HDDVERSION');
 }
 
 sub type_string_slow {
@@ -1384,7 +1389,7 @@ sub get_root_console_tty {
     is running on tty2 by default. see also: bsc#1054782
 =cut
 sub get_x11_console_tty {
-    my $new_gdm = !(is_sle && !sle_version_at_least('15')) && !(is_leap && !leap_version_at_least('15')) && !is_caasp;
+    my $new_gdm = !(is_sle && !sle_version_at_least('15')) && !(is_leap && !leap_version_at_least('15')) && !is_sle12_hdd_in_upgrade && !is_caasp;
     return (check_var('DESKTOP', 'gnome') && get_var('NOAUTOLOGIN') && $new_gdm) ? 2 : 7;
 }
 
