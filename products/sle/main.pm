@@ -164,13 +164,10 @@ sub cleanup_needles {
     }
 }
 
-diag('default desktop: ' . default_desktop);
-
 # SLE specific variables
 set_var('NOAUTOLOGIN', 1);
 set_var('HASLICENSE',  1);
 set_var('SLE_PRODUCT', get_var('SLE_PRODUCT', 'sles'));
-set_var('DESKTOP',     get_var('DESKTOP', default_desktop));
 # Always register against SCC if SLE 15
 if (sle_version_at_least('15')) {
     set_var('SCC_REGISTER', get_var('SCC_REGISTER', 'installation'));
@@ -178,7 +175,10 @@ if (sle_version_at_least('15')) {
     set_var('SYSTEM_ROLE', get_var('SYSTEM_ROLE', check_var('SCC_REGISTER', 'installation') ? 'default' : 'minimal'));
     # in the 'minimal' system role we can not execute many test modules
     set_var('INSTALLONLY', get_var('INSTALLONLY', check_var('SYSTEM_ROLE', 'minimal')));
-
+}
+diag('default desktop: ' . default_desktop);
+set_var('DESKTOP', get_var('DESKTOP', default_desktop));
+if (sle_version_at_least('15')) {
     if (check_var('ARCH', 's390x') and get_var('DESKTOP', '') =~ /gnome|minimalx/) {
         diag 'BUG: bsc#1058071 - No VNC server available in SUT, disabling X11 tests. Re-enable after bug is fixed';
         set_var('DESKTOP', 'textmode');
@@ -377,6 +377,7 @@ logcurrentenv(
       NOINSTALL UPGRADE USBBOOT ZDUP ZDUPREPOS TEXTMODE
       DISTRI NOAUTOLOGIN QEMUCPU QEMUCPUS RAIDLEVEL ENCRYPT INSTLANG
       QEMUVGA DOCRUN UEFI DVD GNOME KDE ISO ISO_MAXSIZE NETBOOT USEIMAGES
+      SYSTEM_ROLE SCC_REGISTER
       SLE_PRODUCT SPLITUSR VIDEOMODE)
 );
 
