@@ -48,7 +48,7 @@ sub run {
 
         if ($testapi::username eq 'root') {
             assert_screen 'package-updater-privileged-user-warning', 60;
-            send_key "alt-a" if (match_has_tag("package-updater-privileged-user-warning"));
+            send_key "alt-a";
         }
 
         assert_screen \@updates_tags, 100;

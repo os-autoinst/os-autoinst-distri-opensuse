@@ -10,19 +10,16 @@
 # Summary: sapconf availability and basic commands to tuned-adm
 # Maintainer: Alvaro Carvajal <acarvajal@suse.de>
 
-use base "opensusebasetest";
+use base "sles4sap";
 use testapi;
-use utils;
 use strict;
 
 sub run {
-    my ($self)       = @_;
-    my $prev_console = $testapi::selected_console;
-    my $output       = '';
+    my ($self) = @_;
 
     select_console 'root-console';
 
-    $output = script_output "sapconf status";
+    my $output = script_output "sapconf status";
     my $statusregex
       = 'tuned.service - Dynamic System Tuning Daemon.+'
       . 'Loaded: loaded \(/usr/lib/systemd/system/tuned.service;.+'
@@ -35,10 +32,6 @@ sub run {
         $output = script_output "sapconf $cmd";
         die "Command 'sapconf $cmd' output is not recognized" unless ($output =~ /Forwarding action to tuned\-adm.$/);
     }
-
-    # Return to previous console
-    select_console($prev_console, await_console => 0);
-    ensure_unlocked_desktop if ($prev_console eq 'x11');
 }
 
 1;

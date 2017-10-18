@@ -11,9 +11,8 @@
 # Requires: ENV variable NW pointing to installation media
 # Maintainer: Alvaro Carvajal <acarvajal@suse.de>
 
-use base "opensusebasetest";
+use base "sles4sap";
 use testapi;
-use utils;
 use strict;
 
 sub fix_path {
@@ -29,9 +28,7 @@ sub fix_path {
 sub run {
     my ($self) = @_;
     my ($proto, $path) = split m|://|, get_var('NW');
-    my $prev_console = $testapi::selected_console;
-    my $cmd          = '';
-    my @sapoptions   = qw(
+    my @sapoptions = qw(
       SAPINST_USE_HOSTNAME=$(hostname)
       SAPINST_INPUT_PARAMETERS_URL=/sapinst/inifile.params
       SAPINST_EXECUTE_PRODUCT_ID=NW_ABAP_ASCS:NW740SR2.ADA.PIHA
@@ -53,7 +50,7 @@ sub run {
     assert_script_run "tar -cf - . | (cd /sapinst/; tar -pxf - )", 600;
 
     # Check everything was copied correctly
-    $cmd = q|find . -type f -exec md5sum {} \; > /tmp/check-nw-media|;
+    my $cmd = q|find . -type f -exec md5sum {} \; > /tmp/check-nw-media|;
     assert_script_run $cmd, 300;
     type_string "cd /sapinst\n";
     assert_script_run "umount /mnt";
@@ -88,10 +85,6 @@ sub run {
     $cmd = $cmd . ' ' . join(' ', @sapoptions);
 
     assert_script_run $cmd, 600;
-
-    # Return to previous console
-    select_console($prev_console, await_console => 0);
-    ensure_unlocked_desktop if ($prev_console eq 'x11');
 }
 
 sub post_fail_hook {
