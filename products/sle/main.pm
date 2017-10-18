@@ -94,7 +94,7 @@ sub default_desktop {
     return 'gnome' if get_var('ADDONURL', '') =~ /(desktop|server)/;
     return 'textmode' if (get_var('SYSTEM_ROLE') && !check_var('SYSTEM_ROLE', 'default'));
     return 'gnome' if check_var_array('ADDONS', 'all-packages');
-    return (get_var('SCC_REGISTER') && !check_var('SCC_REGISTER', 'installation')) ? 'textmode' : 'gnome';
+    return (!get_var('SCC_REGISTER') || !check_var('SCC_REGISTER', 'installation')) ? 'textmode' : 'gnome';
 }
 
 sub cleanup_needles {
