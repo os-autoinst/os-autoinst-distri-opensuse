@@ -94,7 +94,7 @@ sub default_desktop {
     return 'gnome' if get_var('ADDONURL', '') =~ /(desktop|server)/;
     return 'textmode' if (get_var('SYSTEM_ROLE') && !check_var('SYSTEM_ROLE', 'default'));
     return 'gnome' if check_var_array('ADDONS', 'all-packages');
-    return (get_var('SCC_REGISTER') && !check_var('SCC_REGISTER', 'installation')) ? 'textmode' : 'gnome';
+    return (!get_var('SCC_REGISTER') || !check_var('SCC_REGISTER', 'installation')) ? 'textmode' : 'gnome';
 }
 
 sub cleanup_needles {
@@ -174,6 +174,15 @@ set_var('DESKTOP',     get_var('DESKTOP', default_desktop));
 # Always register against SCC if SLE 15
 if (sle_version_at_least('15')) {
     set_var('SCC_REGISTER', get_var('SCC_REGISTER', 'installation'));
+    # depending on registration only limited system roles are available
+    set_var('SYSTEM_ROLE', get_var('SYSTEM_ROLE', check_var('SCC_REGISTER', 'installation') ? 'default' : 'minimal'));
+    # in the 'minimal' system role we can not execute many test modules
+    set_var('INSTALLONLY', get_var('INSTALLONLY', check_var('SYSTEM_ROLE', 'minimal')));
+
+    if (check_var('ARCH', 's390x') and get_var('DESKTOP', '') =~ /gnome|minimalx/) {
+        diag 'BUG: bsc#1058071 - No VNC server available in SUT, disabling X11 tests. Re-enable after bug is fixed';
+        set_var('DESKTOP', 'textmode');
+    }
 }
 
 # Set serial console for Xen PV
@@ -756,7 +765,7 @@ sub load_consoletests {
     }
     loadtest "console/textinfo";
     loadtest "console/hostname" unless is_bridged_networking;
-    if (get_var("SYSTEM_ROLE")) {
+    if (get_var('SYSTEM_ROLE', '') =~ /kvm|xen/) {
         loadtest "console/patterns";
     }
     if (snapper_is_applicable()) {

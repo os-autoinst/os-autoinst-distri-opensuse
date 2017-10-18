@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -21,10 +21,8 @@ sub run {
 
     # System roles are defined in config.xml. Currently the role 'kvm host'
     # defines kvm_server as an additional pattern, xen_server defines 'xen host'.
-    my $pattern_name = 'kvm_server';
-    if (check_var('SYSTEM_ROLE', 'xen')) {
-        $pattern_name = 'xen_server';
-    }
+    die "Only kvm|xen roles are supported" unless get_var('SYSTEM_ROLE', '') =~ /kvm|xen/;
+    my $pattern_name = get_required_var('SYSTEM_ROLE') . '_server';
     assert_script_run("zypper patterns -i | grep $pattern_name");
 }
 
