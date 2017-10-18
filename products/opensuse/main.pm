@@ -282,9 +282,9 @@ sub load_inst_tests {
     if (noupdatestep_is_applicable()) {
         if (get_var('PATTERNS') || get_var('PACKAGES')) {
             loadtest "installation/installation_overview_before";
-            loadtest "installation/disable_grub_timeout";
             loadtest "installation/select_patterns_and_packages";
         }
+        loadtest "installation/disable_grub_timeout";
     }
     if (get_var("UEFI") && get_var("SECUREBOOT")) {
         loadtest "installation/secure_boot";
