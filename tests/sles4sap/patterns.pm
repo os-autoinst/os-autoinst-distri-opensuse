@@ -10,16 +10,14 @@
 # Summary: SAP Pattern test
 # Maintainer: Alvaro Carvajal <acarvajal@suse.de>
 
-use base "opensusebasetest";
+use base "sles4sap";
 use testapi;
-use utils;
 use strict;
 
 sub run {
-    my ($self)       = @_;
-    my @sappatterns  = qw(sap-nw sap-b1 sap-hana);
-    my $prev_console = $testapi::selected_console;
-    my $output       = '';
+    my ($self)      = @_;
+    my @sappatterns = qw(sap-nw sap-b1 sap-hana);
+    my $output      = '';
 
     select_console 'root-console';
 
@@ -29,10 +27,6 @@ sub run {
         die "SAP zypper pattern [$pattern] info check failed"
           unless ($output =~ /i\+\s\|\spatterns-$pattern\s+\|\spackage\s\|\sRequired/);
     }
-
-    # Return to previous console
-    select_console($prev_console, await_console => 0);
-    ensure_unlocked_desktop if ($prev_console eq 'x11');
 }
 
 1;
