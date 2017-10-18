@@ -47,13 +47,13 @@ sub run {
 
     # Select bootloader options tab
     $cmd{bootloader} = 'alt-r';    # Value for most products
-    if (check_var('DISTRI', 'sle')) {
+    if (is_sle) {
         if (!sle_version_at_least('12-SP2') || sle_version_at_least('15')) {
             $cmd{bootloader} = 'alt-t';    # SLE-12 GA & SLE-SP1 & SLE15 use 'alt-t
         }
     }
-    elsif (!is_tumbleweed) {
-        $cmd{bootloader} = 'alt-l';        #openSUSE LEAP uses 'alt-l'
+    elsif (is_leap && leap_version_at_least('15')) {
+        $cmd{bootloader} = 'alt-l';
     }
     wait_screen_change { send_key $cmd{bootloader}; };
     assert_screen 'installation-bootloader-options';
