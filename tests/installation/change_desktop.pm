@@ -47,7 +47,7 @@ sub change_desktop {
     }
     send_key_until_needlematch 'patterns-list-selected', 'tab', 10;
 
-    if (get_var('SYSTEM_ROLE')) {
+    if (get_var('SYSTEM_ROLE') && !check_var('SYSTEM_ROLE', 'default')) {
         assert_screen "desktop-unselected";
     }
     else {
