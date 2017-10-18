@@ -176,13 +176,28 @@ sub run {
     assert_screen 'partitioning_raid-hard_disks-selected';
 
     if (get_var("OFW")) {    ## no RAID /boot partition for ppc
-        send_key 'alt-p';
-        if (!get_var('UEFI')) {    # partitioning type does not appear when GPT disk used, GPT is default for UEFI
-            assert_screen 'partitioning-type';
-            send_key 'alt-n';
+        if (is_storage_ng) {
+            record_soft_failure 'bsc#1063844';    # Cannot add partition from menu option "hard disks"
+            send_key 'down';
+            assert_screen 'partitioning_raid-disk_vda-selected';
+            send_key 'alt-d';
+        }
+        else {
+            send_key 'alt-p';
+        }
+        if (!get_var('UEFI')) {                   # partitioning type does not appear when GPT disk used, GPT is default for UEFI
+            if (is_storage_ng) {
+                record_soft_failure 'bsc#1055743';    # No partitioning type page ATM
+            }
+            else {
+                assert_screen 'partitioning-type';
+                send_key 'alt-n';
+            }
         }
         assert_screen 'partitioning-size';
-        wait_screen_change { send_key 'ctrl-a' };
+        send_key 'alt-c' if is_storage_ng;
+        my $size_hotkey = (is_storage_ng) ? 'alt-s' : 'ctrl-a';
+        wait_screen_change { send_key $size_hotkey };
         type_string "200 MB";
         assert_screen 'partitioning_raid-custom-size-200MB';
         send_key 'alt-n';
@@ -191,12 +206,15 @@ sub run {
         assert_screen 'partitioning_raid-partition_role_raw_volume';
         send_key 'alt-n';
         assert_screen 'partition-format';
-        send_key 'alt-d';
+        my $not_format_hotkey = (is_storage_ng) ? 'alt-t' : 'ctrl-d';
+        send_key $not_format_hotkey;
         assert_screen 'partitioning_raid-format_noformat';
         send_key 'alt-i';
         assert_screen 'partitioning_raid-file_system_id-selected';
-        send_key_until_needlematch 'filesystem-prep', 'down';
-        send_key 'alt-f';
+        my $direction_key = (is_storage_ng) ? 'up' : 'down';
+        send_key_until_needlematch 'filesystem-prep', $direction_key;
+        my $next_hotkey = (is_storage_ng) ? 'alt-n' : 'alt-f';
+        send_key $next_hotkey;
         assert_screen 'custompart';
         send_key 'alt-s';
         send_key 'right';
