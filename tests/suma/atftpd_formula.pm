@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Installation and configuration of SUSE Manager tftp salt formula
+# Summary: Installation and configuration of SUSE Manager atftpd salt formula
 # Maintainer: Pavel Sladek <psladek@suse.cz>
 
 use base "sumatest";
@@ -25,13 +25,13 @@ sub run {
     my $srvdir = get_var('SERVER_DIR');
 
     if (check_var('SUMA_SALT_MINION', 'branch')) {
-        $self->register_barriers('tftp_formula', 'tftp_ready', 'tftp_formula_finish');
-        #need to create after tftp_formula barrier is breached, or creation will be too early
+        $self->register_barriers('atftpd_formula', 'atftpd_ready', 'atftpd_formula_finish');
+        #need to create after atftpd_formula barrier is breached, or creation will be too early
         my $bn = keys get_children();
-        barrier_create('tftp_ready', $bn + 1);
+        barrier_create('atftpd_ready', $bn + 1);
 
-        # configure second interface for tftp
-        $self->registered_barrier_wait('tftp_formula');
+        # configure second interface for atftpd
+        $self->registered_barrier_wait('atftpd_formula');
 
         # minion test
         script_run('systemctl status atftpd.service');
@@ -40,7 +40,7 @@ sub run {
         script_run('cat /etc/sysconfig/atftpd | grep -P -v \'^(\s*$|^#)\'');
         assert_script_run('cat /etc/sysconfig/atftpd | grep \'ATFTPD_BIND_ADDRESSES="' . $testip . '"\'');
 
-        #test tftp listening on udp port 69
+        #test atftpd listening on udp port 69
         #TODO: remove softfail after bug is fixed
         script_run('netstat -uplne');
         if (script_run('netstat -ulnp | grep \'' . $testip . ':69\s\' | grep -P \'/atftpd\s*$\' ')) {
@@ -58,13 +58,13 @@ sub run {
 
         save_screenshot;
 
-        $self->registered_barrier_wait('tftp_ready');
-        $self->registered_barrier_wait('tftp_formula_finish');
+        $self->registered_barrier_wait('atftpd_ready');
+        $self->registered_barrier_wait('atftpd_formula_finish');
     }
     elsif (check_var('SUMA_SALT_MINION', 'terminal')) {
-        $self->register_barriers('tftp_formula', 'tftp_ready', 'tftp_formula_finish');
-        $self->registered_barrier_wait('tftp_formula');
-        $self->registered_barrier_wait('tftp_ready');
+        $self->register_barriers('atftpd_formula', 'atftpd_ready', 'atftpd_formula_finish');
+        $self->registered_barrier_wait('atftpd_formula');
+        $self->registered_barrier_wait('atftpd_ready');
 
         script_run('rcSuSEfirewall2 status');
         script_run('rcSuSEfirewall2 stop');
@@ -79,13 +79,13 @@ sub run {
         send_key('ret');
         assert_script_run('diff test /tmp/test2cmp');
 
-        $self->registered_barrier_wait('tftp_formula_finish');
+        $self->registered_barrier_wait('atftpd_formula_finish');
     }
     else {
-        $self->register_barriers('tftp_formula', 'tftp_formula_finish');
-        $self->install_formula('tftp-formula');
-        $self->select_formula('tftp', 'Tftp');
-
+        $self->register_barriers('atftpd_formula', 'atftpd_formula_finish');
+        $self->install_formula('atftpd-formula');
+        $self->select_formula('atftpd', 'Atftpd');
+        
         my $driver = selenium_driver();
         #select all text in first form entry
         $driver->mouse_move_to_location(element => wait_for_xpath("//form[\@id='editFormulaForm']/div/div"));
@@ -107,8 +107,8 @@ sub run {
         $self->apply_highstate();
 
         # signal minion to check configuration
-        $self->registered_barrier_wait('tftp_formula');
-        $self->registered_barrier_wait('tftp_formula_finish');
+        $self->registered_barrier_wait('atftpd_formula');
+        $self->registered_barrier_wait('atftpd_formula_finish');
     }
 }
 
