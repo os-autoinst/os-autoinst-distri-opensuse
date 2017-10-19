@@ -32,7 +32,7 @@ sub extract_assets {
         $cmd .= ' -c';
     }
     type_string("$cmd && echo OK\n");
-    assert_screen('svirt-asset-upload-hdd-image-converted', 300);
+    assert_screen('svirt-asset-upload-hdd-image-converted', 600);
 
     # Upload the image as a private asset; do the upload verification
     # on your own - hence the following assert_screen().
