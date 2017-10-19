@@ -784,6 +784,10 @@ sub power_action {
     if (check_var('VIRSH_VMM_FAMILY', 'xen')) {
         assert_shutdown_and_restore_system($action);
     }
+    elsif (check_var('ARCH', 's390x') && !check_var('WORKER_CLASS', 'svirt')) {
+        diag 'poo#25638 shutdown on s390x-kvm and z/VM does never return from assert_shutdown, skipping that call.';
+        reset_consoles;
+    }
     else {
         # Shutdown takes longer than 60 seconds on SLE 15
         my $shutdown_timeout = 60;
