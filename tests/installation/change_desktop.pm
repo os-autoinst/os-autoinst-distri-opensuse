@@ -52,15 +52,15 @@ sub change_desktop {
     }
     else {
         if (!check_var('DESKTOP', 'gnome')) {
-            send_key_until_needlematch 'gnome-selected', 'down', 10;
+            send_key_until_needlematch 'gnome-selected', 'down';
             send_key ' ';
         }
         if (check_var('DESKTOP', 'kde')) {
-            send_key_until_needlematch 'kde-unselected', 'down', 10;
+            send_key_until_needlematch 'kde-unselected', 'down';
             send_key ' ';
         }
         if (check_var('DESKTOP', 'textmode')) {
-            send_key_until_needlematch 'x11-selected', 'down', 10;
+            send_key_until_needlematch 'x11-selected', 'down';
             send_key ' ';
         }
         assert_screen "desktop-selected";
