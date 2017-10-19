@@ -83,7 +83,7 @@ sub run {
         $self->register_barriers('atftpd_formula', 'atftpd_formula_finish');
         $self->install_formula('atftpd-formula');
         $self->select_formula('atftpd', 'Atftpd');
-        
+
         my $driver = selenium_driver();
         #select all text in first form entry
         $driver->mouse_move_to_location(element => wait_for_xpath("//form[\@id='editFormulaForm']/div/div"));
