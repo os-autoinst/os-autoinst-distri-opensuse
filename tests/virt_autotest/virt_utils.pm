@@ -27,7 +27,14 @@ use virt_autotest_base;
 our @EXPORT = qw(repl_repo_in_sourcefile);
 
 sub get_version_for_daily_build_guest {
-    my $version = lc(get_var("VERSION"));
+    my $version = '';
+    if (get_var('REPO_0_TO_INSTALL', '')) {
+        $version = get_var('TARGET_DEVELOPING_VERSION', '');
+    }
+    else {
+        $version = get_var("VERSION", '');
+    }
+    $version = lc($version);
     if ($version !~ /sp/m) {
         $version = $version . "-fcs";
     }

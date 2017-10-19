@@ -1254,6 +1254,13 @@ elsif (get_var("XFSTESTS")) {
     }
 }
 elsif (get_var("VIRT_AUTOTEST")) {
+    if (get_var('REPO_0_TO_INSTALL', '')) {
+        #Before host installation starts, swtich to version REPO_0_TO_INSTALL if it is set
+        #Save VERSION TO TARGET_DEVELOPING_VERSION
+        set_var('TARGET_DEVELOPING_VERSION', get_var('VERSION'));
+        #Switch to VERSION_TO_INSTALL
+        set_var('VERSION', get_var('VERSION_TO_INSTALL'));
+    }
     if (get_var("PROXY_MODE")) {
         loadtest "virt_autotest/proxymode_login_proxy";
         loadtest "virt_autotest/proxymode_init_pxe_install";
@@ -1285,6 +1292,10 @@ elsif (get_var("VIRT_AUTOTEST")) {
     elsif (get_var("VIRT_PRJ2_HOST_UPGRADE")) {
         loadtest "virt_autotest/host_upgrade_generate_run_file";
         loadtest "virt_autotest/host_upgrade_step2_run";
+        if (get_var('REPO_0_TO_INSTALL', '')) {
+            #After host upgrade, switch to version TARGET_DEVELOPING_VERSION and reload needles
+            loadtest "virt_autotest/switch_version_and_reload_needle";
+        }
         loadtest "virt_autotest/reboot_and_wait_up_upgrade";
         if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
             loadtest "virt_autotest/setup_xen_serial_console";
