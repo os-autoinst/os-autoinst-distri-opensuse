@@ -56,7 +56,8 @@ sub install_dependencies {
     my @maybe_deps = qw(net-tools-deprecated gcc-32bit libnuma-devel-32bit
       libaio-devel-32bit sysstat tpm-tools libopenssl-devel-32bit
       kernel-default-devel-32bit libselinux-devel-32bit libacl-devel-32bit
-      libtirpc-devel-32bit keyutils-devel-32bit libcap-devel-32bit ntfsprogs);
+      libtirpc-devel-32bit keyutils-devel-32bit libcap-devel-32bit ntfsprogs
+      sssd-tools);
 
     for my $dep (@maybe_deps) {
         script_run('zypper -n -t in ' . $dep . ' | tee');
@@ -86,7 +87,7 @@ sub install_from_git {
 sub install_from_repo {
     zypper_call 'in qa_test_ltp';
     # make sure have all required tools
-    zypper_call 'in quota sysstat net-tools acl psmisc numactl tpm-tools sudo wget';
+    zypper_call 'in quota sysstat net-tools acl psmisc numactl tpm-tools sudo wget binutils sssd-tools';
     zypper_call('in ntfsprogs') if we_available;
     assert_script_run q(find ${LTPROOT:-/opt/ltp}/testcases/bin/openposix/conformance/interfaces/ -name '*.run-test' > ~/openposix_test_list.txt);
     script_run 'rpm -q qa_test_ltp > /opt/ltp_version';
