@@ -96,12 +96,6 @@ sub run {
 
         # confirm
         send_key $cmd{install};
-        if (sle_version_at_least('15')) {    # SLE 15 has unsigned file errors, workaround them - rbrown 04/07/2017
-            while (check_screen([qw(sle-15-unsigned-file workaround_no_checksum_found)])) {
-                record_soft_failure 'bsc#1047304';
-                send_key 'alt-y';
-            }
-        }
         assert_screen "inst-packageinstallationstarted", $started_timeout;
     }
     if (   !get_var("LIVECD")
