@@ -8,19 +8,29 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Register JeOS with SUSEConnect as prerequisite
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Summary: Register JeOS and install Server-like modules
+# Maintainer: Michal Nowak <mnowak@suse.com>
 
-use base "opensusebasetest";
+use base 'opensusebasetest';
 use strict;
 use testapi;
+use utils 'zypper_call';
 
 sub run {
-    my $sccmail = get_required_var('SCC_EMAIL');
     my $scccode = get_required_var('SCC_REGCODE');
-    my $url     = get_var('SCC_URL', 'https://scc.suse.com');
+    my $url     = get_required_var('SCC_URL');
+    my $arch    = get_required_var('ARCH');
+    my $version = get_required_var('VERSION');
 
-    assert_script_run "SUSEConnect --url=$url -e $sccmail -r $scccode";
+    # Register SLES
+    assert_script_run "SUSEConnect --url=$url -r $scccode";
+    assert_script_run 'SUSEConnect --list-extensions';
+    # Install Server-like modules
+    for my $module ('basesystem', 'scripting', 'legacy') {
+        assert_script_run "SUSEConnect -p sle-module-$module/$version/$arch";
+    }
+    # Make sure repositories are resolvable
+    zypper_call('refresh');
 }
 
 1;
