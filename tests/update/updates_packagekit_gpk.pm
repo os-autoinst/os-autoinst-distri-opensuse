@@ -48,7 +48,7 @@ sub run {
 
         if ($testapi::username eq 'root' and match_has_tag("package-updater-privileged-user-warning")) {
             # Special case if gpk-update-viewer is running as root. Click on Continue Anyway and reassert
-            send_key "alt-a"; # Continue Anyway
+            send_key "alt-a";    # Continue Anyway
             assert_screen \@updates_tags, 100;
         }
 
