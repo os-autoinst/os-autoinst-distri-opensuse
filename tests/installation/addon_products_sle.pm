@@ -39,14 +39,19 @@ sub handle_addon {
     addon_license($addon);
     # might involve some network lookup of products, licenses, etc.
     assert_screen 'addon-products', 90;
-    send_key "tab";    # select addon-products-$addon
+    send_key 'tab';    # select addon-products-$addon
     wait_still_screen 10;
     if (check_var('VIDEOMODE', 'text')) {    # textmode need more tabs, depends on add-on count
         send_key_until_needlematch "addon-list-selected", 'tab';
     }
-    send_key "pgup";
+    send_key 'pgup';
     wait_still_screen 2;
     send_key_until_needlematch "addon-products-$addon", 'down';
+    if (sle_version_at_least('15')) {
+        send_key 'spc';
+        send_key $cmd{next};
+        wait_still_screen 2;
+    }
 }
 
 sub run {
@@ -63,7 +68,7 @@ sub run {
         # the ISO_X variables must match the ADDONS list
         my $sr_number = 0;
         for my $addon (split(/,/, get_var('ADDONS'))) {
-            $sr_number++;
+            $sr_number++ unless (sle_version_at_least('15') && $sr_number == 1);
             assert_screen 'addon-menu-active';
             wait_screen_change { send_key 'alt-d' };    # DVD
             send_key $cmd{next};

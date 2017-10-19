@@ -10,12 +10,14 @@
 # Summary: Configure NTP client for HA tests
 # Maintainer: Loic Devulder <ldevulder@suse.com>
 
-use base 'hacluster';
+use base 'opensusebasetest';
 use strict;
+use utils 'sle_version_at_least';
 use testapi;
 
 sub run {
-    my $self = shift;
+    # No standard NTP client on SLE15, Chrony will be used
+    return if sle_version_at_least('15');
 
     # Configuration of NTP client
     script_run("yast2 ntp-client; echo yast2-ntp-client-status-\$? > /dev/$serialdev", 0);
@@ -35,22 +37,7 @@ sub run {
     wait_serial('yast2-ntp-client-status-0', 90) || die "'yast2 ntp-client' didn't finish";
 
     # At least one NTP server is needed
-    $self->clear_and_verify_console;
     assert_script_run '(( $(ntpq -p | tail -n +3 | wc -l) > 0 ))';
-}
-
-sub test_flags {
-    return {milestone => 1, fatal => 1};
-}
-
-sub post_fail_hook {
-    my $self = shift;
-
-    # Save a screenshot before trying further measures which might fail
-    save_screenshot;
-
-    # Try to save logs as a last resort
-    $self->export_logs();
 }
 
 1;

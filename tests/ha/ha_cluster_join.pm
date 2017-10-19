@@ -10,18 +10,16 @@
 # Summary: Join cluster node to existing cluster
 # Maintainer: Loic Devulder <ldevulder@suse.com>
 
-use base 'hacluster';
+use base 'opensusebasetest';
 use strict;
 use testapi;
-use autotest;
 use lockapi;
+use hacluster;
 
 sub run {
-    my $self = shift;
-
     # Wait until cluster is initialized
     diag 'Wait until cluster is initialized...';
-    barrier_wait('CLUSTER_INITIALIZED_' . $self->cluster_name);
+    barrier_wait("CLUSTER_INITIALIZED_$cluster_name");
 
     # Try to join the HA cluster through node HA_CLUSTER_JOIN
     assert_script_run 'ping -c1 ' . get_var('HA_CLUSTER_JOIN');
@@ -32,24 +30,10 @@ sub run {
     wait_still_screen;
 
     # Indicate that the other nodes have joined the cluster
-    barrier_wait('NODE_JOINED_' . $self->cluster_name);
+    barrier_wait("NODE_JOINED_$cluster_name");
 
     # Do a check of the cluster with a screenshot
-    $self->save_state;
-}
-
-sub test_flags {
-    return {milestone => 1, fatal => 1};
-}
-
-sub post_fail_hook {
-    my $self = shift;
-
-    # Save a screenshot before trying further measures which might fail
-    save_screenshot;
-
-    # Try to save logs as a last resort
-    $self->export_logs();
+    save_state;
 }
 
 1;

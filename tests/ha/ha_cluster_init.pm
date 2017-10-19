@@ -10,19 +10,22 @@
 # Summary: Create HA cluster using ha-cluster-init
 # Maintainer: Loic Devulder <ldevulder@suse.com>
 
-use base 'hacluster';
+use base 'opensusebasetest';
 use strict;
 use testapi;
 use lockapi;
+use hacluster;
 
 sub run {
     # Validate cluster creation with ha-cluster-init tool
     my $self          = shift;
     my $bootstrap_log = '/var/log/ha-cluster-bootstrap.log';
-    my $sbd_device    = '/dev/disk/by-path/ip-*-lun-0';
-    my $cluster_init  = script_output "ha-cluster-init -y -s $sbd_device; echo ha_cluster_init=\$?", 120;
+    my $corosync_conf = '/etc/corosync/corosync.conf';
+    my $sbd_device    = block_device_real_path '/dev/disk/by-path/ip-*-lun-0';
+    my $quorum_policy = 'stop';
 
-    # Failed to initialize the cluster, trying again
+    # If we failed to initialize the cluster, trying again
+    my $cluster_init = script_output "ha-cluster-init -y -s $sbd_device; echo ha_cluster_init=\$?", 120;
     if ($cluster_init =~ /ha_cluster_init=1/) {
         upload_logs $bootstrap_log;
         assert_script_run "ha-cluster-init -y -s $sbd_device";
@@ -30,58 +33,37 @@ sub run {
     upload_logs $bootstrap_log;
 
     # Do a check of the cluster with a screenshot
-    $self->save_state;
-
-    # Validate SBD creation with sbd cli interface
-    assert_script_run 'crm resource stop stonith-sbd';
-    assert_script_run 'crm_mon -R -1';
-    assert_script_run "sbd -d $sbd_device message " . get_var('HOSTNAME') . " exit";
-    type_string "ps -A | grep sbd\n";
-
-    # SBD default timeouts must be changed!
-    assert_script_run "sbd -d $sbd_device -1 30 -4 60 create";
-
-    # So the global stonith-timeout must also be changed!
-    assert_script_run 'crm_attribute -t crm_config -n stonith-timeout -v 120';
-
-    # Verify the stonith-timeout value
-    assert_script_run 'crm_attribute -t crm_config -n stonith-timeout -G';
-
-    # And restart the STONITH and Pacemaker
-    assert_script_run 'crm resource start stonith-sbd';
-    assert_script_run 'systemctl restart pacemaker';
-    for (1 .. 5) {
-        $self->clear_and_verify_console;
-        assert_script_run 'crm_mon -R -1';
-        if (check_screen('ha-crm-mon-sbd-started', 5)) {
-            last;
-        }
-    }
-    assert_screen('ha-crm-mon-sbd-started');
+    save_state;
 
     # Signal that the cluster stack is initialized
-    barrier_wait('CLUSTER_INITIALIZED_' . $self->cluster_name);
+    barrier_wait("CLUSTER_INITIALIZED_$cluster_name");
 
     # Waiting for the other nodes to join
     diag 'Waiting for other nodes to join...';
-    barrier_wait('NODE_JOINED_' . $self->cluster_name);
+    barrier_wait("NODE_JOINED_$cluster_name");
+
+    # We need to configure the quorum policy according to the number of nodes
+    if (get_node_number == 2) {
+        $quorum_policy = 'ignore';
+    }
+    assert_script_run "crm configure property no-quorum-policy=$quorum_policy";
+
+    # Execute csync2 to synchronise the configuration files
+    assert_script_run 'csync2 -v -x -F';
+
+    # State of SBD
+    assert_script_run "sbd -d $sbd_device list";
+
+    # Check if the multicast port is correct (should be 5405 or 5407 by default)
+    if (script_run "grep -Eq '^[[:blank:]]*mcastport:[[:blank:]]*(5405|5407)[[:blank:]]*' $corosync_conf") {
+        record_soft_failure 'bsc#1066196';
+    }
 
     # Do a check of the cluster with a screenshot
-    $self->save_state;
-}
+    save_state;
 
-sub test_flags {
-    return {milestone => 1, fatal => 1};
-}
-
-sub post_fail_hook {
-    my $self = shift;
-
-    # Save a screenshot before trying further measures which might fail
-    save_screenshot;
-
-    # Try to save logs as a last resort
-    $self->export_logs();
+    # Status of cluster resources after initial configuration
+    show_rsc;
 }
 
 1;

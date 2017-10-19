@@ -53,7 +53,8 @@ sub run {
 
     # No release-notes for basic modules on SLE 15
     if (sle_version_at_least('15') && check_var('DISTRI', 'sle')) {
-        push @no_relnotes, qw(base script desktop productivity serverapp legacy sdk);
+        # Note: no Release Notes to for HA, should be modified for GA version
+        push @no_relnotes, qw(base script desktop productivity serverapp legacy sdk ha);
     }
 
     # no relnotes for ltss in QAM_MINIMAL

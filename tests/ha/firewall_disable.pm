@@ -10,27 +10,24 @@
 # Summary: Disable firewall in HA tests
 # Maintainer: Loic Devulder <ldevulder@suse.com>
 
-use base 'hacluster';
+use base 'opensusebasetest';
 use strict;
+use utils 'sle_version_at_least';
 use testapi;
+use hacluster;
 
 sub run {
-    # Deactivate firewall
-    assert_script_run 'systemctl -q is-active SuSEfirewall2 && systemctl disable SuSEfirewall2; systemctl stop SuSEfirewall2';
-}
+    my $firewall = 'SuSEfirewall2';
 
-sub test_flags {
-    return {milestone => 1, fatal => 1};
-}
+    # SLE/openSUSE-15 use firewalld instead of the old SuSEfirewall2
+    if (sle_version_at_least('15')) {
+        $firewall = 'firewalld';
+    }
 
-sub post_fail_hook {
-    my $self = shift;
-
-    # Save a screenshot before trying further measures which might fail
-    save_screenshot;
-
-    # Try to save logs as a last resort
-    $self->export_logs();
+    # Deactivate firewall if needed
+    if (script_run("rpm -q $firewall >/dev/null") == 0) {
+        assert_script_run "systemctl -q is-active $firewall && systemctl disable $firewall; systemctl stop $firewall";
+    }
 }
 
 1;
