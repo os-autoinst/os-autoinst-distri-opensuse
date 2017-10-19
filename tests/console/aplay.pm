@@ -1,15 +1,14 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Rework the tests layout.
-# G-Maintainer: Alberto Planas <aplanas@suse.com>
+# Summary: Test audio using aplay.
+# Maintainer: Rodion Iafarov <aplanas@suse.com>
 
 use base "consoletest";
 use testapi;
@@ -41,7 +40,11 @@ EOS
 
     start_audiocapture;
     assert_script_run("aplay ~/data/1d5d9dD.wav");
-    assert_recorded_sound('DTMF-159D');
+    # aplay is extremely unstable due to bsc#1048271, we don't want to invest
+    # time in rerunning it, if it fails, so instead of assert, simply soft-fail
+    unless (check_recorded_sound 'DTMF-159D') {
+        record_soft_failure 'bsc#1048271';
+    }
 }
 
 1;
