@@ -45,15 +45,17 @@ sub run {
         send_key 'ret';
     }
 
+    save_screenshot;    # needed because shortcuts change with the navigation
+
     # Select bootloader options tab
-    $cmd{bootloader} = 'alt-r';    # Value for most products
-    if (is_sle) {
-        if (!sle_version_at_least('12-SP2') || sle_version_at_least('15')) {
-            $cmd{bootloader} = 'alt-t';    # SLE-12 GA & SLE-SP1 & SLE15 use 'alt-t
-        }
+    if ((is_sle && !sle_version_at_least('12-SP2')) || (is_leap && !leap_version_at_least('15'))) {
+        $cmd{bootloader} = 'alt-t';    # older versions
     }
-    elsif (is_leap && leap_version_at_least('15')) {
-        $cmd{bootloader} = 'alt-l';
+    elsif (is_leap) {
+        $cmd{bootloader} = 'alt-l';    # leap 15
+    }
+    else {
+        $cmd{bootloader} = get_var('UEFI') ? 'alt-t' : 'alt-r';    # rest except uefi
     }
     wait_screen_change { send_key $cmd{bootloader}; };
     assert_screen 'installation-bootloader-options';
@@ -62,7 +64,7 @@ sub run {
     send_key 'alt-t';
     my $timeout = "-1";
     # SLE-12 GA only accepts positive integers in range [0,300]
-    $timeout = "60" if !(sle_version_at_least('12-SP1'));
+    $timeout = "60" if is_sle && !sle_version_at_least('12-SP1');
     type_string $timeout;
 
     # ncurses uses blocking modal dialog, so press return is needed
