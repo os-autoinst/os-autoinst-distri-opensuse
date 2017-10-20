@@ -15,6 +15,7 @@ use warnings;
 use File::Basename;
 use base "opensusebasetest";
 use testapi;
+use registration;
 
 sub run {
     if (check_var('BACKEND', 'ipmi')) {
@@ -84,6 +85,8 @@ sub run {
     if (!(check_var('BACKEND', 'ipmi') && get_var('AUTOYAST'))) {
         type_string "console=tty ", $type_speed;
     }
+
+    type_string registration_bootloader_cmdline if check_var('SCC_REGISTER', 'installation');
 
     save_screenshot;
     assert_screen 'qa-net-typed';
