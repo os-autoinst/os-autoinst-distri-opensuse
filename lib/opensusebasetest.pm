@@ -98,7 +98,7 @@ done", "binaries-with-missing-libraries.txt", {timeout => 60, noupload => 1});
     clear_console;
 
     # rpmverify problems
-    $self->save_and_upload_log("rpmverify -a | grep -v \"[S5T].* c \"", "rpmverify-problems.txt", {timeout => 300, screenshot => 1, noupload => 1});
+    $self->save_and_upload_log("rpmverify -a | grep -v \"[S5T].* c \"", "rpmverify-problems.txt", {timeout => 1200, screenshot => 1, noupload => 1});
     clear_console;
 
     # VMware specific
