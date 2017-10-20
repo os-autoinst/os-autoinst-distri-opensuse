@@ -11,12 +11,13 @@
 #          https://progress.opensuse.org/issues/16402
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
-use base "y2logsstep";
+use base qw(y2logsstep y2x11test);
 use strict;
 use testapi;
 use registration 'fill_in_registration_data';
 
 sub run {
+    my ($self) = @_;
     x11_start_program('xterm');
     # add every used addon to regurl for proxy SCC
     if (get_var('SCC_ADDONS')) {
@@ -27,18 +28,16 @@ sub run {
         }
         script_sudo "echo \"@addon_proxy.proxy.scc.suse.de\" > /etc/SUSEConnect", 0;
     }
-    type_string "killall xterm\n";
-    x11_start_program("xdg-su -c '/sbin/yast2'", target_match => 'yast2-control-center-ui');
-    if ($password) { type_password; send_key 'ret'; }
-    send_key 'alt-y' if check_screen('packagekit-warning', 2);
-    assert_screen 'yast2-control-center';
-    type_string 'extens';                # filter 'Add System Extensions or Modules'
-    send_key 'tab';                      # go to modules field
-    send_key 'ret';
-    assert_screen 'scc-registration';
+    # Disable screensaver
+    type_string "gsettings set org.gnome.desktop.session idle-delay 0\n";
+    send_key "ctrl-d";
+    $self->launch_yast2_module_x11('scc', target_match => [qw(scc-registration packagekit-warning)]);
+    if (match_has_tag 'packagekit-warning') {
+        send_key 'alt-y';
+        assert_screen 'scc-registration';
+    }
     fill_in_registration_data;
-    assert_screen 'yast2-control-center';
-    send_key 'alt-f4';                   # close yast2 control center
+    send_key 'alt-f4';    # close yast2 control center
     assert_screen 'generic-desktop';
 }
 
