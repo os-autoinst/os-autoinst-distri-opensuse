@@ -99,23 +99,14 @@ sub cleanup_libreoffice_specified_file {
 
 # cleanup libreoffice recent open file to make sure libreoffice clean
 sub cleanup_libreoffice_recent_file {
+    x11_start_program('xterm');
+    assert_script_run("rm -rf /home/$username/.config/libreoffice/");
+    wait_still_screen;
+    send_key "alt-f4";
     x11_start_program('libreoffice');
     wait_still_screen 3;
-    send_key "alt-f";
-    if (is_tumbleweed) {
-        send_key 'down';
-        wait_still_screen 3;
-        send_key 'u';
-    }
-    else {
-        send_key "alt-u";
-    }
-    assert_screen("libreoffice-recent-documents");
-    send_key_until_needlematch("libreoffice-clear-list", "down");
-    send_key "ret";
     assert_screen("welcome-to-libreoffice");
     send_key "ctrl-q";
-
 }
 
 sub open_libreoffice_options {
