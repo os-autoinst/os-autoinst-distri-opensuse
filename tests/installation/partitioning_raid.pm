@@ -15,7 +15,7 @@ use strict;
 use warnings;
 use base 'y2logsstep';
 use testapi;
-use utils qw(is_storage_ng sle_version_at_least);
+use utils qw(is_storage_ng sle_version_at_least is_sle);
 use partition_setup 'wipe_existing_partitions';
 
 # add a new primary partition
@@ -105,7 +105,7 @@ sub setraidlevel {
         1  => 1,
         5  => 5,
         6  => 6,
-        10 => (sle_version_at_least('15') ? 'o' : 'g'));
+        10 => ((is_sle && sle_version_at_least('15')) ? 'o' : 'g'));
     wait_screen_change { send_key "alt-$entry{$level}"; };
 
     wait_screen_change { send_key "alt-i"; };    # move to RAID name input field
