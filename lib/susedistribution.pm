@@ -41,6 +41,7 @@ sub init_cmd {
       finish alt-f
       accept alt-a
       ok alt-o
+      cancel alt-c
       continue alt-o
       createpartsetup alt-c
       custompart alt-c
