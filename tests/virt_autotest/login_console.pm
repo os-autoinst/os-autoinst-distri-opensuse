@@ -33,14 +33,13 @@ sub login_to_console {
             #send key 'up' to stop grub timer counting down, to be more robust to select xen
             send_key 'up';
             send_key_until_needlematch("virttest-bootmenu-xen-kernel", 'down', 10, 3);
-            send_key 'ret';
         }
     }
     else {
         set_var("reboot_for_upgrade_step", undef);
         set_var("after_upgrade",           "yes");
-        send_key 'ret';
     }
+    send_key 'ret';
 
     assert_screen(['linux-login', 'virttest-displaymanager'], $timeout);
 
