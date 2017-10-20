@@ -21,6 +21,7 @@ use testapi;
 use base "opensusebasetest";
 
 sub run {
+    my ($self) = @_;
     assert_screen 'linux-login', 200;
     select_console 'root-console';
     # 1)
@@ -48,6 +49,7 @@ sub run {
     assert_script_run('snapper --iso list | tail -n 1 | grep \'|\s*|\s*|\s*$\'', fail_message => 'last snapshot should not be cleaned up but is not-important');
     script_run("systemctl reboot", 0);
     reset_consoles;
+    $self->wait_boot;
 }
 
 sub test_flags {
