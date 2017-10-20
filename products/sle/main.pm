@@ -773,7 +773,9 @@ sub load_consoletests {
         if (get_var("UPGRADE")) {
             loadtest "console/upgrade_snapshots";
         }
-        elsif (!get_var("ZDUP") and !check_var('VERSION', '12')) {    # zypper and sle12 doesn't do upgrade or installation snapshots
+        # zypper and sle12 doesn't do upgrade or installation snapshots
+        # SLES4SAP default installation flow does not configure snapshots
+        elsif (!get_var("ZDUP") and !check_var('VERSION', '12') and !is_sles4sap()) {
             loadtest "console/installation_snapshots";
         }
     }
@@ -924,7 +926,8 @@ sub load_x11tests {
         loadtest "x11/systemsettings";
         loadtest "x11/dolphin";
     }
-    if (snapper_is_applicable()) {
+    # SLES4SAP default installation does not configure snapshots
+    if (snapper_is_applicable() and !is_sles4sap()) {
         loadtest "x11/yast2_snapper";
     }
     loadtest "x11/glxgears";
@@ -939,6 +942,15 @@ sub load_x11tests {
         loadtest "x11/reboot_gnome";
     }
     loadtest "x11/desktop_mainmenu";
+    if (is_sles4sap() and !is_sles4sap_standard()) {
+        loadtest "sles4sap/sapconf";
+        loadtest "sles4sap/saptune";
+        loadtest "sles4sap/patterns";
+        if (get_var('NW')) {
+            loadtest "sles4sap/nw_ascs_install" if (get_var('SLES4SAP_MODE') !~ /wizard/);
+            loadtest "sles4sap/netweaver_ascs";
+        }
+    }
     # Need to skip shutdown to keep backend alive if running rollback tests after migration
     unless (get_var('ROLLBACK_AFTER_MIGRATION')) {
         loadtest "x11/shutdown";
