@@ -690,7 +690,7 @@ sub load_inst_tests {
     }
     if (installyaststep_is_applicable()) {
         loadtest "installation/installation_overview";
-        loadtest "installation/disable_grub_timeout";
+        loadtest "installation/disable_grub_timeout" if sle_version_at_least('15');
         if (check_var('VIDEOMODE', 'text') && check_var('BACKEND', 'ipmi')) {
             loadtest "installation/disable_grub_graphics";
         }

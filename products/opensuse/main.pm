@@ -284,7 +284,7 @@ sub load_inst_tests {
             loadtest "installation/installation_overview_before";
             loadtest "installation/select_patterns_and_packages";
         }
-        loadtest "installation/disable_grub_timeout";
+        loadtest "installation/disable_grub_timeout" if leap_version_at_least('15');
     }
     if (get_var("UEFI") && get_var("SECUREBOOT")) {
         loadtest "installation/secure_boot";
