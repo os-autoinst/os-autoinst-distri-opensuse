@@ -78,6 +78,11 @@ sub setup_apache2 {
 
     # Check server certificate is available, which should be generated during apache2-mod_nss installation
     if ($mode =~ m/NSS/) {
+        # Workaround for bsc#1057776 - Wrong permissions in /etc/apache2/mod_nss.d/
+        if ((is_sle && sle_version_at_least('15')) || leap_version_at_least('15.0')) {
+            record_soft_failure 'bsc#1057776 - Wrong permissions in /etc/apache2/mod_nss.d/';
+            assert_script_run 'chown -v wwwrun:www /etc/apache2/mod_nss.d/*';
+        }
         assert_script_run 'certutil -d /etc/apache2/mod_nss.d/ -L -n Server-Cert';
     }
 
