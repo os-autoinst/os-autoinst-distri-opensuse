@@ -221,7 +221,12 @@ sub format_dasd {
     # format dasda (this can take up to 20 minutes depending on disk size)
     $r = script_run("echo yes | dasdfmt -b 4096 -p /dev/dasda", 1800);
     show_debug();
-    die "dasdfmt died with exit code $r" unless (defined($r) && $r == 0);
+    if ($r == 255) {
+        record_soft_failure('bsc#1063393');
+    }
+    else {
+        die "dasdfmt died with exit code $r" unless (defined($r) && $r == 0);
+    }
 
     # bring DASD down again to test the activation during the installation
     assert_script_run("dasd_configure 0.0.0150 0");
