@@ -13,9 +13,9 @@
 
 use strict;
 use warnings;
-use base "y2logsstep";
+use base 'y2logsstep';
 use testapi;
-use utils 'is_storage_ng';
+use utils qw(is_storage_ng sle_version_at_least);
 use partition_setup 'wipe_existing_partitions';
 
 # add a new primary partition
@@ -100,7 +100,12 @@ sub addraid {
 
 sub setraidlevel {
     my ($level) = @_;
-    my %entry = (0 => 0, 1 => 1, 5 => 5, 6 => 6, 10 => 'g');
+    my %entry = (
+        0  => 0,
+        1  => 1,
+        5  => 5,
+        6  => 6,
+        10 => (sle_version_at_least('15') ? 'o' : 'g'));
     wait_screen_change { send_key "alt-$entry{$level}"; };
 
     wait_screen_change { send_key "alt-i"; };    # move to RAID name input field
