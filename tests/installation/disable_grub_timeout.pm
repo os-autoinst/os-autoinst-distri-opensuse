@@ -55,7 +55,7 @@ sub run {
         $cmd{bootloader} = 'alt-l';    # leap 15
     }
     else {
-        $cmd{bootloader} = get_var('UEFI') ? 'alt-t' : 'alt-r';    # rest except uefi
+        $cmd{bootloader} = check_var('UEFI', '1') ? 'alt-t' : 'alt-r';    # rest except uefi
     }
     wait_screen_change { send_key $cmd{bootloader}; };
     assert_screen 'installation-bootloader-options';
