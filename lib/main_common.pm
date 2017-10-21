@@ -549,7 +549,10 @@ sub load_extra_tests {
         }
         if (check_var('ARCH', 'x86_64')) {
             loadtest "console/docker";
-            loadtest "console/docker_compose";
+            # No package 'docker-compose' in SLE
+            if (check_var('DISTRI', 'opensuse')) {
+                loadtest "console/docker_compose";
+            }
             if (check_var('DISTRI', 'sle')) {
                 loadtest "console/sle2docker";
             }
