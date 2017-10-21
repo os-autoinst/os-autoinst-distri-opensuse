@@ -58,7 +58,17 @@ sub run {
         $cmd{bootloader} = check_var('UEFI', '1') ? 'alt-t' : 'alt-r';    # rest except uefi
     }
     wait_screen_change { send_key $cmd{bootloader}; };
-    assert_screen 'installation-bootloader-options';
+    if (!check_screen('installation-bootloader-options', 0)) {
+        record_info('Workaround',
+                'We tried our best but could not find a fitting hotkey to reach the bootloader options. Would have typed \''
+              . $cmd{bootloader}
+              . '\', aborting (see poo#25658)');
+        send_key $cmd{cancel};
+        wait_still_screen(2);
+        send_key 'esc';
+        assert_screen 'installation-settings-overview-loaded';
+        return;
+    }
 
     # Select Timeout dropdown box and disable
     send_key 'alt-t';
