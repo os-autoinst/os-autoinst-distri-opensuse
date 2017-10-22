@@ -22,7 +22,7 @@ use utils;
 sub search {
     my ($name) = @_;
     # with the gtk interface we have to click as there is no shortcut
-    if ((is_sle && !sle_version_at_least('15')) || (is_leap && !leap_version_at_least('15'))) {
+    if ((is_sle && !sle_version_at_least('15')) || (is_leap && !leap_version_at_least('15.0'))) {
         assert_screen([qw(yast2_control-center_search_clear yast2_control-center_search)], no_wait => 1);
         if (match_has_tag 'yast2_control-center_search') {
             assert_and_click 'yast2_control-center_search';
