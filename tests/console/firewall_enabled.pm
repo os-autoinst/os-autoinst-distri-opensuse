@@ -18,7 +18,7 @@ use testapi;
 use utils;
 
 sub run {
-    if ((is_sle && sle_version_at_least('15')) || (is_leap && leap_version_at_least('15'))) {
+    if ((is_sle && sle_version_at_least('15')) || (is_leap && leap_version_at_least('15.0'))) {
         if (script_run('firewallctl state')) {
             record_soft_failure('bsc#1054977');
         }
