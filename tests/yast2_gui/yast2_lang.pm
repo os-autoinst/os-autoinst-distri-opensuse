@@ -20,7 +20,7 @@ use testapi;
 
 sub run {
     my $self = shift;
-    $self->launch_yast2_module_x11('language', match_timeout => 60);
+    $self->launch_yast2_module_x11('language', match_timeout => 240);
 
     # check language details and change detailed locale setting
     assert_and_click 'yast2-lang_details';
@@ -34,13 +34,13 @@ sub run {
     assert_and_click 'yast2-lang_secondary-language';
     assert_screen 'yast2-lang_settings_done';
 
-    # Now it will install required language packages and exit
-    wait_screen_change { send_key 'alt-o'; };
-
     # Problem here is that sometimes installation takes longer than 10 minutes
     # And then screen saver is activated, so add this step to wake
     my $timeout = 0;
     until (check_screen 'generic-desktop' || ++$timeout > 10) {
+        # Now it will install required language packages and exit
+        # Put in the loop, because sometimes button is not pressed
+        wait_screen_change { send_key 'alt-o'; };
         sleep 60;
         send_key 'ctrl';
     }
