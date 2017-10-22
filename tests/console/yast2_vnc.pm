@@ -25,7 +25,7 @@ sub run {
     # install components to test plus dependencies for checking
     my $packages = 'vncmanager xorg-x11';
     # netstat is deprecated in newer versions, use 'ss' instead
-    my $use_nettools = (is_sle && !sle_version_at_least('15')) || (is_leap && !leap_version_at_least('15'));
+    my $use_nettools = (is_sle && !sle_version_at_least('15')) || (is_leap && !leap_version_at_least('15.0'));
     $packages .= ' net-tools' if $use_nettools;
     zypper_call("in $packages");
 

@@ -48,7 +48,7 @@ sub run {
     save_screenshot;    # needed because shortcuts change with the navigation
 
     # Select bootloader options tab
-    if ((is_sle && !sle_version_at_least('12-SP2')) || (is_leap && !leap_version_at_least('15'))) {
+    if ((is_sle && !sle_version_at_least('12-SP2')) || (is_leap && !leap_version_at_least('15.0'))) {
         $cmd{bootloader} = 'alt-t';    # older versions
     }
     elsif (is_leap) {
