@@ -36,7 +36,7 @@ sub run {
         # Select section booting on Installation Settings overview on text mode
         send_key $cmd{change};
         assert_screen 'inst-overview-options';
-        wait_screen_change { send_key 'alt-b'; };
+        send_key 'alt-b';
     }
     else {
         # Select section booting on Installation Settings overview (video mode)
@@ -44,32 +44,12 @@ sub run {
         assert_screen 'booting-section-selected';
         send_key 'ret';
     }
-
-    save_screenshot;    # needed because shortcuts change with the navigation
-
-    # Select bootloader options tab
-    if ((is_sle && !sle_version_at_least('12-SP2')) || (is_leap && !leap_version_at_least('15.0'))) {
-        $cmd{bootloader} = 'alt-t';    # older versions
-    }
-    elsif (is_leap) {
-        $cmd{bootloader} = 'alt-l';    # leap 15
-    }
-    else {
-        $cmd{bootloader} = check_var('UEFI', '1') ? 'alt-t' : 'alt-r';    # rest except uefi
-    }
-    wait_screen_change { send_key $cmd{bootloader}; };
-    if (!check_screen('installation-bootloader-options', 0)) {
-        record_info('Workaround',
-                'We tried our best but could not find a fitting hotkey to reach the bootloader options. Would have typed \''
-              . $cmd{bootloader}
-              . '\', aborting (see poo#25658)');
-        send_key $cmd{cancel};
-        wait_still_screen(2);
-        send_key 'esc';
-        assert_screen 'installation-settings-overview-loaded';
-        return;
-    }
-
+    assert_screen([qw(inst-bootloader-settings inst-bootloader-settings-first_tab_highlighted)]);
+    # Depending on an optional button "release notes" we need to press "tab"
+    # to go to the first tab
+    send_key 'tab' unless match_has_tag 'inst-bootloader-settings-first_tab_highlighted';
+    send_key_until_needlematch 'inst-bootloader-options-highlighted', 'right';
+    assert_screen 'installation-bootloader-options';
     # Select Timeout dropdown box and disable
     send_key 'alt-t';
     my $timeout = "-1";
