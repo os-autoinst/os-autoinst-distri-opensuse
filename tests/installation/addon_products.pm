@@ -30,23 +30,24 @@ sub run {
         # FIXME: do the same as sle here
         foreach my $url (split(/\+/, get_var("ADDONURL"))) {
             send_key "alt-a";                       # Add another
-            wait_screen_change { send_key $cmd{xnext} };    # Specify URL (default)
+            send_key $cmd{xnext};                   # Specify URL (default)
+            wait_still_screen(1);
             type_string $url;
             wait_screen_change { send_key $cmd{next} };
-            if (get_var("ADDONURL") !~ m{/update/}) {       # update is already trusted, so would trigger "delete"
+            if (get_var("ADDONURL") !~ m{/update/}) {    # update is already trusted, so would trigger "delete"
                 send_key "alt-i";
                 assert_screen 'import-untrusted-gpg-key-598D0E63B3FD7E48';
-                send_key "alt-t";                           # confirm import (trust) key
+                send_key "alt-t";                        # confirm import (trust) key
             }
         }
         assert_screen 'addon-selection';
-        wait_screen_change { send_key $cmd{next} };         # done
+        wait_screen_change { send_key $cmd{next} };      # done
     }
 
     if (get_var("ADDONS")) {
 
         for my $a (split(/,/, get_var('ADDONS'))) {
-            send_key 'alt-d';                               # DVD
+            send_key 'alt-d';                            # DVD
             send_key $cmd{xnext};
             assert_screen 'dvd-selector';
             send_key_until_needlematch 'addon-dvd-list', 'tab';
