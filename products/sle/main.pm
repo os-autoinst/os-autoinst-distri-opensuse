@@ -172,6 +172,7 @@ set_var('SLE_PRODUCT', get_var('SLE_PRODUCT', 'sles'));
 if (sle_version_at_least('15')) {
     set_var('SCC_REGISTER', get_var('SCC_REGISTER', 'installation'));
     # depending on registration only limited system roles are available
+    set_var('SYSTEM_ROLE', 'default') if (!get_var('SYSTEM_ROLE') && is_staging);
     set_var('SYSTEM_ROLE', get_var('SYSTEM_ROLE', check_var('SCC_REGISTER', 'installation') ? 'default' : 'minimal'));
     # in the 'minimal' system role we can not execute many test modules
     set_var('INSTALLONLY', get_var('INSTALLONLY', check_var('SYSTEM_ROLE', 'minimal')));
