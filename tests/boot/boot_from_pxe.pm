@@ -89,7 +89,6 @@ sub run {
     type_string registration_bootloader_cmdline if check_var('SCC_REGISTER', 'installation');
 
     save_screenshot;
-    assert_screen 'qa-net-typed';
     my $e = get_var("EXTRABOOTPARAMS");
     if ($e) {
         type_string "$e ", 4;
