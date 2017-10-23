@@ -52,6 +52,7 @@ sub run {
     assert_screen 'installation-bootloader-options';
     # Select Timeout dropdown box and disable
     send_key 'alt-t';
+    wait_still_screen(1);
     my $timeout = "-1";
     # SLE-12 GA only accepts positive integers in range [0,300]
     $timeout = "60" if is_sle && !sle_version_at_least('12-SP1');
