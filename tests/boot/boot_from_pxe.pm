@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -82,14 +82,13 @@ sub run {
     }
 
     type_string "console=$serialdev,115200 ", $type_speed;    # to get crash dumps as text
-    if (!(check_var('BACKEND', 'ipmi') && get_var('AUTOYAST'))) {
+    if (get_var('AUTOYAST')) {
         type_string "console=tty ", $type_speed;
     }
 
     type_string registration_bootloader_cmdline if check_var('SCC_REGISTER', 'installation');
 
     save_screenshot;
-    assert_screen 'qa-net-typed';
     my $e = get_var("EXTRABOOTPARAMS");
     if ($e) {
         type_string "$e ", 4;
@@ -99,7 +98,7 @@ sub run {
     save_screenshot;
 
     if (check_var('BACKEND', 'ipmi') && !get_var('AUTOYAST')) {
-        assert_screen 'sshd-server-started', 300;
+        assert_screen((check_var('VIDEOMODE', 'text') ? 'sshd' : 'vnc') . '-server-started', 60 * 3);
         select_console 'installation';
 
         # We have textmode installation via ssh and the default vnc installation so far
