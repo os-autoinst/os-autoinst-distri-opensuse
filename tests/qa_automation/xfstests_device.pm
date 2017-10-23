@@ -24,35 +24,37 @@ sub dev_create_partition {
         $test_fs_type = "xfs";
         print "warning: TEST_FS_TYPE not configured, test defaultly set it to xfs.";
     }
-    assert_script_run("parted -l -m 2>&1");
-    my $cmd               = "parted -l -m 2>&1| awk -F \':\' \'{if(\$5 == \"xfs\") print \$1}\'";
+    type_string "df -h\n";
+    type_string "parted --script --machine -l 2>&1\n";
+    my $cmd               = "parted --script --machine -l 2>&1| awk -F \':\' \'{if(\$5 == \"xfs\") print \$1}\'";
     my $test_partition_id = script_output($cmd, 10);
     my $test_partition    = "/dev/vda" . $test_partition_id;
 
     # seperate xfs partition(/home) into two same size xfs
-    $cmd = "parted -l -m 2>&1| awk -F \':\' \'{if(\$5 == \"xfs\") print \$2}\'";
+    $cmd = "parted --script --machine -l 2>&1| awk -F \':\' \'{if(\$5 == \"xfs\") print \$2}\'";
     my $partition_begin = script_output($cmd, 10);
     my $extendpartition_begin = $partition_begin;
-    $cmd = "parted -l -m 2>&1| awk -F \':\' \'{if(\$5 == \"xfs\") print \$3}\'";
+    $cmd = "parted --script --machine -l 2>&1| awk -F \':\' \'{if(\$5 == \"xfs\") print \$3}\'";
     my $partition_end       = script_output($cmd, 10);
     my $extendpartition_end = $partition_end;
     my $partition_cut_point = $self->get_cut_point($partition_begin, $partition_end, 2);
     assert_script_run("umount " . $test_partition);
     type_string "parted /dev/vda\n";
     type_string "rm " . $test_partition_id . "\n", 5;
-    type_string "mkpart extended " . $partition_begin . " " . $partition_end . "\n", 5;
     type_string "mkpart logical " . $test_fs_type . " " . $partition_begin . " " . $partition_cut_point . "\n", 5;
-    type_string "mkpart logical " . $test_fs_type . " " . $partition_cut_point . " " . $partition_end . "\n",   5;
+    type_string "Yes\n";
+    type_string "mkpart logical " . $test_fs_type . " " . $partition_cut_point . " " . $partition_end . "\n", 5;
     #Following line for this: The resulting partition is not properly aligned for best performance.Ignore/Cancel?
+    type_string "Yes\n";
     type_string "Ignore\n";
     type_string "quit\n";
-    $cmd = "parted -l -m 2>&1| awk -F \':\' \'{if(\$2 == \"$extendpartition_begin\" && \$3 != \"$extendpartition_end\") print \$1}\'";
+    $cmd = "parted --script --machine -l 2>&1| awk -F \':\' \'{if(\$2 == \"$extendpartition_begin\" && \$3 != \"$extendpartition_end\") print \$1}\'";
 
     # reset test partition number, because sometimes this id changed after mkpart
     $test_partition_id = script_output($cmd, 10);
     $test_partition = "/dev/vda" . $test_partition_id;
 
-    type_string "parted -l -m\n", 5;
+    type_string "parted --script --machine -l\n", 5;
     my $scratch_partition_id = $test_partition_id + 1;
     my $scratch_partition    = "/dev/vda" . $scratch_partition_id;
 
