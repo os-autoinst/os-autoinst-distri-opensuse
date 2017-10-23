@@ -48,14 +48,11 @@ sub run {
     save_screenshot;    # needed because shortcuts change with the navigation
 
     # Select bootloader options tab
-    if ((is_sle && !sle_version_at_least('12-SP2')) || (is_leap && !leap_version_at_least('15'))) {
-        $cmd{bootloader} = 'alt-t';    # older versions
-    }
-    elsif (is_leap) {
+    if (is_leap && check_var('VERSION', '15')) {
         $cmd{bootloader} = 'alt-l';    # leap 15
     }
     else {
-        $cmd{bootloader} = check_var('UEFI', '1') ? 'alt-t' : 'alt-r';    # rest except uefi
+        $cmd{bootloader} = check_var('UEFI', '1') ? 'alt-t' : 'alt-r';    # UEFI or non-UEFI
     }
     wait_screen_change { send_key $cmd{bootloader}; };
     if (!check_screen('installation-bootloader-options', 0)) {
