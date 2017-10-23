@@ -753,6 +753,7 @@ sub load_security_tests_misc {
     loadtest "x11/hexchat_ssl" if (check_var('ARCH', 'x86_64'));
     loadtest "x11/x3270_ssl";
     loadtest "x11/seahorse_sshkey";
+    loadtest "x11/libcamgm";
 }
 
 sub load_security_tests_crypt {
