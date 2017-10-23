@@ -34,9 +34,8 @@ sub run {
     assert_script_run "SUSEConnect --url $scc_url -r $reg_code";
 
     # add modules
-
-    foreach (values %registration::SLE15_MODULES) {
-        assert_script_run "SUSEConnect -p sle-module-" . lc($_) . "/$version/$arch";
+    foreach (split(',', $registration::SLE15_DEFAULT_MODULES{get_required_var('SLE_PRODUCT')})) {
+        assert_script_run "SUSEConnect -p sle-module-" . lc($registration::SLE15_MODULES{$_}) . "/$version/$arch";
     }
 }
 
