@@ -284,8 +284,7 @@ sub load_inst_tests {
             loadtest "installation/installation_overview_before";
             loadtest "installation/select_patterns_and_packages";
         }
-        # breaks leap 15 https://progress.opensuse.org/issues/26936
-        #loadtest "installation/disable_grub_timeout";
+        loadtest "installation/disable_grub_timeout";
     }
     if (get_var("UEFI") && get_var("SECUREBOOT")) {
         loadtest "installation/secure_boot";
@@ -439,7 +438,7 @@ sub load_consoletests {
         loadtest "console/mysql_srv";
         loadtest "console/dns_srv";
         if (!is_staging) {
-            if (is_leap && !leap_version_at_least('15')) {
+            if (is_leap && !leap_version_at_least('15.0')) {
                 loadtest "console/php5";
                 loadtest "console/php5_mysql";
                 loadtest "console/php5_postgresql96";

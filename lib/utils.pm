@@ -296,8 +296,7 @@ sub is_tumbleweed {
 sub is_leap {
     # Leap and its stagings
     return 0 unless check_var('DISTRI', 'opensuse');
-    return 1 if get_var('VERSION', '') =~ /(?:[4-9][0-9]|[0-9]{3,})\.[0-9]/;
-    return get_var('VERSION') =~ /^42:S/;
+    return 1 if get_var('VERSION', '') =~ /[0-9]{2,}\.[0-9]/;
 }
 
 sub is_sle {
@@ -518,10 +517,10 @@ sub leap_version_at_least {
     }
 
     if ($version eq '42.3') {
-        return check_var($version_variable, $version) || leap_version_at_least('15', version_variable => $version_variable);
+        return check_var($version_variable, $version) || leap_version_at_least('15.0', version_variable => $version_variable);
     }
 
-    if ($version eq '15') {
+    if ($version eq '15.0') {
         return check_var($version_variable, $version);
     }
     # Die to point out that function has to be extended
@@ -1393,7 +1392,7 @@ sub get_root_console_tty {
     is running on tty2 by default. see also: bsc#1054782
 =cut
 sub get_x11_console_tty {
-    my $new_gdm = !(is_sle && !sle_version_at_least('15')) && !(is_leap && !leap_version_at_least('15')) && !is_sle12_hdd_in_upgrade && !is_caasp;
+    my $new_gdm = !(is_sle && !sle_version_at_least('15')) && !(is_leap && !leap_version_at_least('15.0')) && !is_sle12_hdd_in_upgrade && !is_caasp;
     return (check_var('DESKTOP', 'gnome') && get_var('NOAUTOLOGIN') && $new_gdm) ? 2 : 7;
 }
 

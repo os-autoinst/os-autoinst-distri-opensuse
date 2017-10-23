@@ -55,7 +55,7 @@ sub run {
     select_console 'root-console';
 
     # Make sure packages are installed
-    my $firewall_package = ((is_sle && sle_version_at_least('15')) || (is_leap && leap_version_at_least('15'))) ? 'firewalld' : 'SuSEfirewall2';
+    my $firewall_package = ((is_sle && sle_version_at_least('15')) || (is_leap && leap_version_at_least('15.0'))) ? 'firewalld' : 'SuSEfirewall2';
     zypper_call("in yast2-dns-server bind $firewall_package", timeout => 180);
     # Let's pretend this is the first execution (could not be the case if
     # yast2_cmdline was executed before)
