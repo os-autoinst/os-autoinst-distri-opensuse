@@ -92,7 +92,7 @@ sub run {
     assert_screen 'qa-net-typed';
     my $e = get_var("EXTRABOOTPARAMS");
     if ($e) {
-        type_string "$e ", 4;
+        type_string " $e ", 4;
         save_screenshot;
     }
     send_key 'ret';
