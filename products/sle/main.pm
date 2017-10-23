@@ -690,7 +690,8 @@ sub load_inst_tests {
     }
     if (installyaststep_is_applicable()) {
         loadtest "installation/installation_overview";
-        loadtest "installation/disable_grub_timeout";
+        # Not stable yet: https://progress.opensuse.org/issues/25658
+        #loadtest "installation/disable_grub_timeout";
         if (check_var('VIDEOMODE', 'text') && check_var('BACKEND', 'ipmi')) {
             loadtest "installation/disable_grub_graphics";
         }
