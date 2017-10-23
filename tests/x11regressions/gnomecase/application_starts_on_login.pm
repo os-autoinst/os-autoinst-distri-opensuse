@@ -41,7 +41,7 @@ sub alter_status_auto_save_session {
     my ($self) = @_;
     $self->start_dconf;
     # Old behavior for non SLE15 or non TW
-    if (!sle_version_at_least('15') && !leap_version_at_least('15')) {
+    if (!sle_version_at_least('15') && !leap_version_at_least('15.0')) {
         send_key_until_needlematch "dconf-org", "down";
         assert_and_click "unfold";
         send_key_until_needlematch "dconf-org-gnome", "down";
