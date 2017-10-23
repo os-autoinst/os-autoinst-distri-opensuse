@@ -82,7 +82,7 @@ sub run {
     }
 
     type_string "console=$serialdev,115200 ", $type_speed;    # to get crash dumps as text
-    if (!(check_var('BACKEND', 'ipmi') && get_var('AUTOYAST'))) {
+    if (get_var('AUTOYAST')) {
         type_string "console=tty ", $type_speed;
     }
 
