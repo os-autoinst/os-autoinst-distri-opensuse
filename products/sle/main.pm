@@ -1503,7 +1503,7 @@ else {
         loadtest "jeos/diskusage";
         loadtest "jeos/root_fs_size";
         loadtest "jeos/mount_by_label";
-        loadtest "jeos/sccreg";
+        loadtest "console/suseconnect_scc";
     }
     else {
         if (get_var('BOOT_EXISTING_S390')) {
