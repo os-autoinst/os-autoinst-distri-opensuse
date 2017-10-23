@@ -99,7 +99,7 @@ sub run {
     save_screenshot;
 
     if (check_var('BACKEND', 'ipmi') && !get_var('AUTOYAST')) {
-        assert_screen 'sshd-server-started', 300;
+        assert_screen((check_var('VIDEOMODE', 'text') ? 'sshd' : 'vnc') . '-server-started', 60 * 3);
         select_console 'installation';
 
         # We have textmode installation via ssh and the default vnc installation so far
