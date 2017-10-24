@@ -847,9 +847,12 @@ sub load_consoletests {
         }
         loadtest "console/http_srv";
         loadtest "console/mysql_srv";
+        if (sle_version_at_least('12-SP2') && (!is_staging)) {    # MyODBC-unixODBC not available on < SP2
+            loadtest "console/mysql_odbc";
+        }
         loadtest "console/dns_srv";
         loadtest "console/postgresql96server";
-        if (sle_version_at_least('12-SP1')) {    # shibboleth-sp not available on SLES 12 GA
+        if (sle_version_at_least('12-SP1')) {                     # shibboleth-sp not available on SLES 12 GA
             loadtest "console/shibboleth";
         }
         if (get_var('ADDONS', '') =~ /wsm/ || get_var('SCC_ADDONS', '') =~ /wsm/) {
