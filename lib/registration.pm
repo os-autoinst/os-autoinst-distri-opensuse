@@ -195,6 +195,7 @@ sub fill_in_registration_data {
                     assert_and_click "scc-module-$addon";
                 }
             }
+            save_screenshot;
             # go back and forward, checked checkboxes have to remember state poo#17840
             if (check_var('SCC_REGISTER', 'yast')) {
                 wait_screen_change { send_key 'alt-b' };
