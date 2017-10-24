@@ -49,8 +49,8 @@ our %SLE15_MODULES = (
 # are not preselected, to crosscheck or just recreate automatic selections
 # manually
 our %SLE15_DEFAULT_MODULES = (
-    sles => 'base,script,desktop,serverapp',
-    sled => 'base,script,desktop'
+    sles => 'base,desktop,serverapp',
+    sled => 'base,desktop'
 );
 
 sub fill_in_registration_data {
