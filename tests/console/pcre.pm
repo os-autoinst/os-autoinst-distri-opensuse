@@ -24,7 +24,7 @@ sub run {
     assert_script_run "./test_pcrecpp";
     save_screenshot;
 
-    my $php = ((is_leap && !leap_version_at_least('15')) || (is_sle && !sle_version_at_least('15.0'))) ? 'php5' : 'php7';
+    my $php = ((is_leap && !leap_version_at_least('15.0')) || (is_sle && !sle_version_at_least('15'))) ? 'php5' : 'php7';
     zypper_call("in $php");
     assert_script_run "php simple.php | grep 'matches'";
     save_screenshot;
