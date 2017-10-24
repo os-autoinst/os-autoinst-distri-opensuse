@@ -19,12 +19,12 @@ use utils;
 
 sub run {
     if ((is_sle && sle_version_at_least('15')) || (is_leap && leap_version_at_least('15.0'))) {
-        if (script_run('firewallctl state')) {
+        if (is_jeos) {
+            assert_script_run("grep '^FW_CONFIGURATIONS_EXT=\"sshd\"\\|^FW_SERVICES_EXT_TCP=\"ssh\"' /etc/sysconfig/SuSEfirewall2");
+        }
+        elsif (script_run('firewallctl state')) {
             record_soft_failure('bsc#1054977');
         }
-    }
-    elsif (is_jeos) {
-        assert_script_run("grep '^FW_CONFIGURATIONS_EXT=\"sshd\"\\|^FW_SERVICES_EXT_TCP=\"ssh\"' /etc/sysconfig/SuSEfirewall2");
     }
     else {
         assert_script_run('SuSEfirewall2 status');
