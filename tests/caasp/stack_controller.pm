@@ -53,8 +53,6 @@ sub velum_certificates {
 }
 
 sub confirm_insecure_https {
-    # Workaround for non-staging
-    return if check_screen('create-an-account', 10);
     assert_and_click 'velum-https-advanced';
     assert_and_click 'velum-https-add_exception';
     assert_and_click 'velum-https-confirm';
@@ -96,6 +94,9 @@ sub velum_bootstrap {
         send_key_until_needlematch 'velum-next', 'pgdn', 2, 5;
         assert_and_click 'velum-next';
 
+        # Accept small-cluster warning
+        assert_and_click 'velum-botstrap-warning' if check_var('STACK_SIZE', 4);
+
         # Click bootstrap button [version >= 2.0]
         assert_screen 'velum-confirm-bootstrap';
 
@@ -110,10 +111,15 @@ sub velum_bootstrap {
         assert_and_click "velum-bootstrap";
     }
 
-    # Accept small-cluster warning
-    assert_and_click 'velum-botstrap-warning' if check_var('STACK_SIZE', 4);
+    # Workaround for bsc#1064641
+    assert_screen [qw(velum-bootstrap-done velum-api-disconnected)], 900;
+    if (match_has_tag('velum-api-disconnected')) {
+        record_soft_failure 'bsc#1064641 - Velum polling breaks after bootstrap';
+        send_key 'f5';
+        confirm_insecure_https;
+        assert_screen 'velum-bootstrap-done', 900;
+    }
 
-    assert_screen "velum-bootstrap-done", 900;
     assert_and_click "velum-kubeconfig";
     if (check_var('DISTRI', 'caasp') && !check_var('VERSION', '1.0')) {
         confirm_insecure_https;
