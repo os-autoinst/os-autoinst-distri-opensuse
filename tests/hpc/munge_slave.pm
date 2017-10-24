@@ -22,7 +22,7 @@ sub run {
     my $self = shift;
     select_console 'root-console';
 
-    $self->setup_static_mm_network();
+    $self->setup_static_network(get_required_var('HPC_HOST_IP'));
 
     # stop firewall, so key can be copied
     assert_script_run "rcSuSEfirewall2 stop";
