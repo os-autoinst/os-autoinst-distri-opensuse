@@ -612,7 +612,12 @@ sub load_filesystem_tests {
 
 sub load_wicked_tests {
     loadtest "console/wicked_before_test";
-    loadtest "console/wicked_basic";
+    if (check_var('WICKED', '1')) {
+        loadtest "console/wicked_basic";
+    }
+    else {
+        loadtest "console/wicked_risky";
+    }
 }
 
 sub load_iso_in_external_tests {
