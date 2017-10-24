@@ -21,7 +21,7 @@ sub run {
     my $self = shift;
 
     select_console 'root-console';
-    zypper_call('in yast2-http-server apache2 apache2-prefork');
+    zypper_call('in yast2-http-server apache2 apache2-prefork', timeout => 300);
     select_console 'x11', await_console => 0;
 
     $self->launch_yast2_module_x11('firewall', match_timeout => 60);
