@@ -19,7 +19,7 @@ my $password = $testapi::password;
 my $email    = "you\@example.com";
 
 sub restart_yast2_camgm {
-    assert_and_click("xterm");
+    assert_and_click("xterm-selected");
     type_string("yast2 ca_mgm\n");
     wait_still_screen 1;
     assert_screen("yast2-ca_management-testca");
@@ -176,14 +176,14 @@ sub run {
     save_screenshot;
     ending_yast2_camgm;
     ## Check export CA file
-    assert_and_click("xterm");
+    assert_and_click("xterm-selected");
     type_string("file \/root\/ClientCA.crt\n");
     save_screenshot;
     type_string("cat \/root\/ClientCA.crt\n");
     save_screenshot;
 
     # Cleanup
-    assert_and_click("xterm");
+    assert_and_click("xterm-selected");
     type_string("rm -f \/root\/ClientCA.crt\n");
     save_screenshot;
     send_key("alt-f4");
