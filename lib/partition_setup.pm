@@ -111,7 +111,10 @@ sub addpart {
     }
     if ($args{fsid}) {                            # $args{fsid} will describe needle tag below
         send_key 'alt-i';                         # select File system ID
-        send_key_until_needlematch "partition-selected-$args{fsid}-type", 'down';
+
+        # Due to bsc#1062465 cannot go from top to bottom on storage-ng
+        send_key 'end';
+        send_key_until_needlematch "partition-selected-$args{fsid}-type", 'up';
     }
     if ($args{mount}) {
         send_key 'alt-m';
@@ -122,7 +125,7 @@ sub addpart {
         assert_screen 'partition-lvm-encrypt';
         send_key $cmd{next};
         assert_screen 'partition-lvm-password-prompt';
-        send_key 'alt-e';                         # select password field
+        send_key 'alt-e';    # select password field
         type_password;
         send_key 'tab';
         type_password;
