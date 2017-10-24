@@ -137,8 +137,8 @@ sub fill_in_registration_data {
         }
         if (match_has_tag 'bsc#1056413') {
             record_soft_failure('bsc#1056413');
-            # Add expected modules to select them manually, as not preselected
-            my $addons = $SLE15_DEFAULT_MODULES{get_required_var('SLE_PRODUCT')} . (get_var('SCC_ADDONS') ? ',' . get_var('SCC_ADDONS') : '');
+            # Activate the last of the expected modules to select them manually, as not preselected but at least dependencies are handled
+            my $addons = (split(/,/, $SLE15_DEFAULT_MODULES{get_required_var('SLE_PRODUCT')}))[-1] . (get_var('SCC_ADDONS') ? ',' . get_var('SCC_ADDONS') : '');
             set_var('SCC_ADDONS', $addons);
         }
     }
