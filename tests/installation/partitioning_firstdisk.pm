@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -29,6 +29,9 @@ sub take_first_disk_storage_ng {
         }
         elsif (match_has_tag 'hotkey_e') {
             send_key 'alt-e';
+        }
+        else {
+            die 'Needle needs tag \'hotkey_d\' or \'hotkey_e\'';
         }
     }
     else {
