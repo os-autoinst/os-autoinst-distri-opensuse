@@ -56,7 +56,7 @@ sub run {
 
         capture_state('between', 1);
 
-        prepare_system_reboot;
+        prepare_system_shutdown;
         type_string "reboot\n";
         $self->wait_boot;
     }
