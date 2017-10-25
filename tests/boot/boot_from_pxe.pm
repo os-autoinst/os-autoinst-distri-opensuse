@@ -91,7 +91,7 @@ sub run {
     save_screenshot;
     my $e = get_var("EXTRABOOTPARAMS");
     if ($e) {
-        type_string "$e ", 4;
+        type_string " $e ", 4;
         save_screenshot;
     }
     send_key 'ret';
