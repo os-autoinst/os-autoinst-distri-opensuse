@@ -64,6 +64,7 @@ sub run {
     wait_still_screen(1);
     save_screenshot;
     send_key $cmd{ok};
+    assert_screen 'installation-settings-overview-loaded';
 }
 
 1;
