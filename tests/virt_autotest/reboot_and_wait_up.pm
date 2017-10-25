@@ -15,6 +15,7 @@ use strict;
 use warnings;
 use testapi;
 use login_console;
+use utils;
 use base "proxymode";
 
 sub reboot_and_wait_up {
@@ -31,7 +32,7 @@ sub reboot_and_wait_up {
         set_var('SERIALDEV', '');
         $serialdev = 'ttyS1';
         bmwqemu::save_vars();
-        console('root-ssh')->kill_ssh;
+        prepare_system_shutdown;
         console('sol')->disable;
         # do the activation manually - the sol can be anything normally
         select_console 'sol', await_console => 0;

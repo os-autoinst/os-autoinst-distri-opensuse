@@ -169,7 +169,7 @@ sub run {
         select_console 'installation';
     }
 
-    prepare_system_reboot if (check_var('ARCH', 's390x') || check_var('BACKEND', 'ipmi'));
+    prepare_system_shutdown;
 
     wait_screen_change {
         send_key 'alt-o';    # Reboot

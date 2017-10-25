@@ -14,7 +14,7 @@
 use base "installbasetest";
 
 use testapi;
-use utils qw(is_sle sle_version_at_least);
+use utils;
 
 use strict;
 use warnings;
@@ -44,11 +44,6 @@ sub run {
 
     # different behaviour for z/VM and z/KVM
     if (check_var('BACKEND', 's390x')) {
-
-        # kill serial ssh connection (if it exists)
-        eval { console('iucvconn')->kill_ssh unless get_var('BOOT_EXISTING_S390', ''); };
-        diag('ignoring already shut down console') if ($@);
-
         my $r;
         eval { $r = console('x3270')->expect_3270(output_delim => $login_ready, timeout => 300); };
         if ($@) {
