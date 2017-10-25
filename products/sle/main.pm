@@ -34,7 +34,7 @@ sub is_server {
 }
 
 sub is_desktop {
-    return get_var('FLAVOR', '') =~ /^Desktop/;
+    return get_var('FLAVOR', '') =~ /^Desktop/ || check_var('SLE_PRODUCT', 'sled');
 }
 
 sub is_leanos {
