@@ -37,12 +37,13 @@ our @EXPORT = qw(
 # We already have needles with names which are different we would use here
 # As it's only workaround, better not to create another set of needles.
 our %SLE15_MODULES = (
-    base      => 'Basesystem',
-    sdk       => 'Development-Tools',
-    desktop   => 'Desktop-Applications',
-    legacy    => 'Legacy',
-    script    => 'Scripting',
-    serverapp => 'Server-Applications'
+    base         => 'Basesystem',
+    sdk          => 'Development-Tools',
+    desktop      => 'Desktop-Applications',
+    productivity => 'Desktop-Productivity',
+    legacy       => 'Legacy',
+    script       => 'Scripting',
+    serverapp    => 'Server-Applications'
 );
 
 # The expected modules of a default installation per product. Use them if they
@@ -50,7 +51,7 @@ our %SLE15_MODULES = (
 # manually
 our %SLE15_DEFAULT_MODULES = (
     sles => 'base,desktop,serverapp',
-    sled => 'base,desktop'
+    sled => 'base,desktop,productivity'
 );
 
 sub fill_in_registration_data {
