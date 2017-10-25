@@ -496,7 +496,8 @@ sub load_x11regression_remote {
 }
 
 sub load_boot_tests {
-    if (get_var("ISO_MAXSIZE")) {
+    # s390x uses only remote repos
+    if (get_var("ISO_MAXSIZE") && !check_var('ARCH', 's390x')) {
         loadtest "installation/isosize";
     }
     if ((get_var("UEFI") || is_jeos()) && !check_var("BACKEND", "svirt")) {
