@@ -53,6 +53,7 @@ sub velum_certificates {
 }
 
 sub confirm_insecure_https {
+    wait_still_screen 3;
     assert_and_click 'velum-https-advanced';
     assert_and_click 'velum-https-add_exception';
     assert_and_click 'velum-https-confirm';
@@ -90,14 +91,14 @@ sub velum_bootstrap {
     wait_still_screen;
 
     if (is_caasp '2.0+') {
-        # Click next button to 'Confirm bootstrap' page [version >= 2.0]
+        # Click next button to 'Confirm bootstrap' page
         send_key_until_needlematch 'velum-next', 'pgdn', 2, 5;
         assert_and_click 'velum-next';
 
         # Accept small-cluster warning
         assert_and_click 'velum-botstrap-warning' if check_var('STACK_SIZE', 4);
 
-        # Click bootstrap button [version >= 2.0]
+        # Click bootstrap button
         assert_screen 'velum-confirm-bootstrap';
 
         # External Dashboard FQDN
@@ -111,10 +112,8 @@ sub velum_bootstrap {
         assert_and_click "velum-bootstrap";
     }
 
-    # Workaround for bsc#1064641
     assert_screen [qw(velum-bootstrap-done velum-api-disconnected)], 900;
     if (match_has_tag('velum-api-disconnected')) {
-        record_soft_failure 'bsc#1064641 - Velum polling breaks after bootstrap';
         send_key 'f5';
         confirm_insecure_https;
         assert_screen 'velum-bootstrap-done', 900;
@@ -183,9 +182,6 @@ sub run {
         # CaaSP 1.0 = %number_of_jobs - minus three (controller + admin + master) jobs
         $minion_count = get_required_var("STACK_SIZE") - 3;
     }
-    my $temp = get_required_var("STACK_SIZE");
-    assert_script_run "echo $temp";
-    assert_script_run "echo $minion_count";
     assert_script_run "kubectl get nodes --no-headers | wc -l | grep $minion_count";
 
     # Deploy nginx minimal application and check pods started succesfully
