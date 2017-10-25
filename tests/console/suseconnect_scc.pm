@@ -36,6 +36,7 @@ sub run {
 
     select_console 'root-console';
     assert_script_run "SUSEConnect --url $scc_url -r $reg_code";
+    assert_script_run 'SUSEConnect --list-extensions';
 
     # add modules
     foreach (split(',', $registration::SLE15_DEFAULT_MODULES{get_required_var('SLE_PRODUCT')} . $scc_addons)) {
