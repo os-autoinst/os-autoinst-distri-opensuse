@@ -716,6 +716,7 @@ sub load_security_tests_core {
     loadtest "console/sshd";
     loadtest "console/ssh_pubkey";
     loadtest "console/ssh_cleanup";
+    loadtest "console/openvswitch_ssl";
     loadtest "console/consoletest_finish";
 }
 
