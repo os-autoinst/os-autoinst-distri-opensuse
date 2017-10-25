@@ -14,11 +14,12 @@ use strict;
 use warnings;
 use parent qw(installation_user_settings y2logsstep);
 use testapi;
+use utils 'is_caasp';
 
 sub run {
     my ($self) = @_;
 
-    if (!check_var('VERSION', '1.0')) {
+    if (is_caasp '2.0+') {
         check_var('VIDEOMODE', 'text') ? send_key 'alt-a' : send_key 'alt-w';
     }
     else {

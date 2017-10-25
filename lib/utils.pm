@@ -268,8 +268,10 @@ sub is_gnome_next {
     return get_var('FLAVOR', '') =~ /Gnome-Live/;
 }
 
-# Check if distribution is CASP
-# If argument is passed then FLAVOR has to match (universal VMX keyword)
+# Check if distribution is CaaSP or Kubic with optional filter:
+# Media type: DVD (iso) or VMX (all disk images)
+# Version: 1.0 | 2.0 | 2.0+
+# Flavor: DVD | MS-HyperV | XEN | KVM-and-Xen | ..
 sub is_caasp {
     my $filter = shift;
     return 0 unless get_var('DISTRI') =~ /casp|caasp|kubic/;
@@ -280,6 +282,16 @@ sub is_caasp {
     }
     elsif ($filter eq 'VMX') {
         return get_var('FLAVOR') !~ /DVD/;    # If not DVD it's VMX
+    }
+    elsif ($filter =~ /^\d\.\d\+?$/) {
+        die "Unsupported version" if get_var('VERSION') !~ /^\d\.\d?$/;
+        if ($filter =~ /\+$/) {
+            chop $filter;
+            return get_var('VERSION') >= $filter;
+        }
+        else {
+            return check_var('VERSION', $filter);
+        }
     }
     else {
         return check_var('FLAVOR', $filter);    # Specific FLAVOR selector
