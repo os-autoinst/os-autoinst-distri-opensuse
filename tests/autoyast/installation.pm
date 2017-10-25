@@ -91,7 +91,8 @@ sub verify_timeout_and_check_screen {
 
 sub run {
     my ($self) = @_;
-    my @needles = qw(bios-boot nonexisting-package reboot-after-installation linuxrc-install-fail scc-invalid-url warning-pop-up inst-betawarning);
+    my @needles
+      = qw(bios-boot nonexisting-package reboot-after-installation linuxrc-install-fail scc-invalid-url warning-pop-up inst-betawarning autoyast-boot);
     push @needles, 'autoyast-confirm'        if get_var('AUTOYAST_CONFIRM');
     push @needles, 'autoyast-postpartscript' if get_var('USRSCR_DIALOG');
 
@@ -107,8 +108,11 @@ sub run {
     until (match_has_tag('reboot-after-installation') || match_has_tag('bios-boot')) {
         #Verify timeout and continue if there was a match
         next unless verify_timeout_and_check_screen(($timer += $check_time), \@needles);
+        if (match_has_tag('autoyast-boot')) {
+            send_key 'ret';    # grub timeout is disable, so press any key is needed to pass the grub
+        }
         #repeat until timeout or login screen
-        if (match_has_tag('nonexisting-package')) {
+        elsif (match_has_tag('nonexisting-package')) {
             @needles = grep { $_ ne 'nonexisting-package' } @needles;
             $self->handle_expected_errors(iteration => $i);
             $num_errors++;
