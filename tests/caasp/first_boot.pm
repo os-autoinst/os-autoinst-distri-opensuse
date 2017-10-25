@@ -34,7 +34,6 @@ sub run {
             unless ($tty2) {
                 wait_screen_change(undef, 180);
                 wait_still_screen;
-                record_soft_failure 'bsc#1035968';
             }
         }
         select_console 'root-console';
