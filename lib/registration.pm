@@ -37,20 +37,21 @@ our @EXPORT = qw(
 # We already have needles with names which are different we would use here
 # As it's only workaround, better not to create another set of needles.
 our %SLE15_MODULES = (
-    base      => 'Basesystem',
-    sdk       => 'Development-Tools',
-    desktop   => 'Desktop-Applications',
-    legacy    => 'Legacy',
-    script    => 'Scripting',
-    serverapp => 'Server-Applications'
+    base         => 'Basesystem',
+    sdk          => 'Development-Tools',
+    desktop      => 'Desktop-Applications',
+    productivity => 'Desktop-Productivity',
+    legacy       => 'Legacy',
+    script       => 'Scripting',
+    serverapp    => 'Server-Applications'
 );
 
 # The expected modules of a default installation per product. Use them if they
 # are not preselected, to crosscheck or just recreate automatic selections
 # manually
 our %SLE15_DEFAULT_MODULES = (
-    sles => 'base,script,desktop,serverapp',
-    sled => 'base,script,desktop'
+    sles => 'base,desktop,serverapp',
+    sled => 'base,desktop,productivity'
 );
 
 sub fill_in_registration_data {
@@ -137,8 +138,8 @@ sub fill_in_registration_data {
         }
         if (match_has_tag 'bsc#1056413') {
             record_soft_failure('bsc#1056413');
-            # Add expected modules to select them manually, as not preselected
-            my $addons = $SLE15_DEFAULT_MODULES{get_required_var('SLE_PRODUCT')} . (get_var('SCC_ADDONS') ? ',' . get_var('SCC_ADDONS') : '');
+            # Activate the last of the expected modules to select them manually, as not preselected but at least dependencies are handled
+            my $addons = (split(/,/, $SLE15_DEFAULT_MODULES{get_required_var('SLE_PRODUCT')}))[-1] . (get_var('SCC_ADDONS') ? ',' . get_var('SCC_ADDONS') : '');
             set_var('SCC_ADDONS', $addons);
         }
     }
@@ -195,6 +196,7 @@ sub fill_in_registration_data {
                     assert_and_click "scc-module-$addon";
                 }
             }
+            save_screenshot;
             # go back and forward, checked checkboxes have to remember state poo#17840
             if (check_var('SCC_REGISTER', 'yast')) {
                 wait_screen_change { send_key 'alt-b' };
