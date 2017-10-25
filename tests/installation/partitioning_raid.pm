@@ -220,11 +220,17 @@ sub run {
         send_key_until_needlematch 'filesystem-prep', $direction_key;
         my $next_hotkey = (is_storage_ng) ? 'alt-n' : 'alt-f';
         send_key $next_hotkey;
-        assert_screen 'custompart';
-        send_key 'alt-s';
-        send_key 'right';
-        assert_screen 'partitioning_raid-hard_disks-unfolded';
-        send_key 'down';
+        # Due to workaround for bsc#1063844 we are not back to "hard disks"
+        # tree item to see overview
+        if (is_storage_ng) {
+            send_key 'down';
+            send_key_until_needlematch 'custompart', 'left';
+        }
+        else {
+            assert_screen 'custompart';
+        }
+        send_key 'alt-s';    #System view
+        send_key_until_needlematch 'partitioning_raid-hard_disks-unfolded', 'right';
     }
     else {
         send_key "right" unless is_storage_ng;
