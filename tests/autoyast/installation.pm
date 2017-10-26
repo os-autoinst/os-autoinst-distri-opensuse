@@ -213,10 +213,13 @@ sub run {
     check_screen \@needles, $check_time;
     until (match_has_tag 'reboot-after-installation') {
         #Verify timeout and continue if there was a match
-        next unless verify_timeout_and_check_screen(($timer += $check_time), [qw(reboot-after-installation autoyast-postinstall-error)]);
+        next unless verify_timeout_and_check_screen(($timer += $check_time), [qw(reboot-after-installation autoyast-postinstall-error autoyast-boot)]);
         if (match_has_tag('autoyast-postinstall-error')) {
             $self->handle_expected_errors(iteration => $i);
             $num_errors++;
+        }
+        elsif (match_has_tag('autoyast-boot')) {
+            send_key 'ret';    # grub timeout is disable, so press any key is needed to pass the grub
         }
     }
 
