@@ -61,7 +61,7 @@ sub run {
     my $patch_status = is_patch_needed($patch, 1);
     install_packages($patch_status) if $patch_status;
 
-    prepare_system_reboot;
+    prepare_system_shutdown;
     type_string "reboot\n";
     $self->wait_boot;
 }

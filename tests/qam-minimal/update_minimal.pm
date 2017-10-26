@@ -38,7 +38,7 @@ sub run {
     fully_patch_system;
     capture_state('after', 1);
 
-    prepare_system_reboot;
+    prepare_system_shutdown;
     type_string "reboot\n";
     $self->wait_boot;
 }

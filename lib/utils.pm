@@ -43,7 +43,7 @@ our @EXPORT = qw(
   save_svirt_pty
   type_line_svirt
   unlock_if_encrypted
-  prepare_system_reboot
+  prepare_system_shutdown
   get_netboot_mirror
   zypper_call
   fully_patch_system
@@ -169,7 +169,7 @@ sub clear_console {
 }
 
 # in some backends we need to prepare the reboot/shutdown
-sub prepare_system_reboot {
+sub prepare_system_shutdown {
     # kill the ssh connection before triggering reboot
     console('root-ssh')->kill_ssh if check_var('BACKEND', 'ipmi');
 
@@ -640,7 +640,7 @@ sub reboot_x11 {
 
             # we need to kill ssh for iucvconn here,
             # because after pressing return, the system is down
-            prepare_system_reboot;
+            prepare_system_shutdown;
 
             send_key 'ret';    # Confirm
         }
@@ -690,7 +690,7 @@ sub poweroff_x11 {
             }
 
             # we need to kill all open ssh connections before the system shuts down
-            prepare_system_reboot;
+            prepare_system_shutdown;
             send_key "ret";
         }
     }
@@ -775,6 +775,7 @@ sub power_action {
     $args{keepconsole} //= 0;
     $args{textmode}    //= check_var('DESKTOP', 'textmode');
     die "'action' was not provided" unless $action;
+    prepare_system_shutdown;
     if (check_var('BACKEND', 'svirt')) {
         my $vnc_console = get_required_var('SVIRT_VNC_CONSOLE');
         console($vnc_console)->disable_vnc_stalls;
@@ -797,10 +798,6 @@ sub power_action {
     }
     if (check_var('VIRSH_VMM_FAMILY', 'xen')) {
         assert_shutdown_and_restore_system($action);
-    }
-    elsif (check_var('ARCH', 's390x') && !check_var('WORKER_CLASS', 'svirt')) {
-        diag 'poo#25638 shutdown on s390x-kvm and z/VM does never return from assert_shutdown, skipping that call.';
-        reset_consoles;
     }
     else {
         # Shutdown takes longer than 60 seconds on SLE 15
