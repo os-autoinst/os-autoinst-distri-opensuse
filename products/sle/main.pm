@@ -1117,6 +1117,9 @@ elsif (get_var("WICKED")) {
     boot_hdd_image();
     load_wicked_tests();
 }
+elsif (get_var('NFV')) {
+    load_nfv_tests();
+}
 elsif (get_var("REGRESSION")) {
     if (check_var("REGRESSION", "installation")) {
         load_boot_tests();

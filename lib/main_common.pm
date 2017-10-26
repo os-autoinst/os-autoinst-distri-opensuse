@@ -49,6 +49,7 @@ our @EXPORT = qw(
   load_rollback_tests
   load_filesystem_tests
   load_wicked_tests
+  load_nfv_tests
   load_iso_in_external_tests
   load_x11regression_documentation
   load_x11regression_gnome
@@ -618,6 +619,11 @@ sub load_filesystem_tests {
 sub load_wicked_tests {
     loadtest "console/wicked_before_test";
     loadtest "console/wicked_basic";
+}
+
+sub load_nfv_tests {
+    boot_hdd_image();
+    loadtest "nfv/openvswitch_dpdk";
 }
 
 sub load_iso_in_external_tests {
