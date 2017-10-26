@@ -26,7 +26,7 @@ sub run {
 
     select_console 'root-console';
 
-    $self->setup_static_mm_network();
+    $self->setup_static_network(get_required_var('HPC_HOST_IP'));
 
     # set proper hostname
     assert_script_run('hostnamectl set-hostname munge-master');
