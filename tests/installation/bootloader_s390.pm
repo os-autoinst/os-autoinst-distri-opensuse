@@ -68,7 +68,8 @@ use backend::console_proxy;
 sub prepare_parmfile {
     my ($repo) = @_;
     my $params = '';
-    $params .= get_var('S390_NETWORK_PARAMS');
+    $params .= " " . get_var('S390_NETWORK_PARAMS');
+    $params .= " " . get_var('EXTRABOOTPARAMS');
 
     if (check_var("VIDEOMODE", "text") || check_var("VIDEOMODE", "ssh-x")) {
         $params .= " ssh=1 ";    # trigger ssh-text installation
