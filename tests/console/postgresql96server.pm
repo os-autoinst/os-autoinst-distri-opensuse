@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: Postgres tests for SLE12
-# Maintainer:  Ondřej Súkup <osukup@suse.cz>
+# Maintainer: Ondřej Súkup <osukup@suse.cz>
 
 use base "consoletest";
 use strict;
@@ -27,7 +27,12 @@ sub run {
 
     # check the status
     assert_script_run 'systemctl show -p ActiveState postgresql.service | grep ActiveState=active';
-    assert_script_run 'systemctl show -p SubState postgresql.service | grep SubState=running';
+    if (is_sle && sle_version_at_least('15')) {
+        record_soft_failure 'Workaround for bsc#1060639: postgresql96 server service exits with "active (exited)"';
+    }
+    else {
+        assert_script_run 'systemctl show -p SubState postgresql.service | grep SubState=running';
+    }
 
     # test basic functionality of postgresql
     setup_pgsqldb;
