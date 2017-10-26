@@ -120,7 +120,7 @@ sub package_action {
                 type_string "$p";
                 send_key 'alt-s';    # search button
             }
-            send_key_until_needlematch "packages-$p-selected", 'down', 40;
+            send_key_until_needlematch "packages-$p-selected", 'down', 60;
             wait_screen_change { send_key "$operation" };
             wait_still_screen 2;
             save_screenshot;
