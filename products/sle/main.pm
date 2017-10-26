@@ -583,8 +583,8 @@ sub load_inst_tests {
     else {
         loadtest "installation/skip_registration" unless check_var('SLE_PRODUCT', 'leanos');
     }
-    if (is_sles4sap) {
-        loadtest "installation/sles4sap_product_installation_mode" unless sle_version_at_least('15');
+    if (is_sles4sap and !sle_version_at_least('15')) {
+        loadtest "installation/sles4sap_product_installation_mode";
     }
     if (get_var('MAINT_TEST_REPO')) {
         loadtest 'installation/add_update_test_repo';
