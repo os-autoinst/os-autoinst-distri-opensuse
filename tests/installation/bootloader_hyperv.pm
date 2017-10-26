@@ -45,8 +45,8 @@ sub run {
             }
         }
         if (my $hdd = get_var("HDD$n")) {
+            my $basenamehdd = basename($hdd);
             for my $hddpath ("hdd", "hdd\\fixed") {
-                my $basenamehdd          = basename($hdd);
                 my $basenamehdd_vhd      = $basenamehdd =~ s/vhdfixed\.xz/vhd/r;
                 my $basenamehdd_vhdfixed = $basenamehdd =~ s/\.xz//r;
                 # If the image exists, do nothing
@@ -58,24 +58,23 @@ sub run {
                 hyperv_cmd("xz --decompress --keep --verbose D:\\cache\\$basenamehdd");
                 # Rename .vhdfixed to .vhd
                 hyperv_cmd("move /Y D:\\cache\\$basenamehdd_vhdfixed D:\\cache\\$basenamehdd_vhd");
+                # Because we likely wrote dozens of GB of zeros to disk, we have to wait some time for
+                # the disk to write all the data, otherwise the test would be unstable due to the load.
+                # Check average disk load for some time to make sure all the data are in cold on disk.
+                select_console('svirt');
+                type_string("typeperf \"\\LogicalDisk(D:)\\Avg\. Disk Bytes/Write\"\n");
+                assert_screen('no-hyperv-disk-load', 600);
+                send_key 'ctrl-c';
+                assert_screen 'hyperv-typeperf-command-finished';
+                select_console('hyperv-intermediary');
                 # No need to attempt anything further, if we just moved
                 # the file to the correct location
                 last;
             }
-            # Make sure the .vhd file is present
-            hyperv_cmd("if not exist D:\\cache\\" . basename($hdd) =~ s/vhdfixed\.xz/vhd/r . " ( exit 1 )");
+            # Make sure the disk file is present
+            hyperv_cmd("if not exist D:\\cache\\" . $basenamehdd =~ s/vhdfixed\.xz/vhd/r . " ( exit 1 )");
         }
     }
-
-    # Because we likely wrote dozens of GB of zeros to disk, we have to wait some time for
-    # the disk to write all the data, otherwise the test would be unstable due to the load.
-    # Check average disk load for some time to make sure all the data are in cold on disk.
-    select_console('svirt');
-    type_string("typeperf \"\\LogicalDisk(D:)\\Avg\. Disk Bytes/Write\"\n");
-    assert_screen('no-hyperv-disk-load', 600);
-    send_key 'ctrl-c';
-    assert_screen 'hyperv-typeperf-command-finished';
-    select_console('hyperv-intermediary');
 
     my $xvncport = get_required_var('VIRSH_INSTANCE');
     my $hdd1     = get_var('HDD_1') ? 'd:\\cache\\' . basename(get_var('HDD_1')) =~ s/vhdfixed\.xz/vhd/r : undef;
@@ -111,8 +110,9 @@ sub run {
         my $vm_generation = get_var('UEFI') ? 2 : 1;
         my $hyperv_switch_name = get_var('HYPERV_VIRTUAL_SWITCH', 'ExternalVirtualSwitch');
         if ($hdd1) {
-            hyperv_cmd("$ps New-VHD -ParentPath $hdd1 -Path d:\\cache\\${name}a.vhd -Differencing");
-            hyperv_cmd("$ps New-VM -Name $name -Generation $vm_generation -VHDPath d:\\cache\\${name}a.vhd "
+            my ($hddsuffix) = $hdd1 =~ /(\.[^.]+)$/;
+            hyperv_cmd("$ps New-VHD -ParentPath $hdd1 -Path d:\\cache\\${name}a$hddsuffix -Differencing");
+            hyperv_cmd("$ps New-VM -Name $name -Generation $vm_generation -VHDPath d:\\cache\\${name}a$hddsuffix "
                   . "-SwitchName $hyperv_switch_name -MemoryStartupBytes ${ramsize}MB");
         }
         else {
