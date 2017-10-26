@@ -44,7 +44,7 @@ sub is_leanos {
 }
 
 sub is_sles4sap {
-    return get_var('FLAVOR', '') =~ /SAP/;
+    return get_var('FLAVOR', '') =~ /SAP/ || check_var('SLE_PRODUCT', 'sles4sap');
 }
 
 sub is_sles4sap_standard {
@@ -584,7 +584,7 @@ sub load_inst_tests {
         loadtest "installation/skip_registration" unless check_var('SLE_PRODUCT', 'leanos');
     }
     if (is_sles4sap) {
-        loadtest "installation/sles4sap_product_installation_mode";
+        loadtest "installation/sles4sap_product_installation_mode" unless sle_version_at_least('15');
     }
     if (get_var('MAINT_TEST_REPO')) {
         loadtest 'installation/add_update_test_repo';
@@ -666,7 +666,7 @@ sub load_inst_tests {
             loadtest "installation/logpackages";
         }
         if (is_sles4sap()) {
-            if (check_var("SLES4SAP_MODE", 'sles')) {
+            if (check_var("SLES4SAP_MODE", 'sles') or sle_version_at_least('15')) {
                 loadtest "installation/user_settings";
             }    # sles4sap wizard installation doesn't have user_settings step
         }
@@ -948,9 +948,9 @@ sub load_x11tests {
     }
     loadtest "x11/desktop_mainmenu";
     if (is_sles4sap() and !is_sles4sap_standard()) {
+        loadtest "sles4sap/patterns";
         loadtest "sles4sap/sapconf";
         loadtest "sles4sap/saptune";
-        loadtest "sles4sap/patterns";
         if (get_var('NW')) {
             loadtest "sles4sap/nw_ascs_install" if (get_var('SLES4SAP_MODE') !~ /wizard/);
             loadtest "sles4sap/netweaver_ascs";
