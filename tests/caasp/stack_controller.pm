@@ -121,6 +121,11 @@ sub velum_bootstrap {
 
     assert_and_click "velum-kubeconfig";
     if (is_caasp '2.0+') {
+        unless (check_screen('velum-https-advanced', 5)) {
+            record_soft_failure 'bsc#1062542 - dex is not be ready yet';
+            sleep 30;
+            send_key 'f5';
+        }
         confirm_insecure_https;
         type_string $admin_email;
         send_key 'tab';
