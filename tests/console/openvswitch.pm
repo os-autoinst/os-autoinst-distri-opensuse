@@ -27,7 +27,7 @@ use utils;
 sub run {
     select_console 'root-console';
 
-    zypper_call('in openvswitch-switch iputils', timeout => 200);
+    zypper_call('in openvswitch-switch iputils', timeout => 300);
 
     # Start the openvswitch daemon
     assert_script_run "systemctl start openvswitch", 200;
