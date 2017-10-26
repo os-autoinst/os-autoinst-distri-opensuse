@@ -270,6 +270,10 @@ sub start_printer {
 
 sub run {
     my $self = shift;
+    if (is_sle && sle_version_at_least '15') {
+        #see bsc#1062331, sound is not added to the yast2 pattern
+        ensure_installed('in yast2-sound');
+    }
     $self->launch_yast2_module_x11('', target_match => 'yast2-control-center-ui', match_timeout => 180);
 
     # search module by typing string
