@@ -284,6 +284,9 @@ sub is_caasp {
         return get_var('FLAVOR') !~ /DVD/;    # If not DVD it's VMX
     }
     elsif ($filter =~ /^\d\.\d\+?$/) {
+        # If we use '+' it means "this or newer", which includes tumbleweed
+        return ($filter =~ /\+$/) if check_var('VERSION', 'Tumbleweed');
+
         die "Unsupported version" if get_var('VERSION') !~ /^\d\.\d?$/;
         if ($filter =~ /\+$/) {
             chop $filter;
