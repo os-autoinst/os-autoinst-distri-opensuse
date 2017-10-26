@@ -794,7 +794,7 @@ sub load_consoletests {
     }
     #have SCC repo for SLE product
     if (have_scc_repos()) {
-        loadtest "console/yast_scc";
+        loadtest "console/yast2_scc-module_addition";
     }
     elsif (have_addn_repos()) {
         loadtest "console/zypper_ar";
@@ -1408,7 +1408,7 @@ elsif (have_scc_repos()) {
         loadtest "console/suseconnect_scc";
     }
     else {
-        loadtest "console/yast_scc";
+        loadtest "console/yast2_scc-module_addition";
     }
 }
 elsif (get_var('HPC')) {
@@ -1484,7 +1484,8 @@ else {
                 loadtest "installation/addon_products_yast2";
             }
             if (get_var('SCC_ADDONS')) {
-                loadtest "installation/addon_products_via_SCC_yast2";
+                loadtest "installation/yast2_scc-registration";
+                loadtest "installation/yast2_scc-module_addition";
             }
             if (get_var("ISCSI_SERVER")) {
                 set_var('INSTALLONLY', 1);
