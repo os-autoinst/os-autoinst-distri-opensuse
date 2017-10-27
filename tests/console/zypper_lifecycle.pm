@@ -77,8 +77,9 @@ sub run {
     assert_script_run "rm -f /var/lib/lifecycle/data/$prod.lifecycle";
 
     # get product eol
-    my $product_name = script_output "grep '<summary>' /etc/products.d/$prod.prod";
-    $product_name =~ s/.*<summary>([^<]*)<\/summary>.*/$1/;
+    my $product_file = "/etc/products.d/$prod.prod";
+    my $product_name = script_output "grep '<summary>' $product_file";
+    $product_name =~ s/.*<summary>([^<]*)<\/summary>.*/$1/ || die "no product name found in $product_file";
 
     my $product_eol;
     for my $l (split /\n/, $overview) {
