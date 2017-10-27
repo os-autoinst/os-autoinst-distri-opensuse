@@ -44,7 +44,7 @@ sub get_dom0_serialdev {
     my $dom0_serialdev;
 
     script_run("clear");
-    script_run("cat ${root_dir}/etc/SuSE-release");
+    script_run("cat ${root_dir}/etc/SuSE-release || cat ${root_dir}/etc/os-release");
     save_screenshot;
     assert_screen([qw(on_host_sles_12_sp2_or_above on_host_lower_than_sles_12_sp2)]);
 
