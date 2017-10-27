@@ -56,22 +56,7 @@ our %SLE15_DEFAULT_MODULES = (
 
 sub fill_in_registration_data {
     my ($addon, $uc_addon);
-    if (!get_var("HDD_SCC_REGISTERED")) {
-        # SLE 15 & textmode
-        if (sle_version_at_least('15') && check_var('DESKTOP', 'textmode')) {
-            send_key "alt-m";    # select email field if yast2 add-on
-        }
-        else {
-            send_key "alt-e";    # select email field if installation
-        }
-        send_key "backspace";    # delete m or e
-        type_string get_required_var('SCC_EMAIL') if get_var('SCC_EMAIL');
-        save_screenshot;         # show typed value or empty fields also as synchronization
-        send_key "alt-c";        # select registration code field
-        type_string get_required_var('SCC_REGCODE') if get_var('SCC_REGCODE');
-        save_screenshot;
-        wait_screen_change { send_key $cmd{next} };
-    }
+    fill_in_reg_server() if (!get_var("HDD_SCC_REGISTERED"));
 
     my @known_untrusted_keys = qw(import-trusted-gpg-key-nvidia-F5113243C66B6EAE import-trusted-gpg-key-phub-9C214D4065176565);
     unless (get_var('SCC_REGISTER', '') =~ /addon|network/) {
@@ -410,6 +395,30 @@ sub get_addon_fullname {
         'wsm'   => 'sle-module-web-scripting',
     );
     return $product_list{"$addon"};
+}
+
+
+sub fill_in_reg_server {
+    if (!get_var("SMT_URL")) {
+        if (sle_version_at_least('15') && check_var('DESKTOP', 'textmode')) {
+            send_key "alt-m";    # select email field if yast2 add-on
+        }
+        else {
+            send_key "alt-e";    # select email field if installation
+        }
+        send_key "backspace";    # delete m or e
+        type_string get_required_var('SCC_EMAIL') if get_var('SCC_EMAIL');
+        save_screenshot;
+        send_key "alt-c";
+        type_string get_required_var('SCC_REGCODE') if get_var('SCC_REGCODE');
+    }
+    else {
+        send_key "alt-i";
+        send_key "alt-o";
+        type_string get_required_var("SMT_URL");
+    }
+    save_screenshot;
+    wait_screen_change { send_key $cmd{next} };
 }
 
 1;
