@@ -38,8 +38,8 @@ sub setup {
     # write odbcinst.ini
     assert_script_run "echo [myodbc_mysql] > /etc/unixODBC/odbcinst.ini";
     assert_script_run "echo Description=ODBC for MySQL >> /etc/unixODBC/odbcinst.ini";
-    assert_script_run "echo Driver=/usr/lib64/libmyodbc5.so >> /etc/unixODBC/odbcinst.ini";
-    assert_script_run "echo Setup=/usr/lib64/unixODBC/libodbcmyS.so >> /etc/unixODBC/odbcinst.ini";
+    assert_script_run 'echo Driver=$(rpm --eval "%_libdir")/libmyodbc5.so >> /etc/unixODBC/odbcinst.ini';
+    assert_script_run 'echo Setup=$(rpm --eval "%_libdir")/libodbcmyS.so >> /etc/unixODBC/odbcinst.ini';
     assert_script_run "echo UsageCount=2 >> /etc/unixODBC/odbcinst.ini";
 
     # create the 'odbcTEST' database with table 'test' and insert one element
