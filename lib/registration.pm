@@ -50,8 +50,9 @@ our %SLE15_MODULES = (
 # are not preselected, to crosscheck or just recreate automatic selections
 # manually
 our %SLE15_DEFAULT_MODULES = (
-    sles => 'base,desktop,serverapp',
-    sled => 'base,desktop,productivity'
+    sles     => 'base,desktop,serverapp',
+    sled     => 'base,desktop,productivity'
+    sles4sap => 'base,desktop,serverapp,ha,sapapp',
 );
 
 sub fill_in_registration_data {
