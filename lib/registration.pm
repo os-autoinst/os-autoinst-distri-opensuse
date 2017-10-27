@@ -51,7 +51,7 @@ our %SLE15_MODULES = (
 # manually
 our %SLE15_DEFAULT_MODULES = (
     sles     => 'base,desktop,serverapp',
-    sled     => 'base,desktop,productivity'
+    sled     => 'base,desktop,productivity',
     sles4sap => 'base,desktop,serverapp,ha,sapapp',
 );
 
