@@ -18,11 +18,11 @@ use testapi;
 sub get_script_run {
     my $prd_version = script_output("cat /etc/issue");
     my $pre_test_cmd;
-    if ($prd_version =~ m/SUSE Linux Enterprise Server 12/) {
-        $pre_test_cmd = "/usr/share/qa/tools/test_virtualization-virt_install_withopt-run";
+    if ($prd_version =~ m/SUSE Linux Enterprise Server 11/) {
+        $pre_test_cmd = "/usr/share/qa/tools/test_virtualization-standalone-run";
     }
     else {
-        $pre_test_cmd = "/usr/share/qa/tools/test_virtualization-standalone-run";
+        $pre_test_cmd = "/usr/share/qa/tools/test_virtualization-virt_install_withopt-run";
     }
 
     my $guest_pattern = get_var('GUEST_PATTERN', 'sles-12-sp2-64-[p|f]v-def-net');
