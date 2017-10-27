@@ -17,13 +17,15 @@ use testapi;
 
 sub install_package {
     my $qa_server_repo = get_var('QA_HEAD_REPO', '');
-    if ($qa_server_repo) {
-        script_run "zypper --non-interactive rr server-repo";
-        assert_script_run("zypper --non-interactive --no-gpg-check -n ar -f '$qa_server_repo' server-repo");
+    if ($qa_server_repo eq '') {
+        #default repo according to version if not set from testsuite
+        $qa_server_repo = 'http://dist.nue.suse.com/ibs/QA:/Head/SLE-' . get_var('VERSION');
+        set_var('QA_HEAD_REPO', $qa_server_repo);
+        bmwqemu::save_vars();
     }
-    else {
-        die "There is no qa server repo defined variable QA_HEAD_REPO\n";
-    }
+    script_run "zypper --non-interactive rr server-repo";
+    assert_script_run("zypper --non-interactive --no-gpg-check -n ar -f '$qa_server_repo' server-repo");
+
     #workaround for dependency on xmlstarlet for qa_lib_virtauto on sles11sp4 and sles12sp1
     my $repo_0_to_install = get_var("REPO_0_TO_INSTALL", '');
     my $dependency_repo = '';

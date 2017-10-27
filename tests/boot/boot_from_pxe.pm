@@ -86,7 +86,9 @@ sub run {
         type_string "console=tty ", $type_speed;
     }
 
-    type_string registration_bootloader_cmdline if check_var('SCC_REGISTER', 'installation');
+    if (check_var('SCC_REGISTER', 'installation') && !(check_var('VIRT_AUTOTEST', 1) && check_var('INSTALL_TO_OTHERS', 1))) {
+        type_string registration_bootloader_cmdline;
+    }
 
     save_screenshot;
     my $e = get_var("EXTRABOOTPARAMS");
