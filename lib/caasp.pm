@@ -15,9 +15,10 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
+use mmapi;
 use utils qw(power_action assert_shutdown_and_restore_system);
 
-our @EXPORT = qw(handle_simple_pw process_reboot trup_call write_detail_output);
+our @EXPORT = qw(handle_simple_pw process_reboot trup_call write_detail_output get_admin_job);
 
 # Weak password warning should be displayed only once - bsc#1025835
 sub handle_simple_pw {
@@ -87,6 +88,37 @@ sub write_detail_output {
     }
     elsif ($result eq 'ok') {
         $self->{result} ||= $result;
+    }
+}
+
+sub get_controller_job {
+    die "Don't know how to find current job id" if check_var 'STACK_ROLE', 'controller';
+
+    my $parents = get_parents();
+    for my $job_id (@$parents) {
+        if (get_job_info($job_id)->{settings}->{STACK_ROLE} eq 'controller') {
+            return $job_id;
+        }
+    }
+}
+
+sub get_admin_job {
+    die "Don't know how to find current job id" if check_var 'STACK_ROLE', 'admin';
+
+    # Get list of jobs in cluster
+    my @cluster_jobs;
+    if (check_var 'STACK_ROLE', 'controller') {
+        my $children = get_children();
+        @cluster_jobs = keys %$children;
+    }
+    elsif (check_var 'STACK_ROLE', 'worker') {
+        @cluster_jobs = @{get_job_info(get_controller_job)->{children}->{Parallel}};
+    }
+
+    for my $job_id (@cluster_jobs) {
+        if (get_job_info($job_id)->{settings}->{STACK_ROLE} eq 'admin') {
+            return $job_id;
+        }
     }
 }
 

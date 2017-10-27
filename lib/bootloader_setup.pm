@@ -518,9 +518,10 @@ sub specific_caasp_params {
         mutex_lock 'dhcp';
         mutex_unlock 'dhcp';
     }
-    # Wait for admin node installation on workers
+    # Wait until admin node genarates autoyast profile
     if (check_var 'STACK_ROLE', 'worker') {
-        barrier_wait 'VELUM_STARTED';
+        mutex_lock "VELUM_CONFIGURED";
+        mutex_unlock "VELUM_CONFIGURED";
     }
 }
 

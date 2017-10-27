@@ -21,6 +21,7 @@ use strict;
 use testapi;
 use utils;
 use lockapi;
+use caasp 'get_admin_job';
 use mmapi;
 
 my $admin_email    = 'email@email.com';
@@ -40,7 +41,7 @@ sub velum_signup {
 }
 
 # Fill certificate information
-sub velum_certificates {
+sub velum_configure {
     assert_screen 'velum-certificates-page';
 
     # Fill generic settings
@@ -50,6 +51,8 @@ sub velum_certificates {
 
     assert_screen 'velum-tips-page';
     assert_and_click "velum-next";
+
+    mutex_create 'VELUM_CONFIGURED';
 }
 
 sub confirm_insecure_https {
@@ -64,10 +67,10 @@ sub velum_bootstrap {
     assert_screen 'velum-bootstrap-page', 90;
     barrier_wait "WORKERS_INSTALLED";
 
-    # Accept pending nodes
+    # Accept pending nodes - without admin job
     assert_and_click 'velum-bootstrap-accept-nodes';
     # Nodes are moved from pending - minus admin & controller
-    my $nodes = get_var('STACK_SIZE') - 2;
+    my $nodes = get_var('STACK_SIZE') - 1;
     assert_screen_with_soft_timeout("velum-$nodes-nodes-accepted", timeout => 90, soft_timeout => 45, bugref => 'bsc#1046663');
     mutex_create "NODES_ACCEPTED";
 
@@ -96,7 +99,7 @@ sub velum_bootstrap {
         assert_and_click 'velum-next';
 
         # Accept small-cluster warning
-        assert_and_click 'velum-botstrap-warning' if check_var('STACK_SIZE', 4);
+        assert_and_click 'velum-botstrap-warning' if check_var('STACK_SIZE', 3);
 
         # Click bootstrap button
         assert_screen 'velum-confirm-bootstrap';
@@ -159,7 +162,8 @@ sub run {
 
     # Setup and wait until dashboard becomes ready
     initialize;
-    barrier_wait "VELUM_STARTED";
+    mutex_lock "VELUM_STARTED", get_admin_job;
+    mutex_unlock "VELUM_STARTED";
 
     # Display velum dashboard
     type_string get_var('DASHBOARD_URL');
@@ -169,7 +173,7 @@ sub run {
 
     # Bootstrap cluster and download kubeconfig
     velum_signup;
-    velum_certificates;
+    velum_configure;
     velum_bootstrap;
 
     # Use downloaded kubeconfig to display basic information
@@ -181,16 +185,18 @@ sub run {
     assert_script_run "kubectl get nodes";
 
     # Check cluster size
-    # CaaSP 2.0 = %number_of_jobs - minus two (controller & admin) jobs
-    my $minion_count = get_required_var("STACK_SIZE") - 2;
+    # CaaSP 2.0 = %number_of_jobs - minus admin job
+    my $minion_count = get_required_var("STACK_SIZE") - 1;
     if (is_caasp '1.0') {
-        # CaaSP 1.0 = %number_of_jobs - minus three (controller + admin + master) jobs
-        $minion_count = get_required_var("STACK_SIZE") - 3;
+        # CaaSP 1.0 = %number_of_jobs - minus two (admin & master) jobs
+        $minion_count = get_required_var("STACK_SIZE") - 2;
     }
     assert_script_run "kubectl get nodes --no-headers | wc -l | grep $minion_count";
 
     # Deploy nginx minimal application and check pods started succesfully
     my $pods_count = $minion_count * 15;
+    $pods_count -= 15 if is_caasp '2.0+';    # Master node won't run pods
+
     assert_script_run "kubectl run nginx --image=nginx:alpine --replicas=$pods_count --port=80";
     type_string "kubectl get pods --watch\n";
     wait_still_screen 15, 60;
@@ -206,7 +212,7 @@ sub run {
     type_string "firefox node1.openqa.test:\$NODEPORT\n";
     assert_screen 'nginx-alpine';
 
-    barrier_wait "CNTRL_FINISHED";
+    mutex_create "CNTRL_FINISHED";
     wait_for_children;
 }
 
@@ -217,7 +223,8 @@ sub test_flags {
 # Controller job is parent. If it fails we need to export deployment logs from child jobs
 # Without this post_fail_hook they would stop with parallel_failed result
 sub post_fail_hook {
-    barrier_wait "CNTRL_FINISHED";
+    barrier_destroy "WORKERS_INSTALLED";
+    mutex_create "CNTRL_FINISHED";
     wait_for_children;
 }
 
