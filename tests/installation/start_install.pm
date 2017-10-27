@@ -85,7 +85,8 @@ sub run {
         assert_screen("inst-packageinstallationstarted", $started_timeout);
     }
     else {
-        sleep 2;    # textmode is sometimes pressing alt-i too early
+        # We need to wait for the Installer to get ready
+        assert_screen 'installation-settings-overview-loaded';
         send_key $cmd{install};
         wait_screen_change { send_key 'alt-o' } if match_has_tag('inst-overview-error-found', 0);
         while (check_screen([qw(confirmlicense startinstall)], 5)) {
