@@ -86,7 +86,7 @@ sub run {
         my $hddpath = copy_image($hddfile, $hdddir);
         $svirt->add_disk(
             {
-                file => ($vmm_family eq 'vmware') ? basename($hddpath) : $hddpath,
+                file => ($vmm_family eq 'vmware') ? basename($hddfile) : $hddpath,
                 dev_id      => 'a',
                 bootorder   => 1,
                 backingfile => 1
@@ -96,7 +96,7 @@ sub run {
                 my $extra_hddpath = copy_image($extra_hdd, $hdddir);
                 $svirt->add_disk(
                     {
-                        file => ($vmm_family eq 'vmware') ? basename($extra_hddpath) : $extra_hddpath,
+                        file => ($vmm_family eq 'vmware') ? basename($extra_hdd) : $extra_hddpath,
                         dev_id      => $dev_id,
                         backingfile => 1
                     });
@@ -131,7 +131,7 @@ sub run {
             $svirt->add_disk(
                 {
                     cdrom     => 1,
-                    file      => ($vmm_family eq 'vmware') ? basename($isopath) : $isopath,
+                    file      => ($vmm_family eq 'vmware') ? basename($isofile) : $isopath,
                     dev_id    => $dev_id,
                     bootorder => 2
                 });
@@ -144,7 +144,7 @@ sub run {
                 $svirt->add_disk(
                     {
                         cdrom  => 1,
-                        file   => ($vmm_family eq 'vmware') ? basename($addon_isopath) : $addon_isopath,
+                        file   => ($vmm_family eq 'vmware') ? basename($addon_isofile) : $addon_isopath,
                         dev_id => $dev_id
                     });
                 $dev_id = chr((ord $dev_id) + 1);    # return next letter in alphabet
