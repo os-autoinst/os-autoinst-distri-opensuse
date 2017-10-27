@@ -134,6 +134,10 @@ sub fill_in_registration_data {
             check_screen($modules_needle, 5);
         }
         else {
+            if (check_var('BETA', '1')) {
+                assert_screen('hide-beta-version-selected');
+                send_key('alt-i');
+            }
             assert_screen($modules_needle);
         }
         if (match_has_tag 'bsc#1056413') {
