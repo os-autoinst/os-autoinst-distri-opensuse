@@ -7,9 +7,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: add addon to SLES via SCC
+# Summary: Register SLES via yast2 SCC
 #          https://progress.opensuse.org/issues/16402
-# Maintainer: Jozef Pupava <jpupava@suse.com>
+# Maintainer: Jozef Pupava <jpupava@suse.com>, Sergio Lindo Mansilla <slindomansilla@suse.com>
 
 use base qw(y2logsstep y2x11test);
 use strict;
