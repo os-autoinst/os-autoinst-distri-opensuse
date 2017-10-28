@@ -17,7 +17,7 @@ use strict;
 use testapi;
 use utils;
 
-sub pidgin_preparation {
+sub run {
     mouse_hide(1);
     ensure_installed('pidgin');
 
@@ -63,8 +63,9 @@ sub pidgin_preparation {
     send_key "ctrl-q";    # quit pidgin
 }
 
-sub run {
-    pidgin_preparation;
+# add milestone flag to save pidgin installation in lastgood vm snapshot
+sub test_flags {
+    return {milestone => 1};
 }
 
 1;
