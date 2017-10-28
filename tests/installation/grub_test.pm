@@ -59,6 +59,10 @@ sub run {
     }
 
     if (get_var("STORAGE_NG") && get_var("ENCRYPT")) {
+        # bootloader timeout is disable so hit 'ret' is needed
+        assert_screen 'grub2';
+        send_key 'ret';
+
         my @tags = ();
         for (my $disk = 0; $disk < get_var("NUMDISKS", 1); $disk++) {
             push @tags, "grub-encrypted-disk$disk-password-prompt";
