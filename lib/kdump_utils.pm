@@ -18,7 +18,7 @@ our @EXPORT = qw(install_kernel_debuginfo prepare_for_kdump activate_kdump kdump
 
 sub install_kernel_debuginfo {
     assert_script_run 'zypper ref', 300;
-    zypper_call('-v in $(rpmquery kernel-default | sed "s/kernel-default/kernel-default-debuginfo/")');
+    zypper_call('-v in $(rpmquery kernel-default | sed "s/kernel-default/kernel-default-debuginfo/")', timeout => 1400);
 }
 
 sub prepare_for_kdump_sle {
