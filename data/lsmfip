@@ -156,6 +156,8 @@ sub problem_can_be_skipped {
     return 1 if $pkg =~ /^wxWidgets-3_0-nostl-devel/;
     # conflicts with split devel packages from ffmpeg (3)
     return 1 if $pkg =~ /^ffmpeg2-devel/;
+    # conflicts with libjpeg62-devel
+    return 1 if $pkg =~ /^libjpeg8-devel/;
 
     return;
 }
