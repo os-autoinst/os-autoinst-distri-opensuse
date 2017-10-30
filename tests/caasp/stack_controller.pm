@@ -76,6 +76,8 @@ sub velum_bootstrap {
 
     # Select all nodes as workers
     assert_and_click 'velum-bootstrap-select-nodes';
+    # Wait until warning messages disappears
+    wait_still_screen;
 
     # Calculate position of master node
     send_key_until_needlematch "master-checkbox-xy", "pgdn", 2, 5;
@@ -89,9 +91,6 @@ sub velum_bootstrap {
     mouse_set $x, $y;
     mouse_click;
     mouse_hide;
-
-    # Wait until warning messages disappears
-    wait_still_screen;
 
     if (is_caasp '2.0+') {
         # Click next button to 'Confirm bootstrap' page
