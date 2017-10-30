@@ -29,7 +29,10 @@ sub accept_nodes {
     assert_and_click 'velum-bootstrap-accept-nodes';
     # Nodes are moved from pending - minus admin & controller
     my $nodes = get_var('STACK_SIZE') - 1;
-    assert_screen_with_soft_timeout("velum-$nodes-nodes-accepted", timeout => 90, soft_timeout => 45, bugref => 'bsc#1046663');
+
+    # Staging workaround for debugging salt
+    my $timeout = check_var('FLAVOR', 'Staging-B-DVD') ? 5400 : 90;
+    assert_screen_with_soft_timeout("velum-$nodes-nodes-accepted", timeout => $timeout, soft_timeout => 45, bugref => 'bsc#1046663');
     mutex_create "NODES_ACCEPTED";
 }
 
