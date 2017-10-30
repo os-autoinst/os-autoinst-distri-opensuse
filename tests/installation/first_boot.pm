@@ -28,8 +28,9 @@ sub run {
     }
 
     if (get_var("NOAUTOLOGIN") || get_var("IMPORT_USER_DATA")) {
-        assert_screen [qw(displaymanager emergency-shell emergency-mode)], $boot_timeout;
+        assert_screen [qw(displaymanager emergency-shell emergency-mode text-login)], $boot_timeout;
         handle_emergency if (match_has_tag('emergency-shell') or match_has_tag('emergency-mode'));
+        return if (match_has_tag('text-login'));
         handle_login;
     }
 
