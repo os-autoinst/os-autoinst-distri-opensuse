@@ -21,6 +21,7 @@ use Exporter;
 use strict;
 
 use testapi qw(is_serial_terminal :DEFAULT);
+use mm_network;
 
 our @EXPORT = qw(
   check_console_font
@@ -80,6 +81,7 @@ our @EXPORT = qw(
   get_root_console_tty
   get_x11_console_tty
   OPENQA_FTP_URL
+  setup_static_network
 );
 
 
@@ -1403,6 +1405,21 @@ sub get_x11_console_tty {
     my $new_gdm = !(is_sle && !sle_version_at_least('15')) && !(is_leap && !leap_version_at_least('15.0')) && !is_sle12_hdd_in_upgrade && !is_caasp;
     return (check_var('DESKTOP', 'gnome') && get_var('NOAUTOLOGIN') && $new_gdm) ? 2 : 7;
 }
+
+=head2 setup_static_network
+   Configure static IP on SUT with setting up DNS and default GW.
+   Also doing test ping to 10.0.2.2 to check that network is alive
+=cut
+sub setup_static_network {
+    my ($self, $ip) = @_;
+    configure_default_gateway();
+    configure_static_ip($ip);
+    configure_static_dns(get_host_resolv_conf());
+
+    # check if gateway is reachable
+    assert_script_run "ping -c 1 10.0.2.2 || journalctl -b --no-pager > /dev/$serialdev";
+}
+
 
 1;
 

@@ -618,7 +618,7 @@ sub load_filesystem_tests {
 
 sub load_wicked_tests {
     loadtest "console/wicked_before_test";
-    loadtest "console/wicked_basic";
+    loadtest 'console/wicked_' . get_required_var('WICKED');
 }
 
 sub load_nfv_tests {
