@@ -38,6 +38,8 @@ sub export_logs {
 
     script_run "docker exec -it \$velumid $railscmd runner 'puts Pillar.all.to_yaml' > Pillar.yml";
     upload_logs "Pillar.yml";
+
+    mutex_create "ADMIN_LOGS_EXPORTED";
 }
 
 sub run() {

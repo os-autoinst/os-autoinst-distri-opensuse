@@ -123,13 +123,24 @@ sub load_feature_tests {
 }
 
 sub load_stack_tests {
-    loadtest "caasp/stack_" . get_var('STACK_ROLE');
+    if (check_var 'STACK_ROLE', 'controller') {
+        loadtest 'caasp/stack_initialize';
+        loadtest 'caasp/stack_configure';
+        loadtest 'caasp/stack_bootstrap';
+        loadtest 'caasp/stack_kubernetes';
+    }
+    else {
+        loadtest "caasp/stack_" . get_var('STACK_ROLE');
+    }
 }
 
 # Init cluster variables
 sub stack_init {
     my $children   = get_children;
     my $stack_size = keys %$children;
+
+    # Die more explicitly if you restart controller job (because stack_size = 0)
+    die "Stack test can be re-run by restarting admin job" unless $stack_size;
 
     barrier_create("WORKERS_INSTALLED", $stack_size);
     set_var "STACK_SIZE", $stack_size;
