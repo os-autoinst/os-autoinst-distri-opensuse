@@ -16,17 +16,15 @@ use strict;
 use testapi;
 use utils;
 
-# test yast2 bootloader functionality
-# https://bugzilla.novell.com/show_bug.cgi?id=610454
-
 sub run {
     select_console 'root-console';
 
-    assert_script_run "zypper -n in yast2-bootloader";    # make sure yast2 bootloader module installed
+    # make sure yast2 bootloader module is installed
+    zypper_call 'in yast2-bootloader';
 
     script_run("yast2 bootloader; echo yast2-bootloader-status-\$? > /dev/$serialdev", 0);
     assert_screen "test-yast2_bootloader-1", 300;
-    send_key "alt-o";                                     # OK => Close
+    send_key "alt-o";    # OK => Close
     assert_screen([qw(yast2_bootloader-missing_package yast2_console-finished)], 200);
     if (match_has_tag('yast2_bootloader-missing_package')) {
         wait_screen_change { send_key 'alt-i'; };
