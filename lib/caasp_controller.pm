@@ -41,8 +41,13 @@ sub test_flags {
 # Controller job is parent. If it fails we need to export deployment logs from child jobs
 # Without this post_fail_hook they would stop with parallel_failed result
 sub post_fail_hook {
+    # Destroy barriers and create mutexes to avoid deadlock
     barrier_destroy "WORKERS_INSTALLED";
+    mutex_create "NODES_ACCEPTED";
+    mutex_create 'VELUM_CONFIGURED';
     mutex_create "CNTRL_FINISHED";
+
+    # Wait for log export from admin node
     mutex_lock "ADMIN_LOGS_EXPORTED", get_admin_job;
 }
 
