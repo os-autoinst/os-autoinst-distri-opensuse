@@ -82,9 +82,6 @@ sub run {
     }
 
     type_string "console=$serialdev,115200 ", $type_speed;    # to get crash dumps as text
-    if (get_var('AUTOYAST')) {
-        type_string "console=tty ", $type_speed;
-    }
 
     if (check_var('SCC_REGISTER', 'installation') && !(check_var('VIRT_AUTOTEST', 1) && check_var('INSTALL_TO_OTHERS', 1))) {
         type_string registration_bootloader_cmdline;
