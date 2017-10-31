@@ -20,6 +20,7 @@ sub run {
     my ($self) = @_;
     $self->start_firefox();
     send_key "ctrl-l";
+    wait_still_screen(1);
     type_string(autoinst_url . "/data/1d5d9dD.oga");
     send_key "ret";
     start_audiocapture;
