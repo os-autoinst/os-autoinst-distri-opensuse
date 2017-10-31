@@ -41,6 +41,9 @@ sub test_flags {
 # Controller job is parent. If it fails we need to export deployment logs from child jobs
 # Without this post_fail_hook they would stop with parallel_failed result
 sub post_fail_hook {
+    # Variable to enable failed cluster debug
+    sleep if check_var('DEBUG_SLEEP', 'controller');
+
     # Destroy barriers and create mutexes to avoid deadlock
     barrier_destroy "WORKERS_INSTALLED";
     mutex_create "NODES_ACCEPTED";
