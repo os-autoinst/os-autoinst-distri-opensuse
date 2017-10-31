@@ -21,6 +21,11 @@ sub run {
     $self->start_firefox();
     send_key "ctrl-l";
     type_string(autoinst_url . "/data/1d5d9dD.oga");
+    if (check_screen('firefox_audio_mistyped_url')) {
+        record_soft_failure('poo25654 - URL mistyped; retrying');
+        send_key "ctrl-l";
+        type_string(autoinst_url . "/data/1d5d9dD.oga");
+    }
     send_key "ret";
     start_audiocapture;
     assert_screen 'test-firefox_audio-1', 35;
