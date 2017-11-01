@@ -59,24 +59,27 @@ sub run {
     }
 
     if (get_var("STORAGE_NG") && get_var("ENCRYPT")) {
-        # bootloader timeout is disable so hit 'ret' is needed
-        assert_screen 'grub2';
-        send_key 'ret';
-
+        if (check_var('ARCH', 'ppc64le')) {
+            # bootloader timeout is disable so hit 'ret' is needed
+            assert_screen 'grub2';    # grub appear first in powerpc before the password
+            send_key 'ret';
+        }
         my @tags = ();
         for (my $disk = 0; $disk < get_var("NUMDISKS", 1); $disk++) {
             push @tags, "grub-encrypted-disk$disk-password-prompt";
         }
         foreach my $tag (@tags) {
             assert_screen($tag, 100);
-            type_password;    # enter PW at boot
+            type_password;            # enter PW at boot
             send_key "ret";
         }
     }
-    workaround_type_encrypted_passphrase;
-    # 60 due to rare slowness e.g. multipath poo#11908
-    assert_screen "grub2", 60;
-    stop_grub_timeout;
+    unless (get_var("STORAGE_NG") && get_var("ENCRYPT") && check_var('ARCH', 'ppc64le')) {
+        workaround_type_encrypted_passphrase;
+        # 60 due to rare slowness e.g. multipath poo#11908
+        assert_screen "grub2", 60;
+        stop_grub_timeout;
+    }
 
     # BSC#997263 - VMware screen resolution defaults to 800x600
     # By default VMware starts with Grub2 in 640x480 mode and then boots the system to
