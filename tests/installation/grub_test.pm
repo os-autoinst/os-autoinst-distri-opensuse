@@ -73,11 +73,12 @@ sub run {
             send_key "ret";
         }
     }
-    workaround_type_encrypted_passphrase;
-    # 60 due to rare slowness e.g. multipath poo#11908
-    assert_screen "grub2", 60;
-    stop_grub_timeout;
-
+    else {
+        workaround_type_encrypted_passphrase;
+        # 60 due to rare slowness e.g. multipath poo#11908
+        assert_screen "grub2", 60;
+        stop_grub_timeout;
+    }
     # BSC#997263 - VMware screen resolution defaults to 800x600
     # By default VMware starts with Grub2 in 640x480 mode and then boots the system to
     # 800x600. To avoid that we need to reconfigure Grub's gfxmode and gfxpayload.
