@@ -37,7 +37,7 @@ sub select_nodes {
     # Select all nodes as workers
     assert_and_click 'velum-bootstrap-select-nodes';
     # Wait until warning messages disappears
-    wait_still_screen;
+    wait_still_screen 3;
 }
 
 sub select_master {
@@ -53,6 +53,9 @@ sub select_master {
     mouse_set $x, $y;
     mouse_click;
     mouse_hide;
+
+    # Give velum time to process master selection
+    sleep 1 if is_caasp '1.0';
 }
 
 # Run bootstrap and download kubeconfig
@@ -87,8 +90,10 @@ sub bootstrap {
         confirm_insecure_https;
         assert_screen 'velum-bootstrap-done', 900;
     }
+}
 
-    # Download kubeconfig
+# Download kubeconfig
+sub kubectl_config {
     assert_and_click "velum-kubeconfig";
     if (is_caasp '2.0+') {
         unless (check_screen('velum-https-advanced', 5)) {
@@ -100,20 +105,23 @@ sub bootstrap {
         velum_login;
 
         # Check that kubeconfig downloaded
-        sleep 5;
-        save_screenshot;
+        assert_screen 'velum-kubeconfig-page';
     }
+    # Download takes few seconds
+    sleep 5;
+    save_screenshot;
 }
 
 sub run {
     assert_screen 'velum-bootstrap-page', 90;
     wait_for_workers;
 
-    # Bootstrap cluster
     accept_nodes;
     select_nodes;
     select_master;
     bootstrap;
+
+    kubectl_config;
 }
 
 1;
