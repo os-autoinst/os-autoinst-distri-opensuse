@@ -74,16 +74,6 @@ sub run {
     send_key 'ret';
     my $ret = wait_serial "$str-\\d+-", 10;
     die "passwd failed" unless (defined $ret && $ret =~ /$str-0-/);
-
-    # Workaround for bsc#1061829 - Ethernet device is missing configuration
-    # Does apply only to KVM.
-    if (check_var('BACKEND', 'qemu')) {
-        record_soft_failure 'bsc#1061829 - Ethernet device is missing configuration';
-        assert_script_run "eth=\$(ip link | grep '^2:' | awk '{ print \$2 }' | tr -d ':')";
-        assert_script_run 'mv -v /etc/sysconfig/network/ifcfg-eth0 /etc/sysconfig/network/ifcfg-$eth';
-        assert_script_run 'systemctl restart wicked.service';
-        assert_script_run 'ip addr';
-    }
 }
 
 sub test_flags {
