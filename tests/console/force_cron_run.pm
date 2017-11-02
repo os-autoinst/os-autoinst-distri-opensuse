@@ -29,8 +29,8 @@ sub settle_load {
 sub run {
     select_console 'root-console';
 
-    if (script_run 'grep -w mail /etc/group') {
-        record_soft_failure 'bsc#1061838 - Group "mail" not found';
+    if (script_run('rpmquery --whatprovides smtp_daemon')) {
+        record_soft_failure 'bsc#1064834 - run-crons fails with: "Could not find suitable mailer."';
         return;
     }
 
