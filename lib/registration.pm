@@ -136,7 +136,7 @@ sub fill_in_registration_data {
         }
         else {
             if (check_var('BETA', '1')) {
-                assert_screen('hide-beta-version-selected');
+                assert_screen('scc-beta-filter-checkbox');
                 send_key('alt-i');
             }
             assert_screen($modules_needle);
