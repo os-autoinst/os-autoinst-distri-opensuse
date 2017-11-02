@@ -77,12 +77,8 @@ sub run {
     # On sle 15 license is on different screen, here select the product
     if (sle_version_at_least('15') && check_var('DISTRI', 'sle')) {
         # On s390x there will be only one product which means there is no product selection
-        return if check_var('ARCH', 's390x');
-        # Missing HPC module on ARM, should be there according to the PRD
-        if (check_var('ARCH', 'aarch64')) {
-            record_soft_failure 'bsc#1063858';
-            return;
-        }
+        # On aarch64 there is only product at the moment, because HPC was not interlocked yet
+        return if (check_var('ARCH', 's390x') || check_var('ARCH', 'aarch64'));
         assert_screen('select-product');
         my %hotkey = (
             sles     => 's',
