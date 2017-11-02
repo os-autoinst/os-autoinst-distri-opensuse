@@ -55,9 +55,9 @@ sub install_dependencies {
 
     my @maybe_deps = qw(net-tools-deprecated gcc-32bit libnuma-devel-32bit
       libaio-devel-32bit sysstat tpm-tools libopenssl-devel-32bit
-      kernel-default-devel-32bit libselinux-devel-32bit libacl-devel-32bit
-      libtirpc-devel-32bit keyutils-devel-32bit libcap-devel-32bit ntfsprogs
-      sssd-tools);
+      kernel-default-devel-32bit kernel-default-extra libselinux-devel-32bit
+      libacl-devel-32bit libtirpc-devel-32bit keyutils-devel-32bit libcap-devel-32bit
+      ntfsprogs sssd-tools);
 
     for my $dep (@maybe_deps) {
         script_run('zypper -n -t in ' . $dep . ' | tee');
