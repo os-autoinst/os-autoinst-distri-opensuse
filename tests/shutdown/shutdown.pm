@@ -36,6 +36,14 @@ sub test_flags {
     return {fatal => 1};
 }
 
+sub post_fail_hook {
+    my ($self) = @_;
+    # In case plymouth splash shows up and the shutdown is blocked, show
+    # console logs - save screen of console (plymouth splash screen in disabled at boottime)
+    send_key('esc');
+    save_screenshot;
+}
+
 1;
 
 # vim: set sw=4 et:
