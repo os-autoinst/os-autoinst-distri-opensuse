@@ -33,7 +33,7 @@ sub login_to_console {
             #send key 'up' to stop grub timer counting down, to be more robust to select xen
             send_key 'up';
             save_screenshot;
-            send_key_until_needlematch("virttest-bootmenu-xen-kernel", 'down', 10, 3);
+            send_key_until_needlematch("virttest-bootmenu-xen-kernel", 'down', 10, 5);
         }
     }
     else {
