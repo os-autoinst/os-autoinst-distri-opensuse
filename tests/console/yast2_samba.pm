@@ -33,11 +33,18 @@ sub run {
 
     script_run("yast2 auth-server; echo yast2-auth-server-status-\$? > /dev/$serialdev ", 0);
     # check ldap server configuration started
-    assert_screen 'yast2_ldap_configuration_startup';
+    assert_screen([qw(yast2_ldap_configuration_startup yast2_still_susefirewall2)], 60);
+    if (match_has_tag 'yast2_still_susefirewall2') {
+        record_soft_failure 'bsc#1064405';
+        send_key 'alt-c';
+    }
     send_key 'alt-f';
 
-    assert_screen 'yast2_ldap_configuration_general-setting_firewall';
-    send_key 'alt-e';
+    assert_screen([qw(yast2_ldap_configuration_general-setting_firewall yast2_still_susefirewall2)], 60);
+    if (match_has_tag 'yast2_still_susefirewall2') {
+        record_soft_failure 'bsc#1064405';
+        send_key 'alt-e';
+    }
 
     # configure stand-alone ldap server
     assert_screen 'yast2_ldap_configuration_stand-alone';
@@ -77,7 +84,10 @@ sub run {
     script_run("yast2 samba-server; echo yast2-samba-server-status-\$? > /dev/$serialdev", 0);
 
     # check Samba-Server Configuration got started
-    assert_screen 'yast2_samba_installation';
+    assert_screen([qw(yast2_samba_installation yast2_still_susefirewall2)], 60);
+    if (match_has_tag 'yast2_still_susefirewall2') {
+        send_key 'alt-c';
+    }
     wait_screen_change { send_key 'alt-w' };
     for (1 .. 12) { send_key 'backspace'; }
     # give a new name for Workgroup

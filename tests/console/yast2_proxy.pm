@@ -67,14 +67,24 @@ sub run {
     script_run("yast2 squid; echo yast2-squid-status-\$? > /dev/$serialdev", 0);
 
     # check that squid configuration page shows up
-    assert_screen 'yast2_proxy_squid';
+    assert_screen([qw(yast2_proxy_squid yast2_still_susefirewall2)], 60);
+    my $is_still_susefirewall2;
+    if (match_has_tag 'yast2_still_susefirewall2') {
+        record_soft_failure 'bsc#1064405';
+        send_key 'alt-c';
+        $is_still_susefirewall2 = 1;
+    }
 
     # enable service start
     send_key_until_needlematch 'yast2_proxy_service_start', 'alt-b';    #Start service when booting
 
     # if firewall is enabled, then send_key alt-p, else move to page http ports
-    if (check_screen 'yast2_proxy_firewall_enabled') { send_key 'alt-p'; }
-    wait_still_screen 3;
+    unless ($is_still_susefirewall2) {
+        if (check_screen 'yast2_proxy_firewall_enabled') {
+            send_key 'alt-p';
+            wait_still_screen 3;
+        }
+    }
 
     # check network interfaces with open port in firewall
     # repeat action as sometimes keys are not triggering action on leap if workers are slow
