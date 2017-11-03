@@ -31,6 +31,7 @@ our @EXPORT = qw(
   select_bootmenu_option
   uefi_bootmenu_params
   bootmenu_default_params
+  type_hyperv_fb_video_resolution
   bootmenu_network_source
   specific_bootmenu_params
   specific_caasp_params
@@ -200,6 +201,12 @@ sub uefi_bootmenu_params {
     type_string " \\\n";    # changed the line before typing video params
 }
 
+# Returns kernel framebuffer configuration we have to
+# explicitly set on Hyper-V to get 1024x768 resolution.
+sub type_hyperv_fb_video_resolution {
+    type_string_slow ' video=hyperv_fb:1024x768 ';
+}
+
 sub bootmenu_default_params {
     if (check_var('ARCH', 'ppc64le')) {
         # edit menu, wait until we get to grub edit
@@ -248,7 +255,7 @@ sub bootmenu_default_params {
     # Default namescheme 'by-id' for devices is broken on Hyper-V (bsc#1029303),
     # we have to use something else.
     if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
-        type_string_slow 'video=hyperv_fb:1024x768 ';
+        type_hyperv_fb_video_resolution;
         type_string_slow 'namescheme=by-label ' unless is_jeos or is_caasp;
     }
 }

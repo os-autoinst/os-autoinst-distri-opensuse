@@ -781,10 +781,10 @@ elsif (get_var("REGRESSION")) {
         load_x11regression_other();
     }
 }
-elsif (get_var("MEDIACHECK")) {
+elsif (is_mediacheck) {
     loadtest "installation/mediacheck";
 }
-elsif (get_var("MEMTEST")) {
+elsif (is_memtest) {
     loadtest "installation/memtest";
 }
 elsif (get_var("FILESYSTEM_TEST")) {
@@ -800,7 +800,7 @@ elsif (get_var('GNUHEALTH')) {
     loadtest 'gnuhealth/tryton_first_time';
 }
 
-elsif (get_var("RESCUESYSTEM")) {
+elsif (is_rescuesystem) {
     loadtest "installation/rescuesystem";
     loadtest "installation/rescuesystem_validate_131";
 }

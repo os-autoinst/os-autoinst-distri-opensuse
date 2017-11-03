@@ -1182,6 +1182,12 @@ elsif (get_var("RESCUESYSTEM")) {
     loadtest "installation/rescuesystem_validate_sle";
 }
 elsif (get_var("INSTALLCHECK")) {
+    if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
+        loadtest "installation/bootloader_hyperv";
+    }
+    else {
+        loadtest "installation/bootloader_svirt";
+    }
     loadtest "installation/rescuesystem";
     loadtest "installation/installcheck";
 }
