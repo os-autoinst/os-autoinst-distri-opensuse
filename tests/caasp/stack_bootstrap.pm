@@ -25,9 +25,9 @@ sub wait_for_workers {
 }
 
 sub accept_nodes {
-    # Accept pending nodes - without admin job
+    # Accept pending nodes
     assert_and_click 'velum-bootstrap-accept-nodes';
-    # Nodes are moved from pending - minus admin & controller
+    # Nodes are moved from pending - minus admin job
     my $nodes = get_var('STACK_SIZE') - 1;
     assert_screen_with_soft_timeout("velum-$nodes-nodes-accepted", timeout => 90, soft_timeout => 45, bugref => 'bsc#1046663');
     mutex_create "NODES_ACCEPTED";
@@ -41,21 +41,32 @@ sub select_nodes {
 }
 
 sub select_master {
-    # Calculate position of master node
-    send_key_until_needlematch "master-checkbox-xy", "pgdn", 2, 5;
-    my $needle = assert_screen('master-checkbox-xy')->{area};
-    my $row    = $needle->[0];                                  # get y-position of master node
-    my $col    = $needle->[1];                                  # get x-position of checkbox
-    my $x      = $col->{x} + int($col->{w} / 2);
-    my $y      = $row->{y} + int($row->{h} / 2);
+    if (is_caasp '1.0') {
+        # Calculate position of master node
+        send_key_until_needlematch "master-checkbox-xy", "pgdn", 2, 5;
+        my $needle = assert_screen('master-checkbox-xy')->{area};
+        my $row    = $needle->[0];                                  # get y-position of master node
+        my $col    = $needle->[1];                                  # get x-position of checkbox
+        my $x      = $col->{x} + int($col->{w} / 2);
+        my $y      = $row->{y} + int($row->{h} / 2);
 
-    # Select master node
-    mouse_set $x, $y;
-    mouse_click;
-    mouse_hide;
+        # Select master node
+        mouse_set $x, $y;
+        mouse_click;
+        mouse_hide;
 
-    # Give velum time to process master selection
-    sleep 1 if is_caasp '1.0';
+        # Give velum time to process
+        sleep 2;
+    }
+    else {
+        # We don't care which node is master
+        my $nodes = get_var('STACK_SIZE') - 1;
+        my $masters = $nodes < 6 ? 1 : 3;
+        for (1 .. $masters) {
+            assert_and_click 'master-role-button';
+            sleep 2;    # bsc#1066371 workaround
+        }
+    }
 }
 
 # Run bootstrap and download kubeconfig
@@ -86,7 +97,8 @@ sub bootstrap {
     # Wait until bootstrap finishes
     assert_screen [qw(velum-bootstrap-done velum-api-disconnected)], 900;
     if (match_has_tag('velum-api-disconnected')) {
-        send_key 'f5';
+        # Velum API needs a moment to restart
+        send_key_until_needlematch 'velum-https-advanced', 'f5', 2, 5;
         confirm_insecure_https;
         assert_screen 'velum-bootstrap-done', 900;
     }
