@@ -14,6 +14,7 @@
 use strict;
 use base "y2logsstep";
 use testapi;
+use installation_user_settings;
 use utils 'is_storage_ng';
 
 sub run {
@@ -21,6 +22,7 @@ sub run {
     if (is_storage_ng) {
         assert_screen 'partition-scheme';
         send_key $cmd{next};
+        installation_user_settings::await_password_check if get_var('ENCRYPT');
     }
     if (!check_screen 'disabledhome', 0) {
         # detect whether new (Radio Buttons) YaST behaviour
