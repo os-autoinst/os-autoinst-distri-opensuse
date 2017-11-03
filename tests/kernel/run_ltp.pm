@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -348,8 +348,12 @@ sub run {
 
     assert_script_run('cd $LTPROOT/testcases/bin');
 
-    my $ver_linux   = script_output('$LTPROOT/ver_linux');
-    my $environment = {
+    my $ver_linux_path = '$LTPROOT/ver_linux';
+    my $ver_linux_log  = '/tmp/ver_linux_before.txt';
+    script_run("$ver_linux_path > $ver_linux_log 2>&1");
+    upload_logs($ver_linux_log);
+    my $ver_linux_out = script_output("cat $ver_linux_log");
+    my $environment   = {
         product     => get_var('DISTRI') . ':' . get_var('VERSION'),
         revision    => get_var('BUILD'),
         arch        => get_var('ARCH'),
@@ -359,13 +363,13 @@ sub run {
         harness     => 'SUSE OpenQA',
         ltp_version => ''
     };
-    if ($ver_linux =~ qr'^Linux\s+(.*?)\s*$'m) {
+    if ($ver_linux_out =~ qr'^Linux\s+(.*?)\s*$'m) {
         $environment->{kernel} = $1;
     }
-    if ($ver_linux =~ qr'^Linux C Library\s*>?\s*(.*?)\s*$'m) {
+    if ($ver_linux_out =~ qr'^Linux C Library\s*>?\s*(.*?)\s*$'m) {
         $environment->{libc} = $1;
     }
-    if ($ver_linux =~ qr'^Gnu C\s*(.*?)\s*$'m) {
+    if ($ver_linux_out =~ qr'^Gnu C\s*(.*?)\s*$'m) {
         $environment->{gcc} = $1;
     }
     $environment->{ltp_version} = script_output('touch /opt/ltp_version; cat /opt/ltp_version');
@@ -492,6 +496,10 @@ EOF
 
     script_run('[ "$ENABLE_WICKED" ] && systemctl enable wicked');
     script_run('journalctl --no-pager -p warning');
+
+    $ver_linux_log = '/tmp/ver_linux_after.txt';
+    script_run("$ver_linux_path > $ver_linux_log 2>&1");
+    upload_logs($ver_linux_log);
 }
 
 1;
