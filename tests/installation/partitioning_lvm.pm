@@ -16,7 +16,7 @@ use strict;
 use warnings;
 use parent qw(installation_user_settings y2logsstep);
 use testapi;
-use utils qw(sle_version_at_least is_storage_ng);
+use utils qw(sle_version_at_least is_storage_ng leap_version_at_least);
 
 sub save_logs_and_resume {
     my $self = shift;
@@ -100,11 +100,20 @@ sub run {
             assert_screen "inst-select-root-disk";
             send_key 'alt-n';
         }
-        send_key 'alt-e';
+        if (leap_version_at_least('15.0')) {
+            send_key 'alt-a';
+        }
+        else {
+            send_key 'alt-e';
+        }
         assert_screen "inst-partitioning-lvm-enabled";
         if (get_var("ENCRYPT")) {
-            send_key 'alt-a';
-
+            if (leap_version_at_least('15.0')) {
+                send_key 'alt-l';
+            }
+            else {
+                send_key 'alt-a';
+            }
             if (!get_var('ENCRYPT_ACTIVATE_EXISTING')) {
                 assert_screen 'inst-encrypt-password-prompt';
                 type_password;
