@@ -56,6 +56,10 @@ sub run {
     send_key "f11";
     confirm_insecure_https;
 
+    # Check that footer has proper tag
+    my $v = get_var('VERSION');
+    assert_screen "velum-footer-version-$v";
+
     # Register to velum
     assert_and_click 'create-an-account';
     assert_screen 'velum-signup';
