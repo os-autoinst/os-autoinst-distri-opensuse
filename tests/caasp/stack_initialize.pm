@@ -29,6 +29,9 @@ sub run {
     assert_script_sudo "chown $testapi::username /dev/$testapi::serialdev";
     # Disable screensaver
     script_run "gsettings set org.gnome.desktop.session idle-delay 0";
+    # Update kubectl
+    assert_script_sudo "zypper -n up kubernetes-client", 300;
+
 
     # Leave xterm open for kubernetes tests
     save_screenshot;
