@@ -72,7 +72,7 @@ sub take_first_disk {
     };
     send_key 'alt-n';
 
-    assert_screen 'use-entire-disk';
+    assert_and_click 'use-entire-disk';
     wait_screen_change {
         send_key 'alt-e';
     };
@@ -82,9 +82,10 @@ sub take_first_disk {
 sub run {
     if (is_storage_ng) {
         take_first_disk_storage_ng;
-        return 1;
     }
-    take_first_disk;
+    else {
+        take_first_disk;
+    }
 }
 
 1;
