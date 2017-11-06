@@ -530,6 +530,7 @@ sub load_x11tests {
         loadtest "x11/chromium";
     }
     if (xfcestep_is_applicable()) {
+        loadtest "x11/midori";
         loadtest "x11/ristretto";
     }
     if (gnomestep_is_applicable()) {
