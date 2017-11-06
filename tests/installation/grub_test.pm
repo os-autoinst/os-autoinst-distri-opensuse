@@ -64,14 +64,17 @@ sub run {
             assert_screen 'grub2';    # grub appear first in powerpc before the password
             send_key 'ret';
         }
-        my @tags = ();
-        for (my $disk = 0; $disk < get_var("NUMDISKS", 1); $disk++) {
-            push @tags, "grub-encrypted-disk$disk-password-prompt";
-        }
-        foreach my $tag (@tags) {
-            assert_screen($tag, 100);
-            type_password;            # enter PW at boot
-            send_key "ret";
+        else {
+            my @tags = ();
+            for (my $disk = 0; $disk < get_var("NUMDISKS", 1); $disk++) {
+                push @tags, "grub-encrypted-disk$disk-password-prompt";
+            }
+
+            foreach my $tag (@tags) {
+                assert_screen($tag, 100);
+                type_password;        # enter PW at boot
+                send_key "ret";
+            }
         }
     }
     unless (get_var("STORAGE_NG") && get_var("ENCRYPT") && check_var('ARCH', 'ppc64le')) {
