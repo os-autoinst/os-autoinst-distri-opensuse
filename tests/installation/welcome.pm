@@ -32,6 +32,8 @@ sub run {
     }
     # Add tag for soft-failure on SLE 15
     push @welcome_tags, 'no-product-found-on-scc' if sle_version_at_least('15');
+    # Add tag for untrusted-ca-cert with SMT
+    push @welcome_tags, 'untrusted-ca-cert' if get_var('SMT_URL');
     ensure_fullscreen;
 
     # Process expected pop-up windows and exit when welcome/beta_war is shown or too many iterations
@@ -60,6 +62,11 @@ sub run {
         if (match_has_tag 'no-product-found-on-scc') {
             record_soft_failure 'bsc#1056413';
             wait_screen_change { send_key $cmd{ok} };
+            next;
+        }
+        if (match_has_tag('untrusted-ca-cert')) {
+            send_key 'alt-t';
+            wait_still_screen 5;
             next;
         }
     }
