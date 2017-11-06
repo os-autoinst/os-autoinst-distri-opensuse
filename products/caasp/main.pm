@@ -22,6 +22,7 @@ sub cleanup_needles {
     unregister_needle_tags('ENV-INSTLANG-de_DE');
     unregister_needle_tags('ENV-VERSION-12');
     unregister_needle_tags('ENV-VERSION-12-SP1');
+    unregister_needle_tags('ENV-VERSION-12-SP2');
     unregister_needle_tags('ENV-SP2ORLATER-0');
 
     unregister_needle_tags('ENV-FLAVOR-Desktop-DVD');
