@@ -99,7 +99,7 @@ sub setup_console_in_grub {
           . "{s/(console|loglevel|log_lvl|guest_loglvl)=[^ ]*//g; "
           . "/multiboot/ s/\$/ console=com2,115200 log_lvl=all guest_loglvl=all sync_console/; "
           . "/module\\s*.*vmlinuz/ s/\$/ console=$ipmi_console,115200 console=tty loglevel=5/;}; "
-          . "s/timeout=[0-9]*/timeout=15/g;"
+          . "s/timeout=[0-9]*/timeout=30/g;"
           . "' $grub_cfg_file";
         assert_script_run("$cmd");
         save_screenshot;
@@ -108,7 +108,7 @@ sub setup_console_in_grub {
     }
     elsif ($grub_ver eq "grub1") {
         $cmd
-          = "cp $grub_cfg_file ${grub_cfg_file}.org \&\&  sed -i 's/timeout [0-9]*/timeout 10/; /module \\\/boot\\\/vmlinuz/{s/console=.*,115200/console=$ipmi_console,115200/g;}' $grub_cfg_file";
+          = "cp $grub_cfg_file ${grub_cfg_file}.org \&\&  sed -i 's/timeout [0-9]*/timeout 30/; /module \\\/boot\\\/vmlinuz/{s/console=.*,115200/console=$ipmi_console,115200/g;}' $grub_cfg_file";
         assert_script_run("$cmd");
         save_screenshot;
         $cmd = "sed -rn '/module \\\/boot\\\/vmlinuz/p' $grub_cfg_file";
