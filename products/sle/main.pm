@@ -56,10 +56,6 @@ sub is_smt {
     return ((get_var("PATTERNS", '') || get_var('HDD_1', '')) =~ /smt/) && !sle_version_at_least('15');
 }
 
-sub is_kgraft {
-    return get_var('FLAVOR', '') =~ /^KGraft/;
-}
-
 sub is_updates_tests {
     my $flavor = get_required_var('FLAVOR');
     # Incidents might be also Incidents-Gnome or Incidents-Kernel
@@ -1358,11 +1354,6 @@ elsif (get_var("QAM_MINIMAL")) {
         set_var('FULL_DESKTOP', get_var('DESKTOP'));
         set_var('DESKTOP',      'textmode');
     }
-}
-elsif (is_kgraft) {
-    loadtest "qam-kgraft/update_kgraft";
-    loadtest "qam-kgraft/regressions_tests";
-    loadtest "qam-kgraft/reboot_restore";
 }
 elsif (get_var("EXTRATEST")) {
     boot_hdd_image;
