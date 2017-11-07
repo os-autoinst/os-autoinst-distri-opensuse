@@ -79,7 +79,7 @@ sub run {
     # get product eol
     my $product_file = "/etc/products.d/$prod.prod";
     my $product_name = script_output "grep '<summary>' $product_file";
-    $product_name =~ s/.*<summary>([^<]*)<\/summary>.*/$1/ || die "no product name found in $product_file";
+    $product_name =~ s/.*<summary>([^<]*)<\/summary>.*/$1/s || die "no product name found in $product_file";
     record_info('Product found', "Product found in overview: $product_name");
 
     my $product_eol;
