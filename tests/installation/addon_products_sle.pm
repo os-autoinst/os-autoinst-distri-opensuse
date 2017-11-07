@@ -58,8 +58,13 @@ sub run {
     }
     $self->process_unsigned_files([qw(inst-addon addon-products)]);
     assert_screen [qw(inst-addon addon-products)];
-    if (get_var("ADDONS")) {
+    # enable dialog
+    # for later: if ((get_var('ADDONS') || get_var('ADDONURL')) && !sle_version_at_least('15')) {
+    # for now, only enable this for STAGING:Y
+    if (check_var('FLAVOR', 'Installer-DVD-Staging:Y')) {
         send_key match_has_tag('inst-addon') ? 'alt-k' : 'alt-a';
+    }
+    if (get_var("ADDONS")) {
         # the ISO_X variables must match the ADDONS list
         my $sr_number = 0;
         for my $addon (split(/,/, get_var('ADDONS'))) {
@@ -78,12 +83,6 @@ sub run {
         }
     }
     if (get_var("ADDONURL")) {
-        if (match_has_tag('inst-addon')) {
-            send_key 'alt-k';                                                   # install with addons
-        }
-        else {
-            send_key 'alt-a';
-        }
         for my $addon (split(/,/, get_var('ADDONURL'))) {
             assert_screen 'addon-menu-active';
             my $uc_addon = uc $addon;                                           # varibale name is upper case
