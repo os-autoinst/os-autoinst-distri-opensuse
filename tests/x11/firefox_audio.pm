@@ -15,13 +15,15 @@ use base "x11test";
 use base "x11regressiontest";
 use strict;
 use testapi;
+use utils 'type_string_very_slow';
 
 sub run {
     my ($self) = @_;
     $self->start_firefox();
     send_key "ctrl-l";
     wait_still_screen(1);
-    type_string(autoinst_url . "/data/1d5d9dD.oga");
+    # Quite unstable on TW, missing keys. See poo#25654
+    type_string_very_slow(autoinst_url . "/data/1d5d9dD.oga");
     send_key "ret";
     start_audiocapture;
     assert_screen 'test-firefox_audio-1', 35;
