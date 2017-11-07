@@ -27,38 +27,41 @@ sub scc_we_enabled {
     return wait_serial(qr/Workstation Extension/);
 }
 
-sub we_available {
-    # opensuse has ntfsprogs in repository
-    if (check_var('DISTRI', 'opensuse')) {
-        return 1;
+sub add_we_repo_if_available {
+    # opensuse (doesn't have extensions) or SLE as registered product
+    if (check_var('DISTRI', 'opensuse') || scc_we_enabled) {
+        return;
     }
     # productQA test with enabled we as iso_2
-    elsif (get_var('BUILD_WE') && get_var('ISO_2')) {
+    if (get_var('BUILD_WE') && get_var('ISO_2')) {
         zypper_call 'ar dvd:///?devices=/dev/sr2 WSE', log => 'add-WSE.txt';
         zypper_call '--gpg-auto-import-keys ref',      log => 'ref-WSE.txt';
-        return 1;
     }
-    # registered product
-    elsif (scc_we_enabled) {
-        return 1;
-    }
-    return 0;
 }
 
-sub install_dependencies {
-    my @deps = qw(git-core make automake autoconf gcc expect libnuma-devel libaio-devel
-      numactl flex bison kernel-default-devel libopenssl-devel libselinux-devel
-      libacl-devel libtirpc-devel keyutils-devel libcap-devel net-tools psmisc acl quota
-      curl iputils);
+sub install_runtime_dependencies {
+    my @deps = qw(acl binutils curl iputils net-tools numactl psmisc quota sudo
+      sssd-tools sysstat tpm-tools wget);
+    zypper_call('-t in ' . join(' ', @deps) . ' | tee');
 
+    # kernel-default-extra are only for SLE (in WE)
+    # net-tools-deprecated are not available for SLE15
+    # ntfsprogs are for SLE in WE, openSUSE has it in default repository
+    my @maybe_deps = qw(kernel-default-extra net-tools-deprecated ntfsprogs);
+    for my $dep (@maybe_deps) {
+        script_run('zypper -n -t in ' . $dep . ' | tee');
+    }
+}
+
+sub install_build_dependencies {
+    my @deps = qw(git-core make automake autoconf gcc expect libnuma-devel
+      libaio-devel flex bison kernel-default-devel libopenssl-devel libselinux-devel
+      libacl-devel libtirpc-devel keyutils-devel libcap-devel);
     zypper_call('-t in ' . join(' ', @deps), log => 'install-deps.txt');
 
-    my @maybe_deps = qw(net-tools-deprecated gcc-32bit libnuma-devel-32bit
-      libaio-devel-32bit sysstat tpm-tools libopenssl-devel-32bit
-      kernel-default-devel-32bit kernel-default-extra libselinux-devel-32bit
-      libacl-devel-32bit libtirpc-devel-32bit keyutils-devel-32bit libcap-devel-32bit
-      ntfsprogs sssd-tools);
-
+    my @maybe_deps = qw(gcc-32bit libnuma-devel-32bit libaio-devel-32bit
+      libopenssl-devel-32bit kernel-default-devel-32bit libselinux-devel-32bit
+      libacl-devel-32bit libtirpc-devel-32bit keyutils-devel-32bit libcap-devel-32bit);
     for my $dep (@maybe_deps) {
         script_run('zypper -n -t in ' . $dep . ' | tee');
     }
@@ -86,9 +89,6 @@ sub install_from_git {
 
 sub install_from_repo {
     zypper_call 'in qa_test_ltp';
-    # make sure have all required tools
-    zypper_call 'in quota sysstat net-tools acl psmisc numactl tpm-tools sudo wget binutils sssd-tools';
-    zypper_call('in ntfsprogs') if we_available;
     assert_script_run q(find ${LTPROOT:-/opt/ltp}/testcases/bin/openposix/conformance/interfaces/ -name '*.run-test' > ~/openposix_test_list.txt);
     script_run 'rpm -q qa_test_ltp > /opt/ltp_version';
 }
@@ -96,6 +96,11 @@ sub install_from_repo {
 sub run {
     my $self     = shift;
     my $inst_ltp = get_var 'INSTALL_LTP';
+
+    if ($inst_ltp !~ /(repo|git)/i) {
+        die 'INSTALL_LTP must contain "git" or "repo"';
+    }
+
     $self->wait_boot;
 
     # poo#18980
@@ -108,19 +113,20 @@ sub run {
         select_console(get_var('VIRTIO_CONSOLE') ? 'root-virtio-terminal' : 'root-console');
     }
 
+    add_we_repo_if_available;
+
     if ($inst_ltp =~ /git/i) {
-        install_dependencies;
+        install_build_dependencies;
         # bsc#1024050 - Watch for Zombies
         script_run('(pidstat -p ALL 1 > /tmp/pidstat.txt &)');
         install_from_git;
     }
-    elsif ($inst_ltp =~ /repo/i) {
+    else {
         add_repos;
         install_from_repo;
     }
-    else {
-        die 'INSTALL_LTP must contain "git" or "repo"';
-    }
+
+    install_runtime_dependencies;
 
     # check kGraft if KGRAFT=1
     if (check_var("KGRAFT", '1')) {
