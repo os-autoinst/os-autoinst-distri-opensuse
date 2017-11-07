@@ -197,7 +197,7 @@ sub fill_in_registration_data {
                 }
             }
             send_key $cmd{next};    # all addons selected
-            my @addons_with_license = qw(ha geo we live rt idu ids lgm wsm hpcm);
+            my @addons_with_license = qw(ha geo we live rt idu ids lgm wsm hpcm suma);
             # Development tools do not have license in SLE 15
             push(@addons_with_license, 'sdk') unless sle_version_at_least('15');
 
@@ -229,7 +229,7 @@ sub fill_in_registration_data {
                 }
                 if (my $regcode = get_var("SCC_REGCODE_$uc_addon")) {
                     # skip addons which doesn't need to input scc code
-                    next unless grep { $addon eq $_ } qw(ha geo we live rt ltss phub);
+                    next unless grep { $addon eq $_ } qw(ha geo we live rt ltss phub suma);
                     if (check_var('VIDEOMODE', 'text')) {
                         send_key_until_needlematch "scc-code-field-$addon", 'tab';
                     }
