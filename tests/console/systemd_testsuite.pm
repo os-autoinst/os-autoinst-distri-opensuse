@@ -40,7 +40,9 @@ sub run {
 sub post_fail_hook {
     my ($self) = shift;
     $self->SUPER::post_fail_hook;
-    assert_script_run('cp /tmp/testsuite.log /var/opt/systemd-tests/logs; tar cjf systemd-testsuite-logs.tar.bz2 logs');
+    assert_script_run('cd /var/opt/systemd-tests/');
+    assert_script_run('cp /tmp/testsuite.log logs/');
+    assert_script_run('tar -cjf systemd-testsuite-logs.tar.bz2 logs/');
     upload_logs('systemd-testsuite-logs.tar.bz2');
 }
 
