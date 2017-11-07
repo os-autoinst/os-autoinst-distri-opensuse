@@ -40,29 +40,27 @@ sub select_nodes {
     wait_still_screen 3;
 }
 
+# Select master.openqa.test and additional master nodes
 sub select_master {
-    if (is_caasp '1.0') {
-        # Calculate position of master node
-        send_key_until_needlematch "master-checkbox-xy", "pgdn", 2, 5;
-        my $needle = assert_screen('master-checkbox-xy')->{area};
-        my $row    = $needle->[0];                                  # get y-position of master node
-        my $col    = $needle->[1];                                  # get x-position of checkbox
-        my $x      = $col->{x} + int($col->{w} / 2);
-        my $y      = $row->{y} + int($row->{h} / 2);
+    # Calculate position of master node
+    send_key_until_needlematch "master-checkbox-xy", "pgdn", 2, 5;
+    my $needle = assert_screen('master-checkbox-xy')->{area};
+    my $row    = $needle->[0];                                  # get y-position of master node
+    my $col    = $needle->[1];                                  # get x-position of checkbox
+    my $x      = $col->{x} + int($col->{w} / 2);
+    my $y      = $row->{y} + int($row->{h} / 2);
 
-        # Select master node
-        mouse_set $x, $y;
-        mouse_click;
-        mouse_hide;
+    # Select master node
+    mouse_set $x, $y;
+    mouse_click;
+    mouse_hide;
 
-        # Give velum time to process
-        sleep 2;
-    }
-    else {
-        # We don't care which node is master
-        my $nodes = get_var('STACK_SIZE') - 1;
-        my $masters = $nodes < 6 ? 1 : 3;
-        for (1 .. $masters) {
+    # Give velum time to process
+    sleep 2;
+
+    # For 6+ node clusters select 2 more masters
+    if (is_caasp('2.0+') && get_var('STACK_SIZE') > 6) {
+        for (1 .. 2) {
             assert_and_click 'master-role-button';
             sleep 2;    # bsc#1066371 workaround
         }
