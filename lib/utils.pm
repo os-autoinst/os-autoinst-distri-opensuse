@@ -607,6 +607,8 @@ sub assert_shutdown_and_restore_system {
     assert_shutdown;
     if ($action eq 'reboot') {
         reset_consoles;
+        # Set disk as a primary boot device
+        console('svirt')->change_domain_element(os => boot => {dev => 'hd'});
         console('svirt')->define_and_start;
         select_console($vnc_console);
     }

@@ -82,13 +82,13 @@ sub run {
     my $dev_id = 'b';
     # In JeOS we have the disk, we just need to deploy it, for the rest
     # - installs from network and ISO media - we have to create it.
+    $svirt->change_domain_element(os => boot => {dev => 'hd'});
     if (my $hddfile = get_var('HDD_1')) {
         my $hddpath = copy_image($hddfile, $hdddir);
         $svirt->add_disk(
             {
                 file => ($vmm_family eq 'vmware') ? basename($hddpath) : $hddpath,
                 dev_id      => 'a',
-                bootorder   => 1,
                 backingfile => 1
             });
         foreach my $n (2 .. get_var('NUMDISKS')) {
@@ -115,10 +115,9 @@ sub run {
     else {
         $svirt->add_disk(
             {
-                size      => $size_i . 'G',
-                create    => 1,
-                dev_id    => 'a',
-                bootorder => 1
+                size   => $size_i . 'G',
+                create => 1,
+                dev_id => 'a'
             });
     }
 
@@ -130,12 +129,12 @@ sub run {
             my $isopath = copy_image($isofile, $isodir);
             $svirt->add_disk(
                 {
-                    cdrom     => 1,
-                    file      => ($vmm_family eq 'vmware') ? basename($isopath) : $isopath,
-                    dev_id    => $dev_id,
-                    bootorder => 2
+                    cdrom  => 1,
+                    file   => ($vmm_family eq 'vmware') ? basename($isopath) : $isopath,
+                    dev_id => $dev_id
                 });
             $dev_id = chr((ord $dev_id) + 1);    # return next letter in alphabet
+            $svirt->change_domain_element(os => boot => {dev => 'cdrom'});
         }
         # Add addon media (if present at all)
         foreach my $n (1 .. 9) {
