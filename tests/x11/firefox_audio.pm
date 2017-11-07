@@ -22,6 +22,12 @@ sub run {
     send_key "ctrl-l";
     wait_still_screen(1);
     type_string(autoinst_url . "/data/1d5d9dD.oga");
+    assert_screen [qw(http-url-typed http-url-mistyped)], 5;
+    if (match_has_tag("http-url-mistyped")) {
+        record_soft_failure('poo#25654 - URL mistyped; retrying');
+        send_key "ctrl-l";
+        type_string(autoinst_url . "/data/1d5d9dD.oga");
+    }
     send_key "ret";
     start_audiocapture;
     assert_screen 'test-firefox_audio-1', 35;
