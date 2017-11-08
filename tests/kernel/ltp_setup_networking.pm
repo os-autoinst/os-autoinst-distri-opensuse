@@ -19,7 +19,7 @@ use utils;
 
 sub install {
     # utils
-    zypper_call('in wget iptables psmisc tcpdump', log => 'utils.log');
+    zypper_call('in wget iptables psmisc tcpdump ethtool', log => 'utils.log');
 
     # clients
     zypper_call('in dhcp-client telnet', log => 'clients.log');
