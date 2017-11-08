@@ -495,6 +495,31 @@ sub load_x11regression_remote {
     }
 }
 
+sub load_svirt_boot_tests {
+    # Unless GRUB2 supports framebuffer on Xen PV (bsc#961638), grub2 tests
+    # has to be skipped there.
+    if (!(check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux'))) {
+        if (get_var("UEFI") || is_jeos) {
+            loadtest "installation/bootloader_uefi";
+        }
+        elsif (!get_var('NETBOOT')) {
+            loadtest "installation/bootloader";
+        }
+    }
+}
+
+sub load_svirt_vm_setup_tests {
+    if (check_var("VIRSH_VMM_FAMILY", "hyperv")) {
+        loadtest "installation/bootloader_hyperv";
+    }
+    else {
+        loadtest "installation/bootloader_svirt";
+    }
+    unless (is_installcheck || is_memtest || is_rescuesystem || is_mediacheck) {
+        load_svirt_boot_tests;
+    }
+}
+
 sub load_boot_tests {
     # s390x uses only remote repos
     if (get_var("ISO_MAXSIZE") && !check_var('ARCH', 's390x')) {
@@ -504,23 +529,7 @@ sub load_boot_tests {
         loadtest "installation/bootloader_uefi";
     }
     elsif (check_var("BACKEND", "svirt") && !check_var("ARCH", "s390x")) {
-        if (check_var("VIRSH_VMM_FAMILY", "hyperv")) {
-            loadtest "installation/bootloader_hyperv";
-        }
-        else {
-            loadtest "installation/bootloader_svirt";
-        }
-        # TODO: rename to bootloader_grub2
-        # Unless GRUB2 supports framebuffer on Xen PV (bsc#961638), grub2 tests
-        # has to be skipped there.
-        if (!(check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux'))) {
-            if (get_var("UEFI") || is_jeos) {
-                loadtest "installation/bootloader_uefi";
-            }
-            elsif (!get_var('NETBOOT')) {
-                loadtest "installation/bootloader";
-            }
-        }
+        load_svirt_vm_setup_tests;
     }
     elsif (uses_qa_net_hardware()) {
         loadtest "boot/boot_from_pxe";
@@ -1169,25 +1178,23 @@ elsif (get_var("FEATURE")) {
     prepare_target();
     load_feature_tests();
 }
-elsif (get_var("MEDIACHECK")) {
+elsif (is_mediacheck) {
+    load_svirt_vm_setup_tests;
     loadtest "installation/mediacheck";
 }
-elsif (get_var("MEMTEST")) {
+elsif (is_memtest) {
     if (!get_var("OFW")) {    #no memtest on PPC
+        load_svirt_vm_setup_tests;
         loadtest "installation/memtest";
     }
 }
-elsif (get_var("RESCUESYSTEM")) {
+elsif (is_rescuesystem) {
+    load_svirt_vm_setup_tests;
     loadtest "installation/rescuesystem";
     loadtest "installation/rescuesystem_validate_sle";
 }
-elsif (get_var("INSTALLCHECK")) {
-    if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
-        loadtest "installation/bootloader_hyperv";
-    }
-    else {
-        loadtest "installation/bootloader_svirt";
-    }
+elsif (is_installcheck) {
+    load_svirt_vm_setup_tests;
     loadtest "installation/rescuesystem";
     loadtest "installation/installcheck";
 }
