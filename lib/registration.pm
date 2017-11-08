@@ -55,6 +55,63 @@ our %SLE15_DEFAULT_MODULES = (
     sles4sap => 'base,desktop,serverapp,ha,sapapp',
 );
 
+sub accept_addons_license {
+    my (@scc_addons) = @_;
+
+    my @addons_with_license = qw(ha geo we live rt idu ids lgm wsm hpcm);
+    # Development tools do not have license in SLE 15
+    push(@addons_with_license, 'sdk') unless sle_version_at_least('15');
+
+    for my $addon (@scc_addons) {
+        # most modules don't have license, skip them
+        next unless grep { $addon eq $_ } @addons_with_license;
+        while (check_screen('scc-downloading-license', 5)) {
+            # wait for SCC to give us the license
+            sleep 5;
+        }
+        # No license agreements are shown in SLE 15 at the moment
+        if (sle_version_at_least('15')) {
+            record_soft_failure 'bsc#1057223';
+        }
+        else {
+            assert_screen "scc-addon-license-$addon", 60;
+            addon_decline_license;
+            wait_still_screen 2;
+            send_key $cmd{next};
+        }
+    }
+}
+
+sub register_addons {
+    my (@scc_addons) = @_;
+
+    my ($regcodes_entered, $uc_addon);
+    for my $addon (@scc_addons) {
+        # no need to input registration code if register via SMT
+        last if (get_var('SMT_URL'));
+        $uc_addon = uc $addon;    # change to uppercase to match variable
+        if ($addon eq 'phub') {
+            record_soft_failure 'bsc#1046172';
+            set_var('SCC_REGCODE_PHUB', get_required_var('SCC_REGCODE'));
+        }
+        if (my $regcode = get_var("SCC_REGCODE_$uc_addon")) {
+            # skip addons which doesn't need to input scc code
+            next unless grep { $addon eq $_ } qw(ha geo we live rt ltss phub);
+            if (check_var('VIDEOMODE', 'text')) {
+                send_key_until_needlematch "scc-code-field-$addon", 'tab';
+            }
+            else {
+                assert_and_click "scc-code-field-$addon";
+            }
+            type_string $regcode;
+            save_screenshot;
+            $regcodes_entered++;
+        }
+    }
+
+    return $regcodes_entered;
+}
+
 sub fill_in_registration_data {
     my ($addon, $uc_addon);
     fill_in_reg_server() if (!get_var("HDD_SCC_REGISTERED"));
@@ -196,52 +253,16 @@ sub fill_in_registration_data {
                     assert_screen "scc-module-$addon-selected";
                 }
             }
-            send_key $cmd{next};    # all addons selected
-            my @addons_with_license = qw(ha geo we live rt idu ids lgm wsm hpcm);
-            # Development tools do not have license in SLE 15
-            push(@addons_with_license, 'sdk') unless sle_version_at_least('15');
-
-            for my $addon (@scc_addons) {
-                # most modules don't have license, skip them
-                next unless grep { $addon eq $_ } @addons_with_license;
-                while (check_screen('scc-downloading-license', 5)) {
-                    # wait for SCC to give us the license
-                    sleep 5;
-                }
-                # No license agreements are shown in SLE 15 at the moment
-                if (sle_version_at_least('15')) {
-                    record_soft_failure 'bsc#1057223';
-                }
-                else {
-                    assert_screen "scc-addon-license-$addon", 60;
-                    addon_decline_license;
-                    wait_still_screen 2;
-                    send_key $cmd{next};
-                }
-            }
-            for my $addon (@scc_addons) {
-                # no need to input registration code if register via SMT
-                last if (get_var('SMT_URL'));
-                $uc_addon = uc $addon;    # change to uppercase to match variable
-                if ($addon eq 'phub') {
-                    record_soft_failure 'bsc#1046172';
-                    set_var('SCC_REGCODE_PHUB', get_required_var('SCC_REGCODE'));
-                }
-                if (my $regcode = get_var("SCC_REGCODE_$uc_addon")) {
-                    # skip addons which doesn't need to input scc code
-                    next unless grep { $addon eq $_ } qw(ha geo we live rt ltss phub);
-                    if (check_var('VIDEOMODE', 'text')) {
-                        send_key_until_needlematch "scc-code-field-$addon", 'tab';
-                    }
-                    else {
-                        assert_and_click "scc-code-field-$addon";
-                    }
-                    type_string $regcode;
-                    save_screenshot;
-                }
-            }
-            send_key $cmd{next};
+            wait_screen_change { send_key $cmd{next} };    # all addons selected
             wait_still_screen 2;
+            # Process addons licenses
+            accept_addons_license @scc_addons;
+            # Press next only if entered reg code for any addon
+            if (register_addons @scc_addons) {
+                assert_screen 'ext-modules-reg-codes';
+                send_key $cmd{next};
+                wait_still_screen 2;
+            }
             # start addons/modules registration, it needs longer time if select multiple or all addons/modules
             while (assert_screen(['import-untrusted-gpg-key', 'yast_scc-pkgtoinstall', 'yast-scc-emptypkg', 'inst-addon'], 120)) {
                 if (match_has_tag('import-untrusted-gpg-key')) {
