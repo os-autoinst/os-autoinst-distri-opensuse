@@ -38,6 +38,10 @@ our @EXPORT = qw(
   is_tumbleweed
   is_storage_ng
   is_sle12_hdd_in_upgrade
+  is_installcheck
+  is_memtest
+  is_mediacheck
+  is_rescuesystem
   select_kernel
   type_string_slow
   type_string_very_slow
@@ -268,6 +272,22 @@ sub is_kde_live {
 
 sub is_gnome_next {
     return get_var('FLAVOR', '') =~ /Gnome-Live/;
+}
+
+sub is_installcheck {
+    return get_var('INSTALLCHECK');
+}
+
+sub is_memtest {
+    return get_var('MEMTEST');
+}
+
+sub is_mediacheck {
+    return get_var('MEDIACHECK');
+}
+
+sub is_rescuesystem {
+    return get_var('RESCUESYSTEM');
 }
 
 # Check if distribution is CaaSP or Kubic with optional filter:
@@ -599,6 +619,8 @@ sub assert_shutdown_and_restore_system {
     assert_shutdown;
     if ($action eq 'reboot') {
         reset_consoles;
+        # Set disk as a primary boot device
+        console('svirt')->change_domain_element(os => boot => {dev => 'hd'});
         console('svirt')->define_and_start;
         select_console($vnc_console);
     }

@@ -1,7 +1,7 @@
 package opensusebasetest;
 use base 'basetest';
 
-use bootloader_setup qw(boot_local_disk tianocore_enter_menu zkvm_add_disk zkvm_add_pty zkvm_add_interface);
+use bootloader_setup qw(boot_local_disk tianocore_enter_menu zkvm_add_disk zkvm_add_pty zkvm_add_interface type_hyperv_fb_video_resolution);
 use testapi;
 use strict;
 use utils;
@@ -197,17 +197,20 @@ sub select_bootmenu_more {
     else {
         send_key_until_needlematch($tag, 'down', 10, 5);
     }
-    if (get_var('MACHINE', '') =~ /aarch64/) {
-        # newer versions of qemu on arch automatically add 'console=ttyS0' so
-        # we would end up nowhere. Setting console parameter explicitly
-        # See https://bugzilla.suse.com/show_bug.cgi?id=1032335 for details
+    if (get_var('UEFI')) {
         send_key 'e';
         send_key 'down' for (1 .. 4);
         send_key 'end';
-        type_string_slow ' console=tty1';
+        # newer versions of qemu on arch automatically add 'console=ttyS0' so
+        # we would end up nowhere. Setting console parameter explicitly
+        # See https://bugzilla.suse.com/show_bug.cgi?id=1032335 for details
+        type_string_slow ' console=tty1' if get_var('MACHINE', '') =~ /aarch64/;
+        # Hyper-V defaults to 1280x1024, we need to fix it here
+        type_hyperv_fb_video_resolution if check_var('VIRSH_VMM_FAMILY', 'hyperv');
         send_key 'f10';
     }
     else {
+        type_hyperv_fb_video_resolution if check_var('VIRSH_VMM_FAMILY', 'hyperv');
         send_key 'ret';
     }
 }

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -17,7 +17,9 @@ use strict;
 use testapi;
 
 sub run {
-    assert_script_run "mount /dev/sr0 /mnt";
+    # Xen PV does not emulate CDROM, treats everything as block device
+    my $cddev = check_var('VIRSH_VMM_TYPE', 'linux') ? 'xvdc2' : 'sr0';
+    assert_script_run "mount -o ro /dev/$cddev /mnt";
     assert_script_run 'cd /tmp; rpm2cpio $(find /mnt -name libsolv-tools*.rpm) | cpio -dium';
     assert_script_run 'export PATH=/tmp/usr/bin:$PATH; usr/bin/repo2solv.sh /mnt > /tmp/solv';
     script_run 'installcheck ' . get_var("ARCH") . ' /tmp/solv > /tmp/installcheck.log 2>&1 && touch /tmp/WORKED';

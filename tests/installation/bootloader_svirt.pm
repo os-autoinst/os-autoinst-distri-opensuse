@@ -82,13 +82,13 @@ sub run {
     my $dev_id = 'b';
     # In JeOS we have the disk, we just need to deploy it, for the rest
     # - installs from network and ISO media - we have to create it.
+    $svirt->change_domain_element(os => boot => {dev => 'hd'});
     if (my $hddfile = get_var('HDD_1')) {
         my $hddpath = copy_image($hddfile, $hdddir);
         $svirt->add_disk(
             {
                 file => ($vmm_family eq 'vmware') ? basename($hddpath) : $hddpath,
                 dev_id      => 'a',
-                bootorder   => 1,
                 backingfile => 1
             });
         foreach my $n (2 .. get_var('NUMDISKS')) {
@@ -115,10 +115,9 @@ sub run {
     else {
         $svirt->add_disk(
             {
-                size      => $size_i . 'G',
-                create    => 1,
-                dev_id    => 'a',
-                bootorder => 1
+                size   => $size_i . 'G',
+                create => 1,
+                dev_id => 'a'
             });
     }
 
@@ -130,12 +129,12 @@ sub run {
             my $isopath = copy_image($isofile, $isodir);
             $svirt->add_disk(
                 {
-                    cdrom     => 1,
-                    file      => ($vmm_family eq 'vmware') ? basename($isopath) : $isopath,
-                    dev_id    => $dev_id,
-                    bootorder => 2
+                    cdrom  => 1,
+                    file   => ($vmm_family eq 'vmware') ? basename($isopath) : $isopath,
+                    dev_id => $dev_id
                 });
             $dev_id = chr((ord $dev_id) + 1);    # return next letter in alphabet
+            $svirt->change_domain_element(os => boot => {dev => 'cdrom'});
         }
         # Add addon media (if present at all)
         foreach my $n (1 .. 9) {
@@ -284,30 +283,32 @@ sub run {
     # sets framebuffer (this is a GRUB2's limitation bsc#961638).
     if ($vmm_family eq 'xen' and $vmm_type eq 'linux' and !get_var('NETBOOT')) {
         $svirt->suspend;
-        my $cmdline = "";
-        if (check_var('VIDEOMODE', 'text')) {
-            $cmdline .= "textmode=1 ";
-        }
-        if (get_var('EXTRABOOTPARAMS')) {
-            $cmdline .= get_var('EXTRABOOTPARAMS') . " ";
-        }
+        my $cmdline = '';
+        $cmdline .= 'textmode=1 ' if check_var('VIDEOMODE', 'text');
+        $cmdline .= 'rescue=1 ' if is_installcheck || is_rescuesystem;    # rescue mode
+        $cmdline .= get_var('EXTRABOOTPARAMS') . ' ';
         type_string "export pty=`virsh dumpxml $name | grep \"console type=\" | sed \"s/'/ /g\" | awk '{ print \$5 }'`\n";
         type_string "echo \$pty\n";
         $svirt->resume;
-        wait_serial("Press enter to boot the selected OS", 10) || die "Can't get to Grub";
-        type_string "echo e > \$pty\n";    # edit
+        wait_serial("Press enter to boot the selected OS", 10) || die "Can't get to GRUB";
+        # Do not boot OS from disk
+        if (get_var('ISO') && get_var('HDD_1') && !is_jeos && !is_caasp) {
+            type_string "echo -en '\\033[B' > \$pty\n";                   # key down
+        }
+        type_string "echo e > \$pty\n";                                   # edit
 
         if (is_jeos or is_caasp) {
             for (1 .. 4) { type_string "echo -en '\\033[B' > \$pty\n"; }    # four-times key down
         }
         else {
+            $cmdline .= 'linemode=0';                                       # workaround for bsc#1066919
             for (1 .. 2) { type_string "echo -en '\\033[B' > \$pty\n"; }    # four-times key down
         }
         type_string "echo -en '\\033[K' > \$pty\n";                         # end of line
         type_string "echo -en ' $cmdline' > \$pty\n";
         if (sle_version_at_least('12-SP2') or is_caasp) {
             type_string "echo -en ' xen-fbfront.video=32,1024,768 xen-kbdfront.ptr_size=1024,768 ' > \$pty\n";    # set kernel framebuffer
-            type_string "echo -en ' console=hvc console=tty' > \$pty\n";                                          # set consoles
+            type_string "echo -en ' console=hvc console=tty ' > \$pty\n";                                         # set consoles
         }
         else {
             type_string "echo -en ' xenfb.video=4,1024,768' > \$pty\n";                                           # set kernel framebuffer

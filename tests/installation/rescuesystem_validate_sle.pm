@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -16,7 +16,9 @@ use strict;
 use testapi;
 
 sub run {
-    type_string "mount /dev/vda2 /mnt && cat /mnt/etc/SuSE-release > /dev/$serialdev\n";
+    my $hdddev = check_var('VIRSH_VMM_FAMILY', 'xen') ? 'xvda2' : 'vda2';
+    assert_script_run "mount /dev/$hdddev /mnt";
+    type_string "cat /mnt/etc/SuSE-release > /dev/$serialdev\n";
     wait_serial("SUSE Linux Enterprise Server", 10) || die "Not SLES found";
 }
 

@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -19,8 +19,12 @@ use utils 'ensure_shim_import';
 sub run {
     my $self = shift;
 
-    ensure_shim_import;
-    $self->select_bootmenu_more('inst-rescuesystem', 1);
+    # We can't see inst-sys on Xen PV, bootloader_svirt
+    # does the job to get us into rescue mode.
+    unless (check_var('VIRSH_VMM_TYPE', 'linux')) {
+        ensure_shim_import;
+        $self->select_bootmenu_more('inst-rescuesystem', 1);
+    }
 
     assert_screen 'keyboardmap-list', 100;
     send_key "ret";
