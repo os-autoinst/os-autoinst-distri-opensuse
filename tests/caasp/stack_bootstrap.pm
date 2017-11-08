@@ -81,8 +81,10 @@ sub bootstrap {
         # Click bootstrap button
         assert_screen 'velum-confirm-bootstrap';
 
-        # External Dashboard FQDN
-        for (1 .. 4) { send_key 'tab'; }
+        # External Kubernetes API & Dashboard FQDN
+        for (1 .. 3) { send_key 'tab'; }
+        type_string 'master.openqa.test';
+        send_key 'tab';
         type_string 'admin.openqa.test';
         assert_and_click "velum-bootstrap";
     }
