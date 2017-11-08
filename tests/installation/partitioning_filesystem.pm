@@ -35,12 +35,6 @@ sub run {
         }
     }
     if (is_storage_ng) {
-        # On s390x due to workaround we don't format drive, so select disks screen appears there
-        # Using check_screen not to break test when bug is fixed
-        if (get_var('FORMAT_DASD_YAST') && check_screen('select-hard-disks', 5)) {
-            record_soft_failure('bsc#1055871');
-            send_key $cmd{next};
-        }
         assert_screen 'partition-scheme';
         send_key $cmd{next};
     }
