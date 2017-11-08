@@ -18,7 +18,7 @@ use testapi;
 use mmapi;
 use utils qw(power_action assert_shutdown_and_restore_system);
 
-our @EXPORT = qw(handle_simple_pw process_reboot trup_call write_detail_output get_admin_job);
+our @EXPORT = qw(handle_simple_pw process_reboot trup_call write_detail_output get_admin_job update_scheduled);
 
 # Weak password warning should be displayed only once - bsc#1025835
 sub handle_simple_pw {
@@ -119,6 +119,22 @@ sub get_admin_job {
         if (get_job_info($job_id)->{settings}->{STACK_ROLE} eq 'admin') {
             return $job_id;
         }
+    }
+}
+
+sub update_scheduled {
+    # Don't update MicroOS tests
+    return 0 unless get_var('STACK_ROLE');
+
+    # Don't update staging
+    return 0 if get_var('FLAVOR') =~ /Staging-?-DVD/;
+
+    # Return update repository if it's set on controller node
+    if (check_var('STACK_ROLE', 'controller')) {
+        return get_var('INCIDENT_REPO');
+    }
+    else {
+        return get_job_info(get_controller_job)->{settings}->{INCIDENT_REPO};
     }
 }
 

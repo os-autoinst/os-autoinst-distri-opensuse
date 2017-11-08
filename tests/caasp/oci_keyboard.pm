@@ -21,6 +21,9 @@ sub run {
     send_key 'up';
     send_key 'ret' if check_var('VIDEOMODE', 'text');
 
+    # Wait for keyboard switch before typing
+    sleep 1;
+
     # Check that UK layout is active
     send_key 'alt-g';
     type_string '~@#\"|';    # writes ¬"£#@~

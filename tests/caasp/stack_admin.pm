@@ -14,6 +14,7 @@ use base "opensusebasetest";
 use strict;
 use testapi;
 use lockapi;
+use caasp 'update_scheduled';
 
 # Set default password on worker nodes
 sub workaround_bsc_1030876 {
@@ -42,6 +43,21 @@ sub export_logs {
     mutex_create "ADMIN_LOGS_EXPORTED";
 }
 
+# Handle update process
+sub handle_update {
+    # Download update script
+    assert_script_run 'curl -O ' . data_url("caasp/update.sh");
+    assert_script_run 'chmod +x update.sh';
+
+    # Wait until update is finished
+    mutex_lock 'UPDATE_FINISHED';
+    mutex_unlock 'UPDATE_FINISHED';
+
+    # Admin node was rebooted
+    reset_consoles;
+    select_console 'root-console';
+}
+
 sub run() {
     # Admin node needs long time to start web interface - bsc#1031682
     # Wait in loop until velum is available until controller node can connect
@@ -56,10 +72,11 @@ sub run() {
             die "Velum did not start in $timeout seconds";
         }
     }
-
     # Controller node can connect to velum
     mutex_create "VELUM_STARTED";
+
     workaround_bsc_1030876;
+    handle_update if update_scheduled;
 
     # Wait until controller node finishes
     mutex_lock "CNTRL_FINISHED";

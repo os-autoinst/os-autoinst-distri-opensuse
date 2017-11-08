@@ -45,13 +45,14 @@ sub post_fail_hook {
     sleep if check_var('DEBUG_SLEEP', 'controller');
 
     # Destroy barriers and create mutexes to avoid deadlock
-    barrier_destroy "WORKERS_INSTALLED";
-    mutex_create "NODES_ACCEPTED";
+    barrier_destroy 'WORKERS_INSTALLED';
+    mutex_create 'NODES_ACCEPTED';
     mutex_create 'VELUM_CONFIGURED';
-    mutex_create "CNTRL_FINISHED";
+    mutex_create 'UPDATE_FINISHED';
+    mutex_create 'CNTRL_FINISHED';
 
     # Wait for log export from admin node
-    mutex_lock "ADMIN_LOGS_EXPORTED", get_admin_job;
+    mutex_lock 'ADMIN_LOGS_EXPORTED', get_admin_job;
 }
 
 1;
