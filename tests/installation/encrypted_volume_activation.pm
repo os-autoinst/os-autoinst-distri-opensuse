@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -22,6 +22,7 @@ use strict;
 use warnings;
 use base "y2logsstep";
 use testapi;
+use utils 'is_storage_ng';
 
 my $after_cancel_tags = [
     qw(
@@ -40,10 +41,17 @@ sub run {
         }
     }
     elsif (get_var('ENCRYPT_ACTIVATE_EXISTING')) {
-        send_key 'alt-p';
-        assert_screen 'encrypted_volume_password_prompt';
-        type_password;
-        send_key 'ret';
+        # pre storage NG has an additional question dialog
+        if (match_has_tag 'encrypted_volume_activation_prompt-embedded_password_prompt') {
+            type_password;
+            send_key $cmd{ok};
+        }
+        else {
+            send_key 'alt-p';
+            assert_screen 'encrypted_volume_password_prompt';
+            type_password;
+            send_key 'ret';
+        }
     }
 }
 
