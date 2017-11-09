@@ -701,7 +701,8 @@ sub load_inst_tests {
     }
     if (installyaststep_is_applicable()) {
         loadtest "installation/installation_overview";
-        loadtest "installation/disable_grub_timeout";
+        # On Xen PV we don't have GRUB on VNC
+        loadtest "installation/disable_grub_timeout" unless check_var('VIRSH_VMM_TYPE', 'linux');
         if (check_var('VIDEOMODE', 'text') && check_var('BACKEND', 'ipmi')) {
             loadtest "installation/disable_grub_graphics";
         }
