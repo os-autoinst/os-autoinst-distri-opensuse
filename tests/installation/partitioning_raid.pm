@@ -161,6 +161,10 @@ sub run {
 
     # With storage ng, we go directly to expert partitioner and invalidate configuration by rescan
     if (is_storage_ng) {
+        # start with existing partitions
+        send_key 'down' for (1 .. 2);
+        send_key 'ret';
+        assert_screen 'expert-partitioner';
         send_key $cmd{rescandevices};              # Rescan devices
         assert_screen 'rescan-devices-warning';    # Confirm rescan
         send_key 'alt-y';

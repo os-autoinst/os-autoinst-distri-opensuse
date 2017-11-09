@@ -19,13 +19,14 @@ use testapi;
 sub run {
     assert_screen 'partitioning-edit-proposal-button', 40;
 
-    # Storage NG introduces a new partitioning dialog. We detect this by the existence of the "Guided Setup" button
-    # and set the STORAGE_NG variable so later tests know about this.
+    # Storage NG introduces a new partitioning dialog. We detect this
+    # by the existence of the "Guided Setup" button and set the
+    # STORAGE_NG variable so later tests know about this.
     if (match_has_tag('storage-ng')) {
         set_var('STORAGE_NG', 1);
         # Define changed shortcuts
         $cmd{donotformat} = 'alt-t';
-        $cmd{addraid}     = 'alt-d';
+        $cmd{addraid}     = 'alt-i';
         if (check_var('DISTRI', 'opensuse')) {
             $cmd{expertpartitioner} = 'alt-x';
             $cmd{rescandevices}     = 'alt-c';
