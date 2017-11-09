@@ -5,6 +5,7 @@
 use strict;
 use base "y2logsstep";
 use testapi;
+use utils qw(sle_version_at_least);
 
 sub run {
     if (sle_version_at_least('15')) {
