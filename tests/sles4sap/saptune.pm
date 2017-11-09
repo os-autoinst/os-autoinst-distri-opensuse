@@ -26,6 +26,10 @@ sub run {
 
     select_console 'root-console';
 
+    unless (tuned_is 'running') {
+        script_run "saptune daemon start";
+    }
+
     die "Command 'saptune daemon status' returned unexpected output. Expected tuned to be running"
       unless (tuned_is 'running');
 
