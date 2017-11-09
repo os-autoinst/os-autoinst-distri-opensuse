@@ -505,6 +505,7 @@ sub load_svirt_boot_tests {
 }
 
 sub load_svirt_vm_setup_tests {
+    return unless check_var('BACKEND', 'svirt');
     if (check_var("VIRSH_VMM_FAMILY", "hyperv")) {
         loadtest "installation/bootloader_hyperv";
     }
