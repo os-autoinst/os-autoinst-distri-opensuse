@@ -563,7 +563,11 @@
     <peers config:type="list">
       <peer>
         <address>/var/lib/ntp/drift/ntp.drift </address>
-        <comment># Clients from this (example!) subnet have unlimited access, but only if# cryptographically authenticated.#restrict 192.168.123.0 mask 255.255.255.0 notrust#### Miscellaneous stuff##</comment>
+        <comment>
+            # Clients from this (example!) subnet have unlimited access, but only if
+            # cryptographically authenticated.
+            #restrict 192.168.123.0 mask 255.255.255.0 notrust
+            #### Miscellaneous stuff##</comment>
         <options/>
         <type>driftfile</type>
       </peer>
@@ -575,7 +579,18 @@
       </peer>
       <peer>
         <address>/etc/ntp.keys		</address>
-        <comment># alternate log file# logconfig =syncstatus + sysevents# logconfig =all# statsdir /tmp/		# directory for statistics files# filegen peerstats  file peerstats  type day enable# filegen loopstats  file loopstats  type day enable# filegen clockstats file clockstats type day enable## Authentication stuff#</comment>
+        <comment>
+            # alternate log file
+            # logconfig =syncstatus + sysevents# logconfig =all
+            # statsdir /tmp/
+            # directory for statistics files
+            # filegen peerstats  file peerstats  type day enable
+            # filegen loopstats  file loopstats  type day enable
+            # filegen clockstats file clockstats type day enable
+            #
+            # Authentication stuff
+            #
+        </comment>
         <options/>
         <type>keys</type>
       </peer>
@@ -670,37 +685,36 @@
   </partitioning>
   <printer>
     <client_conf_content>
-        <client_conf_content>
-          <file_contents><![CDATA[# CUPS client configuration file (optional).
+       <file_contents><![CDATA[# CUPS client configuration file (optional).
 
-    # You may use /etc/cups/client.conf (system wide)
-    # or ~/.cups/client.conf (per user).
-    # For more information see "man 5 client.conf".
+        # You may use /etc/cups/client.conf (system wide)
+        # or ~/.cups/client.conf (per user).
+        # For more information see "man 5 client.conf".
 
-    # The ServerName directive specifies the remote server
-    # that is to be used for all client operations. That is, it
-    # redirects all client requests directly to that remote server
-    # so that a local running cupsd is not used in this case.
-    # The default is to use the local server ("localhost") or domain socket.
-    # Only one ServerName directive may appear.
-    # If multiple names are present, only the last one is used.
-    # The default port number is 631 but can be overridden by adding
-    # a colon followed by the desired port number.
-    # The default IPP version is 2.0 but can be overridden by adding
-    # a slash followed by version=V where V is 1.0 or 1.1 or 2.0 or 2.1 or 2.2.
-    # IPP version 2.0 does do not work with CUPS 1.3 or older servers.
-    # If an CUPS 1.3 or older server is used, its older IPP version
-    # must be specified as .../version=1.1 or .../version=1.0.
+        # The ServerName directive specifies the remote server
+        # that is to be used for all client operations. That is, it
+        # redirects all client requests directly to that remote server
+        # so that a local running cupsd is not used in this case.
+        # The default is to use the local server ("localhost") or domain socket.
+        # Only one ServerName directive may appear.
+        # If multiple names are present, only the last one is used.
+        # The default port number is 631 but can be overridden by adding
+        # a colon followed by the desired port number.
+        # The default IPP version is 2.0 but can be overridden by adding
+        # a slash followed by version=V where V is 1.0 or 1.1 or 2.0 or 2.1 or 2.2.
+        # IPP version 2.0 does do not work with CUPS 1.3 or older servers.
+        # If an CUPS 1.3 or older server is used, its older IPP version
+        # must be specified as .../version=1.1 or .../version=1.0.
 
-    # Examples:
-    # ServerName sever.example.com
-    # ServerName 192.0.2.10
-    # ServerName sever.example.com:8631
-    # ServerName older.server.example.com/version=1.1
-    # ServerName older.server.example.com:8631/version=1.1
+        # Examples:
+        # ServerName sever.example.com
+        # ServerName 192.0.2.10
+        # ServerName sever.example.com:8631
+        # ServerName older.server.example.com/version=1.1
+        # ServerName older.server.example.com:8631/version=1.1
 
-    ]]></file_contents>
-
+        ]]>
+        </file_contents>
     </client_conf_content>
     <cupsd_conf_content>
       <file_contents><![CDATA[]]></file_contents>
