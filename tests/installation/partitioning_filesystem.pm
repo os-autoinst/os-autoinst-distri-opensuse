@@ -35,6 +35,13 @@ sub run {
         }
     }
     if (is_storage_ng) {
+        # On Xen PV "CDROM" is of the same type as a disk block device so YaST
+        # naturally sees it as a "disk". We have to uncheck the "CDROM".
+        if (check_var('VIRSH_VMM_TYPE', 'linux')) {
+            assert_screen 'select-hard-disk';
+            send_key 'alt-e';
+            send_key $cmd{next};
+        }
         assert_screen 'partition-scheme';
         send_key $cmd{next};
     }
