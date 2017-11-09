@@ -29,5 +29,9 @@ sub run {
     }
 }
 
+sub test_flags {
+    return {milestone => 1};
+}
+
 1;
 # vim: set sw=4 et:
