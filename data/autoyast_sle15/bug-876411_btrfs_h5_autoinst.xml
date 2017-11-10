@@ -685,6 +685,7 @@ find / -name YaST2-Second-Stage.service
   <partitioning config:type="list">
     <drive>
       <device>/dev/sda</device>
+      <disklabel>gpt</disklabel>
       <initialize config:type="boolean">true</initialize>
       <partitions config:type="list">
         <partition>
