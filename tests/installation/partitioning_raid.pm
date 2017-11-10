@@ -159,6 +159,11 @@ sub run {
     # create partitioning
     send_key(is_storage_ng() ? $cmd{expertpartitioner} : $cmd{createpartsetup});
 
+    if (sle_version_at_least '15') {
+        assert_screen 'expertpartitioner_list';
+        send_key 'tab';
+        send_key 'ret';
+    }
     # With storage ng, we go directly to expert partitioner and invalidate configuration by rescan
     if (is_storage_ng) {
         send_key $cmd{rescandevices};              # Rescan devices
