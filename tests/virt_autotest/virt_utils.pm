@@ -24,7 +24,7 @@ use IO::File;
 use proxymode;
 use virt_autotest_base;
 
-our @EXPORT = qw(repl_repo_in_sourcefile);
+our @EXPORT = qw(update_guest_configurations_with_daily_build);
 
 sub get_version_for_daily_build_guest {
     my $version = '';
@@ -57,6 +57,28 @@ sub repl_repo_in_sourcefile {
     else {
         print "Do not need to change resource for $veritem item\n";
     }
+}
+
+sub repl_guest_autoyast_addon_with_daily_build_module {
+    #replace the addons url in guest autoyast file in qa_lib_virtauto-data with the daily build module repos
+    my $version = get_version_for_daily_build_guest;
+    $version =~ s/-/\//;
+    my $autoyast_root_dir = "/usr/share/qa/virtautolib/data/autoinstallation/sles/" . $version . "/";
+    my $command
+      = "for file in \`find $autoyast_root_dir -type f\`;do "
+      . "sed -ri 's#^.*(Basesystem|Desktop-Applications|Legacy|Server-Applications|Development-Tools).*\$#"
+      . "<media_url>http://openqa.suse.de/assets/repo/SLE-15-Module-\\1-POOL-x86_64-Build"
+      . get_required_var('BUILD')
+      . "-Media1/</media_url>#' \$file;done";
+    assert_script_run($command);
+    save_screenshot;
+    assert_script_run("grep media_url $autoyast_root_dir/* -r");
+    save_screenshot;
+}
+
+sub update_guest_configurations_with_daily_build {
+    repl_repo_in_sourcefile;
+    repl_guest_autoyast_addon_with_daily_build_module;
 }
 
 1;

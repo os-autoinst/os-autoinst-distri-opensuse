@@ -27,7 +27,7 @@ sub get_script_run {
 
 sub run {
     my $self = shift;
-    repl_repo_in_sourcefile();
+    update_guest_configurations_with_daily_build();
     $self->run_test(5400, "Host upgrade virtualization test pass", "no", "yes", "/var/log/qa/", "host-upgrade-postVerify-logs");
 }
 

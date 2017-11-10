@@ -44,7 +44,7 @@ sub run {
     my $self = shift;
     $self->update_package();
     set_serial_console_on_xen if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen"));
-    repl_repo_in_sourcefile();
+    update_guest_configurations_with_daily_build();
 }
 
 
