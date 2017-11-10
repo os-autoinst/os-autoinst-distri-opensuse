@@ -609,7 +609,7 @@ sub load_inst_tests {
         {
             loadtest "installation/system_role";
         }
-        if (is_sles4sap()) {
+        if (is_sles4sap() and sle_version_at_least('15')) {
             loadtest "installation/sles4sap_product_installation_mode";
         }
         loadtest "installation/partitioning";
