@@ -52,6 +52,14 @@ sub java_testing {
 
 sub run {
     my ($self) = @_;
+
+    # FF 56 no longer support NPAPI plugins, e.g. Java
+    if (sle_version_at_least('15') || leap_version_at_least('15.0')) {
+        record_info('NPAPI plugins not supported',
+            "FF 56 no longer supports supports NPAPI plugins, e.g. Java, so the test would fail in current distribution releases.");
+        return;
+    }
+
     $self->start_firefox;
 
     #Required only on sle, as open mozilla home page
