@@ -111,9 +111,9 @@ test_javac_alternatives () {
     javac_versions=$(rpm -qa | grep java | grep devel | grep -v debuginfo | wc -l)
     javac_alternatives=$(cat $LIST_ALL_JAVAC_ALTERNATIVES | wc -l)
     if [ $javac_versions -eq $javac_alternatives ]; then
-	echo "javac: PASS"
+        echo "javac: PASS"
     else
-	echo "javac: FAIL"
+        echo "javac: FAIL"
         echo "Debug:"
         echo "Number of java versions: $javac_versions and number of javac_alternatives $javac_alternatives"
         echo
@@ -121,7 +121,7 @@ test_javac_alternatives () {
         rpm -qa | grep java | grep devel | grep -v debuginfo
         echo "List all javac alternatives"
         cat $LIST_ALL_JAVAC_ALTERNATIVES
-	exit 1
+        exit 1
     fi
 }
 
@@ -132,10 +132,10 @@ test_javaplugin_alternatives () {
     java_plugins=$(rpm -qa | grep java | grep plugin | wc -l)
     javaplugin_alternatives=$(cat $LIST_ALL_JAVAPLUGIN_ALTERNATIVES | wc -l)
     if [ $java_plugins -eq $javaplugin_alternatives ]; then
-	echo "javaplugin: PASS"
+        echo "javaplugin: PASS"
     else
-	echo "javaplugin: FAIL"
-	exit 1
+        echo "javaplugin: FAIL"
+        exit 1
     fi
 }
 
@@ -151,15 +151,15 @@ test_javac_version_active () {
 
 check_version_active_vs_dot () {
     if [ $# -ne 2 ]; then
-	echo "Please pass version and executable name";
-	return;
+        echo "Please pass version and executable name";
+        return;
     fi
     version=$1
     name=$2
 
     dot_version_short=`echo $dot_version | awk -F '-' '{print $1}'`
     if [ $version == $dot_version_short ]; then
-	echo "check linked $name version: PASS"
+        echo "check linked $name version: PASS"
     else
         if [[ "$dot_version_short" == "1.7.1" ]]; then
             # Special Case
@@ -167,8 +167,13 @@ check_version_active_vs_dot () {
                 echo "check linked $name version: OK -> linked $name is: $version which is normal according to bnc#1014602"
             fi
         else
-	    echo "check linked $name version: FAIL -> linked $name is: $version should be $dot_version_short"
-	    exit 1
+            language_level=`echo $version | sed 's#\.#\ #g' | sed 's#\-#\ #g' | awk '{print $1}'`
+            if [ $language_level == $dot_version_short ]; then
+                echo "check linked $name version: OK -> linked $name is: $version and language level is $language_level"
+            else
+                echo "check linked $name version: FAIL -> linked $name is: $version should be $dot_version_short"
+                exit 1
+            fi
         fi
     fi
 }
@@ -209,10 +214,6 @@ for java_version in $(cat $LIST_ALL_INSTALLED_VERSIONS); do
         echo "SKIPPING. We do not test BSK Repo"
         continue
     fi
-    if [[ $java_version == *"-9-"* ]]; then
-        echo "SKIPPING. We do not test java-9-openjdk before the public release"
-        continue
-    fi
     # Current java under test
     dot_version=$(echo $java_version | awk -F '-' '{print $2 "-" $3}' | sed 's/_/./g')
     # Test if there's an alternativ for java, and if yes, set it as the current used one
@@ -249,13 +250,13 @@ for java_version in $(cat $LIST_ALL_INSTALLED_VERSIONS); do
     # Test if there's an alternativ for javaplugin, and if yes, set it as the current used one
     # So far, only java-ibm offers this
     if echo $java_version | grep ibm > /dev/null; then
-	    if grep $dot_version $LIST_ALL_JAVAPLUGIN_ALTERNATIVES > /dev/null; then
-		javaplugin=$(grep $dot_version $LIST_ALL_JAVAPLUGIN_ALTERNATIVES)
-		update-alternatives --set javaplugin $javaplugin
-	    else
-		echo "Error: java plugin alternative not found for $java_version"
-		exit 1
-	    fi
+        if grep $dot_version $LIST_ALL_JAVAPLUGIN_ALTERNATIVES > /dev/null; then
+            javaplugin=$(grep $dot_version $LIST_ALL_JAVAPLUGIN_ALTERNATIVES)
+            update-alternatives --set javaplugin $javaplugin
+        else
+            echo "Error: java plugin alternative not found for $java_version"
+            exit 1
+        fi
     fi
 
     # Test version active (linked)
