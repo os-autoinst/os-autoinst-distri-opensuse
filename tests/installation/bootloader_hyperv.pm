@@ -32,7 +32,7 @@ sub run {
     my $name                = $svirt->name;
 
     # Workaround before fix in svirt (https://github.com/os-autoinst/os-autoinst/pull/879) is deployed
-    set_var('NUMDISKS', get_var('RAIDLEVEL') ? 4 : 1);
+    set_var('NUMDISKS', defined get_var('RAIDLEVEL') ? 4 : 1);
 
     # Mount openQA NFS share to drive N:
     hyperv_cmd("if not exist N: ( mount \\\\openqa.suse.de\\var\\lib\\openqa\\share\\factory N: )");

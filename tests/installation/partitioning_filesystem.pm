@@ -39,7 +39,7 @@ sub run {
         # naturally sees it as a "disk". We have to uncheck the "CDROM".
         if (check_var('VIRSH_VMM_TYPE', 'linux')) {
             assert_screen 'select-hard-disk';
-            send_key 'alt-e';
+            send_key 'alt-d';
             send_key $cmd{next};
         }
         assert_screen 'partition-scheme';

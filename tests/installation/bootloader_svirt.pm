@@ -35,120 +35,63 @@ sub run {
     my $name  = $svirt->name;
     my $repo;
 
+    # Workaround before fix in svirt (https://github.com/os-autoinst/os-autoinst/pull/879) is deployed
+    set_var('NUMDISKS', defined get_var('RAIDLEVEL') ? 4 : 1);
+
     my $xenconsole = "hvc0";
     if (!get_var('SP2ORLATER')) {
         $xenconsole = "xvc0";
     }
 
-    if (get_var('NETBOOT')) {
-        my $cmdline = get_var('VIRSH_CMDLINE', '') . " ";
-
-        $repo = "$utils::OPENQA_FTP_URL/" . get_var('REPO_0');
-        $cmdline .= "install=$repo ";
-
-        if ($vmm_family eq 'xen' && $vmm_type eq 'linux') {
-            if (is_jeos) {
-                $cmdline .= "xenfb.video=4,1024,768 ";
-            }
-            else {
-                $cmdline .= 'xen-fbfront.video=32,1024,768 xen-kbdfront.ptr_size=1024,768 ';
-            }
-            $cmdline .= "console=$xenconsole console=tty ";
-        }
-        else {
-            $cmdline .= "console=ttyS0 console=tty ";
-        }
-
-        if (check_var('VIDEOMODE', 'text')) {
-            $cmdline .= "textmode=1 ";
-        }
-
-        if (get_var('EXTRABOOTPARAMS')) {
-            $cmdline .= get_var('EXTRABOOTPARAMS') . " ";
-        }
-
-        $svirt->change_domain_element(os => initrd => "/var/lib/libvirt/images/$name.initrd");
-        # <os><kernel>...</kernel></os> defaults to grub.xen, we need to remove
-        # content first if booting kernel diretly
-        if ($vmm_family eq 'xen' && $vmm_type eq 'linux') {
-            $svirt->change_domain_element(os => kernel => undef);
-        }
-        $svirt->change_domain_element(os => kernel  => "/var/lib/libvirt/images/$name.kernel");
-        $svirt->change_domain_element(os => cmdline => $cmdline);
-    }
-
-    my $hdddir = '/var/lib/openqa/share/factory/hdd /var/lib/openqa/share/factory/hdd/fixed';
-    my $size_i = get_var('HDDSIZEGB', '24');
-    my $dev_id = 'b';
-    # In JeOS we have the disk, we just need to deploy it, for the rest
-    # - installs from network and ISO media - we have to create it.
-    $svirt->change_domain_element(os => boot => {dev => 'hd'});
-    if (my $hddfile = get_var('HDD_1')) {
-        my $hddpath = copy_image($hddfile, $hdddir);
-        $svirt->add_disk(
-            {
-                file => ($vmm_family eq 'vmware') ? basename($hddpath) : $hddpath,
-                dev_id      => 'a',
-                backingfile => 1
-            });
-        foreach my $n (2 .. get_var('NUMDISKS')) {
-            if (my $extra_hdd = get_var('HDD_' . $n)) {
-                my $extra_hddpath = copy_image($extra_hdd, $hdddir);
-                $svirt->add_disk(
-                    {
-                        file => ($vmm_family eq 'vmware') ? basename($extra_hddpath) : $extra_hddpath,
-                        dev_id      => $dev_id,
-                        backingfile => 1
-                    });
-            }
-            else {
-                $svirt->add_disk(
-                    {
-                        size   => $size_i . 'G',
-                        create => 1,
-                        dev_id => $dev_id,
-                    });
-            }
-            $dev_id = chr((ord $dev_id) + 1);    # return next letter in alphabet
-        }
-    }
-    else {
-        $svirt->add_disk(
-            {
-                size   => $size_i . 'G',
-                create => 1,
-                dev_id => 'a'
-            });
-    }
-
-    $dev_id = 'c' if (ord($dev_id) < ord('c'));
+    my $dev_id = 'a';
     my $isodir = '/var/lib/openqa/share/factory/iso /var/lib/openqa/share/factory/iso/fixed';
     # In netinstall we don't have ISO media, for the rest we attach it, if it's defined
-    unless (get_var('NETBOOT')) {
-        if (my $isofile = get_var('ISO')) {
-            my $isopath = copy_image($isofile, $isodir);
+    if (my $isofile = get_var('ISO')) {
+        my $isopath = copy_image($isofile, $isodir);
+        $svirt->add_disk(
+            {
+                cdrom  => 1,
+                file   => ($vmm_family eq 'vmware') ? basename($isopath) : $isopath,
+                dev_id => $dev_id
+            });
+        $dev_id = chr((ord $dev_id) + 1);    # return next letter in alphabet
+        $svirt->change_domain_element(os => boot => {dev => 'cdrom'});
+    }
+    # Add addon media (if present at all)
+    foreach my $n (1 .. 9) {
+        if (my $addon_isofile = get_var("ISO_" . $n)) {
+            my $addon_isopath = copy_image($addon_isofile, $isodir);
             $svirt->add_disk(
                 {
                     cdrom  => 1,
-                    file   => ($vmm_family eq 'vmware') ? basename($isopath) : $isopath,
+                    file   => ($vmm_family eq 'vmware') ? basename($addon_isopath) : $addon_isopath,
                     dev_id => $dev_id
                 });
             $dev_id = chr((ord $dev_id) + 1);    # return next letter in alphabet
-            $svirt->change_domain_element(os => boot => {dev => 'cdrom'});
         }
-        # Add addon media (if present at all)
-        foreach my $n (1 .. 9) {
-            if (my $addon_isofile = get_var("ISO_" . $n)) {
-                my $addon_isopath = copy_image($addon_isofile, $isodir);
-                $svirt->add_disk(
-                    {
-                        cdrom  => 1,
-                        file   => ($vmm_family eq 'vmware') ? basename($addon_isopath) : $addon_isopath,
-                        dev_id => $dev_id
-                    });
-                $dev_id = chr((ord $dev_id) + 1);    # return next letter in alphabet
-            }
+    }
+
+    my $hdddir = '/var/lib/openqa/share/factory/hdd /var/lib/openqa/share/factory/hdd/fixed';
+    my $size_i = get_var('HDDSIZEGB', '10');
+    foreach my $n (1 .. get_var('NUMDISKS')) {
+        if (my $hdd = get_var('HDD_' . $n)) {
+            my $hddpath = copy_image($hdd, $hdddir);
+            $svirt->add_disk(
+                {
+                    backingfile => 1,
+                    dev_id      => $dev_id,
+                    file        => ($vmm_family eq 'vmware') ? basename($hddpath) : $hddpath
+                });
         }
+        else {
+            $svirt->add_disk(
+                {
+                    create => 1,
+                    dev_id => $dev_id,
+                    size   => $size_i . 'G'
+                });
+        }
+        $dev_id = chr((ord $dev_id) + 1);    # return next letter in alphabet
     }
 
     # We need to use 'tablet' as a pointer device, i.e. a device
@@ -257,31 +200,12 @@ sub run {
 
     $svirt->add_interface(\%ifacecfg);
 
-    if (get_var('NETBOOT')) {
-        my $loader = "loader";
-        my $xen    = "";
-        my $linux  = "linux";
-        if ($vmm_family eq 'xen' && $vmm_type eq 'linux') {
-            $loader = "";
-            $xen    = "-xen";
-            $linux  = "vmlinuz";
-        }
-        # Show this on screen. The sleeps are necessary for the main process
-        # to wait for the downloads otherwise it would continue and could
-        # start the VM with uncomplete kernel/initrd, and thus fail. The time
-        # to wait is pure guesswork.
-        type_string "wget $repo/boot/$arch/$loader/$linux$xen -O /var/lib/libvirt/images/$name.kernel\n";
-        assert_screen "kernel-saved";
-        type_string "wget $repo/boot/$arch/$loader/initrd$xen -O /var/lib/libvirt/images/$name.initrd\n";
-        assert_screen "initrd-saved";
-    }
-
     $svirt->define_and_start;
 
     # This sets kernel argument so needle-matching works on Xen PV. It's being
     # done via host's PTY device because we don't see anything unless kernel
     # sets framebuffer (this is a GRUB2's limitation bsc#961638).
-    if ($vmm_family eq 'xen' and $vmm_type eq 'linux' and !get_var('NETBOOT')) {
+    if ($vmm_family eq 'xen' and $vmm_type eq 'linux') {
         $svirt->suspend;
         my $cmdline = '';
         $cmdline .= 'textmode=1 ' if check_var('VIDEOMODE', 'text');
@@ -301,7 +225,7 @@ sub run {
             for (1 .. 4) { type_string "echo -en '\\033[B' > \$pty\n"; }    # four-times key down
         }
         else {
-            $cmdline .= 'linemode=0';                                       # workaround for bsc#1066919
+            $cmdline .= 'linemode=0 ';                                      # workaround for bsc#1066919
             for (1 .. 2) { type_string "echo -en '\\033[B' > \$pty\n"; }    # four-times key down
         }
         type_string "echo -en '\\033[K' > \$pty\n";                         # end of line
@@ -321,9 +245,8 @@ sub run {
 
     # If we connect to 'sut' VNC display "too early" the VNC server won't be
     # ready we will be left with a blank screen.
-    if ($vmm_family eq 'vmware') {
-        sleep 2;
-    }
+    sleep 2 if $vmm_family eq 'vmware';
+
     # connects to a guest VNC session
     select_console('sut', await_console => 0);
 }
