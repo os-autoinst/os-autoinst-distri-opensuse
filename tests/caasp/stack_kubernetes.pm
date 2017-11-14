@@ -27,17 +27,12 @@ sub run {
     assert_script_run "kubectl get nodes";
 
     # Check cluster size
-    # CaaSP 2.0 = %number_of_jobs - minus admin job
-    my $minion_count = get_required_var("STACK_SIZE") - 1;
-    if (is_caasp '1.0') {
-        # CaaSP 1.0 = %number_of_jobs - minus two (admin & master) jobs
-        $minion_count = get_required_var("STACK_SIZE") - 2;
-    }
-    assert_script_run "kubectl get nodes --no-headers | wc -l | grep $minion_count";
+    # %number_of_jobs - minus admin job
+    my $nodes_count = get_required_var("STACK_NODES");
+    assert_script_run "kubectl get nodes --no-headers | wc -l | grep $nodes_count";
 
     # Deploy nginx minimal application and check pods started succesfully
-    my $pods_count = $minion_count * 15;
-    $pods_count -= 15 if is_caasp '2.0+';    # Master node won't run pods
+    my $pods_count = get_required_var("STACK_MINIONS") * 15;
 
     assert_script_run "kubectl run nginx --image=nginx:alpine --replicas=$pods_count --port=80";
     type_string "kubectl get pods --watch\n";

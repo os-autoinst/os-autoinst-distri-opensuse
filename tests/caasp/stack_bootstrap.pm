@@ -18,6 +18,7 @@ use lockapi;
 use utils;
 use mmapi 'get_children_by_state';
 
+# Replace by https://progress.opensuse.org/issues/27409 when it's done
 sub wait_for_workers {
     my $children = @{get_children_by_state 'running'};
     die "Some worker job died" unless check_var('STACK_SIZE', $children);
@@ -28,7 +29,7 @@ sub accept_nodes {
     # Accept pending nodes
     assert_and_click 'velum-bootstrap-accept-nodes';
     # Nodes are moved from pending - minus admin job
-    my $nodes = get_var('STACK_SIZE') - 1;
+    my $nodes = get_required_var('STACK_NODES');
     assert_screen_with_soft_timeout("velum-$nodes-nodes-accepted", timeout => 90, soft_timeout => 45, bugref => 'bsc#1046663');
     mutex_create "NODES_ACCEPTED";
 }
@@ -59,40 +60,32 @@ sub select_master {
     sleep 2;
 
     # For 6+ node clusters select 2 more masters
-    if (is_caasp('2.0+') && get_var('STACK_SIZE') > 6) {
-        for (1 .. 2) {
-            assert_and_click 'master-role-button';
-            sleep 2;    # bsc#1066371 workaround
-        }
+    for (2 .. get_var('STACK_MASTERS')) {
+        assert_and_click 'master-role-button';
+        sleep 2;    # bsc#1066371 workaround
     }
 }
 
 # Run bootstrap and download kubeconfig
 sub bootstrap {
     # Start bootstrap
-    if (is_caasp '2.0+') {
-        # Click next button to 'Confirm bootstrap' page
-        send_key_until_needlematch 'velum-next', 'pgdn', 2, 5;
-        assert_and_click 'velum-next';
 
-        # Accept small-cluster warning
-        assert_and_click 'velum-botstrap-warning' if check_var('STACK_SIZE', 3);
+    # Click next button to 'Confirm bootstrap' page
+    send_key_until_needlematch 'velum-next', 'pgdn', 2, 5;
+    assert_and_click 'velum-next';
 
-        # Click bootstrap button
-        assert_screen 'velum-confirm-bootstrap';
+    # Accept small-cluster warning
+    assert_and_click 'velum-botstrap-warning' if check_var('STACK_NODES', 2);
 
-        # External Kubernetes API & Dashboard FQDN
-        for (1 .. 3) { send_key 'tab'; }
-        type_string 'master.openqa.test';
-        send_key 'tab';
-        type_string 'admin.openqa.test';
-        assert_and_click "velum-bootstrap";
-    }
-    else {
-        # Click bootstrap button [CaaSP 1.0]
-        send_key_until_needlematch "velum-bootstrap", "pgdn", 2, 5;
-        assert_and_click "velum-bootstrap";
-    }
+    # Click bootstrap button
+    assert_screen 'velum-confirm-bootstrap';
+
+    # External Kubernetes API & Dashboard FQDN
+    for (1 .. 3) { send_key 'tab'; }
+    type_string 'master.openqa.test';
+    send_key 'tab';
+    type_string 'admin.openqa.test';
+    assert_and_click "velum-bootstrap";
 
     # Wait until bootstrap finishes
     assert_screen [qw(velum-bootstrap-done velum-api-disconnected)], 900;
@@ -107,18 +100,18 @@ sub bootstrap {
 # Download kubeconfig
 sub kubectl_config {
     assert_and_click "velum-kubeconfig";
-    if (is_caasp '2.0+') {
-        unless (check_screen('velum-https-advanced', 5)) {
-            record_soft_failure 'bsc#1062542 - dex is not be ready yet';
-            sleep 30;
-            send_key 'f5';
-        }
-        confirm_insecure_https;
-        velum_login;
 
-        # Check that kubeconfig downloaded
-        assert_screen 'velum-kubeconfig-page';
+    unless (check_screen('velum-https-advanced', 5)) {
+        record_soft_failure 'bsc#1062542 - dex is not be ready yet';
+        sleep 30;
+        send_key 'f5';
     }
+    confirm_insecure_https;
+    velum_login;
+
+    # Check that kubeconfig downloaded
+    assert_screen 'velum-kubeconfig-page';
+
     # Download takes few seconds
     sleep 5;
     save_screenshot;

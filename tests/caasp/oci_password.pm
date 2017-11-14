@@ -14,17 +14,11 @@ use strict;
 use warnings;
 use parent qw(installation_user_settings y2logsstep);
 use testapi;
-use utils 'is_caasp';
 
 sub run {
     my ($self) = @_;
 
-    if (is_caasp '2.0+') {
-        check_var('VIDEOMODE', 'text') ? send_key 'alt-a' : send_key 'alt-w';
-    }
-    else {
-        send_key 'alt-a';
-    }
+    check_var('VIDEOMODE', 'text') ? send_key 'alt-a' : send_key 'alt-w';
     $self->type_password_and_verification;
     assert_screen "rootpassword-typed";
 }

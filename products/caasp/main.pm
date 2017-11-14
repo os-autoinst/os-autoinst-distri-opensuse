@@ -136,14 +136,20 @@ sub load_stack_tests {
 
 # Init cluster variables
 sub stack_init {
-    my $children   = get_children;
-    my $stack_size = keys %$children;
+    my $children      = get_children;
+    my $stack_size    = keys %$children;
+    my $stack_masters = $stack_size > 6 ? 3 : 1;             # For 6+ node clusters select 3 masters
+    my $stack_minions = $stack_size - $stack_masters - 1;    # Do not count admin node into minions
 
     # Die more explicitly if you restart controller job (because stack_size = 0)
     die "Stack test can be re-run by restarting admin job" unless $stack_size;
 
+    set_var "STACK_SIZE",    $stack_size;
+    set_var "STACK_NODES",   $stack_size - 1;
+    set_var "STACK_MASTERS", $stack_masters;
+    set_var "STACK_MINIONS", $stack_minions;
+
     barrier_create("WORKERS_INSTALLED", $stack_size);
-    set_var "STACK_SIZE", $stack_size;
 }
 
 if (get_var('STACK_ROLE')) {
