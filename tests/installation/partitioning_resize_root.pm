@@ -16,10 +16,16 @@ use strict;
 use warnings;
 use base "y2logsstep";
 use testapi;
+use utils 'is_storage_ng';
 
 sub run {
     die "Test needs at least 40 GB HDD size" unless (get_required_var('HDDSIZEGB') > 40);
     send_key $cmd{expertpartitioner};
+    if (is_storage_ng) {
+        # start with preconfigured partitions
+        send_key 'down';
+        send_key 'ret';
+    }
     assert_screen 'expert-partitioner';
     send_key_until_needlematch 'volume-management', 'down';
     send_key 'tab';
