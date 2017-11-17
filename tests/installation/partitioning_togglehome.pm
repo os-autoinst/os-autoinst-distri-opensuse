@@ -20,6 +20,13 @@ use utils 'is_storage_ng';
 sub run {
     wait_screen_change { send_key(is_storage_ng() ? 'alt-g' : 'alt-d') };    # open proposal settings
     if (is_storage_ng) {
+        # On Xen PV "CDROM" is of the same type as a disk block device so YaST
+        # naturally sees it as a "disk". We have to uncheck the "CDROM".
+        if (check_var('VIRSH_VMM_TYPE', 'linux')) {
+            assert_screen 'select-hard-disk';
+            send_key 'alt-d';
+            send_key $cmd{next};
+        }
         assert_screen 'partition-scheme';
         send_key $cmd{next};
         installation_user_settings::await_password_check if get_var('ENCRYPT');
@@ -30,7 +37,7 @@ sub run {
         send_key $new_radio_buttons ? 'alt-r' : 'alt-p';
     }
     assert_screen 'disabledhome';
-    send_key(is_storage_ng() ? 'alt-n' : 'alt-o');                           # finish editing settings
+    send_key(is_storage_ng() ? 'alt-n' : 'alt-o');    # finish editing settings
 }
 
 1;

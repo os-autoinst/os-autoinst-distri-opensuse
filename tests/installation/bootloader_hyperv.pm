@@ -31,6 +31,9 @@ sub run {
     my $hyperv_intermediary = select_console('hyperv-intermediary');
     my $name                = $svirt->name;
 
+    # Workaround before fix in svirt (https://github.com/os-autoinst/os-autoinst/pull/879) is deployed
+    set_var('NUMDISKS', defined get_var('RAIDLEVEL') ? 4 : 1);
+
     # Mount openQA NFS share to drive N:
     hyperv_cmd("if not exist N: ( mount \\\\openqa.suse.de\\var\\lib\\openqa\\share\\factory N: )");
 
@@ -77,8 +80,6 @@ sub run {
     }
 
     my $xvncport = get_required_var('VIRSH_INSTANCE');
-    my $hdd1     = get_var('HDD_1') ? 'd:\\cache\\' . basename(get_var('HDD_1')) =~ s/vhdfixed\.xz/vhd/r : undef;
-    my $hdd1size = get_var('HDDSIZEGB', 40);
     my $iso      = get_var('ISO') ? 'd:\\cache\\' . basename(get_var('ISO')) : undef;
     my $ramsize  = get_var('QEMURAM', 1024);
     my $cpucount = get_var('QEMUCPUS', 1);
@@ -104,33 +105,41 @@ sub run {
     hyperv_cmd("$ps Get-VM");
     hyperv_cmd("$ps Stop-VM -Force $name -TurnOff", {ignore_return_code => 1});
     hyperv_cmd("$ps Remove-VM -Force $name",        {ignore_return_code => 1});
-    hyperv_cmd("del d:\\cache\\${name}a.vhd d:\\cache\\${name}a.vhdx");
 
+    my $hddsize = get_var('HDDSIZEGB', 10);
+    my $vm_generation = get_var('UEFI') ? 2 : 1;
+    my $hyperv_switch_name = get_var('HYPERV_VIRTUAL_SWITCH', 'ExternalVirtualSwitch');
+    my @disk_paths = ();
     if ($winserver eq "2012") {
-        my $vm_generation = get_var('UEFI') ? 2 : 1;
-        my $hyperv_switch_name = get_var('HYPERV_VIRTUAL_SWITCH', 'ExternalVirtualSwitch');
-        if ($hdd1) {
-            my ($hddsuffix) = $hdd1 =~ /(\.[^.]+)$/;
-            hyperv_cmd("$ps New-VHD -ParentPath $hdd1 -Path d:\\cache\\${name}a$hddsuffix -Differencing");
-            hyperv_cmd("$ps New-VM -Name $name -Generation $vm_generation -VHDPath d:\\cache\\${name}a$hddsuffix "
-                  . "-SwitchName $hyperv_switch_name -MemoryStartupBytes ${ramsize}MB");
-        }
-        else {
-            hyperv_cmd("$ps New-VM -Name $name -Generation $vm_generation -NewVHDPath d:\\cache\\${name}a.vhdx "
-                  . "-NewVHDSizeBytes ${hdd1size}GB -SwitchName $hyperv_switch_name -MemoryStartupBytes ${ramsize}MB");
-            if (get_var('UEFI')) {
-                hyperv_cmd("$ps Add-VMDvdDrive -VMName $name -Path $iso");
+        for my $n (1 .. get_var('NUMDISKS')) {
+            hyperv_cmd("del /F d:\\cache\\${name}_${n}.vhd");
+            hyperv_cmd("del /F d:\\cache\\${name}_${n}.vhdx");
+            my $hdd = get_var("HDD_$n") ? 'd:\\cache\\' . basename(get_var("HDD_$n")) =~ s/vhdfixed\.xz/vhd/r : undef;
+            if ($hdd) {
+                my ($hddsuffix) = $hdd =~ /(\.[^.]+)$/;
+                my $disk_path = "d:\\cache\\${name}_${n}${hddsuffix}";
+                push @disk_paths, $disk_path;
+                hyperv_cmd("$ps New-VHD -ParentPath $hdd -Path $disk_path -Differencing");
             }
             else {
-                hyperv_cmd("$ps Remove-VMDvdDrive -VMName $name -ControllerNumber 1 -ControllerLocation 0");    # Removes DvdDrive on 1:0
-                hyperv_cmd("$ps Add-VMDvdDrive -VMName $name -Path $iso -ControllerNumber 0 -ControllerLocation 1");
+                my $disk_path = "d:\\cache\\${name}_${n}.vhdx";
+                push @disk_paths, $disk_path;
+                hyperv_cmd("$ps New-VHD -Path $disk_path -Dynamic -SizeBytes ${hddsize}GB");
             }
+        }
+        hyperv_cmd("$ps New-VM -VMName $name -Generation $vm_generation -SwitchName $hyperv_switch_name -MemoryStartupBytes ${ramsize}MB");
+        if ($iso) {
+            hyperv_cmd("$ps Add-VMDvdDrive -VMName $name") if get_var('UEFI');
+            hyperv_cmd("$ps Set-VMDvdDrive -VMName $name -Path $iso");
+        }
+        foreach my $disk_path (@disk_paths) {
+            hyperv_cmd("$ps Add-VMHardDiskDrive -VMName $name -Path $disk_path");
         }
         hyperv_cmd("$ps Set-VMComPort -VMName $name -Number 1 -Path '\\\\.\\pipe\\$name'");
         $vmguid = $svirt->get_cmd_output("$ps (Get-VM -VMName $name).id.guid");
     }
     else {
-        die "Hyper-V $winserver is not supported version";
+        die "Hyper-V $winserver is currently not supported";
     }
 
     # For Gen1 type machine: As we boot from IDE (then CD), HDD has to be connected to IDE

@@ -243,9 +243,16 @@ sub run {
         send_key "right" unless is_storage_ng;
         assert_screen 'partitioning_raid-hard_disks-unfolded';
         send_key "down";
+        # CDROM is xvda and is seen as a disk block devide, we have to skip it
+        if (check_var('VIRSH_VMM_TYPE', 'linux')) {
+            send_key 'down' for (1 .. 3);
+        }
     }
 
-    for (qw(vda vdb vdc vdd)) {
+    my @devices = qw(vda vdb vdc vdd);
+    @devices = qw(xvdb xvdc xvdd xvde) if check_var('VIRSH_VMM_FAMILY', 'xen');
+    @devices = qw(sda sdb sdc sdd)     if check_var('VIRSH_VMM_FAMILY', 'hyperv');
+    for (@devices) {
         send_key_until_needlematch "partitioning_raid-disk_$_-selected", "down";
         addpart('boot');
         # Need to navigate to the disk manually
