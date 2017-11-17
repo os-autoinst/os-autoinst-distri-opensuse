@@ -14,6 +14,7 @@
 use strict;
 use base "x11regressiontest";
 use testapi;
+use utils qw(leap_version_at_least sle_version_at_least);
 
 sub java_testing {
     my ($self) = @_;
