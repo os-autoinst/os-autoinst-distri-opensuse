@@ -41,6 +41,11 @@ sub wipe_existing_partitions_storage_ng {
 sub wipe_existing_partitions {
     assert_screen('release-notes-button');
     send_key match_has_tag('bsc#1054478') ? 'alt-x' : $cmd{expertpartitioner};
+    if (is_storage_ng) {
+        # start with existing configuration
+        send_key 'down';
+        send_key 'ret';
+    }
     assert_screen 'expert-partitioner';
     wait_still_screen;
     #Use storage ng

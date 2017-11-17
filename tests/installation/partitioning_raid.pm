@@ -116,6 +116,9 @@ sub set_lvm {
     send_key "shift-tab";
     # select LVM
     send_key "down";
+    if (is_storage_ng) {
+        send_key 'down' for (1 .. 3);
+    }
 
     # create volume group
     send_key "alt-d";
@@ -444,7 +447,6 @@ sub run {
         assert_screen 'acceptedpartitioning';
     }
 }
-
 
 1;
 # vim: set sw=4 et:
