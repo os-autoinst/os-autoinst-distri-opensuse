@@ -567,6 +567,10 @@ sub load_extra_tests {
         loadtest "console/zypper_moo";
         loadtest "console/gpg";
         loadtest "console/shells";
+        # MyODBC-unixODBC not available on < SP2 and sle 15
+        if (sle_version_at_least('12-SP2') && !(sle_version_at_least('15'))) {
+            loadtest "console/mysql_odbc";
+        }
         if (get_var("SYSAUTHTEST")) {
             # sysauth test scenarios run in the console
             loadtest "sysauth/sssd";
