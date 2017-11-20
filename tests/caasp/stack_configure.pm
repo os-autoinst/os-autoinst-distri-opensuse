@@ -15,7 +15,6 @@ use caasp_controller;
 use caasp 'get_admin_job';
 
 use strict;
-use utils 'is_caasp';
 use testapi;
 use lockapi;
 
@@ -24,16 +23,10 @@ sub velum_config {
     assert_screen 'velum-certificates-page';
 
     # Internal Dashboard FQDN/IP is pre-filled
-    for (1 .. 4) { send_key 'tab' }
-    if (is_caasp '1.0') {
-        # External Kubernetes API server FQDN
-        type_string "master.openqa.test";
-    }
-    else {
-        # Install Tiller
-        send_key 'tab';
-        send_key 'spc';
-    }
+    for (1 .. 5) { send_key 'tab' }
+
+    # Install Tiller
+    send_key 'spc';
 
     # Make sure next button is visible
     send_key 'pgdn';
