@@ -36,10 +36,6 @@ sub run {
     select_console('root-console');
     # Stop packagekit
     pkcon_quit;
-    if (script_run('test -f /etc/products.d/baseproduct')) {
-        record_soft_failure('bsc#1049164');
-        assert_script_run('ln -s /etc/products.d/SLES.prod /etc/products.d/baseproduct');
-    }
 }
 
 1;
