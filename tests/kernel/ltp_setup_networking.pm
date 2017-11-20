@@ -18,14 +18,33 @@ use testapi;
 use utils;
 
 sub install {
+    my @deps;
     # utils
-    zypper_call('in wget iptables psmisc tcpdump ethtool', log => 'utils.log');
+    @deps = qw(
+      ethtool
+      iptables
+      psmisc
+      tcpdump
+    );
+    zypper_call('-t in ' . join(' ', @deps) . ' | tee');
 
     # clients
-    zypper_call('in dhcp-client telnet', log => 'clients.log');
+    @deps = qw(
+      dhcp-client
+      telnet
+    );
+    zypper_call('-t in ' . join(' ', @deps) . ' | tee');
 
     # services
-    zypper_call('in dhcp-server dnsmasq nfs-kernel-server rpcbind rsync vsftpd', log => 'services.log');
+    @deps = qw(
+      dhcp-server
+      dnsmasq
+      nfs-kernel-server
+      rpcbind
+      rsync
+      vsftpd
+    );
+    zypper_call('-t in ' . join(' ', @deps) . ' | tee');
 }
 
 sub setup {
