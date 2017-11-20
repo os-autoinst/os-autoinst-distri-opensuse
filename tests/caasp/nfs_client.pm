@@ -60,7 +60,7 @@ sub run {
         }
         $script .= "echo -e \"/tmp/$a\\t/etc/auto.nfs\\t--timeout=10\" >> /etc/auto.master\n";
         $script .= "systemctl start autofs\n";
-        $script .= chkdir_strip("/tmp/$a/share");
+        $script .= chkdir_strip("/tmp/$a/share/");
 
         # autofs mount should be unmounted after 10 sec automatically
         $script .= "sleep 15\n";
