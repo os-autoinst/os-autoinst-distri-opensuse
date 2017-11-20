@@ -91,7 +91,7 @@ sub install_build_dependencies {
       libtirpc-devel
       make
     );
-    zypper_call('-t in ' . join(' ', @deps), log => 'install-deps.txt');
+    zypper_call('-t in ' . join(' ', @deps) . ' | tee');
 
     my @maybe_deps = qw(
       gcc-32bit
