@@ -1276,7 +1276,7 @@ sub handle_login {
         }
         type_string "root\n";
     }
-    if (get_var('DM_NEEDS_USERNAME')) {
+    if (get_var('DM_NEEDS_USERNAME') and !get_var('ROOTONLY')) {
         type_string "$username\n";
     }
     if (check_var('DESKTOP', 'gnome') || (check_var('DESKTOP', 'lxde') && check_var('VERSION', '42.1'))) {

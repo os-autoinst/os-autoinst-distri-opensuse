@@ -26,15 +26,19 @@ sub run {
 
     select_console 'root-console';
 
+    unless (tuned_is 'running') {
+        assert_script_run "saptune daemon start";
+    }
+
     die "Command 'saptune daemon status' returned unexpected output. Expected tuned to be running"
       unless (tuned_is 'running');
 
     assert_script_run "saptune daemon stop";
-    die "Command 'saptune daemon stop' couldn't stop tuned"
+    die "Command 'saptune daemon stop' didn't stop tuned"
       unless (tuned_is 'stopped');
 
     assert_script_run "saptune daemon start";
-    die "Command 'saptune daemon start' couldn't start tuned"
+    die "Command 'saptune daemon start' didn't start tuned"
       unless (tuned_is 'running');
 
     my $output = script_output "saptune solution list";

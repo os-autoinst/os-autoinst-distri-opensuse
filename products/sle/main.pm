@@ -609,6 +609,9 @@ sub load_inst_tests {
         {
             loadtest "installation/system_role";
         }
+        if (is_sles4sap() and sle_version_at_least('15')) {
+            loadtest "installation/sles4sap_product_installation_mode";
+        }
         loadtest "installation/partitioning";
         if (defined(get_var("RAIDLEVEL"))) {
             loadtest "installation/partitioning_raid";
@@ -672,7 +675,7 @@ sub load_inst_tests {
             loadtest "installation/logpackages";
         }
         if (is_sles4sap()) {
-            if (check_var("SLES4SAP_MODE", 'sles') or sle_version_at_least('15')) {
+            if (is_sles4sap_standard()) {
                 loadtest "installation/user_settings";
             }    # sles4sap wizard installation doesn't have user_settings step
         }
