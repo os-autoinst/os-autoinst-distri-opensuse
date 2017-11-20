@@ -40,28 +40,71 @@ sub add_we_repo_if_available {
 }
 
 sub install_runtime_dependencies {
-    my @deps = qw(acl binutils curl iputils net-tools numactl psmisc quota sudo
-      sssd-tools sysstat tpm-tools wget);
+    my @deps = qw(
+      acl
+      binutils
+      curl
+      iputils
+      net-tools
+      numactl
+      psmisc
+      quota
+      sssd-tools
+      sudo
+      sysstat
+      tpm-tools
+      wget
+    );
     zypper_call('-t in ' . join(' ', @deps) . ' | tee');
 
     # kernel-default-extra are only for SLE (in WE)
     # net-tools-deprecated are not available for SLE15
     # ntfsprogs are for SLE in WE, openSUSE has it in default repository
-    my @maybe_deps = qw(kernel-default-extra net-tools-deprecated ntfsprogs);
+    my @maybe_deps = qw(
+      kernel-default-extra
+      net-tools-deprecated
+      ntfsprogs
+    );
+
     for my $dep (@maybe_deps) {
         script_run('zypper -n -t in ' . $dep . ' | tee');
     }
 }
 
 sub install_build_dependencies {
-    my @deps = qw(git-core make automake autoconf gcc expect libnuma-devel
-      libaio-devel flex bison kernel-default-devel libopenssl-devel libselinux-devel
-      libacl-devel libtirpc-devel keyutils-devel libcap-devel);
+    my @deps = qw(
+      autoconf
+      automake
+      bison
+      expect
+      flex
+      gcc
+      git-core
+      kernel-default-devel
+      keyutils-devel
+      libacl-devel
+      libaio-devel
+      libcap-devel
+      libnuma-devel
+      libopenssl-devel
+      libselinux-devel
+      libtirpc-devel
+      make
+    );
     zypper_call('-t in ' . join(' ', @deps), log => 'install-deps.txt');
 
-    my @maybe_deps = qw(gcc-32bit libnuma-devel-32bit libaio-devel-32bit
-      libopenssl-devel-32bit kernel-default-devel-32bit libselinux-devel-32bit
-      libacl-devel-32bit libtirpc-devel-32bit keyutils-devel-32bit libcap-devel-32bit);
+    my @maybe_deps = qw(
+      gcc-32bit
+      kernel-default-devel-32bit
+      keyutils-devel-32bit
+      libacl-devel-32bit
+      libaio-devel-32bit
+      libcap-devel-32bit
+      libnuma-devel-32bit
+      libopenssl-devel-32bit
+      libselinux-devel-32bit
+      libtirpc-devel-32bit
+    );
     for my $dep (@maybe_deps) {
         script_run('zypper -n -t in ' . $dep . ' | tee');
     }
