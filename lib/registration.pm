@@ -162,6 +162,8 @@ sub fill_in_registration_data {
                 else {
                     wait_screen_change { send_key $cmd{next} };
                 }
+                # Remove tag from array not to match twice
+                @tags = grep { $_ ne 'registration-online-repos' } @tags;
                 next;
             }
             elsif (match_has_tag('module-selection')) {
