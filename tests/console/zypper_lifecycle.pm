@@ -38,14 +38,22 @@ sub run {
 
     # select a package suitable for the following test
     # the package must be installed from base product repo
-    my $base_repos = script_output 'echo $(zypper -n -x se -i -t product -s ' . $prod . ' |grep repository= | sed -e \'s|.*repository="\([^"]*\)".*|\1|\' )',
-      300;
-    my $package
-      = script_output 'echo $(for repo in '
-      . $base_repos
-      . ' ; do zypper -n -x se -t package -i -s -r $repo ; done | grep name= | head -n 1 |sed -e \'s|.*name="\([^"]*\)".*|\1|\' )', 300;
+    my ($base_repos, $package);
+    my $output = script_output 'echo $(zypper -n -x se -i -t product -s ' . $prod . ')', 300;
+    # Parse base repositories
+    if (my @repos = $output =~ /repository="([\w-]+)"/g) {
+        $base_repos = join(" ", @repos);
+    }
 
-    die "No suitable package found" unless $package;
+    die "Got malformed repo list:\n $output" unless $base_repos;
+
+    $output = script_output 'echo $(for repo in ' . $base_repos . ' ; do zypper -n -x se -t package -i -s -r $repo ; done )', 300;
+    # Parse package name
+    if ($output =~ /name="(?<package>[\w-]+)"/) {
+        $package = $+{package};
+    }
+
+    die "No suitable package found. Script output:\n$output" unless $package;
 
     my $testdate        = '2020-02-03';
     my $testdate_after  = '2020-02-04';
@@ -60,7 +68,7 @@ sub run {
     echo '$package, *, $testdate' > /var/lib/lifecycle/data/$prod.lifecycle";
     # verify eol from lifecycle data
     select_console 'user-console';
-    my $output = script_output "zypper lifecycle $package", 300;
+    $output = script_output "zypper lifecycle $package", 300;
     die "$package lifecycle entry incorrect:$output" unless $output =~ /$package(-\S+)?\s+$testdate/;
 
     # test that the package is reported if we query the date after
@@ -128,6 +136,14 @@ sub run {
 
 sub test_flags {
     return {milestone => 1};
+}
+
+sub post_fail_hook {
+    my ($self) = shift;
+    $self->SUPER::post_fail_hook;
+    # Additionally collect executed scripts
+    assert_script_run 'tar -cf /tmp/script_output.tgz /tmp/*.sh';
+    upload_logs '/tmp/script_output.tgz';
 }
 
 1;
