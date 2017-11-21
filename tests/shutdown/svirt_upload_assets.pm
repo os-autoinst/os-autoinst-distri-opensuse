@@ -54,7 +54,7 @@ sub run {
         if (($format ne 'raw') and ($format ne 'qcow2')) {
             next;
         }
-        push @toextract, {name => $name, format => $format, svirt_name => $svirt->name . chr(ord('a') + $i - 1)};
+        push @toextract, {name => $name, format => $format, svirt_name => $svirt->name . chr(ord('b') + $i - 1)};
     }
     for my $asset (@toextract) {
         extract_assets($asset);
