@@ -41,7 +41,7 @@ sub run {
     my ($base_repos, $package);
     my $output = script_output 'echo $(zypper -n -x se -i -t product -s ' . $prod . ')', 300;
     # Parse base repositories
-    if (my @repos = $output =~ /repository="([\w-]+)"/g) {
+    if (my @repos = $output =~ /repository="(.+)"/g) {
         $base_repos = join(" ", @repos);
     }
 
@@ -49,7 +49,7 @@ sub run {
 
     $output = script_output 'echo $(for repo in ' . $base_repos . ' ; do zypper -n -x se -t package -i -s -r $repo ; done )', 300;
     # Parse package name
-    if ($output =~ /name="(?<package>[\w-]+)"/) {
+    if ($output =~ /name="(?<package>.+)"/) {
         $package = $+{package};
     }
 
