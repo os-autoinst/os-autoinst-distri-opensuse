@@ -35,12 +35,11 @@ sub run {
     my $abbrv   = "tcm";
     my $module  = get_addon_fullname("$abbrv");
     my $version = get_required_var('VERSION') =~ s/([0-9]+).*/$1/r;
-    my $arch    = get_required_var('ARCH');
     die "$module needs to be part of SCC_ADDONS for this test" unless check_var_array('SCC_ADDONS', $abbrv);
     assert_script_run("SUSEConnect --status-text | grep -A 3 $module | grep \"^\\s*Registered\"", 200);
 
     # deregister the module and check if it is successful
-    assert_script_run "SUSEConnect --de-register --product $module/$version/$arch";
+    add_suseconnect_product($module, $version, get_required_var('ARCH'), "--de-register");
 
     # check if ONE module is deregistered
     my $count_dereg = script_output("SUSEConnect --status-text | grep -c \"^\\s*Registered\"", 200);

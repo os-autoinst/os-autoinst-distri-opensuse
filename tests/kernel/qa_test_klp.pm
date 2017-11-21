@@ -15,6 +15,7 @@ use warnings;
 use base 'opensusebasetest';
 use testapi;
 use utils;
+use registration;
 
 sub run {
     my $git_repo = get_required_var('QA_TEST_KLP_REPO');
@@ -25,9 +26,7 @@ sub run {
     zypper_call('in -l bats hiworkload');
 
     if (check_var('DISTRI', 'sle') and get_var('INCIDENT_PATCH', '')) {
-        my $version = get_required_var('VERSION') =~ s/-SP/\./gr;
-        my $arch    = get_required_var('ARCH');
-        assert_script_run("SUSEConnect -p sle-sdk/" . $version . "/" . $arch);
+        add_suseconnect_product("sle-sdk");
     }
 
     zypper_call('in -l git gcc kernel-devel make');

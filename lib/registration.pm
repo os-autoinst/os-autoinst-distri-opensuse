@@ -24,6 +24,7 @@ use testapi;
 use utils qw(addon_decline_license assert_screen_with_soft_timeout sle_version_at_least);
 
 our @EXPORT = qw(
+  add_suseconnect_product
   fill_in_registration_data
   registration_bootloader_cmdline
   registration_bootloader_params
@@ -80,6 +81,19 @@ sub accept_addons_license {
             send_key $cmd{next};
         }
     }
+}
+
+=head2 add_suseconnect_product
+
+    add_suseconnect_product($name, [$version, [$arch, [$params]]]);
+
+Wrapper for SUSEConnect -p $name.
+=cut
+sub add_suseconnect_product {
+    my ($name, $version, $arch, $params) = @_;
+    $version //= scc_version();
+    $arch //= get_required_var('ARCH');
+    assert_script_run("SUSEConnect -p $name/$version/$arch $params");
 }
 
 sub register_addons {
