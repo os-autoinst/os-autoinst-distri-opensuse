@@ -1000,31 +1000,61 @@ sub load_slenkins_tests {
 
 sub load_ha_cluster_tests {
     return unless (get_var("HA_CLUSTER"));
+    loadtest "boot/boot_to_desktop";
     loadtest "ha/wait_support_server";
-    loadtest "installation/first_boot";
     loadtest "console/consoletest_setup";
     loadtest "console/hostname" unless is_bridged_networking;
+
+    # Update the image if needed
+    if (get_var("FULL_UPDATE")) {
+        loadtest "update/zypper_up";
+        loadtest "console/console_reboot";
+    }
+
+    # SLE15 workarounds
+    loadtest "ha/sle15_workarounds" if sle_version_at_least('15');
+
+    # Basic configuration
     loadtest "ha/firewall_disable";
     loadtest "ha/ntp_client";
     loadtest "ha/iscsi_client";
     loadtest "ha/watchdog";
+
+    # Cluster initilisation
     if (get_var("HA_CLUSTER_INIT")) {
-        loadtest "ha/ha_cluster_init";    # Node1 creates a cluster
+        # Node1 creates a cluster
+        loadtest "ha/ha_cluster_init";
     }
     else {
-        loadtest "ha/ha_cluster_join";    # Node2 joins the cluster
+        # Node2 joins the cluster
+        loadtest "ha/ha_cluster_join";
     }
+
+    # Lock manager configuration
     loadtest "ha/dlm";
-    loadtest "ha/clvm";
-    loadtest "ha/ocfs2";
-    loadtest "ha/drbd";
+
+    # Test cluster-md feature
+    loadtest "ha/cluster_md";
+    loadtest "ha/clvm_cluster_md";
+    loadtest "ha/filesystem_cluster_md";
+
+    # Test DRBD feature
+    if (get_var("HA_CLUSTER_DRBD")) {
+        loadtest "ha/drbd_passive";
+        loadtest "ha/filesystem_drbd_passive";
+    }
+
+    # Show HA cluster status before fencing test
     loadtest "ha/crm_mon";
+
+    # Test fencing feature
     loadtest "ha/fencing";
     if (!get_var("HA_CLUSTER_JOIN")) {
         # Node1 will be fenced
-        loadtest "ha/fencing_boot";
+        loadtest "ha/fencing_boot_to_desktop";
         loadtest "ha/fencing_consoletest_setup";
     }
+
     # Check_logs must be after ha/fencing
     loadtest "ha/check_logs";
 

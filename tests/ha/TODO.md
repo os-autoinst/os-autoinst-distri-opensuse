@@ -1,8 +1,6 @@
-- Change cLVM test to use a bigger size in 'dd'
-- Change OCFS2 test to use clustered VG/LV if cLVM test is used (detection?)
-- Improve DRBD test by adding a filesystem ontop of it and write/compare data,
-  and by also adding (c)LVM ontop of DRBD device
-- Add cluster-md test
+- Add a 'remove node' test after fencing (for 2 nodes cluster or more, so the node02 will always be removed)
+- Add a 'remove all resources but stonith' test to be able to clear the cluster configuration at the end. This will let us the option to re-use the VMs for SAPA HANA tests for example
+- Add a DRBD active/active test + cLVM ontop of a DRBD device
 - Add upgrade/update test from SPn-1 to SPn version of SLE:
   * update SPn-1 to latest version
   * upgrade SPn-1 to SPn

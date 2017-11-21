@@ -1,10 +1,11 @@
-resource r0 {
-  device    /dev/drbd0;
+resource drbd_passive {
+  protocol  C;
+  device    /dev/drbd_passive minor 0;
   meta-disk internal;
 
   on %NODE_01% {
-    address  %ADDR_NODE_01%:7788;
-    disk     %DRBD_LUN_01%;
+    address %ADDR_NODE_01%:7788;
+    disk    %DRBD_LUN_01%;
     node-id 0;
   }
 
@@ -16,6 +17,9 @@ resource r0 {
 
   disk {
     resync-rate 10M;
+    no-md-flushes;
+    no-disk-flushes;
+    no-disk-barrier;
   }
 
   connection-mesh {

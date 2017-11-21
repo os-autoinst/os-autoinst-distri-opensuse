@@ -10,32 +10,26 @@
 # Summary: Configure software watchdog
 # Maintainer: Loic Devulder <ldevulder@suse.com>
 
-use base 'hacluster';
+use base 'opensusebasetest';
 use strict;
 use testapi;
-use lockapi;
+use hacluster;
 
 sub run {
+    my $module = 'softdog';
+
     # Configure the software watchdog
-    script_run 'echo softdog > /etc/modules-load.d/softdog.conf';
+    script_run "echo $module > /etc/modules-load.d/$module.conf";
+    script_run "echo 'options $module soft_margin=$softdog_timeout' > /etc/modprobe.d/99-$module.conf";
     script_run 'systemctl restart systemd-modules-load.service';
 
     # Softdog module needs to be loaded
-    assert_script_run 'lsmod | grep -q softdog';
-}
+    # Note: 'grep -q' is not always working, because it can exits with RC=141 due to the pipe...
+    type_string "dmesg | grep -i $module\n";
+    assert_script_run "lsmod | grep $module";
 
-sub test_flags {
-    return {milestone => 1, fatal => 1};
-}
-
-sub post_fail_hook {
-    my $self = shift;
-
-    # Save a screenshot before trying further measures which might fail
+    # Keep the screenshot for this test
     save_screenshot;
-
-    # Try to save logs as a last resort
-    $self->export_logs();
 }
 
 1;

@@ -1,0 +1,39 @@
+resource drbd_active {
+  protocol  C;
+  device    /dev/drbd_active minor 1;
+  meta-disk internal;
+
+  startup {
+    become-primary-on both;
+  }
+
+  net {
+    # allow-two-primaries;
+    after-sb-0pri discard-zero-changes;
+    after-sb-1pri discard-secondary;
+    after-sb-2pri disconnect;
+  }
+
+  on %NODE_01% {
+    address %ADDR_NODE_01%:7789;
+    disk    %DRBD_LUN_01%;
+    node-id 0;
+  }
+
+  on %NODE_02% {
+    address %ADDR_NODE_02%:7789;
+    disk    %DRBD_LUN_02%;
+    node-id 1;
+  }
+
+  disk {
+    resync-rate 10M;
+    no-md-flushes;
+    no-disk-flushes;
+    no-disk-barrier;
+  }
+
+  connection-mesh {
+    hosts %NODE_01% %NODE_02%;
+  }
+}

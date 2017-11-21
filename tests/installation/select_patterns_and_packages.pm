@@ -70,7 +70,7 @@ sub gotopatterns {
 
     assert_screen 'pattern_selector';
     if (check_var('VIDEOMODE', 'text')) {
-        send_key 'alt-f';
+        wait_screen_change { send_key 'alt-f' };
         for (1 .. 4) { send_key 'up'; }
         send_key 'ret';
         assert_screen 'patterns-list-selected';

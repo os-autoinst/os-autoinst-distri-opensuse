@@ -10,12 +10,15 @@
 # Summary: Configure iSCSI target for HA tests
 # Maintainer: Loic Devulder <ldevulder@suse.com>
 
-use base 'hacluster';
+use base 'opensusebasetest';
 use strict;
+use utils;
 use testapi;
+use hacluster;
 
 sub run {
-    my $self = shift;
+    # Installation of iSCSI client package(s) if needed
+    zypper_call 'in yast2-iscsi-client';
 
     # Configuration of iSCSI client
     script_run("yast2 iscsi-client; echo yast2-iscsi-client-status-\$? > /dev/$serialdev", 0);
@@ -45,39 +48,23 @@ sub run {
     assert_screen 'iscsi-client-target-list';
     send_key 'alt-e';    # connEct
     assert_screen 'iscsi-client-target-startup';
-    send_key 'alt-s';    # Startup
-    wait_still_screen 3;
+    wait_screen_change { send_key 'alt-s' };    # Startup
     send_key 'down';
     wait_still_screen 3;
-    send_key 'down';     # Select 'automatic'
+    send_key 'down';                            # Select 'automatic'
     assert_screen 'iscsi-client-target-startup-automatic-selected';
     send_key 'ret';
     wait_still_screen 3;
-    send_key 'alt-n';    # Next
+    send_key 'alt-n';                           # Next
 
     # Go to Discovered Targets screen can take time
     assert_screen 'iscsi-client-target-connected', 120;
-    send_key 'alt-o';    # Ok
+    send_key 'alt-o';                           # Ok
     wait_still_screen 3;
     wait_serial('yast2-iscsi-client-status-0', 90) || die "'yast2 iscsi-client' didn't finish";
 
     # iSCSI LUN must be present
-    $self->clear_and_verify_console;
     assert_script_run 'ls -1 /dev/disk/by-path/ip-*-lun-*';
-}
-
-sub test_flags {
-    return {milestone => 1, fatal => 1};
-}
-
-sub post_fail_hook {
-    my $self = shift;
-
-    # Save a screenshot before trying further measures which might fail
-    save_screenshot;
-
-    # Try to save logs as a last resort
-    $self->export_logs();
 }
 
 1;
