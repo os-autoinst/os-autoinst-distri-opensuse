@@ -43,7 +43,6 @@ sub install_runtime_dependencies {
     my @deps = qw(
       acl
       binutils
-      curl
       iputils
       net-tools
       numactl
