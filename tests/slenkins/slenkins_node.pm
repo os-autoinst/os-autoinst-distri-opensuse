@@ -75,6 +75,8 @@ sub run {
           .= "zypper -n --no-gpg-checks in " . join(' ', split(/[\s,]+/, get_var('SLENKINS_INSTALL'))) . "\n";
     }
 
+    my $firewallservice = check_var('VERSION', '15') ? 'firewalld' : 'SuSEFirewall2';
+
     $conf_script .= "
         useradd -m testuser
         mkdir /root/.ssh
@@ -86,8 +88,8 @@ sub run {
         chmod 700 /root/.ssh
         chmod 600 /home/testuser/.ssh/*
         chmod 700 /home/testuser/.ssh
-        systemctl disable SuSEfirewall2 || true # SLE-15 doesn't have SuSEfirewall2 pkgs anymore
-        systemctl stop SuSEfirewall2 || true    # SLE-15 doesn't have SuSEfirewall2 pkgs anymore
+        systemctl disable $firewallservice
+        systemctl stop $firewallservice
         systemctl restart sshd
     ";
     script_output($conf_script, 100);
