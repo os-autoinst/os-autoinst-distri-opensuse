@@ -282,13 +282,16 @@ sub record_ltp_result {
         $self->{result}                   = 'fail';
         $export_details->{test}->{result} = 'TFAIL';
     }
+    elsif ($results->{tpass}) {
+        $export_details->{status} = 'pass';
+        $export_details->{test}->{result} = 'TPASS';
+    }
     elsif ($results->{tconf}) {
         $details->{result} = 'unk';
         $export_details->{test}->{result} = 'TCONF';
     }
     else {
-        $export_details->{status} = 'pass';
-        $export_details->{test}->{result} = 'TPASS';
+        die 'No LTP test result was parsed from the log';
     }
 
     say $fh "Test took approximately $duration seconds";
