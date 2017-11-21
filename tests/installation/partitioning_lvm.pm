@@ -16,7 +16,7 @@ use strict;
 use warnings;
 use parent qw(installation_user_settings y2logsstep);
 use testapi;
-use utils qw(sle_version_at_least is_storage_ng leap_version_at_least);
+use utils qw(sle_version_at_least is_storage_ng leap_version_at_least is_tumbleweed);
 
 sub save_logs_and_resume {
     my $self = shift;
@@ -100,7 +100,7 @@ sub run {
             assert_screen "inst-select-root-disk";
             send_key 'alt-n';
         }
-        if (leap_version_at_least('15.0')) {
+        if (leap_version_at_least('15.0') || is_tumbleweed) {
             send_key 'alt-a';
         }
         else {
@@ -108,7 +108,7 @@ sub run {
         }
         assert_screen "inst-partitioning-lvm-enabled";
         if (get_var("ENCRYPT")) {
-            if (leap_version_at_least('15.0')) {
+            if (leap_version_at_least('15.0') || is_tumbleweed) {
                 send_key 'alt-l';
             }
             else {
