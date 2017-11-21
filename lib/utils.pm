@@ -57,6 +57,7 @@ our @EXPORT = qw(
   ensure_unlocked_desktop
   leap_version_at_least
   sle_version_at_least
+  scc_version
   install_to_other_at_least
   ensure_fullscreen
   ensure_shim_import
@@ -528,6 +529,19 @@ sub sle_version_at_least {
           && !check_var($version_variable, '12-SP4');
     }
     die "unsupported SLE $version_variable $version in check";
+}
+
+=head2 scc_version
+
+    scc_version([$version]);
+
+Helper for parsing SLE RC version into integer. It replaces SLE version
+in format X-SPY into X.Y.
+=cut
+sub scc_version {
+    my $version = shift;
+    $version //= get_required_var('VERSION');
+    return $version =~ s/-SP/./gr;
 }
 
 # To cope with staging version naming and this method should only be used
