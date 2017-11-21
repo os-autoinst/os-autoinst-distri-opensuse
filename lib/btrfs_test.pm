@@ -21,8 +21,10 @@ sub set_playground_disk {
             $vd = 'sd';
         }
         assert_script_run 'parted --script --machine -l';
-        my $disk = script_output 'parted --script --machine -l |& sed -n \'s@^\(/dev/' . $vd . '[ab]\):.*unknown.*$@\1@p\'';
-        set_var('PLAYGROUNDDISK', $disk);
+        my $output = script_output 'parted --script --machine -l';
+        # Parse playground disk
+        $output =~ m|(?<disk>/dev/$vd[ab]):.*unknown.*| || die "Failed to parse playground disk, got following output:\n$output";
+        set_var('PLAYGROUNDDISK', $+{disk});
     }
 }
 

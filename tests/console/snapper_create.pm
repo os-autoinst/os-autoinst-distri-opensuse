@@ -15,11 +15,21 @@ use base 'btrfs_test';
 use testapi;
 use utils;
 
+sub get_last_snap_number {
+    # In many cases script output returns not only script execution results
+    # but other data which was written to serial device. We have to ensure
+    # that we got what we expect. See poo#25716
+    my $output = script_output("snapper list | tail -n1 | awk '{ print \">>>\" \$3 \"<<<\" }'");
+    if ($output =~ />>>(?<snap_number>\d+)<<</) {
+        return $+{snap_number};
+    }
+    die "Could not get last snapshot number, got following output:\n$output";
+}
+
 sub run {
     select_console 'root-console';
 
-    my $get_last_snap_number = "snapper list | tail -n1 | awk '{ print \$3 }'";
-    my @snapper_cmd          = "snapper create";
+    my @snapper_cmd = "snapper create";
     my @snap_numbers;
     my $first_snap_to_delete;
     foreach my $type ('single', 'command', 'pre', 'post') {
@@ -33,12 +43,12 @@ sub run {
             push @snapper_cmd, "--print-number --description \"$description\"";
             push @snapper_cmd, "--userdata \"$description\"";
             assert_script_run(join ' ', @snapper_cmd);
-            $first_snap_to_delete = script_output($get_last_snap_number) unless $first_snap_to_delete;
+            $first_snap_to_delete = get_last_snap_number() unless ($first_snap_to_delete);
             assert_script_run("snapper list | tail -n1");
             for (1 .. 3) { pop @snapper_cmd; }
             if ($type eq 'pre') {
                 # Add last snapshot id for pre type
-                push @snap_numbers, script_output($get_last_snap_number);
+                push @snap_numbers, get_last_snap_number();
             }
         }
         pop @snapper_cmd if ($type eq 'post');
@@ -46,7 +56,7 @@ sub run {
     }
     assert_script_run("snapper list");
     # Delete all those snapshots we just created so other tests are not confused
-    assert_script_run("snapper delete --sync $first_snap_to_delete-" . script_output($get_last_snap_number));
+    assert_script_run("snapper delete --sync $first_snap_to_delete-" . get_last_snap_number());
     assert_script_run("snapper list");
 }
 
