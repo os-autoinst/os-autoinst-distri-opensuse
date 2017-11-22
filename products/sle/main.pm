@@ -7,6 +7,7 @@
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
+
 use strict;
 use warnings;
 use testapi qw(check_var get_var get_required_var set_var check_var_array diag);
@@ -27,36 +28,6 @@ use main_common;
 
 init_main();
 
-sub is_server {
-    return 1 if is_sles4sap();
-    return 1 if get_var('FLAVOR', '') =~ /^Server/;
-    return 0 unless is_leanos();
-    return check_var('SLE_PRODUCT', 'sles');
-}
-
-sub is_desktop {
-    return get_var('FLAVOR', '') =~ /^Desktop/ || check_var('SLE_PRODUCT', 'sled');
-}
-
-sub is_leanos {
-    return 1 if get_var('FLAVOR', '') =~ /^Leanos/;
-    return 1 if get_var('FLAVOR', '') =~ /^Installer-/;
-    return 0;
-}
-
-sub is_sles4sap {
-    return get_var('FLAVOR', '') =~ /SAP/ || check_var('SLE_PRODUCT', 'sles4sap');
-}
-
-sub is_sles4sap_standard {
-    return is_sles4sap && check_var('SLES4SAP_MODE', 'sles');
-}
-
-sub is_smt {
-    # Smt is replaced with rmt in SLE 15, see bsc#1061291
-    return ((get_var("PATTERNS", '') || get_var('HDD_1', '')) =~ /smt/) && !sle_version_at_least('15');
-}
-
 sub is_updates_tests {
     my $flavor = get_required_var('FLAVOR');
     # Incidents might be also Incidents-Gnome or Incidents-Kernel
@@ -69,31 +40,6 @@ sub is_new_installation {
 
 sub is_update_test_repo_test {
     return get_var('TEST') !~ /^mru-/ && is_updates_tests && get_required_var('FLAVOR') !~ /-Minimal$/;
-}
-
-sub is_desktop_module_selected {
-    # desktop applications module is selected if following variables have following values:
-    # productivity and ha require desktop applications, so it's preselected
-    # same is true for sles4sap
-    return
-         get_var('ADDONS', '') =~ /all-packages|desktop|we/
-      || get_var('WORKAROUND_MODULES', '') =~ /desktop|we/
-      || get_var('ADDONURL',           '') =~ /desktop|we/
-      || get_var('SCC_ADDONS',         '') =~ /desktop|we|productivity|ha/
-      || is_sles4sap;
-}
-
-sub default_desktop {
-    return undef   if get_var('VERSION', '') lt '12';
-    return 'gnome' if get_var('VERSION', '') lt '15';
-    # with SLE 15 LeanOS only the default is textmode
-    return 'gnome' if get_var('BASE_VERSION', '') =~ /^12/;
-    return 'textmode' if (get_var('SYSTEM_ROLE') && !check_var('SYSTEM_ROLE', 'default'));
-    return 'gnome' if is_desktop_module_selected;
-    # default system role for sles and sled
-    return 'textmode' if is_server || !get_var('SCC_REGISTER') || !check_var('SCC_REGISTER', 'installation');
-    # remaining cases are is_desktop and check_var('SCC_REGISTER', 'installation'), hence gnome
-    return 'gnome';
 }
 
 sub cleanup_needles {
@@ -415,38 +361,6 @@ logcurrentenv(
       SLE_PRODUCT SPLITUSR VIDEOMODE)
 );
 
-
-sub need_clear_repos {
-    return get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/ && get_var("SUSEMIRROR");
-}
-
-sub have_scc_repos {
-    return check_var('SCC_REGISTER', 'console');
-}
-
-sub have_addn_repos {
-    return
-         !get_var("NET")
-      && !get_var("EVERGREEN")
-      && get_var("SUSEMIRROR")
-      && !get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/;
-}
-
-sub rt_is_applicable {
-    return is_server() && get_var("ADDONS", "") =~ /rt/;
-}
-
-sub we_is_applicable {
-    return
-         is_server()
-      && (get_var("ADDONS", "") =~ /we/ or get_var("SCC_ADDONS", "") =~ /we/ or get_var("ADDONURL", "") =~ /we/)
-      && get_var('MIGRATION_REMOVE_ADDONS', '') !~ /we/;
-}
-
-sub uses_qa_net_hardware {
-    return check_var("BACKEND", "ipmi") || check_var("BACKEND", "generalhw");
-}
-
 sub load_x11regression_firefox {
     loadtest "x11regressions/firefox/firefox_smoke";
     loadtest "x11regressions/firefox/firefox_localfiles";
@@ -520,413 +434,6 @@ sub load_x11regression_remote {
     }
     elsif (check_var('REMOTE_DESKTOP_TYPE', 'vino_client')) {
         loadtest 'x11regressions/remote_desktop/vino_client';
-    }
-}
-
-sub install_this_version {
-    return !check_var('INSTALL_TO_OTHERS', 1);
-}
-
-sub load_inst_tests {
-    loadtest "installation/welcome";
-    loadtest "installation/keyboard_selection";
-    if (get_var('DUD_ADDONS')) {
-        loadtest "installation/dud_addon";
-    }
-    if (sle_version_at_least('15')) {
-        loadtest "installation/accept_license" if get_var('HASLICENSE');
-    }
-    if (get_var('IBFT')) {
-        loadtest "installation/iscsi_configuration";
-    }
-    if (check_var('ARCH', 's390x')) {
-        if (check_var('BACKEND', 's390x')) {
-            loadtest "installation/disk_activation";
-        }
-        elsif (!sle_version_at_least('12-SP2')) {
-            loadtest "installation/skip_disk_activation";
-        }
-    }
-    if (get_var('ENCRYPT_CANCEL_EXISTING') || get_var('ENCRYPT_ACTIVATE_EXISTING')) {
-        loadtest "installation/encrypted_volume_activation";
-    }
-    if (get_var('MULTIPATH')) {
-        loadtest "installation/multipath";
-    }
-    if (get_var('UPGRADE')) {
-        loadtest "installation/upgrade_select";
-        if (check_var("UPGRADE", "LOW_SPACE")) {
-            loadtest "installation/disk_space_fill";
-        }
-    }
-    # SCC registration is not required in media based upgrade since SLE15
-    unless (is_sle && sle_version_at_least('15') && get_var('MEDIA_UPGRADE')) {
-        if (check_var('SCC_REGISTER', 'installation')) {
-            loadtest "installation/scc_registration";
-        }
-        else {
-            loadtest "installation/skip_registration" unless check_var('SLE_PRODUCT', 'leanos');
-        }
-    }
-    if (is_sles4sap and !sle_version_at_least('15')) {
-        loadtest "installation/sles4sap_product_installation_mode";
-    }
-    if (get_var('MAINT_TEST_REPO')) {
-        loadtest 'installation/add_update_test_repo';
-    }
-    loadtest "installation/addon_products_sle";
-    if (get_var('CHECK_RELEASENOTES_ORIGIN')) {
-        loadtest 'installation/releasenotes_origin';
-    }
-    if (noupdatestep_is_applicable()) {
-        #system_role selection during installation was added as a new feature since sles12sp2
-        #so system_role.pm should be loaded for all tests that actually install to versions over sles12sp2
-        #no matter with or without INSTALL_TO_OTHERS tag
-        if (   check_var('ARCH', 'x86_64')
-            && sle_version_at_least('12-SP2')
-            && is_server()
-            && (!is_sles4sap() || is_sles4sap_standard())
-            && (install_this_version() || install_to_other_at_least('12-SP2'))
-            || sle_version_at_least('15'))
-        {
-            loadtest "installation/system_role";
-        }
-        if (is_sles4sap() and sle_version_at_least('15') and check_var('SYSTEM_ROLE', 'default')) {
-            loadtest "installation/sles4sap_product_installation_mode";
-        }
-        loadtest "installation/partitioning";
-        if (defined(get_var("RAIDLEVEL"))) {
-            loadtest "installation/partitioning_raid";
-        }
-        elsif (check_var('LVM', 0) && get_var('ENCRYPT')) {
-            loadtest 'installation/partitioning_crypt_no_lvm';
-        }
-        elsif (get_var("LVM")) {
-            loadtest "installation/partitioning_lvm";
-        }
-        elsif (get_var('FULL_LVM_ENCRYPT')) {
-            loadtest 'installation/partitioning_full_lvm';
-        }
-        if (get_var("FILESYSTEM")) {
-            if (get_var('PARTITIONING_WARNINGS')) {
-                loadtest 'installation/partitioning_warnings';
-            }
-            loadtest "installation/partitioning_filesystem";
-        }
-        if (get_var("TOGGLEHOME")) {
-            loadtest "installation/partitioning_togglehome";
-            if (get_var('LVM') && get_var('RESIZE_ROOT_VOLUME')) {
-                loadtest "installation/partitioning_resize_root";
-            }
-        }
-        if (get_var("ENLARGESWAP") && get_var("QEMURAM", 1024) > 4098) {
-            loadtest "installation/installation_enlargeswap";
-        }
-
-        if (get_var("SPLITUSR")) {
-            loadtest "installation/partitioning_splitusr";
-        }
-        if (get_var("IBFT")) {
-            loadtest "installation/partitioning_iscsi";
-        }
-        if (uses_qa_net_hardware() || get_var('SELECT_FIRST_DISK') || get_var("ISO_IN_EXTERNAL_DRIVE")) {
-            loadtest "installation/partitioning_firstdisk";
-        }
-        loadtest "installation/partitioning_finish";
-    }
-    # the VNC gadget is too unreliable to click, but we
-    # need to be able to do installations on it. The release notes
-    # functionality needs to be covered by other backends
-    # Skip release notes test on sle 15 if have addons
-    if (!check_var('BACKEND', 'generalhw') && !check_var('BACKEND', 'ipmi') && !(sle_version_at_least('15') && get_var('ADDONURL'))) {
-        loadtest "installation/releasenotes";
-    }
-    if (noupdatestep_is_applicable()) {
-        loadtest "installation/installer_timezone";
-        # the test should run only in scenarios, where installed
-        # system is not being tested (e.g. INSTALLONLY etc.)
-        # The test also won't work reliably when network is bridged (non-s390x svirt).
-        if (    !consolestep_is_applicable()
-            and !get_var("REMOTE_CONTROLLER")
-            and !is_hyperv_in_gui
-            and !is_bridged_networking
-            and !check_var('BACKEND', 's390x')
-            and sle_version_at_least('12-SP2'))
-        {
-            loadtest "installation/hostname_inst";
-        }
-        # Do not run on REMOTE_CONTROLLER, IPMI and on Hyper-V in GUI mode
-        if (!get_var("REMOTE_CONTROLLER") && !check_var('BACKEND', 'ipmi') && !is_hyperv_in_gui) {
-            loadtest "installation/logpackages";
-        }
-        if (is_sles4sap()) {
-            if (
-                is_sles4sap_standard()    # Schedule module only for SLE15 with non-default role
-                || sle_version_at_least('15') && get_var('SYSTEM_ROLE') && !check_var('SYSTEM_ROLE', 'default'))
-            {
-                loadtest "installation/user_settings";
-            }    # sles4sap wizard installation doesn't have user_settings step
-        }
-        elsif (get_var('IMPORT_USER_DATA')) {
-            loadtest 'installation/user_import';
-        }
-        else {
-            loadtest "installation/user_settings";
-        }
-        loadtest "installation/user_settings_root";
-        if (get_var('PATTERNS') || get_var('PACKAGES')) {
-            loadtest "installation/installation_overview_before";
-            loadtest "installation/select_patterns_and_packages";
-        }
-        elsif (!check_var('DESKTOP', default_desktop)
-            && (!sle_version_at_least('15') || check_var('DESKTOP', 'minimalx')))
-        {
-            # With SLE15 we change desktop using role and not by unselecting packages (Use SYSTEM_ROLE variable),
-            # If we have minimalx, as there is no such a role, there we use old approach
-            loadtest "installation/installation_overview_before";
-            loadtest "installation/change_desktop";
-        }
-    }
-    if (get_var("UEFI") && get_var("SECUREBOOT")) {
-        loadtest "installation/secure_boot";
-    }
-    # for upgrades on s390 zKVM we need to change the static ip adress of the image to reboot properly
-    if (check_var('BACKEND', 'svirt') && check_var('ARCH', 's390x') && get_var('UPGRADE')) {
-        loadtest "installation/set_static_ip";
-    }
-    if (installyaststep_is_applicable()) {
-        loadtest "installation/installation_overview";
-        # On Xen PV we don't have GRUB on VNC
-        loadtest "installation/disable_grub_timeout" unless check_var('VIRSH_VMM_TYPE', 'linux');
-        if (check_var('VIDEOMODE', 'text') && check_var('BACKEND', 'ipmi')) {
-            loadtest "installation/disable_grub_graphics";
-        }
-        if (check_var("UPGRADE", "LOW_SPACE")) {
-            loadtest "installation/disk_space_release";
-        }
-        if (ssh_key_import) {
-            loadtest "installation/ssh_key_setup";
-        }
-        loadtest "installation/start_install";
-    }
-    return 1 if get_var('EXIT_AFTER_START_INSTALL');
-    loadtest "installation/install_and_reboot";
-    if (check_var('BACKEND', 'svirt') and check_var('ARCH', 's390x')) {
-        # on svirt we need to redefine the xml-file to boot the installed kernel
-        loadtest "installation/redefine_svirt_domain";
-    }
-    if (is_sles4sap()) {
-        if (check_var('SLES4SAP_MODE', 'sles4sap_wizard')) {
-            loadtest "installation/sles4sap_wizard";
-            if (get_var("TREX")) {
-                loadtest "installation/sles4sap_wizard_trex";
-            }
-            if (get_var("NW")) {
-                loadtest "installation/sles4sap_wizard_nw";
-            }
-            loadtest "installation/sles4sap_wizard_swpm";
-        }
-    }
-
-}
-
-sub load_consoletests {
-    return unless consolestep_is_applicable();
-    if (get_var("ADDONS", "") =~ /rt/) {
-        loadtest "rt/kmp_modules";
-    }
-    loadtest "console/consoletest_setup";
-    loadtest "console/force_cron_run" unless is_jeos;
-    if (get_var("LOCK_PACKAGE")) {
-        loadtest "console/check_locked_package";
-    }
-    loadtest "console/textinfo";
-    loadtest "console/hostname" unless is_bridged_networking;
-    if (get_var('SYSTEM_ROLE', '') =~ /kvm|xen/) {
-        loadtest "console/patterns";
-    }
-    if (snapper_is_applicable()) {
-        if (get_var("UPGRADE")) {
-            loadtest "console/upgrade_snapshots";
-        }
-        # zypper and sle12 doesn't do upgrade or installation snapshots
-        # SLES4SAP default installation flow does not configure snapshots
-        elsif (!get_var("ZDUP") and !check_var('VERSION', '12') and !is_sles4sap()) {
-            loadtest "console/installation_snapshots";
-        }
-    }
-    if (get_var("DESKTOP") !~ /textmode/ && !check_var("ARCH", "s390x")) {
-        loadtest "console/xorg_vt";
-    }
-    loadtest "console/zypper_lr";
-    loadtest 'console/enable_usb_repo' if check_var('USBBOOT', 1);
-    if (need_clear_repos()) {
-        loadtest "update/zypper_clear_repos";
-    }
-    #have SCC repo for SLE product
-    if (have_scc_repos()) {
-        loadtest "console/yast_scc";
-    }
-    elsif (have_addn_repos()) {
-        loadtest "console/zypper_ar";
-    }
-    loadtest "console/zypper_ref";
-    loadtest "console/ncurses";
-    loadtest "console/yast2_lan" unless is_bridged_networking;
-    loadtest "console/curl_https";
-    if (check_var_array('SCC_ADDONS', 'asmm') && !sle_version_at_least('15')) {
-        loadtest "console/puppet";
-    }
-    if (check_var_array('SCC_ADDONS', 'phub') && sle_version_at_least('15')) {
-        loadtest "console/puppet";
-    }
-    if (check_var_array('SCC_ADDONS', 'asmm') || sle_version_at_least('15') && !is_staging()) {
-        loadtest "console/salt";
-    }
-    if (check_var("ARCH", "x86_64")) {
-        loadtest "console/glibc_sanity";
-    }
-    if (check_var('ARCH', 'aarch64')) {
-        loadtest "console/acpi";
-    }
-    if (!gnomestep_is_applicable()) {
-        loadtest "update/zypper_up";
-    }
-    if (is_jeos()) {
-        loadtest "console/console_reboot";
-    }
-    loadtest "console/zypper_in";
-    loadtest "console/yast2_i";
-    loadtest "console/yast2_bootloader";
-    loadtest "console/vim" if !sle_version_at_least('15') || !get_var('PATTERNS') || check_var_array('PATTERNS', 'enhanced_base');
-    if (!is_staging()) {
-        loadtest "console/firewall_enabled";
-    }
-    if (is_jeos()) {
-        loadtest "console/gpt_ptable";
-        loadtest "console/kdump_disabled";
-        loadtest "console/sshd_running";
-    }
-    if (rt_is_applicable()) {
-        loadtest "console/rt_is_realtime";
-        loadtest "console/rt_devel_packages";
-        loadtest "console/rt_peak_pci";
-        loadtest "console/rt_preempt_test";
-    }
-    loadtest "console/sshd";
-    loadtest "console/ssh_cleanup";
-    loadtest "console/mtab";
-    if (!get_var("NOINSTALL") && !is_desktop && (check_var("DESKTOP", "textmode"))) {
-        if (!is_staging() && check_var('BACKEND', 'qemu') && !is_jeos) {
-            # The NFS test expects the IP to be 10.0.2.15
-            loadtest "console/yast2_nfs_server";
-        }
-        loadtest "console/http_srv";
-        loadtest "console/mysql_srv";
-        # Hyper-V host is in .suse.cz domain and the test is unstable
-        loadtest "console/dns_srv";
-        loadtest "console/postgresql_server";
-        if (sle_version_at_least('12-SP1')) {    # shibboleth-sp not available on SLES 12 GA
-            loadtest "console/shibboleth";
-        }
-        if (get_var('ADDONS', '') =~ /wsm/ || get_var('SCC_ADDONS', '') =~ /wsm/) {
-            loadtest "console/pcre";
-            if (!sle_version_at_least('15')) {
-                loadtest "console/php5";
-                loadtest "console/php5_mysql";
-                loadtest "console/php5_postgresql96";
-            }
-            loadtest "console/php7";
-            loadtest "console/php7_mysql";
-            loadtest "console/php7_postgresql96";
-        }
-        loadtest "console/apache_ssl";
-        loadtest "console/apache_nss";
-    }
-    if (check_var("DESKTOP", "xfce")) {
-        loadtest "console/xfce_gnome_deps";
-    }
-    if (!is_staging() && sle_version_at_least('12-SP2')) {
-        # This test uses serial console too much to be reliable on Hyper-V (poo#30613)
-        loadtest "console/zypper_lifecycle" unless check_var('VIRSH_VMM_FAMILY', 'hyperv');
-        if (check_var_array('SCC_ADDONS', 'tcm') && !sle_version_at_least('15')) {
-            loadtest "console/zypper_lifecycle_toolchain";
-        }
-    }
-    loadtest 'console/install_all_from_repository' if get_var('INSTALL_ALL_REPO');
-    if (check_var_array('SCC_ADDONS', 'tcm') && get_var('PATTERNS') && sle_version_at_least('12-SP3')) {
-        loadtest "feature/feature_console/deregister";
-    }
-    loadtest "console/consoletest_finish";
-}
-
-sub load_x11tests {
-    return
-      unless (!get_var("INSTALLONLY")
-        && is_desktop_installed()
-        && !get_var("DUALBOOT")
-        && !get_var("RESCUECD")
-        && !get_var("HA_CLUSTER"));
-
-    if (is_smt()) {
-        loadtest "x11/smt";
-    }
-    if (get_var("XDMUSED")) {
-        loadtest "x11/x11_login";
-    }
-    loadtest "x11/xterm";
-    loadtest "x11/sshxterm";
-    if (gnomestep_is_applicable()) {
-        loadtest "update/updates_packagekit_gpk" unless is_staging;
-        loadtest "x11/gnome_control_center";
-        loadtest "x11/gnome_terminal";
-        loadtest "x11/gedit";
-    }
-    if (kdestep_is_applicable()) {
-        loadtest "x11/kate";
-    }
-    loadtest "x11/firefox";
-    if (!is_server() || we_is_applicable()) {
-        if (gnomestep_is_applicable()) {
-            loadtest "x11/eog";
-            loadtest "x11/rhythmbox";
-            loadtest "x11/wireshark";
-            loadtest "x11/ImageMagick";
-            loadtest "x11/ghostscript";
-        }
-        if (get_var('DESKTOP') =~ /kde|gnome/) {
-            loadtest "x11/ooffice";
-            loadtest "x11/oomath";
-            loadtest "x11/oocalc";
-        }
-    }
-    if (kdestep_is_applicable()) {
-        loadtest "x11/khelpcenter";
-        loadtest "x11/systemsettings";
-        loadtest "x11/dolphin";
-    }
-    # SLES4SAP default installation does not configure snapshots
-    if (snapper_is_applicable() and !is_sles4sap()) {
-        loadtest "x11/yast2_snapper";
-    }
-    loadtest "x11/glxgears";
-    if (kdestep_is_applicable()) {
-        loadtest "x11/amarok";
-        loadtest "x11/kontact";
-        loadtest "x11/reboot_kde";
-    }
-    if (gnomestep_is_applicable()) {
-        loadtest "x11/nautilus";
-        loadtest "x11/evolution" if (!is_server() || we_is_applicable());
-        loadtest "x11/reboot_gnome";
-    }
-    loadtest "x11/desktop_mainmenu";
-    if (is_sles4sap() and !is_sles4sap_standard()) {
-        load_sles4sap_tests();
-    }
-    # Need to skip shutdown to keep backend alive if running rollback tests after migration
-    unless (get_var('ROLLBACK_AFTER_MIGRATION')) {
-        loadtest "x11/shutdown";
     }
 }
 
@@ -1171,37 +678,14 @@ elsif (get_var('NFV')) {
     }
 }
 elsif (get_var("REGRESSION")) {
-    if (check_var("REGRESSION", "installation")) {
-        load_boot_tests();
-        load_inst_tests();
-        load_reboot_tests();
-        loadtest "x11regressions/x11regressions_setup";
-        # temporary adding test modules which applies hacks for missing parts in sle15
-        loadtest "console/sle15_workarounds" if sle_version_at_least('15');
-        loadtest "console/hostname"       unless is_bridged_networking;
-        loadtest "console/force_cron_run" unless is_jeos;
-        loadtest "shutdown/grub_set_bootargs";
-        loadtest "shutdown/shutdown";
-    }
-    elsif (check_var("REGRESSION", "firefox")) {
+    load_common_x11regression;
+    if (check_var("REGRESSION", "firefox")) {
         loadtest "boot/boot_to_desktop";
         load_x11regression_firefox();
-    }
-    elsif (check_var("REGRESSION", "gnome")) {
-        loadtest "boot/boot_to_desktop";
-        load_x11regression_gnome();
-    }
-    elsif (check_var("REGRESSION", "documentation")) {
-        loadtest "boot/boot_to_desktop";
-        load_x11regression_documentation();
     }
     elsif (check_var("REGRESSION", "message")) {
         loadtest "boot/boot_to_desktop";
         load_x11regression_message();
-    }
-    elsif (check_var("REGRESSION", "other")) {
-        loadtest "boot/boot_to_desktop";
-        load_x11regression_other();
     }
     elsif (check_var('REGRESSION', 'remote')) {
         loadtest 'boot/boot_to_desktop';
@@ -1459,15 +943,7 @@ elsif (get_var("WINDOWS")) {
     loadtest "installation/win10_installation";
 }
 elsif (ssh_key_import) {
-    loadtest "boot/boot_to_desktop";
-    # setup ssh key, we know what ssh keys we have and can verify if they are imported or not
-    loadtest "x11/ssh_key_check";
-    # reboot after test specific setup and start installation/update
-    loadtest "x11/reboot_and_install";
-    load_inst_tests();
-    load_reboot_tests();
-    # verify previous defined ssh keys
-    loadtest "x11/ssh_key_verify";
+    load_ssh_key_import_tests;
 }
 elsif (get_var('ISO_IN_EXTERNAL_DRIVE')) {
     load_iso_in_external_tests();

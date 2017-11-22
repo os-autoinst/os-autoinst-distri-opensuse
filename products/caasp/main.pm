@@ -43,7 +43,7 @@ if (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux')
     set_var('SERIALDEV', 'hvc0');
 }
 
-sub load_kubic_boot_tests {
+sub load_caasp_boot_tests {
     if (is_caasp 'DVD') {
         if (get_var("UEFI")) {
             loadtest 'installation/bootloader_uefi';
@@ -67,7 +67,7 @@ sub load_kubic_boot_tests {
 }
 
 # One-click installer - fate#322328
-sub load_inst_tests {
+sub load_caasp_inst_tests {
     if (get_var 'AUTOYAST') {
         loadtest 'autoyast/installation';
     }
@@ -174,21 +174,21 @@ if (get_var('STACK_ROLE')) {
         loadtest "support_server/setup";
     }
     else {
-        load_kubic_boot_tests;
-        load_inst_tests if is_caasp('DVD');
+        load_caasp_boot_tests;
+        load_caasp_inst_tests if is_caasp('DVD');
         loadtest 'caasp/first_boot';
     }
     load_stack_tests;
 }
 else {
     # ==== MicroOS tests ====
-    load_kubic_boot_tests;
+    load_caasp_boot_tests;
     if (is_caasp 'DVD') {
         if (get_var('EXTRA', '') =~ /RCSHELL/) {
             load_rcshell_tests;
             return 1;
         }
-        load_inst_tests;
+        load_caasp_inst_tests;
         return 1 if get_var 'FAIL_EXPECTED';
     }
     loadtest 'caasp/first_boot';

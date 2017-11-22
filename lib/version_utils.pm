@@ -27,7 +27,10 @@ our @EXPORT = qw (
   is_jeos
   is_krypton_argon
   is_leap
+  is_opensuse
   is_sle
+  is_sles4sap
+  is_sles4sap_standard
   is_tumbleweed
   is_storage_ng
   is_upgrade
@@ -119,9 +122,22 @@ sub is_leap {
     return 1 if get_var('VERSION', '') =~ /[0-9]{2,}\.[0-9]/;
 }
 
+sub is_opensuse {
+    return 0 unless check_var('DISTRI', 'opensuse');
+    return 1;
+}
+
 sub is_sle {
     return 0 unless check_var('DISTRI', 'sle');
     return 1;
+}
+
+sub is_sles4sap {
+    return get_var('FLAVOR', '') =~ /SAP/ || check_var('SLE_PRODUCT', 'sles4sap');
+}
+
+sub is_sles4sap_standard {
+    return is_sles4sap && check_var('SLES4SAP_MODE', 'sles');
 }
 
 sub is_storage_ng {
