@@ -41,15 +41,15 @@ sub run {
     my ($base_repos, $package);
     my $output = script_output 'echo $(zypper -n -x se -i -t product -s ' . $prod . ')', 300;
     # Parse base repositories
-    if (my @repos = $output =~ /repository="(.+)"/g) {
+    if (my @repos = $output =~ /repository="([^"]+)"/g) {
         $base_repos = join(" ", @repos);
     }
 
     die "Got malformed repo list:\n $output" unless $base_repos;
 
-    $output = script_output 'echo $(for repo in ' . $base_repos . ' ; do zypper -n -x se -t package -i -s -r $repo ; done )', 300;
+    $output = script_output 'echo $(for repo in ' . $base_repos . ' ; do zypper -n -x se -t package -i -s -r $repo ; done | grep name= | head -n 1 )', 300;
     # Parse package name
-    if ($output =~ /name="(?<package>.+)"/) {
+    if ($output =~ /name="(?<package>[^"]+)"/) {
         $package = $+{package};
     }
 
