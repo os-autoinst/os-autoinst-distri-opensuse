@@ -16,6 +16,7 @@ our @EXPORT = qw(
   setup_env
   logcurrentenv
   is_staging
+  is_bridged_networking
   load_rescuecd_tests
   load_zdup_tests
   load_autoyast_tests
@@ -59,6 +60,7 @@ our @EXPORT = qw(
   load_security_tests_misc
   load_security_tests_crypt
   load_systemd_patches_tests
+  load_create_hdd_tests
 );
 
 sub init_main {
@@ -135,6 +137,17 @@ sub logcurrentenv {
 
 sub is_staging {
     return get_var('STAGING');
+}
+
+sub is_bridged_networking {
+    my $ret = 0;
+    if (check_var('BACKEND', 'svirt') and !check_var('ARCH', 's390x')) {
+        my $vmm_family = get_required_var('VIRSH_VMM_FAMILY');
+        $ret = ($vmm_family =~ /xen|vmware|hyperv/);
+    }
+    # Some needles match hostname which we can't set permanently with bridge.
+    set_var('BRIDGED_NETWORKING', 1) if $ret;
+    return $ret;
 }
 
 sub load_rescuecd_tests {
@@ -776,6 +789,17 @@ sub load_security_tests_crypt {
 sub load_systemd_patches_tests {
     boot_hdd_image;
     loadtest 'console/systemd_testsuite';
+}
+
+sub load_create_hdd_tests {
+    return unless get_var('INSTALLONLY');
+    # temporary adding test modules which applies hacks for missing parts in sle15
+    loadtest 'console/sle15_workarounds' if is_sle && sle_version_at_least('15');
+    loadtest 'console/hostname' unless is_bridged_networking;
+    loadtest 'console/force_cron_run' unless is_jeos;
+    loadtest 'shutdown/grub_set_bootargs';
+    loadtest 'shutdown/shutdown';
+    loadtest 'shutdown/svirt_upload_assets' if check_var('BACKEND', 'svirt');
 }
 
 1;
