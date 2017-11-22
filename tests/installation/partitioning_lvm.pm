@@ -100,20 +100,10 @@ sub run {
             assert_screen "inst-select-root-disk";
             send_key 'alt-n';
         }
-        if (leap_version_at_least('15.0')) {
-            send_key 'alt-a';
-        }
-        else {
-            send_key 'alt-e';
-        }
+        send_key $cmd{enablelvm};
         assert_screen "inst-partitioning-lvm-enabled";
         if (get_var("ENCRYPT")) {
-            if (leap_version_at_least('15.0')) {
-                send_key 'alt-l';
-            }
-            else {
-                send_key 'alt-a';
-            }
+            send_key $cmd{encryptdisk};
             if (!get_var('ENCRYPT_ACTIVATE_EXISTING')) {
                 assert_screen 'inst-encrypt-password-prompt';
                 type_password;
