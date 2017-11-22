@@ -27,13 +27,10 @@ sub run {
         # Define changed shortcuts
         $cmd{donotformat} = 'alt-t';
         $cmd{addraid}     = 'alt-i';
+        $cmd{filesystem}  = 'alt-a';
         if (check_var('DISTRI', 'opensuse')) {
             $cmd{expertpartitioner} = 'alt-x';
             $cmd{rescandevices}     = 'alt-c';
-
-        }
-        else {
-            $cmd{filesystem} = 'alt-a';
         }
     }
 
