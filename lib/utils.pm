@@ -612,11 +612,12 @@ sub ensure_shim_import {
 # with stalled VNC connection. The tricky part is to know *when* the system
 # is already booting.
 sub assert_shutdown_and_restore_system {
-    my ($action) = @_;
-    $action //= 'reboot';
+    my ($action, $shutdown_timeout) = @_;
+    $action           //= 'reboot';
+    $shutdown_timeout //= 60;
     my $vnc_console = get_required_var('SVIRT_VNC_CONSOLE');
     console($vnc_console)->disable_vnc_stalls;
-    assert_shutdown;
+    assert_shutdown($shutdown_timeout);
     if ($action eq 'reboot') {
         reset_consoles;
         # Set disk as a primary boot device
@@ -826,20 +827,20 @@ sub power_action {
             }
         }
     }
+    # Shutdown takes longer than 60 seconds on SLE 15
+    my $shutdown_timeout = 60;
+    if (sle_version_at_least('15') && check_var('DISTRI', 'sle') && check_var('DESKTOP', 'gnome')) {
+        record_soft_failure('bsc#1055462');
+        $shutdown_timeout *= 3;
+    }
+    if (get_var("OFW") && check_var('DISTRI', 'opensuse') && check_var('DESKTOP', 'gnome') && get_var('PUBLISH_HDD_1')) {
+        $shutdown_timeout *= 3;
+        record_soft_failure("boo#1057637 shutdown_timeout increased to $shutdown_timeout (s) expecting to complete.");
+    }
     if (check_var('VIRSH_VMM_FAMILY', 'xen')) {
-        assert_shutdown_and_restore_system($action);
+        assert_shutdown_and_restore_system($action, $shutdown_timeout);
     }
     else {
-        # Shutdown takes longer than 60 seconds on SLE 15
-        my $shutdown_timeout = 60;
-        if (sle_version_at_least('15') && check_var('DISTRI', 'sle') && check_var('DESKTOP', 'gnome')) {
-            record_soft_failure('bsc#1055462');
-            $shutdown_timeout *= 3;
-        }
-        if (get_var("OFW") && check_var('DISTRI', 'opensuse') && check_var('DESKTOP', 'gnome') && get_var('PUBLISH_HDD_1')) {
-            $shutdown_timeout *= 3;
-            record_soft_failure("boo#1057637 shutdown_timeout increased to $shutdown_timeout (s) expecting to complete.");
-        }
         assert_shutdown($shutdown_timeout) if $action eq 'poweroff';
         reset_consoles;
     }
