@@ -16,7 +16,7 @@ use warnings;
 use base "y2logsstep";
 use testapi;
 use utils 'ensure_fullscreen';
-use version_utils 'sle_version_at_least';
+use version_utils qw(is_sle sle_version_at_least);
 use main_common 'is_staging';
 
 sub run {
@@ -35,6 +35,8 @@ sub run {
     push @welcome_tags, 'no-product-found-on-scc' if sle_version_at_least('15');
     # Add tag for untrusted-ca-cert with SMT
     push @welcome_tags, 'untrusted-ca-cert' if get_var('SMT_URL');
+    # Add tag for sle15 upgrade mode, where product list should NOT be shown
+    push @welcome_tags, 'inst-welcome-no-product-list' if sle_version_at_least('15') and get_var('UPGRADE');
     ensure_fullscreen;
 
     # Process expected pop-up windows and exit when welcome/beta_war is shown or too many iterations
@@ -43,7 +45,7 @@ sub run {
         wait_still_screen 5;
         assert_screen(\@welcome_tags, 500);
         # Normal exit condition
-        if (match_has_tag 'inst-betawarning' || match_has_tag 'inst-welcome') {
+        if (match_has_tag 'inst-betawarning' || match_has_tag 'inst-welcome' || match_has_tag 'inst-welcome-no-product-list') {
             last;
         }
         if (match_has_tag 'scc-invalid-url') {
@@ -77,7 +79,7 @@ sub run {
         assert_screen 'inst-betawarning';
         wait_screen_change { send_key 'ret' };
     }
-    assert_screen 'inst-welcome';
+    assert_screen((is_sle && sle_version_at_least('15') && get_var('UPGRADE')) ? 'inst-welcome-no-product-list' : 'inst-welcome');
     mouse_hide;
     wait_still_screen(3);
 
@@ -86,17 +88,19 @@ sub run {
     if (sle_version_at_least('15') && check_var('DISTRI', 'sle')) {
         # On s390x there will be only one product which means there is no product selection
         # On aarch64 there is only product at the moment, because HPC was not interlocked yet
-        return if (check_var('ARCH', 's390x') || check_var('ARCH', 'aarch64'));
-        assert_screen('select-product');
-        my %hotkey = (
-            sles     => 's',
-            sled     => 'u',
-            sles4sap => 'i',
-            hpc      => 'x'
-        );
-        my $product = get_required_var('SLE_PRODUCT');
-        send_key 'alt-' . $hotkey{$product};
-        assert_screen('select-product-' . $product);
+        # In upgrade mode, there is no product list shown in welcome screen
+        unless (check_var('ARCH', 's390x') || check_var('ARCH', 'aarch64') || get_var('UPGRADE')) {
+            assert_screen('select-product');
+            my %hotkey = (
+                sles     => 's',
+                sled     => 'u',
+                sles4sap => 'i',
+                hpc      => 'x'
+            );
+            my $product = get_required_var('SLE_PRODUCT');
+            send_key 'alt-' . $hotkey{$product};
+            assert_screen('select-product-' . $product);
+        }
     }
     else {
         $self->verify_license_has_to_be_accepted;

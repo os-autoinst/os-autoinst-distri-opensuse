@@ -20,9 +20,14 @@
 use strict;
 use base "y2logsstep";
 use testapi;
+use version_utils qw(is_sle sle_version_at_least);
 
 sub run {
     my ($self) = @_;
+
+    # workaround for bsc#1069124: Skip the license check in upgrade mode
+    return record_soft_failure('bsc#1069124: License is not shown in upgrade') if is_sle && sle_version_at_least('15') && get_var('UPGRADE');
+
     assert_screen([qw(network-settings-button license-agreement)]);
     if (match_has_tag('network-settings-button')) {
         # workaround for hpc missing license: https://bugzilla.suse.com/show_bug.cgi?id=1060174

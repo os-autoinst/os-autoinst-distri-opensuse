@@ -15,6 +15,7 @@ use strict;
 use base "y2logsstep";
 use testapi;
 use utils 'assert_screen_with_soft_timeout';
+use version_utils qw(is_sle sle_version_at_least);
 
 sub run {
     if (get_var('ENCRYPT')) {
@@ -34,6 +35,17 @@ sub run {
     send_key $cmd{next};
     assert_screen "remove-repository", 240;
     send_key $cmd{next};
+    # Select migration target in sle15 upgrade
+    if (is_sle && sle_version_at_least('15')) {
+        if (get_var('MEDIA_UPGRADE')) {
+            assert_screen 'upgrade-unregistered-system';
+            send_key $cmd{ok};
+        }
+        else {
+            assert_screen 'migration_target_' . lc(get_var('SLE_PRODUCT', 'sles')), 120;
+            send_key $cmd{next};
+        }
+    }
 }
 
 1;

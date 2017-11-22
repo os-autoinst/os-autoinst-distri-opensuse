@@ -22,7 +22,7 @@ use strict;
 
 use testapi;
 use utils qw(addon_decline_license assert_screen_with_soft_timeout);
-use version_utils 'sle_version_at_least';
+use version_utils qw(is_sle sle_version_at_least is_system_upgrading);
 
 our @EXPORT = qw(
   add_suseconnect_product
@@ -201,10 +201,10 @@ sub fill_in_registration_data {
     }
 
     # Soft-failure for module preselection
-    if (sle_version_at_least('15') && check_var('DISTRI', 'sle')) {
+    if (is_sle && sle_version_at_least('15')) {
         my $modules_needle = "modules-preselected-" . get_required_var('SLE_PRODUCT');
         if (get_var('UPGRADE') || get_var('PATCH')) {
-            check_screen($modules_needle, 5);
+            return record_soft_failure('bsc#1070031: Module Selection is missing in upgrade') if is_system_upgrading && !check_screen($modules_needle, 5);
         }
         else {
             if (check_var('BETA', '1')) {

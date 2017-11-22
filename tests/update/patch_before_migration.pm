@@ -52,11 +52,11 @@ sub patching_sle {
         $self->setup_migration();
     }
 
-    if (get_var('FLAVOR', '') =~ /-(Updates|Incidents)$/) {
+    if (get_var('FLAVOR', '') =~ /-(Updates|Incidents)$/ || get_var('KEEP_REGISTERED')) {
         # The system is registered.
         set_var('HDD_SCC_REGISTERED', 1);
         # SKIP the module installation window, from the add_update_test_repo test
-        set_var('SKIP_INSTALLER_SCREEN', 1);
+        set_var('SKIP_INSTALLER_SCREEN', 1) if get_var('MAINT_TEST_REPO');
 
     }
     else {
@@ -68,6 +68,9 @@ sub patching_sle {
     # keep the value of SCC_REGISTER for offline migration tests with smt pattern or modules
     # Both of them need registration during offline migration
     if (!is_smt_or_module_tests) { set_var("SCC_REGISTER", ''); }
+
+    # mark system patched
+    set_var("SYSTEM_PATCHED", 1);
 }
 
 sub run {
