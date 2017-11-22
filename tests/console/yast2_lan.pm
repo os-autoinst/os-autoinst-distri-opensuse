@@ -47,16 +47,16 @@ sub run {
 
     script_sudo("yast2 lan; echo yast2-lan-status-\$? > /dev/$serialdev", 0);
 
-    assert_screen [qw(Networkmanager_controlled yast2_lan install-susefirewall2 dhcp-popup)], 120;
+    assert_screen [qw(Networkmanager_controlled yast2_lan install-susefirewall2 install-firewalld dhcp-popup)], 120;
     handle_dhcp_popup;
     if (match_has_tag('Networkmanager_controlled')) {
         handle_Networkmanager_controlled;
         return;    # don't change any settings
     }
-    if (match_has_tag('install-susefirewall2')) {
-        # install SuSEfirewall2
+    if (match_has_tag('install-susefirewall2') || match_has_tag('install-firewalld')) {
+        # install SuSEfirewall2 or firewalld
         send_key "alt-i";
-        # check yast2_lan again after SuSEfirewall2 installed
+        # check yast2_lan again after SuSEfirewall2 or firewalld is installed
         assert_screen [qw(Networkmanager_controlled yast2_lan)], 90;
         if (match_has_tag('Networkmanager_controlled')) {
             handle_Networkmanager_controlled;
