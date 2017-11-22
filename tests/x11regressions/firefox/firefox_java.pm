@@ -20,6 +20,7 @@ sub java_testing {
     my ($self) = @_;
 
     send_key "ctrl-t";
+    assert_screen 'firefox-new-tab';
     send_key "alt-d";
     type_string "http://www.java.com/en/download/installed.jsp?detect=jre\n";
 
