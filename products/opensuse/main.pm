@@ -177,29 +177,6 @@ sub have_addn_repos {
     return !get_var("NET") && !get_var("EVERGREEN") && get_var("SUSEMIRROR") && !is_staging();
 }
 
-sub load_boot_tests {
-    if (get_var("ISO_MAXSIZE")) {
-        loadtest "installation/isosize";
-    }
-    if (get_var("OFW")) {
-        loadtest "installation/bootloader_ofw";
-    }
-    elsif (get_var("UEFI") || is_jeos) {
-        # TODO: rename to bootloader_grub2
-        loadtest "installation/bootloader_uefi";
-    }
-    elsif (get_var("IPMI_HOSTNAME")) {    # abuse of variable for now
-        loadtest "installation/qa_net";
-    }
-    elsif (get_var("PXEBOOT")) {
-        set_var("DELAYED_START", "1");
-        loadtest "autoyast/pxe_boot";
-    }
-    else {
-        loadtest "installation/bootloader" unless load_bootloader_s390x();
-    }
-}
-
 sub load_inst_tests {
     loadtest "installation/welcome";
     loadtest "installation/keyboard_selection";

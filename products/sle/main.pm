@@ -523,55 +523,6 @@ sub load_x11regression_remote {
     }
 }
 
-sub load_svirt_boot_tests {
-    # Unless GRUB2 supports framebuffer on Xen PV (bsc#961638), grub2 tests
-    # has to be skipped there.
-    if (!(check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux'))) {
-        if (get_var("UEFI") || is_jeos) {
-            loadtest "installation/bootloader_uefi";
-        }
-        elsif (!get_var('NETBOOT')) {
-            loadtest "installation/bootloader";
-        }
-    }
-}
-
-sub load_svirt_vm_setup_tests {
-    return unless check_var('BACKEND', 'svirt');
-    if (check_var("VIRSH_VMM_FAMILY", "hyperv")) {
-        loadtest "installation/bootloader_hyperv";
-    }
-    else {
-        loadtest "installation/bootloader_svirt";
-    }
-    unless (is_installcheck || is_memtest || is_rescuesystem || is_mediacheck) {
-        load_svirt_boot_tests;
-    }
-}
-
-sub load_boot_tests {
-    # s390x uses only remote repos
-    if (get_var("ISO_MAXSIZE") && !check_var('ARCH', 's390x')) {
-        loadtest "installation/isosize";
-    }
-    if ((get_var("UEFI") || is_jeos()) && !check_var("BACKEND", "svirt")) {
-        loadtest "installation/bootloader_uefi";
-    }
-    elsif (check_var("BACKEND", "svirt") && !check_var("ARCH", "s390x")) {
-        load_svirt_vm_setup_tests;
-    }
-    elsif (uses_qa_net_hardware()) {
-        loadtest "boot/boot_from_pxe";
-    }
-    elsif (get_var("PXEBOOT")) {
-        set_var("DELAYED_START", "1");
-        loadtest "autoyast/pxe_boot";
-    }
-    else {
-        loadtest "installation/bootloader" unless load_bootloader_s390x();
-    }
-}
-
 sub install_this_version {
     return !check_var('INSTALL_TO_OTHERS', 1);
 }

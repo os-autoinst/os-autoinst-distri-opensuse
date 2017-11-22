@@ -17,7 +17,9 @@ use Exporter;
 use testapi qw(check_var get_var get_required_var set_var check_var_array diag);
 use autotest;
 use utils;
-use version_utils qw(is_jeos is_gnome_next is_krypton_argon is_sle leap_version_at_least sle_version_at_least is_desktop_installed);
+use version_utils qw(
+  is_jeos is_gnome_next is_krypton_argon is_sle leap_version_at_least sle_version_at_least is_desktop_installed is_installcheck is_rescuesystem
+);
 use bmwqemu ();
 use strict;
 use warnings;
@@ -31,6 +33,8 @@ our @EXPORT = qw(
   logcurrentenv
   is_staging
   is_bridged_networking
+  load_svirt_vm_setup_tests
+  load_boot_tests
   load_rescuecd_tests
   load_zdup_tests
   load_autoyast_tests
@@ -211,6 +215,67 @@ sub replace_opensuse_repos_tests {
     loadtest "update/zypper_clear_repos";
     loadtest "console/zypper_ar";
 }
+
+sub is_memtest {
+    return get_var('MEMTEST');
+}
+
+sub is_mediacheck {
+    return get_var('MEDIACHECK');
+}
+
+sub load_svirt_boot_tests {
+    # Unless GRUB2 supports framebuffer on Xen PV (bsc#961638), grub2 tests
+    # has to be skipped there.
+    if (!(check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux'))) {
+        if (get_var("UEFI") || is_jeos) {
+            loadtest "installation/bootloader_uefi";
+        }
+        elsif (!get_var('NETBOOT')) {
+            loadtest "installation/bootloader";
+        }
+    }
+}
+
+sub load_svirt_vm_setup_tests {
+    return unless check_var('BACKEND', 'svirt');
+    if (check_var("VIRSH_VMM_FAMILY", "hyperv")) {
+        loadtest "installation/bootloader_hyperv";
+    }
+    else {
+        loadtest "installation/bootloader_svirt";
+    }
+    unless (is_installcheck || is_memtest || is_rescuesystem || is_mediacheck) {
+        load_svirt_boot_tests;
+    }
+}
+
+sub load_boot_tests {
+    # s390x uses only remote repos
+    if (get_var("ISO_MAXSIZE") && !check_var('ARCH', 's390x')) {
+        loadtest "installation/isosize";
+    }
+    if ((get_var("UEFI") || is_jeos()) && !check_var("BACKEND", "svirt")) {
+        loadtest "installation/bootloader_uefi";
+    }
+    elsif (get_var("IPMI_HOSTNAME")) {    # abuse of variable for now
+        loadtest "installation/qa_net";
+    }
+    elsif (check_var("BACKEND", "svirt") && !check_var("ARCH", "s390x")) {
+        load_svirt_vm_setup_tests;
+    }
+    elsif (uses_qa_net_hardware()) {
+        loadtest "boot/boot_from_pxe";
+    }
+    elsif (get_var("PXEBOOT")) {
+        set_var("DELAYED_START", "1");
+        loadtest "autoyast/pxe_boot";
+    }
+    else {
+        loadtest "installation/bootloader" unless load_bootloader_s390x();
+    }
+}
+
 
 sub load_rescuecd_tests {
     if (rescuecdstep_is_applicable()) {
@@ -900,14 +965,6 @@ sub load_virtualization_tests {
     loadtest "virtualization/virtman_install";
     loadtest "virtualization/virtman_view";
     return 1;
-}
-
-sub is_memtest {
-    return get_var('MEMTEST');
-}
-
-sub is_mediacheck {
-    return get_var('MEDIACHECK');
 }
 
 sub load_syscontainer_tests() {

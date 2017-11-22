@@ -43,7 +43,7 @@ if (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux')
     set_var('SERIALDEV', 'hvc0');
 }
 
-sub load_boot_tests {
+sub load_kubic_boot_tests {
     if (is_caasp 'DVD') {
         if (get_var("UEFI")) {
             loadtest 'installation/bootloader_uefi';
@@ -174,7 +174,7 @@ if (get_var('STACK_ROLE')) {
         loadtest "support_server/setup";
     }
     else {
-        load_boot_tests;
+        load_kubic_boot_tests;
         load_inst_tests if is_caasp('DVD');
         loadtest 'caasp/first_boot';
     }
@@ -182,7 +182,7 @@ if (get_var('STACK_ROLE')) {
 }
 else {
     # ==== MicroOS tests ====
-    load_boot_tests;
+    load_kubic_boot_tests;
     if (is_caasp 'DVD') {
         if (get_var('EXTRA', '') =~ /RCSHELL/) {
             load_rcshell_tests;
