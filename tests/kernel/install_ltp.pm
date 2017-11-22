@@ -29,9 +29,7 @@ sub scc_we_enabled {
 
 sub add_desktop_productivity_module {
     if (check_var('DISTRI', 'sle') and sle_version_at_least('15')) {
-        my $version = get_required_var('VERSION') =~ s/-SP/./gr;
-        my $arch    = get_required_var('ARCH');
-        assert_script_run("SUSEConnect -p sle-module-desktop-productivity/" . $version . "/" . $arch);
+        add_suseconnect_product("sle-module-desktop-productivity");
     }
 }
 

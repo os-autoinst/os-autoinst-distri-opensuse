@@ -84,12 +84,12 @@ sub command_register {
 
         # register extension without reg code.
         if (!$addon_regcode) {
-            assert_script_run "SUSEConnect -p $addon_name/$addon_version/$arch";
+            add_suseconnect_product($addon_name, $addon_version);
         }
 
         # register extension with reg code.
         else {
-            assert_script_run "SUSEConnect -p $addon_name/$version/$arch --regcode $addon_regcode";
+            add_suseconnect_product($addon_name, $version, $arch, "--regcode $addon_regcode");
         }
     }
     zypper_call 'lr';
