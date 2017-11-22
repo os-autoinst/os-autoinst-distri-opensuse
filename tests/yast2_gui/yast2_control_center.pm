@@ -185,6 +185,12 @@ sub start_vpn_gateway {
 
 sub start_wake_on_lan {
     search('wake');
+    assert_screen [qw(yast2_control-center_wake-on-lan yast2_control_no_modules)];
+    if (match_has_tag('yast2_control_no_modules') && sle_version_at_least('15')) {
+        # No wol on SLE 15 atm
+        record_soft_failure 'bsc#1059569';
+        return;
+    }
     assert_and_click 'yast2_control-center_wake-on-lan';
     assert_screen 'yast2_control-center_wake-on-lan_install_cancel', 60;
     send_key 'alt-c';
@@ -328,13 +334,7 @@ sub run {
         start_kernel_dump;
         start_common_server_certificate;
         start_ca_management;
-        if (sle_version_at_least '15') {
-            # No wol on sle 15 ATM
-            record_soft_failure 'bsc#1059569';
-        }
-        else {
-            start_wake_on_lan;
-        }
+        start_wake_on_lan;
         # available by default only on SLES
         start_authentication_server;
     }
