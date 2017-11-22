@@ -29,7 +29,7 @@ sub scc_we_enabled {
 }
 
 sub add_desktop_productivity_module {
-    if (check_var('DISTRI', 'sle') and sle_version_at_least('15')) {
+    if (get_required_var('ARCH') eq 'x86_64' and check_var('DISTRI', 'sle') and sle_version_at_least('15')) {
         add_suseconnect_product("sle-module-desktop-productivity");
     }
 }
