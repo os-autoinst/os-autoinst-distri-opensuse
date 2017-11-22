@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Postgres tests for SLE12
+# Summary: Postgres tests
 # Maintainer: Ondřej Súkup <osukup@suse.cz>
 
 use base "consoletest";
@@ -19,20 +19,16 @@ use apachetest;
 sub run {
     select_console 'root-console';
 
+    my $pgsql_server = sle_version_at_least('15') ? 'postgresql10-server' : 'postgresql96-server';
     # install the postgresql server package
-    zypper_call 'in postgresql96-server sudo';
+    zypper_call "in $pgsql_server sudo";
 
     # start the postgresql service
     assert_script_run 'systemctl start postgresql.service', 200;
 
     # check the status
     assert_script_run 'systemctl show -p ActiveState postgresql.service | grep ActiveState=active';
-    if (is_sle && sle_version_at_least('15')) {
-        record_soft_failure 'Workaround for bsc#1060639: postgresql96 server service exits with "active (exited)"';
-    }
-    else {
-        assert_script_run 'systemctl show -p SubState postgresql.service | grep SubState=running';
-    }
+    assert_script_run 'systemctl show -p SubState postgresql.service | grep SubState=running';
 
     # test basic functionality of postgresql
     setup_pgsqldb;
