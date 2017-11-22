@@ -117,69 +117,84 @@ sub parse_openposix_runfile {
     return @tests;
 }
 
+sub parse_result_line {
+    my ($fh, $line, $res, $results) = @_;
+
+    if ($res =~ qr'T?FAIL') {
+        $results->{fail}++;
+        say $fh $line;
+    }
+    elsif ($res =~ qr'T?PASS') {
+        $results->{pass}++;
+        say $fh $line;
+    }
+    elsif ($res =~ qr'T?BROK') {
+        $results->{brok}++;
+        say $fh $line;
+    }
+    elsif ($res =~ qr'T?CONF') {
+        $results->{conf}++;
+        say $fh $line;
+    }
+    elsif ($res =~ qr'T?WARN') {
+        $results->{warn}++;
+        say $fh $line;
+    }
+}
+
 sub parse_ltp_log {
     my ($self, $test_log, $fin_msg, $fh) = @_;
     my $results = {
-        tpass         => 0,
-        tconf         => 0,
-        tfail         => 0,
-        tbrok         => 0,
-        twarn         => 0,
+        pass          => 0,
+        conf          => 0,
+        fail          => 0,
+        brok          => 0,
+        warn          => 0,
         ignored_lines => 0
     };
 
-    for (split(qr/\n/, $test_log)) {
-        if (m/^\s+$/) {
+    for (split(/\n/, $test_log)) {
+        if ($_ =~ qr'^\s+$') {
             next;
         }
 
-        if (m/^(\w+)\s+(\d+)\s+(\w+)\s+:\s+(.*)$/) {
-            if ($3 eq 'TFAIL') {
-                $results->{tfail}++;
-                print $fh $_;
-            }
-            elsif ($3 eq 'TPASS') {
-                $results->{tpass}++;
-                print $fh $_;
-            }
-            elsif ($3 eq 'TBROK') {
-                $results->{tbrok}++;
-                print $fh $_;
-            }
-            elsif ($3 eq 'TCONF') {
-                $results->{tconf}++;
-                print $fh $_;
-            }
-            elsif ($3 eq 'TWARN') {
-                $results->{twarn}++;
-                print $fh $_;
-            }
+        # Newlib result format
+        if ($_ =~ qr'^[\w.:/]+\s+(\w+):\s+.*$') {
+            parse_result_line($fh, $_, $1, $results);
         }
-        elsif (m/$fin_msg(\d+)/) {
-            if ($1 == 0 && $results->{tfail} + $results->{tconf} + $results->{tbrok}) {
-                say $fh 'TEST EXIT CODE IS ZERO, YET TFAIL, TCONF OR TBROK WAS SEEN!';
+        # Oldlib result format
+        elsif ($_ =~ qr'^\w+\s+\d+\s+(\w+)\s+:\s+.*$') {
+            parse_result_line($fh, $_, $1, $results);
+        }
+        elsif ($_ =~ qr/$fin_msg(\d+)/) {
+            if ($1 == 0 && $results->{fail} + $results->{conf} + $results->{brok}) {
+                say $fh 'TEST EXIT CODE IS ZERO, YET FAIL, CONF OR BROK WAS SEEN!';
             }
             elsif ($1 == 0) {
                 say $fh "Passed.";
-                $results->{tpass}++;
+                $results->{pass}++;
             }
-            elsif ($1 == 32 && $results->{tfail} + $results->{tbrok}) {
-                say $fh 'TEST EXIT CODE IS 32 (TCONF), YET TFAIL OR TBROK WAS SEEN!';
+            elsif ($1 == 32 && $results->{fail} + $results->{brok}) {
+                say $fh 'TEST EXIT CODE IS 32 (CONF), YET FAIL OR BROK WAS SEEN!';
             }
             elsif ($1 == 32) {
-                say $fh 'Test process returned TCONF (32).';
-                $results->{tconf}++;
+                say $fh 'Test process returned CONF (32).';
+                $results->{conf}++;
             }
-            elsif ($1 == 4 && $results->{tfail} + $results->{tbrok}) {
-                say $fh 'TEST EXIT CODE IS 4 (TWARN), YET TFAIL OR TBROK WAS SEEN!';
+            elsif ($1 == 4 && $results->{fail} + $results->{brok}) {
+                say $fh 'TEST EXIT CODE IS 4 (WARN), YET FAIL OR BROK WAS SEEN!';
             }
             elsif ($1 == 4) {
                 say $fh 'Passed with warnings.';
-                $results->{twarn}++;
+                $results->{warn}++;
+            }
+            elsif ($1 == 1) {
+                say $fh 'Failed.';
+                $results->{fail}++;
             }
             else {
                 say $fh "Test process returned unkown none zero value ($1).";
-                $results->{tbrok}++;
+                $results->{brok}++;
             }
         }
         else {
@@ -193,11 +208,11 @@ sub parse_ltp_log {
 sub parse_openposix_log {
     my ($self, $test_log, $fin_msg, $fh) = @_;
     my $results = {
-        tpass         => 0,
-        tconf         => 0,
-        tfail         => 0,
-        tbrok         => 0,
-        twarn         => 0,
+        pass          => 0,
+        conf          => 0,
+        fail          => 0,
+        brok          => 0,
+        warn          => 0,
         ignored_lines => 0
     };
 
@@ -205,27 +220,27 @@ sub parse_openposix_log {
     print $fh 'Test process returned ';
     if ($1 eq '0') {
         print $fh 'PASSED';
-        $results->{tpass}++;
+        $results->{pass}++;
     }
     elsif ($1 eq '1') {
         print $fh 'FAILED';
-        $results->{tfail}++;
+        $results->{fail}++;
     }
     elsif ($1 eq '2') {
         print $fh 'UNRESOLVED';
-        $results->{tfail}++;
+        $results->{fail}++;
     }
     elsif ($1 eq '4') {
         print $fh 'UNSUPPORTED';
-        $results->{tconf}++;
+        $results->{conf}++;
     }
     elsif ($1 eq '5') {
         print $fh 'UNTESTED';
-        $results->{tconf}++;
+        $results->{conf}++;
     }
     else {
         print $fh 'unknown';
-        $results->{tbrok}++;
+        $results->{brok}++;
     }
     say $fh " ($1) exit code.";
     return $results;
@@ -272,23 +287,26 @@ sub record_ltp_result {
         $results = $self->parse_ltp_log($test_log, $fin_msg, $fh);
     }
 
-    if ($results->{tbrok}) {
+    if ($results->{brok}) {
         $details->{result}                = 'fail';
         $self->{result}                   = 'fail';
-        $export_details->{test}->{result} = 'TBROK';
+        $export_details->{test}->{result} = 'BROK';
     }
-    elsif ($results->{tfail} || $results->{twarn}) {
+    elsif ($results->{fail} || $results->{warn}) {
         $details->{result}                = 'fail';
         $self->{result}                   = 'fail';
-        $export_details->{test}->{result} = 'TFAIL';
+        $export_details->{test}->{result} = 'FAIL';
     }
-    elsif ($results->{tconf}) {
+    elsif ($results->{pass}) {
+        $export_details->{status} = 'pass';
+        $export_details->{test}->{result} = 'PASS';
+    }
+    elsif ($results->{conf}) {
         $details->{result} = 'unk';
-        $export_details->{test}->{result} = 'TCONF';
+        $export_details->{test}->{result} = 'CONF';
     }
     else {
-        $export_details->{status} = 'pass';
-        $export_details->{test}->{result} = 'TPASS';
+        die 'No LTP test result was parsed from the log';
     }
 
     say $fh "Test took approximately $duration seconds";
@@ -514,7 +532,7 @@ LTP test cases are usually a binary executable or a shell script. Each line of
 the runtest file contains the name of the test case and a string which is
 executed by the shell.
 
-The output of each test case is parsed for lines containing TCONF and TFAIL.
+The output of each test case is parsed for lines containing CONF and FAIL.
 If these terms are found in the output then a neutral or fail result will be
 reported, otherwise a pass.
 
