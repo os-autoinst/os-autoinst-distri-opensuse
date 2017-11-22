@@ -22,6 +22,7 @@ use testapi;
 use lockapi;
 use mmapi;
 use mm_network;
+use utils 'sle_version_at_least';
 
 sub run {
     my $children = get_children();
@@ -75,7 +76,7 @@ sub run {
           .= "zypper -n --no-gpg-checks in " . join(' ', split(/[\s,]+/, get_var('SLENKINS_INSTALL'))) . "\n";
     }
 
-    my $firewallservice = check_var('VERSION', '15') ? 'firewalld' : 'SuSEFirewall2';
+    my $firewallservice = sle_version_at_least('15') ? 'firewalld' : 'SuSEfirewall2';
 
     $conf_script .= "
         useradd -m testuser
