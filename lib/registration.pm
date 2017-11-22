@@ -21,7 +21,7 @@ use Exporter;
 use strict;
 
 use testapi;
-use utils qw(addon_decline_license assert_screen_with_soft_timeout sle_version_at_least);
+use utils qw(addon_decline_license assert_screen_with_soft_timeout scc_version sle_version_at_least);
 
 our @EXPORT = qw(
   add_suseconnect_product
