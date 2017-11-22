@@ -730,37 +730,6 @@ sub load_inst_tests {
 
 }
 
-sub load_reboot_tests {
-    # there is encryption passphrase prompt which is handled in installation/boot_encrypt
-    if (check_var("ARCH", "s390x") && !(get_var('ENCRYPT') && check_var('BACKEND', 'svirt'))) {
-        loadtest "installation/reconnect_s390";
-    }
-    if (uses_qa_net_hardware()) {
-        loadtest "boot/qa_net_boot_from_hdd";
-    }
-    if (installyaststep_is_applicable()) {
-        # test makes no sense on s390 because grub2 can't be captured
-        if (!(check_var("ARCH", "s390x") or (check_var('VIRSH_VMM_FAMILY', 'xen') and check_var('VIRSH_VMM_TYPE', 'linux')))) {
-            loadtest "installation/grub_test";
-            if ((snapper_is_applicable()) && get_var("BOOT_TO_SNAPSHOT")) {
-                loadtest "installation/boot_into_snapshot";
-            }
-        }
-        if (get_var('ENCRYPT')) {
-            loadtest "installation/boot_encrypt";
-            # reconnect after installation/boot_encrypt
-            if (check_var('BACKEND', 'svirt') && check_var('ARCH', 's390x')) {
-                loadtest "installation/reconnect_s390";
-            }
-        }
-        loadtest "installation/first_boot";
-    }
-    if (get_var("DUALBOOT")) {
-        loadtest "installation/reboot_eject_cd";
-        loadtest "installation/boot_windows";
-    }
-}
-
 sub load_consoletests {
     return unless consolestep_is_applicable();
     if (get_var("ADDONS", "") =~ /rt/) {

@@ -287,33 +287,6 @@ sub load_inst_tests {
     loadtest "installation/install_and_reboot";
 }
 
-sub load_reboot_tests {
-    if (check_var('ARCH', 's390x')) {
-        loadtest "installation/reconnect_s390";
-    }
-    if (installyaststep_is_applicable()) {
-        # s390 has no 'grub' that can be easily checked
-        if (!check_var('ARCH', 's390x')) {
-            loadtest "installation/grub_test";
-        }
-        if (get_var('ENCRYPT')) {
-            loadtest "installation/boot_encrypt";
-        }
-        if ((snapper_is_applicable()) && get_var("BOOT_TO_SNAPSHOT")) {
-            loadtest "installation/boot_into_snapshot";
-            if (get_var("UPGRADE")) {
-                loadtest "installation/snapper_rollback";
-            }
-        }
-        loadtest "installation/first_boot";
-    }
-
-    if (get_var("DUALBOOT")) {
-        loadtest "installation/reboot_eject_cd";
-        loadtest "installation/boot_windows";
-    }
-}
-
 sub load_fixup_network {
     # openSUSE 13.2's (and earlier) systemd has broken rules for virtio-net, not applying predictable names (despite being configured)
     # A maintenance update breaking networking names sounds worse than just accepting that 13.2 -> TW breaks with virtio-net
