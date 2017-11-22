@@ -1,20 +1,18 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Monitor installation progress and wait for "reboot now" dialog,
-#   collecting logs from the installation system just before we try to reboot
-#   into the installed system
+# Summary: Monitor installation progress and wait for "reboot now" dialog
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use strict;
-use base "y2logsstep";
+use base 'y2logsstep';
 use testapi;
 use lockapi;
 use utils;
@@ -54,8 +52,8 @@ sub run {
     # detect "Wrong Digest" error to end test earlier
     my @tags = qw(rebootnow yast2_wrong_digest yast2_package_retry);
     if (get_var("UPGRADE")) {
-        push(@tags, "ERROR-removing-package");
-        push(@tags, "DIALOG-packages-notifications");
+        push(@tags, 'ERROR-removing-package');
+        push(@tags, 'DIALOG-packages-notifications');
         $timeout = 5500;    # upgrades are slower
     }
     if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
@@ -94,7 +92,7 @@ sub run {
                 next;
             }
             $timeout -= 30;
-            diag("left total install_and_reboot timeout: $timeout");
+            diag("left total await_install timeout: $timeout");
             if ($timeout <= 0) {
                 assert_screen \@tags;
             }
@@ -103,23 +101,23 @@ sub run {
             assert_screen \@tags, $timeout;
         }
 
-        if (match_has_tag("yast2_wrong_digest")) {
-            die "Wrong Digest detected error, need to end test.";
+        if (match_has_tag('yast2_wrong_digest')) {
+            die 'Wrong Digest detected error, need to end test.';
         }
 
-        if (match_has_tag("yast2_package_retry")) {
-            record_soft_failure "boo#1018262 - retry failing packages";
+        if (match_has_tag('yast2_package_retry')) {
+            record_soft_failure 'boo#1018262 - retry failing packages';
             send_key 'alt-y';    # retry
-            die "boo#1018262 - seems to be stuck on retry" unless wait_screen_change { sleep 4 };
+            die 'boo#1018262 - seems to be stuck on retry' unless wait_screen_change { sleep 4 };
             next;
         }
 
-        if (match_has_tag("DIALOG-packages-notifications")) {
+        if (match_has_tag('DIALOG-packages-notifications')) {
             send_key 'alt-o';    # ok
             next;
         }
         # can happen multiple times
-        if (match_has_tag("ERROR-removing-package")) {
+        if (match_has_tag('ERROR-removing-package')) {
             record_soft_failure;
             send_key 'alt-d';    # details
             assert_screen 'ERROR-removing-package-details';
@@ -150,34 +148,7 @@ sub run {
         while ($counter-- and wait_countdown_stop(3, $minor_change_similarity)) {
             record_info('workaround', "While trying to stop countdown we saw a screen change, retrying up to $counter times more");
         }
-        select_console 'install-shell';
-
-        # check for right boot-device on s390x (zVM, DASD ONLY)
-        if (check_var('BACKEND', 's390x') && !check_var('S390_DISK', 'ZFCP')) {
-            if (script_run('lsreipl | grep 0.0.0150')) {
-                die "IPL device was not set correctly";
-            }
-        }
-        # while technically SUT has a different network than the BMC
-        # we require ssh installation anyway
-        if (check_var('BACKEND', 'ipmi')) {
-            use_ssh_serial_console;
-            # set serial console for xen
-            set_serial_console_on_xen("/mnt") if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen"));
-        }
-        else {
-            # avoid known issue in FIPS mode: bsc#985969
-            $self->get_ip_address();
-        }
-        $self->save_upload_y2logs();
-        select_console 'installation';
     }
-
-    wait_screen_change {
-        send_key 'alt-o';    # Reboot
-    };
-
-    power_action('reboot', observe => 1, keepconsole => 1);
 }
 
 1;

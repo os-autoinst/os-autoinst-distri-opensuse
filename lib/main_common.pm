@@ -88,6 +88,7 @@ our @EXPORT = qw(
   load_networkd_tests
   load_nfv_master_tests
   load_nfv_trafficgen_tests
+  load_common_installation_steps_tests
   load_iso_in_external_tests
   load_x11_documentation
   load_x11_gnome
@@ -648,6 +649,12 @@ sub boot_hdd_image {
     loadtest "boot/boot_to_desktop";
 }
 
+sub load_common_installation_steps_tests {
+    loadtest 'installation/await_install';
+    loadtest 'installation/logs_from_installation_system';
+    loadtest 'installation/reboot_after_installation';
+}
+
 sub load_inst_tests {
     loadtest "installation/welcome";
     loadtest "installation/keyboard_selection";
@@ -860,7 +867,7 @@ sub load_inst_tests {
         loadtest "installation/start_install";
     }
     return 1 if get_var('EXIT_AFTER_START_INSTALL');
-    loadtest "installation/install_and_reboot";
+    load_common_installation_steps_tests;
     if (check_var('BACKEND', 'svirt') and check_var('ARCH', 's390x')) {
         # on svirt we need to redefine the xml-file to boot the installed kernel
         loadtest "installation/redefine_svirt_domain";
