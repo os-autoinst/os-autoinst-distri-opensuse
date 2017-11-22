@@ -27,6 +27,14 @@ sub scc_we_enabled {
     return wait_serial(qr/Workstation Extension/);
 }
 
+sub add_desktop_productivity_module {
+    if (check_var('DISTRI', 'sle') and sle_version_at_least('15')) {
+        my $version = get_required_var('VERSION') =~ s/-SP/./gr;
+        my $arch    = get_required_var('ARCH');
+        assert_script_run("SUSEConnect -p sle-module-desktop-productivity/" . $version . "/" . $arch);
+    }
+}
+
 sub add_we_repo_if_available {
     # opensuse (doesn't have extensions) or SLE as registered product
     if (check_var('DISTRI', 'opensuse') || scc_we_enabled) {
@@ -64,7 +72,6 @@ sub install_runtime_dependencies {
       net-tools-deprecated
       ntfsprogs
     );
-
     for my $dep (@maybe_deps) {
         script_run('zypper -n -t in ' . $dep . ' | tee');
     }
@@ -155,6 +162,7 @@ sub run {
         select_console(get_var('VIRTIO_CONSOLE') ? 'root-virtio-terminal' : 'root-console');
     }
 
+    add_desktop_productivity_module;
     add_we_repo_if_available;
 
     if ($inst_ltp =~ /git/i) {
