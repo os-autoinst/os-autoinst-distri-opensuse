@@ -705,6 +705,13 @@ sub load_slenkins_tests {
     return 0;
 }
 
+sub load_default_tests {
+    load_boot_tests();
+    load_inst_tests();
+    return 1 if get_var('EXIT_AFTER_START_INSTALL');
+    load_reboot_tests();
+}
+
 # load the tests in the right order
 if (is_kernel_test()) {
     load_kernel_tests();
@@ -887,10 +894,7 @@ else {
         }
     }
     else {
-        load_boot_tests();
-        load_inst_tests();
-        return 1 if get_var('EXIT_AFTER_START_INSTALL');
-        load_reboot_tests();
+        load_default_tests;
     }
 
     unless (install_online_updates()

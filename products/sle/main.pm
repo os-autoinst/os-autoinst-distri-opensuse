@@ -1142,6 +1142,14 @@ sub prepare_target {
     }
 }
 
+sub load_default_tests {
+    load_boot_tests();
+    load_inst_tests();
+    return 1 if get_var('EXIT_AFTER_START_INSTALL');
+    load_reboot_tests();
+}
+
+
 my $distri = testapi::get_required_var('CASEDIR') . '/lib/susedistribution.pm';
 require $distri;
 testapi::set_distribution(susedistribution->new());
@@ -1610,10 +1618,7 @@ else {
             loadtest 'installation/first_boot';
         }
         else {
-            load_boot_tests();
-            load_inst_tests();
-            return 1 if get_var('EXIT_AFTER_START_INSTALL');
-            load_reboot_tests();
+            load_default_tests;
         }
     }
     unless (load_applicationstests() || load_slenkins_tests()) {
