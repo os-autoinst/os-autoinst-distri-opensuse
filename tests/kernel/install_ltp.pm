@@ -15,6 +15,7 @@ use warnings;
 use base 'opensusebasetest';
 use testapi;
 use utils;
+use registration;
 
 sub add_repos {
     my $qa_head_repo = get_required_var('QA_HEAD_REPO');
