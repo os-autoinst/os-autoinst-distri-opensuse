@@ -215,8 +215,8 @@ sub run {
         type_string "echo \$pty\n";
         $svirt->resume;
         wait_serial("Press enter to boot the selected OS", 10) || die "Can't get to GRUB";
-        # Do not boot OS from disk
-        if (get_var('ISO') && get_var('HDD_1') && !is_jeos && !is_caasp) {
+        # Do not boot OS from disk, select installation medium
+        if (!get_var('BOOT_HDD_IMAGE') && get_var('ISO') && get_var('HDD_1') && !is_jeos && !is_caasp) {
             type_string "echo -en '\\033[B' > \$pty\n";                   # key down
         }
         type_string "echo e > \$pty\n";                                   # edit
