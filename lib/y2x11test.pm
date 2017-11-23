@@ -24,12 +24,7 @@ sub launch_yast2_module_x11 {
         script_run('pkill -TERM -e yast2');
         select_console('x11');
     }
-    my $yast2_args = '';
-    if (is_sle && sle_version_at_least('15')) {
-        record_soft_failure 'bsc#1062733';
-        $yast2_args = '--qt';
-    }
-    x11_start_program("xdg-su -c '/sbin/yast2 $yast2_args $module'", target_match => @tags, match_timeout => $args{match_timeout});
+    x11_start_program("xdg-su -c '/sbin/yast2 $module'", target_match => @tags, match_timeout => $args{match_timeout});
     foreach ($args{target_match}) {
         return if match_has_tag($_);
     }
