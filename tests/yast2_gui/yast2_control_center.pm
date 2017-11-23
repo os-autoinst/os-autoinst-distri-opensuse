@@ -34,6 +34,7 @@ sub search {
     }
     else {
         send_key 'alt-s';
+        send_key 'backspace';
     }
     wait_screen_change { type_string $name; } if $name;
     wait_still_screen 1;
@@ -47,7 +48,7 @@ sub start_addon_products {
 }
 
 sub start_add_system_extensions_or_modules {
-    search '';    # call with empty string to simply clean the field
+    search 'system ext';
     assert_and_click 'yast2_control-center_add-system-extensions-or-modules';
     assert_screen 'yast2_control-center_registration', timeout => 180;
     send_key 'alt-r';
@@ -109,7 +110,7 @@ sub start_kernel_dump {
     search('dump');
     assert_and_click 'yast2_control-kernel-kdump';
     assert_screen 'yast2_control-center_kernel-kdump-configuration', timeout => 180;
-    assert_and_click 'yast2_control-kernel-kdump-configuration_ok';
+    send_key 'alt-o';    # Press ok
     assert_screen 'yast2-control-center-ui', timeout => 60;
 }
 
@@ -124,10 +125,27 @@ sub start_kernel_settings {
 sub start_partitioner {
     search('partitioner');
     assert_and_click 'yast2_control-center-partitioner';
-    assert_screen 'yast2_control-center-partitioner_warning', timeout => 180;
-    send_key 'alt-y';
+    assert_screen [qw(yast2_control-center-partitioner_warning yast2_control-center-partitioner_expert)], 180;
+    # Define if storage-ng
+    set_var('STORAGE_NG', 1) if match_has_tag 'storage-ng';
+
+    if (match_has_tag 'yast2_control-center-partitioner_warning') {
+        send_key 'alt-y';
+    }
+    elsif (is_storage_ng && match_has_tag 'yast2_control-center-partitioner_expert') {
+        # Soft-fail if storage ng and no warning is shown
+        record_soft_failure 'bsc#1068905';
+    }
+    else {
+        # Fail with expected assertion in case no match
+        assert_screen 'yast2_control-center-partitioner_warning', 0;
+    }
     assert_screen 'yast2_control-center-partitioner_expert', timeout => 60;
     send_key 'alt-f';
+    if (is_storage_ng) {
+        assert_screen 'expert-partitioner-modify-confirmation';
+        wait_screen_change { send_key 'alt-o' };    #Continue
+    }
     assert_screen 'yast2-control-center-ui', timeout => 60;
 }
 
@@ -160,13 +178,19 @@ sub start_user_logon_management {
 sub start_vpn_gateway {
     search('vpn');
     assert_and_click 'yast2_control-center_vpn-gateway-client';
-    assert_screen 'yast2_control-center_vpn-gateway-client_cancel', timeout => 180;
+    assert_screen 'yast2-vpn-gateway-client', timeout => 180;
     send_key 'alt-c';
     assert_screen 'yast2-control-center-ui', 60;
 }
 
 sub start_wake_on_lan {
     search('wake');
+    assert_screen [qw(yast2_control-center_wake-on-lan yast2_control_no_modules)];
+    if (match_has_tag('yast2_control_no_modules') && sle_version_at_least('15')) {
+        # No wol on SLE 15 atm
+        record_soft_failure 'bsc#1059569';
+        return;
+    }
     assert_and_click 'yast2_control-center_wake-on-lan';
     assert_screen 'yast2_control-center_wake-on-lan_install_cancel', 60;
     send_key 'alt-c';
@@ -176,17 +200,17 @@ sub start_wake_on_lan {
 }
 
 sub start_ca_management {
-    search('ca');
+    search('ca ');
     assert_and_click 'yast2_control-center_ca-management';
-    assert_screen 'yast2_control-center_ca-management_abort', 60;
+    assert_screen 'yast2-ca-management', 60;
     send_key 'alt-f';
     assert_screen 'yast2-control-center-ui';
 }
 
 sub start_common_server_certificate {
-    search('ca');
+    search('cert');
     assert_and_click 'yast2_control-center_common-server-certificate';
-    assert_screen 'yast2_control-center_common-server-certificate_abort';
+    assert_screen 'yast2-common-server-certificate';
     send_key 'alt-r';
     assert_screen 'yast2-control-center-ui';
 }
@@ -218,7 +242,7 @@ sub start_user_and_group_management {
 sub start_hypervisor {
     search('hypervisor');
     assert_and_click 'yast2_control-center_install-hypervisor-and-tools';
-    assert_screen 'yast2_control-center_install-hypervisor-and-tools_cancel', timeout => 180;
+    assert_screen 'yast2-install-hypervisor-and-tools', timeout => 180;
     send_key 'alt-c';
     assert_screen 'yast2-control-center-ui', 60;
 }
@@ -273,6 +297,12 @@ sub run {
     if (is_sle && sle_version_at_least '15') {
         #see bsc#1062331, sound is not added to the yast2 pattern
         ensure_installed('in yast2-sound');
+        #kdump is disabled by default, so ensure that it's installed
+        ensure_installed('in yast2-kdump');
+        record_soft_failure 'bsc#1059569';
+        # Missing yast2-ca-management and yast2-auth-server
+        ensure_installed('in yast2-ca-management');
+        ensure_installed('in yast2-auth-server');
     }
     $self->launch_yast2_module_x11('', target_match => 'yast2-control-center-ui', match_timeout => 180);
 
@@ -298,7 +328,8 @@ sub run {
     start_sudo;
     start_user_and_group_management;
     start_hypervisor;
-    if (check_var('DISTRI', 'sle')) {
+
+    if (is_sle) {
         start_add_system_extensions_or_modules;
         start_kernel_dump;
         start_common_server_certificate;
