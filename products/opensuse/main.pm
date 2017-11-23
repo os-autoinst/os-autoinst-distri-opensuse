@@ -953,12 +953,7 @@ if (get_var("CLONE_SYSTEM")) {
     load_autoyast_clone_tests;
 }
 
-if (get_var("STORE_HDD_1") || get_var("PUBLISH_HDD_1")) {
-    if (get_var("INSTALLONLY")) {
-        loadtest "shutdown/grub_set_bootargs";
-        loadtest "shutdown/shutdown";
-    }
-}
+load_create_hdd_tests if get_var("STORE_HDD_1") || get_var("PUBLISH_HDD_1");
 
 1;
 # vim: set sw=4 et:

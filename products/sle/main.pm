@@ -70,17 +70,6 @@ sub is_update_test_repo_test {
     return get_var('TEST') !~ /^mru-/ && is_updates_tests;
 }
 
-sub is_bridged_networking {
-    my $ret = 0;
-    if (check_var('BACKEND', 'svirt') and !check_var('ARCH', 's390x')) {
-        my $vmm_family = get_required_var('VIRSH_VMM_FAMILY');
-        $ret = ($vmm_family =~ /xen|vmware|hyperv/);
-    }
-    # Some needles match hostname which we can't set permanently with bridge.
-    set_var('BRIDGED_NETWORKING', 1) if $ret;
-    return $ret;
-}
-
 sub default_desktop {
     return undef   if get_var('VERSION', '') lt '12';
     return 'gnome' if get_var('VERSION', '') lt '15';
@@ -1167,7 +1156,7 @@ elsif (get_var("REGRESSION")) {
         loadtest "x11regressions/x11regressions_setup";
         # temporary adding test modules which applies hacks for missing parts in sle15
         loadtest "console/sle15_workarounds" if sle_version_at_least('15');
-        loadtest "console/hostname" unless is_bridged_networking;
+        loadtest "console/hostname"       unless is_bridged_networking;
         loadtest "console/force_cron_run" unless is_jeos;
         loadtest "shutdown/grub_set_bootargs";
         loadtest "shutdown/shutdown";
@@ -1589,19 +1578,7 @@ if (get_var("CLONE_SYSTEM")) {
     load_autoyast_clone_tests;
 }
 
-if (get_var("STORE_HDD_1") || get_var("PUBLISH_HDD_1")) {
-    if (get_var("INSTALLONLY")) {
-        # temporary adding test modules which applies hacks for missing parts in sle15
-        loadtest "console/sle15_workarounds" if sle_version_at_least('15');
-        loadtest "console/hostname" unless is_bridged_networking;
-        loadtest "console/force_cron_run" unless is_jeos;
-        loadtest "shutdown/grub_set_bootargs";
-        loadtest "shutdown/shutdown";
-        if (check_var("BACKEND", "svirt")) {
-            loadtest "shutdown/svirt_upload_assets";
-        }
-    }
-}
+load_create_hdd_tests if get_var("STORE_HDD_1") || get_var("PUBLISH_HDD_1");
 
 if (get_var("TCM") || check_var("ADDONS", "tcm")) {
     loadtest "console/force_cron_run";
