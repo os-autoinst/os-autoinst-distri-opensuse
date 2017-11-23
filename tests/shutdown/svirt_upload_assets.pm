@@ -46,6 +46,7 @@ sub run {
 
     # mark hard disks for upload if test finished
     my @toextract;
+    my $first_hdd = get_var('S390_ZKVM') ? 'a' : 'b';
     for my $i (1 .. get_var('NUMDISKS')) {
         my $name = get_var("PUBLISH_HDD_$i");
         next unless $name;
@@ -54,7 +55,7 @@ sub run {
         if (($format ne 'raw') and ($format ne 'qcow2')) {
             next;
         }
-        push @toextract, {name => $name, format => $format, svirt_name => $svirt->name . chr(ord('b') + $i - 1)};
+        push @toextract, {name => $name, format => $format, svirt_name => $svirt->name . chr(ord($first_hdd) + $i - 1)};
     }
     for my $asset (@toextract) {
         extract_assets($asset);
