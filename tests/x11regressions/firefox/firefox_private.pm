@@ -19,8 +19,9 @@ sub run {
     my ($self) = @_;
     $self->start_firefox;
 
+    wait_still_screen 1;
     send_key "ctrl-shift-p";
-    send_key "alt-d";
+    assert_screen 'firefox-private-browsing';
     type_string "gnu.org\n";
     $self->firefox_check_popups;
     assert_screen('firefox-private-gnu', 90);
