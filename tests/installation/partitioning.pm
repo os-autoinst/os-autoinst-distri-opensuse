@@ -31,6 +31,8 @@ sub run {
         if (check_var('DISTRI', 'opensuse')) {
             $cmd{expertpartitioner} = 'alt-x';
             $cmd{rescandevices}     = 'alt-c';
+            $cmd{enablelvm}         = 'alt-a';
+            $cmd{encryptdisk}       = 'alt-l';
         }
     }
 

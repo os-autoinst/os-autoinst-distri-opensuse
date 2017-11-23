@@ -58,6 +58,8 @@ sub init_cmd {
       filesystem alt-s
       expertpartitioner alt-e
       encrypt alt-e
+      encryptdisk alt-a
+      enablelvm alt-e
       resize alt-i
       acceptlicense alt-a
       instdetails alt-d
