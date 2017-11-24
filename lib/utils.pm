@@ -87,6 +87,7 @@ our @EXPORT = qw(
   get_x11_console_tty
   OPENQA_FTP_URL
   setup_static_network
+  arrays_differ
 );
 
 
@@ -1469,6 +1470,20 @@ sub setup_static_network {
     assert_script_run "ping -c 1 10.0.2.2 || journalctl -b --no-pager > /dev/$serialdev";
 }
 
+=head2  arrays_differ
+ Comparing two arrays passed by reference. Return 1 if arrays has symmetric difference
+ and 0 otherwise.
+=cut
+sub arrays_differ {
+    my ($array1_ref, $array2_ref) = @_;
+    my @array1 = @{$array1_ref};
+    my @array2 = @{$array2_ref};
+    return 1 if scalar(@array1) != scalar(@array2);
+    foreach my $item (@array1) {
+        return 1 if !grep($item eq $_, @array2);
+    }
+    return 0;
+}
 
 1;
 

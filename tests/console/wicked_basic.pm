@@ -17,7 +17,7 @@
 use base "consoletest";
 use strict;
 use testapi;
-use utils qw(systemctl snapper_revert_system);
+use utils qw(systemctl snapper_revert_system arrays_differ);
 
 sub assert_wicked_state {
     my (%args) = @_;
@@ -37,6 +37,7 @@ sub run {
     my ($self) = @_;
     my $snapshot_number = script_output('echo $clean_system');
     set_var('BTRFS_SNAPSHOT_NUMBER', $snapshot_number);
+    my $iface = script_output('echo $(ls /sys/class/net/ | grep -v lo | head -1)');
     type_string("#***Test 1: Bring down the wicked client service***\n");
     systemctl('stop wicked.service');
     assert_wicked_state(wicked_client_down => 1, interfaces_down => 1);
@@ -46,7 +47,18 @@ sub run {
     type_string("#***Test 3: Bring down the wicked server service***\n");
     systemctl('stop wickedd.service');
     assert_wicked_state(wicked_daemon_down => 1);
-    assert_script_run('! ifdown $(ls -d /sys/class/net/!(lo) | head -1 | sed "s/.*\///")');
+    assert_script_run("! ifdown $iface");
+    type_string("#***Test 4: Bring up the wicked server service***\n");
+    systemctl('start wickedd.service');
+    assert_wicked_state();
+    assert_script_run("ifup $iface");
+    type_string("#***Test 5: List the network interfaces with wicked***\n");
+    my @wicked_all_ifaces = split("\n", script_output("wicked show --brief all"));
+    foreach (@wicked_all_ifaces) {
+        $_ = substr($_, 0, index($_, ' '));
+    }
+    my @ls_all_ifaces = split(' ', script_output("ls /sys/class/net/"));
+    die "Wrong list of interfaces from wicked" if arrays_differ(\@wicked_all_ifaces, \@ls_all_ifaces);
     save_and_upload_log();
     $self->snapper_revert_system();
 }
