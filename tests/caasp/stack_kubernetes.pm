@@ -14,8 +14,6 @@ use parent 'caasp_controller';
 use strict;
 use utils;
 use testapi;
-use lockapi 'mutex_create';
-use mmapi 'wait_for_children';
 
 sub run {
     # Use downloaded kubeconfig to display basic information
@@ -25,6 +23,7 @@ sub run {
 
     assert_script_run "kubectl cluster-info";
     assert_script_run "kubectl get nodes";
+    assert_script_run "! kubectl get cs --no-headers | grep -v Healthy";
 
     # Check cluster size
     # %number_of_jobs - minus admin job
@@ -49,9 +48,8 @@ sub run {
     type_string "firefox node1.openqa.test:\$NODEPORT\n";
     assert_screen 'nginx-alpine';
 
-    # Put this in last controller module test
-    mutex_create "CNTRL_FINISHED";
-    wait_for_children;
+    # Switch back to velum
+    send_key "ctrl-tab";
 }
 
 1;

@@ -38,7 +38,7 @@ sub select_nodes {
     # Select all nodes as workers
     assert_and_click 'velum-bootstrap-select-nodes';
     # Wait until warning messages disappears
-    wait_still_screen 3;
+    wait_still_screen 2;
 }
 
 # Select master.openqa.test and additional master nodes
@@ -54,6 +54,8 @@ sub select_master {
     # Select master node
     mouse_set $x, $y;
     mouse_click;
+    # Don't click-and-drag
+    sleep 1;
     mouse_hide;
 
     # Give velum time to process
@@ -114,7 +116,7 @@ sub kubectl_config {
 
     # Download takes few seconds
     sleep 5;
-    save_screenshot;
+    assert_and_click 'velum-kubeconfig-back';
 }
 
 sub run {

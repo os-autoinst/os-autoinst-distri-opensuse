@@ -14,6 +14,7 @@ use base "opensusebasetest";
 use strict;
 use testapi;
 use lockapi;
+use caasp 'update_scheduled';
 
 sub run {
     # Notify others that installation finished
@@ -26,7 +27,14 @@ sub run {
 
 sub post_run_hook {
     # Password is set later on autoyast nodes
-    select_console('root-console') if get_var('AUTOYAST');
+    if (get_var 'AUTOYAST') {
+        select_console('root-console');
+    }
+    # Cluster node was rebooted
+    elsif (update_scheduled) {
+        reset_consoles;
+        select_console 'root-console';
+    }
 
     script_run "journalctl > journal.log", 90;
     upload_logs "journal.log";

@@ -11,6 +11,7 @@ BEGIN {
 }
 use utils;
 use main_common;
+use caasp 'update_scheduled';
 
 init_main();
 
@@ -128,6 +129,8 @@ sub load_stack_tests {
         loadtest 'caasp/stack_configure';
         loadtest 'caasp/stack_bootstrap';
         loadtest 'caasp/stack_kubernetes';
+        loadtest 'caasp/stack_update' if update_scheduled;
+        loadtest 'caasp/stack_finalize';
     }
     else {
         loadtest "caasp/stack_" . get_var('STACK_ROLE');
