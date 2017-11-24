@@ -16,14 +16,7 @@ use strict;
 use testapi;
 use lockapi;
 use utils;
-use mmapi 'get_children_by_state';
 
-# Replace by https://progress.opensuse.org/issues/27409 when it's done
-sub wait_for_workers {
-    my $children = @{get_children_by_state 'running'};
-    die "Some worker job died" unless check_var('STACK_SIZE', $children);
-    barrier_wait "WORKERS_INSTALLED";
-}
 
 sub accept_nodes {
     # Accept pending nodes
@@ -141,7 +134,7 @@ sub kubectl_config {
 
 sub run {
     assert_screen 'velum-bootstrap-page', 90;
-    wait_for_workers;
+    barrier_wait {name => "WORKERS_INSTALLED", check_dead_job => 1};
 
     accept_nodes;
     select_nodes;
