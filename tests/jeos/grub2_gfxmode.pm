@@ -19,7 +19,7 @@
 use base "opensusebasetest";
 use strict;
 use testapi;
-use bootloader_setup 'set_framebuffer_resolution';
+use bootloader_setup qw(set_framebuffer_resolution set_extrabootparams_grub_conf);
 
 sub run {
     if (check_var('UEFI', '1')) {
@@ -31,6 +31,7 @@ sub run {
         assert_script_run("sed -ie '/GFXPAYLOAD_LINUX=/s/=.*/=1024x768/' /etc/default/grub");
     }
     set_framebuffer_resolution;
+    set_extrabootparams_grub_conf;
     assert_script_run('grub2-mkconfig -o /boot/grub2/grub.cfg');
 }
 
