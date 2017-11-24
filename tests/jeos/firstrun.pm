@@ -62,7 +62,7 @@ sub run {
         send_key 'ret';
     }
 
-    assert_screen 'linux-login', 120;
+    assert_screen 'linux-login', 180;
     select_console 'root-console';
 
     assert_script_run "useradd -m $username -c '$realname'";    # create user account
