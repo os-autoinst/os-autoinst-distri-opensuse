@@ -525,7 +525,7 @@
     </packages>
     <patterns config:type="list">
       <pattern>base</pattern>
-      <pattern>gnome-basic</pattern>
+      <pattern>gnome_basic</pattern>
       <pattern>minimal_base</pattern>
       <pattern>x11</pattern>
     </patterns>
