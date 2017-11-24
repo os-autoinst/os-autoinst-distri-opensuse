@@ -542,6 +542,8 @@ sub load_extra_tests {
         }
         loadtest "console/command_not_found";
         if (check_var('DISTRI', 'sle') && sle_version_at_least('12-SP2')) {
+            # Check for availability of packages and the corresponding repository, only makes sense for SLE
+            loadtest 'console/repo_package_install';
             loadtest 'console/openssl_alpn';
             loadtest 'console/autoyast_removed';
         }
