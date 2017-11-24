@@ -849,7 +849,8 @@ sub load_consoletests {
         }
         loadtest "console/http_srv";
         loadtest "console/mysql_srv";
-        loadtest "console/dns_srv";
+        # Hyper-V host is in .suse.cz domain and the test is unstable
+        loadtest "console/dns_srv" unless check_var('VIRSH_VMM_FAMILY', 'hyperv');
         loadtest "console/postgresql_server";
         if (sle_version_at_least('12-SP1')) {    # shibboleth-sp not available on SLES 12 GA
             loadtest "console/shibboleth";
