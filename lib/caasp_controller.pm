@@ -7,7 +7,13 @@ use lockapi;
 use mmapi 'wait_for_children';
 
 use Exporter 'import';
-our @EXPORT = qw(confirm_insecure_https velum_login);
+our @EXPORT = qw(confirm_insecure_https velum_login switch_to);
+
+# Easier switching between applications
+sub switch_to {
+    my $app = shift;
+    send_key_until_needlematch "switch-to-$app", 'alt-tab', 1;
+}
 
 # Register and login to velum and dex
 sub velum_login {

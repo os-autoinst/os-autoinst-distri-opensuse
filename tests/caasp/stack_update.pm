@@ -21,17 +21,18 @@ use testapi;
 use lockapi 'mutex_create';
 use caasp 'update_scheduled';
 
+
 # Set up ssh to admin node and run update script on all nodes
 sub setup_update_repository {
     my $repo = update_scheduled;
-    send_key 'alt-tab';    # Switch to xterm
+    switch_to 'xterm';
     assert_script_run "ssh admin.openqa.test './update.sh -s $repo' | tee /dev/$serialdev | grep EXIT_OK", 1200;
-    send_key 'alt-tab';    # Switch to velum
+    switch_to 'velum';
 }
 
 # Check that update changed system as expected
 sub check_update_changes {
-    send_key 'alt-tab';    # Switch to xterm
+    switch_to 'xterm';
 
     # Kubernetes checks
     assert_script_run "kubectl cluster-info";
@@ -48,7 +49,7 @@ sub check_update_changes {
         assert_script_run "ssh admin.openqa.test './update.sh -c' | tee /dev/$serialdev | grep EXIT_OK", 60;
     }
 
-    send_key 'alt-tab';    # Switch to velum
+    switch_to 'velum';
 }
 
 sub run {

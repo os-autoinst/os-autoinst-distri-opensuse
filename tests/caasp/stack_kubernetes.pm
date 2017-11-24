@@ -11,14 +11,15 @@
 # Maintainer: Martin Kravec <mkravec@suse.com>
 
 use parent 'caasp_controller';
+use caasp_controller;
+
 use strict;
 use utils;
 use testapi;
 
 sub run {
     # Use downloaded kubeconfig to display basic information
-    send_key "alt-tab";
-    assert_screen 'xterm';
+    switch_to 'xterm';
     type_string "export KUBECONFIG=~/Downloads/kubeconfig\n";
 
     assert_script_run "kubectl cluster-info";
@@ -47,9 +48,7 @@ sub run {
     type_string "NODEPORT=`kubectl get svc | egrep -o '80:3[0-9]{4}' | cut -d: -f2`\n";
     type_string "firefox node1.openqa.test:\$NODEPORT\n";
     assert_screen 'nginx-alpine';
-
-    # Switch back to velum
-    send_key "ctrl-tab";
+    send_key 'ctrl-w';
 }
 
 1;
