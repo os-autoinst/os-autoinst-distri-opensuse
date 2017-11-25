@@ -44,6 +44,7 @@ our @EXPORT = qw(
   zkvm_add_pty
   $zkvm_img_path
   set_framebuffer_resolution
+  set_extrabootparams_grub_conf
 );
 
 our $zkvm_img_path = "/var/lib/libvirt/images";
@@ -603,6 +604,15 @@ sub set_framebuffer_resolution {
     }
 }
 
+# Add content of EXTRABOOTPARAMS to /etc/default/grub. Don't forget to run grub2-mkconfig
+# in test code afterwards.
+sub set_extrabootparams_grub_conf {
+    if (my $extrabootparams = get_var('EXTRABOOTPARAMS')) {
+        # On JeOS we have GRUB_CMDLINE_LINUX, on CaaSP we have GRUB_CMDLINE_LINUX_DEFAULT.
+        my $grub_cmdline_label = is_jeos() ? 'GRUB_CMDLINE_LINUX' : 'GRUB_CMDLINE_LINUX_DEFAULT';
+        assert_script_run("sed -ie '/${grub_cmdline_label}=/s/\"\$/ $extrabootparams \"/' /etc/default/grub");
+    }
+}
 1;
 
 # vim: sw=4 et

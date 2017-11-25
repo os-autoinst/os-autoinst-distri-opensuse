@@ -11,26 +11,26 @@
 # 1024x768 of the cirrus kms driver doesn't help us. We need to
 # manually configure grub to tell the kernel what mode to use.
 
-# Summary: Set gfxplayload for grub and framebuffer for Linux
-#    JeOS doesn't inherit the gfx settings from the first boot so we need
-#    to adjust the grub config manually to survive reboots.
+# Summary: Set gfxplayload for GRUB and framebuffer for Linux
+#   JeOS doesn't inherit the GFX nor any other user-define settings
+#   from the first boot, so we need to adjust the grub config
+#   manually to survive reboot.
 # Maintainer: Michal Nowak <mnowak@suse.com>
 
 use base "opensusebasetest";
 use strict;
 use testapi;
-use bootloader_setup 'set_framebuffer_resolution';
+use bootloader_setup qw(set_framebuffer_resolution set_extrabootparams_grub_conf);
 
 sub run {
-    if (check_var('UEFI', '1')) {
+    if (get_var('UEFI')) {
         assert_script_run("sed -ie '/GRUB_GFXMODE=/s/=.*/=1024x768/' /etc/default/grub");
-        # workaround kiwi quirk bsc#968270, bsc#968264
-        assert_script_run("rm -rf /boot/efi/EFI; sed -ie 's/which/echo/' /usr/sbin/shim-install && shim-install");
     }
     else {
         assert_script_run("sed -ie '/GFXPAYLOAD_LINUX=/s/=.*/=1024x768/' /etc/default/grub");
     }
     set_framebuffer_resolution;
+    set_extrabootparams_grub_conf;
     assert_script_run('grub2-mkconfig -o /boot/grub2/grub.cfg');
 }
 
