@@ -351,6 +351,10 @@ sub is_sle12_hdd_in_upgrade {
     return get_var('UPGRADE') && !sle_version_at_least('15', version_variable => 'HDDVERSION');
 }
 
+sub is_sle12_layered_before_install {
+    return get_var('VERSION_LAYERED');
+}
+
 sub type_string_slow {
     my ($string) = @_;
 
@@ -1452,7 +1456,12 @@ sub get_root_console_tty {
     is running on tty2 by default. see also: bsc#1054782
 =cut
 sub get_x11_console_tty {
-    my $new_gdm = !(is_sle && !sle_version_at_least('15')) && !(is_leap && !leap_version_at_least('15.0')) && !is_sle12_hdd_in_upgrade && !is_caasp;
+    my $new_gdm
+      = !(is_sle   && !sle_version_at_least('15'))
+      && !(is_leap && !leap_version_at_least('15.0'))
+      && !is_sle12_hdd_in_upgrade
+      && !is_caasp
+      && !is_sle12_layered_before_install;
     return (check_var('DESKTOP', 'gnome') && get_var('NOAUTOLOGIN') && $new_gdm) ? 2 : 7;
 }
 
