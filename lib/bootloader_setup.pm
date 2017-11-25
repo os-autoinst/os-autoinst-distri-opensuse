@@ -195,7 +195,7 @@ sub uefi_bootmenu_params {
     #     for(1..2) {send_key "down";} # select KDE Live
     # }
 
-    if (check_var('VIDEOMODE', "text")) {
+    if (!is_jeos && check_var('VIDEOMODE', "text")) {
         type_string_slow "textmode=1 ";
     }
 
