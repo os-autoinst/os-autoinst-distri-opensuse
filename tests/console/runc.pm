@@ -97,6 +97,9 @@ sub run {
     record_info 'Test #10', 'Test: Delete a container';
     assert_script_run('runc delete test2');
     assert_script_run("! runc state test2");
+
+    # Cleanup, remove all images
+    assert_script_run("docker rmi --force \$(docker images -q)");
 }
 
 1;
