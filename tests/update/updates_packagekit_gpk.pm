@@ -38,8 +38,8 @@ sub run {
     return record_soft_failure 'bsc#1060844' if sle_version_at_least('15') && is_sle();
     select_console 'x11', await_console => 0;
 
-    my @updates_tags           = qw(updates_none updates_available package-updater-privileged-user-warning);
-    my @updates_installed_tags = qw(updates_none updates_installed-logout updates_installed-restart);
+    my @updates_tags           = qw(updates_none updates_available package-updater-privileged-user-warning updates_restart_application);
+    my @updates_installed_tags = qw(updates_none updates_installed-logout updates_installed-restart updates_restart_application );
 
     turn_off_screensaver;
 
@@ -52,8 +52,12 @@ sub run {
             assert_screen \@updates_tags, 100;
         }
 
+        if (match_has_tag("updates_restart_application")) {
+            assert_and_click("updates_restart_application");
+        }
+
         if (match_has_tag("updates_none")) {
-            send_key "ret";
+            send_key 'ret';
             return;
         }
         elsif (match_has_tag("updates_available")) {
@@ -71,15 +75,19 @@ sub run {
             # Wait until installation is done
             assert_screen \@updates_installed_tags, 3600;
             if (match_has_tag("updates_none")) {
-                send_key "ret";
-                last;
+                send_key 'ret';
+                if (check_screen "updates_installed-restart", 0) {
+                    power_action 'reboot';
+                    $self->wait_boot;
+                    turn_off_screensaver;
+                }
+                next;
             }
             elsif (match_has_tag("updates_installed-logout")) {
                 send_key "alt-c";    # close
             }
             elsif (match_has_tag("updates_installed-restart")) {
-                select_console 'root-console';
-                type_string "reboot\n";
+                power_action 'reboot';
                 $self->wait_boot;
                 turn_off_screensaver;
             }
