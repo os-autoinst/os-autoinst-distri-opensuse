@@ -35,9 +35,18 @@ sub run {
     # check that number of images visible to docker was increased
     validate_script_output("docker info", sub { m/Images\: 2/ });
 
-    # run hello world from sles and delete container
-    validate_script_output("docker  run --rm  suse/sles12sp2 /bin/echo Hello world", sub { m/Hello world/ });
-
+    # Check for bsc#1064010
+    my $docker_images_output = script_output("docker images");
+    my $docker_images        = $docker_images_output =~ /sles12sp2-docker/;
+    if ($docker_images) {
+        record_soft_failure("bsc#1064010");
+        # run hello world from sles with applied workaround and delete the container
+        validate_script_output("docker  run --rm  suse/sles12sp2-docker /bin/echo Hello world", sub { m/Hello world/ });
+    }
+    else {
+        # run hello world from sles and delete the container
+        validate_script_output("docker  run --rm  suse/sles12sp2 /bin/echo Hello world", sub { m/Hello world/ });
+    }
     # delete sle images
     assert_script_run("docker rmi --force \$(docker images -a  | grep suse | grep -v latest | awk {'print \$3'})");
 
