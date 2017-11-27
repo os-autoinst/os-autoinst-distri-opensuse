@@ -13,13 +13,14 @@
 use base "consoletest";
 use strict;
 use testapi;
-use utils qw(systemctl setup_static_network);
+use utils qw(systemctl setup_static_network is_sle sle_version_at_least);
 use mm_network;
 
 sub run {
     my ($self) = @_;
     select_console('root-console');
-    assert_script_run "rcSuSEfirewall2 stop";
+    my $service = (is_sle && sle_version_at_least('15')) ? 'firewalld' : 'SuSEfirewall2';
+    systemctl("stop $service");
     systemctl('is-active network');
     systemctl('is-active wicked');
     assert_script_run('[ -z "$(coredumpctl -1 --no-pager --no-legend)" ]');
