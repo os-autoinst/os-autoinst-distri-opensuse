@@ -112,13 +112,13 @@ sub check_strategy_etcd_lock {
 sub run {
     type_string "tput civis\n";
 
-    record_info 'Test #1', 'Test instant reboot';
+    record_info 'Instantly', 'Test instant reboot';
     check_strategy_instantly;
 
-    record_info 'Test #2', 'Test maint-window strategy';
+    record_info 'Maint-window', 'Test maint-window strategy';
     check_strategy_maint_window;
 
-    record_info 'Test #3', 'Test etcd locking strategy';
+    record_info 'Etcd', 'Test etcd locking strategy';
     check_strategy_etcd_lock;
 }
 
