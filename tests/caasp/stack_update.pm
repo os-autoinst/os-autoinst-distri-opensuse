@@ -24,23 +24,14 @@ use caasp 'update_scheduled';
 # Set up ssh to admin node and run update script on all nodes
 sub setup_update_repository {
     my $repo = update_scheduled;
-
-    # Switch to xterm
-    send_key 'alt-tab';    # select_console 'user-console'
-    script_run 'ssh-copy-id -f admin.openqa.test', 0;
-    assert_screen 'ssh-password-prompt';
-    type_password;
-    send_key 'ret';
+    send_key 'alt-tab';    # Switch to xterm
     assert_script_run "ssh admin.openqa.test './update.sh -s $repo' | tee /dev/$serialdev | grep EXIT_OK", 120;
-
-    # Switch to velum
-    send_key 'alt-tab';    # select_console 'x11';
+    send_key 'alt-tab';    # Switch to velum
 }
 
 # Check that update changed system as expected
 sub check_update_changes {
-    # Switch to xterm
-    send_key 'alt-tab';    # select_console 'user-console'
+    send_key 'alt-tab';    # Switch to xterm
 
     # Kubernetes checks
     assert_script_run "kubectl cluster-info";
@@ -48,7 +39,6 @@ sub check_update_changes {
     my $nodes_count = get_required_var("STACK_NODES");
     assert_script_run "kubectl get nodes --no-headers | wc -l | grep $nodes_count";
 
-    # Containers check
     # QAM: incidents repo with real maintenance updates
     if (check_var('FLAVOR', 'CaaSP-DVD-Incidents')) {
         # TODO
@@ -58,8 +48,7 @@ sub check_update_changes {
         assert_script_run "ssh admin.openqa.test './update.sh -c' | tee /dev/$serialdev | grep EXIT_OK", 60;
     }
 
-    # Switch to velum
-    send_key 'alt-tab';    # select_console 'x11';
+    send_key 'alt-tab';    # Switch to velum
 }
 
 sub run {

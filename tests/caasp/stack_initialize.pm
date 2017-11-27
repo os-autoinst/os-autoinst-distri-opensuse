@@ -10,10 +10,11 @@
 # Summary: Initialize testing environment
 # Manual modifications to controller node:
 #   Installed packages for DHCP, DNS and enable them in firewall
-#   Installer kubernetes-client from virtualization repo
+#   Installed kubernetes-client from virtualization repo
+#   Installed mozilla-nss-tools to import certificate
 #   Firefox:
 #     - disabled readerview, password remember, bookmarks bar
-#     - startup page, search tips, auto-save to disk
+#     - blank startup page, search tips, auto-save to disk
 # Maintainer: Martin Kravec <mkravec@suse.com>
 
 use parent 'caasp_controller';
