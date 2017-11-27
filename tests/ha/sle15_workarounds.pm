@@ -22,7 +22,7 @@ sub run {
     return unless sle_version_at_least('15');
 
     # Modify the device number if needed
-    if (get_var('ISO_1', '') ne '') {
+    if ((get_var('ISO', '') eq '') && (get_var('ISO_1', '') ne '')) {
         assert_script_run "sed -i 's;sr1;sr0;g' /etc/zypp/repos.d/*";
     }
 }

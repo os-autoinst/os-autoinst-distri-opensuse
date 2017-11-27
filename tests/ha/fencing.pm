@@ -17,8 +17,11 @@ use lockapi;
 use hacluster;
 
 sub run {
-    barrier_wait("BEFORE_FENCING_$cluster_name");
+    # 'barrier_wait' needs to be done separately to ensure that
+    # 'reset_consoles' as been done on all nodes before fencing
     if (is_node(2)) {
+        barrier_wait("BEFORE_FENCING_$cluster_name");
+
         # Fence the node
         assert_script_run 'crm -F node fence ' . get_var('HA_CLUSTER_JOIN');
 
@@ -27,6 +30,7 @@ sub run {
     }
     else {
         reset_consoles;
+        barrier_wait("BEFORE_FENCING_$cluster_name");
     }
 
     # Do a check of the cluster with a screenshot
