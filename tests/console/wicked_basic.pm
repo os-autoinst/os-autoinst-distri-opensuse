@@ -12,6 +12,10 @@
 # Test 1: Bring down the wicked client service
 # Test 2: Bring up the wicked client service
 # Test 3: Bring down the wicked server service
+# Test 4: Bring up the wicked server service
+# Test 5: List the network interfaces with wicked
+# Test 6: Bring an interface down with wicked
+# Test 7: Bring an interface up with wicked
 # Maintainer: Anton Smorodskyi <asmorodskyi@suse.com>, Sebastian Chlad <schlad@suse.de>
 
 use base "consoletest";
@@ -35,8 +39,6 @@ sub save_and_upload_log {
 
 sub run {
     my ($self) = @_;
-    my $snapshot_number = script_output('echo $clean_system');
-    set_var('BTRFS_SNAPSHOT_NUMBER', $snapshot_number);
     my $iface = script_output('echo $(ls /sys/class/net/ | grep -v lo | head -1)');
     type_string("#***Test 1: Bring down the wicked client service***\n");
     systemctl('stop wicked.service');
@@ -59,6 +61,14 @@ sub run {
     }
     my @ls_all_ifaces = split(' ', script_output("ls /sys/class/net/"));
     die "Wrong list of interfaces from wicked" if arrays_differ(\@wicked_all_ifaces, \@ls_all_ifaces);
+    type_string("#***Test 6: Bring an interface down with wicked***\n");
+    assert_script_run("ifdown $iface");
+    assert_script_run("ping -q -c1 -W1 -I $iface 10.0.2.2 2>&1 | grep -q ' Network is unreachable'");
+    assert_script_run("! \$(ip address show dev $iface | grep -q 'inet')");
+    type_string("#***Test 7: Bring an interface up with wicked***\n");
+    assert_script_run("ifup $iface");
+    assert_script_run("ping -q -c1 -W1 -I $iface 10.0.2.2");
+    assert_script_run("ip address show dev $iface | grep -q 'inet'");
     save_and_upload_log();
     $self->snapper_revert_system();
 }
