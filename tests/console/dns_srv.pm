@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -13,8 +13,14 @@
 use strict;
 use base "consoletest";
 use testapi;
+use main_common 'is_bridged_networking';
 
 sub run {
+    # Skip the entire test on bridget networks (e.g. Xen, Hyper-V)
+    if (is_bridged_networking) {
+        record_soft_failure 'Bug 1064438: "bind" cannot resolve localhost';
+        return;
+    }
     select_console 'root-console';
 
     # Install bind
