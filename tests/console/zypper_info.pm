@@ -16,6 +16,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils qw(is_sle sle_version_at_least);
 
 sub test_srcpackage_output {
     my $info_output_coreutils = script_output 'zypper info srcpackage:coreutils';

@@ -15,6 +15,7 @@ use base "console_yasttest";
 use strict;
 use testapi;
 use utils;
+use version_utils qw(is_leap is_sle sle_version_at_least leap_version_at_least);
 
 # Test "yast2 dhcp-server" functionality
 # Ensure that all combinations of running/stopped and active/inactive

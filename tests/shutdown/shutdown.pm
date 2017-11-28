@@ -19,7 +19,8 @@
 use strict;
 use base 'basetest';
 use testapi;
-use utils qw(sle_version_at_least power_action add_serial_console);
+use utils qw(power_action add_serial_console);
+use version_utils 'sle_version_at_least';
 
 sub run {
     select_console('root-console');

@@ -14,7 +14,7 @@
 use base "x11test";
 use strict;
 use testapi;
-use utils;
+use version_utils "is_gnome_next";
 
 sub run {
     my @tags = qw(test-evolution-1 evolution-default-client-ask);

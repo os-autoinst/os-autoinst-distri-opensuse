@@ -14,6 +14,7 @@
 use base "x11regressiontest";
 use testapi;
 use utils;
+use version_utils 'is_tumbleweed';
 use strict;
 
 sub check_lo_theme {

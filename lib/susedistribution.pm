@@ -2,7 +2,8 @@ package susedistribution;
 use base 'distribution';
 use serial_terminal ();
 use strict;
-use utils qw(type_string_slow ensure_unlocked_desktop save_svirt_pty sle_version_at_least is_caasp get_root_console_tty get_x11_console_tty);
+use utils qw(type_string_slow ensure_unlocked_desktop save_svirt_pty get_root_console_tty get_x11_console_tty);
+use version_utils qw(is_hyperv_in_gui sle_version_at_least);
 
 # Base class implementation of distribution class necessary for testapi
 

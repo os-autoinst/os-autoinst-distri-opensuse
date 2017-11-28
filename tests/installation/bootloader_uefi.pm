@@ -21,6 +21,7 @@ use lockapi;
 use bootloader_setup;
 use registration;
 use utils;
+use version_utils qw(is_jeos is_caasp);
 
 # hint: press shift-f10 trice for highest debug level
 sub run {

@@ -14,6 +14,7 @@ use base "x11regressiontest";
 use strict;
 use testapi;
 use utils;
+use version_utils qw(leap_version_at_least sle_version_at_least);
 
 sub tweak_startupapp_menu {
     my ($self) = @_;

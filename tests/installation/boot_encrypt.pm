@@ -14,6 +14,7 @@
 use strict;
 use base "installbasetest";
 use utils;
+use version_utils 'sle_version_at_least';
 use testapi qw(get_var record_soft_failure);
 
 sub run {

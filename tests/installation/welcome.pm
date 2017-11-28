@@ -15,7 +15,8 @@ use strict;
 use warnings;
 use base "y2logsstep";
 use testapi;
-use utils qw(ensure_fullscreen sle_version_at_least);
+use utils 'ensure_fullscreen';
+use version_utils 'sle_version_at_least';
 use main_common 'is_staging';
 
 sub run {

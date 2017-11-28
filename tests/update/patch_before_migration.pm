@@ -12,6 +12,7 @@ use base "consoletest";
 use strict;
 use testapi;
 use utils;
+use version_utils qw(sle_version_at_least is_desktop_installed);
 use migration;
 use registration;
 use qam;

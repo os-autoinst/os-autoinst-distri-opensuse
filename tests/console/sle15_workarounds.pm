@@ -18,7 +18,8 @@
 use base qw(consoletest distribution);
 use strict;
 use testapi;
-use utils qw(zypper_call sle_version_at_least pkcon_quit);
+use utils qw(zypper_call pkcon_quit);
+use version_utils 'sle_version_at_least';
 
 
 sub run {

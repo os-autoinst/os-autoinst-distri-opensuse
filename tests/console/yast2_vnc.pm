@@ -14,6 +14,7 @@ use strict;
 use base "console_yasttest";
 use testapi;
 use utils;
+use version_utils qw(is_leap is_sle sle_version_at_least leap_version_at_least);
 
 
 sub run {

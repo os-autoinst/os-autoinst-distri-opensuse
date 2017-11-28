@@ -13,6 +13,7 @@
 use base "consoletest";
 use strict;
 use utils;
+use version_utils 'is_desktop_installed';
 use testapi;
 use migration;
 

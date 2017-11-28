@@ -14,6 +14,7 @@ use strict;
 use base "x11regressiontest";
 use testapi;
 use utils;
+use version_utils 'sle_version_at_least';
 
 sub run {
     my $self        = shift;

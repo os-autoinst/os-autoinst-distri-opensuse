@@ -20,6 +20,7 @@ BEGIN {
     unshift @INC, dirname(__FILE__) . '/../../lib';
 }
 use utils;
+use version_utils qw(is_jeos is_gnome_next is_krypton_argon is_leap is_tumbleweed is_rescuesystem leap_version_at_least is_desktop_installed);
 use main_common;
 
 init_main();
@@ -134,6 +135,10 @@ sub is_server {
 
 sub is_livesystem {
     return (check_var("FLAVOR", 'Rescue-CD') || get_var("LIVETEST"));
+}
+
+sub is_kde_live {
+    return get_var('FLAVOR', '') =~ /KDE-Live/;
 }
 
 sub xfcestep_is_applicable {

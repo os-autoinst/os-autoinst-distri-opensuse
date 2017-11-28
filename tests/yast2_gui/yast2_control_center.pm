@@ -18,6 +18,7 @@ use base 'y2x11test';
 use strict;
 use testapi;
 use utils;
+use version_utils qw(is_sle sle_version_at_least is_leap leap_version_at_least is_storage_ng);
 
 sub search {
     my ($name) = @_;

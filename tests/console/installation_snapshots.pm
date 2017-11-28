@@ -15,7 +15,7 @@
 use base 'consoletest';
 use strict;
 use testapi;
-use utils;
+use version_utils "is_jeos";
 
 sub run {
     select_console 'root-console';

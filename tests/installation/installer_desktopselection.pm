@@ -13,9 +13,9 @@
 
 use strict;
 use base "y2logsstep";
-use main_common "addon_products_is_applicable";
+use main_common 'addon_products_is_applicable';
 use testapi;
-use utils "leap_version_at_least";
+use version_utils 'leap_version_at_least';
 
 sub run {
     assert_screen 'desktop-selection';

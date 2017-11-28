@@ -15,6 +15,7 @@ use base "x11regressiontest";
 use strict;
 use testapi;
 use utils;
+use version_utils 'sle_version_at_least';
 
 
 sub run {

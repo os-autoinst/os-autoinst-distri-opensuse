@@ -17,7 +17,7 @@
 use strict;
 use base "opensusebasetest";
 use testapi;
-use utils 'is_caasp';
+use version_utils 'is_caasp';
 use caasp;
 
 # Download files needed for transactional update test

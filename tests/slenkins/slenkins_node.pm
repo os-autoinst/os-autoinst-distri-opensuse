@@ -22,7 +22,7 @@ use testapi;
 use lockapi;
 use mmapi;
 use mm_network;
-use utils 'sle_version_at_least';
+use version_utils 'sle_version_at_least';
 
 sub run {
     my $children = get_children();

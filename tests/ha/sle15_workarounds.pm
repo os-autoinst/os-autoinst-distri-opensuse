@@ -13,7 +13,7 @@
 
 use base 'opensusebasetest';
 use strict;
-use utils 'sle_version_at_least';
+use version_utils 'sle_version_at_least';
 use testapi;
 use hacluster;
 

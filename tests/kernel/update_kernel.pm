@@ -16,6 +16,7 @@ use strict;
 use base 'opensusebasetest';
 use testapi;
 use utils;
+use version_utils 'sle_version_at_least';
 use qam;
 
 sub update_kernel {

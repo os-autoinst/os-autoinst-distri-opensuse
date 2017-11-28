@@ -13,7 +13,8 @@
 use base "opensusebasetest";
 use strict;
 use testapi;
-use utils qw(is_caasp power_action);
+use utils 'power_action';
+use version_utils 'is_caasp';
 use bootloader_setup 'set_framebuffer_resolution';
 use caasp 'process_reboot';
 

@@ -14,7 +14,7 @@
 use strict;
 use base "y2logsstep";
 use testapi;
-use utils 'is_storage_ng';
+use version_utils 'is_storage_ng';
 
 sub run {
 

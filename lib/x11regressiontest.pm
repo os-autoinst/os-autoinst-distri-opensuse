@@ -16,6 +16,7 @@ use LWP::Simple;
 use Config::Tiny;
 use testapi;
 use utils;
+use version_utils qw(is_sle is_tumbleweed sle_version_at_least);
 use POSIX 'strftime';
 
 # Start shotwell and handle the welcome screen, if there

@@ -20,7 +20,8 @@ use strict;
 use base 'y2logsstep';
 
 use testapi;
-use utils qw(sle_version_at_least zypper_call);
+use utils 'zypper_call';
+use version_utils 'sle_version_at_least';
 use registration;
 
 sub run {

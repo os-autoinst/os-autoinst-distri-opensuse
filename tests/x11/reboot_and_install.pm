@@ -14,7 +14,9 @@ use base "opensusebasetest";
 use strict;
 
 use testapi;
-use utils qw(power_action workaround_type_encrypted_passphrase is_sle12_hdd_in_upgrade);
+use utils qw(power_action workaround_type_encrypted_passphrase);
+use version_utils 'is_sle12_hdd_in_upgrade';
+
 use bootloader_setup;
 use registration;
 

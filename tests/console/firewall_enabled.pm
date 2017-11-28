@@ -15,7 +15,7 @@
 use base 'opensusebasetest';
 use strict;
 use testapi;
-use utils;
+use version_utils qw(is_jeos is_leap is_sle leap_version_at_least sle_version_at_least);
 
 sub run {
     if ((is_sle && sle_version_at_least('15')) || (is_leap && leap_version_at_least('15.0'))) {

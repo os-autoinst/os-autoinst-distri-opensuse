@@ -15,6 +15,7 @@ use base "installbasetest";
 
 use testapi;
 use utils;
+use version_utils qw(is_sle sle_version_at_least);
 
 use strict;
 use warnings;

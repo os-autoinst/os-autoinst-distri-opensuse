@@ -18,6 +18,7 @@
 use base "consoletest";
 use testapi;
 use utils;
+use version_utils 'is_caasp';
 use strict;
 
 # Setup the required testing environment

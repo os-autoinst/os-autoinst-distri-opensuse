@@ -14,6 +14,7 @@ use base "x11test";
 use strict;
 use testapi;
 use utils;
+use version_utils qw(is_sle sle_version_at_least);
 
 sub turn_off_screensaver {
     # Turn off screensaver
