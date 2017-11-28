@@ -8,6 +8,7 @@ use utils;
 use version_utils qw(is_jeos is_gnome_next is_krypton_argon is_sle leap_version_at_least sle_version_at_least is_desktop_installed);
 use strict;
 use warnings;
+use main_ltp;
 
 our @EXPORT = qw(
   init_main
@@ -44,9 +45,9 @@ our @EXPORT = qw(
   any_desktop_is_applicable
   console_is_applicable
   boot_hdd_image
+  maybe_load_kernel_tests
   load_yast2_ncurses_tests
   load_yast2_gui_tests
-  maybe_load_kernel_tests
   load_extra_tests
   load_rollback_tests
   load_filesystem_tests
@@ -433,55 +434,6 @@ sub load_yast2_gui_tests {
     loadtest "yast2_gui/yast2_network_settings";
     loadtest "yast2_gui/yast2_software_management";
     loadtest "yast2_gui/yast2_users";
-}
-
-sub maybe_load_kernel_tests {
-    if (get_var('INSTALL_LTP')) {
-        if (get_var('INSTALL_KOTD')) {
-            loadtest 'kernel/install_kotd';
-        }
-        if (get_var('FLAVOR', '') =~ /Incidents-Kernel$/) {
-            loadtest 'kernel/update_kernel';
-        }
-        loadtest 'kernel/install_ltp';
-        loadtest 'kernel/boot_ltp';
-        if (get_var('PROC_SYS_DUMP')) {
-            loadtest 'kernel/proc_sys_dump';
-        }
-        loadtest 'kernel/shutdown_ltp';
-    }
-    elsif (get_var('LTP_SETUP_NETWORKING')) {
-        loadtest 'kernel/boot_ltp';
-        loadtest 'kernel/ltp_setup_networking';
-        loadtest 'kernel/shutdown_ltp';
-    }
-    elsif (get_var('LTP_COMMAND_FILE')) {
-        if (get_var('INSTALL_KOTD')) {
-            loadtest 'kernel/install_kotd';
-        }
-        loadtest 'kernel/boot_ltp';
-        if (get_var('LTP_COMMAND_FILE') =~ m/ltp-aiodio.part[134]/) {
-            loadtest 'kernel/create_junkfile_ltp';
-        }
-        loadtest 'kernel/run_ltp';
-        if (get_var('PROC_SYS_DUMP')) {
-            loadtest 'kernel/proc_sys_dump';
-        }
-    }
-    elsif (get_var('QA_TEST_KLP_REPO')) {
-        if (get_var('INSTALL_KOTD')) {
-            loadtest 'kernel/install_kotd';
-        }
-        loadtest 'kernel/boot_ltp';
-        loadtest 'kernel/qa_test_klp';
-    }
-    elsif (get_var('VIRTIO_CONSOLE_TEST')) {
-        loadtest 'kernel/virtio_console';
-    }
-    else {
-        return 0;
-    }
-    return 1;
 }
 
 sub load_extra_tests {
