@@ -441,6 +441,9 @@ sub maybe_load_kernel_tests {
         }
         loadtest 'kernel/install_ltp';
         loadtest 'kernel/boot_ltp';
+        if (get_var('PROC_SYS_DUMP')) {
+            loadtest 'kernel/proc_sys_dump';
+        }
         loadtest 'kernel/shutdown_ltp';
     }
     elsif (get_var('LTP_SETUP_NETWORKING')) {
@@ -457,6 +460,9 @@ sub maybe_load_kernel_tests {
             loadtest 'kernel/create_junkfile_ltp';
         }
         loadtest 'kernel/run_ltp';
+        if (get_var('PROC_SYS_DUMP')) {
+            loadtest 'kernel/proc_sys_dump';
+        }
     }
     elsif (get_var('QA_TEST_KLP_REPO')) {
         if (get_var('INSTALL_KOTD')) {
