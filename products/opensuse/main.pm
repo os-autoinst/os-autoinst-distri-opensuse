@@ -401,7 +401,7 @@ sub load_consoletests {
         || check_var('ARCH', 'i686')
         || check_var('ARCH', 'i586'))
     {
-        loadtest "console/glibc_i686";
+        loadtest "console/glibc_sanity";
     }
     loadtest "console/zypper_in";
     loadtest "console/yast2_i";

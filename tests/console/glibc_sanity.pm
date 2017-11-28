@@ -8,7 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Check /lib/libc.so.* content
+# Summary: Check /lib{,64}/libc.so.6 provides correct content
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
 use base "consoletest";
@@ -16,13 +16,17 @@ use strict;
 use testapi;
 use utils 'zypper_call';
 
-# this part contains the steps to run this test
 sub run {
     select_console 'root-console';
 
+    my $libcstr = 'GNU C Library';
     zypper_call 'in -C libc.so.6';
-    script_run "/lib/libc.so.* | tee /dev/$serialdev", 0;
-    wait_serial("\QGNU C Library (GNU libc) stable release\E.*\n.*\n.*\n.*\n.*\n\QConfigured for i686-suse-linux.\E") || die '/lib/libc.so.* did not match';
+    assert_script_run "/lib/libc.so.6 | tee /dev/$serialdev | grep --color '$libcstr'";
+    assert_script_run '/lib/libc.so.6 | grep --color "i686-suse-linux"';
+    return if check_var('ARCH', 'i586');    # On Tumbleweed we still support 32-bit x86
+    zypper_call 'in -C "libc.so.6()(64bit)"';
+    assert_script_run "/lib64/libc.so.6 | tee /dev/$serialdev | grep --color '$libcstr'";
+    assert_script_run '/lib64/libc.so.6 | grep --color "x86_64-suse-linux"';
 }
 
 1;
