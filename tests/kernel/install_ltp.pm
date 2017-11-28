@@ -116,35 +116,56 @@ sub install_build_dependencies {
     }
 }
 
+sub upload_runtest_files {
+    my ($dir, $tag) = @_;
+    my $aiurl = autoinst_url();
+
+    my $up_script = qq%
+rfiles=\$(ls --file-type $dir)
+for f in \$rfiles; do
+    echo "Uploading ltp-\$f-$tag"
+    curl --form upload=\@$dir/\$f --form target=assets_public $aiurl/upload_asset/ltp-\$f-$tag
+    echo "ltp-\$f-$tag" >> /tmp/ltp-runtest-files-$tag
+done
+curl --form upload=\@/tmp/ltp-runtest-files-$tag --form target=assets_public $aiurl/upload_asset/ltp-runtest-files-$tag
+curl --form upload=\@/root/openposix-test-list-$tag --form target=assets_public $aiurl/upload_asset/openposix-test-list-$tag
+%;
+
+    script_output($up_script);
+}
+
 sub install_from_git {
+    my ($tag) = @_;
     my $url = get_var('LTP_GIT_URL') || 'https://github.com/linux-test-project/ltp';
-    my $tag = get_var('LTP_RELEASE') || '';
+    my $rel = get_var('LTP_RELEASE') || '';
     my $configure = './configure --with-open-posix-testsuite --with-realtime-testsuite';
     my $extra_flags = get_var('LTP_EXTRA_CONF_FLAGS') || '';
-    if ($tag) {
-        $tag = ' -b ' . $tag;
+    if ($rel) {
+        $rel = ' -b ' . $rel;
     }
-    assert_script_run("git clone -q --depth 1 $url" . $tag, timeout => 360);
+    assert_script_run("git clone -q --depth 1 $url" . $rel, timeout => 360);
     assert_script_run 'cd ltp';
+    # It is a shallow clone so 'git describe' won't work
+    script_run 'git log -1 --pretty=format:"git-%h" > /opt/ltp_version';
     assert_script_run 'make autotools';
     assert_script_run("$configure $extra_flags", timeout => 300);
     assert_script_run 'make -j$(getconf _NPROCESSORS_ONLN)', timeout => 1440;
     script_run 'export CREATE_ENTRIES=1';
     assert_script_run 'make install', timeout => 360;
-    assert_script_run "find ~/ltp/testcases/open_posix_testsuite/conformance/interfaces -name '*.run-test' > ~/openposix_test_list.txt";
-    # It is a shallow clone so 'git describe' won't work
-    script_run 'git log -1 --pretty=format:"git %h" > /opt/ltp_version';
+    assert_script_run "find /opt/ltp/ -name '*.run-test' > ~/openposix-test-list-$tag";
 }
 
 sub install_from_repo {
+    my ($tag) = @_;
     zypper_call('in qa_test_ltp', dumb_term => 1);
-    assert_script_run q(find ${LTPROOT:-/opt/ltp}/testcases/bin/openposix/conformance/interfaces/ -name '*.run-test' > ~/openposix_test_list.txt);
     script_run 'rpm -q qa_test_ltp > /opt/ltp_version';
+    assert_script_run q(find ${LTPROOT:-/opt/ltp}/testcases/bin/openposix/conformance/interfaces/ -name '*.run-test' > ~/openposix-test-list-) . $tag;
 }
 
 sub run {
     my $self     = shift;
     my $inst_ltp = get_var 'INSTALL_LTP';
+    my $tag      = get_var('LTP_RUNTEST_TAG') || get_var('VERSION') . '-' . get_var('BUILD');
 
     if ($inst_ltp !~ /(repo|git)/i) {
         die 'INSTALL_LTP must contain "git" or "repo"';
@@ -171,11 +192,11 @@ sub run {
         install_build_dependencies;
         # bsc#1024050 - Watch for Zombies
         script_run('(pidstat -p ALL 1 > /tmp/pidstat.txt &)');
-        install_from_git;
+        install_from_git($tag);
     }
     else {
         add_repos;
-        install_from_repo;
+        install_from_repo($tag);
     }
 
     # check kGraft if KGRAFT=1
@@ -183,7 +204,7 @@ sub run {
         assert_script_run("uname -v | grep '/kGraft-'");
     }
 
-    upload_logs '/root/openposix_test_list.txt';
+    upload_runtest_files('${LTPROOT:-/opt/ltp}/runtest', $tag);
 
     select_console('root-console');
     type_string "reboot\n";
