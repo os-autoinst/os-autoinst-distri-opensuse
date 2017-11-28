@@ -8,12 +8,13 @@
 # without any warranty.
 
 # Summary: YaST logic on Network Restart while no config changes were made
-# Maintainer: Jozef Pupava <jpupava@suse.com>
+# Maintainer: Zaoliang Luo <zluo@suse.com>
 # Tags: fate#318787 poo#11450
 
 use base 'y2logsstep';
 use strict;
 use testapi;
+use version_utils;
 
 sub run_yast2_lan {
     type_string "yast2 lan\n";
@@ -42,7 +43,20 @@ sub check_network {
     $status //= 'no_restart';
     wait_still_screen;
     send_key 'alt-o';                     # OK
-    assert_screen 'yast2_closed_xterm_visible', 120;
+
+    # new: warning pops up for firewall, alt-y for assign it to zone
+    assert_screen([qw(yast2-lan-restart_firewall_active_warning yast2_closed_xterm_visible)], 120);
+    if (match_has_tag 'yast2-lan-restart_firewall_active_warning') {
+        send_key 'alt-y';
+        wait_still_screen 1;
+        send_key 'alt-n';
+        wait_still_screen 1;
+        send_key 'alt-o';
+    }
+    else {
+        assert_screen 'yast2_closed_xterm_visible', 120;
+    }
+    #  for sure that it comes back to root console
     assert_script_run 'ip a';
     if ("$workaround" eq 'bsc#992113') {
         record_soft_failure 'bsc#992113';
@@ -54,11 +68,16 @@ sub check_network {
     if ("$status" eq 'restart') {
         assert_script_run '[ -s journal.log ]';                       # journal.log size is greater than zero (network restarted)
     }
-    else {
-        assert_script_run '[ ! -s journal.log ]';                     # journal.log size is not greater than zero (network not restarted)
+    if ((is_sle && !sle_version_at_least('15')) || (is_leap && !leap_version_at_least('15.0'))) {
+        assert_script_run '[ ! -s journal.log ]';
     }
-    assert_script_run '> journal.log';                                # clear journal.log
-    type_string "\n\n";                                               # make space for better readability of the console
+    else {
+        # original: assert_script_run '[ ! -s journal.log ]' -> journal.log size is not greater than zero (network not restarted),
+        # but this is not working anymore because of bsc#1070578
+        record_soft_failure 'bsc#1070578' if script_run '[ ! -s journal.log ]';
+    }
+    assert_script_run '> journal.log';    # clear journal.log
+    type_string "\n\n";                   # make space for better readability of the console
 }
 
 sub add_device {
@@ -66,53 +85,53 @@ sub add_device {
     assert_screen 'yast2_closed_xterm_visible', 120;
     run_yast2_lan;
     if ("$device" eq 'bond') {
-        send_key 'alt-i';                                             # Edit NIC
+        send_key 'alt-i';                 # Edit NIC
         assert_screen 'yast2_lan_network_card_setup';
-        send_key 'alt-k';                                             # No link (Bonding Slavees)
-        send_key 'alt-n';                                             # Next
-        assert_screen 'yast2_lan';                                    # yast2 lan overview tab
+        send_key 'alt-k';                 # No link (Bonding Slavees)
+        send_key 'alt-n';                 # Next
+        assert_screen 'yast2_lan';        # yast2 lan overview tab
     }
-    send_key 'alt-a';                                                 # Add NIC
+    send_key 'alt-a';                     # Add NIC
     assert_screen 'yast2_lan_hardware_dialog';
-    send_key 'alt-d';                                                 # Device type
-    send_key 'home';                                                  # Jump to beginning of list
+    send_key 'alt-d';                     # Device type
+    send_key 'home';                      # Jump to beginning of list
     send_key_until_needlematch "yast2_lan_device_type_$device", 'down';
-    send_key 'alt-n';                                                 # Next
+    send_key 'alt-n';                     # Next
     assert_screen 'yast2_lan_network_card_setup';
-    send_key 'alt-y';                                                 # Dynamic address
+    send_key 'alt-y';                     # Dynamic address
     wait_still_screen;
     if ("$device" eq 'bridge') {
-        send_key 'alt-g';                                             # General
-        send_key 'alt-i';                                             # Bridged devices
+        send_key 'alt-g';                 # General
+        send_key 'alt-i';                 # Bridged devices
         assert_screen 'yast2_lan_bridged_devices';
         if (check_screen('yast2_lan_default_NIC_bridge')) {
-            send_key 'alt-d';                                         # select Bridged Devices region
+            send_key 'alt-d';             # select Bridged Devices region
             send_key 'spc';
             wait_still_screen;
             save_screenshot;
         }
-        send_key 'alt-n';                                             # Next
+        send_key 'alt-n';                 # Next
         assert_screen 'yast2_lan_select_already_configured_device';
-        send_key 'alt-o';                                             # OK
+        send_key 'alt-o';                 # OK
     }
     elsif ("$device" eq 'bond') {
-        send_key 'alt-o';                                             # Bond slaves
+        send_key 'alt-o';                 # Bond slaves
         assert_screen 'yast2_lan_bond_slaves';
         send_key_until_needlematch 'yast2_lan_bond_slave_tab_selected', 'tab';
-        send_key 'tab';                                               # select Bond Slaves and Order field
-        send_key 'spc';                                               # check network interface
+        send_key 'tab';                   # select Bond Slaves and Order field
+        send_key 'spc';                   # check network interface
         wait_still_screen;
         save_screenshot;
-        send_key 'alt-n';                                             # Next
+        send_key 'alt-n';                 # Next
     }
     elsif ("$device" eq 'VLAN') {
         send_key 'alt-v';
         send_key 'tab';
         type_string '12';
-        send_key 'alt-n';                                             # Next
+        send_key 'alt-n';                 # Next
     }
     else {
-        send_key 'alt-n';                                             # Next
+        send_key 'alt-n';                 # Next
     }
     close_yast;
 }
@@ -124,22 +143,22 @@ sub select_special_device_tab {
     send_key 'tab';
     send_key 'home';
     send_key_until_needlematch "yast2_lan_device_${device}_selected", 'down';
-    send_key 'alt-i';                                                 # Edit NIC
+    send_key 'alt-i';                     # Edit NIC
     assert_screen 'yast2_lan_network_card_setup';
     if ("$device" eq 'bridge') {
-        send_key 'alt-g';                                             # General
-        send_key 'alt-i';                                             # Bridged devices
+        send_key 'alt-g';                 # General
+        send_key 'alt-i';                 # Bridged devices
         assert_screen 'yast2_lan_bridged_devices';
     }
     elsif ("$device" eq 'bond') {
-        send_key 'alt-o';                                             # Bond slaves
+        send_key 'alt-o';                 # Bond slaves
         assert_screen 'yast2_lan_bond_slaves';
     }
     elsif ("$device" eq 'VLAN') {
         assert_screen 'yast2_lan_VLAN';
     }
     wait_still_screen;
-    send_key 'alt-n';                                                 # Next
+    send_key 'alt-n';                     # Next
 }
 
 sub del_device {
@@ -149,38 +168,38 @@ sub del_device {
     send_key 'tab';
     send_key 'home';
     send_key_until_needlematch "yast2_lan_device_${device}_selected", 'down';
-    send_key 'alt-t';                                                 # Delete NIC
+    send_key 'alt-t';                     # Delete NIC
     wait_still_screen;
     save_screenshot;
-    send_key 'alt-i';                                                 # Edit NIC
+    send_key 'alt-i';                     # Edit NIC
     assert_screen 'yast2_lan_network_card_setup';
-    send_key 'alt-y';                                                 # Dynamic address
-    send_key 'alt-n';                                                 # Next
+    send_key 'alt-y';                     # Dynamic address
+    send_key 'alt-n';                     # Next
     close_yast;
 }
 
 sub test_2 {
     diag '__________(2) Start yast2 lan -> Edit (a NIC) -> no change, don\'t switch to another tab, [Next] -> [OK]__________';
     run_yast2_lan_edit;
-    send_key 'alt-n';                                                 # Next
+    send_key 'alt-n';                     # Next
     check_network;
 }
 
 sub test_5 {
     diag '__________(5) Start yast2 lan -> Edit (a NIC) -> no change, switch to Hardware tab, [Next] -> [OK]__________';
     run_yast2_lan_edit;
-    send_key 'alt-w';                                                 # Hardware tab
+    send_key 'alt-w';                     # Hardware tab
     assert_screen 'yast2_lan_hardware_tab';
-    send_key 'alt-n';                                                 # Next
+    send_key 'alt-n';                     # Next
     check_network;
 }
 
 sub test_6 {
     diag '__________(6) Start yast2 lan -> Edit (a NIC) -> no change, switch to General tab, [Next] -> [OK]__________';
     run_yast2_lan_edit;
-    send_key 'alt-g';                                                 # General tab
+    send_key 'alt-g';                     # General tab
     assert_screen 'yast2_lan_general_tab';
-    send_key 'alt-n';                                                 # Next
+    send_key 'alt-n';                     # Next
     check_network;
 }
 
@@ -188,18 +207,18 @@ sub test_7 {
     my $dev_name = shift;
     diag '__________(7) Start yast2 lan -> Edit (a NIC) -> switch to Hardware tab, change nic name, [Next] -> [OK] -> device name is changed__________';
     run_yast2_lan_edit;
-    send_key 'alt-w';                                                 # Hardware tab
+    send_key 'alt-w';                     # Hardware tab
     assert_screen 'yast2_lan_hardware_tab';
-    send_key 'alt-e';                                                 # Change device name
+    send_key 'alt-e';                     # Change device name
     assert_screen 'yast2_lan_device_name';
-    send_key 'alt-m';                                                 # Udev rule based on MAC
+    send_key 'alt-m';                     # Udev rule based on MAC
     send_key 'tab';
     send_key 'tab';
     send_key 'tab';
     send_key 'tab';
     type_string "$dev_name";
-    send_key 'alt-o';                                                 # OK
-    send_key 'alt-n';                                                 # Next
+    send_key 'alt-o';                     # OK
+    send_key 'alt-n';                     # Next
     check_network('restart');
 }
 
@@ -207,10 +226,15 @@ sub run {
     select_console 'x11';
     x11_start_program("xterm -geometry 155x50+5+5", target_match => 'xterm');
     become_root;
+    # make sure that firewalld is stopped, or we have later pops for firewall activation warning
+    # or timeout for command 'ip a' later
+    if (script_run "systemctl show -p ActiveState firewalld.service | grep ActiveState=active") {
+        assert_script_run "systemctl stop firewalld";
+    }
     # enable debug for detailed messages and easier detection of restart
     assert_script_run 'sed -i \'s/DEBUG="no"/DEBUG="yes"/\' /etc/sysconfig/network/config';
     type_string "journalctl -f|egrep -i --line-buffered 'shutting down|ifdown all' > journal.log &\n";
-    assert_script_run '> journal.log';                                # clear journal.log
+    assert_script_run '> journal.log';    # clear journal.log
     diag '__________(1) Start yast2 lan -> [OK]__________';
     type_string "# (1) NO restart\n";
     run_yast2_lan;
@@ -220,26 +244,26 @@ sub run {
     diag '__________(3) Start yast2 lan -> Go through all tabs -> no change anywhere -> [OK]__________';
     type_string "# (3) NO restart\n";
     run_yast2_lan;
-    send_key 'alt-g';                                                 # Global options tab
+    send_key 'alt-g';                     # Global options tab
     assert_screen 'yast2_lan_global_options_tab';
-    send_key 'alt-s';                                                 # Hostname/DNS tab
+    send_key 'alt-s';                     # Hostname/DNS tab
     assert_screen 'yast2_lan_hostname_tab';
-    send_key 'alt-u';                                                 # Routing tab
+    send_key 'alt-u';                     # Routing tab
     assert_screen 'yast2_lan_routing_tab';
     check_network;
     diag
 '__________(4) Start yast2 lan -> Select routing tab -> change value in a default gw checkbox -> select another tab -> go back an change value in the checkbox back -> [OK]__________';
     type_string "# (4) NO restart\n";
     run_yast2_lan;
-    send_key 'alt-u';                                                 # Routing tab
+    send_key 'alt-u';                     # Routing tab
     assert_screen 'yast2_lan_routing_tab';
     type_string '10.0.2.2';
     save_screenshot;
-    send_key 'alt-g';                                                 # Global options tab
+    send_key 'alt-g';                     # Global options tab
     assert_screen 'yast2_lan_global_options_tab';
-    send_key 'alt-u';                                                 # Routing tab
+    send_key 'alt-u';                     # Routing tab
     assert_screen 'yast2_lan_routing_tab';
-    send_key 'backspace';                                             # Delete selected IP
+    send_key 'backspace';                 # Delete selected IP
     check_network;
     type_string "# (5) NO restart\n";
     test_5;
