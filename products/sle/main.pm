@@ -1155,6 +1155,8 @@ elsif (get_var("REGRESSION")) {
         load_inst_tests();
         load_reboot_tests();
         loadtest "x11regressions/x11regressions_setup";
+        # temporary adding test modules which switchs the default desktop session to GNOME Shell for sled15
+        loadtest 'x11regressions/sled15_workarounds' if sle_version_at_least('15');
         # temporary adding test modules which applies hacks for missing parts in sle15
         loadtest "console/sle15_workarounds" if sle_version_at_least('15');
         loadtest "console/hostname"       unless is_bridged_networking;
