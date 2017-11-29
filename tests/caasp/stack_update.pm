@@ -49,7 +49,14 @@ sub check_update_changes {
     assert_script_run "kubectl get nodes --no-headers | wc -l | grep $nodes_count";
 
     # Containers check
-    assert_script_run "ssh admin.openqa.test './update.sh -c' | tee /dev/$serialdev | grep EXIT_OK", 60;
+    # QAM: incidents repo with real maintenance updates
+    if (check_var('FLAVOR', 'CaaSP-DVD-Incidents')) {
+        # TODO
+    }
+    else {
+        # QA: fake repo with pre-defined values (hardcoded)
+        assert_script_run "ssh admin.openqa.test './update.sh -c' | tee /dev/$serialdev | grep EXIT_OK", 60;
+    }
 
     # Switch to velum
     send_key 'alt-tab';    # select_console 'x11';
