@@ -456,7 +456,12 @@ sub fill_in_reg_server {
     }
     else {
         send_key "alt-i";
-        send_key "alt-o";
+        if (sle_version_at_least('15')) {
+            send_key "alt-l";
+        }
+        else {
+            send_key "alt-o";
+        }
         type_string get_required_var("SMT_URL");
     }
     save_screenshot;
