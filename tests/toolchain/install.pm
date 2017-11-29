@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -15,6 +15,8 @@ use base "opensusebasetest";
 use strict;
 use testapi;
 use utils;
+use version_utils qw(is_sle sle_version_at_least);
+use registration;
 
 sub run {
     my ($self) = @_;
@@ -24,23 +26,37 @@ sub run {
     # disable packagekitd
     script_run 'systemctl mask packagekit.service';
     script_run 'systemctl stop packagekit.service';
-    # toolchain channels
-    if (!check_var('ADDONS', 'tcm')) {
-        my $arch = get_var('ARCH');
-        assert_script_run "zypper ar -f http://download.suse.de/ibs/SUSE/Products/SLE-Module-Toolchain/12/$arch/product/ SLE-Module-Toolchain12-Pool";
-        assert_script_run "zypper ar -f http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Toolchain/12/$arch/update/ SLE-Module-Toolchain12-Updates";
+
+    if (is_sle && !sle_version_at_least('15')) {
+        # toolchain channels
+        if (!check_var('ADDONS', 'tcm')) {
+            my $arch = get_var('ARCH');
+            assert_script_run "zypper ar -f http://download.suse.de/ibs/SUSE/Products/SLE-Module-Toolchain/12/$arch/product/ SLE-Module-Toolchain12-Pool";
+            assert_script_run "zypper ar -f http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Toolchain/12/$arch/update/ SLE-Module-Toolchain12-Updates";
+        }
+        zypper_call('in -t pattern gcc5');
+        zypper_call('up');
+
+        # reboot when runing processes use deleted files after packages update
+        type_string "zypper ps|grep 'PPID' || echo OK | tee /dev/$serialdev\n";
+        if (!wait_serial("OK", 100)) {
+            type_string "shutdown -r now\n";
+            $self->wait_boot;
+            select_console('root-console');
+        }
+        script_run 'export CC=/usr/bin/gcc-5';
+        script_run 'export CXX=/usr/bin/g++-5';
     }
-    zypper_call('in -t pattern gcc5');
-    zypper_call('up');
-    # reboot when runing processes use deleted files after packages update
-    type_string "zypper ps|grep 'PPID' || echo OK | tee /dev/$serialdev\n";
-    if (!wait_serial("OK", 100)) {
-        type_string "shutdown -r now\n";
-        $self->wait_boot;
-        select_console('root-console');
+    elsif (is_sle) {
+        # No need to be fixed to version (that is only for products receiving the yearly gcc update)
+        # but it needs to activate development tool module
+        add_suseconnect_product("sle-module-development-tools");
+        zypper_call 'in -t pattern devel_basis';
+        zypper_call 'in gcc-fortran';    # from Base System Module
+        script_run 'export CC=/usr/bin/gcc';
+        script_run 'export CXX=/usr/bin/g++';
     }
-    script_run 'export CC=/usr/bin/gcc-5';
-    script_run 'export CXX=/usr/bin/g++-5';
+
     script_run 'lscpu';
     script_run 'free -m';
     save_screenshot;

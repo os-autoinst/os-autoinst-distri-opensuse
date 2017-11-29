@@ -1,19 +1,21 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Fortran test for SLE Toolchain Module's GCC5
+# Summary: Fortran test for SLE Toolchain Module's GCC
 # Maintainer: Michal Nowak <mnowak@suse.com>
 
 use base "opensusebasetest";
 use strict;
 use testapi;
+use utils;
+use version_utils qw(is_sle sle_version_at_least);
 
 sub run {
     my $self = shift;
@@ -27,7 +29,9 @@ sub run {
     script_run 'tar jxf fcvs21_f95.tar.bz2';
     script_run 'cp FM923.DAT fcvs21_f95/';
     script_run 'pushd fcvs21_f95';
-    script_run "sed -i 's/g77/gfortran-5/g' driver_*";
+    # gfortran (and gcc) fixed to version in SLE12 after the yearly gcc update with Toolchain module
+    my $fortran_version = is_sle && sle_version_at_least('15') ? "gfortran" : "gfortran-5";
+    script_run "sed -i 's/g77/$fortran_version/g' driver_*";
     script_run 'echo "exit \${failed}" >> driver_parse';
 
     script_run "patch -p0 < ../adapt-FM406-to-fortran-95.patch";
