@@ -21,6 +21,7 @@ use testapi;
 use strict;
 use utils;
 
+
 sub run {
     select_console 'root-console';
 
@@ -40,5 +41,10 @@ sub run {
     assert_script_run "ovs-vsctl del-br ovs-openqa-br0";
 }
 
+sub test_flags {
+    return {fatal => 1};
+}
+
 1;
+
 # vim: set sw=4 et:
