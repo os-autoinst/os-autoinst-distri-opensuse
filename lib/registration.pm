@@ -203,6 +203,10 @@ sub fill_in_registration_data {
             record_soft_failure('bsc#1056413');
             # Activate the last of the expected modules to select them manually, as not preselected but at least dependencies are handled
             my $addons = (split(/,/, $SLE15_DEFAULT_MODULES{get_required_var('SLE_PRODUCT')}))[-1] . (get_var('SCC_ADDONS') ? ',' . get_var('SCC_ADDONS') : '');
+            # Add desktop module if not preselected and not yet added
+            if (match_has_tag('desktop-not-selected') && $addons !~ /desktop/) {
+                $addons .= ',desktop';
+            }
             set_var('SCC_ADDONS', $addons);
         }
     }
