@@ -77,7 +77,8 @@ sub run {
             if (match_has_tag("updates_none")) {
                 send_key 'ret';
                 if (check_screen "updates_installed-restart", 0) {
-                    power_action 'reboot';
+                    select_console 'root-console';
+                    type_string "reboot\n";
                     $self->wait_boot;
                     turn_off_screensaver;
                 }
@@ -87,7 +88,8 @@ sub run {
                 send_key "alt-c";    # close
             }
             elsif (match_has_tag("updates_installed-restart")) {
-                power_action 'reboot';
+                select_console 'root-console';
+                type_string "reboot\n";
                 $self->wait_boot;
                 turn_off_screensaver;
             }
