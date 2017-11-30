@@ -68,6 +68,28 @@ sub select_master {
     }
 }
 
+sub setup_root_ca {
+    # Close firefox
+    send_key 'alt-f4';
+    assert_screen 'xterm';
+
+    # Setup ssh
+    script_run 'ssh-copy-id -f admin.openqa.test', 0;
+    assert_screen 'ssh-password-prompt';
+    type_password;
+    send_key 'ret';
+
+    # Install certificate
+    assert_script_run 'scp admin.openqa.test:/etc/pki/trust/anchors/SUSE_CaaSP_CA.crt .';
+    assert_script_run 'certutil -A -n CaaSP -d .mozilla/firefox/*.default -i SUSE_CaaSP_CA.crt -t "C,,"';
+
+    # Start firefox again
+    x11_start_program('firefox admin.openqa.test', valid => 0);
+    assert_screen 'velum-login';
+    velum_login;
+    send_key 'f11';
+}
+
 # Run bootstrap and download kubeconfig
 sub bootstrap {
     # Start bootstrap
@@ -92,9 +114,7 @@ sub bootstrap {
     # Wait until bootstrap finishes
     assert_screen [qw(velum-bootstrap-done velum-api-disconnected)], 900;
     if (match_has_tag('velum-api-disconnected')) {
-        # Velum API needs a moment to restart
-        send_key_until_needlematch 'velum-https-advanced', 'f5', 2, 5;
-        confirm_insecure_https;
+        setup_root_ca;
         assert_screen 'velum-bootstrap-done', 900;
     }
 }
@@ -103,12 +123,12 @@ sub bootstrap {
 sub kubectl_config {
     assert_and_click "velum-kubeconfig";
 
-    unless (check_screen('velum-https-advanced', 5)) {
+    unless (check_screen('dex-login-page', 5)) {
         record_soft_failure 'bsc#1062542 - dex is not be ready yet';
         sleep 30;
         send_key 'f5';
     }
-    confirm_insecure_https;
+    assert_screen 'dex-login-page';
     velum_login;
 
     # Check that kubeconfig downloaded
