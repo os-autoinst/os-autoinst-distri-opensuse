@@ -27,7 +27,8 @@ sub run {
     assert_script_run('sed -e "s/^WICKED_DEBUG=.*/WICKED_DEBUG=\"all\"/g" -i /etc/sysconfig/network/config');
     assert_script_run('sed -e "s/^WICKED_LOG_LEVEL=.*/WICKED_LOG_LEVEL=\"debug\"/g" -i /etc/sysconfig/network/config');
     assert_script_run('cat /etc/sysconfig/network/config');
-    assert_script_run('clean_system=$(snapper create -p -d "clean system")');
+    my $snapshot_number = script_output('snapper create -p -d "clean system"');
+    set_var('BTRFS_SNAPSHOT_NUMBER', $snapshot_number);
 }
 
 1;
