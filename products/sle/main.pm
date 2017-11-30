@@ -1025,13 +1025,13 @@ sub load_ha_cluster_tests {
 
     # Test cluster-md feature
     loadtest "ha/cluster_md";
-    loadtest "ha/clvm_cluster_md";
-    loadtest "ha/filesystem_cluster_md";
+    loadtest "ha/clvm";
+    loadtest "ha/filesystem";
 
     # Test DRBD feature
     if (get_var("HA_CLUSTER_DRBD")) {
         loadtest "ha/drbd_passive";
-        loadtest "ha/filesystem_drbd_passive";
+        loadtest "ha/filesystem";
     }
 
     # Show HA cluster status before fencing test
@@ -1041,8 +1041,8 @@ sub load_ha_cluster_tests {
     loadtest "ha/fencing";
     if (!get_var("HA_CLUSTER_JOIN")) {
         # Node1 will be fenced
-        loadtest "ha/fencing_boot_to_desktop";
-        loadtest "ha/fencing_consoletest_setup";
+        loadtest "boot/boot_to_desktop";
+        loadtest "console/consoletest_setup";
     }
 
     # Check_logs must be after ha/fencing
@@ -1113,15 +1113,15 @@ sub load_patching_tests {
             loadtest "installation/bootloader_zkvm";
         }
     }
-    loadtest 'boot/boot_to_desktop_sym';
+    loadtest 'boot/boot_to_desktop';
     loadtest 'update/patch_before_migration';
     # Lock package for offline migration by Yast installer
     if (get_var('LOCK_PACKAGE') && !installzdupstep_is_applicable) {
         loadtest 'console/lock_package';
     }
-    loadtest 'console/consoletest_finish_sym';
+    loadtest 'console/consoletest_finish';
     loadtest 'x11/reboot_and_install';
-    loadtest 'installation/bootloader_zkvm_sym' if get_var('S390_ZKVM');
+    loadtest 'installation/bootloader_zkvm' if get_var('S390_ZKVM');
 }
 
 sub prepare_target {
@@ -1306,19 +1306,19 @@ elsif (get_var("VIRT_AUTOTEST")) {
     if (get_var("PROXY_MODE")) {
         loadtest "virt_autotest/proxymode_login_proxy";
         loadtest "virt_autotest/proxymode_init_pxe_install";
-        loadtest "virt_autotest/proxymode_redirect_serial1";
+        loadtest "virt_autotest/proxymode_redirect_serial";
         loadtest "virt_autotest/install_package";
         if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
-            loadtest "virt_autotest/reboot_and_wait_up_normal1";
+            loadtest "virt_autotest/reboot_and_wait_up_normal";
         }
         loadtest "virt_autotest/update_package";
-        loadtest "virt_autotest/reboot_and_wait_up_normal2";
+        loadtest "virt_autotest/reboot_and_wait_up_normal";
     }
     else {
         load_boot_tests();
         if (get_var("AUTOYAST")) {
             loadtest "autoyast/installation";
-            loadtest "virt_autotest/reboot_and_wait_up_normal4";
+            loadtest "virt_autotest/reboot_and_wait_up_normal";
         }
         else {
             load_inst_tests();
@@ -1326,7 +1326,7 @@ elsif (get_var("VIRT_AUTOTEST")) {
         }
         loadtest "virt_autotest/install_package";
         loadtest "virt_autotest/update_package";
-        loadtest "virt_autotest/reboot_and_wait_up_normal2";
+        loadtest "virt_autotest/reboot_and_wait_up_normal";
     }
     if (get_var("VIRT_PRJ1_GUEST_INSTALL")) {
         loadtest "virt_autotest/guest_installation_run";
@@ -1341,7 +1341,7 @@ elsif (get_var("VIRT_AUTOTEST")) {
         loadtest "virt_autotest/reboot_and_wait_up_upgrade";
         if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
             loadtest "virt_autotest/setup_xen_serial_console";
-            loadtest "virt_autotest/reboot_and_wait_up_normal3";
+            loadtest "virt_autotest/reboot_and_wait_up_normal";
         }
         loadtest "virt_autotest/host_upgrade_step3_run";
     }
