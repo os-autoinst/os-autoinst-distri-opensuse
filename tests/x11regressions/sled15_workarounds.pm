@@ -21,14 +21,16 @@ sub run {
     assert_and_click 'displaymanager';
     mouse_hide();
     wait_still_screen;
-    send_key 'ret';
     # Move the keyboard focus to the gear icon in gdm greeter
     for (1 .. 2) { send_key 'tab'; }
     send_key 'ret';
     # Switch to GNOME Shell session
     send_key 'right';
     send_key 'down';
+    save_screenshot;
     send_key 'ret';
+    # Move the keyboard focus back to gdm password input box
+    for (1 .. 2) { send_key 'tab'; }
     assert_screen 'displaymanager-password-prompt';
     type_password;
     send_key "ret";
