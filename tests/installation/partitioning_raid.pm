@@ -282,7 +282,7 @@ sub run {
             send_key 'right';
             send_key_until_needlematch "partitioning_raid-disk_vda-selected", "down";
             # edit first partition
-            send_key 'alt-e';
+            send_key(is_storage_ng() ? 'alt-i' : 'alt-e');
             assert_screen 'partition-format';
             # format as FAT (first choice) unless storage-ng
             send_key 'alt-a';
@@ -295,6 +295,10 @@ sub run {
             }
             # mount point selection
             send_key 'alt-o';
+            if (is_storage_ng) {
+                assert_screen('partitioning_raid-mount_point-selected');
+                send_key 'alt-m';
+            }
             assert_screen 'partitioning_raid-mount_point-focused';
             # enter mount point
             type_string '/boot/efi';
