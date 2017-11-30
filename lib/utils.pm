@@ -636,7 +636,10 @@ sub assert_shutdown_and_restore_system {
     $shutdown_timeout //= 60;
     my $vnc_console = get_required_var('SVIRT_VNC_CONSOLE');
     console($vnc_console)->disable_vnc_stalls;
-    assert_shutdown($shutdown_timeout);
+    # Ideally, `assert_shutdown` is here instead of `sleep`, but poo#16418
+    # prevent us to be it so. Rather wait couple of seconds more than risk
+    # an 2 hour hang.
+    sleep($shutdown_timeout);
     if ($action eq 'reboot') {
         reset_consoles;
         # Set disk as a primary boot device
