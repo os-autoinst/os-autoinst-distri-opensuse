@@ -11,7 +11,7 @@
 #   SSH keys are already generated
 #   SSH config was modified to not check identity
 #   Script is not run on admin to avoid mutex hell
-# Maintainer: Martin Kravec <mkravec@suse.com>
+# Maintainer: Martin Kravec <mkravec@suse.com>, Panagiotis Georgiadis <pgeorgiadis@suse.com>
 
 use parent 'caasp_controller';
 use caasp_controller;
@@ -25,7 +25,7 @@ use caasp 'update_scheduled';
 sub setup_update_repository {
     my $repo = update_scheduled;
     send_key 'alt-tab';    # Switch to xterm
-    assert_script_run "ssh admin.openqa.test './update.sh -s $repo' | tee /dev/$serialdev | grep EXIT_OK", 120;
+    assert_script_run "ssh admin.openqa.test './update.sh -s $repo' | tee /dev/$serialdev | grep EXIT_OK", 1200;
     send_key 'alt-tab';    # Switch to velum
 }
 
@@ -67,7 +67,8 @@ sub run {
     die "Admin should be updated already" if check_screen 'velum-update-admin', 0;
     assert_and_click "velum-update-all";
 
-    assert_screen 'velum-bootstrap-done', $nodes * 150;
+    # 5 minutes per node
+    assert_screen 'velum-bootstrap-done', $nodes * 300;
     die "Nodes should be updated already" if check_screen "velum-0-nodes-outdated", 0;
 
     check_update_changes;
