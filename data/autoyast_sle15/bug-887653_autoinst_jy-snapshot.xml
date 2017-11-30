@@ -78,7 +78,8 @@
   </ntp-client>
   <partitioning config:type="list">
     <drive>
-      <device>/dev/vda</device>
+      <device>/dev/sda</device>
+      <disklabel>gpt</disklabel>
       <partitions config:type="list">
         <partition>
           <create config:type="boolean">true</create>
@@ -101,6 +102,7 @@
           <mount>/</mount>
         </partition>
       </partitions>
+      <use>all</use>
     </drive>
   </partitioning>
   <report>
