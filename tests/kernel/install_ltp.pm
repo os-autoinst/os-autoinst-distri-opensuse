@@ -164,6 +164,8 @@ sub run {
     add_desktop_productivity_module;
     add_we_repo_if_available;
 
+    install_runtime_dependencies;
+
     if ($inst_ltp =~ /git/i) {
         install_build_dependencies;
         # bsc#1024050 - Watch for Zombies
@@ -174,8 +176,6 @@ sub run {
         add_repos;
         install_from_repo;
     }
-
-    install_runtime_dependencies;
 
     # check kGraft if KGRAFT=1
     if (check_var("KGRAFT", '1')) {
