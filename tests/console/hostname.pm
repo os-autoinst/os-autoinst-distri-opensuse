@@ -14,6 +14,7 @@
 use base "consoletest";
 use strict;
 use testapi;
+use utils;
 
 sub run {
     select_console 'root-console';
@@ -28,6 +29,17 @@ sub run {
     script_run "systemctl --no-pager status network.service";
     save_screenshot;
     assert_script_run "if systemctl -q is-active network.service; then systemctl reload-or-restart network.service; fi";
+    if (script_run("ip addr show br0 | grep DOWN") == 0) {
+        record_soft_failure('bsc#1061051');
+        systemctl('reload network');
+        systemctl('status network');
+        save_screenshot;
+        systemctl('restart network');
+        systemctl('status network');
+        save_screenshot;
+        assert_script_run "ip addr show br0 | grep UP";
+        save_screenshot;
+    }
 }
 
 sub test_flags {
