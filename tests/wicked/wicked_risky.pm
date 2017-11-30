@@ -14,11 +14,10 @@
 # test suites.
 # Maintainer: Anton Smorodskyi <asmorodskyi@suse.com>
 
-use base "consoletest";
+use base 'wickedbase';
 use strict;
 use testapi;
 use utils qw(systemctl snapper_revert_system);
-
 
 sub run {
     my ($self) = @_;
@@ -26,8 +25,6 @@ sub run {
     # different ips for SUT and REF instances of test
     my $ip = check_var('IS_WICKED_REF', '1') ? '10.0.2.10/15' : '10.0.2.11/15';
     $self->setup_static_network($ip);
-    my $snapshot_number = script_output('echo $clean_system');
-    set_var('BTRFS_SNAPSHOT_NUMBER', $snapshot_number);
     my $config_name = 'wicked/ifcfg-gre1_';
     $config_name .= check_var('IS_WICKED_REF', '1') ? 'ref' : 'sut';
     assert_script_run("wget --quiet " . data_url($config_name) . " -O /etc/sysconfig/network/ifcfg-gre1");
