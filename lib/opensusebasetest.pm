@@ -5,6 +5,7 @@ use bootloader_setup qw(boot_local_disk tianocore_enter_menu zkvm_add_disk zkvm_
 use testapi;
 use strict;
 use utils;
+use version_utils qw(is_sle is_leap sle_version_at_least leap_version_at_least);
 
 
 # Base class for all openSUSE tests
@@ -480,6 +481,10 @@ sub enter_test_text {
     else {
         type_string $text;
     }
+}
+
+sub firewall {
+    return ((is_sle && !sle_version_at_least('15')) || (is_leap && !leap_version_at_least('15.0'))) ? 'SuSEfirewall2' : 'firewalld';
 }
 
 # useful post_fail_hook for any module that calls wait_boot

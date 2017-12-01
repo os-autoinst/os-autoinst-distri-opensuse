@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -54,9 +54,9 @@ sub run {
         return;    # don't change any settings
     }
     if (match_has_tag('install-susefirewall2') || match_has_tag('install-firewalld')) {
-        # install SuSEfirewall2 or firewalld
+        # install firewall
         send_key "alt-i";
-        # check yast2_lan again after SuSEfirewall2 or firewalld is installed
+        # check yast2_lan again after firewall is installed
         assert_screen [qw(Networkmanager_controlled yast2_lan)], 90;
         if (match_has_tag('Networkmanager_controlled')) {
             handle_Networkmanager_controlled;

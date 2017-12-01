@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -30,6 +30,8 @@ sub run {
 
     # set proper hostname
     assert_script_run "hostnamectl set-hostname mrsh-master";
+
+    systemctl 'stop ' . $self->firewall;
 
     # install mrsh
     zypper_call('in mrsh mrsh-server');

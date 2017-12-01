@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -15,10 +15,11 @@
 use base 'opensusebasetest';
 use strict;
 use testapi;
-use version_utils qw(is_jeos is_leap is_sle is_tumbleweed leap_version_at_least sle_version_at_least);
+use version_utils 'is_jeos';
 
 sub run {
-    if ((is_sle && sle_version_at_least('15')) || (is_leap && leap_version_at_least('15.0')) || is_tumbleweed) {
+    my ($self) = @_;
+    if ($self->firewall eq 'firewalld') {
         if (is_jeos) {
             assert_script_run("grep '^FW_CONFIGURATIONS_EXT=\"sshd\"\\|^FW_SERVICES_EXT_TCP=\"ssh\"' /etc/sysconfig/SuSEfirewall2");
         }

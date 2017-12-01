@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -16,15 +16,17 @@ use strict;
 use testapi;
 use mm_network;
 use lockapi;
+use utils 'systemctl';
 
 sub run {
+    my ($self) = @_;
     x11_start_program('xterm -geometry 155x45+5+5', target_match => 'xterm');
     type_string "gsettings set org.gnome.desktop.session idle-delay 0\n";    # disable blank scree
     become_root;
     configure_default_gateway;
     configure_static_ip('10.0.2.3/24');
     configure_static_dns(get_host_resolv_conf());
-    script_run 'SuSEfirewall2 stop';                                         # bsc#999873
+    systemctl 'stop ' . $self->firewall;                                     # bsc#999873
     assert_script_run 'zypper -n in yast2-nis-server';
     mutex_lock('nis_ready');                                                 # wait for NIS server setup
     type_string "yast2 nis\n";

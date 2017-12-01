@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -15,6 +15,7 @@
 use base "consoletest";
 use strict;
 use testapi;
+use utils;
 
 # check if sshd works
 sub run {
@@ -25,7 +26,7 @@ sub run {
 
     select_console 'root-console';
 
-    script_run('SuSEfirewall2 off');
+    systemctl 'stop ' . $self->firewall;
     script_run('chkconfig sshd on');
     assert_script_run("chkconfig sshd on", 60);
     assert_script_run("rcsshd restart",    60);    # will do nothing if it is already running

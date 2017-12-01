@@ -1,4 +1,4 @@
-# Copyright (C) 2015-2016 SUSE LLC
+# Copyright (C) 2015-2018 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@ use lockapi;
 use mmapi;
 use mm_network;
 use version_utils 'sle_version_at_least';
+use opensusebasetest 'firewall';
 
 sub run {
     my $children = get_children();
@@ -76,7 +77,7 @@ sub run {
           .= "zypper -n --no-gpg-checks in " . join(' ', split(/[\s,]+/, get_var('SLENKINS_INSTALL'))) . "\n";
     }
 
-    my $firewallservice = sle_version_at_least('15') ? 'firewalld' : 'SuSEfirewall2';
+    my $firewallservice = opensusebasetest::firewall;
 
     $conf_script .= "
         useradd -m testuser

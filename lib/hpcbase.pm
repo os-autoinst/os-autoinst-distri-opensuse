@@ -20,10 +20,5 @@ sub enable_and_start {
     systemctl "start $arg";
 }
 
-sub stop_firewall() {
-    my $service = (is_sle && sle_version_at_least('15')) ? 'firewalld' : 'SuSEfirewall2';
-    systemctl("stop $service");
-}
-
 1;
 # vim: set sw=4 et:

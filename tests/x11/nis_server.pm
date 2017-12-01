@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -17,8 +17,10 @@ use testapi;
 use mm_network;
 use lockapi;
 use mmapi;
+use utils 'systemctl';
 
 sub run {
+    my ($self) = @_;
     x11_start_program('xterm -geometry 155x45+5+5', target_match => 'xterm');
     type_string "gsettings set org.gnome.desktop.session idle-delay 0\n";    # disable blank screen
     become_root;
@@ -94,7 +96,7 @@ sub run {
     assert_screen 'nfs-server-export';
     send_key 'alt-f';                                                        # finish
     assert_screen 'yast2_closed_xterm_visible';
-    script_run 'SuSEfirewall2 stop';                                         # bsc#999873
+    systemctl 'stop ' . $self->firewall;                                     # bsc#999873
     script_run 'rpcinfo -u localhost ypserv';                                # ypserv is running
     script_run 'rpcinfo -u localhost nfs';                                   # nfs is running
     script_run 'showmount -e localhost';                                     # show exprots

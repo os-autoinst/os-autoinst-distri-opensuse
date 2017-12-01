@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -20,6 +20,7 @@ use mm_tests;
 use suseconnect_register;
 
 sub run {
+    my ($self) = @_;
     select_console("root-console");
     if (check_var("SMT", "internal")) {
         configure_static_network('10.0.2.100/24');
@@ -31,8 +32,7 @@ sub run {
     # server running smt must be registered
     command_register(get_required_var('VERSION'));
 
-    systemctl("disable SuSEfirewall2");
-    systemctl("stop SuSEfirewall2");
+    systemctl 'stop ' . $self->firewall;
 
     # external smt should enalbe nfs and share a file to simulate a mobile disk
     if (check_var("SMT", "external")) {

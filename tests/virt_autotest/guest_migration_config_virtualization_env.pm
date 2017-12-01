@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -13,6 +13,7 @@
 use base multi_machine_job_base;
 use strict;
 use testapi;
+use utils 'systemctl';
 use guest_migration_base;
 
 sub run {
@@ -21,8 +22,7 @@ sub run {
     #settle all common settings
     set_common_settings;
 
-    #Turn off the firewall
-    $self->execute_script_run("SuSEfirewall2 off", 500);
+    systemctl 'stop ' . $self->firewall;
 
     #Create disk backup directory
     $self->execute_script_run("[ -d /tmp/pesudo_mount_server ] || mkdir -p /tmp/pesudo_mount_server", 500);

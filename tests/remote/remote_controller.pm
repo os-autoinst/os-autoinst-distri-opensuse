@@ -19,6 +19,7 @@ use mm_network;
 use lockapi;
 
 sub run {
+    my ($self) = @_;
     my $target_ip;
 
     select_console 'root-console';
@@ -33,9 +34,9 @@ sub run {
 
     if (check_var("REMOTE_CONTROLLER", "vnc")) {
         # Get target ip using slptool
-        systemctl 'stop SuSEfirewall2';
+        systemctl 'stop ' . $self->firewall;
         $target_ip = script_output "slptool findsrvs service:YaST.installation.suse:vnc | cut -d: -f4 | tr -d /";
-        systemctl 'start SuSEfirewall2';
+        systemctl 'start ' . $self->firewall;
 
         select_console 'x11';
         x11_start_program('xterm');

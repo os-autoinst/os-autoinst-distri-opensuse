@@ -22,7 +22,7 @@ sub run {
     $self->setup_static_network(get_required_var('HPC_HOST_IP'));
 
     # stop firewall, so key can be copied
-    $self->stop_firewall();
+    systemctl 'stop ' . $self->firewall;
 }
 
 sub test_flags {

@@ -23,7 +23,6 @@ sub run {
     my ($host_ip_without_netmask) = get_required_var('HPC_HOST_IP') =~ /(.*)\/.*/;
     my $master_ip                 = get_required_var('HPC_MASTER_IP');
 
-    # set proper hostname
     assert_script_run "hostnamectl set-hostname slurm-slave";
 
     # create proper /etc/hosts

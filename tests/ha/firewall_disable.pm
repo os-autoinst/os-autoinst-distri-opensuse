@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2016 SUSE LLC
+# Copyright (c) 2016-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -12,17 +12,12 @@
 
 use base 'opensusebasetest';
 use strict;
-use version_utils qw(is_sle sle_version_at_least);
 use testapi;
 use hacluster;
 
 sub run {
-    my $firewall = 'SuSEfirewall2';
-
-    # SLE/openSUSE-15 use firewalld instead of the old SuSEfirewall2
-    if (is_sle && sle_version_at_least('15')) {
-        $firewall = 'firewalld';
-    }
+    my ($self) = @_;
+    my $firewall = $self->firewall;
 
     # Deactivate firewall if needed
     if (!script_run "rpm -q $firewall >/dev/null") {

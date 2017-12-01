@@ -23,6 +23,7 @@ use testapi;
 use utils;
 use mm_network;
 use mm_tests;
+use opensusebasetest 'firewall';
 
 my $pxe_server_set   = 0;
 my $quemu_proxy_set  = 0;
@@ -524,7 +525,7 @@ sub run {
     bmwqemu::log_call(setup_script => $setup_script);
 
     script_output($setup_script, 200);
-    assert_script_run "SuSEfirewall2 stop" if $disable_firewall;
+    assert_script_run opensusebasetest::firewall . ' stop' if $disable_firewall;
 
     # Create mutexes for running services
     foreach my $mutex (@mutexes) {
