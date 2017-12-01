@@ -821,7 +821,7 @@ sub load_consoletests {
     loadtest "console/zypper_in";
     loadtest "console/yast2_i";
     loadtest "console/yast2_bootloader";
-    loadtest "console/vim";
+    loadtest "console/vim" if !sle_version_at_least('15') || !get_var('PATTERNS') || check_var_array('PATTERNS', 'enhanced_base');
     if (!is_staging()) {
         loadtest "console/firewall_enabled";
     }
