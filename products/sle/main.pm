@@ -808,6 +808,8 @@ sub load_consoletests {
     loadtest "console/curl_https";
     if (check_var_array('SCC_ADDONS', 'asmm')) {
         loadtest "console/puppet";
+    }
+    if (check_var_array('SCC_ADDONS', 'asmm') || sle_version_at_least('15')) {
         loadtest "console/salt";
     }
     if (check_var("ARCH", "x86_64")) {
