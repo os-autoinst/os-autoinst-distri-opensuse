@@ -650,6 +650,7 @@ sub load_nfv_tests {
     boot_hdd_image();
     loadtest "nfv/openvswitch_dpdk";
     loadtest "nfv/vsperf_installation";
+    loadtest "nfv/moongen_installation";
 }
 
 sub load_iso_in_external_tests {
