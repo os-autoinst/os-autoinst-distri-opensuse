@@ -124,9 +124,12 @@
       <pattern>base</pattern>
       <pattern>basesystem</pattern>
       <pattern>documentation</pattern>
+      <pattern>enhanced_base</pattern>
       <pattern>gnome_basic</pattern>
+      <pattern>gnome_basis</pattern>
       <pattern>minimal_base</pattern>
       <pattern>x11</pattern>
+      <pattern>x11_enhanced</pattern>
     </patterns>
     <products config:type="list">
       <product>SLES15</product>
