@@ -585,6 +585,9 @@ sub load_inst_tests {
         loadtest 'installation/add_update_test_repo';
     }
     loadtest "installation/addon_products_sle";
+    if (get_var('CHECK_RELEASENOTES_ORIGIN')) {
+        loadtest 'installation/releasenotes_origin';
+    }
     if (noupdatestep_is_applicable()) {
         #system_role selection during installation was added as a new feature since sles12sp2
         #so system_role.pm should be loaded for all tests that actually install to versions over sles12sp2
