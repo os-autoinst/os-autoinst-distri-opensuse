@@ -158,6 +158,8 @@ sub problem_can_be_skipped {
     return 1 if $pkg =~ /^ffmpeg2-devel/;
     # conflicts with libjpeg62-devel
     return 1 if $pkg =~ /^libjpeg8-devel/;
+    # conflicts with the plain variant
+    return 1 if $pkg =~ /^openvswitch-dpdk/;
 
     return;
 }
