@@ -80,22 +80,27 @@ sub run {
 
     # if firewall is enabled, then send_key alt-p, else move to page http ports
     unless ($is_still_susefirewall2) {
-        if (check_screen 'yast2_proxy_firewall_enabled') {
+        if (check_screen 'yast2_proxy_firewall_enabled', 10) {
             send_key 'alt-p';
-            wait_still_screen 3;
+            assert_screen([qw(yast2_proxy-port_opened yast2_proxy_squid_cannot-open-interface)]);
+            if (match_has_tag 'yast2_proxy_squid_cannot-open-interface') {
+                record_soft_failure 'bsc#1069458';
+                send_key 'alt-y';
+                assert_screen 'yast2_proxy-port_opened';
+            }
         }
     }
 
     # check network interfaces with open port in firewall
     # repeat action as sometimes keys are not triggering action on leap if workers are slow
-    send_key_until_needlematch 'yast2_proxy_network_interfaces', 'alt-d', 2, 5;
-
-    wait_still_screen 1;
-    send_key 'alt-n';
-    wait_still_screen 1;
-    send_key 'alt-a';
-    wait_screen_change { send_key 'alt-o' };
-
+    if ((is_sle && !sle_version_at_least('15')) || (is_leap && !leap_version_at_least('15.0'))) {
+        send_key_until_needlematch 'yast2_proxy_network_interfaces', 'alt-d', 2, 5;
+        wait_still_screen 1;
+        send_key 'alt-n';
+        wait_still_screen 1;
+        send_key 'alt-a';
+        wait_screen_change { send_key 'alt-o' };
+    }
     # move to http ports
     select_sub_menu 'start_up', 'http_ports';
 
@@ -256,7 +261,6 @@ sub run {
     # check squid proxy server status
     assert_script_run "systemctl show -p ActiveState squid.service|grep ActiveState=active";
     assert_script_run "systemctl show -p SubState squid.service|grep SubState=running";
-
 }
 1;
 

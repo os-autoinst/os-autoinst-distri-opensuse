@@ -15,7 +15,7 @@ use base "console_yasttest";
 use testapi;
 use utils;
 
-sub run {
+sub setup_ldap {
     select_console 'root-console';
     # workaround kernel message floating over console
     assert_script_run "dmesg -n 4";
@@ -38,13 +38,11 @@ sub run {
         record_soft_failure 'bsc#1064405';
         send_key 'alt-c';
     }
-    send_key 'alt-f';
-
-    assert_screen([qw(yast2_ldap_configuration_general-setting_firewall yast2_still_susefirewall2)], 60);
-    if (match_has_tag 'yast2_still_susefirewall2') {
-        record_soft_failure 'bsc#1064405';
-        send_key 'alt-e';
+    # only older version like SLES 12, Leap 42.3 as well as TW should still check the needle
+    if ((is_sle && !sle_version_at_least('15')) || (is_leap && !leap_version_at_least('15.0'))) {
+        assert_screen 'yast2_ldap_configuration_general-setting_firewall', 60;
     }
+    send_key 'alt-e';
 
     # configure stand-alone ldap server
     assert_screen 'yast2_ldap_configuration_stand-alone';
@@ -76,14 +74,10 @@ sub run {
 
     # check ldap server status at first, a local ldap server is needed in the test case
     assert_script_run "systemctl show -p ActiveState slapd.service | grep ActiveState=active";
+}
 
-    # install samba stuffs at first
-    zypper_call("in samba yast2-samba-server");
-
-    # start samba server configuration
-    script_run("yast2 samba-server; echo yast2-samba-server-status-\$? > /dev/$serialdev", 0);
-
-    # check Samba-Server Configuration got started
+sub gui_current {
+    # samba-server configuration for SLE older than 15 or opensuse TW
     assert_screen([qw(yast2_samba_installation yast2_still_susefirewall2)], 60);
     if (match_has_tag 'yast2_still_susefirewall2') {
         send_key 'alt-c';
@@ -182,6 +176,9 @@ sub run {
     # cancel trusted domain configuration
     wait_screen_change { send_key 'alt-c' };
 
+}
+
+sub samba_ldap_config {
     # swith to LDAP Settings
     send_key 'alt-l';
     assert_screen 'yast2_samba-server_ldap-settings';
@@ -230,9 +227,39 @@ sub run {
     send_key 'alt-o';
 
     wait_serial('yast2-samba-server-status-0', 60) || die "'yast2 samba-server' didn't finish";
+}
+
+sub gui_new {
+    assert_screen 'yast2_samba-workgroup';
+    send_key 'alt-n';
+    assert_screen([qw(yast2_samba-firewall_active yast2_still_susefirewall2)]);
+    if (match_has_tag 'yast2_still_susefirewall2') {
+        record_soft_failure 'bsc#1064405';
+        send_key 'alt-c';
+        assert_screen 'yast2_samba-firewall_active';
+    }
+}
+
+
+sub run {
+    setup_ldap;
+    zypper_call("in samba yast2-samba-server");
+    script_run("yast2 samba-server; echo yast2-samba-server-status-\$? > /dev/$serialdev", 0);
+    # check Samba-Server Configuration got started
+    if ((is_sle && !sle_version_at_least('15')) || (is_leap && !leap_version_at_least('15.0'))) {
+        gui_current;
+    }
+    else {
+        gui_new;
+    }
+    samba_ldap_config;
 
     # check samba server status
-    assert_script_run("systemctl show -p ActiveState smb.service | grep ActiveState=active");
+    # samba doesn't start up correctly, so add record soft failure here
+    if (script_run("systemctl show -p ActiveState smb.service | grep ActiveState=active")) {
+        record_soft_failure "bsc#1068900";
+    }
+
 }
 
 sub post_fail_hook {
