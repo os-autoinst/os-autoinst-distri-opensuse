@@ -59,7 +59,7 @@ test-merge:
 	  for file in $$FILES; do if test -f $$file; then \
 	    tools/check_metadata $$file || touch failed; \
 	    git grep wait_idle $$file && touch failed; \
-	    ${PERLCRITIC} $$file || touch failed ;\
+	    ${PERLCRITIC} $$file || (echo $$file ; touch failed) ;\
 	  fi ; done; \
 	fi
 	@test ! -f failed
