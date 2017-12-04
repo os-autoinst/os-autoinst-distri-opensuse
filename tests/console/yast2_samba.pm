@@ -14,7 +14,7 @@ use strict;
 use base "console_yasttest";
 use testapi;
 use utils;
-use version_utils qw(is_sle sle_version_at_least);
+use version_utils qw(is_leap is_sle sle_version_at_least);
 
 sub setup_ldap {
     select_console 'root-console';
