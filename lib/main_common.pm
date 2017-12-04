@@ -709,7 +709,8 @@ sub load_x11regression_other {
         loadtest "x11/gnomeapps/gnome_documents";
         loadtest "x11regressions/totem/totem_launch";
     }
-    if (check_var('DISTRI', 'sle') && sle_version_at_least('12-SP2')) {
+    # shotwell was replaced by gnome-photos in SLE15 & yast_virtualization isn't in SLE15
+    if (is_sle && sle_version_at_least('12-SP2') && !sle_version_at_least('15')) {
         loadtest "x11regressions/shotwell/shotwell_import";
         loadtest "x11regressions/shotwell/shotwell_edit";
         loadtest "x11regressions/shotwell/shotwell_export";
@@ -718,14 +719,17 @@ sub load_x11regression_other {
     }
     if (get_var("DESKTOP") =~ /kde|gnome/) {
         loadtest "x11regressions/tracker/prep_tracker";
-        loadtest "x11regressions/tracker/tracker_starts";
-        loadtest "x11regressions/tracker/tracker_searchall";
-        loadtest "x11regressions/tracker/tracker_pref_starts";
-        loadtest "x11regressions/tracker/tracker_open_apps";
+        # tracker-gui/tracker-needle was dropped since version 1.99.0
+        if (!sle_version_at_least('15')) {
+            loadtest "x11regressions/tracker/tracker_starts";
+            loadtest "x11regressions/tracker/tracker_searchall";
+            loadtest "x11regressions/tracker/tracker_pref_starts";
+            loadtest "x11regressions/tracker/tracker_open_apps";
+            loadtest "x11regressions/tracker/tracker_mainmenu";
+        }
         loadtest "x11regressions/tracker/tracker_by_command";
         loadtest "x11regressions/tracker/tracker_info";
         loadtest "x11regressions/tracker/tracker_search_in_nautilus";
-        loadtest "x11regressions/tracker/tracker_mainmenu";
         loadtest "x11regressions/tracker/clean_tracker";
     }
 }

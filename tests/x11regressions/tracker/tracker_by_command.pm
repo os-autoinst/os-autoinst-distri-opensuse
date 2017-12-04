@@ -21,6 +21,8 @@ use utils;
 sub run {
     x11_start_program('xterm');
     if (sle_version_at_least('12-SP2')) {
+        script_run "tracker daemon -s";
+        script_run "tracker status";
         script_run "tracker search newfile";
     }
     else {

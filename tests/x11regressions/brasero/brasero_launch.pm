@@ -16,7 +16,7 @@ use testapi;
 use utils;
 
 sub run {
-    assert_gui_app('brasero', install => 1, remain => 1);
+    assert_gui_app('brasero', install => !is_sle, remain => 1);
 
     # check about window
     send_key 'alt-h';
