@@ -277,6 +277,8 @@ sub get_netboot_mirror {
 # up -- zypper -n up -- update system
 # exitcode -- allowed return code values
 # log -- capture log and store it in zypper.log
+# dumb_term -- pipes through cat if set to 1 and log is not set. This is a  workaround
+# to get output without any ANSI characters in zypper before 1.14.1. See boo#1055315.
 
 sub zypper_call {
     my $command          = shift;
@@ -284,12 +286,16 @@ sub zypper_call {
     my $allow_exit_codes = $args{exitcode} || [0];
     my $timeout          = $args{timeout} || 700;
     my $log              = $args{log};
+    my $dumb_term        = $args{dumb_term};
 
     my $str = hashed_string("ZN$command");
     my $redirect = is_serial_terminal() ? '' : " > /dev/$serialdev";
 
     if ($log) {
-        script_run("zypper -n $command | tee /tmp/$log ; echo $str-\${PIPESTATUS}-$redirect", 0);
+        script_run("zypper -n $command | tee /tmp/$log; echo $str-\${PIPESTATUS}-$redirect", 0);
+    }
+    elsif ($dumb_term) {
+        script_run("zypper -n $command | cat; echo $str-\${PIPESTATUS}-$redirect", 0);
     }
     else {
         script_run("zypper -n $command; echo $str-\$?-$redirect", 0);
