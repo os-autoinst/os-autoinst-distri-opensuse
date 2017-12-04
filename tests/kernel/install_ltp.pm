@@ -20,8 +20,8 @@ use registration;
 
 sub add_repos {
     my $qa_head_repo = get_required_var('QA_HEAD_REPO');
-    zypper_call("ar $qa_head_repo qa_repo");
-    zypper_call('--gpg-auto-import-keys ref');
+    zypper_call("ar $qa_head_repo qa_repo",   dumb_term => 1);
+    zypper_call('--gpg-auto-import-keys ref', dumb_term => 1);
 }
 
 sub scc_we_enabled {
@@ -42,8 +42,8 @@ sub add_we_repo_if_available {
     }
     # productQA test with enabled we as iso_2
     if (get_var('BUILD_WE') && get_var('ISO_2')) {
-        zypper_call 'ar dvd:///?devices=/dev/sr2 WSE', log => 'add-WSE.txt';
-        zypper_call '--gpg-auto-import-keys ref',      log => 'ref-WSE.txt';
+        zypper_call('ar dvd:///?devices=/dev/sr2 WSE', log => 'add-WSE.txt', dumb_term => 1);
+        zypper_call('--gpg-auto-import-keys ref',      log => 'ref-WSE.txt', dumb_term => 1);
     }
 }
 
@@ -62,7 +62,7 @@ sub install_runtime_dependencies {
       tpm-tools
       wget
     );
-    zypper_call('-t in ' . join(' ', @deps) . ' | tee');
+    zypper_call('-t in ' . join(' ', @deps), dumb_term => 1);
 
     # kernel-default-extra are only for SLE (in WE)
     # net-tools-deprecated are not available for SLE15
@@ -97,7 +97,7 @@ sub install_build_dependencies {
       libtirpc-devel
       make
     );
-    zypper_call('-t in ' . join(' ', @deps) . ' | tee');
+    zypper_call('-t in ' . join(' ', @deps), dumb_term => 1);
 
     my @maybe_deps = qw(
       gcc-32bit
@@ -137,7 +137,7 @@ sub install_from_git {
 }
 
 sub install_from_repo {
-    zypper_call 'in qa_test_ltp';
+    zypper_call('in qa_test_ltp', dumb_term => 1);
     assert_script_run q(find ${LTPROOT:-/opt/ltp}/testcases/bin/openposix/conformance/interfaces/ -name '*.run-test' > ~/openposix_test_list.txt);
     script_run 'rpm -q qa_test_ltp > /opt/ltp_version';
 }
