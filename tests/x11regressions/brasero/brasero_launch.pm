@@ -14,6 +14,7 @@ use base "x11regressiontest";
 use strict;
 use testapi;
 use utils;
+use version_utils 'is_sle';
 
 sub run {
     assert_gui_app('brasero', install => !is_sle, remain => 1);
