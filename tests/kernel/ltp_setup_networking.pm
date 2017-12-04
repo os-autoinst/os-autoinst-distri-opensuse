@@ -26,14 +26,14 @@ sub install {
       psmisc
       tcpdump
     );
-    zypper_call('-t in ' . join(' ', @deps) . ' | tee');
+    zypper_call('-t in ' . join(' ', @deps), dumb_term => 1);
 
     # clients
     @deps = qw(
       dhcp-client
       telnet
     );
-    zypper_call('-t in ' . join(' ', @deps) . ' | tee');
+    zypper_call('-t in ' . join(' ', @deps), dumb_term => 1);
 
     # services
     @deps = qw(
@@ -44,7 +44,7 @@ sub install {
       rsync
       vsftpd
     );
-    zypper_call('-t in ' . join(' ', @deps) . ' | tee');
+    zypper_call('-t in ' . join(' ', @deps), dumb_term => 1);
 }
 
 sub setup {
