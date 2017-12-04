@@ -811,7 +811,7 @@ sub load_consoletests {
         loadtest "console/salt";
     }
     if (check_var("ARCH", "x86_64")) {
-        loadtest "console/glibc_i686";
+        loadtest "console/glibc_sanity";
     }
     if (check_var('ARCH', 'aarch64')) {
         loadtest "console/acpi";
