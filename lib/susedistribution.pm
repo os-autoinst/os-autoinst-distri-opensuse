@@ -74,6 +74,7 @@ sub init_cmd {
       entiredisk alt-e
       guidedsetup alt-g
       rescandevices alt-e
+      exp_part_finish alt-f
     );
 
     if (check_var('INSTLANG', "de_DE")) {
