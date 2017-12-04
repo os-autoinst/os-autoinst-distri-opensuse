@@ -14,12 +14,14 @@
 use base "x11test";
 use strict;
 use testapi;
+use utils 'type_string_slow';
 
 sub run {
     x11_start_program('oowriter');
     # clicking the writing area to make sure the cursor addressed there
     wait_screen_change { assert_and_click 'ooffice-writing-area', 'left', 10 };
-    type_string "Hello World!";
+    # auto-correction does not handle super-fast typing well
+    type_string_slow 'Hello World!';
     assert_screen 'test-ooffice-2';
     send_key "alt-f4";
     assert_screen "ooffice-save-prompt";

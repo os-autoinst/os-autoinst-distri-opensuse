@@ -29,9 +29,8 @@ sub run {
     my $zypper_packagekit        = qr/^Tell PackageKit to quit\?/m;
     my $zypper_packagekit_again  = qr/^Try again\?/m;
     my $zypper_repo_disabled     = qr/^Repository '[^']+' has been successfully disabled./m;
-    my $zypper_installing        = qr/Installing: \S+/;
     my $zypper_dup_fileconflict  = qr/^File conflicts .*^Continue\? \[y/ms;
-    my $zypper_retrieving        = qr/Retrieving \S+/;
+    my $zypper_retrieving        = qr/Retrieving: \S+/;
     my $zypper_check_conflicts   = qr/Checking for file conflicts: \S+/;
 
     # This is just for reference to know how the network was configured prior to the update
@@ -141,11 +140,8 @@ sub run {
     }
 
     # wait for zypper dup finish, accept failures in meantime
-    my $post_checks = [
-        $zypper_dup_finish,       $zypper_installing,      $zypper_dup_notifications, $zypper_dup_error,
-        $zypper_dup_fileconflict, $zypper_check_conflicts, $zypper_retrieving
-    ];
-    $out = wait_serial($post_checks, 480);
+    my $post_checks = [$zypper_dup_finish, $zypper_dup_notifications, $zypper_dup_error, $zypper_dup_fileconflict, $zypper_check_conflicts, $zypper_retrieving];
+    $out = wait_serial($post_checks, 3600);
     while ($out) {
         if ($out =~ $zypper_dup_notifications) {
             send_key 'n';    # do not show notifications
@@ -163,7 +159,7 @@ sub run {
             # probably to avoid hitting black screen on video
             send_key 'shift';
             # continue but do a check again
-            $out = wait_serial($post_checks, 240);
+            $out = wait_serial($post_checks, 3600);
             next;
         }
         elsif ($out =~ $zypper_dup_fileconflict) {
@@ -179,7 +175,7 @@ sub run {
             send_key 'shift';
         }
         save_screenshot;
-        $out = wait_serial([$zypper_dup_finish, $zypper_installing, $zypper_dup_notifications, $zypper_dup_error], 240);
+        $out = wait_serial([$zypper_dup_finish, $zypper_dup_notifications, $zypper_dup_error], 3600);
     }
 
     assert_screen "zypper-dup-finish";
