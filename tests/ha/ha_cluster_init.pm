@@ -24,16 +24,10 @@ sub run {
     my $sbd_device    = block_device_real_path '/dev/disk/by-path/ip-*-lun-0';
     my $quorum_policy = 'stop';
 
-    # If we failed to initialize the cluster, trying again
-    my $cluster_init = script_output "ha-cluster-init -y -s $sbd_device; echo ha_cluster_init=\$?", 120;
-    if ($cluster_init =~ /ha_cluster_init=1/) {
-        upload_logs $bootstrap_log;
-        assert_script_run "ha-cluster-init -y -s $sbd_device";
+    # If we failed to initialize the cluster, trying again but in debug mode
+    if (script_run "ha-cluster-init -y -s $sbd_device") {
+        assert_script_run "crm -dR cluster init -y -s $sbd_device";
     }
-    upload_logs $bootstrap_log;
-
-    # Do a check of the cluster with a screenshot
-    save_state;
 
     # Signal that the cluster stack is initialized
     barrier_wait("CLUSTER_INITIALIZED_$cluster_name");
