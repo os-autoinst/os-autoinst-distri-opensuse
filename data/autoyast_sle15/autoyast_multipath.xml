@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <!DOCTYPE profile>
+<!--
+Test suite is based on profile received from our beta customers.
+It contains multipath and profile is edited during runtime using
+pre init scripts feature. See poo#20818.
+-->
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
   <add-on>
     <add_on_products config:type="list">
@@ -536,7 +540,7 @@
 if [ ! -e /tmp/profile/modified.xml ]; then
         cp /tmp/profile/autoinst.xml /tmp/profile/modified.xml
 fi
-# Enable mutlipath
+# Enable multipath
 sed -i -e '/^      <start_multipath/ c\
       <start_multipath config:type="boolean">true</start_multipath>
 ' /tmp/profile/modified.xml
