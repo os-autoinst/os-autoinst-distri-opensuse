@@ -10,6 +10,7 @@ BEGIN {
     unshift @INC, dirname(__FILE__) . '/../../lib';
 }
 use utils;
+use version_utils 'is_caasp';
 use main_common;
 use caasp 'update_scheduled';
 

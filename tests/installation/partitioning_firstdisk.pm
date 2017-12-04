@@ -16,7 +16,7 @@ use strict;
 use warnings;
 use base "y2logsstep";
 use testapi;
-use utils 'is_storage_ng';
+use version_utils 'is_storage_ng';
 
 sub take_first_disk_storage_ng {
     return unless is_storage_ng;

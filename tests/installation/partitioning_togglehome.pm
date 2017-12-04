@@ -15,7 +15,7 @@ use strict;
 use base "y2logsstep";
 use testapi;
 use installation_user_settings;
-use utils 'is_storage_ng';
+use version_utils 'is_storage_ng';
 
 sub run {
     wait_screen_change { send_key(is_storage_ng() ? 'alt-g' : 'alt-d') };    # open proposal settings

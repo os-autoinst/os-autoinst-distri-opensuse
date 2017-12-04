@@ -5,6 +5,7 @@ use Exporter;
 use testapi qw(check_var get_var get_required_var set_var diag);
 use autotest;
 use utils;
+use version_utils qw(is_jeos is_gnome_next is_krypton_argon is_sle leap_version_at_least sle_version_at_least is_desktop_installed);
 use strict;
 use warnings;
 
@@ -61,6 +62,8 @@ our @EXPORT = qw(
   load_security_tests_crypt
   load_systemd_patches_tests
   load_create_hdd_tests
+  is_memtest
+  is_mediacheck
 );
 
 sub init_main {
@@ -814,6 +817,14 @@ sub load_create_hdd_tests {
     loadtest 'shutdown/grub_set_bootargs';
     loadtest 'shutdown/shutdown';
     loadtest 'shutdown/svirt_upload_assets' if check_var('BACKEND', 'svirt');
+}
+
+sub is_memtest {
+    return get_var('MEMTEST');
+}
+
+sub is_mediacheck {
+    return get_var('MEDIACHECK');
 }
 
 1;

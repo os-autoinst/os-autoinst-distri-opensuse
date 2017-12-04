@@ -14,6 +14,7 @@ use base "consoletest";
 use strict;
 use testapi;
 use utils;
+use version_utils 'is_desktop_installed';
 
 sub check_rollback_system {
     # first to check rollback-helper service is enabled and worked properly

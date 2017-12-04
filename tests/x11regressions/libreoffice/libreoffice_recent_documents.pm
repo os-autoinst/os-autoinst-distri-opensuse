@@ -15,6 +15,7 @@ use base "x11regressiontest";
 use strict;
 use testapi;
 use utils;
+use version_utils 'is_tumbleweed';
 
 sub run {
     # Edit file hello.odt using oowriter

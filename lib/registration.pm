@@ -21,7 +21,8 @@ use Exporter;
 use strict;
 
 use testapi;
-use utils qw(addon_decline_license assert_screen_with_soft_timeout scc_version sle_version_at_least);
+use utils qw(addon_decline_license assert_screen_with_soft_timeout);
+use version_utils 'sle_version_at_least';
 
 our @EXPORT = qw(
   add_suseconnect_product
@@ -81,6 +82,19 @@ sub accept_addons_license {
             send_key $cmd{next};
         }
     }
+}
+
+=head2 scc_version
+
+    scc_version([$version]);
+
+Helper for parsing SLE RC version into integer. It replaces SLE version
+in format X-SPY into X.Y.
+=cut
+sub scc_version {
+    my $version = shift;
+    $version //= get_required_var('VERSION');
+    return $version =~ s/-SP/./gr;
 }
 
 =head2 add_suseconnect_product

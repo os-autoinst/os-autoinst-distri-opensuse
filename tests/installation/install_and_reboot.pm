@@ -18,6 +18,7 @@ use base "y2logsstep";
 use testapi;
 use lockapi;
 use utils;
+use version_utils qw(is_hyperv_in_gui is_caasp);
 use ipmi_backend_utils;
 
 sub handle_livecd_screenlock {

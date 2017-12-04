@@ -16,7 +16,7 @@ use strict;
 use warnings;
 use base "y2logsstep";
 use testapi;
-use utils 'is_storage_ng';
+use version_utils 'is_storage_ng';
 
 sub run {
     die "Test needs at least 40 GB HDD size" unless (get_required_var('HDDSIZEGB') > 40);

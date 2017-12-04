@@ -15,7 +15,7 @@ use strict;
 use warnings;
 use base "y2logsstep";
 use testapi;
-use utils 'sle_version_at_least';
+use version_utils 'sle_version_at_least';
 
 sub check_bsc982138 {
     if (check_screen('installation-details-view-remaining-time-gt2h', 5)) {

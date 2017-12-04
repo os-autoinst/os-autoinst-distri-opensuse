@@ -16,6 +16,7 @@ use strict;
 
 use testapi;
 use utils;
+use version_utils qw(is_sle leap_version_at_least sle_version_at_least);
 
 our @EXPORT = qw(setup_apache2 setup_pgsqldb destroy_pgsqldb test_pgsql test_mysql);
 

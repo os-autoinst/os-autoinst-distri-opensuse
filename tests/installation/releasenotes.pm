@@ -14,7 +14,7 @@
 use base "y2logsstep";
 use strict;
 use testapi;
-use utils 'sle_version_at_least';
+use version_utils 'sle_version_at_least';
 
 sub run {
     assert_screen('release-notes-button', 5);

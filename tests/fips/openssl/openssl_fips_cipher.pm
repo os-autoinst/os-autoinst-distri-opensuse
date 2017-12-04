@@ -15,6 +15,7 @@ use base "consoletest";
 use testapi;
 use strict;
 use utils;
+use version_utils 'sle_version_at_least';
 
 sub run {
     select_console 'root-console';

@@ -14,7 +14,8 @@
 use strict;
 use base "y2logsstep";
 use testapi;
-use utils qw(addon_license sle_version_at_least);
+use utils 'addon_license';
+use version_utils 'sle_version_at_least';
 use qam 'advance_installer_window';
 use registration '%SLE15_DEFAULT_MODULES';
 

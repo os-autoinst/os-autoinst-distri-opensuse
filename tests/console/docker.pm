@@ -24,6 +24,7 @@ use base "consoletest";
 use testapi;
 use utils;
 use strict;
+use version_utils 'is_caasp';
 
 sub run {
     select_console("root-console");

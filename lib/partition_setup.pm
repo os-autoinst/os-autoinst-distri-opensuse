@@ -14,7 +14,7 @@ use Exporter;
 
 use strict;
 use testapi;
-use utils 'is_storage_ng';
+use version_utils 'is_storage_ng';
 
 our @EXPORT = qw(wipe_existing_partitions addpart addlv);
 

@@ -2,7 +2,7 @@ package installsummarystep;
 use base "y2logsstep";
 use testapi;
 use strict;
-use utils 'sle_version_at_least';
+use version_utils 'sle_version_at_least';
 
 
 sub accept3rdparty {

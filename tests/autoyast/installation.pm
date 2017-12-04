@@ -20,6 +20,7 @@ use strict;
 use base "opensusebasetest";
 use testapi;
 use utils;
+use version_utils 'is_caasp';
 
 my $confirmed_licenses = 0;
 my $stage              = 'stage1';

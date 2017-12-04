@@ -14,6 +14,7 @@ use base "x11regressiontest";
 use strict;
 use testapi;
 use utils;
+use version_utils "is_tumbleweed";
 
 # open desktop mainmenu and click office
 sub open_mainmenu {

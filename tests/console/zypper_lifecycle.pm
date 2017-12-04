@@ -15,6 +15,7 @@ use base "consoletest";
 use strict;
 use testapi;
 use utils;
+use version_utils qw(is_sle sle_version_at_least);
 
 
 our $date_re = qr/[0-9]{4}-[0-9]{2}-[0-9]{2}/;

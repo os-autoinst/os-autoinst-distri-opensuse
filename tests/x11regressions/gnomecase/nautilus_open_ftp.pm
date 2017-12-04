@@ -16,7 +16,7 @@
 use base 'x11regressiontest';
 use strict;
 use testapi;
-use utils 'sle_version_at_least';
+use version_utils 'sle_version_at_least';
 
 sub run {
     x11_start_program('nautilus');

@@ -16,7 +16,7 @@ use strict;
 use warnings;
 use parent qw(installation_user_settings y2logsstep);
 use testapi;
-use utils qw(sle_version_at_least is_storage_ng leap_version_at_least);
+use version_utils qw(sle_version_at_least is_storage_ng leap_version_at_least);
 
 sub save_logs_and_resume {
     my $self = shift;

@@ -22,7 +22,7 @@ use strict;
 use warnings;
 use base "y2logsstep";
 use testapi;
-use utils 'is_storage_ng';
+use version_utils 'is_storage_ng';
 
 my $after_cancel_tags = [
     qw(

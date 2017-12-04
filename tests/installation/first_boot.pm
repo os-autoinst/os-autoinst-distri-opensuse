@@ -16,7 +16,8 @@
 use strict;
 use base "y2logsstep";
 use testapi;
-use utils qw(sle_version_at_least handle_login handle_emergency);
+use utils qw(handle_login handle_emergency);
+use version_utils 'sle_version_at_least';
 
 sub run {
     my $boot_timeout = 200;

@@ -13,6 +13,7 @@ use Exporter;
 use strict;
 use testapi;
 use utils;
+use version_utils 'is_tumbleweed';
 use lockapi;
 use mmapi;
 use mm_network;

@@ -13,7 +13,8 @@
 use base "consoletest";
 use strict;
 use testapi;
-use utils qw(systemctl setup_static_network is_sle sle_version_at_least);
+use utils qw(systemctl setup_static_network);
+use version_utils qw(is_sle sle_version_at_least);
 use mm_network;
 
 sub run {

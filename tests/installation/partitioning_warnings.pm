@@ -17,7 +17,7 @@ use warnings;
 use base 'y2logsstep';
 use testapi;
 use partition_setup;
-use utils 'is_storage_ng';
+use version_utils 'is_storage_ng';
 
 sub run {
     wipe_existing_partitions;

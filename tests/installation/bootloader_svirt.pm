@@ -15,6 +15,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils qw(is_jeos is_caasp is_installcheck is_rescuesystem sle_version_at_least);
 use File::Basename;
 
 sub copy_image {

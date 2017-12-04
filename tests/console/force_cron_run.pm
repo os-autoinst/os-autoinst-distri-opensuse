@@ -14,7 +14,8 @@
 use base "consoletest";
 use strict;
 use testapi;
-use utils qw(assert_screen_with_soft_timeout is_jeos);
+use utils 'assert_screen_with_soft_timeout';
+use version_utils 'is_jeos';
 
 sub settle_load {
     script_run "top; echo TOP-DONE-\$? > /dev/$serialdev", 0;

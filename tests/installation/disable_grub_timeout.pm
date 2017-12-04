@@ -16,6 +16,7 @@ use warnings;
 use base "y2logsstep";
 use testapi;
 use utils;
+use version_utils qw(is_sle sle_version_at_least);
 
 sub run {
     my ($self) = shift;

@@ -14,6 +14,7 @@ use base "consoletest";
 use strict;
 use testapi;
 use utils;
+use version_utils 'sle_version_at_least';
 
 my %packages = (
     salt => {

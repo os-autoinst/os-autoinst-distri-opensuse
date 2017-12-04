@@ -15,6 +15,7 @@ use base "consoletest";
 use testapi;
 use strict;
 use utils;
+use version_utils qw(is_sle sle_version_at_least);
 
 # test for regression of bug http://bugzilla.suse.com/show_bug.cgi?id=952496
 sub run {

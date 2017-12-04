@@ -2,7 +2,7 @@ package y2logsstep;
 use base "installbasetest";
 use testapi;
 use strict;
-use utils 'sle_version_at_least';
+use version_utils 'sle_version_at_least';
 
 sub use_wicked {
     script_run "cd /proc/sys/net/ipv4/conf";
