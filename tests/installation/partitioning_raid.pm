@@ -158,6 +158,123 @@ sub set_lvm {
     wait_screen_change { send_key $cmd{finish} };
 }
 
+sub modify_uefi_boot_partition {
+    assert_screen 'partitioning_raid-disk_vdd_with_partitions-selected';
+    # fold the drive tree
+    send_key 'left';
+    assert_screen 'partitioning_raid-hard_disks-unfolded';
+    # select first disk
+    send_key 'right';
+    assert_screen 'partitioning_raid-disk_vda_with_partitions-selected';
+    # edit first partition
+    send_key 'alt-e';
+    assert_screen 'partition-format';
+    # format as FAT (first choice)
+    send_key 'alt-a';
+    assert_screen 'partitioning_raid-format_fat_UEFI';
+    # mount point selection
+    send_key 'alt-o';
+    assert_screen 'partitioning_raid-mount_point-focused';
+    # enter mount point
+    type_string '/boot/efi';
+    assert_screen 'partitioning_raid-mount_point_boot_efi';
+    send_key $cmd{finish};
+    assert_screen 'expert-partitioner';
+    send_key 'shift-tab';
+    send_key 'shift-tab';
+    # go to top "Hard Disks" node
+    send_key 'left';
+    assert_screen 'partitioning_raid-hard_disks-unfolded';
+    # fold the drive tree again
+    send_key 'left';
+}
+
+sub add_bios_boot_partition {
+    record_soft_failure 'bsc#1063844';    # Cannot add partition from menu option "hard disks"
+    send_key 'down';
+    assert_screen 'partitioning_raid-disk_vda-selected';
+    send_key 'alt-d';
+    record_soft_failure 'bsc#1055743';    # No partitioning type page ATM
+    assert_screen 'partitioning-size';
+    send_key 'alt-c' if is_storage_ng;
+    my $size_hotkey = (is_storage_ng) ? 'alt-s' : 'ctrl-a';
+    wait_screen_change { send_key $size_hotkey };
+    type_string "1 MB";
+    assert_screen 'partitioning_raid-custom-size-1MB';
+    send_key 'alt-n';
+    assert_screen 'partition-role';
+    send_key "alt-a";
+    assert_screen 'partitioning_raid-partition_role_raw_volume';
+    send_key 'alt-n';
+    assert_screen 'partition-format';
+    my $not_format_hotkey = (is_storage_ng) ? 'alt-t' : 'ctrl-d';
+    send_key $not_format_hotkey;
+    assert_screen 'partitioning_raid-format_noformat';
+    send_key 'alt-i';
+    assert_screen 'partitioning_raid-file_system_id-selected';
+    my $direction_key = (is_storage_ng) ? 'up' : 'down';
+    send_key_until_needlematch 'filesystem-bios-boot', $direction_key;
+    my $next_hotkey = (is_storage_ng) ? 'alt-n' : 'alt-f';
+    send_key $next_hotkey;
+    send_key 'down';
+    send_key_until_needlematch 'custompart', 'left';
+    send_key 'alt-s';    #System view
+    send_key_until_needlematch 'partitioning_raid-hard_disks-unfolded', 'right';
+}
+
+sub add_prep_boot_partition {
+    if (is_storage_ng) {
+        record_soft_failure 'bsc#1063844';    # Cannot add partition from menu option "hard disks"
+        send_key 'down';
+        assert_screen 'partitioning_raid-disk_vda-selected';
+        send_key 'alt-d';
+    }
+    else {
+        send_key 'alt-p';
+    }
+    if (!get_var('UEFI')) {                   # partitioning type does not appear when GPT disk used, GPT is default for UEFI
+        if (is_storage_ng) {
+            record_soft_failure 'bsc#1055743';    # No partitioning type page ATM
+        }
+        else {
+            assert_screen 'partitioning-type';
+            send_key 'alt-n';
+        }
+    }
+    assert_screen 'partitioning-size';
+    send_key 'alt-c' if is_storage_ng;
+    my $size_hotkey = (is_storage_ng) ? 'alt-s' : 'ctrl-a';
+    wait_screen_change { send_key $size_hotkey };
+    type_string "200 MB";
+    assert_screen 'partitioning_raid-custom-size-200MB';
+    send_key 'alt-n';
+    assert_screen 'partition-role';
+    send_key "alt-a";
+    assert_screen 'partitioning_raid-partition_role_raw_volume';
+    send_key 'alt-n';
+    assert_screen 'partition-format';
+    my $not_format_hotkey = (is_storage_ng) ? 'alt-t' : 'ctrl-d';
+    send_key $not_format_hotkey;
+    assert_screen 'partitioning_raid-format_noformat';
+    send_key 'alt-i';
+    assert_screen 'partitioning_raid-file_system_id-selected';
+    my $direction_key = (is_storage_ng) ? 'up' : 'down';
+    send_key_until_needlematch 'filesystem-prep', $direction_key;
+    my $next_hotkey = (is_storage_ng) ? 'alt-n' : 'alt-f';
+    send_key $next_hotkey;
+    # Due to workaround for bsc#1063844 we are not back to "hard disks"
+    # tree item to see overview
+    if (is_storage_ng) {
+        send_key 'down';
+        send_key_until_needlematch 'custompart', 'left';
+    }
+    else {
+        assert_screen 'custompart';
+    }
+    send_key 'alt-s';    #System view
+    send_key_until_needlematch 'partitioning_raid-hard_disks-unfolded', 'right';
+}
+
 sub run {
     # create partitioning
     send_key(is_storage_ng() ? $cmd{expertpartitioner} : $cmd{createpartsetup});
@@ -188,56 +305,10 @@ sub run {
     assert_screen 'partitioning_raid-hard_disks-selected';
 
     if (get_var("OFW")) {    ## no RAID /boot partition for ppc
-        if (is_storage_ng) {
-            record_soft_failure 'bsc#1063844';    # Cannot add partition from menu option "hard disks"
-            send_key 'down';
-            assert_screen 'partitioning_raid-disk_vda-selected';
-            send_key 'alt-d';
-        }
-        else {
-            send_key 'alt-p';
-        }
-        if (!get_var('UEFI')) {                   # partitioning type does not appear when GPT disk used, GPT is default for UEFI
-            if (is_storage_ng) {
-                record_soft_failure 'bsc#1055743';    # No partitioning type page ATM
-            }
-            else {
-                assert_screen 'partitioning-type';
-                send_key 'alt-n';
-            }
-        }
-        assert_screen 'partitioning-size';
-        send_key 'alt-c' if is_storage_ng;
-        my $size_hotkey = (is_storage_ng) ? 'alt-s' : 'ctrl-a';
-        wait_screen_change { send_key $size_hotkey };
-        type_string "200 MB";
-        assert_screen 'partitioning_raid-custom-size-200MB';
-        send_key 'alt-n';
-        assert_screen 'partition-role';
-        send_key "alt-a";
-        assert_screen 'partitioning_raid-partition_role_raw_volume';
-        send_key 'alt-n';
-        assert_screen 'partition-format';
-        my $not_format_hotkey = (is_storage_ng) ? 'alt-t' : 'ctrl-d';
-        send_key $not_format_hotkey;
-        assert_screen 'partitioning_raid-format_noformat';
-        send_key 'alt-i';
-        assert_screen 'partitioning_raid-file_system_id-selected';
-        my $direction_key = (is_storage_ng) ? 'up' : 'down';
-        send_key_until_needlematch 'filesystem-prep', $direction_key;
-        my $next_hotkey = (is_storage_ng) ? 'alt-n' : 'alt-f';
-        send_key $next_hotkey;
-        # Due to workaround for bsc#1063844 we are not back to "hard disks"
-        # tree item to see overview
-        if (is_storage_ng) {
-            send_key 'down';
-            send_key_until_needlematch 'custompart', 'left';
-        }
-        else {
-            assert_screen 'custompart';
-        }
-        send_key 'alt-s';    #System view
-        send_key_until_needlematch 'partitioning_raid-hard_disks-unfolded', 'right';
+        add_prep_boot_partition;
+    }
+    elsif (is_storage_ng && !get_var('UEFI')) {    # storage-ng requires bios boot partition
+        add_bios_boot_partition;
     }
     else {
         send_key "right" unless is_storage_ng;
@@ -273,38 +344,7 @@ sub run {
 
         # in last step of for loop edit first vda1 and format it as EFI ESP, preparation for fate#322485
         if ($_ eq 'vdd' and get_var('UEFI')) {
-            assert_screen 'partitioning_raid-disk_vdd_with_partitions-selected';
-            # fold the drive tree
-            # Have to press to navigate in the system view tree
-            send_key 'down' if is_storage_ng;
-            send_key_until_needlematch 'partitioning_raid-hard_disks-unfolded', 'left';
-            # select first disk
-            send_key 'right';
-            send_key_until_needlematch "partitioning_raid-disk_vda-selected", "down";
-            # edit first partition
-            send_key(is_storage_ng() ? 'alt-i' : 'alt-e');
-            assert_screen 'partition-format';
-            # format as FAT (first choice) unless storage-ng
-            send_key 'alt-a';
-            if (is_storage_ng) {
-                send_key 'alt-f';
-                send_key_until_needlematch 'partitioning_raid-format_fat_UEFI', 'down';
-            }
-            else {
-                assert_screen 'partitioning_raid-format_fat_UEFI';
-            }
-            # mount point selection
-            send_key 'alt-o';
-            if (is_storage_ng) {
-                assert_screen('partitioning_raid-mount_point-selected');
-                send_key 'alt-m';
-            }
-            assert_screen 'partitioning_raid-mount_point-focused';
-            # enter mount point
-            type_string '/boot/efi';
-            assert_screen 'partitioning_raid-mount_point_boot_efi';
-            send_key(is_storage_ng() ? $cmd{next} : $cmd{finish});
-            assert_screen 'expert-partitioner';
+            modify_uefi_boot_partition;
         }
 
         # select next disk
