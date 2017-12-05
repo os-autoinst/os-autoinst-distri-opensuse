@@ -14,7 +14,7 @@ package wickedbase;
 
 use base 'consoletest';
 use utils 'systemctl';
-use testapi qw(assert_script_run upload_logs);
+use testapi qw(assert_script_run upload_logs type_string);
 
 sub assert_wicked_state {
     my ($self, %args) = @_;
@@ -26,9 +26,16 @@ sub assert_wicked_state {
 
 
 sub save_and_upload_wicked_log {
+    my ($self, $prefix) = @_;
     my $log_name = join('', map { ("a" .. "z")[rand 26] } 1 .. 8);
-    assert_script_run("journalctl -o short-precise > /tmp/$log_name.log");
-    upload_logs("/tmp/$log_name.log");
+    assert_script_run("journalctl -o short-precise > /tmp/$prefix$log_name.log");
+    upload_logs("/tmp/$prefix$log_name.log");
+}
+
+sub write_journal {
+    my ($self, $message) = @_;
+    my $module_name = $self->{name};
+    type_string "logger -t $module_name \"$message\" \n";
 }
 
 1;
