@@ -16,13 +16,8 @@ use testapi;
 use utils;
 use version_utils 'sle_version_at_least';
 
-sub run {
-    my $self        = shift;
-    my $mail_box    = 'nooops_test3@aim.com';
-    my $mail_passwd = 'opensuse';
-
-    mouse_hide(1);
-
+sub evolution_wizard {
+    my ($self, $mail_box) = @_;
     # Clean and Start Evolution
     # Follow the wizard to setup mail account
     $self->start_evolution($mail_box);
@@ -33,9 +28,38 @@ sub run {
     else {
         send_key $self->{next};
     }
+
     assert_screen "evolution_wizard-done";
     send_key "alt-a";
-    assert_screen "evolution_mail-auth";
+}
+
+sub run {
+    my $self        = shift;
+    my $mail_box    = 'nooops_test3@aim.com';
+    my $mail_passwd = 'opensuse';
+
+    mouse_hide(1);
+    evolution_wizard($self, $mail_box);
+
+    # init time counter
+    my $time_counter = 0;
+    while (1) {
+        # look for mail authentication window or folders scanning, fail in other situations
+        assert_screen([qw(evolution_smoke-detect-folders-scanning evolution_mail-auth)]);
+        # break loop and continue with test in case of mail authentication window
+        last if (match_has_tag('evolution_mail-auth'));
+        # if evolution still hangs on folders scanning after 10 tries, try another mail provider
+        if ($time_counter == 10) {
+            record_soft_failure("Server is not responding, trying backup email provider.");
+            my $mail_box = 'nooops_test3@gmx.com';
+            evolution_wizard($self, $mail_box);
+            assert_screen "evolution_mail-auth";
+            last;
+        }
+        ++$time_counter;
+        sleep 1;
+    }
+
     type_string "$mail_passwd";
     send_key "ret";
     if (check_screen "evolution_mail-init-window") {
