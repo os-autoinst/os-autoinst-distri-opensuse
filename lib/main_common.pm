@@ -579,7 +579,7 @@ sub load_extra_tests {
             if (check_var('DISTRI', 'opensuse')) {
                 loadtest "console/docker_compose";
             }
-            if (check_var('DISTRI', 'sle')) {
+            if (check_var('DISTRI', 'sle') && !(sle_version_at_least('15'))) {
                 loadtest "console/sle2docker";
             }
         }
