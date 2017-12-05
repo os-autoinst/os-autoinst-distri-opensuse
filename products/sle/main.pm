@@ -14,7 +14,7 @@ use lockapi;
 use needle;
 use registration;
 use utils;
-use version_utils qw(is_hyperv_in_gui is_caasp is_installcheck is_rescuesystem sle_version_at_least is_desktop_installed is_jeos);
+use version_utils qw(is_hyperv_in_gui is_caasp is_installcheck is_rescuesystem sle_version_at_least is_desktop_installed is_jeos is_sle);
 use File::Find;
 use File::Basename;
 use LWP::Simple 'head';
@@ -573,11 +573,14 @@ sub load_inst_tests {
             loadtest "installation/disk_space_fill";
         }
     }
-    if (check_var('SCC_REGISTER', 'installation')) {
-        loadtest "installation/scc_registration";
-    }
-    else {
-        loadtest "installation/skip_registration" unless check_var('SLE_PRODUCT', 'leanos');
+    # SCC registration is not required in media based upgrade since SLE15
+    unless (is_sle && sle_version_at_least('15') && get_var('MEDIA_UPGRADE')) {
+        if (check_var('SCC_REGISTER', 'installation')) {
+            loadtest "installation/scc_registration";
+        }
+        else {
+            loadtest "installation/skip_registration" unless check_var('SLE_PRODUCT', 'leanos');
+        }
     }
     if (is_sles4sap and !sle_version_at_least('15')) {
         loadtest "installation/sles4sap_product_installation_mode";

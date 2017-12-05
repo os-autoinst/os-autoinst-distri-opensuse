@@ -36,6 +36,7 @@ our @EXPORT = qw (
   leap_version_at_least
   sle_version_at_least
   is_desktop_installed
+  is_system_upgrading
 );
 
 sub is_jeos {
@@ -190,4 +191,9 @@ sub leap_version_at_least {
 
 sub is_desktop_installed {
     return get_var("DESKTOP") !~ /textmode|minimalx/;
+}
+
+sub is_system_upgrading {
+    # If PATCH=1, make sure patch action is finished
+    return get_var('UPGRADE') && (!get_var('PATCH') || (get_var('PATCH') && get_var('SYSTEM_PATCHED')));
 }
