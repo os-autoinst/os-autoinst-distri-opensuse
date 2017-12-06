@@ -956,13 +956,7 @@ sub load_x11tests {
     }
     loadtest "x11/desktop_mainmenu";
     if (is_sles4sap() and !is_sles4sap_standard()) {
-        loadtest "sles4sap/patterns";
-        loadtest "sles4sap/sapconf";
-        loadtest "sles4sap/saptune";
-        if (get_var('NW')) {
-            loadtest "sles4sap/nw_ascs_install" if (get_var('SLES4SAP_MODE') !~ /wizard/);
-            loadtest "sles4sap/netweaver_ascs";
-        }
+        load_sles4sap_tests();
     }
     # Need to skip shutdown to keep backend alive if running rollback tests after migration
     unless (get_var('ROLLBACK_AFTER_MIGRATION')) {
@@ -1585,6 +1579,9 @@ else {
         load_rescuecd_tests();
         load_consoletests();
         load_x11tests();
+        if (is_sles4sap() and !is_sles4sap_standard() and !is_desktop_installed()) {
+            load_sles4sap_tests();
+        }
         if (get_var('ROLLBACK_AFTER_MIGRATION') && (snapper_is_applicable())) {
             load_rollback_tests();
         }
