@@ -999,8 +999,9 @@ sub load_slenkins_tests {
 
 sub load_ha_cluster_tests {
     return unless (get_var("HA_CLUSTER"));
-    loadtest "boot/boot_to_desktop";
     loadtest "ha/wait_support_server";
+    loadtest "boot/boot_to_desktop";
+    loadtest "qa_automation/patch_and_reboot" if is_updates_tests;
     loadtest "console/consoletest_setup";
     loadtest "console/hostname" unless is_bridged_networking;
 
