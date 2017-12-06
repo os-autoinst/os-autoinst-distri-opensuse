@@ -4,7 +4,7 @@ use base "opensusebasetest";
 use strict;
 use testapi;
 use lockapi;
-use caasp 'get_admin_job';
+use mmapi 'wait_for_children';
 
 use Exporter 'import';
 our @EXPORT = qw(confirm_insecure_https velum_login);
@@ -51,8 +51,8 @@ sub post_fail_hook {
     mutex_create 'UPDATE_FINISHED';
     mutex_create 'CNTRL_FINISHED';
 
-    # Wait for log export from admin node
-    mutex_lock 'ADMIN_LOGS_EXPORTED', get_admin_job;
+    # Wait for log export from all nodes
+    wait_for_children;
 }
 
 1;

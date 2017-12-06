@@ -14,7 +14,7 @@ use base "opensusebasetest";
 use strict;
 use testapi;
 use lockapi;
-use caasp 'update_scheduled';
+use caasp;
 
 # Set default password on worker nodes
 sub workaround_bsc_1030876 {
@@ -22,25 +22,6 @@ sub workaround_bsc_1030876 {
     script_run 'id=$(docker ps | grep salt-master | awk \'{print $1}\')';
     script_run 'pw=$(python -c "import crypt; print crypt.crypt(\'nots3cr3t\', \'\$6\$susetest\')")';
     script_run 'docker exec $id salt -E ".{32}" shadow.set_password root "$pw"';
-}
-
-sub export_logs {
-    script_run 'docker ps';
-    save_screenshot;
-
-    script_run "journalctl > journal.log", 60;
-    upload_logs "journal.log";
-
-    script_run 'velumid=$(docker ps | grep velum-dashboard | awk \'{print $1}\')';
-    my $railscmd = 'entrypoint.sh bundle exec rails';
-
-    script_run "docker exec -it \$velumid $railscmd runner 'puts SaltEvent.all.to_yaml' > SaltEvents.yml";
-    upload_logs "SaltEvents.yml";
-
-    script_run "docker exec -it \$velumid $railscmd runner 'puts Pillar.all.to_yaml' > Pillar.yml";
-    upload_logs "Pillar.yml";
-
-    mutex_create "ADMIN_LOGS_EXPORTED";
 }
 
 # Handle update process
@@ -82,7 +63,7 @@ sub run() {
     mutex_lock "CNTRL_FINISHED";
     mutex_unlock "CNTRL_FINISHED";
 
-    export_logs;
+    export_cluster_logs;
 }
 
 1;
