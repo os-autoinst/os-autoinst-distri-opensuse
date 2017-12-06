@@ -40,29 +40,5 @@ sub post_run_hook {
     $self->clear_and_verify_console;
 }
 
-# Executes the command line tests from a yast repository (in master or in the
-# given optional branch) using prove
-sub run_yast_cli_test {
-    my ($self, $packname) = @_;
-    my $PACKDIR = '/usr/src/packages';
-
-    assert_script_run "zypper -n in $packname";
-    assert_script_run "zypper -n si $packname";
-    assert_script_run "rpmbuild -bp $PACKDIR/SPECS/$packname.spec";
-    script_run "pushd $PACKDIR/BUILD/$packname-*";
-
-    # Run 'prove' only if there is a directory called t
-    script_run("if [ -d t ]; then echo -n 'run'; else echo -n 'skip'; fi > /dev/$serialdev", 0);
-    my $action = wait_serial(['run', 'skip'], 10);
-    if ($action eq 'run') {
-        assert_script_run('prove -v', timeout => 90, fail_message => 'yast cli tests failed');
-    }
-
-    script_run 'popd';
-
-    # Should we cleanup after?
-    #script_run "rm -rf $packname-*";
-}
-
 1;
 # vim: set sw=4 et:

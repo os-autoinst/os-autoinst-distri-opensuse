@@ -17,7 +17,7 @@
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use strict;
-use base 'basetest';
+use base 'console_yasttest';
 use testapi;
 
 sub run {
