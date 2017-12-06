@@ -60,8 +60,8 @@ sub change_desktop {
             send_key ' ';
         }
         if (check_var('DESKTOP', 'textmode')) {
-            send_key_until_needlematch 'x11-selected', 'down';
-            send_key ' ';
+            send_key_until_needlematch [qw(x11-selected x11-unselected)], 'down';
+            send_key ' ' if match_has_tag('x11-selected');
         }
         assert_screen "desktop-selected";
     }
