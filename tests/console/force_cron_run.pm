@@ -18,13 +18,14 @@ use utils 'assert_screen_with_soft_timeout';
 use version_utils 'is_jeos';
 
 sub settle_load {
-    script_run "top; echo TOP-DONE-\$? > /dev/$serialdev", 0;
+    my $loop = 'read load dummy < /proc/loadavg  ; top -n1 -b| head -n30 ; test "${load/./}" -lt $limit && break ; sleep 5';
+    script_run "limit=10; for c in `seq 1 200`; do $loop; done; echo TOP-DONE > /dev/$serialdev", 0;
+    my $before = time;
+    wait_serial('TOP-DONE', 1005) || die 'load not settled';
     # JeOS is different to SLE general as it extends the appliance's disk on first boot,
     # so the balance is a different challenge to SLE. Elapsed time is not necessary a key
     # measure here, responsiveness of the system is.
-    assert_screen_with_soft_timeout('top-load-decreased', soft_timeout => is_jeos() ? 180 : 30, bugref => 'bsc#1063638', timeout => 1000);
-    send_key 'q';
-    wait_serial 'TOP-DONE' || die 'top did not quit?';
+    record_soft_failure 'bsc#1063638' if (time - $before) > (is_jeos() ? 180 : 30);
 }
 
 sub run {
