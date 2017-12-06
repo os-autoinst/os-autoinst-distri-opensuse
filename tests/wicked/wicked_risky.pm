@@ -21,7 +21,7 @@ use utils qw(systemctl snapper_revert_system);
 
 sub run {
     my ($self) = @_;
-    type_string("#***Test 1: Create a gre interface from legacy ifcfg files***\n");
+    $self->write_journal("***Test 1: Create a gre interface from legacy ifcfg files***");
     # different ips for SUT and REF instances of test
     my $ip = check_var('IS_WICKED_REF', '1') ? '10.0.2.10/15' : '10.0.2.11/15';
     $self->setup_static_network($ip);
