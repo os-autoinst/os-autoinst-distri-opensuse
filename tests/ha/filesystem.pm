@@ -97,7 +97,7 @@ sub run {
             }
 
             # Sometimes we need to cleanup the resource
-            assert_script_run "crm resource cleanup $fs_rsc";
+            rsc_cleanup $fs_rsc;
         }
 
         # Wait to get Filesystem running on all nodes (if applicable)
