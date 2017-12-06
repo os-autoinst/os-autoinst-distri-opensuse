@@ -17,7 +17,7 @@
 # Maintainer: Pavel Sladek <psladek@suse.cz>
 
 use strict;
-use base 'basetest';
+use base 'console_yasttest';
 use testapi;
 use utils;
 
