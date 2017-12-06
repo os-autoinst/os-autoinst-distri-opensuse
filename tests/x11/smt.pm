@@ -20,6 +20,16 @@ use testapi;
 sub run {
     x11_start_program('xterm -geometry 150x35+5+5', target_match => 'xterm');
     become_root;
+    smt_wizard();
+    assert_script_run 'smt-sync', 600;
+    assert_script_run 'smt-repos';
+
+    # mirror and sync a base repo from SCC
+    smt_mirror_repo();
+    type_string "killall xterm\n";
+}
+
+sub smt_wizard {
 
     type_string "yast2 smt-wizard;echo yast2-smt-wizard-\$? > /dev/$serialdev\n";
     assert_screen 'smt-wizard-1';
@@ -54,10 +64,13 @@ sub run {
     assert_screen 'smt-installation-overview';
     send_key 'alt-n';
     wait_serial("yast2-smt-wizard-0", 400) || die 'smt wizard failed';
+}
 
-    assert_script_run 'smt-sync', 600;
-    assert_script_run 'smt-repos';
-    type_string "killall xterm\n";
+sub smt_mirror_repo {
+
+    # Verify smt mirror function and mirror a tiny released repo from SCC. Hardcode it as SLES12-SP3-Installer-Updates
+    assert_script_run 'smt-repos --enable-mirror SLES12-SP3-Installer-Updates sle-12-x86_64';
+    assert_script_run 'smt-mirror', 600;
 }
 
 sub test_flags {
