@@ -13,9 +13,8 @@
 use base 'wickedbase';
 use strict;
 use testapi;
-use utils qw(systemctl setup_static_network);
+use utils 'systemctl';
 use version_utils qw(is_sle sle_version_at_least);
-use mm_network;
 
 sub run {
     my ($self) = @_;
