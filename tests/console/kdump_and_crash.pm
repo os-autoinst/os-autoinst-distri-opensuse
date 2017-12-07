@@ -15,12 +15,17 @@ use strict;
 use testapi;
 use utils;
 use kdump_utils;
+use registration;
+use version_utils;
 
 sub run {
     my ($self) = @_;
     select_console('root-console');
 
     # preparation for crash test
+    if (sle_version_at_least('15')) {
+        add_suseconnect_product('sle-module-development-tools');
+    }
     prepare_for_kdump;
     activate_kdump;
 
