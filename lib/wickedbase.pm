@@ -34,7 +34,7 @@ sub save_and_upload_wicked_log {
 
 sub write_journal {
     my ($self, $message) = @_;
-    my $module_name = $self->{name};
+    my $module_name = $self->{name} // "openqa_test";
     type_string "logger -t $module_name \"$message\" \n";
 }
 
