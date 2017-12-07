@@ -1055,8 +1055,8 @@ sub load_ha_cluster_tests {
         loadtest "ha/fencing_consoletest_setup";
     }
 
-    # Check_logs must be after ha/fencing
-    loadtest "ha/check_logs";
+    # Cluster status and check logs to find error
+    loadtest "ha/check_cluster";
 
     return 1;
 }

@@ -33,6 +33,7 @@ our @EXPORT = qw(
   block_device_real_path
   lvm_add_filter
   lvm_remove_filter
+  rsc_cleanup
   ha_export_logs
   post_run_hook
   post_fail_hook
@@ -44,12 +45,10 @@ our $cluster_name    = get_var('CLUSTER_NAME');
 our $crm_mon_cmd     = 'crm_mon -R -r -n -N -1';
 our $softdog_timeout = 60;
 
-# Get the number of nodes
 sub get_node_number {
     return script_output 'crm_mon -1 | awk \'/ nodes configured/ { print $1 }\'';
 }
 
-# Check if we are on $node_number
 sub is_node {
     my $node_number = shift;
 
@@ -60,7 +59,6 @@ sub is_node {
     return (get_var('HOSTNAME') =~ /$node_number$/);
 }
 
-# Get the name of node based on his number
 sub choose_node {
     my $node_number  = shift;
     my $tmp_hostname = get_var('HOSTNAME');
@@ -75,13 +73,11 @@ sub choose_node {
     return ($tmp_hostname);
 }
 
-# Show the cluster resource
 sub show_rsc {
     script_run 'yes | crm configure show';
     save_screenshot;
 }
 
-# Print the state of the cluster and do a screenshot
 sub save_state {
     script_run "$crm_mon_cmd";
     save_screenshot;
@@ -141,7 +137,7 @@ sub ensure_resource_running {
 
     return 0;
 }
-# Check if a resource exists
+
 sub check_rsc {
     my $rsc = shift;
 
@@ -150,7 +146,6 @@ sub check_rsc {
     return (!script_run "$crm_mon_cmd 2>/dev/null | grep -q '\\<$rsc\\>'");
 }
 
-# Add the tag for resource configuration
 sub write_tag {
     my $tag     = shift;
     my $rsc_tag = '/tmp/' . get_var('CLUSTER_NAME') . '.rsc';
@@ -158,21 +153,18 @@ sub write_tag {
     return (!script_run "echo $tag > $rsc_tag");
 }
 
-# Get the tag for resource configuration
 sub read_tag {
     my $rsc_tag = '/tmp/' . get_var('CLUSTER_NAME') . '.rsc';
 
     return script_output "cat $rsc_tag 2>/dev/null";
 }
 
-# Return the *real* device path
 sub block_device_real_path {
     my $lun = shift;
 
     return script_output "realpath -ePL $lun";
 }
 
-# Add a filter entry in lvm.conf
 sub lvm_add_filter {
     my ($type, $filter) = @_;
     my $lvm_conf = '/etc/lvm/lvm.conf';
@@ -180,12 +172,23 @@ sub lvm_add_filter {
     assert_script_run "sed -ie '/^[[:blank:]][[:blank:]]*filter/s;\\[[[:blank:]]*;\\[ \"$type|$filter|\", ;' $lvm_conf";
 }
 
-# Remove a filter entry from lvm.conf
 sub lvm_remove_filter {
     my $filter   = shift;
     my $lvm_conf = '/etc/lvm/lvm.conf';
 
     assert_script_run "sed -ie '/^[[:blank:]][[:blank:]]*filter/s;$filter;;' $lvm_conf";
+}
+
+sub rsc_cleanup {
+    my $rsc = shift;
+
+    assert_script_run "crm resource cleanup $rsc";
+    if (!script_run "crm_mon -1 2>/dev/null | grep -Eq \"$rsc.*'not configured'|$rsc.*exit\"") {
+        # Resource is not cleared, so we need to force cleanup
+        # Record a soft failure for this, as a bug is opened
+        record_soft_failure 'bsc#1071503';
+        assert_script_run "crm_resource -R -r $rsc";
+    }
 }
 
 sub ha_export_logs {

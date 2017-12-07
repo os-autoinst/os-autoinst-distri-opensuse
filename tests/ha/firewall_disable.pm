@@ -25,7 +25,7 @@ sub run {
     }
 
     # Deactivate firewall if needed
-    if (script_run("rpm -q $firewall >/dev/null") == 0) {
+    if (!script_run "rpm -q $firewall >/dev/null") {
         assert_script_run "systemctl -q is-active $firewall && systemctl disable $firewall; systemctl stop $firewall";
     }
 }
