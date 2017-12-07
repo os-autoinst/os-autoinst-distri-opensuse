@@ -228,7 +228,9 @@ sub run {
     become_root;
     # make sure that firewalld is stopped, or we have later pops for firewall activation warning
     # or timeout for command 'ip a' later
-    if (script_run "systemctl show -p ActiveState firewalld.service | grep ActiveState=active") {
+    if (((is_sle && sle_version_at_least('15')) || (is_leap && leap_version_at_least('15.0')))
+        && script_run "systemctl show -p ActiveState firewalld.service | grep ActiveState=active")
+    {
         assert_script_run "systemctl stop firewalld";
     }
     # enable debug for detailed messages and easier detection of restart
