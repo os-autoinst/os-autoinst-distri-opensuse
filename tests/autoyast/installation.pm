@@ -128,29 +128,6 @@ sub run {
                 send_key_until_needlematch 'create-partition-plans-finished', $cmd{ok};
                 next;
             }
-            if (match_has_tag('bsc#1055034') || match_has_tag('bsc#1054895')) {
-                record_soft_failure('bsc#1055034');
-                if (check_screen 'bsc#1054895', 0) {
-                    record_soft_failure('bsc#1054895');
-                }
-                send_key $cmd{ok};
-                next;
-            }
-            if (match_has_tag('bsc#1056356')) {
-                record_soft_failure('bsc#1056356');
-                send_key $cmd{ok};
-                next;
-            }
-            if (match_has_tag('bsc#1058099')) {
-                record_soft_failure('bsc#1058099');
-                send_key $cmd{ok};
-                next;
-            }
-            if (match_has_tag('bsc#1058999')) {
-                record_soft_failure('bsc#1058999');
-                send_key $cmd{ok};
-                next;
-            }
 
             die "Unknown popup message" unless check_screen('autoyast-known-warning', 0);
 

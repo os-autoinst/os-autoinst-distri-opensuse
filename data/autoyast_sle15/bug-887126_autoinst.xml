@@ -478,22 +478,16 @@
     <packages config:type="list">
       <package>at-spi2-atk-common</package>
       <package>at-spi2-atk-gtk2</package>
-      <package>crash-kmp-default</package>
       <package>dbus-1-python</package>
       <package>dconf</package>
-      <package>desktop-translations</package>
       <package>ft2demos</package>
-      <package>gnome-icon-theme-symbolic</package>
       <package>grub2-snapper-plugin</package>
       <package>gsettings-backend-dconf</package>
       <package>gstreamer-plugins-base</package>
       <package>gstreamer-plugins-base-lang</package>
       <package>gtk3-metatheme-adwaita</package>
       <package>gxditview</package>
-      <package>input-utils</package>
       <package>libSDL-1_2-0</package>
-      <package>libboost_system1_54_0</package>
-      <package>libboost_thread1_54_0</package>
       <package>libbtrfs0</package>
       <package>libcdda_interface0</package>
       <package>libcdda_paranoia0</package>
@@ -504,7 +498,6 @@
       <package>libgstriff-1_0-0</package>
       <package>libgsttag-1_0-0</package>
       <package>libgstvideo-1_0-0</package>
-      <package>libproxy1-config-gnome3</package>
       <package>libtheora0</package>
       <package>libvisual</package>
       <package>plymouth-dracut</package>
@@ -514,9 +507,7 @@
       <package>snapper-zypp-plugin</package>
       <package>ucode-intel</package>
       <package>xf86-input-evdev</package>
-      <package>xf86-input-void</package>
       <package>xf86-input-wacom</package>
-      <package>xf86-video-cirrus</package>
       <package>xf86-video-modesetting</package>
       <package>yast2-snapper</package>
       <package>yast2-trans-en_US</package>
