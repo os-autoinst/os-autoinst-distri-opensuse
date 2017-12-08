@@ -57,7 +57,7 @@ sub run {
     assert_script_run "md5sum -c /tmp/check-nw-media", 300;
 
     # Define a valid hostname/IP address in /etc/hosts
-    assert_script_run "wget -P /tmp " . autoinst_url . "/data/sles4sap/add_ip_hostname2hosts.sh";
+    assert_script_run "curl -f -v " . autoinst_url . "/data/sles4sap/add_ip_hostname2hosts.sh > /tmp/add_ip_hostname2hosts.sh";
     assert_script_run "/bin/bash -ex /tmp/add_ip_hostname2hosts.sh";
 
     # Use the correct hostname in SAP's inifile.params
@@ -65,7 +65,7 @@ sub run {
     assert_script_run $cmd;
 
     # Create an appropiate start_dir.cd file and an unattended installation directory
-    $cmd = 'ls | while read d; do test -d "$d" -a ! -h "$d" && echo $d; done | sed -e "s@^@/sapinst/@"';
+    $cmd = 'ls | while read d; do if [ -d "$d" -a ! -h "$d" ]; then echo $d; fi ; done | sed -e "s@^@/sapinst/@"';
     assert_script_run "$cmd > /tmp/start_dir.cd";
     type_string "mkdir -p /sapinst/unattended\n";
     assert_script_run "mv /tmp/start_dir.cd /sapinst/unattended/";
