@@ -16,10 +16,12 @@ use base "consoletest";
 use strict;
 use testapi;
 use utils 'pkcon_quit';
+use version_utils qw(is_sle sle_version_at_least);
 
 sub run {
     select_console 'root-console';
     pkcon_quit;
+    return record_soft_failure 'bsc#1071451' if is_sle && sle_version_at_least('15');
     my $cmd = <<'EOF';
 zypper -n in salt-master salt-minion
 systemctl start salt-master
