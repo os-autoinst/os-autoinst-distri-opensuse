@@ -1,4 +1,4 @@
-# Copyright (C) 2016 SUSE LLC
+# Copyright (C) 2017 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,22 +23,27 @@ use testapi;
 sub run {
     my $self = shift;
     select_console('root-console');
-    # Copy current kernel and rename it
-    $_ = script_output("uname -r", 120);
-    s/-default$/-kexec/;
-    my $kernel_file = "vmlinuz-$_";
-    my $initrd_file = "initrd-$_";
-    assert_script_run("cp /boot/vmlinu*-`uname -r` /boot/$kernel_file");
-    assert_script_run("cp /boot/initrd-`uname -r` /boot/$initrd_file");
+    # Copy kernel image and rename it
+    my $kernel_orig = script_output('find /boot -maxdepth 1 -name "*$(uname -r)" | grep -iP "image|vmlinu"', 120);
+    (my $kernel_new = $kernel_orig) =~ s/-default$/-kexec/;
+    assert_script_run("cp $kernel_orig $kernel_new");
+
+    # Copy initrd image and rename it
+    my $initrd_orig = script_output('find /boot -maxdepth 1 -name "initrd-$(uname -r)"', 120);
+    (my $initrd_new = $initrd_orig) =~ s/-default$/-kexec/;
+    assert_script_run("cp $initrd_orig $initrd_new");
+
     # kernel cmdline parameter
     $_ = script_output("cat /proc/cmdline", 120);
     s/-default /-kexec /;
     s/ splash=silent//;
     my $cmdline = "$_ debug";
+
     # kexec -l
-    assert_script_run("kexec -l /boot/$kernel_file --initrd=/boot/$initrd_file --command-line='$cmdline'");
+    assert_script_run("kexec -l $kernel_new --initrd=$initrd_new --command-line='$cmdline'");
     # kexec -e
     type_string("systemctl kexec\n");
+
     # wait for reboot
     reset_consoles();
     select_console("root-console");
