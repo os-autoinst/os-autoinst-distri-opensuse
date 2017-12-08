@@ -1128,6 +1128,17 @@ sub load_patching_tests {
     loadtest 'installation/bootloader_zkvm_sym' if get_var('S390_ZKVM');
 }
 
+sub load_sles4sap_tests {
+    return if get_var('INSTALLONLY');
+    loadtest "sles4sap/patterns";
+    loadtest "sles4sap/sapconf";
+    loadtest "sles4sap/saptune";
+    if (get_var('NW')) {
+        loadtest "sles4sap/nw_ascs_install" if (get_var('SLES4SAP_MODE') !~ /wizard/);
+        loadtest "sles4sap/netweaver_ascs";
+    }
+}
+
 sub prepare_target {
     if (get_var("BOOT_HDD_IMAGE")) {
         boot_hdd_image;
