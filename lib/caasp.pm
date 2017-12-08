@@ -18,7 +18,18 @@ use testapi;
 use mmapi;
 use utils qw(power_action assert_shutdown_and_restore_system);
 
-our @EXPORT = qw(handle_simple_pw process_reboot trup_call write_detail_output get_admin_job update_scheduled);
+our @EXPORT = qw(handle_simple_pw process_reboot trup_call write_detail_output get_admin_job update_scheduled export_cluster_logs);
+
+# Export logs from cluster admin/workers
+sub export_cluster_logs {
+    script_run "journalctl > journal.log", 60;
+    upload_logs "journal.log";
+
+    script_run 'supportconfig -i psuse_caasp -B supportconfig', 120;
+    upload_logs '/var/log/nts_supportconfig.tbz';
+
+    upload_logs('/var/log/transactional-update.log', failok => 1);
+}
 
 # Weak password warning should be displayed only once - bsc#1025835
 sub handle_simple_pw {

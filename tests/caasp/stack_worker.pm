@@ -14,7 +14,7 @@ use base "opensusebasetest";
 use strict;
 use testapi;
 use lockapi;
-use caasp 'update_scheduled';
+use caasp;
 
 sub run {
     # Notify others that installation finished
@@ -35,9 +35,7 @@ sub post_run_hook {
         reset_consoles;
         select_console 'root-console';
     }
-
-    script_run "journalctl > journal.log", 90;
-    upload_logs "journal.log";
+    export_cluster_logs;
 }
 
 1;
