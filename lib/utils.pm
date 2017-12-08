@@ -307,7 +307,11 @@ sub zypper_call {
 
     if ($ret) {
         my ($ret_code) = $ret =~ /$str-(\d+)/;
-        die "'zypper -n $command' failed with code $ret_code" unless grep { $_ == $ret_code } @$allow_exit_codes;
+        unless (grep { $_ == $ret_code } @$allow_exit_codes) {
+            upload_logs('/var/log/zypper.log');
+            die "'zypper -n $command' failed with code $ret_code";
+        }
+
         return $ret_code;
     }
     die "zypper did not return an exitcode";
