@@ -934,6 +934,7 @@ else {
     unless (install_online_updates()
         || load_applicationstests()
         || load_extra_tests()
+        || load_virtualization_tests()
         || load_otherDE_tests()
         || load_slenkins_tests())
     {

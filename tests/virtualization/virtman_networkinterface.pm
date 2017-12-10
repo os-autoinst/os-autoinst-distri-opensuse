@@ -16,7 +16,7 @@
 # Summary: - add the virtualization test suite- add a load_virtualization_tests call
 # Maintainer: aginies <aginies@suse.com>
 
-use base "x11test";
+use base 'x11test';
 use strict;
 use testapi;
 use virtmanager;
@@ -25,88 +25,82 @@ sub go_for_netif {
     my $netif = shift;
     launch_virtmanager();
     # go tab networkd interface
-    connection_details("netinterface");
+    connection_details('netinterface');
     create_netinterface($netif);
     # close virt-manager details
-    send_key "ctrl-w";
+    send_key 'ctrl-w';
 }
 
 sub checking_netif_result {
     my $volumes = shift;
     x11_start_program('xterm');
-    send_key "alt-f10";
+    send_key 'alt-f10';
     become_root();
-    type_string "ip link show";
-    send_key "ret";
+    assert_script_run 'ip link show';
     save_screenshot;
-    if (get_var("DESKTOP") !~ /icewm/) {
-        assert_screen "virtman-sle12-gnome_netifcheck";
-    }
-    else {
-        assert_screen "virtman_netifcheck";
-    }
+    assert_screen 'virtman_netifcheck';
 }
 
 
 sub run {
     my $netif = {
-        type      => "bridge",    # type: bridge, bond, ethernet, vlan
-        name      => "br1",
-        startmode => "onboot",    # none, onboot, hotplug
-        activenow => "true",      # true / false
+        type      => 'bridge',    # type: bridge, bond, ethernet, vlan
+        name      => 'br1',
+        startmode => 'onboot',    # none, onboot, hotplug
+        activenow => 'true',      # true / false
         ipsetting => {            # only support manual mode
             manually => {
-                #ipv6 => "", # no support
-                active => "true",
+                #ipv6 => '', # no support
+                active => 'true',
                 ipv4   => {
-                    mode    => "static",       # dhcp, static, noconf
-                    address => "10.0.2.99",
-                    gateway => "10.0.2.254",
+                    mode    => 'static',       # dhcp, static, noconf
+                    address => '10.0.2.99',
+                    gateway => '10.0.2.254',
                 },
             },
             copy => {                          # FIXME
-                active         => "false",
-                childinterface => "",
+                active         => 'false',
+                childinterface => '',
             },
         },
         # only in bridge setting
         bridgesettings => {
-            fwddelay => "0.5",                 # in seconds
-            stp      => "true",                # true / false
+            fwddelay => '0.5',                 # in seconds
+            stp      => 'true',                # true / false
         },
-        interface => "other",                  # lo or other
+        interface => 'other',                  # lo or other
                                                # vlantag only exist with VLAN
-        vlantag   => "3",
+        vlantag   => '3',
     };
     go_for_netif($netif);
 
-    #    $netif->{type} = "bond";
-    #    $netif->{name} = "bond1";
-    #    $netif->{startmode} = "none";
-    #    $netif->{activenow} = "false";
-    #    $netif->{ipsetting}{manually}{active} = "true";
-    #    $netif->{ipsetting}{copy}{active} = "false";
-    #    $netif->{interface} = "other";
+    #    $netif->{type} = 'bond';
+    #    $netif->{name} = 'bond1';
+    #    $netif->{startmode} = 'none';
+    #    $netif->{activenow} = 'false';
+    #    $netif->{ipsetting}{manually}{active} = 'true';
+    #    $netif->{ipsetting}{copy}{active} = 'false';
+    #    $netif->{interface} = 'other';
     #    go_for_netif($netif);
 
-    $netif->{type}                            = "vlan";
-    $netif->{startmode}                       = "onboot";
-    $netif->{activenow}                       = "false";
-    $netif->{ipsetting}{manually}{active}     = "true";
-    $netif->{ipsetting}{manually}{ipv4}{mode} = "dhcp";
-    $netif->{vlantag}                         = "2";
-    $netif->{interface}                       = "other";
+    $netif->{type}                            = 'vlan';
+    $netif->{startmode}                       = 'onboot';
+    $netif->{activenow}                       = 'false';
+    $netif->{ipsetting}{manually}{active}     = 'true';
+    $netif->{ipsetting}{manually}{ipv4}{mode} = 'dhcp';
+    $netif->{vlantag}                         = '2';
+    $netif->{interface}                       = 'other';
     go_for_netif($netif);
     delete_netinterface();
 
-    $netif->{type}                               = "ethernet";
-    $netif->{startmode}                          = "hotplug";
-    $netif->{activenow}                          = "true";
-    $netif->{ipsetting}{manually}{active}        = "true";
-    $netif->{ipsetting}{manually}{ipv4}{mode}    = "static";
-    $netif->{ipsetting}{manually}{ipv4}{address} = "10.1.2.22";
-    $netif->{ipsetting}{manually}{ipv4}{gateway} = "10.1.2.25";
-    $netif->{interface}                          = "other";
+    $netif->{type}                               = 'ethernet';
+    $netif->{startmode}                          = 'hotplug';
+    $netif->{activenow}                          = 'true';
+    $netif->{ipsetting}{manually}{active}        = 'true';
+    $netif->{ipsetting}{manually}{ipv4}{mode}    = 'static';
+    $netif->{ipsetting}{manually}{ipv4}{address} = '10.1.2.22';
+    $netif->{ipsetting}{manually}{ipv4}{gateway} = '10.1.2.25';
+    $netif->{interface}                          = 'other';
     go_for_netif($netif);
 
     checking_netif_result();

@@ -10,19 +10,18 @@
 # Summary: 'virt-install' test
 # Maintainer: aginies <aginies@suse.com>
 
-use base "x11test";
+use base 'x11test';
 use strict;
 use testapi;
 
 sub run {
-    ensure_installed("virt-install");
+    ensure_installed('virt-install');
     x11_start_program('xterm');
     become_root;
-    script_run("virt-install --name TESTING --memory 512 --disk none --boot cdrom --graphics vnc &");
-    x11_start_program('vncviewer :0', target_match => 'virtman-sle12sp1-gnome_virt-install', match_timeout => 100);
-    for (0 .. 2) {
-        send_key "alt-f4";
-    }    # closing all windows
+    script_run('virt-install --name TESTING --memory 512 --disk none --boot cdrom --graphics vnc &', 0);
+    x11_start_program('vncviewer :0', target_match => 'virtman-gnome_virt-install', match_timeout => 100);
+    # closing all windows
+    send_key 'alt-f4' for (0 .. 2);
 }
 
 1;

@@ -1060,24 +1060,6 @@ sub load_ha_cluster_tests {
     return 1;
 }
 
-sub load_virtualization_tests {
-    # standalone suite to fit needed installation
-    if (get_var("STANDALONEVT")) {
-        loadtest "virtualization/boot";
-        loadtest "virtualization/installation";
-        loadtest "virtualization/prepare_sle12";
-    }
-    loadtest "virtualization/yast_virtualization";
-    loadtest "virtualization/virt_install";
-    loadtest "virtualization/virt_top";
-    loadtest "virtualization/virtman_install";
-    loadtest "virtualization/virtman_view";
-    loadtest "virtualization/virtman_storage";
-    loadtest "virtualization/virtman_virtualnet";
-    loadtest "virtualization/virtman_networkinterface";
-    loadtest "virtualization/virtman_create_guest";
-}
-
 sub load_feature_tests {
     loadtest "console/consoletest_setup";
     loadtest "feature/feature_console/zypper_releasever";

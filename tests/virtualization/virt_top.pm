@@ -10,18 +10,18 @@
 # Summary: Test 'virt-top'
 # Maintainer: aginies <aginies@suse.com>
 
-use base "x11test";
+use base 'x11test';
 use strict;
 use testapi;
 
 
 sub run {
-    ensure_installed("virt-top");
+    ensure_installed('virt-top');
     x11_start_program('xterm');
     become_root;
-    script_run "/usr/bin/virt-top";
-    assert_screen "virtman-sle12sp1-gnome_virt-top";
-    send_key "alt-f4";
+    script_run('virt-top', 0);
+    assert_screen 'virt-top';
+    send_key 'alt-f4';
 }
 
 1;

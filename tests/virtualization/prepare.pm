@@ -13,45 +13,44 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# Summary: Prepare a SLE12 system for use as a hypervisor host
+# Summary: Prepare a SLE system for use as a hypervisor host
 # Maintainer: aginies <aginies@suse.com>
 
-use base "basetest";
+use base 'basetest';
 use strict;
 use testapi;
 use virtmanager;
+use utils 'zypper_call';
 
 sub run {
     my ($self) = @_;
     # login and preparation of the system
-    if (get_var("DESKTOP") =~ /icewm/) {
-        send_key "ret";
-        assert_screen "SLE12_login", 520;
-        type_string "linux";
-        wait_screen_change { send_key "ret" };
+    if (get_var('DESKTOP') =~ /icewm/) {
+        send_key 'ret';
+        assert_screen 'linux-login', 600;
+        type_string 'bernhard';
+        wait_screen_change { send_key 'ret' };
         type_string $password;
-        send_key "ret";
+        send_key 'ret';
         save_screenshot;
         # install and launch polkit
         x11_start_program('xterm');
         become_root();
-        script_run "zypper -n in polkit-gnome";
+        zypper_call('in polkit-gnome');
         # exit root, and be the default user
-        type_string "exit\n";
-        sleep 1;
-        type_string "nohup /usr/lib/polkit-gnome-authentication-agent-1 &";
-        send_key "ret";
+        wait_screen_change { type_string "exit\n" };
+        type_string 'nohup /usr/lib/polkit-gnome-authentication-agent-1 &';
+        send_key 'ret';
     }
     else {
         # auto-login has been selected for gnome
-        assert_screen "virt-manager_SLE12_desktop", 520;
+        assert_screen 'generic-desktop', 600;
     }
     x11_start_program('xterm');
     become_root;
-    script_run("hostname susetest");
-    script_run("echo susetest > /etc/hostname");
-
-    send_key "alt-f4";
+    assert_script_run('hostname susetest');
+    assert_script_run('echo susetest > /etc/hostname');
+    send_key 'alt-f4';
 }
 
 sub test_flags {
