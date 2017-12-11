@@ -174,7 +174,6 @@
     <packages config:type="list">
       <package>autoyast2</package>
       <package>vim</package>
-      <package>mc</package>
       <package>iputils</package>
       <package>less</package>
       <package>screen</package>
