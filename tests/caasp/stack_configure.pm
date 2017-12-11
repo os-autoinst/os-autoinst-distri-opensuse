@@ -38,6 +38,15 @@ sub velum_config {
     mutex_create 'VELUM_CONFIGURED';
 }
 
+# Upload autoyast profile
+sub upload_autoyast {
+    send_key 'alt-tab';    # switch to xterm
+    assert_screen 'xterm';
+    assert_script_run 'curl --location ' . get_var('DASHBOARD_URL') . '/autoyast' . '--output autoyast.xml';
+    upload_logs('autoyast.xml');
+    send_key 'alt-tab';    # switch to xterm
+}
+
 sub run {
     # Wait until dashboard becomes ready
     mutex_lock "VELUM_STARTED", get_admin_job;
@@ -60,6 +69,10 @@ sub run {
 
     # Login and configure cluster
     velum_config;
+
+    # Upload the logs of autoyast (if any)
+    upload_autoyast;
+
 }
 
 1;
