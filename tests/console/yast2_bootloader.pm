@@ -22,7 +22,7 @@ sub run {
     # make sure yast2 bootloader module is installed
     zypper_call 'in yast2-bootloader';
 
-    script_run("yast2 bootloader; echo yast2-bootloader-status-\$? > /dev/$serialdev", 0);
+    script_run("yast2 bootloader; echo btld-status-\$? > /dev/$serialdev", 0);
     assert_screen "test-yast2_bootloader-1", 300;
     send_key "alt-o";    # OK => Close
     assert_screen([qw(yast2_bootloader-missing_package yast2_console-finished)], 200);
@@ -30,7 +30,7 @@ sub run {
         wait_screen_change { send_key 'alt-i'; };
     }
     assert_screen 'yast2_console-finished', 200;
-    wait_serial("yast2-bootloader-status-0") || die "'yast2 bootloader' didn't finish";
+    wait_serial("btld-status-0") || die "'yast2 bootloader' didn't finish";
 }
 
 1;
