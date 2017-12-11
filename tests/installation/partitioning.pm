@@ -25,9 +25,10 @@ sub run {
     if (match_has_tag('storage-ng')) {
         set_var('STORAGE_NG', 1);
         # Define changed shortcuts
-        $cmd{donotformat} = 'alt-t';
-        $cmd{addraid}     = 'alt-i';
-        $cmd{filesystem}  = 'alt-a';
+        $cmd{donotformat}     = 'alt-t';
+        $cmd{addraid}         = 'alt-i';
+        $cmd{filesystem}      = 'alt-a';
+        $cmd{exp_part_finish} = 'alt-n';
         if (check_var('DISTRI', 'opensuse')) {
             $cmd{expertpartitioner} = 'alt-x';
             $cmd{rescandevices}     = 'alt-c';
