@@ -16,6 +16,7 @@ use strict;
 use testapi;
 use lockapi;
 use utils;
+use version_utils 'is_caasp';
 
 
 sub accept_nodes {
@@ -105,10 +106,14 @@ sub bootstrap {
     assert_and_click "velum-bootstrap";
 
     # Wait until bootstrap finishes
-    assert_screen [qw(velum-bootstrap-done velum-api-disconnected)], 900;
-    if (match_has_tag('velum-api-disconnected')) {
-        setup_root_ca;
+    if (is_caasp '3.0+') {
         assert_screen 'velum-bootstrap-done', 900;
+        setup_root_ca;
+    }
+    else {
+        assert_screen 'velum-api-disconnected', 300;
+        setup_root_ca;
+        assert_screen 'velum-bootstrap-done', 600;
     }
 }
 
