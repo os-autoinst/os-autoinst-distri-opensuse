@@ -42,7 +42,25 @@ sub run {
             send_key $cmd{ok};
         }
         else {
-            assert_screen 'migration_target_' . lc(get_var('SLE_PRODUCT', 'sles')), 120;
+            send_key 'alt-p';
+            # Confirm default migration target matches correct base product
+            my $migration_target_base = 'migration_target_' . lc(get_var('SLE_PRODUCT', 'sles')) . lc(get_var('VERSION'));
+            assert_screen $migration_target_base, 120;
+            # Confirm other migration targets match the same base product
+            # Assume no more than 6 possible migration targets
+            for (1 .. 5) {
+                send_key 'down';
+                unless (check_screen $migration_target_base) {
+                    record_info 'Likely error detected', 'Incorrect migration target? See https://fate.suse.com/323165', result => 'fail';
+                    last;
+                }
+            }
+            # Back to default migration target
+            wait_screen_change {
+                send_key 'home';
+            };
+            save_screenshot;
+
             send_key $cmd{next};
         }
     }
