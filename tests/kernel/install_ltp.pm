@@ -49,18 +49,8 @@ sub add_we_repo_if_available {
 
 sub install_runtime_dependencies {
     my @deps = qw(
-      acl
-      binutils
-      iputils
-      net-tools
-      numactl
-      psmisc
-      quota
-      sssd-tools
-      sudo
       sysstat
-      tpm-tools
-      wget
+      iputils
     );
     zypper_call('-t in ' . join(' ', @deps), dumb_term => 1);
 
@@ -69,7 +59,17 @@ sub install_runtime_dependencies {
     # ntfsprogs are for SLE in WE, openSUSE has it in default repository
     my @maybe_deps = qw(
       kernel-default-extra
+      net-tools
       net-tools-deprecated
+      tpm-tools
+      sssd-tools
+      numactl
+      wget
+      psmisc
+      binutils
+      acl
+      quota
+      sudo
       ntfsprogs
     );
     for my $dep (@maybe_deps) {
