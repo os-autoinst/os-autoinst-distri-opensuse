@@ -16,17 +16,12 @@ use base "y2logsstep";
 use testapi;
 use installation_user_settings;
 use version_utils 'is_storage_ng';
+use partition_setup 'unselect_xen_pv_cdrom';
 
 sub run {
     wait_screen_change { send_key(is_storage_ng() ? 'alt-g' : 'alt-d') };    # open proposal settings
     if (is_storage_ng) {
-        # On Xen PV "CDROM" is of the same type as a disk block device so YaST
-        # naturally sees it as a "disk". We have to uncheck the "CDROM".
-        if (check_var('VIRSH_VMM_TYPE', 'linux')) {
-            assert_screen 'select-hard-disk';
-            send_key 'alt-e';
-            send_key $cmd{next};
-        }
+        unselect_xen_pv_cdrom;
         assert_screen 'partition-scheme';
         send_key $cmd{next};
         installation_user_settings::await_password_check if get_var('ENCRYPT');

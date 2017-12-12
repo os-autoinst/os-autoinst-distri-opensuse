@@ -16,7 +16,7 @@ use strict;
 use testapi;
 use version_utils 'is_storage_ng';
 
-our @EXPORT = qw(wipe_existing_partitions addpart addlv);
+our @EXPORT = qw(wipe_existing_partitions addpart addlv unselect_xen_pv_cdrom);
 
 my %role = qw(
   OS alt-o
@@ -160,6 +160,16 @@ sub addlv {
     send_key $cmd{next};
     assert_screen 'partition-format';
     send_key $cmd{finish};
+}
+
+# On Xen PV "CDROM" is of the same type as a disk block device so YaST
+# naturally sees it as a "disk". We have to uncheck the "CDROM".
+sub unselect_xen_pv_cdrom {
+    if (check_var('VIRSH_VMM_TYPE', 'linux')) {
+        assert_screen 'select-hard-disk';
+        send_key 'alt-e';
+        send_key $cmd{next};
+    }
 }
 
 1;
