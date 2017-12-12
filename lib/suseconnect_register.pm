@@ -46,12 +46,14 @@ sub command_register {
     my $zypper_conflict = qr/^Choose from above solutions by number[\s\S,]* \[1/m;
     my $zypper_continue = qr/^Continue\? \[y/m;
     my $zypper_done     = qr/Run.*to list these programs|^ZYPPER-DONE/m;
+    my $registered      = qr/Registered*/m;
 
     if (!$addon) {
         my $reg_code = get_required_var("SCC_REGCODE");
         $version =~ s/\-SP/./;
         script_run("(SUSEConnect -p SLES/$version/$arch --regcode $reg_code) | tee /dev/$serialdev", 0);
-        my $out = wait_serial($zypper_conflict, 240);
+        my $out = wait_serial($zypper_conflict, 240) if (get_var("ZDUP"));    # zdup migration will have confilct
+        my $out = wait_serial($registered) if (!get_var("ZDUP"));             # just register a bare system
 
         #resolve potential conflict by zypper
         if ($out =~ $zypper_conflict) {

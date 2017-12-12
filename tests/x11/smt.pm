@@ -10,12 +10,13 @@
 # Summary: Add smt configuration test
 #    test installation and upgrade with smt pattern, basic configuration via
 #    smt-wizard and validation with smt-repos smt-sync return value
-# Maintainer: Jozef Pupava <jpupava@suse.com>
+# Maintainer: Jozef Pupava <jpupava@suse.com>, Jiawei Sun <jwsun@suse.com>, Dehai Kong <dhkong@suse.com>
 
 use base "x11test";
 use strict;
 use warnings;
 use testapi;
+use repo_tools;
 
 sub run {
     x11_start_program('xterm -geometry 150x35+5+5', target_match => 'xterm');
@@ -27,50 +28,6 @@ sub run {
     # mirror and sync a base repo from SCC
     smt_mirror_repo();
     type_string "killall xterm\n";
-}
-
-sub smt_wizard {
-
-    type_string "yast2 smt-wizard;echo yast2-smt-wizard-\$? > /dev/$serialdev\n";
-    assert_screen 'smt-wizard-1';
-    send_key 'alt-u';
-    wait_still_screen;
-    type_string 'SCC_ORG_DAJJBA';
-    send_key 'alt-p';
-    wait_still_screen;
-    type_string '043107d3db';
-    send_key 'alt-n';
-    assert_screen 'smt-wizard-2';
-    send_key 'alt-d';
-    wait_still_screen;
-    type_password;
-    send_key 'tab';
-    type_password;
-    send_key 'alt-n';
-    assert_screen 'smt-mariadb-password', 60;
-    type_password;
-    send_key 'tab';
-    type_password;
-    send_key 'alt-o';
-    assert_screen 'smt-server-cert';
-    send_key 'alt-r';
-    assert_screen 'smt-CA-password';
-    send_key 'alt-p';
-    wait_still_screen;
-    type_password;
-    send_key 'tab';
-    type_password;
-    send_key 'alt-o';
-    assert_screen 'smt-installation-overview';
-    send_key 'alt-n';
-    wait_serial("yast2-smt-wizard-0", 400) || die 'smt wizard failed';
-}
-
-sub smt_mirror_repo {
-
-    # Verify smt mirror function and mirror a tiny released repo from SCC. Hardcode it as SLES12-SP3-Installer-Updates
-    assert_script_run 'smt-repos --enable-mirror SLES12-SP3-Installer-Updates sle-12-x86_64';
-    assert_script_run 'smt-mirror', 600;
 }
 
 sub test_flags {

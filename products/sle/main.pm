@@ -1275,6 +1275,16 @@ elsif (get_var("FIPS_TS")) {
         load_applicationstests;
     }
 }
+elsif (get_var('SMT')) {
+    prepare_target();
+    loadtest "x11/smt_disconnect_prepare";
+    if (check_var('SMT', 'external')) {
+        loadtest "x11/smt_disconnect_external";
+    }
+    elsif (check_var('SMT', 'internal')) {
+        loadtest "x11/smt_disconnect_internal";
+    }
+}
 elsif (get_var("HA_CLUSTER")) {
     load_ha_cluster_tests();
 }
