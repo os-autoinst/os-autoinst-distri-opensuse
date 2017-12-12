@@ -601,7 +601,7 @@ sub load_inst_tests {
             && is_server()
             && (!is_sles4sap() || is_sles4sap_standard())
             && (install_this_version() || install_to_other_at_least('12-SP2'))
-            || sle_version_at_least('15') && !check_var('SLE_PRODUCT', 'sled'))
+            || sle_version_at_least('15'))
         {
             loadtest "installation/system_role";
         }
