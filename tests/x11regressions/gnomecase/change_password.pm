@@ -46,6 +46,7 @@ sub reboot_system {
     my ($self) = @_;
     reboot_x11;
     $self->{await_reboot} = 1;
+    $self->wait_boot(nologin => 1);
     assert_screen "displaymanager", 200;
     $self->{await_reboot} = 0;
     send_key "ret";
