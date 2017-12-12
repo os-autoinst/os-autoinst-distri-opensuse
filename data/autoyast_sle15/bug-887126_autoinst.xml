@@ -280,11 +280,14 @@
   </nis>
   <ntp-client>
     <ntp_policy>auto</ntp_policy>
-    <peers config:type="list"/>
-    <start_at_boot config:type="boolean">true</start_at_boot>
-    <start_in_chroot config:type="boolean">false</start_in_chroot>
-    <sync_interval config:type="integer">5</sync_interval>
-    <synchronize_time config:type="boolean">false</synchronize_time>
+    <ntp_servers config:type="list">
+      <ntp_server>
+        <iburst config:type="boolean">false</iburst>
+        <address>north-america.pool.ntp.org</address>
+        <offline config:type="boolean">true</offline>
+      </ntp_server>
+    </ntp_servers>
+    <ntp_sync>15</ntp_sync>
   </ntp-client>
   <partitioning config:type="list">
     <drive>
