@@ -31,11 +31,6 @@ sub settle_load {
 sub run {
     select_console 'root-console';
 
-    if (script_run('rpmquery --whatprovides smtp_daemon')) {
-        record_soft_failure 'bsc#1064834 - run-crons fails with: "Could not find suitable mailer."';
-        return;
-    }
-
     # show dmesg output in console during cron run
     assert_script_run "dmesg -n 7";
 
