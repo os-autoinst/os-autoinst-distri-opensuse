@@ -5,3 +5,4 @@ tools/lib
 tools/tidy
 .perltidyrc
 *.tdy
+.*.swp
