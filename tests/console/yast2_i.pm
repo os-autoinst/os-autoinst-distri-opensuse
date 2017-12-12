@@ -18,7 +18,7 @@ use utils;
 
 sub run {
     my $self        = shift;
-    my $pkgname     = get_var("PACKAGETOINSTALL_RECOMMENDER", "yast2-nfs-client");
+    my $pkgname     = get_var("PACKAGETOINSTALL_RECOMMENDED", "yast2-nfs-client");
     my $recommended = get_var("PACKAGETOINSTALL_RECOMMENDED", "nfs-client");
 
     select_console 'root-console';
@@ -26,7 +26,7 @@ sub run {
     zypper_call "-i rm $pkgname $recommended";
     zypper_call "in yast2-packager";    # make sure yast2 sw_single module installed
 
-    script_run("yast2 sw_single; echo yast2-i-status-\$? > /dev/$serialdev", 0);
+    script_run("yast2 sw_single; echo y2-i-status-\$? > /dev/$serialdev", 0);
     assert_screen 'empty-yast2-sw_single', 90;
 
     # Check disk usage widget for not showing subvolumes (bsc#949945)
@@ -83,7 +83,7 @@ sub run {
         }
     }
 
-    wait_serial("yast2-i-status-0", 60) || die "'yast2 sw_single' didn't finish";
+    wait_serial("y2-i-status-0", 60) || die "'yast2 sw_single' didn't finish";
 
     $self->clear_and_verify_console;         # clear screen to see that second update does not do any more
     assert_script_run("rpm -e $pkgname");    # erase $pkgname
