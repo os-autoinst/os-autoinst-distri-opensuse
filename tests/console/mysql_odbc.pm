@@ -20,12 +20,13 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils qw(is_sle sle_version_at_least is_leap leap_version_at_least);
 
 sub setup {
     # write odbc.ini
-    assert_script_run "echo [myodbc_mysql_dsn] > /etc/unixODBC/odbc.ini";
+    assert_script_run "echo [mariadbodbc_mysql_dsn] > /etc/unixODBC/odbc.ini";
     assert_script_run "echo Description=description of your DSN >> /etc/unixODBC/odbc.ini";
-    assert_script_run "echo Driver=myodbc_mysql >> /etc/unixODBC/odbc.ini";
+    assert_script_run "echo Driver=mariadbodbc_mysql >> /etc/unixODBC/odbc.ini";
     assert_script_run "echo Server=localhost >> /etc/unixODBC/odbc.ini";
     assert_script_run "echo Port=3306 >> /etc/unixODBC/odbc.ini";
     assert_script_run "echo Socket=/var/run/mysql/mysql.sock >> /etc/unixODBC/odbc.ini";
@@ -36,9 +37,16 @@ sub setup {
     assert_script_run "echo Password=x >> /etc/unixODBC/odbc.ini";
 
     # write odbcinst.ini
-    assert_script_run "echo [myodbc_mysql] > /etc/unixODBC/odbcinst.ini";
+    assert_script_run "echo [mariadbodbc_mysql] > /etc/unixODBC/odbcinst.ini";
     assert_script_run "echo Description=ODBC for MySQL >> /etc/unixODBC/odbcinst.ini";
-    assert_script_run 'echo Driver=$(rpm --eval "%_libdir")/libmyodbc5.so >> /etc/unixODBC/odbcinst.ini';
+
+    if (!(is_sle && !sle_version_at_least('15')) && !(is_leap && !leap_version_at_least('15.0'))) {
+        assert_script_run 'echo Driver=$(rpm --eval "%_libdir")/libmaodbc.so >> /etc/unixODBC/odbcinst.ini';
+    }
+    else {
+        assert_script_run 'echo Driver=$(rpm --eval "%_libdir")/libmyodbc5.so >> /etc/unixODBC/odbcinst.ini';
+    }
+
     assert_script_run 'echo Setup=$(rpm --eval "%_libdir")/libodbcmyS.so >> /etc/unixODBC/odbcinst.ini';
     assert_script_run "echo UsageCount=2 >> /etc/unixODBC/odbcinst.ini";
 
@@ -58,7 +66,12 @@ sub run {
     select_console 'root-console';
 
     # install requirements
-    zypper_call 'in mysql mariadb-client sudo MyODBC-unixODBC';
+    if (!(is_sle && !sle_version_at_least('15')) && !(is_leap && !leap_version_at_least('15.0'))) {
+        zypper_call 'in mysql mariadb-client sudo mariadb-connector-odbc';
+    }
+    else {
+        zypper_call 'in mysql mariadb-client sudo MyODBC-unixODBC';
+    }
 
     # restart mysql server
     systemctl "restart mysql";
@@ -76,7 +89,7 @@ sub run {
     assert_script_run 'odbcinst -s -q';
 
     # connect to odbc
-    assert_script_run 'isql myodbc_mysql_dsn root x -b < query.sql';
+    assert_script_run 'isql mariadbodbc_mysql_dsn root x -b < query.sql';
     assert_screen 'mysql_odbc-isql';
 
     # reverting mysql password to blank, else other mysql tests fail
