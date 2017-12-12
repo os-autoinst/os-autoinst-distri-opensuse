@@ -184,10 +184,10 @@ sub ensure_installed {
     # make sure packagekit service is available
     testapi::assert_script_sudo('systemctl is-active -q packagekit || (systemctl unmask -q packagekit ; systemctl start -q packagekit)');
     $self->script_run(
-"for i in {1..$retries} ; do pkcon install $pkglist && break ; done ; RET=\$?; echo \"\n  pkcon finished\n\"; echo \"pkcon-\${RET}-\" > /dev/$testapi::serialdev",
+"for i in {1..$retries} ; do pkcon install -yp $pkglist && break ; done ; RET=\$?; echo \"\n  pkcon finished\n\"; echo \"pkcon-\${RET}-\" > /dev/$testapi::serialdev",
         0
     );
-    my @tags = qw(Policykit Policykit-behind-window pkcon-proceed-prompt pkcon-finished);
+    my @tags = qw(Policykit Policykit-behind-window pkcon-finished);
     while (1) {
         last unless @tags;
         my $ret = check_screen(\@tags, $args{timeout});
@@ -202,12 +202,6 @@ sub ensure_installed {
         }
         if (match_has_tag('Policykit-behind-window')) {
             wait_screen_change { send_key 'alt-tab' };
-            next;
-        }
-        if (match_has_tag('pkcon-proceed-prompt')) {
-            send_key("y");
-            send_key("ret");
-            @tags = grep { $_ ne 'pkcon-proceed-prompt' } @tags;
             next;
         }
     }
