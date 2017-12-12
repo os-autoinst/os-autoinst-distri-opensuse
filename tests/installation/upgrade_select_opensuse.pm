@@ -24,6 +24,13 @@ sub check_bsc997635 {
     }
 }
 
+sub handle_beta_warning {
+    if (!get_var("BETA")) {
+        record_soft_failure "Beta warning in non beta product";
+    }
+    send_key 'alt-o';
+}
+
 sub run {
     # offline DVD upgrade may not have network (boo#995771)
     if (!check_var("FLAVOR", "NET") && check_screen('network-not-configured')) {
@@ -36,10 +43,7 @@ sub run {
         send_key $cmd{next};
 
         if (check_screen('inst-betawarning')) {
-            send_key 'alt-o';
-            if (!get_var("BETA")) {
-                record_soft_failure('betawarning seen in non-beta product');
-            }
+            handle_beta_warning;
         }
         elsif (get_var("BETA")) {
             record_soft_failure('missing beta warning even though BETA is set');
@@ -51,9 +55,14 @@ sub run {
         }
     }
 
-    if (check_screen('installed-product-incompatible', 10)) {
-        send_key 'alt-o';    # C&ontinue
-        record_soft_failure 'installed product incompatible';
+    if (check_screen(["installed-product-incompatible", "inst-betawarning"], 10)) {
+        if (match_has_tag 'installed-product-incompatible') {
+            record_soft_failure 'installed product incompatible';
+            send_key 'alt-o';
+        }
+        else {
+            handle_beta_warning;
+        }
     }
 
     assert_screen "update-installation-overview", 60;
