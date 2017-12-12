@@ -80,12 +80,12 @@ Preferences/View
 /usr/share/openqa/script/client jobs post DISTRI=sle VERSION=12 ARCH=x86_64 \
 	TEST=virtualization MACHINE=gui DESKTOP=icewm \
 	HDDMODEL=virtio-blk-pci ISO=SLE-12-Server-DVD-x86_64-GM-DVD1.iso \
-	QEMUCPUS=2 QEMURAM=2048 VIRTUALIZATION
+	QEMUCPUS=2 QEMURAM=2048 VIRTUALIZATION=1
 
 /usr/share/openqa/script/client jobs post DISTRI=sle VERSION=12 ARCH=x86_64 \
         TEST=virtualization MACHINE=gui  \
         HDDMODEL=virtio-blk-pci ISO=SLE-12-SP1-Server-DVD-x86_64-Build2806-Media1.iso \
-        QEMUCPUS=2 QEMURAM=2048 BETA=beta VIRTUALIZATION=true STANDALONEVT=true
+        QEMUCPUS=2 QEMURAM=2048 BETA=beta VIRTUALIZATION=1 STANDALONEVT=true
 
 ```
 

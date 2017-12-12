@@ -63,6 +63,7 @@ our @EXPORT = qw(
   load_security_tests_crypt
   load_systemd_patches_tests
   load_create_hdd_tests
+  load_virtualization_tests
   is_memtest
   is_mediacheck
   load_syscontainer_tests
@@ -770,6 +771,20 @@ sub load_create_hdd_tests {
     loadtest 'shutdown/grub_set_bootargs';
     loadtest 'shutdown/shutdown';
     loadtest 'shutdown/svirt_upload_assets' if check_var('BACKEND', 'svirt');
+}
+
+sub load_virtualization_tests {
+    return unless get_var('VIRTUALIZATION');
+    # standalone suite to fit needed installation
+    if (get_var("STANDALONEVT")) {
+        loadtest "virtualization/prepare";
+    }
+    loadtest "virtualization/yast_virtualization";
+    loadtest "virtualization/virt_install";
+    loadtest "virtualization/virt_top";
+    loadtest "virtualization/virtman_install";
+    loadtest "virtualization/virtman_view";
+    return 1;
 }
 
 sub is_memtest {

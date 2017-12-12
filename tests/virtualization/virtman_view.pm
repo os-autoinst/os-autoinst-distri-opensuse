@@ -1,4 +1,4 @@
-# Copyright (C) 2014 SUSE Linux GmbH
+# Copyright (C) 2014-2017 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
 # Summary: Basic test of virtman features
 # Maintainer: Antoine <aginies@suse.com>
 
-use base "x11test";
+use base 'x11test';
 use strict;
 use testapi;
 use virtmanager;
@@ -25,60 +25,41 @@ sub run {
     # enable all view options
     launch_virtmanager();
     # go to preferences
-    send_key "alt-e";
-    wait_still_screen;
-    wait_screen_change { send_key "p" };
+    wait_screen_change { send_key 'alt-e' };
+    send_key 'p';
+    assert_screen 'virtman-preferences';
     # go to polling
-    send_key "right";
-    for (1 .. 3) { send_key "tab"; }
-    save_screenshot;
+    wait_screen_change { send_key 'right' };
+    for (1 .. 3) { send_key 'tab' }
+    assert_screen 'virtman-polling';
     # activate disk I/O
-    wait_screen_change {
-        send_key "spc";
-    };
-    send_key "tab";
+    wait_screen_change { send_key 'spc' };
+    send_key 'tab';
     # acrtivate net I/O
-    send_key "spc";
-    sleep 1;
-    send_key "tab";
+    wait_screen_change { send_key 'spc' };
+    send_key 'tab';
     # activate Mem stat
-    send_key "spc";
-    sleep 1;
+    wait_screen_change { send_key 'spc' };
     # close preferences
-    send_key "alt-c";
-    send_key "esc";
-    sleep 1;
+    send_key 'alt-c';
+    wait_screen_change { send_key 'esc' };
 
     # go to view now
-    wait_screen_change { send_key "alt-v" };
-    wait_screen_change { send_key "right" };
+    wait_screen_change { send_key 'alt-v' };
+    wait_screen_change { send_key 'right' };
     # activate everything
     for (1 .. 4) {
-        send_key "down";
-        send_key "spc";
-        sleep 1;
+        send_key 'down';
+        wait_screen_change { send_key 'spc' };
     }
-
-    if (get_var("DESKTOP") !~ /icewm/) {
-        assert_screen "virtman-sle12-gnome_viewcheck", 30;
-    }
-    else {
-        # this should be icewm desktop, with a very basic gnome theme
-        assert_screen "virtman-viewcheck", 30;
-    }
+    assert_screen 'virtman-viewcheck';
     # close every open windows
-    wait_screen_change {
-        send_key "esc";
-    };
-    wait_screen_change {
-        send_key "alt-f";
-    };
-    wait_still_screen;
-    wait_screen_change {
-        send_key "q";
-    };
+    wait_screen_change { send_key 'esc' };
+    wait_screen_change { send_key 'alt-f' };
+    wait_still_screen(1);
+    wait_screen_change { send_key 'q' };
     # close the xterm
-    send_key "alt-f4";
+    send_key 'alt-f4';
 }
 
 1;
