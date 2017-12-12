@@ -289,7 +289,7 @@ sub rewrite_static_svirt_network_configuration {
 
 =head2 wait_boot
 
-  wait_boot([bootloader_time => $bootloader_time] [, textmode => $textmode] [,ready_time => $ready_time] [,in_grub => $in_grub]);
+  wait_boot([bootloader_time => $bootloader_time] [, textmode => $textmode] [,ready_time => $ready_time] [,in_grub => $in_grub] [, nologin => $nologin);
 
 Makes sure the bootloader appears and then boots to desktop or text mode
 correspondingly. Returns successfully when the system is ready on a login
@@ -310,6 +310,7 @@ sub wait_boot {
     my $textmode        = $args{textmode};
     my $ready_time      = $args{ready_time} // 200;
     my $in_grub         = $args{in_grub} // 0;
+    my $nologin         = $args{nologin};
 
     # used to register a post fail hook being active while we are waiting for
     # boot to be finished to help investigate in case the system is stuck in
@@ -438,17 +439,25 @@ sub wait_boot {
         assert_screen [qw(displaymanager emergency-shell emergency-mode)], $ready_time;
         handle_emergency if (match_has_tag('emergency-shell') or match_has_tag('emergency-mode'));
 
-        if (get_var('DM_NEEDS_USERNAME')) {
-            type_string "$username\n";
+        if (!$nologin) {
+            if (get_var('DM_NEEDS_USERNAME')) {
+                type_string "$username\n";
+            }
+            # log in
+            #assert_screen "dm-password-input", 10;
+            elsif (check_var('DESKTOP', 'gnome')) {
+                # In GNOME/gdm, we do not have to enter a username, but we have to select it
+                send_key 'ret';
+            }
+
+            assert_screen 'displaymanager-password-prompt', no_wait => 1;
+            type_password $password. "\n";
         }
-        # log in
-        #assert_screen "dm-password-input", 10;
-        elsif (check_var('DESKTOP', 'gnome')) {
-            # In GNOME/gdm, we do not have to enter a username, but we have to select it
-            send_key 'ret';
+        else {
+            mouse_hide(1);
+            $self->{in_wait_boot} = 0;
+            return;
         }
-        assert_screen 'displaymanager-password-prompt', no_wait => 1;
-        type_password $password. "\n";
     }
 
     assert_screen [qw(generic-desktop emergency-shell emergency-mode)], $ready_time + 100;
