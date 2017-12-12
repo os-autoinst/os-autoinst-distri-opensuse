@@ -27,18 +27,17 @@ sub run {
     assert_script_run "! kubectl get cs --no-headers | grep -v Healthy";
 
     # Check cluster size
-    # %number_of_jobs - minus admin job
     my $nodes_count = get_required_var("STACK_NODES");
     assert_script_run "kubectl get nodes --no-headers | wc -l | grep $nodes_count";
 
     # Deploy nginx minimal application and check pods started succesfully
     my $pods_count = get_required_var("STACK_MINIONS") * 15;
-
     assert_script_run "kubectl run nginx --image=nginx:alpine --replicas=$pods_count --port=80";
-    type_string "kubectl get pods --watch\n";
-    wait_still_screen 15, 60;
-    send_key "ctrl-c";
-    assert_script_run "kubectl get pods | grep -c Running | grep $pods_count";
+    for (1 .. 10) {
+        last if script_run 'kubectl get pods | grep -q "0/\|1/2\|No resources"';
+        sleep 10;
+    }
+    assert_script_run "kubectl get pods | tee /dev/tty | grep -c Running | grep $pods_count";
 
     # Expose application to access it from controller node
     assert_script_run 'kubectl expose deploy nginx --type=NodePort';
