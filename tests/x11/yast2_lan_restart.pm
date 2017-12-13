@@ -68,13 +68,15 @@ sub check_network {
     if ("$status" eq 'restart') {
         assert_script_run '[ -s journal.log ]';                       # journal.log size is greater than zero (network restarted)
     }
-    if ((is_sle && !sle_version_at_least('15')) || (is_leap && !leap_version_at_least('15.0'))) {
-        assert_script_run '[ ! -s journal.log ]';
-    }
     else {
-        # original: assert_script_run '[ ! -s journal.log ]' -> journal.log size is not greater than zero (network not restarted),
-        # but this is not working anymore because of bsc#1070578
-        record_soft_failure 'bsc#1070578' if script_run '[ ! -s journal.log ]';
+        if ((is_sle && !sle_version_at_least('15')) || (is_leap && !leap_version_at_least('15.0'))) {
+            assert_script_run '[ ! -s journal.log ]';
+        }
+        else {
+            # original: assert_script_run '[ ! -s journal.log ]' -> journal.log size is not greater than zero (network not restarted),
+            # but this is not working anymore because of bsc#1070578
+            record_soft_failure 'bsc#1070578' if script_run '[ ! -s journal.log ]';
+        }
     }
     assert_script_run '> journal.log';    # clear journal.log
     type_string "\n\n";                   # make space for better readability of the console
