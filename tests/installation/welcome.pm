@@ -97,6 +97,7 @@ sub run {
                 sles4sap => 'i',
                 hpc      => 'x'
             );
+            $hotkey{sles4sap} = 'u' if check_var('ARCH', 'ppc64le');
             my $product = get_required_var('SLE_PRODUCT');
             send_key 'alt-' . $hotkey{$product};
             assert_screen('select-product-' . $product);
