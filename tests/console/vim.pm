@@ -14,11 +14,15 @@
 use base "consoletest";
 use strict;
 use testapi;
+use version_utils 'is_jeos';
 
 sub run {
     assert_script_run 'rpm -qi vim';
+    # vim-data package must not be present on JeOS
+    assert_script_run((is_jeos() ? '! ' : '') . 'rpm -qi vim-data');
     type_string "vim /etc/passwd\n";
-    assert_screen 'vim-showing-passwd';
+    my $jeos = is_jeos() ? '-jeos' : '';
+    assert_screen "vim-showing-passwd$jeos";
     wait_screen_change { type_string ":q!\n" };
 }
 
