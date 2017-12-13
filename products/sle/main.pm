@@ -68,7 +68,7 @@ sub is_new_installation {
 }
 
 sub is_update_test_repo_test {
-    return get_var('TEST') !~ /^mru-/ && is_updates_tests;
+    return get_var('TEST') !~ /^mru-/ && is_updates_tests && get_required_var('FLAVOR') !~ /-Minimal$/;
 }
 
 sub default_desktop {
