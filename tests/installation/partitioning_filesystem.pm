@@ -15,6 +15,7 @@ use strict;
 use base "y2logsstep";
 use testapi;
 use version_utils 'is_storage_ng';
+use partition_setup 'unselect_xen_pv_cdrom';
 
 sub run {
 
@@ -35,13 +36,7 @@ sub run {
         }
     }
     if (is_storage_ng) {
-        # On Xen PV "CDROM" is of the same type as a disk block device so YaST
-        # naturally sees it as a "disk". We have to uncheck the "CDROM".
-        if (check_var('VIRSH_VMM_TYPE', 'linux')) {
-            assert_screen 'select-hard-disk';
-            send_key 'alt-d';
-            send_key $cmd{next};
-        }
+        unselect_xen_pv_cdrom;
         assert_screen 'partition-scheme';
         send_key $cmd{next};
     }
