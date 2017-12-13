@@ -33,7 +33,7 @@ sub run {
 
     # Install MoonGen and dependencies
     assert_script_run("cd MoonGen");
-    assert_script_run("bash -x build.sh",           300);
+    assert_script_run("bash -x build.sh",           500);
     assert_script_run("bash -x setup-hugetlbfs.sh", 300);
     assert_script_run("bash -x bind-interfaces.sh", 300);
 }
