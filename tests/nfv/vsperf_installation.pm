@@ -27,7 +27,7 @@ sub run {
 
     select_console 'root-console';
 
-    zypper_call('in git', timeout => 200);
+    zypper_call('in git-core', timeout => 200);
 
     # Clone repository
     assert_script_run "git clone $vsperf_repo";
