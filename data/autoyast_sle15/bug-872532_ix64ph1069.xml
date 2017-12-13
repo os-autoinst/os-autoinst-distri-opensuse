@@ -560,57 +560,14 @@
   </nis>
   <ntp-client>
     <ntp_policy>auto</ntp_policy>
-    <peers config:type="list">
-      <peer>
-        <address>/var/lib/ntp/drift/ntp.drift </address>
-        <comment>
-            # Clients from this (example!) subnet have unlimited access, but only if
-            # cryptographically authenticated.
-            #restrict 192.168.123.0 mask 255.255.255.0 notrust
-            #### Miscellaneous stuff##</comment>
-        <options/>
-        <type>driftfile</type>
-      </peer>
-      <peer>
-        <address>/var/log/ntp		</address>
-        <comment># path for drift file</comment>
-        <options/>
-        <type>logfile</type>
-      </peer>
-      <peer>
-        <address>/etc/ntp.keys		</address>
-        <comment>
-            # alternate log file
-            # logconfig =syncstatus + sysevents# logconfig =all
-            # statsdir /tmp/
-            # directory for statistics files
-            # filegen peerstats  file peerstats  type day enable
-            # filegen loopstats  file loopstats  type day enable
-            # filegen clockstats file clockstats type day enable
-            #
-            # Authentication stuff
-            #
-        </comment>
-        <options/>
-        <type>keys</type>
-      </peer>
-      <peer>
-        <address>1			</address>
-        <comment># path for keys file</comment>
-        <options/>
-        <type>trustedkey</type>
-      </peer>
-      <peer>
-        <address>1			</address>
-        <comment># define trusted keys</comment>
-        <options/>
-        <type>requestkey</type>
-      </peer>
-    </peers>
-    <start_at_boot config:type="boolean">false</start_at_boot>
-    <start_in_chroot config:type="boolean">true</start_in_chroot>
-    <sync_interval config:type="integer">5</sync_interval>
-    <synchronize_time config:type="boolean">false</synchronize_time>
+    <ntp_servers config:type="list">
+      <ntp_server>
+        <iburst config:type="boolean">false</iburst>
+        <address>0.de.pool.ntp.org</address>
+        <offline config:type="boolean">true</offline>
+      </ntp_server>
+    </ntp_servers>
+    <ntp_sync>15</ntp_sync>
   </ntp-client>
   <partitioning config:type="list">
     <drive>
