@@ -26,7 +26,7 @@ sub run {
 
     select_console 'root-console';
 
-    zypper_call('in git gcc gcc-c++ make cmake libnuma-devel kernel-source pciutils', timeout => 300);
+    zypper_call('in git-core gcc gcc-c++ make cmake libnuma-devel kernel-source pciutils', timeout => 300);
 
     # Clone repository
     assert_script_run("git clone $moongen_repo");
