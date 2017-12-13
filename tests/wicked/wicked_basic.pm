@@ -61,8 +61,8 @@ sub run {
     assert_script_run("ifbind.sh unbind $iface");
     $self->snapper_revert_system();
     $self->write_journal("***Test 8: Set up static addresses from legacy ifcfg files***");
-    $self->get_from_data('wicked/ifcfg-eth0', '/etc/sysconfig/network/ifcfg-eth0');
-    assert_script_run('ifup eth0');
+    $self->get_from_data('wicked/ifcfg-eth0', "/etc/sysconfig/network/ifcfg-$iface");
+    assert_script_run("ifup $iface");
     $self->assert_wicked_state();
 }
 
