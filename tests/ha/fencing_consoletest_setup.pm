@@ -1,1 +1,0 @@
-../console/consoletest_setup.pm
