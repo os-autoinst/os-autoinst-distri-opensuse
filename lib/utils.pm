@@ -377,6 +377,9 @@ sub ensure_unlocked_desktop {
                 # responsiveness.
                 # open run command prompt (if screen isn't locked)
                 mouse_hide(1);
+                # implementation in backend/driver.pm is QEMU-specific,
+                # so we have to reset pointer on non-QEMU backends.
+                mouse_hide unless check_var('BACKEND', 'qemu');
                 send_key 'alt-f2';
                 if (check_screen 'desktop-runner') {
                     send_key 'esc';
