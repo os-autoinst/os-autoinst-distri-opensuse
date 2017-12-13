@@ -33,9 +33,6 @@ sub run {
     assert_script_run "git clone $vsperf_repo";
     assert_script_run "cd vswitchperf/systems";
 
-    # Checkout the patch supporting SLE15 (to be removed once the patch is merged upstream)
-    assert_script_run "git fetch $vsperf_repo refs/changes/17/48017/3 && git checkout FETCH_HEAD";
-
     # Hack to skip the OVS, DPDK and QEMU compilation as SLE15 will use the vanilla packages
     assert_script_run "sed -n -e :a -e '1,8!{P;N;D;};N;ba' -i build_base_machine.sh";
 
