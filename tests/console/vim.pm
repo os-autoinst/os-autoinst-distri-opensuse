@@ -19,7 +19,7 @@ use version_utils 'is_jeos';
 sub run {
     assert_script_run 'rpm -qi vim';
     # vim-data package must not be present on JeOS
-    assert_script_run((is_jeos() ? '! ' : '') . 'rpm -qi vim-data');
+    assert_script_run('! rpm -qi vim-data') if is_jeos();
     type_string "vim /etc/passwd\n";
     my $jeos = is_jeos() ? '-jeos' : '';
     assert_screen "vim-showing-passwd$jeos";
