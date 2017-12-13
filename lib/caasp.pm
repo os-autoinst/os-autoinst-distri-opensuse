@@ -72,7 +72,8 @@ sub trup_call {
             die "Confirmation dialog not shown";
         }
     }
-    wait_serial 'trup-0-' if $check;
+    wait_serial 'trup-0-' if $check == 1;
+    wait_serial 'trup-1-' if $check == 2;
 }
 
 # Function for writing custom text boxes for the test job

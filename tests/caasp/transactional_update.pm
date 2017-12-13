@@ -115,8 +115,8 @@ sub run {
         record_info 'Broken pkg', 'Install broken package - snapshot #3';
         trup_call "pkg install update-test-trival/update-test-trival-$ptfutsverlong.x86_64.rpm";
         check_reboot_changes;
-        trup_call 'cleanup dup';
-        check_reboot_changes, 0;
+        trup_call 'cleanup dup', 2;
+        check_reboot_changes 0;
     }
 
     record_info 'Remove pkg', 'Remove package - snapshot #4';
