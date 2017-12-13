@@ -25,6 +25,7 @@ sub addpart {
     my $size = 0;
 
     if    ($part eq 'boot')      { $size = 300; }
+    elsif ($part eq 'boot-efi')  { $size = 300; }
     elsif ($part eq 'root')      { $size = 8000; }
     elsif ($part eq 'swap')      { $size = 100; }
     elsif ($part eq 'bios-boot') { $size = 1; }
@@ -60,7 +61,7 @@ sub addpart {
     send_key "tab";
     send_key 'alt-i' if is_storage_ng;    # Select file system
 
-    if ($part eq 'boot' and get_var('UEFI')) {
+    if ($part eq 'boot-efi') {
         send_key_until_needlematch 'partition-selected-efi-type', 'down';
     }
     elsif ($part eq 'bios-boot') {
@@ -192,6 +193,49 @@ sub modify_uefi_boot_partition {
     send_key 'left';
 }
 
+sub add_raid_boot {
+    # select RAID add
+    send_key $cmd{addraid};
+    assert_screen 'partitioning_raid-menu_add_raid';
+    setraidlevel(1);
+    assert_screen 'partitioning_raid-raid_1-selected';
+    if (get_var('OFW')) {
+        # verify that start at first partition for PowerPC
+        send_key 'down';
+        send_key 'up';
+        assert_screen 'partitioning_raid-devices_first_partition';
+    }
+    addraid(2);
+
+    assert_screen 'partition-format';
+    send_key $cmd{filesystem};
+    assert_screen 'partitioning_raid-filesystem-focused';
+    send_key 'down';
+    if (is_storage_ng) {
+        # Needle matches ext2 and ext3, so select from initial position
+        # Don't select from bottom due to bsc#1063596
+        send_key 'alt-f';
+        send_key_until_needlematch 'partitioning_raid-filesystem_ext4', 'up';
+    }
+    else {
+        send_key 'home';
+        send_key_until_needlematch 'partitioning_raid-filesystem_ext4', 'down';
+    }
+    send_key 'alt-o' if is_storage_ng;
+    send_key 'alt-m';
+    assert_screen 'partitioning_raid-mount_point-focused';
+    type_string "/boot";
+    assert_screen 'partitioning_raid-mount_point-_boot';
+
+    send_key(is_storage_ng() ? $cmd{next} : $cmd{finish});
+    if (get_var('LVM')) {
+        send_key_until_needlematch 'partitioning_raid-raid_ext4_added-lvm', 'down';
+    }
+    else {
+        send_key_until_needlematch 'partitioning_raid-raid_ext4_added', 'down';
+    }
+}
+
 sub add_bios_boot_partition {
     record_soft_failure 'bsc#1063844';    # Cannot add partition from menu option "hard disks"
     send_key_until_needlematch 'partitioning_raid-disk_vda-selected', 'down';
@@ -219,8 +263,12 @@ sub add_prep_boot_partition {
         send_key $cmd{next};
     }
     assert_screen 'partitioning-size';
-    send_key 'alt-c' if is_storage_ng;
-    wait_screen_change { send_key $cmd{size_hotkey} };
+    # Storage-ng has maximum size selected by default
+    if (is_storage_ng) {
+        send_key 'alt-c';
+        wait_screen_change { send_key $cmd{size_hotkey} };
+    }
+    wait_screen_change { send_key 'ctrl-a' };    # Select text field content
     type_string "200 MB";
     assert_screen 'partitioning_raid-custom-size-200MB';
     send_key 'alt-n';
@@ -247,6 +295,11 @@ sub add_prep_boot_partition {
     }
     send_key 'alt-s';    #System view
     send_key_until_needlematch 'partitioning_raid-hard_disks-unfolded', 'right';
+}
+
+# We don't need raid boot partition on UEFI and with storage-ng unless OFW
+sub is_boot_raid_partition_required {
+    return !get_var('UEFI') && (!is_storage_ng || get_var('OFW'));
 }
 
 sub run {
@@ -282,9 +335,6 @@ sub run {
         add_prep_boot_partition;
     }
     else {
-        if (is_storage_ng && !get_var('UEFI')) {
-            add_bios_boot_partition;    # storage-ng requires bios boot partition
-        }
         send_key "right" unless is_storage_ng;
         assert_screen 'partitioning_raid-hard_disks-unfolded';
         send_key "down";
@@ -299,7 +349,17 @@ sub run {
     @devices = qw(sda sdb sdc sdd)     if check_var('VIRSH_VMM_FAMILY', 'hyperv');
     for (@devices) {
         send_key_until_needlematch "partitioning_raid-disk_$_-selected", "down";
-        addpart('boot');
+        # storage-ng requires bios boot partition if not UEFI and not OFW
+        if (get_var('UEFI')) {
+            addpart('boot-efi');
+        }
+        elsif (is_storage_ng && !get_var('OFW')) {
+            addpart('bios-boot');
+        }
+        else {
+            addpart('boot');
+        }
+
         # Need to navigate to the disk manually
         send_key_until_needlematch "partitioning_raid-disk_$_-selected", 'down' if is_storage_ng;
         assert_screen 'partitioning_raid-part_boot_added';
@@ -335,16 +395,14 @@ sub run {
     setraidlevel(get_var("RAIDLEVEL"));
     assert_screen 'partitioning_raid-raid_' . get_var("RAIDLEVEL") . '-selected';
 
-    if (!get_var('UEFI')) {    # start at second partition (i.e. sda2) but not for UEFI
+    if (is_boot_raid_partition_required) {
+        # start at second partition (i.e. sda2) if have /boot raid partition
         send_key 'down';
         assert_screen 'partitioning_raid-devices_second_partition';
-    }
-
-    if (get_var('UEFI')) {
-        addraid(2, 6);
+        addraid(3, 6);
     }
     else {
-        addraid(3, 6);
+        addraid(2, 6);
     }
 
     assert_screen 'partition-format';
@@ -367,47 +425,8 @@ sub run {
         assert_screen 'partitioning_raid-raid_btrfs_added';
     }
 
-    if (!get_var('UEFI')) {
-        # select RAID add
-        send_key $cmd{addraid};
-        assert_screen 'partitioning_raid-menu_add_raid';
-        setraidlevel(1);
-        assert_screen 'partitioning_raid-raid_1-selected';
-        if (get_var('OFW')) {
-            # verify that start at first partition for PowerPC
-            send_key 'down';
-            send_key 'up';
-            assert_screen 'partitioning_raid-devices_first_partition';
-        }
-        addraid(2);
-
-        assert_screen 'partition-format';
-        send_key $cmd{filesystem};
-        assert_screen 'partitioning_raid-filesystem-focused';
-        send_key 'down';
-        if (is_storage_ng) {
-            # Needle matches ext2 and ext3, so select from initial position
-            # Don't select from bottom due to bsc#1063596
-            send_key 'alt-f';
-            send_key_until_needlematch 'partitioning_raid-filesystem_ext4', 'up';
-        }
-        else {
-            send_key 'home';
-            send_key_until_needlematch 'partitioning_raid-filesystem_ext4', 'down';
-        }
-        send_key 'alt-o' if is_storage_ng;
-        send_key 'alt-m';
-        assert_screen 'partitioning_raid-mount_point-focused';
-        type_string "/boot";
-        assert_screen 'partitioning_raid-mount_point-_boot';
-
-        send_key(is_storage_ng() ? $cmd{next} : $cmd{finish});
-        if (get_var('LVM')) {
-            send_key_until_needlematch 'partitioning_raid-raid_ext4_added-lvm', 'down';
-        }
-        else {
-            send_key_until_needlematch 'partitioning_raid-raid_ext4_added', 'down';
-        }
+    if (is_boot_raid_partition_required) {
+        add_raid_boot;
     }
 
     # select RAID add

@@ -75,7 +75,7 @@ sub init_cmd {
       guidedsetup alt-g
       rescandevices alt-e
       exp_part_finish alt-f
-      size_hotkey ctrl-a
+      size_hotkey alt-s
     );
 
     if (check_var('INSTLANG', "de_DE")) {
