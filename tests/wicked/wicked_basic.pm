@@ -16,6 +16,7 @@
 # Test 5: List the network interfaces with wicked
 # Test 6: Bring an interface down with wicked
 # Test 7: Bring an interface up with wicked
+# Test 8: Set up static addresses from legacy ifcfg files
 # Maintainer: Anton Smorodskyi <asmorodskyi@suse.com>, Sebastian Chlad <schlad@suse.de>
 
 use base 'wickedbase';
@@ -26,6 +27,7 @@ use utils qw(systemctl snapper_revert_system arrays_differ);
 sub run {
     my ($self) = @_;
     my $iface = script_output('echo $(ls /sys/class/net/ | grep -v lo | head -1)');
+    $self->get_from_data('wicked/ifbind.sh', '/bin/ifbind.sh', executable => 1);
     $self->write_journal("***Test 1: Bring down the wicked client service***");
     systemctl('stop wicked.service');
     $self->assert_wicked_state(wicked_client_down => 1, interfaces_down => 1);
@@ -56,7 +58,12 @@ sub run {
     assert_script_run("ping -q -c1 -W1 -I $iface 10.0.2.2");
     assert_script_run("ip address show dev $iface | grep -q 'inet'");
     $self->save_and_upload_wicked_log();
+    assert_script_run("ifbind.sh unbind $iface");
     $self->snapper_revert_system();
+    $self->write_journal("***Test 8: Set up static addresses from legacy ifcfg files***");
+    $self->get_from_data('wicked/ifcfg-eth0', '/etc/sysconfig/network/ifcfg-eth0');
+    assert_script_run('ifup eth0');
+    $self->assert_wicked_state();
 }
 
 1;
