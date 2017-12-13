@@ -38,8 +38,14 @@ sub run {
     send_key "alt-s";
     wait_still_screen 3;
     send_key "ret";
-    send_key_until_needlematch("timezone-asia-shanghai", "up")
-      || send_key_until_needlematch("timezone-asia-shanghai", "down");
+    if (check_screen "timezone-asia") {
+        send_key "right";
+        send_key_until_needlematch("timezone-shanghai", "up");
+    }
+    else {
+        send_key_until_needlematch("timezone-asia-shanghai", "up")
+          || send_key_until_needlematch("timezone-asia-shanghai", "down");
+    }
     send_key "ret";
     assert_screen "asia-shanghai-timezone-setup";
     send_key "alt-o";
