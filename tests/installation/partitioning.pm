@@ -29,6 +29,7 @@ sub run {
         $cmd{addraid}         = 'alt-i';
         $cmd{filesystem}      = 'alt-a';
         $cmd{exp_part_finish} = 'alt-n';
+        $cmd{size_hotkey}     = 'alt-s';
         if (check_var('DISTRI', 'opensuse')) {
             $cmd{expertpartitioner} = 'alt-x';
             $cmd{rescandevices}     = 'alt-c';
