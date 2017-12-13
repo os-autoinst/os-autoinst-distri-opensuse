@@ -15,6 +15,7 @@ use base 'y2logsstep';
 use strict;
 use testapi;
 use version_utils;
+use utils;
 
 sub run_yast2_lan {
     type_string "yast2 lan\n";
@@ -228,6 +229,7 @@ sub run {
     select_console 'x11';
     x11_start_program("xterm -geometry 155x50+5+5", target_match => 'xterm');
     become_root;
+    zypper_call("in vlan", timeout => 240);
     # make sure that firewalld is stopped, or we have later pops for firewall activation warning
     # or timeout for command 'ip a' later
     if (((is_sle && sle_version_at_least('15')) || (is_leap && leap_version_at_least('15.0')))
