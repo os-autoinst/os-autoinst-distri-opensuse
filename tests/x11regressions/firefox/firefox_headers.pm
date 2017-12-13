@@ -26,8 +26,10 @@ sub run {
     assert_screen('firefox-launch', 90);
 
     send_key "esc";
-    wait_screen_change { send_key "ctrl-shift-q" };
-    wait_screen_change { send_key "alt-d" };
+    send_key "ctrl-shift-q";
+    assert_screen 'firefox-headers-inspector';
+    send_key "ctrl-l";
+    wait_still_screen 3;
     type_string "www.gnu.org\n";
     $self->firefox_check_popups;
     assert_screen('firefox-headers-website', 90);
