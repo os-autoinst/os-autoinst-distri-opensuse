@@ -58,7 +58,7 @@ sub process_reboot {
 
 # Optionally skip exit status check in case immediate reboot is expected
 sub trup_call {
-    my $cmd = shift;
+    my $cmd   = shift;
     my $check = shift // 1;
     $cmd .= " > /dev/$serialdev";
     $cmd .= " ; echo trup-\$?- > /dev/$serialdev" if $check;

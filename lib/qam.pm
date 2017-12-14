@@ -62,7 +62,7 @@ sub snap_revert {
 }
 
 sub is_patch_needed {
-    my $patch = shift;
+    my $patch   = shift;
     my $install = shift // 0;
 
     my $patch_status = script_output("zypper -n info -t patch $patch");
