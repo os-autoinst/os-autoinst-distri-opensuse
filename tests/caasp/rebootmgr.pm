@@ -27,8 +27,8 @@ sub packageversion {
 
 # Optionally skip exit status check in case immediate reboot is expected
 sub rbm_call {
-    my $cmd = shift;
-    my $check = shift // 1;
+    my ($cmd, $check) = @_;
+    $check //= 1;
 
     if ($check) {
         assert_script_run "rebootmgrctl $cmd";
@@ -39,7 +39,8 @@ sub rbm_call {
 }
 
 sub rbm_check_status {
-    my $expected = shift // 0;
+    my ($expected) = @_;
+    $expected //= 0;
     my $current = script_run "rebootmgrctl status --quiet";
 
     if ($current != $expected) {
@@ -49,8 +50,8 @@ sub rbm_check_status {
 
 # Sample time values: +1hour, -20minutes, now, 00:30
 sub rbm_set_window {
-    my $time = shift;
-    my $duration = shift // '1h';
+    my ($time, $duration) = @_;
+    $duration //= '1h';
     rbm_call "set-window \$(date -d $time +%T) $duration";
 }
 
