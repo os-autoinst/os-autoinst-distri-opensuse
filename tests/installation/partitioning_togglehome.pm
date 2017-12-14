@@ -31,7 +31,12 @@ sub run {
         my $new_radio_buttons = check_screen('inst-partition-radio-buttons', 0);
         send_key $new_radio_buttons ? 'alt-r' : 'alt-p';
     }
-    assert_screen 'disabledhome';
+    if (check_var('ARCH', 's390x') and !check_screen('disabledhome', 0)) {
+        record_soft_failure('bsc#1072869');
+    }
+    else {
+        assert_screen 'disabledhome';
+    }
     send_key(is_storage_ng() ? 'alt-n' : 'alt-o');    # finish editing settings
 }
 
