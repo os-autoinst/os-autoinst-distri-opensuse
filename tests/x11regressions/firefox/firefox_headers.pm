@@ -28,10 +28,7 @@ sub run {
     send_key "esc";
     send_key "ctrl-shift-q";
     assert_screen 'firefox-headers-inspector';
-    send_key "ctrl-l";
-    wait_still_screen 3;
-    type_string "www.gnu.org\n";
-    $self->firefox_check_popups;
+    $self->firefox_open_url('www.gnu.org');
     assert_screen('firefox-headers-website', 90);
 
     send_key "down";
