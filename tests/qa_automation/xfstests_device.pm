@@ -55,6 +55,8 @@ sub dev_create_partition {
     $test_partition = "/dev/vda" . $test_partition_id;
 
     type_string "parted --script --machine -l\n", 5;
+    #workaround bsc#1072549
+    type_string "umount /home\n", 5;
     my $scratch_partition_id = $test_partition_id + 1;
     my $scratch_partition    = "/dev/vda" . $scratch_partition_id;
 
