@@ -545,6 +545,22 @@ sub firefox_check_popups {
     }
 }
 
+sub firefox_open_url {
+    my ($self, $url) = @_;
+    my $counter = 1;
+    while (1) {
+        send_key 'alt-d';
+        send_key 'delete';
+        last if check_screen('firefox-empty-bar', 3);
+        if ($counter++ > 5) {
+            assert_screen('firefox-empty-bar', 0);
+            last;    # in case it worked
+        }
+    }
+    type_string "$url\n";
+    $self->firefox_check_popups;
+}
+
 sub exit_firefox {
     # Exit
     send_key_until_needlematch([qw(firefox-save-and-quit xterm-left-open xterm-without-focus)], "alt-f4", 3, 30);
