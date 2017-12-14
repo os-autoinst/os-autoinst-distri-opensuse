@@ -35,6 +35,7 @@ sub search {
     }
     else {
         send_key 'alt-s';
+        send_key 'ctrl-a';
         send_key 'backspace';
     }
     wait_screen_change { type_string $name; } if $name;
