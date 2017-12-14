@@ -70,7 +70,7 @@ sub run {
 
     my $i = 0;
     for my $p (@$parents) {
-        my $node = $settings{$p}->{SLENKINS_NODE};
+        my $node     = $settings{$p}->{SLENKINS_NODE};
         my $networks = $settings{$p}->{NETWORKS} // 'fixed';
         my @external_ip;
         my @internal_ip;

@@ -21,7 +21,7 @@ our @EXPORT = qw(wait_boot_windows);
 # makes sure splash screen appears and then boots to desktop
 # arguments: bootloader_time => seconds # now long to wait for splash to appear
 sub wait_boot_windows {
-    my %args = @_;
+    my %args            = @_;
     my $bootloader_time = $args{bootloader_time} // 100;
 
     assert_screen 'windows-bootsplash', 600;
