@@ -18,7 +18,7 @@ use base 'y2x11test';
 use strict;
 use testapi;
 use utils;
-use version_utils qw(is_sle sle_version_at_least is_leap leap_version_at_least is_storage_ng);
+use version_utils qw(is_sle sle_version_at_least is_leap leap_version_at_least is_tumbleweed is_storage_ng);
 
 sub search {
     my ($name) = @_;
@@ -341,7 +341,10 @@ sub run {
     }
     if (check_var('DISTRI', 'opensuse')) {
         start_kernel_settings;
-        # only available on openSUSE or at least not SLES
+    }
+    # only available on openSUSE or at least not SLES
+    # drop fonts test for leap 15.0, see poo#29292
+    if (is_tumbleweed || (is_leap && !leap_version_at_least('15.0'))) {
         start_fonts;
     }
 
