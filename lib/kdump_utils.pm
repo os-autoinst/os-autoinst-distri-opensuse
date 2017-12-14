@@ -22,14 +22,10 @@ sub install_kernel_debuginfo {
 }
 
 sub prepare_for_kdump_sle {
+    my $sles_debug_repo;
     # debuginfos for kernel has to be installed from build-specific directory on FTP.
-    # To get the right directory we modify content of REPO_0 variable, e.g.:
-    # SLE-12-SP2-Server-DVD-x86_64-Build2188-Media1 -> SLE-12-SP2-SERVER-POOL-x86_64-Build2188-Media3
-    if (get_var('REPO_0')) {
-        my $sles_debug_repo = get_var('REPO_0') =~ s/(Server|Desktop)/\U$1\E/r;
-        $sles_debug_repo =~ s/DVD/POOL/;
-        $sles_debug_repo =~ s/Media1/Media3/;
-        my $url = "$utils::OPENQA_FTP_URL/$sles_debug_repo";
+    if (get_var('REPO_SLES_DEBUG')) {
+        my $url = "$utils::OPENQA_FTP_URL/" . get_var('REPO_SLES_DEBUG');
         zypper_call("ar -f $url SLES-Server-Debug");
         install_kernel_debuginfo;
         script_run 'zypper -n rr SLES-Server-Debug';
