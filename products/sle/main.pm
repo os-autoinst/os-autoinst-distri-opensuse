@@ -436,7 +436,6 @@ sub load_x11regression_firefox {
 
 sub load_x11regression_message {
     if (check_var("DESKTOP", "gnome")) {
-        loadtest "x11regressions/empathy/empathy_aim";
         loadtest "x11regressions/empathy/empathy_irc";
         loadtest "x11regressions/evolution/evolution_smoke";
         loadtest "x11regressions/evolution/evolution_prepare_servers";
@@ -450,7 +449,6 @@ sub load_x11regression_message {
     if (get_var("DESKTOP") =~ /kde|gnome/) {
         loadtest "x11regressions/pidgin/prep_pidgin";
         loadtest "x11regressions/pidgin/pidgin_IRC";
-        loadtest "x11regressions/pidgin/pidgin_aim";
         loadtest "x11regressions/pidgin/clean_pidgin";
     }
 }
