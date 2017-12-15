@@ -965,5 +965,12 @@ if (get_var("CLONE_SYSTEM")) {
 
 load_create_hdd_tests if get_var("STORE_HDD_1") || get_var("PUBLISH_HDD_1");
 
+if (get_var("TCM") || check_var("ADDONS", "tcm")) {
+    loadtest "console/force_cron_run";
+    loadtest "toolchain/install";
+    loadtest "toolchain/gcc_fortran_compilation";
+    loadtest "toolchain/gcc_compilation";
+}
+
 1;
 # vim: set sw=4 et:
