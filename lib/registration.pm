@@ -460,6 +460,11 @@ sub get_addon_fullname {
 
 
 sub fill_in_reg_server {
+    # Set product specific SCC_REGCODE if it was provided. Defaults to SCC_REGCODE if set
+    my $scc_code = get_required_var('SCC_REGCODE') if get_var('SCC_REGCODE');
+    $scc_code = get_required_var('SCC_REGCODE_' . uc(get_var('SLE_PRODUCT')))
+      if (get_var('SLE_PRODUCT') and get_var('SCC_REGCODE_' . uc(get_var('SLE_PRODUCT'))));
+
     if (!get_var("SMT_URL")) {
         if (sle_version_at_least('15') && check_var('DESKTOP', 'textmode')) {
             send_key "alt-m";    # select email field if yast2 add-on
@@ -471,7 +476,7 @@ sub fill_in_reg_server {
         type_string get_required_var('SCC_EMAIL') if get_var('SCC_EMAIL');
         save_screenshot;
         send_key "alt-c";
-        type_string get_required_var('SCC_REGCODE') if get_var('SCC_REGCODE');
+        type_string $scc_code if ($scc_code);
     }
     else {
         send_key "alt-i";
