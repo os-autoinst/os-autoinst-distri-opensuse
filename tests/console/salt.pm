@@ -27,10 +27,11 @@ systemctl status salt-master
 sed -i -e "s/#master: salt/master: localhost/" /etc/salt/minion
 systemctl start salt-minion
 systemctl status --no-pager salt-minion
-salt-key --accept-all -y
 EOF
     assert_script_run($_) foreach (split /\n/, $cmd);
-    validate_script_output "salt '*' test.ping | grep -woh True > /dev/$serialdev", sub { m/True/ };
+    sleep(5);    # left the minion some time to send its public key poo#28723
+    assert_script_run("salt-key --accept-all -y");
+    validate_script_output "salt '*' test.ping -t 10 | grep -woh True > /dev/$serialdev", sub { m/True/ };
     assert_script_run 'systemctl stop salt-master salt-minion';
 }
 
