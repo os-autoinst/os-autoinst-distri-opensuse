@@ -57,7 +57,7 @@ sub run {
         else {
             # Xen PV has different device for 2nd CDROM
             if (check_var('VIRSH_VMM_TYPE', 'linux')) {
-                $cmd = 'ar --type plaindir hd:///?device=/dev/xvdd repo-source';
+                $cmd = 'ar --type plaindir hd:///?device=/dev/xvda repo-source';
             }
             else {
                 $cmd = "ar --type plaindir cd:///?devices=/dev/sr1 repo-source";
