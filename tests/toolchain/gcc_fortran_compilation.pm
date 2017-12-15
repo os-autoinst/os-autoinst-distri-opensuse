@@ -15,7 +15,7 @@ use base "opensusebasetest";
 use strict;
 use testapi;
 use utils;
-use version_utils qw(is_sle sle_version_at_least);
+use version_utils qw(is_sle sle_version_at_least is_leap leap_version_at_least);
 
 sub run {
     my $self = shift;
@@ -29,8 +29,10 @@ sub run {
     script_run 'tar jxf fcvs21_f95.tar.bz2';
     script_run 'cp FM923.DAT fcvs21_f95/';
     script_run 'pushd fcvs21_f95';
-    # gfortran (and gcc) fixed to version in SLE12 after the yearly gcc update with Toolchain module
-    my $fortran_version = is_sle && sle_version_at_least('15') ? "gfortran" : "gfortran-5";
+    my $fortran_version = "gfortran";
+    if ((is_sle && !sle_version_at_least('15')) or (is_leap and !leap_version_at_least('15.0'))) {
+        $fortran_version = "gfortran-5";    # gfortran (and gcc) fixed to version in SLE12 after the yearly gcc update with Toolchain module
+    }
     script_run "sed -i 's/g77/$fortran_version/g' driver_*";
     script_run 'echo "exit \${failed}" >> driver_parse';
 
