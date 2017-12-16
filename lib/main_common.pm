@@ -66,6 +66,8 @@ our @EXPORT = qw(
   is_memtest
   is_mediacheck
   load_syscontainer_tests
+  load_toolchain_tests
+  load_common_opensuse_sle_tests
 );
 
 sub init_main {
@@ -863,6 +865,20 @@ sub load_syscontainer_tests() {
 
     # Run the actual test
     loadtest 'virtualization/syscontainer_image_test';
+}
+
+sub load_toolchain_tests {
+    loadtest "console/force_cron_run";
+    loadtest "toolchain/install";
+    loadtest "toolchain/gcc_fortran_compilation";
+    loadtest "toolchain/gcc_compilation";
+    loadtest "console/kdump_and_crash" if is_sle && kdump_is_applicable;
+}
+
+sub load_common_opensuse_sle_tests {
+    load_autoyast_clone_tests if get_var("CLONE_SYSTEM");
+    load_create_hdd_tests     if get_var("STORE_HDD_1") || get_var("PUBLISH_HDD_1");
+    load_toolchain_tests      if get_var("TCM") || check_var("ADDONS", "tcm");
 }
 
 1;
