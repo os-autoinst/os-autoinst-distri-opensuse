@@ -820,6 +820,7 @@ sub load_create_hdd_tests {
     loadtest 'console/sle15_workarounds' if is_sle && sle_version_at_least('15');
     loadtest 'console/hostname' unless is_bridged_networking;
     loadtest 'console/force_cron_run' unless is_jeos;
+    loadtest 'console/scc_deregistration' if get_var('SCC_DEREGISTER');
     loadtest 'shutdown/grub_set_bootargs';
     loadtest 'shutdown/shutdown';
     loadtest 'shutdown/svirt_upload_assets' if check_var('BACKEND', 'svirt');
