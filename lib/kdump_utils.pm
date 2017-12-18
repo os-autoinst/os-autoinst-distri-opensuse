@@ -13,13 +13,19 @@ use Exporter;
 use strict;
 use testapi;
 use utils;
+use List::Util qw(first);
 
 our @EXPORT = qw(install_kernel_debuginfo prepare_for_kdump activate_kdump kdump_is_active do_kdump);
 
 sub install_kernel_debuginfo {
     assert_script_run 'zypper ref', 300;
-    zypper_call('-v in $(rpmquery kernel-default | sed "s/kernel-default/kernel-default-debuginfo/")', timeout => 4000);
+    my @kernels = split(/\n/, script_output('rpmquery --queryformat="%{NAME}-%{VERSION}-%{RELEASE}\n" kernel-default'));
+    my ($uname) = script_output('uname -r') =~ /(\d+\.\d+\.\d+)-*/;
+    my $debuginfo = first { $_ =~ /\Q$uname\E/ } @kernels;
+    $debuginfo =~ s/default/default-debuginfo/g;
+    zypper_call("-v in $debuginfo", timeout => 4000);
 }
+
 
 sub prepare_for_kdump_sle {
     my $sles_debug_repo;
