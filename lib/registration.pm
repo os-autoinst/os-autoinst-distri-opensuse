@@ -31,6 +31,7 @@ our @EXPORT = qw(
   registration_bootloader_params
   yast_scc_registration
   skip_registration
+  scc_deregistration
   get_addon_fullname
   %SLE15_MODULES
   %SLE15_DEFAULT_MODULES
@@ -484,6 +485,25 @@ sub fill_in_reg_server {
     }
     save_screenshot;
     wait_screen_change { send_key $cmd{next} };
+}
+
+# De-register the system from the SUSE Customer Center
+sub scc_deregistration {
+    my (%args) = @_;
+    $args{version_variable} //= 'VERSION';
+    if (sle_version_at_least('12-SP1', version_variable => $args{version_variable})) {
+        assert_script_run('SUSEConnect -d --cleanup');
+        my $output = script_output 'SUSEConnect -s';
+        die "System is still registered" unless $output =~ /Not Registered/;
+        save_screenshot;
+    }
+    else {
+        assert_script_run("zypper removeservice `zypper services --show-enabled-only --sort-by-name | awk {'print\$5'} | sed -n '1,2!p'`");
+        assert_script_run('rm /etc/zypp/credentials.d/* /etc/SUSEConnect');
+        my $output = script_output 'SUSEConnect -s';
+        die "System is still registered" unless $output =~ /Not Registered/;
+        save_screenshot;
+    }
 }
 
 1;

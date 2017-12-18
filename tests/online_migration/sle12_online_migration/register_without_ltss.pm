@@ -13,12 +13,13 @@
 use base "console_yasttest";
 use strict;
 use testapi;
+use registration;
 use migration;
 
 sub run {
     select_console 'root-console';
 
-    de_register(version_variable => 'HDDVERSION');
+    scc_deregistration(version_variable => 'HDDVERSION');
     remove_ltss;
 
     # Re-register system without LTSS with resetting SCC_ADDONS variable without ltss
