@@ -53,7 +53,7 @@ our %SLE15_MODULES = (
 # are not preselected, to crosscheck or just recreate automatic selections
 # manually
 our %SLE15_DEFAULT_MODULES = (
-    sles     => 'base,desktop,serverapp',
+    sles     => 'base,serverapp',
     sled     => 'base,desktop,productivity',
     sles4sap => 'base,desktop,serverapp,ha,sapapp',
 );
@@ -201,7 +201,7 @@ sub fill_in_registration_data {
         }
     }
 
-    # Soft-failure for module preselection
+    # Process modules on sle 15
     if (is_sle && sle_version_at_least('15')) {
         my $modules_needle = "modules-preselected-" . get_required_var('SLE_PRODUCT');
         if (get_var('UPGRADE') || get_var('PATCH')) {
@@ -213,16 +213,11 @@ sub fill_in_registration_data {
                 send_key('alt-i');
             }
             assert_screen($modules_needle);
-        }
-        if (match_has_tag 'bsc#1056413') {
-            record_soft_failure('bsc#1056413');
-            # Activate the last of the expected modules to select them manually, as not preselected but at least dependencies are handled
-            my $addons = (split(/,/, $SLE15_DEFAULT_MODULES{get_required_var('SLE_PRODUCT')}))[-1] . (get_var('SCC_ADDONS') ? ',' . get_var('SCC_ADDONS') : '');
-            # Add desktop module if not preselected and not yet added
-            if (match_has_tag('desktop-not-selected') && $addons !~ /(?:desktop|we|productivity)/) {
-                $addons .= ',desktop';
+            # Add desktop module for SLES if desktop doesn't match default
+            if (check_var('SLE_PRODUCT', 'sles') && (my $addons = get_var('SCC_ADDONS')) !~ /(?:desktop|we|productivity)/) {
+                $addons = $addons ? $addons . ',desktop' : 'desktop';
+                set_var('SCC_ADDONS', $addons);
             }
-            set_var('SCC_ADDONS', $addons);
         }
     }
 
