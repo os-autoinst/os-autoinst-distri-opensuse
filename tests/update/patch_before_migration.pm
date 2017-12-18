@@ -60,7 +60,7 @@ sub patching_sle {
 
     }
     else {
-        de_register(version_variable => 'HDDVERSION');
+        scc_deregistration(version_variable => 'HDDVERSION');
     }
     remove_ltss;
     assert_script_run("zypper mr --enable --all");
