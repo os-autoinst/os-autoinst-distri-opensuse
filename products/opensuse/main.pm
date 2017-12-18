@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -959,18 +959,7 @@ else {
     }
 }
 
-if (get_var("CLONE_SYSTEM")) {
-    load_autoyast_clone_tests;
-}
-
-load_create_hdd_tests if get_var("STORE_HDD_1") || get_var("PUBLISH_HDD_1");
-
-if (get_var("TCM") || check_var("ADDONS", "tcm")) {
-    loadtest "console/force_cron_run";
-    loadtest "toolchain/install";
-    loadtest "toolchain/gcc_fortran_compilation";
-    loadtest "toolchain/gcc_compilation";
-}
+load_common_opensuse_sle_tests;
 
 1;
 # vim: set sw=4 et:
