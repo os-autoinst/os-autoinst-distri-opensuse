@@ -23,6 +23,10 @@ sub run {
 
     # this error pop-up is present only on TW now
     if (check_var('VERSION', 'Tumbleweed')) {
+        if (get_var('OFW')) {
+            record_soft_failure('bsc#1041747 - as bypass, wait 5s before to issue next key');
+            sleep 5;
+        }
         send_key $cmd{next};
         assert_screen 'desktop-not-selected';
         send_key $cmd{ok};
