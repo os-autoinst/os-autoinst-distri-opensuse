@@ -461,9 +461,11 @@ sub get_addon_fullname {
 
 sub fill_in_reg_server {
     # Set product specific SCC_REGCODE if it was provided. Defaults to SCC_REGCODE if set
-    my $scc_code = get_var('SCC_REGCODE', '') if get_var('SCC_REGCODE');
-    $scc_code = get_var('SCC_REGCODE_' . uc(get_var('SLE_PRODUCT')), '')
-      if (get_var('SLE_PRODUCT') and get_var('SCC_REGCODE_' . uc(get_var('SLE_PRODUCT'))));
+    my $regcode = get_var('SCC_REGCODE', '');
+    if (get_var('SLE_PRODUCT')) {
+        my $prdcode = get_var('SCC_REGCODE_' . uc(get_var('SLE_PRODUCT')), '');
+        $regcode = $prdcode if ($prdcode);
+    }
 
     if (!get_var("SMT_URL")) {
         if (sle_version_at_least('15') && check_var('DESKTOP', 'textmode')) {
@@ -476,7 +478,7 @@ sub fill_in_reg_server {
         type_string get_var('SCC_EMAIL') if get_var('SCC_EMAIL');
         save_screenshot;
         send_key "alt-c";
-        type_string $scc_code if ($scc_code);
+        type_string $regcode if ($regcode);
     }
     else {
         send_key "alt-i";
