@@ -100,7 +100,7 @@ sub run {
     assert_script_run("! runc state test2");
 
     # Cleanup, remove all images
-    assert_script_run("docker rmi --force \$(docker images -q)");
+    assert_script_run("docker rmi --force busybox");
 }
 
 1;
