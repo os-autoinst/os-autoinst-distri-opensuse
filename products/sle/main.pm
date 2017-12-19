@@ -1518,6 +1518,9 @@ else {
             loadtest "rt/boot_rt_kernel";
         }
         else {
+            if (get_var('S390_ZKVM')) {
+                loadtest 'installation/bootloader_zkvm';
+            }
             loadtest "boot/boot_to_desktop";
             if (get_var("ADDONS")) {
                 loadtest "installation/addon_products_yast2";
