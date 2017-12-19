@@ -29,9 +29,9 @@ systemctl start salt-minion
 systemctl status --no-pager salt-minion
 EOF
     assert_script_run($_) foreach (split /\n/, $cmd);
-    sleep(5);    # left the minion some time to send its public key poo#28723
+    sleep(30);    # left the minion some time to send its public key poo#28723
     assert_script_run("salt-key --accept-all -y");
-    validate_script_output "salt '*' test.ping -t 10 | grep -woh True > /dev/$serialdev", sub { m/True/ };
+    validate_script_output "salt '*' test.ping -t 30 | grep -woh True > /dev/$serialdev", sub { m/True/ };
     assert_script_run 'systemctl stop salt-master salt-minion';
 }
 
