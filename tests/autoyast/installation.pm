@@ -176,7 +176,7 @@ sub run {
 
     if (get_var("AUTOYAST_LICENSE")) {
         if ($confirmed_licenses == 0 || $confirmed_licenses != get_var("AUTOYAST_LICENSE", 0)) {
-            die "Autoyast License shown: $confirmed_licenses, but expected: " . get_var('AUTOYAST_LICENSE') . "times";
+            die "Autoyast License shown: $confirmed_licenses, but expected: " . get_var('AUTOYAST_LICENSE') . " time(s)";
         }
     }
 
