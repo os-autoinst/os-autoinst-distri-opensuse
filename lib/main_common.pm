@@ -68,6 +68,7 @@ our @EXPORT = qw(
   load_syscontainer_tests
   load_toolchain_tests
   load_common_opensuse_sle_tests
+  replace_opensuse_repos_tests
 );
 
 sub init_main {
@@ -157,6 +158,11 @@ sub is_bridged_networking {
     return $ret;
 }
 
+sub replace_opensuse_repos_tests {
+    loadtest "update/zypper_clear_repos";
+    loadtest "console/zypper_ar";
+}
+
 sub load_rescuecd_tests {
     if (rescuecdstep_is_applicable()) {
         loadtest "rescuecd/rescuecd";
@@ -165,6 +171,10 @@ sub load_rescuecd_tests {
 
 sub load_autoyast_clone_tests {
     loadtest "console/consoletest_setup";
+    # Remove repos pointing to download.opensuse.org and add snaphot repo from o3
+    if (check_var('DISTRI', 'opensuse')) {
+        replace_opensuse_repos_tests;
+    }
     loadtest "console/yast2_clone_system";
     loadtest "console/consoletest_finish";
 }
@@ -543,12 +553,17 @@ sub load_extra_tests {
         }
     }
     else {
+        # Run zypper info before as tests source repo
+        loadtest "console/zypper_info";
+        # Remove repos pointing to download.opensuse.org and add snaphot repo from o3
+        if (check_var('DISTRI', 'opensuse')) {
+            replace_opensuse_repos_tests;
+        }
         loadtest "console/zypper_lr_validate";
         loadtest "console/openvswitch";
         # dependency of git test
         loadtest "console/sshd";
         loadtest "console/zypper_ref";
-        loadtest "console/zypper_info";
         loadtest "console/update_alternatives";
         # start extra console tests from here
         # Audio device is not supported on ppc64le, s390x, JeOS, and Xen PV
@@ -570,7 +585,6 @@ sub load_extra_tests {
             loadtest "console/pcre";
             loadtest "console/openqa_review";
             loadtest "console/zbar";
-            loadtest "console/zypper_ar";
             loadtest "console/a2ps";    # a2ps is not a ring package and thus not available in staging
             loadtest "console/weechat";
             loadtest "console/nano";

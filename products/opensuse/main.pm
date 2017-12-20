@@ -273,6 +273,7 @@ sub load_inst_tests {
         loadtest "installation/logpackages";
     }
     if (noupdatestep_is_applicable()) {
+        loadtest "installation/disable_online_repos" if get_var('DISABLE_ONLINE_REPOS');
         loadtest "installation/installer_desktopselection";
         if (get_var('IMPORT_USER_DATA')) {
             loadtest 'installation/user_import';
@@ -379,6 +380,7 @@ sub load_consoletests {
     }
     loadtest "console/textinfo";
     loadtest "console/hostname";
+    replace_opensuse_repos_tests if get_var('DISABLE_ONLINE_REPOS');
     if (snapper_is_applicable()) {
         if (get_var("UPGRADE")) {
             loadtest "console/upgrade_snapshots";
@@ -392,7 +394,8 @@ sub load_consoletests {
     }
     loadtest "console/zypper_lr";
     loadtest 'console/enable_usb_repo' if check_var('USBBOOT', 1);
-    if (have_addn_repos) {
+    # If DISABLE_ONLINE_REPOS, mirror repo is already added
+    if (have_addn_repos && !get_var('DISABLE_ONLINE_REPOS')) {
         loadtest "console/zypper_ar";
     }
     loadtest "console/zypper_ref";
