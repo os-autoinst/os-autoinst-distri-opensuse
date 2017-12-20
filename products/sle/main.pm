@@ -1041,11 +1041,9 @@ sub load_ha_cluster_tests {
 
     # Test fencing feature
     loadtest "ha/fencing";
-    if (!get_var("HA_CLUSTER_JOIN")) {
-        # Node1 will be fenced
-        loadtest "boot/boot_to_desktop";
-        loadtest "console/consoletest_setup";
-    }
+
+    # Node1 will be fenced, so we have to wait for it to boot
+    loadtest "boot/boot_to_desktop" if (!get_var("HA_CLUSTER_JOIN"));
 
     # Cluster status and check logs to find error
     loadtest "ha/check_cluster";
