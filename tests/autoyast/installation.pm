@@ -105,6 +105,13 @@ sub run {
     my $timer      = 0;    # Prevent endless loop
 
     mouse_hide(1);
+
+    # QAM CaaSP specific
+    if (is_caasp && check_var('FLAVOR', 'CaaSP-DVD-Incidents')) {
+        assert_screen('bios-boot', 1200);
+        return;
+    }
+
     check_screen \@needles, $check_time;
     until (match_has_tag('reboot-after-installation') || match_has_tag('bios-boot')) {
         #Verify timeout and continue if there was a match
