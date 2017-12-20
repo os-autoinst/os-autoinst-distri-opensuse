@@ -367,9 +367,7 @@ pre init scripts feature. See poo#20818.
       <package>libXi6</package>
       <package>libXtst6</package>
       <package>lsscsi</package>
-      <package>perl-Net-SNMP</package>
       <package>python-gobject2</package>
-      <package>python-jabberpy</package>
       <package>sg3_utils</package>
       <package>sssd</package>
       <package>sssd-ad</package>
@@ -384,12 +382,11 @@ pre init scripts feature. See poo#20818.
       <package>vsftpd</package>
       <package>xauth</package>
       <package>xterm</package>
-      <package>xinetd</package>
     </packages>
     <patterns config:type="list">
       <pattern>base</pattern>
       <pattern>basesystem</pattern>
-      <pattern>basesystem_enchanced</pattern>
+      <pattern>enhanced_base</pattern>
       <pattern>minimal_base</pattern>
     </patterns>
     <post-packages config:type="list">
