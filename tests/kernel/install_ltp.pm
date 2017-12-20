@@ -31,7 +31,8 @@ sub scc_we_enabled {
 
 sub add_desktop_productivity_module {
     if (get_required_var('ARCH') eq 'x86_64' and check_var('DISTRI', 'sle') and sle_version_at_least('15')) {
-        add_suseconnect_product("sle-module-desktop-productivity");
+        zypper_call('ar http://openqa.suse.de/assets/repo/' . get_required_var('REPO_SLE15_MODULE_DESKTOP_PRODUCTIVITY') . ' DPM', dumb_term => 1);
+        zypper_call('--gpg-auto-import-keys ref',                                                                                  dumb_term => 1);
     }
 }
 
