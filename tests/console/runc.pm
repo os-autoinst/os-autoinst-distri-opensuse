@@ -18,34 +18,31 @@
 use base "consoletest";
 use testapi;
 use utils;
-use version_utils 'is_caasp';
+use version_utils qw(is_caasp is_sle sle_version_at_least);
 use strict;
 
-# Setup the required testing environment
-sub setup {
+sub run {
+    select_console("root-console");
+
+    my $runc = is_sle && sle_version_at_least('15') ? 'docker-runc' : 'runc';
+
+    # runC cannot create or extract the root filesystem on its own. Use Docker to create it.
+    record_info 'Setup', 'Setup the environment';
+
+    # Setup the required testing environment
+
     # install the docker package if it's not already installed
     zypper_call('in docker');
 
     # make sure docker daemon is running
     systemctl('start docker');
     systemctl('status docker');
-}
 
-sub create_oci_bundle {
     # create the rootfs directory
-    assert_script_run('mkdir ./rootfs');
+    assert_script_run('mkdir rootfs');
 
     # export busybox via Docker into the rootfs directory
     assert_script_run('docker export $(docker create busybox) | tar -C rootfs -xvf -');
-}
-
-sub run {
-    select_console("root-console");
-
-    # runC cannot create or extract the root filesystem on its own. Use Docker to create it.
-    record_info 'Setup', 'Setup the environment';
-    setup;
-    create_oci_bundle;
 
     # installation of runc package
     record_info 'Test #1', 'Test: Installation';
@@ -54,12 +51,12 @@ sub run {
         die "runC is not pre-installed." if script_run("zypper se -x --provides -i runc | grep runc");
     }
     else {
-        zypper_call("in runc");
+        zypper_call("in $runc");
     }
 
     # create the OCI specification and verify that the template has been created
     record_info 'Test #2', 'Test: OCI Specification';
-    assert_script_run('runc spec');
+    assert_script_run("$runc spec");
     assert_script_run('ls -l config.json');
     script_run('cp config.json config.json.backup');
 
@@ -69,7 +66,7 @@ sub run {
 
     # Run (create, start, and delete) the container after it exits
     record_info 'Test #3', 'Test: Use the run command';
-    assert_script_run('runc run test1 | grep Kalimera');
+    assert_script_run("$runc run test1 | grep Kalimera");
 
     # Restore the default configuration
     assert_script_run('mv config.json.backup config.json');
@@ -79,25 +76,25 @@ sub run {
 
     # Container Lifecycle
     record_info 'Test #4', 'Test: Create a container';
-    assert_script_run('runc create test2');
-    assert_script_run('runc state test2 | grep status | grep created');
+    assert_script_run("$runc create test2");
+    assert_script_run("$runc state test2 | grep status | grep created");
     record_info 'Test #5', 'Test: List containers';
-    assert_script_run('runc list | grep test2');
+    assert_script_run("$runc list | grep test2");
     record_info 'Test #6', 'Test: Start a container';
-    assert_script_run('runc start test2');
-    assert_script_run('runc state test2 | grep running');
+    assert_script_run("$runc start test2");
+    assert_script_run("$runc state test2 | grep running");
     record_info 'Test #7', 'Test: Pause a container';
-    assert_script_run('runc pause test2');
-    assert_script_run('runc state test2 | grep paused');
+    assert_script_run("$runc pause test2");
+    assert_script_run("$runc state test2 | grep paused");
     record_info 'Test #8', 'Test: Resume a container';
-    assert_script_run('runc resume test2');
-    assert_script_run('runc state test2 | grep running');
+    assert_script_run("$runc resume test2");
+    assert_script_run("$runc state test2 | grep running");
     record_info 'Test #9', 'Test: Stop a container';
-    assert_script_run('runc kill test2 KILL');
-    assert_script_run('runc state test2 | grep stopped');
+    assert_script_run("$runc kill test2 KILL");
+    assert_script_run("$runc state test2 | grep stopped");
     record_info 'Test #10', 'Test: Delete a container';
-    assert_script_run('runc delete test2');
-    assert_script_run("! runc state test2");
+    assert_script_run("$runc delete test2");
+    assert_script_run("! $runc state test2");
 
     # Cleanup, remove all images
     assert_script_run("docker rmi --force busybox");
