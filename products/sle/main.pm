@@ -1506,7 +1506,11 @@ else {
         load_online_migration_tests();
     }
     elsif (get_var("PATCH")) {
+        #Before upgrading, orginal system version is actually HDDVERSION
+        loadtest "migration/version_switch_origin_system";
         load_patching_tests();
+        #After original system patched, switch to UPGRADE_TARGET_VERSION
+        loadtest "migration/version_switch_upgrade_target";
         load_inst_tests();
         load_reboot_tests();
     }
