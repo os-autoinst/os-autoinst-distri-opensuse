@@ -20,11 +20,15 @@ use base "consoletest";
 use testapi;
 use strict;
 use utils;
+use lockapi;
+use mmapi;
 
 sub run {
     my $moongen_repo = "https://github.com/emmericp/MoonGen.git";
 
     select_console 'root-console';
+
+    mutex_lock('nfv_trafficgen_ready');
 
     zypper_call('in git-core gcc gcc-c++ make cmake libnuma-devel kernel-source pciutils', timeout => 300);
 
@@ -36,6 +40,8 @@ sub run {
     assert_script_run("bash -x build.sh",           500);
     assert_script_run("bash -x setup-hugetlbfs.sh", 300);
     assert_script_run("bash -x bind-interfaces.sh", 300);
+
+    mutex_unlock('nfv_trafficgen_ready');
 }
 
 1;
