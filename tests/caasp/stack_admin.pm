@@ -40,6 +40,11 @@ sub handle_update {
 }
 
 sub run() {
+    if (check_var('FLAVOR', 'CaaSP-DVD-Incidents')) {
+        assert_screen('linux-login-casp', 300);
+        reset_consoles;
+        select_console 'root-console';
+    }
     # Admin node needs long time to start web interface - bsc#1031682
     # Wait in loop until velum is available until controller node can connect
     my $timeout   = 240;

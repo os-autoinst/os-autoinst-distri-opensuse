@@ -17,6 +17,11 @@ use lockapi;
 use caasp;
 
 sub run {
+    # Make sure the installation has finished
+    if (check_var('FLAVOR', 'CaaSP-DVD-Incidents')) {
+        assert_screen('linux-login-casp', 1200);
+    }
+
     # Notify others that installation finished
     barrier_wait "WORKERS_INSTALLED";
 

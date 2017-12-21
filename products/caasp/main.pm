@@ -68,7 +68,7 @@ sub load_boot_tests {
 # One-click installer - fate#322328
 sub load_inst_tests {
     if (get_var 'AUTOYAST') {
-        loadtest 'autoyast/installation';
+        loadtest 'autoyast/installation' unless check_var('FLAVOR', 'CaaSP-DVD-Incidents');
     }
     else {
         loadtest 'caasp/oci_overview';
@@ -166,7 +166,7 @@ if (get_var('STACK_ROLE')) {
     else {
         load_boot_tests;
         load_inst_tests if is_caasp('DVD');
-        loadtest 'caasp/first_boot';
+        loadtest 'caasp/first_boot' unless check_var('FLAVOR', 'CaaSP-DVD-Incidents');
     }
     load_stack_tests;
 }
