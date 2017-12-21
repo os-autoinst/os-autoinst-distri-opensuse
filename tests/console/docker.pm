@@ -19,7 +19,6 @@
 #      * network is working inside of the containers
 # Maintainer: Petr Cervinka <pcervinka@suse.com>, Flavio Castelli <fcastelli@suse.com>
 
-
 use base "consoletest";
 use testapi;
 use utils;
@@ -44,7 +43,9 @@ sub run {
     systemctl("status docker");
 
     # do search for openSUSE
-    validate_script_output("docker search  --no-trunc opensuse", sub { m/This project contains the stable releases of the openSUSE distribution/ });
+    validate_script_output("docker search --no-trunc opensuse", sub { m/This project contains the stable releases of the openSUSE distribution/ });
+
+    assert_script_run('docker info');
 
     my $alpine_image_version = '3.5';
     # pull minimalistic alpine image of declared version
