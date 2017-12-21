@@ -12,7 +12,7 @@
 
 use base 'opensusebasetest';
 use strict;
-use version_utils 'sle_version_at_least';
+use version_utils qw(is_sle sle_version_at_least);
 use testapi;
 use hacluster;
 
@@ -20,7 +20,7 @@ sub run {
     my $firewall = 'SuSEfirewall2';
 
     # SLE/openSUSE-15 use firewalld instead of the old SuSEfirewall2
-    if (sle_version_at_least('15')) {
+    if (is_sle && sle_version_at_least('15')) {
         $firewall = 'firewalld';
     }
 

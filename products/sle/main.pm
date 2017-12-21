@@ -991,7 +991,11 @@ sub load_slenkins_tests {
 
 sub load_ha_cluster_tests {
     return unless (get_var("HA_CLUSTER"));
+
+    # Wait for support server to complete its initialization
     loadtest "ha/wait_support_server";
+
+    # Standard boot and configuration
     loadtest "boot/boot_to_desktop";
     loadtest "qa_automation/patch_and_reboot" if is_updates_tests;
     loadtest "console/consoletest_setup";
@@ -1004,7 +1008,7 @@ sub load_ha_cluster_tests {
     }
 
     # SLE15 workarounds
-    loadtest "ha/sle15_workarounds" if sle_version_at_least('15');
+    loadtest "ha/sle15_workarounds" if (is_sle && sle_version_at_least('15'));
 
     # Basic configuration
     loadtest "ha/firewall_disable";
