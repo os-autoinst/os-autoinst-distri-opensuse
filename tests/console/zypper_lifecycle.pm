@@ -58,7 +58,7 @@ sub run {
     # (I have seen the test pass after 14 hours from the image creation), and actually
     # no package in the image comes from any repository - it's from the image. So we
     # hard-code 'sles-release' package, and it... works. Somehow.
-    if (!$package && is_jeos) {
+    if (!$package && is_jeos()) {
         record_soft_failure "Hardcoding 'sles-release' package for lifecycle check";
         $package = 'sles-release';
     }
