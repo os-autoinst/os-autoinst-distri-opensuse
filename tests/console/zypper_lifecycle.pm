@@ -17,7 +17,6 @@ use testapi;
 use utils;
 use version_utils qw(is_sle sle_version_at_least);
 
-
 our $date_re = qr/[0-9]{4}-[0-9]{2}-[0-9]{2}/;
 
 sub run {
@@ -53,7 +52,16 @@ sub run {
     if ($output =~ /name="(?<package>[^"]+)"/) {
         $package = $+{package};
     }
-
+    # For JeOS build testing we are always using the latest repositories, because
+    # JeOS images are build with a *different* build number to SLES/Leap. It seems
+    # that SLES repositories are not populated with packages for several hours
+    # (I have seen the test pass after 14 hours from the image creation), and actually
+    # no package in the image comes from any repository - it's from the image. So we
+    # hard-code 'sles-release' package, and it... works. Somehow.
+    if (!$package && is_jeos) {
+        record_soft_failure "Hardcoding 'sles-release' package for lifecycle check";
+        $package = 'sles-release';
+    }
     die "No suitable package found. Script output:\n$output" unless $package;
 
     my $testdate        = '2020-02-03';
