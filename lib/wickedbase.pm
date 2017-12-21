@@ -29,10 +29,9 @@ sub get_ip {
 }
 
 sub save_and_upload_wicked_log {
-    my ($self, $prefix) = @_;
     my $log_name = join('', map { ("a" .. "z")[rand 26] } 1 .. 8);
-    assert_script_run("journalctl -o short-precise > /tmp/$prefix$log_name.log");
-    upload_logs("/tmp/$prefix$log_name.log");
+    assert_script_run("journalctl -o short-precise > /tmp/$log_name.log");
+    upload_logs("/tmp/$log_name.log");
 }
 
 sub get_from_data {
@@ -40,12 +39,6 @@ sub get_from_data {
     $source .= check_var('IS_WICKED_REF', '1') ? 'ref' : 'sut' if $args{add_suffix};
     assert_script_run("wget --quiet " . data_url($source) . " -O $target");
     assert_script_run("chmod +x $target") if $args{executable};
-}
-
-sub write_journal {
-    my ($self, $message) = @_;
-    my $module_name = $self->{name} // "openqa_test";
-    type_string "logger -t $module_name \"$message\" \n";
 }
 
 1;
