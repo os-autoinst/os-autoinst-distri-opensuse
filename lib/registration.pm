@@ -107,7 +107,8 @@ Wrapper for SUSEConnect -p $name.
 sub add_suseconnect_product {
     my ($name, $version, $arch, $params) = @_;
     $version //= scc_version();
-    $arch //= get_required_var('ARCH');
+    $arch    //= get_required_var('ARCH');
+    $params  //= '';
     assert_script_run("SUSEConnect -p $name/$version/$arch $params");
 }
 

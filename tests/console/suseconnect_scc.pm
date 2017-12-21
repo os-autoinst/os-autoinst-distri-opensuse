@@ -1,3 +1,5 @@
+# SUSE openQA tests
+#
 # Copyright (C) 2017 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
@@ -13,8 +15,8 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# Summary: Do the registration against SCC after installation
-# Maintainer: Yi Xu <yxu@suse.de>
+# Summary: Register system against SCC after installation
+# Maintainer: Michal Nowak <mnowak@suse.com>
 
 use strict;
 use base 'y2logsstep';
@@ -26,9 +28,9 @@ use registration;
 
 sub run {
     return if get_var('HDD_SCC_REGISTERED');
-    my $reg_code = get_required_var('SCC_REGCODE');
-    my $scc_url  = get_required_var('SCC_URL');
-    my $scc_addons;
+    my $reg_code   = get_required_var('SCC_REGCODE');
+    my $scc_url    = get_required_var('SCC_URL');
+    my $scc_addons = '';
     if ($scc_addons = get_var('SCC_ADDONS')) {
         $scc_addons = ',' . $scc_addons;
     }
@@ -43,7 +45,7 @@ sub run {
             add_suseconnect_product("sle-module-" . lc($registration::SLE15_MODULES{$_}));
         }
     }
-    # check repos actually work
+    # Check that repos actually work
     zypper_call('refresh');
 }
 
