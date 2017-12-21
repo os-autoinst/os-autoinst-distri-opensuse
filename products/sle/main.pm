@@ -1578,6 +1578,7 @@ else {
         loadtest "jeos/root_fs_size";
         loadtest "jeos/mount_by_label";
         loadtest "console/suseconnect_scc";
+        load_docker_tests if check_var('ARCH', 'x86_64');
     }
     else {
         if (get_var('BOOT_EXISTING_S390')) {
