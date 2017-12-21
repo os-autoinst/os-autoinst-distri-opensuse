@@ -20,19 +20,15 @@ sub run {
     my ($self) = @_;
     select_console('root-console');
     $self->write_journal('Preparation for wicked test');
-    my $service = (is_sle && sle_version_at_least('15')) ? 'firewalld' : 'SuSEfirewall2';
-    $self->write_journal('Stopping firewall and checking that network is up');
-    systemctl("stop $service");
+    $self->write_journal('* Checking that network is up');
     systemctl('is-active network');
     systemctl('is-active wicked');
     assert_script_run('[ -z "$(coredumpctl -1 --no-pager --no-legend)" ]');
-    $self->write_journal('Setting debug level for wicked logs');
+    $self->write_journal('* Setting debug level for wicked logs');
     assert_script_run('sed -e "s/^WICKED_DEBUG=.*/WICKED_DEBUG=\"all\"/g" -i /etc/sysconfig/network/config');
     assert_script_run('sed -e "s/^WICKED_LOG_LEVEL=.*/WICKED_LOG_LEVEL=\"debug\"/g" -i /etc/sysconfig/network/config');
     assert_script_run('cat /etc/sysconfig/network/config');
-    $self->write_journal('Remember clean system state');
-    my $snapshot_number = script_output('snapper create -p -d "clean system"');
-    set_var('BTRFS_SNAPSHOT_NUMBER', $snapshot_number);
+    assert_script_run('mkdir /data');
 }
 
 sub test_flags {

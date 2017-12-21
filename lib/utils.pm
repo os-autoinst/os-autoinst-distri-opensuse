@@ -63,7 +63,6 @@ our @EXPORT = qw(
   assert_gui_app
   install_all_from_repo
   run_scripted_command_slow
-  snapper_revert_system
   get_root_console_tty
   get_x11_console_tty
   OPENQA_FTP_URL
@@ -1237,19 +1236,6 @@ sub run_scripted_command_slow {
     clear_console;
 }
 
-=head2 snapper_revert_system
-    Revert system to previously created snapper snapshot.
-    Rely on a fact that snapshot is already created and id of
-    snapshot stored in BTRFS_SNAPSHOT_NUMBER.
-=cut
-sub snapper_revert_system {
-    my ($self) = @_;
-    my $snapshot_number = get_required_var('BTRFS_SNAPSHOT_NUMBER');
-    assert_script_run("snapper rollback $snapshot_number");
-    power_action('reboot', textmode => 1);
-    $self->wait_boot;
-    select_console 'root-console';
-}
 
 =head2 get_root_console_tty
     Returns tty number used designed to be used for root-console.

@@ -17,7 +17,7 @@
 use base 'wickedbase';
 use strict;
 use testapi;
-use utils qw(systemctl snapper_revert_system);
+use utils 'systemctl';
 
 sub run {
     my ($self) = @_;

@@ -666,8 +666,14 @@ sub load_filesystem_tests {
 }
 
 sub load_wicked_tests {
-    loadtest 'wicked/wicked_before_test';
-    loadtest 'wicked/wicked_' . get_required_var('WICKED');
+    loadtest 'wicked/before_test';
+    if (check_var('WICKED', 'basic')) {
+        loadtest 'wicked/basic';
+        loadtest 'wicked/config_files';
+    }
+    elsif (check_var('WICKED', 'risky')) {
+        loadtest 'wicked/risky';
+    }
 }
 
 sub load_nfv_master_tests {
