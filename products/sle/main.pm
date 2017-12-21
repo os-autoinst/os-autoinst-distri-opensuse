@@ -1142,7 +1142,12 @@ elsif (get_var("WICKED")) {
     load_wicked_tests();
 }
 elsif (get_var('NFV')) {
-    load_nfv_tests();
+    if (check_var("NFV", "master")) {
+        load_nfv_master_tests();
+    }
+    elsif (check_var("NFV", "trafficgen")) {
+        load_nfv_trafficgen_tests();
+    }
 }
 elsif (get_var("REGRESSION")) {
     if (check_var("REGRESSION", "installation")) {

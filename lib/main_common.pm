@@ -51,7 +51,8 @@ our @EXPORT = qw(
   load_rollback_tests
   load_filesystem_tests
   load_wicked_tests
-  load_nfv_tests
+  load_nfv_master_tests
+  load_nfv_trafficgen_tests
   load_iso_in_external_tests
   load_x11regression_documentation
   load_x11regression_gnome
@@ -669,10 +670,14 @@ sub load_wicked_tests {
     loadtest 'wicked/wicked_' . get_required_var('WICKED');
 }
 
-sub load_nfv_tests {
+sub load_nfv_master_tests {
     boot_hdd_image();
     loadtest "nfv/openvswitch_dpdk";
     loadtest "nfv/vsperf_installation";
+}
+
+sub load_nfv_trafficgen_tests {
+    boot_hdd_image();
     loadtest "nfv/moongen_installation";
 }
 
