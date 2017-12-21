@@ -49,5 +49,9 @@ sub run {
     zypper_call('refresh');
 }
 
+sub test_flags {
+    return {fatal => 1, milestone => 1};
+}
+
 1;
 # vim: set sw=4 et:
