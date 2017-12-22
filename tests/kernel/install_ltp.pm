@@ -126,21 +126,21 @@ sub install_from_git {
         $tag = ' -b ' . $tag;
     }
     assert_script_run("git clone -q --depth 1 $url" . $tag, timeout => 360);
-    assert_script_run 'cd ltp';
+    assert_script_run('cd ltp');
     # It is a shallow clone so 'git describe' won't work
     script_run('git log -1 --pretty=format:"git %h" | tee /opt/ltp_version');
 
-    assert_script_run 'make autotools';
-    assert_script_run("$configure $extra_flags", timeout => 300);
-    assert_script_run 'make -j$(getconf _NPROCESSORS_ONLN)', timeout => 1440;
-    script_run 'export CREATE_ENTRIES=1';
-    assert_script_run 'make install', timeout => 360;
-    assert_script_run "find ~/ltp/testcases/open_posix_testsuite/conformance/interfaces -name '*.run-test' > ~/openposix_test_list.txt";
+    assert_script_run('make autotools');
+    assert_script_run("$configure $extra_flags",             timeout => 300);
+    assert_script_run('make -j$(getconf _NPROCESSORS_ONLN)', timeout => 1440);
+    script_run('export CREATE_ENTRIES=1');
+    assert_script_run('make install', timeout => 360);
+    assert_script_run("find ~/ltp/testcases/open_posix_testsuite/conformance/interfaces -name '*.run-test' > ~/openposix_test_list.txt");
 }
 
 sub install_from_repo {
     zypper_call('in qa_test_ltp', dumb_term => 1);
-    assert_script_run q(find ${LTPROOT:-/opt/ltp}/testcases/bin/openposix/conformance/interfaces/ -name '*.run-test' > ~/openposix_test_list.txt);
+    assert_script_run(q(find ${LTPROOT:-/opt/ltp}/testcases/bin/openposix/conformance/interfaces/ -name '*.run-test' > ~/openposix_test_list.txt));
     script_run('rpm -q qa_test_ltp | tee /opt/ltp_version');
 }
 
