@@ -858,18 +858,25 @@ sub validatelr {
         $enabled_repo = 'Yes';
     }
     my $uri = $args->{uri};
+    my $command;
 
     if ($product =~ /IBM-DLPAR-(Adv-Toolchain|SDK|utils)/) {
-        my $cmd
+        $command
           = "zypper lr --uri | awk -F \'|\' -v OFS=\' \' \'{ print \$3,\$4,\$NF }\' | tr -s \' \' | grep --color \"$product\[\[:space:\]\[:punct:\]\[:space:\]\]*$enabled_repo $uri\"";
-        run_scripted_command_slow($cmd, slow_type => 2);
+        run_scripted_command_slow($command, slow_type => 2);
     }
     elsif (check_var('DISTRI', 'sle')) {
         # SLES12 does not have 'SLES12-Source-Pool' SCC channel
         unless (($version eq "12") and ($product_channel eq "Source-Pool")) {
-            my $cmd
+            $command
               = "zypper lr --uri | awk -F \'|\' -v OFS=\' \' \'{ print \$2,\$3,\$4,\$NF }\' | tr -s \' \' | grep --color \"$product$version\[\[:alnum:\]\[:punct:\]\]*-*$product_channel $product$version\[\[:alnum:\]\[:punct:\]\[:space:\]\]*-*$product_channel $enabled_repo $uri\"";
-            run_scripted_command_slow($cmd, slow_type => 2);
+            run_scripted_command_slow($command, slow_type => 2);
+        }
+        if (sle_version_at_least('15')) {
+            my $distri = uc(get_var('DISTRI'));
+            $command
+              = "zypper lr --uri | awk -F \'|\' -v OFS=\' \' \'{ print \$2,\$3,\$4,\$NF }\' | tr -s \' \' | grep --color \"$distri\[\[:alnum:\]\[:punct:\]\]*-*$version-$product_channel $distri\[\[:alnum:\]\[:punct:\]\[:space:\]\]*-*$version-$product_channel $enabled_repo $uri\"";
+            run_scripted_command_slow($command, slow_type => 2);
         }
     }
 }
@@ -1217,21 +1224,21 @@ sub run_scripted_command_slow {
     my $exec_script = "/bin/bash -x /tmp/script$suffix.sh" . " ; echo script$suffix-\$? > /dev/$testapi::serialdev\n";
     if ($slow_type == 1) {
         type_string_slow $curl_script;
-        wait_serial "curl-0";
+        wait_serial "curl-0" || die "Command $curl_script died";
         type_string_slow $exec_script;
-        wait_serial "script$suffix-0";
+        wait_serial "script$suffix-0" || die "Command $exec_script died";
     }
     elsif ($slow_type == 2) {
         type_string_very_slow $curl_script;
-        wait_serial "curl-0";
+        wait_serial "curl-0" || die "Command $curl_script died";
         type_string_very_slow $exec_script;
-        wait_serial "script$suffix-0";
+        wait_serial "script$suffix-0" || die "Command $exec_script died";
     }
     elsif ($slow_type == 3) {
         type_string $curl_script, wait_screen_change => 1;
-        wait_serial "curl-0";
+        wait_serial "curl-0" || die "Command $curl_script died";
         type_string $exec_script, wait_screen_change => 1;
-        wait_serial "script$suffix-0";
+        wait_serial "script$suffix-0" || die "Command $exec_script died";
     }
     clear_console;
 }
