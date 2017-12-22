@@ -26,14 +26,15 @@ sub test_run_list {
 sub system_status {
     my $self = shift;
     my $log  = shift || "/tmp/system-status.log";
-    my @klst = ("kernel", "cpuinfo", "memory", "iptables", "repos", "dmesg");
+    my @klst = ("kernel", "cpuinfo", "memory", "iptables", "repos", "dmesg", "journalctl");
     my %cmds = (
-        kernel   => "uname -a",
-        cpuinfo  => "cat /proc/cpuinfo",
-        memory   => "free -m",
-        iptables => "iptables -L -n --line-numbers",
-        repos    => "zypper repos -u",
-        dmesg    => "dmesg"
+        kernel     => "uname -a",
+        cpuinfo    => "cat /proc/cpuinfo",
+        memory     => "free -m",
+        iptables   => "iptables -L -n --line-numbers",
+        repos      => "zypper repos -u",
+        dmesg      => "dmesg",
+        journalctl => "journalctl -xn 100"
     );
     foreach my $key (@klst) {
         my $cmd = "echo '=========> $key <=========' >> $log; ";
