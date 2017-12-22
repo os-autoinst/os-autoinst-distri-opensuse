@@ -1062,30 +1062,30 @@ sub load_feature_tests {
 
 sub load_online_migration_tests {
     # stop packagekit service and more
-    loadtest "online_migration/sle12_online_migration/online_migration_setup";
-    loadtest "online_migration/sle12_online_migration/register_system";
+    loadtest "migration/sle12_online_migration/online_migration_setup";
+    loadtest "migration/sle12_online_migration/register_system";
     # do full/minimal update before migration
     if (get_var("FULL_UPDATE")) {
-        loadtest "online_migration/sle12_online_migration/zypper_patch";
+        loadtest "migration/sle12_online_migration/zypper_patch";
     }
     if (get_var("MINIMAL_UPDATE")) {
-        loadtest "online_migration/sle12_online_migration/minimal_patch";
+        loadtest "migration/sle12_online_migration/minimal_patch";
     }
     if (get_var('SCC_ADDONS', '') =~ /ltss/) {
-        loadtest "online_migration/sle12_online_migration/register_without_ltss";
+        loadtest "migration/sle12_online_migration/register_without_ltss";
     }
-    loadtest "online_migration/sle12_online_migration/pre_migration";
+    loadtest "migration/sle12_online_migration/pre_migration";
     if (get_var("LOCK_PACKAGE")) {
         loadtest "console/lock_package";
     }
     if (check_var("MIGRATION_METHOD", 'yast')) {
-        loadtest "online_migration/sle12_online_migration/yast2_migration";
+        loadtest "migration/sle12_online_migration/yast2_migration";
     }
     if (check_var("MIGRATION_METHOD", 'zypper')) {
-        loadtest "online_migration/sle12_online_migration/zypper_migration";
+        loadtest "migration/sle12_online_migration/zypper_migration";
     }
-    loadtest "online_migration/sle12_online_migration/orphaned_packages_check";
-    loadtest "online_migration/sle12_online_migration/post_migration";
+    loadtest "migration/sle12_online_migration/orphaned_packages_check";
+    loadtest "migration/sle12_online_migration/post_migration";
 }
 
 sub load_patching_tests {
