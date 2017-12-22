@@ -445,6 +445,7 @@ sub load_consoletests {
         loadtest "console/http_srv";
         loadtest "console/mysql_srv";
         loadtest "console/dns_srv";
+        loadtest "console/dstat";
         if (!is_staging) {
             loadtest "console/mysql_odbc";
             if (is_leap && !leap_version_at_least('15.0')) {
