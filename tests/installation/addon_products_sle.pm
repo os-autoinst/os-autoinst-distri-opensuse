@@ -26,7 +26,9 @@ sub handle_all_packages_medium {
     # corresponds to the selected SLE15 product because the "all packages"
     # addon medium and feature of installer is only available for SLE >= 15
     # anyway
-    foreach (split(/,/, $SLE15_DEFAULT_MODULES{get_required_var('SLE_PRODUCT')})) {
+    my @addons = split(/,/, $SLE15_DEFAULT_MODULES{get_required_var('SLE_PRODUCT')});
+    push @addons, 'desktop' if check_var('DESKTOP', 'gnome') && ('desktop' !~ @addons);
+    foreach (@addons) {
         send_key 'home';
         send_key_until_needlematch "addon-products-all_packages-$_-highlighted", 'down';
         send_key 'spc';
