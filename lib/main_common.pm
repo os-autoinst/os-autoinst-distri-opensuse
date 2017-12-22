@@ -632,7 +632,7 @@ sub load_rollback_tests {
         loadtest "boot/snapper_rollback";
     }
     if (get_var('MIGRATION_ROLLBACK')) {
-        loadtest "online_migration/sle12_online_migration/snapper_rollback";
+        loadtest "migration/sle12_online_migration/snapper_rollback";
     }
 }
 
