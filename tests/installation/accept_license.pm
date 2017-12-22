@@ -26,7 +26,12 @@ sub run {
     my ($self) = @_;
 
     # workaround for bsc#1069124: Skip the license check in upgrade mode
-    return record_soft_failure('bsc#1069124: License is not shown in upgrade') if is_sle && sle_version_at_least('15') && get_var('UPGRADE');
+    # During upgrade to sle 15, license agreement is shown on aarch64 and s390x
+    # but not shown on ppc64le and x86_64 at the moment
+    if (is_sle && sle_version_at_least(15) && get_var('UPGRADE') && !check_var('ARCH', 'aarch64') && !check_var('ARCH', 's390x')) {
+        send_key $cmd{next};
+        return record_soft_failure('bsc#1069124: License is not shown in upgrade');
+    }
 
     assert_screen([qw(network-settings-button license-agreement)]);
     if (match_has_tag('network-settings-button')) {
