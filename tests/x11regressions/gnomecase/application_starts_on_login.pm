@@ -18,10 +18,16 @@ use version_utils qw(leap_version_at_least sle_version_at_least);
 
 sub tweak_startupapp_menu {
     my ($self) = @_;
-    $self->start_gnome_settings;
-    type_string "tweak";
-    assert_screen "settings-tweak-selected";
-    send_key "ret";
+    unless (sle_version_at_least('15')) {
+        $self->start_gnome_settings;
+        type_string "tweak";
+        assert_screen "settings-tweak-selected";
+        send_key "ret";
+    }
+    else {
+        # tweak-tool entry is not in gnome-control-center of SLE15;
+        x11_start_program 'gnome-tweak-tool';
+    }
     assert_screen "tweak-tool";
     # increase the default timeout - the switching can be slow
     send_key_until_needlematch "tweak-startapp", "down", 10, 2;
@@ -29,10 +35,16 @@ sub tweak_startupapp_menu {
 
 sub start_dconf {
     my ($self) = @_;
-    $self->start_gnome_settings;
-    type_string "dconf";
-    assert_screen "settings-dconf";
-    send_key "ret";
+    unless (sle_version_at_least('15')) {
+        $self->start_gnome_settings;
+        type_string "dconf";
+        assert_screen "settings-dconf";
+        send_key "ret";
+    }
+    else {
+        # dconf-editor entry is not in gnome-control-center of SLE15;
+        x11_start_program 'dconf-editor';
+    }
     if (check_screen("dconf-caution")) {
         assert_and_click "will-be-careful";
     }
@@ -104,6 +116,7 @@ sub run {
 
     handle_logout;
     handle_login;
+    $self->firefox_check_default;
     $self->firefox_check_popups;
     assert_screen "firefox-gnome", 90;
     send_key "alt-f4";
@@ -131,34 +144,35 @@ sub run {
     ##auto-save-session functionality has been abandoned;
     ##current status: just firefox works
     ##so in the future will consider remove openqa code for this session
-    # Install dconf-editor for TW
-    if (check_var('VERSION', 'Tumbleweed')) {
-        select_console('root-console');
-        pkcon_quit;
-        zypper_call('in dconf-editor');
-        select_console('x11');
-    }
-    $self->alter_status_auto_save_session;
-
-    x11_start_program('firefox');
-    wait_still_screen;
-    $self->firefox_check_default;
-    $self->firefox_check_popups;
-    assert_screen "firefox-gnome", 90;
-    handle_logout;
-    handle_login;
-    $self->firefox_check_popups;
-    assert_screen "firefox-gnome", 90;
-    send_key "alt-f4";
-    wait_still_screen;
-    send_key "ret";
-    wait_still_screen;
-
-    if (sle_version_at_least('12-SP2')) {
-        $self->restore_status_auto_save_session;
-    }
-    else {
+    unless (sle_version_at_least('15')) {
+        # Install dconf-editor for TW
+        if (check_var('VERSION', 'Tumbleweed')) {
+            select_console('root-console');
+            pkcon_quit;
+            zypper_call('in dconf-editor');
+            select_console('x11');
+        }
         $self->alter_status_auto_save_session;
+
+        x11_start_program('firefox');
+        wait_still_screen;
+        $self->firefox_check_popups;
+        assert_screen "firefox-gnome", 90;
+        handle_logout;
+        handle_login;
+        $self->firefox_check_popups;
+        assert_screen "firefox-gnome", 90;
+        send_key "alt-f4";
+        wait_still_screen;
+        send_key "ret";
+        wait_still_screen;
+
+        if (sle_version_at_least('12-SP2')) {
+            $self->restore_status_auto_save_session;
+        }
+        else {
+            $self->alter_status_auto_save_session;
+        }
     }
 }
 

@@ -15,6 +15,7 @@ use base "x11regressiontest";
 use strict;
 use testapi;
 use utils;
+use version_utils;
 
 #testcase 5255-1503803: Gnome:Change Password
 
@@ -36,10 +37,10 @@ sub logout_and_login {
     assert_screen 'displaymanager';
     mouse_hide();
     wait_still_screen;
-    send_key 'ret';
+    assert_and_click "displaymanager-$username";
     assert_screen 'displaymanager-password-prompt', no_wait => 1;
     type_password "$newpwd\n";
-    assert_screen "generic-desktop";
+    assert_screen 'generic-desktop', 120;
 }
 
 sub reboot_system {
@@ -49,6 +50,8 @@ sub reboot_system {
     $self->wait_boot(nologin => 1);
     assert_screen "displaymanager", 200;
     $self->{await_reboot} = 0;
+    # The keyboard focus is different between SLE15 and SLE12
+    send_key 'up' if sle_version_at_least('15');
     send_key "ret";
     wait_still_screen;
     type_string "$newpwd\n";
@@ -114,16 +117,13 @@ sub run {
     #swtich to new added user then switch back
     switch_user;
     send_key "esc";
-    assert_screen "displaymanager";
-    send_key "down";
-    send_key "ret";
+    assert_and_click 'displaymanager-test';
     assert_screen "testUser-login-dm";
     type_string "$pwd4newUser\n";
     assert_screen "generic-desktop", 120;
     switch_user;
     send_key "esc";
-    assert_screen "displaymanager";
-    send_key "ret";
+    assert_and_click "displaymanager-$username";
     assert_screen "originUser-login-dm";
     type_string "$newpwd\n";
     assert_screen "generic-desktop", 120;
@@ -142,6 +142,9 @@ sub run {
     assert_screen "password-changed-terminal";
 
     #delete the added user: test
+    # We should kill the active user test in SLE15
+    assert_script_run 'loginctl kill-user test' if (sle_version_at_least('15'));
+    wait_still_screen;
     type_string "userdel -f test\n";
     assert_screen "user-test-deleted";
     send_key "alt-f4";

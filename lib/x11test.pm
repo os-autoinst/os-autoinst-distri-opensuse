@@ -5,6 +5,7 @@ use base "opensusebasetest";
 use strict;
 use testapi;
 use utils 'type_string_slow';
+use version_utils qw(leap_version_at_least sle_version_at_least);
 
 sub post_fail_hook {
     my ($self) = shift;
@@ -28,8 +29,11 @@ sub switch_wm {
     assert_and_click "user-logout-sector";
     assert_and_click "logout-system";
     assert_screen "logout-dialogue";
+    send_key 'tab' if sle_version_at_least('15');
     send_key "ret";
     assert_screen "displaymanager";
+    # The keyboard focus was losing in gdm of SLE15 bgo#657996
+    mouse_set(520, 350) if sle_version_at_least('15');
     send_key "ret";
     assert_screen "originUser-login-dm";
     type_password;
@@ -48,12 +52,19 @@ sub prepare_sle_classic {
     assert_screen "desktop-gnome-classic", 120;
     $self->application_test;
 
-    # Log out and switch to SLE Classic
+    # Log out and switch back to default session
     $self->switch_wm;
     assert_and_click "displaymanager-settings";
-    assert_and_click "dm-sle-classic";
-    send_key "ret";
-    assert_screen "desktop-sle-classic", 120;
+    if (sle_version_at_least('15')) {
+        assert_and_click 'dm-gnome-shell';
+        send_key 'ret';
+        assert_screen 'desktop-gnome-shell', 120;
+    }
+    else {
+        assert_and_click 'dm-sle-classic';
+        send_key 'ret';
+        assert_screen 'desktop-sle-classic', 120;
+    }
 }
 
 sub test_terminal {
