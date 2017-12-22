@@ -546,7 +546,7 @@ sub load_extra_tests {
         # well
         if (check_var('DESKTOP', 'gnome')) {
             loadtest 'x11/yast2_lan_restart';
-            if (!is_sle || sle_version_at_least('12-SP3')) {
+            if (!is_sle || sle_version_at_least('12-SP4')) {
                 loadtest 'x11/network/hwsim_wpa2_enterprise_setup';
                 loadtest 'x11/network/yast2_network_setup';
                 loadtest 'x11/network/NM_wpa2_enterprise';
