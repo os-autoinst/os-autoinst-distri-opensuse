@@ -1,5 +1,5 @@
 <interface>
-  <name>eth0</name>
+  <name>xxx</name>
   <description>Ethernet Card 0</description>
 
   <ipv4:static>

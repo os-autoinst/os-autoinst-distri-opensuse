@@ -32,6 +32,7 @@ sub run {
     $self->get_from_data('wicked/ifcfg-eth0',           "/data/ifcfg-$iface");
     $self->get_from_data('wicked/static-addresses.xml', "/data/static-addresses.xml");
     $self->get_from_data('wicked/ifbind.sh',            '/bin/ifbind.sh', executable => 1);
+    assert_script_run("sed -i 's/xxx/$iface/g' /data/static-addresses.xml");
     reset_network();
     $self->write_journal("***Test 1: Set up static addresses from legacy ifcfg files***");
     assert_script_run("cp /data/ifcfg-$iface /etc/sysconfig/network");
