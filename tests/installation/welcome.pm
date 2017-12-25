@@ -108,7 +108,7 @@ sub run {
     }
 
     assert_screen 'languagepicked';
-    send_key $cmd{next};
+    send_key $cmd{next} unless (is_sle && sle_version_at_least('15') && get_var('UPGRADE'));
     if (!check_var('INSTLANG', 'en_US') && check_screen 'langincomplete', 1) {
         send_key 'alt-f';
     }
