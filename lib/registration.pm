@@ -33,6 +33,7 @@ our @EXPORT = qw(
   skip_registration
   scc_deregistration
   get_addon_fullname
+  rename_scc_addons
   %SLE15_MODULES
   %SLE15_DEFAULT_MODULES
 );
@@ -45,8 +46,10 @@ our %SLE15_MODULES = (
     desktop      => 'Desktop-Applications',
     productivity => 'Desktop-Productivity',
     legacy       => 'Legacy',
-    script       => 'Scripting',
-    serverapp    => 'Server-Applications'
+    script       => 'Web-Scripting',
+    serverapp    => 'Server-Applications',
+    contm        => 'Containers',
+    pcm          => 'Public-Cloud',
 );
 
 # The expected modules of a default installation per product. Use them if they
@@ -226,6 +229,11 @@ sub fill_in_registration_data {
         # The value of SCC_ADDONS is a list of abbreviation of addons/modules
         # Following are abbreviations defined for modules and some addons
         #
+        # sdk - Software Development Kit
+        # we - Workstation
+        # ha - High Availability
+        # geo - Geo Clustering for SUSE Linux Enterprise High Availability
+        # ltss - Long Term Service Pack Support
         # live - Live Patching
         # asmm - Advanced System Management Module
         # certm - Certifications Module
@@ -507,6 +515,36 @@ sub scc_deregistration {
         die "System is still registered" unless $output =~ /Not Registered/;
         save_screenshot;
     }
+}
+
+# Some sle product addons name should be changed for sle15
+# 1, Some extensions / modules are changed since sle15:
+# Advanced Systems Management: packages are moved to SLE 15 base system
+# SLE-HA-GEO extension is merged to SLE-HA extension
+# SDK extension becomes Development-Tools module since sle15
+# Toolchain module: packages are moved to Development module
+# 2, Different addon names used between yast_scc_registration and
+# %SLE15_MODULES, such as:
+# lgm -- legacy
+# wsm -- script
+# Not good idea to use different module names, we have to bridge the
+# gap here to use existing needles
+sub rename_scc_addons {
+    return unless get_var('SCC_ADDONS') && sle_version_at_least('15');
+
+    my %addons_map = (
+        asmm => 'base',
+        geo  => 'ha',
+        tcm  => 'sdk',
+        lgm  => 'legacy',
+        wsm  => 'script',
+    );
+    my @addons_new = ();
+
+    for my $a (split(/,/, get_var('SCC_ADDONS'))) {
+        push @addons_new, defined $addons_map{$a} ? $addons_map{$a} : $a;
+    }
+    set_var('SCC_ADDONS', join(',', @addons_new));
 }
 
 1;
