@@ -67,7 +67,7 @@ sub patching_sle {
     set_var("VIDEOMODE", '');
     # keep the value of SCC_REGISTER for offline migration tests with smt pattern or modules
     # Both of them need registration during offline migration
-    if (!is_smt_or_module_tests) { set_var("SCC_REGISTER", ''); }
+    if (!(is_smt_or_module_tests || get_var('KEEP_REGISTERED'))) { set_var("SCC_REGISTER", ''); }
 
     # mark system patched
     set_var("SYSTEM_PATCHED", 1);
