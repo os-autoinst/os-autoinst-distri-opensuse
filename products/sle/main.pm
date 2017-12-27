@@ -1252,6 +1252,12 @@ elsif (get_var("QA_TESTSET")) {
     }
     loadtest "qa_automation/" . get_var("QA_TESTSET");
 }
+elsif (get_var("QA_TESTSUITE")) {
+    boot_hdd_image;
+    loadtest "qa_automation/prepare_qa_repo";
+    loadtest "qa_automation/install_test_suite";
+    loadtest "qa_automation/execute_test_run";
+}
 elsif (get_var("XFSTESTS")) {
     loadtest "qa_automation/xfstests_prepare_boot";
     loadtest "qa_automation/xfstests_prepare_testsuite";
