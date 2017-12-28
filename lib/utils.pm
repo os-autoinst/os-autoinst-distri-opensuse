@@ -22,7 +22,7 @@ use strict;
 
 use testapi qw(is_serial_terminal :DEFAULT);
 use mm_network;
-use version_utils qw(is_caasp is_leap is_sle is_sle12_hdd_in_upgrade leap_version_at_least sle_version_at_least);
+use version_utils qw(is_caasp is_leap is_tumbleweed is_sle is_sle12_hdd_in_upgrade leap_version_at_least sle_version_at_least);
 
 our @EXPORT = qw(
   check_console_font
@@ -1111,7 +1111,13 @@ sub handle_login {
     }
     if (check_var('DESKTOP', 'gnome') || (check_var('DESKTOP', 'lxde') && check_var('VERSION', '42.1'))) {
         # DMs in condition above have to select user
-        send_key 'ret';
+        if ((is_sle && sle_version_at_least('15')) || (is_leap && leap_version_at_least('15.0')) || is_tumbleweed) {
+            assert_and_click "displaymanager-$username";
+            record_soft_failure 'bgo#657996 - user account not selected by default, have to use mouse to login';
+        }
+        else {
+            send_key 'ret';
+        }
     }
     assert_screen 'displaymanager-password-prompt', no_wait => 1;
     type_password;
