@@ -15,7 +15,7 @@ use base "x11regressiontest";
 use strict;
 use testapi;
 use utils;
-use version_utils 'is_tumbleweed';
+use version_utils qw(is_sle is_tumbleweed sle_version_at_least);
 
 sub run {
     # Edit file hello.odt using oowriter
@@ -36,8 +36,13 @@ sub run {
     wait_still_screen;
     x11_start_program('oowriter');
     send_key "alt-f";
+    # Because of bsc#1074057 alt-f is not working in libreoffice under wayland
+    # use another way to replace alt-f in SLED15
+    if (is_sle && sle_version_at_least('15')) {
+        assert_and_click 'ooffice-writing-file', 'left', 10;
+    }
     assert_screen 'oowriter-menus-file';
-    if (is_tumbleweed) {
+    if (is_tumbleweed || (is_sle && sle_version_at_least('15'))) {
         send_key 'down';
         wait_still_screen 3;
         send_key 'u';

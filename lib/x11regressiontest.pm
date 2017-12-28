@@ -68,7 +68,8 @@ sub clean_shotwell {
 sub upload_libreoffice_specified_file {
 
     x11_start_program('xterm');
-    assert_script_run("wget " . autoinst_url . "/data/x11regressions/ooo-test-doc-types.tar.bz2 -O /home/$username/Documents/ooo-test-doc-types.tar.bz2");
+    type_string_slow("wget " . autoinst_url . "/data/x11regressions/ooo-test-doc-types.tar.bz2 -O /home/$username/Documents/ooo-test-doc-types.tar.bz2");
+    send_key "ret";
     wait_still_screen;
     type_string("cd /home/$username/Documents && ls -l");
     send_key "ret";
@@ -111,7 +112,7 @@ sub cleanup_libreoffice_recent_file {
 }
 
 sub open_libreoffice_options {
-    if (is_tumbleweed) {
+    if (is_tumbleweed or (is_sle && sle_version_at_least('15'))) {
         send_key 'alt-f12';
     }
     else {
