@@ -21,10 +21,14 @@ use testapi;
 my @filenames = qw(newfile newpl.pl);
 
 sub run {
-    # Create a file.
+    x11_start_program('xterm', target_match => 'xterm');
+    # Create test files with contents
     foreach (@filenames) {
-        x11_start_program("touch $_", target_match => 'generic-desktop');
+        assert_script_run("echo 'Hello tracker!' > $_");
     }
+    # Create an empty test file
+    assert_script_run 'touch emptyfile';
+    send_key 'alt-f4';
 }
 
 sub test_flags {
