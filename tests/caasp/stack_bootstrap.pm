@@ -86,8 +86,6 @@ sub setup_root_ca {
 
 # Run bootstrap and download kubeconfig
 sub bootstrap {
-    # Start bootstrap
-
     # Click next button to 'Confirm bootstrap' page
     send_key_until_needlematch 'velum-next', 'pgdn', 2, 5;
     assert_and_click 'velum-next';
@@ -106,15 +104,9 @@ sub bootstrap {
     assert_and_click "velum-bootstrap";
 
     # Wait until bootstrap finishes
-    if (is_caasp '3.0+') {
-        assert_screen 'velum-bootstrap-done', 900;
-        setup_root_ca;
-    }
-    else {
-        assert_screen 'velum-api-disconnected', 300;
-        setup_root_ca;
-        assert_screen 'velum-bootstrap-done', 600;
-    }
+    assert_screen [qw(velum-bootstrap-done velum-api-disconnected)], 900;
+    setup_root_ca;
+    assert_screen 'velum-bootstrap-done', 900;
 }
 
 # Download kubeconfig
