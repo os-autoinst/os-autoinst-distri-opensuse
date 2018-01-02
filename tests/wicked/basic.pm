@@ -26,36 +26,36 @@ use utils qw(systemctl arrays_differ);
 sub run {
     my ($self) = @_;
     my $iface = script_output('echo $(ls /sys/class/net/ | grep -v lo | head -1)');
-    $self->write_journal("***Test 1: Bring down the wicked client service***");
+    type_string("#***Test 1: Bring down the wicked client service***\n");
     systemctl('stop wicked.service');
     $self->assert_wicked_state(wicked_client_down => 1, interfaces_down => 1);
-    $self->write_journal("***Test 2: Bring up the wicked client service***");
+    type_string("#***Test 2: Bring up the wicked client service***\n");
     systemctl('start wicked.service');
     $self->assert_wicked_state();
-    $self->write_journal("***Test 3: Bring down the wicked server service***");
+    type_string("#***Test 3: Bring down the wicked server service***\n");
     systemctl('stop wickedd.service');
     $self->assert_wicked_state(wicked_daemon_down => 1);
     assert_script_run("! ifdown $iface");
-    $self->write_journal("***Test 4: Bring up the wicked server service***");
+    type_string("#***Test 4: Bring up the wicked server service***\n");
     systemctl('start wickedd.service');
     $self->assert_wicked_state();
     assert_script_run("ifup $iface");
-    $self->write_journal("***Test 5: List the network interfaces with wicked***");
+    type_string("#***Test 5: List the network interfaces with wicked***\n");
     my @wicked_all_ifaces = split("\n", script_output("wicked show --brief all"));
     foreach (@wicked_all_ifaces) {
         $_ = substr($_, 0, index($_, ' '));
     }
     my @ls_all_ifaces = split(' ', script_output("ls /sys/class/net/"));
     die "Wrong list of interfaces from wicked" if arrays_differ(\@wicked_all_ifaces, \@ls_all_ifaces);
-    $self->write_journal("***Test 6: Bring an interface down with wicked***");
+    type_string("#***Test 6: Bring an interface down with wicked***\n");
     assert_script_run("ifdown $iface");
     assert_script_run("ping -q -c1 -W1 -I $iface 10.0.2.2 2>&1 | grep -q ' Network is unreachable'");
     assert_script_run("! \$(ip address show dev $iface | grep -q 'inet')");
-    $self->write_journal("***Test 7: Bring an interface up with wicked***");
+    type_string("#***Test 7: Bring an interface up with wicked***\n");
     assert_script_run("ifup $iface");
     assert_script_run("ping -q -c1 -W1 -I $iface 10.0.2.2");
     assert_script_run("ip address show dev $iface | grep -q 'inet'");
-    $self->save_and_upload_wicked_log('basic');
+    $self->save_and_upload_wicked_log();
 }
 
 1;
