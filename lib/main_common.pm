@@ -850,7 +850,14 @@ sub load_create_hdd_tests {
     loadtest 'console/scc_deregistration' if get_var('SCC_DEREGISTER');
     loadtest 'shutdown/grub_set_bootargs';
     loadtest 'shutdown/shutdown';
-    loadtest 'shutdown/svirt_upload_assets' if check_var('BACKEND', 'svirt');
+    if (check_var('BACKEND', 'svirt')) {
+        if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
+            loadtest 'shutdown/hyperv_upload_assets';
+        }
+        else {
+            loadtest 'shutdown/svirt_upload_assets';
+        }
+    }
 }
 
 sub load_virtualization_tests {
