@@ -13,6 +13,7 @@
 use base "x11regressiontest";
 use strict;
 use testapi;
+use version_utils qw(is_sle sle_version_at_least);
 
 sub run {
     my $self = shift;
@@ -34,7 +35,12 @@ sub run {
         send_key_until_needlematch("libreoffice-specified-list-$tag", "right", 50, 1);
         assert_and_dclick("libreoffice-specified-list-$tag");
         assert_screen("libreoffice-test-$tag", 90);
-        send_key 'ctrl-q';
+        if (is_sle && sle_version_at_least('15')) {
+            send_key 'alt-f4';
+        }
+        else {
+            send_key 'ctrl-q';
+        }
     }
     if (!check_screen("generic-desktop")) {
         send_key "ctrl-q";
