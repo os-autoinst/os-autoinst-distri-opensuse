@@ -14,7 +14,7 @@ use base 'installbasetest';
 use strict;
 use warnings;
 use testapi;
-use utils;
+use version_utils;
 
 use File::Basename 'fileparse_set_fstype';
 
