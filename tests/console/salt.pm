@@ -29,9 +29,11 @@ systemctl start salt-minion
 systemctl status --no-pager salt-minion
 EOF
     assert_script_run($_) foreach (split /\n/, $cmd);
-    sleep(30);    # left the minion some time to send its public key poo#28723
+    record_soft_failure 'bsc#1069711';    # Added 30s wait for public key from minion present in master
+    sleep(30);
     assert_script_run("salt-key --accept-all -y");
-    validate_script_output "salt '*' test.ping -t 30 | grep -woh True > /dev/$serialdev", sub { m/True/ };
+    record_soft_failure 'bsc#1069711';    # Added 120s to ping minion
+    validate_script_output "salt '*' test.ping -t 120 | grep -woh True > /dev/$serialdev", sub { m/True/ }, 120;
     assert_script_run 'systemctl stop salt-master salt-minion';
 }
 
