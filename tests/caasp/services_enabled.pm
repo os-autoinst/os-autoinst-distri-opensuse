@@ -17,8 +17,9 @@ use utils;
 use testapi;
 
 my %services_for = (
-    default => [qw(sshd cloud-init-local cloud-init cloud-config cloud-final issue-generator issue-add-ssh-keys)],
-    admin   => [qw(docker kubelet etcd ntpd)],
+    default => [qw(sshd cloud-init-local cloud-init cloud-config cloud-final issue-generator issue-add-ssh-keys transactional-update.timer)],
+    cluster => [qw(etcd container-feeder)],
+    admin   => [qw(docker kubelet ntpd)],
     worker  => [qw(salt-minion systemd-timesyncd)],
     plain   => undef
 );
@@ -36,7 +37,7 @@ sub run {
     check_services $services_for{default};
     check_services $services_for{$role} if $role;
     if (check_var('DISTRI', 'caasp')) {
-        check_services [qw(container-feeder)] if (check_var('SYSTEM_ROLE', 'admin') || check_var('SYSTEM_ROLE', 'worker'));
+        check_services $services_for{cluster} if $role =~ /admin|worker/;
     }
 
 }
