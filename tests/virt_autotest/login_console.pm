@@ -7,14 +7,14 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
-package login_console;
-# Summary: virt_autotest: the initial version of virtualization automation test in openqa, with kvm support fully, xen support not done yet
+# Summary: virt_autotest: the initial version of virtualization automation test in openqa, with kvm and xen support fully
 # Maintainer: alice <xlai@suse.com>
 
+package login_console;
+use base "y2logsstep";
 use strict;
 use warnings;
 use File::Basename;
-use base "opensusebasetest";
 use testapi;
 use ipmi_backend_utils;
 

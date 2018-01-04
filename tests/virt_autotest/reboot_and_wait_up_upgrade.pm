@@ -18,7 +18,7 @@ use base "reboot_and_wait_up";
 
 sub run {
     my $self    = shift;
-    my $timeout = 1200;
+    my $timeout = 600;
     set_var("reboot_for_upgrade_step", "yes");
     $self->reboot_and_wait_up($timeout);
 }
