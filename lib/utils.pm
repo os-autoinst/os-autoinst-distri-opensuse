@@ -27,7 +27,6 @@ use version_utils qw(is_caasp is_leap is_tumbleweed is_sle is_sle12_hdd_in_upgra
 our @EXPORT = qw(
   check_console_font
   clear_console
-  select_kernel
   type_string_slow
   type_string_very_slow
   save_svirt_pty
@@ -188,33 +187,6 @@ sub assert_gui_app {
     ensure_installed($application) if $args{install};
     x11_start_program("$application $args{exec_param}", target_match => "test-$application-started");
     send_key "alt-f4" unless $args{remain};
-}
-
-sub select_kernel {
-    my $kernel = shift;
-
-    assert_screen ['grub2', "grub2-$kernel-selected"], 100;
-    if (match_has_tag "grub2-$kernel-selected") {    # if requested kernel is selected continue
-        send_key 'ret';
-    }
-    else {                                           # else go to that kernel thru grub2 advanced options
-        send_key_until_needlematch 'grub2-advanced-options', 'down';
-        send_key 'ret';
-        send_key_until_needlematch "grub2-$kernel-selected", 'down';
-        send_key 'ret';
-    }
-    if (get_var('NOAUTOLOGIN')) {
-        my $ret = assert_screen 'displaymanager', 200;
-        mouse_hide();
-        if (get_var('DM_NEEDS_USERNAME')) {
-            type_string $username;
-        }
-        else {
-            wait_screen_change { send_key 'ret' };
-        }
-        type_password;
-        send_key 'ret';
-    }
 }
 
 # 13.2, Leap 42.1, SLE12 GA&SP1 have problems with setting up the
