@@ -169,11 +169,6 @@ sub prepare_system_shutdown {
         }
         console('installation')->disable_vnc_stalls;
     }
-    if (check_var('BACKEND', 'svirt')) {
-        my $vnc_console = get_required_var('SVIRT_VNC_CONSOLE');
-        console($vnc_console)->disable_vnc_stalls;
-        console('svirt')->stop_serial_grab;
-    }
 }
 
 # assert_gui_app (optionally installs and) starts an application, checks it started
@@ -452,7 +447,10 @@ sub assert_shutdown_and_restore_system {
     $shutdown_timeout //= 60;
     my $vnc_console = get_required_var('SVIRT_VNC_CONSOLE');
     console($vnc_console)->disable_vnc_stalls;
-    assert_shutdown($shutdown_timeout);
+    # Ideally, `assert_shutdown` is here instead of `sleep`, but poo#16418
+    # prevent us to be it so. Rather wait couple of seconds more than risk
+    # an 2 hour hang.
+    sleep($shutdown_timeout);
     if ($action eq 'reboot') {
         reset_consoles;
         # Set disk as a primary boot device
@@ -642,6 +640,10 @@ sub power_action {
     $args{textmode}    //= check_var('DESKTOP', 'textmode');
     die "'action' was not provided" unless $action;
     prepare_system_shutdown;
+    if (check_var('BACKEND', 'svirt')) {
+        my $vnc_console = get_required_var('SVIRT_VNC_CONSOLE');
+        console($vnc_console)->disable_vnc_stalls;
+    }
     unless ($args{keepconsole}) {
         select_console $args{textmode} ? 'root-console' : 'x11';
     }
