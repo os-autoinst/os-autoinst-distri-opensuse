@@ -16,7 +16,7 @@
 # Summary:  [qa_automation] kexec testsuite
 # Maintainer: Nathan Zhao <jtzhao@suse.com>
 
-use base "qa_run";
+use base "opensusebasetest";
 use strict;
 use testapi;
 
