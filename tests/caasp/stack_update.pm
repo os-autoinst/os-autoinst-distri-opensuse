@@ -64,7 +64,7 @@ sub run {
     assert_and_click 'velum-update-reboot';
 
     # Update all nodes - this part takes long time (~2 minutes per node)
-    assert_screen "velum-$nodes-nodes-outdated", 300;
+    assert_screen "velum-$nodes-nodes-outdated", 1200;
     die "Admin should be updated already" if check_screen 'velum-update-admin', 0;
     assert_and_click "velum-update-all";
 

@@ -30,6 +30,9 @@ sub export_cluster_logs {
 
     upload_logs('/var/log/transactional-update.log', failok => 1);
     upload_logs('/var/log/YaST2/y2log-1.gz') if get_var 'AUTOYAST';
+    # bug: supportconfig is not collecing all the required logs
+    script_run 'docker logs $(docker ps -a | grep "velum-dashboard" | awk \'{print $1}\') > velum-dashboard.log', 60;
+    upload_logs('velum-dashboard.log', failok => 1);
 }
 
 # Weak password warning should be displayed only once - bsc#1025835
