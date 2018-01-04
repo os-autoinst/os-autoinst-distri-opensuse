@@ -36,6 +36,12 @@ sub patching_sle {
     yast_scc_registration();
     assert_script_run('zypper lr -d');
 
+    # install all patterns
+    install_patterns() if (get_var('PATTERNS'));
+
+    # install package from parameter
+    install_package() if (get_var('PACKAGES'));
+
     # add test repositories and logs the required patches
     add_test_repositories();
 
@@ -71,6 +77,53 @@ sub patching_sle {
 
     # mark system patched
     set_var("SYSTEM_PATCHED", 1);
+}
+
+sub install_package {
+    my @pk_list = split(/,/, get_var('PACKAGES'));
+    for my $pk (@pk_list) {
+        # removed package if starting with -
+        if ($pk =~ /^-/) {
+            $pk =~ s/^-//;
+            zypper_call "rm -t package $pk";
+        }
+        else {
+            zypper_call "in -t package $pk";
+        }
+    }
+}
+
+sub install_patterns {
+    my $pcm = 0;
+    my @pt_list;
+    my @pt_list_un;
+    my @pt_list_in = split(/ /, script_output("zypper pt -i | grep '^i' | awk -F '|' '{print \$2}' | sort -u | xargs"));
+
+    # install all patterns from product.
+    if (check_var('PATTERNS', 'all')) {
+        @pt_list_un = split(/ /, script_output("zypper pt -u | grep '^ ' | awk '{print \$2}' | sort -u | xargs"));
+    }
+    # install certain pattern from parameter.
+    else {
+        @pt_list_un = split(/,/, get_var('PATTERNS'));
+    }
+
+    my %installed_pt = ();
+    foreach (@pt_list_in) {
+        $installed_pt{$_} = 1;
+    }
+    @pt_list = sort grep(!$installed_pt{$_}, @pt_list_un);
+    $pcm = grep /Amazon-Web-Services|Google-Cloud-Platform|Microsoft-Azure/, @pt_list_in;
+
+    for my $pt (@pt_list) {
+        # Cloud patterns are conflict by each other, only install cloud pattern from single vender.
+        if ($pt =~ /Amazon-Web-Services|Google-Cloud-Platform|Microsoft-Azure/) {
+            next unless $pcm == 0;
+            $pt .= '*';
+            $pcm = 1;
+        }
+        zypper_call "in -t pattern $pt";
+    }
 }
 
 sub run {
