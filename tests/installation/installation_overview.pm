@@ -24,6 +24,10 @@ sub run {
     record_soft_failure('bsc#1054974') if get_var('ALL_MODULES');
     # overview-generation
     # this is almost impossible to check for real
+    if (check_screen('missing_gnome_basic', 0)) {
+        record_soft_failure('bsc#1069728: Offline migration from SLES 11SP4 to SLES15 failed: gnome-basic pattern not found');
+        send_key 'alt-o';
+    }
     assert_screen "installation-settings-overview-loaded";
 
     $self->deal_with_dependency_issues;
