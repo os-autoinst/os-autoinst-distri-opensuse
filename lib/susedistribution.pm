@@ -2,7 +2,7 @@ package susedistribution;
 use base 'distribution';
 use serial_terminal ();
 use strict;
-use utils qw(type_string_slow ensure_unlocked_desktop save_svirt_pty get_root_console_tty get_x11_console_tty);
+use utils qw(type_string_slow ensure_unlocked_desktop save_svirt_pty get_root_console_tty get_x11_console_tty ensure_serialdev_permissions);
 use version_utils qw(is_hyperv_in_gui sle_version_at_least);
 
 # Base class implementation of distribution class necessary for testapi
@@ -180,11 +180,13 @@ sub ensure_installed {
     $args{timeout} //= 90;
 
     testapi::x11_start_program('xterm');
-    testapi::assert_script_sudo("chown $testapi::username /dev/$testapi::serialdev");
-    my $retries = 5;    # arbitrary
+    $self->become_root;
+    ensure_serialdev_permissions;
 
     # make sure packagekit service is available
-    testapi::assert_script_sudo('systemctl is-active -q packagekit || (systemctl unmask -q packagekit ; systemctl start -q packagekit)');
+    testapi::assert_script_run('systemctl is-active -q packagekit || (systemctl unmask -q packagekit ; systemctl start -q packagekit)');
+    type_string "exit\n";
+    my $retries = 5;    # arbitrary
     $self->script_run(
 "for i in {1..$retries} ; do pkcon install -yp $pkglist && break ; done ; RET=\$?; echo \"\n  pkcon finished\n\"; echo \"pkcon-\${RET}-\" > /dev/$testapi::serialdev",
         0

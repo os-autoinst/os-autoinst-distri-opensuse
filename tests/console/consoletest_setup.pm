@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -61,7 +61,7 @@ sub run {
 
     # init
     check_console_font;
-    type_string "chown $username /dev/$serialdev\n";
+    ensure_serialdev_permissions;
     script_run 'echo "set -o pipefail" >> /etc/bash.bashrc.local';
     script_run '. /etc/bash.bashrc.local';
     # Export the existing status of running tasks and system load for future reference (fail would export it again)

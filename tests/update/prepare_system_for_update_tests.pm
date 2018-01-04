@@ -1,4 +1,4 @@
-# Copyright (C) 2017 SUSE LLC
+# Copyright (C) 2017-2018 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,8 +23,8 @@ use utils;
 
 sub run {
     select_console 'root-console';
+    ensure_serialdev_permissions;
 
-    assert_script_run "chown $testapi::username /dev/$testapi::serialdev";
     assert_script_run "echo \"download.use_deltarpm = false\" >> /etc/zypp/zypp.conf";
     assert_script_run "systemctl unmask packagekit";
     assert_script_run "pkcon refresh", 300;

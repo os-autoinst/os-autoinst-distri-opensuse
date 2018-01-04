@@ -66,6 +66,7 @@ our @EXPORT = qw(
   OPENQA_FTP_URL
   setup_static_network
   arrays_differ
+  ensure_serialdev_permissions
 );
 
 
@@ -892,19 +893,19 @@ sub run_scripted_command_slow {
 
 
 =head2 get_root_console_tty
-    Returns tty number used designed to be used for root-console.
-    When console is not yet initialized, we cannot get it from arguments.
-    Since SLE 15 gdm is running on tty2, so we change behaviour for it and
-    openSUSE distris.
+Returns tty number used designed to be used for root-console.
+When console is not yet initialized, we cannot get it from arguments.
+Since SLE 15 gdm is running on tty2, so we change behaviour for it and
+openSUSE distris.
 =cut
 sub get_root_console_tty {
     return (sle_version_at_least('15') && !is_caasp) ? 6 : 2;
 }
 
 =head2 get_x11_console_tty
-    Returns tty number used designed to be used for X
-    Since SLE 15 gdm is always running on tty7, currently the main GUI session
-    is running on tty2 by default. see also: bsc#1054782
+Returns tty number used designed to be used for X
+Since SLE 15 gdm is always running on tty7, currently the main GUI session
+is running on tty2 by default. see also: bsc#1054782
 =cut
 sub get_x11_console_tty {
     my $new_gdm
@@ -917,8 +918,8 @@ sub get_x11_console_tty {
 }
 
 =head2 setup_static_network
-   Configure static IP on SUT with setting up DNS and default GW.
-   Also doing test ping to 10.0.2.2 to check that network is alive
+Configure static IP on SUT with setting up DNS and default GW.
+Also doing test ping to 10.0.2.2 to check that network is alive
 =cut
 sub setup_static_network {
     my ($self, $ip) = @_;
@@ -931,8 +932,8 @@ sub setup_static_network {
 }
 
 =head2  arrays_differ
- Comparing two arrays passed by reference. Return 1 if arrays has symmetric difference
- and 0 otherwise.
+Comparing two arrays passed by reference. Return 1 if arrays has symmetric difference
+and 0 otherwise.
 =cut
 sub arrays_differ {
     my ($array1_ref, $array2_ref) = @_;
@@ -943,6 +944,19 @@ sub arrays_differ {
         return 1 if !grep($item eq $_, @array2);
     }
     return 0;
+}
+
+=head2 ensure_serialdev_permissions
+Grant user permission to access serial port immediately as well as persisting
+over reboots. Used to ensure that testapi calls like script_run work for the
+test user as well as root.
+=cut
+sub ensure_serialdev_permissions {
+    my ($self) = @_;
+    # ownership has effect immediately, group change is for effect after
+    # reboot an alternative https://superuser.com/a/609141/327890 would need
+    # handling of optional sudo password prompt within the exec
+    assert_script_run "chown $testapi::username /dev/$testapi::serialdev && gpasswd -a $testapi::username dialout";
 }
 
 1;

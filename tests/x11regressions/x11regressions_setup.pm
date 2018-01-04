@@ -1,6 +1,6 @@
 # X11 regression tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -13,21 +13,13 @@
 use base "x11regressiontest";
 use strict;
 use testapi;
+use utils 'ensure_serialdev_permissions';
 
 sub run {
+    select_console 'root-console';
+    ensure_serialdev_permissions;
     #Switch to x11 console, if not selected, before trying to start xterm
     select_console('x11');
-
-    x11_start_program('xterm');
-
-    # grant user permission to access serial port until next reboot
-    script_sudo "chown $username /dev/$serialdev";
-
-    # get permanent user permission to access serial port even if reboot
-    script_sudo "gpasswd -a $username \$(ls -l /dev/$serialdev | awk \"{print \\\$4}\")";
-
-    # quit xterm
-    type_string "exit\n";
 }
 
 # add milestone flag to save setup in lastgood vm snapshot
