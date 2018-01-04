@@ -195,7 +195,7 @@ sub select_bootmenu_more {
         send_key_until_needlematch $tag, 'up';
     }
     else {
-        send_key_until_needlematch($tag, 'down', 10, 5);
+        send_key_until_needlematch($tag, 'down', 10, 3);
     }
     if (get_var('UEFI')) {
         send_key 'e';
