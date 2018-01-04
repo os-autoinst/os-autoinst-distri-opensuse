@@ -41,7 +41,6 @@ our @EXPORT = qw(
   ensure_unlocked_desktop
   install_to_other_at_least
   ensure_fullscreen
-  ensure_shim_import
   reboot_x11
   poweroff_x11
   power_action
@@ -396,16 +395,6 @@ sub ensure_fullscreen {
         assert_screen($args{tag});
         my $console = select_console("installation");
         $console->fullscreen({window_name => 'YaST2*'});
-    }
-}
-
-sub ensure_shim_import {
-    my (%args) = @_;
-    $args{tags} //= [qw(inst-bootmenu bootloader-shim-import-prompt)];
-    assert_screen($args{tags}, 30);
-    if (match_has_tag("bootloader-shim-import-prompt")) {
-        send_key "down";
-        send_key "ret";
     }
 }
 
