@@ -22,6 +22,10 @@ sub save_logs_and_resume {
     my $self = shift;
     $self->get_to_console;
     $self->save_upload_y2logs();
+
+    # cleanup
+    type_string "cd /\n";
+    type_string "reset\n";
     select_console 'installation';
 }
 
