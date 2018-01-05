@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -21,13 +21,15 @@ use parent 'caasp_controller';
 
 use strict;
 use testapi;
+use utils 'ensure_serialdev_permissions';
 
 sub run {
     select_console 'x11';
     x11_start_program('xterm');
+    become_root;
+    ensure_serialdev_permissions;
+    type_string "exit\n";
 
-    # Fix permissions
-    assert_script_sudo "chown $testapi::username /dev/$testapi::serialdev";
     # Disable screensaver
     script_run "gsettings set org.gnome.desktop.session idle-delay 0";
     # Update kubectl

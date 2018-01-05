@@ -1,4 +1,4 @@
-# Copyright (C) 2017 SUSE Linux GmbH
+# Copyright (C) 2017-2018 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -41,7 +41,7 @@ sub setup_migration {
     script_run "systemctl mask packagekit.service";
     script_run "systemctl stop packagekit.service";
 
-    type_string "chown $username /dev/$serialdev\n";
+    ensure_serialdev_permissions;
 
     # enable Y2DEBUG all time
     type_string "echo 'export Y2DEBUG=1' >> /etc/bash.bashrc.local\n";

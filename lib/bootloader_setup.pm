@@ -46,6 +46,7 @@ our @EXPORT = qw(
   $zkvm_img_path
   set_framebuffer_resolution
   set_extrabootparams_grub_conf
+  ensure_shim_import
 );
 
 our $zkvm_img_path = "/var/lib/libvirt/images";
@@ -614,6 +615,17 @@ sub set_extrabootparams_grub_conf {
         assert_script_run("sed -ie '/${grub_cmdline_label}=/s/\"\$/ $extrabootparams \"/' /etc/default/grub");
     }
 }
+
+sub ensure_shim_import {
+    my (%args) = @_;
+    $args{tags} //= [qw(inst-bootmenu bootloader-shim-import-prompt)];
+    assert_screen($args{tags}, 30);
+    if (match_has_tag("bootloader-shim-import-prompt")) {
+        send_key "down";
+        send_key "ret";
+    }
+}
+
 1;
 
 # vim: sw=4 et
