@@ -25,10 +25,7 @@ use utils;
 sub run {
     select_console 'root-console';
 
-    zypper_call('in openvswitch-switch', timeout => 200);
-    if (check_var('DPDK', 1)) {
-        zypper_call('in openvswitch-dpdk', timeout => 200);
-    }
+    zypper_call('in openvswitch-switch dpdk qemu', timeout => 200);
 
     # Start the openvswitch daemon
     assert_script_run "systemctl start openvswitch", 200;

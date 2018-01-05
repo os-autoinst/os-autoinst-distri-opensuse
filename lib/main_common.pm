@@ -682,6 +682,7 @@ sub load_nfv_master_tests {
     boot_hdd_image();
     loadtest "nfv/openvswitch_dpdk";
     loadtest "nfv/vsperf_installation";
+    loadtest "nfv/run_integration_tests";
 }
 
 sub load_nfv_trafficgen_tests {

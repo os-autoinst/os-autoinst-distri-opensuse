@@ -24,13 +24,15 @@ use utils;
 
 sub run {
     my $vsperf_repo = "https://gerrit.opnfv.org/gerrit/vswitchperf";
+    my $dpdk_repo = "http://dpdk.org/git/dpdk";
 
     select_console 'root-console';
 
-    zypper_call('in git-core', timeout => 200);
+    zypper_call('in git-core tcpdump', timeout => 200);
 
-    # Clone repository
+    # Clone repositories
     assert_script_run "git clone $vsperf_repo";
+    assert_script_run "git clone $dpdk_repo";
     assert_script_run "cd vswitchperf/systems";
 
     # Hack to skip the OVS, DPDK and QEMU compilation as SLE15 will use the vanilla packages
