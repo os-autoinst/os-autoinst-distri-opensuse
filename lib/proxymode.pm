@@ -11,7 +11,7 @@ package proxymode;
 # Summary: proxymode: The basic lib for using proxy mode to connect or operation with physical machine
 # Maintainer: John <xgwang@suse.com>
 
-use base 'basetest';
+use base 'y2logsstep';
 use testapi;
 use strict;
 
