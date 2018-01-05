@@ -55,9 +55,9 @@ sub setup_pxe_server {
 sub setup_http_server {
     return if $http_server_set;
 
-    $setup_script .= "rcapache2 stop\n";
+    $setup_script .= "systemctl stop apache2\n";
     $setup_script .= "curl -f -v " . autoinst_url . "/data/supportserver/http/apache2  >/etc/sysconfig/apache2\n";
-    $setup_script .= "rcapache2 start\n";
+    $setup_script .= "systemctl start apache2\n";
 
     $http_server_set = 1;
 }
@@ -71,8 +71,7 @@ sub setup_ftp_server {
 sub setup_tftp_server {
     return if $tftp_server_set;
 
-    $setup_script .= "rcatftpd stop\n";
-    $setup_script .= "rcatftpd start\n";
+    $setup_script .= "systemctl restart atftpd\n";
 
     $tftp_server_set = 1;
 }
@@ -91,7 +90,7 @@ sub setup_networks {
         $setup_script .= "MTU='1458'\n";
         $setup_script .= "EOT\n";
     }
-    $setup_script .= "rcnetwork restart\n";
+    $setup_script .= "systemctl restart network\n";
 
     $setup_script .= "FIXED_NIC=`grep $net_conf->{fixed}->{mac} /sys/class/net/*/address |cut -d / -f 5`\n";
     $setup_script .= "iptables -t nat -A POSTROUTING -o \$FIXED_NIC -j MASQUERADE\n";
@@ -124,9 +123,9 @@ sub setup_dns_server {
         chown named:named /var/lib/named/master
 
         netconfig update -f
-        rcnamed start
-        rcnamed status
-        rcdhcpd restart
+        systemctl start named
+        systemctl status named
+        systemctl restart dhcpd
     ";
     $dns_server_set = 1;
 }
@@ -136,7 +135,7 @@ sub setup_dhcp_server {
     return if $dhcp_server_set;
     my $net_conf = parse_network_configuration();
 
-    $setup_script .= "rcdhcpd stop\n";
+    $setup_script .= "systemctl stop dhcpd\n";
     $setup_script .= "cat  >/etc/dhcpd.conf <<EOT\n";
     $setup_script .= "default-lease-time 14400;\n";
     if ($dns) {
@@ -194,7 +193,7 @@ sub setup_dhcp_server {
     $setup_script .= "\"\n";
     $setup_script .= 'sed -i -e "s|^DHCPD_INTERFACE=.*|DHCPD_INTERFACE=\"$NIC_LIST\"|" /etc/sysconfig/dhcpd' . "\n";
 
-    $setup_script .= "rcdhcpd start\n";
+    $setup_script .= "systemctl start dhcpd\n";
 
     $dhcp_server_set = 1;
 }
@@ -209,13 +208,9 @@ sub setup_nfs_mount {
 sub setup_ssh_server {
     return if $ssh_server_set;
 
-    # If SLES(gnome) support server image is used, we should configure the firewall
-    if (check_var('DESKTOP', 'gnome')) {
-        $setup_script .= "yast2 firewall services add zone=EXT service=service:sshd\n";
-    }
-    $setup_script .= "chkconfig sshd on\n";
-    $setup_script .= "rcsshd start\n";
-    $setup_script .= "rcsshd status\n";
+    $setup_script .= "yast2 firewall services add zone=EXT service=service:sshd\n";
+    $setup_script .= "systemctl restart sshd\n";
+    $setup_script .= "systemctl status sshd\n";
 
     $ssh_server_set = 1;
 }
@@ -223,9 +218,9 @@ sub setup_ssh_server {
 sub setup_ntp_server {
     return if $ntp_server_set;
 
-    script_run 'yast2 firewall services add zone=EXT service=service:ntp';
-    script_run 'echo "server pool.ntp.org" >> /etc/ntp.conf';
-    script_run 'systemctl start ntpd';
+    $setup_script .= "yast2 firewall services add zone=EXT service=service:ntp\n";
+    $setup_script .= "echo 'server pool.ntp.org' >> /etc/ntp.conf\n";
+    $setup_script .= "systemctl restart ntpd\n";
 
     $ntp_server_set = 1;
 }
@@ -257,7 +252,7 @@ sub setup_xvnc_server {
     send_key 'ret';
     wait_serial('yast-remote-status-0', 90) || die "'yast remote' didn't finish";
     wait_still_screen 3;
-    script_run 'systemctl restart display-manager.service';
+    systemctl('restart display-manager');
     assert_screen 'displaymanager';
     select_console 'root-console';
 
@@ -274,7 +269,7 @@ sub setup_xdmcp_server {
     script_run 'yast2 firewall services add zone=EXT service=service:xdmcp';
     script_run "sed -i -e 's|^DISPLAYMANAGER_REMOTE_ACCESS=.*|DISPLAYMANAGER_REMOTE_ACCESS=\"yes\"|' /etc/sysconfig/displaymanager";
     script_run "sed -i -e 's|^\\[xdmcp\\]|\\[xdmcp\\]\\nMaxSessions=2|' /etc/gdm/custom.conf";
-    script_run 'systemctl restart display-manager.service';
+    systemctl('restart display-manager');
     assert_screen 'displaymanager';
     select_console 'root-console';
 
@@ -375,12 +370,12 @@ sub setup_iscsi_server {
     # Now we need to enable iSCSI Demo Mode
     # With this mode, we don't need to manage iSCSI initiators
     # It's OK for a test/QA system, but of course not for a production one!
-    script_run 'systemctl stop target.service';
+    systemctl('stop target');
     script_run "sed -i -e '/\\/demo_mode_write_protect\$/s/^echo 1/echo 0/' \\
                        -e '/\\/cache_dynamic_acls\$/s/^echo 0/echo 1/'      \\
                        -e '/\\/generate_node_acls\$/s/^echo 0/echo 1/'      \\
                        -e '/\\/authentication\$/s/^echo 1/echo 0/' /etc/target/lio_setup.sh";
-    script_run 'systemctl start target.service';
+    systemctl('start target');
     select_console 'root-console';
 
     $iscsi_server_set = 1;
@@ -398,7 +393,7 @@ sub setup_aytests {
     chmod 755 /srv/www/cgi-bin/aytests
 
     cp -pr /var/lib/autoinstall/aytests /srv/www/htdocs/aytests
-    rcapache2 restart
+    systemctl restart apache2;
     ";
 }
 
@@ -470,7 +465,7 @@ sub run {
           . "/data/supportserver/proxy.conf | sed -e 's|#AUTOINST_URL#|"
           . autoinst_url
           . "|g' >/etc/apache2/vhosts.d/proxy.conf\n";
-        $setup_script .= "rcapache2 restart\n";
+        $setup_script .= "systemctl restart apache2\n";
         push @mutexes, 'qemuproxy';
     }
     if (exists $server_roles{dns}) {
