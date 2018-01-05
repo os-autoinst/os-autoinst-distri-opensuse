@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -31,7 +31,8 @@ sub run {
     assert_script_run('sed -e "s/^WICKED_DEBUG=.*/WICKED_DEBUG=\"all\"/g" -i /etc/sysconfig/network/config');
     assert_script_run('sed -e "s/^WICKED_LOG_LEVEL=.*/WICKED_LOG_LEVEL=\"debug\"/g" -i /etc/sysconfig/network/config');
     assert_script_run('cat /etc/sysconfig/network/config');
-    assert_script_run('mkdir /data');
+    #preparing directories for holding config files
+    assert_script_run('mkdir -p /data/{static_address,dynamic_address}');
 }
 
 sub test_flags {
