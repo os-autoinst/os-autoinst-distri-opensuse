@@ -47,21 +47,25 @@ sub run {
 
     # preparation of source repositories
     my $cmd;
-    if (check_var('DISTRI', 'sle')) {
+    if (is_sle) {
+        if (sle_version_at_least('15') and get_var('REPO_SLE15_MODULE_BASESYSTEM_SOURCE')) {
+            $cmd = "ar -f " . "$utils::OPENQA_FTP_URL/" . get_var('REPO_SLE15_MODULE_BASESYSTEM_SOURCE') . " repo-source";
+        }
+        elsif (sle_version_at_least('12-SP4') and get_var('REPO_SLES_SOURCE')) {
+            $cmd = "ar -f " . "$utils::OPENQA_FTP_URL/" . get_var('REPO_SLES_SOURCE') . " repo-source";
+        }
         # SLE maintenance tests are assumed to be SCC registered
         # and source repositories disabled by default
-        if (get_var('FLAVOR') =~ /-Updates$|-Incidents$/) {
+        elsif (get_var('FLAVOR') =~ /-Updates$|-Incidents$/) {
             $cmd = q{mr -e $(zypper -n lr | awk '/-Source/ {print $1}')};
         }
         # use dvd2 as the src-repository
+        # Xen PV has different device for 2nd CDROM
+        elsif (check_var('VIRSH_VMM_TYPE', 'linux')) {
+            $cmd = 'ar --type plaindir hd:///?device=/dev/xvda repo-source';
+        }
         else {
-            # Xen PV has different device for 2nd CDROM
-            if (check_var('VIRSH_VMM_TYPE', 'linux')) {
-                $cmd = 'ar --type plaindir hd:///?device=/dev/xvda repo-source';
-            }
-            else {
-                $cmd = "ar --type plaindir cd:///?devices=/dev/sr1 repo-source";
-            }
+            $cmd = "ar --type plaindir cd:///?devices=/dev/sr1 repo-source";
         }
     }
     # source repository is disabled by default
@@ -69,16 +73,11 @@ sub run {
         $cmd = "mr -e repo-source";
     }
 
-    zypper_call($cmd) unless (is_sle && sle_version_at_least('15'));
+    zypper_call($cmd) if defined $cmd;
     zypper_call("ref");
 
     # check for zypper info
     test_package_output;
-
-    if (is_sle && sle_version_at_least('15')) {
-        record_soft_failure('no source repo for SLE15 available boo#1059680');
-        return;
-    }
 
     if (sle_version_at_least('12-SP2') || check_var('DISTRI', 'opensuse')) {
         test_srcpackage_output;
