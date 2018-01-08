@@ -108,10 +108,7 @@ sub load_feature_tests {
     loadtest 'caasp/create_autoyast' unless check_var('VIRSH_VMM_FAMILY', 'hyperv');
     loadtest 'caasp/libzypp_config';
     loadtest 'caasp/filesystem_ro';
-
-    # bsc#1074515 - Incorrect nsswitch.conf
-    loadtest 'caasp/overlayfs' unless check_var('DISTRI', 'kubic');
-
+    loadtest 'caasp/overlayfs';
     loadtest 'caasp/services_enabled';
     loadtest 'caasp/one_line_checks';
     loadtest 'caasp/nfs_client' if get_var('NFS_SHARE');
