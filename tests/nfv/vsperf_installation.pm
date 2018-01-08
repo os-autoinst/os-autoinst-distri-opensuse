@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -10,8 +10,7 @@
 # Summary: VSPerf tool installation
 #
 #   This test does the following
-#    - Installs git to clone vswitchperf repo
-#    - Fetches the non-merged patch to support SLES15
+#    - Clones Vsperf repo
 #    - Removes the lines to skip OVS, DPDK and QEMU compilation
 #    - Executes the script to install all the needed packages for VSPerf
 #
@@ -27,7 +26,7 @@ sub run {
 
     select_console 'root-console';
 
-    zypper_call('in git-core', timeout => 200);
+    zypper_call('in git-core tcpdump', timeout => 200);
 
     # Clone repository
     assert_script_run "git clone $vsperf_repo";

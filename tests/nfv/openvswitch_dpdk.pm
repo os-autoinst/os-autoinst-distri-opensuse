@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -10,7 +10,8 @@
 # Summary: openvswitch installation and CLI test
 #
 #   This test does the following
-#    - Installs openvswitch (dpdk if DPDK==1)
+#    - Installs openvswitch, qemu and dpdk
+#    - Clones dpdk repo that is needed for vsperf
 #    - Starts the systemd service unit
 #    - Executes a few basic openvswitch commands
 #
@@ -23,12 +24,14 @@ use utils;
 
 
 sub run {
+    my $dpdk_repo = "http://dpdk.org/git/dpdk";
+
     select_console 'root-console';
 
-    zypper_call('in openvswitch-switch', timeout => 200);
-    if (check_var('DPDK', 1)) {
-        zypper_call('in openvswitch-dpdk', timeout => 200);
-    }
+    zypper_call('in openvswitch-switch dpdk qemu git-core', timeout => 200);
+
+    # Clone repositories
+    assert_script_run "git clone $dpdk_repo";
 
     # Start the openvswitch daemon
     assert_script_run "systemctl start openvswitch", 200;
