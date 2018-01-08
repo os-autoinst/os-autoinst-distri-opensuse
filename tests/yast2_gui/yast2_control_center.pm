@@ -39,7 +39,6 @@ sub search {
         send_key 'backspace';
     }
     wait_screen_change { type_string $name; } if $name;
-    wait_still_screen 1;
 }
 
 sub start_addon_products {
