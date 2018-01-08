@@ -130,7 +130,12 @@ sub kubectl_config {
 }
 
 sub run {
-    assert_screen 'velum-bootstrap-page', 90;
+    assert_screen [qw(velum-bootstrap-page velum-sorry)], 120;
+    if (match_has_tag 'velum-sorry') {
+        record_soft_failure('bnc#1074836 - delay caused due to Meltdown');
+        # workaround for meltdown
+        send_key_until_needlematch 'velum-bootstrap-page', 'f5', 10, 120;
+    }
     barrier_wait {name => "WORKERS_INSTALLED", check_dead_job => 1};
 
     accept_nodes;
