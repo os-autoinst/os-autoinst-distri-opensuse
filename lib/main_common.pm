@@ -680,8 +680,7 @@ sub load_wicked_tests {
 
 sub load_nfv_master_tests {
     boot_hdd_image();
-    loadtest "nfv/openvswitch_dpdk";
-    loadtest "nfv/vsperf_installation";
+    loadtest "nfv/prepare_env";
     loadtest "nfv/run_integration_tests";
 }
 
