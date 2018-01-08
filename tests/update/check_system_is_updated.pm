@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -13,10 +13,11 @@
 use base "consoletest";
 use strict;
 use testapi;
+use utils 'ensure_serialdev_permissions';
 
 sub run {
     select_console 'root-console';
-    assert_script_run "chown $testapi::username /dev/$testapi::serialdev";
+    ensure_serialdev_permissions;
     assert_script_run "pkcon refresh";
     assert_script_run "pkcon get-updates | tee /dev/$serialdev | grep 'There are no updates'";
 }

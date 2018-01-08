@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -19,9 +19,9 @@ use version_utils qw(is_sle sle_version_at_least);
 sub turn_off_screensaver {
     # Turn off screensaver
     x11_start_program('xterm');
-
-    # in case we rebooted
-    assert_script_sudo "chown $testapi::username /dev/$testapi::serialdev";
+    become_root;
+    ensure_serialdev_permissions;
+    type_string "exit\n";
 
     if (check_var("DESKTOP", "gnome")) {
         script_run("gsettings set org.gnome.desktop.session idle-delay 0");

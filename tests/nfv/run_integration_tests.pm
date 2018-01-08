@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -20,15 +20,15 @@ use lockapi;
 use mmapi;
 
 sub run {
-	my $self         = shift;
-	my $vsperf_conf = "/etc/vsperf_ovs.conf";
+    my $self        = shift;
+    my $vsperf_conf = "/etc/vsperf_ovs.conf";
 
     select_console 'root-console';
     mutex_create('nfv_trafficgen_ready');
 
     # wait until traffic generator installation finishes
     wait_for_children;
-    
+
     # use conf file from data dir
     assert_script_run("curl " . data_url('nfv/vsperf_ovs_dummy.conf') . " -o $vsperf_conf");
 
@@ -37,11 +37,11 @@ sub run {
 
     # run integration tests
     assert_script_run('cd /root/vswitchperf/');
-    assert_script_run('./vsperf --conf-file='.$vsperf_conf.' --integration vswitch_add_del_bridge');
-    assert_script_run('./vsperf --conf-file='.$vsperf_conf.' --integration vswitch_add_del_bridges');
-    assert_script_run('./vsperf --conf-file='.$vsperf_conf.' --integration vswitch_add_del_vport');
-    assert_script_run('./vsperf --conf-file='.$vsperf_conf.' --integration vswitch_add_del_vports');
-    assert_script_run('./vsperf --conf-file='.$vsperf_conf.' --integration vswitch_vports_add_del_flow');
+    assert_script_run('./vsperf --conf-file=' . $vsperf_conf . ' --integration vswitch_add_del_bridge');
+    assert_script_run('./vsperf --conf-file=' . $vsperf_conf . ' --integration vswitch_add_del_bridges');
+    assert_script_run('./vsperf --conf-file=' . $vsperf_conf . ' --integration vswitch_add_del_vport');
+    assert_script_run('./vsperf --conf-file=' . $vsperf_conf . ' --integration vswitch_add_del_vports');
+    assert_script_run('./vsperf --conf-file=' . $vsperf_conf . ' --integration vswitch_vports_add_del_flow');
 }
 
 1;

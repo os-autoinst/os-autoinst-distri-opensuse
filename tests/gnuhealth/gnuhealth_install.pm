@@ -16,7 +16,7 @@ use testapi;
 
 sub run {
     my ($self) = @_;
-    ensure_installed 'gnuhealth';
+    ensure_installed 'gnuhealth', timeout => 300;
 }
 
 sub test_flags {

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -22,7 +22,7 @@ sub run {
     my $target_ip;
 
     select_console 'root-console';
-    assert_script_run "chown $username /dev/$serialdev";
+    ensure_serialdev_permissions;
 
     # Setup static NETWORK
     configure_default_gateway;

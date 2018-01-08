@@ -1,6 +1,6 @@
 # SUSE's SLES4SAP openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -14,6 +14,7 @@
 use base "sles4sap";
 use testapi;
 use strict;
+use utils 'ensure_serialdev_permissions';
 
 sub run {
     my ($self) = @_;
@@ -71,7 +72,7 @@ sub run {
 
     # Rollback changes to $testapi::serialdev and close the window
     type_string "exit\n";
-    assert_script_run "chown $testapi::username /dev/$testapi::serialdev";
+    ensure_serialdev_permissions;
 }
 
 1;

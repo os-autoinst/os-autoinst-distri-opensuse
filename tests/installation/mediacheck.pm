@@ -14,8 +14,7 @@
 use base "opensusebasetest";
 use strict;
 use testapi;
-use utils 'ensure_shim_import';
-use bootloader_setup 'pre_bootmenu_setup';
+use bootloader_setup qw(ensure_shim_import pre_bootmenu_setup);
 
 sub run {
     my $self = shift;
