@@ -1405,7 +1405,7 @@ elsif (get_var("QAM_MINIMAL")) {
         set_var('DESKTOP',      'textmode');
     }
 }
-elsif (get_var("EXTRATEST")) {
+elsif (get_var("EXTRATEST") && !is_jeos) {
     boot_hdd_image;
     # update system with agregate repositories
     if (is_updates_tests) {
@@ -1525,7 +1525,7 @@ else {
         load_inst_tests();
         load_reboot_tests();
     }
-    elsif (get_var("BOOT_HDD_IMAGE")) {
+    elsif (get_var("BOOT_HDD_IMAGE") && !is_jeos) {
         if (get_var("RT_TESTS")) {
             set_var('INSTALLONLY', 1);
             loadtest "rt/boot_rt_kernel";
@@ -1578,6 +1578,10 @@ else {
         loadtest "jeos/root_fs_size";
         loadtest "jeos/mount_by_label";
         loadtest "console/suseconnect_scc";
+        if (get_var("EXTRATEST")) {
+            load_extra_tests;
+            return 1;
+        }
     }
     else {
         if (get_var('BOOT_EXISTING_S390')) {

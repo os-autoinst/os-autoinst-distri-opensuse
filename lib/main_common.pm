@@ -23,6 +23,7 @@ our @EXPORT = qw(
   load_autoyast_tests
   load_autoyast_clone_tests
   load_slepos_tests
+  load_docker_tests
   installzdupstep_is_applicable
   snapper_is_applicable
   chromestep_is_applicable
@@ -255,6 +256,17 @@ sub load_slepos_tests {
     }
 }
 
+sub load_docker_tests {
+    loadtest "console/docker";
+    loadtest "console/runc";
+    # No package 'docker-compose' in SLE
+    if (!is_sle) {
+        loadtest "console/docker_compose";
+    }
+    if (is_sle && !sle_version_at_least('15')) {
+        loadtest "console/sle2docker";
+    }
+}
 
 sub installzdupstep_is_applicable {
     return !get_var("NOINSTALL") && !get_var("RESCUECD") && get_var("ZDUP");
@@ -595,17 +607,7 @@ sub load_extra_tests {
         if (get_var("IPSEC")) {
             loadtest "console/ipsec_tools_h2h";
         }
-        if (check_var('ARCH', 'x86_64')) {
-            loadtest "console/docker";
-            loadtest "console/runc";
-            # No package 'docker-compose' in SLE
-            if (check_var('DISTRI', 'opensuse')) {
-                loadtest "console/docker_compose";
-            }
-            if (check_var('DISTRI', 'sle') && !(sle_version_at_least('15'))) {
-                loadtest "console/sle2docker";
-            }
-        }
+        load_docker_tests if check_var('ARCH', 'x86_64');
         loadtest "console/git";
         loadtest "console/java";
         loadtest "console/curl_ipv6";
