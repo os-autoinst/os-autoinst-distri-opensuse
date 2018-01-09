@@ -141,7 +141,7 @@ test_javaplugin_alternatives () {
 
 test_java_version_active () {
     # find active java version
-    java_version_active=`java -version 2>&1 | awk '/version/{print $NF}' | sed 's/"//g' | awk -F "_" '{print $1}'`
+    java_version_active=`java -version 2>&1 | awk '/version/{print $3}' | sed 's/"//g' | awk -F "_" '{print $1}'`
 }
 
 test_javac_version_active () {
