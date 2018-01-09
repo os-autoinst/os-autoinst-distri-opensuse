@@ -27,7 +27,7 @@ sub run {
     $self->setup_static_network(get_required_var('HPC_HOST_IP'));
 
     # stop firewall, so key can be copied
-    assert_script_run "rcSuSEfirewall2 stop";
+    $self->stop_firewall();
 
     # set proper hostname
     assert_script_run "hostnamectl set-hostname slurm-slave";

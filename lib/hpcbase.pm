@@ -2,6 +2,8 @@ package hpcbase;
 use base "opensusebasetest";
 use strict;
 use testapi;
+use version_utils qw(is_sle sle_version_at_least);
+use utils 'systemctl';
 
 sub exec_and_insert_password {
     my ($self, $cmd) = @_;
@@ -18,7 +20,10 @@ sub enable_and_start {
     assert_script_run("systemctl start $arg");
 }
 
-
+sub stop_firewall() {
+    my $service = (is_sle && sle_version_at_least('15')) ? 'firewalld' : 'SuSEfirewall2';
+    systemctl("stop $service");
+}
 
 1;
 # vim: set sw=4 et:

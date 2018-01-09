@@ -34,7 +34,7 @@ sub run {
     assert_script_run "hostnamectl set-hostname pdsh-master";
 
     # stop firewall
-    assert_script_run "rcSuSEfirewall2 stop";
+    $self->stop_firewall();
 
     # install mrsh
     zypper_call('in mrsh-server munge');
