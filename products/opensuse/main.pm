@@ -758,6 +758,10 @@ sub load_slenkins_tests {
 if (is_kernel_test()) {
     load_kernel_tests();
 }
+elsif (get_var("NETWORKD")) {
+    boot_hdd_image();
+    load_networkd_tests();
+}
 elsif (get_var("WICKED")) {
     boot_hdd_image();
     load_wicked_tests();
