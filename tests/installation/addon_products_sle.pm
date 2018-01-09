@@ -17,23 +17,49 @@ use testapi;
 use utils 'addon_license';
 use version_utils 'sle_version_at_least';
 use qam 'advance_installer_window';
-use registration '%SLE15_DEFAULT_MODULES';
+use registration qw(%SLE15_DEFAULT_MODULES rename_scc_addons);
 
 sub handle_all_packages_medium {
     assert_screen 'addon-products-all_packages';
     send_key 'alt-s';
-    # We could reuse SCC_MODULES or another list. For now just hardcode what
-    # corresponds to the selected SLE15 product because the "all packages"
-    # addon medium and feature of installer is only available for SLE >= 15
-    # anyway
+
+    # For SLE installation / upgrade with the all-packages media, user has
+    # to select the required extensions / modules manually
     my @addons = split(/,/, $SLE15_DEFAULT_MODULES{get_required_var('SLE_PRODUCT')});
     push @addons, 'desktop' if check_var('DESKTOP', 'gnome') && !grep(/^desktop$/, @addons);
+
+    # The legacy module is required if upgrade from previous version (bsc#1066338)
+    push @addons, 'legacy' if get_var('UPGRADE') && !grep(/^legacy$/, @addons);
+
+    # In upgrade testing, the sle addons, including extensions and modules,
+    # are defined with SCC_ADDONS, thus the addons could be patched on
+    # the original system (the system-to-be-upgraded).
+    # During system upgrade with all-packages media, the addons installed
+    # on the original system should be mapped to new ones provided by media
+    rename_scc_addons if sle_version_at_least('15');
+
+    # Read addons from SCC_ADDONS and add them to list
+    # Make sure every addon only appears once in the list,
+    # there will be problem to enable the same addon twice
+    for my $a (split(/,/, get_var('SCC_ADDONS', ''))) {
+        push @addons, $a if !grep(/^$a$/, @addons);
+    }
+
+    # Record the addons to be enabled for debugging
+    record_info 'Extension and Module Selection', join(' ', @addons);
+    # Enable the extentions or modules
     foreach (@addons) {
         send_key 'home';
         send_key_until_needlematch "addon-products-all_packages-$_-highlighted", 'down';
         send_key 'spc';
     }
     send_key $cmd{next};
+    # Confirm all required addons are properly added
+    assert_screen 'addon-products', 60;
+    foreach (@addons) {
+        send_key 'home';
+        send_key_until_needlematch "addon-products-$_", 'down';
+    }
 }
 
 sub handle_addon {
