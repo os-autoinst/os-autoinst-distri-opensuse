@@ -112,7 +112,6 @@ sub run {
         assert_script_run "sed -ie '/\\<volume_list\\>[[:blank:]][[:blank:]]*=/ a volume_list = [ $vol_list ]' $lvm_conf";
     }
 
-
     # Wait until PV-VG-LV is created
     barrier_wait("CLVM_PV_VG_LV_CREATED_${barrier_tag}_$cluster_name");
 

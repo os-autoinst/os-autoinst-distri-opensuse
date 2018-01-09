@@ -991,7 +991,11 @@ sub load_slenkins_tests {
 
 sub load_ha_cluster_tests {
     return unless (get_var("HA_CLUSTER"));
+
+    # Wait for support server to complete its initialization
     loadtest "ha/wait_support_server";
+
+    # Standard boot and configuration
     loadtest "boot/boot_to_desktop";
     loadtest "qa_automation/patch_and_reboot" if is_updates_tests;
     loadtest "console/consoletest_setup";
@@ -1005,7 +1009,7 @@ sub load_ha_cluster_tests {
     }
 
     # SLE15 workarounds
-    loadtest "ha/sle15_workarounds" if sle_version_at_least('15');
+    loadtest "ha/sle15_workarounds" if (is_sle && sle_version_at_least('15'));
 
     # Basic configuration
     loadtest "ha/firewall_disable";
@@ -1041,11 +1045,9 @@ sub load_ha_cluster_tests {
 
     # Test fencing feature
     loadtest "ha/fencing";
-    if (!get_var("HA_CLUSTER_JOIN")) {
-        # Node1 will be fenced
-        loadtest "boot/boot_to_desktop";
-        loadtest "console/consoletest_setup";
-    }
+
+    # Node1 will be fenced, so we have to wait for it to boot
+    loadtest "boot/boot_to_desktop" if (!get_var("HA_CLUSTER_JOIN"));
 
     # Cluster status and check logs to find error
     loadtest "ha/check_cluster";

@@ -198,10 +198,16 @@ sub ha_export_logs {
 
     # Extract HA logs and upload them
     select_console 'root-console';
-    upload_logs "$bootstrap_log";
     script_run "touch $corosync_conf";
     script_run "hb_report -E $bootstrap_log $hb_log", 120;
+    upload_logs "$bootstrap_log"  if !script_run "test -e $bootstrap_log";
     upload_logs "$hb_log.tar.bz2" if !script_run "test -e $hb_log";
+
+    # Extract YaST logs and upload them
+    script_run "save_y2logs", 120;
+    if (my $y2logs = script_output 'ls -t /tmp/y2log-*.tar.xz | head -n 1') {
+        upload_logs "$y2logs";
+    }
 }
 
 sub post_run_hook {
