@@ -19,7 +19,7 @@ sub run {
     my ($self) = @_;
     $self->start_firefox;
 
-    my $ext_link = "http://mirror.bej.suse.com/dist/install/SLP/SLE-12-Server-GM/x86_64/dvd1/";
+    my $ext_link = "http://mirror.bej.suse.com/dist/install/SLP/SLE-12-SP3-Server-GM/x86_64/dvd1/";
 
     send_key "esc";
     sleep 1;
