@@ -3,7 +3,7 @@ use base 'distribution';
 use serial_terminal ();
 use strict;
 use utils qw(type_string_slow ensure_unlocked_desktop save_svirt_pty get_root_console_tty get_x11_console_tty ensure_serialdev_permissions);
-use version_utils qw(is_hyperv_in_gui sle_version_at_least);
+use version_utils qw(is_hyperv_in_gui is_sle sle_version_at_least is_leap leap_version_at_least);
 
 # Base class implementation of distribution class necessary for testapi
 
@@ -76,6 +76,8 @@ sub init_cmd {
       rescandevices alt-e
       exp_part_finish alt-f
       size_hotkey alt-s
+      sync_interval alt-n
+      sync_without_daemon alt-y
     );
 
     if (check_var('INSTLANG', "de_DE")) {
@@ -101,6 +103,11 @@ sub init_cmd {
     }
     if (check_var('INSTLANG', "fr_FR")) {
         $testapi::cmd{next} = "alt-s";
+    }
+    if ((is_sle && sle_version_at_least '15') || (is_leap && leap_version_at_least '15.0')) {
+        # SLE15/Leap15 use Chrony instead of ntp
+        $testapi::cmd{sync_interval}       = "alt-i";
+        $testapi::cmd{sync_without_daemon} = "alt-s";
     }
     ## keyboard cmd vars end
 }

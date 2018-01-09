@@ -996,6 +996,7 @@ sub load_ha_cluster_tests {
     loadtest "qa_automation/patch_and_reboot" if is_updates_tests;
     loadtest "console/consoletest_setup";
     loadtest "console/hostname" unless is_bridged_networking;
+    loadtest "console/yast2_ntpclient";
 
     # Update the image if needed
     if (get_var("FULL_UPDATE")) {
@@ -1008,7 +1009,6 @@ sub load_ha_cluster_tests {
 
     # Basic configuration
     loadtest "ha/firewall_disable";
-    loadtest "ha/ntp_client";
     loadtest "ha/iscsi_client";
     loadtest "ha/watchdog";
 
