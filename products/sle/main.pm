@@ -1500,6 +1500,7 @@ else {
             load_patching_tests();
         }
         else {
+            loadtest "autoyast/prepare_profile" if get_var "AUTOYAST_PREPARE_PROFILE";
             load_boot_tests();
         }
         load_autoyast_tests();
