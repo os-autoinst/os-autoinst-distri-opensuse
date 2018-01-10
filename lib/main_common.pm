@@ -96,7 +96,7 @@ sub set_defaults_for_username_and_password {
         $testapi::password = '';
     }
     else {
-        if (get_var('FLAVOR', '') =~ /SAP/) {
+        if (get_var('FLAVOR', '') =~ /SAP/ or get_var('SLE_PRODUCT', '') =~ /sles4sap/) {
             $testapi::username = "root";    #in sles4sap only root user created
         }
         else {
