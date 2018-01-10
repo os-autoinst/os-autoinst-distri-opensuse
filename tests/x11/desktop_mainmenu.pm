@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -18,7 +18,8 @@ use testapi;
 
 
 sub run {
-    sleep 5;
+    # some desktops need some time to accept user input
+    sleep 10;
     if (check_var("DESKTOP", "lxde")) {
         # or Super_L or Windows key
         x11_start_program('lxpanelctl menu', target_match => 'test-desktop_mainmenu-1');
