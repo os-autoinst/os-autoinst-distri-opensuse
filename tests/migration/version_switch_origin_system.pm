@@ -7,9 +7,10 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
-# Summary: Changes the VERSION to HDDVERSION and reload needles.
-#       At the beginning of upgrading, we need patch the original
-#       system, which is still old version at the moment.
+# Summary: Change the VERSION to ORIGIN_SYSTEM_VERSION and also
+#       reload needles.
+#       At the beginning of upgrade, we need patch the original
+#       system on hdd, which is still old version at the moment.
 # Maintainer: Qingming Su <qmsu@suse.com>
 
 use base "opensusebasetest";
@@ -18,13 +19,15 @@ use warnings;
 use testapi;
 
 sub run {
-    return unless get_var('UPGRADE');
+    # Before upgrade or after rollback, switch to original system version
+    # Do NOT use HDDVERSION because it might be changed in another test
+    # module, such as: reboot_and_install.pm
+    my $original_version = get_required_var('ORIGIN_SYSTEM_VERSION');
 
-    #Before upgrading, orginal system version is actually HDDVERSION
-    #Save VERSION TO UPGRADE_TARGET_VERSION
-    set_var('UPGRADE_TARGET_VERSION', get_var('VERSION'));
-    #Switch to orginal system version, which is HDDVERSION
-    set_var('VERSION', get_required_var('HDDVERSION'), reload_needles => 1);
+    if (get_var('VERSION') ne $original_version) {
+        # Switch to original system version and reload needles
+        set_var('VERSION', $original_version, reload_needles => 1);
+    }
 }
 
 1;
