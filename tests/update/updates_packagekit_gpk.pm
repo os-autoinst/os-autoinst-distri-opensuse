@@ -86,6 +86,10 @@ sub run {
             }
             elsif (match_has_tag("updates_installed-logout")) {
                 send_key "alt-c";    # close
+
+                # The logout is not acted upon, which may miss a libzypp update
+                # Force reloading of packagekitd (bsc#1075260, poo#30085)
+                x11_start_program('pkcon quit');
             }
             elsif (match_has_tag("updates_installed-restart")) {
                 power_action 'reboot', textmode => 1;
