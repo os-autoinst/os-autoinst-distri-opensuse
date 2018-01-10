@@ -40,7 +40,6 @@
   </language>
   <ntp-client>
     <ntp_policy>auto</ntp_policy>
-    <peers config:type="list"/>
   </ntp-client>
   <software>
     <packages config:type="list">
