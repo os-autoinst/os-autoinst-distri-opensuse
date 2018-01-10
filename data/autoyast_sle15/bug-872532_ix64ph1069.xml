@@ -735,7 +735,6 @@
       <package>dconf</package>
       <package>girepository-1_0</package>
       <package>grub2-snapper-plugin</package>
-      <package>gsettings-backend-dconf</package>
       <package>gxditview</package>
       <package>libXaw7</package>
       <package>libXmu6</package>
@@ -744,7 +743,6 @@
       <package>libgirepository-1_0-1</package>
       <package>plymouth-dracut</package>
       <package>python-gobject</package>
-      <package>python-gobject-cairo</package>
       <package>snapper</package>
       <package>snapper-zypp-plugin</package>
       <package>ucode-intel</package>
