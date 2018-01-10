@@ -30,12 +30,34 @@
             </listentry>
         </add_on_products>
     </add-on>
+    <report>
+      <errors>
+        <log config:type="boolean">true</log>
+        <show config:type="boolean">true</show>
+        <timeout config:type="integer">0</timeout>
+      </errors>
+      <messages>
+        <log config:type="boolean">true</log>
+        <show config:type="boolean">true</show>
+        <timeout config:type="integer">0</timeout>
+      </messages>
+      <warnings>
+        <log config:type="boolean">true</log>
+        <show config:type="boolean">true</show>
+        <timeout config:type="integer">0</timeout>
+      </warnings>
+      <yesno_messages>
+        <log config:type="boolean">true</log>
+        <show config:type="boolean">true</show>
+        <timeout config:type="integer">0</timeout>
+      </yesno_messages>
+    </report>
     <networking>
         <keep_install_network config:type="boolean">true</keep_install_network>
     </networking>
     <users config:type="list">
         <user>
-            <fullname>Bernhard M. Wiedemann</fullname>  
+            <fullname>Bernhard M. Wiedemann</fullname>
             <encrypted config:type="boolean">false</encrypted>
             <user_password>nots3cr3t</user_password>
             <username>bernhard</username>
