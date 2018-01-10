@@ -132,8 +132,8 @@ sub run {
     if (check_var('VIRSH_VMM_FAMILY', 'hyperv') || check_var('VIRSH_VMM_TYPE', 'linux')) {
         $snap++;
     }
-    # overlayfs test creates snapshot, but is disabled on kubic
-    $snap++ unless check_var('DISTRI', 'kubic');
+    # overlayfs test creates new snapshot
+    $snap++;
 
     trup_call "rollback $snap";
     check_reboot_changes;
