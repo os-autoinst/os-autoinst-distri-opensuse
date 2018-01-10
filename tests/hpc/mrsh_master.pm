@@ -35,7 +35,7 @@ sub run {
     assert_script_run "hostnamectl set-hostname mrsh-master";
 
     # stop firewall
-    assert_script_run "rcSuSEfirewall2 stop";
+    $self->stop_firewall();
 
     # install mrsh
     zypper_call('in mrsh mrsh-server');
