@@ -271,10 +271,6 @@
       <pattern>minimal_base</pattern>
       <pattern>x11</pattern>
     </patterns>
-    <packages config:type="list">
-      <!-- ntp package must be explicitly listed, see bsc#984146#c7 -->
-      <package>ntp</package>
-    </packages>
     <image/>
     <instsource/>
     <products config:type="list">
