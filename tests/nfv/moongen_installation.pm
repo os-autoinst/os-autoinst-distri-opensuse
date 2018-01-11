@@ -33,7 +33,7 @@ sub run {
     zypper_call('in git-core gcc gcc-c++ make cmake libnuma-devel kernel-source pciutils', timeout => 300);
 
     # Clone repository
-    assert_script_run("git clone $moongen_repo");
+    assert_script_run("git clone $moongen_repo", timeout => 300);
 
     # Install MoonGen and dependencies
     assert_script_run("cd MoonGen");
