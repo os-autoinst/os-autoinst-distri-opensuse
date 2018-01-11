@@ -1566,6 +1566,7 @@ else {
     elsif (get_var("REMOTE_TARGET")) {
         load_boot_tests();
         loadtest "remote/remote_target";
+        loadtest "installation/grub_test";
         loadtest "installation/first_boot";
     }
     elsif (is_jeos) {
