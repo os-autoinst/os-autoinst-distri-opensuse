@@ -632,6 +632,7 @@ sub load_extra_tests {
 
 sub load_rollback_tests {
     loadtest "boot/grub_test_snapshot";
+    loadtest "migration/version_switch_origin_system";
     if (get_var('UPGRADE') || get_var('ZDUP')) {
         loadtest "boot/snapper_rollback";
     }
