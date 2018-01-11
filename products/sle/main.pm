@@ -610,6 +610,9 @@ sub load_inst_tests {
         if (defined(get_var("RAIDLEVEL"))) {
             loadtest "installation/partitioning_raid";
         }
+        elsif (check_var('LVM', 0) && get_var('ENCRYPT')) {
+            loadtest 'installation/partitioning_crypt_no_lvm';
+        }
         elsif (get_var("LVM")) {
             loadtest "installation/partitioning_lvm";
         }

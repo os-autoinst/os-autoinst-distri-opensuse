@@ -15,8 +15,9 @@ use Exporter;
 use strict;
 use testapi;
 use version_utils 'is_storage_ng';
+use installation_user_settings 'await_password_check';
 
-our @EXPORT = qw(wipe_existing_partitions addpart addlv unselect_xen_pv_cdrom);
+our @EXPORT = qw(wipe_existing_partitions addpart addlv unselect_xen_pv_cdrom enable_encryption_guided_setup);
 
 my %role = qw(
   OS alt-o
@@ -169,6 +170,20 @@ sub unselect_xen_pv_cdrom {
         assert_screen 'select-hard-disk';
         send_key 'alt-e';
         send_key $cmd{next};
+    }
+}
+
+# Enables encryption in guided setup during installation
+sub enable_encryption_guided_setup {
+    my $self = shift;
+    send_key $cmd{encryptdisk};
+    if (!get_var('ENCRYPT_ACTIVATE_EXISTING')) {
+        assert_screen 'inst-encrypt-password-prompt';
+        type_password;
+        send_key 'tab';
+        type_password;
+        send_key $cmd{next};
+        installation_user_settings::await_password_check;
     }
 }
 

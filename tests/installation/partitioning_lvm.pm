@@ -17,6 +17,7 @@ use warnings;
 use parent qw(installation_user_settings y2logsstep);
 use testapi;
 use version_utils qw(sle_version_at_least is_storage_ng leap_version_at_least);
+use partition_setup 'enable_encryption_guided_setup';
 
 sub save_logs_and_resume {
     my $self = shift;
@@ -57,12 +58,7 @@ sub run {
 
     # Storage NG introduces a new partitioning dialog. partitioning.pm detects this by the existence of the "Guided Setup" button
     # and sets the STORAGE_NG variable. This button uses a new hotkey.
-    if (is_storage_ng) {
-        send_key "alt-g";
-    }
-    else {
-        send_key "alt-d";
-    }
+    send_key $cmd{guidedsetup};
 
     my $numdisks = get_var("NUMDISKS");
     print "NUMDISKS = $numdisks\n";
@@ -107,18 +103,10 @@ sub run {
         send_key $cmd{enablelvm};
         assert_screen "inst-partitioning-lvm-enabled";
         if (get_var("ENCRYPT")) {
-            send_key $cmd{encryptdisk};
-            if (!get_var('ENCRYPT_ACTIVATE_EXISTING')) {
-                assert_screen 'inst-encrypt-password-prompt';
-                type_password;
-                send_key 'tab';
-                type_password;
-                send_key 'alt-n';
-                $self->await_password_check;
-            }
+            enable_encryption_guided_setup;
         }
         else {
-            send_key 'alt-n';
+            send_key $cmd{next};
         }
         assert_screen "inst-filesystem-options";
         send_key 'alt-n';
