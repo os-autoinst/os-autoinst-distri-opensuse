@@ -18,8 +18,8 @@ use testapi;
 
 my %services_for = (
     default => [qw(sshd cloud-init-local cloud-init cloud-config cloud-final issue-generator issue-add-ssh-keys transactional-update.timer)],
-    cluster => [qw(etcd container-feeder)],
-    admin   => [qw(docker kubelet ntpd)],
+    cluster => [qw(container-feeder)],
+    admin   => [qw(docker kubelet ntpd etcd)],
     worker  => [qw(salt-minion systemd-timesyncd)],
     plain   => undef
 );
