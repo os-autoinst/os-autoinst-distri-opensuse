@@ -753,20 +753,21 @@ sub handle_login {
         }
         type_string "root\n";
     }
+    elsif (get_var('DM_NEEDS_USERNAME')) {
+        type_string "$username\n";
+    }
+    elsif (check_var('DESKTOP', 'gnome') || (check_var('DESKTOP', 'lxde') && check_var('VERSION', '42.1'))) {
+        # DMs in condition above have to select user
+        if ((is_sle && sle_version_at_least('15')) || (is_leap && leap_version_at_least('15.0')) || is_tumbleweed) {
+            assert_and_click "displaymanager-$username";
+            record_soft_failure 'bgo#657996 - user account not selected by default, have to use mouse to login';
+        }
+        else {
+            send_key 'ret';
+        }
+    }
     else {
-        if (get_var('DM_NEEDS_USERNAME')) {
-            type_string "$username\n";
-        }
-        if (check_var('DESKTOP', 'gnome') || (check_var('DESKTOP', 'lxde') && check_var('VERSION', '42.1'))) {
-            # DMs in condition above have to select user
-            if ((is_sle && sle_version_at_least('15')) || (is_leap && leap_version_at_least('15.0')) || is_tumbleweed) {
-                assert_and_click "displaymanager-$username";
-                record_soft_failure 'bgo#657996 - user account not selected by default, have to use mouse to login';
-            }
-            else {
-                send_key 'ret';
-            }
-        }
+        send_key 'ret';
     }
     assert_screen 'displaymanager-password-prompt', no_wait => 1;
     type_password;
