@@ -30,6 +30,7 @@ our @EXPORT = qw (
   is_sle
   is_tumbleweed
   is_storage_ng
+  is_upgrade
   is_sle12_hdd_in_upgrade
   is_installcheck
   is_rescuesystem
@@ -118,8 +119,12 @@ sub is_storage_ng {
     return get_var('STORAGE_NG');
 }
 
+sub is_upgrade {
+    return get_var('UPGRADE') || get_var('ONLINE_MIGRATION') || get_var('ZDUP') || get_var('AUTOUPGRADE');
+}
+
 sub is_sle12_hdd_in_upgrade {
-    return get_var('UPGRADE') && !sle_version_at_least('15', version_variable => 'HDDVERSION');
+    return is_upgrade && !sle_version_at_least('15', version_variable => 'HDDVERSION');
 }
 
 sub sle_version_at_least {
@@ -195,5 +200,5 @@ sub is_desktop_installed {
 
 sub is_system_upgrading {
     # If PATCH=1, make sure patch action is finished
-    return get_var('UPGRADE') && (!get_var('PATCH') || (get_var('PATCH') && get_var('SYSTEM_PATCHED')));
+    return is_upgrade && (!get_var('PATCH') || (get_var('PATCH') && get_var('SYSTEM_PATCHED')));
 }

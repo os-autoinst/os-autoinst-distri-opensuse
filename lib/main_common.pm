@@ -188,6 +188,7 @@ sub load_zdup_tests {
     }
     loadtest 'installation/zdup';
     loadtest 'installation/post_zdup';
+    loadtest "migration/version_switch_upgrade_target";
     loadtest 'boot/boot_to_desktop';
 }
 
