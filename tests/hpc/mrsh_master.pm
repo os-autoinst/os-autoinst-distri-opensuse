@@ -28,14 +28,8 @@ sub run {
     barrier_create("SLAVE_MRLOGIN_STARTED",      2);
     barrier_create("MRSH_MASTER_DONE",           2);
 
-    select_console 'root-console';
-    $self->setup_static_network(get_required_var('HPC_HOST_IP'));
-
     # set proper hostname
     assert_script_run "hostnamectl set-hostname mrsh-master";
-
-    # stop firewall
-    $self->stop_firewall();
 
     # install mrsh
     zypper_call('in mrsh mrsh-server');

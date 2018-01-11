@@ -24,10 +24,6 @@ sub run {
     barrier_create("MUNGE_INSTALLATION_FINISHED", 2);
     barrier_create("MUNGE_SERVICE_ENABLED",       2);
 
-    select_console 'root-console';
-
-    $self->setup_static_network(get_required_var('HPC_HOST_IP'));
-
     # set proper hostname
     assert_script_run('hostnamectl set-hostname munge-master');
 

@@ -27,14 +27,8 @@ sub run {
     barrier_create("PDSH_MUNGE_ENABLED",         2);
     barrier_create("PDSH_SLAVE_DONE",            2);
 
-    select_console 'root-console';
-    $self->setup_static_network(get_required_var('HPC_HOST_IP'));
-
     # set proper hostname
     assert_script_run "hostnamectl set-hostname pdsh-master";
-
-    # stop firewall
-    $self->stop_firewall();
 
     # install mrsh
     zypper_call('in mrsh-server munge');

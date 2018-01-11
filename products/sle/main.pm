@@ -1469,6 +1469,7 @@ elsif (get_var('HPC')) {
     }
     else {
         loadtest 'boot/boot_to_desktop';
+        loadtest 'hpc/setup_network' if check_var('NICTYPE', 'tap');
         loadtest 'hpc/enable_in_zypper' if (sle_version_at_least('15'));
         if (check_var('HPC', 'conman')) {
             loadtest 'hpc/conman';
