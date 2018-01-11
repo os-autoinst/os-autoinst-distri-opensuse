@@ -440,7 +440,7 @@ sub wait_boot {
         handle_emergency if (match_has_tag('emergency-shell') or match_has_tag('emergency-mode'));
 
         if (!$nologin) {
-            if (get_var('DM_NEEDS_USERNAME')) {
+            if (get_var('DM_NEEDS_USERNAME') || check_var('VERSION', '11-SP4')) {
                 type_string "$username\n";
             }
             # log in
