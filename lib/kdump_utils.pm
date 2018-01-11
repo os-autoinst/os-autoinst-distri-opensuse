@@ -14,6 +14,7 @@ use strict;
 use testapi;
 use utils;
 use List::Util qw(first);
+use version_utils qw(is_sle sle_version_at_least);
 
 our @EXPORT = qw(install_kernel_debuginfo prepare_for_kdump activate_kdump kdump_is_active do_kdump);
 
@@ -26,12 +27,18 @@ sub install_kernel_debuginfo {
     zypper_call("-v in $debuginfo", timeout => 4000);
 }
 
+sub get_repo_url_for_kdump_sle {
+    return join('/', $utils::OPENQA_FTP_URL, get_var('REPO_SLE15_MODULE_BASESYSTEM_DEBUG'))
+      if get_var('REPO_SLE15_MODULE_BASESYSTEM_DEBUG')
+      and is_sle
+      and sle_version_at_least('15');
+    return join('/', $utils::OPENQA_FTP_URL, get_var('REPO_SLES_DEBUG')) if get_var('REPO_SLES_DEBUG');
+}
 
 sub prepare_for_kdump_sle {
-    my $sles_debug_repo;
     # debuginfos for kernel has to be installed from build-specific directory on FTP.
-    if (get_var('REPO_SLES_DEBUG')) {
-        my $url = "$utils::OPENQA_FTP_URL/" . get_var('REPO_SLES_DEBUG');
+    my $url = get_repo_url_for_kdump_sle();
+    if (defined $url) {
         zypper_call("ar -f $url SLES-Server-Debug");
         install_kernel_debuginfo;
         script_run 'zypper -n rr SLES-Server-Debug';
