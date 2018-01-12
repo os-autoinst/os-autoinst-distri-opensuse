@@ -60,6 +60,15 @@ sub save_and_upload_yastlogs {
         route add default gw 10.0.2.2
       fi
     ";
+    # Upload autoyast profile if file exists
+    if (script_run '! test -e /tmp/profile/autoinst.xml') {
+        upload_logs '/tmp/profile/autoinst.xml';
+    }
+    # Upload modified profile if pre-install script uses this feature
+    if (script_run '! test -e /tmp/profile/modified.xml') {
+        upload_logs '/tmp/profile/modified.xml';
+    }
+
     upload_logs "/tmp/y2logs-$name.tar.bz2";
     $self->save_and_upload_log('btrfs filesystem usage /mnt', 'btrfs-filesystem-usage-mnt.txt');
     $self->save_and_upload_log('df',                          'df.txt');
