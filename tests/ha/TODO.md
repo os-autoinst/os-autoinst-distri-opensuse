@@ -1,4 +1,3 @@
-- Add a 'systemctl status hawk' test as well as a curl connection to hawk port test
 - Add a 'remove node' test after fencing (for 2 nodes cluster or more, so the node02 will always be removed), need to be tested with both hostname and IP address
 - Add a 'remove all resources but stonith' test to be able to clear the cluster configuration at the end. This will let us the option to re-use the VMs for SAPA HANA tests for example
 - Add a DRBD active/active test + cLVM ontop of a DRBD device
