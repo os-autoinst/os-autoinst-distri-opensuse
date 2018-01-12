@@ -21,8 +21,9 @@ sub run {
 
     my $fs = get_var('FILESYSTEM');
 
-    # click the button
-    assert_and_click 'edit-proposal-settings';
+    # open the partinioner
+    assert_screen 'edit-proposal-settings';
+    wait_screen_change { send_key $cmd{guidedsetup} };
 
     if (get_var('PARTITIONING_WARNINGS')) {
         if (is_storage_ng) {
@@ -41,17 +42,22 @@ sub run {
         send_key $cmd{next};
     }
     # select the combo box
-    assert_and_click 'default-root-filesystem';
+    assert_screen 'default-root-filesystem';
+    send_key 'alt-f';
+    assert_screen 'filesystem-root-menu-selected';
 
     # select filesystem
-    assert_and_click "filesystem-$fs";
+    send_key 'home';
+    send_key_until_needlematch("filesystem-$fs", 'down', 20, 3);
+    send_key 'ret' if check_var('DESKTOP', 'textmode');
+
     assert_screen "$fs-selected";
     send_key(is_storage_ng() ? $cmd{next} : 'alt-o');
 
     # make sure we're back from the popup
     assert_screen 'edit-proposal-settings';
 
-    mouse_hide;
+    mouse_hide unless check_var('DESKTOP', 'textmode');
 }
 
 1;
