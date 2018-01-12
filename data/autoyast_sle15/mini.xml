@@ -1,16 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE profile>
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
-    <!-- very minimal autoyast profile -->
-    <add-on>
-      <add_on_products config:type="list">
-        <listentry>
-          <media_url><![CDATA[dvd:///?devices=/dev/sr1]]></media_url>
-          <product>sle-module-basesystem</product>
-          <product_dir>/Module-Basesystem</product_dir>
-        </listentry>
-      </add_on_products>
-    </add-on>
+    <!-- minimal autoyast profile -->
+    <suse_register>
+      <do_registration config:type="boolean">true</do_registration>
+      <email/>
+      <reg_code>{{SCC_REGCODE}}</reg_code>
+      <install_updates config:type="boolean">true</install_updates>
+      <reg_server>{{SCC_URL}}</reg_server>
+      <addons config:type="list">
+        <addon>
+          <name>sle-module-basesystem</name>
+          <version>{{VERSION}}</version>
+          <arch>{{ARCH}}</arch>
+        </addon>
+      </addons>
+    </suse_register>
     <networking>
         <keep_install_network config:type="boolean">true</keep_install_network>
     </networking>
@@ -32,4 +37,26 @@
             <username>root</username>
         </user>
     </users>
+    <report>
+      <errors>
+        <log config:type="boolean">true</log>
+        <show config:type="boolean">true</show>
+        <timeout config:type="integer">0</timeout>
+      </errors>
+      <messages>
+        <log config:type="boolean">true</log>
+        <show config:type="boolean">true</show>
+        <timeout config:type="integer">0</timeout>
+      </messages>
+      <warnings>
+        <log config:type="boolean">true</log>
+        <show config:type="boolean">true</show>
+        <timeout config:type="integer">0</timeout>
+      </warnings>
+      <yesno_messages>
+        <log config:type="boolean">true</log>
+        <show config:type="boolean">true</show>
+        <timeout config:type="integer">0</timeout>
+      </yesno_messages>
+    </report>
 </profile>

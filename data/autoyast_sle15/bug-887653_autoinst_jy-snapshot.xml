@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE profile>
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
-  <add-on>
-    <add_on_products config:type="list">
-      <listentry>
-        <media_url><![CDATA[dvd:///?devices=/dev/sr1]]></media_url>
-        <product>sle-module-basesystem</product>
-        <product_dir>/Module-Basesystem</product_dir>
-      </listentry>
-      <listentry>
-        <media_url><![CDATA[dvd:///?devices=/dev/sr1]]></media_url>
-        <product>sle-module-desktop-applications</product>
-        <product_dir>/Module-Desktop-Applications</product_dir>
-      </listentry>
-      <listentry>
-        <media_url><![CDATA[dvd:///?devices=/dev/sr1]]></media_url>
-        <product>sle-module-server-applications</product>
-        <product_dir>/Module-Server-Applications</product_dir>
-      </listentry>
-    </add_on_products>
-  </add-on>
+  <suse_register>
+    <do_registration config:type="boolean">true</do_registration>
+    <email/>
+    <reg_code>{{SCC_REGCODE}}</reg_code>
+    <install_updates config:type="boolean">true</install_updates>
+    <reg_server>{{SCC_URL}}</reg_server>
+    <addons config:type="list">
+      <addon>
+        <name>sle-module-server-applications</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+      <addon>
+        <name>sle-module-desktop-applications</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+    </addons>
+  </suse_register>
   <firewall>
     <enable_firewall config:type="boolean">false</enable_firewall>
     <start_firewall config:type="boolean">false</start_firewall>
@@ -64,17 +64,15 @@
     </interfaces>
   </networking>
   <ntp-client>
-    <configure_dhcp config:type="boolean">false</configure_dhcp>
-    <peers config:type="list">
-      <peer>
-        <address>pool.ntp.org</address>
-        <initial_sync config:type="boolean">true</initial_sync>
-        <options/>
-        <type>server</type>
-      </peer>
-    </peers>
-    <start_at_boot config:type="boolean">true</start_at_boot>
-    <start_in_chroot config:type="boolean">true</start_in_chroot>
+    <ntp_policy>auto</ntp_policy>
+    <ntp_servers config:type="list">
+      <ntp_server>
+        <iburst config:type="boolean">false</iburst>
+        <address>cz.pool.ntp.org</address>
+        <offline config:type="boolean">true</offline>
+      </ntp_server>
+    </ntp_servers>
+    <ntp_sync>15</ntp_sync>
   </ntp-client>
   <partitioning config:type="list">
     <drive>
@@ -109,22 +107,22 @@
     <errors>
       <log config:type="boolean">true</log>
       <show config:type="boolean">true</show>
-      <timeout config:type="integer">120</timeout>
+      <timeout config:type="integer">0</timeout>
     </errors>
     <messages>
       <log config:type="boolean">true</log>
       <show config:type="boolean">true</show>
-      <timeout config:type="integer">30</timeout>
+      <timeout config:type="integer">0</timeout>
     </messages>
     <warnings>
       <log config:type="boolean">true</log>
       <show config:type="boolean">true</show>
-      <timeout config:type="integer">30</timeout>
+      <timeout config:type="integer">0</timeout>
     </warnings>
     <yesno_messages>
       <log config:type="boolean">true</log>
       <show config:type="boolean">true</show>
-      <timeout config:type="integer">120</timeout>
+      <timeout config:type="integer">0</timeout>
     </yesno_messages>
   </report>
   <runlevel>
