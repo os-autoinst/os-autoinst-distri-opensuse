@@ -359,6 +359,16 @@ if (get_var('ENABLE_ALL_SCC_MODULES') && !get_var('SCC_MODULES')) {
     }
 }
 
+# define aytests repo for support server (do not override defined value)
+if (get_var('SUPPORT_SERVER_ROLES') =~ /aytest/ && !get_var('AYTESTS_REPO')) {
+    if (sle_version_at_least('15')) {
+        set_var('AYTESTS_REPO', 'http://download.suse.de/ibs/Devel:/YaST:/Head/SUSE_SLE-15_GA/');
+    }
+    else {
+        set_var('AYTESTS_REPO', 'http://download.suse.de/ibs/Devel:/YaST:/SLE-12-SP3/SLE_12_SP3/');
+    }
+}
+
 $needle::cleanuphandler = \&cleanup_needles;
 
 # dump other important ENV:

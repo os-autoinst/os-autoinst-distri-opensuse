@@ -393,6 +393,14 @@ sub setup_aytests {
     chmod 755 /srv/www/cgi-bin/aytests
 
     cp -pr /var/lib/autoinstall/aytests /srv/www/htdocs/aytests
+    # Expand variables
+    sed -i -e 's|{{SCC_REGCODE}}|" . get_var('SCC_REGCODE') . "|g' \\
+           -e 's|{{SCC_URL}}|" . get_var('SCC_URL') . "|g' \\
+           -e 's|{{VERSION}}|" . get_var('VERSION') . "|g' \\
+           -e 's|{{ARCH}}|" . get_var('ARCH') . "|g' \\
+           -e 's|{{MSG_TIMEOUT}}|0|g' \\
+           /srv/www/htdocs/aytests/*.xml;
+
     systemctl restart apache2;
     ";
 }
