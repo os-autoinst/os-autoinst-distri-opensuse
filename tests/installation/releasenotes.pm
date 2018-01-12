@@ -64,6 +64,13 @@ sub run {
         push @no_relnotes, qw(geo);
     }
     if (@addons) {
+        # Workaround release notes issues in upgrade sle12+addons to sle15
+        # The workaround must be removed after bugs fixed
+        if (get_var('UPGRADE') && sle_version_at_least('15')) {
+            assert_screen 'release-notes-sle-close-button', 60;
+            wait_screen_change { send_key 'alt-c'; };
+            return record_soft_failure 'bsc#1075149, bsc#1073488';
+        }
         for my $a (@addons) {
             next if grep { $a eq $_ } @no_relnotes;
             send_key_until_needlematch("release-notes-$a", 'right', 4, 60);
