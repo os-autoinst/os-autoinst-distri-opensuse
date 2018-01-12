@@ -34,6 +34,7 @@ our @EXPORT = qw(
   lvm_add_filter
   lvm_remove_filter
   rsc_cleanup
+  check_cluster_state
   ha_export_logs
   post_run_hook
   post_fail_hook
@@ -194,20 +195,35 @@ sub rsc_cleanup {
 sub ha_export_logs {
     my $bootstrap_log = '/var/log/ha-cluster-bootstrap.log';
     my $corosync_conf = '/etc/corosync/corosync.conf';
-    my $hb_log        = 'hb_report';
+    my $hb_log        = '/var/log/hb_report';
+    my $packages_list = '/tmp/packages.list';
+    my @y2logs;
 
     # Extract HA logs and upload them
     select_console 'root-console';
     script_run "touch $corosync_conf";
     script_run "hb_report -E $bootstrap_log $hb_log", 120;
-    upload_logs "$bootstrap_log"  if !script_run "test -e $bootstrap_log";
-    upload_logs "$hb_log.tar.bz2" if !script_run "test -e $hb_log";
+    upload_logs "$bootstrap_log";
+    upload_logs "$hb_log.tar.bz2";
 
     # Extract YaST logs and upload them
     script_run "save_y2logs", 120;
-    if (my $y2logs = script_output 'ls -t /tmp/y2log-*.tar.xz | head -n 1') {
-        upload_logs "$y2logs";
+
+    # Generate the packages list
+    script_run "rpm -qa > $packages_list";
+    upload_logs "$packages_list";
+
+    # We can find multiple y2log files
+    push @y2logs, script_output 'ls /tmp/y2log-*.tar.xz';
+    foreach my $y2log (@y2logs) {
+        upload_logs "$y2log";
     }
+}
+
+sub check_cluster_state {
+    assert_script_run "$crm_mon_cmd";
+    assert_script_run 'crm_mon -1 | grep \'partition with quorum\'';
+    assert_script_run 'crm_mon -s | grep "$(crm node list | wc -l) nodes online"';
 }
 
 sub post_run_hook {

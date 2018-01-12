@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Cluster status and check logs to find error
+# Summary: Check logs to find error and upload all needed logs
 # Maintainer: Loic Devulder <ldevulder@suse.com>
 
 use base 'opensusebasetest';
@@ -19,14 +19,9 @@ use hacluster;
 sub run {
     barrier_wait("FENCING_DONE_$cluster_name");
 
-    # We need to be sure to be root and, after fencing, the default console on node01 is not root
-    select_console 'root-console';
-
     # Do some extra verification and export logs
     assert_script_run '(( $(grep -sR segfault /var/log | wc -l) == 0 ))';
-    if (script_run 'crm script run health') {
-        record_soft_failure 'bsc#1071519';
-    }
+    record_soft_failure 'bsc#1071519' if (script_run 'crm script run health');
     ha_export_logs;
 
     barrier_wait("LOGS_CHECKED_$cluster_name");

@@ -139,7 +139,6 @@ sub run {
         assert_script_run "EDITOR=\"sed -ie '\$ a primitive $drbd_rsc ocf:linbit:drbd params drbd_resource=$drbd_rsc'\" crm configure edit";
         assert_script_run
           "EDITOR=\"sed -ie '\$ a ms ms_$drbd_rsc $drbd_rsc meta master-max=1 master-node-max=1 clone-max=2 clone-node-max=1 notify=true'\" crm configure edit";
-        assert_script_run "EDITOR=\"sed -ie '\$ a order order_ms_$drbd_rsc inf: base-clone ms_$drbd_rsc'\" crm configure edit";
 
         # Sometimes we need to cleanup the resource
         rsc_cleanup $drbd_rsc;
