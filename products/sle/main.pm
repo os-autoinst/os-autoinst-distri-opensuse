@@ -1043,6 +1043,9 @@ sub load_ha_cluster_tests {
         loadtest "ha/filesystem";
     }
 
+    # Test Hawk Web interface
+    loadtest "ha/check_hawk";
+
     # Show HA cluster status before fencing test
     loadtest "ha/crm_mon";
 
