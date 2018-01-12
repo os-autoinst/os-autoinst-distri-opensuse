@@ -25,12 +25,6 @@ sub run {
     barrier_create("SLURM_MASTER_SERVICE_ENABLED", 2);
     barrier_create("SLURM_SLAVE_SERVICE_ENABLED",  2);
 
-    select_console 'root-console';
-    $self->setup_static_network(get_required_var('HPC_HOST_IP'));
-
-    # stop firewall
-    $self->stop_firewall();
-
     # set proper hostname
     assert_script_run "hostnamectl set-hostname slurm-master";
 

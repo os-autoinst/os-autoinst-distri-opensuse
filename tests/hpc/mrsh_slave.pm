@@ -21,11 +21,6 @@ use utils;
 
 sub run {
     my $self = shift;
-    select_console 'root-console';
-    $self->setup_static_network(get_required_var('HPC_HOST_IP'));
-
-    # stop firewall, so key can be copied
-    $self->stop_firewall();
 
     # set proper hostname
     assert_script_run "hostnamectl set-hostname mrsh-slave";
