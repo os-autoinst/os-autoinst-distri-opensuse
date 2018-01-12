@@ -72,7 +72,7 @@ sub init_cmd {
       package p
       bootloader b
       entiredisk alt-e
-      guidedsetup alt-g
+      guidedsetup alt-d
       rescandevices alt-e
       exp_part_finish alt-f
       size_hotkey alt-s
