@@ -6,9 +6,29 @@ use testapi qw(check_var get_var get_required_var set_var diag);
 use autotest;
 use utils;
 use version_utils qw(is_jeos is_gnome_next is_krypton_argon is_sle leap_version_at_least sle_version_at_least is_desktop_installed);
+use bmwqemu ();
 use strict;
 use warnings;
-use main_ltp;
+
+eval 'use main_ltp;';
+if ($@) {
+    bmwqemu::fctwarn("Failed to load main_ltp: $@", 'main_common.pm');
+    eval q%
+        sub maybe_load_kernel_tests {
+            if (get_var('INSTALL_LTP')
+                || get_var('LTP_SETUP_NETWORKING')
+                || get_var('LTP_COMMAND_FILE')
+                || get_var('INSTALL_KOTD')
+                || get_var('QA_TEST_KLP_REPO')
+                || get_var('INSTALL_KOTD')
+                || get_var('VIRTIO_CONSOLE_TEST')) {
+
+                die "Can not run kernel tests because evaluating main_ltp.pm failed";
+            }
+            return 0;
+        }
+    %;
+}
 
 our @EXPORT = qw(
   init_main
