@@ -33,7 +33,7 @@ EOF
     sleep(30);
     assert_script_run("salt-key --accept-all -y");
     record_soft_failure 'bsc#1069711';    # Added 180s to ping minion
-    validate_script_output "salt '*' test.ping -t 180 | grep -woh True > /dev/$serialdev", sub { m/True/ }, 180;
+    validate_script_output "salt '*' test.ping -t 180 | grep -woh True > /dev/$serialdev", sub { m/True/ }, 190;
     assert_script_run 'systemctl stop salt-master salt-minion';
 }
 
