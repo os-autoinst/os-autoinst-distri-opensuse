@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -14,10 +14,11 @@
 use base "opensusebasetest";
 use strict;
 use testapi;
+use version_utils 'is_sle';
 
 sub select_locale {
     assert_screen 'jeos-locale', 300;
-    my $lang = get_var("INSTLANG", 'us');
+    my $lang = get_var('INSTLANG', 'us');
     send_key_until_needlematch "jeos-system-locale-$lang", 'e', 50;
     send_key 'ret';
 }
@@ -33,21 +34,12 @@ sub select_keyboard {
 }
 
 sub run {
-    if (check_var('VERSION', '12')) {
-        # JeOS-SLE
-        accept_license;
-        select_keyboard;
-        select_locale;
-    }
-    else {
-        # JeOS-SLE-SP1, Leap 42.1
-        select_locale;
-        accept_license if check_var('DISTRI', 'sle');
-        select_keyboard;
-    }
+    select_locale;
+    accept_license if is_sle;
+    select_keyboard;
 
     assert_screen 'jeos-timezone';    # timzezone window, continue with selected timezone
-    send_key "ret";
+    send_key 'ret';
 
     assert_screen 'jeos-root-password';    # set root password
     type_password;
@@ -57,12 +49,15 @@ sub run {
     type_password;
     send_key 'ret';
 
-    if (check_var('DISTRI', 'sle')) {
+    if (is_sle) {
         assert_screen 'jeos-please-register';
         send_key 'ret';
     }
 
-    assert_screen 'linux-login', 180;
+    # Our current Hyper-V host and it's spindles are quite slow. Especially
+    # when there are more jobs running concurrently. We need to wait for
+    # various disk optimizations and snapshot enablement to land.
+    assert_screen 'linux-login', 300;
     select_console 'root-console';
 
     assert_script_run "useradd -m $username -c '$realname'";    # create user account
