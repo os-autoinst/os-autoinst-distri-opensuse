@@ -32,6 +32,14 @@ sub turn_off_screensaver {
     send_key("ctrl-d");
 }
 
+sub tell_packagekit_to_quit {
+    # tell the PackageKit daemon to stop in order to next load with new libzypp
+    # this is different from pkcon_quit
+    x11_start_program('xterm');
+    script_run("pkcon quit");
+    send_key("ctrl-d");
+}
+
 # Update with GNOME PackageKit Update Viewer
 sub run {
     my ($self) = @_;
@@ -55,6 +63,10 @@ sub run {
 
         if (match_has_tag("updates_restart_application")) {
             assert_and_click("updates_restart_application");
+
+            # We also need the daemon to reload to pick up libzypp updates
+            # Force reloading of packagekitd (bsc#1075260, poo#30085)
+            tell_packagekit_to_quit;
         }
 
         if (match_has_tag("updates_none")) {
@@ -86,6 +98,10 @@ sub run {
             }
             elsif (match_has_tag("updates_installed-logout")) {
                 send_key "alt-c";    # close
+
+                # The logout is not acted upon, which may miss a libzypp update
+                # Force reloading of packagekitd (bsc#1075260, poo#30085)
+                tell_packagekit_to_quit;
             }
             elsif (match_has_tag("updates_installed-restart")) {
                 power_action 'reboot', textmode => 1;
