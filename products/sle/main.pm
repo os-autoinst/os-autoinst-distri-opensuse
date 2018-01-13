@@ -1046,17 +1046,20 @@ sub load_ha_cluster_tests {
     # Test Hawk Web interface
     loadtest "ha/check_hawk";
 
-    # Show HA cluster status before fencing test
-    loadtest "ha/crm_mon";
+    # Show HA cluster status *before* fencing test
+    loadtest "ha/check_before_fencing";
 
     # Test fencing feature
     loadtest "ha/fencing";
 
+    # Show HA cluster status *after* fencing test
+    loadtest "ha/check_after_fencing";
+
     # Node1 will be fenced, so we have to wait for it to boot
     loadtest "boot/boot_to_desktop" if (!get_var("HA_CLUSTER_JOIN"));
 
-    # Cluster status and check logs to find error
-    loadtest "ha/check_cluster";
+    # Check logs to find error and upload all needed logs
+    loadtest "ha/check_logs";
 
     return 1;
 }

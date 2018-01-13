@@ -32,9 +32,6 @@ sub run {
         reset_consoles;
         barrier_wait("BEFORE_FENCING_$cluster_name");
     }
-
-    # Do a check of the cluster with a screenshot
-    save_state;
 }
 
 1;
