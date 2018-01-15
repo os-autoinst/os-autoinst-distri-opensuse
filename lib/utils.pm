@@ -636,6 +636,9 @@ sub power_action {
     else {
         assert_shutdown($shutdown_timeout) if $action eq 'poweroff';
         reset_consoles;
+        if (check_var('BACKEND', 'svirt') && $action ne 'poweroff') {
+            console('svirt')->start_serial_grab;
+        }
     }
 }
 
