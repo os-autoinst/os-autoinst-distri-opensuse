@@ -14,7 +14,7 @@ use lockapi;
 use needle;
 use registration;
 use utils;
-use version_utils qw(is_hyperv_in_gui is_caasp is_installcheck is_rescuesystem sle_version_at_least is_desktop_installed is_jeos is_sle);
+use version_utils qw(is_hyperv_in_gui is_caasp is_installcheck is_rescuesystem sle_version_at_least is_desktop_installed is_jeos is_sle is_upgrade);
 use File::Find;
 use File::Basename;
 use LWP::Simple 'head';
@@ -1118,15 +1118,31 @@ sub load_patching_tests {
             loadtest "installation/bootloader_zkvm";
         }
     }
+    # Switch to orginal system version for upgrade tests
+    if (is_upgrade) {
+        # Save HDDVERSION to ORIGIN_SYSTEM_VERSION
+        set_var('ORIGIN_SYSTEM_VERSION', get_var('HDDVERSION'));
+        # Save VERSION to UPGRADE_TARGET_VERSION
+        set_var('UPGRADE_TARGET_VERSION', get_var('VERSION'));
+        loadtest "migration/version_switch_origin_system";
+    }
     loadtest 'boot/boot_to_desktop';
     loadtest 'update/patch_before_migration';
-    # Lock package for offline migration by Yast installer
-    if (get_var('LOCK_PACKAGE') && !installzdupstep_is_applicable) {
-        loadtest 'console/lock_package';
+    if (is_upgrade) {
+        # Lock package for offline migration by Yast installer
+        if (get_var('LOCK_PACKAGE') && !installzdupstep_is_applicable) {
+            loadtest 'console/lock_package';
+        }
+        # Reboot from DVD and perform upgrade
+        loadtest 'console/consoletest_finish';
+        loadtest 'x11/reboot_and_install';
+        # After original system patched, switch to UPGRADE_TARGET_VERSION
+        # For ZDUP upgrade, version switch back later
+        if (get_var('UPGRADE') || get_var('AUTOUPGRADE')) {
+            loadtest "migration/version_switch_upgrade_target";
+        }
+        loadtest 'installation/bootloader_zkvm' if get_var('S390_ZKVM');
     }
-    loadtest 'console/consoletest_finish';
-    loadtest 'x11/reboot_and_install';
-    loadtest 'installation/bootloader_zkvm' if get_var('S390_ZKVM');
 }
 
 sub load_sles4sap_tests {
@@ -1537,12 +1553,13 @@ else {
         load_boot_tests();
         load_online_migration_tests();
     }
-    elsif (get_var("PATCH")) {
-        #Before upgrading, orginal system version is actually HDDVERSION
-        loadtest "migration/version_switch_origin_system";
-        load_patching_tests();
-        #After original system patched, switch to UPGRADE_TARGET_VERSION
-        loadtest "migration/version_switch_upgrade_target";
+    elsif (get_var("UPGRADE")) {
+        if (get_var('PATCH')) {
+            load_patching_tests();
+        }
+        else {
+            load_boot_tests();
+        }
         load_inst_tests();
         load_reboot_tests();
     }

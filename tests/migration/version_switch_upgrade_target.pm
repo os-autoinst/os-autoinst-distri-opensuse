@@ -19,11 +19,13 @@ use warnings;
 use testapi;
 
 sub run {
-    return unless get_var('UPGRADE');
+    # After being patched, original system is ready for upgrade
+    my $upgrade_target_version = get_required_var('UPGRADE_TARGET_VERSION');
 
-    #After being patched, orginal system is ready for upgrade
-    #Switch VERSION to UPGRADE_TARGET_VERSION
-    set_var('VERSION', get_required_var('UPGRADE_TARGET_VERSION'), reload_needles => 1);
+    if (get_var('VERSION') ne $upgrade_target_version) {
+        # Switch to upgrade target version and reload needles
+        set_var('VERSION', $upgrade_target_version, reload_needles => 1);
+    }
 }
 
 1;
