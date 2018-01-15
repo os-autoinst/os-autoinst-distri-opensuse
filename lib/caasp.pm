@@ -16,6 +16,7 @@ use strict;
 use warnings;
 use testapi;
 use mmapi;
+use version_utils 'is_caasp';
 use utils qw(power_action assert_shutdown_and_restore_system);
 
 our @EXPORT = qw(handle_simple_pw process_reboot trup_call write_detail_output get_admin_job update_scheduled export_cluster_logs);
@@ -70,6 +71,12 @@ sub trup_call {
         }
         else {
             die "Confirmation dialog not shown";
+        }
+        # Signature verification failed - confirmed feature by Michael Schroeder
+        if (is_caasp('kubic') && $cmd =~ /install/) {
+            wait_serial 'Abort, retry, ignore?';
+            send_key "i";
+            send_key "ret";
         }
     }
     wait_serial 'trup-0-' if $check == 1;
