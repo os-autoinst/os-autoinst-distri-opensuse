@@ -9,7 +9,7 @@
 
 # Summary: Controller/master for remote installations
 # Tags: poo#9576
-# Maintainer: Martin Kravec <mkravec@suse.com>
+# Maintainer: Martin Loviska <mloviska@suse.com>
 
 use base "opensusebasetest";
 use strict;
@@ -17,39 +17,50 @@ use testapi;
 use utils;
 use mm_network;
 use lockapi;
+use mmapi;
 
 sub run {
-    my ($self) = @_;
     my $target_ip;
+    my $children = get_children();
+    my $child_id = (keys %$children)[0];
+    my $password = 'nots3cr3t';
 
-    select_console 'root-console';
-    ensure_serialdev_permissions;
-
-    # Setup static NETWORK
-    configure_default_gateway;
-    configure_static_ip('10.0.2.12/15');
+    mutex_lock("ssh_server_is_available", $child_id);
 
     # Wait until target becomes ready
-    mutex_lock "installation_ready";
+    # parse dhcpd.leases - now it should contain entries for all nodes
+    my %dhcp_leases;
+    my $dhcp_leases_file = script_output("cat /var/lib/dhcp/db/dhcpd.leases\n");
+    my $lease_ip;
+
+    for my $line (split /\n/, $dhcp_leases_file) {
+        if ($line =~ /^lease\s+\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/) {
+            (undef, $lease_ip) = split(/\s/, $line);
+        }
+        elsif ($line =~ /client-hostname\s+"(.*)"/) {
+            my $hostname = lc($1);
+            $dhcp_leases{$hostname} //= [];
+            push(@{$dhcp_leases{$hostname}}, $lease_ip);
+        }
+    }
+
+    mutex_unlock("ssh_server_is_available", $child_id);
+
+    ensure_serialdev_permissions;
 
     if (check_var("REMOTE_CONTROLLER", "vnc")) {
-        # Get target ip using slptool
-        systemctl 'stop ' . $self->firewall;
-        $target_ip = script_output "slptool findsrvs service:YaST.installation.suse:vnc | cut -d: -f4 | tr -d /";
-        systemctl 'start ' . $self->firewall;
-
-        select_console 'x11';
+        # wait to change tty
+        send_key('alt-f7', 10);
         x11_start_program('xterm');
-        type_string "vncviewer -fullscreen $target_ip:1\n";
-        assert_screen "remote_master_password";    # wait for password prompt
+        type_string "vncviewer -fullscreen $lease_ip:1\n";
+        # wait for password prompt
+        assert_screen "remote_master_password";
         type_string "$password\n";
     }
     elsif (check_var("REMOTE_CONTROLLER", "ssh")) {
-        $target_ip = "10.0.2.11";
         select_console 'user-console';
         clear_console;
-
-        type_string "ssh root\@$target_ip\n";
+        type_string "ssh root\@$lease_ip\n";
         assert_screen "remote-ssh-login";
         type_string "yes\n";
         assert_screen 'password-prompt';
@@ -68,4 +79,5 @@ sub test_flags {
 }
 
 1;
+
 # vim: set sw=4 et:

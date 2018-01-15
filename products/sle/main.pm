@@ -1271,8 +1271,12 @@ elsif (is_installcheck) {
 elsif (get_var("SUPPORT_SERVER")) {
     loadtest "support_server/login";
     loadtest "support_server/setup";
+    if (get_var("REMOTE_CONTROLLER")) {
+        loadtest "remote/remote_controller";
+        load_inst_tests();
+    }
     loadtest "ha/barrier_init" if get_var("HA_CLUSTER_SUPPORT_SERVER");
-    unless (load_slenkins_tests()) {
+    unless (load_slenkins_tests() || get_var("REMOTE_CONTROLLER")) {
         loadtest "support_server/wait";
     }
 }
@@ -1606,10 +1610,6 @@ else {
             if (get_var("NIS_CLIENT")) {
                 set_var('INSTALLONLY', 1);
                 loadtest "x11/nis_client";
-            }
-            if (get_var("REMOTE_CONTROLLER")) {
-                loadtest "remote/remote_controller";
-                load_inst_tests();
             }
         }
     }
