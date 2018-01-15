@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -120,10 +120,7 @@ sub setraidlevel {
 sub set_lvm {
     send_key "shift-tab";
     # select LVM
-    send_key "down";
-    if (is_storage_ng) {
-        send_key 'down' for (1 .. 3);
-    }
+    send_key_until_needlematch 'volume_management_feature', 'down';
 
     # create volume group
     send_key "alt-d";
@@ -139,7 +136,7 @@ sub set_lvm {
     type_string "root";
     assert_screen 'volumegroup-name-root';
 
-    send_key $cmd{finish};
+    send_key is_storage_ng() ? $cmd{next} : $cmd{finish};
     wait_still_screen;
 
     # create logical volume
@@ -152,43 +149,63 @@ sub set_lvm {
     type_string "root";
     assert_screen 'volume-name-root';
     send_key $cmd{next};
-
-    # keep default
     send_key $cmd{next};
 
+    assert_screen 'volume-pick-fs-role';
     send_key "alt-o";    # Operating System
     send_key $cmd{next};
+    if (is_storage_ng) {
+        if (assert_screen [qw(volume-empty-mount volume-mount-as-root)]) {
+            # storage-ng does not suggest mount point for OS role volume,
+            # so mount the volume as root explicitly.
+            if (match_has_tag 'volume-empty-mount') {
+                record_soft_failure 'bsc#1073854 - new partition for OS has "do not mount device" option preselected';
+                send_key "alt-o";
+                assert_screen 'volume-mount-as-root';
+            }
+        }
+        send_key $cmd{next};
+    }
 
     # keep default to mount as root and btrfs
-    wait_screen_change { send_key $cmd{finish} };
+    wait_screen_change { send_key is_storage_ng() ? $cmd{next} : $cmd{finish}; };
 }
 
 sub modify_uefi_boot_partition {
+    send_key 'tab' if is_storage_ng;
     assert_screen 'partitioning_raid-disk_vdd_with_partitions-selected';
     # fold the drive tree
     send_key 'left';
     assert_screen 'partitioning_raid-hard_disks-unfolded';
-    # select first disk
+    # select first partition of the first disk (usually vda1), bit of a short-cut
+    if (is_storage_ng) {
+        send_key 'left';
+        send_key 'right';
+    }
     send_key 'right';
     assert_screen 'partitioning_raid-disk_vda_with_partitions-selected';
     # edit first partition
     send_key 'alt-e';
     assert_screen 'partition-format';
-    # format as FAT (first choice)
     send_key 'alt-a';
-    assert_screen 'partitioning_raid-format_fat_UEFI';
+    assert_screen 'partitioning_raid-format_default_UEFI';
+    # format as FAT (first choice)
+    send_key 'tab';
+    type_string 'fat';
     # mount point selection
     send_key 'alt-o';
+    send_key 'tab';
     assert_screen 'partitioning_raid-mount_point-focused';
     # enter mount point
     type_string '/boot/efi';
     assert_screen 'partitioning_raid-mount_point_boot_efi';
-    send_key $cmd{finish};
+    send_key is_storage_ng() ? $cmd{next} : $cmd{finish};
     assert_screen 'expert-partitioner';
-    send_key 'shift-tab';
-    send_key 'shift-tab';
+    send_key is_storage_ng() ? 'tab' : 'shift-tab';
+    send_key 'shift-tab' unless is_storage_ng;
     # go to top "Hard Disks" node
     send_key 'left';
+    send_key 'up' if is_storage_ng;
     assert_screen 'partitioning_raid-hard_disks-unfolded';
     # fold the drive tree again
     send_key 'left';
@@ -377,8 +394,9 @@ sub run {
         send_key "shift-tab" unless is_storage_ng;
         send_key "shift-tab" unless is_storage_ng;
 
-        # in last step of for loop edit first vda1 and format it as EFI ESP, preparation for fate#322485
-        if ($_ eq 'vdd' and get_var('UEFI')) {
+        # As a last step edit the last partition and format it as EFI ESP, preparation for fate#322485.
+        # Only KVM and Hyper-V currently support UEFI.
+        if ($_ =~ /[sv]dd/ and get_var('UEFI')) {
             modify_uefi_boot_partition;
         }
 
