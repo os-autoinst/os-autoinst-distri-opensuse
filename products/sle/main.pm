@@ -1062,11 +1062,11 @@ sub load_ha_cluster_tests {
     # Test fencing feature
     loadtest "ha/fencing";
 
-    # Show HA cluster status *after* fencing test
-    loadtest "ha/check_after_fencing";
-
     # Node1 will be fenced, so we have to wait for it to boot
     loadtest "boot/boot_to_desktop" if (!get_var("HA_CLUSTER_JOIN"));
+
+    # Show HA cluster status *after* fencing test
+    loadtest "ha/check_after_fencing";
 
     # Check logs to find error and upload all needed logs
     loadtest "ha/check_logs";
