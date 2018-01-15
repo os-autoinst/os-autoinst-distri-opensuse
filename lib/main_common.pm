@@ -10,26 +10,6 @@ use bmwqemu ();
 use strict;
 use warnings;
 
-eval 'use main_ltp;';
-if ($@) {
-    bmwqemu::fctwarn("Failed to load main_ltp: $@", 'main_common.pm');
-    eval q%
-        sub maybe_load_kernel_tests {
-            if (get_var('INSTALL_LTP')
-                || get_var('LTP_SETUP_NETWORKING')
-                || get_var('LTP_COMMAND_FILE')
-                || get_var('INSTALL_KOTD')
-                || get_var('QA_TEST_KLP_REPO')
-                || get_var('INSTALL_KOTD')
-                || get_var('VIRTIO_CONSOLE_TEST')) {
-
-                die "Can not run kernel tests because evaluating main_ltp.pm failed";
-            }
-            return 0;
-        }
-    %;
-}
-
 our @EXPORT = qw(
   init_main
   loadtest
@@ -179,6 +159,33 @@ sub is_bridged_networking {
     # Some needles match hostname which we can't set permanently with bridge.
     set_var('BRIDGED_NETWORKING', 1) if $ret;
     return $ret;
+}
+
+# Isolate the loading of LTP tests because they often rely on newer features
+# not present on all workers. If they are isolated then only the LTP tests
+# will fail to load when there is a version mismatch instead of all tests.
+{
+    local $@;
+
+    eval 'use main_ltp;';
+    if ($@) {
+        bmwqemu::fctwarn("Failed to load main_ltp.pm:\n$@", 'main_common.pm');
+        eval q%
+            sub maybe_load_kernel_tests {
+                if (get_var('INSTALL_LTP')
+                    || get_var('LTP_SETUP_NETWORKING')
+                    || get_var('LTP_COMMAND_FILE')
+                    || get_var('INSTALL_KOTD')
+                    || get_var('QA_TEST_KLP_REPO')
+                    || get_var('INSTALL_KOTD')
+                    || get_var('VIRTIO_CONSOLE_TEST'))
+                {
+                    die "Can not run kernel tests because evaluating main_ltp.pm failed";
+                }
+                return 0;
+            }
+        %;
+    }
 }
 
 sub replace_opensuse_repos_tests {
