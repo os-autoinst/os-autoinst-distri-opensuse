@@ -92,6 +92,9 @@ sub is_caasp {
             return check_var('VERSION', $filter);
         }
     }
+    elsif ($filter =~ /kubic|caasp/) {
+        return check_var('DISTRI', $filter);
+    }
     else {
         return check_var('FLAVOR', $filter);    # Specific FLAVOR selector
     }
