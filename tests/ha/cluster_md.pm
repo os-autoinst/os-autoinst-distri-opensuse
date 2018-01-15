@@ -12,6 +12,7 @@
 
 use base 'opensusebasetest';
 use strict;
+use version_utils qw(is_sle sle_version_at_least);
 use testapi;
 use lockapi;
 use hacluster;
@@ -25,7 +26,7 @@ sub run {
     my $clustermd_device   = '/dev/md0';
     my $clustermd_name_opt = undef;
 
-    if (get_var('NAMED_CLUSTER_MD')) {
+    if (is_sle && sle_version_at_least('15')) {
         $clustermd_device   = "/dev/md/$clustermd_rsc";
         $clustermd_name_opt = "--name=$clustermd_rsc";
     }
@@ -36,8 +37,8 @@ sub run {
     # Test if DLM kernel module package is installed
     die 'cluster-md kernel package is not installed' unless is_package_installed 'cluster-md-kmp-default';
 
-    # DLM process needs to be started
-    ensure_process_running 'dlm_controld';
+    # DLM process/resource needs to be started
+    ensure_dlm_running;
 
     if (is_node(1)) {
         # Create cluster-md device
@@ -71,7 +72,7 @@ sub run {
     barrier_wait("CLUSTER_MD_STARTED_$cluster_name");
 
     if (is_node(1)) {
-        # Create DLM resource
+        # Create cluster-md resource
         assert_script_run
 "EDITOR=\"sed -ie '\$ a primitive $clustermd_rsc ocf:heartbeat:Raid1 params raiddev=auto force_clones=true raidconf=$mdadm_conf'\" crm configure edit";
         assert_script_run "EDITOR=\"sed -ie 's/^\\(group base-group.*\\)/\\1 $clustermd_rsc/'\" crm configure edit";

@@ -24,44 +24,29 @@ sub run {
 
         # Number of node is a mandatory variable!
         if ($num_nodes lt '2') {
-            die "A valid number of nodes is mandatory";
+            die 'A valid number of nodes is mandatory';
         }
 
         # BARRIER_HA_ needs to also wait the support-server
-        barrier_create("BARRIER_HA_$cluster_name",            $num_nodes + 1);
-        barrier_create("CLUSTER_INITIALIZED_$cluster_name",   $num_nodes);
-        barrier_create("NODE_JOINED_$cluster_name",           $num_nodes);
-        barrier_create("DLM_INIT_$cluster_name",              $num_nodes);
-        barrier_create("DLM_GROUPS_CREATED_$cluster_name",    $num_nodes);
-        barrier_create("DLM_CHECKED_$cluster_name",           $num_nodes);
-        barrier_create("DRBD_INIT_$cluster_name",             $num_nodes);
-        barrier_create("DRBD_CREATE_CONF_$cluster_name",      $num_nodes);
-        barrier_create("DRBD_ACTIVATE_DEVICE_$cluster_name",  $num_nodes);
-        barrier_create("DRBD_CREATE_DEVICE_$cluster_name",    $num_nodes);
-        barrier_create("DRBD_DOWN_DONE_$cluster_name",        $num_nodes);
-        barrier_create("DRBD_MIGRATION_DONE_$cluster_name",   $num_nodes);
-        barrier_create("DRBD_REVERT_DONE_$cluster_name",      $num_nodes);
-        barrier_create("DRBD_RESOURCE_CREATED_$cluster_name", $num_nodes);
-        barrier_create("DRBD_RESOURCE_STOPPED_$cluster_name", $num_nodes);
-        barrier_create("DRBD_RESOURCE_STARTED_$cluster_name", $num_nodes);
-        barrier_create("DRBD_SETUP_DONE_$cluster_name",       $num_nodes);
-
-        # Create barriers for multiple tests
-        foreach my $fs_tag ('LUN', 'CLUSTER_MD', 'DRBD_PASSIVE', 'DRBD_ACTIVE') {
-            barrier_create("CLVM_INIT_${fs_tag}_$cluster_name",                $num_nodes);
-            barrier_create("CLVM_RESOURCE_CREATED_${fs_tag}_$cluster_name",    $num_nodes);
-            barrier_create("CLVM_PV_VG_LV_CREATED_${fs_tag}_$cluster_name",    $num_nodes);
-            barrier_create("CLVM_VG_RESOURCE_CREATED_${fs_tag}_$cluster_name", $num_nodes);
-            barrier_create("CLVM_RW_CHECKED_${fs_tag}_$cluster_name",          $num_nodes);
-            barrier_create("CLVM_MD5SUM_${fs_tag}_$cluster_name",              $num_nodes);
-            barrier_create("FS_INIT_${fs_tag}_$cluster_name",                  $num_nodes);
-            barrier_create("FS_MKFS_DONE_${fs_tag}_$cluster_name",             $num_nodes);
-            barrier_create("FS_GROUP_ADDED_${fs_tag}_$cluster_name",           $num_nodes);
-            barrier_create("FS_RESOURCE_STOPPED_${fs_tag}_$cluster_name",      $num_nodes);
-            barrier_create("FS_DATA_COPIED_${fs_tag}_$cluster_name",           $num_nodes);
-            barrier_create("FS_CHECKED_${fs_tag}_$cluster_name",               $num_nodes);
-        }
-
+        barrier_create("BARRIER_HA_$cluster_name",                  $num_nodes + 1);
+        barrier_create("CLUSTER_INITIALIZED_$cluster_name",         $num_nodes);
+        barrier_create("NODE_JOINED_$cluster_name",                 $num_nodes);
+        barrier_create("DLM_INIT_$cluster_name",                    $num_nodes);
+        barrier_create("DLM_GROUPS_CREATED_$cluster_name",          $num_nodes);
+        barrier_create("DLM_CHECKED_$cluster_name",                 $num_nodes);
+        barrier_create("DRBD_INIT_$cluster_name",                   $num_nodes);
+        barrier_create("DRBD_CREATE_CONF_$cluster_name",            $num_nodes);
+        barrier_create("DRBD_ACTIVATE_DEVICE_$cluster_name",        $num_nodes);
+        barrier_create("DRBD_CREATE_DEVICE_$cluster_name",          $num_nodes);
+        barrier_create("DRBD_DOWN_DONE_$cluster_name",              $num_nodes);
+        barrier_create("DRBD_MIGRATION_DONE_$cluster_name",         $num_nodes);
+        barrier_create("DRBD_REVERT_DONE_$cluster_name",            $num_nodes);
+        barrier_create("DRBD_RESOURCE_CREATED_$cluster_name",       $num_nodes);
+        barrier_create("DRBD_RESOURCE_STOPPED_$cluster_name",       $num_nodes);
+        barrier_create("DRBD_RESOURCE_STARTED_$cluster_name",       $num_nodes);
+        barrier_create("DRBD_SETUP_DONE_$cluster_name",             $num_nodes);
+        barrier_create("LOCK_INIT_$cluster_name",                   $num_nodes);
+        barrier_create("LOCK_RESOURCE_CREATED_$cluster_name",       $num_nodes);
         barrier_create("BEFORE_FENCING_$cluster_name",              $num_nodes);
         barrier_create("FENCING_DONE_$cluster_name",                $num_nodes);
         barrier_create("LOGS_CHECKED_$cluster_name",                $num_nodes);
@@ -76,6 +61,21 @@ sub run {
         barrier_create("CLUSTER_MD_CHECKED_$cluster_name",          $num_nodes);
         barrier_create("HAWK_INIT_$cluster_name",                   $num_nodes);
         barrier_create("HAWK_CHECKED_$cluster_name",                $num_nodes);
+
+        # Create barriers for multiple tests
+        foreach my $fs_tag ('LUN', 'CLUSTER_MD', 'DRBD_PASSIVE', 'DRBD_ACTIVE') {
+            barrier_create("VG_INIT_${fs_tag}_$cluster_name",             $num_nodes);
+            barrier_create("PV_VG_LV_CREATED_${fs_tag}_$cluster_name",    $num_nodes);
+            barrier_create("VG_RESOURCE_CREATED_${fs_tag}_$cluster_name", $num_nodes);
+            barrier_create("VG_RW_CHECKED_${fs_tag}_$cluster_name",       $num_nodes);
+            barrier_create("VG_MD5SUM_${fs_tag}_$cluster_name",           $num_nodes);
+            barrier_create("FS_INIT_${fs_tag}_$cluster_name",             $num_nodes);
+            barrier_create("FS_MKFS_DONE_${fs_tag}_$cluster_name",        $num_nodes);
+            barrier_create("FS_GROUP_ADDED_${fs_tag}_$cluster_name",      $num_nodes);
+            barrier_create("FS_RESOURCE_STOPPED_${fs_tag}_$cluster_name", $num_nodes);
+            barrier_create("FS_DATA_COPIED_${fs_tag}_$cluster_name",      $num_nodes);
+            barrier_create("FS_CHECKED_${fs_tag}_$cluster_name",          $num_nodes);
+        }
     }
 
     # Wait for all children to start

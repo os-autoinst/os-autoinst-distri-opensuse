@@ -22,12 +22,12 @@ our @EXPORT = qw(
   get_node_number
   is_node
   choose_node
-  show_rsc
   save_state
   is_package_installed
+  check_rsc
   ensure_process_running
   ensure_resource_running
-  check_rsc
+  ensure_dlm_running
   write_tag
   read_tag
   block_device_real_path
@@ -74,13 +74,9 @@ sub choose_node {
     return ($tmp_hostname);
 }
 
-sub show_rsc {
-    script_run 'yes | crm configure show';
-    save_screenshot;
-}
-
 sub save_state {
-    script_run "$crm_mon_cmd";
+    script_run 'yes | crm configure show';
+    assert_script_run "$crm_mon_cmd";
     save_screenshot;
 }
 
@@ -90,19 +86,12 @@ sub is_package_installed {
     return (!script_run "rpm -q $package");
 }
 
-sub is_process_running {
-    my $process  = shift;
-    my $ret_code = 0;
+sub check_rsc {
+    my $rsc = shift;
 
-    for (1 .. 10) {
-        if (!script_run "ps -A | grep -q '\\<$process\\>'") {
-            $ret_code = 1;
-            last;
-        }
-        sleep 2;
-    }
-
-    return $ret_code;
+    # As Perl and Shell do not handle return code as the same way,
+    # we need to invert it
+    return (!script_run "$crm_mon_cmd 2>/dev/null | grep -q '\\<$rsc\\>'");
 }
 
 sub ensure_process_running {
@@ -139,12 +128,11 @@ sub ensure_resource_running {
     return 0;
 }
 
-sub check_rsc {
-    my $rsc = shift;
+sub ensure_dlm_running {
+    die 'dlm is not running' unless check_rsc "dlm";
+    ensure_process_running 'dlm_controld';
 
-    # As Perl and Shell do not handle return code as the same way,
-    # we need to invert it
-    return (!script_run "$crm_mon_cmd 2>/dev/null | grep -q '\\<$rsc\\>'");
+    return 0;
 }
 
 sub write_tag {
