@@ -61,12 +61,9 @@ sub y2snapper_show_changes_and_delete {
     if ($ncurses) {
         wait_screen_change { send_key "ret" };
         wait_screen_change { send_key "end" };
-        wait_screen_change { send_key "ret" };
     }
     else {
         wait_screen_change { send_key "tab" };
-        wait_screen_change { send_key "spc" };
-        send_key "down";
         wait_screen_change { send_key "spc" };
     }
     # Make sure it shows the new files from the unpacked tarball
