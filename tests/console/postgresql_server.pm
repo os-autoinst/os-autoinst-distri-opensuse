@@ -27,13 +27,18 @@ sub run {
     # start the postgresql service
     systemctl 'start postgresql.service', timeout => 200;
 
-    # check the status
-    systemctl 'show -p ActiveState postgresql.service | grep ActiveState=active';
-    systemctl 'show -p SubState postgresql.service | grep SubState=running';
+    # check the status, if failed, get possible cause
+    assert_script_run 'systemctl show -p ActiveState postgresql.service | grep ActiveState=active';
+    assert_script_run 'systemctl show -p SubState postgresql.service | grep SubState=running';
 
     # test basic functionality of postgresql
     setup_pgsqldb;
     destroy_pgsqldb;
+}
+
+sub post_fail_hook {
+    my ($self) = shift;
+    $self->export_logs;
 }
 
 1;
