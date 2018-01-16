@@ -286,7 +286,7 @@ sub run {
         if (get_var('LTP_DUMP_MEMORY_ON_TIMEOUT')) {
             save_memory_dump(filename => $test->{name});
         }
-        die "Can't continue; timed out waiting for LTP test case which may still be running or the OS may have crashed!";
+        die "Timed out waiting for LTP test case which may still be running or the OS may have crashed!";
     }
 
     if ($set_rhost) {
@@ -294,6 +294,16 @@ sub run {
     }
 
     script_run('vmstat -w');
+}
+
+# Only propogate death don't create it from failure [2]
+sub run_post_fail {
+    my ($self, $msg) = @_;
+
+    $self->fail_if_running();
+    if ($msg =~ qr/died/) {
+        die $msg . "\n";
+    }
 }
 
 1;
@@ -315,6 +325,12 @@ reported, otherwise a pass.
 [1] Actually the parsing is now done by lib/main_ltp.pm which is called from
     main.pm after install_ltp has uploaded the runtest files as
     assets. run_ltp is scheduled once for each LTP test case/executable.
+
+[2] This overrides the default basetest class behaviour because the LTP tests
+    are able to continue after most failures (without reverting to a
+    milestone). We call 'die' inside run() and then propogate it if the
+    failure is more severe and requires either reverting the SUT or aborting
+    the tests.
 
 =head1 Configuration
 
