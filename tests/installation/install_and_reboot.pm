@@ -68,6 +68,9 @@ sub run {
     if (check_var('SCC_REGISTER', 'installation') && !get_var('SCC_URL')) {
         $timeout = 5500;
     }
+    if (check_var('REGISTER', 'installation') && is_caasp) {
+        $timeout = 5500;
+    }
     # aarch64 can be particularily slow depending on the hardware
     $timeout *= 2 if check_var('ARCH', 'aarch64') && get_var('MAX_JOB_TIME');
     # encryption, LVM and RAID makes it even slower
