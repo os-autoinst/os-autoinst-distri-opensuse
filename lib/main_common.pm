@@ -216,7 +216,8 @@ sub load_zdup_tests {
     }
     loadtest 'installation/zdup';
     loadtest 'installation/post_zdup';
-    loadtest "migration/version_switch_upgrade_target";
+    # Restrict version switch to sle until opensuse adopts it
+    loadtest "migration/version_switch_upgrade_target" if is_sle;
     loadtest 'boot/boot_to_desktop';
 }
 
