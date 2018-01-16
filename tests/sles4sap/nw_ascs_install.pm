@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -27,7 +27,7 @@ sub fix_path {
 
 sub run {
     my ($self) = @_;
-    my ($proto, $path) = split m|://|, get_var('NW');
+    my ($proto, $path) = split m|://|, get_required_var('NW');
     my @sapoptions = qw(
       SAPINST_USE_HOSTNAME=$(hostname)
       SAPINST_INPUT_PARAMETERS_URL=/sapinst/inifile.params
@@ -42,6 +42,17 @@ sub run {
     $path = fix_path($path, $proto);
 
     select_console 'root-console';
+
+    # This installs Netweaver's ASCS. Start by making sure the correct
+    # SAP profile is set in the system
+    assert_script_run "tuned-adm profile sap-netweaver";
+    assert_script_run "saptune solution apply NETWEAVER";
+    assert_script_run "kill -1 \$(ps aux|grep systemd-logind|awk '{print \$2}'|head -1)";
+    assert_script_run "saptune daemon start";
+    my $output = script_output "tuned-adm active";
+    record_info("tuned profile", $output);
+    my $output = script_output "saptune daemon status";
+    record_info("tuned status", $output);
 
     # Copy media
     assert_script_run "mkdir /sapinst";
