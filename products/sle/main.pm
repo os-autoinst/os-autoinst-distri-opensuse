@@ -555,6 +555,9 @@ sub load_boot_tests {
         set_var("DELAYED_START", "1");
         loadtest "autoyast/pxe_boot";
     }
+    elsif (get_var('BACKEND', 'pvm')) {
+        loadtest "installation/bootloader_spvm";
+    }
     else {
         loadtest "installation/bootloader" unless load_bootloader_s390x();
     }
@@ -693,7 +696,7 @@ sub load_inst_tests {
             loadtest "installation/hostname_inst";
         }
         # Do not run on REMOTE_CONTROLLER, IPMI and on Hyper-V in GUI mode
-        if (!get_var("REMOTE_CONTROLLER") && !check_var('BACKEND', 'ipmi') && !is_hyperv_in_gui) {
+        if (!get_var("REMOTE_CONTROLLER") && !check_var('BACKEND', 'ipmi') && !is_hyperv_in_gui && !check_var('BACKEND', 'spvm')) {
             loadtest "installation/logpackages";
         }
         if (is_sles4sap()) {
