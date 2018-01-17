@@ -14,6 +14,8 @@
 use strict;
 use base "opensusebasetest";
 use testapi;
+use File::Copy 'copy';
+use File::Path 'make_path';
 
 sub run {
     my $path = get_required_var('AUTOYAST');
@@ -21,7 +23,6 @@ sub run {
     my $profile = get_test_data($path);
     # Return if profile is not available
     return unless $profile;
-
     # Expand variables
     my @vars = qw(SCC_REGCODE SCC_URL VERSION ARCH);
     foreach (@vars) {
@@ -32,6 +33,9 @@ sub run {
     }
     # Upload modified profile
     save_tmp_file($path, $profile);
+    # Copy profile to ulogs directory, so profile is available in job logs
+    make_path('ulogs');
+    copy(hashed_string($path), 'ulogs/autoyast_profile.xml');
     # Set AUTOYAST variable with new url
     my $url = autoinst_url . "/files/$path";
     set_var('AUTOYAST', $url);

@@ -5,7 +5,6 @@ Test suite is based on profile received from our beta customers.
 It contains multipath and profile is edited during runtime using
 pre init scripts feature. See poo#20818.
 -->
-<?xml version="1.0" encoding="UTF-8"?>
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
   <suse_register>
     <do_registration config:type="boolean">true</do_registration>
@@ -44,7 +43,7 @@ pre init scripts feature. See poo#20818.
       <import_gpg_key config:type="boolean">true</import_gpg_key>
     </signature-handling>
   </general>
-  
+
   <report>
     <errors>
       <log config:type="boolean">true</log>
