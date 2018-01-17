@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -20,10 +20,12 @@
 use base "consoletest";
 use strict;
 use testapi;
+use utils 'zypper_call';
 
 sub run {
     # Preparation
     select_console 'root-console';
+    zypper_call 'in wget unzip';
     assert_script_run 'mkdir -p /tmp/unzip-test/ && pushd /tmp/unzip-test';
 
     # 1. Unzip (basic usage)

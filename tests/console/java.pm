@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -13,11 +13,13 @@
 #          the Hello World program
 # Maintainer: Panos Georgiadis <pgeorgiadis@suse.com>
 # Maintainer: Andrej Semen <asemen@suse.com>
+
+use base "consoletest";
 use strict;
 use warnings;
 use testapi;
 use utils;
-use base "consoletest";
+
 sub run {
     select_console 'root-console';
 
@@ -60,7 +62,8 @@ sub run {
         }
     }
 
-    assert_script_run "wget --quiet " . data_url('console/test_java.sh');
+    zypper_call 'in wget';
+    assert_script_run 'wget --quiet ' . data_url('console/test_java.sh');
     assert_script_run 'chmod +x test_java.sh';
     assert_script_run './test_java.sh';
 }
