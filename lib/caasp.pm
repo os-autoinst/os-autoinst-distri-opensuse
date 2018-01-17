@@ -18,7 +18,35 @@ use testapi;
 use mmapi;
 use utils qw(power_action assert_shutdown_and_restore_system);
 
-our @EXPORT = qw(handle_simple_pw process_reboot trup_call write_detail_output get_admin_job update_scheduled export_cluster_logs);
+our @EXPORT = qw(handle_simple_pw process_reboot trup_call write_detail_output get_admin_job update_scheduled export_cluster_logs rpmver);
+
+# Return names and version of packages for transactional-update tests
+sub rpmver {
+    my $q = shift;
+    my $d = get_var 'DISTRI';
+
+    # package name | initial version | updated version
+    my %rpm = (
+        kubic => {
+            fn => '5-2.1',
+            in => '2.1',
+            up => 'UNDEF'
+        },
+        caasp => {
+            fn => '5-5.3.61',
+            in => '5.3.61',
+            up => '5.30.1'
+        });
+
+    # Returns expected package version after installation / update
+    if ($q =~ /^(in|up)$/) {
+        return $rpm{$d}{$q};
+    }
+    # Returns rpm path for initial installation
+    else {
+        return " update-test-trival/update-test-$q-$rpm{$d}{fn}.x86_64.rpm";
+    }
+}
 
 # Export logs from cluster admin/workers
 sub export_cluster_logs {
