@@ -1039,12 +1039,16 @@ sub load_ha_cluster_tests {
         loadtest "ha/ha_cluster_join";
     }
 
+    # Test Hawk Web interface
+    loadtest "ha/check_hawk";
+
     # Lock manager configuration
     loadtest "ha/dlm";
+    loadtest "ha/clvmd_lvmlockd";
 
     # Test cluster-md feature
     loadtest "ha/cluster_md";
-    loadtest "ha/clvm";
+    loadtest "ha/vg";
     loadtest "ha/filesystem";
 
     # Test DRBD feature
@@ -1052,9 +1056,6 @@ sub load_ha_cluster_tests {
         loadtest "ha/drbd_passive";
         loadtest "ha/filesystem";
     }
-
-    # Test Hawk Web interface
-    loadtest "ha/check_hawk";
 
     # Show HA cluster status *before* fencing test
     loadtest "ha/check_before_fencing";

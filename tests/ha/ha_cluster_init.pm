@@ -55,9 +55,6 @@ sub run {
 
     # Do a check of the cluster with a screenshot
     save_state;
-
-    # Status of cluster resources after initial configuration
-    show_rsc;
 }
 
 1;

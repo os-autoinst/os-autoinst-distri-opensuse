@@ -12,7 +12,7 @@
 
 use base 'opensusebasetest';
 use strict;
-use utils;
+use utils 'zypper_call';
 use testapi;
 use hacluster;
 
