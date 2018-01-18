@@ -15,13 +15,13 @@
 use base "consoletest";
 use strict;
 use testapi;
-use utils 'pkcon_quit';
+use utils qw(zypper_call pkcon_quit);
 
 sub run {
     select_console 'root-console';
     pkcon_quit;
+    zypper_call("in salt-master salt-minion", timeout => 180);
     my $cmd = <<'EOF';
-zypper -n in salt-master salt-minion
 systemctl start salt-master
 systemctl status salt-master
 sed -i -e "s/#master: salt/master: localhost/" /etc/salt/minion
