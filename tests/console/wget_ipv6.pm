@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -15,8 +15,11 @@
 use base "consoletest";
 use strict;
 use testapi;
+use utils 'zypper_call';
 
 sub run {
+    select_console 'root-console';
+    zypper_call 'in wget';
     select_console 'user-console';
     assert_script_run('rpm -q wget');
     assert_script_run('wget -O- -q www3.zq1.de/test.txt');

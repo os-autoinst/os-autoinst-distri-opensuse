@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: Run 'crash' utility on a kernel memory dump
-# Maintainer: Michal Nowak <mnowak@suse.com>, Yi Xu <yxu@suse.com>
+# Maintainer: Michal Nowak <mnowak@suse.com>
 
 use base "console_yasttest";
 use strict;
@@ -23,7 +23,10 @@ sub run {
     select_console('root-console');
 
     # preparation for crash test
-    add_suseconnect_product("sle-module-development-tools") if is_sle and sle_version_at_least('15');
+    if (is_sle && sle_version_at_least('15')) {
+        add_suseconnect_product('sle-module-desktop-applications');
+        add_suseconnect_product('sle-module-development-tools');
+    }
     prepare_for_kdump;
     activate_kdump;
 
