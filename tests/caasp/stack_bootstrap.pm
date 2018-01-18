@@ -58,7 +58,6 @@ sub select_master {
     # For 6+ node clusters select 2 more masters
     for (2 .. get_var('STACK_MASTERS')) {
         assert_and_click 'master-role-button';
-        sleep 2;    # bsc#1066371 workaround
     }
 }
 
