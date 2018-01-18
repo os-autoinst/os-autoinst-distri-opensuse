@@ -820,7 +820,10 @@ sub load_consoletests {
     loadtest "console/ncurses";
     loadtest "console/yast2_lan" unless is_bridged_networking;
     loadtest "console/curl_https";
-    if (check_var_array('SCC_ADDONS', 'asmm')) {
+    if (check_var_array('SCC_ADDONS', 'asmm') && !sle_version_at_least('15')) {
+        loadtest "console/puppet";
+    }
+    if (check_var_array('SCC_ADDONS', 'phub') && sle_version_at_least('15')) {
         loadtest "console/puppet";
     }
     if (check_var_array('SCC_ADDONS', 'asmm') || sle_version_at_least('15') && !is_staging()) {
