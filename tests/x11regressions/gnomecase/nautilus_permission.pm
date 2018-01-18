@@ -14,13 +14,20 @@
 use base "x11regressiontest";
 use strict;
 use testapi;
+use version_utils qw(is_sle sle_version_at_least is_leap leap_version_at_least is_tumbleweed);
 
 
 sub run {
     x11_start_program('touch newfile', valid => 0);
     x11_start_program('nautilus');
     send_key_until_needlematch 'nautilus-newfile-matched', 'right', 15;
-    send_key "shift-f10";
+    if ((is_sle && sle_version_at_least('15')) || (is_leap && leap_version_at_least('15.0')) || is_tumbleweed) {
+        assert_and_click 'nautilus-newfile-matched', 'right';
+        record_soft_failure 'boo#1074057 qemu can not properly capture some keys in nautilus under GNOME wayland';
+    }
+    else {
+        send_key "shift-f10";
+    }
     assert_screen 'nautilus-rightkey-menu';
     send_key "r";    #choose properties
     assert_screen 'nautilus-properties';
@@ -38,7 +45,12 @@ sub run {
     send_key "ret";
     send_key "esc";      #close the dialog
                          #reopen the properties menu to check if the changes kept
-    send_key "shift-f10";
+    if ((is_sle && sle_version_at_least('15')) || (is_leap && leap_version_at_least('15.0')) || is_tumbleweed) {
+        assert_and_click 'nautilus-newfile-matched', 'right';
+    }
+    else {
+        send_key "shift-f10";
+    }
     assert_screen 'nautilus-rightkey-menu';
     send_key "r";        #choose properties
     assert_screen 'nautilus-properties';
