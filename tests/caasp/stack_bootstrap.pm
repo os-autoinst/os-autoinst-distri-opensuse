@@ -35,6 +35,19 @@ sub select_nodes {
     wait_still_screen 2;
 }
 
+# 10% of clicks are lost because of ajax refreshing Velum during click
+sub click_click {
+    my ($x, $y) = @_;
+    mouse_set $x, $y;
+    for (1 .. 3) {
+        mouse_click;
+        # Don't click-and-drag
+        sleep 1;
+    }
+    mouse_hide;
+    record_soft_failure 'bsc#1048975 - User interaction is lost after page refresh';
+}
+
 # Select master.openqa.test and additional master nodes
 sub select_master {
     # Calculate position of master node
@@ -44,21 +57,14 @@ sub select_master {
     my $col    = $needle->[1];                                  # get x-position of checkbox
     my $x      = $col->{x} + int($col->{w} / 2);
     my $y      = $row->{y} + int($row->{h} / 2);
+    click_click $x, $y;
 
-    # Select master node
-    mouse_set $x, $y;
-    mouse_click;
-    # Don't click-and-drag
-    sleep 1;
-    mouse_hide;
-
-    # Give velum time to process
-    sleep 2;
-
-    # For 6+ node clusters select 2 more masters
+    # For 6+ node clusters select 2 more random masters
     for (2 .. get_var('STACK_MASTERS')) {
-        assert_and_click 'master-role-button';
-        sleep 2;    # bsc#1066371 workaround
+        $needle = assert_screen('master-role-button')->{area};
+        $row    = $needle->[0];
+        $y      = $row->{y} + int($row->{h} / 2);
+        click_click $x, $y;
     }
 }
 
