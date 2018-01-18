@@ -101,6 +101,15 @@ sub verify_timeout_and_check_screen {
 
 sub run {
     my ($self) = @_;
+
+    if (check_var('BACKEND', 'ipmi')) {
+        assert_screen 'installation-done', 750;
+        reset_consoles;
+        select_console 'sol', await_console => 0;
+        assert_screen 'prague-pxe-menu', 400;
+        send_key 'ret';    # boot from hard disk
+        return;
+    }
     my @needles
       = qw(bios-boot nonexisting-package reboot-after-installation linuxrc-install-fail scc-invalid-url warning-pop-up inst-betawarning autoyast-boot);
     push @needles, 'autoyast-confirm'        if get_var('AUTOYAST_CONFIRM');

@@ -20,10 +20,18 @@ use utils qw(handle_login handle_emergency);
 use version_utils 'sle_version_at_least';
 
 sub run {
-    my $boot_timeout = 200;
+    my $boot_timeout = get_var('SES5_DEPLOY') ? 450 : 200;
     # SLE >= 15 s390x does not offer auto-started VNC server in SUT, only login prompt as in textmode
     return if check_var('ARCH', 's390x') && sle_version_at_least('15');
-    if (check_var('DESKTOP', 'textmode') || get_var('BOOT_TO_SNAPSHOT')) {
+    if (check_var('WORKER_CLASS', 'hornet')) {
+        # hornet does not show the console output
+        diag "waiting $boot_timeout seconds to let hornet boot and finish initial script";
+        sleep $boot_timeout;
+        reset_consoles;
+        select_console 'root-ssh';
+        return;
+    }
+    elsif (check_var('DESKTOP', 'textmode') || get_var('BOOT_TO_SNAPSHOT')) {
         assert_screen('linux-login', $boot_timeout) unless check_var('ARCH', 's390x');
         return;
     }
