@@ -1008,11 +1008,14 @@ sub load_slenkins_tests {
 sub load_ha_cluster_tests {
     return unless (get_var("HA_CLUSTER"));
 
+    # We need to boot *before* waiting for support server
+    # Because of TianoCore UEFI boot method
+    loadtest "boot/boot_to_desktop";
+
     # Wait for support server to complete its initialization
     loadtest "ha/wait_support_server";
 
     # Standard boot and configuration
-    loadtest "boot/boot_to_desktop";
     loadtest "qa_automation/patch_and_reboot" if is_updates_tests;
     loadtest "console/consoletest_setup";
     loadtest "console/hostname" unless is_bridged_networking;
