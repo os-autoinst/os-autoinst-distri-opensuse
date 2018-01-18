@@ -151,11 +151,14 @@ sub fill_in_registration_data {
 
     my @known_untrusted_keys = qw(import-trusted-gpg-key-nvidia-F5113243C66B6EAE import-trusted-gpg-key-phub-9C214D4065176565);
     unless (get_var('SCC_REGISTER', '') =~ /addon|network/) {
-        my @tags = qw(local-registration-servers registration-online-repos import-untrusted-gpg-key module-selection contacting-registration-server);
+        my $counter = 30;
+        my @tags
+          = qw(local-registration-servers registration-online-repos import-untrusted-gpg-key module-selection contacting-registration-server refreshing-repository);
         if (get_var('SCC_URL') || get_var('SMT_URL')) {
             push @tags, 'untrusted-ca-cert';
         }
-        while (check_screen(\@tags, 60)) {
+        while ($counter--) {
+            assert_screen(\@tags);
             if (match_has_tag("import-untrusted-gpg-key")) {
                 if (check_var("IMPORT_UNTRUSTED_KEY", 1) || check_screen(\@known_untrusted_keys, 0)) {
                     wait_screen_change { send_key "alt-t" };    # import
@@ -167,6 +170,11 @@ sub fill_in_registration_data {
             }
             elsif (match_has_tag('contacting-registration-server')) {
                 # sometimes SCC just takes its time - just continue looking after a while
+                sleep 5;
+                next;
+            }
+            elsif (match_has_tag('refreshing-repository')) {
+                # it takes some time to refresh repos
                 sleep 5;
                 next;
             }
@@ -202,6 +210,7 @@ sub fill_in_registration_data {
             elsif (match_has_tag('module-selection')) {
                 last;
             }
+            die 'Registration repeated too much. Check if SCC is down.' if ($counter eq 1);
         }
     }
 
@@ -306,7 +315,10 @@ sub fill_in_registration_data {
                 wait_still_screen 2;
             }
             # start addons/modules registration, it needs longer time if select multiple or all addons/modules
-            while (assert_screen(['import-untrusted-gpg-key', 'yast_scc-pkgtoinstall', 'yast-scc-emptypkg', 'inst-addon'], 120)) {
+            my $counter = 30;
+            while ($counter--) {
+                assert_screen [
+                    qw(import-untrusted-gpg-key yast_scc-pkgtoinstall yast-scc-emptypkg inst-addon contacting-registration-server refreshing-repository)];
                 if (match_has_tag('import-untrusted-gpg-key')) {
                     if (!check_screen(\@known_untrusted_keys, 0)) {
                         record_soft_failure 'untrusted gpg key';
@@ -352,11 +364,20 @@ sub fill_in_registration_data {
                         next;    # Yast may popup dependencies or software install dialog, enter determine statement again.
                     }
                 }
+                elsif (match_has_tag('contacting-registration-server')) {
+                    sleep 5;
+                    next;
+                }
+                elsif (match_has_tag('refreshing-repository')) {
+                    sleep 5;
+                    next;
+                }
                 elsif (match_has_tag('inst-addon')) {
                     # it would show Add On Product screen if scc registration correctly during installation
                     # it would show software install dialog if scc registration correctly by yast2 scc
                     last;
                 }
+                die 'Addon registration repeated too much. Check if SCC is down.' if ($counter eq 1);
             }
         }
         else {
