@@ -8,7 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: s390 DASD Disk activation test
+# Summary: s390x disk activation test
 # Maintainer: Matthias Griessmeier <mgriessmeier@suse.com>
 
 use base "y2logsstep";
@@ -36,7 +36,8 @@ sub run {
         send_key $cmd{next};
 
         # use allow_lun_scan
-        assert_screen 'zfcp-popup-scan';
+        # popup was removed for sle15, allow_lun_scan still works though
+        assert_screen 'zfcp-popup-scan' if !sle_version_at_least('15');
         send_key 'alt-o';
 
         assert_screen 'zfcp-disk-management';
