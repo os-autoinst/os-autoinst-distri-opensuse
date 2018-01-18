@@ -12,6 +12,7 @@ package hacluster;
 use base Exporter;
 use Exporter;
 use strict;
+use version_utils qw(is_sle sle_version_at_least);
 use warnings;
 use testapi;
 
@@ -185,12 +186,13 @@ sub ha_export_logs {
     my $corosync_conf = '/etc/corosync/corosync.conf';
     my $hb_log        = '/var/log/hb_report';
     my $packages_list = '/tmp/packages.list';
+    my $report_opt    = '-f0' unless (is_sle && sle_version_at_least('15'));
     my @y2logs;
 
     # Extract HA logs and upload them
     select_console 'root-console';
     script_run "touch $corosync_conf";
-    script_run "hb_report -E $bootstrap_log $hb_log", 120;
+    script_run "hb_report $report_opt -E $bootstrap_log $hb_log", 120;
     upload_logs "$bootstrap_log";
     upload_logs "$hb_log.tar.bz2";
 
