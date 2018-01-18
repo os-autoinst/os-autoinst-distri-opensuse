@@ -897,7 +897,7 @@ sub load_consoletests {
     }
     if (!is_staging() && sle_version_at_least('12-SP2')) {
         loadtest "console/zypper_lifecycle";
-        if (check_var_array('SCC_ADDONS', 'tcm')) {
+        if (check_var_array('SCC_ADDONS', 'tcm') && !sle_version_at_least('15')) {
             loadtest "console/zypper_lifecycle_toolchain";
         }
     }
