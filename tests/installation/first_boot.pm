@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -79,11 +79,17 @@ sub post_fail_hook {
     # save a screenshot before trying further measures which might fail
     save_screenshot;
     # if we found a shell, we do not need the memory dump
-    if (!(match_has_tag('emergency-shell') or match_has_tag('emergency-mode'))) {
-        die "save_memory_dump is temporarily unavailable, see https://progress.opensuse.org/issues/19390";
-        die "save_memory_dump not implemented, no way to save memory_dump" unless check_var('BACKEND', 'qemu');
-        diag 'Save memory dump to debug bootup problems, e.g. for bsc#1005313';
-        save_memory_dump;
+  MEMORY_DUMP: {
+        if (!(match_has_tag('emergency-shell') or match_has_tag('emergency-mode'))) {
+            diag 'save_memory_dump is temporarily unavailable, see https://progress.opensuse.org/issues/19390';
+            last MEMORY_DUMP;
+            unless (check_var('BACKEND', 'qemu')) {
+                diag 'save_memory_dump not implemented, no way to save memory_dump';
+                last MEMORY_DUMP;
+            }
+            diag 'Save memory dump to debug bootup problems, e.g. for bsc#1005313';
+            save_memory_dump;
+        }
     }
 
     # try to save logs as a last resort
