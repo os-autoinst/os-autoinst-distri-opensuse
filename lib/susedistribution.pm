@@ -78,7 +78,7 @@ sub init_cmd {
       size_hotkey alt-s
       sync_interval alt-n
       sync_without_daemon alt-y
-      guidedsetup_home_part alt-p
+      toggle_home alt-p
     );
 
     if (check_var('INSTLANG', "de_DE")) {
