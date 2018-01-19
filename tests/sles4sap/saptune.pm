@@ -24,6 +24,11 @@ sub run {
     my ($self) = @_;
     my @solutions = qw(BOBJ HANA MAXDB NETWEAVER S4HANA-APPSERVER S4HANA-DBSERVER SAP-ASE);
 
+    if (check_var('ARCH', 'x86_64')) {
+        record_info('saptune', 'saptune is not available in this architecture: ' . get_var('ARCH'));
+        return;
+    }
+
     select_console 'root-console';
 
     unless (tuned_is 'running') {

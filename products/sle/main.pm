@@ -1149,7 +1149,7 @@ sub load_sles4sap_tests {
     return if get_var('INSTALLONLY');
     loadtest "sles4sap/patterns";
     loadtest "sles4sap/sapconf";
-    loadtest "sles4sap/saptune";
+    loadtest "sles4sap/saptune" if (check_var('ARCH', 'x86_64'));
     if (get_var('NW')) {
         loadtest "sles4sap/nw_ascs_install" if (get_var('SLES4SAP_MODE') !~ /wizard/);
         loadtest "sles4sap/netweaver_ascs";
