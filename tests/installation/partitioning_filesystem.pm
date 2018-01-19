@@ -49,7 +49,7 @@ sub run {
     # select filesystem
     send_key 'home';
     send_key_until_needlematch("filesystem-$fs", 'down', 20, 3);
-    send_key 'ret' if check_var('DESKTOP', 'textmode');
+    send_key 'ret' if check_var('VIDEOMODE', 'text');
 
     assert_screen "$fs-selected";
     send_key(is_storage_ng() ? $cmd{next} : 'alt-o');
@@ -57,7 +57,7 @@ sub run {
     # make sure we're back from the popup
     assert_screen 'edit-proposal-settings';
 
-    mouse_hide unless check_var('DESKTOP', 'textmode');
+    mouse_hide unless check_var('VIDEOMODE', 'text');
 }
 
 1;
