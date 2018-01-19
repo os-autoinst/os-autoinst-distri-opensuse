@@ -15,6 +15,7 @@ use strict;
 use warnings;
 use base "y2logsstep";
 use testapi;
+use version_utils 'is_leap';
 
 sub run {
     assert_screen 'partitioning-edit-proposal-button', 40;
@@ -35,6 +36,8 @@ sub run {
             $cmd{rescandevices}     = 'alt-c';
             $cmd{enablelvm}         = 'alt-a';
             $cmd{encryptdisk}       = 'alt-l';
+            # On TW have different shortcut for toggling separate home partition
+            $cmd{toggle_home} = 'alt-o' unless is_leap;
         }
     }
 
