@@ -33,7 +33,7 @@ sub run {
         mouse_hide(1);
     }
     else {
-        send_key "alt-f1";      # open main menu
+        send_key_until_needlematch 'test-desktop_mainmenu-1', 'alt-f1', 20;
     }
     assert_screen 'test-desktop_mainmenu-1', 20;
 
