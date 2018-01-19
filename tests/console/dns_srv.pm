@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -37,6 +37,18 @@ sub run {
 
     # verify dns server responds to anything
     assert_script_run "host localhost localhost";
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    # see https://bugzilla.suse.com/show_bug.cgi?id=1064438
+    select_console 'log-console';
+    upload_logs '/etc/named.conf';
+    # to see if zone file is present
+    $self->save_and_upload_log('ls /var/lib/named', 'named_files.log');
+    upload_logs '/var/lib/named/localhost.zone';
+    script_run '/usr/sbin/named-checkzone localhost /var/lib/named/localhost.zone';
+    $self->SUPER::post_fail_hook;
 }
 
 1;
