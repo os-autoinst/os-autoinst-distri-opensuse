@@ -1538,7 +1538,12 @@ elsif (get_var('SYSTEMD_TESTSUITE')) {
     load_systemd_patches_tests;
 }
 else {
-    if (get_var("AUTOYAST") || get_var("AUTOUPGRADE")) {
+    if (get_var("SES5_DEPLOY")) {
+        loadtest "boot/boot_from_pxe";
+        loadtest "autoyast/installation";
+        loadtest "installation/first_boot";
+    }
+    elsif (get_var("AUTOYAST") || get_var("AUTOUPGRADE")) {
         if (get_var('PATCH')) {
             load_patching_tests();
         }

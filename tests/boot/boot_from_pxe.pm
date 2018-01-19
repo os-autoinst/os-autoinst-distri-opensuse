@@ -21,7 +21,7 @@ sub run {
     if (check_var('BACKEND', 'ipmi')) {
         select_console 'sol', await_console => 0;
     }
-    assert_screen([qw(virttest-pxe-menu qa-net-selection)], 300);
+    assert_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu)], 300);
     my $image_path = "";
 
     #detect pxe location
@@ -51,14 +51,22 @@ sub run {
         my $repo = $openqa_url . "/assets/repo/${image_name}";
         $image_path = "$path/linux initrd=$path/initrd install=$repo";
     }
-
+    elsif (match_has_tag('prague-pxe-menu')) {
+        send_key_until_needlematch 'pxe-stable-iso-entry', 'down';
+        send_key 'ret';
+        send_key_until_needlematch 'pxe-sle-12-sp3-entry', 'down';
+        send_key 'tab';
+        my $interface = get_var('WORKER_CLASS') eq 'hornet' ? 'eth1' : 'eth4';
+        my $node = get_var('WORKER_CLASS');
+        type_string " console=ttyS1,115200 ifcfg=$interface=dhcp4 autoyast=" . data_url(get_var('AUTOYAST', ''));
+    }
     my $type_speed = 20;
     # Execute installation command on pxe management cmd console
     type_string ${image_path} . " ", $type_speed;
     type_string "vga=791 ",   $type_speed;
     type_string "Y2DEBUG=1 ", $type_speed;
 
-    if (check_var('BACKEND', 'ipmi') && !check_var('AUTOYAST', '1')) {
+    if ((check_var('BACKEND', 'ipmi') && !check_var('AUTOYAST', '1')) || get_var('SES5_DEPLOY')) {
         my $cmdline = '';
         if (check_var('VIDEOMODE', 'text')) {
             $cmdline .= 'ssh=1 ';    # trigger ssh-text installation
@@ -96,8 +104,9 @@ sub run {
     send_key 'ret';
     save_screenshot;
 
-    if (check_var('BACKEND', 'ipmi') && !get_var('AUTOYAST')) {
-        assert_screen((check_var('VIDEOMODE', 'text') ? 'sshd' : 'vnc') . '-server-started', 60 * 3);
+    if ((check_var('BACKEND', 'ipmi') && !get_var('AUTOYAST')) || get_var('SES5_DEPLOY')) {
+        my $ssh_vnc_wait_time = get_var('SES5_DEPLOY') ? 300 : 180;
+        assert_screen((check_var('VIDEOMODE', 'text') ? 'sshd' : 'vnc') . '-server-started', $ssh_vnc_wait_time);
         select_console 'installation';
 
         # We have textmode installation via ssh and the default vnc installation so far
