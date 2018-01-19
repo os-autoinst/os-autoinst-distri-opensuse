@@ -539,6 +539,7 @@ sub load_extra_tests {
         # well
         if (check_var('DESKTOP', 'gnome')) {
             loadtest 'x11/yast2_lan_restart';
+            loadtest 'x11/yast2_lan_restart_devices';
             # we only have the test dependencies, e.g. hostapd available in
             # openSUSE
             if (check_var('DISTRI', 'opensuse')) {
