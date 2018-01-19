@@ -15,10 +15,10 @@
 use base 'opensusebasetest';
 use strict;
 use testapi;
-use version_utils qw(is_jeos is_leap is_sle leap_version_at_least sle_version_at_least);
+use version_utils qw(is_jeos is_leap is_sle is_tumbleweed leap_version_at_least sle_version_at_least);
 
 sub run {
-    if ((is_sle && sle_version_at_least('15')) || (is_leap && leap_version_at_least('15.0'))) {
+    if ((is_sle && sle_version_at_least('15')) || (is_leap && leap_version_at_least('15.0')) || is_tumbleweed) {
         if (is_jeos) {
             assert_script_run("grep '^FW_CONFIGURATIONS_EXT=\"sshd\"\\|^FW_SERVICES_EXT_TCP=\"ssh\"' /etc/sysconfig/SuSEfirewall2");
         }
