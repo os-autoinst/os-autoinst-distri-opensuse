@@ -132,6 +132,7 @@ sub load_stack_tests {
         loadtest 'caasp/stack_bootstrap';
         loadtest 'caasp/stack_kubernetes';
         loadtest 'caasp/stack_update' if update_scheduled;
+        loadtest 'caasp/stack_conformance' unless is_caasp('staging') || is_caasp('qam');
         loadtest 'caasp/stack_finalize';
     }
     else {
