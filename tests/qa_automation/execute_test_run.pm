@@ -21,8 +21,13 @@ use upload_system_log;
 use base "opensusebasetest";
 
 sub run {
-    my $timeout = get_var("MAX_JOB_TIME") || 7200;
-    my $test    = get_var("QA_TESTSUITE") . get_var("QA_VERSION");
+    my $timeout   = get_var("MAX_JOB_TIME", 7200);
+    my $test      = get_var("QA_TESTSUITE") . get_var("QA_VERSION");
+    my $runfile   = "/usr/share/qa/tools/test_$test-run";
+    my $run_exist = script_run("ls $runfile | wc -l");
+    unless ($run_exist eq "1") {
+        $runfile = "/usr/lib/ctcs2/tools/test_$test-run";
+    }
     my $run_log = "/tmp/$test-run.log";
 
     #execute test run
