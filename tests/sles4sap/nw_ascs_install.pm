@@ -32,7 +32,7 @@ sub run {
       SAPINST_USE_HOSTNAME=$(hostname)
       SAPINST_INPUT_PARAMETERS_URL=/sapinst/inifile.params
       SAPINST_EXECUTE_PRODUCT_ID=NW_ABAP_ASCS:NW740SR2.ADA.PIHA
-      SAPINST_SKIP_DIALOGS=true SAPINST_SLP_MODE=true);
+      SAPINST_SKIP_DIALOGS=true SAPINST_SLP_MODE=false);
 
     $proto = 'cifs' if ($proto eq 'smb' or $proto eq 'smbfs');
     die "nw_ascs_install: currently only supported protocols are nfs and smb/smbfs/cifs"
@@ -44,20 +44,22 @@ sub run {
     select_console 'root-console';
 
     # This installs Netweaver's ASCS. Start by making sure the correct
-    # SAP profile is set in the system
+    # SAP profile and solution are configured in the system
     assert_script_run "tuned-adm profile sap-netweaver";
     assert_script_run "saptune solution apply NETWEAVER";
-    assert_script_run "kill -1 \$(ps aux|grep systemd-logind|awk '{print \$2}'|head -1)";
+    assert_script_run q/kill -1 $(ps aux|grep systemd-logind|awk '{print $2}'|head -1)/;
     assert_script_run "saptune daemon start";
+    assert_script_run "saptune solution verify NETWEAVER";
     my $output = script_output "tuned-adm active";
     record_info("tuned profile", $output);
-    my $output = script_output "saptune daemon status";
+    $output = script_output "saptune daemon status";
     record_info("tuned status", $output);
 
     # Copy media
     assert_script_run "mkdir /sapinst";
     assert_script_run "mount -t $proto $path /mnt";
     type_string "cd /mnt\n";
+    type_string "cd " . get_var('ARCH') . "\n"; # Change to ARCH specific subdir if exists
     assert_script_run "tar -cf - . | (cd /sapinst/; tar -pxf - )", 600;
 
     # Check everything was copied correctly
@@ -87,7 +89,7 @@ sub run {
     assert_script_run "chmod -R 0775 /sapinst/unattended";
 
     # Set SAPADM to the SAP Admin user for future use
-    my $sid = script_output "awk '/NW_GetSidNoProfiles.sid/ {print \$NF}' inifile.params", 10;
+    my $sid = script_output q|awk '/NW_GetSidNoProfiles.sid/ {print $NF}' inifile.params|, 10;
     set_var('SAPADM', lc($sid) . 'adm');
 
     # Start the installation
@@ -102,10 +104,10 @@ sub post_fail_hook {
     my $self = shift;
 
     $self->export_logs();
-    upload_logs "/sapinst/unattended/sapinst.log";
     upload_logs "/tmp/check-nw-media";
     $self->save_and_upload_log('ls -alF /sapinst/unattended', '/tmp/nw_unattended_ls.log');
     $self->save_and_upload_log('ls -alF /sbin/mount*',        '/tmp/sbin_mount_ls.log');
+    upload_logs "/sapinst/unattended/sapinst.log";
 }
 
 1;
