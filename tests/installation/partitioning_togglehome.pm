@@ -19,7 +19,7 @@ use version_utils 'is_storage_ng';
 use partition_setup 'unselect_xen_pv_cdrom';
 
 sub run {
-    wait_screen_change { send_key(is_storage_ng() ? 'alt-g' : 'alt-d') };    # open proposal settings
+    wait_screen_change { send_key($cmd{guidedsetup}) };    # open proposal settings
     if (is_storage_ng) {
         unselect_xen_pv_cdrom;
         assert_screen 'partition-scheme';
@@ -30,8 +30,8 @@ sub run {
     if (!check_var('ARCH', 's390x') or is_storage_ng()) {
         if (!check_screen 'disabledhome', 0) {
             # detect whether new (Radio Buttons) YaST behaviour
-            my $new_radio_buttons = check_screen('inst-partition-radio-buttons', 0);
-            send_key $new_radio_buttons ? 'alt-r' : 'alt-p';
+            $cmd{toggle_home} = 'alt-r' if check_screen('inst-partition-radio-buttons', 0);
+            send_key $cmd{toggle_home};
         }
         assert_screen 'disabledhome';
     }
