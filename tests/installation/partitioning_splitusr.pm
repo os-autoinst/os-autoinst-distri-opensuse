@@ -14,42 +14,44 @@
 use base "y2logsstep";
 use strict;
 use testapi;
+use version_utils 'is_storage_ng';
+use partition_setup 'addpart';
 
 sub run {
-    send_key "alt-e";    # Edit
-                         # select vda2
+    send_key $cmd{expertpartitioner};    # open Expert partitioner
+    if (is_storage_ng) {
+        # start with preconfigured partitions
+        send_key 'down';
+        send_key 'ret';
+    }
+
+    # select root partition
     send_key "right";
-    send_key "down";     # only works with multiple HDDs
+    send_key "down";                     # only works with multiple HDDs
     send_key "right";
     send_key "down";
     send_key "tab";
     send_key "tab";
     send_key "down";
 
-    #send_key "right"; send_key "down"; send_key "down";
-    wait_screen_change { send_key 'alt-i' };    # Resize
-    send_key "alt-u";                           # Custom
-    type_string "1.5G";
-    send_key "ret";
+    wait_screen_change { send_key $cmd{resize} };    # Resize
+    send_key(is_storage_ng() ? 'alt-c' : 'alt-u');   # Custom size
+    send_key $cmd{size_hotkey} if is_storage_ng;
+    type_string '1.5G';
+    send_key(is_storage_ng() ? $cmd{next} : 'ret');
+    if (is_storage_ng) {
+        wait_screen_change { send_key 'alt-s' };
+        send_key_until_needlematch 'vda-selected', 'left';    # Select vda again, not vda1
+    }
 
     # add /usr
-    wait_screen_change { send_key $cmd{addpart} };
-    wait_screen_change { send_key $cmd{next} };
-    for (1 .. 10) {
-        send_key "backspace";
-    }
-    type_string "5.0G";
-    send_key $cmd{next};
-    assert_screen 'partition-role';
-    send_key "alt-o";    # Operating System
-    wait_screen_change { send_key $cmd{next} };
-    send_key "alt-m";        # Mount Point
-    type_string "/usr\b";    # Backspace to break bad completion to /usr/local
-    assert_screen "partition-splitusr-submitted-usr";
-    send_key $cmd{finish};
+    # Sending space and backspace to break bad completion e.g. /usr/local
+    addpart(role => 'data', size => '5000', mount => "/usr \b");
+
     assert_screen "partition-splitusr-finished";
+    wait_still_screen 1;
     wait_screen_change { send_key $cmd{accept} };
-    send_key "alt-y";        # Quit the warning window
+    send_key "alt-y";    # Quit the warning window
 }
 
 1;

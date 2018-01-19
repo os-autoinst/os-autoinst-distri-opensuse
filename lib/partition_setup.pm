@@ -123,6 +123,8 @@ sub addpart {
         send_key_until_needlematch "partition-selected-$args{fsid}-type", 'up';
     }
     if ($args{mount}) {
+        send_key 'alt-o' if is_storage_ng;
+        wait_still_screen 1;
         send_key 'alt-m';
         type_string "$args{mount}";
     }
