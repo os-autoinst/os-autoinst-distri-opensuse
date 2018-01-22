@@ -133,13 +133,17 @@ sub run {
             if (match_has_tag("addon-betawarning-$addon") or match_has_tag("addon-license-$addon")) {
                 if (match_has_tag("addon-betawarning-$addon")) {
                     send_key "ret";
-                    assert_screen "addon-license-beta";
+                    assert_screen [qw(addon-license-beta addon-products)];
+                    record_soft_failure 'bsc#1057223: No license agreement shown when HA, HA-GEO, WE, RT extensions are added as addons'
+                      unless match_has_tag("addon-license-beta");
                 }
-                wait_still_screen 2;
-                send_key 'alt-a';                         # yes, agree
-                wait_still_screen 2;
-                send_key $cmd{next};
-                assert_screen 'addon-products', 90;
+                if (match_has_tag("addon-license-beta") or match_has_tag("addon-license-$addon")) {
+                    wait_still_screen 2;
+                    send_key 'alt-a';                     # yes, agree
+                    wait_still_screen 2;
+                    send_key $cmd{next};
+                    assert_screen 'addon-products', 90;
+                }
             }
             elsif (match_has_tag('import-untrusted-gpg-key')) {
                 send_key 'alt-t';
