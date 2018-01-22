@@ -24,6 +24,7 @@ sub run {
     my $slave_ip                  = get_required_var('HPC_SLAVE_IP');
     barrier_create("SLURM_MASTER_SERVICE_ENABLED", 2);
     barrier_create("SLURM_SLAVE_SERVICE_ENABLED",  2);
+    barrier_create("SLURM_SETUP_DONE",             2);
 
     # set proper hostname
     assert_script_run "hostnamectl set-hostname slurm-master";
@@ -40,6 +41,8 @@ sed -i "/^NodeName.*/c\\NodeName=slurm-master,slurm-slave Sockets=1 CoresPerSock
 sed -i "/^PartitionName.*/c\\PartitionName=normal Nodes=slurm-master,slurm-slave Default=YES MaxTime=24:00:00 State=UP" /etc/slurm/slurm.conf
 EOF
     assert_script_run($_) foreach (split /\n/, $config);
+
+    barrier_wait("SLURM_SETUP_DONE");
 
     # copy munge key and slurm conf
     $self->exec_and_insert_password("scp -o StrictHostKeyChecking=no /etc/munge/munge.key root\@$slave_ip:/etc/munge/munge.key");
