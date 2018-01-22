@@ -1154,6 +1154,7 @@ sub load_patching_tests {
 
 sub load_sles4sap_tests {
     return if get_var('INSTALLONLY');
+    loadtest "sles4sap/desktop_icons" if (is_desktop_installed());
     loadtest "sles4sap/patterns";
     loadtest "sles4sap/sapconf";
     loadtest "sles4sap/saptune";
