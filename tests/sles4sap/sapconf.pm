@@ -50,7 +50,7 @@ sub run {
 
     foreach my $cmd ('start', keys %profiles) {
         $output = script_output "sapconf $cmd";
-        die "Command 'sapconf $cmd' output is not recognized" unless ($output =~ /Forwarding action to tuned\-adm.$/);
+        die "Command 'sapconf $cmd' output is not recognized" unless ($output =~ /Forwarding action to tuned\-adm\./);
         next if ($cmd eq 'start');
         check_profile($cmd);
     }
