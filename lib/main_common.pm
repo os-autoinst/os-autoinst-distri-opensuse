@@ -47,6 +47,7 @@ our @EXPORT = qw(
   console_is_applicable
   boot_hdd_image
   maybe_load_kernel_tests
+  load_bootloader_s390x
   load_yast2_ncurses_tests
   load_yast2_gui_tests
   load_extra_tests
@@ -413,15 +414,22 @@ sub unregister_needle_tags {
     for my $n (@a) { $n->unregister($tag); }
 }
 
+sub load_bootloader_s390x {
+    return 0 unless check_var("ARCH", "s390x");
+
+    if (check_var("BACKEND", "s390x")) {
+        loadtest "installation/bootloader_s390";
+    }
+    else {
+        loadtest "installation/bootloader_zkvm";
+    }
+    return 1;
+}
+
 sub boot_hdd_image {
     get_required_var('BOOT_HDD_IMAGE');
     if (check_var("BACKEND", "svirt")) {
-        if (check_var("ARCH", "s390x")) {
-            loadtest "installation/bootloader_zkvm";
-        }
-        else {
-            loadtest "installation/bootloader_svirt";
-        }
+        loadtest "installation/bootloader_svirt" unless load_bootloader_s390x();
     }
     if (get_var('UEFI') && (get_var('BOOTFROM') || get_var('BOOT_HDD_IMAGE'))) {
         loadtest "boot/uefi_bootmenu";
