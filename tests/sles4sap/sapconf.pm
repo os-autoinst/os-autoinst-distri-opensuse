@@ -26,7 +26,7 @@ sub check_profile {
     my $current = shift;
     my $output  = script_output "tuned-adm active";
     die "Tuned profile change failed. Expected 'Current active profile: $profiles{$current}', got: [$output]"
-        unless ($output =~ /Current active profile: $profiles{$current}/);
+      unless ($output =~ /Current active profile: $profiles{$current}/);
 }
 
 sub run {
