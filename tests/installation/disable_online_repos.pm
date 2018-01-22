@@ -27,7 +27,7 @@ sub run {
     assert_screen 'desktop-selection';
     send_key 'alt-o';    # press configure online repos button
     assert_screen 'online-repos-configuration';
-    send_key 'alt-l';    # navigate to the List
+    send_key((!is_leap() && check_var('ARCH', 'aarch64')) ? 'alt-i' : 'alt-l');    # navigate to the List
 
     # Disable repos
     if (is_leap) {
