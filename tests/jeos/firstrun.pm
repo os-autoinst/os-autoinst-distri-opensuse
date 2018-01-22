@@ -15,6 +15,7 @@ use base "opensusebasetest";
 use strict;
 use testapi;
 use version_utils 'is_sle';
+use utils 'assert_screen_with_soft_timeout';
 
 sub select_locale {
     assert_screen 'jeos-locale', 300;
@@ -57,7 +58,9 @@ sub run {
     # Our current Hyper-V host and it's spindles are quite slow. Especially
     # when there are more jobs running concurrently. We need to wait for
     # various disk optimizations and snapshot enablement to land.
-    assert_screen 'linux-login', 300;
+    # Meltdown/Spectre mitigations makes this even worse.
+    assert_screen_with_soft_timeout('linux-login', timeout => 1000, soft_timeout => 300, bugref => 'bsc#1077007');
+
     select_console 'root-console';
 
     assert_script_run "useradd -m $username -c '$realname'";    # create user account
