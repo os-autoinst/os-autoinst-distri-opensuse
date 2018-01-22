@@ -59,7 +59,7 @@ sub run {
     assert_script_run "mkdir /sapinst";
     assert_script_run "mount -t $proto $path /mnt";
     type_string "cd /mnt\n";
-    type_string "cd " . get_var('ARCH') . "\n"; # Change to ARCH specific subdir if exists
+    type_string "cd " . get_var('ARCH') . "\n";    # Change to ARCH specific subdir if exists
     assert_script_run "tar -cf - . | (cd /sapinst/; tar -pxf - )", 600;
 
     # Check everything was copied correctly
