@@ -1,4 +1,4 @@
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2018 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,9 +22,10 @@ use autotest;
 use utils;
 use LTP::TestInfo qw(testinfo);
 use File::Basename 'basename';
+use main_common 'load_bootloader_s390x';
 use 5.018;
 
-our @EXPORT = qw(maybe_load_kernel_tests);
+our @EXPORT = 'load_kernel_tests';
 
 sub loadtest {
     my ($test, %args) = @_;
@@ -104,7 +105,9 @@ sub stress_snapshots {
     }
 }
 
-sub maybe_load_kernel_tests {
+sub load_kernel_tests {
+    load_bootloader_s390x();
+
     if (get_var('INSTALL_LTP')) {
         if (get_var('INSTALL_KOTD')) {
             loadtest 'install_kotd';
@@ -137,8 +140,4 @@ sub maybe_load_kernel_tests {
     elsif (get_var('VIRTIO_CONSOLE_TEST')) {
         loadtest 'virtio_console';
     }
-    else {
-        return 0;
-    }
-    return 1;
 }

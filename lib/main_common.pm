@@ -46,7 +46,8 @@ our @EXPORT = qw(
   any_desktop_is_applicable
   console_is_applicable
   boot_hdd_image
-  maybe_load_kernel_tests
+  is_kernel_test
+  load_kernel_tests
   load_bootloader_s390x
   load_yast2_ncurses_tests
   load_yast2_gui_tests
@@ -162,6 +163,16 @@ sub is_bridged_networking {
     return $ret;
 }
 
+sub is_kernel_test {
+    return ( get_var('INSTALL_LTP')
+          || get_var('LTP_SETUP_NETWORKING')
+          || get_var('LTP_COMMAND_FILE')
+          || get_var('INSTALL_KOTD')
+          || get_var('QA_TEST_KLP_REPO')
+          || get_var('INSTALL_KOTD')
+          || get_var('VIRTIO_CONSOLE_TEST'));
+}
+
 # Isolate the loading of LTP tests because they often rely on newer features
 # not present on all workers. If they are isolated then only the LTP tests
 # will fail to load when there is a version mismatch instead of all tests.
@@ -172,14 +183,8 @@ sub is_bridged_networking {
     if ($@) {
         bmwqemu::fctwarn("Failed to load main_ltp.pm:\n$@", 'main_common.pm');
         eval q%
-            sub maybe_load_kernel_tests {
-                if (get_var('INSTALL_LTP')
-                    || get_var('LTP_SETUP_NETWORKING')
-                    || get_var('LTP_COMMAND_FILE')
-                    || get_var('INSTALL_KOTD')
-                    || get_var('QA_TEST_KLP_REPO')
-                    || get_var('INSTALL_KOTD')
-                    || get_var('VIRTIO_CONSOLE_TEST'))
+            sub load_kernel_tests {
+                if (is_kernel_test())
                 {
                     die "Can not run kernel tests because evaluating main_ltp.pm failed";
                 }

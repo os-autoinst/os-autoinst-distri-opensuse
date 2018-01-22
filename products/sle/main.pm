@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -1192,7 +1192,8 @@ require $distri;
 testapi::set_distribution(susedistribution->new());
 
 # load the tests in the right order
-if (maybe_load_kernel_tests()) {
+if (is_kernel_test()) {
+    load_kernel_tests();
 }
 elsif (get_var("WICKED")) {
     boot_hdd_image();
