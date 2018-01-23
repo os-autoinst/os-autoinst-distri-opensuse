@@ -45,7 +45,7 @@ sub click_click {
         sleep 1;
     }
     mouse_hide;
-    record_soft_failure 'bsc#1048975 - User interaction is lost after page refresh';
+    record_info 'bsc#1048975', 'User interaction is lost after page refresh';
 }
 
 # Select master.openqa.test and additional master nodes
