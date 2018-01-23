@@ -153,16 +153,15 @@ sub start_partitioner {
 sub start_authentication_server {
     search 'authentication';
     assert_and_click 'yast2_control-center_authentication-server';
-    assert_screen [qw(yast2_control-center-authentication-server_install yast2_control-center-authentication-server_configuration)], 90;
-    if (match_has_tag('yast2_control-center-authentication-server_install')) {
-        send_key 'alt-i';
-        assert_screen 'yast2_control-center-authentication-server_configuration';
-        send_key 'alt-c';
-    }
-    else {
-        assert_screen 'yast2_control-center-authentication-server_configuration';
-        send_key 'alt-o';
-    }
+    do {
+        assert_screen [
+            qw(yast2_control-center-authentication-server_install yast2_control-center-authentication-server_configuration yast2_control-center-authentication-server_empty_first_page)
+        ], 90;
+        send_key 'alt-i' if match_has_tag 'yast2_control-center-authentication-server_install';
+        send_key 'alt-n' if match_has_tag 'yast2_control-center-authentication-server_empty_first_page';
+    } until (match_has_tag 'yast2_control-center-authentication-server_configuration');
+    # cancel, just check the first page
+    send_key 'alt-c';
     assert_screen 'yast2-control-center-ui', 60;
 }
 
