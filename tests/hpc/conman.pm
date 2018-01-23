@@ -37,7 +37,7 @@ sub run {
     $self->enable_and_start('conman');
 
     # check service status
-    assert_script_run('systemctl status conman');
+    systemctl("status conman");
 
     # run conman client on serialdev
     type_string("conman serial1\n");
@@ -54,7 +54,7 @@ sub run {
     type_string("netcat -ClU /tmp/testsocket &\n");
 
     # restart conmand service
-    assert_script_run("systemctl restart conman.service");
+    systemctl("restart conman.service");
 
     # start conman on this socket
     type_string("conman socket1 &\n");
