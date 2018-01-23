@@ -98,6 +98,9 @@ sub is_caasp {
     elsif ($filter eq 'qam') {
         return check_var('FLAVOR', 'CaaSP-DVD-Incidents');
     }
+    elsif ($filter =~ /staging/) {
+        return get_var('FLAVOR') =~ /Staging-.-DVD/;
+    }
     else {
         return check_var('FLAVOR', $filter);    # Specific FLAVOR selector
     }
