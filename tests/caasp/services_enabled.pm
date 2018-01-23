@@ -27,7 +27,7 @@ my %services_for = (
 sub check_services {
     my $services = shift;
     foreach my $s (@$services) {
-        assert_script_run "systemctl is-enabled $s";
+        systemctl "is-enabled $s";
     }
 }
 

@@ -115,7 +115,7 @@ sub kdump_is_active {
 
         if ($status =~ /No kdump initial ramdisk found/) {
             record_soft_failure 'bsc#1021484 -- fail to create kdump initrd';
-            assert_script_run 'systemctl restart kdump';
+            systemctl 'restart kdump';
             next;
         }
         elsif ($status =~ /Active: active/) {

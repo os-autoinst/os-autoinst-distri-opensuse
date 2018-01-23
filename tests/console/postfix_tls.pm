@@ -42,8 +42,8 @@ sub run {
     systemctl "is-active postfix.service";
 
     # Print service status for debugging
-    script_run "systemctl -l --no-pager status saslauthd.service 2>&1 | tee /dev/$serialdev";
-    script_run "systemctl -l --no-pager status postfix.service 2>&1 | tee /dev/$serialdev";
+    systemctl "-l status saslauthd.service 2>&1 | tee /dev/$serialdev";
+    systemctl "-l status postfix.service 2>&1 | tee /dev/$serialdev";
     script_run "(ss -nltp | grep master) 2>&1 | tee /dev/$serialdev";
 
     # Turn off firewall

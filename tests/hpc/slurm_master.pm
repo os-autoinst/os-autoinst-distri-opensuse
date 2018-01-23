@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -53,11 +53,11 @@ EOF
 
     # enable and start slurmctld
     $self->enable_and_start('slurmctld');
-    systemctl("status slurmctld.service");
+    systemctl 'status slurmctld';
 
     # enable and start slurmd since maester also acts as Node here
     $self->enable_and_start('slurmd');
-    systemctl("status slurmd.service");
+    systemctl 'status slurmd';
 
     # wait for slave to be ready
     barrier_wait("SLURM_MASTER_SERVICE_ENABLED");

@@ -30,7 +30,7 @@ sub run {
     zypper_call('in openvswitch-switch iputils', timeout => 300);
 
     # Start the openvswitch daemon
-    assert_script_run "systemctl start openvswitch", 200;
+    systemctl 'start openvswitch', timeout => 200;
 
     # Make sure that basic commands work fine
     assert_script_run "ovs-vsctl add-br ovs-openqa-br0";

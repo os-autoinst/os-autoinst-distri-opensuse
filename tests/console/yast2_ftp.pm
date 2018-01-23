@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2016 SUSE LLC
+# Copyright (c) 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -13,7 +13,7 @@
 use strict;
 use base "console_yasttest";
 use testapi;
-use utils qw(type_string_slow zypper_call);
+use utils;
 
 sub run {
     select_console 'root-console';
@@ -122,8 +122,8 @@ sub run {
     die "'yast2 ftp-server' didn't exit with zero exit code in defined timeout" unless wait_serial("yast2-ftp-server-status-0", 180);
 
     # let's try to run it
-    assert_script_run "systemctl start vsftpd.service";
-    assert_script_run("systemctl is-active vsftpd", fail_message => 'bsc#975538');
+    systemctl 'start vsftpd';
+    systemctl 'is-active vsftpd', fail_message => 'bsc#975538';
 }
 1;
 

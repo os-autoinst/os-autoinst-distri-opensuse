@@ -37,7 +37,7 @@ sub run {
     assert_script_run("git clone $dpdk_repo");
 
     # Start the openvswitch daemon
-    assert_script_run("systemctl start openvswitch", 200);
+    systemctl 'start openvswitch', timeout => 200;
 
     # Make sure that basic OVS commands work
     assert_script_run("ovs-vsctl add-br ovs-openqa-br0");

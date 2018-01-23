@@ -48,8 +48,8 @@ sub run {
     assert_screen 'generic-desktop';
     select_console 'root-console';
     # Stop packagekit
-    script_run 'systemctl mask packagekit.service';
-    script_run 'systemctl stop packagekit.service';
+    systemctl 'mask packagekit.service';
+    systemctl 'stop packagekit.service';
     # allow to load unsupported modules
     script_run 'sed -i s\'/^allow_unsupported_modules 0/allow_unsupported_modules 1/\' /etc/modprobe.d/10-unsupported-modules.conf';
     # install kmp packages

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -13,7 +13,7 @@
 use base "opensusebasetest";
 use strict;
 use testapi;
-use utils 'power_action';
+use utils qw(power_action systemctl);
 use version_utils 'is_caasp';
 use bootloader_setup 'set_framebuffer_resolution';
 use caasp 'process_reboot';
@@ -45,7 +45,7 @@ sub run {
 
     # Restart network to push hostname to dns
     if (is_caasp('VMX') && get_var('STACK_ROLE')) {
-        script_run "systemctl restart network", 60;
+        systemctl 'restart network', timeout => 60;
         # Workaround for bsc#1062717 when admin node has no fqdn hostname
         record_soft_failure 'bsc#1062717';
         get_var('TEST') =~ /.*-(\w+)$/;
@@ -53,7 +53,7 @@ sub run {
         script_run "hostnamectl set-hostname $fake_hostname.openqa.test";
         if (check_var('STACK_ROLE', 'admin')) {
             script_run "rm /etc/pki/ldap.crt /etc/pki/velum.crt";
-            script_run "systemctl restart admin-node-setup.service";
+            systemctl 'restart admin-node-setup.service';
             script_run "docker rm -f \$(docker ps -f \"name=k8s_velum-dashboard\" -q)";
             script_run "docker rm -f \$(docker ps -f \"name=k8s_openldap_velum\" -q)";
         }

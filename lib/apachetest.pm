@@ -1,6 +1,6 @@
 # SUSE's Apache tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -111,7 +111,7 @@ sub setup_apache2 {
     assert_script_run 'sed -i "/^<VirtualHost/a ServerAdmin webmaster@$(hostname)\nServerName $(hostname)\nDocumentRoot /srv/www/htdocs/\n" ' . $files;
 
     # Start apache service
-    script_run 'systemctl stop apache2';
+    systemctl 'stop apache2';
     if ($mode eq "NSS") {
         assert_script_run "expect -c 'spawn systemctl start apache2; expect \"Enter SSL pass phrase for internal (NSS)\"; send \"$nsspasswd\\n\"; interact'";
     }
@@ -120,9 +120,9 @@ sub setup_apache2 {
 "expect -c 'spawn systemctl start apache2; expect \"Enter SSL pass phrase for NSS FIPS 140-2 Certificate DB (NSS)\"; send \"$nsspasswd\\n\"; interact'";
     }
     else {
-        assert_script_run 'systemctl start apache2';
+        systemctl 'start apache2';
     }
-    assert_script_run 'systemctl is-active apache2';
+    systemctl 'is-active apache2';
 
     # Create a test html page
     assert_script_run 'echo "<html><h2>Hello Linux</h2></html>" > /srv/www/htdocs/hello.html';
@@ -181,13 +181,13 @@ sub test_pgsql {
     # allow postgres to access the db with password authentication
     assert_script_run "echo 'host openQAdb postgres 127.0.0.1/32 password' >> /var/lib/pgsql/data/pg_hba.conf";
     assert_script_run "echo 'host openQAdb postgres      ::1/128 password' >> /var/lib/pgsql/data/pg_hba.conf";
-    assert_script_run "systemctl restart postgresql.service";
+    systemctl 'restart postgresql.service';
 
     # configure the PHP code that:
     #  1. reads table 'test' from the 'openQAdb' database (created in 'console/postgresql...' test)
     #  2. inserts a new element 'can php write this?' into the same table
     type_string "curl " . data_url('console/test_postgresql_connector.php') . " -o /srv/www/htdocs/test_postgresql_connector.php\n";
-    assert_script_run "systemctl restart apache2.service";
+    systemctl 'restart apache2.service';
 
     # access the website and verify that it can read the database
     assert_script_run "curl --no-buffer http://localhost/test_postgresql_connector.php | grep 'can you read this?'";
@@ -205,7 +205,7 @@ qq{mysql -u root -e "CREATE DATABASE openQAdb; USE openQAdb; CREATE TABLE test (
     #  1. reads table 'test' from the 'openQAdb' database
     #  2. inserts a new element 'can php write this?' into the same table
     assert_script_run "curl " . data_url('console/test_mysql_connector.php') . " -o /srv/www/htdocs/test_mysql_connector.php";
-    assert_script_run "systemctl restart apache2.service";
+    systemctl 'restart apache2.service';
 
     # access the website and verify that it can read the database
     assert_script_run "curl --no-buffer http://localhost/test_mysql_connector.php | grep 'can you read this?'";

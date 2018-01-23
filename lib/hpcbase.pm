@@ -16,8 +16,8 @@ sub exec_and_insert_password {
 
 sub enable_and_start {
     my ($self, $arg) = @_;
-    assert_script_run("systemctl enable $arg");
-    assert_script_run("systemctl start $arg");
+    systemctl "enable $arg";
+    systemctl "start $arg";
 }
 
 sub stop_firewall() {

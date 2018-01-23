@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -14,6 +14,7 @@ use strict;
 use base "consoletest";
 use testapi;
 use main_common 'is_bridged_networking';
+use utils 'systemctl';
 
 sub run {
     # Skip the entire test on bridget networks (e.g. Xen, Hyper-V)
@@ -27,13 +28,13 @@ sub run {
     assert_script_run "zypper -n -q in bind";
 
     # check that it can be enabled and disabled;
-    assert_script_run "systemctl enable named.service";
-    assert_script_run "systemctl disable named.service";
+    systemctl 'enable named';
+    systemctl 'disable named';
 
     # let's try to run it
-    assert_script_run "systemctl start named.service";
-    assert_script_run "systemctl show -p ActiveState named.service|grep ActiveState=active";
-    assert_script_run "systemctl show -p SubState named.service|grep SubState=running";
+    systemctl 'start named';
+    systemctl 'show -p ActiveState named.service|grep ActiveState=active';
+    systemctl 'show -p SubState named.service|grep SubState=running';
 
     # verify dns server responds to anything
     assert_script_run "host localhost localhost";

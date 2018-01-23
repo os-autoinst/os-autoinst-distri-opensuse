@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -14,12 +14,13 @@ use base 'x11test';
 use strict;
 use testapi;
 use version_utils 'leap_version_at_least';
+use utils 'systemctl';
 
 sub run() {
     my ($self) = @_;
     x11_start_program('xterm');
     become_root;
-    assert_script_run 'systemctl start postgresql';
+    systemctl 'start postgresql';
     wait_screen_change { script_run 'su postgres', 0 };
     script_run 'sed -i -e \'s/\(\(local\|host\).*all.*all.*\)\(md5\|ident\)/\1trust/g\' /var/lib/pgsql/data/pg_hba.conf', 0;
     script_run 'psql -c "CREATE USER tryton WITH CREATEDB;"',                                                             0;
@@ -27,7 +28,7 @@ sub run() {
         script_run 'createdb gnuhealth --encoding=\'UTF8\' --owner=tryton', 0;
     }
     script_run 'exit', 0;
-    assert_script_run 'systemctl restart postgresql';
+    systemctl 'restart postgresql';
     # generate the crypted password as described in /etc/tryton/trytond.conf
     # but with no randomness for easier testing and preventing a stray '/' to
     # destroy the sed call
@@ -39,7 +40,7 @@ sub run() {
         assert_script_run 'echo susetesting > /tmp/pw';
         assert_script_run 'sudo -u tryton env TRYTONPASSFILE=/tmp/pw trytond-admin -c /etc/tryton/trytond.conf --all -d gnuhealth --password', 600;
     }
-    assert_script_run 'systemctl start trytond';
+    systemctl 'start trytond';
     # exit from root session
     send_key 'ctrl-d';
     # exit xterm

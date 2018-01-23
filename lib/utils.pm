@@ -825,7 +825,7 @@ sub service_action {
     my @actions = $args->{action} ? @{$args->{action}} : 'stop';
     foreach my $action (@actions) {
         foreach my $type (@types) {
-            assert_script_run "systemctl $action $name.$type";
+            systemctl "$action $name.$type";
         }
     }
 }

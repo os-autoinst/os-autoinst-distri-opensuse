@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -19,16 +19,16 @@
 use base "consoletest";
 use strict;
 use testapi;
+use utils;
 
 sub run {
-
     select_console "root-console";
 
     # Enable FSS (Forward Secure Sealing)
     assert_script_run("sed -i -e 's/^Storage/#Storage/g' -e 's/^Seal/#Seal/g' /etc/systemd/journald.conf");
     assert_script_run('echo -e "Storage=persistence\nSeal=yes" >> /etc/systemd/journald.conf');
     assert_script_run("mkdir -p /var/log/journal");
-    assert_script_run("systemctl restart systemd-journald.service");
+    systemctl 'restart systemd-journald.service';
 
     # Setup keys
     assert_script_run("journalctl --interval=30s --setup-keys | tee /tmp/key");

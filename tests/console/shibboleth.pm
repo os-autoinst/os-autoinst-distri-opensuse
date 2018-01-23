@@ -21,7 +21,7 @@ sub run {
 
     zypper_call "in shibboleth-sp apache2";
     assert_script_run "a2enmod shib";
-    assert_script_run "systemctl restart apache2.service";
+    systemctl 'restart apache2';
 
     assert_script_run "curl --no-buffer http://localhost/Shibboleth.sso/Status | grep 'Cannot connect to shibd process'";
 

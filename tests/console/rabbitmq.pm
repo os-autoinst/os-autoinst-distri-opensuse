@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -16,12 +16,13 @@
 use base "consoletest";
 use strict;
 use testapi;
+use utils 'systemctl';
 
 sub run {
     select_console 'root-console';
     assert_script_run('zypper -n in rabbitmq-server');
-    assert_script_run('systemctl start rabbitmq-server');
-    assert_script_run('systemctl status --no-pager rabbitmq-server');
+    systemctl 'start rabbitmq-server';
+    systemctl 'status rabbitmq-server';
     assert_script_run('zypper -n in python-pika');
     my $cmd = <<'EOF';
 mkdir rabbitmq
@@ -42,7 +43,7 @@ EOF
         # ignore non-zero exit code when collecting more data on soft fail
         script_run("systemctl status --no-pager rabbitmq-server | tee /dev/$serialdev");
         script_run("rpm -q --changelog rabbitmq-server | head -n 60 | tee /dev/$serialdev");
-        assert_script_run('systemctl stop rabbitmq-server', 300);
+        systemctl 'stop rabbitmq-server', timeout => 300;
     }
 }
 

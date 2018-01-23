@@ -33,7 +33,7 @@ sub run {
     zypper_call 'in php5-pgsql postgresql96-server sudo';
 
     # start postgresql
-    assert_script_run 'systemctl start postgresql';
+    systemctl 'start postgresql';
     # setup database
     setup_pgsqldb;
 

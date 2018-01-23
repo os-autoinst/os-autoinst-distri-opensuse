@@ -25,11 +25,11 @@ sub run {
     zypper_call "in $pgsql_server sudo";
 
     # start the postgresql service
-    assert_script_run 'systemctl start postgresql.service', 200;
+    systemctl 'start postgresql.service', timeout => 200;
 
     # check the status
-    assert_script_run 'systemctl show -p ActiveState postgresql.service | grep ActiveState=active';
-    assert_script_run 'systemctl show -p SubState postgresql.service | grep SubState=running';
+    systemctl 'show -p ActiveState postgresql.service | grep ActiveState=active';
+    systemctl 'show -p SubState postgresql.service | grep SubState=running';
 
     # test basic functionality of postgresql
     setup_pgsqldb;

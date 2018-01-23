@@ -13,7 +13,7 @@
 use base 'opensusebasetest';
 use strict;
 use version_utils qw(is_sle sle_version_at_least);
-use utils 'zypper_call';
+use utils qw(zypper_call systemctl);
 use testapi;
 use lockapi;
 use hacluster;
@@ -56,8 +56,8 @@ sub run {
     else {
         assert_script_run "sed -ie 's/^\\([[:blank:]]*use_lvmetad[[:blank:]]*=\\).*/\\1 0/' $lvm_conf";     # Set use_lvmetad=0, clvmd doesn't support lvmetad
         assert_script_run "sed -ie 's/^\\([[:blank:]]*locking_type[[:blank:]]*=\\).*/\\1 3/' $lvm_conf";    # Set locking_type=3 for clvmd
-        assert_script_run 'systemctl stop lvm2-lvmetad.socket';                                             # Stop lvmetad
-        assert_script_run 'systemctl disable lvm2-lvmetad.socket';                                          # Disable lvmetad
+        systemctl 'stop lvm2-lvmetad.socket';                                                               # Stop lvmetad
+        systemctl 'disable lvm2-lvmetad.socket';                                                            # Disable lvmetad
     }
 
     # Show important configuration options in case of debugging

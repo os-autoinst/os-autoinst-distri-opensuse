@@ -16,7 +16,7 @@
 use base "console_yasttest";
 use strict;
 use testapi;
-use utils "zypper_call";
+use utils;
 
 sub run {
     #
@@ -33,7 +33,7 @@ sub run {
     assert_script_run 'echo "It worked" > /tmp/nfs/server/file.txt';
     # Serve the share
     assert_script_run 'echo "/tmp/nfs/server *(ro)" >> /etc/exports';
-    assert_script_run 'systemctl start nfs-server';
+    systemctl 'start nfs-server';
 
     #
     # YaST nfs-client execution

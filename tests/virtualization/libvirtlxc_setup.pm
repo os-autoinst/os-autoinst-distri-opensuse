@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -23,7 +23,7 @@ sub run() {
     zypper_call('in libvirt-daemon-lxc libvirt-client libvirt-daemon-config-network');
 
     # Make sure libvirtd is up and running with default network
-    assert_script_run('systemctl restart libvirtd');
+    systemctl 'restart libvirtd';
     assert_script_run('virsh net-start default');
 }
 

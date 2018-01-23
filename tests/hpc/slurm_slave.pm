@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -41,7 +41,7 @@ sub run {
 
     # enable and start slurmd
     $self->enable_and_start('slurmd');
-    systemctl("status slurmd.service");
+    systemctl 'status slurmd';
     barrier_wait("SLURM_SLAVE_SERVICE_ENABLED");
 
     mutex_lock("SLURM_MASTER_RUN_TESTS");

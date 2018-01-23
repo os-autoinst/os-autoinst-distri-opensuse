@@ -38,8 +38,8 @@ sub setup_migration {
     select_console 'root-console';
 
     # stop packagekit service
-    script_run "systemctl mask packagekit.service";
-    script_run "systemctl stop packagekit.service";
+    systemctl 'mask packagekit.service';
+    systemctl 'stop packagekit.service';
 
     ensure_serialdev_permissions;
 

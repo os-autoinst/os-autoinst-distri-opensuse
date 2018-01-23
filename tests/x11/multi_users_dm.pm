@@ -20,7 +20,7 @@ use testapi;
 use utils;
 
 sub ensure_multi_user_target {
-    type_string "systemctl isolate multi-user.target\n";
+    systemctl 'isolate multi-user.target';
     reset_consoles;
     wait_still_screen 10;
     # isolating multi-user.target logs us out
@@ -28,7 +28,7 @@ sub ensure_multi_user_target {
 }
 
 sub ensure_graphical_target {
-    type_string "systemctl isolate graphical.target\n";
+    systemctl 'isolate graphical.target';
     reset_consoles;
 }
 

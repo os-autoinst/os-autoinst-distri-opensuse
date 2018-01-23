@@ -1,4 +1,4 @@
-# Copyright (C) 2017 SUSE LLC
+# Copyright (C) 2017-2018 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 use base "opensusebasetest";
 use strict;
 use testapi;
+use utils;
 
 sub run {
     my $self = shift;
@@ -42,8 +43,7 @@ sub run {
     # kexec -l
     assert_script_run("kexec -l $kernel_new --initrd=$initrd_new --command-line='$cmdline'");
     # kexec -e
-    type_string("systemctl kexec\n");
-
+    systemctl 'kexec';
     # wait for reboot
     reset_consoles();
     select_console("root-console");
