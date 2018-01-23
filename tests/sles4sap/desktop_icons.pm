@@ -21,7 +21,7 @@ sub run {
     # Check for SLES4SAP Desktop icons
     if (check_screen 'sles4sap-desktop') {
         assert_and_dclick 'sles4sap-desktop-cheatsheet';
-        assert_screen 'sles4sap-cheatsheet';
+        assert_screen 'sles4sap-cheatsheet', 90;
         send_key 'alt-f4';
     }
     else {
