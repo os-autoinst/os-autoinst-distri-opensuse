@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -17,7 +17,7 @@ use strict;
 sub tuned_is {
     my $pattern = shift;
     my $output  = script_output "saptune daemon status 2>&1 || true";
-    $output =~ /^Daemon \(tuned\.service\) is $pattern./;
+    $output =~ /Daemon \(tuned\.service\) is $pattern./;
 }
 
 sub run {
@@ -46,7 +46,7 @@ sub run {
     die "Command 'saptune solution list' output is not recognized" unless ($output =~ m|$regexp|s);
 
     $output = script_output "saptune note list";
-    $regexp = '^All notes \(\+ denotes manually enabled notes, \* denotes notes enabled by solutions\):';
+    $regexp = 'All notes \(\+ denotes manually enabled notes, \* denotes notes enabled by solutions\):';
     die "Command 'saptune note list' output is not recognized" unless ($output =~ m|$regexp|);
 }
 
