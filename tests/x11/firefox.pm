@@ -1,14 +1,14 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Very basic firefox test opening html5test
+# Summary: Very basic firefox test opening an html-test
 # Maintainer: Stephan Kulow <coolo@suse.com>
 
 package firefox;
@@ -19,10 +19,10 @@ use testapi;
 
 sub start_firefox {
     my ($self) = @_;
-    x11_start_program('firefox https://html5test.com/index.html', valid => 0);
+    x11_start_program('firefox https://html5test.opensuse.org', valid => 0);
     $self->firefox_check_default;
     $self->firefox_check_popups;
-    assert_screen 'firefox-html5test';
+    assert_screen 'firefox-html-test';
 }
 
 sub run() {
@@ -36,7 +36,7 @@ sub run() {
 
     # close About
     send_key "alt-f4";
-    assert_screen 'firefox-html5test';
+    assert_screen 'firefox-html-test';
 
     send_key "alt-f4";
     assert_screen [qw(firefox-save-and-quit generic-desktop)];
