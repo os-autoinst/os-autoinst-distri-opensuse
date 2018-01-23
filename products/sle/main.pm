@@ -76,10 +76,11 @@ sub default_desktop {
     return 'gnome' if get_var('VERSION', '') lt '15';
     # with SLE 15 LeanOS only the default is textmode
     return 'gnome' if get_var('BASE_VERSION', '') =~ /^12/;
-    # In sle15 we add repos manually to make a workaround of missing SCC, gnome will be installed as default system.
-    return 'gnome' if get_var('ADDONURL', '') =~ /(desktop|server)/;
     return 'textmode' if (get_var('SYSTEM_ROLE') && !check_var('SYSTEM_ROLE', 'default'));
-    return 'gnome' if check_var_array('ADDONS', 'all-packages');
+    # default system role for sles and sled
+    return 'textmode' if is_server;
+    return 'gnome'    if is_desktop;
+    return 'gnome'    if check_var_array('ADDONS', 'all-packages');
     return (!get_var('SCC_REGISTER') || !check_var('SCC_REGISTER', 'installation')) ? 'textmode' : 'gnome';
 }
 
@@ -696,8 +697,8 @@ sub load_inst_tests {
         if (get_var('PATTERNS') || get_var('PACKAGES')) {
             loadtest "installation/installation_overview_before";
             loadtest "installation/select_patterns_and_packages";
-        }
-        elsif (!check_var('DESKTOP', default_desktop)) {
+        }    # With SLE15 we change desktop using role and not by inselecting packages (Use SYSTEM_ROLE variable)
+        elsif (!check_var('DESKTOP', default_desktop) && !sle_version_at_least('15')) {
             loadtest "installation/installation_overview_before";
             loadtest "installation/change_desktop";
         }

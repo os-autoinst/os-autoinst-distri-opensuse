@@ -217,13 +217,13 @@ sub fill_in_registration_data {
                 send_key('alt-i');
             }
             assert_screen($modules_needle);
-            # Add desktop module for SLES if desktop doesn't match default
-            if (check_var('SLE_PRODUCT', 'sles') && (my $addons = get_var('SCC_ADDONS')) !~ /(?:desktop|we|productivity)/) {
-                # HA doesn't need to have desktop module selected
-                if ($addons !~ /(?:ha)/) {
-                    $addons = $addons ? $addons . ',desktop' : 'desktop';
-                    set_var('SCC_ADDONS', $addons);
-                }
+            # Add desktop module for SLES if desktop is gnome
+            if (   check_var('SLE_PRODUCT', 'sles')
+                && check_var('DESKTOP', 'gnome')
+                && (my $addons = get_var('SCC_ADDONS')) !~ /(?:desktop|we|productivity|ha)/)
+            {
+                $addons = $addons ? $addons . ',desktop' : 'desktop';
+                set_var('SCC_ADDONS', $addons);
             }
         }
     }
