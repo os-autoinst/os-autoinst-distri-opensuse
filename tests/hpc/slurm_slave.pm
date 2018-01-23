@@ -41,7 +41,7 @@ sub run {
 
     # enable and start slurmd
     $self->enable_and_start('slurmd');
-    assert_script_run "systemctl status slurmd.service";
+    systemctl("status slurmd.service");
     barrier_wait("SLURM_SLAVE_SERVICE_ENABLED");
 
     mutex_lock("SLURM_MASTER_RUN_TESTS");

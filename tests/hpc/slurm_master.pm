@@ -53,11 +53,11 @@ EOF
 
     # enable and start slurmctld
     $self->enable_and_start('slurmctld');
-    assert_script_run "systemctl status slurmctld.service";
+    systemctl("status slurmctld.service");
 
     # enable and start slurmd since maester also acts as Node here
     $self->enable_and_start('slurmd');
-    assert_script_run "systemctl status slurmd.service";
+    systemctl("status slurmd.service");
 
     # wait for slave to be ready
     barrier_wait("SLURM_MASTER_SERVICE_ENABLED");
