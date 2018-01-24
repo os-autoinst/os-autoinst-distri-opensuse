@@ -340,7 +340,7 @@ sub load_fixup_network {
     # openSUSE 13.2's (and earlier) systemd has broken rules for virtio-net, not applying predictable names (despite being configured)
     # A maintenance update breaking networking names sounds worse than just accepting that 13.2 -> TW breaks with virtio-net
     # At this point, the system has been updated, but our network interface changed name (thus we lost network connection)
-    my @old_hdds = qw(openSUSE-12.1 openSUSE-12.2 openSUSE-12.3 openSUSE-13.1-gnome openSUSE-13.2);
+    my @old_hdds = qw(openSUSE-13.1-gnome openSUSE-13.2);
     return unless grep { check_var('HDDVERSION', $_) } @old_hdds;
 
     loadtest "fixup/network_configuration";
@@ -355,7 +355,7 @@ sub load_fixup_firewall {
     # firewall being disabled since
     # https://build.opensuse.org/request/show/483163
     # which seems to be in openSUSE Tumbleweed since 20170413
-    return unless get_var('HDDVERSION', '') =~ /openSUSE-(12.1|12.2|13.1-gnome)/;
+    return unless get_var('HDDVERSION', '') =~ /openSUSE-(13.1-gnome)/;
     loadtest 'fixup/enable_firewall';
 }
 
