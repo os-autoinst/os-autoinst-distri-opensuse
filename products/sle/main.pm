@@ -1118,23 +1118,18 @@ sub load_online_migration_tests {
 }
 
 sub load_patching_tests {
-    if (check_var("ARCH", "s390x")) {
-        if (check_var('BACKEND', 's390x')) {
-            loadtest "installation/bootloader_s390";
-        }
-        else {
-            loadtest "installation/bootloader_zkvm";
-        }
-    }
     # Switch to orginal system version for upgrade tests
     if (is_upgrade) {
         # Save HDDVERSION to ORIGIN_SYSTEM_VERSION
         set_var('ORIGIN_SYSTEM_VERSION', get_var('HDDVERSION'));
         # Save VERSION to UPGRADE_TARGET_VERSION
         set_var('UPGRADE_TARGET_VERSION', get_var('VERSION'));
+        # Always boot from installer DVD in upgrade test
+        set_var('BOOTFROM', 'd');
         loadtest "migration/version_switch_origin_system";
     }
-    loadtest 'boot/boot_to_desktop';
+    set_var('BOOT_HDD_IMAGE', 1);
+    boot_hdd_image;
     loadtest 'update/patch_before_migration';
     if (is_upgrade) {
         # Lock package for offline migration by Yast installer
@@ -1142,14 +1137,12 @@ sub load_patching_tests {
             loadtest 'console/lock_package';
         }
         # Reboot from DVD and perform upgrade
-        loadtest 'console/consoletest_finish';
-        loadtest 'x11/reboot_and_install';
+        loadtest "migration/reboot_to_upgrade";
         # After original system patched, switch to UPGRADE_TARGET_VERSION
         # For ZDUP upgrade, version switch back later
         if (get_var('UPGRADE') || get_var('AUTOUPGRADE')) {
             loadtest "migration/version_switch_upgrade_target";
         }
-        loadtest 'installation/bootloader_zkvm' if get_var('S390_ZKVM');
     }
 }
 
@@ -1546,13 +1539,9 @@ else {
         loadtest "installation/first_boot";
     }
     elsif (get_var("AUTOYAST") || get_var("AUTOUPGRADE")) {
-        if (get_var('PATCH')) {
-            load_patching_tests();
-        }
-        else {
-            loadtest "autoyast/prepare_profile" if get_var "AUTOYAST_PREPARE_PROFILE";
-            load_boot_tests();
-        }
+        loadtest "autoyast/prepare_profile" if get_var "AUTOYAST_PREPARE_PROFILE";
+        load_patching_tests() if get_var('PATCH');
+        load_boot_tests();
         load_autoyast_tests();
         load_reboot_tests();
     }
@@ -1568,14 +1557,11 @@ else {
         load_online_migration_tests();
     }
     elsif (get_var("UPGRADE")) {
-        if (get_var('PATCH')) {
-            load_patching_tests();
-        }
-        else {
-            load_boot_tests();
-        }
+        load_patching_tests() if get_var('PATCH');
+        load_boot_tests();
         load_inst_tests();
         load_reboot_tests();
+        loadtest "migration/post_upgrade";
     }
     elsif (get_var("BOOT_HDD_IMAGE") && !is_jeos) {
         if (get_var("RT_TESTS")) {
