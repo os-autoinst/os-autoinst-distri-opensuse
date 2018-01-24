@@ -530,20 +530,12 @@ sub load_boot_tests {
     elsif (uses_qa_net_hardware()) {
         loadtest "boot/boot_from_pxe";
     }
-    elsif (check_var("ARCH", "s390x")) {
-        if (check_var('BACKEND', 's390x')) {
-            loadtest "installation/bootloader_s390";
-        }
-        else {
-            loadtest "installation/bootloader_zkvm";
-        }
-    }
     elsif (get_var("PXEBOOT")) {
         set_var("DELAYED_START", "1");
         loadtest "autoyast/pxe_boot";
     }
     else {
-        loadtest "installation/bootloader";
+        loadtest "installation/bootloader" unless load_bootloader_s390x();
     }
 }
 
@@ -1569,9 +1561,7 @@ else {
             loadtest "rt/boot_rt_kernel";
         }
         else {
-            if (get_var('S390_ZKVM')) {
-                loadtest 'installation/bootloader_zkvm';
-            }
+            load_bootloader_s390x();
             loadtest "boot/boot_to_desktop";
             if (get_var("ADDONS")) {
                 loadtest "installation/addon_products_yast2";
