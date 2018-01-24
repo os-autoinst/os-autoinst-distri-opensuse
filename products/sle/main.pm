@@ -175,6 +175,10 @@ if (sle_version_at_least('15')) {
     set_var('SCC_REGISTER', get_var('SCC_REGISTER', 'installation'));
     # depending on registration only limited system roles are available
     set_var('SYSTEM_ROLE', get_var('SYSTEM_ROLE', is_desktop_module_available() ? 'default' : 'minimal'));
+    # set SYSTEM_ROLE to textmode for SLE4SAP on SLE15 instead of triggering change_desktop (see poo#29589)
+    if (is_sles4sap && check_var('SYSTEM_ROLE', 'default') && check_var('DESKTOP', 'textmode')) {
+        set_var('SYSTEM_ROLE', 'textmode');
+    }
     # in the 'minimal' system role we can not execute many test modules
     set_var('INSTALLONLY', get_var('INSTALLONLY', check_var('SYSTEM_ROLE', 'minimal')));
 }
@@ -617,7 +621,7 @@ sub load_inst_tests {
         {
             loadtest "installation/system_role";
         }
-        if (is_sles4sap() and sle_version_at_least('15')) {
+        if (is_sles4sap() and sle_version_at_least('15') and check_var('SYSTEM_ROLE', 'default')) {
             loadtest "installation/sles4sap_product_installation_mode";
         }
         loadtest "installation/partitioning";
@@ -686,7 +690,7 @@ sub load_inst_tests {
             loadtest "installation/logpackages";
         }
         if (is_sles4sap()) {
-            if (is_sles4sap_standard()) {
+            if (is_sles4sap_standard() or !check_var('SYSTEM_ROLE', 'default')) {
                 loadtest "installation/user_settings";
             }    # sles4sap wizard installation doesn't have user_settings step
         }
