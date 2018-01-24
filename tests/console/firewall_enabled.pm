@@ -23,9 +23,7 @@ sub run {
         if (is_jeos) {
             assert_script_run("grep '^FW_CONFIGURATIONS_EXT=\"sshd\"\\|^FW_SERVICES_EXT_TCP=\"ssh\"' /etc/sysconfig/SuSEfirewall2");
         }
-        elsif (script_run('firewallctl state')) {
-            record_soft_failure('bsc#1054977');
-        }
+        assert_script_run('firewallctl state');
     }
     else {
         assert_script_run('SuSEfirewall2 status');
