@@ -45,9 +45,8 @@ sub run {
             record_soft_failure 'bsc#989750';
             $collect_logs = 1;
         }
-        elsif (match_has_tag('partitioning-encrypt-ignored-existing') and sle_version_at_least('12-SP4')) {
-            record_soft_failure 'bsc#993247 https://fate.suse.com/321208';
-            $collect_logs = 1;
+        elsif (match_has_tag('partitioning-encrypt-ignored-existing')) {
+            record_info 'bsc#993247 https://fate.suse.com/321208', 'activated encrypted partition will not be recreated as encrypted';
         }
 
         unless (get_var('ENCRYPT_FORCE_RECOMPUTE')) {
