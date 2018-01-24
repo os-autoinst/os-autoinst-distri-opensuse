@@ -537,8 +537,6 @@
       <package>libz1-32bit</package>
       <package>perl-32bit</package>
       <package>perl-Test-Simple</package>
-      <package>python3</package>
-      <package>python3-base</package>
       <package>xaw3dd</package>
       <package>yast2-control-center-qt</package>
     </remove-packages>
