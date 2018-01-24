@@ -1,6 +1,14 @@
-#!/usr/bin/perl -w
-# G-Summary: Add SLES4SAP tests
-# G-Maintainer: Denis Zyuzin <dzyuzin@suse.com>
+# SUSE's openQA tests
+#
+# Copyright © 2017-2018 SUSE LLC
+#
+# Copying and distribution of this file, with or without modification,
+# are permitted in any medium without royalty provided the copyright
+# notice and this notice are preserved.  This file is offered as-is,
+# without any warranty.
+
+# Summary: Add SLES4SAP tests
+# Maintainer: Denis Zyuzin <dzyuzin@suse.com>
 
 use strict;
 use base "y2logsstep";
@@ -10,7 +18,7 @@ sub run {
     my ($swpm_proto, $swpm_path) = split m|://|, get_var('SWPM');
     my ($sapinst_proto, $sapinst_path);
     my $sap_product = get_var('TREX') ? 'trex' : 'nw';
-    assert_screen "sles4sap-wizard-welcome";
+    assert_screen "sles4sap-wizard-welcome", 90;
     send_key $cmd{next};
     assert_screen "sles4sap-wizard-network";
     send_key $cmd{next};
