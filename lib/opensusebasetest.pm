@@ -283,9 +283,9 @@ sub rewrite_static_svirt_network_configuration {
     my $virsh_guest = get_required_var('VIRSH_GUEST');
     type_line_svirt "sed -i \"\\\"s:IPADDR='[0-9.]*/\\([0-9]*\\)':IPADDR='$virsh_guest/\\1':\\\" /etc/sysconfig/network/ifcfg-\*\"", expect => '#';
     type_string "# output of current network configuration for debugging\n";
-    type_line_svirt "cat /etc/sysconfig/network/ifcfg-\*", expect => '#';
-    type_line_svirt "systemctl restart network",           expect => '#';
-    type_line_svirt "systemctl is-active network",         expect => 'active';
+    type_line_svirt "\"cat /etc/sysconfig/network/ifcfg-\*\"", expect => '#';
+    type_line_svirt "systemctl restart network",               expect => '#';
+    type_line_svirt "systemctl is-active network",             expect => 'active';
 }
 
 =head2 wait_boot
