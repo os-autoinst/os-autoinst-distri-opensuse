@@ -484,7 +484,9 @@ sub enter_test_text {
 }
 
 sub firewall {
-    return ((is_sle && !sle_version_at_least('15')) || (is_leap && !leap_version_at_least('15.0'))) ? 'SuSEfirewall2' : 'firewalld';
+    my $old_product_versions = (is_sle && !sle_version_at_least('15')) || (is_leap && !leap_version_at_least('15.0'));
+    my $upgrade_from_susefirewall = get_var('UPGRADE') && get_var('HDD_1') =~ /\b(1[123]|42)[\.-]/;
+    return ($old_product_versions || $upgrade_from_susefirewall) ? 'SuSEfirewall2' : 'firewalld';
 }
 
 # useful post_fail_hook for any module that calls wait_boot

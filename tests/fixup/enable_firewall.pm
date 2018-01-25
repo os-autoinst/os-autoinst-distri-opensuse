@@ -18,7 +18,6 @@ use utils 'systemctl';
 
 sub run {
     my ($self) = @_;
-    record_soft_failure('boo#1036590') if get_var('HDDVERSION', '') =~ /openSUSE-(12.1|12.2)/;
     x11_start_program('xterm');
     systemctl 'start ' . $self->firewall;
     send_key "alt-f4";
