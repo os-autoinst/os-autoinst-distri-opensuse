@@ -690,7 +690,10 @@ sub load_inst_tests {
             loadtest "installation/logpackages";
         }
         if (is_sles4sap()) {
-            if (is_sles4sap_standard() or !check_var('SYSTEM_ROLE', 'default')) {
+            if (
+                is_sles4sap_standard()    # Schedule module only for SLE15 with non-default role
+                || sle_version_at_least('15') && get_var('SYSTEM_ROLE') && !check_var('SYSTEM_ROLE', 'default'))
+            {
                 loadtest "installation/user_settings";
             }    # sles4sap wizard installation doesn't have user_settings step
         }
