@@ -19,8 +19,9 @@ use lockapi;
 use hacluster;
 
 sub run {
-    my $lvm_conf = '/etc/lvm/lvm.conf';
-    my $lock_mgr = 'clvm';
+    my $cluster_name = get_cluster_name;
+    my $lvm_conf     = '/etc/lvm/lvm.conf';
+    my $lock_mgr     = 'clvm';
 
     # lvmlockd is only available in SLE15+
     if (get_var("USE_LVMLOCKD")) {

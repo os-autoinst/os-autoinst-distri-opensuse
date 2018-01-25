@@ -17,6 +17,8 @@ use lockapi;
 use hacluster;
 
 sub run {
+    my $cluster_name = get_cluster_name;
+
     # Wait until DLM test is initialized
     barrier_wait("DLM_INIT_$cluster_name");
 

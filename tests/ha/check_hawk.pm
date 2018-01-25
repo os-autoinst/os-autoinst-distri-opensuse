@@ -18,7 +18,8 @@ use hacluster;
 use utils 'systemctl';
 
 sub run {
-    my $hawk_port = '7630';
+    my $cluster_name = get_cluster_name;
+    my $hawk_port    = '7630';
 
     barrier_wait("HAWK_INIT_$cluster_name");
 

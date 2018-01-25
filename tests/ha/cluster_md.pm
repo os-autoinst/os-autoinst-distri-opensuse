@@ -20,11 +20,12 @@ use hacluster;
 sub run {
     my $mdadm_conf         = '/etc/mdadm.conf';
     my $csync_conf         = '/etc/csync2/csync2.cfg';
-    my $clustermd_lun_01   = block_device_real_path '/dev/disk/by-path/ip-*-lun-1';
-    my $clustermd_lun_02   = block_device_real_path '/dev/disk/by-path/ip-*-lun-2';
+    my $clustermd_lun_01   = get_lun(use_once => 0);
+    my $clustermd_lun_02   = get_lun(use_once => 0);
     my $clustermd_rsc      = 'cluster_md';
     my $clustermd_device   = '/dev/md0';
     my $clustermd_name_opt = undef;
+    my $cluster_name       = get_cluster_name;
 
     if (is_sle '15+') {
         $clustermd_device   = "/dev/md/$clustermd_rsc";

@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Join cluster node to existing cluster
+# Summary: Add node to existing cluster
 # Maintainer: Loic Devulder <ldevulder@suse.com>
 
 use base 'opensusebasetest';
@@ -17,13 +17,16 @@ use lockapi;
 use hacluster;
 
 sub run {
+    my $cluster_name = get_cluster_name;
+    my $node_to_join = get_node_to_join;
+
     # Wait until cluster is initialized
     diag 'Wait until cluster is initialized...';
     barrier_wait("CLUSTER_INITIALIZED_$cluster_name");
 
-    # Try to join the HA cluster through node HA_CLUSTER_JOIN
-    assert_script_run 'ping -c1 ' . get_var('HA_CLUSTER_JOIN');
-    type_string "ha-cluster-join -yc " . get_var('HA_CLUSTER_JOIN') . "\n";
+    # Try to join the HA cluster through first node
+    assert_script_run "ping -c1 $node_to_join";
+    type_string "ha-cluster-join -yc $node_to_join\n";
     assert_screen 'ha-cluster-join-password';
     type_password;
     send_key 'ret';

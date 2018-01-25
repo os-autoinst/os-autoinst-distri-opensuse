@@ -18,10 +18,10 @@ use hacluster;
 
 sub run {
     # Validate cluster creation with ha-cluster-init tool
-    my $self          = shift;
+    my $cluster_name  = get_cluster_name;
     my $bootstrap_log = '/var/log/ha-cluster-bootstrap.log';
     my $corosync_conf = '/etc/corosync/corosync.conf';
-    my $sbd_device    = block_device_real_path '/dev/disk/by-path/ip-*-lun-0';
+    my $sbd_device    = get_lun;
     my $quorum_policy = 'stop';
     my $join_timeout  = 60;
 
