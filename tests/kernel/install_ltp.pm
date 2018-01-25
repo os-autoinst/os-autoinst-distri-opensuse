@@ -209,7 +209,7 @@ sub run {
     upload_runtest_files('${LTPROOT:-/opt/ltp}/runtest', $tag);
 
     select_console('root-console');
-    type_string "reboot\n";
+    #type_string "reboot\n";
 }
 
 sub post_fail_hook {

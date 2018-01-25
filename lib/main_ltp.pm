@@ -113,7 +113,7 @@ sub maybe_load_kernel_tests {
             loadtest 'update_kernel';
         }
         loadtest 'install_ltp';
-        loadtest 'boot_ltp';
+        #loadtest 'boot_ltp';
         loadtest 'shutdown_ltp';
     }
     elsif (get_var('LTP_SETUP_NETWORKING')) {
