@@ -21,6 +21,19 @@ sub run {
 
     select_console 'root-console';
 
+    # First check pattern sap_server which is installed by default in SLES4SAP
+    # when 'SLES for SAP Applications' system role is selected
+    $output = script_output("zypper info -t pattern sap_server");
+    if ($output !~ /i\+\s\|\spatterns-server-enterprise-sap_server\s+\|\spackage\s\|\sRequired/) {
+        # Pattern sap_server is not installed. Could either be a bug or caused by
+        # the use of the 'textmode' system role
+        die "Pattern sap_server not installed by default"
+          unless (check_var('SYSTEM_ROLE', 'textmode'));
+        record_info('install sap_server', 'Installing sap_server pattern and starting sapconf');
+        assert_script_run("zypper in -y -t pattern sap_server");
+        assert_script_run("sapconf start");
+    }
+
     foreach my $pattern (@sappatterns) {
         assert_script_run("zypper in -y -t pattern $pattern", 100);
         $output = script_output "zypper info -t pattern $pattern";
