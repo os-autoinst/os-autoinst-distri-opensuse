@@ -71,17 +71,28 @@ sub is_update_test_repo_test {
     return get_var('TEST') !~ /^mru-/ && is_updates_tests && get_required_var('FLAVOR') !~ /-Minimal$/;
 }
 
+sub is_desktop_module_selected {
+    return
+         check_var_array('ADDONS', 'all-packages')
+      || check_var_array('ADDONS',             'desktop')
+      || check_var_array('WORKAROUND_MODULES', 'desktop')
+      || check_var_array('ADDONURL',           'desktop')
+      || check_var_array('SCC_ADDONS',         'desktop');
+}
+
 sub default_desktop {
     return undef   if get_var('VERSION', '') lt '12';
     return 'gnome' if get_var('VERSION', '') lt '15';
     # with SLE 15 LeanOS only the default is textmode
     return 'gnome' if get_var('BASE_VERSION', '') =~ /^12/;
     return 'textmode' if (get_var('SYSTEM_ROLE') && !check_var('SYSTEM_ROLE', 'default'));
+    return 'gnome' if is_desktop_module_selected;
+    # for sles4sap default is gnome, is server returns true for sles4sap
+    return 'gnome' if is_sles4sap;
     # default system role for sles and sled
-    return 'textmode' if is_server;
-    return 'gnome'    if is_desktop;
-    return 'gnome'    if check_var_array('ADDONS', 'all-packages');
-    return (!get_var('SCC_REGISTER') || !check_var('SCC_REGISTER', 'installation')) ? 'textmode' : 'gnome';
+    return 'textmode' if is_server || !get_var('SCC_REGISTER') || !check_var('SCC_REGISTER', 'installation');
+    # remaining cases are is_desktop and check_var('SCC_REGISTER', 'installation'), hence gnome
+    return 'gnome';
 }
 
 sub cleanup_needles {
@@ -164,6 +175,10 @@ if (sle_version_at_least('15')) {
     set_var('SCC_REGISTER', get_var('SCC_REGISTER', 'installation'));
     # depending on registration only limited system roles are available
     set_var('SYSTEM_ROLE', get_var('SYSTEM_ROLE', is_desktop_module_available() ? 'default' : 'minimal'));
+    # set SYSTEM_ROLE to textmode for SLE4SAP on SLE15 instead of triggering change_desktop (see poo#29589)
+    if (is_sles4sap && check_var('SYSTEM_ROLE', 'default') && check_var('DESKTOP', 'textmode')) {
+        set_var('SYSTEM_ROLE', 'textmode');
+    }
     # in the 'minimal' system role we can not execute many test modules
     set_var('INSTALLONLY', get_var('INSTALLONLY', check_var('SYSTEM_ROLE', 'minimal')));
 }
@@ -606,7 +621,7 @@ sub load_inst_tests {
         {
             loadtest "installation/system_role";
         }
-        if (is_sles4sap() and sle_version_at_least('15')) {
+        if (is_sles4sap() and sle_version_at_least('15') and check_var('SYSTEM_ROLE', 'default')) {
             loadtest "installation/sles4sap_product_installation_mode";
         }
         loadtest "installation/partitioning";
@@ -675,7 +690,7 @@ sub load_inst_tests {
             loadtest "installation/logpackages";
         }
         if (is_sles4sap()) {
-            if (is_sles4sap_standard()) {
+            if (is_sles4sap_standard() or !check_var('SYSTEM_ROLE', 'default')) {
                 loadtest "installation/user_settings";
             }    # sles4sap wizard installation doesn't have user_settings step
         }
@@ -689,8 +704,12 @@ sub load_inst_tests {
         if (get_var('PATTERNS') || get_var('PACKAGES')) {
             loadtest "installation/installation_overview_before";
             loadtest "installation/select_patterns_and_packages";
-        }    # With SLE15 we change desktop using role and not by inselecting packages (Use SYSTEM_ROLE variable)
-        elsif (!check_var('DESKTOP', default_desktop) && !sle_version_at_least('15')) {
+        }
+        elsif (!check_var('DESKTOP', default_desktop)
+            && (!sle_version_at_least('15') || check_var('DESKTOP', 'minimalx')))
+        {
+            # With SLE15 we change desktop using role and not by unselecting packages (Use SYSTEM_ROLE variable),
+            # If we have minimalx, as there is no such a role, there we use old approach
             loadtest "installation/installation_overview_before";
             loadtest "installation/change_desktop";
         }
