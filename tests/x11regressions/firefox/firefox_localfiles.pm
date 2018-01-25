@@ -34,7 +34,7 @@ sub run {
 
     # so
     send_key "alt-d";
-    type_string "/usr/lib/libnss3.so\n";
+    type_string "/usr/lib64/libnss3.so\n";
     $self->firefox_check_popups;
     assert_screen('firefox-local_files-so', 60);
     send_key "esc";
