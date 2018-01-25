@@ -23,10 +23,12 @@ sub run {
     my $corosync_conf = '/etc/corosync/corosync.conf';
     my $sbd_device    = block_device_real_path '/dev/disk/by-path/ip-*-lun-0';
     my $quorum_policy = 'stop';
+    my $join_timeout  = 60;
 
     # If we failed to initialize the cluster, trying again but in debug mode
-    if (script_run "ha-cluster-init -y -s $sbd_device") {
-        assert_script_run "crm -dR cluster init -y -s $sbd_device";
+    # Note: the default timeout need to be increase because it can takes time to join the cluster
+    if (script_run "ha-cluster-init -y -s $sbd_device", $join_timeout) {
+        assert_script_run "crm -dR cluster init -y -s $sbd_device", $join_timeout;
     }
 
     # Signal that the cluster stack is initialized
@@ -37,9 +39,7 @@ sub run {
     barrier_wait("NODE_JOINED_$cluster_name");
 
     # We need to configure the quorum policy according to the number of nodes
-    if (get_node_number == 2) {
-        $quorum_policy = 'ignore';
-    }
+    $quorum_policy = 'ignore' if (get_node_number == 2);
     assert_script_run "crm configure property no-quorum-policy=$quorum_policy";
 
     # Execute csync2 to synchronise the configuration files
