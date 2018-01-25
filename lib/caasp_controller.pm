@@ -10,6 +10,7 @@ use Exporter 'import';
 our @EXPORT = qw(confirm_insecure_https velum_login switch_to);
 
 # Easier switching between applications
+# xterm | velum
 sub switch_to {
     my $app = shift;
     send_key_until_needlematch "switch-to-$app", 'alt-tab', 1;
@@ -53,6 +54,7 @@ sub post_fail_hook {
     # Destroy barriers and create mutexes to avoid deadlock
     barrier_destroy 'WORKERS_INSTALLED';
     mutex_create 'NODES_ACCEPTED';
+    mutex_create 'DELAYED_NODES_ACCEPTED';
     mutex_create 'VELUM_CONFIGURED';
     mutex_create 'UPDATE_FINISHED';
     mutex_create 'CNTRL_FINISHED';

@@ -528,10 +528,18 @@ sub specific_caasp_params {
         mutex_lock 'dhcp';
         mutex_unlock 'dhcp';
     }
-    # Wait until admin node genarates autoyast profile
-    if (check_var('STACK_ROLE', 'worker') && get_var('AUTOYAST')) {
-        mutex_lock "VELUM_CONFIGURED";
-        mutex_unlock "VELUM_CONFIGURED";
+
+    if (check_var('STACK_ROLE', 'worker')) {
+        # Wait until admin node genarates autoyast profile
+        if (get_var 'AUTOYAST') {
+            mutex_lock 'VELUM_CONFIGURED';
+            mutex_unlock 'VELUM_CONFIGURED';
+        }
+        # Wait until first round of nodes are processed
+        if (get_var 'DELAYED_WORKER') {
+            mutex_lock 'NODES_ACCEPTED';
+            mutex_unlock 'NODES_ACCEPTED';
+        }
     }
 }
 
