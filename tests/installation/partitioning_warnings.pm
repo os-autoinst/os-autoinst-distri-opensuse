@@ -20,7 +20,7 @@ use partition_setup;
 use version_utils 'is_storage_ng';
 
 sub run {
-    wipe_existing_partitions;
+    create_new_partition_table;
     if (check_var('ARCH', 's390x')) {    # s390x need /boot/zipl on ext partition
         addpart(role => 'OS', size => 500, format => 'ext2', mount => '/boot');
     }
