@@ -22,13 +22,11 @@ sub tuned_is {
 
 sub run {
     my ($self) = @_;
-    my @solutions = qw(BOBJ HANA MAXDB NETWEAVER S4HANA-APPSERVER S4HANA-DBSERVER SAP-ASE);
 
-    # In ppc64le not all solutions are available
-    if (check_var('ARCH', 'ppc64le')) {
-        shift @solutions;    # Remove BOBJ
-        pop @solutions;      # Remove SAP-ASE
-    }
+    my @solutions
+      = check_var('ARCH', 'ppc64le') ?
+      qw(HANA MAXDB NETWEAVER S4HANA-APPSERVER S4HANA-DBSERVER)
+      : qw(BOBJ HANA MAXDB NETWEAVER S4HANA-APPSERVER S4HANA-DBSERVER SAP-ASE);
 
     select_console 'root-console';
 
