@@ -16,6 +16,7 @@ use testapi;
 use strict;
 use utils;
 use version_utils qw(is_sle sle_version_at_least);
+use registration qw(add_suseconnect_product remove_suseconnect_product);
 
 # test for regression of bug http://bugzilla.suse.com/show_bug.cgi?id=952496
 sub run {
@@ -27,8 +28,24 @@ sub run {
     }
 
     my $not_installed_pkg = (is_sle && sle_version_at_least '15') ? 'wireshark' : 'xosview';
-    assert_script_run("echo \"\$(cnf $not_installed_pkg 2>&1 | tee /dev/stderr)\" | grep -q \"zypper install $not_installed_pkg\"");
+    my $cnf_cmd           = "echo \"\$(cnf $not_installed_pkg 2>&1 | tee /dev/stderr)\" | grep -q \"zypper install $not_installed_pkg\"";
+    my $assert            = 1;
+    if (sle_version_at_least '15') {
+        my $assert = script_run($cnf_cmd);
+        select_console 'root-console';
+        record_soft_failure 'https://fate.suse.com/323424';
+        add_suseconnect_product("sle-module-desktop-applications");
+        select_console 'user-console';
+    }
+    assert_script_run $cnf_cmd if $assert;    # Run command if not yet executed (workaround for SLE 15)
     save_screenshot;
+}
+
+# deativate desktop applications module on sle 15
+sub post_run_hook {
+    select_console 'root-console';
+    remove_suseconnect_product("sle-module-desktop-applications");
+    select_console 'user-console';
 }
 
 1;

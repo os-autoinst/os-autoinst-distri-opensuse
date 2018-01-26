@@ -26,6 +26,7 @@ use version_utils qw(is_sle sle_version_at_least is_system_upgrading);
 
 our @EXPORT = qw(
   add_suseconnect_product
+  remove_suseconnect_product
   fill_in_registration_data
   registration_bootloader_cmdline
   registration_bootloader_params
@@ -108,6 +109,20 @@ sub scc_version {
 Wrapper for SUSEConnect -p $name.
 =cut
 sub add_suseconnect_product {
+    my ($name, $version, $arch, $params) = @_;
+    $version //= scc_version();
+    $arch    //= get_required_var('ARCH');
+    $params  //= '';
+    assert_script_run("SUSEConnect -p $name/$version/$arch $params");
+}
+
+=head2 remove_suseconnect_product
+
+    remove_suseconnect_product($name, [$version, [$arch, [$params]]]);
+
+Wrapper for SUSEConnect -d $name.
+=cut
+sub remove_suseconnect_product {
     my ($name, $version, $arch, $params) = @_;
     $version //= scc_version();
     $arch    //= get_required_var('ARCH');
