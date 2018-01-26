@@ -31,6 +31,9 @@ sub run {
         send_key "alt-tab";    #Switch to firefox
     };
 
+    # Open a new tab to avoid the keyboard focus is misled by the homepage
+    send_key 'ctrl-t';
+    wait_still_screen 3;
     wait_screen_change {
         send_key "alt-e";
     };
@@ -38,7 +41,7 @@ sub run {
     assert_screen('firefox-changesaving-preferences', 30);
 
     send_key "alt-shift-s";
-    send_key "down";           #Show a blank page
+    send_key "down";    #Show a blank page
     assert_screen('firefox-changesaving-showblankpage', 30);
 
     wait_screen_change {
