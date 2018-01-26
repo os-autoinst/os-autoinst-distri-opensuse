@@ -152,11 +152,9 @@ sub run {
         assert_screen 'yast2_ntp-client_new_file_name';
         send_key 'alt-o';
         assert_screen 'yast2_ntp-client_display_log';
-        wait_still_screen 1;
-        send_key 'alt-c';
 
         # assert that we are back to configuration page
-        assert_screen 'yast2_ntp-client_configuration';
+        send_key_until_needlematch('yast2_ntp-client_configuration', 'alt-c');
         wait_still_screen 1;
     }
 
