@@ -17,7 +17,7 @@ use testapi;
 use version_utils 'is_storage_ng';
 use installation_user_settings 'await_password_check';
 
-our @EXPORT = qw(wipe_existing_partitions addpart addlv unselect_xen_pv_cdrom enable_encryption_guided_setup);
+our @EXPORT = qw(create_new_partition_table addpart addlv unselect_xen_pv_cdrom enable_encryption_guided_setup);
 
 my %role = qw(
   OS alt-o
@@ -39,7 +39,15 @@ sub wipe_existing_partitions_storage_ng {
     assert_screen 'expert-partitioner-unpartitioned';
 }
 
-sub wipe_existing_partitions {
+
+sub create_new_partition_table {
+    my ($table_type) = shift // (is_storage_ng) ? 'GPT' : 'MSDOS';
+
+    my %table_type_hotkey = (
+        MSDOS => 'alt-m',
+        GPT   => 'alt-g',
+    );
+
     assert_screen('release-notes-button');
     send_key match_has_tag('bsc#1054478') ? 'alt-x' : $cmd{expertpartitioner};
     if (is_storage_ng) {
@@ -50,26 +58,31 @@ sub wipe_existing_partitions {
     assert_screen 'expert-partitioner';
     wait_still_screen;
     #Use storage ng
-    if (is_storage_ng) {
-        wipe_existing_partitions_storage_ng;
-        return;
-    }
-    for (1 .. 4) {
-        send_key 'right';    # select vda hard disk
-    }
+    send_key_until_needlematch "expert-partitioner-vda", 'right';
 
     # empty disk partitions by creating new partition table
-    send_key 'alt-x';        # expert menu
+    send_key((is_storage_ng) ? 'alt-e' : 'alt-x');    # expert menu
     send_key 'down';
     wait_still_screen 2;
     save_screenshot;
-    send_key 'ret';          # create new partition table
-    unless (get_var('UEFI') || check_var('BACKEND', 's390x')) {    # only GPT partition table
-        assert_screen 'partition-table-MSDOS-selected';
-        send_key 'alt-o';                                          # OK
+    send_key 'ret';                                   # create new partition table
+                                                      # Change gpt table if it's available
+    if (!get_var('UEFI') && !check_var('BACKEND', 's390x')) {
+        assert_screen "create-new-partition-table";
+        send_key $table_type_hotkey{$table_type};
+        assert_screen "partition-table-$table_type-selected";
+        send_key((is_storage_ng) ? $cmd{next} : $cmd{ok});    # OK
     }
     assert_screen 'partition-create-new-table';
-    send_key 'alt-y';                                              # yes
+    send_key 'alt-y';
+}
+
+sub mount_device {
+    my ($mount) = shift;
+    send_key 'alt-o' if is_storage_ng;
+    wait_still_screen 1;
+    send_key 'alt-m';
+    type_string "$mount";
 }
 
 sub addpart {
@@ -111,29 +124,25 @@ sub addpart {
         else {
             send_key 'alt-a' if is_storage_ng;    # Select to format partition, not selected by default
             wait_still_screen 1;
-            send_key 'alt-s';
+            send_key((is_storage_ng) ? 'alt-f' : 'alt-s');
+            send_key 'home';                      # start from the top of the list
             send_key_until_needlematch "partition-selected-$args{format}-type", 'down';
         }
     }
     if ($args{fsid}) {                            # $args{fsid} will describe needle tag below
         send_key 'alt-i';                         # select File system ID
+        send_key 'home';                          # start from the top of the list
+        send_key_until_needlematch "partition-selected-$args{fsid}-type", 'down';
+    }
 
-        # Due to bsc#1062465 cannot go from top to bottom on storage-ng
-        send_key 'end';
-        send_key_until_needlematch "partition-selected-$args{fsid}-type", 'up';
-    }
-    if ($args{mount}) {
-        send_key 'alt-o' if is_storage_ng;
-        wait_still_screen 1;
-        send_key 'alt-m';
-        type_string "$args{mount}";
-    }
+    mount_device $args{mount} if $args{mount};
+
     if ($args{encrypt}) {
         send_key $cmd{encrypt};
-        assert_screen 'partition-lvm-encrypt';
+        assert_screen 'partition-encrypt';
         send_key $cmd{next};
-        assert_screen 'partition-lvm-password-prompt';
-        send_key 'alt-e';    # select password field
+        assert_screen 'partition-password-prompt';
+        send_key 'alt-e';                         # select password field
         type_password;
         send_key 'tab';
         type_password;
@@ -155,6 +164,11 @@ sub addlv {
     assert_screen 'partition-lv-size';
     if ($args{size}) {    # use default max size if not defined
         send_key 'alt-c';    # custom size
+        assert_screen 'partition-custom-size-selected';
+        send_key 'alt-s' if is_storage_ng;
+        # Remove text
+        send_key 'ctrl-a';
+        send_key 'backspace';
         type_string $args{size} . 'mb';
     }
     send_key $cmd{next};
@@ -162,7 +176,9 @@ sub addlv {
     send_key $role{$args{role}};    # swap role
     send_key $cmd{next};
     assert_screen 'partition-format';
-    send_key $cmd{finish};
+    # Add mount
+    mount_device $args{mount} if $args{mount};
+    send_key(is_storage_ng() ? $cmd{next} : $cmd{finish});
 }
 
 # On Xen PV "CDROM" is of the same type as a disk block device so YaST

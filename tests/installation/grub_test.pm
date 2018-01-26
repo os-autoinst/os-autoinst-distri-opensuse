@@ -58,7 +58,7 @@ sub run {
         send_key 'ret';
     }
 
-    if (get_var("STORAGE_NG") && get_var("ENCRYPT")) {
+    if (get_var("STORAGE_NG") && get_var("ENCRYPT") && !get_var('UNENCRYPTED_BOOT')) {
         if (check_var('ARCH', 'ppc64le')) {
             # bootloader timeout is disable so hit 'ret' is needed
             assert_screen 'grub2';    # grub appear first in powerpc before the password
@@ -78,7 +78,7 @@ sub run {
         }
     }
     unless (get_var("STORAGE_NG") && get_var("ENCRYPT") && check_var('ARCH', 'ppc64le')) {
-        workaround_type_encrypted_passphrase;
+        workaround_type_encrypted_passphrase unless get_var('UNENCRYPTED_BOOT');
         # 60 due to rare slowness e.g. multipath poo#11908
         assert_screen "grub2", 60;
         stop_grub_timeout;
