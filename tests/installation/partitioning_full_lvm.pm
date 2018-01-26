@@ -20,10 +20,10 @@ use version_utils 'is_storage_ng';
 
 sub run {
     create_new_partition_table;
-    if (check_var('ARCH', 's390x')) {    # s390x need /boot/zipl on ext partition
+    if (check_var('ARCH', 's390x') || get_var('UNENCRYPTED_BOOT')) {    # s390x need /boot/zipl on ext partition
         addpart(role => 'OS', size => 500, format => 'ext2', mount => '/boot');
     }
-    elsif (check_var('ARCH', 'ppc64le')) {    # ppc64le need PReP /boot
+    elsif (check_var('ARCH', 'ppc64le')) {                              # ppc64le need PReP /boot
         addpart(role => 'raw', size => 500, fsid => 'PReP');
     }
     elsif (is_storage_ng) {
@@ -32,7 +32,7 @@ sub run {
     }
     addpart(role => 'raw', encrypt => 1);
     assert_screen 'expert-partitioner';
-    send_key 'alt-s';                         # select System view
+    send_key 'alt-s';                                                   # select System view
     send_key_until_needlematch('volume_management_feature', 'down');    # select Volume Management
     send_key $cmd{addpart};                                             # add
     wait_still_screen 2;
@@ -59,7 +59,12 @@ sub run {
     }
     assert_screen 'expert-partitioner';
     send_key $cmd{accept};
-    assert_screen 'partitioning-full-lvm-encrypt';
+    if (get_var('UNENCRYPTED_BOOT')) {
+        assert_screen 'partitioning-full-lvm-encrypt-unencrypted-boot';
+    }
+    else {
+        assert_screen 'partitioning-full-lvm-encrypt';
+    }
 }
 
 1;

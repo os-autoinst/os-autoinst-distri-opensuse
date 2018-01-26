@@ -124,16 +124,15 @@ sub addpart {
         else {
             send_key 'alt-a' if is_storage_ng;    # Select to format partition, not selected by default
             wait_still_screen 1;
-            send_key 'alt-s';
+            send_key((is_storage_ng) ? 'alt-f' : 'alt-s');
+            send_key 'home';                      # start from the top of the list
             send_key_until_needlematch "partition-selected-$args{format}-type", 'down';
         }
     }
     if ($args{fsid}) {                            # $args{fsid} will describe needle tag below
         send_key 'alt-i';                         # select File system ID
-
-        # Due to bsc#1062465 cannot go from top to bottom on storage-ng
-        send_key 'end';
-        send_key_until_needlematch "partition-selected-$args{fsid}-type", 'up';
+        send_key 'home';                          # start from the top of the list
+        send_key_until_needlematch "partition-selected-$args{fsid}-type", 'down';
     }
 
     mount_device $args{mount} if $args{mount};
@@ -143,7 +142,7 @@ sub addpart {
         assert_screen 'partition-encrypt';
         send_key $cmd{next};
         assert_screen 'partition-password-prompt';
-        send_key 'alt-e';    # select password field
+        send_key 'alt-e';                         # select password field
         type_password;
         send_key 'tab';
         type_password;
