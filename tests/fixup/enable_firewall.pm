@@ -11,16 +11,15 @@
 # Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
 # Tags: boo#977659
 
-use base "x11test";
+use base 'opensusebasetest';
 use strict;
 use testapi;
 use utils 'systemctl';
 
 sub run {
     my ($self) = @_;
-    x11_start_program('xterm');
+    select_console 'root-console';
     systemctl 'start ' . $self->firewall;
-    send_key "alt-f4";
 }
 
 sub test_flags {
