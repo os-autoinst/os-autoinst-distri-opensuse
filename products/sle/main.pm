@@ -440,26 +440,26 @@ sub load_x11regression_firefox {
     loadtest "x11regressions/firefox/firefox_fullscreen";
     loadtest "x11regressions/firefox/firefox_health";
     loadtest "x11regressions/firefox/firefox_flashplayer";
+    loadtest "x11regressions/firefox/firefox_pagesaving";
+    loadtest "x11regressions/firefox/firefox_private";
+    loadtest "x11regressions/firefox/firefox_mhtml";
+    loadtest "x11regressions/firefox/firefox_extensions";
+    loadtest "x11regressions/firefox/firefox_appearance";
+    loadtest "x11regressions/firefox/firefox_passwd";
+    loadtest "x11regressions/firefox/firefox_html5";
+    loadtest "x11regressions/firefox/firefox_developertool";
+    loadtest "x11regressions/firefox/firefox_rss";
+    loadtest "x11regressions/firefox/firefox_ssl";
+    if (!get_var("OFW") && check_var('BACKEND', 'qemu')) {
+        loadtest "x11/firefox_audio";
+    }
     # The following cases are still not migrated to SLE15
     unless (is_sle && sle_version_at_least('15')) {
         loadtest "x11regressions/firefox/firefox_emaillink";
         loadtest "x11regressions/firefox/firefox_extcontent";
         loadtest "x11regressions/firefox/firefox_java";
-        loadtest "x11regressions/firefox/firefox_pagesaving";
-        loadtest "x11regressions/firefox/firefox_private";
-        loadtest "x11regressions/firefox/firefox_mhtml";
         loadtest "x11regressions/firefox/firefox_plugins";
-        loadtest "x11regressions/firefox/firefox_extensions";
-        loadtest "x11regressions/firefox/firefox_appearance";
         loadtest "x11regressions/firefox/firefox_gnomeshell";
-        loadtest "x11regressions/firefox/firefox_passwd";
-        loadtest "x11regressions/firefox/firefox_html5";
-        loadtest "x11regressions/firefox/firefox_developertool";
-        loadtest "x11regressions/firefox/firefox_rss";
-        loadtest "x11regressions/firefox/firefox_ssl";
-        if (!get_var("OFW") && check_var('BACKEND', 'qemu')) {
-            loadtest "x11/firefox_audio";
-        }
     }
 }
 

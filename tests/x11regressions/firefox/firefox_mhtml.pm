@@ -14,6 +14,7 @@
 use strict;
 use base "x11regressiontest";
 use testapi;
+use version_utils 'sle_version_at_least';
 
 sub run {
     my ($self) = @_;
@@ -33,9 +34,13 @@ sub run {
     assert_and_click('firefox-mhtml-unmht');
     for my $i (1 .. 2) { send_key "tab"; }
     send_key "spc";
-    assert_and_click('unmht_restart_now');
-    $self->firefox_check_popups;
+    unless (sle_version_at_least('15')) {
+        assert_and_click('unmht_restart_now');
+        $self->firefox_check_popups;
+    }
+    wait_still_screen 3;
     assert_and_click('firefox-my-addons');
+    send_key 'f5' if (sle_version_at_least('15'));
     assert_screen('firefox-mhtml-unmht_installed', 90);
 
     wait_screen_change { send_key "ctrl-w" };
