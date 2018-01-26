@@ -72,12 +72,15 @@ sub is_update_test_repo_test {
 }
 
 sub is_desktop_module_selected {
+    # desktop applications module is selected if following variables have following values:
+    # productivity and ha require desktop applications, so it's preselected
+    # same is true for sles4sap
     return
-         check_var_array('ADDONS', 'all-packages')
-      || check_var_array('ADDONS',             'desktop')
-      || check_var_array('WORKAROUND_MODULES', 'desktop')
-      || check_var_array('ADDONURL',           'desktop')
-      || check_var_array('SCC_ADDONS',         'desktop');
+         get_var('ADDONS') =~ /all-packages|desktop|we/
+      || get_var('WORKAROUND_MODULES') =~ /desktop|we/
+      || get_var('ADDONURL') =~ /desktop|we/
+      || get_var('SCC_ADDONS') =~ /desktop|we|productivity|ha/
+      || is_sles4sap;
 }
 
 sub default_desktop {
@@ -87,8 +90,6 @@ sub default_desktop {
     return 'gnome' if get_var('BASE_VERSION', '') =~ /^12/;
     return 'textmode' if (get_var('SYSTEM_ROLE') && !check_var('SYSTEM_ROLE', 'default'));
     return 'gnome' if is_desktop_module_selected;
-    # for sles4sap default is gnome, is server returns true for sles4sap
-    return 'gnome' if is_sles4sap;
     # default system role for sles and sled
     return 'textmode' if is_server || !get_var('SCC_REGISTER') || !check_var('SCC_REGISTER', 'installation');
     # remaining cases are is_desktop and check_var('SCC_REGISTER', 'installation'), hence gnome
