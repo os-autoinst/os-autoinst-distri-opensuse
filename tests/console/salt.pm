@@ -30,10 +30,10 @@ systemctl status --no-pager salt-minion
 EOF
     assert_script_run($_) foreach (split /\n/, $cmd);
     # before accepting the key, wait until the minion is fully started (systemd might be not reliable)
-    assert_script_run('salt-run state.event tagmatch="salt/auth" quiet=True count=1');
+    assert_script_run('salt-run state.event tagmatch="salt/auth" quiet=True count=1', timeout => 300);
     assert_script_run("salt-key --accept-all -y");
     # before pinging the minions, check the start event as a signal that the minion is now ready
-    assert_script_run('salt-run state.event tagmatch="salt/minion/*/start" quiet=True count=1');
+    assert_script_run('salt-run state.event tagmatch="salt/minion/*/start" quiet=True count=1', timeout => 300);
     assert_script_run "salt '*' test.ping | grep -woh True";
     systemctl 'stop salt-master salt-minion';
 }
