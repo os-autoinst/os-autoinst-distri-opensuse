@@ -26,8 +26,8 @@ sub run {
 
     # In ppc64le not all solutions are available
     if (check_var('ARCH', 'ppc64le')) {
-        shift @solutions; # Remove BOBJ
-        pop @solutions;   # Remove SAP-ASE
+        shift @solutions;    # Remove BOBJ
+        pop @solutions;      # Remove SAP-ASE
     }
 
     select_console 'root-console';
