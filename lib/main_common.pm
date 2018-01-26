@@ -2,7 +2,7 @@ package main_common;
 use base Exporter;
 use File::Basename;
 use Exporter;
-use testapi qw(check_var get_var get_required_var set_var diag);
+use testapi qw(check_var get_var get_required_var set_var check_var_array diag);
 use autotest;
 use utils;
 use version_utils qw(is_jeos is_gnome_next is_krypton_argon is_sle leap_version_at_least sle_version_at_least is_desktop_installed);
@@ -606,9 +606,9 @@ sub load_extra_tests {
         loadtest "console/zypper_moo";
         loadtest "console/gpg";
         loadtest "console/shells";
-        # MyODBC-unixODBC not available on < SP2 and sle 15
+        # MyODBC-unixODBC not available on < SP2 and sle 15 and only in SDK
         if (sle_version_at_least('12-SP2') && !(sle_version_at_least('15'))) {
-            loadtest "console/mysql_odbc";
+            loadtest "console/mysql_odbc" if check_var_array('ADDONS', 'sdk') || check_var_array('SCC_ADDONS', 'sdk');
         }
         if (get_var("SYSAUTHTEST")) {
             # sysauth test scenarios run in the console
