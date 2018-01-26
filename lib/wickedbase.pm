@@ -22,10 +22,17 @@ sub assert_wicked_state {
     systemctl('is-active wickedd.service', expect_false => $args{wicked_daemon_down});
     my $status = $args{interfaces_down} ? 'down' : 'up';
     assert_script_run("for dev in /sys/class/net/!(lo); do grep \"$status\" \$dev/operstate || (echo \"device \$dev is not $status\" && exit 1) ; done");
+    assert_script_run("ping -c 4 $args{ping_ip}") if $args{ping_ip};
 }
 
 sub get_ip {
-    return check_var('IS_WICKED_REF', '1') ? '10.0.2.10/15' : '10.0.2.11/15';
+    my ($self, $no_mask) = @_;
+    if ($no_mask) {
+        return check_var('IS_WICKED_REF', '1') ? '10.0.2.10' : '10.0.2.11';
+    }
+    else {
+        return check_var('IS_WICKED_REF', '1') ? '10.0.2.10/15' : '10.0.2.11/15';
+    }
 }
 
 sub save_and_upload_wicked_log {

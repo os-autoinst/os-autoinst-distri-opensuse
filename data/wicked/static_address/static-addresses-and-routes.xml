@@ -1,0 +1,34 @@
+<interface>
+  <name>xxx</name>
+  <description>Ethernet Card 0</description>
+
+  <ipv4:static>
+    <address>
+      <local>10.0.2.11/24</local>
+    </address>
+    <route>
+      <destination>0.0.0.0/0</destination>
+      <nexthop>
+        <gateway>10.0.2.2</gateway>
+        <device>xxx</device>
+      </nexthop>
+    </route>
+  </ipv4:static>
+
+  <ipv6>
+     <enabled>true</enabled>
+  </ipv6>
+
+  <ipv6:static>
+    <address>
+      <local>fd00:cafe:babe::11/64</local>
+    </address>
+    <route>
+      <destination>::/0</destination>
+      <nexthop>
+        <gateway>fd00:cafe:babe::1</gateway>
+        <device>xxx</device>
+      </nexthop>
+    </route>
+  </ipv6:static>
+</interface>
