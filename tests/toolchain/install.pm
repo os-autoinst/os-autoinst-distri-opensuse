@@ -50,7 +50,10 @@ sub run {
     else {
         # No need to be fixed to version (that is only for products receiving the yearly gcc update)
         # but it needs to activate development tool module
-        add_suseconnect_product("sle-module-development-tools") if is_sle;
+        if (is_sle) {
+            add_suseconnect_product("sle-module-desktop-applications");
+            add_suseconnect_product("sle-module-development-tools");
+        }
         zypper_call 'in -t pattern devel_basis';
         zypper_call 'in gcc-fortran';    # from Base System Module
         script_run 'export CC=/usr/bin/gcc';
