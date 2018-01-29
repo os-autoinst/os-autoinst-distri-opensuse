@@ -1,4 +1,4 @@
-# Copyright (C) 2015, 2017 SUSE Linux Products GmbH
+# Copyright (C) 2015-2018 SUSE Linux Products GmbH
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,7 +19,8 @@
 use strict;
 use base 'basetest';
 use testapi;
-use utils qw(power_action add_serial_console);
+use serial_terminal 'add_serial_console';
+use utils 'power_action';
 use version_utils 'sle_version_at_least';
 
 sub run {

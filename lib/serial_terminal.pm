@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -17,10 +17,28 @@ use Exporter;
 use bmwqemu ();
 
 BEGIN {
-    our @EXPORT = qw(serial_term_prompt login);
+    our @EXPORT = qw(
+      add_serial_console
+      login
+      serial_term_prompt
+    );
 }
 
 our $serial_term_prompt;
+
+=head2 add_serial_console
+
+    add_serial_console($console);
+
+Adds $console to /etc/securetty (unless already in file), enables systemd
+service and start it. It requires selecting root console before.
+=cut
+sub add_serial_console {
+    my ($console) = @_;
+    my $service   = 'serial-getty@' . $console;
+    my $config    = '/etc/securetty';
+    script_run(qq{grep -q "^$console\$" $config || echo '$console' >> $config; systemctl enable $service; systemctl start $service});
+}
 
 =head2 login
 
@@ -60,3 +78,4 @@ sub serial_term_prompt {
 }
 
 1;
+# vim: set sw=4 et:
