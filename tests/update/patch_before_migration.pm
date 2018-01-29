@@ -76,6 +76,10 @@ sub patching_sle {
     # Both of them need registration during offline migration
     if (!(is_smt_or_module_tests || get_var('KEEP_REGISTERED'))) { set_var("SCC_REGISTER", ''); }
 
+    # Record the installed rpm list
+    assert_script_run 'rpm -qa > /tmp/rpm-qa.txt';
+    upload_logs '/tmp/rpm-qa.txt';
+
     # mark system patched
     set_var("SYSTEM_PATCHED", 1);
 }
@@ -132,6 +136,7 @@ sub run {
 
     $self->setup_migration();
     $self->patching_sle();
+    $self->record_disk_info;
 }
 
 sub test_flags {
