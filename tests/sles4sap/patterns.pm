@@ -12,6 +12,7 @@
 
 use base "sles4sap";
 use testapi;
+use version_utils 'sle_version_at_least';
 use strict;
 
 sub run {
@@ -21,10 +22,12 @@ sub run {
 
     select_console 'root-console';
 
+    my $base_pattern = sle_version_at_least('15') ? 'patterns-server-enterprise-sap_server' : 'patterns-sles-sap_server';
+
     # First check pattern sap_server which is installed by default in SLES4SAP
     # when 'SLES for SAP Applications' system role is selected
     $output = script_output("zypper info -t pattern sap_server");
-    if ($output !~ /i\+\s\|\spatterns-server-enterprise-sap_server\s+\|\spackage\s\|\sRequired/) {
+    if ($output !~ /i\+\s\|\s$base_pattern\s+\|\spackage\s\|\sRequired/) {
         # Pattern sap_server is not installed. Could either be a bug or caused by
         # the use of the 'textmode' system role
         die "Pattern sap_server not installed by default"
