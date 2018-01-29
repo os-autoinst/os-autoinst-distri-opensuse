@@ -97,11 +97,14 @@ Helper to select console 'root-virtio-terminal' or 'root-console'.
 =cut
 # TODO: Move here optional init with add_serial_console($console);
 sub select_virtio_console {
-    if (get_var('VIRTIO_CONSOLE')) {
+    my $is_virtio = get_var('VIRTIO_CONSOLE');
+
+    if ($is_virtio && !get_var('S390_ZKVM')) {
         select_console('root-virtio-terminal');
         return 1;
     }
 
+    bmwqemu::fctwarn("Cannot use virtio console on s390 on ZKVM") if $is_virtio;
     select_console('root-console');
     return 0;
 }
