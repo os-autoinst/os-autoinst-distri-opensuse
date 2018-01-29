@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -15,8 +15,9 @@ use warnings;
 use base 'opensusebasetest';
 use testapi;
 use utils;
-use version_utils 'sle_version_at_least';
 use registration;
+use serial_terminal 'add_serial_console';
+use version_utils 'sle_version_at_least';
 
 sub add_repos {
     my $qa_head_repo = get_required_var('QA_HEAD_REPO');
