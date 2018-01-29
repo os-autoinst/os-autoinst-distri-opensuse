@@ -29,8 +29,13 @@ sub run {
     # For s390x there was no offering of separated home partition until SLE 15 See bsc#1072869
     if (!check_var('ARCH', 's390x') or is_storage_ng()) {
         if (!check_screen 'disabledhome', 0) {
-            # detect whether new (Radio Buttons) YaST behaviour
-            $cmd{toggle_home} = 'alt-r' if check_screen('inst-partition-radio-buttons', 0);
+            # toggle_home hotkey can change
+            if (check_screen('inst-partition-radio-buttons', 0)) {
+                $cmd{toggle_home} = 'alt-r';
+            }
+            elsif (check_screen('proposed-separated-swap', 0)) {
+                $cmd{toggle_home} = 'alt-o';
+            }
             send_key $cmd{toggle_home};
         }
         assert_screen 'disabledhome';
