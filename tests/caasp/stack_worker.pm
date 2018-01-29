@@ -18,7 +18,12 @@ use caasp;
 
 sub run {
     # Notify others that installation finished
-    barrier_wait "WORKERS_INSTALLED";
+    if (get_var 'DELAYED_WORKER') {
+        mutex_create "DELAYED_WORKER_INSTALLED";
+    }
+    else {
+        barrier_wait "WORKERS_INSTALLED";
+    }
 
     # Wait until controller node finishes
     mutex_lock "CNTRL_FINISHED";

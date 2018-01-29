@@ -22,7 +22,7 @@ use version_utils 'is_caasp';
 sub accept_nodes {
     # Accept pending nodes
     assert_and_click 'velum-bootstrap-accept-nodes';
-    # Nodes are moved from pending - minus admin job
+    # Nodes are moved from pending
     my $nodes = get_required_var('STACK_NODES');
     assert_screen_with_soft_timeout("velum-$nodes-nodes-accepted", timeout => 90, soft_timeout => 45, bugref => 'bsc#1046663');
     mutex_create "NODES_ACCEPTED";

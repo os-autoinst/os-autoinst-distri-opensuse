@@ -18,7 +18,7 @@ use testapi;
 use mmapi;
 use utils qw(power_action assert_shutdown_and_restore_system);
 
-our @EXPORT = qw(handle_simple_pw process_reboot trup_call write_detail_output get_admin_job update_scheduled export_cluster_logs rpmver);
+our @EXPORT = qw(handle_simple_pw process_reboot trup_call write_detail_output get_admin_job update_scheduled export_cluster_logs get_delayed_worker rpmver);
 
 # Return names and version of packages for transactional-update tests
 sub rpmver {
@@ -143,24 +143,36 @@ sub get_controller_job {
     }
 }
 
-sub get_admin_job {
-    die "Don't know how to find current job id" if check_var 'STACK_ROLE', 'admin';
-
-    # Get list of jobs in cluster
+# Get list of jobs in cluster
+sub get_cluster_jobs {
     my @cluster_jobs;
     if (check_var 'STACK_ROLE', 'controller') {
         my $children = get_children();
         @cluster_jobs = keys %$children;
     }
-    elsif (check_var 'STACK_ROLE', 'worker') {
+    else {
         @cluster_jobs = @{get_job_info(get_controller_job)->{children}->{Parallel}};
     }
+    return @cluster_jobs;
+}
 
+sub get_admin_job {
+    die "Don't know how to find current job id" if check_var 'STACK_ROLE', 'admin';
+
+    my @cluster_jobs = get_cluster_jobs;
     for my $job_id (@cluster_jobs) {
         if (get_job_info($job_id)->{settings}->{STACK_ROLE} eq 'admin') {
             return $job_id;
         }
     }
+}
+
+sub get_delayed_worker {
+    my @cluster_jobs = get_cluster_jobs;
+    for my $job_id (@cluster_jobs) {
+        return $job_id if get_job_info($job_id)->{settings}->{DELAYED_WORKER};
+    }
+    return 0;
 }
 
 sub update_scheduled {

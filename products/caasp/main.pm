@@ -12,7 +12,7 @@ BEGIN {
 use utils;
 use version_utils 'is_caasp';
 use main_common;
-use caasp 'update_scheduled';
+use caasp qw(update_scheduled get_delayed_worker);
 
 init_main();
 
@@ -132,8 +132,9 @@ sub load_stack_tests {
         loadtest 'caasp/stack_configure';
         loadtest 'caasp/stack_bootstrap';
         loadtest 'caasp/stack_kubernetes';
-        loadtest 'caasp/stack_update' if update_scheduled;
-        loadtest 'caasp/stack_conformance' unless is_caasp('staging') || is_caasp('qam');
+        loadtest 'caasp/stack_update'      if update_scheduled;
+        loadtest 'caasp/stack_add_nodes'   if get_delayed_worker;
+        loadtest 'caasp/stack_conformance' if !is_caasp('staging') && !is_caasp('qam');
         loadtest 'caasp/stack_finalize';
     }
     else {
@@ -143,18 +144,22 @@ sub load_stack_tests {
 
 # Init cluster variables
 sub stack_init {
-    my $children      = get_children;
-    my $stack_size    = keys %$children;
-    my $stack_masters = $stack_size > 6 ? 3 : 1;             # For 6+ node clusters select 3 masters
-    my $stack_minions = $stack_size - $stack_masters - 1;    # Do not count admin node into minions
+    my $children       = get_children;
+    my $delayed_worker = get_delayed_worker;
+
+    my $stack_size    = (keys %$children) - !!$delayed_worker;
+    my $stack_masters = $stack_size > 6 ? 3 : 1;                 # For 6+ node clusters select 3 masters
+    my $stack_workers = $stack_size - $stack_masters - 1;        # Do not count admin node into workers
 
     # Die more explicitly if you restart controller job (because stack_size = 0)
     die "Stack test can be re-run by restarting admin job" unless $stack_size;
 
-    set_var "STACK_SIZE",    $stack_size;
-    set_var "STACK_NODES",   $stack_size - 1;
-    set_var "STACK_MASTERS", $stack_masters;
-    set_var "STACK_MINIONS", $stack_minions;
+    # Initial bootstrap variables
+    set_var 'STACK_SIZE',    $stack_size;
+    set_var 'STACK_NODES',   $stack_size - 1;
+    set_var 'STACK_MASTERS', $stack_masters;
+    set_var 'STACK_WORKERS', $stack_workers;
+    set_var 'STACK_DELAYED', $delayed_worker;
 
     barrier_create("WORKERS_INSTALLED", $stack_size);
 }

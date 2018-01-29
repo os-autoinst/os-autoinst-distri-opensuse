@@ -15,10 +15,13 @@ use strict;
 use testapi;
 use lockapi;
 use caasp;
+use version_utils 'is_caasp';
 
-# Set default password on worker nodes
-sub workaround_bsc_1030876 {
-    mutex_lock "NODES_ACCEPTED";
+# Set default password on worker nodes - bsc#1030876
+sub set_autoyast_password {
+    my $name = shift;
+    mutex_lock $name;
+    mutex_unlock $name;
     script_run 'id=$(docker ps | grep salt-master | awk \'{print $1}\')';
     script_run 'pw=$(python -c "import crypt; print crypt.crypt(\'nots3cr3t\', \'\$6\$susetest\')")';
     script_run 'docker exec $id salt -E ".{32}" shadow.set_password root "$pw"';
@@ -56,8 +59,9 @@ sub run() {
     # Controller node can connect to velum
     mutex_create "VELUM_STARTED";
 
-    workaround_bsc_1030876;
-    handle_update if update_scheduled;
+    set_autoyast_password 'NODES_ACCEPTED'         if is_caasp 'DVD';
+    handle_update                                  if update_scheduled;
+    set_autoyast_password 'DELAYED_NODES_ACCEPTED' if is_caasp 'DVD' && get_delayed_worker;
 
     # Wait until controller node finishes
     mutex_lock "CNTRL_FINISHED";
