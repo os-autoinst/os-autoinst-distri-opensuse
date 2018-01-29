@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -15,6 +15,7 @@ use base "installbasetest";
 
 use testapi;
 use utils;
+use serial_terminal 'get_login_message';
 use version_utils qw(is_sle sle_version_at_least);
 
 use strict;
@@ -40,7 +41,7 @@ sub handle_login_not_found {
 }
 
 sub run {
-    my $login_ready = check_var('VERSION', 'Tumbleweed') ? qr/Welcome to openSUSE Tumbleweed 20.*/ : qr/Welcome to SUSE Linux Enterprise .*\(s390x\)/;
+    my $login_ready = get_login_message();
     console('installation')->disable_vnc_stalls;
 
     # different behaviour for z/VM and z/KVM
