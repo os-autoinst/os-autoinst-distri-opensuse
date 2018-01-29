@@ -27,10 +27,10 @@ sub assert_running {
     my $running = shift;
 
     if ($running) {
-        systemctl 'is-active named || true) | grep -E "^active"', timeout => 300;
+        systemctl 'is-active named || true | grep -E "^active"', timeout => 300;
     }
     else {
-        systemctl 'is-active named || true) | grep -E "^(inactive|unknown)"';
+        systemctl 'is-active named || true | grep -E "^(inactive|unknown)"';
     }
 }
 
