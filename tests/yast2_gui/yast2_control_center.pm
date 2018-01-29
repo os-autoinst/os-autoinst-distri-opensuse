@@ -295,14 +295,12 @@ sub start_printer {
 sub run {
     my $self = shift;
     if (is_sle && sle_version_at_least '15') {
-        #see bsc#1062331, sound is not added to the yast2 pattern
-        ensure_installed('in yast2-sound');
-        #kdump is disabled by default, so ensure that it's installed
-        ensure_installed('in yast2-kdump');
+        # kdump is disabled by default, so ensure that it's installed
+        ensure_installed 'yast2-kdump';
         record_soft_failure 'bsc#1059569';
-        # Missing yast2-ca-management and yast2-auth-server
-        ensure_installed('in yast2-ca-management');
-        ensure_installed('in yast2-auth-server');
+        # see bsc#1062331, sound is not added to the yast2 pattern
+        # also add missing yast2-ca-management and yast2-auth-server
+        ensure_installed 'yast2-sound yast2-ca-management yast2-auth-server';
     }
     $self->launch_yast2_module_x11('', target_match => 'yast2-control-center-ui', match_timeout => 180);
 
