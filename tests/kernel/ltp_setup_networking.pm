@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -16,6 +16,7 @@ use warnings;
 use base 'opensusebasetest';
 use testapi;
 use utils;
+use serial_terminal 'select_virtio_console';
 
 sub install {
     my @deps;
@@ -90,9 +91,9 @@ EOF
 
 # poo#14402
 sub run {
-    select_console(get_var('VIRTIO_CONSOLE') ? 'root-virtio-terminal' : 'root-console');
-    install;
-    setup;
+    select_virtio_console();
+    install();
+    setup();
 }
 
 sub test_flags {

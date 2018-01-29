@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -11,8 +11,9 @@
 # Maintainer: Nathan Zhao <jtzhao@suse.com>
 use 5.018;
 use base "opensusebasetest";
-use utils;
 use testapi;
+use utils;
+use serial_terminal 'select_virtio_console';
 
 =head2 grub_version
 
@@ -102,12 +103,8 @@ END
 sub run {
     my $self = shift;
     $self->wait_boot;
-    if (get_var('VIRTIO_CONSOLE')) {
-        select_console('root-virtio-terminal');
-    }
-    else {
-        select_console('root-console');
-    }
+
+    select_virtio_console();
 
     my $url = get_required_var("INSTALL_KOTD");
     if ($url !~ /^https?:\/\//) {

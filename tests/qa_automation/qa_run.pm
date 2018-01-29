@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -17,6 +17,7 @@ use warnings;
 use File::Basename;
 use base "opensusebasetest";
 use utils;
+use serial_terminal 'select_virtio_console';
 use testapi qw(is_serial_terminal :DEFAULT);
 
 sub test_run_list {
@@ -47,12 +48,7 @@ sub system_status {
 
 
 sub system_login {
-    if (get_var('VIRTIO_CONSOLE')) {
-        select_console('root-virtio-terminal');
-    }
-    else {
-        select_console('root-console');
-    }
+    select_virtio_console();
 }
 
 # Call test_run_list and write the result into /root/qaset/config

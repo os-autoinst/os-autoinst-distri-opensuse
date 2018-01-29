@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -14,6 +14,7 @@ use 5.018;
 use warnings;
 use base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_virtio_console';
 
 sub run {
     my ($self, $tinfo) = @_;
@@ -24,12 +25,8 @@ sub run {
     # During install_ltp, the second boot may take longer than usual.
     $self->wait_boot(ready_time => 500);
 
-    if (get_var('VIRTIO_CONSOLE')) {
-        select_console('root-virtio-terminal');
+    if (select_virtio_console()) {
         script_run('dmesg --console-level 7');
-    }
-    else {
-        select_console('root-console');
     }
 
     assert_script_run('export LTPROOT=/opt/ltp; export LTP_COLORIZE_OUTPUT=n TMPDIR=/tmp PATH=$LTPROOT/testcases/bin:$PATH');
