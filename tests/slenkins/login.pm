@@ -1,4 +1,4 @@
-# Copyright (C) 2015-2016 SUSE LLC
+# Copyright (C) 2015-2018 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,9 +19,10 @@
 use strict;
 use base 'basetest';
 use testapi;
+use serial_terminal 'select_virtio_console';
 
 sub run {
-    select_console(get_var('VIRTIO_CONSOLE') ? 'root-virtio-terminal' : 'root-console');
+    select_virtio_console();
 }
 
 sub test_flags {

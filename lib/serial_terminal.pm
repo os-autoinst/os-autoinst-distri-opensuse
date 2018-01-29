@@ -21,6 +21,7 @@ BEGIN {
       add_serial_console
       get_login_message
       login
+      select_virtio_console
       serial_term_prompt
     );
 }
@@ -86,6 +87,23 @@ sub login {
     # TODO: Send 'tput rmam' instead/also
     assert_script_run('export TERM=dumb; stty cols 2048');
     assert_script_run('echo Logged into $(tty)', $bmwqemu::default_timeout, result_title => 'vconsole_login');
+}
+
+=head2 select_virtio_console
+
+   select_virtio_console();
+
+Helper to select console 'root-virtio-terminal' or 'root-console'.
+=cut
+# TODO: Move here optional init with add_serial_console($console);
+sub select_virtio_console {
+    if (get_var('VIRTIO_CONSOLE')) {
+        select_console('root-virtio-terminal');
+        return 1;
+    }
+
+    select_console('root-console');
+    return 0;
 }
 
 sub serial_term_prompt {

@@ -1,4 +1,4 @@
-# Copyright (C) 2015 SUSE Linux GmbH
+# Copyright (C) 2015-2018 SUSE Linux GmbH
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@ use base 'basetest';
 use base 'opensusebasetest';
 use testapi;
 use utils;
+use serial_terminal 'select_virtio_console';
 use version_utils 'is_desktop_installed';
 
 sub run {
@@ -31,7 +32,7 @@ sub run {
 
     # the supportserver image can be different version than the currently tested system
     # so try to login without use of needles
-    select_console(get_var('VIRTIO_CONSOLE') ? 'root-virtio-terminal' : 'root-console');
+    select_virtio_console();
 }
 
 sub test_flags {

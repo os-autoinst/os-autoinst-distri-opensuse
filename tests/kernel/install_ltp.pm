@@ -14,9 +14,9 @@ use 5.018;
 use warnings;
 use base 'opensusebasetest';
 use testapi;
-use utils;
 use registration;
-use serial_terminal 'add_serial_console';
+use serial_terminal qw(add_serial_console select_virtio_console);
+use utils;
 use version_utils 'sle_version_at_least';
 
 sub add_repos {
@@ -180,11 +180,8 @@ sub run {
     if (check_var('ARCH', 'ppc64le') && check_var('VIRTIO_CONSOLE', 1)) {
         select_console('root-console');
         add_serial_console('hvc1');
-        select_console('root-virtio-terminal');
     }
-    else {
-        select_console(get_var('VIRTIO_CONSOLE') ? 'root-virtio-terminal' : 'root-console');
-    }
+    select_virtio_console();
 
     add_desktop_productivity_module;
     add_we_repo_if_available;
