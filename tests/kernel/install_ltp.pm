@@ -217,7 +217,7 @@ sub post_fail_hook {
 
     # bsc#1024050
     script_run('pkill pidstat');
-    upload_logs('/tmp/pidstat.txt');
+    upload_logs('/tmp/pidstat.txt', failok => 1);
 }
 
 sub test_flags {
