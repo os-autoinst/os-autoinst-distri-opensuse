@@ -457,7 +457,6 @@ pre init scripts feature. See poo#20818.
       <package>libjbig2</package>
       <package>libjpeg8</package>
       <package>libmng1</package>
-      <package>libmozjs-17_0</package>
       <package>libkate1</package>
       <package>liboggkate1</package>
       <package>liblcms1</package>

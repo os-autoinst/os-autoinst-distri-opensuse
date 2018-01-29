@@ -795,8 +795,6 @@
       <package>metatheme-adwaita-common</package>
       <package>perl-32bit</package>
       <package>perl-Test-Simple</package>
-      <package>python3</package>
-      <package>python3-base</package>
     </remove-packages>
   </software>
   <timezone>
