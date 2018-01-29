@@ -19,6 +19,7 @@ use bmwqemu ();
 BEGIN {
     our @EXPORT = qw(
       add_serial_console
+      get_login_message
       login
       serial_term_prompt
     );
@@ -38,6 +39,20 @@ sub add_serial_console {
     my $service   = 'serial-getty@' . $console;
     my $config    = '/etc/securetty';
     script_run(qq{grep -q "^$console\$" $config || echo '$console' >> $config; systemctl enable $service; systemctl start $service});
+}
+
+=head2 get_login_message
+
+   get_login_message();
+
+Get login message printed by OS at the end of the boot.
+Suitable for testing whether boot has been finished:
+
+wait_serial(get_login_message(), 300);
+=cut
+sub get_login_message {
+    my $arch = get_required_var("ARCH");
+    return check_var('VERSION', 'Tumbleweed') ? qr/Welcome to openSUSE Tumbleweed 20.*/ : qr/Welcome to SUSE Linux Enterprise .*\($arch\)/;
 }
 
 =head2 login
