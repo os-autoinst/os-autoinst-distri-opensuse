@@ -33,7 +33,13 @@ sub run {
     # hardware detection and waiting for updates from suse.com can take a while
     assert_screen_with_soft_timeout('select-for-update', timeout => 500, soft_timeout => 100, bugref => 'bsc#1028774');
     send_key $cmd{next};
-    assert_screen "remove-repository", 240;
+    assert_screen [qw(remove-repository license-agreement)], 240;
+    if (match_has_tag("license-agreement")) {
+        record_soft_failure 'bsc#1077703: incorrect license agreement is shown during upgrade';
+        send_key 'alt-a';
+        send_key $cmd{next};
+        assert_screen "remove-repository";
+    }
     send_key $cmd{next};
     # Select migration target in sle15 upgrade
     if (is_sle && sle_version_at_least('15')) {
