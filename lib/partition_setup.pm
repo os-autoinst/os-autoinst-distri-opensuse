@@ -23,6 +23,7 @@ my %role = qw(
   OS alt-o
   data alt-d
   swap alt-s
+  efi alt-e
   raw alt-a
 );
 
@@ -42,7 +43,6 @@ sub wipe_existing_partitions_storage_ng {
 
 sub create_new_partition_table {
     my ($table_type) = shift // (is_storage_ng) ? 'GPT' : 'MSDOS';
-
     my %table_type_hotkey = (
         MSDOS => 'alt-m',
         GPT   => 'alt-g',
@@ -65,9 +65,10 @@ sub create_new_partition_table {
     send_key 'down';
     wait_still_screen 2;
     save_screenshot;
-    send_key 'ret';                                   # create new partition table
-                                                      # Change gpt table if it's available
-    if (!get_var('UEFI') && !check_var('BACKEND', 's390x')) {
+    send_key 'ret';
+    # create new partition table, change gpt table if it's available
+    # storage-ng always allows partition table selection
+    if (!get_var('UEFI') && !check_var('BACKEND', 's390x') || is_storage_ng) {
         assert_screen "create-new-partition-table";
         send_key $table_type_hotkey{$table_type};
         assert_screen "partition-table-$table_type-selected";
@@ -90,7 +91,7 @@ sub addpart {
     assert_screen 'expert-partitioner';
     send_key $cmd{addpart};
     # partitioning type does not appear when GPT disk used, GPT is default for UEFI
-    # also doesn't appear with storage-ng
+    # also doesn't appear with storage-ng, as GPT is by default there
     if (is_storage_ng && check_screen 'partition-size', 0) {
         record_soft_failure 'bsc#1055743';
     }
