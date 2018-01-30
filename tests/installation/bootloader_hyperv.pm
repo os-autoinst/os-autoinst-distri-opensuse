@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -24,6 +24,35 @@ sub hyperv_cmd {
     diag "Command on Hyper-V returned: $ret";
     die 'Command on Hyper-V failed' unless ($args->{ignore_return_code} || !$ret);
     return $ret;
+}
+
+sub hyperv_cmd_with_retry {
+    my ($cmd, $args) = @_;
+    die 'Command not provided' unless $cmd;
+
+    my $attempts = $args->{attempts} // 7;
+    my $sleep    = $args->{sleep} // 300;
+    my $msg      = $args->{msg} // 'The operation cannot be performed while the object is in use.';
+    for my $retry (1 .. $attempts) {
+        my @out = (console('svirt')->get_cmd_output($cmd, {wantarray => 1}))[0];
+        my $stdout = $out[0][0] || '';
+        my $stderr = $out[0][1] || '';
+        chomp($stdout, $stderr);
+        if ($stderr && $stderr =~ /$msg/) {
+            # Non-fatal error we can ignore for couple of times.
+            diag "Attempt $retry/$attempts: Command failed with $stderr.\nSleeping for $sleep seconds...";
+            sleep $sleep;
+            next;
+        }
+        elsif ($stderr) {
+            # Error we don't know how to resurrect from.
+            die "Command failed with unhandled error:\n$stderr.";
+        }
+        else {
+            # Command succeeded.
+            last;
+        }
+    }
 }
 
 sub run {
@@ -120,7 +149,7 @@ sub run {
                 my ($hddsuffix) = $hdd =~ /(\.[^.]+)$/;
                 my $disk_path = "d:\\cache\\${name}_${n}${hddsuffix}";
                 push @disk_paths, $disk_path;
-                hyperv_cmd("$ps New-VHD -ParentPath $hdd -Path $disk_path -Differencing");
+                hyperv_cmd_with_retry("$ps New-VHD -ParentPath $hdd -Path $disk_path -Differencing");
             }
             else {
                 my $disk_path = "d:\\cache\\${name}_${n}.vhdx";
@@ -175,7 +204,7 @@ sub run {
       . " /cert-ignore /vmconnect:$vmguid /f 2>&1 >> xfreerdp_${name}.log; echo $vmguid > xfreerdp_${name}_stop; done";
     #      . " /cert-ignore /jpeg /jpeg-quality:100 /fast-path:1 /bpp:32 /vmconnect:$vmguid /f";
 
-    hyperv_cmd("$ps Start-VM $name");
+    hyperv_cmd_with_retry("$ps Start-VM $name");
 
     # ...we execute the command right after VMs starts.
     send_key 'ret';
