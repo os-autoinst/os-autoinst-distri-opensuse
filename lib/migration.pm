@@ -31,6 +31,7 @@ our @EXPORT = qw(
   register_system_in_textmode
   remove_ltss
   disable_installation_repos
+  record_disk_info
 );
 
 sub setup_migration {
@@ -88,5 +89,19 @@ sub disable_installation_repos {
     }
 }
 
+# Record disk info to help debug diskspace exhausted
+# issue during upgrade
+sub record_disk_info {
+    if (get_var('FILESYSTEM', 'btrfs') =~ /btrfs/) {
+        assert_script_run 'btrfs filesystem df / | tee /tmp/btrfs-filesystem-df.txt';
+        assert_script_run 'btrfs filesystem usage / | tee /tmp/btrfs-filesystem-usage.txt';
+        assert_script_run 'snapper list | tee /tmp/snapper-list.txt';
+        upload_logs '/tmp/btrfs-filesystem-df.txt';
+        upload_logs '/tmp/btrfs-filesystem-usage.txt';
+        upload_logs '/tmp/snapper-list.txt';
+    }
+    assert_script_run 'df -h > /tmp/df.txt';
+    upload_logs '/tmp/df.txt';
+}
 1;
 # vim: sw=4 et
