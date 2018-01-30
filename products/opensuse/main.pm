@@ -202,6 +202,7 @@ sub load_boot_tests {
 
 sub load_inst_tests {
     loadtest "installation/welcome";
+    loadtest "installation/keyboard_selection";
     if (check_var('ARCH', 's390x')) {
         loadtest "installation/disk_activation";
     }
