@@ -483,6 +483,15 @@ sub enter_test_text {
     }
 }
 
+
+=head2 firewall
+
+  firewall();
+
+Return the default expected firewall implementation depending on the product
+under test, the version and if the SUT is an upgrade.
+
+=cut
 sub firewall {
     my $old_product_versions = (is_sle && !sle_version_at_least('15')) || (is_leap && !leap_version_at_least('15.0'));
     my $upgrade_from_susefirewall = is_upgrade && get_var('HDD_1') =~ /\b(1[123]|42)[\.-]/;
