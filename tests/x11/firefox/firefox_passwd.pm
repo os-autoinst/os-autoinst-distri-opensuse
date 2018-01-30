@@ -38,10 +38,17 @@ sub run {
     type_string $masterpw;
     send_key "tab";
     type_string $masterpw;
-    for my $i (1 .. 3) { send_key "ret"; }
+
+    # confirm password change
+    assert_and_click('firefox-password-changed');
+    assert_and_click('firefox-passwd-success');
 
     #Restart firefox
+    send_key "alt-f";
+    assert_screen('firefox-menu-quit', 30);
+
     send_key "ctrl-q";
+
     x11_start_program('firefox');
     $self->firefox_check_popups;
     assert_screen('firefox-gnome', 60);
