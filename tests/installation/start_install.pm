@@ -88,9 +88,14 @@ sub run {
         sleep 2;    # textmode is sometimes pressing alt-i too early
         send_key $cmd{install};
         wait_screen_change { send_key 'alt-o' } if match_has_tag('inst-overview-error-found', 0);
-        while (check_screen([qw(confirmlicense startinstall)], 5)) {
+        while (check_screen([qw(confirmlicense startinstall activate_flag_not_set)], 5)) {
             last if match_has_tag("startinstall");
-            send_key $cmd{acceptlicense};
+            if (match_has_tag("confirmlicense")) {
+                send_key $cmd{acceptlicense};
+            }
+            else {
+                send_key 'alt-o';
+            }
         }
         assert_screen "startinstall";
 
