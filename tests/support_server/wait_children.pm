@@ -1,4 +1,4 @@
-# Copyright (C) 2015 SUSE Linux GmbH
+# Copyright (C) 2015-2018 SUSE Linux GmbH
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -13,7 +13,8 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# Summary: supportserver and supportserver generator implementation
+# Summary: Main purpose not allow support server to go down
+# until all parallel jobs finish what they are doing
 # Maintainer: Pavel Sladek <psladek@suse.com>
 
 use strict;

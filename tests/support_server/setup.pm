@@ -131,12 +131,8 @@ sub setup_dns_server {
     $dns_server_set = 1;
 }
 
-sub setup_dhcp_server {
-    my ($dns, $pxe) = @_;
-    return if $dhcp_server_set;
-    my $net_conf = parse_network_configuration();
-
-    $setup_script .= "systemctl stop dhcpd\n";
+sub dhcpd_conf_genration {
+    my ($dns, $pxe, $net_conf) = @_;
     $setup_script .= "cat  >/etc/dhcpd.conf <<EOT\n";
     $setup_script .= "default-lease-time 14400;\n";
     if ($dns) {
@@ -184,6 +180,20 @@ sub setup_dhcp_server {
         $setup_script .= "}\n";
     }
     $setup_script .= "EOT\n";
+}
+
+sub setup_dhcp_server {
+    my ($dns, $pxe) = @_;
+    return if $dhcp_server_set;
+    my $net_conf = parse_network_configuration();
+
+    $setup_script .= "systemctl stop dhcpd\n";
+    if (get_var('SUPPORT_SERVER_DHPCD_CONFIG')) {
+        $setup_script .= "curl -f -v " . autoinst_url . "/data" . get_var('SUPPORT_SERVER_DHPCD_CONFIG') . " >/etc/dhcpd.conf \n";
+    }
+    else {
+        dhcpd_conf_genration($dns, $pxe, $net_conf);
+    }
 
     $setup_script .= "curl -f -v " . autoinst_url . "/data/supportserver/dhcp/sysconfig/dhcpd  >/etc/sysconfig/dhcpd \n";
     $setup_script .= "NIC_LIST=\"";

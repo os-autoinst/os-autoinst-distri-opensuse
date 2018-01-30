@@ -1,3 +1,15 @@
+# SUSE's openQA tests
+#
+# Copyright © 2018 SUSE LLC
+#
+# Copying and distribution of this file, with or without modification,
+# are permitted in any medium without royalty provided the copyright
+# notice and this notice are preserved.  This file is offered as-is,
+# without any warranty.
+
+# Summary: Attempt to merge common parts of sle/main.pm and opensuse/main.pm
+# Maintainer: Anton Smorodskyi<asmorodskyi@suse.com>
+
 package main_common;
 use base Exporter;
 use File::Basename;
@@ -440,6 +452,7 @@ sub boot_hdd_image {
     if (get_var('UEFI') && (get_var('BOOTFROM') || get_var('BOOT_HDD_IMAGE'))) {
         loadtest "boot/uefi_bootmenu";
     }
+    loadtest "support_server/wait_support_server" if get_var('USE_SUPPORT_SERVER');
     loadtest "boot/boot_to_desktop";
 }
 

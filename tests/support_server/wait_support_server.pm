@@ -7,8 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Start HA support server and check network connectivity
-# Maintainer: Loic Devulder <ldevulder@suse.com>
+# Summary: Wait for support server to start
+# Maintainer: Loic Devulder <ldevulder@suse.com> , Anton Smorodskyi <asmorodskyi@suse.com>
 
 use base 'opensusebasetest';
 use strict;
@@ -24,7 +24,7 @@ sub run {
     mutex_unlock('support_server_ready');
 
     # Now we can wait for barrier to synchronise nodes
-    barrier_wait('BARRIER_HA_' . get_var('CLUSTER_NAME'));
+    barrier_wait('BARRIER_HA_' . get_var('CLUSTER_NAME')) if get_var("HA_CLUSTER");
 }
 
 1;
