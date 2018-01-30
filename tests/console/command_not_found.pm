@@ -25,20 +25,32 @@ sub run {
     select_console 'user-console';
 
     if (check_var('DESKTOP', 'textmode')) {    # command-not-found is part of the enhanced_base pattern, missing in textmode
-        assert_script_sudo "zypper -n in command-not-found";
+        select_console 'root-console';
+        zypper_call "in command-not-found";
+        select_console 'user-console';
     }
 
     my $not_installed_pkg = (is_sle && sle_version_at_least '15') ? 'wireshark' : 'xosview';
-    my $cnf_cmd = "echo \"\$(cnf $not_installed_pkg 2>&1 | tee /dev/stderr)\" | grep -q \"zypper install $not_installed_pkg\"";
+    my $cnf_cmd = qq{echo "\$(cnf $not_installed_pkg 2>&1 | tee /dev/stderr)" | grep -q "zypper install $not_installed_pkg"};
 
-    if (is_sle && sle_version_at_least '15') {
-        $self->{run_post_hook} = script_run($cnf_cmd);
-        select_console 'root-console';
-        record_soft_failure 'https://fate.suse.com/323424';
-        add_suseconnect_product("sle-module-desktop-applications");
-        select_console 'user-console';
+    my $result = script_run($cnf_cmd);
+
+    save_screenshot;
+
+    if ($result) {
+        if (is_sle && sle_version_at_least '15') {
+            $self->{run_post_hook} = 1;
+            record_soft_failure 'https://fate.suse.com/323424';
+            select_console 'root-console';
+            add_suseconnect_product("sle-module-desktop-applications");
+            zypper_call("ref");
+            select_console 'user-console';
+        }
+        else {
+            die "Command Not Found failed";
+        }
     }
-    assert_script_run $cnf_cmd if $self->{run_post_hook};    # Run command if not yet executed (workaround for SLE 15)
+    assert_script_run($cnf_cmd) if $self->{run_post_hook};    # Run command if not yet executed (workaround for SLE 15)
     save_screenshot;
 }
 
