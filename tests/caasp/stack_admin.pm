@@ -61,7 +61,7 @@ sub run() {
 
     set_autoyast_password 'NODES_ACCEPTED'         if is_caasp 'DVD';
     handle_update                                  if update_scheduled;
-    set_autoyast_password 'DELAYED_NODES_ACCEPTED' if is_caasp 'DVD' && get_delayed_worker;
+    set_autoyast_password 'DELAYED_NODES_ACCEPTED' if is_caasp('DVD') && get_delayed_worker;
 
     # Wait until controller node finishes
     mutex_lock "CNTRL_FINISHED";
