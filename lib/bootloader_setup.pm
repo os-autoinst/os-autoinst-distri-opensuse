@@ -243,13 +243,13 @@ sub bootmenu_default_params {
             }
             else {
                 type_string_very_slow "plymouth.ignore-serial-consoles ";    # make plymouth go graphical
-                type_string_very_slow "linuxrc.log=$serialdev ";
+                type_string_very_slow "linuxrc.log=/dev/$serialdev ";
                 bootmenu_type_console_params;
 
                 assert_screen "inst-consolesettingstyped", 30;
 
                 # Enable linuxrc core dumps https://en.opensuse.org/SDB:Linuxrc#p_linuxrccore
-                type_string_very_slow "linuxrc.core=$serialdev ";
+                type_string_very_slow "linuxrc.core=/dev/$serialdev ";
             }
             bootmenu_type_extra_boot_params;
         }
