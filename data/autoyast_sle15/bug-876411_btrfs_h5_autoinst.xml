@@ -818,7 +818,6 @@ find / -name YaST2-Second-Stage.service
     <image/>
     <instsource/>
     <packages config:type="list">
-      <package>dbus-1-python</package>
       <package>dconf</package>
       <package>girepository-1_0</package>
       <package>grub2-snapper-plugin</package>
@@ -833,15 +832,12 @@ find / -name YaST2-Second-Stage.service
       <package>libvmtools0</package>
       <package>open-vm-tools</package>
       <package>plymouth-dracut</package>
-      <package>python-gobject</package>
-      <package>python-gobject-cairo</package>
       <package>snapper</package>
       <package>snapper-zypp-plugin</package>
       <package>ucode-amd</package>
       <package>xbitmaps</package>
       <package>yast2-snapper</package>
       <package>yast2-trans-en_US</package>
-      <package>zypp-plugin-python</package>
     </packages>
     <patterns config:type="list">
       <pattern>base</pattern>
