@@ -20,10 +20,11 @@ use mm_network;
 
 # poo#9576
 sub run {
+    my $self = shift;
     assert_screen("remote_slave_ready", 350);
-    mutex_create("ssh_server_is_available");
+    mutex_create("installation_ready");
     # wait while whole installation process finishes
-    assert_screen("grub2", 1200);
+    $self->wait_boot(bootloader_time => 1800);
 }
 
 sub test_flags {
