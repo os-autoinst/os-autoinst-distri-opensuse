@@ -481,7 +481,6 @@
     <packages config:type="list">
       <package>at-spi2-atk-common</package>
       <package>at-spi2-atk-gtk2</package>
-      <package>dbus-1-python</package>
       <package>dconf</package>
       <package>ft2demos</package>
       <package>grub2-snapper-plugin</package>
@@ -504,18 +503,14 @@
       <package>libtheora0</package>
       <package>libvisual</package>
       <package>plymouth-dracut</package>
-      <package>python-gobject</package>
-      <package>python-gobject-cairo</package>
       <package>snapper</package>
       <package>snapper-zypp-plugin</package>
       <package>ucode-intel</package>
       <package>xf86-input-evdev</package>
       <package>xf86-input-wacom</package>
-      <package>xf86-video-modesetting</package>
       <package>yast2-snapper</package>
       <package>yast2-trans-en_US</package>
       <package>yast2-x11</package>
-      <package>zypp-plugin-python</package>
     </packages>
     <patterns config:type="list">
       <pattern>base</pattern>
