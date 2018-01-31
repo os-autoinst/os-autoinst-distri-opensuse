@@ -37,6 +37,9 @@ sub run {
     push @welcome_tags, 'untrusted-ca-cert' if get_var('SMT_URL');
     # Add tag for sle15 upgrade mode, where product list should NOT be shown
     push @welcome_tags, 'inst-welcome-no-product-list' if sle_version_at_least('15') and get_var('UPGRADE');
+    # Add tag to check for https://progress.opensuse.org/issues/30823 "test is
+    # stuck in linuxrc asking if dhcp should be used"
+    push @welcome_tags, 'linuxrc-dhcp-question';
     ensure_fullscreen;
 
     # Process expected pop-up windows and exit when welcome/beta_war is shown or too many iterations
@@ -71,6 +74,9 @@ sub run {
             send_key 'alt-t';
             wait_still_screen 5;
             next;
+        }
+        if (match_has_tag 'linuxrc-dhcp-question') {
+            send_key 'ret';
         }
     }
 
