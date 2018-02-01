@@ -43,7 +43,8 @@ sub run {
     # kexec -l
     assert_script_run("kexec -l $kernel_new --initrd=$initrd_new --command-line='$cmdline'");
     # kexec -e
-    systemctl 'kexec';
+    # don't use built-in systemctl api, see poo#31180
+    script_run("systemctl kexec", 0);
     # wait for reboot
     reset_consoles();
     select_console("root-console");
