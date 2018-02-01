@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -18,6 +18,11 @@ use version_utils 'is_jeos';
 
 sub run {
     assert_script_run 'rpm -qi vim';
+    # JeOS currently incorrectly contains vim-data package
+    if (is_jeos()) {
+        record_soft_failure('bsc#1078722 - vim-data should not be in the image');
+        return;
+    }
     # vim-data package must not be present on JeOS
     assert_script_run('! rpm -qi vim-data') if is_jeos();
     type_string "vim /etc/passwd\n";
