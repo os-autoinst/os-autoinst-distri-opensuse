@@ -32,9 +32,12 @@ EOF
     # before accepting the key, wait until the minion is fully started (systemd might be not reliable)
     assert_script_run('salt-run state.event tagmatch="salt/auth" quiet=True count=1', timeout => 300);
     assert_script_run("salt-key --accept-all -y");
-    # before pinging the minions, check the start event as a signal that the minion is now ready
-    assert_script_run('salt-run state.event tagmatch="salt/minion/*/start" quiet=True count=1', timeout => 300);
-    assert_script_run "salt '*' test.ping | grep -woh True";
+    # try to ping the minion. If it does not respond on the first try the ping
+    # might have gone lost so try more often
+    unless (script_run 'salt \'*\' test.ping') {
+        record_soft_failure 'bsc#1069711';
+        assert_script_run 'for i in {1..7}; do echo "try $i" && salt \'*\' test.ping -t30 && break; done';
+    }
     systemctl 'stop salt-master salt-minion';
 }
 
