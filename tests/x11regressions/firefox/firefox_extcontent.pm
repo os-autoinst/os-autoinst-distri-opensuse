@@ -14,6 +14,7 @@
 use strict;
 use base "x11regressiontest";
 use testapi;
+use version_utils 'sle_version_at_least';
 
 sub run {
     my ($self) = @_;
@@ -40,7 +41,7 @@ sub run {
     sleep 1;
     send_key "ret";
 
-    assert_screen 'firefox-extcontent-archive_manager';
+    assert_screen((sle_version_at_least('15')) ? 'firefox-extcontent-nautils' : 'firefox-extcontent-archive_manager');
 
     send_key "ctrl-q";
 

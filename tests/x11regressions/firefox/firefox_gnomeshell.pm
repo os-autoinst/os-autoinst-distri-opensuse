@@ -25,7 +25,12 @@ sub run {
     wait_still_screen 3;
     send_key "ctrl-shift-a";
     assert_and_click('firefox-plugins-tabicon');
-    assert_screen('firefox-gnomeshell-default', 30);
+    assert_screen [qw(firefox-gnomeshell-default firefox-plugins-missing)], 60;
+    if (match_has_tag('firefox-plugins-missing')) {
+        record_soft_failure 'bsc#1077707 - GNOME Shell Integration and other two plugins are not installed by default';
+        $self->exit_firefox;
+        return;
+    }
 
     send_key "alt-d";
     type_string "extensions.gnome.org\n";
