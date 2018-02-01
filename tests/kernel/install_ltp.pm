@@ -30,22 +30,23 @@ sub scc_we_enabled {
     return wait_serial(qr/Workstation Extension/);
 }
 
-sub add_desktop_productivity_module {
-    if (get_required_var('ARCH') eq 'x86_64' and check_var('DISTRI', 'sle') and sle_version_at_least('15')) {
-        zypper_call('ar http://openqa.suse.de/assets/repo/' . get_required_var('REPO_SLE15_MODULE_DESKTOP_PRODUCTIVITY') . ' DPM', dumb_term => 1);
-        zypper_call('--gpg-auto-import-keys ref',                                                                                  dumb_term => 1);
-    }
-}
-
 sub add_we_repo_if_available {
     # opensuse (doesn't have extensions) or SLE as registered product
     if (check_var('DISTRI', 'opensuse') || scc_we_enabled) {
         return;
     }
+    my $ar_url;
+    my $we_repo = get_var('REPO_SLE_WE15_POOL');
+    if ($we_repo and check_var('DISTRI', 'sle') and sle_version_at_least('15')) {
+        $ar_url = "http://openqa.suse.de/assets/repo/$we_repo";
+    }
     # productQA test with enabled we as iso_2
-    if (get_var('BUILD_WE') && get_var('ISO_2')) {
-        zypper_call('ar dvd:///?devices=/dev/sr2 WSE', log => 'add-WSE.txt', dumb_term => 1);
-        zypper_call('--gpg-auto-import-keys ref',      log => 'ref-WSE.txt', dumb_term => 1);
+    elsif (get_var('BUILD_WE') && get_var('ISO_2')) {
+        $ar_url = 'dvd:///?devices=/dev/sr2';
+    }
+    if ($ar_url) {
+        zypper_call("ar $ar_url WE",              dumb_term => 1);
+        zypper_call('--gpg-auto-import-keys ref', dumb_term => 1);
     }
 }
 
@@ -183,7 +184,6 @@ sub run {
     }
     select_virtio_console();
 
-    add_desktop_productivity_module;
     add_we_repo_if_available;
 
     install_runtime_dependencies;
