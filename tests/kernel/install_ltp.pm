@@ -25,19 +25,13 @@ sub add_repos {
     zypper_call('--gpg-auto-import-keys ref', dumb_term => 1);
 }
 
-sub scc_we_enabled {
-    script_run("zypper -n products -i", 0);
-    return wait_serial(qr/Workstation Extension/);
-}
-
 sub add_we_repo_if_available {
-    # opensuse (doesn't have extensions) or SLE as registered product
-    if (check_var('DISTRI', 'opensuse') || scc_we_enabled) {
-        return;
-    }
+    # opensuse doesn't have extensions
+    return if check_var('DISTRI', 'opensuse');
+
     my $ar_url;
     my $we_repo = get_var('REPO_SLE_WE15_POOL');
-    if ($we_repo and check_var('DISTRI', 'sle') and sle_version_at_least('15')) {
+    if ($we_repo && check_var('DISTRI', 'sle') && sle_version_at_least('15')) {
         $ar_url = "http://openqa.suse.de/assets/repo/$we_repo";
     }
     # productQA test with enabled we as iso_2
