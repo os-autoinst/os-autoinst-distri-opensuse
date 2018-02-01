@@ -35,7 +35,7 @@ sub run {
     diag "checking variable: bootstrap_conflicts_rt = $bootstrap_conflicts_rt";
 
     if (check_var("DISTRI", "sle")) {
-        zypper_call "in java-*";
+        zypper_call("in java-*", timeout => 1400);
     }
 
     if (check_var("DISTRI", "opensuse")) {
