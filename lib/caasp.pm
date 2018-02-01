@@ -75,12 +75,9 @@ sub process_reboot {
     power_action('reboot', observe => !$trigger, keepconsole => 1);
 
     # No grub bootloader on xen-pv
-    unless (check_var('VIRSH_VMM_TYPE', 'linux')) {
-        assert_screen 'grub2', 90;
-        send_key 'ret';
-    }
+    # grub2 needle is unreliable (stalls during timeout) - poo#28648
 
-    assert_screen 'linux-login-casp', 90;
+    assert_screen 'linux-login-casp', 180;
     select_console 'root-console';
 }
 
