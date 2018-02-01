@@ -87,9 +87,8 @@ sub run {
     # On sle 15 license is on different screen, here select the product
     if (sle_version_at_least('15') && check_var('DISTRI', 'sle')) {
         # On s390x there will be only one product which means there is no product selection
-        # On aarch64 there is only product at the moment, because HPC was not interlocked yet
         # In upgrade mode, there is no product list shown in welcome screen
-        unless (check_var('ARCH', 's390x') || check_var('ARCH', 'aarch64') || get_var('UPGRADE')) {
+        unless (check_var('ARCH', 's390x') || get_var('UPGRADE')) {
             assert_screen('select-product');
             my %hotkey = (
                 sles     => 's',
