@@ -32,18 +32,19 @@ sub run {
         # Storage-ng has GPT by defaut, so need bios-boot partition for legacy boot, which is only on x86_64
         addpart(role => 'raw', fsid => 'bios-boot', size => 1);
     }
-    if (
-        check_var('ARCH', 's390x')         # s390x need /boot/zipl on ext partition
-        || get_var('UNENCRYPTED_BOOT')     # add explicitly if parameter is set
-        || check_var('ARCH', 'ppc64le') && is_storage_ng    # ppc with lvm requires separate boot on storage-ng
-      )
-    {
+    elsif (check_var('ARCH', 's390x')) {
+        # s390x need /boot/zipl on ext partition
+        addpart(role => 'OS', size => 500, format => 'ext2', mount => '/boot/zipl');
+    }
+
+    # ppc with lvm requires separate boot on storage-ng or if want to test with UNENCRYPTED_BOOT set to true
+    if (get_var('UNENCRYPTED_BOOT') || check_var('ARCH', 'ppc64le') && is_storage_ng) {
         addpart(role => 'OS', size => 500, format => 'ext2', mount => '/boot');
     }
 
     addpart(role => 'raw', encrypt => 1);
     assert_screen 'expert-partitioner';
-    send_key 'alt-s';                                       # select System view
+    send_key 'alt-s';    # select System view
     send_key_until_needlematch('volume_management_feature', 'down');    # select Volume Management
     send_key $cmd{addpart};                                             # add
     wait_still_screen 2;
