@@ -76,10 +76,10 @@ sub is_desktop_module_selected {
     # productivity and ha require desktop applications, so it's preselected
     # same is true for sles4sap
     return
-         get_var('ADDONS') =~ /all-packages|desktop|we/
-      || get_var('WORKAROUND_MODULES') =~ /desktop|we/
-      || get_var('ADDONURL') =~ /desktop|we/
-      || get_var('SCC_ADDONS') =~ /desktop|we|productivity|ha/
+         get_var('ADDONS', '') =~ /all-packages|desktop|we/
+      || get_var('WORKAROUND_MODULES', '') =~ /desktop|we/
+      || get_var('ADDONURL',           '') =~ /desktop|we/
+      || get_var('SCC_ADDONS',         '') =~ /desktop|we|productivity|ha/
       || is_sles4sap;
 }
 
@@ -377,7 +377,7 @@ if (get_var('ENABLE_ALL_SCC_MODULES') && !get_var('SCC_MODULES')) {
 }
 
 # define aytests repo for support server (do not override defined value)
-if (get_var('SUPPORT_SERVER_ROLES') =~ /aytest/ && !get_var('AYTESTS_REPO')) {
+if (get_var('SUPPORT_SERVER_ROLES', '') =~ /aytest/ && !get_var('AYTESTS_REPO')) {
     if (sle_version_at_least('15')) {
         set_var('AYTESTS_REPO', 'http://download.suse.de/ibs/Devel:/YaST:/Head/SUSE_SLE-15_GA/');
     }
