@@ -42,7 +42,7 @@ sub run {
         }
 
         # Test if package is installed
-        assert_script_run 'rpm -q lvm2-lvmlockd';
+        assert_script_run 'rpm -q lvm2-lockd';
     }
     else {
         # In SLE15, lvmlockd is installed by default, not clvmd/cmirrord
