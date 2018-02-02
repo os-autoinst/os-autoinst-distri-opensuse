@@ -36,20 +36,14 @@ sub run {
 
     if ($lock_mgr eq 'lvmlockd') {
         # Test if package is installed, if not install it and record a softfailure
-        if (script_run 'rpm -q lvm2-lockd') {
+        if (!is_package_installed 'lvm2-lockd') {
             record_soft_failure 'bsc#1076045';
             zypper_call 'in lvm2-lockd';
         }
-
-        # Test if package is installed
-        assert_script_run 'rpm -q lvm2-lockd';
     }
     else {
         # In SLE15, lvmlockd is installed by default, not clvmd/cmirrord
         zypper_call 'in lvm2-clvm lvm2-cmirrord' if (is_sle && sle_version_at_least('15'));
-
-        # Test if packages are installed
-        assert_script_run 'rpm -q lvm2-clvm lvm2-cmirrord';
     }
 
     # Configure LVM for HA cluster

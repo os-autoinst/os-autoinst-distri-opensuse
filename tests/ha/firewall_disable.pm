@@ -20,7 +20,7 @@ sub run {
     my $firewall = $self->firewall;
 
     # Deactivate firewall if needed
-    if (!script_run "rpm -q $firewall >/dev/null") {
+    if (is_package_installed "$firewall") {
         assert_script_run "systemctl -q is-active $firewall && systemctl disable $firewall; systemctl stop $firewall";
     }
 }
