@@ -1,4 +1,4 @@
-# Copyright (C) 2017 SUSE LLC
+# Copyright (C) 2017-2018 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,11 +20,13 @@
 use strict;
 use base 'basetest';
 use testapi;
+use version_utils qw(is_sle sle_version_at_least);
 use XML::LibXML;
 
 #Xpath parser
 my $dom;
 my $xpc;
+
 
 sub run {
     # Accumulate errors in this variable if any
@@ -39,46 +41,38 @@ sub run {
 
     ### Verify mount options enable_snapshots
     my $result_str = verify_option('//ns:partitioning/ns:drive[ns:device="/dev/vda"]/ns:enable_snapshots', 'true');
-    if ($result_str) {
-        $errors .= "enable_snapshots option check failed: $result_str\n";
+    $errors .= "enable_snapshots option check failed: $result_str\n" if ($result_str);
+
+    ### Verify mount options btrfs_set_default_subvolume_name, this is valid only for SLE12, with storage-ng subvolumes_prefix is used
+    if (is_sle && sle_version_at_least '15') {
+        $result_str = verify_option('//ns:subvolumes_prefix', '');
+        $errors .= "subvolumes_prefix option check failed: $result_str\n" if ($result_str);
     }
-    ### Verify mount options btrfs_set_default_subvolume_name
-    my $result_str = verify_option('//ns:btrfs_set_default_subvolume_name', 'false');
-    if ($result_str) {
-        $errors .= "btrfs_set_default_subvolume_name option check failed: $result_str\n";
+    else {
+        $result_str = verify_option('//ns:btrfs_set_default_subvolume_name', 'false');
+        $errors .= "btrfs_set_default_subvolume_name option check failed: $result_str\n" if ($result_str);
     }
 
     ### Verify mount options
-    my $result_str = verify_mount_opts("/", "rw,relatime,space_cache");
-    if ($result_str) {
-        $errors .= "Mount options verification failed for /: $result_str\n";
-    }
+    $result_str = verify_mount_opts("/", "rw,relatime,space_cache");
+    $errors .= "Mount options verification failed for /: $result_str\n" if ($result_str);
 
     $result_str = verify_mount_opts("/var/log", "rw,relatime,nobarrier,nodatacow");
-    if ($result_str) {
-        $errors .= "Mount options verification failed for /: $result_str\n";
-    }
+    $errors .= "Mount options verification failed for /: $result_str\n" if ($result_str);
 
     ### Verify subvolumes
     $result_str = verify_subvolumes("/var/log", ());
-    if ($result_str) {
-        $errors .= "Subvolumes verification failed for /var/log: $result_str\n";
-    }
+    $errors .= "Subvolumes verification failed for /var/log: $result_str\n" if ($result_str);
 
     ### Verify subvolumes
     $result_str = verify_subvolumes('/', (opt => 'true', 'usr/local' => 'true', tmp => 'false'));
-    if ($result_str) {
-        $errors .= "Subvolumes verification failed for /: $result_str\n";
-    }
+    $errors .= "Subvolumes verification failed for /: $result_str\n" if ($result_str);
 
     $result_str = verify_subvolumes("/var/log", ());
-    if ($result_str) {
-        $errors .= "Subvolumes verification failed for /var/log: $result_str\n";
-    }
+    $errors .= "Subvolumes verification failed for /var/log: $result_str\n" if ($result_str);
+
     ### Fail test in case of any failed checks
-    if ($errors) {
-        die $errors;
-    }
+    die $errors if ($errors);
 }
 
 sub verify_option {
@@ -97,7 +91,7 @@ sub verify_option {
         return "Unexpected value for xpath $xpath. Expected: $expected_val, got: $nodes[0]";
     }
 
-    return "";
+    return '';
 
 }
 
@@ -126,7 +120,7 @@ sub verify_subvolumes {
         }
     }
 
-    return "";
+    return '';
 }
 
 sub verify_mount_opts {
@@ -150,7 +144,7 @@ sub verify_mount_opts {
         }
     }
 
-    return "";
+    return '';
 }
 
 1;
