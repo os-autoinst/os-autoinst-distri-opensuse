@@ -121,6 +121,7 @@ sub addpart {
         if ($args{format} eq 'donotformat') {
             send_key $cmd{donotformat};
             send_key 'alt-u';
+            assert_screen 'partition-no-format-no-mount';
         }
         else {
             send_key 'alt-a' if is_storage_ng;    # Select to format partition, not selected by default
@@ -132,7 +133,9 @@ sub addpart {
     }
     if ($args{fsid}) {                            # $args{fsid} will describe needle tag below
         send_key 'alt-i';                         # select File system ID
+        assert_screen 'partition-no-format-highlighted';
         send_key 'home';                          # start from the top of the list
+        assert_screen 'partition-no-format-first-option';
         send_key_until_needlematch "partition-selected-$args{fsid}-type", 'down';
     }
 
