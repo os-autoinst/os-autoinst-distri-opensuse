@@ -742,6 +742,11 @@ sub load_x11regression_other {
         loadtest "x11regressions/brasero/brasero_launch";
         loadtest "x11/gnomeapps/gnome_documents";
         loadtest "x11regressions/totem/totem_launch";
+        loadtest "x11/xterm";
+        loadtest "x11/sshxterm";
+        loadtest "x11/gnome_control_center";
+        loadtest "x11/gnome_tweak_tool";
+        loadtest "x11/seahorse";
     }
     # shotwell was replaced by gnome-photos in SLE15 & yast_virtualization isn't in SLE15
     if (is_sle && sle_version_at_least('12-SP2') && !sle_version_at_least('15')) {
