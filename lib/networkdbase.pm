@@ -102,4 +102,27 @@ sub wait_for_networkd {
     $self->assert_script_run_container($machine, "networkctl | grep $netif.*configured");
     $self->assert_script_run_container($machine, "networkctl status");
 }
+
+sub export_container_journal {
+    my ($self, $machine) = @_;
+
+    assert_script_run("journalctl -M $machine --no-pager -b 0 > /tmp/" . $machine . "_journal.log");
+    upload_logs "/tmp/" . $machine . "_journal.log";
+}
+
+sub post_fail_hook {
+    my ($self) = shift;
+    select_console('log-console');
+
+    my $machines = script_output("machinectl --no-legend --no-pager | cut -d ' ' -f 1");
+    foreach my $machine (split(/\s|\n/, $machines)) {
+        $machine =~ s/\s|\n//g;
+        if ($machine ne "") {
+            $self->export_container_journal($machine);
+        }
+    }
+
+    $self->SUPER::post_fail_hook;
+}
+
 1;
