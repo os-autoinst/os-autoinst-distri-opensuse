@@ -17,7 +17,7 @@
 package main_ltp;
 use base 'Exporter';
 use Exporter;
-use testapi qw(get_var);
+use testapi qw(check_var get_var);
 use autotest;
 use utils;
 use LTP::TestInfo qw(testinfo);
@@ -139,5 +139,9 @@ sub load_kernel_tests {
     }
     elsif (get_var('VIRTIO_CONSOLE_TEST')) {
         loadtest 'virtio_console';
+    }
+
+    if (check_var('BACKEND', 'svirt') && get_var('PUBLISH_HDD_1')) {
+        loadtest '../shutdown/svirt_upload_assets';
     }
 }
