@@ -16,6 +16,7 @@
 use strict;
 use base "x11regressiontest";
 use testapi;
+use version_utils 'sle_version_at_least';
 
 sub run {
     my ($self) = @_;
@@ -25,7 +26,12 @@ sub run {
     wait_still_screen 3;
     send_key "ctrl-shift-a";
     assert_and_click('firefox-addons-plugins');
-    assert_screen('firefox-plugins-overview_01', 60);
+    assert_screen [qw(firefox-plugins-overview_01 firefox-plugins-missing)], 60;
+    if (match_has_tag('firefox-plugins-missing')) {
+        record_soft_failure 'bsc#1077707 - GNOME Shell Integration and other two plugins are not installed by default';
+        $self->exit_firefox;
+        return;
+    }
 
     for my $i (1 .. 2) { send_key "tab"; }
     send_key "pgdn";

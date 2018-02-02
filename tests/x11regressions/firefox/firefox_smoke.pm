@@ -14,6 +14,7 @@
 use strict;
 use base "x11regressiontest";
 use testapi;
+use utils 'type_string_slow';
 
 sub run {
     my ($self) = @_;
@@ -27,7 +28,7 @@ sub run {
         send_key "esc";
         send_key "alt-d";
         sleep 1;
-        type_string $site. "\n";
+        type_string_slow $site. "\n";
         $self->firefox_check_popups;
         assert_screen('firefox-topsite_' . $site, 120);
     }
