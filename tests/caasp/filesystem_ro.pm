@@ -31,8 +31,13 @@ sub run {
         assert_script_run 'btrfs property get /var/log ro | grep "ro=false"';
     }
 
-    assert_script_run "grep '/ btrfs ro' /etc/fstab";
-    assert_script_run "mount | grep 'on / type btrfs (ro,'";
+    if (is_caasp 'caasp') {
+        assert_script_run "grep '/ btrfs ro' /etc/fstab";
+        assert_script_run "mount | grep 'on / type btrfs (ro,'";
+    }
+    else {
+        record_soft_failure 'bsc#1079000 - Missing readonly option in fstab';
+    }
 }
 
 1;
