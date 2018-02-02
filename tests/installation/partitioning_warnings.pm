@@ -27,6 +27,10 @@ sub run {
     elsif (check_var('ARCH', 'ppc64le')) {    # ppc64le need PReP /boot
         addpart(role => 'raw', size => 500, fsid => 'PReP');
     }
+    elsif (get_var('UEFI')) {
+        addpart(role => 'raw', size => 500, fsid => 'efi');
+    }
+
     # create small enough partition (11GB) to get warning
     addpart(role => 'OS', size => 11000, format => 'btrfs');
 
