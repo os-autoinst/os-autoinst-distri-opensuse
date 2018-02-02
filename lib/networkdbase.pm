@@ -12,9 +12,11 @@
 
 package networkdbase;
 
+use strict;
+use testapi;
+use utils;
+
 use base 'consoletest';
-use utils 'systemctl';
-use testapi qw(assert_script_run upload_logs type_string);
 
 sub assert_script_run_container {
     my ($self, $machine, $script) = @_;
@@ -23,16 +25,21 @@ sub assert_script_run_container {
 
 sub start_nspawn_container {
     my ($self, $machine) = @_;
-    assert_script_run("systemctl start systemd-nspawn-openqa@".$machine);
+    assert_script_run("systemctl start systemd-nspawn-openqa@" . $machine);
+}
+
+sub restart_nspawn_container {
+    my ($self, $machine) = @_;
+    assert_script_run("systemctl stop systemd-nspawn-openqa@" . $machine);
+    assert_script_run("systemctl start systemd-nspawn-openqa@" . $machine);
 }
 
 sub setup_nspawn_container {
     my ($self, $machine, $repo, $packages) = @_;
     my $path = "/var/lib/machines/$machine";
     assert_script_run("mkdir $path");
-    assert_script_run("zypper -n --root $path --gpg-auto-import-keys addrepo $repo defaultrepo");
-    # handle zypper 'warning' return codes > 100 gracefully
-    assert_script_run("zypper -n --root $path install --no-recommends -ly $packages ; [[ \$? == 0 || \$? -gt 99 ]]");
+    zypper_call("--root $path --gpg-auto-import-keys addrepo $repo defaultrepo");
+    zypper_call("--root $path install --no-recommends -ly $packages", exitcode => [0, 107]);
 }
 
 
@@ -82,8 +89,17 @@ sub write_container_file {
 sub write_file {
     my ($self, $file, $content) = @_;
     type_string("cat > $file <<EOF\n$content\nEOF\n");
-    sleep 1;
     assert_script_run("test \$? == 0");
 }
 
+sub wait_for_networkd {
+    my ($self, $machine, $netif) = @_;
+    $self->assert_script_run_container($machine, "ip a");
+    $self->assert_script_run_container($machine, "networkctl");
+    # wait until network is configured
+    $self->assert_script_run_container($machine, "for i in {1..20} ; do networkctl | grep $netif.*configured && break ; sleep 1 ; done");
+    $self->assert_script_run_container($machine, "networkctl");
+    $self->assert_script_run_container($machine, "networkctl | grep $netif.*configured");
+    $self->assert_script_run_container($machine, "networkctl status");
+}
 1;

@@ -680,7 +680,9 @@ sub load_wicked_tests {
 sub load_networkd_tests {
     loadtest "console/consoletest_setup";
     loadtest 'networkd/networkd_init';
-    loadtest 'networkd/networkd_' . get_required_var('NETWORKD');
+    loadtest 'networkd/networkd_dhcp';
+    loadtest 'networkd/networkd_vlan';
+    loadtest 'networkd/networkd_bridge';
 }
 
 sub load_nfv_master_tests {

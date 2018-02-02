@@ -13,7 +13,7 @@
 use base 'networkdbase';
 use strict;
 use testapi;
-use utils qw(systemctl snapper_revert_system arrays_differ);
+use utils;
 
 sub run {
     my ($self) = @_;
@@ -21,13 +21,13 @@ sub run {
     select_console 'root-console';
     assert_script_run("ls -la --color /var/lib/machines");
 
-    assert_script_run("zypper -n in bridge-utils");
+    zypper_call("in bridge-utils");
     assert_script_run("brctl addbr br0");
     assert_script_run("ip li set br0 up");
 
     $self->setup_nspawn_unit();
 
-    my $pkg_repo = "dvd:/?devices=/dev/sr0";
+    my $pkg_repo        = "dvd:/?devices=/dev/sr0";
     my $pkgs_to_install = "systemd shadow zypper openSUSE-release vim iproute2 iputils bridge-utils";
 
     $self->setup_nspawn_container("node1", $pkg_repo, $pkgs_to_install);
@@ -40,6 +40,10 @@ sub run {
 
     $self->assert_script_run_container("node1", "zypper lr -u");
     $self->assert_script_run_container("node1", "ip a");
+
+    # create networkd config folder
+    $self->assert_script_run_container("node1", "mkdir -p /etc/systemd/network");
+    $self->assert_script_run_container("node2", "mkdir -p /etc/systemd/network");
 }
 
 sub test_flags {
