@@ -362,6 +362,7 @@ sub remove_common_needles {
     my $no_skipto = get_var('SKIPTO') ? 0 : 1;
     unregister_needle_tags("ENV-SKIPTO-$no_skipto");
     remove_desktop_needles("lxde");
+    remove_desktop_needles("lxqt");
     remove_desktop_needles("kde");
     remove_desktop_needles("gnome");
     remove_desktop_needles("xfce");
@@ -398,7 +399,7 @@ our %valueranges = (
     DOCRUN    => [0, 1],
 
     #   BTRFS=>[0,1],
-    DESKTOP => [qw(kde gnome xfce lxde minimalx textmode)],
+    DESKTOP => [qw(kde gnome xfce lxde lxqt minimalx textmode)],
 
     #   ROOTFS=>[qw(ext3 xfs jfs btrfs reiserfs)],
     VIDEOMODE => ["", "text", "ssh-x"],
