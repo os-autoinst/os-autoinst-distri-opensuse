@@ -34,12 +34,17 @@ sub run {
     #
     # 3. verify that "zypper lifecycle" shows correct package eol based on the
     # data from step 2
-    my $prod = script_output "basename `readlink /etc/products.d/baseproduct ` .prod";
+    my ($base_repos, $package, $prod);
+    # Workaround for poo#30613, surround product with >< and use these markers for parsing
+    my $output = script_output "echo '>>>'$(basename `readlink /etc/products.d/baseproduct ` .prod)'<<<'";
+    if ($output =~ />>>(?<prod>.+)<<</) {
+        $prod = $+{prod};
+    }
+    die "Could not parse product (see poo#30613):\n $output" unless $prod;
 
     # select a package suitable for the following test
     # the package must be installed from base product repo
-    my ($base_repos, $package);
-    my $output = script_output 'echo $(zypper -n -x se -i -t product -s ' . $prod . ')', 300;
+    $output = script_output 'echo $(zypper -n -x se -i -t product -s ' . $prod . ')', 300;
     # Parse base repositories
     if (my @repos = $output =~ /repository="([^"]+)"/g) {
         $base_repos = join(" ", @repos);
