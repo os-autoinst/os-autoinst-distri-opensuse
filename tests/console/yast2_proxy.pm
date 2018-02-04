@@ -50,6 +50,15 @@ sub empty_field {
     }
 }
 
+sub post_fail_hook {
+    my ($self) = shift;
+    $self->SUPER::post_fail_hook;
+    upload_logs("/etc/squid/squid.conf");
+    upload_logs("/var/log/squid/access.log");
+    upload_logs("/var/log/squid/proxy_cache.log");
+    upload_logs("/var/log/squid/proxy_store.log");
+}
+
 sub run {
     select_console 'root-console';
     if (is_sle && sle_version_at_least('15')) {
