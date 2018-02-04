@@ -62,8 +62,7 @@ sub post_fail_hook {
 sub run {
     select_console 'root-console';
     if (is_sle && sle_version_at_least('15')) {
-        my $ret = zypper_call('in squid', exitcode => [0, 104]);
-        return record_soft_failure 'bsc#1056793' if $ret == 104;
+        zypper_call('in squid');
     }
 
     # install yast2-squid, yast2-proxy, squid package at first
