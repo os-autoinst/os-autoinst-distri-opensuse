@@ -112,6 +112,17 @@ sub run {
     # move to http ports
     select_sub_menu 'start_up', 'http_ports';
 
+    # add a forwarding port
+    send_key 'alt-a';
+
+    assert_screen 'yast2_proxy_http_ports_add';
+    send_key 'alt-h';
+    type_string '0.0.0.0';
+    send_key 'alt-p';
+    type_string '234';
+    send_key 'alt-o';
+    assert_screen 'yast2_proxy_http_ports_after_add';
+
     # edit details of http ports setting
     send_key 'alt-i';
 
