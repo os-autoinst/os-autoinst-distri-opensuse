@@ -36,7 +36,7 @@ sub run {
     # data from step 2
     my ($base_repos, $package, $prod);
     # Workaround for poo#30613, surround product with >< and use these markers for parsing
-    my $output = script_output "echo '>>>'$(basename `readlink /etc/products.d/baseproduct ` .prod)'<<<'";
+    my $output = script_output "echo '>>>'\$(basename `readlink /etc/products.d/baseproduct ` .prod)'<<<'";
     if ($output =~ />>>(?<prod>.+)<<</) {
         $prod = $+{prod};
     }
