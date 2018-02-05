@@ -159,7 +159,7 @@ sub run {
     send_key "alt-f4";
     assert_screen "wireshark-fullscreen";
     send_key "alt-f4";
-
+    assert_screen "generic-desktop-with-terminal";
     # clean-up
     assert_script_run "rm /tmp/wireshark-openQA-test.pcapng";
     type_string "exit\n";
