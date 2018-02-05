@@ -50,11 +50,19 @@ sub empty_field {
     }
 }
 
+sub post_fail_hook {
+    my ($self) = shift;
+    $self->SUPER::post_fail_hook;
+    upload_logs("/etc/squid/squid.conf");
+    upload_logs("/var/log/squid/access.log");
+    upload_logs("/var/log/squid/proxy_cache.log");
+    upload_logs("/var/log/squid/proxy_store.log");
+}
+
 sub run {
     select_console 'root-console';
     if (is_sle && sle_version_at_least('15')) {
-        my $ret = zypper_call('in squid', exitcode => [0, 104]);
-        return record_soft_failure 'bsc#1056793' if $ret == 104;
+        zypper_call('in squid');
     }
 
     # install yast2-squid, yast2-proxy, squid package at first
@@ -103,6 +111,17 @@ sub run {
     }
     # move to http ports
     select_sub_menu 'start_up', 'http_ports';
+
+    # add a forwarding port
+    send_key 'alt-a';
+
+    assert_screen 'yast2_proxy_http_ports_add';
+    send_key 'alt-h';
+    type_string '0.0.0.0';
+    send_key 'alt-p';
+    type_string '234';
+    send_key 'alt-o';
+    assert_screen 'yast2_proxy_http_ports_after_add';
 
     # edit details of http ports setting
     send_key 'alt-i';
@@ -259,10 +278,7 @@ sub run {
     wait_serial("yast2-squid-status-0", 360) || die "'yast2 squid' didn't finish";
 
     # check squid proxy server status
-    if (script_run 'systemctl show -p ActiveState squid.service|grep ActiveState=active') {
-        record_soft_failure 'bsc#1077366';
-        return;
-    }
+    script_run 'systemctl show -p ActiveState squid.service|grep ActiveState=active';
     systemctl 'show -p SubState squid.service|grep SubState=running';
 }
 1;
