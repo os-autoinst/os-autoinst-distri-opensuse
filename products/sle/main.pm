@@ -341,10 +341,10 @@ if (is_update_test_repo_test && !get_var('MAINT_TEST_REPO')) {
     }
 }
 
-if (get_var('ENABLE_ALL_SCC_MODULES') && !get_var('SCC_MODULES')) {
+if (get_var('ENABLE_ALL_SCC_MODULES') && !get_var('SCC_ADDONS')) {
     if (sle_version_at_least('15')) {
         # Add only modules which are not pre-selected
-        my $addons = (get_var('SCC_ADDONS') ? get_var('SCC_ADDONS') . ',' : '') . 'legacy,sdk,pcm';
+        my $addons = 'legacy,sdk,pcm';
         set_var('SCC_ADDONS', $addons);
         set_var('PATTERNS',   'default,asmm,pcm');
     }
