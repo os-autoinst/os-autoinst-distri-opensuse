@@ -160,7 +160,7 @@ sub x11_start_program {
     # too fast typing or looses characters because of the load caused (also
     # see below). See https://progress.opensuse.org/issues/18200
     if (check_var('DESKTOP', 'kde')) {
-        type_string_slow $program;
+        type_string_very_slow $program;
     }
     else {
         type_string $program;
