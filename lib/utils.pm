@@ -941,7 +941,13 @@ sub ensure_serialdev_permissions {
     # ownership has effect immediately, group change is for effect after
     # reboot an alternative https://superuser.com/a/609141/327890 would need
     # handling of optional sudo password prompt within the exec
-    assert_script_run "chown $testapi::username /dev/$testapi::serialdev && gpasswd -a $testapi::username \$(stat -c %G /dev/$testapi::serialdev)";
+    # Need backwards support for SLES11-SP4 here, the command "gpasswd" and "stat" are only available with SLES-12 at least.
+    if (is_sle && check_var('VERSION', '11-SP4')) {
+        assert_script_run "chown $username /dev/$serialdev";
+    }
+    else {
+        assert_script_run "chown $testapi::username /dev/$testapi::serialdev && gpasswd -a $testapi::username \$(stat -c %G /dev/$testapi::serialdev)";
+    }
 }
 
 1;

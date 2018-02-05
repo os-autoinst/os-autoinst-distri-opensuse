@@ -117,6 +117,9 @@ sub cleanup_needles {
     if ((get_var('VERSION', '') ne '12-SP3') && (get_var('BASE_VERSION', '') ne '12-SP3')) {
         unregister_needle_tags("ENV-VERSION-12-SP3");
     }
+    if ((get_var('VERSION', '') ne '11-SP4') && (get_var('BASE_VERSION', '') ne '11-SP4')) {
+        unregister_needle_tags("ENV-VERSION-11-SP4");
+    }
 
     my $tounregister = sle_version_at_least('12-SP2') ? '0' : '1';
     unregister_needle_tags("ENV-SP2ORLATER-$tounregister");

@@ -33,7 +33,7 @@ sub patching_sle {
 
     assert_script_run("zypper lr && zypper mr --disable --all");
     save_screenshot;
-    yast_scc_registration();
+    sle_register("register");
     assert_script_run('zypper lr -d');
 
     # install all patterns
@@ -67,7 +67,7 @@ sub patching_sle {
 
     }
     else {
-        scc_deregistration(version_variable => 'HDDVERSION');
+        sle_register("unregister");
     }
     remove_ltss;
     assert_script_run("zypper mr --enable --all");
@@ -130,6 +130,32 @@ sub install_patterns {
         zypper_call "in -t pattern $pt";
     }
 }
+
+sub sle_register {
+    my ($action) = @_;
+    # Register sle before update
+    if ($action eq 'register') {
+        if (sle_version_at_least('12')) {
+            yast_scc_registration();
+        }
+        else {
+            my $reg_code = get_required_var("NCC_REGCODE");
+            my $reg_mail = get_required_var("NCC_MAIL");
+            assert_script_run('suse_register -e');
+            assert_script_run("suse_register -n -a email=$reg_mail -a regcode-sles=$reg_code", 300);
+        }
+    }
+    # Unregister sle after update
+    if ($action eq 'unregister') {
+        if (sle_version_at_least('12')) {
+            scc_deregistration(version_variable => 'HDDVERSION');
+        }
+        else {
+            assert_script_run('suse_register -E');
+        }
+    }
+}
+
 
 sub run {
     my ($self) = @_;
