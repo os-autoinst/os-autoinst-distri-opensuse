@@ -278,10 +278,7 @@ sub run {
     wait_serial("yast2-squid-status-0", 360) || die "'yast2 squid' didn't finish";
 
     # check squid proxy server status
-    if (script_run 'systemctl show -p ActiveState squid.service|grep ActiveState=active') {
-        record_soft_failure 'bsc#1077366';
-        return;
-    }
+    script_run 'systemctl show -p ActiveState squid.service|grep ActiveState=active';
     systemctl 'show -p SubState squid.service|grep SubState=running';
 }
 1;
