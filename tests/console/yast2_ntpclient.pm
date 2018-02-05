@@ -25,8 +25,8 @@ sub run {
     # ntp configuration is different in SLE15/Leap15
     # for now, Tumbleweed doesn't use Chrony
     # use sle_or_leap_15 variable to avoid executing is_* and *_version_at_least multiple time
-    my $sle_or_leap_at_least_15 = ((is_sle && sle_version_at_least '15') || (is_leap && leap_version_at_least '15.0')) ? 1 : 0;
-    $ntp_service = 'chronyd' if ($sle_or_leap_at_least_15);
+    my $is_chronyd = (!(is_sle && !sle_version_at_least('15')) && !(is_leap && !leap_version_at_least('15.0'))) ? 1 : 0;
+    $ntp_service = 'chronyd' if ($is_chronyd);
 
     # if support-server is used
     my $ntp_server = check_var('USE_SUPPORT_SERVER', 1) ? 'ns' : '0.opensuse.pool.ntp.org';
@@ -66,7 +66,7 @@ sub run {
     assert_screen 'yast2_ntp-client_synchronize_without_daemon';
 
     # check Runtime Configuration Policy in SLE < 15
-    if (!$sle_or_leap_at_least_15) {
+    if (!$is_chronyd) {
         wait_screen_change { send_key 'alt-r'; };
         send_key 'up';
         assert_screen 'yast2_ntp-client_runtime_config_up';
@@ -88,7 +88,7 @@ sub run {
     assert_screen 'yast2_ntp-client_new_synchronization';
 
     # select type of synchronization: server, then go next
-    if ($sle_or_leap_at_least_15) {
+    if ($is_chronyd) {
         # we can't select public server (yet!), so we manually enter it
         record_soft_failure 'bsc#1073326';
         type_string "$ntp_server";
@@ -135,7 +135,7 @@ sub run {
     my $ntp_client_needle = check_var('USE_SUPPORT_SERVER', 1) ? 'support_server' : 'public';
     send_key_until_needlematch "yast2_ntp-client_${ntp_client_needle}_ntp_server_added", "alt-o", 3, 5;
 
-    if (!$sle_or_leap_at_least_15) {
+    if (!$is_chronyd) {
         # now check display log and save log
         send_key 'alt-l';
 
@@ -172,7 +172,10 @@ sub run {
     wait_serial('yast2-ntp-client-status-0', 180);
 
     # modify /etc/sysconfig/ntp (and not /etc/ntp.conf!!) to add NTPD_FORCE_SYNC_ON_STARTUP=yes
-    script_run('sed -i \'s/^\\(NTPD_FORCE_SYNC_ON_STARTUP=\\).*$/\\1yes/\' /etc/sysconfig/ntp') if (!$sle_or_leap_at_least_15);
+    script_run('sed -i \'s/^\\(NTPD_FORCE_SYNC_ON_STARTUP=\\).*$/\\1yes/\' /etc/sysconfig/ntp') if (!$is_chronyd);
+
+    # Verify that ntp server is added to the config file
+    assert_script_run("grep 'pool $ntp_server' /etc/chrony.conf") if $is_chronyd;
 
     # restart ntp daemon
     systemctl "restart $ntp_service.service";
