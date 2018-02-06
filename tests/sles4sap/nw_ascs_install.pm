@@ -64,10 +64,10 @@ sub run {
 
     # Check everything was copied correctly
     my $cmd = q|find . -type f -exec md5sum {} \; > /tmp/check-nw-media|;
-    assert_script_run $cmd, 300;
+    assert_script_run $cmd, 600;
     type_string "cd /sapinst\n";
     assert_script_run "umount /mnt";
-    assert_script_run "md5sum -c /tmp/check-nw-media", 300;
+    assert_script_run "md5sum -c /tmp/check-nw-media", 600;
 
     # Define a valid hostname/IP address in /etc/hosts
     assert_script_run "curl -f -v " . autoinst_url . "/data/sles4sap/add_ip_hostname2hosts.sh > /tmp/add_ip_hostname2hosts.sh";
