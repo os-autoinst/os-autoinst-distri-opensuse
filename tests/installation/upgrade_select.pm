@@ -48,10 +48,17 @@ sub run {
             send_key $cmd{ok};
         }
         else {
+            # Ensure we are in 'Select the Migration Target' page
+            assert_screen 'select-migration-target', 120;
             send_key 'alt-p';
             # Confirm default migration target matches correct base product
             my $migration_target_base = 'migration_target_' . lc(get_var('SLE_PRODUCT', 'sles')) . lc(get_var('VERSION'));
-            assert_screen $migration_target_base, 120;
+            # Scroll to the end to assert target base product if the text is longer than box
+            assert_screen ["$migration_target_base", 'migration_target_hscrollbar'];
+            if (match_has_tag 'migration_target_hscrollbar') {
+                assert_and_click 'migration_target_hscrollbar';
+                assert_screen "$migration_target_base";
+            }
             # Confirm other migration targets match the same base product
             # Assume no more than 6 possible migration targets
             for (1 .. 5) {
