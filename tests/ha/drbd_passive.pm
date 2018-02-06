@@ -21,6 +21,12 @@ use testapi;
 use lockapi;
 use hacluster;
 
+sub assert_standalone {
+    my $drbd_rsc = shift;
+
+    assert_script_run "! drbdadm status $drbd_rsc | grep -iq standalone";
+}
+
 sub run {
     my $csync_conf    = '/etc/csync2/csync2.cfg';
     my $drbd_rsc      = 'drbd_passive';
@@ -181,6 +187,12 @@ sub run {
         barrier_wait("DRBD_RESOURCE_STARTED_$cluster_name");
     }
 
+    # Check DRBD status
+    assert_standalone;
+
+    # Wait for DRBD status to be done
+    barrier_wait("DRBD_CHECK_ONE_DONE_$cluster_name");
+
     # Migrate DRBD resource on the other node
     if (is_node(2)) {
         assert_script_run "crm resource migrate ms_$drbd_rsc $node_02";
@@ -217,6 +229,12 @@ sub run {
 
     # Wait for DRBD resrouce migration to be done
     barrier_wait("DRBD_REVERT_DONE_$cluster_name");
+
+    # Check DRBD status
+    assert_standalone;
+
+    # Wait for DRBD status to be done
+    barrier_wait("DRBD_CHECK_TWO_DONE_$cluster_name");
 
     # Do a check of the cluster with a screenshot
     save_state;
