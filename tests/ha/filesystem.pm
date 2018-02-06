@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2016 SUSE LLC
+# Copyright (c) 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -12,6 +12,7 @@
 
 use base 'opensusebasetest';
 use strict;
+use utils 'zypper_call';
 use testapi;
 use lockapi;
 use hacluster;
@@ -61,10 +62,17 @@ sub run {
     # DLM process needs to be started
     ensure_process_running 'dlm_controld';
 
+    # ocfs2 package should be installed by default
     if ($fs_type eq 'ocfs2') {
         # Test if OCFS2 kernel module package is installed
-        die 'ocfs2 kernel package is not installed' unless is_package_installed 'ocfs2-kmp-default';
+        if (!is_package_installed 'ocfs2-kmp-default') {
+            record_soft_failure 'bsc#1060601';
+            zypper_call 'in ocfs2-kmp-default';
+        }
     }
+
+    # xfsprogs is not installed by default, so we need to install it if needed
+    zypper_call 'in xfsprogs' if (!is_package_installed 'xfsprogs' and ($fs_type eq 'xfs'));
 
     # Format the Filesystem device
     if (is_node(1)) {
