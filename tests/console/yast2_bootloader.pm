@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -24,12 +24,15 @@ sub run {
 
     script_run("yast2 bootloader; echo btld-status-\$? > /dev/$serialdev", 0);
     assert_screen "test-yast2_bootloader-1", 300;
-    send_key "alt-o";    # OK => Close
-    assert_screen([qw(yast2_bootloader-missing_package yast2_console-finished)], 200);
+    # OK => Close
+    send_key "alt-o";
+    # Our Hyper-V host is slow when initrd is being re-generated
+    my $timeout = check_var('VIRSH_VMM_FAMILY', 'hyperv') ? 400 : 200;
+    assert_screen([qw(yast2_bootloader-missing_package yast2_console-finished)], $timeout);
     if (match_has_tag('yast2_bootloader-missing_package')) {
         wait_screen_change { send_key 'alt-i'; };
     }
-    assert_screen 'yast2_console-finished', 200;
+    assert_screen 'yast2_console-finished', $timeout;
     wait_serial("btld-status-0") || die "'yast2 bootloader' didn't finish";
 }
 
