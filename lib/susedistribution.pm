@@ -105,7 +105,8 @@ sub init_cmd {
     if (check_var('INSTLANG', "fr_FR")) {
         $testapi::cmd{next} = "alt-s";
     }
-    if ((is_sle && sle_version_at_least '15') || (is_leap && leap_version_at_least '15.0')) {
+
+    if (!(is_sle && !sle_version_at_least('15')) && !(is_leap && !leap_version_at_least('15.0'))) {
         # SLE15/Leap15 use Chrony instead of ntp
         $testapi::cmd{sync_interval}       = "alt-i";
         $testapi::cmd{sync_without_daemon} = "alt-s";
