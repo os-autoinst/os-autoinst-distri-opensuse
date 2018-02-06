@@ -7,8 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Checks NetWeaver's ASCS installation as performed by sles4sap/nw_ascs_install
-# Requires: sles4sap/nw_ascs_install, ENV variable SAPADM
+# Summary: Checks NetWeaver's ASCS installation as performed by sles4sap/netweaver_ascs_install
+# Requires: sles4sap/netweaver_ascs_install, ENV variable SAPADM
 # Maintainer: Alvaro Carvajal <acarvajal@suse.de>
 
 use base "sles4sap";
@@ -22,7 +22,7 @@ sub run {
 
     select_console 'root-console';
 
-    # The SAP Admin was set in sles4sap/nw_ascs_install
+    # The SAP Admin was set in sles4sap/netweaver_ascs_install
     my $sapadmin = get_required_var('SAPADM');
     my $sid = uc(substr($sapadmin, 0, 3));
 

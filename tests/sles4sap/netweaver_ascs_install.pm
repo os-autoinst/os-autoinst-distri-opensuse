@@ -35,7 +35,7 @@ sub run {
       SAPINST_SKIP_DIALOGS=true SAPINST_SLP_MODE=false);
 
     $proto = 'cifs' if ($proto eq 'smb' or $proto eq 'smbfs');
-    die "nw_ascs_install: currently only supported protocols are nfs and smb/smbfs/cifs"
+    die "netweaver_ascs_install: currently only supported protocols are nfs and smb/smbfs/cifs"
       unless ($proto eq 'nfs' or $proto eq 'cifs');
 
     # Normalize path depending on the protocol

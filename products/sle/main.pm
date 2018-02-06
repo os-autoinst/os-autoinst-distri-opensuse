@@ -1171,7 +1171,7 @@ sub load_sles4sap_tests {
     loadtest "sles4sap/sapconf";
     loadtest "sles4sap/saptune";
     if (get_var('NW')) {
-        loadtest "sles4sap/nw_ascs_install" if (get_var('SLES4SAP_MODE') !~ /wizard/);
+        loadtest "sles4sap/netweaver_ascs_install" if (get_var('SLES4SAP_MODE') !~ /wizard/);
         loadtest "sles4sap/netweaver_ascs";
     }
 }
