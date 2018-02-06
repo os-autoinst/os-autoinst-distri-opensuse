@@ -31,7 +31,7 @@ sub run {
     my @sapoptions = qw(
       SAPINST_USE_HOSTNAME=$(hostname)
       SAPINST_INPUT_PARAMETERS_URL=/sapinst/inifile.params
-      SAPINST_EXECUTE_PRODUCT_ID=NW_ABAP_ASCS:NW740SR2.ADA.PIHA
+      SAPINST_EXECUTE_PRODUCT_ID=NW_ABAP_ASCS:NW750.HDB.ABAPHA
       SAPINST_SKIP_DIALOGS=true SAPINST_SLP_MODE=false);
 
     $proto = 'cifs' if ($proto eq 'smb' or $proto eq 'smbfs');
