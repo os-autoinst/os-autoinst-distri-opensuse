@@ -55,6 +55,7 @@ our @EXPORT = qw(
   load_rollback_tests
   load_filesystem_tests
   load_wicked_tests
+  load_networkd_tests
   load_nfv_master_tests
   load_nfv_trafficgen_tests
   load_iso_in_external_tests
@@ -675,6 +676,14 @@ sub load_wicked_tests {
     elsif (check_var('WICKED', 'risky')) {
         loadtest 'wicked/risky';
     }
+}
+
+sub load_networkd_tests {
+    loadtest "console/consoletest_setup";
+    loadtest 'networkd/networkd_init';
+    loadtest 'networkd/networkd_dhcp';
+    loadtest 'networkd/networkd_vlan';
+    loadtest 'networkd/networkd_bridge';
 }
 
 sub load_nfv_master_tests {
