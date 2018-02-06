@@ -133,6 +133,10 @@ sub addpart {
     if ($args{fsid}) {                            # $args{fsid} will describe needle tag below
         send_key 'alt-i';                         # select File system ID
         send_key 'home';                          # start from the top of the list
+        if ($args{role} eq 'raw' && !check_var('VIDEOMODE', 'text')) {
+            record_soft_failure('bsc#1079399 - Combobox is writable');
+            for (1 .. 10) { send_key 'up'; }
+        }
         send_key_until_needlematch "partition-selected-$args{fsid}-type", 'down';
     }
 
@@ -143,7 +147,7 @@ sub addpart {
         assert_screen 'partition-encrypt';
         send_key $cmd{next};
         assert_screen 'partition-password-prompt';
-        send_key 'alt-e';                         # select password field
+        send_key 'alt-e';    # select password field
         type_password;
         send_key 'tab';
         type_password;
