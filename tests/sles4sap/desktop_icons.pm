@@ -12,6 +12,7 @@
 
 use base "sles4sap";
 use testapi;
+use version_utils 'sle_version_at_least';
 use strict;
 
 sub run {
@@ -26,9 +27,10 @@ sub run {
     }
     else {
         # There was no match for the desktop icons needle
-        # Verify that there's at least a generic desktop and soft fail
+        # Verify that there is at least a generic desktop and
+        # fail unless we're in SLE-15 where there are no icons
         assert_screen 'generic-desktop';
-        record_soft_failure 'bsc#1072646';
+        record_soft_failure 'bsc#1072646' unless sle_version_at_least('15');
     }
 }
 
