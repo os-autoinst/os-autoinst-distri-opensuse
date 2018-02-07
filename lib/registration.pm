@@ -415,7 +415,7 @@ sub select_addons_in_textmode {
     my ($addon, $flag) = @_;
     if ($flag) {
         send_key_until_needlematch 'scc-module-area-selected', 'tab';
-        send_key_until_needlematch "scc-module-$addon",        'down';
+        send_key_until_needlematch "scc-module-$addon", 'down', 30;
         if (check_var('ARCH', 'aarch64') && check_var('HDDVERSION', '12-SP2') && check_screen('scc-module-tcm-selected', 5)) {
             record_info('Workaround',
                 "Toolchain module is selected and installed by default on sles12sp2 aarch64\nSee: https://progress.opensuse.org/issues/19852");
