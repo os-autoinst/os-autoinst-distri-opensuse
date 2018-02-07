@@ -35,7 +35,7 @@ sub run {
 
         # First update package manager, then packages, then bsc#992773 (2x)
         while (1) {
-            assert_and_click('updates_click-install');
+            assert_and_click_until_screen_change('updates_click-install');
 
             # Wait until installation is done
             assert_screen \@updates_installed_tags, 3600;
