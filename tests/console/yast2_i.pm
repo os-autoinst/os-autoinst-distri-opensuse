@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -32,7 +32,7 @@ sub run {
     # Check disk usage widget for not showing subvolumes (bsc#949945)
     # on SLE12SP0 hidden subvolume isn't supported
     if (!check_var('VERSION', '12')) {
-        wait_screen_change { send_key 'alt-e' };
+        send_key_until_needlematch('yast2-sw_single-extras-open', 'alt-e', 5, 3);
         wait_screen_change { send_key 'alt-s' };
         assert_screen 'yast2-sw_single-disk_usage';
         wait_screen_change { send_key 'alt-o' };
