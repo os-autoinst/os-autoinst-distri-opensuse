@@ -127,7 +127,7 @@ sub remove_suseconnect_product {
     $version //= scc_version();
     $arch    //= get_required_var('ARCH');
     $params  //= '';
-    assert_script_run("SUSEConnect -d $name/$version/$arch $params");
+    assert_script_run("SUSEConnect -d -p $name/$version/$arch $params");
 }
 
 sub register_addons {
