@@ -311,17 +311,10 @@ sub minimal_patch_system {
     }
 }
 
-=head2 workaround_type_encrypted_passphrase
-
-    workaround_type_encrypted_passphrase()
-
-Record soft-failure for unresolved feature which we think is important and then unlock encrypted boot partitions if we expect it to be encrypted. This condition is met on 'storage-ng' which by default puts the boot partition within the encrypted LVM same as in test scenarios where we explicitly create an LVM including boot (C<FULL_LVM_ENCRYPT>). C<ppc64le> was already doing the same by default also in the case of pre-storage-ng but not anymore for storage-ng.
-
-=cut
 sub workaround_type_encrypted_passphrase {
     if (
         get_var('FULL_LVM_ENCRYPT')
-        || (   (check_var('ARCH', 'ppc64le') || (get_var('STORAGE_NG') && !check_var('ARCH', 'ppc64le')))
+        || (check_var('ARCH', 'ppc64le')
             && (get_var('ENCRYPT') && !get_var('ENCRYPT_ACTIVATE_EXISTING') || get_var('ENCRYPT_FORCE_RECOMPUTE'))))
     {
         record_soft_failure 'workaround https://fate.suse.com/320901' if sle_version_at_least('12-SP4');

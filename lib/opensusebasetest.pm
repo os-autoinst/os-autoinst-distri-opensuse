@@ -336,7 +336,6 @@ sub wait_boot {
             select_console('iucvconn');
         }
         else {
-            workaround_type_encrypted_passphrase if get_var('S390_ZKVM');
             wait_serial('GNU GRUB') || diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
             select_console('svirt');
             save_svirt_pty;
@@ -374,11 +373,15 @@ sub wait_boot {
             send_key "ret";
             assert_screen "grub2", 15;
         }
+        elsif (match_has_tag("migration-source-system-grub2") or match_has_tag('grub2')) {
+            send_key "ret";    # boot to source system
+        }
         elsif (get_var("LIVETEST")) {
             # prevent if one day booting livesystem is not the first entry of the boot list
             if (!match_has_tag("boot-live-" . get_var("DESKTOP"))) {
                 send_key_until_needlematch("boot-live-" . get_var("DESKTOP"), 'down', 10, 5);
             }
+            send_key "ret";
         }
         elsif (match_has_tag('inst-bootmenu')) {
             # assuming the cursor is on 'installation' by default and 'boot from
@@ -386,6 +389,8 @@ sub wait_boot {
             send_key_until_needlematch 'inst-bootmenu-boot-harddisk', 'up';
             boot_local_disk;
             assert_screen 'grub2', 15;
+            # confirm default choice
+            send_key 'ret';
         }
         elsif (match_has_tag('encrypted-disk-password-prompt')) {
             # unlock encrypted disk before grub
@@ -396,8 +401,6 @@ sub wait_boot {
             # check_screen timeout
             die "needle 'grub2' not found";
         }
-        # confirm default choice
-        send_key 'ret';
     }
 
     # On Xen we have to re-connect to serial line as Xen closed it after restart
@@ -407,7 +410,7 @@ sub wait_boot {
         select_console('sut');
     }
 
-    # on s390x svirt encryption is unlocked with workaround_type_encrypted_passphrase before here
+    # on s390x svirt is encryption unlocked with workaround_type_encrypted_passphrase before this wait_boot
     unlock_if_encrypted if !get_var('S390_ZKVM');
 
     if ($textmode || check_var('DESKTOP', 'textmode')) {
