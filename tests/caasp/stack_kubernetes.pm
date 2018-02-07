@@ -20,8 +20,7 @@ use testapi;
 sub run {
     # Use downloaded kubeconfig to display basic information
     switch_to 'xterm';
-    type_string "export KUBECONFIG=~/Downloads/kubeconfig\n";
-
+    assert_script_run 'mv ~/Downloads/kubeconfig ~/.kube/config';
     assert_script_run "kubectl cluster-info";
     assert_script_run "kubectl get nodes";
     assert_script_run "! kubectl get cs --no-headers | grep -v Healthy";

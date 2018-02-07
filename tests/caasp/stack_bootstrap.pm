@@ -127,11 +127,8 @@ sub kubectl_config {
     assert_screen 'dex-login-page';
     velum_login;
 
-    # Check that kubeconfig downloaded
     assert_screen 'velum-kubeconfig-page';
-
-    # Download takes few seconds
-    sleep 5;
+    assert_and_click 'firefox-downloading-save_enabled';
     assert_and_click 'velum-kubeconfig-back';
 }
 
