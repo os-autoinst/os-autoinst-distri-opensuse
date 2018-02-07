@@ -336,6 +336,7 @@ sub wait_boot {
             select_console('iucvconn');
         }
         else {
+            workaround_type_encrypted_passphrase if get_var('S390_ZKVM');
             wait_serial('GNU GRUB') || diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
             select_console('svirt');
             save_svirt_pty;
@@ -410,7 +411,7 @@ sub wait_boot {
         select_console('sut');
     }
 
-    # on s390x svirt is encryption unlocked with workaround_type_encrypted_passphrase before this wait_boot
+    # on s390x svirt encryption is unlocked with workaround_type_encrypted_passphrase before here
     unlock_if_encrypted if !get_var('S390_ZKVM');
 
     if ($textmode || check_var('DESKTOP', 'textmode')) {
