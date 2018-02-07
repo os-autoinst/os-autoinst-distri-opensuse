@@ -66,6 +66,7 @@ our @EXPORT = qw(
   setup_static_network
   arrays_differ
   ensure_serialdev_permissions
+  assert_and_click_until_screen_change
 );
 
 
