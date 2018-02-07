@@ -33,6 +33,7 @@ sub run {
       SAPINST_INPUT_PARAMETERS_URL=/sapinst/inifile.params
       SAPINST_EXECUTE_PRODUCT_ID=NW_ABAP_ASCS:NW750.HDB.ABAPHA
       SAPINST_SKIP_DIALOGS=true SAPINST_SLP_MODE=false);
+    my $nettout = 600;    # Time out for NetWeaver's sources related commands
 
     $proto = 'cifs' if ($proto eq 'smb' or $proto eq 'smbfs');
     die "netweaver_ascs_install: currently only supported protocols are nfs and smb/smbfs/cifs"
@@ -60,14 +61,14 @@ sub run {
     assert_script_run "mount -t $proto $path /mnt";
     type_string "cd /mnt\n";
     type_string "cd " . get_var('ARCH') . "\n";    # Change to ARCH specific subdir if exists
-    assert_script_run "tar -cf - . | (cd /sapinst/; tar -pxf - )", 600;
+    assert_script_run "tar -cf - . | (cd /sapinst/; tar -pxf - )", $nettout;
 
     # Check everything was copied correctly
     my $cmd = q|find . -type f -exec md5sum {} \; > /tmp/check-nw-media|;
-    assert_script_run $cmd, 600;
+    assert_script_run $cmd, $nettout;
     type_string "cd /sapinst\n";
     assert_script_run "umount /mnt";
-    assert_script_run "md5sum -c /tmp/check-nw-media", 600;
+    assert_script_run "md5sum -c /tmp/check-nw-media", $nettout;
 
     # Define a valid hostname/IP address in /etc/hosts
     assert_script_run "curl -f -v " . autoinst_url . "/data/sles4sap/add_ip_hostname2hosts.sh > /tmp/add_ip_hostname2hosts.sh";
@@ -97,7 +98,7 @@ sub run {
     $cmd = "../SWPM/sapinst";
     $cmd = $cmd . ' ' . join(' ', @sapoptions);
 
-    assert_script_run $cmd, 600;
+    assert_script_run $cmd, $nettout;
 }
 
 sub post_fail_hook {
