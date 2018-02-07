@@ -564,6 +564,7 @@ sub install_this_version {
 
 sub load_inst_tests {
     loadtest "installation/welcome";
+    loadtest "installation/keyboard_selection";
     if (get_var('DUD_ADDONS')) {
         loadtest "installation/dud_addon";
     }

@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -113,10 +113,6 @@ sub run {
     }
 
     assert_screen 'languagepicked';
-    send_key $cmd{next} unless (is_sle && sle_version_at_least('15') && get_var('UPGRADE'));
-    if (!check_var('INSTLANG', 'en_US') && check_screen 'langincomplete', 1) {
-        send_key 'alt-f';
-    }
 }
 
 sub post_fail_hook {
