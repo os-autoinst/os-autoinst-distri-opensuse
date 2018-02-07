@@ -173,13 +173,11 @@ sub run {
         select_console 'installation';
     }
 
-    prepare_system_shutdown;
-
     wait_screen_change {
         send_key 'alt-o';    # Reboot
     };
 
-    assert_shutdown_and_restore_system if check_var('VIRSH_VMM_FAMILY', 'xen');
+    power_action('reboot', observe => 1, keepconsole => 1);
 }
 
 1;
