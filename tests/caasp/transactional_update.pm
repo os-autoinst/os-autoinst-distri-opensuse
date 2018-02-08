@@ -74,17 +74,11 @@ sub run {
     check_package rpmver('in');
 
     record_info 'Update #1', 'Add repository and update - snapshot #2';
-    if (is_caasp 'caasp') {
-        # Only CaaSP needs an additional repo for testing
-        assert_script_run 'zypper ar utt.repo' if is_caasp 'caasp';
-        trup_call 'cleanup up';
-        check_reboot_changes;
-        check_package rpmver('up');
-    }
-    else {
-        # No update repositories ATM
-        record_soft_failure('Test skipped on openSUSE Kubic - bsc#1069784');
-    }
+    # Only CaaSP needs an additional repo for testing
+    assert_script_run 'zypper ar utt.repo' if is_caasp 'caasp';
+    trup_call 'cleanup up';
+    check_reboot_changes;
+    check_package rpmver('up');
 
     record_info 'Update #2', 'System should be up to date - no changes expected';
     trup_call 'cleanup up';
@@ -99,9 +93,8 @@ sub run {
         check_reboot_changes 0;
     }
     else {
-        # No update repositories ATM
         trup_call "pkg install" . rpmver('broken');
-        record_soft_failure('Test skipped on openSUSE Kubic - bsc#1069784');
+        record_info 'Test skipped on openSUSE Kubic - poo#31519';
     }
 
     record_info 'Remove pkg', 'Remove package - snapshot #4';
