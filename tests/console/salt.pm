@@ -20,7 +20,7 @@ use utils qw(zypper_call pkcon_quit systemctl);
 sub run {
     select_console 'root-console';
     pkcon_quit;
-    zypper_call("in salt-master salt-minion", timeout => 180);
+    zypper_call('in salt-master salt-minion');
     my $cmd = <<'EOF';
 systemctl start salt-master
 systemctl status salt-master
