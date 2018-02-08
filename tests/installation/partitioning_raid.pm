@@ -175,13 +175,12 @@ sub modify_uefi_boot_partition {
     assert_screen 'partitioning_raid-disk_vdd_with_partitions-selected';
     # fold the drive tree
     send_key 'left';
+    send_key 'left' if is_storage_ng;    # With storage-ng first press folds vdd
     assert_screen 'partitioning_raid-hard_disks-unfolded';
     # select first partition of the first disk (usually vda1), bit of a short-cut
-    if (is_storage_ng) {
-        send_key 'left';
-        send_key 'right';
-    }
     send_key 'right';
+    # In storage ng other partition of the first disk can be selected, so select vda1 in the tree
+    send_key 'right' if is_storage_ng;
     assert_screen 'partitioning_raid-disk_vda_with_partitions-selected';
     # edit first partition
     send_key 'alt-e';
@@ -193,7 +192,7 @@ sub modify_uefi_boot_partition {
     type_string 'fat';
     # mount point selection
     send_key 'alt-o';
-    send_key 'tab';
+    send_key 'alt-m';
     assert_screen 'partitioning_raid-mount_point-focused';
     # enter mount point
     type_string '/boot/efi';
