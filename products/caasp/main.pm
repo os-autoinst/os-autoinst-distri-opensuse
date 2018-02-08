@@ -124,6 +124,7 @@ sub load_feature_tests {
     if (!check_var('SYSTEM_ROLE', 'microos')) {
         loadtest 'console/docker';
         loadtest 'console/docker_runc';
+        loadtest 'console/skopeo' if is_caasp('kubic') && check_var('SYSTEM_ROLE', 'plain');
     }
 }
 
