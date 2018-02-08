@@ -744,7 +744,7 @@ sub handle_login {
     elsif (get_var('DM_NEEDS_USERNAME')) {
         type_string "$username\n";
     }
-    elsif (check_var('DESKTOP', 'gnome') || (check_var('DESKTOP', 'lxde') && check_var('VERSION', '42.1'))) {
+    elsif (check_var('DESKTOP', 'gnome')) {
         # DMs in condition above have to select user
         if ((is_sle && sle_version_at_least('15')) || (is_leap && leap_version_at_least('15.0')) || is_tumbleweed) {
             assert_and_click "displaymanager-$username";
