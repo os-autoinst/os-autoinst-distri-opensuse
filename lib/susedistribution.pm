@@ -114,6 +114,28 @@ sub init_cmd {
     ## keyboard cmd vars end
 }
 
+
+sub init_desktop_runner {
+    my ($timeout, $program) = @_;
+
+    send_key 'alt-f2';
+    mouse_hide(1);
+    if (!check_screen('desktop-runner', $timeout)) {
+        record_info('workaround', 'desktop-runner does not show up on alt-f2, retrying up to three times (see bsc#978027)');
+        send_key 'esc';    # To avoid failing needle on missing 'alt' key - poo#20608
+        send_key_until_needlematch 'desktop-runner', 'alt-f2', 3, 10;
+    }
+    # krunner may use auto-completion which sometimes gets confused by
+    # too fast typing or looses characters because of the load caused (also
+    # see below). See https://progress.opensuse.org/issues/18200
+    if (check_var('DESKTOP', 'kde')) {
+        type_string_slow $program;
+    }
+    else {
+        type_string $program;
+    }
+}
+
 =head2 x11_start_program
 
   x11_start_program($program [, timeout => $timeout ] [, no_wait => 0|1 ] [, valid => 0|1, [target_match => $target_match, ] [match_timeout => $match_timeout, ] [match_no_wait => 0|1 ]]);
@@ -133,6 +155,9 @@ command to launch C<$program>. The tag(s) can be customized with the parameter
 C<$target_match>. C<$match_timeout> can be specified to configure the timeout
 on that internal C<assert_screen>. Specify C<match_no_wait> to forward the
 C<no_wait> option to the internal C<assert_screen>.
+If user wants to assert that command was typed correctly in the I<desktop-runner>
+she can pass needle tag using C<match_typed> parameter. This will check typed text
+and retry once in case of typos or unexpected results (see poo#25972).
 
 The combination of C<no_wait> with C<valid> and C<target_match> is the
 preferred solution for the most efficient approach by saving time within
@@ -150,21 +175,13 @@ sub x11_start_program {
     $args{target_match}  //= $program;
     $args{match_no_wait} //= 0;
     die "no desktop-runner available on minimalx" if check_var('DESKTOP', 'minimalx');
-    send_key 'alt-f2';
-    mouse_hide(1);
-    if (!check_screen('desktop-runner', $timeout)) {
-        record_info('workaround', 'desktop-runner does not show up on alt-f2, retrying up to three times (see bsc#978027)');
-        send_key 'esc';    # To avoid failing needle on missing 'alt' key - poo#20608
-        send_key_until_needlematch 'desktop-runner', 'alt-f2', 3, 10;
-    }
-    # krunner may use auto-completion which sometimes gets confused by
-    # too fast typing or looses characters because of the load caused (also
-    # see below). See https://progress.opensuse.org/issues/18200
-    if (check_var('DESKTOP', 'kde')) {
-        type_string_slow $program;
-    }
-    else {
-        type_string $program;
+    # Start desktop runner and type command there
+    init_desktop_runner($timeout, $program);
+    # With match_typed we check typed text and if doesn't match - retrying
+    # Is required by firefox test on kde, as typing fails on KDE desktop runnner sometimes
+    if ($args{match_typed} && !check_screen($args{match_typed})) {
+        send_key 'esc';
+        init_desktop_runner($timeout, $program);
     }
     wait_still_screen(1);
     save_screenshot;
