@@ -30,7 +30,7 @@ sub rpmver {
         kubic => {
             fn => '5-2.1',
             in => '2.1',
-            up => 'UNDEF'
+            up => '3.1'
         },
         caasp => {
             fn => '5-5.3.61',
