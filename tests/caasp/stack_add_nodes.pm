@@ -31,6 +31,7 @@ sub accept_nodes {
 sub bootstrap {
     assert_and_click 'unassigned-select-all';
     assert_and_click 'unassigned-add-nodes';
+    assert_screen 'velum-bootstrap-done';
     send_key 'end';
     assert_screen 'velum-adding-nodes-done', 900;
     send_key 'home';
