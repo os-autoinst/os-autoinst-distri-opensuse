@@ -30,6 +30,7 @@ sub run {
         bsc_1025217_FEATURE => '.*piix4_smbus.*SMBus (Host Controller not enabled|base address uninitialized - upgrade BIOS).*',
         bsc_1025218_FEATURE => '.*dmi.*Firmware registration failed.*',
         bsc_1028060_FEATURE => '.*getting etcd lock took too long, reboot canceld.*',
+        bsc_1071224         => '.*Failed to start Mask tmp.mount by default on SUSE systems.*',
     };
     my $master_pattern = "(" . join('|', map { "$_" } values %$bug_pattern) . ")";
 
