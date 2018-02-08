@@ -200,14 +200,17 @@ sub unselect_xen_pv_cdrom {
 sub enable_encryption_guided_setup {
     my $self = shift;
     send_key $cmd{encryptdisk};
-    if (!get_var('ENCRYPT_ACTIVATE_EXISTING')) {
-        assert_screen 'inst-encrypt-password-prompt';
-        type_password;
-        send_key 'tab';
-        type_password;
-        send_key $cmd{next};
-        installation_user_settings::await_password_check;
+    # Bug is only in old storage stack
+    if (get_var('ENCRYPT_ACTIVATE_EXISTING') && !is_storage_ng) {
+        record_info 'bsc#993247 https://fate.suse.com/321208', 'activated encrypted partition will not be recreated as encrypted';
+        return;
     }
+    assert_screen 'inst-encrypt-password-prompt';
+    type_password;
+    send_key 'tab';
+    type_password;
+    send_key $cmd{next};
+    installation_user_settings::await_password_check;
 }
 
 1;

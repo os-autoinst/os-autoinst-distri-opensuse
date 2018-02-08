@@ -34,25 +34,16 @@ sub run {
     my $self             = shift;
     my $file_system_tags = [
         qw(
-          partitioning-no-root-filesystem partitioning-encrypt-activated-existing
+          partitioning-encrypt-activated-existing
           partitioning-encrypt-ignored-existing
           )];
-    my $collect_logs = 0;
 
     if (get_var('ENCRYPT_ACTIVATE_EXISTING')) {
         assert_screen $file_system_tags;
-        if (match_has_tag('partitioning-no-root-filesystem')) {
-            record_soft_failure 'bsc#989750';
-            $collect_logs = 1;
-        }
-        elsif (match_has_tag('partitioning-encrypt-ignored-existing')) {
+        if (match_has_tag('partitioning-encrypt-ignored-existing')) {
             record_info 'bsc#993247 https://fate.suse.com/321208', 'activated encrypted partition will not be recreated as encrypted';
         }
-
-        unless (get_var('ENCRYPT_FORCE_RECOMPUTE')) {
-            $self->save_logs_and_resume() if $collect_logs;
-            return;
-        }
+        return unless (get_var('ENCRYPT_FORCE_RECOMPUTE'));
     }
 
     # Storage NG introduces a new partitioning dialog. partitioning.pm detects this by the existence of the "Guided Setup" button
@@ -62,7 +53,7 @@ sub run {
     my $numdisks = get_var("NUMDISKS");
     print "NUMDISKS = $numdisks\n";
 
-    assert_screen [qw(inst-partition-radio-buttons inst-partition-guided inst-partitioning-scheme)];
+    assert_screen [qw(inst-partition-radio-buttons inst-partition-guided inst-partitioning-scheme inst-select-disk-to-use-as-root )];
     if (match_has_tag('inst-partition-radio-buttons')) {    # detect whether new (Radio Buttons) YaST behaviour
         if (get_var("ENCRYPT")) {
             send_key "alt-e";
@@ -80,25 +71,11 @@ sub run {
             send_key 'alt-l';
         }
         send_key 'alt-o';
-        assert_screen [qw(partition-lvm-new-summary partitioning-encrypt-activated-existing partitioning-encrypt-broke-existing)];
-        if (match_has_tag('partitioning-encrypt-broke-existing')) {
-            record_soft_failure 'bsc#993249';
-            $collect_logs = 1;
-        }
+        assert_screen [qw(partition-lvm-new-summary partitioning-encrypt-activated-existing)];
     }
     elsif (is_storage_ng) {
-        if ($numdisks <= 1) {
-            die "Guided workflow does not skip disk selection when only one disk!"
-              unless match_has_tag('inst-partitioning-scheme');
-        }
-        else {
-            die "Guided workflow does skip disk selection when more than one disk! (NUMDISKS=$numdisks)"
-              unless match_has_tag('inst-partition-guided');
-            assert_screen "inst-partition-guided";
-            send_key 'alt-n';
-            assert_screen "inst-select-root-disk";
-            send_key 'alt-n';
-        }
+        send_key $cmd{next} if (match_has_tag('inst-select-disk-to-use-as-root'));
+
         send_key $cmd{enablelvm};
         assert_screen "inst-partitioning-lvm-enabled";
         if (get_var("ENCRYPT")) {
@@ -109,11 +86,7 @@ sub run {
         }
         assert_screen "inst-filesystem-options";
         send_key 'alt-n';
-        assert_screen [qw(partition-lvm-new-summary partitioning-encrypt-activated-existing partitioning-encrypt-broke-existing)];
-        if (match_has_tag('partitioning-encrypt-broke-existing')) {
-            record_soft_failure 'bsc#993249';
-            $collect_logs = 1;
-        }
+        assert_screen [qw(partition-lvm-new-summary partitioning-encrypt-activated-existing)];
         if (get_var("ENCRYPT")) {
             assert_screen "partitioning-encrypt-activated";
         }
@@ -134,8 +107,6 @@ sub run {
         }
         send_key "alt-o";
     }
-
-    $self->save_logs_and_resume() if $collect_logs;
 }
 
 1;
