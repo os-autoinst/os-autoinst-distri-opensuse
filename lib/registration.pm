@@ -22,7 +22,7 @@ use strict;
 
 use testapi;
 use utils qw(addon_decline_license assert_screen_with_soft_timeout);
-use version_utils qw(is_sle sle_version_at_least is_system_upgrading);
+use version_utils qw(is_sle sle_version_at_least is_sle12_hdd_in_upgrade);
 
 our @EXPORT = qw(
   add_suseconnect_product
@@ -172,6 +172,9 @@ sub fill_in_registration_data {
         if (get_var('SCC_URL') || get_var('SMT_URL')) {
             push @tags, 'untrusted-ca-cert';
         }
+        # The "Extension and Module Selection" won't be shown during upgrade to sle15, refer to:
+        # https://bugzilla.suse.com/show_bug.cgi?id=1070031#c11
+        push @tags, 'inst-addon' if is_sle && sle_version_at_least('15') && is_sle12_hdd_in_upgrade;
         while ($counter--) {
             assert_screen(\@tags);
             if (match_has_tag("import-untrusted-gpg-key")) {
@@ -225,6 +228,9 @@ sub fill_in_registration_data {
             elsif (match_has_tag('module-selection')) {
                 last;
             }
+            elsif (match_has_tag('inst-addon')) {
+                return;
+            }
             die 'Registration repeated too much. Check if SCC is down.' if ($counter eq 1);
         }
     }
@@ -232,24 +238,19 @@ sub fill_in_registration_data {
     # Process modules on sle 15
     if (is_sle && sle_version_at_least('15')) {
         my $modules_needle = "modules-preselected-" . get_required_var('SLE_PRODUCT');
-        if (get_var('UPGRADE') || get_var('PATCH')) {
-            return record_soft_failure('bsc#1070031: Module Selection is missing in upgrade') if is_system_upgrading && !check_screen($modules_needle, 5);
+        if (check_var('BETA', '1')) {
+            assert_screen('scc-beta-filter-checkbox');
+            send_key('alt-i');
         }
-        else {
-            if (check_var('BETA', '1')) {
-                assert_screen('scc-beta-filter-checkbox');
-                send_key('alt-i');
-            }
-            assert_screen($modules_needle);
-            # Add desktop module for SLES if desktop is gnome
-            # Need desktop application for minimalx to make change_desktop work
-            if (   check_var('SLE_PRODUCT', 'sles')
-                && (check_var('DESKTOP', 'gnome') || check_var('DESKTOP', 'minimalx'))
-                && (my $addons = get_var('SCC_ADDONS')) !~ /(?:desktop|we|productivity|ha)/)
-            {
-                $addons = $addons ? $addons . ',desktop' : 'desktop';
-                set_var('SCC_ADDONS', $addons);
-            }
+        assert_screen($modules_needle);
+        # Add desktop module for SLES if desktop is gnome
+        # Need desktop application for minimalx to make change_desktop work
+        if (   check_var('SLE_PRODUCT', 'sles')
+            && (check_var('DESKTOP', 'gnome') || check_var('DESKTOP', 'minimalx'))
+            && (my $addons = get_var('SCC_ADDONS')) !~ /(?:desktop|we|productivity|ha)/)
+        {
+            $addons = $addons ? $addons . ',desktop' : 'desktop';
+            set_var('SCC_ADDONS', $addons);
         }
     }
 
