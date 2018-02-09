@@ -27,7 +27,7 @@ sub run {
     # OK => Close
     send_key "alt-o";
     # Our Hyper-V host is slow when initrd is being re-generated
-    my $timeout = check_var('VIRSH_VMM_FAMILY', 'hyperv') ? 400 : 200;
+    my $timeout = check_var('VIRSH_VMM_FAMILY', 'hyperv') ? 600 : 200;
     assert_screen([qw(yast2_bootloader-missing_package yast2_console-finished)], $timeout);
     if (match_has_tag('yast2_bootloader-missing_package')) {
         wait_screen_change { send_key 'alt-i'; };
