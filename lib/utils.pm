@@ -447,8 +447,8 @@ sub assert_and_click_until_screen_change {
     my $i = 0;
 
     for (; $i < $repeat; $i++) {
-        wait_screen_change(sub { assert_and_click $mustmatch }, $wait_change);
-        last unless check_screen($mustmatch, 0);
+        my $changed = wait_screen_change(sub { assert_and_click $mustmatch }, $wait_change);
+        last if $changed;
     }
 
     return $i;
