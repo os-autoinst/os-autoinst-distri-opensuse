@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -38,8 +38,11 @@ sub run {
     }
 
     # ppc with lvm requires separate boot on storage-ng or if want to test with UNENCRYPTED_BOOT set to true
-    if (get_var('UNENCRYPTED_BOOT') || check_var('ARCH', 'ppc64le') && is_storage_ng) {
+    if (get_var('UNENCRYPTED_BOOT')) {
         addpart(role => 'OS', size => 500, format => 'ext2', mount => '/boot');
+    }
+    elsif (check_var('ARCH', 'ppc64le') && is_storage_ng) {
+        addpart(role => 'OS', size => 500, format => 'ext2', mount => '/boot', encrypt => 1);
     }
 
     addpart(role => 'raw', encrypt => 1);
