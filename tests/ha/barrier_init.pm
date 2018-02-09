@@ -38,6 +38,8 @@ sub run {
         barrier_create("DRBD_CREATE_CONF_$cluster_name",            $num_nodes);
         barrier_create("DRBD_ACTIVATE_DEVICE_$cluster_name",        $num_nodes);
         barrier_create("DRBD_CREATE_DEVICE_$cluster_name",          $num_nodes);
+        barrier_create("DRBD_CHECK_ONE_DONE_$cluster_name",         $num_nodes);
+        barrier_create("DRBD_CHECK_TWO_DONE_$cluster_name",         $num_nodes);
         barrier_create("DRBD_DOWN_DONE_$cluster_name",              $num_nodes);
         barrier_create("DRBD_MIGRATION_DONE_$cluster_name",         $num_nodes);
         barrier_create("DRBD_REVERT_DONE_$cluster_name",            $num_nodes);
