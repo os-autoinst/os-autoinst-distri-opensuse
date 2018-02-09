@@ -33,10 +33,11 @@ sub run {
     # hardware detection and waiting for updates from suse.com can take a while
     assert_screen_with_soft_timeout('select-for-update', timeout => 500, soft_timeout => 100, bugref => 'bsc#1028774');
     send_key $cmd{next};
-    assert_screen [qw(remove-repository license-agreement)], 240;
-    if (match_has_tag("license-agreement")) {
+    assert_screen [qw(remove-repository license-agreement license-agreement-accepted)], 240;
+    if (match_has_tag("license-agreement") || match_has_tag("license-agreement-accepted")) {
         record_soft_failure 'bsc#1077703: incorrect license agreement is shown during upgrade';
-        send_key 'alt-a';
+        send_key 'alt-a' unless match_has_tag("license-agreement-accepted");
+        record_soft_failure 'bsc#1080450: license agreement is shown twice' if match_has_tag("license-agreement-accepted");
         send_key $cmd{next};
         assert_screen "remove-repository";
     }
