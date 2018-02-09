@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -39,6 +39,18 @@ sub run {
         # bsc#1039863 - Check we are running only sles12 docker images
         assert_script_run '! docker images | sed 1d | grep -v ^sles12';
         assert_script_run 'grep "^server ns.openqa.test" /etc/ntp.conf';
+    }
+
+    # Should have unconfigured Kubernetes & container runtime environment
+    if (check_var('SYSTEM_ROLE', 'plain')) {
+        assert_script_run 'rpm -q kubernetes';
+    }
+
+    # Should not include any container runtime
+    if (check_var('SYSTEM_ROLE', 'microos')) {
+        assert_script_run '! rpm -q kubernetes';
+        assert_script_run '! rpm -q docker';
+        assert_script_run '! rpm -q etcd';
     }
 }
 
