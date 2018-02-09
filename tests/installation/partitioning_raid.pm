@@ -496,16 +496,16 @@ sub run {
     }
     # check overview page for Suggested partitioning
     if (get_var("LVM") and !get_var("UEFI")) {
-        assert_screen 'acceptedpartitioningraidlvm';
+        assert_screen 'acceptedpartitioningraid' . get_var("RAIDLEVEL") . 'lvm';
     }
     elsif (get_var("LVM") and get_var("UEFI")) {
-        assert_screen 'acceptedpartitioningraidlvmefi';
+        assert_screen 'acceptedpartitioningraid' . get_var("RAIDLEVEL") . 'lvm-efi';
     }
     elsif (get_var("UEFI") and !get_var("LVM")) {
-        assert_screen 'acceptedpartitioningraidefi';
+        assert_screen 'acceptedpartitioningraid' . get_var("RAIDLEVEL") . 'efi';
     }
     else {
-        assert_screen 'acceptedpartitioning';
+        assert_screen('acceptedpartitioningraid' . get_var("RAIDLEVEL"));
     }
 }
 
