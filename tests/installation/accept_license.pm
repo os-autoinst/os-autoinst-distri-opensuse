@@ -24,16 +24,17 @@ use version_utils qw(is_sle sle_version_at_least);
 
 sub run {
     my ($self) = @_;
+    my @tags = qw(network-settings-button license-agreement);
 
-    # workaround for bsc#1069124: Skip the license check in upgrade mode
-    # During upgrade to sle 15, license agreement is shown on aarch64 and s390x
-    # but not shown on ppc64le and x86_64 at the moment
-    if (is_sle && sle_version_at_least(15) && get_var('UPGRADE') && !check_var('ARCH', 'aarch64') && !check_var('ARCH', 's390x')) {
-        send_key $cmd{next};
-        return record_soft_failure('bsc#1069124: License is not shown in upgrade');
-    }
+    # During upgrade to sle 15, license agreement is shown as soon as possible
+    # when we know which product to upgrade:
+    # - s390x and aarch64 installation media contain always just one product,
+    #   so the license agreement is shown at welcome screen
+    # - other architectures contain more products, the license agreement won't
+    #   be shown until user chooses which product to upgrade
+    push @tags, 'inst-welcome-no-product-list' if is_sle && sle_version_at_least(15) && get_var('UPGRADE');
 
-    assert_screen([qw(network-settings-button license-agreement)]);
+    assert_screen \@tags;
     if (match_has_tag('network-settings-button')) {
         # workaround for hpc missing license: https://bugzilla.suse.com/show_bug.cgi?id=1060174
         if (check_var('SLE_PRODUCT', 'hpc')) {
@@ -43,6 +44,9 @@ sub run {
         else {
             die 'It seems that license agreement is missing, please check!';
         }
+    }
+    if (match_has_tag('inst-welcome-no-product-list')) {
+        return send_key $cmd{next} unless match_has_tag('license-agreement');
     }
     $self->verify_license_has_to_be_accepted;
     send_key $cmd{next};
