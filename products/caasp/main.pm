@@ -122,8 +122,10 @@ sub load_feature_tests {
     loadtest 'caasp/journal_check';
 
     # Container Tests
-    loadtest 'console/docker';
-    loadtest 'console/runc';
+    if (!check_var('SYSTEM_ROLE', 'microos')) {
+        loadtest 'console/docker';
+        loadtest 'console/runc';
+    }
 }
 
 sub load_stack_tests {
