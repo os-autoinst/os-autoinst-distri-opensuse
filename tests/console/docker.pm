@@ -32,7 +32,7 @@ use version_utils 'is_caasp';
 sub run {
     select_console("root-console");
 
-    if (is_caasp && check_var('FLAVOR', 'DVD') && !check_var('SYSTEM_ROLE', 'plain')) {
+    if (is_caasp) {
         # Docker should be pre-installed in MicroOS
         die "Docker is not pre-installed." if script_run("zypper se -x --provides -i docker | grep docker");
     }
