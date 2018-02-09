@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -16,25 +16,51 @@ use strict;
 use base "opensusebasetest";
 use testapi;
 use utils;
+use version_utils 'is_sle';
 use bootloader_setup qw(stop_grub_timeout boot_into_snapshot);
 
-sub run {
-    my ($self) = @_;
 
-    if (get_var('LIVECD')) {
-        mouse_hide;
+=head2 handle_livecd_reboot_failure
+
+Handle a potential failure on a live CD related to boo#993885 that the reboot
+action from a desktop session does not work and we are stuck on the desktop.
+=cut
+sub handle_livecd_reboot_failure {
+    mouse_hide;
+    wait_still_screen;
+    assert_screen([qw(generic-desktop-after_installation grub2)]);
+    if (match_has_tag('generic-desktop-after_installation')) {
+        record_soft_failure 'boo#993885 Kde-Live net installer does not reboot after installation';
+        select_console 'install-shell';
+        type_string "reboot\n";
+        save_screenshot;
+        assert_screen 'grub2', 300;
+    }
+}
+
+=head2 set_vmware_videomode
+
+bsc#997263 - VMware screen resolution defaults to 800x600
+By default VMware starts with Grub2 in 640x480 mode and then boots the system to
+800x600. To avoid that we need to reconfigure Grub's gfxmode and gfxpayload.
+Permanent - system-wise - solution is in console/consoletest_setup.pm.
+=cut
+sub set_vmware_videomode {
+    if (check_var('VIRSH_VMM_FAMILY', 'vmware')) {
+        send_key 'c';
+        type_string "gfxmode=1024x768x32; gfxpayload=1024x768x32; terminal_output console; terminal_output gfxterm\n";
         wait_still_screen;
-        assert_screen([qw(generic-desktop-after_installation grub2)]);
-        if (match_has_tag('generic-desktop-after_installation')) {
-            record_soft_failure 'boo#993885 Kde-Live net installer does not reboot after installation';
-            select_console 'install-shell';
-            type_string "reboot\n";
-            save_screenshot;
-            assert_screen 'grub2', 300;
-        }
+        send_key 'esc';
     }
 
-    # due to pre-installation setup, qemu boot order is always booting from CD-ROM
+}
+
+=head2 handle_installer_medium_bootup
+
+Due to pre-installation setup, qemu boot order is always booting from CD-ROM.
+=cut
+sub handle_installer_medium_bootup {
+    my ($self) = @_;
     if (check_var("BOOTFROM", "d")) {
         assert_screen 'inst-bootmenu';
         if (check_var("AUTOUPGRADE") && check_var("PATCH")) {
@@ -57,68 +83,44 @@ sub run {
         send_key_until_needlematch 'inst-bootmenu-boot-harddisk', 'up';
         send_key 'ret';
     }
+}
 
-    if (get_var("STORAGE_NG") && get_var("ENCRYPT") && !get_var('UNENCRYPTED_BOOT')) {
-        if (check_var('ARCH', 'ppc64le')) {
-            # bootloader timeout is disable so hit 'ret' is needed
-            assert_screen 'grub2';    # grub appear first in powerpc before the password
-            send_key 'ret';
-        }
-        else {
-            my @tags = ();
-            for (my $disk = 0; $disk < get_var("NUMDISKS", 1); $disk++) {
-                push @tags, "grub-encrypted-disk$disk-password-prompt";
-            }
+sub bug_workaround_bsc1005313 {
+    record_soft_failure "Running with plymouth:debug to catch bsc#1005313" if get_var('PLYMOUTH_DEBUG');
 
-            foreach my $tag (@tags) {
-                assert_screen($tag, 100);
-                type_password;        # enter PW at boot
-                send_key "ret";
-            }
-        }
-    }
-    unless (get_var("STORAGE_NG") && get_var("ENCRYPT") && check_var('ARCH', 'ppc64le')) {
-        workaround_type_encrypted_passphrase unless get_var('UNENCRYPTED_BOOT');
-        # 60 due to rare slowness e.g. multipath poo#11908
-        assert_screen "grub2", 60;
-        stop_grub_timeout;
-    }
+    send_key 'e';
+    # Move to end of kernel boot parameters line
+    send_key_until_needlematch "linux-line-selected", "down";
+    send_key "end";
 
-    # BSC#997263 - VMware screen resolution defaults to 800x600
-    # By default VMware starts with Grub2 in 640x480 mode and then boots the system to
-    # 800x600. To avoid that we need to reconfigure Grub's gfxmode and gfxpayload.
-    # Permanent - system-wise - solution is in console/consoletest_setup.pm.
-    if (check_var('VIRSH_VMM_FAMILY', 'vmware')) {
-        send_key 'c';
-        type_string "gfxmode=1024x768x32; gfxpayload=1024x768x32; terminal_output console; terminal_output gfxterm\n";
-        wait_still_screen;
-        send_key 'esc';
+    assert_screen "linux-line-matched";
+    if (get_var('PLYMOUTH_DEBUG')) {
+        # remove "splash=silent quiet showopts"
+        for (1 .. 28) { send_key "backspace" }
+        type_string 'plymouth:debug';
     }
+    type_string " " . get_var('GRUB_KERNEL_OPTION_APPEND') if get_var('GRUB_KERNEL_OPTION_APPEND');
 
-    boot_into_snapshot if (get_var("BOOT_TO_SNAPSHOT"));
-    if (get_var("XEN")) {
-        send_key_until_needlematch("bootmenu-xen-kernel", 'down', 10, 5);
-    }
-    if ((check_var('ARCH', 'aarch64') && check_var('DISTRI', 'sle') && get_var('PLYMOUTH_DEBUG'))
+    save_screenshot;
+    send_key 'ctrl-x';
+}
+
+sub run {
+    my ($self) = @_;
+
+    $self->handle_livecd_reboot_failure if get_var('LIVECD');
+    $self->handle_installer_medium_bootup;
+    workaround_type_encrypted_passphrase;
+    # 60 due to rare slowness e.g. multipath poo#11908
+    assert_screen 'grub2', 60;
+    stop_grub_timeout;
+    set_vmware_videomode if check_var('VIRSH_VMM_FAMILY', 'vmware');
+    boot_into_snapshot if get_var("BOOT_TO_SNAPSHOT");
+    send_key_until_needlematch("bootmenu-xen-kernel", 'down', 10, 5) if get_var('XEN');
+    if ((check_var('ARCH', 'aarch64') && is_sle && get_var('PLYMOUTH_DEBUG'))
         || get_var('GRUB_KERNEL_OPTION_APPEND'))
     {
-        record_soft_failure "Running with plymouth:debug to catch bsc#995310" if get_var('PLYMOUTH_DEBUG');
-
-        send_key 'e';
-        # Move to end of kernel boot parameters line
-        send_key_until_needlematch "linux-line-selected", "down";
-        send_key "end";
-
-        assert_screen "linux-line-matched";
-        if (get_var('PLYMOUTH_DEBUG')) {
-            # remove "splash=silent quiet showopts"
-            for (1 .. 28) { send_key "backspace" }
-            type_string 'plymouth:debug';
-        }
-        type_string " " . get_var('GRUB_KERNEL_OPTION_APPEND') if get_var('GRUB_KERNEL_OPTION_APPEND');
-
-        save_screenshot;
-        send_key 'ctrl-x';
+        $self->bug_workaround_bsc1005313;
     }
     else {
         # avoid timeout for booting to HDD

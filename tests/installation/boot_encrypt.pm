@@ -8,7 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Unlock encrypted partitions during bootup
+# Summary: Unlock encrypted partitions during bootup after the bootloader
+#   passed, e.g. from plymouth
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use strict;

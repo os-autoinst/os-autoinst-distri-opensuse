@@ -22,7 +22,7 @@ use strict;
 
 use testapi qw(is_serial_terminal :DEFAULT);
 use mm_network;
-use version_utils qw(is_caasp is_leap is_tumbleweed is_sle is_sle12_hdd_in_upgrade leap_version_at_least sle_version_at_least);
+use version_utils qw(is_caasp is_leap is_tumbleweed is_sle is_sle12_hdd_in_upgrade leap_version_at_least sle_version_at_least is_storage_ng);
 
 our @EXPORT = qw(
   check_console_font
@@ -312,15 +312,31 @@ sub minimal_patch_system {
     }
 }
 
+=head2 workaround_type_encrypted_passphrase
+
+    workaround_type_encrypted_passphrase()
+
+Record soft-failure for unresolved feature fsc#320901 which we think is
+important and then unlock encrypted boot partitions if we expect it to be
+encrypted. This condition is met on 'storage-ng' which by default puts the
+boot partition within the encrypted LVM same as in test scenarios where we
+explicitly create an LVM including boot (C<FULL_LVM_ENCRYPT>). C<ppc64le> was
+already doing the same by default also in the case of pre-storage-ng but not
+anymore for storage-ng.
+
+=cut
 sub workaround_type_encrypted_passphrase {
-    if (
-        get_var('FULL_LVM_ENCRYPT')
-        || (check_var('ARCH', 'ppc64le')
-            && (get_var('ENCRYPT') && !get_var('ENCRYPT_ACTIVATE_EXISTING') || get_var('ENCRYPT_FORCE_RECOMPUTE'))))
-    {
-        record_soft_failure 'workaround https://fate.suse.com/320901' if sle_version_at_least('12-SP4');
-        unlock_if_encrypted;
-    }
+    # nothing to do if the boot partition is not encrypted in FULL_LVM_ENCRYPT
+    return if get_var('UNENCRYPTED_BOOT');
+    return if !get_var('ENCRYPT') && !get_var('FULL_LVM_ENCRYPT');
+    # ppc64le is always doing the opposite by default :)
+    # ppc storage-ng encrypt
+    return if (is_storage_ng && check_var('ARCH', 'ppc64le')) || (!is_storage_ng && !check_var('ARCH', 'ppc64le'));
+    # If the encrypted disk is "just activated" it does not mean that the
+    # installer would propose an encrypted installation again
+    return if get_var('ENCRYPT_ACTIVATE_EXISTING') && !get_var('ENCRYPT_FORCE_RECOMPUTE');
+    record_soft_failure 'workaround https://fate.suse.com/320901' if sle_version_at_least('12-SP4');
+    unlock_if_encrypted;
 }
 
 # if stay under tty console for long time, then check
