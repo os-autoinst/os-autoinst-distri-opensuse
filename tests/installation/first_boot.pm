@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -20,7 +20,7 @@ use utils qw(handle_login handle_emergency);
 use version_utils 'sle_version_at_least';
 
 sub run {
-    my $boot_timeout = get_var('SES5_DEPLOY') ? 450 : 200;
+    my $boot_timeout = (get_var('SES5_DEPLOY') || check_var('VIRSH_VMM_FAMILY', 'hyperv')) ? 450 : 200;
     # SLE >= 15 s390x does not offer auto-started VNC server in SUT, only login prompt as in textmode
     return if check_var('ARCH', 's390x') && sle_version_at_least('15');
     if (check_var('WORKER_CLASS', 'hornet')) {
