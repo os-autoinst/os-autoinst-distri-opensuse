@@ -25,8 +25,20 @@ sub handle_all_packages_medium {
 
     # For SLE installation / upgrade with the all-packages media, user has
     # to select the required extensions / modules manually
-    my @addons = split(/,/, $SLE15_DEFAULT_MODULES{get_required_var('SLE_PRODUCT')});
+    my $sle_prod = get_required_var('SLE_PRODUCT');
+    my @addons = split(/,/, $SLE15_DEFAULT_MODULES{$sle_prod});
+
+    # According to installation guide, select a sle product is mandatory
+    # when install with the all-packages media, so add the base product
+    # (sles/sled/etc) as a fake addon
+    push @addons, $sle_prod if !grep(/^$sle_prod$/, @addons);
+
+    # Select Desktop-Applications module if gnome is wanted
     push @addons, 'desktop' if check_var('DESKTOP', 'gnome') && !grep(/^desktop$/, @addons);
+
+    # The SLEWE extension is required to install/upgrade SLED 15
+    # Refer to https://bugzilla.suse.com/show_bug.cgi?id=1078958#c4
+    push @addons, 'we' if check_var('SLE_PRODUCT', 'sled') && !grep(/^we$/, @addons);
 
     # The legacy module is required if upgrade from previous version (bsc#1066338)
     push @addons, 'legacy' if get_var('UPGRADE') && !grep(/^legacy$/, @addons);
