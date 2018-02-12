@@ -338,7 +338,7 @@ sub init_consoles {
                 password => get_var('VIRSH_GUEST_PASSWORD')});
     }
 
-    if (check_var('BACKEND', 'ikvm') || check_var('BACKEND', 'ipmi')) {
+    if (check_var('BACKEND', 'ikvm') || check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'spvm')) {
         $self->add_console(
             'root-ssh',
             'ssh-xterm',
@@ -350,11 +350,11 @@ sub init_consoles {
             });
     }
 
-    if (check_var('BACKEND', 'ipmi') || check_var('BACKEND', 's390x') || get_var('S390_ZKVM')) {
+    if (check_var('BACKEND', 'ipmi') || check_var('BACKEND', 's390x') || get_var('S390_ZKVM') || check_var('BACKEND', 'spvm')) {
         my $hostname;
 
         $hostname = get_var('VIRSH_GUEST') if get_var('S390_ZKVM');
-        $hostname = get_required_var('SUT_IP') if check_var('BACKEND', 'ipmi');
+        $hostname = get_required_var('SUT_IP') if check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'spvm');
 
         if (check_var('BACKEND', 's390x')) {
 
@@ -470,7 +470,7 @@ sub activate_console {
         }
         else {
             # on s390x we need to login here by providing a password
-            handle_password_prompt if (check_var('ARCH', 's390x') || check_var('BACKEND', 'ipmi'));
+            handle_password_prompt if (check_var('ARCH', 's390x') || check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'spvm'));
             assert_screen "inst-console";
         }
     }
@@ -521,6 +521,16 @@ sub activate_console {
     }
     elsif ($type eq 'virtio-terminal') {
         serial_terminal::login($user, $self->{serial_term_prompt});
+
+    }
+    elsif ($console eq 'novalink-ssh') {
+        check_screen "password-prompt-novalink", 5;
+        type_string get_required_var('NOVALINK_PASSWORD'), secret => 1;
+        send_key('ret');
+        my $user = get_var('NOVALINK_USERNAME', 'root');
+        #assert_screen(["text-logged-in-$user", "text-login"], 60);
+        sleep 3;
+        $self->set_standard_prompt($user);
     }
     elsif ($type eq 'ssh') {
         $user ||= 'root';

@@ -34,7 +34,7 @@ sub get_ip_address {
 }
 
 sub get_to_console {
-    if (check_var('BACKEND', 'ipmi')) {
+    if (check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'spvm')) {
         use_ssh_serial_console;
         get_ip_address;
         save_screenshot();
