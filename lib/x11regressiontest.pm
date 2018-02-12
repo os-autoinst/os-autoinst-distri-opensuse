@@ -164,7 +164,7 @@ sub getconfig_emailaccount {
     my ($self) = @_;
     my $local_config = << 'END_LOCAL_CONFIG';
 [internal_account_A]
-user = admin 
+user = admin
 mailbox = admin@localhost
 passwd = password123
 recvport =995
@@ -181,7 +181,7 @@ recvport =995
 imapport =993
 recvServer = localhost
 sendServer = localhost
-sendport =25 
+sendport =25
 END_LOCAL_CONFIG
 
     my $config = Config::Tiny->new;
@@ -539,6 +539,7 @@ sub firefox_check_popups {
             # accidentially moving the firefox window around, skip it.
             if (!check_var("DESKTOP", "kde")) {
                 # workaround for bsc#1046005
+                record_soft_failure 'bsc#1046005';
                 wait_screen_change { assert_and_click 'firefox_titlebar' };
             }
         }
