@@ -694,7 +694,7 @@ sub load_nfv_master_tests {
 
 sub load_nfv_trafficgen_tests {
     boot_hdd_image();
-    loadtest "nfv/moongen_installation";
+    loadtest "nfv/trex_installation";
 }
 
 sub load_iso_in_external_tests {
