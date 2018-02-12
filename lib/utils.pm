@@ -598,6 +598,23 @@ sub poweroff_x11 {
     }
 }
 
+=head2 handle_livecd_reboot_failure
+
+Handle a potential failure on a live CD related to boo#993885 that the reboot
+action from a desktop session does not work and we are stuck on the desktop.
+=cut
+sub handle_livecd_reboot_failure {
+    mouse_hide;
+    wait_still_screen;
+    assert_screen([qw(generic-desktop-after_installation grub2)]);
+    if (match_has_tag('generic-desktop-after_installation')) {
+        record_soft_failure 'boo#993885 Kde-Live net installer does not reboot after installation';
+        select_console 'install-shell';
+        type_string "reboot\n";
+        save_screenshot;
+    }
+}
+
 =head2 power_action
 
     power_action($action [,observe => $observe] [,keepconsole => $keepconsole] [,textmode => $textmode]);
@@ -651,6 +668,10 @@ sub power_action {
     }
     else {
         assert_shutdown($shutdown_timeout) if $action eq 'poweroff';
+        # We should only reset consoles if the system really rebooted.
+        # Otherwise the next select_console will check for a login prompt
+        # instead of handling the still logged in system.
+        handle_livecd_reboot_failure if get_var('LIVECD');
         reset_consoles;
         if (check_var('BACKEND', 'svirt') && $action ne 'poweroff') {
             console('svirt')->start_serial_grab;
