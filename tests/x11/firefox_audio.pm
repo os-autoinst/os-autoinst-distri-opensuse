@@ -24,7 +24,12 @@ sub run {
     start_audiocapture;
     x11_start_program('firefox ' . data_url('1d5d9dD.oga'), target_match => 'test-firefox_audio-1', match_timeout => 35);
     sleep 1;    # at least a second of silence
-    assert_recorded_sound('DTMF-159D');
+
+    # firefox_audio is unstable due to bsc#1048271, we don't want to invest
+    # time in rerunning it, if it fails, so instead of assert, simply soft-fail
+    unless (check_recorded_sound 'DTMF-159D') {
+        record_soft_failure 'bsc#1048271';
+    }
     send_key 'alt-f4';
     assert_screen([qw(firefox-save-and-quit generic-desktop)]);
     send_key 'ret' if match_has_tag 'firefox-save-and-quit';
