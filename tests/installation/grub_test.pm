@@ -20,24 +20,6 @@ use version_utils 'is_sle';
 use bootloader_setup qw(stop_grub_timeout boot_into_snapshot);
 
 
-=head2 handle_livecd_reboot_failure
-
-Handle a potential failure on a live CD related to boo#993885 that the reboot
-action from a desktop session does not work and we are stuck on the desktop.
-=cut
-sub handle_livecd_reboot_failure {
-    mouse_hide;
-    wait_still_screen;
-    assert_screen([qw(generic-desktop-after_installation grub2)]);
-    if (match_has_tag('generic-desktop-after_installation')) {
-        record_soft_failure 'boo#993885 Kde-Live net installer does not reboot after installation';
-        select_console 'install-shell';
-        type_string "reboot\n";
-        save_screenshot;
-        assert_screen 'grub2', 300;
-    }
-}
-
 =head2 set_vmware_videomode
 
 bsc#997263 - VMware screen resolution defaults to 800x600
@@ -108,7 +90,6 @@ sub bug_workaround_bsc1005313 {
 sub run {
     my ($self) = @_;
 
-    $self->handle_livecd_reboot_failure if get_var('LIVECD');
     $self->handle_installer_medium_bootup;
     workaround_type_encrypted_passphrase;
     # 60 due to rare slowness e.g. multipath poo#11908
