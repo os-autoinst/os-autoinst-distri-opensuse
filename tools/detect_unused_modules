@@ -9,6 +9,7 @@ done | \
     # qa_automation, hpc, caasp/stack_admin: Tests are loaded dynamically
     # based on test variable content
     # slepos: Requested by nadvornik, used in sle11 tests
-    # snapper_ncurses: https://progress.opensuse.org/issues/31753
-    grep -vE '(fetchmail_ssl|mailx_ssl|mutt_ssl|postfix_tls|qa_automation/|hpc/|slepos/|caasp/stack_admin|snapper_ncurses)' \
+    # verify_firewalld: Loaded dynamically by AUTOYAST_VERIFY_MODULE
+    # zypper_moo: https://progress.opensuse.org/issues/32302
+    grep -vE '(fetchmail_ssl|mailx_ssl|mutt_ssl|postfix_tls|qa_automation/|hpc/|slepos/|caasp/stack_admin)' \
     && { exit 1; } || { exit 0; }
