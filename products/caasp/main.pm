@@ -124,7 +124,7 @@ sub load_feature_tests {
     # Container Tests
     if (!check_var('SYSTEM_ROLE', 'microos')) {
         loadtest 'console/docker';
-        loadtest 'console/runc';
+        loadtest 'console/docker_runc';
     }
 }
 
