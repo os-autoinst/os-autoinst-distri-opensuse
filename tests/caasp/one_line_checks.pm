@@ -13,6 +13,7 @@
 use base "opensusebasetest";
 use strict;
 use testapi;
+use version_utils 'is_caasp';
 
 sub run {
     # Check that system is using UTC timezone
@@ -41,16 +42,21 @@ sub run {
         assert_script_run 'grep "^server ns.openqa.test" /etc/ntp.conf';
     }
 
-    # Should have unconfigured Kubernetes & container runtime environment
-    if (check_var('SYSTEM_ROLE', 'plain')) {
-        assert_script_run 'rpm -q kubernetes';
-    }
+    # Checks are applicable only on Kubic now
+    if (is_caasp '4.0+') {
+        assert_script_run 'which docker';
 
-    # Should not include any container runtime
-    if (check_var('SYSTEM_ROLE', 'microos')) {
-        assert_script_run '! rpm -q kubernetes';
-        assert_script_run '! rpm -q docker';
-        assert_script_run '! rpm -q etcd';
+        # Should have unconfigured Kubernetes & container runtime environment
+        if (check_var('SYSTEM_ROLE', 'plain')) {
+            assert_script_run 'zypper se -i kubernetes | tee /dev/tty | grep -c kubernetes | grep 6';
+            assert_script_run 'rpm -q etcd';
+        }
+
+        # Should not include any container runtime
+        if (check_var('SYSTEM_ROLE', 'microos')) {
+            assert_script_run '! zypper se -i kubernetes';
+            assert_script_run '! rpm -q etcd';
+        }
     }
 }
 
