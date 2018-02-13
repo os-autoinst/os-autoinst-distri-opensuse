@@ -86,15 +86,15 @@ sub run {
 
     # Check that zypper does not return 0 if update was aborted
     record_info 'Broken pkg', 'Install broken package - snapshot #3';
-    if (is_caasp 'caasp') {
-        trup_call "pkg install" . rpmver('trival');
+    if (is_caasp('caasp') && is_caasp('DVD')) {
+        my $broken_pkg = is_caasp('caasp') ? 'trival' : 'broken';
+        trup_call "pkg install" . rpmver($broken_pkg);
         check_reboot_changes;
         trup_call 'cleanup dup', 2;
         check_reboot_changes 0;
     }
     else {
-        trup_call "pkg install" . rpmver('broken');
-        record_info 'Test skipped on openSUSE Kubic - poo#31519';
+        record_info 'Test skipped on openSUSE Kubic & VMX images - poo#31519';
     }
 
     record_info 'Remove pkg', 'Remove package - snapshot #4';
