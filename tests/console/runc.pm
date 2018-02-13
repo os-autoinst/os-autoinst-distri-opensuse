@@ -32,7 +32,7 @@ sub run {
     # Setup the required testing environment
 
     # install the docker package if it's not already installed
-    zypper_call('in docker');
+    zypper_call('in docker') unless is_caasp;
 
     # make sure docker daemon is running
     systemctl('start docker');
@@ -46,7 +46,7 @@ sub run {
 
     # installation of runc package
     record_info 'Test #1', 'Test: Installation';
-    if (is_caasp('DVD') && !check_var('SYSTEM_ROLE', 'plain')) {
+    if (is_caasp) {
         # runC should be pre-installed in MicroOS
         die "runC is not pre-installed." if script_run("zypper se -x --provides -i runc | grep runc");
     }
