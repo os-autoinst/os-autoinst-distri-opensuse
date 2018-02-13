@@ -38,6 +38,27 @@ use Selenium::Remote::WDKeys;
 
 my $port = 4444;
 
+=head1 openQA - selenium webdriver support
+
+This Selenium module exports subroutines helpers to integrate C<Selenium::Remote::Driver>
+into openQA tests
+
+Note: Selenium module works only when openvswitch networking is used!
+
+Chromedriver and chromium are installed on SUT, firewall is enabled. OpenQA worker then initiate
+connection to SUT and returns C<Selenium::Remote::Driver> to be used in tests.
+
+Usage:
+
+  use selenium;
+  add_chromium_repos;   # for SLES12
+
+  install_chromium;
+  enable_selenium_port;
+
+  my $driver = selenium_driver;
+  ...
+=cut
 sub add_chromium_repos {
     my $ret = zypper_call("se chromedriver", exitcode => [0, 104]);
     if ($ret == 104) {
