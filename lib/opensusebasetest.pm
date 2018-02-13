@@ -39,6 +39,11 @@ sub save_and_upload_log {
     save_screenshot if $args->{screenshot};
 }
 
+sub save_and_upload_systemd_unit_log {
+    my ($self, $unit) = @_;
+    $self->save_and_upload_log("journalctl --no-pager -u $unit", "journal_$unit.log");
+}
+
 sub problem_detection {
     my $self = shift;
 

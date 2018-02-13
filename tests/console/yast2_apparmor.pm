@@ -139,8 +139,7 @@ sub run {
 sub post_fail_hook {
     my $self = @_;
     select_console 'log-console';
-    assert_script_run('journalctl --no-pager -u apparmor > /tmp/journal_apparmor.log');
-    upload_logs('/tmp/journal_apparmor.log');
+    $self->save_and_upload_systemd_unit_log('apparmor');
     $self->SUPER::post_fail_hook;
 }
 
