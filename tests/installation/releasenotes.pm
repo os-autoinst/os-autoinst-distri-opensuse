@@ -29,7 +29,9 @@ sub run {
     my $addons = get_var('ADDONS', get_var('ADDONURL', get_var('DUD_ADDONS', '')));
     my @addons = split(/,/, $addons);
     if (check_var('SCC_REGISTER', 'installation')) {
-        push @addons, split(/,/, get_var('SCC_ADDONS', ''));
+        my @scc_addons = grep { $_ ne "" } split(/,/, get_var('SCC_ADDONS', ''));
+
+        push @addons, @scc_addons;
     }
     if (get_var("UPGRADE")) {
         send_key "alt-e";    # open release notes window
