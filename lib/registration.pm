@@ -51,6 +51,7 @@ our %SLE15_MODULES = (
     serverapp    => 'Server-Applications',
     contm        => 'Containers',
     pcm          => 'Public-Cloud',
+    sapapp       => 'SAP-Applications',
 );
 
 # The expected modules of a default installation per product. Use them if they
