@@ -290,8 +290,10 @@ if (sle_version_at_least('15') && !check_var('SCC_REGISTER', 'installation')) {
                 $prefix .= "-Staging:" . get_var("STAGING");
             }
             my $module_repo_name = get_var("REPO_SLE${version}_MODULE_${repo_name}", "$prefix-Module-$full_name-POOL-$arch-Build$build-Media1");
+            # REPO_SLE* settings and repo names are different for products than for modules
+            # Assign the proper repo name if current $short_name is not a module.
             $module_repo_name = get_var("REPO_SLE_${full_name}${version}_POOL", "$prefix-Product-$full_name-POOL-$arch-Build$build-Media1")
-              if ($short_name eq lc($full_name));    # REPO_SLE* settings and repo names are different for products than for modules
+              if ($full_name eq uc($short_name));
             my $url = "$utils::OPENQA_FTP_URL/$module_repo_name";
             # Verify if url exists before adding
             if (head($url)) {
