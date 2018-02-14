@@ -17,6 +17,7 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
+use version_utils qw/is_storage_ng/;
 
 our @EXPORT = qw(use_ssh_serial_console set_serial_console_on_xen);
 
@@ -145,8 +146,27 @@ sub umount_installation_disk {
     assert_script_run("ls $mount_point");
 }
 
+#Get the partition where the new installed system is installed to
 sub get_installation_partition {
-    my $partition = script_output("fdisk -l | grep \"^\/dev\/sda\.\*\\\*\" | cut -d ' ' -f 1");
+    my $partition = '';
+
+    #Do not use script_output because when the command fail, script_output dies
+    type_string(qq{fdisk -l | grep "^/dev/sda.*\\*" | cut -d ' ' -f 1 | tee /dev/$serialdev\n});
+    $partition = wait_serial;
+    save_screenshot;
+    if (is_storage_ng && ($partition eq '')) {
+        record_soft_failure "bsc#1080729 - Partitioner does not mark boot flag";
+        my $y2log_file                = '/var/log/YaST2/y2log';
+        my $root_partition_commit_msg = script_output(qq{grep 'Commit Action "Adding mount point / of .* to /etc/fstab' $y2log_file});
+        $root_partition_commit_msg =~ m{Commit Action "Adding mount point / of ([\S]*) to /etc/fstab}m;
+        $partition = $1;
+    }
+
+    die "Error: can not get installation partition!" unless ($partition);
+
+    type_string "echo Debug info: The partition with the installed system is $partition .\n";
+    save_screenshot;
+
     return $partition;
 }
 
