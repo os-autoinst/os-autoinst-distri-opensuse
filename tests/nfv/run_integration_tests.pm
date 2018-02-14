@@ -16,7 +16,6 @@ use base "consoletest";
 use testapi;
 use strict;
 use utils;
-use lockapi;
 use mmapi;
 
 sub run {
@@ -24,10 +23,6 @@ sub run {
     my $vsperf_conf = "/etc/vsperf_ovs.conf";
 
     select_console 'root-console';
-    mutex_create('nfv_trafficgen_ready');
-
-    # wait until traffic generator installation finishes
-    wait_for_children;
 
     # use conf file from data dir
     assert_script_run("curl " . data_url('nfv/vsperf_ovs_dummy.conf') . " -o $vsperf_conf");
