@@ -118,7 +118,8 @@ sub init_cmd {
 sub init_desktop_runner {
     my ($program, $timeout) = @_;
 
-    send_key 'alt-f2';
+    send_key(check_var('DESKTOP', 'minimalx') ? 'super-spc' : 'alt-f2');
+
     mouse_hide(1);
     if (!check_screen('desktop-runner', $timeout)) {
         record_info('workaround', 'desktop-runner does not show up on alt-f2, retrying up to three times (see bsc#978027)');
@@ -174,7 +175,7 @@ sub x11_start_program {
     $args{valid}         //= 1;
     $args{target_match}  //= $program;
     $args{match_no_wait} //= 0;
-    die "no desktop-runner available on minimalx" if check_var('DESKTOP', 'minimalx');
+
     # Start desktop runner and type command there
     init_desktop_runner($program, $timeout);
     # With match_typed we check typed text and if doesn't match - retrying
