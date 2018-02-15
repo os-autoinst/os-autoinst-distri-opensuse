@@ -25,14 +25,18 @@ sub run {
     my $self        = shift;
     my $slave_ip    = get_required_var('HPC_SLAVE_IP');
     my ($server_ip) = get_required_var('HPC_HOST_IP') =~ /(.*)\/.*/;
-    barrier_create("GANGLIA_INSTALLED",   2);
-    barrier_create("GANGLIA_SERVER_DONE", 2);
-    barrier_create("GANGLIA_CLIENT_DONE", 2);
+    barrier_create("GANGLIA_INSTALLED",      2);
+    barrier_create("GANGLIA_SERVER_DONE",    2);
+    barrier_create("GANGLIA_CLIENT_DONE",    2);
+    barrier_create("GANGLIA_GMETAD_STARTED", 2);
+    barrier_create("GANGLIA_GMOND_STARTED",  2);
 
     assert_script_run('hostnamectl set-hostname ganglia-server');
     zypper_call('in ganglia-gmetad ganglia-gmond ganglia-gmetad-skip-bcheck');
     systemctl 'start gmetad';
+    barrier_wait('GANGLIA_GMETAD_STARTED');
     systemctl 'start gmond';
+    barrier_wait('GANGLIA_GMOND_STARTED');
 
     # wait for client
     barrier_wait('GANGLIA_INSTALLED');

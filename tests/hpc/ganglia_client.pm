@@ -25,13 +25,27 @@ sub run {
 
     assert_script_run('hostnamectl set-hostname ganglia-client');
     zypper_call 'in ganglia-gmond';
+
+    # wait for gmetad to be started
+    barrier_wait('GANGLIA_GMETAD_STARTED');
     systemctl "start gmond";
+    barrier_wait('GANGLIA_GMOND_STARTED');
 
     # wait for server
     barrier_wait('GANGLIA_INSTALLED');
 
-    # Check if gmond has connected to gmetad
-    validate_script_output "gstat -a", sub { m/.*Hosts: 2.*/ };
+    # arbitrary number of retries
+    my $max_retries = 7;
+    for (1 .. $max_retries) {
+        eval {
+            # Check if gmond has connected to gmetad
+            validate_script_output "gstat -a", sub { m/.*Hosts: 2.*/ };
+        };
+        last unless ($@);
+        record_info 'waiting for nodes', 'Not all nodes connected yet. Retrying...';
+    }
+    die "Not all nodes were connected after $max_retries retries." if $@;
+
 
     # Check if an arbitrary value could be sent via gmetric command
     my $testMetric = "openQA";
