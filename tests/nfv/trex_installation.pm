@@ -11,7 +11,6 @@
 #
 #   This test does the following
 #    - Clones Trex from official repo
-#    - Adds a custom makefile (ws_main.py) that contains special flags for SLE15
 #    - Follow installation steps described in https://github.com/cisco-system-traffic-generator/trex-core/wiki
 #
 # Maintainer: Jose Lausuch <jalausuch@suse.com>
@@ -31,16 +30,15 @@ sub run {
     zypper_call('in git-core gcc gcc-c++ make cmake libnuma-devel kernel-source pciutils', timeout => 300);
 
     # Clone Trex repository
-    assert_script_run("git clone --branch v2.36 --depth 1 $trex_repo $trex_dest", timeout => 500);
+    assert_script_run("git clone --depth 1 $trex_repo $trex_dest", timeout => 500);
 
     # Copy sample config file to default localtion
     assert_script_run("cp $trex_dest/scripts/cfg/simple_cfg.yaml /etc/trex_cfg.yaml");
 
-    # Use modified makefile
+    # Compile Trex libraries
     assert_script_run("cd $trex_dest/linux_dpdk");
-    assert_script_run("curl " . data_url('nfv/ws_main.py') . " -o ws_main.py");
     assert_script_run("./b configure", 300);
-    assert_script_run("./b build", 1200);
+    assert_script_run("./b build",     1200);
 }
 
 1;

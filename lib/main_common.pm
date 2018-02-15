@@ -1,3 +1,15 @@
+# SUSE's openQA tests
+#
+# Copyright © 2018 SUSE LLC
+#
+# Copying and distribution of this file, with or without modification,
+# are permitted in any medium without royalty provided the copyright
+# notice and this notice are preserved.  This file is offered as-is,
+# without any warranty.
+
+# Summary: Attempt to merge common parts of sle/main.pm and opensuse/main.pm
+# Maintainer: Anton Smorodskyi<asmorodskyi@suse.com>
+
 package main_common;
 use base Exporter;
 use File::Basename;
@@ -295,7 +307,7 @@ sub load_slepos_tests {
 
 sub load_docker_tests {
     loadtest "console/docker";
-    loadtest "console/runc";
+    loadtest "console/docker_runc";
     # No package 'docker-compose' in SLE
     if (!is_sle) {
         loadtest "console/docker_compose";
@@ -440,6 +452,7 @@ sub boot_hdd_image {
     if (get_var('UEFI') && (get_var('BOOTFROM') || get_var('BOOT_HDD_IMAGE'))) {
         loadtest "boot/uefi_bootmenu";
     }
+    loadtest "support_server/wait_support_server" if get_var('USE_SUPPORT_SERVER');
     loadtest "boot/boot_to_desktop";
 }
 
@@ -603,7 +616,7 @@ sub load_extra_tests {
         if (get_var("IPSEC")) {
             loadtest "console/ipsec_tools_h2h";
         }
-        load_docker_tests if check_var('ARCH', 'x86_64');
+        load_docker_tests if (check_var('ARCH', 'x86_64') && (sle_version_at_least('12-SP2') || !is_sle));
         loadtest "console/git";
         loadtest "console/java";
         loadtest "console/sysctl";

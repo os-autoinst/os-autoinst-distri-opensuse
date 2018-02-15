@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Test runc installation and extended usage
+# Summary: Test docker-runc installation and extended usage
 #    Cover the following aspects of runc:
 #      * package can be installed
 #      * create specification files
@@ -24,7 +24,7 @@ use strict;
 sub run {
     select_console("root-console");
 
-    my $runc = is_sle && sle_version_at_least('15') ? 'docker-runc' : 'runc';
+    my $runc = 'docker-runc';
 
     # runC cannot create or extract the root filesystem on its own. Use Docker to create it.
     record_info 'Setup', 'Setup the environment';
@@ -32,7 +32,14 @@ sub run {
     # Setup the required testing environment
 
     # install the docker package if it's not already installed
-    zypper_call('in docker');
+    if (is_caasp) {
+        # Docker should be pre-installed in MicroOS
+        die "Docker is not pre-installed." if script_run("zypper se -x --provides -i docker | grep docker");
+    }
+    else {
+        # docker package can be installed
+        zypper_call("in docker");
+    }
 
     # make sure docker daemon is running
     systemctl('start docker');
@@ -46,11 +53,12 @@ sub run {
 
     # installation of runc package
     record_info 'Test #1', 'Test: Installation';
-    if (is_caasp('DVD') && !check_var('SYSTEM_ROLE', 'plain')) {
-        # runC should be pre-installed in MicroOS
-        die "runC is not pre-installed." if script_run("zypper se -x --provides -i runc | grep runc");
+    if (is_caasp) {
+        # runC should be pre-installed
+        die "runC is not pre-installed." if script_run("zypper se -x --provides -i $runc | grep runc");
     }
     else {
+        # SLES/TW
         zypper_call("in $runc");
     }
 

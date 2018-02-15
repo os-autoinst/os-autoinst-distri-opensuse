@@ -33,8 +33,8 @@ sub run {
     zypper_call('in git-core openvswitch-switch dpdk qemu tcpdump', timeout => 200);
 
     # Clone repositories
-    assert_script_run("git clone $vsperf_repo");
-    assert_script_run("git clone $dpdk_repo");
+    assert_script_run("git clone --depth 1 $vsperf_repo");
+    assert_script_run("git clone --depth 1 $dpdk_repo");
 
     # Start the openvswitch daemon
     systemctl 'start openvswitch', timeout => 200;

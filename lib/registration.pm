@@ -285,6 +285,9 @@ sub fill_in_registration_data {
                 }
             }
             my @scc_addons = split(/,/, get_var('SCC_ADDONS', ''));
+            # remove emty elements
+            @scc_addons = grep { $_ ne '' } @scc_addons;
+
             if (!(check_screen 'scc_module-phub', 0)) {
                 record_soft_failure 'boo#1056047';
                 #find and remove phub
