@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -21,7 +21,7 @@ use utils 'systemctl';
 
 sub run {
     my ($self) = @_;
-    type_string("#***Test 1: Create a gre interface from legacy ifcfg files***\n");
+    record_info('Test 1', 'Create a gre interface from legacy ifcfg files');
     $self->setup_static_network($self->get_ip());
     my $network_config = '/etc/sysconfig/network/ifcfg-gre1';
     $self->get_from_data('wicked/ifcfg-gre1_', $network_config, add_suffix => 1);

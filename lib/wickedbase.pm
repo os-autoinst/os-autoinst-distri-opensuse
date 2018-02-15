@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -12,9 +12,9 @@
 
 package wickedbase;
 
-use base 'consoletest';
+use base 'opensusebasetest';
 use utils 'systemctl';
-use testapi qw(assert_script_run upload_logs type_string data_url check_var);
+use testapi;
 
 sub assert_wicked_state {
     my ($self, %args) = @_;
@@ -23,6 +23,8 @@ sub assert_wicked_state {
     my $status = $args{interfaces_down} ? 'down' : 'up';
     assert_script_run("for dev in /sys/class/net/!(lo); do grep \"$status\" \$dev/operstate || (echo \"device \$dev is not $status\" && exit 1) ; done");
     assert_script_run("ping -c 4 $args{ping_ip}") if $args{ping_ip};
+    # this just FYI so we don't want to fail
+    script_run('ip addr show ' . $args{iface}) if $args{iface};
 }
 
 sub get_ip {

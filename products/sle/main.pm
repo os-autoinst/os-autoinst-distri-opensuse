@@ -1035,7 +1035,7 @@ sub load_ha_cluster_tests {
     loadtest "boot/boot_to_desktop";
 
     # Wait for support server to complete its initialization
-    loadtest "ha/wait_support_server";
+    loadtest "support_server/wait_support_server";
 
     # Standard boot and configuration
     loadtest "qa_automation/patch_and_reboot" if is_updates_tests;
@@ -1285,7 +1285,7 @@ elsif (get_var("SUPPORT_SERVER")) {
     }
     loadtest "ha/barrier_init" if get_var("HA_CLUSTER_SUPPORT_SERVER");
     unless (load_slenkins_tests() || get_var("REMOTE_CONTROLLER")) {
-        loadtest "support_server/wait";
+        loadtest "support_server/wait_children";
     }
 }
 elsif (get_var("SLEPOS")) {
