@@ -280,7 +280,7 @@ if (sle_version_at_least('15') && !check_var('SCC_REGISTER', 'installation')) {
         for my $short_name (@modules) {
             # Map the module's full name from its short name.
             # If it's not defined in $registration::SLE15_MODULES, then assume it's a Product/Extension and treat accordingly
-            my $full_name = $registration::SLE15_MODULES{$short_name} ? $registration::SLE15_MODULES{$short_name} : uc $short_name;
+            my $full_name = is_module($short_name) ? $registration::SLE15_MODULES{$short_name} : uc $short_name;
             my $repo_name = uc $full_name;
             # Replace dashes with underscore symbols
             $repo_name =~ s/-/_/;
@@ -290,10 +290,10 @@ if (sle_version_at_least('15') && !check_var('SCC_REGISTER', 'installation')) {
                 $prefix .= "-Staging:" . get_var("STAGING");
             }
             my $module_repo_name = get_var("REPO_SLE${version}_MODULE_${repo_name}", "$prefix-Module-$full_name-POOL-$arch-Build$build-Media1");
-            # REPO_SLE* settings and repo names are different for products than for modules
+            # REPO_SLE* settings and repo names are different for products and modules
             # Assign the proper repo name if current $short_name is not a module.
-            $module_repo_name = get_var("REPO_SLE_${full_name}${version}_POOL", "$prefix-Product-$full_name-POOL-$arch-Build$build-Media1")
-              if ($full_name eq uc($short_name));
+            $module_repo_name = get_var("REPO_SLE_${repo_name}${version}_POOL", "$prefix-Product-$full_name-POOL-$arch-Build$build-Media1")
+              unless (is_module($short_name));
             my $url = "$utils::OPENQA_FTP_URL/$module_repo_name";
             # Verify if url exists before adding
             if (head($url)) {
