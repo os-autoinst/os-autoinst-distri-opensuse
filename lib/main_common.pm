@@ -603,7 +603,7 @@ sub load_extra_tests {
         if (get_var("IPSEC")) {
             loadtest "console/ipsec_tools_h2h";
         }
-        load_docker_tests if check_var('ARCH', 'x86_64');
+        load_docker_tests if (check_var('ARCH', 'x86_64') && (sle_version_at_least('12-SP2') || !is_sle));
         loadtest "console/git";
         loadtest "console/java";
         loadtest "console/sysctl";
