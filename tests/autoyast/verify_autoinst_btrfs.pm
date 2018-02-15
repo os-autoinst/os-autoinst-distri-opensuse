@@ -46,7 +46,7 @@ sub run {
     ### Verify mount options btrfs_set_default_subvolume_name, this is valid only for SLE12, with storage-ng subvolumes_prefix is used
     if (is_sle && sle_version_at_least '15') {
         $result_str = verify_option('//ns:subvolumes_prefix', '');
-        $errors .= "subvolumes_prefix option check failed: $result_str\n" if ($result_str);
+        record_soft_failure "bsc#1076337: subvolumes_prefix option check failed: $result_str" if ($result_str);
     }
     else {
         $result_str = verify_option('//ns:btrfs_set_default_subvolume_name', 'false');
