@@ -20,10 +20,14 @@ use testapi;
 
 sub run {
     my $self = shift;
-    $self->launch_yast2_module_x11('timezone', target_match => [qw(yast2-datetime-ui yast2-datetime_ntp-conf)], match_timeout => 90);
+    $self->launch_yast2_module_x11('timezone', target_match => [qw(yast2-datetime-ui yast2-datetime_ntp-conf require_install_chrony)], match_timeout => 90);
     if (match_has_tag 'yast2-datetime_ntp-conf') {
         send_key 'alt-d';
         send_key 'alt-o';
+    }
+    elsif (match_has_tag 'require_install_chrony') {
+        record_soft_failure 'bsc#1072351';
+        send_key 'alt-i';
     }
     assert_screen 'yast2-timezone-ui', 60;
 
