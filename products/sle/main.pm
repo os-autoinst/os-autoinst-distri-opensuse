@@ -884,9 +884,6 @@ sub load_consoletests {
     loadtest "console/sshd";
     loadtest "console/ssh_cleanup";
     loadtest "console/mtab";
-    if (is_new_installation && sle_version_at_least('12-SP2')) {
-        loadtest "console/no_perl_bootloader";
-    }
     if (!get_var("NOINSTALL") && !is_desktop && (check_var("DESKTOP", "textmode"))) {
         if (!is_staging() && check_var('BACKEND', 'qemu') && !is_jeos) {
             # The NFS test expects the IP to be 10.0.2.15
