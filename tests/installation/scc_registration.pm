@@ -27,8 +27,8 @@ sub run {
     if (!get_var("HDD_SCC_REGISTERED")) {
         assert_screen_with_soft_timeout(
             'scc-registration',
-            timeout      => 300,
-            soft_timeout => 100,
+            timeout      => 350,
+            soft_timeout => 300,
             bugref       => 'bsc#1028774'
         );
     }
