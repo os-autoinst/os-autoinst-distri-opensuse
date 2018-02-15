@@ -15,17 +15,18 @@
 #
 # Maintainer: Jose Lausuch <jalausuch@suse.com>
 
-use base "consoletest";
+use base "opensusebasetest";
 use testapi;
 use strict;
 use utils;
 use mmapi;
+use serial_terminal 'select_virtio_console';
 
 sub run {
     my $trex_repo = "https://github.com/cisco-system-traffic-generator/trex-core.git";
     my $trex_dest = "/tmp/trex-core";
 
-    select_console 'root-console';
+    select_virtio_console();
 
     zypper_call('in git-core gcc gcc-c++ make cmake libnuma-devel kernel-source pciutils', timeout => 300);
 
@@ -38,7 +39,7 @@ sub run {
     # Compile Trex libraries
     assert_script_run("cd $trex_dest/linux_dpdk");
     assert_script_run("./b configure", 300);
-    assert_script_run("./b build",     1200);
+    assert_script_run("./b build",     1500);
 }
 
 1;
