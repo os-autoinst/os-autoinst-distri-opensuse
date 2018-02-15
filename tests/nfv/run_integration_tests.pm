@@ -12,17 +12,18 @@
 #
 # Maintainer: Jose Lausuch <jalausuch@suse.com>
 
-use base "consoletest";
+use base "opensusebasetest";
 use testapi;
 use strict;
 use utils;
 use mmapi;
+use serial_terminal 'select_virtio_console';
 
 sub run {
     my $self        = shift;
     my $vsperf_conf = "/etc/vsperf_ovs.conf";
 
-    select_console 'root-console';
+    select_virtio_console();
 
     # use conf file from data dir
     assert_script_run("curl " . data_url('nfv/vsperf_ovs_dummy.conf') . " -o $vsperf_conf");
