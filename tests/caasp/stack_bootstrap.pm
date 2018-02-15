@@ -127,7 +127,15 @@ sub kubectl_config {
     assert_screen 'dex-login-page';
     velum_login;
 
-    assert_screen 'velum-kubeconfig-page';
+    assert_screen [qw(velum-kubeconfig-page velum-nonce-error)];
+    if (match_has_tag 'velum-nonce-error') {
+        record_soft_failure 'bsc#1081007 - Invalid ID Token: Nonce does not match';
+        assert_and_click "velum-kubeconfig";
+        assert_screen 'dex-login-page';
+        velum_login;
+        assert_screen 'velum-kubeconfig-page';
+    }
+
     assert_and_click 'firefox-downloading-save_enabled';
     assert_and_click 'velum-kubeconfig-back';
 }
