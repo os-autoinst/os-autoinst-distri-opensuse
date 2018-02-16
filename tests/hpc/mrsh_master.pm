@@ -40,7 +40,7 @@ sub run {
     # Copy munge key to all slave nodes
     for (my $node = 1; $node < $nodes; $node++) {
         my $node_name = sprintf("mrsh-slave%02d", $node);
-        $self->exec_and_insert_password("scp -o StrictHostKeyChecking=no /etc/munge/munge.key root\@${node_name}:/etc/munge/munge.key");
+        exec_and_insert_password("scp -o StrictHostKeyChecking=no /etc/munge/munge.key root\@${node_name}:/etc/munge/munge.key");
     }
     mutex_create("MRSH_KEY_COPIED");
 

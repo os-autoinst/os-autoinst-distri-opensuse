@@ -35,7 +35,7 @@ sub run {
     # Copy munge key to all slave nodes
     for (my $node = 1; $node < $nodes; $node++) {
         my $node_name = sprintf("munge-slave%02d", $node);
-        $self->exec_and_insert_password("scp -o StrictHostKeyChecking=no /etc/munge/munge.key root\@${node_name}:/etc/munge/munge.key");
+        exec_and_insert_password("scp -o StrictHostKeyChecking=no /etc/munge/munge.key root\@${node_name}:/etc/munge/munge.key");
     }
     mutex_create('MUNGE_KEY_COPIED');
 
@@ -48,7 +48,7 @@ sub run {
     assert_script_run('munge -n | unmunge');
     for (my $node = 1; $node < $nodes; $node++) {
         my $node_name = sprintf("munge-slave%02d", $node);
-        $self->exec_and_insert_password("munge -n | ssh ${node_name} unmunge");
+        exec_and_insert_password("munge -n | ssh ${node_name} unmunge");
     }
     assert_script_run('remunge');
     mutex_create('MUNGE_DONE');

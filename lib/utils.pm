@@ -70,6 +70,7 @@ our @EXPORT = qw(
   arrays_differ
   ensure_serialdev_permissions
   assert_and_click_until_screen_change
+  exec_and_insert_password
 );
 
 
@@ -1000,6 +1001,18 @@ sub ensure_serialdev_permissions {
     else {
         assert_script_run "chown $testapi::username /dev/$testapi::serialdev && gpasswd -a $testapi::username \$(stat -c %G /dev/$testapi::serialdev)";
     }
+}
+
+=head2 exec_and_insert_password
+Execute a command that ask for a password and insert it.
+=cut
+sub exec_and_insert_password {
+    my $cmd = shift;
+    type_string "$cmd";
+    send_key "ret";
+    assert_screen('password-prompt', 60);
+    type_password;
+    send_key "ret";
 }
 
 1;
