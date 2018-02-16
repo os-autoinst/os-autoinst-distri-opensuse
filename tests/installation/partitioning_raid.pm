@@ -27,7 +27,7 @@ sub addpart {
     elsif ($part eq 'boot-efi')  { $size = 300; }
     elsif ($part eq 'root')      { $size = 8000; }
     elsif ($part eq 'swap')      { $size = 100; }
-    elsif ($part eq 'bios-boot') { $size = 1; }
+    elsif ($part eq 'bios-boot') { $size = 2; }
     else                         { die 'Unknown argument'; }
 
     assert_screen "expert-partitioner";
