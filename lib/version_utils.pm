@@ -68,6 +68,26 @@ sub is_rescuesystem {
     return get_var('RESCUESYSTEM');
 }
 
+# Works only for versions comparable by string (not leap 42.X)
+# Query format: [= > < >= <=] version [+] (Example: <=12-sp3 =12-sp1 <4.0 >=15 3.0+)
+# Regex format: matches version number (Example: /\d{2}\.\d/)
+sub check_version {
+    my $query = shift;
+    my $regex = shift;
+
+    # Matches operator($op), version($qv), plus($plus) - regex101.com to debug ;)
+    if (uc($query) =~ /^(?(?!.*\+$)(?<op>[<>=]|[<>]=))(?<qv>$regex)(?<plus>\+)?$/) {
+        my $pv = uc get_var('VERSION');
+        return $pv ge $+{qv} if $+{plus} || $+{op} eq '>=';
+        return $pv le $+{qv} if $+{op} eq '<=';
+        return $pv gt $+{qv} if $+{op} eq '>';
+        return $pv lt $+{qv} if $+{op} eq '<';
+        return $pv eq $+{qv} if $+{op} eq '=';
+    }
+    # Version should be matched and processed by now
+    die "Unsupported version parameter: $query";
+}
+
 # Check if distribution is CaaSP or Kubic with optional filter:
 # Media type: DVD (iso) or VMX (all disk images)
 # Version: 1.0 | 2.0 | 2.0+
@@ -86,15 +106,7 @@ sub is_caasp {
     elsif ($filter =~ /^\d\.\d\+?$/) {
         # If we use '+' it means "this or newer", which includes tumbleweed
         return ($filter =~ /\+$/) if check_var('VERSION', 'Tumbleweed');
-
-        die "Unsupported version" if get_var('VERSION') !~ /^\d\.\d?$/;
-        if ($filter =~ /\+$/) {
-            chop $filter;
-            return get_var('VERSION') >= $filter;
-        }
-        else {
-            return check_var('VERSION', $filter);
-        }
+        return check_version($filter, qr/\d\.\d/);
     }
     elsif ($filter =~ /kubic|caasp/) {
         return check_var('DISTRI', $filter);
@@ -128,9 +140,16 @@ sub is_opensuse {
     return 1;
 }
 
+# Check if distribution is SLE with optional filter for:
+# Version: <=12-sp3 =12-sp1 >11-sp1 >=15 15+
 sub is_sle {
+    my $query = shift;
+
     return 0 unless check_var('DISTRI', 'sle');
-    return 1;
+    return 1 unless $query;
+
+    # Version check
+    return check_version($query, qr/\d{2}(?:-sp\d)?/i);
 }
 
 sub is_sles4sap {
@@ -157,6 +176,9 @@ sub is_sle12_hdd_in_upgrade {
     return is_upgrade && !sle_version_at_least('15', version_variable => 'HDDVERSION');
 }
 
+# =====================================
+# Deprecated, please use is_sle instead
+# =====================================
 sub sle_version_at_least {
     my ($version, %args) = @_;
     my $version_variable = $args{version_variable} // 'VERSION';
