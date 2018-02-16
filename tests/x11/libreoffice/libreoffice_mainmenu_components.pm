@@ -14,7 +14,7 @@ use base "x11test";
 use strict;
 use testapi;
 use utils;
-use version_utils qw(is_sle is_tumbleweed sle_version_at_least);
+use version_utils qw(is_sle is_tumbleweed);
 
 # open desktop mainmenu and click office
 sub open_mainmenu {
@@ -54,7 +54,7 @@ sub select_base_and_cleanup {
 sub run {
     my $self = shift;
 
-    if (!is_tumbleweed && (is_sle && !sle_version_at_least('15'))) {
+    if (!is_tumbleweed && is_sle('<15')) {
         # launch components from mainmenu
         $self->open_mainmenu();
         assert_and_click 'mainmenu-office-lo';    #open lo

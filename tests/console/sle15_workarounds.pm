@@ -19,12 +19,12 @@ use base qw(consoletest distribution);
 use strict;
 use testapi;
 use utils qw(zypper_call pkcon_quit);
-use version_utils 'sle_version_at_least';
+use version_utils 'is_sle';
 
 
 sub run {
     my $self = shift;
-    return unless sle_version_at_least('15');
+    return unless is_sle('15+');
     # try to detect bsc#1054782 only on the backend which can handle
     # 'ctrl-alt-f2' directly
     if (check_var('BACKEND', 'qemu')) {

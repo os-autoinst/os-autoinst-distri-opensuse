@@ -173,7 +173,7 @@ sub cleanup_libreoffice_recent_file {
 }
 
 sub open_libreoffice_options {
-    if (is_tumbleweed or (is_sle && sle_version_at_least('15'))) {
+    if (is_tumbleweed or is_sle('15+')) {
         send_key 'alt-f12';
     }
     else {

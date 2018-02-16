@@ -15,7 +15,7 @@ use base "consoletest";
 use testapi;
 use strict;
 use utils;
-use version_utils qw(is_sle sle_version_at_least);
+use version_utils 'is_sle';
 use registration qw(add_suseconnect_product remove_suseconnect_product);
 
 # test for regression of bug http://bugzilla.suse.com/show_bug.cgi?id=952496
@@ -30,7 +30,7 @@ sub run {
         select_console 'user-console';
     }
 
-    my $not_installed_pkg = (is_sle && sle_version_at_least '15') ? 'wireshark' : 'xosview';
+    my $not_installed_pkg = is_sle('15+') ? 'wireshark' : 'xosview';
     my $cnf_cmd = qq{echo "\$(cnf $not_installed_pkg 2>&1 | tee /dev/stderr)" | grep -q "zypper install $not_installed_pkg"};
 
     save_screenshot;
@@ -38,7 +38,7 @@ sub run {
     return unless script_run($cnf_cmd);
 
     # Soft-fail if command execution fails on sle 15
-    if (is_sle && sle_version_at_least '15') {
+    if (is_sle '15+') {
         record_soft_failure 'https://fate.suse.com/323424';
         select_console 'root-console';
         add_suseconnect_product('sle-module-desktop-applications');

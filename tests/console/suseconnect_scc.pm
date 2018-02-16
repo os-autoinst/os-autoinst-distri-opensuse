@@ -23,7 +23,7 @@ use base 'y2logsstep';
 
 use testapi;
 use utils 'zypper_call';
-use version_utils qw(is_sle sle_version_at_least);
+use version_utils 'is_sle';
 use registration;
 
 sub run {
@@ -40,7 +40,7 @@ sub run {
     assert_script_run 'SUSEConnect --list-extensions';
 
     # add modules
-    if (is_sle && sle_version_at_least('15')) {
+    if (is_sle '15+') {
         foreach (split(',', $registration::SLE15_DEFAULT_MODULES{get_required_var('SLE_PRODUCT')} . $scc_addons)) {
             add_suseconnect_product("sle-module-" . lc($registration::SLE15_MODULES{$_}));
         }

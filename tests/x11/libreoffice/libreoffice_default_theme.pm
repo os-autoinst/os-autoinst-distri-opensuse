@@ -14,12 +14,12 @@
 use base "x11test";
 use testapi;
 use utils;
-use version_utils qw(is_sle is_tumbleweed sle_version_at_least);
+use version_utils qw(is_sle is_tumbleweed);
 use strict;
 
 sub check_lo_theme {
     x11_start_program('ooffice');
-    if (is_tumbleweed || (is_sle && sle_version_at_least('15'))) {
+    if (is_tumbleweed || is_sle('15+')) {
         send_key 'alt-f12';
     }
     else {

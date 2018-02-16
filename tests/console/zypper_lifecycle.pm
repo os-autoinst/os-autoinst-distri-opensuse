@@ -15,7 +15,7 @@ use base "consoletest";
 use strict;
 use testapi;
 use utils;
-use version_utils qw(is_sle is_jeos sle_version_at_least);
+use version_utils qw(is_sle is_jeos);
 
 our $date_re = qr/[0-9]{4}-[0-9]{2}-[0-9]{2}/;
 
@@ -117,7 +117,7 @@ sub run {
     # verify that package eol defaults to product eol
     $output = script_output "zypper lifecycle $package", 300;
     unless ($output =~ /$package(-\S+)?\s+$product_eol/) {
-        return record_soft_failure 'bsc#1057788' if (is_sle && sle_version_at_least('15'));
+        return record_soft_failure 'bsc#1057788' if is_sle('15+');
         die "$package lifecycle entry incorrect:'$output', expected: '/$package-\\S+\\s+$product_eol'";
     }
 

@@ -84,7 +84,7 @@ sub run {
         assert_screen 'inst-betawarning';
         wait_screen_change { send_key 'ret' };
     }
-    assert_screen((is_sle && sle_version_at_least('15') && get_var('UPGRADE')) ? 'inst-welcome-no-product-list' : 'inst-welcome');
+    assert_screen((is_sle('15+') && get_var('UPGRADE')) ? 'inst-welcome-no-product-list' : 'inst-welcome');
     mouse_hide;
     wait_still_screen(3);
 

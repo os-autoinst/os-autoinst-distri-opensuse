@@ -15,7 +15,7 @@ use strict;
 use testapi;
 use utils;
 use kdump_utils;
-use version_utils qw(is_sle sle_version_at_least);
+use version_utils 'is_sle';
 use registration;
 
 sub run {
@@ -23,7 +23,7 @@ sub run {
     select_console('root-console');
 
     # preparation for crash test
-    if (is_sle && sle_version_at_least('15')) {
+    if (is_sle '15+') {
         add_suseconnect_product('sle-module-desktop-applications');
         add_suseconnect_product('sle-module-development-tools');
     }

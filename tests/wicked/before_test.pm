@@ -14,7 +14,6 @@ use base 'wickedbase';
 use strict;
 use testapi;
 use utils 'systemctl';
-use version_utils qw(is_sle sle_version_at_least);
 
 sub run {
     my ($self) = @_;

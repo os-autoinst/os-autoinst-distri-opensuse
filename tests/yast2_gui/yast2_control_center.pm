@@ -23,7 +23,7 @@ use version_utils qw(is_sle sle_version_at_least is_leap leap_version_at_least i
 sub search {
     my ($name) = @_;
     # with the gtk interface we have to click as there is no shortcut
-    if ((is_sle && !sle_version_at_least('15')) || (is_leap && !leap_version_at_least('15.0'))) {
+    if (is_sle('<15') || (is_leap && !leap_version_at_least('15.0'))) {
         assert_screen([qw(yast2_control-center_search_clear yast2_control-center_search)], no_wait => 1);
         if (match_has_tag 'yast2_control-center_search') {
             assert_and_click 'yast2_control-center_search';
@@ -294,7 +294,7 @@ sub start_printer {
 
 sub run {
     my $self = shift;
-    if (is_sle && sle_version_at_least '15') {
+    if (is_sle '15+') {
         # kdump is disabled by default, so ensure that it's installed
         ensure_installed 'yast2-kdump';
         record_soft_failure 'bsc#1059569';

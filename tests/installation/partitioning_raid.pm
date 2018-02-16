@@ -15,7 +15,7 @@ use strict;
 use warnings;
 use base 'y2logsstep';
 use testapi;
-use version_utils qw(is_storage_ng sle_version_at_least is_sle);
+use version_utils qw(is_storage_ng is_sle);
 
 # add a new primary partition
 #   $type == 3 => 0xFD Linux RAID

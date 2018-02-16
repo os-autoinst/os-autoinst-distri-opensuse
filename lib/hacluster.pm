@@ -12,7 +12,7 @@ package hacluster;
 use base Exporter;
 use Exporter;
 use strict;
-use version_utils qw(is_sle sle_version_at_least);
+use version_utils 'is_sle';
 use warnings;
 use testapi;
 
@@ -186,7 +186,7 @@ sub ha_export_logs {
     my $corosync_conf = '/etc/corosync/corosync.conf';
     my $hb_log        = '/var/log/hb_report';
     my $packages_list = '/tmp/packages.list';
-    my $report_opt    = '-f0' unless (is_sle && sle_version_at_least('15'));
+    my $report_opt    = '-f0' unless is_sle('15+');
     my @y2logs;
 
     # Extract HA logs and upload them

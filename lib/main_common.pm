@@ -18,7 +18,7 @@ use testapi qw(check_var get_var get_required_var set_var check_var_array diag);
 use autotest;
 use utils;
 use version_utils qw(
-  is_hyperv_in_gui is_jeos is_gnome_next is_krypton_argon is_leap is_opensuse is_sle is_sles4sap is_sles4sap_standard leap_version_at_least sle_version_at_least is_desktop_installed is_installcheck is_rescuesystem is_staging
+  is_hyperv_in_gui is_jeos is_gnome_next is_krypton_argon is_leap is_opensuse is_sle is_sles4sap is_sles4sap_standard leap_version_at_least sle_version_at_least is_desktop_installed is_installcheck is_rescuesystem is_staging is_tumbleweed
 );
 use bmwqemu ();
 use strict;
@@ -472,7 +472,7 @@ sub load_docker_tests {
     if (!is_sle) {
         loadtest "console/docker_compose";
     }
-    if (is_sle && !sle_version_at_least('15')) {
+    if (is_sle('<15')) {
         loadtest "console/sle2docker";
     }
 }
@@ -660,7 +660,7 @@ sub load_inst_tests {
     if (get_var('DUD_ADDONS')) {
         loadtest "installation/dud_addon";
     }
-    if (is_sle && sle_version_at_least('15')) {
+    if (is_sle '15+') {
         loadtest "installation/accept_license" if get_var('HASLICENSE');
     }
     if (get_var('IBFT')) {
@@ -801,7 +801,7 @@ sub load_inst_tests {
             and !is_hyperv_in_gui
             and !is_bridged_networking
             and !check_var('BACKEND', 's390x')
-            and is_sle && sle_version_at_least('12-SP2'))
+            and is_sle('12-SP2+'))
         {
             loadtest "installation/hostname_inst";
         }
@@ -1323,7 +1323,7 @@ sub load_extra_tests {
             loadtest "console/aplay";
         }
         loadtest "console/command_not_found";
-        if (check_var('DISTRI', 'sle') && sle_version_at_least('12-SP2')) {
+        if (is_sle '12-sp2+') {
             # Check for availability of packages and the corresponding repository, only makes sense for SLE
             loadtest 'console/repo_package_install';
             loadtest 'console/openssl_alpn';
@@ -1393,19 +1393,17 @@ sub load_filesystem_tests {
         loadtest "console/btrfs_autocompletion";
         if (get_var("NUMDISKS", 0) > 1) {
             loadtest "console/btrfs_qgroups";
-            if (check_var('DISTRI', 'opensuse') || (check_var('DISTRI', 'sle') && sle_version_at_least('12-SP2'))) {
+            if (check_var('DISTRI', 'opensuse') || is_sle('12-sp2+')) {
                 loadtest 'console/snapper_cleanup';
             }
-            if (check_var('DISTRI', 'sle') && sle_version_at_least('12-SP2')) {
+            if (is_sle '12-sp2+') {
                 loadtest "console/btrfs_send_receive";
             }
         }
     }
     loadtest 'console/snapper_undochange';
     loadtest 'console/snapper_create';
-    if (   (check_var('DISTRI', 'sle') && sle_version_at_least('12-SP3'))
-        || (check_var('DISTRI', 'opensuse') && (leap_version_at_least('42.3') || check_var('VERSION', 'Tumbleweed'))))
-    {
+    if (is_sle('12-sp3+') || leap_version_at_least('42.3') || is_tumbleweed) {
         loadtest 'console/snapper_thin_lvm';
     }
 }
@@ -1497,7 +1495,7 @@ sub load_x11_gnome {
     loadtest "x11/gnomecase/application_starts_on_login";
     loadtest "x11/gnomecase/change_password";
     loadtest "x11/gnomecase/login_test";
-    if (check_var('DISTRI', 'sle') && sle_version_at_least('12-SP1')) {
+    if (is_sle '12-SP1+') {
         loadtest "x11/gnomecase/gnome_classic_switch";
     }
     loadtest "x11/gnomecase/gnome_default_applications";
@@ -1509,7 +1507,7 @@ sub load_x11_other {
         loadtest "x11/brasero/brasero_launch";
         loadtest "x11/gnomeapps/gnome_documents";
         loadtest "x11/totem/totem_launch";
-        if (is_sle && sle_version_at_least('15')) {
+        if (is_sle '15+') {
             loadtest "x11/xterm";
             loadtest "x11/sshxterm";
             loadtest "x11/gnome_control_center";
@@ -1518,7 +1516,7 @@ sub load_x11_other {
         }
     }
     # shotwell was replaced by gnome-photos in SLE15 & yast_virtualization isn't in SLE15
-    if (is_sle && sle_version_at_least('12-SP2') && !sle_version_at_least('15')) {
+    if (is_sle('>=12-sp2') && is_sle('<15')) {
         loadtest "x11/shotwell/shotwell_import";
         loadtest "x11/shotwell/shotwell_edit";
         loadtest "x11/shotwell/shotwell_export";
@@ -1573,7 +1571,7 @@ sub load_security_tests_core {
     }
     loadtest "fips/openssl/openssl_pubkey_rsa";
     loadtest "fips/openssl/openssl_pubkey_dsa";
-    if (sle_version_at_least('12-SP2') || check_var('VERSION', 'Tumbleweed')) {
+    if (is_sle('12-SP2+') || is_tumbleweed) {
         loadtest "console/openssl_alpn";
     }
     loadtest "console/sshd";
@@ -1634,7 +1632,7 @@ sub load_systemd_patches_tests {
 sub load_create_hdd_tests {
     return unless get_var('INSTALLONLY');
     # temporary adding test modules which applies hacks for missing parts in sle15
-    loadtest 'console/sle15_workarounds' if is_sle && sle_version_at_least('15');
+    loadtest 'console/sle15_workarounds' if is_sle('15+');
     loadtest 'console/hostname'       unless is_bridged_networking;
     loadtest 'console/force_cron_run' unless is_jeos;
     loadtest 'console/scc_deregistration' if get_var('SCC_DEREGISTER');

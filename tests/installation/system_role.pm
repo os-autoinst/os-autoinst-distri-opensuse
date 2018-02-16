@@ -14,7 +14,6 @@
 use strict;
 use base "y2logsstep";
 use testapi;
-use version_utils qw(sle_version_at_least is_sle);
 
 
 my %role_hotkey = (

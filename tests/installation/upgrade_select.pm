@@ -15,7 +15,7 @@ use strict;
 use base "y2logsstep";
 use testapi;
 use utils 'assert_screen_with_soft_timeout';
-use version_utils qw(is_sle sle_version_at_least);
+use version_utils 'is_sle';
 
 sub run {
     if (get_var('ENCRYPT')) {
@@ -42,7 +42,7 @@ sub run {
     }
     send_key $cmd{next};
     # Select migration target in sle15 upgrade
-    if (is_sle && sle_version_at_least('15')) {
+    if (is_sle '15+') {
         if (get_var('MEDIA_UPGRADE')) {
             assert_screen 'upgrade-unregistered-system';
             send_key $cmd{ok};

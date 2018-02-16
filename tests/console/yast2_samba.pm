@@ -14,7 +14,7 @@ use strict;
 use base "console_yasttest";
 use testapi;
 use utils;
-use version_utils qw(is_sle sle_version_at_least is_leap leap_version_at_least);
+use version_utils qw(is_sle is_leap leap_version_at_least);
 
 sub setup_ldap {
     select_console 'root-console';
@@ -25,7 +25,7 @@ sub setup_ldap {
     assert_script_run("if ! systemctl -q is-active network; then systemctl -q start network; fi");
     # install local ldap server
 
-    if (is_sle && sle_version_at_least('15')) {
+    if (is_sle '15+') {
         my $ret = zypper_call('in yast2-auth-server openldap2-client tdb-tools', exitcode => [0, 104], timeout => 240);
         return record_soft_failure 'bsc#1060870' if $ret == 104;
     }
@@ -40,7 +40,7 @@ sub setup_ldap {
         send_key 'alt-c';
     }
     # only older version like SLES 12, Leap 42.3 as well as TW should still check the needle
-    if ((is_sle && !sle_version_at_least('15')) || (is_leap && !leap_version_at_least('15.0'))) {
+    if (is_sle('<15') || (is_leap && !leap_version_at_least('15.0'))) {
         assert_screen 'yast2_ldap_configuration_general-setting_firewall', 60;
     }
     send_key 'alt-e';
@@ -247,7 +247,7 @@ sub run {
     zypper_call("in samba yast2-samba-server");
     script_run("yast2 samba-server; echo yast2-samba-server-status-\$? > /dev/$serialdev", 0);
     # check Samba-Server Configuration got started
-    if ((is_sle && !sle_version_at_least('15')) || (is_leap && !leap_version_at_least('15.0'))) {
+    if (is_sle('<15') || (is_leap && !leap_version_at_least('15.0'))) {
         gui_current;
     }
     else {

@@ -668,7 +668,7 @@ sub power_action {
     }
     # Shutdown takes longer than 60 seconds on SLE 15
     my $shutdown_timeout = 60;
-    if (sle_version_at_least('15') && check_var('DISTRI', 'sle') && check_var('DESKTOP', 'gnome')) {
+    if (is_sle('15+') && check_var('DESKTOP', 'gnome')) {
         record_soft_failure('bsc#1055462');
         $shutdown_timeout *= 3;
     }
@@ -804,7 +804,7 @@ sub handle_login {
     }
     elsif (check_var('DESKTOP', 'gnome')) {
         # DMs in condition above have to select user
-        if ((is_sle && sle_version_at_least('15')) || (is_leap && leap_version_at_least('15.0')) || is_tumbleweed) {
+        if (is_sle('15+') || (is_leap && leap_version_at_least('15.0')) || is_tumbleweed) {
             assert_and_click "displaymanager-$username";
             record_soft_failure 'bgo#657996 - user account not selected by default, have to use mouse to login';
         }
@@ -953,7 +953,7 @@ is running on tty2 by default. see also: bsc#1054782
 =cut
 sub get_x11_console_tty {
     my $new_gdm
-      = !(is_sle   && !sle_version_at_least('15'))
+      = !is_sle('<15')
       && !(is_leap && !leap_version_at_least('15.0'))
       && !is_sle12_hdd_in_upgrade
       && !is_caasp

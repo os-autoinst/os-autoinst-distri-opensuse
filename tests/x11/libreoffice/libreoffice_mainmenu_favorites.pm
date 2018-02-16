@@ -14,7 +14,7 @@
 use base "x11test";
 use strict;
 use testapi;
-use version_utils qw(is_sle sle_version_at_least);
+use version_utils 'is_sle';
 
 sub run {
     # start destop application memu
@@ -23,7 +23,7 @@ sub run {
     assert_screen('test-desktop_mainmenu-1');
 
     # find the favorites button
-    if (is_sle && !sle_version_at_least('15')) {
+    if (is_sle '<15') {
         assert_and_click('application-menu-favorites');
         assert_screen('menu-favorites-libreoffice');
     }

@@ -20,7 +20,7 @@
 use strict;
 use base "y2logsstep";
 use testapi;
-use version_utils qw(is_sle sle_version_at_least);
+use version_utils 'is_sle';
 
 sub run {
     my ($self) = @_;
@@ -32,7 +32,7 @@ sub run {
     #   so the license agreement is shown at welcome screen
     # - other architectures contain more products, the license agreement won't
     #   be shown until user chooses which product to upgrade
-    push @tags, 'inst-welcome-no-product-list' if is_sle && sle_version_at_least(15) && get_var('UPGRADE');
+    push @tags, 'inst-welcome-no-product-list' if is_sle('15+') && get_var('UPGRADE');
 
     assert_screen \@tags;
     if (match_has_tag('network-settings-button')) {
