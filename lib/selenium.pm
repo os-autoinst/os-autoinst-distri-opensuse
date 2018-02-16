@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017, 2018 SUSE LLC
+# Copyright © 2017-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: Support for Selenium
-# Maintainer: Vladimir Nadvornik <nadvornik@suse.com>
+# Maintainer: Ondrej Holecek oholecek@suse.com>
 
 package selenium;
 use 5.018;
@@ -30,6 +30,8 @@ our @EXPORT = qw(
 
 use testapi;
 use utils 'zypper_call';
+use opensusebasetest;
+use version_utils 'is_sle';
 
 use Selenium::Remote::Driver;
 use Selenium::Chrome;
@@ -62,22 +64,29 @@ Usage:
 sub add_chromium_repos {
     my $ret = zypper_call("se chromedriver", exitcode => [0, 104]);
     if ($ret == 104) {
-        zypper_call(
-            '--gpg-auto-import-keys ar -fc http://download.opensuse.org/repositories/openSUSE:/Backports:/SLE-12/standard/openSUSE:Backports:SLE-12.repo');
-        zypper_call(
+        if (is_sle('<15')) {
+            zypper_call(
+                '--gpg-auto-import-keys ar -fc http://download.opensuse.org/repositories/openSUSE:/Backports:/SLE-12/standard/openSUSE:Backports:SLE-12.repo');
+            zypper_call(
 '--gpg-auto-import-keys ar -fc http://download.opensuse.org/repositories/openSUSE:/Backports:/SLE-12-SP1/standard/openSUSE:Backports:SLE-12-SP1.repo'
-        );
-        zypper_call(
+            );
+            zypper_call(
 '--gpg-auto-import-keys ar -fc http://download.opensuse.org/repositories/openSUSE:/Backports:/SLE-12-SP2/standard/openSUSE:Backports:SLE-12-SP2.repo'
-        );
-        zypper_call('--gpg-auto-import-keys ar -fc http://smt.suse.cz/repo/SUSE/Products/SLE-SDK/12-SP2/x86_64/product/ sdk');
+            );
+            zypper_call(
+'--gpg-auto-import-keys ar -fc http://download.opensuse.org/repositories/openSUSE:/Backports:/SLE-12-SP3/standard/openSUSE:Backports:SLE-12-SP3.repo'
+            );
+        }
+        elsif (is_sle('>=15')) {
+            zypper_call(
+                '--gpg-auto-import-keys ar -fc http://download.opensuse.org/repositories/openSUSE:/Backports:/SLE-15/standard/openSUSE:Backports:SLE-15.repo');
+        }
         zypper_call('--gpg-auto-import-keys ref');
     }
 }
 
 sub install_chromium {
     zypper_call('in chromium chromedriver');
-    script_run("ln -s /usr/lib64/chromium/chromedriver /usr/bin/chromedriver");
 }
 
 sub enable_selenium_port {
