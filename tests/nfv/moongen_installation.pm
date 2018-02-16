@@ -16,16 +16,17 @@
 #
 # Maintainer: Jose Lausuch <jalausuch@suse.com>
 
-use base "consoletest";
+use base "opensusebasetest";
 use testapi;
 use strict;
 use utils;
 use mmapi;
+use serial_terminal 'select_virtio_console';
 
 sub run {
     my $moongen_repo = "https://github.com/emmericp/MoonGen.git";
 
-    select_console 'root-console';
+    select_virtio_console();
 
     zypper_call('in git-core gcc gcc-c++ make cmake libnuma-devel kernel-source pciutils', timeout => 300);
 

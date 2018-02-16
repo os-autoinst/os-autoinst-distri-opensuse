@@ -19,16 +19,17 @@
 #
 # Maintainer: Jose Lausuch <jalausuch@suse.de>
 
-use base "consoletest";
+use base "opensusebasetest";
 use testapi;
 use strict;
 use utils;
+use serial_terminal 'select_virtio_console';
 
 sub run {
     my $vsperf_repo = "https://gerrit.opnfv.org/gerrit/vswitchperf";
     my $dpdk_repo   = "http://dpdk.org/git/dpdk";
 
-    select_console 'root-console';
+    select_virtio_console();
 
     zypper_call('in git-core openvswitch-switch dpdk qemu tcpdump', timeout => 200);
 
