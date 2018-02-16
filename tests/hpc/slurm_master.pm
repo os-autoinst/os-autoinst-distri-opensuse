@@ -12,7 +12,6 @@
 # Maintainer: soulofdestiny <mgriessmeier@suse.com>
 # Tags: https://fate.suse.com/316379, https://progress.opensuse.org/issues/20308
 
-
 use base "hpcbase";
 use strict;
 use testapi;
@@ -34,7 +33,7 @@ sub run {
     systemctl 'stop ' . $self->firewall;
 
     # install slurm
-    zypper_call('in slurm-munge');
+    zypper_call('in slurm slurm-munge');
 
     # Create proper /etc/hosts and /etc/slurm.conf for each node
     my $slurm_slave_nodes = "";

@@ -17,6 +17,7 @@ use strict;
 use testapi;
 use lockapi;
 use utils;
+use version_utils 'is_sle';
 
 sub run {
     my $self = shift;
@@ -30,6 +31,8 @@ sub run {
 
     # Install slurm
     zypper_call('in slurm-munge');
+    # install slurm-node if sle15, not available yet for sle12
+    zypper_call('in slurm-node') if is_sle '15+';
 
     barrier_wait("SLURM_SETUP_DONE");
     barrier_wait("SLURM_MASTER_SERVICE_ENABLED");
