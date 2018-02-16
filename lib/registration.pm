@@ -27,6 +27,7 @@ use version_utils qw(is_sle sle_version_at_least is_sle12_hdd_in_upgrade);
 our @EXPORT = qw(
   add_suseconnect_product
   remove_suseconnect_product
+  assert_registration_screen_present
   fill_in_registration_data
   registration_bootloader_cmdline
   registration_bootloader_params
@@ -167,6 +168,17 @@ sub register_addons {
     }
 
     return $regcodes_entered;
+}
+
+sub assert_registration_screen_present {
+    if (!get_var("HDD_SCC_REGISTERED")) {
+        assert_screen_with_soft_timeout(
+            'scc-registration',
+            timeout      => 350,
+            soft_timeout => 300,
+            bugref       => 'bsc#1028774'
+        );
+    }
 }
 
 sub fill_in_registration_data {

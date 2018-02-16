@@ -686,6 +686,7 @@ sub load_inst_tests {
         loadtest "installation/upgrade_select_opensuse" if is_opensuse;
     }
     if (is_sle) {
+        loadtest 'installation/network_configuration' if get_var('NETWORK_CONFIGURATION');
         # SCC registration is not required in media based upgrade since SLE15
         unless (sle_version_at_least('15') && get_var('MEDIA_UPGRADE')) {
             if (check_var('SCC_REGISTER', 'installation')) {
@@ -1685,9 +1686,10 @@ sub load_toolchain_tests {
 }
 
 sub load_common_opensuse_sle_tests {
-    load_autoyast_clone_tests if get_var("CLONE_SYSTEM");
-    load_create_hdd_tests     if get_var("STORE_HDD_1") || get_var("PUBLISH_HDD_1");
-    load_toolchain_tests      if get_var("TCM") || check_var("ADDONS", "tcm");
+    load_autoyast_clone_tests           if get_var("CLONE_SYSTEM");
+    load_create_hdd_tests               if get_var("STORE_HDD_1") || get_var("PUBLISH_HDD_1");
+    load_toolchain_tests                if get_var("TCM") || check_var("ADDONS", "tcm");
+    loadtest 'console/network_hostname' if get_var('NETWORK_CONFIGURATION');
 }
 
 sub load_ssh_key_import_tests {
