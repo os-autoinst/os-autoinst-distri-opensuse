@@ -35,6 +35,7 @@ our @EXPORT = qw(
   scc_deregistration
   get_addon_fullname
   rename_scc_addons
+  is_module
   %SLE15_MODULES
   %SLE15_DEFAULT_MODULES
 );
@@ -51,6 +52,7 @@ our %SLE15_MODULES = (
     serverapp    => 'Server-Applications',
     contm        => 'Containers',
     pcm          => 'Public-Cloud',
+    sapapp       => 'SAP-Applications',
 );
 
 # The expected modules of a default installation per product. Use them if they
@@ -61,6 +63,13 @@ our %SLE15_DEFAULT_MODULES = (
     sled     => 'base,desktop',
     sles4sap => 'base,desktop,serverapp,ha,sapapp',
 );
+
+# Method to determine if a short name references a module based on what's defined
+# on %SLE15_MODULES
+sub is_module {
+    my $name = shift;
+    return defined $SLE15_MODULES{$name};
+}
 
 sub accept_addons_license {
     my (@scc_addons) = @_;
