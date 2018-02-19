@@ -16,6 +16,7 @@ use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_jeos is_caasp is_installcheck is_rescuesystem sle_version_at_least);
+use registration 'registration_bootloader_cmdline';
 use File::Basename;
 
 sub copy_image {
@@ -212,7 +213,8 @@ sub run {
         my $cmdline = '';
         $cmdline .= 'textmode=1 ' if check_var('VIDEOMODE', 'text');
         $cmdline .= 'rescue=1 ' if is_installcheck || is_rescuesystem;    # rescue mode
-        $cmdline .= get_var('EXTRABOOTPARAMS') . ' ';
+        $cmdline .= get_var('EXTRABOOTPARAMS') . ' ' if get_var('EXTRABOOTPARAMS');
+        $cmdline .= registration_bootloader_cmdline if check_var('SCC_REGISTER', 'installation');
         type_string "export pty=`virsh dumpxml $name | grep \"console type=\" | sed \"s/'/ /g\" | awk '{ print \$5 }'`\n";
         type_string "echo \$pty\n";
         $svirt->resume;
