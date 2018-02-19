@@ -37,6 +37,14 @@ sub run {
         assert_script_run("sapconf start");
     }
 
+    # Dry run of each pattern's installation before actual installation
+    foreach my $pattern (@sappatterns) {
+        assert_script_run("zypper in -D -y -t pattern $pattern");
+        $output = script_output("zypper info --requires $pattern");
+        record_info("requirements pattern: $pattern", $output);
+    }
+
+    # Actual installation and verification
     foreach my $pattern (@sappatterns) {
         assert_script_run("zypper in -y -t pattern $pattern", 100);
         $output = script_output "zypper info -t pattern $pattern";

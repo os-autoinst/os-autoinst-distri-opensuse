@@ -33,7 +33,7 @@ sub run {
       SAPINST_INPUT_PARAMETERS_URL=/sapinst/inifile.params
       SAPINST_EXECUTE_PRODUCT_ID=NW_ABAP_ASCS:NW750.HDB.ABAPHA
       SAPINST_SKIP_DIALOGS=true SAPINST_SLP_MODE=false);
-    my $nettout = 600;    # Time out for NetWeaver's sources related commands
+    my $nettout = 900;    # Time out for NetWeaver's sources related commands
 
     $proto = 'cifs' if ($proto eq 'smb' or $proto eq 'smbfs');
     die "netweaver_ascs_install: currently only supported protocols are nfs and smb/smbfs/cifs"
@@ -48,7 +48,13 @@ sub run {
     # SAP profile and solution are configured in the system
     assert_script_run "tuned-adm profile sap-netweaver";
     assert_script_run "saptune solution apply NETWEAVER";
-    assert_script_run q/kill -1 $(ps aux|grep systemd-logind|awk '{print $2}'|head -1)/;
+    assert_script_run "systemctl restart systemd-logind.service";
+
+    # If running in DESKTOP=gnome, systemd-logind restart may cause the graphical console to
+    # reset and appear in SUD, so need to select 'root-console' again
+    wait_still_screen;
+    select_console 'root-console';
+
     assert_script_run "saptune daemon start";
     assert_script_run "saptune solution verify NETWEAVER";
     my $output = script_output "tuned-adm active";
