@@ -28,10 +28,10 @@ sub run {
 
     select_virtio_console();
 
-    zypper_call('in git-core gcc gcc-c++ make cmake libnuma-devel kernel-source pciutils', timeout => 300);
+    zypper_call('--quiet in git-core gcc gcc-c++ make cmake libnuma-devel kernel-source pciutils', timeout => 300);
 
     # Clone Trex repository
-    assert_script_run("git clone --depth 1 $trex_repo $trex_dest", timeout => 500);
+    assert_script_run("git clone --quiet --depth 1 $trex_repo $trex_dest", timeout => 600);
 
     # Copy sample config file to default localtion
     assert_script_run("cp $trex_dest/scripts/cfg/simple_cfg.yaml /etc/trex_cfg.yaml");
