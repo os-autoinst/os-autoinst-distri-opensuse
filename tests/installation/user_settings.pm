@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -26,7 +26,7 @@ sub run {
         send_key $cmd{next};
         return;
     }
-    
+
     send_key 'alt-f';    # Select full name text field
     type_string $realname;
     send_key 'alt-p';    # Select password field
@@ -44,7 +44,7 @@ sub run {
     # done user setup
     send_key $cmd{next};
     $self->await_password_check;
-
 }
+
 1;
 # vim: set sw=4 et:
