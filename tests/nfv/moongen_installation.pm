@@ -28,10 +28,10 @@ sub run {
 
     select_virtio_console();
 
-    zypper_call('in git-core gcc gcc-c++ make cmake libnuma-devel kernel-source pciutils', timeout => 300);
+    zypper_call('--quiet in git-core gcc gcc-c++ make cmake libnuma-devel kernel-source pciutils', timeout => 300);
 
     # Clone repository
-    assert_script_run("git clone --depth 1 $moongen_repo", timeout => 300);
+    assert_script_run("git clone --quiet --depth 1 $moongen_repo", timeout => 300);
 
     # Install MoonGen and dependencies
     assert_script_run("cd MoonGen");
