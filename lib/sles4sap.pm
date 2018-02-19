@@ -12,15 +12,12 @@ sub pre_run_hook {
     my ($self) = @_;
 
     $prev_console = $testapi::selected_console;
-
-    unless (defined $prev_console) {
-        $prev_console = check_var('DESKTOP', 'gnome') ? 'x11' : 'root-console';
-    }
 }
 
 sub post_run_hook {
     my ($self) = @_;
 
+    return unless ($prev_console);
     select_console($prev_console, await_console => 0);
     ensure_unlocked_desktop if ($prev_console eq 'x11');
 }
