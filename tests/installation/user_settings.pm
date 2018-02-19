@@ -26,7 +26,7 @@ sub run {
         send_key $cmd{next};
         return;
     }
-    
+
     send_key 'alt-f';    # Select full name text field
     type_string $realname;
     send_key 'alt-p';    # Select password field
