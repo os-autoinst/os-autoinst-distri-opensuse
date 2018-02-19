@@ -25,21 +25,19 @@ sub rpmver {
     my $q = shift;
     my $d = get_var 'DISTRI';
 
-    # package name | initial version | updated version
+    # package name | initial version
     my %rpm = (
         kubic => {
             fn => '5-2.1',
             in => '2.1',
-            up => '3.1'
         },
         caasp => {
             fn => '5-5.3.61',
             in => '5.3.61',
-            up => '5.30.1'
         });
 
     # Returns expected package version after installation / update
-    if ($q =~ /^(in|up)$/) {
+    if ($q eq 'in') {
         return $rpm{$d}{$q};
     }
     # Returns rpm path for initial installation

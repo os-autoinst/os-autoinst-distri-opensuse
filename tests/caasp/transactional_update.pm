@@ -33,14 +33,21 @@ sub get_utt_packages {
 
 # Check that package presence & version is as expected
 sub check_package {
-    my $version = shift;
+    my $stage   = shift // 'no';
     my $package = 'update-test-security';
 
-    if ($version) {
-        assert_script_run "rpm -qi $package | grep ^Release.*$version";
+    if ($stage =~ /in|up/) {
+        my $in_ver = rpmver('in');
+        if ($stage eq 'in') {
+            assert_script_run "rpm -q --qf '%{RELEASE}' $package | grep -x $in_ver";
+        }
+        elsif ($stage eq 'up') {
+            my $rq_ver = script_output("rpm -q --qf '%{RELEASE}' $package");
+            die "Bad version: in:$in_ver up:$rq_ver" unless version->declare($in_ver) < version->declare($rq_ver);
+        }
     }
     else {
-        assert_script_run "! rpm -qi $package";
+        assert_script_run "! rpm -q $package";
     }
 }
 
@@ -71,14 +78,14 @@ sub run {
     record_info 'Install ptf', 'Install package - snapshot #1';
     trup_call "ptf install" . rpmver('security');
     check_reboot_changes;
-    check_package rpmver('in');
+    check_package 'in';
 
     record_info 'Update #1', 'Add repository and update - snapshot #2';
     # Only CaaSP needs an additional repo for testing
     assert_script_run 'zypper ar utt.repo' if is_caasp 'caasp';
     trup_call 'cleanup up';
     check_reboot_changes;
-    check_package rpmver('up');
+    check_package 'up';
 
     record_info 'Update #2', 'System should be up to date - no changes expected';
     trup_call 'cleanup up';
@@ -86,7 +93,7 @@ sub run {
 
     # Check that zypper does not return 0 if update was aborted
     record_info 'Broken pkg', 'Install broken package - snapshot #3';
-    if (is_caasp('caasp') && is_caasp('DVD')) {
+    if (is_caasp 'DVD') {
         my $broken_pkg = is_caasp('caasp') ? 'trival' : 'broken';
         trup_call "pkg install" . rpmver($broken_pkg);
         check_reboot_changes;
@@ -94,7 +101,7 @@ sub run {
         check_reboot_changes 0;
     }
     else {
-        record_info 'Test skipped on openSUSE Kubic & VMX images - poo#31519';
+        record_info 'Test skipped on VMX images - poo#31519';
     }
 
     record_info 'Remove pkg', 'Remove package - snapshot #4';
@@ -115,7 +122,7 @@ sub run {
 
     trup_call "rollback $snap";
     check_reboot_changes;
-    check_package rpmver('in');
+    check_package 'in';
 }
 
 sub test_flags {
