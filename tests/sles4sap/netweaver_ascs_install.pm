@@ -49,7 +49,12 @@ sub run {
     assert_script_run "tuned-adm profile sap-netweaver";
     assert_script_run "saptune solution apply NETWEAVER";
     assert_script_run "systemctl restart systemd-logind.service";
+
+    # If running in DESKTOP=gnome, systemd-logind restart may cause the graphical console to
+    # reset and appear in SUD, so need to select 'root-console' again
+    wait_still_screen;
     select_console 'root-console';
+
     assert_script_run "saptune daemon start";
     assert_script_run "saptune solution verify NETWEAVER";
     my $output = script_output "tuned-adm active";
