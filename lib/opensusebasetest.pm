@@ -160,11 +160,11 @@ sub export_logs {
     }
 
     # do not upload empty .xsession-errors
-    script_run
-      "xsefiles=(/home/*/.xsession-errors*); for file in \${xsefiles[@]}; do if [ -s \$file ]; then echo xsefile-valid > /dev/$serialdev; fi; done",
+    script_run "xsefiles=(/home/*/{.xsession-errors*,.local/share/sddm/*session.log}); "
+      . "for file in \${xsefiles[@]}; do if [ -s \$file ]; then echo xsefile-valid > /dev/$serialdev; fi; done",
       0;
     if (wait_serial("xsefile-valid", 10)) {
-        $self->save_and_upload_log('cat /home/*/.xsession-errors*', '/tmp/XSE.log', {screenshot => 1});
+        $self->save_and_upload_log('cat /home/*/{.xsession-errors*,.local/share/sddm/*session.log}', '/tmp/XSE.log', {screenshot => 1});
     }
 
     $self->save_and_upload_log('systemctl list-unit-files', '/tmp/systemctl_unit-files.log');
