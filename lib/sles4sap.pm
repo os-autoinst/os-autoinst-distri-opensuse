@@ -12,6 +12,10 @@ sub pre_run_hook {
     my ($self) = @_;
 
     $prev_console = $testapi::selected_console;
+
+    unless (defined $prev_console) {
+        $prev_console = check_var('DESKTOP', 'gnome') ? 'x11' : 'root-console';
+    }
 }
 
 sub post_run_hook {

@@ -33,7 +33,7 @@ sub run {
       SAPINST_INPUT_PARAMETERS_URL=/sapinst/inifile.params
       SAPINST_EXECUTE_PRODUCT_ID=NW_ABAP_ASCS:NW750.HDB.ABAPHA
       SAPINST_SKIP_DIALOGS=true SAPINST_SLP_MODE=false);
-    my $nettout = 600;    # Time out for NetWeaver's sources related commands
+    my $nettout = 900;    # Time out for NetWeaver's sources related commands
 
     $proto = 'cifs' if ($proto eq 'smb' or $proto eq 'smbfs');
     die "netweaver_ascs_install: currently only supported protocols are nfs and smb/smbfs/cifs"
