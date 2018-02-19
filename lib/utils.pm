@@ -671,7 +671,7 @@ sub power_action {
         # We should only reset consoles if the system really rebooted.
         # Otherwise the next select_console will check for a login prompt
         # instead of handling the still logged in system.
-        handle_livecd_reboot_failure if get_var('LIVECD');
+        handle_livecd_reboot_failure if get_var('LIVECD') && $action eq 'reboot';
         reset_consoles;
         if (check_var('BACKEND', 'svirt') && $action ne 'poweroff') {
             console('svirt')->start_serial_grab;
