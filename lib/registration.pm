@@ -74,7 +74,7 @@ sub is_module {
 sub accept_addons_license {
     my (@scc_addons) = @_;
 
-    my @addons_with_license = qw(ha geo we live rt idu ids lgm wsm hpcm);
+    my @addons_with_license = qw(ha geo we live rt idu ids lgm wsm hpcm ses);
     # Development tools do not have license in SLE 15
     push(@addons_with_license, 'sdk') unless sle_version_at_least('15');
 
@@ -153,7 +153,7 @@ sub register_addons {
         }
         if (my $regcode = get_var("SCC_REGCODE_$uc_addon")) {
             # skip addons which doesn't need to input scc code
-            next unless grep { $addon eq $_ } qw(ha geo we live rt ltss phub);
+            next unless grep { $addon eq $_ } qw(ha geo we live rt ltss phub ses);
             if (check_var('VIDEOMODE', 'text')) {
                 send_key_until_needlematch "scc-code-field-$addon", 'tab';
             }
@@ -284,6 +284,7 @@ sub fill_in_registration_data {
         # idu - IBM DLPAR Utils (ppc64le only)
         # ids - IBM DLPAR sdk (ppc64le only)
         # phub - PackageHub
+        # ses - SUSE Enterprise Storage
         if (get_var('SCC_ADDONS')) {
             if (check_screen('scc-beta-filter-checkbox', 5)) {
                 if (get_var('SP3ORLATER')) {
@@ -503,6 +504,7 @@ sub get_addon_fullname {
         'geo'   => 'sle-ha-geo',
         'we'    => 'sle-we',
         'sdk'   => 'sle-sdk',
+        'ses'   => 'ses',
         'live'  => 'sle-live-patching',
         'asmm'  => 'sle-module-adv-systems-management',
         'contm' => 'sle-module-containers',
