@@ -214,7 +214,7 @@ sub run {
         $cmdline .= 'textmode=1 ' if check_var('VIDEOMODE', 'text');
         $cmdline .= 'rescue=1 ' if is_installcheck || is_rescuesystem;    # rescue mode
         $cmdline .= get_var('EXTRABOOTPARAMS') . ' ' if get_var('EXTRABOOTPARAMS');
-        $cmdline .= registration_bootloader_cmdline if check_var('SCC_REGISTER', 'installation');
+        $cmdline .= registration_bootloader_cmdline . ' ' if check_var('SCC_REGISTER', 'installation');
         type_string "export pty=`virsh dumpxml $name | grep \"console type=\" | sed \"s/'/ /g\" | awk '{ print \$5 }'`\n";
         type_string "echo \$pty\n";
         $svirt->resume;
