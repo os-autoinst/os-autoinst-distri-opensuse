@@ -52,8 +52,7 @@ sub run {
 
     # If running in DESKTOP=gnome, systemd-logind restart may cause the graphical console to
     # reset and appear in SUD, so need to select 'root-console' again
-    wait_still_screen;
-    select_console 'root-console';
+    select_console 'root-console' unless (check_screen 'root-console');
 
     assert_script_run "saptune daemon start";
     assert_script_run "saptune solution verify NETWEAVER";
