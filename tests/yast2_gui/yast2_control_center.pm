@@ -330,8 +330,12 @@ sub run {
     if (is_sle) {
         start_add_system_extensions_or_modules;
         start_kernel_dump;
-        start_common_server_certificate;
-        start_ca_management;
+        # YaST2 CA management has been dropped from SLE15, see
+        # https://bugzilla.suse.com/show_bug.cgi?id=1059569#c14
+        if (!sle_version_at_least('15')) {
+            start_common_server_certificate;
+            start_ca_management;
+        }
         start_wake_on_lan;
         # available by default only on SLES
         start_authentication_server;
