@@ -49,6 +49,7 @@ sub run {
         script_run("export $ltp_env");
     }
     script_run('env');
+    upload_logs('/boot/config-$(uname -r)', failok => 1);
 
     my $ver_linux_path = '$LTPROOT/ver_linux';
     my $ver_linux_log  = '/tmp/ver_linux_before.txt';
