@@ -22,12 +22,14 @@ use utils;
 sub run {
     my $self      = shift;
     my $master_ip = get_required_var('HPC_MASTER_IP');
+    my $hostname  = 'pdsh-slave';
 
     # set proper hostname
-    assert_script_run "hostnamectl set-hostname pdsh-slave";
+    assert_script_run "hostnamectl set-hostname $hostname";
 
-    # install mrsh
-    zypper_call('in munge pdsh');
+    my $packages_to_install = 'munge pdsh';
+    $packages_to_install .= ' pdsh-genders' if get_var('PDSH_GENDER_TEST');
+    zypper_call("in $packages_to_install");
     barrier_wait("PDSH_INSTALLATION_FINISHED");
     mutex_lock("PDSH_KEY_COPIED");
 
@@ -36,13 +38,15 @@ sub run {
     barrier_wait("PDSH_MUNGE_ENABLED");
     mutex_lock("MRSH_SOCKET_STARTED");
 
+    assert_script_run('echo  "' . $hostname . 'type=genders-test" >> /etc/genders') if get_var('PDSH_GENDER_TEST');
+
     # make sure that user 'nobody' has permissions for $serialdev to get openQA work properly
     assert_script_run("chmod 666 /dev/$serialdev");
 
     type_string("su - nobody\n");
     assert_screen 'user-nobody';
-
-    assert_script_run("pdsh -R mrsh -w $master_ip ls / &> /tmp/pdsh.log");
+    my $genders_plugin = get_var('PDSH_GENDER_TEST') ? '--g type=genders-test' : '';
+    assert_script_run("pdsh -R mrsh $genders_plugin -w $master_ip ls / &> /tmp/pdsh.log");
     upload_logs '/tmp/pdsh.log';
     barrier_wait("PDSH_SLAVE_DONE");
 }
