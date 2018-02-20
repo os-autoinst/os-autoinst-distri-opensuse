@@ -28,8 +28,9 @@ sub run {
     }
 
     send_key 'alt-f';    # Select full name text field
-    type_string $realname;
-    send_key 'alt-p';    # Select password field
+    wait_screen_change { type_string $realname };
+    send_key 'tab';      # Select password field
+    send_key 'tab';
     $self->type_password_and_verification;
     assert_screen 'inst-userinfostyped';
     if (get_var('NOAUTOLOGIN') && !check_screen('autologindisabled', timeout => 0)) {
