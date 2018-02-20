@@ -43,8 +43,11 @@ sub tell_packagekit_to_quit {
 # Update with GNOME PackageKit Update Viewer
 sub run {
     my ($self) = @_;
-    # updates_packagekit_gpk is disabled for SLE15 because of bsc#1060844
-    return record_soft_failure 'bsc#1060844' if sle_version_at_least('15') && is_sle();
+    if (is_sle && sle_version_at_least('15')) {
+        select_console 'root-console';
+        zypper_call("in gnome-packagekit", timeout => 90);
+        record_soft_failure 'bsc#1081584';
+    }
     select_console 'x11', await_console => 0;
 
     my @updates_tags           = qw(updates_none updates_available package-updater-privileged-user-warning updates_restart_application);
