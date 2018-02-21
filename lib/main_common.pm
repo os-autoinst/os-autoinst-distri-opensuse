@@ -771,9 +771,6 @@ sub load_inst_tests {
         }
         loadtest "installation/partitioning_finish";
     }
-    if (installwithaddonrepos_is_applicable() && !get_var("LIVECD")) {
-        loadtest "installation/setup_online_repos";
-    }
     if (is_opensuse && addon_products_is_applicable() && !leap_version_at_least('42.3')) {
         loadtest "installation/addon_products";
     }
@@ -787,6 +784,9 @@ sub load_inst_tests {
 
     if (noupdatestep_is_applicable()) {
         loadtest "installation/installer_timezone";
+        if (installwithaddonrepos_is_applicable() && !get_var("LIVECD")) {
+            loadtest "installation/setup_online_repos";
+        }
         # the test should run only in scenarios, where installed
         # system is not being tested (e.g. INSTALLONLY etc.)
         # The test also won't work reliably when network is bridged (non-s390x svirt).
