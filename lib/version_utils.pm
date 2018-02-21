@@ -42,6 +42,7 @@ our @EXPORT = qw (
   sle_version_at_least
   is_desktop_installed
   is_system_upgrading
+  is_pre_15
 );
 
 sub is_jeos {
@@ -214,11 +215,13 @@ sub leap_version_at_least {
     my $version_variable = $args{version_variable} // 'VERSION';
 
     if ($version eq '42.2') {
-        return leap_staging_version_in_settings($version_variable, $version) || leap_version_at_least('42.3', version_variable => $version_variable);
+        return leap_staging_version_in_settings($version_variable, $version)
+          || leap_version_at_least('42.3', version_variable => $version_variable);
     }
 
     if ($version eq '42.3') {
-        return leap_staging_version_in_settings($version_variable, $version) || leap_version_at_least('15.0', version_variable => $version_variable);
+        return leap_staging_version_in_settings($version_variable, $version)
+          || leap_version_at_least('15.0', version_variable => $version_variable);
     }
 
     if ($version eq '15.0') {
@@ -235,4 +238,8 @@ sub is_desktop_installed {
 sub is_system_upgrading {
     # If PATCH=1, make sure patch action is finished
     return is_upgrade && (!get_var('PATCH') || (get_var('PATCH') && get_var('SYSTEM_PATCHED')));
+}
+
+sub is_pre_15 {
+    return (is_sle && !sle_version_at_least('15')) || (is_leap && !leap_version_at_least('15.0')) || !is_tumbleweed;
 }
