@@ -1336,7 +1336,6 @@ sub load_extra_tests {
         if (get_var("IPSEC")) {
             loadtest "console/ipsec_tools_h2h";
         }
-        load_docker_tests if (check_var('ARCH', 'x86_64') && (sle_version_at_least('12-SP2') || !is_sle));
         loadtest "console/git";
         loadtest "console/java";
         loadtest "console/sysctl";
@@ -1354,6 +1353,9 @@ sub load_extra_tests {
             # sysauth test scenarios run in the console
             loadtest "sysauth/sssd";
         }
+        # schedule the docker tests later as it needs the containers module on
+        # SLE>=15 and therefore would potentially pollute other test modules
+        load_docker_tests if (check_var('ARCH', 'x86_64') && (sle_version_at_least('12-SP2') || !is_sle));
         loadtest "console/kdump_and_crash" if kdump_is_applicable;
         loadtest "console/consoletest_finish";
     }
