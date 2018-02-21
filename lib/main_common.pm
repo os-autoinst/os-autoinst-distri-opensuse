@@ -935,7 +935,9 @@ sub load_consoletests {
     {
         loadtest "console/puppet";
     }
-    if (!is_staging && (is_opensuse || (check_var_array('SCC_ADDONS', 'asmm') || sle_version_at_least('15')))) {
+    # salt in SLE is only available for SLE12 ASMM or SLES15 and variants of
+    # SLES but not SLED
+    if (!is_staging && (is_opensuse || (check_var_array('SCC_ADDONS', 'asmm') || (sle_version_at_least('15') && !is_desktop)))) {
         loadtest "console/salt";
     }
     if (   check_var('ARCH', 'x86_64')
