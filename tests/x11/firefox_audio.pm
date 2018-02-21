@@ -15,7 +15,6 @@
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "x11test";
-use base "x11regressiontest";
 use strict;
 use testapi;
 
