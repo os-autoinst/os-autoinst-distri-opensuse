@@ -1037,6 +1037,28 @@ sub load_slenkins_tests {
     return 0;
 }
 
+sub load_cluster_boot {
+    if (check_var('ARCH', 'aarch64')) {
+        # We need to boot *before* waiting for support server
+        # Because of TianoCore UEFI boot method
+        loadtest "boot/boot_to_desktop";
+        # Wait for support server to complete its initialization
+        loadtest "support_server/wait_support_server";
+        # TODO: poo#32110 add reboot or ensure that network is up
+    }
+    else {
+        # Wait for support server to complete its initialization
+        loadtest "support_server/wait_support_server";
+        loadtest "boot/boot_to_desktop";
+    }
+    # Standard boot and configuration
+    loadtest "qa_automation/patch_and_reboot" if is_updates_tests;
+    loadtest "console/consoletest_setup"      if is_updates_tests;
+    loadtest "console/hostname";
+
+    return 1;
+}
+
 sub load_ha_cluster_tests {
     return unless (get_var("HA_CLUSTER"));
 
@@ -1541,8 +1563,13 @@ elsif (get_var('HPC')) {
         load_reboot_tests();
     }
     else {
-        loadtest 'boot/boot_to_desktop';
-        loadtest 'hpc/setup_network' if check_var('NICTYPE', 'tap');
+        if (get_var('CLUSTER_NODES')) {
+            load_cluster_boot();
+        }
+        else {
+            loadtest 'boot/boot_to_desktop';
+            loadtest 'hpc/setup_network' if check_var('NICTYPE', 'tap');
+        }
         loadtest 'hpc/enable_in_zypper' if (sle_version_at_least('15'));
         if (check_var('HPC', 'conman')) {
             loadtest 'hpc/conman';

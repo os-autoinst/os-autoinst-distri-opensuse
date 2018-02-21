@@ -21,24 +21,31 @@ use lockapi;
 use utils;
 
 sub run {
-    my $self     = shift;
-    my $slave_ip = get_required_var('HPC_SLAVE_IP');
-    barrier_create("PDSH_INSTALLATION_FINISHED", 2);
-    barrier_create("PDSH_MUNGE_ENABLED",         2);
-    barrier_create("PDSH_SLAVE_DONE",            2);
+    my $self = shift;
 
-    # set proper hostname
-    assert_script_run "hostnamectl set-hostname pdsh-master";
+    # Get number of nodes
+    my $nodes = get_required_var("CLUSTER_NODES");
+    barrier_create("PDSH_INSTALLATION_FINISHED", $nodes);
+    barrier_create("PDSH_MUNGE_ENABLED",         $nodes);
+    barrier_create("PDSH_SLAVE_DONE",            $nodes);
+    # Synchronize all slave nodes with master
+    mutex_create("PDSH_MASTER_BARRIERS_CONFIGURED");
 
-    # install mrsh
+    # Stop firewall
+    systemctl 'stop ' . $self->firewall;
+
+    # Install mrsh
     zypper_call('in mrsh-server munge');
     barrier_wait("PDSH_INSTALLATION_FINISHED");
 
-    # copy key
-    $self->exec_and_insert_password("scp -o StrictHostKeyChecking=no /etc/munge/munge.key root\@$slave_ip:/etc/munge/munge.key");
+    # Copy munge key to all slave nodes
+    for (my $node = 1; $node < $nodes; $node++) {
+        my $node_name = sprintf("pdsh-slave%02d", $node);
+        $self->exec_and_insert_password("scp -o StrictHostKeyChecking=no /etc/munge/munge.key root\@${node_name}:/etc/munge/munge.key");
+    }
     mutex_create("PDSH_KEY_COPIED");
 
-    # start munge
+    # Start munge
     $self->enable_and_start('munge');
     barrier_wait("PDSH_MUNGE_ENABLED");
 
