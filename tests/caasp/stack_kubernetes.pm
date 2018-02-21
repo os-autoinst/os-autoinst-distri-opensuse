@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -20,7 +20,6 @@ use testapi;
 sub run {
     # Use downloaded kubeconfig to display basic information
     switch_to 'xterm';
-    assert_script_run 'mv ~/Downloads/kubeconfig ~/.kube/config';
     assert_script_run "kubectl cluster-info";
     assert_script_run "kubectl get nodes";
     assert_script_run "! kubectl get cs --no-headers | grep -v Healthy";
