@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: Test kubernetes by deploying nginx
-# Maintainer: Martin Kravec <mkravec@suse.com>
+# Maintainer: Martin Kravec <mkravec@suse.com>, Panagiotis Georgiadis <pgeorgiadis@suse.com>
 
 use parent 'caasp_controller';
 use caasp_controller;
@@ -21,6 +21,7 @@ sub run {
     # Use downloaded kubeconfig to display basic information
     switch_to 'xterm';
     assert_script_run "kubectl cluster-info";
+    assert_script_run "kubectl cluster-info > cluster.before_update";
     assert_script_run "kubectl get nodes";
     assert_script_run "! kubectl get cs --no-headers | grep -v Healthy";
 
