@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -32,6 +32,10 @@ sub run {
     if (defined $tinfo) {
         export_to_json($tinfo->test_result_export);
     }
+
+    my $ver_linux_log = '/tmp/ver_linux_before.txt';
+    script_run("\$LTPROOT/ver_linux > $ver_linux_log 2>&1");
+    upload_logs($ver_linux_log, failok => 1);
 
     script_run('[ "$ENABLE_WICKED" ] && systemctl enable wicked');
     script_run('journalctl --no-pager -p warning');
