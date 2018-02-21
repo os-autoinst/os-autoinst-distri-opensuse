@@ -7,7 +7,7 @@ use lockapi;
 use mmapi 'wait_for_children';
 
 use Exporter 'import';
-our @EXPORT = qw(confirm_insecure_https velum_login switch_to);
+our @EXPORT = qw(confirm_insecure_https velum_login switch_to download_kubeconfig);
 
 # Easier switching between applications
 # xterm | velum
@@ -61,6 +61,37 @@ sub post_fail_hook {
 
     # Wait for log export from all nodes
     wait_for_children;
+}
+
+# Original kubeconfig will be replaced
+sub download_kubeconfig {
+    assert_and_click 'velum-kubeconfig';
+
+    unless (check_screen('dex-login-page', 5)) {
+        record_soft_failure 'bsc#1062542 - dex is not be ready yet';
+        sleep 30;
+        send_key 'f5';
+    }
+    assert_screen 'dex-login-page';
+    velum_login;
+
+    assert_screen [qw(velum-kubeconfig-page velum-nonce-error)];
+    if (match_has_tag 'velum-nonce-error') {
+        record_soft_failure 'bsc#1081007 - Invalid ID Token: Nonce does not match';
+        assert_and_click "velum-kubeconfig";
+        assert_screen 'dex-login-page';
+        velum_login;
+        assert_screen 'velum-kubeconfig-page';
+    }
+
+    assert_and_click 'firefox-downloading-save_enabled';
+    assert_and_click 'velum-kubeconfig-back';
+    assert_screen 'velum-bootstrap-done';
+
+    # Stay on xterm after download
+    switch_to 'xterm';
+    assert_script_run 'mv ~/Downloads/kubeconfig ~/.kube/config';
+    upload_logs('.kube/config', log_name => 'kubectl-' . time);
 }
 
 1;
