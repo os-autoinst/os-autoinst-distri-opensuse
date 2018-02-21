@@ -31,7 +31,7 @@ sub run {
 
     # Deploy nginx minimal application and check pods started succesfully
     my $pods_count = get_required_var("STACK_WORKERS") * 15;
-    assert_script_run "kubectl run nginx --image=nginx:alpine --replicas=$pods_count --port=80";
+    assert_script_run "kubectl run nginx --image=nginx:stable-alpine --replicas=$pods_count --port=80";
     for (1 .. 10) {
         last if script_run 'kubectl get pods | grep -q "0/\|1/2\|No resources"';
         sleep 10;
