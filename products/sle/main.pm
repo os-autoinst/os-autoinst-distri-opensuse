@@ -361,79 +361,79 @@ logcurrentenv(
       SLE_PRODUCT SPLITUSR VIDEOMODE)
 );
 
-sub load_x11regression_firefox {
-    loadtest "x11regressions/firefox/firefox_smoke";
-    loadtest "x11regressions/firefox/firefox_localfiles";
-    loadtest "x11regressions/firefox/firefox_urlsprotocols";
-    loadtest "x11regressions/firefox/firefox_downloading";
-    loadtest "x11regressions/firefox/firefox_headers";
-    loadtest "x11regressions/firefox/firefox_pdf";
-    loadtest "x11regressions/firefox/firefox_changesaving";
-    loadtest "x11regressions/firefox/firefox_fullscreen";
-    loadtest "x11regressions/firefox/firefox_health";
-    loadtest "x11regressions/firefox/firefox_flashplayer";
-    loadtest "x11regressions/firefox/firefox_pagesaving";
-    loadtest "x11regressions/firefox/firefox_private";
-    loadtest "x11regressions/firefox/firefox_mhtml";
-    loadtest "x11regressions/firefox/firefox_extensions";
-    loadtest "x11regressions/firefox/firefox_appearance";
-    loadtest "x11regressions/firefox/firefox_passwd";
-    loadtest "x11regressions/firefox/firefox_html5";
-    loadtest "x11regressions/firefox/firefox_developertool";
-    loadtest "x11regressions/firefox/firefox_rss";
-    loadtest "x11regressions/firefox/firefox_ssl";
-    loadtest "x11regressions/firefox/firefox_emaillink";
-    loadtest "x11regressions/firefox/firefox_plugins";
-    loadtest "x11regressions/firefox/firefox_java";
-    loadtest "x11regressions/firefox/firefox_extcontent";
-    loadtest "x11regressions/firefox/firefox_gnomeshell";
+sub load_x11_firefox {
+    loadtest "x11/firefox/firefox_smoke";
+    loadtest "x11/firefox/firefox_localfiles";
+    loadtest "x11/firefox/firefox_urlsprotocols";
+    loadtest "x11/firefox/firefox_downloading";
+    loadtest "x11/firefox/firefox_headers";
+    loadtest "x11/firefox/firefox_pdf";
+    loadtest "x11/firefox/firefox_changesaving";
+    loadtest "x11/firefox/firefox_fullscreen";
+    loadtest "x11/firefox/firefox_health";
+    loadtest "x11/firefox/firefox_flashplayer";
+    loadtest "x11/firefox/firefox_pagesaving";
+    loadtest "x11/firefox/firefox_private";
+    loadtest "x11/firefox/firefox_mhtml";
+    loadtest "x11/firefox/firefox_extensions";
+    loadtest "x11/firefox/firefox_appearance";
+    loadtest "x11/firefox/firefox_passwd";
+    loadtest "x11/firefox/firefox_html5";
+    loadtest "x11/firefox/firefox_developertool";
+    loadtest "x11/firefox/firefox_rss";
+    loadtest "x11/firefox/firefox_ssl";
+    loadtest "x11/firefox/firefox_emaillink";
+    loadtest "x11/firefox/firefox_plugins";
+    loadtest "x11/firefox/firefox_java";
+    loadtest "x11/firefox/firefox_extcontent";
+    loadtest "x11/firefox/firefox_gnomeshell";
     if (!get_var("OFW") && check_var('BACKEND', 'qemu')) {
         loadtest "x11/firefox_audio";
     }
 }
 
-sub load_x11regression_message {
+sub load_x11_message {
     if (check_var("DESKTOP", "gnome")) {
-        loadtest "x11regressions/empathy/empathy_irc";
-        loadtest "x11regressions/evolution/evolution_smoke";
-        loadtest "x11regressions/evolution/evolution_prepare_servers";
-        loadtest "x11regressions/evolution/evolution_mail_imap";
-        loadtest "x11regressions/evolution/evolution_mail_pop";
-        loadtest "x11regressions/evolution/evolution_timezone_setup";
-        loadtest "x11regressions/evolution/evolution_meeting_imap";
-        loadtest "x11regressions/evolution/evolution_meeting_pop";
-        loadtest "x11regressions/groupwise/groupwise";
+        loadtest "x11/empathy/empathy_irc";
+        loadtest "x11/evolution/evolution_smoke";
+        loadtest "x11/evolution/evolution_prepare_servers";
+        loadtest "x11/evolution/evolution_mail_imap";
+        loadtest "x11/evolution/evolution_mail_pop";
+        loadtest "x11/evolution/evolution_timezone_setup";
+        loadtest "x11/evolution/evolution_meeting_imap";
+        loadtest "x11/evolution/evolution_meeting_pop";
+        loadtest "x11/groupwise/groupwise";
     }
     if (get_var("DESKTOP") =~ /kde|gnome/) {
-        loadtest "x11regressions/pidgin/prep_pidgin";
-        loadtest "x11regressions/pidgin/pidgin_IRC";
-        loadtest "x11regressions/pidgin/clean_pidgin";
+        loadtest "x11/pidgin/prep_pidgin";
+        loadtest "x11/pidgin/pidgin_IRC";
+        loadtest "x11/pidgin/clean_pidgin";
     }
 }
 
-sub load_x11regression_remote {
+sub load_x11_remote {
     # load onetime vncsession testing
     if (check_var('REMOTE_DESKTOP_TYPE', 'one_time_vnc')) {
-        loadtest 'x11regressions/remote_desktop/onetime_vncsession_xvnc_tigervnc';
-        loadtest 'x11regressions/remote_desktop/onetime_vncsession_xvnc_java';
-        loadtest 'x11regressions/remote_desktop/onetime_vncsession_multilogin_failed';
+        loadtest 'x11/remote_desktop/onetime_vncsession_xvnc_tigervnc';
+        loadtest 'x11/remote_desktop/onetime_vncsession_xvnc_java';
+        loadtest 'x11/remote_desktop/onetime_vncsession_multilogin_failed';
     }
     # load persistemt vncsession, x11 forwarding, xdmcp with gdm testing
     elsif (check_var('REMOTE_DESKTOP_TYPE', 'persistent_vnc')) {
-        loadtest 'x11regressions/remote_desktop/persistent_vncsession_xvnc';
-        loadtest 'x11regressions/remote_desktop/x11_forwarding_openssh';
-        loadtest 'x11regressions/remote_desktop/xdmcp_gdm';
+        loadtest 'x11/remote_desktop/persistent_vncsession_xvnc';
+        loadtest 'x11/remote_desktop/x11_forwarding_openssh';
+        loadtest 'x11/remote_desktop/xdmcp_gdm';
     }
     # load xdmcp with xdm testing
     elsif (check_var('REMOTE_DESKTOP_TYPE', 'xdmcp_xdm')) {
-        loadtest 'x11regressions/remote_desktop/xdmcp_xdm';
+        loadtest 'x11/remote_desktop/xdmcp_xdm';
     }
     # load vino testing
     elsif (check_var('REMOTE_DESKTOP_TYPE', 'vino_server')) {
-        loadtest 'x11regressions/remote_desktop/vino_server';
+        loadtest 'x11/remote_desktop/vino_server';
     }
     elsif (check_var('REMOTE_DESKTOP_TYPE', 'vino_client')) {
-        loadtest 'x11regressions/remote_desktop/vino_client';
+        loadtest 'x11/remote_desktop/vino_client';
     }
 }
 
@@ -678,22 +678,22 @@ elsif (get_var('NFV')) {
     }
 }
 elsif (get_var("REGRESSION")) {
-    load_common_x11regression;
+    load_common_x11;
     if (check_var("REGRESSION", "firefox")) {
         loadtest "boot/boot_to_desktop";
-        load_x11regression_firefox();
+        load_x11_firefox();
     }
     elsif (check_var("REGRESSION", "message")) {
         loadtest "boot/boot_to_desktop";
-        load_x11regression_message();
+        load_x11_message();
     }
     elsif (check_var('REGRESSION', 'remote')) {
         loadtest 'boot/boot_to_desktop';
-        load_x11regression_remote();
+        load_x11_remote();
     }
     elsif (check_var("REGRESSION", "piglit")) {
         loadtest "boot/boot_to_desktop";
-        loadtest "x11regressions/piglit/piglit";
+        loadtest "x11/piglit/piglit";
     }
 }
 elsif (get_var("FEATURE")) {

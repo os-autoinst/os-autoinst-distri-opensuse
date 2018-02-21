@@ -373,7 +373,7 @@ elsif (get_var('NFV')) {
     load_nfv_tests();
 }
 elsif (get_var("REGRESSION")) {
-    load_common_x11regression;
+    load_common_x11;
 }
 elsif (is_mediacheck) {
     load_svirt_vm_setup_tests;

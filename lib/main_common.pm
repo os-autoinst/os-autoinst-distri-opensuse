@@ -87,10 +87,10 @@ our @EXPORT = qw(
   load_nfv_master_tests
   load_nfv_trafficgen_tests
   load_iso_in_external_tests
-  load_x11regression_documentation
-  load_x11regression_gnome
-  load_x11regression_other
-  load_common_x11regression
+  load_x11_documentation
+  load_x11_gnome
+  load_x11_other
+  load_common_x11
   load_security_tests_core
   load_security_tests_web
   load_security_tests_misc
@@ -1260,10 +1260,10 @@ sub load_extra_tests {
         elsif (check_var('DISTRI', 'opensuse')) {
             if (gnomestep_is_applicable()) {
                 # Setup env for x11 regression tests
-                loadtest "x11regressions/x11regressions_setup";
+                loadtest "x11/x11_setup";
                 # poo#18850 java test support for firefox, run firefox before chrome
                 # as otherwise have wizard on first run to import settings from it
-                loadtest "x11regressions/firefox/firefox_java";
+                loadtest "x11/firefox/firefox_java";
                 if (check_var('VERSION', '42.2')) {
                     # 42.2 feature - not even on Tumbleweed
                     loadtest "x11/gdm_session_switch";
@@ -1436,12 +1436,12 @@ sub load_iso_in_external_tests {
     loadtest "x11/reboot_and_install";
 }
 
-sub load_x11regression_installation {
+sub load_x11_installation {
     set_var('NOAUTOLOGIN', 1) if is_opensuse;
     load_boot_tests();
     load_inst_tests();
     load_reboot_tests();
-    loadtest "x11regressions/x11regressions_setup";
+    loadtest "x11/x11_setup";
     # temporary adding test modules which applies hacks for missing parts in sle15
     loadtest "console/sle15_workarounds" if is_sle and sle_version_at_least('15');
     loadtest "console/hostname"       unless is_bridged_networking;
@@ -1450,55 +1450,55 @@ sub load_x11regression_installation {
     loadtest "shutdown/shutdown";
 }
 
-sub load_x11regression_documentation {
+sub load_x11_documentation {
     return unless check_var('DESKTOP', 'gnome');
-    loadtest "x11regressions/gnote/gnote_first_run";
-    loadtest "x11regressions/gnote/gnote_link_note";
-    loadtest "x11regressions/gnote/gnote_rename_title";
-    loadtest "x11regressions/gnote/gnote_undo_redo";
-    loadtest "x11regressions/gnote/gnote_edit_format";
-    loadtest "x11regressions/gnote/gnote_search_all";
-    loadtest "x11regressions/gnote/gnote_search_body";
-    loadtest "x11regressions/gnote/gnote_search_title";
-    loadtest "x11regressions/evince/evince_open";
-    loadtest "x11regressions/evince/evince_view";
-    loadtest "x11regressions/evince/evince_rotate_zoom";
-    loadtest "x11regressions/evince/evince_find";
-    loadtest "x11regressions/gedit/gedit_launch";
-    loadtest "x11regressions/gedit/gedit_save";
-    loadtest "x11regressions/gedit/gedit_about";
-    loadtest "x11regressions/libreoffice/libreoffice_mainmenu_components";
-    loadtest "x11regressions/libreoffice/libreoffice_recent_documents";
-    loadtest "x11regressions/libreoffice/libreoffice_default_theme";
-    loadtest "x11regressions/libreoffice/libreoffice_double_click_file";
+    loadtest "x11/gnote/gnote_first_run";
+    loadtest "x11/gnote/gnote_link_note";
+    loadtest "x11/gnote/gnote_rename_title";
+    loadtest "x11/gnote/gnote_undo_redo";
+    loadtest "x11/gnote/gnote_edit_format";
+    loadtest "x11/gnote/gnote_search_all";
+    loadtest "x11/gnote/gnote_search_body";
+    loadtest "x11/gnote/gnote_search_title";
+    loadtest "x11/evince/evince_open";
+    loadtest "x11/evince/evince_view";
+    loadtest "x11/evince/evince_rotate_zoom";
+    loadtest "x11/evince/evince_find";
+    loadtest "x11/gedit/gedit_launch";
+    loadtest "x11/gedit/gedit_save";
+    loadtest "x11/gedit/gedit_about";
+    loadtest "x11/libreoffice/libreoffice_mainmenu_components";
+    loadtest "x11/libreoffice/libreoffice_recent_documents";
+    loadtest "x11/libreoffice/libreoffice_default_theme";
+    loadtest "x11/libreoffice/libreoffice_double_click_file";
     if (sle_version_at_least('12-SP1')) {
-        loadtest "x11regressions/libreoffice/libreoffice_mainmenu_favorites";
-        loadtest "x11regressions/evolution/evolution_prepare_servers";
-        loadtest "x11regressions/libreoffice/libreoffice_pyuno_bridge";
+        loadtest "x11/libreoffice/libreoffice_mainmenu_favorites";
+        loadtest "x11/evolution/evolution_prepare_servers";
+        loadtest "x11/libreoffice/libreoffice_pyuno_bridge";
     }
-    loadtest "x11regressions/libreoffice/libreoffice_open_specified_file";
+    loadtest "x11/libreoffice/libreoffice_open_specified_file";
 }
 
-sub load_x11regression_gnome {
+sub load_x11_gnome {
     return unless check_var('DESKTOP', 'gnome');
-    loadtest "x11regressions/gnomecase/nautilus_cut_file";
-    loadtest "x11regressions/gnomecase/nautilus_permission";
-    loadtest "x11regressions/gnomecase/nautilus_open_ftp";
-    loadtest "x11regressions/gnomecase/application_starts_on_login";
-    loadtest "x11regressions/gnomecase/change_password";
-    loadtest "x11regressions/gnomecase/login_test";
+    loadtest "x11/gnomecase/nautilus_cut_file";
+    loadtest "x11/gnomecase/nautilus_permission";
+    loadtest "x11/gnomecase/nautilus_open_ftp";
+    loadtest "x11/gnomecase/application_starts_on_login";
+    loadtest "x11/gnomecase/change_password";
+    loadtest "x11/gnomecase/login_test";
     if (check_var('DISTRI', 'sle') && sle_version_at_least('12-SP1')) {
-        loadtest "x11regressions/gnomecase/gnome_classic_switch";
+        loadtest "x11/gnomecase/gnome_classic_switch";
     }
-    loadtest "x11regressions/gnomecase/gnome_default_applications";
-    loadtest "x11regressions/gnomecase/gnome_window_switcher";
+    loadtest "x11/gnomecase/gnome_default_applications";
+    loadtest "x11/gnomecase/gnome_window_switcher";
 }
 
-sub load_x11regression_other {
+sub load_x11_other {
     if (check_var("DESKTOP", "gnome")) {
-        loadtest "x11regressions/brasero/brasero_launch";
+        loadtest "x11/brasero/brasero_launch";
         loadtest "x11/gnomeapps/gnome_documents";
-        loadtest "x11regressions/totem/totem_launch";
+        loadtest "x11/totem/totem_launch";
         if (is_sle && sle_version_at_least('15')) {
             loadtest "x11/xterm";
             loadtest "x11/sshxterm";
@@ -1509,44 +1509,44 @@ sub load_x11regression_other {
     }
     # shotwell was replaced by gnome-photos in SLE15 & yast_virtualization isn't in SLE15
     if (is_sle && sle_version_at_least('12-SP2') && !sle_version_at_least('15')) {
-        loadtest "x11regressions/shotwell/shotwell_import";
-        loadtest "x11regressions/shotwell/shotwell_edit";
-        loadtest "x11regressions/shotwell/shotwell_export";
+        loadtest "x11/shotwell/shotwell_import";
+        loadtest "x11/shotwell/shotwell_edit";
+        loadtest "x11/shotwell/shotwell_export";
         loadtest "virtualization/yast_virtualization";
         loadtest "virtualization/virtman_view";
     }
     if (get_var("DESKTOP") =~ /kde|gnome/) {
-        loadtest "x11regressions/tracker/prep_tracker";
+        loadtest "x11/tracker/prep_tracker";
         # tracker-gui/tracker-needle was dropped since version 1.99.0
         if (!sle_version_at_least('15')) {
-            loadtest "x11regressions/tracker/tracker_starts";
-            loadtest "x11regressions/tracker/tracker_searchall";
-            loadtest "x11regressions/tracker/tracker_pref_starts";
-            loadtest "x11regressions/tracker/tracker_open_apps";
-            loadtest "x11regressions/tracker/tracker_mainmenu";
+            loadtest "x11/tracker/tracker_starts";
+            loadtest "x11/tracker/tracker_searchall";
+            loadtest "x11/tracker/tracker_pref_starts";
+            loadtest "x11/tracker/tracker_open_apps";
+            loadtest "x11/tracker/tracker_mainmenu";
         }
-        loadtest "x11regressions/tracker/tracker_by_command";
-        loadtest "x11regressions/tracker/tracker_info";
-        loadtest "x11regressions/tracker/tracker_search_in_nautilus";
-        loadtest "x11regressions/tracker/clean_tracker";
+        loadtest "x11/tracker/tracker_by_command";
+        loadtest "x11/tracker/tracker_info";
+        loadtest "x11/tracker/tracker_search_in_nautilus";
+        loadtest "x11/tracker/clean_tracker";
     }
 }
 
-sub load_common_x11regression {
+sub load_common_x11 {
     if (check_var("REGRESSION", "installation")) {
-        load_x11regression_installation;
+        load_x11_installation;
     }
     elsif (check_var("REGRESSION", "gnome")) {
         loadtest "boot/boot_to_desktop";
-        load_x11regression_gnome();
+        load_x11_gnome();
     }
     elsif (check_var("REGRESSION", "documentation")) {
         loadtest "boot/boot_to_desktop";
-        load_x11regression_documentation();
+        load_x11_documentation();
     }
     elsif (check_var("REGRESSION", "other")) {
         loadtest "boot/boot_to_desktop";
-        load_x11regression_other();
+        load_x11_other();
     }
 }
 
