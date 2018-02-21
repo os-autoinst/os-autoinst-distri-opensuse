@@ -1573,6 +1573,12 @@ else {
         loadtest "autoyast/installation";
         loadtest "installation/first_boot";
     }
+    elsif (get_var("SES_NODE")) {
+        loadtest "boot/boot_to_desktop";
+        loadtest "ses/nodes_preparation";
+        loadtest "ses/deepsea_testsuite";
+        return 1;
+    }
     elsif (get_var("AUTOYAST") || get_var("AUTOUPGRADE")) {
         loadtest "autoyast/prepare_profile" if get_var "AUTOYAST_PREPARE_PROFILE";
         load_patching_tests() if get_var('PATCH');
