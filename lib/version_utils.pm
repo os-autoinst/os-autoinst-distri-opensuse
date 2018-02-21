@@ -29,6 +29,7 @@ our @EXPORT = qw (
   is_leap
   is_opensuse
   is_sle
+  is_staging
   is_sles4sap
   is_sles4sap_standard
   is_tumbleweed
@@ -138,6 +139,10 @@ sub is_sles4sap {
 
 sub is_sles4sap_standard {
     return is_sles4sap && check_var('SLES4SAP_MODE', 'sles');
+}
+
+sub is_staging {
+    return get_var('STAGING');
 }
 
 sub is_storage_ng {

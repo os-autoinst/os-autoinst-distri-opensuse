@@ -40,6 +40,7 @@ our @EXPORT = qw(
   workaround_type_encrypted_passphrase
   ensure_unlocked_desktop
   install_to_other_at_least
+  is_bridged_networking
   ensure_fullscreen
   reboot_x11
   poweroff_x11
@@ -50,6 +51,8 @@ our @EXPORT = qw(
   systemctl
   addon_decline_license
   addon_license
+  addon_products_is_applicable
+  noupdatestep_is_applicable
   validate_repos
   turn_off_kde_screensaver
   random_string
@@ -408,6 +411,17 @@ sub install_to_other_at_least {
     return sle_version_at_least($version, version_variable => "REAL_INSTALLED_VERSION");
 }
 
+sub is_bridged_networking {
+    my $ret = 0;
+    if (check_var('BACKEND', 'svirt') and !check_var('ARCH', 's390x')) {
+        my $vmm_family = get_required_var('VIRSH_VMM_FAMILY');
+        $ret = ($vmm_family =~ /xen|vmware|hyperv/);
+    }
+    # Some needles match hostname which we can't set permanently with bridge.
+    set_var('BRIDGED_NETWORKING', 1) if $ret;
+    return $ret;
+}
+
 sub ensure_fullscreen {
     my (%args) = @_;
     $args{tag} //= 'yast2-windowborder';
@@ -756,6 +770,14 @@ sub addon_license {
     addon_decline_license;
     wait_still_screen 2;
     send_key $cmd{next};
+}
+
+sub addon_products_is_applicable {
+    return !get_var('LIVECD') && get_var('ADDONURL');
+}
+
+sub noupdatestep_is_applicable {
+    return !get_var("UPGRADE");
 }
 
 sub random_string {

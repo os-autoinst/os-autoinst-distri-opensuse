@@ -16,8 +16,7 @@ use warnings;
 use base "y2logsstep";
 use testapi;
 use utils 'ensure_fullscreen';
-use version_utils qw(is_sle sle_version_at_least);
-use main_common 'is_staging';
+use version_utils qw(is_sle sle_version_at_least is_staging);
 
 sub run {
     my ($self) = @_;

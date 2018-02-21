@@ -18,7 +18,7 @@ use testapi qw(check_var get_var get_required_var set_var check_var_array diag);
 use autotest;
 use utils;
 use version_utils qw(
-  is_hyperv_in_gui is_jeos is_gnome_next is_krypton_argon is_leap is_opensuse is_sle is_sles4sap is_sles4sap_standard leap_version_at_least sle_version_at_least is_desktop_installed is_installcheck is_rescuesystem
+  is_hyperv_in_gui is_jeos is_gnome_next is_krypton_argon is_leap is_opensuse is_sle is_sles4sap is_sles4sap_standard leap_version_at_least sle_version_at_least is_desktop_installed is_installcheck is_rescuesystem is_staging
 );
 use bmwqemu ();
 use strict;
@@ -38,8 +38,6 @@ our @EXPORT = qw(
   is_mediacheck
   is_server
   is_sles4sap
-  is_staging
-  is_bridged_networking
   need_clear_repos
   have_scc_repos
   load_svirt_vm_setup_tests
@@ -65,7 +63,6 @@ our @EXPORT = qw(
   consolestep_is_applicable
   rescuecdstep_is_applicable
   bootencryptstep_is_applicable
-  addon_products_is_applicable
   we_is_applicable
   remove_common_needles
   remove_desktop_needles
@@ -188,21 +185,6 @@ sub have_addn_repos {
       && !get_var("EVERGREEN")
       && get_var("SUSEMIRROR")
       && !get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/;
-}
-
-sub is_staging {
-    return get_var('STAGING');
-}
-
-sub is_bridged_networking {
-    my $ret = 0;
-    if (check_var('BACKEND', 'svirt') and !check_var('ARCH', 's390x')) {
-        my $vmm_family = get_required_var('VIRSH_VMM_FAMILY');
-        $ret = ($vmm_family =~ /xen|vmware|hyperv/);
-    }
-    # Some needles match hostname which we can't set permanently with bridge.
-    set_var('BRIDGED_NETWORKING', 1) if $ret;
-    return $ret;
 }
 
 sub is_livesystem {
@@ -521,10 +503,6 @@ sub installyaststep_is_applicable {
     return !get_var("NOINSTALL") && !get_var("RESCUECD") && !get_var("ZDUP");
 }
 
-sub noupdatestep_is_applicable {
-    return !get_var("UPGRADE");
-}
-
 sub kdestep_is_applicable {
     return check_var("DESKTOP", "kde");
 }
@@ -544,10 +522,6 @@ sub rescuecdstep_is_applicable {
 
 sub ssh_key_import {
     return get_var("SSH_KEY_IMPORT") || get_var("SSH_KEY_DO_NOT_IMPORT");
-}
-
-sub addon_products_is_applicable {
-    return !get_var("LIVECD") && get_var("ADDONURL");
 }
 
 sub we_is_applicable {
@@ -1470,7 +1444,7 @@ sub load_x11regression_installation {
     loadtest "x11regressions/x11regressions_setup";
     # temporary adding test modules which applies hacks for missing parts in sle15
     loadtest "console/sle15_workarounds" if is_sle and sle_version_at_least('15');
-    loadtest "console/hostname" unless is_bridged_networking;
+    loadtest "console/hostname"       unless is_bridged_networking;
     loadtest "console/force_cron_run" unless is_jeos;
     loadtest "shutdown/grub_set_bootargs";
     loadtest "shutdown/shutdown";
@@ -1651,7 +1625,7 @@ sub load_create_hdd_tests {
     return unless get_var('INSTALLONLY');
     # temporary adding test modules which applies hacks for missing parts in sle15
     loadtest 'console/sle15_workarounds' if is_sle && sle_version_at_least('15');
-    loadtest 'console/hostname' unless is_bridged_networking;
+    loadtest 'console/hostname'       unless is_bridged_networking;
     loadtest 'console/force_cron_run' unless is_jeos;
     loadtest 'console/scc_deregistration' if get_var('SCC_DEREGISTER');
     loadtest 'shutdown/grub_set_bootargs';

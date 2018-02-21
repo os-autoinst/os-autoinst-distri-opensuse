@@ -22,7 +22,7 @@ BEGIN {
 }
 use utils;
 use version_utils
-  qw(is_jeos is_gnome_next is_krypton_argon is_leap is_tumbleweed is_rescuesystem leap_version_at_least is_desktop_installed is_opensuse is_sle);
+  qw(is_jeos is_gnome_next is_krypton_argon is_leap is_tumbleweed is_rescuesystem leap_version_at_least is_desktop_installed is_opensuse is_sle is_staging);
 use main_common;
 
 init_main();
