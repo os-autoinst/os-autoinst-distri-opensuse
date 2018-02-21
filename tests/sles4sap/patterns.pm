@@ -12,6 +12,7 @@
 
 use base "sles4sap";
 use testapi;
+use utils;
 use version_utils 'sle_version_at_least';
 use strict;
 
@@ -21,6 +22,9 @@ sub run {
     my $output      = '';
 
     select_console 'root-console';
+
+    # Disable packagekit
+    pkcon_quit;
 
     my $base_pattern = sle_version_at_least('15') ? 'patterns-server-enterprise-sap_server' : 'patterns-sles-sap_server';
 

@@ -40,7 +40,7 @@ sub run {
       . 'Loaded: loaded \(/usr/lib/systemd/system/tuned.service;.+'
       . 'Active: active \(running\).+'
       . 'Starting Dynamic System Tuning Daemon.+'
-      . 'Started Dynamic System Tuning Daemon.$';
+      . 'Started Dynamic System Tuning Daemon.';
     die "Command 'sapconf status' output is not recognized" unless ($output =~ m|$statusregex|s);
 
     $output = script_output "tuned-adm active";
