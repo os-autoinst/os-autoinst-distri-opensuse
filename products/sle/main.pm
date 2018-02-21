@@ -927,7 +927,8 @@ sub load_consoletests {
         loadtest "console/xfce_gnome_deps";
     }
     if (!is_staging() && sle_version_at_least('12-SP2')) {
-        loadtest "console/zypper_lifecycle";
+        # This test uses serial console too much to be reliable on Hyper-V (poo#30613)
+        loadtest "console/zypper_lifecycle" unless check_var('VIRSH_VMM_FAMILY', 'hyperv');
         if (check_var_array('SCC_ADDONS', 'tcm') && !sle_version_at_least('15')) {
             loadtest "console/zypper_lifecycle_toolchain";
         }
