@@ -30,7 +30,7 @@ sub run {
     }
     elsif (is_storage_ng && check_var('ARCH', 'x86_64')) {
         # Storage-ng has GPT by defaut, so need bios-boot partition for legacy boot, which is only on x86_64
-        addpart(role => 'raw', fsid => 'bios-boot', size => 1);
+        addpart(role => 'raw', fsid => 'bios-boot', size => 2);
     }
     elsif (check_var('ARCH', 's390x')) {
         # s390x need /boot/zipl on ext partition
