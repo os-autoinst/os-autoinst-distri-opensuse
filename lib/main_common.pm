@@ -795,7 +795,7 @@ sub load_inst_tests {
             and !is_hyperv_in_gui
             and !is_bridged_networking
             and !check_var('BACKEND', 's390x')
-            and sle_version_at_least('12-SP2'))
+            and is_sle && sle_version_at_least('12-SP2'))
         {
             loadtest "installation/hostname_inst";
         }
