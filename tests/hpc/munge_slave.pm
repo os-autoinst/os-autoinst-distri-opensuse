@@ -21,13 +21,18 @@ use utils;
 sub run {
     my $self = shift;
 
-    # set proper hostname
-    assert_script_run('hostnamectl set-hostname munge-slave');
+    # Synchronize with master
+    mutex_lock("MUNGE_MASTER_BARRIERS_CONFIGURED");
+    mutex_unlock("MUNGE_MASTER_BARRIERS_CONFIGURED");
+
+    # Stop firewall
+    systemctl 'stop ' . $self->firewall;
 
     # install munge, wait for master and munge key
     zypper_call('in munge');
     barrier_wait('MUNGE_INSTALLATION_FINISHED');
     mutex_lock('MUNGE_KEY_COPIED');
+    mutex_unlock('MUNGE_KEY_COPIED');
 
     # start and enable munge
     $self->enable_and_start('munge');
@@ -35,6 +40,7 @@ sub run {
 
     # wait for master to finish
     mutex_lock('MUNGE_DONE');
+    mutex_unlock('MUNGE_DONE');
 }
 
 1;

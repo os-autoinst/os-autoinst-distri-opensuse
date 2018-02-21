@@ -20,25 +20,29 @@ use lockapi;
 use utils;
 
 sub run {
-    my $self      = shift;
-    my $master_ip = get_required_var('HPC_MASTER_IP');
-    my $hostname  = 'pdsh-slave';
+    my $self = shift;
 
-    # set proper hostname
-    assert_script_run "hostnamectl set-hostname $hostname";
+    # Synchronize with master
+    mutex_lock("PDSH_MASTER_BARRIERS_CONFIGURED");
+    mutex_unlock("PDSH_MASTER_BARRIERS_CONFIGURED");
+
+    # Stop firewall
+    systemctl 'stop ' . $self->firewall;
 
     my $packages_to_install = 'munge pdsh';
     $packages_to_install .= ' pdsh-genders' if get_var('PDSH_GENDER_TEST');
     zypper_call("in $packages_to_install");
     barrier_wait("PDSH_INSTALLATION_FINISHED");
     mutex_lock("PDSH_KEY_COPIED");
+    mutex_unlock("PDSH_KEY_COPIED");
 
     # start munge
     $self->enable_and_start('munge');
     barrier_wait("PDSH_MUNGE_ENABLED");
     mutex_lock("MRSH_SOCKET_STARTED");
+    mutex_unlock("MRSH_SOCKET_STARTED");
 
-    assert_script_run('echo  "' . $hostname . 'type=genders-test" >> /etc/genders') if get_var('PDSH_GENDER_TEST');
+    assert_script_run('echo  "' . get_var('HOSTNAME') . 'type=genders-test" >> /etc/genders') if get_var('PDSH_GENDER_TEST');
 
     # make sure that user 'nobody' has permissions for $serialdev to get openQA work properly
     assert_script_run("chmod 666 /dev/$serialdev");
@@ -46,7 +50,7 @@ sub run {
     type_string("su - nobody\n");
     assert_screen 'user-nobody';
     my $genders_plugin = get_var('PDSH_GENDER_TEST') ? '--g type=genders-test' : '';
-    assert_script_run("pdsh -R mrsh $genders_plugin -w $master_ip ls / &> /tmp/pdsh.log");
+    assert_script_run("pdsh -R mrsh $genders_plugin -w pdsh-master ls / &> /tmp/pdsh.log");
     upload_logs '/tmp/pdsh.log';
     barrier_wait("PDSH_SLAVE_DONE");
 }

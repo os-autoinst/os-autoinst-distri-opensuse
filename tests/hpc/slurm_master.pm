@@ -10,7 +10,8 @@
 # Summary: HPC_Module: slurm master
 #    This test is setting up slurm master and starts the control node
 # Maintainer: soulofdestiny <mgriessmeier@suse.com>
-# Tags: https://fate.suse.com/316379
+# Tags: https://fate.suse.com/316379, https://progress.opensuse.org/issues/20308
+
 
 use base "hpcbase";
 use strict;
@@ -19,35 +20,43 @@ use lockapi;
 use utils;
 
 sub run {
-    my $self                      = shift;
-    my ($host_ip_without_netmask) = get_required_var('HPC_HOST_IP') =~ /(.*)\/.*/;
-    my $slave_ip                  = get_required_var('HPC_SLAVE_IP');
-    barrier_create("SLURM_MASTER_SERVICE_ENABLED", 2);
-    barrier_create("SLURM_SLAVE_SERVICE_ENABLED",  2);
-    barrier_create("SLURM_SETUP_DONE",             2);
+    my $self = shift;
+    # Get number of nodes
+    my $nodes = get_required_var("CLUSTER_NODES");
+    # Initialize slurm barriers
+    barrier_create("SLURM_MASTER_SERVICE_ENABLED", $nodes);
+    barrier_create("SLURM_SLAVE_SERVICE_ENABLED",  $nodes);
+    barrier_create("SLURM_SETUP_DONE",             $nodes);
+    # Synchronize all slave nodes with master
+    mutex_create("SLURM_MASTER_BARRIERS_CONFIGURED");
 
-    # set proper hostname
-    assert_script_run "hostnamectl set-hostname slurm-master";
+    # Stop firewall
+    systemctl 'stop ' . $self->firewall;
 
     # install slurm
     zypper_call('in slurm-munge');
 
-    # create proper /etc/hosts and /etc/slurm.conf
+    # Create proper /etc/hosts and /etc/slurm.conf for each node
+    my $slurm_slave_nodes = "";
+    for (my $node = 1; $node < $nodes; $node++) {
+        my $node_name = sprintf("slurm-slave%02d", $node);
+        $slurm_slave_nodes = "${slurm_slave_nodes},${node_name}";
+    }
     my $config = << "EOF";
-echo -e "$host_ip_without_netmask slurm-master" >> /etc/hosts
-echo -e "$slave_ip slurm-slave" >> /etc/hosts
 sed -i "/^ControlMachine.*/c\\ControlMachine=slurm-master" /etc/slurm/slurm.conf
-sed -i "/^NodeName.*/c\\NodeName=slurm-master,slurm-slave Sockets=1 CoresPerSocket=1 ThreadsPerCore=1 State=unknown" /etc/slurm/slurm.conf
-sed -i "/^PartitionName.*/c\\PartitionName=normal Nodes=slurm-master,slurm-slave Default=YES MaxTime=24:00:00 State=UP" /etc/slurm/slurm.conf
+sed -i "/^NodeName.*/c\\NodeName=slurm-master${slurm_slave_nodes} Sockets=1 CoresPerSocket=1 ThreadsPerCore=1 State=unknown" /etc/slurm/slurm.conf
+sed -i "/^PartitionName.*/c\\PartitionName=normal Nodes=slurm-master${slurm_slave_nodes} Default=YES MaxTime=24:00:00 State=UP" /etc/slurm/slurm.conf
 EOF
     assert_script_run($_) foreach (split /\n/, $config);
 
     barrier_wait("SLURM_SETUP_DONE");
 
-    # copy munge key and slurm conf
-    $self->exec_and_insert_password("scp -o StrictHostKeyChecking=no /etc/munge/munge.key root\@$slave_ip:/etc/munge/munge.key");
-    $self->exec_and_insert_password("scp -o StrictHostKeyChecking=no /etc/slurm/slurm.conf root\@$slave_ip:/etc/slurm/slurm.conf");
-
+    # Copy munge key and slurm conf to all slave nodes
+    for (my $node = 1; $node < $nodes; $node++) {
+        my $node_name = sprintf("slurm-slave%02d", $node);
+        $self->exec_and_insert_password("scp -o StrictHostKeyChecking=no /etc/munge/munge.key root\@${node_name}:/etc/munge/munge.key");
+        $self->exec_and_insert_password("scp -o StrictHostKeyChecking=no /etc/slurm/slurm.conf root\@${node_name}:/etc/slurm/slurm.conf");
+    }
     # enable and start munge
     $self->enable_and_start('munge');
 
@@ -64,7 +73,7 @@ EOF
     barrier_wait("SLURM_SLAVE_SERVICE_ENABLED");
 
     # run the actual test against both nodes
-    assert_script_run("srun -N 2 /bin/ls");
+    assert_script_run("srun -N ${nodes} /bin/ls");
 
     mutex_create('SLURM_MASTER_RUN_TESTS');
 }
