@@ -191,7 +191,7 @@ sub addlv {
 sub unselect_xen_pv_cdrom {
     if (check_var('VIRSH_VMM_TYPE', 'linux')) {
         assert_screen 'select-hard-disk';
-        send_key 'alt-e';
+        send_key 'alt-d';
         send_key $cmd{next};
     }
 }
