@@ -13,8 +13,7 @@
 use strict;
 use base "consoletest";
 use testapi;
-use main_common 'is_bridged_networking';
-use utils 'systemctl';
+use utils qw(is_bridged_networking systemctl);
 
 sub run {
     # Skip the entire test on bridget networks (e.g. Xen, Hyper-V)

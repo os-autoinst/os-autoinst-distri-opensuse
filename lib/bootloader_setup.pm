@@ -22,7 +22,6 @@ use utils;
 use version_utils qw(is_jeos is_caasp leap_version_at_least);
 use lockapi;
 use mm_network;
-use main_common 'addon_products_is_applicable';
 
 our @EXPORT = qw(
   stop_grub_timeout
