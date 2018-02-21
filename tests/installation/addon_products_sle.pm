@@ -67,7 +67,13 @@ sub handle_all_packages_medium {
     }
     send_key $cmd{next};
     # Confirm all required addons are properly added
-    assert_screen 'addon-products', 60;
+    assert_screen([qw(addon-products sle-product-license-agreement)], 60);
+    if (match_has_tag 'sle-product-license-agreement') {
+        record_soft_failure 'bsc#1081647';
+        wait_screen_change { send_key 'alt-a' };
+        send_key 'alt-n';
+        assert_screen 'addon-products';
+    }
     foreach (@addons) {
         send_key 'home';
         send_key_until_needlematch "addon-products-$_", 'down';
