@@ -52,7 +52,7 @@ sub run {
 
     # workaround for yast popups and
     # detect "Wrong Digest" error to end test earlier
-    my @tags = qw(rebootnow yast2_wrong_digest yast2_package_retry);
+    my @tags = qw(rebootnow yast2_wrong_digest yast2_package_retry yast2_error);
     if (get_var("UPGRADE")) {
         push(@tags, "ERROR-removing-package");
         push(@tags, "DIALOG-packages-notifications");
@@ -101,6 +101,10 @@ sub run {
         }
         else {
             assert_screen \@tags, $timeout;
+        }
+
+        if (match_has_tag("yast2_error")) {
+            die "A YaST error occurred. Check the logs.";
         }
 
         if (match_has_tag("yast2_wrong_digest")) {
