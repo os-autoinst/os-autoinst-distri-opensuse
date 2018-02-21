@@ -26,41 +26,31 @@ sub run {
 
     if (check_var('DESKTOP', 'textmode')) {    # command-not-found is part of the enhanced_base pattern, missing in textmode
         select_console 'root-console';
-        zypper_call "in command-not-found";
+        zypper_call 'in command-not-found';
         select_console 'user-console';
     }
 
     my $not_installed_pkg = (is_sle && sle_version_at_least '15') ? 'wireshark' : 'xosview';
     my $cnf_cmd = qq{echo "\$(cnf $not_installed_pkg 2>&1 | tee /dev/stderr)" | grep -q "zypper install $not_installed_pkg"};
 
-    my $result = script_run($cnf_cmd);
-
     save_screenshot;
+    # Return if command execution was successful
+    return unless script_run($cnf_cmd);
 
-    if ($result) {
-        if (is_sle && sle_version_at_least '15') {
-            $self->{run_post_hook} = 1;
-            record_soft_failure 'https://fate.suse.com/323424';
-            select_console 'root-console';
-            add_suseconnect_product("sle-module-desktop-applications");
-            zypper_call("ref");
-            select_console 'user-console';
-        }
-        else {
-            die "Command Not Found failed";
-        }
+    # Soft-fail if command execution fails on sle 15
+    if (is_sle && sle_version_at_least '15') {
+        record_soft_failure 'https://fate.suse.com/323424';
+        select_console 'root-console';
+        add_suseconnect_product('sle-module-desktop-applications');
+        zypper_call('ref');
+        select_console 'user-console';
     }
-    assert_script_run($cnf_cmd) if $self->{run_post_hook};    # Run command if not yet executed (workaround for SLE 15)
+    else {
+        die "Command Not Found failed: $cnf_cmd";
+    }
+
+    assert_script_run($cnf_cmd);    # Run command
     save_screenshot;
-}
-
-sub post_run_hook {
-    # deativate desktop applications module on sle 15 if was activated
-    return unless shift->{run_post_hook};
-
-    select_console 'root-console';
-    remove_suseconnect_product("sle-module-desktop-applications");
-    select_console 'user-console';
 }
 
 1;
