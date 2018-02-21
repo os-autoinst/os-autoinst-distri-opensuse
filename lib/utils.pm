@@ -331,7 +331,7 @@ sub workaround_type_encrypted_passphrase {
     return if !get_var('ENCRYPT') && !get_var('FULL_LVM_ENCRYPT');
     # ppc64le is always doing the opposite by default :)
     # ppc storage-ng encrypt
-    return if (is_storage_ng && check_var('ARCH', 'ppc64le')) || (!is_storage_ng && !check_var('ARCH', 'ppc64le'));
+    return if !is_storage_ng && !check_var('ARCH', 'ppc64le');
     # If the encrypted disk is "just activated" it does not mean that the
     # installer would propose an encrypted installation again
     return if get_var('ENCRYPT_ACTIVATE_EXISTING') && !get_var('ENCRYPT_FORCE_RECOMPUTE');
