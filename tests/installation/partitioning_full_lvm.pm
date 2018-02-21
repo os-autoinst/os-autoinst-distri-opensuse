@@ -37,12 +37,8 @@ sub run {
         addpart(role => 'OS', size => 500, format => 'ext2', mount => '/boot/zipl');
     }
 
-    # ppc with lvm requires separate boot on storage-ng or if want to test with UNENCRYPTED_BOOT set to true
     if (get_var('UNENCRYPTED_BOOT')) {
         addpart(role => 'OS', size => 500, format => 'ext2', mount => '/boot');
-    }
-    elsif (check_var('ARCH', 'ppc64le') && is_storage_ng) {
-        addpart(role => 'OS', size => 500, format => 'ext2', mount => '/boot', encrypt => 1);
     }
 
     addpart(role => 'raw', encrypt => 1);
