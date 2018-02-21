@@ -24,7 +24,7 @@ sub run {
     select_console 'root-console';
 
     # Disable packagekit
-    systemctl '--now mask packagekit.service';
+    pkcon_quit;
 
     my $base_pattern = sle_version_at_least('15') ? 'patterns-server-enterprise-sap_server' : 'patterns-sles-sap_server';
 
@@ -55,9 +55,6 @@ sub run {
         die "SAP zypper pattern [$pattern] info check failed"
           unless ($output =~ /i\+\s\|\spatterns-$pattern\s+\|\spackage\s\|\sRequired/);
     }
-
-    # Enable packagekit
-    systemctl '--now unmask packagekit.service';
 }
 
 sub test_flags {
