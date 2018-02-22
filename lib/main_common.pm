@@ -324,9 +324,6 @@ sub load_boot_tests {
     if ((get_var("UEFI") || is_jeos()) && !check_var("BACKEND", "svirt")) {
         loadtest "installation/bootloader_uefi";
     }
-    elsif (get_var("IPMI_HOSTNAME")) {    # abuse of variable for now
-        loadtest "installation/qa_net";
-    }
     elsif (check_var("BACKEND", "svirt") && !check_var("ARCH", "s390x")) {
         load_svirt_vm_setup_tests;
     }
