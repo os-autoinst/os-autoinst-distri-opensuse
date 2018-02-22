@@ -38,6 +38,7 @@ our @EXPORT = qw(
   is_mediacheck
   is_server
   is_sles4sap
+  is_sles4sap_standard
   need_clear_repos
   have_scc_repos
   load_svirt_vm_setup_tests
@@ -51,6 +52,7 @@ our @EXPORT = qw(
   load_autoyast_clone_tests
   load_slepos_tests
   load_docker_tests
+  load_sles4sap_tests
   installzdupstep_is_applicable
   snapper_is_applicable
   chromestep_is_applicable
@@ -722,7 +724,7 @@ sub load_inst_tests {
         {
             loadtest "installation/system_role";
         }
-        if (is_sles4sap() and sle_version_at_least('15')) {
+        if (is_sles4sap() and sle_version_at_least('15') and check_var('SYSTEM_ROLE', 'default')) {
             loadtest "installation/sles4sap_product_installation_mode";
         }
         loadtest "installation/partitioning";
@@ -1700,6 +1702,18 @@ sub load_ssh_key_import_tests {
     load_reboot_tests();
     # verify previous defined ssh keys
     loadtest "x11/ssh_key_verify";
+}
+
+sub load_sles4sap_tests {
+    return if get_var('INSTALLONLY');
+    loadtest "sles4sap/desktop_icons" if (is_desktop_installed());
+    loadtest "sles4sap/patterns";
+    loadtest "sles4sap/sapconf";
+    loadtest "sles4sap/saptune";
+    if (get_var('NW')) {
+        loadtest "sles4sap/netweaver_ascs_install" if (get_var('SLES4SAP_MODE') !~ /wizard/);
+        loadtest "sles4sap/netweaver_ascs";
+    }
 }
 
 1;
