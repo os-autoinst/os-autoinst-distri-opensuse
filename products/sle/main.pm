@@ -626,18 +626,6 @@ sub load_patching_tests {
     }
 }
 
-sub load_sles4sap_tests {
-    return if get_var('INSTALLONLY');
-    loadtest "sles4sap/desktop_icons" if (is_desktop_installed());
-    loadtest "sles4sap/patterns";
-    loadtest "sles4sap/sapconf";
-    loadtest "sles4sap/saptune";
-    if (get_var('NW')) {
-        loadtest "sles4sap/netweaver_ascs_install" if (get_var('SLES4SAP_MODE') !~ /wizard/);
-        loadtest "sles4sap/netweaver_ascs";
-    }
-}
-
 sub prepare_target {
     if (get_var("BOOT_HDD_IMAGE")) {
         boot_hdd_image;
