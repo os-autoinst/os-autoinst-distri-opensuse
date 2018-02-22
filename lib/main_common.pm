@@ -198,9 +198,8 @@ sub is_kde_live {
     return get_var('FLAVOR', '') =~ /KDE-Live/;
 }
 
-# TODO check why we want this enabled on SLE staging but not openSUSE staging
 sub packagekit_available {
-    return !check_var('FLAVOR', 'Rescue-CD') && (!is_staging || is_sle);
+    return !check_var('FLAVOR', 'Rescue-CD');
 }
 
 sub is_kernel_test {
