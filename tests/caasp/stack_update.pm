@@ -21,7 +21,6 @@ use testapi;
 use lockapi 'mutex_create';
 use caasp 'update_scheduled';
 
-
 # Set up ssh to admin node and run update script on all nodes
 sub setup_update_repository {
     my $repo = update_scheduled;
@@ -36,6 +35,12 @@ sub check_update_changes {
 
     # Kubernetes checks
     assert_script_run "kubectl cluster-info";
+    assert_script_run "kubectl cluster-info > cluster.after_update";
+    if (script_run "diff -Nur cluster.before_update cluster.after_update") {
+        record_soft_failure "old kubeconfig cannot see DEX - bsc#1081337";
+        switch_to 'velum';
+        download_kubeconfig;
+    }
     assert_script_run "! kubectl get cs --no-headers | grep -v Healthy";
     my $nodes_count = get_required_var("STACK_NODES");
     assert_script_run "kubectl get nodes --no-headers | wc -l | grep $nodes_count";
