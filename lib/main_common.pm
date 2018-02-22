@@ -1074,7 +1074,7 @@ sub load_x11tests {
     if (is_opensuse && !get_var("OFW") && check_var('BACKEND', 'qemu') && !check_var('FLAVOR', 'Rescue-CD') && !is_kde_live) {
         loadtest "x11/firefox_audio";
     }
-    if (gnomestep_is_applicable() && !(get_var("LIVECD") || is_server)) {
+    if (gnomestep_is_applicable() && !(get_var("LIVECD") || is_sle)) {
         loadtest "x11/thunderbird";
     }
     if (chromiumstep_is_applicable() && !(is_staging() || is_livesystem)) {
