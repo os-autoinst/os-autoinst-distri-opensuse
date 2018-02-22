@@ -27,7 +27,8 @@ use base "consoletest";
 use testapi;
 use utils;
 use strict;
-use version_utils 'is_caasp';
+use version_utils qw(is_caasp is_sle sle_version_at_least);
+use registration;
 
 sub run {
     select_console("root-console");
@@ -37,6 +38,7 @@ sub run {
         die "Docker is not pre-installed." if script_run("zypper se -x --provides -i docker | grep docker");
     }
     else {
+        add_suseconnect_product('sle-module-containers') if is_sle && sle_version_at_least('15');
         # docker package can be installed
         zypper_call("in docker");
     }
