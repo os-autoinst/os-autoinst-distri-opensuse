@@ -35,7 +35,6 @@ sub run {
     send_key $cmd{next};
     assert_screen [qw(remove-repository license-agreement license-agreement-accepted)], 240;
     if (match_has_tag("license-agreement") || match_has_tag("license-agreement-accepted")) {
-        record_soft_failure 'bsc#1077703: incorrect license agreement is shown during upgrade';
         send_key 'alt-a' unless match_has_tag("license-agreement-accepted");
         record_soft_failure 'bsc#1080450: license agreement is shown twice' if match_has_tag("license-agreement-accepted");
         send_key $cmd{next};
