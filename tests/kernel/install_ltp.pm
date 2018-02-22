@@ -172,7 +172,7 @@ sub run {
     $self->wait_boot;
 
     # poo#18980
-    if (check_var('ARCH', 'ppc64le') && check_var('VIRTIO_CONSOLE', 1)) {
+    if (get_var('OFW') && check_var('VIRTIO_CONSOLE', 1)) {
         select_console('root-console');
         add_serial_console('hvc1');
     }

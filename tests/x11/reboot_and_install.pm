@@ -49,7 +49,7 @@ sub run {
     }
     else {
         # boot
-        my $key = check_var('ARCH', 'ppc64le') || check_var('ARCH', 'aarch64') ? 'ctrl-x' : 'ret';
+        my $key = get_var('OFW') || check_var('ARCH', 'aarch64') ? 'ctrl-x' : 'ret';
         send_key $key;
     }
 

@@ -24,7 +24,7 @@ sub run {
     my ($self) = @_;
 
     my @solutions
-      = check_var('ARCH', 'ppc64le') ?
+      = get_var('OFW') ?
       qw(HANA MAXDB NETWEAVER S4HANA-APPSERVER S4HANA-DBSERVER)
       : qw(BOBJ HANA MAXDB NETWEAVER S4HANA-APPSERVER S4HANA-DBSERVER SAP-ASE);
 

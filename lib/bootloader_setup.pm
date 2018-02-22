@@ -57,7 +57,7 @@ sub stop_grub_timeout {
 }
 
 sub boot_local_disk {
-    if (check_var('ARCH', 'ppc64le')) {
+    if (get_var('OFW')) {
         # TODO use bootindex to properly boot from disk when first in boot order is cd-rom
         wait_screen_change { send_key 'ret' };
         assert_screen [qw(inst-slof bootloader grub2 inst-bootmenu)];
@@ -132,13 +132,13 @@ sub select_bootmenu_option {
 
     if (get_var('UPGRADE')) {
         # OFW has contralily oriented menu behavior
-        send_key_until_needlematch 'inst-onupgrade', check_var('ARCH', 'ppc64le') ? 'up' : 'down', 10, 5;
+        send_key_until_needlematch 'inst-onupgrade', get_var('OFW') ? 'up' : 'down', 10, 5;
     }
     else {
         if (get_var('PROMO') || get_var('LIVETEST') || get_var('LIVE_INSTALLATION')) {
             send_key_until_needlematch 'boot-live-' . get_var('DESKTOP'), 'down', 10, 5;
         }
-        elsif (check_var('ARCH', 'ppc64le')) {
+        elsif (get_var('OFW')) {
             send_key_until_needlematch 'inst-oninstallation', 'up', 10, 5;
         }
         elsif (!get_var('JEOS')) {
@@ -210,7 +210,7 @@ sub type_hyperv_fb_video_resolution {
 }
 
 sub bootmenu_default_params {
-    if (check_var('ARCH', 'ppc64le')) {
+    if (get_var('OFW')) {
         # edit menu, wait until we get to grub edit
         wait_screen_change { send_key "e" };
         # go down to kernel entry
@@ -265,7 +265,7 @@ sub bootmenu_default_params {
 sub bootmenu_network_source {
     # set HTTP-source to not use factory-snapshot
     if (get_var("NETBOOT")) {
-        if (check_var('ARCH', 'ppc64le')) {
+        if (get_var('OFW')) {
             if (get_var("SUSEMIRROR")) {
                 type_string_very_slow ' install=http://' . get_var("SUSEMIRROR");
             }
