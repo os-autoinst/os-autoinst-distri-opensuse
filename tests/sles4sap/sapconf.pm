@@ -56,12 +56,14 @@ sub run {
     my $default_profile = $1;
     record_info("Current profile", "Current default profile: $default_profile");
 
-    $output = script_output "tuned-adm recommend";
-    record_info("Recommended profile", "Recommended profile: $output");
-
     $statusregex = join('.+', @tuned_profiles);
     $output = script_output "tuned-adm list";
     die "Command 'tuned-adm list' output is not recognized" unless ($output =~ m|$statusregex|s);
+
+    $output = script_output "tuned-adm recommend";
+    record_info("Recommended profile", "Recommended profile: $output");
+    die "Command 'tuned-adm recommended' recommended profile is not in 'tuned-adm list'"
+      unless (grep(/$output/, @tuned_profiles));
 
     foreach my $p (@tuned_profiles) {
         assert_script_run "tuned-adm profile_info $p" if sle_version_at_least('15');
