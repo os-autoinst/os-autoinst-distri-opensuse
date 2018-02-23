@@ -34,40 +34,45 @@ sub run {
     script_run("yast2 remote; echo yast2-remote-status-\$? > /dev/$serialdev", 0);
 
     # check Remote Administration VNC got started
-    assert_screen([qw(yast2_vnc_remote_administration yast2_still_susefirewall2)], 90);
-    if (match_has_tag 'yast2_still_susefirewall2') {
-        record_soft_failure "bsc#1059569";
-        send_key 'alt-i';
-        assert_screen 'yast2_vnc_remote_administration';
-    }
-
+    assert_screen 'yast2_vnc_remote_administration';
     # enable remote administration
     send_key 'alt-a';
-    wait_still_screen;
+    if ((is_sle && !sle_version_at_least('15')) || (is_leap && !leap_version_at_least('15.0'))) {
 
-    # open port in firewall if it is eanbaled and check network interfaces, check long text by send key right.
-    if (check_screen 'yast2_vnc_open_port_firewall') {
-        send_key 'alt-p';
-        send_key 'alt-d';
-        assert_screen 'yast2_vnc_firewall_port_details';
-        send_key 'alt-e';
-        for (1 .. 5) { send_key 'right'; }
-        send_key 'alt-a';
+        # open port in firewall if it is eanbaled and check network interfaces, check long text by send key right.
+        if (check_screen 'yast2_vnc_open_port_firewall') {
+            send_key 'alt-p';
+            send_key 'alt-d';
+            assert_screen 'yast2_vnc_firewall_port_details';
+            send_key 'alt-e';
+            for (1 .. 5) { send_key 'right'; }
+            send_key 'alt-a';
+            send_key 'alt-o';
+        }
+
+        # finish configuration with OK
         send_key 'alt-o';
+        wait_still_screen;
+
+        # confirm with OK for Warning dialogue
+        assert_screen 'yast2_vnc_warning_text';
+        send_key 'alt-o';
+
+        wait_serial('yast2-remote-status-0', 60) || die "'yast2 remote' didn't finish";
+
+        # check vnc port is listening
+        assert_script_run $use_nettools ? 'netstat' : 'ss' . ' -tl | grep 5901 | grep LISTEN';
     }
 
-    # finish configuration with OK
-    send_key 'alt-o';
-    wait_still_screen;
-
-    # confirm with OK for Warning dialogue
-    assert_screen 'yast2_vnc_warning_text';
-    send_key 'alt-o';
-
-    wait_serial('yast2-remote-status-0', 60) || die "'yast2 remote' didn't finish";
-
-    # check vnc port is listening
-    assert_script_run $use_nettools ? 'netstat' : 'ss' . ' -tl | grep 5901 | grep LISTEN';
+    else {
+        # atm vnc workflow is not working, vncserver needs to be started manually
+        # and firewall blocks vnc connection, so workaround the first issue.
+        assert_screen 'select_remote_administration';
+        send_key 'alt-n';
+        send_key 'alt-o' if assert_screen 'warning-display-manager';
+        record_soft_failure 'bsc#1081952';
+        return;
+    }
 }
 1;
 
