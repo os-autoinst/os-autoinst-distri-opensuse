@@ -152,8 +152,16 @@ sub run {
 
             die "Unknown popup message" unless check_screen('autoyast-known-warning', 0);
 
-            # Wait until popup disappears
-            die "Popup message without timeout" unless wait_screen_change { sleep 11 };
+            # if VERIFY_TIMEOUT check that message disappears, by default we now have
+            # all timeouts set to 0, to verify each warning as they may get missed if have timeout
+            if (get_var 'AUTOYAST_VERIFY_TIMEOUT') {
+                # Wait until popup disappears
+                die "Popup message without timeout" unless wait_screen_change { sleep 11 };
+            }
+            else {
+                # No timeout on warning mesasge, press ok
+                wait_screen_change { send_key $cmd{ok} };
+            }
         }
         elsif (match_has_tag('scc-invalid-url')) {
             die 'Fix invalid SCC reg URL https://trello.com/c/N09TRZxX/968-3-don-t-crash-on-invalid-regurl-on-linuxrc-commandline';
