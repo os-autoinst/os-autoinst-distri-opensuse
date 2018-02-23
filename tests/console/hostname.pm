@@ -40,6 +40,16 @@ sub run {
         assert_script_run "ip addr show br0 | grep UP";
         save_screenshot;
     }
+
+    my $network_restart_count = 0;
+    # Verify DNS is updated and restart network if verification fails
+    while ($network_restart_count < 2 && script_run("host ${hostname}")) {
+        record_soft_failure "bsc#981651";
+        systemctl('restart network');
+        systemctl('status network');
+        save_screenshot;
+        $network_restart_count++;
+    }
 }
 
 sub test_flags {
