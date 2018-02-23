@@ -393,7 +393,6 @@ pre init scripts feature. See poo#20818.
       <package>sssd-krb5</package>
       <package>sssd-krb5-common</package>
       <package>sssd-ldap</package>
-      <package>sssd-tools</package>
       <package>sudo</package>
       <package>sysstat</package>
       <package>tuned</package>
