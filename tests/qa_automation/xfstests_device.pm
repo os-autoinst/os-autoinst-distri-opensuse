@@ -49,7 +49,7 @@ sub dev_create_partition {
     type_string "Ignore\n";
     type_string "quit\n";
     $cmd
-      = "parted --script --machine -l 2>&1| awk -F \':\' \'{if(\$2 == \"$extendpartition_begin\" && \$3 != \"$extendpartition_end\" && \$4~/GB/) print \$1}\'";
+      = "parted --script --machine -l 2>&1| awk -F \':\' \'{if(\$2 == \"$extendpartition_begin\" && \$3 != \"$extendpartition_end\" && \$4~/MB|GB/) print \$1}\'";
 
     # reset test partition number, because sometimes this id changed after mkpart
     $test_partition_id = script_output($cmd, 10);
@@ -60,7 +60,7 @@ sub dev_create_partition {
     type_string "umount /home\n", 5;
 
     # scratch partition number not always equal to test_partition + 1, so add these two line. poo#31156
-    $cmd = "parted --script --machine -l 2>&1| awk -F \':\' \'{if(\$3 == \"$extendpartition_end\" && \$4~/GB/) print \$1}\'";
+    $cmd = "parted --script --machine -l 2>&1| awk -F \':\' \'{if(\$3 == \"$extendpartition_end\" && \$4~/MB|GB/) print \$1}\'";
     my $scratch_partition_id = script_output($cmd, 10);
     my $scratch_partition = "/dev/vda" . $scratch_partition_id;
 
