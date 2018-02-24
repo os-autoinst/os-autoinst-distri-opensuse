@@ -36,9 +36,9 @@ sub run {
         # the use of the 'textmode' system role
         die "Pattern sap_server not installed by default"
           unless (check_var('SYSTEM_ROLE', 'textmode'));
-        record_info('install sap_server', 'Installing sap_server pattern and starting sapconf');
+        record_info('install sap_server', 'Installing sap_server pattern and starting tuned');
         assert_script_run("zypper in -y -t pattern sap_server");
-        assert_script_run("sapconf start");
+        assert_script_run("systemctl start tuned");
     }
 
     # Dry run of each pattern's installation before actual installation
