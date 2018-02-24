@@ -39,7 +39,7 @@ sub run {
     }
     # on ppc64le boot have to be confirmed with ctrl-x or F10
     # and it doesn't have nice graphical menu with video and language options
-    if (!check_var('ARCH', 'ppc64le')) {
+    if (!get_var('OFW')) {
         select_bootmenu_language;
         select_bootmenu_video_mode;
         # boot

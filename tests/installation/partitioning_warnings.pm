@@ -24,7 +24,7 @@ sub run {
     if (check_var('ARCH', 's390x')) {    # s390x need /boot/zipl on ext partition
         addpart(role => 'OS', size => 500, format => 'ext2', mount => '/boot');
     }
-    elsif (check_var('ARCH', 'ppc64le')) {    # ppc64le need PReP /boot
+    elsif (get_var('OFW')) {             # ppc64le need PReP /boot
         addpart(role => 'raw', size => 500, fsid => 'PReP');
     }
     # create small enough partition (11GB) to get warning

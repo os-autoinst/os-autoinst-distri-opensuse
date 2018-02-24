@@ -22,10 +22,10 @@ use version_utils 'is_storage_ng';
 
 sub run {
     create_new_partition_table;
-    if (check_var('ARCH', 'ppc64le')) {    # ppc64le always needs PReP boot
+    if (get_var('OFW')) {    # ppc64le always needs PReP boot
         addpart(role => 'raw', size => 500, fsid => 'PReP');
     }
-    elsif (get_var('UEFI')) {              # UEFI needs partition mounted to /boot/efi for
+    elsif (get_var('UEFI')) {    # UEFI needs partition mounted to /boot/efi for
         addpart(role => 'efi', size => 100);
     }
     elsif (is_storage_ng && check_var('ARCH', 'x86_64')) {
