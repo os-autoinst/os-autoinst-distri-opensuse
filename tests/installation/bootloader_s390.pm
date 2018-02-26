@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -124,10 +124,7 @@ EO_frickin_boot_parms
             $s3270->sequence_3270("String(\"qaboot $repo_host $dir_with_suse_ins\")", "ENTER", "Wait(InputField)",);
             # wait for qaboot dumping us into xedit. If this fails, probably the
             # download of kernel or initrd timed out and we retry
-
-            # temporary workaround - using needles instead of output_delim -> see poo#32008
-            # $r = $s3270->expect_3270(output_delim => qr/X E D I T/, timeout => 60);
-            assert_screen 'xedit';
+            $r = $s3270->expect_3270(buffer_ready => qr/X E D I T/, timeout => 60);
         };
         last unless ($@);
         diag "s3270 sequence failed: $@";
@@ -137,16 +134,12 @@ EO_frickin_boot_parms
 
     $s3270->sequence_3270(qw( String(INPUT) ENTER ));
 
-    # temporary workaround - using needles instead of output_delim -> see poo#32008
-    # $r = $s3270->expect_3270(output_delim => qr/Input-mode/);
-    assert_screen 'xedit-input';
+    $r = $s3270->expect_3270(buffer_ready => qr/Input-mode/);
 
     # can't use qw() because of space in commands...
     $s3270->sequence_3270(split /\n/, $sequence);
 
-    # temporary workaround - using needles instead of output_delim -> see poo#32008
-    # $r = $s3270->expect_3270(output_delim => qr/X E D I T/);
-    assert_screen 'xedit';
+    $r = $s3270->expect_3270(buffer_ready => qr/X E D I T/);
 
     ## Remove the "manual=1" and the empty line at the end
     ## of the parmfile.
@@ -158,9 +151,7 @@ EO_frickin_boot_parms
     $s3270->sequence_3270(qw(String(BOTTOM) ENTER String(DELETE) ENTER));
     $s3270->sequence_3270(qw(String(BOTTOM) ENTER String(DELETE) ENTER));
 
-    # temporary workaround - using needles instead of output_delim -> see poo#  TODO
-    # $r = $s3270->expect_3270(output_delim => qr/X E D I T/);
-    assert_screen 'xedit';
+    $r = $s3270->expect_3270(buffer_ready => qr/X E D I T/);
 
     # save the parmfile.  ftpboot then starts the installation.
     $s3270->sequence_3270(qw( String(FILE) ENTER ));
