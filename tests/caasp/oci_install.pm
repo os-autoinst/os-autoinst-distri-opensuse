@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: Start CaaSP installation
-# Maintainer: Martin Kravec <mkravec@suse.com>
+# Maintainer: Martin Kravec <mkravec@suse.com>, Panagiotis Georgiadis <pgeorgiadis@suse.com>
 
 use strict;
 use warnings;
@@ -17,6 +17,16 @@ use testapi;
 use caasp;
 
 sub run {
+    # Verify that workaround for Microfocus infobloxx GEO-IP DNS Cluster works
+    if (get_var('EDGECAST')) {
+        record_info 'Netfix', 'Go through Europe Microfocus info-bloxx';
+        my $edgecast_europe = get_var('EDGECAST');
+        select_console 'install-shell';
+        assert_script_run("ping -c 3 updates.suse.com");
+        assert_script_run("ping -c 1 updates.suse.com | grep $edgecast_europe");
+        select_console 'installation';
+    }
+
     # poo#16408 part 1
     send_key 'alt-p';    # partitioning
     assert_screen 'prepare-hard-disk';
