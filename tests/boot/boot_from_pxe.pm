@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -50,6 +50,10 @@ sub run {
         $openqa_url = 'http://' . $openqa_url unless $openqa_url =~ /http:\/\//;
         my $repo = $openqa_url . "/assets/repo/${image_name}";
         $image_path = "$path/linux initrd=$path/initrd install=$repo";
+        if (check_var('BACKEND', 'ipmi')) {
+            my $netdevice = get_var('SUT_NETDEVICE', 'eth0');
+            $image_path .= "?device=$netdevice";
+        }
     }
     elsif (match_has_tag('prague-pxe-menu')) {
         send_key_until_needlematch 'pxe-stable-iso-entry', 'down';
