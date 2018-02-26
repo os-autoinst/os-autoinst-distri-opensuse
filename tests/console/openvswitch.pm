@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -23,10 +23,14 @@ use base "consoletest";
 use testapi;
 use strict;
 use utils;
+use version_utils qw(is_sle sle_version_at_least);
 
 sub run {
     select_console 'root-console';
-
+    if (is_sle && sle_version_at_least('15')) {
+        my $ret = zypper_call('in openvswitch-switch', exitcode => [0, 104], timeout => 300);
+        return record_soft_failure 'bsc#1082757' if $ret == 104;
+    }
     zypper_call('in openvswitch-switch iputils', timeout => 300);
 
     # Start the openvswitch daemon
