@@ -15,8 +15,15 @@ use strict;
 use testapi;
 
 sub run {
+    my @gnome_tweak_matches = qw(gnome-tweaks gnome-tweak-tool command-not-found);
+
     mouse_hide(1);
-    x11_start_program('gnome-tweak-tool');
+    x11_start_program('gnome-tweaks', target_match => \@gnome_tweak_matches);
+    if (match_has_tag('command-not-cound')) {
+        # GNOME Tweak tools was renamed to GNOME tweaks during 3.28 dev branch
+        # AS the new name yielded a 'command-not-found', starts as old command
+        x11_start_program('gnome-tweak-tools');
+    }
     assert_and_click "gnome-tweak-tool-fonts";
     assert_screen "gnome-tweak-tool-fonts-dialog";
     send_key "alt-f4";
