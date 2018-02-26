@@ -16,13 +16,12 @@ use testapi;
 
 sub run {
     select_console 'user-console';
-    validate_script_output 'zypper moo', sub {
-        <<'EOF'
+    my $expected = <<'EOF';
    \\\\\
   \\\\\\\__o
 __\\\\\\\'/_
 EOF
-    };
+    validate_script_output 'zypper moo', sub { $_ eq $expected };
 }
 
 1;
