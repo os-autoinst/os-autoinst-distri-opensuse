@@ -19,7 +19,7 @@ sub run {
 
     mouse_hide(1);
     x11_start_program('gnome-tweaks', target_match => \@gnome_tweak_matches);
-    if (match_has_tag('command-not-cound')) {
+    if (match_has_tag('command-not-found')) {
         # GNOME Tweak tools was renamed to GNOME tweaks during 3.28 dev branch
         # AS the new name yielded a 'command-not-found', starts as old command
         x11_start_program('gnome-tweak-tools');
