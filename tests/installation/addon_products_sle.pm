@@ -15,7 +15,7 @@ use strict;
 use base "y2logsstep";
 use testapi;
 use utils 'addon_license';
-use version_utils 'sle_version_at_least';
+use version_utils 'is_sle';
 use qam 'advance_installer_window';
 use registration qw(%SLE15_DEFAULT_MODULES rename_scc_addons);
 
@@ -48,7 +48,7 @@ sub handle_all_packages_medium {
     # the original system (the system-to-be-upgraded).
     # During system upgrade with all-packages media, the addons installed
     # on the original system should be mapped to new ones provided by media
-    rename_scc_addons if sle_version_at_least('15');
+    rename_scc_addons if is_sle('15+');
 
     # Read addons from SCC_ADDONS and add them to list
     # Make sure every addon only appears once in the list,
@@ -102,7 +102,7 @@ sub handle_all_packages_medium {
 sub handle_addon {
     my ($addon) = @_;
     return handle_all_packages_medium if $addon eq 'all-packages';
-    addon_license($addon);
+    addon_license($addon) unless is_sle('15+');
     # might involve some network lookup of products, licenses, etc.
     assert_screen 'addon-products', 90;
     send_key 'tab';    # select addon-products-$addon
@@ -113,9 +113,14 @@ sub handle_addon {
     send_key 'pgup';
     wait_still_screen 2;
     send_key_until_needlematch "addon-products-$addon", 'down';
-    if (sle_version_at_least('15')) {
+    if (is_sle('15+')) {
         send_key 'spc';
         send_key $cmd{next};
+        wait_still_screen 2;
+
+        # license is shown *after* module selection in SLE15 and should be only for some modules (HA and WE)
+        record_soft_failure 'bsc#1081647' if $addon !~ /ha|we/;
+        addon_license($addon);
         wait_still_screen 2;
     }
 }
@@ -134,7 +139,7 @@ sub run {
         # the ISO_X variables must match the ADDONS list
         my $sr_number = 0;
         for my $addon (split(/,/, get_var('ADDONS'))) {
-            $sr_number++ unless (sle_version_at_least('15') && $sr_number == 1);
+            $sr_number++ unless (is_sle('15+') && $sr_number == 1);
             assert_screen 'addon-menu-active';
             wait_screen_change { send_key 'alt-d' };    # DVD
             send_key $cmd{next};
