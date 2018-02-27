@@ -65,7 +65,8 @@ sub run {
     set_var('NUMDISKS', defined get_var('RAIDLEVEL') ? 4 : $n);
 
     # Mount openQA NFS share to drive N:
-    hyperv_cmd("if not exist N: ( mount \\\\openqa.suse.de\\var\\lib\\openqa\\share\\factory N: )");
+    hyperv_cmd_with_retry("if not exist N: ( mount \\\\openqa.suse.de\\var\\lib\\openqa\\share\\factory N: )",
+        {msg => 'Another instance of this command is already running'});
 
     # Copy assets from NFS to Hyper-V cache
     for my $n ('', 1 .. 9) {
