@@ -20,9 +20,10 @@ sub run {
     mouse_hide(1);
     x11_start_program('gnome-tweaks', target_match => \@gnome_tweak_matches);
     if (match_has_tag('command-not-found')) {
-        # GNOME Tweak tools was renamed to GNOME tweaks during 3.28 dev branch
-        # AS the new name yielded a 'command-not-found', starts as old command
-        x11_start_program('gnome-tweak-tools');
+        # GNOME Tweak tool was renamed to GNOME Tweaks during 3.28 dev branch
+        # As the new name yielded a 'command-not-found', start as old command
+        send_key 'esc';
+        x11_start_program('gnome-tweak-tool');
     }
     assert_and_click "gnome-tweak-tool-fonts";
     assert_screen "gnome-tweak-tool-fonts-dialog";
