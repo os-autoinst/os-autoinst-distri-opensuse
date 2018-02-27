@@ -11,7 +11,8 @@ use testapi;
 Launch a yast configuration module C<$module> or the yast control center if
 C<$module> is empty. Calls C<assert_screen> on C<$target_match>, defaults to
 C<yast2-$module-ui>. Optional C<$match_timeout> can be specified as a timeout
-on the C<assert_screen> call on C<$target_match>.
+on the C<assert_screen> call on C<$target_match>. C<$maximize_window> option
+allows to maximize application window using shortcut.
 =cut
 sub launch_yast2_module_x11 {
     my ($self, $module, %args) = @_;
@@ -34,6 +35,8 @@ sub launch_yast2_module_x11 {
     type_password;
     send_key 'ret';
     assert_screen $args{target_match}, $args{match_timeout};
+    # Uses hotkey for gnome, adjust if need for other desktop
+    send_key 'alt-f10' if $args{maximize_window};
 }
 
 sub post_fail_hook {
