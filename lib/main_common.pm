@@ -1076,8 +1076,7 @@ sub load_x11tests {
     if (kdestep_is_applicable() && !is_kde_live) {
         loadtest "x11/kate";
     }
-    # no firefox on KDE-Live # boo#1022499
-    loadtest "x11/firefox" unless is_kde_live;
+    loadtest "x11/firefox";
     if (is_opensuse && !get_var("OFW") && check_var('BACKEND', 'qemu') && !check_var('FLAVOR', 'Rescue-CD') && !is_kde_live) {
         loadtest "x11/firefox_audio";
     }
