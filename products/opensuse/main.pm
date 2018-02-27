@@ -461,6 +461,11 @@ elsif (get_var('SECURITYTEST')) {
 elsif (get_var('SYSTEMD_TESTSUITE')) {
     load_systemd_patches_tests;
 }
+elsif (get_var('DOCKER_IMAGE_TEST')) {
+    boot_hdd_image;
+    load_docker_tests;
+    loadtest 'console/docker_image';
+}
 else {
     if (get_var("LIVETEST") || get_var('LIVE_INSTALLATION')) {
         load_boot_tests();
