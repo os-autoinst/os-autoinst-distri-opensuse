@@ -135,7 +135,7 @@ sub load_stack_tests {
         loadtest 'caasp/stack_kubernetes';
         loadtest 'caasp/stack_update'      if update_scheduled;
         loadtest 'caasp/stack_add_nodes'   if get_delayed_worker;
-        loadtest 'caasp/stack_conformance' if !is_caasp('staging') && !is_caasp('qam');
+        loadtest 'caasp/stack_conformance' if !is_caasp('staging');
         loadtest 'caasp/stack_finalize';
     }
     else {
