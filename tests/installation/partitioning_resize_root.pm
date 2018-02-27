@@ -32,7 +32,7 @@ sub run {
     send_key_until_needlematch 'volume-management-root-selected', 'down';
     send_key $cmd{resize};
     assert_screen 'volume-management-resize-maximum-selected';
-    send_key $cmd{ok};
+    send_key((is_storage_ng) ? "$cmd{next}" : "$cmd{ok}");
     send_key $cmd{accept};
     assert_screen 'partitioning-subvolumes-shown';
 }
