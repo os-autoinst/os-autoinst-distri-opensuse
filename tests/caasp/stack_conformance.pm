@@ -7,8 +7,10 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Run k8s conformance testsuite
-# Maintainer: Martin Kravec <mkravec@suse.com>
+# Summary: Run CNCF K8s Conformance tests
+#   Maintain certified status of CaaSP under k8s certification
+#   Project: https://github.com/cncf/k8s-conformance
+# Maintainer: Martin Kravec <mkravec@suse.com>, Panagiotis Georgiadis <pgeorgiadis@suse.com>
 
 use parent 'caasp_controller';
 use caasp_controller;
