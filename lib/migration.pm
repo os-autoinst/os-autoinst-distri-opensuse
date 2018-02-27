@@ -24,7 +24,7 @@ use testapi;
 use utils;
 use registration;
 use qam qw/remove_test_repositories/;
-use version_utils 'sle_version_at_least';
+use version_utils qw(sle_version_at_least is_sle);
 
 our @EXPORT = qw(
   setup_migration
@@ -39,8 +39,15 @@ sub setup_migration {
     select_console 'root-console';
 
     # stop packagekit service
-    systemctl 'mask packagekit.service';
-    systemctl 'stop packagekit.service';
+    # Systemd is not available on SLE11
+    # skip this part if the version below SLE12
+    if (is_sle && sle_version_at_least('12')) {
+        systemctl 'mask packagekit.service';
+        systemctl 'stop packagekit.service';
+    }
+    else {
+        assert_script_run "chmod 444 /usr/sbin/packagekitd";
+    }
 
     ensure_serialdev_permissions;
 
