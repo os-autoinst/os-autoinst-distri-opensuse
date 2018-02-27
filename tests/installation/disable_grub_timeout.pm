@@ -32,7 +32,7 @@ sub run {
 
     # Workaround for bsc#1070233: not update "Booting" option in upgrade mode
     return record_soft_failure('bsc#1070233: Error if click on Booting option')
-      if (get_var('UPGRADE') && !(is_sle && !sle_version_at_least('15')) || !(is_leap && !leap_version_at_least('15.0')));
+      if (get_var('UPGRADE') && (!(is_sle && !sle_version_at_least('15')) || !(is_leap && !leap_version_at_least('15.0'))));
 
     # Verify Installation Settings overview is displayed as starting point
     assert_screen "installation-settings-overview-loaded";
