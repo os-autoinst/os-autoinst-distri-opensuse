@@ -58,7 +58,8 @@ sub run {
     record_info('Test 7', 'Bring an interface up with wicked');
     assert_script_run("ifup $iface");
     assert_script_run("ping -q -c1 -W1 -I $iface 10.0.2.2");
-    validate_script_output("ip address show dev $iface", sub { m/(?=inet)(?=[dhcp])/g; });
+    # TODO - solve ticket https://progress.opensuse.org/issues/32248 and uncomment line
+    #validate_script_output("ip address show dev $iface", sub { m/(?=inet)(?=[dhcp])/g; });
     $self->save_and_upload_wicked_log();
 }
 
