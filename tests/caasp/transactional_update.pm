@@ -51,25 +51,6 @@ sub check_package {
     }
 }
 
-sub check_reboot_changes {
-    my $change_expected = shift // 1;
-
-    # Compare currently mounted and default subvolume
-    my $time    = time;
-    my $mounted = "mnt-$time";
-    my $default = "def-$time";
-    assert_script_run "mount | grep 'on / ' | egrep -o 'subvolid=[0-9]*' | cut -d'=' -f2 > $mounted";
-    assert_script_run "btrfs su get-default / | cut -d' ' -f2 > $default";
-    my $change_happened = script_run "diff $mounted $default";
-
-    # If changes are expected check that default subvolume changed
-    die "Error during diff" if $change_happened > 1;
-    die "Change expected: $change_expected, happeed: $change_happened" if $change_expected != $change_happened;
-
-    # Reboot into new snapshot
-    process_reboot 1 if $change_happened;
-}
-
 sub run {
     script_run "rebootmgrctl set-strategy off";
 
