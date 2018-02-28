@@ -18,6 +18,7 @@ use mm_network;
 use lockapi;
 use mmapi;
 use utils 'zypper_call';
+use version_utils 'is_pre_15';
 
 sub run {
     my $self = shift;
@@ -54,29 +55,30 @@ sub run {
     wait_still_screen(2, 10);
     type_string '132';
     wait_still_screen(2, 10);
-    send_key 'alt-u';                                                                   # un-check use authentication
+    send_key 'alt-u' if is_pre_15;                                                      # un-check use authentication
     wait_still_screen(2, 10);
     send_key 'alt-a';                                                                   # add LUN
-    send_key_until_needlematch 'iscsi-target-LUN-path-selected', 'alt-p', 5, 5;         # send alt-p until LUN path is selected
+    send_key_until_needlematch('iscsi-target-LUN-path-selected', (is_pre_15() ? 'alt-p' : 'alt-l'), 5, 5);    # send alt-p until LUN path is selected
     type_string '/root/iscsi-disk';
     assert_screen 'iscsi-target-LUN';
-    send_key 'alt-o';                                                                   # OK
+    send_key 'alt-o';                                                                                         # OK
+    send_key 'alt-l' unless is_pre_15;                                                                        # unselect bind ip adresses
     assert_screen 'iscsi-target-overview';
-    send_key 'alt-n';                                                                   # next
+    send_key 'alt-n';                                                                                         # next
     wait_still_screen(2, 10);
-    send_key 'alt-a';                                                                   # add client
-    send_key_until_needlematch 'iscsi-client-name-selected', 'tab';                     # there is no field shortcut, so tab till client name field is selected
+    send_key 'alt-a';                                                                                         # add client
+    send_key_until_needlematch 'iscsi-client-name-selected', 'tab';    # there is no field shortcut, so tab till client name field is selected
     type_string 'iqn.2016-02.de.openqa';
     assert_screen 'iscsi-target-client-name';
-    send_key 'alt-o';                                                                   # OK
+    send_key 'alt-o';                                                  # OK
     assert_screen 'iscsi-target-client-setup';
-    send_key 'alt-n';                                                                   # next
+    send_key 'alt-n';                                                  # next
     assert_screen 'iscsi-target-overview-target-tab';
-    send_key 'alt-f';                                                                   # finish
+    send_key 'alt-f';                                                  # finish
     wait_still_screen(2, 10);
-    mutex_create('iscsi_ready');                                                        # setup is done client can connect
+    mutex_create('iscsi_ready');                                       # setup is done client can connect
     type_string "killall xterm\n";
-    wait_for_children;                                                                  # run till client is done
+    wait_for_children;                                                 # run till client is done
     $self->result('ok');
 }
 
