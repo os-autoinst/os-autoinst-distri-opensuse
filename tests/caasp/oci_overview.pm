@@ -31,9 +31,16 @@ sub run {
     mouse_hide;
 
     # Check release notes
-    assert_and_click 'release-notes-open';
-    assert_screen 'release-notes-' . get_var('VERSION');
-    assert_and_click 'release-notes-close';
+    if (check_var('VIDEOMODE', 'text')) {
+        send_key 'alt-e';
+        assert_screen 'release-notes-' . get_var('VERSION');
+        send_key 'ret';
+    }
+    else {
+        assert_and_click 'release-notes-open';
+        assert_screen 'release-notes-' . get_var('VERSION');
+        assert_and_click 'release-notes-close';
+    }
 }
 
 1;
