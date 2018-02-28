@@ -1082,7 +1082,7 @@ else {
             loadtest 'installation/first_boot';
         }
         else {
-            load_default_tests;
+            return 1 if load_default_tests;
         }
     }
     unless (load_applicationstests() || load_slenkins_tests()) {

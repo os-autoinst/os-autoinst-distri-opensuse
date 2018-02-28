@@ -513,7 +513,7 @@ else {
         }
     }
     else {
-        load_default_tests;
+        return 1 if load_default_tests;
     }
 
     unless (install_online_updates()
