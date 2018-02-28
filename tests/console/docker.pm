@@ -121,11 +121,13 @@ sub run {
     die("error: container was not removed: $cmd_docker_container_prune") if ($output_containers =~ m/test_2/);
 
     # images can be deleted
-    my $cmd_docker_rmi = "docker image rm alpine:$alpine_image_version hello-world";
-    my $output_deleted = script_output($cmd_docker_rmi);
-    unless ($output_deleted =~ m/Untagged: hello-world:latest/ && $output_deleted =~ m/Untagged: alpine:$alpine_image_version/) {
-        die("error: could not remove images: $cmd_docker_rmi");
-    }
+    #  - using filter
+    my $output_deleted = script_output("docker image rm alpine:$alpine_image_version hello-world");
+    die('error: could not remove image: hello-world:latest')                              unless ($output_deleted =~ m/Untagged: hello-world:latest/);
+    die("error: could not remove image: hello-world:latest alpine:$alpine_image_version") unless ($output_deleted =~ m/Untagged: alpine:$alpine_image_version/);
+    #  - clean up images
+    assert_script_run('docker image rm $(docker image ls -q)');
+    assert_script_run('docker image ls | wc -l | grep -E "\s1$');
 }
 
 1;
