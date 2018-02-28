@@ -26,7 +26,7 @@ sub run {
         addpart(role => 'raw', size => 500, fsid => 'PReP');
     }
     elsif (get_var('UEFI')) {    # UEFI needs partition mounted to /boot/efi for
-        addpart(role => 'efi', size => 100);
+        addpart(role => 'efi', size => 256);
     }
     elsif (is_storage_ng && check_var('ARCH', 'x86_64')) {
         # Storage-ng has GPT by defaut, so need bios-boot partition for legacy boot, which is only on x86_64
