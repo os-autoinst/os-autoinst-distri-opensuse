@@ -29,6 +29,11 @@ sub run {
     }
     assert_screen 'oci-overview', $timeout;
     mouse_hide;
+
+    # Check release notes
+    assert_and_click 'release-notes-open';
+    assert_screen 'release-notes-' . get_var('VERSION');
+    assert_and_click 'release-notes-close';
 }
 
 1;
