@@ -33,9 +33,6 @@ sub run {
     systemctl 'restart ntpd';
     # disable ipv6
     assert_script_run 'echo \'net.ipv6.conf.all.disable_ipv6 = 1\' >> /etc/sysctl.conf';
-    # avoid zypper timeout/abort issues
-    assert_script_run 'sed -i \'s/download.max_silent_tries = 5/download.max_silent_tries = 0/\' /etc/zypp/zypp.conf';
-    assert_script_run 'grep download.max_silent_tries /etc/zypp/zypp.conf';
     # firewall and apparmor should not run
     systemctl 'stop SuSEfirewall2';
     systemctl 'disable SuSEfirewall2';
