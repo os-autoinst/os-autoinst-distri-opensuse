@@ -91,6 +91,21 @@ sub handle_expected_errors {
     wait_screen_change { send_key 'ret' };
 }
 
+sub handle_warnings {
+    die "Unknown popup message" unless check_screen('autoyast-known-warning', 0);
+
+    # if VERIFY_TIMEOUT check that message disappears, by default we now have
+    # all timeouts set to 0, to verify each warning as they may get missed if have timeout
+    if (get_var 'AUTOYAST_VERIFY_TIMEOUT') {
+        # Wait until popup disappears
+        die "Popup message without timeout" unless wait_screen_change { sleep 11 };
+    }
+    else {
+        # No timeout on warning mesasge, press ok
+        wait_screen_change { send_key $cmd{ok} };
+    }
+}
+
 sub verify_timeout_and_check_screen {
     my ($timer, $needles) = @_;
     if ($timer > $maxtime) {
@@ -149,19 +164,8 @@ sub run {
                 send_key_until_needlematch 'create-partition-plans-finished', $cmd{ok};
                 next;
             }
-
-            die "Unknown popup message" unless check_screen('autoyast-known-warning', 0);
-
-            # if VERIFY_TIMEOUT check that message disappears, by default we now have
-            # all timeouts set to 0, to verify each warning as they may get missed if have timeout
-            if (get_var 'AUTOYAST_VERIFY_TIMEOUT') {
-                # Wait until popup disappears
-                die "Popup message without timeout" unless wait_screen_change { sleep 11 };
-            }
-            else {
-                # No timeout on warning mesasge, press ok
-                wait_screen_change { send_key $cmd{ok} };
-            }
+            # Process warnings
+            handle_warnings;
         }
         elsif (match_has_tag('scc-invalid-url')) {
             die 'Fix invalid SCC reg URL https://trello.com/c/N09TRZxX/968-3-don-t-crash-on-invalid-regurl-on-linuxrc-commandline';
@@ -212,22 +216,26 @@ sub run {
 
     # CaaSP does not have second stage
     return if is_caasp;
-
+    # Second stage starts here
     mouse_hide(1);
     $maxtime = 1000;
     $timer   = 0;
     $stage   = 'stage2';
 
     check_screen \@needles, $check_time;
+    @needles = qw(reboot-after-installation autoyast-postinstall-error autoyast-boot warning-pop-up);
     until (match_has_tag 'reboot-after-installation') {
         #Verify timeout and continue if there was a match
-        next unless verify_timeout_and_check_screen(($timer += $check_time), [qw(reboot-after-installation autoyast-postinstall-error autoyast-boot)]);
+        next unless verify_timeout_and_check_screen(($timer += $check_time), \@needles);
         if (match_has_tag('autoyast-postinstall-error')) {
             $self->handle_expected_errors(iteration => $i);
             $num_errors++;
         }
         elsif (match_has_tag('autoyast-boot')) {
             send_key 'ret';    # grub timeout is disable, so press any key is needed to pass the grub
+        }
+        elsif (match_has_tag('warning-pop-up')) {
+            handle_warnings;    # Process warnings during stage 2
         }
     }
 
