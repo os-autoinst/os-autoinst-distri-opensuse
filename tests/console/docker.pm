@@ -61,7 +61,7 @@ sub run {
     assert_script_run("docker image pull hello-world", 300);
     #   - pull image of last released version of openSUSE Leap
     my $last_released_leap_version = '42.3';
-    assert_script_run("docker image pull opensuse:$last_released_leap_version");
+    assert_script_run("docker image pull opensuse:$last_released_leap_version", timeout => 180);
     #   - pull image of openSUSE Tumbleweed
     assert_script_run('docker image pull opensuse:tumbleweed', timeout => 180);
 
