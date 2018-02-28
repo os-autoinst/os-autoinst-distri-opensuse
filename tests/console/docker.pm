@@ -121,11 +121,13 @@ sub run {
     die("error: container was not removed: $cmd_docker_container_prune") if ($output_containers =~ m/test_2/);
 
     # images can be deleted
-    my $cmd_docker_rmi = "docker image rm alpine:$alpine_image_version hello-world";
+    my $cmd_docker_rmi = "docker image rm alpine:$alpine_image_version hello-world opensuse:$last_released_leap_version opensuse:tumbleweed tw:saved";
     my $output_deleted = script_output($cmd_docker_rmi);
-    unless ($output_deleted =~ m/Untagged: hello-world:latest/ && $output_deleted =~ m/Untagged: alpine:$alpine_image_version/) {
-        die("error: could not remove images: $cmd_docker_rmi");
-    }
+    die("error: docker image rm opensuse:$last_released_leap_version") unless ($output_deleted =~ m/Untagged: opensuse:$last_released_leap_version/);
+    die('error: docker image rm opensuse:tumbleweed')                  unless ($output_deleted =~ m/Untagged: opensuse:tumbleweed/);
+    die('error: docker image rm tw:saved')                             unless ($output_deleted =~ m/Untagged: tw:saved/);
+    die("error: docker image rm alpine:$alpine_image_version")         unless ($output_deleted =~ m/Untagged: alpine:$alpine_image_version/);
+    die('error: docker image rm hello-world:latest')                   unless ($output_deleted =~ m/Untagged: hello-world:latest/);
 }
 
 1;
