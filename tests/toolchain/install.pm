@@ -15,7 +15,7 @@ use base "opensusebasetest";
 use strict;
 use testapi;
 use utils;
-use version_utils qw(is_sle sle_version_at_least);
+use version_utils 'is_sle';
 use registration;
 
 sub run {
@@ -27,7 +27,7 @@ sub run {
     systemctl 'mask packagekit';
     systemctl 'stop packagekit';
 
-    if (is_sle && !sle_version_at_least('15')) {
+    if (is_sle '<15') {
         # toolchain channels
         if (!check_var('ADDONS', 'tcm')) {
             my $arch = get_var('ARCH');

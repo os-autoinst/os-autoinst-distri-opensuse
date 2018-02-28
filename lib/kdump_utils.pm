@@ -14,7 +14,7 @@ use strict;
 use testapi;
 use utils;
 use List::Util qw(first);
-use version_utils qw(is_sle sle_version_at_least);
+use version_utils 'is_sle';
 
 our @EXPORT = qw(install_kernel_debuginfo prepare_for_kdump activate_kdump kdump_is_active do_kdump);
 
@@ -30,8 +30,7 @@ sub install_kernel_debuginfo {
 sub get_repo_url_for_kdump_sle {
     return join('/', $utils::OPENQA_FTP_URL, get_var('REPO_SLE15_MODULE_BASESYSTEM_DEBUG'))
       if get_var('REPO_SLE15_MODULE_BASESYSTEM_DEBUG')
-      and is_sle
-      and sle_version_at_least('15');
+      and is_sle('15+');
     return join('/', $utils::OPENQA_FTP_URL, get_var('REPO_SLES_DEBUG')) if get_var('REPO_SLES_DEBUG');
 }
 

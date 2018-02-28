@@ -14,7 +14,7 @@ use strict;
 use base "console_yasttest";
 use testapi;
 use utils;
-use version_utils qw(is_sle sle_version_at_least is_leap leap_version_at_least);
+use version_utils qw(is_sle is_leap leap_version_at_least);
 
 
 my %sub_menu_needles = (
@@ -61,7 +61,7 @@ sub post_fail_hook {
 
 sub run {
     select_console 'root-console';
-    if (is_sle && sle_version_at_least('15')) {
+    if (is_sle '15+') {
         zypper_call('in squid');
     }
 
@@ -101,7 +101,7 @@ sub run {
 
     # check network interfaces with open port in firewall
     # repeat action as sometimes keys are not triggering action on leap if workers are slow
-    if ((is_sle && !sle_version_at_least('15')) || (is_leap && !leap_version_at_least('15.0'))) {
+    if (is_sle('<15') || (is_leap && !leap_version_at_least('15.0'))) {
         send_key_until_needlematch 'yast2_proxy_network_interfaces', 'alt-d', 2, 5;
         wait_still_screen 1;
         send_key 'alt-n';

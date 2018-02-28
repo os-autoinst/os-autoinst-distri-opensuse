@@ -14,7 +14,7 @@ use base "x11test";
 use strict;
 use testapi;
 use utils;
-use version_utils qw(is_sle sle_version_at_least);
+use version_utils 'is_sle';
 
 sub turn_off_screensaver {
     # Turn off screensaver
@@ -43,7 +43,7 @@ sub tell_packagekit_to_quit {
 # Update with GNOME PackageKit Update Viewer
 sub run {
     my ($self) = @_;
-    if (is_sle && sle_version_at_least('15')) {
+    if (is_sle '15+') {
         select_console 'root-console';
         zypper_call("in gnome-packagekit", timeout => 90);
         record_soft_failure 'bsc#1081584';

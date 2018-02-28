@@ -5,7 +5,7 @@ use bootloader_setup qw(boot_local_disk tianocore_enter_menu zkvm_add_disk zkvm_
 use testapi;
 use strict;
 use utils;
-use version_utils qw(is_sle is_leap sle_version_at_least leap_version_at_least is_upgrade);
+use version_utils qw(is_sle is_leap leap_version_at_least is_upgrade);
 
 
 # Base class for all openSUSE tests
@@ -495,7 +495,7 @@ under test, the version and if the SUT is an upgrade.
 
 =cut
 sub firewall {
-    my $old_product_versions = (is_sle && !sle_version_at_least('15')) || (is_leap && !leap_version_at_least('15.0'));
+    my $old_product_versions = is_sle('<15') || (is_leap && !leap_version_at_least('15.0'));
     my $upgrade_from_susefirewall = is_upgrade && get_var('HDD_1') =~ /\b(1[123]|42)[\.-]/;
     return ($old_product_versions || $upgrade_from_susefirewall) ? 'SuSEfirewall2' : 'firewalld';
 }

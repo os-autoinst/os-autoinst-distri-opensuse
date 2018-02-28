@@ -14,7 +14,7 @@ use strict;
 use base "console_yasttest";
 use testapi;
 use utils;
-use version_utils qw(is_leap is_sle sle_version_at_least leap_version_at_least);
+use version_utils qw(is_leap is_sle leap_version_at_least);
 
 
 sub run {
@@ -26,7 +26,7 @@ sub run {
     # install components to test plus dependencies for checking
     my $packages = 'vncmanager xorg-x11';
     # netstat is deprecated in newer versions, use 'ss' instead
-    my $use_nettools = (is_sle && !sle_version_at_least('15')) || (is_leap && !leap_version_at_least('15.0'));
+    my $use_nettools = is_sle('<15') || (is_leap && !leap_version_at_least('15.0'));
     $packages .= ' net-tools' if $use_nettools;
     zypper_call("in $packages");
 

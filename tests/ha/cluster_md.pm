@@ -12,7 +12,7 @@
 
 use base 'opensusebasetest';
 use strict;
-use version_utils qw(is_sle sle_version_at_least);
+use version_utils 'is_sle';
 use testapi;
 use lockapi;
 use hacluster;
@@ -26,7 +26,7 @@ sub run {
     my $clustermd_device   = '/dev/md0';
     my $clustermd_name_opt = undef;
 
-    if (is_sle && sle_version_at_least('15')) {
+    if (is_sle '15+') {
         $clustermd_device   = "/dev/md/$clustermd_rsc";
         $clustermd_name_opt = "--name=$clustermd_rsc";
     }

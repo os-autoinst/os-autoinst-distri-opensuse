@@ -14,7 +14,7 @@ use strict;
 use base "console_yasttest";
 use testapi;
 use utils qw(type_string_slow zypper_call systemctl);
-use version_utils qw(is_sle sle_version_at_least is_leap leap_version_at_least);
+use version_utils qw(is_sle is_leap leap_version_at_least);
 
 sub run {
     select_console 'root-console';
@@ -25,7 +25,7 @@ sub run {
     # ntp configuration is different in SLE15/Leap15
     # for now, Tumbleweed doesn't use Chrony
     # use sle_or_leap_15 variable to avoid executing is_* and *_version_at_least multiple time
-    my $is_chronyd = (!(is_sle && !sle_version_at_least('15')) && !(is_leap && !leap_version_at_least('15.0'))) ? 1 : 0;
+    my $is_chronyd = (!is_sle('<15') && !(is_leap && !leap_version_at_least('15.0'))) ? 1 : 0;
     $ntp_service = 'chronyd' if ($is_chronyd);
 
     # if support-server is used

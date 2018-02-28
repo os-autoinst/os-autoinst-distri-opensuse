@@ -16,7 +16,7 @@
 
 use base 'opensusebasetest';
 use strict;
-use version_utils qw(is_sle sle_version_at_least);
+use version_utils 'is_sle';
 use testapi;
 use lockapi;
 use hacluster;
@@ -162,7 +162,7 @@ sub run {
     # Wait for DRBD to be checked
     barrier_wait("DRBD_RESOURCE_CREATED_$cluster_name");
 
-    if (is_sle && sle_version_at_least('12-SP3')) {
+    if (is_sle '12-SP3+') {
         # Need to stop/start the DRBD resource to be able to migrate it after
         # Is it the wanted behavior? Was not in SLE12-SP2, need to check with
         # developers for the new versions

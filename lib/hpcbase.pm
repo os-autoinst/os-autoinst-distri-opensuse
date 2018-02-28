@@ -2,7 +2,6 @@ package hpcbase;
 use base "opensusebasetest";
 use strict;
 use testapi;
-use version_utils qw(is_sle sle_version_at_least);
 use utils 'systemctl';
 
 sub exec_and_insert_password {

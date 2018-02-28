@@ -15,7 +15,7 @@
 use base "x11test";
 use strict;
 use testapi;
-use version_utils qw(is_sle sle_version_at_least);
+use version_utils 'is_sle';
 
 
 sub undo_redo_once {
@@ -38,17 +38,17 @@ sub run {
 
     #assure undo and redo take effect after save note and re-enter note
     send_key "ctrl-tab";    #jump to toolbar
-    send_key "ctrl-tab" if (is_sle && sle_version_at_least('15'));    #jump to toolbar for SLED15
-    send_key "ret";                                                   #back to all notes interface
+    send_key "ctrl-tab" if is_sle('15+');    #jump to toolbar for SLED15
+    send_key "ret";                          #back to all notes interface
     send_key_until_needlematch 'gnote-new-note-matched', 'down', 6;
     wait_still_screen 3;
     send_key "ret";
     $self->undo_redo_once;
 
     #clean: remove the created new note
-    send_key "ctrl-tab";                                              #jump to toolbar
-    send_key "ctrl-tab" if (is_sle && sle_version_at_least('15'));    #jump to toolbar for SLED15
-    send_key "ret";                                                   #back to all notes interface
+    send_key "ctrl-tab";                     #jump to toolbar
+    send_key "ctrl-tab" if is_sle('15+');    #jump to toolbar for SLED15
+    send_key "ret";                          #back to all notes interface
     send_key_until_needlematch 'gnote-new-note-matched', 'down', 6;
     send_key "delete";
     send_key "tab";

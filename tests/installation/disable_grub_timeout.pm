@@ -16,7 +16,7 @@ use warnings;
 use base "y2logsstep";
 use testapi;
 use utils;
-use version_utils qw(is_sle sle_version_at_least is_leap leap_version_at_least);
+use version_utils qw(is_sle is_leap leap_version_at_least);
 
 sub run {
     my ($self) = shift;
@@ -31,8 +31,9 @@ sub run {
     }
 
     # Workaround for bsc#1070233: not update "Booting" option in upgrade mode
-    return record_soft_failure('bsc#1070233: Error if click on Booting option')
-      if (get_var('UPGRADE') && (!(is_sle && !sle_version_at_least('15')) || !(is_leap && !leap_version_at_least('15.0'))));
+    if (get_var('UPGRADE') && (!is_sle('<15') || !(is_leap && !leap_version_at_least('15.0')))) {
+        return record_soft_failure('bsc#1070233: Error if click on Booting option');
+    }
 
     # Verify Installation Settings overview is displayed as starting point
     assert_screen "installation-settings-overview-loaded";
@@ -60,7 +61,7 @@ sub run {
     wait_still_screen(1);
     my $timeout = "-1";
     # SLE-12 GA only accepts positive integers in range [0,300]
-    $timeout = "60" if is_sle && !sle_version_at_least('12-SP1');
+    $timeout = "60" if is_sle('<12-SP1');
     type_string $timeout;
 
     # ncurses uses blocking modal dialog, so press return is needed

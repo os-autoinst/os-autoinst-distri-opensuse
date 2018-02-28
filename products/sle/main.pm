@@ -509,7 +509,7 @@ sub load_ha_cluster_tests {
     }
 
     # SLE15 workarounds
-    loadtest "ha/sle15_workarounds" if (is_sle && sle_version_at_least('15'));
+    loadtest "ha/sle15_workarounds" if is_sle('15+');
 
     # Basic configuration
     loadtest "ha/firewall_disable";

@@ -16,7 +16,7 @@ use base 'x11test';
 use strict;
 use testapi;
 use utils;
-use version_utils qw(is_sle is_tumbleweed sle_version_at_least);
+use version_utils qw(is_sle is_tumbleweed);
 
 
 sub run {
@@ -28,8 +28,8 @@ sub run {
     send_key 'ctrl-ret';    #switch to link
     assert_screen 'gnote-note-start-here';
 
-    wait_screen_change { send_key 'ctrl-tab' };                                              #jump to toolbar
-    wait_screen_change { send_key 'ctrl-tab' } if (is_sle && sle_version_at_least('15'));    #jump to toolbar
+    wait_screen_change { send_key 'ctrl-tab' };                     #jump to toolbar
+    wait_screen_change { send_key 'ctrl-tab' } if is_sle('15+');    #jump to toolbar
     wait_screen_change {
         for (1 .. 6) { send_key 'right' }
     };
@@ -41,7 +41,7 @@ sub run {
     assert_screen 'gnote-what-link-here';
     wait_screen_change { send_key 'esc' };
     #close the note "Start Here"
-    wait_screen_change { send_key 'ctrl-w' } if (!is_tumbleweed && (is_sle && !sle_version_at_least('15')));
+    wait_screen_change { send_key 'ctrl-w' } if is_sle('<15');
     $self->cleanup_gnote;
 }
 

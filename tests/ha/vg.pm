@@ -12,7 +12,7 @@
 
 use base 'opensusebasetest';
 use strict;
-use version_utils qw(is_sle sle_version_at_least);
+use version_utils 'is_sle';
 use testapi;
 use lockapi;
 use hacluster;
@@ -32,7 +32,7 @@ sub run {
         $vg_luns  = '/dev/md*';
 
         # Use a named RAID in SLE15
-        $vg_luns = "/dev/md/$resource" if (is_sle && sle_version_at_least('15'));
+        $vg_luns = "/dev/md/$resource" if is_sle('15+');
     }
     elsif (read_tag eq 'drbd_passive') {
         $resource     = 'drbd_passive';

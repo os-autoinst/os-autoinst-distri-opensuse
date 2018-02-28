@@ -195,7 +195,7 @@ sub fill_in_registration_data {
         }
         # The "Extension and Module Selection" won't be shown during upgrade to sle15, refer to:
         # https://bugzilla.suse.com/show_bug.cgi?id=1070031#c11
-        push @tags, 'inst-addon' if is_sle && sle_version_at_least('15') && is_sle12_hdd_in_upgrade;
+        push @tags, 'inst-addon' if is_sle('15+') && is_sle12_hdd_in_upgrade;
         while ($counter--) {
             assert_screen(\@tags);
             if (match_has_tag("import-untrusted-gpg-key")) {
@@ -257,7 +257,7 @@ sub fill_in_registration_data {
     }
 
     # Process modules on sle 15
-    if (is_sle && sle_version_at_least('15')) {
+    if (is_sle '15+') {
         my $modules_needle = "modules-preselected-" . get_required_var('SLE_PRODUCT');
         if (check_var('BETA', '1')) {
             assert_screen('scc-beta-filter-checkbox');
