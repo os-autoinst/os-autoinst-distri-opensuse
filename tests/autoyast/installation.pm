@@ -185,7 +185,8 @@ sub run {
             accept_license;
         }
         elsif (match_has_tag('inst-betawarning')) {
-            send_key $cmd{ok};
+            wait_screen_change { send_key $cmd{ok} };
+            @needles = grep { $_ ne 'inst-betawarning' } @needles;
             push(@needles, 'autoyast-license') if (get_var('AUTOYAST_LICENSE'));
             next;
         }
