@@ -62,8 +62,8 @@ sub run {
     #   - pull image of last released version of openSUSE Leap
     my $last_released_leap_version = '42.3';
     assert_script_run("docker image pull opensuse:$last_released_leap_version");
-    #   - pull image of openSUSE Tumblewedd
-    assert_script_run('docker image pull opensuse:tumbleweed');
+    #   - pull image of openSUSE Tumbleweed
+    assert_script_run('docker image pull opensuse:tumbleweed', timeout => 180);
 
     # local images can be listed
     #   - BUG https://github.com/docker/for-linux/issues/220
