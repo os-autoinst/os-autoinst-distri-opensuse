@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -27,6 +27,11 @@ sub run {
     elsif (get_var('OFW')) {             # ppc64le need PReP /boot
         addpart(role => 'raw', size => 500, fsid => 'PReP');
     }
+    elsif (is_storage_ng && check_var('ARCH', 'x86_64')) {
+        # Storage-ng has GPT by defaut, so need bios-boot partition for legacy boot, which is only on x86_64
+        addpart(role => 'raw', fsid => 'bios-boot', size => 2);
+    }
+
     # create small enough partition (11GB) to get warning
     addpart(role => 'OS', size => 11000, format => 'btrfs');
 
