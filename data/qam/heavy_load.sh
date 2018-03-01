@@ -13,6 +13,8 @@ done
 
 # disable add_key02 test - on most kernels causes panic
 sed  -i '/\n/!N;/\n.*\n/!N;/\n.*\n.*add_key02/{$d;N;N;d};P;D' /usr/share/qa/qa_test_ltp/tcf/syscalls.tcf
+# kernel 4.4.92 ppc64le panicked with this test
+sed  -i '/\n/!N;/\n.*\n/!N;/\n.*\n.*add_key04/{$d;N;N;d};P;D' /usr/share/qa/qa_test_ltp/tcf/syscalls.tcf
 
 cat /usr/share/qa/qa_test_ltp/tcf/syscalls.tcf \
     /usr/share/qa/qa_test_ltp/tcf/syscalls.tcf \
