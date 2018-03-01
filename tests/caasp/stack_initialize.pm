@@ -35,16 +35,6 @@ sub run {
     # Update kubectl
     assert_script_sudo "zypper -n up kubernetes-client", 300;
 
-    # Workaround for Microfocus infobloxx GEO-IP DNS Cluster
-    if (get_var('EDGECAST')) {
-        record_info 'Netfix', 'Go through Europe Microfocus info-bloxx';
-        my $edgecast_europe = get_var('EDGECAST');
-        assert_script_sudo("echo $edgecast_europe updates.suse.com >> /etc/hosts");
-        assert_script_run("grep 'updates.suse.com' /etc/hosts");
-        assert_script_run("ping -c 3 updates.suse.com");
-        assert_script_run("ping -c 1 updates.suse.com | grep $edgecast_europe");
-    }
-
     # Leave xterm open for kubernetes tests
     save_screenshot;
     send_key "ctrl-l";
