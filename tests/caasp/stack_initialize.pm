@@ -41,8 +41,7 @@ sub run {
         my $edgecast_europe = get_var('EDGECAST');
         assert_script_sudo("echo $edgecast_europe updates.suse.com >> /etc/hosts");
         assert_script_run("grep 'updates.suse.com' /etc/hosts");
-        assert_script_run("ping -c 3 updates.suse.com");
-        assert_script_run("ping -c 1 updates.suse.com | grep $edgecast_europe");
+        script_run("ping -c 1 updates.suse.com | grep $edgecast_europe");
     }
 
     # Leave xterm open for kubernetes tests

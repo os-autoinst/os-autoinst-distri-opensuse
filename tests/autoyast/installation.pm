@@ -105,6 +105,17 @@ sub verify_timeout_and_check_screen {
 sub run {
     my ($self) = @_;
 
+    # Verify that workaround for Microfocus infobloxx GEO-IP DNS Cluster works
+    if (get_var('EDGECAST') && is_caasp('qam')) {
+        record_info 'Netfix', 'Go through Europe Microfocus info-bloxx';
+        my $edgecast_europe = get_var('EDGECAST');
+        assert_screen 'autoyaststart', 90;
+        select_console 'install-shell';
+        assert_script_run("echo $edgecast_europe updates.suse.com >> /etc/hosts");
+        script_run("ping -c 1 updates.suse.com | grep $edgecast_europe");
+        select_console 'installation';
+    }
+
     if (check_var('BACKEND', 'ipmi') && get_var("SES5_DEPLOY")) {
         assert_screen 'installation-done', 750;
         reset_consoles;

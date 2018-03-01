@@ -22,8 +22,8 @@ sub run {
         record_info 'Netfix', 'Go through Europe Microfocus info-bloxx';
         my $edgecast_europe = get_var('EDGECAST');
         select_console 'install-shell';
-        assert_script_run("ping -c 3 updates.suse.com");
-        assert_script_run("ping -c 1 updates.suse.com | grep $edgecast_europe");
+        assert_script_run("echo $edgecast_europe updates.suse.com >> /etc/hosts");
+        script_run("ping -c 1 updates.suse.com | grep $edgecast_europe");
         select_console 'installation';
     }
 
