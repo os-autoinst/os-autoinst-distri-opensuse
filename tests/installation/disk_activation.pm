@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -14,7 +14,7 @@
 use base "y2logsstep";
 use strict;
 use testapi;
-use version_utils 'sle_version_at_least';
+use version_utils 'is_sle';
 
 sub format_dasd {
     while (check_screen 'process-dasd-format') {
@@ -23,24 +23,35 @@ sub format_dasd {
     }
 }
 
+sub add_zfcp_disk {
+    my $channel = shift;
+    assert_screen 'zfcp-disk-management';
+    send_key 'alt-a';
+    assert_screen 'zfcp-add-device';
+    send_key 'alt-a';
+    assert_screen 'zfcp-channel-select';
+    for (1 .. 9) { send_key "backspace"; }
+    type_string "$channel";
+    assert_screen "zfcp-channel-$channel-selected";
+
+    send_key $cmd{next};
+
+    # use allow_lun_scan
+    # popup was removed for sle15, allow_lun_scan still works though
+    if (is_sle '<15') {
+        assert_screen 'zfcp-popup-scan';
+        send_key 'alt-o';
+    }
+    assert_screen 'zfcp-disk-management';
+}
+
 sub run {
     # use zfcp as install disk
     if (check_var('S390_DISK', 'ZFCP')) {
         assert_screen 'disk-activation-zfcp';
-
         wait_screen_change { send_key 'alt-z' };
-
-        assert_screen 'zfcp-disk-management';
-        send_key 'alt-a';
-        assert_screen 'zfcp-add-device';
-        send_key $cmd{next};
-
-        # use allow_lun_scan
-        # popup was removed for sle15, allow_lun_scan still works though
-        assert_screen 'zfcp-popup-scan' if !sle_version_at_least('15');
-        send_key 'alt-o';
-
-        assert_screen 'zfcp-disk-management';
+        add_zfcp_disk('0.0.fa00');
+        add_zfcp_disk('0.0.fc00');
         assert_screen 'zfcp-activated';
         send_key $cmd{next};
         wait_still_screen 5;
@@ -110,7 +121,7 @@ sub run {
     send_key $cmd{next};
 
     # check for multipath popup
-    if (check_screen('detected-multipath', 5)) {
+    if (check_screen('detected-multipath', 10)) {
         wait_screen_change { send_key 'alt-y' };
         send_key 'alt-n';
     }

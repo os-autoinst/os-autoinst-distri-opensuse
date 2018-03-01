@@ -38,7 +38,11 @@ sub run {
     }
     if (is_storage_ng) {
         unselect_xen_pv_cdrom;
-        assert_screen 'partition-scheme';
+        assert_screen [qw(partition-scheme existing-partitions)];
+        if (match_has_tag 'existing-partitions') {
+            send_key $cmd{next};
+            assert_screen 'partition-scheme';
+        }
         send_key $cmd{next};
     }
     # select the combo box
