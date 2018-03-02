@@ -55,15 +55,15 @@ sub run {
     #   - pull minimalistic alpine image of declared version using tag
     #   - https://store.docker.com/images/alpine
     my $alpine_image_version = '3.5';
-    assert_script_run("docker image pull alpine:$alpine_image_version", 300);
+    assert_script_run("docker image pull alpine:$alpine_image_version", timeout => 300);
     #   - pull typical docker demo image without tag. Should be latest.
     #   - https://store.docker.com/images/hello-world
-    assert_script_run("docker image pull hello-world", 300);
+    assert_script_run("docker image pull hello-world", timeout => 300);
     #   - pull image of last released version of openSUSE Leap
     my $last_released_leap_version = '42.3';
-    assert_script_run("docker image pull opensuse:$last_released_leap_version", timeout => 180);
+    assert_script_run("docker image pull opensuse:$last_released_leap_version", timeout => 300);
     #   - pull image of openSUSE Tumbleweed
-    assert_script_run('docker image pull opensuse:tumbleweed', timeout => 180);
+    assert_script_run('docker image pull opensuse:tumbleweed', timeout => 300);
 
     # local images can be listed
     #   - BUG https://github.com/docker/for-linux/issues/220
