@@ -21,7 +21,7 @@ use base 'basetest';
 use testapi;
 use serial_terminal 'add_serial_console';
 use utils;
-use version_utils 'sle_version_at_least';
+use version_utils;
 
 sub run {
     select_console('root-console');
@@ -31,12 +31,18 @@ sub run {
     if (!sle_version_at_least('12-SP2') && check_var('VIRTIO_CONSOLE', 1)) {
         add_serial_console('hvc0');
     }
-    # Clean dhcp ids from hdd image
-    systemctl 'stop network.service';
-    systemctl 'stop wickedd.service';
-    assert_script_run('ls /var/lib/wicked/');
-    save_screenshot;
-    assert_script_run('rm -f /var/lib/wicked/*.xml');
+    # Proceed with dhcp cleanup on qemu backend only
+    if (check_var('BACKEND', 'qemu')) {
+        my $network_status = script_output('systemctl status network');
+        # Do dhcp cleanup for wicked
+        if ($network_status =~ /wicked/) {
+            systemctl 'stop network.service';
+            systemctl 'stop wickedd.service';
+            assert_script_run('ls /var/lib/wicked/');
+            save_screenshot;
+            assert_script_run('rm -f /var/lib/wicked/*.xml');
+        }
+    }
     power_action('poweroff');
 }
 
