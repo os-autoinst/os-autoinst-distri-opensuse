@@ -142,7 +142,7 @@ sub is_opensuse {
 }
 
 # Check if distribution is SLE with optional filter for:
-# Version: <=12-sp3 =12-sp1 >11-sp1 >=15 15+
+# Version: <=12-sp3 =12-sp1 >11-sp1 >=15 15+ (>=15 and 15+ are equivalent)
 sub is_sle {
     my $query = shift;
 
