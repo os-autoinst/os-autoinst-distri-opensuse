@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2016 SUSE LLC
+# Copyright (c) 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -37,7 +37,7 @@ sub run {
     assert_screen 'yast2_vnc_remote_administration';
     # enable remote administration
     send_key 'alt-a';
-    if ((is_sle && !sle_version_at_least('15')) || (is_leap && !leap_version_at_least('15.0'))) {
+    if (is_sle('<15') || (is_leap && !leap_version_at_least('15.0'))) {
 
         # open port in firewall if it is eanbaled and check network interfaces, check long text by send key right.
         if (check_screen 'yast2_vnc_open_port_firewall') {
