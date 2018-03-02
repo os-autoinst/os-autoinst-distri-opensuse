@@ -60,20 +60,39 @@ sub handle_all_packages_medium {
     # Record the addons to be enabled for debugging
     record_info 'Extension and Module Selection', join(' ', @addons);
     # Enable the extentions or modules
-    foreach (@addons) {
+    # Also record the addons which require license agreement
+    my @addons_with_license = qw(ha we);
+    my @addons_license_tags = ();
+    for my $a (@addons) {
+        push @addons_license_tags, "addon-license-$a" if grep(/^$a$/, @addons_with_license);
         send_key 'home';
-        send_key_until_needlematch "addon-products-all_packages-$_-highlighted", 'down';
+        send_key_until_needlematch "addon-products-all_packages-$a-highlighted", 'down';
         send_key 'spc';
     }
     send_key $cmd{next};
-    # Confirm all required addons are properly added
-    assert_screen([qw(addon-products sle-product-license-agreement)], 60);
-    if (match_has_tag 'sle-product-license-agreement') {
-        record_soft_failure 'bsc#1081647';
-        wait_screen_change { send_key 'alt-a' };
-        send_key 'alt-n';
-        assert_screen 'addon-products';
+    # Check the addon license agreement
+    # To avoid repetition to much, set a counter to match:
+    # addon licenses, sles(d) license (as workaround), and addon-products
+    my $counter = 2 + (scalar @addons_license_tags);
+    my $addon_license_num = 0;
+    while ($counter--) {
+        assert_screen([qw(addon-products sle-product-license-agreement)], 60);
+        last if (match_has_tag 'addon-products');
+        if (match_has_tag 'sle-product-license-agreement') {
+            if (@addons_license_tags && check_screen(\@addons_license_tags)) {
+                $addon_license_num++;
+            }
+            else {
+                record_soft_failure 'bsc#1081647';
+            }
+            wait_screen_change { send_key 'alt-a' };
+            send_key 'alt-n';
+        }
     }
+    record_info "Error", "License agreement not shown for some addons", result => 'fail'
+      if @addons_license_tags && ($addon_license_num != scalar @addons_license_tags);
+    assert_screen "addon-products";
+    # Confirm all required addons are properly added
     foreach (@addons) {
         send_key 'home';
         send_key_until_needlematch "addon-products-$_", 'down';
