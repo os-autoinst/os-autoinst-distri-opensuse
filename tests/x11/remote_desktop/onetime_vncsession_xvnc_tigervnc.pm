@@ -39,15 +39,14 @@ sub run {
     # Start vncviewer and login with fullscreen
     x11_start_program('vncviewer', target_match => 'vnc_password_dialog');
     type_string '10.0.2.1:1';
+    wait_still_screen 3;
     assert_and_click 'vncviewer-options';
     assert_and_click 'vncviewer-options-screen';
     assert_and_click 'vncviewer-options-fullscreen';
+    assert_and_click 'vncviewer-options-security';
+    assert_and_click 'vncviewer-options-tlsx509';
     assert_and_click 'vncviewer-options-ok';
     wait_still_screen 3;
-    send_key 'ret';
-    assert_screen 'vnc_certificate_warning';
-    send_key 'ret';
-    assert_screen 'vnc_certificate_warning-2';
     send_key 'ret';
     handle_login;
     assert_screen 'generic-desktop';
