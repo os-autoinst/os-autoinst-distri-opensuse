@@ -16,10 +16,10 @@ use testapi;
 use utils 'systemctl';
 
 sub run {
-    # Verify firewalld is running, returns 0 code only is running
-    assert_script_run('firewall-offline-cmd --state');
     # Verify that service is active
     systemctl 'is-active firewalld.service';
+    # Verify firewalld is running, returns 0 code only is running
+    assert_script_run('firewall-cmd --state');
     my $errors = '';
     # Verify services configured for external zone
     my $zone_config = script_output('firewall-offline-cmd --list-services --zone=public');
