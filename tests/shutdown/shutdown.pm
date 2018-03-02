@@ -20,7 +20,7 @@ use strict;
 use base 'basetest';
 use testapi;
 use serial_terminal 'add_serial_console';
-use utils 'power_action';
+use utils;
 use version_utils 'sle_version_at_least';
 
 sub run {
@@ -31,6 +31,12 @@ sub run {
     if (!sle_version_at_least('12-SP2') && check_var('VIRTIO_CONSOLE', 1)) {
         add_serial_console('hvc0');
     }
+    # Clean dhcp ids from hdd image
+    systemctl 'stop network.service';
+    systemctl 'stop wickedd.service';
+    assert_script_run('ls /var/lib/wicked/');
+    save_screenshot;
+    assert_script_run('rm -f /var/lib/wicked/*.xml');
     power_action('poweroff');
 }
 
