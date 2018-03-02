@@ -31,12 +31,15 @@ sub run {
     if (!sle_version_at_least('12-SP2') && check_var('VIRTIO_CONSOLE', 1)) {
         add_serial_console('hvc0');
     }
-    # Clean dhcp ids from hdd image
-    systemctl 'stop network.service';
-    systemctl 'stop wickedd.service';
-    assert_script_run('ls /var/lib/wicked/');
-    save_screenshot;
-    assert_script_run('rm -f /var/lib/wicked/*.xml');
+
+    if (get_var('CLEANUP_DHCP')) {
+        # Clean dhcp ids from hdd image
+        systemctl 'stop network.service';
+        systemctl 'stop wickedd.service';
+        assert_script_run('ls /var/lib/wicked/');
+        save_screenshot;
+        assert_script_run('rm -f /var/lib/wicked/*.xml');
+    }
     power_action('poweroff');
 }
 
