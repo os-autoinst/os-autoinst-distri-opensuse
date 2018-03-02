@@ -41,6 +41,9 @@ sub run {
         assert_screen 'release-notes-' . get_var('VERSION');
         assert_and_click 'release-notes-close';
     }
+
+    # Check DUD - poo#17072
+    assert_screen 'oci-caption-dud' if get_var('DUD');
 }
 
 1;
