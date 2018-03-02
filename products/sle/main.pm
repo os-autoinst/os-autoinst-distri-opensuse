@@ -325,16 +325,16 @@ if (get_var('ENABLE_ALL_SCC_MODULES') && !get_var('SCC_ADDONS')) {
         # Container module is missing for aarch64. Not a bug. fate#323788
         $addons .= ',contm' unless (check_var('ARCH', 'aarch64'));
         set_var('SCC_ADDONS', $addons);
-        set_var('PATTERNS',   'default,asmm,pcm');
+        set_var('PATTERNS', 'default,asmm,pcm') if !get_var('PATTERNS');
     }
     else {
         if (check_var('ARCH', 'aarch64')) {
             set_var('SCC_ADDONS', 'pcm,tcm');
-            set_var('PATTERNS',   'default,pcm');
+            set_var('PATTERNS', 'default,pcm') if !get_var('PATTERNS');
         }
         else {
             set_var('SCC_ADDONS', 'phub,asmm,contm,lgm,pcm,tcm,wsm');
-            set_var('PATTERNS',   'default,asmm,pcm');
+            set_var('PATTERNS', 'default,asmm,pcm') if !get_var('PATTERNS');
         }
     }
 }
