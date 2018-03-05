@@ -36,7 +36,7 @@ sub run {
         assert_script_run "mount | grep 'on / type btrfs (ro,'";
     }
     else {
-        record_soft_failure 'bsc#1079000 - Missing readonly option in fstab';
+        record_soft_failure 'RO fstab check skiped because of bsc#1079000';
     }
 }
 
