@@ -108,7 +108,7 @@ sub run {
             if (check_screen 'dasd-device-formatted') {
                 assert_screen 'action-list';
                 # shortcut changed for sle 15
-                send_key sle_version_at_least('15') ? 'o' : 'f';
+                send_key is_sle('15+') ? 'o' : 'f';
                 assert_screen 'confirm-dasd-format';    # confirmation popup
                 send_key 'alt-y';
                 format_dasd;
