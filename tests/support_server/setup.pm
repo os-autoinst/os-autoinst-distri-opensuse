@@ -110,19 +110,29 @@ sub setup_networks {
 
 sub setup_dns_server {
     return if $dns_server_set;
+    my $autourl = autoinst_url;
     $setup_script .= "
         sed -i -e 's|^NETCONFIG_DNS_FORWARDER=.*|NETCONFIG_DNS_FORWARDER=\"bind\"|' \\
                -e 's|^NETCONFIG_DNS_FORWARDER_FALLBACK=.*|NETCONFIG_DNS_FORWARDER_FALLBACK=\"no\"|' /etc/sysconfig/network/config
         sed -i -e 's|#forwarders.*;|include \"/etc/named.d/forwarders.conf\";|' /etc/named.conf
         sed -i -e 's|^NAMED_CONF_INCLUDE_FILES=.*|NAMED_CONF_INCLUDE_FILES=\"openqa.zones\"|' /etc/sysconfig/named
 
-        curl -f -v " . autoinst_url . "/data/supportserver/named/openqa.zones > /etc/named.d/openqa.zones
-        curl -f -v "
-      . autoinst_url . "/data/supportserver/named/openqa.test.zone > /var/lib/named/master/openqa.test.zone
-        curl -f -v "
-      . autoinst_url . "/data/supportserver/named/2.0.10.in-addr.arpa.zone > /var/lib/named/master/2.0.10.in-addr.arpa.zone
+        curl -f -v $autourl/data/supportserver/named/openqa.zones > /etc/named.d/openqa.zones
+        curl -f -v $autourl/data/supportserver/named/openqa.test.zone > /var/lib/named/master/openqa.test.zone
+        curl -f -v $autourl/data/supportserver/named/2.0.10.in-addr.arpa.zone > /var/lib/named/master/2.0.10.in-addr.arpa.zone
         chown named:named /var/lib/named/master
+    ";
 
+    # Allow RPZ overrides - poo#32290
+    record_info 'Netfix', 'Go through Europe Microfocus info-bloxx';
+    $setup_script .= qq|
+        curl -f -v $autourl/data/supportserver/named/db.rpz > /var/lib/named/db.rpz
+        echo 'zone "rpz" {type master; file "db.rpz"; allow-query {none;}; };' >> /etc/named.conf
+        sed -Ei 's/^(options.*)/\\1\\n\\tresponse-policy { zone "rpz"; };/' /etc/named.conf
+    |;
+
+    # Start services
+    $setup_script .= "
         netconfig update -f
         systemctl start named
         systemctl status named
