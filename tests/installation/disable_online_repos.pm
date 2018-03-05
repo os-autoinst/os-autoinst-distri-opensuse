@@ -21,13 +21,13 @@
 use strict;
 use base "y2logsstep";
 use testapi;
-use version_utils 'is_leap';
+use version_utils qw(is_leap is_tumbleweed);
 
 sub run {
     assert_screen 'desktop-selection';
     send_key 'alt-o';    # press configure online repos button
     assert_screen 'online-repos-configuration';
-    send_key 'alt-l';    # navigate to the List
+    send_key(is_tumbleweed() ? 'alt-u' : 'alt-l');    # navigate to the List
 
     # Disable repos
     if (is_leap) {
