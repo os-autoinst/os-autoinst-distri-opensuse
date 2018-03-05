@@ -1350,7 +1350,6 @@ sub load_extra_tests {
         loadtest "console/curl_ipv6";
         loadtest "console/wget_ipv6";
         loadtest "console/unzip";
-        loadtest "console/zypper_moo";
         loadtest "console/gpg";
         loadtest "console/shells";
         # MyODBC-unixODBC not available on < SP2 and sle 15 and only in SDK
