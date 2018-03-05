@@ -35,6 +35,10 @@ sub run {
     # Update kubectl
     assert_script_sudo "zypper -n up kubernetes-client", 300;
 
+    # Install Helm
+    assert_script_sudo "zypper ar --refresh --no-gpgcheck https://download.opensuse.org/repositories/devel:/CaaSP:/2.0:/ControllerNode/SLE_12_SP3/devel:CaaSP:2.0:ControllerNode.repo";
+    assert_script_sudo "zypper -n install helm";
+
     # Workaround for Microfocus infobloxx GEO-IP DNS Cluster
     if (get_var('EDGECAST')) {
         record_info 'Netfix', 'Go through Europe Microfocus info-bloxx';
