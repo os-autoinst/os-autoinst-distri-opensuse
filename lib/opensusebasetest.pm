@@ -318,6 +318,9 @@ sub wait_boot {
     my $in_grub         = $args{in_grub} // 0;
     my $nologin         = $args{nologin};
 
+    # Our Hyper-V host is slow
+    $ready_time *= 2 if check_var('VIRSH_VMM_FAMILY', 'hyperv');
+
     # used to register a post fail hook being active while we are waiting for
     # boot to be finished to help investigate in case the system is stuck in
     # shutting down or booting up

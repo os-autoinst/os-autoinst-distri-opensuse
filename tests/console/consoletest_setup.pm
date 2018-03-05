@@ -25,6 +25,10 @@ sub run {
 
     # init
     check_console_font;
+    select_console 'x11';
+    select_console 'root-console';
+    select_console 'x11';
+    select_console 'root-console';
     ensure_serialdev_permissions;
     script_run 'echo "set -o pipefail" >> /etc/bash.bashrc.local';
     script_run '. /etc/bash.bashrc.local';
@@ -77,8 +81,10 @@ sub run {
 
 sub post_fail_hook {
     my $self = shift;
+    #diag 'sleep';
+    #sleep;
 
-    $self->export_logs();
+    #$self->export_logs();
 }
 
 sub test_flags {

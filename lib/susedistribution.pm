@@ -458,6 +458,36 @@ sub ensure_user {
     type_string("su - $user\n") if $user ne 'root';
 }
 
+sub hyperv_console_switch {
+    my ($self, $console) = @_;
+
+    my @hyperv_special_consoles = qw(root-console user-console log-console);
+    if (check_var('VIRSH_VMM_FAMILY', 'hyperv') && grep { /$console/ } @hyperv_special_consoles) {
+        diag "console $console handled";
+        my $n;
+        if ($console eq 'root-console') {
+            $n = get_root_console_tty;
+        }
+        elsif ($console eq 'user-console') {
+            $n = 4;
+        }
+        elsif ($console eq 'log-console') {
+            $n = 5;
+        }
+        else {
+            diag "God bless you: $console";
+        }
+        testapi::x11_start_program('xterm');
+        unless (get_var('SERIALDEV_PERMISSIONS_SET')) {
+            $self->become_root;
+            sleep 300;
+            ensure_serialdev_permissions;
+            type_string "exit\n";
+        }
+        self->distribution::script_sudo("exec chvt $n; exit");
+    }
+}
+
 # callback whenever a console is selected for the first time
 sub activate_console {
     my ($self, $console) = @_;
@@ -496,6 +526,7 @@ sub activate_console {
             ensure_user($user);
         }
         else {
+            $self->hyperv_console_switch($console);
             my $nr = 4;
             $nr = get_root_console_tty if ($name eq 'root');
             $nr = 5 if ($name eq 'log');
@@ -581,9 +612,10 @@ sub console_selected {
     my ($self, $console, %args) = @_;
     $args{await_console} //= 1;
     $args{tags}          //= $console;
-    $args{ignore}        //= qr{sut|root-virtio-terminal|iucvconn|svirt|root-ssh};
+    $args{ignore}        //= qr{sut|root-virtio-terminal|iucvconn|svirt|root-ssh|hyperv-intermediary};
     return unless $args{await_console};
     return if $args{tags} =~ $args{ignore};
+    $self->hyperv_console_switch;
     # x11 needs special handling because we can not easily know if screen is
     # locked, display manager is waiting for login, etc.
     return ensure_unlocked_desktop if $args{tags} =~ /x11/;
