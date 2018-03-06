@@ -16,7 +16,7 @@ use warnings;
 use base "y2logsstep";
 use testapi;
 use utils;
-use version_utils qw(is_sle is_leap leap_version_at_least);
+use version_utils qw(is_sle is_leap);
 
 sub run {
     my ($self) = shift;
@@ -31,7 +31,7 @@ sub run {
     }
 
     # Workaround for bsc#1070233: not update "Booting" option in upgrade mode
-    if (get_var('UPGRADE') && (!is_sle('<15') || !(is_leap && !leap_version_at_least('15.0')))) {
+    if (get_var('UPGRADE') && (!is_sle('<15') || !is_leap('<15.0'))) {
         return record_soft_failure('bsc#1070233: Error if click on Booting option');
     }
 

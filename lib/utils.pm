@@ -22,7 +22,7 @@ use strict;
 
 use testapi qw(is_serial_terminal :DEFAULT);
 use mm_network;
-use version_utils qw(is_caasp is_leap is_tumbleweed is_sle is_sle12_hdd_in_upgrade leap_version_at_least sle_version_at_least is_storage_ng);
+use version_utils qw(is_caasp is_leap is_tumbleweed is_sle is_sle12_hdd_in_upgrade sle_version_at_least is_storage_ng);
 
 our @EXPORT = qw(
   check_console_font
@@ -804,7 +804,7 @@ sub handle_login {
     }
     elsif (check_var('DESKTOP', 'gnome')) {
         # DMs in condition above have to select user
-        if (is_sle('15+') || (is_leap && leap_version_at_least('15.0')) || is_tumbleweed) {
+        if (is_sle('15+') || is_leap('15.0+') || is_tumbleweed) {
             assert_and_click "displaymanager-$username";
             record_soft_failure 'bgo#657996 - user account not selected by default, have to use mouse to login';
         }
@@ -954,7 +954,7 @@ is running on tty2 by default. see also: bsc#1054782
 sub get_x11_console_tty {
     my $new_gdm
       = !is_sle('<15')
-      && !(is_leap && !leap_version_at_least('15.0'))
+      && !is_leap('<15.0')
       && !is_sle12_hdd_in_upgrade
       && !is_caasp
       && !get_var('VERSION_LAYERED');
