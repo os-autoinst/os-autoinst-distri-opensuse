@@ -54,15 +54,16 @@ sub save_and_upload_yastlogs {
     select_console 'install-shell';
 
     # the network may be down with keep_install_network=false
-    # use static ip in that case
-    type_string "
-      save_y2logs /tmp/y2logs-$name.tar.bz2
-      if ! ping -c 1 10.0.2.2 ; then
-        ip addr add 10.0.2.200/24 dev eth0
-        ip link set eth0 up
-        route add default gw 10.0.2.2
-      fi
-    ";
+    # use static ip in that case if not on s390x
+    assert_script_run "save_y2logs /tmp/y2logs-$name.tar.bz2";
+    if (!check_var("BACKEND", "s390x")) {
+        type_string " if ! ping -c 1 10.0.2.2 ; then
+            ip addr add 10.0.2.200/24 dev eth0
+            ip link set eth0 up
+            route add default gw 10.0.2.2
+        fi
+        ";
+    }
     # Upload autoyast profile if file exists
     if (script_run '! test -e /tmp/profile/autoinst.xml') {
         upload_logs '/tmp/profile/autoinst.xml';
@@ -132,6 +133,11 @@ sub run {
       = qw(bios-boot nonexisting-package reboot-after-installation linuxrc-install-fail scc-invalid-url warning-pop-up inst-betawarning autoyast-boot);
     push @needles, 'autoyast-confirm'        if get_var('AUTOYAST_CONFIRM');
     push @needles, 'autoyast-postpartscript' if get_var('USRSCR_DIALOG');
+    # Autoyast reboot automatically without confirmation, usually assert 'bios-boot' that is not existing on zVM
+    # So push a needle to check upcoming reboot on zVM that is a way to indicate the stage done
+    push @needles, 'autoyast-stage1-reboot-upcoming' if check_var('BACKEND', 's390x');
+    # Kill ssh proactively before reboot to avoid half-open issue on zVM
+    prepare_system_shutdown;
 
     my $postpartscript = 0;
     my $confirmed      = 0;
@@ -142,7 +148,7 @@ sub run {
 
     mouse_hide(1);
     check_screen \@needles, $check_time;
-    until (match_has_tag('reboot-after-installation') || match_has_tag('bios-boot')) {
+    until (match_has_tag('reboot-after-installation') || match_has_tag('bios-boot') || match_has_tag('autoyast-stage1-reboot-upcoming')) {
         #Verify timeout and continue if there was a match
         next unless verify_timeout_and_check_screen(($timer += $check_time), \@needles);
         if (match_has_tag('autoyast-boot')) {
@@ -212,6 +218,12 @@ sub run {
         if ($confirmed_licenses == 0 || $confirmed_licenses != get_var("AUTOYAST_LICENSE", 0)) {
             die "Autoyast License shown: $confirmed_licenses, but expected: " . get_var('AUTOYAST_LICENSE') . " time(s)";
         }
+    }
+
+    # The stage2 should be done during reconnection on zVM, so wait a little longer time
+    if (check_var('BACKEND', 's390x')) {
+        reconnect_s390(timeout => 500);
+        return;
     }
 
     # CaaSP does not have second stage
