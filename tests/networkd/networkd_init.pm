@@ -19,9 +19,11 @@ sub run {
     my ($self) = @_;
 
     select_console 'root-console';
+
+    zypper_call("in bridge-utils systemd-container");
+
     assert_script_run("ls -la --color /var/lib/machines");
 
-    zypper_call("in bridge-utils");
     assert_script_run("brctl addbr br0");
     assert_script_run("ip li set br0 up");
 
