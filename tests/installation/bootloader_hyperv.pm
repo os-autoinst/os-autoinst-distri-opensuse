@@ -198,12 +198,13 @@ sub run {
 
     # xfreerdp should be run with fullscreen option (/f) so the needle match.
     # Typing this string takes so long that we would miss grub menu, so...
+    my ($jobid) = get_required_var('NAME') =~ /(\d+)/;
+    my $xfreerdp_log = "/tmp/${jobid}-xfreerdp-${name}-\$(date +%s).log";
     type_string "rm -fv xfreerdp_${name}_stop* xfreerdp_${name}.log; while true; do inotifywait xfreerdp_${name}_stop; DISPLAY=:$xvncport xfreerdp /u:"
       . get_var('HYPERV_USERNAME') . " /p:'"
       . get_var('HYPERV_PASSWORD') . "' /v:"
       . get_var('HYPERV_SERVER')
-      . " /cert-ignore /vmconnect:$vmguid /f 2>&1 >> xfreerdp_${name}.log; echo $vmguid > xfreerdp_${name}_stop; done";
-    #      . " /cert-ignore /jpeg /jpeg-quality:100 /fast-path:1 /bpp:32 /vmconnect:$vmguid /f";
+      . " /cert-ignore /vmconnect:$vmguid /f /log-level:DEBUG 2>&1 > $xfreerdp_log; echo $vmguid > xfreerdp_${name}_stop; done; ";
 
     hyperv_cmd_with_retry("$ps Start-VM $name");
 
