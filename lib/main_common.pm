@@ -1224,6 +1224,7 @@ sub load_yast2_ncurses_tests {
     }
     loadtest "console/yast2_http";
     loadtest "console/yast2_ftp";
+    loadtest "console/yast2_snapper_ncurses";
     # back to desktop
     loadtest "console/consoletest_finish";
 }
