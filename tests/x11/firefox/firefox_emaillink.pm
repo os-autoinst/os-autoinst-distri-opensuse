@@ -81,7 +81,12 @@ sub run {
         wait_still_screen 3;
         send_key "alt-a";
     }
-    assert_screen('firefox-email_link-send');
+    assert_screen [qw(firefox-email_link-send firefox-launch)];
+    if (match_has_tag('firefox-launch')) {
+        record_soft_failure 'bsc#1079512 - evolution dumped core';
+        $self->exit_firefox;
+        return;
+    }
     wait_screen_change {
         send_key "esc";
     };
