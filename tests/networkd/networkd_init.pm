@@ -22,7 +22,7 @@ sub run {
 
     zypper_call("in bridge-utils systemd-container");
 
-    assert_script_run("ls -la --color /var/lib/machines");
+    assert_script_run("mkdir -p /var/lib/machines/");
 
     assert_script_run("brctl addbr br0");
     assert_script_run("ip li set br0 up");
