@@ -19,7 +19,7 @@ use Time::HiRes 'sleep';
 
 use testapi;
 use utils;
-use version_utils qw(is_jeos is_caasp leap_version_at_least);
+use version_utils qw(is_jeos is_caasp is_leap);
 use lockapi;
 use mm_network;
 
@@ -398,7 +398,7 @@ sub specific_bootmenu_params {
     }
 
     # For leap 42.3 we don't have addon_products screen
-    if (addon_products_is_applicable() && leap_version_at_least('42.3')) {
+    if (addon_products_is_applicable() && is_leap('42.3+')) {
         my $addon_url = get_var("ADDONURL");
         $addon_url =~ s/\+/,/g;
         $args .= " addon=" . $addon_url;

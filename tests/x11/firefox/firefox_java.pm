@@ -14,7 +14,7 @@
 use strict;
 use base "x11test";
 use testapi;
-use version_utils qw(leap_version_at_least sle_version_at_least);
+use version_utils qw(is_leap is_sle);
 
 sub java_testing {
     my ($self) = @_;
@@ -56,7 +56,7 @@ sub run {
     my ($self) = @_;
 
     # FF 56 no longer support NPAPI plugins, e.g. Java
-    if (sle_version_at_least('15') || leap_version_at_least('15.0')) {
+    if (is_sle('15+') || is_leap('15.0+')) {
         record_info('NPAPI plugins not supported',
             "FF 56 no longer supports supports NPAPI plugins, e.g. Java, so the test would fail in current distribution releases.");
         return;
@@ -65,7 +65,7 @@ sub run {
     $self->start_firefox;
 
     #Required only on sle, as open mozilla home page
-    if (check_var('DISTRI', 'sle')) {
+    if (is_sle) {
         assert_and_click('firefox-logo');
     }
     send_key "ctrl-shift-a";

@@ -15,7 +15,7 @@ use strict;
 use base "y2logsstep";
 use utils 'addon_products_is_applicable';
 use testapi;
-use version_utils 'leap_version_at_least';
+use version_utils 'is_leap';
 
 sub run {
     assert_screen 'desktop-selection';
@@ -57,7 +57,7 @@ sub run {
     # On leap 42.3 we don't have addon products page, and provide urls as addon
     # as boot parameter. Trusting gpg key is the done after we click next
     # on Desktop selection screen
-    if (addon_products_is_applicable() && leap_version_at_least('42.3')) {
+    if (addon_products_is_applicable() && is_leap('42.3+')) {
         assert_screen 'import-untrusted-gpg-key-598D0E63B3FD7E48';
         send_key "alt-t";    # confirm import (trust) key
     }

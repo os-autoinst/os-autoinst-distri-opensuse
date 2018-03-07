@@ -18,7 +18,7 @@ use testapi qw(check_var get_var get_required_var set_var check_var_array diag);
 use autotest;
 use utils;
 use version_utils qw(
-  is_hyperv_in_gui is_jeos is_gnome_next is_krypton_argon is_leap is_opensuse is_sle is_sles4sap is_sles4sap_standard leap_version_at_least sle_version_at_least is_desktop_installed is_installcheck is_rescuesystem is_staging is_tumbleweed
+  is_hyperv_in_gui is_jeos is_gnome_next is_krypton_argon is_leap is_opensuse is_sle is_sles4sap is_sles4sap_standard sle_version_at_least is_desktop_installed is_installcheck is_rescuesystem is_staging is_tumbleweed
 );
 use bmwqemu ();
 use strict;
@@ -778,7 +778,7 @@ sub load_inst_tests {
         }
         loadtest "installation/partitioning_finish";
     }
-    if (is_opensuse && addon_products_is_applicable() && !leap_version_at_least('42.3')) {
+    if (is_opensuse && addon_products_is_applicable() && !is_leap('42.3+')) {
         loadtest "installation/addon_products";
     }
     # the VNC gadget is too unreliable to click, but we

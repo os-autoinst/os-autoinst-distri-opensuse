@@ -289,5 +289,5 @@ sub is_system_upgrading {
 }
 
 sub is_pre_15 {
-    return (is_sle && !sle_version_at_least('15')) || (is_leap && !leap_version_at_least('15.0')) || !is_tumbleweed;
+    return (is_sle('<15')) || is_leap('<15.0') || !is_tumbleweed;
 }
