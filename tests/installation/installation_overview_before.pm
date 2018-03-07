@@ -25,7 +25,7 @@ sub run {
     # 'inst-overview' needle is used in many places and sometimes includes only
     # parts which are there while overview is still loading. This check has to be
     # performed only once, as state of buttons can be different
-    assert_screen "installation-settings-overview-loaded";
+    assert_screen('installation-settings-overview-loaded', 90);
 
     if (check_screen('manual-intervention', 0)) {
         $self->deal_with_dependency_issues;
