@@ -16,7 +16,7 @@ use base "y2x11test";
 use strict;
 use testapi;
 use utils;
-use version_utils qw(is_sle is_leap leap_version_at_least is_tumbleweed);
+use version_utils qw(is_sle is_leap is_tumbleweed);
 
 sub susefirewall2 {
     # 	enter page interfaces and change zone for network interface
@@ -28,7 +28,7 @@ sub susefirewall2 {
     wait_still_screen 1;
     wait_screen_change {
         send_key "down";
-        send_key "ret"
+        send_key "ret";
     };
     wait_still_screen 1;
     send_key "alt-o";
@@ -99,7 +99,7 @@ sub run {
     my $self = shift;
     select_console 'root-console';
     zypper_call('in yast2-http-server apache2 apache2-prefork', timeout => 1200);
-    if (is_sle('15+') || (is_leap && leap_version_at_least('15.0')) || is_tumbleweed) {
+    if (is_sle('15+') || is_leap('15.0+') || is_tumbleweed) {
         zypper_call('in firewall-config', timeout => 60);
         select_console 'x11', await_console => 0;
         $self->launch_yast2_module_x11('firewall', target_match => 'firewall-start-page', match_timeout => 60);

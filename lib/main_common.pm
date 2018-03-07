@@ -1010,7 +1010,7 @@ sub load_consoletests {
             loadtest "console/pcre" if is_sle;
             # TODO test on SLE https://progress.opensuse.org/issues/31972
             loadtest "console/mysql_odbc" if is_opensuse;
-            if ((is_leap && !leap_version_at_least('15.0')) || (is_sle && !sle_version_at_least('15'))) {
+            if (is_leap('<15.0') || is_sle('<15')) {
                 loadtest "console/php5";
                 loadtest "console/php5_mysql";
                 loadtest "console/php5_postgresql96";
@@ -1403,7 +1403,7 @@ sub load_filesystem_tests {
     }
     loadtest 'console/snapper_undochange';
     loadtest 'console/snapper_create';
-    if (is_sle('12-sp3+') || leap_version_at_least('42.3') || is_tumbleweed) {
+    if (is_sle('12-sp3+') || is_leap('42.3+') || is_tumbleweed) {
         loadtest 'console/snapper_thin_lvm';
     }
 }

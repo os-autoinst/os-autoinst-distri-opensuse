@@ -14,7 +14,7 @@ use strict;
 use base "consoletest";
 use testapi;
 use utils;
-use version_utils qw(is_leap is_sle leap_version_at_least);
+use version_utils qw(is_leap is_sle);
 
 sub run {
     select_console 'root-console';
@@ -25,7 +25,7 @@ sub run {
     assert_script_run "./test_pcrecpp";
     save_screenshot;
 
-    my $php = ((is_leap && !leap_version_at_least('15.0')) || is_sle('<15')) ? 'php5' : 'php7';
+    my $php = (is_leap('<15.0') || is_sle('<15')) ? 'php5' : 'php7';
     zypper_call("in $php");
     assert_script_run "php simple.php | grep 'matches'";
     save_screenshot;

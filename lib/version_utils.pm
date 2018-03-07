@@ -19,6 +19,7 @@ use base Exporter;
 use Exporter;
 use strict;
 use testapi qw(check_var get_var set_var);
+use version 'is_lax';
 
 our @EXPORT = qw (
   is_hyperv_in_gui
@@ -44,6 +45,8 @@ our @EXPORT = qw (
   is_system_upgrading
   is_pre_15
 );
+
+sub is_leap;
 
 sub is_jeos {
     return get_var('FLAVOR', '') =~ /^JeOS/;
@@ -79,11 +82,23 @@ sub check_version {
     # Matches operator($op), version($qv), plus($plus) - regex101.com to debug ;)
     if (uc($query) =~ /^(?(?!.*\+$)(?<op>[<>=]|[<>]=))(?<qv>$regex)(?<plus>\+)?$/) {
         my $pv = uc get_var('VERSION');
-        return $pv ge $+{qv} if $+{plus} || $+{op} eq '>=';
-        return $pv le $+{qv} if $+{op} eq '<=';
-        return $pv gt $+{qv} if $+{op} eq '>';
-        return $pv lt $+{qv} if $+{op} eq '<';
-        return $pv eq $+{qv} if $+{op} eq '=';
+        my $qv = $+{qv};
+        # Hacks for staging and HG2G
+        if (is_leap) {
+            $qv =~ s/^42/14/;
+            $pv =~ s/^42/14/;
+            $pv =~ s/:(Core|S)[:\w]*//i;
+        }
+        # Compare versions if they can be parsed
+        if (is_lax($pv) && is_lax($qv)) {
+            $pv = version->declare($pv);
+            $qv = version->declare($qv);
+        }
+        return $pv ge $qv if $+{plus} || $+{op} eq '>=';
+        return $pv le $qv if $+{op} eq '<=';
+        return $pv gt $qv if $+{op} eq '>';
+        return $pv lt $qv if $+{op} eq '<';
+        return $pv eq $qv if $+{op} eq '=';
     }
     # Version should be matched and processed by now
     die "Unsupported version parameter: $query";
@@ -130,10 +145,18 @@ sub is_tumbleweed {
     return get_var('VERSION') =~ /^Staging:/;
 }
 
+# Check if distribution is Leap with optional filter for:
+# Version: <=42.2 =15.0 >15.0 >=42.3 15.0+
 sub is_leap {
+    my $query = shift;
+
     # Leap and its stagings
     return 0 unless check_var('DISTRI', 'opensuse');
-    return 1 if get_var('VERSION', '') =~ /[0-9]{2,}\.[0-9]/;
+    return 0 unless get_var('VERSION', '') =~ /^\d{2,}\.\d/;
+    return 1 unless $query;
+
+    # Version check
+    return check_version($query, qr/\d{2,}\.\d/);
 }
 
 sub is_opensuse {
@@ -226,6 +249,9 @@ sub leap_staging_version_in_settings {
     return 0;
 }
 
+# ======================================
+# Deprecated, please use is_leap instead
+# ======================================
 # Method has to be extended similarly to sle_version_at_least once we know
 # version naming convention as of now, we only add versions which we see in
 # test. If one will use function and it dies, please extend function accordingly.

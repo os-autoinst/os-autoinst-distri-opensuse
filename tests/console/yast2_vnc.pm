@@ -14,7 +14,7 @@ use strict;
 use base "console_yasttest";
 use testapi;
 use utils;
-use version_utils qw(is_leap is_sle leap_version_at_least);
+use version_utils qw(is_leap is_sle);
 
 
 sub run {
@@ -26,7 +26,7 @@ sub run {
     # install components to test plus dependencies for checking
     my $packages = 'vncmanager xorg-x11';
     # netstat is deprecated in newer versions, use 'ss' instead
-    my $use_nettools = is_sle('<15') || (is_leap && !leap_version_at_least('15.0'));
+    my $use_nettools = is_sle('<15') || is_leap('<15.0');
     $packages .= ' net-tools' if $use_nettools;
     zypper_call("in $packages");
 
@@ -37,7 +37,7 @@ sub run {
     assert_screen 'yast2_vnc_remote_administration';
     # enable remote administration
     send_key 'alt-a';
-    if (is_sle('<15') || (is_leap && !leap_version_at_least('15.0'))) {
+    if (is_sle('<15') || is_leap('<15.0')) {
 
         # open port in firewall if it is eanbaled and check network interfaces, check long text by send key right.
         if (check_screen 'yast2_vnc_open_port_firewall') {

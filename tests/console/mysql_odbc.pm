@@ -20,7 +20,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_sle is_leap leap_version_at_least);
+use version_utils qw(is_sle is_leap);
 
 sub setup {
     # write odbc.ini
@@ -40,7 +40,7 @@ sub setup {
     assert_script_run "echo [mariadbodbc_mysql] > /etc/unixODBC/odbcinst.ini";
     assert_script_run "echo Description=ODBC for MySQL >> /etc/unixODBC/odbcinst.ini";
 
-    my $lib = (!is_sle('<15') && !(is_leap && !leap_version_at_least('15.0'))) ? 'libmaodbc' : 'libmyodbc5';
+    my $lib = (!is_sle('<15') && !is_leap('<15.0')) ? 'libmaodbc' : 'libmyodbc5';
     assert_script_run 'echo Driver=$(rpm --eval "%_libdir")/' . $lib . '.so >> /etc/unixODBC/odbcinst.ini';
 
     assert_script_run 'echo Setup=$(rpm --eval "%_libdir")/libodbcmyS.so >> /etc/unixODBC/odbcinst.ini';
@@ -62,7 +62,7 @@ sub run {
     select_console 'root-console';
 
     # install requirements
-    my $odbc = (!is_sle('<15') && !(is_leap && !leap_version_at_least('15.0'))) ? 'mariadb-connector-odbc' : 'MyODBC-unixODBC';
+    my $odbc = (!is_sle('<15') && !is_leap('<15.0')) ? 'mariadb-connector-odbc' : 'MyODBC-unixODBC';
     zypper_call 'in mysql mariadb-client sudo ' . $odbc;
 
     # restart mysql server

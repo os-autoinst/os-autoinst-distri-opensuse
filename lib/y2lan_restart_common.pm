@@ -17,7 +17,7 @@ use strict;
 use Exporter 'import';
 use testapi;
 use utils 'systemctl';
-use version_utils qw(is_sle is_leap leap_version_at_least);
+use version_utils qw(is_sle is_leap);
 
 our @EXPORT_OK = qw(
   initialize_y2lan
@@ -33,7 +33,7 @@ sub initialize_y2lan {
     become_root;
     # make sure that firewalld is stopped, or we have later pops for firewall activation warning
     # or timeout for command 'ip a' later
-    if ((is_sle('15+') or leap_version_at_least('15.0')) and assert_script_run("systemctl show -p ActiveState firewalld.service | grep ActiveState=active")) {
+    if ((is_sle('15+') or is_leap('15.0+')) and assert_script_run("systemctl show -p ActiveState firewalld.service | grep ActiveState=active")) {
         systemctl 'stop firewalld';
         assert_script_run("systemctl show -p ActiveState firewalld.service | grep ActiveState=inactive");
     }
@@ -81,7 +81,7 @@ sub check_network_status {
     if ($expected_status eq 'restart') {
         assert_script_run '[ -s journal.log ]';                       # journal.log size is greater than zero (network restarted)
     }
-    elsif (is_sle('<15') || (is_leap && !leap_version_at_least('15.0'))) {
+    elsif (is_sle('<15') || is_leap('<15.0')) {
         assert_script_run '[ ! -s journal.log ]';
     }
     assert_script_run '> journal.log';                                # clear journal.log

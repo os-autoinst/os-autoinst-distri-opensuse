@@ -13,7 +13,7 @@
 use base 'x11test';
 use strict;
 use testapi;
-use version_utils 'leap_version_at_least';
+use version_utils qw(is_leap is_tumbleweed);
 
 sub run {
     x11_start_program('tryton');
@@ -25,7 +25,7 @@ sub run {
     send_key_until_needlematch 'tryton-manage_profiles-host_textfield_selected', 'tab';
     type_string 'localhost';
     send_key 'tab';
-    if (check_var('VERSION', 'Tumbleweed') || leap_version_at_least('42.3')) {
+    if (is_tumbleweed || is_leap('42.3+')) {
         assert_screen 'tryton-manage_profiles-database_selected';
         type_string 'admin';
     }

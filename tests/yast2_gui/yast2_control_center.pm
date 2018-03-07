@@ -18,12 +18,12 @@ use base 'y2x11test';
 use strict;
 use testapi;
 use utils;
-use version_utils qw(is_sle sle_version_at_least is_leap leap_version_at_least is_tumbleweed is_storage_ng);
+use version_utils qw(is_sle sle_version_at_least is_leap is_tumbleweed is_storage_ng);
 
 sub search {
     my ($name) = @_;
     # with the gtk interface we have to click as there is no shortcut
-    if (is_sle('<15') || (is_leap && !leap_version_at_least('15.0'))) {
+    if (is_sle('<15') || is_leap('<15.0')) {
         assert_screen([qw(yast2_control-center_search_clear yast2_control-center_search)], no_wait => 1);
         if (match_has_tag 'yast2_control-center_search') {
             assert_and_click 'yast2_control-center_search';
@@ -345,7 +345,7 @@ sub run {
     }
     # only available on openSUSE or at least not SLES
     # drop fonts test for leap 15.0, see poo#29292
-    if (is_tumbleweed || (is_leap && !leap_version_at_least('15.0'))) {
+    if (is_tumbleweed || is_leap('<15.0')) {
         start_fonts;
     }
 
