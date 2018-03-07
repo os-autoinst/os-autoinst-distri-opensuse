@@ -39,7 +39,6 @@ our @EXPORT = qw (
   is_sle12_hdd_in_upgrade
   is_installcheck
   is_rescuesystem
-  leap_version_at_least
   sle_version_at_least
   is_desktop_installed
   is_system_upgrading
@@ -235,48 +234,6 @@ sub sle_version_at_least {
           && !check_var($version_variable, '12-SP4');
     }
     die "unsupported SLE $version_variable $version in check";
-}
-
-# To cope with staging version naming and this method should only be used
-# to leap_version_at_least. This method returns 1 if it is a valid staging
-# naming or the version is matched to the one in settings.
-sub leap_staging_version_in_settings {
-    my ($version_variable, $version) = @_;
-    return 0 unless is_leap;
-
-    my $version_in_settings = get_var($version_variable, '');
-    return 1 if ($version_in_settings =~ /$version:(Core|S):?[:\w]*/ || $version_in_settings eq $version);
-    return 0;
-}
-
-# ======================================
-# Deprecated, please use is_leap instead
-# ======================================
-# Method has to be extended similarly to sle_version_at_least once we know
-# version naming convention as of now, we only add versions which we see in
-# test. If one will use function and it dies, please extend function accordingly.
-sub leap_version_at_least {
-    my ($version, %args) = @_;
-    # Verify if it's leap at all
-    return 0 unless is_leap;
-
-    my $version_variable = $args{version_variable} // 'VERSION';
-
-    if ($version eq '42.2') {
-        return leap_staging_version_in_settings($version_variable, $version)
-          || leap_version_at_least('42.3', version_variable => $version_variable);
-    }
-
-    if ($version eq '42.3') {
-        return leap_staging_version_in_settings($version_variable, $version)
-          || leap_version_at_least('15.0', version_variable => $version_variable);
-    }
-
-    if ($version eq '15.0') {
-        return leap_staging_version_in_settings($version_variable, $version);
-    }
-    # Die to point out that function has to be extended
-    die "Unsupported Leap version $version_variable $version in check";
 }
 
 sub is_desktop_installed {
