@@ -87,7 +87,11 @@ sub run {
             }
         }
     }
-
+    if (check_var('SYSTEM_ROLE', 'kvm') or check_var('SYSTEM_ROLE', 'xen')) {
+        send_key_until_needlematch 'firewall-disabled', 'tab';
+        send_key 'ret';
+        assert_screen 'firewall-enabled';
+    }
     if (check_screen('inst-overview-bootloader-warning', 0)) {
         record_soft_failure 'bsc#1024409';
         send_key 'alt-i';    #install
