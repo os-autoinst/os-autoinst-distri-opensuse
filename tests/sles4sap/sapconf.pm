@@ -41,18 +41,20 @@ sub run_developers_tests {
 
     # Download and unpack the test scripts supplied by the developers
     # Record soft failure and continue if it can not be downloaded
-    my $ret    = script_run "curl -k $devel_repo > /tmp/sapconf-test.tar.gz";
-    my $output = script_output "file /tmp/sapconf-test.tar.gz";
-    unless (defined $ret and $ret == 0 and $output =~ /gzip compressed data/) {
+    type_string "cd /tmp\n";
+    my $ret = script_run "curl -k $devel_repo | tar -zxvf -";
+    unless (defined $ret and $ret == 0) {
         record_soft_failure 'Could not download developer test script';
         return;
     }
-    type_string "cd /tmp\n";
-    assert_script_run "tar -zxf /tmp/sapconf-test.tar.gz";
 
     # Run script as is and upload results
-    type_string "cd sapconf-test-master-*\n";
-    $output = script_output 'ls';
+    $ret = script_run 'cd sapconf-test-master-*';
+    unless (defined $ret and $ret == 0) {
+        record_soft_failure 'sapconf-test-master-* directory not found in the developer test package';
+        return;
+    }
+    my $output = script_output 'ls';
     if ($output !~ /sapconf_test\.sh/) {
         record_soft_failure 'Script sapconf_test.sh is not in the developer test package';
         return;
