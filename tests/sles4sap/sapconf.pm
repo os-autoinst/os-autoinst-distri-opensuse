@@ -12,7 +12,7 @@
 
 use base "sles4sap";
 use testapi;
-use version_utils 'sle_version_at_least';
+use version_utils qw(is_staging sle_version_at_least);
 use strict;
 
 my @tuned_profiles = qw(balanced desktop latency-performance network-latency
@@ -33,6 +33,54 @@ sub check_profile {
     my $profile = sle_version_at_least('15') ? $current : $sapconf_profiles{$current};
     die "Tuned profile change failed. Expected 'Current active profile: $profile', got: [$output]"
       unless ($output =~ /Current active profile: $profile/);
+}
+
+sub run_developers_tests {
+    my $devel_repo = 'https://gitlab.suse.de/AngelaBriel/sapconf-test/repository/master/archive.tar.gz';
+    my $log        = '/tmp/sapconf_test.log';
+
+    # Download and unpack the test scripts supplied by the developers
+    # Record soft failure and continue if it can not be downloaded
+    type_string "cd /tmp\n";
+    my $ret = script_run "curl -k $devel_repo | tar -zxvf -";
+    unless (defined $ret and $ret == 0) {
+        record_soft_failure 'Could not download developer test script';
+        return;
+    }
+
+    # Run script as is and upload results
+    $ret = script_run 'cd sapconf-test-master-*';
+    unless (defined $ret and $ret == 0) {
+        record_soft_failure 'sapconf-test-master-* directory not found in the developer test package';
+        return;
+    }
+    my $output = script_output 'ls';
+    if ($output !~ /sapconf_test\.sh/) {
+        record_soft_failure 'Script sapconf_test.sh is not in the developer test package';
+        return;
+    }
+    assert_script_run "chmod +x sapconf_test.sh";
+    $ret = script_run "./sapconf_test.sh -c local | tee $log", 600;
+    record_soft_failure "sapconf_test.sh returned error code: [$ret]" unless (defined $ret and $ret == 0);
+    upload_logs $log;
+
+    # Check summary of tests on log for bug report
+    my $report = script_output "grep ^Test $log || true";
+    record_soft_failure 'No tests summaries in log' unless ($report);
+    foreach my $summary (split(/[\r\n]+/, $report)) {
+        next unless ($summary =~ /^Test/);
+        # Do nothing with passing tests. The summary will be shown on the script_output step
+        next if ($summary =~ /PASSED$/);
+        if ($summary =~ /Test #bsc([0-9]+)/) {
+            record_soft_failure "bsc#$1";
+        }
+        else {
+            record_soft_failure $summary;
+        }
+    }
+
+    # Return to homedir just in case
+    type_string "cd\n";
 }
 
 sub run {
@@ -87,6 +135,8 @@ sub run {
 
     # Set default profile again
     assert_script_run "tuned-adm profile $default_profile";
+
+    run_developers_tests unless (is_staging());
 }
 
 1;
