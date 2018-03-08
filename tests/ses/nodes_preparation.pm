@@ -33,9 +33,6 @@ sub run {
     systemctl 'restart ntpd';
     # disable ipv6
     assert_script_run 'echo \'net.ipv6.conf.all.disable_ipv6 = 1\' >> /etc/sysctl.conf';
-    # avoid zypper timeout/abort issues
-    assert_script_run 'sed -i \'s/download.max_silent_tries = 5/download.max_silent_tries = 0/\' /etc/zypp/zypp.conf';
-    assert_script_run 'grep download.max_silent_tries /etc/zypp/zypp.conf';
     # firewall and apparmor should not run
     systemctl 'stop SuSEfirewall2';
     systemctl 'disable SuSEfirewall2';
@@ -58,6 +55,11 @@ echo -e '10.0.2.103\tnode3.openqa.de node3' >> /etc/hosts
 echo -e '10.0.2.104\tnode4.openqa.de node4' >> /etc/hosts
 EOF
     script_run($_) foreach (split /\n/, $hosts);
+    if (get_var('EDGECAST')) {
+        record_info 'Netfix', 'Go through Europe Microfocus info-bloxx';
+        my $edgecast_europe = get_var('EDGECAST');
+        assert_script_run "echo $edgecast_europe updates.suse.com >> /etc/hosts";
+    }
     assert_script_run 'cat /etc/hosts';
     barrier_wait {name => 'network_configured', check_dead_job => 1};
     # nodes will ping each other to test connection
