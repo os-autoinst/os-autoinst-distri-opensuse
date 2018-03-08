@@ -31,7 +31,7 @@ sub run {
         bsc_1025218_FEATURE => '.*dmi.*Firmware registration failed.*',
         bsc_1028060_FEATURE => '.*getting etcd lock took too long, reboot canceld.*',
         bsc_1071224         => '.*Failed to start Mask tmp.mount by default on SUSE systems.*',
-        poo_31951_FEATURE   => '.*Spectre V2 \: LFENCE not serializing.*',
+        poo_31951_FEATURE   => '.*Spectre V2 \:.*LFENCE not serializing.*',
     };
     my $master_pattern = "(" . join('|', map { "$_" } values %$bug_pattern) . ")";
 
