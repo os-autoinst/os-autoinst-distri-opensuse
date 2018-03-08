@@ -267,33 +267,26 @@ sub zypper_call {
     my $log              = $args{log};
     my $dumb_term        = $args{dumb_term};
 
-    my $str = hashed_string("ZN$command");
-    my $redirect = is_serial_terminal() ? '' : " > /dev/$serialdev";
+    my $printer = $log ? "| tee /tmp/$log" : $dumb_term ? '| cat' : '';
 
-    if ($log) {
-        script_run("zypper -n $command | tee /tmp/$log; echo $str-\${PIPESTATUS}-$redirect", 0);
+    # Retrying workarounds
+    my $ret;
+    for (1 .. 3) {
+        $ret = script_run("zypper -n $command $printer; ( exit \${PIPESTATUS[0]} )", $timeout);
+        if ($ret == 502) {
+            record_soft_failure "Retrying because of error 502 - bsc#1070851";
+        }
+        else {
+            last;
+        }
     }
-    elsif ($dumb_term) {
-        script_run("zypper -n $command | cat; echo $str-\${PIPESTATUS}-$redirect", 0);
-    }
-    else {
-        script_run("zypper -n $command; echo $str-\$?-$redirect", 0);
-    }
-
-    my $ret = wait_serial(qr/$str-\d+-/, $timeout);
-
     upload_logs("/tmp/$log") if $log;
 
-    if ($ret) {
-        my ($ret_code) = $ret =~ /$str-(\d+)/;
-        unless (grep { $_ == $ret_code } @$allow_exit_codes) {
-            upload_logs('/var/log/zypper.log');
-            die "'zypper -n $command' failed with code $ret_code";
-        }
-
-        return $ret_code;
+    unless (grep { $_ == $ret } @$allow_exit_codes) {
+        upload_logs('/var/log/zypper.log');
+        die "'zypper -n $command' failed with code $ret";
     }
-    die "zypper did not return an exitcode";
+    return $ret;
 }
 
 sub fully_patch_system {
