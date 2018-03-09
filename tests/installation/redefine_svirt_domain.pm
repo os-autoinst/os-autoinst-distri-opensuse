@@ -31,6 +31,10 @@ sub run {
     $svirt->change_domain_element(on_reboot => undef);
 
     $svirt->define_and_start;
+
+    # we need to reset the svirt console to extract the pty variable correctly
+    $svirt->reset;
+    select_console('svirt');
 }
 
 sub test_flags {
