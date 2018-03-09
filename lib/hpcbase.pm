@@ -19,5 +19,19 @@ sub enable_and_start {
     systemctl "start $arg";
 }
 
+sub upload_service_log {
+    my ($self, $service_name) = @_;
+    testapi::script_run("journalctl -u $service_name > /tmp/$service_name");
+    testapi::script_run("cat /tmp/$service_name");
+    testapi::upload_logs("/tmp/$service_name");
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    testapi::script_run("journalctl -o short-precise > /tmp/journal.log");
+    testapi::script_run('cat /tmp/journal.log');
+    testapi::upload_logs('/tmp/journal.log');
+    hpcbase::upload_service_log('wickedd-dhcp4.service');
+}
+
 1;
-# vim: set sw=4 et:

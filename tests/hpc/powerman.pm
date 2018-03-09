@@ -65,5 +65,10 @@ EOF
     script_run("powerman -c \$(hostname) | tee /dev/$serialdev", 0);
     wait_serial(/.*cannot be handled by power control device.*/);
 }
+
+sub post_fail_hook {
+    my ($self) = @_;
+    hpcbase::upload_service_log('powerman');
+}
+
 1;
-# vim: set sw=4 et:

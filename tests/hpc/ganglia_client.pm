@@ -63,4 +63,10 @@ sub run {
     barrier_wait('GANGLIA_CLIENT_DONE');
     barrier_wait('GANGLIA_SERVER_DONE');
 }
+
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->upload_service_log('gmond');
+}
+
 1;

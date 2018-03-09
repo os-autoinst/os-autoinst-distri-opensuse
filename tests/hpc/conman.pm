@@ -77,5 +77,10 @@ sub run {
 
     send_key 'ctrl-d';
 }
+
+sub post_fail_hook {
+    my ($self) = @_;
+    hpcbase::upload_service_log('conman');
+}
+
 1;
-# vim: set sw=4 et:
