@@ -66,7 +66,7 @@ Address=44.0.0.2/24
     $self->assert_script_run_container("node2", "systemctl restart systemd-networkd");
     # Workaround for gh#systemd/systemd#5043
     $self->wait_for_networkd("node2", "br0");
-    $self->assert_script_run_container("node2", "brctl show");
+    $self->assert_script_run_container("node2", "bridge link");
     $self->assert_script_run_container("node2", "ping -c1 44.0.0.1");
 
 
