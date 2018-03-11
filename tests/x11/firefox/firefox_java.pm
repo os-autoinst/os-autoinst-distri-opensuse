@@ -14,7 +14,7 @@
 use strict;
 use base "x11test";
 use testapi;
-use version_utils qw(is_leap is_sle);
+use version_utils qw(is_leap is_sle is_tumbleweed);
 
 sub java_testing {
     my ($self) = @_;
@@ -56,7 +56,7 @@ sub run {
     my ($self) = @_;
 
     # FF 56 no longer support NPAPI plugins, e.g. Java
-    if (is_sle('15+') || is_leap('15.0+')) {
+    if (is_sle('15+') || is_leap('15.0+') || is_tumbleweed) {
         record_info('NPAPI plugins not supported',
             "FF 56 no longer supports supports NPAPI plugins, e.g. Java, so the test would fail in current distribution releases.");
         return;
