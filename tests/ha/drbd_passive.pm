@@ -162,30 +162,24 @@ sub run {
     # Wait for DRBD to be checked
     barrier_wait("DRBD_RESOURCE_CREATED_$cluster_name");
 
-    if (is_sle '12-SP3+') {
-        # Need to stop/start the DRBD resource to be able to migrate it after
-        # Is it the wanted behavior? Was not in SLE12-SP2, need to check with
-        # developers for the new versions
-        if (is_node(1)) {
-            # Force node to wait a little before stopping DRBD device
-            # Because if we try to stop on both node at the same time it can fail!
+    # We need to stop/start the DRBD resource to be able to migrate it after
+    # As it's a master/slave resource we only need to do this on one node
+    if (is_node(1)) {
+        # Stop/Start the DRBD resource
+        foreach my $action ('stop', 'start') {
+            assert_script_run "crm resource $action $drbd_rsc";
             sleep 5;
         }
-        assert_script_run "crm resource stop $drbd_rsc";
 
-        # Wait for DRBD to be stopped
-        barrier_wait("DRBD_RESOURCE_STOPPED_$cluster_name");
-
-        if (is_node(2)) {
-            # Force node to wait a little before stopping DRBD device
-            # Because if we try to stop on both node at the same time it can fail!
-            sleep 5;
-        }
-        assert_script_run "crm resource start $drbd_rsc";
-
-        # Wait for DRBD to be started
-        barrier_wait("DRBD_RESOURCE_STARTED_$cluster_name");
+        # Node01 should be the Master
+        ensure_resource_running("ms_$drbd_rsc", ":[[:blank:]]*$node_01\[[:blank:]]*[Mm]aster\$");
     }
+    else {
+        diag 'Wait until drbd resource is restarted...';
+    }
+
+    # Wait for DRBD to be restarted
+    barrier_wait("DRBD_RESOURCE_RESTARTED_$cluster_name");
 
     # Check DRBD status
     assert_standalone;
@@ -209,6 +203,9 @@ sub run {
 
     # Wait for DRBD resrouce migration to be done
     barrier_wait("DRBD_MIGRATION_DONE_$cluster_name");
+
+    # Check DRBD status
+    assert_standalone;
 
     # Do a check of the cluster with a screenshot
     save_state;

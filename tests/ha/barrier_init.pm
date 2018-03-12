@@ -44,8 +44,7 @@ sub run {
         barrier_create("DRBD_MIGRATION_DONE_$cluster_name",         $num_nodes);
         barrier_create("DRBD_REVERT_DONE_$cluster_name",            $num_nodes);
         barrier_create("DRBD_RESOURCE_CREATED_$cluster_name",       $num_nodes);
-        barrier_create("DRBD_RESOURCE_STOPPED_$cluster_name",       $num_nodes);
-        barrier_create("DRBD_RESOURCE_STARTED_$cluster_name",       $num_nodes);
+        barrier_create("DRBD_RESOURCE_RESTARTED_$cluster_name",     $num_nodes);
         barrier_create("DRBD_SETUP_DONE_$cluster_name",             $num_nodes);
         barrier_create("LOCK_INIT_$cluster_name",                   $num_nodes);
         barrier_create("LOCK_RESOURCE_CREATED_$cluster_name",       $num_nodes);
