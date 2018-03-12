@@ -117,8 +117,9 @@ sub unlock_if_encrypted {
 
     return unless get_var("ENCRYPT");
 
-    if (check_var('ARCH', 's390x') && check_var('BACKEND', 'svirt')) {
+    if (get_var('S390_ZKVM')) {
         my $password = $testapi::password;
+        select_console('svirt');
 
         # enter passphrase twice (before grub and after grub) if full disk is encrypted
         if (get_var('FULL_LVM_ENCRYPT')) {
