@@ -16,6 +16,7 @@
 use strict;
 use warnings;
 use base "virt_autotest_base";
+use virt_utils;
 use testapi;
 
 sub get_script_run {
@@ -34,6 +35,10 @@ sub run {
     my $self = shift;
     my $timeout = get_var("MAX_TEST_TIME", "36000") + 10;
     script_run("echo \"Debug info: max_test_time is $timeout\"");
+    #Modify source configuration file sources.* of virtauto-data pkg on host
+    #to use openqa daily build installer repo and module repo for guests,
+    #and it will be copied into guests to be used during guest upgrade test
+    repl_module_in_sourcefile();
     $self->run_test($timeout, "guest_upgrade_test ... ... PASSED", "no", "yes", "/var/log/qa/", "guest-upgrade-logs");
 }
 

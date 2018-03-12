@@ -24,7 +24,7 @@ use IO::File;
 use proxymode;
 use virt_autotest_base;
 
-our @EXPORT = qw(update_guest_configurations_with_daily_build repl_addon_with_daily_build_module_in_files);
+our @EXPORT = qw(update_guest_configurations_with_daily_build repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile);
 
 sub get_version_for_daily_build_guest {
     my $version = '';
@@ -58,6 +58,22 @@ sub repl_repo_in_sourcefile {
         print "Do not need to change resource for $veritem item\n";
     }
 }
+#Replace module repos configured in sources.* with openqa daily build repos
+sub repl_module_in_sourcefile {
+    my $version = get_version_for_daily_build_guest;
+    $version =~ s/fcs/sp0/;
+    my $replaced_item = "(source.(Basesystem|Desktop-Applications|Legacy|Server-Applications|Development-Tools|Web-Scripting).sles-" . $version . "-64=)";
+    $version =~ s/-sp0//;
+    my $daily_build_module = "http://openqa.suse.de/assets/repo/SLE-${version}-Module-\\2-POOL-x86_64-Build" . get_required_var('BUILD') . "-Media1/";
+    my $source_file        = "/usr/share/qa/virtautolib/data/sources.*";
+    my $command            = "sed -ri 's#^.*${replaced_item}.*\$#\\1$daily_build_module#g' $source_file";
+    print "Debug: the command to execute is:\n$command \n";
+    assert_script_run($command);
+    save_screenshot;
+    assert_script_run("grep Module $source_file -r");
+    save_screenshot;
+    upload_logs "/usr/share/qa/virtautolib/data/sources.de";
+}
 
 sub repl_addon_with_daily_build_module_in_files {
     my $file_list = shift;
@@ -89,6 +105,7 @@ sub repl_guest_autoyast_addon_with_daily_build_module {
 
 sub update_guest_configurations_with_daily_build {
     repl_repo_in_sourcefile;
+    repl_module_in_sourcefile;
     repl_guest_autoyast_addon_with_daily_build_module;
 }
 
