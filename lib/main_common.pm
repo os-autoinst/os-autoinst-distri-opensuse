@@ -869,10 +869,6 @@ sub load_inst_tests {
     }
     return 1 if get_var('EXIT_AFTER_START_INSTALL');
     load_common_installation_steps_tests;
-    if (check_var('BACKEND', 'svirt') and check_var('ARCH', 's390x')) {
-        # on svirt we need to redefine the xml-file to boot the installed kernel
-        loadtest "installation/redefine_svirt_domain";
-    }
     if (is_sles4sap()) {
         if (check_var('SLES4SAP_MODE', 'sles4sap_wizard')) {
             loadtest "installation/sles4sap_wizard";

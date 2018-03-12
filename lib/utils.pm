@@ -439,10 +439,20 @@ sub assert_shutdown_and_restore_system {
     assert_shutdown($shutdown_timeout);
     if ($action eq 'reboot') {
         reset_consoles;
+        my $svirt = console('svirt');
         # Set disk as a primary boot device
-        console('svirt')->change_domain_element(os => boot => {dev => 'hd'});
-        console('svirt')->define_and_start;
-        select_console($vnc_console);
+        if (check_var('ARCH', 's390x') or get_var('NETBOOT')) {
+            $svirt->change_domain_element(os => initrd  => undef);
+            $svirt->change_domain_element(os => kernel  => undef);
+            $svirt->change_domain_element(os => cmdline => undef);
+            $svirt->change_domain_element(on_reboot => undef);
+            $svirt->define_and_start;
+        }
+        else {
+            $svirt->change_domain_element(os => boot => {dev => 'hd'});
+            $svirt->define_and_start;
+            select_console($vnc_console);
+        }
     }
 }
 
@@ -669,7 +679,7 @@ sub power_action {
         $shutdown_timeout *= 3;
         record_soft_failure("boo#1057637 shutdown_timeout increased to $shutdown_timeout (s) expecting to complete.");
     }
-    if (check_var('VIRSH_VMM_FAMILY', 'xen')) {
+    if (check_var('VIRSH_VMM_FAMILY', 'xen') || get_var('S390_ZKVM')) {
         assert_shutdown_and_restore_system($action, $shutdown_timeout);
     }
     else {
