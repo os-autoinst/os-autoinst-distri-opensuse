@@ -68,4 +68,12 @@ sub run {
     # tell client that server is done
     barrier_wait('GANGLIA_SERVER_DONE');
 }
+
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->upload_service_log('apache2');
+    $self->upload_service_log('gmond');
+    $self->upload_service_log('gmetad');
+}
+
 1;

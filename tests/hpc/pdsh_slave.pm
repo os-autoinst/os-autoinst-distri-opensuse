@@ -59,5 +59,10 @@ sub test_flags {
     return {fatal => 1, milestone => 1};
 }
 
+sub post_fail_hook {
+    my ($self) = @_;
+    upload_logs '/tmp/pdsh.log';
+    $self->upload_service_log('munge');
+}
+
 1;
-# vim: set sw=4 et:
