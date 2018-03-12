@@ -24,7 +24,7 @@ sub run {
     record_soft_failure('bsc#1054974') if get_var('ALL_MODULES');
     # overview-generation
     # this is almost impossible to check for real
-    assert_screen "installation-settings-overview-loaded";
+    assert_screen "installation-settings-overview-loaded", 150;
 
     $self->deal_with_dependency_issues;
 
