@@ -39,7 +39,7 @@ sub run {
     send_key $cmd{accept};
     if (is_storage_ng) {
         assert_screen 'partitioning-edit-proposal-button';
-        record_soft_failure 'bsc#1055744';
+        record_soft_failure('bsc#1085131 - no warning for too small btrfs / for snapshots');
     }
     else {
         # expect partition setup warning pop-ups
