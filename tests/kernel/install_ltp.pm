@@ -68,6 +68,9 @@ sub install_runtime_dependencies {
       quota
       sudo
       ntfsprogs
+      xfsprogs
+      dosfstools
+      fuse-exfat
     );
     for my $dep (@maybe_deps) {
         script_run('zypper -n -t in ' . $dep . ' | tee');
