@@ -47,6 +47,10 @@ sub run {
         assert_script_run 'uname -a';
         assert_script_run 'cat /etc/os-release';
         assert_script_run 'rpm -q deepsea-qa';
+        # test salt connection with ping poo#33016
+        assert_script_run 'for i in {1..7}; do echo "try $i" && if [[ $(salt \'*\' test.ping |& tee ping.log) = *"Not connected"* ]];
+ then cat ping.log && false; else salt \'*\' test.ping && break; fi; done';
+        assert_script_run 'salt \'*\' cmd.run \'lsblk\'';
         # rgw is testing ceph health status with additional 900 timeout
         my $testsuite_timout = check_var('DEEPSEA_TESTSUITE', 'health-rgw') ? 2200 : 1500;
         assert_script_run "suites/basic/$deepsea_testsuite.sh --cli | tee /dev/tty /dev/$serialdev | grep ^OK\$", $testsuite_timout;
