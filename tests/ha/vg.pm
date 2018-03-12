@@ -18,6 +18,7 @@ use lockapi;
 use hacluster;
 
 sub run {
+    my $cluster_name    = get_cluster_name;
     my $lvm_conf        = '/etc/lvm/lvm.conf';
     my $lv_name         = 'lv_openqa';
     my $vg_exclusive    = 'false';
@@ -29,23 +30,23 @@ sub run {
     # This test can be called multiple time
     if (read_tag eq 'cluster_md') {
         $resource = 'cluster_md';
-        $vg_luns  = '/dev/md*';
+        $vg_luns = '/dev/md*' if is_node(1);
 
         # Use a named RAID in SLE15
-        $vg_luns = "/dev/md/$resource" if is_sle('15+');
+        $vg_luns = "/dev/md/$resource" if (is_sle('15+') && is_node(1));
     }
     elsif (read_tag eq 'drbd_passive') {
         $resource     = 'drbd_passive';
-        $vg_luns      = "/dev/$resource";
+        $vg_luns      = "/dev/$resource" if is_node(1);
         $vg_exclusive = 'true';
         $vg_type      = '--clustered n';
     }
     elsif (read_tag eq 'drbd_active') {
         $resource = 'drbd_active';
-        $vg_luns  = "/dev/$resource";
+        $vg_luns = "/dev/$resource" if is_node(1);
     }
     else {
-        $vg_luns = block_device_real_path '/dev/disk/by-path/ip-*-lun-1' . ' ' . block_device_real_path '/dev/disk/by-path/ip-*-lun-2';
+        $vg_luns = get_lun . ' ' . get_lun if is_node(1);
     }
     my $vg_name = "vg_$resource";
 

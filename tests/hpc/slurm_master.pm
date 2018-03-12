@@ -53,8 +53,8 @@ EOF
     # Copy munge key and slurm conf to all slave nodes
     for (my $node = 1; $node < $nodes; $node++) {
         my $node_name = sprintf("slurm-slave%02d", $node);
-        $self->exec_and_insert_password("scp -o StrictHostKeyChecking=no /etc/munge/munge.key root\@${node_name}:/etc/munge/munge.key");
-        $self->exec_and_insert_password("scp -o StrictHostKeyChecking=no /etc/slurm/slurm.conf root\@${node_name}:/etc/slurm/slurm.conf");
+        exec_and_insert_password("scp -o StrictHostKeyChecking=no /etc/munge/munge.key root\@${node_name}:/etc/munge/munge.key");
+        exec_and_insert_password("scp -o StrictHostKeyChecking=no /etc/slurm/slurm.conf root\@${node_name}:/etc/slurm/slurm.conf");
     }
     # enable and start munge
     $self->enable_and_start('munge');

@@ -17,6 +17,8 @@ use lockapi;
 use hacluster;
 
 sub run {
+    my $cluster_name = get_cluster_name;
+
     barrier_wait("FENCING_DONE_$cluster_name");
 
     # Do some extra verification and export logs

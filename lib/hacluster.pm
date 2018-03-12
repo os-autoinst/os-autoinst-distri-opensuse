@@ -12,14 +12,18 @@ package hacluster;
 use base Exporter;
 use Exporter;
 use strict;
+use utils 'exec_and_insert_password';
 use version_utils 'is_sle';
 use warnings;
 use testapi;
+use lockapi;
 
 our @EXPORT = qw(
-  $cluster_name
   $crm_mon_cmd
   $softdog_timeout
+  get_cluster_name
+  get_hostname
+  get_node_to_join
   get_node_number
   is_node
   choose_node
@@ -35,17 +39,29 @@ our @EXPORT = qw(
   lvm_add_filter
   lvm_remove_filter
   rsc_cleanup
-  check_cluster_state
   ha_export_logs
+  check_cluster_state
+  get_lun
   post_run_hook
   post_fail_hook
   test_flags
 );
 
 # Global variables
-our $cluster_name    = get_var('CLUSTER_NAME');
 our $crm_mon_cmd     = 'crm_mon -R -r -n -N -1';
 our $softdog_timeout = 60;
+
+sub get_cluster_name {
+    return get_required_var('CLUSTER_NAME');
+}
+
+sub get_hostname {
+    return get_required_var('HOSTNAME');
+}
+
+sub get_node_to_join {
+    return get_required_var('HA_CLUSTER_JOIN');
+}
 
 sub get_node_number {
     return script_output 'crm_mon -1 | awk \'/ nodes configured/ { print $1 }\'';
@@ -53,26 +69,27 @@ sub get_node_number {
 
 sub is_node {
     my $node_number = shift;
+    my $hostname    = get_hostname;
 
     # Node number must be coded with 2 digits
     $node_number = sprintf("%02d", $node_number);
 
     # Return true if HOSTNAME contains $node_number at his end
-    return (get_var('HOSTNAME') =~ /$node_number$/);
+    return ($hostname =~ /$node_number$/);
 }
 
 sub choose_node {
     my $node_number  = shift;
-    my $tmp_hostname = get_var('HOSTNAME');
+    my $tmp_hostname = get_hostname;
 
     # Node number must be coded with 2 digits
     $node_number = sprintf("%02d", $node_number);
 
     # Replace the digit of HOSTNAME to create the new hostname
-    $tmp_hostname =~ s/([a-z]*).*$/$1$node_number/;
+    $tmp_hostname =~ s/(.*)[0-9][0-9]$/$1$node_number/;
 
     # And return it
-    return ($tmp_hostname);
+    return $tmp_hostname;
 }
 
 sub save_state {
@@ -83,16 +100,16 @@ sub save_state {
 
 sub is_package_installed {
     my $package = shift;
+    my $ret     = script_run "rpm -q $package";
 
-    return (!script_run "rpm -q $package");
+    return (defined $ret and $ret == 0);
 }
 
 sub check_rsc {
     my $rsc = shift;
+    my $ret = script_run "$crm_mon_cmd 2>/dev/null | grep -q '\\<$rsc\\>'";
 
-    # As Perl and Shell do not handle return code as the same way,
-    # we need to invert it
-    return (!script_run "$crm_mon_cmd 2>/dev/null | grep -q '\\<$rsc\\>'");
+    return (defined $ret and $ret == 0);
 }
 
 sub ensure_process_running {
@@ -138,13 +155,14 @@ sub ensure_dlm_running {
 
 sub write_tag {
     my $tag     = shift;
-    my $rsc_tag = '/tmp/' . get_var('CLUSTER_NAME') . '.rsc';
+    my $rsc_tag = '/tmp/' . get_cluster_name . '.rsc';
+    my $ret     = script_run "echo $tag > $rsc_tag";
 
-    return (!script_run "echo $tag > $rsc_tag");
+    return (defined $ret and $ret == 0);
 }
 
 sub read_tag {
-    my $rsc_tag = '/tmp/' . get_var('CLUSTER_NAME') . '.rsc';
+    my $rsc_tag = '/tmp/' . get_cluster_name . '.rsc';
 
     return script_output "cat $rsc_tag 2>/dev/null";
 }
@@ -173,7 +191,9 @@ sub rsc_cleanup {
     my $rsc = shift;
 
     assert_script_run "crm resource cleanup $rsc";
-    if (!script_run "crm_mon -1 2>/dev/null | grep -Eq \"$rsc.*'not configured'|$rsc.*exit\"") {
+
+    my $ret = script_run "crm_mon -1 2>/dev/null | grep -Eq \"$rsc.*'not configured'|$rsc.*exit\"";
+    if (defined $ret and $ret == 0) {
         # Resource is not cleared, so we need to force cleanup
         # Record a soft failure for this, as a bug is opened
         record_soft_failure 'bsc#1071503';
@@ -214,6 +234,46 @@ sub check_cluster_state {
     assert_script_run "$crm_mon_cmd";
     assert_script_run 'crm_mon -1 | grep \'partition with quorum\'';
     assert_script_run 'crm_mon -s | grep "$(crm node list | wc -l) nodes online"';
+}
+
+# This function returns the first available LUN
+sub get_lun {
+    my %args          = @_;
+    my $hostname      = get_hostname;
+    my $lun_list_file = '/tmp/' . get_cluster_name . '-lun.list';
+    my $use_once      = $args{use_once} // 1;
+
+    # Use mutex to be sure that only *one* node at a time can access the file
+    mutex_lock 'iscsi';
+
+    # Get the LUN file from the support server to have an up-to-date version
+    exec_and_insert_password "scp -o StrictHostKeyChecking=no root\@ns:$lun_list_file $lun_list_file";
+
+    # Extract the first *free* line for this server
+    my $lun = script_output "grep -Fv '$hostname' $lun_list_file | awk 'NR==1 { print \$1 }'";
+
+    # Die if no LUN is found
+    die "No LUN found in $lun_list_file" if (!length $lun);
+
+    if ($use_once) {
+        # Remove LUN if needed
+        my $tmp_lun = $lun;
+        $tmp_lun =~ s/\//\\\//g;
+        assert_script_run "sed -i '/$tmp_lun/d' $lun_list_file";
+    }
+    else {
+        # Add the hostname as a tag in the LUN file
+        # So in next call, get_lun will not return this LUN for this host
+        assert_script_run "sed -i -E 's;^($lun([[:blank:]]|\$).*);\\1 $hostname;' $lun_list_file";
+    }
+
+    # Copy the modified file on the support server (for the other nodes)
+    exec_and_insert_password "scp -o StrictHostKeyChecking=no $lun_list_file root\@ns:$lun_list_file";
+
+    mutex_unlock 'iscsi';
+
+    # Return the real path of the block device
+    return block_device_real_path "$lun";
 }
 
 sub post_run_hook {

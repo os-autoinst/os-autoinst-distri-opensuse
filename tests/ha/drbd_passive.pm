@@ -28,13 +28,10 @@ sub assert_standalone {
 }
 
 sub run {
+    my $cluster_name  = get_cluster_name;
     my $csync_conf    = '/etc/csync2/csync2.cfg';
     my $drbd_rsc      = 'drbd_passive';
     my $drbd_rsc_file = "/etc/drbd.d/$drbd_rsc.res";
-
-    # 2 LUN are needed for DRBD
-    my $drbd_lun_01 = block_device_real_path '/dev/disk/by-path/ip-*-lun-3';
-    my $drbd_lun_02 = block_device_real_path '/dev/disk/by-path/ip-*-lun-4';
 
     # DRBD needs 2 nodes for the test, so we can easily
     # arbitrary choose the first two
@@ -50,12 +47,16 @@ sub run {
     # Wait until DRBD test is initialized
     barrier_wait("DRBD_INIT_$cluster_name");
 
-    # DRBD LUNs need to be filter in LVM to avoid duplicate PVs
-    lvm_add_filter('r', $drbd_lun_01);
-    lvm_add_filter('r', $drbd_lun_02);
-
     # Do the DRBD configuration only on the first node
     if (is_node(1)) {
+        # 2 LUNs are needed for DRBD
+        my $drbd_lun_01 = get_lun;
+        my $drbd_lun_02 = get_lun;
+
+        # DRBD LUNs need to be filter in LVM to avoid duplicate PVs
+        lvm_add_filter('r', $drbd_lun_01);
+        lvm_add_filter('r', $drbd_lun_02);
+
         # Modify DRBD global configuration file
         assert_script_run 'sed -i \'/^[[:blank:]]*startup[[:blank:]]*{/a \\\t\twfc-timeout 100;\n\t\tdegr-wfc-timeout 120;\' /etc/drbd.d/global_common.conf';
 

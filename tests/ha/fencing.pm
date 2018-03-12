@@ -17,13 +17,15 @@ use lockapi;
 use hacluster;
 
 sub run {
+    my $cluster_name = get_cluster_name;
+
     # 'barrier_wait' needs to be done separately to ensure that
     # 'reset_consoles' as been done on all nodes before fencing
     if (is_node(2)) {
         barrier_wait("BEFORE_FENCING_$cluster_name");
 
         # Fence the node
-        assert_script_run 'crm -F node fence ' . get_var('HA_CLUSTER_JOIN');
+        assert_script_run 'crm -F node fence ' . get_node_to_join;
 
         # Wait a little to be sure that fence command is on his way
         sleep 60;

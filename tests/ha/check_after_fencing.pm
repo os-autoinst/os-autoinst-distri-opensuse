@@ -17,6 +17,8 @@ use lockapi;
 use hacluster;
 
 sub run {
+    my $cluster_name = get_cluster_name;
+
     barrier_wait("CHECK_BEFORE_FENCING_BEGIN_$cluster_name");
 
     # We need to be sure to be root and, after fencing, the default console on node01 is not root
