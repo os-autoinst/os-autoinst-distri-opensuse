@@ -15,6 +15,7 @@ use warnings;
 use strict;
 use testapi;
 use utils;
+use version_utils qw(is_leap is_tumbleweed is_sle);
 
 sub run {
     my $qa_head_repo = get_required_var('QA_HEAD_REPO');
@@ -28,6 +29,12 @@ sub run {
     my $package_name = 'systemd-v$systemd_version-testsuite';
     assert_script_run 'zypper -n se -sx ' . $package_name;
     zypper_call 'in ' . $package_name;
+    if (is_leap('16.0+') || is_tumbleweed || is_sle('16+')) {
+        # Systemd has split its nspawn feature to a systemd-container package.
+        #   - This change is not included in SLE15 nor Leap15.
+        record_soft_failure('poo#32614 - Missing systemd-container');
+        zypper_call('in systemd-container');
+    }
 
     # run the testsuite test scripts
     assert_script_run 'cd /var/opt/systemd-tests';
