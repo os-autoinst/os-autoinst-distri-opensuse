@@ -154,15 +154,7 @@ sub set_lvm {
     send_key "alt-o";    # Operating System
     send_key $cmd{next};
     if (is_storage_ng) {
-        if (assert_screen [qw(volume-empty-mount volume-mount-as-root)]) {
-            # storage-ng does not suggest mount point for OS role volume,
-            # so mount the volume as root explicitly.
-            if (match_has_tag 'volume-empty-mount') {
-                record_soft_failure 'bsc#1073854 - new partition for OS has "do not mount device" option preselected';
-                send_key "alt-o";
-                assert_screen 'volume-mount-as-root';
-            }
-        }
+        assert_screen 'volume-mount-as-root';
         send_key $cmd{next};
     }
 

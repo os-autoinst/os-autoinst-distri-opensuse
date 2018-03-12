@@ -59,15 +59,7 @@ sub run {
     send_key(is_storage_ng() ? $cmd{next} : $cmd{finish});
     addlv(name => 'lv-swap', role => 'swap', size => 2000);
     assert_screen 'expert-partitioner';
-
-    if (is_storage_ng) {
-        # Mount point is not preselected for OS role in storage-ng
-        record_soft_failure("bsc#1073854");
-        addlv(name => 'lv-root', role => 'OS', mount => '/');
-    }
-    else {
-        addlv(name => 'lv-root', role => 'OS');
-    }
+    addlv(name => 'lv-root', role => 'OS');
     assert_screen 'expert-partitioner';
     send_key $cmd{accept};
     if (get_var('UNENCRYPTED_BOOT')) {
