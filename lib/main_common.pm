@@ -886,6 +886,7 @@ sub load_inst_tests {
 
 sub load_consoletests {
     return unless consolestep_is_applicable();
+    loadtest "locale/keymap_or_locale";
     if (get_var("ADDONS", "") =~ /rt/) {
         loadtest "rt/kmp_modules";
     }
