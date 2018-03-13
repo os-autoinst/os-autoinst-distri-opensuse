@@ -55,22 +55,23 @@ sub install_runtime_dependencies {
     # net-tools-deprecated are not available for SLE15
     # ntfsprogs are for SLE in WE, openSUSE has it in default repository
     my @maybe_deps = qw(
+      acl
+      binutils
+      dosfstools
+      evmctl
+      fuse-exfat
       kernel-default-extra
       net-tools
       net-tools-deprecated
-      tpm-tools
-      sssd-tools
-      numactl
-      wget
-      psmisc
-      binutils
-      acl
-      quota
-      sudo
       ntfsprogs
+      numactl
+      psmisc
+      quota
+      sssd-tools
+      sudo
+      tpm-tools
+      wget
       xfsprogs
-      dosfstools
-      fuse-exfat
     );
     for my $dep (@maybe_deps) {
         script_run('zypper -n -t in ' . $dep . ' | tee');
