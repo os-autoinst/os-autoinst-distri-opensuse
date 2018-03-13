@@ -50,10 +50,7 @@ sub run {
         assert_screen 'partition-warning-no-efi-boot';
         wait_screen_change { send_key 'alt-y' };    # yes
     }
-    if (is_storage_ng && !check_screen('partitioning-edit-proposal-button', 0)) {
-        record_soft_failure 'bsc#1055747';
-    }
-    else {
+    if (!is_storage_ng) {
         assert_screen 'partition-warning-no-swap';
         wait_screen_change { send_key 'alt-y' };    # yes
     }
