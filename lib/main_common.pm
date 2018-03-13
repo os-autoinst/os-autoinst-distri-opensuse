@@ -1350,6 +1350,7 @@ sub load_extra_tests {
         loadtest "console/unzip";
         loadtest "console/gpg";
         loadtest "console/shells";
+        loadtest "console/dstat";
         # MyODBC-unixODBC not available on < SP2 and sle 15 and only in SDK
         if (sle_version_at_least('12-SP2') && !(sle_version_at_least('15'))) {
             loadtest "console/mysql_odbc" if check_var_array('ADDONS', 'sdk') || check_var_array('SCC_ADDONS', 'sdk');
