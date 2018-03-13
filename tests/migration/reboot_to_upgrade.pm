@@ -28,7 +28,8 @@ sub run {
 
     # Reboot from Installer media for upgrade
     set_var('BOOT_HDD_IMAGE', 0) if get_var('UPGRADE') || get_var('AUTOUPGRADE');
-    power_action('reboot', textmode => 1);
+    assert_script_run "sync", 300;
+    type_string "reboot --force\n";
 }
 
 1;
