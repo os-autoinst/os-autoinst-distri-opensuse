@@ -709,6 +709,7 @@ sub load_inst_tests {
             loadtest 'installation/add_update_test_repo';
         }
         loadtest "installation/addon_products_sle";
+        loadtest 'installation/releasenotes_origin' if get_var('CHECK_RELEASENOTES_ORIGIN');
     }
     if (noupdatestep_is_applicable()) {
         # Krypton/Argon disable the network configuration stage
