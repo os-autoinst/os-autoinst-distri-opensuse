@@ -27,9 +27,6 @@ sub run {
     mutex_lock("PDSH_MASTER_BARRIERS_CONFIGURED");
     mutex_unlock("PDSH_MASTER_BARRIERS_CONFIGURED");
 
-    # Stop firewall
-    systemctl 'stop ' . $self->firewall;
-
     my $packages_to_install = 'munge pdsh';
     $packages_to_install .= ' pdsh-genders' if get_var('PDSH_GENDER_TEST');
     zypper_call("in $packages_to_install");

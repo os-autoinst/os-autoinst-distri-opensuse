@@ -31,9 +31,6 @@ sub run {
     # Synchronize all slave nodes with master
     mutex_create("PDSH_MASTER_BARRIERS_CONFIGURED");
 
-    # Stop firewall
-    systemctl 'stop ' . $self->firewall;
-
     # Install mrsh
     zypper_call('in mrsh-server munge');
     barrier_wait("PDSH_INSTALLATION_FINISHED");

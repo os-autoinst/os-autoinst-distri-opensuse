@@ -26,9 +26,6 @@ sub run {
     mutex_lock("MRSH_MASTER_BARRIERS_CONFIGURED");
     mutex_unlock("MRSH_MASTER_BARRIERS_CONFIGURED");
 
-    # Stop firewall
-    systemctl 'stop ' . $self->firewall;
-
     # install mrsh
     zypper_call('in mrsh mrsh-server');
     barrier_wait("MRSH_INSTALLATION_FINISHED");

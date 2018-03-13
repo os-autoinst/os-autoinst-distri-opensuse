@@ -29,9 +29,6 @@ sub run {
     # Synchronize all slave nodes with master
     mutex_create("SLURM_MASTER_BARRIERS_CONFIGURED");
 
-    # Stop firewall
-    systemctl 'stop ' . $self->firewall;
-
     # install slurm
     zypper_call('in slurm slurm-munge');
 
