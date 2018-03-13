@@ -500,7 +500,10 @@ sub load_ha_cluster_tests {
     loadtest "qa_automation/patch_and_reboot" if is_updates_tests;
     loadtest "console/consoletest_setup";
     loadtest "console/hostname" unless is_bridged_networking;
-    loadtest "console/yast2_ntpclient";
+
+    # NTP is already configured with 'HA node' and 'HA GEO node' System Roles
+    # 'default' System Role is 'HA node' if HA Product i selected
+    loadtest "console/yast2_ntpclient" unless (get_var('SYSTEM_ROLE', '') =~ /default|ha/);
 
     # Update the image if needed
     if (get_var("FULL_UPDATE")) {
