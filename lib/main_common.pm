@@ -1205,7 +1205,7 @@ sub load_yast2_ncurses_tests {
     # TODO https://progress.opensuse.org/issues/20200
     # softfail record #bsc1049433 for samba and xinetd
     loadtest "console/yast2_samba";
-    loadtest "console/yast2_xinetd";
+    loadtest "console/yast2_xinetd" if is_sle('<15') || is_leap('<15.0');
     loadtest "console/yast2_apparmor";
     loadtest "console/yast2_lan_hostname";
     # internal nis server in suse network is used, but this is not possible for
