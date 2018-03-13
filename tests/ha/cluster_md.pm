@@ -26,6 +26,7 @@ sub run {
     my $clustermd_device   = '/dev/md0';
     my $clustermd_name_opt = undef;
     my $cluster_name       = get_cluster_name;
+    my $node               = get_hostname;
 
     if (is_sle '15+') {
         $clustermd_device   = "/dev/md/$clustermd_rsc";
@@ -84,6 +85,10 @@ sub run {
 
     # Wait until cluster-md resource is created
     barrier_wait("CLUSTER_MD_RESOURCE_CREATED_$cluster_name");
+
+    # Wait for the resource to appear before testing the device
+    # Otherwise sporadic failure can happen
+    ensure_resource_running("$clustermd_rsc", "is running on:[[:blank:]]*$node\[[:blank:]]*\$");
 
     # Test if cluster-md device is present on all nodes
     assert_script_run "ls -la $clustermd_device";
