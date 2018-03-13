@@ -24,6 +24,16 @@ sub run {
     # bsc#1019652 - Check that snapper is configured
     assert_script_run "snapper list";
 
+    # Subvolume check
+    if (is_caasp '4.0+') {
+        assert_script_run "btrfs subvolume show /var";
+    }
+    else {
+        # https://build.opensuse.org/request/show/583954
+        assert_script_run "btrfs subvolume show /var/lib/cni";
+    }
+
+
     # bsc#1051762 - Docker is on btrfs partition
     assert_script_run 'stat -fc %T /var/lib/docker | grep -q btrfs';
 
