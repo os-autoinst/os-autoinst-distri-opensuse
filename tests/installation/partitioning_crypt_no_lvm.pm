@@ -15,7 +15,7 @@
 # Maintainer: Rodion Iafarov <riafarov@suse.com>
 
 use strict;
-use base "opensusebasetest";
+use base 'y2logsstep';
 use testapi;
 use version_utils 'is_storage_ng';
 use partition_setup 'enable_encryption_guided_setup';
