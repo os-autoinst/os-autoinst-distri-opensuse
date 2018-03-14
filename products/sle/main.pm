@@ -547,10 +547,7 @@ sub load_ha_cluster_tests {
         loadtest "ha/filesystem";
     }
 
-    # Show HA cluster status *before* fencing test
-    loadtest "ha/check_before_fencing";
-
-    # Test fencing feature
+    # Show HA cluster status *before* fencing test and execute fencing test
     loadtest "ha/fencing";
 
     # Node1 will be fenced, so we have to wait for it to boot

@@ -19,6 +19,11 @@ use hacluster;
 sub run {
     my $cluster_name = get_cluster_name;
 
+    # Check cluster state *before* fencing
+    barrier_wait("CHECK_BEFORE_FENCING_BEGIN_$cluster_name");
+    check_cluster_state;
+    barrier_wait("CHECK_BEFORE_FENCING_END_$cluster_name");
+
     # 'barrier_wait' needs to be done separately to ensure that
     # 'reset_consoles' as been done on all nodes before fencing
     if (is_node(2)) {
