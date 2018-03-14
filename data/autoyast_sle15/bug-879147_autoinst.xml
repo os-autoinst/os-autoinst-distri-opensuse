@@ -274,7 +274,7 @@
     <image/>
     <instsource/>
     <products config:type="list">
-      <product>SLES15</product>
+      <product>SLES</product>
     </products>
   </software>
   <timezone>

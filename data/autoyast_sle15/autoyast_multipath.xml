@@ -524,7 +524,7 @@ pre init scripts feature. See poo#20818.
       <package>zisofs-tools</package>
     </remove-packages>
     <products config:type="list">
-      <product>SLES15</product>
+      <product>SLES</product>
     </products>
   </software>
 
