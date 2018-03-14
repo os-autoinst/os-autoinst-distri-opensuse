@@ -10,7 +10,7 @@
     <reg_server>{{SCC_URL}}</reg_server>
     <addons config:type="list">
       <addon>
-        <name>sle-module-basesystem</name>
+        <name>sle-module-server-applications</name>
         <version>{{VERSION}}</version>
         <arch>{{ARCH}}</arch>
       </addon>
@@ -20,6 +20,9 @@
     <keep_install_network config:type="boolean">true</keep_install_network>
   </networking>
   <software>
+    <packages config:type="list">
+      <package>apache2</package>
+    </packages>
     <products config:type="list">
       <product>SLES</product>
     </products>
