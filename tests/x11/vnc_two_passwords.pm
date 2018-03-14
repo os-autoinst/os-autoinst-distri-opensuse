@@ -16,10 +16,11 @@ use strict;
 use testapi;
 use utils 'ensure_unlocked_desktop';
 
-my @options = ({pw => "full_access_pw", change => 1}, {pw => "view_only_pw", change => 0});
-my $theme = "/usr/share/gnome-shell/theme/gnome-classic.css";
-# arbitrary display assumed to be free for a VNC server
+# Any free display
 my $display = ':37';
+
+# Passwords for VNC access
+my @options = ({pw => "readonly_pw", change => 0}, {pw => "readwrite_pw", change => 1});
 
 sub type_and_wait {
     type_string shift;
@@ -29,63 +30,89 @@ sub type_and_wait {
 }
 
 sub start_vnc_server {
+    select_console "root-console";
     # Disable remote administration from previous tests
     script_run 'systemctl stop vncmanager';
 
     # Create password file
     type_string "tput civis\n";
     type_and_wait "vncpasswd /tmp/file.passwd";
-    type_and_wait $options[0]->{pw};
-    type_and_wait $options[0]->{pw};
+
+    # Set read write password
+    type_and_wait $options[1]->{pw};
+    type_and_wait $options[1]->{pw};
     type_and_wait "y";
-    type_and_wait $options[1]->{pw};
-    type_and_wait $options[1]->{pw};
+
+    # Set read only password
+    type_and_wait $options[0]->{pw};
+    type_and_wait $options[0]->{pw};
     type_string "tput cnorm\n";
 
     # Start server
     type_string "Xvnc $display -SecurityTypes=VncAuth -PasswordFile=/tmp/file.passwd\n";
-    save_screenshot;
+    wait_still_screen 2;
+    select_console 'x11';
+}
+
+sub generate_vnc_events {
+    my $password = shift;
+
+    # Login into vnc display in RO/RW mode
+    x11_start_program("vncviewer $display -SecurityTypes=VncAuth", target_match => 'vnc_password_dialog', match_timeout => 60);
+    type_string "$password\n";
+    assert_screen 'vncviewer-xev';
+    send_key "super-left";
+    wait_still_screen 2;
+
+    # Send some vnc events to xev
+    type_string "events";
+    mouse_set(80, 120);
+    mouse_set(85, 125);
+    mouse_click;
+
+    send_key 'alt-f4';
 }
 
 sub run {
-    select_console "root-console";
-    # Hide panel buttons so wait_screen_change ignores clock change
-    assert_script_run "echo \"#panel .panel-button { color: transparent; }\" >> $theme";
+    record_info 'Setup VNC';
     start_vnc_server;
 
-    select_console 'x11';
-    # Reload theme to hide panel text
-    x11_start_program('rt', target_match => 'generic-desktop');
-
-    # Start xev event watcher
+    # open xterm for xev
     x11_start_program('xterm');
     send_key "super-right";
-    type_string "DISPLAY=$display xev\n";
 
     # Start vncviewer (rw & ro mode) and check if changes are processed by xev
     foreach my $opt (@options) {
-        x11_start_program("vncviewer $display -SecurityTypes=VncAuth", target_match => 'vnc_password_dialog', match_timeout => 60);
-        type_string "$opt->{pw}\n";
-        assert_screen 'vncviewer-xev';
-        send_key "super-left";
-        mouse_set(80, 120);
+        record_info 'Try ' . ($opt->{change} ? 'RW' : 'RO') . ' mode';
 
-        wait_still_screen;
-        my $c1 = wait_screen_change { type_string "string"; };
-        my $c2 = wait_screen_change { mouse_click; };
-        if ($c1 != $c2 || $c1 != $opt->{change}) {
-            die "Expected: $opt->{change}, received: $c1, $c2 for $opt->{pw}";
+        # Start event watcher
+        type_string "xev -display $display -root | tee /tmp/xev_log\n";
+
+        # Repeat with RO/RW password
+        generate_vnc_events $opt->{pw};
+
+        # Close xev
+        send_key 'ctrl-c';
+
+        # Check if xev recorded events or not - RO/RW mode
+        if ($opt->{change}) {
+            assert_script_run '[ -s /tmp/xev_log ]';
         }
-        send_key "alt-f4";
+        else {
+            assert_script_run 'wc -l /tmp/xev_log | grep "^0 "';
+        }
+        assert_script_run 'rm /tmp/xev_log';
     }
 
     # Cleanup
     send_key "alt-f4";
     select_console 'root-console', await_console => 0;
     send_key "ctrl-c";
-    assert_script_run "sed -i '\$d' $theme";
     select_console "x11";
-    x11_start_program('rt', target_match => 'generic-desktop');
+}
+
+sub post_fail_hook {
+    upload_logs('/tmp/xev_log', failok => 1);
 }
 
 1;
