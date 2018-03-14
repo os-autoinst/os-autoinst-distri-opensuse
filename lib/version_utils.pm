@@ -43,6 +43,7 @@ our @EXPORT = qw (
   is_desktop_installed
   is_system_upgrading
   is_pre_15
+  is_virtualization_server
 );
 
 sub is_leap;
@@ -69,6 +70,10 @@ sub is_installcheck {
 
 sub is_rescuesystem {
     return get_var('RESCUESYSTEM');
+}
+
+sub is_virtualization_server {
+    return get_var('SYSTEM_ROLE', '') =~ /(kvm|xen)/;
 }
 
 # Works only for versions comparable by string (not leap 42.X)

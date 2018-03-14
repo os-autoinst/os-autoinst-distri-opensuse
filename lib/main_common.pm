@@ -18,7 +18,7 @@ use testapi qw(check_var get_var get_required_var set_var check_var_array diag);
 use autotest;
 use utils;
 use version_utils qw(
-  is_hyperv_in_gui is_jeos is_gnome_next is_krypton_argon is_leap is_opensuse is_sle is_sles4sap is_sles4sap_standard sle_version_at_least is_desktop_installed is_installcheck is_rescuesystem is_staging is_tumbleweed
+  is_hyperv_in_gui is_jeos is_gnome_next is_krypton_argon is_leap is_opensuse is_sle is_sles4sap is_sles4sap_standard sle_version_at_least is_desktop_installed is_installcheck is_rescuesystem is_staging is_tumbleweed is_virtualization_server
 );
 use bmwqemu ();
 use strict;
@@ -962,8 +962,8 @@ sub load_consoletests {
         loadtest "console/yast2_bootloader";
     }
     loadtest "console/vim" if is_opensuse || !sle_version_at_least('15') || !get_var('PATTERNS') || check_var_array('PATTERNS', 'enhanced_base');
-    # textmode install comes without firewall by default atm on openSUSE
-    if ((is_sle || !check_var("DESKTOP", "textmode")) && !is_staging() && !is_krypton_argon) {
+# textmode install comes without firewall by default atm on openSUSE. For virtualizatoin server xen and kvm is disabled by default: https://fate.suse.com/324207
+    if ((is_sle || !check_var("DESKTOP", "textmode")) && !is_staging() && !is_krypton_argon && !is_virtualization_server) {
         loadtest "console/firewall_enabled";
     }
     if (is_jeos) {
