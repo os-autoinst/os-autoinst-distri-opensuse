@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -27,6 +27,11 @@ sub run {
     elsif (get_var('OFW')) {             # ppc64le need PReP /boot
         addpart(role => 'raw', size => 500, fsid => 'PReP');
     }
+    elsif (is_storage_ng && check_var('ARCH', 'x86_64')) {
+        # Storage-ng has GPT by defaut, so need bios-boot partition for legacy boot, which is only on x86_64
+        addpart(role => 'raw', fsid => 'bios-boot', size => 2);
+    }
+
     # create small enough partition (11GB) to get warning
     addpart(role => 'OS', size => 11000, format => 'btrfs');
 
@@ -34,7 +39,7 @@ sub run {
     send_key $cmd{accept};
     if (is_storage_ng) {
         assert_screen 'partitioning-edit-proposal-button';
-        record_soft_failure 'bsc#1055744';
+        record_soft_failure('bsc#1085131 - no warning for too small btrfs / for snapshots');
     }
     else {
         # expect partition setup warning pop-ups
@@ -45,10 +50,7 @@ sub run {
         assert_screen 'partition-warning-no-efi-boot';
         wait_screen_change { send_key 'alt-y' };    # yes
     }
-    if (is_storage_ng && !check_screen('partitioning-edit-proposal-button', 0)) {
-        record_soft_failure 'bsc#1055747';
-    }
-    else {
+    if (!is_storage_ng) {
         assert_screen 'partition-warning-no-swap';
         wait_screen_change { send_key 'alt-y' };    # yes
     }

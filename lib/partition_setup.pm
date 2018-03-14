@@ -90,11 +90,6 @@ sub addpart {
     my (%args) = @_;
     assert_screen 'expert-partitioner';
     send_key $cmd{addpart};
-    # partitioning type does not appear when GPT disk used, GPT is default for UEFI
-    # also doesn't appear with storage-ng, as GPT is by default there
-    if (is_storage_ng && check_screen 'partition-size', 0) {
-        record_soft_failure 'bsc#1055743';
-    }
     unless (get_var('UEFI') || check_var('BACKEND', 's390x') || is_storage_ng) {
         assert_screen 'partitioning-type';
         send_key $cmd{next};
