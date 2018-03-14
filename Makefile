@@ -73,7 +73,7 @@ test-no-wait_idle:
 	@! git grep wait_idle lib/ tests/
 
 .PHONY: test
-test: tidy test-compile test-merge test-dry test-no-wait_idle
+test: tidy test-compile test-merge test-dry test-no-wait_idle test-unused-modules
 
 PERLCRITIC=PERL5LIB=tools/lib/perlcritic:$$PERL5LIB perlcritic --quiet --gentle --include Perl::Critic::Policy::HashKeyQuote --include Perl::Critic::Policy::ConsistentQuoteLikeWords
 
@@ -81,3 +81,6 @@ PERLCRITIC=PERL5LIB=tools/lib/perlcritic:$$PERL5LIB perlcritic --quiet --gentle 
 perlcritic: tools/lib/
 	${PERLCRITIC} .
 
+.PHONY: test-unused-modules
+test-unused-modules:
+	tools/detect_unused_modules

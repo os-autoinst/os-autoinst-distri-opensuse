@@ -1,0 +1,15 @@
+#!/bin/sh -e
+
+for test in $(git ls-files "*tests/*.pm") ; do
+    t=$(echo $test | sed -e 's@tests/.*/@@' -e 's@.pm@@')
+    t_dir=$(echo $test | sed -e 's@tests/\(.*\)/.*$@\1@')
+    git grep -qE "($t|load_testdir.*$t_dir)" || echo $test
+done | \
+    # fetchmail_ssl, mailx_ssl, mutt_ssl, postfix_tls: https://progress.opensuse.org/issues/31750
+    # qa_automation, hpc, caasp/stack_admin: Tests are loaded dynamically
+    # based on test variable content
+    # slepos: Requested by nadvornik, used in sle11 tests
+    # verify_firewalld: Loaded dynamically by AUTOYAST_VERIFY_MODULE
+    # zypper_moo: https://progress.opensuse.org/issues/32302
+    grep -vE '(fetchmail_ssl|mailx_ssl|mutt_ssl|postfix_tls|qa_automation/|hpc/|slepos/|caasp/stack_admin)' \
+    && { exit 1; } || { exit 0; }
