@@ -1361,8 +1361,11 @@ sub load_extra_tests {
             loadtest "sysauth/sssd";
         }
         # schedule the docker tests later as it needs the containers module on
-        # SLE>=15 and therefore would potentially pollute other test modules
-        load_docker_tests if (check_var('ARCH', 'x86_64') && (sle_version_at_least('12-SP2') || !is_sle));
+        # SLE>=15 and therefore would potentially pollute other test modules.
+        # Currently for our SLE12 validation tests we are not using a
+        # registered SLE installation so we should not schedule the test
+        # modules.
+        load_docker_tests if (check_var('ARCH', 'x86_64') && ((is_sle('12-SP2+') && (is_sle('<12-SP4') || is_sle('15+')) || !is_sle)));
         loadtest "console/kdump_and_crash" if kdump_is_applicable;
         loadtest "console/consoletest_finish";
     }
