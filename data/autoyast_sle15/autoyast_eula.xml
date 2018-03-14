@@ -70,7 +70,7 @@
     </users>
     <software>
         <products config:type="list">
-            <product>SLES15</product>
+            <product>SLES</product>
             <product>sle-ha</product>
             <product>sle-we</product>
         </products>

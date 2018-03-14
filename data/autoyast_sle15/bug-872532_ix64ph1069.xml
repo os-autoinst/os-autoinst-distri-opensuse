@@ -696,7 +696,7 @@
       <pattern>base</pattern>
     </patterns>
     <products config:type="list">
-      <product>SLES15</product>
+      <product>SLES</product>
     </products>
     <remove-packages config:type="list">
       <package>glibc-32bit</package>

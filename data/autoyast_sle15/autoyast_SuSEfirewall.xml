@@ -21,7 +21,7 @@
   </networking>
   <software>
     <products config:type="list">
-      <product>SLES15</product>
+      <product>SLES</product>
     </products>
   </software>
   <users config:type="list">
