@@ -24,6 +24,8 @@ sub run {
         my $num_nodes = get_var('NODE_COUNT');
         barrier_create('salt_master_ready',      $num_nodes + 1);
         barrier_create('salt_minions_connected', $num_nodes + 1);
+        my $deepsea_qa = get_var('QA_TEST_DEEPSEA_REPO');
+        zypper_call("ar $deepsea_qa");
         zypper_call('in deepsea-qa');
         systemctl 'start salt-master';
         systemctl 'enable salt-master';
