@@ -447,23 +447,6 @@ sub load_applicationstests {
     return 0;
 }
 
-sub load_slenkins_tests {
-    if (get_var("SLENKINS_CONTROL")) {
-        unless (get_var("SUPPORT_SERVER")) {
-            loadtest "slenkins/login";
-            loadtest "slenkins/slenkins_control_network";
-        }
-        loadtest "slenkins/slenkins_control";
-        return 1;
-    }
-    elsif (get_var("SLENKINS_NODE")) {
-        loadtest "slenkins/login";
-        loadtest "slenkins/slenkins_node";
-        return 1;
-    }
-    return 0;
-}
-
 sub load_cluster_boot {
     if (check_var('ARCH', 'aarch64')) {
         # We need to boot *before* waiting for support server
@@ -637,14 +620,6 @@ sub prepare_target {
     }
 }
 
-sub load_default_tests {
-    load_boot_tests();
-    load_inst_tests();
-    return 1 if get_var('EXIT_AFTER_START_INSTALL');
-    load_reboot_tests();
-}
-
-
 my $distri = testapi::get_required_var('CASEDIR') . '/lib/susedistribution.pm';
 require $distri;
 testapi::set_distribution(susedistribution->new());
@@ -652,10 +627,6 @@ testapi::set_distribution(susedistribution->new());
 # load the tests in the right order
 if (is_kernel_test()) {
     load_kernel_tests();
-}
-elsif (get_var("WICKED")) {
-    boot_hdd_image();
-    load_wicked_tests();
 }
 elsif (get_var('NFV')) {
     if (check_var("NFV", "master")) {
@@ -687,16 +658,6 @@ elsif (get_var("REGRESSION")) {
 elsif (get_var("FEATURE")) {
     prepare_target();
     load_feature_tests();
-}
-elsif (is_mediacheck) {
-    load_svirt_vm_setup_tests;
-    loadtest "installation/mediacheck";
-}
-elsif (is_memtest) {
-    if (!get_var("OFW")) {    #no memtest on PPC
-        load_svirt_vm_setup_tests;
-        loadtest "installation/memtest";
-    }
 }
 elsif (is_rescuesystem) {
     load_svirt_vm_setup_tests;
@@ -923,20 +884,8 @@ elsif (get_var('Y2UITEST_NCURSES')) {
 elsif (get_var('Y2UITEST_GUI')) {
     load_yast2_gui_tests;
 }
-elsif (get_var("SYSCONTAINER_IMAGE_TEST")) {
-    boot_hdd_image;
-    load_syscontainer_tests();
-}
 elsif (get_var("WINDOWS")) {
     loadtest "installation/win10_installation";
-}
-elsif (ssh_key_import) {
-    load_ssh_key_import_tests;
-}
-elsif (get_var('ISO_IN_EXTERNAL_DRIVE')) {
-    load_iso_in_external_tests();
-    load_inst_tests();
-    load_reboot_tests();
 }
 # post registration testsuites using suseconnect or yast
 elsif (have_scc_repos()) {
@@ -984,8 +933,10 @@ elsif (get_var('HPC')) {
         }
     }
 }
-elsif (get_var('SYSTEMD_TESTSUITE')) {
-    load_systemd_patches_tests;
+elsif (get_var("SES5_DEPLOY")) {
+    loadtest "boot/boot_from_pxe";
+    loadtest "autoyast/installation";
+    loadtest "installation/first_boot";
 }
 else {
     if (get_var("SES5_DEPLOY")) {

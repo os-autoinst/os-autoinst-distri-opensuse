@@ -77,6 +77,7 @@ our @EXPORT = qw(
   boot_hdd_image
   is_kernel_test
   load_kernel_tests
+  load_default_tests
   load_bootloader_s390x
   load_consoletests
   load_x11tests
@@ -105,6 +106,7 @@ our @EXPORT = qw(
   is_memtest
   is_mediacheck
   load_syscontainer_tests
+  load_slenkins_tests
   load_toolchain_tests
   load_common_opensuse_sle_tests
   replace_opensuse_repos_tests
@@ -317,6 +319,18 @@ sub load_svirt_vm_setup_tests {
     unless (is_installcheck || is_memtest || is_rescuesystem || is_mediacheck) {
         load_svirt_boot_tests;
     }
+}
+
+sub load_memtest_tests {
+    if (!get_var("OFW")) {    #no memtest on PPC
+        load_svirt_vm_setup_tests;
+        loadtest "installation/memtest";
+    }
+}
+
+sub load_mediacheck_tests {
+    load_svirt_vm_setup_tests;
+    loadtest "installation/mediacheck";
 }
 
 sub load_boot_tests {
@@ -624,6 +638,13 @@ sub unregister_needle_tags {
 
 sub install_this_version {
     return !check_var('INSTALL_TO_OTHERS', 1);
+}
+
+sub load_default_tests {
+    load_boot_tests();
+    load_inst_tests();
+    return 1 if get_var('EXIT_AFTER_START_INSTALL');
+    load_reboot_tests();
 }
 
 sub load_bootloader_s390x {
@@ -1412,6 +1433,7 @@ sub load_filesystem_tests {
 }
 
 sub load_wicked_tests {
+    boot_hdd_image();
     loadtest 'wicked/before_test';
     if (check_var('WICKED', 'basic')) {
         loadtest 'wicked/basic';
@@ -1444,6 +1466,8 @@ sub load_iso_in_external_tests {
     loadtest "boot/boot_to_desktop";
     loadtest "console/copy_iso_to_external_drive";
     loadtest "x11/reboot_and_install";
+    load_inst_tests();
+    load_reboot_tests();
 }
 
 sub load_x11_installation {
@@ -1669,6 +1693,7 @@ sub load_syscontainer_tests() {
     # pre-conditions for system container tests ie. the tests are running based on preinstalled image
     return if get_var("INSTALLONLY") || get_var("DUALBOOT") || get_var("RESCUECD");
 
+    boot_hdd_image;
     # setup $serialdev permission and so on
     loadtest "console/consoletest_setup";
 
@@ -1684,6 +1709,23 @@ sub load_syscontainer_tests() {
     loadtest 'virtualization/syscontainer_image_test';
 }
 
+sub load_slenkins_tests {
+    if (get_var("SLENKINS_CONTROL")) {
+        unless (get_var("SUPPORT_SERVER")) {
+            loadtest "slenkins/login";
+            loadtest "slenkins/slenkins_control_network";
+        }
+        loadtest "slenkins/slenkins_control";
+        return 1;
+    }
+    elsif (get_var("SLENKINS_NODE")) {
+        loadtest "slenkins/login";
+        loadtest "slenkins/slenkins_node";
+        return 1;
+    }
+    return 0;
+}
+
 sub load_toolchain_tests {
     loadtest "console/force_cron_run";
     loadtest "toolchain/install";
@@ -1697,14 +1739,6 @@ sub load_nvmftests {
     loadtest "kernel/nvmftests";
 }
 
-sub load_common_opensuse_sle_tests {
-    load_autoyast_clone_tests           if get_var("CLONE_SYSTEM");
-    load_create_hdd_tests               if get_var("STORE_HDD_1") || get_var("PUBLISH_HDD_1");
-    load_toolchain_tests                if get_var("TCM") || check_var("ADDONS", "tcm");
-    loadtest 'console/network_hostname' if get_var('NETWORK_CONFIGURATION');
-    load_nvmftests                      if get_var('NVMFTESTS');
-}
-
 sub load_ssh_key_import_tests {
     loadtest "boot/boot_to_desktop";
     # setup ssh key, we know what ssh keys we have and can verify if they are imported or not
@@ -1715,6 +1749,21 @@ sub load_ssh_key_import_tests {
     load_reboot_tests();
     # verify previous defined ssh keys
     loadtest "x11/ssh_key_verify";
+}
+
+sub load_common_opensuse_sle_tests {
+    load_autoyast_clone_tests           if get_var('CLONE_SYSTEM');
+    load_create_hdd_tests               if get_var('STORE_HDD_1') || get_var('PUBLISH_HDD_1');
+    load_toolchain_tests                if get_var('TCM') || check_var('ADDONS', 'tcm');
+    loadtest 'console/network_hostname' if get_var('NETWORK_CONFIGURATION');
+    load_nvmftests                      if get_var('NVMFTESTS');
+    load_wicked_tests                   if get_var('WICKED');
+    load_memtest_tests                  if is_memtest;
+    load_mediacheck_tests               if is_mediacheck;
+    load_ssh_key_import_tests           if ssh_key_import;
+    load_iso_in_external_tests          if get_var('ISO_IN_EXTERNAL_DRIVE');
+    load_systemd_patches_tests          if get_var('SYSTEMD_TESTSUITE');
+    load_syscontainer_tests             if get_var('SYSCONTAINER_IMAGE_TEST');
 }
 
 sub load_sles4sap_tests {

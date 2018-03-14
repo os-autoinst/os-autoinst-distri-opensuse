@@ -332,30 +332,6 @@ sub load_applicationstests {
     return 1;
 }
 
-sub load_slenkins_tests {
-    if (get_var("SLENKINS_CONTROL")) {
-        unless (get_var("SUPPORT_SERVER")) {
-            loadtest "slenkins/login";
-            loadtest "slenkins/slenkins_control_network";
-        }
-        loadtest "slenkins/slenkins_control";
-        return 1;
-    }
-    elsif (get_var("SLENKINS_NODE")) {
-        loadtest "slenkins/login";
-        loadtest "slenkins/slenkins_node";
-        return 1;
-    }
-    return 0;
-}
-
-sub load_default_tests {
-    load_boot_tests();
-    load_inst_tests();
-    return 1 if get_var('EXIT_AFTER_START_INSTALL');
-    load_reboot_tests();
-}
-
 # load the tests in the right order
 if (is_kernel_test()) {
     load_kernel_tests();
@@ -364,33 +340,15 @@ elsif (get_var("NETWORKD")) {
     boot_hdd_image();
     load_networkd_tests();
 }
-elsif (get_var("WICKED")) {
-    boot_hdd_image();
-    load_wicked_tests();
-}
 elsif (get_var('NFV')) {
     load_nfv_tests();
 }
 elsif (get_var("REGRESSION")) {
     load_common_x11;
 }
-elsif (is_mediacheck) {
-    load_svirt_vm_setup_tests;
-    loadtest "installation/mediacheck";
-}
-elsif (is_memtest) {
-    if (!get_var("OFW")) {    #no memtest on PPC
-        load_svirt_vm_setup_tests;
-        loadtest "installation/memtest";
-    }
-}
 elsif (get_var("FILESYSTEM_TEST")) {
     boot_hdd_image;
     load_filesystem_tests();
-}
-elsif (get_var("SYSCONTAINER_IMAGE_TEST")) {
-    boot_hdd_image;
-    load_syscontainer_tests();
 }
 elsif (get_var('GNUHEALTH')) {
     boot_hdd_image;
@@ -428,14 +386,6 @@ elsif (get_var("WINDOWS")) {
     loadtest "installation/win10_reboot";
     loadtest "installation/win10_shutdown";
 }
-elsif (ssh_key_import) {
-    load_ssh_key_import_tests;
-}
-elsif (get_var("ISO_IN_EXTERNAL_DRIVE")) {
-    load_iso_in_external_tests();
-    load_inst_tests();
-    load_reboot_tests();
-}
 elsif (get_var('MM_CLIENT')) {
     boot_hdd_image;
     load_applicationstests;
@@ -456,9 +406,6 @@ elsif (get_var('SECURITYTEST')) {
     elsif (check_var('SECURITYTEST', 'crypt')) {
         load_security_tests_crypt;
     }
-}
-elsif (get_var('SYSTEMD_TESTSUITE')) {
-    load_systemd_patches_tests;
 }
 elsif (get_var('DOCKER_IMAGE_TEST')) {
     boot_hdd_image;
