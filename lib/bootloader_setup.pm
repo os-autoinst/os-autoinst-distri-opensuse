@@ -88,8 +88,10 @@ sub boot_into_snapshot {
     }
     # in an online migration
     send_key_until_needlematch('snap-before-migration', 'down', 40, 5) if (get_var('ONLINE_MIGRATION'));
+    save_screenshot;
     send_key 'ret';
     # avoid timeout for booting to HDD
+    save_screenshot;
     send_key 'ret';
 }
 
