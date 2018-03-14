@@ -22,7 +22,10 @@ sub run {
 
     zypper_call("in systemd-container");
 
-    assert_script_run("mkdir -p /var/lib/machines/");
+    if (script_run("test -d /var/lib/machines/") != 0) {
+        record_info('workaround', "/var/lib/machines/ wasn't created by systemd-container RPM\nCreating it now.");
+        assert_script_run("mkdir -p /var/lib/machines/");
+    }
 
     assert_script_run("ip li add name br0 type bridge");
     assert_script_run("ip li set br0 up");
