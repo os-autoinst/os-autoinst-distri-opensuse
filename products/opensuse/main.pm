@@ -84,7 +84,12 @@ unless (get_var("DESKTOP")) {
 
 if (check_var('DESKTOP', 'minimalx')) {
     set_var("NOAUTOLOGIN", 1);
-    set_var("XDMUSED",     1);
+    # lightdm is the default DM since Leap 15.0 per boo#1081760
+    # staging project keep to use xdm due to lightdm will not be in staging project
+    if (!is_leap('15.0+') || get_var('STAGING')) {
+        set_var("XDMUSED",           1);
+        set_var('DM_NEEDS_USERNAME', 1);
+    }
 }
 
 # openSUSE specific variables
@@ -93,11 +98,6 @@ set_var("WALLPAPER", '/usr/share/wallpapers/openSUSEdefault/contents/images/1280
 
 # set KDE and GNOME, ...
 set_var(uc(get_var('DESKTOP')), 1);
-
-# for GNOME pressing enter is enough to login bernhard
-if (check_var('DESKTOP', 'minimalx')) {
-    set_var('DM_NEEDS_USERNAME', 1);
-}
 
 # now Plasma 5 is default KDE desktop
 # openSUSE version less than or equal to 13.2 have to set KDE4 variable as 1
