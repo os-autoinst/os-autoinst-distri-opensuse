@@ -128,6 +128,7 @@ sub run {
         set_var('SKIP_INSTALLER_SCREEN', 0);
     }
     $self->process_unsigned_files([qw(inst-addon addon-products)]);
+    wait_still_screen;
     assert_screen [qw(inst-addon addon-products)];
     if (get_var("ADDONS")) {
         send_key match_has_tag('inst-addon') ? 'alt-k' : 'alt-a';
