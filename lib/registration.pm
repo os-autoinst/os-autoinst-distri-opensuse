@@ -553,12 +553,14 @@ sub fill_in_reg_server {
     }
     else {
         send_key "alt-i";
-        if (sle_version_at_least('15')) {
+        if (is_sle('12-sp3+')) {
             send_key "alt-l";
         }
         else {
             send_key "alt-o";
         }
+        # Remove https://smt.example.com
+        for (1 .. 30) { send_key 'backspace'; }
         type_string get_required_var("SMT_URL");
     }
     save_screenshot;
