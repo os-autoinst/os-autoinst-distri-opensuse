@@ -58,9 +58,9 @@ sub run {
     # no release-notes for WE and all modules
     my @no_relnotes = qw(we lgm asmm certm contm pcm tcm wsm hpcm ids idu phub all-packages sapapp);
 
-    # No release-notes for basic modules on SLE 15
+    # No release-notes for basic modules and Live-Patching on SLE 15
     if (is_sle('15+')) {
-        push @no_relnotes, qw(base script desktop productivity serverapp legacy sdk);
+        push @no_relnotes, qw(base script desktop productivity serverapp legacy sdk live);
         # WE has release-notes on SLE 15
         @no_relnotes = grep(!/^we$/, @no_relnotes);
         # HA-GEO has been removed on SLE 15
@@ -77,7 +77,7 @@ sub run {
         if (!check_var('VIDEOMODE', 'text')) {
             # Make sure release notes window is shown to avoid sending key too early
             # It takes longer time to show multilple release notes for addons
-            assert_screen([qw(release-notes-sle-ok-button release-notes-sle-close-button)], 120);
+            assert_screen([qw(release-notes-sle-ok-button release-notes-sle-close-button)], 300);
         }
         for my $a (@addons) {
             next if grep { $a eq $_ } @no_relnotes;
