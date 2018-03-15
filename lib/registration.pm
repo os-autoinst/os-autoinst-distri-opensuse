@@ -423,18 +423,17 @@ sub fill_in_registration_data {
             }
         }
         else {
-            send_key $cmd{next};
+            wait_screen_change { send_key $cmd{next} };
             if (check_var('HDDVERSION', '12')) {
                 assert_screen 'yast-scc-emptypkg';
                 send_key 'alt-a';
             }
         }
     }
-    else {
-        if (!get_var('SCC_REGISTER', '') =~ /addon|network/) {
-            send_key $cmd{next};
-        }
+    elsif (!get_var('SCC_REGISTER', '') =~ /addon|network/) {
+        wait_screen_change { send_key $cmd{next} };
     }
+
 }
 
 sub select_addons_in_textmode {
