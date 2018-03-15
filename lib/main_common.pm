@@ -887,11 +887,11 @@ sub load_inst_tests {
 
 sub load_consoletests {
     return unless consolestep_is_applicable();
-    loadtest "locale/keymap_or_locale";
     if (get_var("ADDONS", "") =~ /rt/) {
         loadtest "rt/kmp_modules";
     }
     loadtest "console/consoletest_setup";
+    loadtest "locale/keymap_or_locale";
     loadtest "console/force_cron_run" unless is_jeos;
     if (get_var("LOCK_PACKAGE")) {
         loadtest "console/check_locked_package";
