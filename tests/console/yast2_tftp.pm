@@ -35,8 +35,8 @@ sub run {
     assert_screen 'yast2_tftp-server_configuration_enabled';
 
     # provide a new TFTP root directory path
-    send_key 'alt-t';    # select input field
-    assert_screen 'yast2_tftp-server_configuration_chdir';
+    # workaround to resolve problem with first key press is lost, improve stability here by retrying
+    send_key_until_needlematch 'yast2_tftp-server_configuration_chdir', 'alt-t', 2, 3;    # select input field
     for (1 .. 20) { send_key 'backspace'; }
     my $tftpboot_newdir = '/srv/tftpboot/new_dir';
     type_string $tftpboot_newdir;
@@ -45,30 +45,30 @@ sub run {
     # open port in firewall, if needed
     assert_screen([qw(yast2_tftp_open_port yast2_tftp_closed_port)]);
     if (match_has_tag('yast2_tftp_open_port')) {
-        send_key 'alt-f';    # open tftp port in firewall
+        send_key 'alt-f';                                                                 # open tftp port in firewall
         assert_screen 'yast2_tftp_port_opened';
-        send_key 'alt-i';    # open firewall details window
+        send_key 'alt-i';                                                                 # open firewall details window
         assert_screen 'yast2_tftp_firewall_details';
-        send_key 'alt-o';    # close the window
+        send_key 'alt-o';                                                                 # close the window
         assert_screen 'yast2_tftp_closed_port';
     }
 
     # view log
-    send_key 'alt-v';        # open log window
+    send_key 'alt-v';                                                                     # open log window
     assert_screen([qw(yast2_tftp_view_log_error yast2_tftp_view_log_show)]);
     if (match_has_tag('yast2_tftp_view_log_error')) {
         # softfail for opensuse when error for view log throws out
         record_soft_failure "bsc#1008493";
-        send_key 'alt-o';    # confirm the error message
+        send_key 'alt-o';                                                                 # confirm the error message
     }
-    send_key 'alt-c';        # close the window
+    send_key 'alt-c';                                                                     # close the window
     assert_screen 'yast2_tftp_closed_port';
     # now finish tftp server configuration
-    send_key 'alt-o';        # confirm changes
+    send_key 'alt-o';                                                                     # confirm changes
 
     # and confirm for creating new directory
     assert_screen 'yast2_tftp_create_new_directory';
-    send_key 'alt-y';        # approve creation of new directory
+    send_key 'alt-y';                                                                     # approve creation of new directory
 
     # wait for yast2 tftp configuration completion
     wait_serial("yast2-tftp-server-status-0", 180) || die "'yast2 tftp-server' failed";
