@@ -23,7 +23,7 @@ sub run {
     my $errors = '';
     # Verify services configured for external zone
     my $zone_config = script_output('firewall-offline-cmd --list-services --zone=public');
-    $errors .= "services are not configured for public zone, expected http and https, got: $zone_config\n" unless $zone_config =~ /http https/;
+    $errors .= "services are not configured for public zone, expected apache2 apache2-ssl, got: $zone_config\n" unless $zone_config =~ /apache2 apache2-ssl/;
     # Verify ports configured for external zone
     $zone_config = script_output('firewall-offline-cmd --list-ports --zone=public');
     $errors .= "ports are not configured for public zone, expected 8080/tcp 9090/udp, got: $zone_config\n" unless $zone_config =~ m|8080/tcp 9090/udp|;
