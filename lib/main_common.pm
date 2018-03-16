@@ -479,6 +479,15 @@ sub load_docker_tests {
     }
 }
 
+sub load_system_role_tests {
+    # Do not run on REMOTE_CONTROLLER, IPMI and on Hyper-V in GUI mode
+    if (!get_var("REMOTE_CONTROLLER") && !check_var('BACKEND', 'ipmi') && !is_hyperv_in_gui && !get_var("LIVECD")) {
+        loadtest "installation/logpackages";
+    }
+    loadtest "installation/disable_online_repos" if get_var('DISABLE_ONLINE_REPOS');
+    loadtest "installation/installer_desktopselection" if is_opensuse;
+}
+
 sub installzdupstep_is_applicable {
     return !get_var("NOINSTALL") && !get_var("RESCUECD") && get_var("ZDUP");
 }
@@ -685,6 +694,10 @@ sub load_inst_tests {
     if (is_opensuse && noupdatestep_is_applicable() && !get_var("LIVECD")) {
         loadtest "installation/installation_mode";
     }
+    # Run system_role/desktop selection tests if using the new openSUSE installation flow
+    if (is_opensuse && noupdatestep_is_applicable() && get_var("SYSTEM_ROLE_FIRST_FLOW")) {
+        load_system_role_tests;
+    }
     if (!get_var("LIVECD") && get_var("UPGRADE")) {
         loadtest "installation/upgrade_select";
         if (check_var("UPGRADE", "LOW_SPACE")) {
@@ -808,12 +821,10 @@ sub load_inst_tests {
         {
             loadtest "installation/hostname_inst";
         }
-        # Do not run on REMOTE_CONTROLLER, IPMI and on Hyper-V in GUI mode
-        if (!get_var("REMOTE_CONTROLLER") && !check_var('BACKEND', 'ipmi') && !is_hyperv_in_gui && !get_var("LIVECD")) {
-            loadtest "installation/logpackages";
+        # Do not run system_role/desktop selection if using the new openSUSE installation flow
+        if (!get_var("SYSTEM_ROLE_FIRST_FLOW")) {
+            load_system_role_tests;
         }
-        loadtest "installation/disable_online_repos" if get_var('DISABLE_ONLINE_REPOS');
-        loadtest "installation/installer_desktopselection" if is_opensuse;
         if (is_sles4sap()) {
             if (
                 is_sles4sap_standard()    # Schedule module only for SLE15 with non-default role
