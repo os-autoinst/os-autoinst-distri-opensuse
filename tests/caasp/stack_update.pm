@@ -62,7 +62,9 @@ sub run {
 
     my $nodes = get_required_var('STACK_NODES');
     assert_screen "velum-$nodes-nodes-outdated";
-    die "Can't update nodes before admin" if check_screen "velum-update-all", 0;
+    if (check_screen "velum-update-all", 0) {
+        record_soft_failure 'bnc#1085677 - Should not update nodes before admin';
+    }
 
     # Update admin node (~160s for admin reboot)
     assert_and_click 'velum-update-admin';
