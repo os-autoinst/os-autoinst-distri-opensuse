@@ -357,7 +357,7 @@ sub fill_in_registration_data {
                 wait_still_screen 2;
             }
             # start addons/modules registration, it needs longer time if select multiple or all addons/modules
-            my $counter = 30;
+            my $counter = 50;
             while ($counter--) {
                 assert_screen [
                     qw(import-untrusted-gpg-key yast_scc-pkgtoinstall yast-scc-emptypkg inst-addon contacting-registration-server refreshing-repository)];
