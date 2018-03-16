@@ -76,8 +76,8 @@ sub handle_all_packages_medium {
     my $counter = 2 + (scalar @addons_license_tags);
     my $addon_license_num = 0;
     while ($counter--) {
-        assert_screen([qw(addon-products sle-product-license-agreement)], 60);
-        last if (match_has_tag 'addon-products');
+        assert_screen([qw(addon-products-nonempty sle-product-license-agreement)], 60);
+        last if (match_has_tag 'addon-products-nonempty');
         if (match_has_tag 'sle-product-license-agreement') {
             if (@addons_license_tags && check_screen(\@addons_license_tags)) {
                 $addon_license_num++;
@@ -86,12 +86,12 @@ sub handle_all_packages_medium {
                 record_soft_failure 'bsc#1081647';
             }
             wait_screen_change { send_key 'alt-a' };
-            send_key 'alt-n';
+            wait_screen_change { send_key 'alt-n' };
         }
     }
     record_info "Error", "License agreement not shown for some addons", result => 'fail'
       if @addons_license_tags && ($addon_license_num != scalar @addons_license_tags);
-    assert_screen "addon-products";
+    assert_screen "addon-products-nonempty";
     # Confirm all required addons are properly added
     foreach (@addons) {
         send_key 'home';
