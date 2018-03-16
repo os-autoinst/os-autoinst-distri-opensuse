@@ -42,6 +42,7 @@ sub run {
     type_string("yes\n");
     assert_screen("password-prompt");
     type_string("$password\n");
+    assert_screen 'root-console';
 
     # Push update via ssh
     assert_script_run("cd ~/repos/qa2;echo \"Update\" >> README");
@@ -50,6 +51,7 @@ sub run {
     script_run("git push ssh://localhost:/root/repos/qa0 | tee /dev/$serialdev", 0);
     assert_screen("password-prompt");
     type_string("$password\n");
+    assert_screen 'root-console';
 
     # git clone via https protocol
     assert_script_run("cd ~;git clone -q https://github.com/os-autoinst/os-autoinst-distri-example");
