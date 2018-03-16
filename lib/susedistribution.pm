@@ -16,7 +16,7 @@ use testapi qw(send_key %cmd assert_screen check_screen check_var get_var save_s
 
 sub handle_password_prompt {
     if (!get_var("LIVETEST") && !get_var('LIVECD')) {
-        assert_screen "password-prompt";
+        assert_screen "password-prompt", get_var("S390_ZKVM") ? 120 : undef;
         type_password;
         send_key('ret');
     }
