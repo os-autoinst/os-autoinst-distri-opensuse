@@ -940,6 +940,7 @@ elsif (get_var('ISO_IN_EXTERNAL_DRIVE')) {
 }
 # post registration testsuites using suseconnect or yast
 elsif (have_scc_repos()) {
+    load_bootloader_s390x();    # schedule svirt/s390x bootloader if required
     loadtest "boot/boot_to_desktop";
     if (get_var('USE_SUSECONNECT')) {
         loadtest "console/suseconnect_scc";
