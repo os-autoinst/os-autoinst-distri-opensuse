@@ -15,7 +15,7 @@ use lockapi;
 use needle;
 use registration;
 use utils;
-use version_utils qw(is_hyperv_in_gui is_caasp is_installcheck is_rescuesystem sle_version_at_least is_desktop_installed is_jeos is_sle is_staging is_upgrade);
+use version_utils qw(is_caasp is_installcheck is_rescuesystem sle_version_at_least is_desktop_installed is_jeos is_sle is_staging is_upgrade);
 use File::Find;
 use File::Basename;
 use LWP::Simple 'head';

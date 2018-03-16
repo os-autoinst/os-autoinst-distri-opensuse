@@ -308,6 +308,7 @@ sub load_svirt_boot_tests {
 
 sub load_svirt_vm_setup_tests {
     return unless check_var('BACKEND', 'svirt');
+    set_bridged_networking;
     if (check_var("VIRSH_VMM_FAMILY", "hyperv")) {
         loadtest "installation/bootloader_hyperv";
     }
@@ -649,9 +650,7 @@ sub load_bootloader_s390x {
 
 sub boot_hdd_image {
     get_required_var('BOOT_HDD_IMAGE');
-    if (check_var("BACKEND", "svirt")) {
-        loadtest "installation/bootloader_svirt" unless load_bootloader_s390x();
-    }
+    load_svirt_vm_setup_tests if check_var("BACKEND", "svirt") && !load_bootloader_s390x;
     if (get_var('UEFI') && (get_var('BOOTFROM') || get_var('BOOT_HDD_IMAGE'))) {
         loadtest "boot/uefi_bootmenu";
     }

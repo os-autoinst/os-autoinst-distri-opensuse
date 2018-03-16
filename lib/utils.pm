@@ -41,6 +41,7 @@ our @EXPORT = qw(
   ensure_unlocked_desktop
   install_to_other_at_least
   is_bridged_networking
+  set_bridged_networking
   ensure_fullscreen
   reboot_x11
   poweroff_x11
@@ -408,6 +409,10 @@ sub install_to_other_at_least {
 }
 
 sub is_bridged_networking {
+    return get_var('BRIDGED_NETWORKING');
+}
+
+sub set_bridged_networking {
     my $ret = 0;
     if (check_var('BACKEND', 'svirt') and !check_var('ARCH', 's390x')) {
         my $vmm_family = get_required_var('VIRSH_VMM_FAMILY');
@@ -962,7 +967,8 @@ sub get_x11_console_tty {
       = !is_sle('<15')
       && !is_leap('<15.0')
       && !is_caasp
-      && !get_var('VERSION_LAYERED');
+      && !get_var('VERSION_LAYERED')
+      && !check_var('VIRSH_VMM_FAMILY', 'hyperv');
     return (check_var('DESKTOP', 'gnome') && get_var('NOAUTOLOGIN') && $new_gdm) ? 2 : 7;
 }
 
@@ -1002,6 +1008,7 @@ test user as well as root.
 =cut
 sub ensure_serialdev_permissions {
     my ($self) = @_;
+    return if get_var('SERIALDEV_PERMISSIONS_SET');
     # ownership has effect immediately, group change is for effect after
     # reboot an alternative https://superuser.com/a/609141/327890 would need
     # handling of optional sudo password prompt within the exec
@@ -1012,6 +1019,7 @@ sub ensure_serialdev_permissions {
     else {
         assert_script_run "chown $testapi::username /dev/$testapi::serialdev && gpasswd -a $testapi::username \$(stat -c %G /dev/$testapi::serialdev)";
     }
+    set_var('SERIALDEV_PERMISSIONS_SET', 1);
 }
 
 =head2 exec_and_insert_password
