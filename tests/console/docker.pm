@@ -63,7 +63,7 @@ sub run {
     my $last_released_leap_version = '42.3';
     assert_script_run("docker image pull opensuse:$last_released_leap_version", timeout => 300);
     #   - pull image of openSUSE Tumbleweed
-    assert_script_run('docker image pull opensuse:tumbleweed', timeout => 300);
+    assert_script_run('docker image pull opensuse/tumbleweed', timeout => 300);
 
     # local images can be listed
     #   - BUG https://github.com/docker/for-linux/issues/220
@@ -75,7 +75,7 @@ sub run {
     assert_script_run(qq{docker image ls hello-world | grep "hello-world\\s*latest"});
     #   - all local images
     my $local_images_list = script_output('docker image ls');
-    die('docker image opensuse:tumbleweed not found')                  unless ($local_images_list =~ /opensuse\s*tumbleweed/);
+    die('docker image opensuse/tumbleweed not found')                  unless ($local_images_list =~ /opensuse\/tumbleweed\s*latest/);
     die("docker image opensuse:$last_released_leap_version not found") unless ($local_images_list =~ /opensuse\s*\Q$last_released_leap_version\E/);
 
     # containers can be spawned
@@ -89,7 +89,7 @@ sub run {
     assert_script_run(qq{docker container run --name test_ephemeral --rm alpine:$alpine_image_version /bin/echo Hello world | grep "Hello world"});
     #   - using 'run -d' and 'inspect' (background container)
     my $container_name = 'tw';
-    assert_script_run("docker container run -d --name $container_name opensuse:tumbleweed tail -f /dev/null");
+    assert_script_run("docker container run -d --name $container_name opensuse/tumbleweed tail -f /dev/null");
     assert_script_run("docker container inspect --format='{{.State.Running}}' $container_name | grep true");
     my $output_containers = script_output('docker container ls -a');
     die('error: missing container test_1') unless ($output_containers =~ m/test_1/);
@@ -121,10 +121,10 @@ sub run {
     die("error: container was not removed: $cmd_docker_container_prune") if ($output_containers =~ m/test_2/);
 
     # images can be deleted
-    my $cmd_docker_rmi = "docker image rm alpine:$alpine_image_version hello-world opensuse:$last_released_leap_version opensuse:tumbleweed tw:saved";
+    my $cmd_docker_rmi = "docker image rm alpine:$alpine_image_version hello-world opensuse:$last_released_leap_version opensuse/tumbleweed tw:saved";
     my $output_deleted = script_output($cmd_docker_rmi);
     die("error: docker image rm opensuse:$last_released_leap_version") unless ($output_deleted =~ m/Untagged: opensuse:$last_released_leap_version/);
-    die('error: docker image rm opensuse:tumbleweed')                  unless ($output_deleted =~ m/Untagged: opensuse:tumbleweed/);
+    die('error: docker image rm opensuse/tumbleweed')                  unless ($output_deleted =~ m/Untagged: opensuse\/tumbleweed/);
     die('error: docker image rm tw:saved')                             unless ($output_deleted =~ m/Untagged: tw:saved/);
     die("error: docker image rm alpine:$alpine_image_version")         unless ($output_deleted =~ m/Untagged: alpine:$alpine_image_version/);
     die('error: docker image rm hello-world:latest')                   unless ($output_deleted =~ m/Untagged: hello-world:latest/);
