@@ -465,19 +465,7 @@ sub load_slenkins_tests {
 }
 
 sub load_cluster_boot {
-    if (check_var('ARCH', 'aarch64')) {
-        # We need to boot *before* waiting for support server
-        # Because of TianoCore UEFI boot method
-        loadtest "boot/boot_to_desktop";
-        # Wait for support server to complete its initialization
-        loadtest "support_server/wait_support_server";
-        # TODO: poo#32110 add reboot or ensure that network is up
-    }
-    else {
-        # Wait for support server to complete its initialization
-        loadtest "support_server/wait_support_server";
-        loadtest "boot/boot_to_desktop";
-    }
+    boot_hdd_image;
     # Standard boot and configuration
     loadtest "qa_automation/patch_and_reboot" if is_updates_tests;
     loadtest "console/consoletest_setup"      if is_updates_tests;
@@ -488,13 +476,7 @@ sub load_cluster_boot {
 
 sub load_ha_cluster_tests {
     return unless (get_var("HA_CLUSTER"));
-
-    # We need to boot *before* waiting for support server
-    # Because of TianoCore UEFI boot method
-    loadtest "boot/boot_to_desktop";
-
-    # Wait for support server to complete its initialization
-    loadtest "support_server/wait_support_server";
+    boot_hdd_image;
 
     # Standard boot and configuration
     loadtest "qa_automation/patch_and_reboot" if is_updates_tests;
@@ -665,24 +647,12 @@ elsif (get_var('NFV')) {
         load_nfv_trafficgen_tests();
     }
 }
-elsif (get_var("REGRESSION")) {
+elsif (get_var('REGRESSION')) {
     load_common_x11;
-    if (check_var("REGRESSION", "firefox")) {
-        loadtest "boot/boot_to_desktop";
-        load_x11_firefox();
-    }
-    elsif (check_var("REGRESSION", "message")) {
-        loadtest "boot/boot_to_desktop";
-        load_x11_message();
-    }
-    elsif (check_var('REGRESSION', 'remote')) {
-        loadtest 'boot/boot_to_desktop';
-        load_x11_remote();
-    }
-    elsif (check_var("REGRESSION", "piglit")) {
-        loadtest "boot/boot_to_desktop";
-        loadtest "x11/piglit/piglit";
-    }
+    return load_x11_firefox() if check_var('REGRESSION', 'firefox');
+    return load_x11_message() if check_var('REGRESSION', 'message');
+    return load_x11_remote() if check_var('REGRESSION', 'remote');
+    return loadtest "x11/piglit/piglit" if check_var('REGRESSION', 'piglit');
 }
 elsif (get_var("FEATURE")) {
     prepare_target();
@@ -940,8 +910,7 @@ elsif (get_var('ISO_IN_EXTERNAL_DRIVE')) {
 }
 # post registration testsuites using suseconnect or yast
 elsif (have_scc_repos()) {
-    load_bootloader_s390x();    # schedule svirt/s390x bootloader if required
-    loadtest "boot/boot_to_desktop";
+    boot_hdd_image;
     if (get_var('USE_SUSECONNECT')) {
         loadtest "console/suseconnect_scc";
     }
@@ -960,7 +929,7 @@ elsif (get_var('HPC')) {
             load_cluster_boot();
         }
         else {
-            loadtest 'boot/boot_to_desktop';
+            boot_hdd_image;
             loadtest 'hpc/setup_network' if check_var('NICTYPE', 'tap');
         }
         loadtest 'hpc/enable_in_zypper' if (sle_version_at_least('15'));
@@ -995,7 +964,7 @@ else {
         loadtest "installation/first_boot";
     }
     elsif (get_var("SES_NODE")) {
-        loadtest "boot/boot_to_desktop";
+        boot_hdd_image;
         loadtest "ses/nodes_preparation";
         loadtest "ses/deepsea_testsuite";
         return 1;
@@ -1031,8 +1000,7 @@ else {
             loadtest "rt/boot_rt_kernel";
         }
         else {
-            load_bootloader_s390x();
-            loadtest "boot/boot_to_desktop";
+            boot_hdd_image;
             if (get_var("ADDONS")) {
                 loadtest "installation/addon_products_yast2";
             }

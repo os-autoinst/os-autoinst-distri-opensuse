@@ -655,8 +655,16 @@ sub boot_hdd_image {
     if (get_var('UEFI') && (get_var('BOOTFROM') || get_var('BOOT_HDD_IMAGE'))) {
         loadtest "boot/uefi_bootmenu";
     }
-    loadtest "support_server/wait_support_server" if get_var('USE_SUPPORT_SERVER');
-    loadtest "boot/boot_to_desktop";
+    # TODO why does HA_CLUSTER need on non-aarch64 the same schedule?
+    if (check_var('ARCH', 'aarch64') || get_var('HA_CLUSTER')) {
+        # We need to boot *before* waiting for support server
+        # Because of TianoCore UEFI boot method
+        loadtest "boot/boot_to_desktop";
+        loadtest "support_server/wait_support_server" if get_var('USE_SUPPORT_SERVER');
+    } else {
+        loadtest "support_server/wait_support_server" if get_var('USE_SUPPORT_SERVER');
+        loadtest "boot/boot_to_desktop";
+    }
 }
 
 sub load_common_installation_steps_tests {
@@ -1554,21 +1562,11 @@ sub load_x11_other {
 }
 
 sub load_common_x11 {
-    if (check_var("REGRESSION", "installation")) {
-        load_x11_installation;
-    }
-    elsif (check_var("REGRESSION", "gnome")) {
-        loadtest "boot/boot_to_desktop";
-        load_x11_gnome();
-    }
-    elsif (check_var("REGRESSION", "documentation")) {
-        loadtest "boot/boot_to_desktop";
-        load_x11_documentation();
-    }
-    elsif (check_var("REGRESSION", "other")) {
-        loadtest "boot/boot_to_desktop";
-        load_x11_other();
-    }
+    return load_x11_installation if check_var('REGRESSION', 'installation');
+    boot_hdd_image;
+    return load_x11_gnome() if check_var('REGRESSION', 'gnome');
+    return load_x11_documentation() if check_var('REGRESSION', 'documentation');
+    return load_x11_other() if check_var('REGRESSION', 'other');
 }
 
 # Move fips testsuites to main_common to apply to SLE_FIPS + openSUSE
