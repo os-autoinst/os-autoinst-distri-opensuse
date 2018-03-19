@@ -16,10 +16,11 @@ use warnings;
 use testapi;
 use utils;
 use lockapi;
+use serial_terminal 'select_virtio_console';
 
 sub run {
-    my $self = shift;
-    select_console 'root-console';
+    my ($self) = @_;
+    select_virtio_console();
 
     # disable packagekitd
     pkcon_quit();

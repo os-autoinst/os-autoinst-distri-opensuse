@@ -1044,15 +1044,30 @@ sub ensure_serialdev_permissions {
 }
 
 =head2 exec_and_insert_password
-Execute a command that ask for a password and insert it.
+
+    exec_and_insert_password($cmd);
+
+ 1. Execute a command that ask for a password.
+ 2. Detects password prompt
+ 3. Insert password and hits enter
+
 =cut
 sub exec_and_insert_password {
-    my $cmd = shift;
+    my ($cmd) = @_;
+    my $hashed_cmd = hashed_string("SR$cmd");
+    wait_serial(serial_terminal::serial_term_prompt(), undef, 0, no_regex => 1) if is_serial_terminal();
     type_string "$cmd";
-    send_key "ret";
-    assert_screen('password-prompt', 60);
+    if (is_serial_terminal()) {
+        type_string " ; echo $hashed_cmd-\$?-\n";
+        wait_serial(qr/Password:\s*$/i);
+    }
+    else {
+        send_key 'ret';
+        assert_screen('password-prompt', 60);
+    }
     type_password;
     send_key "ret";
+    wait_serial(qr/$hashed_cmd-\d+-/) if is_serial_terminal();
 }
 
 =head2 shorten_url

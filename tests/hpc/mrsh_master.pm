@@ -51,8 +51,7 @@ sub run {
     assert_script_run("chmod 666 /dev/$serialdev");
 
     # run mrlogin, mrcp, and mrsh (as normal and local user, e.g. nobody)
-    type_string("su - nobody\n");
-    assert_screen("user-nobody");
+    $self->switch_user('nobody');
     for (my $node = 1; $node < $nodes; $node++) {
         my $node_name = sprintf("mrsh-slave%02d", $node);
         type_string("mrlogin ${node_name} \n");
