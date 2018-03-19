@@ -148,18 +148,15 @@ sub set_lvm {
     type_string "root";
     assert_screen 'volume-name-root';
     send_key $cmd{next};
+    assert_screen('volume-name-root-max-size');
     send_key $cmd{next};
 
     assert_screen 'volume-pick-fs-role';
-    send_key "alt-o";    # Operating System
+    send_key "alt-o";
+    assert_screen('volume-pick-os-role');
     send_key $cmd{next};
-    if (is_storage_ng) {
-        assert_screen 'volume-mount-as-root';
-        send_key $cmd{next};
-    }
-
-    # keep default to mount as root and btrfs
-    wait_screen_change { send_key is_storage_ng() ? $cmd{next} : $cmd{finish}; };
+    assert_screen 'volume-mount-as-root';
+    send_key is_storage_ng() ? $cmd{next} : $cmd{finish};
 }
 
 sub modify_uefi_boot_partition {
@@ -472,7 +469,7 @@ sub run {
     # LVM on top of raid if needed
     if (get_var("LVM")) {
         set_lvm();
-        save_screenshot;
+        assert_screen('partitioning_raid-root_volume_created');
     }
 
     # done
