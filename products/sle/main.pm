@@ -415,7 +415,7 @@ sub load_x11_remote {
     # load onetime vncsession testing
     if (check_var('REMOTE_DESKTOP_TYPE', 'one_time_vnc')) {
         loadtest 'x11/remote_desktop/onetime_vncsession_xvnc_tigervnc';
-        loadtest 'x11/remote_desktop/onetime_vncsession_xvnc_java';
+        loadtest 'x11/remote_desktop/onetime_vncsession_xvnc_java' if is_sle('<15');
         loadtest 'x11/remote_desktop/onetime_vncsession_multilogin_failed';
     }
     # load persistemt vncsession, x11 forwarding, xdmcp with gdm testing

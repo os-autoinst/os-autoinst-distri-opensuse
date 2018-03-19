@@ -24,7 +24,7 @@ use lockapi;
 use utils;
 
 sub start_vncviewer {
-    x11_start_program('vncviewer 10.0.2.1:1 -Fullscreen', target_match => [qw(displaymanager vnc_certificate_warning)]);
+    x11_start_program('vncviewer 10.0.2.1:1 -Fullscreen -SecurityTypes None', target_match => [qw(displaymanager vnc_certificate_warning)]);
     if (match_has_tag 'vnc_certificate_warning') {
         send_key 'ret';
         assert_screen [qw(displaymanager vnc_certificate_warning-2)];

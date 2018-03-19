@@ -262,8 +262,6 @@ sub setup_xvnc_server {
         send_key 'alt-a';
     }
     wait_still_screen 3;
-    send_key 'alt-p';
-    wait_still_screen 3;
     send_key 'alt-o';
     if (check_var('REMOTE_DESKTOP_TYPE', 'persistent_vnc')) {
         assert_screen 'xvnc-vncmanager-required';
@@ -273,6 +271,7 @@ sub setup_xvnc_server {
     send_key 'ret';
     wait_serial('yast-remote-status-0', 90) || die "'yast remote' didn't finish";
     wait_still_screen 3;
+    assert_script_run 'yast2 firewall services add zone=EXT service=service:vnc-server';
     systemctl('restart display-manager');
     assert_screen 'displaymanager';
     select_console 'root-console';
