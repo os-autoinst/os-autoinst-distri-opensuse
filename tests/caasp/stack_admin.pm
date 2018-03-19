@@ -73,12 +73,7 @@ sub run() {
 sub post_fail_hook {
     # Variable to enable failed cluster debug
     sleep if check_var('DEBUG_SLEEP', 'admin');
-
-    script_run "journalctl > journal.log";
-    upload_logs "journal.log";
-
-    script_run 'supportconfig -i psuse_caasp -B supportconfig', 120;
-    upload_logs '/var/log/nts_supportconfig.tbz';
+    export_cluster_logs;
 }
 
 1;

@@ -52,7 +52,7 @@ sub export_cluster_logs {
     script_run "journalctl > journal.log", 60;
     upload_logs "journal.log";
 
-    script_run 'supportconfig -i psuse_caasp -B supportconfig', 120;
+    script_run 'supportconfig -b -B supportconfig', 500;
     upload_logs '/var/log/nts_supportconfig.tbz';
 
     upload_logs('/var/log/transactional-update.log', failok => 1);
