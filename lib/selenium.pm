@@ -90,8 +90,7 @@ sub install_chromium {
 }
 
 sub enable_selenium_port {
-    assert_script_run("sed -i -e 's|FW_SERVICES_EXT_TCP=\"\\(.*\\)\"|FW_SERVICES_EXT_TCP=\"\\1 $port\"|' /etc/sysconfig/SuSEfirewall2");
-    assert_script_run("rcSuSEfirewall2 restart");
+    assert_script_run('systemctl stop ' . opensusebasetest::firewall());
 }
 
 my $driver;
