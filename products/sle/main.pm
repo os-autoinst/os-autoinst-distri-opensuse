@@ -481,7 +481,6 @@ sub load_cluster_boot {
     # Standard boot and configuration
     loadtest "qa_automation/patch_and_reboot" if is_updates_tests;
     loadtest "console/consoletest_setup"      if is_updates_tests;
-    loadtest "console/hostname";
 
     return 1;
 }
@@ -957,40 +956,20 @@ elsif (have_scc_repos()) {
     }
 }
 elsif (get_var('HPC')) {
-    if (check_var('HPC', 'install')) {
-        load_boot_tests();
-        load_inst_tests();
-        load_reboot_tests();
+    if (get_var('CLUSTER_NODES')) {
+        load_cluster_boot();
     }
     else {
-        if (get_var('CLUSTER_NODES')) {
-            load_cluster_boot();
-        }
-        else {
-            loadtest 'boot/boot_to_desktop';
-            loadtest 'hpc/setup_network' if check_var('NICTYPE', 'tap');
-        }
-        loadtest 'hpc/enable_in_zypper' if (sle_version_at_least('15'));
-        if (check_var('HPC', 'conman')) {
-            loadtest 'hpc/conman';
-        }
-        elsif (check_var('HPC', 'powerman')) {
-            loadtest 'console/hostname';
-            loadtest 'hpc/powerman';
-        }
-        elsif (check_var('HPC', 'hwloc') && sle_version_at_least('12-SP2')) {
-            loadtest 'console/hwloc_testsuite';
-        }
-        else {
-            loadtest 'console/install_all_from_repository' if (get_var('INSTALL_ALL_REPO'));
-            loadtest 'console/install_single_package'      if (get_var('PACKAGETOINSTALL'));
-
-            # load hpc multimachine scenario based on value of HPC variable
-            # e.g 'hpc/$testsuite_[master|slave].pm'
-            my $hpc_mm_scenario = get_var('HPC');
-            loadtest "hpc/$hpc_mm_scenario" if $hpc_mm_scenario ne '1';
-        }
+        loadtest 'boot/boot_to_desktop';
     }
+    loadtest 'hpc/before_test';
+    loadtest 'console/install_all_from_repository' if (get_var('INSTALL_ALL_REPO'));
+    loadtest 'console/install_single_package'      if (get_var('PACKAGETOINSTALL'));
+
+    # load hpc multimachine scenario based on value of HPC variable
+    # e.g 'hpc/$testsuite_[master|slave].pm'
+    my $hpc_mm_scenario = get_var('HPC');
+    loadtest "hpc/$hpc_mm_scenario" if $hpc_mm_scenario ne '1';
 }
 elsif (get_var('SYSTEMD_TESTSUITE')) {
     load_systemd_patches_tests;

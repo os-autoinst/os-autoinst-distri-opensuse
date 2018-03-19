@@ -74,6 +74,7 @@ our @EXPORT = qw(
   exec_and_insert_password
   shorten_url
   reconnect_s390
+  set_hostname
 );
 
 
@@ -419,6 +420,31 @@ sub is_bridged_networking {
     # Some needles match hostname which we can't set permanently with bridge.
     set_var('BRIDGED_NETWORKING', 1) if $ret;
     return $ret;
+}
+
+=head2 set_hostname
+
+    set_hostname($hostname);
+
+Setting hostname according input parameter using hostnamectl.
+Calling I<reload-or-restart> to make sure that network stack will propogate
+hostname into DHCP/DNS
+
+if you change hostname using C<hostnamectl set-hostname>, then C<hostname -f>
+will fail with I<hostname: Name or service not known> also DHCP/DNS don't know
+about the changed hostname, you need to send a new DHCP request to update
+dynamic DNS yast2-network module does 
+C<NetworkService.ReloadOrRestart if Stage.normal || !Linuxrc.usessh>
+if hostname is changed via C<yast2 lan>
+=cut
+sub set_hostname {
+    my ($hostname) = @_;
+    assert_script_run "hostnamectl set-hostname $hostname";
+    assert_script_run "hostnamectl status|grep $hostname";
+    assert_script_run "hostname|grep $hostname";
+    systemctl 'status network.service';
+    save_screenshot;
+    assert_script_run "if systemctl -q is-active network.service; then systemctl reload-or-restart network.service; fi";
 }
 
 sub ensure_fullscreen {

@@ -30,9 +30,6 @@ sub run {
     mutex_lock("GANGLIA_SERVER_BARRIERS_CONFIGURED");
     mutex_unlock("GANGLIA_SERVER_BARRIERS_CONFIGURED");
 
-    # Stop firewall
-    systemctl 'stop ' . $self->firewall;
-
     zypper_call 'in ganglia-gmond';
 
     # wait for gmetad to be started

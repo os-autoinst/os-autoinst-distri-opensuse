@@ -25,9 +25,6 @@ sub run {
     mutex_lock("MUNGE_MASTER_BARRIERS_CONFIGURED");
     mutex_unlock("MUNGE_MASTER_BARRIERS_CONFIGURED");
 
-    # Stop firewall
-    systemctl 'stop ' . $self->firewall;
-
     # install munge, wait for master and munge key
     zypper_call('in munge');
     barrier_wait('MUNGE_INSTALLATION_FINISHED');

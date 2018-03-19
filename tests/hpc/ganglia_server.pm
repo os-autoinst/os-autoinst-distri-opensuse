@@ -36,9 +36,6 @@ sub run {
     # Synchronize all slave nodes with master
     mutex_create("GANGLIA_SERVER_BARRIERS_CONFIGURED");
 
-    # Stop firewall
-    systemctl 'stop ' . $self->firewall;
-
     zypper_call('in ganglia-gmetad ganglia-gmond ganglia-gmetad-skip-bcheck');
     systemctl 'start gmetad';
     barrier_wait('GANGLIA_GMETAD_STARTED');

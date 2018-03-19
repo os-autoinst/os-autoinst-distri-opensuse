@@ -24,10 +24,7 @@ use susedistribution;
 
 sub run {
     my $self = shift;
-    select_console 'root-console';
 
-    # install conman
-    pkcon_quit();
     zypper_call('in conman');
 
     # add serial console to conman.conf
@@ -80,7 +77,7 @@ sub run {
 
 sub post_fail_hook {
     my ($self) = @_;
-    hpcbase::upload_service_log('conman');
+    $self->upload_service_log('conman');
 }
 
 1;

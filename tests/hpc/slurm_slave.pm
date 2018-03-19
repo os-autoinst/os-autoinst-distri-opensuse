@@ -26,9 +26,6 @@ sub run {
     mutex_lock("SLURM_MASTER_BARRIERS_CONFIGURED");
     mutex_unlock("SLURM_MASTER_BARRIERS_CONFIGURED");
 
-    # Stop firewall
-    systemctl 'stop ' . $self->firewall;
-
     # Install slurm
     zypper_call('in slurm-munge');
     # install slurm-node if sle15, not available yet for sle12

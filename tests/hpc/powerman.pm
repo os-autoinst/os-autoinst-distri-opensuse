@@ -24,10 +24,8 @@ use susedistribution;
 
 sub run {
     my $self = shift;
-    select_console 'root-console';
 
     # install powerman
-    pkcon_quit();
     zypper_call('in powerman');
 
     # Adapt config
@@ -68,7 +66,7 @@ EOF
 
 sub post_fail_hook {
     my ($self) = @_;
-    hpcbase::upload_service_log('powerman');
+    $self->upload_service_log('powerman');
 }
 
 1;
