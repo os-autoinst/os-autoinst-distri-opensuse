@@ -53,7 +53,7 @@ sub patching_sle {
     if (get_var('FULL_UPDATE')) {
         fully_patch_system();
         type_string "reboot\n";
-        $self->wait_boot(textmode => !is_desktop_installed(), ready_time => 600, bootloader_time => 200);
+        $self->wait_boot(textmode => !is_desktop_installed(), ready_time => 600, bootloader_time => 250);
 
         # Go back to the initial state, before the patching
         $self->setup_migration();
