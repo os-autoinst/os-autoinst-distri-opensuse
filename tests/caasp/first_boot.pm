@@ -20,7 +20,10 @@ use caasp 'process_reboot';
 
 sub run {
     # On VMX images bootloader_uefi eats grub2 needle
-    assert_screen 'grub2' unless is_caasp('VMX');
+    # On DVD images stall prevents reliable matching of BIOS needle - poo#28648
+    if (is_caasp('DVD') && !get_var('AUTOYAST')) {
+        assert_screen 'grub2';
+    }
 
     # Check ssh keys & ip information are displayed
     assert_screen 'linux-login-casp', 300;

@@ -133,6 +133,8 @@ sub run {
       = qw(bios-boot nonexisting-package reboot-after-installation linuxrc-install-fail scc-invalid-url warning-pop-up inst-betawarning autoyast-boot);
     push @needles, 'autoyast-confirm'        if get_var('AUTOYAST_CONFIRM');
     push @needles, 'autoyast-postpartscript' if get_var('USRSCR_DIALOG');
+    # bios-boot needle does not match if worker stalls during boot - poo#28648
+    push @needles, 'linux-login-casp' if is_caasp;
     # Autoyast reboot automatically without confirmation, usually assert 'bios-boot' that is not existing on zVM
     # So push a needle to check upcoming reboot on zVM that is a way to indicate the stage done
     push @needles, 'autoyast-stage1-reboot-upcoming' if check_var('BACKEND', 's390x');
@@ -148,7 +150,11 @@ sub run {
 
     mouse_hide(1);
     check_screen \@needles, $check_time;
-    until (match_has_tag('reboot-after-installation') || match_has_tag('bios-boot') || match_has_tag('autoyast-stage1-reboot-upcoming')) {
+    until (  match_has_tag('reboot-after-installation')
+          || match_has_tag('bios-boot')
+          || match_has_tag('autoyast-stage1-reboot-upcoming')
+          || match_has_tag('linux-login-casp'))
+    {
         #Verify timeout and continue if there was a match
         next unless verify_timeout_and_check_screen(($timer += $check_time), \@needles);
         if (match_has_tag('autoyast-boot')) {
