@@ -82,7 +82,8 @@ sub run {
           . "-subj '/C=DE/ST=Bayern/L=Nuremberg/O=Suse/OU=QA/CN=localhost/emailAddress=admin\@localhost' \\\n"
           . "-keyout $vsftpd_directives->{rsa_cert_file} -out $vsftpd_directives->{rsa_cert_file}\n");
 
-    die "certificate does not exist" if assert_script_run("[[ -e $vsftpd_directives->{rsa_cert_file} ]]");    # check vsftpd.pem is created
+    # check vsftpd.pem is created
+    die "certificate does not exist" if assert_script_run("[[ -e $vsftpd_directives->{rsa_cert_file} ]]");
 
     # unfortunately ftp needs to be add manually as firewalld service
     if ($self->firewall eq 'firewalld') {
@@ -94,33 +95,33 @@ sub run {
 
     # start yast2 ftp configuration
     type_string "yast2 ftp-server; echo yast2-ftp-server-status-\$? > /dev/$serialdev\n";
-    assert_screen 'ftp-server';                                                                               # check ftp server configuration page
-    send_key 'alt-w';                                                                                         # make sure ftp start-up when booting
-    assert_screen 'ftp_server_when_booting';                                                                  # check service start when booting
+    assert_screen 'ftp-server';                 # check ftp server configuration page
+    send_key 'alt-w';                           # make sure ftp start-up when booting
+    assert_screen 'ftp_server_when_booting';    # check service start when booting
 
     # General
     send_key_until_needlematch 'yast2_ftp_start-up_selected', 'tab';
     wait_screen_change { send_key 'down' };
-    wait_screen_change { send_key 'ret' };                                                                    # enter page General
+    wait_screen_change { send_key 'ret' };      # enter page General
 
     assert_screen 'yast2_tftp_general_selected';
-    assert_screen 'ftp_welcome_mesage';                                                                       # check welcome message for add strings
-    send_key 'alt-w';                                                                                         # select welcome message to edit
-    send_key_until_needlematch 'yast2_tftp_empty_welcome_message', 'backspace';                               # delete existing welcome strings
-    type_string($vsftpd_directives->{ftpd_banner});                                                           # type new welcome text
-    assert_screen 'ftp_welcome_message_added';                                                                # check new welcome text
-    send_key 'alt-u';                                                                                         # select umask for anounymous
-    type_string($vsftpd_directives->{anon_umask});                                                            # set 755
-    send_key 'alt-s';                                                                                         # select umask for authenticated users
-    type_string($vsftpd_directives->{local_umask});                                                           # set 755
-    assert_screen 'ftp_umask_value';                                                                          # check umask value
-    wait_screen_change { send_key 'alt-y' };                                                                  # give a new directory for anonymous users
+    assert_screen 'ftp_welcome_mesage';         # check welcome message for add strings
+    send_key 'alt-w';                           # select welcome message to edit
+    send_key_until_needlematch 'yast2_tftp_empty_welcome_message', 'backspace';    # delete existing welcome strings
+    type_string($vsftpd_directives->{ftpd_banner});                                # type new welcome text
+    assert_screen 'ftp_welcome_message_added';                                     # check new welcome text
+    send_key 'alt-u';                                                              # select umask for anounymous
+    type_string($vsftpd_directives->{anon_umask});                                 # set 755
+    send_key 'alt-s';                                                              # select umask for authenticated users
+    type_string($vsftpd_directives->{local_umask});                                # set 755
+    assert_screen 'ftp_umask_value';                                               # check umask value
+    wait_screen_change { send_key 'alt-y' };                                       # give a new directory for anonymous users
     send_key_until_needlematch 'yast2_tftp_empty_anon_dir', 'backspace';
     type_string($vsftpd_directives->{anon_root});
-    send_key 'alt-t';                                                                                         # give a new directory for authenticated users
+    send_key 'alt-t';                                                              # give a new directory for authenticated users
     wait_still_screen 1;
     type_string($vsftpd_directives->{local_root});
-    assert_screen 'yast2_ftp_general_directories';                                                            # check new directories for ftp users
+    assert_screen 'yast2_ftp_general_directories';                                 # check new directories for ftp users
     send_key 'alt-o';
     assert_screen 'yast2_ftp_directory_browse';
     send_key 'alt-c';
@@ -129,17 +130,17 @@ sub run {
     send_key_until_needlematch 'yast2_tftp_general_selected', 'shift-tab';
     wait_screen_change { send_key 'down' };
     wait_screen_change { send_key 'ret' };
-    send_key 'alt-m';                                                                                         # max idle time in minutes to 10
+    send_key 'alt-m';                                                              # max idle time in minutes to 10
     type_string_slow($vsftpd_directives->{idle_session_timeout} / 60 . "\n");
-    send_key 'alt-e';                                                                                         # change max client for one IP
+    send_key 'alt-e';                                                              # change max client for one IP
     type_string_slow($vsftpd_directives->{max_per_ip} . "\n");
-    send_key 'alt-x';                                                                                         # change max clients to 20
+    send_key 'alt-x';                                                              # change max clients to 20
     type_string_slow($vsftpd_directives->{max_clients} . "\n");
-    send_key 'alt-l';                                                                                         # change local max rate to 100 kb/s
+    send_key 'alt-l';                                                              # change local max rate to 100 kb/s
     type_string_slow($vsftpd_directives->{local_max_rate} / 1024 . "\n");
-    send_key 'alt-r';                                                                                         # change anonymous max rate to 50 kb/s
+    send_key 'alt-r';                                                              # change anonymous max rate to 50 kb/s
     type_string_slow($vsftpd_directives->{anon_max_rate} / 1024 . "\n");
-    assert_screen 'yast2_ftp_performance-settings';                                                           # check performance settings
+    assert_screen 'yast2_ftp_performance-settings';                                # check performance settings
 
     # Authentication
     send_key_until_needlematch 'yast2_tftp_performance_selected', 'shift-tab';
@@ -148,8 +149,8 @@ sub run {
     send_key 'alt-e';
     assert_screen 'yast2_ftp_authentication_enabled';
     wait_screen_change { send_key 'alt-y' };
-    send_key_until_needlematch 'yast2_tftp_anon_create_dir_disabled', 'alt-s';                                # disable creating directories
-    assert_screen 'yast2_ftp_anonymous_upload';                                                               # check upload settings
+    send_key_until_needlematch 'yast2_tftp_anon_create_dir_disabled', 'alt-s';     # disable creating directories
+    assert_screen 'yast2_ftp_anonymous_upload';                                    # check upload settings
 
     # Expert Settings
     send_key_until_needlematch 'yast2_tftp_authentication_selected', 'shift-tab';
@@ -167,11 +168,13 @@ sub run {
     assert_screen 'yast2_ftp_create_upload_dir_confirm';    # confirm to create upload directory
     wait_screen_change { send_key 'alt-y' };
     assert_screen 'yast2_ftp_expert_settings';              # check passive mode value and enable SSL
-    wait_screen_change { send_key 'alt-m' };
+    wait_still_screen;                                      # wait until yast loads expert settings data
+    send_key 'alt-m';
     type_string_slow($vsftpd_directives->{pasv_min_port} . "\n");
-    wait_screen_change { send_key('alt-a', 1) };
+    send_key 'alt-a';
     type_string_slow($vsftpd_directives->{pasv_max_port} . "\n");
-    wait_screen_change { send_key('alt-l', 3) };            # enable SSL, and wait with next step
+    wait_screen_change { send_key 'alt-l' };                # enable SSL, and wait with next step
+    wait_still_screen;
     wait_screen_change { send_key 'alt-s' };                # give path for DSA certificate
     type_string_slow($vsftpd_directives->{rsa_cert_file});
     assert_screen 'yast2_ftp_port_closed';
