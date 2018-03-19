@@ -31,13 +31,8 @@ sub run {
         assert_script_run 'btrfs property get /var/log ro | grep "ro=false"';
     }
 
-    if (is_caasp 'caasp') {
-        assert_script_run "grep '/ btrfs ro' /etc/fstab";
-        assert_script_run "mount | grep 'on / type btrfs (ro,'";
-    }
-    else {
-        record_soft_failure 'RO fstab check skiped because of bsc#1079000';
-    }
+    assert_script_run "grep '/ btrfs ro' /etc/fstab";
+    assert_script_run "mount | grep 'on / type btrfs (ro,'";
 }
 
 1;
