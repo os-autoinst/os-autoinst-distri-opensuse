@@ -18,8 +18,7 @@ use utils;
 sub verify_default_keymap_textmode {
     my ($test_string, $tag, %tty) = @_;
 
-    # test keymap in login prompt of generally unused tty3 and typing test string wait 3 seconds
-    defined($tty{console}) ? select_console($tty{console}) : send_key('alt-f3', 3);
+    defined($tty{console}) ? select_console($tty{console}) : send_key('alt-f3');
     type_string($test_string);
     assert_screen($tag);
     # clear line in order to add user bernhard to tty group
