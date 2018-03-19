@@ -70,7 +70,7 @@ sub gpg_generate_key {
     }
     else {
         # list gpg keys
-        validate_script_output("gpg --list-keys", sub { m/\[ultimate\] $user_name \<$email\>/ });
+        validate_script_output("gpg --list-keys", sub { m/\[ultimate\] $user_name \<$email\>/ }, 90);
     }
 }
 
