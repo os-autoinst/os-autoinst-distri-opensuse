@@ -24,12 +24,18 @@ sub run {
     # Return if profile is not available
     return unless $profile;
     # Expand variables
-    my @vars = qw(SCC_REGCODE SCC_URL VERSION ARCH);
-    foreach (@vars) {
-        my $value = get_var($_);
+    my @vars = qw(SCC_REGCODE SCC_URL VERSION ARCH HostIP);
+    for my $var (@vars) {
+        my $value;
+        if ($var eq 'HostIP') {
+            ($value) = get_var('S390_NETWORK_PARAMS') =~ /HostIP=(.*?)\//;
+        }
+        else {
+            $value = get_var($var);
+        }
         # Skip if value is not defined
         next unless $value;
-        $profile =~ s/\{\{$_\}\}/$value/g;
+        $profile =~ s/\{\{$var\}\}/$value/g;
     }
     # Upload modified profile
     save_tmp_file($path, $profile);

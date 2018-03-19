@@ -23,14 +23,17 @@ use utils 'power_action';
 
 sub run {
     my ($self) = @_;
-    # trying to change consoles manually because of bsc#1042554
-    send_key 'ctrl-alt-f2';
-    send_key 'alt-f2';
-    if (!check_screen 'text-login') {
-        record_soft_failure 'bsc#1042554';
-        send_key 'ctrl-alt-delete';
-        power_action('reboot', keepconsole => 0, observe => 0);
-        $self->wait_boot();
+    # Trying to change consoles manually because of bsc#1042554
+    # And no need on zVM
+    if (!check_var('BACKEND', 's390x')) {
+        send_key 'ctrl-alt-f2';
+        send_key 'alt-f2';
+        if (!check_screen 'text-login') {
+            record_soft_failure 'bsc#1042554';
+            send_key 'ctrl-alt-delete';
+            power_action('reboot', keepconsole => 0, observe => 0);
+            $self->wait_boot();
+        }
     }
     select_console 'root-console';
 }

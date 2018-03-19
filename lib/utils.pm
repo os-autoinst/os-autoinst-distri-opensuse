@@ -23,6 +23,7 @@ use strict;
 use testapi qw(is_serial_terminal :DEFAULT);
 use mm_network;
 use version_utils qw(is_caasp is_leap is_tumbleweed is_sle is_sle12_hdd_in_upgrade sle_version_at_least is_storage_ng);
+use Mojo::UserAgent;
 
 our @EXPORT = qw(
   check_console_font
@@ -71,6 +72,8 @@ our @EXPORT = qw(
   ensure_serialdev_permissions
   assert_and_click_until_screen_change
   exec_and_insert_password
+  shorten_url
+  reconnect_s390
 );
 
 
@@ -1024,6 +1027,85 @@ sub exec_and_insert_password {
     assert_screen('password-prompt', 60);
     type_password;
     send_key "ret";
+}
+
+=head2 shorten_url
+Shotren url via schort(s.qa.suse.de)
+This is mainly used for autoyast url shorten to avoid limit of x3270 xedit
+=cut
+sub shorten_url {
+    my ($url, %args) = @_;
+    $args{wishid} //= '';
+
+    my $ua = Mojo::UserAgent->new;
+
+    my $tx = $ua->post('s.qa.suse.de' => form => {url => $url, wishId => $args{wishid}});
+    if (my $res = $tx->success) {
+        return $res->body;
+    }
+    else {
+        my $err = $tx->error;
+        die "Shorten url got $err->{code} response: $err->{message}" if $err->{code};
+        die "Connection error when shorten url: $err->{message}";
+    }
+}
+
+sub _handle_login_not_found {
+    my ($str) = @_;
+    diag 'Expected welcome message not found, investigating bootup log content: ' . $str;
+    diag 'Checking for bootloader';
+    diag "WARNING: bootloader grub menue not found" unless $str =~ /GNU GRUB/;
+    diag 'Checking for ssh daemon';
+    diag "WARNING: ssh daemon in SUT is not available" unless $str =~ /Started OpenSSH Daemon/;
+    diag 'Checking for any welcome message';
+    die "no welcome message found, system seems to have never passed the bootloader (stuck or not enough waiting time)" unless $str =~ /Welcome to/;
+    diag 'Checking login target reached';
+    die "login target not reached" unless $str =~ /Reached target Login Prompts/;
+    diag 'Checking for login prompt';
+    die "no login prompt found" unless $str =~ /login:/;
+    diag 'Checking for known failure';
+    return record_soft_failure 'bsc#1040606 - incomplete message when LeanOS is implicitly selected instead of SLES'
+      if $str =~ /Welcome to SUSE Linux Enterprise 15/;
+    die "unknown error, system couldn't boot";
+}
+
+=head2 reconnect_s390
+After each reboot we have to reconnect to s390 host
+=cut
+sub reconnect_s390 {
+    my (%args) = @_;
+    $args{timeout} //= 300;
+
+    my $login_ready = 'qr/Welcome to SUSE Linux Enterprise Server.*\(s390x\)/;';
+    console('installation')->disable_vnc_stalls;
+
+    # different behaviour for z/VM and z/KVM
+    if (check_var('BACKEND', 's390x')) {
+        my $r;
+        eval { $r = console('x3270')->expect_3270(output_delim => $login_ready, timeout => $args{timeout}); };
+        if ($@) {
+            my $ret = $@;
+            _handle_login_not_found($ret);
+        }
+        reset_consoles;
+
+        # reconnect the ssh for serial grab
+        select_console('iucvconn');
+    }
+    else {
+        my $r = wait_serial($login_ready, 300);
+        if ($r =~ qr/Welcome to SUSE Linux Enterprise 15/) {
+            record_soft_failure('bsc#1040606');
+        }
+        elsif (is_sle) {
+            $r =~ qr/Welcome to SUSE Linux Enterprise Server/ || die "Correct welcome string not found";
+        }
+    }
+
+    # SLE >= 15 does not offer auto-started VNC server in SUT, only login prompt as in textmode
+    if (!check_var('DESKTOP', 'textmode') && !sle_version_at_least('15')) {
+        select_console('x11', await_console => 0);
+    }
 }
 
 1;

@@ -22,6 +22,7 @@ use English;
 
 use bootloader_setup;
 use registration;
+use utils 'shorten_url';
 
 # try to find the 2 longest lines that are below beyond the limit
 # collapsing the lines - we have a limit of 10 lines
@@ -94,6 +95,17 @@ sub prepare_parmfile {
 
     $params .= specific_bootmenu_params;
     $params .= registration_bootloader_cmdline if check_var('SCC_REGISTER', 'installation');
+
+    # Pass autoyast parameter for s390x, shorten the url because of 72 columns limit in x3270 xedit
+    # If 'AUTOYAST_PREPARE_PROFILE' is true, shorten url directly, otherwise shorten url with data_url method
+    if (get_var('AUTOYAST')) {
+        if (get_var('AUTOYAST_PREPARE_PROFILE')) {
+            $params .= " autoyast=" . shorten_url(get_var('AUTOYAST'));
+        }
+        else {
+            $params .= " autoyast=" . shorten_url(data_url(get_var('AUTOYAST')));
+        }
+    }
     return split_lines($params);
 }
 
@@ -272,7 +284,9 @@ sub run {
     my $c = select_console('iucvconn', await_console => 0);
 
     # we also want to test the formatting during the installation if the variable is set
-    if (!get_var("FORMAT_DASD_YAST") && !get_var('S390_DISK') && !get_var('UPGRADE')) {
+    # Skip format dasd before origin system installation by autoyast in 'Upgrade on zVM'
+    # due to channal not activation issue. Need further investigation on it.
+    if (!get_var("FORMAT_DASD_YAST") && !get_var('S390_DISK') && !get_var('UPGRADE') && !get_var('UPGRADE_ON_ZVM')) {
         format_dasd;
     }
 

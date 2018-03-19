@@ -19,10 +19,19 @@
 use strict;
 use base 'basetest';
 use testapi;
+use utils;
 
 sub run {
+    # Kill ssh proactively before reboot to avoid half-open issue on zVM
+    prepare_system_shutdown;
+
     type_string("shutdown -r now\n");
     reset_consoles;
+
+    # We have to reconnect in next on zVM
+    if (check_var("BACKEND", "s390x")) {
+        return;
+    }
 
     assert_screen("bios-boot",  900);
     assert_screen("bootloader", 30);

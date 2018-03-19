@@ -644,6 +644,13 @@ sub load_default_tests {
     load_reboot_tests();
 }
 
+sub load_default_autoyast_tests {
+    loadtest "autoyast/prepare_profile" if get_var "AUTOYAST_PREPARE_PROFILE";
+    load_patching_tests if get_var('PATCH');
+    load_boot_tests;
+    load_autoyast_tests;
+    load_reboot_tests;
+}
 
 my $distri = testapi::get_required_var('CASEDIR') . '/lib/susedistribution.pm';
 require $distri;
@@ -1000,12 +1007,23 @@ else {
         loadtest "ses/deepsea_testsuite";
         return 1;
     }
+    elsif (get_var('UPGRADE_ON_ZVM')) {
+        # Set 'DESKTOP' for origin system to avoid SLE15 s390x bug: bsc#1058071 - No VNC server available in SUT
+        # Set origin and target version
+        set_var('DESKTOP',                'gnome');
+        set_var('ORIGIN_SYSTEM_VERSION',  get_var('BASE_VERSION'));
+        set_var('UPGRADE_TARGET_VERSION', get_var('VERSION'));
+        loadtest "migration/version_switch_origin_system";
+        # Use autoyast to perform origin system installation
+        load_default_autoyast_tests;
+        # Load this to perform some other actions before upgrade even though registration and patching is controlled by autoyast
+        loadtest 'update/patch_before_migration';
+        loadtest "migration/version_switch_upgrade_target";
+        load_default_tests;
+        loadtest "migration/post_upgrade";
+    }
     elsif (get_var("AUTOYAST") || get_var("AUTOUPGRADE")) {
-        loadtest "autoyast/prepare_profile" if get_var "AUTOYAST_PREPARE_PROFILE";
-        load_patching_tests() if get_var('PATCH');
-        load_boot_tests();
-        load_autoyast_tests();
-        load_reboot_tests();
+        load_default_autoyast_tests;
     }
     elsif (installzdupstep_is_applicable()) {
         # Staging cannot be registered, so Staging cannot be patched before testing upgrades in staging
