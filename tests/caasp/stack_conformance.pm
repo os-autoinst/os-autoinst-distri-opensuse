@@ -26,6 +26,7 @@ sub run {
     my $sb_yaml = 'https://raw.githubusercontent.com/cncf/k8s-conformance/master/sonobuoy-conformance.yaml';
     my $sb_exit = '"no-exit was specified, sonobuoy is now blocking"';
     my $sb_pass = '"SUCCESS! -- [1-9][0-9]\+ Passed | 0 Failed | 0 Pending.*PASS"';
+    my $sb_test = '"Test Suite Passed"';
 
     # Run conformance tests and wait 90 minutes for result
     assert_script_run "curl -L $sb_yaml | kubectl apply -f -";
@@ -41,7 +42,8 @@ sub run {
     # Expect: SUCCESS! -- 123 Passed | 0 Failed | 0 Pending | 586 Skipped PASS
     script_run 'tar -xzf sonobuoy.tgz';
     upload_logs 'plugins/e2e/results/e2e.log';
-    assert_script_run "tail -5 plugins/e2e/results/e2e.log | tee /dev/tty | grep $sb_pass";
+    assert_script_run "tail -10 plugins/e2e/results/e2e.log | tee /dev/tty | grep $sb_pass";
+    assert_script_run "tail -10 plugins/e2e/results/e2e.log | grep $sb_test";
 
     switch_to 'velum';
 }
