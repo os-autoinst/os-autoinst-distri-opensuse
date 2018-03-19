@@ -274,8 +274,8 @@ sub add_prep_boot_partition {
         wait_screen_change { send_key $cmd{size_hotkey} };
     }
     wait_screen_change { send_key 'ctrl-a' };    # Select text field content
-    type_string "200 MB";
-    assert_screen 'partitioning_raid-custom-size-200MB';
+    type_string "8 MB";
+    assert_screen 'partitioning_raid-custom-size-8MB';
     send_key 'alt-n';
     assert_screen 'partition-role';
     send_key "alt-a";
