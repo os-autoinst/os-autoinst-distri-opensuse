@@ -66,8 +66,10 @@ sub run {
     assert_script_run "useradd -m $username -c '$realname'";    # create user account
     my $str = time;
     script_run "passwd $username; echo $str-\$?- > /dev/$serialdev", 0;    # set user's password
+    assert_screen 'passwd-prompt';
     type_password;
     send_key 'ret';
+    assert_screen 'passwd-retype-prompt';
     type_password;
     send_key 'ret';
     my $ret = wait_serial "$str-\\d+-", 10;
