@@ -210,24 +210,18 @@ sub ha_export_logs {
     my @y2logs;
 
     # Extract HA logs and upload them
-    select_console 'root-console';
     script_run "touch $corosync_conf";
     script_run "hb_report $report_opt -E $bootstrap_log $hb_log", 120;
     upload_logs "$bootstrap_log";
     upload_logs "$hb_log.tar.bz2";
 
     # Extract YaST logs and upload them
-    script_run "save_y2logs", 120;
+    script_run 'save_y2logs /tmp/y2logs.tar.bz2', 120;
+    upload_logs '/tmp/y2logs.tar.bz2';
 
     # Generate the packages list
     script_run "rpm -qa > $packages_list";
     upload_logs "$packages_list";
-
-    # We can find multiple y2log files
-    push @y2logs, script_output 'ls /tmp/y2log-*.tar.xz';
-    foreach my $y2log (@y2logs) {
-        upload_logs "$y2log";
-    }
 }
 
 sub check_cluster_state {
@@ -284,7 +278,7 @@ sub post_run_hook {
 }
 
 sub post_fail_hook {
-    my $self = shift;
+    my ($self) = @_;
 
     # Save a screenshot before trying further measures which might fail
     save_screenshot;
