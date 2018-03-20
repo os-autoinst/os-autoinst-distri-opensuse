@@ -1105,7 +1105,7 @@ sub load_x11tests {
         # TODO test on openSUSE https://progress.opensuse.org/issues/31972
         if (is_sle && (!is_server || we_is_applicable)) {
             loadtest "x11/eog";
-            loadtest "x11/rhythmbox";
+            loadtest(is_sle('<15') ? "x11/rhythmbox" : "x11/gnome_music");
             loadtest "x11/wireshark";
             loadtest "x11/ImageMagick";
             loadtest "x11/ghostscript";
