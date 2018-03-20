@@ -118,10 +118,11 @@ sub run {
         }
         # can happen multiple times
         if (match_has_tag('ERROR-removing-package')) {
-            record_soft_failure;
             send_key 'alt-d';    # details
             assert_screen 'ERROR-removing-package-details';
             send_key 'alt-i';    # ignore
+            assert_screen 'WARNING-ignoring-package-failure';
+            send_key 'alt-o';    # ok
             next;
         }
         if (get_var('LIVECD') and match_has_tag('screenlock')) {
