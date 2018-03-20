@@ -32,11 +32,11 @@ sub run {
         $cmd{exp_part_finish} = 'alt-n';
         $cmd{guidedsetup}     = 'alt-g';
         if (check_var('DISTRI', 'opensuse')) {
-            $cmd{expertpartitioner} = 'alt-x';
-            $cmd{rescandevices}     = 'alt-c';
             #TODO remove SYSTEM_ROLE_FIRST_FLOW usages with versions checks
-            $cmd{enablelvm}   = get_var('SYSTEM_ROLE_FIRST_FLOW') ? 'alt-e' : 'alt-a';
-            $cmd{encryptdisk} = get_var('SYSTEM_ROLE_FIRST_FLOW') ? 'alt-a' : 'alt-l';
+            $cmd{expertpartitioner} = get_var('SYSTEM_ROLE_FIRST_FLOW') ? 'alt-e' : 'alt-x';
+            $cmd{rescandevices}     = get_var('SYSTEM_ROLE_FIRST_FLOW') ? 'alt-e' : 'alt-c';
+            $cmd{enablelvm}         = get_var('SYSTEM_ROLE_FIRST_FLOW') ? 'alt-e' : 'alt-a';
+            $cmd{encryptdisk}       = get_var('SYSTEM_ROLE_FIRST_FLOW') ? 'alt-a' : 'alt-l';
         }
     }
 
