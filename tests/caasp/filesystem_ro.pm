@@ -31,8 +31,10 @@ sub run {
         assert_script_run 'btrfs property get /var/log ro | grep "ro=false"';
     }
 
-    assert_script_run "grep '/ btrfs ro' /etc/fstab";
-    assert_script_run "mount | grep 'on / type btrfs (ro,'";
+    # Look for ro mount point in fstab
+    assert_script_run "findmnt -s / -n -O ro";
+    # Look for ro mount point in mounted filesystems
+    assert_script_run "findmnt / -n -O ro";
 }
 
 1;
