@@ -18,11 +18,6 @@ use version_utils 'is_jeos';
 
 sub run {
     assert_script_run 'rpm -qi vim';
-    # JeOS currently incorrectly contains vim-data package
-    if (is_jeos()) {
-        record_soft_failure('bsc#1078722 - vim-data should not be in the image');
-        return;
-    }
     # vim-data package must not be present on JeOS
     assert_script_run('! rpm -qi vim-data') if is_jeos();
     type_string "vim /etc/passwd\n";
