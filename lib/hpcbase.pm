@@ -5,13 +5,13 @@ use testapi;
 use utils 'systemctl';
 
 sub enable_and_start {
-    my ($arg) = @_;
+    my ($self, $arg) = @_;
     systemctl "enable $arg";
     systemctl "start $arg";
 }
 
 sub upload_service_log {
-    my ($service_name) = @_;
+    my ($self, $service_name) = @_;
     script_run("journalctl -u $service_name > /tmp/$service_name");
     script_run("cat /tmp/$service_name");
     upload_logs("/tmp/$service_name");
