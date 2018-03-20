@@ -184,12 +184,20 @@ sub run {
     }
 
     hyperv_cmd("$ps Set-VMProcessor $name -Count $cpucount");
-    # All booteble devices has to be enumerated all the time...
-    my $startup_order = (check_var('BOOTFROM', 'd') ? "'CD', 'VHD'" : "'VHD', 'CD'") . ", 'Floppy', 'NetworkAdapter'";
+
     if (get_var('UEFI')) {
-        hyperv_cmd("$ps Set-VMFirmware $name -EnableSecureBoot off ");
+        hyperv_cmd("$ps Set-VMFirmware $name -EnableSecureBoot off");
+        if (check_var('BOOTFROM', 'd')) {
+            hyperv_cmd($ps . ' "' . "\$dvd = Get-VMDvdDrive $name; Set-VMFirmware $name -BootOrder \$dvd" . '"');
+        }
+        else {
+            hyperv_cmd($ps . ' "' . "\$hd = Get-VMHardDiskDrive $name; Set-VMFirmware $name -BootOrder \$hd" . '"');
+            hyperv_cmd($ps . ' "' . "\$dvd = Get-VMDvdDrive $name; Set-VMFirmware $name -FirstBootDevice \$dvd" . '"') if get_var('ISO');
+        }
     }
     else {
+        # All booteble devices has to be enumerated all the time...
+        my $startup_order = (check_var('BOOTFROM', 'd') ? "'CD', 'VHD'" : "'VHD', 'CD'") . ", 'Floppy', 'NetworkAdapter'";
         hyperv_cmd($ps . ' "' . "Set-VMBios $name -StartupOrder @($startup_order)" . '"');
     }
 
