@@ -361,17 +361,20 @@ logcurrentenv(
       SLE_PRODUCT SPLITUSR VIDEOMODE)
 );
 
-sub load_x11_firefox {
+sub load_x11_webbrowser_core {
     loadtest "x11/firefox/firefox_smoke";
-    loadtest "x11/firefox/firefox_localfiles";
     loadtest "x11/firefox/firefox_urlsprotocols";
     loadtest "x11/firefox/firefox_downloading";
-    loadtest "x11/firefox/firefox_headers";
-    loadtest "x11/firefox/firefox_pdf";
     loadtest "x11/firefox/firefox_changesaving";
     loadtest "x11/firefox/firefox_fullscreen";
-    loadtest "x11/firefox/firefox_health";
     loadtest "x11/firefox/firefox_flashplayer";
+}
+
+sub load_x11_webbrowser_extra {
+    loadtest "x11/firefox/firefox_localfiles";
+    loadtest "x11/firefox/firefox_headers";
+    loadtest "x11/firefox/firefox_pdf";
+    loadtest "x11/firefox/firefox_health";
     loadtest "x11/firefox/firefox_pagesaving";
     loadtest "x11/firefox/firefox_private";
     loadtest "x11/firefox/firefox_mhtml";
@@ -673,9 +676,21 @@ elsif (get_var('NFV')) {
 }
 elsif (get_var("REGRESSION")) {
     load_common_x11;
+    # Used by QAM testing
     if (check_var("REGRESSION", "firefox")) {
         loadtest "boot/boot_to_desktop";
-        load_x11_firefox();
+        load_x11_webbrowser_core();
+        load_x11_webbrowser_extra();
+    }
+    # Used by Desktop Applications Group
+    elsif (check_var("REGRESSION", "webbrowser_core")) {
+        loadtest "boot/boot_to_desktop";
+        load_x11_webbrowser_core();
+    }
+    # Used by Desktop Applications Group
+    elsif (check_var("REGRESSION", "webbrowser_extra")) {
+        loadtest "boot/boot_to_desktop";
+        load_x11_webbrowser_extra();
     }
     elsif (check_var("REGRESSION", "message")) {
         loadtest "boot/boot_to_desktop";
