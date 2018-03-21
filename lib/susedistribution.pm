@@ -191,14 +191,16 @@ sub x11_start_program {
     # after 'ret' press we should wait in this case nevertheless
     wait_still_screen(3) unless ($args{no_wait} || ($args{valid} && $args{target_match} && !check_var('DESKTOP', 'kde')));
     return unless $args{valid};
+    my $target = ref $args{target_match} eq 'ARRAY' ? @{$args{target_match}} : $args{target_match};
     for (1 .. 3) {
-        assert_screen([ref $args{target_match} eq 'ARRAY' ? @{$args{target_match}} : $args{target_match}, 'desktop-runner-border'],
-            $args{match_timeout}, no_wait => $args{match_no_wait});
+        assert_screen(["$target", 'desktop-runner-border'], $args{match_timeout}, no_wait => $args{match_no_wait});
         last unless match_has_tag 'desktop-runner-border';
         wait_screen_change {
             send_key 'ret';
         };
     }
+    # asserting program came up properly
+    die "Did not find target needle for tag(s) $target" if match_has_tag 'desktop-runner-border';
 }
 
 sub ensure_installed {
