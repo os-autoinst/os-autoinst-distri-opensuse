@@ -24,7 +24,7 @@ sub run {
     set_var('HDDVERSION', get_var('UPGRADE_TARGET_VERSION', get_var('VERSION')));
 
     # On SLE15, tty7 is reserved for gdm, tty2 is the first user x11 console
-    console('x11')->{args}->{tty} = get_x11_console_tty;
+    console('x11')->set_tty(get_x11_console_tty);
 }
 
 1;

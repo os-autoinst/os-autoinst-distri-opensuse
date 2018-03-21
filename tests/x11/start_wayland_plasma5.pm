@@ -42,7 +42,7 @@ sub run {
     assert_screen 'generic-desktop', 60;
 
     # We're now in a wayland session, which is in a different VT
-    console('x11')->{args}->{tty} = 3;
+    console('x11')->set_tty(3);
 
     # Workaround (part 2): KWin does not work with the workaround so we need to undo it
     # to allow relogins to succeed
