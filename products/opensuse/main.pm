@@ -92,6 +92,10 @@ if (check_var('DESKTOP', 'minimalx')) {
     }
 }
 
+if (is_leap('15.0+')) {
+    set_var('SYSTEM_ROLE_FIRST_FLOW', 1);
+}
+
 # openSUSE specific variables
 set_var('LEAP', '1') if is_leap;
 set_var("WALLPAPER", '/usr/share/wallpapers/openSUSEdefault/contents/images/1280x1024.jpg');
