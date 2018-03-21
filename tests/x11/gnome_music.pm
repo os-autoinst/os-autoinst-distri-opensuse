@@ -17,7 +17,8 @@ use testapi;
 use utils;
 
 sub run {
-    assert_gui_app('gnome-music');
+    assert_gui_app('gnome-music', install => 1);
+    send_key('alt-f4');
 }
 
 1;
