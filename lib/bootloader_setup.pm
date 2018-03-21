@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -239,10 +239,10 @@ sub bootmenu_default_params {
         }
 
         if (!get_var("NICEVIDEO")) {
-            if (is_jeos || is_caasp) {
+            if (is_caasp) {
                 bootmenu_type_console_params;
             }
-            else {
+            elsif (!is_jeos) {
                 type_string_very_slow "plymouth.ignore-serial-consoles ";    # make plymouth go graphical
                 type_string_very_slow "linuxrc.log=/dev/$serialdev ";
                 bootmenu_type_console_params;

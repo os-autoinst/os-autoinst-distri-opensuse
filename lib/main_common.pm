@@ -904,6 +904,7 @@ sub load_consoletests {
     }
     loadtest "console/consoletest_setup";
     loadtest "locale/keymap_or_locale";
+    loadtest "console/repo_orphaned_packages_check" if is_jeos;
     loadtest "console/force_cron_run" unless is_jeos;
     if (get_var("LOCK_PACKAGE")) {
         loadtest "console/check_locked_package";
