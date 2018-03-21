@@ -485,20 +485,8 @@ else {
         load_boot_tests();
         load_zdup_tests();
     }
-    elsif (get_var("BOOT_HDD_IMAGE")) {
-        boot_hdd_image;
-        if (get_var("ISCSI_SERVER")) {
-            set_var('INSTALLONLY', 1);
-            loadtest "iscsi/iscsi_server";
-        }
-        if (get_var("ISCSI_CLIENT")) {
-            set_var('INSTALLONLY', 1);
-            loadtest "iscsi/iscsi_client";
-        }
-        if (get_var("REMOTE_CONTROLLER")) {
-            loadtest "remote/remote_controller";
-            load_inst_tests();
-        }
+    elsif (get_var('BOOT_HDD_IMAGE')) {
+        load_common_opensuse_sle_image_based_tests;
     }
     elsif (get_var("REMOTE_TARGET")) {
         load_boot_tests();

@@ -106,6 +106,7 @@ our @EXPORT = qw(
   is_mediacheck
   load_syscontainer_tests
   load_toolchain_tests
+  load_common_opensuse_sle_image_based_tests
   load_common_opensuse_sle_tests
   replace_opensuse_repos_tests
   load_ssh_key_import_tests
@@ -1707,6 +1708,32 @@ sub load_toolchain_tests {
 sub load_nvmftests {
     return unless consolestep_is_applicable();
     loadtest "kernel/nvmftests";
+}
+
+sub load_common_opensuse_sle_image_based_tests {
+    boot_hdd_image;
+    if (get_var("ADDONS")) {
+        loadtest "installation/addon_products_yast2";
+    }
+    if (get_var('SCC_ADDONS')) {
+        loadtest "installation/addon_products_via_SCC_yast2";
+    }
+    if (get_var("ISCSI_SERVER")) {
+        set_var('INSTALLONLY', 1);
+        loadtest "iscsi/iscsi_server";
+    }
+    if (get_var("ISCSI_CLIENT")) {
+        set_var('INSTALLONLY', 1);
+        loadtest "iscsi/iscsi_client";
+    }
+    if (get_var("NIS_SERVER")) {
+        set_var('INSTALLONLY', 1);
+        loadtest "x11/nis_server";
+    }
+    if (get_var("NIS_CLIENT")) {
+        set_var('INSTALLONLY', 1);
+        loadtest "x11/nis_client";
+    }
 }
 
 sub load_common_opensuse_sle_tests {
