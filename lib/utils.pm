@@ -1102,7 +1102,7 @@ sub reconnect_s390 {
     my (%args) = @_;
     $args{timeout} //= 300;
 
-    my $login_ready = 'qr/Welcome to SUSE Linux Enterprise Server.*\(s390x\)/;';
+    my $login_ready = qr/Welcome to SUSE Linux Enterprise Server.*\(s390x\)/;
     console('installation')->disable_vnc_stalls;
 
     # different behaviour for z/VM and z/KVM
