@@ -13,7 +13,9 @@
 use base 'opensusebasetest';
 use strict;
 use testapi;
+
 use utils 'zypper_call';
+use utils qw(power_action zypper_call);
 use serial_terminal 'select_virtio_console';
 
 sub run {
