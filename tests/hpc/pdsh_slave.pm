@@ -45,8 +45,7 @@ sub run {
     # make sure that user 'nobody' has permissions for $serialdev to get openQA work properly
     assert_script_run("chmod 666 /dev/$serialdev");
 
-    type_string("su - nobody\n");
-    assert_screen 'user-nobody';
+    $self->switch_user('nobody');
     my $genders_plugin = get_var('PDSH_GENDER_TEST') ? '-g type=genders-test' : '';
     assert_script_run("pdsh -R mrsh $genders_plugin -w $server_hostname ls / &> /tmp/pdsh.log");
     upload_logs '/tmp/pdsh.log';

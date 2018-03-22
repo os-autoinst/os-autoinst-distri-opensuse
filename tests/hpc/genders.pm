@@ -44,9 +44,7 @@ sub run {
 
     # Show content of files
     assert_script_run('cat $tmpfile');
-    save_screenshot;
     assert_script_run('cat $cfile');
-    save_screenshot;
 
     # Compare test files, file must have same content, difference means test failure
     assert_script_run('diff $tmpfile $cfile');

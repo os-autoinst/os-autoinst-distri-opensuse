@@ -24,4 +24,10 @@ sub post_fail_hook {
     upload_service_log('wickedd-dhcp4.service');
 }
 
+sub switch_user {
+    my ($self, $username) = @_;
+    type_string("su - $username\n");
+    assert_screen 'user-nobody';
+}
+
 1;
