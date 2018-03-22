@@ -46,7 +46,7 @@ sub run {
     # don't use built-in systemctl api, see poo#31180
     script_run("systemctl kexec", 0);
     # wait for reboot
-    reset_consoles();
+    $self->wait_boot;
     select_console("root-console");
     # Check kernel cmdline parameter
     my $result = script_output("cat /proc/cmdline", 120);
