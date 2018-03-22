@@ -9,7 +9,7 @@
 # without any warranty.
 
 # Summary: split the partitioning monster into smaller pieces
-# Maintainer: Stephan Kulow <coolo@suse.de>, Sergio Lindo Mansilla <slindomansilla@suse.com>
+# Maintainer: Sergio Lindo Mansilla <slindomansilla@suse.com>
 
 use strict;
 use warnings;
@@ -242,18 +242,16 @@ sub add_raid_boot {
 }
 
 sub add_bios_boot_partition {
-    record_soft_failure 'bsc#1063844';    # Cannot add partition from menu option "hard disks"
     send_key_until_needlematch 'partitioning_raid-disk_vda-selected', 'down';
     addpart 'bios-boot';
     send_key 'down';
     send_key_until_needlematch 'custompart', 'left';
-    send_key 'alt-s';                     #System view
+    send_key 'alt-s';    #System view
     send_key_until_needlematch 'partitioning_raid-hard_disks-unfolded', 'right';
 }
 
 sub add_prep_boot_partition {
     if (is_storage_ng) {
-        record_soft_failure 'bsc#1063844';    # Cannot add partition from menu option "hard disks"
         send_key 'down';
         assert_screen 'partitioning_raid-disk_vda-selected';
         send_key 'alt-d';
@@ -289,8 +287,6 @@ sub add_prep_boot_partition {
     my $direction_key = (is_storage_ng) ? 'up' : 'down';
     send_key_until_needlematch 'filesystem-prep', $direction_key;
     send_key $cmd{exp_part_finish};
-    # Due to workaround for bsc#1063844 we are not back to "hard disks"
-    # tree item to see overview
     if (is_storage_ng) {
         send_key 'down';
         send_key_until_needlematch 'custompart', 'left';
