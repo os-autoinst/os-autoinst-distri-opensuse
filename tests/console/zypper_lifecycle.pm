@@ -106,7 +106,7 @@ sub run {
 
     my $product_eol;
     for my $l (split /\n/, $overview) {
-        if ($l =~ /$product_name\s*(\S*)/) {
+        if ($l =~ /(?<!Codestream:)\s+$product_name\s*(\S*)/) {
             $product_eol = $1;
             last;
         }
@@ -117,7 +117,6 @@ sub run {
     # verify that package eol defaults to product eol
     $output = script_output "zypper lifecycle $package", 300;
     unless ($output =~ /$package(-\S+)?\s+$product_eol/) {
-        return record_soft_failure 'bsc#1057788' if is_sle('15+');
         die "$package lifecycle entry incorrect:'$output', expected: '/$package-\\S+\\s+$product_eol'";
     }
 
