@@ -20,7 +20,7 @@
 #    others are drawn from scratch. The preloaded script contains all
 #    the executed commands because typing them appeared to be extremely
 #    time-consuming.
-# Maintainer: Romanos Dodopoulos <romanos.dodopoulos@suse.cz>
+# Maintainer: Veronika Svecova <vsvecova@suse.cz>
 
 use base "opensusebasetest";
 use strict;
