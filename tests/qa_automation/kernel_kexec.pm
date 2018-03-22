@@ -47,7 +47,8 @@ sub run {
     script_run("systemctl kexec", 0);
     # wait for reboot
     reset_consoles();
-    select_console("root-console");
+    assert_screen('linux-login', 300);
+    select_console('root-console');
     # Check kernel cmdline parameter
     my $result = script_output("cat /proc/cmdline", 120);
     print "Checking kernel boot parameter...\nCurrent:  $result\nExpected: $cmdline\n";
