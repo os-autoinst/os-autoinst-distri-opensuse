@@ -21,7 +21,7 @@ use utils 'systemctl';
 sub run {
     select_console 'root-console';
     # configure and start ntp, ntp server for nodes is master
-    if (check_var('NODE_HOSTNAME', 'master')) {
+    if (check_var('HOSTNAME', 'master')) {
         my $num_nodes = get_var('NODE_COUNT');
         barrier_create('network_configured', $num_nodes + 1);
         barrier_create('all_tests_done',     $num_nodes + 1);
@@ -39,7 +39,7 @@ sub run {
     systemctl 'stop apparmor';
     systemctl 'disable apparmor';
     # set node hostname
-    my $node_hostname = get_var('NODE_HOSTNAME');
+    my $node_hostname = get_var('HOSTNAME');
     assert_script_run "hostnamectl set-hostname $node_hostname";
     # configure network
     configure_default_gateway;

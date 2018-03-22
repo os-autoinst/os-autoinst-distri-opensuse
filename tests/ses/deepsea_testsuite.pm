@@ -20,7 +20,7 @@ use utils qw(zypper_call systemctl);
 sub run {
     # testsuite will run zypper ref, pre run it to mitigate possible ref fail
     zypper_call 'ref -f';
-    if (check_var('NODE_HOSTNAME', 'master')) {
+    if (check_var('HOSTNAME', 'master')) {
         my $num_nodes = get_var('NODE_COUNT');
         barrier_create('salt_master_ready',      $num_nodes + 1);
         barrier_create('salt_minions_connected', $num_nodes + 1);
