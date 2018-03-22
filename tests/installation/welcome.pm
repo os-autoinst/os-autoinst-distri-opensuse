@@ -98,10 +98,9 @@ sub run {
             my %hotkey = (
                 sles     => 's',
                 sled     => 'u',
-                sles4sap => 'i',
-                hpc      => 'x'
+                sles4sap => get_var('OFW') ? 'u' : 'i',
+                hpc      => check_var('ARCH', 'x86_64') ? 'x' : 'u'
             );
-            $hotkey{sles4sap} = 'u' if get_var('OFW');
             my $product = get_required_var('SLE_PRODUCT');
             send_key 'alt-' . $hotkey{$product};
             assert_screen('select-product-' . $product);
