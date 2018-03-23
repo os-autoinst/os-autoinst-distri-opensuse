@@ -53,7 +53,6 @@ our @EXPORT = qw(
   load_slepos_tests
   load_docker_tests
   load_sles4sap_tests
-  load_nvmftests
   installzdupstep_is_applicable
   snapper_is_applicable
   chromestep_is_applicable
@@ -210,7 +209,8 @@ sub is_kernel_test {
           || get_var('INSTALL_KOTD')
           || get_var('QA_TEST_KLP_REPO')
           || get_var('INSTALL_KOTD')
-          || get_var('VIRTIO_CONSOLE_TEST'));
+          || get_var('VIRTIO_CONSOLE_TEST')
+          || get_var('NVMFTESTS'));
 }
 
 # Isolate the loading of LTP tests because they often rely on newer features
@@ -1705,17 +1705,11 @@ sub load_toolchain_tests {
     loadtest "console/kdump_and_crash" if is_sle && kdump_is_applicable;
 }
 
-sub load_nvmftests {
-    return unless consolestep_is_applicable();
-    loadtest "kernel/nvmftests";
-}
-
 sub load_common_opensuse_sle_tests {
     load_autoyast_clone_tests           if get_var("CLONE_SYSTEM");
     load_create_hdd_tests               if get_var("STORE_HDD_1") || get_var("PUBLISH_HDD_1");
     load_toolchain_tests                if get_var("TCM") || check_var("ADDONS", "tcm");
     loadtest 'console/network_hostname' if get_var('NETWORK_CONFIGURATION');
-    load_nvmftests                      if get_var('NVMFTESTS');
 }
 
 sub load_ssh_key_import_tests {

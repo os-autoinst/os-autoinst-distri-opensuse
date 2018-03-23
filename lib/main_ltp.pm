@@ -22,7 +22,7 @@ use autotest;
 use utils;
 use LTP::TestInfo qw(testinfo);
 use File::Basename 'basename';
-use main_common 'load_bootloader_s390x';
+use main_common qw(load_bootloader_s390x boot_hdd_image);
 use 5.018;
 
 our @EXPORT = 'load_kernel_tests';
@@ -139,6 +139,10 @@ sub load_kernel_tests {
     }
     elsif (get_var('VIRTIO_CONSOLE_TEST')) {
         loadtest 'virtio_console';
+    }
+    elsif (get_var('NVMFTESTS')) {
+        boot_hdd_image;
+        loadtest 'nvmftests';
     }
 
     if (check_var('BACKEND', 'svirt') && get_var('PUBLISH_HDD_1')) {
