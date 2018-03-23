@@ -60,11 +60,6 @@ echo -e '10.0.2.103\tnode3.openqa.test node3' >> /etc/hosts
 echo -e '10.0.2.104\tnode4.openqa.test node4' >> /etc/hosts
 EOF
         script_run($_) foreach (split /\n/, $hosts);
-        if (get_var('EDGECAST')) {
-            record_info 'Netfix', 'Go through Europe Microfocus info-bloxx';
-            my $edgecast_europe = get_var('EDGECAST');
-            assert_script_run "echo $edgecast_europe updates.suse.com >> /etc/hosts";
-        }
         assert_script_run 'cat /etc/hosts';
         barrier_wait {name => 'network_configured', check_dead_job => 1};
         # nodes will ping each other to test connection
