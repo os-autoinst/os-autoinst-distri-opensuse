@@ -123,13 +123,13 @@ sub investigate_yast2_failure {
 
     # first check if badlist exists which could be the most likely problem
     if (my $badlist = script_output 'test -f /var/log/YaST2/badlist && cat /var/log/YaST2/badlist | tail -n 20 || true') {
-        record_info 'Likely error detected: badlist', "badlist content:\n\n$badlist", 'fail';
+        record_info 'Likely error detected: badlist', "badlist content:\n\n$badlist", result => 'fail';
     }
     if (my $y2log_internal_error = script_output 'grep -B 3 \'Internal error. Please report a bug report\' /var/log/YaST2/y2log | tail -n 20 || true') {
-        record_info 'Internal error in YaST2 detected', "Details:\n\n$y2log_internal_error", 'fail';
+        record_info 'Internal error in YaST2 detected', "Details:\n\n$y2log_internal_error", result => 'fail';
     }
     elsif (my $y2log_other_error = script_output 'grep -B 3 \'<3>\' /var/log/YaST2/y2log | tail -n 20 || true') {
-        record_info 'Other error in YaST2 detected', "Details:\n\n$y2log_other_error", 'fail';
+        record_info 'Other error in YaST2 detected', "Details:\n\n$y2log_other_error", result => 'fail';
     }
 }
 
