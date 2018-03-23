@@ -49,7 +49,7 @@ sub save_and_upload_stage_logs {
 
 sub save_and_upload_yastlogs {
     my ($self, $suffix) = @_;
-    my $name = $stage . $suffix;
+    my $name = $stage . ($suffix // '');
     # save logs and continue
     select_console 'install-shell';
 
