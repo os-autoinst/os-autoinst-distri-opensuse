@@ -41,6 +41,7 @@ sub run {
 
     # Expect: SUCCESS! -- 123 Passed | 0 Failed | 0 Pending | 586 Skipped PASS
     script_run 'tar -xzf sonobuoy.tgz';
+    upload_logs 'sonobuoy.tgz';
     upload_logs 'plugins/e2e/results/e2e.log';
     assert_script_run "tail -10 plugins/e2e/results/e2e.log | tee /dev/tty | grep $sb_pass";
     assert_script_run "tail -10 plugins/e2e/results/e2e.log | grep $sb_test";
