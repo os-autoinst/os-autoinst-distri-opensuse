@@ -997,8 +997,17 @@ else {
     }
     elsif (get_var("SES_NODE")) {
         loadtest "boot/boot_to_desktop";
-        loadtest "ses/nodes_preparation";
-        loadtest "ses/deepsea_testsuite";
+        if (get_var("DEEPSEA_TESTSUITE")) {
+            loadtest "ses/nodes_preparation";
+            loadtest "ses/deepsea_testsuite";
+        }
+        else {
+            loadtest "support_server/wait_support_server";
+            loadtest "console/hostname";
+            loadtest "ses/nodes_preparation";
+            loadtest "ses/deepsea_cluster_deploy";
+            loadtest "ses/openattic";
+        }
         return 1;
     }
     elsif (get_var('UPGRADE_ON_ZVM')) {
