@@ -90,9 +90,6 @@ sub firewalld {
     # now close and exit
     assert_and_click 'firewall-file-menu';
     assert_and_click 'firewall-file-quit';
-
-    # incomplete implementation
-    record_soft_failure 'bsc#1072659';
 }
 
 sub run {
