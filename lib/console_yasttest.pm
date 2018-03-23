@@ -13,6 +13,7 @@ sub post_fail_hook {
     save_screenshot;
 
     script_run "dmesg > /dev/$serialdev";
+    upload_logs('/var/log/zypper.log');
     my $fn = '/tmp/y2logs.tar.bz2';
     # only upload if save_y2log succeeded
     if (!script_run "save_y2logs $fn") {
