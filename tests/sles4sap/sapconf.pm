@@ -60,7 +60,7 @@ sub run_developers_tests {
         return;
     }
     assert_script_run "chmod +x sapconf_test.sh";
-    $ret = script_run "./sapconf_test.sh -c local | tee $log", 600;
+    $ret = script_run "./sapconf_test.sh -c local -p no | tee $log", 600;
     record_soft_failure "sapconf_test.sh returned error code: [$ret]" unless (defined $ret and $ret == 0);
     upload_logs $log;
 
@@ -83,28 +83,36 @@ sub run_developers_tests {
     type_string "cd\n";
 }
 
+sub verify_sapconf_service {
+    my $svc  = shift;
+    my $desc = shift;
+
+    my $output      = script_output "systemctl status $svc";
+    my $statusregex = $svc . ' - ' . $desc . '.+' . 'Loaded: loaded \(/usr/lib/systemd/system/' . $svc . ';.+';
+    my $active      = $statusregex . 'Active: active \((listening|running)\).+';
+    my $success     = $statusregex . 'Active: active \(exited\).+' . 'status=0\/SUCCESS';
+    die "Command 'systemctl status $svc' output is not recognized" unless ($output =~ m|$active|s or $output =~ m|$success|s);
+}
+
 sub run {
     my ($self) = @_;
 
     select_console 'root-console';
 
-    my $output = script_output "systemctl status tuned";
-    my $statusregex
-      = 'tuned.service - Dynamic System Tuning Daemon.+'
-      . 'Loaded: loaded \(/usr/lib/systemd/system/tuned.service;.+'
-      . 'Active: active \(running\).+'
-      . 'Starting Dynamic System Tuning Daemon.+'
-      . 'Started Dynamic System Tuning Daemon.';
-    die "Command 'systemctl status tuned' output is not recognized" unless ($output =~ m|$statusregex|s);
-
     assert_script_run("rpm -q sapconf");
 
-    $output = script_output "tuned-adm active";
+    verify_sapconf_service('tuned.service',   'Dynamic System Tuning Daemon');
+    verify_sapconf_service('sapconf.service', 'sapconf');
+    verify_sapconf_service('uuidd.socket',    'UUID daemon activation socket');
+    verify_sapconf_service('sysstat.service', 'Write information about system start to sysstat log')
+      if (sle_version_at_least('15'));
+
+    my $output = script_output "tuned-adm active";
     $output =~ /Current active profile: ([a-z\-]+)/;
     my $default_profile = $1;
     record_info("Current profile", "Current default profile: $default_profile");
 
-    $statusregex = join('.+', @tuned_profiles);
+    my $statusregex = join('.+', @tuned_profiles);
     $output = script_output "tuned-adm list";
     die "Command 'tuned-adm list' output is not recognized" unless ($output =~ m|$statusregex|s);
 
