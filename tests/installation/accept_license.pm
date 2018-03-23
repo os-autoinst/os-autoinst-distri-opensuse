@@ -1,4 +1,4 @@
-# Copyright (C) 2017 SUSE LLC
+# Copyright (C) 2017-2018 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -35,16 +35,7 @@ sub run {
     push @tags, 'inst-welcome-no-product-list' if is_sle('15+') && get_var('UPGRADE');
 
     assert_screen \@tags;
-    if (match_has_tag('network-settings-button')) {
-        # workaround for hpc missing license: https://bugzilla.suse.com/show_bug.cgi?id=1060174
-        if (check_var('SLE_PRODUCT', 'hpc')) {
-            record_soft_failure('bsc#1060174');
-            return;
-        }
-        else {
-            die 'It seems that license agreement is missing, please check!';
-        }
-    }
+    die 'It seems that license agreement is missing, please check!' if match_has_tag('network-settings-button');
     if (match_has_tag('inst-welcome-no-product-list')) {
         return send_key $cmd{next} unless match_has_tag('license-agreement');
     }
