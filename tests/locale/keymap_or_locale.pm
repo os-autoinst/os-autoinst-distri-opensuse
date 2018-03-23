@@ -18,7 +18,14 @@ use utils;
 sub verify_default_keymap_textmode {
     my ($test_string, $tag, %tty) = @_;
 
-    defined($tty{console}) ? select_console($tty{console}) : send_key('alt-f3');
+    if (defined($tty{console})) {
+        select_console($tty{console});
+    }
+    else {
+        send_key('alt-f3');
+        wait_still_screen;
+    }
+
     type_string($test_string);
     assert_screen($tag);
     # clear line in order to add user bernhard to tty group
