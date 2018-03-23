@@ -29,8 +29,10 @@ sub run {
         assert_script_run 'echo \'server ntp1.suse.de burst iburst\' >> /etc/ntp.conf';
     }
     else {
-        assert_script_run 'echo \'server master.openqa.de burst iburst\' >> /etc/ntp.conf';
+        assert_script_run 'echo \'server master.openqa.test burst iburst\' >> /etc/ntp.conf';
     }
+    # print the ntp config
+    assert_script_run 'grep -v ^# /etc/ntp.conf';
     systemctl 'restart ntpd';
     # disable ipv6
     assert_script_run 'echo \'net.ipv6.conf.all.disable_ipv6 = 1\' >> /etc/sysctl.conf';
@@ -51,11 +53,11 @@ sub run {
         configure_static_dns(get_host_resolv_conf());
         # add node entries to /etc/hosts
         my $hosts = <<'EOF';
-echo -e '10.0.2.100\tmaster.openqa.de master' >> /etc/hosts
-echo -e '10.0.2.101\tnode1.openqa.de node1' >> /etc/hosts
-echo -e '10.0.2.102\tnode2.openqa.de node2' >> /etc/hosts
-echo -e '10.0.2.103\tnode3.openqa.de node3' >> /etc/hosts
-echo -e '10.0.2.104\tnode4.openqa.de node4' >> /etc/hosts
+echo -e '10.0.2.100\tmaster.openqa.test master' >> /etc/hosts
+echo -e '10.0.2.101\tnode1.openqa.test node1' >> /etc/hosts
+echo -e '10.0.2.102\tnode2.openqa.test node2' >> /etc/hosts
+echo -e '10.0.2.103\tnode3.openqa.test node3' >> /etc/hosts
+echo -e '10.0.2.104\tnode4.openqa.test node4' >> /etc/hosts
 EOF
         script_run($_) foreach (split /\n/, $hosts);
         if (get_var('EDGECAST')) {
@@ -66,7 +68,7 @@ EOF
         assert_script_run 'cat /etc/hosts';
         barrier_wait {name => 'network_configured', check_dead_job => 1};
         # nodes will ping each other to test connection
-        assert_script_run 'fping -c2 -q $(grep \'openqa.de\' /etc/hosts|awk \'{print$2}\'|tr "\n" " ")';
+        assert_script_run 'fping -c2 -q $(grep \'openqa.test\' /etc/hosts|awk \'{print$2}\'|tr "\n" " ")';
     }
     else {
         barrier_wait {name => 'network_configured', check_dead_job => 1};
