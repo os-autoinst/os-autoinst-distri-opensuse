@@ -124,12 +124,15 @@ sub setup_dns_server {
     @;
 
     # Allow RPZ overrides - poo#32290
-    record_info 'Netfix', 'Go through Europe Microfocus info-bloxx';
-    $setup_script .= qq@
-        curl -f -v $named_url/db.rpz > /var/lib/named/db.rpz
-        echo 'zone "rpz" {type master; file "db.rpz"; allow-query {none;}; };' >> /etc/named.conf
-        sed -i '/^options/a\\	response-policy { zone "rpz"; };' /etc/named.conf
-    @;
+
+    if (lc(get_var('SUPPORT_SERVER_ROLES')) =~ /\brpz\b/) {
+        record_info 'Netfix', 'Go through Europe Microfocus info-bloxx';
+        $setup_script .= qq@
+            curl -f -v $named_url/db.rpz > /var/lib/named/db.rpz
+            echo 'zone "rpz" {type master; file "db.rpz"; allow-query {none;}; };' >> /etc/named.conf
+            sed -i '/^options/a\\   response-policy { zone "rpz"; };' /etc/named.conf
+        @;
+    }
 
     # Start services
     $setup_script .= "
