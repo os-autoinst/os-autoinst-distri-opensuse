@@ -23,7 +23,7 @@ sub verify_default_keymap_textmode {
     }
     else {
         send_key('alt-f3');
-        wait_still_screen;
+        assert_screen("linux-login");
     }
 
     type_string($test_string);
