@@ -23,7 +23,7 @@ use version_utils 'is_storage_ng';
 sub run {
     create_new_partition_table;
     if (get_var('OFW')) {    # ppc64le always needs PReP boot
-        addpart(role => 'raw', size => 500, fsid => 'PReP');
+        addpart(role => 'raw', size => 8, fsid => 'PReP');
     }
     elsif (get_var('UEFI')) {    # UEFI needs partition mounted to /boot/efi for
         addpart(role => 'efi', size => 256);
