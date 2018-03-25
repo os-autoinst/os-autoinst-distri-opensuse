@@ -84,8 +84,7 @@ sub run_developers_tests {
 }
 
 sub verify_sapconf_service {
-    my $svc  = shift;
-    my $desc = shift;
+    my ($svc, $desc) = @_;
 
     my $output      = script_output "systemctl status $svc";
     my $statusregex = $svc . ' - ' . $desc . '.+' . 'Loaded: loaded \(/usr/lib/systemd/system/' . $svc . ';.+';
