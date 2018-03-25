@@ -21,12 +21,18 @@ sub run {
 
     barrier_wait("FENCING_DONE_$cluster_name");
 
-    # Do some extra verification and export logs
-    assert_script_run '(( $(grep -sR segfault /var/log | wc -l) == 0 ))';
-    record_soft_failure 'bsc#1071519' if (script_run 'crm script run health');
-    ha_export_logs;
+    # Checking cluster state can take time, so default timeout is not enough
+    # script_run return undef in case of timeout
+    my $ret = script_run 'crm script run health', 240;
+    record_soft_failure 'bsc#1071519' unless (defined $ret and $ret == 0);
 
     barrier_wait("LOGS_CHECKED_$cluster_name");
+
+    # Export logs
+    ha_export_logs;
+
+    # Looking for segfault during the test
+    assert_script_run '(( $(grep -sR segfault /var/log | wc -l) == 0 ))';
 }
 
 # Specific test_flags for this test module

@@ -23,8 +23,7 @@ sub run {
     barrier_wait("CHECK_AFTER_FENCING_BEGIN_$cluster_name");
 
     # We need to be sure to be root and, after fencing, the default console on node01 is not root
-    # As we do a 'reset_consoles' on all other nodes, we can do 'select_console' on all to
-    select_console 'root-console';
+    select_console 'root-console' if is_node(1);
 
     # Wait for the cluster to be up on the fenced node
     # We can execute this test on all nodes, so do it as it's easier to code :-)
