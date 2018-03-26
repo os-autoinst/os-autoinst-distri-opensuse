@@ -48,6 +48,10 @@ sub run {
 
     save_screenshot;
     script_run 'popd';
+
+    # poo#33376: added to investigate OOM
+    assert_script_run 'free -m';
+    save_screenshot;
 }
 
 sub post_fail_hook {
