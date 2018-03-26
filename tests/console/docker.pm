@@ -66,9 +66,7 @@ sub run {
     assert_script_run('docker image pull opensuse/tumbleweed', timeout => 600);
 
     # local images can be listed
-    #   - BUG https://github.com/docker/for-linux/issues/220
     assert_script_run('docker image ls none');
-    record_soft_failure('https://github.com/docker/for-linux/issues/220');
     #   - filter with tag
     assert_script_run(qq{docker image ls alpine:$alpine_image_version | grep "alpine\\s*$alpine_image_version"});
     #   - filter without tag
