@@ -23,7 +23,7 @@ sub verify_default_keymap_textmode {
     }
     else {
         send_key('alt-f3');
-        assert_screen("linux-login");
+        assert_screen([qw(linux-login cleared-console)]);
     }
 
     type_string($test_string);
