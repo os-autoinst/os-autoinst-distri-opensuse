@@ -92,7 +92,7 @@ if (check_var('DESKTOP', 'minimalx')) {
     }
 }
 
-if (is_leap('15.0+')) {
+if (is_leap('15.0+') || is_tumbleweed()) {
     set_var('SYSTEM_ROLE_FIRST_FLOW', 1);
 }
 
