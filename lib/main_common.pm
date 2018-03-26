@@ -570,6 +570,10 @@ sub is_smt {
     return ((get_var("PATTERNS", '') || get_var('HDD_1', '')) =~ /smt/) && !sle_version_at_least('15');
 }
 
+sub is_rmt {
+    return ((get_var("PATTERNS", '') || get_var('HDD_1', '')) =~ /rmt/) && is_sle('>=15');
+}
+
 sub remove_common_needles {
     my $no_skipto = get_var('SKIPTO') ? 0 : 1;
     unregister_needle_tags("ENV-SKIPTO-$no_skipto");
@@ -910,6 +914,7 @@ sub load_consoletests {
         loadtest "console/check_locked_package";
     }
     loadtest "console/textinfo";
+    loadtest "console/rmt" if is_rmt;
     loadtest "console/hostname" unless is_bridged_networking;
     replace_opensuse_repos_tests if get_var('DISABLE_ONLINE_REPOS');
     if (get_var('SYSTEM_ROLE', '') =~ /kvm|xen/) {
