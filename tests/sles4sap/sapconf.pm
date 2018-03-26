@@ -12,7 +12,7 @@
 
 use base "sles4sap";
 use testapi;
-use version_utils qw(is_staging sle_version_at_least);
+use version_utils qw(is_staging is_sle);
 use strict;
 
 my @tuned_profiles = qw(balanced desktop latency-performance network-latency
@@ -30,7 +30,7 @@ my %sapconf_profiles = (
 sub check_profile {
     my $current = shift;
     my $output  = script_output "tuned-adm active";
-    my $profile = sle_version_at_least('15') ? $current : $sapconf_profiles{$current};
+    my $profile = is_sle('>=15') ? $current : $sapconf_profiles{$current};
     die "Tuned profile change failed. Expected 'Current active profile: $profile', got: [$output]"
       unless ($output =~ /Current active profile: $profile/);
 }
@@ -104,7 +104,7 @@ sub run {
     verify_sapconf_service('sapconf.service', 'sapconf');
     verify_sapconf_service('uuidd.socket',    'UUID daemon activation socket');
     verify_sapconf_service('sysstat.service', 'Write information about system start to sysstat log')
-      if (sle_version_at_least('15'));
+      if (is_sle('>=15'));
 
     my $output = script_output "tuned-adm active";
     $output =~ /Current active profile: ([a-z\-]+)/;
@@ -121,12 +121,12 @@ sub run {
       unless (grep(/$output/, @tuned_profiles));
 
     foreach my $p (@tuned_profiles) {
-        assert_script_run "tuned-adm profile_info $p" if sle_version_at_least('15');
+        assert_script_run "tuned-adm profile_info $p" if is_sle('>=15');
         assert_script_run "tuned-adm profile $p";
         check_profile($p);
     }
 
-    unless (sle_version_at_least('15')) {
+    unless (is_sle('>=15')) {
         foreach my $cmd ('start', keys %sapconf_profiles) {
             $output = script_output "sapconf $cmd";
             die "Command 'sapconf $cmd' output is not recognized"
