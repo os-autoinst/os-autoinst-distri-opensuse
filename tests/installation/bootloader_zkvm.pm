@@ -19,7 +19,7 @@ use warnings;
 use bootloader_setup;
 use registration;
 use testapi;
-use utils 'OPENQA_FTP_URL';
+use utils qw(OPENQA_FTP_URL type_line_svirt);
 
 sub set_svirt_domain_elements {
     my ($svirt) = shift;
@@ -91,6 +91,20 @@ sub run {
             select_console('installation');
         }
     }
+}
+sub post_fail_hook {
+    reset_consoles;
+    select_console 'svirt';
+
+    # Enter Linuxrc extra mode
+    type_line_svirt 'x', expect => 'Linuxrc extras';
+
+    # Start linuxrc shell
+    type_line_svirt '3', expect => 'ttysclp0:install';
+
+    # Collect Linuxrc logs
+    type_line_svirt "'cat /var/log/linuxrc.log > /dev/$serialdev && echo 'LINUXRC_LOG_SAVED' > /dev/$serialdev'";
+    wait_serial "LINUXRC_LOG_SAVED" ? record_info 'Logs collected', 'Linuxrc logs can be found in serial0.txt' : die "could not collect linuxrc logs";
 }
 
 1;

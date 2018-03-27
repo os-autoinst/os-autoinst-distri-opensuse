@@ -173,9 +173,9 @@ EO_frickin_boot_parms
         output_delim => qr/Loading Installation System/,
         timeout      => 300
     ) || die "Installation system was not found";
-    my $display_type;
 
     # set up display_mode for textinstall
+    my $display_type;
     if (check_var("VIDEOMODE", "text")) {
         $display_type = "SSH";
     }
@@ -299,6 +299,28 @@ sub run {
     wait_still_screen;
 
     $self->result('ok');
+}
+
+sub post_fail_hook {
+    my $s3270 = console('x3270');
+    my $r;
+
+    # Make sure that the screen is updated
+    $s3270->sequence_3270("ENTER", "ENTER");
+    if (check_screen 'linuxrc', 10) {
+        # Start linuxrc shell
+        $s3270->sequence_3270(qw(String("x") ENTER String("3") ENTER));
+        assert_screen 'linuxrc-shell';
+
+        # collect linuxrc logs
+        $s3270->sequence_3270("String(\"cat /var/log/linuxrc.log && echo 'LINUXRC_LOG_SAVED'\")", "ENTER");
+
+        $r = $s3270->expect_3270(
+            output_delim => qr/LINUXRC_LOG_SAVED/,
+            timeout      => 60
+        );
+        $r ? record_info 'Logs collected', 'Linuxrc logs can be found in autoinst-log.txt' : die "Could not save linuxrc logs";
+    }
 }
 
 1;
