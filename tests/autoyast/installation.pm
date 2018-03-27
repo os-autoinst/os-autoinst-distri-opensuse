@@ -115,6 +115,7 @@ sub verify_timeout_and_check_screen {
         #Die explicitly in case of infinite loop when we match some needle
         die "timeout hit on during $stage";
     }
+    mouse_hide(1);
     return check_screen $needles, $check_time;
 }
 
@@ -138,6 +139,10 @@ sub run {
     # Autoyast reboot automatically without confirmation, usually assert 'bios-boot' that is not existing on zVM
     # So push a needle to check upcoming reboot on zVM that is a way to indicate the stage done
     push @needles, 'autoyast-stage1-reboot-upcoming' if check_var('BACKEND', 's390x');
+    # Import untrusted certification for SMT
+    push @needles, 'untrusted-ca-cert' if get_var('SMT_URL');
+    # Workaround for removing package error during upgrade
+    push(@needles, 'ERROR-removing-package') if get_var("AUTOUPGRADE");
     # Kill ssh proactively before reboot to avoid half-open issue on zVM
     prepare_system_shutdown;
 
@@ -204,6 +209,17 @@ sub run {
             wait_screen_change { send_key $cmd{ok} };
             @needles = grep { $_ ne 'inst-betawarning' } @needles;
             push(@needles, 'autoyast-license') if (get_var('AUTOYAST_LICENSE'));
+            next;
+        }
+        elsif (match_has_tag('untrusted-ca-cert')) {
+            send_key 'alt-t';
+            wait_still_screen 5;
+            next;
+        }
+        elsif (match_has_tag('ERROR-removing-package')) {
+            send_key 'alt-i';    # ignore
+            assert_screen 'WARNING-ignoring-package-failure';
+            send_key 'alt-o';
             next;
         }
         elsif (match_has_tag('autoyast-postpartscript')) {
