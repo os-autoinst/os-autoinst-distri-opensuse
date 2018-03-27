@@ -54,7 +54,7 @@ sub run {
  then cat ping.log && false; else salt \'*\' test.ping && break; fi; done';
         assert_script_run 'salt \'*\' cmd.run \'lsblk\'';
         # rgw is testing ceph health status with additional 900 timeout
-        my $testsuite_timout = check_var('DEEPSEA_TESTSUITE', 'health-rgw') ? 2200 : 1500;
+        my $testsuite_timout = check_var('DEEPSEA_TESTSUITE', 'health-rgw') ? 2900 : 2000;
         assert_script_run "suites/basic/$deepsea_testsuite.sh --cli | tee /dev/tty /dev/$serialdev | grep ^OK\$", $testsuite_timout;
     }
     else {
