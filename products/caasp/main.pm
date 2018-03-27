@@ -72,24 +72,29 @@ sub load_caasp_inst_tests {
         loadtest 'autoyast/installation';
     }
     else {
-        loadtest 'caasp/oci_overview';
+        if (get_var 'MULTI_STEP_KUBIC_FLOW') {
+            load_inst_tests;
+        }
+        else {
+            loadtest 'caasp/oci_overview';
 
-        # Check keyboard layout
-        loadtest 'caasp/oci_keyboard';
-        # Register system
-        loadtest 'caasp/oci_register' if check_var('REGISTER', 'installation');
-        # Set root password
-        loadtest 'caasp/oci_password';
-        # Set system Role
-        loadtest 'caasp/oci_role';
-        # Start installation
-        loadtest 'caasp/oci_install';
+            # Check keyboard layout
+            loadtest 'caasp/oci_keyboard';
+            # Register system
+            loadtest 'caasp/oci_register' if check_var('REGISTER', 'installation');
+            # Set root password
+            loadtest 'caasp/oci_password';
+            # Set system Role
+            loadtest 'caasp/oci_role';
+            # Start installation
+            loadtest 'caasp/oci_install';
 
-        # Can not start installation with partitioning error
-        return if check_var('FAIL_EXPECTED', 'SMALL-DISK');
-        return if check_var('FAIL_EXPECTED', 'BSC_1043619');
+            # Can not start installation with partitioning error
+            return if check_var('FAIL_EXPECTED', 'SMALL-DISK');
+            return if check_var('FAIL_EXPECTED', 'BSC_1043619');
 
-        load_common_installation_steps_tests;
+            load_common_installation_steps_tests;
+        }
     }
 }
 

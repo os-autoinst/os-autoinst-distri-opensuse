@@ -18,7 +18,7 @@ use testapi qw(check_var get_var get_required_var set_var check_var_array diag);
 use autotest;
 use utils;
 use version_utils qw(
-  is_hyperv_in_gui is_jeos is_gnome_next is_krypton_argon is_leap is_opensuse is_sle is_sles4sap is_sles4sap_standard sle_version_at_least is_desktop_installed is_installcheck is_rescuesystem is_staging is_tumbleweed is_virtualization_server
+  is_hyperv_in_gui is_jeos is_gnome_next is_krypton_argon is_leap is_opensuse is_sle is_sles4sap is_sles4sap_standard sle_version_at_least is_desktop_installed is_installcheck is_rescuesystem is_staging is_tumbleweed is_virtualization_server is_caasp
 );
 use bmwqemu ();
 use strict;
@@ -484,8 +484,9 @@ sub load_system_role_tests {
     if (!get_var("REMOTE_CONTROLLER") && !check_var('BACKEND', 'ipmi') && !is_hyperv_in_gui && !get_var("LIVECD")) {
         loadtest "installation/logpackages";
     }
-    loadtest "installation/disable_online_repos" if get_var('DISABLE_ONLINE_REPOS');
+    loadtest "installation/disable_online_repos"       if get_var('DISABLE_ONLINE_REPOS');
     loadtest "installation/installer_desktopselection" if is_opensuse;
+    loadtest "installation/system_role"                if is_caasp('kubic');
 }
 
 sub installzdupstep_is_applicable {
@@ -809,7 +810,7 @@ sub load_inst_tests {
     }
 
     if (noupdatestep_is_applicable()) {
-        loadtest "installation/installer_timezone";
+        loadtest "installation/installer_timezone" if !is_caasp('kubic');
         if (installwithaddonrepos_is_applicable() && !get_var("LIVECD")) {
             loadtest "installation/setup_online_repos";
         }
@@ -841,7 +842,7 @@ sub load_inst_tests {
             loadtest 'installation/user_import';
         }
         else {
-            loadtest "installation/user_settings";
+            loadtest "installation/user_settings" if !is_caasp('kubic');
         }
         if (is_sle || get_var("DOCRUN") || get_var("IMPORT_USER_DATA") || get_var("ROOTONLY")) {    # root user
             loadtest "installation/user_settings_root";

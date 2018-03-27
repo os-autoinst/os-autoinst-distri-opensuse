@@ -14,7 +14,7 @@
 use strict;
 use base "y2logsstep";
 use testapi;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_caasp);
 
 
 my %role_hotkey = (
@@ -28,7 +28,7 @@ my %role_hotkey = (
 sub change_system_role {
     my ($system_role) = @_;
     # Since SLE 15 we do not have shortcuts for system roles anymore
-    if (is_sle '15+') {
+    if ((is_sle '15+') || (is_caasp 'kubic')) {
         if (check_var('VIDEOMODE', 'text')) {
             # Expect that no actions are done before and default system role is preselected
             send_key_until_needlematch "system-role-$system_role-focused",  'down';    # select role
