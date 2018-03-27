@@ -35,6 +35,8 @@ sub run {
         set_var('DESKTOP',             'textmode');
         set_var('SCC_REGISTER',        'installation');
         set_var('REPO_UPGRADE_BASE_0', 0);
+        # Set this to load extra needle during scc registration in sle15
+        set_var('HDDVERSION', get_var('BASE_VERSION'));
     }
 }
 
