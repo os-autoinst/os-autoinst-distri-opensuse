@@ -825,7 +825,6 @@ sub random_string {
 
 sub handle_login {
     assert_screen 'displaymanager';    # wait for DM, then try to login
-    mouse_hide();
     wait_still_screen;
     if (get_var('ROOTONLY')) {
         if (check_screen 'displaymanager-username-notlisted', 10) {
@@ -841,8 +840,14 @@ sub handle_login {
     elsif (check_var('DESKTOP', 'gnome')) {
         # DMs in condition above have to select user
         if (is_sle('15+') || is_leap('15.0+') || is_tumbleweed) {
-            assert_and_click "displaymanager-$username";
-            record_soft_failure 'bgo#657996 - user account not selected by default, have to use mouse to login';
+            assert_screen [qw(displaymanager-user-selected displaymanager-user-notselected)];
+            if (match_has_tag('displaymanager-user-notselected')) {
+                assert_and_click "displaymanager-$username";
+                record_soft_failure 'bsc#1086425- user account not selected by default, have to use mouse to login';
+            }
+            elsif (match_has_tag('displaymanager-user-selected')) {
+                send_key 'ret';
+            }
         }
         else {
             send_key 'ret';
