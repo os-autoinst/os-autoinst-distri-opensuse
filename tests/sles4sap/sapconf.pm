@@ -15,9 +15,12 @@ use testapi;
 use version_utils qw(is_staging is_sle);
 use strict;
 
-my @tuned_profiles = qw(balanced desktop latency-performance network-latency
-  network-throughput powersave sapconf saptune throughput-performance virtual-guest
-  virtual-host);
+my @tuned_profiles = is_sle('>=15') ?
+  qw(balanced desktop latency-performance network-latency network-throughput
+  powersave sapconf saptune throughput-performance virtual-guest virtual-host)
+  : qw(balanced desktop latency-performance network-latency
+  network-throughput powersave sap-ase sap-bobj sap-hana sap-netweaver saptune
+  throughput-performance virtual-guest virtual-host);
 
 my %sapconf_profiles = (
     hana   => 'sap-hana',
