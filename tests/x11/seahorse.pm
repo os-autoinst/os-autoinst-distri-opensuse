@@ -33,7 +33,7 @@ sub run {
     type_password;                                    # Re-type user password
     send_key "ret";                                   # Confirm password
     assert_and_click "seahorse-default_keyring", 'right';    # right click the new keyring
-    assert_and_click "seahorse-set_as_default",  60;         # Set the new keyring as default
+    assert_and_click "seahorse-set_as_default",  'left', 60;         # Set the new keyring as default
     send_key "alt-f4";                                       # Close seahorse
 }
 
