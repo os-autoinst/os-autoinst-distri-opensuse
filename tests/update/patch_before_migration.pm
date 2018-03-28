@@ -58,6 +58,7 @@ sub patching_sle {
         # Update origin system on zVM that is controlled by autoyast profile and reboot is done by end of autoyast installation
         # So we skip reboot here after fully patched on zVM to reduce times of reconnection to s390x
         if (!get_var('UPGRADE_ON_ZVM')) {
+            assert_script_run 'sync', 600;
             type_string "reboot\n";
             $self->wait_boot(textmode => !is_desktop_installed(), ready_time => 600, bootloader_time => 250);
 
