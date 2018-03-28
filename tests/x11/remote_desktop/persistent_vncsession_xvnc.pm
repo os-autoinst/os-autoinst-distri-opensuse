@@ -67,7 +67,20 @@ sub run {
     $self->start_vncviewer;
     handle_login;
     assert_screen 'generic-desktop';
-    x11_start_program('gnome-terminal');
+    # Hold Alt key inside the vncviewer
+    send_key 'f8';
+    assert_screen 'vncviewer-menu';
+    send_key 'a';
+    wait_still_screen 3;
+    send_key 'f2';
+    assert_screen 'desktop-runner';
+    # Release key inside the vncviewer
+    send_key 'f8';
+    assert_screen 'vncviewer-menu';
+    send_key 'a';
+    wait_still_screen 3;
+    type_string "gnome-terminal\n";
+    assert_screen 'gnome-terminal-launched';
     type_string "vncmanager-controller\n";
     assert_screen 'vncmanager-controller';
     assert_and_click 'vncmanager-controller-visibility';
@@ -102,13 +115,13 @@ sub run {
     hold_key 'alt';
     send_key_until_needlematch('vncviewer-minimize', 'tab');
     release_key 'alt';
-    send_key 'alt-f4';
-    mouse_set(1000, 30);
+    assert_screen 'gnome-terminal-launched';
     assert_and_click 'system-indicator';
     assert_and_click 'user-logout-sector';
     assert_and_click 'logout-system';
     assert_screen 'logout-dialogue';
     send_key 'ret';
+    assert_screen 'generic-desktop';
 
     mutex_unlock 'xvnc';
 }
