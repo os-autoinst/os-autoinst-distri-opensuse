@@ -14,13 +14,23 @@ use base "x11test";
 use strict;
 use testapi;
 use utils;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_leap);
 
 sub turn_off_screensaver {
+    my ($self) = @_;
     # Turn off screensaver
     x11_start_program('xterm');
     become_root;
     ensure_serialdev_permissions;
+
+    # Trying to detect bsc#1052258 which leads to the test failure occasionally on Leap 42.3 which has affected kernel version
+    if (is_leap('=42.3') && script_run("dmesg | grep -P 'soft lockup - CPU#\\d+ stuck'")) {
+        # Fail on cpu stuck, see bsc#1052258 and collect logs if machine still responds
+        record_soft_failure 'cpu soft lockup detected, see bsc#1052258';
+        $self->save_upload_y2logs;
+        select_console 'x11';    # Trying to continue with the test
+    }
+
     type_string "exit\n";
 
     if (check_var("DESKTOP", "gnome")) {
@@ -53,7 +63,7 @@ sub run {
     my @updates_tags           = qw(updates_none updates_available package-updater-privileged-user-warning updates_restart_application);
     my @updates_installed_tags = qw(updates_none updates_installed-logout updates_installed-restart updates_restart_application );
 
-    turn_off_screensaver;
+    $self->turn_off_screensaver;
 
     while (1) {
         x11_start_program('gpk-update-viewer', target_match => \@updates_tags, match_timeout => 100);
@@ -95,7 +105,7 @@ sub run {
                 if (check_screen "updates_installed-restart", 0) {
                     power_action 'reboot', textmode => 1;
                     $self->wait_boot;
-                    turn_off_screensaver;
+                    $self->turn_off_screensaver;
                 }
                 next;
             }
@@ -109,7 +119,7 @@ sub run {
             elsif (match_has_tag("updates_installed-restart")) {
                 power_action 'reboot', textmode => 1;
                 $self->wait_boot;
-                turn_off_screensaver;
+                $self->turn_off_screensaver;
             }
         }
     }
