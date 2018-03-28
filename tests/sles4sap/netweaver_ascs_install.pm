@@ -46,7 +46,7 @@ sub run {
 
     # This installs Netweaver's ASCS. Start by making sure the correct
     # SAP profile and solution are configured in the system
-    assert_script_run "tuned-adm profile sap-netweaver";
+    assert_script_run "tuned-adm profile saptune";
     assert_script_run "saptune solution apply NETWEAVER";
     assert_script_run "systemctl restart systemd-logind.service";
 

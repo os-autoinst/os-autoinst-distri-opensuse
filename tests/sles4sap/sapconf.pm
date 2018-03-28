@@ -15,7 +15,10 @@ use testapi;
 use version_utils qw(is_staging is_sle);
 use strict;
 
-my @tuned_profiles = qw(balanced desktop latency-performance network-latency
+my @tuned_profiles = is_sle('>=15') ?
+  qw(balanced desktop latency-performance network-latency network-throughput
+  powersave sapconf saptune throughput-performance virtual-guest virtual-host)
+  : qw(balanced desktop latency-performance network-latency
   network-throughput powersave sap-ase sap-bobj sap-hana sap-netweaver saptune
   throughput-performance virtual-guest virtual-host);
 
@@ -61,7 +64,8 @@ sub run_developers_tests {
     }
     assert_script_run "chmod +x sapconf_test.sh";
     $ret = script_run "./sapconf_test.sh -c local -p no | tee $log", 600;
-    record_soft_failure "sapconf_test.sh returned error code: [$ret]" unless (defined $ret and $ret == 0);
+    # Record soft fail only if script returns an error. Ignore timeout as test completion is checked below
+    record_soft_failure "sapconf_test.sh returned error code: [$ret]" if (defined $ret and $ret != 0);
     upload_logs $log;
 
     # Check summary of tests on log for bug report
@@ -117,7 +121,7 @@ sub run {
 
     $output = script_output "tuned-adm recommend";
     record_info("Recommended profile", "Recommended profile: $output");
-    die "Command 'tuned-adm recommended' recommended profile is not in 'tuned-adm list'"
+    die "Command 'tuned-adm recommend' recommended profile is not in 'tuned-adm list'"
       unless (grep(/$output/, @tuned_profiles));
 
     foreach my $p (@tuned_profiles) {
