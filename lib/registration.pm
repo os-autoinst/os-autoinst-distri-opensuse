@@ -87,15 +87,10 @@ sub accept_addons_license {
             sleep 5;
         }
         # No license agreements are shown in SLE 15 at the moment
-        if (sle_version_at_least('15')) {
-            record_soft_failure 'bsc#1057223';
-        }
-        else {
-            assert_screen "scc-addon-license-$addon", 60;
-            addon_decline_license;
-            wait_still_screen 2;
-            send_key $cmd{next};
-        }
+        assert_screen "scc-addon-license-$addon", 60;
+        addon_decline_license;
+        wait_still_screen 2;
+        send_key $cmd{next};
     }
 }
 
@@ -428,6 +423,7 @@ sub fill_in_registration_data {
                 assert_screen 'yast-scc-emptypkg';
                 send_key 'alt-a';
             }
+            accept_addons_license('ha') if (check_var('SLE_PRODUCT', 'sles4sap'));
         }
     }
     else {
