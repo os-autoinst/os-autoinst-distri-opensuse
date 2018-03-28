@@ -16,8 +16,8 @@ use version_utils qw(is_staging is_sle);
 use strict;
 
 my @tuned_profiles = qw(balanced desktop latency-performance network-latency
-  network-throughput powersave sap-ase sap-bobj sap-hana sap-netweaver saptune
-  throughput-performance virtual-guest virtual-host);
+  network-throughput powersave sapconf saptune throughput-performance virtual-guest
+  virtual-host);
 
 my %sapconf_profiles = (
     hana   => 'sap-hana',
