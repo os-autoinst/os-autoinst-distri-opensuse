@@ -699,10 +699,6 @@ sub load_inst_tests {
     if (is_opensuse && noupdatestep_is_applicable() && !get_var("LIVECD")) {
         loadtest "installation/installation_mode";
     }
-    # Run system_role/desktop selection tests if using the new openSUSE installation flow
-    if (is_opensuse && noupdatestep_is_applicable() && get_var("SYSTEM_ROLE_FIRST_FLOW")) {
-        load_system_role_tests;
-    }
     if (!get_var("LIVECD") && get_var("UPGRADE")) {
         loadtest "installation/upgrade_select";
         if (check_var("UPGRADE", "LOW_SPACE")) {
@@ -734,6 +730,10 @@ sub load_inst_tests {
         # Krypton/Argon disable the network configuration stage
         if (get_var("LIVECD") && !is_krypton_argon) {
             loadtest "installation/livecd_network_settings";
+        }
+        # Run system_role/desktop selection tests if using the new openSUSE installation flow
+        if (is_opensuse && get_var("SYSTEM_ROLE_FIRST_FLOW")) {
+            load_system_role_tests;
         }
         #system_role selection during installation was added as a new feature since sles12sp2
         #so system_role.pm should be loaded for all tests that actually install to versions over sles12sp2
