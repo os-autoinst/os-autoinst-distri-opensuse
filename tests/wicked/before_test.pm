@@ -14,10 +14,11 @@ use base 'wickedbase';
 use strict;
 use testapi;
 use utils 'systemctl';
+use serial_terminal 'select_virtio_console';
 
 sub run {
     my ($self) = @_;
-    select_console('root-console');
+    select_virtio_console();
     my $enable_command_logging = 'export PROMPT_COMMAND=\'logger -t openQA_CMD "$(history 1 | sed "s/^[ ]*[0-9]\+[ ]*//")"\'';
     assert_script_run("echo \"$enable_command_logging\" >> /root/.bashrc");
     assert_script_run($enable_command_logging);
