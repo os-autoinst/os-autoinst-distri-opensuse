@@ -25,13 +25,14 @@ use mmapi;
 sub run {
     my $self = shift;
 
+    select_console 'root-console';
     # We don't need any logs from support server when running on REMOTE_CONTROLLER for remote SLE installation tests
     type_string("journalctl -f |tee /dev/$serialdev\n") unless (get_var('REMOTE_CONTROLLER'));
 
     wait_for_children;
 
     unless (get_var('REMOTE_CONTROLLER')) {
-        send_key("ctrl-c");
+        send_key 'ctrl-c';
 
         my @server_roles = split(',|;', lc(get_var("SUPPORT_SERVER_ROLES")));
         my %server_roles = map { $_ => 1 } @server_roles;
