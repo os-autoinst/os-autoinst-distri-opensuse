@@ -632,14 +632,13 @@ exit 0
         <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDDEfz0lP5oO03Rw8vSyzqwt06VIEFA4x478DERaSWHPTD5ULqqdZQS1vsFpTtAm1eT4Ix4njXvSh4T2d2aXYyCgB+ElJI1h0tpbtX7OtenJ7c3rUows61jqmXLFrnIfWbZL2uhomTsOziQwxKoXS3PRxFgoRaZGzHGD4J4HOEfiP8YHQ53igUKbmmDY8yVZya/dyEtKe8bukcbZbGIosKgMoaLsdpbNkln7bU1oLqMuogHGtqRdZ9gQLz2mz5I7Ml/lSeCEdbkqVbOjydVhF2Qm4bvbVjyER+n0VqhXOmeKcauEOQbEafYrJjWvDetMY4j8NwWCeJq0QA7gYRd7967 bhavel@blackbird.suse.cz</listentry>
         <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDb3u+zG7OoUAX5h9PTaTuK6/R5AxsO4mw23IChgpUMp9HOTVkBtDpRViSiLwuHjUnMHA42Do3lNFAI0VzimX3MD/eyZwq9SdgWcjnJr8Ha/bpTvYOpV9l1OJZ1CnP1LyN71Kdg4ionzxPWidAT+hXEqsXgnOO06aEZ8KLftdg+gJGtbIusyTKb6JHJ6ppFGDXAQSFH/gpPlYADAKWvXpmLUr/IvFxXdXLIuF5DKMHpL+bi4WNVEJtV0daCKxiRUr0A6cIuIBVXi/Vsb78KcJi/4Iq+h68iGHgArH7FBD7japmA+RT45ZXpHtGH1PhKcxa+YMmHqKYyzTirHpkpDmrn cvarelas@suse.com</listentry>
       </authorized_keys>
-      <encrypted config:type="boolean">false</encrypted>
+      <encrypted config:type="boolean">true</encrypted>
       <fullname>root</fullname>
       <gid>0</gid>
       <home>/root</home>
       <shell>/bin/bash</shell>
       <uid>0</uid>
-<!--      <user_password>$6$DAX16XYw$G/GPBVT/CN7G027Qy24XtQIUbB07yhsS7JSOQcaPOEYbFRKqelD7Kvw29OWewFLkMsxyphE7Dyn5PnCnRaWKQ/</user_password> -->
-      <user_password>nots3cr3t</user_password>
+      <user_password>$6$DAX16XYw$G/GPBVT/CN7G027Qy24XtQIUbB07yhsS7JSOQcaPOEYbFRKqelD7Kvw29OWewFLkMsxyphE7Dyn5PnCnRaWKQ/</user_password>
       <username>root</username>
     </user>
   </users>
