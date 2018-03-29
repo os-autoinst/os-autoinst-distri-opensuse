@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -25,7 +25,7 @@ sub run {
     assert_screen 'linux-login', 200;
     select_console 'root-console';
     # 1)
-    assert_script_run('touch NOWRITE;test ! -f NOWRITE');
+    assert_script_run('touch /etc/NOWRITE;test ! -f /etc/NOWRITE');
     # 1b) just debugging infos
     assert_script_run("snapper --iso list");
     assert_script_run("cat /etc/os-release");
