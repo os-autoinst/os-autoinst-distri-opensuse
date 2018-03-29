@@ -147,10 +147,23 @@ sub sle_register {
             yast_scc_registration();
         }
         else {
-            my $reg_code = get_required_var("NCC_REGCODE");
-            my $reg_mail = get_required_var("NCC_MAIL");
-            assert_script_run('suse_register -e');
-            assert_script_run("suse_register -n -a email=$reg_mail -a regcode-sles=$reg_code", 300);
+            # Erase all local files created from a previous executed registration
+            assert_script_run('suse_register -E');
+            # Register SLE 11 to SMT server
+            my $smt_url = get_var('SMT_URL', '');
+            if ($smt_url) {
+                my $setup_script = 'clientSetup4SMT.sh';
+                assert_script_run("wget $smt_url/repo/tools/$setup_script" =~ s/https/http/r);
+                assert_script_run("chmod +x $setup_script");
+                assert_script_run("echo y | ./$setup_script $smt_url/center/regsvc");
+                assert_script_run("suse_register -n");
+            }
+            # Otherwise, register SLE 11 to NCC server
+            else {
+                my $reg_code = get_required_var("NCC_REGCODE");
+                my $reg_mail = get_required_var("NCC_MAIL");
+                assert_script_run("suse_register -n -a email=$reg_mail -a regcode-sles=$reg_code", 300);
+            }
         }
     }
     # Unregister sle after update
