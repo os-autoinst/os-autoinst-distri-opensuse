@@ -105,6 +105,10 @@ sub post_fail_hook {
     # Collect Linuxrc logs
     type_line_svirt "'cat /var/log/linuxrc.log > /dev/$serialdev && echo 'LINUXRC_LOG_SAVED' > /dev/$serialdev'";
     wait_serial "LINUXRC_LOG_SAVED" ? record_info 'Logs collected', 'Linuxrc logs can be found in serial0.txt' : die "could not collect linuxrc logs";
+
+    # Collect Wicked logs
+    type_line_svirt "'cat /var/log/wickedd.log > /dev/$serialdev && echo 'WICKED_LOG_SAVED' > /dev/$serialdev'";
+    wait_serial "WICKED_LOG_SAVED" ? record_info 'Logs collected', 'Wicked logs can be found in serial0.txt' : die "could not collect linuxrc logs";
 }
 
 1;

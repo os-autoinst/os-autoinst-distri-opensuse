@@ -320,6 +320,16 @@ sub post_fail_hook {
             timeout      => 60
         );
         $r ? record_info 'Logs collected', 'Linuxrc logs can be found in autoinst-log.txt' : die "Could not save linuxrc logs";
+
+        assert_screen 'linuxrc-shell';
+        # collect wickedd logs
+        $s3270->sequence_3270("String(\"cat /var/log/wickedd.log && echo 'WICKED_LOG_SAVED'\")", "ENTER");
+
+        $r = $s3270->expect_3270(
+            output_delim => qr/WICKED_LOG_SAVED/,
+            timeout      => 60
+        );
+        $r ? record_info 'Logs collected', 'wickedd logs can be found in autoinst-log.txt' : die "Could not save wicked logs";
     }
 }
 
