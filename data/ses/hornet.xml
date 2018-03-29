@@ -286,7 +286,7 @@
           <partition_id config:type="integer">131</partition_id>
           <partition_nr config:type="integer">4</partition_nr>
           <resize config:type="boolean">false</resize>
-          <size>500M</size>
+          <size>max</size>
         </partition>
       </partitions>
       <type config:type="symbol">CT_DISK</type>
