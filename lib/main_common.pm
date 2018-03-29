@@ -732,7 +732,7 @@ sub load_inst_tests {
             loadtest "installation/livecd_network_settings";
         }
         # Run system_role/desktop selection tests if using the new openSUSE installation flow
-        if (is_opensuse && get_var("SYSTEM_ROLE_FIRST_FLOW")) {
+        if (get_var("SYSTEM_ROLE_FIRST_FLOW")) {
             load_system_role_tests;
         }
         #system_role selection during installation was added as a new feature since sles12sp2
