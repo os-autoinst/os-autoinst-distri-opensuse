@@ -3,6 +3,7 @@ package y2snapper_common;
 use strict;
 use testapi;
 use utils;
+use version_utils;
 
 # Helper for letting y2-snapper to create a snapper snapshot
 sub y2snapper_create_snapshot {
@@ -43,7 +44,10 @@ sub y2snapper_new_snapshot {
 }
 
 sub y2snapper_untar_testfile {
-    assert_script_run "tar -xzf /home/$username/data/yast2_snapper.tgz";
+    # Due to the product change for bsc#1085266 /root is not included in
+    # snapshots anymore
+    my $args = is_sle('<15') || is_leap('<15.0') ? '' : '-C /etc';
+    assert_script_run "tar $args -xzf /home/$username/data/yast2_snapper.tgz";
 }
 
 sub y2snapper_show_changes_and_delete {
