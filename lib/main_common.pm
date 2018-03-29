@@ -1056,6 +1056,7 @@ sub load_consoletests {
     if (check_var_array('SCC_ADDONS', 'tcm') && get_var('PATTERNS') && sle_version_at_least('12-SP3')) {
         loadtest "feature/feature_console/deregister";
     }
+    loadtest 'migration/sle12_online_migration/orphaned_packages_check' if get_var('UPGRADE');
 
     loadtest "console/consoletest_finish";
 }
