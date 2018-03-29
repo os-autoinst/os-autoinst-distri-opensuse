@@ -105,6 +105,7 @@ sub load_feature_tests {
     # Feature tests
     # 'create_autoyast' uses serial line heavily, which is notentirely
     # reliable on Hyper-V, no point in executing it as it always fails.
+    # Container Tests
     loadtest 'caasp/create_autoyast' unless check_var('VIRSH_VMM_FAMILY', 'hyperv');
     loadtest 'caasp/libzypp_config';
     loadtest 'caasp/filesystem_ro';
@@ -128,6 +129,8 @@ sub load_feature_tests {
         if (is_caasp('kubic') && check_var('SYSTEM_ROLE', 'plain')) {
             loadtest 'console/skopeo';
             loadtest 'console/umoci';
+            loadtest 'console/runc';
+            loadtest 'console/rootless';
         }
     }
 }
