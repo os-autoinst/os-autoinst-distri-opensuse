@@ -1257,6 +1257,121 @@ sub load_yast2_gui_tests {
     loadtest "yast2_gui/yast2_users";
 }
 
+sub load_extra_tests_desktop {
+    if (check_var('DISTRI', 'sle')) {
+        # start extra x11 tests from here
+        loadtest 'x11/vnc_two_passwords';
+        # TODO: check why this is not called on opensuse
+        loadtest 'x11/user_defined_snapshot';
+    }
+    elsif (check_var('DISTRI', 'opensuse')) {
+        if (gnomestep_is_applicable()) {
+            # Setup env for x11 regression tests
+            loadtest "x11/x11_setup";
+            # poo#18850 java test support for firefox, run firefox before chrome
+            # as otherwise have wizard on first run to import settings from it
+            loadtest "x11/firefox/firefox_java";
+            if (check_var('VERSION', '42.2')) {
+                # 42.2 feature - not even on Tumbleweed
+                loadtest "x11/gdm_session_switch";
+            }
+            loadtest "x11/seahorse";
+        }
+
+        if (chromestep_is_applicable()) {
+            loadtest "x11/chrome";
+        }
+        if (!get_var("NOAUTOLOGIN")) {
+            loadtest "x11/multi_users_dm";
+        }
+
+    }
+    # the following tests care about network and need some DE specific
+    # needles. For now we only have them for gnome and do not want to
+    # support more than just this DE. Probably for later at least the wifi
+    # test, checking the wifi applet, would make sense in other DEs as
+    # well
+    if (check_var('DESKTOP', 'gnome')) {
+        loadtest 'x11/yast2_lan_restart';
+        loadtest 'x11/yast2_lan_restart_devices';
+        # we only have the test dependencies, e.g. hostapd available in
+        # openSUSE
+        if (check_var('DISTRI', 'opensuse')) {
+            loadtest 'x11/network/hwsim_wpa2_enterprise_setup';
+            loadtest 'x11/network/yast2_network_setup';
+            loadtest 'x11/network/NM_wpa2_enterprise';
+        }
+    }
+}
+
+sub load_extra_tests_textmode {
+    # Run zypper info before as tests source repo
+    loadtest "console/zypper_info";
+    # Remove repos pointing to download.opensuse.org and add snaphot repo from o3
+    if (check_var('DISTRI', 'opensuse')) {
+        replace_opensuse_repos_tests;
+    }
+    loadtest "console/zypper_lr_validate";
+    loadtest "console/openvswitch";
+    # dependency of git test
+    loadtest "console/sshd";
+    loadtest "console/zypper_ref";
+    loadtest "console/update_alternatives";
+    # start extra console tests from here
+    # Audio device is not supported on ppc64le, s390x, JeOS, and Xen PV
+    if (!get_var("OFW") && !is_jeos && !check_var('VIRSH_VMM_FAMILY', 'xen') && !check_var('ARCH', 's390x')) {
+        loadtest "console/aplay";
+    }
+    loadtest "console/command_not_found";
+    if (is_sle '12-sp2+') {
+        # Check for availability of packages and the corresponding repository, only makes sense for SLE
+        loadtest 'console/repo_package_install';
+        loadtest 'console/openssl_alpn';
+        loadtest 'console/autoyast_removed';
+    }
+    elsif (check_var('DISTRI', 'opensuse')) {
+        loadtest "console/rabbitmq";
+        loadtest "console/salt";
+        loadtest "console/rails";
+        loadtest "console/machinery";
+        loadtest "console/pcre";
+        loadtest "console/openqa_review";
+        loadtest "console/zbar";
+        loadtest "console/a2ps";    # a2ps is not a ring package and thus not available in staging
+        loadtest "console/weechat";
+        loadtest "console/nano";
+    }
+    if (get_var("IPSEC")) {
+        loadtest "console/ipsec_tools_h2h";
+    }
+    loadtest "console/git";
+    loadtest "console/java";
+    loadtest "console/sysctl";
+    loadtest "console/curl_ipv6";
+    loadtest "console/wget_ipv6";
+    loadtest "console/unzip";
+    loadtest "console/gpg";
+    loadtest "console/shells";
+    # dstat is not in sle12sp1
+    loadtest "console/dstat" if is_sle('12-SP2+') || is_opensuse;
+    # MyODBC-unixODBC not available on < SP2 and sle 15 and only in SDK
+    if (sle_version_at_least('12-SP2') && !(sle_version_at_least('15'))) {
+        loadtest "console/mysql_odbc" if check_var_array('ADDONS', 'sdk') || check_var_array('SCC_ADDONS', 'sdk');
+    }
+    if (get_var("SYSAUTHTEST")) {
+        # sysauth test scenarios run in the console
+        loadtest "sysauth/sssd";
+    }
+    # schedule the docker tests later as it needs the containers module on
+    # SLE>=15 and therefore would potentially pollute other test modules.
+    # Currently for our SLE12 validation tests we are not using a
+    # registered SLE installation so we should not schedule the test
+    # modules.
+    load_docker_tests if (check_var('ARCH', 'x86_64') && ((is_sle('12-SP2+') && (is_sle('<12-SP4') || is_sle('15+')) || !is_sle)));
+    loadtest "console/kdump_and_crash" if kdump_is_applicable;
+    loadtest "console/consoletest_finish";
+}
+
 sub load_extra_tests {
     # Put tests that filled the conditions below
     # 1) you don't want to run in stagings below here
@@ -1270,117 +1385,10 @@ sub load_extra_tests {
     loadtest "console/consoletest_setup";
     loadtest "console/hostname";
     if (any_desktop_is_applicable()) {
-        if (check_var('DISTRI', 'sle')) {
-            # start extra x11 tests from here
-            loadtest 'x11/vnc_two_passwords';
-            # TODO: check why this is not called on opensuse
-            loadtest 'x11/user_defined_snapshot';
-        }
-        elsif (check_var('DISTRI', 'opensuse')) {
-            if (gnomestep_is_applicable()) {
-                # Setup env for x11 regression tests
-                loadtest "x11/x11_setup";
-                # poo#18850 java test support for firefox, run firefox before chrome
-                # as otherwise have wizard on first run to import settings from it
-                loadtest "x11/firefox/firefox_java";
-                if (check_var('VERSION', '42.2')) {
-                    # 42.2 feature - not even on Tumbleweed
-                    loadtest "x11/gdm_session_switch";
-                }
-                loadtest "x11/seahorse";
-            }
-
-            if (chromestep_is_applicable()) {
-                loadtest "x11/chrome";
-            }
-            if (!get_var("NOAUTOLOGIN")) {
-                loadtest "x11/multi_users_dm";
-            }
-
-        }
-        # the following tests care about network and need some DE specific
-        # needles. For now we only have them for gnome and do not want to
-        # support more than just this DE. Probably for later at least the wifi
-        # test, checking the wifi applet, would make sense in other DEs as
-        # well
-        if (check_var('DESKTOP', 'gnome')) {
-            loadtest 'x11/yast2_lan_restart';
-            loadtest 'x11/yast2_lan_restart_devices';
-            # we only have the test dependencies, e.g. hostapd available in
-            # openSUSE
-            if (check_var('DISTRI', 'opensuse')) {
-                loadtest 'x11/network/hwsim_wpa2_enterprise_setup';
-                loadtest 'x11/network/yast2_network_setup';
-                loadtest 'x11/network/NM_wpa2_enterprise';
-            }
-        }
+        load_extra_tests_desktop;
     }
     else {
-        # Run zypper info before as tests source repo
-        loadtest "console/zypper_info";
-        # Remove repos pointing to download.opensuse.org and add snaphot repo from o3
-        if (check_var('DISTRI', 'opensuse')) {
-            replace_opensuse_repos_tests;
-        }
-        loadtest "console/zypper_lr_validate";
-        loadtest "console/openvswitch";
-        # dependency of git test
-        loadtest "console/sshd";
-        loadtest "console/zypper_ref";
-        loadtest "console/update_alternatives";
-        # start extra console tests from here
-        # Audio device is not supported on ppc64le, s390x, JeOS, and Xen PV
-        if (!get_var("OFW") && !is_jeos && !check_var('VIRSH_VMM_FAMILY', 'xen') && !check_var('ARCH', 's390x')) {
-            loadtest "console/aplay";
-        }
-        loadtest "console/command_not_found";
-        if (is_sle '12-sp2+') {
-            # Check for availability of packages and the corresponding repository, only makes sense for SLE
-            loadtest 'console/repo_package_install';
-            loadtest 'console/openssl_alpn';
-            loadtest 'console/autoyast_removed';
-        }
-        elsif (check_var('DISTRI', 'opensuse')) {
-            loadtest "console/rabbitmq";
-            loadtest "console/salt";
-            loadtest "console/rails";
-            loadtest "console/machinery";
-            loadtest "console/pcre";
-            loadtest "console/openqa_review";
-            loadtest "console/zbar";
-            loadtest "console/a2ps";    # a2ps is not a ring package and thus not available in staging
-            loadtest "console/weechat";
-            loadtest "console/nano";
-        }
-        if (get_var("IPSEC")) {
-            loadtest "console/ipsec_tools_h2h";
-        }
-        loadtest "console/git";
-        loadtest "console/java";
-        loadtest "console/sysctl";
-        loadtest "console/curl_ipv6";
-        loadtest "console/wget_ipv6";
-        loadtest "console/unzip";
-        loadtest "console/gpg";
-        loadtest "console/shells";
-        # dstat is not in sle12sp1
-        loadtest "console/dstat" if is_sle('12-SP2+') || is_opensuse;
-        # MyODBC-unixODBC not available on < SP2 and sle 15 and only in SDK
-        if (sle_version_at_least('12-SP2') && !(sle_version_at_least('15'))) {
-            loadtest "console/mysql_odbc" if check_var_array('ADDONS', 'sdk') || check_var_array('SCC_ADDONS', 'sdk');
-        }
-        if (get_var("SYSAUTHTEST")) {
-            # sysauth test scenarios run in the console
-            loadtest "sysauth/sssd";
-        }
-        # schedule the docker tests later as it needs the containers module on
-        # SLE>=15 and therefore would potentially pollute other test modules.
-        # Currently for our SLE12 validation tests we are not using a
-        # registered SLE installation so we should not schedule the test
-        # modules.
-        load_docker_tests if (check_var('ARCH', 'x86_64') && ((is_sle('12-SP2+') && (is_sle('<12-SP4') || is_sle('15+')) || !is_sle)));
-        loadtest "console/kdump_and_crash" if kdump_is_applicable;
-        loadtest "console/consoletest_finish";
+        load_extra_tests_textmode;
     }
     return 1;
 }
