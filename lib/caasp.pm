@@ -16,6 +16,7 @@ use strict;
 use warnings;
 use testapi;
 use mmapi;
+use version_utils 'is_caasp';
 use utils qw(power_action assert_shutdown_and_restore_system);
 
 our @EXPORT
