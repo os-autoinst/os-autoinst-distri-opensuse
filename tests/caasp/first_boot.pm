@@ -23,6 +23,7 @@ sub run {
     # On DVD images stall prevents reliable matching of BIOS needle - poo#28648
     if (is_caasp('DVD') && !get_var('AUTOYAST')) {
         assert_screen 'grub2';
+        send_key 'ret';
     }
 
     # Check ssh keys & ip information are displayed
