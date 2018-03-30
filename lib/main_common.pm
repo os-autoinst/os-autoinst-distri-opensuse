@@ -1340,6 +1340,7 @@ sub load_extra_tests_textmode {
         loadtest "console/a2ps";    # a2ps is not a ring package and thus not available in staging
         loadtest "console/weechat";
         loadtest "console/nano";
+        loadtest "console/steamcmd";
     }
     if (get_var("IPSEC")) {
         loadtest "console/ipsec_tools_h2h";
