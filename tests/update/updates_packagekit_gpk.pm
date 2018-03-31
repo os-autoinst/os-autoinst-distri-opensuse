@@ -24,7 +24,7 @@ sub turn_off_screensaver {
     type_string "exit\n";
 
     if (check_var("DESKTOP", "gnome")) {
-        script_run("gsettings set org.gnome.desktop.session idle-delay 0");
+        turn_off_gnome_screensaver;
     }
     else {
         script_run("xscreensaver-command -exit");

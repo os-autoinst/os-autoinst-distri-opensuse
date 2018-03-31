@@ -56,6 +56,7 @@ our @EXPORT = qw(
   noupdatestep_is_applicable
   validate_repos
   turn_off_kde_screensaver
+  turn_off_gnome_screensaver
   random_string
   handle_login
   handle_logout
@@ -157,6 +158,18 @@ sub turn_off_kde_screensaver {
     assert_screen 'screenlock-disabled';
     send_key("alt-o");
 }
+
+=head2 turn_off_gnome_screensaver
+
+  turn_off_gnome_screensaver()
+
+Disable screensaver in gnome. To be called from a command prompt, for example an xterm window.
+
+=cut
+sub turn_off_gnome_screensaver {
+    type_string "gsettings set org.gnome.desktop.session idle-delay 0\n";
+}
+
 
 # 'ctrl-l' does not get queued up in buffer. If this happens to fast, the
 # screen would not be cleared
