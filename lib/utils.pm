@@ -212,7 +212,8 @@ sub prepare_system_shutdown {
 sub assert_gui_app {
     my ($application, %args) = @_;
     ensure_installed($application) if $args{install};
-    x11_start_program("$application $args{exec_param}", target_match => "test-$application-started");
+    my $params = $args{exec_param} ? " $args{exec_param}" : '';
+    x11_start_program($application . $params, target_match => "test-$application-started");
     send_key "alt-f4" unless $args{remain};
 }
 
