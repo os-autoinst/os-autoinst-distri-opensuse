@@ -16,8 +16,7 @@ use testapi;
 use utils;
 use version_utils 'is_sle';
 
-sub turn_off_screensaver {
-    # Turn off screensaver
+sub setup_system {
     x11_start_program('xterm');
     become_root;
     ensure_serialdev_permissions;
@@ -53,7 +52,7 @@ sub run {
     my @updates_tags           = qw(updates_none updates_available package-updater-privileged-user-warning updates_restart_application);
     my @updates_installed_tags = qw(updates_none updates_installed-logout updates_installed-restart updates_restart_application );
 
-    turn_off_screensaver;
+    setup_system;
 
     while (1) {
         x11_start_program('gpk-update-viewer', target_match => \@updates_tags, match_timeout => 100);
@@ -95,7 +94,7 @@ sub run {
                 if (check_screen "updates_installed-restart", 0) {
                     power_action 'reboot', textmode => 1;
                     $self->wait_boot;
-                    turn_off_screensaver;
+                    setup_system;
                 }
                 next;
             }
@@ -109,7 +108,7 @@ sub run {
             elsif (match_has_tag("updates_installed-restart")) {
                 power_action 'reboot', textmode => 1;
                 $self->wait_boot;
-                turn_off_screensaver;
+                setup_system;
             }
         }
     }
