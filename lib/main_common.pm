@@ -1284,6 +1284,7 @@ sub load_extra_tests_desktop {
         if (!get_var("NOAUTOLOGIN")) {
             loadtest "x11/multi_users_dm";
         }
+        loadtest 'x11/wine';
 
     }
     # the following tests care about network and need some DE specific
