@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -16,20 +16,13 @@ use strict;
 use testapi;
 
 sub run {
-    # Valid mounts are by text(proc,mem), label, partlabel. Invalid mounts are by UUID, PARTUUID,
-    # and path (note that /dev/disk/by-(part)label/ is considered 'as a (part)label mount', just
-    # in different format). Except for Hyper-V where the product uses UUID by design.
-    my $invalid;
-    if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
-        $invalid = script_output "! grep -e '^/dev/disk/by-[^\\(label,partlabel,uuid\\)]' -e '^PARTUUID' /etc/fstab";
-    }
-    else {
-        $invalid = script_output "! grep -e '^/dev/disk/by-[^\\(label,partlabel\\)]' -e '^UUID' -e '^PARTUUID' /etc/fstab";
-    }
-
-    if ($invalid) {
-        die "Mount point definitions are invalid";
-    }
+    assert_script_run('lsblk');
+    assert_script_run('blkid');
+    # Valid mounts are by label. Invalid mounts are by e.g. UUID, PARTUUID,
+    # and path. Except for Hyper-V where the product uses UUID by design.
+    assert_script_run('cat /etc/fstab');
+    my $uuid = check_var('VIRSH_VMM_FAMILY', 'hyperv') ? '-e ^UUID' : '';
+    assert_script_run("! grep -v $uuid -e ^LABEL= /etc/fstab");
 }
 
 1;
