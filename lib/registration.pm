@@ -75,9 +75,10 @@ sub is_module {
 sub accept_addons_license {
     my (@scc_addons) = @_;
 
-    my @addons_with_license = qw(ha geo we live rt idu ids lgm wsm hpcm ses);
-    # Development tools do not have license in SLE 15
-    push(@addons_with_license, 'sdk') unless sle_version_at_least('15');
+    my @addons_with_license = qw(ha geo we live rt idu ids lgm hpcm ses);
+    # Development tools and Web-Scripting modules do not have license in SLE 15
+    push(@addons_with_license, 'sdk') unless is_sle('15+');
+    push(@addons_with_license, 'wsm') unless is_sle('15+');
 
     for my $addon (@scc_addons) {
         # most modules don't have license, skip them
@@ -86,7 +87,6 @@ sub accept_addons_license {
             # wait for SCC to give us the license
             sleep 5;
         }
-        # No license agreements are shown in SLE 15 at the moment
         assert_screen "scc-addon-license-$addon", 60;
         addon_decline_license;
         wait_still_screen 2;
@@ -535,7 +535,7 @@ sub fill_in_reg_server {
     }
 
     if (!get_var("SMT_URL")) {
-        if (sle_version_at_least('15') && check_var('DESKTOP', 'textmode')) {
+        if (is_sle('15+') && check_var('DESKTOP', 'textmode')) {
             send_key "alt-m";    # select email field if yast2 add-on
         }
         else {
@@ -595,7 +595,7 @@ sub scc_deregistration {
 # Not good idea to use different module names, we have to bridge the
 # gap here to use existing needles
 sub rename_scc_addons {
-    return unless get_var('SCC_ADDONS') && sle_version_at_least('15');
+    return unless get_var('SCC_ADDONS') && is_sle('15+');
 
     my %addons_map = (
         asmm => 'base',
