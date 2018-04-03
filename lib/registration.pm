@@ -78,6 +78,7 @@ sub accept_addons_license {
     my @addons_with_license = qw(ha geo we live rt idu ids lgm hpcm ses);
     # Development tools and Web-Scripting modules do not have license in SLE 15
     push(@addons_with_license, 'sdk') unless is_sle('15+');
+    push(@addons_with_license, 'wsm') unless is_sle('15+');
 
     for my $addon (@scc_addons) {
         # most modules don't have license, skip them
