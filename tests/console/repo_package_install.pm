@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -14,12 +14,13 @@ use base "consoletest";
 use strict;
 use testapi;
 use utils;
-use version_utils 'sle_version_at_least';
+use version_utils qw(sle_version_at_least is_jeos);
 
 my %packages = (
+    # On JeOS Salt is present in the default image
     salt => {
         repo      => 'Basesystem',
-        installed => 0
+        installed => is_jeos() ? 1 : 0
     });
 
 sub run {
