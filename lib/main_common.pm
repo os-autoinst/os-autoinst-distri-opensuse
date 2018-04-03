@@ -653,7 +653,8 @@ sub load_bootloader_s390x {
 }
 
 sub boot_hdd_image {
-    get_required_var('BOOT_HDD_IMAGE');
+    # On JeOS we don't need to load any test to boot, but to keep main.pm sane just return.
+    is_jeos() ? return 1 : get_required_var('BOOT_HDD_IMAGE');
     if (check_var("BACKEND", "svirt")) {
         loadtest "installation/bootloader_svirt" unless load_bootloader_s390x();
     }
@@ -920,7 +921,9 @@ sub load_consoletests {
     # Run zypper info before as tests source repo are not yet synced to o3 and we
     # rely on default repos we get after installation
     # We also don't have any repos on staging
-    loadtest "console/zypper_info" unless is_staging;
+    # The test can't be run on JeOS as it's heavily dependant
+    # on repos from installation medium.
+    loadtest "console/zypper_info" unless is_staging || is_jeos;
     # Add non-oss and debug repos for o3 and remove other by default
     replace_opensuse_repos_tests if is_repo_replacement_required;
     if (get_var('SYSTEM_ROLE', '') =~ /kvm|xen/) {
@@ -1325,7 +1328,8 @@ sub load_extra_tests_desktop {
 
 sub load_extra_tests_textmode {
     loadtest "console/zypper_lr_validate";
-    loadtest "console/openvswitch";
+    # JeOS kernel is missing 'openvswitch' kernel module
+    loadtest "console/openvswitch" unless is_jeos;
     # dependency of git test
     loadtest "console/sshd";
     loadtest "console/zypper_ref";
@@ -1427,6 +1431,7 @@ sub load_filesystem_tests {
     loadtest "console/consoletest_setup";
     loadtest "console/hostname";
     if (get_var("FILESYSTEM", "btrfs") eq "btrfs") {
+        loadtest "console/snapper_jeos_cli" if is_jeos;
         loadtest "console/btrfs_autocompletion";
         if (get_var("NUMDISKS", 0) > 1) {
             loadtest "console/btrfs_qgroups";
@@ -1440,8 +1445,10 @@ sub load_filesystem_tests {
     }
     loadtest 'console/snapper_undochange';
     loadtest 'console/snapper_create';
-    if (is_sle('12-sp3+') || is_leap('42.3+') || is_tumbleweed) {
-        loadtest 'console/snapper_thin_lvm';
+    if (get_var('NUMDISKS', 0) > 1 && (is_sle('12-sp3+') || is_leap('42.3+') || is_tumbleweed)) {
+        # On JeOS we use kernel-defaul-base and it does not have 'dm-thin-pool'
+        # kernel module required by thin-LVM
+        loadtest 'console/snapper_thin_lvm' unless is_jeos;
     }
 }
 

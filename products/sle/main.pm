@@ -659,6 +659,18 @@ my $distri = testapi::get_required_var('CASEDIR') . '/lib/susedistribution.pm';
 require $distri;
 testapi::set_distribution(susedistribution->new());
 
+if (is_jeos) {
+    load_boot_tests();
+    loadtest "jeos/firstrun";
+    loadtest "console/force_cron_run";
+    loadtest "jeos/grub2_gfxmode";
+    loadtest 'jeos/revive_xen_domain' if check_var('VIRSH_VMM_FAMILY', 'xen');
+    loadtest "jeos/diskusage";
+    loadtest "jeos/root_fs_size";
+    loadtest "jeos/mount_by_label";
+    loadtest "console/suseconnect_scc";
+}
+
 # load the tests in the right order
 if (is_kernel_test()) {
     load_kernel_tests();
@@ -924,7 +936,7 @@ elsif (get_var("QAM_MINIMAL")) {
         set_var('DESKTOP',      'textmode');
     }
 }
-elsif (get_var("EXTRATEST") && !is_jeos) {
+elsif (get_var("EXTRATEST")) {
     boot_hdd_image;
     # update system with agregate repositories
     if (is_updates_tests) {
@@ -1083,28 +1095,13 @@ else {
         load_boot_tests();
         loadtest "remote/remote_target";
     }
-    elsif (is_jeos) {
-        load_boot_tests();
-        loadtest "jeos/firstrun";
-        loadtest "console/force_cron_run";
-        loadtest "jeos/grub2_gfxmode";
-        loadtest 'jeos/revive_xen_domain' if check_var('VIRSH_VMM_FAMILY', 'xen');
-        loadtest "jeos/diskusage";
-        loadtest "jeos/root_fs_size";
-        loadtest "jeos/mount_by_label";
-        loadtest "console/suseconnect_scc";
-        if (get_var("EXTRATEST")) {
-            load_extra_tests;
-            return 1;
-        }
-    }
     else {
         if (get_var('BOOT_EXISTING_S390')) {
             loadtest 'installation/boot_s390';
             loadtest 'installation/reconnect_s390';
             loadtest 'installation/first_boot';
         }
-        else {
+        elsif (!is_jeos) {
             return 1 if load_default_tests;
         }
     }
