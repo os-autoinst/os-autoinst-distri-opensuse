@@ -21,8 +21,8 @@ use Exporter;
 use strict;
 
 use testapi;
-use utils qw(addon_decline_license assert_screen_with_soft_timeout);
-use version_utils qw(is_sle sle_version_at_least is_sle12_hdd_in_upgrade);
+use utils qw(addon_decline_license assert_screen_with_soft_timeout zypper_call systemctl);
+use version_utils qw(is_sle is_caasp sle_version_at_least is_sle12_hdd_in_upgrade);
 
 our @EXPORT = qw(
   add_suseconnect_product
@@ -37,6 +37,7 @@ our @EXPORT = qw(
   get_addon_fullname
   rename_scc_addons
   is_module
+  install_docker_when_needed
   %SLE15_MODULES
   %SLE15_DEFAULT_MODULES
 );
@@ -615,6 +616,23 @@ sub rename_scc_addons {
         push @addons_new, defined $addons_map{$a} ? $addons_map{$a} : $a;
     }
     set_var('SCC_ADDONS', join(',', @addons_new));
+}
+
+sub install_docker_when_needed {
+    if (is_caasp) {
+        # Docker should be pre-installed in MicroOS
+        die 'Docker is not pre-installed.' if zypper_call('se -x --provides -i docker | grep docker', allow_exit_codes => [0, 1]);
+    }
+    else {
+        add_suseconnect_product('sle-module-containers') if is_sle('15+');
+        # docker package can be installed
+        zypper_call('in docker');
+    }
+
+    # docker daemon can be started
+    systemctl('start docker');
+    systemctl('status docker');
+    assert_script_run('docker info');
 }
 
 1;

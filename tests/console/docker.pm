@@ -33,20 +33,7 @@ use registration;
 sub run {
     select_console("root-console");
 
-    if (is_caasp) {
-        # Docker should be pre-installed in MicroOS
-        die "Docker is not pre-installed." if script_run("zypper se -x --provides -i docker | grep docker");
-    }
-    else {
-        add_suseconnect_product('sle-module-containers') if is_sle && sle_version_at_least('15');
-        # docker package can be installed
-        zypper_call("in docker");
-    }
-
-    # docker daemon can be started
-    systemctl("start docker");
-    systemctl("status docker");
-    assert_script_run('docker info');
+    install_docker_when_needed;
 
     # images can be searched on the Docker Hub
     validate_script_output("docker search --no-trunc opensuse", sub { m/This project contains the stable releases of the openSUSE distribution/ });
@@ -96,7 +83,7 @@ sub run {
     die("error: missing container $container_name") unless ($output_containers =~ m/$container_name/);
 
     # containers state can be saved to a docker image
-    my $output = script_output("docker container exec $container_name zypper -n in curl");
+    my $output = script_output("docker container exec $container_name zypper -n in curl", 120);
     die('error: curl not installed in the container') unless ($output =~ m/Installing: curl.*done/);
     assert_script_run("docker container commit $container_name tw:saved");
 
