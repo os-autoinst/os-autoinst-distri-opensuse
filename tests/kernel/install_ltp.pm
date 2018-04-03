@@ -272,4 +272,3 @@ Overrides the official LTP GitHub repository URL.
 
 =cut
 
-# vim: set sw=4 et:

@@ -385,4 +385,3 @@ uesd, but setting this variable to pkg allows that behavior to be overridden.
 
 =cut
 
-# vim: set sw=4 et:

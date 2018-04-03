@@ -62,4 +62,3 @@ sub run {
     type_string "rm -rf .local/share/gnome-shell/extensions/*;exit\n";
 }
 1;
-# vim: set sw=4 et:

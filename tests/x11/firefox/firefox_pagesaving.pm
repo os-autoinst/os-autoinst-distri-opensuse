@@ -41,4 +41,3 @@ sub run {
     send_key "ctrl-d";
 }
 1;
-# vim: set sw=4 et:

@@ -41,4 +41,3 @@ sub run {
     $self->exit_firefox;
 }
 1;
-# vim: set sw=4 et:

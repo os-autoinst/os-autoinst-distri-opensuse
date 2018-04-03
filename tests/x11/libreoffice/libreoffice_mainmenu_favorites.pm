@@ -36,4 +36,3 @@ sub run {
     send_key "ctrl-q";
 }
 1;
-# vim: set sw=4 et:

@@ -1,16 +1,16 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Windows 10 installation test module
+# Summary: Windows 10 installation test module
 #    modiffied (only win10 drivers) iso from https://fedoraproject.org/wiki/Windows_Virtio_Drivers is needed
 #    Works only with CDMODEL=ide-cd and QEMUCPU=host or core2duo (maybe other but not qemu64)
-# G-Maintainer: Jozef Pupava <jpupava@suse.com>
+# Maintainer: Jozef Pupava <jpupava@suse.com>
 
 use base "installbasetest";
 use strict;
@@ -53,4 +53,3 @@ sub run {
 }
 
 1;
-# vim: set sw=4 et:

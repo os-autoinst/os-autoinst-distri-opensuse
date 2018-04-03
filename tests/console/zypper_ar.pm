@@ -8,7 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: add mirrored repos to the distribution
+# Summary: harmorize zypper_ref between SLE and openSUSE
 # Maintainer: Max Lin <mlin@suse.com>
 
 use base "consoletest";
@@ -39,4 +39,3 @@ sub run {
 }
 
 1;
-# vim: set sw=4 et:

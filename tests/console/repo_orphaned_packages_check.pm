@@ -39,4 +39,3 @@ if [ $ret -ne 0 ]; then false; fi
 }
 
 1;
-# vim: set sw=4 et:
