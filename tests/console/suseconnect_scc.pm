@@ -30,10 +30,7 @@ sub run {
     return if get_var('HDD_SCC_REGISTERED');
     my $reg_code   = get_required_var('SCC_REGCODE');
     my $scc_url    = get_required_var('SCC_URL');
-    my $scc_addons = '';
-    if ($scc_addons = get_var('SCC_ADDONS')) {
-        $scc_addons = ',' . $scc_addons;
-    }
+    my $scc_addons = get_var('SCC_ADDONS', '');
 
     select_console 'root-console';
     assert_script_run "SUSEConnect --url $scc_url -r $reg_code";
@@ -41,7 +38,7 @@ sub run {
 
     # add modules
     if (is_sle '15+') {
-        foreach (split(',', $registration::SLE15_DEFAULT_MODULES{get_required_var('SLE_PRODUCT')} . $scc_addons)) {
+        foreach (split(',', $registration::SLE15_DEFAULT_MODULES{get_required_var('SLE_PRODUCT')} . ",$scc_addons")) {
             add_suseconnect_product("sle-module-" . lc($registration::SLE15_MODULES{$_}));
         }
     }
