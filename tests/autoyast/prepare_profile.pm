@@ -24,7 +24,7 @@ sub run {
     # Return if profile is not available
     return unless $profile;
     # Expand variables
-    my @vars = qw(SCC_REGCODE SCC_URL VERSION ARCH HostIP);
+    my @vars = qw(SCC_REGCODE SCC_REGCODE_HA SCC_REGCODE_GEO SCC_URL VERSION ARCH HostIP);
     for my $var (@vars) {
         my $value;
         if ($var eq 'HostIP') {
