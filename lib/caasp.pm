@@ -75,7 +75,9 @@ sub process_reboot {
     power_action('reboot', observe => !$trigger, keepconsole => 1);
 
     # No grub bootloader on xen-pv
-    if (is_caasp('DVD') && !get_var('AUTOYAST')) {
+    # caasp - grub2 needle is unreliable (stalls during timeout) - poo#28648
+    # kubic - will risk occasional failure because it disabled grub2 timeout
+    if (is_caasp 'kubic') {
         assert_screen 'grub2';
         send_key 'ret';
     }
