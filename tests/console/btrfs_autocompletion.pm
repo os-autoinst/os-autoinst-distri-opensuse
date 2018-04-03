@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -8,11 +8,13 @@
 # without any warranty.
 
 # Summary: Bash autocompletion for btrfs
-# Maintainer: mkravec <mkravec@suse.com>
+# Maintainer: Martin Kravec <mkravec@suse.com>
 
 use base 'btrfs_test';
 use strict;
 use testapi;
+use utils 'zypper_call';
+use version_utils 'is_jeos';
 
 # Btrfs understands short commands like "btrfs d st"
 # Compare autocompleted commands as strings
@@ -28,6 +30,13 @@ sub compare_commands {
 
 sub run {
     select_console 'root-console';
+
+    # On JeOS 'bash-completion' is not expected to be present. On general
+    # SLES installation it is. Thus on JeOS we have to enable it manually.
+    if (is_jeos) {
+        zypper_call('in bash-completion');
+        assert_script_run('source $(rpmquery -l bash-completion | grep bash_completion.sh)');
+    }
 
     compare_commands("btrfs device stats ",                  "btrfs d\tst\t");
     compare_commands("btrfs subvolume get-default ",         "btrfs su\tg\t");
