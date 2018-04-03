@@ -36,8 +36,6 @@ sub run {
         }
         zypper_call "ar -c $repourl Factory";
     }
-    script_run "zypper lr", 0;
-    assert_screen "addn-repos-listed";
 }
 
 1;
