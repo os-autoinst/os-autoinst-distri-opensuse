@@ -545,10 +545,12 @@ sub specific_caasp_params {
 }
 
 sub tianocore_enter_menu {
-    # press F2 and be quick about it
-    send_key_until_needlematch('tianocore-mainmenu', 'f2', 15, 1);
+    # we need to reduce this waiting time as much as possible
+    while (!check_screen('tianocore-mainmenu', 0, no_wait => 1)) {
+        send_key 'f2';
+        sleep 0.1;
+    }
 }
-
 
 sub tianocore_select_bootloader {
     tianocore_enter_menu;
