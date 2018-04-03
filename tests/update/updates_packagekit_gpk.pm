@@ -64,14 +64,6 @@ sub run {
             assert_screen \@updates_tags, 100;
         }
 
-        if (match_has_tag("updates_restart_application")) {
-            assert_and_click("updates_restart_application");
-
-            # We also need the daemon to reload to pick up libzypp updates
-            # Force reloading of packagekitd (bsc#1075260, poo#30085)
-            tell_packagekit_to_quit;
-        }
-
         if (match_has_tag("updates_none")) {
             send_key 'ret';
             return;
@@ -99,7 +91,7 @@ sub run {
                 }
                 next;
             }
-            elsif (match_has_tag("updates_installed-logout")) {
+            elsif (match_has_tag("updates_installed-logout") || match_has_tag("updates_restart_application")) {
                 send_key "alt-c";    # close
 
                 # The logout is not acted upon, which may miss a libzypp update
