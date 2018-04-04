@@ -42,7 +42,7 @@ sub snapper_nodbus_setup {
     my ($self) = @_;
     if (script_run('! systemctl is-active dbus')) {
         script_run('systemctl rescue', 0);
-        assert_screen('emergency-shell', 10);
+        assert_screen 'emergency-shell';
         type_password;
         send_key 'ret';
         $self->set_standard_prompt('root');
