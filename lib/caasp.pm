@@ -20,7 +20,7 @@ use version_utils 'is_caasp';
 use utils qw(power_action assert_shutdown_and_restore_system);
 
 our @EXPORT
-  = qw(handle_simple_pw process_reboot trup_call write_detail_output get_admin_job update_scheduled export_cluster_logs get_delayed_worker rpmver check_reboot_changes trup_install);
+  = qw(handle_simple_pw process_reboot trup_call write_detail_output get_admin_job update_scheduled export_cluster_logs get_delayed_worker rpmver check_reboot_changes trup_install script_retry);
 
 # Return names and version of packages for transactional-update tests
 sub rpmver {
@@ -223,6 +223,26 @@ sub update_scheduled {
     }
     else {
         return get_job_info(get_controller_job)->{settings}->{INCIDENT_REPO};
+    }
+}
+
+# Repeat command until expected result or timeout
+# script_retry 'ping -c1 -W1 machine', retry => 5
+sub script_retry {
+    my ($cmd, %args) = @_;
+    my $ecode = $args{expect} // 0;
+    my $retry = $args{retry} // 10;
+    my $delay = $args{delay} // 30;
+
+    my $ret;
+    for (1 .. $retry) {
+        type_string "# Trying $_ of $retry:\n";
+
+        $ret = script_run($cmd);
+        last if defined($ret) && $ret == $ecode;
+
+        die("Waiting for Godot: $cmd") if $retry == $_;
+        sleep $delay;
     }
 }
 
