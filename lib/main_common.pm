@@ -917,7 +917,13 @@ sub load_consoletests {
     loadtest "console/textinfo";
     loadtest "console/rmt" if is_rmt;
     loadtest "console/hostname" unless is_bridged_networking;
-    replace_opensuse_repos_tests if get_var('DISABLE_ONLINE_REPOS');
+    # Run zypper info before as tests source repo are not yet synced to o3 and we
+    # rely on default repos we get after installation
+    loadtest "console/zypper_info";
+    # Add non-oss and debug repos for o3 and remove other by default
+    if (is_opensuse && !get_var('KEEP_ONLINE_REPOS')) {
+        replace_opensuse_repos_tests;
+    }
     if (get_var('SYSTEM_ROLE', '') =~ /kvm|xen/) {
         loadtest "console/patterns";
     }
@@ -943,8 +949,8 @@ sub load_consoletests {
     if (have_scc_repos()) {
         loadtest "console/yast_scc";
     }
-    # If DISABLE_ONLINE_REPOS, mirror repo is already added
-    if (have_addn_repos && !get_var('DISABLE_ONLINE_REPOS')) {
+    # Unless KEEP_ONLINE_REPOS, mirror repo is already added
+    if (have_addn_repos && get_var('KEEP_ONLINE_REPOS')) {
         loadtest "console/zypper_ar";
     }
     loadtest "console/zypper_ref";
@@ -1320,7 +1326,7 @@ sub load_extra_tests_textmode {
     # Run zypper info before as tests source repo
     loadtest "console/zypper_info";
     # Remove repos pointing to download.opensuse.org and add snaphot repo from o3
-    if (check_var('DISTRI', 'opensuse')) {
+    if (is_opensuse && !get_var('KEEP_ONLINE_REPOS')) {
         replace_opensuse_repos_tests;
     }
     loadtest "console/zypper_lr_validate";
@@ -1670,6 +1676,10 @@ sub load_create_hdd_tests {
     loadtest 'console/sle15_workarounds' if is_sle('15+');
     loadtest 'console/hostname'       unless is_bridged_networking;
     loadtest 'console/force_cron_run' unless is_jeos;
+    # Remove repos pointing to download.opensuse.org and add snaphot repo from o3
+    if (is_opensuse && !get_var('KEEP_ONLINE_REPOS')) {
+        replace_opensuse_repos_tests;
+    }
     loadtest 'console/scc_deregistration' if get_var('SCC_DEREGISTER');
     loadtest 'shutdown/grub_set_bootargs';
     loadtest 'shutdown/shutdown';
