@@ -18,6 +18,7 @@ use caasp_controller;
 use strict;
 use utils;
 use testapi;
+use caasp 'script_retry';
 
 sub run {
     switch_to 'xterm';
@@ -30,10 +31,7 @@ sub run {
 
     # Run conformance tests and wait 90 minutes for result
     assert_script_run "curl -L $sb_yaml | kubectl apply -f -";
-    for (1 .. 90) {
-        last unless script_run "kubectl -n sonobuoy logs sonobuoy | grep $sb_exit";
-        sleep 60;
-    }
+    script_retry "kubectl -n sonobuoy logs sonobuoy | grep $sb_exit", retry => 90, delay => 60;
 
     # Results available at /tmp/sonobuoy/201801191307_sonobuoy_be1dbeae-f889-4735-9aa9-4cc04ad13cd5.tar.gz
     my $path = script_output "kubectl -n sonobuoy logs sonobuoy | grep -o 'Results.*tar.gz'  | cut -d' ' -f4";

@@ -31,15 +31,10 @@ sub run {
 }
 
 sub post_run_hook {
-    # Password is set later on autoyast nodes
-    if (get_var 'AUTOYAST') {
-        select_console('root-console');
-    }
-    # Cluster node was rebooted
-    elsif (update_scheduled) {
-        reset_consoles;
-        select_console 'root-console';
-    }
+    # Cluster was rebooted during stack tests
+    reset_consoles;
+    select_console 'root-console';
+
     export_cluster_logs;
 }
 
