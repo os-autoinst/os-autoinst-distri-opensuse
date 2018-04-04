@@ -138,7 +138,7 @@ sub run {
     die 'All products should be supported as of today' unless $output =~ /No products.*before/;
 
     $output = script_output 'zypper lifecycle --days 9999', 300;
-    die "Product 'end of support' line not found"         unless $output =~ /^Product end of support before/;
+    die "Product 'end of support' line not found"         unless $output =~ /Product end of support before/;
     die "Current product should not be supported anymore" unless $output =~ /$product_name\s+$product_eol/;
 
     # report should be empty - exit code 1 is expected
