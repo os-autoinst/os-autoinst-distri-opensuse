@@ -56,6 +56,7 @@ our @EXPORT = qw(
   noupdatestep_is_applicable
   validate_repos
   turn_off_kde_screensaver
+  turn_off_gnome_screensaver
   random_string
   handle_login
   handle_logout
@@ -158,6 +159,18 @@ sub turn_off_kde_screensaver {
     send_key("alt-o");
 }
 
+=head2 turn_off_gnome_screensaver
+
+  turn_off_gnome_screensaver()
+
+Disable screensaver in gnome. To be called from a command prompt, for example an xterm window.
+
+=cut
+sub turn_off_gnome_screensaver {
+    type_string "gsettings set org.gnome.desktop.session idle-delay 0\n";
+}
+
+
 # 'ctrl-l' does not get queued up in buffer. If this happens to fast, the
 # screen would not be cleared
 sub clear_console {
@@ -199,7 +212,8 @@ sub prepare_system_shutdown {
 sub assert_gui_app {
     my ($application, %args) = @_;
     ensure_installed($application) if $args{install};
-    x11_start_program("$application $args{exec_param}", target_match => "test-$application-started");
+    my $params = $args{exec_param} ? " $args{exec_param}" : '';
+    x11_start_program($application . $params, target_match => "test-$application-started");
     send_key "alt-f4" unless $args{remain};
 }
 

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -17,13 +17,13 @@ use testapi;
 use mm_network;
 use lockapi;
 use mmapi;
-use utils 'zypper_call';
+use utils qw(zypper_call turn_off_gnome_screensaver);
 
 sub run {
     my $self = shift;
 
     x11_start_program('xterm -geometry 160x45+5+5', target_match => 'xterm');
-    type_string "gsettings set org.gnome.desktop.session idle-delay 0\n";    # disable blank screen
+    turn_off_gnome_screensaver;
     become_root;
     configure_default_gateway;
     configure_static_ip('10.0.2.1/24');

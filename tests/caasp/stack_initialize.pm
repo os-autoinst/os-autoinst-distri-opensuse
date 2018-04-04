@@ -21,17 +21,16 @@ use parent 'caasp_controller';
 
 use strict;
 use testapi;
-use utils 'ensure_serialdev_permissions';
+use utils qw(ensure_serialdev_permissions turn_off_gnome_screensaver);
 
 sub run {
+    my ($self) = @_;
     select_console 'x11';
     x11_start_program('xterm');
     become_root;
     ensure_serialdev_permissions;
     type_string "exit\n";
-
-    # Disable screensaver
-    script_run "gsettings set org.gnome.desktop.session idle-delay 0";
+    turn_off_gnome_screensaver;
     # Update kubectl
     assert_script_sudo "zypper -n up kubernetes-client", 300;
 

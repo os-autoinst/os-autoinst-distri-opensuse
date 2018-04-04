@@ -1284,6 +1284,9 @@ sub load_extra_tests_desktop {
                 loadtest "x11/gdm_session_switch";
             }
             loadtest "x11/seahorse";
+            # only scheduled on gnome and was developed only for gnome but no
+            # special reason should prevent it to be scheduled in another DE
+            loadtest 'x11/steam';
         }
 
         if (chromestep_is_applicable()) {

@@ -16,6 +16,7 @@ use strict;
 use testapi;
 use registration 'fill_in_registration_data';
 use version_utils 'sle_version_at_least';
+use utils 'turn_off_gnome_screensaver';
 
 sub test_setup {
     select_console 'root-console';
@@ -35,14 +36,13 @@ sub test_setup {
         # Define proxy SCC
         assert_script_run "echo \"@addon_proxy.proxy.scc.suse.de\" > /etc/SUSEConnect";
     }
-    # Disable screensaver, fails sometimes on SLE12, so keep it as before without assertion
-    script_run "gsettings set org.gnome.desktop.session idle-delay 0";
+    turn_off_gnome_screensaver;
     select_console 'x11';
 }
 
 sub run {
     my ($self) = @_;
-    test_setup;    # Define proxy SCC. For SLE 15 we need to clean existing registration.
+    test_setup;                          # Define proxy SCC. For SLE 15 we need to clean existing registration.
     $self->launch_yast2_module_x11('scc', target_match => [qw(scc-registration packagekit-warning)], maximize_window => 1);
     if (match_has_tag 'packagekit-warning') {
         send_key 'alt-y';
