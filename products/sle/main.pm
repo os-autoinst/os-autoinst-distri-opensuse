@@ -475,7 +475,7 @@ sub load_cluster_boot {
         loadtest "boot/boot_to_desktop";
         # Wait for support server to complete its initialization
         loadtest "support_server/wait_support_server";
-        # TODO: poo#32110 add reboot or ensure that network is up
+        loadtest "support_server/wait_support_server_network";
     }
     else {
         # Wait for support server to complete its initialization
