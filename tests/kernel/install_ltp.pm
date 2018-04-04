@@ -92,7 +92,6 @@ sub install_build_dependencies {
       libacl-devel
       libaio-devel
       libcap-devel
-      libnuma-devel
       libopenssl-devel
       libselinux-devel
       libtirpc-devel
@@ -107,6 +106,7 @@ sub install_build_dependencies {
       libacl-devel-32bit
       libaio-devel-32bit
       libcap-devel-32bit
+      libnuma-devel
       libnuma-devel-32bit
       libopenssl-devel-32bit
       libselinux-devel-32bit
