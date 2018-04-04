@@ -18,13 +18,18 @@ use testapi;
 use registration 'assert_registration_screen_present';
 
 sub run {
-    assert_registration_screen_present;
-    send_key 'alt-w';    # Network Configuration
-    assert_screen 'inst-network';
-    send_key 'alt-s';    # Hostname/DNS
-    assert_screen 'inst-network-hostname-dns-tab';
-    assert_and_click 'inst-network-hostname-dhcp';
-    assert_and_click 'inst-network-hostname-dhcp-modified';
+    if (get_var 'OFFLINE_SUT') {
+        assert_screen 'inst-networksettings';
+    }
+    else {
+        assert_registration_screen_present;
+        send_key 'alt-w';    # Network Configuration
+        assert_screen 'inst-network';
+        send_key 'alt-s';    # Hostname/DNS
+        assert_screen 'inst-network-hostname-dns-tab';
+        assert_and_click 'inst-network-hostname-dhcp';
+        assert_and_click 'inst-network-hostname-dhcp-modified';
+    }
     send_key $cmd{next};
 }
 

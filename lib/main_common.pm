@@ -236,6 +236,7 @@ sub is_kernel_test {
 }
 
 sub replace_opensuse_repos_tests {
+    return if get_var('OFFLINE_SUT');
     loadtest "update/zypper_clear_repos";
     loadtest "console/zypper_ar";
     loadtest "console/zypper_ref";
@@ -493,9 +494,9 @@ sub load_system_role_tests {
     if (!get_var("REMOTE_CONTROLLER") && !check_var('BACKEND', 'ipmi') && !is_hyperv_in_gui && !get_var("LIVECD")) {
         loadtest "installation/logpackages";
     }
-    loadtest "installation/disable_online_repos"       if get_var('DISABLE_ONLINE_REPOS');
+    loadtest "installation/disable_online_repos" if get_var('DISABLE_ONLINE_REPOS') && !get_var('OFFLINE_SUT');
     loadtest "installation/installer_desktopselection" if is_opensuse;
-    loadtest "installation/system_role"                if is_caasp('kubic');
+    loadtest "installation/system_role" if is_caasp('kubic');
 }
 
 sub installzdupstep_is_applicable {
@@ -689,6 +690,7 @@ sub load_inst_tests {
     if (is_sle '15+') {
         loadtest "installation/accept_license" if get_var('HASLICENSE');
     }
+    loadtest 'installation/network_configuration' if get_var('OFFLINE_SUT');
     if (get_var('IBFT')) {
         loadtest "installation/iscsi_configuration";
     }
