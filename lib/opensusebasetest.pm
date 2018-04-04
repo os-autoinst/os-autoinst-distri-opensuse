@@ -403,6 +403,10 @@ sub wait_boot {
             die "needle 'grub2' not found";
         }
         # confirm default choice
+        if (check_var('USE_SUPPORT_SERVER', 1)) {
+            mutex_lock('support_server_ready');
+            mutex_unlock('support_server_ready');
+        }
         send_key 'ret';
     }
 
