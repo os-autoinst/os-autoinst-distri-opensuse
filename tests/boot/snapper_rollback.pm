@@ -14,6 +14,7 @@ use base "consoletest";
 use testapi;
 use utils;
 use strict;
+use migration 'check_rollback_system';
 
 sub run {
     my ($self) = @_;
@@ -39,6 +40,7 @@ sub run {
     reset_consoles;
     $self->wait_boot;
     select_console 'root-console';
+    check_rollback_system;
 }
 
 sub test_flags {

@@ -32,6 +32,7 @@ our @EXPORT = qw(
   remove_ltss
   disable_installation_repos
   record_disk_info
+  check_rollback_system
 );
 
 sub setup_migration {
@@ -110,5 +111,27 @@ sub record_disk_info {
     assert_script_run 'df -h > /tmp/df.txt';
     upload_logs '/tmp/df.txt';
 }
+
+# System check after snapper rollback
+sub check_rollback_system {
+    # Check if repos are rolled back to correct version
+    script_run("zypper lr -u | tee /dev/$serialdev");
+    my $incorrect_repos = script_output("
+        version=\$(grep VERSION= /etc/os-release | cut -d'=' -f2 | cut -d' ' -f1 | sed 's/\"//g')
+        base_version=\$(echo \$version | cut -d'-' -f1)
+        zypper lr | cut -d'|' -f3 | gawk '/SLE/ || /openSUSE/' | sed \"/\$version\\|Module.*\$base_version/d\"
+    ", 100);
+    record_info('Incorrect Repos', $incorrect_repos, result => 'fail') if $incorrect_repos;
+
+    return unless is_sle;
+    # Check SUSEConnect status for SLE
+    # check rollback-helper service is enabled and worked properly
+    systemctl('is-active rollback');
+
+    # Verify registration status matches current system version
+    # system is un-registered during media based upgrade
+    assert_script_run('curl -s ' . data_url('console/check_registration_status.py') . ' | python') unless get_var('MEDIA_UPGRADE');
+}
+
 1;
 # vim: sw=4 et
