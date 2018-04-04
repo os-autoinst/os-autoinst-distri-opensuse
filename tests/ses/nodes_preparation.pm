@@ -72,6 +72,10 @@ EOF
         assert_script_run 'ip a';
         assert_script_run 'for i in {1..7}; do echo "try $i" && fping -c2 -q updates.suse.com 10.0.2.2 && sleep 2 && break; done';
     }
+    # check repositories, should contain SLE, SES and QAM update repo
+    my $incident_number = get_var('SES_TEST_ISSUES');
+    my $version         = get_var('VERSION');
+    validate_script_output('zypper lr -u', sub { m/$version/ && m/SUSE-Enterprise-Storage/ && m/Maintenance:\/$incident_number/ });
 }
 
 sub test_flags {
