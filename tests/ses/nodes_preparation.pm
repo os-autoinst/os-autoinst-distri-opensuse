@@ -22,10 +22,10 @@ sub run {
     select_console 'root-console';
     # configure and start ntp, ntp server for nodes is master
     if (check_var('HOSTNAME', 'master')) {
-        my $num_nodes = get_var('NODE_COUNT');
-        barrier_create('network_configured', $num_nodes + 1);
-        barrier_create('deployment_done',    $num_nodes + 1);
-        barrier_create('all_tests_done',     $num_nodes + 1);
+        my $all_ses_nodes = get_var('NODE_COUNT') + 1;
+        barrier_create('network_configured', $all_ses_nodes);
+        barrier_create('deployment_done',    $all_ses_nodes);
+        barrier_create('all_tests_done',     $all_ses_nodes);
         assert_script_run 'echo \'server ntp1.suse.de burst iburst\' >> /etc/ntp.conf';
     }
     else {
