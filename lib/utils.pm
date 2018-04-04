@@ -726,7 +726,8 @@ sub power_action {
         $shutdown_timeout *= 3;
         record_soft_failure("boo#1057637 shutdown_timeout increased to $shutdown_timeout (s) expecting to complete.");
     }
-    if (check_var('VIRSH_VMM_FAMILY', 'xen') || get_var('S390_ZKVM')) {
+    # no need to redefine the system when we boot from an existing qcow image
+    if (check_var('VIRSH_VMM_FAMILY', 'xen') || (get_var('S390_ZKVM') && !get_var('BOOT_HDD_IMAGE'))) {
         assert_shutdown_and_restore_system($action, $shutdown_timeout);
     }
     else {
