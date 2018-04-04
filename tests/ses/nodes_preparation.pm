@@ -42,6 +42,8 @@ sub run {
     systemctl 'disable SuSEfirewall2';
     systemctl 'stop apparmor';
     systemctl 'disable apparmor';
+    # only one job (master) should check for dead jobs to avoid failures
+    my $only_master_check = check_var('HOSTNAME', 'master') ? 1 : 0;
     if (get_var('DEEPSEA_TESTSUITE')) {
         # set node hostname
         my $node_hostname = get_var('HOSTNAME');
@@ -61,12 +63,12 @@ echo -e '10.0.2.104\tnode4.openqa.test node4' >> /etc/hosts
 EOF
         script_run($_) foreach (split /\n/, $hosts);
         assert_script_run 'cat /etc/hosts';
-        barrier_wait {name => 'network_configured', check_dead_job => 1};
+        barrier_wait {name => 'network_configured', check_dead_job => $only_master_check};
         # nodes will ping each other to test connection
         assert_script_run 'fping -c2 -q $(grep \'openqa.test\' /etc/hosts|awk \'{print$2}\'|tr "\n" " ")';
     }
     else {
-        barrier_wait {name => 'network_configured', check_dead_job => 1};
+        barrier_wait {name => 'network_configured', check_dead_job => $only_master_check};
         assert_script_run 'ip a';
         assert_script_run 'for i in {1..7}; do echo "try $i" && fping -c2 -q updates.suse.com 10.0.2.2 && sleep 2 && break; done';
     }
