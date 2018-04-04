@@ -23,7 +23,7 @@ sub run {
 
     # Install test subjects and test scripts
     my @test_subjects = qw(
-      python-pam
+      python3-python-pam
       sssd sssd-krb5 sssd-krb5-common sssd-ldap sssd-tools
       openldap2 openldap2-client
       krb5 krb5-client krb5-server krb5-plugin-kdb-ldap
