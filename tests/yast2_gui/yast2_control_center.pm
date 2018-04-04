@@ -43,7 +43,14 @@ sub search {
 
 sub start_addon_products {
     assert_and_click 'yast2_control-center_add-on';
-    assert_screen 'yast2_control-center_add-on_installed', timeout => 180;
+
+    my @tags = qw(yast2_control-center_add-on_installed yast2_control-center-ask_packagekit_to_quit);
+    do {
+        assert_screen \@tags;
+        # Let it kill PackageKit, in case it is running.
+        wait_screen_change { send_key 'alt-y' } if match_has_tag('yast2_control-center-ask_packagekit_to_quit');
+    } until (match_has_tag('yast2_control-center_add-on_installed'));
+
     send_key 'alt-o';
     assert_screen 'yast2-control-center-ui', timeout => 60;
 }
