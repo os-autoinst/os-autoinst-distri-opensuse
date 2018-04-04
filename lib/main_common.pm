@@ -239,6 +239,10 @@ sub replace_opensuse_repos_tests {
     loadtest "console/zypper_ar";
 }
 
+sub is_repo_replacement_required {
+    return is_opensuse && !is_staging && !get_var('KEEP_ONLINE_REPOS');
+}
+
 sub is_memtest {
     return get_var('MEMTEST');
 }
@@ -381,10 +385,6 @@ sub load_rescuecd_tests {
 
 sub load_autoyast_clone_tests {
     loadtest "console/consoletest_setup";
-    # Remove repos pointing to download.opensuse.org and add snaphot repo from o3
-    if (check_var('DISTRI', 'opensuse')) {
-        replace_opensuse_repos_tests;
-    }
     loadtest "console/yast2_clone_system";
     loadtest "console/consoletest_finish";
 }
@@ -919,11 +919,10 @@ sub load_consoletests {
     loadtest "console/hostname" unless is_bridged_networking;
     # Run zypper info before as tests source repo are not yet synced to o3 and we
     # rely on default repos we get after installation
-    loadtest "console/zypper_info";
+    # We also don't have any repos on staging
+    loadtest "console/zypper_info" unless is_staging;
     # Add non-oss and debug repos for o3 and remove other by default
-    if (is_opensuse && !get_var('KEEP_ONLINE_REPOS')) {
-        replace_opensuse_repos_tests;
-    }
+    replace_opensuse_repos_tests if is_repo_replacement_required;
     if (get_var('SYSTEM_ROLE', '') =~ /kvm|xen/) {
         loadtest "console/patterns";
     }
@@ -942,15 +941,17 @@ sub load_consoletests {
     }
     loadtest "console/zypper_lr";
     loadtest 'console/enable_usb_repo' if check_var('USBBOOT', 1);
-    if (need_clear_repos()) {
+
+    # Do not clear repos twice if replace repos for openSUSE
+    if (need_clear_repos() && !is_repo_replacement_required()) {
         loadtest "update/zypper_clear_repos";
     }
     #have SCC repo for SLE product
     if (have_scc_repos()) {
         loadtest "console/yast_scc";
     }
-    # Unless KEEP_ONLINE_REPOS, mirror repo is already added
-    if (have_addn_repos && get_var('KEEP_ONLINE_REPOS')) {
+    # If is_repo_replacement_required returns true, we already have added mirror repo
+    if (have_addn_repos && !is_repo_replacement_required) {
         loadtest "console/zypper_ar";
     }
     loadtest "console/zypper_ref";
@@ -1323,12 +1324,6 @@ sub load_extra_tests_desktop {
 }
 
 sub load_extra_tests_textmode {
-    # Run zypper info before as tests source repo
-    loadtest "console/zypper_info";
-    # Remove repos pointing to download.opensuse.org and add snaphot repo from o3
-    if (is_opensuse && !get_var('KEEP_ONLINE_REPOS')) {
-        replace_opensuse_repos_tests;
-    }
     loadtest "console/zypper_lr_validate";
     loadtest "console/openvswitch";
     # dependency of git test
@@ -1677,9 +1672,7 @@ sub load_create_hdd_tests {
     loadtest 'console/hostname'       unless is_bridged_networking;
     loadtest 'console/force_cron_run' unless is_jeos;
     # Remove repos pointing to download.opensuse.org and add snaphot repo from o3
-    if (is_opensuse && !get_var('KEEP_ONLINE_REPOS')) {
-        replace_opensuse_repos_tests;
-    }
+    replace_opensuse_repos_tests if is_repo_replacement_required;
     loadtest 'console/scc_deregistration' if get_var('SCC_DEREGISTER');
     loadtest 'shutdown/grub_set_bootargs';
     loadtest 'shutdown/shutdown';
