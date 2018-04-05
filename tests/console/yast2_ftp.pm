@@ -85,14 +85,6 @@ sub run {
     # check vsftpd.pem is created
     die "certificate does not exist" if assert_script_run("[[ -e $vsftpd_directives->{rsa_cert_file} ]]");
 
-    # unfortunately ftp needs to be add manually as firewalld service
-    if ($self->firewall eq 'firewalld') {
-        record_soft_failure('bsc#1083705');
-        # use pre-defined /usr/lib/firewalld/services/ftp.xml to enable firewalld ftp service & reload firewalld
-        assert_script_run('cp /usr/lib/firewalld/services/ftp.xml /usr/lib/firewalld/services/vsftpd.xml');
-        assert_script_run('firewall-cmd --reload');
-    }
-
     # start yast2 ftp configuration
     type_string "yast2 ftp-server; echo yast2-ftp-server-status-\$? > /dev/$serialdev\n";
     assert_screen 'ftp-server';                 # check ftp server configuration page
@@ -184,14 +176,6 @@ sub run {
 
     # yast might take a while on sle12 due to suseconfig
     die "'yast2 ftp-server' didn't exit with zero exit code in defined timeout" unless wait_serial("yast2-ftp-server-status-0", 180);
-
-    # open passive ftp ports manually
-    if ($self->firewall eq 'firewalld') {
-        record_soft_failure('bsc#1084434');
-        # use pre-defined /usr/lib/firewalld/services/ftp.xml to enable firewalld ftp service & reload firewalld
-        assert_script_run('firewall-cmd --permanent --service=vsftpd --add-port=30000-30100/tcp');
-        assert_script_run('firewall-cmd --reload');
-    }
 
     # check /etc/vsftpd.conf whether it has been updated accordingly
     vsftd_setup_checker($vsftpd_directives);
