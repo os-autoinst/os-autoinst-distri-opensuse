@@ -238,6 +238,7 @@ sub is_kernel_test {
 sub replace_opensuse_repos_tests {
     loadtest "update/zypper_clear_repos";
     loadtest "console/zypper_ar";
+    loadtest "console/zypper_ref";
 }
 
 sub is_updates_tests {
@@ -964,11 +965,13 @@ sub load_consoletests {
     if (have_scc_repos()) {
         loadtest "console/yast_scc";
     }
-    # If is_repo_replacement_required returns true, we already have added mirror repo
-    if (have_addn_repos() && !is_repo_replacement_required()) {
-        loadtest "console/zypper_ar";
+    # If is_repo_replacement_required returns true, we already have added mirror repo and refreshed repos
+    if (!is_repo_replacement_required()) {
+        if (have_addn_repos()) {
+            loadtest "console/zypper_ar";
+        }
+        loadtest "console/zypper_ref";
     }
-    loadtest "console/zypper_ref";
     loadtest "console/ncurses";
     loadtest "console/yast2_lan" unless is_bridged_networking;
     # no local certificate store
