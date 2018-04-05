@@ -463,22 +463,10 @@ sub load_slenkins_tests {
 }
 
 sub load_cluster_boot {
-    if (check_var('ARCH', 'aarch64')) {
-        # We need to boot *before* waiting for support server
-        # Because of TianoCore UEFI boot method
-        loadtest "boot/boot_to_desktop";
-        # Wait for support server to complete its initialization
-        loadtest "support_server/wait_support_server";
-        # TODO: poo#32110 add reboot or ensure that network is up
-    }
-    else {
-        # Wait for support server to complete its initialization
-        loadtest "support_server/wait_support_server";
-        loadtest "boot/boot_to_desktop";
-    }
     # Standard boot and configuration
-    loadtest "qa_automation/patch_and_reboot" if is_updates_tests;
-    loadtest "console/consoletest_setup"      if is_updates_tests;
+    boot_hdd_image;
+    loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
+    loadtest 'console/consoletest_setup' if (is_updates_tests || get_var('HA_CLUSTER'));
 
     return 1;
 }
@@ -486,17 +474,9 @@ sub load_cluster_boot {
 sub load_ha_cluster_tests {
     return unless (get_var("HA_CLUSTER"));
 
-    # We need to boot *before* waiting for support server
-    # Because of TianoCore UEFI boot method
-    loadtest "boot/boot_to_desktop";
-
-    # Wait for support server to complete its initialization
-    loadtest "support_server/wait_support_server";
-
     # Standard boot and configuration
-    loadtest "qa_automation/patch_and_reboot" if is_updates_tests;
-    loadtest "console/consoletest_setup";
-    loadtest "console/hostname" unless is_bridged_networking;
+    load_cluster_boot;
+    loadtest "console/hostname";
 
     # NTP is already configured with 'HA node' and 'HA GEO node' System Roles
     # 'default' System Role is 'HA node' if HA Product i selected
@@ -517,6 +497,7 @@ sub load_ha_cluster_tests {
     loadtest "ha/watchdog";
 
     # Cluster initilisation
+    loadtest "ha/wait_barriers";
     if (get_var("HA_CLUSTER_INIT")) {
         # Node1 creates a cluster
         loadtest "ha/ha_cluster_init";
@@ -548,7 +529,7 @@ sub load_ha_cluster_tests {
     loadtest "ha/fencing";
 
     # Node1 will be fenced, so we have to wait for it to boot
-    loadtest "boot/boot_to_desktop" if (!get_var("HA_CLUSTER_JOIN"));
+    boot_hdd_image if (!get_var("HA_CLUSTER_JOIN"));
 
     # Show HA cluster status *after* fencing test
     loadtest "ha/check_after_fencing";
@@ -1003,13 +984,12 @@ else {
         loadtest "installation/first_boot";
     }
     elsif (get_var("SES_NODE")) {
-        loadtest "boot/boot_to_desktop";
+        boot_hdd_image;
         if (get_var("DEEPSEA_TESTSUITE")) {
             loadtest "ses/nodes_preparation";
             loadtest "ses/deepsea_testsuite";
         }
         else {
-            loadtest "support_server/wait_support_server";
             loadtest "console/hostname";
             loadtest "ses/nodes_preparation";
             loadtest "ses/deepsea_cluster_deploy";

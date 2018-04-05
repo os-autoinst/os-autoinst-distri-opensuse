@@ -7,7 +7,6 @@ use strict;
 use utils;
 use version_utils qw(is_sle is_leap is_upgrade);
 
-
 # Base class for all openSUSE tests
 
 sub new {
@@ -378,7 +377,7 @@ sub wait_boot {
         # booted so we have to handle that
         # because of broken firmware, bootindex doesn't work on aarch64 bsc#1022064
         push @tags, 'inst-bootmenu' if ((get_var('USBBOOT') and get_var('UEFI')) || (check_var('ARCH', 'aarch64') and get_var('UEFI')) || get_var('OFW'));
-        $self->handle_uefi_boot_disk_workaround if (get_var('MACHINE') =~ qr'aarch64' && get_var('BOOT_HDD_IMAGE') && !$in_grub);
+        $self->handle_uefi_boot_disk_workaround if (check_var('ARCH', 'aarch64') && get_var('UEFI') && get_var('BOOT_HDD_IMAGE') && !$in_grub);
         check_screen(\@tags, $bootloader_time);
         if (match_has_tag("bootloader-shim-import-prompt")) {
             send_key "down";
@@ -407,6 +406,7 @@ sub wait_boot {
             # check_screen timeout
             die "needle 'grub2' not found";
         }
+        wait_supportserver if get_var('USE_SUPPORT_SERVER');
         # confirm default choice
         send_key 'ret';
     }
