@@ -15,6 +15,7 @@ use warnings;
 use base "y2logsstep";
 use testapi;
 use caasp;
+use version_utils 'is_caasp';
 
 sub run {
     # poo#16408 part 1
@@ -69,6 +70,11 @@ sub run {
             sleep 5 if check_var('VIDEOMODE', 'text');    # Wait until DOM reloads data tree
             assert_screen 'oci-overview-filled';
         }
+        elsif (is_caasp '3.0+') {
+            # accept eula
+            send_key 'alt-a';
+        }
+
         send_key $cmd{install};
     }
 
