@@ -14,16 +14,17 @@ use strict;
 use testapi;
 use utils;
 use List::Util qw(first);
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_jeos);
 
 our @EXPORT = qw(install_kernel_debuginfo prepare_for_kdump activate_kdump kdump_is_active do_kdump);
 
 sub install_kernel_debuginfo {
     assert_script_run 'zypper ref', 300;
-    my @kernels = split(/\n/, script_output('rpmquery --queryformat="%{NAME}-%{VERSION}-%{RELEASE}\n" kernel-default'));
+    my $kernel = is_jeos() ? 'kernel-default-base' : 'kernel-default';
+    my @kernels = split(/\n/, script_output('rpmquery --queryformat="%{NAME}-%{VERSION}-%{RELEASE}\n" ' . $kernel));
     my ($uname) = script_output('uname -r') =~ /(\d+\.\d+\.\d+)-*/;
     my $debuginfo = first { $_ =~ /\Q$uname\E/ } @kernels;
-    $debuginfo =~ s/default/default-debuginfo/g;
+    $debuginfo =~ s/$kernel/kernel-default-debuginfo/g;
     zypper_call("-v in $debuginfo", timeout => 4000);
 }
 
