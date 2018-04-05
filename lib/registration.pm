@@ -310,7 +310,7 @@ sub fill_in_registration_data {
             # remove emty elements
             @scc_addons = grep { $_ ne '' } @scc_addons;
 
-            if (!(check_screen 'scc_module-phub', 0)) {
+            if (!(check_screen 'scc-module-phub', 0)) {
                 record_soft_failure 'boo#1056047';
                 #find and remove phub
                 @scc_addons = grep { !/phub/ } @scc_addons;
