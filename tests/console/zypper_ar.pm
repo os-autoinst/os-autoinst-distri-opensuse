@@ -30,7 +30,7 @@ sub run {
     }
     else {
         # non-NET installs have only milestone repo, which might be incompatible.
-        my $repourl = 'http://' . get_var("SUSEMIRROR");
+        my $repourl = 'http://' . get_required_var("SUSEMIRROR");
         unless (get_var("FULLURL")) {
             $repourl = $repourl . "/repo/oss";
         }
