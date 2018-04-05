@@ -18,7 +18,7 @@ use testapi qw(check_var get_var get_required_var set_var check_var_array diag);
 use autotest;
 use utils;
 use version_utils qw(
-  is_hyperv is_hyperv_in_gui is_jeos is_gnome_next is_krypton_argon is_leap is_opensuse is_sle is_sles4sap is_sles4sap_standard sle_version_at_least is_desktop_installed is_installcheck is_rescuesystem is_staging is_tumbleweed is_virtualization_server is_caasp
+  is_hyperv is_hyperv_in_gui is_jeos is_gnome_next is_krypton_argon is_leap is_opensuse is_sle is_sles4sap is_sles4sap_standard sle_version_at_least is_desktop_installed is_installcheck is_rescuesystem is_staging is_tumbleweed is_virtualization_server is_caasp is_upgrade
 );
 use bmwqemu ();
 use strict;
@@ -249,7 +249,7 @@ sub is_updates_tests {
 }
 
 sub is_repo_replacement_required {
-    return is_opensuse() && !is_staging() && !get_var('KEEP_ONLINE_REPOS') && !is_updates_tests();
+    return is_opensuse() && !is_staging() && !get_var('KEEP_ONLINE_REPOS') && !is_updates_tests() && !is_upgrade();
 }
 
 sub is_memtest {
@@ -931,9 +931,10 @@ sub load_consoletests {
     # rely on default repos we get after installation.
     # The test can't be run on JeOS as it's heavily dependant
     # on repos from installation medium.
-    # We also don't have any repos on staging and update tests.
+    # We also don't have any repos on staging and update/upgrade tests.
     # This test uses serial console too much to be reliable on Hyper-V (poo#30613)
-    if (!is_staging() && !is_updates_tests() && !is_jeos() && !is_hyperv()) {
+    # Test doesn't make sense on live images too, don't have source repo there.
+    if (!is_staging() && !is_updates_tests() && !is_upgrade() && !is_jeos() && !is_hyperv() && !is_livesystem()) {
         loadtest "console/zypper_info";
     }
     # Add non-oss and debug repos for o3 and remove other by default
