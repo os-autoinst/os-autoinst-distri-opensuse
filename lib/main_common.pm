@@ -243,8 +243,8 @@ sub replace_opensuse_repos_tests {
 sub is_updates_tests {
     my $flavor = get_required_var('FLAVOR');
     # Incidents might be also Incidents-Gnome or Incidents-Kernel
-    # -Updates changed to just Updates, and added Maintenance$ to match flavor for openSUSE
-    return $flavor =~ /Updates$/ || $flavor =~ /-Incidents/ || $flavor =~ /Maintenance$/;
+    # -Updates works with SLE and Update is for openSUSE, and added Maintenance to match flavor for openSUSE
+    return $flavor =~ /-Updates$/ || $flavor =~ /-Incidents/ || $flavor =~ /Maintenance$/ || $flavor =~ /Update/;
 }
 
 sub is_repo_replacement_required {
@@ -928,10 +928,12 @@ sub load_consoletests {
     loadtest "console/hostname" unless is_bridged_networking;
     # Run zypper info before as tests source repo are not yet synced to o3 and we
     # rely on default repos we get after installation
-    # We also don't have any repos on staging
     # The test can't be run on JeOS as it's heavily dependant
     # on repos from installation medium.
-    loadtest "console/zypper_info" unless is_staging || is_jeos;
+    # We also don't have any repos on staging and update tests
+    if (!is_staging && !is_updates_tests && !is_jeos) {
+        loadtest "console/zypper_info";
+    }
     # Add non-oss and debug repos for o3 and remove other by default
     replace_opensuse_repos_tests if is_repo_replacement_required;
     if (get_var('SYSTEM_ROLE', '') =~ /kvm|xen/) {
