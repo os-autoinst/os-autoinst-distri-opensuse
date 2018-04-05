@@ -39,6 +39,7 @@ our @EXPORT = qw(
   is_server
   is_sles4sap
   is_sles4sap_standard
+  is_updates_tests
   need_clear_repos
   have_scc_repos
   load_svirt_vm_setup_tests
@@ -239,8 +240,15 @@ sub replace_opensuse_repos_tests {
     loadtest "console/zypper_ar";
 }
 
+sub is_updates_tests {
+    my $flavor = get_required_var('FLAVOR');
+    # Incidents might be also Incidents-Gnome or Incidents-Kernel
+    # -Updates changed to just Updates, and added Maintenance$ to match flavor for openSUSE
+    return $flavor =~ /Updates$/ || $flavor =~ /-Incidents/ || $flavor =~ /Maintenance$/;
+}
+
 sub is_repo_replacement_required {
-    return is_opensuse && !is_staging && !get_var('KEEP_ONLINE_REPOS');
+    return is_opensuse() && !is_staging() && !get_var('KEEP_ONLINE_REPOS') && !is_updates_tests();
 }
 
 sub is_memtest {

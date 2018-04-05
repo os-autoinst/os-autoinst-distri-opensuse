@@ -28,12 +28,6 @@ use main_common;
 
 init_main();
 
-sub is_updates_tests {
-    my $flavor = get_required_var('FLAVOR');
-    # Incidents might be also Incidents-Gnome or Incidents-Kernel
-    return $flavor =~ /-Updates$/ || $flavor =~ /-Incidents/;
-}
-
 sub is_new_installation {
     return !get_var('UPGRADE') && !get_var('ONLINE_MIGRATION') && !get_var('ZDUP') && !get_var('AUTOUPGRADE');
 }
