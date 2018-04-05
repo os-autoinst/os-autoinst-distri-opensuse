@@ -1313,6 +1313,7 @@ sub load_extra_tests_desktop {
         if (!get_var("NOAUTOLOGIN")) {
             loadtest "x11/multi_users_dm";
         }
+        # wine is only in openSUSE for various reasons, including legal ones
         loadtest 'x11/wine';
 
     }
