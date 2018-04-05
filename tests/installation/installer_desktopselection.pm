@@ -29,11 +29,11 @@ sub run {
     }
     if (get_var('NEW_DESKTOP_SELECTION')) {
         # select computer role
-        if ($d ne 'kde' && $d ne 'gnome' && $d ne 'textmode') {
+        if ($d !~ /kde|gnome|textmode|serverro/) {
             $d = 'custom';
         }
     }
-    if ($d ne 'kde' && $d ne 'gnome') {
+    if ($d !~ /kde|gnome|serverro/) {
         # up to 42.1 textmode was below 'other'
         if (!($d eq 'textmode' && check_screen 'has-server-selection', 2)) {
             send_key_until_needlematch 'selection_on_desktop_other', 'tab';    # Move the selection to 'Other'
