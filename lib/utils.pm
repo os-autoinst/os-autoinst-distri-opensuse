@@ -1126,8 +1126,6 @@ sub _handle_login_not_found {
     diag 'Checking for login prompt';
     die "no login prompt found" unless $str =~ /login:/;
     diag 'Checking for known failure';
-    return record_soft_failure 'bsc#1040606 - incomplete message when LeanOS is implicitly selected instead of SLES'
-      if $str =~ /Welcome to SUSE Linux Enterprise 15/;
     die "unknown error, system couldn't boot";
 }
 
@@ -1156,10 +1154,7 @@ sub reconnect_s390 {
     }
     else {
         my $r = wait_serial($login_ready, 300);
-        if ($r =~ qr/Welcome to SUSE Linux Enterprise 15/) {
-            record_soft_failure('bsc#1040606');
-        }
-        elsif (is_sle) {
+        if (is_sle) {
             $r =~ qr/Welcome to SUSE Linux Enterprise Server/ || die "Correct welcome string not found";
         }
     }
