@@ -22,8 +22,9 @@ use testapi qw(check_var get_var set_var);
 use version 'is_lax';
 
 our @EXPORT = qw (
-  is_hyperv_in_gui
   is_caasp
+  is_hyperv
+  is_hyperv_in_gui
   is_gnome_next
   is_jeos
   is_krypton_argon
@@ -52,8 +53,12 @@ sub is_jeos {
     return get_var('FLAVOR', '') =~ /^JeOS/;
 }
 
+sub is_hyperv {
+    return check_var('VIRSH_VMM_FAMILY', 'hyperv');
+}
+
 sub is_hyperv_in_gui {
-    return check_var('VIRSH_VMM_FAMILY', 'hyperv') && !check_var('VIDEOMODE', 'text');
+    return is_hyperv && !check_var('VIDEOMODE', 'text');
 }
 
 sub is_krypton_argon {
