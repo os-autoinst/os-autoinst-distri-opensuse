@@ -335,6 +335,7 @@ sub run {
         record_soft_failure "bsc#1068900";
     }
     smb_conf_checker;
+    set_hostname(get_var('HOSTNAME', 'susetest'));
 }
 
 sub post_fail_hook {
