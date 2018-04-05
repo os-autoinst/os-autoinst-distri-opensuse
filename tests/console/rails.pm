@@ -21,9 +21,9 @@ sub run {
     # need to handle this on our own
     my $cmd = <<'EOF';
 zypper -n in -C "rubygem(rails)"
-rails new -B mycoolapp
+rails new mycoolapp --skip-bundle --skip-test
 cd mycoolapp
-(rails server &)
+(rails server -b 0.0.0.0 &)
 for i in {1..100} ; do sleep 0.1; curl -s http://localhost:3000 | grep "<title>Ruby on Rails" && break ; done
 pkill -f "rails server" || pumactl -P tmp/pids/server.pid stop
 EOF
