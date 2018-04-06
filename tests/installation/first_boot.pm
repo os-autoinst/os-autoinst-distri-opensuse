@@ -31,7 +31,7 @@ sub run {
         select_console 'root-ssh';
         return;
     }
-    elsif (check_var('DESKTOP', 'textmode') || get_var('BOOT_TO_SNAPSHOT')) {
+    elsif ((get_var('DESKTOP', '') =~ /textmode|serverro/) || get_var('BOOT_TO_SNAPSHOT')) {
         assert_screen('linux-login', $boot_timeout) unless check_var('ARCH', 's390x');
         return;
     }
