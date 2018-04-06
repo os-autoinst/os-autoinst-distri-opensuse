@@ -44,7 +44,7 @@ sub run {
     send_key 'spc';                                                            # Select the desktop
 
     assert_screen "$d-selected";
-    if (check_var('VERSION', 'Tumbleweed')) {
+    if (check_var('VERSION', 'Tumbleweed') && !get_var('OFFLINE_SUT')) {
         send_key 'alt-o';                                                      # configure online repos
         wait_still_screen 3;                                                   # wait for the potential 'low memory warning' to show up
         assert_screen 'repo-list';
