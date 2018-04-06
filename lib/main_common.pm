@@ -250,7 +250,8 @@ sub is_updates_tests {
 }
 
 sub is_repo_replacement_required {
-    return is_opensuse() && !is_staging() && !get_var('KEEP_ONLINE_REPOS') && !is_updates_tests() && !is_upgrade();
+    # Do no schedule for listed scenarios and if mirror variable is not set (e.g. leap live tests)
+    return is_opensuse() && !is_staging() && !get_var('KEEP_ONLINE_REPOS') && !is_updates_tests() && !is_upgrade() && get_var('SUSEMIRROR');
 }
 
 sub is_memtest {
