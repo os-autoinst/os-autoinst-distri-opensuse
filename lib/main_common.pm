@@ -18,7 +18,7 @@ use testapi qw(check_var get_var get_required_var set_var check_var_array diag);
 use autotest;
 use utils;
 use version_utils qw(
-  is_hyperv_in_gui is_jeos is_gnome_next is_krypton_argon is_leap is_opensuse is_sle is_sles4sap is_sles4sap_standard sle_version_at_least is_desktop_installed is_installcheck is_rescuesystem is_staging is_tumbleweed is_virtualization_server is_caasp
+  is_hyperv is_hyperv_in_gui is_jeos is_gnome_next is_krypton_argon is_leap is_opensuse is_sle is_sles4sap is_sles4sap_standard sle_version_at_least is_desktop_installed is_installcheck is_rescuesystem is_staging is_tumbleweed is_virtualization_server is_caasp is_upgrade
 );
 use bmwqemu ();
 use strict;
@@ -238,6 +238,7 @@ sub is_kernel_test {
 sub replace_opensuse_repos_tests {
     loadtest "update/zypper_clear_repos";
     loadtest "console/zypper_ar";
+    loadtest "console/zypper_ref";
 }
 
 sub is_updates_tests {
@@ -248,7 +249,7 @@ sub is_updates_tests {
 }
 
 sub is_repo_replacement_required {
-    return is_opensuse() && !is_staging() && !get_var('KEEP_ONLINE_REPOS') && !is_updates_tests();
+    return is_opensuse() && !is_staging() && !get_var('KEEP_ONLINE_REPOS') && !is_updates_tests() && !is_upgrade();
 }
 
 sub is_memtest {
@@ -927,11 +928,13 @@ sub load_consoletests {
     loadtest "console/rmt" if is_rmt;
     loadtest "console/hostname" unless is_bridged_networking;
     # Run zypper info before as tests source repo are not yet synced to o3 and we
-    # rely on default repos we get after installation
+    # rely on default repos we get after installation.
     # The test can't be run on JeOS as it's heavily dependant
     # on repos from installation medium.
-    # We also don't have any repos on staging and update tests
-    if (!is_staging && !is_updates_tests && !is_jeos) {
+    # We also don't have any repos on staging and update/upgrade tests.
+    # This test uses serial console too much to be reliable on Hyper-V (poo#30613)
+    # Test doesn't make sense on live images too, don't have source repo there.
+    if (!is_staging() && !is_updates_tests() && !is_upgrade() && !is_jeos() && !is_hyperv() && !is_livesystem()) {
         loadtest "console/zypper_info";
     }
     # Add non-oss and debug repos for o3 and remove other by default
@@ -963,11 +966,13 @@ sub load_consoletests {
     if (have_scc_repos()) {
         loadtest "console/yast_scc";
     }
-    # If is_repo_replacement_required returns true, we already have added mirror repo
-    if (have_addn_repos && !is_repo_replacement_required) {
-        loadtest "console/zypper_ar";
+    # If is_repo_replacement_required returns true, we already have added mirror repo and refreshed repos
+    if (!is_repo_replacement_required()) {
+        if (have_addn_repos()) {
+            loadtest "console/zypper_ar";
+        }
+        loadtest "console/zypper_ref";
     }
-    loadtest "console/zypper_ref";
     loadtest "console/ncurses";
     loadtest "console/yast2_lan" unless is_bridged_networking;
     # no local certificate store
@@ -1065,9 +1070,8 @@ sub load_consoletests {
         loadtest "console/xfce_gnome_deps";
     }
     if (!is_staging() && is_sle && sle_version_at_least('12-SP2')) {
-        # This test uses serial console too much to be reliable on Hyper-V
-        # (poo#30613)
-        loadtest "console/zypper_lifecycle" unless check_var('VIRSH_VMM_FAMILY', 'hyperv');
+        # This test uses serial console too much to be reliable on Hyper-V. See (poo#30613)
+        loadtest "console/zypper_lifecycle" unless is_hyperv;
         if (check_var_array('SCC_ADDONS', 'tcm') && !sle_version_at_least('15')) {
             loadtest "console/zypper_lifecycle_toolchain";
         }
@@ -1695,7 +1699,7 @@ sub load_create_hdd_tests {
     loadtest 'shutdown/grub_set_bootargs';
     loadtest 'shutdown/shutdown';
     if (check_var('BACKEND', 'svirt')) {
-        if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
+        if (is_hyperv) {
             loadtest 'shutdown/hyperv_upload_assets';
         }
         else {
