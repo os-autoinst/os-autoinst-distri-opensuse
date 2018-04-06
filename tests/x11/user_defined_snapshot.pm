@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -52,7 +52,7 @@ sub run {
     send_key_until_needlematch([qw(grub_comment)], 'pgdn');
     # C'l'ose  the snapper module
     send_key "alt-l";
-    type_string "reboot\n";
+    power_action('reboot', keepconsole => 1, textmode => 1);
 
     $self->handle_uefi_boot_disk_workaround() if get_var('MACHINE') =~ qr'aarch64';
     assert_screen "grub2";
@@ -72,6 +72,7 @@ sub run {
     $self->wait_boot(textmode => 1, in_grub => 1);
     # request reboot again to ensure we will end up in the original system
     send_key 'ctrl-alt-delete';
+    power_action('reboot', keepconsole => 1, textmode => 1, observe => 1);
     $self->wait_boot;
 }
 
