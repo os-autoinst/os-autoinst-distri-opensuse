@@ -18,7 +18,7 @@ use base 'y2x11test';
 use strict;
 use testapi;
 use utils;
-use version_utils qw(is_sle sle_version_at_least is_leap is_tumbleweed is_storage_ng);
+use version_utils qw(is_opensuse is_sle sle_version_at_least is_leap is_tumbleweed is_storage_ng);
 
 sub search {
     my ($name) = @_;
@@ -72,6 +72,15 @@ sub start_media_check {
 }
 
 sub start_online_update {
+    # to test the online update configuration dialog we need update repos
+    # which are removed unless explicitly selected to be kept
+    if (is_opensuse && !get_var('KEEP_ONLINE_REPOS')) {
+        select_console 'root-console';
+        my $version = lc get_required_var('VERSION');
+        my $update_name = is_tumbleweed() ? $version : 'leap/' . $version . '/oss';
+        zypper_call("ar -f http://download.opensuse.org/update/$update_name repo-update");
+        select_console 'x11', await_console => 0;
+    }
     assert_and_click 'yast2_control-center_online-update';
     assert_screen [qw(yast2_control-center_update-repo-dialogue yast2_control-center_online-update_close)];
     if (match_has_tag('yast2_control-center_update-repo-dialogue')) {
