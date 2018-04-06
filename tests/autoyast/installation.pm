@@ -138,14 +138,13 @@ sub run {
     push @needles, 'linux-login-casp' if is_caasp;
     # Autoyast reboot automatically without confirmation, usually assert 'bios-boot' that is not existing on zVM
     # So push a needle to check upcoming reboot on zVM that is a way to indicate the stage done
-    push @needles, 'autoyast-stage1-reboot-upcoming' if check_var('BACKEND', 's390x');
+    push @needles, 'autoyast-stage1-reboot-upcoming' if check_var('ARCH', 's390x');
     # Import untrusted certification for SMT
     push @needles, 'untrusted-ca-cert' if get_var('SMT_URL');
     # Workaround for removing package error during upgrade
     push(@needles, 'ERROR-removing-package') if get_var("AUTOUPGRADE");
-    # Kill ssh proactively before reboot to avoid half-open issue on zVM
-    prepare_system_shutdown;
-
+    # Kill ssh proactively before reboot to avoid half-open issue on zVM, do not need this on zKVM
+    prepare_system_shutdown if check_var('BACKEND', 's390x');
     my $postpartscript = 0;
     my $confirmed      = 0;
 
@@ -242,8 +241,9 @@ sub run {
         }
     }
 
-    # The stage2 should be done during reconnection on zVM, so wait a little longer time
-    if (check_var('BACKEND', 's390x')) {
+    # We use startshell boot option on s390x to sync actions with reboot, normally is not used
+    # Cannot verify second stage properly on s390x, so recoonect to already installed system
+    if (check_var('ARCH', 's390x')) {
         reconnect_s390(timeout => 500);
         return;
     }

@@ -450,7 +450,7 @@ hostname into DHCP/DNS
 if you change hostname using C<hostnamectl set-hostname>, then C<hostname -f>
 will fail with I<hostname: Name or service not known> also DHCP/DNS don't know
 about the changed hostname, you need to send a new DHCP request to update
-dynamic DNS yast2-network module does 
+dynamic DNS yast2-network module does
 C<NetworkService.ReloadOrRestart if Stage.normal || !Linuxrc.usessh>
 if hostname is changed via C<yast2 lan>
 =cut
@@ -729,7 +729,8 @@ sub power_action {
         record_soft_failure("boo#1057637 shutdown_timeout increased to $shutdown_timeout (s) expecting to complete.");
     }
     # no need to redefine the system when we boot from an existing qcow image
-    if (check_var('VIRSH_VMM_FAMILY', 'xen') || (get_var('S390_ZKVM') && !get_var('BOOT_HDD_IMAGE'))) {
+    # Do not redefine if autoyast, as did initial reboot already
+    if (check_var('VIRSH_VMM_FAMILY', 'xen') || (get_var('S390_ZKVM') && !get_var('BOOT_HDD_IMAGE') && !get_var('AUTOYAST'))) {
         assert_shutdown_and_restore_system($action, $shutdown_timeout);
     }
     else {
