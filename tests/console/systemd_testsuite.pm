@@ -51,6 +51,12 @@ sub post_fail_hook {
     assert_script_run('cp /tmp/testsuite.log logs/');
     assert_script_run('tar -cjf systemd-testsuite-logs.tar.bz2 logs/');
     upload_logs('systemd-testsuite-logs.tar.bz2');
+    # Remove ANSI colors and filter failed tests
+    my $failed_tests = script_output("sed --quiet 's/\x1b\[[0-9;]*m//g; /^FAIL:/p' /tmp/testsuite.log");
+    for my $test_name ($failed_tests =~ /^FAIL: ([\w-]*)$/mg) {
+        my $log_content = script_output("cat logs/$test_name-run.log");
+        record_info("Failed test '$test_name'", "Failed test '$test_name' \n$log_content", result => 'fail');
+    }
 }
 
 
