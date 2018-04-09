@@ -34,4 +34,3 @@ EOF
     validate_script_output $output, sub { m/puppetslave\.local/ };
 }
 1;
-# vim: set sw=4 et:

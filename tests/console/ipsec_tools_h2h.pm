@@ -93,4 +93,3 @@ sub set_config {
     assert_script_run "setkey -f /etc/racoon/setkey.conf";
 }
 1;
-# vim: set sw=4 et:

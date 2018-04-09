@@ -1,4 +1,4 @@
-# Copyright (C) 2014,2015 SUSE Linux GmbH
+# Copyright (C) 2014-2018 SUSE Linux GmbH
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -13,8 +13,8 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# G-Summary: harmorize zypper_ref between SLE and openSUSE
-# G-Maintainer: Max Lin <mlin@suse.com>
+# Summary: harmorize zypper_ref between SLE and openSUSE
+# Maintainer: Max Lin <mlin@suse.com>
 
 use strict;
 use base "consoletest";
@@ -32,4 +32,3 @@ sub run {
 }
 
 1;
-# vim: set sw=4 et:

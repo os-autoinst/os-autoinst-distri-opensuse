@@ -1,1 +1,1 @@
-hexchat.pm
+./hexchat.pm

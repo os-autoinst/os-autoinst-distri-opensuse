@@ -149,4 +149,3 @@ sub verify_mount_opts {
 
 1;
 
-# vim: set sw=4 et:

@@ -84,4 +84,3 @@ This variable points to the devel_languages:python project's repo in OBS.
 =head2 BENCHMARK_REPO
 This variable points to the benchmark project's repo in OBS.
 
-# vim: set sw=4 et:

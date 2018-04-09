@@ -1,14 +1,14 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: console/update_alternatives test for bsc#969171
-# G-Maintainer: Ondřej Súkup <osukup@suse.cz>
+# Summary: console/update_alternatives test for bsc#969171
+# Maintainer: Ondřej Súkup <osukup@suse.cz>
 
 use base "consoletest";
 use strict;
@@ -21,4 +21,3 @@ sub run {
 }
 
 1;
-# vim: set sw=4 et:

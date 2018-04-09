@@ -1,6 +1,6 @@
 # openssl fips test
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -11,13 +11,13 @@
 # and succeed to encrypt/decrypt/sign/verify message.
 # According to FIPS 186-2, approved RSA key sizes: 2048/3072/4096
 
-# G-Summary: Add RSA/DSA public key tests for openssl-fips
+# Summary: Add RSA/DSA public key tests for openssl-fips
 #    For RSA public key, test 2048/3072/4096 bits key pair generation,
 #    file encrypt/decrypt and message signing/verification.
 #
 #    For DSA public key, test 1024/2048/3072 bits key pair generation,
 #    and message signing/verification.
-# G-Maintainer: Qingming Su <qingming.su@suse.com>
+# Maintainer: Qingming Su <qingming.su@suse.com>
 
 use base "consoletest";
 use testapi;
@@ -64,4 +64,3 @@ sub run {
 }
 
 1;
-# vim: set sw=4 et:
