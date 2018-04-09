@@ -16,6 +16,7 @@ use caasp_controller;
 use strict;
 use utils;
 use testapi;
+use caasp 'script_retry';
 
 sub run {
     # Use downloaded kubeconfig to display basic information
@@ -33,10 +34,8 @@ sub run {
     # Deploy nginx minimal application and check pods started succesfully
     my $pods_count = get_required_var("STACK_WORKERS") * 15;
     assert_script_run "kubectl run nginx --image=nginx:stable-alpine --replicas=$pods_count --port=80";
-    for (1 .. 10) {
-        last if script_run 'kubectl get pods | grep -q "0/\|1/2\|No resources"';
-        sleep 10;
-    }
+
+    script_retry 'kubectl get pods | grep -q "0/\|1/2\|No resources"', expect => 1, retry => 10, delay => 10;
     assert_script_run "kubectl get pods | tee /dev/tty | grep -c Running | grep $pods_count";
 
     # Expose application to access it from controller node
