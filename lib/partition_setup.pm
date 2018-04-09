@@ -121,18 +121,22 @@ sub addpart {
             send_key 'alt-a' if is_storage_ng;    # Select to format partition, not selected by default
             wait_still_screen 1;
             send_key((is_storage_ng) ? 'alt-f' : 'alt-s');
-            send_key 'home';                      # start from the top of the list
-            send_key_until_needlematch "partition-selected-$args{format}-type", 'down';
+            wait_screen_change { send_key 'home' };    # start from the top of the list
+            send_key_until_needlematch "partition-selected-$args{format}-type", 'down', 10, 2;
         }
     }
-    if ($args{fsid}) {                            # $args{fsid} will describe needle tag below
-        send_key 'alt-i';                         # select File system ID
-        send_key 'home';                          # start from the top of the list
+    # Enable snapshots option works only with btrfs
+    if ($args{enable_snapshots} && $args{format} eq 'btrfs') {
+        send_key_until_needlematch('partition-btrfs-snapshots-enabled', (is_storage_ng) ? 'alt-p' : 'alt-n');
+    }
+    if ($args{fsid}) {                                 # $args{fsid} will describe needle tag below
+        send_key 'alt-i';                              # select File system ID
+        send_key 'home';                               # start from the top of the list
         if ($args{role} eq 'raw' && !check_var('VIDEOMODE', 'text')) {
             record_soft_failure('bsc#1079399 - Combobox is writable');
             for (1 .. 10) { send_key 'up'; }
         }
-        send_key_until_needlematch "partition-selected-$args{fsid}-type", 'down';
+        send_key_until_needlematch "partition-selected-$args{fsid}-type", 'down', 10, 2;
     }
 
     mount_device $args{mount} if $args{mount};
