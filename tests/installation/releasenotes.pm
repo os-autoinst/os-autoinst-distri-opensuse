@@ -69,6 +69,11 @@ sub run {
 
     # no relnotes for ltss in QAM_MINIMAL
     push @no_relnotes, qw(ltss) if get_var('QAM_MINIMAL');
+    # no relnotes for ltss for SLE12-SP2 ltss
+    if (is_sle('=12-sp2')) {
+        push @no_relnotes, qw(ltss);
+        record_soft_failure 'bsc#1088636 - not updated release note for 12-SP2 LTSS';
+    }
     # no HA-GEO release-notes for s390x on SLE12-SP1 GM media, see bsc#1033504
     if (check_var('ARCH', 's390x') and check_var('BASE_VERSION', '12-SP1')) {
         push @no_relnotes, qw(geo);
