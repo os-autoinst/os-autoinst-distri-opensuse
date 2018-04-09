@@ -33,15 +33,22 @@ sub run {
 
     send_key "alt-shift-u";
 
-    assert_screen('firefox-passwd-master_setting', 30);
+    assert_screen('firefox-passwd-master_setting');
 
     type_string $masterpw;
     send_key "tab";
     type_string $masterpw;
-    for my $i (1 .. 3) { send_key "ret"; }
+
+    # confirm password change
+    assert_and_click('firefox-password-changed');
+    assert_and_click('firefox-passwd-success');
 
     #Restart firefox
+    send_key "alt-f";
+    assert_screen('firefox-menu-quit');
+
     send_key "ctrl-q";
+
     x11_start_program('firefox');
     $self->firefox_check_popups;
     assert_screen('firefox-gnome', 60);
@@ -57,7 +64,7 @@ sub run {
     type_string "calamari";
     send_key "ret";
     assert_and_click('firefox-passwd-confirm_remember');
-    assert_screen('firefox-passwd-confirm_master_pw', 30);
+    assert_screen('firefox-passwd-confirm_master_pw');
     type_string $masterpw. "\n";
 
     send_key "esc";
@@ -73,7 +80,7 @@ sub run {
     send_key "alt-shift-p";    #"Show Passwords"
     type_string $masterpw. "\n";
     send_key "alt-shift-l";
-    assert_screen('firefox-passwd-saved', 30);
+    assert_screen('firefox-passwd-saved');
 
     send_key "alt-shift-a";    #"Remove"
     wait_still_screen 3;
