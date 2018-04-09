@@ -194,20 +194,10 @@ sub select_bootmenu_more {
 
     # after installation-images 14.210 added a submenu
     if ($more && check_screen "inst-submenu-more", 1) {
-        if (get_var('OFW')) {
-            send_key_until_needlematch 'inst-onmore', 'up';
-        }
-        else {
-            send_key_until_needlematch('inst-onmore', 'down', 10, 5);
-        }
+        send_key_until_needlematch('inst-onmore', get_var('OFW') ? 'up' : 'down', 10, 5);
         send_key "ret";
     }
-    if (get_var('OFW')) {
-        send_key_until_needlematch $tag, 'up';
-    }
-    else {
-        send_key_until_needlematch($tag, 'down', 10, 3);
-    }
+    send_key_until_needlematch($tag, get_var('OFW') ? 'up' : 'down', 10, 3);
     if (get_var('UEFI')) {
         send_key 'e';
         send_key 'down' for (1 .. 4);
