@@ -18,6 +18,7 @@ use version_utils qw(is_leap is_sle);
 
 
 sub run {
+    my $self = shift;
     select_console 'root-console';
 
     # check network at first
@@ -38,7 +39,6 @@ sub run {
     # enable remote administration
     send_key 'alt-a';
     if (is_sle('<15') || is_leap('<15.0')) {
-
         # open port in firewall if it is eanbaled and check network interfaces, check long text by send key right.
         if (check_screen 'yast2_vnc_open_port_firewall') {
             send_key 'alt-p';
@@ -49,29 +49,38 @@ sub run {
             send_key 'alt-a';
             send_key 'alt-o';
         }
+        send_key 'alt-o';    # ok
+    }
+    else {
+        assert_screen 'yast2_vnc_firewall_port_closed';
+        send_key 'alt-f';    # Open port
+        assert_screen 'yast2_vnc_firewall_port_open';
+        send_key 'alt-n';    # next
+    }
+    # confirm with OK for Warning dialogue
+    assert_screen 'yast2_vnc_warning_text';
+    send_key 'alt-o';
+    wait_serial('yast2-remote-status-0', 60) || die "'yast2 remote' didn't finish";
 
-        # finish configuration with OK
-        send_key 'alt-o';
-        wait_still_screen;
-
-        # confirm with OK for Warning dialogue
-        assert_screen 'yast2_vnc_warning_text';
-        send_key 'alt-o';
-
-        wait_serial('yast2-remote-status-0', 60) || die "'yast2 remote' didn't finish";
-
-        # check vnc port is listening
-        assert_script_run $use_nettools ? 'netstat' : 'ss' . ' -tl | grep 5901 | grep LISTEN';
+    # Check service listening
+    my $cmd_check_port = $use_nettools ? 'netstat' : 'ss' . ' -tln | grep -E LISTEN.*:5901';
+    if (script_run($cmd_check_port)) {
+        record_soft_failure 'boo#1088646 - service vncmanager is not started automatically';
+        systemctl('status vncmanager', expect_false => 1);
+        systemctl('restart vncmanager');
+        systemctl('status vncmanager');
+        assert_script_run $cmd_check_port;
     }
 
-    else {
-        # atm vnc workflow is not working, vncserver needs to be started manually
-        # and firewall blocks vnc connection, so workaround the first issue.
-        assert_screen 'select_remote_administration';
-        send_key 'alt-n';
-        send_key 'alt-o' if assert_screen 'warning-display-manager';
-        record_soft_failure 'bsc#1081952';
-        return;
+    # Check firewall open for vnc
+    if ($self->firewall eq 'firewalld') {
+        my $cmd_check_firewall = 'firewall-cmd --list-all | grep vnc-server';
+        if (script_run($cmd_check_firewall)) {
+            record_soft_failure 'boo#1088647 - firewalld does not create rule for vnc';
+            assert_script_run('firewall-cmd --zone=public --add-service=vnc-server --permanent');
+            assert_script_run('firewall-cmd --reload');
+            assert_script_run($cmd_check_firewall);
+        }
     }
 }
 1;
