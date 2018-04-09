@@ -21,6 +21,7 @@ use Exporter;
 use strict;
 
 use testapi qw(is_serial_terminal :DEFAULT);
+use lockapi;
 use mm_network;
 use version_utils qw(is_caasp is_leap is_tumbleweed is_sle is_sle12_hdd_in_upgrade sle_version_at_least is_storage_ng);
 use Mojo::UserAgent;
@@ -76,6 +77,7 @@ our @EXPORT = qw(
   shorten_url
   reconnect_s390
   set_hostname
+  wait_supportserver
 );
 
 
@@ -1177,6 +1179,25 @@ sub reconnect_s390 {
     if (!check_var('DESKTOP', 'textmode') && !sle_version_at_least('15')) {
         select_console('x11', await_console => 0);
     }
+}
+
+=head2 wait_supportserver
+
+  wait_supportserver():
+
+Wait for the support server to finish its initialization.
+Ideally, this should be done *before* starting the OS, mainly if a DHCP
+server is needed.
+
+=cut
+sub wait_supportserver {
+    return unless get_var('USE_SUPPORT_SERVER');
+
+    # We use mutex to do this
+    my $mutex = 'support_server_ready';
+    diag "Waiting for support server to complete setup (with mutex '$mutex')...";
+    mutex_lock($mutex);
+    mutex_unlock($mutex);
 }
 
 1;

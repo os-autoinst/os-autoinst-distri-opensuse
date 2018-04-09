@@ -670,14 +670,13 @@ sub load_bootloader_s390x {
 sub boot_hdd_image {
     # On JeOS we don't need to load any test to boot, but to keep main.pm sane just return.
     is_jeos() ? return 1 : get_required_var('BOOT_HDD_IMAGE');
-    if (check_var("BACKEND", "svirt")) {
-        loadtest "installation/bootloader_svirt" unless load_bootloader_s390x();
+    if (check_var('BACKEND', 'svirt')) {
+        loadtest 'installation/bootloader_svirt' unless load_bootloader_s390x;
     }
     if (get_var('UEFI') && (get_var('BOOTFROM') || get_var('BOOT_HDD_IMAGE'))) {
-        loadtest "boot/uefi_bootmenu";
+        loadtest 'boot/uefi_bootmenu';
     }
-    loadtest "support_server/wait_support_server" if get_var('USE_SUPPORT_SERVER');
-    loadtest "boot/boot_to_desktop";
+    loadtest 'boot/boot_to_desktop';
 }
 
 sub load_common_installation_steps_tests {
