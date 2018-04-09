@@ -107,8 +107,6 @@ EOF
 { export ENABLE_WICKED=1; systemctl disable wicked; }'
         );
 
-        # emulate $LTPROOT/testscripts/network.sh
-        assert_script_run('TST_TOTAL=1 TCID="network_settings"; . test_net.sh; export TCID= TST_LIB_LOADED=');
         script_run('env');
 
         # Disable IPv4 and IPv6 iptables.
@@ -149,14 +147,8 @@ EOF
         script_run('cat /etc/hosts');
 
         script_run('ip addr');
-        script_run('ip netns exec ltp_ns ip addr');
         script_run('ip route');
         script_run('ip -6 route');
-
-        script_run('ping -c 2 $IPV4_NETWORK.$LHOST_IPV4_HOST');
-        script_run('ping -c 2 $IPV4_NETWORK.$RHOST_IPV4_HOST');
-        script_run('ping6 -c 2 $IPV6_NETWORK:$LHOST_IPV6_HOST');
-        script_run('ping6 -c 2 $IPV6_NETWORK:$RHOST_IPV6_HOST');
     }
 
     assert_script_run('cd $LTPROOT/testcases/bin');
