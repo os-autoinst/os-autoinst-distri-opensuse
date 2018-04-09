@@ -22,7 +22,7 @@ use version_utils 'sle_version_at_least';
 sub run {
     # On IPMI, when selecting x11 console, we are connecting to the VNC server on the SUT.
     # select_console('x11'); also performs a login, so we should be at generic-desktop.
-    my $gnome_ipmi = (check_var('BACKEND', 'ipmi') && check_var('DESKTOP', 'gnome'));
+    my $gnome_ipmi = (check_var('BACKEND', 'ipmi') && !check_var('DESKTOP', 'textmode'));
     select_console('x11') if ($gnome_ipmi);
     my $boot_timeout = (get_var('SES5_DEPLOY') || check_var('VIRSH_VMM_FAMILY', 'hyperv')) ? 450 : 200;
     # SLE >= 15 s390x does not offer auto-started VNC server in SUT, only login prompt as in textmode
