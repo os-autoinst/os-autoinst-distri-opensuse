@@ -13,10 +13,11 @@
 use base "opensusebasetest";
 use strict;
 use testapi;
-use utils qw(power_action systemctl);
+
+use utils 'systemctl';
 use version_utils 'is_caasp';
 use bootloader_setup 'set_framebuffer_resolution';
-use caasp 'process_reboot';
+use caasp qw(process_reboot script_retry);
 
 sub run {
     # On VMX images bootloader_uefi eats grub2 needle
@@ -32,7 +33,7 @@ sub run {
     # Workers installed using autoyast have no password - bsc#1030876
     return if get_var('AUTOYAST');
 
-    # Login is displayed before cloud-init finishes - bsc#1035968
+    # First attempts to select tty2 are ignored - bsc#1035968
     if (is_caasp 'VMX') {
         # FreeRDP is not sending 'Ctrl' as part of 'Ctrl-Alt-Fx', 'Alt-Fx' is fine though.
         my $key = check_var('VIRSH_VMM_FAMILY', 'hyperv') ? 'alt-f2' : 'ctrl-alt-f2';
@@ -47,8 +48,11 @@ sub run {
         process_reboot 1;
     }
 
-    # Restart network to push hostname to dns
+    # Help cloud-init on cluster tests
     if (is_caasp('VMX') && get_var('STACK_ROLE')) {
+        # Wait for cloud-init initialization - bsc#1088654
+        script_retry 'ls /run/cloud-init/result.json';
+        # Restart network to push hostname to dns
         systemctl 'restart network', timeout => 60;
     }
 }
