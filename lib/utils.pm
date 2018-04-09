@@ -1128,6 +1128,8 @@ sub _handle_login_not_found {
     diag 'Checking for login prompt';
     die "no login prompt found" unless $str =~ /login:/;
     diag 'Checking for known failure';
+    return record_soft_failure 'bsc#1040606 - incomplete message when LeanOS is implicitly selected instead of SLES'
+      if $str =~ /Welcome to SUSE Linux Enterprise 15/;
     die "unknown error, system couldn't boot";
 }
 
@@ -1155,23 +1157,12 @@ sub reconnect_s390 {
         select_console('iucvconn');
     }
     else {
-        my $r = wait_serial 'Started OpenSSH Daemon', $args{timeout};
-        record_info 'no SSH Daemon', 'SSH Daemon was not started' && die "SSH Daemon was not started" if !$r;
-        wait_serial($login_ready, 30);
-        record_info('Welcome message not found', 'Welcome string not found, try ssh to see what is going on...');
-        # Try to login via ssh
-        select_console 'root-console';
-        my $ret = script_output 'systemctl status';
-        if ($ret =~ /0 queued/) {
-            record_info('No systemd jobs queued', 'There are no systemd services pending');
-            die 'Welcome message not found but unknown error, no known mitigation';
+        my $r = wait_serial($login_ready, 300);
+        if ($r =~ qr/Welcome to SUSE Linux Enterprise 15/) {
+            record_soft_failure('bsc#1040606');
         }
-        $ret = script_output "systemctl list-jobs | tee /dev/$serialdev";
-        # start plymouth-quit.service to workaround bsc1083646 and related ones
-        if ($ret =~ /plymouth-quit-wait\.service/) {
-            record_soft_failure 'bsc#1083646';
-            assert_script_run 'systemctl start plymouth-quit';
-            wait_serial($login_ready, 50);
+        elsif (is_sle) {
+            $r =~ qr/Welcome to SUSE Linux Enterprise Server/ || die "Correct welcome string not found";
         }
     }
 
