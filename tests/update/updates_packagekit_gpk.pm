@@ -114,6 +114,12 @@ sub run {
     }
 }
 
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->SUPER::post_fail_hook;
+    $self->upload_packagekit_logs;
+}
+
 sub test_flags {
     return {milestone => 1, fatal => 1};
 }

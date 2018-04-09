@@ -176,6 +176,11 @@ sub export_logs {
     $self->investigate_yast2_failure();
 }
 
+sub upload_packagekit_logs {
+    my ($self) = @_;
+    upload_logs '/var/log/pk_backend_zypp';
+}
+
 # Set a simple reproducible prompt for easier needle matching without hostname
 sub set_standard_prompt {
     my ($self, $user) = @_;
