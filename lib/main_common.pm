@@ -236,7 +236,6 @@ sub is_kernel_test {
 }
 
 sub replace_opensuse_repos_tests {
-    return if get_var('OFFLINE_SUT');
     loadtest "update/zypper_clear_repos";
     loadtest "console/zypper_ar";
     loadtest "console/zypper_ref";
@@ -250,7 +249,13 @@ sub is_updates_tests {
 }
 
 sub is_repo_replacement_required {
-    return is_opensuse() && !is_staging() && !get_var('KEEP_ONLINE_REPOS') && !is_updates_tests() && !is_upgrade();
+    return is_opensuse()                  # Is valid scenario onlu for openSUSE
+      && !is_staging()                    # Do not have mirrored repos on staging
+      && !get_var('KEEP_ONLINE_REPOS')    # Set variable no to replace variables
+      && !is_updates_tests()              # Is not required for update and upgrade tests, repos are already injected
+      && !is_upgrade()
+      && get_var('SUSEMIRROR')            # Skip if required variable is not set (leap live tests)
+      && !get_var('OFFLINE_SUT');         # Do not run if SUT is offine
 }
 
 sub is_memtest {
