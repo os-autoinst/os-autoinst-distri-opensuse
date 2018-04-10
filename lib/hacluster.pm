@@ -12,9 +12,9 @@ package hacluster;
 use base Exporter;
 use Exporter;
 use strict;
-use utils 'exec_and_insert_password';
-use version_utils 'is_sle';
 use warnings;
+use version_utils 'is_sle';
+use utils;
 use testapi;
 use lockapi;
 
@@ -42,6 +42,7 @@ our @EXPORT = qw(
   ha_export_logs
   check_cluster_state
   get_lun
+  pre_run_hook
   post_run_hook
   post_fail_hook
   test_flags
@@ -50,6 +51,7 @@ our @EXPORT = qw(
 # Global variables
 our $crm_mon_cmd     = 'crm_mon -R -r -n -N -1';
 our $softdog_timeout = 60;
+our $prev_console;
 
 sub get_cluster_name {
     return get_required_var('CLUSTER_NAME');
@@ -270,11 +272,23 @@ sub get_lun {
     return block_device_real_path "$lun";
 }
 
+sub pre_run_hook {
+    my ($self) = @_;
+
+    $prev_console = $testapi::selected_console;
+}
+
 sub post_run_hook {
     my ($self) = @_;
 
-    # Clear screen to make screen content ready for next test
-    $self->clear_and_verify_console;
+    return unless ($prev_console);
+    select_console($prev_console, await_console => 0);
+    if ($prev_console eq 'x11') {
+        ensure_unlocked_desktop;
+    }
+    else {
+        $self->clear_and_verify_console;
+    }
 }
 
 sub post_fail_hook {
