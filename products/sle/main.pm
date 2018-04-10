@@ -465,8 +465,9 @@ sub load_slenkins_tests {
 sub load_cluster_boot {
     # Standard boot and configuration
     boot_hdd_image;
+    loadtest 'ha/wait_barriers'               if get_var('HA_CLUSTER');
     loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
-    loadtest 'console/consoletest_setup' if (is_updates_tests || get_var('HA_CLUSTER'));
+    loadtest 'console/consoletest_setup'      if (is_updates_tests || get_var('HA_CLUSTER'));
 
     return 1;
 }
@@ -497,7 +498,6 @@ sub load_ha_cluster_tests {
     loadtest "ha/watchdog";
 
     # Cluster initilisation
-    loadtest "ha/wait_barriers";
     if (get_var("HA_CLUSTER_INIT")) {
         # Node1 creates a cluster
         loadtest "ha/ha_cluster_init";
