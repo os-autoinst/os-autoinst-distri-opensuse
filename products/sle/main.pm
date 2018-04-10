@@ -724,7 +724,7 @@ elsif (get_var("SUPPORT_SERVER")) {
         loadtest "remote/remote_controller";
         load_inst_tests();
     }
-    loadtest "ha/barrier_init" if get_var("HA_CLUSTER_SUPPORT_SERVER");
+    loadtest "ha/barrier_init" if get_var("HA_CLUSTER");
     unless (load_slenkins_tests()) {
         loadtest "support_server/wait_children";
     }
