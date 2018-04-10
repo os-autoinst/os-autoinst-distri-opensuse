@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
-# Summary: Remote Login: XDMCP with gdm and SLE-Classic configured
+# Summary: Remote Login: XDMCP with gdm and GNOME session configured
 # Maintainer: Chingkai <qkzhu@suse.com>
 # Tags: tc#1586203
 
@@ -23,8 +23,11 @@ use base 'x11test';
 use testapi;
 use lockapi;
 use utils;
+use version_utils 'is_sle';
 
 sub run {
+    my ($self) = @_;
+
     # Wait for supportserver if not yet ready
     mutex_lock 'dhcp';
     mutex_unlock 'dhcp';
@@ -34,7 +37,7 @@ sub run {
     x11_start_program('xterm');
     become_root;
     assert_script_run 'dhclient';
-    assert_script_run 'yast2 firewall services add zone=EXT service=service:xdmcp';
+    $self->configure_xdmcp_firewall;
     type_string "exit\n";
 
     # Remote access SLES via Xephyr

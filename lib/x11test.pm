@@ -874,6 +874,18 @@ sub configure_static_ip_nm {
     wait_screen_change { send_key 'alt-f4' };
 }
 
+# Open the firewall port of xdmcp service
+sub configure_xdmcp_firewall {
+    # Open the firewall port of xdmcp service
+    if (is_sle '15+') {
+        assert_script_run 'firewall-cmd --permanent --zone=public --add-port=6000-6010/tcp';
+        assert_script_run 'firewall-cmd --permanent --zone=public --add-port=177/udp';
+        assert_script_run 'firewall-cmd --reload';
+    }
+    else {
+        assert_script_run 'yast2 firewall services add zone=EXT service=service:xdmcp';
+    }
+}
 
 1;
 # vim: set sw=4 et:

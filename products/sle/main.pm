@@ -420,7 +420,7 @@ sub load_x11_remote {
     elsif (check_var('REMOTE_DESKTOP_TYPE', 'persistent_vnc')) {
         loadtest 'x11/remote_desktop/persistent_vncsession_xvnc';
         loadtest 'x11/remote_desktop/x11_forwarding_openssh';
-        loadtest 'x11/remote_desktop/xdmcp_gdm' if is_sle('<15');
+        loadtest 'x11/remote_desktop/xdmcp_gdm';
     }
     # load xdmcp with xdm testing
     elsif (check_var('REMOTE_DESKTOP_TYPE', 'xdmcp_xdm')) {
