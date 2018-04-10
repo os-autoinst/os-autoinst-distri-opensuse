@@ -45,10 +45,12 @@ sub set_svirt_domain_elements {
             $cmdline .= "upgrade=1 ";
         }
 
-        if (get_var('AUTOYAST')) {
-            $cmdline .= " autoyast=" . data_url(get_var('AUTOYAST')) . " ";
+        if (my $autoyast = get_var('AUTOYAST')) {
+            $autoyast = data_url($autoyast) if $autoyast !~ /^slp$|:\/\//;
+            $cmdline .= " autoyast=" . $autoyast;
         }
 
+        $cmdline .= ' ' . get_var("EXTRABOOTPARAMS") if get_var("EXTRABOOTPARAMS");
         $cmdline .= specific_bootmenu_params;
         $cmdline .= registration_bootloader_cmdline if check_var('SCC_REGISTER', 'installation');
 
@@ -65,7 +67,7 @@ sub set_svirt_domain_elements {
     # after installation we need to redefine the domain, so just shutdown
     # on zdup and online migration we don't need to redefine in between
     # If boot from existing hdd image, we don't expect shutdown on reboot
-    if (!get_var('ZDUP') and !get_var('ONLINE_MIGRATION') and !get_var('BOOT_HDD_IMAGE')) {
+    if (!get_var('ZDUP') and !get_var('ONLINE_MIGRATION') and !get_var('BOOT_HDD_IMAGE') and !get_var('AUTOYAST')) {
         $svirt->change_domain_element(on_reboot => 'destroy');
     }
 }

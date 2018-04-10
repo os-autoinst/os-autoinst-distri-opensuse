@@ -20,25 +20,12 @@ use strict;
 use base 'basetest';
 use testapi;
 use utils;
+use version_utils 'is_sle';
 
 sub run {
-    # Kill ssh proactively before reboot to avoid half-open issue on zVM
-    prepare_system_shutdown;
-
-    type_string("shutdown -r now\n");
-    reset_consoles;
-
-    # We have to reconnect in next on zVM
-    if (check_var("BACKEND", "s390x")) {
-        return;
-    }
-
-    assert_screen("bios-boot",  900);
-    assert_screen("bootloader", 30);
-
-    if (check_var("BOOTFROM", "d")) {
-        assert_screen("inst-bootmenu", 60);
-    }
+    # We are already in console, so reboot from it and do not switch to x11 or root console
+    # Note, on s390x with SLE15 VNC is not running even if enabled in the profile
+    power_action('reboot', textmode => 1, keepconsole => 1);
 }
 
 1;

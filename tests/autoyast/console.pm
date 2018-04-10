@@ -20,12 +20,13 @@ use strict;
 use base 'y2logsstep';
 use testapi;
 use utils 'power_action';
+use version_utils 'is_sle';
 
 sub run {
     my ($self) = @_;
-    # Trying to change consoles manually because of bsc#1042554
-    # And no need on zVM
-    if (!check_var('BACKEND', 's390x')) {
+    # Trying to change consoles manually because of bsc#1042554, not on s390x
+    # Bug is still there on SLE 12 SP4
+    if (is_sle('<15') && !check_var('ARCH', 's390x')) {
         send_key 'ctrl-alt-f2';
         send_key 'alt-f2';
         if (!check_screen 'text-login') {
