@@ -1406,7 +1406,7 @@ sub load_extra_tests_textmode {
     # Currently for our SLE12 validation tests we are not using a
     # registered SLE installation so we should not schedule the test
     # modules.
-    load_docker_tests if (check_var('ARCH', 'x86_64') && ((is_sle('12-SP2+') && (is_sle('<12-SP4') || is_sle('15+')) || !is_sle)));
+    load_docker_tests if (check_var('ARCH', 'x86_64') && (is_sle('12-SP3+') || !is_sle));
     loadtest "console/kdump_and_crash" if kdump_is_applicable;
     loadtest "console/consoletest_finish";
 }
