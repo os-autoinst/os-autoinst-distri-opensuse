@@ -204,7 +204,7 @@ sub select_bootmenu_more {
         # newer versions of qemu on arch automatically add 'console=ttyS0' so
         # we would end up nowhere. Setting console parameter explicitly
         # See https://bugzilla.suse.com/show_bug.cgi?id=1032335 for details
-        type_string_slow ' console=tty1' if get_var('MACHINE', '') =~ /aarch64/;
+        type_string_slow ' console=tty1' if get_var('MACHINE') =~ /aarch64/;
         # Hyper-V defaults to 1280x1024, we need to fix it here
         type_hyperv_fb_video_resolution if check_var('VIRSH_VMM_FAMILY', 'hyperv');
         send_key 'f10';
@@ -367,7 +367,7 @@ sub wait_boot {
         # booted so we have to handle that
         # because of broken firmware, bootindex doesn't work on aarch64 bsc#1022064
         push @tags, 'inst-bootmenu' if ((get_var('USBBOOT') and get_var('UEFI')) || (check_var('ARCH', 'aarch64') and get_var('UEFI')) || get_var('OFW'));
-        $self->handle_uefi_boot_disk_workaround if (check_var('ARCH', 'aarch64') && get_var('UEFI') && get_var('BOOT_HDD_IMAGE') && !$in_grub);
+        $self->handle_uefi_boot_disk_workaround if (get_var('MACHINE') =~ /aarch64/ && get_var('UEFI') && get_var('BOOT_HDD_IMAGE') && !$in_grub);
         check_screen(\@tags, $bootloader_time);
         if (match_has_tag("bootloader-shim-import-prompt")) {
             send_key "down";
