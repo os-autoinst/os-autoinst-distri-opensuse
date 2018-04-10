@@ -21,7 +21,7 @@ sub assert_wicked_state {
     systemctl('is-active wicked.service',  expect_false => $args{wicked_client_down});
     systemctl('is-active wickedd.service', expect_false => $args{wicked_daemon_down});
     my $status = $args{interfaces_down} ? 'down' : 'up';
-    assert_script_run("for dev in /sys/class/net/!(lo); do grep \"$status\" \$dev/operstate || (echo \"device \$dev is not $status\" && exit 1) ; done");
+    assert_script_run("/data/check_interfaces.sh $status");
     assert_script_run("ping -c 4 $args{ping_ip}") if $args{ping_ip};
     # this just FYI so we don't want to fail
     script_run('ip addr show ' . $args{iface}) if $args{iface};

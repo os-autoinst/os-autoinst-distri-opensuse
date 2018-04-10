@@ -32,6 +32,8 @@ sub run {
     assert_script_run('cat /etc/sysconfig/network/config');
     #preparing directories for holding config files
     assert_script_run('mkdir -p /data/{static_address,dynamic_address}');
+    #download script for check interface status
+    $self->get_from_data('wicked/check_interfaces.sh', '/data/check_interfaces.sh', executable => 1);
 }
 
 sub test_flags {
