@@ -47,8 +47,6 @@ sub run {
         barrier_create("DRBD_SETUP_DONE_$cluster_name",             $num_nodes);
         barrier_create("LOCK_INIT_$cluster_name",                   $num_nodes);
         barrier_create("LOCK_RESOURCE_CREATED_$cluster_name",       $num_nodes);
-        barrier_create("BEFORE_FENCING_$cluster_name",              $num_nodes);
-        barrier_create("FENCING_DONE_$cluster_name",                $num_nodes);
         barrier_create("LOGS_CHECKED_$cluster_name",                $num_nodes);
         barrier_create("CHECK_AFTER_FENCING_BEGIN_$cluster_name",   $num_nodes);
         barrier_create("CHECK_AFTER_FENCING_END_$cluster_name",     $num_nodes);
