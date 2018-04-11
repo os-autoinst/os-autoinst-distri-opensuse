@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -18,14 +18,13 @@ use lockapi;
 use mmapi;
 use mm_network;
 use repo_tools;
+use utils 'turn_off_gnome_screensaver';
 
 sub run {
+    my ($self) = @_;
     my $external_IP = '10.0.2.111';
     x11_start_program('xterm -geometry 150x35+5+5', target_match => 'xterm');
-
-    # avoid black screen because it will be cost too much time
-    type_string("gsettings set org.gnome.desktop.session idle-delay 0\n");
-    save_screenshot;
+    turn_off_gnome_screensaver;
     become_root;
 
     # setting internal SMT configure
@@ -87,4 +86,3 @@ sub test_flags {
 }
 
 1;
-# vim: set sw=4 et:

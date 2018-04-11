@@ -26,22 +26,20 @@ sub run {
     }
 
     # select root partition
-    send_key "right";
-    send_key "down";                     # only works with multiple HDDs
-    send_key "right";
-    send_key "down";
+    send_key_until_needlematch 'vda-selected', 'down';
     send_key "tab";
     send_key "tab";
-    send_key "down";
-
-    wait_screen_change { send_key $cmd{resize} };    # Resize
-    send_key(is_storage_ng() ? 'alt-c' : 'alt-u');   # Custom size
+    send_key "home";
+    send_key_until_needlematch 'root-partition-selected', 'down';    # Select root partition
+                                                                     # Different shortcut on storage-ng
+    wait_screen_change { send_key((is_storage_ng) ? 'alt-z' : $cmd{resize}) };    # Resize
+    send_key(is_storage_ng() ? 'alt-c' : 'alt-u');                                # Custom size
     send_key $cmd{size_hotkey} if is_storage_ng;
     type_string '1.5G';
     send_key(is_storage_ng() ? $cmd{next} : 'ret');
     if (is_storage_ng) {
         wait_screen_change { send_key 'alt-s' };
-        send_key_until_needlematch 'vda-selected', 'left';    # Select vda again, not vda1
+        send_key_until_needlematch 'vda-selected', 'left';                        # Select vda again
     }
 
     # add /usr
@@ -55,4 +53,3 @@ sub run {
 }
 
 1;
-# vim: set sw=4 et:

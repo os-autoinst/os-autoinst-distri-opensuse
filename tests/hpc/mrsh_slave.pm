@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -22,13 +22,15 @@ use utils;
 sub run {
     my $self = shift;
 
-    # set proper hostname
-    assert_script_run "hostnamectl set-hostname mrsh-slave";
+    # Synchronize with master
+    mutex_lock("MRSH_MASTER_BARRIERS_CONFIGURED");
+    mutex_unlock("MRSH_MASTER_BARRIERS_CONFIGURED");
 
     # install mrsh
     zypper_call('in mrsh mrsh-server');
     barrier_wait("MRSH_INSTALLATION_FINISHED");
     mutex_lock("MRSH_KEY_COPIED");
+    mutex_unlock("MRSH_KEY_COPIED");
 
     # start munge
     $self->enable_and_start('munge');
@@ -44,5 +46,11 @@ sub test_flags {
     return {fatal => 1, milestone => 1};
 }
 
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->upload_service_log('munge');
+    $self->upload_service_log('mrshd');
+    $self->upload_service_log('mrlogind');
+}
+
 1;
-# vim: set sw=4 et:

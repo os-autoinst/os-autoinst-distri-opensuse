@@ -49,10 +49,10 @@ sub run {
         script_run("export $ltp_env");
     }
     script_run('env');
+    upload_logs('/boot/config-$(uname -r)', failok => 1);
 
-    my $ver_linux_path = '$LTPROOT/ver_linux';
-    my $ver_linux_log  = '/tmp/ver_linux_before.txt';
-    script_run("$ver_linux_path > $ver_linux_log 2>&1");
+    my $ver_linux_log = '/tmp/ver_linux_before.txt';
+    script_run("\$LTPROOT/ver_linux > $ver_linux_log 2>&1");
     upload_logs($ver_linux_log, failok => 1);
     my $ver_linux_out = script_output("cat $ver_linux_log");
 
@@ -107,8 +107,6 @@ EOF
 { export ENABLE_WICKED=1; systemctl disable wicked; }'
         );
 
-        # emulate $LTPROOT/testscripts/network.sh
-        assert_script_run('TST_TOTAL=1 TCID="network_settings"; . test_net.sh; export TCID= TST_LIB_LOADED=');
         script_run('env');
 
         # Disable IPv4 and IPv6 iptables.
@@ -149,14 +147,8 @@ EOF
         script_run('cat /etc/hosts');
 
         script_run('ip addr');
-        script_run('ip netns exec ltp_ns ip addr');
         script_run('ip route');
         script_run('ip -6 route');
-
-        script_run('ping -c 2 $IPV4_NETWORK.$LHOST_IPV4_HOST');
-        script_run('ping -c 2 $IPV4_NETWORK.$RHOST_IPV4_HOST');
-        script_run('ping6 -c 2 $IPV6_NETWORK:$LHOST_IPV6_HOST');
-        script_run('ping6 -c 2 $IPV6_NETWORK:$RHOST_IPV6_HOST');
     }
 
     assert_script_run('cd $LTPROOT/testcases/bin');

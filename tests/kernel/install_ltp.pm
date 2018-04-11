@@ -55,19 +55,23 @@ sub install_runtime_dependencies {
     # net-tools-deprecated are not available for SLE15
     # ntfsprogs are for SLE in WE, openSUSE has it in default repository
     my @maybe_deps = qw(
+      acl
+      binutils
+      dosfstools
+      evmctl
+      fuse-exfat
       kernel-default-extra
       net-tools
       net-tools-deprecated
-      tpm-tools
-      sssd-tools
-      numactl
-      wget
-      psmisc
-      binutils
-      acl
-      quota
-      sudo
       ntfsprogs
+      numactl
+      psmisc
+      quota
+      sssd-tools
+      sudo
+      tpm-tools
+      wget
+      xfsprogs
     );
     for my $dep (@maybe_deps) {
         script_run('zypper -n -t in ' . $dep . ' | tee');
@@ -88,7 +92,6 @@ sub install_build_dependencies {
       libacl-devel
       libaio-devel
       libcap-devel
-      libnuma-devel
       libopenssl-devel
       libselinux-devel
       libtirpc-devel
@@ -103,6 +106,7 @@ sub install_build_dependencies {
       libacl-devel-32bit
       libaio-devel-32bit
       libcap-devel-32bit
+      libnuma-devel
       libnuma-devel-32bit
       libopenssl-devel-32bit
       libselinux-devel-32bit
@@ -172,7 +176,7 @@ sub run {
     $self->wait_boot;
 
     # poo#18980
-    if (check_var('ARCH', 'ppc64le') && check_var('VIRTIO_CONSOLE', 1)) {
+    if (get_var('OFW') && check_var('VIRTIO_CONSOLE', 1)) {
         select_console('root-console');
         add_serial_console('hvc1');
     }
@@ -268,4 +272,3 @@ Overrides the official LTP GitHub repository URL.
 
 =cut
 
-# vim: set sw=4 et:

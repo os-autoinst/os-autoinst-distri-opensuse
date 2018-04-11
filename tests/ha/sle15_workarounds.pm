@@ -13,13 +13,13 @@
 
 use base 'opensusebasetest';
 use strict;
-use version_utils qw(is_sle sle_version_at_least);
+use version_utils 'is_sle';
 use testapi;
 use hacluster;
 
 # Do some stuff that need to be workaround in SLE15
 sub run {
-    return unless (is_sle && sle_version_at_least('15'));
+    return unless is_sle('15+');
 
     # Modify the device number if needed
     if ((get_var('ISO', '') eq '') && (get_var('ISO_1', '') ne '')) {
@@ -28,4 +28,3 @@ sub run {
 }
 
 1;
-# vim: set sw=4 et:

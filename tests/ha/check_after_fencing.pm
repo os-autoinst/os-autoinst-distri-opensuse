@@ -17,14 +17,25 @@ use lockapi;
 use hacluster;
 
 sub run {
-    barrier_wait("CHECK_BEFORE_FENCING_BEGIN_$cluster_name");
+    my $cluster_name = get_cluster_name;
+
+    # Check cluster state *after* fencing
+    barrier_wait("CHECK_AFTER_FENCING_BEGIN_$cluster_name");
 
     # We need to be sure to be root and, after fencing, the default console on node01 is not root
-    select_console 'root-console';
+    if (is_node(1)) {
+        reset_consoles;
+        select_console 'root-console';
+    }
+
+    # Wait for the cluster to be up on the fenced node
+    # We can execute this test on all nodes, so do it as it's easier to code :-)
+    assert_script_run 'crm cluster wait_for_startup';
+
+    # And check for the state of the whole cluster
     check_cluster_state;
 
-    barrier_wait("CHECK_BEFORE_FENCING_END_$cluster_name");
+    barrier_wait("CHECK_AFTER_FENCING_END_$cluster_name");
 }
 
 1;
-# vim: set sw=4 et:

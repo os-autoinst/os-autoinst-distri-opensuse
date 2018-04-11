@@ -15,7 +15,7 @@ use strict;
 use warnings;
 use base "y2logsstep";
 use testapi;
-use version_utils qw(is_sle sle_version_at_least);
+use version_utils 'is_sle';
 
 sub switch_keyboard_layout {
     return unless get_var('INSTALL_KEYBOARD_LAYOUT');
@@ -41,7 +41,7 @@ sub switch_keyboard_layout {
 sub run {
     switch_keyboard_layout;
 
-    send_key $cmd{next} unless (is_sle && sle_version_at_least('15') && get_var('UPGRADE'));
+    send_key $cmd{next} unless (is_sle('15+') && get_var('UPGRADE'));
     if (!check_var('INSTLANG', 'en_US') && check_screen 'langincomplete', 1) {
         send_key 'alt-f';
     }
@@ -61,4 +61,3 @@ sub post_fail_hook {
 }
 
 1;
-# vim: set sw=4 et:

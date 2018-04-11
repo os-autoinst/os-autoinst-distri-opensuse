@@ -1,14 +1,14 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2016 SUSE LLC
+# Copyright (c) 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# G-Summary: Add test to check enlarge swap for suspend
-# G-Maintainer: Zaoliang Luo <zluo@e13.suse.de>
+# Summary: Add test to check enlarge swap for suspend
+# Maintainer: Zaoliang Luo <zluo@e13.suse.de>
 
 use strict;
 use base "y2logsstep";
@@ -25,4 +25,3 @@ sub run {
 }
 1;
 
-# vim: set sw=4 et:

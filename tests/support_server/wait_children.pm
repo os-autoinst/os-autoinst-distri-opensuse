@@ -25,36 +25,35 @@ use mmapi;
 sub run {
     my $self = shift;
 
-    type_string("journalctl -f |tee /dev/$serialdev\n");
+    select_console 'root-console';
+    # We don't need any logs from support server when running on REMOTE_CONTROLLER for remote SLE installation tests
+    type_string("journalctl -f |tee /dev/$serialdev\n") unless (get_var('REMOTE_CONTROLLER'));
 
     wait_for_children;
 
-    send_key("ctrl-c");
+    unless (get_var('REMOTE_CONTROLLER')) {
+        send_key 'ctrl-c';
 
-    my @server_roles = split(',|;', lc(get_var("SUPPORT_SERVER_ROLES")));
-    my %server_roles = map { $_ => 1 } @server_roles;
+        my @server_roles = split(',|;', lc(get_var("SUPPORT_SERVER_ROLES")));
+        my %server_roles = map { $_ => 1 } @server_roles;
 
-    # No messages file in openSUSE which use journal by default
-    # Write journal log to /var/log/messages for openSUSE
-    if (check_var('DISTRI', 'opensuse')) {
-        script_run 'journalctl -b -x > /var/log/messages', 90;
+        # No messages file in openSUSE which use journal by default
+        # Write journal log to /var/log/messages for openSUSE
+        if (check_var('DISTRI', 'opensuse')) {
+            script_run 'journalctl -b -x > /var/log/messages', 90;
+        }
+        my $log_cmd = "tar cjf /tmp/logs.tar.bz2 /var/log/messages ";
+        if (exists $server_roles{qemuproxy} || exists $server_roles{aytest}) {
+            $log_cmd .= "/var/log/apache2 ";
+        }
+        assert_script_run $log_cmd;
+        upload_logs "/tmp/logs.tar.bz2";
     }
-    my $log_cmd = "tar cjf /tmp/logs.tar.bz2 /var/log/messages ";
-    if (exists $server_roles{qemuproxy} || exists $server_roles{aytest}) {
-        $log_cmd .= "/var/log/apache2 ";
-    }
-    assert_script_run $log_cmd;
-    upload_logs "/tmp/logs.tar.bz2";
-
     $self->result('ok');
 }
 
 
 sub test_flags {
-    # without anything - rollback to 'lastgood' snapshot if failed
-    # 'fatal' - whole test suite is in danger if this fails
-    # 'milestone' - after this test succeeds, update 'lastgood'
-    # 'important' - if this fails, set the overall state to 'fail'
     return {fatal => 1};
 }
 

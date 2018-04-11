@@ -24,10 +24,8 @@ use susedistribution;
 
 sub run {
     my $self = shift;
-    select_console 'root-console';
 
     # install powerman
-    pkcon_quit();
     zypper_call('in powerman');
 
     # Adapt config
@@ -65,5 +63,10 @@ EOF
     script_run("powerman -c \$(hostname) | tee /dev/$serialdev", 0);
     wait_serial(/.*cannot be handled by power control device.*/);
 }
+
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->upload_service_log('powerman');
+}
+
 1;
-# vim: set sw=4 et:

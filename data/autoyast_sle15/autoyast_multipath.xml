@@ -377,7 +377,6 @@ pre init scripts feature. See poo#20818.
     <install_recommended config:type="boolean">true</install_recommended>
     <packages config:type="list">
       <package>bash-doc</package>
-      <package>samba</package>
       <package>cups</package>
       <package>dmidecode</package>
       <package>libgmodule-2_0-0</package>
@@ -386,17 +385,13 @@ pre init scripts feature. See poo#20818.
       <package>libXi6</package>
       <package>libXtst6</package>
       <package>lsscsi</package>
-      <package>python-gobject2</package>
       <package>sg3_utils</package>
       <package>sssd</package>
-      <package>sssd-ad</package>
       <package>sssd-krb5</package>
       <package>sssd-krb5-common</package>
       <package>sssd-ldap</package>
-      <package>sssd-tools</package>
       <package>sudo</package>
       <package>sysstat</package>
-      <package>tuned</package>
       <package>ucode-intel</package>
       <package>vsftpd</package>
       <package>xauth</package>
@@ -529,7 +524,7 @@ pre init scripts feature. See poo#20818.
       <package>zisofs-tools</package>
     </remove-packages>
     <products config:type="list">
-      <product>SLES15</product>
+      <product>SLES</product>
     </products>
   </software>
 

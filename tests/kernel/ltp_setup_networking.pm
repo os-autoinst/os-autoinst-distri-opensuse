@@ -108,4 +108,3 @@ See poo#16648 for disabled LTP networking related tests.
 
 =cut
 
-# vim: set sw=4 et:

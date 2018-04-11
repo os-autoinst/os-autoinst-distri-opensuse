@@ -18,12 +18,13 @@ use lockapi;
 use hacluster;
 
 sub run {
-    my $node     = script_output 'hostname';
-    my $fs_lun   = undef;
-    my $fs_rsc   = undef;
-    my $resource = 'lun';
-    my $fs_type  = 'ocfs2';
-    my $fs_opts  = '-F -N 16';                 # Force the filesystem creation and allows 16 nodes
+    my $cluster_name = get_cluster_name;
+    my $node         = get_hostname;
+    my $fs_lun       = undef;
+    my $fs_rsc       = undef;
+    my $resource     = 'lun';
+    my $fs_type      = 'ocfs2';
+    my $fs_opts      = '-F -N 16';         # Force the filesystem creation and allows 16 nodes
 
     # This Filesystem test can be called multiple time
     if (read_tag eq 'cluster_md') {
@@ -31,7 +32,7 @@ sub run {
     }
     elsif (read_tag eq 'drbd_passive') {
         $resource = 'drbd_passive';
-        $fs_lun   = '/dev/drbd_passive';
+        $fs_lun   = '/dev/drbd_passive' if is_node(1);
         $fs_type  = 'xfs';
         $fs_opts  = '-f';
     }
@@ -39,9 +40,9 @@ sub run {
         $resource = 'drbd_active';
     }
     else {
-        $fs_lun = block_device_real_path '/dev/disk/by-path/ip-*-lun-3';
+        $fs_lun = get_lun if is_node(1);
     }
-    $fs_lun = "/dev/vg_$resource/lv_openqa" if not defined $fs_lun;
+    $fs_lun = "/dev/vg_$resource/lv_openqa" if (not defined $fs_lun && is_node(1));
     $fs_rsc = "fs_$resource";
 
     # Create tag for barrier_wait
@@ -191,4 +192,3 @@ sub run {
 }
 
 1;
-# vim: set sw=4 et:

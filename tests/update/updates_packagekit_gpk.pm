@@ -14,17 +14,16 @@ use base "x11test";
 use strict;
 use testapi;
 use utils;
-use version_utils qw(is_sle sle_version_at_least);
+use version_utils 'is_sle';
 
-sub turn_off_screensaver {
-    # Turn off screensaver
+sub setup_system {
     x11_start_program('xterm');
     become_root;
     ensure_serialdev_permissions;
     type_string "exit\n";
 
     if (check_var("DESKTOP", "gnome")) {
-        script_run("gsettings set org.gnome.desktop.session idle-delay 0");
+        turn_off_gnome_screensaver;
     }
     else {
         script_run("xscreensaver-command -exit");
@@ -43,14 +42,17 @@ sub tell_packagekit_to_quit {
 # Update with GNOME PackageKit Update Viewer
 sub run {
     my ($self) = @_;
-    # updates_packagekit_gpk is disabled for SLE15 because of bsc#1060844
-    return record_soft_failure 'bsc#1060844' if sle_version_at_least('15') && is_sle();
+    if (is_sle '15+') {
+        select_console 'root-console';
+        zypper_call("in gnome-packagekit", timeout => 90);
+        record_soft_failure 'bsc#1081584';
+    }
     select_console 'x11', await_console => 0;
 
     my @updates_tags           = qw(updates_none updates_available package-updater-privileged-user-warning updates_restart_application);
     my @updates_installed_tags = qw(updates_none updates_installed-logout updates_installed-restart updates_restart_application );
 
-    turn_off_screensaver;
+    setup_system;
 
     while (1) {
         x11_start_program('gpk-update-viewer', target_match => \@updates_tags, match_timeout => 100);
@@ -59,14 +61,6 @@ sub run {
             # Special case if gpk-update-viewer is running as root. Click on Continue Anyway and reassert
             send_key "alt-a";    # Continue Anyway
             assert_screen \@updates_tags, 100;
-        }
-
-        if (match_has_tag("updates_restart_application")) {
-            assert_and_click("updates_restart_application");
-
-            # We also need the daemon to reload to pick up libzypp updates
-            # Force reloading of packagekitd (bsc#1075260, poo#30085)
-            tell_packagekit_to_quit;
         }
 
         if (match_has_tag("updates_none")) {
@@ -92,11 +86,11 @@ sub run {
                 if (check_screen "updates_installed-restart", 0) {
                     power_action 'reboot', textmode => 1;
                     $self->wait_boot;
-                    turn_off_screensaver;
+                    setup_system;
                 }
                 next;
             }
-            elsif (match_has_tag("updates_installed-logout")) {
+            elsif (match_has_tag("updates_installed-logout") || match_has_tag("updates_restart_application")) {
                 send_key "alt-c";    # close
 
                 # The logout is not acted upon, which may miss a libzypp update
@@ -106,10 +100,16 @@ sub run {
             elsif (match_has_tag("updates_installed-restart")) {
                 power_action 'reboot', textmode => 1;
                 $self->wait_boot;
-                turn_off_screensaver;
+                setup_system;
             }
         }
     }
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->SUPER::post_fail_hook;
+    $self->upload_packagekit_logs;
 }
 
 sub test_flags {

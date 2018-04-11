@@ -15,31 +15,41 @@ use base qw(y2logsstep y2x11test);
 use strict;
 use testapi;
 use registration 'fill_in_registration_data';
+use version_utils 'sle_version_at_least';
+use utils 'turn_off_gnome_screensaver';
 
-sub run {
-    my ($self) = @_;
-    x11_start_program('xterm');
-    # add every used addon to regurl for proxy SCC
-    if (get_var('SCC_ADDONS')) {
+sub test_setup {
+    select_console 'root-console';
+    my $proxy_scc;
+    if (sle_version_at_least '15') {
+        # Remove registration from the system
+        assert_script_run 'SUSEConnect --clean';
+        # Define proxy SCC
+        assert_script_run 'echo "url: ' . get_var('SCC_URL') . '" > /etc/SUSEConnect';
+    }    # add every used addon to regurl for proxy SCC
+    elsif (get_var('SCC_ADDONS')) {
         my @addon_proxy = ("url: http://server-" . get_var('BUILD_SLE'));
         for my $addon (split(/,/, get_var('SCC_ADDONS', ''))) {
             my $uc_addon = uc $addon;    # change to uppercase to match variable
             push(@addon_proxy, "\b.$addon-" . get_var("BUILD_$uc_addon"));
         }
-        script_sudo "echo \"@addon_proxy.proxy.scc.suse.de\" > /etc/SUSEConnect", 0;
+        # Define proxy SCC
+        assert_script_run "echo \"@addon_proxy.proxy.scc.suse.de\" > /etc/SUSEConnect";
     }
-    # Disable screensaver
-    type_string "gsettings set org.gnome.desktop.session idle-delay 0\n";
-    send_key "ctrl-d";
-    $self->launch_yast2_module_x11('scc', target_match => [qw(scc-registration packagekit-warning)]);
+    turn_off_gnome_screensaver;
+    select_console 'x11';
+}
+
+sub run {
+    my ($self) = @_;
+    test_setup;                          # Define proxy SCC. For SLE 15 we need to clean existing registration.
+    $self->launch_yast2_module_x11('scc', target_match => [qw(scc-registration packagekit-warning)], maximize_window => 1);
     if (match_has_tag 'packagekit-warning') {
         send_key 'alt-y';
         assert_screen 'scc-registration';
     }
     fill_in_registration_data;
-    send_key 'alt-f4';    # close yast2 control center
     assert_screen 'generic-desktop';
 }
 
 1;
-# vim: set sw=4 et:

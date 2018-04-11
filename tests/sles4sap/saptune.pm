@@ -23,8 +23,10 @@ sub tuned_is {
 sub run {
     my ($self) = @_;
 
+    # List of solutions is different between saptune in x86_64 and in ppc64le
+    # Will check whether test is running in ppc64le with the OFW variable
     my @solutions
-      = check_var('ARCH', 'ppc64le') ?
+      = get_var('OFW') ?
       qw(HANA MAXDB NETWEAVER S4HANA-APPSERVER S4HANA-DBSERVER)
       : qw(BOBJ HANA MAXDB NETWEAVER S4HANA-APPSERVER S4HANA-DBSERVER SAP-ASE);
 
@@ -55,4 +57,3 @@ sub run {
 }
 
 1;
-# vim: set sw=4 et:

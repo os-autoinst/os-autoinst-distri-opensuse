@@ -15,17 +15,16 @@ use strict;
 use testapi;
 use lockapi;
 use mmapi;
-use hacluster;
 
 sub run {
-    for my $cluster_infos (split(/,/, get_required_var('CLUSTER_INFOS'))) {
+    my $cluster_infos = get_required_var('CLUSTER_INFOS');
+
+    for my $cluster_info (split(/,/, $cluster_infos)) {
         # The CLUSTER_INFOS variable for support_server also contains the number of node
-        my ($cluster_name, $num_nodes) = split(/:/, $cluster_infos);
+        my ($cluster_name, $num_nodes) = split(/:/, $cluster_info);
 
         # Number of node is a mandatory variable!
-        if ($num_nodes lt '2') {
-            die 'A valid number of nodes is mandatory';
-        }
+        die 'A valid number of nodes is mandatory' if ($num_nodes lt '2');
 
         # BARRIER_HA_ needs to also wait the support-server
         barrier_create("BARRIER_HA_$cluster_name",                  $num_nodes + 1);
@@ -44,13 +43,10 @@ sub run {
         barrier_create("DRBD_MIGRATION_DONE_$cluster_name",         $num_nodes);
         barrier_create("DRBD_REVERT_DONE_$cluster_name",            $num_nodes);
         barrier_create("DRBD_RESOURCE_CREATED_$cluster_name",       $num_nodes);
-        barrier_create("DRBD_RESOURCE_STOPPED_$cluster_name",       $num_nodes);
-        barrier_create("DRBD_RESOURCE_STARTED_$cluster_name",       $num_nodes);
+        barrier_create("DRBD_RESOURCE_RESTARTED_$cluster_name",     $num_nodes);
         barrier_create("DRBD_SETUP_DONE_$cluster_name",             $num_nodes);
         barrier_create("LOCK_INIT_$cluster_name",                   $num_nodes);
         barrier_create("LOCK_RESOURCE_CREATED_$cluster_name",       $num_nodes);
-        barrier_create("BEFORE_FENCING_$cluster_name",              $num_nodes);
-        barrier_create("FENCING_DONE_$cluster_name",                $num_nodes);
         barrier_create("LOGS_CHECKED_$cluster_name",                $num_nodes);
         barrier_create("CHECK_AFTER_FENCING_BEGIN_$cluster_name",   $num_nodes);
         barrier_create("CHECK_AFTER_FENCING_END_$cluster_name",     $num_nodes);
@@ -84,13 +80,30 @@ sub run {
     # Children are server/test suites that use the PARALLEL_WITH variable
     wait_for_children_to_start;
 
-    # To synchronise all nodes (including  the support server)
-    for my $cluster_infos (split(/,/, get_var('CLUSTER_INFOS'))) {
-        # The CLUSTER_INFOS variable for support_server also contains the number of node
-        my ($cluster_name, $num_nodes) = split(/:/, $cluster_infos);
+    # For getting informations from iSCSI server
+    my $target_iqn     = script_output 'lio_node --listtargetnames 2>/dev/null';
+    my $target_ip_port = script_output "ls /sys/kernel/config/target/iscsi/${target_iqn}/tpgt_1/np 2>/dev/null";
+    my $dev_by_path    = '/dev/disk/by-path';
+    my $index          = 0;
+
+    for my $cluster_info (split(/,/, $cluster_infos)) {
+        # The CLUSTER_INFOS variable for support_server also contains the number of LUN
+        my ($cluster_name, $num_nodes, $num_luns) = split(/:/, $cluster_info);
+
+        # Export LUN name if needed
+        if (defined $num_luns) {
+            # Create a file that contains the list of LUN for each cluster
+            my $lun_list_file = "/tmp/$cluster_name-lun.list";
+            foreach my $i (0 .. ($num_luns - 1)) {
+                my $lun_id = $i + $index;
+                script_run "echo '${dev_by_path}/ip-${target_ip_port}-iscsi-${target_iqn}-lun-${lun_id}' >> $lun_list_file";
+            }
+            $index += $num_luns;
+        }
+
+        # Synchronize all nodes (including  the support server)
         barrier_wait("BARRIER_HA_$cluster_name");
     }
 }
 
 1;
-# vim: set sw=4 et:

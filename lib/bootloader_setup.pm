@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -19,10 +19,9 @@ use Time::HiRes 'sleep';
 
 use testapi;
 use utils;
-use version_utils qw(is_jeos is_caasp leap_version_at_least);
+use version_utils qw(is_jeos is_caasp is_leap);
 use lockapi;
 use mm_network;
-use main_common 'addon_products_is_applicable';
 
 our @EXPORT = qw(
   stop_grub_timeout
@@ -58,7 +57,7 @@ sub stop_grub_timeout {
 }
 
 sub boot_local_disk {
-    if (check_var('ARCH', 'ppc64le')) {
+    if (get_var('OFW')) {
         # TODO use bootindex to properly boot from disk when first in boot order is cd-rom
         wait_screen_change { send_key 'ret' };
         assert_screen [qw(inst-slof bootloader grub2 inst-bootmenu)];
@@ -89,8 +88,10 @@ sub boot_into_snapshot {
     }
     # in an online migration
     send_key_until_needlematch('snap-before-migration', 'down', 40, 5) if (get_var('ONLINE_MIGRATION'));
+    save_screenshot;
     send_key 'ret';
     # avoid timeout for booting to HDD
+    save_screenshot;
     send_key 'ret';
 }
 
@@ -133,13 +134,13 @@ sub select_bootmenu_option {
 
     if (get_var('UPGRADE')) {
         # OFW has contralily oriented menu behavior
-        send_key_until_needlematch 'inst-onupgrade', check_var('ARCH', 'ppc64le') ? 'up' : 'down', 10, 5;
+        send_key_until_needlematch 'inst-onupgrade', get_var('OFW') ? 'up' : 'down', 10, 5;
     }
     else {
         if (get_var('PROMO') || get_var('LIVETEST') || get_var('LIVE_INSTALLATION')) {
             send_key_until_needlematch 'boot-live-' . get_var('DESKTOP'), 'down', 10, 5;
         }
-        elsif (check_var('ARCH', 'ppc64le')) {
+        elsif (get_var('OFW')) {
             send_key_until_needlematch 'inst-oninstallation', 'up', 10, 5;
         }
         elsif (!get_var('JEOS')) {
@@ -211,7 +212,7 @@ sub type_hyperv_fb_video_resolution {
 }
 
 sub bootmenu_default_params {
-    if (check_var('ARCH', 'ppc64le')) {
+    if (get_var('OFW')) {
         # edit menu, wait until we get to grub edit
         wait_screen_change { send_key "e" };
         # go down to kernel entry
@@ -238,10 +239,10 @@ sub bootmenu_default_params {
         }
 
         if (!get_var("NICEVIDEO")) {
-            if (is_jeos || is_caasp) {
+            if (is_caasp) {
                 bootmenu_type_console_params;
             }
-            else {
+            elsif (!is_jeos) {
                 type_string_very_slow "plymouth.ignore-serial-consoles ";    # make plymouth go graphical
                 type_string_very_slow "linuxrc.log=/dev/$serialdev ";
                 bootmenu_type_console_params;
@@ -266,7 +267,7 @@ sub bootmenu_default_params {
 sub bootmenu_network_source {
     # set HTTP-source to not use factory-snapshot
     if (get_var("NETBOOT")) {
-        if (check_var('ARCH', 'ppc64le')) {
+        if (get_var('OFW')) {
             if (get_var("SUSEMIRROR")) {
                 type_string_very_slow ' install=http://' . get_var("SUSEMIRROR");
             }
@@ -399,7 +400,7 @@ sub specific_bootmenu_params {
     }
 
     # For leap 42.3 we don't have addon_products screen
-    if (addon_products_is_applicable() && leap_version_at_least('42.3')) {
+    if (addon_products_is_applicable() && is_leap('42.3+')) {
         my $addon_url = get_var("ADDONURL");
         $addon_url =~ s/\+/,/g;
         $args .= " addon=" . $addon_url;
@@ -544,10 +545,12 @@ sub specific_caasp_params {
 }
 
 sub tianocore_enter_menu {
-    # press F2 and be quick about it
-    send_key_until_needlematch('tianocore-mainmenu', 'f2', 15, 1);
+    # we need to reduce this waiting time as much as possible
+    while (!check_screen('tianocore-mainmenu', 0, no_wait => 1)) {
+        send_key 'f2';
+        sleep 0.1;
+    }
 }
-
 
 sub tianocore_select_bootloader {
     tianocore_enter_menu;

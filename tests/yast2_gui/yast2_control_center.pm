@@ -18,12 +18,12 @@ use base 'y2x11test';
 use strict;
 use testapi;
 use utils;
-use version_utils qw(is_sle sle_version_at_least is_leap leap_version_at_least is_tumbleweed is_storage_ng);
+use version_utils qw(is_opensuse is_sle sle_version_at_least is_leap is_tumbleweed is_storage_ng);
 
 sub search {
     my ($name) = @_;
     # with the gtk interface we have to click as there is no shortcut
-    if ((is_sle && !sle_version_at_least('15')) || (is_leap && !leap_version_at_least('15.0'))) {
+    if (is_sle('<15') || is_leap('<15.0')) {
         assert_screen([qw(yast2_control-center_search_clear yast2_control-center_search)], no_wait => 1);
         if (match_has_tag 'yast2_control-center_search') {
             assert_and_click 'yast2_control-center_search';
@@ -43,7 +43,14 @@ sub search {
 
 sub start_addon_products {
     assert_and_click 'yast2_control-center_add-on';
-    assert_screen 'yast2_control-center_add-on_installed', timeout => 180;
+
+    my @tags = qw(yast2_control-center_add-on_installed yast2_control-center-ask_packagekit_to_quit);
+    do {
+        assert_screen \@tags;
+        # Let it kill PackageKit, in case it is running.
+        wait_screen_change { send_key 'alt-y' } if match_has_tag('yast2_control-center-ask_packagekit_to_quit');
+    } until (match_has_tag('yast2_control-center_add-on_installed'));
+
     send_key 'alt-o';
     assert_screen 'yast2-control-center-ui', timeout => 60;
 }
@@ -65,6 +72,15 @@ sub start_media_check {
 }
 
 sub start_online_update {
+    # to test the online update configuration dialog we need update repos
+    # which are removed unless explicitly selected to be kept
+    if (is_opensuse && !get_var('KEEP_ONLINE_REPOS')) {
+        select_console 'root-console';
+        my $version = lc get_required_var('VERSION');
+        my $update_name = is_tumbleweed() ? $version : 'leap/' . $version . '/oss';
+        zypper_call("ar -f http://download.opensuse.org/update/$update_name repo-update");
+        select_console 'x11', await_console => 0;
+    }
     assert_and_click 'yast2_control-center_online-update';
     assert_screen [qw(yast2_control-center_update-repo-dialogue yast2_control-center_online-update_close)];
     if (match_has_tag('yast2_control-center_update-repo-dialogue')) {
@@ -294,7 +310,7 @@ sub start_printer {
 
 sub run {
     my $self = shift;
-    if (is_sle && sle_version_at_least '15') {
+    if (is_sle '15+') {
         # kdump is disabled by default, so ensure that it's installed
         ensure_installed 'yast2-kdump';
         record_soft_failure 'bsc#1059569';
@@ -330,8 +346,12 @@ sub run {
     if (is_sle) {
         start_add_system_extensions_or_modules;
         start_kernel_dump;
-        start_common_server_certificate;
-        start_ca_management;
+        # YaST2 CA management has been dropped from SLE15, see
+        # https://bugzilla.suse.com/show_bug.cgi?id=1059569#c14
+        if (!sle_version_at_least('15')) {
+            start_common_server_certificate;
+            start_ca_management;
+        }
         start_wake_on_lan;
         # available by default only on SLES
         start_authentication_server;
@@ -341,7 +361,7 @@ sub run {
     }
     # only available on openSUSE or at least not SLES
     # drop fonts test for leap 15.0, see poo#29292
-    if (is_tumbleweed || (is_leap && !leap_version_at_least('15.0'))) {
+    if (is_tumbleweed || is_leap('<15.0')) {
         start_fonts;
     }
 
@@ -350,4 +370,3 @@ sub run {
 }
 
 1;
-# vim: set sw=4 et:

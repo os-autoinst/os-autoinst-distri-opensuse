@@ -10,27 +10,26 @@
 # Summary: HPC_Module: slurm slave
 #    This test is setting up a slurm slave and tests if the daemon can start
 # Maintainer: soulofdestiny <mgriessmeier@suse.com>
-# Tags: https://fate.suse.com/316379
+# Tags: https://fate.suse.com/316379, https://progress.opensuse.org/issues/20308
 
 use base "hpcbase";
 use strict;
 use testapi;
 use lockapi;
 use utils;
+use version_utils 'is_sle';
 
 sub run {
-    my $self                      = shift;
-    my ($host_ip_without_netmask) = get_required_var('HPC_HOST_IP') =~ /(.*)\/.*/;
-    my $master_ip                 = get_required_var('HPC_MASTER_IP');
+    my $self = shift;
 
-    assert_script_run "hostnamectl set-hostname slurm-slave";
+    # Synchronize with master
+    mutex_lock("SLURM_MASTER_BARRIERS_CONFIGURED");
+    mutex_unlock("SLURM_MASTER_BARRIERS_CONFIGURED");
 
-    # create proper /etc/hosts
-    assert_script_run("echo -e \"$host_ip_without_netmask slurm-slave\" >> /etc/hosts");
-    assert_script_run("echo -e \"$master_ip slurm-master\" >> /etc/hosts");
-
-    # install slurm
+    # Install slurm
     zypper_call('in slurm-munge');
+    # install slurm-node if sle15, not available yet for sle12
+    zypper_call('in slurm-node') if is_sle '15+';
 
     barrier_wait("SLURM_SETUP_DONE");
     barrier_wait("SLURM_MASTER_SERVICE_ENABLED");
@@ -44,11 +43,17 @@ sub run {
     barrier_wait("SLURM_SLAVE_SERVICE_ENABLED");
 
     mutex_lock("SLURM_MASTER_RUN_TESTS");
+    mutex_unlock("SLURM_MASTER_RUN_TESTS");
 }
 
 sub test_flags {
     return {fatal => 1, milestone => 1};
 }
 
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->upload_service_log('slurmd');
+    $self->upload_service_log('munge');
+}
+
 1;
-# vim: set sw=4 et:

@@ -18,7 +18,6 @@ use utils;
 
 sub run {
 
-    my $password = $testapi::password;
     my $username = $testapi::username;
     my $email    = "you\@example.com";
     select_console "root-console";
@@ -41,7 +40,9 @@ sub run {
     assert_screen("input-yes");
     type_string("yes\n");
     assert_screen("password-prompt");
-    type_string("$password\n");
+    type_password;
+    send_key 'ret';
+    assert_screen 'root-console';
 
     # Push update via ssh
     assert_script_run("cd ~/repos/qa2;echo \"Update\" >> README");
@@ -49,7 +50,9 @@ sub run {
     type_string("clear\n");
     script_run("git push ssh://localhost:/root/repos/qa0 | tee /dev/$serialdev", 0);
     assert_screen("password-prompt");
-    type_string("$password\n");
+    type_password;
+    send_key 'ret';
+    assert_screen 'root-console';
 
     # git clone via https protocol
     assert_script_run("cd ~;git clone -q https://github.com/os-autoinst/os-autoinst-distri-example");
@@ -59,4 +62,3 @@ sub run {
 }
 
 1;
-# vim: set sw=4 et:

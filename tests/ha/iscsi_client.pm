@@ -28,7 +28,7 @@ sub run {
     send_key 'alt-i';    # Initiator name
     wait_still_screen 3;
     for (1 .. 40) { send_key 'backspace'; }
-    type_string 'iqn.1996-04.de.suse:01:' . get_var('HOSTNAME') . '.' . get_var('CLUSTER_NAME');
+    type_string 'iqn.1996-04.de.suse:01:' . get_hostname . '.' . get_cluster_name;
     wait_still_screen 3;
     send_key 'alt-v';    # discoVered targets
     wait_still_screen 3;
@@ -68,4 +68,3 @@ sub run {
 }
 
 1;
-# vim: set sw=4 et:

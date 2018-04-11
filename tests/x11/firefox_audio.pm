@@ -15,14 +15,13 @@
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "x11test";
-use base "x11regressiontest";
 use strict;
 use testapi;
 
 sub run {
     my ($self) = @_;
     start_audiocapture;
-    x11_start_program('firefox ' . data_url('1d5d9dD.oga'), target_match => 'test-firefox_audio-1', match_timeout => 35);
+    x11_start_program('firefox ' . data_url('1d5d9dD.oga'), target_match => 'test-firefox_audio-1', match_timeout => 90);
     sleep 1;    # at least a second of silence
 
     # firefox_audio is unstable due to bsc#1048271, we don't want to invest
@@ -36,4 +35,3 @@ sub run {
 }
 
 1;
-# vim: set sw=4 et:

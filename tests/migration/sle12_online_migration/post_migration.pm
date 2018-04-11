@@ -41,4 +41,3 @@ sub add_maintenance_repos {
 }
 
 1;
-# vim: set sw=4 et:

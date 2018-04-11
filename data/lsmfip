@@ -160,6 +160,11 @@ sub problem_can_be_skipped {
     return 1 if $pkg =~ /^libjpeg8-devel/;
     # conflicts with the plain variant
     return 1 if $pkg =~ /^openvswitch-dpdk/;
+    # conflict with mvapich2 packages
+    return 1 if $pkg =~ /^mvapich2-psm(2)?/;
+    return 1 if $pkg =~ /^mvapich2-testsuite/;
+    # conflict with python3-talloc-devel
+    return 1 if $pkg =~ /^python-talloc-devel/;
 
     return;
 }

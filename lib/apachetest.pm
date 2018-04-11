@@ -16,7 +16,7 @@ use strict;
 
 use testapi;
 use utils;
-use version_utils qw(is_sle leap_version_at_least sle_version_at_least);
+use version_utils 'is_sle';
 
 our @EXPORT = qw(setup_apache2 setup_pgsqldb destroy_pgsqldb test_pgsql test_mysql);
 
@@ -73,7 +73,7 @@ sub setup_apache2 {
     }
     # Create x509 certificate for this apache server
     if ($mode eq "SSL") {
-        my $gensslcert_C_opt = '-C $(hostname)' unless is_sle && sle_version_at_least('15');
+        my $gensslcert_C_opt = '-C $(hostname)' unless is_sle('15+');
         assert_script_run "gensslcert -n \$(hostname) $gensslcert_C_opt -e webmaster@\$(hostname)", 900;
         assert_script_run 'ls /etc/apache2/ssl.crt/$(hostname)-server.crt /etc/apache2/ssl.key/$(hostname)-server.key';
     }

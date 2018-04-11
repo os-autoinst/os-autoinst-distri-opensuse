@@ -20,7 +20,11 @@ use caasp 'process_reboot';
 
 sub run {
     # On VMX images bootloader_uefi eats grub2 needle
-    assert_screen 'grub2' unless is_caasp('VMX');
+    # On DVD images stall prevents reliable matching of BIOS needle - poo#28648
+    if (is_caasp('DVD') && !get_var('AUTOYAST')) {
+        assert_screen 'grub2';
+        send_key 'ret';
+    }
 
     # Check ssh keys & ip information are displayed
     assert_screen 'linux-login-casp', 300;
@@ -46,18 +50,6 @@ sub run {
     # Restart network to push hostname to dns
     if (is_caasp('VMX') && get_var('STACK_ROLE')) {
         systemctl 'restart network', timeout => 60;
-        # Workaround for bsc#1062717 when admin node has no fqdn hostname
-        record_soft_failure 'bsc#1062717';
-        get_var('TEST') =~ /.*-(\w+)$/;
-        my $fake_hostname = $1;
-        script_run "hostnamectl set-hostname $fake_hostname.openqa.test";
-        if (check_var('STACK_ROLE', 'admin')) {
-            script_run "rm /etc/pki/ldap.crt /etc/pki/velum.crt";
-            systemctl 'restart admin-node-setup.service';
-            script_run "docker rm -f \$(docker ps -f \"name=k8s_velum-dashboard\" -q)";
-            script_run "docker rm -f \$(docker ps -f \"name=k8s_openldap_velum\" -q)";
-        }
-        # End of workaround
     }
 }
 
@@ -67,4 +59,3 @@ sub test_flags {
 
 1;
 
-# vim: set sw=4 et:

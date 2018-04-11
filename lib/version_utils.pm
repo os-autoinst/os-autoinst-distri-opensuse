@@ -19,33 +19,46 @@ use base Exporter;
 use Exporter;
 use strict;
 use testapi qw(check_var get_var set_var);
+use version 'is_lax';
 
 our @EXPORT = qw (
-  is_hyperv_in_gui
   is_caasp
+  is_hyperv
+  is_hyperv_in_gui
   is_gnome_next
   is_jeos
   is_krypton_argon
   is_leap
+  is_opensuse
   is_sle
+  is_staging
+  is_sles4sap
+  is_sles4sap_standard
   is_tumbleweed
   is_storage_ng
   is_upgrade
   is_sle12_hdd_in_upgrade
   is_installcheck
   is_rescuesystem
-  leap_version_at_least
   sle_version_at_least
   is_desktop_installed
   is_system_upgrading
+  is_pre_15
+  is_virtualization_server
 );
+
+sub is_leap;
 
 sub is_jeos {
     return get_var('FLAVOR', '') =~ /^JeOS/;
 }
 
+sub is_hyperv {
+    return check_var('VIRSH_VMM_FAMILY', 'hyperv');
+}
+
 sub is_hyperv_in_gui {
-    return check_var('VIRSH_VMM_FAMILY', 'hyperv') && !check_var('VIDEOMODE', 'text');
+    return is_hyperv && !check_var('VIDEOMODE', 'text');
 }
 
 sub is_krypton_argon {
@@ -62,6 +75,42 @@ sub is_installcheck {
 
 sub is_rescuesystem {
     return get_var('RESCUESYSTEM');
+}
+
+sub is_virtualization_server {
+    return get_var('SYSTEM_ROLE', '') =~ /(kvm|xen)/;
+}
+
+# Works only for versions comparable by string (not leap 42.X)
+# Query format: [= > < >= <=] version [+] (Example: <=12-sp3 =12-sp1 <4.0 >=15 3.0+)
+# Regex format: matches version number (Example: /\d{2}\.\d/)
+sub check_version {
+    my $query = shift;
+    my $regex = shift;
+
+    # Matches operator($op), version($qv), plus($plus) - regex101.com to debug ;)
+    if (uc($query) =~ /^(?(?!.*\+$)(?<op>[<>=]|[<>]=))(?<qv>$regex)(?<plus>\+)?$/) {
+        my $pv = uc get_var('VERSION');
+        my $qv = $+{qv};
+        # Hacks for staging and HG2G
+        if (is_leap) {
+            $qv =~ s/^42/14/;
+            $pv =~ s/^42/14/;
+            $pv =~ s/:(Core|S)[:\w]*//i;
+        }
+        # Compare versions if they can be parsed
+        if (is_lax($pv) && is_lax($qv)) {
+            $pv = version->declare($pv);
+            $qv = version->declare($qv);
+        }
+        return $pv ge $qv if $+{plus} || $+{op} eq '>=';
+        return $pv le $qv if $+{op} eq '<=';
+        return $pv gt $qv if $+{op} eq '>';
+        return $pv lt $qv if $+{op} eq '<';
+        return $pv eq $qv if $+{op} eq '=';
+    }
+    # Version should be matched and processed by now
+    die "Unsupported version parameter: $query";
 }
 
 # Check if distribution is CaaSP or Kubic with optional filter:
@@ -82,15 +131,7 @@ sub is_caasp {
     elsif ($filter =~ /^\d\.\d\+?$/) {
         # If we use '+' it means "this or newer", which includes tumbleweed
         return ($filter =~ /\+$/) if check_var('VERSION', 'Tumbleweed');
-
-        die "Unsupported version" if get_var('VERSION') !~ /^\d\.\d?$/;
-        if ($filter =~ /\+$/) {
-            chop $filter;
-            return get_var('VERSION') >= $filter;
-        }
-        else {
-            return check_var('VERSION', $filter);
-        }
+        return check_version($filter, qr/\d\.\d/);
     }
     elsif ($filter =~ /kubic|caasp/) {
         return check_var('DISTRI', $filter);
@@ -109,19 +150,51 @@ sub is_caasp {
 sub is_tumbleweed {
     # Tumbleweed and its stagings
     return 0 unless check_var('DISTRI', 'opensuse');
-    return 1 if check_var('VERSION', 'Tumbleweed');
+    return 1 if get_var('VERSION') =~ /Tumbleweed/;
     return get_var('VERSION') =~ /^Staging:/;
 }
 
+# Check if distribution is Leap with optional filter for:
+# Version: <=42.2 =15.0 >15.0 >=42.3 15.0+
 sub is_leap {
+    my $query = shift;
+
     # Leap and its stagings
     return 0 unless check_var('DISTRI', 'opensuse');
-    return 1 if get_var('VERSION', '') =~ /[0-9]{2,}\.[0-9]/;
+    return 0 unless get_var('VERSION', '') =~ /^\d{2,}\.\d/;
+    return 1 unless $query;
+
+    # Version check
+    return check_version($query, qr/\d{2,}\.\d/);
 }
 
-sub is_sle {
-    return 0 unless check_var('DISTRI', 'sle');
+sub is_opensuse {
+    return 0 unless check_var('DISTRI', 'opensuse');
     return 1;
+}
+
+# Check if distribution is SLE with optional filter for:
+# Version: <=12-sp3 =12-sp1 >11-sp1 >=15 15+ (>=15 and 15+ are equivalent)
+sub is_sle {
+    my $query = shift;
+
+    return 0 unless check_var('DISTRI', 'sle');
+    return 1 unless $query;
+
+    # Version check
+    return check_version($query, qr/\d{2}(?:-sp\d)?/i);
+}
+
+sub is_sles4sap {
+    return get_var('FLAVOR', '') =~ /SAP/ || check_var('SLE_PRODUCT', 'sles4sap');
+}
+
+sub is_sles4sap_standard {
+    return is_sles4sap && check_var('SLES4SAP_MODE', 'sles');
+}
+
+sub is_staging {
+    return get_var('STAGING');
 }
 
 sub is_storage_ng {
@@ -136,6 +209,9 @@ sub is_sle12_hdd_in_upgrade {
     return is_upgrade && !sle_version_at_least('15', version_variable => 'HDDVERSION');
 }
 
+# =====================================
+# Deprecated, please use is_sle instead
+# =====================================
 sub sle_version_at_least {
     my ($version, %args) = @_;
     my $version_variable = $args{version_variable} // 'VERSION';
@@ -170,43 +246,6 @@ sub sle_version_at_least {
     die "unsupported SLE $version_variable $version in check";
 }
 
-# To cope with staging version naming and this method should only be used
-# to leap_version_at_least. This method returns 1 if it is a valid staging
-# naming or the version is matched to the one in settings.
-sub leap_staging_version_in_settings {
-    my ($version_variable, $version) = @_;
-    return 0 unless is_leap;
-
-    my $version_in_settings = get_var($version_variable, '');
-    return 1 if ($version_in_settings =~ /$version:(Core|S):?[:\w]*/ || $version_in_settings eq $version);
-    return 0;
-}
-
-# Method has to be extended similarly to sle_version_at_least once we know
-# version naming convention as of now, we only add versions which we see in
-# test. If one will use function and it dies, please extend function accordingly.
-sub leap_version_at_least {
-    my ($version, %args) = @_;
-    # Verify if it's leap at all
-    return 0 unless is_leap;
-
-    my $version_variable = $args{version_variable} // 'VERSION';
-
-    if ($version eq '42.2') {
-        return leap_staging_version_in_settings($version_variable, $version) || leap_version_at_least('42.3', version_variable => $version_variable);
-    }
-
-    if ($version eq '42.3') {
-        return leap_staging_version_in_settings($version_variable, $version) || leap_version_at_least('15.0', version_variable => $version_variable);
-    }
-
-    if ($version eq '15.0') {
-        return leap_staging_version_in_settings($version_variable, $version);
-    }
-    # Die to point out that function has to be extended
-    die "Unsupported Leap version $version_variable $version in check";
-}
-
 sub is_desktop_installed {
     return get_var("DESKTOP") !~ /textmode|minimalx/;
 }
@@ -214,4 +253,8 @@ sub is_desktop_installed {
 sub is_system_upgrading {
     # If PATCH=1, make sure patch action is finished
     return is_upgrade && (!get_var('PATCH') || (get_var('PATCH') && get_var('SYSTEM_PATCHED')));
+}
+
+sub is_pre_15 {
+    return (is_sle('<15') || is_leap('<15.0')) && !is_tumbleweed;
 }

@@ -37,10 +37,15 @@ sub run {
         while (1) {
             assert_and_click_until_screen_change('updates_click-install');
 
+            # Wait until installation starts, intended to time out
+            wait_still_screen(stilltime => 4, timeout => 5);
+
             # Wait until installation is done
             assert_screen \@updates_installed_tags, 3600;
-            # Make sure we saw the right string and the same screen or a
-            # different one
+
+            # Make sure the applet has fetched the current status from the backend
+            # and has finished redrawing. In case the update status changed after
+            # the assert_screen, record a soft failure
             wait_still_screen;
             if (match_has_tag('updates_none')) {
                 if (check_screen 'updates_none') {
@@ -69,6 +74,12 @@ sub run {
     else {
         select_console "x11";
     }
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->SUPER::post_fail_hook;
+    $self->upload_packagekit_logs;
 }
 
 sub test_flags {

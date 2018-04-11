@@ -19,7 +19,7 @@ use warnings;
 use bootloader_setup;
 use registration;
 use testapi;
-use utils 'OPENQA_FTP_URL';
+use utils qw(OPENQA_FTP_URL type_line_svirt);
 
 sub set_svirt_domain_elements {
     my ($svirt) = shift;
@@ -45,10 +45,12 @@ sub set_svirt_domain_elements {
             $cmdline .= "upgrade=1 ";
         }
 
-        if (get_var('AUTOYAST')) {
-            $cmdline .= " autoyast=" . data_url(get_var('AUTOYAST')) . " ";
+        if (my $autoyast = get_var('AUTOYAST')) {
+            $autoyast = data_url($autoyast) if $autoyast !~ /^slp$|:\/\//;
+            $cmdline .= " autoyast=" . $autoyast;
         }
 
+        $cmdline .= ' ' . get_var("EXTRABOOTPARAMS") if get_var("EXTRABOOTPARAMS");
         $cmdline .= specific_bootmenu_params;
         $cmdline .= registration_bootloader_cmdline if check_var('SCC_REGISTER', 'installation');
 
@@ -65,7 +67,7 @@ sub set_svirt_domain_elements {
     # after installation we need to redefine the domain, so just shutdown
     # on zdup and online migration we don't need to redefine in between
     # If boot from existing hdd image, we don't expect shutdown on reboot
-    if (!get_var('ZDUP') and !get_var('ONLINE_MIGRATION') and !get_var('BOOT_HDD_IMAGE')) {
+    if (!get_var('ZDUP') and !get_var('ONLINE_MIGRATION') and !get_var('BOOT_HDD_IMAGE') and !get_var('AUTOYAST')) {
         $svirt->change_domain_element(on_reboot => 'destroy');
     }
 }
@@ -91,6 +93,24 @@ sub run {
             select_console('installation');
         }
     }
+}
+sub post_fail_hook {
+    reset_consoles;
+    select_console 'svirt';
+
+    # Enter Linuxrc extra mode
+    type_line_svirt 'x', expect => 'Linuxrc extras';
+
+    # Start linuxrc shell
+    type_line_svirt '3', expect => 'ttysclp0:install';
+
+    # Collect Linuxrc logs
+    type_line_svirt "'cat /var/log/linuxrc.log > /dev/$serialdev && echo 'LINUXRC_LOG_SAVED' > /dev/$serialdev'";
+    wait_serial "LINUXRC_LOG_SAVED" ? record_info 'Logs collected', 'Linuxrc logs can be found in serial0.txt' : die "could not collect linuxrc logs";
+
+    # Collect Wicked logs
+    type_line_svirt "'cat /var/log/wickedd.log > /dev/$serialdev && echo 'WICKED_LOG_SAVED' > /dev/$serialdev'";
+    wait_serial "WICKED_LOG_SAVED" ? record_info 'Logs collected', 'Wicked logs can be found in serial0.txt' : die "could not collect linuxrc logs";
 }
 
 1;

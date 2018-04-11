@@ -15,7 +15,7 @@ use base "consoletest";
 use strict;
 use testapi;
 use utils;
-use version_utils qw(is_sle is_jeos sle_version_at_least);
+use version_utils qw(is_sle is_jeos);
 
 our $date_re = qr/[0-9]{4}-[0-9]{2}-[0-9]{2}/;
 
@@ -23,8 +23,8 @@ sub run {
     diag('fate#320597: Introduce \'zypper lifecycle\' to provide information about life cycle of individual products and packages');
     select_console 'user-console';
     my $overview = script_output 'zypper lifecycle', 300;
-    die "Missing header line" unless $overview =~ /Product end of support/;
-    die "Missing link to lifecycle page"
+    die "Missing header line:\nOutput: '$overview'" unless $overview =~ /Product end of support/;
+    die "Missing link to lifecycle page:\nOutput: '$overview'"
       if $overview =~ /n\/a/ && $overview !~ qr{\*\) See https://www.suse.com/lifecycle for latest information};
     # Compare to test data from
     # https://github.com/nadvornik/zypper-lifecycle/blob/master/test-data/SLES.lifecycle
@@ -40,7 +40,7 @@ sub run {
     if ($output =~ />>>(?<prod>.+)<<</) {
         $prod = $+{prod};
     }
-    die "Could not parse product (see poo#30613):\n $output" unless $prod;
+    die "Could not parse product (see poo#30613):\nOutput: '$output'" unless $prod;
 
     # select a package suitable for the following test
     # the package must be installed from base product repo
@@ -50,7 +50,7 @@ sub run {
         $base_repos = join(" ", @repos);
     }
 
-    die "Got malformed repo list:\n $output" unless $base_repos;
+    die "Got malformed repo list:\nOutput: '$output'" unless $base_repos;
 
     $output = script_output 'echo $(for repo in ' . $base_repos . ' ; do zypper -n -x se -t package -i -s -r $repo ; done | grep name= | head -n 1 )', 300;
     # Parse package name
@@ -67,7 +67,7 @@ sub run {
         record_soft_failure "Hardcoding 'sles-release' package for lifecycle check";
         $package = 'sles-release';
     }
-    die "No suitable package found. Script output:\n$output" unless $package;
+    die "No suitable package found. Script output:\nOutput: '$output'" unless $package;
 
     my $testdate        = '2020-02-03';
     my $testdate_after  = '2020-02-04';
@@ -83,16 +83,16 @@ sub run {
     # verify eol from lifecycle data
     select_console 'user-console';
     $output = script_output "zypper lifecycle $package", 300;
-    die "$package lifecycle entry incorrect:$output" unless $output =~ /$package(-\S+)?\s+$testdate/;
+    die "$package lifecycle entry incorrect:\nOutput: '$output'" unless $output =~ /$package(-\S+)?\s+$testdate/;
 
     # test that the package is reported if we query the date after
     $output = script_output "zypper lifecycle --date $testdate_after", 300;
-    die "$package not reported for date $testdate_after:$output" unless $output =~ /$package(-\S+)?\s+$testdate/;
+    die "$package not reported for date $testdate_after:\nOutput: '$output'" unless $output =~ /$package(-\S+)?\s+$testdate/;
 
     # test that the package is not reported if we query the date before
     # report can be empty - exit code 1 is allowed
     $output = script_output "zypper lifecycle --date $testdate_before || test \$? -le 1", 300;
-    die "$package reported for date $testdate_before:$output" if $output =~ /$package(-\S+)?\s+$testdate/;
+    die "$package reported for date $testdate_before:\nOutput: '$output'" if $output =~ /$package(-\S+)?\s+$testdate/;
 
     # delete lifecycle data - package eol should default to product eol
     select_console 'root-console';
@@ -102,23 +102,22 @@ sub run {
     my $product_file = "/etc/products.d/$prod.prod";
     my $product_name = script_output "grep '<summary>' $product_file";
     $product_name =~ s/.*<summary>([^<]*)<\/summary>.*/$1/s || die "no product name found in $product_file";
-    record_info('Product found', "Product found in overview: $product_name");
+    record_info('Product found', "Product found in overview: '$product_name'");
 
     my $product_eol;
     for my $l (split /\n/, $overview) {
-        if ($l =~ /$product_name\s*(\S*)/) {
+        if ($l =~ /(?<!Codestream:)\s+$product_name\s*(\S*)/) {
             $product_eol = $1;
             last;
         }
     }
-    die "baseproduct eol not found in overview" unless $product_eol;
+    die "baseproduct eol not found in overview\nOutput: '$product_name'" unless $product_eol;
 
     select_console 'user-console';
     # verify that package eol defaults to product eol
     $output = script_output "zypper lifecycle $package", 300;
     unless ($output =~ /$package(-\S+)?\s+$product_eol/) {
-        return record_soft_failure 'bsc#1057788' if (is_sle && sle_version_at_least('15'));
-        die "$package lifecycle entry incorrect:'$output', expected: '/$package-\\S+\\s+$product_eol'";
+        die "$package lifecycle entry incorrect:\nOutput: '$output', expected: '/$package-\\S+\\s+$product_eol'";
     }
 
     # restore original data, if any
@@ -136,16 +135,16 @@ sub run {
     # report should be empty - exit code 1 is expected
     # but it can show maintenance updates released during last few minutes
     $output = script_output 'zypper lifecycle --days 0 || test $? -le 1', 300;
-    die 'All products should be supported as of today' unless $output =~ /No products.*before/;
+    die "All products should be supported as of today\nOutput: '$output'" unless $output =~ /No products.*before/;
 
     $output = script_output 'zypper lifecycle --days 9999', 300;
-    die "Product 'end of support' line not found"         unless $output =~ /^Product end of support before/;
-    die "Current product should not be supported anymore" unless $output =~ /$product_name\s+$product_eol/;
+    die "Product 'end of support' line not found\nOutput: '$output'"         unless $output =~ /Product end of support before/;
+    die "Current product should not be supported anymore\nOutput: '$output'" unless $output =~ /$product_name\s+$product_eol/;
 
     # report should be empty - exit code 1 is expected
     # but it can show maintenance updates released during last few minutes
     $output = script_output 'zypper lifecycle --date $(date --iso-8601) || test $? -le 1', 300;
-    die 'All products should be supported as of today' unless $output =~ /No products.*before/;
+    die "All products should be supported as of today\nOutput: '$output'" unless $output =~ /No products.*before/;
 }
 
 sub test_flags {
@@ -161,4 +160,3 @@ sub post_fail_hook {
 }
 
 1;
-# vim: set sw=4 et:

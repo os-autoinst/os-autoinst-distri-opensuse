@@ -12,19 +12,20 @@
 
 use base 'opensusebasetest';
 use strict;
-use version_utils qw(is_sle sle_version_at_least);
+use version_utils 'is_sle';
 use utils qw(zypper_call systemctl);
 use testapi;
 use lockapi;
 use hacluster;
 
 sub run {
-    my $lvm_conf = '/etc/lvm/lvm.conf';
-    my $lock_mgr = 'clvm';
+    my $cluster_name = get_cluster_name;
+    my $lvm_conf     = '/etc/lvm/lvm.conf';
+    my $lock_mgr     = 'clvm';
 
     # lvmlockd is only available in SLE15+
     if (get_var("USE_LVMLOCKD")) {
-        die 'lvmlockd can be only used on SLE15+' unless (is_sle && sle_version_at_least('15'));
+        die 'lvmlockd can be only used on SLE15+' unless is_sle('15+');
         $lock_mgr = 'lvmlockd';
     }
 
@@ -43,7 +44,7 @@ sub run {
     }
     else {
         # In SLE15, lvmlockd is installed by default, not clvmd/cmirrord
-        zypper_call 'in lvm2-clvm lvm2-cmirrord' if (is_sle && sle_version_at_least('15'));
+        zypper_call 'in lvm2-clvm lvm2-cmirrord' if is_sle('15+');
     }
 
     # Configure LVM for HA cluster
@@ -86,4 +87,3 @@ sub run {
 }
 
 1;
-# vim: set sw=4 et:

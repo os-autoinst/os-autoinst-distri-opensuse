@@ -21,9 +21,15 @@ use utils;
 
 sub run {
     my $self = shift;
-    my ($server_ip) = get_required_var('HPC_MASTER_IP') =~ /(.*)\/.*/;
 
-    assert_script_run('hostnamectl set-hostname ganglia-client');
+    # Get number of nodes
+    my $nodes = get_required_var("CLUSTER_NODES");
+    # Get ganglia-server hostname
+    my $server_hostname = get_required_var("GANGLIA_SERVER_HOSTNAME");
+    # Synchronize with server
+    mutex_lock("GANGLIA_SERVER_BARRIERS_CONFIGURED");
+    mutex_unlock("GANGLIA_SERVER_BARRIERS_CONFIGURED");
+
     zypper_call 'in ganglia-gmond';
 
     # wait for gmetad to be started
@@ -39,20 +45,34 @@ sub run {
     for (1 .. $max_retries) {
         eval {
             # Check if gmond has connected to gmetad
-            validate_script_output "gstat -a", sub { m/.*Hosts: 2.*/ };
+            validate_script_output "gstat -a", sub { m/.*Hosts: ${nodes}.*/ };
         };
         last unless ($@);
         record_info 'waiting for nodes', 'Not all nodes connected yet. Retrying...';
     }
     die "Not all nodes were connected after $max_retries retries." if $@;
 
-
     # Check if an arbitrary value could be sent via gmetric command
     my $testMetric = "openQA";
     type_string "gmetric -n \"$testMetric\" -v \"openQA\" -t string | tee /dev/ttyS0";
-    assert_script_run "echo \"\\n\" | nc $server_ip 8649 | grep $testMetric";
+    my $gmetric_max_retries = 3;
+    for (1 .. $gmetric_max_retries) {
+        eval {
+            # Check if gmetric is available
+            assert_script_run "echo \"\\n\" | nc ${server_hostname} 8649 | grep $testMetric";
+        };
+        last unless ($@);
+        record_info 'waiting for gmetric', 'Gmetric not available yet. Retrying...';
+    }
+    die "Gmetric test failed after $gmetric_max_retries retries." if $@;
 
     barrier_wait('GANGLIA_CLIENT_DONE');
     barrier_wait('GANGLIA_SERVER_DONE');
 }
+
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->upload_service_log('gmond');
+}
+
 1;

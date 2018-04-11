@@ -19,19 +19,14 @@
 use strict;
 use base 'basetest';
 use testapi;
+use utils;
+use version_utils 'is_sle';
 
 sub run {
-    type_string("shutdown -r now\n");
-    reset_consoles;
-
-    assert_screen("bios-boot",  900);
-    assert_screen("bootloader", 30);
-
-    if (check_var("BOOTFROM", "d")) {
-        assert_screen("inst-bootmenu", 60);
-    }
+    # We are already in console, so reboot from it and do not switch to x11 or root console
+    # Note, on s390x with SLE15 VNC is not running even if enabled in the profile
+    power_action('reboot', textmode => 1, keepconsole => 1);
 }
 
 1;
 
-# vim: set sw=4 et:

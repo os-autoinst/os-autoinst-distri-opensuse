@@ -84,6 +84,7 @@ sub workaround_dependency_issues {
             sleep 2;
         }
     }
+    return 1;
 }
 
 # to break dependency issues

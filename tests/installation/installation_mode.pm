@@ -19,8 +19,8 @@ use testapi;
 sub run {
     # autoconf phase
     # includes downloads
-    assert_screen [qw(partitioning-edit-proposal-button inst-instmode)], 120;
-    if (match_has_tag("partitioning-edit-proposal-button")) {
+    assert_screen [qw(partitioning-edit-proposal-button before-role-selection inst-instmode)], 120;
+    if (match_has_tag("partitioning-edit-proposal-button") || match_has_tag("before-role-selection")) {
         # new desktop selection workflow
         set_var('NEW_DESKTOP_SELECTION', 1);
         return;
@@ -50,4 +50,3 @@ sub run {
 }
 
 1;
-# vim: set sw=4 et:

@@ -13,7 +13,7 @@
 use base 'x11test';
 use strict;
 use testapi;
-use version_utils 'leap_version_at_least';
+use version_utils qw(is_leap is_tumbleweed);
 use utils 'systemctl';
 
 sub run() {
@@ -24,7 +24,7 @@ sub run() {
     wait_screen_change { script_run 'su postgres', 0 };
     script_run 'sed -i -e \'s/\(\(local\|host\).*all.*all.*\)\(md5\|ident\)/\1trust/g\' /var/lib/pgsql/data/pg_hba.conf', 0;
     script_run 'psql -c "CREATE USER tryton WITH CREATEDB;"',                                                             0;
-    if (check_var('VERSION', 'Tumbleweed') || leap_version_at_least('42.3')) {
+    if (is_tumbleweed || is_leap('42.3+')) {
         script_run 'createdb gnuhealth --encoding=\'UTF8\' --owner=tryton', 0;
     }
     script_run 'exit', 0;
@@ -36,7 +36,7 @@ sub run() {
     wait_still_screen(1);
     type_string "susetesting\n";
     assert_script_run 'sed -i -e "s/^.*super_pwd.*\$/super_pwd = ${pw}/g" /etc/tryton/trytond.conf';
-    if (check_var('VERSION', 'Tumbleweed') || leap_version_at_least('42.3')) {
+    if (is_tumbleweed || is_leap('42.3+')) {
         assert_script_run 'echo susetesting > /tmp/pw';
         assert_script_run 'sudo -u tryton env TRYTONPASSFILE=/tmp/pw trytond-admin -c /etc/tryton/trytond.conf --all -d gnuhealth --password', 600;
     }
@@ -52,4 +52,3 @@ sub test_flags() {
 }
 
 1;
-# vim: set sw=4 et:

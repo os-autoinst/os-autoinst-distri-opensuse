@@ -49,20 +49,21 @@ sub save_and_upload_stage_logs {
 
 sub save_and_upload_yastlogs {
     my ($self, $suffix) = @_;
-    my $name = $stage . $suffix;
+    my $name = $stage . ($suffix // '');
     # save logs and continue
     select_console 'install-shell';
 
     # the network may be down with keep_install_network=false
-    # use static ip in that case
-    type_string "
-      save_y2logs /tmp/y2logs-$name.tar.bz2
-      if ! ping -c 1 10.0.2.2 ; then
-        ip addr add 10.0.2.200/24 dev eth0
-        ip link set eth0 up
-        route add default gw 10.0.2.2
-      fi
-    ";
+    # use static ip in that case if not on s390x
+    assert_script_run "save_y2logs /tmp/y2logs-$name.tar.bz2";
+    if (!check_var("BACKEND", "s390x")) {
+        type_string " if ! ping -c 1 10.0.2.2 ; then
+            ip addr add 10.0.2.200/24 dev eth0
+            ip link set eth0 up
+            route add default gw 10.0.2.2
+        fi
+        ";
+    }
     # Upload autoyast profile if file exists
     if (script_run '! test -e /tmp/profile/autoinst.xml') {
         upload_logs '/tmp/profile/autoinst.xml';
@@ -91,6 +92,21 @@ sub handle_expected_errors {
     wait_screen_change { send_key 'ret' };
 }
 
+sub handle_warnings {
+    die "Unknown popup message" unless check_screen('autoyast-known-warning', 0);
+
+    # if VERIFY_TIMEOUT check that message disappears, by default we now have
+    # all timeouts set to 0, to verify each warning as they may get missed if have timeout
+    if (get_var 'AUTOYAST_VERIFY_TIMEOUT') {
+        # Wait until popup disappears
+        die "Popup message without timeout" unless wait_screen_change { sleep 11 };
+    }
+    else {
+        # No timeout on warning mesasge, press ok
+        wait_screen_change { send_key $cmd{ok} };
+    }
+}
+
 sub verify_timeout_and_check_screen {
     my ($timer, $needles) = @_;
     if ($timer > $maxtime) {
@@ -99,6 +115,7 @@ sub verify_timeout_and_check_screen {
         #Die explicitly in case of infinite loop when we match some needle
         die "timeout hit on during $stage";
     }
+    mouse_hide(1);
     return check_screen $needles, $check_time;
 }
 
@@ -117,7 +134,17 @@ sub run {
       = qw(bios-boot nonexisting-package reboot-after-installation linuxrc-install-fail scc-invalid-url warning-pop-up inst-betawarning autoyast-boot);
     push @needles, 'autoyast-confirm'        if get_var('AUTOYAST_CONFIRM');
     push @needles, 'autoyast-postpartscript' if get_var('USRSCR_DIALOG');
-
+    # bios-boot needle does not match if worker stalls during boot - poo#28648
+    push @needles, 'linux-login-casp' if is_caasp;
+    # Autoyast reboot automatically without confirmation, usually assert 'bios-boot' that is not existing on zVM
+    # So push a needle to check upcoming reboot on zVM that is a way to indicate the stage done
+    push @needles, 'autoyast-stage1-reboot-upcoming' if check_var('ARCH', 's390x');
+    # Import untrusted certification for SMT
+    push @needles, 'untrusted-ca-cert' if get_var('SMT_URL');
+    # Workaround for removing package error during upgrade
+    push(@needles, 'ERROR-removing-package') if get_var("AUTOUPGRADE");
+    # Kill ssh proactively before reboot to avoid half-open issue on zVM, do not need this on zKVM
+    prepare_system_shutdown if check_var('BACKEND', 's390x');
     my $postpartscript = 0;
     my $confirmed      = 0;
 
@@ -127,7 +154,11 @@ sub run {
 
     mouse_hide(1);
     check_screen \@needles, $check_time;
-    until (match_has_tag('reboot-after-installation') || match_has_tag('bios-boot')) {
+    until (  match_has_tag('reboot-after-installation')
+          || match_has_tag('bios-boot')
+          || match_has_tag('autoyast-stage1-reboot-upcoming')
+          || match_has_tag('linux-login-casp'))
+    {
         #Verify timeout and continue if there was a match
         next unless verify_timeout_and_check_screen(($timer += $check_time), \@needles);
         if (match_has_tag('autoyast-boot')) {
@@ -149,11 +180,8 @@ sub run {
                 send_key_until_needlematch 'create-partition-plans-finished', $cmd{ok};
                 next;
             }
-
-            die "Unknown popup message" unless check_screen('autoyast-known-warning', 0);
-
-            # Wait until popup disappears
-            die "Popup message without timeout" unless wait_screen_change { sleep 11 };
+            # Process warnings
+            handle_warnings;
         }
         elsif (match_has_tag('scc-invalid-url')) {
             die 'Fix invalid SCC reg URL https://trello.com/c/N09TRZxX/968-3-don-t-crash-on-invalid-regurl-on-linuxrc-commandline';
@@ -177,8 +205,20 @@ sub run {
             accept_license;
         }
         elsif (match_has_tag('inst-betawarning')) {
-            send_key $cmd{ok};
+            wait_screen_change { send_key $cmd{ok} };
+            @needles = grep { $_ ne 'inst-betawarning' } @needles;
             push(@needles, 'autoyast-license') if (get_var('AUTOYAST_LICENSE'));
+            next;
+        }
+        elsif (match_has_tag('untrusted-ca-cert')) {
+            send_key 'alt-t';
+            wait_still_screen 5;
+            next;
+        }
+        elsif (match_has_tag('ERROR-removing-package')) {
+            send_key 'alt-i';    # ignore
+            assert_screen 'WARNING-ignoring-package-failure';
+            send_key 'alt-o';
             next;
         }
         elsif (match_has_tag('autoyast-postpartscript')) {
@@ -201,24 +241,35 @@ sub run {
         }
     }
 
+    # We use startshell boot option on s390x to sync actions with reboot, normally is not used
+    # Cannot verify second stage properly on s390x, so recoonect to already installed system
+    if (check_var('ARCH', 's390x')) {
+        reconnect_s390(timeout => 500);
+        return;
+    }
+
     # CaaSP does not have second stage
     return if is_caasp;
-
+    # Second stage starts here
     mouse_hide(1);
     $maxtime = 1000;
     $timer   = 0;
     $stage   = 'stage2';
 
     check_screen \@needles, $check_time;
+    @needles = qw(reboot-after-installation autoyast-postinstall-error autoyast-boot warning-pop-up);
     until (match_has_tag 'reboot-after-installation') {
         #Verify timeout and continue if there was a match
-        next unless verify_timeout_and_check_screen(($timer += $check_time), [qw(reboot-after-installation autoyast-postinstall-error autoyast-boot)]);
+        next unless verify_timeout_and_check_screen(($timer += $check_time), \@needles);
         if (match_has_tag('autoyast-postinstall-error')) {
             $self->handle_expected_errors(iteration => $i);
             $num_errors++;
         }
         elsif (match_has_tag('autoyast-boot')) {
             send_key 'ret';    # grub timeout is disable, so press any key is needed to pass the grub
+        }
+        elsif (match_has_tag('warning-pop-up')) {
+            handle_warnings;    # Process warnings during stage 2
         }
     }
 
@@ -237,4 +288,3 @@ sub post_fail_hook {
 
 1;
 
-# vim: set sw=4 et:

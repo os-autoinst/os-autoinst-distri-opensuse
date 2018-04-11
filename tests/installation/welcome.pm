@@ -16,8 +16,7 @@ use warnings;
 use base "y2logsstep";
 use testapi;
 use utils 'ensure_fullscreen';
-use version_utils qw(is_sle sle_version_at_least);
-use main_common 'is_staging';
+use version_utils qw(is_sle sle_version_at_least is_staging);
 
 sub run {
     my ($self) = @_;
@@ -85,7 +84,7 @@ sub run {
         assert_screen 'inst-betawarning';
         wait_screen_change { send_key 'ret' };
     }
-    assert_screen((is_sle && sle_version_at_least('15') && get_var('UPGRADE')) ? 'inst-welcome-no-product-list' : 'inst-welcome');
+    assert_screen((is_sle('15+') && get_var('UPGRADE')) ? 'inst-welcome-no-product-list' : 'inst-welcome');
     mouse_hide;
     wait_still_screen(3);
 
@@ -99,10 +98,9 @@ sub run {
             my %hotkey = (
                 sles     => 's',
                 sled     => 'u',
-                sles4sap => 'i',
-                hpc      => 'x'
+                sles4sap => get_var('OFW') ? 'u' : 'i',
+                hpc      => check_var('ARCH', 'x86_64') ? 'x' : 'u'
             );
-            $hotkey{sles4sap} = 'u' if check_var('ARCH', 'ppc64le');
             my $product = get_required_var('SLE_PRODUCT');
             send_key 'alt-' . $hotkey{$product};
             assert_screen('select-product-' . $product);
@@ -129,4 +127,3 @@ sub post_fail_hook {
 }
 
 1;
-# vim: set sw=4 et:

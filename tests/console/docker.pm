@@ -16,9 +16,9 @@
 #      * images can be pulled from the Docker Hub
 #      * local images can be listed
 #      * containers can be spawned
-#      * containers can be run on background
-#      * containers can be stopped
+#      * containers state can be saved to an image
 #      * network is working inside of the containers
+#      * containers can be stopped
 #      * containers can be deleted
 #      * images can be deleted
 # Maintainer: Flavio Castelli <fcastelli@suse.com>, Panagiotis Georgiadis <pgeorgiadis@suse.com>, Sergio Lindo Mansilla <slindomansilla@suse.com>
@@ -27,24 +27,13 @@ use base "consoletest";
 use testapi;
 use utils;
 use strict;
-use version_utils 'is_caasp';
+use version_utils qw(is_caasp is_sle sle_version_at_least);
+use registration;
 
 sub run {
     select_console("root-console");
 
-    if (is_caasp) {
-        # Docker should be pre-installed in MicroOS
-        die "Docker is not pre-installed." if script_run("zypper se -x --provides -i docker | grep docker");
-    }
-    else {
-        # docker package can be installed
-        zypper_call("in docker");
-    }
-
-    # docker daemon can be started
-    systemctl("start docker");
-    systemctl("status docker");
-    assert_script_run('docker info');
+    install_docker_when_needed;
 
     # images can be searched on the Docker Hub
     validate_script_output("docker search --no-trunc opensuse", sub { m/This project contains the stable releases of the openSUSE distribution/ });
@@ -53,56 +42,77 @@ sub run {
     #   - pull minimalistic alpine image of declared version using tag
     #   - https://store.docker.com/images/alpine
     my $alpine_image_version = '3.5';
-    assert_script_run("docker image pull alpine:$alpine_image_version", 300);
+    assert_script_run("docker image pull alpine:$alpine_image_version", timeout => 300);
     #   - pull typical docker demo image without tag. Should be latest.
     #   - https://store.docker.com/images/hello-world
-    assert_script_run("docker image pull hello-world", 300);
+    assert_script_run("docker image pull hello-world", timeout => 300);
+    #   - pull image of last released version of openSUSE Leap
+    my $last_released_leap_version = '42.3';
+    assert_script_run("docker image pull opensuse:$last_released_leap_version", timeout => 600);
+    #   - pull image of openSUSE Tumbleweed
+    assert_script_run('docker image pull opensuse/tumbleweed', timeout => 600);
 
     # local images can be listed
-    # BUG https://github.com/docker/for-linux/issues/220
-    assert_script_run('docker images none');
-    record_soft_failure('https://github.com/docker/for-linux/issues/220');
-    assert_script_run("docker images alpine:$alpine_image_version | grep alpine");
-    assert_script_run("docker images hello-world | grep latest");
+    assert_script_run('docker image ls none');
+    #   - filter with tag
+    assert_script_run(qq{docker image ls alpine:$alpine_image_version | grep "alpine\\s*$alpine_image_version"});
+    #   - filter without tag
+    assert_script_run(qq{docker image ls hello-world | grep "hello-world\\s*latest"});
+    #   - all local images
+    my $local_images_list = script_output('docker image ls');
+    die('docker image opensuse/tumbleweed not found')                  unless ($local_images_list =~ /opensuse\/tumbleweed\s*latest/);
+    die("docker image opensuse:$last_released_leap_version not found") unless ($local_images_list =~ /opensuse\s*\Q$last_released_leap_version\E/);
 
     # containers can be spawned
+    #   - using 'run'
     assert_script_run('docker container run --name test_1 hello-world | grep "Hello from Docker\!"');
-    assert_script_run(qq{docker container run --name test_2 alpine:$alpine_image_version /bin/echo Hello world | grep "Hello world"});
+    #   - using 'create', 'start' and 'logs' (background container)
+    assert_script_run("docker container create --name test_2 alpine:$alpine_image_version /bin/echo Hello world");
+    assert_script_run('docker container start test_2 | grep "test_2"');
+    assert_script_run('docker container logs test_2 | grep "Hello world"');
+    #   - using 'run --rm'
     assert_script_run(qq{docker container run --name test_ephemeral --rm alpine:$alpine_image_version /bin/echo Hello world | grep "Hello world"});
-    my $cmd_docker_container_ls = 'docker container ls -a';
-    my $output_containers       = script_output($cmd_docker_container_ls);
+    #   - using 'run -d' and 'inspect' (background container)
+    my $container_name = 'tw';
+    assert_script_run("docker container run -d --name $container_name opensuse/tumbleweed tail -f /dev/null");
+    assert_script_run("docker container inspect --format='{{.State.Running}}' $container_name | grep true");
+    my $output_containers = script_output('docker container ls -a');
     die('error: missing container test_1') unless ($output_containers =~ m/test_1/);
     die('error: missing container test_2') unless ($output_containers =~ m/test_2/);
     die('error: ephemeral container was not removed') if ($output_containers =~ m/test_ephemeral/);
+    die("error: missing container $container_name") unless ($output_containers =~ m/$container_name/);
 
-    # containers can be run on background
-    my ($container_id) = script_output("docker container run -d alpine:$alpine_image_version tail -f /dev/null") =~ /(.+)/;
-    assert_script_run("docker container inspect --format='{{.State.Running}}' ${container_id} | grep true");
-
-    # containers can be stopped
-    assert_script_run("docker container stop ${container_id}");
-    assert_script_run("docker container inspect --format='{{.State.Running}}' ${container_id} | grep false");
+    # containers state can be saved to a docker image
+    my $output = script_output("docker container exec $container_name zypper -n in curl", 120);
+    die('error: curl not installed in the container') unless ($output =~ m/Installing: curl.*done/);
+    assert_script_run("docker container commit $container_name tw:saved");
 
     # network is working inside of the containers
-    assert_script_run(qq{docker container run --rm alpine:$alpine_image_version wget http://google.com 2>&1 | grep "index.html\\s*100%"});
+    $output = script_output('docker container run tw:saved curl -I google.de');
+    die("network is not working inside of the container tw:saved") unless ($output =~ m{Location: http://www\.google\.de/});
+
+    # containers can be stopped
+    assert_script_run("docker container stop $container_name");
+    assert_script_run("docker container inspect --format='{{.State.Running}}' $container_name | grep false");
 
     # containers can be deleted
     my $cmd_docker_rm = 'docker container rm test_1';
     assert_script_run("$cmd_docker_rm | grep test_1");
-    $output_containers = script_output($cmd_docker_container_ls);
+    $output_containers = script_output('docker container ls -a');
     die("error: container was not removed: $cmd_docker_rm") if ($output_containers =~ m/test_1/);
     my $cmd_docker_container_prune = 'docker container prune -f';
     assert_script_run("$cmd_docker_container_prune");
-    $output_containers = script_output($cmd_docker_container_ls);
+    $output_containers = script_output('docker container ls -a');
     die("error: container was not removed: $cmd_docker_container_prune") if ($output_containers =~ m/test_2/);
 
     # images can be deleted
-    my $cmd_docker_rmi = "docker image rm alpine:$alpine_image_version hello-world";
+    my $cmd_docker_rmi = "docker image rm alpine:$alpine_image_version hello-world opensuse:$last_released_leap_version opensuse/tumbleweed tw:saved";
     my $output_deleted = script_output($cmd_docker_rmi);
-    unless ($output_deleted =~ m/Untagged: hello-world:latest/ && $output_deleted =~ m/Untagged: alpine:$alpine_image_version/) {
-        die("error: could not remove images: $cmd_docker_rmi");
-    }
+    die("error: docker image rm opensuse:$last_released_leap_version") unless ($output_deleted =~ m/Untagged: opensuse:$last_released_leap_version/);
+    die('error: docker image rm opensuse/tumbleweed')                  unless ($output_deleted =~ m/Untagged: opensuse\/tumbleweed/);
+    die('error: docker image rm tw:saved')                             unless ($output_deleted =~ m/Untagged: tw:saved/);
+    die("error: docker image rm alpine:$alpine_image_version")         unless ($output_deleted =~ m/Untagged: alpine:$alpine_image_version/);
+    die('error: docker image rm hello-world:latest')                   unless ($output_deleted =~ m/Untagged: hello-world:latest/);
 }
 
 1;
-# vim: set sw=4 et:

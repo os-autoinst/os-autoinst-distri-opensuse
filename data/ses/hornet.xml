@@ -286,7 +286,7 @@
           <partition_id config:type="integer">131</partition_id>
           <partition_nr config:type="integer">4</partition_nr>
           <resize config:type="boolean">false</resize>
-          <size>500M</size>
+          <size>max</size>
         </partition>
       </partitions>
       <type config:type="symbol">CT_DISK</type>
@@ -389,12 +389,6 @@ echo 'bee,10.100.12.186 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAI
 fly,10.100.12.188 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBOzO5S8Mb9R6YX6YRUb3Kc/+wosCpso4e+5kpVwh8wDp4dABZVLvTucEMEIMjdBQxYjp9LvGwu5FM3vWM40mCbE=
 mosquito,10.100.12.190 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBPWrP/kyRVDtndzYBu6ut2y9hV2YfPMu/IS1O3T2YhtKChXmZD9gaC8owXAC4MxXBxv2UDUnN/vaePlcKgHJ7TE=
 butterfly,10.100.12.192 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBA/43C6/+8upDQggFPTI7z1o+yg2uRE0Yj8jFvfP7mfj+ji7MAJQYzBwNT0b0JgZyrJCkIdTSVwsddtLVElpOAI=' > /root/.ssh/known_hosts
-###
-### add ssh keys, created bug bsc#1066342 as the keys are not added via <authorized_keys> in <user>
-echo 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCm/z0MRb/MVoFeC0lCA45XIbUxyaZ+DTpMEEjQ30/PH2DFSdu4izguNyog+qMHmKAgBQWZWHr1DwXYTjZ4ZiQR6YShxb269S6QO0uqQ6U6SFBHwEyoaY1ooZgcPdCyjXKRSPieTHI1VojxiReDVNnDgrCObac4RWi5EU0JDSgKJI5HT+LjW9NLJGu+ikPuXbr479F6DFET5uV1ht09g5ppvkF2fDLojobaWf1og2JD7EPOg1E4MKX2juxrxSyhLFNaD1esBchKIryymQqIwAMqJsFeiU9YuAQ/N3xkvVUq3DSjeRU2okcpuo/FPP5ulHOTrRoyLQMkKl+BntCh5Sxj jpupava@suse.com' >> /root/.ssh/authorized_keys
-echo 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCqhWVTosH12864VGY5S3/k0yKc59GbV0m2WxD28gAf+uvJ1/y8gekD2wDzBv0DWqEekYLV7L68gpapDXyGosQeZ6n5OO/NZFZmW+Xq1P7P1QHJil6kVpwk927lzX440pwNf3+PRvTbLzlbuVFWJRpiykv+juJyIFjzXLJRF67wB2qgZVm5cRs/GOi4fnvTaou/Ae51mvsO8M3JL5cphApFKD/AO/X+3pHBhLjvaW33cYsp0Z4Rce1nm8wxSmvuJRF+HAfjBlknhDl5ZaJGA96RYA+g9WbAXimFprg4xeiRp7liPExQwtVgackJweoC4MahC1glmjC3eOh9dvrrxLnALOLMOkyCSK/tOF/iq2PJaLViObanPI8mnNkMLbdJyzUBf8hRGdSLcw98qxaf0sSZ+vz4VQS6e9CwX7ikkNNsTeYXjnJ+1yU3mfCW1CXJDr7kBDVG2OTLefCpMY8WBAYDiEaK0RW83cBcFIKfecKYd0qStHRaOsvmyWdFYgBh2vM1UWjro5WXlb+7aJPrUp8ZruapkUXUwhjHA7FwGA4ysE0tsOVVFm0Dw8tvyVVkVNm/9EObG28dWctioZ2+ZEzTWgMJU26Q+wOJ/U4qZyIvpMRUgPZc5nM9J8kcmvNWtb6DV9k/6p8h28kiOxPkxLtPP+3TlBCHjq//mhEnJZ/d8w== shshyukriev@suse.com' >> /root/.ssh/authorized_keys
-echo 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDDEfz0lP5oO03Rw8vSyzqwt06VIEFA4x478DERaSWHPTD5ULqqdZQS1vsFpTtAm1eT4Ix4njXvSh4T2d2aXYyCgB+ElJI1h0tpbtX7OtenJ7c3rUows61jqmXLFrnIfWbZL2uhomTsOziQwxKoXS3PRxFgoRaZGzHGD4J4HOEfiP8YHQ53igUKbmmDY8yVZya/dyEtKe8bukcbZbGIosKgMoaLsdpbNkln7bU1oLqMuogHGtqRdZ9gQLz2mz5I7Ml/lSeCEdbkqVbOjydVhF2Qm4bvbVjyER+n0VqhXOmeKcauEOQbEafYrJjWvDetMY4j8NwWCeJq0QA7gYRd7967 bhavel@blackbird.suse.cz' >> /root/.ssh/authorized_keys
-echo 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDb3u+zG7OoUAX5h9PTaTuK6/R5AxsO4mw23IChgpUMp9HOTVkBtDpRViSiLwuHjUnMHA42Do3lNFAI0VzimX3MD/eyZwq9SdgWcjnJr8Ha/bpTvYOpV9l1OJZ1CnP1LyN71Kdg4ionzxPWidAT+hXEqsXgnOO06aEZ8KLftdg+gJGtbIusyTKb6JHJ6ppFGDXAQSFH/gpPlYADAKWvXpmLUr/IvFxXdXLIuF5DKMHpL+bi4WNVEJtV0daCKxiRUr0A6cIuIBVXi/Vsb78KcJi/4Iq+h68iGHgArH7FBD7japmA+RT45ZXpHtGH1PhKcxa+YMmHqKYyzTirHpkpDmrn cvarelas@suse.com' >> /root/.ssh/authorized_keys
 ###
 ### register SLES and SES
 SUSEConnect -p ses/5/x86_64 -r 35eb00e8035bf5b0
@@ -631,14 +625,20 @@ exit 0
   </timezone>
   <users config:type="list">
     <user>
-      <encrypted config:type="boolean">false</encrypted>
+      <authorized_keys config:type="list">
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDWWOicPToKZ+Pqx+rA9Ny6tBXaG9x4xUjEw2KA4Ww3s8+D8xt4HynEGaOvXd4qfAlfbs0BnGC+QMo4u2T4+MLf34pgudv1bnXSWVj7M3/OeQv7WDU8fI4W8NEmoSGZaeXAzvNTSok/6kmGEOeU4Qwxu9pcCowaeLv0f0HNH1HTK7piGq2TzAZeLdIQeXb5Fa3HKCvoKCrlt3yTzX3shIKbeBg5KvwcQ/zn1ftvLMDhBEfBO1b1eWprie6otPBbLYBawzTbQ6GMUH3GjWD2+G04xPuEVtuBEGLtZ+s6rlxMEkm3uqrKOCZW++hcqRTYttvooW5GSRGDVrppaIpzxCHH root@hornet</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCm/z0MRb/MVoFeC0lCA45XIbUxyaZ+DTpMEEjQ30/PH2DFSdu4izguNyog+qMHmKAgBQWZWHr1DwXYTjZ4ZiQR6YShxb269S6QO0uqQ6U6SFBHwEyoaY1ooZgcPdCyjXKRSPieTHI1VojxiReDVNnDgrCObac4RWi5EU0JDSgKJI5HT+LjW9NLJGu+ikPuXbr479F6DFET5uV1ht09g5ppvkF2fDLojobaWf1og2JD7EPOg1E4MKX2juxrxSyhLFNaD1esBchKIryymQqIwAMqJsFeiU9YuAQ/N3xkvVUq3DSjeRU2okcpuo/FPP5ulHOTrRoyLQMkKl+BntCh5Sxj jpupava@suse.com</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCqhWVTosH12864VGY5S3/k0yKc59GbV0m2WxD28gAf+uvJ1/y8gekD2wDzBv0DWqEekYLV7L68gpapDXyGosQeZ6n5OO/NZFZmW+Xq1P7P1QHJil6kVpwk927lzX440pwNf3+PRvTbLzlbuVFWJRpiykv+juJyIFjzXLJRF67wB2qgZVm5cRs/GOi4fnvTaou/Ae51mvsO8M3JL5cphApFKD/AO/X+3pHBhLjvaW33cYsp0Z4Rce1nm8wxSmvuJRF+HAfjBlknhDl5ZaJGA96RYA+g9WbAXimFprg4xeiRp7liPExQwtVgackJweoC4MahC1glmjC3eOh9dvrrxLnALOLMOkyCSK/tOF/iq2PJaLViObanPI8mnNkMLbdJyzUBf8hRGdSLcw98qxaf0sSZ+vz4VQS6e9CwX7ikkNNsTeYXjnJ+1yU3mfCW1CXJDr7kBDVG2OTLefCpMY8WBAYDiEaK0RW83cBcFIKfecKYd0qStHRaOsvmyWdFYgBh2vM1UWjro5WXlb+7aJPrUp8ZruapkUXUwhjHA7FwGA4ysE0tsOVVFm0Dw8tvyVVkVNm/9EObG28dWctioZ2+ZEzTWgMJU26Q+wOJ/U4qZyIvpMRUgPZc5nM9J8kcmvNWtb6DV9k/6p8h28kiOxPkxLtPP+3TlBCHjq//mhEnJZ/d8w== shshyukriev@suse.com</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDDEfz0lP5oO03Rw8vSyzqwt06VIEFA4x478DERaSWHPTD5ULqqdZQS1vsFpTtAm1eT4Ix4njXvSh4T2d2aXYyCgB+ElJI1h0tpbtX7OtenJ7c3rUows61jqmXLFrnIfWbZL2uhomTsOziQwxKoXS3PRxFgoRaZGzHGD4J4HOEfiP8YHQ53igUKbmmDY8yVZya/dyEtKe8bukcbZbGIosKgMoaLsdpbNkln7bU1oLqMuogHGtqRdZ9gQLz2mz5I7Ml/lSeCEdbkqVbOjydVhF2Qm4bvbVjyER+n0VqhXOmeKcauEOQbEafYrJjWvDetMY4j8NwWCeJq0QA7gYRd7967 bhavel@blackbird.suse.cz</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDb3u+zG7OoUAX5h9PTaTuK6/R5AxsO4mw23IChgpUMp9HOTVkBtDpRViSiLwuHjUnMHA42Do3lNFAI0VzimX3MD/eyZwq9SdgWcjnJr8Ha/bpTvYOpV9l1OJZ1CnP1LyN71Kdg4ionzxPWidAT+hXEqsXgnOO06aEZ8KLftdg+gJGtbIusyTKb6JHJ6ppFGDXAQSFH/gpPlYADAKWvXpmLUr/IvFxXdXLIuF5DKMHpL+bi4WNVEJtV0daCKxiRUr0A6cIuIBVXi/Vsb78KcJi/4Iq+h68iGHgArH7FBD7japmA+RT45ZXpHtGH1PhKcxa+YMmHqKYyzTirHpkpDmrn cvarelas@suse.com</listentry>
+      </authorized_keys>
+      <encrypted config:type="boolean">true</encrypted>
       <fullname>root</fullname>
       <gid>0</gid>
       <home>/root</home>
       <shell>/bin/bash</shell>
       <uid>0</uid>
-<!--      <user_password>$6$DAX16XYw$G/GPBVT/CN7G027Qy24XtQIUbB07yhsS7JSOQcaPOEYbFRKqelD7Kvw29OWewFLkMsxyphE7Dyn5PnCnRaWKQ/</user_password> -->
-      <user_password>nots3cr3t</user_password>
+      <user_password>$6$DAX16XYw$G/GPBVT/CN7G027Qy24XtQIUbB07yhsS7JSOQcaPOEYbFRKqelD7Kvw29OWewFLkMsxyphE7Dyn5PnCnRaWKQ/</user_password>
       <username>root</username>
     </user>
   </users>

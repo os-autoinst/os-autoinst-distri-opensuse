@@ -38,12 +38,16 @@ testapi::set_distribution(susedistribution->new());
 
 set_var 'FAIL_EXPECTED', 'SMALL-DISK' if get_var('HDDSIZEGB') < 12;
 
+if (is_caasp('kubic')) {
+    set_var('SYSTEM_ROLE_FIRST_FLOW', 1);
+}
+
 # Set console for XEN-PV
 if (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux')) {
     set_var('SERIALDEV', 'hvc0');
 }
 
-sub load_boot_tests {
+sub load_caasp_boot_tests {
     if (is_caasp 'DVD') {
         if (get_var("UEFI")) {
             loadtest 'installation/bootloader_uefi';
@@ -67,30 +71,34 @@ sub load_boot_tests {
 }
 
 # One-click installer - fate#322328
-sub load_inst_tests {
+sub load_caasp_inst_tests {
     if (get_var 'AUTOYAST') {
         loadtest 'autoyast/installation';
     }
     else {
-        loadtest 'caasp/oci_overview';
+        if (get_var 'MULTI_STEP_KUBIC_FLOW') {
+            load_inst_tests;
+        }
+        else {
+            loadtest 'caasp/oci_overview';
 
-        # Check keyboard layout
-        loadtest 'caasp/oci_keyboard';
-        # Register system
-        loadtest 'caasp/oci_register' if check_var('REGISTER', 'installation');
-        # Set root password
-        loadtest 'caasp/oci_password';
-        # Set system Role
-        loadtest 'caasp/oci_role';
-        # Start installation
-        loadtest 'caasp/oci_install';
+            # Check keyboard layout
+            loadtest 'caasp/oci_keyboard';
+            # Register system
+            loadtest 'caasp/oci_register' if check_var('REGISTER', 'installation');
+            # Set root password
+            loadtest 'caasp/oci_password';
+            # Set system Role
+            loadtest 'caasp/oci_role';
+            # Start installation
+            loadtest 'caasp/oci_install';
 
-        # Can not start installation with partitioning error
-        return if check_var('FAIL_EXPECTED', 'SMALL-DISK');
-        return if check_var('FAIL_EXPECTED', 'BSC_1043619');
+            # Can not start installation with partitioning error
+            return if check_var('FAIL_EXPECTED', 'SMALL-DISK');
+            return if check_var('FAIL_EXPECTED', 'BSC_1043619');
 
-        # Actual installation
-        loadtest 'installation/install_and_reboot';
+            load_common_installation_steps_tests;
+        }
     }
 }
 
@@ -106,6 +114,7 @@ sub load_feature_tests {
     # Feature tests
     # 'create_autoyast' uses serial line heavily, which is notentirely
     # reliable on Hyper-V, no point in executing it as it always fails.
+    # Container Tests
     loadtest 'caasp/create_autoyast' unless check_var('VIRSH_VMM_FAMILY', 'hyperv');
     loadtest 'caasp/libzypp_config';
     loadtest 'caasp/filesystem_ro';
@@ -125,6 +134,13 @@ sub load_feature_tests {
     if (!check_var('SYSTEM_ROLE', 'microos')) {
         loadtest 'console/docker';
         loadtest 'console/docker_runc';
+        # OCI Containers
+        if (is_caasp('kubic') && check_var('SYSTEM_ROLE', 'plain')) {
+            loadtest 'console/skopeo';
+            loadtest 'console/umoci';
+            loadtest 'console/runc';
+            loadtest 'console/rootless';
+        }
     }
 }
 
@@ -134,9 +150,14 @@ sub load_stack_tests {
         loadtest 'caasp/stack_configure';
         loadtest 'caasp/stack_bootstrap';
         loadtest 'caasp/stack_kubernetes';
-        loadtest 'caasp/stack_update'      if update_scheduled;
+        if (update_scheduled) {
+            loadtest 'caasp/stack_update';
+        }
+        else {
+            loadtest 'caasp/stack_reboot';
+        }
         loadtest 'caasp/stack_add_nodes'   if get_delayed_worker;
-        loadtest 'caasp/stack_conformance' if !is_caasp('staging') && !is_caasp('qam');
+        loadtest 'caasp/stack_conformance' if !is_caasp('staging');
         loadtest 'caasp/stack_finalize';
     }
     else {
@@ -174,21 +195,21 @@ if (get_var('STACK_ROLE')) {
         loadtest "support_server/setup";
     }
     else {
-        load_boot_tests;
-        load_inst_tests if is_caasp('DVD');
+        load_caasp_boot_tests;
+        load_caasp_inst_tests if is_caasp('DVD');
         loadtest 'caasp/first_boot';
     }
     load_stack_tests;
 }
 else {
     # ==== MicroOS tests ====
-    load_boot_tests;
+    load_caasp_boot_tests;
     if (is_caasp 'DVD') {
         if (get_var('EXTRA', '') =~ /RCSHELL/) {
             load_rcshell_tests;
             return 1;
         }
-        load_inst_tests;
+        load_caasp_inst_tests;
         return 1 if get_var 'FAIL_EXPECTED';
     }
     loadtest 'caasp/first_boot';

@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -18,33 +18,33 @@ use testapi;
 
 sub run {
     my ($self) = @_;
-    assert_screen "inst-usersetup";
+    assert_screen 'inst-usersetup';
     if (get_var 'ROOTONLY') {
         send_key 'alt-s';
         assert_screen 'inst-rootonly-selected';
         # done user setup
         send_key $cmd{next};
+        return;
     }
-    else {
-        type_string $realname;
-        send_key "tab";
 
-        send_key "tab";
-        $self->type_password_and_verification;
-        assert_screen "inst-userinfostyped";
-        if (get_var("NOAUTOLOGIN") && !check_screen('autologindisabled', timeout => 0)) {
-            send_key $cmd{noautologin};
-            assert_screen "autologindisabled";
-        }
-        if (get_var("DOCRUN")) {
-            send_key $cmd{otherrootpw};
-            assert_screen "rootpwdisabled";
-        }
-
-        # done user setup
-        send_key $cmd{next};
-        $self->await_password_check;
+    send_key 'alt-f';    # Select full name text field
+    wait_screen_change { type_string $realname };
+    send_key 'tab';      # Select password field
+    send_key 'tab';
+    $self->type_password_and_verification;
+    assert_screen 'inst-userinfostyped';
+    if (get_var('NOAUTOLOGIN') && !check_screen('autologindisabled', timeout => 0)) {
+        send_key $cmd{noautologin};
+        assert_screen 'autologindisabled';
     }
+    if (get_var('DOCRUN')) {
+        send_key $cmd{otherrootpw};
+        assert_screen 'rootpwdisabled';
+    }
+
+    # done user setup
+    send_key $cmd{next};
+    $self->await_password_check;
 }
+
 1;
-# vim: set sw=4 et:

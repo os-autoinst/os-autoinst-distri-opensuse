@@ -21,7 +21,6 @@ use testapi;
 use lockapi 'mutex_create';
 use caasp 'update_scheduled';
 
-
 # Set up ssh to admin node and run update script on all nodes
 sub setup_update_repository {
     my $repo = update_scheduled;
@@ -36,6 +35,12 @@ sub check_update_changes {
 
     # Kubernetes checks
     assert_script_run "kubectl cluster-info";
+    assert_script_run "kubectl cluster-info > cluster.after_update";
+    if (script_run "diff -Nur cluster.before_update cluster.after_update") {
+        record_soft_failure "old kubeconfig cannot see DEX - bsc#1081337";
+        switch_to 'velum';
+        download_kubeconfig;
+    }
     assert_script_run "! kubectl get cs --no-headers | grep -v Healthy";
     my $nodes_count = get_required_var("STACK_NODES");
     assert_script_run "kubectl get nodes --no-headers | wc -l | grep $nodes_count";
@@ -57,14 +62,17 @@ sub run {
 
     my $nodes = get_required_var('STACK_NODES');
     assert_screen "velum-$nodes-nodes-outdated";
-    die "Can't update nodes before admin" if check_screen "velum-update-all", 0;
+    if (check_screen "velum-update-all", 0) {
+        record_soft_failure 'bnc#1085677 - Should not update nodes before admin';
+    }
 
     # Update admin node (~160s for admin reboot)
     assert_and_click 'velum-update-admin';
     assert_and_click 'velum-update-reboot';
 
     # Update all nodes - this part takes long time (~2 minutes per node)
-    assert_screen [qw(velum-$nodes-nodes-outdated velum-sorry)], 300;
+    my @needles_array = ('velum-sorry', "velum-$nodes-nodes-outdated");
+    assert_screen [@needles_array], 300;
     if (match_has_tag 'velum-sorry') {
         record_soft_failure('bnc#1074836 - delay caused due to Meltdown');
         # workaround for meltdown
@@ -84,4 +92,3 @@ sub run {
 
 1;
 
-# vim: set sw=4 et:

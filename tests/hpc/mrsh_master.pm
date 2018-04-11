@@ -21,24 +21,25 @@ use lockapi;
 use utils;
 
 sub run {
-    my $self     = shift;
-    my $slave_ip = get_required_var('HPC_SLAVE_IP');
-    barrier_create("MRSH_INSTALLATION_FINISHED", 2);
-    barrier_create("MRSH_MUNGE_ENABLED",         2);
-    barrier_create("SLAVE_MRLOGIN_STARTED",      2);
-    barrier_create("MRSH_MASTER_DONE",           2);
-
-    # set proper hostname
-    assert_script_run "hostnamectl set-hostname mrsh-master";
-
-    systemctl 'stop ' . $self->firewall;
+    my $self = shift;
+    # Get number of nodes
+    my $nodes = get_required_var("CLUSTER_NODES");
+    barrier_create("MRSH_INSTALLATION_FINISHED", $nodes);
+    barrier_create("MRSH_MUNGE_ENABLED",         $nodes);
+    barrier_create("SLAVE_MRLOGIN_STARTED",      $nodes);
+    barrier_create("MRSH_MASTER_DONE",           $nodes);
+    # Synchronize all slave nodes with master
+    mutex_create("MRSH_MASTER_BARRIERS_CONFIGURED");
 
     # install mrsh
     zypper_call('in mrsh mrsh-server');
     barrier_wait("MRSH_INSTALLATION_FINISHED");
 
-    # copy key
-    $self->exec_and_insert_password("scp -o StrictHostKeyChecking=no /etc/munge/munge.key root\@$slave_ip:/etc/munge/munge.key");
+    # Copy munge key to all slave nodes
+    for (my $node = 1; $node < $nodes; $node++) {
+        my $node_name = sprintf("mrsh-slave%02d", $node);
+        exec_and_insert_password("scp -o StrictHostKeyChecking=no /etc/munge/munge.key root\@${node_name}:/etc/munge/munge.key");
+    }
     mutex_create("MRSH_KEY_COPIED");
 
     # start munge
@@ -50,17 +51,18 @@ sub run {
     assert_script_run("chmod 666 /dev/$serialdev");
 
     # run mrlogin, mrcp, and mrsh (as normal and local user, e.g. nobody)
-    type_string("su - nobody\n");
-    assert_screen("user-nobody");
-    type_string("mrlogin $slave_ip\n");
-    assert_screen("mrlogin");
-    send_key('ctrl-d');
-    assert_screen("mrlogout");
-    assert_script_run("mrsh $slave_ip rm -f /tmp/hello");
-    assert_script_run("echo \"Hello world!\" >/tmp/hello");
-    assert_script_run("mrcp /tmp/hello $slave_ip:/tmp/hello");
-    assert_script_run("mrsh $slave_ip cat /tmp/hello");
-
+    $self->switch_user('nobody');
+    for (my $node = 1; $node < $nodes; $node++) {
+        my $node_name = sprintf("mrsh-slave%02d", $node);
+        type_string("mrlogin ${node_name} \n");
+        assert_screen("mrlogin");
+        send_key('ctrl-d');
+        assert_screen("mrlogout");
+        assert_script_run("mrsh ${node_name}  rm -f /tmp/hello");
+        assert_script_run("echo \"Hello world!\" >/tmp/hello");
+        assert_script_run("mrcp /tmp/hello ${node_name}:/tmp/hello");
+        assert_script_run("mrsh ${node_name}  cat /tmp/hello");
+    }
     barrier_wait("MRSH_MASTER_DONE");
 }
 
@@ -68,5 +70,9 @@ sub test_flags {
     return {fatal => 1, milestone => 1};
 }
 
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->upload_service_log('munge');
+}
+
 1;
-# vim: set sw=4 et:

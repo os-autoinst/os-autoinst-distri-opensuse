@@ -22,6 +22,7 @@
 use base "y2logsstep";
 use strict;
 use testapi;
+use version_utils 'is_sle';
 
 my $secondrun = 0;    # bsc#1029660
 
@@ -154,7 +155,7 @@ sub package_action {
 
 sub run {
     my ($self) = @_;
-
+    my $dep_issue;
     $self->gotopatterns;
     if (get_var('PATTERNS')) {
         my %wanted_patterns;
@@ -190,8 +191,9 @@ sub run {
                 };
                 assert_screen 'current-pattern-selected', 5;
             }
-            $self->workaround_dependency_issues;
-            # stick to the default patterns
+            # stick to the default patterns. Check if at least 1 dep. issue was displayed
+            $dep_issue = $self->workaround_dependency_issues || $dep_issue;
+
             if (get_var('PATTERNS', '') =~ /default/) {
                 $needs_to_be_selected = $selected;
             }
@@ -204,13 +206,17 @@ sub run {
         }
     }
     $self->package_action;
-    $secondrun++;
-    $self->gotopatterns;
-    $self->package_action;
-    $secondrun--;
-    $self->gotopatterns;
-    $self->package_action('unblock');
+    if (is_sle('15+') and check_var('PATTERNS', 'all') and $dep_issue) {
+        record_soft_failure "bsc#1084064 - Cloud patterns conflicts";    # skip second & third runs
+    }
+    else {
+        $secondrun++;
+        $self->gotopatterns;
+        $self->package_action;
+        $secondrun--;
+        $self->gotopatterns;
+        $self->package_action('unblock');
+    }
 }
 
 1;
-# vim: set sw=4 et:

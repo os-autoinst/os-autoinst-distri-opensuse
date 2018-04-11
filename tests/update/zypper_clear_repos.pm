@@ -18,6 +18,8 @@ use utils;
 
 sub run {
     select_console 'root-console';
+    # packagekit service may block zypper when operate on repos
+    pkcon_quit;
 
     # remove Factory repos
     my $repos_folder = '/etc/zypp/repos.d';
@@ -39,4 +41,3 @@ sub run {
 }
 
 1;
-# vim: set sw=4 et:

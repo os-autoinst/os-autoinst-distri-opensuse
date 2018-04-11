@@ -14,24 +14,24 @@ use strict;
 use testapi;
 use utils;
 use List::Util qw(first);
-use version_utils qw(is_sle sle_version_at_least);
+use version_utils qw(is_sle is_jeos);
 
 our @EXPORT = qw(install_kernel_debuginfo prepare_for_kdump activate_kdump kdump_is_active do_kdump);
 
 sub install_kernel_debuginfo {
     assert_script_run 'zypper ref', 300;
-    my @kernels = split(/\n/, script_output('rpmquery --queryformat="%{NAME}-%{VERSION}-%{RELEASE}\n" kernel-default'));
+    my $kernel = is_jeos() ? 'kernel-default-base' : 'kernel-default';
+    my @kernels = split(/\n/, script_output('rpmquery --queryformat="%{NAME}-%{VERSION}-%{RELEASE}\n" ' . $kernel));
     my ($uname) = script_output('uname -r') =~ /(\d+\.\d+\.\d+)-*/;
     my $debuginfo = first { $_ =~ /\Q$uname\E/ } @kernels;
-    $debuginfo =~ s/default/default-debuginfo/g;
+    $debuginfo =~ s/$kernel/kernel-default-debuginfo/g;
     zypper_call("-v in $debuginfo", timeout => 4000);
 }
 
 sub get_repo_url_for_kdump_sle {
     return join('/', $utils::OPENQA_FTP_URL, get_var('REPO_SLE15_MODULE_BASESYSTEM_DEBUG'))
       if get_var('REPO_SLE15_MODULE_BASESYSTEM_DEBUG')
-      and is_sle
-      and sle_version_at_least('15');
+      and is_sle('15+');
     return join('/', $utils::OPENQA_FTP_URL, get_var('REPO_SLES_DEBUG')) if get_var('REPO_SLES_DEBUG');
 }
 
@@ -92,8 +92,8 @@ sub prepare_for_kdump {
 
 sub activate_kdump {
     # activate kdump
-    type_string 'echo "remove potential harmful nokogiri package boo#1047449"';
-    zypper_call('rm -y ruby2.1-rubygem-nokogiri');
+    type_string "echo \"remove potential harmful nokogiri package boo#1047449\"\n";
+    zypper_call('rm -y ruby2.1-rubygem-nokogiri', exitcode => [0, 104]);
     script_run 'yast2 kdump', 0;
     my @tags = qw(yast2-kdump-disabled yast2-kdump-enabled yast2-kdump-restart-info yast2-missing_package yast2_console-finished);
     do {

@@ -13,7 +13,6 @@
 
 package firefox;
 use base "x11test";
-use base "x11regressiontest";
 use strict;
 use testapi;
 
@@ -48,4 +47,3 @@ sub run() {
 }
 
 1;
-# vim: set sw=4 et:

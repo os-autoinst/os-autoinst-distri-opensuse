@@ -14,7 +14,7 @@
 use strict;
 use base "y2logsstep";
 use testapi;
-use version_utils qw(sle_version_at_least is_sle);
+use version_utils qw(is_sle is_caasp);
 
 
 my %role_hotkey = (
@@ -27,8 +27,22 @@ my %role_hotkey = (
 
 sub change_system_role {
     my ($system_role) = @_;
-    send_key 'alt-' . $role_hotkey{$system_role};
-    assert_screen "system-role-$system_role-selected";
+    # Since SLE 15 we do not have shortcuts for system roles anymore
+    if ((is_sle '15+') || (is_caasp 'kubic')) {
+        if (check_var('VIDEOMODE', 'text')) {
+            # Expect that no actions are done before and default system role is preselected
+            send_key_until_needlematch "system-role-$system_role-focused",  'down';    # select role
+            send_key_until_needlematch "system-role-$system_role-selected", 'spc';     # enable role
+        }
+        else {
+            assert_and_click "system-role-$system_role";
+            assert_screen "system-role-$system_role-selected";
+        }
+    }
+    else {
+        send_key 'alt-' . $role_hotkey{$system_role};
+        assert_screen "system-role-$system_role-selected";
+    }
     # every system role other than default will end up in textmode
     set_var('DESKTOP', 'textmode');
 }
@@ -50,4 +64,3 @@ sub run {
 }
 
 1;
-# vim: set sw=4 et:

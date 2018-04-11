@@ -12,7 +12,7 @@
 
 use base 'opensusebasetest';
 use strict;
-use version_utils qw(is_sle sle_version_at_least);
+use version_utils 'is_sle';
 use testapi;
 use lockapi;
 use hacluster;
@@ -20,13 +20,15 @@ use hacluster;
 sub run {
     my $mdadm_conf         = '/etc/mdadm.conf';
     my $csync_conf         = '/etc/csync2/csync2.cfg';
-    my $clustermd_lun_01   = block_device_real_path '/dev/disk/by-path/ip-*-lun-1';
-    my $clustermd_lun_02   = block_device_real_path '/dev/disk/by-path/ip-*-lun-2';
+    my $clustermd_lun_01   = get_lun(use_once => 0);
+    my $clustermd_lun_02   = get_lun(use_once => 0);
     my $clustermd_rsc      = 'cluster_md';
     my $clustermd_device   = '/dev/md0';
     my $clustermd_name_opt = undef;
+    my $cluster_name       = get_cluster_name;
+    my $node               = get_hostname;
 
-    if (is_sle && sle_version_at_least('15')) {
+    if (is_sle '15+') {
         $clustermd_device   = "/dev/md/$clustermd_rsc";
         $clustermd_name_opt = "--name=$clustermd_rsc";
     }
@@ -84,6 +86,10 @@ sub run {
     # Wait until cluster-md resource is created
     barrier_wait("CLUSTER_MD_RESOURCE_CREATED_$cluster_name");
 
+    # Wait for the resource to appear before testing the device
+    # Otherwise sporadic failure can happen
+    ensure_resource_running("$clustermd_rsc", "is running on:[[:blank:]]*$node\[[:blank:]]*\$");
+
     # Test if cluster-md device is present on all nodes
     assert_script_run "ls -la $clustermd_device";
 
@@ -98,4 +104,3 @@ sub run {
 }
 
 1;
-# vim: set sw=4 et:

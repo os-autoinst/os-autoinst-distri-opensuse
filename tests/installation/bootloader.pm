@@ -18,6 +18,7 @@ use testapi;
 use lockapi;
 use bootloader_setup;
 use registration;
+use utils;
 
 # hint: press shift-f10 trice for highest debug level
 sub run {
@@ -28,18 +29,10 @@ sub run {
     specific_bootmenu_params;
     specific_caasp_params;
     registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED);
-    # if a support_server is used, we need to wait for him to finish its initialization
-    # and we need to do it *before* starting the OS, as a DHCP request can happen too early
-    if (check_var('USE_SUPPORT_SERVER', 1)) {
-        diag "Waiting for support server to complete setup...";
-
-        # we use mutex to do this
-        mutex_lock('support_server_ready');
-        mutex_unlock('support_server_ready');
-    }
+    wait_supportserver if get_var('USE_SUPPORT_SERVER');
     # on ppc64le boot have to be confirmed with ctrl-x or F10
     # and it doesn't have nice graphical menu with video and language options
-    if (!check_var('ARCH', 'ppc64le')) {
+    if (!get_var('OFW')) {
         select_bootmenu_language;
         select_bootmenu_video_mode;
         # boot
@@ -52,4 +45,3 @@ sub run {
 }
 
 1;
-# vim: set sw=4 et:

@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -13,9 +13,9 @@
 
 use strict;
 use base "y2logsstep";
-use main_common 'addon_products_is_applicable';
+use utils 'addon_products_is_applicable';
 use testapi;
-use version_utils 'leap_version_at_least';
+use version_utils 'is_leap';
 
 sub run {
     assert_screen 'desktop-selection';
@@ -29,11 +29,11 @@ sub run {
     }
     if (get_var('NEW_DESKTOP_SELECTION')) {
         # select computer role
-        if ($d ne 'kde' && $d ne 'gnome' && $d ne 'textmode') {
+        if ($d !~ /kde|gnome|textmode|serverro/) {
             $d = 'custom';
         }
     }
-    if ($d ne 'kde' && $d ne 'gnome') {
+    if ($d !~ /kde|gnome|serverro/) {
         # up to 42.1 textmode was below 'other'
         if (!($d eq 'textmode' && check_screen 'has-server-selection', 2)) {
             send_key_until_needlematch 'selection_on_desktop_other', 'tab';    # Move the selection to 'Other'
@@ -44,7 +44,7 @@ sub run {
     send_key 'spc';                                                            # Select the desktop
 
     assert_screen "$d-selected";
-    if (check_var('VERSION', 'Tumbleweed')) {
+    if (check_var('VERSION', 'Tumbleweed') && !get_var('OFFLINE_SUT')) {
         send_key 'alt-o';                                                      # configure online repos
         wait_still_screen 3;                                                   # wait for the potential 'low memory warning' to show up
         assert_screen 'repo-list';
@@ -57,7 +57,7 @@ sub run {
     # On leap 42.3 we don't have addon products page, and provide urls as addon
     # as boot parameter. Trusting gpg key is the done after we click next
     # on Desktop selection screen
-    if (addon_products_is_applicable() && leap_version_at_least('42.3')) {
+    if (addon_products_is_applicable() && is_leap('42.3+')) {
         assert_screen 'import-untrusted-gpg-key-598D0E63B3FD7E48';
         send_key "alt-t";    # confirm import (trust) key
     }
@@ -78,4 +78,3 @@ sub run {
 }
 
 1;
-# vim: set sw=4 et:

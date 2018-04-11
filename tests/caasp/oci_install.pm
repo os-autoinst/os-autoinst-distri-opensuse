@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -8,13 +8,14 @@
 # without any warranty.
 
 # Summary: Start CaaSP installation
-# Maintainer: Martin Kravec <mkravec@suse.com>
+# Maintainer: Martin Kravec <mkravec@suse.com>, Panagiotis Georgiadis <pgeorgiadis@suse.com>
 
 use strict;
 use warnings;
 use base "y2logsstep";
 use testapi;
 use caasp;
+use version_utils 'is_caasp';
 
 sub run {
     # poo#16408 part 1
@@ -69,6 +70,11 @@ sub run {
             sleep 5 if check_var('VIDEOMODE', 'text');    # Wait until DOM reloads data tree
             assert_screen 'oci-overview-filled';
         }
+        elsif (is_caasp '3.0+') {
+            # accept eula
+            send_key 'alt-a';
+        }
+
         send_key $cmd{install};
     }
 
@@ -78,4 +84,3 @@ sub run {
 
 1;
 
-# vim: set sw=4 et:

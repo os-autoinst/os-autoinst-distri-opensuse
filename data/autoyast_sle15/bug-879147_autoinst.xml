@@ -274,7 +274,7 @@
     <image/>
     <instsource/>
     <products config:type="list">
-      <product>SLES15</product>
+      <product>SLES</product>
     </products>
   </software>
   <timezone>
@@ -282,30 +282,24 @@
     <timezone>Europe/Berlin</timezone>
   </timezone>
   <user_defaults>
-    <expire/>
-    <group>500</group>
-    <groups/>
+    <group>100</group>
     <home>/home</home>
-    <inactive/>
     <no_groups config:type="boolean">true</no_groups>
-    <shell/>
-    <skel/>
     <umask>022</umask>
+    <shell>/bin/bash</shell>
   </user_defaults>
   <users config:type="list">
-    <user>
-      <fullname>Bernhard M. Wiedemann</fullname>
-      <encrypted config:type="boolean">false</encrypted>
-      <user_password>nots3cr3t</user_password>
-      <username>bernhard</username>
-    </user>
-    <user>
-      <encrypted config:type="boolean">false</encrypted>
-      <fullname>root</fullname>
-      <gid>0</gid>
-      <uid>0</uid>
-      <user_password>nots3cr3t</user_password>
-      <username>root</username>
-    </user>
+      <user>
+        <encrypted config:type="boolean">false</encrypted>
+        <fullname>Bernhard M. Wiedemann</fullname>
+        <user_password>nots3cr3t</user_password>
+        <username>bernhard</username>
+      </user>
+      <user>
+        <encrypted config:type="boolean">false</encrypted>
+        <fullname>root</fullname>
+        <user_password>nots3cr3t</user_password>
+        <username>root</username>
+      </user>
   </users>
 </profile>

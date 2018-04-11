@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -26,6 +26,35 @@ sub hyperv_cmd {
     return $ret;
 }
 
+sub hyperv_cmd_with_retry {
+    my ($cmd, $args) = @_;
+    die 'Command not provided' unless $cmd;
+
+    my $attempts = $args->{attempts} // 7;
+    my $sleep    = $args->{sleep} // 300;
+    my $msg      = $args->{msg} // 'The operation cannot be performed while the object is in use.';
+    for my $retry (1 .. $attempts) {
+        my @out = (console('svirt')->get_cmd_output($cmd, {wantarray => 1}))[0];
+        my $stdout = $out[0][0] || '';
+        my $stderr = $out[0][1] || '';
+        chomp($stdout, $stderr);
+        if ($stderr && $stderr =~ /$msg/) {
+            # Non-fatal error we can ignore for couple of times.
+            diag "Attempt $retry/$attempts: Command failed with $stderr.\nSleeping for $sleep seconds...";
+            sleep $sleep;
+            next;
+        }
+        elsif ($stderr) {
+            # Error we don't know how to resurrect from.
+            die "Command failed with unhandled error:\n$stderr.";
+        }
+        else {
+            # Command succeeded.
+            last;
+        }
+    }
+}
+
 sub run {
     my $svirt               = select_console('svirt');
     my $hyperv_intermediary = select_console('hyperv-intermediary');
@@ -36,7 +65,8 @@ sub run {
     set_var('NUMDISKS', defined get_var('RAIDLEVEL') ? 4 : $n);
 
     # Mount openQA NFS share to drive N:
-    hyperv_cmd("if not exist N: ( mount \\\\openqa.suse.de\\var\\lib\\openqa\\share\\factory N: )");
+    hyperv_cmd_with_retry("if not exist N: ( mount \\\\openqa.suse.de\\var\\lib\\openqa\\share\\factory N: )",
+        {msg => 'Another instance of this command is already running'});
 
     # Copy assets from NFS to Hyper-V cache
     for my $n ('', 1 .. 9) {
@@ -120,7 +150,7 @@ sub run {
                 my ($hddsuffix) = $hdd =~ /(\.[^.]+)$/;
                 my $disk_path = "d:\\cache\\${name}_${n}${hddsuffix}";
                 push @disk_paths, $disk_path;
-                hyperv_cmd("$ps New-VHD -ParentPath $hdd -Path $disk_path -Differencing");
+                hyperv_cmd_with_retry("$ps New-VHD -ParentPath $hdd -Path $disk_path -Differencing");
             }
             else {
                 my $disk_path = "d:\\cache\\${name}_${n}.vhdx";
@@ -154,12 +184,20 @@ sub run {
     }
 
     hyperv_cmd("$ps Set-VMProcessor $name -Count $cpucount");
-    # All booteble devices has to be enumerated all the time...
-    my $startup_order = (check_var('BOOTFROM', 'd') ? "'CD', 'VHD'" : "'VHD', 'CD'") . ", 'Floppy', 'NetworkAdapter'";
+
     if (get_var('UEFI')) {
-        hyperv_cmd("$ps Set-VMFirmware $name -EnableSecureBoot off ");
+        hyperv_cmd("$ps Set-VMFirmware $name -EnableSecureBoot off");
+        if (check_var('BOOTFROM', 'd')) {
+            hyperv_cmd($ps . ' "' . "\$dvd = Get-VMDvdDrive $name; Set-VMFirmware $name -BootOrder \$dvd" . '"');
+        }
+        else {
+            hyperv_cmd($ps . ' "' . "\$hd = Get-VMHardDiskDrive $name; Set-VMFirmware $name -BootOrder \$hd" . '"');
+            hyperv_cmd($ps . ' "' . "\$dvd = Get-VMDvdDrive $name; Set-VMFirmware $name -FirstBootDevice \$dvd" . '"') if get_var('ISO');
+        }
     }
     else {
+        # All booteble devices has to be enumerated all the time...
+        my $startup_order = (check_var('BOOTFROM', 'd') ? "'CD', 'VHD'" : "'VHD', 'CD'") . ", 'Floppy', 'NetworkAdapter'";
         hyperv_cmd($ps . ' "' . "Set-VMBios $name -StartupOrder @($startup_order)" . '"');
     }
 
@@ -168,14 +206,15 @@ sub run {
 
     # xfreerdp should be run with fullscreen option (/f) so the needle match.
     # Typing this string takes so long that we would miss grub menu, so...
+    my ($jobid) = get_required_var('NAME') =~ /(\d+)/;
+    my $xfreerdp_log = "/tmp/${jobid}-xfreerdp-${name}-\$(date +%s).log";
     type_string "rm -fv xfreerdp_${name}_stop* xfreerdp_${name}.log; while true; do inotifywait xfreerdp_${name}_stop; DISPLAY=:$xvncport xfreerdp /u:"
       . get_var('HYPERV_USERNAME') . " /p:'"
       . get_var('HYPERV_PASSWORD') . "' /v:"
       . get_var('HYPERV_SERVER')
-      . " /cert-ignore /vmconnect:$vmguid /f 2>&1 >> xfreerdp_${name}.log; echo $vmguid > xfreerdp_${name}_stop; done";
-    #      . " /cert-ignore /jpeg /jpeg-quality:100 /fast-path:1 /bpp:32 /vmconnect:$vmguid /f";
+      . " /cert-ignore /vmconnect:$vmguid /f /log-level:DEBUG 2>&1 > $xfreerdp_log; echo $vmguid > xfreerdp_${name}_stop; done; ";
 
-    hyperv_cmd("$ps Start-VM $name");
+    hyperv_cmd_with_retry("$ps Start-VM $name");
 
     # ...we execute the command right after VMs starts.
     send_key 'ret';

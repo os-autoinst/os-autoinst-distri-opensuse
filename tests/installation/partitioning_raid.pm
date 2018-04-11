@@ -9,13 +9,13 @@
 # without any warranty.
 
 # Summary: split the partitioning monster into smaller pieces
-# Maintainer: Stephan Kulow <coolo@suse.de>, Sergio Lindo Mansilla <slindomansilla@suse.com>
+# Maintainer: Sergio Lindo Mansilla <slindomansilla@suse.com>
 
 use strict;
 use warnings;
 use base 'y2logsstep';
 use testapi;
-use version_utils qw(is_storage_ng sle_version_at_least is_sle);
+use version_utils qw(is_storage_ng is_sle);
 
 # add a new primary partition
 #   $type == 3 => 0xFD Linux RAID
@@ -148,26 +148,15 @@ sub set_lvm {
     type_string "root";
     assert_screen 'volume-name-root';
     send_key $cmd{next};
+    assert_screen('volume-name-root-max-size');
     send_key $cmd{next};
 
     assert_screen 'volume-pick-fs-role';
-    send_key "alt-o";    # Operating System
+    send_key "alt-o";
+    assert_screen('volume-pick-os-role');
     send_key $cmd{next};
-    if (is_storage_ng) {
-        if (assert_screen [qw(volume-empty-mount volume-mount-as-root)]) {
-            # storage-ng does not suggest mount point for OS role volume,
-            # so mount the volume as root explicitly.
-            if (match_has_tag 'volume-empty-mount') {
-                record_soft_failure 'bsc#1073854 - new partition for OS has "do not mount device" option preselected';
-                send_key "alt-o";
-                assert_screen 'volume-mount-as-root';
-            }
-        }
-        send_key $cmd{next};
-    }
-
-    # keep default to mount as root and btrfs
-    wait_screen_change { send_key is_storage_ng() ? $cmd{next} : $cmd{finish}; };
+    assert_screen 'volume-mount-as-root';
+    send_key is_storage_ng() ? $cmd{next} : $cmd{finish};
 }
 
 sub modify_uefi_boot_partition {
@@ -253,18 +242,16 @@ sub add_raid_boot {
 }
 
 sub add_bios_boot_partition {
-    record_soft_failure 'bsc#1063844';    # Cannot add partition from menu option "hard disks"
     send_key_until_needlematch 'partitioning_raid-disk_vda-selected', 'down';
     addpart 'bios-boot';
     send_key 'down';
     send_key_until_needlematch 'custompart', 'left';
-    send_key 'alt-s';                     #System view
+    send_key 'alt-s';    #System view
     send_key_until_needlematch 'partitioning_raid-hard_disks-unfolded', 'right';
 }
 
 sub add_prep_boot_partition {
     if (is_storage_ng) {
-        record_soft_failure 'bsc#1063844';    # Cannot add partition from menu option "hard disks"
         send_key 'down';
         assert_screen 'partitioning_raid-disk_vda-selected';
         send_key 'alt-d';
@@ -285,8 +272,8 @@ sub add_prep_boot_partition {
         wait_screen_change { send_key $cmd{size_hotkey} };
     }
     wait_screen_change { send_key 'ctrl-a' };    # Select text field content
-    type_string "200 MB";
-    assert_screen 'partitioning_raid-custom-size-200MB';
+    type_string "8 MB";
+    assert_screen 'partitioning_raid-custom-size-8MB';
     send_key 'alt-n';
     assert_screen 'partition-role';
     send_key "alt-a";
@@ -300,8 +287,6 @@ sub add_prep_boot_partition {
     my $direction_key = (is_storage_ng) ? 'up' : 'down';
     send_key_until_needlematch 'filesystem-prep', $direction_key;
     send_key $cmd{exp_part_finish};
-    # Due to workaround for bsc#1063844 we are not back to "hard disks"
-    # tree item to see overview
     if (is_storage_ng) {
         send_key 'down';
         send_key_until_needlematch 'custompart', 'left';
@@ -480,7 +465,7 @@ sub run {
     # LVM on top of raid if needed
     if (get_var("LVM")) {
         set_lvm();
-        save_screenshot;
+        assert_screen('partitioning_raid-root_volume_created');
     }
 
     # done
@@ -510,4 +495,3 @@ sub run {
 }
 
 1;
-# vim: set sw=4 et:

@@ -17,6 +17,7 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
+use migration;
 
 sub run {
     # After being patched, original system is ready for upgrade
@@ -26,7 +27,21 @@ sub run {
         # Switch to upgrade target version and reload needles
         set_var('VERSION', $upgrade_target_version, reload_needles => 1);
     }
+
+    # Reset vars for upgrade on zVM
+    if (get_var('UPGRADE_ON_ZVM')) {
+        set_var('BETA',                1);
+        set_var('UPGRADE',             1);
+        set_var('AUTOYAST',            0);
+        set_var('DESKTOP',             'textmode');
+        set_var('SCC_REGISTER',        'installation');
+        set_var('REPO_UPGRADE_BASE_0', 0);
+        # Set this to load extra needle during scc registration in sle15
+        set_var('HDDVERSION', get_var('BASE_VERSION'));
+    }
+
+    record_info('Version', 'VERSION=' . get_var('VERSION'));
+    reset_consoles_tty;
 }
 
 1;
-# vim: set sw=4 et:

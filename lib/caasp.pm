@@ -16,30 +16,30 @@ use strict;
 use warnings;
 use testapi;
 use mmapi;
+use version_utils 'is_caasp';
 use utils qw(power_action assert_shutdown_and_restore_system);
 
-our @EXPORT = qw(handle_simple_pw process_reboot trup_call write_detail_output get_admin_job update_scheduled export_cluster_logs get_delayed_worker rpmver);
+our @EXPORT
+  = qw(handle_simple_pw process_reboot trup_call write_detail_output get_admin_job update_scheduled export_cluster_logs get_delayed_worker rpmver check_reboot_changes trup_install script_retry);
 
 # Return names and version of packages for transactional-update tests
 sub rpmver {
     my $q = shift;
     my $d = get_var 'DISTRI';
 
-    # package name | initial version | updated version
+    # package name | initial version
     my %rpm = (
         kubic => {
             fn => '5-2.1',
             in => '2.1',
-            up => '3.1'
         },
         caasp => {
             fn => '5-5.3.61',
             in => '5.3.61',
-            up => '5.30.1'
         });
 
     # Returns expected package version after installation / update
-    if ($q =~ /^(in|up)$/) {
+    if ($q eq 'in') {
         return $rpm{$d}{$q};
     }
     # Returns rpm path for initial installation
@@ -53,7 +53,7 @@ sub export_cluster_logs {
     script_run "journalctl > journal.log", 60;
     upload_logs "journal.log";
 
-    script_run 'supportconfig -i psuse_caasp -B supportconfig', 120;
+    script_run 'supportconfig -b -B supportconfig', 500;
     upload_logs '/var/log/nts_supportconfig.tbz';
 
     upload_logs('/var/log/transactional-update.log', failok => 1);
@@ -75,7 +75,12 @@ sub process_reboot {
     power_action('reboot', observe => !$trigger, keepconsole => 1);
 
     # No grub bootloader on xen-pv
-    # grub2 needle is unreliable (stalls during timeout) - poo#28648
+    # caasp - grub2 needle is unreliable (stalls during timeout) - poo#28648
+    # kubic - will risk occasional failure because it disabled grub2 timeout
+    if (is_caasp 'kubic') {
+        assert_screen 'grub2';
+        send_key 'ret';
+    }
 
     assert_screen 'linux-login-casp', 180;
     select_console 'root-console';
@@ -99,6 +104,39 @@ sub trup_call {
     }
     wait_serial 'trup-0-' if $check == 1;
     wait_serial 'trup-1-' if $check == 2;
+}
+
+# Reboot if there's a diff between the current FS and the new snapshot
+sub check_reboot_changes {
+    # rebootmgr has to be turned off as prerequisity for this to work
+    script_run "rebootmgrctl set-strategy off";
+
+    my $change_expected = shift // 1;
+
+    # Compare currently mounted and default subvolume
+    my $time    = time;
+    my $mounted = "mnt-$time";
+    my $default = "def-$time";
+    assert_script_run "mount | grep 'on / ' | egrep -o 'subvolid=[0-9]*' | cut -d'=' -f2 > $mounted";
+    assert_script_run "btrfs su get-default / | cut -d' ' -f2 > $default";
+    my $change_happened = script_run "diff $mounted $default";
+
+    # If changes are expected check that default subvolume changed
+    die "Error during diff" if $change_happened > 1;
+    die "Change expected: $change_expected, happeed: $change_happened" if $change_expected != $change_happened;
+
+    # Reboot into new snapshot
+    process_reboot 1 if $change_happened;
+}
+
+# Install a pkg in Kubic
+sub trup_install {
+    # rebootmgr has to be turned off as prerequisity for this to work
+    script_run "rebootmgrctl set-strategy off";
+    my $package = shift;
+    trup_call("pkg install $package");
+    process_reboot 1;
+    assert_script_run("rpm -qi $package");
 }
 
 # Function for writing custom text boxes for the test job
@@ -185,6 +223,26 @@ sub update_scheduled {
     }
     else {
         return get_job_info(get_controller_job)->{settings}->{INCIDENT_REPO};
+    }
+}
+
+# Repeat command until expected result or timeout
+# script_retry 'ping -c1 -W1 machine', retry => 5
+sub script_retry {
+    my ($cmd, %args) = @_;
+    my $ecode = $args{expect} // 0;
+    my $retry = $args{retry} // 10;
+    my $delay = $args{delay} // 30;
+
+    my $ret;
+    for (1 .. $retry) {
+        type_string "# Trying $_ of $retry:\n";
+
+        $ret = script_run($cmd);
+        last if defined($ret) && $ret == $ecode;
+
+        die("Waiting for Godot: $cmd") if $retry == $_;
+        sleep $delay;
     }
 }
 

@@ -5,8 +5,7 @@ use bootloader_setup qw(boot_local_disk tianocore_enter_menu zkvm_add_disk zkvm_
 use testapi;
 use strict;
 use utils;
-use version_utils qw(is_sle is_leap sle_version_at_least leap_version_at_least is_upgrade);
-
+use version_utils qw(is_sle is_leap is_upgrade);
 
 # Base class for all openSUSE tests
 
@@ -123,13 +122,13 @@ sub investigate_yast2_failure {
 
     # first check if badlist exists which could be the most likely problem
     if (my $badlist = script_output 'test -f /var/log/YaST2/badlist && cat /var/log/YaST2/badlist | tail -n 20 || true') {
-        record_info 'Likely error detected: badlist', "badlist content:\n\n$badlist", 'fail';
+        record_info 'Likely error detected: badlist', "badlist content:\n\n$badlist", result => 'fail';
     }
     if (my $y2log_internal_error = script_output 'grep -B 3 \'Internal error. Please report a bug report\' /var/log/YaST2/y2log | tail -n 20 || true') {
-        record_info 'Internal error in YaST2 detected', "Details:\n\n$y2log_internal_error", 'fail';
+        record_info 'Internal error in YaST2 detected', "Details:\n\n$y2log_internal_error", result => 'fail';
     }
     elsif (my $y2log_other_error = script_output 'grep -B 3 \'<3>\' /var/log/YaST2/y2log | tail -n 20 || true') {
-        record_info 'Other error in YaST2 detected', "Details:\n\n$y2log_other_error", 'fail';
+        record_info 'Other error in YaST2 detected', "Details:\n\n$y2log_other_error", result => 'fail';
     }
 }
 
@@ -176,6 +175,11 @@ sub export_logs {
     $self->investigate_yast2_failure();
 }
 
+sub upload_packagekit_logs {
+    my ($self) = @_;
+    upload_logs '/var/log/pk_backend_zypp';
+}
+
 # Set a simple reproducible prompt for easier needle matching without hostname
 sub set_standard_prompt {
     my ($self, $user) = @_;
@@ -189,20 +193,10 @@ sub select_bootmenu_more {
 
     # after installation-images 14.210 added a submenu
     if ($more && check_screen "inst-submenu-more", 1) {
-        if (get_var('OFW')) {
-            send_key_until_needlematch 'inst-onmore', 'up';
-        }
-        else {
-            send_key_until_needlematch('inst-onmore', 'down', 10, 5);
-        }
+        send_key_until_needlematch('inst-onmore', get_var('OFW') ? 'up' : 'down', 10, 5);
         send_key "ret";
     }
-    if (get_var('OFW')) {
-        send_key_until_needlematch $tag, 'up';
-    }
-    else {
-        send_key_until_needlematch($tag, 'down', 10, 3);
-    }
+    send_key_until_needlematch($tag, get_var('OFW') ? 'up' : 'down', 10, 3);
     if (get_var('UEFI')) {
         send_key 'e';
         send_key 'down' for (1 .. 4);
@@ -210,7 +204,7 @@ sub select_bootmenu_more {
         # newer versions of qemu on arch automatically add 'console=ttyS0' so
         # we would end up nowhere. Setting console parameter explicitly
         # See https://bugzilla.suse.com/show_bug.cgi?id=1032335 for details
-        type_string_slow ' console=tty1' if get_var('MACHINE', '') =~ /aarch64/;
+        type_string_slow ' console=tty1' if get_var('MACHINE') =~ /aarch64/;
         # Hyper-V defaults to 1280x1024, we need to fix it here
         type_hyperv_fb_video_resolution if check_var('VIRSH_VMM_FAMILY', 'hyperv');
         send_key 'f10';
@@ -347,6 +341,7 @@ sub wait_boot {
             save_svirt_pty;
             type_line_svirt '', expect => $login_ready, timeout => $ready_time + 100, fail_message => 'Could not find login prompt';
             $self->rewrite_static_svirt_network_configuration();
+            type_line_svirt "systemctl is-active sshd", expect => 'active';
         }
 
         # on z/(K)VM we need to re-select a console
@@ -372,7 +367,7 @@ sub wait_boot {
         # booted so we have to handle that
         # because of broken firmware, bootindex doesn't work on aarch64 bsc#1022064
         push @tags, 'inst-bootmenu' if ((get_var('USBBOOT') and get_var('UEFI')) || (check_var('ARCH', 'aarch64') and get_var('UEFI')) || get_var('OFW'));
-        $self->handle_uefi_boot_disk_workaround if (get_var('MACHINE') =~ qr'aarch64' && get_var('BOOT_HDD_IMAGE') && !$in_grub);
+        $self->handle_uefi_boot_disk_workaround if (get_var('MACHINE') =~ /aarch64/ && get_var('UEFI') && get_var('BOOT_HDD_IMAGE') && !$in_grub);
         check_screen(\@tags, $bootloader_time);
         if (match_has_tag("bootloader-shim-import-prompt")) {
             send_key "down";
@@ -401,6 +396,7 @@ sub wait_boot {
             # check_screen timeout
             die "needle 'grub2' not found";
         }
+        wait_supportserver if get_var('USE_SUPPORT_SERVER');
         # confirm default choice
         send_key 'ret';
     }
@@ -495,7 +491,7 @@ under test, the version and if the SUT is an upgrade.
 
 =cut
 sub firewall {
-    my $old_product_versions = (is_sle && !sle_version_at_least('15')) || (is_leap && !leap_version_at_least('15.0'));
+    my $old_product_versions = is_sle('<15') || is_leap('<15.0');
     my $upgrade_from_susefirewall = is_upgrade && get_var('HDD_1') =~ /\b(1[123]|42)[\.-]/;
     return ($old_product_versions || $upgrade_from_susefirewall) ? 'SuSEfirewall2' : 'firewalld';
 }

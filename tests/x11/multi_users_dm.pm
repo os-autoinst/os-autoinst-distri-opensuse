@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -11,7 +11,7 @@
 # Summary: Test if login manager is usable with many users
 #   This test checks if many users make the login manager hard to use
 #   i.e. if it takes more than one click to access the username text field
-# Maintainer: Dominik Heidler <dheidler@suse.de>
+# Maintainer: Dominik Heidler <dheidler@suse.de>, Rodion Iafarov <riafarov@suse.com>
 # Tags: poo#9694
 
 use base "x11test";
@@ -20,7 +20,7 @@ use testapi;
 use utils;
 
 sub ensure_multi_user_target {
-    systemctl 'isolate multi-user.target';
+    type_string "systemctl isolate multi-user.target\n";
     reset_consoles;
     wait_still_screen 10;
     # isolating multi-user.target logs us out
@@ -28,7 +28,7 @@ sub ensure_multi_user_target {
 }
 
 sub ensure_graphical_target {
-    systemctl 'isolate graphical.target';
+    type_string "systemctl isolate graphical.target\n";
     reset_consoles;
 }
 
@@ -91,4 +91,3 @@ sub run {
 }
 
 1;
-# vim: set sw=4 et:

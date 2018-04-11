@@ -24,7 +24,7 @@ use testapi;
 use utils;
 use registration;
 use qam qw/remove_test_repositories/;
-use version_utils 'sle_version_at_least';
+use version_utils qw(sle_version_at_least is_sle);
 
 our @EXPORT = qw(
   setup_migration
@@ -32,6 +32,8 @@ our @EXPORT = qw(
   remove_ltss
   disable_installation_repos
   record_disk_info
+  check_rollback_system
+  reset_consoles_tty
 );
 
 sub setup_migration {
@@ -39,8 +41,15 @@ sub setup_migration {
     select_console 'root-console';
 
     # stop packagekit service
-    systemctl 'mask packagekit.service';
-    systemctl 'stop packagekit.service';
+    # Systemd is not available on SLE11
+    # skip this part if the version below SLE12
+    if (is_sle && sle_version_at_least('12')) {
+        systemctl 'mask packagekit.service';
+        systemctl 'stop packagekit.service';
+    }
+    else {
+        assert_script_run "chmod 444 /usr/sbin/packagekitd";
+    }
 
     ensure_serialdev_permissions;
 
@@ -103,5 +112,34 @@ sub record_disk_info {
     assert_script_run 'df -h > /tmp/df.txt';
     upload_logs '/tmp/df.txt';
 }
+
+# System check after snapper rollback
+sub check_rollback_system {
+    # Check if repos are rolled back to correct version
+    script_run("zypper lr -u | tee /dev/$serialdev");
+    my $incorrect_repos = script_output("
+        version=\$(grep VERSION= /etc/os-release | cut -d'=' -f2 | cut -d' ' -f1 | sed 's/\"//g')
+        base_version=\$(echo \$version | cut -d'-' -f1)
+        zypper lr | cut -d'|' -f3 | gawk '/SLE/ || /openSUSE/' | sed \"/\$version\\|Module.*\$base_version/d\"
+    ", 100);
+    record_info('Incorrect Repos', $incorrect_repos, result => 'fail') if $incorrect_repos;
+
+    return unless is_sle;
+    # Check SUSEConnect status for SLE
+    # check rollback-helper service is enabled and worked properly
+    systemctl('is-active rollback');
+
+    # Verify registration status matches current system version
+    # system is un-registered during media based upgrade
+    assert_script_run('curl -s ' . data_url('console/check_registration_status.py') . ' | python') unless get_var('MEDIA_UPGRADE');
+}
+
+# Reset tty for x11 and root consoles
+sub reset_consoles_tty {
+    console('x11')->set_tty(get_x11_console_tty);
+    console('root-console')->set_tty(get_root_console_tty);
+    reset_consoles;
+}
+
 1;
 # vim: sw=4 et

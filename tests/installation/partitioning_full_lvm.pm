@@ -22,27 +22,23 @@ use version_utils 'is_storage_ng';
 
 sub run {
     create_new_partition_table;
-    if (check_var('ARCH', 'ppc64le')) {    # ppc64le always needs PReP boot
-        addpart(role => 'raw', size => 500, fsid => 'PReP');
+    if (get_var('OFW')) {    # ppc64le always needs PReP boot
+        addpart(role => 'raw', size => 8, fsid => 'PReP');
     }
-    elsif (get_var('UEFI')) {              # UEFI needs partition mounted to /boot/efi for
-        addpart(role => 'efi', size => 100);
+    elsif (get_var('UEFI')) {    # UEFI needs partition mounted to /boot/efi for
+        addpart(role => 'efi', size => 256);
     }
     elsif (is_storage_ng && check_var('ARCH', 'x86_64')) {
         # Storage-ng has GPT by defaut, so need bios-boot partition for legacy boot, which is only on x86_64
-        addpart(role => 'raw', fsid => 'bios-boot', size => 1);
+        addpart(role => 'raw', fsid => 'bios-boot', size => 2);
     }
     elsif (check_var('ARCH', 's390x')) {
         # s390x need /boot/zipl on ext partition
         addpart(role => 'OS', size => 500, format => 'ext2', mount => '/boot/zipl');
     }
 
-    # ppc with lvm requires separate boot on storage-ng or if want to test with UNENCRYPTED_BOOT set to true
     if (get_var('UNENCRYPTED_BOOT')) {
         addpart(role => 'OS', size => 500, format => 'ext2', mount => '/boot');
-    }
-    elsif (check_var('ARCH', 'ppc64le') && is_storage_ng) {
-        addpart(role => 'OS', size => 500, format => 'ext2', mount => '/boot', encrypt => 1);
     }
 
     addpart(role => 'raw', encrypt => 1);
@@ -63,15 +59,7 @@ sub run {
     send_key(is_storage_ng() ? $cmd{next} : $cmd{finish});
     addlv(name => 'lv-swap', role => 'swap', size => 2000);
     assert_screen 'expert-partitioner';
-
-    if (is_storage_ng) {
-        # Mount point is not preselected for OS role in storage-ng
-        record_soft_failure("bsc#1073854");
-        addlv(name => 'lv-root', role => 'OS', mount => '/');
-    }
-    else {
-        addlv(name => 'lv-root', role => 'OS');
-    }
+    addlv(name => 'lv-root', role => 'OS');
     assert_screen 'expert-partitioner';
     send_key $cmd{accept};
     if (get_var('UNENCRYPTED_BOOT')) {
@@ -83,4 +71,3 @@ sub run {
 }
 
 1;
-# vim: set sw=4 et:

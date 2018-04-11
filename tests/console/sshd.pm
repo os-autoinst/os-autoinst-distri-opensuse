@@ -16,6 +16,7 @@ use base "consoletest";
 use strict;
 use testapi;
 use utils;
+use version_utils 'is_virtualization_server';
 
 # check if sshd works
 sub run {
@@ -26,7 +27,7 @@ sub run {
 
     select_console 'root-console';
 
-    systemctl 'stop ' . $self->firewall;
+    systemctl 'stop ' . $self->firewall if !is_virtualization_server;
     script_run('chkconfig sshd on');
     assert_script_run("chkconfig sshd on", 60);
     assert_script_run("rcsshd restart",    60);    # will do nothing if it is already running
@@ -56,4 +57,3 @@ sub run {
 }
 
 1;
-# vim: set sw=4 et:

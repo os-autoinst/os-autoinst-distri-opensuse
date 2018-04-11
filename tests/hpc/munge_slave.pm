@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -21,13 +21,15 @@ use utils;
 sub run {
     my $self = shift;
 
-    # set proper hostname
-    assert_script_run('hostnamectl set-hostname munge-slave');
+    # Synchronize with master
+    mutex_lock("MUNGE_MASTER_BARRIERS_CONFIGURED");
+    mutex_unlock("MUNGE_MASTER_BARRIERS_CONFIGURED");
 
     # install munge, wait for master and munge key
     zypper_call('in munge');
     barrier_wait('MUNGE_INSTALLATION_FINISHED');
     mutex_lock('MUNGE_KEY_COPIED');
+    mutex_unlock('MUNGE_KEY_COPIED');
 
     # start and enable munge
     $self->enable_and_start('munge');
@@ -35,9 +37,13 @@ sub run {
 
     # wait for master to finish
     mutex_lock('MUNGE_DONE');
+    mutex_unlock('MUNGE_DONE');
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->upload_service_log('munge');
 }
 
 1;
-
-# vim: set sw=4 et:
 

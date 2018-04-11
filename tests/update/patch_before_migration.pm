@@ -24,17 +24,20 @@ sub is_smt_or_module_tests {
 sub patching_sle {
     my ($self) = @_;
 
-    set_var("VIDEOMODE",    'text');
-    set_var("SCC_REGISTER", 'installation');
-    # remember we perform registration on pre-created HDD images
-    if (sle_version_at_least('12-SP2', version_variable => 'HDDVERSION')) {
-        set_var('HDD_SP2ORLATER', 1);
-    }
+    # Skip registration here since we use autoyast profile to register origin system on zVM
+    if (!get_var('UPGRADE_ON_ZVM')) {
+        set_var("VIDEOMODE",    'text');
+        set_var("SCC_REGISTER", 'installation');
+        # remember we perform registration on pre-created HDD images
+        if (sle_version_at_least('12-SP2', version_variable => 'HDDVERSION')) {
+            set_var('HDD_SP2ORLATER', 1);
+        }
 
-    assert_script_run("zypper lr && zypper mr --disable --all");
-    save_screenshot;
-    sle_register("register");
-    assert_script_run('zypper lr -d');
+        assert_script_run("zypper lr && zypper mr --disable --all");
+        save_screenshot;
+        sle_register("register");
+        assert_script_run('zypper lr -d');
+    }
 
     # install all patterns
     install_patterns() if (get_var('PATTERNS'));
@@ -52,11 +55,18 @@ sub patching_sle {
 
     if (get_var('FULL_UPDATE')) {
         fully_patch_system();
-        type_string "reboot\n";
-        $self->wait_boot(textmode => !is_desktop_installed(), ready_time => 600, bootloader_time => 200);
+        # Update origin system on zVM that is controlled by autoyast profile and reboot is done by end of autoyast installation
+        # So we skip reboot here after fully patched on zVM to reduce times of reconnection to s390x
+        if (!get_var('UPGRADE_ON_ZVM')) {
+            # Perform sync ahead of reboot to flush filesystem buffers that probably reduce time of sync during rebooting
+            # In the case no need to always enlarge timeout of wait_boot
+            assert_script_run 'sync', 600;
+            type_string "reboot\n";
+            $self->wait_boot(textmode => !is_desktop_installed(), ready_time => 600, bootloader_time => 250);
 
-        # Go back to the initial state, before the patching
-        $self->setup_migration();
+            # Go back to the initial state, before the patching
+            $self->setup_migration();
+        }
     }
 
     if (get_var('FLAVOR', '') =~ /-(Updates|Incidents)$/ || get_var('KEEP_REGISTERED')) {
@@ -139,10 +149,23 @@ sub sle_register {
             yast_scc_registration();
         }
         else {
-            my $reg_code = get_required_var("NCC_REGCODE");
-            my $reg_mail = get_required_var("NCC_MAIL");
-            assert_script_run('suse_register -e');
-            assert_script_run("suse_register -n -a email=$reg_mail -a regcode-sles=$reg_code", 300);
+            # Erase all local files created from a previous executed registration
+            assert_script_run('suse_register -E');
+            # Register SLE 11 to SMT server
+            my $smt_url = get_var('SMT_URL', '');
+            if ($smt_url) {
+                my $setup_script = 'clientSetup4SMT.sh';
+                assert_script_run("wget $smt_url/repo/tools/$setup_script" =~ s/https/http/r);
+                assert_script_run("chmod +x $setup_script");
+                assert_script_run("echo y | ./$setup_script $smt_url/center/regsvc");
+                assert_script_run("suse_register -n");
+            }
+            # Otherwise, register SLE 11 to NCC server
+            else {
+                my $reg_code = get_required_var("NCC_REGCODE");
+                my $reg_mail = get_required_var("NCC_MAIL");
+                assert_script_run("suse_register -n -a email=$reg_mail -a regcode-sles=$reg_code", 300);
+            }
         }
     }
     # Unregister sle after update

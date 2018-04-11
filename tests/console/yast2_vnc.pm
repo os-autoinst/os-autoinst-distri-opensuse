@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2016 SUSE LLC
+# Copyright (c) 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -14,10 +14,11 @@ use strict;
 use base "console_yasttest";
 use testapi;
 use utils;
-use version_utils qw(is_leap is_sle sle_version_at_least leap_version_at_least);
+use version_utils qw(is_leap is_sle);
 
 
 sub run {
+    my $self = shift;
     select_console 'root-console';
 
     # check network at first
@@ -26,7 +27,7 @@ sub run {
     # install components to test plus dependencies for checking
     my $packages = 'vncmanager xorg-x11';
     # netstat is deprecated in newer versions, use 'ss' instead
-    my $use_nettools = (is_sle && !sle_version_at_least('15')) || (is_leap && !leap_version_at_least('15.0'));
+    my $use_nettools = is_sle('<15') || is_leap('<15.0');
     $packages .= ' net-tools' if $use_nettools;
     zypper_call("in $packages");
 
@@ -34,41 +35,53 @@ sub run {
     script_run("yast2 remote; echo yast2-remote-status-\$? > /dev/$serialdev", 0);
 
     # check Remote Administration VNC got started
-    assert_screen([qw(yast2_vnc_remote_administration yast2_still_susefirewall2)], 90);
-    if (match_has_tag 'yast2_still_susefirewall2') {
-        record_soft_failure "bsc#1059569";
-        send_key 'alt-i';
-        assert_screen 'yast2_vnc_remote_administration';
-    }
-
+    assert_screen 'yast2_vnc_remote_administration';
     # enable remote administration
     send_key 'alt-a';
-    wait_still_screen;
-
-    # open port in firewall if it is eanbaled and check network interfaces, check long text by send key right.
-    if (check_screen 'yast2_vnc_open_port_firewall') {
-        send_key 'alt-p';
-        send_key 'alt-d';
-        assert_screen 'yast2_vnc_firewall_port_details';
-        send_key 'alt-e';
-        for (1 .. 5) { send_key 'right'; }
-        send_key 'alt-a';
-        send_key 'alt-o';
+    if (is_sle('<15') || is_leap('<15.0')) {
+        # open port in firewall if it is eanbaled and check network interfaces, check long text by send key right.
+        if (check_screen 'yast2_vnc_open_port_firewall') {
+            send_key 'alt-p';
+            send_key 'alt-d';
+            assert_screen 'yast2_vnc_firewall_port_details';
+            send_key 'alt-e';
+            for (1 .. 5) { send_key 'right'; }
+            send_key 'alt-a';
+            send_key 'alt-o';
+        }
+        send_key 'alt-o';    # ok
     }
-
-    # finish configuration with OK
-    send_key 'alt-o';
-    wait_still_screen;
-
+    else {
+        assert_screen 'yast2_vnc_firewall_port_closed';
+        send_key 'alt-f';    # Open port
+        assert_screen 'yast2_vnc_firewall_port_open';
+        send_key 'alt-n';    # next
+    }
     # confirm with OK for Warning dialogue
     assert_screen 'yast2_vnc_warning_text';
     send_key 'alt-o';
-
     wait_serial('yast2-remote-status-0', 60) || die "'yast2 remote' didn't finish";
 
-    # check vnc port is listening
-    assert_script_run $use_nettools ? 'netstat' : 'ss' . ' -tl | grep 5901 | grep LISTEN';
+    # Check service listening
+    my $cmd_check_port = $use_nettools ? 'netstat' : 'ss' . ' -tln | grep -E LISTEN.*:5901';
+    if (script_run($cmd_check_port)) {
+        record_soft_failure 'boo#1088646 - service vncmanager is not started automatically';
+        systemctl('status vncmanager', expect_false => 1);
+        systemctl('restart vncmanager');
+        systemctl('status vncmanager');
+        assert_script_run $cmd_check_port;
+    }
+
+    # Check firewall open for vnc
+    if ($self->firewall eq 'firewalld') {
+        my $cmd_check_firewall = 'firewall-cmd --list-all | grep vnc-server';
+        if (script_run($cmd_check_firewall)) {
+            record_soft_failure 'boo#1088647 - firewalld does not create rule for vnc';
+            assert_script_run('firewall-cmd --zone=public --add-service=vnc-server --permanent');
+            assert_script_run('firewall-cmd --reload');
+            assert_script_run($cmd_check_firewall);
+        }
+    }
 }
 1;
 
-# vim: set sw=4 et:

@@ -18,7 +18,7 @@ sub run {
     my ($self) = @_;
     select_console 'root-console';
 
-    my $snapfile     = '/root/snapfile';
+    my $snapfile     = '/etc/snapfile';
     my @snapper_runs = 'snapper';
     push @snapper_runs, 'snapper --no-dbus' if get_var('SNAPPER_NODBUS');
 
@@ -26,7 +26,7 @@ sub run {
         $self->snapper_nodbus_setup if $snapper =~ /dbus/;
 
         assert_script_run "snapbf=`$snapper create -p -d 'before undochange test'`", 90;
-        script_run "date > $snapfile";
+        script_run "date > $snapfile";    # simulate system changing by adding new dummy file
         assert_script_run "snapaf=`$snapper create -p -d 'after undochange test'`", 90;
 
         # Delete snapfile
@@ -46,4 +46,3 @@ sub run {
 
 1;
 
-# vim: set sw=4 et:

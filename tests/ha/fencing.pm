@@ -17,22 +17,15 @@ use lockapi;
 use hacluster;
 
 sub run {
-    # 'barrier_wait' needs to be done separately to ensure that
-    # 'reset_consoles' as been done on all nodes before fencing
-    if (is_node(2)) {
-        barrier_wait("BEFORE_FENCING_$cluster_name");
+    my $cluster_name = get_cluster_name;
 
-        # Fence the node
-        assert_script_run 'crm -F node fence ' . get_var('HA_CLUSTER_JOIN');
+    # Check cluster state *before* fencing
+    barrier_wait("CHECK_BEFORE_FENCING_BEGIN_$cluster_name");
+    check_cluster_state;
+    barrier_wait("CHECK_BEFORE_FENCING_END_$cluster_name");
 
-        # Wait a little to be sure that fence command is on his way
-        sleep 60;
-    }
-    else {
-        reset_consoles;
-        barrier_wait("BEFORE_FENCING_$cluster_name");
-    }
+    # Fence the master node
+    assert_script_run 'crm -F node fence ' . get_node_to_join if is_node(2);
 }
 
 1;
-# vim: set sw=4 et:

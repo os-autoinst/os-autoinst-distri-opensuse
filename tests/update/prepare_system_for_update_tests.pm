@@ -37,8 +37,7 @@ sub test_flags {
 sub post_fail_hook {
     my ($self) = @_;
     $self->SUPER::post_fail_hook;
-    upload_logs '/var/log/pk_backend_zypp';
+    $self->upload_packagekit_logs;
 }
 
 1;
-# vim: set sw=4 et:

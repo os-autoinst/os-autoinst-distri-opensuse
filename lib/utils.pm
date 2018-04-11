@@ -21,8 +21,10 @@ use Exporter;
 use strict;
 
 use testapi qw(is_serial_terminal :DEFAULT);
+use lockapi;
 use mm_network;
-use version_utils qw(is_caasp is_leap is_tumbleweed is_sle is_sle12_hdd_in_upgrade leap_version_at_least sle_version_at_least is_storage_ng);
+use version_utils qw(is_caasp is_leap is_tumbleweed is_sle is_sle12_hdd_in_upgrade sle_version_at_least is_storage_ng);
+use Mojo::UserAgent;
 
 our @EXPORT = qw(
   check_console_font
@@ -40,6 +42,7 @@ our @EXPORT = qw(
   workaround_type_encrypted_passphrase
   ensure_unlocked_desktop
   install_to_other_at_least
+  is_bridged_networking
   ensure_fullscreen
   reboot_x11
   poweroff_x11
@@ -50,8 +53,11 @@ our @EXPORT = qw(
   systemctl
   addon_decline_license
   addon_license
+  addon_products_is_applicable
+  noupdatestep_is_applicable
   validate_repos
   turn_off_kde_screensaver
+  turn_off_gnome_screensaver
   random_string
   handle_login
   handle_logout
@@ -67,6 +73,11 @@ our @EXPORT = qw(
   arrays_differ
   ensure_serialdev_permissions
   assert_and_click_until_screen_change
+  exec_and_insert_password
+  shorten_url
+  reconnect_s390
+  set_hostname
+  wait_supportserver
 );
 
 
@@ -114,8 +125,9 @@ sub unlock_if_encrypted {
 
     return unless get_var("ENCRYPT");
 
-    if (check_var('ARCH', 's390x') && check_var('BACKEND', 'svirt')) {
+    if (get_var('S390_ZKVM')) {
         my $password = $testapi::password;
+        select_console('svirt');
 
         # enter passphrase twice (before grub and after grub) if full disk is encrypted
         if (get_var('FULL_LVM_ENCRYPT')) {
@@ -148,6 +160,18 @@ sub turn_off_kde_screensaver {
     assert_screen 'screenlock-disabled';
     send_key("alt-o");
 }
+
+=head2 turn_off_gnome_screensaver
+
+  turn_off_gnome_screensaver()
+
+Disable screensaver in gnome. To be called from a command prompt, for example an xterm window.
+
+=cut
+sub turn_off_gnome_screensaver {
+    script_run 'gsettings set org.gnome.desktop.session idle-delay 0';
+}
+
 
 # 'ctrl-l' does not get queued up in buffer. If this happens to fast, the
 # screen would not be cleared
@@ -190,7 +214,8 @@ sub prepare_system_shutdown {
 sub assert_gui_app {
     my ($application, %args) = @_;
     ensure_installed($application) if $args{install};
-    x11_start_program("$application $args{exec_param}", target_match => "test-$application-started");
+    my $params = $args{exec_param} ? " $args{exec_param}" : '';
+    x11_start_program($application . $params, target_match => "test-$application-started");
     send_key "alt-f4" unless $args{remain};
 }
 
@@ -264,33 +289,28 @@ sub zypper_call {
     my $log              = $args{log};
     my $dumb_term        = $args{dumb_term};
 
-    my $str = hashed_string("ZN$command");
-    my $redirect = is_serial_terminal() ? '' : " > /dev/$serialdev";
+    my $printer = $log ? "| tee /tmp/$log" : $dumb_term ? '| cat' : '';
 
-    if ($log) {
-        script_run("zypper -n $command | tee /tmp/$log; echo $str-\${PIPESTATUS}-$redirect", 0);
+    # Retrying workarounds
+    my $ret;
+    for (1 .. 3) {
+        $ret = script_run("zypper -n $command $printer; ( exit \${PIPESTATUS[0]} )", $timeout);
+        die "zypper did not finish in $timeout seconds" unless defined($ret);
+        if ($ret == 4) {
+            if (script_run('grep "Error code.*502" /var/log/zypper.log') == 0) {
+                record_soft_failure 'Retrying because of error 502 - bsc#1070851';
+                next;
+            }
+        }
+        last;
     }
-    elsif ($dumb_term) {
-        script_run("zypper -n $command | cat; echo $str-\${PIPESTATUS}-$redirect", 0);
-    }
-    else {
-        script_run("zypper -n $command; echo $str-\$?-$redirect", 0);
-    }
-
-    my $ret = wait_serial(qr/$str-\d+-/, $timeout);
-
     upload_logs("/tmp/$log") if $log;
 
-    if ($ret) {
-        my ($ret_code) = $ret =~ /$str-(\d+)/;
-        unless (grep { $_ == $ret_code } @$allow_exit_codes) {
-            upload_logs('/var/log/zypper.log');
-            die "'zypper -n $command' failed with code $ret_code";
-        }
-
-        return $ret_code;
+    unless (grep { $_ == $ret } @$allow_exit_codes) {
+        upload_logs('/var/log/zypper.log');
+        die "'zypper -n $command' failed with code $ret";
     }
-    die "zypper did not return an exitcode";
+    return $ret;
 }
 
 sub fully_patch_system {
@@ -329,9 +349,8 @@ sub workaround_type_encrypted_passphrase {
     # nothing to do if the boot partition is not encrypted in FULL_LVM_ENCRYPT
     return if get_var('UNENCRYPTED_BOOT');
     return if !get_var('ENCRYPT') && !get_var('FULL_LVM_ENCRYPT');
-    # ppc64le is always doing the opposite by default :)
-    # ppc storage-ng encrypt
-    return if (is_storage_ng && check_var('ARCH', 'ppc64le')) || (!is_storage_ng && !check_var('ARCH', 'ppc64le'));
+    # ppc64le on pre-storage-ng boot was part of encrypted LVM
+    return if !get_var('FULL_LVM_ENCRYPT') && !is_storage_ng && !get_var('OFW');
     # If the encrypted disk is "just activated" it does not mean that the
     # installer would propose an encrypted installation again
     return if get_var('ENCRYPT_ACTIVATE_EXISTING') && !get_var('ENCRYPT_FORCE_RECOMPUTE');
@@ -409,6 +428,42 @@ sub install_to_other_at_least {
     return sle_version_at_least($version, version_variable => "REAL_INSTALLED_VERSION");
 }
 
+sub is_bridged_networking {
+    my $ret = 0;
+    if (check_var('BACKEND', 'svirt') and !check_var('ARCH', 's390x')) {
+        my $vmm_family = get_required_var('VIRSH_VMM_FAMILY');
+        $ret = ($vmm_family =~ /xen|vmware|hyperv/);
+    }
+    # Some needles match hostname which we can't set permanently with bridge.
+    set_var('BRIDGED_NETWORKING', 1) if $ret;
+    return $ret;
+}
+
+=head2 set_hostname
+
+    set_hostname($hostname);
+
+Setting hostname according input parameter using hostnamectl.
+Calling I<reload-or-restart> to make sure that network stack will propogate
+hostname into DHCP/DNS
+
+if you change hostname using C<hostnamectl set-hostname>, then C<hostname -f>
+will fail with I<hostname: Name or service not known> also DHCP/DNS don't know
+about the changed hostname, you need to send a new DHCP request to update
+dynamic DNS yast2-network module does
+C<NetworkService.ReloadOrRestart if Stage.normal || !Linuxrc.usessh>
+if hostname is changed via C<yast2 lan>
+=cut
+sub set_hostname {
+    my ($hostname) = @_;
+    assert_script_run "hostnamectl set-hostname $hostname";
+    assert_script_run "hostnamectl status|grep $hostname";
+    assert_script_run "hostname|grep $hostname";
+    systemctl 'status network.service';
+    save_screenshot;
+    assert_script_run "if systemctl -q is-active network.service; then systemctl reload-or-restart network.service; fi";
+}
+
 sub ensure_fullscreen {
     my (%args) = @_;
     $args{tag} //= 'yast2-windowborder';
@@ -433,10 +488,20 @@ sub assert_shutdown_and_restore_system {
     assert_shutdown($shutdown_timeout);
     if ($action eq 'reboot') {
         reset_consoles;
+        my $svirt = console('svirt');
         # Set disk as a primary boot device
-        console('svirt')->change_domain_element(os => boot => {dev => 'hd'});
-        console('svirt')->define_and_start;
-        select_console($vnc_console);
+        if (check_var('ARCH', 's390x') or get_var('NETBOOT')) {
+            $svirt->change_domain_element(os => initrd  => undef);
+            $svirt->change_domain_element(os => kernel  => undef);
+            $svirt->change_domain_element(os => cmdline => undef);
+            $svirt->change_domain_element(on_reboot => undef);
+            $svirt->define_and_start;
+        }
+        else {
+            $svirt->change_domain_element(os => boot => {dev => 'hd'});
+            $svirt->define_and_start;
+            select_console($vnc_console);
+        }
     }
 }
 
@@ -655,7 +720,7 @@ sub power_action {
     }
     # Shutdown takes longer than 60 seconds on SLE 15
     my $shutdown_timeout = 60;
-    if (sle_version_at_least('15') && check_var('DISTRI', 'sle') && check_var('DESKTOP', 'gnome')) {
+    if (is_sle('15+') && check_var('DESKTOP', 'gnome')) {
         record_soft_failure('bsc#1055462');
         $shutdown_timeout *= 3;
     }
@@ -663,7 +728,9 @@ sub power_action {
         $shutdown_timeout *= 3;
         record_soft_failure("boo#1057637 shutdown_timeout increased to $shutdown_timeout (s) expecting to complete.");
     }
-    if (check_var('VIRSH_VMM_FAMILY', 'xen')) {
+    # no need to redefine the system when we boot from an existing qcow image
+    # Do not redefine if autoyast, as did initial reboot already
+    if (check_var('VIRSH_VMM_FAMILY', 'xen') || (get_var('S390_ZKVM') && !get_var('BOOT_HDD_IMAGE') && !get_var('AUTOYAST'))) {
         assert_shutdown_and_restore_system($action, $shutdown_timeout);
     }
     else {
@@ -671,7 +738,7 @@ sub power_action {
         # We should only reset consoles if the system really rebooted.
         # Otherwise the next select_console will check for a login prompt
         # instead of handling the still logged in system.
-        handle_livecd_reboot_failure if get_var('LIVECD');
+        handle_livecd_reboot_failure if get_var('LIVECD') && $action eq 'reboot';
         reset_consoles;
         if (check_var('BACKEND', 'svirt') && $action ne 'poweroff') {
             console('svirt')->start_serial_grab;
@@ -759,6 +826,14 @@ sub addon_license {
     send_key $cmd{next};
 }
 
+sub addon_products_is_applicable {
+    return !get_var('LIVECD') && get_var('ADDONURL');
+}
+
+sub noupdatestep_is_applicable {
+    return !get_var("UPGRADE");
+}
+
 sub random_string {
     my ($self, $length) = @_;
     $length //= 4;
@@ -768,7 +843,6 @@ sub random_string {
 
 sub handle_login {
     assert_screen 'displaymanager';    # wait for DM, then try to login
-    mouse_hide();
     wait_still_screen;
     if (get_var('ROOTONLY')) {
         if (check_screen 'displaymanager-username-notlisted', 10) {
@@ -783,9 +857,15 @@ sub handle_login {
     }
     elsif (check_var('DESKTOP', 'gnome')) {
         # DMs in condition above have to select user
-        if ((is_sle && sle_version_at_least('15')) || (is_leap && leap_version_at_least('15.0')) || is_tumbleweed) {
-            assert_and_click "displaymanager-$username";
-            record_soft_failure 'bgo#657996 - user account not selected by default, have to use mouse to login';
+        if (is_sle('15+') || is_leap('15.0+') || is_tumbleweed) {
+            assert_screen [qw(displaymanager-user-selected displaymanager-user-notselected)];
+            if (match_has_tag('displaymanager-user-notselected')) {
+                assert_and_click "displaymanager-$username";
+                record_soft_failure 'bsc#1086425- user account not selected by default, have to use mouse to login';
+            }
+            elsif (match_has_tag('displaymanager-user-selected')) {
+                send_key 'ret';
+            }
         }
         else {
             send_key 'ret';
@@ -932,9 +1012,8 @@ is running on tty2 by default. see also: bsc#1054782
 =cut
 sub get_x11_console_tty {
     my $new_gdm
-      = !(is_sle   && !sle_version_at_least('15'))
-      && !(is_leap && !leap_version_at_least('15.0'))
-      && !is_sle12_hdd_in_upgrade
+      = !is_sle('<15')
+      && !is_leap('<15.0')
       && !is_caasp
       && !get_var('VERSION_LAYERED');
     return (check_var('DESKTOP', 'gnome') && get_var('NOAUTOLOGIN') && $new_gdm) ? 2 : 7;
@@ -986,6 +1065,131 @@ sub ensure_serialdev_permissions {
     else {
         assert_script_run "chown $testapi::username /dev/$testapi::serialdev && gpasswd -a $testapi::username \$(stat -c %G /dev/$testapi::serialdev)";
     }
+}
+
+=head2 exec_and_insert_password
+
+    exec_and_insert_password($cmd);
+
+ 1. Execute a command that ask for a password.
+ 2. Detects password prompt
+ 3. Insert password and hits enter
+
+=cut
+sub exec_and_insert_password {
+    my ($cmd) = @_;
+    my $hashed_cmd = hashed_string("SR$cmd");
+    wait_serial(serial_terminal::serial_term_prompt(), undef, 0, no_regex => 1) if is_serial_terminal();
+    type_string "$cmd";
+    if (is_serial_terminal()) {
+        type_string " ; echo $hashed_cmd-\$?-\n";
+        wait_serial(qr/Password:\s*$/i);
+    }
+    else {
+        send_key 'ret';
+        assert_screen('password-prompt', 60);
+    }
+    type_password;
+    send_key "ret";
+    wait_serial(qr/$hashed_cmd-\d+-/) if is_serial_terminal();
+}
+
+=head2 shorten_url
+Shotren url via schort(s.qa.suse.de)
+This is mainly used for autoyast url shorten to avoid limit of x3270 xedit
+=cut
+sub shorten_url {
+    my ($url, %args) = @_;
+    $args{wishid} //= '';
+
+    my $ua = Mojo::UserAgent->new;
+
+    my $tx = $ua->post('s.qa.suse.de' => form => {url => $url, wishId => $args{wishid}});
+    if (my $res = $tx->success) {
+        return $res->body;
+    }
+    else {
+        my $err = $tx->error;
+        die "Shorten url got $err->{code} response: $err->{message}" if $err->{code};
+        die "Connection error when shorten url: $err->{message}";
+    }
+}
+
+sub _handle_login_not_found {
+    my ($str) = @_;
+    diag 'Expected welcome message not found, investigating bootup log content: ' . $str;
+    diag 'Checking for bootloader';
+    diag "WARNING: bootloader grub menue not found" unless $str =~ /GNU GRUB/;
+    diag 'Checking for ssh daemon';
+    diag "WARNING: ssh daemon in SUT is not available" unless $str =~ /Started OpenSSH Daemon/;
+    diag 'Checking for any welcome message';
+    die "no welcome message found, system seems to have never passed the bootloader (stuck or not enough waiting time)" unless $str =~ /Welcome to/;
+    diag 'Checking login target reached';
+    die "login target not reached" unless $str =~ /Reached target Login Prompts/;
+    diag 'Checking for login prompt';
+    die "no login prompt found" unless $str =~ /login:/;
+    diag 'Checking for known failure';
+    return record_soft_failure 'bsc#1040606 - incomplete message when LeanOS is implicitly selected instead of SLES'
+      if $str =~ /Welcome to SUSE Linux Enterprise 15/;
+    die "unknown error, system couldn't boot";
+}
+
+=head2 reconnect_s390
+After each reboot we have to reconnect to s390 host
+=cut
+sub reconnect_s390 {
+    my (%args) = @_;
+    $args{timeout} //= 300;
+
+    my $login_ready = qr/Welcome to SUSE Linux Enterprise Server.*\(s390x\)/;
+    console('installation')->disable_vnc_stalls;
+
+    # different behaviour for z/VM and z/KVM
+    if (check_var('BACKEND', 's390x')) {
+        my $r;
+        eval { $r = console('x3270')->expect_3270(output_delim => $login_ready, timeout => $args{timeout}); };
+        if ($@) {
+            my $ret = $@;
+            _handle_login_not_found($ret);
+        }
+        reset_consoles;
+
+        # reconnect the ssh for serial grab
+        select_console('iucvconn');
+    }
+    else {
+        my $r = wait_serial($login_ready, 300);
+        if ($r =~ qr/Welcome to SUSE Linux Enterprise 15/) {
+            record_soft_failure('bsc#1040606');
+        }
+        elsif (is_sle) {
+            $r =~ qr/Welcome to SUSE Linux Enterprise Server/ || die "Correct welcome string not found";
+        }
+    }
+
+    # SLE >= 15 does not offer auto-started VNC server in SUT, only login prompt as in textmode
+    if (!check_var('DESKTOP', 'textmode') && !sle_version_at_least('15')) {
+        select_console('x11', await_console => 0);
+    }
+}
+
+=head2 wait_supportserver
+
+  wait_supportserver():
+
+Wait for the support server to finish its initialization.
+Ideally, this should be done *before* starting the OS, mainly if a DHCP
+server is needed.
+
+=cut
+sub wait_supportserver {
+    return unless get_var('USE_SUPPORT_SERVER');
+
+    # We use mutex to do this
+    my $mutex = 'support_server_ready';
+    diag "Waiting for support server to complete setup (with mutex '$mutex')...";
+    mutex_lock($mutex);
+    mutex_unlock($mutex);
 }
 
 1;

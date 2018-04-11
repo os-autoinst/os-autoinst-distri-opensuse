@@ -16,7 +16,7 @@ use strict;
 use warnings;
 use parent qw(installation_user_settings y2logsstep);
 use testapi;
-use version_utils qw(sle_version_at_least is_storage_ng leap_version_at_least);
+use version_utils qw(sle_version_at_least is_storage_ng);
 use partition_setup 'enable_encryption_guided_setup';
 
 sub save_logs_and_resume {
@@ -110,4 +110,3 @@ sub run {
 }
 
 1;
-# vim: set sw=4 et:

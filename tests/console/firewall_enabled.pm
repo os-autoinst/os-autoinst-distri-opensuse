@@ -19,7 +19,7 @@ use testapi;
 sub run {
     my ($self) = @_;
     if ($self->firewall eq 'firewalld') {
-        assert_script_run('firewallctl state');
+        assert_script_run('firewall-cmd --state');
     }
     else {
         assert_script_run('SuSEfirewall2 status');

@@ -3,7 +3,7 @@ use base 'distribution';
 use serial_terminal ();
 use strict;
 use utils qw(type_string_slow ensure_unlocked_desktop save_svirt_pty get_root_console_tty get_x11_console_tty ensure_serialdev_permissions);
-use version_utils qw(is_hyperv_in_gui is_sle sle_version_at_least is_leap leap_version_at_least);
+use version_utils qw(is_hyperv_in_gui is_sle is_leap);
 
 # Base class implementation of distribution class necessary for testapi
 
@@ -106,7 +106,7 @@ sub init_cmd {
         $testapi::cmd{next} = "alt-s";
     }
 
-    if (!(is_sle && !sle_version_at_least('15')) && !(is_leap && !leap_version_at_least('15.0'))) {
+    if (!is_sle('<15') && !is_leap('<15.0')) {
         # SLE15/Leap15 use Chrony instead of ntp
         $testapi::cmd{sync_interval}       = "alt-i";
         $testapi::cmd{sync_without_daemon} = "alt-s";
@@ -118,7 +118,8 @@ sub init_cmd {
 sub init_desktop_runner {
     my ($program, $timeout) = @_;
 
-    send_key 'alt-f2';
+    send_key(check_var('DESKTOP', 'minimalx') ? 'super-spc' : 'alt-f2');
+
     mouse_hide(1);
     if (!check_screen('desktop-runner', $timeout)) {
         record_info('workaround', 'desktop-runner does not show up on alt-f2, retrying up to three times (see bsc#978027)');
@@ -174,7 +175,7 @@ sub x11_start_program {
     $args{valid}         //= 1;
     $args{target_match}  //= $program;
     $args{match_no_wait} //= 0;
-    die "no desktop-runner available on minimalx" if check_var('DESKTOP', 'minimalx');
+
     # Start desktop runner and type command there
     init_desktop_runner($program, $timeout);
     # With match_typed we check typed text and if doesn't match - retrying
@@ -190,14 +191,16 @@ sub x11_start_program {
     # after 'ret' press we should wait in this case nevertheless
     wait_still_screen(3) unless ($args{no_wait} || ($args{valid} && $args{target_match} && !check_var('DESKTOP', 'kde')));
     return unless $args{valid};
+    my @target = ref $args{target_match} eq 'ARRAY' ? @{$args{target_match}} : $args{target_match};
     for (1 .. 3) {
-        assert_screen([ref $args{target_match} eq 'ARRAY' ? @{$args{target_match}} : $args{target_match}, 'desktop-runner-border'],
-            $args{match_timeout}, no_wait => $args{match_no_wait});
+        assert_screen([@target, 'desktop-runner-border'], $args{match_timeout}, no_wait => $args{match_no_wait});
         last unless match_has_tag 'desktop-runner-border';
         wait_screen_change {
             send_key 'ret';
         };
     }
+    # asserting program came up properly
+    die "Did not find target needle for tag(s) '@target'" if match_has_tag 'desktop-runner-border';
 }
 
 sub ensure_installed {

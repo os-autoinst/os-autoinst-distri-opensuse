@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -24,7 +24,7 @@ sub accept_nodes {
     assert_and_click 'velum-bootstrap-accept-nodes';
     # Nodes are moved from pending
     my $nodes = get_required_var('STACK_NODES');
-    assert_screen_with_soft_timeout("velum-$nodes-nodes-accepted", timeout => 90, soft_timeout => 45, bugref => 'bsc#1046663');
+    assert_screen_with_soft_timeout("velum-$nodes-nodes-accepted", timeout => 150, soft_timeout => 45, bugref => 'bsc#1046663');
     mutex_create "NODES_ACCEPTED";
 }
 
@@ -115,31 +115,6 @@ sub bootstrap {
     assert_screen 'velum-bootstrap-done', 900;
 }
 
-# Download kubeconfig
-sub kubectl_config {
-    assert_and_click "velum-kubeconfig";
-
-    unless (check_screen('dex-login-page', 5)) {
-        record_soft_failure 'bsc#1062542 - dex is not be ready yet';
-        sleep 30;
-        send_key 'f5';
-    }
-    assert_screen 'dex-login-page';
-    velum_login;
-
-    assert_screen [qw(velum-kubeconfig-page velum-nonce-error)];
-    if (match_has_tag 'velum-nonce-error') {
-        record_soft_failure 'bsc#1081007 - Invalid ID Token: Nonce does not match';
-        assert_and_click "velum-kubeconfig";
-        assert_screen 'dex-login-page';
-        velum_login;
-        assert_screen 'velum-kubeconfig-page';
-    }
-
-    assert_and_click 'firefox-downloading-save_enabled';
-    assert_and_click 'velum-kubeconfig-back';
-}
-
 sub run {
     assert_screen [qw(velum-bootstrap-page velum-sorry velum-504)], 120;
     # CaaSP 2.0
@@ -160,9 +135,8 @@ sub run {
     select_master;
     bootstrap;
 
-    kubectl_config;
+    download_kubeconfig;
 }
 
 1;
 
-# vim: set sw=4 et:

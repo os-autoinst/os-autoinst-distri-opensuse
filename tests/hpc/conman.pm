@@ -24,10 +24,7 @@ use susedistribution;
 
 sub run {
     my $self = shift;
-    select_console 'root-console';
 
-    # install conman
-    pkcon_quit();
     zypper_call('in conman');
 
     # add serial console to conman.conf
@@ -77,5 +74,10 @@ sub run {
 
     send_key 'ctrl-d';
 }
+
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->upload_service_log('conman');
+}
+
 1;
-# vim: set sw=4 et:

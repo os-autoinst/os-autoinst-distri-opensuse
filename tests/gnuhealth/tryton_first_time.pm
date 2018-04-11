@@ -13,10 +13,10 @@
 use base 'x11test';
 use strict;
 use testapi;
-use version_utils 'leap_version_at_least';
+use version_utils qw(is_leap is_tumbleweed);
 
 sub run {
-    if (check_var('VERSION', 'Tumbleweed') || leap_version_at_least('42.3')) {
+    if (is_tumbleweed || is_leap('42.3+')) {
         wait_screen_change { send_key 'tab' };
         send_key 'ret';
         assert_screen 'tryton-login_password';
@@ -48,4 +48,3 @@ sub post_run_hook {
 }
 
 1;
-# vim: set sw=4 et:

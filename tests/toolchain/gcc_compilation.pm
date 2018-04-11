@@ -22,6 +22,10 @@ sub run {
     assert_script_run('make -j$(getconf _NPROCESSORS_ONLN) 2>&1 | tee /tmp/make.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi', 3600);
     assert_script_run('./gawk \'{ print }\' /etc/hostname');
     save_screenshot;
+
+    # poo#33376: added to investigate OOM
+    assert_script_run 'free -m';
+    save_screenshot;
 }
 
 sub post_fail_hook {
@@ -32,4 +36,3 @@ sub post_fail_hook {
 }
 
 1;
-# vim: set sw=4 et:

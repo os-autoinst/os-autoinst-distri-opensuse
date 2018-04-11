@@ -29,7 +29,21 @@ sub run {
     }
     assert_screen 'oci-overview', $timeout;
     mouse_hide;
+
+    # Check release notes
+    if (check_var('VIDEOMODE', 'text')) {
+        send_key 'alt-e';
+        assert_screen 'release-notes-' . get_var('VERSION');
+        send_key 'ret';
+    }
+    else {
+        assert_and_click 'release-notes-open';
+        assert_screen 'release-notes-' . get_var('VERSION');
+        assert_and_click 'release-notes-close';
+    }
+
+    # Check DUD - poo#17072
+    assert_screen 'oci-caption-dud' if get_var('DUD');
 }
 
 1;
-# vim: set sw=4 et:

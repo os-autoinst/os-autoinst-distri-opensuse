@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: Test kubernetes by deploying nginx
-# Maintainer: Martin Kravec <mkravec@suse.com>
+# Maintainer: Martin Kravec <mkravec@suse.com>, Panagiotis Georgiadis <pgeorgiadis@suse.com>
 
 use parent 'caasp_controller';
 use caasp_controller;
@@ -16,12 +16,14 @@ use caasp_controller;
 use strict;
 use utils;
 use testapi;
+use caasp 'script_retry';
 
 sub run {
     # Use downloaded kubeconfig to display basic information
     switch_to 'xterm';
-    assert_script_run 'mv ~/Downloads/kubeconfig ~/.kube/config';
     assert_script_run "kubectl cluster-info";
+    assert_script_run "kubectl cluster-info > cluster.before_update";
+    assert_script_run "kubectl config view | tee /dev/$serialdev";
     assert_script_run "kubectl get nodes";
     assert_script_run "! kubectl get cs --no-headers | grep -v Healthy";
 
@@ -31,11 +33,9 @@ sub run {
 
     # Deploy nginx minimal application and check pods started succesfully
     my $pods_count = get_required_var("STACK_WORKERS") * 15;
-    assert_script_run "kubectl run nginx --image=nginx:alpine --replicas=$pods_count --port=80";
-    for (1 .. 10) {
-        last if script_run 'kubectl get pods | grep -q "0/\|1/2\|No resources"';
-        sleep 10;
-    }
+    assert_script_run "kubectl run nginx --image=nginx:stable-alpine --replicas=$pods_count --port=80";
+
+    script_retry 'kubectl get pods | grep -q "0/\|1/2\|No resources"', expect => 1, retry => 10, delay => 10;
     assert_script_run "kubectl get pods | tee /dev/tty | grep -c Running | grep $pods_count";
 
     # Expose application to access it from controller node
@@ -51,4 +51,3 @@ sub run {
 
 1;
 
-# vim: set sw=4 et:

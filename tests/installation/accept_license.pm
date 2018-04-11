@@ -1,4 +1,4 @@
-# Copyright (C) 2017 SUSE LLC
+# Copyright (C) 2017-2018 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 use strict;
 use base "y2logsstep";
 use testapi;
-use version_utils qw(is_sle sle_version_at_least);
+use version_utils 'is_sle';
 
 sub run {
     my ($self) = @_;
@@ -32,19 +32,10 @@ sub run {
     #   so the license agreement is shown at welcome screen
     # - other architectures contain more products, the license agreement won't
     #   be shown until user chooses which product to upgrade
-    push @tags, 'inst-welcome-no-product-list' if is_sle && sle_version_at_least(15) && get_var('UPGRADE');
+    push @tags, 'inst-welcome-no-product-list' if is_sle('15+') && get_var('UPGRADE');
 
     assert_screen \@tags;
-    if (match_has_tag('network-settings-button')) {
-        # workaround for hpc missing license: https://bugzilla.suse.com/show_bug.cgi?id=1060174
-        if (check_var('SLE_PRODUCT', 'hpc')) {
-            record_soft_failure('bsc#1060174');
-            return;
-        }
-        else {
-            die 'It seems that license agreement is missing, please check!';
-        }
-    }
+    die 'It seems that license agreement is missing, please check!' if match_has_tag('network-settings-button');
     if (match_has_tag('inst-welcome-no-product-list')) {
         return send_key $cmd{next} unless match_has_tag('license-agreement');
     }
@@ -61,4 +52,3 @@ sub run {
 }
 
 1;
-# vim: set sw=4 et:

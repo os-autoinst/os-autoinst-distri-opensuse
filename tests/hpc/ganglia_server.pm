@@ -14,7 +14,7 @@
 # Tags: https://fate.suse.com/323979
 
 use base "hpcbase";
-use base "x11regressiontest";
+use base "x11test";
 use strict;
 use warnings;
 use testapi;
@@ -22,16 +22,20 @@ use lockapi;
 use utils;
 
 sub run {
-    my $self        = shift;
-    my $slave_ip    = get_required_var('HPC_SLAVE_IP');
-    my ($server_ip) = get_required_var('HPC_HOST_IP') =~ /(.*)\/.*/;
-    barrier_create("GANGLIA_INSTALLED",      2);
-    barrier_create("GANGLIA_SERVER_DONE",    2);
-    barrier_create("GANGLIA_CLIENT_DONE",    2);
-    barrier_create("GANGLIA_GMETAD_STARTED", 2);
-    barrier_create("GANGLIA_GMOND_STARTED",  2);
+    my $self = shift;
+    # Get number of nodes
+    my $nodes = get_required_var("CLUSTER_NODES");
+    # Get hostname
+    my $hostname = get_required_var("HOSTNAME");
+    # Create cluster barriers
+    barrier_create("GANGLIA_INSTALLED",      $nodes);
+    barrier_create("GANGLIA_SERVER_DONE",    $nodes);
+    barrier_create("GANGLIA_CLIENT_DONE",    $nodes);
+    barrier_create("GANGLIA_GMETAD_STARTED", $nodes);
+    barrier_create("GANGLIA_GMOND_STARTED",  $nodes);
+    # Synchronize all slave nodes with master
+    mutex_create("GANGLIA_SERVER_BARRIERS_CONFIGURED");
 
-    assert_script_run('hostnamectl set-hostname ganglia-server');
     zypper_call('in ganglia-gmetad ganglia-gmond ganglia-gmetad-skip-bcheck');
     systemctl 'start gmetad';
     barrier_wait('GANGLIA_GMETAD_STARTED');
@@ -51,7 +55,7 @@ sub run {
     select_console('x11');
 
     # start browser and access ganglia web ui
-    x11_start_program("firefox http://$server_ip/ganglia", valid => 0);
+    x11_start_program("firefox http://${hostname}/ganglia", valid => 0);
     $self->firefox_check_default;
     assert_screen('ganglia-web');
     assert_and_click('ganglia-node-dropdown');
@@ -61,4 +65,12 @@ sub run {
     # tell client that server is done
     barrier_wait('GANGLIA_SERVER_DONE');
 }
+
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->upload_service_log('apache2');
+    $self->upload_service_log('gmond');
+    $self->upload_service_log('gmetad');
+}
+
 1;

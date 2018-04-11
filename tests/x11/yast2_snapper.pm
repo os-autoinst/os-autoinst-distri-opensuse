@@ -27,10 +27,7 @@ sub run {
 
     # Start an xterm as root
     x11_start_program('xterm');
-    # Disable screen lock and blank screen for current Gnome session
-    if (check_var('DESKTOP', 'gnome')) {
-        assert_script_run('gsettings set org.gnome.desktop.session idle-delay 0');
-    }
+    turn_off_gnome_screensaver if check_var('DESKTOP', 'gnome');
     become_root;
     script_run "cd";
     type_string "yast2 snapper\n";
@@ -50,4 +47,3 @@ sub post_fail_hook {
 }
 
 1;
-# vim: set sw=4 et:

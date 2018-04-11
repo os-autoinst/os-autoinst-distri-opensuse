@@ -20,6 +20,10 @@ use utils qw(handle_login handle_emergency);
 use version_utils 'sle_version_at_least';
 
 sub run {
+    # On IPMI, when selecting x11 console, we are connecting to the VNC server on the SUT.
+    # select_console('x11'); also performs a login, so we should be at generic-desktop.
+    my $gnome_ipmi = (check_var('BACKEND', 'ipmi') && check_var('DESKTOP', 'gnome'));
+    select_console('x11') if ($gnome_ipmi);
     my $boot_timeout = (get_var('SES5_DEPLOY') || check_var('VIRSH_VMM_FAMILY', 'hyperv')) ? 450 : 200;
     # SLE >= 15 s390x does not offer auto-started VNC server in SUT, only login prompt as in textmode
     return if check_var('ARCH', 's390x') && sle_version_at_least('15');
@@ -31,12 +35,12 @@ sub run {
         select_console 'root-ssh';
         return;
     }
-    elsif (check_var('DESKTOP', 'textmode') || get_var('BOOT_TO_SNAPSHOT')) {
+    elsif ((get_var('DESKTOP', '') =~ /textmode|serverro/) || get_var('BOOT_TO_SNAPSHOT')) {
         assert_screen('linux-login', $boot_timeout) unless check_var('ARCH', 's390x');
         return;
     }
-
-    if (get_var("NOAUTOLOGIN") || get_var("IMPORT_USER_DATA")) {
+    # On IPMI, when selecting x11 console, we are already logged in.
+    if ((get_var("NOAUTOLOGIN") || get_var("IMPORT_USER_DATA")) && !$gnome_ipmi) {
         assert_screen [qw(displaymanager emergency-shell emergency-mode)], $boot_timeout;
         handle_emergency if (match_has_tag('emergency-shell') or match_has_tag('emergency-mode'));
         handle_login;
@@ -91,4 +95,3 @@ sub post_fail_hook {
 }
 
 1;
-# vim: set sw=4 et:

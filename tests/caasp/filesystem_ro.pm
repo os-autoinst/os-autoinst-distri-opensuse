@@ -31,14 +31,10 @@ sub run {
         assert_script_run 'btrfs property get /var/log ro | grep "ro=false"';
     }
 
-    if (is_caasp 'caasp') {
-        assert_script_run "grep '/ btrfs ro' /etc/fstab";
-        assert_script_run "mount | grep 'on / type btrfs (ro,'";
-    }
-    else {
-        record_soft_failure 'bsc#1079000 - Missing readonly option in fstab';
-    }
+    # Look for ro mount point in fstab
+    assert_script_run "findmnt -s / -n -O ro";
+    # Look for ro mount point in mounted filesystems
+    assert_script_run "findmnt / -n -O ro";
 }
 
 1;
-# vim: set sw=4 et:

@@ -26,7 +26,7 @@ sub run {
         $self->select_bootmenu_more('inst-rescuesystem', 1);
     }
 
-    assert_screen 'keyboardmap-list', 100;
+    assert_screen 'keyboardmap-list', 120;
     send_key "ret";
 
     # Login as root (no password)
@@ -44,4 +44,3 @@ sub test_flags {
 }
 
 1;
-# vim: set sw=4 et:

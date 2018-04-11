@@ -24,16 +24,8 @@ use registration;
 use utils 'assert_screen_with_soft_timeout';
 
 sub run {
-    if (!get_var("HDD_SCC_REGISTERED")) {
-        assert_screen_with_soft_timeout(
-            'scc-registration',
-            timeout      => 350,
-            soft_timeout => 300,
-            bugref       => 'bsc#1028774'
-        );
-    }
+    assert_registration_screen_present;
     fill_in_registration_data;
 }
 
 1;
-# vim: set sw=4 et:

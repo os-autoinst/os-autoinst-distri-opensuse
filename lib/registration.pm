@@ -21,12 +21,13 @@ use Exporter;
 use strict;
 
 use testapi;
-use utils qw(addon_decline_license assert_screen_with_soft_timeout);
-use version_utils qw(is_sle sle_version_at_least is_sle12_hdd_in_upgrade);
+use utils qw(addon_decline_license assert_screen_with_soft_timeout zypper_call systemctl);
+use version_utils qw(is_sle is_caasp sle_version_at_least is_sle12_hdd_in_upgrade);
 
 our @EXPORT = qw(
   add_suseconnect_product
   remove_suseconnect_product
+  assert_registration_screen_present
   fill_in_registration_data
   registration_bootloader_cmdline
   registration_bootloader_params
@@ -36,6 +37,7 @@ our @EXPORT = qw(
   get_addon_fullname
   rename_scc_addons
   is_module
+  install_docker_when_needed
   %SLE15_MODULES
   %SLE15_DEFAULT_MODULES
 );
@@ -74,9 +76,15 @@ sub is_module {
 sub accept_addons_license {
     my (@scc_addons) = @_;
 
-    my @addons_with_license = qw(ha geo we live rt idu ids lgm wsm hpcm);
-    # Development tools do not have license in SLE 15
-    push(@addons_with_license, 'sdk') unless sle_version_at_least('15');
+    # To check the current state of licenses in the product one can conduct
+    # the following steps, e.g. for SLE15:
+    #   isc co SUSE:SLE-15:GA 000product
+    #   grep -l EULA SUSE:SLE-15:GA/000product/*.product | sed 's/.product//'
+    # All shown products have a license that should be checked.
+    my @addons_with_license = qw(ha geo we live rt idu ids lgm hpcm ses);
+    # Development tools and Web-Scripting modules do not have license in SLE 15
+    push(@addons_with_license, 'sdk') unless is_sle('15+');
+    push(@addons_with_license, 'wsm') unless is_sle('15+');
 
     for my $addon (@scc_addons) {
         # most modules don't have license, skip them
@@ -85,16 +93,10 @@ sub accept_addons_license {
             # wait for SCC to give us the license
             sleep 5;
         }
-        # No license agreements are shown in SLE 15 at the moment
-        if (sle_version_at_least('15')) {
-            record_soft_failure 'bsc#1057223';
-        }
-        else {
-            assert_screen "scc-addon-license-$addon", 60;
-            addon_decline_license;
-            wait_still_screen 2;
-            send_key $cmd{next};
-        }
+        assert_screen "scc-addon-license-$addon", 60;
+        addon_decline_license;
+        wait_still_screen 2;
+        send_key $cmd{next};
     }
 }
 
@@ -153,7 +155,7 @@ sub register_addons {
         }
         if (my $regcode = get_var("SCC_REGCODE_$uc_addon")) {
             # skip addons which doesn't need to input scc code
-            next unless grep { $addon eq $_ } qw(ha geo we live rt ltss phub);
+            next unless grep { $addon eq $_ } qw(ha geo we live rt ltss phub ses);
             if (check_var('VIDEOMODE', 'text')) {
                 send_key_until_needlematch "scc-code-field-$addon", 'tab';
             }
@@ -169,13 +171,24 @@ sub register_addons {
     return $regcodes_entered;
 }
 
+sub assert_registration_screen_present {
+    if (!get_var("HDD_SCC_REGISTERED")) {
+        assert_screen_with_soft_timeout(
+            'scc-registration',
+            timeout      => 350,
+            soft_timeout => 300,
+            bugref       => 'bsc#1028774'
+        );
+    }
+}
+
 sub fill_in_registration_data {
     my ($addon, $uc_addon);
     fill_in_reg_server() if (!get_var("HDD_SCC_REGISTERED"));
 
     my @known_untrusted_keys = qw(import-trusted-gpg-key-nvidia-F5113243C66B6EAE import-trusted-gpg-key-phub-9C214D4065176565);
     unless (get_var('SCC_REGISTER', '') =~ /addon|network/) {
-        my $counter = 30;
+        my $counter = 50;
         my @tags
           = qw(local-registration-servers registration-online-repos import-untrusted-gpg-key module-selection contacting-registration-server refreshing-repository);
         if (get_var('SCC_URL') || get_var('SMT_URL')) {
@@ -183,8 +196,9 @@ sub fill_in_registration_data {
         }
         # The "Extension and Module Selection" won't be shown during upgrade to sle15, refer to:
         # https://bugzilla.suse.com/show_bug.cgi?id=1070031#c11
-        push @tags, 'inst-addon' if is_sle && sle_version_at_least('15') && is_sle12_hdd_in_upgrade;
+        push @tags, 'inst-addon' if is_sle('15+') && is_sle12_hdd_in_upgrade;
         while ($counter--) {
+            die 'Registration repeated too much. Check if SCC is down.' if ($counter eq 1);
             assert_screen(\@tags);
             if (match_has_tag("import-untrusted-gpg-key")) {
                 if (check_var("IMPORT_UNTRUSTED_KEY", 1) || check_screen(\@known_untrusted_keys, 0)) {
@@ -240,12 +254,11 @@ sub fill_in_registration_data {
             elsif (match_has_tag('inst-addon')) {
                 return;
             }
-            die 'Registration repeated too much. Check if SCC is down.' if ($counter eq 1);
         }
     }
 
     # Process modules on sle 15
-    if (is_sle && sle_version_at_least('15')) {
+    if (is_sle '15+') {
         my $modules_needle = "modules-preselected-" . get_required_var('SLE_PRODUCT');
         if (check_var('BETA', '1')) {
             assert_screen('scc-beta-filter-checkbox');
@@ -284,6 +297,7 @@ sub fill_in_registration_data {
         # idu - IBM DLPAR Utils (ppc64le only)
         # ids - IBM DLPAR sdk (ppc64le only)
         # phub - PackageHub
+        # ses - SUSE Enterprise Storage
         if (get_var('SCC_ADDONS')) {
             if (check_screen('scc-beta-filter-checkbox', 5)) {
                 if (get_var('SP3ORLATER')) {
@@ -297,7 +311,7 @@ sub fill_in_registration_data {
             # remove emty elements
             @scc_addons = grep { $_ ne '' } @scc_addons;
 
-            if (!(check_screen 'scc_module-phub', 0)) {
+            if (!(check_screen 'scc-module-phub', 0)) {
                 record_soft_failure 'boo#1056047';
                 #find and remove phub
                 @scc_addons = grep { !/phub/ } @scc_addons;
@@ -344,8 +358,9 @@ sub fill_in_registration_data {
                 wait_still_screen 2;
             }
             # start addons/modules registration, it needs longer time if select multiple or all addons/modules
-            my $counter = 30;
+            my $counter = 50;
             while ($counter--) {
+                die 'Addon registration repeated too much. Check if SCC is down.' if ($counter eq 1);
                 assert_screen [
                     qw(import-untrusted-gpg-key yast_scc-pkgtoinstall yast-scc-emptypkg inst-addon contacting-registration-server refreshing-repository)];
                 if (match_has_tag('import-untrusted-gpg-key')) {
@@ -406,7 +421,6 @@ sub fill_in_registration_data {
                     # it would show software install dialog if scc registration correctly by yast2 scc
                     last;
                 }
-                die 'Addon registration repeated too much. Check if SCC is down.' if ($counter eq 1);
             }
         }
         else {
@@ -415,6 +429,7 @@ sub fill_in_registration_data {
                 assert_screen 'yast-scc-emptypkg';
                 send_key 'alt-a';
             }
+            accept_addons_license('ha') if (check_var('SLE_PRODUCT', 'sles4sap'));
         }
     }
     else {
@@ -503,6 +518,7 @@ sub get_addon_fullname {
         'geo'   => 'sle-ha-geo',
         'we'    => 'sle-we',
         'sdk'   => 'sle-sdk',
+        'ses'   => 'ses',
         'live'  => 'sle-live-patching',
         'asmm'  => 'sle-module-adv-systems-management',
         'contm' => 'sle-module-containers',
@@ -525,7 +541,7 @@ sub fill_in_reg_server {
     }
 
     if (!get_var("SMT_URL")) {
-        if (sle_version_at_least('15') && check_var('DESKTOP', 'textmode')) {
+        if (is_sle('15+') && check_var('DESKTOP', 'textmode')) {
             send_key "alt-m";    # select email field if yast2 add-on
         }
         else {
@@ -539,12 +555,14 @@ sub fill_in_reg_server {
     }
     else {
         send_key "alt-i";
-        if (sle_version_at_least('15')) {
+        if (is_sle('12-sp3+')) {
             send_key "alt-l";
         }
         else {
             send_key "alt-o";
         }
+        # Remove https://smt.example.com
+        for (1 .. 30) { send_key 'backspace'; }
         type_string get_required_var("SMT_URL");
     }
     save_screenshot;
@@ -583,7 +601,7 @@ sub scc_deregistration {
 # Not good idea to use different module names, we have to bridge the
 # gap here to use existing needles
 sub rename_scc_addons {
-    return unless get_var('SCC_ADDONS') && sle_version_at_least('15');
+    return unless get_var('SCC_ADDONS') && is_sle('15+');
 
     my %addons_map = (
         asmm => 'base',
@@ -598,6 +616,23 @@ sub rename_scc_addons {
         push @addons_new, defined $addons_map{$a} ? $addons_map{$a} : $a;
     }
     set_var('SCC_ADDONS', join(',', @addons_new));
+}
+
+sub install_docker_when_needed {
+    if (is_caasp) {
+        # Docker should be pre-installed in MicroOS
+        die 'Docker is not pre-installed.' if zypper_call('se -x --provides -i docker | grep docker', allow_exit_codes => [0, 1]);
+    }
+    else {
+        add_suseconnect_product('sle-module-containers') if is_sle('15+');
+        # docker package can be installed
+        zypper_call('in docker');
+    }
+
+    # docker daemon can be started
+    systemctl('start docker');
+    systemctl('status docker');
+    assert_script_run('docker info');
 }
 
 1;

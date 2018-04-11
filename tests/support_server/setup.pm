@@ -110,19 +110,32 @@ sub setup_networks {
 
 sub setup_dns_server {
     return if $dns_server_set;
-    $setup_script .= "
-        sed -i -e 's|^NETCONFIG_DNS_FORWARDER=.*|NETCONFIG_DNS_FORWARDER=\"bind\"|' \\
-               -e 's|^NETCONFIG_DNS_FORWARDER_FALLBACK=.*|NETCONFIG_DNS_FORWARDER_FALLBACK=\"no\"|' /etc/sysconfig/network/config
-        sed -i -e 's|#forwarders.*;|include \"/etc/named.d/forwarders.conf\";|' /etc/named.conf
-        sed -i -e 's|^NAMED_CONF_INCLUDE_FILES=.*|NAMED_CONF_INCLUDE_FILES=\"openqa.zones\"|' /etc/sysconfig/named
 
-        curl -f -v " . autoinst_url . "/data/supportserver/named/openqa.zones > /etc/named.d/openqa.zones
-        curl -f -v "
-      . autoinst_url . "/data/supportserver/named/openqa.test.zone > /var/lib/named/master/openqa.test.zone
-        curl -f -v "
-      . autoinst_url . "/data/supportserver/named/2.0.10.in-addr.arpa.zone > /var/lib/named/master/2.0.10.in-addr.arpa.zone
+    my $named_url = autoinst_url . '/data/supportserver/named';
+    $setup_script .= qq@
+        sed -i -e '/^NETCONFIG_DNS_FORWARDER=/ s/=.*/="bind"/' \\
+               -e '/^NETCONFIG_DNS_FORWARDER_FALLBACK=/ s/yes/no/' /etc/sysconfig/network/config
+        sed -i '/^NAMED_CONF_INCLUDE_FILES=/ s/=.*/="openqa.zones"/' /etc/sysconfig/named
+        sed -i 's|#forwarders.*;|include "/etc/named.d/forwarders.conf";|' /etc/named.conf
+        curl -f -v $named_url/openqa.zones > /etc/named.d/openqa.zones
+        curl -f -v $named_url/openqa.test.zone > /var/lib/named/master/openqa.test.zone
+        curl -f -v $named_url/2.0.10.in-addr.arpa.zone > /var/lib/named/master/2.0.10.in-addr.arpa.zone
         chown named:named /var/lib/named/master
+    @;
 
+    # Allow RPZ overrides - poo#32290
+
+    if (lc(get_var('SUPPORT_SERVER_ROLES')) =~ /\brpz\b/) {
+        record_info 'Netfix', 'Go through Europe Microfocus info-bloxx';
+        $setup_script .= qq@
+            curl -f -v $named_url/db.rpz > /var/lib/named/db.rpz
+            echo 'zone "rpz" {type master; file "db.rpz"; allow-query {none;}; };' >> /etc/named.conf
+            sed -i '/^options/a\\   response-policy { zone "rpz"; };' /etc/named.conf
+        @;
+    }
+
+    # Start services
+    $setup_script .= "
         netconfig update -f
         systemctl start named
         systemctl status named
@@ -240,7 +253,7 @@ sub setup_xvnc_server {
     return if $xvnc_server_set;
 
     if (check_var('REMOTE_DESKTOP_TYPE', 'persistent_vnc')) {
-        zypper_call('ar dvd:///?devices=/dev/sr0 dvd1repo');
+        zypper_call('ar http://openqa.suse.de/assets/repo/SLE-12-SP3-SERVER-POOL-x86_64-Media1-CURRENT/ sles12sp3dvd1_repo');
         zypper_call('ref');
     }
     script_run("yast remote; echo yast-remote-status-\$? > /dev/$serialdev", 0);
@@ -252,8 +265,6 @@ sub setup_xvnc_server {
         send_key 'alt-a';
     }
     wait_still_screen 3;
-    send_key 'alt-p';
-    wait_still_screen 3;
     send_key 'alt-o';
     if (check_var('REMOTE_DESKTOP_TYPE', 'persistent_vnc')) {
         assert_screen 'xvnc-vncmanager-required';
@@ -263,6 +274,7 @@ sub setup_xvnc_server {
     send_key 'ret';
     wait_serial('yast-remote-status-0', 90) || die "'yast remote' didn't finish";
     wait_still_screen 3;
+    assert_script_run 'yast2 firewall services add zone=EXT service=service:vnc-server';
     systemctl('restart display-manager');
     assert_screen 'displaymanager';
     select_console 'root-console';
@@ -274,12 +286,12 @@ sub setup_xdmcp_server {
     return if $xdmcp_server_set;
 
     if (check_var('REMOTE_DESKTOP_TYPE', 'xdmcp_xdm')) {
-        script_run "sed -i -e 's|^DISPLAYMANAGER=.*|DISPLAYMANAGER=\"xdm\"|' /etc/sysconfig/displaymanager";
-        script_run "sed -i -e 's|^DEFAULT_WM=.*|DEFAULT_WM=\"icewm\"|' /etc/sysconfig/windowmanager";
+        assert_script_run "sed -i -e 's|^DISPLAYMANAGER=.*|DISPLAYMANAGER=\"xdm\"|' /etc/sysconfig/displaymanager";
+        assert_script_run "sed -i -e 's|^DEFAULT_WM=.*|DEFAULT_WM=\"icewm\"|' /etc/sysconfig/windowmanager";
     }
-    script_run 'yast2 firewall services add zone=EXT service=service:xdmcp';
-    script_run "sed -i -e 's|^DISPLAYMANAGER_REMOTE_ACCESS=.*|DISPLAYMANAGER_REMOTE_ACCESS=\"yes\"|' /etc/sysconfig/displaymanager";
-    script_run "sed -i -e 's|^\\[xdmcp\\]|\\[xdmcp\\]\\nMaxSessions=2|' /etc/gdm/custom.conf";
+    assert_script_run 'yast2 firewall services add zone=EXT service=service:xdmcp';
+    assert_script_run "sed -i -e 's|^DISPLAYMANAGER_REMOTE_ACCESS=.*|DISPLAYMANAGER_REMOTE_ACCESS=\"yes\"|' /etc/sysconfig/displaymanager";
+    assert_script_run "sed -i -e 's|^\\[xdmcp\\]|\\[xdmcp\\]\\nMaxSessions=2|' /etc/gdm/custom.conf";
     systemctl('restart display-manager');
     assert_screen 'displaymanager';
     select_console 'root-console';
@@ -410,6 +422,9 @@ sub setup_aytests {
            -e 's|{{VERSION}}|" . get_var('VERSION') . "|g' \\
            -e 's|{{ARCH}}|" . get_var('ARCH') . "|g' \\
            -e 's|{{MSG_TIMEOUT}}|0|g' \\
+           -e 's|{{REPO1_URL}}|http://10.0.2.1/aytests/files/repos/sles12|g' \\
+           -e 's|{{POST_SCRIPT_URL}}|http://10.0.2.1/aytests/files/scripts/post_script.sh|g' \\
+           -e 's|{{INIT_SCRIPT_URL}}|http://10.0.2.1/aytests/files/scripts/init_script.sh|g' \\
            /srv/www/htdocs/aytests/*.xml;
 
     systemctl restart apache2;
@@ -547,13 +562,8 @@ sub run {
 }
 
 sub test_flags {
-    # without anything - rollback to 'lastgood' snapshot if failed
-    # 'fatal' - whole test suite is in danger if this fails
-    # 'milestone' - after this test succeeds, update 'lastgood'
-    # 'important' - if this fails, set the overall state to 'fail'
     return {fatal => 1};
 }
 
 1;
 
-# vim: set sw=4 et:

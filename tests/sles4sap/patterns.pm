@@ -12,6 +12,7 @@
 
 use base "sles4sap";
 use testapi;
+use utils;
 use version_utils 'sle_version_at_least';
 use strict;
 
@@ -21,6 +22,9 @@ sub run {
     my $output      = '';
 
     select_console 'root-console';
+
+    # Disable packagekit
+    pkcon_quit;
 
     my $base_pattern = sle_version_at_least('15') ? 'patterns-server-enterprise-sap_server' : 'patterns-sles-sap_server';
 
@@ -32,11 +36,19 @@ sub run {
         # the use of the 'textmode' system role
         die "Pattern sap_server not installed by default"
           unless (check_var('SYSTEM_ROLE', 'textmode'));
-        record_info('install sap_server', 'Installing sap_server pattern and starting sapconf');
+        record_info('install sap_server', 'Installing sap_server pattern and starting tuned');
         assert_script_run("zypper in -y -t pattern sap_server");
-        assert_script_run("sapconf start");
+        assert_script_run("systemctl start tuned");
     }
 
+    # Dry run of each pattern's installation before actual installation
+    foreach my $pattern (@sappatterns) {
+        assert_script_run("zypper in -D -y -t pattern $pattern");
+        $output = script_output("zypper info --requires $pattern");
+        record_info("requirements pattern: $pattern", $output);
+    }
+
+    # Actual installation and verification
     foreach my $pattern (@sappatterns) {
         assert_script_run("zypper in -y -t pattern $pattern", 100);
         $output = script_output "zypper info -t pattern $pattern";
@@ -50,4 +62,3 @@ sub test_flags {
 }
 
 1;
-# vim: set sw=4 et:

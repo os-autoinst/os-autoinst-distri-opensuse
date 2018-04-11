@@ -21,7 +21,7 @@ sub assert_wicked_state {
     systemctl('is-active wicked.service',  expect_false => $args{wicked_client_down});
     systemctl('is-active wickedd.service', expect_false => $args{wicked_daemon_down});
     my $status = $args{interfaces_down} ? 'down' : 'up';
-    assert_script_run("for dev in /sys/class/net/!(lo); do grep \"$status\" \$dev/operstate || (echo \"device \$dev is not $status\" && exit 1) ; done");
+    assert_script_run("/data/check_interfaces.sh $status");
     assert_script_run("ping -c 4 $args{ping_ip}") if $args{ping_ip};
     # this just FYI so we don't want to fail
     script_run('ip addr show ' . $args{iface}) if $args{iface};
@@ -38,9 +38,9 @@ sub get_ip {
 }
 
 sub save_and_upload_wicked_log {
-    my $log_name = join('', map { ("a" .. "z")[rand 26] } 1 .. 8);
-    assert_script_run("journalctl -o short-precise > /tmp/$log_name.log");
-    upload_logs("/tmp/$log_name.log");
+    my $log_path = '/tmp/journal.log';
+    assert_script_run("journalctl -o short-precise > $log_path");
+    upload_logs($log_path);
 }
 
 sub get_from_data {
@@ -48,6 +48,20 @@ sub get_from_data {
     $source .= check_var('IS_WICKED_REF', '1') ? 'ref' : 'sut' if $args{add_suffix};
     assert_script_run("wget --quiet " . data_url($source) . " -O $target");
     assert_script_run("chmod +x $target") if $args{executable};
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    systemctl('start network');
+    systemctl('start wicked');
+    my $iface    = $self->{iface};
+    my $ifstatus = script_output("ifstatus $iface");
+    if ($ifstatus !~ /state up/) {
+        script_run("ip addr add 10.0.2.15/24 dev $iface");
+        script_run("ip link set $iface up");
+        script_run("ip route add default via 10.0.2.2 dev $iface");
+    }
+    save_and_upload_wicked_log();
 }
 
 1;

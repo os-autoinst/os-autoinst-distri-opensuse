@@ -14,11 +14,11 @@ use base 'wickedbase';
 use strict;
 use testapi;
 use utils 'systemctl';
-use version_utils qw(is_sle sle_version_at_least);
+use serial_terminal 'select_virtio_console';
 
 sub run {
     my ($self) = @_;
-    select_console('root-console');
+    select_virtio_console();
     my $enable_command_logging = 'export PROMPT_COMMAND=\'logger -t openQA_CMD "$(history 1 | sed "s/^[ ]*[0-9]\+[ ]*//")"\'';
     assert_script_run("echo \"$enable_command_logging\" >> /root/.bashrc");
     assert_script_run($enable_command_logging);
@@ -32,6 +32,8 @@ sub run {
     assert_script_run('cat /etc/sysconfig/network/config');
     #preparing directories for holding config files
     assert_script_run('mkdir -p /data/{static_address,dynamic_address}');
+    #download script for check interface status
+    $self->get_from_data('wicked/check_interfaces.sh', '/data/check_interfaces.sh', executable => 1);
 }
 
 sub test_flags {

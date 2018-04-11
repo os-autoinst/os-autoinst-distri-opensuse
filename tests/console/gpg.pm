@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -70,7 +70,7 @@ sub gpg_generate_key {
     }
     else {
         # list gpg keys
-        validate_script_output("gpg --list-keys", sub { m/\[ultimate\] $user_name \<$email\>/ });
+        assert_script_run("gpg --list-keys | grep '\\[ultimate\\] $user_name <$email>'");
     }
 }
 
@@ -125,4 +125,3 @@ sub run {
 
 1;
 
-# vim: set sw=4 et:

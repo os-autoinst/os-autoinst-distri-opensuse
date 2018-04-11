@@ -8,17 +8,21 @@ set -exuo pipefail
 usage() {
 	echo "Usage: $0
 		[-s $REPO] Setup all nodes with update REPO
-		[-c] Check that update was applied" 1>&2
+		[-c] Check that update was applied
+		[-r] Just reboot cluster test" 1>&2
 	exit 1
 }
 
-while getopts "s:c" opt; do
+while getopts "s:cr" opt; do
 case $opt in
 	s)
 		SETUP=$OPTARG
 		;;
 	c)
 		CHECK=true
+		;;
+	r)
+		REBOOT=true
 		;;
 	\?)
 		usage
@@ -83,6 +87,11 @@ elif [ ! -z "${CHECK:-}" ]; then
 	container_id=$(docker ps | grep $image_id | grep dashboard | awk '{print $1}')
 	# check change is in the image
 	docker exec -i $container_id ls /IMAGE_UPDATED
+
+elif [ ! -z "${REBOOT:-}" ]; then
+	where="-P roles:kube-(master|minion)"
+	srun="docker exec -d $saltid salt"
+	$srun $where system.reboot
 fi
 
 # Workaround for assert_script_run "update.sh | tee $serialdev | grep EXIT_0", otherwise exit status is from tee

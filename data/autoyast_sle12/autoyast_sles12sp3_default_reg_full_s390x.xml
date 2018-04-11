@@ -1,0 +1,254 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <general>
+    <mode>
+      <confirm config:type="boolean">false</confirm>
+    </mode>
+  </general>
+  <dasd>
+    <devices config:type="list">
+      <listentry>
+        <device>DASD</device>
+        <dev_name>/dev/dasda</dev_name>
+        <channel>0.0.0150</channel>
+        <diag config:type="boolean">false</diag>
+      </listentry>
+    </devices>
+  </dasd>
+  <report>
+    <errors>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </errors>
+    <messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </messages>
+    <warnings>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </warnings>
+    <yesno_messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </yesno_messages>
+  </report>
+  <services-manager>
+  <default_target>graphical</default_target>
+    <services>
+      <enable config:type="list">
+        <service>sshd</service>
+      </enable>
+    </services>
+  </services-manager>
+  <keyboard>
+    <keyboard_values>
+      <delay/>
+      <discaps config:type="boolean">false</discaps>
+      <numlock>bios</numlock>
+      <rate/>
+    </keyboard_values>
+    <keymap>english-us</keymap>
+  </keyboard>
+  <kdump>
+    <add_crash_kernel config:type="boolean">true</add_crash_kernel>
+    <crash_kernel>112M</crash_kernel>
+    <crash_xen_kernel>112M\&lt;4G</crash_xen_kernel>
+    <general>
+      <KDUMPTOOL_FLAGS/>
+      <KDUMP_COMMANDLINE/>
+      <KDUMP_COMMANDLINE_APPEND/>
+      <KDUMP_CONTINUE_ON_ERROR>true</KDUMP_CONTINUE_ON_ERROR>
+      <KDUMP_COPY_KERNEL>yes</KDUMP_COPY_KERNEL>
+      <KDUMP_CPUS/>
+      <KDUMP_DUMPFORMAT>lzo</KDUMP_DUMPFORMAT>
+      <KDUMP_DUMPLEVEL>31</KDUMP_DUMPLEVEL>
+      <KDUMP_FREE_DISK_SIZE>64</KDUMP_FREE_DISK_SIZE>
+      <KDUMP_HOST_KEY/>
+      <KDUMP_IMMEDIATE_REBOOT>yes</KDUMP_IMMEDIATE_REBOOT>
+      <KDUMP_KEEP_OLD_DUMPS>5</KDUMP_KEEP_OLD_DUMPS>
+      <KDUMP_KERNELVER/>
+      <KDUMP_NETCONFIG>auto</KDUMP_NETCONFIG>
+      <KDUMP_NET_TIMEOUT>30</KDUMP_NET_TIMEOUT>
+      <KDUMP_NOTIFICATION_CC/>
+      <KDUMP_NOTIFICATION_TO/>
+      <KDUMP_POSTSCRIPT/>
+      <KDUMP_PRESCRIPT/>
+      <KDUMP_REQUIRED_PROGRAMS/>
+      <KDUMP_SAVEDIR>/var/crash</KDUMP_SAVEDIR>
+      <KDUMP_SMTP_PASSWORD/>
+      <KDUMP_SMTP_SERVER/>
+      <KDUMP_SMTP_USER/>
+      <KDUMP_TRANSFER/>
+      <KDUMP_VERBOSE>3</KDUMP_VERBOSE>
+      <KEXEC_OPTIONS/>
+    </general>
+  </kdump>
+  <language>
+    <language>en_US</language>
+    <languages/>
+  </language>
+  <ntp-client>
+    <ntp_policy>auto</ntp_policy>
+    <peers config:type="list"/>
+  </ntp-client>
+  <software>
+    <image/>
+    <install_recommended config:type="boolean">true</install_recommended>
+    <instsource/>
+    <packages config:type="list">
+      <package>snapper</package>
+      <package>sles-release</package>
+      <package>openssh</package>
+      <package>kexec-tools</package>
+      <package>kdump</package>
+      <package>iproute2</package>
+      <package>grub2</package>
+      <package>glibc</package>
+      <package>e2fsprogs</package>
+      <package>btrfsprogs</package>
+      <package>SuSEfirewall2</package>
+    </packages>
+    <patterns config:type="list">
+      <pattern>32bit</pattern>
+      <pattern>Minimal</pattern>
+      <pattern>apparmor</pattern>
+      <pattern>base</pattern>
+      <pattern>documentation</pattern>
+      <pattern>gnome-basic</pattern>
+      <pattern>sles-Minimal-32bit</pattern>
+      <pattern>sles-apparmor-32bit</pattern>
+      <pattern>sles-base-32bit</pattern>
+      <pattern>sles-documentation-32bit</pattern>
+      <pattern>sles-x11-32bit</pattern>
+      <pattern>x11</pattern>
+      <pattern>yast2</pattern>
+    </patterns>
+  </software>
+  <suse_register>
+    <do_registration config:type="boolean">true</do_registration>
+    <reg_code>{{SCC_REGCODE}}</reg_code>
+    <install_updates config:type="boolean">true</install_updates>
+  </suse_register>
+  <networking>
+    <dhcp_options>
+      <dhclient_client_id/>
+      <dhclient_hostname_option>AUTO</dhclient_hostname_option>
+    </dhcp_options>
+    <dns>
+      <dhcp_hostname config:type="boolean">true</dhcp_hostname>
+      <domain>suse</domain>
+      <hostname>linux-gspv</hostname>
+      <nameservers config:type="list">
+        <nameserver>10.160.0.1</nameserver>
+      </nameservers>
+      <resolv_conf_policy>auto</resolv_conf_policy>
+      <write_hostname config:type="boolean">false</write_hostname>
+    </dns>
+    <interfaces config:type="list">
+      <interface>
+        <bootproto>static</bootproto>
+        <device>eth0</device>
+        <ipaddr>{{HostIP}}</ipaddr>
+        <netmask>255.255.240.0</netmask>
+        <prefixlen>20</prefixlen>
+        <startmode>auto</startmode>
+      </interface>
+      <interface>
+        <bootproto>static</bootproto>
+        <device>lo</device>
+        <firewall>no</firewall>
+        <ipaddr>127.0.0.1</ipaddr>
+        <netmask>255.0.0.0</netmask>
+        <network>127.0.0.0</network>
+        <prefixlen>8</prefixlen>
+        <startmode>nfsroot</startmode>
+        <usercontrol>no</usercontrol>
+      </interface>
+    </interfaces>
+    <ipv6 config:type="boolean">true</ipv6>
+    <keep_install_network config:type="boolean">true</keep_install_network>
+    <managed config:type="boolean">false</managed>
+    <net-udev config:type="list">
+      <rule>
+        <name>eth0</name>
+        <rule>KERNELS</rule>
+        <value>0.0.0700</value>
+      </rule>
+    </net-udev>
+    <routing>
+      <ipv4_forward config:type="boolean">false</ipv4_forward>
+      <ipv6_forward config:type="boolean">false</ipv6_forward>
+      <routes config:type="list">
+        <route>
+          <destination>default</destination>
+          <device>eth0</device>
+          <gateway>10.161.159.254</gateway>
+          <netmask>-</netmask>
+        </route>
+      </routes>
+    </routing>
+    <s390-devices config:type="list">
+      <listentry>
+        <chanids>0.0.0700 0.0.0701 0.0.0702</chanids>
+        <portname>no portname required</portname>
+        <type>qeth</type>
+      </listentry>
+      <listentry>
+        <chanids>   </chanids>
+        <type/>
+      </listentry>
+    </s390-devices>
+  </networking>
+  <firewall>
+    <enable_firewall config:type="boolean">false</enable_firewall>
+    <start_firewall config:type="boolean">false</start_firewall>
+  </firewall>
+  <timezone>
+    <hwclock>UTC</hwclock>
+    <timezone>Europe/Berlin</timezone>
+  </timezone>
+  <users config:type="list">
+    <user>
+      <encrypted config:type="boolean">false</encrypted>
+      <fullname>Bernhard M. Wiedemann</fullname>
+      <gid>100</gid>
+      <home>/home/bernhard</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact>-1</inact>
+        <max>99999</max>
+        <min>0</min>
+        <warn>7</warn>
+      </password_settings>
+      <shell>/bin/bash</shell>
+      <uid>1000</uid>
+      <user_password>nots3cr3t</user_password>
+      <username>bernhard</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">false</encrypted>
+      <fullname>root</fullname>
+      <gid>0</gid>
+      <home>/root</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/bin/bash</shell>
+      <uid>0</uid>
+      <user_password>nots3cr3t</user_password>
+      <username>root</username>
+    </user>
+  </users>
+</profile>

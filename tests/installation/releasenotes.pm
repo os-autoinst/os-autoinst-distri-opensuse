@@ -14,10 +14,10 @@
 use base "y2logsstep";
 use strict;
 use testapi;
-use version_utils 'sle_version_at_least';
+use version_utils 'is_sle';
 
 sub run {
-    assert_screen('release-notes-button', 5);
+    assert_screen('release-notes-button', 60);
     return if match_has_tag('bsc#1054478');
 
     # workaround for bsc#1014178
@@ -28,11 +28,16 @@ sub run {
     }
     my $addons = get_var('ADDONS', get_var('ADDONURL', get_var('DUD_ADDONS', '')));
     my @addons = split(/,/, $addons);
-    if (check_var('SCC_REGISTER', 'installation')) {
+    if (check_var('SCC_REGISTER', 'installation') || (get_var("UPGRADE") && is_sle('15+'))) {
         my @scc_addons = grep { $_ ne "" } split(/,/, get_var('SCC_ADDONS', ''));
 
         push @addons, @scc_addons;
     }
+    # Unique addons
+    my %seen;
+    for (@addons) { $seen{$_}++; }
+    @addons = keys %seen;
+
     if (get_var("UPGRADE")) {
         send_key "alt-e";    # open release notes window
     }
@@ -53,25 +58,31 @@ sub run {
     # no release-notes for WE and all modules
     my @no_relnotes = qw(we lgm asmm certm contm pcm tcm wsm hpcm ids idu phub all-packages sapapp);
 
-    # No release-notes for basic modules on SLE 15
-    if (sle_version_at_least('15') && check_var('DISTRI', 'sle')) {
-        # Note: no Release Notes to for HA, should be modified for GA version
-        push @no_relnotes, qw(base script desktop productivity serverapp legacy sdk ha);
+    # No release-notes for basic modules and Live-Patching on SLE 15
+    if (is_sle('15+')) {
+        push @no_relnotes, qw(base script desktop productivity serverapp legacy sdk live);
+        # WE has release-notes on SLE 15
+        @no_relnotes = grep(!/^we$/, @no_relnotes);
+        # HA-GEO has been removed on SLE 15
+        @addons = grep(!/^geo$/, @addons);
     }
 
     # no relnotes for ltss in QAM_MINIMAL
     push @no_relnotes, qw(ltss) if get_var('QAM_MINIMAL');
+    # no relnotes for ltss for SLE12-SP2 ltss
+    if (is_sle('=12-sp2')) {
+        push @no_relnotes, qw(ltss);
+        record_soft_failure 'bsc#1088636 - not updated release note for 12-SP2 LTSS';
+    }
     # no HA-GEO release-notes for s390x on SLE12-SP1 GM media, see bsc#1033504
     if (check_var('ARCH', 's390x') and check_var('BASE_VERSION', '12-SP1')) {
         push @no_relnotes, qw(geo);
     }
     if (@addons) {
-        # Workaround release notes issues in upgrade sle12+addons to sle15
-        # The workaround must be removed after bugs fixed
-        if (get_var('UPGRADE') && sle_version_at_least('15')) {
-            assert_screen 'release-notes-sle-close-button', 60;
-            wait_screen_change { send_key 'alt-c'; };
-            return record_soft_failure 'bsc#1075149, bsc#1073488';
+        if (!check_var('VIDEOMODE', 'text')) {
+            # Make sure release notes window is shown to avoid sending key too early
+            # It takes longer time to show multilple release notes for addons
+            assert_screen([qw(release-notes-sle-ok-button release-notes-sle-close-button)], 300);
         }
         for my $a (@addons) {
             next if grep { $a eq $_ } @no_relnotes;

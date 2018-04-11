@@ -153,6 +153,7 @@ sub get_installation_partition {
     #Do not use script_output because when the command fail, script_output dies
     type_string(qq{fdisk -l | grep "^/dev/sda.*\\*" | cut -d ' ' -f 1 | tee /dev/$serialdev\n});
     $partition = wait_serial;
+    $partition =~ s/^\s+|\s+$//g;
     save_screenshot;
     if (is_storage_ng && ($partition eq '')) {
         record_soft_failure "bsc#1080729 - Partitioner does not mark boot flag";

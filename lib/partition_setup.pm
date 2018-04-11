@@ -90,11 +90,6 @@ sub addpart {
     my (%args) = @_;
     assert_screen 'expert-partitioner';
     send_key $cmd{addpart};
-    # partitioning type does not appear when GPT disk used, GPT is default for UEFI
-    # also doesn't appear with storage-ng, as GPT is by default there
-    if (is_storage_ng && check_screen 'partition-size', 0) {
-        record_soft_failure 'bsc#1055743';
-    }
     unless (get_var('UEFI') || check_var('BACKEND', 's390x') || is_storage_ng) {
         assert_screen 'partitioning-type';
         send_key $cmd{next};
@@ -126,18 +121,22 @@ sub addpart {
             send_key 'alt-a' if is_storage_ng;    # Select to format partition, not selected by default
             wait_still_screen 1;
             send_key((is_storage_ng) ? 'alt-f' : 'alt-s');
-            send_key 'home';                      # start from the top of the list
-            send_key_until_needlematch "partition-selected-$args{format}-type", 'down';
+            wait_screen_change { send_key 'home' };    # start from the top of the list
+            send_key_until_needlematch "partition-selected-$args{format}-type", 'down', 10, 2;
         }
     }
-    if ($args{fsid}) {                            # $args{fsid} will describe needle tag below
-        send_key 'alt-i';                         # select File system ID
-        send_key 'home';                          # start from the top of the list
+    # Enable snapshots option works only with btrfs
+    if ($args{enable_snapshots} && $args{format} eq 'btrfs') {
+        send_key_until_needlematch('partition-btrfs-snapshots-enabled', (is_storage_ng) ? 'alt-p' : 'alt-n');
+    }
+    if ($args{fsid}) {                                 # $args{fsid} will describe needle tag below
+        send_key 'alt-i';                              # select File system ID
+        send_key 'home';                               # start from the top of the list
         if ($args{role} eq 'raw' && !check_var('VIDEOMODE', 'text')) {
             record_soft_failure('bsc#1079399 - Combobox is writable');
             for (1 .. 10) { send_key 'up'; }
         }
-        send_key_until_needlematch "partition-selected-$args{fsid}-type", 'down';
+        send_key_until_needlematch "partition-selected-$args{fsid}-type", 'down', 10, 2;
     }
 
     mount_device $args{mount} if $args{mount};
@@ -191,7 +190,13 @@ sub addlv {
 sub unselect_xen_pv_cdrom {
     if (check_var('VIRSH_VMM_TYPE', 'linux')) {
         assert_screen 'select-hard-disk';
-        send_key 'alt-e';
+        if (get_var('TEXTMODE')) {
+            send_key_until_needlematch 'uncheck-install-medium', 'tab';
+            send_key 'spc';
+        }
+        else {
+            assert_and_click 'uncheck-install-medium';
+        }
         send_key $cmd{next};
     }
 }

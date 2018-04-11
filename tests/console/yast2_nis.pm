@@ -13,17 +13,27 @@
 use strict;
 use base "console_yasttest";
 use testapi;
+use utils 'zypper_call';
 
 sub run() {
-
+    my ($self) = @_;
     select_console 'root-console';
-    script_run "zypper -n in yast2-nis-client";    # make sure yast client module installed
+    zypper_call 'in yast2-nis-client';    # make sure yast client module installed
+
+    # Configure firewalld ypbind service (bsc#1083487)
+    if ($self->firewall eq 'firewalld' && script_run 'firewall-offline-cmd --get-services | grep ypbind') {
+        record_soft_failure('bsc#1083487');
+        assert_script_run 'firewall-cmd --permanent --new-service=ypbind';
+        assert_script_run 'firewall-cmd --permanent --service=ypbind --add-port=717/tcp';
+        assert_script_run 'firewall-cmd --permanent --service=ypbind --add-port=714/udp';
+        assert_script_run 'firewall-cmd --reload';
+    }
     type_string "yast2 nis\n";
     assert_screen([qw(nis-client yast2_package_install)], 60);
     if (match_has_tag 'yast2_package_install') {
         send_key 'alt-i';
     }
-    wait_still_screen;                             # install package takes a long time
+    wait_still_screen;    # install package takes a long time
     send_key 'alt-u';
     wait_screen_change { send_key 'alt-t' };
     assert_screen([qw(open_port_in_firewall yast2_cannot-open-interface)]);
@@ -49,35 +59,33 @@ sub run() {
     assert_screen 'expert_settings';                   # check the needle enable Broken server
     send_key 'alt-y';
     wait_screen_change { type_string "-c" };           # only checks if the config file has syntax errors and exits
-    send_key 'alt-o';
-    wait_screen_change { send_key 'alt-s' };           # enter NFS configuration...
-    assert_screen 'nfs-client-configuration';          # add nfs settings
-    send_key 'alt-a';
-    assert_screen 'nfs-server-hostname';               # check that type string is sucessful
-    send_key 'alt-n';                                  # from here enter some configurations...
+    wait_screen_change { send_key 'alt-o' };
+    send_key_until_needlematch('nfs-client-configuration', 'alt-s', 2, 5);    # enter NFS configuration, sometimes fails, retry
+    send_key 'alt-a';                                                         # add nfs settings
+    assert_screen 'nfs-server-hostname';                                      # check that type string is sucessful
+    send_key 'alt-n';                                                         # from here enter some configurations...
     type_string "nis.suse.de";
     send_key 'alt-r';
     type_string "/mounts";
     send_key 'alt-m';
     type_string "/mounts_local";
     send_key 'alt-o';
-    assert_screen 'nfs_server_added';                  # check Mount point
-    wait_screen_change { send_key 'alt-t' };           # go back to nfs configuration and delete configuration created before
-    assert_screen 'nis_server_delete';                 # confirm to delete configuration
+    assert_screen 'nfs_server_added';                                         # check Mount point
+    wait_screen_change { send_key 'alt-t' };                                  # go back to nfs configuration and delete configuration created before
+    assert_screen 'nis_server_delete';                                        # confirm to delete configuration
     send_key 'alt-y';
     wait_still_screen 2;
     send_key 'alt-o';
     wait_still_screen 2;
-    send_key 'alt-f';                                  # close the dialog...
+    send_key 'alt-f';                                                         # close the dialog...
     assert_screen([qw(nis_server_not_found ypbind_error)]);
     if (match_has_tag 'ypbind_error') {
         record_soft_failure 'bsc#1073281';
         send_key 'alt-o';
     }
     else {
-        send_key 'alt-o';                              # close it now even when config is not valid
+        send_key 'alt-o';                                                     # close it now even when config is not valid
     }    # check error message for 'nis server not found'
 }
 1;
 
-# vim: set sw=4 et:

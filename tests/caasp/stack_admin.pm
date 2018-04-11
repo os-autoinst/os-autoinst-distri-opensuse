@@ -28,7 +28,7 @@ sub set_autoyast_password {
 }
 
 # Handle update process
-sub handle_update {
+sub handle_update_reboot {
     # Download update script
     assert_script_run 'curl -O ' . data_url("caasp/update.sh");
     assert_script_run 'chmod +x update.sh';
@@ -44,23 +44,12 @@ sub handle_update {
 
 sub run() {
     # Admin node needs long time to start web interface - bsc#1031682
-    # Wait in loop until velum is available until controller node can connect
-    my $timeout   = 240;
-    my $starttime = time;
-    while (script_run 'curl -kLI localhost | grep velum') {
-        my $timerun = time - $starttime;
-        if ($timerun < $timeout) {
-            sleep 15;
-        }
-        else {
-            die "Velum did not start in $timeout seconds";
-        }
-    }
-    # Controller node can connect to velum
+    script_retry 'curl -kLI localhost | grep _velum_session', retry => 15, delay => 15;
+    # Controller node can connect to velum now
     mutex_create "VELUM_STARTED";
 
-    set_autoyast_password 'NODES_ACCEPTED'         if is_caasp 'DVD';
-    handle_update                                  if update_scheduled;
+    set_autoyast_password 'NODES_ACCEPTED' if is_caasp 'DVD';
+    handle_update_reboot;
     set_autoyast_password 'DELAYED_NODES_ACCEPTED' if is_caasp('DVD') && get_delayed_worker;
 
     # Wait until controller node finishes
@@ -73,13 +62,7 @@ sub run() {
 sub post_fail_hook {
     # Variable to enable failed cluster debug
     sleep if check_var('DEBUG_SLEEP', 'admin');
-
-    script_run "journalctl > journal.log";
-    upload_logs "journal.log";
-
-    script_run 'supportconfig -i psuse_caasp -B supportconfig', 120;
-    upload_logs '/var/log/nts_supportconfig.tbz';
+    export_cluster_logs;
 }
 
 1;
-# vim: set sw=4 et:
