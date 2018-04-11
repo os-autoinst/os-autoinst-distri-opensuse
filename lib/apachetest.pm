@@ -126,12 +126,8 @@ sub setup_apache2 {
     assert_script_run qq{echo -e "<?php\nphpinfo()\n?>" > /srv/www/htdocs/index.php};
 
     # Verify apache+ssl works
-    if ($mode =~ m/SSL|NSS/) {
-        validate_script_output 'curl -k https://localhost/hello.html', sub { m/Hello Linux/ };
-    }
-    else {
-        validate_script_output 'curl http://localhost/hello.html', sub { m/Hello Linux/ };
-    }
+    my $curl_option = ($mode =~ m/SSL|NSS/) ? '-k https' : 'http';
+    assert_script_run "curl $curl_option://localhost/hello.html | grep 'Hello Linux'";
 
     if ($mode =~ /PHP5|PHP7/) {
         assert_script_run "curl --no-buffer http://localhost/index.php | grep \"\$(uname -s -n -r -v -m)\"";
