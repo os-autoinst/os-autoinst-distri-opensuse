@@ -10,7 +10,6 @@
 # Summary: Actions required after upgrade
 #       Such as:
 #       1) Change the HDDVERSION to UPGRADE_TARGET_VERSION
-#       2) Reset the x11 console to correct tty
 # Maintainer: Qingming Su <qmsu@suse.com>
 
 use base "opensusebasetest";
@@ -22,9 +21,6 @@ use utils 'get_x11_console_tty';
 sub run {
     # Reset HDDVERSION after upgrade
     set_var('HDDVERSION', get_var('UPGRADE_TARGET_VERSION', get_var('VERSION')));
-
-    # On SLE15, tty7 is reserved for gdm, tty2 is the first user x11 console
-    console('x11')->{args}->{tty} = get_x11_console_tty;
 }
 
 1;

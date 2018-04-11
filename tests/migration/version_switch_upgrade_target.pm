@@ -17,6 +17,7 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
+use migration;
 
 sub run {
     # After being patched, original system is ready for upgrade
@@ -38,6 +39,9 @@ sub run {
         # Set this to load extra needle during scc registration in sle15
         set_var('HDDVERSION', get_var('BASE_VERSION'));
     }
+
+    record_info('Version', 'VERSION=' . get_var('VERSION'));
+    reset_consoles_tty;
 }
 
 1;

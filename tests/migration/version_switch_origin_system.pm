@@ -17,6 +17,7 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
+use migration;
 
 sub run {
     # Before upgrade or after rollback, switch to original system version
@@ -35,6 +36,9 @@ sub run {
         set_var('UPGRADE',      0);
         set_var('SCC_REGISTER', 'none');
     }
+
+    record_info('Version', 'VERSION=' . get_var('VERSION'));
+    reset_consoles_tty;
 }
 
 1;
