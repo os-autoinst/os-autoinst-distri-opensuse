@@ -24,10 +24,6 @@ sub run {
     check_cluster_state;
     barrier_wait("CHECK_BEFORE_FENCING_END_$cluster_name");
 
-    # Reset consoles on all nodes and wait for nodes to be synchronised
-    reset_consoles;
-    barrier_wait("BEFORE_FENCING_$cluster_name");
-
     # Fence the master node
     assert_script_run 'crm -F node fence ' . get_node_to_join if is_node(2);
 }

@@ -19,8 +19,6 @@ use hacluster;
 sub run {
     my $cluster_name = get_cluster_name;
 
-    barrier_wait("FENCING_DONE_$cluster_name");
-
     # Checking cluster state can take time, so default timeout is not enough
     # script_run return undef in case of timeout
     my $ret = script_run 'crm script run health', 240;
