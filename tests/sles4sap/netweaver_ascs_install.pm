@@ -49,10 +49,18 @@ sub run {
     assert_script_run "tuned-adm profile saptune";
     assert_script_run "saptune solution apply NETWEAVER";
     assert_script_run "systemctl restart systemd-logind.service";
+    # 'systemctl restart systemd-logind' is causing the X11 console to move
+    # out of tty2 on SLES4SAP-15, which in turn is causing the change back to
+    # the previous console in post_run_hook() to fail when running on systems
+    # with DESKTOP=gnome, which is a false positive as the test has already
+    # finished by that step. The following prevents post_run_hook from attempting
+    # to return to the console that was set before this test started. For more
+    # info on why X is running in tty2 on SLES4SAP-15, see bsc#1054782
+    $sles4sap::prev_console = undef;
 
     # If running in DESKTOP=gnome, systemd-logind restart may cause the graphical console to
     # reset and appear in SUD, so need to select 'root-console' again
-    assert_screen([qw(root-console displaymanager displaymanager-password-prompt generic-desktop)]);
+    assert_screen([qw(root-console displaymanager displaymanager-password-prompt generic-desktop text-login)]);
     select_console 'root-console' unless (match_has_tag 'root-console');
 
     assert_script_run "saptune daemon start";
@@ -101,8 +109,7 @@ sub run {
 
     # Start the installation
     type_string "cd /sapinst/unattended\n";
-    $cmd = "../SWPM/sapinst";
-    $cmd = $cmd . ' ' . join(' ', @sapoptions);
+    $cmd = "../SWPM/sapinst" . ' ' . join(' ', @sapoptions);
 
     assert_script_run $cmd, $nettout;
 }
