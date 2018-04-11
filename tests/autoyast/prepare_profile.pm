@@ -27,8 +27,14 @@ sub run {
     my @vars = qw(SCC_REGCODE SCC_REGCODE_HA SCC_REGCODE_GEO SCC_URL VERSION ARCH HostIP);
     for my $var (@vars) {
         my $value;
+        # For s390x and svirt backends need to adjust network configuration
         if ($var eq 'HostIP') {
-            ($value) = get_var('S390_NETWORK_PARAMS') =~ /HostIP=(.*?)\//;
+            if (check_var('BACKEND', 's390x')) {
+                ($value) = get_var('S390_NETWORK_PARAMS') =~ /HostIP=(.*?)\//;
+            }
+            elsif (check_var('BACKEND', 'svirt')) {
+                $value = get_var('VIRSH_GUEST');
+            }
         }
         else {
             $value = get_var($var);
@@ -53,4 +59,3 @@ sub test_flags {
 }
 
 1;
-
