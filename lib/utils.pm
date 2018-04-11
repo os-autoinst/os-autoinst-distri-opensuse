@@ -55,7 +55,6 @@ our @EXPORT = qw(
   addon_license
   addon_products_is_applicable
   noupdatestep_is_applicable
-  validate_repos
   turn_off_kde_screensaver
   turn_off_gnome_screensaver
   random_string
