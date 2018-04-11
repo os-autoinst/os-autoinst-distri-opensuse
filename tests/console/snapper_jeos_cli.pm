@@ -19,7 +19,7 @@ sub run {
     my ($self) = @_;
 
     select_console('root-console');
-    my $file = '/root/openQA_snapper_test';
+    my $file = '/etc/openQA_snapper_test';
     assert_script_run("touch $file");
     my $openqalatest = 'openqalatest';
     assert_script_run("snapper create -d $openqalatest");
