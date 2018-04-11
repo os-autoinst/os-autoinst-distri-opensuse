@@ -49,7 +49,7 @@ sub run {
     }
     select_console 'x11', await_console => 0;
 
-    my @updates_tags           = qw(updates_none updates_available package-updater-privileged-user-warning updates_restart_application);
+    my @updates_tags = qw(updates_none updates_available package-updater-privileged-user-warning updates_restart_application updates_installed-restart);
     my @updates_installed_tags = qw(updates_none updates_installed-logout updates_installed-restart updates_restart_application );
 
     setup_system;
