@@ -55,20 +55,24 @@ sub run {
 
     # view log
     send_key 'alt-v';                                                                     # open log window
+
+    # bsc#1008493 is still open, but error pop-up doesn't always appear immediately
+    # so wait still screen before assertion
+    wait_still_screen 3;
     assert_screen([qw(yast2_tftp_view_log_error yast2_tftp_view_log_show)]);
     if (match_has_tag('yast2_tftp_view_log_error')) {
         # softfail for opensuse when error for view log throws out
         record_soft_failure "bsc#1008493";
-        send_key 'alt-o';                                                                 # confirm the error message
+        wait_screen_change { send_key 'alt-o' };    # confirm the error message
     }
-    send_key 'alt-c';                                                                     # close the window
+    send_key 'alt-c';                               # close the window
     assert_screen 'yast2_tftp_closed_port';
     # now finish tftp server configuration
-    send_key 'alt-o';                                                                     # confirm changes
+    send_key 'alt-o';                               # confirm changes
 
     # and confirm for creating new directory
     assert_screen 'yast2_tftp_create_new_directory';
-    send_key 'alt-y';                                                                     # approve creation of new directory
+    send_key 'alt-y';                               # approve creation of new directory
 
     # wait for yast2 tftp configuration completion
     wait_serial("yast2-tftp-server-status-0", 180) || die "'yast2 tftp-server' failed";
@@ -83,4 +87,3 @@ sub run {
 }
 
 1;
-
