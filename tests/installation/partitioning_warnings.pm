@@ -70,19 +70,24 @@ sub run {
     # Warning about small partition is shown later for non storage-ng
     # On power we get warning about missing prepboot before too small partition warning, which is different to arm
     # That is relevant for old storage stack, on s390x we don't get warning about missing boot/zipl
-    process_warning(warning => 'too-small-for-snapshots', key => 'alt-n') if !is_storage_ng() && !check_var('ARCH', 'ppc64le');
-    process_missing_special_partitions;
-    process_warning(warning => 'too-small-for-snapshots', key => 'alt-n') if !is_storage_ng() && check_var('ARCH', 'ppc64le');
     # Swap warning is not shown in storage-ng as controlled by the checkbox
     if (!is_storage_ng) {
         # No further warnings on x86_64 and s390x on non-storage-ng
         if (get_var('ARCH') =~ /x86_64|s390x/) {
+            process_warning(warning => 'too-small-for-snapshots');
             process_warning(warning => 'no-swap');
             return;
         }
         else {
+            process_warning(warning => 'too-small-for-snapshots', key => 'alt-n') if !check_var('ARCH', 'ppc64le');
+            process_missing_special_partitions;
+            process_warning(warning => 'too-small-for-snapshots', key => 'alt-n') if check_var('ARCH', 'ppc64le');
             process_warning(warning => 'no-swap', key => 'alt-n');
         }
+    }
+    else {
+        # in storage-ng need to process only special warnings
+        process_missing_special_partitions;
     }
 
     ## Add required partitions as per warnings
