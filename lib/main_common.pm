@@ -1479,8 +1479,8 @@ sub load_wicked_tests {
         loadtest 'wicked/basic';
         loadtest 'wicked/config_files';
     }
-    elsif (check_var('WICKED', 'risky')) {
-        loadtest 'wicked/risky';
+    elsif (check_var('WICKED', 'advanced')) {
+        loadtest 'wicked/advanced';
     }
 }
 
