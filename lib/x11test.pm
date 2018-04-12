@@ -876,8 +876,9 @@ sub configure_static_ip_nm {
 
 # Open the firewall port of xdmcp service
 sub configure_xdmcp_firewall {
-    # Open the firewall port of xdmcp service
-    if (is_sle '15+') {
+    my ($self) = @_;
+
+    if ($self->firewall eq 'firewalld') {
         assert_script_run 'firewall-cmd --permanent --zone=public --add-port=6000-6010/tcp';
         assert_script_run 'firewall-cmd --permanent --zone=public --add-port=177/udp';
         assert_script_run 'firewall-cmd --reload';
