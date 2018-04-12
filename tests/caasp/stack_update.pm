@@ -20,6 +20,7 @@ use strict;
 use testapi;
 use lockapi 'mutex_create';
 use caasp 'update_scheduled';
+use version_utils 'is_caasp';
 
 # Set up ssh to admin node and run update script on all nodes
 sub setup_update_repository {
@@ -46,7 +47,7 @@ sub check_update_changes {
     assert_script_run "kubectl get nodes --no-headers | wc -l | grep $nodes_count";
 
     # QAM: incidents repo with real maintenance updates
-    if (check_var('FLAVOR', 'CaaSP-DVD-Incidents')) {
+    if (is_caasp('qam')) {
         # TODO
     }
     else {
