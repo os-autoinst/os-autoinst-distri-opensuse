@@ -49,8 +49,8 @@ sub run {
     }
     select_console 'x11', await_console => 0;
 
-    my @updates_tags           = qw(updates_none updates_available package-updater-privileged-user-warning updates_restart_application);
-    my @updates_installed_tags = qw(updates_none updates_installed-logout updates_installed-restart updates_restart_application );
+    my @updates_tags = qw(updates_none updates_available package-updater-privileged-user-warning updates_restart_application updates_installed-restart);
+    my @updates_installed_tags = qw(updates_none updates_installed-logout updates_installed-restart updates_restart_application);
 
     setup_system;
 
@@ -70,17 +70,15 @@ sub run {
         elsif (match_has_tag("updates_available")) {
             send_key "alt-i";    # install
 
-            # Authenticate on SLES
-            # FIXME: actually only do that on SLE
-            push @updates_installed_tags, 'updates_authenticate';
-            check_screen \@updates_installed_tags;
-            if (match_has_tag("updates_authenticate")) {
-                type_string "$password\n";
-                pop @updates_installed_tags;
-            }
-
             # Wait until installation is done
-            assert_screen \@updates_installed_tags, 3600;
+            push @updates_installed_tags, 'updates_authenticate' if is_sle;
+            do {
+                assert_screen \@updates_installed_tags, 3600;
+                if (match_has_tag("updates_authenticate")) {
+                    type_string "$password\n";
+                    pop @updates_installed_tags;
+                }
+            } while (match_has_tag 'updates_authenticate');
             if (match_has_tag("updates_none")) {
                 send_key 'ret';
                 if (check_screen "updates_installed-restart", 0) {
