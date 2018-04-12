@@ -81,10 +81,11 @@ sub accept_addons_license {
     #   isc co SUSE:SLE-15:GA 000product
     #   grep -l EULA SUSE:SLE-15:GA/000product/*.product | sed 's/.product//'
     # All shown products have a license that should be checked.
-    my @addons_with_license = qw(ha geo we live rt idu ids lgm hpcm ses);
-    # Development tools and Web-Scripting modules do not have license in SLE 15
-    push(@addons_with_license, 'sdk') unless is_sle('15+');
-    push(@addons_with_license, 'wsm') unless is_sle('15+');
+    my @addons_with_license = qw(geo live rt idu ids lgm hpcm ses);
+
+    # In SLE 15 some modules do not have license or have the same
+    # license (see bsc#1089163) and so are not be shown twice
+    push @addons_with_license, qw(ha sdk wsm we) unless is_sle('15+');
 
     for my $addon (@scc_addons) {
         # most modules don't have license, skip them
