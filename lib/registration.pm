@@ -62,7 +62,7 @@ our %SLE15_MODULES = (
 # manually
 our %SLE15_DEFAULT_MODULES = (
     sles     => 'base,serverapp',
-    sled     => 'base,desktop,we',
+    sled     => 'base,desktop',
     sles4sap => 'base,desktop,serverapp,ha,sapapp',
 );
 
@@ -143,14 +143,11 @@ sub remove_suseconnect_product {
 
 sub register_addons {
     my (@scc_addons) = @_;
-    my $sle_prod = get_required_var('SLE_PRODUCT');
+
     my ($regcodes_entered, $uc_addon);
     for my $addon (@scc_addons) {
         # no need to input registration code if register via SMT
         last if (get_var('SMT_URL'));
-        # Do not need to write registration code if product includes it
-        next if $SLE15_DEFAULT_MODULES{$sle_prod} =~ /$addon/;
-
         $uc_addon = uc $addon;    # change to uppercase to match variable
         if (my $regcode = get_var("SCC_REGCODE_$uc_addon")) {
             # skip addons which doesn't need to input scc code
@@ -273,12 +270,6 @@ sub fill_in_registration_data {
             $addons = $addons ? $addons . ',desktop' : 'desktop';
             set_var('SCC_ADDONS', $addons);
         }
-        # Add WE for SLED to process license, if not added explicitly (which should never be the case)
-        # TODO: remove/adjust when get unified licenses, so same license is not shown twice.
-        if (check_var('SLE_PRODUCT', 'sled') && (my $addons = get_var('SCC_ADDONS')) !~ /we/) {
-            $addons = $addons ? $addons . ',we' : 'we';
-            set_var('SCC_ADDONS', $addons);
-        }
     }
 
     if (check_var('SCC_REGISTER', 'installation') || check_var('SCC_REGISTER', 'yast') || check_var('SCC_REGISTER', 'console')) {
@@ -313,13 +304,10 @@ sub fill_in_registration_data {
                 }
             }
             my @scc_addons = split(/,/, get_var('SCC_ADDONS', ''));
-            my $sle_prod = get_required_var('SLE_PRODUCT');
             # remove emty elements
             @scc_addons = grep { $_ ne '' } @scc_addons;
 
             for my $addon (@scc_addons) {
-                # Do not select modules which are preselected on SLE15 already
-                next if $SLE15_DEFAULT_MODULES{$sle_prod} =~ /$addon/;
                 if (check_var('VIDEOMODE', 'text') || check_var('SCC_REGISTER', 'console')) {
                     # The actions of selecting scc addons have been changed on SP2 or later in textmode
                     # For online migration, we have to do registration on pre-created HDD, set a flag
