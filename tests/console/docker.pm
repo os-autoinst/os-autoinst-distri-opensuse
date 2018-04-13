@@ -83,7 +83,7 @@ sub run {
     die("error: missing container $container_name") unless ($output_containers =~ m/$container_name/);
 
     # containers state can be saved to a docker image
-    my $output = script_output("docker container exec $container_name zypper -n in curl", 120);
+    my $output = script_output("docker container exec $container_name zypper -n in curl", 180);
     die('error: curl not installed in the container') unless ($output =~ m/Installing: curl.*done/);
     assert_script_run("docker container commit $container_name tw:saved");
 
