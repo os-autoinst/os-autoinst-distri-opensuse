@@ -33,7 +33,7 @@ sub run {
     #preparing directories for holding config files
     assert_script_run('mkdir -p /data/{static_address,dynamic_address}');
     #download script for check interface status
-    $self->get_from_data('wicked/check_interfaces.sh', '/data/check_interfaces.sh', executable => 1);
+    $self->get_from_data('wicked/check_interfaces.sh', '/data/check_interfaces.sh', executable => 1) if check_var('WICKED', 'basic');
 }
 
 sub test_flags {
