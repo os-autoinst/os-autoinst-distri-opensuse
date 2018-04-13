@@ -39,8 +39,8 @@ sub run {
     return 1 unless kdump_is_active;
     do_kdump;
     power_action('reboot', observe => 1, keepconsole => 1);
-    # wait for system's reboot
-    $self->wait_boot;
+    # Wait for system's reboot; more time for Hyper-V as it's slow.
+    $self->wait_boot(bootloader_time => check_var('VIRSH_VMM_FAMILY', 'hyperv') ? 200 : undef);
     select_console 'root-console';
 
     # all but PPC64LE arch's vmlinux images are gzipped
