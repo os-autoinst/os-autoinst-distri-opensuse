@@ -510,7 +510,7 @@ sub installzdupstep_is_applicable {
 
 sub snapper_is_applicable {
     my $fs = get_var("FILESYSTEM", 'btrfs');
-    return ($fs eq "btrfs" && get_var("HDDSIZEGB", 10) > 10);
+    return (!get_var("LIVETEST") && $fs eq "btrfs" && get_var("HDDSIZEGB", 10) > 10);
 }
 
 sub chromestep_is_applicable {
