@@ -21,6 +21,11 @@ use utils;
 
 sub ensure_multi_user_target {
     type_string "systemctl isolate multi-user.target\n";
+    wait_still_screen 5;
+    send_key "ctrl-alt-f" . get_root_console_tty;
+    wait_screen_change {
+        send_key "ctrl-c";
+    }
     reset_consoles;
     wait_still_screen 10;
     # isolating multi-user.target logs us out
