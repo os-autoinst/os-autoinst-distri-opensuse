@@ -489,7 +489,7 @@ sub load_docker_tests {
     if (!is_sle) {
         loadtest "console/docker_compose";
     }
-    if (is_sle('<15')) {
+    if (is_sle('<12-SP4')) {
         loadtest "console/sle2docker";
     }
 }
@@ -1479,8 +1479,8 @@ sub load_wicked_tests {
         loadtest 'wicked/basic';
         loadtest 'wicked/config_files';
     }
-    elsif (check_var('WICKED', 'risky')) {
-        loadtest 'wicked/risky';
+    elsif (check_var('WICKED', 'advanced')) {
+        loadtest 'wicked/advanced';
     }
 }
 

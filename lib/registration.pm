@@ -81,10 +81,11 @@ sub accept_addons_license {
     #   isc co SUSE:SLE-15:GA 000product
     #   grep -l EULA SUSE:SLE-15:GA/000product/*.product | sed 's/.product//'
     # All shown products have a license that should be checked.
-    my @addons_with_license = qw(ha geo we live rt idu ids lgm hpcm ses);
-    # Development tools and Web-Scripting modules do not have license in SLE 15
-    push(@addons_with_license, 'sdk') unless is_sle('15+');
-    push(@addons_with_license, 'wsm') unless is_sle('15+');
+    my @addons_with_license = qw(geo live rt idu ids lgm hpcm ses);
+
+    # In SLE 15 some modules do not have license or have the same
+    # license (see bsc#1089163) and so are not be shown twice
+    push @addons_with_license, qw(ha sdk wsm we) unless is_sle('15+');
 
     for my $addon (@scc_addons) {
         # most modules don't have license, skip them
@@ -149,13 +150,9 @@ sub register_addons {
         # no need to input registration code if register via SMT
         last if (get_var('SMT_URL'));
         $uc_addon = uc $addon;    # change to uppercase to match variable
-        if ($addon eq 'phub') {
-            record_soft_failure 'bsc#1046172';
-            set_var('SCC_REGCODE_PHUB', get_required_var('SCC_REGCODE'));
-        }
         if (my $regcode = get_var("SCC_REGCODE_$uc_addon")) {
             # skip addons which doesn't need to input scc code
-            next unless grep { $addon eq $_ } qw(ha geo we live rt ltss phub ses);
+            next unless grep { $addon eq $_ } qw(ha geo we live rt ltss ses);
             if (check_var('VIDEOMODE', 'text')) {
                 send_key_until_needlematch "scc-code-field-$addon", 'tab';
             }
@@ -311,11 +308,6 @@ sub fill_in_registration_data {
             # remove emty elements
             @scc_addons = grep { $_ ne '' } @scc_addons;
 
-            if (!(check_screen 'scc-module-phub', 0)) {
-                record_soft_failure 'boo#1056047';
-                #find and remove phub
-                @scc_addons = grep { !/phub/ } @scc_addons;
-            }
             for my $addon (@scc_addons) {
                 if (check_var('VIDEOMODE', 'text') || check_var('SCC_REGISTER', 'console')) {
                     # The actions of selecting scc addons have been changed on SP2 or later in textmode
@@ -443,7 +435,7 @@ sub select_addons_in_textmode {
     my ($addon, $flag) = @_;
     if ($flag) {
         send_key_until_needlematch 'scc-module-area-selected', 'tab';
-        send_key_until_needlematch "scc-module-$addon", 'down', 30;
+        send_key_until_needlematch "scc-module-$addon", 'down', 30, 5;
         if (check_var('ARCH', 'aarch64') && check_var('HDDVERSION', '12-SP2') && check_screen('scc-module-tcm-selected', 5)) {
             record_info('Workaround',
                 "Toolchain module is selected and installed by default on sles12sp2 aarch64\nSee: https://progress.opensuse.org/issues/19852");
@@ -624,7 +616,12 @@ sub install_docker_when_needed {
         die 'Docker is not pre-installed.' if zypper_call('se -x --provides -i docker | grep docker', allow_exit_codes => [0, 1]);
     }
     else {
-        add_suseconnect_product('sle-module-containers') if is_sle('15+');
+        if (is_sle('<15')) {
+            assert_script_run('zypper se docker || zypper -n ar -f http://download.suse.de/ibs/SUSE:/SLE-12:/Update/standard/SUSE:SLE-12:Update.repo');
+        }
+        elsif (is_sle) {
+            add_suseconnect_product('sle-module-containers');
+        }
         # docker package can be installed
         zypper_call('in docker');
     }
