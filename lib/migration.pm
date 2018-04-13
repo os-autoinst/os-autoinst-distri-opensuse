@@ -129,6 +129,8 @@ sub check_rollback_system {
     # check rollback-helper service is enabled and worked properly
     systemctl('is-active rollback');
 
+    # Disable the obsolete cd and dvd repos to avoid zypper error
+    assert_script_run("zypper mr -d -m cd -m dvd");
     # Verify registration status matches current system version
     # system is un-registered during media based upgrade
     assert_script_run('curl -s ' . data_url('console/check_registration_status.py') . ' | python') unless get_var('MEDIA_UPGRADE');
