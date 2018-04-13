@@ -61,7 +61,9 @@ sub patching_sle {
             # Perform sync ahead of reboot to flush filesystem buffers that probably reduce time of sync during rebooting
             # In the case no need to always enlarge timeout of wait_boot
             assert_script_run 'sync', 600;
-            type_string "reboot\n";
+            # Workaround for test failed of the reboot operation need to wait some jobs done
+            # Add '-f' to force the reboot to avoid the test be blocked here
+            type_string "reboot -f\n";
             $self->wait_boot(textmode => !is_desktop_installed(), ready_time => 600, bootloader_time => 250);
 
             # Go back to the initial state, before the patching
