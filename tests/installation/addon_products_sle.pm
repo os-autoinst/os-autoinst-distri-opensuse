@@ -45,7 +45,7 @@ sub handle_all_packages_medium {
 
     # For SLES12SPx and SLES11SPx to SLES15 migration, need add the demand module at least for media migration manually
     if (get_var('MEDIA_UPGRADE') && !sle_version_at_least('15', version_variable => 'HDDVERSION') && !check_var('SLE_PRODUCT', 'sled')) {
-        my @demand_addon = qw(contm desktop legacy serverapp script);
+        my @demand_addon = qw(desktop legacy serverapp script);
         for my $a (@demand_addon) {
             push @addons, $a if !grep(/^$a$/, @addons);
         }
