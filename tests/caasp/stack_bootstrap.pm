@@ -68,28 +68,6 @@ sub select_master {
     }
 }
 
-sub setup_root_ca {
-    # Close firefox
-    send_key 'alt-f4';
-    assert_screen 'xterm';
-
-    # Setup ssh
-    script_run 'ssh-copy-id -f admin.openqa.test', 0;
-    assert_screen 'ssh-password-prompt';
-    type_password;
-    send_key 'ret';
-
-    # Install certificate
-    assert_script_run 'scp admin.openqa.test:/etc/pki/trust/anchors/SUSE_CaaSP_CA.crt .';
-    assert_script_run 'certutil -A -n CaaSP -d .mozilla/firefox/*.default -i SUSE_CaaSP_CA.crt -t "C,,"';
-
-    # Start firefox again
-    x11_start_program('firefox admin.openqa.test', valid => 0);
-    assert_screen 'velum-login';
-    velum_login;
-    send_key 'f11';
-}
-
 # Run bootstrap and download kubeconfig
 sub bootstrap {
     # Click next button to 'Confirm bootstrap' page
@@ -110,8 +88,6 @@ sub bootstrap {
     assert_and_click "velum-bootstrap";
 
     # Wait until bootstrap finishes
-    assert_screen [qw(velum-bootstrap-done velum-api-disconnected)], 900;
-    setup_root_ca;
     assert_screen 'velum-bootstrap-done', 900;
 }
 

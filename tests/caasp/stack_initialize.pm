@@ -18,13 +18,27 @@
 # Maintainer: Martin Kravec <mkravec@suse.com>
 
 use parent 'caasp_controller';
+use caasp_controller;
 
 use strict;
 use testapi;
+use caasp 'get_admin_job';
+use lockapi qw(mutex_lock mutex_unlock);
 use utils qw(ensure_serialdev_permissions turn_off_gnome_screensaver);
 
+sub firefox_import_ca {
+    # Setup ssh
+    script_run 'ssh-copy-id -f admin.openqa.test', 0;
+    assert_screen 'ssh-password-prompt';
+    type_password;
+    send_key 'ret';
+
+    # Install certificate
+    assert_script_run 'scp admin.openqa.test:/etc/pki/ca.crt .';
+    assert_script_run 'certutil -A -n CaaSP -d .mozilla/firefox/*.default -i ca.crt -t "C,,"';
+}
+
 sub run {
-    my ($self) = @_;
     select_console 'x11';
     x11_start_program('xterm');
     become_root;
@@ -38,7 +52,11 @@ sub run {
     save_screenshot;
     send_key "ctrl-l";
     send_key 'super-up';
-    x11_start_program('firefox', valid => 0);
+
+    # Wait until dashboard becomes ready
+    mutex_lock "VELUM_STARTED", get_admin_job;
+    mutex_unlock "VELUM_STARTED";
+    firefox_import_ca;
 }
 
 1;
