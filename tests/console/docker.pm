@@ -22,17 +22,16 @@
 #      * images can be deleted
 # Maintainer: Flavio Castelli <fcastelli@suse.com>, Panagiotis Georgiadis <pgeorgiadis@suse.com>, Sergio Lindo Mansilla <slindomansilla@suse.com>
 
-use base "consoletest";
+use base 'dockertest';
 use testapi;
 use utils;
 use strict;
 use version_utils qw(is_caasp is_sle sle_version_at_least);
-use registration;
 
 sub run {
+    my ($self) = @_;
     select_console("root-console");
-
-    install_docker_when_needed;
+    $self->install_docker_when_needed();
 
     # images can be searched on the Docker Hub
     validate_script_output("docker search --no-trunc opensuse", sub { m/This project contains the stable releases of the openSUSE distribution/ });

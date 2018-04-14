@@ -15,7 +15,7 @@
 #      * complete lifecycle (create, start, pause, resume, kill, delete)
 # Maintainer: Panagiotis Georgiadis <pgeorgiadis@suse.com>
 
-use base "consoletest";
+use base 'dockertest';
 use testapi;
 use utils;
 use version_utils qw(is_caasp is_sle sle_version_at_least);
@@ -23,9 +23,9 @@ use registration;
 use strict;
 
 sub run {
+    my ($self) = @_;
     select_console("root-console");
-
-    install_docker_when_needed;
+    $self->install_docker_when_needed();
 
     my $runc = 'docker-runc';
 
