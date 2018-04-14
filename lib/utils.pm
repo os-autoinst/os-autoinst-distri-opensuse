@@ -1126,10 +1126,17 @@ sub _handle_login_not_found {
     diag 'Checking login target reached';
     die "login target not reached" unless $str =~ /Reached target Login Prompts/;
     diag 'Checking for login prompt';
-    die "no login prompt found" unless $str =~ /login:/;
+    diag "no login prompt found" unless $str =~ /login:/;
     diag 'Checking for known failure';
     return record_soft_failure 'bsc#1040606 - incomplete message when LeanOS is implicitly selected instead of SLES'
       if $str =~ /Welcome to SUSE Linux Enterprise 15/;
+    if (check_var('BACKEND', 's390x')) {
+        diag 'Trying to look for "blocked tasks" with magic sysrq';
+        console('x3270')->sequence_3270("String(\"^-w\")", "ENTER", "ENTER", "ENTER", "ENTER",);
+        console('x3270')->expect_3270(output_delim => 'Show Blocked State');
+        save_screenshot;
+    }
+
     die "unknown error, system couldn't boot";
 }
 
