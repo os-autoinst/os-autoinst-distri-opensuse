@@ -32,9 +32,7 @@ sub get_to_system {
 sub run {
     my ($self) = @_;
     select_console 'x3270';
-    $self->get_to_system();
-
-    $self->result('ok');
+    get_to_system;
 }
 
 1;
