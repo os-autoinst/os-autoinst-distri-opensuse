@@ -509,6 +509,9 @@ sub installzdupstep_is_applicable {
 }
 
 sub snapper_is_applicable {
+    #XXX needs too much needling in yast2_snapper and some more logic to not
+    #apply this in upgrade tests from older distros
+    return 0 if is_opensuse;
     my $fs = get_var("FILESYSTEM", 'btrfs');
     return (!get_var("LIVETEST") && $fs eq "btrfs" && get_var("HDDSIZEGB", 10) > 10);
 }
