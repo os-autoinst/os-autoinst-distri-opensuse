@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2015 SUSE LLC
+# Copyright © 2015-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -76,7 +76,7 @@ sub run {
     # Done
     assert_screen 'nfs-share-saved';
     send_key 'alt-f';
-    wait_serial("YAST-DONE-0-", 5);
+    wait_serial('YAST-DONE-0-') or die "'yast2 nfs-server' didn't finish";
 
     # Back on the console, test mount locally
     clear_console;
