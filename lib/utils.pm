@@ -1154,6 +1154,14 @@ sub reconnect_s390 {
 
     # different behaviour for z/VM and z/KVM
     if (check_var('BACKEND', 's390x')) {
+        my $console = console('x3270');
+        eval { $console->expect_3270(output_delim => 'GNU GRUB'); };
+        if ($@) {
+            diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
+        }
+        else {
+            $console->sequence_3270("ENTER", "ENTER", "ENTER", "ENTER");
+        }
         my $r;
         eval { $r = console('x3270')->expect_3270(output_delim => $login_ready, timeout => $args{timeout}); };
         if ($@) {
