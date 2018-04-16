@@ -1485,6 +1485,9 @@ sub load_wicked_tests {
     elsif (check_var('WICKED', 'advanced')) {
         loadtest 'wicked/advanced';
     }
+    else {
+        die 'Unhandled WICKED test selection: ' . get_var('WICKED');
+    }
 }
 
 sub load_networkd_tests {
