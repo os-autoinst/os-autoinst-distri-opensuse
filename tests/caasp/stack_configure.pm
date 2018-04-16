@@ -12,7 +12,7 @@
 
 use parent 'caasp_controller';
 use caasp_controller;
-use caasp 'get_admin_job';
+use version_utils 'is_caasp';
 
 use strict;
 use testapi;
@@ -48,15 +48,11 @@ sub upload_autoyast {
 }
 
 sub run {
-    # Wait until dashboard becomes ready
-    mutex_lock "VELUM_STARTED", get_admin_job;
-    mutex_unlock "VELUM_STARTED";
+    x11_start_program('firefox admin.openqa.test', target_match => 'firefox');
+    send_key 'f11';
+    wait_still_screen 3;
 
-    # Display velum dashboard
-    type_string get_var('DASHBOARD_URL');
-    send_key 'ret';
-    send_key "f11";
-    confirm_insecure_https;
+    confirm_insecure_https if is_caasp('VMX');
 
     # Check that footer has proper tag
     my $v = get_var('VERSION');
@@ -73,7 +69,6 @@ sub run {
 
     # Upload the logs of autoyast (if any)
     upload_autoyast;
-
 }
 
 1;
