@@ -998,22 +998,24 @@ sub run_scripted_command_slow {
 Returns tty number used designed to be used for root-console.
 When console is not yet initialized, we cannot get it from arguments.
 Since SLE 15 gdm is running on tty2, so we change behaviour for it and
-openSUSE distris.
+openSUSE distris, except for Xen PV (bsc#1086243).
 =cut
 sub get_root_console_tty {
-    return (sle_version_at_least('15') && !is_caasp) ? 6 : 2;
+    return (sle_version_at_least('15') && !is_caasp && !check_var('VIRSH_VMM_TYPE', 'linux')) ? 6 : 2;
 }
 
 =head2 get_x11_console_tty
-Returns tty number used designed to be used for X
+Returns tty number used designed to be used for X.
 Since SLE 15 gdm is always running on tty7, currently the main GUI session
-is running on tty2 by default. see also: bsc#1054782
+is running on tty2 by default, except for Xen PV (bsc#1086243).
+See also: bsc#1054782
 =cut
 sub get_x11_console_tty {
     my $new_gdm
       = !is_sle('<15')
       && !is_leap('<15.0')
       && !is_caasp
+      && !check_var('VIRSH_VMM_TYPE', 'linux')
       && !get_var('VERSION_LAYERED');
     return (check_var('DESKTOP', 'gnome') && get_var('NOAUTOLOGIN') && $new_gdm) ? 2 : 7;
 }
