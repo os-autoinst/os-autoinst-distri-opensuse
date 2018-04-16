@@ -461,8 +461,9 @@ sub ensure_user {
 }
 
 # callback whenever a console is selected for the first time
+# accepts agruments provided to select_console
 sub activate_console {
-    my ($self, $console) = @_;
+    my ($self, $console, %args) = @_;
 
     if ($console eq 'install-shell') {
         if (get_var("LIVECD")) {
@@ -501,7 +502,8 @@ sub activate_console {
             my $nr = 4;
             $nr = get_root_console_tty if ($name eq 'root');
             $nr = 5 if ($name eq 'log');
-            my @tags = ("tty$nr-selected", "text-logged-in-$user", "text-login");
+            my @tags = ("tty$nr-selected", "text-logged-in-$user");
+            push(@tags, 'text-login') unless $args{ensure_tty_selected};
             # s390 zkvm uses a remote ssh session which is root by default so
             # search for that and su to user later if necessary
             push(@tags, 'text-logged-in-root') if get_var('S390_ZKVM');
@@ -510,7 +512,8 @@ sub activate_console {
             # or when using remote consoles which can take some seconds, e.g.
             # just after ssh login
             assert_screen \@tags, 60;
-            if (match_has_tag("tty$nr-selected") or match_has_tag("text-login")) {
+            # Accept 'text-login' by default
+            if (match_has_tag("tty$nr-selected") || match_has_tag("text-login") && !$args{ensure_tty_selected}) {
                 type_string "$user\n";
                 handle_password_prompt;
             }
