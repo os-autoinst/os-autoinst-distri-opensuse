@@ -951,7 +951,7 @@ sub load_consoletests {
     if (get_var('SYSTEM_ROLE', '') =~ /kvm|xen/) {
         loadtest "console/patterns";
     }
-    if (snapper_is_applicable()) {
+    if (snapper_is_applicable() && !is_updates_tests()) {
         if (get_var("UPGRADE")) {
             loadtest "console/upgrade_snapshots";
         }
@@ -1170,7 +1170,7 @@ sub load_x11tests {
         loadtest "x11/dolphin";
     }
     # SLES4SAP default installation does not configure snapshots
-    if (snapper_is_applicable() and !is_sles4sap()) {
+    if (snapper_is_applicable() and !is_updates_tests() and !is_sles4sap()) {
         loadtest "x11/yast2_snapper";
     }
     if (xfcestep_is_applicable()) {
