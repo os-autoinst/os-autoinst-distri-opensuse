@@ -139,6 +139,9 @@ sub is_caasp {
     elsif ($filter eq 'qam') {
         return check_var('FLAVOR', 'CaaSP-DVD-Incidents') || get_var('LOCAL_QAM_DEVENV');
     }
+    elsif ($filter eq 'local') {
+        return get_var('LOCAL_DEVENV') || get_var('LOCAL_QAM_DEVENV');
+    }
     elsif ($filter =~ /staging/) {
         return get_var('FLAVOR') =~ /Staging-.-DVD/;
     }
