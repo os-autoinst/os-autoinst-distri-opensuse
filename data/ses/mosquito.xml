@@ -418,7 +418,7 @@ KwIDAQAB
 -----END PUBLIC KEY-----' > /etc/salt/pki/minion/minion.pub
 ###
 ### wipe disks
-for d in a b c d g h i j; do sgdisk -z /dev/sd${d};done
+for d in a b c d g h i j; do ceph-disk zap /dev/sd${d};done
 ###
 ### enable and start salt-minion
 systemctl enable salt-minion.service
@@ -436,16 +436,14 @@ salt-minion is configured and known to salt-master hornet.qam.suse.cz
 ' > /etc/motd
 ###
 ### make sure host ssh key will be the same even when previous installation failed and the known key got lost
-grep 'd3NgG7q63bL2FXZh8' /etc/ssh/ssh_host_ecdsa_key > /dev/null 2>&1
-if [ $? -ne 0 ]; then
+if ! grep 'd3NgG7q63bL2FXZh8' /etc/ssh/ssh_host_ecdsa_key > /dev/null 2>&1; then
 echo '-----BEGIN EC PRIVATE KEY-----
 MHcCAQEEIMcpezq5wiGgv9IAD9UzMSaeQ6/Ii7VzxHoERdI+JpQPoAoGCCqGSM49
 AwEHoUQDQgAE9as/+TJFUO2d3NgG7q63bL2FXZh88y78hLU7dPZiG0oKFeZkP2Bo
 LyjBcALgzFcHG/ZQNSc3+9p4+VwqAcntMQ==
 -----END EC PRIVATE KEY-----' > /etc/ssh/ssh_host_ecdsa_key
 fi
-grep 'nN/vaePlcKgHJ7TE=' /etc/ssh/ssh_host_ecdsa_key.pub > /dev/null 2>&1
-if [ $? -ne 0 ]; then
+if ! grep 'nN/vaePlcKgHJ7TE=' /etc/ssh/ssh_host_ecdsa_key.pub > /dev/null 2>&1; then
 echo 'ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBPWrP/kyRVDtndzYBu6ut2y9hV2YfPMu/IS1O3T2YhtKChXmZD9gaC8owXAC4MxXBxv2UDUnN/vaePlcKgHJ7TE= root@mosquito' > /etc/ssh/ssh_host_ecdsa_key.pub
 fi
 ###
