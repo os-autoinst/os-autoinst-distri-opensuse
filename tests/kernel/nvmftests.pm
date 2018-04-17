@@ -28,7 +28,7 @@ sub run {
 
     assert_script_run('cd /var/lib/nvmftests');
     assert_script_run('ln -sf tests/config config');
-    assert_script_run('nose2 --verbose', 1200);
+    assert_script_run('nose2 --verbose', 3600);
 
     power_action('poweroff');
 }
