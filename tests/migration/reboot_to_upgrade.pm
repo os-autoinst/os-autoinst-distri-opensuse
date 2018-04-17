@@ -27,7 +27,10 @@ sub run {
     set_var('PATCHED_SYSTEM', 1) if get_var('PATCH');
 
     # Reboot from Installer media for upgrade
-    set_var('BOOT_HDD_IMAGE', 0) if get_var('UPGRADE') || get_var('AUTOUPGRADE');
+    # Aarch64 need BOOT_HDD_IMAGE=1 to keep the correct flow to boot from disk for x11/reboot_gnome.
+    if (get_var('UPGRADE') || get_var('AUTOUPGRADE')) {
+        set_var('BOOT_HDD_IMAGE', 0) unless check_var('ARCH', 'aarch64');
+    }
     assert_script_run "sync", 300;
     type_string "reboot -f\n";
 }
