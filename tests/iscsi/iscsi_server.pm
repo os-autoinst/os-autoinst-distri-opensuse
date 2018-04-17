@@ -16,6 +16,7 @@ use strict;
 use testapi;
 use mm_network;
 use lockapi;
+use version_utils 'is_sle';
 use mmapi;
 use utils qw(zypper_call turn_off_gnome_screensaver);
 
@@ -54,10 +55,16 @@ sub run {
     wait_still_screen(2, 10);
     type_string '132';
     wait_still_screen(2, 10);
-    send_key 'alt-u';                                                                   # un-check use authentication
+    if (is_sle('>=15')) {
+        send_key 'alt-l';                                                               # un-check bind all IPs
+    }
+    else {
+        send_key 'alt-u';                                                               # un-check use authentication
+    }
     wait_still_screen(2, 10);
     send_key 'alt-a';                                                                   # add LUN
-    send_key_until_needlematch 'iscsi-target-LUN-path-selected', 'alt-p', 5, 5;         # send alt-p until LUN path is selected
+    my $lunpath_key = is_sle('>=15') ? 'alt-l' : 'alt-p';
+    send_key_until_needlematch 'iscsi-target-LUN-path-selected', $lunpath_key, 5, 5;    # send $lunpath_key until LUN path is selected
     type_string '/root/iscsi-disk';
     assert_screen 'iscsi-target-LUN';
     send_key 'alt-o';                                                                   # OK
