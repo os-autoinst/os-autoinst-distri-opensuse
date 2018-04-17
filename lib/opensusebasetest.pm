@@ -289,7 +289,7 @@ sub rewrite_static_svirt_network_configuration {
 
 =head2 wait_boot
 
-  wait_boot([bootloader_time => $bootloader_time] [, textmode => $textmode] [,ready_time => $ready_time] [,in_grub => $in_grub] [, nologin => $nologin);
+  wait_boot([bootloader_time => $bootloader_time] [, textmode => $textmode] [,ready_time => $ready_time] [,in_grub => $in_grub] [, nologin => $nologin] [, forcenologin => $forcenologin]);
 
 Makes sure the bootloader appears and then boots to desktop or text mode
 correspondingly. Returns successfully when the system is ready on a login
@@ -302,7 +302,8 @@ place. The time waiting for the bootloader can be configured with
 C<$bootloader_time> in seconds as well as the time waiting for the system to
 be fully booted with C<$ready_time> in seconds. Set C<$in_grub> to 1 when the
 SUT is already expected to be within the grub menu. C<wait_boot> continues
-from there.
+from there. C<$forcenologin> makes this function behave as if
+the env var NOAUTOLOGIN was set.
 =cut
 sub wait_boot {
     my ($self, %args) = @_;
@@ -311,6 +312,7 @@ sub wait_boot {
     my $ready_time      = $args{ready_time} // 200;
     my $in_grub         = $args{in_grub} // 0;
     my $nologin         = $args{nologin};
+    my $forcenologin    = $args{forcenologin};
 
     # used to register a post fail hook being active while we are waiting for
     # boot to be finished to help investigate in case the system is stuck in
@@ -434,7 +436,7 @@ sub wait_boot {
 
     mouse_hide();
 
-    if (get_var("NOAUTOLOGIN") || get_var("XDMUSED")) {
+    if (get_var("NOAUTOLOGIN") || get_var("XDMUSED") || $forcenologin) {
         assert_screen [qw(displaymanager emergency-shell emergency-mode)], $ready_time;
         handle_emergency if (match_has_tag('emergency-shell') or match_has_tag('emergency-mode'));
 
