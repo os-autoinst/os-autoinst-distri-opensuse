@@ -12,14 +12,17 @@
 # Maintainer: dmaiocchi <dmaiocchi@suse.com>
 
 use strict;
-use base "basetest";
+use base "opensusebasetest";
 use testapi;
 use bootloader_setup qw(stop_grub_timeout boot_into_snapshot);
 
 sub run {
+    my $self = shift;
+
     select_console 'root-console';
     type_string "reboot\n";
     reset_consoles;
+    $self->handle_uefi_boot_disk_workaround if (get_var('MACHINE') =~ /aarch64/ && get_var('UEFI') && get_var('BOOT_HDD_IMAGE'));
     assert_screen 'grub2', 200;
     stop_grub_timeout;
     boot_into_snapshot;
