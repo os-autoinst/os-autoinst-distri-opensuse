@@ -23,7 +23,7 @@ sub run {
     switch_to 'xterm';
     assert_script_run "kubectl cluster-info";
     assert_script_run "kubectl cluster-info > cluster.before_update";
-    assert_script_run "kubectl config view | tee /dev/$serialdev";
+    assert_script_run "kubectl config view --flatten=true | tee /dev/$serialdev";
     assert_script_run "kubectl get nodes";
     assert_script_run "! kubectl get cs --no-headers | grep -v Healthy";
 
