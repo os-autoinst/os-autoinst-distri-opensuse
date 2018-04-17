@@ -27,8 +27,8 @@ sub run {
 
     zypper_call('in conman');
 
-    # add serial console to conman.conf
-    assert_script_run("echo 'CONSOLE name=\"serial1\" dev=\"/dev/$serialdev\" seropts=\"115200\"' >> /etc/conman.conf");
+    # test with unix domain socket
+    assert_script_run("echo 'CONSOLE name=\"socket1\" dev=\"unix:/tmp/testsocket\"' >> /etc/conman.conf");
     assert_script_run("cat /etc/conman.conf");
 
     $self->enable_and_start('conman');
@@ -36,19 +36,9 @@ sub run {
     # check service status
     systemctl 'status conman';
 
-    # run conman client on serialdev
-    type_string("conman serial1\n");
-    assert_screen("connection-opened");
-
-    # close connection
-    type_string '&.';
-    assert_screen("connection-closed");
-
-    # test with unix domain socket
-    assert_script_run("echo 'CONSOLE name=\"socket1\" dev=\"unix:/tmp/testsocket\"' >> /etc/conman.conf");
-
     # run netcat on this socket
     type_string("netcat -ClU /tmp/testsocket &\n");
+    type_string("chown conman:conman /tmp/testsocket \n");
 
     # restart conmand service
     systemctl 'restart conman';
