@@ -89,9 +89,6 @@ sub handle_all_packages_medium {
             if (@addons_license_tags && check_screen(\@addons_license_tags)) {
                 $addon_license_num++;
             }
-            else {
-                record_soft_failure 'bsc#1081647';
-            }
             wait_screen_change { send_key 'alt-a' };
             wait_screen_change { send_key 'alt-n' };
         }
@@ -126,7 +123,6 @@ sub handle_addon {
         wait_still_screen 2;
 
         # license is shown *after* module selection in SLE15 and should be only for some modules (HA and WE)
-        record_soft_failure 'bsc#1081647' if $addon !~ /ha|we/;
         addon_license($addon);
         wait_still_screen 2;
     }
