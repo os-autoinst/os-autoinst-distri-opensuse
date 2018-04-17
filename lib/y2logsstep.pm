@@ -80,8 +80,7 @@ sub workaround_dependency_issues {
             sleep 1;
             send_key 'spc';
             sleep 1;
-            send_key 'alt-o';
-            sleep 2;
+            wait_screen_change { send_key 'alt-o' };
         }
     }
     return 1;
@@ -161,26 +160,26 @@ sub deal_with_dependency_issues {
 
   DO_CHECKS:
     while (check_screen('accept-licence', 2)) {
-        send_key 'alt-a';                      # Accept
+        wait_screen_change { send_key 'alt-a'; }    # Accept
     }
     while (check_screen('automatic-changes', 2)) {
-        send_key 'alt-o';                      # Continue
+        wait_screen_change { send_key 'alt-o'; }    # Continue
     }
     while (check_screen('unsupported-packages', 2)) {
-        send_key 'alt-o';                      # Continue
+        wait_screen_change { send_key 'alt-o'; }    # Continue
     }
     while (check_screen('error-with-patterns', 2)) {
         record_soft_failure 'bsc#1047337';
-        send_key 'alt-o';                      # OK
+        send_key 'alt-o';                           # OK
     }
     sleep 2;
 
     if (check_screen('dependency-issue-fixed', 0)) {
         if (check_var('VIDEOMODE', 'text')) {
-            send_key 'alt-o';                  # OK
+            send_key 'alt-o';                       # OK
         }
         else {
-            send_key 'alt-a';                  # Accept
+            send_key 'alt-a';                       # Accept
         }
         sleep 2;
     }
@@ -192,6 +191,8 @@ sub deal_with_dependency_issues {
     if (check_screen 'manual-intervention') {
         $self->deal_with_dependency_issues;
     }
+    # Yast will analyze your system again after confilicts fixed
+    $self->detect_stuck_at_system_analyzing;
 }
 
 sub verify_license_has_to_be_accepted {
@@ -205,6 +206,22 @@ sub verify_license_has_to_be_accepted {
         wait_still_screen 1;
         save_screenshot;
     }
+}
+
+sub detect_stuck_at_system_analyzing {
+    my ($self, %args) = @_;
+    my $timeout  = $args{timeout} // 600;
+    my $interval = $args{interval} // 10;
+    my $timetick = 0;
+    my @tags     = qw(analyzing_system adapting_proposal);
+
+    return unless check_screen(\@tags, 10);
+    while (check_screen(\@tags, no_wait => 1)) {
+        sleep 10;
+        $timetick += $interval;
+        last if $timetick >= $timeout;
+    }
+    die "System might be stuck on analyzing" if $timetick >= $timeout;
 }
 
 sub save_upload_y2logs {

@@ -17,6 +17,11 @@ use testapi;
 use version_utils 'is_sle';
 
 sub run {
+    my $self = shift;
+
+    # Wait finish of "Analyzing your system" during upgrade
+    $self->detect_stuck_at_system_analyzing if get_var("UPGRADE");
+
     assert_screen('release-notes-button', 60);
     return if match_has_tag('bsc#1054478');
 
