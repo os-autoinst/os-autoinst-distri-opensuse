@@ -19,6 +19,9 @@ use version_utils qw(is_leap is_tumbleweed is_sle);
 
 sub run {
     my $qa_head_repo = get_required_var('QA_HEAD_REPO');
+    if (is_leap('=15.0')) {
+        $qa_head_repo = 'https://download.opensuse.org/repositories/devel:/openSUSE:/QA:/Leap:/15/openSUSE_Leap_15.0/';
+    }
 
     # install systemd testsuite
     select_console 'root-console';
