@@ -82,11 +82,14 @@ sub start_online_update {
         select_console 'x11', await_console => 0;
     }
     assert_and_click 'yast2_control-center_online-update';
-    assert_screen [qw(yast2_control-center_update-repo-dialogue yast2_control-center_online-update_close)];
-    if (match_has_tag('yast2_control-center_update-repo-dialogue')) {
-        send_key 'alt-n';
-        assert_screen 'yast2_control-center_online-update_close';
-    }
+    my @tags = qw(yast2_control-center_update-repo-dialogue yast2_control-center_online-update_close yast2_control-center-ask_packagekit_to_quit);
+    do {
+        assert_screen \@tags;
+        wait_screen_change { send_key 'alt-n' } if match_has_tag('yast2_control-center_update-repo-dialogue');
+        # Let it kill PackageKit, in case it is running.
+        wait_screen_change { send_key 'alt-y' } if match_has_tag('yast2_control-center-ask_packagekit_to_quit');
+    } until (match_has_tag('yast2_control-center_online-update_close'));
+
     send_key 'alt-c';
     assert_screen 'yast2-control-center-ui', timeout => 60;
 }
@@ -94,8 +97,14 @@ sub start_online_update {
 sub start_software_repositories {
     search('software');
     assert_and_click 'yast2_control-center_software-repositories';
-    assert_screen 'yast2_control-center_configured-software-repositories', timeout => 180;
+    my @tags = qw(yast2_control-center_configured-software-repositories yast2_control-center-ask_packagekit_to_quit);
+    do {
+        assert_screen \@tags;
+        # Let it kill PackageKit, in case it is running.
+        wait_screen_change { send_key 'alt-y' } if match_has_tag('yast2_control-center-ask_packagekit_to_quit');
+    } until (match_has_tag('yast2_control-center_configured-software-repositories'));
     send_key 'alt-o';
+
     assert_screen 'yast2-control-center-ui', timeout => 60;
 }
 
@@ -341,9 +350,9 @@ sub run {
     start_security_center;
     start_sudo;
     start_user_and_group_management;
-    start_hypervisor;
 
     if (is_sle) {
+        start_hypervisor;
         start_add_system_extensions_or_modules;
         start_kernel_dump;
         # YaST2 CA management has been dropped from SLE15, see
