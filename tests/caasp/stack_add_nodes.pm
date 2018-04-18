@@ -29,6 +29,7 @@ sub accept_nodes {
 }
 
 sub bootstrap {
+    wait_still_screen 3;
     assert_and_click 'unassigned-select-all';
     assert_and_click 'unassigned-add-nodes';
     assert_screen 'velum-bootstrap-done';
