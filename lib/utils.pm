@@ -840,7 +840,27 @@ sub random_string {
     return join '', map { @chars[rand @chars] } 1 .. $length;
 }
 
+=head2 handle_login
+
+  handle_login($myuser, $user_selected);
+
+Log the user in using the displaymanager.
+When C<$myuser> is set, this user will be used for login.
+Otherwise the function will default to C<$username>.
+For displaymanagers (like gnome) where the user needs to be selected
+from a menu C<$user_selected> tells the function that the desired
+user has already been selected before this function was called.
+
+Example:
+
+  handle_login('user1', 1);
+
+=cut
 sub handle_login {
+    my ($myuser, $user_selected) = @_;
+    $myuser //= $username;
+    $user_selected //= 0;
+
     assert_screen 'displaymanager';    # wait for DM, then try to login
     wait_still_screen;
     if (get_var('ROOTONLY')) {
@@ -852,14 +872,14 @@ sub handle_login {
         type_string "root\n";
     }
     elsif (get_var('DM_NEEDS_USERNAME')) {
-        type_string "$username\n";
+        type_string "$myuser\n";
     }
     elsif (check_var('DESKTOP', 'gnome')) {
         # DMs in condition above have to select user
-        if (is_sle('15+') || is_leap('15.0+') || is_tumbleweed) {
+        if (!$user_selected && (is_sle('15+') || is_leap('15.0+') || is_tumbleweed)) {
             assert_screen [qw(displaymanager-user-selected displaymanager-user-notselected)];
             if (match_has_tag('displaymanager-user-notselected')) {
-                assert_and_click "displaymanager-$username";
+                assert_and_click "displaymanager-$myuser";
                 record_soft_failure 'bsc#1086425- user account not selected by default, have to use mouse to login';
             }
             elsif (match_has_tag('displaymanager-user-selected')) {
