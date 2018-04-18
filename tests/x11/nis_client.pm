@@ -17,19 +17,31 @@ use testapi;
 use mm_network;
 use lockapi;
 use utils qw(systemctl turn_off_gnome_screensaver);
+use version_utils 'is_sle';
 
 sub run {
     my ($self) = @_;
     x11_start_program('xterm -geometry 155x45+5+5', target_match => 'xterm');
-    turn_off_gnome_screensaver if check_var('DESKTOP', 'gnome');
     become_root;
+    turn_off_gnome_screensaver if check_var('DESKTOP', 'gnome');
     configure_default_gateway;
     configure_static_ip('10.0.2.3/24');
     configure_static_dns(get_host_resolv_conf());
+    if ($self->firewall eq 'firewalld') {
+        my $firewalld_ypbind_service = get_test_data('x11/workaround_ypbind.xml');
+
+        record_soft_failure('bsc#1089851');
+        assert_script_run("echo \"$firewalld_ypbind_service\" > /usr/lib/firewalld/services/ypbind.xml");
+        assert_script_run('firewall-cmd --reload');
+    }
     systemctl 'stop ' . $self->firewall;    # bsc#999873
     assert_script_run 'zypper -n in yast2-nis-server';
     mutex_lock('nis_ready');                # wait for NIS server setup
     type_string "yast2 nis\n";
+    if (is_sle('>=15')) {
+        assert_screen 'nis-client-install-missing-package';
+        send_key 'alt-i';                   # install missing ypbind rpm
+    }
     assert_screen 'nis-client-configuration';
     send_key 'alt-u';                       # use NIS radio button
     wait_still_screen 4;
@@ -68,7 +80,12 @@ sub run {
     assert_screen 'nis-client-configuration';
     send_key 'alt-f';                       # finish
     assert_screen 'yast2_closed_xterm_visible', 90;
-    script_run 'mount|grep nfs';                                 # print nfs mounts
+    script_run 'mount|grep nfs';            # print nfs mounts
+    if (is_sle('>=15')) {
+        record_soft_failure('bsc#1090886');
+        script_run('mount -vt nfs /home/nis_user');
+    }
+    script_run 'mount|grep nfs';                                 # verify mounted nfs
     script_run 'echo "nfs is working" > /home/nis_user/test';    # create file with text, will be checked by server
     type_string "killall xterm\n";                               # game over -> xterm
 }
