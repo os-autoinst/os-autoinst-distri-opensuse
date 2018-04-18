@@ -77,7 +77,7 @@ sub run {
         type_string "$user\n";
         send_key 'tab';
     }
-    handle_login;
+    handle_login($user, 1);
     assert_screen 'generic-desktop', 60;
     # verify correct user is logged in
     x11_start_program('xterm');
