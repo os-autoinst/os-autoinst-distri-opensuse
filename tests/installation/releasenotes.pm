@@ -55,8 +55,8 @@ sub run {
         send_key 'tab';          # select tab area
     }
 
-    # no release-notes for WE and all modules
-    my @no_relnotes = qw(we lgm asmm certm contm pcm tcm wsm hpcm ids idu phub all-packages sapapp);
+    # no release-notes for WE and all modules, SES - bsc#1090005
+    my @no_relnotes = qw(we lgm asmm certm contm pcm tcm wsm hpcm ids idu phub all-packages sapapp ses);
 
     # No release-notes for basic modules and Live-Patching on SLE 15
     if (is_sle('15+')) {
@@ -85,6 +85,7 @@ sub run {
             assert_screen([qw(release-notes-sle-ok-button release-notes-sle-close-button)], 300);
         }
         for my $a (@addons) {
+            record_soft_failure 'bsc#1090005 - missing SES6 release notes' if $a eq 'ses';
             next if grep { $a eq $_ } @no_relnotes;
             send_key_until_needlematch("release-notes-$a", 'right', 4, 60);
             send_key 'left';    # move back to first tab
