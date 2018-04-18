@@ -283,10 +283,6 @@ sub load_applicationstests {
     # adjust $pos below if you modify the position of
     # consoletest_finish!
     if (get_var('BOOT_HDD_IMAGE')) {
-        if (get_var('MM_CLIENT')) {
-            @tests = split(/,/, get_var('APPTESTS'));
-        }
-        else {
             @tests = (
                 'console/consoletest_setup',
                 'console/import_gpg_keys',
@@ -301,7 +297,6 @@ sub load_applicationstests {
                 # position -1
                 'x11/shutdown'
             );
-        }
     }
     else {
         @tests = (
@@ -439,10 +434,6 @@ elsif (get_var("ISO_IN_EXTERNAL_DRIVE")) {
     load_iso_in_external_tests();
     load_inst_tests();
     load_reboot_tests();
-}
-elsif (get_var('MM_CLIENT')) {
-    boot_hdd_image;
-    load_applicationstests;
 }
 elsif (get_var('SECURITYTEST')) {
     boot_hdd_image;
