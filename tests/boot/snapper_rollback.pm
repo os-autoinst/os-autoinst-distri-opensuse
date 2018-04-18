@@ -38,7 +38,7 @@ sub run {
     assert_script_run("snapper list | tail -n 2 | grep rollback");
     script_run("systemctl reboot", 0);
     reset_consoles;
-    $self->wait_boot;
+    $self->wait_boot(ready_time => 300, bootloader_time => 300);
     select_console 'root-console';
     check_rollback_system;
 }
