@@ -84,6 +84,9 @@ sub microos_login {
     }
 
     select_console 'root-console';
+
+    # Don't match linux-login-casp twice
+    assert_script_run 'clear';
 }
 
 # Process reboot with an option to trigger it
