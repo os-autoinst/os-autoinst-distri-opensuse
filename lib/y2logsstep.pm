@@ -80,8 +80,7 @@ sub workaround_dependency_issues {
             sleep 1;
             send_key 'spc';
             sleep 1;
-            send_key 'alt-o';
-            sleep 2;
+            wait_screen_change { send_key 'alt-o' };
         }
     }
     return 1;
@@ -161,26 +160,26 @@ sub deal_with_dependency_issues {
 
   DO_CHECKS:
     while (check_screen('accept-licence', 2)) {
-        send_key 'alt-a';                      # Accept
+        wait_screen_change { send_key 'alt-a'; }    # Accept
     }
     while (check_screen('automatic-changes', 2)) {
-        send_key 'alt-o';                      # Continue
+        wait_screen_change { send_key 'alt-o'; }    # Continue
     }
     while (check_screen('unsupported-packages', 2)) {
-        send_key 'alt-o';                      # Continue
+        wait_screen_change { send_key 'alt-o'; }    # Continue
     }
     while (check_screen('error-with-patterns', 2)) {
         record_soft_failure 'bsc#1047337';
-        send_key 'alt-o';                      # OK
+        send_key 'alt-o';                           # OK
     }
     sleep 2;
 
     if (check_screen('dependency-issue-fixed', 0)) {
         if (check_var('VIDEOMODE', 'text')) {
-            send_key 'alt-o';                  # OK
+            send_key 'alt-o';                       # OK
         }
         else {
-            send_key 'alt-a';                  # Accept
+            send_key 'alt-a';                       # Accept
         }
         sleep 2;
     }
@@ -188,6 +187,22 @@ sub deal_with_dependency_issues {
     if (check_screen([qw(accept-licence automatic-changes unsupported-packages error-with-patterns sle-15-failed-to-select-pattern)], 2)) {
         goto DO_CHECKS;
     }
+
+    # Installer need time to adapt the proposal after conflicts fixed
+    assert_screen([qw(installation-settings-overview-loaded adapting_proposal)]);
+    if (match_has_tag('adapting_proposal')) {
+        my $timeout  = 600;
+        my $interval = 10;
+        my $timetick = 0;
+
+        while (check_screen('adapting_proposal', no_wait => 1)) {
+            sleep 10;
+            $timetick += $interval;
+            last if $timetick >= $timeout;
+        }
+        die "System might be stuck on adapting proposal" if $timetick >= $timeout;
+    }
+
     # In text mode dependency issues may occur again after resolving them
     if (check_screen 'manual-intervention') {
         $self->deal_with_dependency_issues;
