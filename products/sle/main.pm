@@ -462,21 +462,14 @@ sub load_slenkins_tests {
     return 0;
 }
 
-sub load_cluster_boot {
-    # Standard boot and configuration
-    boot_hdd_image;
-    loadtest 'ha/wait_barriers'               if get_var('HA_CLUSTER');
-    loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
-    loadtest 'console/consoletest_setup'      if (is_updates_tests || get_var('HA_CLUSTER'));
-
-    return 1;
-}
-
 sub load_ha_cluster_tests {
     return unless (get_var("HA_CLUSTER"));
 
     # Standard boot and configuration
-    load_cluster_boot;
+    boot_hdd_image;
+    loadtest 'ha/wait_barriers';
+    loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
+    loadtest 'console/consoletest_setup';
     loadtest "console/hostname";
 
     # NTP is already configured with 'HA node' and 'HA GEO node' System Roles
@@ -959,12 +952,8 @@ elsif (have_scc_repos()) {
     }
 }
 elsif (get_var('HPC')) {
-    if (get_var('CLUSTER_NODES')) {
-        load_cluster_boot();
-    }
-    else {
-        loadtest 'boot/boot_to_desktop';
-    }
+    boot_hdd_image;
+    loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
     loadtest 'hpc/before_test';
     loadtest 'console/install_all_from_repository' if (get_var('INSTALL_ALL_REPO'));
     loadtest 'console/install_single_package'      if (get_var('PACKAGETOINSTALL'));
