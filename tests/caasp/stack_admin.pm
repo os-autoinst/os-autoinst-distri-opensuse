@@ -37,9 +37,11 @@ sub handle_update_reboot {
     mutex_lock 'UPDATE_FINISHED';
     mutex_unlock 'UPDATE_FINISHED';
 
-    # Admin node was rebooted
-    reset_consoles;
-    select_console 'root-console';
+    # Admin node was rebooted only if update passed
+    if (check_screen 'linux-login-casp', 0) {
+        reset_consoles;
+        select_console 'root-console';
+    }
 }
 
 sub run() {
