@@ -158,7 +158,7 @@ sub register_addons {
                 send_key_until_needlematch "scc-code-field-$addon", 'tab';
             }
             else {
-                assert_and_click "scc-code-field-$addon";
+                assert_and_click "scc-code-field-$addon", 60;
             }
             type_string $regcode;
             save_screenshot;
