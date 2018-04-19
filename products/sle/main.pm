@@ -32,10 +32,6 @@ sub is_new_installation {
     return !get_var('UPGRADE') && !get_var('ONLINE_MIGRATION') && !get_var('ZDUP') && !get_var('AUTOUPGRADE');
 }
 
-sub is_update_test_repo_test {
-    return get_var('TEST') !~ /^mru-/ && is_updates_tests && get_required_var('FLAVOR') !~ /-Minimal$/;
-}
-
 sub cleanup_needles {
     remove_common_needles;
     if ((get_var('VERSION', '') ne '15') && (get_var('BASE_VERSION', '') ne '15')) {
@@ -256,13 +252,12 @@ if (sle_version_at_least('15') && !check_var('SCC_REGISTER', 'installation')) {
 # Always register at scc and use the test updates if the Flavor is -Updates.
 # This way we can reuse existant test suites without having to patch their
 # settings
-if (is_update_test_repo_test && !get_var('MAINT_TEST_REPO')) {
+if (is_updates_test_repo && !get_var('MAINT_TEST_REPO')) {
     my %incidents;
     my %u_url;
     $incidents{OS} = get_var('OS_TEST_ISSUES',   '');
     $u_url{OS}     = get_var('OS_TEST_TEMPLATE', '');
 
-    my @maint_repos;
     my @inclist;
 
     my @addons = split(/,/, get_var('SCC_ADDONS', ''));
@@ -291,17 +286,7 @@ if (is_update_test_repo_test && !get_var('MAINT_TEST_REPO')) {
         }
     }
 
-    for my $a (keys %incidents) {
-        for my $b (split(/,/, $incidents{$a})) {
-            if ($b) {
-                push @maint_repos, join($b, split('%INCIDENTNR%', $u_url{$a}));
-            }
-        }
-    }
-
-    my $repos = join(',', @maint_repos);
-    # MAINT_TEST_REPO cannot start with ','
-    $repos =~ s/^,//s;
+    my $repos = map_incidents_to_repo(\%incidents, \%u_url);
 
     set_var('MAINT_TEST_REPO', $repos);
     set_var('SCC_REGISTER',    'installation');
