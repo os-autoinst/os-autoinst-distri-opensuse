@@ -513,7 +513,14 @@ sub activate_console {
             # just after ssh login
             assert_screen \@tags, 60;
             # Accept 'text-login' by default
-            if (match_has_tag("tty$nr-selected") || match_has_tag("text-login") && !$args{ensure_tty_selected}) {
+            if (match_has_tag("tty$nr-selected")) {
+                type_string "$user\n";
+                handle_password_prompt;
+            }
+            elsif (match_has_tag("text-login") && !$args{ensure_tty_selected}) {
+                record_soft_failure("poo#32926, couldn't assert tty was switched");
+                # Introduce artificial delay to get better chances to get right tty
+                wait_still_screen 3;
                 type_string "$user\n";
                 handle_password_prompt;
             }
