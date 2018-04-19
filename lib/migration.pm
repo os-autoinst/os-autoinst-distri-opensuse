@@ -127,6 +127,7 @@ sub check_rollback_system {
     return unless is_sle;
     # Check SUSEConnect status for SLE
     # check rollback-helper service is enabled and worked properly
+    systemctl('status rollback');
     systemctl('is-active rollback');
 
     # Disable the obsolete cd and dvd repos to avoid zypper error
