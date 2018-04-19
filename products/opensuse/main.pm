@@ -114,6 +114,11 @@ if (get_var('ZDUP_IN_X')) {
     set_var('ZDUP', 1);
 }
 
+if (is_updates_test_repo && !get_var('MAINT_TEST_REPO')) {
+    my $repos = map_incidents_to_repo({OS => get_required_var('OS_TEST_ISSUES')}, {OS => get_required_var('OS_TEST_TEMPLATE')});
+    set_var('MAINT_TEST_REPO', $repos);
+}
+
 if (   get_var("WITH_UPDATE_REPO")
     || get_var("WITH_MAIN_REPO")
     || get_var("WITH_DEBUG_REPO")
