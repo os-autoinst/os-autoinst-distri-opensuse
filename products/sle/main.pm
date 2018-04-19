@@ -1007,6 +1007,11 @@ else {
         load_inst_tests();
         load_reboot_tests();
         loadtest "migration/post_upgrade";
+        # Always load zypper_lr test for migration case and get repo information for investigation
+        if (get_var("INSTALLONLY")) {
+            loadtest "console/consoletest_setup";
+            loadtest "console/zypper_lr";
+        }
     }
     elsif (get_var("BOOT_HDD_IMAGE") && !is_jeos) {
         if (get_var("RT_TESTS")) {
