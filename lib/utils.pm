@@ -1126,7 +1126,7 @@ sub _handle_login_not_found {
     diag 'Checking for any welcome message';
     die "no welcome message found, system seems to have never passed the bootloader (stuck or not enough waiting time)" unless $str =~ /Welcome to/;
     diag 'Checking login target reached';
-    die "login target not reached" unless $str =~ /Reached target Login Prompts/;
+    diag 'login target not reached' unless $str =~ /Reached target Login Prompts/;
     diag 'Checking for login prompt';
     diag "no login prompt found" unless $str =~ /login:/;
     diag 'Checking for known failure';
