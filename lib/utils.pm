@@ -1138,28 +1138,30 @@ sub shorten_url {
 
 sub _handle_login_not_found {
     my ($str) = @_;
-    diag 'Expected welcome message not found, investigating bootup log content: ' . $str;
+    record_info 'Investigation', 'Expected welcome message not found, investigating bootup log content: ' . $str;
     diag 'Checking for bootloader';
-    diag "WARNING: bootloader grub menue not found" unless $str =~ /GNU GRUB/;
+    record_info 'grub not found', 'WARNING: bootloader grub menue not found' unless $str =~ /GNU GRUB/;
     diag 'Checking for ssh daemon';
-    diag "WARNING: ssh daemon in SUT is not available" unless $str =~ /Started OpenSSH Daemon/;
+    record_info 'ssh not found', 'WARNING: ssh daemon in SUT is not available' unless $str =~ /Started OpenSSH Daemon/;
     diag 'Checking for any welcome message';
-    die "no welcome message found, system seems to have never passed the bootloader (stuck or not enough waiting time)" unless $str =~ /Welcome to/;
+    die 'no welcome message found, system seems to have never passed the bootloader (stuck or not enough waiting time)' unless $str =~ /Welcome to/;
     diag 'Checking login target reached';
-    die "login target not reached" unless $str =~ /Reached target Login Prompts/;
+    record_info 'No login target' unless $str =~ /Reached target Login Prompts/;
     diag 'Checking for login prompt';
-    diag "no login prompt found" unless $str =~ /login:/;
+    record_info 'No login prompt' unless $str =~ /login:/;
     diag 'Checking for known failure';
     return record_soft_failure 'bsc#1040606 - incomplete message when LeanOS is implicitly selected instead of SLES'
       if $str =~ /Welcome to SUSE Linux Enterprise 15/;
+    my $error_details = $str;
     if (check_var('BACKEND', 's390x')) {
         diag 'Trying to look for "blocked tasks" with magic sysrq';
-        console('x3270')->sequence_3270("String(\"^-w\")", "ENTER", "ENTER", "ENTER", "ENTER",);
-        console('x3270')->expect_3270(output_delim => 'Show Blocked State');
+        console('x3270')->sequence_3270("String(\"^-w\\n\")");
+        my $r = console('x3270')->expect_3270(buffer_full => qr/(MORE\.\.\.|HOLDING)/);
         save_screenshot;
+        $error_details = join("\n", @$r);
     }
 
-    die "unknown error, system couldn't boot";
+    die "unknown error, system couldn't boot. Detailed bootup log:\n$error_details";
 }
 
 =head2 reconnect_s390
@@ -1174,6 +1176,14 @@ sub reconnect_s390 {
 
     # different behaviour for z/VM and z/KVM
     if (check_var('BACKEND', 's390x')) {
+        my $console = console('x3270');
+        eval { $console->expect_3270(output_delim => 'GNU GRUB'); };
+        if ($@) {
+            diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
+        }
+        else {
+            $console->sequence_3270("ENTER", "ENTER", "ENTER", "ENTER");
+        }
         my $r;
         eval { $r = console('x3270')->expect_3270(output_delim => $login_ready, timeout => $args{timeout}); };
         if ($@) {
