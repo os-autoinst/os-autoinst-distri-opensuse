@@ -56,8 +56,8 @@ sub add_device {
         send_key 'alt-o';             # Bond slaves
         assert_screen 'yast2_lan_bond_slaves';
         send_key_until_needlematch 'yast2_lan_bond_slave_tab_selected', 'tab';
-        send_key 'tab';               # select Bond Slaves and Order field
-        send_key 'spc';               # check network interface
+        assert_and_click 'yast2_lan_bond_slave_network_interface';    # select network interface
+        send_key 'spc';                                               # check network interface
         wait_still_screen;
         save_screenshot;
         send_key 'alt-n';
