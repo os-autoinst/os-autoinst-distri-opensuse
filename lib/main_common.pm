@@ -40,6 +40,8 @@ our @EXPORT = qw(
   is_sles4sap
   is_sles4sap_standard
   is_updates_tests
+  is_updates_test_repo
+  map_incidents_to_repo
   need_clear_repos
   have_scc_repos
   load_svirt_vm_setup_tests
@@ -244,8 +246,12 @@ sub replace_opensuse_repos_tests {
 sub is_updates_tests {
     my $flavor = get_required_var('FLAVOR');
     # Incidents might be also Incidents-Gnome or Incidents-Kernel
-    # -Updates works with SLE and Update is for openSUSE, and added Maintenance to match flavor for openSUSE
-    return $flavor =~ /-Updates$/ || $flavor =~ /-Incidents/ || $flavor =~ /Maintenance$/ || $flavor =~ /Update/;
+    return $flavor =~ /-Updates$/ || $flavor =~ /-Incidents/;
+}
+
+sub is_updates_test_repo {
+    # mru stands for Maintenance Released Updates and skips unreleased updates
+    return get_var('TEST') !~ /^mru-/ && is_updates_tests && get_required_var('FLAVOR') !~ /-Minimal$/;
 }
 
 sub is_repo_replacement_required {
@@ -623,6 +629,23 @@ sub remove_desktop_needles {
     if (!check_var("DESKTOP", $desktop) && !check_var("FULL_DESKTOP", $desktop)) {
         unregister_needle_tags("ENV-DESKTOP-$desktop");
     }
+}
+
+sub map_incidents_to_repo {
+    my ($incidents, $templates) = @_;
+    my @maint_repos;
+    for my $a (keys %$incidents) {
+        for my $b (split(/,/, $incidents->{$a})) {
+            if ($b) {
+                push @maint_repos, join($b, split('%INCIDENTNR%', $templates->{$a}));
+            }
+        }
+    }
+
+    my $ret = join(',', @maint_repos);
+    # do not start with ','
+    $ret =~ s/^,//s;
+    return $ret;
 }
 
 our %valueranges = (

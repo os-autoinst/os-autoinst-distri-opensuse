@@ -114,6 +114,13 @@ if (get_var('ZDUP_IN_X')) {
     set_var('ZDUP', 1);
 }
 
+if (is_updates_test_repo && !get_var('ZYPPER_ADD_REPOS')) {
+    my $repos = map_incidents_to_repo({OS => get_required_var('OS_TEST_ISSUES')}, {OS => get_required_var('OS_TEST_TEMPLATE')});
+    set_var('ZYPPER_ADD_REPOS', $repos);
+    # these are not using default gpg keys
+    set_var('ZYPPER_ADD_REPO_PREFIX', 'untrusted');
+}
+
 if (   get_var("WITH_UPDATE_REPO")
     || get_var("WITH_MAIN_REPO")
     || get_var("WITH_DEBUG_REPO")
@@ -247,6 +254,9 @@ sub load_system_update_tests {
         loadtest "update/zypper_clear_repos";
     }
 
+    if (get_var('ZYPPER_ADD_REPOS')) {
+        loadtest "console/zypper_add_repos";
+    }
     if (guiupdates_is_applicable()) {
         loadtest "update/prepare_system_for_update_tests";
         if (check_var("DESKTOP", "kde")) {

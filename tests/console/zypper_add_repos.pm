@@ -20,11 +20,13 @@ sub run {
     return unless $val;
 
     select_console 'root-console';
-    my $prefix = get_var("ZYPPER_ADD_REPO_PREFIX") || 'openqa';
+    my $prefix = get_var("ZYPPER_ADD_REPO_PREFIX", 'openqa');
 
     my $i = 0;
+    # do not check gpg if the repo is untrusted
+    my $untrusted = $prefix eq 'untrusted' ? '-G' : '';
     for my $url (split(/,/, $val)) {
-        assert_script_run("zypper -n ar -c -f $url $prefix$i");
+        assert_script_run("zypper -n ar $untrusted -c -f $url $prefix$i");
         ++$i;
     }
 }
