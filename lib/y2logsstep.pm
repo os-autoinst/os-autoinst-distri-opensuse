@@ -207,6 +207,8 @@ sub deal_with_dependency_issues {
     if (check_screen 'manual-intervention') {
         $self->deal_with_dependency_issues;
     }
+    # Yast will analyze your system again after confilicts fixed
+    $self->detect_stuck_at_system_analyzing;
 }
 
 sub verify_license_has_to_be_accepted {
@@ -220,6 +222,22 @@ sub verify_license_has_to_be_accepted {
         wait_still_screen 1;
         save_screenshot;
     }
+}
+
+sub detect_stuck_at_system_analyzing {
+    my ($self, %args) = @_;
+    my $timeout  = $args{timeout} // 600;
+    my $interval = $args{interval} // 10;
+    my $timetick = 0;
+    my @tags     = qw(analyzing_system adapting_proposal);
+
+    return unless check_screen(\@tags, 10);
+    while (check_screen(\@tags, no_wait => 1)) {
+        sleep 10;
+        $timetick += $interval;
+        last if $timetick >= $timeout;
+    }
+    die "System might be stuck on analyzing" if $timetick >= $timeout;
 }
 
 sub save_upload_y2logs {

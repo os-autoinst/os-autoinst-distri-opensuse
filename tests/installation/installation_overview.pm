@@ -20,6 +20,8 @@ use version_utils 'sle_version_at_least';
 
 sub run {
     my ($self) = shift;
+    # Wait finish of "Analyzing your system" during upgrade
+    $self->detect_stuck_at_system_analyzing if get_var("UPGRADE");
     # Softfail not to forget remove workaround
     record_soft_failure('bsc#1054974') if get_var('ALL_MODULES');
     # overview-generation
