@@ -55,8 +55,8 @@ sub run {
         send_key 'tab';          # select tab area
     }
 
-    # no release-notes for WE and all modules, SES - bsc#1090005
-    my @no_relnotes = qw(we lgm asmm certm contm pcm tcm wsm hpcm ids idu phub all-packages sapapp ses);
+    # no release-notes for WE and all modules
+    my @no_relnotes = qw(we lgm asmm certm contm pcm tcm wsm hpcm ids idu phub all-packages sapapp);
 
     # No release-notes for basic modules and Live-Patching on SLE 15
     if (is_sle('15+')) {
@@ -65,6 +65,11 @@ sub run {
         @no_relnotes = grep(!/^we$/, @no_relnotes);
         # HA-GEO has been removed on SLE 15
         @addons = grep(!/^geo$/, @addons);
+        # SES6 does not have RN now bsc#1090005
+        if (get_var('SCC_ADDONS') =~ /ses/) {
+            push @no_relnotes, 'ses';
+            record_soft_failure 'bsc#1090005 - missing SES6 release notes';
+        }
     }
 
     # no relnotes for ltss in QAM_MINIMAL
@@ -85,7 +90,6 @@ sub run {
             assert_screen([qw(release-notes-sle-ok-button release-notes-sle-close-button)], 300);
         }
         for my $a (@addons) {
-            record_soft_failure 'bsc#1090005 - missing SES6 release notes' if $a eq 'ses';
             next if grep { $a eq $_ } @no_relnotes;
             send_key_until_needlematch("release-notes-$a", 'right', 4, 60);
             send_key 'left';    # move back to first tab
