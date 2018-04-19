@@ -50,20 +50,25 @@ sub run {
     zypper_call('in ganglia-web');
     assert_script_run('a2enmod php7');
     systemctl('start apache2');
+    my $page_url = "http://ganglia-server/ganglia/?r=hour&cs=&ce=&c=unspecified&h=";
+    $page_url .= "ganglia-server.openqa.test&tab=m&vn=&hide-hf=false";
+    my $image_url = "http://ganglia-server/ganglia/graph.php?r=hour&z=xlarge&h=";
+    $image_url .= "ganglia-server.openqa.test&m=load_one&s=by+name&mc=2&g=cpu_report&c=unspecified";
 
-    # switch to gui
-    select_console('x11');
+    assert_script_run("curl -s \"$page_url\" > test.html");
+    assert_script_run('grep -q "Host Overview" test.html');
+    assert_script_run('grep -q "Expand All Metric Groups" test.html');
+    assert_script_run('grep -q "Ganglia Web Frontend version" test.html');
 
-    # start browser and access ganglia web ui
-    x11_start_program("firefox http://${hostname}/ganglia", valid => 0);
-    $self->firefox_check_default;
-    assert_screen('ganglia-web');
-    assert_and_click('ganglia-node-dropdown');
-    assert_and_click('ganglia-select-server-node');
-    assert_screen('ganglia-node-report', 60);
+    assert_script_run("curl -s \"$image_url\" > test2.png");
+    assert_script_run('file test2.png | grep -q "PNG image data"');
 
     # tell client that server is done
     barrier_wait('GANGLIA_SERVER_DONE');
+    # barrier check period is 5 seconds , we sleeping for 6 to cover
+    # case when ganglia-client already reach this barrier but currently
+    # in sleep so it will die with owner already leave error on next check
+    sleep 6;
 }
 
 sub post_fail_hook {
