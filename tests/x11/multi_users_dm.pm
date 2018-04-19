@@ -38,11 +38,15 @@ sub ensure_graphical_target {
 }
 
 sub restart_x11 {
-    ensure_multi_user_target;
-    ensure_graphical_target;
+    my ($self, %args) = @_;
+    $args{setnologin} //= 0;
+    record_soft_failure('bsc#1063060 workaround for graphical errors on cirrus when restarting X11 -> performing reboot');
+    type_string "reboot\n";
+    $self->wait_boot(nologin => $args{setnologin}, forcenologin => $args{setnologin});
 }
 
 sub run {
+    my $self = shift;
 
     my $user               = 'user1';
     my $users_to_create    = 100;
@@ -54,7 +58,7 @@ sub run {
     # disable autologin
     script_run "sed -i.bak '/^DISPLAYMANAGER_AUTOLOGIN=/s/=.*/=\"\"/' /etc/sysconfig/displaymanager";
     assert_script_run "~$username/data/create_users $users_to_create \"$encrypted_password\"";
-    restart_x11;
+    $self->restart_x11(setnologin => 1);
 
     # login created user
     assert_screen 'multi_users_dm', 180;    # gnome loading takes long sometimes
@@ -73,7 +77,7 @@ sub run {
         type_string "$user\n";
         send_key 'tab';
     }
-    handle_login;
+    handle_login($user, 1);
     assert_screen 'generic-desktop', 60;
     # verify correct user is logged in
     x11_start_program('xterm');
@@ -89,7 +93,7 @@ sub run {
     script_run "mv /etc/sysconfig/displaymanager.bak /etc/sysconfig/displaymanager";
     assert_script_run "~$username/data/delete_users $users_to_create";
     script_run "clear";
-    restart_x11;
+    $self->restart_x11;
     # after restart of X11 give the desktop a bit more time to show up to
     # prevent the post_run_hook to fail being too impatient
     assert_screen 'generic-desktop', 600;
