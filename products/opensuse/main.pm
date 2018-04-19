@@ -262,76 +262,17 @@ sub load_system_update_tests {
     }
 }
 
-sub load_applicationstests {
-    return 0 unless get_var("APPTESTS");
+sub load_qam_install_tests {
+    return 0 unless get_var('INSTALL_PACKAGES');
 
-    my @tests;
+    loadtest 'console/consoletest_setup';
+    loadtest 'console/import_gpg_keys';
+    loadtest 'update/zypper_up';
+    loadtest 'console/install_packages';
+    loadtest 'console/zypper_add_repos';
+    loadtest 'console/qam_zypper_patch';
+    loadtest 'console/qam_verify_package_install';
 
-    my %testsuites = (
-        chromium           => ['x11/chromium'],
-        evolution          => ['x11/evolution'],
-        gimp               => ['x11/gimp'],
-        hexchat            => ['x11/hexchat'],
-        libzypp            => ['console/zypper_in', 'console/yast2_i'],
-        MozillaFirefox     => [qw(x11/firefox x11/firefox_audio)],
-        MozillaThunderbird => ['x11/thunderbird'],
-        vlc                => ['x11/vlc'],
-        xchat              => ['x11/xchat'],
-        xterm              => ['x11/xterm'],
-    );
-
-    # adjust $pos below if you modify the position of
-    # consoletest_finish!
-    if (get_var('BOOT_HDD_IMAGE')) {
-        if (get_var('MM_CLIENT')) {
-            @tests = split(/,/, get_var('APPTESTS'));
-        }
-        else {
-            @tests = (
-                'console/consoletest_setup',
-                'console/import_gpg_keys',
-                'update/zypper_up',
-                'console/install_packages',
-                'console/zypper_add_repos',
-                'console/qam_zypper_patch',
-                'console/qam_verify_package_install',
-                'console/console_reboot',
-                # position -2
-                'console/consoletest_finish',
-                # position -1
-                'x11/shutdown'
-            );
-        }
-    }
-    else {
-        @tests = (
-            'console/consoletest_setup',
-            'update/zypper_up',
-            'console/qam_verify_package_install',
-            # position -2
-            'console/consoletest_finish',
-            # position -1
-            'x11/shutdown'
-        );
-    }
-
-    if (my $val = get_var("INSTALL_PACKAGES", '')) {
-        for my $pkg (split(/ /, $val)) {
-            next unless exists $testsuites{$pkg};
-            # yeah, pretty crappy method. insert
-            # consoletests before consoletest_finish and x11
-            # tests before shutdown
-            for my $t (@{$testsuites{$pkg}}) {
-                my $pos = -1;
-                $pos = -2 if ($t =~ /^console\//);
-                splice @tests, $pos, 0, $t;
-            }
-        }
-    }
-
-    for my $test (@tests) {
-        loadtest "$test";
-    }
 
     return 1;
 }
@@ -404,7 +345,6 @@ elsif (get_var('GNUHEALTH')) {
     loadtest 'gnuhealth/tryton_preconfigure';
     loadtest 'gnuhealth/tryton_first_time';
 }
-
 elsif (is_rescuesystem) {
     loadtest "installation/rescuesystem";
     loadtest "installation/rescuesystem_validate_131";
@@ -439,10 +379,6 @@ elsif (get_var("ISO_IN_EXTERNAL_DRIVE")) {
     load_iso_in_external_tests();
     load_inst_tests();
     load_reboot_tests();
-}
-elsif (get_var('MM_CLIENT')) {
-    boot_hdd_image;
-    load_applicationstests;
 }
 elsif (get_var('SECURITYTEST')) {
     boot_hdd_image;
@@ -525,7 +461,7 @@ else {
     }
 
     unless (install_online_updates()
-        || load_applicationstests()
+        || load_qam_install_tests()
         || load_extra_tests()
         || load_virtualization_tests()
         || load_otherDE_tests()
