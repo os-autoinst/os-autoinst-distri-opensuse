@@ -96,7 +96,7 @@ sub run {
         send_key_until_needlematch("release-notes-sle", 'right');
     }
     else {
-        assert_screen 'release-notes-sle';    # SLE release notes
+        assert_screen 'release-notes-sle', 150;    # SLE release notes
     }
 
     # exit release notes window
