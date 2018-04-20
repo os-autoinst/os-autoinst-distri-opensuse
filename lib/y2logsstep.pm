@@ -154,6 +154,8 @@ sub deal_with_dependency_issues {
         die 'Dependency problems';
     }
 
+    # Press "Esc" in case "Options" menu is open by accident
+    send_key 'esc';
     assert_screen 'dependency-issue-fixed';    # make sure the dependancy issue is fixed now
     send_key 'alt-a';                          # Accept
     sleep 2;
