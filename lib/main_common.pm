@@ -841,6 +841,7 @@ sub load_inst_tests {
             and !is_hyperv_in_gui
             and !is_bridged_networking
             and !check_var('BACKEND', 's390x')
+            and !check_var('BACKEND', 'ipmi')
             and is_sle('12-SP2+'))
         {
             loadtest "installation/hostname_inst";
