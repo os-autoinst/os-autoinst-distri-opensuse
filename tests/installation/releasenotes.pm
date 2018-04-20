@@ -65,11 +65,6 @@ sub run {
         @no_relnotes = grep(!/^we$/, @no_relnotes);
         # HA-GEO has been removed on SLE 15
         @addons = grep(!/^geo$/, @addons);
-        # SES6 does not have RN now bsc#1090005
-        if (get_var('SCC_ADDONS') =~ /ses/) {
-            push @no_relnotes, 'ses';
-            record_soft_failure 'bsc#1090005 - missing SES6 release notes';
-        }
     }
 
     # no relnotes for ltss in QAM_MINIMAL
