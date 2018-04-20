@@ -27,14 +27,6 @@ sub run {
     my $nodes = get_required_var("CLUSTER_NODES");
     # Get hostname
     my $hostname = get_required_var("HOSTNAME");
-    # Create cluster barriers
-    barrier_create("GANGLIA_INSTALLED",      $nodes);
-    barrier_create("GANGLIA_SERVER_DONE",    $nodes);
-    barrier_create("GANGLIA_CLIENT_DONE",    $nodes);
-    barrier_create("GANGLIA_GMETAD_STARTED", $nodes);
-    barrier_create("GANGLIA_GMOND_STARTED",  $nodes);
-    # Synchronize all slave nodes with master
-    mutex_create("GANGLIA_SERVER_BARRIERS_CONFIGURED");
 
     zypper_call('in ganglia-gmetad ganglia-gmond ganglia-gmetad-skip-bcheck');
     systemctl 'start gmetad';
@@ -65,10 +57,6 @@ sub run {
 
     # tell client that server is done
     barrier_wait('GANGLIA_SERVER_DONE');
-    # barrier check period is 5 seconds , we sleeping for 6 to cover
-    # case when ganglia-client already reach this barrier but currently
-    # in sleep so it will die with owner already leave error on next check
-    sleep 6;
 }
 
 sub post_fail_hook {

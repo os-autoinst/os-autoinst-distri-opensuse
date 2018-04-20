@@ -22,10 +22,6 @@ use version_utils 'is_sle';
 sub run {
     my $self = shift;
 
-    # Synchronize with master
-    mutex_lock("SLURM_MASTER_BARRIERS_CONFIGURED");
-    mutex_unlock("SLURM_MASTER_BARRIERS_CONFIGURED");
-
     # Install slurm
     zypper_call('in slurm-munge');
     # install slurm-node if sle15, not available yet for sle12
@@ -42,8 +38,7 @@ sub run {
     systemctl 'status slurmd';
     barrier_wait("SLURM_SLAVE_SERVICE_ENABLED");
 
-    mutex_lock("SLURM_MASTER_RUN_TESTS");
-    mutex_unlock("SLURM_MASTER_RUN_TESTS");
+    barrier_wait("SLURM_MASTER_RUN_TESTS");
 }
 
 sub test_flags {
