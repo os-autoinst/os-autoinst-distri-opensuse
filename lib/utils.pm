@@ -719,7 +719,7 @@ sub power_action {
     }
     # Shutdown takes longer than 60 seconds on SLE 15
     my $shutdown_timeout = 60;
-    if (is_sle('15+') && check_var('DESKTOP', 'gnome')) {
+    if (is_sle('15+') && check_var('DESKTOP', 'gnome') && ($action eq 'poweroff')) {
         record_soft_failure('bsc#1055462');
         $shutdown_timeout *= 3;
     }
