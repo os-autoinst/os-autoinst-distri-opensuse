@@ -164,7 +164,7 @@ sub bootmenu_type_console_params {
 
     # See bsc#1011815, last console set as boot parameter is linked to /dev/console
     # and doesn't work if set to serial device.
-    type_string_very_slow "console=tty " unless is_caasp('VMX');
+    type_string_very_slow "console=tty ";
 }
 
 sub uefi_bootmenu_params {
