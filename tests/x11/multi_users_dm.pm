@@ -70,9 +70,7 @@ sub run {
         send_key 'down';                                               # select created user #01
     }
     elsif (check_var('DESKTOP', 'kde')) {
-        for (1 .. 6) {
-            wait_screen_change { send_key 'tab' };
-        }
+        wait_screen_change { send_key 'shift-tab' };
         send_key 'ctrl-a';
         type_string "$user\n";
         send_key 'tab';
