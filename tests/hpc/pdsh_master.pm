@@ -25,11 +25,6 @@ sub run {
 
     # Get number of nodes
     my $nodes = get_required_var("CLUSTER_NODES");
-    barrier_create("PDSH_INSTALLATION_FINISHED", $nodes);
-    barrier_create("PDSH_MUNGE_ENABLED",         $nodes);
-    barrier_create("PDSH_SLAVE_DONE",            $nodes);
-    # Synchronize all slave nodes with master
-    mutex_create("PDSH_MASTER_BARRIERS_CONFIGURED");
 
     # Install mrsh
     zypper_call('in mrsh-server munge');
@@ -40,14 +35,14 @@ sub run {
         my $node_name = sprintf("pdsh-slave%02d", $node);
         exec_and_insert_password("scp -o StrictHostKeyChecking=no /etc/munge/munge.key root\@${node_name}:/etc/munge/munge.key");
     }
-    mutex_create("PDSH_KEY_COPIED");
+    barrier_wait("PDSH_KEY_COPIED");
 
     # Start munge
     $self->enable_and_start('munge');
     barrier_wait("PDSH_MUNGE_ENABLED");
 
     $self->enable_and_start('mrshd.socket');
-    mutex_create("MRSH_SOCKET_STARTED");
+    barrier_wait("MRSH_SOCKET_STARTED");
     barrier_wait("PDSH_SLAVE_DONE");
 }
 
