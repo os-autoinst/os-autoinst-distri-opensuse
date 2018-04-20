@@ -1460,6 +1460,7 @@ sub load_extra_tests {
 }
 
 sub load_rollback_tests {
+    return if check_var('ARCH', 's390x');
     loadtest "boot/grub_test_snapshot";
     loadtest "migration/version_switch_origin_system";
     if (get_var('UPGRADE') || get_var('ZDUP')) {
