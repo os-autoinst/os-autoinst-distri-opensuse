@@ -108,7 +108,9 @@ EOF
         );
 
         # emulate $LTPROOT/testscripts/network.sh
-        assert_script_run('TST_TOTAL=1 TCID="network_settings"; . test_net.sh; export TCID= TST_LIB_LOADED=');
+        assert_script_run('curl ' . data_url("ltp/net.sh") . ' -o net.sh', 60);
+        assert_script_run('sh ./net.sh');
+
         script_run('env');
 
         # Disable IPv4 and IPv6 iptables.
