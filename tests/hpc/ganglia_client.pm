@@ -44,6 +44,8 @@ sub run {
     my $max_retries = 7;
     for (1 .. $max_retries) {
         eval {
+            # Wait for ganglia cluster setup
+            sleep 5;
             # Check if gmond has connected to gmetad
             validate_script_output "gstat -a", sub { m/.*Hosts: ${nodes}.*/ };
         };
@@ -58,6 +60,8 @@ sub run {
     my $gmetric_max_retries = 3;
     for (1 .. $gmetric_max_retries) {
         eval {
+            # Wait for gmetric update
+            sleep 5;
             # Check if gmetric is available
             assert_script_run "echo \"\\n\" | nc ${server_hostname} 8649 | grep $testMetric";
         };
