@@ -23,8 +23,6 @@ sub run {
     my ($self) = @_;
     check_var('BACKEND', 'ipmi') ? use_ssh_serial_console : select_console 'root-console';
 
-    ensure_serialdev_permissions;
-
     # Configure serial consoles for virtio support
     # poo#18860 Enable console on hvc0 on SLES < 12-SP2
     # poo#44699 Enable console on hvc1 to fix login issues on ppc64le

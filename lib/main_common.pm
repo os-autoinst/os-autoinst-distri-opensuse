@@ -436,6 +436,7 @@ sub load_rescuecd_tests {
 }
 
 sub load_autoyast_clone_tests {
+    loadtest "console/setup_serialdev";
     loadtest "console/system_prepare";
     loadtest "console/consoletest_setup";
     loadtest "console/yast2_clone_system";
@@ -1057,6 +1058,7 @@ sub load_consoletests {
         loadtest "rt/kmp_modules";
     }
     loadtest 'qa_automation/patch_and_reboot' if is_updates_tests && !get_var('QAM_MINIMAL');
+    loadtest "console/setup_serialdev";
     loadtest "console/system_prepare";
     loadtest "console/check_network";
     loadtest "console/system_state";
@@ -1644,6 +1646,7 @@ sub load_rollback_tests {
 }
 
 sub load_extra_tests_filesystem {
+    loadtest "console/setup_serialdev";
     loadtest "console/system_prepare";
     if (get_var("FILESYSTEM", "btrfs") eq "btrfs") {
         loadtest "console/snapper_jeos_cli" if is_jeos;
@@ -2295,7 +2298,7 @@ sub load_extra_tests_syscontainer {
     # pre-conditions for system container tests ie. the tests are running based on preinstalled image
     return if get_var("INSTALLONLY") || get_var("DUALBOOT") || get_var("RESCUECD");
 
-    # setup $serialdev permission and so on
+    loadtest "console/setup_serialdev";
     loadtest "console/system_prepare";
     loadtest "console/check_network";
     loadtest "console/system_state";

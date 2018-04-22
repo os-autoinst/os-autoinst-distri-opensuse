@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -35,7 +35,6 @@ sub run {
     disable_serial_getty;
     # init
     check_console_font;
-
     script_run 'echo "set -o pipefail" >> /etc/bash.bashrc.local';
     script_run '. /etc/bash.bashrc.local';
 

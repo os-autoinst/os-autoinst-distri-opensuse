@@ -180,6 +180,7 @@ sub load_fixup_firewall {
 sub load_consoletests_minimal {
     return unless (is_staging() && get_var('UEFI') || is_gnome_next || is_krypton_argon);
     # Stagings should test yast2-bootloader in miniuefi at least but not all
+    loadtest "console/setup_serialdev";
     loadtest "console/system_prepare";
     loadtest "console/prepare_test_data";
     loadtest "console/consoletest_setup";
@@ -194,6 +195,7 @@ sub load_consoletests_minimal {
 sub load_otherDE_tests {
     if (get_var("DE_PATTERN")) {
         my $de = get_var("DE_PATTERN");
+        loadtest "console/setup_serialdev";
         loadtest "console/system_prepare";
         loadtest "console/consoletest_setup";
         loadtest "console/hostname";
@@ -250,6 +252,7 @@ sub install_online_updates {
 
 sub load_qam_install_tests {
     return 0 unless get_var('INSTALL_PACKAGES');
+    loadtest "console/setup_serialdev";
     loadtest "console/system_prepare";
     loadtest "console/prepare_test_data";
     loadtest 'console/consoletest_setup';

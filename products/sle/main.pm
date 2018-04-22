@@ -441,6 +441,7 @@ sub load_slenkins_tests {
 }
 
 sub load_feature_tests {
+    loadtest "console/setup_serialdev";
     loadtest "console/system_prepare";
     loadtest "console/consoletest_setup";
     loadtest "feature/feature_console/zypper_releasever";
