@@ -22,12 +22,6 @@ sub run {
     my $self = shift;
     # Get number of nodes
     my $nodes = get_required_var("CLUSTER_NODES");
-    # Initialize slurm barriers
-    barrier_create("SLURM_MASTER_SERVICE_ENABLED", $nodes);
-    barrier_create("SLURM_SLAVE_SERVICE_ENABLED",  $nodes);
-    barrier_create("SLURM_SETUP_DONE",             $nodes);
-    # Synchronize all slave nodes with master
-    mutex_create("SLURM_MASTER_BARRIERS_CONFIGURED");
 
     # install slurm
     zypper_call('in slurm slurm-munge');
@@ -71,7 +65,7 @@ EOF
     # run the actual test against both nodes
     assert_script_run("srun -N ${nodes} /bin/ls");
 
-    mutex_create('SLURM_MASTER_RUN_TESTS');
+    barrier_wait('SLURM_MASTER_RUN_TESTS');
 }
 
 sub test_flags {

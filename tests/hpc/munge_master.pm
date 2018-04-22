@@ -23,10 +23,6 @@ sub run {
 
     # Get number of nodes
     my $nodes = get_required_var("CLUSTER_NODES");
-    barrier_create("MUNGE_INSTALLATION_FINISHED", $nodes);
-    barrier_create("MUNGE_SERVICE_ENABLED",       $nodes);
-    # Synchronize all slave nodes with master
-    mutex_create("MUNGE_MASTER_BARRIERS_CONFIGURED");
 
     # Install munge and wait for slave
     zypper_call('in munge');
@@ -37,7 +33,7 @@ sub run {
         my $node_name = sprintf("munge-slave%02d", $node);
         exec_and_insert_password("scp -o StrictHostKeyChecking=no /etc/munge/munge.key root\@${node_name}:/etc/munge/munge.key");
     }
-    mutex_create('MUNGE_KEY_COPIED');
+    barrier_wait('MUNGE_KEY_COPIED');
 
     # Enable and start service
     $self->enable_and_start('munge');
@@ -51,7 +47,7 @@ sub run {
         exec_and_insert_password("munge -n | ssh ${node_name} unmunge");
     }
     assert_script_run('remunge');
-    mutex_create('MUNGE_DONE');
+    barrier_wait('MUNGE_DONE');
 }
 
 sub post_fail_hook {

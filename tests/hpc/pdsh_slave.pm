@@ -23,22 +23,16 @@ sub run {
     my $self            = shift;
     my $server_hostname = get_required_var("PDSH_MASTER_HOSTNAME");
 
-    # Synchronize with master
-    mutex_lock("PDSH_MASTER_BARRIERS_CONFIGURED");
-    mutex_unlock("PDSH_MASTER_BARRIERS_CONFIGURED");
-
     my $packages_to_install = 'munge pdsh';
     $packages_to_install .= ' pdsh-genders' if get_var('PDSH_GENDER_TEST');
     zypper_call("in $packages_to_install");
     barrier_wait("PDSH_INSTALLATION_FINISHED");
-    mutex_lock("PDSH_KEY_COPIED");
-    mutex_unlock("PDSH_KEY_COPIED");
+    barrier_wait("PDSH_KEY_COPIED");
 
     # start munge
     $self->enable_and_start('munge');
     barrier_wait("PDSH_MUNGE_ENABLED");
-    mutex_lock("MRSH_SOCKET_STARTED");
-    mutex_unlock("MRSH_SOCKET_STARTED");
+    barrier_wait("MRSH_SOCKET_STARTED");
 
     assert_script_run('echo  "' . $server_hostname . ' type=genders-test" >> /etc/genders') if get_var('PDSH_GENDER_TEST');
 

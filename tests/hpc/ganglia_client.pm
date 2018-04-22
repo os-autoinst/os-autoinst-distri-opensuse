@@ -26,9 +26,6 @@ sub run {
     my $nodes = get_required_var("CLUSTER_NODES");
     # Get ganglia-server hostname
     my $server_hostname = get_required_var("GANGLIA_SERVER_HOSTNAME");
-    # Synchronize with server
-    mutex_lock("GANGLIA_SERVER_BARRIERS_CONFIGURED");
-    mutex_unlock("GANGLIA_SERVER_BARRIERS_CONFIGURED");
 
     zypper_call 'in ganglia-gmond';
 

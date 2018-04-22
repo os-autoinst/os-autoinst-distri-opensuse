@@ -22,15 +22,10 @@ use utils;
 sub run {
     my $self = shift;
 
-    # Synchronize with master
-    mutex_lock("MRSH_MASTER_BARRIERS_CONFIGURED");
-    mutex_unlock("MRSH_MASTER_BARRIERS_CONFIGURED");
-
     # install mrsh
     zypper_call('in mrsh mrsh-server');
     barrier_wait("MRSH_INSTALLATION_FINISHED");
-    mutex_lock("MRSH_KEY_COPIED");
-    mutex_unlock("MRSH_KEY_COPIED");
+    barrier_wait("MRSH_KEY_COPIED");
 
     # start munge
     $self->enable_and_start('munge');
