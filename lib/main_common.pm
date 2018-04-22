@@ -2209,6 +2209,7 @@ sub load_system_prepare_tests {
     loadtest 'console/sle15_workarounds' if is_sle('15+');
     loadtest 'console/integration_services' if is_hyperv || is_vmware;
     loadtest 'console/hostname' unless is_bridged_networking;
+    loadtest 'console/setup_serialdev';
     loadtest 'console/system_prepare';
     loadtest 'console/force_scheduled_tasks' unless is_jeos;
     # Remove repos pointing to download.opensuse.org and add snaphot repo from o3
