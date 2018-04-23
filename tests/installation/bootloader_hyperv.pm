@@ -187,7 +187,10 @@ sub run {
 
     if (get_var('UEFI')) {
         hyperv_cmd("$ps Set-VMFirmware $name -EnableSecureBoot off");
-        if (check_var('BOOTFROM', 'd')) {
+        if (check_var('BOOTFROM', 'c')) {
+            hyperv_cmd($ps . ' "' . "\$hd = Get-VMHardDiskDrive $name; Set-VMFirmware $name -BootOrder \$hd" . '"');
+        }
+        elsif (check_var('BOOTFROM', 'd')) {
             hyperv_cmd($ps . ' "' . "\$dvd = Get-VMDvdDrive $name; Set-VMFirmware $name -BootOrder \$dvd" . '"');
         }
         else {
