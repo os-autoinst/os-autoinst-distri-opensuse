@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -15,14 +15,11 @@
 use strict;
 use base "installbasetest";
 use utils;
-use version_utils 'sle_version_at_least';
-use testapi qw(get_var record_soft_failure);
+use testapi qw(get_var record_info);
 
 sub run {
     if (get_var('ENCRYPT_ACTIVATE_EXISTING') and !get_var('ENCRYPT_FORCE_RECOMPUTE')) {
-        if (sle_version_at_least('12-SP4')) {
-            record_soft_failure('fate#321208: activating existing encrypted volume does *not* yield an encrypted system if not forcing');
-        }
+        record_info 'bsc#993247 https://fate.suse.com/321208', 'activated encrypted partition will not be recreated as encrypted';
         return;
     }
     unlock_if_encrypted(check_typed_password => 1);
