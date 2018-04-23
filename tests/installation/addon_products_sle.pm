@@ -17,7 +17,7 @@ use testapi;
 use utils 'addon_license';
 use version_utils qw(is_sle sle_version_at_least);
 use qam 'advance_installer_window';
-use registration qw(%SLE15_DEFAULT_MODULES rename_scc_addons);
+use registration qw(%SLE15_DEFAULT_MODULES rename_scc_addons @SLE15_ADDONS_WITHOUT_LICENSE);
 
 sub handle_all_packages_medium {
     assert_screen 'addon-products-all_packages';
@@ -122,8 +122,9 @@ sub handle_addon {
         send_key $cmd{next};
         wait_still_screen 2;
 
-        # license is shown *after* module selection in SLE15 and should be only for some modules (HA and WE)
-        addon_license($addon);
+        # In SLE 15 some modules do not have license or have the same
+        # license (see bsc#1089163) and so are not be shown twice
+        addon_license($addon) unless (grep { $addon eq $_ } @SLE15_ADDONS_WITHOUT_LICENSE);
         wait_still_screen 2;
     }
 }
@@ -178,17 +179,13 @@ sub run {
             if (match_has_tag("addon-betawarning-$addon") or match_has_tag("addon-license-$addon")) {
                 if (match_has_tag("addon-betawarning-$addon")) {
                     send_key "ret";
-                    assert_screen [qw(addon-license-beta addon-products)];
-                    record_soft_failure 'bsc#1057223: No license agreement shown when HA, HA-GEO, WE, RT extensions are added as addons'
-                      unless match_has_tag("addon-license-beta");
+                    assert_screen "addon-license-beta";
                 }
-                if (match_has_tag("addon-license-beta") or match_has_tag("addon-license-$addon")) {
-                    wait_still_screen 2;
-                    send_key 'alt-a';                     # yes, agree
-                    wait_still_screen 2;
-                    send_key $cmd{next};
-                    assert_screen 'addon-products', 90;
-                }
+                wait_still_screen 2;
+                send_key 'alt-a';                         # yes, agree
+                wait_still_screen 2;
+                send_key $cmd{next};
+                assert_screen 'addon-products', 90;
             }
             elsif (match_has_tag('import-untrusted-gpg-key')) {
                 send_key 'alt-t';

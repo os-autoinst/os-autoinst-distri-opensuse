@@ -40,6 +40,7 @@ our @EXPORT = qw(
   install_docker_when_needed
   %SLE15_MODULES
   %SLE15_DEFAULT_MODULES
+  @SLE15_ADDONS_WITHOUT_LICENSE
 );
 
 # We already have needles with names which are different we would use here
@@ -66,6 +67,8 @@ our %SLE15_DEFAULT_MODULES = (
     sles4sap => 'base,desktop,serverapp,ha,sapapp',
 );
 
+our @SLE15_ADDONS_WITHOUT_LICENSE = qw(ha sdk wsm we);
+
 # Method to determine if a short name references a module based on what's defined
 # on %SLE15_MODULES
 sub is_module {
@@ -85,7 +88,7 @@ sub accept_addons_license {
 
     # In SLE 15 some modules do not have license or have the same
     # license (see bsc#1089163) and so are not be shown twice
-    push @addons_with_license, qw(ha sdk wsm we) unless is_sle('15+');
+    push @addons_with_license, @SLE15_ADDONS_WITHOUT_LICENSE unless is_sle('15+');
     # SES6 license is not shown now in SLE15
     if (is_sle('15+') && get_var('SCC_ADDONS') =~ /ses/) {
         record_soft_failure 'bsc#1090012 - missing SES6 license';
