@@ -497,7 +497,6 @@ sub assert_shutdown_and_restore_system {
             $svirt->define_and_start;
         }
         else {
-            $svirt->change_domain_element(os => boot => {dev => 'hd'});
             $svirt->define_and_start;
             select_console($vnc_console);
         }
@@ -729,7 +728,10 @@ sub power_action {
     }
     # no need to redefine the system when we boot from an existing qcow image
     # Do not redefine if autoyast, as did initial reboot already
-    if (check_var('VIRSH_VMM_FAMILY', 'xen') || (get_var('S390_ZKVM') && !get_var('BOOT_HDD_IMAGE') && !get_var('AUTOYAST'))) {
+    if (   check_var('VIRSH_VMM_FAMILY', 'kvm')
+        || check_var('VIRSH_VMM_FAMILY', 'xen')
+        || (get_var('S390_ZKVM') && !get_var('BOOT_HDD_IMAGE') && !get_var('AUTOYAST')))
+    {
         assert_shutdown_and_restore_system($action, $shutdown_timeout);
     }
     else {
