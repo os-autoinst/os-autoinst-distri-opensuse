@@ -20,7 +20,7 @@ use version_utils 'is_caasp';
 use utils qw(power_action assert_shutdown_and_restore_system);
 
 our @EXPORT
-  = qw(handle_simple_pw process_reboot trup_call write_detail_output get_admin_job update_scheduled export_cluster_logs get_delayed_worker rpmver check_reboot_changes trup_install script_retry);
+  = qw(handle_simple_pw process_reboot trup_call write_detail_output get_admin_job update_scheduled export_cluster_logs get_delayed_worker rpmver check_reboot_changes trup_install script_retry microos_login);
 
 # Return names and version of packages for transactional-update tests
 sub rpmver {
@@ -69,6 +69,26 @@ sub handle_simple_pw {
     set_var 'SIMPLE_PW_CONFIRMED', 1;
 }
 
+# Assert login prompt and login as root
+sub microos_login {
+    assert_screen 'linux-login-casp', 150;
+
+    # Workers installed using autoyast have no password - bsc#1030876
+    return if get_var('AUTOYAST');
+
+    if (is_caasp 'VMX') {
+        # FreeRDP is not sending 'Ctrl' as part of 'Ctrl-Alt-Fx', 'Alt-Fx' is fine though.
+        my $key = check_var('VIRSH_VMM_FAMILY', 'hyperv') ? 'alt-f2' : 'ctrl-alt-f2';
+        # First attempts to select tty2 are ignored - bsc#1035968
+        send_key_until_needlematch 'tty2-selected', $key, 10, 30;
+    }
+
+    select_console 'root-console';
+
+    # Don't match linux-login-casp twice
+    assert_script_run 'clear';
+}
+
 # Process reboot with an option to trigger it
 sub process_reboot {
     my $trigger = shift // 0;
@@ -81,9 +101,7 @@ sub process_reboot {
         assert_screen 'grub2';
         send_key 'ret';
     }
-
-    assert_screen 'linux-login-casp', 180;
-    select_console 'root-console';
+    microos_login;
 }
 
 # Optionally skip exit status check in case immediate reboot is expected
