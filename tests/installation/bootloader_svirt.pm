@@ -46,6 +46,19 @@ sub run {
         $xenconsole = "xvc0";
     }
 
+    if (check_var('BOOTFROM', 'c')) {
+        $svirt->change_domain_element(os => boot => {dev => 'hd'});
+    }
+    elsif (check_var('BOOTFROM', 'd')) {
+        $svirt->change_domain_element(os => boot => {dev => 'cdrom'});
+    }
+    else {
+        $svirt->change_domain_element(os => boot => {dev => 'hd'});
+        $svirt->change_domain_element(os => boot => {dev => 'cdrom'}) if get_var('ISO');
+    }
+
+    $svirt->change_domain_element(on_reboot => 'destroy');
+
     my $dev_id = 'a';
     my $isodir = '/var/lib/openqa/share/factory/iso /var/lib/openqa/share/factory/iso/fixed';
     # In netinstall we don't have ISO media, for the rest we attach it, if it's defined
@@ -58,7 +71,6 @@ sub run {
                 dev_id => $dev_id
             });
         $dev_id = chr((ord $dev_id) + 1);    # return next letter in alphabet
-        $svirt->change_domain_element(os => boot => {dev => 'cdrom'});
     }
     # Add addon media (if present at all)
     foreach my $n (1 .. 9) {
