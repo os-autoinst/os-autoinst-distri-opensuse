@@ -773,26 +773,12 @@ elsif (get_var("QA_TESTSUITE")) {
     loadtest "qa_automation/execute_test_run";
 }
 elsif (get_var("XFSTESTS")) {
-    loadtest "qa_automation/xfstests_prepare_boot";
-    loadtest "qa_automation/xfstests_prepare_testsuite";
-    if (get_var("XFSTESTS_KNOWN_ISSUE")) {
-        loadtest "qa_automation/xfstests_prepare_issue_case";
-    }
-    loadtest "qa_automation/xfstests_prepare_env";
-    loadtest "qa_automation/xfstests_run_generic";
-    loadtest "qa_automation/xfstests_run_shared";
-    if (check_var("TEST_FS_TYPE", "xfs")) {
-        loadtest "qa_automation/xfstests_run_xfs";
-    }
-    elsif (check_var("TEST_FS_TYPE", "btrfs")) {
-        loadtest "qa_automation/xfstests_run_btrfs";
-    }
-    elsif (check_var("TEST_FS_TYPE", "ext4")) {
-        loadtest "qa_automation/xfstests_run_ext4";
-    }
-    if (get_var("XFSTESTS_KNOWN_ISSUE")) {
-        loadtest "qa_automation/xfstests_run_issue_case";
-    }
+    loadtest "xfstests/boot";
+    loadtest "xfstests/enable_kdump";
+    loadtest "xfstests/install";
+    loadtest "xfstests/partition";
+    loadtest "xfstests/run";
+    loadtest "xfstests/generate_report";
 }
 elsif (get_var("VIRT_AUTOTEST")) {
     if (get_var('REPO_0_TO_INSTALL', '')) {
