@@ -81,7 +81,8 @@ sub generateXML {
         timestamp => `date`
     );
 
-    foreach my $item (keys(%my_hash)) {
+    my @lst = sort(keys(%my_hash));
+    foreach my $item (@lst) {
         if ($my_hash{$item}->{status} =~ m/PASSED/) {
             $case_status = "success";
         }

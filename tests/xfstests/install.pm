@@ -15,7 +15,7 @@ use 5.018;
 use strict;
 use warnings;
 use base "opensusebasetest";
-use utils qw(zypper_call);
+use utils;
 use testapi;
 
 my $LOG_FILE = "/tmp/xfstests.log";
@@ -23,7 +23,7 @@ my $LOG_FILE = "/tmp/xfstests.log";
 # Create log file used to generate junit xml report
 sub log_create {
     my $file = shift;
-    my $cmd = "[[ -f $file ]] || ";
+    my $cmd  = "[[ -f $file ]] || ";
     $cmd .= "echo 'Test in progress' > $file";
     assert_script_run($cmd);
 }
@@ -38,7 +38,7 @@ sub run {
 
     # Install qa_test_xfstests
     zypper_call("--gpg-auto-import-keys ref", timeout => 600);
-    zypper_call("-n in qa_test_xfstests", timeout => 1200);
+    zypper_call("-n in qa_test_xfstests",     timeout => 1200);
     assert_script_run("/usr/share/qa/qa_test_xfstests/install.sh", 600);
 
     # Create log file

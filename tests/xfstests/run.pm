@@ -17,20 +17,20 @@ use warnings;
 use base "opensusebasetest";
 use File::Basename;
 use testapi;
-use utils qw(power_action);
-use kdump_utils qw(do_kdump);
+use utils;
+use kdump_utils;
 
 # Heartbeat variables
-my $HB_INTVL = get_var("XFSTESTS_HEARTBEAT_INTERVAL") || 5;
-my $HB_TIMEOUT = get_var("XFSTESTS_HEARTBEAT_TIMEOUT") || 300;
-my $HB_PATN = "<heartbeat>";
-my $HB_DONE = "<done>";
-my $HB_RAMFS = "/mnt/ramfs";
+my $HB_INTVL   = get_var("XFSTESTS_HEARTBEAT_INTERVAL") || 5;
+my $HB_TIMEOUT = get_var("XFSTESTS_HEARTBEAT_TIMEOUT")  || 300;
+my $HB_PATN    = "<heartbeat>";
+my $HB_DONE    = "<done>";
+my $HB_RAMFS   = "/mnt/ramfs";
 my $HB_DONE_FILE = "$HB_RAMFS/test.done";
 my $HB_EXIT_FILE = "$HB_RAMFS/test.exit";
 
 # xfstests variables
-my $WRAPPER = "/usr/share/qa/qa_test_xfstests/wrapper.sh";
+my $WRAPPER  = "/usr/share/qa/qa_test_xfstests/wrapper.sh";
 my $LOG_FILE = "/tmp/xfstests.log";
 
 # blacklist
@@ -42,7 +42,7 @@ sub heartbeat_start {
     assert_script_run("mkdir -p $HB_RAMFS; umount -f $HB_RAMFS; mount -t ramfs none $HB_RAMFS");
 
     my $redir = " >> /dev/$serialdev";
-    my $cmd = "while [[ ! -f $HB_EXIT_FILE ]]; do ";
+    my $cmd   = "while [[ ! -f $HB_EXIT_FILE ]]; do ";
     $cmd .= "sleep $HB_INTVL; ";
     $cmd .= "[[ -f $HB_DONE_FILE ]] && ";
     $cmd .= "echo \"$HB_DONE\" $redir || echo \"$HB_PATN\" $redir";
@@ -63,16 +63,19 @@ sub heartbeat_wait {
     if ($ret) {
         if ($ret =~ /$HB_PATN/) {
             return ($HB_PATN, "");
-        } else {
+        }
+        else {
             my $status;
             type_string("\n");
             my $ret = script_output("cat $HB_DONE_FILE; rm -f $HB_DONE_FILE");
             $ret =~ s/^\s+|\s+$//g;
             if ($ret == 0) {
                 $status = "PASSED";
-            } elsif ($ret == 22) {
+            }
+            elsif ($ret == 22) {
                 $status = "SKIPPED";
-            } else {
+            }
+            else {
                 $status = "FAILED";
             }
             return ($HB_DONE, $status);
@@ -83,11 +86,11 @@ sub heartbeat_wait {
 
 # Add one test result to log file
 sub log_add {
-    my $file = shift;
-    my $name = shift;
+    my $file   = shift;
+    my $name   = shift;
     my $status = shift;
-    my $time = shift;
-    my $cmd = "echo '$name ... ... $status (${time}s)' >> $file";
+    my $time   = shift;
+    my $cmd    = "echo '$name ... ... $status (${time}s)' >> $file";
     type_string("\n");
     assert_script_run($cmd);
 }
@@ -100,9 +103,9 @@ sub test_prepare {
 
 # List all the tests of a specific category
 sub test_list {
-    my $dir = shift;
+    my $dir    = shift;
     my $output = script_output("find $dir -regex '.*/[0-9]+'", 200);
-    my @tests = split(/\n/, $output);
+    my @tests  = split(/\n/, $output);
     foreach my $test (@tests) {
         $test = basename($test);
     }
@@ -114,8 +117,8 @@ sub test_list {
 # test  - specific test(e.g. 001, 002)
 sub test_run {
     my $category = shift;
-    my $test = shift;
-    my $cmd = "\n$WRAPPER '$category/$test' | ";
+    my $test     = shift;
+    my $cmd      = "\n$WRAPPER '$category/$test' | ";
     $cmd .= "tee $HB_RAMFS/test.log; ";
     $cmd .= "echo \${PIPESTATUS[0]} > $HB_DONE_FILE; ";
     $cmd .= "mv $HB_RAMFS/test.log /tmp/$category/$test.log\n";

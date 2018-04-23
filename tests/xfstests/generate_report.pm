@@ -18,12 +18,12 @@ use base "opensusebasetest";
 use testapi;
 use ctcs2_to_junit;
 
-my $LOG_FILE = "/tmp/xfstests.log";
+my $LOG_FILE   = "/tmp/xfstests.log";
 my $JUNIT_FILE = "/tmp/output.xml";
 
 sub log_end {
     my $file = shift;
-    my $cmd = "echo 'Test run complete' >> $file";
+    my $cmd  = "echo 'Test run complete' >> $file";
     type_string("\n");
     assert_script_run($cmd);
 }
@@ -43,8 +43,8 @@ sub run {
 
     # Junit xml report
     my $script_output = script_output("cat $LOG_FILE");
-    my $tc_result = analyzeResult($script_output);
-    my $xml = generateXML($tc_result);
+    my $tc_result     = analyzeResult($script_output);
+    my $xml           = generateXML($tc_result);
     assert_script_run("echo \'$xml\' > $JUNIT_FILE", 7200);
     parse_junit_log($JUNIT_FILE);
 }
