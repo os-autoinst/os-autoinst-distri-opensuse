@@ -15,7 +15,7 @@ use 5.018;
 use strict;
 use warnings;
 use base "opensusebasetest";
-use utils qw(zypper_call);
+use utils;
 use testapi;
 
 sub run {
