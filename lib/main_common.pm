@@ -1354,7 +1354,7 @@ sub load_extra_tests_desktop {
             loadtest "x11/multi_users_dm";
         }
         # wine is only in openSUSE for various reasons, including legal ones
-        loadtest 'x11/wine';
+        loadtest 'x11/wine' if get_var('ARCH', '') =~ /x86_64|i586/;
 
     }
     # the following tests care about network and need some DE specific
