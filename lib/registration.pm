@@ -308,6 +308,7 @@ sub fill_in_registration_data {
                 else {
                     send_key 'alt-f';    # uncheck 'Filter Out Beta Version'
                 }
+                assert_screen('scc-beta-filter-unchecked');
             }
             my @scc_addons = split(/,/, get_var('SCC_ADDONS', ''));
             # remove emty elements
