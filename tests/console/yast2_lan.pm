@@ -79,7 +79,7 @@ sub run {
     assert_screen 'test-yast2_lan-1';
 
     send_key "alt-o";    # OK=>Save&Exit
-    wait_serial("yast2-lan-status-0", 90) || die "'yast2 lan' didn't finish";
+    wait_serial("yast2-lan-status-0", 180) || die "'yast2 lan' didn't finish";
 
     wait_still_screen;
     $self->clear_and_verify_console;
