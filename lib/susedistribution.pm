@@ -518,9 +518,9 @@ sub activate_console {
                 handle_password_prompt;
             }
             elsif (match_has_tag("text-login") && !$args{ensure_tty_selected}) {
-                record_soft_failure("poo#32926, couldn't assert tty was switched");
-                # Introduce artificial delay to get better chances to get right tty
-                wait_still_screen 3;
+                # Try to match tty$nr-selected explicitly so we have all correct needles before
+                # making ensure_tty_selected default behavior
+                record_soft_failure("poo#32926, couldn't assert tty was switched") unless check_screen("tty$nr-selected");
                 type_string "$user\n";
                 handle_password_prompt;
             }
