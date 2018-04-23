@@ -117,7 +117,8 @@ sub handle_addon {
     send_key 'pgup';
     wait_still_screen 2;
     send_key_until_needlematch "addon-products-$addon", 'down';
-    if (is_sle('15+')) {
+    # modules like SES or RT that are not part of Packages ISO don't have this step, when bsc#1090012 will be fixed I will add else for license
+    if (is_sle('15+') && $addon !~ /^ses$|^rt$/) {
         send_key 'spc';
         send_key $cmd{next};
         wait_still_screen 2;
