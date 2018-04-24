@@ -30,8 +30,8 @@ sub run {
     }
     assert_script_run("zypper -n in -t $zypp_type $pattern", 600);
 
-    # Toggle the default window manager
-    assert_script_run("sed -i 's/DEFAULT_WM=.*/DEFAULT_WM=\"${pattern}\"/' /etc/sysconfig/windowmanager");
+    # Reset the state of lightdm, to have the new default in use (lightdm saves what the user's last session was)
+    assert_script_run("rm ~lightdm/.cache/lightdm-gtk-greeter/state /var/lib/AccountsService/users/*");
 }
 
 sub test_flags {
