@@ -773,7 +773,7 @@ elsif (get_var("QA_TESTSUITE")) {
     loadtest "qa_automation/execute_test_run";
 }
 elsif (get_var("XFSTESTS")) {
-    loadtest "xfstests/boot";
+    loadtest "boot/boot_to_desktop";
     loadtest "xfstests/enable_kdump";
     loadtest "xfstests/install";
     loadtest "xfstests/partition";
