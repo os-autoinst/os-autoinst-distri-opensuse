@@ -39,19 +39,19 @@ sub analyzeResult {
 sub generateXML {
     my ($data) = @_;
 
-    my %my_hash = %$data;
+    my %test_results = %$data;
     my $case_status;
-    my $case_num = scalar(keys %my_hash);
+    my $case_num = scalar(keys %test_results);
     my $pass_num = 0;
     my $fail_num = 0;
     my $skip_num = 0;
     my $writer   = new XML::Writer(DATA_MODE => 'true', DATA_INDENT => 2, OUTPUT => "self");
 
-    foreach my $item (keys(%my_hash)) {
-        if ($my_hash{$item}->{status} =~ m/PASSED/) {
+    foreach my $test (keys(%test_results)) {
+        if ($test_results{$test}->{status} =~ m/PASSED/) {
             $pass_num += 1;
         }
-        elsif ($my_hash{$item}->{status} =~ m/SKIPPED/) {
+        elsif ($test_results{$test}->{status} =~ m/SKIPPED/) {
             $skip_num += 1;
         }
         else {
@@ -81,11 +81,12 @@ sub generateXML {
         timestamp => `date`
     );
 
-    foreach my $item (keys(%my_hash)) {
-        if ($my_hash{$item}->{status} =~ m/PASSED/) {
+    my @tests = sort(keys(%test_results));
+    foreach my $test (@tests) {
+        if ($test_results{$test}->{status} =~ m/PASSED/) {
             $case_status = "success";
         }
-        elsif ($my_hash{$item}->{status} =~ m/SKIPPED/) {
+        elsif ($test_results{$test}->{status} =~ m/SKIPPED/) {
             $case_status = "skipped";
         }
         else {
@@ -95,9 +96,9 @@ sub generateXML {
         $writer->startTag(
             'testcase',
             classname => get_var("QA_TESTSUITE"),
-            name      => $item,
+            name      => $test,
             status    => $case_status,
-            time      => $my_hash{$item}->{time});
+            time      => $test_results{$test}->{time});
         $writer->startTag('system-err');
         $writer->characters("");
         $writer->endTag('system-err');
