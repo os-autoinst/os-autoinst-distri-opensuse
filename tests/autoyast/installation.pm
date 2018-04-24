@@ -162,7 +162,8 @@ sub run {
         #Verify timeout and continue if there was a match
         next unless verify_timeout_and_check_screen(($timer += $check_time), \@needles);
         if (match_has_tag('autoyast-boot')) {
-            send_key 'ret';    # grub timeout is disable, so press any key is needed to pass the grub
+            send_key 'ret';    # press enter if grub timeout is disabled, like we have in reinstall scenarios
+            last;              # if see grub, we get to the second stage, as it appears after bios-boot which we may miss
         }
         #repeat until timeout or login screen
         elsif (match_has_tag('nonexisting-package')) {
@@ -266,7 +267,9 @@ sub run {
             $num_errors++;
         }
         elsif (match_has_tag('autoyast-boot')) {
-            send_key 'ret';    # grub timeout is disable, so press any key is needed to pass the grub
+            # if we matched bios-boot tag during stage1 we may get grub menu, legacy behavior
+            # keep it as a fallback if grub timeout is disabled
+            send_key 'ret';
         }
         elsif (match_has_tag('warning-pop-up')) {
             handle_warnings;    # Process warnings during stage 2
@@ -287,4 +290,3 @@ sub post_fail_hook {
 }
 
 1;
-
