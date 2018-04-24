@@ -20,6 +20,7 @@ use warnings;
 use testapi;
 use lockapi;
 use utils;
+use version_utils 'is_sle';
 
 sub run {
     my $self = shift;
@@ -40,7 +41,9 @@ sub run {
 
     #install web frontend and start apache
     zypper_call('in ganglia-web');
-    assert_script_run('a2enmod php7');
+    # SLE15 has installed by default php7, SLE12 has php5
+    my $php_mod = is_sle('15+') ? 'php7' : 'php5';
+    script_run('a2enmod ' . $php_mod);
     systemctl('start apache2');
     my $page_url = "http://ganglia-server/ganglia/?r=hour&cs=&ce=&c=unspecified&h=";
     $page_url .= "ganglia-server.openqa.test&tab=m&vn=&hide-hf=false";
