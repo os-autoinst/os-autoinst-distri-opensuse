@@ -190,7 +190,7 @@ sub addlv {
 sub unselect_xen_pv_cdrom {
     if (check_var('VIRSH_VMM_TYPE', 'linux')) {
         assert_screen 'select-hard-disk';
-        if (get_var('TEXTMODE')) {
+        if (check_var('VIDEOMODE', 'text')) {
             send_key_until_needlematch 'uncheck-install-medium', 'tab';
             send_key 'spc';
         }
