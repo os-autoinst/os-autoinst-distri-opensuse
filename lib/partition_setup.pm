@@ -17,7 +17,7 @@ use testapi;
 use version_utils 'is_storage_ng';
 use installation_user_settings 'await_password_check';
 
-our @EXPORT = qw(addpart addlv create_new_partition_table enable_encryption_guided_setup take_first_disk unselect_xen_pv_cdrom);
+our @EXPORT = qw(addpart addlv create_new_partition_table enable_encryption_guided_setup select_first_hard_disk take_first_disk unselect_xen_pv_cdrom);
 
 my %role = qw(
   OS alt-o
@@ -185,6 +185,28 @@ sub addlv {
     send_key(is_storage_ng() ? $cmd{next} : $cmd{finish});
 }
 
+sub select_first_hard_disk {
+    assert_screen [qw(existing-partitions hard-disk-dev-sdb-selected)];
+    if (match_has_tag 'hard-disk-dev-sdb-selected' || get_var('SELECT_FIRST_DISK')) {
+        if (check_var('VIDEOMODE', 'text')) {
+            if (match_has_tag 'hotkey_d') {
+                send_key 'alt-d';
+            }
+            elsif (match_has_tag 'hotkey_e') {
+                send_key 'alt-e';
+            }
+            else {
+                die 'Needle needs tag \'hotkey_d\' or \'hotkey_e\'';
+            }
+        }
+        else {
+            assert_and_click 'hard-disk-dev-sdb-selected';    # Unselect second drive
+        }
+        assert_screen 'select-hard-disks-one-selected';
+        send_key $cmd{next};
+    }
+}
+
 # On Xen PV "CDROM" is of the same type as a disk block device so YaST
 # naturally sees it as a "disk". We have to uncheck the "CDROM".
 sub unselect_xen_pv_cdrom {
@@ -225,25 +247,7 @@ sub take_first_disk_storage_ng {
     assert_screen 'select-hard-disks';
     # It's not always the case that SUT has 2 drives, for ipmi it's changing
     # So making it flexible, still assert the screen if want to verify explicitly
-    assert_screen [qw(existing-partitions hard-disk-dev-sdb-selected)];
-    if (match_has_tag 'hard-disk-dev-sdb-selected' || get_var('SELECT_FIRST_DISK')) {
-        if (check_var('VIDEOMODE', 'text')) {
-            if (match_has_tag 'hotkey_d') {
-                send_key 'alt-d';
-            }
-            elsif (match_has_tag 'hotkey_e') {
-                send_key 'alt-e';
-            }
-            else {
-                die 'Needle needs tag \'hotkey_d\' or \'hotkey_e\'';
-            }
-        }
-        else {
-            assert_and_click 'hard-disk-dev-sdb-selected';    # Unselect second drive
-        }
-        assert_screen 'select-hard-disks-one-selected';
-        send_key $cmd{next};
-    }
+    select_first_hard_disk;
 
     # If drive is not formatted, we have select hard disks page
     # On ipmi we always have unformatted drive
