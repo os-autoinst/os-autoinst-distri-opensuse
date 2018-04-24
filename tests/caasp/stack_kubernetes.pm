@@ -31,6 +31,10 @@ sub run {
     my $nodes_count = get_required_var("STACK_NODES");
     assert_script_run "kubectl get nodes --no-headers | wc -l | grep $nodes_count";
 
+    # Check container runtime [docker|cri-o]
+    my $runtime = get_var('CONTAINER_RUNTIME', 'docker');
+    assert_script_run "kubectl describe nodes | grep -c Runtime.*$runtime | grep $nodes_count";
+
     # Deploy nginx minimal application and check pods started succesfully
     my $pods_count = get_required_var("STACK_WORKERS") * 15;
     assert_script_run "kubectl run nginx --image=nginx:stable-alpine --replicas=$pods_count --port=80";

@@ -28,6 +28,13 @@ sub velum_config {
     # Install Tiller
     send_key 'spc';
 
+    # Select container runtime
+    if (check_var('CONTAINER_RUNTIME', 'cri-o')) {
+        send_key 'pgdn';
+        assert_and_click 'container-runtime-cri-o';
+        wait_still_screen 3;
+    }
+
     # Make sure next button is visible
     send_key 'pgdn';
     assert_and_click "velum-next";
