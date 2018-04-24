@@ -57,6 +57,8 @@ sub run {
         $svirt->change_domain_element(os => boot => {dev => 'cdrom'}) if get_var('ISO');
     }
 
+    # Unless os-autoinst PR#956 is deployed we have to remove 'on_reboot' first
+    $svirt->change_domain_element(on_reboot => undef);
     $svirt->change_domain_element(on_reboot => 'destroy');
 
     my $dev_id = 'a';
