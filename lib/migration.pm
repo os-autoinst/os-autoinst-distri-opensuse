@@ -27,6 +27,7 @@ use qam qw/remove_test_repositories/;
 use version_utils qw(sle_version_at_least is_sle);
 
 our @EXPORT = qw(
+  setup_sle
   setup_migration
   register_system_in_textmode
   remove_ltss
@@ -36,26 +37,29 @@ our @EXPORT = qw(
   reset_consoles_tty
 );
 
-sub setup_migration {
-    my ($self) = @_;
+sub setup_sle {
     select_console 'root-console';
 
-    # stop packagekit service
-    # Systemd is not available on SLE11
-    # skip this part if the version below SLE12
-    if (is_sle && sle_version_at_least('12')) {
-        systemctl 'mask packagekit.service';
-        systemctl 'stop packagekit.service';
+    # Stop packagekitd
+    if (is_sle('12+')) {
+        pkcon_quit;
     }
     else {
         assert_script_run "chmod 444 /usr/sbin/packagekitd";
     }
 
+    # Change serial dev permissions
     ensure_serialdev_permissions;
 
-    # enable Y2DEBUG all time
+    # Enable Y2DEBUG for error debugging
     type_string "echo 'export Y2DEBUG=1' >> /etc/bash.bashrc.local\n";
     script_run "source /etc/bash.bashrc.local";
+}
+
+sub setup_migration {
+    my ($self) = @_;
+
+    $self->setup_sle();
 
     # remove the PATCH test_repos
     remove_test_repositories();

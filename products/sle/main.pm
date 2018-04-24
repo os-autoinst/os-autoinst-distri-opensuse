@@ -566,12 +566,14 @@ sub load_patching_tests {
     }
     set_var('BOOT_HDD_IMAGE', 1);
     boot_hdd_image;
-    loadtest 'update/patch_before_migration';
+    loadtest 'update/patch_sle';
     if (is_upgrade) {
         # Lock package for offline migration by Yast installer
         if (get_var('LOCK_PACKAGE') && !installzdupstep_is_applicable) {
             loadtest 'console/lock_package';
         }
+        loadtest 'migration/remove_ltss';
+        loadtest 'migration/record_disk_info';
         # Reboot from DVD and perform upgrade
         loadtest "migration/reboot_to_upgrade";
         # After original system patched, switch to UPGRADE_TARGET_VERSION
@@ -968,7 +970,9 @@ else {
         # Use autoyast to perform origin system installation
         load_default_autoyast_tests;
         # Load this to perform some other actions before upgrade even though registration and patching is controlled by autoyast
-        loadtest 'update/patch_before_migration';
+        loadtest 'update/patch_sle';
+        loadtest 'migration/remove_ltss';
+        loadtest 'migration/record_disk_info';
         loadtest "migration/version_switch_upgrade_target";
         load_default_tests;
         loadtest "migration/post_upgrade";
