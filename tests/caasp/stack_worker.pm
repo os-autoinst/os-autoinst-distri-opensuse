@@ -32,9 +32,10 @@ sub run {
 
 sub post_run_hook {
     # Cluster was rebooted during stack tests
-    reset_consoles;
-    select_console 'root-console';
-
+    if (check_screen 'linux-login-casp', 0) {
+        reset_consoles;
+        select_console 'root-console';
+    }
     export_cluster_logs;
 }
 
