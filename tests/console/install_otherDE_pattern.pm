@@ -31,7 +31,7 @@ sub run {
     assert_script_run("zypper -n in -t $zypp_type $pattern", 600);
 
     # Reset the state of lightdm, to have the new default in use (lightdm saves what the user's last session was)
-    assert_script_run("rm ~lightdm/.cache/lightdm-gtk-greeter/state /var/lib/AccountsService/users/*");
+    assert_script_run("rm -f ~lightdm/.cache/lightdm-gtk-greeter/state /var/lib/AccountsService/users/*");
 }
 
 sub test_flags {
