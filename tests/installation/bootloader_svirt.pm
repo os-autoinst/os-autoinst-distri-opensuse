@@ -46,6 +46,7 @@ sub run {
         $xenconsole = "xvc0";
     }
 
+    set_var('BOOTFROM', 'c') if get_var('BOOT_HDD_IMAGE');
     if (check_var('BOOTFROM', 'c')) {
         $svirt->change_domain_element(os => boot => {dev => 'hd'});
     }
