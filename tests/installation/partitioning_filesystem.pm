@@ -15,7 +15,7 @@ use strict;
 use base "y2logsstep";
 use testapi;
 use version_utils 'is_storage_ng';
-use partition_setup 'unselect_xen_pv_cdrom';
+use partition_setup qw(select_first_hard_disk unselect_xen_pv_cdrom);
 
 sub run {
 
@@ -24,6 +24,8 @@ sub run {
     # open the partinioner
     assert_screen 'edit-proposal-settings';
     wait_screen_change { send_key $cmd{guidedsetup} };
+
+    select_first_hard_disk if (check_screen 'select-hard-disks', 0);
 
     if (get_var('PARTITIONING_WARNINGS')) {
         if (is_storage_ng) {
