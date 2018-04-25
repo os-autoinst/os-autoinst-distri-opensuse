@@ -12,64 +12,63 @@ use base "consoletest";
 use strict;
 use testapi;
 use utils;
-use version_utils qw(sle_version_at_least is_desktop_installed);
+use version_utils qw(is_sle is_desktop_installed);
 use migration;
 use registration;
 use qam;
 
-sub is_smt_or_module_tests {
-    return get_var('SCC_ADDONS', '') =~ /asmm|contm|hpcm|lgm|pcm|tcm|wsm|idu|ids/ || get_var('TEST', '') =~ /migration_offline_sle12sp\d_smt/;
-}
 
 sub patching_sle {
     my ($self) = @_;
 
+    # Save SCC_REGISTER var and restore it later
+    my $orig_scc_register = get_var('SCC_REGISTER', '');
+
     # Skip registration here since we use autoyast profile to register origin system on zVM
     if (!get_var('UPGRADE_ON_ZVM')) {
-        set_var("VIDEOMODE",    'text');
-        set_var("SCC_REGISTER", 'installation');
+        set_var("SCC_REGISTER", 'console');
         # remember we perform registration on pre-created HDD images
-        if (sle_version_at_least('12-SP2', version_variable => 'HDDVERSION')) {
+        if (is_sle('12-SP2+')) {
             set_var('HDD_SP2ORLATER', 1);
         }
-
+        # disable existing repos temporary
         assert_script_run("zypper lr && zypper mr --disable --all");
         save_screenshot;
         sle_register("register");
         assert_script_run('zypper lr -d');
     }
 
-    # install all patterns
-    install_patterns() if (get_var('PATTERNS'));
-
-    # install package from parameter
-    install_package() if (get_var('PACKAGES'));
-
     # add test repositories and logs the required patches
     add_test_repositories();
 
+    # Default to fully update unless MINIMAL_UPDATE is set
     if (get_var('MINIMAL_UPDATE')) {
-        minimal_patch_system(version_variable => 'HDDVERSION');
-        remove_test_repositories;
+        minimal_patch_system();
     }
-
-    if (get_var('FULL_UPDATE')) {
+    else {
         fully_patch_system();
         # Update origin system on zVM that is controlled by autoyast profile and reboot is done by end of autoyast installation
         # So we skip reboot here after fully patched on zVM to reduce times of reconnection to s390x
         if (!get_var('UPGRADE_ON_ZVM')) {
-            # Perform sync ahead of reboot to flush filesystem buffers that probably reduce time of sync during rebooting
-            # In the case no need to always enlarge timeout of wait_boot
+            # Perform sync ahead of reboot to flush filesystem buffers
             assert_script_run 'sync', 600;
             # Workaround for test failed of the reboot operation need to wait some jobs done
             # Add '-f' to force the reboot to avoid the test be blocked here
             type_string "reboot -f\n";
-            $self->wait_boot(textmode => !is_desktop_installed(), ready_time => 600, bootloader_time => 250);
-
-            # Go back to the initial state, before the patching
-            $self->setup_migration();
+            $self->wait_boot(textmode => !is_desktop_installed(), ready_time => 600, bootloader_time => 300);
+            # Setup again after reboot
+            $self->setup_sle();
         }
     }
+
+    # Install extra patterns as required
+    install_patterns() if (get_var('PATTERNS'));
+
+    # Install extra packages as required
+    install_packages() if (get_var('PACKAGES'));
+
+    # Remove test repos after system being patched
+    remove_test_repositories;
 
     if (get_var('FLAVOR', '') =~ /-(Updates|Incidents)$/ || get_var('KEEP_REGISTERED')) {
         # The system is registered.
@@ -81,12 +80,14 @@ sub patching_sle {
     else {
         sle_register("unregister");
     }
-    remove_ltss;
+
     assert_script_run("zypper mr --enable --all");
-    set_var("VIDEOMODE", '');
-    # keep the value of SCC_REGISTER for offline migration tests with smt pattern or modules
-    # Both of them need registration during offline migration
-    if (!(is_smt_or_module_tests || get_var('KEEP_REGISTERED'))) { set_var("SCC_REGISTER", ''); }
+
+    # Restore the old value of SCC_REGISTER
+    # For example, in case of SLE 12 offline migration tests with smt pattern
+    # or modules, we need set SCC_REGISTER=installation at test suite settings
+    # to trigger scc registration during offline migration
+    set_var("SCC_REGISTER", $orig_scc_register);
 
     # Record the installed rpm list
     assert_script_run 'rpm -qa > /tmp/rpm-qa.txt';
@@ -96,7 +97,9 @@ sub patching_sle {
     set_var("SYSTEM_PATCHED", 1);
 }
 
-sub install_package {
+
+# Install extra packages if var PACKAGES is set
+sub install_packages {
     my @pk_list = split(/,/, get_var('PACKAGES'));
     for my $pk (@pk_list) {
         # removed package if starting with -
@@ -110,6 +113,7 @@ sub install_package {
     }
 }
 
+# Install extra patterns if var PATTERNS is set
 sub install_patterns {
     my $pcm = 0;
     my @pt_list;
@@ -146,8 +150,9 @@ sub install_patterns {
 sub sle_register {
     my ($action) = @_;
     # Register sle before update
+    # SLE 12 and later use SCC, but SLE 11 uses NCC
     if ($action eq 'register') {
-        if (sle_version_at_least('12')) {
+        if (is_sle('12+')) {
             yast_scc_registration();
         }
         else {
@@ -172,8 +177,8 @@ sub sle_register {
     }
     # Unregister sle after update
     if ($action eq 'unregister') {
-        if (sle_version_at_least('12')) {
-            scc_deregistration(version_variable => 'HDDVERSION');
+        if (is_sle('12+')) {
+            scc_deregistration;
         }
         else {
             assert_script_run('suse_register -E');
@@ -185,9 +190,8 @@ sub sle_register {
 sub run {
     my ($self) = @_;
 
-    $self->setup_migration();
+    $self->setup_sle();
     $self->patching_sle();
-    $self->record_disk_info;
 }
 
 sub test_flags {
