@@ -15,18 +15,11 @@
 use strict;
 use base "y2logsstep";
 use testapi;
+use partition_setup 'take_first_disk';
 
 sub run {
-    send_key "alt-c";    # create partition setup
-    wait_still_screen(2);
-    assert_screen "preparing-disk-select-iscsi-disk";
-    send_key "alt-1";    # select ISCSI disk
-    send_key $cmd{next};
-    if (check_screen "preparing-disk-use-entire-disk-button", 10) {
-        send_key "alt-e";    # use entire iscsi disk
-    }
-    assert_screen "preparing-disk-overview";
-    send_key $cmd{next};
+    # Select iSCSI disk for installation
+    take_first_disk iscsi => 1;
 }
 
 1;
