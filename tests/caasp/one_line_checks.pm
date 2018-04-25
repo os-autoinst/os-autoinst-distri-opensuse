@@ -16,9 +16,6 @@ use testapi;
 use version_utils 'is_caasp';
 
 sub run {
-    # Check that system is using UTC timezone
-    assert_script_run 'date +"%Z" | grep -x UTC';
-
     return if get_var('EXTRA', '') =~ /RCSHELL/;
 
     # bsc#1019652 - Check that snapper is configured
@@ -32,7 +29,6 @@ sub run {
         # https://build.opensuse.org/request/show/583954
         assert_script_run "btrfs subvolume show /var/lib/cni";
     }
-
 
     # bsc#1051762 - Docker is on btrfs partition
     assert_script_run 'stat -fc %T /var/lib/docker | grep -q btrfs';
@@ -67,6 +63,10 @@ sub run {
             assert_script_run '! zypper se -i kubernetes';
             assert_script_run '! rpm -q etcd';
         }
+    }
+    else {
+        # Check that system is using UTC timezone - boo#1090536
+        assert_script_run 'date +"%Z" | tee /dev/tty | grep -qx UTC';
     }
 }
 
