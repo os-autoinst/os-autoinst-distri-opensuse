@@ -7,7 +7,20 @@ use lockapi;
 use mmapi 'wait_for_children';
 
 use Exporter 'import';
-our @EXPORT = qw(confirm_insecure_https velum_login switch_to download_kubeconfig);
+our @EXPORT = qw(confirm_insecure_https velum_login switch_to download_kubeconfig click_click);
+
+# 10% of clicks are lost because ajax refreshes Velum during click
+sub click_click {
+    my ($x, $y) = @_;
+    mouse_set $x, $y;
+    for (1 .. 3) {
+        mouse_click;
+        # Don't click-and-drag
+        sleep 1;
+    }
+    mouse_hide;
+    record_info 'bsc#1048975', 'User interaction is lost after page refresh';
+}
 
 # Easier switching between applications
 # xterm | velum

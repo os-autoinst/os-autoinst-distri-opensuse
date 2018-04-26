@@ -35,19 +35,6 @@ sub select_nodes {
     wait_still_screen 2;
 }
 
-# 10% of clicks are lost because of ajax refreshing Velum during click
-sub click_click {
-    my ($x, $y) = @_;
-    mouse_set $x, $y;
-    for (1 .. 3) {
-        mouse_click;
-        # Don't click-and-drag
-        sleep 1;
-    }
-    mouse_hide;
-    record_info 'bsc#1048975', 'User interaction is lost after page refresh';
-}
-
 # Select master.openqa.test and additional master nodes
 sub select_master {
     # Calculate position of master node
