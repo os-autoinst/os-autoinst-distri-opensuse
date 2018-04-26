@@ -37,7 +37,10 @@ sub post_run_hook {
         reset_consoles;
         select_console 'root-console';
     }
-    export_cluster_logs;
+    # Delayed node was removed & powered off
+    unless (get_var 'DELAYED_WORKER') {
+        export_cluster_logs;
+    }
 }
 
 1;

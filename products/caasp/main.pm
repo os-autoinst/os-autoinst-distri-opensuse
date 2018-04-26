@@ -156,7 +156,7 @@ sub load_stack_tests {
         else {
             loadtest 'caasp/stack_reboot';
         }
-        loadtest 'caasp/stack_add_nodes' if get_delayed_worker;
+        loadtest 'caasp/stack_add_remove' if get_delayed_worker;
         unless (is_caasp('staging') || is_caasp('local')) {
             loadtest 'caasp/stack_conformance';
         }
