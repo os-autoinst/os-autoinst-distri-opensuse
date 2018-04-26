@@ -995,6 +995,7 @@ else {
         load_patching_tests() if get_var('PATCH');
         load_boot_tests();
         load_inst_tests();
+        return 1 if get_var('EXIT_AFTER_START_INSTALL');
         load_reboot_tests();
         loadtest "migration/post_upgrade";
         # Always load zypper_lr test for migration case and get repo information for investigation
