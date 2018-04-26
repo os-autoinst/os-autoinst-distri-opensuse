@@ -76,11 +76,13 @@ sub workaround_dependency_issues {
     }
     else {
         while (check_screen('dependency-issue', 5)) {
-            send_key 'alt-1';
-            sleep 1;
-            send_key 'spc';
-            sleep 1;
-            wait_screen_change { send_key 'alt-o' };
+            wait_screen_change { send_key 'alt-1' };
+            # higher similarity level as this should only select a single
+            # entry, not close the dialog or something
+            wait_screen_change(sub { send_key 'spc' }, undef, similarity_level => 55);
+            # lower similarity level to not confuse the button press for
+            # screen change
+            wait_screen_change(sub { send_key 'alt-o' }, undef, similarity_level => 48);
         }
     }
     return 1;
@@ -154,8 +156,6 @@ sub deal_with_dependency_issues {
         die 'Dependency problems';
     }
 
-    # Press "Esc" in case "Options" menu is open by accident
-    send_key 'esc';
     assert_screen 'dependency-issue-fixed';    # make sure the dependancy issue is fixed now
     send_key 'alt-a';                          # Accept
     sleep 2;
