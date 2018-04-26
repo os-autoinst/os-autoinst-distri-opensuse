@@ -22,13 +22,11 @@ use kdump_utils;
 
 # Heartbeat variables
 my $HB_INTVL   = get_var("XFSTESTS_HEARTBEAT_INTERVAL") || 5;
-my $HB_TIMEOUT = get_var("XFSTESTS_HEARTBEAT_TIMEOUT")  || 300;
+my $HB_TIMEOUT = get_var("XFSTESTS_HEARTBEAT_TIMEOUT")  || 200;
 my $HB_PATN    = "<heartbeat>";
 my $HB_DONE    = "<done>";
-my $HB_LOCKUP  = "NMI watchdog: BUG: soft lockup";
-my $HB_RAMFS   = "/mnt/ramfs";
-my $HB_DONE_FILE = "$HB_RAMFS/test.done";
-my $HB_EXIT_FILE = "$HB_RAMFS/test.exit";
+my $HB_DONE_FILE = "/tmp/test.done";
+my $HB_EXIT_FILE = "/tmp/test.exit";
 
 # xfstests variables
 my $WRAPPER  = "/usr/share/qa/qa_test_xfstests/wrapper.sh";
@@ -39,9 +37,6 @@ my %BLACKLIST = map { $_ => 1 } split(/,/, get_var("XFSTESTS_BLACKLIST"));
 
 
 sub heartbeat_start {
-    # Create ramfs
-    assert_script_run("mkdir -p $HB_RAMFS; umount -f $HB_RAMFS; mount -t ramfs none $HB_RAMFS");
-
     my $redir = " >> /dev/$serialdev";
     my $cmd   = "while [[ ! -f $HB_EXIT_FILE ]]; do ";
     $cmd .= "sleep $HB_INTVL; ";
@@ -49,7 +44,7 @@ sub heartbeat_start {
     $cmd .= "echo \"$HB_DONE\" $redir || echo \"$HB_PATN\" $redir";
     $cmd .= "; done";
     script_run("rm -f $HB_DONE_FILE $HB_EXIT_FILE");
-    type_string("nice -n -20 bash -c '$cmd' &\n");
+    type_string("nohup bash -c '$cmd' &\n");
 }
 
 # Stop heartbeat
@@ -60,16 +55,13 @@ sub heartbeat_stop {
 
 # Wait for heartbeat
 sub heartbeat_wait {
-    # When under heavy load, the system might be unable to send
+    # When under heavy load, the SUT might be unable to send
     # heartbeat messages to serial console. That's why HB_TIMEOUT
     # is set to 300 by default: waiting for such tests to finish.
-    my $ret = wait_serial([$HB_PATN, $HB_DONE, $HB_LOCKUP], $HB_TIMEOUT);
+    my $ret = wait_serial([$HB_PATN, $HB_DONE], $HB_TIMEOUT);
     if ($ret) {
         if ($ret =~ /$HB_PATN/) {
             return ($HB_PATN, "");
-        }
-        elsif ($ret =~ /$HB_LOCKUP/) {
-            return ($HB_LOCKUP, "FAILED");
         }
         else {
             my $status;
@@ -93,7 +85,7 @@ sub heartbeat_wait {
 
 # Wait for test to finish
 sub test_wait {
-    my $time = 0;
+    my $time = $HB_INTVL;
     my ($type, $status) = heartbeat_wait;
     while ($type eq $HB_PATN) {
         ($type, $status) = heartbeat_wait;
@@ -105,7 +97,7 @@ sub test_wait {
 # Add one test result to log file
 sub log_add {
     my ($file, $name, $status, $time) = @_;
-    my $cmd = "echo '$name ... ... $status (${time}s)' >> $file";
+    my $cmd = "echo '$name ... ... $status (${time}s)' >> $file && sync";
     type_string("\n");
     assert_script_run($cmd);
 }
@@ -152,6 +144,7 @@ sub run {
     test_prepare($category);
     my @crashed;
     foreach my $test (@tests) {
+        # Skip tests inside blacklist
         if (exists($BLACKLIST{"$category/$test"})) {
             next;
         }
@@ -164,17 +157,19 @@ sub run {
             log_add($LOG_FILE, $name, $status, $time);
             next;
         }
-        if ($type eq $HB_LOCKUP) {
-            # Soft lockup
-            power("reset");
-        }
-        else {
-            # Normally kdump should already be started, and
-            # system will automatically reboot after it's done,
-            # so we just need to observe it.
+
+        # Wait for kdump to finish.
+        # After that, SUT will reboot automatically
+        eval {
             power_action('reboot', observe => 1, keepconsole => 1);
+            $self->wait_boot(in_grub => 1, bootloader_time => 60);
+        };
+        # If SUT didn't reboot, force reset
+        if ($@) {
+            power("reset");
+            $self->wait_boot(in_grub => 1);
         }
-        $self->wait_boot;
+
         sleep(1);
         select_console('root-console');
         log_add($LOG_FILE, $name, $status, $time);
