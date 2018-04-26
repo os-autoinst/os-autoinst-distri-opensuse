@@ -49,9 +49,17 @@ sub list_locale_etc_settings {
     $self->save_and_upload_log('cat /etc/vconsole.conf',                    '/tmp/vconsole.conf.out');
 }
 
+sub notification_handler {
+    my ($feature, $state) = @_;
+
+    select_console('user-console');
+    assert_script_run("gsettings set " . "$feature " . "$state");
+}
+
 sub verify_default_keymap_x11 {
     my ($test_string, $tag, $program) = @_;
 
+    notification_handler('org.gnome.DejaDup periodic', 'false') if (check_var('DESKTOP', 'gnome'));
     select_console('x11');
     x11_start_program($program);
     type_string($test_string);
