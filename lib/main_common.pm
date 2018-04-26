@@ -1110,7 +1110,7 @@ sub load_consoletests {
         }
     }
     loadtest 'console/install_all_from_repository' if get_var('INSTALL_ALL_REPO');
-    if (check_var_array('SCC_ADDONS', 'tcm') && get_var('PATTERNS') && sle_version_at_least('12-SP3')) {
+    if (check_var_array('SCC_ADDONS', 'tcm') && get_var('PATTERNS') && is_sle('<15') && !get_var("MEDIA_UPGRADE")) {
         loadtest "feature/feature_console/deregister";
     }
     loadtest 'migration/sle12_online_migration/orphaned_packages_check' if get_var('UPGRADE');
