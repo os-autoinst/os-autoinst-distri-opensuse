@@ -732,6 +732,11 @@ sub power_action {
     if (check_var('VIRSH_VMM_FAMILY', 'xen') || (get_var('S390_ZKVM') && !get_var('BOOT_HDD_IMAGE') && !get_var('AUTOYAST'))) {
         assert_shutdown_and_restore_system($action, $shutdown_timeout);
     }
+    # The timeout is increased in order to check if the issue poo#35215 related to not enough wait for shutdown on
+    # Live CD
+    if (get_var('LIVECD')) {
+        $shutdown_timeout *= 10;
+    }
     else {
         assert_shutdown($shutdown_timeout) if $action eq 'poweroff';
         # We should only reset consoles if the system really rebooted.
