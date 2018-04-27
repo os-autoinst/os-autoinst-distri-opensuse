@@ -81,6 +81,7 @@ sub boot_local_disk {
 sub boot_into_snapshot {
     send_key_until_needlematch('boot-menu-snapshot', 'down', 10, 5);
     send_key 'ret';
+    wait_still_screen 10;
     # in upgrade/migration scenario, we want to boot from snapshot 1 before migration.
     if ((get_var('UPGRADE') && !get_var('ONLINE_MIGRATION', 0)) || get_var('ZDUP')) {
         send_key_until_needlematch('snap-before-update', 'down', 40, 5);
