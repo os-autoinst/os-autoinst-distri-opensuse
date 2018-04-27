@@ -236,7 +236,10 @@ sub save_upload_y2logs {
 sub post_fail_hook {
     my $self = shift;
     get_to_console;
-    $self->save_upload_y2logs;
+
+    # Avoid collectin logs twice when investigate_yast2_failure() is inteded to hard-fail
+    $self->save_upload_y2logs unless get_var('ASSERT_Y2LOGS');
+
     if (get_var('FILESYSTEM', 'btrfs') =~ /btrfs/) {
         assert_script_run 'btrfs filesystem df /mnt | tee /tmp/btrfs-filesystem-df-mnt.txt';
         assert_script_run 'btrfs filesystem usage /mnt | tee /tmp/btrfs-filesystem-usage-mnt.txt';
