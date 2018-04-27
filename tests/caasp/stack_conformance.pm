@@ -19,12 +19,19 @@ use strict;
 use utils;
 use testapi;
 use caasp 'script_retry';
+use version_utils 'is_caasp';
 
 sub run {
     switch_to 'xterm';
 
     # https://github.com/cncf/k8s-conformance/blob/master/instructions.md
     my $sb_yaml = 'https://raw.githubusercontent.com/cncf/k8s-conformance/master/sonobuoy-conformance.yaml';
+
+    # CaaSP 2.0 has Kubernetes 1.8.9 which doesn't work with v1.10.0 testsuite
+    if (is_caasp('qam')) {
+        $sb_yaml = 'https://raw.githubusercontent.com/cncf/k8s-conformance/6179d790e6bfc799afef5058ce50a2f314983fa2/sonobuoy-conformance.yaml';
+    }
+
     my $sb_exit = '"no-exit was specified, sonobuoy is now blocking"';
     my $sb_pass = '"SUCCESS! -- [1-9][0-9]\+ Passed | 0 Failed | 0 Pending.*PASS"';
     my $sb_test = '"Test Suite Passed"';
