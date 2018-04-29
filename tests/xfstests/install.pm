@@ -38,7 +38,7 @@ sub run {
 
     # Install qa_test_xfstests
     zypper_call("--gpg-auto-import-keys ref", timeout => 600);
-    zypper_call("-n in qa_test_xfstests",     timeout => 1200);
+    zypper_call("in qa_test_xfstests",        timeout => 1200);
     assert_script_run("/usr/share/qa/qa_test_xfstests/install.sh", 600);
 
     # Create log file
