@@ -256,7 +256,7 @@ sub script_retry {
     for (1 .. $retry) {
         type_string "# Trying $_ of $retry:\n";
 
-        $ret = script_run($cmd);
+        $ret = script_run "timeout 25 $cmd";
         last if defined($ret) && $ret == $ecode;
 
         die("Waiting for Godot: $cmd") if $retry == $_;
