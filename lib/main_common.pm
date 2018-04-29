@@ -942,7 +942,6 @@ sub load_inst_tests {
             loadtest "installation/sles4sap_wizard_swpm";
         }
     }
-
 }
 
 sub load_consoletests {
