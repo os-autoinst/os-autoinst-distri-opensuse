@@ -1204,10 +1204,10 @@ sub reconnect_s390 {
     }
     else {
         my $r = wait_serial($login_ready, 300);
-        if ($r =~ qr/Welcome to SUSE Linux Enterprise 15/) {
+        if ($r && $r =~ qr/Welcome to SUSE Linux Enterprise 15/) {
             record_soft_failure('bsc#1040606');
         }
-        elsif (is_sle) {
+        elsif ($r && is_sle) {
             $r =~ qr/Welcome to SUSE Linux Enterprise Server/ || die "Correct welcome string not found";
         }
     }
