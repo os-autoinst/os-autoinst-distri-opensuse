@@ -2,6 +2,7 @@
 # emulate $LTPROOT/testscripts/network.sh
 
 export TCID="network_settings"
+export TST_ID="$TCID"
 
 if [ -f "$LTPROOT/testcases/bin/tst_net.sh" ]; then
 	export TST_NO_DEFAULT_RUN=1
@@ -18,8 +19,8 @@ ret=$?
 echo $ret
 
 # new API
-unset TCID TST_NO_DEFAULT_RUN
+unset TST_ID TST_NO_DEFAULT_RUN
 # legacy API
-unset TST_TOTAL TST_LIB_LOADED
+unset TCID TST_TOTAL TST_LIB_LOADED
 
 exit $ret
