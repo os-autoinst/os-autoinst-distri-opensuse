@@ -23,6 +23,8 @@ sub run {
     # configure and start ntp, ntp server for nodes is master
     if (check_var('HOSTNAME', 'master')) {
         my $all_ses_nodes = get_var('NODE_COUNT') + 1;
+        # create mutex lock and barriers
+        mutex_create('master_ready');
         barrier_create('network_configured', $all_ses_nodes);
         barrier_create('deployment_done',    $all_ses_nodes);
         barrier_create('all_tests_done',     $all_ses_nodes);
@@ -30,6 +32,8 @@ sub run {
     }
     else {
         assert_script_run 'echo \'server master.openqa.test burst iburst\' >> /etc/ntp.conf';
+        mutex_lock('master_ready');
+        mutex_unlock('master_ready');
     }
     # print the ntp config
     assert_script_run 'grep -v ^# /etc/ntp.conf';
