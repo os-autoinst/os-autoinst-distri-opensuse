@@ -213,7 +213,7 @@ sub ha_export_logs {
 
     # Extract HA logs and upload them
     script_run "touch $corosync_conf";
-    script_run "hb_report $report_opt -E $bootstrap_log $hb_log", 120;
+    script_run "hb_report $report_opt -E $bootstrap_log $hb_log", 300;
     upload_logs "$bootstrap_log";
     upload_logs "$hb_log.tar.bz2";
 

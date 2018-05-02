@@ -23,7 +23,7 @@ sub run {
     select_console('root-console');
 
     # Install parted
-    zypper_call("-n in parted", timeout => 600);
+    zypper_call("in parted", timeout => 600);
 
     # Create partitions
     my ($filesystem, $category) = split(/-/, get_var("XFSTESTS"));

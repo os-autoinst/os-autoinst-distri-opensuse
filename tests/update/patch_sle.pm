@@ -21,11 +21,14 @@ use qam;
 sub patching_sle {
     my ($self) = @_;
 
-    # Save SCC_REGISTER var and restore it later
+    # Save VIDEOMODE and SCC_REGISTER vars
+    my $orig_videomode    = get_var('VIDEOMODE',    '');
     my $orig_scc_register = get_var('SCC_REGISTER', '');
 
     # Skip registration here since we use autoyast profile to register origin system on zVM
     if (!get_var('UPGRADE_ON_ZVM')) {
+        # Set vars to make yast_scc_registration work in text mode
+        set_var("VIDEOMODE",    'text');
         set_var("SCC_REGISTER", 'console');
         # remember we perform registration on pre-created HDD images
         if (is_sle('12-SP2+')) {
@@ -83,10 +86,11 @@ sub patching_sle {
 
     assert_script_run("zypper mr --enable --all");
 
-    # Restore the old value of SCC_REGISTER
+    # Restore the old value of VIDEOMODE and SCC_REGISTER
     # For example, in case of SLE 12 offline migration tests with smt pattern
     # or modules, we need set SCC_REGISTER=installation at test suite settings
     # to trigger scc registration during offline migration
+    set_var("VIDEOMODE",    $orig_videomode);
     set_var("SCC_REGISTER", $orig_scc_register);
 
     # Record the installed rpm list

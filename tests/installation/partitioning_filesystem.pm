@@ -25,7 +25,7 @@ sub run {
     assert_screen 'edit-proposal-settings';
     wait_screen_change { send_key $cmd{guidedsetup} };
 
-    select_first_hard_disk if (check_screen 'select-hard-disks', 0);
+    select_first_hard_disk if (check_screen('select-hard-disks', 0) && check_var('BACKEND', 'ipmi'));
 
     if (get_var('PARTITIONING_WARNINGS')) {
         if (is_storage_ng) {

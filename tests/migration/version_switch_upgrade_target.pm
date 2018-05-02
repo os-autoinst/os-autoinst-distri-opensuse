@@ -18,6 +18,7 @@ use strict;
 use warnings;
 use testapi;
 use migration;
+use version_utils 'is_sle';
 
 sub run {
     # After being patched, original system is ready for upgrade
@@ -39,6 +40,11 @@ sub run {
         # Set this to load extra needle during scc registration in sle15
         set_var('HDDVERSION', get_var('BASE_VERSION'));
     }
+
+    # Setup DM_NEEDS_USERNAME for SLE15 KDE migration case
+    # In SLES15 KDE has been drop, after migration the default desktop is XDM
+    # KDE has moved to Package Hub, it will stay install with SLES15 if added PackageHub
+    set_var('DM_NEEDS_USERNAME', '1') if (get_var('DESKTOP', 'KDE') && is_sle('15+') && (get_var('ADDONURL', '') !~ /phub/));
 
     record_info('Version', 'VERSION=' . get_var('VERSION'));
     reset_consoles_tty;

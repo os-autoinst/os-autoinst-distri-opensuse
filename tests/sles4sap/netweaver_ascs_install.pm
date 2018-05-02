@@ -126,6 +126,7 @@ sub post_fail_hook {
     $self->save_and_upload_log('ls -alF /sapinst/unattended', '/tmp/nw_unattended_ls.log');
     $self->save_and_upload_log('ls -alF /sbin/mount*',        '/tmp/sbin_mount_ls.log');
     upload_logs "/sapinst/unattended/sapinst.log";
+    upload_logs "/sapinst/unattended/sapinst_dev.log";
 }
 
 1;

@@ -193,14 +193,18 @@ sub x11_start_program {
     return unless $args{valid};
     my @target = ref $args{target_match} eq 'ARRAY' ? @{$args{target_match}} : $args{target_match};
     for (1 .. 3) {
-        assert_screen([@target, 'desktop-runner-border'], $args{match_timeout}, no_wait => $args{match_no_wait});
-        last unless match_has_tag 'desktop-runner-border';
+        # in case of KDE plasma krunner provides a suggestion list which can
+        # take a bit of time to be computed, for other DEs we keep the old
+        # check for the runner border
+        push @target, check_var('DESKTOP', 'kde') ? 'desktop-runner-plasma-suggestions' : 'desktop-runner-border';
+        assert_screen([@target], $args{match_timeout}, no_wait => $args{match_no_wait});
+        last unless (match_has_tag 'desktop-runner-border' || match_has_tag 'desktop-runner-plasma-suggestions');
         wait_screen_change {
             send_key 'ret';
         };
     }
     # asserting program came up properly
-    die "Did not find target needle for tag(s) '@target'" if match_has_tag 'desktop-runner-border';
+    die "Did not find target needle for tag(s) '@target'" if (match_has_tag 'desktop-runner-border' || match_has_tag 'desktop-runner-plasma-suggestions');
 }
 
 sub ensure_installed {

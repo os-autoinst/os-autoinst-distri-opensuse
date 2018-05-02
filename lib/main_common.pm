@@ -888,7 +888,7 @@ sub load_inst_tests {
             loadtest "installation/user_settings" if !is_caasp('kubic');
         }
         if (is_sle || get_var("DOCRUN") || get_var("IMPORT_USER_DATA") || get_var("ROOTONLY")) {    # root user
-            loadtest "installation/user_settings_root";
+            loadtest "installation/user_settings_root" unless check_var('SYSTEM_ROLE', 'hpc-node') || check_var('SYSTEM_ROLE', 'hpc-server');
         }
         if (get_var('PATTERNS') || get_var('PACKAGES')) {
             loadtest "installation/installation_overview_before";
@@ -942,7 +942,6 @@ sub load_inst_tests {
             loadtest "installation/sles4sap_wizard_swpm";
         }
     }
-
 }
 
 sub load_consoletests {
