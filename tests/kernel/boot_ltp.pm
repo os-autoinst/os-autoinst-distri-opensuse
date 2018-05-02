@@ -109,7 +109,8 @@ EOF
 
         # emulate $LTPROOT/testscripts/network.sh
         assert_script_run('curl ' . data_url("ltp/net.sh") . ' -o net.sh', 60);
-        assert_script_run('sh ./net.sh');
+        assert_script_run('chmod 755 net.sh');
+        assert_script_run('. ./net.sh');
 
         script_run('env');
 
