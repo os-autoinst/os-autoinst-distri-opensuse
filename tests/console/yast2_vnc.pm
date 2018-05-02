@@ -71,17 +71,16 @@ sub run {
         systemctl('status vncmanager');
         assert_script_run $cmd_check_port;
     }
-
     # Check firewall open for vnc
     if ($self->firewall eq 'firewalld') {
-        my $cmd_check_firewall = 'firewall-cmd --list-all | grep vnc-server';
+        my $cmd_check_firewall = 'firewall-cmd --list-services | grep \'tigervnc tigervnc-https\'';
         if (script_run($cmd_check_firewall)) {
             record_soft_failure 'boo#1088647 - firewalld does not create rule for vnc';
-            assert_script_run('firewall-cmd --zone=public --add-service=vnc-server --permanent');
+            assert_script_run('firewall-cmd --zone=public --add-service=tigervnc --permanent');
+            assert_script_run('firewall-cmd --zone=public --add-service=tigervnc-https --permanent');
             assert_script_run('firewall-cmd --reload');
             assert_script_run($cmd_check_firewall);
         }
     }
 }
 1;
-
