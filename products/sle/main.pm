@@ -300,7 +300,7 @@ if (is_updates_test_repo && !get_var('MAINT_TEST_REPO')) {
 if (get_var('ENABLE_ALL_SCC_MODULES') && !get_var('SCC_ADDONS')) {
     if (sle_version_at_least('15')) {
         # Add only modules which are not pre-selected
-        my $addons = 'legacy,sdk,pcm,wsm';
+        my $addons = 'legacy,sdk,pcm,wsm,phub';
         # Container module is missing for aarch64. Not a bug. fate#323788
         $addons .= ',contm' unless (check_var('ARCH', 'aarch64'));
         set_var('SCC_ADDONS', $addons);
