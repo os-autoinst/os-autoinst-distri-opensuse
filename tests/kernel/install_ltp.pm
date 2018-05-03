@@ -63,6 +63,7 @@ sub install_runtime_dependencies {
       kernel-default-extra
       net-tools
       net-tools-deprecated
+      nfs-kernel-server
       ntfsprogs
       numactl
       psmisc
