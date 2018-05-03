@@ -29,6 +29,7 @@ sub run {
     assert_screen('firefox-developertool-gerneral', 30);
     assert_and_click "firefox-developertool-click_element";
     assert_and_click "firefox-developertool-check_element";
+    wait_still_screen();
     assert_screen("firefox-developertool-element", 30);
     assert_and_click "firefox-developertool-console_button";
     send_key "f5";
