@@ -448,72 +448,72 @@ sub load_slenkins_tests {
 }
 
 sub load_ha_cluster_tests {
-    return unless (get_var("HA_CLUSTER"));
+    return unless (get_var('HA_CLUSTER'));
 
     # Standard boot and configuration
     boot_hdd_image;
     loadtest 'ha/wait_barriers';
     loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
     loadtest 'console/consoletest_setup';
-    loadtest "console/hostname";
+    loadtest 'console/hostname';
 
     # NTP is already configured with 'HA node' and 'HA GEO node' System Roles
     # 'default' System Role is 'HA node' if HA Product i selected
     loadtest "console/yast2_ntpclient" unless (get_var('SYSTEM_ROLE', '') =~ /default|ha/);
 
     # Update the image if needed
-    if (get_var("FULL_UPDATE")) {
-        loadtest "update/zypper_up";
-        loadtest "console/console_reboot";
+    if (get_var('FULL_UPDATE')) {
+        loadtest 'update/zypper_up';
+        loadtest 'console/console_reboot';
     }
 
     # SLE15 workarounds
-    loadtest "ha/sle15_workarounds" if is_sle('15+');
+    loadtest 'ha/sle15_workarounds' if is_sle('15+');
 
     # Basic configuration
-    loadtest "ha/firewall_disable";
-    loadtest "ha/iscsi_client";
-    loadtest "ha/watchdog";
+    loadtest 'ha/firewall_disable';
+    loadtest 'ha/iscsi_client';
+    loadtest 'ha/watchdog';
 
     # Cluster initilisation
-    if (get_var("HA_CLUSTER_INIT")) {
+    if (get_var('HA_CLUSTER_INIT')) {
         # Node1 creates a cluster
-        loadtest "ha/ha_cluster_init";
+        loadtest 'ha/ha_cluster_init';
     }
     else {
         # Node2 joins the cluster
-        loadtest "ha/ha_cluster_join";
+        loadtest 'ha/ha_cluster_join';
     }
 
     # Test Hawk Web interface
-    loadtest "ha/check_hawk";
+    loadtest 'ha/check_hawk';
 
     # Lock manager configuration
-    loadtest "ha/dlm";
-    loadtest "ha/clvmd_lvmlockd";
+    loadtest 'ha/dlm';
+    loadtest 'ha/clvmd_lvmlockd';
 
     # Test cluster-md feature
-    loadtest "ha/cluster_md";
-    loadtest "ha/vg";
-    loadtest "ha/filesystem";
+    loadtest 'ha/cluster_md';
+    loadtest 'ha/vg';
+    loadtest 'ha/filesystem';
 
     # Test DRBD feature
-    if (get_var("HA_CLUSTER_DRBD")) {
-        loadtest "ha/drbd_passive";
-        loadtest "ha/filesystem";
+    if (get_var('HA_CLUSTER_DRBD')) {
+        loadtest 'ha/drbd_passive';
+        loadtest 'ha/filesystem';
     }
 
     # Show HA cluster status *before* fencing test and execute fencing test
-    loadtest "ha/fencing";
+    loadtest 'ha/fencing';
 
     # Node1 will be fenced, so we have to wait for it to boot
-    boot_hdd_image if (!get_var("HA_CLUSTER_JOIN"));
+    boot_hdd_image if (!get_var('HA_CLUSTER_JOIN'));
 
     # Show HA cluster status *after* fencing test
-    loadtest "ha/check_after_fencing";
+    loadtest 'ha/check_after_fencing';
 
     # Check logs to find error and upload all needed logs
-    loadtest "ha/check_logs";
+    loadtest 'ha/check_logs';
 
     return 1;
 }
