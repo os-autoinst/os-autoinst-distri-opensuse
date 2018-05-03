@@ -47,7 +47,7 @@ sub run {
     send_key 'ctrl-a';                                                                  # select all text inside target field
     wait_still_screen(2, 10);
     send_key 'delete';                                                                  # text it is automatically selected after tab, delete
-    type_string 'iqn.openqa.de';
+    type_string 'iqn.2016-02.de.openqa';
     wait_still_screen(2, 10);
     send_key 'tab';                                                                     # tab to identifier field
     wait_still_screen(2, 10);
