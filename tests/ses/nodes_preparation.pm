@@ -96,10 +96,13 @@ EOF
         restart_and_sync_chrony;
     }
     assert_script_run "grep -v ^# /etc/chrony.conf";
-    # check repositories, should contain SLE, SES and QAM update repo
-    my $incident_number = get_var('SES_TEST_ISSUES');
-    my $version         = get_var('VERSION');
-    validate_script_output('zypper lr -u', sub { m/$version/ && m/SUSE-Enterprise-Storage/ && m/Maintenance:\/$incident_number/ });
+    # check repositories only when it's QAM update
+    if (get_var('SES_TEST_ISSUES')) {
+        # repositories must contain SLE, SES and QAM update repo
+        my $incident_number = get_var('SES_TEST_ISSUES');
+        my $version         = get_var('VERSION');
+        validate_script_output('zypper lr -u', sub { m/$version/ && m/SUSE-Enterprise-Storage/ && m/Maintenance:\/$incident_number/ });
+    }
 }
 
 sub test_flags {
