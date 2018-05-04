@@ -111,11 +111,11 @@ sub run {
         if (get_var("USE_LVMLOCKD")) {
             $activation_mode = undef if ($vg_exclusive eq 'true');
             assert_script_run
-"EDITOR=\"sed -ie '\$ a primitive $vg_name ocf:heartbeat:LVM-activate param vgname=$vg_name vg_access_mode=lvmlockd $activation_mode'\" crm configure edit";
+"EDITOR=\"sed -ie '\$ a primitive $vg_name ocf:heartbeat:LVM-activate params vgname=$vg_name vg_access_mode=lvmlockd $activation_mode'\" crm configure edit";
         }
         else {
             assert_script_run
-              "EDITOR=\"sed -ie '\$ a primitive $vg_name ocf:heartbeat:LVM param volgrpname=$vg_name exclusive=$vg_exclusive'\" crm configure edit";
+              "EDITOR=\"sed -ie '\$ a primitive $vg_name ocf:heartbeat:LVM params volgrpname=$vg_name exclusive=$vg_exclusive'\" crm configure edit";
         }
 
         if ($resource eq 'drbd_passive') {

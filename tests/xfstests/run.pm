@@ -150,6 +150,7 @@ sub run {
         }
 
         my $name = "$category-$test";
+        script_run("echo '$category/$test:' | tee /dev/$serialdev");
         test_run($category, $test);
         my ($type, $status, $time) = test_wait;
         if ($type eq $HB_DONE) {

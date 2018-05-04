@@ -28,6 +28,7 @@ sub run {
     send_key "ctrl-shift-i";
     assert_screen('firefox-developertool-gerneral', 30);
     assert_and_click "firefox-developertool-click_element";
+    assert_screen "firefox-developertool-check_inspector";
     assert_and_click "firefox-developertool-check_element";
     assert_screen("firefox-developertool-element", 30);
     assert_and_click "firefox-developertool-console_button";
