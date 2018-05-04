@@ -14,15 +14,13 @@ use base 'opensusebasetest';
 use strict;
 use testapi;
 use lockapi;
-use utils qw(zypper_call systemctl);
+use utils 'systemctl';
 
 sub run {
-    zypper_call 'up';
     if (check_var('HOSTNAME', 'master')) {
         my $num_nodes = get_var('NODE_COUNT');
         barrier_create('salt_master_ready',      $num_nodes + 1);
         barrier_create('salt_minions_connected', $num_nodes + 1);
-        zypper_call 'in deepsea ceph openattic';
         assert_script_run 'echo "deepsea_minions: \'*\'" > /srv/pillar/ceph/deepsea_minions.sls';
         systemctl 'start salt-master';
         systemctl 'enable salt-master';
@@ -53,7 +51,6 @@ sub run {
     }
     else {
         barrier_wait('salt_master_ready');
-        zypper_call 'in salt-minion ceph';
         # set master node as salt-master
         assert_script_run 'sed -i \'s/#master: salt/master: master/\' /etc/salt/minion';
         systemctl 'start salt-minion';

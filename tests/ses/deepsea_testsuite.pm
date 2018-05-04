@@ -15,18 +15,13 @@ use strict;
 use testapi;
 use mm_network;
 use lockapi;
-use utils qw(zypper_call systemctl);
+use utils 'systemctl';
 
 sub run {
-    # testsuite will run zypper ref, pre run it to mitigate possible ref fail
-    zypper_call 'ref -f';
     if (check_var('HOSTNAME', 'master')) {
         my $num_nodes = get_var('NODE_COUNT');
         barrier_create('salt_master_ready',      $num_nodes + 1);
         barrier_create('salt_minions_connected', $num_nodes + 1);
-        my $deepsea_qa = get_var('QA_TEST_DEEPSEA_REPO');
-        zypper_call("ar $deepsea_qa");
-        zypper_call('in deepsea-qa');
         systemctl 'start salt-master';
         systemctl 'enable salt-master';
         systemctl 'status salt-master';
@@ -48,7 +43,6 @@ sub run {
         # print system and package info
         assert_script_run 'uname -a';
         assert_script_run 'cat /etc/os-release';
-        assert_script_run 'rpm -q deepsea-qa';
         # test salt connection with ping poo#33016
         assert_script_run 'for i in {1..7}; do echo "try $i" && if [[ $(salt \'*\' test.ping |& tee ping.log) = *"Not connected"* ]];
  then cat ping.log && false; else salt \'*\' test.ping && break; fi; done';
@@ -58,7 +52,6 @@ sub run {
         assert_script_run "suites/basic/$deepsea_testsuite.sh --cli | tee /dev/tty /dev/$serialdev | grep ^OK\$", $testsuite_timout;
     }
     else {
-        zypper_call('in -y salt-minion');
         barrier_wait {name => 'salt_master_ready', check_dead_job => 1};
         assert_script_run 'sed -i \'s/#master: salt/master: master/\' /etc/salt/minion';
         systemctl 'start salt-minion';

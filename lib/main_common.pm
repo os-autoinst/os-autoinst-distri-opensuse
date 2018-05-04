@@ -1725,6 +1725,8 @@ sub load_systemd_patches_tests {
 
 sub load_create_hdd_tests {
     return unless get_var('INSTALLONLY');
+    # install SES packages and deepsea testsuites
+    loadtest 'ses/install_ses' if check_var_array('ADDONS', 'ses') || check_var_array('SCC_ADDONS', 'ses');
     # temporary adding test modules which applies hacks for missing parts in sle15
     loadtest 'console/sle15_workarounds' if is_sle('15+');
     loadtest 'console/hostname'       unless is_bridged_networking;
