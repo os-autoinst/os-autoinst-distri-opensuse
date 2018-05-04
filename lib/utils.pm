@@ -21,7 +21,7 @@ use Exporter;
 use strict;
 
 use testapi qw(is_serial_terminal :DEFAULT);
-use lockapi;
+use lockapi 'mutex_wait';
 use mm_network;
 use version_utils qw(is_caasp is_leap is_tumbleweed is_sle is_sle12_hdd_in_upgrade sle_version_at_least is_storage_ng);
 use Mojo::UserAgent;
@@ -1218,13 +1218,7 @@ server is needed.
 
 =cut
 sub wait_supportserver {
-    return unless get_var('USE_SUPPORT_SERVER');
-
-    # We use mutex to do this
-    my $mutex = 'support_server_ready';
-    diag "Waiting for support server to complete setup (with mutex '$mutex')...";
-    mutex_lock($mutex);
-    mutex_unlock($mutex);
+    mutex_wait 'support_server_ready' if get_var('USE_SUPPORT_SERVER');
 }
 
 1;
