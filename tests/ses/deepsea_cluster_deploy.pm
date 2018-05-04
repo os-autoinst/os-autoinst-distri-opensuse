@@ -15,6 +15,7 @@ use strict;
 use testapi;
 use lockapi;
 use utils 'systemctl';
+use version_utils 'is_sle';
 
 sub run {
     if (check_var('HOSTNAME', 'master')) {
@@ -36,15 +37,35 @@ sub run {
         # salt does not return 1 if any node will fail ping test
         assert_script_run 'for i in {1..7}; do echo "try $i" && if [[ $(salt \'*\' test.ping |& tee ping.log) = *"Not connected"* ]];
  then cat ping.log && false; else salt \'*\' test.ping && break; fi; done';
-        assert_script_run 'salt \'*\' cmd.run \'lsblk\'';
-        assert_script_run 'deepsea stage run ceph.stage.0', 1200;
-        assert_script_run 'deepsea stage run ceph.stage.1', 1200;
+        assert_script_run "salt \'*\' cmd.run \'lsblk\' |& tee /dev/$serialdev";
         my $policy = get_var('SES_POLICY');
-        assert_script_run 'wget ' . data_url("ses/$policy");
-        assert_script_run "mv $policy /srv/pillar/ceph/proposals/policy.cfg";
-        assert_script_run 'cat /srv/pillar/ceph/proposals/policy.cfg';
-        assert_script_run 'deepsea stage run ceph.stage.2', 1200;
-        assert_script_run 'deepsea stage run ceph.stage.3', 1200;
+        if (is_sle('>=15')) {
+            # before every stage __pycache__ has to be deleted and also deepsea cli does not work properly
+            record_soft_failure 'bsc#1087232';
+            assert_script_run 'rm -rf /srv/modules/runners/__pycache__';
+            assert_script_run "salt-run state.orch ceph.stage.0 |& tee /dev/$serialdev", 700;
+            assert_script_run 'rm -rf /srv/modules/runners/__pycache__';
+            assert_script_run "salt-run state.orch ceph.stage.1 |& tee /dev/$serialdev", 700;
+            assert_script_run 'wget ' . data_url("ses/$policy");
+            assert_script_run "mv $policy /srv/pillar/ceph/proposals/policy.cfg";
+            assert_script_run 'cat /srv/pillar/ceph/proposals/policy.cfg';
+            assert_script_run 'rm -rf /srv/modules/runners/__pycache__';
+            assert_script_run "salt-run state.orch ceph.stage.2 |& tee /dev/$serialdev", 700;
+            assert_script_run 'rm -rf /srv/modules/runners/__pycache__';
+            assert_script_run "salt-run state.orch ceph.stage.3 |& tee /dev/$serialdev", 1200;
+            assert_script_run 'rm -rf /srv/modules/runners/__pycache__';
+            assert_script_run "salt-run state.orch ceph.stage.4 |& tee /dev/$serialdev", 1200;
+        }
+        else {
+            assert_script_run "deepsea stage run ceph.stage.0 |& tee /dev/$serialdev", 700;
+            assert_script_run "deepsea stage run ceph.stage.1 |& tee /dev/$serialdev", 700;
+            assert_script_run 'wget ' . data_url("ses/$policy");
+            assert_script_run "mv $policy /srv/pillar/ceph/proposals/policy.cfg";
+            assert_script_run 'cat /srv/pillar/ceph/proposals/policy.cfg';
+            assert_script_run "deepsea stage run ceph.stage.2 |& tee /dev/$serialdev", 1200;
+            assert_script_run "deepsea stage run ceph.stage.3 |& tee /dev/$serialdev", 1200;
+            assert_script_run "deepsea stage run ceph.stage.4 |& tee /dev/$serialdev", 1200;
+        }
         assert_script_run 'ceph osd df tree';
         assert_script_run 'ceph -s';
         barrier_wait {name => 'deployment_done', check_dead_job => 1};
