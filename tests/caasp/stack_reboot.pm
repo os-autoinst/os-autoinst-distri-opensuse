@@ -22,22 +22,18 @@ sub run {
     switch_to 'xterm';
     my $admin = 'admin.openqa.test';
 
-    # Test admin reboot
+    record_info 'Admin reboot',       'Test admin node reboot';
     script_run "ssh $admin 'reboot'", 0;
-
-    record_info 'Admin off', 'Wait until admin node powers off';
+    # Wait until admin node powers off
     script_retry "ping -c1 -W1 $admin", expect => 1, retry => 3, delay => 10;
-
-    record_info 'Admin on', 'Wait until velum is reachable again';
+    # Wait until velum is reachable again
     script_retry "curl -kLI -m5 $admin | grep _velum_session";
 
-    # Test cluster reboot
+    record_info 'Cluster reboot', 'Test cluster reboot';
     assert_script_run "ssh $admin './update.sh -r' | tee /dev/$serialdev | grep EXIT_OK";
-
-    record_info 'Cluster off', 'Waiting until cluster powers off';
+    # Wait until cluster powers off
     script_retry 'kubectl get nodes', expect => 1, retry => 3, delay => 10;
-
-    record_info 'Cluster on', 'Waiting until kubernetes is reachable again';
+    # Wait until kubernetes is reachable again
     script_retry 'kubectl get nodes';
 
     # Run basic kubernetes tests
