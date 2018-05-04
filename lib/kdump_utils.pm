@@ -100,7 +100,17 @@ sub activate_kdump {
         assert_screen \@tags, 300;
         # enable kdump if it is not already
         wait_screen_change { send_key 'alt-u' } if match_has_tag('yast2-kdump-disabled');
-        wait_screen_change { send_key 'alt-o' } if match_has_tag('yast2-kdump-enabled');
+        if (match_has_tag('yast2-kdump-enabled')) {
+            if (check_var('ARCH', 'ppc64le')) {
+                record_soft_failure 'bsc#XXXXXX -- fail to create kdump in ppc with Kdump Memory suggested in YaST2';
+                wait_screen_change { send_key 'alt-y' };
+                type_string '512';
+                send_key 'ret';
+                wait_still_screen;
+                save_screenshot;
+            }
+            wait_screen_change { send_key 'alt-o' }
+        }
         wait_screen_change { send_key 'alt-o' } if match_has_tag('yast2-kdump-restart-info');
         wait_screen_change { send_key 'alt-i' } if match_has_tag('yast2-missing_package');
     } until (match_has_tag('yast2_console-finished'));

@@ -130,7 +130,7 @@ sub add_suseconnect_product {
     $version //= scc_version();
     $arch    //= get_required_var('ARCH');
     $params  //= '';
-    assert_script_run("SUSEConnect -p $name/$version/$arch $params");
+    assert_script_run("SUSEConnect -p $name/$version/$arch $params", 120);
 }
 
 =head2 remove_suseconnect_product
