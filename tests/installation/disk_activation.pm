@@ -100,8 +100,8 @@ sub run {
             format_dasd;
         }
 
-        # format DASD if the variable is that, because we format it usually pre-installation
-        elsif (get_var('FORMAT_DASD_YAST')) {
+        # Test DASD formatting within YaST during installation
+        elsif (check_var('FORMAT_DASD_YAST', 1)) {
             send_key 'alt-s';                           # select all
             assert_screen 'dasd-selected';
             send_key 'alt-a';                           # perform action button
