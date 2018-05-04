@@ -11,10 +11,10 @@
 # Maintainer: Martin Kravec <mkravec@suse.com>
 use parent 'caasp_controller';
 use caasp_controller;
+use caasp qw(pause_until unpause);
 
 use strict;
 use testapi;
-use lockapi;
 
 sub add_nodes {
     # Accept pending nodes
@@ -25,7 +25,7 @@ sub add_nodes {
 
     # Nodes are moved from pending to new
     assert_and_click "velum-1-nodes-accepted", 'left', 90;
-    mutex_create "DELAYED_NODES_ACCEPTED";
+    unpause 'DELAYED_NODES_ACCEPTED';
 
     # Bootstrap new node
     wait_still_screen 3;
@@ -54,7 +54,7 @@ sub check_kubernetes {
 }
 
 sub run {
-    mutex_lock 'DELAYED_WORKER_INSTALLED', get_required_var('STACK_DELAYED');
+    pause_until 'DELAYED_WORKER_INSTALLED';
 
     record_info 'Add node';
     add_nodes;

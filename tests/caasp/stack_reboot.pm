@@ -15,8 +15,7 @@ use caasp_controller;
 
 use strict;
 use testapi;
-use caasp 'script_retry';
-use lockapi 'mutex_create';
+use caasp qw(script_retry unpause);
 
 sub run {
     switch_to 'xterm';
@@ -41,7 +40,7 @@ sub run {
     assert_script_run "kubectl get nodes --no-headers | wc -l | grep $nodes_count";
 
     switch_to 'velum';
-    mutex_create 'UPDATE_FINISHED';
+    unpause 'REBOOT_FINISHED';
 }
 
 1;

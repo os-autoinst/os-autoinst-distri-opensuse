@@ -17,7 +17,6 @@ use strict;
 use Time::HiRes 'sleep';
 
 use testapi;
-use lockapi;
 use bootloader_setup;
 use registration;
 use utils;

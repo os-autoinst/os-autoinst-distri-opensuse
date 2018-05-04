@@ -16,7 +16,7 @@ use version_utils 'is_caasp';
 
 use strict;
 use testapi;
-use lockapi;
+use caasp 'unpause';
 
 # Fill certificate information
 sub velum_config {
@@ -42,7 +42,7 @@ sub velum_config {
     assert_screen 'velum-tips-page';
     assert_and_click "velum-next";
 
-    mutex_create 'VELUM_CONFIGURED';
+    unpause 'VELUM_CONFIGURED';
 }
 
 # Upload autoyast profile

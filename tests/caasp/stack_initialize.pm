@@ -22,8 +22,7 @@ use caasp_controller;
 
 use strict;
 use testapi;
-use caasp 'get_admin_job';
-use lockapi qw(mutex_lock mutex_unlock);
+use caasp 'pause_until';
 use utils qw(ensure_serialdev_permissions turn_off_gnome_screensaver);
 
 sub firefox_import_ca {
@@ -53,9 +52,7 @@ sub run {
     send_key "ctrl-l";
     send_key 'super-up';
 
-    # Wait until dashboard becomes ready
-    mutex_lock "VELUM_STARTED", get_admin_job;
-    mutex_unlock "VELUM_STARTED";
+    pause_until 'VELUM_STARTED';
     firefox_import_ca;
 }
 

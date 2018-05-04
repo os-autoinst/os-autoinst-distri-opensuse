@@ -13,12 +13,12 @@
 use parent 'caasp_controller';
 
 use strict;
-use lockapi 'mutex_create';
+use caasp 'unpause';
 use mmapi 'wait_for_children';
 
 sub run {
     # Allow cluster nodes to finish
-    mutex_create "CNTRL_FINISHED";
+    unpause 'CNTRL_FINISHED';
     # Wait until they export logs
     wait_for_children;
 }

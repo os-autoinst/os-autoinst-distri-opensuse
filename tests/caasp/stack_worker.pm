@@ -13,21 +13,20 @@
 use base "opensusebasetest";
 use strict;
 use testapi;
-use lockapi;
+use lockapi 'barrier_wait';
 use caasp;
 
 sub run {
     # Notify others that installation finished
     if (get_var 'DELAYED_WORKER') {
-        mutex_create "DELAYED_WORKER_INSTALLED";
+        unpause 'DELAYED_WORKER_INSTALLED';
     }
     else {
         barrier_wait "WORKERS_INSTALLED";
     }
 
     # Wait until controller node finishes
-    mutex_lock "CNTRL_FINISHED";
-    mutex_unlock "CNTRL_FINISHED";
+    pause_until 'CNTRL_FINISHED';
 }
 
 sub post_run_hook {
