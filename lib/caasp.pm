@@ -20,7 +20,7 @@ use version_utils 'is_caasp';
 use utils qw(power_action assert_shutdown_and_restore_system);
 
 our @EXPORT
-  = qw(handle_simple_pw process_reboot trup_call write_detail_output get_admin_job update_scheduled export_cluster_logs get_delayed_worker rpmver check_reboot_changes trup_install script_retry microos_login);
+  = qw(handle_simple_pw process_reboot trup_call get_admin_job update_scheduled export_cluster_logs get_delayed_worker rpmver check_reboot_changes trup_install script_retry microos_login);
 
 # Return names and version of packages for transactional-update tests
 sub rpmver {
@@ -155,34 +155,6 @@ sub trup_install {
     trup_call("pkg install $package");
     process_reboot 1;
     assert_script_run("rpm -qi $package");
-}
-
-# Function for writing custom text boxes for the test job
-# After fixing poo#17462 it should be replaced by record_info from testlib
-sub write_detail_output {
-    my ($self, $title, $output, $result) = @_;
-
-    $result =~ /^(ok|fail|softfail)$/ || die "Result value: $result not allowed.";
-
-    my $filename = $self->next_resultname('txt');
-    my $detail   = {
-        title  => $title,
-        result => $result,
-        text   => $filename,
-    };
-    push @{$self->{details}}, $detail;
-
-    open my $fh, '>', bmwqemu::result_dir() . "/$filename";
-    print $fh $output;
-    close $fh;
-
-    # Set overall result for the job
-    if ($result eq 'fail') {
-        $self->{result} = $result;
-    }
-    elsif ($result eq 'ok') {
-        $self->{result} ||= $result;
-    }
 }
 
 sub get_controller_job {
