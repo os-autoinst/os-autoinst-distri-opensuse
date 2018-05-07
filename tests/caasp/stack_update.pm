@@ -62,7 +62,7 @@ sub run {
     setup_update_repository;
 
     my $nodes = get_required_var('STACK_NODES');
-    assert_screen "velum-$nodes-nodes-outdated";
+    send_key_until_needlematch "velum-$nodes-nodes-outdated", 'f5', 5, 60;
     if (check_screen "velum-update-all", 0) {
         record_soft_failure 'bnc#1085677 - Should not update nodes before admin';
     }
