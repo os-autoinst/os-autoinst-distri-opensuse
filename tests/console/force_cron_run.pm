@@ -25,7 +25,7 @@ sub settle_load {
     # JeOS is different to SLE general as it extends the appliance's disk on first boot,
     # so the balance is a different challenge to SLE. Elapsed time is not necessary a key
     # measure here, responsiveness of the system is.
-    record_soft_failure 'bsc#1063638' if (time - $before) > (is_jeos() ? 180 : 30);
+    record_soft_failure 'bsc#1063638' if (time - $before) > (is_jeos() ? 180 : 70);
 }
 
 sub run {
