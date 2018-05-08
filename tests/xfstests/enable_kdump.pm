@@ -14,8 +14,9 @@ package enable_kdump;
 use strict;
 use 5.018;
 use warnings;
-use base "opensusebasetest";
+use base 'opensusebasetest';
 use utils qw(power_action zypper_call);
+use serial_terminal 'select_virtio_console';
 use kdump_utils;
 use testapi;
 
@@ -24,8 +25,8 @@ sub run {
     select_console('root-console');
 
     # Also panic when softlockup
-    assert_script_run("echo 'kernel.softlockup_panic = 1' >> /etc/sysctl.conf");
-    assert_script_run("sysctl -p");
+    assert_script_run('echo "kernel.softlockup_panic = 1" >> /etc/sysctl.conf');
+    assert_script_run('sysctl -p');
 
     # Activate kdump
     prepare_for_kdump;
@@ -34,7 +35,7 @@ sub run {
     # Reboot
     power_action('reboot');
     $self->wait_boot;
-    select_console('root-console');
+    select_virtio_console();
     return 1 unless kdump_is_active;
 }
 
