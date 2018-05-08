@@ -71,13 +71,15 @@ sub run {
     assert_screen 'iscsi-target-overview';
     send_key 'alt-n';                                                                   # next
     wait_still_screen(2, 10);
-    send_key 'alt-a';                                                                   # add client
-    send_key_until_needlematch 'iscsi-client-name-selected', 'tab';                     # there is no field shortcut, so tab till client name field is selected
-    type_string 'iqn.2016-02.de.openqa';
-    assert_screen 'iscsi-target-client-name';
-    send_key 'alt-o';                                                                   # OK
-    assert_screen 'iscsi-target-client-setup';
-    send_key 'alt-n';                                                                   # next
+    if (is_sle('<15')) {
+        send_key 'alt-a';                                                               # add client
+        send_key_until_needlematch 'iscsi-client-name-selected', 'tab';                 # there is no field shortcut, so tab till client name field is selected
+        type_string 'iqn.2016-02.de.openqa';
+        assert_screen 'iscsi-target-client-name';
+        send_key 'alt-o';                                                               # OK
+        assert_screen 'iscsi-target-client-setup';
+        send_key 'alt-n';                                                               # next
+    }
     assert_screen 'iscsi-target-overview-target-tab';
     send_key 'alt-f';                                                                   # finish
     wait_still_screen(2, 10);
