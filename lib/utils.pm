@@ -560,7 +560,7 @@ sub poweroff_x11 {
 
     if (check_var("DESKTOP", "kde")) {
         send_key "ctrl-alt-delete";    # shutdown
-        assert_screen 'logoutdialog', 15;
+        assert_screen_with_soft_timeout('logoutdialog', timeout => 90, soft_timeout => 15, 'bsc#1091933');
 
         if (get_var("PLASMA5")) {
             assert_and_click 'sddm_shutdown_option_btn';
