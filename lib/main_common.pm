@@ -501,6 +501,9 @@ sub load_docker_tests {
 }
 
 sub load_system_role_tests {
+    if (installwithaddonrepos_is_applicable() && !get_var("LIVECD")) {
+        loadtest "installation/setup_online_repos";
+    }
     # Do not run on REMOTE_CONTROLLER, IPMI and on Hyper-V in GUI mode
     if (!get_var("REMOTE_CONTROLLER") && !check_var('BACKEND', 'ipmi') && !is_hyperv_in_gui && !get_var("LIVECD")) {
         loadtest "installation/logpackages";
@@ -853,9 +856,6 @@ sub load_inst_tests {
 
     if (noupdatestep_is_applicable()) {
         loadtest "installation/installer_timezone" if !is_caasp('kubic');
-        if (installwithaddonrepos_is_applicable() && !get_var("LIVECD")) {
-            loadtest "installation/setup_online_repos";
-        }
         # the test should run only in scenarios, where installed
         # system is not being tested (e.g. INSTALLONLY etc.)
         # The test also won't work reliably when network is bridged (non-s390x svirt).
