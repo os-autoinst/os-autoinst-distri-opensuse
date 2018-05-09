@@ -239,7 +239,7 @@ sub fill_in_registration_data {
                 next;
             }
             elsif (match_has_tag('registration-online-repos')) {
-                wait_screen_changes { send_key(get_var('DISABLE_SLE_UPDATES') ? 'alt-n' : 'alt-y') };
+                wait_screen_change { send_key(get_var('DISABLE_SLE_UPDATES') ? 'alt-n' : 'alt-y') };
                 # Remove tag from array not to match twice
                 @tags = grep { $_ ne 'registration-online-repos' } @tags;
                 next;
