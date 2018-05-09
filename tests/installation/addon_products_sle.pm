@@ -180,8 +180,6 @@ sub run {
                 if (match_has_tag("addon-betawarning-$addon")) {
                     send_key "ret";
                     assert_screen [qw(addon-license-beta addon-products)];
-                    record_soft_failure 'bsc#1057223: No license agreement shown when HA, HA-GEO, WE, RT extensions are added as addons'
-                      unless match_has_tag("addon-license-beta");
                 }
                 if (match_has_tag("addon-license-beta") or match_has_tag("addon-license-$addon")) {
                     wait_still_screen 2;
