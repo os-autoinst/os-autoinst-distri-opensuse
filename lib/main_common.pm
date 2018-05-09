@@ -1573,7 +1573,11 @@ sub load_x11_documentation {
     loadtest "x11/libreoffice/libreoffice_recent_documents";
     loadtest "x11/libreoffice/libreoffice_default_theme";
     loadtest "x11/libreoffice/libreoffice_double_click_file";
-    if (sle_version_at_least('12-SP1')) {
+    if (is_sle('>=15')) {
+        loadtest "x11/libreoffice/libreoffice_mainmenu_favorites";
+        loadtest "x11/libreoffice/libreoffice_pyuno_bridge_no_evolution_dep";
+    }
+    elsif (is_sle('>=12-SP1')) {
         loadtest "x11/libreoffice/libreoffice_mainmenu_favorites";
         loadtest "x11/evolution/evolution_prepare_servers";
         loadtest "x11/libreoffice/libreoffice_pyuno_bridge";
