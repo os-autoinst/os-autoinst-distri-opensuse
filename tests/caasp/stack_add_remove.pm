@@ -34,9 +34,11 @@ sub add_nodes {
     assert_screen 'velum-bootstrap-done';
     send_key 'end';
     assert_screen 'velum-adding-nodes-done', 900;
+    send_key 'home';
 }
 
 sub remove_nodes {
+    send_key 'end';
     mouse_set xy('delayed-remove-xy');
     mouse_click;
     assert_and_click 'confirm-removal';
