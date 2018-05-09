@@ -249,14 +249,16 @@ sub take_first_disk_storage_ng {
     # So making it flexible, still assert the screen if want to verify explicitly
     select_first_hard_disk;
 
+    assert_screen [qw(existing-partitions partition-scheme)];
     # If drive is not formatted, we have select hard disks page
     # On ipmi we always have unformatted drive
-    if (get_var('ISO_IN_EXTERNAL_DRIVE') || check_var('BACKEND', 'ipmi')) {
-        assert_screen 'existing-partitions';
+    # Sometimes can have existing installation on iscsi
+    if (match_has_tag 'existing-partitions') {
         send_key $cmd{next};
+        assert_screen 'partition-scheme';
     }
-    assert_screen 'partition-scheme';
     send_key $cmd{next};
+
     # select btrfs file system
     if (check_var('VIDEOMODE', 'text')) {
         assert_screen 'select-root-filesystem';
