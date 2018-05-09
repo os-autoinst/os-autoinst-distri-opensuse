@@ -239,16 +239,7 @@ sub fill_in_registration_data {
                 next;
             }
             elsif (match_has_tag('registration-online-repos')) {
-                # don't want updates, as we don't test it or rely on it in any tests, if is executed during installation
-                # Proxy SCC replaces all update repo urls and we end up having invalid update repos, and we
-                # also do not want to have official update repos, which will lead to inconsistent SUT.
-                # For released products we want install updates during installation, only in minimal workflow disable
-                if (get_required_var('FLAVOR') =~ /-Updates$|-Incidents/ && !get_var('QAM_MINIMAL')) {
-                    wait_screen_change { send_key 'alt-y' };
-                }
-                else {
-                    wait_screen_change { send_key $cmd{next} };
-                }
+                wait_screen_changes { send_key(get_var('DISABLE_SLE_UPDATES') ? 'alt-n' : 'alt-y') };
                 # Remove tag from array not to match twice
                 @tags = grep { $_ ne 'registration-online-repos' } @tags;
                 next;
