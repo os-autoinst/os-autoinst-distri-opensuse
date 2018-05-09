@@ -165,6 +165,8 @@ sub problem_can_be_skipped {
     return 1 if $pkg =~ /^mvapich2-testsuite/;
     # conflict with python3-talloc-devel
     return 1 if $pkg =~ /^python-talloc-devel/;
+    # conflict with the non-qt5
+    return 1 if $pkg =~ /^(python(|3)-)?opencv-qt5/;
 
     return;
 }
