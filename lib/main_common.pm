@@ -1208,20 +1208,6 @@ sub load_x11tests {
         }
     }
     loadtest "x11/glxgears" if packagekit_available && !get_var('LIVECD');
-    if (kdestep_is_applicable()) {
-        if (!is_krypton_argon && !is_kde_live) {
-            loadtest "x11/amarok";
-        }
-        loadtest "x11/kontact" unless is_kde_live;
-        if (!get_var("USBBOOT") && !is_livesystem) {
-            if (get_var("PLASMA5")) {
-                loadtest "x11/reboot_plasma5";
-            }
-            else {
-                loadtest "x11/reboot_kde";
-            }
-        }
-    }
     if (gnomestep_is_applicable()) {
         loadtest "x11/nautilus" unless get_var("LIVECD");
         loadtest "x11/gnome_music" if is_opensuse;
@@ -1235,7 +1221,6 @@ sub load_x11tests {
     if (is_sles4sap() and !is_sles4sap_standard()) {
         load_sles4sap_tests();
     }
-
     if (xfcestep_is_applicable()) {
         loadtest "x11/xfce4_appfinder";
         if (!(get_var("FLAVOR") eq 'Rescue-CD')) {
@@ -1251,6 +1236,20 @@ sub load_x11tests {
         loadtest "x11/gnucash";
         loadtest "x11/hexchat";
         loadtest "x11/vlc";
+    }
+    if (kdestep_is_applicable()) {
+        if (!is_krypton_argon && !is_kde_live) {
+            loadtest "x11/amarok";
+        }
+        loadtest "x11/kontact" unless is_kde_live;
+        if (!get_var("USBBOOT") && !is_livesystem) {
+            if (get_var("PLASMA5")) {
+                loadtest "x11/reboot_plasma5";
+            }
+            else {
+                loadtest "x11/reboot_kde";
+            }
+        }
     }
     # Need to skip shutdown to keep backend alive if running rollback tests after migration
     unless (get_var('ROLLBACK_AFTER_MIGRATION')) {
