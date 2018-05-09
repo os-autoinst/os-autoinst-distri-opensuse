@@ -29,6 +29,8 @@ sub run {
         zypper_call 'in virt-what';
         zypper_call 'rr SUSE_SLE-15_GA';
     }
+    # install SES packages
+    zypper_call "in git-core deepsea ceph $ses_version_specific_packages";
     # deepsea testsuite from repo is stable, not changing every day and better for QAM testing
     if (get_var('DEEPSEA_TESTSUITE_STABLE')) {
         my $deepsea_qa
@@ -40,15 +42,12 @@ sub run {
         assert_script_run 'rpm -q deepsea-qa';
     }
     else {
-        zypper_call 'in git-core';
         assert_script_run "git clone https://github.com/$git_deepsea";
         assert_script_run 'cd DeepSea';
         assert_script_run "git checkout $git_deepsea_branch";
         assert_script_run 'make install';
         assert_script_run 'git log|head -n 45';
     }
-    # install SES packages
-    zypper_call "in deepsea ceph $ses_version_specific_packages";
     # install mandatory fping on SLE15+
     zypper_call 'in fping' if is_sle('>=15');
     zypper_call 'up -l';
