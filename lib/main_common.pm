@@ -1112,8 +1112,7 @@ sub load_consoletests {
     if (check_var_array('SCC_ADDONS', 'tcm') && get_var('PATTERNS') && is_sle('<15') && !get_var("MEDIA_UPGRADE")) {
         loadtest "feature/feature_console/deregister";
     }
-    loadtest 'migration/sle12_online_migration/orphaned_packages_check' if get_var('UPGRADE');
-
+    loadtest 'console/orphaned_packages_check' if get_var('UPGRADE');
     loadtest "console/consoletest_finish";
 }
 
