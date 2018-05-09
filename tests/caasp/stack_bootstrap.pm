@@ -28,43 +28,18 @@ sub accept_nodes {
     mutex_create "NODES_ACCEPTED";
 }
 
-sub select_nodes {
+sub select_roles {
     # Select all nodes as workers
     assert_and_click 'velum-bootstrap-select-nodes';
     # Wait until warning messages disappears
     wait_still_screen 2;
-}
 
-# 10% of clicks are lost because of ajax refreshing Velum during click
-sub click_click {
-    my ($x, $y) = @_;
-    mouse_set $x, $y;
-    for (1 .. 3) {
-        mouse_click;
-        # Don't click-and-drag
-        sleep 1;
-    }
-    mouse_hide;
-    record_info 'bsc#1048975', 'User interaction is lost after page refresh';
-}
-
-# Select master.openqa.test and additional master nodes
-sub select_master {
-    # Calculate position of master node
-    send_key_until_needlematch "master-checkbox-xy", "pgdn", 2, 5;
-    my $needle = assert_screen('master-checkbox-xy')->{area};
-    my $row    = $needle->[0];                                  # get y-position of master node
-    my $col    = $needle->[1];                                  # get x-position of checkbox
-    my $x      = $col->{x} + int($col->{w} / 2);
-    my $y      = $row->{y} + int($row->{h} / 2);
-    click_click $x, $y;
-
+    # Select master.openqa.test
+    send_key_until_needlematch "master-checkbox-xy", 'pgdn', 2, 5;
+    click_click xy('master-checkbox-xy');
     # For 6+ node clusters select 2 more random masters
     for (2 .. get_var('STACK_MASTERS')) {
-        $needle = assert_screen('master-role-button')->{area};
-        $row    = $needle->[0];
-        $y      = $row->{y} + int($row->{h} / 2);
-        click_click $x, $y;
+        click_click xy('master-role-button');
     }
 }
 
@@ -107,10 +82,8 @@ sub run {
     barrier_wait {name => "WORKERS_INSTALLED", check_dead_job => 1};
 
     accept_nodes;
-    select_nodes;
-    select_master;
+    select_roles;
     bootstrap;
-
     download_kubeconfig;
 }
 

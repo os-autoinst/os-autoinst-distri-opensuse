@@ -16,7 +16,7 @@ use strict;
 use testapi;
 use lockapi;
 
-sub accept_nodes {
+sub add_nodes {
     # Accept pending nodes
     send_key_until_needlematch 'velum-bootstrap-accept-nodes', 'pgdn', 2, 3;
     assert_and_click 'velum-bootstrap-accept-nodes';
@@ -26,9 +26,8 @@ sub accept_nodes {
     # Nodes are moved from pending to new
     assert_and_click "velum-1-nodes-accepted", 'left', 90;
     mutex_create "DELAYED_NODES_ACCEPTED";
-}
 
-sub bootstrap {
+    # Bootstrap new node
     wait_still_screen 3;
     assert_and_click 'unassigned-select-all';
     assert_and_click 'unassigned-add-nodes';
@@ -38,17 +37,33 @@ sub bootstrap {
     send_key 'home';
 }
 
-sub run {
-    mutex_lock 'DELAYED_WORKER_INSTALLED', get_required_var('STACK_DELAYED');
-    accept_nodes;
-    bootstrap;
+sub remove_nodes {
+    mouse_set xy('delayed-remove-xy');
+    mouse_click;
+    assert_and_click 'confirm-removal';
+    sleep 7;
+    assert_screen 'velum-adding-nodes-done', 900;
+    send_key 'home';
+}
 
-    # Kubernetes checks
+sub check_kubernetes {
+    my $nodes_count = shift;
     switch_to 'xterm';
     assert_script_run "kubectl cluster-info";
-    my $nodes_count = get_required_var("STACK_NODES") + 1;
-    assert_script_run "kubectl get nodes --no-headers | wc -l | grep $nodes_count";
+    assert_script_run "kubectl get nodes --no-headers | tee /dev/tty | wc -l | grep $nodes_count";
     switch_to 'velum';
+}
+
+sub run {
+    mutex_lock 'DELAYED_WORKER_INSTALLED', get_required_var('STACK_DELAYED');
+
+    record_info 'Add node';
+    add_nodes;
+    check_kubernetes(get_required_var('STACK_NODES') + 1);
+
+    record_info 'Remove node';
+    remove_nodes;
+    check_kubernetes(get_required_var('STACK_NODES'));
 }
 
 1;
