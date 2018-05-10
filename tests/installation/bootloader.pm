@@ -15,7 +15,7 @@ use base "installbasetest";
 use strict;
 
 use testapi;
-use lockapi;
+use lockapi 'mutex_wait';
 use bootloader_setup;
 use registration;
 use utils;
@@ -29,7 +29,7 @@ sub run {
     specific_bootmenu_params;
     specific_caasp_params;
     registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED);
-    wait_supportserver if get_var('USE_SUPPORT_SERVER');
+    mutex_wait 'support_server_ready' if get_var('USE_SUPPORT_SERVER');
     # on ppc64le boot have to be confirmed with ctrl-x or F10
     # and it doesn't have nice graphical menu with video and language options
     if (!get_var('OFW')) {

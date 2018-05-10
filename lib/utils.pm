@@ -76,7 +76,6 @@ our @EXPORT = qw(
   shorten_url
   reconnect_s390
   set_hostname
-  wait_supportserver
 );
 
 
@@ -1206,19 +1205,6 @@ sub reconnect_s390 {
     if (!check_var('DESKTOP', 'textmode') && !sle_version_at_least('15')) {
         select_console('x11', await_console => 0);
     }
-}
-
-=head2 wait_supportserver
-
-  wait_supportserver():
-
-Wait for the support server to finish its initialization.
-Ideally, this should be done *before* starting the OS, mainly if a DHCP
-server is needed.
-
-=cut
-sub wait_supportserver {
-    mutex_wait 'support_server_ready' if get_var('USE_SUPPORT_SERVER');
 }
 
 1;
