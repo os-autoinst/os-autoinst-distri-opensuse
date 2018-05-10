@@ -25,9 +25,7 @@ sub run {
     send_key "up";
     send_key "up";
     type_string "new title-opensuse\n";
-    send_key "ctrl-tab";    #jump to toolbar
-    send_key "ctrl-tab" if is_sle('15+');    #jump to toolbar for SLED15
-    send_key "ret";                          #back to all notes interface
+    send_key 'esc';    #back to all notes interface
     send_key_until_needlematch 'gnote-new-note-title-matched', 'down', 6;
     send_key "delete";
     send_key "tab";
