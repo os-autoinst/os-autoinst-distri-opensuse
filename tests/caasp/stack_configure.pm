@@ -63,7 +63,7 @@ sub run {
 
     # Check that footer has proper tag
     my $v = get_var('VERSION');
-    $v .= '-dev' if get_var 'BETA';
+    $v .= '-dev' if check_var('BETA', 'DEV');
     assert_screen "velum-footer-version-$v";
 
     # Register to velum
