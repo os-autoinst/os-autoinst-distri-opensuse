@@ -78,8 +78,6 @@ EOF
     systemctl "stop $firewall";
     systemctl 'disable apparmor';
     systemctl 'stop apparmor';
-    # chrony is by default not installed on older than SLE 15
-    zypper_call 'in chrony' if is_sle('<15');
     # configure and start chrony, time synchroniation server for nodes is master
     my $ntp_server = check_var('HOSTNAME', 'master') ? 'ntp1.suse.de' : 'master.openqa.test';
     assert_script_run "sed -i '/pool/d' /etc/chrony.conf";
