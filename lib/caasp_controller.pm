@@ -3,7 +3,8 @@ use base "opensusebasetest";
 
 use strict;
 use testapi;
-use lockapi;
+use caasp 'unpause';
+use lockapi 'barrier_destroy';
 use mmapi 'wait_for_children';
 
 use Exporter 'import';
@@ -84,11 +85,7 @@ sub post_fail_hook {
 
     # Destroy barriers and create mutexes to avoid deadlock
     barrier_destroy 'WORKERS_INSTALLED';
-    mutex_create 'NODES_ACCEPTED';
-    mutex_create 'DELAYED_NODES_ACCEPTED';
-    mutex_create 'VELUM_CONFIGURED';
-    mutex_create 'UPDATE_FINISHED';
-    mutex_create 'CNTRL_FINISHED';
+    unpause 'ALL';
 
     # Wait for log export from all nodes
     wait_for_children;

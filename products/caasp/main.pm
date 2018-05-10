@@ -185,7 +185,6 @@ sub stack_init {
     set_var 'STACK_NODES',   $stack_size - 1;
     set_var 'STACK_MASTERS', $stack_masters;
     set_var 'STACK_WORKERS', $stack_workers;
-    set_var 'STACK_DELAYED', $delayed_worker;
 
     barrier_create("WORKERS_INSTALLED", $stack_size);
 }

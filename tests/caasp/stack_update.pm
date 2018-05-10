@@ -18,8 +18,7 @@ use caasp_controller;
 
 use strict;
 use testapi;
-use lockapi 'mutex_create';
-use caasp 'update_scheduled';
+use caasp qw(update_scheduled unpause);
 use version_utils 'is_caasp';
 
 # Set up ssh to admin node and run update script on all nodes
@@ -88,7 +87,7 @@ sub run {
     die "Nodes should be updated already" if check_screen "velum-0-nodes-outdated", 0;
 
     check_update_changes;
-    mutex_create 'UPDATE_FINISHED';
+    unpause 'REBOOT_FINISHED';
 }
 
 1;
