@@ -27,7 +27,6 @@ use base "consoletest";
 use testapi;
 use utils;
 use strict;
-use version_utils qw(is_jeos is_sle);
 use registration;
 
 sub run {
@@ -91,10 +90,6 @@ sub run {
     $output = script_output('docker container run tw:saved curl -I google.de');
     die("network is not working inside of the container tw:saved") unless ($output =~ m{Location: http://www\.google\.de/});
 
-    if (is_jeos && is_sle('15+')) {
-        record_soft_failure('bsc#1073877 - Docker fails to stop container on JeOS');
-        return;
-    }
     # containers can be stopped
     assert_script_run("docker container stop $container_name");
     assert_script_run("docker container inspect --format='{{.State.Running}}' $container_name | grep false");
