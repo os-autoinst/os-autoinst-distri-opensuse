@@ -29,6 +29,10 @@ sub run {
         zypper_call 'in virt-what';
         zypper_call 'rr SUSE_SLE-15_GA';
     }
+    # SES6 latest packages
+    my $arch = get_var('ARCH');
+    zypper_call "ar http://download.suse.de/ibs/SUSE:/SLE-15:/Update:/Products:/SES6/images/repo/SUSE-Enterprise-Storage-6-POOL-$arch-Media1/ SES6"
+      if is_sle('>=15');
     # install SES packages
     zypper_call "in git-core deepsea ceph $ses_version_specific_packages";
     # deepsea testsuite from repo is stable, not changing every day and better for QAM testing
