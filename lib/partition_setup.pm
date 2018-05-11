@@ -290,14 +290,11 @@ sub take_first_disk {
         };
         send_key $cmd{next};
 
-        if ($args{iscsi}) {
-            assert_screen 'preparing-disk-overview';
-        }
-        else {
-            assert_screen "use-entire-disk";
-            wait_screen_change { send_key "alt-e" };    # use entire disk
-        }
-
+        # with iscsi we may or may not have previous installation on the disk,
+        # depending on the scenario we get different screens
+        # same can happen with ipmi installations
+        assert_screen [qw(use-entire-disk preparing-disk-overview)];
+        wait_screen_change { send_key "alt-e" } if match_has_tag 'use-entire-disk';    # use entire disk
         send_key $cmd{next};
     }
 }
