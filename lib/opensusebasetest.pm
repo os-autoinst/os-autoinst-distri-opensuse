@@ -5,6 +5,7 @@ use bootloader_setup qw(boot_local_disk tianocore_enter_menu zkvm_add_disk zkvm_
 use testapi;
 use strict;
 use utils;
+use lockapi 'mutex_wait';
 use version_utils qw(is_sle is_leap is_upgrade);
 
 # Base class for all openSUSE tests
@@ -405,7 +406,7 @@ sub wait_boot {
             # check_screen timeout
             die "needle 'grub2' not found";
         }
-        wait_supportserver if get_var('USE_SUPPORT_SERVER');
+        mutex_wait 'support_server_ready' if get_var('USE_SUPPORT_SERVER');
         # confirm default choice
         send_key 'ret';
     }
