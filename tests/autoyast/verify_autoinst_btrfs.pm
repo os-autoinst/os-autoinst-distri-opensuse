@@ -45,8 +45,9 @@ sub run {
 
     ### Verify mount options btrfs_set_default_subvolume_name, this is valid only for SLE12, with storage-ng subvolumes_prefix is used
     if (is_sle '15+') {
-        $result_str = verify_option('//ns:subvolumes_prefix', '');
-        record_soft_failure "bsc#1076337: subvolumes_prefix option check failed: $result_str" if ($result_str);
+        # Verify empty subvolume prefix for '/' mount point
+        $result_str = verify_option('//ns:partition[ns:mount="/"]/ns:subvolumes_prefix', '');
+        $errors .= "subvolumes_prefix option check failed: $result_str\n" if ($result_str);
     }
     else {
         $result_str = verify_option('//ns:btrfs_set_default_subvolume_name', 'false');
@@ -88,7 +89,7 @@ sub verify_option {
         return "Generated autoinst.xml contains unexpected number of nodes for xpath: $xpath. Found: " . scalar @nodes . ", expected: 1.";
     }
     if ($nodes[0]->to_literal ne $expected_val) {
-        return "Unexpected value for xpath $xpath. Expected: $expected_val, got: $nodes[0]";
+        return "Unexpected value for xpath $xpath. Expected: '$expected_val', got: '$nodes[0]'";
     }
 
     return '';
@@ -97,7 +98,9 @@ sub verify_option {
 
 sub verify_subvolumes {
     my ($mount_path, %subvolume_opts) = @_;
-    my $nodeset = $xpc->findnodes("//ns:partition[ns:mount=\"$mount_path\"]/ns:subvolumes/ns:listentry");
+    # Path to subvolumes differs on SLE 15 and SLE 12
+    my $subvolumes_path = "//ns:partition[ns:mount=\"$mount_path\"]/ns:subvolumes/ns:" . (is_sle('15+') ? 'subvolume' : 'listentry');
+    my $nodeset = $xpc->findnodes($subvolumes_path);
 
     ##Verify that is no subvolumes are expected, there are no entries
     if (!%subvolume_opts && $nodeset) {
@@ -148,4 +151,3 @@ sub verify_mount_opts {
 }
 
 1;
-
