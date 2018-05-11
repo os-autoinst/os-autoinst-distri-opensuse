@@ -73,7 +73,6 @@ sub run {
         wait_screen_change { send_key 'shift-tab' };
         send_key 'ctrl-a';
         type_string "$user\n";
-        send_key 'tab';
     }
     handle_login($user, 1);
     assert_screen 'generic-desktop', 60;
