@@ -21,6 +21,7 @@ use testapi;
 use utils;
 use version_utils qw(is_jeos is_caasp is_leap);
 use caasp 'pause_until';
+use grub_utils 'add_grub_cmdline_settings';
 use mm_network;
 
 our @EXPORT = qw(
@@ -605,20 +606,14 @@ sub set_framebuffer_resolution {
     else {
         return;
     }
-    if ($video) {
-        # On JeOS we have GRUB_CMDLINE_LINUX, on CaaSP we have GRUB_CMDLINE_LINUX_DEFAULT.
-        my $grub_cmdline_label = is_jeos() ? 'GRUB_CMDLINE_LINUX' : 'GRUB_CMDLINE_LINUX_DEFAULT';
-        assert_script_run("sed -ie '/${grub_cmdline_label}=/s/\"\$/ $video \"/' /etc/default/grub");
-    }
+    add_grub_cmdline_settings($video) if ($video);
 }
 
 # Add content of EXTRABOOTPARAMS to /etc/default/grub. Don't forget to run grub2-mkconfig
 # in test code afterwards.
 sub set_extrabootparams_grub_conf {
     if (my $extrabootparams = get_var('EXTRABOOTPARAMS')) {
-        # On JeOS we have GRUB_CMDLINE_LINUX, on CaaSP we have GRUB_CMDLINE_LINUX_DEFAULT.
-        my $grub_cmdline_label = is_jeos() ? 'GRUB_CMDLINE_LINUX' : 'GRUB_CMDLINE_LINUX_DEFAULT';
-        assert_script_run("sed -ie '/${grub_cmdline_label}=/s/\"\$/ $extrabootparams \"/' /etc/default/grub");
+        add_grub_cmdline_settings($extrabootparams);
     }
 }
 
