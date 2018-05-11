@@ -27,7 +27,8 @@ sub run {
     # Leave tutorial window
     wait_screen_change { send_key 'alt-f4' };
     # Leave tips windows for GNOME case
-    if (check_var('DESKTOP', 'gnome') || check_var('DESKTOP', 'xfce')) {
+    if (check_var('DESKTOP', 'gnome') || check_var('DESKTOP', 'xfce') || check_var('DESKTOP', 'lxde')) {
+        send_key 'alt-tab' if (check_var('DESKTOP', 'lxde'));
         wait_screen_change { send_key 'alt-c' };
     }
     send_key 'ctrl-q';    # Exit
