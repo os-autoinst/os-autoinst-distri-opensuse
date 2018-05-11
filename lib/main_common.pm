@@ -1449,6 +1449,8 @@ sub load_extra_tests {
     loadtest "console/hostname";
     if (any_desktop_is_applicable()) {
         load_extra_tests_desktop;
+        # both load console test and x11 test in one job for migration test
+        load_extra_tests_textmode if (check_var('EXTRATEST', 'upgrade'));
     }
     else {
         load_extra_tests_textmode;
