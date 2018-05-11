@@ -18,14 +18,30 @@ use caasp_controller;
 
 use strict;
 use testapi;
-use caasp qw(update_scheduled unpause);
+use caasp qw(update_scheduled unpause script_retry);
 use version_utils 'is_caasp';
 
+my $admin = 'admin.openqa.test';
+
 # Set up ssh to admin node and run update script on all nodes
-sub setup_update_repository {
+sub prepare_to_update {
     my $repo = update_scheduled;
     switch_to 'xterm';
-    assert_script_run "ssh admin.openqa.test './update.sh -s $repo' | tee /dev/$serialdev | grep EXIT_OK", 1200;
+
+    # Add UPDATE repository
+    assert_script_run "ssh $admin './update.sh -s $repo' | tee /dev/$serialdev | grep EXIT_OK", 120;
+
+    # Install packages that should be updated - poo#114205
+    if (is_caasp('qam')) {
+        assert_script_run "ssh $admin './update.sh -i' | tee /dev/$serialdev | grep EXIT_OK", 600;
+
+        # Wait until cluster comes back after reboot
+        script_retry 'kubectl get nodes';
+        script_retry "curl -kLI -m5 $admin | grep _velum_session";
+    }
+
+    # Update packages
+    assert_script_run "ssh $admin './update.sh -u' | tee /dev/$serialdev | grep EXIT_OK", 1200;
     switch_to 'velum';
 }
 
@@ -51,14 +67,14 @@ sub check_update_changes {
     }
     else {
         # QA: fake repo with pre-defined values (hardcoded)
-        assert_script_run "ssh admin.openqa.test './update.sh -c' | tee /dev/$serialdev | grep EXIT_OK", 60;
+        assert_script_run "ssh $admin './update.sh -c' | tee /dev/$serialdev | grep EXIT_OK", 60;
     }
 
     switch_to 'velum';
 }
 
 sub run {
-    setup_update_repository;
+    prepare_to_update;
 
     my $nodes = get_required_var('STACK_NODES');
     assert_screen "velum-$nodes-nodes-outdated";
