@@ -17,15 +17,15 @@
 use base "opensusebasetest";
 use strict;
 use testapi;
-use bootloader_setup qw(set_framebuffer_resolution set_extrabootparams_grub_conf);
+use bootloader_setup qw(change_grub_config grep_grub_settings grub_mkconfig set_framebuffer_resolution set_extrabootparams_grub_conf);
 
 sub run {
-    assert_script_run("sed -ie '/GRUB_GFXMODE=/s/=.*/=1024x768/' /etc/default/grub");
-    assert_script_run("sed -ie '/GRUB_GFXMODE/s/^#//' /etc/default/grub");
-    assert_script_run('grep ^GRUB_GFXMODE=1024x768$ /etc/default/grub');
+    change_grub_config('=.*', '=1024x768', 'GRUB_GFXMODE=');
+    change_grub_config('^#',  '',          'GRUB_GFXMODE');
+    grep_grub_settings('^GRUB_GFXMODE=1024x768$');
     set_framebuffer_resolution;
     set_extrabootparams_grub_conf;
-    assert_script_run('grub2-mkconfig -o /boot/grub2/grub.cfg');
+    grub_mkconfig;
 }
 
 sub test_flags {
