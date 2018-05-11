@@ -14,6 +14,7 @@
 use base "consoletest";
 use testapi;
 use utils;
+use grub_utils qw(change_grub_config grub_mkconfig);
 use strict;
 
 sub run {
@@ -51,9 +52,9 @@ sub run {
 
     # BSC#997263 - VMware screen resolution defaults to 800x600
     if (check_var('VIRSH_VMM_FAMILY', 'vmware')) {
-        assert_script_run("sed -ie '/GFXMODE=/s/=.*/=1024x768x32/' /etc/default/grub");
-        assert_script_run("sed -ie '/GFXPAYLOAD_LINUX=/s/=.*/=1024x768x32/' /etc/default/grub");
-        assert_script_run("grub2-mkconfig -o /boot/grub2/grub.cfg");
+        change_grub_config('=.*', '=1024x768x32', 'GFXMODE=');
+        change_grub_config('=.*', '=1024x768x32', 'GFXPAYLOAD_LINUX=');
+        grub_mkconfig;
     }
 
     # https://fate.suse.com/320347 https://bugzilla.suse.com/show_bug.cgi?id=988157
