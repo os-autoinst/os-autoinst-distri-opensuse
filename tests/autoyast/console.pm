@@ -1,4 +1,4 @@
-# Copyright (C) 2015-2017 SUSE LLC
+# Copyright (C) 2015-2018 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,18 +24,6 @@ use version_utils 'is_sle';
 
 sub run {
     my ($self) = @_;
-    # Trying to change consoles manually because of bsc#1042554, not on s390x
-    # Bug is still there on SLE 12 SP4
-    if (is_sle('<15') && !check_var('ARCH', 's390x')) {
-        send_key 'ctrl-alt-f2';
-        send_key 'alt-f2';
-        if (!check_screen 'text-login') {
-            record_soft_failure 'bsc#1042554';
-            send_key 'ctrl-alt-delete';
-            power_action('reboot', keepconsole => 0, observe => 0);
-            $self->wait_boot();
-        }
-    }
     select_console 'root-console';
 }
 
