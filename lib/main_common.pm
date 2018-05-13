@@ -1195,38 +1195,22 @@ sub load_x11tests {
     if (snapper_is_applicable() and !is_sles4sap()) {
         loadtest "x11/yast2_snapper";
     }
-    if (xfcestep_is_applicable()) {
-        loadtest "x11/thunar";
-        if (!get_var("USBBOOT") && !is_livesystem) {
-            loadtest "x11/reboot_xfce";
-        }
-    }
-    if (lxdestep_is_applicable()) {
-        if (!get_var("USBBOOT") && !is_livesystem) {
-            loadtest "x11/reboot_lxde";
-        }
-    }
+    loadtest "x11/thunar" if xfcestep_is_applicable();
     loadtest "x11/glxgears" if packagekit_available && !get_var('LIVECD');
     if (gnomestep_is_applicable()) {
         loadtest "x11/nautilus" unless get_var("LIVECD");
-        loadtest "x11/gnome_music" if is_opensuse;
-        loadtest "x11/evolution" if (!is_server() || we_is_applicable());
-        if (!get_var("USBBOOT") && !is_livesystem) {
-            loadtest "x11/reboot_gnome";
-        }
+        loadtest "x11/gnome_music"    if is_opensuse;
+        loadtest "x11/evolution"      if (!is_server() || we_is_applicable());
         load_testdir('x11/gnomeapps') if is_gnome_next;
     }
     loadtest "x11/desktop_mainmenu";
-    if (is_sles4sap() and !is_sles4sap_standard()) {
-        load_sles4sap_tests();
-    }
+    load_sles4sap_tests() if (is_sles4sap() and !is_sles4sap_standard());
     if (xfcestep_is_applicable()) {
         loadtest "x11/xfce4_appfinder";
         if (!(get_var("FLAVOR") eq 'Rescue-CD')) {
             loadtest "x11/xfce_lightdm_logout_login";
         }
     }
-
     if (is_opensuse && !get_var("LIVECD")) {
         loadtest "x11/inkscape";
         loadtest "x11/gimp";
@@ -1241,6 +1225,8 @@ sub load_x11tests {
             loadtest "x11/amarok";
         }
         loadtest "x11/kontact" unless is_kde_live;
+    }
+    if (kdestep_is_applicable()) {
         if (!get_var("USBBOOT") && !is_livesystem) {
             if (get_var("PLASMA5")) {
                 loadtest "x11/reboot_plasma5";
@@ -1248,6 +1234,19 @@ sub load_x11tests {
             else {
                 loadtest "x11/reboot_kde";
             }
+        }
+    }
+    if (gnomestep_is_applicable() && !get_var("USBBOOT") && !is_livesystem) {
+        loadtest "x11/reboot_gnome";
+    }
+    if (xfcestep_is_applicable()) {
+        if (!get_var("USBBOOT") && !is_livesystem) {
+            loadtest "x11/reboot_xfce";
+        }
+    }
+    if (lxdestep_is_applicable()) {
+        if (!get_var("USBBOOT") && !is_livesystem) {
+            loadtest "x11/reboot_lxde";
         }
     }
     # Need to skip shutdown to keep backend alive if running rollback tests after migration
