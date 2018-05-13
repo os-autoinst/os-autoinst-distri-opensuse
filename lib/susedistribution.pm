@@ -164,6 +164,13 @@ The combination of C<no_wait> with C<valid> and C<target_match> is the
 preferred solution for the most efficient approach by saving time within
 tests.
 
+In case of KDE plasma krunner provides a suggestion list which can take a bit
+of time to be computed therefore the logic is slightly different there, for
+example longer waiting time, looking for the computed suggestions list before
+accepting and a default timeout for the target match of 90 seconds versus just
+using the default of C<assert_screen> itself. For other desktop environments
+we keep the old check for the runner border.
+
 This method is overwriting the base method in os-autoinst.
 
 =cut
@@ -175,6 +182,7 @@ sub x11_start_program {
     $args{valid}         //= 1;
     $args{target_match}  //= $program;
     $args{match_no_wait} //= 0;
+    $args{match_timeout} //= 90 if check_var('DESKTOP', 'kde');
 
     # Start desktop runner and type command there
     init_desktop_runner($program, $timeout);
@@ -193,9 +201,6 @@ sub x11_start_program {
     return unless $args{valid};
     my @target = ref $args{target_match} eq 'ARRAY' ? @{$args{target_match}} : $args{target_match};
     for (1 .. 3) {
-        # in case of KDE plasma krunner provides a suggestion list which can
-        # take a bit of time to be computed, for other DEs we keep the old
-        # check for the runner border
         push @target, check_var('DESKTOP', 'kde') ? 'desktop-runner-plasma-suggestions' : 'desktop-runner-border';
         assert_screen([@target], $args{match_timeout}, no_wait => $args{match_no_wait});
         last unless (match_has_tag 'desktop-runner-border' || match_has_tag 'desktop-runner-plasma-suggestions');
