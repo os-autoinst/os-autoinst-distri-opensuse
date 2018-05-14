@@ -39,9 +39,9 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = @_;
-    # In case plymouth splash shows up and the shutdown is blocked, show
-    # console logs - save screen of console (plymouth splash screen in disabled at boottime)
-    send_key('esc') if $self->{await_shutdown};
+    # Reveal what is behind Plymouth splash screen
+    wait_screen_change { send_key('esc') } if $self->{await_shutdown};
+    # save a screenshot before trying further measures which might fail
     save_screenshot;
 }
 
