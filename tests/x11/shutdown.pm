@@ -43,6 +43,8 @@ sub post_fail_hook {
     wait_screen_change { send_key('esc') } if $self->{await_shutdown};
     # save a screenshot before trying further measures which might fail
     save_screenshot;
+    # try to save logs as a last resort
+    $self->export_logs;
 }
 
 1;
