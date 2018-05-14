@@ -183,44 +183,6 @@ sub open_libreoffice_options {
     }
 }
 
-# check libreoffice dialog windows setting- "gnome dialog" or "libreoffice dialog"
-sub check_libreoffice_dialogs {
-    my ($self) = shift;
-
-    # make sure libreoffice dialog option is disabled status
-    $self->open_libreoffice_options;
-
-    assert_screen("ooffice-tools-options");
-    send_key_until_needlematch('libreoffice-options-general', 'down');
-    assert_screen("libreoffice-general-dialogs-disabled");
-    send_key "alt-o";
-    wait_still_screen 3;
-    send_key "alt-o";
-    assert_screen("libreoffice-gnome-dialogs");
-    send_key "alt-c";
-    wait_still_screen 3;
-
-    # enable libreoffice dialog
-    $self->open_libreoffice_options;
-    assert_screen("libreoffice-options-general");
-    send_key "alt-u";
-    assert_screen("libreoffice-general-dialogs-enabled");
-    send_key "alt-o";
-    wait_still_screen 3;
-    send_key "alt-o";
-    assert_screen("libreoffice-specific-dialogs");
-    send_key "alt-c";
-    wait_still_screen 3;
-
-    # restore the default setting
-    $self->open_libreoffice_options;
-    assert_screen("libreoffice-options-general");
-    send_key "alt-u";
-    wait_still_screen 3;
-    send_key "alt-o";
-
-}
-
 # get email account information for Evolution test cases
 sub getconfig_emailaccount {
     my ($self) = @_;
