@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -121,11 +121,6 @@ sub handle_addon {
     if (is_sle('15+') && $addon !~ /^ses$|^rt$/) {
         send_key 'spc';
         send_key $cmd{next};
-        wait_still_screen 2;
-
-        # In SLE 15 some modules do not have license or have the same
-        # license (see bsc#1089163) and so are not be shown twice
-        addon_license($addon) unless (grep { $addon eq $_ } @SLE15_ADDONS_WITHOUT_LICENSE);
         wait_still_screen 2;
     }
 }
