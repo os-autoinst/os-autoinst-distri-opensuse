@@ -89,7 +89,7 @@ sub run {
                 next;
             }
             elsif (match_has_tag("updates_installed-logout") || match_has_tag("updates_restart_application")) {
-                send_key "alt-c";    # close
+                wait_screen_change { send_key "alt-c"; };    # close
 
                 # The logout is not acted upon, which may miss a libzypp update
                 # Force reloading of packagekitd (bsc#1075260, poo#30085)
