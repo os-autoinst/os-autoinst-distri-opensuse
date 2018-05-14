@@ -222,7 +222,7 @@ else {
 # REGISTER = 'installation' -> Registers with SCC during the installation
 if (get_var('REGISTER') && !check_var('STACK_ROLE', 'controller')) {
     loadtest 'caasp/register_and_check';
-    loadtest 'caasp/register_toolchain';
+    loadtest 'caasp/register_toolchain' if is_caasp('3.0+');
 }
 
 if (get_var('EXTRA', '') =~ /FEATURES/) {
