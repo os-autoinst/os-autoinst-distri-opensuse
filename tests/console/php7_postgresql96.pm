@@ -30,7 +30,7 @@ sub run {
     setup_apache2(mode => 'PHP7');
 
     # install requirements
-    zypper_call 'in php7-pgsql postgresql96-server sudo';
+    zypper_call 'in php7-pgsql postgresql*-server sudo';
 
     # start postgresql service
     systemctl 'start postgresql';
