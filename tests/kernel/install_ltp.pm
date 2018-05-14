@@ -80,6 +80,36 @@ sub install_runtime_dependencies {
     }
 }
 
+sub install_runtime_dependencies_network {
+    my @deps;
+    # utils
+    @deps = qw(
+      ethtool
+      iptables
+      psmisc
+      tcpdump
+    );
+    zypper_call('-t in ' . join(' ', @deps), dumb_term => 1);
+
+    # clients
+    @deps = qw(
+      dhcp-client
+      telnet
+    );
+    zypper_call('-t in ' . join(' ', @deps), dumb_term => 1);
+
+    # services
+    @deps = qw(
+      dhcp-server
+      dnsmasq
+      nfs-kernel-server
+      rpcbind
+      rsync
+      vsftpd
+    );
+    zypper_call('-t in ' . join(' ', @deps), dumb_term => 1);
+}
+
 sub install_build_dependencies {
     my @deps = qw(
       autoconf
@@ -166,6 +196,47 @@ sub install_from_repo {
     assert_script_run q(find ${LTPROOT:-/opt/ltp}/testcases/bin/openposix/conformance/interfaces/ -name '*.run-test' > ~/openposix-test-list-) . $tag;
 }
 
+sub setup_network {
+    my $content;
+
+    $content = <<EOF;
+# ltp specific setup
+pts/1
+pts/2
+pts/3
+pts/4
+pts/5
+pts/6
+pts/7
+pts/8
+pts/9
+EOF
+    assert_script_run("echo \"$content\" >> '/etc/securetty'");
+
+    # ftp
+    assert_script_run('sed -i \'s/^\s*\(root\)\s*$/# \1/\' /etc/ftpusers');
+
+    # getaddrinfo_01: missing hostname in /etc/hosts
+    assert_script_run('h=`hostname`; grep -q $h /etc/hosts || printf "# ltp\n127.0.0.1\t$h\n::1\t$h\n" >> /etc/hosts');
+
+    # boo#1017616: missing link to ping6 in iputils >= s20150815
+    assert_script_run('which ping6 >/dev/null 2>&1 || ln -s `which ping` /usr/local/bin/ping6');
+
+    # dhcpd
+    assert_script_run('touch /var/lib/dhcp/db/dhcpd.leases /var/lib/dhcp6/db/dhcpd6.leases');
+
+    # echo/echoes, getaddrinfo_01
+    assert_script_run('sed -i \'s/^\(hosts:\s+files\s\+dns$\)/\1 myhostname/\' /etc/nsswitch.conf');
+
+    # SLE12GA uses too many old style services
+    my $action = check_var('VERSION', '12') ? "enable" : "reenable";
+
+    foreach my $service (qw(dnsmasq nfsserver rpcbind vsftpd)) {
+        systemctl($action . " " . $service);
+        assert_script_run("systemctl start $service || { systemctl status --no-pager $service; journalctl -xe --no-pager; false; }");
+    }
+}
+
 sub run {
     my $self     = shift;
     my $inst_ltp = get_var 'INSTALL_LTP';
@@ -187,6 +258,7 @@ sub run {
     add_we_repo_if_available;
     add_custom_grub_entries;
     install_runtime_dependencies;
+    install_runtime_dependencies_network;
 
     if ($inst_ltp =~ /git/i) {
         install_build_dependencies;
@@ -203,6 +275,8 @@ sub run {
     if (check_var("KGRAFT", '1')) {
         assert_script_run("uname -v | grep '/kGraft-'");
     }
+
+    setup_network();
 
     upload_runtest_files('${LTPROOT:-/opt/ltp}/runtest', $tag);
 
