@@ -207,6 +207,7 @@ sub packagekit_available {
 
 sub is_kernel_test {
     return ( get_var('INSTALL_LTP')
+          || get_var('LTP_SETUP_IMA')
           || get_var('LTP_SETUP_NETWORKING')
           || get_var('LTP_COMMAND_FILE')
           || get_var('INSTALL_KOTD')
