@@ -56,7 +56,7 @@ sub post_fail_hook {
 
     script_run 'ls -lah /boot/';
     script_run 'tar -cvfJ /tmp/crash_saved.tar.xz /var/crash/*';
-    upload_logs '/tmp/crash_saved.xz';
+    upload_logs '/tmp/crash_saved.tar.xz';
 
     $self->SUPER::post_fail_hook;
 }
