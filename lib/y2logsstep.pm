@@ -2,7 +2,7 @@ package y2logsstep;
 use base "installbasetest";
 use testapi;
 use strict;
-use version_utils 'sle_version_at_least';
+use version_utils 'is_sle';
 use ipmi_backend_utils;
 
 sub use_wicked {
@@ -66,22 +66,19 @@ sub get_to_console {
 # to workaround dependency issues
 sub workaround_dependency_issues {
     return unless check_screen 'dependency-issue', 10;
+    while (check_screen('dependency-issue', 5)) {
+        if (check_var('VIDEOMODE', 'text')) {
 
-    if (check_var('VIDEOMODE', 'text')) {
-        while (check_screen('dependency-issue', 5)) {
             wait_screen_change { send_key 'alt-s' };
             wait_screen_change { send_key 'ret' };
             wait_screen_change { send_key 'alt-o' };
         }
-    }
-    else {
-        while (check_screen('dependency-issue', 5)) {
+        else {
+            check_screen('missing-dependency', 0) if is_sle('15+') && check_var('PATTERNS', 'all');
             wait_screen_change { send_key 'alt-1' };
-            # higher similarity level as this should only select a single
-            # entry, not close the dialog or something
+            # higher similarity level as this should only select a single entry, not close the dialog or something
             wait_screen_change(sub { send_key 'spc' }, undef, similarity_level => 55);
-            # lower similarity level to not confuse the button press for
-            # screen change
+            # lower similarity level to not confuse the button press for screen change
             wait_screen_change(sub { send_key 'alt-o' }, undef, similarity_level => 48);
         }
     }
@@ -115,7 +112,7 @@ sub break_dependency {
 sub process_unsigned_files {
     my ($self, $expected_screens) = @_;
     # SLE 15 has unsigned file errors, workaround them - rbrown 04/07/2017
-    return unless (sle_version_at_least('15'));
+    return unless (is_sle('15+'));
     my $counter = 0;
     while ($counter++ < 5) {
         if (check_screen 'sle-15-unsigned-file', 0) {
