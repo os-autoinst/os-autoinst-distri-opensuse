@@ -39,14 +39,15 @@ sub run {
         set_var('STORAGE_NG', 1);
         # Define changed shortcuts
         $cmd{donotformat}     = 'alt-t';
-        $cmd{addraid}         = 'alt-i';
-        $cmd{filesystem}      = 'alt-a';
+        $cmd{addraid}         = 'alt-r';
+        $cmd{filesystem}      = 'alt-r';
+        $cmd{rescandevices}   = 'alt-r';
+        $cmd{customsize}      = 'alt-o';
         $cmd{exp_part_finish} = 'alt-n';
         $cmd{guidedsetup}     = 'alt-g';
         if (check_var('DISTRI', 'opensuse')) {
             #TODO remove SYSTEM_ROLE_FIRST_FLOW usages with versions checks
             $cmd{expertpartitioner} = get_var('SYSTEM_ROLE_FIRST_FLOW') ? 'alt-e' : 'alt-x';
-            $cmd{rescandevices}     = get_var('SYSTEM_ROLE_FIRST_FLOW') ? 'alt-e' : 'alt-c';
             $cmd{enablelvm}         = get_var('SYSTEM_ROLE_FIRST_FLOW') ? 'alt-e' : 'alt-a';
             $cmd{encryptdisk}       = get_var('SYSTEM_ROLE_FIRST_FLOW') ? 'alt-a' : 'alt-l';
         }

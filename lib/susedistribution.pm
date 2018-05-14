@@ -62,6 +62,7 @@ sub init_cmd {
       encryptdisk alt-a
       enablelvm alt-e
       resize alt-i
+      customsize alt-c
       acceptlicense alt-a
       instdetails alt-d
       rebootnow alt-n
