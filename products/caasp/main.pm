@@ -121,7 +121,9 @@ sub load_feature_tests {
     loadtest 'caasp/overlayfs';
     loadtest 'caasp/services_enabled';
     loadtest 'caasp/one_line_checks';
-    loadtest 'caasp/nfs_client' if get_var('NFS_SHARE');
+    if (get_var('NFS_SHARE') && !is_caasp('local')) {
+        loadtest 'caasp/nfs_client';
+    }
 
     # Transactional updates
     loadtest 'caasp/transactional_update';
