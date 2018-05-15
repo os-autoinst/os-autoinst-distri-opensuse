@@ -59,6 +59,19 @@
          {key => 'START_AFTER_TEST',        value => 'install_ltp'}]
        },
        {
+        name     => 'ltp_setup_ima',
+        settings =>
+        [{key => 'DESKTOP',                 value => 'textmode'},
+         {key => 'PUBLISH_HDD_1',
+          value => 'openSUSE-%VERSION%-%ARCH%-textmode_with_ltp_ima_installed.qcow2'},
+         {key => 'LTP_SETUP_IMA',    value => 1},
+         {key => 'BOOT_HDD_IMAGE',          value => 1},
+         {key => 'HDD_1',
+          value => 'openSUSE-%VERSION%-%ARCH%-textmode_with_ltp_installed.qcow2'},
+         {key => 'START_AFTER_TEST',        value => 'install_ltp'}]
+       },
+
+       {
         name => 'ltp_net_ipv6',
         settings =>
         [{key => 'DESKTOP',                 value => 'textmode'},

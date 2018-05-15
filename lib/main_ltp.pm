@@ -129,6 +129,11 @@ sub load_kernel_tests {
         loadtest 'ltp_setup_networking';
         shutdown_ltp();
     }
+    elsif (get_var('LTP_SETUP_IMA')) {
+        loadtest 'boot_ltp';
+        loadtest 'ltp_setup_ima';
+        shutdown_ltp();
+    }
     elsif (get_var('LTP_COMMAND_FILE')) {
         if (get_var('INSTALL_KOTD')) {
             loadtest 'install_kotd';
