@@ -60,6 +60,7 @@ sub run {
     trup_call "ptf install" . rpmver('security');
     check_reboot_changes;
     check_package 'in';
+    my $snap = script_output "snapper list | tail -1 | awk '{print \$3}'";
 
     record_info 'Update #1', 'Add repository and update - snapshot #2';
     # Only CaaSP needs an additional repo for testing
@@ -90,17 +91,7 @@ sub run {
     check_reboot_changes;
     check_package;
 
-    # On Hyper-V and Xen PV we modified GRUB to add special framebuffer provisions to scale down,
-    # and scale up, respectively, the hypervizor's native screen resolution. As it involved
-    # an additional snapshot, magic snapshot numbers below have to be altered properly.
-    record_info 'Rollback', 'Revert to first snapshot we created - snapshot #5';
-    my $snap = is_caasp('VMX') ? 2 : 3;
-    if (check_var('VIRSH_VMM_FAMILY', 'hyperv') || check_var('VIRSH_VMM_TYPE', 'linux')) {
-        $snap++;
-    }
-    # overlayfs test creates new snapshot
-    $snap++;
-
+    record_info 'Rollback', 'Revert to snapshot with initial rpm';
     trup_call "rollback $snap";
     check_reboot_changes;
     check_package 'in';

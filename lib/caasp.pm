@@ -129,9 +129,6 @@ sub trup_call {
 
 # Reboot if there's a diff between the current FS and the new snapshot
 sub check_reboot_changes {
-    # rebootmgr has to be turned off as prerequisity for this to work
-    script_run "rebootmgrctl set-strategy off";
-
     my $change_expected = shift // 1;
 
     # Compare currently mounted and default subvolume
