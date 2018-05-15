@@ -53,7 +53,7 @@ sub addpart {
     assert_screen "partition-size";
     send_key $cmd{next};
     assert_screen 'partition-role';
-    send_key "alt-a";    # Raw Volume
+    send_key $cmd{raw_volume};    # Raw Volume
     send_key $cmd{next};
     assert_screen 'partition-format';
     send_key $cmd{donotformat};
@@ -174,7 +174,7 @@ sub modify_uefi_boot_partition {
     # edit first partition
     send_key 'alt-e';
     assert_screen 'partition-format';
-    send_key 'alt-a';
+    send_key $cmd{raw_volume};
     assert_screen 'partitioning_raid-format_default_UEFI';
     # format as FAT (first choice)
     send_key 'tab';
@@ -276,7 +276,7 @@ sub add_prep_boot_partition {
     assert_screen 'partitioning_raid-custom-size-8MB';
     send_key 'alt-n';
     assert_screen 'partition-role';
-    send_key "alt-a";
+    send_key $cmd{raw_volume};
     assert_screen 'partitioning_raid-partition_role_raw_volume';
     send_key 'alt-n';
     assert_screen 'partition-format';
