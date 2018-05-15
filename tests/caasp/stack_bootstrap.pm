@@ -35,12 +35,19 @@ sub select_roles {
     # Wait until warning messages disappears
     wait_still_screen 2;
 
-    # Select master.openqa.test
-    send_key_until_needlematch "master-checkbox-xy", 'pgdn', 2, 5;
-    click_click xy('master-checkbox-xy');
-    # For 6+ node clusters select 2 more random masters
-    for (2 .. get_var('STACK_MASTERS')) {
-        click_click xy('master-role-button');
+    # Select Kubernetes API FQDN
+    send_key_until_needlematch "master-api-setrole-xy", 'pgdn', 2, 5;
+    click_click xy('master-api-setrole-xy');
+
+    # For bigger clusters select 2 more masters
+    if (check_var('STACK_MASTERS', 3)) {
+        send_key 'home';
+        send_key_until_needlematch "master-rm-setrole-xy", 'pgdn', 2, 5;
+        click_click xy('master-rm-setrole-xy');
+
+        send_key 'home';
+        send_key_until_needlematch "master-ay-setrole-xy", 'pgdn', 2, 5;
+        click_click xy('master-ay-setrole-xy');
     }
 }
 
@@ -58,7 +65,7 @@ sub bootstrap {
 
     # External Kubernetes API & Dashboard FQDN
     for (1 .. 3) { send_key 'tab'; }
-    type_string 'master.openqa.test';
+    type_string $master_fqdn;
     send_key 'tab';
     type_string $admin_fqdn;
     assert_and_click "velum-bootstrap";
@@ -80,7 +87,7 @@ sub run {
         record_soft_failure('bsc#1080969 - 504 Gateway timed out');
         send_key_until_needlematch 'velum-bootstrap-page', 'f5', 30, 60;
     }
-    barrier_wait {name => "WORKERS_INSTALLED", check_dead_job => 1};
+    barrier_wait {name => "NODES_ONLINE", check_dead_job => 1};
 
     accept_nodes;
     select_roles;
