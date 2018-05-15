@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -15,10 +15,11 @@ use strict;
 use base "y2logsstep";
 use testapi;
 use installation_user_settings;
-use version_utils 'is_storage_ng';
+use version_utils qw(is_storage_ng is_leap);
 use partition_setup 'unselect_xen_pv_cdrom';
 
 sub run {
+    record_soft_failure 'boo#1093372' if (!get_var('TOGGLEHOME') && is_leap('15.1+'));
     wait_screen_change { send_key($cmd{guidedsetup}) };    # open proposal settings
     if (is_storage_ng) {
         unselect_xen_pv_cdrom;
@@ -41,6 +42,7 @@ sub run {
         assert_screen 'disabledhome';
     }
     send_key(is_storage_ng() ? 'alt-n' : 'alt-o');    # finish editing settings
+    save_screenshot;
 }
 
 1;
