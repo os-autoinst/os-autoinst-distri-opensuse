@@ -19,8 +19,11 @@ use mmapi;
 use version_utils 'is_caasp';
 use utils qw(power_action assert_shutdown_and_restore_system);
 
-our @EXPORT
-  = qw(handle_simple_pw process_reboot trup_call write_detail_output get_admin_job update_scheduled export_cluster_logs get_delayed_worker rpmver check_reboot_changes trup_install script_retry microos_login);
+our @EXPORT = qw(
+  trup_call trup_install rpmver process_reboot check_reboot_changes microos_login
+  handle_simple_pw export_cluster_logs script_retry
+  get_delayed_worker update_scheduled
+  pause_until unpause);
 
 # Return names and version of packages for transactional-update tests
 sub rpmver {
@@ -157,34 +160,6 @@ sub trup_install {
     assert_script_run("rpm -qi $package");
 }
 
-# Function for writing custom text boxes for the test job
-# After fixing poo#17462 it should be replaced by record_info from testlib
-sub write_detail_output {
-    my ($self, $title, $output, $result) = @_;
-
-    $result =~ /^(ok|fail|softfail)$/ || die "Result value: $result not allowed.";
-
-    my $filename = $self->next_resultname('txt');
-    my $detail   = {
-        title  => $title,
-        result => $result,
-        text   => $filename,
-    };
-    push @{$self->{details}}, $detail;
-
-    open my $fh, '>', bmwqemu::result_dir() . "/$filename";
-    print $fh $output;
-    close $fh;
-
-    # Set overall result for the job
-    if ($result eq 'fail') {
-        $self->{result} = $result;
-    }
-    elsif ($result eq 'ok') {
-        $self->{result} ||= $result;
-    }
-}
-
 sub get_controller_job {
     die "Don't know how to find current job id" if check_var 'STACK_ROLE', 'controller';
 
@@ -262,6 +237,48 @@ sub script_retry {
         die("Waiting for Godot: $cmd") if $retry == $_;
         sleep $delay;
     }
+}
+
+# All events ordered by execution
+my %events = (
+    support_server_ready     => 'Wait for dhcp, dns, ntp, ..',
+    VELUM_STARTED            => 'Wait until velum starts to login there from controller',
+    VELUM_CONFIGURED         => 'Velum has to be configured before autoyast installations start',
+    NODES_ACCEPTED           => 'Wait until salt-keys are accepted to set password on autoyast nodes',
+    REBOOT_FINISHED          => 'Re-login when system rebooted after update/reboot test',
+    DELAYED_WORKER_INSTALLED => 'Wait until we have new node that we can add to existing cluster',
+    DELAYED_NODES_ACCEPTED   => 'Wait until salt-keys are accepted to set password on autoyast nodes',
+    CNTRL_FINISHED           => 'Wait on CaaSP nodes until controller finishes testing',
+);
+
+# CaaSP specific unpausing
+sub unpause {
+    my $event = shift;
+
+    # Handle cluster failure on controller node
+    if (uc($event) eq 'ALL') {
+        foreach my $e (keys %events) {
+            lockapi::mutex_create $e;
+        }
+    }
+    else {
+        lockapi::mutex_create $event;
+    }
+}
+
+# CaaSP specific pausing
+sub pause_until {
+    my $event = shift;
+
+    # Make sure mutex is documented here
+    die "Event '$event' is unknown" unless exists $events{$event};
+
+    # Mutexes created by child jobs (not controller)
+    my $owner;
+    $owner = get_admin_job      if $event eq 'VELUM_STARTED';
+    $owner = get_delayed_worker if $event eq 'DELAYED_WORKER_INSTALLED';
+
+    lockapi::mutex_wait($event, $owner, $events{$event});
 }
 
 1;

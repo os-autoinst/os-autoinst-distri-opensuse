@@ -53,7 +53,7 @@ sub notification_handler {
     my ($feature, $state) = @_;
 
     select_console('user-console');
-    assert_script_run("gsettings get $feature && gsettings set $feature $state || true");
+    assert_script_run("(gsettings get $feature && gsettings set $feature $state) 2>/dev/null || true");
 }
 
 sub verify_default_keymap_x11 {

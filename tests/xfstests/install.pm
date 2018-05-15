@@ -14,35 +14,35 @@ package install;
 use 5.018;
 use strict;
 use warnings;
-use base "opensusebasetest";
+use base 'opensusebasetest';
+use serial_terminal 'select_virtio_console';
 use utils;
 use testapi;
 
-my $LOG_FILE = "/tmp/xfstests.log";
+my $STATUS_LOG = '/tmp/status.log';
 
 # Create log file used to generate junit xml report
 sub log_create {
     my $file = shift;
-    my $cmd  = "[[ -f $file ]] || ";
-    $cmd .= "echo 'Test in progress' > $file";
+    my $cmd  = "[[ -f $file ]] || echo 'Test in progress' > $file";
     assert_script_run($cmd);
 }
 
 sub run {
     my $self = shift;
-    select_console('root-console');
+    select_virtio_console();
 
     # Add QA repo
     my $qa_head_repo = get_var('QA_HEAD_REPO', '');
     zypper_call("--no-gpg-check ar -f '$qa_head_repo' qa-ibs", timeout => 600);
 
     # Install qa_test_xfstests
-    zypper_call("--gpg-auto-import-keys ref", timeout => 600);
-    zypper_call("in qa_test_xfstests",        timeout => 1200);
-    assert_script_run("/usr/share/qa/qa_test_xfstests/install.sh", 600);
+    zypper_call('--gpg-auto-import-keys ref', timeout => 600);
+    zypper_call('in qa_test_xfstests',        timeout => 1200);
+    assert_script_run('/usr/share/qa/qa_test_xfstests/install.sh', 600);
 
     # Create log file
-    log_create($LOG_FILE);
+    log_create($STATUS_LOG);
 }
 
 1;

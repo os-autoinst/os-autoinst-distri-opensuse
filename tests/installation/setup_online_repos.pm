@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -15,6 +15,7 @@
 use base "y2logsstep";
 use strict;
 use testapi;
+use version_utils;
 
 sub run {
     # ordered according to real repos lists
@@ -39,7 +40,7 @@ sub run {
         send_key_until_needlematch 'setup_online_repos-repos-list', 'tab';
     }
     else {
-        send_key 'alt-i';
+        send_key is_sle('<15') || is_leap('<15.0') ? 'alt-i' : 'alt-u';
     }
 
     foreach my $repotag (@default_repos) {
@@ -82,15 +83,19 @@ sub run {
             assert_screen "inst-betawarning", 500;
             send_key 'alt-o';
         }
-        assert_screen 'license-dialog-oss-repo';
-        send_key $cmd{next};    # Next
+        # older product versions check for same license multiple times so we
+        # need to check that
+        if (is_sle('<15') || is_leap('<15.0')) {
+            assert_screen 'license-dialog-oss-repo';
+            send_key $cmd{next};    # Next
+        }
     }
 
     if (get_var("WITH_UNTESTED_REPO")) {
         assert_screen 'import-untrusted-gpg-key-598D0E63B3FD7E48';
         while (1) {
-            send_key 'alt-t';    # Trust
-                                 # for some reason the key is prompted twice, bug?
+            send_key 'alt-t';       # Trust
+                                    # for some reason the key is prompted twice, bug?
             last unless check_screen 'import-untrusted-gpg-key-598D0E63B3FD7E48';
         }
     }

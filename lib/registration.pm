@@ -40,6 +40,7 @@ our @EXPORT = qw(
   install_docker_when_needed
   %SLE15_MODULES
   %SLE15_DEFAULT_MODULES
+  @SLE15_ADDONS_WITHOUT_LICENSE
 );
 
 # We already have needles with names which are different we would use here
@@ -66,6 +67,8 @@ our %SLE15_DEFAULT_MODULES = (
     sles4sap => 'base,desktop,serverapp,ha,sapapp',
 );
 
+our @SLE15_ADDONS_WITHOUT_LICENSE = qw(ha sdk wsm we);
+
 # Method to determine if a short name references a module based on what's defined
 # on %SLE15_MODULES
 sub is_module {
@@ -85,7 +88,7 @@ sub accept_addons_license {
 
     # In SLE 15 some modules do not have license or have the same
     # license (see bsc#1089163) and so are not be shown twice
-    push @addons_with_license, qw(ha sdk wsm we) unless is_sle('15+');
+    push @addons_with_license, @SLE15_ADDONS_WITHOUT_LICENSE unless is_sle('15+');
     # SES6 license is not shown now in SLE15
     if (is_sle('15+') && get_var('SCC_ADDONS') =~ /ses/) {
         record_soft_failure 'bsc#1090012 - missing SES6 license';
@@ -236,16 +239,7 @@ sub fill_in_registration_data {
                 next;
             }
             elsif (match_has_tag('registration-online-repos')) {
-                # don't want updates, as we don't test it or rely on it in any tests, if is executed during installation
-                # Proxy SCC replaces all update repo urls and we end up having invalid update repos, and we
-                # also do not want to have official update repos, which will lead to inconsistent SUT.
-                # For released products we want install updates during installation, only in minimal workflow disable
-                if (get_required_var('FLAVOR') =~ /-Updates$|-Incidents/ && !get_var('QAM_MINIMAL')) {
-                    wait_screen_change { send_key 'alt-y' };
-                }
-                else {
-                    wait_screen_change { send_key $cmd{next} };
-                }
+                wait_screen_change { send_key(get_var('DISABLE_SLE_UPDATES') ? 'alt-n' : 'alt-y') };
                 # Remove tag from array not to match twice
                 @tags = grep { $_ ne 'registration-online-repos' } @tags;
                 next;
@@ -330,9 +324,14 @@ sub fill_in_registration_data {
                     # go to the top of the list before looking for the addon
                     send_key "home";
                     # move the list of addons down until the current addon is found
-                    send_key_until_needlematch "scc-module-$addon", "down";
-                    # checkmark the requested addon
-                    assert_and_click "scc-module-$addon";
+                    if (check_var('VERSION', '12-SP4') && $addon =~ 'phub') {
+                        record_soft_failure 'bsc#1092568';
+                    }
+                    else {
+                        send_key_until_needlematch "scc-module-$addon", "down";
+                        # checkmark the requested addon
+                        assert_and_click "scc-module-$addon";
+                    }
                 }
             }
             save_screenshot;

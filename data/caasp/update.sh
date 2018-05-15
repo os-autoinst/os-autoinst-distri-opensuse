@@ -8,21 +8,29 @@ set -exuo pipefail
 usage() {
 	echo "Usage: $0
 		[-s $REPO] Setup all nodes with update REPO
+		[-u] Update all nodes
 		[-c] Check that update was applied
+		[-i] Install package
 		[-r] Just reboot cluster test" 1>&2
 	exit 1
 }
 
-while getopts "s:cr" opt; do
+while getopts "s:curi" opt; do
 case $opt in
 	s)
 		SETUP=$OPTARG
+		;;
+	u)
+		UPDATE=true
 		;;
 	c)
 		CHECK=true
 		;;
 	r)
 		REBOOT=true
+		;;
+	i)
+		INSTALL=true
 		;;
 	\?)
 		usage
@@ -32,6 +40,13 @@ case $opt in
 		usage
 		;;
 esac
+done
+
+# Make sure that Salt master container is running
+until docker ps | grep salt-master
+do
+        echo "salt master hasn't started yet. Trying again..."
+        sleep 5
 done
 
 # Set up some shortcuts
@@ -50,6 +65,7 @@ if [ ! -z "${SETUP:-}" ]; then
 	$runner "zypper ar --refresh --no-gpgcheck $SETUP UPDATE"
 	$runner "zypper lr -U"
 
+elif [ ! -z "${UPDATE:-}" ]; then
 	# Manually Trigger Transactional Update (or wait up to 24 hours for it run by itself)
 	$runner 'systemctl disable --now transactional-update.timer'
 	$runner '/usr/sbin/transactional-update cleanup dup salt'
@@ -92,7 +108,43 @@ elif [ ! -z "${REBOOT:-}" ]; then
 	where="-P roles:kube-(master|minion)"
 	srun="docker exec -d $saltid salt"
 	$srun $where system.reboot
+
+elif [ ! -z "${INSTALL:-}" ]; then
+
+	# Fetch all the packages included for this QAM incident
+	zypper -q --plus-content UPDATE pa -R UPDATE | awk -F'|' 'NR>2 {print $3}' > qam_packages.txt
+
+        # Check if there are any packages included into the QAM incident that are not pre-installed
+        reboot_required=0
+        while read pkg; do
+            if ! rpm -q $pkg; then
+                echo "$pkg " >> not_installed.txt
+                reboot_required=1
+            fi
+        done < qam_packages.txt
+
+        if [ ${reboot_required} -eq 1 ]; then
+            echo "The following packages are going to be installed: $(cat not_installed.txt)"
+
+            # Disable the update repo, so it will install the released version of those
+            $runner "zypper mr -d UPDATE"
+            $runner "zypper lr UPDATE | grep Enabled"
+
+            # Install the packages
+            $runner "/usr/sbin/transactional-update pkg install -y $(cat not_installed.txt)"
+
+            # Enable the update repo
+            $runner "zypper mr -e UPDATE"
+            $runner "zypper lr UPDATE | grep Enabled"
+
+	    # Reboot the cluster
+            where="-P roles:(admin|kube-(master|minion))"
+	    srun="docker exec -d $saltid salt"
+	    $srun $where system.reboot
+        fi
+
 fi
 
 # Workaround for assert_script_run "update.sh | tee $serialdev | grep EXIT_0", otherwise exit status is from tee
 echo 'EXIT_OK'
+

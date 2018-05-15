@@ -501,6 +501,9 @@ sub load_docker_tests {
 }
 
 sub load_system_role_tests {
+    if (installwithaddonrepos_is_applicable() && !get_var("LIVECD")) {
+        loadtest "installation/setup_online_repos";
+    }
     # Do not run on REMOTE_CONTROLLER, IPMI and on Hyper-V in GUI mode
     if (!get_var("REMOTE_CONTROLLER") && !check_var('BACKEND', 'ipmi') && !is_hyperv_in_gui && !get_var("LIVECD")) {
         loadtest "installation/logpackages";
@@ -853,9 +856,6 @@ sub load_inst_tests {
 
     if (noupdatestep_is_applicable()) {
         loadtest "installation/installer_timezone" if !is_caasp('kubic');
-        if (installwithaddonrepos_is_applicable() && !get_var("LIVECD")) {
-            loadtest "installation/setup_online_repos";
-        }
         # the test should run only in scenarios, where installed
         # system is not being tested (e.g. INSTALLONLY etc.)
         # The test also won't work reliably when network is bridged (non-s390x svirt).
@@ -1109,11 +1109,10 @@ sub load_consoletests {
         }
     }
     loadtest 'console/install_all_from_repository' if get_var('INSTALL_ALL_REPO');
-    if (check_var_array('SCC_ADDONS', 'tcm') && get_var('PATTERNS') && sle_version_at_least('12-SP3')) {
+    if (check_var_array('SCC_ADDONS', 'tcm') && get_var('PATTERNS') && is_sle('<15') && !get_var("MEDIA_UPGRADE")) {
         loadtest "feature/feature_console/deregister";
     }
-    loadtest 'migration/sle12_online_migration/orphaned_packages_check' if get_var('UPGRADE');
-
+    loadtest 'console/orphaned_packages_check' if get_var('UPGRADE');
     loadtest "console/consoletest_finish";
 }
 
@@ -1196,23 +1195,38 @@ sub load_x11tests {
     if (snapper_is_applicable() and !is_sles4sap()) {
         loadtest "x11/yast2_snapper";
     }
-    if (xfcestep_is_applicable()) {
-        loadtest "x11/thunar";
-        if (!get_var("USBBOOT") && !is_livesystem) {
-            loadtest "x11/reboot_xfce";
-        }
-    }
-    if (lxdestep_is_applicable()) {
-        if (!get_var("USBBOOT") && !is_livesystem) {
-            loadtest "x11/reboot_lxde";
-        }
-    }
+    loadtest "x11/thunar" if xfcestep_is_applicable();
     loadtest "x11/glxgears" if packagekit_available && !get_var('LIVECD');
+    if (gnomestep_is_applicable()) {
+        loadtest "x11/nautilus" unless get_var("LIVECD");
+        loadtest "x11/gnome_music"    if is_opensuse;
+        loadtest "x11/evolution"      if (!is_server() || we_is_applicable());
+        load_testdir('x11/gnomeapps') if is_gnome_next;
+    }
+    loadtest "x11/desktop_mainmenu";
+    load_sles4sap_tests() if (is_sles4sap() and !is_sles4sap_standard());
+    if (xfcestep_is_applicable()) {
+        loadtest "x11/xfce4_appfinder";
+        if (!(get_var("FLAVOR") eq 'Rescue-CD')) {
+            loadtest "x11/xfce_lightdm_logout_login";
+        }
+    }
+    if (is_opensuse && !get_var("LIVECD")) {
+        loadtest "x11/inkscape";
+        loadtest "x11/gimp";
+    }
+    if (is_opensuse && !is_staging && !is_livesystem) {
+        loadtest "x11/gnucash";
+        loadtest "x11/hexchat";
+        loadtest "x11/vlc";
+    }
     if (kdestep_is_applicable()) {
         if (!is_krypton_argon && !is_kde_live) {
             loadtest "x11/amarok";
         }
         loadtest "x11/kontact" unless is_kde_live;
+    }
+    if (kdestep_is_applicable()) {
         if (!get_var("USBBOOT") && !is_livesystem) {
             if (get_var("PLASMA5")) {
                 loadtest "x11/reboot_plasma5";
@@ -1222,35 +1236,18 @@ sub load_x11tests {
             }
         }
     }
-    if (gnomestep_is_applicable()) {
-        loadtest "x11/nautilus" unless get_var("LIVECD");
-        loadtest "x11/gnome_music" if is_opensuse;
-        loadtest "x11/evolution" if (!is_server() || we_is_applicable());
-        if (!get_var("USBBOOT") && !is_livesystem) {
-            loadtest "x11/reboot_gnome";
-        }
-        load_testdir('x11/gnomeapps') if is_gnome_next;
+    if (gnomestep_is_applicable() && !get_var("USBBOOT") && !is_livesystem) {
+        loadtest "x11/reboot_gnome";
     }
-    loadtest "x11/desktop_mainmenu";
-    if (is_sles4sap() and !is_sles4sap_standard()) {
-        load_sles4sap_tests();
-    }
-
     if (xfcestep_is_applicable()) {
-        loadtest "x11/xfce4_appfinder";
-        if (!(get_var("FLAVOR") eq 'Rescue-CD')) {
-            loadtest "x11/xfce_lightdm_logout_login";
+        if (!get_var("USBBOOT") && !is_livesystem) {
+            loadtest "x11/reboot_xfce";
         }
     }
-
-    if (is_opensuse && !get_var("LIVECD")) {
-        loadtest "x11/inkscape";
-        loadtest "x11/gimp";
-    }
-    if (is_opensuse && !is_staging && !is_livesystem) {
-        loadtest "x11/gnucash";
-        loadtest "x11/hexchat";
-        loadtest "x11/vlc";
+    if (lxdestep_is_applicable()) {
+        if (!get_var("USBBOOT") && !is_livesystem) {
+            loadtest "x11/reboot_lxde";
+        }
     }
     # Need to skip shutdown to keep backend alive if running rollback tests after migration
     unless (get_var('ROLLBACK_AFTER_MIGRATION')) {
@@ -1573,7 +1570,11 @@ sub load_x11_documentation {
     loadtest "x11/libreoffice/libreoffice_recent_documents";
     loadtest "x11/libreoffice/libreoffice_default_theme";
     loadtest "x11/libreoffice/libreoffice_double_click_file";
-    if (sle_version_at_least('12-SP1')) {
+    if (is_sle('>=15')) {
+        loadtest "x11/libreoffice/libreoffice_mainmenu_favorites";
+        loadtest "x11/libreoffice/libreoffice_pyuno_bridge_no_evolution_dep";
+    }
+    elsif (is_sle('>=12-SP1')) {
         loadtest "x11/libreoffice/libreoffice_mainmenu_favorites";
         loadtest "x11/evolution/evolution_prepare_servers";
         loadtest "x11/libreoffice/libreoffice_pyuno_bridge";
@@ -1725,6 +1726,8 @@ sub load_systemd_patches_tests {
 
 sub load_create_hdd_tests {
     return unless get_var('INSTALLONLY');
+    # install SES packages and deepsea testsuites
+    loadtest 'ses/install_ses' if check_var_array('ADDONS', 'ses') || check_var_array('SCC_ADDONS', 'ses');
     # temporary adding test modules which applies hacks for missing parts in sle15
     loadtest 'console/sle15_workarounds' if is_sle('15+');
     loadtest 'console/hostname'       unless is_bridged_networking;

@@ -20,7 +20,7 @@ use Time::HiRes 'sleep';
 use testapi;
 use utils;
 use version_utils qw(is_jeos is_caasp is_leap);
-use lockapi;
+use caasp 'pause_until';
 use mm_network;
 
 our @EXPORT = qw(
@@ -81,8 +81,8 @@ sub boot_local_disk {
 sub boot_into_snapshot {
     send_key_until_needlematch('boot-menu-snapshot', 'down', 10, 5);
     send_key 'ret';
-    # wait to avoid send down key early in grub_test_snapshot.
-    wait_still_screen 1;
+    # assert needle to avoid send down key early in grub_test_snapshot.
+    assert_screen 'snap-default' if get_var('OFW');
     # in upgrade/migration scenario, we want to boot from snapshot 1 before migration.
     if ((get_var('UPGRADE') && !get_var('ONLINE_MIGRATION', 0)) || get_var('ZDUP')) {
         send_key_until_needlematch('snap-before-update', 'down', 40, 5);
@@ -528,21 +528,14 @@ sub specific_caasp_params {
 
     # Wait for supportserver (controller node)
     if (!check_var 'STACK_ROLE', 'controller') {
-        mutex_lock 'dhcp';
-        mutex_unlock 'dhcp';
+        pause_until 'support_server_ready';
     }
 
     if (check_var('STACK_ROLE', 'worker')) {
         # Wait until admin node genarates autoyast profile
-        if (get_var 'AUTOYAST') {
-            mutex_lock 'VELUM_CONFIGURED';
-            mutex_unlock 'VELUM_CONFIGURED';
-        }
+        pause_until 'VELUM_CONFIGURED' if get_var('AUTOYAST');
         # Wait until first round of nodes are processed
-        if (get_var 'DELAYED_WORKER') {
-            mutex_lock 'NODES_ACCEPTED';
-            mutex_unlock 'NODES_ACCEPTED';
-        }
+        pause_until 'NODES_ACCEPTED' if get_var('DELAYED_WORKER');
     }
 }
 

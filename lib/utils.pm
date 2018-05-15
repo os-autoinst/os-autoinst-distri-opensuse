@@ -21,7 +21,7 @@ use Exporter;
 use strict;
 
 use testapi qw(is_serial_terminal :DEFAULT);
-use lockapi;
+use lockapi 'mutex_wait';
 use mm_network;
 use version_utils qw(is_caasp is_leap is_tumbleweed is_sle is_sle12_hdd_in_upgrade sle_version_at_least is_storage_ng);
 use Mojo::UserAgent;
@@ -76,7 +76,6 @@ our @EXPORT = qw(
   shorten_url
   reconnect_s390
   set_hostname
-  wait_supportserver
 );
 
 
@@ -560,7 +559,7 @@ sub poweroff_x11 {
 
     if (check_var("DESKTOP", "kde")) {
         send_key "ctrl-alt-delete";    # shutdown
-        assert_screen 'logoutdialog', 15;
+        assert_screen_with_soft_timeout('logoutdialog', timeout => 90, soft_timeout => 15, 'bsc#1091933');
 
         if (get_var("PLASMA5")) {
             assert_and_click 'sddm_shutdown_option_btn';
@@ -734,11 +733,6 @@ sub power_action {
     {
         assert_shutdown_and_restore_system($action, $shutdown_timeout);
     }
-    # The timeout is increased in order to check if the issue poo#35215 related to not enough wait for shutdown on
-    # Live CD
-    if (get_var('LIVECD')) {
-        $shutdown_timeout *= 10;
-    }
     else {
         assert_shutdown($shutdown_timeout) if $action eq 'poweroff';
         # We should only reset consoles if the system really rebooted.
@@ -810,11 +804,6 @@ sub addon_license {
     push @tags, (get_var("BETA_$uc_addon") ? "addon-betawarning-$addon" : "addon-license-$addon");
   license: {
         do {
-            # Soft-fail on SLE-15 if license is not there.
-            if (sle_version_at_least('15') && !check_screen \@tags) {
-                record_soft_failure 'bsc#1057223';
-                return;
-            }
             assert_screen \@tags;
             if (match_has_tag('import-untrusted-gpg-key')) {
                 record_soft_failure 'untrusted gpg key';
@@ -1216,25 +1205,6 @@ sub reconnect_s390 {
     if (!check_var('DESKTOP', 'textmode') && !sle_version_at_least('15')) {
         select_console('x11', await_console => 0);
     }
-}
-
-=head2 wait_supportserver
-
-  wait_supportserver():
-
-Wait for the support server to finish its initialization.
-Ideally, this should be done *before* starting the OS, mainly if a DHCP
-server is needed.
-
-=cut
-sub wait_supportserver {
-    return unless get_var('USE_SUPPORT_SERVER');
-
-    # We use mutex to do this
-    my $mutex = 'support_server_ready';
-    diag "Waiting for support server to complete setup (with mutex '$mutex')...";
-    mutex_lock($mutex);
-    mutex_unlock($mutex);
 }
 
 1;

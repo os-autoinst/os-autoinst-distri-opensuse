@@ -24,9 +24,6 @@
     <mode>
       <confirm config:type="boolean">false</confirm>
     </mode>
-    <storage>
-      <btrfs_set_default_subvolume_name config:type="boolean">false</btrfs_set_default_subvolume_name>
-    </storage>
   </general>
   <report>
     <errors>
@@ -98,18 +95,20 @@
           <partition_nr config:type="integer">2</partition_nr>
           <resize config:type="boolean">false</resize>
           <subvolumes config:type="list">
-            <listentry>
+            <subvolume>
               <copy_on_write config:type="boolean">true</copy_on_write>
               <path>opt</path>
-            </listentry>
-            <listentry>
+            </subvolume>
+            <subvolume>
               <copy_on_write config:type="boolean">false</copy_on_write>
               <path>tmp</path>
-            </listentry>
-            <listentry>
+            </subvolume>
+            <subvolume>
               <path>usr/local</path>
-            </listentry>
+            </subvolume>
           </subvolumes>
+          <!-- Create empty prefix, see bsc#1090095 -->
+          <subvolumes_prefix><![CDATA[]]></subvolumes_prefix>
         </partition>
         <partition>
           <create config:type="boolean">true</create>

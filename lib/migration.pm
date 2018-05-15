@@ -131,6 +131,9 @@ sub check_rollback_system {
     return unless is_sle;
     # Check SUSEConnect status for SLE
     # check rollback-helper service is enabled and worked properly
+    # Wait some time if rollback is in activating state
+    # Consider a bug if rollback service isn't done after that time
+    script_run('for x in `seq 60`; do (systemctl --no-pager status rollback | grep -q activating) && sleep 5; done');
     systemctl('status rollback');
     systemctl('is-active rollback');
 

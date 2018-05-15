@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -22,9 +22,8 @@ sub run {
     wait_still_screen;
     $self->upload_libreoffice_specified_file();
 
-    # check libreoffice dialogs setting
+    # start libreoffice
     x11_start_program('libreoffice');
-    $self->check_libreoffice_dialogs();
 
     # open test files of different formats
     my $i = 0;

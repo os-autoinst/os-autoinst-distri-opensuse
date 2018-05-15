@@ -42,7 +42,7 @@ sub addpart {
     assert_screen "partition-size";
     if (is_storage_ng) {
         # maximum size is selected by default
-        send_key 'alt-c';
+        send_key $cmd{customsize};
         assert_screen 'partition-custom-size-selected';
         send_key 'alt-s';
     }
@@ -268,7 +268,7 @@ sub add_prep_boot_partition {
     assert_screen 'partitioning-size';
     # Storage-ng has maximum size selected by default
     if (is_storage_ng) {
-        send_key 'alt-c';
+        send_key $cmd{customsize};
         wait_screen_change { send_key $cmd{size_hotkey} };
     }
     wait_screen_change { send_key 'ctrl-a' };    # Select text field content

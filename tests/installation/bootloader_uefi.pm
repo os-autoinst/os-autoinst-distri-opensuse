@@ -17,7 +17,7 @@ use strict;
 use Time::HiRes 'sleep';
 
 use testapi;
-use lockapi;
+use lockapi 'mutex_wait';
 use bootloader_setup;
 use registration;
 use utils;
@@ -85,7 +85,7 @@ sub run {
     registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED) unless (is_jeos or is_caasp);
 
     # boot
-    wait_supportserver if get_var('USE_SUPPORT_SERVER');
+    mutex_wait 'support_server_ready' if get_var('USE_SUPPORT_SERVER');
     send_key "f10";
 }
 

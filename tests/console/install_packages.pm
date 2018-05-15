@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -14,13 +14,14 @@
 use base "consoletest";
 use strict;
 use testapi;
+use utils 'zypper_call';
 
 sub run {
     select_console 'root-console';
 
     my $packages = get_var("INSTALL_PACKAGES");
 
-    assert_script_run("zypper -n in -l perl-solv");
+    zypper_call('in -l perl-solv perl-Data-Dump');
     my $ex = script_run("~$username/data/lsmfip --verbose $packages > \$XDG_RUNTIME_DIR/install_packages.txt 2> /tmp/lsmfip.log");
     upload_logs '/tmp/lsmfip.log';
     die "lsmfip failed" if $ex;

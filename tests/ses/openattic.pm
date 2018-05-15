@@ -25,6 +25,7 @@ sub run {
         zypper_call 'in firefox icewm xinit xorg-x11-server';
         type_string "startx\n";    # start icewm
         assert_screen 'generic-desktop';
+        mouse_set 100, 100;
         mouse_click 'right';
         send_key_until_needlematch 'xterm', 'ret';
         type_string "firefox http://master\n";    # open openattic web running on master node

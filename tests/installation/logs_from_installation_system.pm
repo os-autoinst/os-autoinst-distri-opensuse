@@ -44,4 +44,8 @@ sub run {
     $self->save_upload_y2logs();
 }
 
+sub test_flags {
+    return {fatal => 0};
+}
+
 1;

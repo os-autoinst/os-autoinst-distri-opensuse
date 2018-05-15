@@ -30,11 +30,6 @@ sub run {
         return;
     }
 
-    # Workaround for bsc#1070233: not update "Booting" option in upgrade mode
-    if (get_var('UPGRADE') && (!is_sle('<15') || !is_leap('<15.0'))) {
-        return record_soft_failure('bsc#1070233: Error if click on Booting option');
-    }
-
     # Verify Installation Settings overview is displayed as starting point
     assert_screen "installation-settings-overview-loaded";
 
@@ -49,6 +44,14 @@ sub run {
         send_key_until_needlematch 'booting-section-selected', 'tab';
         assert_screen 'booting-section-selected';
         send_key 'ret';
+    }
+
+    # Config bootloader is not be supported during an upgrade
+    # Add exception for SLES11SP4 base update, configure grub for this scenario
+    if (get_var('UPGRADE') && (!is_sle('<15') || !is_leap('<15.0')) && (!check_var('HDDVERSION', '11-SP4'))) {
+        assert_screen "bootloader-config-unsupport";
+        send_key 'ret';
+        return;
     }
     assert_screen([qw(inst-bootloader-settings inst-bootloader-settings-first_tab_highlighted)]);
     # Depending on an optional button "release notes" we need to press "tab"

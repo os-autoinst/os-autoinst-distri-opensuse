@@ -131,6 +131,10 @@ if (sle_version_at_least('15')) {
     }
 }
 
+# don't want updates, as we don't test it or rely on it in any tests, if is executed during installation
+# For released products we want install updates during installation, only in minimal workflow disable
+set_var('DISABLE_SLE_UPDATES', get_var('DISABLE_SLE_UPDATES', get_var('QAM_MINIMAL')));
+
 # Set serial console for Xen PV
 if (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux')) {
     if (sle_version_at_least('12-SP2')) {
@@ -300,7 +304,7 @@ if (is_updates_test_repo && !get_var('MAINT_TEST_REPO')) {
 if (get_var('ENABLE_ALL_SCC_MODULES') && !get_var('SCC_ADDONS')) {
     if (sle_version_at_least('15')) {
         # Add only modules which are not pre-selected
-        my $addons = 'legacy,sdk,pcm,wsm';
+        my $addons = 'legacy,sdk,pcm,wsm,phub';
         # Container module is missing for aarch64. Not a bug. fate#323788
         $addons .= ',contm' unless (check_var('ARCH', 'aarch64'));
         set_var('SCC_ADDONS', $addons);

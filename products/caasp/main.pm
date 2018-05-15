@@ -156,7 +156,7 @@ sub load_stack_tests {
         else {
             loadtest 'caasp/stack_reboot';
         }
-        loadtest 'caasp/stack_add_nodes' if get_delayed_worker;
+        loadtest 'caasp/stack_add_remove' if get_delayed_worker;
         unless (is_caasp('staging') || is_caasp('local')) {
             loadtest 'caasp/stack_conformance';
         }
@@ -185,7 +185,6 @@ sub stack_init {
     set_var 'STACK_NODES',   $stack_size - 1;
     set_var 'STACK_MASTERS', $stack_masters;
     set_var 'STACK_WORKERS', $stack_workers;
-    set_var 'STACK_DELAYED', $delayed_worker;
 
     barrier_create("WORKERS_INSTALLED", $stack_size);
 }
@@ -223,6 +222,7 @@ else {
 # REGISTER = 'installation' -> Registers with SCC during the installation
 if (get_var('REGISTER') && !check_var('STACK_ROLE', 'controller')) {
     loadtest 'caasp/register_and_check';
+    loadtest 'caasp/register_toolchain' if is_caasp('3.0+');
 }
 
 if (get_var('EXTRA', '') =~ /FEATURES/) {

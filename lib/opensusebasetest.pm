@@ -5,6 +5,7 @@ use bootloader_setup qw(boot_local_disk tianocore_enter_menu zkvm_add_disk zkvm_
 use testapi;
 use strict;
 use utils;
+use lockapi 'mutex_wait';
 use version_utils qw(is_sle is_leap is_upgrade);
 
 # Base class for all openSUSE tests
@@ -120,15 +121,22 @@ done", "binaries-with-missing-libraries.txt", {timeout => 60, noupload => 1});
 sub investigate_yast2_failure {
     my ($self) = shift;
 
+    my $error_detected;
     # first check if badlist exists which could be the most likely problem
     if (my $badlist = script_output 'test -f /var/log/YaST2/badlist && cat /var/log/YaST2/badlist | tail -n 20 || true') {
         record_info 'Likely error detected: badlist', "badlist content:\n\n$badlist", result => 'fail';
+        $error_detected = 1;
     }
-    if (my $y2log_internal_error = script_output 'grep -B 3 \'Internal error. Please report a bug report\' /var/log/YaST2/y2log | tail -n 20 || true') {
-        record_info 'Internal error in YaST2 detected', "Details:\n\n$y2log_internal_error", result => 'fail';
+    # Array with possible strings to search in YaST2 logs
+    my @y2log_errors = ('Internal error. Please report a bug report', '<3>', 'No textdomain configured');
+    for my $y2log_error (@y2log_errors) {
+        if (my $y2log_error_result = script_output 'grep -B 3 \'' . $y2log_error . '\' /var/log/YaST2/y2log | tail -n 20 || true') {
+            record_info 'YaST2 log error detected', "Details:\n\n$y2log_error_result", result => 'fail';
+            $error_detected = 1;
+        }
     }
-    elsif (my $y2log_other_error = script_output 'grep -B 3 \'<3>\' /var/log/YaST2/y2log | tail -n 20 || true') {
-        record_info 'Other error in YaST2 detected', "Details:\n\n$y2log_other_error", result => 'fail';
+    if (get_var('ASSERT_Y2LOGS') && $error_detected) {
+        die "YaST2 error(s) detected. Please, check details";
     }
 }
 
@@ -398,7 +406,7 @@ sub wait_boot {
             # check_screen timeout
             die "needle 'grub2' not found";
         }
-        wait_supportserver if get_var('USE_SUPPORT_SERVER');
+        mutex_wait 'support_server_ready' if get_var('USE_SUPPORT_SERVER');
         # confirm default choice
         send_key 'ret';
     }

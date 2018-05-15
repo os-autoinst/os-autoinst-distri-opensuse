@@ -14,19 +14,17 @@ package partition;
 use 5.018;
 use strict;
 use warnings;
-use base "opensusebasetest";
+use base 'opensusebasetest';
+use serial_terminal 'select_virtio_console';
 use utils;
 use testapi;
 
 sub run {
     my $self = shift;
-    select_console('root-console');
-
-    # Install parted
-    zypper_call("in parted", timeout => 600);
+    select_virtio_console();
 
     # Create partitions
-    my ($filesystem, $category) = split(/-/, get_var("XFSTESTS"));
+    my $filesystem = get_required_var('XFSTESTS');
     assert_script_run("/usr/share/qa/qa_test_xfstests/partition.py --delhome $filesystem && sync", 600);
 }
 
