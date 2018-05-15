@@ -136,6 +136,7 @@ sub load_feature_tests {
         loadtest 'console/docker_runc';
         # OCI Containers
         if (is_caasp('kubic') && check_var('SYSTEM_ROLE', 'plain')) {
+            loadtest 'console/kubeadm';
             loadtest 'console/skopeo';
             loadtest 'console/umoci';
             loadtest 'console/runc';
