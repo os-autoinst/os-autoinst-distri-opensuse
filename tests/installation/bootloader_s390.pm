@@ -283,12 +283,8 @@ sub run {
     # activate console so we can call wait_serial later
     my $c = select_console('iucvconn', await_console => 0);
 
-    # we also want to test the formatting during the installation if the variable is set
-    # Skip format dasd before origin system installation by autoyast in 'Upgrade on zVM'
-    # due to channal not activation issue. Need further investigation on it.
-    if (!get_var("FORMAT_DASD_YAST") && !get_var('S390_DISK') && !get_var('UPGRADE') && !get_var('UPGRADE_ON_ZVM')) {
-        format_dasd;
-    }
+    # format DAST before installation by default
+    format_dasd if (check_var('FORMAT_DASD', 'pre_install'));
 
     select_console("installation");
 
