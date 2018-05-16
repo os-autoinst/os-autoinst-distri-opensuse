@@ -31,11 +31,13 @@ sub run {
     assert_screen "vlc-network-window";
     send_key "backspace";
     type_string autoinst_url . "/data/Big_Buck_Bunny_8_seconds_bird_clip.ogv";
+    assert_screen "url_check";
     assert_and_click "vlc-play_button";
     # The video is actually 23 seconds long so give a bit of headroom for
     # startup
     assert_screen "vlc-done-playing", 90;
-    send_key "ctrl-q";
+    # sometimes send_key for closing windows not working
+    send_key_until_needlematch 'generic-desktop', "ctrl-q", 5, 5;
 }
 
 1;
