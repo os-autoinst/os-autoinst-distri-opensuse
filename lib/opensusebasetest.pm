@@ -1,7 +1,7 @@
 package opensusebasetest;
 use base 'basetest';
 
-use bootloader_setup qw(boot_local_disk tianocore_enter_menu zkvm_add_disk zkvm_add_pty zkvm_add_interface type_hyperv_fb_video_resolution);
+use bootloader_setup qw(stop_grub_timeout boot_local_disk tianocore_enter_menu zkvm_add_disk zkvm_add_pty zkvm_add_interface type_hyperv_fb_video_resolution);
 use testapi;
 use strict;
 use utils;
@@ -197,10 +197,12 @@ sub set_standard_prompt {
 sub select_bootmenu_more {
     my ($self, $tag, $more) = @_;
 
-    assert_screen "inst-bootmenu", 15;
+    # do not waste time waiting when we already matched
+    assert_screen 'inst-bootmenu', 15 unless match_has_tag 'inst-bootmenu';
+    stop_grub_timeout;
 
     # after installation-images 14.210 added a submenu
-    if ($more && check_screen "inst-submenu-more", 1) {
+    if ($more && check_screen 'inst-submenu-more', 0) {
         send_key_until_needlematch('inst-onmore', get_var('OFW') ? 'up' : 'down', 10, 5);
         send_key "ret";
     }
