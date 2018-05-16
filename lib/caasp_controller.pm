@@ -8,7 +8,10 @@ use lockapi 'barrier_destroy';
 use mmapi 'wait_for_children';
 
 use Exporter 'import';
-our @EXPORT = qw(confirm_insecure_https velum_login switch_to download_kubeconfig click_click xy);
+our @EXPORT = qw($admin_fqdn
+  confirm_insecure_https velum_login switch_to download_kubeconfig click_click xy);
+
+our $admin_fqdn = 'admin.openqa.test';
 
 # 10% of clicks are lost because ajax refreshes Velum during click
 sub click_click {

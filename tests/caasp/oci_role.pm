@@ -14,6 +14,7 @@ use strict;
 use base "y2logsstep";
 use caasp;
 use testapi;
+use caasp_controller '$admin_fqdn';
 
 sub run {
     my $role = get_var('SYSTEM_ROLE', 'admin');
@@ -32,6 +33,7 @@ sub run {
 
         send_key 'alt-t';
         type_string 'ns.openqa.test';
+        save_screenshot;
     }
     elsif ($role eq 'worker') {
         # Try with empty controller node
@@ -42,10 +44,9 @@ sub run {
 
         # Fill controller node information
         send_key 'alt-d';
-        type_string get_var('DASHBOARD_URL', 'dashboard-url');
-        assert_screen 'dashboard-url' unless get_var('DASHBOARD_URL');
+        type_string(get_var('STACK_ROLE') ? $admin_fqdn : 'dashboard-url');
+        assert_screen 'dashboard-url';
     }
-    save_screenshot;
 }
 
 1;
