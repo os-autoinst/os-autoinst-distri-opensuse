@@ -16,7 +16,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_sle sle_version_at_least);
+use version_utils qw(is_sle sle_version_at_least is_leap);
 
 sub test_srcpackage_output {
     my $info_output_coreutils = script_output 'zypper info srcpackage:coreutils';
@@ -71,6 +71,14 @@ sub run {
     # source repository is disabled by default
     elsif (check_var('DISTRI', 'opensuse')) {
         $cmd = "mr -e repo-source";
+    }
+
+    if (is_leap('15.0+') and get_var('ARCH') =~ /aarch64|ppc64le/) {
+        record_soft_failure(
+            'for Leap:15.0:Ports aarch64 and ppc64le, do not enable source repo, waiting for solved issue https://progress.opensuse.org/issues/36256');
+        zypper_call("ref");
+        test_package_output;
+        return;
     }
 
     zypper_call($cmd) if defined $cmd;
