@@ -351,9 +351,16 @@ elsif (get_var('GNUHEALTH')) {
     boot_hdd_image;
     loadtest 'gnuhealth/gnuhealth_install';
     loadtest 'gnuhealth/gnuhealth_setup';
-    loadtest 'gnuhealth/tryton_install';
-    loadtest 'gnuhealth/tryton_preconfigure';
-    loadtest 'gnuhealth/tryton_first_time';
+    if (is_leap('<15.0')) {
+        loadtest 'gnuhealth/tryton_install';
+        loadtest 'gnuhealth/tryton_preconfigure';
+        loadtest 'gnuhealth/tryton_first_time';
+    }
+    else {
+        loadtest 'gnuhealth/gnuhealth_client_install';
+        loadtest 'gnuhealth/gnuhealth_client_preconfigure';
+        loadtest 'gnuhealth/gnuhealth_client_first_time';
+    }
 }
 elsif (is_rescuesystem) {
     loadtest "installation/rescuesystem";
