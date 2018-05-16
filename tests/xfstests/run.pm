@@ -20,8 +20,8 @@ use testapi;
 use utils;
 
 # Heartbeat variables
-my $HB_INTVL   = get_var('XFSTESTS_HEARTBEAT_INTERVAL') || 5;
-my $HB_TIMEOUT = get_var('XFSTESTS_HEARTBEAT_TIMEOUT')  || 200;
+my $HB_INTVL   = get_var('XFSTESTS_HEARTBEAT_INTERVAL') || 30;
+my $HB_TIMEOUT = get_var('XFSTESTS_HEARTBEAT_TIMEOUT')  || 40;
 my $HB_PATN    = '<heartbeat>';
 my $HB_DONE    = '<done>';
 my $HB_DONE_FILE = '/tmp/test.done';
@@ -36,6 +36,7 @@ my $STATUS_LOG   = '/tmp/status.log';
 my $INST_DIR     = '/opt/xfstests';
 my $LOG_DIR      = '/tmp/log';
 my $KDUMP_DIR    = '/tmp/kdump';
+my $MAX_TIME     = 2400;
 
 # Create heartbeat script, directories(Call it only once)
 sub test_prepare {
@@ -43,9 +44,19 @@ sub test_prepare {
     my $script = <<END_CMD;
 #!/bin/sh
 rm -f $HB_DONE_FILE $HB_EXIT_FILE
+declare -i c=0
 while [[ ! -f $HB_EXIT_FILE ]]; do
-    sleep $HB_INTVL
-    [[ -f $HB_DONE_FILE ]] && echo '$HB_DONE' $redir || echo '$HB_PATN' $redir
+    if [[ -f $HB_DONE_FILE ]]; then
+        c=0
+        echo "$HB_DONE" $redir
+        sleep 2
+    elif [[ \$c -ge $HB_INTVL ]]; then
+        c=0
+        echo "$HB_PATN" $redir
+    else
+        c+=1
+    fi
+    sleep 1
 done
 END_CMD
     assert_script_run("cat > $HB_SCRIPT <<'END'\n$script\nEND\n( exit \$?)");
@@ -95,13 +106,18 @@ sub heartbeat_wait {
 
 # Wait for test to finish
 sub test_wait {
-    my $time = $HB_INTVL;
+    my $timeout = shift;
+    my $begin   = time();
     my ($type, $status) = heartbeat_wait;
-    while ($type eq $HB_PATN) {
+    my $delta = time() - $begin;
+    while ($type eq $HB_PATN and $delta < $timeout) {
         ($type, $status) = heartbeat_wait;
-        $time += $HB_INTVL;
+        $delta = time() - $begin;
     }
-    return ($type, $status, $time);
+    if ($type eq $HB_PATN) {
+        return ('', 'FAILED', $delta);
+    }
+    return ($type, $status, $delta);
 }
 
 # Return the name of a test(e.g. xfs-005)
@@ -173,10 +189,46 @@ sub tests_from_ranges {
 sub test_run {
     my $test = shift;
     my ($category, $num) = split(/\//, $test);
-    my $cmd = "\n$TEST_WRAPPER '$test' | ";
-    $cmd .= "tee $LOG_DIR/$category/$num; ";
+    my $cmd = "\n$TEST_WRAPPER '$test' | tee $LOG_DIR/$category/$num; ";
     $cmd .= "echo \${PIPESTATUS[0]} > $HB_DONE_FILE\n";
     type_string($cmd);
+}
+
+# Save kdump data for further uploading
+# test   - corresponding test(e.g. xfs/009)
+# dir    - Save kdump data to this dir
+# vmcore - include vmcore file
+# kernel - include kernel
+sub save_kdump {
+    my ($test, $dir, %args) = @_;
+    $args{vmcore} ||= 0;
+    $args{kernel} ||= 0;
+    my $name = test_name($test);
+    my $ret  = script_run("mv /var/crash/* $dir/$name");
+    return 0 if $ret != 0;
+
+    my $removed = "";
+    unless ($args{vmcore}) {
+        $removed .= " $dir/$name/vmcore";
+    }
+    unless ($args{kernel}) {
+        $removed .= " $dir/$name/*.{gz,bz2,xz}";
+    }
+    if ($removed) {
+        assert_script_run("rm -f $removed");
+    }
+    return 1;
+}
+
+# Kunth shuffle
+sub shuffle {
+    my @arr = @_;
+    srand(time());
+    for (my $i = $#arr; $i > 0; $i--) {
+        my $j = int(rand($i + 1));
+        ($arr[$i], $arr[$j]) = ($arr[$j], $arr[$i]);
+    }
+    return @arr;
 }
 
 sub run {
@@ -185,6 +237,7 @@ sub run {
 
     # Get test list
     my @tests = tests_from_ranges($TEST_RANGES, $INST_DIR);
+    @tests = shuffle(@tests);
 
     test_prepare;
     heartbeat_start;
@@ -196,12 +249,8 @@ sub run {
 
         # Run test and wait for it to finish
         my ($category, $num) = split(/\//, $test);
-
-        # TODO: Remove this after kdump data uploading is implemented
-        assert_script_run("echo '$test:' | tee /dev/$serialdev");
-
         test_run($test);
-        my ($type, $status, $time) = test_wait;
+        my ($type, $status, $time) = test_wait($MAX_TIME);
         if ($type eq $HB_DONE) {
             # Test finished without crashing SUT
             log_add($STATUS_LOG, $test, $status, $time);
@@ -222,9 +271,14 @@ sub run {
 
         sleep(1);
         select_console('root-console');
+        # Save kdump data to KDUMP_DIR
+        unless (save_kdump($test, $KDUMP_DIR)) {
+            # If no kdump data found, write warning to log
+            my $msg = "Warning: $test crashed SUT but has no kdump data";
+            script_run("echo '$msg' >> $LOG_DIR/$category/$num");
+        }
 
-        # TODO: upload kdump data
-
+        # Add test status to STATUS_LOG file
         log_add($STATUS_LOG, $test, $status, $time);
 
         # Prepare for the next test
