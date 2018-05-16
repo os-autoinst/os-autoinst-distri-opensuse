@@ -1076,8 +1076,7 @@ sub load_consoletests {
         loadtest "console/http_srv";
         loadtest "console/mysql_srv";
         loadtest "console/dns_srv";
-        # TODO test on openSUSE -> https://progress.opensuse.org/issues/27014
-        loadtest "console/postgresql_server" if is_sle;
+        loadtest "console/postgresql_server";
         # TODO test on openSUSE https://progress.opensuse.org/issues/31972
         if (is_sle && sle_version_at_least('12-SP1')) {    # shibboleth-sp not available on SLES 12 GA
             loadtest "console/shibboleth";
