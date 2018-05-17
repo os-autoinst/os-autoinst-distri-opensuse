@@ -14,6 +14,7 @@ package installation_user_settings;
 use strict;
 use warnings;
 use testapi;
+use version_utils 'is_sle';
 
 sub type_password_and_verification {
     for (1 .. 2) {
@@ -23,8 +24,11 @@ sub type_password_and_verification {
 
 sub await_password_check {
     # PW too easy (cracklib)
+    # bsc#937012 is resolved in > SLE 12, skip if VERSION=12
+    return if (is_sle('=12') && check_var('ARCH', 's390x'));
     assert_screen 'inst-userpasswdtoosimple';
-    send_key 'ret';
+    send_key 'ret' if match_has_tag 'inst-userpasswdtoosimple';
+
 }
 
 1;
