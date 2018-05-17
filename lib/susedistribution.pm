@@ -80,6 +80,8 @@ sub init_cmd {
       sync_interval alt-n
       sync_without_daemon alt-y
       toggle_home alt-p
+      raw_volume alt-a
+      enable_snapshots alt-n
     );
 
     if (check_var('INSTLANG', "de_DE")) {
