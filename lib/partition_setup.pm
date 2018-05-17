@@ -17,9 +17,10 @@ use testapi;
 use version_utils 'is_storage_ng';
 use installation_user_settings 'await_password_check';
 
-our @EXPORT = qw(addpart addlv create_new_partition_table enable_encryption_guided_setup select_first_hard_disk take_first_disk unselect_xen_pv_cdrom);
+our @EXPORT
+  = qw(addpart addlv create_new_partition_table enable_encryption_guided_setup select_first_hard_disk take_first_disk unselect_xen_pv_cdrom %partition_roles);
 
-my %role = qw(
+our %partition_roles = qw(
   OS alt-o
   data alt-d
   swap alt-s
@@ -98,7 +99,7 @@ sub addpart {
     if ($args{size}) {
         if (is_storage_ng) {
             # maximum size is selected by default
-            send_key 'alt-c';
+            send_key $cmd{customsize};
             assert_screen 'partition-custom-size-selected';
             send_key 'alt-s';
         }
@@ -109,7 +110,7 @@ sub addpart {
     }
     send_key $cmd{next};
     assert_screen 'partition-role';
-    send_key $role{$args{role}};
+    send_key $partition_roles{$args{role}};
     send_key $cmd{next};
     assert_screen 'partition-format';
     if ($args{format}) {
@@ -127,7 +128,7 @@ sub addpart {
     }
     # Enable snapshots option works only with btrfs
     if ($args{enable_snapshots} && $args{format} eq 'btrfs') {
-        send_key_until_needlematch('partition-btrfs-snapshots-enabled', (is_storage_ng) ? 'alt-p' : 'alt-n');
+        send_key_until_needlematch('partition-btrfs-snapshots-enabled', $cmd{enable_snapshots});
     }
     if ($args{fsid}) {                                 # $args{fsid} will describe needle tag below
         send_key 'alt-i';                              # select File system ID
@@ -167,7 +168,7 @@ sub addlv {
     send_key $cmd{next};
     assert_screen 'partition-lv-size';
     if ($args{size}) {    # use default max size if not defined
-        send_key 'alt-c';    # custom size
+        send_key((is_storage_ng) ? 'alt-t' : $cmd{customsize});    # custom size
         assert_screen 'partition-custom-size-selected';
         send_key 'alt-s' if is_storage_ng;
         # Remove text
@@ -177,7 +178,7 @@ sub addlv {
     }
     send_key $cmd{next};
     assert_screen 'partition-role';
-    send_key $role{$args{role}};    # swap role
+    send_key $partition_roles{$args{role}};                        # swap role
     send_key $cmd{next};
     assert_screen 'partition-format';
     # Add mount

@@ -1,7 +1,7 @@
 package opensusebasetest;
 use base 'basetest';
 
-use bootloader_setup qw(boot_local_disk tianocore_enter_menu zkvm_add_disk zkvm_add_pty zkvm_add_interface type_hyperv_fb_video_resolution);
+use bootloader_setup qw(stop_grub_timeout boot_local_disk tianocore_enter_menu zkvm_add_disk zkvm_add_pty zkvm_add_interface type_hyperv_fb_video_resolution);
 use testapi;
 use strict;
 use utils;
@@ -197,10 +197,12 @@ sub set_standard_prompt {
 sub select_bootmenu_more {
     my ($self, $tag, $more) = @_;
 
-    assert_screen "inst-bootmenu", 15;
+    # do not waste time waiting when we already matched
+    assert_screen 'inst-bootmenu', 15 unless match_has_tag 'inst-bootmenu';
+    stop_grub_timeout;
 
     # after installation-images 14.210 added a submenu
-    if ($more && check_screen "inst-submenu-more", 1) {
+    if ($more && check_screen 'inst-submenu-more', 0) {
         send_key_until_needlematch('inst-onmore', get_var('OFW') ? 'up' : 'down', 10, 5);
         send_key "ret";
     }
@@ -345,13 +347,18 @@ sub wait_boot {
             select_console('iucvconn');
         }
         else {
+            my $worker_hostname = get_required_var('WORKER_HOSTNAME');
             workaround_type_encrypted_passphrase if get_var('S390_ZKVM');
             wait_serial('GNU GRUB') || diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
             select_console('svirt');
             save_svirt_pty;
             type_line_svirt '', expect => $login_ready, timeout => $ready_time + 100, fail_message => 'Could not find login prompt';
             $self->rewrite_static_svirt_network_configuration();
-            type_line_svirt "systemctl is-active sshd", expect => 'active';
+            # check up to five times if the SUT it able to ping the worker before trying to connect a console
+            type_line_svirt "'for i in {1..5}; do ping -W 1 -c 1 $worker_hostname && break; sleep 5; done'",
+              expect       => '0% packet loss',
+              timeout      => 60,
+              fail_message => 'SUT was not able to ping hypervisor, network down?';
         }
 
         # on z/(K)VM we need to re-select a console

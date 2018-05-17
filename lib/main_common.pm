@@ -816,7 +816,10 @@ sub load_inst_tests {
             }
             loadtest "installation/partitioning_filesystem";
         }
-        if (get_var("TOGGLEHOME")) {
+        # boo#1093372 Leap 15.0 proposes a separate home even on small disks
+        # making the root partition likely to small so we should switch the
+        # defaults here
+        if (get_var("TOGGLEHOME") || (is_leap('15.0+') && get_var('HDDSIZEGB', 0) < 12)) {
             loadtest "installation/partitioning_togglehome";
             if (get_var('LVM') && get_var('RESIZE_ROOT_VOLUME')) {
                 loadtest "installation/partitioning_resize_root";
@@ -1073,8 +1076,7 @@ sub load_consoletests {
         loadtest "console/http_srv";
         loadtest "console/mysql_srv";
         loadtest "console/dns_srv";
-        # TODO test on openSUSE -> https://progress.opensuse.org/issues/27014
-        loadtest "console/postgresql_server" if is_sle;
+        loadtest "console/postgresql_server";
         # TODO test on openSUSE https://progress.opensuse.org/issues/31972
         if (is_sle && sle_version_at_least('12-SP1')) {    # shibboleth-sp not available on SLES 12 GA
             loadtest "console/shibboleth";

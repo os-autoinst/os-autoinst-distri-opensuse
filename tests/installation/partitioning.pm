@@ -16,6 +16,7 @@ use warnings;
 use base "y2logsstep";
 use testapi;
 use version_utils qw(is_leap is_storage_ng is_sle sle_version_at_least);
+use partition_setup '%partition_roles';
 
 sub run {
     assert_screen 'partitioning-edit-proposal-button', 40;
@@ -38,13 +39,19 @@ sub run {
     if (match_has_tag('storage-ng')) {
         set_var('STORAGE_NG', 1);
         # Define changed shortcuts
-        $cmd{donotformat}     = 'alt-t';
-        $cmd{addraid}         = 'alt-r';
-        $cmd{filesystem}      = 'alt-r';
-        $cmd{rescandevices}   = 'alt-r';
-        $cmd{customsize}      = 'alt-o';
-        $cmd{exp_part_finish} = 'alt-n';
-        $cmd{guidedsetup}     = 'alt-g';
+        $cmd{addraid}          = 'alt-r';
+        $cmd{customsize}       = 'alt-o';
+        $cmd{donotformat}      = 'alt-t';
+        $cmd{exp_part_finish}  = 'alt-n';
+        $cmd{filesystem}       = 'alt-r';
+        $cmd{guidedsetup}      = 'alt-g';
+        $cmd{rescandevices}    = 'alt-r';
+        $cmd{resize}           = 'alt-r';
+        $cmd{raw_volume}       = 'alt-r';
+        $cmd{enable_snapshots} = 'alt-a';
+        # Set shortcut for role selection when creating partition
+        $partition_roles{raw} = $cmd{raw_volume};
+
         if (check_var('DISTRI', 'opensuse')) {
             #TODO remove SYSTEM_ROLE_FIRST_FLOW usages with versions checks
             $cmd{expertpartitioner} = get_var('SYSTEM_ROLE_FIRST_FLOW') ? 'alt-e' : 'alt-x';

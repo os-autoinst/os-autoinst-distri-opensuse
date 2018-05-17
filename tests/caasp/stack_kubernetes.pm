@@ -24,7 +24,7 @@ sub run {
     assert_script_run "kubectl cluster-info";
     assert_script_run "kubectl cluster-info > cluster.before_update";
     assert_script_run "kubectl config view --flatten=true | tee /dev/$serialdev";
-    assert_script_run "kubectl get nodes";
+    script_retry "kubectl get nodes", delay => 10;
     assert_script_run "! kubectl get cs --no-headers | grep -v Healthy";
 
     # Check cluster size

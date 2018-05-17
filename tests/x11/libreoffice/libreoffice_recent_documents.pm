@@ -35,7 +35,9 @@ sub run {
     # Check Recent Documents
     wait_still_screen;
     x11_start_program('oowriter');
-    send_key "alt-f";
+    if (is_sle('<15')) {
+        send_key "alt-f";
+    }
     # Because of bsc#1074057 alt-f is not working in libreoffice under wayland
     # use another way to replace alt-f in SLED15
     if (is_sle '15+') {
