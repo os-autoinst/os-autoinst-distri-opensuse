@@ -515,7 +515,6 @@ sub activate_console {
             $nr = get_root_console_tty if ($name eq 'root');
             $nr = 5 if ($name eq 'log');
             my @tags = ("tty$nr-selected", "text-logged-in-$user");
-            push(@tags, 'text-login') unless $args{ensure_tty_selected};
             # s390 zkvm uses a remote ssh session which is root by default so
             # search for that and su to user later if necessary
             push(@tags, 'text-logged-in-root') if get_var('S390_ZKVM');
@@ -526,13 +525,6 @@ sub activate_console {
             assert_screen \@tags, 60;
             # Accept 'text-login' by default
             if (match_has_tag("tty$nr-selected")) {
-                type_string "$user\n";
-                handle_password_prompt;
-            }
-            elsif (match_has_tag("text-login") && !$args{ensure_tty_selected}) {
-                # Try to match tty$nr-selected explicitly so we have all correct needles before
-                # making ensure_tty_selected default behavior
-                record_soft_failure("poo#32926, couldn't assert tty was switched") unless check_screen("tty$nr-selected");
                 type_string "$user\n";
                 handle_password_prompt;
             }
