@@ -42,11 +42,13 @@ sub run {
 
     # kexec -l
     assert_script_run("kexec -l $kernel_new --initrd=$initrd_new --command-line='$cmdline'");
+    # clear console to prevent next assert_screen to match on the prompt
+    # before reboot
+    clear_console;
     # kexec -e
     # don't use built-in systemctl api, see poo#31180
     script_run("systemctl kexec", 0);
-    # wait for reboot
-    reset_consoles();
+    reset_consoles;
     assert_screen('linux-login', 300);
     select_console('root-console');
     # Check kernel cmdline parameter
