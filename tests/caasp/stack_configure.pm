@@ -55,7 +55,7 @@ sub upload_autoyast {
 }
 
 sub run {
-    x11_start_program('firefox admin.openqa.test', target_match => 'firefox');
+    x11_start_program("firefox $admin_fqdn", target_match => 'firefox');
     send_key 'f11';
     wait_still_screen 3;
 

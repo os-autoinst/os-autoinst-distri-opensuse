@@ -27,13 +27,13 @@ use utils qw(ensure_serialdev_permissions turn_off_gnome_screensaver);
 
 sub firefox_import_ca {
     # Setup ssh
-    script_run 'ssh-copy-id -f admin.openqa.test', 0;
+    script_run "ssh-copy-id -f $admin_fqdn", 0;
     assert_screen 'ssh-password-prompt';
     type_password;
     send_key 'ret';
 
     # Install certificate
-    assert_script_run 'scp admin.openqa.test:/etc/pki/ca.crt .';
+    assert_script_run "scp $admin_fqdn:/etc/pki/ca.crt .";
     assert_script_run 'certutil -A -n CaaSP -d .mozilla/firefox/*.default -i ca.crt -t "C,,"';
 }
 
