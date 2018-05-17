@@ -19,17 +19,16 @@ use caasp qw(script_retry unpause);
 
 sub run {
     switch_to 'xterm';
-    my $admin = 'admin.openqa.test';
 
-    record_info 'Admin reboot',       'Test admin node reboot';
-    script_run "ssh $admin 'reboot'", 0;
+    record_info 'Admin reboot',            'Test admin node reboot';
+    script_run "ssh $admin_fqdn 'reboot'", 0;
     # Wait until admin node powers off
-    script_retry "ping -c1 -W1 $admin", expect => 1, retry => 3, delay => 10;
+    script_retry "ping -c1 -W1 $admin_fqdn", expect => 1, retry => 3, delay => 10;
     # Wait until velum is reachable again
-    script_retry "curl -kLI -m5 $admin | grep _velum_session";
+    script_retry "curl -kLI -m5 $admin_fqdn | grep _velum_session";
 
     record_info 'Cluster reboot', 'Test cluster reboot';
-    assert_script_run "ssh $admin './update.sh -r' | tee /dev/$serialdev | grep EXIT_OK";
+    assert_script_run "ssh $admin_fqdn './update.sh -r' | tee /dev/$serialdev | grep EXIT_OK";
     # Wait until cluster powers off
     script_retry 'kubectl get nodes', expect => 1, retry => 3, delay => 10;
     # Wait until kubernetes is reachable again

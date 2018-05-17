@@ -49,7 +49,7 @@ sub velum_config {
 sub upload_autoyast {
     send_key 'alt-tab';    # switch to xterm
     assert_screen 'xterm';
-    assert_script_run 'curl --location ' . get_var('DASHBOARD_URL') . '/autoyast' . ' --output autoyast.xml';
+    assert_script_run "curl --location $admin_fqdn/autoyast --output autoyast.xml";
     upload_logs('autoyast.xml');
     send_key 'alt-tab';    # switch to xterm
 }
