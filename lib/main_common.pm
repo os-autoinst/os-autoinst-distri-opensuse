@@ -965,6 +965,7 @@ sub load_consoletests {
         loadtest "rt/kmp_modules";
     }
     loadtest "console/consoletest_setup";
+    loadtest 'console/integration_services' if is_hyperv;
     loadtest "locale/keymap_or_locale";
     loadtest "console/repo_orphaned_packages_check" if is_jeos;
     loadtest "console/force_cron_run" unless is_jeos;
@@ -1275,6 +1276,7 @@ sub load_yast2_ncurses_tests {
     boot_hdd_image;
     # setup $serialdev permission and so on
     loadtest "console/consoletest_setup";
+    loadtest 'console/integration_services' if is_hyperv;
     loadtest "console/hostname";
     loadtest "console/zypper_lr";
     loadtest "console/zypper_ref";
@@ -1461,6 +1463,7 @@ sub load_extra_tests {
 
     # setup $serialdev permission and so on
     loadtest "console/consoletest_setup";
+    loadtest 'console/integration_services' if is_hyperv;
     loadtest "console/hostname";
     if (any_desktop_is_applicable()) {
         load_extra_tests_desktop;
@@ -1490,6 +1493,7 @@ sub load_filesystem_tests {
 
     # setup $serialdev permission and so on
     loadtest "console/consoletest_setup";
+    loadtest 'console/integration_services' if is_hyperv;
     loadtest "console/hostname";
     if (get_var("FILESYSTEM", "btrfs") eq "btrfs") {
         loadtest "console/snapper_jeos_cli" if is_jeos;
@@ -1746,6 +1750,7 @@ sub load_create_hdd_tests {
     loadtest 'ses/install_ses' if check_var_array('ADDONS', 'ses') || check_var_array('SCC_ADDONS', 'ses');
     # temporary adding test modules which applies hacks for missing parts in sle15
     loadtest 'console/sle15_workarounds' if is_sle('15+');
+    loadtest 'console/integration_services' if is_hyperv;
     loadtest 'console/hostname'       unless is_bridged_networking;
     loadtest 'console/force_cron_run' unless is_jeos;
     # Remove repos pointing to download.opensuse.org and add snaphot repo from o3

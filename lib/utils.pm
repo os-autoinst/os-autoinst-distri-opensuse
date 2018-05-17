@@ -23,7 +23,7 @@ use strict;
 use testapi qw(is_serial_terminal :DEFAULT);
 use lockapi 'mutex_wait';
 use mm_network;
-use version_utils qw(is_caasp is_leap is_tumbleweed is_sle is_sle12_hdd_in_upgrade sle_version_at_least is_storage_ng);
+use version_utils qw(is_caasp is_leap is_tumbleweed is_sle is_sle12_hdd_in_upgrade sle_version_at_least is_storage_ng is_jeos);
 use Mojo::UserAgent;
 
 our @EXPORT = qw(
@@ -33,6 +33,7 @@ our @EXPORT = qw(
   type_string_very_slow
   save_svirt_pty
   type_line_svirt
+  integration_services_check
   unlock_if_encrypted
   prepare_system_shutdown
   get_netboot_mirror
@@ -138,6 +139,29 @@ sub handle_grub_zvm {
     }
     else {
         $console->sequence_3270("ENTER", "ENTER", "ENTER", "ENTER");
+    }
+}
+
+=head2 integration_services_check
+Make sure integration services (e.g. kernel modules, utilities, services)
+are present and in working condition. Just Hyper-V for now.
+=cut
+sub integration_services_check {
+    if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
+        assert_script_run('rpmquery hyper-v');
+        assert_script_run('rpmverify hyper-v');
+        my $base = is_jeos() ? '-base' : '';
+        for my $module (qw(utils netvsc storvsc vmbus)) {
+            assert_script_run("rpmquery -l kernel-default$base | grep hv_${module}.ko");
+            assert_script_run("modinfo hv_$module");
+            assert_script_run("lsmod | grep hv_$module");
+        }
+        # 'hv_balloon' need not to be loaded
+        assert_script_run('modinfo hv_balloon');
+        systemctl('is-active hv_kvp_daemon.service');
+        systemctl('is-active hv_vss_daemon.service');
+        # 'Guest Services' are not enabled by default on our VMs
+        assert_script_run('systemctl list-unit-files | grep hv_fcopy_daemon.service');
     }
 }
 

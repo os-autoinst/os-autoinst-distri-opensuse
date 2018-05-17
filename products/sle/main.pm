@@ -15,7 +15,8 @@ use lockapi;
 use needle;
 use registration;
 use utils;
-use version_utils qw(is_hyperv_in_gui is_caasp is_installcheck is_rescuesystem sle_version_at_least is_desktop_installed is_jeos is_sle is_staging is_upgrade);
+use version_utils
+  qw(is_hyperv is_hyperv_in_gui is_caasp is_installcheck is_rescuesystem sle_version_at_least is_desktop_installed is_jeos is_sle is_staging is_upgrade);
 use File::Find;
 use File::Basename;
 use LWP::Simple 'head';
@@ -1051,6 +1052,7 @@ else {
         # Always load zypper_lr test for migration case and get repo information for investigation
         if (get_var("INSTALLONLY")) {
             loadtest "console/consoletest_setup";
+            loadtest 'console/integration_services' if is_hyperv;
             loadtest "console/zypper_lr";
         }
     }
