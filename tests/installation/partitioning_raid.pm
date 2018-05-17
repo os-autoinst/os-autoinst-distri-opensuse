@@ -174,7 +174,8 @@ sub modify_uefi_boot_partition {
     # edit first partition
     send_key 'alt-e';
     assert_screen 'partition-format';
-    send_key $cmd{raw_volume};
+    # We have different shortcut for Format option when editing partition
+    send_key 'alt-a';
     assert_screen 'partitioning_raid-format_default_UEFI';
     # format as FAT (first choice)
     send_key 'tab';
