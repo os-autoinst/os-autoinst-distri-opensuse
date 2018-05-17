@@ -60,7 +60,7 @@ sub bootstrap {
     for (1 .. 3) { send_key 'tab'; }
     type_string 'master.openqa.test';
     send_key 'tab';
-    type_string 'admin.openqa.test';
+    type_string $admin_fqdn;
     assert_and_click "velum-bootstrap";
 
     # Wait until bootstrap finishes
