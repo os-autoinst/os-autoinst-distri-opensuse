@@ -28,19 +28,36 @@ sub prepare_to_update {
 
     # Add UPDATE repository
     assert_script_run "ssh $admin_fqdn './update.sh -s $repo' | tee /dev/$serialdev | grep EXIT_OK", 120;
+}
 
-    # Install packages that should be updated - poo#114205
-    if (is_caasp('qam')) {
-        assert_script_run "ssh $admin_fqdn './update.sh -i' | tee /dev/$serialdev | grep EXIT_OK", 600;
-
-        # Wait until cluster comes back after reboot
-        script_retry 'kubectl get nodes';
-        script_retry "curl -kLI -m5 $admin_fqdn | grep _velum_session";
+# Orchestrate the reboot via Velum
+sub orchestrate_velum_reboot {
+    my $nodes = get_required_var('STACK_NODES');
+    assert_screen "velum-$nodes-nodes-outdated";
+    if (check_screen "velum-update-all", 0) {
+        record_soft_failure 'bnc#1085677 - Should not update nodes before admin';
     }
 
-    # Update packages
-    assert_script_run "ssh $admin_fqdn './update.sh -u' | tee /dev/$serialdev | grep EXIT_OK", 1200;
-    switch_to 'velum';
+    # Update admin node (~160s for admin reboot)
+    assert_and_click 'velum-update-admin';
+    assert_and_click 'velum-update-reboot';
+
+    # Update all nodes - this part takes long time (~2 minutes per node)
+    my @needles_array = ('velum-sorry', "velum-$nodes-nodes-outdated");
+    assert_screen [@needles_array], 300;
+    if (match_has_tag 'velum-sorry') {
+        record_soft_failure('bnc#1074836 - delay caused due to Meltdown');
+        # workaround for meltdown
+        send_key_until_needlematch "velum-$nodes-nodes-outdated", 'f5', 10, 120;
+    }
+
+    die "Admin should be updated already" if check_screen 'velum-update-admin', 0;
+    assert_and_click "velum-update-all";
+
+    # 5 minutes per node
+    assert_screen 'velum-bootstrap-done', $nodes * 300;
+    die "Nodes should be updated already" if check_screen "velum-0-nodes-outdated", 0;
+
 }
 
 # Check that update changed system as expected
@@ -71,35 +88,40 @@ sub check_update_changes {
     switch_to 'velum';
 }
 
+sub perform_the_update {
+    assert_script_run "ssh $admin_fqdn './update.sh -u' | tee /dev/$serialdev | grep EXIT_OK", 1200;
+    switch_to 'velum';
+}
+
 sub run {
+    record_info 'Repo', 'Add the testing repository into each node of the cluster';
     prepare_to_update;
 
-    my $nodes = get_required_var('STACK_NODES');
-    assert_screen "velum-$nodes-nodes-outdated";
-    if (check_screen "velum-update-all", 0) {
-        record_soft_failure 'bnc#1085677 - Should not update nodes before admin';
+    if (is_caasp('qam')) {
+        record_info 'Prepare', 'Install packages that are not part of the DVD but they are part of this incident';
+        my $returnCode = script_run("ssh $admin_fqdn './update.sh -i' | tee /dev/$serialdev | grep QAM_INSTALL", 600);
+        if ($returnCode == 0) {
+
+            # Reboot the cluster
+            switch_to 'velum';
+            record_info 'Reboot', 'Orchestrate the reboot via Velum';
+            orchestrate_velum_reboot;
+            check_update_changes;
+            switch_to 'xterm';
+
+            # Wait until cluster comes back and Velum is up and running
+            script_retry 'kubectl get nodes';
+            script_retry "curl -kLI -m5 $admin_fqdn | grep _velum_session";
+        }
+        else {
+            record_info 'Skip Prepare', 'All packages included in this maintenance incident are pre-installed (DVD).';
+        }
     }
 
-    # Update admin node (~160s for admin reboot)
-    assert_and_click 'velum-update-admin';
-    assert_and_click 'velum-update-reboot';
-
-    # Update all nodes - this part takes long time (~2 minutes per node)
-    my @needles_array = ('velum-sorry', "velum-$nodes-nodes-outdated");
-    assert_screen [@needles_array], 300;
-    if (match_has_tag 'velum-sorry') {
-        record_soft_failure('bnc#1074836 - delay caused due to Meltdown');
-        # workaround for meltdown
-        send_key_until_needlematch "velum-$nodes-nodes-outdated", 'f5', 10, 120;
-    }
-
-    die "Admin should be updated already" if check_screen 'velum-update-admin', 0;
-    assert_and_click "velum-update-all";
-
-    # 5 minutes per node
-    assert_screen 'velum-bootstrap-done', $nodes * 300;
-    die "Nodes should be updated already" if check_screen "velum-0-nodes-outdated", 0;
-
+    record_info 'Update', 'Apply the update using transactional update via salt and docker';
+    perform_the_update;
+    record_info 'Reboot', 'Orchestrate the reboot via Velum';
+    orchestrate_velum_reboot;
     check_update_changes;
     unpause 'REBOOT_FINISHED';
 }
