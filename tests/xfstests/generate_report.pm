@@ -35,11 +35,10 @@ sub log_end {
 # Compress all sub directories under $dir and upload them.
 sub upload_subdirs {
     my ($dir, $timeout) = @_;
-    my $cmd = "for i in `ls $dir`; do tar cJf $dir/\$i.tar.xz -C $dir \$i; done";
-    assert_script_run($cmd, $timeout);
-    # Upload tarballs
-    my $output = script_output("find $dir -regex '.*\\.tar\\.xz'");
-    for my $tarball (split(/\n/, $output)) {
+    my $output = script_output("find $dir -maxdepth 1 -mindepth 1 -type f -or -type d");
+    for my $subdir (split(/\n/, $output)) {
+        my $tarball = "$subdir.tar.xz";
+        assert_script_run("tar cJf $tarball -C $dir " . basename($subdir), $timeout);
         upload_logs($tarball, timeout => $timeout, log_name => basename($dir));
     }
 }
@@ -53,7 +52,10 @@ sub run {
     upload_logs($STATUS_LOG, timeout => 60, log_name => "test");
 
     # Upload test logs
-    upload_subdirs($LOG_DIR, 3600);
+    upload_subdirs($LOG_DIR, 1200);
+
+    # Upload kdump logs
+    upload_subdirs($KDUMP_DIR, 1200);
 
     # Junit xml report
     my $script_output = script_output("cat $STATUS_LOG", 600);

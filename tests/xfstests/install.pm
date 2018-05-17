@@ -45,4 +45,8 @@ sub run {
     log_create($STATUS_LOG);
 }
 
+sub test_flags {
+    return {fatal => 1};
+}
+
 1;

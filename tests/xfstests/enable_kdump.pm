@@ -35,8 +35,12 @@ sub run {
     # Reboot
     power_action('reboot');
     $self->wait_boot;
-    select_virtio_console();
-    return 1 unless kdump_is_active;
+    select_console('root-console');
+    die "Failed to enable kdump" unless kdump_is_active;
+}
+
+sub test_flags {
+    return {fatal => 1};
 }
 
 1;

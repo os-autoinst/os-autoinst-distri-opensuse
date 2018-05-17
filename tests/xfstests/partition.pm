@@ -28,4 +28,8 @@ sub run {
     assert_script_run("/usr/share/qa/qa_test_xfstests/partition.py --delhome $filesystem && sync", 600);
 }
 
+sub test_flags {
+    return {fatal => 1};
+}
+
 1;
