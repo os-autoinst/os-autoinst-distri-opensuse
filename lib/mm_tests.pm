@@ -56,4 +56,3 @@ sub configure_stunnel {
 }
 
 1;
-# vim: set sw=4 et:

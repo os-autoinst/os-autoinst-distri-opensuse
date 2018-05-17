@@ -231,4 +231,3 @@ if (get_var('EXTRA', '') =~ /FEATURES/) {
 }
 
 1;
-# vim: set sw=4 et:

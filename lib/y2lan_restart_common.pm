@@ -99,4 +99,3 @@ sub verify_network_configuration {
 }
 
 1;
-# vim: set sw=4 et:

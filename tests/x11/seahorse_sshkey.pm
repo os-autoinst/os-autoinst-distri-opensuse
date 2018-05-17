@@ -36,4 +36,3 @@ sub run {
 }
 
 1;
-# vim: set sw=6 et:

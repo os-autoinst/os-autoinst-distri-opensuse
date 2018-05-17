@@ -851,4 +851,3 @@ sub configure_xdmcp_firewall {
 }
 
 1;
-# vim: set sw=4 et:

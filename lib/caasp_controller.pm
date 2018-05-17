@@ -126,4 +126,3 @@ sub download_kubeconfig {
 }
 
 1;
-# vim: set sw=4 et:
