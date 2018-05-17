@@ -199,6 +199,49 @@ if (get_var('DEV_IMAGE')) {
     }
 }
 
+#This setting is used to enable all extensions/modules for upgrading tests, generate corresponding extensions/modules list for all addons, all extensions, all modules cases.
+if (check_var('SCC_REGISTER', 'installation') && get_var('ALL_ADDONS') && !get_var('SCC_ADDONS')) {
+    my $version = get_required_var("HDDVERSION");
+    #Below $common* store the extensions/modules list in common.
+    my %common_addons = (
+        '12-SP3' => 'sdk,pcm,tcm,wsm',
+        '11-SP4' => 'ha,geo,sdk'
+    );
+    my %common_extensions = ('12-SP3' => 'sdk');
+    my %common_modules    = ('12-SP3' => 'pcm,tcm,wsm');
+    #Below $external* store external extensions/modules list on each ARCH.
+    my %external_addons_12SP3 = (
+        'x86_64'  => 'ha,geo,we,live,asmm,contm,lgm,hpcm',
+        'ppc64le' => 'ha,live,asmm,contm,lgm',
+        's390x'   => 'ha,geo,asmm,contm,lgm',
+        'aarch64' => 'hpcm'
+    );
+    my %external_modules_12SP3 = (
+        'x86_64'  => 'asmm,contm,lgm,hpcm',
+        'ppc64le' => 'asmm,contm,lgm',
+        's390x'   => 'asmm,contm,lgm',
+        'aarch64' => 'hpcm'
+    );
+    my %external_extensions_12SP3 = (
+        'x86_64'  => 'ha,geo,we,live',
+        'ppc64le' => 'ha,live',
+        's390x'   => 'ha,geo',
+        'aarch64' => ''
+    );
+    # ALL_ADDONS = 'addons' : all addons, 'extensions' : all extensions, 'modules' : all modules.
+    if (is_sle('12-SP3+')) {
+        set_var('SCC_ADDONS', join(',', $common_addons{$version},     $external_addons_12SP3{get_var('ARCH')}))     if (check_var('ALL_ADDONS', 'addons'));
+        set_var('SCC_ADDONS', join(',', $common_extensions{$version}, $external_extensions_12SP3{get_var('ARCH')})) if (check_var('ALL_ADDONS', 'extensions'));
+        set_var('SCC_ADDONS', join(',', $common_modules{$version},    $external_modules_12SP3{get_var('ARCH')}))    if (check_var('ALL_ADDONS', 'modules'));
+    }
+    elsif (is_sle('11-SP4+')) {
+        set_var('SCC_ADDONS', $common_addons{$version});
+    }
+    else {
+        die 'No addons defined for this version!';
+    }
+}
+
 # This is workaround setting which will be removed once SCC add repos and allows adding modules
 # TODO: place it somewhere else since test module suseconnect_scc will use it
 if (sle_version_at_least('15') && !check_var('SCC_REGISTER', 'installation')) {
