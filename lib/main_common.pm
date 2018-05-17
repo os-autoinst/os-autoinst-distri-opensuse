@@ -167,6 +167,15 @@ sub setup_env {
         # Does _not_ work on aarch64
         set_var('UEFI_PFLASH', 1);
     }
+    # By default format DASD devices before installation
+    if (check_var('BACKEND', 's390x')) {
+        # Format DASD before the installation by default
+        # Skip format dasd before origin system installation by autoyast in 'Upgrade on zVM'
+        # due to channel not activation issue. Need further investigation on it.
+        # Also do not format if activate existing partitions
+        my $format_dasd = get_var('S390_DISK') || get_var('UPGRADE') || get_var('ENCRYPT_ACTIVATE_EXISTING') ? 'never' : 'pre_install';
+        set_var('FORMAT_DASD', get_var('FORMAT_DASD', $format_dasd));
+    }
 }
 
 sub any_desktop_is_applicable {
