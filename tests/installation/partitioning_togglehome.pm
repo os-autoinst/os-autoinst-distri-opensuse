@@ -29,7 +29,7 @@ sub run {
     }
     # For s390x there was no offering of separated home partition until SLE 15 See bsc#1072869
     if (!check_var('ARCH', 's390x') or is_storage_ng()) {
-        if (!check_screen 'disabledhome', 0) {
+        if (!check_screen 'disabledhome', 5) {
             # toggle_home hotkey can change
             if (check_screen('inst-partition-radio-buttons', 0)) {
                 $cmd{toggle_home} = 'alt-r';
