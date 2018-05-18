@@ -1133,6 +1133,8 @@ sub load_x11tests {
     if (kdestep_is_applicable() && get_var("WAYLAND")) {
         loadtest "x11/start_wayland_plasma5";
     }
+    # first module after login or startup to check prerequisites
+    loadtest "x11/desktop_runner";
     if (xfcestep_is_applicable()) {
         loadtest "x11/xfce4_terminal";
     }
