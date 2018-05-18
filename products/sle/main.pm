@@ -1070,4 +1070,3 @@ else {
 load_common_opensuse_sle_tests;
 
 1;
-# vim: set sw=4 et:

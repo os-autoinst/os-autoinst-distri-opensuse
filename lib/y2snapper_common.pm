@@ -152,4 +152,3 @@ sub y2snapper_failure_analysis {
 }
 
 1;
-# vim: set sw=4 et:
