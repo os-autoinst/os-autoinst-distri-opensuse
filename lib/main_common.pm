@@ -829,7 +829,8 @@ sub load_inst_tests {
         # making the root partition likely to small so we should switch the
         # defaults here unless we reconfigure using the guided proposal or
         # expert partitioner anyway
-        if (get_var("TOGGLEHOME") || (is_leap('15.0+') && get_var('HDDSIZEGB', 0) <= 20 && !get_var('RAIDLEVEL') && !get_var('LVM') && !get_var('FILESYSTEM')))
+        if (get_var("TOGGLEHOME")
+            || (is_leap('15.0+') && get_var('HDDSIZEGB', 0) <= 20 && !defined get_var('RAIDLEVEL') && !get_var('LVM') && !get_var('FILESYSTEM')))
         {
             loadtest "installation/partitioning_togglehome";
             if (get_var('LVM') && get_var('RESIZE_ROOT_VOLUME')) {
