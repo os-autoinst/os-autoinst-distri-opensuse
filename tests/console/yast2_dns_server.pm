@@ -11,7 +11,7 @@
 # Summary: New test for yast2-dns-server (service management)
 # Maintainer: mgriessmeier <mgriessmeier@suse.de>
 
-use base "console_yasttest";
+use base qw(console_yasttest y2logsstep);
 use strict;
 use testapi;
 use utils;
@@ -137,6 +137,31 @@ sub run {
     assert_screen 'root-console', 180;
     $self->assert_running(0);
     $self->assert_enabled(0);
+}
+
+sub post_fail_hook {
+    my $self = shift;
+    my @tar_input_files;
+    my %cmds = (
+        rpm_bind_info              => 'rpm -qi bind',
+        rpm_bind_file_list         => 'rpm -ql bind',
+        rpm_all_installed_packages => 'rpm -qa',
+        iptables_all_rules         => 'iptables -L -v --line-numbers',
+        firewalld_all_services     => 'firewall-cmd --list-services',
+        status_named_service       => 'systemctl --no-pager status named',
+        named_journal              => 'journalctl -u named',
+        named_config               => 'cat /etc/named.conf'
+    );
+
+    foreach (keys %cmds) {
+        assert_script_run "echo Executing $cmds{$_}: > /tmp/$_";
+        assert_script_run "echo -------------------- >> /tmp/$_";
+        script_run "$cmds{$_} >> /tmp/$_ 2>&1";
+        push @tar_input_files, "/tmp/$_";
+    }
+    assert_script_run "tar cvf /tmp/dns_troubleshoot.tar @tar_input_files";
+    upload_logs('/tmp/dns_troubleshoot.tar');
+    $self->SUPER::post_fail_hook();
 }
 
 1;
