@@ -37,7 +37,12 @@ sub run {
     # Make sure there's no load before we trigger one via cron.
     settle_load;
     my $before = time;
-    assert_script_run "bash -x /usr/lib/cron/run-crons", 1000;
+    # run cron jobs or systemd timers which can affect system performance and mask systemd timers later
+    assert_script_run('find /etc/cron.{hourly,daily,weekly,monthly} -type f -executable -exec echo cron job: {} \; -exec {} \;');
+    assert_script_run(
+        'for i in $(systemctl list-units --type=timer --state=active --no-legend | sed -e \'s/\(\S\+\)\.timer\s.*/\1/\'); do
+    echo "Triggering systemd timed service $i" && systemctl start $i && systemctl mask $i ; done'
+    );
     record_soft_failure 'bsc#1063638 - review I/O scheduling parameters of btrfsmaintenance' if (time - $before) > 60 && get_var('SOFTFAIL_BSC1063638');
     sleep 3;    # some head room for the load average to rise
     settle_load;
