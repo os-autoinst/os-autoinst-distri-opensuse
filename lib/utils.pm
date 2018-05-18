@@ -721,6 +721,10 @@ sub power_action {
         record_soft_failure('bsc#1055462');
         $shutdown_timeout *= 3;
     }
+    # The timeout is increased as shutdown takes longer on Live CD
+    if (get_var('LIVECD')) {
+        $shutdown_timeout *= 4;
+    }
     if (get_var("OFW") && check_var('DISTRI', 'opensuse') && check_var('DESKTOP', 'gnome') && get_var('PUBLISH_HDD_1')) {
         $shutdown_timeout *= 3;
         record_soft_failure("boo#1057637 shutdown_timeout increased to $shutdown_timeout (s) expecting to complete.");
