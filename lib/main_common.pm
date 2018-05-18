@@ -827,8 +827,10 @@ sub load_inst_tests {
         }
         # boo#1093372 Leap 15.0 proposes a separate home even on small disks
         # making the root partition likely to small so we should switch the
-        # defaults here
-        if (get_var("TOGGLEHOME") || (is_leap('15.0+') && get_var('HDDSIZEGB', 0) < 12)) {
+        # defaults here unless we reconfigure using the guided proposal or
+        # expert partitioner anyway
+        if (get_var("TOGGLEHOME") || (is_leap('15.0+') && get_var('HDDSIZEGB', 0) <= 20 && !get_var('RAIDLEVEL') && !get_var('LVM') && !get_var('FILESYSTEM')))
+        {
             loadtest "installation/partitioning_togglehome";
             if (get_var('LVM') && get_var('RESIZE_ROOT_VOLUME')) {
                 loadtest "installation/partitioning_resize_root";
