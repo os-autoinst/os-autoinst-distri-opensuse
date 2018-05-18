@@ -48,6 +48,9 @@ sub run {
 
     # Config bootloader is not be supported during an upgrade
     # Add exception for SLES11SP4 base update, configure grub for this scenario
+    if (get_var('UPGRADE') && is_sle('<15') && !check_var('HDDVERSION', '11-SP4')) {
+        return record_soft_failure('bsc#1093838: Error if click on Booting option');
+    }
     if (get_var('UPGRADE') && (!is_sle('<15') || !is_leap('<15.0')) && (!check_var('HDDVERSION', '11-SP4'))) {
         assert_screen "bootloader-config-unsupport";
         send_key 'ret';
