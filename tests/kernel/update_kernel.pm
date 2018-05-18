@@ -110,7 +110,7 @@ sub install_lock_kernel {
     }
 
     # install and lock needed kernel
-    zypper_call("in " . join(' ', @packages), exitcode => [0, 102, 103, 104]);
+    zypper_call("in " . join(' ', @packages), exitcode => [0, 102, 103, 104], timeout => 1400);
     zypper_call("al " . join(' ', @lpackages));
 }
 
