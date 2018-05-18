@@ -28,7 +28,7 @@ sub update_kernel {
     zypper_call("ref");
 
     if (!is_patch_needed($patch)) {
-        zypper_call("in -l -t patch $patch", exitcode => [0, 102, 103], log => 'zypper.log');
+        zypper_call("in -l -t patch $patch", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 1400);
     }
     else {
         die "Patch isn't needed";
@@ -176,7 +176,7 @@ sub update_kgraft {
         # warm up system
         sleep 15;
 
-        zypper_call("in -l -t patch $patch", exitcode => [0, 102, 103], log => 'zypper.log');
+        zypper_call("in -l -t patch $patch", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 2100);
 
         #kill HEAVY-LOAD scripts
         script_run("screen -S LTP_syscalls -X quit");
