@@ -131,10 +131,12 @@ sub check_rollback_system {
     return unless is_sle;
     # Check SUSEConnect status for SLE
     # check rollback-helper service is enabled and worked properly
-    # Wait some time if rollback is in activating state
-    # Consider a bug if rollback service isn't done after that time
-    script_run('for x in `seq 60`; do (systemctl --no-pager status rollback | grep -q activating) && sleep 5; done');
-    systemctl('status rollback');
+    # If rollback service is activating, need wait some time
+    # Add wait in a loop, max time is 5 minute, because case with much more modules need more time
+    for (1 .. 5) {
+        last unless script_run('systemctl --no-pager status rollback') != 0;
+        sleep 60;
+    }
     systemctl('is-active rollback');
 
     # Disable the obsolete cd and dvd repos to avoid zypper error
