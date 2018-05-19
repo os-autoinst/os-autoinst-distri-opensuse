@@ -347,18 +347,13 @@ sub wait_boot {
             select_console('iucvconn');
         }
         else {
-            my $worker_hostname = get_required_var('WORKER_HOSTNAME');
             workaround_type_encrypted_passphrase if get_var('S390_ZKVM');
             wait_serial('GNU GRUB') || diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
             select_console('svirt');
             save_svirt_pty;
             type_line_svirt '', expect => $login_ready, timeout => $ready_time + 100, fail_message => 'Could not find login prompt';
             $self->rewrite_static_svirt_network_configuration();
-            # check up to five times if the SUT it able to ping the worker before trying to connect a console
-            type_line_svirt "'for i in {1..5}; do ping -W 1 -c 1 $worker_hostname && break; sleep 5; done'",
-              expect       => '0% packet loss',
-              timeout      => 60,
-              fail_message => 'SUT was not able to ping hypervisor, network down?';
+            type_line_svirt "systemctl is-active sshd", expect => 'active';
         }
 
         # on z/(K)VM we need to re-select a console
