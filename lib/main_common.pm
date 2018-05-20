@@ -378,7 +378,7 @@ sub load_boot_tests {
 
 sub load_reboot_tests {
     # there is encryption passphrase prompt which is handled in installation/boot_encrypt
-    if (check_var("ARCH", "s390x") && !get_var('ENCRYPT')) {
+    if (check_var("ARCH", "s390x") && !(get_var('ENCRYPT') && check_var('BACKEND', 'svirt'))) {
         loadtest "installation/reconnect_s390";
     }
     if (uses_qa_net_hardware()) {
@@ -395,7 +395,7 @@ sub load_reboot_tests {
         if (get_var('ENCRYPT')) {
             loadtest "installation/boot_encrypt";
             # reconnect after installation/boot_encrypt
-            if (check_var('ARCH', 's390x')) {
+            if (check_var('BACKEND', 'svirt') && check_var('ARCH', 's390x')) {
                 loadtest "installation/reconnect_s390";
             }
         }

@@ -117,30 +117,6 @@ sub type_line_svirt {
     }
 }
 
-sub unlock_zvm_disk {
-    my ($console) = @_;
-    eval { console('x3270')->expect_3270(output_delim => 'Please enter passphrase') };
-    if ($@) {
-        diag 'No passphrase asked, continuing';
-    }
-    else {
-        $console->sequence_3270("String(\"$testapi::password\")", "ENTER");
-        diag 'Passphrase entered';
-    }
-
-}
-
-sub handle_grub_zvm {
-    my ($console) = @_;
-    eval { $console->expect_3270(output_delim => 'GNU GRUB'); };
-    if ($@) {
-        diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
-    }
-    else {
-        $console->sequence_3270("ENTER", "ENTER", "ENTER", "ENTER");
-    }
-}
-
 sub unlock_if_encrypted {
     my (%args) = @_;
     $args{check_typed_password} //= 0;
@@ -158,13 +134,6 @@ sub unlock_if_encrypted {
         }
         wait_serial("Please enter passphrase for disk.*", 100);
         type_line_svirt "$password";
-    }    # Handle zVM scenario
-    elsif (get_var('BACKEND', 's390x')) {
-        my $console = console('x3270');
-        # Enter password before GRUB if boot is encrypted
-        unlock_zvm_disk($console) if (get_var('FULL_LVM_ENCRYPT'));
-        handle_grub_zvm($console);
-        unlock_zvm_disk($console);
     }
     else {
         assert_screen("encrypted-disk-password-prompt", 200);
@@ -1208,8 +1177,13 @@ sub reconnect_s390 {
     # different behaviour for z/VM and z/KVM
     if (check_var('BACKEND', 's390x')) {
         my $console = console('x3270');
-        # grub is handled in unlock_if_encrypted
-        handle_grub_zvm($console) unless get_var('ENCRYPT');
+        eval { $console->expect_3270(output_delim => 'GNU GRUB'); };
+        if ($@) {
+            diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
+        }
+        else {
+            $console->sequence_3270("ENTER", "ENTER", "ENTER", "ENTER");
+        }
         my $r;
         eval { $r = console('x3270')->expect_3270(output_delim => $login_ready, timeout => $args{timeout}); };
         if ($@) {
