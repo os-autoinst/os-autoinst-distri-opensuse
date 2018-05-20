@@ -295,6 +295,9 @@ sub rewrite_static_svirt_network_configuration {
     type_line_svirt "\"cat /etc/sysconfig/network/ifcfg-\*\"", expect => '#';
     type_line_svirt "systemctl restart network",               expect => '#';
     type_line_svirt "systemctl is-active network",             expect => 'active';
+    type_line_svirt 'systemctl is-active sshd',                expect => 'active';
+    # make sure we can reach the SSH server in the SUT
+    type_string "for i in {1..7}; do (nc -z $virsh_guest 22 && break) || (echo \"retry: \$i\" ; sleep 5; false); done\n";
 }
 
 =head2 wait_boot
@@ -353,7 +356,7 @@ sub wait_boot {
             save_svirt_pty;
             type_line_svirt '', expect => $login_ready, timeout => $ready_time + 100, fail_message => 'Could not find login prompt';
             $self->rewrite_static_svirt_network_configuration();
-            type_line_svirt "systemctl is-active sshd", expect => 'active';
+
         }
 
         # on z/(K)VM we need to re-select a console
