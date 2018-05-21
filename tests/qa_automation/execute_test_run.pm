@@ -39,7 +39,7 @@ sub run {
         upload_logs($tarball, timeout => 600);
 
         #convert to junit log
-        my $script_output = get_test_data($run_log);
+        my $script_output = script_output("cat $run_log");
         my $tc_result     = analyzeResult($script_output);
         my $xml_result    = generateXML($tc_result);
         script_output "echo \'$xml_result\' > /tmp/output.xml", 7200;
