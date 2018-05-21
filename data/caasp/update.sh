@@ -131,18 +131,21 @@ elif [ ! -z "${INSTALL:-}" ]; then
             $runner "zypper lr UPDATE | grep Enabled"
 
             # Install the packages
-            $runner "/usr/sbin/transactional-update pkg install -y $(cat not_installed.txt)"
+            $runner "/usr/sbin/transactional-update salt pkg install -y $(cat not_installed.txt)"
+
+	    # Refresh the Grains
+	    $srun '*' saltutil.refresh_grains
 
             # Enable the update repo
             $runner "zypper mr -e UPDATE"
             $runner "zypper lr UPDATE | grep Enabled"
 
-	    # Reboot the cluster
-            where="-P roles:(admin|kube-(master|minion))"
-	    srun="docker exec -d $saltid salt"
-	    $srun $where system.reboot
+            echo 'QAM_INSTALL'
+	    # Orchestrate the reboot via Velum to complete the installation
+        else
+            # No package are required to be installed.
+            echo 'SKIP_INSTALL'
         fi
-
 fi
 
 # Workaround for assert_script_run "update.sh | tee $serialdev | grep EXIT_0", otherwise exit status is from tee
