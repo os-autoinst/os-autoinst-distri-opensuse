@@ -39,8 +39,6 @@ sub run {
         send_key 'esc';                           # get rid of unsecure connection pop-up
         assert_screen 'openattic-dashboard';
         send_key_until_needlematch 'openattic-health-status-ok', 'f5', 10, 30;
-        assert_and_click 'openattic-logout';
-        assert_screen 'openattic-login';
         barrier_wait {name => 'all_tests_done', check_dead_job => 1};
     }
     else {
