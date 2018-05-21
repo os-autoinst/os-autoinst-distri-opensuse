@@ -21,7 +21,7 @@ use utils qw(power_action assert_shutdown_and_restore_system);
 
 our @EXPORT = qw(
   trup_call trup_install rpmver process_reboot check_reboot_changes microos_login
-  handle_simple_pw export_cluster_logs script_retry
+  handle_simple_pw export_cluster_logs script_retry script_run0 script_assert0
   get_delayed update_scheduled
   pause_until unpause);
 
@@ -275,6 +275,18 @@ sub script_retry {
         die("Waiting for Godot: $cmd") if $retry == $_;
         sleep $delay;
     }
+}
+
+# Wrapper returning PIPESTATUS[0]
+sub script_run0 {
+    my ($cmd, $wait) = @_;
+    return script_run($cmd . '; ( exit ${PIPESTATUS[0]} )', $wait);
+}
+
+# Wrapper checking PIPESTATUS[0]
+sub script_assert0 {
+    my ($cmd, $wait) = @_;
+    assert_script_run($cmd . '; ( exit ${PIPESTATUS[0]} )', $wait);
 }
 
 # All events ordered by execution

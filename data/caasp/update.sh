@@ -5,6 +5,7 @@ set -exuo pipefail
 # 2.0 -> 2.0 http://download.suse.de/ibs/Devel:/CASP:/2.0:/ControllerNode:/TestUpdate/standard/Devel:CASP:2.0:ControllerNode:TestUpdate.repo
 # 3.0 -> 3.0 TODO
 
+# On success returns 0 or 100 if reboot is required
 usage() {
 	echo "Usage: $0
 		[-s $REPO] Setup all nodes with update REPO
@@ -140,14 +141,11 @@ elif [ ! -z "${INSTALL:-}" ]; then
             $runner "zypper mr -e UPDATE"
             $runner "zypper lr UPDATE | grep Enabled"
 
-            echo 'QAM_INSTALL'
-	    # Orchestrate the reboot via Velum to complete the installation
-        else
-            # No package are required to be installed.
-            echo 'SKIP_INSTALL'
+            # Orchestrate the reboot via Velum to complete the installation
+            exit 100
         fi
 fi
 
-# Workaround for assert_script_run "update.sh | tee $serialdev | grep EXIT_0", otherwise exit status is from tee
-echo 'EXIT_OK'
-
+# Run with script_run0 or script_assert0
+# Otherwise script_run "update.sh | tee $serialdev", checks exit status is from tee
+exit 0
