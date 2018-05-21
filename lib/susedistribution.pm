@@ -272,11 +272,18 @@ sub script_sudo($$) {
     return;
 }
 
-# Simplified but still colored prompt for better readability.
+=head2 set_standard_prompt
+
+  set_standard_prompt([$user] [[, os_type] [, skip_set_standard_prompt]])
+
+C<$user> and C<os_type> affect prompt sign. C<skip_set_standard_prompt> options
+skip the entire routine.
+=cut
 sub set_standard_prompt {
-    my ($self, $user, $os_type) = @_;
+    my ($self, $user, %args) = @_;
+    return if $args{skip_set_standard_prompt};
     $user ||= $testapi::username;
-    $os_type ||= 'linux';
+    my $os_type = $args{os_type} // 'linux';
     my $prompt_sign = $user eq 'root' ? '#' : '$';
     if ($os_type eq 'windows') {
         $prompt_sign = $user eq 'root' ? '# ' : '$$ ';
@@ -472,8 +479,19 @@ sub ensure_user {
     type_string("su - $user\n") if $user ne 'root';
 }
 
-# callback whenever a console is selected for the first time
-# accepts agruments provided to select_console
+=head2 activate_console
+
+  activate_console($console [, [ensure_tty_selected => 0|1, ] [skip_set_standard_prompt => 0|1, ] [skip_setterm => 0|1, ]])
+
+Callback whenever a console is selected for the first time. Accepts arguments
+provided to select_console().
+
+C<skip_set_standard_prompt> and C<skip_setterm> arguments skip respective routines,
+e.g. if you want select_console() without addition console setup. Then, at some
+point, you should set it on your own.
+
+Option C<ensure_tty_selected> ensures TTY is selected.
+=cut
 sub activate_console {
     my ($self, $console, %args) = @_;
 
@@ -533,7 +551,7 @@ sub activate_console {
             }
         }
         assert_screen "text-logged-in-$user";
-        $self->set_standard_prompt($user);
+        $self->set_standard_prompt($user, skip_set_standard_prompt => $args{skip_set_standard_prompt});
         assert_screen $console;
     }
     elsif ($type eq 'virtio-terminal') {
@@ -544,11 +562,11 @@ sub activate_console {
         handle_password_prompt;
         ensure_user($user);
         assert_screen(["text-logged-in-$user", "text-login"], 60);
-        $self->set_standard_prompt($user);
+        $self->set_standard_prompt($user, skip_set_standard_prompt => $args{skip_set_standard_prompt});
     }
     elsif ($console eq 'svirt') {
         my $os_type = check_var('VIRSH_VMM_FAMILY', 'hyperv') ? 'windows' : 'linux';
-        $self->set_standard_prompt('root', $os_type);
+        $self->set_standard_prompt('root', os_type => $os_type, skip_set_standard_prompt => $args{skip_set_standard_prompt});
         save_svirt_pty;
     }
     elsif (
@@ -570,7 +588,7 @@ sub activate_console {
         # On s390x 'setterm' binary is not present as there's no linux console
         if (!check_var('ARCH', 's390x')) {
             # Disable console screensaver
-            $self->script_run('setterm -blank 0');
+            $self->script_run('setterm -blank 0') unless $args{skip_setterm};
         }
     }
 }
