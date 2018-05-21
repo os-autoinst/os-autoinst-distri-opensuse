@@ -73,7 +73,8 @@ sub run {
     wait_still_screen(1);
     save_screenshot;
     send_key $cmd{ok};
-    assert_screen 'installation-settings-overview-loaded';
+    # Adapting system setting needs longer time in case of installing/upgrading with multi-addons
+    assert_screen 'installation-settings-overview-loaded', 120;
 }
 
 1;
