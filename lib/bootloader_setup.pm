@@ -19,11 +19,12 @@ use Time::HiRes 'sleep';
 
 use testapi;
 use utils;
-use version_utils qw(is_jeos is_caasp is_leap);
+use version_utils qw(is_caasp is_jeos is_leap is_sle);
 use caasp 'pause_until';
 use mm_network;
 
 our @EXPORT = qw(
+  add_custom_grub_entries
   stop_grub_timeout
   boot_local_disk
   boot_into_snapshot
@@ -55,6 +56,59 @@ our $zkvm_img_path = "/var/lib/libvirt/images";
 sub stop_grub_timeout {
     send_key 'up';
 }
+
+=head2 add_custom_grub_entries
+
+Add custom grub entries with extra kernel parameters.
+It adds 3rd line with default options + 4th line with advanced options.
+Extra kernel parameters are taken in C<GRUB_PARAM> variable.
+
+e.g.  grub entries before:
+
+    * SLES 15
+    * Advanced options for SLES 15
+    * Start bootloader from a read-only snapshot
+
+grub entries with C<GRUB_PARAM='ima_policy=tcb'> and calling add_custom_grub_entries:
+
+    * SLES 15
+    * Advanced options for SLES 15
+    * SLES 15 (ima_policy=tcb)
+    * Advanced options for SLES 15 (ima_policy=tcb)
+    * Start bootloader from a read-only snapshot
+
+And of course the new entries have C<ima_policy=tcb> added to kernel parameters.
+
+=cut
+sub add_custom_grub_entries {
+    my $grub_param = get_var('GRUB_PARAM');
+    return unless defined($grub_param);
+
+    assert_script_run('cp /boot/grub2/grub.cfg grub.cfg.old');
+    upload_logs('grub.cfg.old', failok => 1);
+
+    assert_script_run('cp /etc/grub.d/40_custom 40_custom.tmp');
+    assert_script_run('cp /etc/grub.d/10_linux /etc/grub.d/11_linux_openqa');
+
+    my $cmd = "sed -i -e 's/\\(args=.\\)\\(\\\$4\\)/\\1$grub_param \\2/'";
+    $cmd .= " -e 's/\\(Advanced options for %s\\)/\\1 ($grub_param)/'";
+    $cmd .= " -e 's/\\(menuentry .\\\$(echo .\\\$title\\)/\\1 ($grub_param)/'";
+    $cmd .= " -e 's/\\(menuentry .\\\$(echo .\\\$os\\)/\\1 ($grub_param)/' /etc/grub.d/11_linux_openqa";
+    assert_script_run($cmd);
+    upload_logs('/etc/grub.d/11_linux_openqa', failok => 1);
+    assert_script_run('grub2-mkconfig -o /boot/grub2/grub.cfg');
+    upload_logs('/boot/grub2/grub.cfg', failok => 1);
+
+    my $distro   = (is_sle() ? "SLES" : "openSUSE") . ' \\?' . get_required_var('VERSION');
+    my $cnt_orig = script_output("grep -c 'menuentry .$distro' grub.cfg.old");
+    my $cnt_new  = script_output("grep -c 'menuentry .$distro' /boot/grub2/grub.cfg");
+    die("Unexpected number of grub entries: $cnt_new, expected: " . ($cnt_orig * 2)) if ($cnt_orig * 2 != $cnt_new);
+    $cnt_new = script_output("grep -c 'menuentry .$distro.*($grub_param)' /boot/grub2/grub.cfg");
+    die("Unexpected number of new grub entries: $cnt_new, expected: " . ($cnt_orig)) if ($cnt_orig != $cnt_new);
+    $cnt_new = script_output("grep -c 'linux.*/boot/vmlinu.* $grub_param ' /boot/grub2/grub.cfg");
+    die("Unexpected number of new grub entries with '$grub_param': $cnt_new, expected: " . ($cnt_orig)) if ($cnt_orig != $cnt_new);
+}
+
 
 sub boot_local_disk {
     if (get_var('OFW')) {
